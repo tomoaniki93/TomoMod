@@ -8,6 +8,7 @@
 ## Unit Frames
 - Player.
 - Target.
+- TargetCastBar
 - Target of Target.
 - Pet.
 
