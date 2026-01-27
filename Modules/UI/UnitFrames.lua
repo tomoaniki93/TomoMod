@@ -1,15 +1,16 @@
--- =====================================
+-- =========================================================================
 -- UnitFrames.lua
--- Barres de vie personnalisées pour Player et Target
--- =====================================
+-- Barres de vie pour Player, Target et TargetOfTarget
+-- =========================================================================
 
 TomoMod_UnitFrames = {}
 
 local playerFrame = nil
 local targetFrame = nil
+local totFrame = nil
 
 -- =====================================
--- COULEURS DES RESSOURCES PAR CLASSE
+-- COULEURS DES RESSOURCES
 -- =====================================
 
 local POWER_COLORS = {
@@ -62,11 +63,11 @@ local function GetUnitReactionColor(unit)
     local reaction = UnitReaction(unit, "player")
     if reaction then
         if reaction >= 5 then
-            return 0, 0.8, 0 -- Amical (vert)
+            return 0, 0.8, 0
         elseif reaction == 4 then
-            return 1, 0.82, 0 -- Neutre (jaune)
+            return 1, 0.82, 0
         else
-            return 0.8, 0, 0 -- Hostile (rouge)
+            return 0.8, 0, 0
         end
     end
     
@@ -107,14 +108,13 @@ local function FormatHealth(current, max, showCurrent, showPercent)
 end
 
 -- =====================================
--- CRÉATION DU FRAME PLAYER
+-- PLAYER FRAME
 -- =====================================
 
 local function CreatePlayerFrame()
     if playerFrame then return playerFrame end
     
     local db = TomoModDB.unitFrames.player
-    
     local width = db.minimalist and 150 or db.width
     local height = db.minimalist and 15 or db.height
     
@@ -129,10 +129,9 @@ local function CreatePlayerFrame()
     playerFrame:SetBackdropColor(0, 0, 0, 0.8)
     playerFrame:SetBackdropBorderColor(0, 0, 0, 1)
     
-    -- Barre de vie
     playerFrame.healthBar = CreateFrame("StatusBar", nil, playerFrame)
     playerFrame.healthBar:SetSize(width - 2, height - 2)
-    playerFrame.healthBar:SetPoint("TOPLEFT", playerFrame, "TOPLEFT", 1, -1)
+    playerFrame.healthBar:SetPoint("TOPLEFT", 1, -1)
     playerFrame.healthBar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
     playerFrame.healthBar:SetMinMaxValues(0, 1)
     playerFrame.healthBar:SetValue(1)
@@ -142,7 +141,6 @@ local function CreatePlayerFrame()
     playerFrame.healthBar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
     playerFrame.healthBar.bg:SetVertexColor(0.1, 0.1, 0.1, 0.8)
     
-    -- Barre d'absorption
     playerFrame.absorbBar = playerFrame.healthBar:CreateTexture(nil, "OVERLAY")
     playerFrame.absorbBar:SetTexture("Interface\\Buttons\\WHITE8x8")
     playerFrame.absorbBar:SetVertexColor(0.3, 0.7, 1, 0.4)
@@ -150,7 +148,6 @@ local function CreatePlayerFrame()
     playerFrame.absorbBar:SetHeight(height - 2)
     playerFrame.absorbBar:Hide()
     
-    -- Barre de ressource
     playerFrame.powerBar = CreateFrame("StatusBar", nil, playerFrame)
     playerFrame.powerBar:SetSize(width - 2, 6)
     playerFrame.powerBar:SetPoint("TOPLEFT", playerFrame.healthBar, "BOTTOMLEFT", 0, -1)
@@ -163,7 +160,6 @@ local function CreatePlayerFrame()
     playerFrame.powerBar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
     playerFrame.powerBar.bg:SetVertexColor(0.1, 0.1, 0.1, 0.8)
     
-    -- Indicateurs
     playerFrame.indicators = CreateFrame("Frame", nil, playerFrame)
     playerFrame.indicators:SetSize(50, 16)
     playerFrame.indicators:SetPoint("TOPLEFT", playerFrame, "BOTTOMLEFT", 0, -2)
@@ -179,9 +175,8 @@ local function CreatePlayerFrame()
     playerFrame.raidMarker:SetPoint("LEFT", playerFrame.leaderIcon, "RIGHT", 2, 0)
     playerFrame.raidMarker:Hide()
     
-    -- Textes
     playerFrame.nameText = playerFrame.healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    playerFrame.nameText:SetPoint("LEFT", playerFrame.healthBar, "LEFT", 4, 0)
+    playerFrame.nameText:SetPoint("LEFT", 4, 0)
     playerFrame.nameText:SetJustifyH("LEFT")
     
     playerFrame.levelText = playerFrame.healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -189,11 +184,10 @@ local function CreatePlayerFrame()
     playerFrame.levelText:SetTextColor(1, 0.82, 0)
     
     playerFrame.healthText = playerFrame.healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    playerFrame.healthText:SetPoint("RIGHT", playerFrame.healthBar, "RIGHT", -4, 0)
+    playerFrame.healthText:SetPoint("RIGHT", -4, 0)
     playerFrame.healthText:SetJustifyH("RIGHT")
     playerFrame.healthText:SetTextColor(1, 1, 1)
     
-    -- Drag
     playerFrame:SetMovable(true)
     playerFrame:EnableMouse(true)
     playerFrame:RegisterForDrag("LeftButton")
@@ -217,14 +211,13 @@ local function CreatePlayerFrame()
 end
 
 -- =====================================
--- CRÉATION DU FRAME TARGET
+-- TARGET FRAME
 -- =====================================
 
 local function CreateTargetFrame()
     if targetFrame then return targetFrame end
     
     local db = TomoModDB.unitFrames.target
-    
     local width = db.minimalist and 150 or db.width
     local height = db.minimalist and 15 or db.height
     
@@ -240,10 +233,9 @@ local function CreateTargetFrame()
     targetFrame:SetBackdropBorderColor(0, 0, 0, 1)
     targetFrame:Hide()
     
-    -- Barre de vie
     targetFrame.healthBar = CreateFrame("StatusBar", nil, targetFrame)
     targetFrame.healthBar:SetSize(width - 2, height - 2)
-    targetFrame.healthBar:SetPoint("TOPLEFT", targetFrame, "TOPLEFT", 1, -1)
+    targetFrame.healthBar:SetPoint("TOPLEFT", 1, -1)
     targetFrame.healthBar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
     targetFrame.healthBar:SetMinMaxValues(0, 1)
     targetFrame.healthBar:SetValue(1)
@@ -253,7 +245,6 @@ local function CreateTargetFrame()
     targetFrame.healthBar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
     targetFrame.healthBar.bg:SetVertexColor(0.1, 0.1, 0.1, 0.8)
     
-    -- Barre de ressource
     targetFrame.powerBar = CreateFrame("StatusBar", nil, targetFrame)
     targetFrame.powerBar:SetSize(width - 2, 6)
     targetFrame.powerBar:SetPoint("TOPLEFT", targetFrame.healthBar, "BOTTOMLEFT", 0, -1)
@@ -266,7 +257,6 @@ local function CreateTargetFrame()
     targetFrame.powerBar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
     targetFrame.powerBar.bg:SetVertexColor(0.1, 0.1, 0.1, 0.8)
     
-    -- Indicateurs
     targetFrame.indicators = CreateFrame("Frame", nil, targetFrame)
     targetFrame.indicators:SetSize(50, 16)
     targetFrame.indicators:SetPoint("TOPLEFT", targetFrame, "BOTTOMLEFT", 0, -2)
@@ -282,9 +272,8 @@ local function CreateTargetFrame()
     targetFrame.raidMarker:SetPoint("LEFT", targetFrame.leaderIcon, "RIGHT", 2, 0)
     targetFrame.raidMarker:Hide()
     
-    -- Textes
     targetFrame.nameText = targetFrame.healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    targetFrame.nameText:SetPoint("LEFT", targetFrame.healthBar, "LEFT", 4, 0)
+    targetFrame.nameText:SetPoint("LEFT", 4, 0)
     targetFrame.nameText:SetJustifyH("LEFT")
     
     targetFrame.levelText = targetFrame.healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -292,11 +281,10 @@ local function CreateTargetFrame()
     targetFrame.levelText:SetTextColor(1, 0.82, 0)
     
     targetFrame.healthText = targetFrame.healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    targetFrame.healthText:SetPoint("RIGHT", targetFrame.healthBar, "RIGHT", -4, 0)
+    targetFrame.healthText:SetPoint("RIGHT", -4, 0)
     targetFrame.healthText:SetJustifyH("RIGHT")
     targetFrame.healthText:SetTextColor(1, 1, 1)
     
-    -- Drag
     targetFrame:SetMovable(true)
     targetFrame:EnableMouse(true)
     targetFrame:RegisterForDrag("LeftButton")
@@ -317,6 +305,70 @@ local function CreateTargetFrame()
     end)
     
     return targetFrame
+end
+
+-- =====================================
+-- TARGET OF TARGET FRAME
+-- =====================================
+
+local function CreateToTFrame()
+    if totFrame then return totFrame end
+    
+    local db = TomoModDB.unitFrames.targetoftarget
+    local width = db.minimalist and 150 or db.width
+    local height = 15 -- Hauteur fixe
+    
+    totFrame = CreateFrame("Frame", "TomoModToTFrame", UIParent, "BackdropTemplate")
+    totFrame:SetSize(width, height)
+    totFrame:SetFrameStrata("MEDIUM")
+    totFrame:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    totFrame:SetBackdropColor(0, 0, 0, 0.8)
+    totFrame:SetBackdropBorderColor(0, 0, 0, 1)
+    totFrame:Hide()
+    
+    -- Barre de vie
+    totFrame.healthBar = CreateFrame("StatusBar", nil, totFrame)
+    totFrame.healthBar:SetSize(width - 2, height - 2)
+    totFrame.healthBar:SetPoint("TOPLEFT", 1, -1)
+    totFrame.healthBar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
+    totFrame.healthBar:SetMinMaxValues(0, 1)
+    totFrame.healthBar:SetValue(1)
+    
+    totFrame.healthBar.bg = totFrame.healthBar:CreateTexture(nil, "BACKGROUND")
+    totFrame.healthBar.bg:SetAllPoints()
+    totFrame.healthBar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
+    totFrame.healthBar.bg:SetVertexColor(0.1, 0.1, 0.1, 0.8)
+    
+    -- Nom uniquement
+    totFrame.nameText = totFrame.healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    totFrame.nameText:SetPoint("CENTER", 0, 0)
+    totFrame.nameText:SetJustifyH("CENTER")
+    
+    -- Drag
+    totFrame:SetMovable(true)
+    totFrame:EnableMouse(true)
+    totFrame:RegisterForDrag("LeftButton")
+    
+    totFrame:SetScript("OnDragStart", function(self)
+        if IsShiftKeyDown() or TomoMod_PreviewMode.IsActive() then
+            self:StartMoving()
+        end
+    end)
+    
+    totFrame:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        TomoMod_PreviewMode.SavePosition(self, TomoModDB.unitFrames.targetoftarget)
+    end)
+    
+    TomoMod_PreviewMode.RegisterElement(totFrame, "Target of Target", function(frame)
+        TomoMod_PreviewMode.SavePosition(frame, TomoModDB.unitFrames.targetoftarget)
+    end)
+    
+    return totFrame
 end
 
 -- =====================================
@@ -483,6 +535,44 @@ local function UpdateTargetFrame()
     end
 end
 
+local function UpdateToTFrame()
+    if not totFrame then return end
+    
+    local db = TomoModDB.unitFrames.targetoftarget
+    
+    if not UnitExists("targettarget") then
+        if not TomoMod_PreviewMode.IsActive() then
+            totFrame:Hide()
+        end
+        return
+    end
+    
+    totFrame:Show()
+    
+    local health = UnitHealth("targettarget")
+    local maxHealth = UnitHealthMax("targettarget")
+    local healthPercent = maxHealth > 0 and (health / maxHealth) or 0
+    
+    totFrame.healthBar:SetValue(healthPercent)
+    
+    -- Couleur de la barre
+    local r, g, b = GetUnitReactionColor("targettarget")
+    totFrame.healthBar:SetStatusBarColor(r, g, b)
+    
+    -- Nom avec couleur appropriée
+    local name = UnitName("targettarget")
+    totFrame.nameText:SetText(name)
+    
+    if UnitIsPlayer("targettarget") then
+        -- Joueur = couleur de classe
+        local cr, cg, cb = GetUnitClassColor("targettarget")
+        totFrame.nameText:SetTextColor(cr, cg, cb)
+    else
+        -- PNJ = blanc
+        totFrame.nameText:SetTextColor(1, 1, 1)
+    end
+end
+
 -- =====================================
 -- MISE À JOUR APPARENCE
 -- =====================================
@@ -520,6 +610,21 @@ local function UpdateTargetAppearance()
     UpdateTargetFrame()
 end
 
+local function UpdateToTAppearance()
+    if not totFrame then return end
+    
+    local db = TomoModDB.unitFrames.targetoftarget
+    local width = db.minimalist and 150 or db.width
+    local height = 15 -- Hauteur fixe
+    
+    totFrame:SetSize(width, height)
+    totFrame:SetScale(db.scale)
+    
+    totFrame.healthBar:SetSize(width - 2, height - 2)
+    
+    UpdateToTFrame()
+end
+
 -- =====================================
 -- CACHER FRAMES BLIZZARD
 -- =====================================
@@ -538,6 +643,14 @@ local function HideBlizzardFrames()
         TargetFrame:Hide()
         TargetFrame:SetScript("OnShow", function(self) self:Hide() end)
     end
+    
+    if db.targetoftarget.enabled then
+        if TargetFrameToT then
+            TargetFrameToT:UnregisterAllEvents()
+            TargetFrameToT:Hide()
+            TargetFrameToT:SetScript("OnShow", function(self) self:Hide() end)
+        end
+    end
 end
 
 -- =====================================
@@ -553,6 +666,8 @@ local function OnEvent(self, event, ...)
             UpdatePlayerFrame()
         elseif unit == "target" then
             UpdateTargetFrame()
+        elseif unit == "targettarget" then
+            UpdateToTFrame()
         end
         
     elseif event == "UNIT_POWER_UPDATE" or event == "UNIT_MAXPOWER" then
@@ -571,6 +686,13 @@ local function OnEvent(self, event, ...)
         
     elseif event == "PLAYER_TARGET_CHANGED" then
         UpdateTargetFrame()
+        UpdateToTFrame()
+        
+    elseif event == "UNIT_TARGET" then
+        local unit = ...
+        if unit == "target" then
+            UpdateToTFrame()
+        end
         
     elseif event == "RAID_TARGET_UPDATE" or event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LEADER_CHANGED" then
         UpdatePlayerFrame()
@@ -582,6 +704,8 @@ local function OnEvent(self, event, ...)
             UpdatePlayerFrame()
         elseif unit == "target" then
             UpdateTargetFrame()
+        elseif unit == "targettarget" then
+            UpdateToTFrame()
         end
     end
 end
@@ -593,12 +717,15 @@ end
 function TomoMod_UnitFrames.ShowPreview()
     if not playerFrame then CreatePlayerFrame() end
     if not targetFrame then CreateTargetFrame() end
+    if not totFrame then CreateToTFrame() end
     
     UpdatePlayerAppearance()
     UpdateTargetAppearance()
+    UpdateToTAppearance()
     
     playerFrame:Show()
     targetFrame:Show()
+    totFrame:Show()
     
     -- Preview target
     targetFrame.healthBar:SetValue(0.75)
@@ -609,17 +736,27 @@ function TomoMod_UnitFrames.ShowPreview()
     targetFrame.nameText:SetTextColor(1, 1, 1)
     targetFrame.levelText:SetText("70")
     targetFrame.healthText:SetText("75%")
+    
+    -- Preview ToT
+    totFrame.healthBar:SetValue(0.9)
+    totFrame.healthBar:SetStatusBarColor(0, 0.8, 0)
+    totFrame.nameText:SetText("ToT Preview")
+    totFrame.nameText:SetTextColor(1, 1, 1)
 end
 
 function TomoMod_UnitFrames.HidePreview()
     UpdatePlayerFrame()
     
     if not UnitExists("target") then
-        if targetFrame then
-            targetFrame:Hide()
-        end
+        if targetFrame then targetFrame:Hide() end
     else
         UpdateTargetFrame()
+    end
+    
+    if not UnitExists("targettarget") then
+        if totFrame then totFrame:Hide() end
+    else
+        UpdateToTFrame()
     end
 end
 
@@ -644,6 +781,12 @@ function TomoMod_UnitFrames.Initialize()
         UpdateTargetAppearance()
     end
     
+    if db.targetoftarget.enabled then
+        CreateToTFrame()
+        TomoMod_PreviewMode.LoadPosition(totFrame, db.targetoftarget, 200, -150)
+        UpdateToTAppearance()
+    end
+    
     HideBlizzardFrames()
     
     eventFrame:RegisterEvent("UNIT_HEALTH")
@@ -652,6 +795,7 @@ function TomoMod_UnitFrames.Initialize()
     eventFrame:RegisterEvent("UNIT_MAXPOWER")
     eventFrame:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
     eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+    eventFrame:RegisterEvent("UNIT_TARGET")
     eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
     eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
     eventFrame:RegisterEvent("PARTY_LEADER_CHANGED")
@@ -671,6 +815,10 @@ function TomoMod_UnitFrames.UpdateTargetSettings()
     UpdateTargetAppearance()
 end
 
+function TomoMod_UnitFrames.UpdateToTSettings()
+    UpdateToTAppearance()
+end
+
 function TomoMod_UnitFrames.ResetPlayerPosition()
     TomoModDB.unitFrames.player.position = nil
     if playerFrame then
@@ -682,5 +830,12 @@ function TomoMod_UnitFrames.ResetTargetPosition()
     TomoModDB.unitFrames.target.position = nil
     if targetFrame then
         TomoMod_PreviewMode.LoadPosition(targetFrame, TomoModDB.unitFrames.target, 200, -100)
+    end
+end
+
+function TomoMod_UnitFrames.ResetToTPosition()
+    TomoModDB.unitFrames.targetoftarget.position = nil
+    if totFrame then
+        TomoMod_PreviewMode.LoadPosition(totFrame, TomoModDB.unitFrames.targetoftarget, 200, -150)
     end
 end

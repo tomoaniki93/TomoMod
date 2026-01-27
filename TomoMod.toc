@@ -6,7 +6,7 @@
 ## SavedVariables: TomoModDB
 ## 
 ## Author: Tomo
-## Version: 1.0
+## Version: 1.13
 ## 
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo\logoProject.png
 

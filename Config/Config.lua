@@ -508,7 +508,7 @@ function TomoMod_Config.CreateUIContent()
     scrollFrame:SetPoint("BOTTOMRIGHT", -30, 50)
     
     local scrollChild = CreateFrame("Frame", nil, scrollFrame)
-    scrollChild:SetSize(460, 2000)
+    scrollChild:SetSize(460, 2200)
     scrollFrame:SetScrollChild(scrollChild)
     
     scrollFrame:EnableMouseWheel(true)
@@ -579,16 +579,7 @@ function TomoMod_Config.CreateUIContent()
     )
     gridSlider:SetValue(TomoMod_PreviewMode.GetGridSize())
     
-    yOffset = yOffset - 50
-    
-    local previewInfo = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    previewInfo:SetPoint("TOPLEFT", 30, yOffset)
-    previewInfo:SetWidth(400)
-    previewInfo:SetJustifyH("LEFT")
-    previewInfo:SetText("• Éléments encadrés en jaune • Glissez pour repositionner • Grille d'alignement")
-    previewInfo:SetTextColor(0.6, 0.6, 0.6)
-    
-    yOffset = yOffset - 25
+    yOffset = yOffset - 45
     
     local sep1 = scrollChild:CreateTexture(nil, "ARTWORK")
     sep1:SetSize(420, 2)
@@ -705,72 +696,49 @@ function TomoMod_Config.CreateUIContent()
         TomoMod_UnitFrames.UpdatePlayerSettings()
     end)
     
-    yOffset = yOffset - 25
-    
-    local playerVisualLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    playerVisualLabel:SetPoint("TOPLEFT", 30, yOffset)
-    playerVisualLabel:SetText("Indicateurs visuels:")
-    playerVisualLabel:SetTextColor(1, 0.82, 0)
-    
     yOffset = yOffset - 22
     
-    local playerLeader = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 40, yOffset, "Leader", TomoModDB.unitFrames.player.showLeader, function(self)
+    local playerLeader = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Leader", TomoModDB.unitFrames.player.showLeader, function(self)
         TomoModDB.unitFrames.player.showLeader = self:GetChecked()
         TomoMod_UnitFrames.UpdatePlayerSettings()
     end)
     
-    local playerMarker = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 200, yOffset, "Marqueur raid", TomoModDB.unitFrames.player.showRaidMarker, function(self)
+    local playerMarker = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 150, yOffset, "Marqueur", TomoModDB.unitFrames.player.showRaidMarker, function(self)
         TomoModDB.unitFrames.player.showRaidMarker = self:GetChecked()
         TomoMod_UnitFrames.UpdatePlayerSettings()
     end)
     
-    yOffset = yOffset - 25
-    
-    local playerTextLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    playerTextLabel:SetPoint("TOPLEFT", 30, yOffset)
-    playerTextLabel:SetText("Indicateurs textuels:")
-    playerTextLabel:SetTextColor(1, 0.82, 0)
-    
-    yOffset = yOffset - 22
-    
-    local playerName = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 40, yOffset, "Nom", TomoModDB.unitFrames.player.showName, function(self)
+    local playerName = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 280, yOffset, "Nom", TomoModDB.unitFrames.player.showName, function(self)
         TomoModDB.unitFrames.player.showName = self:GetChecked()
         TomoMod_UnitFrames.UpdatePlayerSettings()
     end)
     
-    local playerLevel = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 150, yOffset, "Niveau", TomoModDB.unitFrames.player.showLevel, function(self)
+    yOffset = yOffset - 22
+    
+    local playerLevel = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Niveau", TomoModDB.unitFrames.player.showLevel, function(self)
         TomoModDB.unitFrames.player.showLevel = self:GetChecked()
         TomoMod_UnitFrames.UpdatePlayerSettings()
     end)
     
-    yOffset = yOffset - 22
-    
-    local playerCurrentHP = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 40, yOffset, "HP valeur", TomoModDB.unitFrames.player.showCurrentHP, function(self)
+    local playerCurrentHP = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 150, yOffset, "HP valeur", TomoModDB.unitFrames.player.showCurrentHP, function(self)
         TomoModDB.unitFrames.player.showCurrentHP = self:GetChecked()
         TomoMod_UnitFrames.UpdatePlayerSettings()
     end)
     
-    local playerPercentHP = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 200, yOffset, "HP %", TomoModDB.unitFrames.player.showPercentHP, function(self)
+    local playerPercentHP = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 280, yOffset, "HP %", TomoModDB.unitFrames.player.showPercentHP, function(self)
         TomoModDB.unitFrames.player.showPercentHP = self:GetChecked()
         TomoMod_UnitFrames.UpdatePlayerSettings()
     end)
     
     yOffset = yOffset - 30
     
-    local playerSizeLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    playerSizeLabel:SetPoint("TOPLEFT", 30, yOffset)
-    playerSizeLabel:SetText("Taille (désactivé en minimaliste):")
-    playerSizeLabel:SetTextColor(0.7, 0.7, 0.7)
-    
-    yOffset = yOffset - 25
-    
     local playerWidthSlider = TomoMod_Utils.CreateSlider(
         scrollChild, "TomoModPlayerWidthSlider", "TOPLEFT", 30, yOffset,
-        100, 400, 10, 180, "Largeur: " .. TomoModDB.unitFrames.player.width,
+        100, 400, 10, 130, "Larg: " .. TomoModDB.unitFrames.player.width,
         function(self, value)
             if not TomoModDB.unitFrames.player.minimalist then
                 TomoModDB.unitFrames.player.width = value
-                _G[self:GetName().."Text"]:SetText("Largeur: " .. math.floor(value))
+                _G[self:GetName().."Text"]:SetText("Larg: " .. math.floor(value))
                 TomoMod_UnitFrames.UpdatePlayerSettings()
             end
         end
@@ -778,40 +746,40 @@ function TomoMod_Config.CreateUIContent()
     playerWidthSlider:SetValue(TomoModDB.unitFrames.player.width)
     
     local playerHeightSlider = TomoMod_Utils.CreateSlider(
-        scrollChild, "TomoModPlayerHeightSlider", "TOPLEFT", 250, yOffset,
-        15, 60, 1, 180, "Hauteur: " .. TomoModDB.unitFrames.player.height,
+        scrollChild, "TomoModPlayerHeightSlider", "TOPLEFT", 180, yOffset,
+        15, 60, 1, 130, "Haut: " .. TomoModDB.unitFrames.player.height,
         function(self, value)
             if not TomoModDB.unitFrames.player.minimalist then
                 TomoModDB.unitFrames.player.height = value
-                _G[self:GetName().."Text"]:SetText("Hauteur: " .. math.floor(value))
+                _G[self:GetName().."Text"]:SetText("Haut: " .. math.floor(value))
                 TomoMod_UnitFrames.UpdatePlayerSettings()
             end
         end
     )
     playerHeightSlider:SetValue(TomoModDB.unitFrames.player.height)
     
-    yOffset = yOffset - 50
-    
     local playerScaleSlider = TomoMod_Utils.CreateSlider(
-        scrollChild, "TomoModPlayerScaleSlider", "TOPLEFT", 30, yOffset,
-        0.5, 2.0, 0.1, 180, "Échelle: " .. TomoModDB.unitFrames.player.scale,
+        scrollChild, "TomoModPlayerScaleSlider", "TOPLEFT", 330, yOffset,
+        0.5, 2.0, 0.1, 100, "Scale: " .. TomoModDB.unitFrames.player.scale,
         function(self, value)
             TomoModDB.unitFrames.player.scale = value
-            _G[self:GetName().."Text"]:SetText("Échelle: " .. string.format("%.1f", value))
+            _G[self:GetName().."Text"]:SetText("Scale: " .. string.format("%.1f", value))
             TomoMod_UnitFrames.UpdatePlayerSettings()
         end
     )
     playerScaleSlider:SetValue(TomoModDB.unitFrames.player.scale)
     
+    yOffset = yOffset - 45
+    
     local resetPlayerPosBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
     resetPlayerPosBtn:SetSize(120, 22)
-    resetPlayerPosBtn:SetPoint("TOPLEFT", 250, yOffset + 5)
+    resetPlayerPosBtn:SetPoint("TOPLEFT", 30, yOffset)
     resetPlayerPosBtn:SetText("Reset Position")
     resetPlayerPosBtn:SetScript("OnClick", function()
         TomoMod_UnitFrames.ResetPlayerPosition()
     end)
     
-    yOffset = yOffset - 45
+    yOffset = yOffset - 35
     
     local sep3 = scrollChild:CreateTexture(nil, "ARTWORK")
     sep3:SetSize(420, 2)
@@ -837,79 +805,56 @@ function TomoMod_Config.CreateUIContent()
         TomoMod_UnitFrames.UpdateTargetSettings()
     end)
     
-    yOffset = yOffset - 25
-    
-    local targetVisualLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    targetVisualLabel:SetPoint("TOPLEFT", 30, yOffset)
-    targetVisualLabel:SetText("Indicateurs visuels:")
-    targetVisualLabel:SetTextColor(1, 0.82, 0)
-    
     yOffset = yOffset - 22
     
-    local targetLeader = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 40, yOffset, "Leader", TomoModDB.unitFrames.target.showLeader, function(self)
+    local targetLeader = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Leader", TomoModDB.unitFrames.target.showLeader, function(self)
         TomoModDB.unitFrames.target.showLeader = self:GetChecked()
         TomoMod_UnitFrames.UpdateTargetSettings()
     end)
     
-    local targetMarker = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 200, yOffset, "Marqueur raid", TomoModDB.unitFrames.target.showRaidMarker, function(self)
+    local targetMarker = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 150, yOffset, "Marqueur", TomoModDB.unitFrames.target.showRaidMarker, function(self)
         TomoModDB.unitFrames.target.showRaidMarker = self:GetChecked()
         TomoMod_UnitFrames.UpdateTargetSettings()
     end)
     
-    yOffset = yOffset - 25
-    
-    local targetTextLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    targetTextLabel:SetPoint("TOPLEFT", 30, yOffset)
-    targetTextLabel:SetText("Indicateurs textuels:")
-    targetTextLabel:SetTextColor(1, 0.82, 0)
-    
-    yOffset = yOffset - 22
-    
-    local targetName = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 40, yOffset, "Nom", TomoModDB.unitFrames.target.showName, function(self)
+    local targetName = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 280, yOffset, "Nom", TomoModDB.unitFrames.target.showName, function(self)
         TomoModDB.unitFrames.target.showName = self:GetChecked()
         TomoMod_UnitFrames.UpdateTargetSettings()
     end)
     
-    local targetLevel = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 150, yOffset, "Niveau", TomoModDB.unitFrames.target.showLevel, function(self)
+    yOffset = yOffset - 22
+    
+    local targetLevel = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Niveau", TomoModDB.unitFrames.target.showLevel, function(self)
         TomoModDB.unitFrames.target.showLevel = self:GetChecked()
         TomoMod_UnitFrames.UpdateTargetSettings()
     end)
     
-    yOffset = yOffset - 22
-    
-    local targetCurrentHP = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 40, yOffset, "HP valeur", TomoModDB.unitFrames.target.showCurrentHP, function(self)
+    local targetCurrentHP = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 150, yOffset, "HP valeur", TomoModDB.unitFrames.target.showCurrentHP, function(self)
         TomoModDB.unitFrames.target.showCurrentHP = self:GetChecked()
         TomoMod_UnitFrames.UpdateTargetSettings()
     end)
     
-    local targetPercentHP = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 200, yOffset, "HP %", TomoModDB.unitFrames.target.showPercentHP, function(self)
+    local targetPercentHP = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 280, yOffset, "HP %", TomoModDB.unitFrames.target.showPercentHP, function(self)
         TomoModDB.unitFrames.target.showPercentHP = self:GetChecked()
         TomoMod_UnitFrames.UpdateTargetSettings()
     end)
     
-    yOffset = yOffset - 30
+    yOffset = yOffset - 25
     
     local targetColorInfo = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     targetColorInfo:SetPoint("TOPLEFT", 30, yOffset)
-    targetColorInfo:SetText("Couleurs: Joueur=Classe, PNJ Amical=Vert, Neutre=Jaune, Ennemi=Rouge")
+    targetColorInfo:SetText("Couleurs: Joueur=Classe, Amical=Vert, Neutre=Jaune, Ennemi=Rouge")
     targetColorInfo:SetTextColor(0.6, 0.6, 0.6)
-    
-    yOffset = yOffset - 25
-    
-    local targetSizeLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    targetSizeLabel:SetPoint("TOPLEFT", 30, yOffset)
-    targetSizeLabel:SetText("Taille (désactivé en minimaliste):")
-    targetSizeLabel:SetTextColor(0.7, 0.7, 0.7)
     
     yOffset = yOffset - 25
     
     local targetWidthSlider = TomoMod_Utils.CreateSlider(
         scrollChild, "TomoModTargetWidthSlider", "TOPLEFT", 30, yOffset,
-        100, 400, 10, 180, "Largeur: " .. TomoModDB.unitFrames.target.width,
+        100, 400, 10, 130, "Larg: " .. TomoModDB.unitFrames.target.width,
         function(self, value)
             if not TomoModDB.unitFrames.target.minimalist then
                 TomoModDB.unitFrames.target.width = value
-                _G[self:GetName().."Text"]:SetText("Largeur: " .. math.floor(value))
+                _G[self:GetName().."Text"]:SetText("Larg: " .. math.floor(value))
                 TomoMod_UnitFrames.UpdateTargetSettings()
             end
         end
@@ -917,37 +862,113 @@ function TomoMod_Config.CreateUIContent()
     targetWidthSlider:SetValue(TomoModDB.unitFrames.target.width)
     
     local targetHeightSlider = TomoMod_Utils.CreateSlider(
-        scrollChild, "TomoModTargetHeightSlider", "TOPLEFT", 250, yOffset,
-        15, 60, 1, 180, "Hauteur: " .. TomoModDB.unitFrames.target.height,
+        scrollChild, "TomoModTargetHeightSlider", "TOPLEFT", 180, yOffset,
+        15, 60, 1, 130, "Haut: " .. TomoModDB.unitFrames.target.height,
         function(self, value)
             if not TomoModDB.unitFrames.target.minimalist then
                 TomoModDB.unitFrames.target.height = value
-                _G[self:GetName().."Text"]:SetText("Hauteur: " .. math.floor(value))
+                _G[self:GetName().."Text"]:SetText("Haut: " .. math.floor(value))
                 TomoMod_UnitFrames.UpdateTargetSettings()
             end
         end
     )
     targetHeightSlider:SetValue(TomoModDB.unitFrames.target.height)
     
-    yOffset = yOffset - 50
-    
     local targetScaleSlider = TomoMod_Utils.CreateSlider(
-        scrollChild, "TomoModTargetScaleSlider", "TOPLEFT", 30, yOffset,
-        0.5, 2.0, 0.1, 180, "Échelle: " .. TomoModDB.unitFrames.target.scale,
+        scrollChild, "TomoModTargetScaleSlider", "TOPLEFT", 330, yOffset,
+        0.5, 2.0, 0.1, 100, "Scale: " .. TomoModDB.unitFrames.target.scale,
         function(self, value)
             TomoModDB.unitFrames.target.scale = value
-            _G[self:GetName().."Text"]:SetText("Échelle: " .. string.format("%.1f", value))
+            _G[self:GetName().."Text"]:SetText("Scale: " .. string.format("%.1f", value))
             TomoMod_UnitFrames.UpdateTargetSettings()
         end
     )
     targetScaleSlider:SetValue(TomoModDB.unitFrames.target.scale)
     
+    yOffset = yOffset - 45
+    
     local resetTargetPosBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
     resetTargetPosBtn:SetSize(120, 22)
-    resetTargetPosBtn:SetPoint("TOPLEFT", 250, yOffset + 5)
+    resetTargetPosBtn:SetPoint("TOPLEFT", 30, yOffset)
     resetTargetPosBtn:SetText("Reset Position")
     resetTargetPosBtn:SetScript("OnClick", function()
         TomoMod_UnitFrames.ResetTargetPosition()
+    end)
+    
+    yOffset = yOffset - 35
+    
+    local sep4 = scrollChild:CreateTexture(nil, "ARTWORK")
+    sep4:SetSize(420, 2)
+    sep4:SetPoint("TOPLEFT", 20, yOffset)
+    sep4:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    
+    yOffset = yOffset - 20
+    
+    -- ========== TARGET OF TARGET FRAME ==========
+    local totHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    totHeader:SetPoint("TOPLEFT", 20, yOffset)
+    totHeader:SetText("Target of Target")
+    totHeader:SetTextColor(0.3, 0.8, 1)
+    
+    yOffset = yOffset - 25
+    
+    local totEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Activer", TomoModDB.unitFrames.targetoftarget.enabled, function(self)
+        TomoModDB.unitFrames.targetoftarget.enabled = self:GetChecked()
+    end)
+    
+    local totMinimalist = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 200, yOffset, "Mode Minimaliste (max 150)", TomoModDB.unitFrames.targetoftarget.minimalist, function(self)
+        TomoModDB.unitFrames.targetoftarget.minimalist = self:GetChecked()
+        TomoMod_UnitFrames.UpdateToTSettings()
+    end)
+    
+    yOffset = yOffset - 25
+    
+    local totInfo = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    totInfo:SetPoint("TOPLEFT", 30, yOffset)
+    totInfo:SetText("Affiche uniquement le nom (couleur classe si joueur, blanc si PNJ)")
+    totInfo:SetTextColor(0.6, 0.6, 0.6)
+    
+    yOffset = yOffset - 25
+    
+    local totColorInfo = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    totColorInfo:SetPoint("TOPLEFT", 30, yOffset)
+    totColorInfo:SetText("Barre: Joueur=Classe, Amical=Vert, Neutre=Jaune, Ennemi=Rouge")
+    totColorInfo:SetTextColor(0.6, 0.6, 0.6)
+    
+    yOffset = yOffset - 30
+    
+    local totWidthSlider = TomoMod_Utils.CreateSlider(
+        scrollChild, "TomoModToTWidthSlider", "TOPLEFT", 30, yOffset,
+        60, 150, 5, 180, "Largeur: " .. TomoModDB.unitFrames.targetoftarget.width,
+        function(self, value)
+            if not TomoModDB.unitFrames.targetoftarget.minimalist then
+                TomoModDB.unitFrames.targetoftarget.width = value
+                _G[self:GetName().."Text"]:SetText("Largeur: " .. math.floor(value))
+                TomoMod_UnitFrames.UpdateToTSettings()
+            end
+        end
+    )
+    totWidthSlider:SetValue(TomoModDB.unitFrames.targetoftarget.width)
+    
+    local totScaleSlider = TomoMod_Utils.CreateSlider(
+        scrollChild, "TomoModToTScaleSlider", "TOPLEFT", 250, yOffset,
+        0.5, 2.0, 0.1, 150, "Scale: " .. TomoModDB.unitFrames.targetoftarget.scale,
+        function(self, value)
+            TomoModDB.unitFrames.targetoftarget.scale = value
+            _G[self:GetName().."Text"]:SetText("Scale: " .. string.format("%.1f", value))
+            TomoMod_UnitFrames.UpdateToTSettings()
+        end
+    )
+    totScaleSlider:SetValue(TomoModDB.unitFrames.targetoftarget.scale)
+    
+    yOffset = yOffset - 45
+    
+    local resetToTPosBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
+    resetToTPosBtn:SetSize(120, 22)
+    resetToTPosBtn:SetPoint("TOPLEFT", 30, yOffset)
+    resetToTPosBtn:SetText("Reset Position")
+    resetToTPosBtn:SetScript("OnClick", function()
+        TomoMod_UnitFrames.ResetToTPosition()
     end)
     
     yOffset = yOffset - 50
@@ -957,7 +978,7 @@ function TomoMod_Config.CreateUIContent()
     infoText:SetPoint("TOPLEFT", 20, yOffset)
     infoText:SetWidth(420)
     infoText:SetJustifyH("LEFT")
-    infoText:SetText("Notes:\n• Player: Barre d'absorption bleue (0.4 opacité) pour boucliers\n• Target: Barre de ressource primaire selon classe/PNJ\n• Séparateur \" - \" si HP valeur ET % activés\n• /reload nécessaire pour activer/désactiver les frames")
+    infoText:SetText("Notes:\n• Player: Barre d'absorption bleue pour boucliers\n• Séparateur \" - \" si HP valeur ET % activés\n• ToT: Hauteur fixe 15px\n• /reload nécessaire pour activer/désactiver")
     infoText:SetTextColor(0.5, 0.5, 0.5)
     
     scrollFrame:SetScript("OnShow", function()

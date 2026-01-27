@@ -81,6 +81,14 @@ TomoMod_Defaults = {
             showCurrentHP = true,
             showPercentHP = true,
         },
+        targetoftarget = {
+            enabled = true,
+            width = 90,
+            height = 15, -- Hauteur fixe
+            scale = 1.0,
+            minimalist = false,
+            position = nil,
+        }
     },
 }
 
