@@ -33,7 +33,7 @@
 ## About the Project
 This is a personnal project at base but i want my friends and people to play and have fun.
 
-If you find [Issues](https://github.com/tomoaniki93/TomoMod/issues), please raise them appropriately and provide as much context as possible. If you have error codes, they help tremendously.
+If you find (https://github.com/tomoaniki93/TomoMod/issues), please raise them appropriately and provide as much context as possible. If you have error codes, they help tremendously.
 
 ## Future Plans
 I will not make a Focus and Party/raid Frame.

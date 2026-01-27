@@ -56,14 +56,13 @@ TomoMod_Defaults = {
             scale = 1.0,
             minimalist = false,
             position = nil,
-            -- Indicateurs visuels
             showLeader = true,
             showRaidMarker = true,
-            -- Indicateurs textuels
             showName = true,
             showLevel = true,
             showCurrentHP = true,
             showPercentHP = true,
+            useClassColor = true, -- Nouvelle option: true = couleur classe, false = noir/gris
         },
         target = {
             enabled = true,
@@ -72,23 +71,28 @@ TomoMod_Defaults = {
             scale = 1.0,
             minimalist = false,
             position = nil,
-            -- Indicateurs visuels
             showLeader = true,
             showRaidMarker = true,
-            -- Indicateurs textuels
             showName = true,
             showLevel = true,
             showCurrentHP = true,
             showPercentHP = true,
+            useClassColor = true, -- Nouvelle option: true = couleur classe/reaction, false = noir/gris
+            showPowerBar = true, -- Nouvelle option: afficher/cacher la barre de ressource
+            truncateName = true, -- Nouvelle option: tronquer le nom
+            truncateNameLength = 8, -- Nouvelle option: longueur max du nom
         },
         targetoftarget = {
             enabled = true,
             width = 90,
-            height = 15, -- Hauteur fixe
+            height = 15,
             scale = 1.0,
             minimalist = false,
             position = nil,
-        }
+            useClassColor = true, -- Nouvelle option
+            truncateName = true, -- Nouvelle option: tronquer le nom
+            truncateNameLength = 8, -- Nouvelle option: longueur max du nom
+        },
     },
 }
 
