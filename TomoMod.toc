@@ -1,0 +1,25 @@
+## Interface: 120000
+## 
+## Title: |cFF8080FFTomo |rMod
+## Notes: Interface simple + Qol scripts
+## Category: Interface
+## SavedVariables: TomoModDB
+## 
+## Author: Tomo
+## Version: 1.0
+## 
+## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo\logoProject.png
+
+## Libraries
+libs.xml
+
+## Database
+Database\Database.lua
+Database\Utils.lua
+
+## Modules
+Modules.xml
+
+## Config
+Config\Config.lua
+Config\Core.lua

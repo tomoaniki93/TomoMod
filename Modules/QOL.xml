@@ -1,0 +1,27 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
+
+    <!-- Modules: Minimap + InfoPanel -->
+    <Include file="Minimap\Minimap.lua" />
+    <Include file="Minimap\InfoPanel.lua"/>
+
+    <!-- Modules: Auto -->
+    <Include file="Auto\AutoVendorRepair.lua" />
+    <Include file="Auto\Fastloot.lua"/>
+    <Include file="Auto\HideTalkingHead.lua"/>
+    <Include file="Auto\CinematicSkip.lua"/>
+
+    <!-- Modules: Classes -->
+    <Include file="Classes\CompanionStatus.lua" />
+
+    <!-- Modules: Cursor -->
+    <Include file="Cursor\CursorRing.lua" />
+
+    <!-- Modules: MythicPlus -->
+    <Include file="MythicPlus\Keystone.lua" />
+    <Include file="MythicPlus\PartyKeystoneTracker.lua"/>
+
+    <!-- Modules: Quest -->
+    <Include file="Quest\AutoQuest.lua" />
+    
+</Ui>
