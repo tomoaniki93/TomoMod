@@ -3,6 +3,7 @@
 ## Midnight
 - TomoMod is ready for Pre-Patch & Midnight.
 - Setting in game /tm
+- /ks say ou party ou Guild - for PartyTrackerKeystone 
 
 ## Unit Frames
 - Player.
@@ -15,11 +16,12 @@
 - AutoQuest
 - Minimap
 - DataPanel
-- PartyTrackerKeystone
+- PartyTrackerKeystone 
 - MouseCursor
 - AutoVendorRepair
 - Fastloot
 - TooltipanchorMouse
+- CompagnonsStatue
 
 
 ## Libraries
@@ -28,36 +30,12 @@
 - [LibSharedMedia](https://www.curseforge.com/wow/addons/libsharedmedia-3-0): Handles all additional media for the AddOn.
 
 ## About the Project
-This is a ppersonnal project at base but i want my friends and people to play and have fun.
+This is a personnal project at base but i want my friends and people to play and have fun.
 
-If you find [Issues](https://github.com/DaleHuntGB/UnhaltedUnitFrames/issues), please raise them appropriately and provide as much context as possible. If you have error codes, they help tremendously.
+If you find [Issues](https://github.com/tomoaniki93/TomoMod/issues), please raise them appropriately and provide as much context as possible. If you have error codes, they help tremendously.
 
 ## Future Plans
 I will not make a Focus and Party/raid Frame.
 
-SkyridingHUD in progress
-CoolddownManager in progress
-
-
-
-
-
-Personnal Project WoW Addon for Midnight version 1.12
-
-UnitFrame: Player - Target - TargetofTarget - Focus
-
-QOL: AutoKeystone - AutoQuest - Minimap + DataPanel - PartyTrackerKeystone - MouseCursor - SkyRiding - AutoVendorRepair - Fastloot - TooltipanchorMouse
-
-Help Pet Statue for class: Hunter - Dk - Warlock
-
-CastBars: Target (Gris non interruptible, Rouge interromptible) Changement de couleur possible dans le configuration
-
-Cooldown Manager: Tweak centrage élement
-
-
-
-Commandes :
-
-TomoMod /tm
-
-PartyKeyTracker /ks say ou party ou Guild - pour afficher en dire ou party ou guild 
+- SkyridingHUD in progress
+- CoolddownManager in progress
