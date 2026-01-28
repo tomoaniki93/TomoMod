@@ -95,6 +95,31 @@ TomoMod_Defaults = {
             truncateNameLength = 8, -- Nouvelle option: longueur max du nom
         },
     },
+    auras = {
+        playerDebuffs = {
+            enabled = true,
+            position = nil,
+            scale = 1.0,
+            count = 8,                    -- Nombre de debuffs affichés (2-8)
+            growDirection = "LEFT",       -- LEFT, RIGHT, UP, DOWN
+        },
+        targetDebuffs = {
+            enabled = true,
+            position = nil,
+            scale = 1.0,
+            countPerRow = 8,              -- Nombre de debuffs par ligne (2-8)
+            rows = 1,                     -- Nombre de lignes (1-2)
+            growDirection = "RIGHT",      -- LEFT, RIGHT (direction horizontale)
+            rowDirection = "DOWN",        -- UP, DOWN (direction des lignes)
+            onlyMine = false,             -- Afficher uniquement mes debuffs
+        },
+    },
+    tooltip = {
+        enabled = true,
+        colorBorder = true,               -- Bordure colorée selon la cible
+        colorName = true,                 -- Nom coloré selon la cible
+        improveBackdrop = true,           -- Améliorer l'apparence du tooltip
+    },
 }
 
 -- Fonction pour initialiser la base de données

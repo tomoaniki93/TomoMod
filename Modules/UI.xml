@@ -10,4 +10,7 @@
     <!-- Modules: Player/Target -->
     <Include file="UI\UnitFrames.lua" />
     
+    <!-- Modules: Auras -->
+    <Include file="UI\Auras.lua" />
+
 </Ui>

@@ -53,6 +53,8 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_AutoQuest then TomoMod_AutoQuest.Initialize() end
         if TomoMod_CastBars then TomoMod_CastBars.Initialize() end
         if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end
+        if TomoMod_Auras then TomoMod_Auras.Initialize() end
+        if TomoMod_Tooltip then TomoMod_Tooltip.Initialize() end
         
         print("|cff00ff00TomoMod|r v1.14 - /tm pour config, /tm preview pour prévisualisation")
     end

@@ -3,13 +3,214 @@
 -- =====================================
 
 TomoMod_Config = {}
+TomoMod_ConfigPreview = {}
+
 local configFrame
-local currentTab = "QOL" -- Onglet par défaut
+local currentTab = "QOL"
+
+-- =====================================
+-- FONCTIONS PREVIEW
+-- =====================================
+
+local previewModules = {
+    ui = {
+        show = function()
+            if TomoMod_CastBars then TomoMod_CastBars.ShowPreview() end
+            if TomoMod_UnitFrames then TomoMod_UnitFrames.ShowPreview() end
+        end,
+        hide = function()
+            if TomoMod_CastBars then TomoMod_CastBars.HidePreview() end
+            if TomoMod_UnitFrames then TomoMod_UnitFrames.HidePreview() end
+        end,
+    },
+    auras = {
+        show = function()
+            if TomoMod_Auras then TomoMod_Auras.ShowPreview() end
+        end,
+        hide = function()
+            if TomoMod_Auras then TomoMod_Auras.HidePreview() end
+        end,
+    },
+    qol = {
+        show = function() end,
+        hide = function() end,
+    },
+}
+
+function TomoMod_ConfigPreview.RegisterModule(tabName, showFunc, hideFunc)
+    if not previewModules[tabName] then
+        previewModules[tabName] = { show = function() end, hide = function() end }
+    end
+    
+    local originalShow = previewModules[tabName].show
+    local originalHide = previewModules[tabName].hide
+    
+    previewModules[tabName].show = function()
+        originalShow()
+        if showFunc then showFunc() end
+    end
+    
+    previewModules[tabName].hide = function()
+        originalHide()
+        if hideFunc then hideFunc() end
+    end
+end
+
+function TomoMod_ConfigPreview.ShowForTab(tabName)
+    if previewModules[tabName] then
+        previewModules[tabName].show()
+    end
+    TomoMod_PreviewMode.Start()
+end
+
+function TomoMod_ConfigPreview.HideForTab(tabName)
+    if previewModules[tabName] then
+        previewModules[tabName].hide()
+    end
+    TomoMod_PreviewMode.Stop()
+end
+
+function TomoMod_ConfigPreview.ShowAll()
+    for _, module in pairs(previewModules) do
+        module.show()
+    end
+    TomoMod_PreviewMode.Start()
+end
+
+function TomoMod_ConfigPreview.HideAll()
+    for _, module in pairs(previewModules) do
+        module.hide()
+    end
+    TomoMod_PreviewMode.Stop()
+end
+
+-- Widget de preview réutilisable
+function TomoMod_ConfigPreview.CreatePreviewSection(parent, yOffset, tabName)
+    local elements = {}
+    
+    elements.header = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    elements.header:SetPoint("TOPLEFT", 20, yOffset)
+    elements.header:SetText("Mode Prévisualisation")
+    elements.header:SetTextColor(1, 0.82, 0)
+    
+    yOffset = yOffset - 30
+    
+    elements.toggleBtn = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    elements.toggleBtn:SetSize(150, 28)
+    elements.toggleBtn:SetPoint("TOPLEFT", 30, yOffset)
+    elements.toggleBtn:SetText("Activer Prévisualisation")
+    
+    elements.status = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    elements.status:SetPoint("LEFT", elements.toggleBtn, "RIGHT", 15, 0)
+    elements.status:SetText("● Inactif")
+    elements.status:SetTextColor(0.5, 0.5, 0.5)
+    
+    local function UpdatePreviewButton()
+        if TomoMod_PreviewMode.IsActive() then
+            elements.toggleBtn:SetText("Arrêter Prévisualisation")
+            elements.status:SetText("● Actif")
+            elements.status:SetTextColor(0, 1, 0)
+        else
+            elements.toggleBtn:SetText("Activer Prévisualisation")
+            elements.status:SetText("● Inactif")
+            elements.status:SetTextColor(0.5, 0.5, 0.5)
+        end
+    end
+    
+    elements.UpdateButton = UpdatePreviewButton
+    
+    elements.toggleBtn:SetScript("OnClick", function()
+        if TomoMod_PreviewMode.IsActive() then
+            TomoMod_ConfigPreview.HideForTab(tabName)
+        else
+            TomoMod_ConfigPreview.ShowForTab(tabName)
+        end
+        UpdatePreviewButton()
+    end)
+    
+    yOffset = yOffset - 35
+    
+    elements.gridSlider = TomoMod_Utils.CreateSlider(
+        parent, "TomoModGridSizeSlider_" .. tabName, "TOPLEFT", 30, yOffset,
+        16, 64, 8, 200, "Grille: " .. TomoMod_PreviewMode.GetGridSize() .. " px",
+        function(self, value)
+            TomoMod_PreviewMode.SetGridSize(value)
+            _G[self:GetName().."Text"]:SetText("Grille: " .. math.floor(value) .. " px")
+        end
+    )
+    elements.gridSlider:SetValue(TomoMod_PreviewMode.GetGridSize())
+    
+    yOffset = yOffset - 45
+    
+    elements.separator = parent:CreateTexture(nil, "ARTWORK")
+    elements.separator:SetSize(420, 2)
+    elements.separator:SetPoint("TOPLEFT", 20, yOffset)
+    elements.separator:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    
+    yOffset = yOffset - 20
+    
+    return yOffset, elements
+end
+
+function TomoMod_ConfigPreview.CreatePreviewSectionSimple(parent, yOffset, tabName)
+    local elements = {}
+    
+    elements.header = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    elements.header:SetPoint("TOPLEFT", 20, yOffset)
+    elements.header:SetText("Mode Prévisualisation")
+    elements.header:SetTextColor(1, 0.82, 0)
+    
+    yOffset = yOffset - 30
+    
+    elements.toggleBtn = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    elements.toggleBtn:SetSize(150, 28)
+    elements.toggleBtn:SetPoint("TOPLEFT", 30, yOffset)
+    elements.toggleBtn:SetText("Activer Prévisualisation")
+    
+    elements.status = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    elements.status:SetPoint("LEFT", elements.toggleBtn, "RIGHT", 15, 0)
+    elements.status:SetText("● Inactif")
+    elements.status:SetTextColor(0.5, 0.5, 0.5)
+    
+    local function UpdatePreviewButton()
+        if TomoMod_PreviewMode.IsActive() then
+            elements.toggleBtn:SetText("Arrêter Prévisualisation")
+            elements.status:SetText("● Actif")
+            elements.status:SetTextColor(0, 1, 0)
+        else
+            elements.toggleBtn:SetText("Activer Prévisualisation")
+            elements.status:SetText("● Inactif")
+            elements.status:SetTextColor(0.5, 0.5, 0.5)
+        end
+    end
+    
+    elements.UpdateButton = UpdatePreviewButton
+    
+    elements.toggleBtn:SetScript("OnClick", function()
+        if TomoMod_PreviewMode.IsActive() then
+            TomoMod_ConfigPreview.HideForTab(tabName)
+        else
+            TomoMod_ConfigPreview.ShowForTab(tabName)
+        end
+        UpdatePreviewButton()
+    end)
+    
+    yOffset = yOffset - 40
+    
+    elements.separator = parent:CreateTexture(nil, "ARTWORK")
+    elements.separator:SetSize(420, 2)
+    elements.separator:SetPoint("TOPLEFT", 20, yOffset)
+    elements.separator:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    
+    yOffset = yOffset - 20
+    
+    return yOffset, elements
+end
 
 -- =====================================
 -- FONCTIONS UTILITAIRES COLOR PICKER
 -- =====================================
--- ColorPicker compatible avec WoW 11.x (The War Within)
+
 local function ShowColorPicker(r, g, b, callback)
     local info = {
         swatchFunc = function()
@@ -73,7 +274,7 @@ end
 -- =====================================
 -- FONCTIONS DE CRÉATION DES ONGLETS
 -- =====================================
--- Fonction pour créer un bouton d'onglet
+
 local function CreateTabButton(parent, text, tabName, point, x, y)
     local btn = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
     btn.tabName = tabName
@@ -88,16 +289,13 @@ local function CreateTabButton(parent, text, tabName, point, x, y)
     return btn
 end
 
--- Fonction pour changer d'onglet
 function TomoMod_Config.SwitchTab(tabName)
     currentTab = tabName
     
-    -- Cacher tous les contenus
     if configFrame.qolContent then configFrame.qolContent:Hide() end
     if configFrame.uiContent then configFrame.uiContent:Hide() end
     if configFrame.aurasContent then configFrame.aurasContent:Hide() end
     
-    -- Afficher le contenu sélectionné
     if tabName == "QOL" and configFrame.qolContent then
         configFrame.qolContent:Show()
     elseif tabName == "UI" and configFrame.uiContent then
@@ -106,7 +304,6 @@ function TomoMod_Config.SwitchTab(tabName)
         configFrame.aurasContent:Show()
     end
     
-    -- Mettre à jour l'apparence des boutons d'onglets
     for _, btn in ipairs(configFrame.tabs) do
         if btn.tabName == tabName then
             btn:Disable()
@@ -137,12 +334,10 @@ function TomoMod_Config.Create()
     configFrame:SetScript("OnDragStop", configFrame.StopMovingOrSizing)
     configFrame:Hide()
     
-    -- Titre principal
     local title = configFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOP", 0, -20)
     title:SetText("TomoMod - Configuration")
     
-    -- Créer les onglets
     configFrame.tabs = {}
     
     local qolTab = CreateTabButton(configFrame, "QOL", "QOL", "TOPLEFT", 20, -45)
@@ -154,28 +349,15 @@ function TomoMod_Config.Create()
     local aurasTab = CreateTabButton(configFrame, "Auras", "Auras", "LEFT", uiTab, "RIGHT", 5, 0)
     table.insert(configFrame.tabs, aurasTab)
     
-    -- Ligne de séparation sous les onglets
     local separator = configFrame:CreateTexture(nil, "ARTWORK")
     separator:SetSize(480, 2)
     separator:SetPoint("TOPLEFT", 20, -80)
     separator:SetColorTexture(0.3, 0.3, 0.3, 0.8)
     
-    -- ========================================
-    -- CONTENU QOL
-    -- ========================================
     TomoMod_Config.CreateQOLContent()
-    
-    -- ========================================
-    -- CONTENU UI
-    -- ========================================
     TomoMod_Config.CreateUIContent()
-    
-    -- ========================================
-    -- CONTENU AURAS (vide pour l'instant)
-    -- ========================================
     TomoMod_Config.CreateAurasContent()
     
-    -- Bouton Fermer (fixe en bas de configFrame)
     local closeBtn = CreateFrame("Button", nil, configFrame, "UIPanelButtonTemplate")
     closeBtn:SetSize(100, 25)
     closeBtn:SetPoint("BOTTOM", 0, 15)
@@ -184,65 +366,68 @@ function TomoMod_Config.Create()
         configFrame:Hide()
     end)
     
-    -- Info (fixe en bas de configFrame)
     local dragInfo = configFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     dragInfo:SetPoint("BOTTOMLEFT", 20, 15)
     dragInfo:SetText("Shift + Clic = Déplacer")
     dragInfo:SetTextColor(0.7, 0.7, 0.7)
     
-    -- Info scroll
     local scrollInfo = configFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     scrollInfo:SetPoint("BOTTOMRIGHT", -35, 15)
     scrollInfo:SetText("Molette pour défiler")
     scrollInfo:SetTextColor(0.7, 0.7, 0.7)
     
-    -- Activer l'onglet QOL par défaut
     TomoMod_Config.SwitchTab("QOL")
 end
 
 -- =====================================
 -- CONTENU QOL
 -- =====================================
--- Créer le contenu de l'onglet QOL
+
 function TomoMod_Config.CreateQOLContent()
-    -- Créer le ScrollFrame pour QOL
-    local scrollFrame = CreateFrame("ScrollFrame", "TomoModConfigScrollQOL", configFrame, "UIPanelScrollFrameTemplate")
+    local scrollFrame = CreateFrame("ScrollFrame", "TomoModConfigScrollQoL", configFrame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", 10, -90)
     scrollFrame:SetPoint("BOTTOMRIGHT", -30, 50)
     
-    -- Créer le contenu scrollable
     local scrollChild = CreateFrame("Frame", nil, scrollFrame)
-    scrollChild:SetSize(460, 1000)
+    scrollChild:SetSize(460, 1400)
     scrollFrame:SetScrollChild(scrollChild)
     
-    -- Support de la molette
     scrollFrame:EnableMouseWheel(true)
     scrollFrame:SetScript("OnMouseWheel", function(self, delta)
         local current = self:GetVerticalScroll()
         local maxScroll = self:GetVerticalScrollRange()
-        local newScroll = math.max(0, math.min(current - (delta * 20), maxScroll))
+        local newScroll = math.max(0, math.min(current - (delta * 30), maxScroll))
         self:SetVerticalScroll(newScroll)
     end)
     
     configFrame.qolContent = scrollFrame
+    scrollFrame:Hide()
+    
+    local yOffset = -10
+    local previewElements
+    
+    -- ========== PRÉVISUALISATION ==========
+    yOffset, previewElements = TomoMod_ConfigPreview.CreatePreviewSectionSimple(scrollChild, yOffset, "qol")
     
     -- ========== SECTION MINIMAP ==========
     local minimapHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    minimapHeader:SetPoint("TOPLEFT", 20, -10)
+    minimapHeader:SetPoint("TOPLEFT", 20, yOffset)
     minimapHeader:SetText("Minimap")
     minimapHeader:SetTextColor(0.3, 0.8, 1)
     
-    -- Enable minimap
-    local minimapEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -35, "Activer", TomoModDB.minimap.enabled, function(self)
+    yOffset = yOffset - 25
+    
+    local minimapEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Activer", TomoModDB.minimap.enabled, function(self)
         TomoModDB.minimap.enabled = self:GetChecked()
         if TomoModDB.minimap.enabled then
             TomoMod_Minimap.ApplySettings()
         end
     end)
     
-    -- Slider taille minimap
+    yOffset = yOffset - 30
+    
     local minimapSizeSlider = TomoMod_Utils.CreateSlider(
-        scrollChild, "TomoModMinimapSizeSlider", "TOPLEFT", 30, -65,
+        scrollChild, "TomoModMinimapSizeSlider", "TOPLEFT", 30, yOffset,
         150, 300, 10, 250, "Taille: " .. TomoModDB.minimap.size,
         function(self, value)
             TomoModDB.minimap.size = value
@@ -252,9 +437,10 @@ function TomoMod_Config.CreateQOLContent()
     )
     minimapSizeSlider:SetValue(TomoModDB.minimap.size)
     
-    -- Slider échelle minimap
+    yOffset = yOffset - 50
+    
     local minimapScaleSlider = TomoMod_Utils.CreateSlider(
-        scrollChild, "TomoModMinimapScaleSlider", "TOPLEFT", 30, -125,
+        scrollChild, "TomoModMinimapScaleSlider", "TOPLEFT", 30, yOffset,
         0.5, 2.0, 0.1, 250, "Échelle: " .. TomoModDB.minimap.scale,
         function(self, value)
             TomoModDB.minimap.scale = value
@@ -264,14 +450,15 @@ function TomoMod_Config.CreateQOLContent()
     )
     minimapScaleSlider:SetValue(TomoModDB.minimap.scale)
     
-    -- Bordure minimap
+    yOffset = yOffset - 45
+    
     local minimapBorderLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    minimapBorderLabel:SetPoint("TOPLEFT", 30, -165)
+    minimapBorderLabel:SetPoint("TOPLEFT", 30, yOffset)
     minimapBorderLabel:SetText("Bordure:")
     
     local minimapClassBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
     minimapClassBtn:SetSize(100, 25)
-    minimapClassBtn:SetPoint("TOPLEFT", 100, -165)
+    minimapClassBtn:SetPoint("TOPLEFT", 100, yOffset)
     minimapClassBtn:SetText("Classe")
     minimapClassBtn:SetScript("OnClick", function()
         TomoModDB.minimap.borderColor = "class"
@@ -287,51 +474,65 @@ function TomoMod_Config.CreateQOLContent()
         TomoMod_Minimap.CreateBorder()
     end)
     
+    yOffset = yOffset - 40
+    
+    local sep1 = scrollChild:CreateTexture(nil, "ARTWORK")
+    sep1:SetSize(420, 2)
+    sep1:SetPoint("TOPLEFT", 20, yOffset)
+    sep1:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    
+    yOffset = yOffset - 20
+    
     -- ========== SECTION INFO PANEL ==========
     local panelHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    panelHeader:SetPoint("TOPLEFT", 20, -205)
+    panelHeader:SetPoint("TOPLEFT", 20, yOffset)
     panelHeader:SetText("Info Panel")
     panelHeader:SetTextColor(0.3, 0.8, 1)
     
-    -- Enable panel
-    local panelEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -230, "Activer", TomoModDB.infoPanel.enabled, function(self)
+    yOffset = yOffset - 25
+    
+    local panelEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Activer", TomoModDB.infoPanel.enabled, function(self)
         TomoModDB.infoPanel.enabled = self:GetChecked()
-        print("|cff00ff00TomoMod:|r Panel enabled = " .. tostring(TomoModDB.infoPanel.enabled))
         if TomoModDB.infoPanel.enabled then
             TomoMod_InfoPanel.Initialize()
         else
             local panel = _G["TomoModInfoPanel"]
-            if panel then 
-                panel:Hide()
-                print("|cff00ff00TomoMod:|r Panel caché")
-            end
+            if panel then panel:Hide() end
         end
     end)
     
-    -- Checkboxes
-    local durabilityCheck = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -255, "Durabilité (Gear)", TomoModDB.infoPanel.showDurability, function(self)
+    yOffset = yOffset - 25
+    
+    local durabilityCheck = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Durabilité (Gear)", TomoModDB.infoPanel.showDurability, function(self)
         TomoModDB.infoPanel.showDurability = self:GetChecked()
         TomoMod_InfoPanel.Update()
     end)
     
-    local timeCheck = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -285, "Heure (Time)", TomoModDB.infoPanel.showTime, function(self)
+    yOffset = yOffset - 25
+    
+    local timeCheck = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Heure (Time)", TomoModDB.infoPanel.showTime, function(self)
         TomoModDB.infoPanel.showTime = self:GetChecked()
         TomoMod_InfoPanel.Update()
     end)
     
-    local format24Check = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 50, -315, "Format 24h", TomoModDB.infoPanel.use24Hour, function(self)
+    yOffset = yOffset - 25
+    
+    local format24Check = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 50, yOffset, "Format 24h", TomoModDB.infoPanel.use24Hour, function(self)
         TomoModDB.infoPanel.use24Hour = self:GetChecked()
         TomoMod_InfoPanel.Update()
     end)
     
-    local fpsCheck = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -345, "FPS (Fps)", TomoModDB.infoPanel.showFPS, function(self)
+    yOffset = yOffset - 25
+    
+    local fpsCheck = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "FPS (Fps)", TomoModDB.infoPanel.showFPS, function(self)
         TomoModDB.infoPanel.showFPS = self:GetChecked()
         TomoMod_InfoPanel.Update()
     end)
     
-    -- Slider échelle panel
+    yOffset = yOffset - 35
+    
     local panelScaleSlider = TomoMod_Utils.CreateSlider(
-        scrollChild, "TomoModPanelScaleSlider", "TOPLEFT", 30, -385,
+        scrollChild, "TomoModPanelScaleSlider", "TOPLEFT", 30, yOffset,
         0.5, 2.0, 0.1, 250, "Échelle: " .. TomoModDB.infoPanel.scale,
         function(self, value)
             TomoModDB.infoPanel.scale = value
@@ -341,14 +542,15 @@ function TomoMod_Config.CreateQOLContent()
     )
     panelScaleSlider:SetValue(TomoModDB.infoPanel.scale)
     
-    -- Bordure panel
+    yOffset = yOffset - 50
+    
     local panelBorderLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    panelBorderLabel:SetPoint("TOPLEFT", 30, -435)
+    panelBorderLabel:SetPoint("TOPLEFT", 30, yOffset)
     panelBorderLabel:SetText("Bordure:")
     
     local panelBlackBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
     panelBlackBtn:SetSize(100, 25)
-    panelBlackBtn:SetPoint("TOPLEFT", 100, -435)
+    panelBlackBtn:SetPoint("TOPLEFT", 100, yOffset)
     panelBlackBtn:SetText("Noir")
     panelBlackBtn:SetScript("OnClick", function()
         TomoModDB.infoPanel.borderColor = "black"
@@ -364,138 +566,232 @@ function TomoMod_Config.CreateQOLContent()
         TomoMod_InfoPanel.UpdateAppearance()
     end)
     
-    -- Reset position (à droite, même ligne que les boutons de bordure)
     local resetBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
-    resetBtn:SetSize(150, 25)
-    resetBtn:SetPoint("TOPRIGHT", 0, -435)
-    resetBtn:SetText("Reset Position Panel")
+    resetBtn:SetSize(120, 25)
+    resetBtn:SetPoint("LEFT", panelClassBtn, "RIGHT", 10, 0)
+    resetBtn:SetText("Reset Position")
     resetBtn:SetScript("OnClick", function()
         TomoModDB.infoPanel.position = nil
         TomoMod_InfoPanel.SetPosition()
-        print("|cff00ff00TomoMod:|r Position réinitialisée")
     end)
     
-    -- ========== SECTION CURSOR RING ==========
+    yOffset = yOffset - 40
+    
+    local sep2 = scrollChild:CreateTexture(nil, "ARTWORK")
+    sep2:SetSize(420, 2)
+    sep2:SetPoint("TOPLEFT", 20, yOffset)
+    sep2:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    
+    yOffset = yOffset - 20
+    
+    -- ========== TOOLTIP ==========
+    local tooltipHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    tooltipHeader:SetPoint("TOPLEFT", 20, yOffset)
+    tooltipHeader:SetText("Tooltip")
+    tooltipHeader:SetTextColor(0.4, 0.8, 1)
+    
+    yOffset = yOffset - 25
+    
+    local tooltipEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Activer les améliorations", TomoModDB.tooltip.enabled, function(self)
+        TomoModDB.tooltip.enabled = self:GetChecked()
+    end)
+    
+    yOffset = yOffset - 25
+    
+    local colorBorder = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Bordure colorée selon la cible", TomoModDB.tooltip.colorBorder, function(self)
+        TomoModDB.tooltip.colorBorder = self:GetChecked()
+    end)
+    
+    yOffset = yOffset - 25
+    
+    local colorName = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Nom coloré selon la cible", TomoModDB.tooltip.colorName, function(self)
+        TomoModDB.tooltip.colorName = self:GetChecked()
+    end)
+    
+    yOffset = yOffset - 25
+    
+    local improveBackdrop = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Améliorer l'apparence du fond", TomoModDB.tooltip.improveBackdrop, function(self)
+        TomoModDB.tooltip.improveBackdrop = self:GetChecked()
+    end)
+    
+    yOffset = yOffset - 30
+    
+    local legendHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    legendHeader:SetPoint("TOPLEFT", 30, yOffset)
+    legendHeader:SetText("Légende des couleurs :")
+    legendHeader:SetTextColor(0.8, 0.8, 0.8)
+    
+    yOffset = yOffset - 20
+    
+    local colors = {
+        {label = "Joueur", desc = "Couleur de classe", r = 0.78, g = 0.61, b = 0.43},
+        {label = "PNJ Amical", desc = "Vert", r = 0, g = 0.8, b = 0},
+        {label = "PNJ Neutre", desc = "Jaune", r = 1, g = 0.82, b = 0},
+        {label = "PNJ Hostile", desc = "Rouge", r = 0.8, g = 0, b = 0},
+        {label = "Mort", desc = "Gris", r = 0.5, g = 0.5, b = 0.5},
+    }
+    
+    for _, colorInfo in ipairs(colors) do
+        local colorSwatch = scrollChild:CreateTexture(nil, "ARTWORK")
+        colorSwatch:SetSize(14, 14)
+        colorSwatch:SetPoint("TOPLEFT", 40, yOffset)
+        colorSwatch:SetColorTexture(colorInfo.r, colorInfo.g, colorInfo.b, 1)
+        
+        local label = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        label:SetPoint("LEFT", colorSwatch, "RIGHT", 8, 0)
+        label:SetText(colorInfo.label .. " - " .. colorInfo.desc)
+        label:SetTextColor(0.7, 0.7, 0.7)
+        
+        yOffset = yOffset - 18
+    end
+    
+    yOffset = yOffset - 15
+    
+    local sep3 = scrollChild:CreateTexture(nil, "ARTWORK")
+    sep3:SetSize(420, 2)
+    sep3:SetPoint("TOPLEFT", 20, yOffset)
+    sep3:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    
+    yOffset = yOffset - 20
+    
+    -- ========== CURSOR RING ==========
     local cursorHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    cursorHeader:SetPoint("TOPLEFT", 20, -470)
+    cursorHeader:SetPoint("TOPLEFT", 20, yOffset)
     cursorHeader:SetText("Cursor Ring")
-    cursorHeader:SetTextColor(0.3, 0.8, 1)
+    cursorHeader:SetTextColor(0.4, 0.8, 1)
     
-    -- Enable cursor ring
-    local cursorEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -495, "Activer", TomoModDB.cursorRing.enabled, function(self)
+    yOffset = yOffset - 25
+    
+    local cursorEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Activer l'anneau de curseur", TomoModDB.cursorRing.enabled, function(self)
         TomoModDB.cursorRing.enabled = self:GetChecked()
-        TomoMod_CursorRing.ApplySettings()
     end)
     
-    -- Couleur de classe
-    local cursorClassColor = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -520, "Couleur de classe", TomoModDB.cursorRing.useClassColor, function(self)
+    yOffset = yOffset - 25
+    
+    local cursorClassColor = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Couleur de classe", TomoModDB.cursorRing.useClassColor, function(self)
         TomoModDB.cursorRing.useClassColor = self:GetChecked()
-        TomoMod_CursorRing.ApplyColor()
     end)
     
-    -- Ancrer tooltip
-    local cursorTooltip = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 200, -520, "Ancrer Tooltip + Afficher Ring", TomoModDB.cursorRing.anchorTooltip, function(self)
+    local cursorAnchorTooltip = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 200, yOffset, "Ancrer le tooltip", TomoModDB.cursorRing.anchorTooltip, function(self)
         TomoModDB.cursorRing.anchorTooltip = self:GetChecked()
-        TomoMod_CursorRing.SetupTooltipAnchor()
-        TomoMod_CursorRing.Toggle(true)
     end)
     
-    -- Slider échelle cursor
+    yOffset = yOffset - 35
+    
     local cursorScaleSlider = TomoMod_Utils.CreateSlider(
-        scrollChild, "TomoModCursorScaleSlider", "TOPLEFT", 30, -560,
-        0.5, 3.0, 0.1, 250, "Échelle: " .. TomoModDB.cursorRing.scale,
+        scrollChild, "TomoModCursorScaleSlider", "TOPLEFT", 30, yOffset,
+        0.5, 2.0, 0.1, 200, "Échelle: " .. string.format("%.1f", TomoModDB.cursorRing.scale or 1),
         function(self, value)
             TomoModDB.cursorRing.scale = value
             _G[self:GetName().."Text"]:SetText("Échelle: " .. string.format("%.1f", value))
-            TomoMod_CursorRing.ApplyScale()
         end
     )
-    cursorScaleSlider:SetValue(TomoModDB.cursorRing.scale)
+    cursorScaleSlider:SetValue(TomoModDB.cursorRing.scale or 1)
     
-    -- Séparateur visuel
-    local separator = scrollChild:CreateTexture(nil, "ARTWORK")
-    separator:SetSize(420, 1)
-    separator:SetPoint("TOPLEFT", 20, -610)
-    separator:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    yOffset = yOffset - 50
     
-    -- ========== SECTION CINEMATIC SKIP ==========
+    local sep4 = scrollChild:CreateTexture(nil, "ARTWORK")
+    sep4:SetSize(420, 2)
+    sep4:SetPoint("TOPLEFT", 20, yOffset)
+    sep4:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    
+    yOffset = yOffset - 20
+    
+    -- ========== CINEMATIC SKIP ==========
     local cinematicHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    cinematicHeader:SetPoint("TOPLEFT", 20, -630)
+    cinematicHeader:SetPoint("TOPLEFT", 20, yOffset)
     cinematicHeader:SetText("Cinematic Skip")
-    cinematicHeader:SetTextColor(0.3, 0.8, 1)
+    cinematicHeader:SetTextColor(0.4, 0.8, 1)
     
-    -- Enable cinematic skip
-    local cinematicEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -655, "Activer le skip automatique", TomoModDB.cinematicSkip.enabled, function(self)
+    yOffset = yOffset - 25
+    
+    local cinematicEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Passer les cinématiques déjà vues", TomoModDB.cinematicSkip.enabled, function(self)
         TomoModDB.cinematicSkip.enabled = self:GetChecked()
-        if TomoModDB.cinematicSkip.enabled then
-            TomoMod_CinematicSkip.Initialize()
-        end
     end)
     
-    -- Info sur le nombre de cinématiques vues
-    local viewedCount = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    viewedCount:SetPoint("TOPLEFT", 30, -680)
-    viewedCount:SetText("Cinématiques vues: " .. TomoMod_CinematicSkip.GetViewedCount())
-    viewedCount:SetTextColor(0.8, 0.8, 0.8)
+    yOffset = yOffset - 30
     
-    -- Bouton pour effacer l'historique
-    local clearHistoryBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
-    clearHistoryBtn:SetSize(180, 25)
-    clearHistoryBtn:SetPoint("TOPLEFT", 30, -705)
-    clearHistoryBtn:SetText("Effacer l'historique")
-    clearHistoryBtn:SetScript("OnClick", function()
-        TomoMod_CinematicSkip.ClearHistory()
-        viewedCount:SetText("Cinématiques vues: " .. TomoMod_CinematicSkip.GetViewedCount())
+    local resetCinematicBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
+    resetCinematicBtn:SetSize(180, 22)
+    resetCinematicBtn:SetPoint("TOPLEFT", 30, yOffset)
+    resetCinematicBtn:SetText("Réinitialiser les cinématiques")
+    resetCinematicBtn:SetScript("OnClick", function()
+        TomoModDB.cinematicSkip.viewedCinematics = {}
+        print("|cff00ff00TomoMod:|r Liste des cinématiques vues réinitialisée")
     end)
     
-    -- Info explicative
-    local infoText = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    infoText:SetPoint("TOPLEFT", 30, -740)
-    infoText:SetWidth(400)
-    infoText:SetJustifyH("LEFT")
-    infoText:SetText("Les cinématiques sont skippées automatiquement après la première visualisation.\nL'historique est partagé entre tous vos personnages.")
-    infoText:SetTextColor(0.6, 0.6, 0.6)
+    yOffset = yOffset - 30
     
-    -- Séparateur
-    local separator2 = scrollChild:CreateTexture(nil, "ARTWORK")
-    separator2:SetSize(420, 1)
-    separator2:SetPoint("TOPLEFT", 20, -780)
-    separator2:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    local cinematicInfoText = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    cinematicInfoText:SetPoint("TOPLEFT", 30, yOffset)
+    cinematicInfoText:SetWidth(400)
+    cinematicInfoText:SetJustifyH("LEFT")
+    cinematicInfoText:SetText("Les cinématiques sont skippées automatiquement après la première visualisation.\nL'historique est partagé entre tous vos personnages.")
+    cinematicInfoText:SetTextColor(0.6, 0.6, 0.6)
     
-    -- ========== SECTION AUTO QUEST ==========
+    yOffset = yOffset - 40
+    
+    local sep5 = scrollChild:CreateTexture(nil, "ARTWORK")
+    sep5:SetSize(420, 2)
+    sep5:SetPoint("TOPLEFT", 20, yOffset)
+    sep5:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    
+    yOffset = yOffset - 20
+    
+    -- ========== AUTO QUEST ==========
     local autoQuestHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    autoQuestHeader:SetPoint("TOPLEFT", 20, -800)
+    autoQuestHeader:SetPoint("TOPLEFT", 20, yOffset)
     autoQuestHeader:SetText("Auto Quest")
-    autoQuestHeader:SetTextColor(0.3, 0.8, 1)
+    autoQuestHeader:SetTextColor(0.4, 0.8, 1)
     
-    -- Enable auto accept
-    local autoAcceptCheck = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -825, "Auto-accepter les quêtes", TomoModDB.autoQuest.autoAccept, function(self)
+    yOffset = yOffset - 25
+    
+    local autoAccept = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Accepter automatiquement les quêtes", TomoModDB.autoQuest.autoAccept, function(self)
         TomoModDB.autoQuest.autoAccept = self:GetChecked()
     end)
     
-    -- Enable auto turn in
-    local autoTurnInCheck = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -850, "Auto-compléter les quêtes", TomoModDB.autoQuest.autoTurnIn, function(self)
+    yOffset = yOffset - 25
+    
+    local autoTurnIn = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Rendre automatiquement les quêtes", TomoModDB.autoQuest.autoTurnIn, function(self)
         TomoModDB.autoQuest.autoTurnIn = self:GetChecked()
     end)
     
-    -- Enable auto gossip
-    local autoGossipCheck = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, -875, "Auto-sélectionner les dialogues", TomoModDB.autoQuest.autoGossip, function(self)
+    yOffset = yOffset - 25
+    
+    local autoGossip = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Passer automatiquement les dialogues", TomoModDB.autoQuest.autoGossip, function(self)
         TomoModDB.autoQuest.autoGossip = self:GetChecked()
     end)
     
-    -- Info explicative
+    yOffset = yOffset - 30
+    
     local questInfoText = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    questInfoText:SetPoint("TOPLEFT", 30, -905)
+    questInfoText:SetPoint("TOPLEFT", 30, yOffset)
     questInfoText:SetWidth(400)
     questInfoText:SetJustifyH("LEFT")
     questInfoText:SetText("Maintenez SHIFT pour désactiver temporairement l'auto-acceptation.\nLes quêtes avec choix de récompenses multiples ne seront pas auto-complétées.")
     questInfoText:SetTextColor(0.6, 0.6, 0.6)
+    
+    yOffset = yOffset - 50
+    
+    -- Note finale
+    local noteText = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    noteText:SetPoint("TOPLEFT", 20, yOffset)
+    noteText:SetWidth(420)
+    noteText:SetJustifyH("LEFT")
+    noteText:SetText("Note: /reload nécessaire pour appliquer certains changements d'activation.")
+    noteText:SetTextColor(0.5, 0.5, 0.5)
+    
+    scrollFrame:SetScript("OnShow", function()
+        if previewElements and previewElements.UpdateButton then
+            previewElements.UpdateButton()
+        end
+    end)
 end
 
 -- =====================================
 -- CONTENU UI
 -- =====================================
--- Créer le contenu de l'onglet UI
+
 function TomoMod_Config.CreateUIContent()
     local scrollFrame = CreateFrame("ScrollFrame", "TomoModConfigScrollUI", configFrame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", 10, -90)
@@ -517,70 +813,10 @@ function TomoMod_Config.CreateUIContent()
     scrollFrame:Hide()
     
     local yOffset = -10
+    local previewElements
     
     -- ========== PRÉVISUALISATION ==========
-    local previewHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    previewHeader:SetPoint("TOPLEFT", 20, yOffset)
-    previewHeader:SetText("Mode Prévisualisation")
-    previewHeader:SetTextColor(1, 0.82, 0)
-    
-    yOffset = yOffset - 30
-    
-    local previewToggleBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
-    previewToggleBtn:SetSize(150, 28)
-    previewToggleBtn:SetPoint("TOPLEFT", 30, yOffset)
-    previewToggleBtn:SetText("Activer Prévisualisation")
-    
-    local previewStatus = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    previewStatus:SetPoint("LEFT", previewToggleBtn, "RIGHT", 15, 0)
-    previewStatus:SetText("+ Inactif")
-    previewStatus:SetTextColor(0.5, 0.5, 0.5)
-    
-    local function UpdatePreviewButton()
-        if TomoMod_PreviewMode.IsActive() then
-            previewToggleBtn:SetText("Arrêter Prévisualisation")
-            previewStatus:SetText("+ Actif")
-            previewStatus:SetTextColor(0, 1, 0)
-        else
-            previewToggleBtn:SetText("Activer Prévisualisation")
-            previewStatus:SetText("+ Inactif")
-            previewStatus:SetTextColor(0.5, 0.5, 0.5)
-        end
-    end
-    
-    previewToggleBtn:SetScript("OnClick", function()
-        if TomoMod_PreviewMode.IsActive() then
-            TomoMod_CastBars.HidePreview()
-            TomoMod_UnitFrames.HidePreview()
-            TomoMod_PreviewMode.Stop()
-        else
-            TomoMod_CastBars.ShowPreview()
-            TomoMod_UnitFrames.ShowPreview()
-            TomoMod_PreviewMode.Start()
-        end
-        UpdatePreviewButton()
-    end)
-    
-    yOffset = yOffset - 45
-    
-    local gridSlider = TomoMod_Utils.CreateSlider(
-        scrollChild, "TomoModGridSizeSlider", "TOPLEFT", 30, yOffset,
-        16, 64, 8, 200, "Grille: " .. TomoMod_PreviewMode.GetGridSize() .. " px",
-        function(self, value)
-            TomoMod_PreviewMode.SetGridSize(value)
-            _G[self:GetName().."Text"]:SetText("Grille: " .. math.floor(value) .. " px")
-        end
-    )
-    gridSlider:SetValue(TomoMod_PreviewMode.GetGridSize())
-    
-    yOffset = yOffset - 45
-    
-    local sep1 = scrollChild:CreateTexture(nil, "ARTWORK")
-    sep1:SetSize(420, 2)
-    sep1:SetPoint("TOPLEFT", 20, yOffset)
-    sep1:SetColorTexture(0.3, 0.3, 0.3, 0.8)
-    
-    yOffset = yOffset - 20
+    yOffset, previewElements = TomoMod_ConfigPreview.CreatePreviewSection(scrollChild, yOffset, "ui")
     
     -- ========== CAST BAR ==========
     local castBarHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -608,11 +844,11 @@ function TomoMod_Config.CreateUIContent()
     
     yOffset = yOffset - 22
     
-    local flashOnTargeted = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Flash si Player ciblé", TomoModDB.castBars.flashOnTargeted, function(self)
+    local flashOnTargeted = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Flash si ciblé", TomoModDB.castBars.flashOnTargeted, function(self)
         TomoModDB.castBars.flashOnTargeted = self:GetChecked()
     end)
     
-    yOffset = yOffset - 45
+    yOffset = yOffset - 35
     
     local widthSlider = TomoMod_Utils.CreateSlider(
         scrollChild, "TomoModCastBarWidthSlider", "TOPLEFT", 30, yOffset,
@@ -697,11 +933,6 @@ function TomoMod_Config.CreateUIContent()
         TomoMod_UnitFrames.UpdatePlayerSettings()
     end)
     
-    local playerPowerBar = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 220, yOffset, "Barre de ressource", TomoModDB.unitFrames.player.showPowerBar, function(self)
-        TomoModDB.unitFrames.player.showPowerBar = self:GetChecked()
-        TomoMod_UnitFrames.UpdateTargetSettings()
-    end)
-    
     yOffset = yOffset - 22
     
     local playerLeader = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Leader", TomoModDB.unitFrames.player.showLeader, function(self)
@@ -736,7 +967,7 @@ function TomoMod_Config.CreateUIContent()
         TomoMod_UnitFrames.UpdatePlayerSettings()
     end)
     
-    yOffset = yOffset - 40
+    yOffset = yOffset - 30
     
     local playerWidthSlider = TomoMod_Utils.CreateSlider(
         scrollChild, "TomoModPlayerWidthSlider", "TOPLEFT", 30, yOffset,
@@ -861,15 +1092,8 @@ function TomoMod_Config.CreateUIContent()
         TomoModDB.unitFrames.target.showPercentHP = self:GetChecked()
         TomoMod_UnitFrames.UpdateTargetSettings()
     end)
-
-    yOffset = yOffset - 22
-
-    local totTruncate = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Tronquer le nom", TomoModDB.unitFrames.target.truncateName, function(self)
-        TomoModDB.unitFrames.target.truncateName = self:GetChecked()
-        TomoMod_UnitFrames.UpdateToTSettings()
-    end)
     
-    yOffset = yOffset - 40
+    yOffset = yOffset - 30
     
     local targetWidthSlider = TomoMod_Utils.CreateSlider(
         scrollChild, "TomoModTargetWidthSlider", "TOPLEFT", 30, yOffset,
@@ -907,19 +1131,6 @@ function TomoMod_Config.CreateUIContent()
         end
     )
     targetScaleSlider:SetValue(TomoModDB.unitFrames.target.scale)
-
-    yOffset = yOffset - 40
-    
-    local totTruncLenSlider = TomoMod_Utils.CreateSlider(
-        scrollChild, "TomoModToTTruncLenSlider", "TOPLEFT", 30, yOffset,
-        3, 15, 1, 200, "Longueur nom max: " .. TomoModDB.unitFrames.targetoftarget.truncateNameLength,
-        function(self, value)
-            TomoModDB.unitFrames.targetoftarget.truncateNameLength = value
-            _G[self:GetName().."Text"]:SetText("Longueur nom max: " .. math.floor(value))
-            TomoMod_UnitFrames.UpdateToTSettings()
-        end
-    )
-    totTruncLenSlider:SetValue(TomoModDB.unitFrames.targetoftarget.truncateNameLength)
     
     yOffset = yOffset - 45
     
@@ -974,7 +1185,7 @@ function TomoMod_Config.CreateUIContent()
         TomoMod_UnitFrames.UpdateToTSettings()
     end)
     
-    yOffset = yOffset - 40
+    yOffset = yOffset - 30
     
     local totWidthSlider = TomoMod_Utils.CreateSlider(
         scrollChild, "TomoModToTWidthSlider", "TOPLEFT", 30, yOffset,
@@ -1025,7 +1236,6 @@ function TomoMod_Config.CreateUIContent()
     
     yOffset = yOffset - 50
     
-    -- Info finale
     local infoText = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     infoText:SetPoint("TOPLEFT", 20, yOffset)
     infoText:SetWidth(420)
@@ -1034,48 +1244,289 @@ function TomoMod_Config.CreateUIContent()
     infoText:SetTextColor(0.5, 0.5, 0.5)
     
     scrollFrame:SetScript("OnShow", function()
-        UpdatePreviewButton()
+        if previewElements and previewElements.UpdateButton then
+            previewElements.UpdateButton()
+        end
     end)
 end
 
 -- =====================================
 -- CONTENU AURAS
 -- =====================================
--- Créer le contenu de l'onglet Auras
+
 function TomoMod_Config.CreateAurasContent()
-    -- Créer le ScrollFrame pour Auras
     local scrollFrame = CreateFrame("ScrollFrame", "TomoModConfigScrollAuras", configFrame, "UIPanelScrollFrameTemplate")
     scrollFrame:SetPoint("TOPLEFT", 10, -90)
     scrollFrame:SetPoint("BOTTOMRIGHT", -30, 50)
     
-    -- Créer le contenu scrollable
     local scrollChild = CreateFrame("Frame", nil, scrollFrame)
-    scrollChild:SetSize(460, 500)
+    scrollChild:SetSize(460, 900)
     scrollFrame:SetScrollChild(scrollChild)
     
-    -- Support de la molette
     scrollFrame:EnableMouseWheel(true)
     scrollFrame:SetScript("OnMouseWheel", function(self, delta)
         local current = self:GetVerticalScroll()
         local maxScroll = self:GetVerticalScrollRange()
-        local newScroll = math.max(0, math.min(current - (delta * 20), maxScroll))
+        local newScroll = math.max(0, math.min(current - (delta * 30), maxScroll))
         self:SetVerticalScroll(newScroll)
     end)
     
     configFrame.aurasContent = scrollFrame
     scrollFrame:Hide()
     
-    -- Contenu placeholder
-    local placeholder = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    placeholder:SetPoint("CENTER", scrollChild, "TOP", 0, -100)
-    placeholder:SetText("Section Auras")
-    placeholder:SetTextColor(0.7, 0.7, 0.7)
+    local yOffset = -10
+    local previewElements
     
-    local info = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-    info:SetPoint("TOP", placeholder, "BOTTOM", 0, -20)
-    info:SetText("Les futures modifications de buffs/debuffs\nseront disponibles ici")
-    info:SetTextColor(0.5, 0.5, 0.5)
+    -- ========== PRÉVISUALISATION ==========
+    yOffset, previewElements = TomoMod_ConfigPreview.CreatePreviewSection(scrollChild, yOffset, "auras")
+    
+    -- ========== PLAYER DEBUFFS ==========
+    local playerHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    playerHeader:SetPoint("TOPLEFT", 20, yOffset)
+    playerHeader:SetText("Debuffs Joueur")
+    playerHeader:SetTextColor(0.8, 0.3, 0.3)
+    
+    yOffset = yOffset - 25
+    
+    local playerEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Activer", TomoModDB.auras.playerDebuffs.enabled, function(self)
+        TomoModDB.auras.playerDebuffs.enabled = self:GetChecked()
+    end)
+    
+    yOffset = yOffset - 30
+    
+    local playerCountSlider = TomoMod_Utils.CreateSlider(
+        scrollChild, "TomoModPlayerDebuffCountSlider", "TOPLEFT", 30, yOffset,
+        2, 8, 1, 200, "Nombre de debuffs: " .. (TomoModDB.auras.playerDebuffs.count or 8),
+        function(self, value)
+            TomoModDB.auras.playerDebuffs.count = value
+            _G[self:GetName().."Text"]:SetText("Nombre de debuffs: " .. math.floor(value))
+            TomoMod_Auras.UpdatePlayerDebuffSettings()
+        end
+    )
+    playerCountSlider:SetValue(TomoModDB.auras.playerDebuffs.count or 8)
+    
+    yOffset = yOffset - 50
+    
+    local playerScaleSlider = TomoMod_Utils.CreateSlider(
+        scrollChild, "TomoModPlayerDebuffScaleSlider", "TOPLEFT", 30, yOffset,
+        0.5, 2.0, 0.1, 200, "Échelle: " .. string.format("%.1f", TomoModDB.auras.playerDebuffs.scale or 1),
+        function(self, value)
+            TomoModDB.auras.playerDebuffs.scale = value
+            _G[self:GetName().."Text"]:SetText("Échelle: " .. string.format("%.1f", value))
+            TomoMod_Auras.UpdatePlayerDebuffSettings()
+        end
+    )
+    playerScaleSlider:SetValue(TomoModDB.auras.playerDebuffs.scale or 1)
+    
+    yOffset = yOffset - 50
+    
+    local playerDirectionLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    playerDirectionLabel:SetPoint("TOPLEFT", 30, yOffset)
+    playerDirectionLabel:SetText("Direction de croissance:")
+    
+    yOffset = yOffset - 25
+    
+    local playerDirections = {"LEFT", "RIGHT", "UP", "DOWN"}
+    local playerDirectionLabels = {"Gauche", "Droite", "Haut", "Bas"}
+    local playerDirectionBtns = {}
+    
+    for i, dir in ipairs(playerDirections) do
+        local btn = CreateFrame("CheckButton", nil, scrollChild, "UIRadioButtonTemplate")
+        btn:SetPoint("TOPLEFT", 30 + ((i-1) * 100), yOffset)
+        btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        btn.text:SetPoint("LEFT", btn, "RIGHT", 2, 0)
+        btn.text:SetText(playerDirectionLabels[i])
+        
+        btn:SetScript("OnClick", function()
+            TomoModDB.auras.playerDebuffs.growDirection = dir
+            for _, b in ipairs(playerDirectionBtns) do
+                b:SetChecked(false)
+            end
+            btn:SetChecked(true)
+            TomoMod_Auras.UpdatePlayerDebuffSettings()
+        end)
+        
+        if (TomoModDB.auras.playerDebuffs.growDirection or "LEFT") == dir then
+            btn:SetChecked(true)
+        end
+        
+        playerDirectionBtns[i] = btn
+    end
+    
+    yOffset = yOffset - 30
+    
+    local resetPlayerPosBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
+    resetPlayerPosBtn:SetSize(120, 22)
+    resetPlayerPosBtn:SetPoint("TOPLEFT", 30, yOffset)
+    resetPlayerPosBtn:SetText("Reset Position")
+    resetPlayerPosBtn:SetScript("OnClick", function()
+        TomoMod_Auras.ResetPlayerDebuffPosition()
+    end)
+    
+    yOffset = yOffset - 40
+    
+    local sep2 = scrollChild:CreateTexture(nil, "ARTWORK")
+    sep2:SetSize(420, 2)
+    sep2:SetPoint("TOPLEFT", 20, yOffset)
+    sep2:SetColorTexture(0.3, 0.3, 0.3, 0.8)
+    
+    yOffset = yOffset - 20
+    
+    -- ========== TARGET DEBUFFS ==========
+    local targetHeader = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    targetHeader:SetPoint("TOPLEFT", 20, yOffset)
+    targetHeader:SetText("Debuffs Cible")
+    targetHeader:SetTextColor(0.8, 0.5, 0.2)
+    
+    yOffset = yOffset - 25
+    
+    local targetEnable = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Activer", TomoModDB.auras.targetDebuffs.enabled, function(self)
+        TomoModDB.auras.targetDebuffs.enabled = self:GetChecked()
+    end)
+    
+    local targetOnlyMine = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 200, yOffset, "Mes debuffs uniquement", TomoModDB.auras.targetDebuffs.onlyMine, function(self)
+        TomoModDB.auras.targetDebuffs.onlyMine = self:GetChecked()
+        TomoMod_Auras.UpdateTargetDebuffSettings()
+    end)
+    
+    yOffset = yOffset - 30
+    
+    local targetCountSlider = TomoMod_Utils.CreateSlider(
+        scrollChild, "TomoModTargetDebuffCountSlider", "TOPLEFT", 30, yOffset,
+        2, 8, 1, 200, "Debuffs par ligne: " .. (TomoModDB.auras.targetDebuffs.countPerRow or 8),
+        function(self, value)
+            TomoModDB.auras.targetDebuffs.countPerRow = value
+            _G[self:GetName().."Text"]:SetText("Debuffs par ligne: " .. math.floor(value))
+            TomoMod_Auras.UpdateTargetDebuffSettings()
+        end
+    )
+    targetCountSlider:SetValue(TomoModDB.auras.targetDebuffs.countPerRow or 8)
+    
+    yOffset = yOffset - 50
+    
+    local targetRowsSlider = TomoMod_Utils.CreateSlider(
+        scrollChild, "TomoModTargetDebuffRowsSlider", "TOPLEFT", 30, yOffset,
+        1, 2, 1, 200, "Nombre de lignes: " .. (TomoModDB.auras.targetDebuffs.rows or 1),
+        function(self, value)
+            TomoModDB.auras.targetDebuffs.rows = value
+            _G[self:GetName().."Text"]:SetText("Nombre de lignes: " .. math.floor(value))
+            TomoMod_Auras.UpdateTargetDebuffSettings()
+        end
+    )
+    targetRowsSlider:SetValue(TomoModDB.auras.targetDebuffs.rows or 1)
+    
+    yOffset = yOffset - 50
+    
+    local targetScaleSlider = TomoMod_Utils.CreateSlider(
+        scrollChild, "TomoModTargetDebuffScaleSlider", "TOPLEFT", 30, yOffset,
+        0.5, 2.0, 0.1, 200, "Échelle: " .. string.format("%.1f", TomoModDB.auras.targetDebuffs.scale or 1),
+        function(self, value)
+            TomoModDB.auras.targetDebuffs.scale = value
+            _G[self:GetName().."Text"]:SetText("Échelle: " .. string.format("%.1f", value))
+            TomoMod_Auras.UpdateTargetDebuffSettings()
+        end
+    )
+    targetScaleSlider:SetValue(TomoModDB.auras.targetDebuffs.scale or 1)
+    
+    yOffset = yOffset - 50
+    
+    local targetHDirLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    targetHDirLabel:SetPoint("TOPLEFT", 30, yOffset)
+    targetHDirLabel:SetText("Direction horizontale:")
+    
+    yOffset = yOffset - 25
+    
+    local targetHDirections = {"RIGHT", "LEFT"}
+    local targetHDirLabels = {"Droite", "Gauche"}
+    local targetHDirBtns = {}
+    
+    for i, dir in ipairs(targetHDirections) do
+        local btn = CreateFrame("CheckButton", nil, scrollChild, "UIRadioButtonTemplate")
+        btn:SetPoint("TOPLEFT", 30 + ((i-1) * 100), yOffset)
+        btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        btn.text:SetPoint("LEFT", btn, "RIGHT", 2, 0)
+        btn.text:SetText(targetHDirLabels[i])
+        
+        btn:SetScript("OnClick", function()
+            TomoModDB.auras.targetDebuffs.growDirection = dir
+            for _, b in ipairs(targetHDirBtns) do
+                b:SetChecked(false)
+            end
+            btn:SetChecked(true)
+            TomoMod_Auras.UpdateTargetDebuffSettings()
+        end)
+        
+        if (TomoModDB.auras.targetDebuffs.growDirection or "RIGHT") == dir then
+            btn:SetChecked(true)
+        end
+        
+        targetHDirBtns[i] = btn
+    end
+    
+    yOffset = yOffset - 30
+    
+    local targetVDirLabel = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    targetVDirLabel:SetPoint("TOPLEFT", 30, yOffset)
+    targetVDirLabel:SetText("Direction des lignes:")
+    
+    yOffset = yOffset - 25
+    
+    local targetVDirections = {"DOWN", "UP"}
+    local targetVDirLabels = {"Bas", "Haut"}
+    local targetVDirBtns = {}
+    
+    for i, dir in ipairs(targetVDirections) do
+        local btn = CreateFrame("CheckButton", nil, scrollChild, "UIRadioButtonTemplate")
+        btn:SetPoint("TOPLEFT", 30 + ((i-1) * 100), yOffset)
+        btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        btn.text:SetPoint("LEFT", btn, "RIGHT", 2, 0)
+        btn.text:SetText(targetVDirLabels[i])
+        
+        btn:SetScript("OnClick", function()
+            TomoModDB.auras.targetDebuffs.rowDirection = dir
+            for _, b in ipairs(targetVDirBtns) do
+                b:SetChecked(false)
+            end
+            btn:SetChecked(true)
+            TomoMod_Auras.UpdateTargetDebuffSettings()
+        end)
+        
+        if (TomoModDB.auras.targetDebuffs.rowDirection or "DOWN") == dir then
+            btn:SetChecked(true)
+        end
+        
+        targetVDirBtns[i] = btn
+    end
+    
+    yOffset = yOffset - 35
+    
+    local resetTargetPosBtn = CreateFrame("Button", nil, scrollChild, "UIPanelButtonTemplate")
+    resetTargetPosBtn:SetSize(120, 22)
+    resetTargetPosBtn:SetPoint("TOPLEFT", 30, yOffset)
+    resetTargetPosBtn:SetText("Reset Position")
+    resetTargetPosBtn:SetScript("OnClick", function()
+        TomoMod_Auras.ResetTargetDebuffPosition()
+    end)
+    
+    yOffset = yOffset - 50
+    
+    local infoText = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    infoText:SetPoint("TOPLEFT", 20, yOffset)
+    infoText:SetWidth(420)
+    infoText:SetJustifyH("LEFT")
+    infoText:SetText("Notes:\n• Les ancres sont visibles uniquement en mode prévisualisation\n• L'ancre représente la position du premier debuff\n• Couleurs: Rouge=Physique, Violet=Magie, Vert=Poison, Marron=Maladie, Bleu=Curse\n• /reload nécessaire pour activer/désactiver")
+    infoText:SetTextColor(0.5, 0.5, 0.5)
+    
+    scrollFrame:SetScript("OnShow", function()
+        if previewElements and previewElements.UpdateButton then
+            previewElements.UpdateButton()
+        end
+    end)
 end
+
+-- =====================================
+-- TOGGLE
+-- =====================================
 
 function TomoMod_Config.Toggle()
     if not configFrame then

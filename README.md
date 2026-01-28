@@ -1,4 +1,5 @@
 # TomoMod
+Version 1.15
 
 Project ID: 1446255
 
@@ -12,7 +13,8 @@ Project ID: 1446255
 - Target.
 - TargetCastBar
 - Target of Target.
-- Pet.
+- Debuff Player
+- Debuff Target
 
 ## QOL
 - AutoKeystone
@@ -21,6 +23,7 @@ Project ID: 1446255
 - DataPanel
 - PartyTrackerKeystone 
 - MouseCursor
+- ToolTip Skin
 - AutoVendorRepair
 - Fastloot
 - TooltipanchorMouse

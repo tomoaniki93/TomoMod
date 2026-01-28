@@ -16,6 +16,7 @@
 
     <!-- Modules: Cursor -->
     <Include file="Cursor\CursorRing.lua" />
+    <Include file="Cursor\Tooltip.lua" />
 
     <!-- Modules: MythicPlus -->
     <Include file="MythicPlus\Keystone.lua" />
