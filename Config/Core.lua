@@ -54,6 +54,6 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_CastBars then TomoMod_CastBars.Initialize() end
         if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end
         
-        print("|cff00ff00TomoMod|r v1.1 - /tm pour config, /tm preview pour prévisualisation")
+        print("|cff00ff00TomoMod|r v1.14 - /tm pour config, /tm preview pour prévisualisation")
     end
 end)

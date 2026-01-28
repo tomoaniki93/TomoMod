@@ -37,6 +37,25 @@ function UF.DisableMove(frame)
     frame:SetScript("OnDragStop", nil)
 end
 
+local POWER_COLORS = {
+    ["MANA"] = {0, 0.44, 0.87},
+    ["RAGE"] = {0.77, 0.12, 0.23},
+    ["FOCUS"] = {1, 0.5, 0.25},
+    ["ENERGY"] = {1, 0.96, 0.41},
+    ["RUNIC_POWER"] = {0, 0.82, 1},
+    ["LUNAR_POWER"] = {0.3, 0.52, 0.9},
+    ["MAELSTROM"] = {0, 0.5, 1},
+    ["INSANITY"] = {0.4, 0, 0.8},
+    ["FURY"] = {0.79, 0.26, 0.99},
+    ["PAIN"] = {1, 0.61, 0},
+}
+
+local POWER_TYPE_MAP = {
+    [0] = "MANA", [1] = "RAGE", [2] = "FOCUS", [3] = "ENERGY",
+    [6] = "RUNIC_POWER", [8] = "LUNAR_POWER", [11] = "MAELSTROM",
+    [13] = "INSANITY", [17] = "FURY", [18] = "PAIN",
+}
+
 ----------------------------------------------------------
 -- Locals & shortcuts
 ----------------------------------------------------------
@@ -488,28 +507,29 @@ function UF.Disable()
     UF.EventFrame:UnregisterAllEvents()
 end
 
-----------------------------------------------------------
--- Hide BLizzard
-----------------------------------------------------------
-local function HideBlizzardUnitFrames()
-    local frames = {
-        PlayerFrame,
-        TargetFrame,
-        TargetFrameToT,
-        FocusFrame,
-    }
+-- =====================================
+-- CACHER FRAMES BLIZZARD
+-- =====================================
 
-    for _, frame in pairs(frames) do
-        if frame then
-            frame:UnregisterAllEvents()
-            frame:Hide()
-            frame:SetAlpha(0)
-
-            -- Empêche Blizzard de le réafficher
-            hooksecurefunc(frame, "Show", function(self)
-                self:Hide()
-            end)
-        end
+local function HideBlizzardFrames()
+    local db = TomoModDB.unitFrames
+    
+    if db.player.enabled then
+        PlayerFrame:UnregisterAllEvents()
+        PlayerFrame:Hide()
+        PlayerFrame:SetScript("OnShow", function(self) self:Hide() end)
+    end
+    
+    if db.target.enabled then
+        TargetFrame:UnregisterAllEvents()
+        TargetFrame:Hide()
+        TargetFrame:SetScript("OnShow", function(self) self:Hide() end)
+    end
+    
+    if db.targetoftarget.enabled and TargetFrameToT then
+        TargetFrameToT:UnregisterAllEvents()
+        TargetFrameToT:Hide()
+        TargetFrameToT:SetScript("OnShow", function(self) self:Hide() end)
     end
 end
 
@@ -530,6 +550,9 @@ function UF.Initialize()
     TargetFrameUF:SetAttribute("unit", "target")
     ToTFrameUF:SetAttribute("unit", "targettarget")
 
+    -- Hide Blizzard frames (OPTIONNEL)
+    HideBlizzardFrames()
+
     -- Positions
     UF.ResetPlayerPosition()
     UF.ResetTargetPosition()
@@ -545,9 +568,4 @@ function UF.Initialize()
     UF.UpdateToTSettings()
 
     UF.Enable()
-
-    -- Hide Blizzard frames (OPTIONNEL)
-    if TomoModDB.unitFrames.hideBlizzard then
-        HideBlizzardUnitFrames()
-    end
 end
