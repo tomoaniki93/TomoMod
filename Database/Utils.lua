@@ -21,7 +21,7 @@ end
 
 -- Obtenir la couleur de classe
 function TomoMod_Utils.GetClassColor()
-    local _, class = GetUnitClass("player")
+    local _, class = UnitClass("player")
     local color = RAID_CLASS_COLORS[class]
     return color.r, color.g, color.b, 1
 end

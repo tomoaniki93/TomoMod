@@ -4,798 +4,550 @@
 -- ==========================================================================
 
 TomoMod_UnitFrames = {}
+local UF = TomoMod_UnitFrames
 
-local playerFrame = nil
-local targetFrame = nil
-local totFrame = nil
+UF.isPreview = false
 
-local POWER_COLORS = {
-    ["MANA"] = {0, 0.44, 0.87},
-    ["RAGE"] = {0.77, 0.12, 0.23},
-    ["FOCUS"] = {1, 0.5, 0.25},
-    ["ENERGY"] = {1, 0.96, 0.41},
-    ["RUNIC_POWER"] = {0, 0.82, 1},
-    ["LUNAR_POWER"] = {0.3, 0.52, 0.9},
-    ["MAELSTROM"] = {0, 0.5, 1},
-    ["INSANITY"] = {0.4, 0, 0.8},
-    ["FURY"] = {0.79, 0.26, 0.99},
-    ["PAIN"] = {1, 0.61, 0},
-}
-
-local POWER_TYPE_MAP = {
-    [0] = "MANA", [1] = "RAGE", [2] = "FOCUS", [3] = "ENERGY",
-    [6] = "RUNIC_POWER", [8] = "LUNAR_POWER", [11] = "MAELSTROM",
-    [13] = "INSANITY", [17] = "FURY", [18] = "PAIN",
-}
-
--- =====================================
--- FONCTIONS UTILITAIRES
--- =====================================
-
-local function IsValidNumber(value)
-    if value == nil then return false end
-    local success = pcall(function() return value + 0 end)
-    return success and type(value) == "number"
+local function SavePosition(frame, key)
+    local point, _, relativePoint, xOfs, yOfs = frame:GetPoint()
+    TomoModDB.unitFrames.positions[key] = {
+        point = point,
+        relativePoint = relativePoint,
+        x = xOfs,
+        y = yOfs,
+    }
 end
 
-local function SafeUnitHealth(unit)
-    if not UnitExists(unit) then return 0, 1 end
+function UF.EnableMove(frame, key)
+    frame:SetMovable(true)
+    frame:EnableMouse(true)
+    frame:RegisterForDrag("LeftButton")
+
+    frame:SetScript("OnDragStart", frame.StartMoving)
+    frame:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        SavePosition(self, key)
+    end)
+end
+
+function UF.DisableMove(frame)
+    frame:SetMovable(false)
+    frame:EnableMouse(true) -- 🔑 indispensable pour SecureUnitButton
+    frame:SetScript("OnDragStart", nil)
+    frame:SetScript("OnDragStop", nil)
+end
+
+----------------------------------------------------------
+-- Locals & shortcuts
+----------------------------------------------------------
+local abs, min, format = math.abs, math.min, string.format
+
+----------------------------------------------------------
+-- Class / reaction color cache
+----------------------------------------------------------
+local CLASS_COLORS = {}
+
+local function GetUnitColor(unit, useClass)
+    if UnitIsPlayer(unit) then
+        local _, class = UnitClass(unit)
+        if useClass and class then
+            if not CLASS_COLORS[class] then
+                local c = RAID_CLASS_COLORS[class]
+                CLASS_COLORS[class] = { c.r, c.g, c.b }
+            end
+            return unpack(CLASS_COLORS[class])
+        end
+    end
+
+    local r, g, b = UnitSelectionColor(unit)
+    return r, g, b
+end
+
+----------------------------------------------------------
+-- Frame factory
+----------------------------------------------------------
+local function CreateUnitFrame(name, width, height)
+
+    local f = CreateFrame("Button", name, UIParent, "SecureUnitButtonTemplate")
+    f:SetSize(width, height)
+    f:SetScale(1)
+    f:SetClampedToScreen(true)
+    f:RegisterForClicks("AnyUp")
+    f:SetAttribute("type1", "target")
+    f:SetAttribute("type2", "togglemenu")
+
+    -- Health bar
+    f.healthBar = CreateFrame("StatusBar", nil, f)
+    f.healthBar:SetAllPoints()
+    f.healthBar:SetStatusBarTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\TomoMod.tga")
+    f.healthBar:SetMinMaxValues(0, 1)
+    f.healthBar:SetPoint("TOPLEFT", 1, -1)
+    f.healthBar:SetPoint("BOTTOMRIGHT", -1, 1)
+
+    -- Power bar
+    local POWER_HEIGHT = 6
+    local BORDER_SIZE = 1
+    local POWER_OVERLAP = 3
+
+    -- Frame border
+    f.powerBorder = CreateFrame("Frame", nil, f.healthBar)
+    f.powerBorder:SetHeight(POWER_HEIGHT + BORDER_SIZE * 2)
+    f.powerBorder:SetPoint("TOPLEFT", f.healthBar, "BOTTOMLEFT", 0, POWER_OVERLAP)
+    f.powerBorder:SetPoint("TOPRIGHT", f.healthBar, "BOTTOMRIGHT", 0, POWER_OVERLAP)
+
+    -- Fond du contour
+    f.powerBorder.bg = f.powerBorder:CreateTexture(nil, "BACKGROUND")
+    f.powerBorder.bg:SetAllPoints()
+    f.powerBorder.bg:SetColorTexture(0, 0, 0, 0.8) -- contour noir discret
+
+    -- Power bar à l’intérieur
+    f.powerBar = CreateFrame("StatusBar", nil, f.powerBorder)
+    f.powerBar:SetPoint("TOPLEFT", BORDER_SIZE, -BORDER_SIZE)
+    f.powerBar:SetPoint("BOTTOMRIGHT", -BORDER_SIZE, BORDER_SIZE)
+    f.powerBar:SetStatusBarTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\TomoMod.tga")
+    f.powerBar:SetMinMaxValues(0, 1)
+
+    -- Heal prediction
+    f.healBar = CreateFrame("StatusBar", nil, f.healthBar)
+    f.healBar:SetAllPoints()
+    f.healBar:SetStatusBarTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\TomoMod.tga")
+    f.healBar:SetStatusBarColor(0, 1, 0, 0.35)
+
+    -- Absorb bar
+    f.absorbBar = CreateFrame("StatusBar", nil, f.healthBar)
+    f.absorbBar:SetAllPoints()
+    f.absorbBar:SetStatusBarTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\TomoMod.tga")
+    f.absorbBar:SetStatusBarColor(0.2, 0.6, 1, 0.6)
+
+    -- Health text
+    f.healthText = f.healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    f.healthText:SetPoint("CENTER", f.healthBar, "CENTER", 0, 0)
+    f.healthText:SetDrawLayer("ARTWORK", 7)
+    f.healthText:SetTextColor(1, 1, 1)
+    f.healthText:SetShadowOffset(1, -1)
+    f.healthText:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\TomoMod.TTF", 11, "OUTLINE")
+    f.healthText:SetShadowOffset(0, 0)
+
+    -- Heal prediction (overlay)
+    f.healBar:SetFrameLevel(f.healthBar:GetFrameLevel() + 1)
+    f.healBar:SetAlpha(0.4)
+
+    -- Absorb (overlay)
+    f.absorbBar:SetFrameLevel(f.healthBar:GetFrameLevel() + 2)
+    f.absorbBar:SetAlpha(0.6)
+    f.bg = f:CreateTexture(nil, "BACKGROUND")
+    f.bg:SetAllPoints()
+    f.bg:SetColorTexture(0, 0, 0, 0.6)
+
+    -- Name
+    f.nameText = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    f.nameText:SetPoint("LEFT", f, 6, 0)
+
+    -- Level
+    f.levelText = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    f.levelText:SetPoint("RIGHT", f, -6, 0)
+
+    -- Raid icon
+    f.raidIcon = f:CreateTexture(nil, "OVERLAY")
+    f.raidIcon:SetSize(16, 16)
+    f.raidIcon:SetPoint("CENTER", f, "TOP", 0, 8)
+
+    return f
+end
+
+----------------------------------------------------------
+-- Generic UnnitInfo update
+----------------------------------------------------------
+local function UpdateUnitInfo(frame, unit, db)
+    if not UnitExists(unit) then return end
+
+    -- Name
+    if db.showName then
+        local name = UnitName(unit)
+        if db.truncateName and name then
+            name = string.sub(name, 1, db.truncateNameLength or 8)
+        end
+        frame.nameText:SetText(name or "")
+        frame.nameText:Show()
+    else
+        frame.nameText:Hide()
+    end
+
+    -- Level
+    if db.showLevel then
+        local level = UnitLevel(unit)
+        frame.levelText:SetText(level > 0 and level or "??")
+        frame.levelText:Show()
+    else
+        frame.levelText:Hide()
+    end
+
+    -- Raid marker
+    if db.showRaidMarker then
+        local icon = GetRaidTargetIndex(unit)
+        if icon then
+            SetRaidTargetIconTexture(frame.raidIcon, icon)
+            frame.raidIcon:Show()
+        else
+            frame.raidIcon:Hide()
+        end
+    else
+        frame.raidIcon:Hide()
+    end
+end
+
+
+----------------------------------------------------------
+-- Generic health update
+----------------------------------------------------------
+local function UpdateHealth(frame, unit, db)
+    if not UnitExists(unit) then
+        frame:Hide()
+        return
+    end
+
     local health = UnitHealth(unit)
     local maxHealth = UnitHealthMax(unit)
-    if not IsValidNumber(health) then health = 0 end
-    if not IsValidNumber(maxHealth) or maxHealth == 0 then maxHealth = 1 end
-    return health, maxHealth
+
+    -- Si Blizzard n'a pas encore fourni les valeurs
+    if health == nil or maxHealth == nil then
+        return
+    end
+
+    frame:Show()
+    frame.healthBar:SetMinMaxValues(0, maxHealth)
+    frame.healthBar:SetValue(health)
+
+    if db.showCurrentHP then
+        frame.healthText:SetText(AbbreviateNumbers(health))
+    else
+        frame.healthText:SetText("")
+    end
+
+    if UnitIsDeadOrGhost(unit) then
+        frame.healthText:SetTextColor(0.6, 0.6, 0.6)
+    else
+        frame.healthText:SetTextColor(1, 1, 1)
+    end
+
+    local r, g, b = GetUnitColor(unit, db.useClassColor)
+    frame.healthBar:SetStatusBarColor(r, g, b)
+
+    -- Heal prediction (TWW-safe)
+    frame.healBar:SetMinMaxValues(0, maxHealth)
+    local incHeal = UnitGetIncomingHeals(unit)
+    if incHeal ~= nil then
+        frame.healBar:SetMinMaxValues(0, maxHealth)
+        frame.healBar:SetValue(incHeal)
+    else
+        frame.healBar:SetValue(0)
+    end
+    frame.healBar:Show()
+
+    -- Absorb (TWW-safe)
+    frame.absorbBar:SetMinMaxValues(0, maxHealth)
+    frame.absorbBar:SetValue(UnitGetTotalAbsorbs(unit))
+    frame.absorbBar:Show()
 end
 
-local function SafeUnitPower(unit)
-    if not UnitExists(unit) then return 0, 1 end
+----------------------------------------------------------
+-- Generic Power update
+----------------------------------------------------------
+local function UpdatePower(frame, unit, db)
+    if not frame.powerBar or not db.showPowerBar then
+        if frame.powerBorder then frame.powerBorder:Hide() end
+        return
+    end
+
     local power = UnitPower(unit)
     local maxPower = UnitPowerMax(unit)
-    if not IsValidNumber(power) then power = 0 end
-    if not IsValidNumber(maxPower) or maxPower == 0 then maxPower = 1 end
-    return power, maxPower
-end
 
-local function SafeUnitAbsorb(unit)
-    if not UnitExists(unit) then return 0 end
-    local absorb = UnitGetTotalAbsorbs(unit)
-    if not IsValidNumber(absorb) then return 0 end
-    return absorb
-end
-
-local function GetUnitClassColor(unit)
-    if not UnitExists(unit) then return 1, 1, 1 end
-    local _, class = UnitClass(unit)
-    if class and RAID_CLASS_COLORS[class] then
-        local color = RAID_CLASS_COLORS[class]
-        return color.r, color.g, color.b
+    if power == nil or maxPower == nil then
+        frame.powerBar:Hide()
+        return
     end
-    return 1, 1, 1
-end
 
-local function GetUnitReactionColor(unit)
-    if not UnitExists(unit) then return 1, 1, 1 end
-    if UnitIsPlayer(unit) then return GetUnitClassColor(unit) end
-    
-    local reaction = UnitReaction(unit, "player")
-    if reaction then
-        if reaction >= 5 then return 0, 0.8, 0
-        elseif reaction == 4 then return 1, 0.82, 0
-        else return 0.8, 0, 0 end
-    end
-    return 1, 1, 1
-end
+    frame.powerBar:Show()
+    frame.powerBar:SetMinMaxValues(0, maxPower)
+    frame.powerBar:SetValue(power)
 
-local function GetPowerColor(unit)
     local powerType = UnitPowerType(unit)
-    local powerName = POWER_TYPE_MAP[powerType] or "MANA"
-    local color = POWER_COLORS[powerName] or {0, 0.44, 0.87}
-    return color[1], color[2], color[3]
-end
-
-local function AbbreviateNumbers(value)
-    if not IsValidNumber(value) then return "0" end
-    if value >= 1000000 then return string.format("%.1fM", value / 1000000)
-    elseif value >= 1000 then return string.format("%.1fK", value / 1000)
-    else return tostring(math.floor(value)) end
-end
-
-local function FormatHealth(current, max, showCurrent, showPercent)
-    if not showCurrent and not showPercent then return "" end
-    if not IsValidNumber(current) or not IsValidNumber(max) then return "" end
-    
-    local percent = max > 0 and math.floor((current / max) * 100) or 0
-    if showCurrent and showPercent then
-        return string.format("%s - %d%%", AbbreviateNumbers(current), percent)
-    elseif showCurrent then return AbbreviateNumbers(current)
-    else return string.format("%d%%", percent) end
-end
-
--- Tronquer le nom à un nombre maximum de caractères
-local function TruncateName(name, maxLen)
-    if not name then return "" end
-    if not maxLen or maxLen <= 0 then return name end
-    if string.len(name) > maxLen then
-        return string.sub(name, 1, maxLen) .. "..."
+    local color = PowerBarColor[powerType]
+    if color then
+        frame.powerBar:SetStatusBarColor(color.r, color.g, color.b)
     end
-    return name
+    frame.powerBorder:Show()
 end
 
--- Créer un FontString avec outline
-local function CreateOutlinedText(parent, layer, size)
-    local text = parent:CreateFontString(nil, layer or "OVERLAY")
-    text:SetFont("Fonts\\FRIZQT__.TTF", size or 10, "OUTLINE")
-    text:SetTextColor(1, 1, 1) -- Blanc
-    text:SetShadowColor(0, 0, 0, 1)
-    text:SetShadowOffset(1, -1)
-    return text
-end
+----------------------------------------------------------
+-- Frames
+----------------------------------------------------------
+local PlayerFrameUF
+local TargetFrameUF
+local ToTFrameUF
 
--- =====================================
--- MENUS CONTEXTUELS
--- =====================================
-
-local function ShowPlayerMenu(frame)
-    ToggleDropDownMenu(1, nil, PlayerFrameDropDown, frame, 0, 0)
-end
-
-local function ShowTargetMenu(frame)
-    ToggleDropDownMenu(1, nil, TargetFrameDropDown, frame, 0, 0)
-end
-
--- =====================================
--- PLAYER FRAME
--- =====================================
-
-local function CreatePlayerFrame()
-    if playerFrame then return playerFrame end
-    
+----------------------------------------------------------
+-- Updates
+----------------------------------------------------------
+function UF.UpdatePlayer()
+    local frame = PlayerFrameUF
+    local unit = "player"
     local db = TomoModDB.unitFrames.player
-    local width = db.minimalist and 350 or db.width
-    local height = db.minimalist and 15 or db.height
-    
-    playerFrame = CreateFrame("Button", "TomoModPlayerFrame", UIParent, "SecureUnitButtonTemplate, BackdropTemplate")
-    playerFrame:SetAttribute("unit", "player")
-    playerFrame:SetAttribute("type1", "target") -- Clic gauche = cibler
-    playerFrame:SetAttribute("type2", "togglemenu") -- Clic droit = menu
-    RegisterUnitWatch(playerFrame)
-    
-    playerFrame:SetSize(width, height)
-    playerFrame:SetFrameStrata("MEDIUM")
-    playerFrame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    playerFrame:SetBackdropColor(0, 0, 0, 0.8)
-    playerFrame:SetBackdropBorderColor(0, 0, 0, 1)
-    
-    -- Barre de vie
-    playerFrame.healthBar = CreateFrame("StatusBar", nil, playerFrame)
-    playerFrame.healthBar:SetSize(width - 2, height - 2)
-    playerFrame.healthBar:SetPoint("TOPLEFT", 1, -1)
-    playerFrame.healthBar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
-    playerFrame.healthBar:SetMinMaxValues(0, 1)
-    playerFrame.healthBar:SetValue(1)
-    
-    playerFrame.healthBar.bg = playerFrame.healthBar:CreateTexture(nil, "BACKGROUND")
-    playerFrame.healthBar.bg:SetAllPoints()
-    playerFrame.healthBar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
-    playerFrame.healthBar.bg:SetVertexColor(0.1, 0.1, 0.1, 0.8)
-    
-    -- Barre d'absorption
-    playerFrame.absorbBar = playerFrame.healthBar:CreateTexture(nil, "OVERLAY")
-    playerFrame.absorbBar:SetTexture("Interface\\Buttons\\WHITE8x8")
-    playerFrame.absorbBar:SetVertexColor(0.3, 0.7, 1, 0.4)
-    playerFrame.absorbBar:SetHeight(height - 2)
-    playerFrame.absorbBar:Hide()
-    
-    -- Indicateurs
-    playerFrame.indicators = CreateFrame("Frame", nil, playerFrame)
-    playerFrame.indicators:SetSize(50, 16)
-    playerFrame.indicators:SetPoint("TOPLEFT", playerFrame, "BOTTOMLEFT", 0, -2)
-    
-    playerFrame.leaderIcon = playerFrame.indicators:CreateTexture(nil, "OVERLAY")
-    playerFrame.leaderIcon:SetSize(14, 14)
-    playerFrame.leaderIcon:SetPoint("LEFT", 0, 0)
-    playerFrame.leaderIcon:SetTexture("Interface\\GroupFrame\\UI-Group-LeaderIcon")
-    playerFrame.leaderIcon:Hide()
-    
-    playerFrame.raidMarker = playerFrame.indicators:CreateTexture(nil, "OVERLAY")
-    playerFrame.raidMarker:SetSize(14, 14)
-    playerFrame.raidMarker:SetPoint("LEFT", playerFrame.leaderIcon, "RIGHT", 2, 0)
-    playerFrame.raidMarker:Hide()
-    
-    -- Textes avec outline
-    playerFrame.nameText = CreateOutlinedText(playerFrame.healthBar, "OVERLAY", 10)
-    playerFrame.nameText:SetPoint("LEFT", 4, 0)
-    playerFrame.nameText:SetJustifyH("LEFT")
-    
-    playerFrame.levelText = CreateOutlinedText(playerFrame.healthBar, "OVERLAY", 10)
-    playerFrame.levelText:SetPoint("LEFT", playerFrame.nameText, "RIGHT", 4, 0)
-    
-    playerFrame.healthText = CreateOutlinedText(playerFrame.healthBar, "OVERLAY", 10)
-    playerFrame.healthText:SetPoint("RIGHT", -4, 0)
-    playerFrame.healthText:SetJustifyH("RIGHT")
-    
-    -- Drag
-    playerFrame:SetMovable(true)
-    playerFrame:RegisterForDrag("LeftButton")
-    playerFrame:SetScript("OnDragStart", function(self)
-        if IsShiftKeyDown() or TomoMod_PreviewMode.IsActive() then self:StartMoving() end
-    end)
-    playerFrame:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        TomoMod_PreviewMode.SavePosition(self, TomoModDB.unitFrames.player)
-    end)
-    
-    TomoMod_PreviewMode.RegisterElement(playerFrame, "Player Frame", function(frame)
-        TomoMod_PreviewMode.SavePosition(frame, TomoModDB.unitFrames.player)
-    end)
-    
-    return playerFrame
-end
 
--- =====================================
--- TARGET FRAME
--- =====================================
-
-local function CreateTargetFrame()
-    if targetFrame then return targetFrame end
-    
-    local db = TomoModDB.unitFrames.target
-    local width = db.minimalist and 350 or db.width
-    local height = db.minimalist and 15 or db.height
-    
-    targetFrame = CreateFrame("Button", "TomoModTargetFrame", UIParent, "SecureUnitButtonTemplate, BackdropTemplate")
-    targetFrame:SetAttribute("unit", "target")
-    targetFrame:SetAttribute("type1", "target") -- Clic gauche = cibler
-    targetFrame:SetAttribute("type2", "togglemenu") -- Clic droit = menu
-    RegisterUnitWatch(targetFrame)
-    
-    targetFrame:SetSize(width, height + 8)
-    targetFrame:SetFrameStrata("MEDIUM")
-    targetFrame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    targetFrame:SetBackdropColor(0, 0, 0, 0.8)
-    targetFrame:SetBackdropBorderColor(0, 0, 0, 1)
-    
-    -- Barre de vie
-    targetFrame.healthBar = CreateFrame("StatusBar", nil, targetFrame)
-    targetFrame.healthBar:SetSize(width - 2, height - 2)
-    targetFrame.healthBar:SetPoint("TOPLEFT", 1, -1)
-    targetFrame.healthBar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
-    targetFrame.healthBar:SetMinMaxValues(0, 1)
-    targetFrame.healthBar:SetValue(1)
-    
-    targetFrame.healthBar.bg = targetFrame.healthBar:CreateTexture(nil, "BACKGROUND")
-    targetFrame.healthBar.bg:SetAllPoints()
-    targetFrame.healthBar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
-    targetFrame.healthBar.bg:SetVertexColor(0.1, 0.1, 0.1, 0.8)
-    
-    -- Barre de ressource
-    targetFrame.powerBar = CreateFrame("StatusBar", nil, targetFrame)
-    targetFrame.powerBar:SetSize(width - 2, 6)
-    targetFrame.powerBar:SetPoint("TOPLEFT", targetFrame.healthBar, "BOTTOMLEFT", 0, -1)
-    targetFrame.powerBar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
-    targetFrame.powerBar:SetMinMaxValues(0, 1)
-    targetFrame.powerBar:SetValue(1)
-    
-    targetFrame.powerBar.bg = targetFrame.powerBar:CreateTexture(nil, "BACKGROUND")
-    targetFrame.powerBar.bg:SetAllPoints()
-    targetFrame.powerBar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
-    targetFrame.powerBar.bg:SetVertexColor(0.1, 0.1, 0.1, 0.8)
-    
-    -- Indicateurs
-    targetFrame.indicators = CreateFrame("Frame", nil, targetFrame)
-    targetFrame.indicators:SetSize(50, 16)
-    targetFrame.indicators:SetPoint("TOPLEFT", targetFrame, "BOTTOMLEFT", 0, -2)
-    
-    targetFrame.leaderIcon = targetFrame.indicators:CreateTexture(nil, "OVERLAY")
-    targetFrame.leaderIcon:SetSize(14, 14)
-    targetFrame.leaderIcon:SetPoint("LEFT", 0, 0)
-    targetFrame.leaderIcon:SetTexture("Interface\\GroupFrame\\UI-Group-LeaderIcon")
-    targetFrame.leaderIcon:Hide()
-    
-    targetFrame.raidMarker = targetFrame.indicators:CreateTexture(nil, "OVERLAY")
-    targetFrame.raidMarker:SetSize(14, 14)
-    targetFrame.raidMarker:SetPoint("LEFT", targetFrame.leaderIcon, "RIGHT", 2, 0)
-    targetFrame.raidMarker:Hide()
-    
-    -- Textes avec outline
-    targetFrame.nameText = CreateOutlinedText(targetFrame.healthBar, "OVERLAY", 10)
-    targetFrame.nameText:SetPoint("LEFT", 4, 0)
-    targetFrame.nameText:SetJustifyH("LEFT")
-    
-    targetFrame.levelText = CreateOutlinedText(targetFrame.healthBar, "OVERLAY", 10)
-    targetFrame.levelText:SetPoint("LEFT", targetFrame.nameText, "RIGHT", 4, 0)
-    
-    targetFrame.healthText = CreateOutlinedText(targetFrame.healthBar, "OVERLAY", 10)
-    targetFrame.healthText:SetPoint("RIGHT", -4, 0)
-    targetFrame.healthText:SetJustifyH("RIGHT")
-    
-    -- Drag
-    targetFrame:SetMovable(true)
-    targetFrame:RegisterForDrag("LeftButton")
-    targetFrame:SetScript("OnDragStart", function(self)
-        if IsShiftKeyDown() or TomoMod_PreviewMode.IsActive() then self:StartMoving() end
-    end)
-    targetFrame:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        TomoMod_PreviewMode.SavePosition(self, TomoModDB.unitFrames.target)
-    end)
-    
-    TomoMod_PreviewMode.RegisterElement(targetFrame, "Target Frame", function(frame)
-        TomoMod_PreviewMode.SavePosition(frame, TomoModDB.unitFrames.target)
-    end)
-    
-    return targetFrame
-end
-
--- =====================================
--- TARGET OF TARGET FRAME
--- =====================================
-
-local function CreateToTFrame()
-    if totFrame then return totFrame end
-    
-    local db = TomoModDB.unitFrames.targetoftarget
-    local width = db.minimalist and 150 or db.width
-    local height = 15
-    
-    totFrame = CreateFrame("Button", "TomoModToTFrame", UIParent, "SecureUnitButtonTemplate, BackdropTemplate")
-    totFrame:SetAttribute("unit", "targettarget")
-    totFrame:SetAttribute("type1", "target") -- Clic gauche = cibler
-    RegisterUnitWatch(totFrame)
-    
-    totFrame:SetSize(width, height)
-    totFrame:SetFrameStrata("MEDIUM")
-    totFrame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    totFrame:SetBackdropColor(0, 0, 0, 0.8)
-    totFrame:SetBackdropBorderColor(0, 0, 0, 1)
-    
-    -- Barre de vie
-    totFrame.healthBar = CreateFrame("StatusBar", nil, totFrame)
-    totFrame.healthBar:SetSize(width - 2, height - 2)
-    totFrame.healthBar:SetPoint("TOPLEFT", 1, -1)
-    totFrame.healthBar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
-    totFrame.healthBar:SetMinMaxValues(0, 1)
-    totFrame.healthBar:SetValue(1)
-    
-    totFrame.healthBar.bg = totFrame.healthBar:CreateTexture(nil, "BACKGROUND")
-    totFrame.healthBar.bg:SetAllPoints()
-    totFrame.healthBar.bg:SetTexture("Interface\\Buttons\\WHITE8x8")
-    totFrame.healthBar.bg:SetVertexColor(0.1, 0.1, 0.1, 0.8)
-    
-    -- Texte avec outline
-    totFrame.nameText = CreateOutlinedText(totFrame.healthBar, "OVERLAY", 9)
-    totFrame.nameText:SetPoint("CENTER", 0, 0)
-    totFrame.nameText:SetJustifyH("CENTER")
-    
-    -- Drag
-    totFrame:SetMovable(true)
-    totFrame:RegisterForDrag("LeftButton")
-    totFrame:SetScript("OnDragStart", function(self)
-        if IsShiftKeyDown() or TomoMod_PreviewMode.IsActive() then self:StartMoving() end
-    end)
-    totFrame:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        TomoMod_PreviewMode.SavePosition(self, TomoModDB.unitFrames.targetoftarget)
-    end)
-    
-    TomoMod_PreviewMode.RegisterElement(totFrame, "Target of Target", function(frame)
-        TomoMod_PreviewMode.SavePosition(frame, TomoModDB.unitFrames.targetoftarget)
-    end)
-    
-    return totFrame
-end
-
--- =====================================
--- MISE À JOUR DES FRAMES
--- =====================================
-
-local function UpdatePlayerFrame()
-    if not playerFrame then return end
-    local db = TomoModDB.unitFrames.player
-    
-    local health, maxHealth = SafeUnitHealth("player")
-    local healthPercent = maxHealth > 0 and (health / maxHealth) or 0
-    
-    playerFrame.healthBar:SetValue(healthPercent)
-    
-    -- Couleur de la barre de vie
-    if db.useClassColor then
-        local r, g, b = GetClassColor("player")
-        playerFrame.healthBar:SetStatusBarColor(r, g, b)
-    else
-        playerFrame.healthBar:SetStatusBarColor(0.2, 0.2, 0.2) -- Gris foncé/noir
-    end
-    
-    -- Absorption
-    local absorb = SafeUnitAbsorb("player")
-    if absorb > 0 and maxHealth > 0 then
-        local absorbPercent = absorb / maxHealth
-        local barWidth = playerFrame.healthBar:GetWidth()
-        local healthWidth = barWidth * healthPercent
-        local absorbWidth = math.min(barWidth * absorbPercent, barWidth - healthWidth)
-        
-        if absorbWidth > 0 then
-            playerFrame.absorbBar:ClearAllPoints()
-            playerFrame.absorbBar:SetPoint("LEFT", playerFrame.healthBar:GetStatusBarTexture(), "RIGHT", 0, 0)
-            playerFrame.absorbBar:SetWidth(absorbWidth)
-            playerFrame.absorbBar:Show()
-        else
-            playerFrame.absorbBar:Hide()
-        end
-    else
-        playerFrame.absorbBar:Hide()
-    end
-    
-    -- Textes
-    if db.showName then
-        playerFrame.nameText:SetText(UnitName("player"))
-        playerFrame.nameText:Show()
-    else playerFrame.nameText:Hide() end
-    
-    if db.showLevel then
-        playerFrame.levelText:SetText(UnitLevel("player"))
-        playerFrame.levelText:Show()
-    else playerFrame.levelText:Hide() end
-    
-    playerFrame.healthText:SetText(FormatHealth(health, maxHealth, db.showCurrentHP, db.showPercentHP))
-    
-    -- Indicateurs
-    if db.showLeader and UnitIsGroupLeader("player") then
-        playerFrame.leaderIcon:Show()
-    else playerFrame.leaderIcon:Hide() end
-    
-    if db.showRaidMarker then
-        local marker = GetRaidTargetIndex("player")
-        if marker then
-            playerFrame.raidMarker:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_" .. marker)
-            playerFrame.raidMarker:Show()
-        else playerFrame.raidMarker:Hide() end
-    else playerFrame.raidMarker:Hide() end
-end
-
-local function UpdateTargetFrame()
-    if not targetFrame then return end
-    local db = TomoModDB.unitFrames.target
-    
-    if not UnitExists("target") then
+    if not db.enabled then
+        frame:Hide()
         return
     end
-    
-    local health, maxHealth = SafeUnitHealth("target")
-    local healthPercent = maxHealth > 0 and (health / maxHealth) or 0
-    
-    targetFrame.healthBar:SetValue(healthPercent)
-    
-    -- Couleur de la barre de vie
-    if db.useClassColor then
-        local r, g, b = GetUnitReactionColor("target")
-        targetFrame.healthBar:SetStatusBarColor(r, g, b)
-    else
-        targetFrame.healthBar:SetStatusBarColor(0.2, 0.2, 0.2) -- Gris foncé/noir
-    end
-    
-    -- Ressource
-    if db.showPowerBar then
-        local power, maxPower = SafeUnitPower("target")
-        local powerPercent = maxPower > 0 and (power / maxPower) or 0
-        targetFrame.powerBar:SetValue(powerPercent)
-        local pr, pg, pb = GetPowerColor("target")
-        targetFrame.powerBar:SetStatusBarColor(pr, pg, pb)
-        targetFrame.powerBar:Show()
-    else
-        targetFrame.powerBar:Hide()
-    end
-    
-    -- Textes
-    if db.showName then
-        targetFrame.nameText:SetText(UnitName("target"))
-        targetFrame.nameText:Show()
-    else targetFrame.nameText:Hide() end
-    
-    if db.showLevel then
-        local level = UnitLevel("target")
-        if level == -1 then
-            targetFrame.levelText:SetText("??")
-        else
-            targetFrame.levelText:SetText(level)
-        end
-        targetFrame.levelText:Show()
-    else targetFrame.levelText:Hide() end
-    
-    targetFrame.healthText:SetText(FormatHealth(health, maxHealth, db.showCurrentHP, db.showPercentHP))
-    
-    -- Indicateurs
-    if db.showLeader and UnitIsGroupLeader("target") then
-        targetFrame.leaderIcon:Show()
-    else targetFrame.leaderIcon:Hide() end
-    
-    if db.showRaidMarker then
-        local marker = GetRaidTargetIndex("target")
-        if marker then
-            targetFrame.raidMarker:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcon_" .. marker)
-            targetFrame.raidMarker:Show()
-        else targetFrame.raidMarker:Hide() end
-    else targetFrame.raidMarker:Hide() end
 
-    -- Nom tronqué
-    local name = UnitName("target")
-    local maxLen = db.truncateNameLength or 8
-    if db.truncateName and maxLen > 0 then
-        name = TruncateName(name, maxLen)
-    end
-    totFrame.nameText:SetText(name)
+    UpdateHealth(frame, unit, db)
+    UpdatePower(frame, unit, db)
+    UpdateUnitInfo(frame, unit, db)
 end
 
-local function UpdateToTFrame()
-    if not totFrame then return end
-    local db = TomoModDB.unitFrames.targetoftarget
-    
-    if not UnitExists("targettarget") then
+
+function UF.UpdateTarget()
+    local frame = TargetFrameUF
+    local unit = "target"
+    local db = TomoModDB.unitFrames.target
+
+    if not db.enabled then
+        frame:Hide()
         return
     end
-    
-    local health, maxHealth = SafeUnitHealth("targettarget")
-    local healthPercent = maxHealth > 0 and (health / maxHealth) or 0
-    
-    totFrame.healthBar:SetValue(healthPercent)
-    
-    -- Couleur de la barre de vie
-    if db.useClassColor then
-        local r, g, b = GetUnitReactionColor("targettarget")
-        totFrame.healthBar:SetStatusBarColor(r, g, b)
-    else
-        totFrame.healthBar:SetStatusBarColor(0.2, 0.2, 0.2)
-    end
-    
-    -- Nom tronqué
-    local name = UnitName("targettarget")
-    local maxLen = db.truncateNameLength or 8
-    if db.truncateName and maxLen > 0 then
-        name = TruncateName(name, maxLen)
-    end
-    totFrame.nameText:SetText(name)
+
+    UpdateHealth(frame, unit, db)
+    UpdatePower(frame, unit, db)
+    UpdateUnitInfo(frame, unit, db)
 end
 
--- =====================================
--- MISE À JOUR APPARENCE
--- =====================================
 
-local function UpdatePlayerAppearance()
-    if not playerFrame then return end
-    local db = TomoModDB.unitFrames.player
-    local width = db.minimalist and 350 or db.width
-    local height = db.minimalist and 15 or db.height
-    
-    playerFrame:SetSize(width, height)
-    playerFrame:SetScale(db.scale)
-    playerFrame.healthBar:SetSize(width - 2, height - 2)
-    playerFrame.absorbBar:SetHeight(height - 2)
-    UpdatePlayerFrame()
-end
-
-local function UpdateTargetAppearance()
-    if not targetFrame then return end
-    local db = TomoModDB.unitFrames.target
-    local width = db.minimalist and 350 or db.width
-    local height = db.minimalist and 15 or db.height
-    
-    local totalHeight = height
-    if db.showPowerBar then
-        totalHeight = height + 8
-    end
-    
-    targetFrame:SetSize(width, totalHeight)
-    targetFrame:SetScale(db.scale)
-    targetFrame.healthBar:SetSize(width - 2, height - 2)
-    targetFrame.powerBar:SetSize(width - 2, 6)
-    
-    if db.showPowerBar then
-        targetFrame.powerBar:Show()
-    else
-        targetFrame.powerBar:Hide()
-    end
-    
-    UpdateTargetFrame()
-end
-
-local function UpdateToTAppearance()
-    if not totFrame then return end
+function UF.UpdateToT()
+    local frame = ToTFrameUF
+    local unit = "targettarget"
     local db = TomoModDB.unitFrames.targetoftarget
-    local width = db.minimalist and 150 or db.width
-    
-    totFrame:SetSize(width, 15)
-    totFrame:SetScale(db.scale)
-    totFrame.healthBar:SetSize(width - 2, 13)
-    UpdateToTFrame()
+
+    if not db.enabled then
+        frame:Hide()
+        return
+    end
+
+    UpdateHealth(frame, unit, db)
+    UpdateUnitInfo(frame, unit, db)
 end
 
--- =====================================
--- CACHER FRAMES BLIZZARD
--- =====================================
-
-local function HideBlizzardFrames()
-    local db = TomoModDB.unitFrames
-    
-    if db.player.enabled then
-        PlayerFrame:UnregisterAllEvents()
-        PlayerFrame:Hide()
-        PlayerFrame:SetScript("OnShow", function(self) self:Hide() end)
-    end
-    
-    if db.target.enabled then
-        TargetFrame:UnregisterAllEvents()
-        TargetFrame:Hide()
-        TargetFrame:SetScript("OnShow", function(self) self:Hide() end)
-    end
-    
-    if db.targetoftarget.enabled and TargetFrameToT then
-        TargetFrameToT:UnregisterAllEvents()
-        TargetFrameToT:Hide()
-        TargetFrameToT:SetScript("OnShow", function(self) self:Hide() end)
-    end
-end
-
--- =====================================
--- ÉVÉNEMENTS
--- =====================================
-
-local eventFrame = CreateFrame("Frame")
-
-local function OnEvent(self, event, ...)
-    if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
-        local unit = ...
-        if unit == "player" then UpdatePlayerFrame()
-        elseif unit == "target" then UpdateTargetFrame()
-        elseif unit == "targettarget" then UpdateToTFrame() end
-    elseif event == "UNIT_POWER_UPDATE" or event == "UNIT_MAXPOWER" then
-        local unit = ...
-        if unit == "target" then UpdateTargetFrame() end
-    elseif event == "UNIT_ABSORB_AMOUNT_CHANGED" then
-        local unit = ...
-        if unit == "player" then UpdatePlayerFrame() end
-    elseif event == "PLAYER_TARGET_CHANGED" then
-        UpdateTargetFrame()
-        UpdateToTFrame()
-    elseif event == "UNIT_TARGET" then
-        local unit = ...
-        if unit == "target" then UpdateToTFrame() end
-    elseif event == "RAID_TARGET_UPDATE" or event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LEADER_CHANGED" then
-        UpdatePlayerFrame()
-        UpdateTargetFrame()
-    elseif event == "UNIT_LEVEL" or event == "UNIT_NAME_UPDATE" then
-        local unit = ...
-        if unit == "player" then UpdatePlayerFrame()
-        elseif unit == "target" then UpdateTargetFrame()
-        elseif unit == "targettarget" then UpdateToTFrame() end
-    end
-end
-
--- =====================================
--- PRÉVISUALISATION
--- =====================================
-
-function TomoMod_UnitFrames.ShowPreview()
-    if not playerFrame then CreatePlayerFrame() end
-    if not targetFrame then CreateTargetFrame() end
-    if not totFrame then CreateToTFrame() end
-    
-    UpdatePlayerAppearance()
-    UpdateTargetAppearance()
-    UpdateToTAppearance()
-    
-    playerFrame:Show()
-    targetFrame:Show()
-    totFrame:Show()
-    
-    -- Preview target
-    local db = TomoModDB.unitFrames.target
-    targetFrame.healthBar:SetValue(0.75)
-    if db.useClassColor then
-        targetFrame.healthBar:SetStatusBarColor(0.8, 0, 0)
+----------------------------------------------------------
+-- Settings application
+----------------------------------------------------------
+local function ApplySettings(frame, db)
+    frame:SetSize(db.width, db.height)
+    frame:SetScale(db.scale)
+    if db.minimalist then
+        frame.nameText:Hide()
+        frame.levelText:Hide()
+        frame.healthText:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\TomoMod.TTF", 9, "OUTLINE")
+        frame.powerBar:SetHeight(4)
     else
-        targetFrame.healthBar:SetStatusBarColor(0.2, 0.2, 0.2)
+        frame.healthText:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\TomoMod.TTF", 11, "OUTLINE")
+        frame.powerBar:SetHeight(6)
     end
-    if db.showPowerBar then
-        targetFrame.powerBar:SetValue(0.5)
-        targetFrame.powerBar:SetStatusBarColor(0, 0.44, 0.87)
-    end
-    targetFrame.nameText:SetText("Cible Preview")
-    targetFrame.levelText:SetText("70")
-    targetFrame.healthText:SetText("75%")
-    
-    -- Preview ToT
-    local dbTot = TomoModDB.unitFrames.targetoftarget
-    totFrame.healthBar:SetValue(0.9)
-    if dbTot.useClassColor then
-        totFrame.healthBar:SetStatusBarColor(0, 0.8, 0)
+end
+
+function UF.UpdatePlayerSettings()
+    ApplySettings(PlayerFrameUF, TomoModDB.unitFrames.player)
+    UF.UpdatePlayer()
+end
+
+function UF.UpdateTargetSettings()
+    ApplySettings(TargetFrameUF, TomoModDB.unitFrames.target)
+    UF.UpdateTarget()
+end
+
+function UF.UpdateToTSettings()
+    ApplySettings(ToTFrameUF, TomoModDB.unitFrames.targetoftarget)
+    UF.UpdateToT()
+    ToTFrameUF:SetAlpha(0.85)
+    ToTFrameUF.nameText:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\TomoMod.TTF", 9, "OUTLINE")
+    ToTFrameUF.healthText:Hide()
+end
+
+----------------------------------------------------------
+-- Position reset
+----------------------------------------------------------
+function UF.ResetPlayerPosition()
+    PlayerFrameUF:ClearAllPoints()
+    PlayerFrameUF:SetPoint("CENTER", UIParent, "CENTER", -200, -200)
+end
+
+function UF.ResetTargetPosition()
+    TargetFrameUF:ClearAllPoints()
+    TargetFrameUF:SetPoint("CENTER", UIParent, "CENTER", 200, -200)
+end
+
+function UF.ResetToTPosition()
+    ToTFrameUF:ClearAllPoints()
+    ToTFrameUF:SetPoint("TOP", TargetFrameUF, "BOTTOM", 0, -10)
+end
+
+----------------------------------------------------------
+-- Preview mode
+----------------------------------------------------------
+local PREVIEW_BG_COLOR = { 0, 0, 0, 0.8 } -- noir semi-opaque
+local NORMAL_BG_COLOR  = { 0, 0, 0, 0.6 } -- normal en jeu
+
+function UF.ShowPreview()
+    UF.isPreview = true
+
+    PlayerFrameUF:Show()
+    TargetFrameUF:Show()
+    ToTFrameUF:Show()
+
+    PlayerFrameUF.bg:SetColorTexture(unpack(PREVIEW_BG_COLOR))
+    TargetFrameUF.bg:SetColorTexture(unpack(PREVIEW_BG_COLOR))
+    ToTFrameUF.bg:SetColorTexture(unpack(PREVIEW_BG_COLOR))
+
+    UF.EnableMove(PlayerFrameUF, "player")
+    UF.EnableMove(TargetFrameUF, "target")
+    UF.EnableMove(ToTFrameUF, "tot")
+end
+
+function UF.HidePreview()
+    if not UF.isPreview then return end
+    UF.isPreview = false
+
+    PlayerFrameUF.bg:SetColorTexture(unpack(NORMAL_BG_COLOR))
+    TargetFrameUF.bg:SetColorTexture(unpack(NORMAL_BG_COLOR))
+    ToTFrameUF.bg:SetColorTexture(unpack(NORMAL_BG_COLOR))
+
+    UF.DisableMove(PlayerFrameUF)
+    UF.DisableMove(TargetFrameUF)
+    UF.DisableMove(ToTFrameUF)
+
+    UF.UpdatePlayer()
+    UF.UpdateTarget()
+    UF.UpdateToT()
+end
+
+local function RestorePosition(frame, key, defaultFunc)
+    local pos = TomoModDB.unitFrames.positions[key]
+    frame:ClearAllPoints()
+
+    if pos then
+        frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
     else
-        totFrame.healthBar:SetStatusBarColor(0.2, 0.2, 0.2)
+        defaultFunc()
     end
-    local totName = "ToT Preview"
-    if dbTot.truncateName then
-        totName = TruncateName(totName, dbTot.truncateNameLength or 8)
-    end
-    totFrame.nameText:SetText(totName)
 end
 
-function TomoMod_UnitFrames.HidePreview()
-    UpdatePlayerFrame()
-    UpdateTargetFrame()
-    UpdateToTFrame()
-end
+----------------------------------------------------------
+-- Events
+----------------------------------------------------------
+UF.EventFrame = CreateFrame("Frame")
 
--- =====================================
--- INITIALISATION
--- =====================================
-
-function TomoMod_UnitFrames.Initialize()
-    local db = TomoModDB.unitFrames
-    
-    if db.player.enabled then
-        CreatePlayerFrame()
-        TomoMod_PreviewMode.LoadPosition(playerFrame, db.player, -200, -100)
-        UpdatePlayerAppearance()
+function UF.OnEvent(event, unit)
+    if event == "PLAYER_ENTERING_WORLD" then
+        UF.UpdatePlayer()
+        UF.UpdateTarget()
+        UF.UpdateToT()
+        return
     end
-    
-    if db.target.enabled then
-        CreateTargetFrame()
-        TomoMod_PreviewMode.LoadPosition(targetFrame, db.target, 200, -100)
-        UpdateTargetAppearance()
+
+    if event == "PLAYER_TARGET_CHANGED" then
+        UF.UpdateTarget()
+        UF.UpdateToT()
+        return
     end
-    
-    if db.targetoftarget.enabled then
-        CreateToTFrame()
-        TomoMod_PreviewMode.LoadPosition(totFrame, db.targetoftarget, 200, -150)
-        UpdateToTAppearance()
+
+    if unit == "player" then
+        UF.UpdatePlayer()
+    elseif unit == "target" then
+        UF.UpdateTarget()
+    elseif unit == "targettarget" then
+        UF.UpdateToT()
     end
-    
-    HideBlizzardFrames()
-    
-    eventFrame:RegisterEvent("UNIT_HEALTH")
-    eventFrame:RegisterEvent("UNIT_MAXHEALTH")
-    eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
-    eventFrame:RegisterEvent("UNIT_MAXPOWER")
-    eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
-    eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
-    eventFrame:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
-    eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
-    eventFrame:RegisterEvent("UNIT_TARGET")
-    eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
-    eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
-    eventFrame:RegisterEvent("PARTY_LEADER_CHANGED")
-    eventFrame:RegisterEvent("UNIT_LEVEL")
-    eventFrame:RegisterEvent("UNIT_NAME_UPDATE")
-    
-    eventFrame:SetScript("OnEvent", OnEvent)
 end
 
-function TomoMod_UnitFrames.UpdatePlayerSettings() UpdatePlayerAppearance() end
-function TomoMod_UnitFrames.UpdateTargetSettings() UpdateTargetAppearance() end
-function TomoMod_UnitFrames.UpdateToTSettings() UpdateToTAppearance() end
+----------------------------------------------------------
+-- Enable / Disable
+----------------------------------------------------------
+function UF.Enable()
+    local f = UF.EventFrame
+    f:RegisterEvent("PLAYER_ENTERING_WORLD")
+    f:RegisterEvent("PLAYER_TARGET_CHANGED")
+    f:RegisterEvent("UNIT_HEALTH")
+    f:RegisterEvent("UNIT_MAXHEALTH")
+    f:RegisterEvent("UNIT_HEAL_PREDICTION")
+    f:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
+    f:RegisterEvent("UNIT_FACTION")
 
-function TomoMod_UnitFrames.ResetPlayerPosition()
-    TomoModDB.unitFrames.player.position = nil
-    if playerFrame then TomoMod_PreviewMode.LoadPosition(playerFrame, TomoModDB.unitFrames.player, -200, -100) end
+    UF.EventFrame:SetScript("OnEvent", function(_, event, unit)
+    UF.OnEvent(event, unit)
+    end)
 end
 
-function TomoMod_UnitFrames.ResetTargetPosition()
-    TomoModDB.unitFrames.target.position = nil
-    if targetFrame then TomoMod_PreviewMode.LoadPosition(targetFrame, TomoModDB.unitFrames.target, 200, -100) end
+function UF.Disable()
+    UF.EventFrame:UnregisterAllEvents()
 end
 
-function TomoMod_UnitFrames.ResetToTPosition()
-    TomoModDB.unitFrames.targetoftarget.position = nil
-    if totFrame then TomoMod_PreviewMode.LoadPosition(totFrame, TomoModDB.unitFrames.targetoftarget, 200, -150) end
+----------------------------------------------------------
+-- Hide BLizzard
+----------------------------------------------------------
+local function HideBlizzardUnitFrames()
+    local frames = {
+        PlayerFrame,
+        TargetFrame,
+        TargetFrameToT,
+        FocusFrame,
+    }
+
+    for _, frame in pairs(frames) do
+        if frame then
+            frame:UnregisterAllEvents()
+            frame:Hide()
+            frame:SetAlpha(0)
+
+            -- Empêche Blizzard de le réafficher
+            hooksecurefunc(frame, "Show", function(self)
+                self:Hide()
+            end)
+        end
+    end
+end
+
+----------------------------------------------------------
+-- Initialize
+----------------------------------------------------------
+function UF.Initialize()
+    -- Sécurité DB
+    TomoModDB.unitFrames = TomoModDB.unitFrames or {}
+    TomoModDB.unitFrames.positions = TomoModDB.unitFrames.positions or {}
+
+    -- Create frames
+    PlayerFrameUF = CreateUnitFrame("TomoMod_PlayerFrame", 200, 30)
+    TargetFrameUF = CreateUnitFrame("TomoMod_TargetFrame", 200, 30)
+    ToTFrameUF = CreateUnitFrame("TomoMod_ToTFrame", 90, 30)
+
+    PlayerFrameUF:SetAttribute("unit", "player")
+    TargetFrameUF:SetAttribute("unit", "target")
+    ToTFrameUF:SetAttribute("unit", "targettarget")
+
+    -- Positions
+    UF.ResetPlayerPosition()
+    UF.ResetTargetPosition()
+    UF.ResetToTPosition()
+
+    RestorePosition(PlayerFrameUF, "player", UF.ResetPlayerPosition)
+    RestorePosition(TargetFrameUF, "target", UF.ResetTargetPosition)
+    RestorePosition(ToTFrameUF, "tot", UF.ResetToTPosition)
+
+    -- Apply settings
+    UF.UpdatePlayerSettings()
+    UF.UpdateTargetSettings()
+    UF.UpdateToTSettings()
+
+    UF.Enable()
+
+    -- Hide Blizzard frames (OPTIONNEL)
+    if TomoModDB.unitFrames.hideBlizzard then
+        HideBlizzardUnitFrames()
+    end
 end

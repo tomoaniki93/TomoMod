@@ -697,6 +697,11 @@ function TomoMod_Config.CreateUIContent()
         TomoMod_UnitFrames.UpdatePlayerSettings()
     end)
     
+    local playerPowerBar = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 220, yOffset, "Barre de ressource", TomoModDB.unitFrames.player.showPowerBar, function(self)
+        TomoModDB.unitFrames.player.showPowerBar = self:GetChecked()
+        TomoMod_UnitFrames.UpdateTargetSettings()
+    end)
+    
     yOffset = yOffset - 22
     
     local playerLeader = TomoMod_Utils.CreateCheckbox(scrollChild, "TOPLEFT", 30, yOffset, "Leader", TomoModDB.unitFrames.player.showLeader, function(self)

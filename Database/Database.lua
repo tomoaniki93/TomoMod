@@ -63,6 +63,7 @@ TomoMod_Defaults = {
             showCurrentHP = true,
             showPercentHP = true,
             useClassColor = true, -- Nouvelle option: true = couleur classe, false = noir/gris
+            showPowerBar = true, -- Nouvelle option: afficher/cacher la barre de ressource
         },
         target = {
             enabled = true,
