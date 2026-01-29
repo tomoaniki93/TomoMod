@@ -19,24 +19,33 @@ end
 local function ApplyColor(bar, col)
   if not bar then return end
   col = (type(col) == "table") and col or { r=1, g=1, b=1, a=1 }
-  local r = ns.Util.Clamp(col.r, 0, 1, 1)
-  local g = ns.Util.Clamp(col.g, 0, 1, 1)
-  local b = ns.Util.Clamp(col.b, 0, 1, 1)
-  local a = ns.Util.Clamp(col.a, 0, 1, 1)
-  bar:SetStatusBarColor(r, g, b, a)
+  bar:SetStatusBarColor(
+    ns.Util.Clamp(col.r, 0, 1, 1),
+    ns.Util.Clamp(col.g, 0, 1, 1),
+    ns.Util.Clamp(col.b, 0, 1, 1),
+    ns.Util.Clamp(col.a, 0, 1, 1)
+  )
+end
+
+local function SetNameOnHealthBar(obj, unit)
+  if not obj or not obj.nameText then return end
+  if not UnitExists(unit) then
+    obj.nameText:SetText("")
+    return
+  end
+  obj.nameText:SetText(UnitName(unit) or "")
+  obj.nameText:Show()
 end
 
 local function UpdateUnit(obj, unit)
   if not obj or not unit then return end
+
   if not UnitExists(unit) then
-    if obj.nameText then obj.nameText:SetText("") end
     if obj.healthBar then obj.healthBar:SetMinMaxValues(0, 1); obj.healthBar:SetValue(0) end
     if obj.powerBar  then obj.powerBar:SetMinMaxValues(0, 1);  obj.powerBar:SetValue(0) end
+    SetNameOnHealthBar(obj, unit)
     return
   end
-
-  local name = UnitName(unit) or ""
-  if obj.nameText then obj.nameText:SetText(name) end
 
   local curH = UnitHealth(unit) or 0
   local maxH = UnitHealthMax(unit) or 1
@@ -50,6 +59,8 @@ local function UpdateUnit(obj, unit)
   if maxP <= 0 then maxP = 1 end
   obj.powerBar:SetMinMaxValues(0, maxP)
   obj.powerBar:SetValue(curP)
+
+  SetNameOnHealthBar(obj, unit)
 end
 
 local function SavePos(key, anchor)
@@ -65,7 +76,6 @@ local function MakeAnchor(key)
   a:SetSize(240, 46)
   a:SetClampedToScreen(true)
   a:SetMovable(true)
-
   a:EnableMouse(false)
   a:RegisterForDrag("LeftButton")
 
@@ -90,14 +100,11 @@ local function MakeSecureUnitButton(anchor, unit)
   local b = CreateFrame("Button", ns:UniqueName("MidnightUFBtn"), anchor, "SecureUnitButtonTemplate")
   b:SetAllPoints(anchor)
   b:RegisterForClicks("AnyUp")
-
   b:SetAttribute("unit", unit)
   b:SetAttribute("*type1", "target")
   b:SetAttribute("*type2", "togglemenu")
-
   RegisterUnitWatch(b)
 
-  -- Visuals
   b.bg = b:CreateTexture(nil, "BACKGROUND")
   b.bg:SetAllPoints(true)
   b.bg:SetColorTexture(0, 0, 0, 0.55)
@@ -113,15 +120,21 @@ local function MakeSecureUnitButton(anchor, unit)
   b.powerBar:SetPoint("TOPRIGHT", b.healthBar, "BOTTOMRIGHT", 0, -2)
   b.powerBar:SetHeight(8)
 
-  b.nameText = b:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-  b.nameText:SetPoint("CENTER", b.healthBar, "CENTER", 0, 0)
-  b.nameText:SetJustifyH("CENTER")
+  -- ✅ FIX CRITIQUE : OVERLAY + Parent sur healthBar
+  b.nameText = b.healthBar:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  b.nameText:SetPoint("LEFT", b.healthBar, "LEFT", 8, 0)
+  b.nameText:SetPoint("RIGHT", b.healthBar, "RIGHT", -8, 0)
+  b.nameText:SetJustifyH("LEFT")
+  b.nameText:SetTextColor(1, 1, 1, 1)
+  b.nameText:SetShadowColor(0, 0, 0, 1)
+  b.nameText:SetShadowOffset(1, -1)
+  b.nameText:SetWordWrap(false)
+  b.nameText:SetNonSpaceWrap(false)
 
   return b
 end
 
 function UF:OnInit()
-  -- Unit events
   self.frame:RegisterEvent("PLAYER_TARGET_CHANGED")
   self.frame:RegisterEvent("UNIT_NAME_UPDATE")
   self.frame:RegisterEvent("UNIT_HEALTH")
@@ -146,17 +159,11 @@ function UF:OnInit()
     end
   end)
 
-  -- Refresh when DB changes
-  ns.Events:RegisterMessage("MIDNIGHT_DB_CHANGED", function()
-    self:Refresh()
-  end)
-  ns.Events:RegisterMessage("MIDNIGHT_PROFILE_CHANGED", function()
-    self:Refresh()
-  end)
+  ns.Events:RegisterMessage("MIDNIGHT_DB_CHANGED", function() self:Refresh() end)
+  ns.Events:RegisterMessage("MIDNIGHT_PROFILE_CHANGED", function() self:Refresh() end)
 end
 
 function UF:OnEnable()
-  -- Create objects once
   if not self.objects.player then
     local a = MakeAnchor("player")
     local b = MakeSecureUnitButton(a, "player")
@@ -193,15 +200,10 @@ function UF:Refresh()
         local unlocked = ns.DB:Get("unitframes.unlocked", false)
         anchor:EnableMouse(unlocked and true or false)
 
-        if enabled then
-          anchor:Show()
-        else
-          anchor:Hide()
-        end
+        if enabled then anchor:Show() else anchor:Hide() end
       end
     end
 
-    -- colors
     local hc = ns.DB:Get("unitframes.colors.health")
     local pc = ns.DB:Get("unitframes.colors.power")
     ApplyColor(self.objects.player.healthBar, hc)
@@ -209,11 +211,9 @@ function UF:Refresh()
     ApplyColor(self.objects.target.healthBar, hc)
     ApplyColor(self.objects.target.powerBar,  pc)
 
-    -- update displayed values
     UpdateUnit(self.objects.player, "player")
     UpdateUnit(self.objects.target, "target")
   end
 
-  -- Secure/layout changes must be out of combat
   ns.Core:RunOutOfCombat(Apply)
 end
