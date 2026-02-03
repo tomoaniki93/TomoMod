@@ -1,5 +1,5 @@
 # TomoMod
-Version 1.15
+Version 1.17
 
 Project ID: 1446255
 
@@ -8,11 +8,13 @@ Project ID: 1446255
 - Setting in game /tm
 - /ks say ou party ou Guild - for PartyTrackerKeystone 
 
-## Unit Frames
-- Player.
-- Target.
+## Unit Frames WIP
+- Player
+- Target
 - TargetCastBar
-- Target of Target.
+- Target of Target
+- Focus
+- Boss 1 to 5
 - Debuff Player
 - Debuff Target
 
@@ -28,6 +30,13 @@ Project ID: 1446255
 - Fastloot
 - TooltipanchorMouse
 - CompagnonsStatue
+- Automatic Summon if Guild or Friends
+- Automatic Accepete invit if Guild or Friends
+- Hiding Player Cast Bard Config in /tm
+- Skyriding Bar Config in /tm
+- Key Tracker /tm key
+- CooldownManager Config /tm cdm or ci
+- Auto Fill Delete
 
 
 ## Libraries
@@ -43,5 +52,4 @@ If you find (https://github.com/tomoaniki93/TomoMod/issues), please raise them a
 ## Future Plans
 I will not make a Focus and Party/raid Frame.
 
-- SkyridingHUD in progress
-- CoolddownManager in progress
+- Reword UnitFrame
