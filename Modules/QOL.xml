@@ -5,24 +5,33 @@
     <Include file="Minimap\Minimap.lua" />
     <Include file="Minimap\InfoPanel.lua"/>
 
+    <!-- CDM -->
+    <Include file="CooldownManager\CombatInfo.lua" />
+
     <!-- Modules: Auto -->
     <Include file="Auto\AutoVendorRepair.lua" />
     <Include file="Auto\Fastloot.lua"/>
     <Include file="Auto\HideTalkingHead.lua"/>
+    <Include file="Auto\HideCastBar.lua"/>
     <Include file="Auto\CinematicSkip.lua"/>
+    <Include file="Auto\AutoAcceptInvite.lua"/>
+    <Include file="Auto\AutoSummon.lua"/>
+    <Include file="Auto\AutoFillDelete.lua"/>
 
     <!-- Modules: Classes -->
     <Include file="Classes\CompanionStatus.lua" />
 
     <!-- Modules: Cursor -->
     <Include file="Cursor\CursorRing.lua" />
-    <Include file="Cursor\Tooltip.lua" />
 
     <!-- Modules: MythicPlus -->
     <Include file="MythicPlus\Keystone.lua" />
-    <Include file="MythicPlus\PartyKeystoneTracker.lua"/>
+    <Include file="MythicPlus\MythicKeys.lua"/>
 
     <!-- Modules: Quest -->
     <Include file="Quest\AutoQuest.lua" />
+
+    <!-- Modules: Skyriding -->
+    <Include file="Skyriding\SkyRide.lua" />
     
 </Ui>

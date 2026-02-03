@@ -16,7 +16,6 @@ TomoMod_Defaults = {
         borderColor = "black", -- "black" ou "class"
         showDurability = true,
         showTime = true,
-        showFPS = false,
         use24Hour = true,
         displayOrder = {"Gear", "Time", "Fps"},
         position = nil,
@@ -36,89 +35,58 @@ TomoMod_Defaults = {
         autoTurnIn = false,
         autoGossip = false,
     },
-    castBars = {
+    skyRide = {
+        enabled = false, -- Désactivé par défaut
+        width = 340,
+        height = 20,
+        comboHeight = 5,
+        font = STANDARD_TEXT_FONT,
+        fontSize = 12,
+        fontOutline = "OUTLINE",
+        barColor = {r = 1, g = 1, b = 0},
+        position = {
+            point = "BOTTOM",
+            relativePoint = "CENTER",
+            x = 0,
+            y = -180,
+        },
+    },
+    autoAcceptInvite = {
+        enabled = false, -- false par défaut pour sécurité
+        acceptFriends = true,
+        acceptGuild = true,
+        showMessages = true,
+    },
+    autoSummon = {
+        enabled = false, -- false par défaut pour sécurité
+        acceptFriends = true,
+        acceptGuild = true,
+        showMessages = true,
+        delaySec = 1,
+    },
+    hideCastBar = {
+        enabled = false, -- false par défaut, activer via config
+    },
+    MythicKeys = {
         enabled = true,
-        width = 250,
-        height = 22,
-        position = nil,
-        showTargetName = true,
-        showSpellName = true,
-        flashOnTargeted = true,
-        interruptibleColor = {0, 1, 1},
-        notInterruptibleColor = {0.5, 0.5, 0.5},
-        interruptedColor = {221/255, 160/255, 221/255},
+        miniFrame = true,
+        autoRefresh = true,
+        sendToChat = true,
     },
-    unitFrames = {
-        player = {
-            enabled = true,
-            width = 200,
-            height = 30,
-            scale = 1.0,
-            minimalist = false,
-            position = nil,
-            showLeader = true,
-            showRaidMarker = true,
-            showName = true,
-            showLevel = true,
-            showCurrentHP = true,
-            showPercentHP = true,
-            useClassColor = true, -- Nouvelle option: true = couleur classe, false = noir/gris
-            showPowerBar = true, -- Nouvelle option: afficher/cacher la barre de ressource
-        },
-        target = {
-            enabled = true,
-            width = 200,
-            height = 30,
-            scale = 1.0,
-            minimalist = false,
-            position = nil,
-            showLeader = true,
-            showRaidMarker = true,
-            showName = true,
-            showLevel = true,
-            showCurrentHP = true,
-            showPercentHP = true,
-            useClassColor = true, -- Nouvelle option: true = couleur classe/reaction, false = noir/gris
-            showPowerBar = true, -- Nouvelle option: afficher/cacher la barre de ressource
-            truncateName = true, -- Nouvelle option: tronquer le nom
-            truncateNameLength = 8, -- Nouvelle option: longueur max du nom
-        },
-        targetoftarget = {
-            enabled = true,
-            width = 90,
-            height = 15,
-            scale = 1.0,
-            minimalist = false,
-            position = nil,
-            useClassColor = true, -- Nouvelle option
-            truncateName = true, -- Nouvelle option: tronquer le nom
-            truncateNameLength = 8, -- Nouvelle option: longueur max du nom
-        },
+    autoFillDelete = {
+        enabled = true,      -- Activé par défaut (juste un helper)
+        focusButton = true,  -- Focus sur OK après remplissage
+        showMessages = false, -- Pas de messages spam
     },
-    auras = {
-        playerDebuffs = {
-            enabled = true,
-            position = nil,
-            scale = 1.0,
-            count = 8,                    -- Nombre de debuffs affichés (2-8)
-            growDirection = "LEFT",       -- LEFT, RIGHT, UP, DOWN
-        },
-        targetDebuffs = {
-            enabled = true,
-            position = nil,
-            scale = 1.0,
-            countPerRow = 8,              -- Nombre de debuffs par ligne (2-8)
-            rows = 1,                     -- Nombre de lignes (1-2)
-            growDirection = "RIGHT",      -- LEFT, RIGHT (direction horizontale)
-            rowDirection = "DOWN",        -- UP, DOWN (direction des lignes)
-            onlyMine = false,             -- Afficher uniquement mes debuffs
-        },
-    },
-    tooltip = {
+    combatInfo = {
         enabled = true,
-        colorBorder = true,               -- Bordure colorée selon la cible
-        colorName = true,                 -- Nom coloré selon la cible
-        improveBackdrop = true,           -- Améliorer l'apparence du tooltip
+        alignedBuff = false,
+        combatAlphaChange = true,
+        changeBuffBar = true,
+        buffBarClassColor = true,
+        showHotKey = false,
+        hideBarName = true,
+        alertAssistedSpell = false,
     },
 }
 

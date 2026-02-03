@@ -139,6 +139,11 @@ local function GetPetIcon()
     end
 end
 
+local function ShouldShowIcon()
+    if IsFlying() then return false end
+    return true
+end
+
 --------------------------------------------------
 -- Frame UI
 --------------------------------------------------
@@ -173,11 +178,25 @@ local function ApplyPosition()
     CompanionStatus:SetPoint(unpack(DB.point))
 end
 
+function UpdateIcon()
+    if ShouldShowIcon() then
+        icon:Show()
+    else
+        icon:Hide()
+    end
+end
+
 --------------------------------------------------
 -- Core logic (SAFE)
 --------------------------------------------------
 local function UpdateState()
     if not DB.enabled then
+        CompanionStatus:Hide()
+        return
+    end
+
+    -- Hide while flying
+    if IsFlying() then
         CompanionStatus:Hide()
         return
     end
@@ -232,6 +251,8 @@ CompanionStatus:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 CompanionStatus:RegisterEvent("PLAYER_TALENT_UPDATE")
 CompanionStatus:RegisterEvent("UNIT_PET")
 CompanionStatus:RegisterEvent("UNIT_HEALTH")
+CompanionStatus:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
+CompanionStatus:RegisterEvent("UNIT_FLAGS")
 
 CompanionStatus:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == ADDON_NAME then
@@ -244,6 +265,7 @@ CompanionStatus:SetScript("OnEvent", function(self, event, arg1)
         ApplyPosition()
         ApplyDisplay()
         UpdateState()
+        UpdateIcon()
         return
     end
 

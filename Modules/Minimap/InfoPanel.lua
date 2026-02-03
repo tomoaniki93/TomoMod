@@ -46,7 +46,6 @@ function TomoMod_InfoPanel.CalculateSize()
     local count = 0
     if TomoModDB.infoPanel.showDurability then count = count + 1 end
     if TomoModDB.infoPanel.showTime then count = count + 1 end
-    if TomoModDB.infoPanel.showFPS then count = count + 1 end
     
     if count == 0 then count = 1 end
     
@@ -128,10 +127,6 @@ function TomoMod_InfoPanel.Update()
             table.insert(elements, string.format("%sGear: %d%%|r", color, durability))
         elseif key == "Time" and TomoModDB.infoPanel.showTime then
             table.insert(elements, "|cffffffffTime: " .. TomoMod_InfoPanel.GetFormattedTime() .. "|r")
-        elseif key == "Fps" and TomoModDB.infoPanel.showFPS then
-            local fps = math.floor(GetFramerate())
-            local color = fps > 60 and "|cff00ff00" or (fps > 30 and "|cffffff00" or "|cffff0000")
-            table.insert(elements, string.format("%sFps: %d|r", color, fps))
         end
     end
     
@@ -165,7 +160,9 @@ end
 
 -- Initialisation du module
 function TomoMod_InfoPanel.Initialize()
-    if not TomoModDB.infoPanel.enabled then return end
+    if not TomoModDB or not TomoModDB.infoPanel or not TomoModDB.infoPanel.enabled then
+        return
+    end
     
     C_Timer.After(1, function()
         TomoMod_InfoPanel.HideBlizzardClock()

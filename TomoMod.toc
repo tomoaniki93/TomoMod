@@ -1,25 +1,24 @@
-## Interface: 120000
+## Interface: 120001, 120000
 ## 
-## Title: |c6FF0000FFTomo |r|cffff3399Mod|
-## Notes: Interface simple + Qol scripts
+## Title: |cFF8080FFTomo|rMod
+## Notes: Qol scripts
 ## Category: Interface
 ## SavedVariables: TomoModDB
 ## 
-## Author: Tomo
-## Version: 1.15
-## 
-## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo\logoProject.png
+## Author: TomoAniki
+## Version: 1.17
+## IconTexture: Interface\AddOns\TomoMod\Media\Textures\Logo.tga
 
 ## Libraries
 libs.xml
 
 ## Database
-Database\Database.lua
 Database\Utils.lua
+Database\Database.lua
 
 ## Modules
 Modules.xml
 
 ## Config
-Config\Config.lua
 Config\Core.lua
+Config\Config.lua
