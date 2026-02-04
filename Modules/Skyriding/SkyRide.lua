@@ -13,10 +13,19 @@ local SURGE_FORWARD_SPELL = 372608  -- Surge Forward (vitesse avant)
 local SKYWARD_ASCENT_SPELL = 425782 -- Skyward Ascent (ascension)
 local VIGOR_SPELL = 361584          -- Vigor (récupération)
 
+-- Constantes pour le calcul de vitesse
+local SPEED_MULTIPLIER = 14.285  -- Multiplicateur pour convertir forwardSpeed en %
+local BASE_MOVEMENT_SPEED = 7    -- Vitesse de base du joueur
+
 local STATUSBAR_COLORS = {
     [1] = {r = 0.3, g = 0.8, b = 1}, -- Bleu clair pour Surge Forward
     [2] = {r = 0.1, g = 0.6, b = 1}, -- Bleu foncé pour Skyward Ascent
 }
+
+-- Fonction Round
+local function Round(num)
+    return math.floor(num + 0.5)
+end
 
 -- =====================================
 -- VARIABLES DU MODULE
@@ -228,8 +237,20 @@ local function UpdateSpeed()
     
     -- Calcul de la vitesse (en vol)
     local isGliding, canGlide, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
-    local base = isGliding and forwardSpeed or GetUnitSpeed("player")
-    local moveSpeed = Round(base / BASE_MOVEMENT_SPEED * 100)
+    
+    -- Calculer la vitesse en pourcentage
+    local moveSpeed = 0
+    if isGliding and forwardSpeed then
+        -- Utiliser forwardSpeed avec le multiplicateur approprié
+        moveSpeed = Round(forwardSpeed * SPEED_MULTIPLIER * 10) -- Multiplier par 10 pour obtenir le % correct
+    else
+        -- Fallback sur GetUnitSpeed si pas en gliding
+        local speed = GetUnitSpeed("player")
+        moveSpeed = Round(speed / BASE_MOVEMENT_SPEED * 100)
+    end
+    
+    -- Limiter entre 0 et 1100
+    moveSpeed = math.max(0, math.min(moveSpeed, 1100))
     
     speedBar:SetMinMaxValues(0, 1100)
     speedBar:SetValue(moveSpeed, Enum.StatusBarInterpolation.ExponentialEaseOut)

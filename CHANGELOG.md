@@ -1,9 +1,21 @@
-CHANGELOG 1.17
+CHANGELOG 1.18
 
-- Add Systeme Automatic: Summon if Guild or Friends
-			 Accepete invit if Guild or Friends
-- Add Hiding Player Cast Bard Config in /tm
-- Add Skyriding Bar Config in /tm
-- Add Key Tracker /tm key
-- CooldownManager Config /tm cdm or ci
-- Add Auto Fill Delete
+- Add Ancre Movable For AlerteFrame and LootFrame by /tm sr
+- Modification and add info on InfoPanel Clic Left show Calendar, Clic right show local time or server
+- Add Rework UnitFrames :
+    * Player
+    * Target
+    * TargetTarget
+    * Pet
+    * Focus
+    * Boss 1 to 5
+- Target CastBar movable by /tm sr and configurable by /tm
+- add TomoPlates :
+    * Support total for nameplates
+    * 13 textures available
+    * Range fading
+    * Configuration complete
+    * Support threat for role
+    * Raid markers
+    * Target highlight
+- 

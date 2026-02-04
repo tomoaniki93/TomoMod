@@ -1,13 +1,14 @@
 ## Interface: 120001, 120000
 ## 
-## Title: |cFF8080FFTomo|rMod
-## Notes: Qol scripts
-## Category: Interface
-## SavedVariables: TomoModDB
+## Title: |cff0cd29fTomo|rMod
+## Notes: Lite interface and code with QOL and UnitFrame.
+## Category: |cff0cd29fInterface|r
 ## 
+## SavedVariables: TomoModDB
+## X-Curse-Project-ID: 1446255
 ## Author: TomoAniki
-## Version: 1.17
-## IconTexture: Interface\AddOns\TomoMod\Media\Textures\Logo.tga
+## Version: 1.18
+## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## Libraries
 libs.xml

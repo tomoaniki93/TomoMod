@@ -56,14 +56,17 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if TomoMod_SkyRide then 
             TomoMod_SkyRide.Initialize()
             print("|cff00ff00TomoMod:|r SkyRide réinitialisé")
+        end
     elseif msg == "skyride toggle" or msg == "sr" then
         if TomoMod_SkyRide and TomoMod_SkyRide.ToggleLock then
-            TomoMod_SkyRide.ToggleLock() 
+            TomoMod_SkyRide.ToggleLock()
+        end
     -- Nouvelles commandes pour CombatInfo
     elseif msg == "cdm" or msg == "ci" then
         if TomoMod_CombatInfo then
             local enabled = TomoModDB and TomoModDB.combatInfo and TomoModDB.combatInfo.enabled
             print("|cff00ff00TomoMod CombatInfo:|r " .. (enabled and "Activé" or "Désactivé"))
+        end
     -- Commande d'aide
     elseif msg == "help" or msg == "?" then
         print("|cff00ff00TomoMod|r Commandes disponibles:")

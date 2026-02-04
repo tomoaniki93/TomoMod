@@ -3,6 +3,7 @@
 -- =====================================
 
 TomoMod_CursorRing = {}
+
 local cursorFrame
 local ringTexture
 local updateTimer = 0
@@ -19,7 +20,7 @@ function TomoMod_CursorRing.Create()
     -- Créer la texture du ring
     ringTexture = cursorFrame:CreateTexture(nil, "ARTWORK")
     ringTexture:SetAllPoints(cursorFrame)
-    ringTexture:SetTexture("Interface\\AddOns\\UltraFrameUI_QOL\\Assets\\Textures\\Ring")
+    ringTexture:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\Ring")
     ringTexture:SetBlendMode("ADD")
     
     -- Animation de rotation
