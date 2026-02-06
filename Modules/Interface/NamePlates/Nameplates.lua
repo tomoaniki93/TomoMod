@@ -160,27 +160,30 @@ local function CreatePlate(baseFrame)
     plate.castbar:Hide()
     plate.castbar:EnableMouse(false)
 
-    -- Helper frame to decode secret boolean (SetShown=C-side accepts secret, IsShown returns non-secret)
-    plate.castbar._notInterruptHelper = CreateFrame("Frame", nil, plate.castbar)
-    plate.castbar._notInterruptHelper:SetSize(1, 1)
-    plate.castbar._notInterruptHelper:SetAlpha(0)
-    plate.castbar._notInterruptHelper:EnableMouse(false)
-    plate.castbar._notInterruptHelper:Hide()
+    -- Not-interruptible overlay (grey, anchored to fill texture)
+    -- SetAlpha accepts secrets from C_CurveUtil — key TWW technique
+    local cbStatusTex = plate.castbar:GetStatusBarTexture()
+    plate.castbar.niOverlay = plate.castbar:CreateTexture(nil, "ARTWORK", nil, 1)
+    plate.castbar.niOverlay:SetPoint("TOPLEFT", cbStatusTex, "TOPLEFT", 0, 0)
+    plate.castbar.niOverlay:SetPoint("BOTTOMRIGHT", cbStatusTex, "BOTTOMRIGHT", 0, 0)
+    plate.castbar.niOverlay:SetColorTexture(0.5, 0.5, 0.5, 1)
+    plate.castbar.niOverlay:SetAlpha(0)
+    plate.castbar.niOverlay:Show()
 
     -- Castbar update
     plate.castbar.casting = false
     plate.castbar.channeling = false
+    plate.castbar.duration_obj = nil
     plate.castbar:SetScript("OnUpdate", function(self, elapsed)
         if not self.casting and not self.channeling then
             self:Hide()
             return
         end
-        -- Timer text
-        if self.timer then
-            local durObj = self:GetTimerDuration()
-            if durObj then
-                self.timer:SetFormattedText("%.1f", durObj:GetRemainingDuration())
-            end
+        -- Progress: GetTime() * 1000 is non-secret, bar fill handled C-side
+        self:SetValue(GetTime() * 1000)
+        -- Timer from stored duration object (param 0 for displayable value)
+        if self.timer and self.duration_obj then
+            self.timer:SetText(string.format("%.1f", self.duration_obj:GetRemainingDuration(0)))
         end
     end)
 
@@ -531,15 +534,31 @@ local function UpdatePlate(plate, unit)
                 if auraFrame then
                     -- SetTexture is C-side, accepts secret icon value
                     auraFrame.icon:SetTexture(data.icon)
-                    -- Cooldown swipe: secret arithmetic → C-side SetCooldown (no pcall, it propagates taint)
-                    auraFrame.cooldown:SetCooldown(data.expirationTime - data.duration, data.duration)
-                    auraFrame.cooldown:Show()
-                    -- Stack count: SetFormattedText is C-side, accepts secret applications
-                    auraFrame.count:SetFormattedText("%d", data.applications)
+
+                    -- Duration object (C_UnitAuras.GetAuraDuration)
+                    local durObj = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
+                    auraFrame._auraUnit = unit
+                    auraFrame._auraInstanceID = data.auraInstanceID
+
+                    if durObj then
+                        -- TWW: Duration methods return secrets — can't compare, can't do arithmetic
+                        -- Cooldown swipe impossible (needs startTime = GetTime() - (total - remaining))
+                        auraFrame.cooldown:Hide()
+                        -- Duration text: string.format is C function, accepts secrets
+                        if auraFrame.duration then
+                            auraFrame.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                            auraFrame.duration:Show()
+                        end
+                    else
+                        auraFrame.cooldown:Hide()
+                        if auraFrame.duration then auraFrame.duration:Hide() end
+                    end
+
+                    -- Stack count (non-secret display string, empty if < 2)
+                    local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(unit, data.auraInstanceID, 2, 1000)
+                    auraFrame.count:SetText(stackStr or "")
                     auraFrame.count:Show()
-                    -- Store expirationTime for duration ticker
-                    auraFrame._expirationTime = data.expirationTime
-                    if auraFrame.duration then auraFrame.duration:Show() end
+
                     auraFrame:Show()
                 end
             end
@@ -548,7 +567,6 @@ local function UpdatePlate(plate, unit)
         -- Hide remaining
         for i = auraIndex + 1, maxAuras do
             if plate.auras[i] then
-                plate.auras[i]._expirationTime = nil
                 plate.auras[i]:Hide()
             end
         end
@@ -561,9 +579,6 @@ end
 -- CASTBAR HELPERS
 -- =====================================
 
--- Track interrupt state per unit via events (notInterruptible is secret in TWW)
-local castInterruptState = {}  -- [unit] = true (interruptible) / false (not interruptible)
-
 local function UpdateCastbar(plate, unit)
     if not plate or not plate.castbar then return end
     local s = DB()
@@ -572,47 +587,39 @@ local function UpdateCastbar(plate, unit)
 
     local name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible
 
-    -- Check casting — use TWW SetTimerDuration (C-side, no Lua arithmetic on secret numbers)
+    -- Check casting — TWW: SetMinMaxValues accepts secrets (start/end MS)
     name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible = UnitCastingInfo(unit)
-    if name then
+    if type(name) ~= "nil" then
         plate.castbar.casting = true
         plate.castbar.channeling = false
         plate.castbar.interrupted = false
-        local duration = UnitCastingDuration(unit)
-        plate.castbar:SetTimerDuration(duration, Enum.StatusBarInterpolation.Immediate, Enum.StatusBarTimerDirection.ElapsedTime)
+        plate.castbar.duration_obj = UnitCastingDuration(unit)
+        plate.castbar:SetMinMaxValues(startTimeMS, endTimeMS)
+        plate.castbar:SetReverseFill(false)
         plate.castbar.text:SetFormattedText("%s", name)
         plate.castbar.icon:SetTexture(texture)
-        -- Decode secret boolean: SetShown (C-side, accepts secret) → IsShown (returns non-secret)
-        plate.castbar._notInterruptHelper:SetShown(notInterruptible)
-        if plate.castbar._notInterruptHelper:IsShown() then
-            -- Not interruptible → Grey
-            plate.castbar:SetStatusBarColor(0.5, 0.5, 0.5, 1)
-        else
-            -- Interruptible → Red
-            plate.castbar:SetStatusBarColor(0.8, 0.1, 0.1, 1)
-        end
+        -- TWW: SetAlpha accepts secrets — grey overlay alpha from C_CurveUtil
+        local alpha = C_CurveUtil.EvaluateColorValueFromBoolean(notInterruptible, 1, 0)
+        plate.castbar.niOverlay:SetAlpha(alpha)
         plate.castbar:Show()
         return
     end
 
     -- Check channeling
-    local chanNotInterruptible
-    name, _, texture, startTimeMS, endTimeMS, _, chanNotInterruptible = UnitChannelInfo(unit)
-    if name then
+    local chanNI
+    name, _, texture, startTimeMS, endTimeMS, _, chanNI = UnitChannelInfo(unit)
+    if type(name) ~= "nil" then
         plate.castbar.casting = false
         plate.castbar.channeling = true
         plate.castbar.interrupted = false
-        local duration = UnitChannelDuration(unit)
-        plate.castbar:SetTimerDuration(duration, Enum.StatusBarInterpolation.Immediate, Enum.StatusBarTimerDirection.RemainingTime)
+        plate.castbar.duration_obj = UnitChannelDuration(unit)
+        plate.castbar:SetMinMaxValues(startTimeMS, endTimeMS)
+        plate.castbar:SetReverseFill(true)
         plate.castbar.text:SetFormattedText("%s", name)
         plate.castbar.icon:SetTexture(texture)
-        -- Decode secret boolean for channels too
-        plate.castbar._notInterruptHelper:SetShown(chanNotInterruptible)
-        if plate.castbar._notInterruptHelper:IsShown() then
-            plate.castbar:SetStatusBarColor(0.5, 0.5, 0.5, 1)
-        else
-            plate.castbar:SetStatusBarColor(0.8, 0.1, 0.1, 1)
-        end
+        -- Same overlay alpha for channels
+        local alpha = C_CurveUtil.EvaluateColorValueFromBoolean(chanNI, 1, 0)
+        plate.castbar.niOverlay:SetAlpha(alpha)
         plate.castbar:Show()
         return
     end
@@ -620,6 +627,7 @@ local function UpdateCastbar(plate, unit)
     plate.castbar:Hide()
     plate.castbar.casting = false
     plate.castbar.channeling = false
+    plate.castbar.duration_obj = nil
 end
 
 -- =====================================
@@ -736,23 +744,12 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
             -- Defer: UpdatePlate touches UnitHealth (secret numbers) — isolate taint
             local p = unitPlates[unit]
             C_Timer.After(0, function() UpdatePlate(p, unit) end)
-        elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" then
-            -- Cast became interruptible → track state, update color to red
-            castInterruptState[unit] = true
-            local p = unitPlates[unit]
-            if p and p.castbar:IsShown() then
-                p.castbar:SetStatusBarColor(0.8, 0.1, 0.1, 1)
-            end
-        elseif event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
-            -- Cast became not interruptible → track state, update color to grey
-            castInterruptState[unit] = false
-            local p = unitPlates[unit]
-            if p and p.castbar:IsShown() then
-                p.castbar:SetStatusBarColor(0.5, 0.5, 0.5, 1)
+        elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
+            -- Mid-cast state change: re-call UpdateCastbar to re-read notInterruptible and update overlay
+            if unitPlates[unit] then
+                UpdateCastbar(unitPlates[unit], unit)
             end
         elseif event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
-            -- New cast: default to interruptible, UpdateCastbar will apply color
-            castInterruptState[unit] = true
             if unitPlates[unit] then
                 UpdateCastbar(unitPlates[unit], unit)
             end
@@ -760,29 +757,29 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
             -- Cast was interrupted → green flash then hide
             local p = unitPlates[unit]
             if p and p.castbar then
+                p.castbar.niOverlay:SetAlpha(0)
                 p.castbar:SetStatusBarColor(0.1, 0.8, 0.1, 1)
                 p.castbar.text:SetFormattedText("%s", INTERRUPTED or "Interrompu")
                 p.castbar:Show()
-                -- Hide after 0.4s
                 C_Timer.After(0.4, function()
                     if p.castbar then
+                        p.castbar:SetStatusBarColor(0.8, 0.1, 0.1, 1)
                         p.castbar:Hide()
                         p.castbar.casting = false
                         p.castbar.channeling = false
+                        p.castbar.duration_obj = nil
                     end
                 end)
             end
-            castInterruptState[unit] = nil
         elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
             or event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-            -- Directly hide castbar — don't re-query UnitCastingInfo (returns secrets)
             local p = unitPlates[unit]
             if p and p.castbar then
                 p.castbar.casting = false
                 p.castbar.channeling = false
+                p.castbar.duration_obj = nil
                 p.castbar:Hide()
             end
-            castInterruptState[unit] = nil
         end
     end
 end)
@@ -819,15 +816,17 @@ function NP.Enable()
     eventFrame:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
     NP.RefreshAll()
 
-    -- Start aura duration ticker (updates remaining time on aura icons every 0.1s)
+    -- Aura duration ticker (C_UnitAuras.GetAuraDuration returns non-secret Duration methods)
     if not NP._auraTicker then
         NP._auraTicker = C_Timer.NewTicker(0.1, function()
             for u, p in pairs(unitPlates) do
                 if p.auras then
                     for _, aura in ipairs(p.auras) do
-                        if aura:IsShown() and aura.duration and aura._expirationTime then
-                            local remaining = aura._expirationTime - GetTime()
-                            aura.duration:SetFormattedText("%.0f", remaining)
+                        if aura:IsShown() and aura.duration and aura._auraUnit and aura._auraInstanceID then
+                            local durObj = C_UnitAuras.GetAuraDuration(aura._auraUnit, aura._auraInstanceID)
+                            if durObj then
+                                aura.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                            end
                         end
                     end
                 end

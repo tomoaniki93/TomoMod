@@ -11,7 +11,6 @@ local AS = TomoMod_AutoSummon
 -- =====================================
 local mainFrame
 local summonPending = false
-local summonerName = nil
 
 -- =====================================
 -- FONCTIONS UTILITAIRES
@@ -23,89 +22,110 @@ local function GetSettings()
     return TomoModDB.autoSummon
 end
 
-local function IsSummonerTrusted()
+--- Verifie si un nom est dans la liste d'amis du jeu
+local function IsGameFriend(name)
+    local numFriends = C_FriendList.GetNumFriends()
+    for i = 1, numFriends do
+        local friendInfo = C_FriendList.GetFriendInfoByIndex(i)
+        if friendInfo then
+            if Ambiguate(friendInfo.name or "", "short") == name then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+--- Verifie si un nom est un ami BattleNet connecte
+local function IsBNetFriend(name)
+    local numBNet = BNGetNumFriends()
+    for i = 1, numBNet do
+        local accountInfo = C_BattleNet.GetFriendAccountInfo(i)
+        if accountInfo and accountInfo.gameAccountInfo then
+            local charName = accountInfo.gameAccountInfo.characterName
+            if charName and Ambiguate(charName, "short") == name then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+--- Verifie si un nom est dans la guilde
+local function IsGuildMember(name)
+    if not IsInGuild() then return false end
+    local numMembers = GetNumGuildMembers()
+    for i = 1, numMembers do
+        local guildName = GetGuildRosterInfo(i)
+        if guildName and Ambiguate(guildName, "short") == name then
+            return true
+        end
+    end
+    return false
+end
+
+--- Verifie si le summoner est de confiance
+local function IsSummonerTrusted(summonerName)
+    if not summonerName then return false end
+
     local settings = GetSettings()
     if not settings then return false end
-    
-    -- Vérifier si on a un summon en attente
-    local hasIncomingSummon = C_IncomingSummon.HasIncomingSummon(PlayerLocation:CreateFromUnit("player"))
-    if not hasIncomingSummon then
-        return false
-    end
-    
-    local summonInfo = C_IncomingSummon.IncomingSummonStatus(PlayerLocation:CreateFromUnit("player"))
-    if not summonInfo or summonInfo == 0 then
-        return false
-    end
-    
-    -- Obtenir le nom du summoneur
-    -- Note: L'API ne donne pas directement le nom, on utilise les confirmations visuelles
-    -- On fait confiance au système si les options sont activées
-    
-    -- Si acceptFriends est activé, on accepte
+
+    local shortName = Ambiguate(summonerName, "short")
+
     if settings.acceptFriends then
-        return true, "ami potentiel"
+        if IsGameFriend(shortName) then return true, "ami" end
+        if IsBNetFriend(shortName) then return true, "ami BattleNet" end
     end
-    
-    -- Si acceptGuild est activé et qu'on est en guilde
-    if settings.acceptGuild and IsInGuild() then
-        return true, "membre de guilde potentiel"
+
+    if settings.acceptGuild then
+        if IsGuildMember(shortName) then return true, "membre de guilde" end
     end
-    
+
     return false
 end
 
 -- =====================================
--- ÉVÉNEMENTS
+-- EVENEMENTS
 -- =====================================
 local function OnEvent(self, event, ...)
     local settings = GetSettings()
     if not settings or not settings.enabled then
         return
     end
-    
+
     if event == "CONFIRM_SUMMON" then
-        -- Un summon est disponible
+        local summoner = GetSummonConfirmSummoner()
+        local area = GetSummonConfirmAreaName()
+        local timeLeft = GetSummonConfirmTimeLeft()
+
+        if not summoner or not timeLeft or timeLeft <= 0 then
+            return
+        end
+
         summonPending = true
-        
-        local isTrusted, source = IsSummonerTrusted()
-        
+        local isTrusted, source = IsSummonerTrusted(summoner)
+
         if isTrusted then
-            -- Attendre un petit délai pour éviter les spam
-            C_Timer.After(0.5, function()
-                if summonPending then
+            local delay = settings.delaySec or 1
+            C_Timer.After(delay, function()
+                if summonPending and GetSummonConfirmTimeLeft() > 0 then
                     C_SummonInfo.ConfirmSummon()
                     summonPending = false
-                    
+
                     if settings.showMessages then
-                        print("|cff00ff00TomoMod:|r Summon accepté (" .. source .. ")")
+                        print(string.format(
+                            "|cff0cd29fTomoMod:|r Summon accepte de %s vers %s (%s)",
+                            summoner, area or "?", source
+                        ))
                     end
                 end
             end)
+        else
+            if settings.showMessages then
+                print("|cff0cd29fTomoMod:|r Summon ignore de " .. summoner .. " (non fiable)")
+            end
         end
-    elseif event == "CANCEL_SUMMON" then
-        -- Le summon a été annulé
-        summonPending = false
-        summonerName = nil
-    end
-end
-
-local function OnUpdate(self, elapsed)
-    local settings = GetSettings()
-    if not settings or not settings.enabled then
-        return
-    end
-    
-    -- Vérifier périodiquement s'il y a un summon en attente
-    local hasIncomingSummon = C_IncomingSummon.HasIncomingSummon(PlayerLocation:CreateFromUnit("player"))
-    
-    if hasIncomingSummon and not summonPending then
-        -- Nouveau summon détecté
-        summonPending = true
-        OnEvent(self, "CONFIRM_SUMMON")
-    elseif not hasIncomingSummon and summonPending then
-        -- Summon annulé ou expiré
-        summonPending = false
     end
 end
 
@@ -113,78 +133,56 @@ end
 -- FONCTIONS PUBLIQUES
 -- =====================================
 function AS.Initialize()
-    if not TomoModDB then
-        print("|cffff0000TomoMod AutoSummon:|r TomoModDB non initialisée")
-        return
-    end
-    
-    -- Initialiser les settings
-    if not TomoModDB.autoSummon then
-        TomoModDB.autoSummon = {
-            enabled = false, -- Désactivé par défaut
-            acceptFriends = true,
-            acceptGuild = true,
-            showMessages = true,
-            delaySec = 1, -- Délai avant d'accepter (secondes)
-        }
-    end
-    
+    if not TomoModDB or not TomoModDB.autoSummon then return end
+
     local settings = GetSettings()
-    if not settings.enabled then
-        return
+    if not settings or not settings.enabled then return end
+
+    -- Creer le frame (evenement uniquement, pas d'OnUpdate)
+    if not mainFrame then
+        mainFrame = CreateFrame("Frame")
     end
-    
-    -- Créer le frame principal
-    mainFrame = CreateFrame("Frame")
     mainFrame:RegisterEvent("CONFIRM_SUMMON")
-    mainFrame:RegisterEvent("CANCEL_SUMMON")
     mainFrame:SetScript("OnEvent", OnEvent)
-    
-    -- Vérification périodique (fallback)
-    mainFrame:SetScript("OnUpdate", OnUpdate)
-    
-    print("|cff00ff00TomoMod AutoSummon:|r Module initialisé")
 end
 
 function AS.SetEnabled(enabled)
     local settings = GetSettings()
     if not settings then return end
-    
+
     settings.enabled = enabled
-    
+
     if enabled then
         if not mainFrame then
             AS.Initialize()
         else
             mainFrame:RegisterEvent("CONFIRM_SUMMON")
-            mainFrame:RegisterEvent("CANCEL_SUMMON")
+            mainFrame:SetScript("OnEvent", OnEvent)
         end
-        print("|cff00ff00TomoMod:|r Auto-summon activé")
+        print("|cff0cd29fTomoMod:|r Auto-summon active")
     else
         if mainFrame then
             mainFrame:UnregisterAllEvents()
-            mainFrame:SetScript("OnUpdate", nil)
+            mainFrame:SetScript("OnEvent", nil)
         end
         summonPending = false
-        print("|cff00ff00TomoMod:|r Auto-summon désactivé")
+        print("|cff0cd29fTomoMod:|r Auto-summon desactive")
     end
 end
 
 function AS.Toggle()
     local settings = GetSettings()
     if not settings then return end
-    
     AS.SetEnabled(not settings.enabled)
 end
 
 function AS.AcceptNow()
-    -- Fonction manuelle pour accepter immédiatement
-    if summonPending then
+    if GetSummonConfirmTimeLeft() and GetSummonConfirmTimeLeft() > 0 then
         C_SummonInfo.ConfirmSummon()
         summonPending = false
-        print("|cff00ff00TomoMod:|r Summon accepté manuellement")
+        print("|cff0cd29fTomoMod:|r Summon accepte manuellement")
     else
-        print("|cffffff00TomoMod:|r Aucun summon en attente")
+        print("|cff0cd29fTomoMod:|r Aucun summon en attente")
     end
 end
 

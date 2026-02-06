@@ -193,16 +193,16 @@ function UF_Elements.UpdateAuras(frame)
                 -- Store only non-secret metadata we set ourselves
                 data._filter = filter
                 data._slotIndex = results[i]
+                data._unit = unit
                 table.insert(auras, data)
             end
         end
     end
 
     -- Update icons
-    -- TWW: ALL aura data fields (icon, expirationTime, duration, applications,
-    -- dispelName, auraInstanceID, etc.) are SECRET values.
-    -- Cannot do ANY Lua operations on them (comparison, arithmetic, boolean test, table index).
-    -- Can ONLY pass them to C-side widget methods (SetTexture, SetFormattedText, SetCooldown).
+    -- TWW: Aura data fields are SECRET values — can't do Lua operations on them.
+    -- BUT: C_UnitAuras.GetAuraDuration() returns a Duration object with non-secret methods.
+    -- AND: C_UnitAuras.GetAuraApplicationDisplayCount() returns a non-secret stack string.
     for i = 1, maxAuras do
         local iconFrame = container.icons[i]
         local aura = auras[i]
@@ -216,25 +216,38 @@ function UF_Elements.UpdateAuras(frame)
             -- _filter is non-secret (we set it), check if harmful
             iconFrame.auraIsHarmful = (aura._filter == "HARMFUL" or aura._filter == "HARMFUL|PLAYER")
 
-            -- Cooldown swipe: secret arithmetic → C-side SetCooldown (no pcall, it propagates taint)
-            iconFrame.cooldown:SetCooldown(aura.expirationTime - aura.duration, aura.duration)
-            iconFrame.cooldown:Show()
+            -- Duration object (non-secret GetRemainingDuration/GetTotalDuration)
+            local durObj = C_UnitAuras.GetAuraDuration(aura._unit or unit, aura.auraInstanceID)
+            iconFrame._durObj = durObj
+            iconFrame._auraUnit = aura._unit or unit
+            iconFrame._auraInstanceID = aura.auraInstanceID
 
-            -- Stack count: SetFormattedText is C-side, accepts secret applications
-            iconFrame.count:SetFormattedText("%d", aura.applications)
-            iconFrame.count:Show()
+            if durObj then
+                -- TWW: GetRemainingDuration/GetTotalDuration return secrets too
+                -- Can't compare them, but string.format (C function) accepts them
+                -- Cooldown swipe: can't compute startTime (arithmetic on secrets forbidden)
+                iconFrame.cooldown:Hide()
 
-            -- Store expirationTime for duration ticker (secret, stored as field = OK)
-            iconFrame._expirationTime = aura.expirationTime
-
-            -- Duration text: show via ticker (see below)
-            if iconFrame.duration then
-                iconFrame.duration:Show()
+                -- Duration text: pass directly to string.format (no comparison)
+                if iconFrame.duration then
+                    iconFrame.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                    iconFrame.duration:Show()
+                end
+            else
+                iconFrame.cooldown:Hide()
+                if iconFrame.duration then iconFrame.duration:Hide() end
             end
+
+            -- Stack count (non-secret display string, empty if < 2)
+            local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(aura._unit or unit, aura.auraInstanceID, 2, 1000)
+            iconFrame.count:SetText(stackStr or "")
+            iconFrame.count:Show()
 
             iconFrame:Show()
         elseif iconFrame then
-            iconFrame._expirationTime = nil
+            iconFrame._durObj = nil
+            iconFrame._auraUnit = nil
+            iconFrame._auraInstanceID = nil
             iconFrame:Hide()
         end
     end
@@ -247,16 +260,18 @@ end
 local auraDurationTicker
 function UF_Elements.StartAuraDurationUpdater(frames)
     if auraDurationTicker then return end
-    -- TWW: expirationTime is secret, but arithmetic (secret - number) produces a new secret
-    -- that C-side SetFormattedText accepts. Update remaining time every 0.1s.
+    -- TWW: C_UnitAuras.GetAuraDuration returns Duration objects with non-secret methods.
+    -- Re-query duration every 0.1s to update remaining time text.
     auraDurationTicker = C_Timer.NewTicker(0.1, function()
         for _, frame in pairs(frames) do
             if frame.auraContainer and frame.auraContainer:IsVisible() then
                 for _, icon in ipairs(frame.auraContainer.icons) do
-                    if icon:IsShown() and icon.duration and icon._expirationTime then
-                        -- secret - number → new secret → C-side SetFormattedText (no pcall)
-                        local remaining = icon._expirationTime - GetTime()
-                        icon.duration:SetFormattedText("%.0f", remaining)
+                    if icon:IsShown() and icon.duration and icon._auraUnit and icon._auraInstanceID then
+                        local durObj = C_UnitAuras.GetAuraDuration(icon._auraUnit, icon._auraInstanceID)
+                        if durObj then
+                            -- string.format is C function, accepts secret numbers — no comparison
+                            icon.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                        end
                     end
                 end
             end

@@ -1,6 +1,7 @@
 -- =====================================
 -- AutoAcceptInvite.lua
--- Auto-accept les invitations de groupe/guilde
+-- Auto-accept les invitations de groupe
+-- de la part d'amis et membres de guilde
 -- =====================================
 
 TomoMod_AutoAcceptInvite = TomoMod_AutoAcceptInvite or {}
@@ -21,79 +22,102 @@ local function GetSettings()
     return TomoModDB.autoAcceptInvite
 end
 
+--- Verifie si un nom est dans la liste d'amis du jeu
+local function IsGameFriend(name)
+    local numFriends = C_FriendList.GetNumFriends()
+    for i = 1, numFriends do
+        local friendInfo = C_FriendList.GetFriendInfoByIndex(i)
+        if friendInfo then
+            if Ambiguate(friendInfo.name or "", "short") == name then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+--- Verifie si un nom est un ami BattleNet connecte
+local function IsBNetFriend(name)
+    local numBNet = BNGetNumFriends()
+    for i = 1, numBNet do
+        local accountInfo = C_BattleNet.GetFriendAccountInfo(i)
+        if accountInfo and accountInfo.gameAccountInfo then
+            local charName = accountInfo.gameAccountInfo.characterName
+            if charName and Ambiguate(charName, "short") == name then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+--- Verifie si un nom est dans la guilde
+local function IsGuildMember(name)
+    if not IsInGuild() then return false end
+    local numMembers = GetNumGuildMembers()
+    for i = 1, numMembers do
+        local guildName = GetGuildRosterInfo(i)
+        if guildName and Ambiguate(guildName, "short") == name then
+            return true
+        end
+    end
+    return false
+end
+
+--- Verifie si l'inviteur est de confiance
 local function IsInviterTrusted(inviterName)
     if not inviterName then return false end
-    
+
     local settings = GetSettings()
     if not settings then return false end
-    
-    -- Vérifier si c'est un ami
+
+    local shortName = Ambiguate(inviterName, "short")
+
     if settings.acceptFriends then
-        local numFriends = C_FriendList.GetNumFriends()
-        for i = 1, numFriends do
-            local friendInfo = C_FriendList.GetFriendInfoByIndex(i)
-            if friendInfo and friendInfo.name == inviterName then
-                return true, "ami"
-            end
-        end
-        
-        -- Vérifier BattleNet friends
-        local numBNetFriends = BNGetNumFriends()
-        for i = 1, numBNetFriends do
-            local accountInfo = C_BattleNet.GetFriendAccountInfo(i)
-            if accountInfo and accountInfo.gameAccountInfo then
-                local gameInfo = accountInfo.gameAccountInfo
-                if gameInfo.characterName == inviterName then
-                    return true, "ami BattleNet"
-                end
-            end
-        end
+        if IsGameFriend(shortName) then return true, "ami" end
+        if IsBNetFriend(shortName) then return true, "ami BattleNet" end
     end
-    
-    -- Vérifier si c'est un membre de guilde
+
     if settings.acceptGuild then
-        if IsInGuild() then
-            local numGuildMembers = GetNumGuildMembers()
-            for i = 1, numGuildMembers do
-                local name = GetGuildRosterInfo(i)
-                if name and name == inviterName then
-                    return true, "membre de guilde"
-                end
-            end
-        end
+        if IsGuildMember(shortName) then return true, "membre de guilde" end
     end
-    
+
     return false
 end
 
 -- =====================================
--- ÉVÉNEMENTS
+-- EVENEMENTS
 -- =====================================
 local function OnEvent(self, event, ...)
     local settings = GetSettings()
     if not settings or not settings.enabled then
         return
     end
-    
+
     if event == "PARTY_INVITE_REQUEST" then
         local inviterName = ...
-        
-        if inviterName then
-            local isTrusted, source = IsInviterTrusted(inviterName)
-            
-            if isTrusted then
-                AcceptGroup()
-                
-                if settings.showMessages then
-                    print("|cff00ff00TomoMod:|r Invitation acceptée de " .. inviterName .. " (" .. source .. ")")
-                end
-                
-                -- Cacher le popup d'invitation
+        if not inviterName then return end
+
+        local isTrusted, source = IsInviterTrusted(inviterName)
+
+        if isTrusted then
+            AcceptGroup()
+
+            if settings.showMessages then
+                print("|cff0cd29fTomoMod:|r Invitation acceptee de "
+                    .. inviterName .. " (" .. source .. ")")
+            end
+
+            -- Petit delai pour laisser le popup apparaitre
+            C_Timer.After(0.2, function()
                 StaticPopup_Hide("PARTY_INVITE")
+            end)
+        else
+            if settings.showMessages then
+                print("|cff0cd29fTomoMod:|r Invitation ignoree de "
+                    .. inviterName .. " (non fiable)")
             end
         end
-    elseif event == "GROUP_ROSTER_UPDATE" then
-        -- Optionnel: faire quelque chose quand le groupe change
     end
 end
 
@@ -101,61 +125,45 @@ end
 -- FONCTIONS PUBLIQUES
 -- =====================================
 function AAI.Initialize()
-    if not TomoModDB then
-        print("|cffff0000TomoMod AutoAcceptInvite:|r TomoModDB non initialisée")
-        return
-    end
-    
-    -- Initialiser les settings
-    if not TomoModDB.autoAcceptInvite then
-        TomoModDB.autoAcceptInvite = {
-            enabled = false, -- Désactivé par défaut
-            acceptFriends = true,
-            acceptGuild = true,
-            showMessages = true,
-        }
-    end
-    
+    if not TomoModDB or not TomoModDB.autoAcceptInvite then return end
+
     local settings = GetSettings()
-    if not settings.enabled then
-        return
+    if not settings or not settings.enabled then return end
+
+    -- Creer le frame (uniquement PARTY_INVITE_REQUEST)
+    if not mainFrame then
+        mainFrame = CreateFrame("Frame")
     end
-    
-    -- Créer le frame principal
-    mainFrame = CreateFrame("Frame")
     mainFrame:RegisterEvent("PARTY_INVITE_REQUEST")
-    mainFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
     mainFrame:SetScript("OnEvent", OnEvent)
-    
-    print("|cff00ff00TomoMod AutoAcceptInvite:|r Module initialisé")
 end
 
 function AAI.SetEnabled(enabled)
     local settings = GetSettings()
     if not settings then return end
-    
+
     settings.enabled = enabled
-    
+
     if enabled then
         if not mainFrame then
             AAI.Initialize()
         else
             mainFrame:RegisterEvent("PARTY_INVITE_REQUEST")
-            mainFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
+            mainFrame:SetScript("OnEvent", OnEvent)
         end
-        print("|cff00ff00TomoMod:|r Auto-accept invitations activé")
+        print("|cff0cd29fTomoMod:|r Auto-accept invitations active")
     else
         if mainFrame then
             mainFrame:UnregisterAllEvents()
+            mainFrame:SetScript("OnEvent", nil)
         end
-        print("|cff00ff00TomoMod:|r Auto-accept invitations désactivé")
+        print("|cff0cd29fTomoMod:|r Auto-accept invitations desactive")
     end
 end
 
 function AAI.Toggle()
     local settings = GetSettings()
     if not settings then return end
-    
     AAI.SetEnabled(not settings.enabled)
 end
 
