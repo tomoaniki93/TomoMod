@@ -1,22 +1,23 @@
 # TomoMod
-Version 1.17
+Version 2.0
 
 Project ID: 1446255
 
 ## Midnight
 - TomoMod is ready for Pre-Patch & Midnight.
 - Setting in game /tm
-- /ks say ou party ou Guild - for PartyTrackerKeystone 
 
-## Unit Frames WIP
+## Unit Frames
 - Player
 - Target
 - TargetCastBar
 - Target of Target
 - Focus
-- Boss 1 to 5
 - Debuff Player
 - Debuff Target
+
+## NamesPlates
+Full COnfiguration in /tm
 
 ## QOL
 - AutoKeystone
