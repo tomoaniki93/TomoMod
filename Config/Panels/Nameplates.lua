@@ -204,6 +204,46 @@ function TomoMod_ConfigPanel_Nameplates(parent)
     end)
     y = ny
 
+    -- CLASSIFICATION COLORS
+    local _, ny = W.CreateSectionHeader(c, "Couleurs par Classification", y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, "Couleurs par type d'ennemi", db.useClassificationColors, y, function(v)
+        db.useClassificationColors = v
+        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, "Boss", db.colors.boss, y, function(r, g, b)
+        db.colors.boss = { r = r, g = g, b = b }
+        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, "Élite / Mini-boss", db.colors.elite, y, function(r, g, b)
+        db.colors.elite = { r = r, g = g, b = b }
+        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, "Rare", db.colors.rare, y, function(r, g, b)
+        db.colors.rare = { r = r, g = g, b = b }
+        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, "Normal", db.colors.normal, y, function(r, g, b)
+        db.colors.normal = { r = r, g = g, b = b }
+        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, "Trivial", db.colors.trivial, y, function(r, g, b)
+        db.colors.trivial = { r = r, g = g, b = b }
+        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    end)
+    y = ny
+
     -- TANK
     local _, ny = W.CreateSectionHeader(c, "Mode Tank", y)
     y = ny

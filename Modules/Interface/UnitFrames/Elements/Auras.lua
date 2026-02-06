@@ -216,16 +216,9 @@ function UF_Elements.UpdateAuras(frame)
             -- _filter is non-secret (we set it), check if harmful
             iconFrame.auraIsHarmful = (aura._filter == "HARMFUL" or aura._filter == "HARMFUL|PLAYER")
 
-            -- Cooldown swipe: arithmetic on secrets produces new secret → C-side SetCooldown accepts it
-            -- startTime = expirationTime - duration (secret - secret → secret, passed to C-side)
-            local ok = pcall(function()
-                iconFrame.cooldown:SetCooldown(aura.expirationTime - aura.duration, aura.duration)
-            end)
-            if ok then
-                iconFrame.cooldown:Show()
-            else
-                iconFrame.cooldown:Hide()
-            end
+            -- Cooldown swipe: secret arithmetic → C-side SetCooldown (no pcall, it propagates taint)
+            iconFrame.cooldown:SetCooldown(aura.expirationTime - aura.duration, aura.duration)
+            iconFrame.cooldown:Show()
 
             -- Stack count: SetFormattedText is C-side, accepts secret applications
             iconFrame.count:SetFormattedText("%d", aura.applications)
@@ -261,10 +254,9 @@ function UF_Elements.StartAuraDurationUpdater(frames)
             if frame.auraContainer and frame.auraContainer:IsVisible() then
                 for _, icon in ipairs(frame.auraContainer.icons) do
                     if icon:IsShown() and icon.duration and icon._expirationTime then
-                        pcall(function()
-                            local remaining = icon._expirationTime - GetTime()
-                            icon.duration:SetFormattedText("%.0f", remaining)
-                        end)
+                        -- secret - number → new secret → C-side SetFormattedText (no pcall)
+                        local remaining = icon._expirationTime - GetTime()
+                        icon.duration:SetFormattedText("%.0f", remaining)
                     end
                 end
             end

@@ -318,7 +318,14 @@ TomoMod_Defaults = {
             neutral  = { r = 0.98, g = 0.82, b = 0.11 },
             friendly = { r = 0.11, g = 0.82, b = 0.11 },
             tapped   = { r = 0.50, g = 0.50, b = 0.50 },
+            -- Classification colors (hostile mobs)
+            boss     = { r = 0.85, g = 0.10, b = 0.10 },  -- RED
+            elite    = { r = 0.60, g = 0.20, b = 0.80 },  -- PURPLE
+            rare     = { r = 0.00, g = 0.80, b = 0.80 },  -- CYAN
+            normal   = { r = 0.60, g = 0.40, b = 0.20 },  -- BROWN
+            trivial  = { r = 0.50, g = 0.50, b = 0.50 },  -- GREY
         },
+        useClassificationColors = true,
         tankColors = {
             noThreat  = { r = 0.78, g = 0.04, b = 0.04 },
             lowThreat = { r = 0.98, g = 0.82, b = 0.11 },

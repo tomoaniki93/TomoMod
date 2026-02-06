@@ -90,6 +90,13 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
 
     castbar:Hide()
 
+    -- Helper frame to decode secret boolean (SetShown=C-side accepts secret, IsShown returns non-secret)
+    castbar._notInterruptHelper = CreateFrame("Frame", nil, castbar)
+    castbar._notInterruptHelper:SetSize(1, 1)
+    castbar._notInterruptHelper:SetAlpha(0)
+    castbar._notInterruptHelper:EnableMouse(false)
+    castbar._notInterruptHelper:Hide()
+
     -- =====================================
     -- CASTBAR LOGIC
     -- =====================================
@@ -102,9 +109,9 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             local info = UnitChannelInfo(unit)
             if info then
                 name = info
-                local _, _, tex, sMS, eMS = UnitChannelInfo(unit)
+                local _, _, tex, sMS, eMS, _, ni = UnitChannelInfo(unit)
                 texture = tex
-                notInterruptible = false
+                notInterruptible = ni
             end
             if name then
                 duration = UnitChannelDuration(unit)
@@ -138,9 +145,9 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         if self.spellText then self.spellText:SetFormattedText("%s", name) end
         if self.icon then self.icon:SetTexture(texture) end
 
-        -- TWW: notInterruptible is a secret boolean — can't test in Lua.
-        -- Use event-based tracking (castbar._interruptible set by events below).
-        if castbar._interruptible == false then
+        -- Decode secret boolean: SetShown (C-side, accepts secret) → IsShown (returns non-secret)
+        castbar._notInterruptHelper:SetShown(notInterruptible)
+        if castbar._notInterruptHelper:IsShown() then
             -- Not interruptible → Grey
             self:SetStatusBarColor(0.5, 0.5, 0.5, 1)
         else
@@ -180,19 +187,6 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         if self.spark then
             self.spark:Hide()
         end
-
-        -- Periodically check if cast actually ended (every 0.15s)
-        self._checkElapsed = (self._checkElapsed or 0) + elapsed
-        if self._checkElapsed >= 0.15 then
-            self._checkElapsed = 0
-            local castName = UnitCastingInfo(unit)
-            local chanName = UnitChannelInfo(unit)
-            if not castName and not chanName then
-                self.casting = false
-                self.channeling = false
-                self:Hide()
-            end
-        end
     end)
 
     -- Events
@@ -205,6 +199,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     events:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
     events:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
     events:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
+    events:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 
     events:SetScript("OnEvent", function(self, event, eventUnit)
         if eventUnit ~= unit then return end
@@ -230,22 +225,21 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
                 castbar:SetStatusBarColor(0.5, 0.5, 0.5, 1)
             end
         elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
-            if castbar.casting then
-                -- Green flash
-                castbar:SetStatusBarColor(0.1, 0.8, 0.1, 1)
-                if castbar.spellText then
-                    castbar.spellText:SetText(INTERRUPTED or "Interrompu")
-                end
-                castbar.casting = false
-                castbar.channeling = false
-                C_Timer.After(0.4, function()
-                    castbar:Hide()
-                end)
+            -- Green flash
+            castbar:SetStatusBarColor(0.1, 0.8, 0.1, 1)
+            if castbar.spellText then
+                castbar.spellText:SetText(INTERRUPTED or "Interrompu")
             end
-        elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED" then
-            if castbar.casting then StopCast(castbar) end
+            castbar.casting = false
+            castbar.channeling = false
+            C_Timer.After(0.4, function()
+                castbar:Hide()
+            end)
+        elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
+            or event == "UNIT_SPELLCAST_SUCCEEDED" then
+            StopCast(castbar)
         elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-            if castbar.channeling then StopCast(castbar) end
+            StopCast(castbar)
         end
     end)
 

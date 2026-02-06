@@ -160,10 +160,16 @@ local function CreatePlate(baseFrame)
     plate.castbar:Hide()
     plate.castbar:EnableMouse(false)
 
+    -- Helper frame to decode secret boolean (SetShown=C-side accepts secret, IsShown returns non-secret)
+    plate.castbar._notInterruptHelper = CreateFrame("Frame", nil, plate.castbar)
+    plate.castbar._notInterruptHelper:SetSize(1, 1)
+    plate.castbar._notInterruptHelper:SetAlpha(0)
+    plate.castbar._notInterruptHelper:EnableMouse(false)
+    plate.castbar._notInterruptHelper:Hide()
+
     -- Castbar update
     plate.castbar.casting = false
     plate.castbar.channeling = false
-    plate.castbar._checkElapsed = 0
     plate.castbar:SetScript("OnUpdate", function(self, elapsed)
         if not self.casting and not self.channeling then
             self:Hide()
@@ -174,20 +180,6 @@ local function CreatePlate(baseFrame)
             local durObj = self:GetTimerDuration()
             if durObj then
                 self.timer:SetFormattedText("%.1f", durObj:GetRemainingDuration())
-            end
-        end
-        -- Periodically check if cast actually ended (every 0.15s)
-        self._checkElapsed = (self._checkElapsed or 0) + elapsed
-        if self._checkElapsed >= 0.15 then
-            self._checkElapsed = 0
-            if self.unit then
-                local castName = UnitCastingInfo(self.unit)
-                local chanName = UnitChannelInfo(self.unit)
-                if not castName and not chanName then
-                    self.casting = false
-                    self.channeling = false
-                    self:Hide()
-                end
             end
         end
     end)
@@ -221,6 +213,11 @@ local function CreatePlate(baseFrame)
         aura.count:SetFont(font, 8, "OUTLINE")
         aura.count:SetPoint("BOTTOMRIGHT", -1, 1)
 
+        aura.duration = aura:CreateFontString(nil, "OVERLAY")
+        aura.duration:SetFont(font, 8, "OUTLINE")
+        aura.duration:SetPoint("TOP", aura, "BOTTOM", 0, -1)
+        aura.duration:SetTextColor(1, 1, 0.6, 1)
+
         CreatePixelBorder(aura)
         aura:Hide()
         plate.auras[i] = aura
@@ -245,6 +242,14 @@ local function CreatePlate(baseFrame)
     plate.targetArrowRight:SetVertexColor(1, 1, 1, 0.9)
     plate.targetArrowRight:Hide()
 
+    -- Raid marker icon (right side, half in/half out)
+    local raidIconSize = h + 4
+    plate.raidIcon = plate.health:CreateTexture(nil, "OVERLAY")
+    plate.raidIcon:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons")
+    plate.raidIcon:SetSize(raidIconSize, raidIconSize)
+    plate.raidIcon:SetPoint("LEFT", plate.health, "RIGHT", -(raidIconSize / 2), 0)
+    plate.raidIcon:Hide()
+
     return plate
 end
 
@@ -267,6 +272,12 @@ local function UpdateSize(plate)
         local arrowSize = h + 6
         plate.targetArrowLeft:SetSize(arrowSize * 0.6, arrowSize)
         plate.targetArrowRight:SetSize(arrowSize * 0.6, arrowSize)
+    end
+    if plate.raidIcon then
+        local raidIconSize = h + 4
+        plate.raidIcon:SetSize(raidIconSize, raidIconSize)
+        plate.raidIcon:ClearAllPoints()
+        plate.raidIcon:SetPoint("LEFT", plate.health, "RIGHT", -(raidIconSize / 2), 0)
     end
     -- Resize auras
     if plate.auras then
@@ -322,11 +333,40 @@ local function GetHealthColor(unit)
         elseif reaction == 4 then
             local c = s.colors.neutral; return c.r, c.g, c.b
         else
+            -- Hostile: use classification colors if enabled
+            if s.useClassificationColors then
+                local cls = UnitClassification(unit)
+                if cls == "worldboss" then
+                    local c = s.colors.boss or s.colors.hostile; return c.r, c.g, c.b
+                elseif cls == "elite" or cls == "rareelite" then
+                    local c = s.colors.elite or s.colors.hostile; return c.r, c.g, c.b
+                elseif cls == "rare" then
+                    local c = s.colors.rare or s.colors.hostile; return c.r, c.g, c.b
+                elseif cls == "trivial" or cls == "minus" then
+                    local c = s.colors.trivial or s.colors.hostile; return c.r, c.g, c.b
+                else
+                    local c = s.colors.normal or s.colors.hostile; return c.r, c.g, c.b
+                end
+            end
             local c = s.colors.hostile; return c.r, c.g, c.b
         end
     end
 
     if UnitIsEnemy("player", unit) then
+        if s.useClassificationColors then
+            local cls = UnitClassification(unit)
+            if cls == "worldboss" then
+                local c = s.colors.boss or s.colors.hostile; return c.r, c.g, c.b
+            elseif cls == "elite" or cls == "rareelite" then
+                local c = s.colors.elite or s.colors.hostile; return c.r, c.g, c.b
+            elseif cls == "rare" then
+                local c = s.colors.rare or s.colors.hostile; return c.r, c.g, c.b
+            elseif cls == "trivial" or cls == "minus" then
+                local c = s.colors.trivial or s.colors.hostile; return c.r, c.g, c.b
+            else
+                local c = s.colors.normal or s.colors.hostile; return c.r, c.g, c.b
+            end
+        end
         local c = s.colors.hostile; return c.r, c.g, c.b
     end
 
@@ -426,6 +466,17 @@ local function UpdatePlate(plate, unit)
         plate.classText:Hide()
     end
 
+    -- Raid marker (C-side SetRaidTargetIconTexture accepts secret index)
+    if plate.raidIcon then
+        local index = GetRaidTargetIndex(unit)
+        if index then
+            SetRaidTargetIconTexture(plate.raidIcon, index)
+            plate.raidIcon:Show()
+        else
+            plate.raidIcon:Hide()
+        end
+    end
+
     -- Threat
     if s.showThreat and UnitIsEnemy("player", unit) then
         local status = UnitThreatSituation("player", unit)
@@ -480,18 +531,15 @@ local function UpdatePlate(plate, unit)
                 if auraFrame then
                     -- SetTexture is C-side, accepts secret icon value
                     auraFrame.icon:SetTexture(data.icon)
-                    -- Cooldown swipe: arithmetic on secrets → new secret → C-side SetCooldown
-                    local ok = pcall(function()
-                        auraFrame.cooldown:SetCooldown(data.expirationTime - data.duration, data.duration)
-                    end)
-                    if ok then
-                        auraFrame.cooldown:Show()
-                    else
-                        auraFrame.cooldown:Hide()
-                    end
+                    -- Cooldown swipe: secret arithmetic → C-side SetCooldown (no pcall, it propagates taint)
+                    auraFrame.cooldown:SetCooldown(data.expirationTime - data.duration, data.duration)
+                    auraFrame.cooldown:Show()
                     -- Stack count: SetFormattedText is C-side, accepts secret applications
                     auraFrame.count:SetFormattedText("%d", data.applications)
                     auraFrame.count:Show()
+                    -- Store expirationTime for duration ticker
+                    auraFrame._expirationTime = data.expirationTime
+                    if auraFrame.duration then auraFrame.duration:Show() end
                     auraFrame:Show()
                 end
             end
@@ -499,7 +547,10 @@ local function UpdatePlate(plate, unit)
 
         -- Hide remaining
         for i = auraIndex + 1, maxAuras do
-            if plate.auras[i] then plate.auras[i]:Hide() end
+            if plate.auras[i] then
+                plate.auras[i]._expirationTime = nil
+                plate.auras[i]:Hide()
+            end
         end
     else
         for _, a in ipairs(plate.auras) do a:Hide() end
@@ -531,10 +582,9 @@ local function UpdateCastbar(plate, unit)
         plate.castbar:SetTimerDuration(duration, Enum.StatusBarInterpolation.Immediate, Enum.StatusBarTimerDirection.ElapsedTime)
         plate.castbar.text:SetFormattedText("%s", name)
         plate.castbar.icon:SetTexture(texture)
-        -- Color based on event-tracked interrupt state
-        -- Default to interruptible (red) — events will correct if not
-        local interruptible = castInterruptState[unit]
-        if interruptible == false then
+        -- Decode secret boolean: SetShown (C-side, accepts secret) → IsShown (returns non-secret)
+        plate.castbar._notInterruptHelper:SetShown(notInterruptible)
+        if plate.castbar._notInterruptHelper:IsShown() then
             -- Not interruptible → Grey
             plate.castbar:SetStatusBarColor(0.5, 0.5, 0.5, 1)
         else
@@ -546,7 +596,8 @@ local function UpdateCastbar(plate, unit)
     end
 
     -- Check channeling
-    name, _, texture, startTimeMS, endTimeMS = UnitChannelInfo(unit)
+    local chanNotInterruptible
+    name, _, texture, startTimeMS, endTimeMS, _, chanNotInterruptible = UnitChannelInfo(unit)
     if name then
         plate.castbar.casting = false
         plate.castbar.channeling = true
@@ -555,9 +606,9 @@ local function UpdateCastbar(plate, unit)
         plate.castbar:SetTimerDuration(duration, Enum.StatusBarInterpolation.Immediate, Enum.StatusBarTimerDirection.RemainingTime)
         plate.castbar.text:SetFormattedText("%s", name)
         plate.castbar.icon:SetTexture(texture)
-        -- Same interrupt coloring for channels
-        local interruptible = castInterruptState[unit]
-        if interruptible == false then
+        -- Decode secret boolean for channels too
+        plate.castbar._notInterruptHelper:SetShown(chanNotInterruptible)
+        if plate.castbar._notInterruptHelper:IsShown() then
             plate.castbar:SetStatusBarColor(0.5, 0.5, 0.5, 1)
         else
             plate.castbar:SetStatusBarColor(0.8, 0.1, 0.1, 1)
@@ -625,6 +676,7 @@ eventFrame:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
 eventFrame:RegisterEvent("UNIT_HEALTH")
 eventFrame:RegisterEvent("UNIT_MAXHEALTH")
 eventFrame:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE")
+eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
 eventFrame:RegisterEvent("UNIT_FACTION")
 eventFrame:RegisterEvent("UNIT_AURA")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_START")
@@ -635,6 +687,7 @@ eventFrame:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
+eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 
 eventFrame:SetScript("OnEvent", function(self, event, unit)
@@ -664,6 +717,19 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
                 end
             end
         end)
+    elseif event == "RAID_TARGET_UPDATE" then
+        -- No unit arg — update raid icon on all plates
+        for u, p in pairs(unitPlates) do
+            if p.raidIcon then
+                local index = GetRaidTargetIndex(u)
+                if index then
+                    SetRaidTargetIconTexture(p.raidIcon, index)
+                    p.raidIcon:Show()
+                else
+                    p.raidIcon:Hide()
+                end
+            end
+        end
     elseif unit and unitPlates[unit] then
         if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" or event == "UNIT_THREAT_SITUATION_UPDATE"
             or event == "UNIT_FACTION" or event == "UNIT_AURA" then
@@ -707,15 +773,16 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
                 end)
             end
             castInterruptState[unit] = nil
-        elseif event:find("SPELLCAST") then
-            -- STOP, FAILED, CHANNEL_STOP
-            if unitPlates[unit] then
-                UpdateCastbar(unitPlates[unit], unit)
+        elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
+            or event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
+            -- Directly hide castbar — don't re-query UnitCastingInfo (returns secrets)
+            local p = unitPlates[unit]
+            if p and p.castbar then
+                p.castbar.casting = false
+                p.castbar.channeling = false
+                p.castbar:Hide()
             end
-            if event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
-                or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-                castInterruptState[unit] = nil
-            end
+            castInterruptState[unit] = nil
         end
     end
 end)
@@ -751,12 +818,35 @@ function NP.Enable()
     eventFrame:RegisterEvent("NAME_PLATE_UNIT_ADDED")
     eventFrame:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
     NP.RefreshAll()
+
+    -- Start aura duration ticker (updates remaining time on aura icons every 0.1s)
+    if not NP._auraTicker then
+        NP._auraTicker = C_Timer.NewTicker(0.1, function()
+            for u, p in pairs(unitPlates) do
+                if p.auras then
+                    for _, aura in ipairs(p.auras) do
+                        if aura:IsShown() and aura.duration and aura._expirationTime then
+                            local remaining = aura._expirationTime - GetTime()
+                            aura.duration:SetFormattedText("%.0f", remaining)
+                        end
+                    end
+                end
+            end
+        end)
+    end
+
     print("|cff0cd29fTomoMod NP:|r Activées")
 end
 
 function NP.Disable()
     eventFrame:UnregisterEvent("NAME_PLATE_UNIT_ADDED")
     eventFrame:UnregisterEvent("NAME_PLATE_UNIT_REMOVED")
+
+    -- Stop aura duration ticker
+    if NP._auraTicker then
+        NP._auraTicker:Cancel()
+        NP._auraTicker = nil
+    end
 
     -- Restore original CVars
     if NP._savedCVars then
