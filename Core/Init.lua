@@ -61,13 +61,24 @@ SlashCmdList["TOMOMOD"] = function(msg)
             TomoMod_SkyRide.ToggleLock()
         end
     elseif msg == "cdm" or msg == "ci" then
-        if TomoMod_CombatInfo then
-            local enabled = TomoModDB and TomoModDB.combatInfo and TomoModDB.combatInfo.enabled
-            print("|cff0cd29fTomoMod CombatInfo:|r " .. (enabled and "Activé" or "Désactivé"))
+        if TomoMod_CooldownManager then
+            local enabled = TomoModDB and TomoModDB.cooldownManager and TomoModDB.cooldownManager.enabled
+            print("|cff0cd29fTomoMod CDM:|r " .. (enabled and "Activé" or "Désactivé"))
         end
     elseif msg == "uf" or msg == "unitframes" then
         if TomoMod_UnitFrames and TomoMod_UnitFrames.ToggleLock then
             TomoMod_UnitFrames.ToggleLock()
+        end
+        if TomoMod_ResourceBars and TomoMod_ResourceBars.ToggleLock then
+            TomoMod_ResourceBars.ToggleLock()
+        end
+    elseif msg == "rb" or msg == "resource" then
+        if TomoMod_ResourceBars and TomoMod_ResourceBars.ToggleLock then
+            TomoMod_ResourceBars.ToggleLock()
+        end
+    elseif msg == "rb sync" then
+        if TomoMod_ResourceBars and TomoMod_ResourceBars.SyncWidth then
+            TomoMod_ResourceBars.SyncWidth()
         end
     elseif msg == "uf reset" then
         TomoMod_ResetModule("unitFrames")
@@ -88,8 +99,10 @@ SlashCmdList["TOMOMOD"] = function(msg)
         print("|cff0cd29fTomoMod|r v2.0 — Commandes:")
         print("  |cff0cd29f/tm|r — Ouvrir la configuration")
         print("  |cff0cd29f/tm reset|r — Réinitialiser tout + reload")
-        print("  |cff0cd29f/tm uf|r — Toggle Lock/Unlock UnitFrames")
+        print("  |cff0cd29f/tm uf|r — Toggle Lock/Unlock UnitFrames + Resources")
         print("  |cff0cd29f/tm uf reset|r — Réinitialiser UnitFrames")
+        print("  |cff0cd29f/tm rb|r — Toggle Lock/Unlock Resource Bars")
+        print("  |cff0cd29f/tm rb sync|r — Sync largeur avec Essential Cooldowns")
         print("  |cff0cd29f/tm np|r — Toggle Nameplates on/off")
         print("  |cff0cd29f/tm minimap|r — Reset minimap")
         print("  |cff0cd29f/tm panel|r — Reset info panel")
@@ -127,7 +140,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_CinematicSkip then TomoMod_CinematicSkip.Initialize() end
         if TomoMod_AutoQuest then TomoMod_AutoQuest.Initialize() end
         if TomoMod_SkyRide then TomoMod_SkyRide.Initialize() end
-        if TomoMod_CombatInfo then TomoMod_CombatInfo.Initialize() end
+        if TomoMod_CooldownManager then TomoMod_CooldownManager.Initialize() end
         if TomoMod_AutoAcceptInvite then TomoMod_AutoAcceptInvite.Initialize() end
         if TomoMod_AutoSummon then TomoMod_AutoSummon.Initialize() end
         if TomoMod_HideCastBar then TomoMod_HideCastBar.Initialize() end
@@ -136,6 +149,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         -- Interface Modules (new v2)
         if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end
         if TomoMod_Nameplates then TomoMod_Nameplates.Initialize() end
+        if TomoMod_ResourceBars then TomoMod_ResourceBars.Initialize() end
 
         -- Welcome
         local r, g, b = TomoMod_Utils.GetClassColor()

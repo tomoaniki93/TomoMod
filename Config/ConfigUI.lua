@@ -24,6 +24,7 @@ local categories = {
     { key = "general",    label = "Général",     icon = "⚙", builder = "TomoMod_ConfigPanel_General" },
     { key = "unitframes", label = "UnitFrames",  icon = "♥", builder = "TomoMod_ConfigPanel_UnitFrames" },
     { key = "nameplates", label = "Nameplates",  icon = "▬", builder = "TomoMod_ConfigPanel_Nameplates" },
+    { key = "resources",  label = "CD & Ressource", icon = "◆", builder = "TomoMod_ConfigPanel_CooldownResource" },
     { key = "qol",        label = "QOL / Auto",  icon = "★", builder = "TomoMod_ConfigPanel_QOL" },
     { key = "profiles",   label = "Profils",     icon = "↻", builder = "TomoMod_ConfigPanel_Profiles" },
 }

@@ -189,62 +189,6 @@ function TomoMod_ConfigPanel_QOL(parent)
     end)
     y = ny
 
-    -- COMBAT INFO
-    local _, ny = W.CreateSectionHeader(c, "Combat Info", y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, "Activer", TomoModDB.combatInfo.enabled, y, function(v)
-        if TomoMod_CombatInfo and TomoMod_CombatInfo.SetEnabled then
-            TomoMod_CombatInfo.SetEnabled(v)
-        end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, "Centrer les buffs", TomoModDB.combatInfo.alignedBuff, y, function(v)
-        TomoModDB.combatInfo.alignedBuff = v
-        if TomoMod_CombatInfo and TomoMod_CombatInfo.ApplySettings then TomoMod_CombatInfo.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, "Changer l'opacité en combat", TomoModDB.combatInfo.combatAlphaChange, y, function(v)
-        TomoModDB.combatInfo.combatAlphaChange = v
-        if TomoMod_CombatInfo and TomoMod_CombatInfo.ApplySettings then TomoMod_CombatInfo.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, "Améliorer les barres de buff", TomoModDB.combatInfo.changeBuffBar, y, function(v)
-        TomoModDB.combatInfo.changeBuffBar = v
-        if TomoMod_CombatInfo and TomoMod_CombatInfo.ApplySettings then TomoMod_CombatInfo.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, "Couleur de classe pour barres", TomoModDB.combatInfo.buffBarClassColor, y, function(v)
-        TomoModDB.combatInfo.buffBarClassColor = v
-        if TomoMod_CombatInfo and TomoMod_CombatInfo.ApplySettings then TomoMod_CombatInfo.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, "Afficher les hotkeys", TomoModDB.combatInfo.showHotKey, y, function(v)
-        TomoModDB.combatInfo.showHotKey = v
-        if TomoMod_CombatInfo and TomoMod_CombatInfo.ApplySettings then TomoMod_CombatInfo.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, "Cacher les noms de barres", TomoModDB.combatInfo.hideBarName, y, function(v)
-        TomoModDB.combatInfo.hideBarName = v
-        if TomoMod_CombatInfo and TomoMod_CombatInfo.ApplySettings then TomoMod_CombatInfo.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, "Alerte sort assisté (pulsation)", TomoModDB.combatInfo.alertAssistedSpell, y, function(v)
-        TomoModDB.combatInfo.alertAssistedSpell = v
-        if TomoMod_CombatInfo and TomoMod_CombatInfo.ApplySettings then TomoMod_CombatInfo.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, "Certains changements de Combat Info nécessitent un /reload.", y)
-    y = ny - 20
-
     c:SetHeight(math.abs(y) + 20)
     return scroll
 end

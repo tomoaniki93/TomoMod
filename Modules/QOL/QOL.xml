@@ -6,7 +6,7 @@
     <Include file="Minimap\InfoPanel.lua"/>
 
     <!-- CDM -->
-    <Include file="CooldownManager\CombatInfo.lua" />
+    <Include file="CooldownManager\CooldownManager.lua" />
 
     <!-- Modules: Auto -->
     <Include file="Auto\AutoVendorRepair.lua" />

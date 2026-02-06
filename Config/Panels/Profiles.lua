@@ -27,7 +27,7 @@ function TomoMod_ConfigPanel_Profiles(parent)
         { key = "infoPanel",   label = "Info Panel" },
         { key = "cursorRing",  label = "Cursor Ring" },
         { key = "skyRide",     label = "SkyRide" },
-        { key = "combatInfo",  label = "Combat Info" },
+        { key = "cooldownManager", label = "Cooldown Manager" },
         { key = "autoQuest",   label = "Auto Quest" },
     }
 

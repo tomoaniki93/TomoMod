@@ -7,7 +7,7 @@
 ## SavedVariables: TomoModDB
 ## X-Curse-Project-ID: 1446255
 ## Author: TomoAniki
-## Version: 2.0
+## Version: 2.1
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -29,6 +29,7 @@ Config\Widgets.lua
 Config\Panels\General.lua
 Config\Panels\UnitFrames.lua
 Config\Panels\Nameplates.lua
+Config\Panels\CooldownResource.lua
 Config\Panels\QOL.lua
 Config\Panels\Profiles.lua
 Config\ConfigUI.lua
@@ -42,4 +43,5 @@ Modules\QOL\QOL.xml
 ## Interface Modules
 ## =====================
 Modules\Interface\UnitFrames\UnitFrames.xml
+Modules\Interface\ResourceBars\ResourceBars.xml
 Modules\Interface\NamePlates\Nameplates.xml
