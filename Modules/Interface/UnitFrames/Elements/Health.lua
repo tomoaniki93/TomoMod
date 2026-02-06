@@ -140,6 +140,15 @@ function UF_Elements.CreateHealth(parent, unit, settings)
     raidIcon:Hide()
     health.raidIcon = raidIcon
 
+    -- Leader icon (crown)
+    local leaderOfs = settings.leaderIconOffset or { x = -2, y = 0 }
+    local leaderIcon = health:CreateTexture(nil, "OVERLAY")
+    leaderIcon:SetSize(16, 16)
+    leaderIcon:SetPoint("BOTTOMLEFT", health, "TOPLEFT", leaderOfs.x, leaderOfs.y)
+    leaderIcon:SetTexture("Interface\\GroupFrame\\UI-Group-LeaderIcon")
+    leaderIcon:Hide()
+    health.leaderIcon = leaderIcon
+
     health.unit = unit
     health:EnableMouse(false)  -- Let clicks pass through to parent SecureUnitButtonTemplate
     return health

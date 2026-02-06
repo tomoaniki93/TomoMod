@@ -122,6 +122,32 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         y = ny
     end
 
+    if db.showLeaderIcon ~= nil then
+        local _, ny = W.CreateCheckbox(parent, "Icône leader", db.showLeaderIcon, y, function(v)
+            db.showLeaderIcon = v
+            if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
+                TomoMod_UnitFrames.RefreshUnit(unitKey)
+            end
+        end)
+        y = ny
+        if db.leaderIconOffset then
+            local _, ny = W.CreateSlider(parent, "Leader icône X", db.leaderIconOffset.x, -50, 50, 1, y, function(v)
+                db.leaderIconOffset.x = v
+                if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
+                    TomoMod_UnitFrames.RefreshUnit(unitKey)
+                end
+            end)
+            y = ny
+            local _, ny = W.CreateSlider(parent, "Leader icône Y", db.leaderIconOffset.y, -50, 50, 1, y, function(v)
+                db.leaderIconOffset.y = v
+                if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
+                    TomoMod_UnitFrames.RefreshUnit(unitKey)
+                end
+            end)
+            y = ny
+        end
+    end
+
     -- Castbar section
     if db.castbar then
         local _, ny = W.CreateSeparator(parent, y)

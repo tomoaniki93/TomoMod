@@ -174,13 +174,22 @@ local function CreatePlate(baseFrame)
     plate.castbar.casting = false
     plate.castbar.channeling = false
     plate.castbar.duration_obj = nil
+    plate.castbar.failstart = nil
     plate.castbar:SetScript("OnUpdate", function(self, elapsed)
+        -- Handle interrupt fadeout
+        if self.failstart then
+            if GetTime() - self.failstart > 1 then
+                self.failstart = nil
+                self:Hide()
+            end
+            return
+        end
         if not self.casting and not self.channeling then
             self:Hide()
             return
         end
-        -- Progress: GetTime() * 1000 is non-secret, bar fill handled C-side
-        self:SetValue(GetTime() * 1000)
+        -- Progress: GetTime() * 1000 is non-secret, ExponentialEaseOut like asTargetCastBar
+        self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
         -- Timer from stored duration object (param 0 for displayable value)
         if self.timer and self.duration_obj then
             self.timer:SetText(string.format("%.1f", self.duration_obj:GetRemainingDuration(0)))
@@ -585,17 +594,21 @@ local function UpdateCastbar(plate, unit)
     if not s.showCastbar then plate.castbar:Hide(); return end
     plate.castbar.unit = unit
 
+    -- If showing interrupt text, don't override
+    if plate.castbar.failstart then return end
+
     local name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible
 
-    -- Check casting — TWW: SetMinMaxValues accepts secrets (start/end MS)
+    -- Check casting first (like asTargetCastBar)
     name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible = UnitCastingInfo(unit)
     if type(name) ~= "nil" then
         plate.castbar.casting = true
         plate.castbar.channeling = false
-        plate.castbar.interrupted = false
         plate.castbar.duration_obj = UnitCastingDuration(unit)
         plate.castbar:SetMinMaxValues(startTimeMS, endTimeMS)
         plate.castbar:SetReverseFill(false)
+        -- Reset base color to red (may have been green from interrupt)
+        plate.castbar:SetStatusBarColor(0.8, 0.1, 0.1, 1)
         plate.castbar.text:SetFormattedText("%s", name)
         plate.castbar.icon:SetTexture(texture)
         -- TWW: SetAlpha accepts secrets — grey overlay alpha from C_CurveUtil
@@ -611,13 +624,13 @@ local function UpdateCastbar(plate, unit)
     if type(name) ~= "nil" then
         plate.castbar.casting = false
         plate.castbar.channeling = true
-        plate.castbar.interrupted = false
         plate.castbar.duration_obj = UnitChannelDuration(unit)
         plate.castbar:SetMinMaxValues(startTimeMS, endTimeMS)
         plate.castbar:SetReverseFill(true)
+        -- Reset base color
+        plate.castbar:SetStatusBarColor(0.8, 0.1, 0.1, 1)
         plate.castbar.text:SetFormattedText("%s", name)
         plate.castbar.icon:SetTexture(texture)
-        -- Same overlay alpha for channels
         local alpha = C_CurveUtil.EvaluateColorValueFromBoolean(chanNI, 1, 0)
         plate.castbar.niOverlay:SetAlpha(alpha)
         plate.castbar:Show()
@@ -754,22 +767,18 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
                 UpdateCastbar(unitPlates[unit], unit)
             end
         elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
-            -- Cast was interrupted → green flash then hide
             local p = unitPlates[unit]
             if p and p.castbar then
                 p.castbar.niOverlay:SetAlpha(0)
                 p.castbar:SetStatusBarColor(0.1, 0.8, 0.1, 1)
                 p.castbar.text:SetFormattedText("%s", INTERRUPTED or "Interrompu")
+                p.castbar.casting = false
+                p.castbar.channeling = false
+                p.castbar.duration_obj = nil
+                p.castbar.failstart = GetTime()
+                p.castbar:SetMinMaxValues(0, 100)
+                p.castbar:SetValue(100)
                 p.castbar:Show()
-                C_Timer.After(0.4, function()
-                    if p.castbar then
-                        p.castbar:SetStatusBarColor(0.8, 0.1, 0.1, 1)
-                        p.castbar:Hide()
-                        p.castbar.casting = false
-                        p.castbar.channeling = false
-                        p.castbar.duration_obj = nil
-                    end
-                end)
             end
         elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
             or event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
@@ -778,7 +787,9 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
                 p.castbar.casting = false
                 p.castbar.channeling = false
                 p.castbar.duration_obj = nil
-                p.castbar:Hide()
+                if not p.castbar.failstart then
+                    p.castbar:Hide()
+                end
             end
         end
     end

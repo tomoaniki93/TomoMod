@@ -173,6 +173,8 @@ TomoMod_Defaults = {
             showPowerText = false,
             showAbsorb = true,
             showThreat = false,
+            showLeaderIcon = true,
+            leaderIconOffset = { x = -2, y = 0 },
             castbar = {
                 enabled = true,
                 width = 260,
@@ -220,6 +222,8 @@ TomoMod_Defaults = {
             showAbsorb = false,
             showThreat = true,
             showRaidIcon = true,
+            showLeaderIcon = true,
+            leaderIconOffset = { x = -2, y = 0 },
             castbar = {
                 enabled = true,
                 width = 260,

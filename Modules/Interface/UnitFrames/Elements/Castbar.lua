@@ -61,7 +61,6 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
         castbar.icon = icon
 
-        -- Icon border
         local iconBorder = CreateFrame("Frame", nil, castbar)
         iconBorder:SetPoint("TOPLEFT", icon, "TOPLEFT", -1, 1)
         iconBorder:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 1, -1)
@@ -90,6 +89,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     castbar.casting = false
     castbar.channeling = false
     castbar.duration_obj = nil
+    castbar.failstart = nil
 
     castbar:Hide()
 
@@ -97,57 +97,90 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     -- CASTBAR LOGIC (asTargetCastBar techniques)
     -- =====================================
 
-    local function StartCast(self)
-        local name, texture, startTimeMS, endTimeMS, notInterruptible
-        local duration
+    -- Unified check: auto-detect casting or channeling (like asTargetCastBar.check_casting)
+    local function CheckCast(self, isInterrupt)
+        local unitID = self.unit
 
-        if self.channeling then
-            local info = UnitChannelInfo(unit)
-            if type(info) ~= "nil" then
-                name = info
-                local _, _, tex, sMS, eMS, _, ni = UnitChannelInfo(unit)
-                texture = tex
-                startTimeMS = sMS
-                endTimeMS = eMS
-                notInterruptible = ni
+        -- Handle interrupt display
+        if isInterrupt then
+            self.niOverlay:SetAlpha(0)
+            self:SetStatusBarColor(0.1, 0.8, 0.1, 1)
+            if self.spellText then
+                self.spellText:SetText(INTERRUPTED or "Interrompu")
             end
-            if type(name) ~= "nil" then
-                duration = UnitChannelDuration(unit)
+            self.casting = false
+            self.channeling = false
+            self.duration_obj = nil
+            self.failstart = GetTime()
+            self:SetMinMaxValues(0, 100)
+            self:SetValue(100)
+            self:Show()
+            return
+        end
+
+        -- Fade interrupted text after 1 second
+        if self.failstart then
+            if GetTime() - self.failstart > 1 then
+                self.failstart = nil
+                self:Hide()
             end
-        else
-            local info = UnitCastingInfo(unit)
-            if type(info) ~= "nil" then
-                name = info
-                local _, _, tex, sMS, eMS, _, _, ni = UnitCastingInfo(unit)
-                texture = tex
-                startTimeMS = sMS
-                endTimeMS = eMS
-                notInterruptible = ni
-            end
-            if type(name) ~= "nil" then
-                duration = UnitCastingDuration(unit)
+            return
+        end
+
+        -- Check casting first (like asTargetCastBar)
+        local bchannel = false
+        local name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible
+        local castInfo = UnitCastingInfo(unitID)
+        if type(castInfo) ~= "nil" then
+            name = castInfo
+            _, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible = UnitCastingInfo(unitID)
+        end
+
+        -- If not casting, check channeling
+        if type(name) == "nil" then
+            local chanInfo = UnitChannelInfo(unitID)
+            if type(chanInfo) ~= "nil" then
+                name = chanInfo
+                _, _, texture, startTimeMS, endTimeMS, _, notInterruptible = UnitChannelInfo(unitID)
+                bchannel = true
             end
         end
 
+        -- Nothing found → hide
         if type(name) == "nil" then
+            self.casting = false
+            self.channeling = false
+            self.duration_obj = nil
             self:Hide()
             return
         end
 
-        -- TWW: SetMinMaxValues accepts secrets (startTimeMS, endTimeMS)
-        -- SetValue(GetTime() * 1000) in OnUpdate is non-secret — bar fills C-side
-        self:SetMinMaxValues(startTimeMS, endTimeMS)
-        self:SetReverseFill(self.channeling)
-
-        -- Store duration object for timer (GetRemainingDuration(0) is displayable)
+        -- Get duration object for timer text
+        local duration
+        if bchannel then
+            duration = UnitChannelDuration(unitID)
+        else
+            duration = UnitCastingDuration(unitID)
+        end
         self.duration_obj = duration
+
+        -- Update state
+        self.casting = not bchannel
+        self.channeling = bchannel
+        self.failstart = nil
+
+        -- TWW: SetMinMaxValues accepts secrets (startTimeMS, endTimeMS from API)
+        self:SetMinMaxValues(startTimeMS, endTimeMS)
+        self:SetReverseFill(bchannel)
+
+        -- Reset base color to red (may have been green from interrupt)
+        self:SetStatusBarColor(0.8, 0.1, 0.1, 1)
 
         -- SetText/SetTexture are C-side, accept secrets
         if self.spellText then self.spellText:SetFormattedText("%s", name) end
         if self.icon then self.icon:SetTexture(texture) end
 
         -- TWW: SetAlpha ACCEPTS secrets from C_CurveUtil
-        -- EvaluateColorValueFromBoolean(condition, trueValue, falseValue):
         -- notInterruptible=true → 1 (grey overlay visible)
         -- notInterruptible=false → 0 (overlay hidden, red bar shows)
         local alpha = C_CurveUtil.EvaluateColorValueFromBoolean(notInterruptible, 1, 0)
@@ -156,22 +189,25 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         self:Show()
     end
 
-    local function StopCast(self)
-        self.casting = false
-        self.channeling = false
-        self.duration_obj = nil
-        self:Hide()
-    end
-
-    -- OnUpdate: SetValue with non-secret GetTime(), timer from stored duration_obj
+    -- OnUpdate: bar progress + timer text
     castbar:SetScript("OnUpdate", function(self, elapsed)
+        -- Handle interrupt fadeout
+        if self.failstart then
+            if GetTime() - self.failstart > 1 then
+                self.failstart = nil
+                self:Hide()
+            end
+            return
+        end
+
         if not self.casting and not self.channeling then
             self:Hide()
             return
         end
 
         -- Progress: GetTime() * 1000 is non-secret, bar fill handled C-side
-        self:SetValue(GetTime() * 1000)
+        -- Use ExponentialEaseOut like asTargetCastBar
+        self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
 
         -- Timer from stored duration object (param 0 for displayable value)
         if self.timerText and self.duration_obj then
@@ -191,41 +227,40 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     events:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
     events:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 
+    -- Register target/focus change events for initial cast detection
+    if unit == "target" then
+        events:RegisterEvent("PLAYER_TARGET_CHANGED")
+    elseif unit == "focus" then
+        events:RegisterEvent("PLAYER_FOCUS_CHANGED")
+    end
+
     events:SetScript("OnEvent", function(self, event, eventUnit)
+        -- Target/focus change: check for ongoing cast/channel on new target
+        if event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_FOCUS_CHANGED" then
+            castbar.failstart = nil
+            CheckCast(castbar, false)
+            return
+        end
+
         if eventUnit ~= unit then return end
 
-        if event == "UNIT_SPELLCAST_START" then
-            castbar.casting = true
-            castbar.channeling = false
-            StartCast(castbar)
-        elseif event == "UNIT_SPELLCAST_CHANNEL_START" then
-            castbar.casting = false
-            castbar.channeling = true
-            StartCast(castbar)
+        if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
+            castbar.failstart = nil
+            CheckCast(castbar, false)
         elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
-            -- Mid-cast state change: re-read notInterruptible and update overlay
             if castbar.casting or castbar.channeling then
-                StartCast(castbar)
+                CheckCast(castbar, false)
             end
         elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
-            -- Green flash
-            castbar.niOverlay:SetAlpha(0)
-            castbar:SetStatusBarColor(0.1, 0.8, 0.1, 1)
-            if castbar.spellText then
-                castbar.spellText:SetText(INTERRUPTED or "Interrompu")
-            end
+            CheckCast(castbar, true)
+        elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
+            or event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
             castbar.casting = false
             castbar.channeling = false
             castbar.duration_obj = nil
-            C_Timer.After(0.4, function()
-                castbar:SetStatusBarColor(0.8, 0.1, 0.1, 1)
+            if not castbar.failstart then
                 castbar:Hide()
-            end)
-        elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
-            or event == "UNIT_SPELLCAST_SUCCEEDED" then
-            StopCast(castbar)
-        elseif event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-            StopCast(castbar)
+            end
         end
     end)
 

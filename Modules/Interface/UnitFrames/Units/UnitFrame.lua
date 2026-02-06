@@ -271,6 +271,27 @@ local function UpdateRaidIcon(frame)
     end
 end
 
+local function UpdateLeaderIcon(frame)
+    if not frame or not frame.health or not frame.health.leaderIcon then return end
+
+    local settings = TomoModDB.unitFrames[frame.unit]
+    if not settings or not settings.showLeaderIcon then
+        frame.health.leaderIcon:Hide()
+        return
+    end
+
+    if not UnitExists(frame.unit) then
+        frame.health.leaderIcon:Hide()
+        return
+    end
+
+    if UnitIsGroupLeader(frame.unit) then
+        frame.health.leaderIcon:Show()
+    else
+        frame.health.leaderIcon:Hide()
+    end
+end
+
 local function UpdateFrame(frame)
     if not frame then return end
     UpdateHealth(frame)
@@ -280,6 +301,7 @@ local function UpdateFrame(frame)
     UpdateLevel(frame)
     UpdateThreat(frame)
     UpdateRaidIcon(frame)
+    UpdateLeaderIcon(frame)
     E.UpdateAuras(frame)
 end
 
@@ -300,6 +322,8 @@ eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("UNIT_AURA")
 eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
+eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
+eventFrame:RegisterEvent("PARTY_LEADER_CHANGED")
 
 eventFrame:SetScript("OnEvent", function(self, event, unit)
     if event == "PLAYER_ENTERING_WORLD" then
@@ -347,6 +371,8 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
         end
     elseif event == "RAID_TARGET_UPDATE" then
         for _, f in pairs(frames) do UpdateRaidIcon(f) end
+    elseif event == "GROUP_ROSTER_UPDATE" or event == "PARTY_LEADER_CHANGED" then
+        for _, f in pairs(frames) do UpdateLeaderIcon(f) end
     end
 end)
 
@@ -494,6 +520,13 @@ function UF.RefreshUnit(unitKey)
                 )
             end
         end
+    end
+
+    -- Leader icon offset
+    if frame.health and frame.health.leaderIcon and settings.leaderIconOffset then
+        local ofs = settings.leaderIconOffset
+        frame.health.leaderIcon:ClearAllPoints()
+        frame.health.leaderIcon:SetPoint("BOTTOMLEFT", frame.health, "TOPLEFT", ofs.x, ofs.y)
     end
 
     -- Resize aura icons if size changed
