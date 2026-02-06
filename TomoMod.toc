@@ -1,0 +1,45 @@
+## Interface: 120001, 120000
+## 
+## Title: |cff0cd29fTomo|rMod
+## Notes: Lite interface and code with QOL and UnitFrame.
+## Category: |cff0cd29fInterface|r
+## 
+## SavedVariables: TomoModDB
+## X-Curse-Project-ID: 1446255
+## Author: TomoAniki
+## Version: 2.0
+## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
+
+## =====================
+## Libraries
+## =====================
+libs.xml
+
+## =====================
+## Core
+## =====================
+Core\Utils.lua
+Core\Database.lua
+Core\Init.lua
+
+## =====================
+## Config UI Widgets + Panels
+## =====================
+Config\Widgets.lua
+Config\Panels\General.lua
+Config\Panels\UnitFrames.lua
+Config\Panels\Nameplates.lua
+Config\Panels\QOL.lua
+Config\Panels\Profiles.lua
+Config\ConfigUI.lua
+
+## =====================
+## QOL Modules (unchanged)
+## =====================
+Modules\QOL\QOL.xml
+
+## =====================
+## Interface Modules
+## =====================
+Modules\Interface\UnitFrames\UnitFrames.xml
+Modules\Interface\NamePlates\Nameplates.xml
