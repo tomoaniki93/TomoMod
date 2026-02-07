@@ -105,7 +105,6 @@ local CLASS_RESOURCES = {
         [2] = { -- Feral
             primary   = { display = "bar", powerType = POWER_ENERGY, label = "Energy" },
             secondary = { display = "points", powerType = POWER_COMBO_POINTS, label = "Combo Points", maxPoints = 5 },
-            druidMana = true,
         },
         [3] = { -- Guardian
             primary   = { display = "bar", powerType = POWER_RAGE, label = "Rage" },
