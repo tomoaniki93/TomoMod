@@ -306,35 +306,26 @@ local function UpdateFrame(frame)
 end
 
 -- =====================================
--- EVENTS (direct handling, no deferral needed)
+-- EVENTS
+-- Use per-unit event frames with RegisterUnitEvent to ONLY fire for our tracked units.
+-- Global RegisterEvent("UNIT_HEALTH") fires for ALL units including
+-- Blizzard's arena/raid frames, tainting their execution context and breaking Edit Mode.
 -- =====================================
 
 local eventFrame = CreateFrame("Frame")
-eventFrame:RegisterEvent("UNIT_HEALTH")
-eventFrame:RegisterEvent("UNIT_MAXHEALTH")
-eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
-eventFrame:RegisterEvent("UNIT_MAXPOWER")
-eventFrame:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
-eventFrame:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE")
+
+-- Global events (no unit arg, safe)
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 eventFrame:RegisterEvent("PLAYER_FOCUS_CHANGED")
 eventFrame:RegisterEvent("UNIT_PET")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-eventFrame:RegisterEvent("UNIT_AURA")
 eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
 eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
 eventFrame:RegisterEvent("PARTY_LEADER_CHANGED")
 
-eventFrame:SetScript("OnEvent", function(self, event, unit)
-    if event == "PLAYER_ENTERING_WORLD" then
-        -- Defer full update to avoid tainting Blizzard frames at login
-        C_Timer.After(0, function()
-            for _, f in pairs(frames) do UpdateFrame(f) end
-        end)
-    elseif event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
-        -- Defer: UnitHealth returns secret numbers that taint the Lua execution context.
-        -- Running in the same event dispatch as Blizzard's CompactUnitFrame propagates
-        -- our taint to their secure frames (CompactArenaFrame, raid frames, etc).
+-- Unit event handler (called from per-unit frames)
+local function HandleUnitEvent(event, unit)
+    if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
         if frames[unit] then
             local f = frames[unit]
             C_Timer.After(0, function() UpdateHealth(f) end)
@@ -351,6 +342,44 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
         end
     elseif event == "UNIT_THREAT_SITUATION_UPDATE" then
         if frames[unit] then UpdateThreat(frames[unit]) end
+    elseif event == "UNIT_AURA" then
+        if frames[unit] then
+            local f = frames[unit]
+            C_Timer.After(0, function() E.UpdateAuras(f) end)
+        end
+    end
+end
+
+-- Per-unit event registration (called after frames are created)
+local unitEventFrames = {}
+local unitEvents = {
+    "UNIT_HEALTH", "UNIT_MAXHEALTH",
+    "UNIT_POWER_UPDATE", "UNIT_MAXPOWER",
+    "UNIT_ABSORB_AMOUNT_CHANGED",
+    "UNIT_THREAT_SITUATION_UPDATE",
+    "UNIT_AURA",
+}
+
+local function RegisterUnitEvents()
+    for unit, _ in pairs(frames) do
+        if not unitEventFrames[unit] then
+            local uef = CreateFrame("Frame")
+            for _, ev in ipairs(unitEvents) do
+                uef:RegisterUnitEvent(ev, unit)
+            end
+            uef:SetScript("OnEvent", function(_, event, u)
+                HandleUnitEvent(event, u)
+            end)
+            unitEventFrames[unit] = uef
+        end
+    end
+end
+
+eventFrame:SetScript("OnEvent", function(self, event, unit)
+    if event == "PLAYER_ENTERING_WORLD" then
+        C_Timer.After(0, function()
+            for _, f in pairs(frames) do UpdateFrame(f) end
+        end)
     elseif event == "PLAYER_TARGET_CHANGED" then
         C_Timer.After(0, function()
             if frames.target then UpdateFrame(frames.target) end
@@ -363,11 +392,6 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
     elseif event == "UNIT_PET" then
         if frames.pet then
             C_Timer.After(0, function() UpdateFrame(frames.pet) end)
-        end
-    elseif event == "UNIT_AURA" then
-        if frames[unit] then
-            local f = frames[unit]
-            C_Timer.After(0, function() E.UpdateAuras(f) end)
         end
     elseif event == "RAID_TARGET_UPDATE" then
         for _, f in pairs(frames) do UpdateRaidIcon(f) end
@@ -392,13 +416,16 @@ end)
 -- =====================================
 
 local function HideBlizzardFrames()
-    -- Unit frames
+    -- Unit frames — hide but don't override Show (Edit Mode needs to manage these)
     local blizzFrames = { PlayerFrame, TargetFrame, FocusFrame, PetFrame }
     for _, f in ipairs(blizzFrames) do
         if f then
             f:UnregisterAllEvents()
             f:Hide()
-            f.Show = function() end
+            -- Move offscreen instead of overriding Show (Edit Mode compatible)
+            f:ClearAllPoints()
+            f:SetPoint("TOPLEFT", UIParent, "TOPLEFT", -9999, 9999)
+            f:SetAlpha(0)
         end
     end
 
@@ -408,7 +435,9 @@ local function HideBlizzardFrames()
         if castFrame then
             castFrame:UnregisterAllEvents()
             castFrame:Hide()
-            castFrame.Show = function() end
+            castFrame:ClearAllPoints()
+            castFrame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", -9999, 9999)
+            castFrame:SetAlpha(0)
         end
     end
 end
@@ -583,6 +612,9 @@ function UF.Initialize()
     if TomoModDB.unitFrames.hideBlizzardFrames then
         HideBlizzardFrames()
     end
+
+    -- Register per-unit events (after frames table is populated)
+    RegisterUnitEvents()
 
     -- Start aura duration updater
     E.StartAuraDurationUpdater(frames)

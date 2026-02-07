@@ -286,25 +286,30 @@ local function UpdateButtonState(button, isBuff)
     -- Custom CD text
     if button.Cooldown then
         local start, duration = button.Cooldown:GetCooldownTimes()
-        if start and duration and start > 0 and duration > 0 then
-            local now = GetTime()
-            local startSec = start / 1000
-            local durSec = duration / 1000
-            local remaining = startSec + durSec - now
-            if remaining > 0 then
-                if isBuff then
-                    button._cdm_cdText:SetText(FormatDuration(remaining))
-                    button._cdm_cdText:SetTextColor(1, 1, 1)
-                else
-                    button._cdm_cdText:SetText(FormatCooldown(remaining))
-                    if remaining < 3 then
-                        button._cdm_cdText:SetTextColor(1, 0.8, 0)
-                    else
+        -- TWW: GetCooldownTimes may return secrets — can't do boolean test or compare
+        -- Must use type() first (no boolean test), then issecretvalue() before arithmetic
+        if type(start) ~= "nil" and type(duration) ~= "nil"
+            and not issecretvalue(start) and not issecretvalue(duration) then
+            if start > 0 and duration > 0 then
+                local now = GetTime()
+                local startSec = start / 1000
+                local durSec = duration / 1000
+                local remaining = startSec + durSec - now
+                if remaining > 0 then
+                    if isBuff then
+                        button._cdm_cdText:SetText(FormatDuration(remaining))
                         button._cdm_cdText:SetTextColor(1, 1, 1)
+                    else
+                        button._cdm_cdText:SetText(FormatCooldown(remaining))
+                        if remaining < 3 then
+                            button._cdm_cdText:SetTextColor(1, 0.8, 0)
+                        else
+                            button._cdm_cdText:SetTextColor(1, 1, 1)
+                        end
                     end
+                    button._cdm_cdText:Show()
+                    return
                 end
-                button._cdm_cdText:Show()
-                return
             end
         end
     end
@@ -319,7 +324,7 @@ local function UpdateButtonHotkey(button)
     if not settings or not settings.showHotKey or not button._cdm_hotkey then return end
 
     local spellID = button:GetSpellID()
-    if spellID and not (issecretvalue and issecretvalue(spellID)) then
+    if type(spellID) ~= "nil" and not (issecretvalue and issecretvalue(spellID)) then
         button._cdm_spellID = spellID
         local keyText = GetSpellHotkey(spellID)
         if keyText then

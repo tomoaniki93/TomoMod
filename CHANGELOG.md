@@ -1,20 +1,7 @@
-CHANGELOG 1.18
+CHANGELOG 2.1.2
 
-- Add Ancre Movable For AlerteFrame and LootFrame by /tm sr
-- Modification and add info on InfoPanel Clic Left show Calendar, Clic right show local time or server
-- Add Rework UnitFrames : lock/unlock configurable /tm uf
-    * Player
-    * Target
-    * TargetTarget
-    * Pet
-    * Focus
-- add NamesPlates :
-    * Support total for nameplates
-    * Range fading WIP
-    * Configuration complete
-    * Support threat for role WIP
-    * Raid markers
-    * NamesPlates CastBar
-- Target CastBar movable by /tm sr and configurable by /tm
-- Full Modulable RessourceBar WIP
-- If Qestion about Commands do /tm help
+- Fix CastBar and Aura on Target and NamesPlates
+- Add Leader Icon on PLayer and Target, position move in /tm
+- Add new Systeme Cooldown Manager
+- Add New System Ressource Class Bar (All class and spec supported)
+- Fix RegisterEvent("UNIT_*") in all Addon.

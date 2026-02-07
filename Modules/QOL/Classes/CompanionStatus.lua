@@ -249,10 +249,10 @@ CompanionStatus:RegisterEvent("ADDON_LOADED")
 CompanionStatus:RegisterEvent("PLAYER_ENTERING_WORLD")
 CompanionStatus:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 CompanionStatus:RegisterEvent("PLAYER_TALENT_UPDATE")
-CompanionStatus:RegisterEvent("UNIT_PET")
-CompanionStatus:RegisterEvent("UNIT_HEALTH")
+CompanionStatus:RegisterUnitEvent("UNIT_PET", "player")
+CompanionStatus:RegisterUnitEvent("UNIT_HEALTH", "pet")
 CompanionStatus:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
-CompanionStatus:RegisterEvent("UNIT_FLAGS")
+CompanionStatus:RegisterUnitEvent("UNIT_FLAGS", "pet")
 
 CompanionStatus:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == ADDON_NAME then

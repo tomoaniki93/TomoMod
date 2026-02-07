@@ -215,17 +215,18 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         end
     end)
 
-    -- Events
+    -- Events — use RegisterUnitEvent to only fire for our specific unit
+    -- Global RegisterEvent fires for ALL units, tainting Blizzard's secure frames
     local events = CreateFrame("Frame")
-    events:RegisterEvent("UNIT_SPELLCAST_START")
-    events:RegisterEvent("UNIT_SPELLCAST_STOP")
-    events:RegisterEvent("UNIT_SPELLCAST_FAILED")
-    events:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
-    events:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
-    events:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
-    events:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
-    events:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
-    events:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+    events:RegisterUnitEvent("UNIT_SPELLCAST_START", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_STOP", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTIBLE", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", unit)
 
     -- Register target/focus change events for initial cast detection
     if unit == "target" then

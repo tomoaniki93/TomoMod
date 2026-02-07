@@ -692,29 +692,103 @@ local function OnNamePlateRemoved(unit)
     end
 end
 
+-- Per-unit event frames for nameplates (dynamic registration)
+-- Using global RegisterEvent("UNIT_HEALTH") fires for ALL units (arena, player, boss etc.)
+-- which taints Blizzard's BuffFrame and other secure frames in the same dispatch.
+local npUnitEventFrames = {}
+local npUnitEvents = {
+    "UNIT_HEALTH", "UNIT_MAXHEALTH",
+    "UNIT_THREAT_SITUATION_UPDATE",
+    "UNIT_FACTION", "UNIT_AURA",
+    "UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP",
+    "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED",
+    "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP",
+    "UNIT_SPELLCAST_INTERRUPTIBLE", "UNIT_SPELLCAST_NOT_INTERRUPTIBLE",
+    "UNIT_SPELLCAST_SUCCEEDED",
+}
+
+local function HandleNPUnitEvent(event, unit)
+    if not unitPlates[unit] then return end
+
+    if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" or event == "UNIT_THREAT_SITUATION_UPDATE"
+        or event == "UNIT_FACTION" or event == "UNIT_AURA" then
+        local p = unitPlates[unit]
+        C_Timer.After(0, function() UpdatePlate(p, unit) end)
+    elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
+        -- Defer: UpdateCastbar touches secrets via C_CurveUtil
+        local p = unitPlates[unit]
+        C_Timer.After(0, function()
+            if p and unitPlates[unit] == p then
+                UpdateCastbar(p, unit)
+            end
+        end)
+    elseif event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
+        local p = unitPlates[unit]
+        C_Timer.After(0, function()
+            if p and unitPlates[unit] == p then
+                UpdateCastbar(p, unit)
+            end
+        end)
+    elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
+        local p = unitPlates[unit]
+        if p and p.castbar then
+            p.castbar.niOverlay:SetAlpha(0)
+            p.castbar:SetStatusBarColor(0.1, 0.8, 0.1, 1)
+            p.castbar.text:SetFormattedText("%s", INTERRUPTED or "Interrompu")
+            p.castbar.casting = false
+            p.castbar.channeling = false
+            p.castbar.duration_obj = nil
+            p.castbar.failstart = GetTime()
+            p.castbar:SetMinMaxValues(0, 100)
+            p.castbar:SetValue(100)
+            p.castbar:Show()
+        end
+    elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
+        or event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
+        local p = unitPlates[unit]
+        if p and p.castbar then
+            p.castbar.casting = false
+            p.castbar.channeling = false
+            p.castbar.duration_obj = nil
+            if not p.castbar.failstart then
+                p.castbar:Hide()
+            end
+        end
+    end
+end
+
+local function RegisterNPUnitEvents(unit)
+    if npUnitEventFrames[unit] then return end
+    local uef = CreateFrame("Frame")
+    for _, ev in ipairs(npUnitEvents) do
+        uef:RegisterUnitEvent(ev, unit)
+    end
+    uef:SetScript("OnEvent", function(_, event, u)
+        HandleNPUnitEvent(event, u)
+    end)
+    npUnitEventFrames[unit] = uef
+end
+
+local function UnregisterNPUnitEvents(unit)
+    if npUnitEventFrames[unit] then
+        npUnitEventFrames[unit]:UnregisterAllEvents()
+        npUnitEventFrames[unit]:SetScript("OnEvent", nil)
+        npUnitEventFrames[unit] = nil
+    end
+end
+
+-- Only global events that don't carry unit-specific secret data
 eventFrame:RegisterEvent("NAME_PLATE_UNIT_ADDED")
 eventFrame:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
-eventFrame:RegisterEvent("UNIT_HEALTH")
-eventFrame:RegisterEvent("UNIT_MAXHEALTH")
-eventFrame:RegisterEvent("UNIT_THREAT_SITUATION_UPDATE")
 eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
-eventFrame:RegisterEvent("UNIT_FACTION")
-eventFrame:RegisterEvent("UNIT_AURA")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_START")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_STOP")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_FAILED")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_CHANNEL_START")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
-eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 
 eventFrame:SetScript("OnEvent", function(self, event, unit)
     if event == "NAME_PLATE_UNIT_ADDED" then
         OnNamePlateAdded(unit)
+        RegisterNPUnitEvents(unit)
     elseif event == "NAME_PLATE_UNIT_REMOVED" then
+        UnregisterNPUnitEvents(unit)
         OnNamePlateRemoved(unit)
     elseif event == "PLAYER_TARGET_CHANGED" then
         -- Defer: UnitIsUnit can propagate taint
@@ -748,47 +822,6 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
                     p.raidIcon:Show()
                 else
                     p.raidIcon:Hide()
-                end
-            end
-        end
-    elseif unit and unitPlates[unit] then
-        if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" or event == "UNIT_THREAT_SITUATION_UPDATE"
-            or event == "UNIT_FACTION" or event == "UNIT_AURA" then
-            -- Defer: UpdatePlate touches UnitHealth (secret numbers) — isolate taint
-            local p = unitPlates[unit]
-            C_Timer.After(0, function() UpdatePlate(p, unit) end)
-        elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
-            -- Mid-cast state change: re-call UpdateCastbar to re-read notInterruptible and update overlay
-            if unitPlates[unit] then
-                UpdateCastbar(unitPlates[unit], unit)
-            end
-        elseif event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
-            if unitPlates[unit] then
-                UpdateCastbar(unitPlates[unit], unit)
-            end
-        elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
-            local p = unitPlates[unit]
-            if p and p.castbar then
-                p.castbar.niOverlay:SetAlpha(0)
-                p.castbar:SetStatusBarColor(0.1, 0.8, 0.1, 1)
-                p.castbar.text:SetFormattedText("%s", INTERRUPTED or "Interrompu")
-                p.castbar.casting = false
-                p.castbar.channeling = false
-                p.castbar.duration_obj = nil
-                p.castbar.failstart = GetTime()
-                p.castbar:SetMinMaxValues(0, 100)
-                p.castbar:SetValue(100)
-                p.castbar:Show()
-            end
-        elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
-            or event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-            local p = unitPlates[unit]
-            if p and p.castbar then
-                p.castbar.casting = false
-                p.castbar.channeling = false
-                p.castbar.duration_obj = nil
-                if not p.castbar.failstart then
-                    p.castbar:Hide()
                 end
             end
         end
@@ -873,6 +906,12 @@ function NP.Disable()
             plate._blizzUnitFrame:SetAlpha(1)
         end
     end
+    -- Clean up per-unit event frames
+    for unit, uef in pairs(npUnitEventFrames) do
+        uef:UnregisterAllEvents()
+        uef:SetScript("OnEvent", nil)
+    end
+    npUnitEventFrames = {}
     unitPlates = {}
 end
 
