@@ -34,4 +34,7 @@
     <!-- Modules: Skyriding -->
     <Include file="Skyriding\SkyRide.lua" />
 
+    <!-- Modules: FrameAnchors -->
+    <Include file="FrameAnchors\FrameAnchors.lua" />
+
 </Ui>

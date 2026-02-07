@@ -26,6 +26,7 @@ TomoMod_Defaults = {
         showDurability = true,
         showTime = true,
         use24Hour = true,
+        useServerTime = true,
         displayOrder = { "Gear", "Time", "Fps" },
         position = nil,
     },
@@ -38,6 +39,15 @@ TomoMod_Defaults = {
     cinematicSkip = {
         enabled = true,
         viewedCinematics = {},
+    },
+    frameAnchors = {
+        enabled = true,
+        alertFrame = {
+            position = nil, -- {point, relPoint, x, y}
+        },
+        lootFrame = {
+            position = nil,
+        },
     },
     autoQuest = {
         autoAccept = false,

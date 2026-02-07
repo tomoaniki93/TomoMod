@@ -503,3 +503,135 @@ function W.CreateInfoText(parent, text, yOffset)
     local lines = math.ceil(info:GetStringHeight() / 12)
     return info, yOffset - (lines * 14 + 6)
 end
+
+-- =====================================
+-- TAB PANEL (sub-tabs within a content area)
+-- =====================================
+
+function W.CreateTabPanel(parent, tabs)
+    -- tabs = { { key="player", label="Joueur", builder=function(container) end }, ... }
+
+    local wrapper = CreateFrame("Frame", nil, parent)
+    wrapper:SetAllPoints()
+
+    -- Tab bar background
+    local tabBarHeight = 34
+    local tabBar = CreateFrame("Frame", nil, wrapper)
+    tabBar:SetPoint("TOPLEFT", 0, 0)
+    tabBar:SetPoint("TOPRIGHT", 0, 0)
+    tabBar:SetHeight(tabBarHeight)
+
+    local tabBarBg = tabBar:CreateTexture(nil, "BACKGROUND")
+    tabBarBg:SetAllPoints()
+    tabBarBg:SetColorTexture(0.06, 0.06, 0.08, 1)
+
+    local tabBarSep = tabBar:CreateTexture(nil, "ARTWORK")
+    tabBarSep:SetHeight(1)
+    tabBarSep:SetPoint("BOTTOMLEFT", 0, 0)
+    tabBarSep:SetPoint("BOTTOMRIGHT", 0, 0)
+    tabBarSep:SetColorTexture(unpack(T.border))
+
+    -- Content area below tabs
+    local content = CreateFrame("Frame", nil, wrapper)
+    content:SetPoint("TOPLEFT", 0, -tabBarHeight)
+    content:SetPoint("BOTTOMRIGHT", 0, 0)
+
+    local tabButtons = {}
+    local tabPanels = {}
+    local currentTab = nil
+
+    local function SwitchTab(key)
+        if currentTab == key then return end
+
+        -- Hide all panels
+        for _, panel in pairs(tabPanels) do
+            panel:Hide()
+        end
+
+        -- Update tab button visuals
+        for tabKey, btn in pairs(tabButtons) do
+            if tabKey == key then
+                btn.bg:SetColorTexture(unpack(T.bgLight))
+                btn.indicator:Show()
+                btn.label:SetTextColor(unpack(T.accent))
+            else
+                btn.bg:SetColorTexture(0, 0, 0, 0)
+                btn.indicator:Hide()
+                btn.label:SetTextColor(unpack(T.textDim))
+            end
+        end
+
+        -- Create or show the panel (lazy)
+        if not tabPanels[key] then
+            for _, tab in ipairs(tabs) do
+                if tab.key == key and tab.builder then
+                    local panel = tab.builder(content)
+                    panel:SetAllPoints(content)
+                    tabPanels[key] = panel
+                    break
+                end
+            end
+        end
+
+        if tabPanels[key] then
+            tabPanels[key]:Show()
+        end
+
+        currentTab = key
+    end
+
+    -- Create tab buttons
+    local tabWidth = math.floor(math.max(parent:GetWidth(), 540) / #tabs)
+    tabWidth = math.min(tabWidth, 110)
+
+    for i, tab in ipairs(tabs) do
+        local btn = CreateFrame("Button", nil, tabBar)
+        btn:SetSize(tabWidth, tabBarHeight)
+        btn:SetPoint("TOPLEFT", (i - 1) * tabWidth, 0)
+
+        local bg = btn:CreateTexture(nil, "BACKGROUND", nil, 1)
+        bg:SetAllPoints()
+        bg:SetColorTexture(0, 0, 0, 0)
+        btn.bg = bg
+
+        local indicator = btn:CreateTexture(nil, "OVERLAY")
+        indicator:SetHeight(2)
+        indicator:SetPoint("BOTTOMLEFT", 4, 0)
+        indicator:SetPoint("BOTTOMRIGHT", -4, 0)
+        indicator:SetColorTexture(unpack(T.accent))
+        indicator:Hide()
+        btn.indicator = indicator
+
+        local label = btn:CreateFontString(nil, "OVERLAY")
+        label:SetFont(FONT, 11, "")
+        label:SetPoint("CENTER", 0, 1)
+        label:SetTextColor(unpack(T.textDim))
+        label:SetText(tab.label)
+        btn.label = label
+
+        btn:SetScript("OnEnter", function()
+            if currentTab ~= tab.key then
+                bg:SetColorTexture(0.10, 0.10, 0.13, 0.5)
+            end
+        end)
+        btn:SetScript("OnLeave", function()
+            if currentTab ~= tab.key then
+                bg:SetColorTexture(0, 0, 0, 0)
+            end
+        end)
+        btn:SetScript("OnClick", function()
+            SwitchTab(tab.key)
+        end)
+
+        tabButtons[tab.key] = btn
+    end
+
+    -- Auto-select first tab immediately
+    if #tabs > 0 then
+        SwitchTab(tabs[1].key)
+    end
+
+    wrapper.SwitchTab = SwitchTab
+    wrapper.content = content
+    return wrapper
+end

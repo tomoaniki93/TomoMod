@@ -60,6 +60,9 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if TomoMod_SkyRide and TomoMod_SkyRide.ToggleLock then
             TomoMod_SkyRide.ToggleLock()
         end
+        if TomoMod_FrameAnchors and TomoMod_FrameAnchors.ToggleLock then
+            TomoMod_FrameAnchors.ToggleLock()
+        end
     elseif msg == "cdm" or msg == "ci" then
         if TomoMod_CooldownManager then
             local enabled = TomoModDB and TomoModDB.cooldownManager and TomoModDB.cooldownManager.enabled
@@ -108,7 +111,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         print("  |cff0cd29f/tm panel|r — Reset info panel")
         print("  |cff0cd29f/tm cursor|r — Reset cursor ring")
         print("  |cff0cd29f/tm clearcinema|r — Clear cinematic history")
-        print("  |cff0cd29f/tm sr|r — Toggle SkyRide lock")
+        print("  |cff0cd29f/tm sr|r — Toggle SkyRide + Anchors lock")
         print("  |cff0cd29f/tm key|r — Open Mythic+ Keys")
         print("  |cff0cd29f/tm help|r — This help")
     else
@@ -145,6 +148,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_AutoSummon then TomoMod_AutoSummon.Initialize() end
         if TomoMod_HideCastBar then TomoMod_HideCastBar.Initialize() end
         if TomoMod_AutoFillDelete then TomoMod_AutoFillDelete.Initialize() end
+        if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
 
         -- Interface Modules (new v2)
         if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end

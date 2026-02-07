@@ -2,12 +2,12 @@
 ## 
 ## Title: |cff0cd29fTomo|rMod
 ## Notes: Lite interface and code with QOL and UnitFrame.
-## Category: |cff0cd29fInterface|r
+## Category: |cff0cd29fHUD|r
 ## 
 ## SavedVariables: TomoModDB
 ## X-Curse-Project-ID: 1446255
 ## Author: TomoAniki
-## Version: 2.1.2
+## Version: 2.1.3
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================

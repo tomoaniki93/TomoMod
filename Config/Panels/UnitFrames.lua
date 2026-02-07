@@ -1,25 +1,32 @@
 -- =====================================
--- Panels/UnitFrames.lua — UnitFrames Config
+-- Panels/UnitFrames.lua — UnitFrames Config (Tabbed)
 -- =====================================
 
 local W = TomoMod_Widgets
 
--- Helper to build a per-unit sub panel
-local function CreateUnitSection(parent, unitKey, displayName, y)
+-- Helper: build all options for a single unit inside a scroll panel
+local function BuildUnitContent(parent, unitKey, displayName)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
     local db = TomoModDB.unitFrames[unitKey]
-    if not db then return y end
+    if not db then return scroll end
 
-    local _, ny = W.CreateSectionHeader(parent, displayName, y)
-    y = ny
+    local y = -10
 
-    local _, ny = W.CreateCheckbox(parent, "Activer", db.enabled, y, function(v)
+    -- Activer
+    local _, ny = W.CreateCheckbox(c, "Activer", db.enabled, y, function(v)
         db.enabled = v
         print("|cff0cd29fTomoMod|r " .. displayName .. ": " .. (v and "activé" or "désactivé") .. " (reload nécessaire)")
     end)
     y = ny
 
-    -- Dimensions
-    local _, ny = W.CreateSlider(parent, "Largeur", db.width, 80, 400, 5, y, function(v)
+    -- =====================================
+    -- DIMENSIONS
+    -- =====================================
+    local _, ny = W.CreateSubLabel(c, "— Dimensions —", y)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, "Largeur", db.width, 80, 400, 5, y, function(v)
         db.width = v
         if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
             TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -27,7 +34,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(parent, "Hauteur vie", db.healthHeight, 10, 80, 2, y, function(v)
+    local _, ny = W.CreateSlider(c, "Hauteur vie", db.healthHeight, 10, 80, 2, y, function(v)
         db.healthHeight = v
         db.height = v + (db.powerHeight or 0) + 6
         if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
@@ -37,7 +44,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
     y = ny
 
     if db.powerHeight and db.powerHeight > 0 or unitKey == "player" or unitKey == "target" or unitKey == "focus" then
-        local _, ny = W.CreateSlider(parent, "Hauteur ressource", db.powerHeight or 8, 0, 20, 1, y, function(v)
+        local _, ny = W.CreateSlider(c, "Hauteur ressource", db.powerHeight or 8, 0, 20, 1, y, function(v)
             db.powerHeight = v
             db.height = (db.healthHeight or 38) + v + 6
             if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
@@ -47,8 +54,15 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         y = ny
     end
 
-    -- Display options
-    local _, ny = W.CreateCheckbox(parent, "Afficher le nom", db.showName, y, function(v)
+    -- =====================================
+    -- AFFICHAGE
+    -- =====================================
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, "— Affichage —", y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, "Afficher le nom", db.showName, y, function(v)
         db.showName = v
         if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
             TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -57,7 +71,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
     y = ny
 
     if db.showLevel ~= nil then
-        local _, ny = W.CreateCheckbox(parent, "Afficher le niveau", db.showLevel, y, function(v)
+        local _, ny = W.CreateCheckbox(c, "Afficher le niveau", db.showLevel, y, function(v)
             db.showLevel = v
             if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
                 TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -66,7 +80,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         y = ny
     end
 
-    local _, ny = W.CreateCheckbox(parent, "Afficher le texte de vie", db.showHealthText, y, function(v)
+    local _, ny = W.CreateCheckbox(c, "Afficher le texte de vie", db.showHealthText, y, function(v)
         db.showHealthText = v
         if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
             TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -75,12 +89,11 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
     y = ny
 
     if db.healthTextFormat then
-        local _, ny = W.CreateDropdown(parent, "Format vie", {
+        local _, ny = W.CreateDropdown(c, "Format vie", {
             { text = "Courant (25.3K)", value = "current" },
             { text = "Pourcentage (75%)", value = "percent" },
             { text = "Courant + % (25.3K | 75%)", value = "current_percent" },
             { text = "Courant / Max", value = "current_max" },
-            { text = "Déficit (-10K)", value = "deficit" },
         }, db.healthTextFormat, y, function(v)
             db.healthTextFormat = v
             if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
@@ -90,7 +103,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         y = ny
     end
 
-    local _, ny = W.CreateCheckbox(parent, "Couleur de classe", db.useClassColor, y, function(v)
+    local _, ny = W.CreateCheckbox(c, "Couleur de classe", db.useClassColor, y, function(v)
         db.useClassColor = v
         if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
             TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -99,7 +112,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
     y = ny
 
     if db.useFactionColor ~= nil then
-        local _, ny = W.CreateCheckbox(parent, "Couleur de faction (PNJ)", db.useFactionColor, y, function(v)
+        local _, ny = W.CreateCheckbox(c, "Couleur de faction (PNJ)", db.useFactionColor, y, function(v)
             db.useFactionColor = v
             if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
                 TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -109,21 +122,21 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
     end
 
     if db.showAbsorb ~= nil then
-        local _, ny = W.CreateCheckbox(parent, "Barre d'absorption", db.showAbsorb, y, function(v)
+        local _, ny = W.CreateCheckbox(c, "Barre d'absorption", db.showAbsorb, y, function(v)
             db.showAbsorb = v
         end)
         y = ny
     end
 
     if db.showThreat ~= nil then
-        local _, ny = W.CreateCheckbox(parent, "Indicateur de menace", db.showThreat, y, function(v)
+        local _, ny = W.CreateCheckbox(c, "Indicateur de menace", db.showThreat, y, function(v)
             db.showThreat = v
         end)
         y = ny
     end
 
     if db.showLeaderIcon ~= nil then
-        local _, ny = W.CreateCheckbox(parent, "Icône leader", db.showLeaderIcon, y, function(v)
+        local _, ny = W.CreateCheckbox(c, "Icône leader", db.showLeaderIcon, y, function(v)
             db.showLeaderIcon = v
             if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
                 TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -131,14 +144,14 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         end)
         y = ny
         if db.leaderIconOffset then
-            local _, ny = W.CreateSlider(parent, "Leader icône X", db.leaderIconOffset.x, -50, 50, 1, y, function(v)
+            local _, ny = W.CreateSlider(c, "Leader icône X", db.leaderIconOffset.x, -50, 50, 1, y, function(v)
                 db.leaderIconOffset.x = v
                 if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
                     TomoMod_UnitFrames.RefreshUnit(unitKey)
                 end
             end)
             y = ny
-            local _, ny = W.CreateSlider(parent, "Leader icône Y", db.leaderIconOffset.y, -50, 50, 1, y, function(v)
+            local _, ny = W.CreateSlider(c, "Leader icône Y", db.leaderIconOffset.y, -50, 50, 1, y, function(v)
                 db.leaderIconOffset.y = v
                 if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
                     TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -148,19 +161,21 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         end
     end
 
-    -- Castbar section
+    -- =====================================
+    -- CASTBAR
+    -- =====================================
     if db.castbar then
-        local _, ny = W.CreateSeparator(parent, y)
+        local _, ny = W.CreateSeparator(c, y)
         y = ny
-        local _, ny = W.CreateSubLabel(parent, "— Castbar —", y)
+        local _, ny = W.CreateSubLabel(c, "— Castbar —", y)
         y = ny
 
-        local _, ny = W.CreateCheckbox(parent, "Activer castbar", db.castbar.enabled, y, function(v)
+        local _, ny = W.CreateCheckbox(c, "Activer castbar", db.castbar.enabled, y, function(v)
             db.castbar.enabled = v
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(parent, "Largeur castbar", db.castbar.width, 50, 400, 5, y, function(v)
+        local _, ny = W.CreateSlider(c, "Largeur castbar", db.castbar.width, 50, 400, 5, y, function(v)
             db.castbar.width = v
             if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
                 TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -168,7 +183,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(parent, "Hauteur castbar", db.castbar.height, 8, 40, 1, y, function(v)
+        local _, ny = W.CreateSlider(c, "Hauteur castbar", db.castbar.height, 8, 40, 1, y, function(v)
             db.castbar.height = v
             if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
                 TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -176,35 +191,37 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         end)
         y = ny
 
-        local _, ny = W.CreateCheckbox(parent, "Afficher icône", db.castbar.showIcon, y, function(v)
+        local _, ny = W.CreateCheckbox(c, "Afficher icône", db.castbar.showIcon, y, function(v)
             db.castbar.showIcon = v
         end)
         y = ny
 
-        local _, ny = W.CreateCheckbox(parent, "Afficher timer", db.castbar.showTimer, y, function(v)
+        local _, ny = W.CreateCheckbox(c, "Afficher timer", db.castbar.showTimer, y, function(v)
             db.castbar.showTimer = v
         end)
         y = ny
     end
 
-    -- Auras section
+    -- =====================================
+    -- AURAS
+    -- =====================================
     if db.auras then
-        local _, ny = W.CreateSeparator(parent, y)
+        local _, ny = W.CreateSeparator(c, y)
         y = ny
-        local _, ny = W.CreateSubLabel(parent, "— Auras —", y)
+        local _, ny = W.CreateSubLabel(c, "— Auras —", y)
         y = ny
 
-        local _, ny = W.CreateCheckbox(parent, "Activer les auras", db.auras.enabled, y, function(v)
+        local _, ny = W.CreateCheckbox(c, "Activer les auras", db.auras.enabled, y, function(v)
             db.auras.enabled = v
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(parent, "Nombre max d'auras", db.auras.maxAuras, 1, 16, 1, y, function(v)
+        local _, ny = W.CreateSlider(c, "Nombre max d'auras", db.auras.maxAuras, 1, 16, 1, y, function(v)
             db.auras.maxAuras = v
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(parent, "Taille des icônes", db.auras.size, 16, 48, 1, y, function(v)
+        local _, ny = W.CreateSlider(c, "Taille des icônes", db.auras.size, 16, 48, 1, y, function(v)
             db.auras.size = v
             if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
                 TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -212,7 +229,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         end)
         y = ny
 
-        local _, ny = W.CreateDropdown(parent, "Type d'auras", {
+        local _, ny = W.CreateDropdown(c, "Type d'auras", {
             { text = "Debuffs (nocifs)", value = "HARMFUL" },
             { text = "Buffs (bénéfiques)", value = "HELPFUL" },
             { text = "Tous", value = "ALL" },
@@ -221,7 +238,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         end)
         y = ny
 
-        local _, ny = W.CreateDropdown(parent, "Direction de croissance", {
+        local _, ny = W.CreateDropdown(c, "Direction de croissance", {
             { text = "Vers la droite", value = "RIGHT" },
             { text = "Vers la gauche", value = "LEFT" },
         }, db.auras.growDirection, y, function(v)
@@ -229,19 +246,19 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         end)
         y = ny
 
-        local _, ny = W.CreateCheckbox(parent, "Seulement mes auras", db.auras.showOnlyMine, y, function(v)
+        local _, ny = W.CreateCheckbox(c, "Seulement mes auras", db.auras.showOnlyMine, y, function(v)
             db.auras.showOnlyMine = v
         end)
         y = ny
     end
 
-    -- Position reset
-    local _, ny = W.CreateSeparator(parent, y)
-    y = ny
-
-    -- Element position offsets (player + target only)
+    -- =====================================
+    -- ELEMENT OFFSETS (player + target only)
+    -- =====================================
     if (unitKey == "player" or unitKey == "target") and db.elementOffsets then
-        local _, ny = W.CreateSubLabel(parent, "— Position des éléments —", y)
+        local _, ny = W.CreateSeparator(c, y)
+        y = ny
+        local _, ny = W.CreateSubLabel(c, "— Position des éléments —", y)
         y = ny
 
         local elements = {
@@ -257,7 +274,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
             if db.elementOffsets[elem.key] then
                 local offData = db.elementOffsets[elem.key]
 
-                local _, ny = W.CreateSlider(parent, elem.label .. " X", offData.x, -100, 100, 1, y, function(v)
+                local _, ny = W.CreateSlider(c, elem.label .. " X", offData.x, -100, 100, 1, y, function(v)
                     offData.x = v
                     if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
                         TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -265,7 +282,7 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
                 end)
                 y = ny
 
-                local _, ny = W.CreateSlider(parent, elem.label .. " Y", offData.y, -100, 100, 1, y, function(v)
+                local _, ny = W.CreateSlider(c, elem.label .. " Y", offData.y, -100, 100, 1, y, function(v)
                     offData.y = v
                     if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
                         TomoMod_UnitFrames.RefreshUnit(unitKey)
@@ -276,7 +293,13 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
         end
     end
 
-    local _, ny = W.CreateButton(parent, "Reset Position " .. displayName, 220, y, function()
+    -- =====================================
+    -- RESET POSITION
+    -- =====================================
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateButton(c, "Reset Position " .. displayName, 220, y, function()
         if TomoMod_Defaults.unitFrames[unitKey] and TomoMod_Defaults.unitFrames[unitKey].position then
             db.position = CopyTable(TomoMod_Defaults.unitFrames[unitKey].position)
             if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
@@ -285,19 +308,19 @@ local function CreateUnitSection(parent, unitKey, displayName, y)
             print("|cff0cd29fTomoMod|r Position de " .. displayName .. " réinitialisée")
         end
     end)
-    y = ny - 10
+    y = ny
 
-    return y
+    -- Resize scroll child
+    c:SetHeight(math.abs(y) + 40)
+    return scroll
 end
 
-
-function TomoMod_ConfigPanel_UnitFrames(parent)
+-- Helper: build general settings tab
+local function BuildGeneralContent(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-
     local y = -10
 
-    -- Global UF settings
     local _, ny = W.CreateSectionHeader(c, "Paramètres Généraux", y)
     y = ny
 
@@ -325,17 +348,25 @@ function TomoMod_ConfigPanel_UnitFrames(parent)
     y = ny
 
     local _, ny = W.CreateInfoText(c, "Déverrouillez pour déplacer les frames. Les positions sont sauvegardées automatiquement.", y)
-    y = ny - 6
+    y = ny
 
-    -- Per-unit sections
-    y = CreateUnitSection(c, "player", "Joueur (Player)", y)
-    y = CreateUnitSection(c, "target", "Cible (Target)", y)
-    y = CreateUnitSection(c, "targettarget", "Cible de cible (ToT)", y)
-    y = CreateUnitSection(c, "pet", "Familier (Pet)", y)
-    y = CreateUnitSection(c, "focus", "Focus", y)
-
-    -- Resize
     c:SetHeight(math.abs(y) + 40)
-
     return scroll
+end
+
+-- =====================================
+-- MAIN PANEL ENTRY POINT
+-- =====================================
+
+function TomoMod_ConfigPanel_UnitFrames(parent)
+    local tabs = {
+        { key = "general",      label = "Général",  builder = function(p) return BuildGeneralContent(p) end },
+        { key = "player",       label = "Player",   builder = function(p) return BuildUnitContent(p, "player", "Joueur") end },
+        { key = "target",       label = "Target",   builder = function(p) return BuildUnitContent(p, "target", "Cible") end },
+        { key = "targettarget", label = "ToT",      builder = function(p) return BuildUnitContent(p, "targettarget", "Cible de cible") end },
+        { key = "pet",          label = "Pet",      builder = function(p) return BuildUnitContent(p, "pet", "Familier") end },
+        { key = "focus",        label = "Focus",    builder = function(p) return BuildUnitContent(p, "focus", "Focus") end },
+    }
+
+    return W.CreateTabPanel(parent, tabs)
 end

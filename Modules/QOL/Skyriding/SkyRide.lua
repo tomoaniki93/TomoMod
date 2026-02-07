@@ -501,8 +501,29 @@ end
 function SR.SetEnabled(enabled)
     local settings = GetSettings()
     if not settings then return end
-    
+
     settings.enabled = enabled
+
+    if enabled then
+        -- Démarrer les tickers s'ils ne tournent pas
+        if not updateSpeedTimer then
+            updateSpeedTimer = C_Timer.NewTicker(0.2, UpdateSpeed)
+        end
+        if not updateSpellTimer then
+            updateSpellTimer = C_Timer.NewTicker(0.2, UpdateSpells)
+        end
+    else
+        -- Arrêter les tickers
+        if updateSpeedTimer then
+            updateSpeedTimer:Cancel()
+            updateSpeedTimer = nil
+        end
+        if updateSpellTimer then
+            updateSpellTimer:Cancel()
+            updateSpellTimer = nil
+        end
+    end
+
     UpdateVisibility()
 end
 
@@ -510,39 +531,17 @@ end
 -- INITIALISATION
 -- =====================================
 function SR.Initialize()
-    if not TomoModDB then
-        print("|cffff0000TomoMod SkyRide:|r TomoModDB non initialisée")
-        return
-    end
-    
-    -- Initialiser les settings si nécessaire
-    if not TomoModDB.skyRide then
-        TomoModDB.skyRide = {
-            enabled = false, -- Désactivé par défaut
-            width = 340,
-            height = 20,
-            comboHeight = 5,
-            font = STANDARD_TEXT_FONT,
-            fontSize = 12,
-            fontOutline = "OUTLINE",
-            barColor = {r = 1, g = 1, b = 0},
-            position = {
-                point = "BOTTOM",
-                relativePoint = "CENTER",
-                x = 0,
-                y = -180,
-            },
-        }
-    end
-    
+    if not TomoModDB or not TomoModDB.skyRide then return end
+
     -- Créer l'interface
     CreateUI()
-    
-    -- Démarrer les timers d'update
-    updateSpeedTimer = C_Timer.NewTicker(0.2, UpdateSpeed)
-    updateSpellTimer = C_Timer.NewTicker(0.2, UpdateSpells)
-    
-    print("|cff00ff00TomoMod SkyRide:|r Module initialisé")
+
+    -- Démarrer les timers uniquement si activé
+    local settings = GetSettings()
+    if settings and settings.enabled then
+        updateSpeedTimer = C_Timer.NewTicker(0.2, UpdateSpeed)
+        updateSpellTimer = C_Timer.NewTicker(0.2, UpdateSpells)
+    end
 end
 
 -- Export

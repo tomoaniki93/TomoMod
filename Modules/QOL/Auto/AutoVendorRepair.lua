@@ -3,7 +3,6 @@
 -- Automatically sells gray items and repairs gear
 --------------------------------------------------
 
-local addonName = ...
 local f = CreateFrame("Frame")
 
 --------------------------------------------------
@@ -31,14 +30,16 @@ local function SellGrayItems()
 
     local total = 0
 
-    for bag = 0, NUM_BAG_FRAMES do
+    for bag = 0, NUM_BAG_SLOTS do
         local slots = C_Container.GetContainerNumSlots(bag)
         for slot = 1, slots do
             local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
             if itemInfo and itemInfo.hyperlink then
                 local quality = itemInfo.quality
                 if quality == Enum.ItemQuality.Poor then
-                    local price = itemInfo.stackCount * (select(11, GetItemInfo(itemInfo.itemID)) or 0)
+                    -- GetItemInfo peut retourner nil si l'item n'est pas cache
+                    local _, _, _, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(itemInfo.itemID)
+                    local price = itemInfo.stackCount * (vendorPrice or 0)
                     C_Container.UseContainerItem(bag, slot)
                     total = total + price
                 end
@@ -75,14 +76,14 @@ f:SetScript("OnEvent", function()
     local repairCost = RepairItems()
 
     if PRINT_SUMMARY and (sold > 0 or repairCost > 0) then
-        print("|cff00ff00[AutoVendorRepair]|r")
+        print("|cff0cd29f[AutoVendorRepair]|r")
 
         if sold > 0 then
-            print(" Sold gray items for |cffffff00" .. FormatGold(sold) .. "|r")
+            print("  Sold gray items for |cffffff00" .. FormatGold(sold) .. "|r")
         end
 
         if repairCost > 0 then
-            print(" Repaired gear for |cffffff00" .. FormatGold(repairCost) .. "|r")
+            print("  Repaired gear for |cffffff00" .. FormatGold(repairCost) .. "|r")
         end
     end
 end)

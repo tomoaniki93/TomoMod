@@ -1,5 +1,6 @@
 -- =====================================
 -- CinematicSkip.lua
+-- Skip automatique des cinematiques deja vues.
 -- =====================================
 
 TomoMod_CinematicSkip = {}
@@ -7,138 +8,126 @@ local cinematicFrame
 local skipAttempts = 0
 local maxSkipAttempts = 10
 
--- Obtenir un ID unique pour la cinématique actuelle
+-- =====================================
+-- UTILS
+-- =====================================
+local function GetDB()
+    return TomoModDB and TomoModDB.cinematicSkip
+end
+
 local function GetCinematicID()
-    -- Utiliser le nom de la zone + timestamp approximatif comme identifiant
-    local zoneName = GetZoneText()
-    local subZone = GetSubZoneText()
-    
-    -- Créer un ID basé sur la localisation
-    local cinematicID = zoneName .. "_" .. subZone
-    
-    return cinematicID
+    local zoneName = GetZoneText() or ""
+    local subZone = GetSubZoneText() or ""
+    return zoneName .. "_" .. subZone
 end
 
--- Vérifier si une cinématique a déjà été vue
 local function HasSeenCinematic(cinematicID)
-    if not TomoModDB.cinematicSkip.viewedCinematics then
-        TomoModDB.cinematicSkip.viewedCinematics = {}
+    local db = GetDB()
+    if not db then return false end
+    if not db.viewedCinematics then
+        db.viewedCinematics = {}
     end
-    
-    return TomoModDB.cinematicSkip.viewedCinematics[cinematicID] ~= nil
+    return db.viewedCinematics[cinematicID] ~= nil
 end
 
--- Marquer une cinématique comme vue
 local function MarkCinematicAsSeen(cinematicID)
-    if not TomoModDB.cinematicSkip.viewedCinematics then
-        TomoModDB.cinematicSkip.viewedCinematics = {}
+    local db = GetDB()
+    if not db then return end
+    if not db.viewedCinematics then
+        db.viewedCinematics = {}
     end
-    
-    TomoModDB.cinematicSkip.viewedCinematics[cinematicID] = time()
+    db.viewedCinematics[cinematicID] = time()
 end
 
--- Tenter de skip la cinématique
+-- Tenter de skip la cinematique
 local function TrySkipCinematic()
-    if not TomoModDB.cinematicSkip.enabled then return end
-    
-    -- Vérifier si on est dans une cinématique
+    local db = GetDB()
+    if not db or not db.enabled then return end
+
     if CinematicFrame and CinematicFrame:IsShown() then
         local cinematicID = GetCinematicID()
-        
+
         if HasSeenCinematic(cinematicID) then
-            -- Skip la cinématique
             CinematicFrame_CancelCinematic()
-            print("|cff00ff00TomoMod:|r Cinématique skippée (déjà vue)")
+            print("|cff0cd29fTomoMod:|r Cinematique skippee (deja vue)")
         else
-            -- Première fois, marquer comme vue
-            MarkCinematicAsSeen(cinematicID)
-        end
-    end
-    
-    -- Vérifier les movie frames (vidéos in-game)
-    if MovieFrame and MovieFrame:IsShown() then
-        local cinematicID = GetCinematicID()
-        
-        if HasSeenCinematic(cinematicID) then
-            -- Skip la vidéo
-            MovieFrame_PlayMovie(MovieFrame, 0) -- Force l'arrêt
-            GameMovieFinished()
-            print("|cff00ff00TomoMod:|r Vidéo skippée (déjà vue)")
-        else
-            -- Première fois, marquer comme vue
             MarkCinematicAsSeen(cinematicID)
         end
     end
 end
 
--- Hook sur les événements de cinématiques
+-- =====================================
+-- HOOK EVENTS
+-- =====================================
 local function HookCinematicEvents()
     if cinematicFrame then return end
-    
+
     cinematicFrame = CreateFrame("Frame")
-    
-    -- Événements pour les cinématiques
     cinematicFrame:RegisterEvent("CINEMATIC_START")
     cinematicFrame:RegisterEvent("PLAY_MOVIE")
-    
+
     cinematicFrame:SetScript("OnEvent", function(self, event, ...)
-        if not TomoModDB.cinematicSkip.enabled then return end
-        
+        local db = GetDB()
+        if not db or not db.enabled then return end
+
         if event == "CINEMATIC_START" then
-            -- Délai court pour laisser le temps à la cinématique de se charger
             skipAttempts = 0
             C_Timer.NewTicker(0.1, function()
                 skipAttempts = skipAttempts + 1
                 TrySkipCinematic()
                 if skipAttempts >= maxSkipAttempts then
-                    return true -- Arrêter le ticker
+                    return true
                 end
             end, maxSkipAttempts)
-            
+
         elseif event == "PLAY_MOVIE" then
             local movieID = ...
-            
-            -- Vérifier si cette vidéo a été vue
-            if HasSeenCinematic("MOVIE_" .. movieID) then
-                -- Skip immédiatement
+            if not movieID then return end
+
+            local movieKey = "MOVIE_" .. tostring(movieID)
+
+            if HasSeenCinematic(movieKey) then
+                -- MovieFrame:Hide() est la methode fiable pour stopper
+                -- une video. MovieFrame_PlayMovie n'existe pas dans l'API.
                 C_Timer.After(0.1, function()
                     if MovieFrame and MovieFrame:IsShown() then
-                        MovieFrame:StopMovie()
-                        GameMovieFinished()
-                        print("|cff00ff00TomoMod:|r Vidéo #" .. movieID .. " skippée")
+                        MovieFrame:Hide()
+                        print("|cff0cd29fTomoMod:|r Video #" .. movieID .. " skippee")
                     end
                 end)
             else
-                -- Marquer comme vue
-                MarkCinematicAsSeen("MOVIE_" .. movieID)
+                MarkCinematicAsSeen(movieKey)
             end
         end
     end)
 end
 
--- Effacer toutes les cinématiques vues
+-- =====================================
+-- PUBLIC API
+-- =====================================
 function TomoMod_CinematicSkip.ClearHistory()
-    TomoModDB.cinematicSkip.viewedCinematics = {}
-    print("|cff00ff00TomoMod:|r Historique des cinématiques effacé")
+    local db = GetDB()
+    if not db then return end
+    db.viewedCinematics = {}
+    print("|cff0cd29fTomoMod:|r Historique des cinematiques efface")
 end
 
--- Obtenir le nombre de cinématiques vues
 function TomoMod_CinematicSkip.GetViewedCount()
-    if not TomoModDB.cinematicSkip.viewedCinematics then
+    local db = GetDB()
+    if not db or not db.viewedCinematics then
         return 0
     end
-    
     local count = 0
-    for _ in pairs(TomoModDB.cinematicSkip.viewedCinematics) do
+    for _ in pairs(db.viewedCinematics) do
         count = count + 1
     end
-    
     return count
 end
 
--- Initialisation du module
 function TomoMod_CinematicSkip.Initialize()
-    if TomoModDB.cinematicSkip.enabled then
+    local db = GetDB()
+    if not db then return end
+    if db.enabled then
         HookCinematicEvents()
     end
 end

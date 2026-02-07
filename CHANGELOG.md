@@ -1,7 +1,14 @@
-CHANGELOG 2.1.2
+CHANGELOG 2.1.3
 
-- Fix CastBar and Aura on Target and NamesPlates
-- Add Leader Icon on PLayer and Target, position move in /tm
-- Add new Systeme Cooldown Manager
-- Add New System Ressource Class Bar (All class and spec supported)
-- Fix RegisterEvent("UNIT_*") in all Addon.
+- Fix GUI
+- Add tab for Unitframes
+- Add Anchor For LootFrame and AlertFrame deplacement with /tm sr
+- Optimization QOL scripts in general
+- Optimization InfoPanel :
+• Left-click on the time → ToggleCalendar()
+• Right-click → toggles Server/Local (saved to database)
+• Shift + Right-click → toggles 12-hour/24-hour time (saved to database)
+• Hover tooltip indicating the 3 actions + the active mode
+• Small S or L indicator displayed next to the time to show which mode is active
+• Each element (Gear, Time) is now an independent button with a green accent on hover
+- Add Localization frFR and enUS

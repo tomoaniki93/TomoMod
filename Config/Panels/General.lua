@@ -14,7 +14,7 @@ function TomoMod_ConfigPanel_General(parent)
     local _, ny = W.CreateSectionHeader(c, "À propos", y)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, "|cff0cd29fTomoMod|r v2.0 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.", y)
+    local _, ny = W.CreateInfoText(c, "|cff0cd29fTomoMod|r v2.1.2 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.", y)
     y = ny - 6
 
     -- GENERAL
