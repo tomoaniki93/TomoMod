@@ -60,7 +60,7 @@ local function SavePosition()
         y = y or -180,
     }
     
-    print("|cff00ff00TomoMod:|r Position SkyRide sauvegardée")
+    print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_sr_pos_saved"])
 end
 
 local function ApplyPosition()
@@ -125,9 +125,9 @@ function SR.SetLocked(locked)
     SetLocked(locked)
     
     if locked then
-        print("|cff00ff00TomoMod:|r SkyRide verrouillée")
+        print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_sr_locked"])
     else
-        print("|cffffff00TomoMod:|r Mode déplacement SkyRide activé - Cliquez et glissez")
+        print("|cffffff00TomoMod:|r " .. TomoMod_L["msg_sr_unlock"])
     end
 end
 
@@ -495,35 +495,14 @@ function SR.ResetPosition()
     }
     
     ApplyPosition()
-    print("|cff00ff00TomoMod:|r Position SkyRide réinitialisée")
+    print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_sr_pos_reset"])
 end
 
 function SR.SetEnabled(enabled)
     local settings = GetSettings()
     if not settings then return end
-
+    
     settings.enabled = enabled
-
-    if enabled then
-        -- Démarrer les tickers s'ils ne tournent pas
-        if not updateSpeedTimer then
-            updateSpeedTimer = C_Timer.NewTicker(0.2, UpdateSpeed)
-        end
-        if not updateSpellTimer then
-            updateSpellTimer = C_Timer.NewTicker(0.2, UpdateSpells)
-        end
-    else
-        -- Arrêter les tickers
-        if updateSpeedTimer then
-            updateSpeedTimer:Cancel()
-            updateSpeedTimer = nil
-        end
-        if updateSpellTimer then
-            updateSpellTimer:Cancel()
-            updateSpellTimer = nil
-        end
-    end
-
     UpdateVisibility()
 end
 
@@ -531,17 +510,39 @@ end
 -- INITIALISATION
 -- =====================================
 function SR.Initialize()
-    if not TomoModDB or not TomoModDB.skyRide then return end
-
+    if not TomoModDB then
+        print("|cffff0000TomoMod SkyRide:|r " .. TomoMod_L["msg_sr_db_not_init"])
+        return
+    end
+    
+    -- Initialiser les settings si nécessaire
+    if not TomoModDB.skyRide then
+        TomoModDB.skyRide = {
+            enabled = false, -- Désactivé par défaut
+            width = 340,
+            height = 20,
+            comboHeight = 5,
+            font = STANDARD_TEXT_FONT,
+            fontSize = 12,
+            fontOutline = "OUTLINE",
+            barColor = {r = 1, g = 1, b = 0},
+            position = {
+                point = "BOTTOM",
+                relativePoint = "CENTER",
+                x = 0,
+                y = -180,
+            },
+        }
+    end
+    
     -- Créer l'interface
     CreateUI()
-
-    -- Démarrer les timers uniquement si activé
-    local settings = GetSettings()
-    if settings and settings.enabled then
-        updateSpeedTimer = C_Timer.NewTicker(0.2, UpdateSpeed)
-        updateSpellTimer = C_Timer.NewTicker(0.2, UpdateSpells)
-    end
+    
+    -- Démarrer les timers d'update
+    updateSpeedTimer = C_Timer.NewTicker(0.2, UpdateSpeed)
+    updateSpellTimer = C_Timer.NewTicker(0.2, UpdateSpells)
+    
+    print("|cff00ff00TomoMod SkyRide:|r " .. TomoMod_L["msg_sr_initialized"])
 end
 
 -- Export

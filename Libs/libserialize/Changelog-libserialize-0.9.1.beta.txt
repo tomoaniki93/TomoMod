@@ -1,0 +1,59 @@
+------------------------------------------------------------------------
+r10 | dieendieen | 2012-01-29 12:39:07 +0000 (Sun, 29 Jan 2012) | 1 line
+Changed paths:
+   A /tags/0.9.1.beta (from /trunk:9)
+
+Tagging as 0.9.1.beta
+------------------------------------------------------------------------
+r9 | dieendieen | 2012-01-29 12:23:51 +0000 (Sun, 29 Jan 2012) | 1 line
+Changed paths:
+   M /trunk/LibSerialize.toc
+   M /trunk/serializer.lua
+
+bit of code cleaning
+------------------------------------------------------------------------
+r7 | dieendieen | 2012-01-14 19:47:54 +0000 (Sat, 14 Jan 2012) | 1 line
+Changed paths:
+   M /trunk/LibSerialize.toc
+   M /trunk/serializer.lua
+
+first release candidate version
+------------------------------------------------------------------------
+r5 | dieendieen | 2012-01-13 14:42:20 +0000 (Fri, 13 Jan 2012) | 1 line
+Changed paths:
+   M /trunk/LibSerialize.toc
+   M /trunk/serializer.lua
+
+updates
+------------------------------------------------------------------------
+r3 | dieendieen | 2012-01-12 10:07:30 +0000 (Thu, 12 Jan 2012) | 1 line
+Changed paths:
+   A /trunk/libs
+   A /trunk/libs/LibStub
+   A /trunk/libs/LibStub/Changelog-LibStub-1.0.2-40200.txt
+   A /trunk/libs/LibStub/LibStub.lua
+   A /trunk/libs/LibStub/LibStub.toc
+   A /trunk/libs/LibStub/tests
+   A /trunk/libs/LibStub/tests/test.lua
+   A /trunk/libs/LibStub/tests/test2.lua
+   A /trunk/libs/LibStub/tests/test3.lua
+   A /trunk/libs/LibStub/tests/test4.lua
+
+added embedded LibStub
+------------------------------------------------------------------------
+r2 | dieendieen | 2012-01-12 10:03:32 +0000 (Thu, 12 Jan 2012) | 1 line
+Changed paths:
+   A /trunk/LibSerialize.toc
+   A /trunk/embeds.xml
+   A /trunk/serializer.lua
+
+initial version, mostly functional, but lot of things needs lot of polishing
+------------------------------------------------------------------------
+r1 | svn | 2012-01-10 15:29:05 +0000 (Tue, 10 Jan 2012) | 1 line
+Changed paths:
+   A /branches
+   A /tags
+   A /trunk
+
+libserialize/mainline: Initial Import
+------------------------------------------------------------------------

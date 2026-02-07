@@ -5,6 +5,7 @@
 
 TomoMod_FrameAnchors = {}
 local FA = TomoMod_FrameAnchors
+local L = TomoMod_L
 
 local isLocked = true
 local anchors = {}
@@ -12,7 +13,7 @@ local anchors = {}
 local ANCHOR_DEFS = {
     {
         key = "alertFrame",
-        label = "Alertes",
+        label = L["anchor_alert"],
         width = 200,
         height = 40,
         defaultPoint = { "TOP", "TOP", 0, -18 },
@@ -22,7 +23,7 @@ local ANCHOR_DEFS = {
     },
     {
         key = "lootFrame",
-        label = "Loot",
+        label = L["anchor_loot"],
         width = 180,
         height = 40,
         defaultPoint = { "TOPLEFT", "TOPLEFT", 36, -186 },
@@ -141,9 +142,9 @@ end
 function FA.ToggleLock()
     SetLocked(not isLocked)
     if isLocked then
-        print("|cff0cd29fTomoMod Anchors:|r Verrouillés")
+        print("|cff0cd29fTomoMod Anchors:|r " .. L["msg_anchors_locked"])
     else
-        print("|cff0cd29fTomoMod Anchors:|r Déverrouillés — déplacez les ancres")
+        print("|cff0cd29fTomoMod Anchors:|r " .. L["msg_anchors_unlocked"])
     end
 end
 

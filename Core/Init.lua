@@ -23,6 +23,8 @@ function TomoMod_EnableModule(name)
     end
 end
 
+local L = TomoMod_L
+
 -- =====================================
 -- SLASH COMMANDS
 -- =====================================
@@ -66,7 +68,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
     elseif msg == "cdm" or msg == "ci" then
         if TomoMod_CooldownManager then
             local enabled = TomoModDB and TomoModDB.cooldownManager and TomoModDB.cooldownManager.enabled
-            print("|cff0cd29fTomoMod CDM:|r " .. (enabled and "Activé" or "Désactivé"))
+            print("|cff0cd29fTomoMod CDM:|r " .. (enabled and L["msg_cdm_status"] or L["msg_cdm_disabled"]))
         end
     elseif msg == "uf" or msg == "unitframes" then
         if TomoMod_UnitFrames and TomoMod_UnitFrames.ToggleLock then
@@ -96,24 +98,24 @@ SlashCmdList["TOMOMOD"] = function(msg)
                     TomoMod_Nameplates.Disable()
                 end
             end
-            print("|cff0cd29fTomoMod Nameplates:|r " .. (TomoModDB.nameplates.enabled and "Activées" or "Désactivées"))
+            print("|cff0cd29fTomoMod Nameplates:|r " .. (TomoModDB.nameplates.enabled and L["msg_np_enabled"] or L["msg_np_disabled"]))
         end
     elseif msg == "help" or msg == "?" then
-        print("|cff0cd29fTomoMod|r v2.0 — Commandes:")
-        print("  |cff0cd29f/tm|r — Ouvrir la configuration")
-        print("  |cff0cd29f/tm reset|r — Réinitialiser tout + reload")
-        print("  |cff0cd29f/tm uf|r — Toggle Lock/Unlock UnitFrames + Resources")
-        print("  |cff0cd29f/tm uf reset|r — Réinitialiser UnitFrames")
-        print("  |cff0cd29f/tm rb|r — Toggle Lock/Unlock Resource Bars")
-        print("  |cff0cd29f/tm rb sync|r — Sync largeur avec Essential Cooldowns")
-        print("  |cff0cd29f/tm np|r — Toggle Nameplates on/off")
-        print("  |cff0cd29f/tm minimap|r — Reset minimap")
-        print("  |cff0cd29f/tm panel|r — Reset info panel")
-        print("  |cff0cd29f/tm cursor|r — Reset cursor ring")
-        print("  |cff0cd29f/tm clearcinema|r — Clear cinematic history")
-        print("  |cff0cd29f/tm sr|r — Toggle SkyRide + Anchors lock")
-        print("  |cff0cd29f/tm key|r — Open Mythic+ Keys")
-        print("  |cff0cd29f/tm help|r — This help")
+        print("|cff0cd29fTomoMod|r " .. L["msg_help_title"])
+        print("  |cff0cd29f/tm|r — " .. L["msg_help_open"])
+        print("  |cff0cd29f/tm reset|r — " .. L["msg_help_reset"])
+        print("  |cff0cd29f/tm uf|r — " .. L["msg_help_uf"])
+        print("  |cff0cd29f/tm uf reset|r — " .. L["msg_help_uf_reset"])
+        print("  |cff0cd29f/tm rb|r — " .. L["msg_help_rb"])
+        print("  |cff0cd29f/tm rb sync|r — " .. L["msg_help_rb_sync"])
+        print("  |cff0cd29f/tm np|r — " .. L["msg_help_np"])
+        print("  |cff0cd29f/tm minimap|r — " .. L["msg_help_minimap"])
+        print("  |cff0cd29f/tm panel|r — " .. L["msg_help_panel"])
+        print("  |cff0cd29f/tm cursor|r — " .. L["msg_help_cursor"])
+        print("  |cff0cd29f/tm clearcinema|r — " .. L["msg_help_clearcinema"])
+        print("  |cff0cd29f/tm sr|r — " .. L["msg_help_sr"])
+        print("  |cff0cd29f/tm key|r — " .. L["msg_help_key"])
+        print("  |cff0cd29f/tm help|r — " .. L["msg_help_help"])
     else
         -- Open config
         if TomoMod_Config and TomoMod_Config.Toggle then
@@ -157,6 +159,6 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
 
         -- Welcome
         local r, g, b = TomoMod_Utils.GetClassColor()
-        print("|cff0cd29fTomoMod|r v2.0 chargé — " .. TomoMod_Utils.ColorText("/tm", r, g, b) .. " pour config")
+        print("|cff0cd29fTomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
     end
 end)

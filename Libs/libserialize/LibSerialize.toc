@@ -1,0 +1,16 @@
+## Interface: 40300
+## X-Compatible-With: 40300
+## Title: Lib: Serialize
+## Version: 0.9.1.beta
+## Notes: Serialized
+## Author: Dieen@twobears.cz
+## SavedVariables: 
+## OptionalDeps: LibStub
+## X-Curse-Packaged-Version: 0.9.1.beta
+## X-Curse-Project-Name: Lib: Serialize
+## X-Curse-Project-ID: libserialize
+## X-Curse-Repository-ID: wow/libserialize/mainline
+
+embeds.xml
+serializer.lua
+

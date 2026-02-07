@@ -688,10 +688,21 @@ end
 -- PUBLIC API
 -- =====================================
 function CDM.Initialize()
-    if not TomoModDB or not TomoModDB.cooldownManager then return end
+    if not TomoModDB then return end
+
+    if not TomoModDB.cooldownManager then
+        TomoModDB.cooldownManager = {
+            enabled = true,
+            showHotKey = false,
+            combatAlpha = true,
+            alphaInCombat = 1.0,
+            alphaWithTarget = 0.8,
+            alphaOutOfCombat = 0.5,
+        }
+    end
 
     local settings = GetSettings()
-    if not settings or not settings.enabled then return end
+    if not settings.enabled then return end
 
     mainFrame = CreateFrame("Frame")
     mainFrame:RegisterEvent("ADDON_LOADED")

@@ -142,8 +142,8 @@ local function RefreshDisplay()
     end
 
     if not IsInGroup() then
-        TMKeyFrame.text:SetText("Tu n'es pas en groupe.")
-        if MiniKeyFrame then MiniKeyFrame.text:SetText("Pas en groupe.") end
+        TMKeyFrame.text:SetText(TomoMod_L["mk_not_in_group"])
+        if MiniKeyFrame then MiniKeyFrame.text:SetText(TomoMod_L["mk_not_in_group_short"]) end
         MK.chatLines = {}
         return
     end
@@ -214,13 +214,13 @@ end
 
 local function SendKeysToChat()
     if not MK.chatLines or #MK.chatLines == 0 then
-        print("|cff0cd29fTomoMod Keys:|r Aucune cle a envoyer.")
+        print("|cff0cd29fTomoMod Keys:|r " .. TomoMod_L["msg_keys_no_key"])
         return
     end
 
     local channel = GetChatChannel()
     if not channel then
-        print("|cff0cd29fTomoMod Keys:|r Tu dois etre en groupe.")
+        print("|cff0cd29fTomoMod Keys:|r " .. TomoMod_L["msg_keys_not_in_group"])
         return
     end
 
@@ -280,7 +280,7 @@ function MK:CreateFrames()
 
     local title = TMKeyFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOP", 0, -10)
-    title:SetText("TM \226\128\147 Mythic Keys")
+    title:SetText(TomoMod_L["mk_title"])
 
     TMKeyFrame.text = TMKeyFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
     TMKeyFrame.text:SetPoint("TOPLEFT", 15, -40)
@@ -292,13 +292,13 @@ function MK:CreateFrames()
     local sendBtn = CreateFrame("Button", nil, TMKeyFrame, "GameMenuButtonTemplate")
     sendBtn:SetSize(120, 25)
     sendBtn:SetPoint("BOTTOM", -65, 15)
-    sendBtn:SetText("Envoyer chat")
+    sendBtn:SetText(TomoMod_L["mk_btn_send"])
     sendBtn:SetScript("OnClick", function() SendKeysToChat() end)
 
     local refreshBtn = CreateFrame("Button", nil, TMKeyFrame, "GameMenuButtonTemplate")
     refreshBtn:SetSize(120, 25)
     refreshBtn:SetPoint("BOTTOM", 65, 15)
-    refreshBtn:SetText("Refresh")
+    refreshBtn:SetText(TomoMod_L["mk_btn_refresh"])
     refreshBtn:SetScript("OnClick", function() ScanGroupKeys(true) end)
 
     -- Mini Frame
@@ -334,7 +334,7 @@ function MK:UpdateMiniFrame()
 
     if settings.miniFrame and not MiniKeyFrame then
         -- Recreer si necessaire au prochain reload
-        print("|cff0cd29fTomoMod Keys:|r Changement applique au prochain /reload.")
+        print("|cff0cd29fTomoMod Keys:|r " .. TomoMod_L["msg_keys_reload"])
     elseif not settings.miniFrame and MiniKeyFrame then
         MiniKeyFrame:Hide()
     end

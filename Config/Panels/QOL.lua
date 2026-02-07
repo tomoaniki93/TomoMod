@@ -3,6 +3,7 @@
 -- =====================================
 
 local W = TomoMod_Widgets
+local L = TomoMod_L
 
 function TomoMod_ConfigPanel_QOL(parent)
     local scroll = W.CreateScrollPanel(parent)
@@ -11,10 +12,10 @@ function TomoMod_ConfigPanel_QOL(parent)
     local y = -10
 
     -- CINEMATIC SKIP
-    local _, ny = W.CreateSectionHeader(c, "Cinematic Skip", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_cinematic"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Skip automatique après 1ère vue", TomoModDB.cinematicSkip.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_cinematic_auto_skip"], TomoModDB.cinematicSkip.enabled, y, function(v)
         TomoModDB.cinematicSkip.enabled = v
         if v and TomoMod_CinematicSkip then TomoMod_CinematicSkip.Initialize() end
     end)
@@ -24,42 +25,42 @@ function TomoMod_ConfigPanel_QOL(parent)
     if TomoMod_CinematicSkip and TomoMod_CinematicSkip.GetViewedCount then
         viewedStr = tostring(TomoMod_CinematicSkip.GetViewedCount())
     end
-    local _, ny = W.CreateInfoText(c, "Cinématiques déjà vues: " .. viewedStr .. "\nL'historique est partagé entre personnages.", y)
+    local _, ny = W.CreateInfoText(c, string.format(L["info_cinematic_viewed"], viewedStr), y)
     y = ny
 
-    local _, ny = W.CreateButton(c, "Effacer l'historique", 180, y, function()
+    local _, ny = W.CreateButton(c, L["btn_clear_history"], 180, y, function()
         if TomoMod_CinematicSkip then TomoMod_CinematicSkip.ClearHistory() end
     end)
     y = ny
 
     -- AUTO QUEST
-    local _, ny = W.CreateSectionHeader(c, "Auto Quest", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_auto_quest"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Auto-accepter les quêtes", TomoModDB.autoQuest.autoAccept, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_quest_auto_accept"], TomoModDB.autoQuest.autoAccept, y, function(v)
         TomoModDB.autoQuest.autoAccept = v
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Auto-compléter les quêtes", TomoModDB.autoQuest.autoTurnIn, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_quest_auto_turnin"], TomoModDB.autoQuest.autoTurnIn, y, function(v)
         TomoModDB.autoQuest.autoTurnIn = v
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Auto-sélectionner les dialogues", TomoModDB.autoQuest.autoGossip, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_quest_auto_gossip"], TomoModDB.autoQuest.autoGossip, y, function(v)
         TomoModDB.autoQuest.autoGossip = v
     end)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, "Maintenez SHIFT pour désactiver temporairement.\nLes quêtes avec choix multiples ne sont pas auto-complétées.", y)
+    local _, ny = W.CreateInfoText(c, L["info_quest_shift"], y)
     y = ny
 
     -- AUTO VENDOR/REPAIR
-    local _, ny = W.CreateSectionHeader(c, "Automatisations", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_automations"], y)
     y = ny
 
     -- HideCastBar
-    local _, ny = W.CreateCheckbox(c, "Cacher la barre de cast Blizzard", TomoModDB.hideCastBar.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_hide_blizzard_castbar"], TomoModDB.hideCastBar.enabled, y, function(v)
         if TomoMod_HideCastBar then TomoMod_HideCastBar.SetEnabled(v) end
     end)
     y = ny
@@ -67,20 +68,20 @@ function TomoMod_ConfigPanel_QOL(parent)
     -- Auto Accept Invite
     local _, ny = W.CreateSeparator(c, y)
     y = ny
-    local _, ny = W.CreateSubLabel(c, "— Auto Accept Invite —", y)
+    local _, ny = W.CreateSubLabel(c, L["sublabel_auto_accept_invite"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Activer", TomoModDB.autoAcceptInvite.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.autoAcceptInvite.enabled, y, function(v)
         TomoModDB.autoAcceptInvite.enabled = v
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Accepter des amis", TomoModDB.autoAcceptInvite.acceptFriends, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_accept_friends"], TomoModDB.autoAcceptInvite.acceptFriends, y, function(v)
         TomoModDB.autoAcceptInvite.acceptFriends = v
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Accepter de la guilde", TomoModDB.autoAcceptInvite.acceptGuild, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_accept_guild"], TomoModDB.autoAcceptInvite.acceptGuild, y, function(v)
         TomoModDB.autoAcceptInvite.acceptGuild = v
     end)
     y = ny
@@ -88,25 +89,25 @@ function TomoMod_ConfigPanel_QOL(parent)
     -- Auto Summon
     local _, ny = W.CreateSeparator(c, y)
     y = ny
-    local _, ny = W.CreateSubLabel(c, "— Auto Summon —", y)
+    local _, ny = W.CreateSubLabel(c, L["sublabel_auto_summon"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Activer", TomoModDB.autoSummon.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.autoSummon.enabled, y, function(v)
         TomoModDB.autoSummon.enabled = v
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Accepter des amis", TomoModDB.autoSummon.acceptFriends, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_accept_friends"], TomoModDB.autoSummon.acceptFriends, y, function(v)
         TomoModDB.autoSummon.acceptFriends = v
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Accepter de la guilde", TomoModDB.autoSummon.acceptGuild, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_accept_guild"], TomoModDB.autoSummon.acceptGuild, y, function(v)
         TomoModDB.autoSummon.acceptGuild = v
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, "Délai (secondes)", TomoModDB.autoSummon.delaySec, 0, 10, 1, y, function(v)
+    local _, ny = W.CreateSlider(c, L["opt_summon_delay"], TomoModDB.autoSummon.delaySec, 0, 10, 1, y, function(v)
         TomoModDB.autoSummon.delaySec = v
     end)
     y = ny
@@ -114,51 +115,51 @@ function TomoMod_ConfigPanel_QOL(parent)
     -- Auto Fill Delete
     local _, ny = W.CreateSeparator(c, y)
     y = ny
-    local _, ny = W.CreateSubLabel(c, "— Auto Fill Delete —", y)
+    local _, ny = W.CreateSubLabel(c, L["sublabel_auto_fill_delete"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Activer", TomoModDB.autoFillDelete.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.autoFillDelete.enabled, y, function(v)
         TomoModDB.autoFillDelete.enabled = v
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Focus sur OK après remplissage", TomoModDB.autoFillDelete.focusButton, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_focus_ok_button"], TomoModDB.autoFillDelete.focusButton, y, function(v)
         TomoModDB.autoFillDelete.focusButton = v
     end)
     y = ny
 
     -- MYTHIC KEYS
-    local _, ny = W.CreateSectionHeader(c, "Mythic+ Keys", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_mythic_keys"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Activer le tracker", TomoModDB.MythicKeys.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_keys_enable_tracker"], TomoModDB.MythicKeys.enabled, y, function(v)
         TomoModDB.MythicKeys.enabled = v
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Mini-frame sur l'UI M+", TomoModDB.MythicKeys.miniFrame, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_keys_mini_frame"], TomoModDB.MythicKeys.miniFrame, y, function(v)
         TomoModDB.MythicKeys.miniFrame = v
         if MK and MK.UpdateMiniFrame then MK:UpdateMiniFrame() end
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Actualisation automatique", TomoModDB.MythicKeys.autoRefresh, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_keys_auto_refresh"], TomoModDB.MythicKeys.autoRefresh, y, function(v)
         TomoModDB.MythicKeys.autoRefresh = v
     end)
     y = ny
 
     -- SKYRIDE
-    local _, ny = W.CreateSectionHeader(c, "SkyRide", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_skyride"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, "Activer (affichage en vol)", TomoModDB.skyRide.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_skyride_enable"], TomoModDB.skyRide.enabled, y, function(v)
         if TomoMod_SkyRide and TomoMod_SkyRide.SetEnabled then
             TomoMod_SkyRide.SetEnabled(v)
         end
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, "Largeur", TomoModDB.skyRide.width, 100, 600, 10, y, function(v)
+    local _, ny = W.CreateSlider(c, L["opt_width"], TomoModDB.skyRide.width, 100, 600, 10, y, function(v)
         TomoModDB.skyRide.width = v
         if TomoMod_SkyRide and TomoMod_SkyRide.ApplySettings then
             TomoMod_SkyRide.ApplySettings()
@@ -166,7 +167,7 @@ function TomoMod_ConfigPanel_QOL(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, "Hauteur barre", TomoModDB.skyRide.height, 10, 40, 1, y, function(v)
+    local _, ny = W.CreateSlider(c, L["opt_skyride_bar_height"], TomoModDB.skyRide.height, 10, 40, 1, y, function(v)
         TomoModDB.skyRide.height = v
         if TomoMod_SkyRide and TomoMod_SkyRide.ApplySettings then
             TomoMod_SkyRide.ApplySettings()
@@ -174,7 +175,7 @@ function TomoMod_ConfigPanel_QOL(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, "Taille police", TomoModDB.skyRide.fontSize, 8, 24, 1, y, function(v)
+    local _, ny = W.CreateSlider(c, L["opt_font_size"], TomoModDB.skyRide.fontSize, 8, 24, 1, y, function(v)
         TomoModDB.skyRide.fontSize = v
         if TomoMod_SkyRide and TomoMod_SkyRide.ApplySettings then
             TomoMod_SkyRide.ApplySettings()
@@ -182,7 +183,7 @@ function TomoMod_ConfigPanel_QOL(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateButton(c, "Reset Position SkyRide", 200, y, function()
+    local _, ny = W.CreateButton(c, L["btn_reset_skyride"], 200, y, function()
         if TomoMod_SkyRide and TomoMod_SkyRide.ResetPosition then
             TomoMod_SkyRide.ResetPosition()
         end

@@ -1,9 +1,5 @@
--- CompanionStatus (Retail - TomoMod integrated)
--- Affiche une icone quand le pet est mort ou absent
--- pour Hunter (BM/Surv), Warlock, DK Unholy
-
-TomoMod_CompanionStatus = TomoMod_CompanionStatus or {}
-local CS = TomoMod_CompanionStatus
+-- CompanionStatus (Retail final)
+local ADDON_NAME = ...
 
 --------------------------------------------------
 -- Frame
@@ -12,35 +8,27 @@ local CompanionStatus = CreateFrame("Frame", "CompanionStatusFrame", UIParent, "
 CompanionStatus:Hide()
 
 --------------------------------------------------
--- Defaults (ce module gere ses propres defaults
--- car il n'est pas dans Database.lua)
+-- SavedVariables
 --------------------------------------------------
+CompanionStatusDB = CompanionStatusDB or {}
+
 local DEFAULTS = {
     enabled = true,
     debug = false,
     scale = 4.0,
     size = 36,
-    point = "CENTER",
-    relativePoint = "CENTER",
-    x = 0,
-    y = 0,
+    point = { "CENTER", UIParent, "CENTER", 0, 0 },
     displayMode = "both", -- icon | text | both
 }
 
 local DB
 
-local function EnsureDB()
-    if not TomoModDB then return false end
-    if not TomoModDB.companionStatus then
-        TomoModDB.companionStatus = {}
-    end
-    for k, v in pairs(DEFAULTS) do
-        if TomoModDB.companionStatus[k] == nil then
-            TomoModDB.companionStatus[k] = v
+local function ApplyDefaults(dst, src)
+    for k, v in pairs(src) do
+        if dst[k] == nil then
+            dst[k] = type(v) == "table" and { unpack(v) } or v
         end
     end
-    DB = TomoModDB.companionStatus
-    return true
 end
 
 --------------------------------------------------
@@ -84,25 +72,40 @@ local function PlayerUsesCompanion()
     if class == "HUNTER" then
         return specID == 253 or specID == 255
     end
+
     if class == "WARLOCK" then
         return true
     end
+
     if class == "DEATHKNIGHT" then
         return specID == 252
     end
+
     return false
 end
 
 --------------------------------------------------
--- Icons
--- Note: UnitGUID("pet") retourne un unit GUID (Creature-0-...)
--- alors que C_PetJournal attend un BattlePet GUID.
--- On utilise les icones de sort comme fallback fiable.
+-- Icons (Blizzard native, SAFE)
 --------------------------------------------------
-local HUNTER_MEND_SPELL = 136
-
 local function GetHunterPetIcon()
-    return SpellIcon(HUNTER_MEND_SPELL)
+    if not UnitExists("pet") or UnitIsDeadOrGhost("pet") then
+        return SpellIcon(136) -- Mend Pet
+    end
+
+    local guid = UnitGUID("pet")
+    if not guid then
+        return SpellIcon(136)
+    end
+
+    local speciesID = C_PetJournal.GetPetSpeciesIDByGUID(guid)
+    if speciesID then
+        local _, _, _, icon = C_PetJournal.GetPetInfoBySpeciesID(speciesID)
+        if icon then
+            return icon
+        end
+    end
+
+    return SpellIcon(136)
 end
 
 local WARLOCK_DEMON_SPELLS = {
@@ -122,7 +125,7 @@ local function GetWarlockPetIcon()
 end
 
 local function GetDKGhoulIcon()
-    return SpellIcon(46584)
+    return SpellIcon(46584) -- Raise Dead
 end
 
 local function GetPetIcon()
@@ -134,6 +137,11 @@ local function GetPetIcon()
     elseif class == "DEATHKNIGHT" then
         return GetDKGhoulIcon()
     end
+end
+
+local function ShouldShowIcon()
+    if IsFlying() then return false end
+    return true
 end
 
 --------------------------------------------------
@@ -151,37 +159,27 @@ text:SetPoint("TOP", CompanionStatus, "BOTTOM", 0, -2)
 -- Layout
 --------------------------------------------------
 local function ApplyDisplay()
-    if not DB then return end
     if DB.displayMode == "icon" then
         icon:Show()
         text:Hide()
     elseif DB.displayMode == "text" then
         icon:Hide()
         text:Show()
-        text:ClearAllPoints()
         text:SetPoint("CENTER", CompanionStatus, "CENTER", 0, 0)
     else
         icon:Show()
         text:Show()
-        text:ClearAllPoints()
         text:SetPoint("TOP", CompanionStatus, "BOTTOM", 0, -2)
     end
 end
 
 local function ApplyPosition()
-    if not DB then return end
     CompanionStatus:ClearAllPoints()
-    CompanionStatus:SetPoint(
-        DB.point or "CENTER",
-        UIParent,
-        DB.relativePoint or "CENTER",
-        DB.x or 0,
-        DB.y or 0
-    )
+    CompanionStatus:SetPoint(unpack(DB.point))
 end
 
-local function UpdateIcon()
-    if not IsFlying() then
+function UpdateIcon()
+    if ShouldShowIcon() then
         icon:Show()
     else
         icon:Hide()
@@ -189,19 +187,21 @@ local function UpdateIcon()
 end
 
 --------------------------------------------------
--- Core logic
+-- Core logic (SAFE)
 --------------------------------------------------
 local function UpdateState()
-    if not DB or not DB.enabled then
+    if not DB.enabled then
         CompanionStatus:Hide()
         return
     end
 
+    -- Hide while flying
     if IsFlying() then
         CompanionStatus:Hide()
         return
     end
 
+    -- 🚨 ABSOLUTE GUARD (fixes monk issue)
     if not PlayerUsesCompanion() then
         CompanionStatus:Hide()
         return
@@ -243,12 +243,9 @@ local function UpdateState()
 end
 
 --------------------------------------------------
--- Events
--- On utilise PLAYER_LOGIN au lieu de ADDON_LOADED
--- car le vararg ... retourne nil dans un fichier
--- charge via <Include> XML.
+-- Events (OPTIMIZED)
 --------------------------------------------------
-CompanionStatus:RegisterEvent("PLAYER_LOGIN")
+CompanionStatus:RegisterEvent("ADDON_LOADED")
 CompanionStatus:RegisterEvent("PLAYER_ENTERING_WORLD")
 CompanionStatus:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 CompanionStatus:RegisterEvent("PLAYER_TALENT_UPDATE")
@@ -258,10 +255,13 @@ CompanionStatus:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
 CompanionStatus:RegisterUnitEvent("UNIT_FLAGS", "pet")
 
 CompanionStatus:SetScript("OnEvent", function(self, event, arg1)
-    if event == "PLAYER_LOGIN" then
-        if not EnsureDB() then return end
+    if event == "ADDON_LOADED" and arg1 == ADDON_NAME then
+        ApplyDefaults(CompanionStatusDB, DEFAULTS)
+        DB = CompanionStatusDB
+
         self:SetScale(DB.scale)
         self:SetSize(DB.size, DB.size)
+
         ApplyPosition()
         ApplyDisplay()
         UpdateState()
@@ -269,7 +269,6 @@ CompanionStatus:SetScript("OnEvent", function(self, event, arg1)
         return
     end
 
-    if not DB then return end
     if event == "UNIT_HEALTH" and arg1 ~= "pet" then return end
     if event == "UNIT_PET" and arg1 ~= "player" then return end
 
@@ -281,28 +280,26 @@ end)
 --------------------------------------------------
 SLASH_COMPANIONSTATUS1 = "/cs"
 SlashCmdList.COMPANIONSTATUS = function(msg)
-    if not DB then
-        print("|cffff0000CompanionStatus:|r DB non initialisee")
-        return
-    end
     msg = (msg or ""):lower()
 
     if msg == "debug" then
         DB.debug = not DB.debug
-        print("|cff0cd29fCompanionStatus|r debug:", DB.debug and "ON" or "OFF")
+        print("CompanionStatus debug:", DB.debug and "ON" or "OFF")
         return
     end
+
     if msg == "off" then
         DB.enabled = false
         UpdateState()
         return
     end
+
     if msg == "on" then
         DB.enabled = true
         UpdateState()
         return
     end
 
-    print("|cff0cd29f/cs debug|r - toggle debug")
-    print("|cff0cd29f/cs on|r / |cff0cd29foff|r")
+    print("|cff00ff00/cs debug|r - toggle debug")
+    print("|cff00ff00/cs on|r / |cff00ff00off|r")
 end

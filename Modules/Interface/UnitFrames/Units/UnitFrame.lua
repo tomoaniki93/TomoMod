@@ -476,9 +476,9 @@ function UF.ToggleLock()
     end
 
     if isLocked then
-        print("|cff0cd29fTomoMod UF:|r Verrouillé")
+        print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_locked"])
     else
-        print("|cff0cd29fTomoMod UF:|r Déverrouillé — Glissez pour repositionner")
+        print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_unlocked"])
     end
 end
 
@@ -619,7 +619,7 @@ function UF.Initialize()
     -- Start aura duration updater
     E.StartAuraDurationUpdater(frames)
 
-    print("|cff0cd29fTomoMod UF:|r Initialisé — /tm uf pour lock/unlock")
+    print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_initialized"])
 end
 
 -- =====================================

@@ -115,7 +115,7 @@ local function OnEvent(self, event, ...)
 
                     if settings.showMessages then
                         print(string.format(
-                            "|cff0cd29fTomoMod:|r Summon accepte de %s vers %s (%s)",
+                            "|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_sum_accepted"],
                             summoner, area or "?", source
                         ))
                     end
@@ -123,7 +123,7 @@ local function OnEvent(self, event, ...)
             end)
         else
             if settings.showMessages then
-                print("|cff0cd29fTomoMod:|r Summon ignore de " .. summoner .. " (non fiable)")
+                print("|cff0cd29fTomoMod:|r " .. string.format(TomoMod_L["msg_sum_ignored"], summoner))
             end
         end
     end
@@ -159,14 +159,14 @@ function AS.SetEnabled(enabled)
             mainFrame:RegisterEvent("CONFIRM_SUMMON")
             mainFrame:SetScript("OnEvent", OnEvent)
         end
-        print("|cff0cd29fTomoMod:|r Auto-summon active")
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_sum_enabled"])
     else
         if mainFrame then
             mainFrame:UnregisterAllEvents()
             mainFrame:SetScript("OnEvent", nil)
         end
         summonPending = false
-        print("|cff0cd29fTomoMod:|r Auto-summon desactive")
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_sum_disabled"])
     end
 end
 
@@ -180,9 +180,9 @@ function AS.AcceptNow()
     if GetSummonConfirmTimeLeft() and GetSummonConfirmTimeLeft() > 0 then
         C_SummonInfo.ConfirmSummon()
         summonPending = false
-        print("|cff0cd29fTomoMod:|r Summon accepte manuellement")
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_sum_manual"])
     else
-        print("|cff0cd29fTomoMod:|r Aucun summon en attente")
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_sum_no_pending"])
     end
 end
 

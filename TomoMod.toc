@@ -7,13 +7,20 @@
 ## SavedVariables: TomoModDB
 ## X-Curse-Project-ID: 1446255
 ## Author: TomoAniki
-## Version: 2.1.3
+## Version: 2.1.4
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
 ## Libraries
 ## =====================
 libs.xml
+
+## =====================
+## Locales (loaded first)
+## =====================
+Locales\Localization.lua
+Locales\enUS.lua
+Locales\frFR.lua
 
 ## =====================
 ## Core

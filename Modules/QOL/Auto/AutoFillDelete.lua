@@ -29,41 +29,40 @@ local function AutoFillDeleteText(dialog)
     if not settings or not settings.enabled then
         return
     end
-
-    -- Verifier que c'est bien un popup DELETE_ITEM
-    if not dialog then return end
-    if dialog.which ~= "DELETE_ITEM"
-        and dialog.which ~= "DELETE_GOOD_ITEM"
-        and dialog.which ~= "DELETE_QUEST_ITEM" then
+    
+    -- Vérifier que c'est bien un popup DELETE_ITEM
+    if not dialog or dialog.which ~= "DELETE_ITEM" and dialog.which ~= "DELETE_GOOD_ITEM" and dialog.which ~= "DELETE_QUEST_ITEM" then
         return
     end
-
+    
     -- Obtenir l'editbox
     local editBox = dialog.editBox
     if not editBox then
         return
     end
-
+    
     -- Remplir automatiquement avec DELETE
     editBox:SetText(DELETE_ITEM_CONFIRM_STRING)
     editBox:HighlightText()
-
-    -- SetFocus() n'existe que sur les EditBox, pas les Button.
-    -- On refocus l'editbox pour que Enter fonctionne directement.
-    if settings.focusButton and editBox then
-        editBox:SetFocus()
+    
+    -- Focus sur le bouton OK pour permettre Enter
+    if settings.focusButton and dialog.button1 then
+        dialog.button1:SetFocus()
     end
-
+    
     if settings.showMessages then
-        print("|cff0cd29fTomoMod:|r Texte 'DELETE' auto-rempli - Cliquez OK pour confirmer")
+        print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_afd_filled"])
     end
 end
 
 local function HookStaticPopups()
     if isHooked then return end
-
-    hooksecurefunc("StaticPopup_Show", function(which)
+    
+    -- Hook la fonction StaticPopup_Show
+    hooksecurefunc("StaticPopup_Show", function(which, text_arg1, text_arg2, data, insertedFrame)
+        -- Vérifier si c'est un popup de suppression
         if which == "DELETE_ITEM" or which == "DELETE_GOOD_ITEM" or which == "DELETE_QUEST_ITEM" then
+            -- Attendre que le popup soit créé
             C_Timer.After(0.1, function()
                 for i = 1, STATICPOPUP_NUMDIALOGS do
                     local dialog = _G["StaticPopup" .. i]
@@ -75,7 +74,7 @@ local function HookStaticPopups()
             end)
         end
     end)
-
+    
     isHooked = true
 end
 
@@ -83,35 +82,51 @@ end
 -- FONCTIONS PUBLIQUES
 -- =====================================
 function AFD.Initialize()
-    if not TomoModDB or not TomoModDB.autoFillDelete then return end
-
-    local settings = GetSettings()
-    if not settings or not settings.enabled then
+    if not TomoModDB then
+        print("|cffff0000TomoMod AutoFillDelete:|r " .. TomoMod_L["msg_afd_db_not_init"])
         return
     end
-
+    
+    -- Initialiser les settings
+    if not TomoModDB.autoFillDelete then
+        TomoModDB.autoFillDelete = {
+            enabled = true, -- Activé par défaut (juste un helper)
+            focusButton = true, -- Focus sur OK après remplissage
+            showMessages = false, -- Pas de spam
+        }
+    end
+    
+    local settings = GetSettings()
+    if not settings.enabled then
+        return
+    end
+    
+    -- Hook les popups
     HookStaticPopups()
+    
+    print("|cff00ff00TomoMod AutoFillDelete:|r " .. TomoMod_L["msg_afd_initialized"])
 end
 
 function AFD.SetEnabled(enabled)
     local settings = GetSettings()
     if not settings then return end
-
+    
     settings.enabled = enabled
-
+    
     if enabled then
         if not isHooked then
             HookStaticPopups()
         end
-        print("|cff0cd29fTomoMod:|r Auto-fill DELETE active")
+        print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_afd_enabled"])
     else
-        print("|cff0cd29fTomoMod:|r Auto-fill DELETE desactive (hook reste actif)")
+        print("|cffffff00TomoMod:|r " .. TomoMod_L["msg_afd_disabled"])
     end
 end
 
 function AFD.Toggle()
     local settings = GetSettings()
     if not settings then return end
+    
     AFD.SetEnabled(not settings.enabled)
 end
 

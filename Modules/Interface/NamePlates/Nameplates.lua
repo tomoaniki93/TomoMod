@@ -878,7 +878,7 @@ function NP.Enable()
         end)
     end
 
-    print("|cff0cd29fTomoMod NP:|r Activées")
+    print("|cff0cd29fTomoMod NP:|r " .. TomoMod_L["msg_np_enabled"])
 end
 
 function NP.Disable()

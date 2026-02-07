@@ -3,6 +3,7 @@
 -- =====================================
 
 local W = TomoMod_Widgets
+local L = TomoMod_L
 
 function TomoMod_ConfigPanel_Profiles(parent)
     local scroll = W.CreateScrollPanel(parent)
@@ -10,14 +11,14 @@ function TomoMod_ConfigPanel_Profiles(parent)
 
     local y = -10
 
-    local _, ny = W.CreateSectionHeader(c, "Gestion des Profils", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_profile_mgmt"], y)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, "Réinitialisez des modules individuellement ou exportez/importez vos paramètres.\nL'export copie vos settings dans le presse-papier (nécessite LibSerialize + LibDeflate).", y)
+    local _, ny = W.CreateInfoText(c, L["info_profiles"], y)
     y = ny
 
     -- Module resets
-    local _, ny = W.CreateSectionHeader(c, "Réinitialiser un module", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_reset_module"], y)
     y = ny
 
     local modules = {
@@ -32,9 +33,9 @@ function TomoMod_ConfigPanel_Profiles(parent)
     }
 
     for _, mod in ipairs(modules) do
-        local _, ny = W.CreateButton(c, "Reset: " .. mod.label, 220, y, function()
+        local _, ny = W.CreateButton(c, L["btn_reset_prefix"] .. mod.label, 220, y, function()
             TomoMod_ResetModule(mod.key)
-            print("|cff0cd29fTomoMod|r " .. mod.label .. " réinitialisé")
+            print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_reset"], mod.label))
         end)
         y = ny
     end
@@ -42,7 +43,7 @@ function TomoMod_ConfigPanel_Profiles(parent)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local _, ny = W.CreateButton(c, "⚠ TOUT Réinitialiser + Reload", 260, y, function()
+    local _, ny = W.CreateButton(c, L["btn_reset_all_reload"], 260, y, function()
         StaticPopup_Show("TOMOMOD_RESET_ALL")
     end)
     y = ny - 20

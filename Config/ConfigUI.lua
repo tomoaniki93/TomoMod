@@ -3,6 +3,8 @@
 -- Sidebar navigation, no Blizzard Options dependency
 -- =====================================
 
+local L = TomoMod_L
+
 TomoMod_Config = TomoMod_Config or {}
 local C = TomoMod_Config
 local W = TomoMod_Widgets
@@ -21,12 +23,12 @@ local categoryButtons = {}
 -- =====================================
 
 local categories = {
-    { key = "general",    label = "Général",     icon = "°", builder = "TomoMod_ConfigPanel_General" },
-    { key = "unitframes", label = "UnitFrames",  icon = "°", builder = "TomoMod_ConfigPanel_UnitFrames" },
-    { key = "nameplates", label = "Nameplates",  icon = "°", builder = "TomoMod_ConfigPanel_Nameplates" },
-    { key = "resources",  label = "CD & Ressource", icon = "°", builder = "TomoMod_ConfigPanel_CooldownResource" },
-    { key = "qol",        label = "QOL / Auto",  icon = "°", builder = "TomoMod_ConfigPanel_QOL" },
-    { key = "profiles",   label = "Profils",     icon = "°", builder = "TomoMod_ConfigPanel_Profiles" },
+    { key = "general",    label = L["cat_general"],     icon = "°", builder = "TomoMod_ConfigPanel_General" },
+    { key = "unitframes", label = L["cat_unitframes"],  icon = "°", builder = "TomoMod_ConfigPanel_UnitFrames" },
+    { key = "nameplates", label = L["cat_nameplates"],  icon = "°", builder = "TomoMod_ConfigPanel_Nameplates" },
+    { key = "resources",  label = L["cat_cd_resource"], icon = "°", builder = "TomoMod_ConfigPanel_CooldownResource" },
+    { key = "qol",        label = L["cat_qol"],  icon = "°", builder = "TomoMod_ConfigPanel_QOL" },
+    { key = "profiles",   label = L["cat_profiles"],     icon = "°", builder = "TomoMod_ConfigPanel_Profiles" },
 }
 
 -- =====================================
@@ -78,7 +80,7 @@ local function CreateConfigFrame()
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -1)
     versionText:SetTextColor(unpack(T.textDim))
-    versionText:SetText("v2.1.2")
+    versionText:SetText("v2.1.4")
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, titleBar)
@@ -251,7 +253,7 @@ end
 
 function C.Toggle()
     if not TomoModDB then
-        print("|cffff0000TomoMod|r Base de données non initialisée")
+        print("|cffff0000TomoMod|r " .. L["msg_db_not_init"])
         return
     end
 

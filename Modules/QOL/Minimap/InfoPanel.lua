@@ -133,12 +133,12 @@ function TomoMod_InfoPanel.Create()
                 -- Shift + clic droit → toggle 12h / 24h
                 TomoModDB.infoPanel.use24Hour = not TomoModDB.infoPanel.use24Hour
                 local fmt = TomoModDB.infoPanel.use24Hour and "24h" or "12h"
-                print("|cff0cd29fTomoMod|r Format: " .. fmt)
+                print("|cff0cd29fTomoMod|r " .. string.format(TomoMod_L["time_format_msg"], fmt))
             else
                 -- Clic droit → toggle Serveur / Locale
                 TomoModDB.infoPanel.useServerTime = not TomoModDB.infoPanel.useServerTime
-                local mode = TomoModDB.infoPanel.useServerTime and "Serveur" or "Locale"
-                print("|cff0cd29fTomoMod|r Heure: " .. mode)
+                local mode = TomoModDB.infoPanel.useServerTime and TomoMod_L["time_server"] or TomoMod_L["time_local"]
+                print("|cff0cd29fTomoMod|r " .. string.format(TomoMod_L["time_mode_msg"], mode))
             end
             TomoMod_InfoPanel.Update()
         end
@@ -147,13 +147,13 @@ function TomoMod_InfoPanel.Create()
         self.text:SetTextColor(0.047, 0.824, 0.624, 1)
         GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -4)
         GameTooltip:ClearLines()
-        local mode = TomoModDB.infoPanel.useServerTime and "Serveur" or "Locale"
+        local mode = TomoModDB.infoPanel.useServerTime and TomoMod_L["time_server"] or TomoMod_L["time_local"]
         local fmt = TomoModDB.infoPanel.use24Hour and "24h" or "12h"
-        GameTooltip:AddLine("Heure (" .. mode .. " - " .. fmt .. ")", 1, 1, 1)
+        GameTooltip:AddLine(string.format(TomoMod_L["time_tooltip_title"], mode, fmt), 1, 1, 1)
         GameTooltip:AddLine(" ")
-        GameTooltip:AddLine("|cff0cd29fClic gauche:|r Calendrier", 0.8, 0.8, 0.8)
-        GameTooltip:AddLine("|cff0cd29fClic droit:|r Serveur / Locale", 0.8, 0.8, 0.8)
-        GameTooltip:AddLine("|cff0cd29fShift + Clic droit:|r 12h / 24h", 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(TomoMod_L["time_tooltip_left_click"], 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(TomoMod_L["time_tooltip_right_click"], 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(TomoMod_L["time_tooltip_shift_right"], 0.8, 0.8, 0.8)
         GameTooltip:Show()
     end)
     timeBtn:SetScript("OnLeave", function(self)

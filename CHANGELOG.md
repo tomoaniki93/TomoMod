@@ -1,3 +1,9 @@
+CHANGELOG 2.1.5
+- add Libs for Import/export
+
+CHANGELOG 2.1.4
+- Add Localization frFR and enUS
+
 CHANGELOG 2.1.3
 
 - Fix GUI
@@ -11,4 +17,3 @@ CHANGELOG 2.1.3
 • Hover tooltip indicating the 3 actions + the active mode
 • Small S or L indicator displayed next to the time to show which mode is active
 • Each element (Gear, Time) is now an independent button with a green accent on hover
-- Add Localization frFR and enUS

@@ -407,12 +407,12 @@ end
 
 function TomoMod_ResetDatabase()
     TomoModDB = CopyTable(TomoMod_Defaults)
-    print("|cff0cd29fTomoMod|r Base de données réinitialisée")
+    print("|cff0cd29fTomoMod|r " .. TomoMod_L["msg_db_reset"])
 end
 
 function TomoMod_ResetModule(moduleName)
     if TomoMod_Defaults[moduleName] then
         TomoModDB[moduleName] = CopyTable(TomoMod_Defaults[moduleName])
-        print("|cff0cd29fTomoMod|r Module '" .. moduleName .. "' réinitialisé")
+        print("|cff0cd29fTomoMod|r " .. string.format(TomoMod_L["msg_module_reset"], moduleName))
     end
 end

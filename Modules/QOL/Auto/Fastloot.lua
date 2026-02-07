@@ -1,21 +1,23 @@
 --------------------------------------------------
 -- FastLoot (Retail)
--- Auto-loot ultra rapide
+-- Auto-loot ultra rapide (fenêtre quasi invisible)
 --------------------------------------------------
 
 local FastLoot = CreateFrame("Frame")
 
--- Active l'autoloot sans passer par l'option systeme
+-- Active l'autoloot sans passer par l'option système
 local function EnableFastLoot()
     if not GetCVarBool("autoLootDefault") then
         SetCVar("autoLootDefault", 1)
     end
 end
 
--- Loot instantane a l'ouverture
+-- Loot instantané à l'ouverture
 FastLoot:RegisterEvent("LOOT_READY")
+FastLoot:RegisterEvent("LOOT_OPENED")
 
 FastLoot:SetScript("OnEvent", function(self, event, autoLoot)
+    -- Toujours autoloot
     if event == "LOOT_READY" then
         EnableFastLoot()
 
@@ -23,9 +25,7 @@ FastLoot:SetScript("OnEvent", function(self, event, autoLoot)
             LootSlot(i)
         end
 
-        -- Ne PAS appeler CloseLoot() ici !
-        -- LootSlot() est asynchrone, les items ne sont pas encore
-        -- dans le sac. Le client ferme automatiquement la fenetre
-        -- quand tous les items sont ramasseÃ©s avec autoLoot.
+        -- Force fermeture immédiate
+        CloseLoot()
     end
 end)
