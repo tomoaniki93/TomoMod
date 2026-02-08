@@ -130,6 +130,7 @@ end
 
 mainFrame:RegisterEvent("ADDON_LOADED")
 mainFrame:RegisterEvent("PLAYER_LOGIN")
+mainFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 
 mainFrame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == addonName then
@@ -137,6 +138,12 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
 
     elseif event == "PLAYER_LOGIN" then
         if not TomoModDB then return end
+
+        -- Initialiser le tracking des profils par spec
+        if TomoMod_Profiles then
+            TomoMod_Profiles.EnsureProfilesDB()
+            TomoMod_Profiles.InitSpecTracking()
+        end
 
         -- QOL Modules
         if TomoMod_Minimap then TomoMod_Minimap.Initialize() end
@@ -160,5 +167,17 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         -- Welcome
         local r, g, b = TomoMod_Utils.GetClassColor()
         print("|cff0cd29fTomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
+
+    elseif event == "PLAYER_SPECIALIZATION_CHANGED" and arg1 == "player" then
+        if TomoMod_Profiles then
+            local newSpecID = TomoMod_Profiles.GetCurrentSpecID()
+            local needReload = TomoMod_Profiles.OnSpecChanged(newSpecID)
+            if needReload then
+                print("|cff0cd29fTomoMod|r " .. L["msg_spec_changed_reload"])
+                C_Timer.After(0.5, function()
+                    ReloadUI()
+                end)
+            end
+        end
     end
 end)

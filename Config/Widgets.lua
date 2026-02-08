@@ -635,3 +635,80 @@ function W.CreateTabPanel(parent, tabs)
     wrapper.content = content
     return wrapper
 end
+
+-- =====================================
+-- MULTI-LINE EDITBOX (import/export)
+-- =====================================
+function W.CreateMultiLineEditBox(parent, labelText, height, yOffset, opts)
+    opts = opts or {}
+
+    local container = CreateFrame("Frame", nil, parent)
+    container:SetPoint("TOPLEFT", 10, yOffset)
+    container:SetPoint("TOPRIGHT", -10, yOffset)
+    container:SetHeight(height + 26)
+
+    -- Label
+    if labelText and labelText ~= "" then
+        local label = container:CreateFontString(nil, "OVERLAY")
+        label:SetFont(FONT, 11, "")
+        label:SetPoint("TOPLEFT", 0, 0)
+        label:SetText(labelText)
+        label:SetTextColor(unpack(T.text))
+        container.label = label
+    end
+
+    -- Background
+    local bg = container:CreateTexture(nil, "BACKGROUND")
+    bg:SetPoint("TOPLEFT", 0, -20)
+    bg:SetPoint("BOTTOMRIGHT", 0, 0)
+    bg:SetColorTexture(0.06, 0.06, 0.08, 1)
+
+    -- Border
+    local bd = CreateFrame("Frame", nil, container, "BackdropTemplate")
+    bd:SetPoint("TOPLEFT", -1, -19)
+    bd:SetPoint("BOTTOMRIGHT", 1, -1)
+    bd:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
+    bd:SetBackdropBorderColor(unpack(T.border))
+
+    -- Scroll frame + editbox
+    local scrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", 0, -22)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -24, 2)
+
+    local editBox = CreateFrame("EditBox", nil, scrollFrame)
+    editBox:SetMultiLine(true)
+    editBox:SetAutoFocus(false)
+    editBox:SetFont(FONT, 10, "")
+    editBox:SetTextColor(0.9, 0.9, 0.9, 1)
+    editBox:SetWidth(scrollFrame:GetWidth() - 10)
+    editBox:SetTextInsets(6, 6, 4, 4)
+
+    scrollFrame:SetScrollChild(editBox)
+
+    scrollFrame:SetScript("OnSizeChanged", function(self, w)
+        editBox:SetWidth(math.max(w - 10, 100))
+    end)
+
+    if opts.readOnly then
+        editBox:SetScript("OnChar", function(self) end)
+        editBox:EnableKeyboard(false)
+        editBox:SetScript("OnMouseUp", function(self)
+            self:HighlightText()
+        end)
+    end
+
+    if opts.onTextChanged then
+        editBox:SetScript("OnTextChanged", function(self, userInput)
+            if userInput then
+                opts.onTextChanged(self:GetText())
+            end
+        end)
+    end
+
+    editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+
+    container.editBox = editBox
+    container.scrollFrame = scrollFrame
+
+    return container, yOffset - (height + 32)
+end

@@ -2,5 +2,6 @@
 	<Script file="Libs\LibStub\LibStub.lua"/>
     <Script file="Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua"/>
     <include file="Libs\libserialize\embeds.xml"/>
+    <Script file="Libs\libserialize\serializer.lua"/>
     <include file="Libs\LibDeflate\lib.xml"/>
 </Ui>

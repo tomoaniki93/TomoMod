@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.4 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.5 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -314,13 +314,51 @@ TomoMod_RegisterLocale("enUS", {
     ["btn_reset_skyride"]               = "Reset SkyRide Position",
 
     -- =====================
-    -- CONFIG: Profiles Panel
+    -- CONFIG: Profiles Panel (3 Tabs)
     -- =====================
+    -- Tab labels
+    ["tab_profiles"]                    = "Profiles",
+    ["tab_import_export"]               = "Import/Export",
+    ["tab_resets"]                      = "Resets",
+
+    -- Tab 1: Profile mode & specializations
+    ["section_profile_mode"]            = "Profile Mode",
+    ["info_spec_profiles"]              = "Enable per-specialization profiles to automatically save and load settings when you switch specs.\nEach spec gets its own independent configuration.",
+    ["opt_enable_spec_profiles"]        = "Enable per-specialization profiles",
+    ["profile_status"]                  = "Active profile",
+    ["profile_global"]                  = "Global (single profile)",
+    ["section_spec_list"]               = "Specializations",
+    ["profile_badge_active"]            = "Active",
+    ["profile_badge_saved"]             = "Saved",
+    ["profile_badge_none"]              = "No profile",
+    ["btn_copy_to_spec"]                = "Copy current",
+    ["btn_delete_profile"]              = "Delete",
+    ["info_spec_reload"]                = "Switching spec with profiles enabled will automatically reload your UI to apply the corresponding profile.",
+    ["info_global_mode"]                = "All specializations share the same settings. Enable per-spec profiles above to use different configs for each spec.",
+
+    -- Tab 2: Import / Export
+    ["section_export"]                  = "Export Settings",
+    ["info_export"]                     = "Generate a compressed string of all your current settings.\nCopy it to share with others or as a backup.",
+    ["label_export_string"]             = "Export string (click to select all)",
+    ["btn_export"]                      = "Generate Export String",
+    ["section_import"]                  = "Import Settings",
+    ["info_import"]                     = "Paste an export string below. The string will be validated before applying.",
+    ["label_import_string"]             = "Paste import string here",
+    ["btn_import"]                      = "Import & Apply",
+    ["import_preview"]                  = "Class: %s | Modules: %s | Date: %s",
+    ["import_preview_valid"]            = "✓ Valid string",
+    ["import_preview_invalid"]          = "Invalid or corrupted string",
+    ["info_import_warning"]             = "Importing will OVERWRITE all your current settings and reload the UI. This cannot be undone.",
+
+    -- Tab 3: Resets
     ["section_profile_mgmt"]            = "Profile Management",
     ["info_profiles"]                   = "Reset individual modules or export/import your settings.\nExport copies settings to clipboard (requires LibSerialize + LibDeflate).",
     ["section_reset_module"]            = "Reset a Module",
     ["btn_reset_prefix"]                = "Reset: ",
     ["btn_reset_all_reload"]            = "⚠ RESET ALL + Reload",
+    ["section_reset_all"]               = "Full Reset",
+    ["info_resets"]                     = "Reset an individual module to its default values. The module will be reloaded with factory settings.",
+    ["info_reset_all_warning"]          = "This will reset ALL modules and ALL settings back to factory defaults, then reload the UI.",
 
     -- =====================
     -- PRINT MESSAGES: Core
@@ -438,6 +476,12 @@ TomoMod_RegisterLocale("enUS", {
     ["msg_np_reset"]                    = "Nameplates reset (reload recommended)",
     ["msg_uf_toggle"]                   = "UnitFrames %s (reload)",
     ["msg_profile_reset"]               = "%s reset",
+    ["msg_profile_copied"]              = "Current settings copied to '%s'",
+    ["msg_profile_deleted"]             = "Profile deleted for '%s'",
+    ["msg_export_success"]              = "Export string generated — select all and copy",
+    ["msg_import_success"]              = "Settings imported successfully — reloading...",
+    ["msg_import_empty"]                = "Nothing to import — paste a string first",
+    ["msg_spec_changed_reload"]         = "Specialization changed — reloading profile...",
 
     -- =====================
     -- INFO PANEL (Minimap)
@@ -461,6 +505,8 @@ TomoMod_RegisterLocale("enUS", {
     ["popup_reset_text"]                = "|cff0cd29fTomoMod|r\n\nReset ALL settings?\nThis will reload your UI.",
     ["popup_confirm"]                   = "Confirm",
     ["popup_cancel"]                    = "Cancel",
+    ["popup_import_text"]               = "|cff0cd29fTomoMod|r\n\nImport settings?\nThis will OVERWRITE all your current settings and reload the UI.",
+    ["popup_profile_reload"]            = "|cff0cd29fTomoMod|r\n\nProfile mode changed.\nReload UI to apply?",
 
     -- FPS element
     ["label_fps"]                       = "Fps",

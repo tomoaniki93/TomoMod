@@ -27,6 +27,7 @@ Locales\frFR.lua
 ## =====================
 Core\Utils.lua
 Core\Database.lua
+Core\Profiles.lua
 Core\Init.lua
 
 ## =====================

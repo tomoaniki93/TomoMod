@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.4 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.5 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -296,13 +296,51 @@ TomoMod_RegisterLocale("frFR", {
     ["btn_reset_skyride"]               = "Reset Position SkyRide",
 
     -- =====================
-    -- CONFIG: Profiles Panel
+    -- CONFIG: Profiles Panel (3 Onglets)
     -- =====================
+    -- Labels des onglets
+    ["tab_profiles"]                    = "Profils",
+    ["tab_import_export"]               = "Import/Export",
+    ["tab_resets"]                      = "Réinitialisation",
+
+    -- Onglet 1 : Mode de profil & spécialisations
+    ["section_profile_mode"]            = "Mode de Profil",
+    ["info_spec_profiles"]              = "Activez les profils par spécialisation pour sauvegarder et charger automatiquement vos paramètres quand vous changez de spé.\nChaque spé obtient sa propre configuration indépendante.",
+    ["opt_enable_spec_profiles"]        = "Activer les profils par spécialisation",
+    ["profile_status"]                  = "Profil actif",
+    ["profile_global"]                  = "Global (profil unique)",
+    ["section_spec_list"]               = "Spécialisations",
+    ["profile_badge_active"]            = "Actif",
+    ["profile_badge_saved"]             = "Sauvegardé",
+    ["profile_badge_none"]              = "Aucun profil",
+    ["btn_copy_to_spec"]                = "Copier l'actuel",
+    ["btn_delete_profile"]              = "Supprimer",
+    ["info_spec_reload"]                = "Changer de spé avec les profils activés rechargera automatiquement votre UI pour appliquer le profil correspondant.",
+    ["info_global_mode"]                = "Toutes les spécialisations partagent les mêmes paramètres. Activez les profils par spé ci-dessus pour utiliser des configs différentes.",
+
+    -- Onglet 2 : Import / Export
+    ["section_export"]                  = "Exporter les Paramètres",
+    ["info_export"]                     = "Génère une chaîne compressée de tous vos paramètres actuels.\nCopiez-la pour la partager ou comme sauvegarde.",
+    ["label_export_string"]             = "Chaîne d'export (cliquez pour tout sélectionner)",
+    ["btn_export"]                      = "Générer la Chaîne d'Export",
+    ["section_import"]                  = "Importer des Paramètres",
+    ["info_import"]                     = "Collez une chaîne d'export ci-dessous. Elle sera validée avant application.",
+    ["label_import_string"]             = "Collez la chaîne d'import ici",
+    ["btn_import"]                      = "Importer & Appliquer",
+    ["import_preview"]                  = "Classe: %s | Modules: %s | Date: %s",
+    ["import_preview_valid"]            = "✓ Chaîne valide",
+    ["import_preview_invalid"]          = "Chaîne invalide ou corrompue",
+    ["info_import_warning"]             = "L'import va ÉCRASER tous vos paramètres actuels et recharger l'UI. Cette action est irréversible.",
+
+    -- Onglet 3 : Réinitialisations
     ["section_profile_mgmt"]            = "Gestion des Profils",
     ["info_profiles"]                   = "Réinitialisez des modules individuellement ou exportez/importez vos paramètres.\nL'export copie vos settings dans le presse-papier (nécessite LibSerialize + LibDeflate).",
     ["section_reset_module"]            = "Réinitialiser un module",
     ["btn_reset_prefix"]                = "Reset: ",
     ["btn_reset_all_reload"]            = "⚠ TOUT Réinitialiser + Reload",
+    ["section_reset_all"]               = "Réinitialisation Complète",
+    ["info_resets"]                     = "Réinitialisez un module individuel à ses valeurs par défaut. Le module sera rechargé avec les paramètres d'usine.",
+    ["info_reset_all_warning"]          = "Cela réinitialisera TOUS les modules et TOUS les paramètres aux valeurs d'usine, puis rechargera l'UI.",
 
     -- =====================
     -- PRINT MESSAGES: Core
@@ -419,6 +457,12 @@ TomoMod_RegisterLocale("frFR", {
     ["msg_np_reset"]                    = "Nameplates réinitialisées (reload recommandé)",
     ["msg_uf_toggle"]                   = "UnitFrames %s (reload)",
     ["msg_profile_reset"]               = "%s réinitialisé",
+    ["msg_profile_copied"]              = "Paramètres actuels copiés vers '%s'",
+    ["msg_profile_deleted"]             = "Profil supprimé pour '%s'",
+    ["msg_export_success"]              = "Chaîne d'export générée — sélectionnez tout et copiez",
+    ["msg_import_success"]              = "Paramètres importés avec succès — rechargement...",
+    ["msg_import_empty"]                = "Rien à importer — collez une chaîne d'abord",
+    ["msg_spec_changed_reload"]         = "Spécialisation changée — chargement du profil...",
 
     -- =====================
     -- INFO PANEL (Minimap)
@@ -442,6 +486,8 @@ TomoMod_RegisterLocale("frFR", {
     ["popup_reset_text"]                = "|cff0cd29fTomoMod|r\n\nRéinitialiser TOUS les paramètres ?\nCela rechargera votre UI.",
     ["popup_confirm"]                   = "Confirmer",
     ["popup_cancel"]                    = "Annuler",
+    ["popup_import_text"]               = "|cff0cd29fTomoMod|r\n\nImporter les paramètres ?\nCela va ÉCRASER tous vos paramètres actuels et recharger l'UI.",
+    ["popup_profile_reload"]            = "|cff0cd29fTomoMod|r\n\nMode de profil modifié.\nRecharger l'UI pour appliquer ?",
 
     -- FPS element
     ["label_fps"]                       = "Fps",

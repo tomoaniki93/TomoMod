@@ -1,5 +1,10 @@
 CHANGELOG 2.1.5
 - add Libs for Import/export
+- Systeme Import/Export
+- Systeme profils by specialisation
+° Onglet Profils : checkbox per-spec, affichage de chaque spé avec icône + badge (Actif/Sauvegardé/Aucun) + boutons "Copier l'actuel" et "Supprimer" ; mode global quand désactivé
+° Onglet Import/Export : section Export avec editbox read-only + bouton générer ; section Import avec editbox + preview temps-réel (valide la chaîne pendant la saisie) + bouton importer avec popup de confirmation
+° Onglet Réinitialisation : 16 modules listés (tous) + Reset ALL avec popup
 
 CHANGELOG 2.1.4
 - Add Localization frFR and enUS
