@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.6 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.7 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -55,6 +55,13 @@ TomoMod_RegisterLocale("frFR", {
     ["tab_tot"]                         = "ToT",
     ["tab_pet"]                         = "Pet",
     ["tab_focus"]                       = "Focus",
+    ["tab_colors"]                      = "Couleurs",
+
+    -- Sub-tabs (Player, Target, Focus)
+    ["subtab_dimensions"]               = "Dimensions",
+    ["subtab_display"]                  = "Affichage",
+    ["subtab_auras"]                    = "Auras",
+    ["subtab_positioning"]              = "Position",
 
     -- Sub-labels
     ["sublabel_dimensions"]             = "— Dimensions —",
@@ -75,6 +82,16 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_uf_enable"]                   = "Activer les UnitFrames TomoMod",
     ["opt_hide_blizzard"]               = "Masquer les frames Blizzard",
     ["opt_global_font_size"]            = "Taille de police globale",
+    ["sublabel_font"]                   = "— Police —",
+    ["opt_font_family"]                 = "Police de texte",
+
+    -- Castbar colors
+    ["section_castbar_colors"]          = "Couleurs Castbar",
+    ["info_castbar_colors"]             = "Personnalisez les couleurs des barres de cast pour les sorts interruptibles, non-interruptibles et interrompus.",
+    ["opt_castbar_color"]               = "Sort interruptible",
+    ["opt_castbar_ni_color"]            = "Sort non-interruptible",
+    ["opt_castbar_interrupt_color"]     = "Sort interrompu",
+    ["info_castbar_colors_reload"]      = "Les couleurs s'appliquent aux nouveaux casts. /reload pour un effet complet.",
     ["btn_toggle_lock"]                 = "Toggle Lock/Unlock (/tm uf)",
     ["info_unlock_drag"]                = "Déverrouillez pour déplacer les frames. Les positions sont sauvegardées automatiquement.",
 
@@ -129,6 +146,11 @@ TomoMod_RegisterLocale("frFR", {
     -- =====================
     -- CONFIG: Nameplates Panel
     -- =====================
+    -- Nameplate tabs
+    ["tab_np_auras"]                    = "Auras",
+    ["tab_np_advanced"]                 = "Avancé",
+    ["info_np_colors_custom"]           = "Chaque couleur peut être personnalisée selon vos envies en cliquant sur le carré de couleur.",
+
     ["section_np_general"]              = "Paramètres Généraux",
     ["opt_np_enable"]                   = "Activer les Nameplates TomoMod",
     ["info_np_description"]             = "Remplace les nameplates Blizzard par un style minimaliste personnalisable.",
@@ -215,6 +237,13 @@ TomoMod_RegisterLocale("frFR", {
     -- NOTE: Most resource names (Mana, Rage, Energy, etc.) are the same in French
 
     -- Cooldown Manager
+    -- CD & Resource tabs
+    ["tab_cdm"]                         = "Cooldowns",
+    ["tab_resource_bars"]               = "Barres de Ressource",
+    ["tab_text_position"]               = "Texte & Position",
+    ["tab_rb_colors"]                   = "Couleurs",
+    ["info_rb_colors_custom"]           = "Chaque couleur peut être personnalisée selon vos envies en cliquant sur le carré de couleur.",
+
     ["section_cdm"]                     = "Cooldown Manager",
     ["opt_cdm_enable"]                  = "Activer le Cooldown Manager",
     ["info_cdm_description"]            = "Reskin des icônes du CooldownManager Blizzard : bordures 1px, overlay de classe quand actif, texte de CD personnalisé, alignement centré des buffs. Placement via Edit Mode Blizzard.",
@@ -265,6 +294,13 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: QOL Panel
     -- =====================
     -- Cinematic Skip
+    -- QOL tabs
+    ["tab_qol_cinematic"]               = "Cinématique",
+    ["tab_qol_auto_quest"]              = "Auto Quêtes",
+    ["tab_qol_automations"]             = "Automatisation",
+    ["tab_qol_mythic_keys"]             = "Clés M+",
+    ["tab_qol_skyride"]                 = "SkyRide",
+
     ["section_cinematic"]               = "Cinematic Skip",
     ["opt_cinematic_auto_skip"]         = "Skip automatique après 1ère vue",
     ["info_cinematic_viewed"]           = "Cinématiques déjà vues: %s\nL'historique est partagé entre personnages.",
@@ -316,6 +352,18 @@ TomoMod_RegisterLocale("frFR", {
     ["tab_resets"]                      = "Réinitialisation",
 
     -- Onglet 1 : Mode de profil & spécialisations
+    -- Tab 1: Profils nommés & spécialisations
+    ["section_named_profiles"]          = "Profils",
+    ["info_named_profiles"]             = "Créez et gérez des profils nommés. Chaque profil sauvegarde un instantané complet de vos paramètres.",
+    ["profile_active_label"]            = "Profil actif",
+    ["opt_select_profile"]              = "Choisir un profil",
+    ["sublabel_create_profile"]         = "— Créer un Nouveau Profil —",
+    ["placeholder_profile_name"]        = "Nom du profil...",
+    ["btn_create_profile"]              = "Créer le Profil",
+    ["btn_delete_named_profile"]        = "Supprimer le profil",
+    ["btn_save_profile"]                = "Sauvegarder le Profil Actif",
+    ["info_save_profile"]               = "Sauvegarde tous les paramètres actuels dans le profil actif. Ceci est fait automatiquement lors du changement de profil.",
+
     ["section_profile_mode"]            = "Mode de Profil",
     ["info_spec_profiles"]              = "Activez les profils par spécialisation pour sauvegarder et charger automatiquement vos paramètres quand vous changez de spé.\nChaque spé obtient sa propre configuration indépendante.",
     ["opt_enable_spec_profiles"]        = "Activer les profils par spécialisation",
@@ -335,10 +383,12 @@ TomoMod_RegisterLocale("frFR", {
     ["info_export"]                     = "Génère une chaîne compressée de tous vos paramètres actuels.\nCopiez-la pour la partager ou comme sauvegarde.",
     ["label_export_string"]             = "Chaîne d'export (cliquez pour tout sélectionner)",
     ["btn_export"]                      = "Générer la Chaîne d'Export",
+    ["btn_copy_clipboard"]              = "📋 Copier le Texte",
     ["section_import"]                  = "Importer des Paramètres",
     ["info_import"]                     = "Collez une chaîne d'export ci-dessous. Elle sera validée avant application.",
     ["label_import_string"]             = "Collez la chaîne d'import ici",
     ["btn_import"]                      = "Importer & Appliquer",
+    ["btn_paste_clipboard"]             = "📋 Coller le Texte",
     ["import_preview"]                  = "Classe: %s | Modules: %s | Date: %s",
     ["import_preview_valid"]            = "✓ Chaîne valide",
     ["import_preview_invalid"]          = "Chaîne invalide ou corrompue",
@@ -471,9 +521,18 @@ TomoMod_RegisterLocale("frFR", {
     ["msg_profile_reset"]               = "%s réinitialisé",
     ["msg_profile_copied"]              = "Paramètres actuels copiés vers '%s'",
     ["msg_profile_deleted"]             = "Profil supprimé pour '%s'",
+    ["msg_profile_loaded"]              = "Profil '%s' chargé — rechargez pour appliquer",
+    ["msg_profile_load_failed"]         = "Échec du chargement du profil '%s'",
+    ["msg_profile_created"]             = "Profil '%s' créé avec les paramètres actuels",
+    ["msg_profile_name_empty"]          = "Veuillez entrer un nom de profil",
+    ["msg_profile_saved"]               = "Paramètres sauvegardés dans le profil '%s'",
+    ["msg_profile_name_deleted"]        = "Profil '%s' supprimé",
     ["msg_export_success"]              = "Chaîne d'export générée — sélectionnez tout et copiez",
     ["msg_import_success"]              = "Paramètres importés avec succès — rechargement...",
     ["msg_import_empty"]                = "Rien à importer — collez une chaîne d'abord",
+    ["msg_copy_hint"]                   = "Texte sélectionné — appuyez sur Ctrl+C pour copier",
+    ["msg_copy_empty"]                  = "Générez d'abord une chaîne d'export",
+    ["msg_paste_hint"]                  = "Appuyez sur Ctrl+V pour coller votre chaîne d'import",
     ["msg_spec_changed_reload"]         = "Spécialisation changée — chargement du profil...",
 
     -- =====================
@@ -500,6 +559,7 @@ TomoMod_RegisterLocale("frFR", {
     ["popup_cancel"]                    = "Annuler",
     ["popup_import_text"]               = "|cff0cd29fTomoMod|r\n\nImporter les paramètres ?\nCela va ÉCRASER tous vos paramètres actuels et recharger l'UI.",
     ["popup_profile_reload"]            = "|cff0cd29fTomoMod|r\n\nMode de profil modifié.\nRecharger l'UI pour appliquer ?",
+    ["popup_delete_profile"]            = "|cff0cd29fTomoMod|r\n\nSupprimer le profil '%s' ?\nCette action est irréversible.",
 
     -- FPS element
     ["label_fps"]                       = "Fps",

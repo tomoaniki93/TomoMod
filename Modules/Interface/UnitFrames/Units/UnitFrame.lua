@@ -539,15 +539,43 @@ function UF.RefreshUnit(unitKey)
     local settings = TomoModDB.unitFrames[unitKey]
     if not frame or not settings then return end
 
+    local globalDB = TomoModDB.unitFrames
+    local font = globalDB.fontFamily or globalDB.font or "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+    local fontSize = globalDB.fontSize or 12
+    local fontOutline = globalDB.fontOutline or "OUTLINE"
+
     frame:SetSize(settings.width, settings.healthHeight + (settings.powerHeight or 0))
     frame.health:SetSize(settings.width, settings.healthHeight)
 
+    -- Refresh fonts on health bar texts
+    if frame.health.text then
+        frame.health.text:SetFont(font, fontSize, fontOutline)
+    end
+    if frame.health.nameText then
+        frame.health.nameText:SetFont(font, fontSize - 1, fontOutline)
+    end
+    if frame.health.levelText then
+        frame.health.levelText:SetFont(font, fontSize - 2, fontOutline)
+    end
+
     if frame.power and settings.powerHeight then
         frame.power:SetSize(settings.width, settings.powerHeight)
+        -- Refresh power text font
+        if frame.power.text then
+            frame.power.text:SetFont(font, 8, fontOutline)
+        end
     end
 
     if frame.castbar and settings.castbar then
         frame.castbar:SetSize(settings.castbar.width, settings.castbar.height)
+        -- Refresh castbar fonts
+        local cbFontSize = math.max(8, settings.castbar.height - 8)
+        if frame.castbar.spellText then
+            frame.castbar.spellText:SetFont(font, cbFontSize, fontOutline)
+        end
+        if frame.castbar.timerText then
+            frame.castbar.timerText:SetFont(font, cbFontSize, fontOutline)
+        end
     end
 
     -- Apply element offsets if defined
@@ -629,6 +657,14 @@ function UF.RefreshUnit(unitKey)
     end
 
     UpdateFrame(frame)
+end
+
+function UF.RefreshAllUnits()
+    for _, unitKey in ipairs({ "player", "target", "focus", "targettarget", "pet" }) do
+        if frames[unitKey] then
+            UF.RefreshUnit(unitKey)
+        end
+    end
 end
 
 function UF.Initialize()

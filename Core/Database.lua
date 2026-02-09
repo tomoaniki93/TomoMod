@@ -162,10 +162,14 @@ TomoMod_Defaults = {
         hideBlizzardFrames = true,
         texture = ADDON_TEXTURE,
         font = ADDON_FONT,
+        fontFamily = ADDON_FONT,
         fontSize = 12,
         fontOutline = "OUTLINE",
         borderSize = 1,
         borderColor = { r = 0, g = 0, b = 0, a = 1 },
+        castbarColor = { r = 0.80, g = 0.10, b = 0.10 },
+        castbarNIColor = { r = 0.50, g = 0.50, b = 0.50 },
+        castbarInterruptColor = { r = 0.10, g = 0.80, b = 0.10 },
 
         -- Per-unit settings
         player = {

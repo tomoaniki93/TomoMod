@@ -25,8 +25,12 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     castbar:SetMinMaxValues(0, 100)
     castbar:SetValue(100)
 
-    -- Base color: interruptible (red) — overlay handles grey when not interruptible
-    castbar:SetStatusBarColor(0.8, 0.1, 0.1, 1)
+    -- Base color from DB (interruptible cast)
+    local cbColors = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.castbarColor
+    local baseR, baseG, baseB = 0.8, 0.1, 0.1
+    if cbColors then baseR, baseG, baseB = cbColors.r, cbColors.g, cbColors.b end
+    castbar:SetStatusBarColor(baseR, baseG, baseB, 1)
+    castbar._baseColor = { baseR, baseG, baseB }
 
     -- Position relative to parent
     local pos = cbSettings.position or { point = "TOP", relativePoint = "BOTTOM", x = 0, y = -6 }
@@ -48,7 +52,10 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     local niOverlay = castbar:CreateTexture(nil, "ARTWORK", nil, 1)
     niOverlay:SetPoint("TOPLEFT", statustexture, "TOPLEFT", 0, 0)
     niOverlay:SetPoint("BOTTOMRIGHT", statustexture, "BOTTOMRIGHT", 0, 0)
-    niOverlay:SetColorTexture(0.5, 0.5, 0.5, 1)
+    local niColors = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.castbarNIColor
+    local niR, niG, niB = 0.5, 0.5, 0.5
+    if niColors then niR, niG, niB = niColors.r, niColors.g, niColors.b end
+    niOverlay:SetColorTexture(niR, niG, niB, 1)
     niOverlay:SetAlpha(0)
     niOverlay:Show()
     castbar.niOverlay = niOverlay
@@ -104,7 +111,12 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         -- Handle interrupt display
         if isInterrupt then
             self.niOverlay:SetAlpha(0)
-            self:SetStatusBarColor(0.1, 0.8, 0.1, 1)
+            local intCol = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.castbarInterruptColor
+            if intCol then
+                self:SetStatusBarColor(intCol.r, intCol.g, intCol.b, 1)
+            else
+                self:SetStatusBarColor(0.1, 0.8, 0.1, 1)
+            end
             if self.spellText then
                 self.spellText:SetText(INTERRUPTED or "Interrompu")
             end
@@ -173,8 +185,9 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         self:SetMinMaxValues(startTimeMS, endTimeMS)
         self:SetReverseFill(bchannel)
 
-        -- Reset base color to red (may have been green from interrupt)
-        self:SetStatusBarColor(0.8, 0.1, 0.1, 1)
+        -- Reset base color (may have been green from interrupt)
+        local bc = self._baseColor or { 0.8, 0.1, 0.1 }
+        self:SetStatusBarColor(bc[1], bc[2], bc[3], 1)
 
         -- SetText/SetTexture are C-side, accept secrets
         if self.spellText then self.spellText:SetFormattedText("%s", name) end

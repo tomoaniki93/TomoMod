@@ -1,7 +1,12 @@
-CHANGELOG 2.1.6
+CHANGELOG 2.1.7
 
-- Fix Soul fragment bar Devourer
-- Fix AutoFill Delete
-- Fix CooldownManager Overlay bug on Two Class
-- Add Auras buffs purgeable/spellstealable, on Target and NamesPlates
-- fix bug Position ToT and Pet.
+- GUI Upgarde For Unitframes
+    add Font choices
+    Fix Size Font
+- GUI Upgarde For NamesPlates
+    add New Tab
+- GUI Upgarde For CD & Ressources
+    add New Tab
+- GUI Upgarde For Profils
+    add editbox create Profil Name
+    Fix in Import/export

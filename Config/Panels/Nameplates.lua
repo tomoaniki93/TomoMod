@@ -1,29 +1,37 @@
 -- =====================================
--- Panels/Nameplates.lua — Nameplates Config
+-- Panels/Nameplates.lua — Nameplates Config (Tabbed)
 -- =====================================
 
 local W = TomoMod_Widgets
 local L = TomoMod_L
 
-function TomoMod_ConfigPanel_Nameplates(parent)
+-- Shortcut: refresh all nameplates
+local function RefreshNP()
+    if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+end
+
+local function ApplyNP()
+    if TomoMod_Nameplates then TomoMod_Nameplates.ApplySettings() end
+end
+
+-- =====================================
+-- TAB 1: GENERAL (enable, dimensions, display, castbar)
+-- =====================================
+
+local function BuildGeneralTab(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
     local db = TomoModDB.nameplates
-
     local y = -10
 
-    -- GENERAL
+    -- Enable
     local _, ny = W.CreateSectionHeader(c, L["section_np_general"], y)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_np_enable"], db.enabled, y, function(v)
         db.enabled = v
         if TomoMod_Nameplates then
-            if v then
-                TomoMod_Nameplates.Enable()
-            else
-                TomoMod_Nameplates.Disable()
-            end
+            if v then TomoMod_Nameplates.Enable() else TomoMod_Nameplates.Disable() end
         end
     end)
     y = ny
@@ -31,47 +39,41 @@ function TomoMod_ConfigPanel_Nameplates(parent)
     local _, ny = W.CreateInfoText(c, L["info_np_description"], y)
     y = ny
 
-    -- DIMENSIONS
+    -- Dimensions
     local _, ny = W.CreateSectionHeader(c, L["section_dimensions"], y)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_width"], db.width, 60, 300, 5, y, function(v)
-        db.width = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.width = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_health_height"], db.height, 6, 40, 1, y, function(v)
-        db.height = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.height = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_np_name_font_size"], db.nameFontSize or 10, 6, 20, 1, y, function(v)
-        db.nameFontSize = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.nameFontSize = v; RefreshNP()
     end)
     y = ny
 
-    -- DISPLAY
+    -- Display
     local _, ny = W.CreateSectionHeader(c, L["section_display"], y)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_show_name"], db.showName, y, function(v)
-        db.showName = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.showName = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_show_level"], db.showLevel, y, function(v)
-        db.showLevel = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.showLevel = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_show_health_text"], db.showHealthText, y, function(v)
-        db.showHealthText = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.showHealthText = v; RefreshNP()
     end)
     y = ny
 
@@ -80,102 +82,116 @@ function TomoMod_ConfigPanel_Nameplates(parent)
         { text = L["np_fmt_current"], value = "current" },
         { text = L["np_fmt_current_percent"], value = "current_percent" },
     }, db.healthTextFormat or "percent", y, function(v)
-        db.healthTextFormat = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.healthTextFormat = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_np_show_classification"], db.showClassification, y, function(v)
-        db.showClassification = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.showClassification = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_show_threat"], db.showThreat, y, function(v)
-        db.showThreat = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.showThreat = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_np_class_colors"], db.useClassColors, y, function(v)
-        db.useClassColors = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.useClassColors = v; RefreshNP()
     end)
     y = ny
 
-    -- CASTBAR
+    -- Castbar
     local _, ny = W.CreateSectionHeader(c, L["section_castbar"], y)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_np_show_castbar"], db.showCastbar, y, function(v)
-        db.showCastbar = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.showCastbar = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_np_castbar_height"], db.castbarHeight, 4, 20, 1, y, function(v)
-        db.castbarHeight = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.castbarHeight = v; RefreshNP()
     end)
     y = ny
 
-    -- AURAS
+    c:SetHeight(math.abs(y) + 40)
+    return scroll
+end
+
+-- =====================================
+-- TAB 2: AURAS (debuffs + enemy buffs)
+-- =====================================
+
+local function BuildAurasTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local db = TomoModDB.nameplates
+    local y = -10
+
+    -- Debuff Auras
     local _, ny = W.CreateSectionHeader(c, L["section_auras"], y)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_np_show_auras"], db.showAuras, y, function(v)
-        db.showAuras = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.showAuras = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_np_aura_size"], db.auraSize, 12, 36, 1, y, function(v)
-        db.auraSize = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.auraSize = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_np_max_auras"], db.maxAuras, 1, 10, 1, y, function(v)
-        db.maxAuras = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.maxAuras = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_np_only_my_debuffs"], db.showOnlyMyAuras, y, function(v)
-        db.showOnlyMyAuras = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.showOnlyMyAuras = v; RefreshNP()
     end)
     y = ny
 
-    -- ENEMY BUFFS
+    -- Enemy Buffs
     local _, ny = W.CreateSectionHeader(c, L["section_enemy_buffs"], y)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_np_show_enemy_buffs"], db.showEnemyBuffs, y, function(v)
-        db.showEnemyBuffs = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.showEnemyBuffs = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_np_enemy_buff_size"], db.enemyBuffSize or 18, 12, 36, 1, y, function(v)
-        db.enemyBuffSize = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.enemyBuffSize = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_np_max_enemy_buffs"], db.maxEnemyBuffs or 3, 1, 8, 1, y, function(v)
-        db.maxEnemyBuffs = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.maxEnemyBuffs = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_np_enemy_buff_y_offset"], db.enemyBuffYOffset or 4, 0, 20, 1, y, function(v)
-        db.enemyBuffYOffset = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.enemyBuffYOffset = v; RefreshNP()
     end)
     y = ny
 
-    -- ALPHA
+    c:SetHeight(math.abs(y) + 40)
+    return scroll
+end
+
+-- =====================================
+-- TAB 3: ADVANCED (transparency, stacking, colors, tank, reset)
+-- =====================================
+
+local function BuildAdvancedTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local db = TomoModDB.nameplates
+    local y = -10
+
+    -- Transparency
     local _, ny = W.CreateSectionHeader(c, L["section_transparency"], y)
     y = ny
 
@@ -189,97 +205,87 @@ function TomoMod_ConfigPanel_Nameplates(parent)
     end, "%.2f")
     y = ny
 
-    -- STACKING
+    -- Stacking
     local _, ny = W.CreateSectionHeader(c, L["section_stacking"], y)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_np_overlap"], db.overlapV or 1.6, 0.5, 3.0, 0.1, y, function(v)
-        db.overlapV = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.ApplySettings() end
+        db.overlapV = v; ApplyNP()
     end, "%.1f")
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_np_top_inset"], db.topInset or 0.065, 0.01, 0.5, 0.005, y, function(v)
-        db.topInset = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.ApplySettings() end
+        db.topInset = v; ApplyNP()
     end, "%.3f")
     y = ny
 
-    -- COLORS
+    -- Colors
     local _, ny = W.CreateSectionHeader(c, L["section_colors"], y)
     y = ny
 
+    local _, ny = W.CreateInfoText(c, L["info_np_colors_custom"], y)
+    y = ny
+
     local _, ny = W.CreateColorPicker(c, L["color_hostile"], db.colors.hostile, y, function(r, g, b)
-        db.colors.hostile = { r = r, g = g, b = b }
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.colors.hostile = { r = r, g = g, b = b }; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateColorPicker(c, L["color_neutral"], db.colors.neutral, y, function(r, g, b)
-        db.colors.neutral = { r = r, g = g, b = b }
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.colors.neutral = { r = r, g = g, b = b }; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateColorPicker(c, L["color_friendly"], db.colors.friendly, y, function(r, g, b)
-        db.colors.friendly = { r = r, g = g, b = b }
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.colors.friendly = { r = r, g = g, b = b }; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateColorPicker(c, L["color_tapped"], db.colors.tapped, y, function(r, g, b)
-        db.colors.tapped = { r = r, g = g, b = b }
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.colors.tapped = { r = r, g = g, b = b }; RefreshNP()
     end)
     y = ny
 
-    -- CLASSIFICATION COLORS
+    -- Classification Colors
     local _, ny = W.CreateSectionHeader(c, L["section_classification_colors"], y)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_np_use_classification"], db.useClassificationColors, y, function(v)
-        db.useClassificationColors = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.useClassificationColors = v; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateColorPicker(c, L["color_boss"], db.colors.boss, y, function(r, g, b)
-        db.colors.boss = { r = r, g = g, b = b }
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.colors.boss = { r = r, g = g, b = b }; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateColorPicker(c, L["color_elite"], db.colors.elite, y, function(r, g, b)
-        db.colors.elite = { r = r, g = g, b = b }
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.colors.elite = { r = r, g = g, b = b }; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateColorPicker(c, L["color_rare"], db.colors.rare, y, function(r, g, b)
-        db.colors.rare = { r = r, g = g, b = b }
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.colors.rare = { r = r, g = g, b = b }; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateColorPicker(c, L["color_normal"], db.colors.normal, y, function(r, g, b)
-        db.colors.normal = { r = r, g = g, b = b }
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.colors.normal = { r = r, g = g, b = b }; RefreshNP()
     end)
     y = ny
 
     local _, ny = W.CreateColorPicker(c, L["color_trivial"], db.colors.trivial, y, function(r, g, b)
-        db.colors.trivial = { r = r, g = g, b = b }
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.colors.trivial = { r = r, g = g, b = b }; RefreshNP()
     end)
     y = ny
 
-    -- TANK
+    -- Tank Mode
     local _, ny = W.CreateSectionHeader(c, L["section_tank_mode"], y)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_np_tank_mode"], db.tankMode, y, function(v)
-        db.tankMode = v
-        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+        db.tankMode = v; RefreshNP()
     end)
     y = ny
 
@@ -298,7 +304,7 @@ function TomoMod_ConfigPanel_Nameplates(parent)
     end)
     y = ny
 
-    -- RESET
+    -- Reset
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
@@ -310,4 +316,18 @@ function TomoMod_ConfigPanel_Nameplates(parent)
 
     c:SetHeight(math.abs(y) + 20)
     return scroll
+end
+
+-- =====================================
+-- MAIN PANEL ENTRY POINT
+-- =====================================
+
+function TomoMod_ConfigPanel_Nameplates(parent)
+    local tabs = {
+        { key = "general", label = L["tab_general"],      builder = function(p) return BuildGeneralTab(p) end },
+        { key = "auras",   label = L["tab_np_auras"],     builder = function(p) return BuildAurasTab(p) end },
+        { key = "advanced", label = L["tab_np_advanced"],  builder = function(p) return BuildAdvancedTab(p) end },
+    }
+
+    return W.CreateTabPanel(parent, tabs)
 end

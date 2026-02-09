@@ -1,17 +1,19 @@
 -- =====================================
--- Panels/QOL.lua — QOL Modules Config
+-- Panels/QOL.lua — QOL Modules Config (Tabbed)
 -- =====================================
 
 local W = TomoMod_Widgets
 local L = TomoMod_L
 
-function TomoMod_ConfigPanel_QOL(parent)
+-- =====================================
+-- TAB 1: CINEMATIC SKIP
+-- =====================================
+
+local function BuildCinematicTab(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-
     local y = -10
 
-    -- CINEMATIC SKIP
     local _, ny = W.CreateSectionHeader(c, L["section_cinematic"], y)
     y = ny
 
@@ -33,7 +35,19 @@ function TomoMod_ConfigPanel_QOL(parent)
     end)
     y = ny
 
-    -- AUTO QUEST
+    c:SetHeight(math.abs(y) + 40)
+    return scroll
+end
+
+-- =====================================
+-- TAB 2: AUTO QUEST
+-- =====================================
+
+local function BuildAutoQuestTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
     local _, ny = W.CreateSectionHeader(c, L["section_auto_quest"], y)
     y = ny
 
@@ -55,11 +69,23 @@ function TomoMod_ConfigPanel_QOL(parent)
     local _, ny = W.CreateInfoText(c, L["info_quest_shift"], y)
     y = ny
 
-    -- AUTO VENDOR/REPAIR
+    c:SetHeight(math.abs(y) + 40)
+    return scroll
+end
+
+-- =====================================
+-- TAB 3: AUTOMATIONS (castbar, invite, summon, fill delete)
+-- =====================================
+
+local function BuildAutomationsTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
     local _, ny = W.CreateSectionHeader(c, L["section_automations"], y)
     y = ny
 
-    -- HideCastBar
+    -- Hide Blizzard Castbar
     local _, ny = W.CreateCheckbox(c, L["opt_hide_blizzard_castbar"], TomoModDB.hideCastBar.enabled, y, function(v)
         if TomoMod_HideCastBar then TomoMod_HideCastBar.SetEnabled(v) end
     end)
@@ -128,7 +154,19 @@ function TomoMod_ConfigPanel_QOL(parent)
     end)
     y = ny
 
-    -- MYTHIC KEYS
+    c:SetHeight(math.abs(y) + 40)
+    return scroll
+end
+
+-- =====================================
+-- TAB 4: MYTHIC+ KEYS
+-- =====================================
+
+local function BuildMythicKeysTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
     local _, ny = W.CreateSectionHeader(c, L["section_mythic_keys"], y)
     y = ny
 
@@ -148,7 +186,19 @@ function TomoMod_ConfigPanel_QOL(parent)
     end)
     y = ny
 
-    -- SKYRIDE
+    c:SetHeight(math.abs(y) + 40)
+    return scroll
+end
+
+-- =====================================
+-- TAB 5: SKYRIDE
+-- =====================================
+
+local function BuildSkyRideTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
     local _, ny = W.CreateSectionHeader(c, L["section_skyride"], y)
     y = ny
 
@@ -190,6 +240,22 @@ function TomoMod_ConfigPanel_QOL(parent)
     end)
     y = ny
 
-    c:SetHeight(math.abs(y) + 20)
+    c:SetHeight(math.abs(y) + 40)
     return scroll
+end
+
+-- =====================================
+-- MAIN PANEL ENTRY POINT
+-- =====================================
+
+function TomoMod_ConfigPanel_QOL(parent)
+    local tabs = {
+        { key = "cinematic",    label = L["tab_qol_cinematic"],    builder = function(p) return BuildCinematicTab(p) end },
+        { key = "autoquest",    label = L["tab_qol_auto_quest"],   builder = function(p) return BuildAutoQuestTab(p) end },
+        { key = "automations",  label = L["tab_qol_automations"],  builder = function(p) return BuildAutomationsTab(p) end },
+        { key = "mythickeys",   label = L["tab_qol_mythic_keys"],  builder = function(p) return BuildMythicKeysTab(p) end },
+        { key = "skyride",      label = L["tab_qol_skyride"],      builder = function(p) return BuildSkyRideTab(p) end },
+    }
+
+    return W.CreateTabPanel(parent, tabs)
 end

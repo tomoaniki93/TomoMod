@@ -690,11 +690,23 @@ function W.CreateMultiLineEditBox(parent, labelText, height, yOffset, opts)
     end)
 
     if opts.readOnly then
-        editBox:SetScript("OnChar", function(self) end)
-        editBox:EnableKeyboard(false)
+        editBox._readOnlyText = ""
+        editBox:SetScript("OnTextChanged", function(self, userInput)
+            if userInput then
+                self:SetText(self._readOnlyText)
+                self:HighlightText()
+            end
+        end)
         editBox:SetScript("OnMouseUp", function(self)
             self:HighlightText()
         end)
+        editBox:SetScript("OnChar", function() end)
+        -- Hook SetText to track the "real" value
+        local origSetText = editBox.SetText
+        editBox.SetText = function(self, text)
+            self._readOnlyText = text
+            origSetText(self, text)
+        end
     end
 
     if opts.onTextChanged then

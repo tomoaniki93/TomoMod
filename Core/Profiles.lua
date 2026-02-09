@@ -91,11 +91,83 @@ function P.EnsureProfilesDB()
         TomoModDB._profiles = {
             useSpecProfiles = false,
             specs = {},
+            named = {},
+            activeProfile = "Default",
         }
     end
     if not TomoModDB._profiles.specs then
         TomoModDB._profiles.specs = {}
     end
+    if not TomoModDB._profiles.named then
+        TomoModDB._profiles.named = {}
+    end
+    if not TomoModDB._profiles.activeProfile then
+        TomoModDB._profiles.activeProfile = "Default"
+    end
+end
+
+-- =====================================
+-- NAMED PROFILES
+-- =====================================
+
+function P.GetActiveProfileName()
+    P.EnsureProfilesDB()
+    return TomoModDB._profiles.activeProfile or "Default"
+end
+
+function P.GetProfileList()
+    P.EnsureProfilesDB()
+    local list = {}
+    for name in pairs(TomoModDB._profiles.named) do
+        table.insert(list, name)
+    end
+    table.sort(list)
+    -- Always have "Default" first
+    local hasDefault = false
+    for i, n in ipairs(list) do
+        if n == "Default" then
+            table.remove(list, i)
+            hasDefault = true
+            break
+        end
+    end
+    table.insert(list, 1, "Default")
+    return list
+end
+
+function P.CreateNamedProfile(name)
+    if not name or name == "" then return false, "Empty name" end
+    P.EnsureProfilesDB()
+    TomoModDB._profiles.named[name] = SnapshotSettings()
+    TomoModDB._profiles.activeProfile = name
+    return true
+end
+
+function P.LoadNamedProfile(name)
+    P.EnsureProfilesDB()
+    local snap = TomoModDB._profiles.named[name]
+    if snap then
+        ApplySnapshot(snap)
+        TomoModDB._profiles.activeProfile = name
+        return true
+    end
+    return false
+end
+
+function P.DeleteNamedProfile(name)
+    P.EnsureProfilesDB()
+    if name == "Default" then return false end
+    TomoModDB._profiles.named[name] = nil
+    if TomoModDB._profiles.activeProfile == name then
+        TomoModDB._profiles.activeProfile = "Default"
+    end
+    return true
+end
+
+function P.SaveCurrentToActiveProfile()
+    P.EnsureProfilesDB()
+    local name = TomoModDB._profiles.activeProfile or "Default"
+    TomoModDB._profiles.named[name] = SnapshotSettings()
 end
 
 function P.SaveToSpec(specID)
