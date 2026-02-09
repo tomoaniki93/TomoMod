@@ -269,8 +269,23 @@ end
 local function UpdateButtonState(button, isBuff)
     if not button._cdm_styled then return end
 
-    -- Active state: cooldownUseAuraDisplayTime means spell is currently active/buffed
-    local isActive = (button.cooldownUseAuraDisplayTime == true)
+    -- Active state detection (TWW secret-value safe)
+    -- cooldownUseAuraDisplayTime may be a secret value for newer specs (e.g. Devourer)
+    local isActive = false
+    local auraField = button.cooldownUseAuraDisplayTime
+    if auraField ~= nil then
+        if issecretvalue and issecretvalue(auraField) then
+            -- Secret value: can't read directly, use fallback methods
+            -- Check if Blizzard's overlay glow is active on this button
+            if button.SpellActivationAlert and button.SpellActivationAlert:IsShown() then
+                isActive = true
+            elseif button.ActiveAuraHighlight and button.ActiveAuraHighlight:IsShown() then
+                isActive = true
+            end
+        else
+            isActive = (auraField == true)
+        end
+    end
 
     -- Toggle class-colored overlay + border
     if isActive then

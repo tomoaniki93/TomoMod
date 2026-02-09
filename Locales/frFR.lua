@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.5 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.6 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -151,6 +151,18 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_np_aura_size"]                = "Taille des icônes",
     ["opt_np_max_auras"]                = "Nombre max",
     ["opt_np_only_my_debuffs"]          = "Seulement mes debuffs",
+
+    -- Enemy Buffs
+    ["section_enemy_buffs"]              = "Buffs ennemis",
+    ["sublabel_enemy_buffs"]             = "— Buffs ennemis —",
+    ["opt_enemy_buffs_enable"]           = "Afficher les buffs ennemis",
+    ["opt_enemy_buffs_max"]              = "Nombre max de buffs",
+    ["opt_enemy_buffs_size"]             = "Taille des icônes",
+    ["info_enemy_buffs"]                 = "Affiche les buffs actifs (Enrage, boucliers...) sur les unités hostiles. Les icônes apparaissent en haut à droite, empilées vers le haut.",
+    ["opt_np_show_enemy_buffs"]          = "Afficher les buffs ennemis",
+    ["opt_np_enemy_buff_size"]           = "Taille des icônes buff",
+    ["opt_np_max_enemy_buffs"]           = "Nombre max de buffs ennemis",
+    ["opt_np_enemy_buff_y_offset"]       = "Décalage Y des buffs ennemis",
 
     -- Transparency
     ["section_transparency"]            = "Transparence",

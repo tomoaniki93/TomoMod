@@ -31,6 +31,31 @@ local POWER_FURY          = 17
 local POWER_ESSENCE       = 19
 
 -- =====================================
+-- AURA BAR HELPERS (Devourer Soul Fragments, etc.)
+-- =====================================
+-- Generic function to read an aura-based resource as current/max for bar display
+-- def fields: spellIDs (table), talentSpellID (optional), maxDefault, maxWithTalent
+local function GetAuraBarValues(def)
+    local current = 0
+    if def.spellIDs then
+        for _, sid in ipairs(def.spellIDs) do
+            local auraData = C_UnitAuras.GetPlayerAuraBySpellID(sid)
+            if auraData then
+                current = auraData.applications or 0
+                break
+            end
+        end
+    end
+
+    local max = def.maxDefault or 50
+    if def.talentSpellID and C_SpellBook.IsSpellKnown(def.talentSpellID) then
+        max = def.maxWithTalent or max
+    end
+
+    return current, max
+end
+
+-- =====================================
 -- CLASS / SPEC RESOURCE DEFINITIONS
 -- =====================================
 local CLASS_RESOURCES = {
@@ -65,11 +90,11 @@ local CLASS_RESOURCES = {
         },
         [2] = { -- Vengeance
             primary   = { display = "bar", powerType = POWER_FURY, label = "Fury" },
-            secondary = { display = "aura", spellID = 203981, label = "Soul Fragments", maxStacks = 5 },
+            secondary = { display = "aura", spellID = 203981, label = "Soul Fragments", maxStacks = 6 },
         },
-        [3] = { -- Devourer (future-proof)
+        [3] = { -- Devourer - Soul Fragments / Collapsing Star / Soul Glutton adaptive display
             primary   = { display = "bar", powerType = POWER_FURY, label = "Fury" },
-            secondary = { display = "aura", spellID = 203981, label = "Soul Fragments", maxStacks = 5 },
+            secondary = { display = "aura_bar", label = "Soul Fragments", colorKey = "soulFragments", spellIDs = { 1225789, 1227702 }, talentSpellID = 1247534, maxDefault = 50, maxWithTalent = 35 },
         },
     },
     DEATHKNIGHT = {
@@ -740,6 +765,8 @@ local function BuildResourceDisplay()
         elseif secDef.display == "aura" then
             local ck = GetAuraColorKey(secDef.label)
             secondaryContainer = CreatePointDisplay(container, secDef.maxStacks or 5, width, sH, ck)
+        elseif secDef.display == "aura_bar" then
+            secondaryContainer = CreatePrimaryBar(container, width, sH)
         end
 
         if secondaryContainer then
@@ -782,6 +809,19 @@ local function UpdateAll()
         local sec = resources.secondary
         if sec.display == "points" or sec.display == "aura" then
             UpdatePoints(secondaryContainer, sec)
+        elseif sec.display == "aura_bar" then
+            local cur, max = GetAuraBarValues(sec)
+            secondaryContainer:SetMinMaxValues(0, max)
+            secondaryContainer:SetValue(cur)
+            local ck = sec.colorKey or "soulFragments"
+            local r, g, b = GetColor(ck)
+            secondaryContainer:SetStatusBarColor(r, g, b, 1)
+            local s = GetSettings()
+            if s and s.showText and secondaryContainer.text then
+                secondaryContainer.text:SetFormattedText("%d / %d", cur, max)
+            elseif secondaryContainer.text then
+                secondaryContainer.text:SetText("")
+            end
         elseif sec.display == "bar" then
             local pType = sec.powerType
             local cur = UnitPower("player", pType)

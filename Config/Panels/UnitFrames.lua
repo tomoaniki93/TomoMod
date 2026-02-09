@@ -254,6 +254,34 @@ local function BuildUnitContent(parent, unitKey, displayName)
     end
 
     -- =====================================
+    -- ENEMY BUFFS (target + focus only)
+    -- =====================================
+    if db.enemyBuffs and (unitKey == "target" or unitKey == "focus") then
+        local _, ny = W.CreateSeparator(c, y)
+        y = ny
+        local _, ny = W.CreateSubLabel(c, L["sublabel_enemy_buffs"], y)
+        y = ny
+
+        local _, ny = W.CreateInfoText(c, L["info_enemy_buffs"], y)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"], db.enemyBuffs.enabled, y, function(v)
+            db.enemyBuffs.enabled = v
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_max"], db.enemyBuffs.maxAuras, 1, 8, 1, y, function(v)
+            db.enemyBuffs.maxAuras = v
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_size"], db.enemyBuffs.size, 14, 40, 1, y, function(v)
+            db.enemyBuffs.size = v
+        end)
+        y = ny
+    end
+
+    -- =====================================
     -- ELEMENT OFFSETS (player + target only)
     -- =====================================
     if (unitKey == "player" or unitKey == "target") and db.elementOffsets then

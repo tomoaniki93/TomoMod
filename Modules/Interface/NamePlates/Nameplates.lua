@@ -235,6 +235,58 @@ local function CreatePlate(baseFrame)
         plate.auras[i] = aura
     end
 
+    -- Enemy buff icons (top-right of health bar, stacking upward)
+    plate.enemyBuffs = {}
+    local maxEnemyBuffs = settings.maxEnemyBuffs or 3
+    local enemyBuffSize = settings.enemyBuffSize or 18
+    local enemyBuffYOffset = settings.enemyBuffYOffset or 4
+    for i = 1, maxEnemyBuffs do
+        local buff = CreateFrame("Frame", nil, plate)
+        buff:SetSize(enemyBuffSize, enemyBuffSize)
+        buff:EnableMouse(false)
+        if i == 1 then
+            buff:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 0, enemyBuffYOffset)
+        else
+            buff:SetPoint("BOTTOMRIGHT", plate.enemyBuffs[i - 1], "TOPRIGHT", 0, 2)
+        end
+
+        buff.icon = buff:CreateTexture(nil, "ARTWORK")
+        buff.icon:SetAllPoints()
+        buff.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+        buff.cooldown = CreateFrame("Cooldown", nil, buff, "CooldownFrameTemplate")
+        buff.cooldown:SetAllPoints(buff.icon)
+        buff.cooldown:SetDrawEdge(false)
+        buff.cooldown:SetReverse(true)
+        buff.cooldown:SetHideCountdownNumbers(true)
+        buff.cooldown:EnableMouse(false)
+
+        buff.count = buff:CreateFontString(nil, "OVERLAY")
+        buff.count:SetFont(font, 8, "OUTLINE")
+        buff.count:SetPoint("BOTTOMRIGHT", -1, 1)
+
+        buff.duration = buff:CreateFontString(nil, "OVERLAY")
+        buff.duration:SetFont(font, 8, "OUTLINE")
+        buff.duration:SetPoint("TOP", buff, "BOTTOM", 0, -1)
+        buff.duration:SetTextColor(1, 1, 0.6, 1)
+
+        -- Green border to distinguish from debuffs
+        local function BuffEdge(p1, p2, w2, h2)
+            local t = buff:CreateTexture(nil, "OVERLAY", nil, 7)
+            t:SetColorTexture(0.11, 0.82, 0.11, 1)
+            t:SetPoint(p1); t:SetPoint(p2)
+            if w2 then t:SetWidth(w2) end
+            if h2 then t:SetHeight(h2) end
+        end
+        BuffEdge("TOPLEFT", "TOPRIGHT", nil, 1)
+        BuffEdge("BOTTOMLEFT", "BOTTOMRIGHT", nil, 1)
+        BuffEdge("TOPLEFT", "BOTTOMLEFT", 1, nil)
+        BuffEdge("TOPRIGHT", "BOTTOMRIGHT", 1, nil)
+
+        buff:Hide()
+        plate.enemyBuffs[i] = buff
+    end
+
     -- Target indicator arrows (shown only on current target)
     local arrowSize = h + 6
     local ARROW_LEFT = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\arrow_left"
@@ -297,6 +349,20 @@ local function UpdateSize(plate)
         for i, aura in ipairs(plate.auras) do
             aura:SetSize(auraSize, auraSize)
             aura.icon:SetSize(auraSize - 2, auraSize - 2)
+        end
+    end
+    -- Resize enemy buffs
+    if plate.enemyBuffs then
+        local enemyBuffSize = s.enemyBuffSize or 18
+        local enemyBuffYOffset = s.enemyBuffYOffset or 4
+        for i, buff in ipairs(plate.enemyBuffs) do
+            buff:SetSize(enemyBuffSize, enemyBuffSize)
+            buff:ClearAllPoints()
+            if i == 1 then
+                buff:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 0, enemyBuffYOffset)
+            else
+                buff:SetPoint("BOTTOMRIGHT", plate.enemyBuffs[i - 1], "TOPRIGHT", 0, 2)
+            end
         end
     end
 end
@@ -533,10 +599,11 @@ local function UpdatePlate(plate, unit)
         if s.showOnlyMyAuras then auraFilter = "HARMFUL|PLAYER" end
 
         local results = {C_UnitAuras.GetAuraSlots(unit, auraFilter)}
-        -- results[1] = continuationToken, results[2..n] = slot indices
-        for i = 2, #results do
+        -- Use while-loop: #operator undefined for tables with nil holes
+        local slotIdx = 2
+        while results[slotIdx] do
             if auraIndex >= maxAuras then break end
-            local data = C_UnitAuras.GetAuraDataBySlot(unit, results[i])
+            local data = C_UnitAuras.GetAuraDataBySlot(unit, results[slotIdx])
             if data then
                 auraIndex = auraIndex + 1
                 local auraFrame = plate.auras[auraIndex]
@@ -571,9 +638,8 @@ local function UpdatePlate(plate, unit)
                     auraFrame:Show()
                 end
             end
-        end
-
-        -- Hide remaining
+            slotIdx = slotIdx + 1
+        end        -- Hide remaining
         for i = auraIndex + 1, maxAuras do
             if plate.auras[i] then
                 plate.auras[i]:Hide()
@@ -581,6 +647,54 @@ local function UpdatePlate(plate, unit)
         end
     else
         for _, a in ipairs(plate.auras) do a:Hide() end
+    end
+
+    -- Enemy Buffs (stealable HELPFUL on attackable units) via GetAuraSlots + select()
+    -- Cannot use AuraUtil.ForEachAura — it crashes on secrets in TWW
+    if s.showEnemyBuffs and plate.enemyBuffs and UnitCanAttack("player", unit) then
+        local buffIndex = 0
+        local maxEnemyBuffs = s.maxEnemyBuffs or 3
+
+        -- Hide ALL icons first to prevent stale display
+        for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
+
+        local function processBuffSlots(token, ...)
+            for i = 1, select("#", ...) do
+                if buffIndex >= maxEnemyBuffs then return end
+                local slot = select(i, ...)
+                if not slot then return end
+                local data = C_UnitAuras.GetAuraDataBySlot(unit, slot)
+                if data then
+                    buffIndex = buffIndex + 1
+                    local buffFrame = plate.enemyBuffs[buffIndex]
+                    if buffFrame then
+                        buffFrame.icon:SetTexture(data.icon)
+
+                        local durObj = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
+                        buffFrame._auraUnit = unit
+                        buffFrame._auraInstanceID = data.auraInstanceID
+
+                        if durObj then
+                            buffFrame.cooldown:Hide()
+                            if buffFrame.duration then
+                                buffFrame.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                                buffFrame.duration:Show()
+                            end
+                        else
+                            buffFrame.cooldown:Hide()
+                            if buffFrame.duration then buffFrame.duration:Hide() end
+                        end
+
+                        local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(unit, data.auraInstanceID, 2, 1000)
+                        buffFrame.count:SetText(stackStr or "")
+                        buffFrame:Show()
+                    end
+                end
+            end
+        end
+        processBuffSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
+    elseif plate.enemyBuffs then
+        for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
     end
 end
 
@@ -688,6 +802,9 @@ local function OnNamePlateRemoved(unit)
         plate:Hide()
         plate.castbar:Hide()
         for _, a in ipairs(plate.auras) do a:Hide() end
+        if plate.enemyBuffs then
+            for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
+        end
         unitPlates[unit] = nil
     end
 end
@@ -864,12 +981,24 @@ function NP.Enable()
     if not NP._auraTicker then
         NP._auraTicker = C_Timer.NewTicker(0.1, function()
             for u, p in pairs(unitPlates) do
+                -- Debuff aura durations
                 if p.auras then
                     for _, aura in ipairs(p.auras) do
                         if aura:IsShown() and aura.duration and aura._auraUnit and aura._auraInstanceID then
                             local durObj = C_UnitAuras.GetAuraDuration(aura._auraUnit, aura._auraInstanceID)
                             if durObj then
                                 aura.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                            end
+                        end
+                    end
+                end
+                -- Enemy buff durations
+                if p.enemyBuffs then
+                    for _, buff in ipairs(p.enemyBuffs) do
+                        if buff:IsShown() and buff.duration and buff._auraUnit and buff._auraInstanceID then
+                            local durObj = C_UnitAuras.GetAuraDuration(buff._auraUnit, buff._auraInstanceID)
+                            if durObj then
+                                buff.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
                             end
                         end
                     end

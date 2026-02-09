@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.5 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.6 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -151,6 +151,18 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_np_aura_size"]                = "Icon size",
     ["opt_np_max_auras"]                = "Max count",
     ["opt_np_only_my_debuffs"]          = "Only my debuffs",
+
+    -- Enemy Buffs
+    ["section_enemy_buffs"]              = "Enemy Buffs",
+    ["sublabel_enemy_buffs"]             = "— Enemy Buffs —",
+    ["opt_enemy_buffs_enable"]           = "Show enemy buffs",
+    ["opt_enemy_buffs_max"]              = "Max buffs",
+    ["opt_enemy_buffs_size"]             = "Buff icon size",
+    ["info_enemy_buffs"]                 = "Displays active buffs (Enrage, shields...) on hostile units. Icons appear top-right, stacking upward.",
+    ["opt_np_show_enemy_buffs"]          = "Show enemy buffs",
+    ["opt_np_enemy_buff_size"]           = "Buff icon size",
+    ["opt_np_max_enemy_buffs"]           = "Max enemy buffs",
+    ["opt_np_enemy_buff_y_offset"]       = "Enemy buff Y offset",
 
     -- Transparency
     ["section_transparency"]            = "Transparency",

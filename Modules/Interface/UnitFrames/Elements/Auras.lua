@@ -185,17 +185,22 @@ function UF_Elements.UpdateAuras(frame)
     for _, filter in ipairs(filters) do
         -- GetAuraSlots returns: continuationToken, slot1, slot2, ... (varargs, NOT a table)
         local results = {C_UnitAuras.GetAuraSlots(unit, filter)}
-        -- results[1] = continuationToken, results[2..n] = slot indices
-        for i = 2, #results do
+        -- results[1] = continuationToken (may be nil!), results[2..n] = slot indices
+        -- IMPORTANT: Use while-loop, NOT for i=2,#results
+        -- Lua 5.1 #operator is UNDEFINED for tables with nil holes (e.g. {nil, 1, 2})
+        -- When continuationToken is nil, #{nil, 1, 2} can return 0 → loop never runs!
+        local idx = 2
+        while results[idx] do
             if #auras >= maxAuras then break end
-            local data = C_UnitAuras.GetAuraDataBySlot(unit, results[i])
+            local data = C_UnitAuras.GetAuraDataBySlot(unit, results[idx])
             if data then
                 -- Store only non-secret metadata we set ourselves
                 data._filter = filter
-                data._slotIndex = results[i]
+                data._slotIndex = results[idx]
                 data._unit = unit
                 table.insert(auras, data)
             end
+            idx = idx + 1
         end
     end
 
@@ -254,6 +259,233 @@ function UF_Elements.UpdateAuras(frame)
 end
 
 -- =====================================
+-- ENEMY BUFF CONTAINER (shows HELPFUL auras on enemy units)
+-- =====================================
+
+function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
+    if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled then return nil end
+
+    local buffSettings = settings.enemyBuffs
+    local size = buffSettings.size or 24
+    local spacing = buffSettings.spacing or 2
+    local maxAuras = buffSettings.maxAuras or 4
+
+    local container = CreateFrame("Frame", "TomoMod_EnemyBuffs_" .. unit, parent)
+    container:SetSize(size, (size + spacing) * maxAuras)
+    container:SetFrameLevel(parent:GetFrameLevel() + 10)
+    container.unit = unit
+    container.parentFrame = parent
+    container.icons = {}
+
+    -- Position (default: top-right of health bar)
+    local pos = buffSettings.position
+    if pos then
+        container:SetPoint(pos.point, parent, pos.relativePoint, pos.x, pos.y)
+    else
+        container:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", 0, 6)
+    end
+
+    -- Create icons stacking upward (1 per row)
+    local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+    for i = 1, maxAuras do
+        local icon = CreateFrame("Frame", nil, container)
+        icon:SetSize(size, size)
+
+        if i == 1 then
+            icon:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", 0, 0)
+        else
+            icon:SetPoint("BOTTOMRIGHT", container.icons[i - 1], "TOPRIGHT", 0, spacing)
+        end
+
+        icon.texture = icon:CreateTexture(nil, "ARTWORK")
+        icon.texture:SetAllPoints()
+        icon.texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+        -- Border
+        icon.border = CreateFrame("Frame", nil, icon)
+        icon.border:SetPoint("TOPLEFT", -1, 1)
+        icon.border:SetPoint("BOTTOMRIGHT", 1, -1)
+        UF_Elements.CreateBorder(icon.border)
+
+        -- Cooldown overlay
+        icon.cooldown = CreateFrame("Cooldown", nil, icon, "CooldownFrameTemplate")
+        icon.cooldown:SetAllPoints(icon.texture)
+        icon.cooldown:SetDrawEdge(false)
+        icon.cooldown:SetReverse(true)
+        icon.cooldown:SetHideCountdownNumbers(true)
+
+        -- Stack count
+        icon.count = icon:CreateFontString(nil, "OVERLAY")
+        icon.count:SetFont(FONT, 9, "OUTLINE")
+        icon.count:SetPoint("BOTTOMRIGHT", -1, 1)
+        icon.count:SetTextColor(1, 1, 1, 1)
+
+        -- Duration
+        if buffSettings.showDuration then
+            icon.duration = icon:CreateFontString(nil, "OVERLAY")
+            icon.duration:SetFont(FONT, 8, "OUTLINE")
+            icon.duration:SetPoint("CENTER", icon, "CENTER", 0, 0)
+            icon.duration:SetTextColor(1, 1, 1, 0.9)
+        end
+
+        -- Tooltip
+        icon:EnableMouse(true)
+        icon:SetScript("OnEnter", function(self)
+            if self.auraInstanceID and UnitExists(container.unit) then
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                GameTooltip:SetUnitBuffByAuraInstanceID(container.unit, self.auraInstanceID)
+                GameTooltip:Show()
+            end
+        end)
+        icon:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+        icon:Hide()
+        container.icons[i] = icon
+    end
+
+    -- Draggable
+    container:SetMovable(true)
+    container:SetClampedToScreen(true)
+    container:EnableMouse(false)
+    container:RegisterForDrag("LeftButton")
+    container:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    container:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        local point, _, relativePoint, x, y = self:GetPoint()
+        buffSettings.position = { point = point, relativePoint = relativePoint, x = x, y = y }
+    end)
+
+    return container
+end
+
+-- =====================================
+-- UPDATE ENEMY BUFFS
+-- Uses GetAuraSlots + select() to safely iterate varargs.
+-- AuraUtil.ForEachAura CANNOT be used — it calls UnpackAuraData
+-- which crashes on secret values in TWW.
+-- Shows all HELPFUL auras on attackable units.
+-- =====================================
+
+-- Collect stealable HELPFUL aura slots safely via select() on varargs.
+local function CollectEnemyBuffData(unit, maxAuras)
+    local auras = {}
+    local function processSlots(token, ...)
+        local n = select("#", ...)
+        for i = 1, n do
+            if #auras >= maxAuras then return end
+            local slot = select(i, ...)
+            if slot then
+                local data = C_UnitAuras.GetAuraDataBySlot(unit, slot)
+                if data then
+                    data._unit = unit
+                    table.insert(auras, data)
+                end
+            end
+        end
+    end
+    processSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
+    return auras
+end
+
+-- Debug: toggle with /tm debugbuffs
+UF_Elements._debugEnemyBuffs = false
+
+function UF_Elements.UpdateEnemyBuffs(frame)
+    if not frame then return end
+
+    local unit = frame.unit
+
+    -- Only process target and focus (no point for player/pet/targettarget)
+    if unit ~= "target" and unit ~= "focus" then return end
+
+    local settings = TomoModDB.unitFrames[unit]
+    local dbg = UF_Elements._debugEnemyBuffs
+
+    if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled then
+        if frame.enemyBuffContainer then frame.enemyBuffContainer:Hide() end
+        return
+    end
+
+    if not UnitExists(unit) then
+        if frame.enemyBuffContainer then frame.enemyBuffContainer:Hide() end
+        return
+    end
+
+    -- UnitCanAttack covers hostile + neutral mobs (UnitIsEnemy misses neutrals)
+    if not UnitCanAttack("player", unit) then
+        if frame.enemyBuffContainer then frame.enemyBuffContainer:Hide() end
+        return
+    end
+
+    -- Create container dynamically if missing
+    if not frame.enemyBuffContainer then
+        frame.enemyBuffContainer = UF_Elements.CreateEnemyBuffContainer(frame, unit, settings)
+        if not frame.enemyBuffContainer then return end
+    end
+
+    local container = frame.enemyBuffContainer
+    container.unit = unit
+    container:Show()
+
+    local maxAuras = math.min(settings.enemyBuffs.maxAuras or 4, #container.icons)
+
+    -- IMPORTANT: Hide ALL icons FIRST to prevent stale display when switching targets
+    for i = 1, #container.icons do
+        container.icons[i]:Hide()
+        container.icons[i]._durObj = nil
+        container.icons[i]._auraUnit = nil
+        container.icons[i]._auraInstanceID = nil
+    end
+
+    -- Collect stealable auras via safe select() iteration
+    local auras = CollectEnemyBuffData(unit, maxAuras)
+
+    if dbg then
+        print("|cff0cd29f[EB]|r " .. unit .. ": " .. #auras .. " stealable buffs")
+    end
+
+    -- No stealable buffs → hide container entirely
+    if #auras == 0 then
+        container:Hide()
+        return
+    end
+
+    -- Update icons
+    for i = 1, #auras do
+        local iconFrame = container.icons[i]
+        local aura = auras[i]
+
+        if iconFrame then
+            iconFrame.texture:SetTexture(aura.icon)
+            iconFrame.auraInstanceID = aura.auraInstanceID
+            iconFrame.auraIsHarmful = false
+
+            local durObj = C_UnitAuras.GetAuraDuration(unit, aura.auraInstanceID)
+            iconFrame._durObj = durObj
+            iconFrame._auraUnit = unit
+            iconFrame._auraInstanceID = aura.auraInstanceID
+
+            if durObj then
+                iconFrame.cooldown:Hide()
+                if iconFrame.duration then
+                    iconFrame.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                    iconFrame.duration:Show()
+                end
+            else
+                iconFrame.cooldown:Hide()
+                if iconFrame.duration then iconFrame.duration:Hide() end
+            end
+
+            local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(unit, aura.auraInstanceID, 2, 1000)
+            iconFrame.count:SetText(stackStr or "")
+            iconFrame.count:Show()
+
+            iconFrame:Show()
+        end
+    end
+end
+
+-- =====================================
 -- DURATION UPDATER TICKER
 -- =====================================
 
@@ -264,12 +496,23 @@ function UF_Elements.StartAuraDurationUpdater(frames)
     -- Re-query duration every 0.1s to update remaining time text.
     auraDurationTicker = C_Timer.NewTicker(0.1, function()
         for _, frame in pairs(frames) do
+            -- Standard aura container (debuffs)
             if frame.auraContainer and frame.auraContainer:IsVisible() then
                 for _, icon in ipairs(frame.auraContainer.icons) do
                     if icon:IsShown() and icon.duration and icon._auraUnit and icon._auraInstanceID then
                         local durObj = C_UnitAuras.GetAuraDuration(icon._auraUnit, icon._auraInstanceID)
                         if durObj then
-                            -- string.format is C function, accepts secret numbers — no comparison
+                            icon.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                        end
+                    end
+                end
+            end
+            -- Enemy buff container
+            if frame.enemyBuffContainer and frame.enemyBuffContainer:IsVisible() then
+                for _, icon in ipairs(frame.enemyBuffContainer.icons) do
+                    if icon:IsShown() and icon.duration and icon._auraUnit and icon._auraInstanceID then
+                        local durObj = C_UnitAuras.GetAuraDuration(icon._auraUnit, icon._auraInstanceID)
+                        if durObj then
                             icon.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
                         end
                     end

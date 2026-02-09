@@ -147,6 +147,34 @@ function TomoMod_ConfigPanel_Nameplates(parent)
     end)
     y = ny
 
+    -- ENEMY BUFFS
+    local _, ny = W.CreateSectionHeader(c, L["section_enemy_buffs"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_np_show_enemy_buffs"], db.showEnemyBuffs, y, function(v)
+        db.showEnemyBuffs = v
+        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_np_enemy_buff_size"], db.enemyBuffSize or 18, 12, 36, 1, y, function(v)
+        db.enemyBuffSize = v
+        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_np_max_enemy_buffs"], db.maxEnemyBuffs or 3, 1, 8, 1, y, function(v)
+        db.maxEnemyBuffs = v
+        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_np_enemy_buff_y_offset"], db.enemyBuffYOffset or 4, 0, 20, 1, y, function(v)
+        db.enemyBuffYOffset = v
+        if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    end)
+    y = ny
+
     -- ALPHA
     local _, ny = W.CreateSectionHeader(c, L["section_transparency"], y)
     y = ny

@@ -80,6 +80,11 @@ local function CreateUnitFrame(unit, settings)
         frame.auraContainer = E.CreateAuraContainer(frame, unit, settings)
     end
 
+    -- Enemy Buffs (separate container for HELPFUL auras on enemies)
+    if settings.enemyBuffs and settings.enemyBuffs.enabled then
+        frame.enemyBuffContainer = E.CreateEnemyBuffContainer(frame, unit, settings)
+    end
+
     -- Position: anchor to another frame or to UIParent
     if settings.anchorTo and frames[settings.anchorTo] then
         local pos = settings.position
@@ -104,12 +109,35 @@ local function CreateUnitFrame(unit, settings)
 
     -- Draggable
     TomoMod_Utils.SetupDraggable(frame, function()
-        local point, _, relativePoint, x, y = frame:GetPoint()
-        settings.position = settings.position or {}
-        settings.position.point = point
-        settings.position.relativePoint = relativePoint
-        settings.position.x = x
-        settings.position.y = y
+        -- For anchorTo frames (ToT, Pet): save position RELATIVE to the anchor frame.
+        -- After StartMoving/StopMovingOrSizing, GetPoint() returns UIParent-relative coords,
+        -- but on reload we re-anchor to the parent frame — so we must convert.
+        if settings.anchorTo and frames[settings.anchorTo] then
+            local anchor = frames[settings.anchorTo]
+            local sx, sy = frame:GetCenter()
+            local ax, ay = anchor:GetCenter()
+            if sx and sy and ax and ay then
+                local dx = sx - ax
+                local dy = sy - ay
+                -- Re-anchor to parent with correct offset
+                frame:ClearAllPoints()
+                frame:SetPoint("CENTER", anchor, "CENTER", dx, dy)
+                -- Save relative position
+                settings.position = {
+                    point = "CENTER",
+                    relativePoint = "CENTER",
+                    x = dx,
+                    y = dy,
+                }
+            end
+        else
+            local point, _, relativePoint, x, y = frame:GetPoint()
+            settings.position = settings.position or {}
+            settings.position.point = point
+            settings.position.relativePoint = relativePoint
+            settings.position.x = x
+            settings.position.y = y
+        end
     end)
 
     return frame
@@ -303,6 +331,7 @@ local function UpdateFrame(frame)
     UpdateRaidIcon(frame)
     UpdateLeaderIcon(frame)
     E.UpdateAuras(frame)
+    E.UpdateEnemyBuffs(frame)
 end
 
 -- =====================================
@@ -345,7 +374,10 @@ local function HandleUnitEvent(event, unit)
     elseif event == "UNIT_AURA" then
         if frames[unit] then
             local f = frames[unit]
-            C_Timer.After(0, function() E.UpdateAuras(f) end)
+            C_Timer.After(0, function()
+                E.UpdateAuras(f)
+                E.UpdateEnemyBuffs(f)
+            end)
         end
     end
 end
@@ -462,12 +494,32 @@ function UF.ToggleLock()
                 frame.auraContainer:EnableMouse(true)
                 frame.auraContainer:Show()
             end
+            if frame.enemyBuffContainer then
+                frame.enemyBuffContainer:EnableMouse(true)
+                frame.enemyBuffContainer:Show()
+            end
         else
             -- Lock: re-register unit watch for proper visibility
             frame:SetAttribute("unit", unit)
             RegisterUnitWatch(frame)
             if frame.auraContainer then
                 frame.auraContainer:EnableMouse(false)
+            end
+            if frame.enemyBuffContainer then
+                frame.enemyBuffContainer:EnableMouse(false)
+            end
+            -- Re-anchor anchorTo frames (ToT, Pet) to their parent with correct offset
+            local unitSettings = TomoModDB.unitFrames[unit]
+            if unitSettings and unitSettings.anchorTo and frames[unitSettings.anchorTo] then
+                local pos = unitSettings.position
+                frame:ClearAllPoints()
+                frame:SetPoint(
+                    pos.point or "TOPLEFT",
+                    frames[unitSettings.anchorTo],
+                    pos.relativePoint or "TOPRIGHT",
+                    pos.x or 8,
+                    pos.y or 0
+                )
             end
             if UnitExists(unit) then
                 UpdateFrame(frame)
