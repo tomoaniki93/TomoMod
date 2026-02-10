@@ -11,25 +11,6 @@ function TomoMod_ConfigPanel_General(parent)
 
     local y = -10
 
-    -- ABOUT
-    local _, ny = W.CreateSectionHeader(c, L["section_about"], y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["about_text"], y)
-    y = ny - 6
-
-    -- GENERAL
-    local _, ny = W.CreateSectionHeader(c, L["section_general"], y)
-    y = ny
-
-    local _, ny = W.CreateButton(c, L["btn_reset_all"], 200, y, function()
-        StaticPopup_Show("TOMOMOD_RESET_ALL")
-    end)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_reset_all"], y)
-    y = ny - 10
-
     -- MINIMAP
     local _, ny = W.CreateSectionHeader(c, L["section_minimap"], y)
     y = ny
@@ -136,6 +117,25 @@ function TomoMod_ConfigPanel_General(parent)
         if TomoMod_CursorRing then TomoMod_CursorRing.ApplyScale() end
     end, "%.1f")
     y = ny - 20
+
+    -- ABOUT
+    local _, ny = W.CreateSectionHeader(c, L["section_about"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["about_text"], y)
+    y = ny - 6
+
+    -- GENERAL
+    local _, ny = W.CreateSectionHeader(c, L["section_general"], y)
+    y = ny
+
+    local _, ny = W.CreateButton(c, L["btn_reset_all"], 200, y, function()
+        StaticPopup_Show("TOMOMOD_RESET_ALL")
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_reset_all"], y)
+    y = ny - 10
 
     -- Resize child
     c:SetHeight(math.abs(y) + 20)

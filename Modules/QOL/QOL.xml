@@ -17,6 +17,8 @@
     <Include file="Auto\AutoAcceptInvite.lua"/>
     <Include file="Auto\AutoSummon.lua"/>
     <Include file="Auto\AutoFillDelete.lua"/>
+    <Include file="Auto\AutoSkipRole.lua"/>
+    <Include file="Auto\TooltipIDs.lua"/>
 
     <!-- Modules: Classes -->
     <Include file="Classes\CompanionStatus.lua" />
@@ -27,6 +29,7 @@
     <!-- Modules: MythicPlus -->
     <Include file="MythicPlus\Keystone.lua" />
     <Include file="MythicPlus\MythicKeys.lua"/>
+    <Include file="MythicPlus\CombatResTracker.lua"/>
 
     <!-- Modules: Quest -->
     <Include file="Quest\AutoQuest.lua" />

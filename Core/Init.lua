@@ -88,6 +88,10 @@ SlashCmdList["TOMOMOD"] = function(msg)
     elseif msg == "uf reset" then
         TomoMod_ResetModule("unitFrames")
         ReloadUI()
+    elseif msg == "cr" then
+        if TomoMod_CombatResTracker and TomoMod_CombatResTracker.ToggleLock then
+            TomoMod_CombatResTracker.ToggleLock()
+        end
     elseif msg == "debugbuffs" then
         if UF_Elements then
             UF_Elements._debugEnemyBuffs = not UF_Elements._debugEnemyBuffs
@@ -188,6 +192,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         print("  |cff0cd29f/tm clearcinema|r — " .. L["msg_help_clearcinema"])
         print("  |cff0cd29f/tm sr|r — " .. L["msg_help_sr"])
         print("  |cff0cd29f/tm key|r — " .. L["msg_help_key"])
+        print("  |cff0cd29f/tm cr|r — " .. L["msg_help_cr"])
         print("  |cff0cd29f/tm help|r — " .. L["msg_help_help"])
     else
         -- Open config
@@ -227,6 +232,9 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_SkyRide then TomoMod_SkyRide.Initialize() end
         if TomoMod_CooldownManager then TomoMod_CooldownManager.Initialize() end
         if TomoMod_AutoAcceptInvite then TomoMod_AutoAcceptInvite.Initialize() end
+        if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.Initialize() end
+        if TomoMod_TooltipIDs then TomoMod_TooltipIDs.Initialize() end
+        if TomoMod_CombatResTracker then TomoMod_CombatResTracker.Initialize() end
         if TomoMod_AutoSummon then TomoMod_AutoSummon.Initialize() end
         if TomoMod_HideCastBar then TomoMod_HideCastBar.Initialize() end
         if TomoMod_AutoFillDelete then TomoMod_AutoFillDelete.Initialize() end

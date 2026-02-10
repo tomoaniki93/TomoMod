@@ -112,6 +112,18 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
+    -- Auto Skip Role
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_auto_skip_role"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.autoSkipRole.enabled, y, function(v)
+        TomoModDB.autoSkipRole.enabled = v
+        if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.SetEnabled(v) end
+    end)
+    y = ny
+
     -- Auto Summon
     local _, ny = W.CreateSeparator(c, y)
     y = ny
@@ -154,6 +166,53 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
+    -- Tooltip IDs
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_tooltip_ids"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.tooltipIDs.enabled, y, function(v)
+        TomoModDB.tooltipIDs.enabled = v
+        if TomoMod_TooltipIDs then TomoMod_TooltipIDs.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_spell"], TomoModDB.tooltipIDs.showSpellID, y, function(v)
+        TomoModDB.tooltipIDs.showSpellID = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_item"], TomoModDB.tooltipIDs.showItemID, y, function(v)
+        TomoModDB.tooltipIDs.showItemID = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_npc"], TomoModDB.tooltipIDs.showNPCID, y, function(v)
+        TomoModDB.tooltipIDs.showNPCID = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_quest"], TomoModDB.tooltipIDs.showQuestID, y, function(v)
+        TomoModDB.tooltipIDs.showQuestID = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_mount"], TomoModDB.tooltipIDs.showMountID, y, function(v)
+        TomoModDB.tooltipIDs.showMountID = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_currency"], TomoModDB.tooltipIDs.showCurrencyID, y, function(v)
+        TomoModDB.tooltipIDs.showCurrencyID = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_achievement"], TomoModDB.tooltipIDs.showAchievementID, y, function(v)
+        TomoModDB.tooltipIDs.showAchievementID = v
+    end)
+    y = ny
+
     c:SetHeight(math.abs(y) + 40)
     return scroll
 end
@@ -183,6 +242,28 @@ local function BuildMythicKeysTab(parent)
 
     local _, ny = W.CreateCheckbox(c, L["opt_keys_auto_refresh"], TomoModDB.MythicKeys.autoRefresh, y, function(v)
         TomoModDB.MythicKeys.autoRefresh = v
+    end)
+    y = ny
+
+    -- Combat Res Tracker
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_combat_res_tracker"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.combatResTracker.enabled, y, function(v)
+        TomoModDB.combatResTracker.enabled = v
+        if TomoMod_CombatResTracker then TomoMod_CombatResTracker.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_cr_show_rating"], TomoModDB.combatResTracker.showRating, y, function(v)
+        TomoModDB.combatResTracker.showRating = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_show_messages"], TomoModDB.combatResTracker.showMessages, y, function(v)
+        TomoModDB.combatResTracker.showMessages = v
     end)
     y = ny
 

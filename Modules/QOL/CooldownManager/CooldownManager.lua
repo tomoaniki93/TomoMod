@@ -15,7 +15,7 @@ local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local BORDER_TEX = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Nameplates\\border.png"
 local BORDER_CORNER = 4
 local ICON_INSET = 3 -- pixels inset for icon inside border
-local SPACING = 0.5 -- gap between icons
+local SPACING = 1 -- gap between icons
 local TICK_RATE = 0.05 -- 20fps for smooth CD text
 
 -- =====================================

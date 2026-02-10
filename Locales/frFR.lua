@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.8 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.9 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -335,6 +335,18 @@ TomoMod_RegisterLocale("frFR", {
 
     -- Auto Accept Invite
     ["sublabel_auto_accept_invite"]     = "— Auto Accept Invite —",
+    ["sublabel_auto_skip_role"]         = "— Auto Skip Role Check —",
+    ["sublabel_tooltip_ids"]            = "— Tooltip IDs —",
+    ["sublabel_combat_res_tracker"]     = "— Combat Res Tracker —",
+    ["opt_cr_show_rating"]              = "Afficher le score M+",
+    ["opt_show_messages"]               = "Afficher les messages chat",
+    ["opt_tid_spell"]                   = "ID Sort / Aura",
+    ["opt_tid_item"]                    = "ID Objet",
+    ["opt_tid_npc"]                     = "ID PNJ",
+    ["opt_tid_quest"]                   = "ID Quête",
+    ["opt_tid_mount"]                   = "ID Monture",
+    ["opt_tid_currency"]                = "ID Devise",
+    ["opt_tid_achievement"]             = "ID Haut fait",
     ["opt_accept_friends"]              = "Accepter des amis",
     ["opt_accept_guild"]                = "Accepter de la guilde",
 
@@ -504,6 +516,17 @@ TomoMod_RegisterLocale("frFR", {
     ["msg_aai_ignored"]                 = "Invitation ignorée de ",
     ["msg_aai_enabled"]                 = "Auto-accept invitations activé",
     ["msg_aai_disabled"]                = "Auto-accept invitations désactivé",
+    ["msg_asr_lfg_accepted"]            = "Vérification de rôle auto-confirmée",
+    ["msg_asr_poll_accepted"]           = "Sondage de rôle auto-confirmé",
+    ["msg_asr_enabled"]                 = "Auto skip role check activé",
+    ["msg_asr_disabled"]                = "Auto skip role check désactivé",
+    ["msg_tid_enabled"]                 = "Tooltip IDs activé",
+    ["msg_tid_disabled"]                = "Tooltip IDs désactivé",
+    ["msg_cr_enabled"]                  = "Combat Res Tracker activé",
+    ["msg_cr_disabled"]                 = "Combat Res Tracker désactivé",
+    ["msg_cr_locked"]                   = "Combat Res Tracker verrouillé",
+    ["msg_cr_unlock"]                   = "Combat Res Tracker déverrouillé — glissez pour déplacer",
+    ["msg_help_cr"]                     = "Verrouiller/déverrouiller le Combat Res Tracker",
 
     -- CinematicSkip
     ["msg_cin_skipped"]                 = "Cinématique skippée (déjà vue)",
@@ -525,6 +548,7 @@ TomoMod_RegisterLocale("frFR", {
     ["msg_keys_reload"]                 = "Changement appliqué au prochain /reload.",
     ["mk_not_in_group"]                 = "Tu n'es pas en groupe.",
     ["mk_not_in_group_short"]           = "Pas en groupe.",
+    ["mk_no_key_self"]                  = "Aucune clé trouvée.",
     ["mk_title"]                        = "TM — Mythic Keys",
     ["mk_btn_send"]                     = "Envoyer chat",
     ["mk_btn_refresh"]                  = "Refresh",
