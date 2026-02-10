@@ -245,7 +245,7 @@ local function BuildMythicKeysTab(parent)
     end)
     y = ny
 
-    -- Combat Res Tracker
+    --[[-- Combat Res Tracker
     local _, ny = W.CreateSeparator(c, y)
     y = ny
     local _, ny = W.CreateSubLabel(c, L["sublabel_combat_res_tracker"], y)
@@ -265,7 +265,7 @@ local function BuildMythicKeysTab(parent)
     local _, ny = W.CreateCheckbox(c, L["opt_show_messages"], TomoModDB.combatResTracker.showMessages, y, function(v)
         TomoModDB.combatResTracker.showMessages = v
     end)
-    y = ny
+    y = ny]]
 
     c:SetHeight(math.abs(y) + 40)
     return scroll

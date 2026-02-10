@@ -29,7 +29,7 @@
     <!-- Modules: MythicPlus -->
     <Include file="MythicPlus\Keystone.lua" />
     <Include file="MythicPlus\MythicKeys.lua"/>
-    <Include file="MythicPlus\CombatResTracker.lua"/>
+    <!-- <Include file="MythicPlus\CombatResTracker.lua"/> -->
 
     <!-- Modules: Quest -->
     <Include file="Quest\AutoQuest.lua" />
