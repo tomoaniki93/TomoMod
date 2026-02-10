@@ -1,12 +1,10 @@
-CHANGELOG 2.1.7
+CHANGELOG 2.1.8
 
-- GUI Upgarde For Unitframes
-    add Font choices
-    Fix Size Font
-- GUI Upgarde For NamesPlates
-    add New Tab
-- GUI Upgarde For CD & Ressources
-    add New Tab
-- GUI Upgarde For Profils
-    add editbox create Profil Name
-    Fix in Import/export
+- NamesPlates Upgrade
+- NamesPlates Better Visual change Border and Gloss
+- NamesPlates Better color by Types for DPS and Tank
+- NamesPlates Tracks Buff and Debuff, change positioning.
+- Target Frame Better color by type like NamesPlates
+- Truncate on Target and Tot for Name too long
+- Save Positioning CastBar Player and Target
+- Border Modification in CooldownManager

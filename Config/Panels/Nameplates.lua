@@ -91,6 +91,11 @@ local function BuildGeneralTab(parent)
     end)
     y = ny
 
+    local _, ny = W.CreateCheckbox(c, L["opt_np_show_absorb"] or "Show Absorb Bar", db.showAbsorb ~= false, y, function(v)
+        db.showAbsorb = v; RefreshNP()
+    end)
+    y = ny
+
     local _, ny = W.CreateCheckbox(c, L["opt_show_threat"], db.showThreat, y, function(v)
         db.showThreat = v; RefreshNP()
     end)
@@ -112,6 +117,16 @@ local function BuildGeneralTab(parent)
 
     local _, ny = W.CreateSlider(c, L["opt_np_castbar_height"], db.castbarHeight, 4, 20, 1, y, function(v)
         db.castbarHeight = v; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, L["color_castbar"], db.castbarColor, y, function(r, g, b)
+        db.castbarColor = { r = r, g = g, b = b }; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, L["color_castbar_uninterruptible"], db.castbarUninterruptible, y, function(r, g, b)
+        db.castbarUninterruptible = { r = r, g = g, b = b }; RefreshNP()
     end)
     y = ny
 
@@ -246,6 +261,33 @@ local function BuildAdvancedTab(parent)
     end)
     y = ny
 
+    local _, ny = W.CreateColorPicker(c, L["color_focus"], db.colors.focus, y, function(r, g, b)
+        db.colors.focus = { r = r, g = g, b = b }; RefreshNP()
+    end)
+    y = ny
+
+    -- NPC Type Colors (Ellesmere-style)
+    local _, ny = W.CreateSectionHeader(c, L["section_npc_type_colors"], y)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, L["color_caster"], db.colors.caster, y, function(r, g, b)
+        db.colors.caster = { r = r, g = g, b = b }; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, L["color_miniboss"], db.colors.miniboss, y, function(r, g, b)
+        db.colors.miniboss = { r = r, g = g, b = b }; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, L["color_enemy_in_combat"], db.colors.enemyInCombat, y, function(r, g, b)
+        db.colors.enemyInCombat = { r = r, g = g, b = b }; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_np_darken_ooc"], y)
+    y = ny
+
     -- Classification Colors
     local _, ny = W.CreateSectionHeader(c, L["section_classification_colors"], y)
     y = ny
@@ -301,6 +343,16 @@ local function BuildAdvancedTab(parent)
 
     local _, ny = W.CreateColorPicker(c, L["color_has_threat"], db.tankColors.hasThreat, y, function(r, g, b)
         db.tankColors.hasThreat = { r = r, g = g, b = b }
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, L["color_dps_has_aggro"], db.tankColors.dpsHasAggro, y, function(r, g, b)
+        db.tankColors.dpsHasAggro = { r = r, g = g, b = b }
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, L["color_dps_near_aggro"], db.tankColors.dpsNearAggro, y, function(r, g, b)
+        db.tankColors.dpsNearAggro = { r = r, g = g, b = b }
     end)
     y = ny
 

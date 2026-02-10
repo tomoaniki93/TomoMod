@@ -589,18 +589,14 @@ local function UpdateStagger(bar)
     local stagger = UnitStagger("player") or 0
     local maxHP = UnitHealthMax("player")
 
+    -- C-side widget methods — accept secret numbers natively
     bar:SetMinMaxValues(0, maxHP)
     bar:SetValue(stagger)
 
-    local pct = (maxHP > 0) and ((stagger / maxHP) * 100) or 0
-    if pct > 60 then
-        bar:SetStatusBarColor(1.0, 0.2, 0.2, 1)
-    elseif pct > 30 then
-        bar:SetStatusBarColor(1.0, 0.82, 0.11, 1)
-    else
-        local r, g, b = GetColor("stagger")
-        bar:SetStatusBarColor(r, g, b, 1)
-    end
+    -- TWW: UnitStagger returns a secret value — cannot compute percentage in Lua
+    -- Use default stagger color (visual bar still shows correct proportion)
+    local r, g, b = GetColor("stagger")
+    bar:SetStatusBarColor(r, g, b, 1)
 
     local s = GetSettings()
     if s and s.showText and bar.text then

@@ -12,10 +12,60 @@ local CDM = TomoMod_CooldownManager
 -- CONSTANTES
 -- =====================================
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
-local BORDER_SIZE = 1
-local ICON_INSET = 2 -- pixels inset for icon inside border
-local SPACING = 1 -- gap between icons
+local BORDER_TEX = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Nameplates\\border.png"
+local BORDER_CORNER = 4
+local ICON_INSET = 3 -- pixels inset for icon inside border
+local SPACING = 0.5 -- gap between icons
 local TICK_RATE = 0.05 -- 20fps for smooth CD text
+
+-- =====================================
+-- 9-SLICE ROUNDED BORDER HELPER
+-- =====================================
+local function Create9SliceBorder(parent, r, g, b, a, sublevel)
+    sublevel = sublevel or 7
+    a = a or 1
+    local parts = {}
+
+    local function Tex()
+        local t = parent:CreateTexture(nil, "OVERLAY", nil, sublevel)
+        t:SetTexture(BORDER_TEX)
+        if r then t:SetVertexColor(r, g, b, a) end
+        parts[#parts + 1] = t
+        return t
+    end
+
+    -- Corners
+    local tl = Tex(); tl:SetSize(BORDER_CORNER, BORDER_CORNER)
+    tl:SetPoint("TOPLEFT"); tl:SetTexCoord(0, 0.5, 0, 0.5)
+
+    local tr = Tex(); tr:SetSize(BORDER_CORNER, BORDER_CORNER)
+    tr:SetPoint("TOPRIGHT"); tr:SetTexCoord(0.5, 1, 0, 0.5)
+
+    local bl = Tex(); bl:SetSize(BORDER_CORNER, BORDER_CORNER)
+    bl:SetPoint("BOTTOMLEFT"); bl:SetTexCoord(0, 0.5, 0.5, 1)
+
+    local br = Tex(); br:SetSize(BORDER_CORNER, BORDER_CORNER)
+    br:SetPoint("BOTTOMRIGHT"); br:SetTexCoord(0.5, 1, 0.5, 1)
+
+    -- Edges
+    local top = Tex(); top:SetHeight(BORDER_CORNER)
+    top:SetPoint("TOPLEFT", tl, "TOPRIGHT"); top:SetPoint("TOPRIGHT", tr, "TOPLEFT")
+    top:SetTexCoord(0.5, 0.5, 0, 0.5)
+
+    local bot = Tex(); bot:SetHeight(BORDER_CORNER)
+    bot:SetPoint("BOTTOMLEFT", bl, "BOTTOMRIGHT"); bot:SetPoint("BOTTOMRIGHT", br, "BOTTOMLEFT")
+    bot:SetTexCoord(0.5, 0.5, 0.5, 1)
+
+    local left = Tex(); left:SetWidth(BORDER_CORNER)
+    left:SetPoint("TOPLEFT", tl, "BOTTOMLEFT"); left:SetPoint("BOTTOMLEFT", bl, "TOPLEFT")
+    left:SetTexCoord(0, 0.5, 0.5, 0.5)
+
+    local right = Tex(); right:SetWidth(BORDER_CORNER)
+    right:SetPoint("TOPRIGHT", tr, "BOTTOMRIGHT"); right:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT")
+    right:SetTexCoord(0.5, 1, 0.5, 0.5)
+
+    return parts
+end
 
 -- =====================================
 -- STATE
@@ -154,45 +204,24 @@ local function StyleButton(button, isBuff)
         button.Icon:SetTexCoord(0.07, 0.93, iconRate, 1 - iconRate)
     end
 
-    -- 1px black border (4 edge textures)
-    button._cdm_borders = {}
-    local edges = {
-        { "TOPLEFT", "TOPRIGHT", 0, 0, 0, BORDER_SIZE },       -- top
-        { "BOTTOMLEFT", "BOTTOMRIGHT", 0, -BORDER_SIZE, 0, 0 }, -- bottom
-        { "TOPLEFT", "BOTTOMLEFT", 0, 0, BORDER_SIZE, 0 },     -- left
-        { "TOPRIGHT", "BOTTOMRIGHT", -BORDER_SIZE, 0, 0, 0 },  -- right
-    }
-    for _, e in ipairs(edges) do
-        local t = button:CreateTexture(nil, "OVERLAY", nil, 7)
-        t:SetColorTexture(0, 0, 0, 1)
-        t:SetPoint(e[1], button, e[1], e[3], e[4])
-        t:SetPoint(e[2], button, e[2], e[5], e[6])
-        table.insert(button._cdm_borders, t)
-    end
+    -- Dark background (fills behind rounded corners)
+    local bg = button:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0, 0, 0, 1)
+
+    -- 9-slice rounded border (black)
+    button._cdm_borders = Create9SliceBorder(button, nil, nil, nil, nil, 7)
 
     -- Class-colored overlay glow (shown when spell is active/aura)
     button._cdm_classOverlay = button:CreateTexture(nil, "OVERLAY", nil, 6)
-    button._cdm_classOverlay:SetPoint("TOPLEFT", 0, 0)
-    button._cdm_classOverlay:SetPoint("BOTTOMRIGHT", 0, 0)
+    button._cdm_classOverlay:SetPoint("TOPLEFT", ICON_INSET, -ICON_INSET)
+    button._cdm_classOverlay:SetPoint("BOTTOMRIGHT", -ICON_INSET, ICON_INSET)
     button._cdm_classOverlay:SetColorTexture(classColor.r, classColor.g, classColor.b, 0.25)
     button._cdm_classOverlay:Hide()
 
-    -- Class-colored border overlay (replaces black border when active)
-    button._cdm_activeBorders = {}
-    local activeEdges = {
-        { "TOPLEFT", "TOPRIGHT", 0, 0, 0, BORDER_SIZE },
-        { "BOTTOMLEFT", "BOTTOMRIGHT", 0, -BORDER_SIZE, 0, 0 },
-        { "TOPLEFT", "BOTTOMLEFT", 0, 0, BORDER_SIZE, 0 },
-        { "TOPRIGHT", "BOTTOMRIGHT", -BORDER_SIZE, 0, 0, 0 },
-    }
-    for _, e in ipairs(activeEdges) do
-        local t = button:CreateTexture(nil, "OVERLAY", nil, 7)
-        t:SetColorTexture(classColor.r, classColor.g, classColor.b, 1)
-        t:SetPoint(e[1], button, e[1], e[3], e[4])
-        t:SetPoint(e[2], button, e[2], e[5], e[6])
-        t:Hide()
-        table.insert(button._cdm_activeBorders, t)
-    end
+    -- 9-slice rounded border (class-colored, shown when active)
+    button._cdm_activeBorders = Create9SliceBorder(button, classColor.r, classColor.g, classColor.b, 1, 7)
+    for _, t in ipairs(button._cdm_activeBorders) do t:Hide() end
 
     -- Custom CD text (center of icon)
     button._cdm_cdText = button:CreateFontString(nil, "OVERLAY", nil)
@@ -368,8 +397,8 @@ local function StyleBuffBar(item)
         -- 1px border around bar
         if not bar._cdm_bg then
             bar._cdm_bg = bar:CreateTexture(nil, "BACKGROUND")
-            bar._cdm_bg:SetPoint("TOPLEFT", -BORDER_SIZE, BORDER_SIZE)
-            bar._cdm_bg:SetPoint("BOTTOMRIGHT", BORDER_SIZE, -BORDER_SIZE)
+            bar._cdm_bg:SetPoint("TOPLEFT", -1, 1)
+            bar._cdm_bg:SetPoint("BOTTOMRIGHT", 1, -1)
             bar._cdm_bg:SetColorTexture(0, 0, 0, 1)
         end
     end

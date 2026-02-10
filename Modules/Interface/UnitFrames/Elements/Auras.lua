@@ -43,9 +43,16 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings)
     end)
     container:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
-        -- Save position
-        local point, _, relativePoint, x, y = self:GetPoint()
-        auraSettings.position = { point = point, relativePoint = relativePoint, x = x, y = y }
+        -- Convert to parent-relative coordinates
+        local sx, sy = self:GetCenter()
+        local px, py = parent:GetCenter()
+        if sx and sy and px and py then
+            local dx = sx - px
+            local dy = sy - py
+            self:ClearAllPoints()
+            self:SetPoint("CENTER", parent, "CENTER", dx, dy)
+            auraSettings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
+        end
     end)
 
     return container
@@ -351,8 +358,16 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
     container:SetScript("OnDragStart", function(self) self:StartMoving() end)
     container:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
-        local point, _, relativePoint, x, y = self:GetPoint()
-        buffSettings.position = { point = point, relativePoint = relativePoint, x = x, y = y }
+        -- Convert to parent-relative coordinates
+        local sx, sy = self:GetCenter()
+        local px, py = parent:GetCenter()
+        if sx and sy and px and py then
+            local dx = sx - px
+            local dy = sy - py
+            self:ClearAllPoints()
+            self:SetPoint("CENTER", parent, "CENTER", dx, dy)
+            buffSettings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
+        end
     end)
 
     return container

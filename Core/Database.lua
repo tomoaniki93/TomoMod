@@ -228,8 +228,11 @@ TomoMod_Defaults = {
             powerHeight = 8,
             useClassColor = true,
             useFactionColor = true,
+            useNameplateColors = true,
             showName = true,
             showLevel = true,
+            nameTruncate = true,
+            nameTruncateLength = 20,
             showHealthText = true,
             healthTextFormat = "current_percent",
             showPowerText = false,
@@ -288,6 +291,8 @@ TomoMod_Defaults = {
             useFactionColor = true,
             showName = true,
             showLevel = false,
+            nameTruncate = true,
+            nameTruncateLength = 12,
             showHealthText = false,
             healthTextFormat = "percent",
             showPowerText = false,
@@ -324,6 +329,7 @@ TomoMod_Defaults = {
             powerHeight = 6,
             useClassColor = true,
             useFactionColor = true,
+            useNameplateColors = true,
             showName = true,
             showLevel = true,
             showHealthText = true,
@@ -369,53 +375,63 @@ TomoMod_Defaults = {
     -- =====================
     nameplates = {
         enabled = false,
-        width = 150,
-        height = 14,
+        width = 156,
+        height = 17,
         texture = ADDON_TEXTURE,
         font = ADDON_FONT,
-        fontSize = 9,
-        nameFontSize = 10,
+        fontSize = 10,
+        nameFontSize = 11,
         fontOutline = "OUTLINE",
         showName = true,
-        showLevel = true,
+        showLevel = false,
         showHealthText = true,
-        healthTextFormat = "percent",
+        healthTextFormat = "current_percent",
         showClassification = true,
         showThreat = true,
         showCastbar = true,
-        castbarHeight = 10,
+        castbarHeight = 14,
+        castbarColor = { r = 0.85, g = 0.15, b = 0.15 },           -- RED (interruptible)
+        castbarUninterruptible = { r = 0.45, g = 0.45, b = 0.45 }, -- GREY (non-interruptible)
         useClassColors = true,
+        showAbsorb = true,
         showAuras = true,
-        auraSize = 20,
+        auraSize = 24,
         maxAuras = 5,
         showOnlyMyAuras = true,
         showEnemyBuffs = true,
-        enemyBuffSize = 18,
-        maxEnemyBuffs = 3,
+        enemyBuffSize = 22,
+        maxEnemyBuffs = 4,
         enemyBuffYOffset = 4,
         friendlyPlates = false,
         tankMode = false,
         selectedAlpha = 1.0,
         unselectedAlpha = 0.8,
-        overlapV = 1.6,          -- Vertical overlap (higher = plates closer together, 0.5-3.0)
+        overlapV = 1.05,         -- Vertical overlap (higher = plates closer together, 0.5-3.0)
         topInset = 0.065,        -- How high plates can go on screen (0.01=top, 0.5=middle)
         colors = {
-            hostile  = { r = 0.78, g = 0.04, b = 0.04 },
-            neutral  = { r = 0.98, g = 0.82, b = 0.11 },
-            friendly = { r = 0.11, g = 0.82, b = 0.11 },
-            tapped   = { r = 0.50, g = 0.50, b = 0.50 },
-            -- Classification colors (hostile mobs)
-            boss     = { r = 0.85, g = 0.10, b = 0.10 },  -- RED
-            elite    = { r = 0.60, g = 0.20, b = 0.80 },  -- PURPLE
-            rare     = { r = 0.00, g = 0.80, b = 0.80 },  -- CYAN
-            normal   = { r = 0.60, g = 0.40, b = 0.20 },  -- BROWN
-            trivial  = { r = 0.50, g = 0.50, b = 0.50 },  -- GREY
+            hostile       = { r = 0.78, g = 0.04, b = 0.04 },
+            neutral       = { r = 0.81, g = 0.72, b = 0.19 },
+            friendly      = { r = 0.11, g = 0.82, b = 0.11 },
+            tapped        = { r = 0.50, g = 0.50, b = 0.50 },
+            focus         = { r = 0.05, g = 0.82, b = 0.62 },
+            -- NPC type colors (Ellesmere-style)
+            caster        = { r = 0.23, g = 0.51, b = 0.97 },  -- BLUE (caster mobs)
+            miniboss      = { r = 0.52, g = 0.24, b = 0.98 },  -- PURPLE (elite + higher level)
+            enemyInCombat = { r = 0.80, g = 0.14, b = 0.14 },  -- RED (default enemy in combat)
+            -- Classification colors (kept for legacy)
+            boss          = { r = 0.85, g = 0.10, b = 0.10 },
+            elite         = { r = 0.52, g = 0.24, b = 0.98 },
+            rare          = { r = 0.00, g = 0.80, b = 0.80 },
+            normal        = { r = 0.80, g = 0.14, b = 0.14 },
+            trivial       = { r = 0.50, g = 0.50, b = 0.50 },
         },
         useClassificationColors = true,
         tankColors = {
-            noThreat  = { r = 0.78, g = 0.04, b = 0.04 },
-            lowThreat = { r = 0.98, g = 0.82, b = 0.11 },
-            hasThreat = { r = 0.11, g = 0.82, b = 0.11 },
+            noThreat      = { r = 1.00, g = 0.22, b = 0.17 },
+            lowThreat     = { r = 0.81, g = 0.72, b = 0.19 },
+            hasThreat     = { r = 0.05, g = 0.82, b = 0.62 },
+            dpsHasAggro   = { r = 1.00, g = 0.50, b = 0.00 },  -- ORANGE (DPS has aggro)
+            dpsNearAggro  = { r = 0.81, g = 0.72, b = 0.19 },  -- YELLOW (DPS near aggro)
         },
     },
 }

@@ -12,9 +12,141 @@ local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 -- HEALTH COLOR
 -- =====================================
 
+-- Darken a color (same as Nameplates — dimmed when out-of-combat)
+local function DarkenColor(r, g, b, factor)
+    factor = factor or 0.60
+    return r * factor, g * factor, b * factor
+end
+
+-- Check if in real instanced content (dungeon/raid)
+local function InRealInstancedContent()
+    local _, instanceType, difficultyID = GetInstanceInfo()
+    difficultyID = tonumber(difficultyID) or 0
+    if difficultyID == 0 then return false end
+    if C_Garrison and C_Garrison.IsOnGarrisonMap and C_Garrison.IsOnGarrisonMap() then return false end
+    if instanceType == "party" or instanceType == "raid" then return true end
+    return false
+end
+
+-- Nameplate-style color logic for enemy units (caster, miniboss, threat, darken OOC)
+local function GetNameplateStyleColor(unit)
+    local npDB = TomoModDB and TomoModDB.nameplates
+    if not npDB then return nil end
+    local colors = npDB.colors
+    if not colors then return nil end
+
+    -- Tapped
+    if UnitIsTapDenied(unit) then
+        local c = colors.tapped
+        if c then return c.r, c.g, c.b end
+        return 0.5, 0.5, 0.5
+    end
+
+    -- Neutral
+    local reaction = UnitReaction(unit, "player")
+    if reaction and reaction == 4 then
+        local c = colors.neutral; return c.r, c.g, c.b
+    end
+    if UnitCanAttack("player", unit) and not UnitIsEnemy(unit, "player") then
+        local c = colors.neutral; return c.r, c.g, c.b
+    end
+
+    -- Friendly NPC
+    if reaction and reaction >= 5 and not UnitIsPlayer(unit) then
+        local c = colors.friendly; return c.r, c.g, c.b
+    end
+
+    -- Focus
+    if colors.focus and UnitIsUnit(unit, "focus") then
+        local c = colors.focus; return c.r, c.g, c.b
+    end
+
+    -- Enemy players: handled by useClassColor, skip here
+    if UnitIsPlayer(unit) then return nil end
+
+    -- From here: hostile NPCs only
+    local inCombat = UnitAffectingCombat(unit)
+
+    -- Miniboss: elite/worldboss with higher level
+    if npDB.useClassificationColors then
+        local classification = UnitClassification(unit)
+        if classification == "elite" or classification == "worldboss" or classification == "rareelite" then
+            local level = UnitLevel(unit)
+            local playerLevel = UnitLevel("player")
+            local isMiniboss = false
+            if type(level) == "number" and type(playerLevel) == "number" then
+                isMiniboss = (level == -1) or (level >= playerLevel + 1)
+            elseif classification == "worldboss" then
+                isMiniboss = true
+            end
+            if isMiniboss and colors.miniboss then
+                local c = colors.miniboss
+                if type(inCombat) == "boolean" and inCombat then
+                    return c.r, c.g, c.b
+                else
+                    return DarkenColor(c.r, c.g, c.b)
+                end
+            end
+        end
+    end
+
+    -- Caster NPC
+    if colors.caster then
+        local unitClass = UnitClassBase and UnitClassBase(unit)
+        if unitClass == "PALADIN" then
+            local c = colors.caster
+            if type(inCombat) == "boolean" and inCombat then
+                return c.r, c.g, c.b
+            else
+                return DarkenColor(c.r, c.g, c.b)
+            end
+        end
+    end
+
+    -- Tank/DPS threat coloring (instanced content)
+    if npDB.tankMode and InRealInstancedContent() then
+        local tankColors = npDB.tankColors
+        if tankColors then
+            local isTanking, status = UnitDetailedThreatSituation("player", unit)
+            if status then
+                local role = UnitGroupRolesAssigned("player")
+                local isTankRole = (role == "TANK")
+                if isTankRole then
+                    if isTanking then
+                        local c = tankColors.hasThreat; return c.r, c.g, c.b
+                    elseif status >= 2 then
+                        local c = tankColors.lowThreat; return c.r, c.g, c.b
+                    else
+                        local c = tankColors.noThreat; return c.r, c.g, c.b
+                    end
+                else
+                    if isTanking then
+                        local c = tankColors.dpsHasAggro or tankColors.noThreat; return c.r, c.g, c.b
+                    elseif status >= 2 then
+                        local c = tankColors.dpsNearAggro or tankColors.lowThreat; return c.r, c.g, c.b
+                    end
+                end
+            end
+        end
+    end
+
+    -- Default enemy: in-combat vs out-of-combat dimming
+    local c = colors.enemyInCombat or colors.normal or colors.hostile
+    if c then
+        if type(inCombat) == "boolean" and inCombat then
+            return c.r, c.g, c.b
+        else
+            return DarkenColor(c.r, c.g, c.b)
+        end
+    end
+
+    return nil
+end
+
 function UF_Elements.GetHealthColor(unit, settings)
     if not settings then return 0.5, 0.5, 0.5 end
 
+    -- Class color for players
     if settings.useClassColor and UnitIsPlayer(unit) then
         local _, class = UnitClass(unit)
         if class and RAID_CLASS_COLORS[class] then
@@ -23,6 +155,13 @@ function UF_Elements.GetHealthColor(unit, settings)
         end
     end
 
+    -- Nameplate-style colors for NPCs (caster, miniboss, threat, focus, darken OOC)
+    if settings.useNameplateColors then
+        local r, g, b = GetNameplateStyleColor(unit)
+        if r then return r, g, b end
+    end
+
+    -- Fallback: faction color
     if settings.useFactionColor and not UnitIsPlayer(unit) then
         return TomoMod_Utils.GetReactionColor(unit)
     end

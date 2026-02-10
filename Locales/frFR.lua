@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.7 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.8 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -100,6 +100,8 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_health_height"]               = "Hauteur vie",
     ["opt_power_height"]                = "Hauteur ressource",
     ["opt_show_name"]                   = "Afficher le nom",
+    ["opt_name_truncate"]               = "Tronquer les noms longs",
+    ["opt_name_truncate_length"]        = "Longueur max du nom",
     ["opt_show_level"]                  = "Afficher le niveau",
     ["opt_show_health_text"]            = "Afficher le texte de vie",
     ["opt_health_format"]               = "Format vie",
@@ -109,6 +111,7 @@ TomoMod_RegisterLocale("frFR", {
     ["fmt_current_max"]                 = "Courant / Max",
     ["opt_class_color_uf"]              = "Couleur de classe",
     ["opt_faction_color"]               = "Couleur de faction (PNJ)",
+    ["opt_use_nameplate_colors"]        = "Couleurs Nameplates (type de PNJ)",
     ["opt_show_absorb"]                 = "Barre d'absorption",
     ["opt_show_threat"]                 = "Indicateur de menace",
     ["opt_show_leader_icon"]            = "Icône leader",
@@ -160,12 +163,15 @@ TomoMod_RegisterLocale("frFR", {
     -- Display
     ["section_display"]                 = "Affichage",
     ["opt_np_show_classification"]      = "Afficher classification (élite, rare, boss)",
+    ["opt_np_show_absorb"]               = "Afficher la barre d'absorption",
     ["opt_np_class_colors"]             = "Couleurs de classe (joueurs)",
 
     -- Castbar
     ["section_castbar"]                 = "Castbar",
     ["opt_np_show_castbar"]             = "Afficher la castbar",
     ["opt_np_castbar_height"]           = "Hauteur castbar",
+    ["color_castbar"]                   = "Castbar (interruptible)",
+    ["color_castbar_uninterruptible"]   = "Castbar (non-interruptible)",
 
     -- Auras
     ["section_auras"]                   = "Auras",
@@ -202,6 +208,14 @@ TomoMod_RegisterLocale("frFR", {
     ["color_neutral"]                   = "Neutre",
     ["color_friendly"]                  = "Amical",
     ["color_tapped"]                    = "Tagué (tapped)",
+    ["color_focus"]                     = "Cible de focus",
+
+    -- Couleurs par type de PNJ (style Ellesmere)
+    ["section_npc_type_colors"]         = "Couleurs par Type de PNJ",
+    ["color_caster"]                    = "Caster (lanceur de sorts)",
+    ["color_miniboss"]                  = "Mini-boss (élite + niveau supérieur)",
+    ["color_enemy_in_combat"]           = "Ennemi (par défaut)",
+    ["info_np_darken_ooc"]              = "Les ennemis hors-combat sont automatiquement assombris.",
 
     -- Classification colors
     ["section_classification_colors"]   = "Couleurs par Classification",
@@ -218,6 +232,8 @@ TomoMod_RegisterLocale("frFR", {
     ["color_no_threat"]                 = "Pas de menace",
     ["color_low_threat"]                = "Menace faible",
     ["color_has_threat"]                = "Menace tenue",
+    ["color_dps_has_aggro"]             = "DPS/Heal a l'aggro",
+    ["color_dps_near_aggro"]            = "DPS/Heal proche de l'aggro",
 
     -- NP health format
     ["np_fmt_percent"]                  = "Pourcentage (75%)",

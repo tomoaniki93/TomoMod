@@ -134,6 +134,20 @@ local function BuildDisplayTab(parent, unitKey)
     end)
     y = ny
 
+    if db.nameTruncate ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_name_truncate"], db.nameTruncate, y, function(v)
+            db.nameTruncate = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_name_truncate_length"], db.nameTruncateLength or 20, 5, 40, 1, y, function(v)
+            db.nameTruncateLength = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+    end
+
     if db.showLevel ~= nil then
         local _, ny = W.CreateCheckbox(c, L["opt_show_level"], db.showLevel, y, function(v)
             db.showLevel = v
@@ -170,6 +184,14 @@ local function BuildDisplayTab(parent, unitKey)
     if db.useFactionColor ~= nil then
         local _, ny = W.CreateCheckbox(c, L["opt_faction_color"], db.useFactionColor, y, function(v)
             db.useFactionColor = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+    end
+
+    if db.useNameplateColors ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_use_nameplate_colors"], db.useNameplateColors, y, function(v)
+            db.useNameplateColors = v
             RefreshUnit(unitKey)
         end)
         y = ny
@@ -422,6 +444,20 @@ local function BuildSimpleUnitContent(parent, unitKey, displayName)
         RefreshUnit(unitKey)
     end)
     y = ny
+
+    if db.nameTruncate ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_name_truncate"], db.nameTruncate, y, function(v)
+            db.nameTruncate = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_name_truncate_length"], db.nameTruncateLength or 12, 5, 40, 1, y, function(v)
+            db.nameTruncateLength = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+    end
 
     local _, ny = W.CreateCheckbox(c, L["opt_class_color_uf"], db.useClassColor, y, function(v)
         db.useClassColor = v

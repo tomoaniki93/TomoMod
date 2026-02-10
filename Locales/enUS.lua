@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.7 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.8 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -100,6 +100,8 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_health_height"]               = "Health height",
     ["opt_power_height"]                = "Resource height",
     ["opt_show_name"]                   = "Show name",
+    ["opt_name_truncate"]               = "Truncate long names",
+    ["opt_name_truncate_length"]        = "Max name length",
     ["opt_show_level"]                  = "Show level",
     ["opt_show_health_text"]            = "Show health text",
     ["opt_health_format"]               = "Health format",
@@ -109,6 +111,7 @@ TomoMod_RegisterLocale("enUS", {
     ["fmt_current_max"]                 = "Current / Max",
     ["opt_class_color_uf"]              = "Class color",
     ["opt_faction_color"]               = "Faction color (NPCs)",
+    ["opt_use_nameplate_colors"]        = "Use Nameplate colors (NPC type)",
     ["opt_show_absorb"]                 = "Absorb bar",
     ["opt_show_threat"]                 = "Threat indicator",
     ["opt_show_leader_icon"]            = "Leader icon",
@@ -160,12 +163,15 @@ TomoMod_RegisterLocale("enUS", {
     -- Display
     ["section_display"]                 = "Display",
     ["opt_np_show_classification"]      = "Show classification (elite, rare, boss)",
+    ["opt_np_show_absorb"]               = "Show absorb bar",
     ["opt_np_class_colors"]             = "Class colors (players)",
 
     -- Castbar
     ["section_castbar"]                 = "Castbar",
     ["opt_np_show_castbar"]             = "Show castbar",
     ["opt_np_castbar_height"]           = "Castbar height",
+    ["color_castbar"]                   = "Castbar (interruptible)",
+    ["color_castbar_uninterruptible"]   = "Castbar (non-interruptible)",
 
     -- Auras
     ["section_auras"]                   = "Auras",
@@ -202,6 +208,14 @@ TomoMod_RegisterLocale("enUS", {
     ["color_neutral"]                   = "Neutral",
     ["color_friendly"]                  = "Friendly",
     ["color_tapped"]                    = "Tapped",
+    ["color_focus"]                     = "Focus target",
+
+    -- NPC Type Colors (Ellesmere-style)
+    ["section_npc_type_colors"]         = "NPC Type Colors",
+    ["color_caster"]                    = "Caster",
+    ["color_miniboss"]                  = "Mini-boss (elite + higher level)",
+    ["color_enemy_in_combat"]           = "Enemy (default)",
+    ["info_np_darken_ooc"]              = "Out-of-combat enemies are automatically dimmed.",
 
     -- Classification colors
     ["section_classification_colors"]   = "Classification Colors",
@@ -218,6 +232,8 @@ TomoMod_RegisterLocale("enUS", {
     ["color_no_threat"]                 = "No threat",
     ["color_low_threat"]                = "Low threat",
     ["color_has_threat"]                = "Holding threat",
+    ["color_dps_has_aggro"]             = "DPS/Healer has aggro",
+    ["color_dps_near_aggro"]            = "DPS/Healer near aggro",
 
     -- NP health format
     ["np_fmt_percent"]                  = "Percentage (75%)",

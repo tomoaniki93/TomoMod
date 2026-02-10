@@ -216,11 +216,27 @@ local function UpdateName(frame)
     local name = UnitName(frame.unit)
     if not name then frame.health.nameText:SetText(""); return end
 
+    -- Visual truncation: limit FontString pixel width based on character limit
+    -- Secret strings cannot be manipulated in Lua, so we cap the FontString width
+    -- and let WoW's text rendering clip the overflow.
+    local nameFS = frame.health.nameText
+    if settings.nameTruncate and settings.nameTruncateLength then
+        -- Use font size from DB (not GetStringHeight which returns secret value in TWW)
+        local dbFontSize = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.fontSize) or 12
+        local maxWidth = settings.nameTruncateLength * dbFontSize * 0.55
+        nameFS:SetWidth(maxWidth)
+        nameFS:SetWordWrap(false)
+        nameFS:SetNonSpaceWrap(false)
+    else
+        -- No truncation: let the name use available space
+        nameFS:SetWidth(settings.width - 12)
+        nameFS:SetWordWrap(false)
+        nameFS:SetNonSpaceWrap(false)
+    end
+
     if settings.showLevel then
-        -- Combined format: "90 - Tomo" — both secrets handled C-side
         local level = UnitLevel(frame.unit)
         frame.health.nameText:SetFormattedText("%d - %s", level, name)
-        -- Hide separate levelText since info is combined
         if frame.health.levelText then
             frame.health.levelText:SetText("")
         end
@@ -370,7 +386,14 @@ local function HandleUnitEvent(event, unit)
             C_Timer.After(0, function() UpdateAbsorb(f) end)
         end
     elseif event == "UNIT_THREAT_SITUATION_UPDATE" then
-        if frames[unit] then UpdateThreat(frames[unit]) end
+        if frames[unit] then
+            UpdateThreat(frames[unit])
+            -- Also refresh health color (threat colors)
+            UpdateHealth(frames[unit])
+        end
+    elseif event == "UNIT_FLAGS" then
+        -- Combat state changed — refresh health color (darken OOC)
+        if frames[unit] then UpdateHealth(frames[unit]) end
     elseif event == "UNIT_AURA" then
         if frames[unit] then
             local f = frames[unit]
@@ -389,6 +412,7 @@ local unitEvents = {
     "UNIT_POWER_UPDATE", "UNIT_MAXPOWER",
     "UNIT_ABSORB_AMOUNT_CHANGED",
     "UNIT_THREAT_SITUATION_UPDATE",
+    "UNIT_FLAGS",
     "UNIT_AURA",
 }
 
@@ -706,6 +730,9 @@ function UF.Initialize()
 
     -- Start aura duration updater
     E.StartAuraDurationUpdater(frames)
+
+    -- Apply element offsets, sizes and fonts (not done during CreateUnitFrame)
+    UF.RefreshAllUnits()
 
     print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_initialized"])
 end

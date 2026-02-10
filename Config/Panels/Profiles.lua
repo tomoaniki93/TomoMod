@@ -233,11 +233,11 @@ local function BuildProfileTab(parent)
             local function UpdateBadge()
                 local saved = TomoMod_Profiles.HasSpecProfile(spec.id)
                 if isCurrent then
-                    statusFS:SetText("|cff0cd29f● " .. L["profile_badge_active"] .. "|r")
+                    statusFS:SetText("|cff0cd29f° " .. L["profile_badge_active"] .. "|r")
                 elseif saved then
-                    statusFS:SetText("|cffffff00● " .. L["profile_badge_saved"] .. "|r")
+                    statusFS:SetText("|cffffff00° " .. L["profile_badge_saved"] .. "|r")
                 else
-                    statusFS:SetText("|cff666666● " .. L["profile_badge_none"] .. "|r")
+                    statusFS:SetText("|cff666666° " .. L["profile_badge_none"] .. "|r")
                 end
             end
             UpdateBadge()
