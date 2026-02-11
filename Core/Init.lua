@@ -192,7 +192,6 @@ SlashCmdList["TOMOMOD"] = function(msg)
         print("  |cff0cd29f/tm clearcinema|r — " .. L["msg_help_clearcinema"])
         print("  |cff0cd29f/tm sr|r — " .. L["msg_help_sr"])
         print("  |cff0cd29f/tm key|r — " .. L["msg_help_key"])
-        print("  |cff0cd29f/tm cr|r — " .. L["msg_help_cr"])
         print("  |cff0cd29f/tm help|r — " .. L["msg_help_help"])
     else
         -- Open config
@@ -239,6 +238,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_HideCastBar then TomoMod_HideCastBar.Initialize() end
         if TomoMod_AutoFillDelete then TomoMod_AutoFillDelete.Initialize() end
         if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
+        if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.Initialize() end
 
         -- Interface Modules (new v2)
         if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end

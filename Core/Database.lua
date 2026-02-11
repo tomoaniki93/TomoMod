@@ -99,6 +99,23 @@ TomoMod_Defaults = {
         iconSize = 18,
         position = nil,
     },
+    actionBarSkin = {
+        enabled = false,
+        useClassColor = true,
+        shiftReveal = false,
+        barOpacity = {
+            ActionButton           = 100,
+            MultiBarBottomLeft     = 100,
+            MultiBarBottomRight    = 100,
+            MultiBarRight          = 100,
+            MultiBarLeft           = 100,
+            MultiBar5              = 100,
+            MultiBar6              = 100,
+            MultiBar7              = 100,
+            PetActionButton        = 100,
+            StanceButton           = 100,
+        },
+    },
     autoSummon = {
         enabled = false,
         acceptFriends = true,

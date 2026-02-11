@@ -27,6 +27,7 @@ local categories = {
     { key = "unitframes", label = L["cat_unitframes"],  icon = "°", builder = "TomoMod_ConfigPanel_UnitFrames" },
     { key = "nameplates", label = L["cat_nameplates"],  icon = "°", builder = "TomoMod_ConfigPanel_Nameplates" },
     { key = "resources",  label = L["cat_cd_resource"], icon = "°", builder = "TomoMod_ConfigPanel_CooldownResource" },
+    { key = "actionbars", label = L["cat_action_bars"], icon = "°", builder = "TomoMod_ConfigPanel_ActionBars" },
     { key = "qol",        label = L["cat_qol"],  icon = "°", builder = "TomoMod_ConfigPanel_QOL" },
     { key = "profiles",   label = L["cat_profiles"],     icon = "°", builder = "TomoMod_ConfigPanel_Profiles" },
 }
@@ -80,7 +81,7 @@ local function CreateConfigFrame()
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -1)
     versionText:SetTextColor(unpack(T.textDim))
-    versionText:SetText("v2.1.9")
+    versionText:SetText("v2.1.10")
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, titleBar)

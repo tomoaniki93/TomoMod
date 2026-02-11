@@ -27,6 +27,7 @@
     <Include file="Cursor\CursorRing.lua" />
 
     <!-- Modules: MythicPlus -->
+    <Include file="MythicPlus\DataKeys.lua" />
     <Include file="MythicPlus\Keystone.lua" />
     <Include file="MythicPlus\MythicKeys.lua"/>
     <!-- <Include file="MythicPlus\CombatResTracker.lua"/> -->
@@ -39,5 +40,8 @@
 
     <!-- Modules: FrameAnchors -->
     <Include file="FrameAnchors\FrameAnchors.lua" />
+
+    <!-- Modules: ActionBars -->
+    <Include file="ActionBars\ActionBarSkin.lua" />
 
 </Ui>

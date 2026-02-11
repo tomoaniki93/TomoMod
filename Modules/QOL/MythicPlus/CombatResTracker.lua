@@ -347,6 +347,9 @@ end
 -- EVENT HANDLING
 -- =====================================
 local function OnEvent(self, event, ...)
+    local settings = GetSettings()
+    if not settings or not settings.enabled then return end
+
     if event == "CHALLENGE_MODE_START" then
         isInMythicPlus = true
         keystoneStartTime = GetTime()
@@ -440,19 +443,6 @@ function CRT.Initialize()
     if not settings or not settings.enabled then return end
 
     CreateUI()
-
-    -- Events
-    eventFrame = CreateFrame("Frame")
-    eventFrame:RegisterEvent("CHALLENGE_MODE_START")
-    eventFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
-    eventFrame:RegisterEvent("CHALLENGE_MODE_RESET")
-    eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-    eventFrame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-    if C_ChallengeMode.GetDeathCount then
-        eventFrame:RegisterEvent("CHALLENGE_MODE_DEATH_COUNT_UPDATED")
-    end
-    eventFrame:SetScript("OnEvent", OnEvent)
-
     StartTicker()
     UpdateDisplay()
 end
@@ -480,6 +470,24 @@ function CRT.Toggle()
     if not settings then return end
     CRT.SetEnabled(not settings.enabled)
 end
+
+-- =====================================
+-- EVENTS (deferred to PLAYER_LOGIN to avoid protected frame error in TWW)
+-- =====================================
+eventFrame = CreateFrame("Frame")
+eventFrame:RegisterEvent("PLAYER_LOGIN")
+eventFrame:SetScript("OnEvent", function(self, event)
+    if event == "PLAYER_LOGIN" then
+        self:UnregisterEvent("PLAYER_LOGIN")
+        self:RegisterEvent("CHALLENGE_MODE_START")
+        self:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+        self:RegisterEvent("CHALLENGE_MODE_RESET")
+        self:RegisterEvent("PLAYER_ENTERING_WORLD")
+        self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+        self:RegisterEvent("CHALLENGE_MODE_DEATH_COUNT_UPDATED")
+        self:SetScript("OnEvent", OnEvent)
+    end
+end)
 
 -- Export
 _G.TomoMod_CombatResTracker = CRT

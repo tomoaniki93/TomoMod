@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.9 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.10 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -316,6 +316,17 @@ TomoMod_RegisterLocale("frFR", {
     ["tab_qol_automations"]             = "Automatisation",
     ["tab_qol_mythic_keys"]             = "Clés M+",
     ["tab_qol_skyride"]                 = "SkyRide",
+    ["tab_qol_action_bars"]             = "Barres d'action",
+    ["section_action_bars"]             = "Skin barres d'action",
+    ["cat_action_bars"]                 = "Barres d'action",
+    ["opt_abs_enable"]                  = "Activer le skin des barres d'action",
+    ["opt_abs_class_color"]             = "Couleur de classe pour les bordures",
+    ["opt_abs_shift_reveal"]            = "Maintenir Shift pour révéler les barres masquées",
+    ["sublabel_bar_opacity"]            = "— Opacité par barre —",
+    ["opt_abs_select_bar"]              = "Sélectionner la barre",
+    ["opt_abs_opacity"]                 = "Opacité",
+    ["btn_abs_apply_all_opacity"]       = "Appliquer à toutes les barres",
+    ["msg_abs_all_opacity"]             = "Opacité définie à %d%% sur toutes les barres",
 
     ["section_cinematic"]               = "Cinematic Skip",
     ["opt_cinematic_auto_skip"]         = "Skip automatique après 1ère vue",
@@ -526,7 +537,31 @@ TomoMod_RegisterLocale("frFR", {
     ["msg_cr_disabled"]                 = "Combat Res Tracker désactivé",
     ["msg_cr_locked"]                   = "Combat Res Tracker verrouillé",
     ["msg_cr_unlock"]                   = "Combat Res Tracker déverrouillé — glissez pour déplacer",
+    ["msg_abs_enabled"]                 = "Skin barres d'action activé (reload recommandé)",
+    ["msg_abs_disabled"]                = "Skin barres d'action désactivé",
     ["msg_help_cr"]                     = "Verrouiller/déverrouiller le Combat Res Tracker",
+    ["msg_help_cs"]                     = "Verrouiller/déverrouiller la feuille de personnage",
+    ["msg_help_cs_reset"]               = "Réinitialiser la position de la feuille de personnage",
+
+    -- CharacterSheet
+    ["tab_qol_charsheet"]               = "Personnage",
+    ["section_charsheet"]               = "Feuille de personnage",
+    ["opt_cs_enabled"]                  = "Activer les améliorations de la feuille de personnage",
+    ["opt_cs_dark_mode"]                = "Mode sombre (visuel propre)",
+    ["opt_cs_scale"]                    = "Échelle de la fenêtre",
+    ["btn_cs_reset_pos"]                = "Réinitialiser la position",
+    ["cat_char_sheet"]                  = "Fiche Personnage",
+    ["section_cs_item_overlay"]         = "Affichage des objets",
+    ["opt_cs_show_item_name"]           = "Afficher le nom de l'objet",
+    ["opt_cs_show_ilvl"]                = "Afficher le niveau d'objet et la piste d'amélioration",
+    ["opt_cs_show_enchant"]             = "Afficher le texte d'enchantement",
+    ["opt_cs_show_gems"]                = "Afficher les icônes de gemmes",
+    ["opt_cs_show_missing"]             = "Signaler les enchantements et gemmes manquants (rouge)",
+    ["cs_drag_to_move"]                 = "Glissez pour déplacer",
+    ["cs_lock_hint"]                    = "/tm cs pour verrouiller",
+    ["cs_locked"]                       = "Feuille de personnage |cffff5555verrouillée|r",
+    ["cs_unlocked"]                     = "Feuille de personnage |cff00ff00déverrouillée|r — glissez la barre de titre",
+    ["cs_pos_reset"]                    = "Position de la feuille de personnage réinitialisée",
 
     -- CinematicSkip
     ["msg_cin_skipped"]                 = "Cinématique skippée (déjà vue)",
@@ -552,6 +587,12 @@ TomoMod_RegisterLocale("frFR", {
     ["mk_title"]                        = "TM — Mythic Keys",
     ["mk_btn_send"]                     = "Envoyer chat",
     ["mk_btn_refresh"]                  = "Refresh",
+    ["mk_tab_keys"]                     = "Clés",
+    ["mk_tab_tp"]                       = "TP",
+    ["mk_tp_click_to_tp"]              = "Cliquer pour se téléporter",
+    ["mk_tp_not_unlocked"]             = "Non débloqué",
+    ["msg_tp_not_owned"]               = "Vous ne possédez pas le TP pour %s",
+    ["msg_tp_combat"]                  = "Impossible de mettre à jour les TP en combat.",
 
     -- =====================
     -- PRINT MESSAGES: Config Panels

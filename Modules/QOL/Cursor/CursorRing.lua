@@ -23,14 +23,6 @@ function TomoMod_CursorRing.Create()
     ringTexture:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\Ring")
     ringTexture:SetBlendMode("ADD")
     
-    -- Animation de rotation
-    local animGroup = ringTexture:CreateAnimationGroup()
-    local rotation = animGroup:CreateAnimation("Rotation")
-    rotation:SetDuration(3) -- 3 secondes par rotation complète
-    rotation:SetDegrees(360)
-    animGroup:SetLooping("REPEAT")
-    animGroup:Play()
-    
     -- Update la position selon le curseur
     cursorFrame:SetScript("OnUpdate", function(self, elapsed)
         if not TomoModDB.cursorRing.enabled then

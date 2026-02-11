@@ -79,9 +79,14 @@ local function OnTooltipSetUnit(tooltip, data)
 
     local _, unit = tooltip:GetUnit()
     if not unit then return end
-    if UnitIsPlayer(unit) then return end
 
-    local guid = UnitGUID(unit)
+    -- TWW: unit can be a secret value in combat
+    local ok, isPlayer = pcall(UnitIsPlayer, unit)
+    if not ok or isPlayer then return end
+
+    local ok2, guid = pcall(UnitGUID, unit)
+    if not ok2 or not guid then return end
+
     local npcID = GetNPCIDFromGUID(guid)
     if npcID then
         AddLine(tooltip, LABEL_NPC, npcID)

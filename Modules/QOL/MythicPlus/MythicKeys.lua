@@ -25,6 +25,32 @@ local ticker   = nil
 -- References aux frames
 local TMKeyFrame, MiniKeyFrame
 
+-- Tab system
+local keysContent, tpContent
+local tabKeysBtn, tabTPBtn
+local tpButtons = {}
+local currentTab = "keys"
+
+-- TP helpers
+local function GetSpellIcon(spellID)
+    if not spellID then return nil end
+    if C_Spell and C_Spell.GetSpellTexture then
+        local ok, tex = pcall(C_Spell.GetSpellTexture, spellID)
+        if ok and tex then return tex end
+    end
+    if GetSpellTexture then
+        local ok, tex = pcall(GetSpellTexture, spellID)
+        if ok and tex then return tex end
+    end
+    return nil
+end
+
+local function HasTeleport(spellID)
+    if not spellID then return false end
+    if IsPlayerSpell then return IsPlayerSpell(spellID) end
+    return false
+end
+
 --------------------------------------------------
 -- Utils
 --------------------------------------------------
@@ -122,7 +148,7 @@ local function GetMyKeystoneInfo()
     local level = C_MythicPlus.GetOwnedKeystoneLevel()
     if not level or level == 0 then return nil end
 
-    local mapName = C_ChallengeMode.GetMapUIInfo(mapID)
+    local mapName = TomoMod_DataKeys.GetDisplayName(mapID)
     return mapID, mapName or "???", level
 end
 
@@ -212,7 +238,7 @@ local function HandleAstralKeysMessage(message, sender)
         local mapID = tonumber(parts[3])
         local level = tonumber(parts[4])
         if mapID and level and level > 0 and level < 50 and mapID > 0 then
-            local mapName = C_ChallengeMode.GetMapUIInfo(mapID)
+            local mapName = TomoMod_DataKeys.GetDisplayName(mapID)
             if mapName then
                 local playerName = parts[1]
                 if playerName then
@@ -229,7 +255,7 @@ local function HandleAstralKeysMessage(message, sender)
         mapID = tonumber(parts[1])
         level = tonumber(parts[2])
         if mapID and level and level > 0 and level < 50 and mapID > 0 then
-            local mapName = C_ChallengeMode.GetMapUIInfo(mapID)
+            local mapName = TomoMod_DataKeys.GetDisplayName(mapID)
             if mapName then
                 StoreKey(shortSender, mapID, mapName, level, "AstralKeys")
                 return
@@ -249,7 +275,7 @@ local function HandleAngryKeystonesMessage(message, sender)
         local mapID = tonumber(parts[i])
         local level = tonumber(parts[i + 1])
         if mapID and level and level > 0 and level < 50 and mapID > 100 then
-            local mapName = C_ChallengeMode.GetMapUIInfo(mapID)
+            local mapName = TomoMod_DataKeys.GetDisplayName(mapID)
             if mapName then
                 StoreKey(shortSender, mapID, mapName, level, "AngryKeystones")
                 return
@@ -277,7 +303,7 @@ local function ParseKeystoneLink(message, sender)
         mapID = tonumber(mapID)
         level = tonumber(level)
         if mapID and level and level > 0 then
-            local mapName = C_ChallengeMode.GetMapUIInfo(mapID)
+            local mapName = TomoMod_DataKeys.GetDisplayName(mapID)
             if mapName then
                 StoreKey(shortSender, mapID, mapName, level, "ChatLink")
             end
@@ -478,19 +504,20 @@ end
 function MK:CreateFrames()
     if TMKeyFrame then return end
 
-    -- Main Frame (compact 5-line design)
+    local L = TomoMod_L
+
+    -- ================================================
+    -- MAIN FRAME
+    -- ================================================
     TMKeyFrame = CreateFrame("Frame", "TMKeyFrame", UIParent)
-    TMKeyFrame:SetSize(260, 180)
+    TMKeyFrame:SetSize(270, 230)
     TMKeyFrame:SetPoint("CENTER")
     TMKeyFrame:SetFrameStrata("DIALOG")
     TMKeyFrame:SetFrameLevel(200)
 
-    -- Background
     local bg = TMKeyFrame:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
     bg:SetColorTexture(0.05, 0.05, 0.08, 0.92)
-
-    -- 9-slice border
     Create9SliceBorder(TMKeyFrame)
 
     TMKeyFrame:Hide()
@@ -500,10 +527,11 @@ function MK:CreateFrames()
     TMKeyFrame:SetScript("OnDragStart", TMKeyFrame.StartMoving)
     TMKeyFrame:SetScript("OnDragStop", TMKeyFrame.StopMovingOrSizing)
 
-    -- Fermer avec Echap
     tinsert(UISpecialFrames, "TMKeyFrame")
 
-    -- Title bar
+    -- ================================================
+    -- TITLE BAR (22px)
+    -- ================================================
     local titleBg = TMKeyFrame:CreateTexture(nil, "ARTWORK")
     titleBg:SetPoint("TOPLEFT", 1, -1)
     titleBg:SetPoint("TOPRIGHT", -1, -1)
@@ -515,7 +543,6 @@ function MK:CreateFrames()
     title:SetPoint("TOP", 0, -5)
     title:SetText("|cff0cd29fTM|r — M+ Keys")
 
-    -- Close button
     local closeBtn = CreateFrame("Button", nil, TMKeyFrame)
     closeBtn:SetSize(16, 16)
     closeBtn:SetPoint("TOPRIGHT", -4, -4)
@@ -523,62 +550,247 @@ function MK:CreateFrames()
     closeBtn:SetHighlightTexture("Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight")
     closeBtn:SetScript("OnClick", function() TMKeyFrame:Hide() end)
 
+    -- ================================================
+    -- TAB BAR (24px, below title)
+    -- ================================================
+    local tabBarY = -23
+    local tabW = 134
+
+    local function CreateTab(parent, text, xOff)
+        local tab = CreateFrame("Button", nil, parent)
+        tab:SetSize(tabW, 24)
+        tab:SetPoint("TOPLEFT", xOff, tabBarY)
+
+        local tabBg = tab:CreateTexture(nil, "BACKGROUND")
+        tabBg:SetAllPoints()
+        tabBg:SetColorTexture(0.08, 0.08, 0.11, 1)
+        tab.bg = tabBg
+
+        local indicator = tab:CreateTexture(nil, "OVERLAY")
+        indicator:SetHeight(2)
+        indicator:SetPoint("BOTTOMLEFT", 0, 0)
+        indicator:SetPoint("BOTTOMRIGHT", 0, 0)
+        indicator:SetColorTexture(0.047, 0.824, 0.624, 1) -- accent
+        indicator:Hide()
+        tab.indicator = indicator
+
+        local label = tab:CreateFontString(nil, "OVERLAY")
+        label:SetFont(FONT, 10, "OUTLINE")
+        label:SetPoint("CENTER", 0, 1)
+        label:SetText(text)
+        label:SetTextColor(0.5, 0.5, 0.5)
+        tab.label = label
+
+        tab:SetScript("OnEnter", function()
+            if not tab.active then tabBg:SetColorTexture(0.12, 0.12, 0.16, 1) end
+        end)
+        tab:SetScript("OnLeave", function()
+            if not tab.active then tabBg:SetColorTexture(0.08, 0.08, 0.11, 1) end
+        end)
+
+        tab.active = false
+        return tab
+    end
+
+    tabKeysBtn = CreateTab(TMKeyFrame, L["mk_tab_keys"], 1)
+    tabTPBtn   = CreateTab(TMKeyFrame, L["mk_tab_tp"],   1 + tabW)
+
+    -- Tab separator line
+    local tabSep = TMKeyFrame:CreateTexture(nil, "ARTWORK")
+    tabSep:SetHeight(1)
+    tabSep:SetPoint("TOPLEFT", 1, tabBarY - 24)
+    tabSep:SetPoint("TOPRIGHT", -1, tabBarY - 24)
+    tabSep:SetColorTexture(0.15, 0.15, 0.2, 1)
+
+    local contentTop = tabBarY - 25 -- -48
+
+    -- ================================================
+    -- KEYS TAB CONTENT
+    -- ================================================
+    keysContent = CreateFrame("Frame", nil, TMKeyFrame)
+    keysContent:SetPoint("TOPLEFT", 0, contentTop)
+    keysContent:SetPoint("BOTTOMRIGHT", 0, 0)
+
     -- Protocol indicator
-    local protoLabel = TMKeyFrame:CreateFontString(nil, "OVERLAY")
+    local protoLabel = keysContent:CreateFontString(nil, "OVERLAY")
     protoLabel:SetFont(FONT, 8, "OUTLINE")
-    protoLabel:SetPoint("TOPLEFT", 6, -5)
+    protoLabel:SetPoint("TOPRIGHT", -8, -2)
     protoLabel:SetTextColor(0.4, 0.4, 0.4)
     protoLabel:SetText("Multi")
     TMKeyFrame.protoLabel = protoLabel
 
     -- Key list text (5 lines max)
-    TMKeyFrame.text = TMKeyFrame:CreateFontString(nil, "OVERLAY")
+    TMKeyFrame.text = keysContent:CreateFontString(nil, "OVERLAY")
     TMKeyFrame.text:SetFont(FONT, 11, "")
-    TMKeyFrame.text:SetPoint("TOPLEFT", 12, -30)
+    TMKeyFrame.text:SetPoint("TOPLEFT", 12, -6)
     TMKeyFrame.text:SetJustifyH("LEFT")
-    TMKeyFrame.text:SetWidth(236)
+    TMKeyFrame.text:SetWidth(244)
     TMKeyFrame.text:SetSpacing(3)
     TMKeyFrame.text:SetText("")
 
-    -- Buttons
-    local btnWidth = 110
-    local btnY = 12
-
-    local sendBtn = CreateFrame("Button", nil, TMKeyFrame)
+    -- Send / Refresh buttons
+    local btnWidth = 116
+    local sendBtn = CreateFrame("Button", nil, keysContent)
     sendBtn:SetSize(btnWidth, 22)
-    sendBtn:SetPoint("BOTTOMLEFT", btnY, 10)
-
+    sendBtn:SetPoint("BOTTOMLEFT", 12, 10)
     local sendBg = sendBtn:CreateTexture(nil, "BACKGROUND")
     sendBg:SetAllPoints()
     sendBg:SetColorTexture(0.15, 0.15, 0.2, 1)
     Create9SliceBorder(sendBtn, 0.3, 0.3, 0.35, 1)
-
     local sendText = sendBtn:CreateFontString(nil, "OVERLAY")
     sendText:SetFont(FONT, 10, "OUTLINE")
     sendText:SetPoint("CENTER")
-    sendText:SetText(TomoMod_L["mk_btn_send"])
+    sendText:SetText(L["mk_btn_send"])
     sendBtn:SetScript("OnClick", function() SendKeysToChat() end)
     sendBtn:SetScript("OnEnter", function() sendBg:SetColorTexture(0.25, 0.25, 0.3, 1) end)
     sendBtn:SetScript("OnLeave", function() sendBg:SetColorTexture(0.15, 0.15, 0.2, 1) end)
 
-    local refreshBtn = CreateFrame("Button", nil, TMKeyFrame)
+    local refreshBtn = CreateFrame("Button", nil, keysContent)
     refreshBtn:SetSize(btnWidth, 22)
-    refreshBtn:SetPoint("BOTTOMRIGHT", -btnY, 10)
-
+    refreshBtn:SetPoint("BOTTOMRIGHT", -12, 10)
     local refBg = refreshBtn:CreateTexture(nil, "BACKGROUND")
     refBg:SetAllPoints()
     refBg:SetColorTexture(0.15, 0.15, 0.2, 1)
     Create9SliceBorder(refreshBtn, 0.3, 0.3, 0.35, 1)
-
     local refText = refreshBtn:CreateFontString(nil, "OVERLAY")
     refText:SetFont(FONT, 10, "OUTLINE")
     refText:SetPoint("CENTER")
-    refText:SetText(TomoMod_L["mk_btn_refresh"])
+    refText:SetText(L["mk_btn_refresh"])
     refreshBtn:SetScript("OnClick", function() ScanGroupKeys(true) end)
     refreshBtn:SetScript("OnEnter", function() refBg:SetColorTexture(0.25, 0.25, 0.3, 1) end)
     refreshBtn:SetScript("OnLeave", function() refBg:SetColorTexture(0.15, 0.15, 0.2, 1) end)
 
-    -- Mini Frame (for ChallengesUI sidebar)
+    -- ================================================
+    -- TP TAB CONTENT
+    -- ================================================
+    tpContent = CreateFrame("Frame", nil, TMKeyFrame)
+    tpContent:SetPoint("TOPLEFT", 0, contentTop)
+    tpContent:SetPoint("BOTTOMRIGHT", 0, 0)
+    tpContent:Hide()
+
+    -- Create 8 secure dungeon TP buttons (2 cols x 4 rows)
+    local seasonData = TomoMod_DataKeys.GetCurrentSeasonData()
+    local COL_W   = 124
+    local ROW_H   = 38
+    local PAD_X   = 6
+    local PAD_Y   = 6
+    local ICON_SZ = 30
+
+    for i, dg in ipairs(seasonData) do
+        local col = (i - 1) % 2
+        local row = math.floor((i - 1) / 2)
+
+        local btn = CreateFrame("Button", "TMKeyTP" .. i, tpContent, "SecureActionButtonTemplate")
+        btn:SetSize(COL_W, ROW_H - 2)
+        btn:SetPoint("TOPLEFT", PAD_X + col * (COL_W + 4), -(PAD_Y + row * ROW_H))
+
+        -- Button background
+        local btnBg = btn:CreateTexture(nil, "BACKGROUND")
+        btnBg:SetAllPoints()
+        btnBg:SetColorTexture(0.08, 0.08, 0.12, 0.6)
+        btn.btnBg = btnBg
+
+        -- Dungeon icon
+        local icon = btn:CreateTexture(nil, "ARTWORK")
+        icon:SetSize(ICON_SZ, ICON_SZ)
+        icon:SetPoint("LEFT", 4, 0)
+        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        btn.icon = icon
+
+        -- Dungeon short name
+        local label = btn:CreateFontString(nil, "OVERLAY")
+        label:SetFont(FONT, 9, "OUTLINE")
+        label:SetPoint("LEFT", icon, "RIGHT", 5, 0)
+        label:SetWidth(COL_W - ICON_SZ - 16)
+        label:SetJustifyH("LEFT")
+        label:SetWordWrap(true)
+        label:SetMaxLines(2)
+        btn.label = label
+
+        -- Store data
+        btn.mapID    = dg.mapID
+        btn.spellID  = dg.spellID
+        btn.fullName = dg.name
+        btn.owned    = false
+
+        -- Hover effects
+        btn:SetScript("OnEnter", function(self)
+            if self.owned then
+                self.btnBg:SetColorTexture(0.12, 0.20, 0.18, 0.8)
+            else
+                self.btnBg:SetColorTexture(0.12, 0.10, 0.10, 0.8)
+            end
+            -- Tooltip
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(self.fullName or "?", 1, 1, 1)
+            if self.owned then
+                GameTooltip:AddLine(L["mk_tp_click_to_tp"], 0.047, 0.824, 0.624)
+            else
+                GameTooltip:AddLine(L["mk_tp_not_unlocked"], 1, 0.3, 0.3)
+            end
+            GameTooltip:Show()
+        end)
+        btn:SetScript("OnLeave", function(self)
+            self.btnBg:SetColorTexture(0.08, 0.08, 0.12, 0.6)
+            GameTooltip:Hide()
+        end)
+
+        -- PreClick: warn if not owned (runs before secure action)
+        btn:SetScript("PreClick", function(self)
+            if not self.owned then
+                local name = self.fullName or "?"
+                print("|cff0cd29fTomoMod:|r |cffff5555" .. string.format(L["msg_tp_not_owned"], name) .. "|r")
+            end
+        end)
+
+        tpButtons[i] = btn
+    end
+
+    -- ================================================
+    -- TAB SWITCHING
+    -- ================================================
+    local function SetActiveTab(tab)
+        tab.active = true
+        tab.bg:SetColorTexture(0.10, 0.10, 0.14, 1)
+        tab.indicator:Show()
+        tab.label:SetTextColor(0.047, 0.824, 0.624)
+    end
+
+    local function SetInactiveTab(tab)
+        tab.active = false
+        tab.bg:SetColorTexture(0.08, 0.08, 0.11, 1)
+        tab.indicator:Hide()
+        tab.label:SetTextColor(0.5, 0.5, 0.5)
+    end
+
+    local function SwitchTab(tabName)
+        if tabName == currentTab then return end
+        currentTab = tabName
+
+        if tabName == "keys" then
+            SetActiveTab(tabKeysBtn)
+            SetInactiveTab(tabTPBtn)
+            keysContent:Show()
+            tpContent:Hide()
+        else
+            SetActiveTab(tabTPBtn)
+            SetInactiveTab(tabKeysBtn)
+            keysContent:Hide()
+            tpContent:Show()
+            MK:RefreshTPButtons()
+        end
+    end
+
+    tabKeysBtn:SetScript("OnClick", function() SwitchTab("keys") end)
+    tabTPBtn:SetScript("OnClick", function() SwitchTab("tp") end)
+
+    -- Default: keys tab active
+    SetActiveTab(tabKeysBtn)
+    keysContent:Show()
+
+    -- ================================================
+    -- MINI FRAME (for ChallengesUI sidebar)
+    -- ================================================
     local settings = GetSettings()
     if settings and settings.miniFrame then
         MiniKeyFrame = CreateFrame("Frame", "TMKeyMiniFrame", UIParent)
@@ -606,6 +818,59 @@ function MK:CreateFrames()
     end
 
     self.MainFrame = TMKeyFrame
+end
+
+--------------------------------------------------
+-- Refresh TP Buttons
+--------------------------------------------------
+
+function MK:RefreshTPButtons()
+    if InCombatLockdown() then
+        print("|cff0cd29fTomoMod:|r |cffff5555" .. TomoMod_L["msg_tp_combat"] .. "|r")
+        return
+    end
+
+    for i, btn in ipairs(tpButtons) do
+        local entry = TomoMod_DataKeys.GetEntry(btn.mapID)
+        if entry then
+            local spellID  = entry[3]
+            local fullName = entry[1]
+            local shortName = entry[2]
+
+            -- Get icon: prefer spell texture, fallback to challenge mode texture
+            local iconTex = GetSpellIcon(spellID)
+            if not iconTex and C_ChallengeMode and C_ChallengeMode.GetMapUIInfo then
+                local ok, _, _, _, tex = pcall(C_ChallengeMode.GetMapUIInfo, btn.mapID)
+                if ok and tex then iconTex = tex end
+            end
+
+            btn.icon:SetTexture(iconTex or 134400) -- 134400 = question mark
+            btn.label:SetText(shortName)
+            btn.fullName = fullName
+            btn.spellID  = spellID
+
+            local owned = HasTeleport(spellID)
+            btn.owned = owned
+
+            if owned then
+                btn.icon:SetDesaturated(false)
+                btn.icon:SetAlpha(1)
+                btn.label:SetTextColor(0.9, 0.9, 0.9)
+                btn:SetAttribute("type", "spell")
+                btn:SetAttribute("spell", spellID)
+            else
+                btn.icon:SetDesaturated(true)
+                btn.icon:SetAlpha(0.3)
+                btn.label:SetTextColor(0.35, 0.35, 0.35)
+                btn:SetAttribute("type", nil)
+                btn:SetAttribute("spell", nil)
+            end
+
+            btn:Show()
+        else
+            btn:Hide()
+        end
+    end
 end
 
 --------------------------------------------------
@@ -664,6 +929,8 @@ eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("CHALLENGE_MODE_START")
 eventFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+eventFrame:RegisterEvent("SPELLS_CHANGED")
 
 -- Chat events for keystone link parsing (universal detection)
 eventFrame:RegisterEvent("CHAT_MSG_PARTY")
@@ -685,11 +952,16 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, arg2, arg3, arg4)
     elseif event == "CHAT_MSG_PARTY" or event == "CHAT_MSG_PARTY_LEADER"
         or event == "CHAT_MSG_RAID" or event == "CHAT_MSG_RAID_LEADER"
         or event == "CHAT_MSG_INSTANCE_CHAT" or event == "CHAT_MSG_INSTANCE_CHAT_LEADER" then
-        -- arg1 = message, arg2 = senderName
-        local message = arg1
-        local sender = arg2
-        if message and sender and message:find("keystone:") then
-            ParseKeystoneLink(message, sender)
+        -- TWW: chat args become secret values in combat
+        local ok, found = pcall(function()
+            local message = arg1
+            local sender = arg2
+            if message and sender and message:find("keystone:") then
+                ParseKeystoneLink(message, sender)
+                return true
+            end
+        end)
+        if ok and found then
             C_Timer.After(0.2, RefreshDisplay)
         end
 
@@ -744,7 +1016,23 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, arg2, arg3, arg4)
         C_Timer.After(2, function()
             BroadcastMyKey()
             RefreshDisplay()
+            -- Initial TP refresh (out of combat)
+            if not InCombatLockdown() then
+                MK:RefreshTPButtons()
+            end
         end)
+
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        -- Leaving combat: refresh secure TP buttons
+        if tpContent and tpContent:IsShown() then
+            MK:RefreshTPButtons()
+        end
+
+    elseif event == "SPELLS_CHANGED" then
+        -- Player learned/unlearned a spell: refresh TP ownership
+        if not InCombatLockdown() then
+            MK:RefreshTPButtons()
+        end
     end
 end)
 

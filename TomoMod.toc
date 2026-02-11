@@ -39,6 +39,7 @@ Config\Panels\UnitFrames.lua
 Config\Panels\Nameplates.lua
 Config\Panels\CooldownResource.lua
 Config\Panels\QOL.lua
+Config\Panels\ActionBars.lua
 Config\Panels\Profiles.lua
 Config\ConfigUI.lua
 
