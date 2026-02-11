@@ -330,6 +330,28 @@ local function RegisterBossEvents()
     end
 end
 
+-- Throttled update (boss health can change rapidly)
+-- [PERF] Hidden by default, only shown when bosses are present
+local updateTimer = 0
+local throttleFrame = CreateFrame("Frame")
+throttleFrame:Hide()
+throttleFrame:SetScript("OnUpdate", function(self, elapsed)
+    updateTimer = updateTimer + elapsed
+    if updateTimer >= 0.15 then
+        updateTimer = 0
+        local hasBoss = false
+        for i = 1, MAX_BOSSES do
+            if bossFrames[i] and UnitExists("boss" .. i) then
+                UpdateBossFrame(bossFrames[i])
+                hasBoss = true
+            end
+        end
+        if not hasBoss then
+            self:Hide()
+        end
+    end
+end)
+
 -- Global events
 eventFrame:RegisterEvent("INSTANCE_ENCOUNTER_ENGAGE_UNIT")
 eventFrame:RegisterEvent("UNIT_TARGETABLE_CHANGED")
@@ -339,31 +361,24 @@ eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
 eventFrame:SetScript("OnEvent", function(self, event)
     if event == "INSTANCE_ENCOUNTER_ENGAGE_UNIT" or event == "UNIT_TARGETABLE_CHANGED" or event == "PLAYER_ENTERING_WORLD" then
         C_Timer.After(0.1, function()
+            local hasBoss = false
             for i = 1, MAX_BOSSES do
                 if bossFrames[i] then
                     UpdateBossFrame(bossFrames[i])
+                    if UnitExists("boss" .. i) then hasBoss = true end
                 end
+            end
+            -- [PERF] Only enable throttle OnUpdate when bosses are present
+            if hasBoss then
+                throttleFrame:Show()
+            else
+                throttleFrame:Hide()
             end
         end)
     elseif event == "RAID_TARGET_UPDATE" then
         for i = 1, MAX_BOSSES do
             if bossFrames[i] then
                 UpdateRaidIcon(bossFrames[i])
-            end
-        end
-    end
-end)
-
--- Throttled update (boss health can change rapidly)
-local updateTimer = 0
-local throttleFrame = CreateFrame("Frame")
-throttleFrame:SetScript("OnUpdate", function(self, elapsed)
-    updateTimer = updateTimer + elapsed
-    if updateTimer >= 0.15 then
-        updateTimer = 0
-        for i = 1, MAX_BOSSES do
-            if bossFrames[i] and UnitExists("boss" .. i) then
-                UpdateBossFrame(bossFrames[i])
             end
         end
     end

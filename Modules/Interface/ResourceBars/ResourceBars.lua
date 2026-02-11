@@ -874,13 +874,14 @@ local function OnEvent(self, event, arg1)
     if not s or not s.enabled then return end
 
     if event == "PLAYER_ENTERING_WORLD" then
-        C_Timer.After(1, function() BuildResourceDisplay(); UpdateAlpha() end)
+        C_Timer.After(1, function() BuildResourceDisplay(); UpdateAlpha(); if RB._refreshOnUpdate then RB._refreshOnUpdate() end end)
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" or event == "PLAYER_SPECIALIZATION_CHANGED" then
         C_Timer.After(0.5, function()
             local newSpec = GetSpecialization()
             if newSpec ~= currentSpec then
                 currentSpec = newSpec
                 BuildResourceDisplay()
+                if RB._refreshOnUpdate then RB._refreshOnUpdate() end
             end
         end)
     elseif event == "UNIT_POWER_FREQUENT" or event == "UNIT_POWER_UPDATE" or event == "UNIT_MAXPOWER" then
@@ -893,7 +894,7 @@ local function OnEvent(self, event, arg1)
     elseif event == "UNIT_AURA" then
         if arg1 == "player" then UpdateAll() end
     elseif event == "UPDATE_SHAPESHIFT_FORM" then
-        if playerClass == "DRUID" then BuildResourceDisplay() end
+        if playerClass == "DRUID" then BuildResourceDisplay(); if RB._refreshOnUpdate then RB._refreshOnUpdate() end end
     elseif event == "PLAYER_REGEN_DISABLED" or event == "PLAYER_REGEN_ENABLED"
         or event == "PLAYER_TARGET_CHANGED" then
         UpdateAlpha()
@@ -905,13 +906,20 @@ local function OnEvent(self, event, arg1)
     end
 end
 
--- OnUpdate for smooth rune CDs / frequent updates
+-- OnUpdate only needed for smooth rune CDs (DK) — all other resources use events
 local updateTimer = 0
 local function OnUpdate(self, elapsed)
     updateTimer = updateTimer + elapsed
     if updateTimer >= 0.05 then
         updateTimer = 0
-        UpdateAll()
+        -- [PERF] Only update runes here; other resources are event-driven
+        if secondaryContainer and currentResources and currentResources.secondary
+           and currentResources.secondary.display == "runes" then
+            UpdateRunes(secondaryContainer)
+        elseif secondaryContainer and currentResources and currentResources.secondary
+           and currentResources.secondary.display == "stagger" then
+            UpdateStagger(secondaryContainer)
+        end
     end
 end
 
@@ -959,7 +967,20 @@ function RB.Initialize()
     mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
     mainFrame:RegisterUnitEvent("UNIT_HEALTH", "player")
     mainFrame:SetScript("OnEvent", OnEvent)
-    mainFrame:SetScript("OnUpdate", OnUpdate)
+
+    -- [PERF] Only attach OnUpdate for specs that need frame-level updates (runes, stagger)
+    local function RefreshOnUpdate()
+        if currentResources and currentResources.secondary then
+            local d = currentResources.secondary.display
+            if d == "runes" or d == "stagger" then
+                mainFrame:SetScript("OnUpdate", OnUpdate)
+                return
+            end
+        end
+        mainFrame:SetScript("OnUpdate", nil)
+    end
+    RB._refreshOnUpdate = RefreshOnUpdate
+    RefreshOnUpdate()
 
     isInitialized = true
 end

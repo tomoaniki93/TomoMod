@@ -1,4 +1,4 @@
-CHANGELOG 2.1.12
+CHANGELOG 2.1.13
 
-- Add Bar Boss 1 to 5
-- Fix error lua multiples
+- BIG FIX PERFORMANCE in RAID and DUGEON on NamesPlates
+- Fix new Update on UnitFrames

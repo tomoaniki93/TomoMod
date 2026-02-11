@@ -14,6 +14,78 @@ local NP = TomoMod_Nameplates
 local activePlates = {} -- [nameplateFrame] = ourPlate
 local unitPlates = {}   -- [unitToken] = ourPlate
 
+-- [PERF] Offscreen parent technique (à la Ellesmere): reparent Blizzard elements
+-- under a hidden frame so they can NEVER render, regardless of SetAlpha/Show calls
+local npOffscreenParent = CreateFrame("Frame")
+npOffscreenParent:Hide()
+local hookedUFs = {}
+local storedParents = {}
+local npModuleActive = false  -- global flag to control hooks
+
+local function MoveToOffscreen(element)
+    if not element then return end
+    if not storedParents[element] then
+        storedParents[element] = element:GetParent()
+    end
+    element:SetParent(npOffscreenParent)
+end
+
+local function RestoreFromOffscreen(element)
+    if not element then return end
+    local origParent = storedParents[element]
+    if origParent then
+        element:SetParent(origParent)
+        storedParents[element] = nil
+    end
+end
+
+local function HideBlizzardFrame(nameplate, unit)
+    if not nameplate then return end
+    local uf = nameplate.UnitFrame
+    if not uf then return end
+
+    uf:SetAlpha(0)
+    -- Move key Blizzard sub-elements to the offscreen parent
+    if uf.healthBar then MoveToOffscreen(uf.healthBar) end
+    MoveToOffscreen(uf.selectionHighlight)
+    MoveToOffscreen(uf.aggroHighlight)
+    MoveToOffscreen(uf.softTargetFrame)
+    MoveToOffscreen(uf.SoftTargetFrame)
+    MoveToOffscreen(uf.ClassificationFrame)
+    MoveToOffscreen(uf.RaidTargetFrame)
+    if uf.BuffFrame then uf.BuffFrame:SetAlpha(0) end
+
+    -- Hook SetAlpha once per UnitFrame to prevent Blizzard from restoring visibility
+    if not hookedUFs[uf] then
+        hookedUFs[uf] = true
+        local locked = false
+        hooksecurefunc(uf, "SetAlpha", function(self)
+            if not npModuleActive then return end
+            if locked then return end
+            locked = true
+            self:SetAlpha(0)
+            locked = false
+        end)
+    end
+end
+
+local function RestoreBlizzardFrame(nameplate)
+    if not nameplate then return end
+    local uf = nameplate.UnitFrame
+    if not uf then return end
+    -- Restore sub-elements to their original parent
+    if uf.healthBar then RestoreFromOffscreen(uf.healthBar) end
+    RestoreFromOffscreen(uf.selectionHighlight)
+    RestoreFromOffscreen(uf.aggroHighlight)
+    RestoreFromOffscreen(uf.softTargetFrame)
+    RestoreFromOffscreen(uf.SoftTargetFrame)
+    RestoreFromOffscreen(uf.ClassificationFrame)
+    RestoreFromOffscreen(uf.RaidTargetFrame)
+    if uf.BuffFrame then uf.BuffFrame:SetAlpha(1) end
+    -- Note: can't unhook SetAlpha, but since elements are restored it's cosmetic
+    uf:SetAlpha(1)
+end
+
 local UnitName, UnitLevel, UnitEffectiveLevel = UnitName, UnitLevel, UnitEffectiveLevel
 local UnitClass, UnitClassification = UnitClass, UnitClassification
 local UnitIsPlayer, UnitIsEnemy, UnitIsTapDenied = UnitIsPlayer, UnitIsEnemy, UnitIsTapDenied
@@ -1061,11 +1133,8 @@ local function OnNamePlateAdded(unit)
     plate._blizzUnitFrame = nameplate.UnitFrame
     unitPlates[unit] = plate
 
-    plate:SetScript("OnUpdate", function(self)
-        if self._blizzUnitFrame then
-            self._blizzUnitFrame:SetAlpha(0)
-        end
-    end)
+    -- [PERF] Hide Blizzard frame using offscreen parent technique
+    HideBlizzardFrame(nameplate, unit)
 
     UpdateSize(plate)
     UpdatePlate(plate, unit)
@@ -1076,10 +1145,6 @@ end
 local function OnNamePlateRemoved(unit)
     local plate = unitPlates[unit]
     if plate then
-        plate:SetScript("OnUpdate", nil)
-        if plate._blizzUnitFrame then
-            plate._blizzUnitFrame:SetAlpha(1)
-        end
         plate:Hide()
         plate.castbar:Hide()
         if plate.castbar.shieldFrame then plate.castbar.shieldFrame:Hide() end
@@ -1107,28 +1172,44 @@ local npUnitEvents = {
     "UNIT_SPELLCAST_SUCCEEDED",
 }
 
+-- [PERF] Dirty-flag batch system: coalesce multiple events per unit into one update per frame
+local dirtyPlates = {}
+local dirtyCastbars = {}
+local dirtyBatchFrame = CreateFrame("Frame")
+dirtyBatchFrame:Hide()
+dirtyBatchFrame:SetScript("OnUpdate", function(self)
+    self:Hide()
+    for unit in pairs(dirtyPlates) do
+        local p = unitPlates[unit]
+        if p then
+            UpdatePlate(p, unit)
+        end
+    end
+    wipe(dirtyPlates)
+    for unit in pairs(dirtyCastbars) do
+        local p = unitPlates[unit]
+        if p then
+            UpdateCastbar(p, unit)
+        end
+    end
+    wipe(dirtyCastbars)
+end)
+
 local function HandleNPUnitEvent(event, unit)
     if not unitPlates[unit] then return end
 
     if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" or event == "UNIT_THREAT_SITUATION_UPDATE"
         or event == "UNIT_FACTION" or event == "UNIT_AURA"
         or event == "UNIT_ABSORB_AMOUNT_CHANGED" then
-        local p = unitPlates[unit]
-        C_Timer.After(0, function() UpdatePlate(p, unit) end)
+        -- [PERF] Mark dirty instead of creating a timer+closure per event
+        dirtyPlates[unit] = true
+        dirtyBatchFrame:Show()
     elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
-        local p = unitPlates[unit]
-        C_Timer.After(0, function()
-            if p and unitPlates[unit] == p then
-                UpdateCastbar(p, unit)
-            end
-        end)
+        dirtyCastbars[unit] = true
+        dirtyBatchFrame:Show()
     elseif event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
-        local p = unitPlates[unit]
-        C_Timer.After(0, function()
-            if p and unitPlates[unit] == p then
-                UpdateCastbar(p, unit)
-            end
-        end)
+        dirtyCastbars[unit] = true
+        dirtyBatchFrame:Show()
     elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
         local p = unitPlates[unit]
         if p and p.castbar then
@@ -1251,6 +1332,7 @@ function NP.Initialize()
 end
 
 function NP.Enable()
+    npModuleActive = true
     if TomoModDB and TomoModDB.nameplates then
         TomoModDB.nameplates.enabled = true
     end
@@ -1270,24 +1352,27 @@ function NP.Enable()
     NP.RefreshAll()
 
     if not NP._auraTicker then
-        NP._auraTicker = C_Timer.NewTicker(0.1, function()
+        -- [PERF] 0.25s instead of 0.1s, skip invisible plates, use C-side SetFormattedText
+        NP._auraTicker = C_Timer.NewTicker(0.25, function()
             for u, p in pairs(unitPlates) do
-                if p.auras then
-                    for _, aura in ipairs(p.auras) do
-                        if aura:IsShown() and aura.duration and aura._auraUnit and aura._auraInstanceID then
-                            local durObj = C_UnitAuras.GetAuraDuration(aura._auraUnit, aura._auraInstanceID)
-                            if durObj then
-                                aura.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                if p:IsVisible() then
+                    if p.auras then
+                        for _, aura in ipairs(p.auras) do
+                            if aura:IsShown() and aura.duration and aura._auraUnit and aura._auraInstanceID then
+                                local durObj = C_UnitAuras.GetAuraDuration(aura._auraUnit, aura._auraInstanceID)
+                                if durObj then
+                                    aura.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
+                                end
                             end
                         end
                     end
-                end
-                if p.enemyBuffs then
-                    for _, buff in ipairs(p.enemyBuffs) do
-                        if buff:IsShown() and buff.duration and buff._auraUnit and buff._auraInstanceID then
-                            local durObj = C_UnitAuras.GetAuraDuration(buff._auraUnit, buff._auraInstanceID)
-                            if durObj then
-                                buff.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                    if p.enemyBuffs then
+                        for _, buff in ipairs(p.enemyBuffs) do
+                            if buff:IsShown() and buff.duration and buff._auraUnit and buff._auraInstanceID then
+                                local durObj = C_UnitAuras.GetAuraDuration(buff._auraUnit, buff._auraInstanceID)
+                                if durObj then
+                                    buff.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
+                                end
                             end
                         end
                     end
@@ -1300,6 +1385,7 @@ function NP.Enable()
 end
 
 function NP.Disable()
+    npModuleActive = false
     eventFrame:UnregisterEvent("NAME_PLATE_UNIT_ADDED")
     eventFrame:UnregisterEvent("NAME_PLATE_UNIT_REMOVED")
 
@@ -1316,11 +1402,9 @@ function NP.Disable()
     end
 
     for nameplate, plate in pairs(activePlates) do
-        plate:SetScript("OnUpdate", nil)
         plate:Hide()
-        if plate._blizzUnitFrame then
-            plate._blizzUnitFrame:SetAlpha(1)
-        end
+        -- Restore Blizzard elements from offscreen parent
+        RestoreBlizzardFrame(nameplate)
     end
     for unit, uef in pairs(npUnitEventFrames) do
         uef:UnregisterAllEvents()

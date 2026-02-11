@@ -368,39 +368,70 @@ eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
 eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
 eventFrame:RegisterEvent("PARTY_LEADER_CHANGED")
 
+-- [PERF] Dirty-flag batch system for UnitFrames (same pattern as Nameplates)
+local uf_dirtyHealth = {}
+local uf_dirtyPower = {}
+local uf_dirtyAbsorb = {}
+local uf_dirtyAuras = {}
+local uf_dirtyBatchFrame = CreateFrame("Frame")
+uf_dirtyBatchFrame:Hide()
+uf_dirtyBatchFrame:SetScript("OnUpdate", function(self)
+    self:Hide()
+    for unit in pairs(uf_dirtyHealth) do
+        if frames[unit] then UpdateHealth(frames[unit]) end
+    end
+    wipe(uf_dirtyHealth)
+    for unit in pairs(uf_dirtyPower) do
+        if frames[unit] and frames[unit].power then E.UpdatePower(frames[unit]) end
+    end
+    wipe(uf_dirtyPower)
+    for unit in pairs(uf_dirtyAbsorb) do
+        if frames[unit] and frames[unit].absorb then UpdateAbsorb(frames[unit]) end
+    end
+    wipe(uf_dirtyAbsorb)
+    for unit in pairs(uf_dirtyAuras) do
+        if frames[unit] then
+            E.UpdateAuras(frames[unit])
+            E.UpdateEnemyBuffs(frames[unit])
+        end
+    end
+    wipe(uf_dirtyAuras)
+end)
+
 -- Unit event handler (called from per-unit frames)
 local function HandleUnitEvent(event, unit)
     if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
         if frames[unit] then
-            local f = frames[unit]
-            C_Timer.After(0, function() UpdateHealth(f) end)
+            uf_dirtyHealth[unit] = true
+            uf_dirtyBatchFrame:Show()
         end
     elseif event == "UNIT_POWER_UPDATE" or event == "UNIT_MAXPOWER" then
         if frames[unit] and frames[unit].power then
-            local f = frames[unit]
-            C_Timer.After(0, function() E.UpdatePower(f) end)
+            uf_dirtyPower[unit] = true
+            uf_dirtyBatchFrame:Show()
         end
     elseif event == "UNIT_ABSORB_AMOUNT_CHANGED" then
         if frames[unit] and frames[unit].absorb then
-            local f = frames[unit]
-            C_Timer.After(0, function() UpdateAbsorb(f) end)
+            uf_dirtyAbsorb[unit] = true
+            uf_dirtyBatchFrame:Show()
         end
     elseif event == "UNIT_THREAT_SITUATION_UPDATE" then
         if frames[unit] then
             UpdateThreat(frames[unit])
             -- Also refresh health color (threat colors)
-            UpdateHealth(frames[unit])
+            uf_dirtyHealth[unit] = true
+            uf_dirtyBatchFrame:Show()
         end
     elseif event == "UNIT_FLAGS" then
         -- Combat state changed — refresh health color (darken OOC)
-        if frames[unit] then UpdateHealth(frames[unit]) end
+        if frames[unit] then
+            uf_dirtyHealth[unit] = true
+            uf_dirtyBatchFrame:Show()
+        end
     elseif event == "UNIT_AURA" then
         if frames[unit] then
-            local f = frames[unit]
-            C_Timer.After(0, function()
-                E.UpdateAuras(f)
-                E.UpdateEnemyBuffs(f)
-            end)
+            uf_dirtyAuras[unit] = true
+            uf_dirtyBatchFrame:Show()
         end
     end
 end

@@ -24,20 +24,14 @@ function TomoMod_CursorRing.Create()
     ringTexture:SetBlendMode("ADD")
     
     -- Update la position selon le curseur
+    -- [PERF] Frame is hidden when disabled; OnUpdate only runs when visible
     cursorFrame:SetScript("OnUpdate", function(self, elapsed)
-        if not TomoModDB.cursorRing.enabled then
-            self:Hide()
-            return
-        end
-        
-        self:Show()
-        
         updateTimer = updateTimer + elapsed
-        if updateTimer >= 0.01 then -- Update toutes les 0.01 secondes
+        if updateTimer >= 0.016 then -- [PERF] 60fps instead of 100fps
             updateTimer = 0
-            
             local x, y = GetCursorPosition()
             local scale = UIParent:GetEffectiveScale()
+            self:ClearAllPoints()
             self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x / scale, y / scale)
         end
     end)
@@ -70,13 +64,14 @@ local tooltipHooked = false
 function TomoMod_CursorRing.SetupTooltipAnchor()
     if not tooltipHooked then
         -- Hook le positionnement par défaut du tooltip
+        -- [PERF] Early-exit when not active
         GameTooltip:HookScript("OnUpdate", function(self, elapsed)
-            if TomoModDB.cursorRing.anchorTooltip and self:IsShown() then
-                local x, y = GetCursorPosition()
-                local scale = UIParent:GetEffectiveScale()
-                self:ClearAllPoints()
-                self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", (x / scale) + 15, (y / scale) + 15)
-            end
+            if not TomoModDB.cursorRing.enabled or not TomoModDB.cursorRing.anchorTooltip then return end
+            if not self:IsShown() then return end
+            local x, y = GetCursorPosition()
+            local scale = UIParent:GetEffectiveScale()
+            self:ClearAllPoints()
+            self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", (x / scale) + 15, (y / scale) + 15)
         end)
         tooltipHooked = true
     end

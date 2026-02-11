@@ -16,7 +16,7 @@ local BORDER_TEX = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Nameplates\\bo
 local BORDER_CORNER = 4
 local ICON_INSET = 3 -- pixels inset for icon inside border
 local SPACING = 1 -- gap between icons
-local TICK_RATE = 0.05 -- 20fps for smooth CD text
+local TICK_RATE = 0.1 -- [PERF] 10fps for CD text (was 0.05 = 20fps, imperceptible difference)
 
 -- =====================================
 -- 9-SLICE ROUNDED BORDER HELPER

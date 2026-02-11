@@ -508,8 +508,8 @@ local auraDurationTicker
 function UF_Elements.StartAuraDurationUpdater(frames)
     if auraDurationTicker then return end
     -- TWW: C_UnitAuras.GetAuraDuration returns Duration objects with non-secret methods.
-    -- Re-query duration every 0.1s to update remaining time text.
-    auraDurationTicker = C_Timer.NewTicker(0.1, function()
+    -- [PERF] 0.2s instead of 0.1s — sufficient for numeric duration display
+    auraDurationTicker = C_Timer.NewTicker(0.2, function()
         for _, frame in pairs(frames) do
             -- Standard aura container (debuffs)
             if frame.auraContainer and frame.auraContainer:IsVisible() then
