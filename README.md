@@ -16,7 +16,7 @@ Fully compatible with **Midnight 12.x** with native handling of Blizzard's secre
 
 Full replacement for Blizzard's unit frames with a clean, minimal aesthetic.
 
-- **Supported units:** Player, Target, Target-of-Target, Pet, Focus
+- **Supported units:** Player, Target, Target-of-Target, Pet, Focus, Boss 1 to 5
 - **Health bars** with class colors, faction colors, and absorb shields overlay
 - **Power bars** with accurate power type coloring
 - **Castbars** on Player, Target, and Focus — supports both casts and channels with TWW secret-safe timers using `GetRemainingDuration(0)`
