@@ -420,6 +420,20 @@ TomoMod_Defaults = {
             },
             position = { point = "CENTER", relativePoint = "CENTER", x = -350, y = 150 },
         },
+
+        -- Boss Frames (boss1–boss5)
+        bossFrames = {
+            enabled = true,
+            width = 200,
+            height = 28,
+            spacing = 4,
+            position = {
+                point = "RIGHT",
+                relativePoint = "RIGHT",
+                x = -80,
+                y = 200,
+            },
+        },
     },
 
     -- =====================

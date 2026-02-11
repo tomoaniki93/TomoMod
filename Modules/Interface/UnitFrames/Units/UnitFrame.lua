@@ -556,6 +556,11 @@ function UF.ToggleLock()
     else
         print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_unlocked"])
     end
+
+    -- Also toggle boss frames lock
+    if TomoMod_BossFrames and TomoMod_BossFrames.ToggleLock then
+        TomoMod_BossFrames.ToggleLock()
+    end
 end
 
 function UF.RefreshUnit(unitKey)
@@ -688,6 +693,10 @@ function UF.RefreshAllUnits()
         if frames[unitKey] then
             UF.RefreshUnit(unitKey)
         end
+    end
+    -- Also refresh boss frames
+    if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
+        TomoMod_BossFrames.RefreshAll()
     end
 end
 

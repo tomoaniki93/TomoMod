@@ -81,7 +81,7 @@ local function CreateConfigFrame()
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -1)
     versionText:SetTextColor(unpack(T.textDim))
-    versionText:SetText("v2.1.11")
+    versionText:SetText("v2.1.12")
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, titleBar)

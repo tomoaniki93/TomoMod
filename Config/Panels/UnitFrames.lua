@@ -596,6 +596,87 @@ local function BuildColorsContent(parent)
 end
 
 -- =====================================
+-- BUILD BOSS FRAMES CONTENT
+-- =====================================
+
+local function BuildBossContent(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local db = TomoModDB.unitFrames.bossFrames
+    if not db then return scroll end
+
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["section_boss_frames"], y)
+    y = ny
+
+    -- Enable
+    local _, ny = W.CreateCheckbox(c, L["opt_boss_enable"], db.enabled, y, function(v)
+        db.enabled = v
+        print("|cff0cd29fTomoMod|r Boss: " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
+    end)
+    y = ny
+
+    -- Dimensions
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_dimensions"], y)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_width"], db.width, 100, 350, 5, y, function(v)
+        db.width = v
+        if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
+            TomoMod_BossFrames.RefreshAll()
+        end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_boss_height"], db.height, 16, 50, 2, y, function(v)
+        db.height = v
+        if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
+            TomoMod_BossFrames.RefreshAll()
+        end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_boss_spacing"], db.spacing, 0, 20, 1, y, function(v)
+        db.spacing = v
+        if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
+            TomoMod_BossFrames.RefreshAll()
+        end
+    end)
+    y = ny
+
+    -- Info
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_boss_drag"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_boss_colors"], y)
+    y = ny
+
+    -- Reset position
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateButton(c, L["btn_reset_position"] .. " Boss", 220, y, function()
+        if TomoMod_Defaults.unitFrames.bossFrames and TomoMod_Defaults.unitFrames.bossFrames.position then
+            db.position = CopyTable(TomoMod_Defaults.unitFrames.bossFrames.position)
+            if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
+                TomoMod_BossFrames.RefreshAll()
+            end
+            print("|cff0cd29fTomoMod|r Boss " .. L["msg_uf_position_reset"])
+        end
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -607,6 +688,7 @@ function TomoMod_ConfigPanel_UnitFrames(parent)
         { key = "targettarget", label = L["tab_tot"],      builder = function(p) return BuildSimpleUnitContent(p, "targettarget", L["unit_tot"]) end },
         { key = "pet",          label = L["tab_pet"],      builder = function(p) return BuildSimpleUnitContent(p, "pet", L["unit_pet"]) end },
         { key = "focus",        label = L["tab_focus"],    builder = function(p) return BuildUnitWithSubTabs(p, "focus", L["unit_focus"]) end },
+        { key = "boss",         label = L["tab_boss"],     builder = function(p) return BuildBossContent(p) end },
         { key = "colors",       label = L["tab_colors"],   builder = function(p) return BuildColorsContent(p) end },
     }
 

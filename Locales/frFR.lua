@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.11 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.12 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -626,4 +626,16 @@ TomoMod_RegisterLocale("frFR", {
 
     -- FPS element
     ["label_fps"]                       = "Fps",
+
+    -- =====================
+    -- BOSS FRAMES
+    -- =====================
+    ["tab_boss"]                        = "Boss",
+    ["section_boss_frames"]             = "Barres de Boss",
+    ["opt_boss_enable"]                 = "Activer les barres de Boss",
+    ["opt_boss_height"]                 = "Hauteur des barres",
+    ["opt_boss_spacing"]                = "Espacement entre les barres",
+    ["info_boss_drag"]                  = "Déverrouillez (/tm uf) pour déplacer. Glissez Boss 1 pour repositionner les 5 barres ensemble.",
+    ["info_boss_colors"]                = "Les couleurs utilisent les couleurs de classification Nameplates (Boss = rouge, Mini-boss = violet).",
+    ["msg_boss_initialized"]            = "Barres de Boss chargées.",
 })

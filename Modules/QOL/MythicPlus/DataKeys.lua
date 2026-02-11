@@ -405,7 +405,6 @@ end
 -- =====================================
 local refreshFrame = CreateFrame("Frame")
 refreshFrame:RegisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
-refreshFrame:RegisterEvent("MYTHIC_PLUS_NEW_SEASON")
 refreshFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 local refreshCount = 0

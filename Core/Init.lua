@@ -243,6 +243,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
 
         -- Interface Modules (new v2)
         if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end
+        if TomoMod_BossFrames then TomoMod_BossFrames.Initialize() end
         if TomoMod_Nameplates then TomoMod_Nameplates.Initialize() end
         if TomoMod_ResourceBars then TomoMod_ResourceBars.Initialize() end
 
