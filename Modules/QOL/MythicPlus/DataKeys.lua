@@ -3,6 +3,9 @@
 -- Fallback table: MapChallengeModeID → Dungeon Name / Short / Teleport
 -- Used when C_ChallengeMode.GetMapUIInfo() returns nil
 -- (TWW secret values, data not yet loaded, etc.)
+--
+-- Also includes a DYNAMIC RUNTIME CACHE that auto-discovers
+-- dungeon names and season data from Blizzard APIs once loaded.
 -- =====================================
 
 TomoMod_DataKeys = {}
@@ -129,15 +132,91 @@ local DB = {
     [558] = { "Magisters' Terrace",                     "MAGI",   1254572 },
     [559] = { "Nexus-Point Xenas",                      "XENAS",  1254563 },
     [560] = { "Maisara Caverns",                        "CAVNS",  1255247 },
-    -- Future Midnight dungeons (no mapID yet):
-    -- Murder Row          = "MURDR"
-    -- The Blinding Vale   = "BLIND"
-    -- Den of Nalorakk     = "NALO"
-    -- The Foraging        = "FORAG"
-    -- Voidscar Arena      = "VSCAR"
-    -- The Heart of Rage   = "RAGE"
-    -- Voidstorm           = "VSTORM"
 }
+
+-- =====================================
+-- Name → short abbreviation mapping (for API-discovered dungeons)
+-- Used to generate short names for dungeons not in the hardcoded DB
+-- =====================================
+local NAME_TO_SHORT = {}
+for _, data in pairs(DB) do
+    if data[1] and data[2] then
+        NAME_TO_SHORT[data[1]:lower()] = data[2]
+    end
+end
+
+-- =====================================
+-- Dynamic runtime cache
+-- Populated from Blizzard APIs when data becomes available
+-- [mapChallengeModeID] = { name, short, texture }
+-- =====================================
+local runtimeCache = {}
+local runtimeSeasonIDs = nil  -- populated from C_ChallengeMode.GetMapTable()
+local apiDataReady = false
+
+--- Attempt to populate the runtime cache from Blizzard APIs
+--- Safe to call multiple times — will refresh data each time
+function TomoMod_DataKeys.RefreshFromAPI()
+    if not C_ChallengeMode then return false end
+
+    -- Discover current season dungeon IDs
+    if C_ChallengeMode.GetMapTable then
+        local ok, mapTable = pcall(C_ChallengeMode.GetMapTable)
+        if ok and mapTable and #mapTable > 0 then
+            runtimeSeasonIDs = mapTable
+        end
+    end
+
+    -- Populate names from API for all known IDs
+    local idsToQuery = {}
+
+    -- Add season IDs
+    if runtimeSeasonIDs then
+        for _, id in ipairs(runtimeSeasonIDs) do
+            idsToQuery[id] = true
+        end
+    end
+
+    -- Also query any IDs we know from DB but might have updated names
+    for id in pairs(DB) do
+        idsToQuery[id] = true
+    end
+
+    local anyResolved = false
+    if C_ChallengeMode.GetMapUIInfo then
+        for id in pairs(idsToQuery) do
+            local ok, name, _, _, tex = pcall(C_ChallengeMode.GetMapUIInfo, id)
+            if ok and name and name ~= "" then
+                -- Generate short name: use hardcoded if exists, else from name mapping, else abbreviate
+                local short = nil
+                local dbEntry = DB[id]
+                if dbEntry and dbEntry[2] then
+                    short = dbEntry[2]
+                elseif NAME_TO_SHORT[name:lower()] then
+                    short = NAME_TO_SHORT[name:lower()]
+                end
+
+                runtimeCache[id] = {
+                    name    = name,
+                    short   = short,
+                    texture = tex,
+                }
+                anyResolved = true
+            end
+        end
+    end
+
+    if anyResolved then
+        apiDataReady = true
+    end
+
+    return anyResolved
+end
+
+--- Check if API data has been loaded
+function TomoMod_DataKeys.IsAPIReady()
+    return apiDataReady
+end
 
 -- =====================================
 -- Reverse lookup: name/short → mapID (case-insensitive)
@@ -153,19 +232,30 @@ end
 -- =====================================
 
 --- Get full dungeon name from MapChallengeModeID
---- Tries Blizzard API first, falls back to hardcoded table
+--- Priority: runtime cache (API) → hardcoded DB → nil
 function TomoMod_DataKeys.GetDungeonName(mapID)
     if not mapID then return nil end
     mapID = tonumber(mapID)
     if not mapID then return nil end
 
-    -- Try API first (works when data is loaded and not tainted)
-    if C_ChallengeMode and C_ChallengeMode.GetMapUIInfo then
-        local ok, name = pcall(C_ChallengeMode.GetMapUIInfo, mapID)
-        if ok and name and name ~= "" then return name end
+    -- 1) Check runtime cache (populated from API)
+    local cached = runtimeCache[mapID]
+    if cached and cached.name then
+        return cached.name
     end
 
-    -- Fallback to our table
+    -- 2) Try API directly (in case RefreshFromAPI hasn't run yet)
+    if C_ChallengeMode and C_ChallengeMode.GetMapUIInfo then
+        local ok, name = pcall(C_ChallengeMode.GetMapUIInfo, mapID)
+        if ok and name and name ~= "" then
+            -- Cache it for future use
+            runtimeCache[mapID] = runtimeCache[mapID] or {}
+            runtimeCache[mapID].name = name
+            return name
+        end
+    end
+
+    -- 3) Fallback to hardcoded table
     local entry = DB[mapID]
     return entry and entry[1] or nil
 end
@@ -175,11 +265,19 @@ function TomoMod_DataKeys.GetShortName(mapID)
     if not mapID then return nil end
     mapID = tonumber(mapID)
     if not mapID then return nil end
+
+    -- Check runtime cache
+    local cached = runtimeCache[mapID]
+    if cached and cached.short then
+        return cached.short
+    end
+
+    -- Check hardcoded DB
     local entry = DB[mapID]
     return entry and entry[2] or nil
 end
 
---- Get name with fallback chain: API → full → short → "ID:xxx"
+--- Get name with fallback chain: runtime cache → API → full → short → "ID:xxx"
 function TomoMod_DataKeys.GetDisplayName(mapID)
     return TomoMod_DataKeys.GetDungeonName(mapID)
         or TomoMod_DataKeys.GetShortName(mapID)
@@ -202,17 +300,39 @@ function TomoMod_DataKeys.GetMapIDByName(name)
 end
 
 --- Get the raw DB entry: { fullName, shortName, teleportSpellID }
+--- Also checks runtime cache for entries not in hardcoded DB
 function TomoMod_DataKeys.GetEntry(mapID)
     if not mapID then return nil end
     mapID = tonumber(mapID)
-    return mapID and DB[mapID] or nil
+    if not mapID then return nil end
+
+    -- Hardcoded DB first (has spellID)
+    local entry = DB[mapID]
+    if entry then return entry end
+
+    -- Fallback: build a synthetic entry from runtime cache
+    local cached = runtimeCache[mapID]
+    if cached and cached.name then
+        return { cached.name, cached.short or cached.name, nil }
+    end
+
+    return nil
 end
 
 --- Get all known mapIDs (sorted, for iteration)
 function TomoMod_DataKeys.GetAllMapIDs()
     local ids = {}
+    local seen = {}
     for id in pairs(DB) do
         ids[#ids + 1] = id
+        seen[id] = true
+    end
+    -- Include runtime-discovered IDs
+    for id in pairs(runtimeCache) do
+        if not seen[id] then
+            ids[#ids + 1] = id
+            seen[id] = true
+        end
     end
     table.sort(ids)
     return ids
@@ -220,9 +340,10 @@ end
 
 -- =====================================
 -- CURRENT M+ SEASON
--- Update this table each new season
+-- Dynamically populated from C_ChallengeMode.GetMapTable()
+-- Falls back to hardcoded list if API data not available
 -- =====================================
-TomoMod_DataKeys.CURRENT_SEASON = {
+local HARDCODED_SEASON = {
     542,  -- Eco-Dome Al'dani
     499,  -- Priory of the Sacred Flame
     525,  -- Operation: Floodgate
@@ -233,10 +354,26 @@ TomoMod_DataKeys.CURRENT_SEASON = {
     392,  -- Tazavesh: So'leah's Gambit
 }
 
+--- Get the current season dungeon ID list
+--- Uses API data when available, falls back to hardcoded
+function TomoMod_DataKeys.GetCurrentSeasonIDs()
+    if runtimeSeasonIDs and #runtimeSeasonIDs > 0 then
+        return runtimeSeasonIDs
+    end
+    return HARDCODED_SEASON
+end
+
+-- Keep backward compat (some code may read this directly)
+TomoMod_DataKeys.CURRENT_SEASON = HARDCODED_SEASON
+
 --- Get current season dungeon list with full data
+--- Dynamically resolves names for API-discovered dungeons
 function TomoMod_DataKeys.GetCurrentSeasonData()
+    local seasonIDs = TomoMod_DataKeys.GetCurrentSeasonIDs()
     local result = {}
-    for _, mapID in ipairs(TomoMod_DataKeys.CURRENT_SEASON) do
+
+    for _, mapID in ipairs(seasonIDs) do
+        -- Try hardcoded DB first (has spellID for TP)
         local entry = DB[mapID]
         if entry then
             result[#result + 1] = {
@@ -245,7 +382,59 @@ function TomoMod_DataKeys.GetCurrentSeasonData()
                 short    = entry[2],
                 spellID  = entry[3],
             }
+        else
+            -- Fallback: build from runtime cache / API
+            local name = TomoMod_DataKeys.GetDungeonName(mapID) or ("ID:" .. mapID)
+            local short = TomoMod_DataKeys.GetShortName(mapID) or name
+            local spellID = nil  -- unknown for API-discovered dungeons
+
+            result[#result + 1] = {
+                mapID    = mapID,
+                name     = name,
+                short    = short,
+                spellID  = spellID,
+            }
         end
     end
+
     return result
+end
+
+-- =====================================
+-- Auto-refresh on events (deferred init)
+-- =====================================
+local refreshFrame = CreateFrame("Frame")
+refreshFrame:RegisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
+refreshFrame:RegisterEvent("MYTHIC_PLUS_NEW_SEASON")
+refreshFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+local refreshCount = 0
+refreshFrame:SetScript("OnEvent", function(_, event)
+    -- Try to refresh from API on relevant events
+    TomoMod_DataKeys.RefreshFromAPI()
+
+    -- On PLAYER_ENTERING_WORLD, schedule a few retries
+    -- because challenge mode data often loads after a delay
+    if event == "PLAYER_ENTERING_WORLD" and refreshCount == 0 then
+        refreshCount = 1
+        C_Timer.After(2, function()
+            TomoMod_DataKeys.RefreshFromAPI()
+        end)
+        C_Timer.After(5, function()
+            TomoMod_DataKeys.RefreshFromAPI()
+        end)
+        C_Timer.After(10, function()
+            TomoMod_DataKeys.RefreshFromAPI()
+            -- Update CURRENT_SEASON reference for backward compat
+            local ids = TomoMod_DataKeys.GetCurrentSeasonIDs()
+            if ids and #ids > 0 then
+                TomoMod_DataKeys.CURRENT_SEASON = ids
+            end
+        end)
+    end
+end)
+
+-- Also request map info to trigger data loading
+if C_ChallengeMode and C_ChallengeMode.RequestMapInfo then
+    pcall(C_ChallengeMode.RequestMapInfo)
 end

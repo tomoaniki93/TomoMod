@@ -47,20 +47,24 @@ function TomoMod_ConfigPanel_ActionBars(parent)
     end)
     y = ny
 
-    -- ===== SECTION: Per-Bar Opacity =====
+    -- ===== SECTION: Per-Bar Settings =====
     local _, ny = W.CreateSeparator(c, y)
     y = ny
     local _, ny = W.CreateSubLabel(c, L["sublabel_bar_opacity"], y)
     y = ny
 
-    -- Ensure barOpacity table exists
+    -- Ensure tables exist
     if not TomoModDB.actionBarSkin.barOpacity then
         TomoModDB.actionBarSkin.barOpacity = {}
+    end
+    if not TomoModDB.actionBarSkin.combatShow then
+        TomoModDB.actionBarSkin.combatShow = {}
     end
 
     -- State: currently selected bar
     local selectedBar = BAR_LIST[1].value
     local opacitySliderFrame
+    local combatCheckbox
 
     -- Dropdown to pick which bar
     local _, ny = W.CreateDropdown(c, L["opt_abs_select_bar"], BAR_LIST, selectedBar, y, function(barKey)
@@ -69,6 +73,10 @@ function TomoMod_ConfigPanel_ActionBars(parent)
         local val = TomoModDB.actionBarSkin.barOpacity[barKey] or 100
         if opacitySliderFrame then
             opacitySliderFrame:SetValue(val)
+        end
+        -- Update combat checkbox to reflect this bar's setting
+        if combatCheckbox then
+            combatCheckbox:SetChecked(TomoModDB.actionBarSkin.combatShow[barKey] or false)
         end
     end)
     y = ny
@@ -83,7 +91,7 @@ function TomoMod_ConfigPanel_ActionBars(parent)
     y = ny
     opacitySliderFrame = sliderFrame
 
-    -- ===== Apply All button =====
+    -- ===== Apply All Opacity button =====
     local _, ny = W.CreateButton(c, L["btn_abs_apply_all_opacity"], 260, y, function()
         local val = opacitySliderFrame:GetValue()
         for _, bar in ipairs(BAR_LIST) do
@@ -95,6 +103,22 @@ function TomoMod_ConfigPanel_ActionBars(parent)
         print("|cff0cd29fTomoMod:|r " .. string.format(L["msg_abs_all_opacity"], val))
     end)
     y = ny
+
+    -- ===== SECTION: Combat Visibility =====
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_bar_combat"], y)
+    y = ny
+
+    -- Combat show checkbox (state tied to selectedBar via dropdown callback)
+    local cbFrame, ny = W.CreateCheckbox(c, L["opt_abs_combat_show"], TomoModDB.actionBarSkin.combatShow[selectedBar] or false, y, function(v)
+        TomoModDB.actionBarSkin.combatShow[selectedBar] = v
+        if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.ApplyCombatShow then
+            TomoMod_ActionBarSkin.ApplyCombatShow()
+        end
+    end)
+    y = ny
+    combatCheckbox = cbFrame
 
     c:SetHeight(math.abs(y) + 40)
     return scroll

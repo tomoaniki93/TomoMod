@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.10 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.11 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -345,6 +345,8 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_abs_opacity"]                 = "Opacity",
     ["btn_abs_apply_all_opacity"]       = "Apply to all bars",
     ["msg_abs_all_opacity"]             = "Opacity set to %d%% on all bars",
+    ["sublabel_bar_combat"]             = "— Combat Visibility —",
+    ["opt_abs_combat_show"]             = "Show only in combat",
 
     ["section_cinematic"]               = "Cinematic Skip",
     ["opt_cinematic_auto_skip"]         = "Auto-skip after first viewing",
@@ -560,26 +562,6 @@ TomoMod_RegisterLocale("enUS", {
     ["msg_help_cr"]                     = "Lock/unlock Combat Res Tracker",
     ["msg_help_cs"]                     = "Lock/unlock Character Sheet position",
     ["msg_help_cs_reset"]               = "Reset Character Sheet to default position",
-
-    -- CharacterSheet
-    ["tab_qol_charsheet"]               = "Char Sheet",
-    ["section_charsheet"]               = "Character Sheet",
-    ["opt_cs_enabled"]                  = "Enable Character Sheet enhancements",
-    ["opt_cs_dark_mode"]                = "Dark mode (clean visual)",
-    ["opt_cs_scale"]                    = "Window scale",
-    ["btn_cs_reset_pos"]                = "Reset position",
-    ["cat_char_sheet"]                  = "Character Sheet",
-    ["section_cs_item_overlay"]         = "Item Overlay",
-    ["opt_cs_show_item_name"]           = "Show item name",
-    ["opt_cs_show_ilvl"]                = "Show item level & upgrade track",
-    ["opt_cs_show_enchant"]             = "Show enchantment text",
-    ["opt_cs_show_gems"]                = "Show gem icons",
-    ["opt_cs_show_missing"]             = "Highlight missing enchants & gems (red)",
-    ["cs_drag_to_move"]                 = "Drag to move",
-    ["cs_lock_hint"]                    = "/tm cs to lock",
-    ["cs_locked"]                       = "Character Sheet |cffff5555locked|r",
-    ["cs_unlocked"]                     = "Character Sheet |cff00ff00unlocked|r — drag title bar to move",
-    ["cs_pos_reset"]                    = "Character Sheet position reset",
 
     -- CinematicSkip
     ["msg_cin_skipped"]                 = "Cinematic skipped (already viewed)",

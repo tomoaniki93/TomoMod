@@ -332,6 +332,9 @@ end
 local function RefreshDisplay()
     if not TMKeyFrame then return end
 
+    -- Ensure API data is fresh (resolves names for dynamic IDs)
+    TomoMod_DataKeys.RefreshFromAPI()
+
     -- Always update our own key
     local myName = UnitName("player")
     local mapID, mapName, level = GetMyKeystoneInfo()
@@ -681,6 +684,7 @@ function MK:CreateFrames()
         local row = math.floor((i - 1) / 2)
 
         local btn = CreateFrame("Button", "TMKeyTP" .. i, tpContent, "SecureActionButtonTemplate")
+        btn:RegisterForClicks("AnyUp", "AnyDown")
         btn:SetSize(COL_W, ROW_H - 2)
         btn:SetPoint("TOPLEFT", PAD_X + col * (COL_W + 4), -(PAD_Y + row * ROW_H))
 
@@ -931,6 +935,7 @@ eventFrame:RegisterEvent("CHALLENGE_MODE_START")
 eventFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("SPELLS_CHANGED")
+eventFrame:RegisterEvent("CHALLENGE_MODE_MAPS_UPDATE")
 
 -- Chat events for keystone link parsing (universal detection)
 eventFrame:RegisterEvent("CHAT_MSG_PARTY")
@@ -1030,6 +1035,14 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, arg2, arg3, arg4)
 
     elseif event == "SPELLS_CHANGED" then
         -- Player learned/unlearned a spell: refresh TP ownership
+        if not InCombatLockdown() then
+            MK:RefreshTPButtons()
+        end
+
+    elseif event == "CHALLENGE_MODE_MAPS_UPDATE" then
+        -- Challenge mode data just loaded: refresh API cache and display
+        TomoMod_DataKeys.RefreshFromAPI()
+        RefreshDisplay()
         if not InCombatLockdown() then
             MK:RefreshTPButtons()
         end

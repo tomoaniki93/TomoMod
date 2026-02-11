@@ -192,6 +192,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         print("  |cff0cd29f/tm clearcinema|r — " .. L["msg_help_clearcinema"])
         print("  |cff0cd29f/tm sr|r — " .. L["msg_help_sr"])
         print("  |cff0cd29f/tm key|r — " .. L["msg_help_key"])
+        print("  |cff0cd29f/tm cr|r — " .. L["msg_help_cr"])
         print("  |cff0cd29f/tm help|r — " .. L["msg_help_help"])
     else
         -- Open config

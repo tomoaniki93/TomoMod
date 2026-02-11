@@ -115,6 +115,18 @@ TomoMod_Defaults = {
             PetActionButton        = 100,
             StanceButton           = 100,
         },
+        combatShow = {
+            ActionButton           = false,
+            MultiBarBottomLeft     = false,
+            MultiBarBottomRight    = false,
+            MultiBarRight          = false,
+            MultiBarLeft           = false,
+            MultiBar5              = false,
+            MultiBar6              = false,
+            MultiBar7              = false,
+            PetActionButton        = false,
+            StanceButton           = false,
+        },
     },
     autoSummon = {
         enabled = false,

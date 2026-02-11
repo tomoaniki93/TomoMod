@@ -277,6 +277,71 @@ local function ApplyAllOpacities()
 end
 
 -- =====================================
+-- COMBAT SHOW / HIDE
+-- =====================================
+local combatFrame = CreateFrame("Frame")
+combatFrame:Hide()
+
+local function SetBarVisible(barKey, visible)
+    local settings = GetSettings()
+    if not settings then return end
+    local opacities = settings.barOpacity or {}
+    local targetAlpha = visible and ((opacities[barKey] or 100) / 100) or 0
+    for button, bk in pairs(buttonBarKey) do
+        if bk == barKey then
+            button:SetAlpha(targetAlpha)
+        end
+    end
+end
+
+local function ApplyCombatVisibility()
+    local settings = GetSettings()
+    if not settings or not settings.enabled then return end
+    local combatShow = settings.combatShow or {}
+    local inCombat = InCombatLockdown()
+
+    -- Track whether we need combat events
+    local needEvents = false
+
+    for barKey, enabled in pairs(combatShow) do
+        if enabled then
+            needEvents = true
+            SetBarVisible(barKey, inCombat)
+        end
+    end
+
+    -- Register/unregister combat events as needed
+    if needEvents then
+        combatFrame:RegisterEvent("PLAYER_REGEN_DISABLED")  -- entering combat
+        combatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")   -- leaving combat
+        combatFrame:Show()
+    else
+        combatFrame:UnregisterAllEvents()
+        combatFrame:Hide()
+        -- Restore all opacities when no bars use combat show
+        ApplyAllOpacities()
+    end
+end
+
+combatFrame:SetScript("OnEvent", function(_, event)
+    local settings = GetSettings()
+    if not settings or not settings.enabled then return end
+    local combatShow = settings.combatShow or {}
+    local inCombat = (event == "PLAYER_REGEN_DISABLED")
+
+    for barKey, enabled in pairs(combatShow) do
+        if enabled then
+            SetBarVisible(barKey, inCombat)
+        end
+    end
+end)
+
+-- Public API for config panel
+function ABS.ApplyCombatShow()
+    ApplyCombatVisibility()
+end
+
+-- =====================================
 -- UPDATE BORDER COLORS
 -- =====================================
 local function UpdateBorderColors()
@@ -399,6 +464,8 @@ local function RestoreAllBars()
     if not shiftRevealing then return end
     shiftRevealing = false
     ApplyAllOpacities()
+    -- Re-apply combat visibility after shift restore
+    ApplyCombatVisibility()
 end
 
 local shiftFrame = CreateFrame("Frame")
@@ -448,8 +515,15 @@ function ABS.Initialize()
             ABS.SetShiftReveal(true)
         end
 
+        -- Apply combat visibility settings
+        ApplyCombatVisibility()
+
         -- Second pass for late-loaded bars
-        C_Timer.After(2, SkinAllButtons)
+        C_Timer.After(2, function()
+            SkinAllButtons()
+            -- Re-apply combat visibility after second pass
+            ApplyCombatVisibility()
+        end)
     end)
 end
 
@@ -461,11 +535,15 @@ function ABS.SetEnabled(enabled)
     if enabled then
         if next(skinnedButtons) then
             ShowSkin()
+            ApplyCombatVisibility()
         else
             ABS.Initialize()
         end
         print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_abs_enabled"])
     else
+        -- Disable combat frame when skin is disabled
+        combatFrame:UnregisterAllEvents()
+        combatFrame:Hide()
         HideSkin()
         print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_abs_disabled"])
     end

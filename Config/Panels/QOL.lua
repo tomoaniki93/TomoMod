@@ -245,28 +245,6 @@ local function BuildMythicKeysTab(parent)
     end)
     y = ny
 
-    --[[-- Combat Res Tracker
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_combat_res_tracker"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.combatResTracker.enabled, y, function(v)
-        TomoModDB.combatResTracker.enabled = v
-        if TomoMod_CombatResTracker then TomoMod_CombatResTracker.SetEnabled(v) end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_cr_show_rating"], TomoModDB.combatResTracker.showRating, y, function(v)
-        TomoModDB.combatResTracker.showRating = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_show_messages"], TomoModDB.combatResTracker.showMessages, y, function(v)
-        TomoModDB.combatResTracker.showMessages = v
-    end)
-    y = ny]]
-
     c:SetHeight(math.abs(y) + 40)
     return scroll
 end

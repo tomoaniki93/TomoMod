@@ -1,6 +1,6 @@
-CHANGELOG 2.1.10
+CHANGELOG 2.1.11
 
-- Add QOL Id on ToolTips with Spells & Items
-- Add QOL AutoSkipRole
-- Add QOL Combat resurrection tracker and display
-- Rewrite MythicKeys
+- Fix error log 2.1.10
+- Fix error slashcommand
+- add inCombat option Per-actionbar
+- Fix Tp in /tm key
