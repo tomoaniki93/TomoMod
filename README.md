@@ -73,6 +73,22 @@ Reskins Blizzard's cooldown icons (Essential, Utility, Buffs) with a clean, unif
 - **3-level alpha system:** in combat (1.0), with target out of combat (0.8), no target (0.5) — all configurable
 - **Blizzard Edit Mode** used for positioning — no custom position system needed
 
+## 🎨 Action Bars
+
+### ActionBarSkin
+
+Complete reskin of action buttons with 9-slice borders.
+
+- **Rounded borders** for all buttons (10 bars supported)
+- **Optional class color** for borders
+- **Opacity per bar**: Individual slider for each action bar (0-100%)
+- Bar selection dropdown
+- "Apply to all" button to standardize
+- **🆕 Shift Reveal**: Hold `Shift` to temporarily reveal all hidden bars at 100% opacity — releasing restores the configured values
+- Removal of Blizzard's NormalTexture, SlotArt, and Border textures
+
+**Supported bars:** Action Bar 1-8, Pet Bar, Stance Bar
+
 ### 🛠️ QOL Modules
 
 #### Minimap
@@ -107,13 +123,29 @@ Reskins Blizzard's cooldown icons (Essential, Utility, Buffs) with a clean, unif
 - Surge Forward and Skyward Ascent indicators
 - Fully configurable dimensions, colors, and position
 
-#### Mythic Keys (MK)
-- **Group key tracker** — shares keystones between party members via addon comms
-- Mini frame display + full detail frame
-- Auto-refresh on group changes
-- Send keys to chat with one click
-- Auto-insert keystone at the font
-- Toggle with `/tm key`
+## MythicKeys — Clés Mythiques du Groupe
+
+Compact display of Mythic Keys for the entire group.
+
+- **Multi-protocol detection**: TMKeyTracker, AstralKeys, AngryKeystones, parsing chat links
+- **DataKeys.lua**: database of 80+ dungeons (WotLK → Midnight) for name resolution
+- **🆕 Teleportation Tab**: teleportation buttons for the 8 dungeons of the current Mythic+ season (S3 TWW)
+- Teleportation ownership detection (owned/locked)
+- Buttons are grayed out if the teleportation is locked
+- Anti-combat protection (secure lockdown)
+- Tabbed interface: Keys | Teleports
+- `/tm key` to show/hide
+
+### TooltipIDs
+
+Affiche les IDs dans les tooltips pour :
+
+- Sorts (SpellID)
+- Objets (ItemID)
+- PNJs (NPC ID)
+- Quêtes (QuestID)
+- Montures, Monnaies, Succès
+- Compatible TWW Secret Values
 
 #### Auto Modules
 | Module | Description |
