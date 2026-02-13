@@ -59,14 +59,14 @@ function TomoMod_CursorRing.ApplyScale()
     cursorFrame:SetSize(size, size)
 end
 
--- Gérer l'ancrage du tooltip
+-- Gérer l'ancrage du tooltip (fonctionne même si le ring est désactivé)
 local tooltipHooked = false
 function TomoMod_CursorRing.SetupTooltipAnchor()
     if not tooltipHooked then
         -- Hook le positionnement par défaut du tooltip
-        -- [PERF] Early-exit when not active
+        -- [PERF] Early-exit when anchorTooltip is off
         GameTooltip:HookScript("OnUpdate", function(self, elapsed)
-            if not TomoModDB.cursorRing.enabled or not TomoModDB.cursorRing.anchorTooltip then return end
+            if not TomoModDB.cursorRing.anchorTooltip then return end
             if not self:IsShown() then return end
             local x, y = GetCursorPosition()
             local scale = UIParent:GetEffectiveScale()
@@ -108,5 +108,7 @@ end
 
 -- Initialisation du module
 function TomoMod_CursorRing.Initialize()
+    -- Tooltip anchor works independently of ring enabled state
+    TomoMod_CursorRing.SetupTooltipAnchor()
     TomoMod_CursorRing.ApplySettings()
 end

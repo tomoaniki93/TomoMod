@@ -594,6 +594,24 @@ function UF.ToggleLock()
     end
 end
 
+-- Toggle player castbar lock (used by /tm sr)
+function UF.TogglePlayerCastbarLock()
+    local frame = frames["player"]
+    if not frame or not frame.castbar then return end
+    local cb = frame.castbar
+    if cb.SetLocked then
+        local newLocked = not cb.isLocked
+        cb:SetLocked(newLocked)
+        if not newLocked then
+            -- Unlocked: show visual preview for dragging
+            cb:ShowPreview()
+        else
+            -- Locked: restore normal state
+            cb:HidePreview()
+        end
+    end
+end
+
 function UF.RefreshUnit(unitKey)
     local frame = frames[unitKey]
     local settings = TomoModDB.unitFrames[unitKey]
@@ -661,8 +679,8 @@ function UF.RefreshUnit(unitKey)
             frame.power:ClearAllPoints()
             frame.power:SetPoint("TOP", frame.health, "BOTTOM", offsets.power.x, offsets.power.y)
         end
-        -- Castbar
-        if frame.castbar and settings.castbar and offsets.castbar then
+        -- Castbar (skip player — standalone drag & drop via /tm sr)
+        if frame.castbar and settings.castbar and offsets.castbar and unitKey ~= "player" then
             local cbPos = settings.castbar.position
             if cbPos then
                 frame.castbar:ClearAllPoints()

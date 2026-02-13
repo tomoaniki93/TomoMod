@@ -65,6 +65,10 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if TomoMod_FrameAnchors and TomoMod_FrameAnchors.ToggleLock then
             TomoMod_FrameAnchors.ToggleLock()
         end
+        -- Player castbar (standalone drag & drop)
+        if TomoMod_UnitFrames and TomoMod_UnitFrames.TogglePlayerCastbarLock then
+            TomoMod_UnitFrames.TogglePlayerCastbarLock()
+        end
     elseif msg == "cdm" or msg == "ci" then
         if TomoMod_CooldownManager then
             local enabled = TomoModDB and TomoModDB.cooldownManager and TomoModDB.cooldownManager.enabled

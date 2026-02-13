@@ -247,8 +247,9 @@ TomoMod_Defaults = {
                 height = 20,
                 showIcon = true,
                 showTimer = true,
+                showLatency = true,
                 color = { r = 1.0, g = 0.7, b = 0.0 },
-                position = { point = "TOP", relativePoint = "BOTTOM", x = 0, y = -6 },
+                position = { point = "BOTTOM", relativePoint = "CENTER", x = -280, y = -220 },
             },
             auras = {
                 enabled = true,
@@ -266,7 +267,6 @@ TomoMod_Defaults = {
                 level = { x = -6, y = 0 },
                 healthText = { x = 0, y = 0 },
                 power = { x = 0, y = 0 },
-                castbar = { x = 0, y = 0 },
                 auras = { x = 0, y = 0 },
             },
             position = { point = "BOTTOM", relativePoint = "CENTER", x = -280, y = -190 },

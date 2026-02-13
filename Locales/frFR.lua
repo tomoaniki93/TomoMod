@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.13 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.14 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -43,7 +43,7 @@ TomoMod_RegisterLocale("frFR", {
     -- Cursor Ring
     ["section_cursor_ring"]             = "Cursor Ring",
     ["opt_class_color"]                 = "Couleur de classe",
-    ["opt_anchor_tooltip_ring"]         = "Ancrer Tooltip + Afficher Ring",
+    ["opt_anchor_tooltip_ring"]         = "Ancrer Tooltip au curseur",
 
     -- =====================
     -- CONFIG: UnitFrames Panel
@@ -124,6 +124,9 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_castbar_height"]              = "Hauteur castbar",
     ["opt_castbar_show_icon"]           = "Afficher icône",
     ["opt_castbar_show_timer"]          = "Afficher timer",
+    ["info_castbar_drag"]               = "Position: /tm sr pour déverrouiller et déplacer la castbar.",
+    ["btn_reset_castbar_position"]      = "Reset position Castbar",
+    ["opt_castbar_show_latency"]        = "Afficher la latence",
 
     -- Auras
     ["opt_auras_enable"]                = "Activer les auras",

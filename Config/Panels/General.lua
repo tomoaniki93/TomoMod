@@ -107,7 +107,6 @@ function TomoMod_ConfigPanel_General(parent)
         TomoModDB.cursorRing.anchorTooltip = v
         if TomoMod_CursorRing then
             TomoMod_CursorRing.SetupTooltipAnchor()
-            TomoMod_CursorRing.Toggle(true)
         end
     end)
     y = ny

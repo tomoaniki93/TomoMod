@@ -113,6 +113,31 @@ local function BuildDimensionsTab(parent, unitKey, displayName)
             db.castbar.showTimer = v
         end)
         y = ny
+
+        -- Player castbar: drag & drop info + reset button
+        if unitKey == "player" then
+            local _, ny = W.CreateCheckbox(c, L["opt_castbar_show_latency"], db.castbar.showLatency, y, function(v)
+                db.castbar.showLatency = v
+            end)
+            y = ny
+
+            local _, ny = W.CreateInfoText(c, L["info_castbar_drag"], y)
+            y = ny
+
+            local _, ny = W.CreateButton(c, L["btn_reset_castbar_position"], 220, y, function()
+                if TomoMod_Defaults.unitFrames.player and TomoMod_Defaults.unitFrames.player.castbar then
+                    db.castbar.position = CopyTable(TomoMod_Defaults.unitFrames.player.castbar.position)
+                    local cb = _G["TomoMod_Castbar_player"]
+                    if cb then
+                        local pos = db.castbar.position
+                        cb:ClearAllPoints()
+                        cb:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
+                    end
+                    print("|cff0cd29fTomoMod|r Castbar " .. L["msg_uf_position_reset"])
+                end
+            end)
+            y = ny
+        end
     end
 
     c:SetHeight(math.abs(y) + 40)
@@ -330,7 +355,10 @@ local function BuildPositionTab(parent, unitKey, displayName)
         }
 
         for _, elem in ipairs(elements) do
-            if db.elementOffsets[elem.key] then
+            -- Skip castbar for player (standalone drag & drop via /tm sr)
+            if elem.key == "castbar" and unitKey == "player" then
+                -- no-op
+            elseif db.elementOffsets[elem.key] then
                 local offData = db.elementOffsets[elem.key]
 
                 local _, ny = W.CreateSlider(c, elem.label .. " X", offData.x, -100, 100, 1, y, function(v)

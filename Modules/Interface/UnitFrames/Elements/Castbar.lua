@@ -32,9 +32,28 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     castbar:SetStatusBarColor(baseR, baseG, baseB, 1)
     castbar._baseColor = { baseR, baseG, baseB }
 
-    -- Position relative to parent
-    local pos = cbSettings.position or { point = "TOP", relativePoint = "BOTTOM", x = 0, y = -6 }
-    castbar:SetPoint(pos.point, parent, pos.relativePoint, pos.x, pos.y)
+    -- Position: player castbar is standalone (anchored to UIParent, drag & drop via /tm sr)
+    -- Other units anchor relative to their parent frame
+    if unit == "player" then
+        local pos = cbSettings.position or { point = "BOTTOM", relativePoint = "CENTER", x = -280, y = -220 }
+        castbar:SetParent(UIParent)
+        castbar:ClearAllPoints()
+        castbar:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
+
+        -- Make draggable (toggled via /tm sr)
+        TomoMod_Utils.SetupDraggable(castbar, function()
+            local point, _, relativePoint, x, y = castbar:GetPoint()
+            cbSettings.position = cbSettings.position or {}
+            cbSettings.position.point = point
+            cbSettings.position.relativePoint = relativePoint
+            cbSettings.position.x = x
+            cbSettings.position.y = y
+        end)
+        castbar:SetFrameStrata("MEDIUM")
+    else
+        local pos = cbSettings.position or { point = "TOP", relativePoint = "BOTTOM", x = 0, y = -6 }
+        castbar:SetPoint(pos.point, parent, pos.relativePoint, pos.x, pos.y)
+    end
 
     -- Background
     local bg = castbar:CreateTexture(nil, "BACKGROUND")
@@ -59,6 +78,23 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     niOverlay:SetAlpha(0)
     niOverlay:Show()
     castbar.niOverlay = niOverlay
+
+    -- =====================================
+    -- LATENCY OVERLAY (player only)
+    -- Darker zone at the end of the bar showing network latency.
+    -- Indicates the safe zone where you can start queuing the next spell.
+    -- =====================================
+    if unit == "player" then
+        local latencyTex = castbar:CreateTexture(nil, "ARTWORK", nil, 2)
+        latencyTex:SetPoint("TOP", castbar, "TOP", 0, 0)
+        latencyTex:SetPoint("BOTTOM", castbar, "BOTTOM", 0, 0)
+        latencyTex:SetPoint("RIGHT", castbar, "RIGHT", 0, 0)
+        latencyTex:SetWidth(1)
+        latencyTex:SetTexture(tex)
+        latencyTex:SetVertexColor(baseR * 0.35, baseG * 0.35, baseB * 0.35, 0.85)
+        latencyTex:Hide()
+        castbar.latencyTex = latencyTex
+    end
 
     -- Icon
     if cbSettings.showIcon then
@@ -97,8 +133,116 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     castbar.channeling = false
     castbar.duration_obj = nil
     castbar.failstart = nil
+    castbar._preview = false
+    castbar._castStartMS = nil
+    castbar._castEndMS = nil
 
     castbar:Hide()
+
+    -- =====================================
+    -- PREVIEW MODE (player only — shown when unlocked via /tm sr)
+    -- Fills the bar, shows placeholder text/icon so the castbar is visible for dragging.
+    -- =====================================
+
+    function castbar:ShowPreview()
+        self._preview = true
+        self.casting = false
+        self.channeling = false
+        self.failstart = nil
+        self.niOverlay:SetAlpha(0)
+
+        -- Fill bar 100%, base color
+        self:SetMinMaxValues(0, 100)
+        self:SetValue(100)
+        self:SetReverseFill(false)
+        local bc = self._baseColor or { 0.8, 0.1, 0.1 }
+        self:SetStatusBarColor(bc[1], bc[2], bc[3], 1)
+
+        -- Placeholder text
+        if self.spellText then self.spellText:SetText("Castbar") end
+        if self.timerText then self.timerText:SetText("1.5") end
+
+        -- Generic icon
+        if self.icon then
+            self.icon:SetTexture("Interface\\Icons\\Spell_Nature_Lightning")
+        end
+
+        -- Show latency preview (simulate ~60ms on a 1.5s cast ≈ 4% of bar)
+        if self.latencyTex then
+            if cbSettings.showLatency then
+                local previewWidth = math.max(2, self:GetWidth() * 0.04)
+                self.latencyTex:SetWidth(previewWidth)
+                -- Refresh color
+                local bc2 = self._baseColor or { 0.8, 0.1, 0.1 }
+                self.latencyTex:SetVertexColor(bc2[1] * 0.35, bc2[2] * 0.35, bc2[3] * 0.35, 0.85)
+                self.latencyTex:Show()
+            else
+                self.latencyTex:Hide()
+            end
+        end
+
+        self:Show()
+    end
+
+    function castbar:HidePreview()
+        self._preview = false
+        if self.spellText then self.spellText:SetText("") end
+        if self.timerText then self.timerText:SetText("") end
+        if self.icon then self.icon:SetTexture(nil) end
+        if self.latencyTex then self.latencyTex:Hide() end
+        -- Only hide if nothing is actively casting
+        if not self.casting and not self.channeling and not self.failstart then
+            self:Hide()
+        end
+    end
+
+    -- =====================================
+    -- LATENCY HELPER
+    -- Computes the latency width from GetNetStats() and cast duration.
+    -- Uses pcall because startTimeMS/endTimeMS may be secret values in TWW,
+    -- though for the player unit they are typically regular numbers.
+    -- =====================================
+
+    local function UpdateLatency(self)
+        if not self.latencyTex then return end
+        if not cbSettings.showLatency then
+            self.latencyTex:Hide()
+            return
+        end
+
+        -- Only show during casting (not channeling — latency zone doesn't help there)
+        if not self.casting then
+            self.latencyTex:Hide()
+            return
+        end
+
+        local startMS = self._castStartMS
+        local endMS = self._castEndMS
+        if not startMS or not endMS then
+            self.latencyTex:Hide()
+            return
+        end
+
+        -- latencyWidth = (latencyWorldMS / castDurationMS) * barPixelWidth
+        -- pcall guards against secret value arithmetic failures
+        local ok, result = pcall(function()
+            local castDurationMS = endMS - startMS
+            if castDurationMS <= 0 then return 0 end
+            local _, _, _, latencyWorld = GetNetStats()
+            local barWidth = self:GetWidth()
+            return math.min(barWidth * 0.25, math.max(2, (latencyWorld / castDurationMS) * barWidth))
+        end)
+
+        if ok and result and result > 0 then
+            -- Color: darker version of the base castbar color
+            local bc = self._baseColor or { 0.8, 0.1, 0.1 }
+            self.latencyTex:SetVertexColor(bc[1] * 0.35, bc[2] * 0.35, bc[3] * 0.35, 0.85)
+            self.latencyTex:SetWidth(result)
+            self.latencyTex:Show()
+        else
+            self.latencyTex:Hide()
+        end
+    end
 
     -- =====================================
     -- CASTBAR LOGIC (asTargetCastBar techniques)
@@ -111,6 +255,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         -- Handle interrupt display
         if isInterrupt then
             self.niOverlay:SetAlpha(0)
+            if self.latencyTex then self.latencyTex:Hide() end
             local intCol = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.castbarInterruptColor
             if intCol then
                 self:SetStatusBarColor(intCol.r, intCol.g, intCol.b, 1)
@@ -123,6 +268,8 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             self.casting = false
             self.channeling = false
             self.duration_obj = nil
+            self._castStartMS = nil
+            self._castEndMS = nil
             self.failstart = GetTime()
             self:SetMinMaxValues(0, 100)
             self:SetValue(100)
@@ -163,6 +310,9 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             self.casting = false
             self.channeling = false
             self.duration_obj = nil
+            self._castStartMS = nil
+            self._castEndMS = nil
+            if self.latencyTex then self.latencyTex:Hide() end
             self:Hide()
             return
         end
@@ -175,6 +325,10 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             duration = UnitCastingDuration(unitID)
         end
         self.duration_obj = duration
+
+        -- Store raw times for latency computation
+        self._castStartMS = startTimeMS
+        self._castEndMS = endTimeMS
 
         -- Update state
         self.casting = not bchannel
@@ -199,11 +353,17 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         local alpha = C_CurveUtil.EvaluateColorValueFromBoolean(notInterruptible, 1, 0)
         self.niOverlay:SetAlpha(alpha)
 
+        -- Update latency indicator
+        UpdateLatency(self)
+
         self:Show()
     end
 
     -- OnUpdate: bar progress + timer text
     castbar:SetScript("OnUpdate", function(self, elapsed)
+        -- Preview mode: keep bar visible, skip all logic
+        if self._preview then return end
+
         -- Handle interrupt fadeout
         if self.failstart then
             if GetTime() - self.failstart > 1 then
@@ -249,6 +409,9 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     end
 
     events:SetScript("OnEvent", function(self, event, eventUnit)
+        -- Preview mode: ignore all cast events
+        if castbar._preview then return end
+
         -- Target/focus change: check for ongoing cast/channel on new target
         if event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_FOCUS_CHANGED" then
             castbar.failstart = nil
@@ -272,6 +435,9 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             castbar.casting = false
             castbar.channeling = false
             castbar.duration_obj = nil
+            castbar._castStartMS = nil
+            castbar._castEndMS = nil
+            if castbar.latencyTex then castbar.latencyTex:Hide() end
             if not castbar.failstart then
                 castbar:Hide()
             end
