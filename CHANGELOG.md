@@ -1,4 +1,5 @@
-CHANGELOG 2.1.13
+CHANGELOG 2.1.14
 
-- BIG FIX PERFORMANCE in RAID and DUGEON on NamesPlates
-- Fix new Update on UnitFrames
+- Drag & drop Cast bar Player UnitFrames by /tm sr (do a /tm uf reset for Update the change in DB)
+- CastBar Latence
+- Cursor Tooltip even if not ring

@@ -242,6 +242,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_AutoSummon then TomoMod_AutoSummon.Initialize() end
         if TomoMod_HideCastBar then TomoMod_HideCastBar.Initialize() end
         if TomoMod_AutoFillDelete then TomoMod_AutoFillDelete.Initialize() end
+        if TomoMod_LustSound then TomoMod_LustSound.Initialize() end
         if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
         if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.Initialize() end
 

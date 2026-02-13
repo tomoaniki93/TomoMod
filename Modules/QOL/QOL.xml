@@ -43,4 +43,7 @@
     <!-- Modules: ActionBars -->
     <Include file="ActionBars\ActionBarSkin.lua" />
 
+    <!-- Modules: LustSound -->
+    <Include file="LustSound\LustSound.lua" />
+
 </Ui>

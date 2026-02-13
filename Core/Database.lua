@@ -149,6 +149,19 @@ TomoMod_Defaults = {
         focusButton = true,
         showMessages = false,
     },
+    lustSound = {
+        enabled = true,
+        sound = "TALUANI",
+        channel = "Master",
+        showChat = false,
+        debug = false,
+        detection = {
+            spike_ratio = 160,  -- % above mean to trigger
+            jump_ratio = 140,   -- % above max recent to confirm
+            fade_ratio = 115,   -- when below this %, lust is over
+        },
+    },
+
     cooldownManager = {
         enabled = true,
         showHotKey = false,

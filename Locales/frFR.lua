@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.13 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.1.15 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -641,4 +641,31 @@ TomoMod_RegisterLocale("frFR", {
     ["info_boss_drag"]                  = "Déverrouillez (/tm uf) pour déplacer. Glissez Boss 1 pour repositionner les 5 barres ensemble.",
     ["info_boss_colors"]                = "Les couleurs utilisent les couleurs de classification Nameplates (Boss = rouge, Mini-boss = violet).",
     ["msg_boss_initialized"]            = "Barres de Boss chargées.",
+
+    -- =====================
+    -- SOUND / LUST DETECTION
+    -- =====================
+    ["cat_sound"]                       = "Son",
+    ["tab_sound_general"]               = "Général",
+    ["tab_sound_detection"]             = "Détection",
+    ["section_sound_general"]           = "Son de Bloodlust",
+    ["info_sound_desc"]                 = "Joue un son personnalisé quand un effet de type Bloodlust est détecté sur votre personnage. La détection utilise une combinaison de pics de hâte et de détection du debuff Sated.",
+    ["opt_sound_enable"]                = "Activer la détection de Bloodlust",
+    ["sublabel_sound_choice"]           = "Son & Canal",
+    ["opt_sound_file"]                  = "Son à jouer",
+    ["opt_sound_channel"]               = "Canal audio",
+    ["btn_sound_preview"]               = "▶  Écouter le son",
+    ["btn_sound_stop"]                  = "■  Arrêter",
+    ["opt_sound_chat"]                  = "Afficher les messages en chat",
+    ["opt_sound_debug"]                 = "Mode debug (hâte en temps réel)",
+    ["section_sound_detection"]         = "Paramètres de détection",
+    ["info_sound_detection_desc"]       = "Ces réglages contrôlent la sensibilité de la détection de Bloodlust via les variations de hâte. Des valeurs plus basses déclencheront plus souvent (ex: Power Infusion).",
+    ["opt_sound_spike_ratio"]           = "Ratio de spike",
+    ["info_sound_spike_tooltip"]        = "Ratio du haste actuel par rapport à la moyenne. 160% = le haste doit être 1.6× la moyenne pour déclencher. (Défaut: 160%)",
+    ["opt_sound_jump_ratio"]            = "Ratio de saut",
+    ["info_sound_jump_tooltip"]         = "Ratio par rapport au maximum récent. Empêche les augmentations progressives de déclencher la détection. (Défaut: 140%)",
+    ["opt_sound_fade_ratio"]            = "Ratio de fin",
+    ["info_sound_fade_tooltip"]         = "Quand le haste retombe sous ce ratio par rapport à la baseline, l'effet est considéré comme terminé. (Défaut: 115%)",
+    ["btn_sound_reset_detection"]       = "Réinitialiser les ratios",
+    ["msg_sound_detection_reset"]       = "Ratios de détection réinitialisés.",
 })
