@@ -1250,6 +1250,8 @@ local npUnitEvents = {
     "UNIT_SPELLCAST_CHANNEL_UPDATE",
     "UNIT_SPELLCAST_INTERRUPTIBLE", "UNIT_SPELLCAST_NOT_INTERRUPTIBLE",
     "UNIT_SPELLCAST_SUCCEEDED",
+    "UNIT_SPELLCAST_EMPOWER_START", "UNIT_SPELLCAST_EMPOWER_STOP",
+    "UNIT_SPELLCAST_EMPOWER_UPDATE",
 }
 
 -- [PERF] Dirty-flag batch system: coalesce multiple events per unit into one update per frame
