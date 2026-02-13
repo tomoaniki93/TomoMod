@@ -447,8 +447,23 @@ local function CreatePlate(baseFrame)
 
     plate.castbar.casting = false
     plate.castbar.channeling = false
+    plate.castbar.empowered = false
+    plate.castbar.numStages = 0
     plate.castbar.duration_obj = nil
     plate.castbar.failstart = nil
+
+    -- Empower stage markers (vertical lines for Evoker casts)
+    plate.castbar.stageMarkers = {}
+    for i = 1, 4 do
+        local marker = plate.castbar:CreateTexture(nil, "OVERLAY", nil, 2)
+        marker:SetWidth(2)
+        marker:SetPoint("TOP", plate.castbar, "TOP", 0, 0)
+        marker:SetPoint("BOTTOM", plate.castbar, "BOTTOM", 0, 0)
+        marker:SetColorTexture(1, 1, 1, 0.7)
+        marker:Hide()
+        plate.castbar.stageMarkers[i] = marker
+    end
+
     plate.castbar:SetScript("OnUpdate", function(self, elapsed)
         if self.failstart then
             if GetTime() - self.failstart > 1 then
@@ -457,7 +472,7 @@ local function CreatePlate(baseFrame)
             end
             return
         end
-        if not self.casting and not self.channeling then
+        if not self.casting and not self.channeling and not self.empowered then
             self:Hide()
             return
         end
@@ -1054,6 +1069,51 @@ end
 -- CASTBAR HELPERS
 -- =====================================
 
+local function HideNPStageMarkers(castbar)
+    if castbar.stageMarkers then
+        for i = 1, 4 do castbar.stageMarkers[i]:Hide() end
+    end
+end
+
+local function UpdateNPStageMarkers(castbar, unit, numStages, startMS, endMS)
+    HideNPStageMarkers(castbar)
+    if numStages <= 0 then return end
+
+    local barWidth = castbar:GetWidth()
+    pcall(function()
+        local totalDuration = endMS - startMS
+        if totalDuration <= 0 then return end
+
+        local cumulative = 0
+        for stage = 0, numStages - 1 do
+            local stageDuration = GetUnitEmpowerStageDuration(unit, stage)
+            if not stageDuration or stageDuration <= 0 then break end
+            cumulative = cumulative + stageDuration
+
+            if stage < numStages - 1 then
+                local pct = cumulative / totalDuration
+                local xPos = barWidth * pct
+                local marker = castbar.stageMarkers[stage + 1]
+                if marker then
+                    marker:ClearAllPoints()
+                    marker:SetPoint("TOP", castbar, "TOPLEFT", xPos, 0)
+                    marker:SetPoint("BOTTOM", castbar, "BOTTOMLEFT", xPos, 0)
+                    marker:Show()
+                end
+            end
+        end
+    end)
+end
+
+local function ResetNPCastbar(castbar)
+    castbar.casting = false
+    castbar.channeling = false
+    castbar.empowered = false
+    castbar.numStages = 0
+    castbar.duration_obj = nil
+    HideNPStageMarkers(castbar)
+end
+
 local function UpdateCastbar(plate, unit)
     if not plate or not plate.castbar then return end
     local s = DB()
@@ -1064,10 +1124,13 @@ local function UpdateCastbar(plate, unit)
 
     local name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible
 
+    -- Check regular cast
     name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible = UnitCastingInfo(unit)
     if type(name) ~= "nil" then
         plate.castbar.casting = true
         plate.castbar.channeling = false
+        plate.castbar.empowered = false
+        plate.castbar.numStages = 0
         plate.castbar.duration_obj = UnitCastingDuration(unit)
         plate.castbar:SetMinMaxValues(startTimeMS, endTimeMS)
         plate.castbar:SetReverseFill(false)
@@ -1081,36 +1144,51 @@ local function UpdateCastbar(plate, unit)
             plate.castbar.shieldFrame:SetAlpha(alpha)
             plate.castbar.shieldFrame:Show()
         end
+        HideNPStageMarkers(plate.castbar)
         plate.castbar:Show()
         return
     end
 
-    local chanNI
-    name, _, texture, startTimeMS, endTimeMS, _, chanNI = UnitChannelInfo(unit)
-    if type(name) ~= "nil" then
+    -- Check channel / empowered
+    -- UnitChannelInfo returns: name, displayName, texture, startTimeMS, endTimeMS,
+    --   isTradeSkill, notInterruptible, spellID, _, numEmpowerStages
+    local chanNI, chanStages
+    local chanName, _, chanTex, chanStart, chanEnd, _, cNI, _, _, cStages = UnitChannelInfo(unit)
+    if type(chanName) ~= "nil" then
+        local bempowered = (cStages and cStages > 0)
+
         plate.castbar.casting = false
-        plate.castbar.channeling = true
+        plate.castbar.channeling = not bempowered
+        plate.castbar.empowered = bempowered
+        plate.castbar.numStages = bempowered and cStages or 0
         plate.castbar.duration_obj = UnitChannelDuration(unit)
-        plate.castbar:SetMinMaxValues(startTimeMS, endTimeMS)
-        plate.castbar:SetReverseFill(true)
+        plate.castbar:SetMinMaxValues(chanStart, chanEnd)
+        -- Channels fill right-to-left, empowered fill left-to-right
+        plate.castbar:SetReverseFill(not bempowered)
         local cc = s.castbarColor or { r = 0.85, g = 0.15, b = 0.15 }
         plate.castbar:SetStatusBarColor(cc.r, cc.g, cc.b, 1)
-        plate.castbar.text:SetFormattedText("%s", name)
-        plate.castbar.icon:SetTexture(texture)
-        local alpha = C_CurveUtil.EvaluateColorValueFromBoolean(chanNI, 1, 0)
+        plate.castbar.text:SetFormattedText("%s", chanName)
+        plate.castbar.icon:SetTexture(chanTex)
+        local alpha = C_CurveUtil.EvaluateColorValueFromBoolean(cNI, 1, 0)
         plate.castbar.niOverlay:SetAlpha(alpha)
         if plate.castbar.shieldFrame then
             plate.castbar.shieldFrame:SetAlpha(alpha)
             plate.castbar.shieldFrame:Show()
         end
+
+        -- Empower stage markers
+        if bempowered then
+            UpdateNPStageMarkers(plate.castbar, unit, cStages, chanStart, chanEnd)
+        else
+            HideNPStageMarkers(plate.castbar)
+        end
+
         plate.castbar:Show()
         return
     end
 
     plate.castbar:Hide()
-    plate.castbar.casting = false
-    plate.castbar.channeling = false
-    plate.castbar.duration_obj = nil
+    ResetNPCastbar(plate.castbar)
     if plate.castbar.shieldFrame then plate.castbar.shieldFrame:Hide() end
 end
 
@@ -1146,6 +1224,7 @@ local function OnNamePlateRemoved(unit)
     local plate = unitPlates[unit]
     if plate then
         plate:Hide()
+        ResetNPCastbar(plate.castbar)
         plate.castbar:Hide()
         if plate.castbar.shieldFrame then plate.castbar.shieldFrame:Hide() end
         if plate.glowFrame then plate.glowFrame:Hide() end
@@ -1168,8 +1247,11 @@ local npUnitEvents = {
     "UNIT_SPELLCAST_START", "UNIT_SPELLCAST_STOP",
     "UNIT_SPELLCAST_FAILED", "UNIT_SPELLCAST_INTERRUPTED",
     "UNIT_SPELLCAST_CHANNEL_START", "UNIT_SPELLCAST_CHANNEL_STOP",
+    "UNIT_SPELLCAST_CHANNEL_UPDATE",
     "UNIT_SPELLCAST_INTERRUPTIBLE", "UNIT_SPELLCAST_NOT_INTERRUPTIBLE",
     "UNIT_SPELLCAST_SUCCEEDED",
+    "UNIT_SPELLCAST_EMPOWER_START", "UNIT_SPELLCAST_EMPOWER_STOP",
+    "UNIT_SPELLCAST_EMPOWER_UPDATE",
 }
 
 -- [PERF] Dirty-flag batch system: coalesce multiple events per unit into one update per frame
@@ -1207,7 +1289,11 @@ local function HandleNPUnitEvent(event, unit)
     elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
         dirtyCastbars[unit] = true
         dirtyBatchFrame:Show()
-    elseif event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
+    elseif event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START"
+        or event == "UNIT_SPELLCAST_EMPOWER_START" then
+        dirtyCastbars[unit] = true
+        dirtyBatchFrame:Show()
+    elseif event == "UNIT_SPELLCAST_CHANNEL_UPDATE" or event == "UNIT_SPELLCAST_EMPOWER_UPDATE" then
         dirtyCastbars[unit] = true
         dirtyBatchFrame:Show()
     elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
@@ -1216,22 +1302,33 @@ local function HandleNPUnitEvent(event, unit)
             p.castbar.niOverlay:SetAlpha(0)
             p.castbar:SetStatusBarColor(0.1, 0.8, 0.1, 1)
             p.castbar.text:SetFormattedText("%s", INTERRUPTED or "Interrompu")
-            p.castbar.casting = false
-            p.castbar.channeling = false
-            p.castbar.duration_obj = nil
+            ResetNPCastbar(p.castbar)
             p.castbar.failstart = GetTime()
             p.castbar:SetMinMaxValues(0, 100)
             p.castbar:SetValue(100)
             if p.castbar.shieldFrame then p.castbar.shieldFrame:Hide() end
             p.castbar:Show()
         end
-    elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
-        or event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
+    elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+        -- Some spells fire SUCCEEDED then immediately start a channel/empower.
+        -- Only hide if no active channel/empower follows.
         local p = unitPlates[unit]
         if p and p.castbar then
-            p.castbar.casting = false
-            p.castbar.channeling = false
-            p.castbar.duration_obj = nil
+            if p.castbar.channeling or p.castbar.empowered then
+                return
+            end
+            ResetNPCastbar(p.castbar)
+            if not p.castbar.failstart then
+                p.castbar:Hide()
+                if p.castbar.shieldFrame then p.castbar.shieldFrame:Hide() end
+            end
+        end
+    elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
+        or event == "UNIT_SPELLCAST_CHANNEL_STOP"
+        or event == "UNIT_SPELLCAST_EMPOWER_STOP" then
+        local p = unitPlates[unit]
+        if p and p.castbar then
+            ResetNPCastbar(p.castbar)
             if not p.castbar.failstart then
                 p.castbar:Hide()
                 if p.castbar.shieldFrame then p.castbar.shieldFrame:Hide() end

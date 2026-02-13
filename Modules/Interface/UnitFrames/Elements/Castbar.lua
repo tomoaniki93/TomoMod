@@ -1,11 +1,14 @@
 -- =====================================
 -- Elements/Castbar.lua — Castbar Element
+-- Supports: Casts, Channels, Empowered (Evoker stages)
 -- =====================================
 
 local UF_Elements = UF_Elements or {}
 
 local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+
+local MAX_EMPOWER_STAGES = 4
 
 -- =====================================
 -- CREATE CASTBAR
@@ -81,8 +84,6 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
 
     -- =====================================
     -- LATENCY OVERLAY (player only)
-    -- Darker zone at the end of the bar showing network latency.
-    -- Indicates the safe zone where you can start queuing the next spell.
     -- =====================================
     if unit == "player" then
         local latencyTex = castbar:CreateTexture(nil, "ARTWORK", nil, 2)
@@ -94,6 +95,22 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         latencyTex:SetVertexColor(baseR * 0.35, baseG * 0.35, baseB * 0.35, 0.85)
         latencyTex:Hide()
         castbar.latencyTex = latencyTex
+    end
+
+    -- =====================================
+    -- EMPOWER STAGE MARKERS
+    -- Vertical lines showing stage boundaries for empowered casts (Evoker)
+    -- Pre-created pool of MAX_EMPOWER_STAGES markers, shown/hidden as needed
+    -- =====================================
+    castbar.stageMarkers = {}
+    for i = 1, MAX_EMPOWER_STAGES do
+        local marker = castbar:CreateTexture(nil, "OVERLAY", nil, 2)
+        marker:SetWidth(2)
+        marker:SetPoint("TOP", castbar, "TOP", 0, 0)
+        marker:SetPoint("BOTTOM", castbar, "BOTTOM", 0, 0)
+        marker:SetColorTexture(1, 1, 1, 0.7)
+        marker:Hide()
+        castbar.stageMarkers[i] = marker
     end
 
     -- Icon
@@ -131,6 +148,8 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     castbar.unit = unit
     castbar.casting = false
     castbar.channeling = false
+    castbar.empowered = false
+    castbar.numStages = 0
     castbar.duration_obj = nil
     castbar.failstart = nil
     castbar._preview = false
@@ -140,39 +159,97 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     castbar:Hide()
 
     -- =====================================
+    -- HELPER: Hide all stage markers
+    -- =====================================
+    local function HideStageMarkers(self)
+        for i = 1, MAX_EMPOWER_STAGES do
+            self.stageMarkers[i]:Hide()
+        end
+    end
+
+    -- =====================================
+    -- HELPER: Position stage markers for empowered cast
+    -- Uses GetUnitEmpowerStageDuration() to compute where each stage boundary falls
+    -- =====================================
+    local function UpdateStageMarkers(self)
+        HideStageMarkers(self)
+        if not self.empowered or self.numStages <= 0 then return end
+
+        local barWidth = self:GetWidth()
+        local startMS = self._castStartMS
+        local endMS = self._castEndMS
+        if not startMS or not endMS then return end
+
+        -- Compute total cast duration and cumulative stage positions
+        -- GetUnitEmpowerStageDuration(unit, stage): stage is 0-indexed
+        local ok, _ = pcall(function()
+            local totalDuration = endMS - startMS
+            if totalDuration <= 0 then return end
+
+            local cumulative = 0
+            for stage = 0, self.numStages - 1 do
+                local stageDuration = GetUnitEmpowerStageDuration(self.unit, stage)
+                if not stageDuration or stageDuration <= 0 then break end
+                cumulative = cumulative + stageDuration
+
+                -- Don't place marker after the last stage (it would be at the end of the bar)
+                if stage < self.numStages - 1 then
+                    local pct = cumulative / totalDuration
+                    local xPos = barWidth * pct
+                    local marker = self.stageMarkers[stage + 1]
+                    if marker then
+                        marker:ClearAllPoints()
+                        marker:SetPoint("TOP", self, "TOPLEFT", xPos, 0)
+                        marker:SetPoint("BOTTOM", self, "BOTTOMLEFT", xPos, 0)
+                        marker:Show()
+                    end
+                end
+            end
+        end)
+    end
+
+    -- =====================================
+    -- HELPER: Reset cast state
+    -- =====================================
+    local function ResetState(self)
+        self.casting = false
+        self.channeling = false
+        self.empowered = false
+        self.numStages = 0
+        self.duration_obj = nil
+        self._castStartMS = nil
+        self._castEndMS = nil
+        HideStageMarkers(self)
+        if self.latencyTex then self.latencyTex:Hide() end
+    end
+
+    -- =====================================
     -- PREVIEW MODE (player only — shown when unlocked via /tm sr)
-    -- Fills the bar, shows placeholder text/icon so the castbar is visible for dragging.
     -- =====================================
 
     function castbar:ShowPreview()
         self._preview = true
-        self.casting = false
-        self.channeling = false
+        ResetState(self)
         self.failstart = nil
         self.niOverlay:SetAlpha(0)
 
-        -- Fill bar 100%, base color
         self:SetMinMaxValues(0, 100)
         self:SetValue(100)
         self:SetReverseFill(false)
         local bc = self._baseColor or { 0.8, 0.1, 0.1 }
         self:SetStatusBarColor(bc[1], bc[2], bc[3], 1)
 
-        -- Placeholder text
         if self.spellText then self.spellText:SetText("Castbar") end
         if self.timerText then self.timerText:SetText("1.5") end
-
-        -- Generic icon
         if self.icon then
             self.icon:SetTexture("Interface\\Icons\\Spell_Nature_Lightning")
         end
 
-        -- Show latency preview (simulate ~60ms on a 1.5s cast ≈ 4% of bar)
+        -- Show latency preview
         if self.latencyTex then
             if cbSettings.showLatency then
                 local previewWidth = math.max(2, self:GetWidth() * 0.04)
                 self.latencyTex:SetWidth(previewWidth)
-                -- Refresh color
                 local bc2 = self._baseColor or { 0.8, 0.1, 0.1 }
                 self.latencyTex:SetVertexColor(bc2[1] * 0.35, bc2[2] * 0.35, bc2[3] * 0.35, 0.85)
                 self.latencyTex:Show()
@@ -190,17 +267,14 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         if self.timerText then self.timerText:SetText("") end
         if self.icon then self.icon:SetTexture(nil) end
         if self.latencyTex then self.latencyTex:Hide() end
-        -- Only hide if nothing is actively casting
-        if not self.casting and not self.channeling and not self.failstart then
+        HideStageMarkers(self)
+        if not self.casting and not self.channeling and not self.empowered and not self.failstart then
             self:Hide()
         end
     end
 
     -- =====================================
     -- LATENCY HELPER
-    -- Computes the latency width from GetNetStats() and cast duration.
-    -- Uses pcall because startTimeMS/endTimeMS may be secret values in TWW,
-    -- though for the player unit they are typically regular numbers.
     -- =====================================
 
     local function UpdateLatency(self)
@@ -210,7 +284,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             return
         end
 
-        -- Only show during casting (not channeling — latency zone doesn't help there)
+        -- Show during casting only (not channels/empowered)
         if not self.casting then
             self.latencyTex:Hide()
             return
@@ -223,8 +297,6 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             return
         end
 
-        -- latencyWidth = (latencyWorldMS / castDurationMS) * barPixelWidth
-        -- pcall guards against secret value arithmetic failures
         local ok, result = pcall(function()
             local castDurationMS = endMS - startMS
             if castDurationMS <= 0 then return 0 end
@@ -234,7 +306,6 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         end)
 
         if ok and result and result > 0 then
-            -- Color: darker version of the base castbar color
             local bc = self._baseColor or { 0.8, 0.1, 0.1 }
             self.latencyTex:SetVertexColor(bc[1] * 0.35, bc[2] * 0.35, bc[3] * 0.35, 0.85)
             self.latencyTex:SetWidth(result)
@@ -245,17 +316,17 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     end
 
     -- =====================================
-    -- CASTBAR LOGIC (asTargetCastBar techniques)
+    -- CASTBAR LOGIC
+    -- Supports: regular casts, channels, and empowered casts (Evoker)
     -- =====================================
 
-    -- Unified check: auto-detect casting or channeling (like asTargetCastBar.check_casting)
     local function CheckCast(self, isInterrupt)
         local unitID = self.unit
 
         -- Handle interrupt display
         if isInterrupt then
             self.niOverlay:SetAlpha(0)
-            if self.latencyTex then self.latencyTex:Hide() end
+            ResetState(self)
             local intCol = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.castbarInterruptColor
             if intCol then
                 self:SetStatusBarColor(intCol.r, intCol.g, intCol.b, 1)
@@ -265,11 +336,6 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             if self.spellText then
                 self.spellText:SetText(INTERRUPTED or "Interrompu")
             end
-            self.casting = false
-            self.channeling = false
-            self.duration_obj = nil
-            self._castStartMS = nil
-            self._castEndMS = nil
             self.failstart = GetTime()
             self:SetMinMaxValues(0, 100)
             self:SetValue(100)
@@ -286,8 +352,10 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             return
         end
 
-        -- Check casting first (like asTargetCastBar)
+        -- ===== Check regular cast =====
         local bchannel = false
+        local bempowered = false
+        local numStages = 0
         local name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible
         local castInfo = UnitCastingInfo(unitID)
         if type(castInfo) ~= "nil" then
@@ -295,48 +363,64 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             _, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible = UnitCastingInfo(unitID)
         end
 
-        -- If not casting, check channeling
+        -- ===== Check channel / empowered =====
         if type(name) == "nil" then
             local chanInfo = UnitChannelInfo(unitID)
             if type(chanInfo) ~= "nil" then
                 name = chanInfo
-                _, _, texture, startTimeMS, endTimeMS, _, notInterruptible = UnitChannelInfo(unitID)
-                bchannel = true
+                -- UnitChannelInfo returns: name, displayName, texture, startTimeMS, endTimeMS,
+                --   isTradeSkill, notInterruptible, spellID, _, numEmpowerStages
+                local chanName, _, chanTex, chanStart, chanEnd, _, chanNI, _, _, chanStages = UnitChannelInfo(unitID)
+                name = chanName
+                texture = chanTex
+                startTimeMS = chanStart
+                endTimeMS = chanEnd
+                notInterruptible = chanNI
+
+                if chanStages and chanStages > 0 then
+                    -- Empowered cast (Evoker: Fire Breath, Eternity Surge, etc.)
+                    bempowered = true
+                    numStages = chanStages
+                else
+                    -- Regular channel (Disintegrate, etc.)
+                    bchannel = true
+                end
             end
         end
 
         -- Nothing found → hide
         if type(name) == "nil" then
-            self.casting = false
-            self.channeling = false
-            self.duration_obj = nil
-            self._castStartMS = nil
-            self._castEndMS = nil
-            if self.latencyTex then self.latencyTex:Hide() end
+            ResetState(self)
             self:Hide()
             return
         end
 
         -- Get duration object for timer text
         local duration
-        if bchannel then
+        if bchannel or bempowered then
             duration = UnitChannelDuration(unitID)
         else
             duration = UnitCastingDuration(unitID)
         end
         self.duration_obj = duration
 
-        -- Store raw times for latency computation
+        -- Store raw times for latency / empower markers
         self._castStartMS = startTimeMS
         self._castEndMS = endTimeMS
 
         -- Update state
-        self.casting = not bchannel
+        self.casting = (not bchannel and not bempowered)
         self.channeling = bchannel
+        self.empowered = bempowered
+        self.numStages = numStages
         self.failstart = nil
 
         -- TWW: SetMinMaxValues accepts secrets (startTimeMS, endTimeMS from API)
         self:SetMinMaxValues(startTimeMS, endTimeMS)
+
+        -- Fill direction:
+        -- Regular channels fill right-to-left (reverse)
+        -- Casts and empowered fill left-to-right (normal)
         self:SetReverseFill(bchannel)
 
         -- Reset base color (may have been green from interrupt)
@@ -348,12 +432,17 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         if self.icon then self.icon:SetTexture(texture) end
 
         -- TWW: SetAlpha ACCEPTS secrets from C_CurveUtil
-        -- notInterruptible=true → 1 (grey overlay visible)
-        -- notInterruptible=false → 0 (overlay hidden, red bar shows)
         local alpha = C_CurveUtil.EvaluateColorValueFromBoolean(notInterruptible, 1, 0)
         self.niOverlay:SetAlpha(alpha)
 
-        -- Update latency indicator
+        -- Empower: show stage markers
+        if bempowered then
+            UpdateStageMarkers(self)
+        else
+            HideStageMarkers(self)
+        end
+
+        -- Latency (regular casts only)
         UpdateLatency(self)
 
         self:Show()
@@ -373,13 +462,12 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             return
         end
 
-        if not self.casting and not self.channeling then
+        if not self.casting and not self.channeling and not self.empowered then
             self:Hide()
             return
         end
 
         -- Progress: GetTime() * 1000 is non-secret, bar fill handled C-side
-        -- Use ExponentialEaseOut like asTargetCastBar
         self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
 
         -- Timer from stored duration object (param 0 for displayable value)
@@ -388,20 +476,33 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         end
     end)
 
-    -- Events — use RegisterUnitEvent to only fire for our specific unit
-    -- Global RegisterEvent fires for ALL units, tainting Blizzard's secure frames
+    -- =====================================
+    -- EVENTS
+    -- =====================================
     local events = CreateFrame("Frame")
+
+    -- Regular cast events
     events:RegisterUnitEvent("UNIT_SPELLCAST_START", unit)
     events:RegisterUnitEvent("UNIT_SPELLCAST_STOP", unit)
     events:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", unit)
     events:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", unit)
-    events:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", unit)
-    events:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", unit)
-    events:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTIBLE", unit)
-    events:RegisterUnitEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE", unit)
     events:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", unit)
 
-    -- Register target/focus change events for initial cast detection
+    -- Channel events
+    events:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_UPDATE", unit)
+
+    -- Interruptibility changes
+    events:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTIBLE", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE", unit)
+
+    -- Empowered cast events (Evoker: Fire Breath, Eternity Surge, etc.)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_EMPOWER_START", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_EMPOWER_STOP", unit)
+    events:RegisterUnitEvent("UNIT_SPELLCAST_EMPOWER_UPDATE", unit)
+
+    -- Target/focus change for detecting ongoing casts
     if unit == "target" then
         events:RegisterEvent("PLAYER_TARGET_CHANGED")
     elseif unit == "focus" then
@@ -421,23 +522,50 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
 
         if eventUnit ~= unit then return end
 
-        if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" then
+        -- ===== CAST START / CHANNEL START / EMPOWER START =====
+        if event == "UNIT_SPELLCAST_START"
+            or event == "UNIT_SPELLCAST_CHANNEL_START"
+            or event == "UNIT_SPELLCAST_EMPOWER_START" then
             castbar.failstart = nil
             CheckCast(castbar, false)
-        elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
-            if castbar.casting or castbar.channeling then
+
+        -- ===== CHANNEL / EMPOWER UPDATE (duration change, stage change) =====
+        elseif event == "UNIT_SPELLCAST_CHANNEL_UPDATE"
+            or event == "UNIT_SPELLCAST_EMPOWER_UPDATE" then
+            if castbar.channeling or castbar.empowered then
                 CheckCast(castbar, false)
             end
+
+        -- ===== INTERRUPTIBILITY CHANGE =====
+        elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE"
+            or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
+            if castbar.casting or castbar.channeling or castbar.empowered then
+                CheckCast(castbar, false)
+            end
+
+        -- ===== INTERRUPTED =====
         elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
             CheckCast(castbar, true)
-        elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
-            or event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_CHANNEL_STOP" then
-            castbar.casting = false
-            castbar.channeling = false
-            castbar.duration_obj = nil
-            castbar._castStartMS = nil
-            castbar._castEndMS = nil
-            if castbar.latencyTex then castbar.latencyTex:Hide() end
+
+        -- ===== CAST SUCCEEDED =====
+        -- Some spells fire SUCCEEDED then immediately start a channel/empower phase.
+        -- Only hide if no active channel/empower follows.
+        elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
+            if castbar.channeling or castbar.empowered then
+                -- A channel/empower is active: ignore SUCCEEDED (it's the initial cast completing)
+                return
+            end
+            ResetState(castbar)
+            if not castbar.failstart then
+                castbar:Hide()
+            end
+
+        -- ===== STOP / FAILED / CHANNEL STOP / EMPOWER STOP =====
+        elseif event == "UNIT_SPELLCAST_STOP"
+            or event == "UNIT_SPELLCAST_FAILED"
+            or event == "UNIT_SPELLCAST_CHANNEL_STOP"
+            or event == "UNIT_SPELLCAST_EMPOWER_STOP" then
+            ResetState(castbar)
             if not castbar.failstart then
                 castbar:Hide()
             end
