@@ -1311,27 +1311,23 @@ local function HandleNPUnitEvent(event, unit)
         end
     elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
         -- Some spells fire SUCCEEDED then immediately start a channel/empower.
-        -- Only hide if no active channel/empower follows.
+        -- Re-check via UpdateCastbar to avoid killing a newly started cast (race condition).
         local p = unitPlates[unit]
         if p and p.castbar then
             if p.castbar.channeling or p.castbar.empowered then
                 return
             end
-            ResetNPCastbar(p.castbar)
-            if not p.castbar.failstart then
-                p.castbar:Hide()
-                if p.castbar.shieldFrame then p.castbar.shieldFrame:Hide() end
-            end
+            UpdateCastbar(p, unit)
         end
     elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
         or event == "UNIT_SPELLCAST_CHANNEL_STOP"
         or event == "UNIT_SPELLCAST_EMPOWER_STOP" then
+        -- Re-check via UpdateCastbar: if a new cast already started, show it instead of hiding.
+        -- This prevents the race where STOP(old) arrives after START(new).
         local p = unitPlates[unit]
         if p and p.castbar then
-            ResetNPCastbar(p.castbar)
             if not p.castbar.failstart then
-                p.castbar:Hide()
-                if p.castbar.shieldFrame then p.castbar.shieldFrame:Hide() end
+                UpdateCastbar(p, unit)
             end
         end
     end

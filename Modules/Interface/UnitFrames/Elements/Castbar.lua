@@ -550,24 +550,23 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         -- ===== CAST SUCCEEDED =====
         -- Some spells fire SUCCEEDED then immediately start a channel/empower phase.
         -- Only hide if no active channel/empower follows.
+        -- Re-check via CheckCast to avoid killing a newly started cast (race condition).
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             if castbar.channeling or castbar.empowered then
                 -- A channel/empower is active: ignore SUCCEEDED (it's the initial cast completing)
                 return
             end
-            ResetState(castbar)
-            if not castbar.failstart then
-                castbar:Hide()
-            end
+            CheckCast(castbar, false)
 
         -- ===== STOP / FAILED / CHANNEL STOP / EMPOWER STOP =====
+        -- Re-check via CheckCast: if a new cast already started, show it instead of hiding.
+        -- This prevents the race where STOP(old) arrives after START(new).
         elseif event == "UNIT_SPELLCAST_STOP"
             or event == "UNIT_SPELLCAST_FAILED"
             or event == "UNIT_SPELLCAST_CHANNEL_STOP"
             or event == "UNIT_SPELLCAST_EMPOWER_STOP" then
-            ResetState(castbar)
             if not castbar.failstart then
-                castbar:Hide()
+                CheckCast(castbar, false)
             end
         end
     end)
