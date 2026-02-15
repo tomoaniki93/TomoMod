@@ -320,10 +320,10 @@ local function RegisterBossEvents()
             for _, ev in ipairs(bossEvents) do
                 uef:RegisterUnitEvent(ev, unit)
             end
-            uef:SetScript("OnEvent", function(_, event, u)
-                if bossFrames[i] and UnitExists(u) then
-                    C_Timer.After(0, function() UpdateBossFrame(bossFrames[i]) end)
-                end
+            -- [PERF] Just wake up the throttle OnUpdate — no closure allocation per event.
+            -- The throttle already runs UpdateBossFrame for all bosses at 0.15s intervals.
+            uef:SetScript("OnEvent", function()
+                throttleFrame:Show()
             end)
             bossEventFrames[unit] = uef
         end

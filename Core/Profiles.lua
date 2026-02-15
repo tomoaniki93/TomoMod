@@ -303,11 +303,13 @@ function P.Import(str)
         return false, "Decompression failed"
     end
 
-    local ok, payload = pcall(function()
+    -- DeSerialize returns (success, data) — pcall adds its own bool prefix
+    -- pcall(func) → ok, ret1, ret2  where ret1=success, ret2=data
+    local pcallOk, deserializeOk, payload = pcall(function()
         return LibSerialize:DeSerialize(decompressed)
     end)
 
-    if not ok or not payload then
+    if not pcallOk or not deserializeOk or not payload then
         return false, "Deserialization failed"
     end
 
@@ -356,11 +358,11 @@ function P.PreviewImport(str)
     local decompressed = LibDeflate:DecompressDeflate(decoded)
     if not decompressed then return nil end
 
-    local ok, payload = pcall(function()
+    local pcallOk, deserializeOk, payload = pcall(function()
         return LibSerialize:DeSerialize(decompressed)
     end)
 
-    if not ok or type(payload) ~= "table" then return nil end
+    if not pcallOk or not deserializeOk or type(payload) ~= "table" then return nil end
     if payload._header ~= EXPORT_HEADER then return nil end
 
     -- Compter le nombre de modules inclus

@@ -466,11 +466,21 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
     if event == "PLAYER_ENTERING_WORLD" then
         C_Timer.After(0, function()
             for _, f in pairs(frames) do UpdateFrame(f) end
+            -- [PERF] Enable ToT throttle if target exists
+            if frames.targettarget and UnitExists("target") then
+                throttleFrame:Show()
+            end
         end)
     elseif event == "PLAYER_TARGET_CHANGED" then
         C_Timer.After(0, function()
             if frames.target then UpdateFrame(frames.target) end
             if frames.targettarget then UpdateFrame(frames.targettarget) end
+            -- [PERF] Enable/disable ToT throttle based on target existence
+            if frames.targettarget and UnitExists("target") then
+                throttleFrame:Show()
+            else
+                throttleFrame:Hide()
+            end
         end)
     elseif event == "PLAYER_FOCUS_CHANGED" then
         C_Timer.After(0, function()
@@ -488,13 +498,19 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
 end)
 
 -- Throttled update for ToT (no dedicated event)
+-- [PERF] Hidden by default, only enabled when target exists
 local updateTimer = 0
 local throttleFrame = CreateFrame("Frame")
+throttleFrame:Hide()
 throttleFrame:SetScript("OnUpdate", function(self, elapsed)
     updateTimer = updateTimer + elapsed
     if updateTimer >= 0.15 then
         updateTimer = 0
-        if frames.targettarget then UpdateFrame(frames.targettarget) end
+        if frames.targettarget and UnitExists("target") then
+            UpdateFrame(frames.targettarget)
+        else
+            self:Hide()
+        end
     end
 end)
 

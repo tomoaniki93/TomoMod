@@ -1353,13 +1353,12 @@ local function UnregisterNPUnitEvents(unit)
     end
 end
 
-eventFrame:RegisterEvent("NAME_PLATE_UNIT_ADDED")
-eventFrame:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
-eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
-eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
-eventFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+-- NOTE: Events are NOT registered here at file scope.
+-- All event registration happens in NP.Enable() to prevent
+-- plates being created before the module is initialized.
 
 eventFrame:SetScript("OnEvent", function(self, event, unit)
+    if not npModuleActive then return end  -- safety guard
     if event == "NAME_PLATE_UNIT_ADDED" then
         OnNamePlateAdded(unit)
         RegisterNPUnitEvents(unit)
@@ -1442,6 +1441,9 @@ function NP.Enable()
 
     eventFrame:RegisterEvent("NAME_PLATE_UNIT_ADDED")
     eventFrame:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
+    eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
+    eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
+    eventFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
     NP.RefreshAll()
 
     if not NP._auraTicker then
@@ -1481,6 +1483,9 @@ function NP.Disable()
     npModuleActive = false
     eventFrame:UnregisterEvent("NAME_PLATE_UNIT_ADDED")
     eventFrame:UnregisterEvent("NAME_PLATE_UNIT_REMOVED")
+    eventFrame:UnregisterEvent("RAID_TARGET_UPDATE")
+    eventFrame:UnregisterEvent("PLAYER_TARGET_CHANGED")
+    eventFrame:UnregisterEvent("UPDATE_MOUSEOVER_UNIT")
 
     if NP._auraTicker then
         NP._auraTicker:Cancel()
