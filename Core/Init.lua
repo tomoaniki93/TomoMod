@@ -238,6 +238,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_AutoAcceptInvite then TomoMod_AutoAcceptInvite.Initialize() end
         if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.Initialize() end
         if TomoMod_TooltipIDs then TomoMod_TooltipIDs.Initialize() end
+        if TomoMod_TooltipSkin then TomoMod_TooltipSkin.Initialize() end
         if TomoMod_CombatResTracker then TomoMod_CombatResTracker.Initialize() end
         if TomoMod_AutoSummon then TomoMod_AutoSummon.Initialize() end
         if TomoMod_HideCastBar then TomoMod_HideCastBar.Initialize() end

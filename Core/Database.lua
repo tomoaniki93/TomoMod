@@ -90,6 +90,16 @@ TomoMod_Defaults = {
         showCurrencyID = true,
         showAchievementID = true,
     },
+    tooltipSkin = {
+        enabled = false,
+        bgColor = { r = 0.08, g = 0.08, b = 0.10 },
+        bgAlpha = 0.92,
+        fontSize = 12,
+        showHealthBar = true,
+        showHealthText = true,
+        healthBarHeight = 8,
+        itemQualityBorder = true,
+    },
     combatResTracker = {
         enabled = true,
         showRating = true,

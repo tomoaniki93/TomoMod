@@ -213,6 +213,48 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
+    -- Tooltip Skin
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_tooltip_skin"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_skin"], TomoModDB.tooltipSkin.enabled, y, function(v)
+        TomoModDB.tooltipSkin.enabled = v
+        if TomoMod_TooltipSkin then TomoMod_TooltipSkin.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_healthbar"], TomoModDB.tooltipSkin.showHealthBar, y, function(v)
+        TomoModDB.tooltipSkin.showHealthBar = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_healthtext"], TomoModDB.tooltipSkin.showHealthText, y, function(v)
+        TomoModDB.tooltipSkin.showHealthText = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_quality_border"], TomoModDB.tooltipSkin.itemQualityBorder, y, function(v)
+        TomoModDB.tooltipSkin.itemQualityBorder = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_tooltip_bg_alpha"], TomoModDB.tooltipSkin.bgAlpha, 0.5, 1.0, 0.05, y, function(v)
+        TomoModDB.tooltipSkin.bgAlpha = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_tooltip_healthbar_height"], TomoModDB.tooltipSkin.healthBarHeight, 4, 16, 1, y, function(v)
+        TomoModDB.tooltipSkin.healthBarHeight = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_tooltip_font_size"], TomoModDB.tooltipSkin.fontSize, 8, 18, 1, y, function(v)
+        TomoModDB.tooltipSkin.fontSize = v
+    end)
+    y = ny
+
     c:SetHeight(math.abs(y) + 40)
     return scroll
 end

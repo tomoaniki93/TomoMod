@@ -20,6 +20,9 @@
     <Include file="Auto\AutoSkipRole.lua"/>
     <Include file="Auto\TooltipIDs.lua"/>
 
+    <!-- Modules: Tooltip Skin -->
+    <Include file="Tooltip\TooltipSkin.lua"/>
+
     <!-- Modules: Classes -->
     <Include file="Classes\CompanionStatus.lua" />
 
