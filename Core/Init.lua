@@ -233,12 +233,12 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_CursorRing then TomoMod_CursorRing.Initialize() end
         if TomoMod_CinematicSkip then TomoMod_CinematicSkip.Initialize() end
         if TomoMod_AutoQuest then TomoMod_AutoQuest.Initialize() end
+        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.Initialize() end
         if TomoMod_SkyRide then TomoMod_SkyRide.Initialize() end
         if TomoMod_CooldownManager then TomoMod_CooldownManager.Initialize() end
         if TomoMod_AutoAcceptInvite then TomoMod_AutoAcceptInvite.Initialize() end
         if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.Initialize() end
         if TomoMod_TooltipIDs then TomoMod_TooltipIDs.Initialize() end
-        if TomoMod_TooltipSkin then TomoMod_TooltipSkin.Initialize() end
         if TomoMod_CombatResTracker then TomoMod_CombatResTracker.Initialize() end
         if TomoMod_AutoSummon then TomoMod_AutoSummon.Initialize() end
         if TomoMod_HideCastBar then TomoMod_HideCastBar.Initialize() end

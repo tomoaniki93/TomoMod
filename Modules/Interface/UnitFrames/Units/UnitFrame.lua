@@ -498,7 +498,7 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
 end)
 
 -- Throttled update for ToT (no dedicated event)
--- [PERF] Hidden by default, only enabled when target exists
+-- [PERF] Hidden by default, only enabled when target exists to avoid unnecessary OnUpdate overhead.
 local updateTimer = 0
 local throttleFrame = CreateFrame("Frame")
 throttleFrame:Hide()

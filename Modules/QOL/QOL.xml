@@ -20,9 +20,6 @@
     <Include file="Auto\AutoSkipRole.lua"/>
     <Include file="Auto\TooltipIDs.lua"/>
 
-    <!-- Modules: Tooltip Skin -->
-    <Include file="Tooltip\TooltipSkin.lua"/>
-
     <!-- Modules: Classes -->
     <Include file="Classes\CompanionStatus.lua" />
 
@@ -36,6 +33,7 @@
 
     <!-- Modules: Quest -->
     <Include file="Quest\AutoQuest.lua" />
+    <Include file="Quest\ObjectiveTracker.lua" />
 
     <!-- Modules: Skyriding -->
     <Include file="Skyriding\SkyRide.lua" />

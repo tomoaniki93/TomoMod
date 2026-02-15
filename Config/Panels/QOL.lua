@@ -213,48 +213,6 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
-    -- Tooltip Skin
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_tooltip_skin"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_skin"], TomoModDB.tooltipSkin.enabled, y, function(v)
-        TomoModDB.tooltipSkin.enabled = v
-        if TomoMod_TooltipSkin then TomoMod_TooltipSkin.SetEnabled(v) end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_healthbar"], TomoModDB.tooltipSkin.showHealthBar, y, function(v)
-        TomoModDB.tooltipSkin.showHealthBar = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_healthtext"], TomoModDB.tooltipSkin.showHealthText, y, function(v)
-        TomoModDB.tooltipSkin.showHealthText = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_quality_border"], TomoModDB.tooltipSkin.itemQualityBorder, y, function(v)
-        TomoModDB.tooltipSkin.itemQualityBorder = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_tooltip_bg_alpha"], TomoModDB.tooltipSkin.bgAlpha, 0.5, 1.0, 0.05, y, function(v)
-        TomoModDB.tooltipSkin.bgAlpha = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_tooltip_healthbar_height"], TomoModDB.tooltipSkin.healthBarHeight, 4, 16, 1, y, function(v)
-        TomoModDB.tooltipSkin.healthBarHeight = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_tooltip_font_size"], TomoModDB.tooltipSkin.fontSize, 8, 18, 1, y, function(v)
-        TomoModDB.tooltipSkin.fontSize = v
-    end)
-    y = ny
-
     c:SetHeight(math.abs(y) + 40)
     return scroll
 end
@@ -346,6 +304,73 @@ local function BuildSkyRideTab(parent)
 end
 
 -- =====================================
+-- TAB: OBJECTIVE TRACKER SKIN
+-- =====================================
+
+local function BuildObjectiveTrackerTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["section_obj_tracker"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_obj_tracker"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_obj_tracker_enable"], TomoModDB.objectiveTracker.enabled, y, function(v)
+        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_bg_alpha"], TomoModDB.objectiveTracker.bgAlpha, 0, 1, 0.05, y, function(v)
+        TomoModDB.objectiveTracker.bgAlpha = v
+        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_obj_tracker_border"], TomoModDB.objectiveTracker.showBorder, y, function(v)
+        TomoModDB.objectiveTracker.showBorder = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_obj_tracker_hide_empty"], TomoModDB.objectiveTracker.hideWhenEmpty, y, function(v)
+        TomoModDB.objectiveTracker.hideWhenEmpty = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_header_size"], TomoModDB.objectiveTracker.headerFontSize, 8, 20, 1, y, function(v)
+        TomoModDB.objectiveTracker.headerFontSize = v
+        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_cat_size"], TomoModDB.objectiveTracker.categoryFontSize, 8, 18, 1, y, function(v)
+        TomoModDB.objectiveTracker.categoryFontSize = v
+        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_quest_size"], TomoModDB.objectiveTracker.questFontSize, 8, 18, 1, y, function(v)
+        TomoModDB.objectiveTracker.questFontSize = v
+        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_obj_size"], TomoModDB.objectiveTracker.objectiveFontSize, 8, 16, 1, y, function(v)
+        TomoModDB.objectiveTracker.objectiveFontSize = v
+        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -356,6 +381,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "automations",  label = L["tab_qol_automations"],  builder = function(p) return BuildAutomationsTab(p) end },
         { key = "mythickeys",   label = L["tab_qol_mythic_keys"],  builder = function(p) return BuildMythicKeysTab(p) end },
         { key = "skyride",      label = L["tab_qol_skyride"],      builder = function(p) return BuildSkyRideTab(p) end },
+        { key = "objtracker",   label = L["tab_qol_obj_tracker"],  builder = function(p) return BuildObjectiveTrackerTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)
