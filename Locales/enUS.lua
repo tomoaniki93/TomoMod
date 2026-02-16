@@ -712,4 +712,18 @@ TomoMod_RegisterLocale("enUS", {
     ["info_sound_fade_tooltip"]         = "Quand le haste retombe sous ce ratio par rapport à la baseline, l'effet est considéré comme terminé. (Défaut: 115%)",
     ["btn_sound_reset_detection"]       = "Réinitialiser les ratios",
     ["msg_sound_detection_reset"]       = "Ratios de détection réinitialisés.",
+
+    -- =====================
+    -- CHARACTER SKIN
+    -- =====================
+    ["tab_qol_char_skin"]               = "Character Skin",
+    ["section_char_skin"]               = "Character Sheet Skin",
+    ["info_char_skin_desc"]             = "Reskins the Character Frame, Reputation, Currency and Inspect windows to match the TomoMod dark theme.",
+    ["opt_char_skin_enable"]            = "Enable Character Skin",
+    ["opt_char_skin_character"]         = "Skin Character / Reputation / Currency",
+    ["opt_char_skin_inspect"]           = "Skin Inspect Frame",
+    ["opt_char_skin_iteminfo"]          = "Show Item Info on Slots",
+    ["opt_char_skin_midnight"]          = "Midnight Enchant Slots (Head/Shoulder instead of Wrist/Back)",
+    ["opt_char_skin_scale"]             = "Window Scale",
+    ["msg_char_skin_reload"]            = "Character Skin: /reload to apply changes.",
 })

@@ -577,6 +577,13 @@ local function CreatePlate(baseFrame)
     plate.targetArrowRight:SetVertexColor(1, 1, 1, 0.9)
     plate.targetArrowRight:Hide()
 
+    -- =========== QUEST ICON ===========
+    plate.questIcon = plate:CreateTexture(nil, "OVERLAY")
+    plate.questIcon:SetAtlas("SmallQuestBang")
+    plate.questIcon:SetSize(14, 14)
+    plate.questIcon:SetPoint("RIGHT", plate.nameText, "LEFT", -1, 0)
+    plate.questIcon:Hide()
+
     -- =========== RAID MARKER ===========
     plate.raidFrame = CreateFrame("Frame", nil, plate)
     plate.raidFrame:SetSize(24, 24)
@@ -856,6 +863,116 @@ local function UpdateAbsorb(plate, unit)
 end
 
 -- =====================================
+-- QUEST ICON DETECTION
+-- =====================================
+
+local questScanTip = CreateFrame("GameTooltip", "TomoModNPQuestScanTip", nil, "GameTooltipTemplate")
+questScanTip:SetOwner(WorldFrame, "ANCHOR_NONE")
+
+local questIconCache = {} -- [guid] = { isQuest = bool, time = GetTime() }
+local QUEST_CACHE_TTL = 2 -- seconds
+
+local function IsQuestUnit(unit)
+    if not unit then return false end
+    if UnitIsPlayer(unit) then return false end
+
+    local guid = UnitGUID(unit)
+    if not guid then return false end
+
+    -- Check cache
+    local cached = questIconCache[guid]
+    if cached and (GetTime() - cached.time) < QUEST_CACHE_TTL then
+        return cached.isQuest
+    end
+
+    -- Scan tooltip for quest objectives
+    questScanTip:ClearLines()
+    questScanTip:SetUnit(unit)
+
+    local isQuest = false
+    local playerName = UnitName("player")
+
+    for i = 2, questScanTip:NumLines() do
+        local left = _G["TomoModNPQuestScanTipTextLeft" .. i]
+        if left then
+            local text = left:GetText()
+            if text then
+                -- Quest objective lines often have progress like "0/1", "2/5" or percentage
+                if text:match("%d+/%d+") or text:match("%d+%%") then
+                    isQuest = true
+                    break
+                end
+                -- Check for player name (indicates our quest)
+                if text == playerName then
+                    isQuest = true
+                    break
+                end
+            end
+
+            -- Check text color: quest title lines are typically yellow-ish
+            local r, g, b = left:GetTextColor()
+            if r and r > 0.9 and g > 0.8 and b < 0.2 and text and text ~= "" then
+                -- This could be a quest title
+                isQuest = true
+            end
+        end
+    end
+
+    -- Cache result
+    questIconCache[guid] = { isQuest = isQuest, time = GetTime() }
+    return isQuest
+end
+
+local function UpdateQuestIcon(plate, unit)
+    if not plate.questIcon then return end
+
+    local s = DB()
+    if not s.showQuestIcon then
+        plate.questIcon:Hide()
+        return
+    end
+
+    -- Only check for hostile/neutral NPCs
+    if UnitIsPlayer(unit) or UnitIsFriend("player", unit) then
+        plate.questIcon:Hide()
+        return
+    end
+
+    -- Skip in instances
+    local inInstance, instanceType = IsInInstance()
+    if inInstance and (instanceType == "party" or instanceType == "raid" or instanceType == "arena" or instanceType == "pvp") then
+        plate.questIcon:Hide()
+        return
+    end
+
+    if IsQuestUnit(unit) then
+        plate.questIcon:Show()
+    else
+        plate.questIcon:Hide()
+    end
+end
+
+-- Periodic cache cleanup
+C_Timer.NewTicker(10, function()
+    local now = GetTime()
+    for guid, data in pairs(questIconCache) do
+        if (now - data.time) > 30 then
+            questIconCache[guid] = nil
+        end
+    end
+end)
+
+-- Clear quest cache when quest log changes
+local questEventFrame = CreateFrame("Frame")
+questEventFrame:RegisterEvent("QUEST_LOG_UPDATE")
+questEventFrame:RegisterEvent("QUEST_ACCEPTED")
+questEventFrame:RegisterEvent("QUEST_REMOVED")
+questEventFrame:RegisterEvent("QUEST_TURNED_IN")
+questEventFrame:SetScript("OnEvent", function()
+    wipe(questIconCache)
+end)
+
+-- =====================================
 -- MAIN PLATE UPDATE
 -- =====================================
 
@@ -887,6 +1004,9 @@ local function UpdatePlate(plate, unit)
     else
         plate.nameText:Hide()
     end
+
+    -- Quest Icon
+    UpdateQuestIcon(plate, unit)
 
     -- Level (UnitEffectiveLevel returns a secret number in TWW)
     if s.showLevel then

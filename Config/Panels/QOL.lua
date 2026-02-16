@@ -371,6 +371,74 @@ local function BuildObjectiveTrackerTab(parent)
 end
 
 -- =====================================
+-- TAB: CHARACTER SKIN
+-- =====================================
+
+local function BuildCharacterSkinTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["section_char_skin"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_char_skin_desc"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_enable"], TomoModDB.characterSkin.enabled, y, function(v)
+        TomoModDB.characterSkin.enabled = v
+        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_character"], TomoModDB.characterSkin.skinCharacter, y, function(v)
+        TomoModDB.characterSkin.skinCharacter = v
+        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_inspect"], TomoModDB.characterSkin.skinInspect, y, function(v)
+        TomoModDB.characterSkin.skinInspect = v
+        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_iteminfo"], TomoModDB.characterSkin.showItemInfo, y, function(v)
+        TomoModDB.characterSkin.showItemInfo = v
+        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_midnight"], TomoModDB.characterSkin.midnightEnchants, y, function(v)
+        TomoModDB.characterSkin.midnightEnchants = v
+        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_char_skin_scale"], (TomoModDB.characterSkin.scale or 1.0) * 100, 70, 150, 5, y, function(v)
+        local scale = v / 100
+        TomoModDB.characterSkin.scale = scale
+        -- Apply scale live
+        if _G.CharacterFrame then
+            _G.CharacterFrame:SetScale(scale)
+        end
+        if _G.InspectFrame then
+            _G.InspectFrame:SetScale(scale)
+        end
+    end, "%.0f%%")
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -383,6 +451,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "skyride",      label = L["tab_qol_skyride"],      builder = function(p) return BuildSkyRideTab(p) end },
         --{ key = "tooltip",      label = L["tab_qol_tooltip_skin"], builder = function(p) return BuildTooltipSkinTab(p) end },
         { key = "objtracker",   label = L["tab_qol_obj_tracker"],  builder = function(p) return BuildObjectiveTrackerTab(p) end },
+        { key = "charskin",     label = L["tab_qol_char_skin"],    builder = function(p) return BuildCharacterSkinTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

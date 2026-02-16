@@ -694,4 +694,18 @@ TomoMod_RegisterLocale("frFR", {
     ["info_sound_fade_tooltip"]         = "Quand le haste retombe sous ce ratio par rapport à la baseline, l'effet est considéré comme terminé. (Défaut: 115%)",
     ["btn_sound_reset_detection"]       = "Réinitialiser les ratios",
     ["msg_sound_detection_reset"]       = "Ratios de détection réinitialisés.",
+
+    -- =====================
+    -- CHARACTER SKIN
+    -- =====================
+    ["tab_qol_char_skin"]               = "Skin Personnage",
+    ["section_char_skin"]               = "Skin de la fiche personnage",
+    ["info_char_skin_desc"]             = "Applique le thème sombre TomoMod à la fiche personnage, la réputation, les monnaies et la fenêtre d'inspection.",
+    ["opt_char_skin_enable"]            = "Activer le skin personnage",
+    ["opt_char_skin_character"]         = "Skin Personnage / Réputation / Monnaies",
+    ["opt_char_skin_inspect"]           = "Skin fenêtre d'inspection",
+    ["opt_char_skin_iteminfo"]          = "Afficher les infos d'objet sur les emplacements",
+    ["opt_char_skin_midnight"]          = "Enchantements Midnight (Tête/Épaules au lieu de Brassard/Cape)",
+    ["opt_char_skin_scale"]             = "Échelle de la fenêtre",
+    ["msg_char_skin_reload"]            = "Skin Personnage : /reload pour appliquer.",
 })

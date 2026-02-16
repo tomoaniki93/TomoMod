@@ -1,5 +1,13 @@
 ## ####################################
 
+## CHANGELOG 2.2.1
+
+- Character Sheet + Inspect
+- Quest icon on NamesPlates
+- Fix error on LustSound
+
+## ####################################
+
 ## CHANGELOG 2.2.0
 
 - Add QOL ToolTip Skin config in /tm

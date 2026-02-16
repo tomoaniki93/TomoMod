@@ -143,12 +143,11 @@ end
 -- =====================================
 
 local function HasLustBuff()
-    -- Use C_UnitAuras to iterate player buffs by spell ID (12.x safe)
-    for i = 1, 40 do
-        local auraData = C_UnitAuras.GetBuffDataByIndex("player", i)
-        if not auraData then break end
-        if auraData.spellId and LUST_BUFF_IDS[auraData.spellId] then
-            return true, LUST_BUFF_IDS[auraData.spellId]
+    -- Check each known lust spell ID directly (avoids secret value table index)
+    for spellID, name in pairs(LUST_BUFF_IDS) do
+        local auraData = C_UnitAuras.GetPlayerAuraBySpellID(spellID)
+        if auraData then
+            return true, name
         end
     end
     return false

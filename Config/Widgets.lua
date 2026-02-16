@@ -514,8 +514,14 @@ function W.CreateTabPanel(parent, tabs)
     local wrapper = CreateFrame("Frame", nil, parent)
     wrapper:SetAllPoints()
 
+    -- Calculate rows: max tabs per row based on available width
+    local TABS_PER_ROW = 5
+    local totalTabs = #tabs
+    local numRows = math.ceil(totalTabs / TABS_PER_ROW)
+
     -- Tab bar background
-    local tabBarHeight = 34
+    local singleRowHeight = 34
+    local tabBarHeight = singleRowHeight * numRows
     local tabBar = CreateFrame("Frame", nil, wrapper)
     tabBar:SetPoint("TOPLEFT", 0, 0)
     tabBar:SetPoint("TOPRIGHT", 0, 0)
@@ -580,14 +586,22 @@ function W.CreateTabPanel(parent, tabs)
         currentTab = key
     end
 
-    -- Create tab buttons
-    local tabWidth = math.floor(math.max(parent:GetWidth(), 540) / #tabs)
-    tabWidth = math.min(tabWidth, 110)
+    -- Create tab buttons (multi-row layout)
+    local tabsInFirstRow = math.min(totalTabs, TABS_PER_ROW)
+    local tabWidth = math.floor(math.max(parent:GetWidth(), 540) / tabsInFirstRow)
+    tabWidth = math.min(tabWidth, 120)
 
     for i, tab in ipairs(tabs) do
+        local row = math.floor((i - 1) / TABS_PER_ROW)
+        local col = (i - 1) % TABS_PER_ROW
+        -- Recalculate width per row (in case last row has fewer tabs)
+        local tabsInThisRow = math.min(TABS_PER_ROW, totalTabs - row * TABS_PER_ROW)
+        local rowTabWidth = math.floor(math.max(parent:GetWidth(), 540) / tabsInThisRow)
+        rowTabWidth = math.min(rowTabWidth, 120)
+
         local btn = CreateFrame("Button", nil, tabBar)
-        btn:SetSize(tabWidth, tabBarHeight)
-        btn:SetPoint("TOPLEFT", (i - 1) * tabWidth, 0)
+        btn:SetSize(rowTabWidth, singleRowHeight)
+        btn:SetPoint("TOPLEFT", col * rowTabWidth, -(row * singleRowHeight))
 
         local bg = btn:CreateTexture(nil, "BACKGROUND", nil, 1)
         bg:SetAllPoints()

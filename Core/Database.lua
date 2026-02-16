@@ -159,6 +159,15 @@ TomoMod_Defaults = {
         focusButton = true,
         showMessages = false,
     },
+    characterSkin = {
+        enabled = true,
+        skinCharacter = true,
+        skinInspect = true,
+        showItemInfo = true,
+        midnightEnchants = false,
+        scale = 1.0,
+    },
+
     lustSound = {
         enabled = true,
         sound = "TALUANI",
@@ -314,6 +323,7 @@ TomoMod_Defaults = {
             showAbsorb = false,
             showThreat = true,
             showRaidIcon = true,
+            showQuestIcon = true,
             showLeaderIcon = true,
             leaderIconOffset = { x = -2, y = 0 },
             castbar = {
