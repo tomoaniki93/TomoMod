@@ -312,6 +312,12 @@ local bossEvents = {
     "UNIT_HEALTH", "UNIT_MAXHEALTH",
 }
 
+-- Throttled update (boss health can change rapidly)
+-- [PERF] Hidden by default, only shown when bosses are present
+local updateTimer = 0
+local throttleFrame = CreateFrame("Frame")
+throttleFrame:Hide()
+
 local function RegisterBossEvents()
     for i = 1, MAX_BOSSES do
         local unit = "boss" .. i
@@ -330,11 +336,6 @@ local function RegisterBossEvents()
     end
 end
 
--- Throttled update (boss health can change rapidly)
--- [PERF] Hidden by default, only shown when bosses are present
-local updateTimer = 0
-local throttleFrame = CreateFrame("Frame")
-throttleFrame:Hide()
 throttleFrame:SetScript("OnUpdate", function(self, elapsed)
     updateTimer = updateTimer + elapsed
     if updateTimer >= 0.15 then
