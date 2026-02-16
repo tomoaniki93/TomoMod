@@ -462,6 +462,9 @@ local function RegisterUnitEvents()
     end
 end
 
+-- [PERF] Forward-declare throttleFrame (created below) so event closures can reference it
+local throttleFrame
+
 eventFrame:SetScript("OnEvent", function(self, event, unit)
     if event == "PLAYER_ENTERING_WORLD" then
         C_Timer.After(0, function()
@@ -500,7 +503,7 @@ end)
 -- Throttled update for ToT (no dedicated event)
 -- [PERF] Hidden by default, only enabled when target exists to avoid unnecessary OnUpdate overhead.
 local updateTimer = 0
-local throttleFrame = CreateFrame("Frame")
+throttleFrame = CreateFrame("Frame")
 throttleFrame:Hide()
 throttleFrame:SetScript("OnUpdate", function(self, elapsed)
     updateTimer = updateTimer + elapsed

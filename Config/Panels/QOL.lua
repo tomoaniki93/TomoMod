@@ -303,7 +303,7 @@ local function BuildSkyRideTab(parent)
     return scroll
 end
 
--- =====================================
+    -- =====================================
 -- TAB: OBJECTIVE TRACKER SKIN
 -- =====================================
 
@@ -381,6 +381,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "automations",  label = L["tab_qol_automations"],  builder = function(p) return BuildAutomationsTab(p) end },
         { key = "mythickeys",   label = L["tab_qol_mythic_keys"],  builder = function(p) return BuildMythicKeysTab(p) end },
         { key = "skyride",      label = L["tab_qol_skyride"],      builder = function(p) return BuildSkyRideTab(p) end },
+        --{ key = "tooltip",      label = L["tab_qol_tooltip_skin"], builder = function(p) return BuildTooltipSkinTab(p) end },
         { key = "objtracker",   label = L["tab_qol_obj_tracker"],  builder = function(p) return BuildObjectiveTrackerTab(p) end },
     }
 

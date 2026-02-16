@@ -1,7 +1,7 @@
 -- =====================================
 -- ObjectiveTracker.lua
--- Skin for Blizzard's Objective Tracker
--- Inspired by modern dark UI designs
+-- Skin for Blizzard's Objective Tracker (WoW 12.x)
+-- Uses recursive child scanning for maximum compatibility
 -- =====================================
 
 TomoMod_ObjectiveTracker = {}
@@ -14,195 +14,426 @@ local OT = TomoMod_ObjectiveTracker
 local ADDON_FONT       = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local ADDON_FONT_BOLD  = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local ADDON_FONT_BLACK = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Bold.ttf"
+local ADDON_TEXTURE    = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
 local L = TomoMod_L
 
-local skinFrame       -- Main background panel
-local headerBar       -- Custom header bar
-local headerTitle     -- "OBJECTIVES" text
-local headerCount     -- Quest count (X/Y)
-local headerOptions   -- Options button
+local skinFrame
+local headerBar
+local headerTitle
+local headerCount
+local headerDash
+local headerOptions
 local isInitialized = false
-local styledHeaders = {}
-local styledBlocks  = {}
-local styledLines   = {}
+local isHooked      = false
+
+-- Dedup tables to avoid re-styling frames each pass
+local styledFonts = setmetatable({}, { __mode = "k" })
 
 -- =====================================
--- HEADER / MODULE COLOR MAP
+-- CATEGORY HEADER COLORS
 -- =====================================
--- Colors for each tracker module header to match the screenshot style
--- Keys are module names / header text patterns
 
-local MODULE_COLORS = {
-    -- Campaign quests => orange/red
-    ["CAMPAIGN"]        = { r = 1.0,  g = 0.40, b = 0.20 },
-    -- Regular quests (zone) => gold
-    ["QUESTS"]          = { r = 1.0,  g = 0.82, b = 0.0  },
-    ["QUEST"]           = { r = 1.0,  g = 0.82, b = 0.0  },
-    -- World quests => cyan
-    ["WORLD QUESTS"]    = { r = 0.0,  g = 0.80, b = 1.0  },
-    -- Bonus objectives => teal
-    ["BONUS"]           = { r = 0.0,  g = 0.90, b = 0.70 },
-    -- Scenario => purple
-    ["SCENARIO"]        = { r = 0.70, g = 0.40, b = 1.0  },
-    -- Achievement => yellow-green
-    ["ACHIEVEMENTS"]    = { r = 0.80, g = 1.0,  b = 0.0  },
-    -- Professions => brown/warm
-    ["PROFESSIONS"]     = { r = 0.90, g = 0.65, b = 0.30 },
-    -- Monthly / events => pink/magenta
-    ["MONTHLY"]         = { r = 0.90, g = 0.30, b = 0.70 },
-    -- Adventure => teal
-    ["ADVENTURE"]       = { r = 0.30, g = 0.85, b = 0.65 },
-    -- Fallback
-    ["DEFAULT"]         = { r = 0.70, g = 0.70, b = 0.75 },
+local HEADER_COLORS = {
+    -- FR + EN keywords
+    ["CAMPAIGN"]        = { 1.00, 0.40, 0.20 },
+    ["CAMPAGNE"]        = { 1.00, 0.40, 0.20 },
+    ["QUÊTES"]          = { 1.00, 0.82, 0.00 },
+    ["QUESTS"]          = { 1.00, 0.82, 0.00 },
+    ["QUEST"]           = { 1.00, 0.82, 0.00 },
+    ["WORLD QUESTS"]    = { 0.00, 0.80, 1.00 },
+    ["EXPÉDITIONS"]     = { 0.00, 0.80, 1.00 },
+    ["BONUS"]           = { 0.00, 0.90, 0.70 },
+    ["SCENARIO"]        = { 0.70, 0.40, 1.00 },
+    ["SCÉNARIO"]        = { 0.70, 0.40, 1.00 },
+    ["ACHIEVEMENTS"]    = { 0.80, 1.00, 0.00 },
+    ["HAUTS FAITS"]     = { 0.80, 1.00, 0.00 },
+    ["PROFESSIONS"]     = { 0.90, 0.65, 0.30 },
+    ["MÉTIERS"]         = { 0.90, 0.65, 0.30 },
+    ["MONTHLY"]         = { 0.90, 0.30, 0.70 },
+    ["MENSUEL"]         = { 0.90, 0.30, 0.70 },
+    ["ADVENTURE"]       = { 0.30, 0.85, 0.65 },
+    ["AVENTURE"]        = { 0.30, 0.85, 0.65 },
 }
 
 -- =====================================
--- SETTINGS HELPER
+-- SETTINGS
 -- =====================================
 
-local function GetSettings()
+local function S()
     return TomoModDB and TomoModDB.objectiveTracker or {}
 end
 
 local function IsEnabled()
-    local s = GetSettings()
-    return s.enabled
+    return S().enabled
+end
+
+-- =====================================
+-- GET COLOR FOR HEADER TEXT
+-- =====================================
+
+local function GetHeaderColor(text)
+    if not text or text == "" then return nil end
+    local upper = string.upper(text)
+    for keyword, color in pairs(HEADER_COLORS) do
+        if string.find(upper, keyword, 1, true) then
+            return color
+        end
+    end
+    return nil
+end
+
+-- =====================================
+-- DETECT FRAME ROLE
+-- =====================================
+
+local function IsModuleHeader(frame)
+    if frame.Text and frame.Text.GetText then
+        local txt = frame.Text:GetText()
+        if txt and GetHeaderColor(txt) then
+            return true, txt
+        end
+    end
+    local regions = { frame:GetRegions() }
+    for _, region in ipairs(regions) do
+        if region:IsObjectType("FontString") then
+            local txt = region:GetText()
+            if txt and GetHeaderColor(txt) then
+                return true, txt
+            end
+        end
+    end
+    return false, nil
+end
+
+-- =====================================
+-- STYLE FUNCTIONS
+-- =====================================
+
+local function StyleFontString(fs, font, size, outline, r, g, b, a)
+    if not fs or not fs.SetFont then return end
+    local sizeKey = size .. (outline or "")
+    if styledFonts[fs] == sizeKey then return end
+
+    pcall(fs.SetFont, fs, font, size, outline or "")
+    if r then pcall(fs.SetTextColor, fs, r, g, b, a or 1) end
+    styledFonts[fs] = sizeKey
+end
+
+local function StyleModuleHeader(frame, headerText)
+    local s = S()
+    local color = GetHeaderColor(headerText)
+    if not color then return end
+
+    -- Style the header FontString
+    if frame.Text and frame.Text.SetFont then
+        frame.Text:SetFont(ADDON_FONT_BOLD, s.categoryFontSize or 11, "OUTLINE")
+        frame.Text:SetTextColor(color[1], color[2], color[3], 1)
+    end
+
+    -- Also style any matching region FontString
+    local regions = { frame:GetRegions() }
+    for _, region in ipairs(regions) do
+        if region:IsObjectType("FontString") then
+            local txt = region:GetText()
+            if txt and GetHeaderColor(txt) then
+                region:SetFont(ADDON_FONT_BOLD, s.categoryFontSize or 11, "OUTLINE")
+                region:SetTextColor(color[1], color[2], color[3], 1)
+            end
+        end
+    end
+
+    -- Dim default background
+    if frame.Background then frame.Background:SetAlpha(0) end
+
+    -- Add colored underline
+    if not frame._tomoLine then
+        local line = frame:CreateTexture(nil, "ARTWORK")
+        line:SetHeight(1)
+        line:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 0, 0)
+        line:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+        frame._tomoLine = line
+    end
+    frame._tomoLine:SetColorTexture(color[1], color[2], color[3], 0.35)
+end
+
+local function StyleQuestTitle(fs)
+    local s = S()
+    StyleFontString(fs, ADDON_FONT_BOLD, s.questFontSize or 12, "OUTLINE", 1, 1, 1, 0.95)
+end
+
+local function StyleObjectiveLine(fs, completed)
+    local s = S()
+    if completed then
+        -- Completed: green
+        StyleFontString(fs, ADDON_FONT, s.objectiveFontSize or 11, "OUTLINE", 0.30, 0.90, 0.30, 1)
+    else
+        -- Incomplete: light grey
+        StyleFontString(fs, ADDON_FONT, s.objectiveFontSize or 11, "OUTLINE", 0.85, 0.85, 0.85, 0.90)
+    end
+end
+
+-- Detect if an objective line is completed
+local function IsObjectiveComplete(frame)
+    -- Method 1: Check Blizzard state
+    if frame.state and frame.state == 1 then return true end
+    -- Method 2: Check if the Check mark texture is shown
+    if frame.Check and frame.Check:IsShown() then return true end
+    -- Method 3: Check Dash color (Blizzard colors completed dashes differently)
+    if frame.Dash and frame.Dash.GetTextColor then
+        local r, g, b = frame.Dash:GetTextColor()
+        -- Blizzard dims completed lines
+        if r < 0.5 and g < 0.5 and b < 0.5 then return true end
+    end
+    return false
+end
+
+-- =====================================
+-- STATUS BAR RESTYLING (forces, progress)
+-- =====================================
+
+local styledBars = setmetatable({}, { __mode = "k" })
+
+local function StyleStatusBar(bar)
+    if not bar or styledBars[bar] then return end
+    if not bar.SetStatusBarTexture then return end
+    styledBars[bar] = true
+
+    -- Apply our texture
+    bar:SetStatusBarTexture(ADDON_TEXTURE)
+    bar:SetStatusBarColor(0.047, 0.824, 0.624, 1)
+
+    -- Dark background
+    if not bar._tmBG then
+        local bg = bar:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bg:SetColorTexture(0.08, 0.08, 0.10, 0.80)
+        bar._tmBG = bg
+    end
+
+    -- 1px black border
+    if not bar._tmBorder then
+        for _, info in ipairs({
+            {"TOPLEFT","TOPLEFT","TOPRIGHT","TOPRIGHT", nil, 1},
+            {"BOTTOMLEFT","BOTTOMLEFT","BOTTOMRIGHT","BOTTOMRIGHT", nil, 1},
+            {"TOPLEFT","TOPLEFT","BOTTOMLEFT","BOTTOMLEFT", 1, nil},
+            {"TOPRIGHT","TOPRIGHT","BOTTOMRIGHT","BOTTOMRIGHT", 1, nil},
+        }) do
+            local t = bar:CreateTexture(nil, "OVERLAY", nil, 7)
+            t:SetColorTexture(0, 0, 0, 1)
+            t:SetPoint(info[1], bar, info[2])
+            t:SetPoint(info[3], bar, info[4])
+            if info[5] then t:SetWidth(info[5]) end
+            if info[6] then t:SetHeight(info[6]) end
+        end
+        bar._tmBorder = true
+    end
+
+    -- Style the bar text if present
+    local regions = { bar:GetRegions() }
+    for _, region in ipairs(regions) do
+        if region:IsObjectType("FontString") then
+            local s = S()
+            region:SetFont(ADDON_FONT_BOLD, s.objectiveFontSize or 11, "OUTLINE")
+        end
+    end
+end
+
+-- =====================================
+-- RECURSIVE SCANNER
+-- =====================================
+
+local function ScanAndStyle(frame, depth)
+    if not frame or depth > 6 then return end
+
+    -- Check if this frame is a module header
+    local isHeader, headerText = IsModuleHeader(frame)
+    if isHeader then
+        StyleModuleHeader(frame, headerText)
+    end
+
+    -- Check for HeaderText (quest block title)
+    if frame.HeaderText and frame.HeaderText.GetText then
+        StyleQuestTitle(frame.HeaderText)
+    end
+
+    -- Check for objective lines (.Text + optional .Dash)
+    if frame.Text and frame.Text.GetText and not frame.HeaderText then
+        local txt = frame.Text:GetText()
+        if txt and txt ~= "" then
+            if frame.Dash then
+                local done = IsObjectiveComplete(frame)
+                StyleObjectiveLine(frame.Text, done)
+                StyleObjectiveLine(frame.Dash, done)
+            end
+        end
+    end
+
+    -- Restyle StatusBars (enemy forces, progress bars)
+    if frame:IsObjectType("StatusBar") then
+        StyleStatusBar(frame)
+    end
+
+    -- Recurse into children
+    local children = { frame:GetChildren() }
+    for _, child in ipairs(children) do
+        ScanAndStyle(child, depth + 1)
+    end
 end
 
 -- =====================================
 -- BACKGROUND PANEL
 -- =====================================
 
-local function CreateBackgroundPanel()
-    if skinFrame then return end
-
+local function CreateOrUpdateBackground()
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
+    local s = S()
 
-    local s = GetSettings()
+    if not skinFrame then
+        skinFrame = CreateFrame("Frame", "TomoMod_OTSkin", UIParent)
+        skinFrame:SetFrameStrata(tracker:GetFrameStrata())
+        skinFrame:SetFrameLevel(math.max(tracker:GetFrameLevel() - 1, 0))
 
-    -- Main dark background
-    skinFrame = CreateFrame("Frame", "TomoMod_OTSkin", tracker)
-    skinFrame:SetFrameStrata(tracker:GetFrameStrata())
-    skinFrame:SetFrameLevel(math.max(tracker:GetFrameLevel() - 1, 0))
-    skinFrame:SetPoint("TOPLEFT", tracker, "TOPLEFT", -12, 12)
-    skinFrame:SetPoint("BOTTOMRIGHT", tracker, "BOTTOMRIGHT", 12, -12)
+        -- Background texture
+        local bg = skinFrame:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        skinFrame.bg = bg
 
-    -- Background texture
-    local bg = skinFrame:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(0, 0, 0, s.bgAlpha or 0.65)
-    skinFrame.bg = bg
-
-    -- Border (subtle)
-    if s.showBorder then
-        local borderSize = 1
+        -- Border textures
         local bColor = { 0.25, 0.25, 0.30, 0.6 }
+        local borders = {}
+        for _, info in ipairs({
+            { "TOPLEFT", "TOPLEFT", "TOPRIGHT", "TOPRIGHT", nil, 1 },
+            { "BOTTOMLEFT", "BOTTOMLEFT", "BOTTOMRIGHT", "BOTTOMRIGHT", nil, 1 },
+            { "TOPLEFT", "TOPLEFT", "BOTTOMLEFT", "BOTTOMLEFT", 1, nil },
+            { "TOPRIGHT", "TOPRIGHT", "BOTTOMRIGHT", "BOTTOMRIGHT", 1, nil },
+        }) do
+            local t = skinFrame:CreateTexture(nil, "BORDER")
+            t:SetColorTexture(unpack(bColor))
+            t:SetPoint(info[1], skinFrame, info[2])
+            t:SetPoint(info[3], skinFrame, info[4])
+            if info[5] then t:SetWidth(info[5]) end
+            if info[6] then t:SetHeight(info[6]) end
+            borders[#borders + 1] = t
+        end
+        skinFrame.borderTextures = borders
+    end
 
-        local top = skinFrame:CreateTexture(nil, "BORDER")
-        top:SetColorTexture(unpack(bColor))
-        top:SetHeight(borderSize)
-        top:SetPoint("TOPLEFT", skinFrame, "TOPLEFT", 0, 0)
-        top:SetPoint("TOPRIGHT", skinFrame, "TOPRIGHT", 0, 0)
+    -- Position: wrap actual tracker content
+    skinFrame:ClearAllPoints()
+    skinFrame:SetPoint("TOPLEFT", tracker, "TOPLEFT", -12, 12)
+    skinFrame:SetPoint("TOPRIGHT", tracker, "TOPRIGHT", 12, 0)
 
-        local bot = skinFrame:CreateTexture(nil, "BORDER")
-        bot:SetColorTexture(unpack(bColor))
-        bot:SetHeight(borderSize)
-        bot:SetPoint("BOTTOMLEFT", skinFrame, "BOTTOMLEFT", 0, 0)
-        bot:SetPoint("BOTTOMRIGHT", skinFrame, "BOTTOMRIGHT", 0, 0)
+    -- Dynamic height: measure the actual bottom of visible content
+    local trackerTop = tracker:GetTop()
+    local lowestBottom = trackerTop  -- start at top (nothing visible)
 
-        local left = skinFrame:CreateTexture(nil, "BORDER")
-        left:SetColorTexture(unpack(bColor))
-        left:SetWidth(borderSize)
-        left:SetPoint("TOPLEFT", skinFrame, "TOPLEFT", 0, 0)
-        left:SetPoint("BOTTOMLEFT", skinFrame, "BOTTOMLEFT", 0, 0)
+    if trackerTop then
+        local children = { tracker:GetChildren() }
+        for _, child in ipairs(children) do
+            -- Skip our own frames
+            if child:IsShown() and child ~= skinFrame and child ~= headerBar then
+                local bot = child:GetBottom()
+                if bot and bot < lowestBottom then
+                    lowestBottom = bot
+                end
+            end
+        end
+    end
 
-        local right = skinFrame:CreateTexture(nil, "BORDER")
-        right:SetColorTexture(unpack(bColor))
-        right:SetWidth(borderSize)
-        right:SetPoint("TOPRIGHT", skinFrame, "TOPRIGHT", 0, 0)
-        right:SetPoint("BOTTOMRIGHT", skinFrame, "BOTTOMRIGHT", 0, 0)
+    -- Content height = distance from tracker top to lowest child bottom
+    local contentH = (trackerTop and lowestBottom) and (trackerTop - lowestBottom) or 0
+    -- Add padding: 12 top (for our header offset) + 28 header bar + 16 bottom padding
+    local finalH = math.max(contentH + 56, 60)
+    skinFrame:SetHeight(finalH)
 
-        skinFrame.borderTextures = { top, bot, left, right }
+    -- Apply alpha
+    skinFrame.bg:SetColorTexture(0, 0, 0, s.bgAlpha or 0.65)
+
+    -- Border visibility
+    if skinFrame.borderTextures then
+        local show = s.showBorder
+        for _, t in ipairs(skinFrame.borderTextures) do
+            if show then t:Show() else t:Hide() end
+        end
     end
 
     skinFrame:Show()
 end
 
 -- =====================================
--- CUSTOM HEADER BAR ("OBJECTIVES  Options  14/35")
+-- HEADER BAR
 -- =====================================
 
-local function CreateHeaderBar()
-    if headerBar then return end
-
+local function CreateOrUpdateHeader()
     local tracker = ObjectiveTrackerFrame
-    if not tracker then return end
+    if not tracker or not skinFrame then return end
+    local s = S()
 
-    local s = GetSettings()
+    if not headerBar then
+        headerBar = CreateFrame("Frame", "TomoMod_OTHeader", skinFrame)
+        headerBar:SetHeight(28)
+        headerBar:SetPoint("TOPLEFT", skinFrame, "TOPLEFT", 0, 0)
+        headerBar:SetPoint("TOPRIGHT", skinFrame, "TOPRIGHT", 0, 0)
 
-    headerBar = CreateFrame("Frame", "TomoMod_OTHeader", skinFrame or tracker)
-    headerBar:SetHeight(28)
-    headerBar:SetPoint("TOPLEFT", skinFrame or tracker, "TOPLEFT", 0, 0)
-    headerBar:SetPoint("TOPRIGHT", skinFrame or tracker, "TOPRIGHT", 0, 0)
+        -- Background
+        local hbg = headerBar:CreateTexture(nil, "BACKGROUND")
+        hbg:SetAllPoints()
+        hbg:SetColorTexture(0.10, 0.10, 0.14, 0.90)
 
-    -- Header background (slightly lighter)
-    local hbg = headerBar:CreateTexture(nil, "BACKGROUND")
-    hbg:SetAllPoints()
-    hbg:SetColorTexture(0.10, 0.10, 0.14, 0.90)
-    headerBar.bg = hbg
+        -- Accent line
+        local accent = headerBar:CreateTexture(nil, "ARTWORK")
+        accent:SetHeight(1)
+        accent:SetPoint("BOTTOMLEFT", headerBar, "BOTTOMLEFT", 0, 0)
+        accent:SetPoint("BOTTOMRIGHT", headerBar, "BOTTOMRIGHT", 0, 0)
+        accent:SetColorTexture(0.047, 0.824, 0.624, 0.60)
 
-    -- Accent line at bottom of header
-    local accent = headerBar:CreateTexture(nil, "ARTWORK")
-    accent:SetHeight(1)
-    accent:SetPoint("BOTTOMLEFT", headerBar, "BOTTOMLEFT", 0, 0)
-    accent:SetPoint("BOTTOMRIGHT", headerBar, "BOTTOMRIGHT", 0, 0)
-    accent:SetColorTexture(0.047, 0.824, 0.624, 0.60)
-    headerBar.accent = accent
+        -- Title
+        headerTitle = headerBar:CreateFontString(nil, "OVERLAY")
+        headerTitle:SetFont(ADDON_FONT_BLACK, s.headerFontSize or 13, "OUTLINE")
+        headerTitle:SetPoint("LEFT", headerBar, "LEFT", 10, 0)
+        headerTitle:SetTextColor(0.95, 0.95, 0.97, 1)
+        headerTitle:SetText(L["ot_header_title"])
 
-    -- "OBJECTIVES" title
-    headerTitle = headerBar:CreateFontString(nil, "OVERLAY")
+        -- Options button
+        headerOptions = CreateFrame("Button", nil, headerBar)
+        headerOptions:SetHeight(28)
+        headerOptions.text = headerOptions:CreateFontString(nil, "OVERLAY")
+        headerOptions.text:SetFont(ADDON_FONT, 11, "OUTLINE")
+        headerOptions.text:SetPoint("CENTER")
+        headerOptions.text:SetTextColor(0.55, 0.55, 0.60, 1)
+        headerOptions.text:SetText(L["ot_header_options"])
+        headerOptions:SetWidth(headerOptions.text:GetStringWidth() + 10)
+        headerOptions:SetPoint("RIGHT", headerBar, "RIGHT", -60, 0)
+        headerOptions:SetScript("OnEnter", function(self)
+            self.text:SetTextColor(0.047, 0.824, 0.624, 1)
+        end)
+        headerOptions:SetScript("OnLeave", function(self)
+            self.text:SetTextColor(0.55, 0.55, 0.60, 1)
+        end)
+        headerOptions:SetScript("OnClick", function()
+            if TomoMod_Config and TomoMod_Config.Toggle then
+                TomoMod_Config.Toggle()
+            end
+        end)
+
+        -- Dash
+        headerDash = headerBar:CreateFontString(nil, "OVERLAY")
+        headerDash:SetFont(ADDON_FONT, 11, "OUTLINE")
+        headerDash:SetTextColor(0.35, 0.35, 0.40, 1)
+        headerDash:SetText("-")
+
+        -- Count
+        headerCount = headerBar:CreateFontString(nil, "OVERLAY")
+        headerCount:SetFont(ADDON_FONT, 11, "OUTLINE")
+        headerCount:SetPoint("RIGHT", headerBar, "RIGHT", -10, 0)
+        headerCount:SetTextColor(0.55, 0.55, 0.60, 1)
+
+        headerDash:SetPoint("RIGHT", headerCount, "LEFT", -6, 0)
+    end
+
+    -- Update fonts from settings
     headerTitle:SetFont(ADDON_FONT_BLACK, s.headerFontSize or 13, "OUTLINE")
-    headerTitle:SetPoint("LEFT", headerBar, "LEFT", 10, 0)
-    headerTitle:SetTextColor(0.95, 0.95, 0.97, 1)
-    headerTitle:SetText(L["ot_header_title"])
-
-    -- "Options" button (clickable text)
-    headerOptions = CreateFrame("Button", nil, headerBar)
-    headerOptions:SetHeight(28)
-    headerOptions.text = headerOptions:CreateFontString(nil, "OVERLAY")
-    headerOptions.text:SetFont(ADDON_FONT, 11, "OUTLINE")
-    headerOptions.text:SetPoint("CENTER")
-    headerOptions.text:SetTextColor(0.55, 0.55, 0.60, 1)
-    headerOptions.text:SetText(L["ot_header_options"])
-    headerOptions:SetWidth(headerOptions.text:GetStringWidth() + 10)
-    headerOptions:SetPoint("RIGHT", headerBar, "RIGHT", -60, 0)
-
-    headerOptions:SetScript("OnEnter", function(self)
-        self.text:SetTextColor(0.047, 0.824, 0.624, 1)
-    end)
-    headerOptions:SetScript("OnLeave", function(self)
-        self.text:SetTextColor(0.55, 0.55, 0.60, 1)
-    end)
-    headerOptions:SetScript("OnClick", function()
-        if TomoMod_Config and TomoMod_Config.Toggle then
-            TomoMod_Config.Toggle()
-        end
-    end)
-
-    -- Quest count "14/35"
-    headerCount = headerBar:CreateFontString(nil, "OVERLAY")
-    headerCount:SetFont(ADDON_FONT, 11, "OUTLINE")
-    headerCount:SetPoint("RIGHT", headerBar, "RIGHT", -10, 0)
-    headerCount:SetTextColor(0.55, 0.55, 0.60, 1)
-
-    -- Separator dash
-    local dash = headerBar:CreateFontString(nil, "OVERLAY")
-    dash:SetFont(ADDON_FONT, 11, "OUTLINE")
-    dash:SetPoint("RIGHT", headerCount, "LEFT", -6, 0)
-    dash:SetTextColor(0.35, 0.35, 0.40, 1)
-    dash:SetText("-")
-    headerBar.dash = dash
 
     headerBar:Show()
 end
@@ -214,226 +445,100 @@ end
 local function UpdateQuestCount()
     if not headerCount then return end
 
-    local numQuests = C_QuestLog and C_QuestLog.GetNumQuestLogEntries and select(1, C_QuestLog.GetNumQuestLogEntries()) or 0
-    local maxQuests = C_QuestLog and C_QuestLog.GetMaxNumQuestsCanAccept and C_QuestLog.GetMaxNumQuestsCanAccept() or 35
-
-    -- Count tracked only (approximate from tracker)
     local tracked = 0
     if C_QuestLog and C_QuestLog.GetNumQuestWatches then
         tracked = C_QuestLog.GetNumQuestWatches()
     end
+    local maxQ = 35
+    if C_QuestLog and C_QuestLog.GetMaxNumQuestsCanAccept then
+        maxQ = C_QuestLog.GetMaxNumQuestsCanAccept()
+    end
 
-    headerCount:SetText(tracked .. "/" .. maxQuests)
+    headerCount:SetText(tracked .. "/" .. maxQ)
 end
 
 -- =====================================
--- GET MODULE COLOR
--- =====================================
-
-local function GetModuleColor(headerText)
-    if not headerText then
-        return MODULE_COLORS["DEFAULT"]
-    end
-
-    local upper = string.upper(headerText)
-
-    for key, color in pairs(MODULE_COLORS) do
-        if key ~= "DEFAULT" and string.find(upper, key) then
-            return color
-        end
-    end
-
-    return MODULE_COLORS["DEFAULT"]
-end
-
--- =====================================
--- STYLE A MODULE HEADER
--- =====================================
-
-local function StyleModuleHeader(header)
-    if not header then return end
-    if styledHeaders[header] then return end
-
-    local s = GetSettings()
-
-    -- Get the header text FontString
-    local text = header.Text or (header.GetText and header)
-    if not text then return end
-
-    -- Apply custom font
-    if text.SetFont then
-        text:SetFont(ADDON_FONT_BOLD, s.categoryFontSize or 11, "OUTLINE")
-    end
-
-    -- Get text content and apply color
-    local headerStr = ""
-    if text.GetText then
-        headerStr = text:GetText() or ""
-    end
-
-    local color = GetModuleColor(headerStr)
-    if text.SetTextColor then
-        text:SetTextColor(color.r, color.g, color.b, 1)
-    end
-
-    -- Try to hide or dim the default header background
-    if header.Background then
-        header.Background:SetAlpha(0)
-    end
-
-    -- Add a thin colored line under header
-    if not header._tomoLine and header.CreateTexture then
-        local line = header:CreateTexture(nil, "ARTWORK")
-        line:SetHeight(1)
-        line:SetPoint("BOTTOMLEFT", header, "BOTTOMLEFT", 0, 0)
-        line:SetPoint("BOTTOMRIGHT", header, "BOTTOMRIGHT", 0, 0)
-        line:SetColorTexture(color.r, color.g, color.b, 0.30)
-        header._tomoLine = line
-    end
-
-    styledHeaders[header] = true
-end
-
--- =====================================
--- STYLE A QUEST BLOCK (title)
--- =====================================
-
-local function StyleBlock(block)
-    if not block then return end
-    if styledBlocks[block] then return end
-
-    local s = GetSettings()
-
-    -- Style header text (quest title)
-    local headerText = block.HeaderText
-    if headerText and headerText.SetFont then
-        headerText:SetFont(ADDON_FONT_BOLD, s.questFontSize or 12, "OUTLINE")
-        headerText:SetTextColor(1, 1, 1, 0.95)
-    end
-
-    styledBlocks[block] = true
-end
-
--- =====================================
--- STYLE OBJECTIVE LINES
--- =====================================
-
-local function StyleLine(line)
-    if not line then return end
-    if styledLines[line] then return end
-
-    local s = GetSettings()
-
-    -- Style the objective text
-    local text = line.Text
-    if text and text.SetFont then
-        text:SetFont(ADDON_FONT, s.objectiveFontSize or 11, "OUTLINE")
-    end
-
-    -- Style dash/bullet
-    local dash = line.Dash
-    if dash and dash.SetFont then
-        dash:SetFont(ADDON_FONT, s.objectiveFontSize or 11, "OUTLINE")
-    end
-
-    styledLines[line] = true
-end
-
--- =====================================
--- HIDE BLIZZARD HEADER (replace with ours)
+-- HIDE BLIZZARD HEADER
 -- =====================================
 
 local function HideBlizzardHeader()
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
 
-    -- Hide the default minimize/header area
     local header = tracker.Header or tracker.HeaderMenu
-    if header then
-        if header.MinimizeButton then
-            header.MinimizeButton:SetAlpha(0)
-        end
-        if header.Title then
-            header.Title:SetAlpha(0)
-        end
-        if header.Text then
-            header.Text:SetAlpha(0)
-        end
-        -- Offset the tracker content below our custom header
+    if not header then return end
+
+    -- Hide all regions (textures, fontstrings, lines)
+    local regions = { header:GetRegions() }
+    for _, region in ipairs(regions) do
+        region:SetAlpha(0)
     end
+
+    -- Hide all children (buttons, sub-frames)
+    local children = { header:GetChildren() }
+    for _, child in ipairs(children) do
+        child:SetAlpha(0)
+    end
+
+    -- Also collapse height so it doesn't take space
+    header:SetAlpha(0)
 end
 
 -- =====================================
--- SCAN & STYLE ALL MODULES
+-- M+ DETECTION
 -- =====================================
 
-local function SkinAllModules()
+local function IsInMythicPlus()
+    return C_ChallengeMode and C_ChallengeMode.IsChallengeModeActive and C_ChallengeMode.IsChallengeModeActive()
+end
+
+-- =====================================
+-- MASTER UPDATE
+-- =====================================
+
+local function OnTrackerUpdate()
+    if not IsEnabled() then return end
+
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
 
-    local s = GetSettings()
-    if not s.enabled then return end
+    -- Reset font dedup so settings changes apply
+    wipe(styledFonts)
 
-    -- Iterate all tracker modules
-    local modules = tracker.modules
-    if not modules then return end
+    CreateOrUpdateBackground()
+    CreateOrUpdateHeader()
+    HideBlizzardHeader()
+    ScanAndStyle(tracker, 0)
+    UpdateQuestCount()
 
-    for _, mod in ipairs(modules) do
-        -- Style module header
-        if mod.Header then
-            styledHeaders[mod.Header] = nil  -- allow re-styling for color updates
-            StyleModuleHeader(mod.Header)
-        end
+    -- In M+: hide title, count, dash — keep Options visible
+    local inMP = IsInMythicPlus()
+    if headerTitle then headerTitle:SetShown(not inMP) end
+    if headerCount then headerCount:SetShown(not inMP) end
+    if headerDash  then headerDash:SetShown(not inMP) end
 
-        -- Style blocks within module
-        if mod.usedBlocks then
-            for block in pairs(mod.usedBlocks) do
-                StyleBlock(block)
+    -- Visibility: check if tracker has actual visible content
+    if skinFrame then
+        local s = S()
+        local trackerShown = tracker:IsShown()
+        local trackerTop = tracker:GetTop()
+        local hasContent = false
 
-                -- Style lines within block
-                if block.usedLines then
-                    for line in pairs(block.usedLines) do
-                        StyleLine(line)
-                    end
+        if trackerShown and trackerTop then
+            local children = { tracker:GetChildren() }
+            for _, child in ipairs(children) do
+                if child:IsShown() and child ~= skinFrame and child ~= headerBar
+                   and child:GetBottom() then
+                    hasContent = true
+                    break
                 end
             end
         end
-    end
-end
 
--- =====================================
--- UPDATE BACKGROUND SIZE
--- =====================================
-
-local function UpdateBackgroundSize()
-    if not skinFrame then return end
-
-    local tracker = ObjectiveTrackerFrame
-    if not tracker then return end
-
-    local s = GetSettings()
-
-    -- Update background alpha
-    if skinFrame.bg then
-        skinFrame.bg:SetColorTexture(0, 0, 0, s.bgAlpha or 0.65)
-    end
-
-    -- Show/hide based on whether tracker has content
-    local hasContent = false
-    if tracker.modules then
-        for _, mod in ipairs(tracker.modules) do
-            if mod.usedBlocks and next(mod.usedBlocks) then
-                hasContent = true
-                break
-            end
-        end
-    end
-
-    if hasContent then
-        skinFrame:Show()
-        if headerBar then headerBar:Show() end
-    else
-        if s.hideWhenEmpty then
+        if hasContent then
+            skinFrame:Show()
+            if headerBar then headerBar:Show() end
+        elseif s.hideWhenEmpty then
             skinFrame:Hide()
             if headerBar then headerBar:Hide() end
         end
@@ -441,117 +546,93 @@ local function UpdateBackgroundSize()
 end
 
 -- =====================================
--- MASTER UPDATE (called on tracker updates)
+-- HOOKS
 -- =====================================
 
-local function OnTrackerUpdate()
-    if not IsEnabled() then return end
+local function InstallHooks()
+    if isHooked then return end
+    isHooked = true
 
-    SkinAllModules()
-    UpdateQuestCount()
-    UpdateBackgroundSize()
-end
-
--- =====================================
--- HOOK TRACKER UPDATES
--- =====================================
-
-local function HookTracker()
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
 
-    -- Hook the main update method
-    -- In 12.x, ObjectiveTrackerManager uses Update()
-    if tracker.Update then
-        hooksecurefunc(tracker, "Update", function()
-            C_Timer.After(0.05, OnTrackerUpdate)
-        end)
+    -- Hook known layout methods
+    for _, method in ipairs({ "Update", "SetShown", "Show", "MarkDirty" }) do
+        if tracker[method] then
+            hooksecurefunc(tracker, method, function()
+                C_Timer.After(0.08, OnTrackerUpdate)
+            end)
+        end
     end
 
-    -- Also hook on specific events for real-time updates
-    local eventFrame = CreateFrame("Frame")
-    eventFrame:RegisterEvent("QUEST_LOG_UPDATE")
-    eventFrame:RegisterEvent("QUEST_WATCH_LIST_CHANGED")
-    eventFrame:RegisterEvent("QUEST_ACCEPTED")
-    eventFrame:RegisterEvent("QUEST_REMOVED")
-    eventFrame:RegisterEvent("QUEST_TURNED_IN")
-    eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-    eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    -- Sync visibility: skinFrame is parented to UIParent, not tracker
+    hooksecurefunc(tracker, "Hide", function()
+        if skinFrame then skinFrame:Hide() end
+        if headerBar then headerBar:Hide() end
+    end)
 
-    local throttle = 0
-    eventFrame:SetScript("OnEvent", function(self, event)
+    -- Event-driven updates
+    local evFrame = CreateFrame("Frame")
+    evFrame:RegisterEvent("QUEST_LOG_UPDATE")
+    evFrame:RegisterEvent("QUEST_WATCH_LIST_CHANGED")
+    evFrame:RegisterEvent("QUEST_ACCEPTED")
+    evFrame:RegisterEvent("QUEST_REMOVED")
+    evFrame:RegisterEvent("QUEST_TURNED_IN")
+    evFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+    evFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    evFrame:RegisterEvent("TRACKED_ACHIEVEMENT_UPDATE")
+
+    local lastUpdate = 0
+    evFrame:SetScript("OnEvent", function()
         local now = GetTime()
-        if now - throttle < 0.2 then return end
-        throttle = now
-        C_Timer.After(0.1, OnTrackerUpdate)
+        if now - lastUpdate < 0.25 then return end
+        lastUpdate = now
+        C_Timer.After(0.15, OnTrackerUpdate)
     end)
 end
 
 -- =====================================
--- APPLY SETTINGS (live update)
+-- PUBLIC API
 -- =====================================
 
 function OT.ApplySettings()
     if not isInitialized then return end
-
-    local s = GetSettings()
-    if not s.enabled then
+    if not IsEnabled() then
         OT.Disable()
         return
     end
-
-    -- Reset style caches to re-apply
-    wipe(styledHeaders)
-    wipe(styledBlocks)
-    wipe(styledLines)
-
-    -- Update background
-    if skinFrame and skinFrame.bg then
-        skinFrame.bg:SetColorTexture(0, 0, 0, s.bgAlpha or 0.65)
-    end
-
-    -- Update header font
-    if headerTitle then
-        headerTitle:SetFont(ADDON_FONT_BLACK, s.headerFontSize or 13, "OUTLINE")
-    end
-
-    -- Re-skin everything
     OnTrackerUpdate()
 end
-
--- =====================================
--- ENABLE / DISABLE
--- =====================================
 
 function OT.Enable()
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
 
-    CreateBackgroundPanel()
-    CreateHeaderBar()
+    CreateOrUpdateBackground()
+    CreateOrUpdateHeader()
     HideBlizzardHeader()
-    HookTracker()
+    InstallHooks()
 
-    -- Initial skin pass
     C_Timer.After(0.5, OnTrackerUpdate)
-
-    if skinFrame then skinFrame:Show() end
-    if headerBar then headerBar:Show() end
 end
 
 function OT.Disable()
-    -- Hide our custom elements
     if skinFrame then skinFrame:Hide() end
     if headerBar then headerBar:Hide() end
 
-    -- Restore Blizzard header visibility
     local tracker = ObjectiveTrackerFrame
     if tracker then
         local header = tracker.Header or tracker.HeaderMenu
         if header then
-            if header.MinimizeButton then header.MinimizeButton:SetAlpha(1) end
-            if header.Title then header.Title:SetAlpha(1) end
-            if header.Text then header.Text:SetAlpha(1) end
+            header:SetAlpha(1)
+            local regions = { header:GetRegions() }
+            for _, region in ipairs(regions) do
+                region:SetAlpha(1)
+            end
+            local children = { header:GetChildren() }
+            for _, child in ipairs(children) do
+                child:SetAlpha(1)
+            end
         end
     end
 end
@@ -561,30 +642,23 @@ function OT.SetEnabled(value)
     TomoModDB.objectiveTracker.enabled = value
     if value then
         OT.Enable()
+        isInitialized = true
     else
         OT.Disable()
     end
 end
 
--- =====================================
--- INITIALIZE
--- =====================================
-
 function OT.Initialize()
     if isInitialized then return end
+    if not IsEnabled() then return end
 
-    local s = GetSettings()
-    if not s.enabled then return end
-
-    -- ObjectiveTrackerFrame may not exist yet at PLAYER_LOGIN
-    -- Wait for it with a polling timer
     local attempts = 0
     local function TryInit()
         attempts = attempts + 1
         if ObjectiveTrackerFrame then
             OT.Enable()
             isInitialized = true
-        elseif attempts < 20 then
+        elseif attempts < 30 then
             C_Timer.After(0.5, TryInit)
         end
     end

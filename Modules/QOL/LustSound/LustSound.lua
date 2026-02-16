@@ -53,10 +53,15 @@ local wasInCombat = false
 -- Snapshot of harmful aura IDs for sated detection
 local prevAuraIDs = {}
 
--- Known Bloodlust buff names
-local LUST_BUFFS = {
-    "Bloodlust", "Heroism", "Time Warp", "Ancient Hysteria",
-    "Harrier's Cry", "Primal Rage", "Fury of the Aspects",
+-- Known Bloodlust buff spell IDs (name-based lookup is broken in 12.x)
+local LUST_BUFF_IDS = {
+    [2825]   = "Bloodlust",
+    [32182]  = "Heroism",
+    [80353]  = "Time Warp",
+    [90355]  = "Ancient Hysteria",
+    [264667] = "Primal Rage",
+    [390386] = "Fury of the Aspects",
+    [392844] = "Harrier's Cry",
 }
 
 local POLL_INTERVAL = 0.5
@@ -138,9 +143,12 @@ end
 -- =====================================
 
 local function HasLustBuff()
-    for _, name in ipairs(LUST_BUFFS) do
-        if AuraUtil.FindAuraByName(name, "player", "HELPFUL") then
-            return true, name
+    -- Use C_UnitAuras to iterate player buffs by spell ID (12.x safe)
+    for i = 1, 40 do
+        local auraData = C_UnitAuras.GetBuffDataByIndex("player", i)
+        if not auraData then break end
+        if auraData.spellId and LUST_BUFF_IDS[auraData.spellId] then
+            return true, LUST_BUFF_IDS[auraData.spellId]
         end
     end
     return false
