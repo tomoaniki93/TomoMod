@@ -38,6 +38,9 @@
     <!-- Modules: Skyriding -->
     <Include file="Skyriding\SkyRide.lua" />
 
+    <!-- Modules: Leveling -->
+    <Include file="Leveling\LevelingBar.lua" />
+
     <!-- Modules: FrameAnchors -->
     <Include file="FrameAnchors\FrameAnchors.lua" />
 

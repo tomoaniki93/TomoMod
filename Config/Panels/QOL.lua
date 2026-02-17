@@ -439,6 +439,54 @@ local function BuildCharacterSkinTab(parent)
 end
 
 -- =====================================
+-- Tab: Leveling Bar
+-- =====================================
+
+local function BuildLevelingTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["section_leveling_bar"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_leveling_enable"],
+        TomoModDB.levelingBar and TomoModDB.levelingBar.enabled or false, y, function(v)
+        if not TomoModDB.levelingBar then TomoModDB.levelingBar = {} end
+        TomoModDB.levelingBar.enabled = v
+        if TomoMod_LevelingBar then TomoMod_LevelingBar.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_leveling_width"],
+        TomoModDB.levelingBar and TomoModDB.levelingBar.width or 500, 300, 800, 10, y, function(v)
+        if not TomoModDB.levelingBar then TomoModDB.levelingBar = {} end
+        TomoModDB.levelingBar.width = v
+        if TomoMod_LevelingBar then TomoMod_LevelingBar.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_leveling_height"],
+        TomoModDB.levelingBar and TomoModDB.levelingBar.height or 28, 18, 50, 1, y, function(v)
+        if not TomoModDB.levelingBar then TomoModDB.levelingBar = {} end
+        TomoModDB.levelingBar.height = v
+        if TomoMod_LevelingBar then TomoMod_LevelingBar.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateButton(c, L["btn_reset_leveling_pos"], 180, y, function()
+        if TomoModDB.levelingBar then
+            TomoModDB.levelingBar.position = nil
+        end
+        if TomoMod_LevelingBar then TomoMod_LevelingBar.SetPosition() end
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 20)
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -452,6 +500,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         --{ key = "tooltip",      label = L["tab_qol_tooltip_skin"], builder = function(p) return BuildTooltipSkinTab(p) end },
         { key = "objtracker",   label = L["tab_qol_obj_tracker"],  builder = function(p) return BuildObjectiveTrackerTab(p) end },
         { key = "charskin",     label = L["tab_qol_char_skin"],    builder = function(p) return BuildCharacterSkinTab(p) end },
+        { key = "leveling",     label = L["tab_qol_leveling"],     builder = function(p) return BuildLevelingTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

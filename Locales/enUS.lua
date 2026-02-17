@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.2.2 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.2.3 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -38,6 +38,7 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_durability"]                  = "Durability (Gear)",
     ["opt_time"]                        = "Time",
     ["opt_24h_format"]                  = "24h format",
+    ["opt_show_coords"]                 = "Show coordinates",
     ["btn_reset_position"]              = "Reset Position",
 
     -- Cursor Ring
@@ -428,6 +429,23 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_skyride_bar_height"]          = "Bar height",
     ["opt_font_size"]                   = "Font size",
     ["btn_reset_skyride"]               = "Reset SkyRide Position",
+
+    -- =====================
+    -- CONFIG: QOL — Leveling Bar
+    -- =====================
+    ["tab_qol_leveling"]                = "Leveling",
+    ["section_leveling_bar"]            = "Leveling Bar",
+    ["opt_leveling_enable"]             = "Enable Leveling Bar",
+    ["opt_leveling_width"]              = "Bar width",
+    ["opt_leveling_height"]             = "Bar height",
+    ["btn_reset_leveling_pos"]          = "Reset Position",
+    ["leveling_bar_title"]              = "Leveling Bar",
+    ["leveling_level"]                  = "Level",
+    ["leveling_progress"]               = "Progress:",
+    ["leveling_rested"]                 = "Rested",
+    ["leveling_last_quest"]             = "Last quest:",
+    ["leveling_ttl"]                    = "Time to level:",
+    ["leveling_drag_hint"]              = "/tm sr to unlock & drag",
 
     -- =====================
     -- CONFIG: Profiles Panel (3 Tabs)

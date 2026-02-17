@@ -58,6 +58,11 @@ function TomoMod_Minimap.CreateBorder()
         edgeSize = 2,
     })
     minimapBorder:SetBackdropBorderColor(r, g, b, a)
+
+    -- Sync InfoPanel bars border color
+    if TomoMod_InfoPanel and TomoMod_InfoPanel.UpdateAppearance then
+        TomoMod_InfoPanel.UpdateAppearance()
+    end
 end
 
 -- Appliquer le scale

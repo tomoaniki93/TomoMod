@@ -42,7 +42,7 @@ function TomoMod_ConfigPanel_General(parent)
     end)
     y = ny
 
-    -- INFO PANEL
+    -- INFO PANEL (integrated minimap)
     local _, ny = W.CreateSectionHeader(c, L["section_info_panel"], y)
     y = ny
 
@@ -51,15 +51,8 @@ function TomoMod_ConfigPanel_General(parent)
         if v then
             if TomoMod_InfoPanel then TomoMod_InfoPanel.Initialize() end
         else
-            local p = _G["TomoModInfoPanel"]
-            if p then p:Hide() end
+            if TomoMod_InfoPanel then TomoMod_InfoPanel.Hide() end
         end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_durability"], TomoModDB.infoPanel.showDurability, y, function(v)
-        TomoModDB.infoPanel.showDurability = v
-        if TomoMod_InfoPanel then TomoMod_InfoPanel.Update() end
     end)
     y = ny
 
@@ -75,15 +68,15 @@ function TomoMod_ConfigPanel_General(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_scale"], TomoModDB.infoPanel.scale, 0.5, 2.0, 0.1, y, function(v)
-        TomoModDB.infoPanel.scale = v
-        if TomoMod_InfoPanel then TomoMod_InfoPanel.UpdateAppearance() end
-    end, "%.1f")
+    local _, ny = W.CreateCheckbox(c, L["opt_show_coords"], TomoModDB.infoPanel.showCoords ~= false, y, function(v)
+        TomoModDB.infoPanel.showCoords = v
+        if TomoMod_InfoPanel then TomoMod_InfoPanel.Update() end
+    end)
     y = ny
 
-    local _, ny = W.CreateButton(c, L["btn_reset_position"], 160, y, function()
-        TomoModDB.infoPanel.position = nil
-        if TomoMod_InfoPanel then TomoMod_InfoPanel.SetPosition() end
+    local _, ny = W.CreateCheckbox(c, L["opt_durability"], TomoModDB.infoPanel.showDurability ~= false, y, function(v)
+        TomoModDB.infoPanel.showDurability = v
+        if TomoMod_InfoPanel then TomoMod_InfoPanel.Update() end
     end)
     y = ny
 

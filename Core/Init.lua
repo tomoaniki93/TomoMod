@@ -69,6 +69,9 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if TomoMod_UnitFrames and TomoMod_UnitFrames.TogglePlayerCastbarLock then
             TomoMod_UnitFrames.TogglePlayerCastbarLock()
         end
+        if TomoMod_LevelingBar and TomoMod_LevelingBar.ToggleLock then
+            TomoMod_LevelingBar.ToggleLock()
+        end
     elseif msg == "cdm" or msg == "ci" then
         if TomoMod_CooldownManager then
             local enabled = TomoModDB and TomoModDB.cooldownManager and TomoModDB.cooldownManager.enabled
@@ -235,6 +238,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_AutoQuest then TomoMod_AutoQuest.Initialize() end
         if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.Initialize() end
         if TomoMod_SkyRide then TomoMod_SkyRide.Initialize() end
+        if TomoMod_LevelingBar then TomoMod_LevelingBar.Initialize() end
         if TomoMod_CooldownManager then TomoMod_CooldownManager.Initialize() end
         if TomoMod_AutoAcceptInvite then TomoMod_AutoAcceptInvite.Initialize() end
         if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.Initialize() end

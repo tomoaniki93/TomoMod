@@ -21,14 +21,11 @@ TomoMod_Defaults = {
     },
     infoPanel = {
         enabled = true,
-        scale = 1.0,
-        borderColor = "black",
-        showDurability = true,
         showTime = true,
+        showCoords = true,
+        showDurability = true,
         use24Hour = true,
         useServerTime = true,
-        displayOrder = { "Gear", "Time", "Fps" },
-        position = nil,
     },
     cursorRing = {
         enabled = false,
@@ -79,6 +76,12 @@ TomoMod_Defaults = {
             x = 0,
             y = -180,
         },
+    },
+    levelingBar = {
+        enabled = false,
+        width = 500,
+        height = 28,
+        position = nil,
     },
     autoAcceptInvite = {
         enabled = false,

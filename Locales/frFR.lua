@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.2.2 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.2.3 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -38,6 +38,7 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_durability"]                  = "Durabilité (Équipement)",
     ["opt_time"]                        = "Heure",
     ["opt_24h_format"]                  = "Format 24h",
+    ["opt_show_coords"]                 = "Afficher les coordonnées",
     ["btn_reset_position"]              = "Réinitialiser la position",
 
     -- Cursor Ring
@@ -410,6 +411,23 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_skyride_bar_height"]          = "Hauteur barre",
     ["opt_font_size"]                   = "Taille police",
     ["btn_reset_skyride"]               = "Réinitialiser la position du Vol",
+
+    -- =====================
+    -- CONFIG: QOL — Barre de Leveling
+    -- =====================
+    ["tab_qol_leveling"]                = "Leveling",
+    ["section_leveling_bar"]            = "Barre de Leveling",
+    ["opt_leveling_enable"]             = "Activer la barre de leveling",
+    ["opt_leveling_width"]              = "Largeur de la barre",
+    ["opt_leveling_height"]             = "Hauteur de la barre",
+    ["btn_reset_leveling_pos"]          = "Réinitialiser la position",
+    ["leveling_bar_title"]              = "Barre de Leveling",
+    ["leveling_level"]                  = "Niveau",
+    ["leveling_progress"]               = "Progression :",
+    ["leveling_rested"]                 = "Reposé",
+    ["leveling_last_quest"]             = "Dernière quête :",
+    ["leveling_ttl"]                    = "Temps pour level :",
+    ["leveling_drag_hint"]              = "/tm sr pour débloquer & déplacer",
 
     -- =====================
     -- CONFIG: Profiles Panel (3 Onglets)
