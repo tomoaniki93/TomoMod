@@ -1,45 +1,134 @@
 ## ####################################
 
-## CHANGELOG 2.1.4
+## CHANGELOG 2.2.3
 
-- Character Sheet + Inspect
+- Add New Minimap and InfoPanel
+- XP Bar config in /tm and lock unlock /tm sr
+
+## ####################################
+
+## CHANGELOG 2.2.2
+
+- FIX ERROR BOOS FRAME
+
+## ####################################
+
+## CHANGELOG 2.2.1
+
+- Fiche Personnage + Inspect
 - Quest icon on NamesPlates
 - Fix error on LustSound
 
 ## ####################################
 
-# CHANGELOG
+## CHANGELOG 2.2.0
 
-## 2.1.0
+- Add QOL ToolTip Skin config in /tm
+- Add Skin on Quest config in /tm
+- Fix Error UnitFrame throttle
+- Fix Error Aura NamesPlates
+- Fix error UnitAura in LustSound
 
-### Critical Fixes
-- **Config UI completely rewritten** — all 6 config panels now use correct `TomoModMini_*` globals (was referencing `TomoMod_*` from the full version, causing the entire settings UI to crash on load)
-- **Database key fix** — `autoAcceptInvite` DB key now matches the module lookup (was `acceptInvite`, causing the module to never find its settings)
+## ####################################
 
-### Removed Non-Existent Module References
-- General panel: removed Minimap and InfoPanel sections (not in Mini)
-- QOL panel: removed AutoQuest, MythicKeys, SkyRide tabs and TooltipIDs section
-- CooldownResource panel: removed Cooldown Manager tab
-- UnitFrames panel: removed Boss Frames tab
-- Profiles panel: reset list trimmed to only the 10 modules that exist in Mini
+## CHANGELOG 2.1.17
 
-### Font & Asset Fixes
-- All font paths now point to `TomoModMini\Assets\Fonts\` (was `TomoMod\...`)
-- Font dropdowns only list Tomo.ttf + built-in WoW fonts (removed Poppins/Expressway references that don't ship with Mini)
+- Fix Update on Castbar and Namesplates
+- Fix Profiles.lua: Import/Export DeSerialize
+- Fix UnitFrame.lua: ToT permanent throttle
+- Fix BossFrames.lua: C_Timer.After(0) by redundant event
+- Fix Nameplates.lua: Events prematurely registered to the file scope
 
-### Init & Slash Commands
-- All help text now shows `/tm` consistently (was displaying `/tm`)
-- Removed dead module initialization code (10 modules referenced that don't exist in Mini)
-- Cleaned up slash command handlers
+## ####################################
 
-### Other
-- StaticPopup dialog names use `TOMOMODMINI_` prefix (was `TOMOMOD_`)
-- All print messages show `TomoModMini` branding
-- Stripped test/doc files from bundled libraries
+## CHANGELOG 2.1.16
 
-## 2.0.0
+- FIX Empower Bar
 
-- Initial Mini release — lightweight version of TomoMod
-- UnitFrames, Nameplates, ResourceBars
-- QOL: CursorRing, CinematicSkip, AutoAcceptInvite, AutoSummon, AutoFillDelete, AutoSkipRole, HideCastBar, FastLoot, AutoVendorRepair, HideTalkingHead
-- Full profile system with import/export and per-spec switching
+## ####################################
+
+## CHANGELOG 2.1.15
+
+- FIX MAJEUR CastBar For Evocater now OK
+- Add Blood Lust Sound
+
+## ####################################
+
+## CHANGELOG 2.1.13
+
+- BIG FIX PERFORMANCE in RAID and DUGEON on NamesPlates
+- Fix new Update on UnitFrames
+
+## ####################################
+
+## CHANGELOG 2.1.12
+
+- Add Bar Boss 1 to 5
+- Fix error lua multiples
+
+## ####################################
+
+## CHANGELOG 2.1.11
+
+- Fix error log 2.1.10
+- Fix error slashcommand
+- Add inCombat option Per-actionbar
+- Fix Tp in /tm key
+
+## ####################################
+
+## CHANGELOG 2.1.10
+
+- Fix Ids in Combat
+- Add Datakey for key in /tm key
+- Add Tp in /tm key
+- Add Skin Action Bar + Overlay
+- Add Border Rework on all icons
+
+## ####################################
+
+## CHANGELOG 2.1.9
+
+- Add QOL Id on ToolTips with Spells & Items
+- Add QOL AutoSkipRole
+- Rewrite MythicKeys
+
+## ####################################
+
+## CHANGELOG 2.1.8
+
+- NamesPlates Upgrade
+- NamesPlates Better Visual change Border and Gloss
+- NamesPlates Better color by Types for DPS and Tank
+- NamesPlates Tracks Buff and Debuff, change positioning.
+- Target Frame Better color by type like NamesPlates
+- Truncate on Target and Tot for Name too long
+- Save Positioning CastBar Player and Target
+- Border Modification in CooldownManager
+
+## ####################################
+
+## CHANGELOG 2.1.7
+
+- GUI Upgarde For Unitframes
+    add Font choices
+    Fix Size Font
+- GUI Upgarde For NamesPlates
+    add New Tab
+- GUI Upgarde For CD & Ressources
+    add New Tab
+- GUI Upgarde For Profils
+    add editbox create Profil Name
+    Fix in Import/export
+
+## ####################################
+
+## CHANGELOG 2.1.6
+
+- Fix Soul fragment bar Devourer
+- Fix AutoFill Delete
+- Fix CooldownManager Overlay bug on Two Class
+- Add Auras buffs purgeable/spellstealable, on Target and NamesPlates
+- fix bug Position ToT and Pet.
+
+## ####################################

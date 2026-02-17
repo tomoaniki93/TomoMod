@@ -1,5 +1,5 @@
 -- =====================================
--- Init.lua — Addon Initialization & Module System (TomoModMini)
+-- Init.lua — Addon Initialization & Module System
 -- =====================================
 
 local addonName = ...
@@ -8,73 +8,110 @@ local mainFrame = CreateFrame("Frame")
 -- =====================================
 -- MODULE SYSTEM (backward compat)
 -- =====================================
-TomoModMini_Modules = TomoModMini_Modules or {}
+TomoMod_Modules = TomoMod_Modules or {}
 
-function TomoModMini_RegisterModule(name, module)
-    TomoModMini_Modules[name] = module
+function TomoMod_RegisterModule(name, module)
+    TomoMod_Modules[name] = module
 end
 
-function TomoModMini_EnableModule(name)
-    if not TomoModMiniDB or not TomoModMiniDB[name] then return end
-    if not TomoModMiniDB[name].enabled then return end
-    local module = TomoModMini_Modules[name]
+function TomoMod_EnableModule(name)
+    if not TomoModDB or not TomoModDB[name] then return end
+    if not TomoModDB[name].enabled then return end
+    local module = TomoMod_Modules[name]
     if module and module.Enable then
         module:Enable()
     end
 end
 
-local L = TomoModMini_L
+local L = TomoMod_L
 
 -- =====================================
 -- SLASH COMMANDS
 -- =====================================
 
-SLASH_TomoModMini1 = "/tm"
-SLASH_TomoModMini2 = "/TomoModMini"
-SlashCmdList["TomoModMini"] = function(msg)
+SLASH_TOMOMOD1 = "/tm"
+SLASH_TOMOMOD2 = "/tomomod"
+SlashCmdList["TOMOMOD"] = function(msg)
     msg = string.lower(msg or "")
 
     if msg == "reset" then
-        TomoModMini_ResetDatabase()
+        TomoMod_ResetDatabase()
         ReloadUI()
+    elseif msg == "minimap" then
+        TomoMod_ResetModule("minimap")
+        if TomoMod_Minimap then TomoMod_Minimap.ApplySettings() end
+    elseif msg == "panel" then
+        TomoMod_ResetModule("infoPanel")
+        if TomoMod_InfoPanel then TomoMod_InfoPanel.Initialize() end
     elseif msg == "cursor" then
-        TomoModMini_ResetModule("cursorRing")
-        if TomoModMini_CursorRing then TomoModMini_CursorRing.ApplySettings() end
+        TomoMod_ResetModule("cursorRing")
+        if TomoMod_CursorRing then TomoMod_CursorRing.ApplySettings() end
     elseif msg == "clearcinema" then
-        if TomoModMini_CinematicSkip then
-            TomoModMini_CinematicSkip.ClearHistory()
+        if TomoMod_CinematicSkip then
+            TomoMod_CinematicSkip.ClearHistory()
+        end
+    elseif msg == "key" then
+        TomoMod_EnableModule("MythicKeys")
+        if MK then MK:Toggle() end
+    elseif msg == "skyride" then
+        TomoMod_ResetModule("skyRide")
+        if TomoMod_SkyRide then
+            TomoMod_SkyRide.Initialize()
+        end
+    elseif msg == "skyride toggle" or msg == "sr" then
+        if TomoMod_SkyRide and TomoMod_SkyRide.ToggleLock then
+            TomoMod_SkyRide.ToggleLock()
+        end
+        if TomoMod_FrameAnchors and TomoMod_FrameAnchors.ToggleLock then
+            TomoMod_FrameAnchors.ToggleLock()
+        end
+        -- Player castbar (standalone drag & drop)
+        if TomoMod_UnitFrames and TomoMod_UnitFrames.TogglePlayerCastbarLock then
+            TomoMod_UnitFrames.TogglePlayerCastbarLock()
+        end
+        if TomoMod_LevelingBar and TomoMod_LevelingBar.ToggleLock then
+            TomoMod_LevelingBar.ToggleLock()
+        end
+    elseif msg == "cdm" or msg == "ci" then
+        if TomoMod_CooldownManager then
+            local enabled = TomoModDB and TomoModDB.cooldownManager and TomoModDB.cooldownManager.enabled
+            print("|cff0cd29fTomoMod CDM:|r " .. (enabled and L["msg_cdm_status"] or L["msg_cdm_disabled"]))
         end
     elseif msg == "uf" or msg == "unitframes" then
-        if TomoModMini_UnitFrames and TomoModMini_UnitFrames.ToggleLock then
-            TomoModMini_UnitFrames.ToggleLock()
+        if TomoMod_UnitFrames and TomoMod_UnitFrames.ToggleLock then
+            TomoMod_UnitFrames.ToggleLock()
         end
-        if TomoModMini_ResourceBars and TomoModMini_ResourceBars.ToggleLock then
-            TomoModMini_ResourceBars.ToggleLock()
+        if TomoMod_ResourceBars and TomoMod_ResourceBars.ToggleLock then
+            TomoMod_ResourceBars.ToggleLock()
         end
     elseif msg == "rb" or msg == "resource" then
-        if TomoModMini_ResourceBars and TomoModMini_ResourceBars.ToggleLock then
-            TomoModMini_ResourceBars.ToggleLock()
+        if TomoMod_ResourceBars and TomoMod_ResourceBars.ToggleLock then
+            TomoMod_ResourceBars.ToggleLock()
         end
     elseif msg == "rb sync" then
-        if TomoModMini_ResourceBars and TomoModMini_ResourceBars.SyncWidth then
-            TomoModMini_ResourceBars.SyncWidth()
+        if TomoMod_ResourceBars and TomoMod_ResourceBars.SyncWidth then
+            TomoMod_ResourceBars.SyncWidth()
         end
     elseif msg == "uf reset" then
-        TomoModMini_ResetModule("unitFrames")
+        TomoMod_ResetModule("unitFrames")
         ReloadUI()
+    elseif msg == "cr" then
+        if TomoMod_CombatResTracker and TomoMod_CombatResTracker.ToggleLock then
+            TomoMod_CombatResTracker.ToggleLock()
+        end
     elseif msg == "debugbuffs" then
         if UF_Elements then
             UF_Elements._debugEnemyBuffs = not UF_Elements._debugEnemyBuffs
-            print("|cffff3399TomoModMini|r Enemy buff debug: " .. (UF_Elements._debugEnemyBuffs and "|cff00ff00ON|r" or "|cffff0000OFF|r"))
+            print("|cff0cd29fTomoMod|r Enemy buff debug: " .. (UF_Elements._debugEnemyBuffs and "|cff00ff00ON|r" or "|cffff0000OFF|r"))
             if UF_Elements._debugEnemyBuffs then
-                print("|cffff3399TomoModMini|r Target an enemy with a buff, output will appear in chat.")
+                print("|cff0cd29fTomoMod|r Target an enemy with a buff, output will appear in chat.")
             end
         end
     elseif msg == "testbuff" then
-        print("|cffff3399=== TomoModMini Enemy Buff Diagnostic ===|r")
+        print("|cff0cd29f=== TomoMod Enemy Buff Diagnostic ===|r")
 
         -- Step 0: FORCE reset position to top-right
-        local s = TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.target
+        local s = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.target
         if s and s.enemyBuffs then
             s.enemyBuffs.position = { point = "BOTTOMRIGHT", relativePoint = "TOPRIGHT", x = 0, y = 6 }
             print("  [0] |cff00ff00Position RESET to top-right|r")
@@ -84,8 +121,8 @@ SlashCmdList["TomoModMini"] = function(msg)
         print("  [1] target.enemyBuffs: " .. (s and s.enemyBuffs and "OK enabled=" .. tostring(s.enemyBuffs.enabled) or "|cffff0000MISSING|r"))
 
         -- Step 2: Check frame
-        local frame = _G["TomoModMini_UF_target"]
-        print("  [2] TomoModMini_UF_target: " .. (frame and "EXISTS shown=" .. tostring(frame:IsShown()) or "|cffff0000NIL|r"))
+        local frame = _G["TomoMod_UF_target"]
+        print("  [2] TomoMod_UF_target: " .. (frame and "EXISTS shown=" .. tostring(frame:IsShown()) or "|cffff0000NIL|r"))
 
         -- Step 3: Target info (both checks)
         print("  [3] UnitExists target: " .. tostring(UnitExists("target"))
@@ -134,35 +171,40 @@ SlashCmdList["TomoModMini"] = function(msg)
         UF_Elements._debugEnemyBuffs = true
         print("  [6] Debug ON — target a hostile mob, check chat. /tm debugbuffs to disable")
 
-        print("|cffff3399=== End Diagnostic ===|r")
+        print("|cff0cd29f=== End Diagnostic ===|r")
     elseif msg == "np" or msg == "nameplates" then
-        if TomoModMiniDB and TomoModMiniDB.nameplates then
-            TomoModMiniDB.nameplates.enabled = not TomoModMiniDB.nameplates.enabled
-            if TomoModMini_Nameplates then
-                if TomoModMiniDB.nameplates.enabled then
-                    TomoModMini_Nameplates.Enable()
+        if TomoModDB and TomoModDB.nameplates then
+            TomoModDB.nameplates.enabled = not TomoModDB.nameplates.enabled
+            if TomoMod_Nameplates then
+                if TomoModDB.nameplates.enabled then
+                    TomoMod_Nameplates.Enable()
                 else
-                    TomoModMini_Nameplates.Disable()
+                    TomoMod_Nameplates.Disable()
                 end
             end
-            print("|cffff3399TomoModMini Nameplates:|r " .. (TomoModMiniDB.nameplates.enabled and L["msg_np_enabled"] or L["msg_np_disabled"]))
+            print("|cff0cd29fTomoMod Nameplates:|r " .. (TomoModDB.nameplates.enabled and L["msg_np_enabled"] or L["msg_np_disabled"]))
         end
     elseif msg == "help" or msg == "?" then
-        print("|cffff3399TomoModMini|r " .. L["msg_help_title"])
-        print("  |cffff3399/tm|r — " .. L["msg_help_open"])
-        print("  |cffff3399/tm reset|r — " .. L["msg_help_reset"])
-        print("  |cffff3399/tm uf|r — " .. L["msg_help_uf"])
-        print("  |cffff3399/tm uf reset|r — " .. L["msg_help_uf_reset"])
-        print("  |cffff3399/tm rb|r — " .. L["msg_help_rb"])
-        print("  |cffff3399/tm rb sync|r — " .. L["msg_help_rb_sync"])
-        print("  |cffff3399/tm np|r — " .. L["msg_help_np"])
-        print("  |cffff3399/tm cursor|r — " .. L["msg_help_cursor"])
-        print("  |cffff3399/tm clearcinema|r — " .. L["msg_help_clearcinema"])
-        print("  |cffff3399/tm help|r — " .. L["msg_help_help"])
+        print("|cff0cd29fTomoMod|r " .. L["msg_help_title"])
+        print("  |cff0cd29f/tm|r — " .. L["msg_help_open"])
+        print("  |cff0cd29f/tm reset|r — " .. L["msg_help_reset"])
+        print("  |cff0cd29f/tm uf|r — " .. L["msg_help_uf"])
+        print("  |cff0cd29f/tm uf reset|r — " .. L["msg_help_uf_reset"])
+        print("  |cff0cd29f/tm rb|r — " .. L["msg_help_rb"])
+        print("  |cff0cd29f/tm rb sync|r — " .. L["msg_help_rb_sync"])
+        print("  |cff0cd29f/tm np|r — " .. L["msg_help_np"])
+        print("  |cff0cd29f/tm minimap|r — " .. L["msg_help_minimap"])
+        print("  |cff0cd29f/tm panel|r — " .. L["msg_help_panel"])
+        print("  |cff0cd29f/tm cursor|r — " .. L["msg_help_cursor"])
+        print("  |cff0cd29f/tm clearcinema|r — " .. L["msg_help_clearcinema"])
+        print("  |cff0cd29f/tm sr|r — " .. L["msg_help_sr"])
+        print("  |cff0cd29f/tm key|r — " .. L["msg_help_key"])
+        print("  |cff0cd29f/tm cr|r — " .. L["msg_help_cr"])
+        print("  |cff0cd29f/tm help|r — " .. L["msg_help_help"])
     else
         -- Open config
-        if TomoModMini_Config and TomoModMini_Config.Toggle then
-            TomoModMini_Config.Toggle()
+        if TomoMod_Config and TomoMod_Config.Toggle then
+            TomoMod_Config.Toggle()
         end
     end
 end
@@ -177,43 +219,55 @@ mainFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 
 mainFrame:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == addonName then
-        TomoModMini_InitDatabase()
+        TomoMod_InitDatabase()
 
     elseif event == "PLAYER_LOGIN" then
-        if not TomoModMiniDB then return end
+        if not TomoModDB then return end
 
         -- Initialiser le tracking des profils par spec
-        if TomoModMini_Profiles then
-            TomoModMini_Profiles.EnsureProfilesDB()
-            TomoModMini_Profiles.InitSpecTracking()
+        if TomoMod_Profiles then
+            TomoMod_Profiles.EnsureProfilesDB()
+            TomoMod_Profiles.InitSpecTracking()
         end
 
         -- QOL Modules
-        if TomoModMini_CursorRing then TomoModMini_CursorRing.Initialize() end
-        if TomoModMini_CinematicSkip then TomoModMini_CinematicSkip.Initialize() end
-        if TomoModMini_AutoAcceptInvite then TomoModMini_AutoAcceptInvite.Initialize() end
-        if TomoModMini_AutoSkipRole then TomoModMini_AutoSkipRole.Initialize() end
-        if TomoModMini_AutoSummon then TomoModMini_AutoSummon.Initialize() end
-        if TomoModMini_HideCastBar then TomoModMini_HideCastBar.Initialize() end
-        if TomoModMini_AutoFillDelete then TomoModMini_AutoFillDelete.Initialize() end
-        if TomoModMini_LustSound then TomoModMini_LustSound.Initialize() end
-        if TomoModMini_CharacterSkin then TomoModMini_CharacterSkin.Initialize() end
+        if TomoMod_Minimap then TomoMod_Minimap.Initialize() end
+        if TomoMod_InfoPanel then TomoMod_InfoPanel.Initialize() end
+        if TomoMod_CursorRing then TomoMod_CursorRing.Initialize() end
+        if TomoMod_CinematicSkip then TomoMod_CinematicSkip.Initialize() end
+        if TomoMod_AutoQuest then TomoMod_AutoQuest.Initialize() end
+        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.Initialize() end
+        if TomoMod_SkyRide then TomoMod_SkyRide.Initialize() end
+        if TomoMod_LevelingBar then TomoMod_LevelingBar.Initialize() end
+        if TomoMod_CooldownManager then TomoMod_CooldownManager.Initialize() end
+        if TomoMod_AutoAcceptInvite then TomoMod_AutoAcceptInvite.Initialize() end
+        if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.Initialize() end
+        if TomoMod_TooltipIDs then TomoMod_TooltipIDs.Initialize() end
+        if TomoMod_CombatResTracker then TomoMod_CombatResTracker.Initialize() end
+        if TomoMod_AutoSummon then TomoMod_AutoSummon.Initialize() end
+        if TomoMod_HideCastBar then TomoMod_HideCastBar.Initialize() end
+        if TomoMod_AutoFillDelete then TomoMod_AutoFillDelete.Initialize() end
+        if TomoMod_LustSound then TomoMod_LustSound.Initialize() end
+        if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
+        if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.Initialize() end
+        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.Initialize() end
 
-        -- Interface Modules
-        if TomoModMini_UnitFrames then TomoModMini_UnitFrames.Initialize() end
-        if TomoModMini_Nameplates then TomoModMini_Nameplates.Initialize() end
-        if TomoModMini_ResourceBars then TomoModMini_ResourceBars.Initialize() end
+        -- Interface Modules (new v2)
+        if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end
+        if TomoMod_BossFrames then TomoMod_BossFrames.Initialize() end
+        if TomoMod_Nameplates then TomoMod_Nameplates.Initialize() end
+        if TomoMod_ResourceBars then TomoMod_ResourceBars.Initialize() end
 
         -- Welcome
-        local r, g, b = TomoModMini_Utils.GetClassColor()
-        print("|cffff3399TomoModMini|r " .. string.format(L["msg_loaded"], TomoModMini_Utils.ColorText("/tm", r, g, b)))
+        local r, g, b = TomoMod_Utils.GetClassColor()
+        print("|cff0cd29fTomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
 
     elseif event == "PLAYER_SPECIALIZATION_CHANGED" and arg1 == "player" then
-        if TomoModMini_Profiles then
-            local newSpecID = TomoModMini_Profiles.GetCurrentSpecID()
-            local needReload = TomoModMini_Profiles.OnSpecChanged(newSpecID)
+        if TomoMod_Profiles then
+            local newSpecID = TomoMod_Profiles.GetCurrentSpecID()
+            local needReload = TomoMod_Profiles.OnSpecChanged(newSpecID)
             if needReload then
-                print("|cffff3399TomoModMini|r " .. L["msg_spec_changed_reload"])
+                print("|cff0cd29fTomoMod|r " .. L["msg_spec_changed_reload"])
                 C_Timer.After(0.5, function()
                     ReloadUI()
                 end)

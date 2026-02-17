@@ -2,7 +2,7 @@
 -- frFR.lua — Français
 -- =====================================
 
-TomoModMini_RegisterLocale("frFR", {
+TomoMod_RegisterLocale("frFR", {
 
     -- =====================
     -- CONFIG: Categories (ConfigUI.lua)
@@ -10,15 +10,15 @@ TomoModMini_RegisterLocale("frFR", {
     ["cat_general"]         = "Général",
     ["cat_unitframes"]      = "UnitFrames",
     ["cat_nameplates"]      = "Nameplates",
-    ["cat_cd_resource"]     = "Ressource",
-    ["cat_qol"]             = "QOL",
+    ["cat_cd_resource"]     = "CD & Ressource",
+    ["cat_qol"]             = "Qualité de vie",
     ["cat_profiles"]        = "Profils",
 
     -- =====================
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cffff3399TomoMod|rMini v2.1.4 par TomoAniki\nInterface légère avec QOL, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.2.3 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -33,27 +33,28 @@ TomoModMini_RegisterLocale("frFR", {
     ["border_black"]                    = "Noir",
 
     -- Info Panel
-    ["section_info_panel"]              = "Info Panel",
+    ["section_info_panel"]              = "Panneau d'information",
     ["opt_enable"]                      = "Activer",
-    ["opt_durability"]                  = "Durabilité (Gear)",
+    ["opt_durability"]                  = "Durabilité (Équipement)",
     ["opt_time"]                        = "Heure",
     ["opt_24h_format"]                  = "Format 24h",
-    ["btn_reset_position"]              = "Reset Position",
+    ["opt_show_coords"]                 = "Afficher les coordonnées",
+    ["btn_reset_position"]              = "Réinitialiser la position",
 
     -- Cursor Ring
-    ["section_cursor_ring"]             = "Cursor Ring",
+    ["section_cursor_ring"]             = "Anneau du curseur",
     ["opt_class_color"]                 = "Couleur de classe",
-    ["opt_anchor_tooltip_ring"]         = "Ancrer Tooltip + Afficher Ring",
+    ["opt_anchor_tooltip_ring"]         = "Ancrer l'infobulle au curseur",
 
     -- =====================
     -- CONFIG: UnitFrames Panel
     -- =====================
     -- Tabs
     ["tab_general"]                     = "Général",
-    ["tab_player"]                      = "Player",
-    ["tab_target"]                      = "Target",
-    ["tab_tot"]                         = "ToT",
-    ["tab_pet"]                         = "Pet",
+    ["tab_player"]                      = "Joueur",
+    ["tab_target"]                      = "Cible",
+    ["tab_tot"]                         = "CdC",
+    ["tab_pet"]                         = "Familier",
     ["tab_focus"]                       = "Focus",
     ["tab_colors"]                      = "Couleurs",
 
@@ -66,7 +67,7 @@ TomoModMini_RegisterLocale("frFR", {
     -- Sub-labels
     ["sublabel_dimensions"]             = "— Dimensions —",
     ["sublabel_display"]                = "— Affichage —",
-    ["sublabel_castbar"]                = "— Castbar —",
+    ["sublabel_castbar"]                = "— Barre de sort —",
     ["sublabel_auras"]                  = "— Auras —",
     ["sublabel_element_offsets"]        = "— Position des éléments —",
 
@@ -79,7 +80,7 @@ TomoModMini_RegisterLocale("frFR", {
 
     -- General tab
     ["section_general_settings"]        = "Paramètres Généraux",
-    ["opt_uf_enable"]                   = "Activer les UnitFrames TomoModMini",
+    ["opt_uf_enable"]                   = "Activer les UnitFrames TomoMod",
     ["opt_hide_blizzard"]               = "Masquer les frames Blizzard",
     ["opt_global_font_size"]            = "Taille de police globale",
     ["sublabel_font"]                   = "— Police —",
@@ -92,7 +93,7 @@ TomoModMini_RegisterLocale("frFR", {
     ["opt_castbar_ni_color"]            = "Sort non-interruptible",
     ["opt_castbar_interrupt_color"]     = "Sort interrompu",
     ["info_castbar_colors_reload"]      = "Les couleurs s'appliquent aux nouveaux casts. /reload pour un effet complet.",
-    ["btn_toggle_lock"]                 = "Toggle Lock/Unlock (/tm uf)",
+    ["btn_toggle_lock"]                 = "Verrouiller/Déverrouiller (/tm uf)",
     ["info_unlock_drag"]                = "Déverrouillez pour déplacer les frames. Les positions sont sauvegardées automatiquement.",
 
     -- Per-unit options
@@ -114,19 +115,19 @@ TomoModMini_RegisterLocale("frFR", {
     ["opt_use_nameplate_colors"]        = "Couleurs Nameplates (type de PNJ)",
     ["opt_show_absorb"]                 = "Barre d'absorption",
     ["opt_show_threat"]                 = "Indicateur de menace",
-    ["opt_show_leader_icon"]            = "Icône leader",
-    ["opt_leader_icon_x"]               = "Leader icône X",
-    ["opt_leader_icon_y"]               = "Leader icône Y",
+    ["opt_show_leader_icon"]            = "Icône de Chef de groupe",
+    ["opt_leader_icon_x"]               = "Icône de Chef de groupe X",
+    ["opt_leader_icon_y"]               = "Icône de Chef de groupe Y",
 
     -- Castbar
     ["opt_castbar_enable"]              = "Activer castbar",
     ["opt_castbar_width"]               = "Largeur castbar",
     ["opt_castbar_height"]              = "Hauteur castbar",
     ["opt_castbar_show_icon"]           = "Afficher icône",
-    ["opt_castbar_show_timer"]          = "Afficher timer",
-    ["info_player_castbar_drag"]        = "La castbar du joueur est déplaçable. Utilisez /tm uf pour débloquer et la déplacer.",
-    ["btn_reset_castbar_position"]      = "Reset Position Castbar",
-    ["msg_castbar_position_reset"]      = "Position de la castbar du joueur réinitialisée.",
+    ["opt_castbar_show_timer"]          = "Afficher le timer",
+    ["info_castbar_drag"]               = "Position: /tm sr pour déverrouiller et déplacer la castbar.",
+    ["btn_reset_castbar_position"]      = "Réinitialiser la position de la castbar",
+    ["opt_castbar_show_latency"]        = "Afficher la latence",
 
     -- Auras
     ["opt_auras_enable"]                = "Activer les auras",
@@ -158,7 +159,7 @@ TomoModMini_RegisterLocale("frFR", {
     ["info_np_colors_custom"]           = "Chaque couleur peut être personnalisée selon vos envies en cliquant sur le carré de couleur.",
 
     ["section_np_general"]              = "Paramètres Généraux",
-    ["opt_np_enable"]                   = "Activer les Nameplates TomoModMini",
+    ["opt_np_enable"]                   = "Activer les Nameplates TomoMod",
     ["info_np_description"]             = "Remplace les nameplates Blizzard par un style minimaliste personnalisable.",
     ["section_dimensions"]              = "Dimensions",
     ["opt_np_name_font_size"]           = "Taille police nom",
@@ -170,11 +171,11 @@ TomoModMini_RegisterLocale("frFR", {
     ["opt_np_class_colors"]             = "Couleurs de classe (joueurs)",
 
     -- Castbar
-    ["section_castbar"]                 = "Castbar",
-    ["opt_np_show_castbar"]             = "Afficher la castbar",
-    ["opt_np_castbar_height"]           = "Hauteur castbar",
-    ["color_castbar"]                   = "Castbar (interruptible)",
-    ["color_castbar_uninterruptible"]   = "Castbar (non-interruptible)",
+    ["section_castbar"]                 = "Barre de sort",
+    ["opt_np_show_castbar"]             = "Afficher la barre de sort",
+    ["opt_np_castbar_height"]           = "Hauteur de la barre de sort",
+    ["color_castbar"]                   = "Barre de sort (interruptible)",
+    ["color_castbar_uninterruptible"]   = "Barre de sort (non-interruptible)",
 
     -- Auras
     ["section_auras"]                   = "Auras",
@@ -345,6 +346,21 @@ TomoModMini_RegisterLocale("frFR", {
     ["opt_quest_auto_gossip"]           = "Auto-sélectionner les dialogues",
     ["info_quest_shift"]                = "Maintenez SHIFT pour désactiver temporairement.\nLes quêtes avec choix multiples ne sont pas auto-complétées.",
 
+    -- Objective Tracker Skin
+    ["tab_qol_obj_tracker"]             = "Objectifs",
+    ["section_obj_tracker"]             = "Affichage du Suivi d'Objectifs",
+    ["opt_obj_tracker_enable"]          = "Activer l'affichage du Suivi d'Objectifs",
+    ["opt_obj_tracker_bg_alpha"]        = "Opacité du fond",
+    ["opt_obj_tracker_border"]          = "Afficher la bordure",
+    ["opt_obj_tracker_hide_empty"]      = "Masquer si vide",
+    ["opt_obj_tracker_header_size"]     = "Taille police en-tête",
+    ["opt_obj_tracker_cat_size"]        = "Taille police catégorie",
+    ["opt_obj_tracker_quest_size"]      = "Taille police titre quête",
+    ["opt_obj_tracker_obj_size"]        = "Taille police objectif",
+    ["info_obj_tracker"]                = "Applique un affichage sombre au Suivi d'Objectifs Blizzard avec un panneau, des polices personnalisées et des catégories colorées.",
+    ["ot_header_title"]                 = "OBJECTIFS",
+    ["ot_header_options"]               = "Options",
+
     -- Automatisations
     ["section_automations"]             = "Automatisations",
     ["opt_hide_blizzard_castbar"]       = "Cacher la barre de cast Blizzard",
@@ -353,6 +369,15 @@ TomoModMini_RegisterLocale("frFR", {
     ["sublabel_auto_accept_invite"]     = "— Auto Accept Invite —",
     ["sublabel_auto_skip_role"]         = "— Auto Skip Role Check —",
     ["sublabel_tooltip_ids"]            = "— Tooltip IDs —",
+    ["sublabel_tooltip_skin"]           = "— Skin Tooltip —",
+    ["opt_tooltip_skin"]                = "Activer le skin tooltip",
+    ["opt_tooltip_healthbar"]           = "Barre de vie",
+    ["opt_tooltip_healthtext"]          = "Texte de vie sur la barre",
+    ["opt_tooltip_quality_border"]      = "Bordure couleur qualité d'objet",
+    ["opt_tooltip_bg_alpha"]            = "Opacité du fond",
+    ["opt_tooltip_healthbar_height"]    = "Hauteur barre de vie",
+    ["opt_tooltip_font_size"]           = "Taille de police tooltip",
+    ["opt_tooltip_bg_color"]            = "Couleur du fond",
     ["sublabel_combat_res_tracker"]     = "— Combat Res Tracker —",
     ["opt_cr_show_rating"]              = "Afficher le score M+",
     ["opt_show_messages"]               = "Afficher les messages chat",
@@ -371,21 +396,38 @@ TomoModMini_RegisterLocale("frFR", {
     ["opt_summon_delay"]                = "Délai (secondes)",
 
     -- Auto Fill Delete
-    ["sublabel_auto_fill_delete"]       = "— Auto Fill Delete —",
+    ["sublabel_auto_fill_delete"]       = "— Auto EFFACER —",
     ["opt_focus_ok_button"]             = "Focus sur OK après remplissage",
 
     -- Mythic+ Keys
-    ["section_mythic_keys"]             = "Mythic+ Keys",
+    ["section_mythic_keys"]             = "Clés Mythic+",
     ["opt_keys_enable_tracker"]         = "Activer le tracker",
     ["opt_keys_mini_frame"]             = "Mini-frame sur l'UI M+",
     ["opt_keys_auto_refresh"]           = "Actualisation automatique",
 
     -- SkyRide
-    ["section_skyride"]                 = "SkyRide",
+    ["section_skyride"]                 = "Vol Dynamique",
     ["opt_skyride_enable"]              = "Activer (affichage en vol)",
     ["opt_skyride_bar_height"]          = "Hauteur barre",
     ["opt_font_size"]                   = "Taille police",
-    ["btn_reset_skyride"]               = "Reset Position SkyRide",
+    ["btn_reset_skyride"]               = "Réinitialiser la position du Vol",
+
+    -- =====================
+    -- CONFIG: QOL — Barre de Leveling
+    -- =====================
+    ["tab_qol_leveling"]                = "Leveling",
+    ["section_leveling_bar"]            = "Barre de Leveling",
+    ["opt_leveling_enable"]             = "Activer la barre de leveling",
+    ["opt_leveling_width"]              = "Largeur de la barre",
+    ["opt_leveling_height"]             = "Hauteur de la barre",
+    ["btn_reset_leveling_pos"]          = "Réinitialiser la position",
+    ["leveling_bar_title"]              = "Barre de Leveling",
+    ["leveling_level"]                  = "Niveau",
+    ["leveling_progress"]               = "Progression :",
+    ["leveling_rested"]                 = "Reposé",
+    ["leveling_last_quest"]             = "Dernière quête :",
+    ["leveling_ttl"]                    = "Temps pour level :",
+    ["leveling_drag_hint"]              = "/tm sr pour débloquer & déplacer",
 
     -- =====================
     -- CONFIG: Profiles Panel (3 Onglets)
@@ -427,12 +469,12 @@ TomoModMini_RegisterLocale("frFR", {
     ["info_export"]                     = "Génère une chaîne compressée de tous vos paramètres actuels.\nCopiez-la pour la partager ou comme sauvegarde.",
     ["label_export_string"]             = "Chaîne d'export (cliquez pour tout sélectionner)",
     ["btn_export"]                      = "Générer la Chaîne d'Export",
-    ["btn_copy_clipboard"]              = "📋 Copier le Texte",
+    ["btn_copy_clipboard"]              = "Copier le Texte",
     ["section_import"]                  = "Importer des Paramètres",
     ["info_import"]                     = "Collez une chaîne d'export ci-dessous. Elle sera validée avant application.",
     ["label_import_string"]             = "Collez la chaîne d'import ici",
     ["btn_import"]                      = "Importer & Appliquer",
-    ["btn_paste_clipboard"]             = "📋 Coller le Texte",
+    ["btn_paste_clipboard"]             = "Coller le Texte",
     ["import_preview"]                  = "Classe: %s | Modules: %s | Date: %s",
     ["import_preview_valid"]            = "✓ Chaîne valide",
     ["import_preview_invalid"]          = "Chaîne invalide ou corrompue",
@@ -442,8 +484,8 @@ TomoModMini_RegisterLocale("frFR", {
     ["section_profile_mgmt"]            = "Gestion des Profils",
     ["info_profiles"]                   = "Réinitialisez des modules individuellement ou exportez/importez vos paramètres.\nL'export copie vos settings dans le presse-papier (nécessite LibSerialize + LibDeflate).",
     ["section_reset_module"]            = "Réinitialiser un module",
-    ["btn_reset_prefix"]                = "Reset: ",
-    ["btn_reset_all_reload"]            = "⚠ TOUT Réinitialiser + Reload",
+    ["btn_reset_prefix"]                = "Réinitialiser: ",
+    ["btn_reset_all_reload"]            = "TOUT Réinitialiser + Reload",
     ["section_reset_all"]               = "Réinitialisation Complète",
     ["info_resets"]                     = "Réinitialisez un module individuel à ses valeurs par défaut. Le module sera rechargé avec les paramètres d'usine.",
     ["info_reset_all_warning"]          = "Cela réinitialisera TOUS les modules et TOUS les paramètres aux valeurs d'usine, puis rechargera l'UI.",
@@ -501,7 +543,7 @@ TomoModMini_RegisterLocale("frFR", {
     ["msg_sr_locked"]                   = "SkyRide verrouillée",
     ["msg_sr_unlock"]                   = "Mode déplacement SkyRide activé - Cliquez et glissez",
     ["msg_sr_pos_reset"]                = "Position SkyRide réinitialisée",
-    ["msg_sr_db_not_init"]              = "TomoModMiniDB non initialisée",
+    ["msg_sr_db_not_init"]              = "TomoModDB non initialisée",
     ["msg_sr_initialized"]              = "Module SkyRide initialisé",
 
     -- FrameAnchors
@@ -515,14 +557,14 @@ TomoModMini_RegisterLocale("frFR", {
     ["msg_avr_repaired"]                = " Équipement réparé pour |cffffff00%s|r",
 
     -- AutoFillDelete
-    ["msg_afd_filled"]                  = "Texte 'DELETE' auto-rempli - Cliquez OK pour confirmer",
-    ["msg_afd_db_not_init"]             = "TomoModMiniDB non initialisée",
+    ["msg_afd_filled"]                  = "Texte 'EFFACER' auto-rempli - Cliquez OK pour confirmer",
+    ["msg_afd_db_not_init"]             = "TomoModDB non initialisée",
     ["msg_afd_initialized"]             = "Module AutoFillDelete initialisé",
-    ["msg_afd_enabled"]                 = "Auto-fill DELETE activé",
-    ["msg_afd_disabled"]                = "Auto-fill DELETE désactivé (hook reste actif)",
+    ["msg_afd_enabled"]                 = "Auto-fill EFFACER activé",
+    ["msg_afd_disabled"]                = "Auto-fill EFFACER désactivé (hook reste actif)",
 
     -- HideCastBar
-    ["msg_hcb_db_not_init"]             = "TomoModMiniDB non initialisée",
+    ["msg_hcb_db_not_init"]             = "TomoModDB non initialisée",
     ["msg_hcb_initialized"]             = "Module HideCastBar initialisé",
     ["msg_hcb_hidden"]                  = "Barre de cast cachée",
     ["msg_hcb_shown"]                   = "Barre de cast affichée",
@@ -538,6 +580,8 @@ TomoModMini_RegisterLocale("frFR", {
     ["msg_asr_disabled"]                = "Auto skip role check désactivé",
     ["msg_tid_enabled"]                 = "Tooltip IDs activé",
     ["msg_tid_disabled"]                = "Tooltip IDs désactivé",
+    ["msg_tooltip_skin_enabled"]        = "Skin Tooltip activé",
+    ["msg_tooltip_skin_disabled"]       = "Skin Tooltip désactivé (rechargement pour revenir entièrement)",
     ["msg_cr_enabled"]                  = "Combat Res Tracker activé",
     ["msg_cr_disabled"]                 = "Combat Res Tracker désactivé",
     ["msg_cr_locked"]                   = "Combat Res Tracker verrouillé",
@@ -607,9 +651,9 @@ TomoModMini_RegisterLocale("frFR", {
     ["time_server"]                     = "Serveur",
     ["time_local"]                      = "Locale",
     ["time_tooltip_title"]              = "Heure (%s - %s)",
-    ["time_tooltip_left_click"]         = "|cffff3399Clic gauche:|r Calendrier",
-    ["time_tooltip_right_click"]        = "|cffff3399Clic droit:|r Serveur / Locale",
-    ["time_tooltip_shift_right"]        = "|cffff3399Shift + Clic droit:|r 12h / 24h",
+    ["time_tooltip_left_click"]         = "|cff0cd29fClic gauche:|r Calendrier",
+    ["time_tooltip_right_click"]        = "|cff0cd29fClic droit:|r Serveur / Locale",
+    ["time_tooltip_shift_right"]        = "|cff0cd29fShift + Clic droit:|r 12h / 24h",
     ["time_format_msg"]                 = "Format: %s",
     ["time_mode_msg"]                   = "Heure: %s",
 
@@ -620,15 +664,15 @@ TomoModMini_RegisterLocale("frFR", {
     ["disabled"]                        = "Désactivé",
 
     -- Static Popups
-    ["popup_reset_text"]                = "|cffff3399TomoModMini|r\n\nRéinitialiser TOUS les paramètres ?\nCela rechargera votre UI.",
+    ["popup_reset_text"]                = "|cff0cd29fTomoMod|r\n\nRéinitialiser TOUS les paramètres ?\nCela rechargera votre UI.",
     ["popup_confirm"]                   = "Confirmer",
     ["popup_cancel"]                    = "Annuler",
-    ["popup_import_text"]               = "|cffff3399TomoModMini|r\n\nImporter les paramètres ?\nCela va ÉCRASER tous vos paramètres actuels et recharger l'UI.",
-    ["popup_profile_reload"]            = "|cffff3399TomoModMini|r\n\nMode de profil modifié.\nRecharger l'UI pour appliquer ?",
-    ["popup_delete_profile"]            = "|cffff3399TomoModMini|r\n\nSupprimer le profil '%s' ?\nCette action est irréversible.",
+    ["popup_import_text"]               = "|cff0cd29fTomoMod|r\n\nImporter les paramètres ?\nCela va ÉCRASER tous vos paramètres actuels et recharger l'UI.",
+    ["popup_profile_reload"]            = "|cff0cd29fTomoMod|r\n\nMode de profil modifié.\nRecharger l'UI pour appliquer ?",
+    ["popup_delete_profile"]            = "|cff0cd29fTomoMod|r\n\nSupprimer le profil '%s' ?\nCette action est irréversible.",
 
     -- FPS element
-    ["label_fps"]                       = "Fps",
+    ["label_fps"]                       = "FPS",
 
     -- =====================
     -- BOSS FRAMES
@@ -641,7 +685,6 @@ TomoModMini_RegisterLocale("frFR", {
     ["info_boss_drag"]                  = "Déverrouillez (/tm uf) pour déplacer. Glissez Boss 1 pour repositionner les 5 barres ensemble.",
     ["info_boss_colors"]                = "Les couleurs utilisent les couleurs de classification Nameplates (Boss = rouge, Mini-boss = violet).",
     ["msg_boss_initialized"]            = "Barres de Boss chargées.",
-
 
     -- =====================
     -- SOUND / LUST DETECTION

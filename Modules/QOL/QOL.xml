@@ -1,6 +1,13 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
 
+    <!-- Modules: Minimap + InfoPanel -->
+    <Include file="Minimap\Minimap.lua" />
+    <Include file="Minimap\InfoPanel.lua"/>
+
+    <!-- CDM -->
+    <Include file="CooldownManager\CooldownManager.lua" />
+
     <!-- Modules: Auto -->
     <Include file="Auto\AutoVendorRepair.lua" />
     <Include file="Auto\Fastloot.lua"/>
@@ -11,6 +18,7 @@
     <Include file="Auto\AutoSummon.lua"/>
     <Include file="Auto\AutoFillDelete.lua"/>
     <Include file="Auto\AutoSkipRole.lua"/>
+    <Include file="Auto\TooltipIDs.lua"/>
 
     <!-- Modules: Classes -->
     <Include file="Classes\CompanionStatus.lua" />
@@ -19,12 +27,30 @@
     <Include file="Cursor\CursorRing.lua" />
 
     <!-- Modules: MythicPlus -->
+    <Include file="MythicPlus\DataKeys.lua" />
     <Include file="MythicPlus\Keystone.lua" />
+    <Include file="MythicPlus\MythicKeys.lua"/>
+
+    <!-- Modules: Quest -->
+    <Include file="Quest\AutoQuest.lua" />
+    <Include file="Quest\ObjectiveTracker.lua" />
+
+    <!-- Modules: Skyriding -->
+    <Include file="Skyriding\SkyRide.lua" />
+
+    <!-- Modules: Leveling -->
+    <Include file="Leveling\LevelingBar.lua" />
+
+    <!-- Modules: FrameAnchors -->
+    <Include file="FrameAnchors\FrameAnchors.lua" />
+
+    <!-- Modules: ActionBars -->
+    <Include file="ActionBars\ActionBarSkin.lua" />
 
     <!-- Modules: LustSound -->
     <Include file="LustSound\LustSound.lua" />
 
     <!-- Modules: Skins -->
     <Include file="Skins\CharacterSkin.lua" />
-    
+
 </Ui>

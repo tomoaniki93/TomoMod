@@ -4,8 +4,8 @@
 -- le Role Poll (vérification en groupe)
 -- =====================================
 
-TomoModMini_AutoSkipRole = TomoModMini_AutoSkipRole or {}
-local ASR = TomoModMini_AutoSkipRole
+TomoMod_AutoSkipRole = TomoMod_AutoSkipRole or {}
+local ASR = TomoMod_AutoSkipRole
 
 -- =====================================
 -- VARIABLES
@@ -16,10 +16,10 @@ local mainFrame
 -- FONCTIONS UTILITAIRES
 -- =====================================
 local function GetSettings()
-    if not TomoModMiniDB or not TomoModMiniDB.autoSkipRole then
+    if not TomoModDB or not TomoModDB.autoSkipRole then
         return nil
     end
-    return TomoModMiniDB.autoSkipRole
+    return TomoModDB.autoSkipRole
 end
 
 -- =====================================
@@ -34,7 +34,7 @@ local function OnEvent(self, event, ...)
         CompleteLFGRoleCheck(true)
 
         if settings.showMessages then
-            print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_asr_lfg_accepted"])
+            print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_asr_lfg_accepted"])
         end
 
     elseif event == "ROLE_POLL_BEGIN" then
@@ -48,7 +48,7 @@ local function OnEvent(self, event, ...)
             end
 
             if settings.showMessages then
-                print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_asr_poll_accepted"])
+                print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_asr_poll_accepted"])
             end
         end)
     end
@@ -58,7 +58,7 @@ end
 -- FONCTIONS PUBLIQUES
 -- =====================================
 function ASR.Initialize()
-    if not TomoModMiniDB or not TomoModMiniDB.autoSkipRole then return end
+    if not TomoModDB or not TomoModDB.autoSkipRole then return end
 
     local settings = GetSettings()
     if not settings or not settings.enabled then return end
@@ -85,13 +85,13 @@ function ASR.SetEnabled(enabled)
             mainFrame:RegisterEvent("ROLE_POLL_BEGIN")
             mainFrame:SetScript("OnEvent", OnEvent)
         end
-        print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_asr_enabled"])
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_asr_enabled"])
     else
         if mainFrame then
             mainFrame:UnregisterAllEvents()
             mainFrame:SetScript("OnEvent", nil)
         end
-        print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_asr_disabled"])
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_asr_disabled"])
     end
 end
 
@@ -102,4 +102,4 @@ function ASR.Toggle()
 end
 
 -- Export
-_G.TomoModMini_AutoSkipRole = ASR
+_G.TomoMod_AutoSkipRole = ASR

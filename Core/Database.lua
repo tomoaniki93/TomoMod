@@ -2,17 +2,31 @@
 -- Database.lua — Defaults & DB Management
 -- =====================================
 
-local ADDON_FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Tomo.ttf"
-local ADDON_TEXTURE = "Interface\\AddOns\\TomoModMini\\Assets\\Textures\\tomoaniki"
+local ADDON_FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local ADDON_TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
 
 -- =====================================
 -- DEFAULTS
 -- =====================================
 
-TomoModMini_Defaults = {
+TomoMod_Defaults = {
     -- =====================
     -- QOL MODULES (preserved from v1.x)
     -- =====================
+    minimap = {
+        enabled = true,
+        scale = 1.0,
+        borderColor = "class",
+        size = 200,
+    },
+    infoPanel = {
+        enabled = true,
+        showTime = true,
+        showCoords = true,
+        showDurability = true,
+        use24Hour = true,
+        useServerTime = true,
+    },
     cursorRing = {
         enabled = false,
         scale = 1.0,
@@ -22,6 +36,52 @@ TomoModMini_Defaults = {
     cinematicSkip = {
         enabled = true,
         viewedCinematics = {},
+    },
+    frameAnchors = {
+        enabled = true,
+        alertFrame = {
+            position = nil, -- {point, relPoint, x, y}
+        },
+        lootFrame = {
+            position = nil,
+        },
+    },
+    autoQuest = {
+        autoAccept = false,
+        autoTurnIn = false,
+        autoGossip = false,
+    },
+    objectiveTracker = {
+        enabled = false,
+        bgAlpha = 0.65,
+        showBorder = true,
+        hideWhenEmpty = false,
+        headerFontSize = 13,
+        categoryFontSize = 11,
+        questFontSize = 12,
+        objectiveFontSize = 11,
+    },
+    skyRide = {
+        enabled = false,
+        width = 340,
+        height = 20,
+        comboHeight = 5,
+        font = STANDARD_TEXT_FONT,
+        fontSize = 12,
+        fontOutline = "OUTLINE",
+        barColor = { r = 1, g = 1, b = 0 },
+        position = {
+            point = "BOTTOM",
+            relativePoint = "CENTER",
+            x = 0,
+            y = -180,
+        },
+    },
+    levelingBar = {
+        enabled = false,
+        width = 500,
+        height = 28,
+        position = nil,
     },
     autoAcceptInvite = {
         enabled = false,
@@ -33,6 +93,54 @@ TomoModMini_Defaults = {
         enabled = false,
         showMessages = true,
     },
+    tooltipIDs = {
+        enabled = true,
+        showSpellID = true,
+        showItemID = true,
+        showNPCID = true,
+        showQuestID = true,
+        showMountID = true,
+        showCurrencyID = true,
+        showAchievementID = true,
+    },
+    combatResTracker = {
+        enabled = true,
+        showRating = true,
+        showMessages = true,
+        width = 160,
+        height = 36,
+        iconSize = 18,
+        position = nil,
+    },
+    actionBarSkin = {
+        enabled = false,
+        useClassColor = true,
+        shiftReveal = false,
+        barOpacity = {
+            ActionButton           = 100,
+            MultiBarBottomLeft     = 100,
+            MultiBarBottomRight    = 100,
+            MultiBarRight          = 100,
+            MultiBarLeft           = 100,
+            MultiBar5              = 100,
+            MultiBar6              = 100,
+            MultiBar7              = 100,
+            PetActionButton        = 100,
+            StanceButton           = 100,
+        },
+        combatShow = {
+            ActionButton           = false,
+            MultiBarBottomLeft     = false,
+            MultiBarBottomRight    = false,
+            MultiBarRight          = false,
+            MultiBarLeft           = false,
+            MultiBar5              = false,
+            MultiBar6              = false,
+            MultiBar7              = false,
+            PetActionButton        = false,
+            StanceButton           = false,
+        },
+    },
     autoSummon = {
         enabled = false,
         acceptFriends = true,
@@ -43,10 +151,46 @@ TomoModMini_Defaults = {
     hideCastBar = {
         enabled = false,
     },
+    MythicKeys = {
+        enabled = true,
+        miniFrame = true,
+        autoRefresh = true,
+        sendToChat = true,
+    },
     autoFillDelete = {
         enabled = true,
         focusButton = true,
         showMessages = false,
+    },
+    characterSkin = {
+        enabled = true,
+        skinCharacter = true,
+        skinInspect = true,
+        showItemInfo = true,
+        midnightEnchants = false,
+        scale = 1.0,
+    },
+
+    lustSound = {
+        enabled = true,
+        sound = "TALUANI",
+        channel = "Master",
+        showChat = false,
+        debug = false,
+        detection = {
+            spike_ratio = 160,  -- % above mean to trigger
+            jump_ratio = 140,   -- % above max recent to confirm
+            fade_ratio = 115,   -- when below this %, lust is over
+        },
+    },
+
+    cooldownManager = {
+        enabled = true,
+        showHotKey = false,
+        combatAlpha = true,
+        alphaInCombat = 1.0,
+        alphaWithTarget = 0.8,
+        alphaOutOfCombat = 0.5,
     },
 
     -- =====================
@@ -138,9 +282,9 @@ TomoModMini_Defaults = {
                 height = 20,
                 showIcon = true,
                 showTimer = true,
+                showLatency = true,
                 color = { r = 1.0, g = 0.7, b = 0.0 },
-                -- Absolute position (anchored to UIParent, drag & drop via /tm uf)
-                position = { point = "BOTTOM", relativePoint = "CENTER", x = -280, y = -252 },
+                position = { point = "BOTTOM", relativePoint = "CENTER", x = -280, y = -220 },
             },
             auras = {
                 enabled = true,
@@ -312,33 +456,19 @@ TomoModMini_Defaults = {
             },
             position = { point = "CENTER", relativePoint = "CENTER", x = -350, y = 150 },
         },
-    },
 
-    -- =====================
-    -- CHARACTER SKIN
-    -- =====================
-    characterSkin = {
-        enabled = true,
-        skinCharacter = true,
-        skinInspect = true,
-        showItemInfo = true,
-        midnightEnchants = false,
-        scale = 1.2,
-    },
-
-    -- =====================
-    -- SOUNDS
-    -- =====================
-    lustSound = {
-        enabled = true,
-        sound = "TALUANI",
-        channel = "Master",
-        showChat = false,
-        debug = false,
-        detection = {
-            spike_ratio = 160,  -- % above mean to trigger
-            jump_ratio = 140,   -- % above max recent to confirm
-            fade_ratio = 115,   -- when below this %, lust is over
+        -- Boss Frames (boss1–boss5)
+        bossFrames = {
+            enabled = true,
+            width = 200,
+            height = 28,
+            spacing = 4,
+            position = {
+                point = "RIGHT",
+                relativePoint = "RIGHT",
+                x = -80,
+                y = 200,
+            },
         },
     },
 
@@ -412,21 +542,21 @@ TomoModMini_Defaults = {
 -- DB FUNCTIONS
 -- =====================================
 
-function TomoModMini_InitDatabase()
-    if not TomoModMiniDB then
-        TomoModMiniDB = {}
+function TomoMod_InitDatabase()
+    if not TomoModDB then
+        TomoModDB = {}
     end
-    TomoModMini_MergeTables(TomoModMiniDB, TomoModMini_Defaults)
+    TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
 end
 
-function TomoModMini_ResetDatabase()
-    TomoModMiniDB = CopyTable(TomoModMini_Defaults)
-    print("|cffff3399TomoModMini|r " .. TomoModMini_L["msg_db_reset"])
+function TomoMod_ResetDatabase()
+    TomoModDB = CopyTable(TomoMod_Defaults)
+    print("|cff0cd29fTomoMod|r " .. TomoMod_L["msg_db_reset"])
 end
 
-function TomoModMini_ResetModule(moduleName)
-    if TomoModMini_Defaults[moduleName] then
-        TomoModMiniDB[moduleName] = CopyTable(TomoModMini_Defaults[moduleName])
-        print("|cffff3399TomoModMini|r " .. string.format(TomoModMini_L["msg_module_reset"], moduleName))
+function TomoMod_ResetModule(moduleName)
+    if TomoMod_Defaults[moduleName] then
+        TomoModDB[moduleName] = CopyTable(TomoMod_Defaults[moduleName])
+        print("|cff0cd29fTomoMod|r " .. string.format(TomoMod_L["msg_module_reset"], moduleName))
     end
 end

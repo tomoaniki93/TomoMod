@@ -5,8 +5,8 @@
 
 UF_Elements = UF_Elements or {}
 
-local TEXTURE = "Interface\\AddOns\\TomoModMini\\Assets\\Textures\\tomoaniki"
-local FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Tomo.ttf"
+local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
+local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 
 -- =====================================
 -- HEALTH COLOR
@@ -30,7 +30,7 @@ end
 
 -- Nameplate-style color logic for enemy units (caster, miniboss, threat, darken OOC)
 local function GetNameplateStyleColor(unit)
-    local npDB = TomoModMiniDB and TomoModMiniDB.nameplates
+    local npDB = TomoModDB and TomoModDB.nameplates
     if not npDB then return nil end
     local colors = npDB.colors
     if not colors then return nil end
@@ -163,12 +163,12 @@ function UF_Elements.GetHealthColor(unit, settings)
 
     -- Fallback: faction color
     if settings.useFactionColor and not UnitIsPlayer(unit) then
-        return TomoModMini_Utils.GetReactionColor(unit)
+        return TomoMod_Utils.GetReactionColor(unit)
     end
 
     -- Default: player class color
     if unit == "player" or unit == "pet" then
-        return TomoModMini_Utils.GetClassColor("player")
+        return TomoMod_Utils.GetClassColor("player")
     end
 
     return 0.5, 0.5, 0.5
@@ -227,9 +227,9 @@ end
 -- =====================================
 
 function UF_Elements.CreateHealth(parent, unit, settings)
-    local tex = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.texture) or TEXTURE
-    local font = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.font) or FONT
-    local fontSize = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.fontSize) or 12
+    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local font = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.font) or FONT
+    local fontSize = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.fontSize) or 12
 
     local health = CreateFrame("StatusBar", nil, parent)
     health:SetSize(settings.width, settings.healthHeight)
@@ -298,7 +298,7 @@ end
 -- =====================================
 
 function UF_Elements.CreateAbsorb(parent, healthBar, settings)
-    local tex = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.texture) or TEXTURE
+    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
 
     local absorb = CreateFrame("StatusBar", nil, parent)
     absorb:SetSize(settings.width, settings.healthHeight)

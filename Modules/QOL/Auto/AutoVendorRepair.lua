@@ -75,14 +75,14 @@ f:SetScript("OnEvent", function()
     local repairCost = RepairItems()
 
     if PRINT_SUMMARY and (sold > 0 or repairCost > 0) then
-        print("|cff00ff00" .. TomoModMini_L["msg_avr_header"] .. "|r")
+        print("|cff00ff00" .. TomoMod_L["msg_avr_header"] .. "|r")
 
         if sold > 0 then
-            print(string.format(TomoModMini_L["msg_avr_sold"], FormatGold(sold)))
+            print(string.format(TomoMod_L["msg_avr_sold"], FormatGold(sold)))
         end
 
         if repairCost > 0 then
-            print(string.format(TomoModMini_L["msg_avr_repaired"], FormatGold(repairCost)))
+            print(string.format(TomoMod_L["msg_avr_repaired"], FormatGold(repairCost)))
         end
     end
 end)

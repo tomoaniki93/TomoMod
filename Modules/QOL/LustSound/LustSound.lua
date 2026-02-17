@@ -4,10 +4,10 @@
 -- Uses C_Timer polling only — NO RegisterEvent (zero taint risk)
 -- =====================================
 
-TomoModMini_LustSound = TomoModMini_LustSound or {}
-local LS = TomoModMini_LustSound
+TomoMod_LustSound = TomoMod_LustSound or {}
+local LS = TomoMod_LustSound
 
-local SOUND_BASE = "Interface\\AddOns\\TomoModMini\\Assets\\Sounds\\"
+local SOUND_BASE = "Interface\\AddOns\\TomoMod\\Assets\\Sounds\\"
 
 -- =====================================
 -- SOUND REGISTRY
@@ -90,7 +90,7 @@ end
 -- =====================================
 
 local function DoPlaySound()
-    local db = TomoModMiniDB and TomoModMiniDB.lustSound
+    local db = TomoModDB and TomoModDB.lustSound
     if not db then return end
 
     local entry = LS.soundRegistry[db.sound] or LS.soundRegistry["TALUANI"]
@@ -169,7 +169,7 @@ local function ConfirmTick()
     end
 
     if confirmCount <= 0 then
-        local db = TomoModMiniDB and TomoModMiniDB.lustSound
+        local db = TomoModDB and TomoModDB.lustSound
         if db and db.debug then
             print("|cff0cd29fLustSound|r Confirm expired: haste=" .. tostring(maybeHaste) .. " sated=" .. tostring(maybeSated))
         end
@@ -192,12 +192,12 @@ end
 function LS.TriggerBloodlust()
     if active then return end
 
-    local db = TomoModMiniDB and TomoModMiniDB.lustSound
+    local db = TomoModDB and TomoModDB.lustSound
     active = true
     lockedBaseline = hasteValues and GetMean(hasteValues) or 0
 
     if db and db.showChat then
-        print("|cff0cd29fTomoModMini|r |cffff4400\226\153\170 Bloodlust d\195\169tect\195\169 !|r")
+        print("|cff0cd29fTomoMod|r |cffff4400\226\153\170 Bloodlust d\195\169tect\195\169 !|r")
     end
 
     DoPlaySound()
@@ -211,9 +211,9 @@ local function EndBloodlust()
     maybeSated = false
     lockedBaseline = nil
 
-    local db = TomoModMiniDB and TomoModMiniDB.lustSound
+    local db = TomoModDB and TomoModDB.lustSound
     if db and db.showChat then
-        print("|cff0cd29fTomoModMini|r |cff888888Bloodlust termin\195\169.|r")
+        print("|cff0cd29fTomoMod|r |cff888888Bloodlust termin\195\169.|r")
     end
 end
 
@@ -231,7 +231,7 @@ end
 -- =====================================
 
 local function OnPollTick()
-    local db = TomoModMiniDB and TomoModMiniDB.lustSound
+    local db = TomoModDB and TomoModDB.lustSound
     if not db or not db.enabled then return end
     if not hasteValues then return end
 
@@ -325,7 +325,7 @@ end
 -- =====================================
 
 function LS.SetEnabled(enabled)
-    local db = TomoModMiniDB and TomoModMiniDB.lustSound
+    local db = TomoModDB and TomoModDB.lustSound
     if db then db.enabled = enabled end
 
     if enabled then
@@ -344,13 +344,13 @@ end
 -- =====================================
 
 function LS.Initialize()
-    local db = TomoModMiniDB and TomoModMiniDB.lustSound
+    local db = TomoModDB and TomoModDB.lustSound
     if not db or not db.enabled then return end
     if mainTicker then return end
 
     -- 2s delay to let login haste settle
     C_Timer.After(2.0, function()
-        if not (TomoModMiniDB and TomoModMiniDB.lustSound and TomoModMiniDB.lustSound.enabled) then return end
+        if not (TomoModDB and TomoModDB.lustSound and TomoModDB.lustSound.enabled) then return end
         SetHasteBaseline()
         prevAuraIDs = SnapshotHarmfulAuras()
         wasInCombat = InCombatLockdown()

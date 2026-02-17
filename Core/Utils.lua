@@ -4,20 +4,20 @@
 -- =====================================
 
 -- Keep global namespace for QOL backward compat
-TomoModMini_Utils = TomoModMini_Utils or {}
-local U = TomoModMini_Utils
+TomoMod_Utils = TomoMod_Utils or {}
+local U = TomoMod_Utils
 
 -- =====================================
 -- TABLE UTILITIES
 -- =====================================
 
-function TomoModMini_MergeTables(dest, src)
+function TomoMod_MergeTables(dest, src)
     for k, v in pairs(src) do
         if type(v) == "table" then
             if type(dest[k]) ~= "table" then
                 dest[k] = {}
             end
-            TomoModMini_MergeTables(dest[k], v)
+            TomoMod_MergeTables(dest[k], v)
         elseif dest[k] == nil then
             dest[k] = v
         end
@@ -266,8 +266,8 @@ end
 -- =====================================
 
 function U.Debug(...)
-    if TomoModMiniDB and TomoModMiniDB.debug then
-        print("|cff00ff00[TomoModMini Debug]|r", ...)
+    if TomoModDB and TomoModDB.debug then
+        print("|cff00ff00[TomoMod Debug]|r", ...)
     end
 end
 

@@ -3,8 +3,8 @@
 -- Auto-accept les summons de guilde/amis
 -- =====================================
 
-TomoModMini_AutoSummon = TomoModMini_AutoSummon or {}
-local AS = TomoModMini_AutoSummon
+TomoMod_AutoSummon = TomoMod_AutoSummon or {}
+local AS = TomoMod_AutoSummon
 
 -- =====================================
 -- VARIABLES
@@ -16,10 +16,10 @@ local summonPending = false
 -- FONCTIONS UTILITAIRES
 -- =====================================
 local function GetSettings()
-    if not TomoModMiniDB or not TomoModMiniDB.autoSummon then
+    if not TomoModDB or not TomoModDB.autoSummon then
         return nil
     end
-    return TomoModMiniDB.autoSummon
+    return TomoModDB.autoSummon
 end
 
 --- Verifie si un nom est dans la liste d'amis du jeu
@@ -115,7 +115,7 @@ local function OnEvent(self, event, ...)
 
                     if settings.showMessages then
                         print(string.format(
-                            "|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_sum_accepted"],
+                            "|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_sum_accepted"],
                             summoner, area or "?", source
                         ))
                     end
@@ -123,7 +123,7 @@ local function OnEvent(self, event, ...)
             end)
         else
             if settings.showMessages then
-                print("|cffff3399TomoModMini:|r " .. string.format(TomoModMini_L["msg_sum_ignored"], summoner))
+                print("|cff0cd29fTomoMod:|r " .. string.format(TomoMod_L["msg_sum_ignored"], summoner))
             end
         end
     end
@@ -133,7 +133,7 @@ end
 -- FONCTIONS PUBLIQUES
 -- =====================================
 function AS.Initialize()
-    if not TomoModMiniDB or not TomoModMiniDB.autoSummon then return end
+    if not TomoModDB or not TomoModDB.autoSummon then return end
 
     local settings = GetSettings()
     if not settings or not settings.enabled then return end
@@ -159,14 +159,14 @@ function AS.SetEnabled(enabled)
             mainFrame:RegisterEvent("CONFIRM_SUMMON")
             mainFrame:SetScript("OnEvent", OnEvent)
         end
-        print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_sum_enabled"])
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_sum_enabled"])
     else
         if mainFrame then
             mainFrame:UnregisterAllEvents()
             mainFrame:SetScript("OnEvent", nil)
         end
         summonPending = false
-        print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_sum_disabled"])
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_sum_disabled"])
     end
 end
 
@@ -180,11 +180,11 @@ function AS.AcceptNow()
     if GetSummonConfirmTimeLeft() and GetSummonConfirmTimeLeft() > 0 then
         C_SummonInfo.ConfirmSummon()
         summonPending = false
-        print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_sum_manual"])
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_sum_manual"])
     else
-        print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_sum_no_pending"])
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_sum_no_pending"])
     end
 end
 
 -- Export
-_G.TomoModMini_AutoSummon = AS
+_G.TomoMod_AutoSummon = AS

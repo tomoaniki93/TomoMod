@@ -3,15 +3,15 @@
 -- Sidebar navigation, no Blizzard Options dependency
 -- =====================================
 
-local L = TomoModMini_L
+local L = TomoMod_L
 
-TomoModMini_Config = TomoModMini_Config or {}
-local C = TomoModMini_Config
-local W = TomoModMini_Widgets
+TomoMod_Config = TomoMod_Config or {}
+local C = TomoMod_Config
+local W = TomoMod_Widgets
 local T = W.Theme
 
-local FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Tomo.ttf"
-local FONT_BOLD = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Tomo.ttf"
+local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Tomo.ttf"
+local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Tomo.ttf"
 
 local configFrame
 local currentCategory = nil
@@ -23,13 +23,14 @@ local categoryButtons = {}
 -- =====================================
 
 local categories = {
-    { key = "general",    label = L["cat_general"],     icon = "°", builder = "TomoModMini_ConfigPanel_General" },
-    { key = "unitframes", label = L["cat_unitframes"],  icon = "°", builder = "TomoModMini_ConfigPanel_UnitFrames" },
-    { key = "nameplates", label = L["cat_nameplates"],  icon = "°", builder = "TomoModMini_ConfigPanel_Nameplates" },
-    { key = "resources",  label = L["cat_cd_resource"], icon = "°", builder = "TomoModMini_ConfigPanel_CooldownResource" },
-    { key = "sound",      label = L["cat_sound"],       icon = "°", builder = "TomoModMini_ConfigPanel_Sound" },
-    { key = "qol",        label = L["cat_qol"],  icon = "°", builder = "TomoModMini_ConfigPanel_QOL" },
-    { key = "profiles",   label = L["cat_profiles"],     icon = "°", builder = "TomoModMini_ConfigPanel_Profiles" },
+    { key = "general",    label = L["cat_general"],     icon = "°", builder = "TomoMod_ConfigPanel_General" },
+    { key = "unitframes", label = L["cat_unitframes"],  icon = "°", builder = "TomoMod_ConfigPanel_UnitFrames" },
+    { key = "nameplates", label = L["cat_nameplates"],  icon = "°", builder = "TomoMod_ConfigPanel_Nameplates" },
+    { key = "resources",  label = L["cat_cd_resource"], icon = "°", builder = "TomoMod_ConfigPanel_CooldownResource" },
+    { key = "actionbars", label = L["cat_action_bars"], icon = "°", builder = "TomoMod_ConfigPanel_ActionBars" },
+    { key = "sound",      label = L["cat_sound"],       icon = "°", builder = "TomoMod_ConfigPanel_Sound" },
+    { key = "qol",        label = L["cat_qol"],  icon = "°", builder = "TomoMod_ConfigPanel_QOL" },
+    { key = "profiles",   label = L["cat_profiles"],     icon = "°", builder = "TomoMod_ConfigPanel_Profiles" },
 }
 
 -- =====================================
@@ -39,7 +40,7 @@ local categories = {
 local function CreateConfigFrame()
     if configFrame then return end
 
-    configFrame = CreateFrame("Frame", "TomoModMiniConfigFrame", UIParent, "BackdropTemplate")
+    configFrame = CreateFrame("Frame", "TomoModConfigFrame", UIParent, "BackdropTemplate")
     configFrame:SetSize(720, 560)
     configFrame:SetPoint("CENTER")
     configFrame:SetFrameStrata("HIGH")
@@ -59,7 +60,7 @@ local function CreateConfigFrame()
     configFrame:Hide()
 
     -- Close with Escape
-    tinsert(UISpecialFrames, "TomoModMiniConfigFrame")
+    tinsert(UISpecialFrames, "TomoModConfigFrame")
 
     -- =====================================
     -- TITLE BAR
@@ -75,13 +76,13 @@ local function CreateConfigFrame()
     local titleText = titleBar:CreateFontString(nil, "OVERLAY")
     titleText:SetFont(FONT_BOLD, 16, "")
     titleText:SetPoint("LEFT", 20, 0)
-    titleText:SetText("|cffff3399TomoMod|r|cffffffffMini|r")
+    titleText:SetText("|cff0cd29fTomo|r|cffffffffMod|r")
 
     local versionText = titleBar:CreateFontString(nil, "OVERLAY")
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -1)
     versionText:SetTextColor(unpack(T.textDim))
-    versionText:SetText("v2.1.4")
+    versionText:SetText("v2.2.3")
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, titleBar)
@@ -253,8 +254,8 @@ end
 -- =====================================
 
 function C.Toggle()
-    if not TomoModMiniDB then
-        print("|cffff0000TomoModMini|r " .. L["msg_db_not_init"])
+    if not TomoModDB then
+        print("|cffff0000TomoMod|r " .. L["msg_db_not_init"])
         return
     end
 

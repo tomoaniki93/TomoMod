@@ -2,7 +2,7 @@
 -- CinematicSkip.lua
 -- =====================================
 
-TomoModMini_CinematicSkip = {}
+TomoMod_CinematicSkip = {}
 local cinematicFrame
 local skipAttempts = 0
 local maxSkipAttempts = 10
@@ -21,25 +21,25 @@ end
 
 -- Vérifier si une cinématique a déjà été vue
 local function HasSeenCinematic(cinematicID)
-    if not TomoModMiniDB.cinematicSkip.viewedCinematics then
-        TomoModMiniDB.cinematicSkip.viewedCinematics = {}
+    if not TomoModDB.cinematicSkip.viewedCinematics then
+        TomoModDB.cinematicSkip.viewedCinematics = {}
     end
     
-    return TomoModMiniDB.cinematicSkip.viewedCinematics[cinematicID] ~= nil
+    return TomoModDB.cinematicSkip.viewedCinematics[cinematicID] ~= nil
 end
 
 -- Marquer une cinématique comme vue
 local function MarkCinematicAsSeen(cinematicID)
-    if not TomoModMiniDB.cinematicSkip.viewedCinematics then
-        TomoModMiniDB.cinematicSkip.viewedCinematics = {}
+    if not TomoModDB.cinematicSkip.viewedCinematics then
+        TomoModDB.cinematicSkip.viewedCinematics = {}
     end
     
-    TomoModMiniDB.cinematicSkip.viewedCinematics[cinematicID] = time()
+    TomoModDB.cinematicSkip.viewedCinematics[cinematicID] = time()
 end
 
 -- Tenter de skip la cinématique
 local function TrySkipCinematic()
-    if not TomoModMiniDB.cinematicSkip.enabled then return end
+    if not TomoModDB.cinematicSkip.enabled then return end
     
     -- Vérifier si on est dans une cinématique
     if CinematicFrame and CinematicFrame:IsShown() then
@@ -48,7 +48,7 @@ local function TrySkipCinematic()
         if HasSeenCinematic(cinematicID) then
             -- Skip la cinématique
             CinematicFrame_CancelCinematic()
-            print("|cff00ff00TomoModMini:|r " .. TomoModMini_L["msg_cin_skipped"])
+            print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_cin_skipped"])
         else
             -- Première fois, marquer comme vue
             MarkCinematicAsSeen(cinematicID)
@@ -63,7 +63,7 @@ local function TrySkipCinematic()
             -- Skip la vidéo
             MovieFrame_PlayMovie(MovieFrame, 0) -- Force l'arrêt
             GameMovieFinished()
-            print("|cff00ff00TomoModMini:|r " .. TomoModMini_L["msg_vid_skipped"])
+            print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_vid_skipped"])
         else
             -- Première fois, marquer comme vue
             MarkCinematicAsSeen(cinematicID)
@@ -82,7 +82,7 @@ local function HookCinematicEvents()
     cinematicFrame:RegisterEvent("PLAY_MOVIE")
     
     cinematicFrame:SetScript("OnEvent", function(self, event, ...)
-        if not TomoModMiniDB.cinematicSkip.enabled then return end
+        if not TomoModDB.cinematicSkip.enabled then return end
         
         if event == "CINEMATIC_START" then
             -- Délai court pour laisser le temps à la cinématique de se charger
@@ -105,7 +105,7 @@ local function HookCinematicEvents()
                     if MovieFrame and MovieFrame:IsShown() then
                         MovieFrame:StopMovie()
                         GameMovieFinished()
-                        print("|cff00ff00TomoModMini:|r " .. string.format(TomoModMini_L["msg_vid_id_skipped"], movieID))
+                        print("|cff00ff00TomoMod:|r " .. string.format(TomoMod_L["msg_vid_id_skipped"], movieID))
                     end
                 end)
             else
@@ -117,19 +117,19 @@ local function HookCinematicEvents()
 end
 
 -- Effacer toutes les cinématiques vues
-function TomoModMini_CinematicSkip.ClearHistory()
-    TomoModMiniDB.cinematicSkip.viewedCinematics = {}
-    print("|cff00ff00TomoModMini:|r " .. TomoModMini_L["msg_cin_cleared"])
+function TomoMod_CinematicSkip.ClearHistory()
+    TomoModDB.cinematicSkip.viewedCinematics = {}
+    print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_cin_cleared"])
 end
 
 -- Obtenir le nombre de cinématiques vues
-function TomoModMini_CinematicSkip.GetViewedCount()
-    if not TomoModMiniDB.cinematicSkip.viewedCinematics then
+function TomoMod_CinematicSkip.GetViewedCount()
+    if not TomoModDB.cinematicSkip.viewedCinematics then
         return 0
     end
     
     local count = 0
-    for _ in pairs(TomoModMiniDB.cinematicSkip.viewedCinematics) do
+    for _ in pairs(TomoModDB.cinematicSkip.viewedCinematics) do
         count = count + 1
     end
     
@@ -137,8 +137,8 @@ function TomoModMini_CinematicSkip.GetViewedCount()
 end
 
 -- Initialisation du module
-function TomoModMini_CinematicSkip.Initialize()
-    if TomoModMiniDB.cinematicSkip.enabled then
+function TomoMod_CinematicSkip.Initialize()
+    if TomoModDB.cinematicSkip.enabled then
         HookCinematicEvents()
     end
 end

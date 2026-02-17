@@ -2,17 +2,17 @@
 -- CursorRing.lua
 -- =====================================
 
-TomoModMini_CursorRing = {}
+TomoMod_CursorRing = {}
 
 local cursorFrame
 local ringTexture
 local updateTimer = 0
 
 -- Créer le frame du cursor ring
-function TomoModMini_CursorRing.Create()
+function TomoMod_CursorRing.Create()
     if cursorFrame then return cursorFrame end
     
-    cursorFrame = CreateFrame("Frame", "TomoModMiniCursorRing", UIParent)
+    cursorFrame = CreateFrame("Frame", "TomoModCursorRing", UIParent)
     cursorFrame:SetSize(64, 64)
     cursorFrame:SetFrameStrata("TOOLTIP")
     cursorFrame:SetFrameLevel(100)
@@ -20,7 +20,7 @@ function TomoModMini_CursorRing.Create()
     -- Créer la texture du ring
     ringTexture = cursorFrame:CreateTexture(nil, "ARTWORK")
     ringTexture:SetAllPoints(cursorFrame)
-    ringTexture:SetTexture("Interface\\AddOns\\TomoModMini\\Assets\\Textures\\Ring")
+    ringTexture:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\Ring")
     ringTexture:SetBlendMode("ADD")
     
     -- Update la position selon le curseur
@@ -40,11 +40,11 @@ function TomoModMini_CursorRing.Create()
 end
 
 -- Appliquer la couleur
-function TomoModMini_CursorRing.ApplyColor()
+function TomoMod_CursorRing.ApplyColor()
     if not ringTexture then return end
     
-    if TomoModMiniDB.cursorRing.useClassColor then
-        local r, g, b = TomoModMini_Utils.GetClassColor()
+    if TomoModDB.cursorRing.useClassColor then
+        local r, g, b = TomoMod_Utils.GetClassColor()
         ringTexture:SetVertexColor(r, g, b, 0.8)
     else
         ringTexture:SetVertexColor(1, 1, 1, 0.8)
@@ -52,21 +52,21 @@ function TomoModMini_CursorRing.ApplyColor()
 end
 
 -- Appliquer le scale
-function TomoModMini_CursorRing.ApplyScale()
+function TomoMod_CursorRing.ApplyScale()
     if not cursorFrame then return end
     
-    local size = 64 * TomoModMiniDB.cursorRing.scale
+    local size = 64 * TomoModDB.cursorRing.scale
     cursorFrame:SetSize(size, size)
 end
 
--- Gérer l'ancrage du tooltip
+-- Gérer l'ancrage du tooltip (fonctionne même si le ring est désactivé)
 local tooltipHooked = false
-function TomoModMini_CursorRing.SetupTooltipAnchor()
+function TomoMod_CursorRing.SetupTooltipAnchor()
     if not tooltipHooked then
         -- Hook le positionnement par défaut du tooltip
-        -- [PERF] Early-exit when not active
+        -- [PERF] Early-exit when anchorTooltip is off
         GameTooltip:HookScript("OnUpdate", function(self, elapsed)
-            if not TomoModMiniDB.cursorRing.enabled or not TomoModMiniDB.cursorRing.anchorTooltip then return end
+            if not TomoModDB.cursorRing.anchorTooltip then return end
             if not self:IsShown() then return end
             local x, y = GetCursorPosition()
             local scale = UIParent:GetEffectiveScale()
@@ -78,12 +78,12 @@ function TomoModMini_CursorRing.SetupTooltipAnchor()
 end
 
 -- Afficher/Cacher le ring
-function TomoModMini_CursorRing.Toggle(show)
+function TomoMod_CursorRing.Toggle(show)
     if not cursorFrame then
-        TomoModMini_CursorRing.Create()
+        TomoMod_CursorRing.Create()
     end
     
-    if show and TomoModMiniDB.cursorRing.enabled then
+    if show and TomoModDB.cursorRing.enabled then
         cursorFrame:Show()
     else
         cursorFrame:Hide()
@@ -91,22 +91,24 @@ function TomoModMini_CursorRing.Toggle(show)
 end
 
 -- Appliquer tous les paramètres
-function TomoModMini_CursorRing.ApplySettings()
-    if not TomoModMiniDB.cursorRing.enabled then 
+function TomoMod_CursorRing.ApplySettings()
+    if not TomoModDB.cursorRing.enabled then 
         if cursorFrame then
             cursorFrame:Hide()
         end
         return 
     end
     
-    TomoModMini_CursorRing.Create()
-    TomoModMini_CursorRing.ApplyColor()
-    TomoModMini_CursorRing.ApplyScale()
-    TomoModMini_CursorRing.SetupTooltipAnchor()
-    TomoModMini_CursorRing.Toggle(true)
+    TomoMod_CursorRing.Create()
+    TomoMod_CursorRing.ApplyColor()
+    TomoMod_CursorRing.ApplyScale()
+    TomoMod_CursorRing.SetupTooltipAnchor()
+    TomoMod_CursorRing.Toggle(true)
 end
 
 -- Initialisation du module
-function TomoModMini_CursorRing.Initialize()
-    TomoModMini_CursorRing.ApplySettings()
+function TomoMod_CursorRing.Initialize()
+    -- Tooltip anchor works independently of ring enabled state
+    TomoMod_CursorRing.SetupTooltipAnchor()
+    TomoMod_CursorRing.ApplySettings()
 end

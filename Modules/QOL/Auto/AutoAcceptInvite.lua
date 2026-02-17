@@ -4,8 +4,8 @@
 -- de la part d'amis et membres de guilde
 -- =====================================
 
-TomoModMini_AutoAcceptInvite = TomoModMini_AutoAcceptInvite or {}
-local AAI = TomoModMini_AutoAcceptInvite
+TomoMod_AutoAcceptInvite = TomoMod_AutoAcceptInvite or {}
+local AAI = TomoMod_AutoAcceptInvite
 
 -- =====================================
 -- VARIABLES
@@ -16,10 +16,10 @@ local mainFrame
 -- FONCTIONS UTILITAIRES
 -- =====================================
 local function GetSettings()
-    if not TomoModMiniDB or not TomoModMiniDB.autoAcceptInvite then
+    if not TomoModDB or not TomoModDB.autoAcceptInvite then
         return nil
     end
-    return TomoModMiniDB.autoAcceptInvite
+    return TomoModDB.autoAcceptInvite
 end
 
 --- Verifie si un nom est dans la liste d'amis du jeu
@@ -104,7 +104,7 @@ local function OnEvent(self, event, ...)
             AcceptGroup()
 
             if settings.showMessages then
-                print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_aai_accepted"]
+                print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_aai_accepted"]
                     .. inviterName .. " (" .. source .. ")")
             end
 
@@ -114,7 +114,7 @@ local function OnEvent(self, event, ...)
             end)
         else
             if settings.showMessages then
-                print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_aai_ignored"]
+                print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_aai_ignored"]
                     .. inviterName .. " (non fiable)")
             end
         end
@@ -125,7 +125,7 @@ end
 -- FONCTIONS PUBLIQUES
 -- =====================================
 function AAI.Initialize()
-    if not TomoModMiniDB or not TomoModMiniDB.autoAcceptInvite then return end
+    if not TomoModDB or not TomoModDB.autoAcceptInvite then return end
 
     local settings = GetSettings()
     if not settings or not settings.enabled then return end
@@ -151,13 +151,13 @@ function AAI.SetEnabled(enabled)
             mainFrame:RegisterEvent("PARTY_INVITE_REQUEST")
             mainFrame:SetScript("OnEvent", OnEvent)
         end
-        print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_aai_enabled"])
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_aai_enabled"])
     else
         if mainFrame then
             mainFrame:UnregisterAllEvents()
             mainFrame:SetScript("OnEvent", nil)
         end
-        print("|cffff3399TomoModMini:|r " .. TomoModMini_L["msg_aai_disabled"])
+        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_aai_disabled"])
     end
 end
 
@@ -168,4 +168,4 @@ function AAI.Toggle()
 end
 
 -- Export
-_G.TomoModMini_AutoAcceptInvite = AAI
+_G.TomoMod_AutoAcceptInvite = AAI

@@ -3,17 +3,17 @@
 -- New sidebar category "Son"
 -- =====================================
 
-local W = TomoModMini_Widgets
-local L = TomoModMini_L
+local W = TomoMod_Widgets
+local L = TomoMod_L
 
 -- =====================================
 -- HELPER: Build sorted dropdown options from registry
 -- =====================================
 
 local function GetSoundOptions()
-    if not TomoModMini_LustSound or not TomoModMini_LustSound.soundRegistry then return {} end
+    if not TomoMod_LustSound or not TomoMod_LustSound.soundRegistry then return {} end
     local opts = {}
-    for key, entry in pairs(TomoModMini_LustSound.soundRegistry) do
+    for key, entry in pairs(TomoMod_LustSound.soundRegistry) do
         opts[#opts + 1] = { text = entry.name, value = key }
     end
     table.sort(opts, function(a, b) return a.text < b.text end)
@@ -37,7 +37,7 @@ end
 local function BuildGeneralTab(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModMiniDB.lustSound
+    local db = TomoModDB.lustSound
     if not db then return scroll end
     local y = -10
 
@@ -49,8 +49,8 @@ local function BuildGeneralTab(parent)
 
     -- Enable
     local _, ny = W.CreateCheckbox(c, L["opt_sound_enable"], db.enabled, y, function(v)
-        if TomoModMini_LustSound and TomoModMini_LustSound.SetEnabled then
-            TomoModMini_LustSound.SetEnabled(v)
+        if TomoMod_LustSound and TomoMod_LustSound.SetEnabled then
+            TomoMod_LustSound.SetEnabled(v)
         end
     end)
     y = ny
@@ -77,12 +77,12 @@ local function BuildGeneralTab(parent)
     y = ny
 
     local _, ny = W.CreateButton(c, L["btn_sound_preview"], 200, y, function()
-        if TomoModMini_LustSound then TomoModMini_LustSound.PlayPreview() end
+        if TomoMod_LustSound then TomoMod_LustSound.PlayPreview() end
     end)
     y = ny
 
     local _, ny = W.CreateButton(c, L["btn_sound_stop"], 200, y, function()
-        if TomoModMini_LustSound then TomoModMini_LustSound.StopPreview() end
+        if TomoMod_LustSound then TomoMod_LustSound.StopPreview() end
     end)
     y = ny
 
@@ -111,7 +111,7 @@ end
 local function BuildDetectionTab(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModMiniDB.lustSound
+    local db = TomoModDB.lustSound
     if not db then return scroll end
     local det = db.detection
     local y = -10
@@ -151,11 +151,11 @@ local function BuildDetectionTab(parent)
     y = ny
 
     local _, ny = W.CreateButton(c, L["btn_sound_reset_detection"], 220, y, function()
-        local defaults = TomoModMini_Defaults.lustSound.detection
+        local defaults = TomoMod_Defaults.lustSound.detection
         det.spike_ratio = defaults.spike_ratio
         det.jump_ratio = defaults.jump_ratio
         det.fade_ratio = defaults.fade_ratio
-        print("|cff0cd29fTomoModMini|r " .. L["msg_sound_detection_reset"])
+        print("|cff0cd29fTomoMod|r " .. L["msg_sound_detection_reset"])
     end)
     y = ny
 
@@ -167,7 +167,7 @@ end
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
-function TomoModMini_ConfigPanel_Sound(parent)
+function TomoMod_ConfigPanel_Sound(parent)
     local tabs = {
         { key = "general",   label = L["tab_sound_general"],   builder = function(p) return BuildGeneralTab(p) end },
         { key = "detection", label = L["tab_sound_detection"], builder = function(p) return BuildDetectionTab(p) end },

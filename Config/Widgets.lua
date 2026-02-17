@@ -1,10 +1,10 @@
 -- =====================================
 -- Widgets.lua — Custom Config UI Widgets
--- Dark modern theme for TomoModMini Config
+-- Dark modern theme for TomoMod Config
 -- =====================================
 
-TomoModMini_Widgets = {}
-local W = TomoModMini_Widgets
+TomoMod_Widgets = {}
+local W = TomoMod_Widgets
 
 -- =====================================
 -- THEME CONSTANTS
@@ -13,14 +13,14 @@ W.Theme = {
     bg           = { 0.08, 0.08, 0.10, 0.97 },
     bgLight      = { 0.12, 0.12, 0.15, 1 },
     bgMid        = { 0.10, 0.10, 0.13, 1 },
-    accent       = { 1.00, 0.20, 0.60, 1 },        -- #ff3399 tomo pink
-    accentDark   = { 0.80, 0.15, 0.45, 1 },
-    accentHover  = { 1.00, 0.35, 0.70, 1 },
+    accent       = { 0.047, 0.824, 0.624, 1 },     -- #0cd29f tomo green
+    accentDark   = { 0.035, 0.60, 0.45, 1 },
+    accentHover  = { 0.07, 0.90, 0.70, 1 },
     border       = { 0.20, 0.20, 0.25, 1 },
     borderLight  = { 0.30, 0.30, 0.35, 1 },
     text         = { 0.90, 0.90, 0.92, 1 },
     textDim      = { 0.55, 0.55, 0.60, 1 },
-    textHeader   = { 1.00, 0.20, 0.60, 1 },
+    textHeader   = { 0.047, 0.824, 0.624, 1 },
     red          = { 0.90, 0.20, 0.20, 1 },
     yellow       = { 0.98, 0.82, 0.11, 1 },
     white        = { 1, 1, 1, 1 },
@@ -28,8 +28,8 @@ W.Theme = {
 }
 
 local T = W.Theme
-local FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Poppins-Medium.ttf"
-local FONT_BOLD = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Poppins-SemiBold.ttf"
+local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 
 -- =====================================
 -- HELPERS

@@ -3,8 +3,8 @@
 -- Chargé APRÈS Database.lua, AVANT Config panels
 -- =====================================
 
-TomoModMini_Profiles = {}
-local P = TomoModMini_Profiles
+TomoMod_Profiles = {}
+local P = TomoMod_Profiles
 
 -- Version intégrée dans chaque export
 local EXPORT_VERSION = 1
@@ -30,10 +30,10 @@ local function DeepCopy(src, skipKeys)
     return copy
 end
 
--- Snapshot: extraire tous les settings modules de TomoModMiniDB
+-- Snapshot: extraire tous les settings modules de TomoModDB
 local function SnapshotSettings()
     local snap = {}
-    for k, v in pairs(TomoModMiniDB) do
+    for k, v in pairs(TomoModDB) do
         if not EXCLUDED_KEYS[k] then
             snap[k] = DeepCopy(v)
         end
@@ -41,20 +41,20 @@ local function SnapshotSettings()
     return snap
 end
 
--- Appliquer un snapshot: écraser TomoModMiniDB (en préservant _profiles)
+-- Appliquer un snapshot: écraser TomoModDB (en préservant _profiles)
 local function ApplySnapshot(snap)
-    for k in pairs(TomoModMiniDB) do
+    for k in pairs(TomoModDB) do
         if not EXCLUDED_KEYS[k] then
-            TomoModMiniDB[k] = nil
+            TomoModDB[k] = nil
         end
     end
     for k, v in pairs(snap) do
         if not EXCLUDED_KEYS[k] then
-            TomoModMiniDB[k] = DeepCopy(v)
+            TomoModDB[k] = DeepCopy(v)
         end
     end
     -- Remplir les clés manquantes depuis les defaults
-    TomoModMini_MergeTables(TomoModMiniDB, TomoModMini_Defaults)
+    TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
 end
 
 -- =====================================
@@ -87,22 +87,22 @@ function P.GetCurrentSpecID()
 end
 
 function P.EnsureProfilesDB()
-    if not TomoModMiniDB._profiles then
-        TomoModMiniDB._profiles = {
+    if not TomoModDB._profiles then
+        TomoModDB._profiles = {
             useSpecProfiles = false,
             specs = {},
             named = {},
             activeProfile = "Default",
         }
     end
-    if not TomoModMiniDB._profiles.specs then
-        TomoModMiniDB._profiles.specs = {}
+    if not TomoModDB._profiles.specs then
+        TomoModDB._profiles.specs = {}
     end
-    if not TomoModMiniDB._profiles.named then
-        TomoModMiniDB._profiles.named = {}
+    if not TomoModDB._profiles.named then
+        TomoModDB._profiles.named = {}
     end
-    if not TomoModMiniDB._profiles.activeProfile then
-        TomoModMiniDB._profiles.activeProfile = "Default"
+    if not TomoModDB._profiles.activeProfile then
+        TomoModDB._profiles.activeProfile = "Default"
     end
 end
 
@@ -112,13 +112,13 @@ end
 
 function P.GetActiveProfileName()
     P.EnsureProfilesDB()
-    return TomoModMiniDB._profiles.activeProfile or "Default"
+    return TomoModDB._profiles.activeProfile or "Default"
 end
 
 function P.GetProfileList()
     P.EnsureProfilesDB()
     local list = {}
-    for name in pairs(TomoModMiniDB._profiles.named) do
+    for name in pairs(TomoModDB._profiles.named) do
         table.insert(list, name)
     end
     table.sort(list)
@@ -138,17 +138,17 @@ end
 function P.CreateNamedProfile(name)
     if not name or name == "" then return false, "Empty name" end
     P.EnsureProfilesDB()
-    TomoModMiniDB._profiles.named[name] = SnapshotSettings()
-    TomoModMiniDB._profiles.activeProfile = name
+    TomoModDB._profiles.named[name] = SnapshotSettings()
+    TomoModDB._profiles.activeProfile = name
     return true
 end
 
 function P.LoadNamedProfile(name)
     P.EnsureProfilesDB()
-    local snap = TomoModMiniDB._profiles.named[name]
+    local snap = TomoModDB._profiles.named[name]
     if snap then
         ApplySnapshot(snap)
-        TomoModMiniDB._profiles.activeProfile = name
+        TomoModDB._profiles.activeProfile = name
         return true
     end
     return false
@@ -157,27 +157,27 @@ end
 function P.DeleteNamedProfile(name)
     P.EnsureProfilesDB()
     if name == "Default" then return false end
-    TomoModMiniDB._profiles.named[name] = nil
-    if TomoModMiniDB._profiles.activeProfile == name then
-        TomoModMiniDB._profiles.activeProfile = "Default"
+    TomoModDB._profiles.named[name] = nil
+    if TomoModDB._profiles.activeProfile == name then
+        TomoModDB._profiles.activeProfile = "Default"
     end
     return true
 end
 
 function P.SaveCurrentToActiveProfile()
     P.EnsureProfilesDB()
-    local name = TomoModMiniDB._profiles.activeProfile or "Default"
-    TomoModMiniDB._profiles.named[name] = SnapshotSettings()
+    local name = TomoModDB._profiles.activeProfile or "Default"
+    TomoModDB._profiles.named[name] = SnapshotSettings()
 end
 
 function P.SaveToSpec(specID)
     P.EnsureProfilesDB()
-    TomoModMiniDB._profiles.specs[specID] = SnapshotSettings()
+    TomoModDB._profiles.specs[specID] = SnapshotSettings()
 end
 
 function P.LoadFromSpec(specID)
     P.EnsureProfilesDB()
-    local snap = TomoModMiniDB._profiles.specs[specID]
+    local snap = TomoModDB._profiles.specs[specID]
     if snap then
         ApplySnapshot(snap)
         return true
@@ -187,12 +187,12 @@ end
 
 function P.HasSpecProfile(specID)
     P.EnsureProfilesDB()
-    return TomoModMiniDB._profiles.specs[specID] ~= nil
+    return TomoModDB._profiles.specs[specID] ~= nil
 end
 
 function P.DeleteSpecProfile(specID)
     P.EnsureProfilesDB()
-    TomoModMiniDB._profiles.specs[specID] = nil
+    TomoModDB._profiles.specs[specID] = nil
 end
 
 function P.CopyCurrentToSpec(specID)
@@ -201,7 +201,7 @@ end
 
 function P.EnableSpecProfiles()
     P.EnsureProfilesDB()
-    TomoModMiniDB._profiles.useSpecProfiles = true
+    TomoModDB._profiles.useSpecProfiles = true
     local specID = P.GetCurrentSpecID()
     if specID > 0 then
         P.SaveToSpec(specID)
@@ -210,13 +210,13 @@ end
 
 function P.DisableSpecProfiles()
     P.EnsureProfilesDB()
-    TomoModMiniDB._profiles.useSpecProfiles = false
+    TomoModDB._profiles.useSpecProfiles = false
 end
 
 -- Appelé lors de PLAYER_SPECIALIZATION_CHANGED
 function P.OnSpecChanged(newSpecID)
     P.EnsureProfilesDB()
-    if not TomoModMiniDB._profiles.useSpecProfiles then return false end
+    if not TomoModDB._profiles.useSpecProfiles then return false end
 
     -- Sauvegarder le profil actuel dans l'ancien spec (stocké temporairement)
     if P._lastSpecID and P._lastSpecID > 0 then
@@ -319,7 +319,7 @@ function P.Import(str)
     end
 
     if payload._header ~= EXPORT_HEADER then
-        return false, "Not a TomoModMini export string"
+        return false, "Not a TomoMod export string"
     end
 
     if type(payload._version) ~= "number" or payload._version > EXPORT_VERSION then
@@ -332,7 +332,7 @@ function P.Import(str)
 
     -- Sanitize: seulement les clés connues depuis les defaults
     local sanitized = {}
-    for k in pairs(TomoModMini_Defaults) do
+    for k in pairs(TomoMod_Defaults) do
         if payload.settings[k] ~= nil then
             sanitized[k] = DeepCopy(payload.settings[k])
         end
@@ -369,7 +369,7 @@ function P.PreviewImport(str)
     local moduleCount = 0
     if type(payload.settings) == "table" then
         for k in pairs(payload.settings) do
-            if TomoModMini_Defaults[k] then
+            if TomoMod_Defaults[k] then
                 moduleCount = moduleCount + 1
             end
         end

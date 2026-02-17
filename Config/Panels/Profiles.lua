@@ -5,11 +5,11 @@
 -- Tab 3: Réinitialisations modules
 -- =====================================
 
-local W = TomoModMini_Widgets
-local L = TomoModMini_L
+local W = TomoMod_Widgets
+local L = TomoMod_L
 local T = W.Theme
-local FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Poppins-Medium.ttf"
-local FONT_BOLD = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Poppins-SemiBold.ttf"
+local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 
 -- =====================================
 -- HELPER: inline single-line editbox
@@ -58,7 +58,7 @@ local function BuildProfileTab(parent)
     local c = scroll.child
     local y = -10
 
-    TomoModMini_Profiles.EnsureProfilesDB()
+    TomoMod_Profiles.EnsureProfilesDB()
 
     -- =============================================
     -- SECTION: Named Profiles
@@ -70,12 +70,12 @@ local function BuildProfileTab(parent)
     y = ny
 
     -- Current active profile
-    local activeName = TomoModMini_Profiles.GetActiveProfileName()
-    local _, ny = W.CreateInfoText(c, "|cffff3399" .. L["profile_active_label"] .. ":|r " .. activeName, y)
+    local activeName = TomoMod_Profiles.GetActiveProfileName()
+    local _, ny = W.CreateInfoText(c, "|cff0cd29f" .. L["profile_active_label"] .. ":|r " .. activeName, y)
     y = ny
 
     -- Dropdown: choose profile
-    local profileList = TomoModMini_Profiles.GetProfileList()
+    local profileList = TomoMod_Profiles.GetProfileList()
     local dropdownOptions = {}
     for _, name in ipairs(profileList) do
         table.insert(dropdownOptions, { text = name, value = name })
@@ -85,13 +85,13 @@ local function BuildProfileTab(parent)
         local _, ny = W.CreateDropdown(c, L["opt_select_profile"], dropdownOptions, activeName, y, function(v)
             if v == activeName then return end
             -- Save current first, then load selected
-            TomoModMini_Profiles.SaveCurrentToActiveProfile()
-            local ok = TomoModMini_Profiles.LoadNamedProfile(v)
+            TomoMod_Profiles.SaveCurrentToActiveProfile()
+            local ok = TomoMod_Profiles.LoadNamedProfile(v)
             if ok then
-                print("|cffff3399TomoModMini|r " .. string.format(L["msg_profile_loaded"], v))
-                StaticPopup_Show("TOMOMODMINI_PROFILE_RELOAD")
+                print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_loaded"], v))
+                StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
             else
-                print("|cffff0000TomoModMini|r " .. string.format(L["msg_profile_load_failed"], v))
+                print("|cffff0000TomoMod|r " .. string.format(L["msg_profile_load_failed"], v))
             end
         end)
         y = ny
@@ -110,17 +110,17 @@ local function BuildProfileTab(parent)
     local _, ny = W.CreateButton(c, L["btn_create_profile"], 180, y, function()
         local name = nameBox.editBox:GetText()
         if not name or name:match("^%s*$") then
-            print("|cffff0000TomoModMini|r " .. L["msg_profile_name_empty"])
+            print("|cffff0000TomoMod|r " .. L["msg_profile_name_empty"])
             return
         end
         name = name:match("^%s*(.-)%s*$") -- trim
-        local ok, err = TomoModMini_Profiles.CreateNamedProfile(name)
+        local ok, err = TomoMod_Profiles.CreateNamedProfile(name)
         if ok then
-            print("|cffff3399TomoModMini|r " .. string.format(L["msg_profile_created"], name))
+            print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_created"], name))
             nameBox.editBox:SetText("")
             nameBox.editBox:ClearFocus()
         else
-            print("|cffff0000TomoModMini|r " .. (err or "Error"))
+            print("|cffff0000TomoMod|r " .. (err or "Error"))
         end
     end)
     y = ny
@@ -130,9 +130,9 @@ local function BuildProfileTab(parent)
         local name = self:GetText()
         if name and not name:match("^%s*$") then
             name = name:match("^%s*(.-)%s*$")
-            local ok = TomoModMini_Profiles.CreateNamedProfile(name)
+            local ok = TomoMod_Profiles.CreateNamedProfile(name)
             if ok then
-                print("|cffff3399TomoModMini|r " .. string.format(L["msg_profile_created"], name))
+                print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_created"], name))
                 self:SetText("")
             end
         end
@@ -142,7 +142,7 @@ local function BuildProfileTab(parent)
     -- Delete current profile (only if not "Default")
     if activeName ~= "Default" then
         local _, ny = W.CreateButton(c, L["btn_delete_named_profile"] .. " '" .. activeName .. "'", 260, y, function()
-            StaticPopup_Show("TOMOMODMINI_DELETE_PROFILE", activeName, nil, { name = activeName })
+            StaticPopup_Show("TOMOMOD_DELETE_PROFILE", activeName, nil, { name = activeName })
         end)
         y = ny
     end
@@ -152,8 +152,8 @@ local function BuildProfileTab(parent)
     y = ny
 
     local _, ny = W.CreateButton(c, L["btn_save_profile"], 220, y, function()
-        TomoModMini_Profiles.SaveCurrentToActiveProfile()
-        print("|cffff3399TomoModMini|r " .. string.format(L["msg_profile_saved"], activeName))
+        TomoMod_Profiles.SaveCurrentToActiveProfile()
+        print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_saved"], activeName))
     end)
     y = ny
 
@@ -172,23 +172,23 @@ local function BuildProfileTab(parent)
     local _, ny = W.CreateInfoText(c, L["info_spec_profiles"], y)
     y = ny
 
-    local useSpec = TomoModMiniDB._profiles.useSpecProfiles
+    local useSpec = TomoModDB._profiles.useSpecProfiles
 
     local _, ny = W.CreateCheckbox(c, L["opt_enable_spec_profiles"], useSpec, y, function(v)
         if v then
-            TomoModMini_Profiles.EnableSpecProfiles()
+            TomoMod_Profiles.EnableSpecProfiles()
         else
-            TomoModMini_Profiles.DisableSpecProfiles()
+            TomoMod_Profiles.DisableSpecProfiles()
         end
-        StaticPopup_Show("TOMOMODMINI_PROFILE_RELOAD")
+        StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
     end)
     y = ny
 
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local specID = TomoModMini_Profiles.GetCurrentSpecID()
-    local allSpecs = TomoModMini_Profiles.GetAllSpecs()
+    local specID = TomoMod_Profiles.GetCurrentSpecID()
+    local allSpecs = TomoMod_Profiles.GetAllSpecs()
 
     if useSpec then
         local activeLabel = L["profile_global"]
@@ -199,14 +199,14 @@ local function BuildProfileTab(parent)
             end
         end
 
-        local _, ny = W.CreateInfoText(c, "|cffff3399" .. L["profile_status"] .. ":|r " .. activeLabel, y)
+        local _, ny = W.CreateInfoText(c, "|cff0cd29f" .. L["profile_status"] .. ":|r " .. activeLabel, y)
         y = ny
 
         local _, ny = W.CreateSectionHeader(c, L["section_spec_list"], y)
         y = ny
 
         for _, spec in ipairs(allSpecs) do
-            local hasSaved = TomoModMini_Profiles.HasSpecProfile(spec.id)
+            local hasSaved = TomoMod_Profiles.HasSpecProfile(spec.id)
             local isCurrent = (spec.id == specID)
 
             local row = CreateFrame("Frame", nil, c)
@@ -231,9 +231,9 @@ local function BuildProfileTab(parent)
             statusFS:SetPoint("LEFT", nameFS, "RIGHT", 10, 0)
 
             local function UpdateBadge()
-                local saved = TomoModMini_Profiles.HasSpecProfile(spec.id)
+                local saved = TomoMod_Profiles.HasSpecProfile(spec.id)
                 if isCurrent then
-                    statusFS:SetText("|cffff3399° " .. L["profile_badge_active"] .. "|r")
+                    statusFS:SetText("|cff0cd29f° " .. L["profile_badge_active"] .. "|r")
                 elseif saved then
                     statusFS:SetText("|cffffff00° " .. L["profile_badge_saved"] .. "|r")
                 else
@@ -256,8 +256,8 @@ local function BuildProfileTab(parent)
             copyText:SetText(L["btn_copy_to_spec"])
 
             copyBtn:SetScript("OnClick", function()
-                TomoModMini_Profiles.CopyCurrentToSpec(spec.id)
-                print("|cffff3399TomoModMini|r " .. string.format(L["msg_profile_copied"], spec.name))
+                TomoMod_Profiles.CopyCurrentToSpec(spec.id)
+                print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_copied"], spec.name))
                 UpdateBadge()
             end)
             copyBtn:SetScript("OnEnter", function(self) self:SetBackdropBorderColor(unpack(T.accent)) end)
@@ -277,8 +277,8 @@ local function BuildProfileTab(parent)
             delText:SetText(L["btn_delete_profile"])
 
             delBtn:SetScript("OnClick", function()
-                TomoModMini_Profiles.DeleteSpecProfile(spec.id)
-                print("|cffff3399TomoModMini|r " .. string.format(L["msg_profile_deleted"], spec.name))
+                TomoMod_Profiles.DeleteSpecProfile(spec.id)
+                print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_deleted"], spec.name))
                 UpdateBadge()
             end)
             delBtn:SetScript("OnEnter", function(self) self:SetBackdropBorderColor(unpack(T.red)) end)
@@ -293,7 +293,7 @@ local function BuildProfileTab(parent)
         local _, ny = W.CreateInfoText(c, L["info_spec_reload"], y)
         y = ny
     else
-        local _, ny = W.CreateInfoText(c, "|cffff3399" .. L["profile_status"] .. ":|r " .. L["profile_global"], y)
+        local _, ny = W.CreateInfoText(c, "|cff0cd29f" .. L["profile_status"] .. ":|r " .. L["profile_global"], y)
         y = ny
 
         local _, ny = W.CreateInfoText(c, L["info_global_mode"], y)
@@ -354,15 +354,15 @@ local function BuildImportExportTab(parent)
         genLabel:SetTextColor(1, 1, 1, 1)
     end)
     genBtn:SetScript("OnClick", function()
-        local str, err = TomoModMini_Profiles.Export()
+        local str, err = TomoMod_Profiles.Export()
         if str then
             exportBox.editBox:SetText(str)
             exportBox.editBox:HighlightText()
             exportBox.editBox:SetFocus()
-            print("|cffff3399TomoModMini|r " .. L["msg_export_success"])
+            print("|cff0cd29fTomoMod|r " .. L["msg_export_success"])
         else
             exportBox.editBox:SetText("")
-            print("|cffff0000TomoModMini|r " .. (err or "Export failed"))
+            print("|cffff0000TomoMod|r " .. (err or "Export failed"))
         end
     end)
 
@@ -391,9 +391,9 @@ local function BuildImportExportTab(parent)
         if text and text ~= "" then
             exportBox.editBox:HighlightText()
             exportBox.editBox:SetFocus()
-            print("|cffff3399TomoModMini|r " .. L["msg_copy_hint"])
+            print("|cff0cd29fTomoMod|r " .. L["msg_copy_hint"])
         else
-            print("|cffff0000TomoModMini|r " .. L["msg_copy_empty"])
+            print("|cffff0000TomoMod|r " .. L["msg_copy_empty"])
         end
     end)
 
@@ -423,13 +423,13 @@ local function BuildImportExportTab(parent)
     local importBox, ny = W.CreateMultiLineEditBox(c, L["label_import_string"], 100, y, {
         onTextChanged = function(text)
             if text and text ~= "" then
-                local meta = TomoModMini_Profiles.PreviewImport(text)
+                local meta = TomoMod_Profiles.PreviewImport(text)
                 if meta then
                     local info = string.format(L["import_preview"],
                         meta.class or "?",
                         tostring(meta.moduleCount or 0),
                         meta.date or "?")
-                    previewText:SetText("|cffff3399" .. L["import_preview_valid"] .. "|r " .. info)
+                    previewText:SetText("|cff0cd29f" .. L["import_preview_valid"] .. "|r " .. info)
                 else
                     previewText:SetText("|cffff0000✗|r " .. L["import_preview_invalid"])
                 end
@@ -468,7 +468,7 @@ local function BuildImportExportTab(parent)
     pasteBtn:SetScript("OnClick", function()
         importBox.editBox:SetText("")
         importBox.editBox:SetFocus()
-        print("|cffff3399TomoModMini|r " .. L["msg_paste_hint"])
+        print("|cff0cd29fTomoMod|r " .. L["msg_paste_hint"])
     end)
 
     -- Import button
@@ -496,10 +496,10 @@ local function BuildImportExportTab(parent)
     impBtn:SetScript("OnClick", function()
         local text = importBox.editBox:GetText()
         if not text or text == "" then
-            print("|cffff0000TomoModMini|r " .. L["msg_import_empty"])
+            print("|cffff0000TomoMod|r " .. L["msg_import_empty"])
             return
         end
-        StaticPopup_Show("TOMOMODMINI_IMPORT_CONFIRM", nil, nil, { text = text })
+        StaticPopup_Show("TOMOMOD_IMPORT_CONFIRM", nil, nil, { text = text })
     end)
 
     y = y - 36
@@ -531,19 +531,25 @@ local function BuildResetsTab(parent)
         { key = "unitFrames",       label = "UnitFrames" },
         { key = "nameplates",       label = "Nameplates" },
         { key = "resourceBars",     label = "Resource Bars" },
+        { key = "cooldownManager",  label = "Cooldown Manager" },
+        { key = "minimap",          label = "Minimap" },
+        { key = "infoPanel",        label = "Info Panel" },
         { key = "cursorRing",       label = "Cursor Ring" },
+        { key = "skyRide",          label = "SkyRide" },
+        { key = "autoQuest",        label = "Auto Quest" },
         { key = "autoAcceptInvite", label = "Auto Accept Invite" },
         { key = "autoSummon",       label = "Auto Summon" },
         { key = "autoFillDelete",   label = "Auto Fill Delete" },
+        { key = "frameAnchors",     label = "Frame Anchors" },
         { key = "cinematicSkip",    label = "Cinematic Skip" },
         { key = "hideCastBar",      label = "Hide CastBar" },
-        { key = "autoSkipRole",     label = "Auto Skip Role" },
+        { key = "MythicKeys",       label = "Mythic Keys" },
     }
 
     for _, mod in ipairs(modules) do
         local _, ny = W.CreateButton(c, L["btn_reset_prefix"] .. mod.label, 260, y, function()
-            TomoModMini_ResetModule(mod.key)
-            print("|cffff3399TomoModMini|r " .. string.format(L["msg_profile_reset"], mod.label))
+            TomoMod_ResetModule(mod.key)
+            print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_reset"], mod.label))
         end)
         y = ny
     end
@@ -558,7 +564,7 @@ local function BuildResetsTab(parent)
     y = ny
 
     local _, ny = W.CreateButton(c, L["btn_reset_all_reload"], 260, y, function()
-        StaticPopup_Show("TOMOMODMINI_RESET_ALL")
+        StaticPopup_Show("TOMOMOD_RESET_ALL")
     end)
     y = ny - 20
 
@@ -570,7 +576,7 @@ end
 -- ENTRY POINT : 3 ONGLETS
 -- =====================================
 
-function TomoModMini_ConfigPanel_Profiles(parent)
+function TomoMod_ConfigPanel_Profiles(parent)
     local tabs = {
         { key = "profiles",     label = L["tab_profiles"],      builder = function(p) return BuildProfileTab(p) end },
         { key = "importexport", label = L["tab_import_export"], builder = function(p) return BuildImportExportTab(p) end },
@@ -584,18 +590,18 @@ end
 -- STATIC POPUPS
 -- =====================================
 
-StaticPopupDialogs["TOMOMODMINI_IMPORT_CONFIRM"] = {
+StaticPopupDialogs["TOMOMOD_IMPORT_CONFIRM"] = {
     text = L["popup_import_text"],
     button1 = L["popup_confirm"],
     button2 = L["popup_cancel"],
     OnAccept = function(self, data)
         if data and data.text then
-            local ok, err = TomoModMini_Profiles.Import(data.text)
+            local ok, err = TomoMod_Profiles.Import(data.text)
             if ok then
-                print("|cffff3399TomoModMini|r " .. L["msg_import_success"])
+                print("|cff0cd29fTomoMod|r " .. L["msg_import_success"])
                 ReloadUI()
             else
-                print("|cffff0000TomoModMini|r " .. (err or "Import failed"))
+                print("|cffff0000TomoMod|r " .. (err or "Import failed"))
             end
         end
     end,
@@ -605,7 +611,7 @@ StaticPopupDialogs["TOMOMODMINI_IMPORT_CONFIRM"] = {
     preferredIndex = 3,
 }
 
-StaticPopupDialogs["TOMOMODMINI_PROFILE_RELOAD"] = {
+StaticPopupDialogs["TOMOMOD_PROFILE_RELOAD"] = {
     text = L["popup_profile_reload"],
     button1 = L["popup_confirm"],
     button2 = L["popup_cancel"],
@@ -618,16 +624,16 @@ StaticPopupDialogs["TOMOMODMINI_PROFILE_RELOAD"] = {
     preferredIndex = 3,
 }
 
-StaticPopupDialogs["TOMOMODMINI_DELETE_PROFILE"] = {
+StaticPopupDialogs["TOMOMOD_DELETE_PROFILE"] = {
     text = L["popup_delete_profile"],
     button1 = L["popup_confirm"],
     button2 = L["popup_cancel"],
     OnAccept = function(self, data)
         if data and data.name then
-            local ok = TomoModMini_Profiles.DeleteNamedProfile(data.name)
+            local ok = TomoMod_Profiles.DeleteNamedProfile(data.name)
             if ok then
-                print("|cffff3399TomoModMini|r " .. string.format(L["msg_profile_name_deleted"], data.name))
-                StaticPopup_Show("TOMOMODMINI_PROFILE_RELOAD")
+                print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_name_deleted"], data.name))
+                StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
             end
         end
     end,
