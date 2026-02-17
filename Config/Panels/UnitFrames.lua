@@ -2,35 +2,31 @@
 -- Panels/UnitFrames.lua — UnitFrames Config (Tabbed + Sub-Tabs)
 -- =====================================
 
-local W = TomoMod_Widgets
-local L = TomoMod_L
+local W = TomoModMini_Widgets
+local L = TomoModMini_L
 
-local FONT_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\"
+local FONT_PATH = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\"
 
--- Available fonts for the dropdown
+-- Available fonts for the dropdown (Mini only ships Tomo.ttf)
 local FONT_LIST = {
-    { text = "Poppins Medium",    value = FONT_PATH .. "Poppins-Medium.ttf" },
     { text = "Poppins SemiBold",  value = FONT_PATH .. "Poppins-SemiBold.ttf" },
     { text = "Poppins Bold",      value = FONT_PATH .. "Poppins-Bold.ttf" },
-    { text = "Poppins Black",     value = FONT_PATH .. "Poppins-Black.ttf" },
-    { text = "Expressway",        value = FONT_PATH .. "Expressway.TTF" },
-    { text = "Accidental Pres.",  value = FONT_PATH .. "accidental_pres.ttf" },
     { text = "Tomo",              value = FONT_PATH .. "Tomo.ttf" },
-    { text = "Friz Quadrata (WoW)", value = "Fonts\\FRIZQT__.TTF" },
-    { text = "Arial Narrow (WoW)",  value = "Fonts\\ARIALN.TTF" },
-    { text = "Morpheus (WoW)",      value = "Fonts\\MORPHEUS.TTF" },
+    { text = "Friz Quadrata (WoW)",   value = "Fonts\\FRIZQT__.TTF" },
+    { text = "Arial Narrow (WoW)",    value = "Fonts\\ARIALN.TTF" },
+    { text = "Morpheus (WoW)",        value = "Fonts\\MORPHEUS.TTF" },
 }
 
 -- Helper: refresh all units
 local function RefreshAll()
-    if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshAllUnits then
-        TomoMod_UnitFrames.RefreshAllUnits()
+    if TomoModMini_UnitFrames and TomoModMini_UnitFrames.RefreshAllUnits then
+        TomoModMini_UnitFrames.RefreshAllUnits()
     end
 end
 
 local function RefreshUnit(unitKey)
-    if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
-        TomoMod_UnitFrames.RefreshUnit(unitKey)
+    if TomoModMini_UnitFrames and TomoModMini_UnitFrames.RefreshUnit then
+        TomoModMini_UnitFrames.RefreshUnit(unitKey)
     end
 end
 
@@ -42,7 +38,7 @@ end
 local function BuildDimensionsTab(parent, unitKey, displayName)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModDB.unitFrames[unitKey]
+    local db = TomoModMiniDB.unitFrames[unitKey]
     if not db then return scroll end
 
     local y = -10
@@ -50,7 +46,7 @@ local function BuildDimensionsTab(parent, unitKey, displayName)
     -- Enable
     local _, ny = W.CreateCheckbox(c, L["opt_enable"], db.enabled, y, function(v)
         db.enabled = v
-        print("|cff0cd29fTomoMod|r " .. displayName .. ": " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
+        print("|cffff3399TomoModMini|r " .. displayName .. ": " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
     end)
     y = ny
 
@@ -113,31 +109,6 @@ local function BuildDimensionsTab(parent, unitKey, displayName)
             db.castbar.showTimer = v
         end)
         y = ny
-
-        -- Player castbar: drag & drop info + reset button
-        if unitKey == "player" then
-            local _, ny = W.CreateCheckbox(c, L["opt_castbar_show_latency"], db.castbar.showLatency, y, function(v)
-                db.castbar.showLatency = v
-            end)
-            y = ny
-
-            local _, ny = W.CreateInfoText(c, L["info_castbar_drag"], y)
-            y = ny
-
-            local _, ny = W.CreateButton(c, L["btn_reset_castbar_position"], 220, y, function()
-                if TomoMod_Defaults.unitFrames.player and TomoMod_Defaults.unitFrames.player.castbar then
-                    db.castbar.position = CopyTable(TomoMod_Defaults.unitFrames.player.castbar.position)
-                    local cb = _G["TomoMod_Castbar_player"]
-                    if cb then
-                        local pos = db.castbar.position
-                        cb:ClearAllPoints()
-                        cb:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
-                    end
-                    print("|cff0cd29fTomoMod|r Castbar " .. L["msg_uf_position_reset"])
-                end
-            end)
-            y = ny
-        end
     end
 
     c:SetHeight(math.abs(y) + 40)
@@ -148,7 +119,7 @@ end
 local function BuildDisplayTab(parent, unitKey)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModDB.unitFrames[unitKey]
+    local db = TomoModMiniDB.unitFrames[unitKey]
     if not db then return scroll end
 
     local y = -10
@@ -252,7 +223,7 @@ end
 local function BuildAurasTab(parent, unitKey)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModDB.unitFrames[unitKey]
+    local db = TomoModMiniDB.unitFrames[unitKey]
     if not db then return scroll end
 
     local y = -10
@@ -335,7 +306,7 @@ end
 local function BuildPositionTab(parent, unitKey, displayName)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModDB.unitFrames[unitKey]
+    local db = TomoModMiniDB.unitFrames[unitKey]
     if not db then return scroll end
 
     local y = -10
@@ -355,9 +326,9 @@ local function BuildPositionTab(parent, unitKey, displayName)
         }
 
         for _, elem in ipairs(elements) do
-            -- Skip castbar for player (standalone drag & drop via /tm sr)
+            -- Skip castbar offsets for player (player castbar is drag & drop)
             if elem.key == "castbar" and unitKey == "player" then
-                -- no-op
+                -- noop
             elseif db.elementOffsets[elem.key] then
                 local offData = db.elementOffsets[elem.key]
 
@@ -374,6 +345,25 @@ local function BuildPositionTab(parent, unitKey, displayName)
                 y = ny
             end
         end
+    end
+
+    -- Player castbar: reset position button (drag & drop)
+    if unitKey == "player" and db.castbar then
+        local _, ny = W.CreateSeparator(c, y)
+        y = ny
+
+        local _, ny = W.CreateInfoText(c, L["info_player_castbar_drag"], y)
+        y = ny
+
+        local _, ny = W.CreateButton(c, L["btn_reset_castbar_position"], 220, y, function()
+            local def = TomoModMini_Defaults.unitFrames.player.castbar.position
+            if def then
+                db.castbar.position = CopyTable(def)
+                RefreshUnit("player")
+                print("|cffff3399TomoModMini|r " .. L["msg_castbar_position_reset"])
+            end
+        end)
+        y = ny
     end
 
     -- Leader icon offsets
@@ -398,10 +388,10 @@ local function BuildPositionTab(parent, unitKey, displayName)
     y = ny
 
     local _, ny = W.CreateButton(c, L["btn_reset_position"] .. " " .. displayName, 220, y, function()
-        if TomoMod_Defaults.unitFrames[unitKey] and TomoMod_Defaults.unitFrames[unitKey].position then
-            db.position = CopyTable(TomoMod_Defaults.unitFrames[unitKey].position)
+        if TomoModMini_Defaults.unitFrames[unitKey] and TomoModMini_Defaults.unitFrames[unitKey].position then
+            db.position = CopyTable(TomoModMini_Defaults.unitFrames[unitKey].position)
             RefreshUnit(unitKey)
-            print("|cff0cd29fTomoMod|r " .. displayName .. " " .. L["msg_uf_position_reset"])
+            print("|cffff3399TomoModMini|r " .. displayName .. " " .. L["msg_uf_position_reset"])
         end
     end)
     y = ny
@@ -432,7 +422,7 @@ end
 local function BuildSimpleUnitContent(parent, unitKey, displayName)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModDB.unitFrames[unitKey]
+    local db = TomoModMiniDB.unitFrames[unitKey]
     if not db then return scroll end
 
     local y = -10
@@ -440,7 +430,7 @@ local function BuildSimpleUnitContent(parent, unitKey, displayName)
     -- Enable
     local _, ny = W.CreateCheckbox(c, L["opt_enable"], db.enabled, y, function(v)
         db.enabled = v
-        print("|cff0cd29fTomoMod|r " .. displayName .. ": " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
+        print("|cffff3399TomoModMini|r " .. displayName .. ": " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
     end)
     y = ny
 
@@ -506,10 +496,10 @@ local function BuildSimpleUnitContent(parent, unitKey, displayName)
     y = ny
 
     local _, ny = W.CreateButton(c, L["btn_reset_position"] .. " " .. displayName, 220, y, function()
-        if TomoMod_Defaults.unitFrames[unitKey] and TomoMod_Defaults.unitFrames[unitKey].position then
-            db.position = CopyTable(TomoMod_Defaults.unitFrames[unitKey].position)
+        if TomoModMini_Defaults.unitFrames[unitKey] and TomoModMini_Defaults.unitFrames[unitKey].position then
+            db.position = CopyTable(TomoModMini_Defaults.unitFrames[unitKey].position)
             RefreshUnit(unitKey)
-            print("|cff0cd29fTomoMod|r " .. displayName .. " " .. L["msg_uf_position_reset"])
+            print("|cffff3399TomoModMini|r " .. displayName .. " " .. L["msg_uf_position_reset"])
         end
     end)
     y = ny
@@ -530,14 +520,14 @@ local function BuildGeneralContent(parent)
     local _, ny = W.CreateSectionHeader(c, L["section_general_settings"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_uf_enable"], TomoModDB.unitFrames.enabled, y, function(v)
-        TomoModDB.unitFrames.enabled = v
-        print("|cff0cd29fTomoMod|r " .. string.format(L["msg_uf_toggle"], v and L["enabled"] or L["disabled"]))
+    local _, ny = W.CreateCheckbox(c, L["opt_uf_enable"], TomoModMiniDB.unitFrames.enabled, y, function(v)
+        TomoModMiniDB.unitFrames.enabled = v
+        print("|cffff3399TomoModMini|r " .. string.format(L["msg_uf_toggle"], v and L["enabled"] or L["disabled"]))
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_hide_blizzard"], TomoModDB.unitFrames.hideBlizzardFrames, y, function(v)
-        TomoModDB.unitFrames.hideBlizzardFrames = v
+    local _, ny = W.CreateCheckbox(c, L["opt_hide_blizzard"], TomoModMiniDB.unitFrames.hideBlizzardFrames, y, function(v)
+        TomoModMiniDB.unitFrames.hideBlizzardFrames = v
     end)
     y = ny
 
@@ -547,16 +537,16 @@ local function BuildGeneralContent(parent)
     local _, ny = W.CreateSubLabel(c, L["sublabel_font"], y)
     y = ny
 
-    local _, ny = W.CreateDropdown(c, L["opt_font_family"], FONT_LIST, TomoModDB.unitFrames.fontFamily or TomoModDB.unitFrames.font, y, function(v)
-        TomoModDB.unitFrames.fontFamily = v
-        TomoModDB.unitFrames.font = v
+    local _, ny = W.CreateDropdown(c, L["opt_font_family"], FONT_LIST, TomoModMiniDB.unitFrames.fontFamily or TomoModMiniDB.unitFrames.font, y, function(v)
+        TomoModMiniDB.unitFrames.fontFamily = v
+        TomoModMiniDB.unitFrames.font = v
         RefreshAll()
     end)
     y = ny
 
     -- Font size slider (calls RefreshAllUnits for live update)
-    local _, ny = W.CreateSlider(c, L["opt_global_font_size"], TomoModDB.unitFrames.fontSize, 8, 20, 1, y, function(v)
-        TomoModDB.unitFrames.fontSize = v
+    local _, ny = W.CreateSlider(c, L["opt_global_font_size"], TomoModMiniDB.unitFrames.fontSize, 8, 20, 1, y, function(v)
+        TomoModMiniDB.unitFrames.fontSize = v
         RefreshAll()
     end)
     y = ny
@@ -566,8 +556,8 @@ local function BuildGeneralContent(parent)
     y = ny
 
     local _, ny = W.CreateButton(c, L["btn_toggle_lock"], 240, y, function()
-        if TomoMod_UnitFrames and TomoMod_UnitFrames.ToggleLock then
-            TomoMod_UnitFrames.ToggleLock()
+        if TomoModMini_UnitFrames and TomoModMini_UnitFrames.ToggleLock then
+            TomoModMini_UnitFrames.ToggleLock()
         end
     end)
     y = ny
@@ -586,7 +576,7 @@ end
 local function BuildColorsContent(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModDB.unitFrames
+    local db = TomoModMiniDB.unitFrames
     local y = -10
 
     local _, ny = W.CreateSectionHeader(c, L["section_castbar_colors"], y)
@@ -624,91 +614,10 @@ local function BuildColorsContent(parent)
 end
 
 -- =====================================
--- BUILD BOSS FRAMES CONTENT
--- =====================================
-
-local function BuildBossContent(parent)
-    local scroll = W.CreateScrollPanel(parent)
-    local c = scroll.child
-    local db = TomoModDB.unitFrames.bossFrames
-    if not db then return scroll end
-
-    local y = -10
-
-    local _, ny = W.CreateSectionHeader(c, L["section_boss_frames"], y)
-    y = ny
-
-    -- Enable
-    local _, ny = W.CreateCheckbox(c, L["opt_boss_enable"], db.enabled, y, function(v)
-        db.enabled = v
-        print("|cff0cd29fTomoMod|r Boss: " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
-    end)
-    y = ny
-
-    -- Dimensions
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_dimensions"], y)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_width"], db.width, 100, 350, 5, y, function(v)
-        db.width = v
-        if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
-            TomoMod_BossFrames.RefreshAll()
-        end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_boss_height"], db.height, 16, 50, 2, y, function(v)
-        db.height = v
-        if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
-            TomoMod_BossFrames.RefreshAll()
-        end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_boss_spacing"], db.spacing, 0, 20, 1, y, function(v)
-        db.spacing = v
-        if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
-            TomoMod_BossFrames.RefreshAll()
-        end
-    end)
-    y = ny
-
-    -- Info
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_boss_drag"], y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_boss_colors"], y)
-    y = ny
-
-    -- Reset position
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateButton(c, L["btn_reset_position"] .. " Boss", 220, y, function()
-        if TomoMod_Defaults.unitFrames.bossFrames and TomoMod_Defaults.unitFrames.bossFrames.position then
-            db.position = CopyTable(TomoMod_Defaults.unitFrames.bossFrames.position)
-            if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
-                TomoMod_BossFrames.RefreshAll()
-            end
-            print("|cff0cd29fTomoMod|r Boss " .. L["msg_uf_position_reset"])
-        end
-    end)
-    y = ny
-
-    c:SetHeight(math.abs(y) + 40)
-    return scroll
-end
-
--- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
-function TomoMod_ConfigPanel_UnitFrames(parent)
+function TomoModMini_ConfigPanel_UnitFrames(parent)
     local tabs = {
         { key = "general",      label = L["tab_general"],  builder = function(p) return BuildGeneralContent(p) end },
         { key = "player",       label = L["tab_player"],   builder = function(p) return BuildUnitWithSubTabs(p, "player", L["unit_player"]) end },
@@ -716,7 +625,6 @@ function TomoMod_ConfigPanel_UnitFrames(parent)
         { key = "targettarget", label = L["tab_tot"],      builder = function(p) return BuildSimpleUnitContent(p, "targettarget", L["unit_tot"]) end },
         { key = "pet",          label = L["tab_pet"],      builder = function(p) return BuildSimpleUnitContent(p, "pet", L["unit_pet"]) end },
         { key = "focus",        label = L["tab_focus"],    builder = function(p) return BuildUnitWithSubTabs(p, "focus", L["unit_focus"]) end },
-        { key = "boss",         label = L["tab_boss"],     builder = function(p) return BuildBossContent(p) end },
         { key = "colors",       label = L["tab_colors"],   builder = function(p) return BuildColorsContent(p) end },
     }
 

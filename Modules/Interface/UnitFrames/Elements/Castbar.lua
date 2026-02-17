@@ -5,8 +5,8 @@
 
 local UF_Elements = UF_Elements or {}
 
-local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
-local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local TEXTURE = "Interface\\AddOns\\TomoModMini\\Assets\\Textures\\tomoaniki"
+local FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Poppins-Medium.ttf"
 
 local MAX_EMPOWER_STAGES = 4
 
@@ -18,10 +18,10 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     if not settings or not settings.castbar or not settings.castbar.enabled then return nil end
 
     local cbSettings = settings.castbar
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
-    local font = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.font) or FONT
+    local tex = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.texture) or TEXTURE
+    local font = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.font) or FONT
 
-    local castbar = CreateFrame("StatusBar", "TomoMod_Castbar_" .. unit, parent)
+    local castbar = CreateFrame("StatusBar", "TomoModMini_Castbar_" .. unit, parent)
     castbar:SetSize(cbSettings.width, cbSettings.height)
     castbar:SetStatusBarTexture(tex)
     castbar:GetStatusBarTexture():SetHorizTile(false)
@@ -29,7 +29,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     castbar:SetValue(100)
 
     -- Base color from DB (interruptible cast)
-    local cbColors = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.castbarColor
+    local cbColors = TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.castbarColor
     local baseR, baseG, baseB = 0.8, 0.1, 0.1
     if cbColors then baseR, baseG, baseB = cbColors.r, cbColors.g, cbColors.b end
     castbar:SetStatusBarColor(baseR, baseG, baseB, 1)
@@ -44,7 +44,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         castbar:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
 
         -- Make draggable (toggled via /tm sr)
-        TomoMod_Utils.SetupDraggable(castbar, function()
+        TomoModMini_Utils.SetupDraggable(castbar, function()
             local point, _, relativePoint, x, y = castbar:GetPoint()
             cbSettings.position = cbSettings.position or {}
             cbSettings.position.point = point
@@ -74,7 +74,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     local niOverlay = castbar:CreateTexture(nil, "ARTWORK", nil, 1)
     niOverlay:SetPoint("TOPLEFT", statustexture, "TOPLEFT", 0, 0)
     niOverlay:SetPoint("BOTTOMRIGHT", statustexture, "BOTTOMRIGHT", 0, 0)
-    local niColors = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.castbarNIColor
+    local niColors = TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.castbarNIColor
     local niR, niG, niB = 0.5, 0.5, 0.5
     if niColors then niR, niG, niB = niColors.r, niColors.g, niColors.b end
     niOverlay:SetColorTexture(niR, niG, niB, 1)
@@ -327,7 +327,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         if isInterrupt then
             self.niOverlay:SetAlpha(0)
             ResetState(self)
-            local intCol = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.castbarInterruptColor
+            local intCol = TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.castbarInterruptColor
             if intCol then
                 self:SetStatusBarColor(intCol.r, intCol.g, intCol.b, 1)
             else

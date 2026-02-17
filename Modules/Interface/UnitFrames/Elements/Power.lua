@@ -4,14 +4,14 @@
 
 local UF_Elements = UF_Elements or {}
 
-local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
-local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local TEXTURE = "Interface\\AddOns\\TomoModMini\\Assets\\Textures\\tomoaniki"
+local FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Tomo.ttf"
 
 function UF_Elements.CreatePower(parent, unit, settings)
     if (settings.powerHeight or 0) <= 0 then return nil end
 
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
-    local font = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.font) or FONT
+    local tex = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.texture) or TEXTURE
+    local font = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.font) or FONT
 
     local power = CreateFrame("StatusBar", nil, parent)
     power:SetSize(settings.width, settings.powerHeight)
@@ -56,11 +56,11 @@ function UF_Elements.UpdatePower(frame)
     frame.power:SetValue(current)
 
     -- Color by power type
-    local r, g, b = TomoMod_Utils.GetPowerColor(powerType)
+    local r, g, b = TomoModMini_Utils.GetPowerColor(powerType)
     frame.power:SetStatusBarColor(r, g, b, 1)
 
     -- Show power text if enabled (AbbreviateLargeNumbers is C-side, accepts secret numbers)
-    local settings = TomoModDB.unitFrames[unit]
+    local settings = TomoModMiniDB.unitFrames[unit]
     if settings and settings.showPowerText then
         frame.power.text:SetFormattedText("%s", AbbreviateLargeNumbers(current))
     else

@@ -3,8 +3,8 @@
 -- Supports: player, target, targettarget, pet, focus
 -- =====================================
 
-TomoMod_UnitFrames = TomoMod_UnitFrames or {}
-local UF = TomoMod_UnitFrames
+TomoModMini_UnitFrames = TomoModMini_UnitFrames or {}
+local UF = TomoModMini_UnitFrames
 local E = UF_Elements
 
 local frames = {}
@@ -40,7 +40,7 @@ local raidIconCoords = {
 -- =====================================
 
 local function CreateUnitFrame(unit, settings)
-    local frame = CreateFrame("Button", "TomoMod_UF_" .. unit, UIParent, "SecureUnitButtonTemplate")
+    local frame = CreateFrame("Button", "TomoModMini_UF_" .. unit, UIParent, "SecureUnitButtonTemplate")
     frame:SetSize(settings.width, settings.healthHeight + (settings.powerHeight or 0))
     frame.unit = unit
     frame:SetAttribute("unit", unit)
@@ -73,6 +73,18 @@ local function CreateUnitFrame(unit, settings)
     -- Castbar
     if settings.castbar and settings.castbar.enabled then
         frame.castbar = E.CreateCastbar(frame, unit, settings)
+
+        -- Player castbar: free-floating, drag & drop via /tm uf
+        if unit == "player" and frame.castbar then
+            TomoModMini_Utils.SetupDraggable(frame.castbar, function()
+                local point, _, relativePoint, x, y = frame.castbar:GetPoint()
+                settings.castbar.position = settings.castbar.position or {}
+                settings.castbar.position.point = point
+                settings.castbar.position.relativePoint = relativePoint
+                settings.castbar.position.x = x
+                settings.castbar.position.y = y
+            end)
+        end
     end
 
     -- Auras
@@ -108,7 +120,7 @@ local function CreateUnitFrame(unit, settings)
     end
 
     -- Draggable
-    TomoMod_Utils.SetupDraggable(frame, function()
+    TomoModMini_Utils.SetupDraggable(frame, function()
         -- For anchorTo frames (ToT, Pet): save position RELATIVE to the anchor frame.
         -- After StartMoving/StopMovingOrSizing, GetPoint() returns UIParent-relative coords,
         -- but on reload we re-anchor to the parent frame — so we must convert.
@@ -154,7 +166,7 @@ local function UpdateHealth(frame)
     if not UnitExists(frame.unit) then return end
 
     local unit = frame.unit
-    local settings = TomoModDB.unitFrames[unit]
+    local settings = TomoModMiniDB.unitFrames[unit]
     if not settings then return end
 
     local current = UnitHealth(unit)
@@ -197,7 +209,7 @@ local function UpdateName(frame)
     if not frame or not frame.health or not frame.health.nameText then return end
     if not UnitExists(frame.unit) then return end
 
-    local settings = TomoModDB.unitFrames[frame.unit]
+    local settings = TomoModMiniDB.unitFrames[frame.unit]
     if not settings or not settings.showName then
         frame.health.nameText:SetText("")
         return
@@ -205,7 +217,7 @@ local function UpdateName(frame)
 
     -- Color
     if UnitIsPlayer(frame.unit) then
-        local r, g, b = TomoMod_Utils.GetClassColor(frame.unit)
+        local r, g, b = TomoModMini_Utils.GetClassColor(frame.unit)
         frame.health.nameText:SetTextColor(r, g, b, 1)
     else
         frame.health.nameText:SetTextColor(1, 1, 1, 0.95)
@@ -222,7 +234,7 @@ local function UpdateName(frame)
     local nameFS = frame.health.nameText
     if settings.nameTruncate and settings.nameTruncateLength then
         -- Use font size from DB (not GetStringHeight which returns secret value in TWW)
-        local dbFontSize = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.fontSize) or 12
+        local dbFontSize = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.fontSize) or 12
         local maxWidth = settings.nameTruncateLength * dbFontSize * 0.55
         nameFS:SetWidth(maxWidth)
         nameFS:SetWordWrap(false)
@@ -249,7 +261,7 @@ local function UpdateLevel(frame)
     if not frame or not frame.health or not frame.health.levelText then return end
     if not UnitExists(frame.unit) then return end
 
-    local settings = TomoModDB.unitFrames[frame.unit]
+    local settings = TomoModMiniDB.unitFrames[frame.unit]
     if not settings or not settings.showLevel then
         frame.health.levelText:SetText("")
         return
@@ -274,7 +286,7 @@ local function UpdateThreat(frame)
         return
     end
 
-    local settings = TomoModDB.unitFrames[frame.unit]
+    local settings = TomoModMiniDB.unitFrames[frame.unit]
     if not settings or not settings.showThreat then
         frame.threat:Hide()
         return
@@ -293,7 +305,7 @@ end
 local function UpdateRaidIcon(frame)
     if not frame or not frame.health or not frame.health.raidIcon then return end
 
-    local settings = TomoModDB.unitFrames[frame.unit]
+    local settings = TomoModMiniDB.unitFrames[frame.unit]
     if not settings or not settings.showRaidIcon then
         frame.health.raidIcon:Hide()
         return
@@ -318,7 +330,7 @@ end
 local function UpdateLeaderIcon(frame)
     if not frame or not frame.health or not frame.health.leaderIcon then return end
 
-    local settings = TomoModDB.unitFrames[frame.unit]
+    local settings = TomoModMiniDB.unitFrames[frame.unit]
     if not settings or not settings.showLeaderIcon then
         frame.health.leaderIcon:Hide()
         return
@@ -462,28 +474,15 @@ local function RegisterUnitEvents()
     end
 end
 
--- [PERF] Forward-declare throttleFrame (created below) so event closures can reference it
-local throttleFrame
-
 eventFrame:SetScript("OnEvent", function(self, event, unit)
     if event == "PLAYER_ENTERING_WORLD" then
         C_Timer.After(0, function()
             for _, f in pairs(frames) do UpdateFrame(f) end
-            -- [PERF] Enable ToT throttle if target exists
-            if frames.targettarget and UnitExists("target") then
-                throttleFrame:Show()
-            end
         end)
     elseif event == "PLAYER_TARGET_CHANGED" then
         C_Timer.After(0, function()
             if frames.target then UpdateFrame(frames.target) end
             if frames.targettarget then UpdateFrame(frames.targettarget) end
-            -- [PERF] Enable/disable ToT throttle based on target existence
-            if frames.targettarget and UnitExists("target") then
-                throttleFrame:Show()
-            else
-                throttleFrame:Hide()
-            end
         end)
     elseif event == "PLAYER_FOCUS_CHANGED" then
         C_Timer.After(0, function()
@@ -501,19 +500,13 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
 end)
 
 -- Throttled update for ToT (no dedicated event)
--- [PERF] Hidden by default, only enabled when target exists to avoid unnecessary OnUpdate overhead.
 local updateTimer = 0
-throttleFrame = CreateFrame("Frame")
-throttleFrame:Hide()
+local throttleFrame = CreateFrame("Frame")
 throttleFrame:SetScript("OnUpdate", function(self, elapsed)
     updateTimer = updateTimer + elapsed
     if updateTimer >= 0.15 then
         updateTimer = 0
-        if frames.targettarget and UnitExists("target") then
-            UpdateFrame(frames.targettarget)
-        else
-            self:Hide()
-        end
+        if frames.targettarget then UpdateFrame(frames.targettarget) end
     end
 end)
 
@@ -560,6 +553,27 @@ function UF.ToggleLock()
             frame:SetLocked(isLocked)
         end
 
+        -- Player castbar: independent drag & drop
+        if unit == "player" and frame.castbar and frame.castbar.SetLocked then
+            frame.castbar:SetLocked(isLocked)
+            if not isLocked then
+                -- Show the castbar filled so the user can see it and drag it
+                local bc = frame.castbar._baseColor or { 0.8, 0.1, 0.1 }
+                frame.castbar:SetStatusBarColor(bc[1], bc[2], bc[3], 1)
+                frame.castbar:SetMinMaxValues(0, 100)
+                frame.castbar:SetValue(100)
+                if frame.castbar.spellText then
+                    frame.castbar.spellText:SetText("Castbar")
+                end
+                if frame.castbar.timerText then
+                    frame.castbar.timerText:SetText("")
+                end
+                frame.castbar.niOverlay:SetAlpha(0)
+                frame.castbar:SetAlpha(1)
+                frame.castbar:Show()
+            end
+        end
+
         if not isLocked then
             -- Unlock: remove unit watch so frame stays visible for dragging
             UnregisterUnitWatch(frame)
@@ -583,7 +597,7 @@ function UF.ToggleLock()
                 frame.enemyBuffContainer:EnableMouse(false)
             end
             -- Re-anchor anchorTo frames (ToT, Pet) to their parent with correct offset
-            local unitSettings = TomoModDB.unitFrames[unit]
+            local unitSettings = TomoModMiniDB.unitFrames[unit]
             if unitSettings and unitSettings.anchorTo and frames[unitSettings.anchorTo] then
                 local pos = unitSettings.position
                 frame:ClearAllPoints()
@@ -602,42 +616,19 @@ function UF.ToggleLock()
     end
 
     if isLocked then
-        print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_locked"])
+        print("|cffff3399TomoModMini UF:|r " .. TomoModMini_L["msg_uf_locked"])
     else
-        print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_unlocked"])
-    end
-
-    -- Also toggle boss frames lock
-    if TomoMod_BossFrames and TomoMod_BossFrames.ToggleLock then
-        TomoMod_BossFrames.ToggleLock()
-    end
-end
-
--- Toggle player castbar lock (used by /tm sr)
-function UF.TogglePlayerCastbarLock()
-    local frame = frames["player"]
-    if not frame or not frame.castbar then return end
-    local cb = frame.castbar
-    if cb.SetLocked then
-        local newLocked = not cb.isLocked
-        cb:SetLocked(newLocked)
-        if not newLocked then
-            -- Unlocked: show visual preview for dragging
-            cb:ShowPreview()
-        else
-            -- Locked: restore normal state
-            cb:HidePreview()
-        end
+        print("|cffff3399TomoModMini UF:|r " .. TomoModMini_L["msg_uf_unlocked"])
     end
 end
 
 function UF.RefreshUnit(unitKey)
     local frame = frames[unitKey]
-    local settings = TomoModDB.unitFrames[unitKey]
+    local settings = TomoModMiniDB.unitFrames[unitKey]
     if not frame or not settings then return end
 
-    local globalDB = TomoModDB.unitFrames
-    local font = globalDB.fontFamily or globalDB.font or "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+    local globalDB = TomoModMiniDB.unitFrames
+    local font = globalDB.fontFamily or globalDB.font or "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Poppins-Medium.ttf"
     local fontSize = globalDB.fontSize or 12
     local fontOutline = globalDB.fontOutline or "OUTLINE"
 
@@ -673,6 +664,19 @@ function UF.RefreshUnit(unitKey)
         if frame.castbar.timerText then
             frame.castbar.timerText:SetFont(font, cbFontSize, fontOutline)
         end
+
+        -- Player castbar: reapply absolute position (UIParent-anchored)
+        if unitKey == "player" and settings.castbar.position then
+            local cbPos = settings.castbar.position
+            frame.castbar:ClearAllPoints()
+            frame.castbar:SetPoint(
+                cbPos.point or "BOTTOM",
+                UIParent,
+                cbPos.relativePoint or "CENTER",
+                cbPos.x or 0,
+                cbPos.y or 0
+            )
+        end
     end
 
     -- Apply element offsets if defined
@@ -698,8 +702,8 @@ function UF.RefreshUnit(unitKey)
             frame.power:ClearAllPoints()
             frame.power:SetPoint("TOP", frame.health, "BOTTOM", offsets.power.x, offsets.power.y)
         end
-        -- Castbar (skip player — standalone drag & drop via /tm sr)
-        if frame.castbar and settings.castbar and offsets.castbar and unitKey ~= "player" then
+        -- Castbar (non-player units only — player castbar is free-floating)
+        if unitKey ~= "player" and frame.castbar and settings.castbar and offsets.castbar then
             local cbPos = settings.castbar.position
             if cbPos then
                 frame.castbar:ClearAllPoints()
@@ -762,20 +766,16 @@ function UF.RefreshAllUnits()
             UF.RefreshUnit(unitKey)
         end
     end
-    -- Also refresh boss frames
-    if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
-        TomoMod_BossFrames.RefreshAll()
-    end
 end
 
 function UF.Initialize()
-    if not TomoModDB or not TomoModDB.unitFrames then return end
-    if not TomoModDB.unitFrames.enabled then return end
+    if not TomoModMiniDB or not TomoModMiniDB.unitFrames then return end
+    if not TomoModMiniDB.unitFrames.enabled then return end
 
     local buildOrder = { "player", "target", "focus", "targettarget", "pet" }
 
     for _, unit in ipairs(buildOrder) do
-        local settings = TomoModDB.unitFrames[unit]
+        local settings = TomoModMiniDB.unitFrames[unit]
         if settings and settings.enabled then
             frames[unit] = CreateUnitFrame(unit, settings)
         end
@@ -783,7 +783,7 @@ function UF.Initialize()
 
     -- Handle anchored frames (ToT → Target, Pet → Player)
     for _, unit in ipairs({ "targettarget", "pet" }) do
-        local settings = TomoModDB.unitFrames[unit]
+        local settings = TomoModMiniDB.unitFrames[unit]
         if settings and settings.anchorTo and frames[settings.anchorTo] and frames[unit] then
             local pos = settings.position
             frames[unit]:ClearAllPoints()
@@ -798,7 +798,7 @@ function UF.Initialize()
     end
 
     -- Hide Blizzard
-    if TomoModDB.unitFrames.hideBlizzardFrames then
+    if TomoModMiniDB.unitFrames.hideBlizzardFrames then
         HideBlizzardFrames()
     end
 
@@ -811,11 +811,11 @@ function UF.Initialize()
     -- Apply element offsets, sizes and fonts (not done during CreateUnitFrame)
     UF.RefreshAllUnits()
 
-    print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_initialized"])
+    print("|cffff3399TomoModMini UF:|r " .. TomoModMini_L["msg_uf_initialized"])
 end
 
 -- =====================================
 -- MODULE REGISTRATION
 -- =====================================
 
-TomoMod_RegisterModule("unitFrames", UF)
+TomoModMini_RegisterModule("unitFrames", UF)

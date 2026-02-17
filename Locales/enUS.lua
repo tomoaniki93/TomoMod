@@ -2,7 +2,7 @@
 -- enUS.lua — English (default fallback)
 -- =====================================
 
-TomoMod_RegisterLocale("enUS", {
+TomoModMini_RegisterLocale("enUS", {
 
     -- =====================
     -- CONFIG: Categories (ConfigUI.lua)
@@ -10,15 +10,15 @@ TomoMod_RegisterLocale("enUS", {
     ["cat_general"]         = "General",
     ["cat_unitframes"]      = "UnitFrames",
     ["cat_nameplates"]      = "Nameplates",
-    ["cat_cd_resource"]     = "CD & Resource",
-    ["cat_qol"]             = "QOL / Auto",
+    ["cat_cd_resource"]     = "Resource",
+    ["cat_qol"]             = "QOL",
     ["cat_profiles"]        = "Profiles",
 
     -- =====================
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.2.0 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cffff3399TomoMod|rMini v2.1.4 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -43,7 +43,7 @@ TomoMod_RegisterLocale("enUS", {
     -- Cursor Ring
     ["section_cursor_ring"]             = "Cursor Ring",
     ["opt_class_color"]                 = "Class color",
-    ["opt_anchor_tooltip_ring"]         = "Anchor Tooltip to cursor",
+    ["opt_anchor_tooltip_ring"]         = "Anchor Tooltip + Show Ring",
 
     -- =====================
     -- CONFIG: UnitFrames Panel
@@ -79,7 +79,7 @@ TomoMod_RegisterLocale("enUS", {
 
     -- General tab
     ["section_general_settings"]        = "General Settings",
-    ["opt_uf_enable"]                   = "Enable TomoMod UnitFrames",
+    ["opt_uf_enable"]                   = "Enable TomoModMini UnitFrames",
     ["opt_hide_blizzard"]               = "Hide Blizzard frames",
     ["opt_global_font_size"]            = "Global font size",
     ["sublabel_font"]                   = "— Font —",
@@ -124,9 +124,9 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_castbar_height"]              = "Castbar height",
     ["opt_castbar_show_icon"]           = "Show icon",
     ["opt_castbar_show_timer"]          = "Show timer",
-    ["info_castbar_drag"]               = "Position: use /tm sr to unlock and drag the castbar.",
+    ["info_player_castbar_drag"]        = "Player castbar is drag & drop. Use /tm uf to unlock and move it.",
     ["btn_reset_castbar_position"]      = "Reset Castbar Position",
-    ["opt_castbar_show_latency"]        = "Show latency",
+    ["msg_castbar_position_reset"]      = "Player castbar position reset.",
 
     -- Auras
     ["opt_auras_enable"]                = "Enable auras",
@@ -158,7 +158,7 @@ TomoMod_RegisterLocale("enUS", {
     ["info_np_colors_custom"]           = "Each color can be customized to your preference by clicking the color swatch.",
 
     ["section_np_general"]              = "General Settings",
-    ["opt_np_enable"]                   = "Enable TomoMod Nameplates",
+    ["opt_np_enable"]                   = "Enable TomoModMini Nameplates",
     ["info_np_description"]             = "Replaces Blizzard nameplates with a customizable minimalist style.",
     ["section_dimensions"]              = "Dimensions",
     ["opt_np_name_font_size"]           = "Name font size",
@@ -363,21 +363,6 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_quest_auto_gossip"]           = "Auto-select dialogue options",
     ["info_quest_shift"]                = "Hold SHIFT to temporarily disable.\nQuests with multiple rewards are not auto-completed.",
 
-    -- Objective Tracker Skin
-    ["tab_qol_obj_tracker"]             = "Tracker Skin",
-    ["section_obj_tracker"]             = "Objective Tracker Skin",
-    ["opt_obj_tracker_enable"]          = "Enable tracker skin",
-    ["opt_obj_tracker_bg_alpha"]        = "Background opacity",
-    ["opt_obj_tracker_border"]          = "Show border",
-    ["opt_obj_tracker_hide_empty"]      = "Hide when empty",
-    ["opt_obj_tracker_header_size"]     = "Header font size",
-    ["opt_obj_tracker_cat_size"]        = "Category font size",
-    ["opt_obj_tracker_quest_size"]      = "Quest title font size",
-    ["opt_obj_tracker_obj_size"]        = "Objective font size",
-    ["info_obj_tracker"]                = "Reskins the Blizzard Objective Tracker with a dark panel, custom fonts and colored category headers.",
-    ["ot_header_title"]                 = "OBJECTIVES",
-    ["ot_header_options"]               = "Options",
-
     -- Automatisations
     ["section_automations"]             = "Automations",
     ["opt_hide_blizzard_castbar"]       = "Hide Blizzard cast bar",
@@ -386,15 +371,6 @@ TomoMod_RegisterLocale("enUS", {
     ["sublabel_auto_accept_invite"]     = "— Auto Accept Invite —",
     ["sublabel_auto_skip_role"]         = "— Auto Skip Role Check —",
     ["sublabel_tooltip_ids"]            = "— Tooltip IDs —",
-    ["sublabel_tooltip_skin"]           = "— Tooltip Skin —",
-    ["opt_tooltip_skin"]                = "Enable Tooltip Skin",
-    ["opt_tooltip_healthbar"]           = "Health bar",
-    ["opt_tooltip_healthtext"]          = "Health text on bar",
-    ["opt_tooltip_quality_border"]      = "Item quality border color",
-    ["opt_tooltip_bg_alpha"]            = "Background opacity",
-    ["opt_tooltip_healthbar_height"]    = "Health bar height",
-    ["opt_tooltip_font_size"]           = "Tooltip font size",
-    ["opt_tooltip_bg_color"]            = "Background color",
     ["sublabel_combat_res_tracker"]     = "— Combat Res Tracker —",
     ["opt_cr_show_rating"]              = "Show M+ Rating",
     ["opt_show_messages"]               = "Show chat messages",
@@ -542,7 +518,7 @@ TomoMod_RegisterLocale("enUS", {
     ["msg_sr_locked"]                   = "SkyRide locked",
     ["msg_sr_unlock"]                   = "SkyRide move mode enabled - Click and drag",
     ["msg_sr_pos_reset"]                = "SkyRide position reset",
-    ["msg_sr_db_not_init"]              = "TomoModDB not initialized",
+    ["msg_sr_db_not_init"]              = "TomoModMiniDB not initialized",
     ["msg_sr_initialized"]              = "SkyRide module initialized",
 
     -- FrameAnchors
@@ -558,13 +534,13 @@ TomoMod_RegisterLocale("enUS", {
 
     -- AutoFillDelete
     ["msg_afd_filled"]                  = "Text 'DELETE' auto-filled - Click OK to confirm",
-    ["msg_afd_db_not_init"]             = "TomoModDB not initialized",
+    ["msg_afd_db_not_init"]             = "TomoModMiniDB not initialized",
     ["msg_afd_initialized"]             = "AutoFillDelete module initialized",
     ["msg_afd_enabled"]                 = "Auto-fill DELETE enabled",
     ["msg_afd_disabled"]                = "Auto-fill DELETE disabled (hook remains active)",
 
     -- HideCastBar
-    ["msg_hcb_db_not_init"]             = "TomoModDB not initialized",
+    ["msg_hcb_db_not_init"]             = "TomoModMiniDB not initialized",
     ["msg_hcb_initialized"]             = "HideCastBar module initialized",
     ["msg_hcb_hidden"]                  = "Cast bar hidden",
     ["msg_hcb_shown"]                   = "Cast bar shown",
@@ -580,8 +556,6 @@ TomoMod_RegisterLocale("enUS", {
     ["msg_asr_disabled"]                = "Auto skip role check disabled",
     ["msg_tid_enabled"]                 = "Tooltip IDs enabled",
     ["msg_tid_disabled"]                = "Tooltip IDs disabled",
-    ["msg_tooltip_skin_enabled"]        = "Tooltip Skin enabled",
-    ["msg_tooltip_skin_disabled"]       = "Tooltip Skin disabled (reload to fully revert)",
     ["msg_cr_enabled"]                  = "Combat Res Tracker enabled",
     ["msg_cr_disabled"]                 = "Combat Res Tracker disabled",
     ["msg_cr_locked"]                   = "Combat Res Tracker locked",
@@ -651,9 +625,9 @@ TomoMod_RegisterLocale("enUS", {
     ["time_server"]                     = "Server",
     ["time_local"]                      = "Local",
     ["time_tooltip_title"]              = "Time (%s - %s)",
-    ["time_tooltip_left_click"]         = "|cff0cd29fLeft-click:|r Calendar",
-    ["time_tooltip_right_click"]        = "|cff0cd29fRight-click:|r Server / Local",
-    ["time_tooltip_shift_right"]        = "|cff0cd29fShift + Right-click:|r 12h / 24h",
+    ["time_tooltip_left_click"]         = "|cffff3399Left-click:|r Calendar",
+    ["time_tooltip_right_click"]        = "|cffff3399Right-click:|r Server / Local",
+    ["time_tooltip_shift_right"]        = "|cffff3399Shift + Right-click:|r 12h / 24h",
     ["time_format_msg"]                 = "Format: %s",
     ["time_mode_msg"]                   = "Time: %s",
 
@@ -664,12 +638,12 @@ TomoMod_RegisterLocale("enUS", {
     ["disabled"]                        = "Disabled",
 
     -- Static Popups
-    ["popup_reset_text"]                = "|cff0cd29fTomoMod|r\n\nReset ALL settings?\nThis will reload your UI.",
+    ["popup_reset_text"]                = "|cffff3399TomoModMini|r\n\nReset ALL settings?\nThis will reload your UI.",
     ["popup_confirm"]                   = "Confirm",
     ["popup_cancel"]                    = "Cancel",
-    ["popup_import_text"]               = "|cff0cd29fTomoMod|r\n\nImport settings?\nThis will OVERWRITE all your current settings and reload the UI.",
-    ["popup_profile_reload"]            = "|cff0cd29fTomoMod|r\n\nProfile mode changed.\nReload UI to apply?",
-    ["popup_delete_profile"]            = "|cff0cd29fTomoMod|r\n\nDelete profile '%s'?\nThis cannot be undone.",
+    ["popup_import_text"]               = "|cffff3399TomoModMini|r\n\nImport settings?\nThis will OVERWRITE all your current settings and reload the UI.",
+    ["popup_profile_reload"]            = "|cffff3399TomoModMini|r\n\nProfile mode changed.\nReload UI to apply?",
+    ["popup_delete_profile"]            = "|cffff3399TomoModMini|r\n\nDelete profile '%s'?\nThis cannot be undone.",
 
     -- FPS element
     ["label_fps"]                       = "Fps",

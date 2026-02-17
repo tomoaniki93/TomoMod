@@ -4,8 +4,8 @@
 -- Visual style inspired by EllesmereNameplates
 -- =====================================
 
-TomoMod_Nameplates = TomoMod_Nameplates or {}
-local NP = TomoMod_Nameplates
+TomoModMini_Nameplates = TomoModMini_Nameplates or {}
+local NP = TomoModMini_Nameplates
 
 -- =====================================
 -- LOCALS
@@ -103,15 +103,15 @@ local GetTime = GetTime
 
 -- Textures — flat bar + Ellesmere-style assets for border/glow/absorb/spark
 local FLAT_TEXTURE = "Interface\\Buttons\\WHITE8x8"
-local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
-local NP_MEDIA = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Nameplates\\"
+local FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Poppins-Medium.ttf"
+local NP_MEDIA = "Interface\\AddOns\\TomoModMini\\Assets\\Textures\\Nameplates\\"
 local BORDER_TEX = NP_MEDIA .. "border.png"
 local GLOW_TEX = NP_MEDIA .. "background.png"
 local ABSORB_TEX = NP_MEDIA .. "absorb-default.png"
 local SPARK_TEX = NP_MEDIA .. "cast_spark.tga"
 local SHIELD_TEX = NP_MEDIA .. "shield.png"
-local ARROW_LEFT = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\arrow_left"
-local ARROW_RIGHT = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\arrow_right"
+local ARROW_LEFT = "Interface\\AddOns\\TomoModMini\\Assets\\Textures\\arrow_left"
+local ARROW_RIGHT = "Interface\\AddOns\\TomoModMini\\Assets\\Textures\\arrow_right"
 
 local BORDER_CORNER = 6
 local GLOW_MARGIN = 0.48
@@ -120,7 +120,7 @@ local GLOW_EXTEND = 6
 local HOVER_ALPHA = 0.25
 
 local function DB()
-    return TomoModDB and TomoModDB.nameplates or {}
+    return TomoModMiniDB and TomoModMiniDB.nameplates or {}
 end
 
 -- =====================================
@@ -1446,9 +1446,7 @@ local function HandleNPUnitEvent(event, unit)
         -- This prevents the race where STOP(old) arrives after START(new).
         local p = unitPlates[unit]
         if p and p.castbar then
-            if not p.castbar.failstart then
-                UpdateCastbar(p, unit)
-            end
+            UpdateCastbar(p, unit)
         end
     end
 end
@@ -1545,8 +1543,8 @@ end
 
 function NP.Enable()
     npModuleActive = true
-    if TomoModDB and TomoModDB.nameplates then
-        TomoModDB.nameplates.enabled = true
+    if TomoModMiniDB and TomoModMiniDB.nameplates then
+        TomoModMiniDB.nameplates.enabled = true
     end
 
     local s = DB()
@@ -1596,7 +1594,7 @@ function NP.Enable()
         end)
     end
 
-    print("|cff0cd29fTomoMod NP:|r " .. TomoMod_L["msg_np_enabled"])
+    print("|cff0cd29fTomoModMini NP:|r " .. TomoModMini_L["msg_np_enabled"])
 end
 
 function NP.Disable()
@@ -1647,4 +1645,4 @@ function NP.ApplySettings()
     NP.RefreshAll()
 end
 
-TomoMod_RegisterModule("nameplates", NP)
+TomoModMini_RegisterModule("nameplates", NP)

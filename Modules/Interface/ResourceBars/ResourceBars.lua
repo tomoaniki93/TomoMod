@@ -4,11 +4,11 @@
 -- Supports: all classes, Druid form-adaptive, DK runes, Monk stagger
 -- =====================================
 
-TomoMod_ResourceBars = TomoMod_ResourceBars or {}
-local RB = TomoMod_ResourceBars
+TomoModMini_ResourceBars = TomoModMini_ResourceBars or {}
+local RB = TomoModMini_ResourceBars
 
-local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
-local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local TEXTURE = "Interface\\AddOns\\TomoModMini\\Assets\\Textures\\tomoaniki"
+local FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Tomo.ttf"
 
 -- =====================================
 -- POWER TYPE CONSTANTS (Enum.PowerType)
@@ -255,7 +255,7 @@ local isInitialized = false
 -- HELPERS
 -- =====================================
 local function GetSettings()
-    return TomoModDB and TomoModDB.resourceBars
+    return TomoModMiniDB and TomoModMiniDB.resourceBars
 end
 
 local function GetColor(colorKey)
@@ -304,9 +304,9 @@ end
 -- CREATE: PRIMARY BAR (continuous StatusBar)
 -- =====================================
 local function CreatePrimaryBar(parent, width, height)
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local tex = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.texture) or TEXTURE
 
-    local bar = CreateFrame("StatusBar", "TomoMod_RB_Primary", parent)
+    local bar = CreateFrame("StatusBar", "TomoModMini_RB_Primary", parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(tex)
     bar:GetStatusBarTexture():SetHorizTile(false)
@@ -340,7 +340,7 @@ end
 -- CREATE: POINT DISPLAY (Combo, Holy Power, Chi, etc.)
 -- =====================================
 local function CreatePointDisplay(parent, maxPoints, width, height, colorKey)
-    local frame = CreateFrame("Frame", "TomoMod_RB_Points", parent)
+    local frame = CreateFrame("Frame", "TomoModMini_RB_Points", parent)
     frame:SetSize(width, height)
 
     local spacing = 2
@@ -384,13 +384,13 @@ end
 -- CREATE: RUNE DISPLAY (DK: 6 runes with cooldown)
 -- =====================================
 local function CreateRuneDisplay(parent, width, height)
-    local frame = CreateFrame("Frame", "TomoMod_RB_Runes", parent)
+    local frame = CreateFrame("Frame", "TomoModMini_RB_Runes", parent)
     frame:SetSize(width, height)
 
     local spacing = 2
     local rw = (width - 5 * spacing) / 6
     frame.runes = {}
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local tex = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.texture) or TEXTURE
 
     for i = 1, 6 do
         local rune = CreateFrame("StatusBar", nil, frame)
@@ -421,8 +421,8 @@ end
 -- CREATE: STAGGER BAR (Monk Brewmaster)
 -- =====================================
 local function CreateStaggerBar(parent, width, height)
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
-    local bar = CreateFrame("StatusBar", "TomoMod_RB_Stagger", parent)
+    local tex = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.texture) or TEXTURE
+    local bar = CreateFrame("StatusBar", "TomoModMini_RB_Stagger", parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(tex)
     bar:GetStatusBarTexture():SetHorizTile(false)
@@ -446,8 +446,8 @@ end
 -- CREATE: DRUID MANA BAR (secondary when in form)
 -- =====================================
 local function CreateDruidManaBar(parent, width, height)
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
-    local bar = CreateFrame("StatusBar", "TomoMod_RB_DruidMana", parent)
+    local tex = (TomoModMiniDB and TomoModMiniDB.unitFrames and TomoModMiniDB.unitFrames.texture) or TEXTURE
+    local bar = CreateFrame("StatusBar", "TomoModMini_RB_DruidMana", parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(tex)
     bar:GetStatusBarTexture():SetHorizTile(false)
@@ -687,9 +687,9 @@ local function BuildResourceDisplay()
 
     -- Container
     if not container then
-        container = CreateFrame("Frame", "TomoMod_ResourceBars_Container", UIParent)
+        container = CreateFrame("Frame", "TomoModMini_ResourceBars_Container", UIParent)
         container:SetClampedToScreen(true)
-        TomoMod_Utils.SetupDraggable(container, function()
+        TomoModMini_Utils.SetupDraggable(container, function()
             local point, _, relativePoint, x, y = container:GetPoint()
             s.position = s.position or {}
             s.position.point = point
@@ -936,7 +936,7 @@ local function SyncWithEssentialCooldowns()
         if w and w > 0 then
             s.width = w
             BuildResourceDisplay()
-            print("|cff0cd29fTomoMod ResourceBars:|r " .. string.format(TomoMod_L["msg_rb_width_synced"], math.floor(w)))
+            print("|cffff3399TomoModMini ResourceBars:|r " .. string.format(TomoModMini_L["msg_rb_width_synced"], math.floor(w)))
         end
     end
 end
@@ -946,7 +946,7 @@ end
 -- =====================================
 function RB.Initialize()
     if isInitialized then return end
-    if not TomoModDB then return end
+    if not TomoModMiniDB then return end
     local s = GetSettings()
     if not s or not s.enabled then return end
 
@@ -1009,9 +1009,9 @@ function RB.ToggleLock()
         local locked = container:IsLocked()
         container:SetLocked(not locked)
         if not locked then
-            print("|cff0cd29fTomoMod ResourceBars:|r " .. TomoMod_L["msg_rb_locked"])
+            print("|cffff3399TomoModMini ResourceBars:|r " .. TomoModMini_L["msg_rb_locked"])
         else
-            print("|cff0cd29fTomoMod ResourceBars:|r " .. TomoMod_L["msg_rb_unlocked"])
+            print("|cffff3399TomoModMini ResourceBars:|r " .. TomoModMini_L["msg_rb_unlocked"])
         end
     end
 end
@@ -1020,4 +1020,4 @@ function RB.SyncWidth()
     SyncWithEssentialCooldowns()
 end
 
-_G.TomoMod_ResourceBars = RB
+_G.TomoModMini_ResourceBars = RB

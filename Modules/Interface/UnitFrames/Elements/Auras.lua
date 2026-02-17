@@ -4,7 +4,7 @@
 
 local UF_Elements = UF_Elements or {}
 
-local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Tomo.ttf"
 
 -- =====================================
 -- CREATE AURA CONTAINER
@@ -14,7 +14,7 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings)
     if not settings or not settings.auras or not settings.auras.enabled then return nil end
 
     local auraSettings = settings.auras
-    local container = CreateFrame("Frame", "TomoMod_Auras_" .. unit, parent)
+    local container = CreateFrame("Frame", "TomoModMini_Auras_" .. unit, parent)
     container:SetSize(300, auraSettings.size + 4)
     container.unit = unit
     container.parentFrame = parent
@@ -150,7 +150,7 @@ function UF_Elements.UpdateAuras(frame)
 
     local unit = frame.unit
     local container = frame.auraContainer
-    local settings = TomoModDB.unitFrames[unit]
+    local settings = TomoModMiniDB.unitFrames[unit]
 
     if not settings or not settings.auras or not settings.auras.enabled then
         container:Hide()
@@ -277,7 +277,7 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
     local spacing = buffSettings.spacing or 2
     local maxAuras = buffSettings.maxAuras or 4
 
-    local container = CreateFrame("Frame", "TomoMod_EnemyBuffs_" .. unit, parent)
+    local container = CreateFrame("Frame", "TomoModMini_EnemyBuffs_" .. unit, parent)
     container:SetSize(size, (size + spacing) * maxAuras)
     container:SetFrameLevel(parent:GetFrameLevel() + 10)
     container.unit = unit
@@ -293,7 +293,7 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
     end
 
     -- Create icons stacking upward (1 per row)
-    local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+    local FONT = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Poppins-Medium.ttf"
     for i = 1, maxAuras do
         local icon = CreateFrame("Frame", nil, container)
         icon:SetSize(size, size)
@@ -413,7 +413,7 @@ function UF_Elements.UpdateEnemyBuffs(frame)
     -- Only process target and focus (no point for player/pet/targettarget)
     if unit ~= "target" and unit ~= "focus" then return end
 
-    local settings = TomoModDB.unitFrames[unit]
+    local settings = TomoModMiniDB.unitFrames[unit]
     local dbg = UF_Elements._debugEnemyBuffs
 
     if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled then
@@ -456,7 +456,7 @@ function UF_Elements.UpdateEnemyBuffs(frame)
     local auras = CollectEnemyBuffData(unit, maxAuras)
 
     if dbg then
-        print("|cff0cd29f[EB]|r " .. unit .. ": " .. #auras .. " stealable buffs")
+        print("|cffff3399[EB]|r " .. unit .. ": " .. #auras .. " stealable buffs")
     end
 
     -- No stealable buffs → hide container entirely

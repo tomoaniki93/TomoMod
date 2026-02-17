@@ -2,16 +2,16 @@
 -- Panels/Nameplates.lua — Nameplates Config (Tabbed)
 -- =====================================
 
-local W = TomoMod_Widgets
-local L = TomoMod_L
+local W = TomoModMini_Widgets
+local L = TomoModMini_L
 
 -- Shortcut: refresh all nameplates
 local function RefreshNP()
-    if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    if TomoModMini_Nameplates then TomoModMini_Nameplates.RefreshAll() end
 end
 
 local function ApplyNP()
-    if TomoMod_Nameplates then TomoMod_Nameplates.ApplySettings() end
+    if TomoModMini_Nameplates then TomoModMini_Nameplates.ApplySettings() end
 end
 
 -- =====================================
@@ -21,7 +21,7 @@ end
 local function BuildGeneralTab(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModDB.nameplates
+    local db = TomoModMiniDB.nameplates
     local y = -10
 
     -- Enable
@@ -30,8 +30,8 @@ local function BuildGeneralTab(parent)
 
     local _, ny = W.CreateCheckbox(c, L["opt_np_enable"], db.enabled, y, function(v)
         db.enabled = v
-        if TomoMod_Nameplates then
-            if v then TomoMod_Nameplates.Enable() else TomoMod_Nameplates.Disable() end
+        if TomoModMini_Nameplates then
+            if v then TomoModMini_Nameplates.Enable() else TomoModMini_Nameplates.Disable() end
         end
     end)
     y = ny
@@ -141,7 +141,7 @@ end
 local function BuildAurasTab(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModDB.nameplates
+    local db = TomoModMiniDB.nameplates
     local y = -10
 
     -- Debuff Auras
@@ -203,7 +203,7 @@ end
 local function BuildAdvancedTab(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
-    local db = TomoModDB.nameplates
+    local db = TomoModMiniDB.nameplates
     local y = -10
 
     -- Transparency
@@ -361,8 +361,8 @@ local function BuildAdvancedTab(parent)
     y = ny
 
     local _, ny = W.CreateButton(c, L["btn_reset_nameplates"], 220, y, function()
-        TomoMod_ResetModule("nameplates")
-        print("|cff0cd29fTomoMod|r " .. L["msg_np_reset"])
+        TomoModMini_ResetModule("nameplates")
+        print("|cffff3399TomoModMini|r " .. L["msg_np_reset"])
     end)
     y = ny - 20
 
@@ -374,7 +374,7 @@ end
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
-function TomoMod_ConfigPanel_Nameplates(parent)
+function TomoModMini_ConfigPanel_Nameplates(parent)
     local tabs = {
         { key = "general", label = L["tab_general"],      builder = function(p) return BuildGeneralTab(p) end },
         { key = "auras",   label = L["tab_np_auras"],     builder = function(p) return BuildAurasTab(p) end },

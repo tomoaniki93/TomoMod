@@ -1,26 +1,26 @@
 -- =====================================
 -- CharacterSkin.lua
 -- Skins Character Sheet (PaperDoll, Reputation, Currency)
--- + Inspect frame — Inspired by ElvUI, adapted to TomoMod style
+-- + Inspect frame — Inspired by ElvUI, adapted to TomoModMini style
 -- Fully compatible with WoW 12.x (TWW / Midnight)
 -- =====================================
 
-TomoMod_CharacterSkin = TomoMod_CharacterSkin or {}
-local CS = TomoMod_CharacterSkin
+TomoModMini_CharacterSkin = TomoModMini_CharacterSkin or {}
+local CS = TomoModMini_CharacterSkin
 
 -- =====================================
 -- LOCALS & CACHES
 -- =====================================
 
-local ADDON_FONT       = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
-local ADDON_FONT_BOLD  = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
-local ADDON_TEXTURE    = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
-local L = TomoMod_L
+local ADDON_FONT       = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Poppins-Medium.ttf"
+local ADDON_FONT_BOLD  = "Interface\\AddOns\\TomoModMini\\Assets\\Fonts\\Poppins-SemiBold.ttf"
+local ADDON_TEXTURE    = "Interface\\AddOns\\TomoModMini\\Assets\\Textures\\tomoaniki"
+local L = TomoModMini_L
 
 local isInitialized   = false
 local inspectSkinned  = false
 
--- Colors matching TomoMod's dark theme
+-- Colors matching TomoModMini's dark theme
 local BACKDROP_COLOR     = { 0.06, 0.06, 0.08, 0.95 }
 local BACKDROP_BORDER    = { 0.12, 0.12, 0.14, 1 }
 local SLOT_BG            = { 0.08, 0.08, 0.10, 1 }
@@ -39,7 +39,7 @@ local skinnedFrames = setmetatable({}, { __mode = "k" })
 -- =====================================
 
 local function GetSettings()
-    return TomoModDB and TomoModDB.characterSkin or {}
+    return TomoModMiniDB and TomoModMiniDB.characterSkin or {}
 end
 
 local function IsEnabled()
@@ -142,7 +142,7 @@ local function KillInsetBorders(frame)
 end
 
 -- =====================================
--- HELPER: Apply dark TomoMod backdrop
+-- HELPER: Apply dark TomoModMini backdrop
 -- =====================================
 
 local function ApplyBackdrop(frame, bgColor, borderColor)
@@ -798,7 +798,7 @@ local function IsEnchantableSlot(slotName)
 end
 
 -- Hidden tooltip for scanning
-local scanTip = CreateFrame("GameTooltip", "TomoModItemScanTip", nil, "GameTooltipTemplate")
+local scanTip = CreateFrame("GameTooltip", "TomoModMiniItemScanTip", nil, "GameTooltipTemplate")
 scanTip:SetOwner(WorldFrame, "ANCHOR_NONE")
 
 local itemInfoFrames = {} -- slotName -> overlay frame
@@ -825,7 +825,7 @@ local function GetUpgradeTrackFromTooltip(slotID)
     end
 
     for i = 2, scanTip:NumLines() do
-        local left = _G["TomoModItemScanTipTextLeft" .. i]
+        local left = _G["TomoModMiniItemScanTipTextLeft" .. i]
         if left then
             local text = left:GetText()
             if text then
@@ -1575,7 +1575,7 @@ function CS.Initialize()
     end
 
     isInitialized = true
-    local U = TomoMod_Utils
+    local U = TomoModMini_Utils
     if U then U.Debug("CharacterSkin initialized") end
 end
 
@@ -1589,6 +1589,6 @@ function CS.ApplySettings()
         if next(itemInfoFrames) then
             UpdateAllItemInfoOverlays()
         end
-        print("|cff0cd29fTomoMod|r " .. (L["msg_char_skin_reload"] or "Character Skin: /reload to apply changes."))
+        print("|cff0cd29fTomoModMini|r " .. (L["msg_char_skin_reload"] or "Character Skin: /reload to apply changes."))
     end
 end

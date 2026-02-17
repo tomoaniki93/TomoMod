@@ -1,17 +1,17 @@
 -- =====================================
--- TomoMod_AutoFillDelete.lua
+-- TomoModMini_AutoFillDelete.lua
 -- Auto-remplit "DELETE/SUPPRIMER" dans les popups de destruction d'objets
 -- Compatible TWW (The War Within) — Interface 12.x
 -- =====================================
 
-TomoMod_AutoFillDelete = TomoMod_AutoFillDelete or {}
-local AFD = TomoMod_AutoFillDelete
+TomoModMini_AutoFillDelete = TomoModMini_AutoFillDelete or {}
+local AFD = TomoModMini_AutoFillDelete
 
 -- =====================================
 -- VARIABLES
 -- =====================================
 local isHooked = false
-local L = TomoMod_L
+local L = TomoModMini_L
 
 -- All known delete confirmation popup types (TWW compatible)
 local DELETE_POPUPS = {
@@ -25,10 +25,10 @@ local DELETE_POPUPS = {
 -- SETTINGS
 -- =====================================
 local function GetSettings()
-    if not TomoModDB or not TomoModDB.autoFillDelete then
+    if not TomoModMiniDB or not TomoModMiniDB.autoFillDelete then
         return nil
     end
-    return TomoModDB.autoFillDelete
+    return TomoModMiniDB.autoFillDelete
 end
 
 -- =====================================
@@ -68,7 +68,7 @@ local function TryAutoFill(dialog)
     end
 
     if settings.showMessages then
-        print("|cff0cd29fTomoMod:|r " .. L["msg_afd_filled"])
+        print("|cffff3399TomoModMini:|r " .. L["msg_afd_filled"])
     end
 end
 
@@ -121,11 +121,11 @@ end
 -- PUBLIC API
 -- =====================================
 function AFD.Initialize()
-    if not TomoModDB then return end
+    if not TomoModMiniDB then return end
 
     -- Ensure defaults exist
-    if not TomoModDB.autoFillDelete then
-        TomoModDB.autoFillDelete = {
+    if not TomoModMiniDB.autoFillDelete then
+        TomoModMiniDB.autoFillDelete = {
             enabled = true,
             focusButton = true,
             showMessages = false,
@@ -149,9 +149,9 @@ function AFD.SetEnabled(enabled)
     end
 
     if enabled then
-        print("|cff0cd29fTomoMod:|r " .. L["msg_afd_enabled"])
+        print("|cffff3399TomoModMini:|r " .. L["msg_afd_enabled"])
     else
-        print("|cff0cd29fTomoMod:|r " .. L["msg_afd_disabled"])
+        print("|cffff3399TomoModMini:|r " .. L["msg_afd_disabled"])
     end
 end
 
@@ -162,4 +162,4 @@ function AFD.Toggle()
 end
 
 -- Export
-_G.TomoMod_AutoFillDelete = AFD
+_G.TomoModMini_AutoFillDelete = AFD
