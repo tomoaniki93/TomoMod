@@ -1,12 +1,5 @@
 ## ####################################
 
-## CHANGELOG 2.2.3
-
-- Add New Minimap and InfoPanel
-- XP Bar config in /tm and lock unlock /tm sr
-
-## ####################################
-
 ## CHANGELOG 2.2.2
 
 - FIX ERROR BOOS FRAME
