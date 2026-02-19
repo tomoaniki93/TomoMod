@@ -141,6 +141,7 @@ local function BuildDimensionsTab(parent, unitKey, displayName)
     end
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -245,6 +246,7 @@ local function BuildDisplayTab(parent, unitKey)
     end
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -328,6 +330,7 @@ local function BuildAurasTab(parent, unitKey)
     end
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -407,6 +410,7 @@ local function BuildPositionTab(parent, unitKey, displayName)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -515,6 +519,7 @@ local function BuildSimpleUnitContent(parent, unitKey, displayName)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -576,6 +581,7 @@ local function BuildGeneralContent(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -620,6 +626,7 @@ local function BuildColorsContent(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -701,6 +708,7 @@ local function BuildBossContent(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 

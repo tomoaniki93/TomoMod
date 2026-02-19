@@ -301,6 +301,7 @@ local function BuildProfileTab(parent)
     end
 
     c:SetHeight(math.abs(y) + 20)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -509,6 +510,7 @@ local function BuildImportExportTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 20)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -569,6 +571,7 @@ local function BuildResetsTab(parent)
     y = ny - 20
 
     c:SetHeight(math.abs(y) + 20)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 

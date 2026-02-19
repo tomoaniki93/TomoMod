@@ -44,44 +44,140 @@ end
 -- =====================================
 
 function W.CreateScrollPanel(parent)
-    local scroll = CreateFrame("ScrollFrame", nil, parent, "UIPanelScrollFrameTemplate")
-    scroll:SetPoint("TOPLEFT", 0, 0)
-    scroll:SetPoint("BOTTOMRIGHT", -14, 0)
+    -- Constantes scrollbar
+    local SCROLLBAR_W   = 6   -- largeur du thumb
+    local SCROLLBAR_PAD = 10  -- espace total réservé à droite (track + marges)
+    local TRACK_PAD_V   = 6   -- padding vertical du track
+    local THUMB_MIN_H   = 24  -- hauteur minimale du thumb
 
-    -- Style the scrollbar
-    local scrollBar = scroll.ScrollBar
-    if scrollBar then
-        scrollBar:SetWidth(8)
-    end
+    -- Conteneur englobant (remplit le parent)
+    local container = CreateFrame("Frame", nil, parent)
+    container:SetAllPoints()
 
+    -- Track de la scrollbar (fond) — à l'intérieur du panel, bord droit
+    local track = container:CreateTexture(nil, "BACKGROUND")
+    track:SetWidth(SCROLLBAR_W)
+    track:SetPoint("TOPRIGHT",    -4, -TRACK_PAD_V)
+    track:SetPoint("BOTTOMRIGHT", -4,  TRACK_PAD_V)
+    track:SetColorTexture(0.15, 0.15, 0.18, 1)
+
+    -- Thumb (curseur déplaçable)
+    local thumbFrame = CreateFrame("Frame", nil, container)
+    thumbFrame:SetWidth(SCROLLBAR_W)
+    thumbFrame:SetPoint("TOPRIGHT", -4, -TRACK_PAD_V)
+
+    local thumb = thumbFrame:CreateTexture(nil, "OVERLAY")
+    thumb:SetAllPoints()
+    thumb:SetColorTexture(unpack(T.accent))
+
+    -- ScrollFrame — laisse de la place à droite pour la scrollbar interne
+    local scroll = CreateFrame("ScrollFrame", nil, container)
+    scroll:SetPoint("TOPLEFT",     0,            0)
+    scroll:SetPoint("BOTTOMRIGHT", -SCROLLBAR_PAD, 0)
+
+    -- Child scrollable
     local child = CreateFrame("Frame", nil, scroll)
-    local childWidth = math.max(scroll:GetWidth(), 440)
-    child:SetWidth(childWidth)
+    child:SetWidth(scroll:GetWidth() or 440)
     child:SetHeight(1)
     scroll:SetScrollChild(child)
 
+    -- Mise à jour du thumb selon la position de scroll
+    local function UpdateThumb()
+        local scrollH   = scroll:GetHeight() or 0
+        local childH    = child:GetHeight() or 0
+        local trackH    = scrollH - 2 * TRACK_PAD_V
+        local maxScroll = childH - scrollH
+
+        if maxScroll <= 0 then
+            -- Pas de scroll nécessaire : cache le thumb
+            thumbFrame:Hide()
+            track:Hide()
+            return
+        end
+
+        track:Show()
+        thumbFrame:Show()
+
+        local ratio   = math.min(scrollH / childH, 1)
+        local thumbH  = math.max(math.floor(trackH * ratio), THUMB_MIN_H)
+        thumbFrame:SetHeight(thumbH)
+
+        local cur     = scroll:GetVerticalScroll()
+        local thumbY  = (cur / maxScroll) * (trackH - thumbH)
+        thumbFrame:SetPoint("TOPRIGHT", -4, -(TRACK_PAD_V + thumbY))
+    end
+
+    -- Mouse wheel
     scroll:EnableMouseWheel(true)
     scroll:SetScript("OnMouseWheel", function(self, delta)
         local cur = self:GetVerticalScroll()
         local max = self:GetVerticalScrollRange()
         self:SetVerticalScroll(math.max(0, math.min(cur - delta * 30, max)))
+        UpdateThumb()
     end)
 
-    scroll.child = child
+    -- Drag du thumb
+    local isDragging = false
+    local dragStartY, dragStartScroll
 
-    -- Auto-resize child when scroll resizes
+    thumbFrame:EnableMouse(true)
+    thumbFrame:RegisterForDrag("LeftButton")
+    thumbFrame:SetScript("OnDragStart", function(self)
+        isDragging = true
+        dragStartY     = select(2, GetCursorPosition()) / UIParent:GetEffectiveScale()
+        dragStartScroll = scroll:GetVerticalScroll()
+        self:StartMovingOrSizing() -- On gère manuellement via OnUpdate
+        -- On bloque le template de déplacement, on fait ça proprement :
+        self:SetScript("OnUpdate", function()
+            local curY    = select(2, GetCursorPosition()) / UIParent:GetEffectiveScale()
+            local delta   = dragStartY - curY
+            local scrollH = scroll:GetHeight() or 0
+            local childH  = child:GetHeight() or 0
+            local trackH  = scrollH - 2 * TRACK_PAD_V
+            local ratio   = math.min(scrollH / childH, 1)
+            local thumbH  = math.max(math.floor(trackH * ratio), THUMB_MIN_H)
+            local maxScroll = childH - scrollH
+            local newScroll = dragStartScroll + delta * (maxScroll / (trackH - thumbH))
+            scroll:SetVerticalScroll(math.max(0, math.min(newScroll, maxScroll)))
+            UpdateThumb()
+        end)
+    end)
+    thumbFrame:SetScript("OnDragStop", function(self)
+        isDragging = false
+        self:SetScript("OnUpdate", nil)
+        self:StopMovingOrSizing()
+    end)
+
+    -- Hover thumb
+    thumbFrame:SetScript("OnEnter", function()
+        thumb:SetColorTexture(unpack(T.accentHover))
+    end)
+    thumbFrame:SetScript("OnLeave", function()
+        thumb:SetColorTexture(unpack(T.accent))
+    end)
+
+    -- Resize child + update thumb
     scroll:SetScript("OnSizeChanged", function(self, w, h)
-        child:SetWidth(math.max(w - 14, 440))
+        child:SetWidth(math.max(w, 10))
+        UpdateThumb()
     end)
 
-    -- Ensure child width is correct when first shown
     scroll:SetScript("OnShow", function(self)
         local w = self:GetWidth()
-        if w and w > 0 then
-            child:SetWidth(w - 14)
-        end
+        if w and w > 0 then child:SetWidth(w) end
+        UpdateThumb()
     end)
 
+    -- Expose une méthode pour forcer la mise à jour (appelée par les panels après avoir ajouté du contenu)
+    container.UpdateScroll = UpdateThumb
+    container.child = child
+    container.scroll = scroll
+
+    -- Alias de compatibilité : les panels font scroll.child
+    scroll.child = child
+    scroll.UpdateScroll = UpdateThumb
+
+    -- Retourner le scroll frame (compatibilité avec les panels existants)
     return scroll
 end
 

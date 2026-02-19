@@ -65,6 +65,7 @@ local function BuildCooldownManagerTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -165,6 +166,7 @@ local function BuildResourceBarsTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -242,6 +244,7 @@ local function BuildTextPositionTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -296,6 +299,7 @@ local function BuildColorsTab(parent)
     end
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 

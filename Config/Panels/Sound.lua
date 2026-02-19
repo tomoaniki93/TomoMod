@@ -101,6 +101,7 @@ local function BuildGeneralTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -160,6 +161,7 @@ local function BuildDetectionTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 

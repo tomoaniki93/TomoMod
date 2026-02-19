@@ -131,6 +131,7 @@ local function BuildGeneralTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -193,6 +194,7 @@ local function BuildAurasTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -367,6 +369,7 @@ local function BuildAdvancedTab(parent)
     y = ny - 20
 
     c:SetHeight(math.abs(y) + 20)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 

@@ -23,14 +23,14 @@ local categoryButtons = {}
 -- =====================================
 
 local categories = {
-    { key = "general",    label = L["cat_general"],     icon = "°", builder = "TomoMod_ConfigPanel_General" },
-    { key = "unitframes", label = L["cat_unitframes"],  icon = "°", builder = "TomoMod_ConfigPanel_UnitFrames" },
-    { key = "nameplates", label = L["cat_nameplates"],  icon = "°", builder = "TomoMod_ConfigPanel_Nameplates" },
-    { key = "resources",  label = L["cat_cd_resource"], icon = "°", builder = "TomoMod_ConfigPanel_CooldownResource" },
-    { key = "actionbars", label = L["cat_action_bars"], icon = "°", builder = "TomoMod_ConfigPanel_ActionBars" },
-    { key = "sound",      label = L["cat_sound"],       icon = "°", builder = "TomoMod_ConfigPanel_Sound" },
-    { key = "qol",        label = L["cat_qol"],  icon = "°", builder = "TomoMod_ConfigPanel_QOL" },
-    { key = "profiles",   label = L["cat_profiles"],     icon = "°", builder = "TomoMod_ConfigPanel_Profiles" },
+    { key = "general",    label = L["cat_general"],     icon = "+", builder = "TomoMod_ConfigPanel_General" },
+    { key = "unitframes", label = L["cat_unitframes"],  icon = "+", builder = "TomoMod_ConfigPanel_UnitFrames" },
+    { key = "nameplates", label = L["cat_nameplates"],  icon = "+", builder = "TomoMod_ConfigPanel_Nameplates" },
+    { key = "resources",  label = L["cat_cd_resource"], icon = "+", builder = "TomoMod_ConfigPanel_CooldownResource" },
+    { key = "actionbars", label = L["cat_action_bars"], icon = "+", builder = "TomoMod_ConfigPanel_ActionBars" },
+    { key = "sound",      label = L["cat_sound"],       icon = "+", builder = "TomoMod_ConfigPanel_Sound" },
+    { key = "qol",        label = L["cat_qol"],  icon = "+", builder = "TomoMod_ConfigPanel_QOL" },
+    { key = "profiles",   label = L["cat_profiles"],     icon = "+", builder = "TomoMod_ConfigPanel_Profiles" },
 }
 
 -- =====================================

@@ -36,6 +36,7 @@ local function BuildCinematicTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -70,6 +71,7 @@ local function BuildAutoQuestTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -214,6 +216,7 @@ local function BuildAutomationsTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -246,6 +249,7 @@ local function BuildMythicKeysTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -300,6 +304,7 @@ local function BuildSkyRideTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -367,6 +372,7 @@ local function BuildObjectiveTrackerTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -435,6 +441,7 @@ local function BuildCharacterSkinTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
@@ -483,6 +490,7 @@ local function BuildLevelingTab(parent)
     y = ny
 
     c:SetHeight(math.abs(y) + 20)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 

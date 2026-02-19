@@ -131,6 +131,7 @@ function TomoMod_ConfigPanel_General(parent)
 
     -- Resize child
     c:SetHeight(math.abs(y) + 20)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
 
     return scroll
 end
