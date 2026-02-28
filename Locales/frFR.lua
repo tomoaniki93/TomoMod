@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.2.3 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.2.6 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -588,6 +588,10 @@ TomoMod_RegisterLocale("frFR", {
     ["msg_cr_unlock"]                   = "Combat Res Tracker déverrouillé — glissez pour déplacer",
     ["msg_abs_enabled"]                 = "Skin barres d'action activé (reload recommandé)",
     ["msg_abs_disabled"]                = "Skin barres d'action désactivé",
+    ["opt_buffskin_enable"]             = "Activer le skin des buffs",
+    ["opt_buffskin_desc"]               = "Ajoute un contour noir et un timer coloré sur les buffs/débuffs du joueur",
+    ["msg_buffskin_enabled"]            = "Skin buffs activé",
+    ["msg_buffskin_disabled"]           = "Skin buffs désactivé",
     ["msg_help_cr"]                     = "Verrouiller/déverrouiller le Combat Res Tracker",
     ["msg_help_cs"]                     = "Verrouiller/déverrouiller la feuille de personnage",
     ["msg_help_cs_reset"]               = "Réinitialiser la position de la feuille de personnage",

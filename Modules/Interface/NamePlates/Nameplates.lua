@@ -90,7 +90,7 @@ local UnitName, UnitLevel, UnitEffectiveLevel = UnitName, UnitLevel, UnitEffecti
 local UnitClass, UnitClassification = UnitClass, UnitClassification
 local UnitIsPlayer, UnitIsEnemy, UnitIsTapDenied = UnitIsPlayer, UnitIsEnemy, UnitIsTapDenied
 local UnitReaction, UnitThreatSituation = UnitReaction, UnitThreatSituation
-local UnitAffectingCombat, UnitDetailedThreatSituation = UnitAffectingCombat, UnitDetailedThreatSituation
+local UnitAffectingCombat = UnitAffectingCombat
 local UnitGroupRolesAssigned, UnitClassBase = UnitGroupRolesAssigned, UnitClassBase
 local GetInstanceInfo = GetInstanceInfo
 local UnitHealth, UnitHealthMax = UnitHealth, UnitHealthMax
@@ -354,26 +354,81 @@ local function CreatePlate(baseFrame)
     plate.classText:SetPoint("LEFT", plate.health, "RIGHT", 3, 0)
     plate.classText:Hide()
 
-    -- =========== THREAT BORDER ===========
-    plate.threatFrame = CreateFrame("Frame", nil, plate.health)
-    plate.threatFrame:SetPoint("TOPLEFT", -2, 2)
-    plate.threatFrame:SetPoint("BOTTOMRIGHT", 2, -2)
-    plate.threatFrame:SetFrameLevel(plate.health:GetFrameLevel() + 10)
+    -- =========== THREAT BORDER (border.png 9-slice + background.png glow ADD) ===========
+    -- Offset standard : même marge que le rounded border de la health bar
+    local THREAT_MARGIN = BORDER_CORNER
+    local THREAT_GLOW   = GLOW_EXTEND + 2   -- légèrement plus large que le glow target
+
+    -- ── 9-slice rounded border (border.png) ──
+    local tf = CreateFrame("Frame", nil, plate.health)
+    tf:SetPoint("TOPLEFT",     plate.health, "TOPLEFT",     -BORDER_CORNER * 0.5,  BORDER_CORNER * 0.5)
+    tf:SetPoint("BOTTOMRIGHT", plate.health, "BOTTOMRIGHT",  BORDER_CORNER * 0.5, -BORDER_CORNER * 0.5)
+    tf:SetFrameLevel(plate.health:GetFrameLevel() + 10)
+    tf:EnableMouse(false)
+    plate.threatFrame = tf
+
     plate.threatBorders = {}
-    local function ThreatEdge(p1, p2, w2, h2)
-        local t = plate.threatFrame:CreateTexture(nil, "OVERLAY", nil, 7)
-        t:SetColorTexture(1, 0, 0, 1)
-        t:SetPoint(p1); t:SetPoint(p2)
-        if w2 then t:SetWidth(w2) end
-        if h2 then t:SetHeight(h2) end
-        table.insert(plate.threatBorders, t)
+    local function TBorder()
+        local t = tf:CreateTexture(nil, "OVERLAY", nil, 7)
+        t:SetTexture(BORDER_TEX)
+        plate.threatBorders[#plate.threatBorders + 1] = t
+        return t
     end
-    ThreatEdge("TOPLEFT", "TOPRIGHT", nil, 2)
-    ThreatEdge("BOTTOMLEFT", "BOTTOMRIGHT", nil, 2)
-    ThreatEdge("TOPLEFT", "BOTTOMLEFT", 2, nil)
-    ThreatEdge("TOPRIGHT", "BOTTOMRIGHT", 2, nil)
+    local c = BORDER_CORNER
+    local btl = TBorder(); btl:SetSize(c,c); btl:SetPoint("TOPLEFT");     btl:SetTexCoord(0,0.5,0,0.5)
+    local btr = TBorder(); btr:SetSize(c,c); btr:SetPoint("TOPRIGHT");    btr:SetTexCoord(0.5,1,0,0.5)
+    local bbl = TBorder(); bbl:SetSize(c,c); bbl:SetPoint("BOTTOMLEFT");  bbl:SetTexCoord(0,0.5,0.5,1)
+    local bbr = TBorder(); bbr:SetSize(c,c); bbr:SetPoint("BOTTOMRIGHT"); bbr:SetTexCoord(0.5,1,0.5,1)
+    local btop = TBorder(); btop:SetHeight(c)
+    btop:SetPoint("TOPLEFT",btl,"TOPRIGHT"); btop:SetPoint("TOPRIGHT",btr,"TOPLEFT")
+    btop:SetTexCoord(0.5,0.5,0,0.5)
+    local bbot = TBorder(); bbot:SetHeight(c)
+    bbot:SetPoint("BOTTOMLEFT",bbl,"BOTTOMRIGHT"); bbot:SetPoint("BOTTOMRIGHT",bbr,"BOTTOMLEFT")
+    bbot:SetTexCoord(0.5,0.5,0.5,1)
+    local blft = TBorder(); blft:SetWidth(c)
+    blft:SetPoint("TOPLEFT",btl,"BOTTOMLEFT"); blft:SetPoint("BOTTOMLEFT",bbl,"TOPLEFT")
+    blft:SetTexCoord(0,0.5,0.5,0.5)
+    local brgt = TBorder(); brgt:SetWidth(c)
+    brgt:SetPoint("TOPRIGHT",btr,"BOTTOMRIGHT"); brgt:SetPoint("BOTTOMRIGHT",bbr,"TOPRIGHT")
+    brgt:SetTexCoord(0.5,1,0.5,0.5)
+
+    -- ── Glow (background.png, ADD blend) ──
+    local gf2 = CreateFrame("Frame", nil, plate)
+    gf2:SetFrameStrata("BACKGROUND")
+    gf2:SetFrameLevel(2)
+    gf2:SetPoint("TOPLEFT",     plate.health, "TOPLEFT",     -THREAT_GLOW,  THREAT_GLOW)
+    gf2:SetPoint("BOTTOMRIGHT", plate.health, "BOTTOMRIGHT",  THREAT_GLOW, -THREAT_GLOW)
+    plate.threatGlowFrame = gf2
+
+    local function TGlow()
+        local t = gf2:CreateTexture(nil, "BACKGROUND")
+        t:SetTexture(GLOW_TEX)
+        t:SetBlendMode("ADD")
+        return t
+    end
+    local gm = GLOW_MARGIN; local gc = GLOW_CORNER
+    local gtl = TGlow(); gtl:SetSize(gc,gc); gtl:SetPoint("TOPLEFT");    gtl:SetTexCoord(0,gm,0,gm)
+    local gtr = TGlow(); gtr:SetSize(gc,gc); gtr:SetPoint("TOPRIGHT");   gtr:SetTexCoord(1-gm,1,0,gm)
+    local gbl = TGlow(); gbl:SetSize(gc,gc); gbl:SetPoint("BOTTOMLEFT"); gbl:SetTexCoord(0,gm,1-gm,1)
+    local gbr = TGlow(); gbr:SetSize(gc,gc); gbr:SetPoint("BOTTOMRIGHT");gbr:SetTexCoord(1-gm,1,1-gm,1)
+    local gtop = TGlow(); gtop:SetHeight(gc)
+    gtop:SetPoint("TOPLEFT",gtl,"TOPRIGHT"); gtop:SetPoint("TOPRIGHT",gtr,"TOPLEFT")
+    gtop:SetTexCoord(gm,1-gm,0,gm)
+    local gbot = TGlow(); gbot:SetHeight(gc)
+    gbot:SetPoint("BOTTOMLEFT",gbl,"BOTTOMRIGHT"); gbot:SetPoint("BOTTOMRIGHT",gbr,"BOTTOMLEFT")
+    gbot:SetTexCoord(gm,1-gm,1-gm,1)
+    local glft = TGlow(); glft:SetWidth(gc)
+    glft:SetPoint("TOPLEFT",gtl,"BOTTOMLEFT"); glft:SetPoint("BOTTOMLEFT",gbl,"TOPLEFT")
+    glft:SetTexCoord(0,gm,gm,1-gm)
+    local grgt = TGlow(); grgt:SetWidth(gc)
+    grgt:SetPoint("TOPRIGHT",gtr,"BOTTOMRIGHT"); grgt:SetPoint("BOTTOMRIGHT",gbr,"TOPRIGHT")
+    grgt:SetTexCoord(1-gm,1,gm,1-gm)
+
+    -- Stocker les textures glow pour colorisation dynamique
+    plate.threatGlowTextures = { gtl,gtr,gbl,gbr,gtop,gbot,glft,grgt }
+
     plate.threatFrame:Hide()
-    plate.threatFrame:EnableMouse(false)
+    plate.threatGlowFrame:Hide()
 
     -- =========== CASTBAR ===========
     local cbH = settings.castbarHeight or 14
@@ -755,24 +810,26 @@ local function GetHealthColor(unit)
     end
 
     -- 8) Tank/DPS threat coloring (instanced content)
+    -- UnitThreatSituation returns a safe integer (not a secret value like UnitDetailedThreatSituation)
+    -- 0 = no threat, 1 = lower threat, 2 = higher threat, 3 = tanking (has aggro)
     if s.tankMode and InRealInstancedContent() then
-        local isTanking, status = UnitDetailedThreatSituation("player", unit)
-        if status then
+        local threatStatus = UnitThreatSituation("player", unit)
+        if threatStatus and type(threatStatus) == "number" then
             local role = UnitGroupRolesAssigned("player")
             local isTankRole = (role == "TANK")
             if isTankRole then
-                if isTanking then
+                if threatStatus == 3 then
                     local c = s.tankColors.hasThreat; return c.r, c.g, c.b
-                elseif status >= 2 then
+                elseif threatStatus >= 2 then
                     local c = s.tankColors.lowThreat; return c.r, c.g, c.b
                 else
                     local c = s.tankColors.noThreat; return c.r, c.g, c.b
                 end
             else
                 -- DPS/Healer threat
-                if isTanking then
+                if threatStatus == 3 then
                     local c = s.tankColors.dpsHasAggro or s.tankColors.noThreat; return c.r, c.g, c.b
-                elseif status >= 2 then
+                elseif threatStatus >= 2 then
                     local c = s.tankColors.dpsNearAggro or s.tankColors.lowThreat; return c.r, c.g, c.b
                 end
             end
@@ -1063,20 +1120,33 @@ local function UpdatePlate(plate, unit)
         end
     end
 
-    -- Threat
+    -- Threat (border.png 9-slice + background.png glow ADD)
     if s.showThreat and UnitIsEnemy("player", unit) then
         local status = UnitThreatSituation("player", unit)
         if status and status >= 2 then
             local tr, tg, tb = GetThreatStatusColor(status)
-            for _, border in ipairs(plate.threatBorders) do
-                border:SetVertexColor(tr, tg, tb, 1)
+            -- Tank actif : alpha réduit de moitié pour ne pas surcharger l'affichage
+            local borderAlpha = (s.tankMode and InRealInstancedContent()) and 0.5 or 1.0
+            local glowAlpha   = (s.tankMode and InRealInstancedContent()) and 0.25 or 0.6
+            -- Coloriser le 9-slice border
+            for _, tex in ipairs(plate.threatBorders) do
+                tex:SetVertexColor(tr, tg, tb, borderAlpha)
+            end
+            -- Coloriser et afficher le glow
+            if plate.threatGlowTextures then
+                for _, tex in ipairs(plate.threatGlowTextures) do
+                    tex:SetVertexColor(tr, tg, tb, glowAlpha)
+                end
+                plate.threatGlowFrame:Show()
             end
             plate.threatFrame:Show()
         else
             plate.threatFrame:Hide()
+            if plate.threatGlowFrame then plate.threatGlowFrame:Hide() end
         end
     else
         plate.threatFrame:Hide()
+        if plate.threatGlowFrame then plate.threatGlowFrame:Hide() end
     end
 
     -- Alpha + glow + arrows
@@ -1240,13 +1310,18 @@ local function UpdateCastbar(plate, unit)
     if not s.showCastbar then plate.castbar:Hide(); return end
     plate.castbar.unit = unit
 
-    if plate.castbar.failstart then return end
+    -- [FIX] Ne pas retourner immédiatement si failstart est défini.
+    -- Si l'ennemi enchaîne un nouveau cast pendant l'animation d'interruption
+    -- (failstart ≠ nil), l'ancien code masquait le nouveau cast pendant ~1 s.
+    -- On vérifie d'abord si l'API rapporte un cast actif ; si oui on efface failstart.
 
     local name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible
 
     -- Check regular cast
     name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible = UnitCastingInfo(unit)
     if type(name) ~= "nil" then
+        -- Nouveau cast détecté : annuler l'animation d'interruption
+        plate.castbar.failstart = nil
         plate.castbar.casting = true
         plate.castbar.channeling = false
         plate.castbar.empowered = false
@@ -1275,6 +1350,8 @@ local function UpdateCastbar(plate, unit)
     local chanNI, chanStages
     local chanName, _, chanTex, chanStart, chanEnd, _, cNI, _, _, cStages = UnitChannelInfo(unit)
     if type(chanName) ~= "nil" then
+        -- Nouveau channel/empowered détecté : annuler l'animation d'interruption
+        plate.castbar.failstart = nil
         local bempowered = (cStages and cStages > 0)
 
         plate.castbar.casting = false
@@ -1306,6 +1383,10 @@ local function UpdateCastbar(plate, unit)
         plate.castbar:Show()
         return
     end
+
+    -- Rien de trouvé dans l'API. Si failstart est défini, laisser l'OnUpdate
+    -- gérer la fin de l'animation d'interruption (ne pas re-cacher ici).
+    if plate.castbar.failstart then return end
 
     plate.castbar:Hide()
     ResetNPCastbar(plate.castbar)
@@ -1348,6 +1429,7 @@ local function OnNamePlateRemoved(unit)
         plate.castbar:Hide()
         if plate.castbar.shieldFrame then plate.castbar.shieldFrame:Hide() end
         if plate.glowFrame then plate.glowFrame:Hide() end
+        if plate.threatGlowFrame then plate.threatGlowFrame:Hide() end
         plate.highlight:Hide()
         plate.absorb:Hide()
         for _, a in ipairs(plate.auras) do a:Hide() end
@@ -1411,11 +1493,16 @@ local function HandleNPUnitEvent(event, unit)
         dirtyBatchFrame:Show()
     elseif event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START"
         or event == "UNIT_SPELLCAST_EMPOWER_START" then
-        dirtyCastbars[unit] = true
-        dirtyBatchFrame:Show()
+        -- [FIX] Appel IMMÉDIAT, pas de dirty batch.
+        -- Si on passe par dirtyCastbars, UpdateCastbar est traité au frame suivant.
+        -- Or le castbar:OnUpdate tourne chaque frame et voit casting=false → self:Hide().
+        -- Cela provoque un clignotement (ou disparition) à chaque début de cast.
+        local p = unitPlates[unit]
+        if p then UpdateCastbar(p, unit) end
     elseif event == "UNIT_SPELLCAST_CHANNEL_UPDATE" or event == "UNIT_SPELLCAST_EMPOWER_UPDATE" then
-        dirtyCastbars[unit] = true
-        dirtyBatchFrame:Show()
+        -- Même raison : appel immédiat pour UPDATE afin de garder les marqueurs d'empower synchrones
+        local p = unitPlates[unit]
+        if p then UpdateCastbar(p, unit) end
     elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
         local p = unitPlates[unit]
         if p and p.castbar then

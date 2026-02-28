@@ -315,16 +315,19 @@ local function BuildAurasTab(parent, unitKey)
 
         local _, ny = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"], db.enemyBuffs.enabled, y, function(v)
             db.enemyBuffs.enabled = v
+            RefreshUnit(unitKey)
         end)
         y = ny
 
         local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_max"], db.enemyBuffs.maxAuras, 1, 8, 1, y, function(v)
             db.enemyBuffs.maxAuras = v
+            RefreshUnit(unitKey)
         end)
         y = ny
 
         local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_size"], db.enemyBuffs.size, 14, 40, 1, y, function(v)
             db.enemyBuffs.size = v
+            RefreshUnit(unitKey)
         end)
         y = ny
     end

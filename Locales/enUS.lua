@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.2.3 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.2.6 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -606,6 +606,10 @@ TomoMod_RegisterLocale("enUS", {
     ["msg_cr_unlock"]                   = "Combat Res Tracker unlocked — drag to move",
     ["msg_abs_enabled"]                 = "Action Bar Skin enabled (reload for best results)",
     ["msg_abs_disabled"]                = "Action Bar Skin disabled",
+    ["opt_buffskin_enable"]             = "Enable Buff Skin",
+    ["opt_buffskin_desc"]               = "Adds black borders and colored duration timer on player buffs/debuffs",
+    ["msg_buffskin_enabled"]            = "Buff Skin enabled",
+    ["msg_buffskin_disabled"]           = "Buff Skin disabled",
     ["msg_help_cr"]                     = "Lock/unlock Combat Res Tracker",
     ["msg_help_cs"]                     = "Lock/unlock Character Sheet position",
     ["msg_help_cs_reset"]               = "Reset Character Sheet to default position",

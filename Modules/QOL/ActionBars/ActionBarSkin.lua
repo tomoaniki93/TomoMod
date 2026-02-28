@@ -225,7 +225,7 @@ local BAR_DEFS = {
     { prefix = "PetActionButton",           barKey = "PetActionButton",        count = 10 },
     { prefix = "StanceButton",              barKey = "StanceButton",           count = 10 },
     { prefix = "PossessButton",             barKey = "StanceButton",           count = 12 },
-    { prefix = "OverrideActionBarButton",   barKey = "ActionButton",           count = 6  },
+    { prefix = "OverrideActionBarButton",   barKey = "OverrideBar",            count = 6  },
     { prefix = "ExtraActionButton",         barKey = "ActionButton",           count = 1  },
 }
 
@@ -256,6 +256,10 @@ end
 -- =====================================
 local function ApplyBarOpacityInternal(barKey, pct)
     local alpha = (pct or 100) / 100
+    -- Ne jamais masquer la barre véhicule si on est dans un véhicule
+    if barKey == "OverrideBar" and UnitInVehicle and UnitInVehicle("player") then
+        return
+    end
     for button, bk in pairs(buttonBarKey) do
         if bk == barKey then
             button:SetAlpha(alpha)
@@ -277,6 +281,42 @@ local function ApplyAllOpacities()
 end
 
 -- =====================================
+-- VEHICLE / OVERRIDE BAR VISIBILITY
+-- Force les boutons du véhicule à alpha=1 quoi qu'il arrive
+-- (opacité barre, combat-show, etc. ne doivent pas les masquer)
+-- =====================================
+local vehicleFrame = CreateFrame("Frame")
+vehicleFrame:RegisterEvent("UNIT_ENTERED_VEHICLE")
+vehicleFrame:RegisterEvent("UNIT_EXITED_VEHICLE")
+vehicleFrame:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
+vehicleFrame:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
+vehicleFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+
+local function RefreshVehicleBarVisibility()
+    local inVehicle = UnitInVehicle and UnitInVehicle("player")
+    for button, bk in pairs(buttonBarKey) do
+        if bk == "OverrideBar" then
+            if inVehicle then
+                button:SetAlpha(1)
+            else
+                -- Rétablir l'opacité configurée hors véhicule
+                local settings = GetSettings()
+                local pct = settings and settings.barOpacity and settings.barOpacity["OverrideBar"] or 0
+                button:SetAlpha(pct / 100)
+            end
+        end
+    end
+end
+
+vehicleFrame:SetScript("OnEvent", function(_, event, unit)
+    if event == "UNIT_ENTERED_VEHICLE" or event == "UNIT_EXITED_VEHICLE" then
+        if unit ~= "player" then return end
+    end
+    -- Petit délai pour que WoW finisse de set up la barre override
+    C_Timer.After(0.1, RefreshVehicleBarVisibility)
+end)
+
+-- =====================================
 -- COMBAT SHOW / HIDE
 -- =====================================
 local combatFrame = CreateFrame("Frame")
@@ -285,6 +325,10 @@ combatFrame:Hide()
 local function SetBarVisible(barKey, visible)
     local settings = GetSettings()
     if not settings then return end
+    -- Ne jamais masquer la barre véhicule si on est dans un véhicule
+    if barKey == "OverrideBar" and UnitInVehicle and UnitInVehicle("player") then
+        return
+    end
     local opacities = settings.barOpacity or {}
     local targetAlpha = visible and ((opacities[barKey] or 100) / 100) or 0
     for button, bk in pairs(buttonBarKey) do

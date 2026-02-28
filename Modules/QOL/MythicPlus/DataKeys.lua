@@ -87,8 +87,9 @@ local DB = {
     [380] = { "Sanguine Depths",                        "SD",     354469  },
     [381] = { "Spires of Ascension",                    "SOA",    354466  },
     [382] = { "Theater of Pain",                        "TOP",    354467  },
-    [391] = { "Tazavesh: Streets of Wonder",            "STRT",   367416  },
-    [392] = { "Tazavesh: So'leah's Gambit",             "GMBT",   367416  },
+    [391]  = { "Tazavesh: Streets of Wonder",            "STRT",   367416  },
+    [392]  = { "Tazavesh: So'leah's Gambit",             "GMBT",   367416  },
+    [2441] = { "Tazavesh, le marché dissimulé",          "TAZA",   367416  },
 
     -- =================================
     -- Dragonflight

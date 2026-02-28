@@ -126,8 +126,8 @@ function W.CreateScrollPanel(parent)
         isDragging = true
         dragStartY     = select(2, GetCursorPosition()) / UIParent:GetEffectiveScale()
         dragStartScroll = scroll:GetVerticalScroll()
-        self:StartMovingOrSizing() -- On gère manuellement via OnUpdate
-        -- On bloque le template de déplacement, on fait ça proprement :
+        -- Drag géré entièrement via OnUpdate ci-dessous (pas de StartMovingOrSizing :
+        -- thumbFrame n'est pas Movable, et on pilote le scroll manuellement).
         self:SetScript("OnUpdate", function()
             local curY    = select(2, GetCursorPosition()) / UIParent:GetEffectiveScale()
             local delta   = dragStartY - curY
@@ -145,7 +145,7 @@ function W.CreateScrollPanel(parent)
     thumbFrame:SetScript("OnDragStop", function(self)
         isDragging = false
         self:SetScript("OnUpdate", nil)
-        self:StopMovingOrSizing()
+        -- Pas de StopMovingOrSizing (thumbFrame n'est pas Movable)
     end)
 
     -- Hover thumb

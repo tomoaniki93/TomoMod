@@ -1,5 +1,20 @@
 ## ####################################
 
+## CHANGELOG 2.2.5
+
+- Fix Absent enchant
+- Fix Buffs on Target
+- Fix Tooltip ID
+- Fix Widget drag
+
+## ####################################
+
+## CHANGELOG 2.2.4
+
+- Fix MythicKeys and Delete Tp
+
+## ####################################
+
 ## CHANGELOG 2.2.3
 
 - Add New Minimap and InfoPanel

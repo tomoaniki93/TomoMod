@@ -454,13 +454,46 @@ local function LayoutViewer(viewer, isBuff)
         end
     end
 
-    if #visible == 0 then return end
+    if #visible == 0 then
+        -- Reset stable slot counter when bar is empty so slots don't accumulate forever
+        if viewer == BuffBarCooldownViewer then
+            viewer._cdm_nextSlot = nil
+            local children2 = { viewer:GetChildren() }
+            for _, child in ipairs(children2) do
+                child._cdm_stableSlot = nil
+            end
+        end
+        return
+    end
 
     -- Style all visible buttons
     local isBar = (viewer == BuffBarCooldownViewer)
     if isBar then
+        -- Style + assign stable slots so bars never reorder
+        -- _cdm_stableSlot is assigned once on first appearance (monotonic counter)
+        -- and never changes, giving each spell a fixed vertical position.
         for _, item in ipairs(visible) do
             StyleBuffBar(item)
+            if not item._cdm_stableSlot then
+                viewer._cdm_nextSlot = (viewer._cdm_nextSlot or 0) + 1
+                item._cdm_stableSlot = viewer._cdm_nextSlot
+            end
+        end
+
+        -- Sort by stable slot so the order is deterministic
+        table.sort(visible, function(a, b)
+            return (a._cdm_stableSlot or 0) < (b._cdm_stableSlot or 0)
+        end)
+
+        -- Stack bars vertically from the top of the viewer, 2px gap
+        local BAR_GAP = 2
+        local yOff = 0
+        for _, item in ipairs(visible) do
+            local h = item:GetHeight()
+            item:ClearAllPoints()
+            item:SetPoint("TOPLEFT", viewer, "TOPLEFT", 0, -yOff)
+            item:SetPoint("TOPRIGHT", viewer, "TOPRIGHT", 0, -yOff)
+            yOff = yOff + h + BAR_GAP
         end
         return
     end
@@ -635,17 +668,9 @@ local function InitViewers()
     for _, viewer in ipairs(viewers) do
         if viewer then
             local isBuff = (viewer == BuffIconCooldownViewer)
-            local isBar = (viewer == BuffBarCooldownViewer)
 
             -- Initial layout
-            if isBar then
-                local children = { viewer:GetChildren() }
-                for _, item in ipairs(children) do
-                    if item:IsShown() then StyleBuffBar(item) end
-                end
-            else
-                LayoutViewer(viewer, isBuff)
-            end
+            LayoutViewer(viewer, isBuff)
 
             -- Hook Layout
             if viewer.Layout then

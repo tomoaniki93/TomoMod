@@ -753,6 +753,36 @@ function UF.RefreshUnit(unitKey)
         end
     end
 
+    -- ── Enemy Buff Container (HELPFUL auras) ─────────────────────────────────
+    -- Le container est créé dynamiquement avec un nombre fixe d'icônes.
+    -- Si la taille ou le maxAuras ont changé, on détruit l'ancien container
+    -- pour qu'UpdateEnemyBuffs le recrée avec les nouveaux paramètres.
+    if settings.enemyBuffs then
+        local eb = frame.enemyBuffContainer
+        if eb then
+            local currentSize   = eb._tomoSize   or 0
+            local currentMax    = eb._tomoMaxAuras or 0
+            local wantedSize    = settings.enemyBuffs.size    or 24
+            local wantedMax     = settings.enemyBuffs.maxAuras or 4
+            local wantedEnabled = settings.enemyBuffs.enabled
+
+            if not wantedEnabled then
+                -- Désactivé : masquer et ne pas recréer
+                eb:Hide()
+            elseif currentSize ~= wantedSize or currentMax ~= wantedMax then
+                -- Paramètres modifiés → détruire pour forcer la recréation
+                eb:Hide()
+                eb:SetParent(nil)
+                frame.enemyBuffContainer = nil
+                -- UpdateEnemyBuffs recrée le container au prochain appel (UNIT_AURA)
+                E.UpdateEnemyBuffs(frame)
+            end
+        elseif settings.enemyBuffs.enabled then
+            -- Pas encore créé mais activé → créer maintenant
+            E.UpdateEnemyBuffs(frame)
+        end
+    end
+
     UpdateFrame(frame)
 end
 

@@ -251,6 +251,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
         if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.Initialize() end
         if TomoMod_CharacterSkin then TomoMod_CharacterSkin.Initialize() end
+        if TomoMod_BuffSkin      then TomoMod_BuffSkin.Initialize()      end
 
         -- Interface Modules (new v2)
         if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end

@@ -1029,6 +1029,20 @@ local function UpdateItemInfoOverlay(slot, slotName)
             frame.statText:SetText(short)
             frame.statText:Show()
         end
+    elseif canEnchant then
+        -- ── Slot enchantable mais AUCUN enchantement détecté ──────────────────
+        -- Affiche un avertissement rouge compact selon le type de slot
+        local locale = GetLocale()
+        local missingLabel = (locale == "frFR") and "✗ Manquant" or "✗ Missing"
+
+        if frame.isBottom then
+            -- Armes : ajouter en fin de ligne ilvl
+            local current = frame.infoText:GetText() or ""
+            frame.infoText:SetText(current .. " |cffff4040" .. missingLabel .. "|r")
+        elseif frame.statText then
+            frame.statText:SetText("|cffff4040" .. missingLabel .. "|r")
+            frame.statText:Show()
+        end
     else
         if frame.statText then
             frame.statText:SetText("")

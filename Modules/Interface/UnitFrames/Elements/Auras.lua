@@ -277,12 +277,26 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
     local spacing = buffSettings.spacing or 2
     local maxAuras = buffSettings.maxAuras or 4
 
+    -- Grille : 3 icônes par ligne, remplissage droite → gauche, lignes vers le haut
+    --   Ligne 0 (bas) :  icône 1 (droite)  icône 2 (milieu)  icône 3 (gauche)
+    --   Ligne 1       :  icône 4 (droite)  …
+    local ICONS_PER_ROW = 3
+    local numRows = math.ceil(maxAuras / ICONS_PER_ROW)
+
+    -- Largeur  = 3 icônes + 2 espacements
+    -- Hauteur  = nb lignes × (icône + espacement)
+    local containerW = ICONS_PER_ROW * size + (ICONS_PER_ROW - 1) * spacing
+    local containerH = numRows * size + (numRows - 1) * spacing
+
     local container = CreateFrame("Frame", "TomoMod_EnemyBuffs_" .. unit, parent)
-    container:SetSize(size, (size + spacing) * maxAuras)
+    container:SetSize(containerW, containerH)
     container:SetFrameLevel(parent:GetFrameLevel() + 10)
     container.unit = unit
     container.parentFrame = parent
     container.icons = {}
+    -- Stocker les paramètres courants pour détecter les changements dans RefreshUnit
+    container._tomoSize     = size
+    container._tomoMaxAuras = maxAuras
 
     -- Position (default: top-right of health bar)
     local pos = buffSettings.position
@@ -292,17 +306,24 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
         container:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", 0, 6)
     end
 
-    -- Create icons stacking upward (1 per row)
+    -- Création des icônes en grille  (droite → gauche, bas → haut)
+    --   col 0 = droite, col 1 = milieu, col 2 = gauche
+    --   row 0 = ligne du bas, row 1 = ligne au-dessus, …
     local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
     for i = 1, maxAuras do
         local icon = CreateFrame("Frame", nil, container)
         icon:SetSize(size, size)
 
-        if i == 1 then
-            icon:SetPoint("BOTTOMRIGHT", container, "BOTTOMRIGHT", 0, 0)
-        else
-            icon:SetPoint("BOTTOMRIGHT", container.icons[i - 1], "TOPRIGHT", 0, spacing)
-        end
+        local col = (i - 1) % ICONS_PER_ROW          -- 0 = droite … 2 = gauche
+        local row = math.floor((i - 1) / ICONS_PER_ROW) -- 0 = bas, 1 = au-dessus…
+
+        icon:SetPoint(
+            "BOTTOMRIGHT",
+            container,
+            "BOTTOMRIGHT",
+            -col * (size + spacing),   -- décalage vers la gauche
+            row  * (size + spacing)    -- décalage vers le haut
+        )
 
         icon.texture = icon:CreateTexture(nil, "ARTWORK")
         icon.texture:SetAllPoints()
@@ -335,11 +356,12 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
             icon.duration:SetTextColor(1, 1, 1, 0.9)
         end
 
-        -- Tooltip
+        -- Tooltip — fonctionne pour les buffs amis ET ennemis
         icon:EnableMouse(true)
         icon:SetScript("OnEnter", function(self)
             if self.auraInstanceID and UnitExists(container.unit) then
                 GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                -- SetUnitBuffByAuraInstanceID accepte les valeurs secrètes côté C
                 GameTooltip:SetUnitBuffByAuraInstanceID(container.unit, self.auraInstanceID)
                 GameTooltip:Show()
             end
@@ -374,14 +396,14 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
 end
 
 -- =====================================
--- UPDATE ENEMY BUFFS
+-- UPDATE TARGET BUFFS (HELPFUL auras on target/focus)
 -- Uses GetAuraSlots + select() to safely iterate varargs.
 -- AuraUtil.ForEachAura CANNOT be used — it calls UnpackAuraData
 -- which crashes on secret values in TWW.
--- Shows all HELPFUL auras on attackable units.
+-- Shows all HELPFUL auras on ANY target (enemy, friendly, neutral).
 -- =====================================
 
--- Collect stealable HELPFUL aura slots safely via select() on varargs.
+-- Collect HELPFUL aura slots safely via select() on varargs.
 local function CollectEnemyBuffData(unit, maxAuras)
     local auras = {}
     local function processSlots(token, ...)
@@ -426,11 +448,8 @@ function UF_Elements.UpdateEnemyBuffs(frame)
         return
     end
 
-    -- UnitCanAttack covers hostile + neutral mobs (UnitIsEnemy misses neutrals)
-    if not UnitCanAttack("player", unit) then
-        if frame.enemyBuffContainer then frame.enemyBuffContainer:Hide() end
-        return
-    end
+    -- Montrer les buffs sur TOUS les types de cibles : ennemis, neutres et amis.
+    -- (Suppression de l'ancien guard UnitCanAttack qui excluait les cibles amies.)
 
     -- Create container dynamically if missing
     if not frame.enemyBuffContainer then
@@ -456,10 +475,10 @@ function UF_Elements.UpdateEnemyBuffs(frame)
     local auras = CollectEnemyBuffData(unit, maxAuras)
 
     if dbg then
-        print("|cff0cd29f[EB]|r " .. unit .. ": " .. #auras .. " stealable buffs")
+        print("|cff0cd29f[TB]|r " .. unit .. ": " .. #auras .. " target buffs (HELPFUL)")
     end
 
-    -- No stealable buffs → hide container entirely
+    -- No buffs → hide container entirely
     if #auras == 0 then
         container:Hide()
         return

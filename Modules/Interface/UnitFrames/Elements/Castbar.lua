@@ -356,21 +356,16 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         local bchannel = false
         local bempowered = false
         local numStages = 0
-        local name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible
-        local castInfo = UnitCastingInfo(unitID)
-        if type(castInfo) ~= "nil" then
-            name = castInfo
-            _, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible = UnitCastingInfo(unitID)
-        end
+
+        -- [FIX] Un seul appel à UnitCastingInfo (deux appels successifs = données potentiellement
+        -- incohérentes si le sort se termine entre les deux appels).
+        local name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible = UnitCastingInfo(unitID)
 
         -- ===== Check channel / empowered =====
         if type(name) == "nil" then
-            local chanInfo = UnitChannelInfo(unitID)
-            if type(chanInfo) ~= "nil" then
-                name = chanInfo
-                -- UnitChannelInfo returns: name, displayName, texture, startTimeMS, endTimeMS,
-                --   isTradeSkill, notInterruptible, spellID, _, numEmpowerStages
-                local chanName, _, chanTex, chanStart, chanEnd, _, chanNI, _, _, chanStages = UnitChannelInfo(unitID)
+            -- [FIX] Même chose : UnitChannelInfo appelé une seule fois.
+            local chanName, _, chanTex, chanStart, chanEnd, _, chanNI, _, _, chanStages = UnitChannelInfo(unitID)
+            if type(chanName) ~= "nil" then
                 name = chanName
                 texture = chanTex
                 startTimeMS = chanStart

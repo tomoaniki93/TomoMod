@@ -34,10 +34,16 @@ end
 
 local function AddLine(tooltip, label, id)
     if not tooltip or not id then return end
-    local key = label .. tostring(id)
+    -- TWW : spellId / auraInstanceID peuvent être des "valeurs secrètes".
+    -- tostring(secretVal) → string secrète → table index is secret.
+    -- string.format("%.0f", secretVal) est C-side et retourne une vraie string.
+    local idStr
+    local ok = pcall(function() idStr = string.format("%.0f", id) end)
+    if not ok or not idStr then return end
+    local key = label .. idStr
     if addedIDs[key] then return end
     addedIDs[key] = true
-    tooltip:AddLine(COLOR .. label .. " |r" .. id)
+    tooltip:AddLine(COLOR .. label .. " |r" .. idStr)
     tooltip:Show()
 end
 
