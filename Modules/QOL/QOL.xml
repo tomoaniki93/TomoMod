@@ -53,5 +53,9 @@
     <!-- Modules: Skins -->
     <Include file="Skins\CharacterSkin.lua" />
  
+    <!-- AH -->
+    <Include file="AH\AHCurrentExpansion.lua"/>
+
+    <!-- Combat -->
 
 </Ui>
