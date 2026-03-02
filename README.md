@@ -2,7 +2,7 @@
 
 # ![TomoModMini](https://img.shields.io/badge/TomoModMini-v2.1.7-0cd29f?style=for-the-badge)
 
-# |cff0cd29fTomo|rMod
+# **TomoMod**
 
 **Lightweight, modular WoW addon** — Custom UnitFrames, Nameplates, Resource Bars, Cooldown Manager & 17+ QOL modules.
 Fully compatible with **Midnight 12.x** with native handling of Blizzard's secret values.
