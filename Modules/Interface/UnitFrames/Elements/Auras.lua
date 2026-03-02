@@ -6,6 +6,23 @@ local UF_Elements = UF_Elements or {}
 
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 
+-- [PERF] Pre-allocated tables for UpdateAuras (avoids alloc per UNIT_AURA event)
+local _uf_auraCollect = {}
+local _uf_auraFilters = {}
+
+-- [PERF] Pre-allocated table for CollectEnemyBuffData
+local _uf_enemyBuffCollect = {}
+
+-- [PERF] Reusable table for GetAuraSlots vararg capture
+local _uf_slotResults = {}
+local function UF_CaptureSlots(dest, ...)
+    wipe(dest)
+    for i = 1, select("#", ...) do
+        dest[i] = select(i, ...)
+    end
+    return dest
+end
+
 -- =====================================
 -- CREATE AURA CONTAINER
 -- =====================================
@@ -172,8 +189,11 @@ function UF_Elements.UpdateAuras(frame)
     -- Collect auras
     -- In TWW, ALL aura data fields are secret — cannot do ANY Lua operations on them.
     -- Use |PLAYER filter string so C-side handles "only mine" filtering.
-    local auras = {}
-    local filters = {}
+    -- [PERF] Reuse module-level tables instead of allocating new ones per call
+    wipe(_uf_auraCollect)
+    wipe(_uf_auraFilters)
+    local auras = _uf_auraCollect
+    local filters = _uf_auraFilters
 
     if auraType == "ALL" then
         if showOnlyMine then
@@ -191,19 +211,17 @@ function UF_Elements.UpdateAuras(frame)
 
     for _, filter in ipairs(filters) do
         -- GetAuraSlots returns: continuationToken, slot1, slot2, ... (varargs, NOT a table)
-        local results = {C_UnitAuras.GetAuraSlots(unit, filter)}
-        -- results[1] = continuationToken (may be nil!), results[2..n] = slot indices
-        -- IMPORTANT: Use while-loop, NOT for i=2,#results
-        -- Lua 5.1 #operator is UNDEFINED for tables with nil holes (e.g. {nil, 1, 2})
-        -- When continuationToken is nil, #{nil, 1, 2} can return 0 → loop never runs!
+        -- [PERF] Reuse module-level table instead of {varargs}
+        UF_CaptureSlots(_uf_slotResults, C_UnitAuras.GetAuraSlots(unit, filter))
+        -- _uf_slotResults[1] = continuationToken (may be nil!), [2..n] = slot indices
         local idx = 2
-        while results[idx] do
+        while _uf_slotResults[idx] do
             if #auras >= maxAuras then break end
-            local data = C_UnitAuras.GetAuraDataBySlot(unit, results[idx])
+            local data = C_UnitAuras.GetAuraDataBySlot(unit, _uf_slotResults[idx])
             if data then
                 -- Store only non-secret metadata we set ourselves
                 data._filter = filter
-                data._slotIndex = results[idx]
+                data._slotIndex = _uf_slotResults[idx]
                 data._unit = unit
                 table.insert(auras, data)
             end
@@ -404,8 +422,10 @@ end
 -- =====================================
 
 -- Collect HELPFUL aura slots safely via select() on varargs.
+-- [PERF] Reuses module-level table to avoid alloc per call
 local function CollectEnemyBuffData(unit, maxAuras)
-    local auras = {}
+    wipe(_uf_enemyBuffCollect)
+    local auras = _uf_enemyBuffCollect
     local function processSlots(token, ...)
         local n = select("#", ...)
         for i = 1, n do

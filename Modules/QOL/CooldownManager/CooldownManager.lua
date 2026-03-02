@@ -79,6 +79,29 @@ local todoList = {}
 local isInitialized = false
 local mainFrame, updateFrame, tickerFrame
 
+-- [PERF] Children cache — avoids {GetChildren()} table alloc every tick
+local childrenCache = {}
+local function InvalidateChildrenCache(viewer)
+    childrenCache[viewer] = nil
+end
+local function GetCachedChildren(viewer)
+    if not childrenCache[viewer] then
+        childrenCache[viewer] = { viewer:GetChildren() }
+    end
+    return childrenCache[viewer]
+end
+
+-- [PERF] Named sort functions — avoids anonymous closure allocation per layout
+local function SortByStableSlot(a, b)
+    return (a._cdm_stableSlot or 0) < (b._cdm_stableSlot or 0)
+end
+local function SortByOrigPosition(a, b)
+    if math.abs(a._cdm_origY - b._cdm_origY) < 1 then
+        return a._cdm_origX < b._cdm_origX
+    end
+    return a._cdm_origY > b._cdm_origY
+end
+
 -- =====================================
 -- UTILS
 -- =====================================
@@ -443,7 +466,7 @@ end
 local function LayoutViewer(viewer, isBuff)
     if EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive() then return end
 
-    local children = { viewer:GetChildren() }
+    local children = GetCachedChildren(viewer)
     local visible = {}
     for _, child in ipairs(children) do
         if child:IsShown() then
@@ -458,7 +481,7 @@ local function LayoutViewer(viewer, isBuff)
         -- Reset stable slot counter when bar is empty so slots don't accumulate forever
         if viewer == BuffBarCooldownViewer then
             viewer._cdm_nextSlot = nil
-            local children2 = { viewer:GetChildren() }
+            local children2 = GetCachedChildren(viewer)
             for _, child in ipairs(children2) do
                 child._cdm_stableSlot = nil
             end
@@ -481,9 +504,7 @@ local function LayoutViewer(viewer, isBuff)
         end
 
         -- Sort by stable slot so the order is deterministic
-        table.sort(visible, function(a, b)
-            return (a._cdm_stableSlot or 0) < (b._cdm_stableSlot or 0)
-        end)
+        table.sort(visible, SortByStableSlot)
 
         -- Stack bars vertically from the top of the viewer, 2px gap
         local BAR_GAP = 2
@@ -512,12 +533,7 @@ local function LayoutViewer(viewer, isBuff)
     local numIcons = #visible
 
     -- Sort by original position (row then column)
-    table.sort(visible, function(a, b)
-        if math.abs(a._cdm_origY - b._cdm_origY) < 1 then
-            return a._cdm_origX < b._cdm_origX
-        end
-        return a._cdm_origY > b._cdm_origY
-    end)
+    table.sort(visible, SortByOrigPosition)
 
     if isBuff then
         -- ======================================
@@ -581,7 +597,7 @@ local function TickerUpdate()
             local isBar = (viewer == BuffBarCooldownViewer)
             if not isBar then
                 local isBuff = (viewer == BuffIconCooldownViewer)
-                local children = { viewer:GetChildren() }
+                local children = GetCachedChildren(viewer)
                 for _, button in ipairs(children) do
                     if button:IsShown() and button._cdm_styled then
                         UpdateButtonState(button, isBuff)
@@ -597,6 +613,7 @@ end
 -- =====================================
 local function AddToDoList(viewer)
     todoList[viewer] = true
+    InvalidateChildrenCache(viewer)
     if updateFrame then updateFrame:Show() end
 end
 
@@ -630,7 +647,7 @@ local function RefreshHotkeyVisibility()
 
     for _, viewer in ipairs(cdViewers) do
         if viewer then
-            local children = { viewer:GetChildren() }
+            local children = GetCachedChildren(viewer)
             for _, button in ipairs(children) do
                 if button._cdm_hotkey then
                     if settings.showHotKey then
@@ -680,7 +697,7 @@ local function InitViewers()
             end
 
             -- Hook child Show/Hide
-            local children = { viewer:GetChildren() }
+            local children = GetCachedChildren(viewer)
             for _, child in ipairs(children) do
                 child:HookScript("OnShow", function() AddToDoList(viewer) end)
                 child:HookScript("OnHide", function() AddToDoList(viewer) end)

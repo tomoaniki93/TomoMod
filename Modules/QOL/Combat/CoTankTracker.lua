@@ -428,11 +428,12 @@ end
 
 -- =====================================
 -- Health update ticker (0.1 s)
+-- [PERF] Starts hidden — enabled/disabled alongside mainFrame to avoid OnUpdate overhead
 -- =====================================
 local updateFrame = CreateFrame("Frame")
 local updateElapsed = 0
+updateFrame:Hide()
 updateFrame:SetScript("OnUpdate", function(self, elapsed)
-    if not mainFrame:IsShown() then return end
     updateElapsed = updateElapsed + elapsed
     if updateElapsed < 0.1 then return end
     updateElapsed = 0
@@ -441,16 +442,27 @@ end)
 
 -- =====================================
 -- Aura update ticker (0.5 s)
+-- [PERF] Starts hidden — enabled/disabled alongside mainFrame
 -- =====================================
 local auraFrame = CreateFrame("Frame")
 local auraElapsed = 0
+auraFrame:Hide()
 auraFrame:SetScript("OnUpdate", function(self, elapsed)
-    if not mainFrame:IsShown() then return end
     auraElapsed = auraElapsed + elapsed
     if auraElapsed < 0.5 then return end
     auraElapsed = 0
     UpdateDebuffs()
     UpdateDefensiveCDs()
+end)
+
+-- [PERF] Sync ticker frames with mainFrame visibility
+mainFrame:HookScript("OnShow", function()
+    updateFrame:Show()
+    auraFrame:Show()
+end)
+mainFrame:HookScript("OnHide", function()
+    updateFrame:Hide()
+    auraFrame:Hide()
 end)
 
 -- =====================================

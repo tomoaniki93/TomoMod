@@ -465,33 +465,42 @@ end
 -- [PERF] Forward-declare throttleFrame (created below) so event closures can reference it
 local throttleFrame
 
+-- [PERF] Named deferred functions — avoids closure allocation per event
+local function OnEnterWorld_Deferred()
+    for _, f in pairs(frames) do UpdateFrame(f) end
+    if frames.targettarget and UnitExists("target") then
+        throttleFrame:Show()
+    end
+end
+
+local function OnTargetChanged_Deferred()
+    if frames.target then UpdateFrame(frames.target) end
+    if frames.targettarget then UpdateFrame(frames.targettarget) end
+    if frames.targettarget and UnitExists("target") then
+        throttleFrame:Show()
+    else
+        throttleFrame:Hide()
+    end
+end
+
+local function OnFocusChanged_Deferred()
+    if frames.focus then UpdateFrame(frames.focus) end
+end
+
+local function OnPetChanged_Deferred()
+    UpdateFrame(frames.pet)
+end
+
 eventFrame:SetScript("OnEvent", function(self, event, unit)
     if event == "PLAYER_ENTERING_WORLD" then
-        C_Timer.After(0, function()
-            for _, f in pairs(frames) do UpdateFrame(f) end
-            -- [PERF] Enable ToT throttle if target exists
-            if frames.targettarget and UnitExists("target") then
-                throttleFrame:Show()
-            end
-        end)
+        C_Timer.After(0, OnEnterWorld_Deferred)
     elseif event == "PLAYER_TARGET_CHANGED" then
-        C_Timer.After(0, function()
-            if frames.target then UpdateFrame(frames.target) end
-            if frames.targettarget then UpdateFrame(frames.targettarget) end
-            -- [PERF] Enable/disable ToT throttle based on target existence
-            if frames.targettarget and UnitExists("target") then
-                throttleFrame:Show()
-            else
-                throttleFrame:Hide()
-            end
-        end)
+        C_Timer.After(0, OnTargetChanged_Deferred)
     elseif event == "PLAYER_FOCUS_CHANGED" then
-        C_Timer.After(0, function()
-            if frames.focus then UpdateFrame(frames.focus) end
-        end)
+        C_Timer.After(0, OnFocusChanged_Deferred)
     elseif event == "UNIT_PET" then
         if frames.pet then
-            C_Timer.After(0, function() UpdateFrame(frames.pet) end)
+            C_Timer.After(0, OnPetChanged_Deferred)
         end
     elseif event == "RAID_TARGET_UPDATE" then
         for _, f in pairs(frames) do UpdateRaidIcon(f) end

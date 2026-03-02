@@ -123,6 +123,53 @@ local function DB()
     return TomoModDB and TomoModDB.nameplates or {}
 end
 
+-- [PERF] Reusable table for GetAuraSlots vararg capture (avoids table alloc per plate)
+local _npSlotResults = {}
+local function CaptureSlots(dest, ...)
+    wipe(dest)
+    for i = 1, select("#", ...) do
+        dest[i] = select(i, ...)
+    end
+    return dest
+end
+
+-- [PERF] Hoisted enemy buff processor — avoids closure creation per nameplate
+local _ebBuffIndex = 0
+local _ebPlate = nil
+local _ebUnit = nil
+local _ebMaxBuffs = 0
+local function ProcessEnemyBuffSlots(token, ...)
+    for i = 1, select("#", ...) do
+        if _ebBuffIndex >= _ebMaxBuffs then return end
+        local slot = select(i, ...)
+        if not slot then return end
+        local data = C_UnitAuras.GetAuraDataBySlot(_ebUnit, slot)
+        if data then
+            _ebBuffIndex = _ebBuffIndex + 1
+            local buffFrame = _ebPlate.enemyBuffs[_ebBuffIndex]
+            if buffFrame then
+                buffFrame.icon:SetTexture(data.icon)
+                local durObj = C_UnitAuras.GetAuraDuration(_ebUnit, data.auraInstanceID)
+                buffFrame._auraUnit = _ebUnit
+                buffFrame._auraInstanceID = data.auraInstanceID
+                if durObj then
+                    buffFrame.cooldown:Hide()
+                    if buffFrame.duration then
+                        buffFrame.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
+                        buffFrame.duration:Show()
+                    end
+                else
+                    buffFrame.cooldown:Hide()
+                    if buffFrame.duration then buffFrame.duration:Hide() end
+                end
+                local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(_ebUnit, data.auraInstanceID, 2, 1000)
+                buffFrame.count:SetText(stackStr or "")
+                buffFrame:Show()
+            end
+        end
+    end
+end
+
 -- =====================================
 -- BORDER HELPERS (9-slice rounded)
 -- =====================================
@@ -1174,11 +1221,11 @@ local function UpdatePlate(plate, unit)
         local auraFilter = "HARMFUL"
         if s.showOnlyMyAuras then auraFilter = "HARMFUL|PLAYER" end
 
-        local results = {C_UnitAuras.GetAuraSlots(unit, auraFilter)}
+        CaptureSlots(_npSlotResults, C_UnitAuras.GetAuraSlots(unit, auraFilter))
         local slotIdx = 2
-        while results[slotIdx] do
+        while _npSlotResults[slotIdx] do
             if auraIndex >= maxAuras then break end
-            local data = C_UnitAuras.GetAuraDataBySlot(unit, results[slotIdx])
+            local data = C_UnitAuras.GetAuraDataBySlot(unit, _npSlotResults[slotIdx])
             if data then
                 auraIndex = auraIndex + 1
                 local auraFrame = plate.auras[auraIndex]
@@ -1214,42 +1261,13 @@ local function UpdatePlate(plate, unit)
 
     -- Enemy Buffs
     if s.showEnemyBuffs and plate.enemyBuffs and UnitCanAttack("player", unit) then
-        local buffIndex = 0
-        local maxEnemyBuffs = s.maxEnemyBuffs or 4
         for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
 
-        local function processBuffSlots(token, ...)
-            for i = 1, select("#", ...) do
-                if buffIndex >= maxEnemyBuffs then return end
-                local slot = select(i, ...)
-                if not slot then return end
-                local data = C_UnitAuras.GetAuraDataBySlot(unit, slot)
-                if data then
-                    buffIndex = buffIndex + 1
-                    local buffFrame = plate.enemyBuffs[buffIndex]
-                    if buffFrame then
-                        buffFrame.icon:SetTexture(data.icon)
-                        local durObj = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
-                        buffFrame._auraUnit = unit
-                        buffFrame._auraInstanceID = data.auraInstanceID
-                        if durObj then
-                            buffFrame.cooldown:Hide()
-                            if buffFrame.duration then
-                                buffFrame.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
-                                buffFrame.duration:Show()
-                            end
-                        else
-                            buffFrame.cooldown:Hide()
-                            if buffFrame.duration then buffFrame.duration:Hide() end
-                        end
-                        local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(unit, data.auraInstanceID, 2, 1000)
-                        buffFrame.count:SetText(stackStr or "")
-                        buffFrame:Show()
-                    end
-                end
-            end
-        end
-        processBuffSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
+        _ebBuffIndex = 0
+        _ebPlate = plate
+        _ebUnit = unit
+        _ebMaxBuffs = s.maxEnemyBuffs or 4
+        ProcessEnemyBuffSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
     elseif plate.enemyBuffs then
         for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
     end
@@ -1560,6 +1578,28 @@ local function UnregisterNPUnitEvents(unit)
     end
 end
 
+-- [PERF] Named deferred function for target changed (avoids closure alloc per event)
+local function OnTargetChanged_Deferred()
+    local s = DB()
+    for u, p in pairs(unitPlates) do
+        local np = C_NamePlate.GetNamePlateForUnit(u)
+        if np then
+            local isTarget = UnitIsUnit(u, "target")
+            np:SetAlpha(isTarget and (s.selectedAlpha or 1) or (s.unselectedAlpha or 0.8))
+            if p.glowFrame then
+                if isTarget then p.glowFrame:Show() else p.glowFrame:Hide() end
+            end
+            if p.targetArrowLeft and p.targetArrowRight then
+                if isTarget then
+                    p.targetArrowLeft:Show(); p.targetArrowRight:Show()
+                else
+                    p.targetArrowLeft:Hide(); p.targetArrowRight:Hide()
+                end
+            end
+        end
+    end
+end
+
 -- NOTE: Events are NOT registered here at file scope.
 -- All event registration happens in NP.Enable() to prevent
 -- plates being created before the module is initialized.
@@ -1573,26 +1613,7 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
         UnregisterNPUnitEvents(unit)
         OnNamePlateRemoved(unit)
     elseif event == "PLAYER_TARGET_CHANGED" then
-        C_Timer.After(0, function()
-            local s = DB()
-            for u, p in pairs(unitPlates) do
-                local np = C_NamePlate.GetNamePlateForUnit(u)
-                if np then
-                    local isTarget = UnitIsUnit(u, "target")
-                    np:SetAlpha(isTarget and (s.selectedAlpha or 1) or (s.unselectedAlpha or 0.8))
-                    if p.glowFrame then
-                        if isTarget then p.glowFrame:Show() else p.glowFrame:Hide() end
-                    end
-                    if p.targetArrowLeft and p.targetArrowRight then
-                        if isTarget then
-                            p.targetArrowLeft:Show(); p.targetArrowRight:Show()
-                        else
-                            p.targetArrowLeft:Hide(); p.targetArrowRight:Hide()
-                        end
-                    end
-                end
-            end
-        end)
+        C_Timer.After(0, OnTargetChanged_Deferred)
     elseif event == "UPDATE_MOUSEOVER_UNIT" then
         for u, p in pairs(unitPlates) do
             if p.highlight then
