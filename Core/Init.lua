@@ -58,19 +58,29 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if TomoMod_SkyRide then
             TomoMod_SkyRide.Initialize()
         end
+    elseif msg == "layout" or msg == "l" then
+        -- Nouveau système unifié — ouvre le mode Layout pour tout déplacer
+        if TomoMod_Movers and TomoMod_Movers.Toggle then
+            TomoMod_Movers.Toggle()
+        end
     elseif msg == "skyride toggle" or msg == "sr" then
-        if TomoMod_SkyRide and TomoMod_SkyRide.ToggleLock then
-            TomoMod_SkyRide.ToggleLock()
-        end
-        if TomoMod_FrameAnchors and TomoMod_FrameAnchors.ToggleLock then
-            TomoMod_FrameAnchors.ToggleLock()
-        end
-        -- Player castbar (standalone drag & drop)
-        if TomoMod_UnitFrames and TomoMod_UnitFrames.TogglePlayerCastbarLock then
-            TomoMod_UnitFrames.TogglePlayerCastbarLock()
-        end
-        if TomoMod_LevelingBar and TomoMod_LevelingBar.ToggleLock then
-            TomoMod_LevelingBar.ToggleLock()
+        -- Rétrocompat: sr active aussi le mode Layout complet
+        if TomoMod_Movers and TomoMod_Movers.Toggle then
+            TomoMod_Movers.Toggle()
+        else
+            -- Fallback legacy
+            if TomoMod_SkyRide and TomoMod_SkyRide.ToggleLock then
+                TomoMod_SkyRide.ToggleLock()
+            end
+            if TomoMod_FrameAnchors and TomoMod_FrameAnchors.ToggleLock then
+                TomoMod_FrameAnchors.ToggleLock()
+            end
+            if TomoMod_UnitFrames and TomoMod_UnitFrames.TogglePlayerCastbarLock then
+                TomoMod_UnitFrames.TogglePlayerCastbarLock()
+            end
+            if TomoMod_LevelingBar and TomoMod_LevelingBar.ToggleLock then
+                TomoMod_LevelingBar.ToggleLock()
+            end
         end
     elseif msg == "cdm" or msg == "ci" then
         if TomoMod_CooldownManager then
@@ -78,11 +88,16 @@ SlashCmdList["TOMOMOD"] = function(msg)
             print("|cff0cd29fTomoMod CDM:|r " .. (enabled and L["msg_cdm_status"] or L["msg_cdm_disabled"]))
         end
     elseif msg == "uf" or msg == "unitframes" then
-        if TomoMod_UnitFrames and TomoMod_UnitFrames.ToggleLock then
-            TomoMod_UnitFrames.ToggleLock()
-        end
-        if TomoMod_ResourceBars and TomoMod_ResourceBars.ToggleLock then
-            TomoMod_ResourceBars.ToggleLock()
+        -- Rétrocompat: redirige vers le Layout Mode unifié
+        if TomoMod_Movers and TomoMod_Movers.Toggle then
+            TomoMod_Movers.Toggle()
+        else
+            if TomoMod_UnitFrames and TomoMod_UnitFrames.ToggleLock then
+                TomoMod_UnitFrames.ToggleLock()
+            end
+            if TomoMod_ResourceBars and TomoMod_ResourceBars.ToggleLock then
+                TomoMod_ResourceBars.ToggleLock()
+            end
         end
     elseif msg == "rb" or msg == "resource" then
         if TomoMod_ResourceBars and TomoMod_ResourceBars.ToggleLock then
@@ -186,6 +201,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         end
     elseif msg == "help" or msg == "?" then
         print("|cff0cd29fTomoMod|r " .. L["msg_help_title"])
+        print("  |cff0cd29f/tm layout|r — " .. L["msg_help_layout"])
         print("  |cff0cd29f/tm|r — " .. L["msg_help_open"])
         print("  |cff0cd29f/tm reset|r — " .. L["msg_help_reset"])
         print("  |cff0cd29f/tm uf|r — " .. L["msg_help_uf"])
@@ -258,6 +274,9 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_BossFrames then TomoMod_BossFrames.Initialize() end
         if TomoMod_Nameplates then TomoMod_Nameplates.Initialize() end
         if TomoMod_ResourceBars then TomoMod_ResourceBars.Initialize() end
+
+        -- Layout Mover System (doit être après tous les autres modules)
+        if TomoMod_Movers then TomoMod_Movers.Initialize() end
 
         -- Welcome
         local r, g, b = TomoMod_Utils.GetClassColor()

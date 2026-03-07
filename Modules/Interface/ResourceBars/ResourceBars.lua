@@ -1003,6 +1003,12 @@ function RB.SetEnabled(enabled)
     end
 end
 
+function RB.IsLocked()
+    if not container then return true end
+    if container.IsLocked then return container:IsLocked() end
+    return true
+end
+
 function RB.ToggleLock()
     if not container then return end
     if container.SetLocked then

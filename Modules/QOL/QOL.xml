@@ -52,6 +52,7 @@
 
     <!-- Modules: Skins -->
     <Include file="Skins\CharacterSkin.lua" />
- 
+    <!-- Modules: Movers (Layout System — doit être en dernier) -->
+    <Include file="Movers\Movers.lua" />
 
 </Ui>

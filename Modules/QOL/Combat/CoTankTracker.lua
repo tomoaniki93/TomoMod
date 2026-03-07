@@ -250,10 +250,9 @@ local function UpdateHealth()
     end
     nameText:SetText(name)
 
-    -- Texte HP %
+    -- Texte HP % — UnitHealthPercent est C-side, pas d'arithmétique Lua sur secret values
     if db and db.showHPPercent then
-        local pct = hpMax > 0 and math.floor(hp / hpMax * 100) or 0
-        hpText:SetText(pct .. "%")
+        hpText:SetFormattedText("%d%%", UnitHealthPercent(currentTank))
     else
         hpText:SetText("")
     end

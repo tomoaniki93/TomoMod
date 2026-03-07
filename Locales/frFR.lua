@@ -730,4 +730,38 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_char_skin_midnight"]          = "Enchantements Midnight (Tête/Épaules au lieu de Brassard/Cape)",
     ["opt_char_skin_scale"]             = "Échelle de la fenêtre",
     ["msg_char_skin_reload"]            = "Skin Personnage : /reload pour appliquer.",
+
+    -- =====================
+    -- LAYOUT / MOVERS SYSTEM
+    -- =====================
+    ["btn_layout"]                      = "Layout",
+    ["btn_layout_tooltip"]              = "Mode Layout : déverrouille tous les éléments pour les déplacer.",
+    ["btn_reload_ui"]                   = "Recharger l'UI",
+    ["layout_mode_title"]               = "TomoMod — Mode Layout",
+    ["layout_mode_hint"]                = "Glissez les éléments pour les repositionner — cliquez Verrouiller quand c'est fait",
+    ["layout_btn_lock"]                 = "Verrouiller",
+    ["layout_btn_reload"]               = "RL",
+    ["grid_dimmed"]                    = "Grille",
+    ["grid_bright"]                    = "Grille +",
+    ["grid_disabled"]                  = "Grille OFF",
+    ["layout_unlocked"]                 = "Mode Layout ACTIF — glissez les éléments. Cliquez Verrouiller ou /tm layout pour finir.",
+    ["layout_locked"]                   = "Mode Layout DÉSACTIVÉ — positions sauvegardées.",
+    ["msg_help_layout"]                 = "Basculer le Mode Layout (déplacer tous les éléments UI)",
+    ["mover_unitframes"]                = "Unit Frames",
+    ["mover_resources"]                 = "Barres de ressources",
+    ["mover_skyriding"]                 = "Barre Skyriding",
+    ["mover_levelingbar"]               = "Barre XP / Expérience",
+    ["mover_anchors"]                   = "Ancres Alertes & Butin",
+    ["mover_cotank"]                    = "Suivi Co-Tank",
+    ["mover_battletext"]             = "Zones Battle Text",
+
+    -- =====================
+    -- DAMAGE METER SKIN
+    -- =====================
+
+
+
+
+
+
 })

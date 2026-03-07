@@ -104,23 +104,26 @@ local function GetNameplateStyleColor(unit)
     end
 
     -- Tank/DPS threat coloring (instanced content)
+    -- UnitThreatSituation retourne un int 0-3 (safe), pas de secret values
     if npDB.tankMode and InRealInstancedContent() then
         local tankColors = npDB.tankColors
         if tankColors then
-            local isTanking, status = UnitDetailedThreatSituation("player", unit)
+            local status = UnitThreatSituation("player", unit)
             if status then
                 local role = UnitGroupRolesAssigned("player")
                 local isTankRole = (role == "TANK")
+                -- status: 0=no threat, 1=lower threat, 2=tanking lower, 3=tanking
+                local isTanking = (status == 3 or status == 2)
                 if isTankRole then
                     if isTanking then
                         local c = tankColors.hasThreat; return c.r, c.g, c.b
-                    elseif status >= 2 then
+                    elseif status >= 1 then
                         local c = tankColors.lowThreat; return c.r, c.g, c.b
                     else
                         local c = tankColors.noThreat; return c.r, c.g, c.b
                     end
                 else
-                    if isTanking then
+                    if status == 3 then
                         local c = tankColors.dpsHasAggro or tankColors.noThreat; return c.r, c.g, c.b
                     elseif status >= 2 then
                         local c = tankColors.dpsNearAggro or tankColors.lowThreat; return c.r, c.g, c.b

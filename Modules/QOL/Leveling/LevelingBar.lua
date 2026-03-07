@@ -462,6 +462,10 @@ end
 -- LOCK / UNLOCK (via /tm sr)
 -- =====================================
 
+function LB.IsLocked()
+    return isLocked
+end
+
 function LB.ToggleLock()
     if not barFrame then return end
     isLocked = not isLocked

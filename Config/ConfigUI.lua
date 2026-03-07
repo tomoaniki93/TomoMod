@@ -82,9 +82,111 @@ local function CreateConfigFrame()
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -1)
     versionText:SetTextColor(unpack(T.textDim))
-    versionText:SetText("v2.2.8")
+    versionText:SetText("v2.3.0")
 
-    -- Close button
+    -- =====================================
+    -- RELOAD UI BUTTON (↺)  — positioned after close is created
+    -- =====================================
+    local rlBtn = CreateFrame("Button", nil, titleBar, "BackdropTemplate")
+    rlBtn:SetSize(44, 24)
+    -- Position set after closeBtn is created below
+    rlBtn:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = 1,
+    })
+    rlBtn:SetBackdropColor(0.10, 0.08, 0.04, 0.8)
+    rlBtn:SetBackdropBorderColor(0.6, 0.42, 0.08, 0.7)
+
+    -- [FIX] ↺ (U+21BA) hors de Tomo.ttf → invisible. Utiliser icône texture + texte "RL".
+    local rlBtnIcon = rlBtn:CreateTexture(nil, "OVERLAY")
+    rlBtnIcon:SetSize(13, 13)
+    rlBtnIcon:SetPoint("LEFT", rlBtn, "LEFT", 6, 0)
+    rlBtnIcon:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\icon_reload.tga")
+    rlBtnIcon:SetVertexColor(0.85, 0.65, 0.20)
+
+    local rlTxt = rlBtn:CreateFontString(nil, "OVERLAY")
+    rlTxt:SetFont(FONT, 11, "")
+    rlTxt:SetPoint("LEFT", rlBtnIcon, "RIGHT", 4, 0)
+    rlTxt:SetText("RL")
+    rlTxt:SetTextColor(0.85, 0.65, 0.20)
+
+    rlBtn:SetScript("OnEnter", function()
+        rlBtn:SetBackdropBorderColor(1, 0.80, 0.25, 1)
+        rlTxt:SetTextColor(1, 0.90, 0.40)
+        rlBtnIcon:SetVertexColor(1, 0.90, 0.40)
+        GameTooltip:SetOwner(rlBtn, "ANCHOR_BOTTOM")
+        GameTooltip:SetText(L["btn_reload_ui"] or "Reload UI", 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    rlBtn:SetScript("OnLeave", function()
+        rlBtn:SetBackdropBorderColor(0.6, 0.42, 0.08, 0.7)
+        rlTxt:SetTextColor(0.85, 0.65, 0.20)
+        rlBtnIcon:SetVertexColor(0.85, 0.65, 0.20)
+        GameTooltip:Hide()
+    end)
+    rlBtn:SetScript("OnClick", function() ReloadUI() end)
+
+    -- =====================================
+    -- LAYOUT BUTTON (⊹ Layout)
+    -- =====================================
+    local layoutBtn = CreateFrame("Button", nil, titleBar, "BackdropTemplate")
+    layoutBtn:SetSize(80, 24)
+    layoutBtn:SetPoint("RIGHT", rlBtn, "LEFT", -6, 0)
+    layoutBtn:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = 1,
+    })
+
+    local function UpdateLayoutBtnStyle()
+        local unlocked = TomoMod_Movers and TomoMod_Movers.IsUnlocked and TomoMod_Movers.IsUnlocked()
+        if unlocked then
+            layoutBtn:SetBackdropColor(0.03, 0.20, 0.14, 0.9)
+            layoutBtn:SetBackdropBorderColor(0.05, 0.82, 0.62, 1)
+        else
+            layoutBtn:SetBackdropColor(0.06, 0.06, 0.09, 0.8)
+            layoutBtn:SetBackdropBorderColor(0.20, 0.20, 0.24, 0.8)
+        end
+    end
+
+    UpdateLayoutBtnStyle()
+
+    -- [FIX] ⊹ (U+2609) hors de Tomo.ttf → icône texture + texte plain
+    local layoutBtnIcon = layoutBtn:CreateTexture(nil, "OVERLAY")
+    layoutBtnIcon:SetSize(13, 13)
+    layoutBtnIcon:SetPoint("LEFT", layoutBtn, "LEFT", 7, 0)
+    layoutBtnIcon:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\icon_layout.tga")
+    layoutBtnIcon:SetVertexColor(0.05, 0.82, 0.62)
+
+    local layoutTxt = layoutBtn:CreateFontString(nil, "OVERLAY")
+    layoutTxt:SetFont(FONT, 11, "")
+    layoutTxt:SetPoint("LEFT", layoutBtnIcon, "RIGHT", 5, 0)
+    layoutTxt:SetText("Layout")
+    layoutTxt:SetTextColor(0.05, 0.82, 0.62)
+
+    layoutBtn:SetScript("OnEnter", function()
+        layoutBtn:SetBackdropBorderColor(0.05, 0.82, 0.62, 1)
+        layoutTxt:SetTextColor(1, 1, 1)
+        layoutBtnIcon:SetVertexColor(1, 1, 1)
+        GameTooltip:SetOwner(layoutBtn, "ANCHOR_BOTTOM")
+        GameTooltip:SetText(L["btn_layout_tooltip"] or "Toggle Layout Mode\nDrag all UI elements", 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    layoutBtn:SetScript("OnLeave", function()
+        UpdateLayoutBtnStyle()
+        layoutTxt:SetTextColor(0.05, 0.82, 0.62)
+        layoutBtnIcon:SetVertexColor(0.05, 0.82, 0.62)
+        GameTooltip:Hide()
+    end)
+    layoutBtn:SetScript("OnClick", function()
+        if TomoMod_Movers and TomoMod_Movers.Toggle then
+            TomoMod_Movers.Toggle()
+        end
+        UpdateLayoutBtnStyle()
+    end)
+
+    -- Close button (far right)
     local closeBtn = CreateFrame("Button", nil, titleBar)
     closeBtn:SetSize(32, 32)
     closeBtn:SetPoint("RIGHT", -6, 0)
@@ -99,6 +201,10 @@ local function CreateConfigFrame()
     closeBtn:SetScript("OnLeave", function() closeTxt:SetTextColor(unpack(T.textDim)) end)
     closeBtn:SetScript("OnClick", function() configFrame:Hide() end)
 
+    -- RL button: juste à gauche du close
+    rlBtn:SetPoint("RIGHT", closeBtn, "LEFT", -4, 0)
+
+    -- Layout button: juste à gauche du RL
     -- Title bar separator
     local titleSep = configFrame:CreateTexture(nil, "ARTWORK")
     titleSep:SetHeight(1)

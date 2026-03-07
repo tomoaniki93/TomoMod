@@ -561,6 +561,10 @@ end
 -- PUBLIC API
 -- =====================================
 
+function UF.IsLocked()
+    return isLocked
+end
+
 function UF.ToggleLock()
     isLocked = not isLocked
 

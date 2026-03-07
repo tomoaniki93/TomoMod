@@ -1077,6 +1077,68 @@ questEventFrame:SetScript("OnEvent", function()
 end)
 
 -- =====================================
+-- Extraction de la partie aura de UpdatePlate dans sa propre fonction
+local function UpdatePlateAuras(plate, unit)
+    local s = DB()
+    if not s then return end
+
+    if s.showAuras then
+        local auraIndex = 0
+        local maxAuras = s.maxAuras or 5
+        local auraFilter = "HARMFUL"
+        if s.showOnlyMyAuras then auraFilter = "HARMFUL|PLAYER" end
+
+        CaptureSlots(_npSlotResults, C_UnitAuras.GetAuraSlots(unit, auraFilter))
+        local slotIdx = 2
+        while _npSlotResults[slotIdx] do
+            if auraIndex >= maxAuras then break end
+            local data = C_UnitAuras.GetAuraDataBySlot(unit, _npSlotResults[slotIdx])
+            if data then
+                auraIndex = auraIndex + 1
+                local auraFrame = plate.auras[auraIndex]
+                if auraFrame then
+                    auraFrame.icon:SetTexture(data.icon)
+                    local durObj = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
+                    auraFrame._auraUnit = unit
+                    auraFrame._auraInstanceID = data.auraInstanceID
+                    if durObj then
+                        auraFrame.cooldown:Hide()
+                        if auraFrame.duration then
+                            auraFrame.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
+                            auraFrame.duration:Show()
+                        end
+                    else
+                        auraFrame.cooldown:Hide()
+                        if auraFrame.duration then auraFrame.duration:Hide() end
+                    end
+                    local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(unit, data.auraInstanceID, 2, 1000)
+                    auraFrame.count:SetText(stackStr or "")
+                    auraFrame.count:Show()
+                    auraFrame:Show()
+                end
+            end
+            slotIdx = slotIdx + 1
+        end
+        for i = auraIndex + 1, maxAuras do
+            if plate.auras[i] then plate.auras[i]:Hide() end
+        end
+    else
+        for _, a in ipairs(plate.auras) do a:Hide() end
+    end
+
+    if s.showEnemyBuffs and plate.enemyBuffs and UnitCanAttack("player", unit) then
+        for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
+        _ebBuffIndex = 0
+        _ebPlate = plate
+        _ebUnit = unit
+        _ebMaxBuffs = s.maxEnemyBuffs or 4
+        ProcessEnemyBuffSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
+    elseif plate.enemyBuffs then
+        for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
+    end
+end
+
+-- =====================================
 -- MAIN PLATE UPDATE
 -- =====================================
 
@@ -1214,63 +1276,8 @@ local function UpdatePlate(plate, unit)
         end
     end
 
-    -- Auras
-    if s.showAuras then
-        local auraIndex = 0
-        local maxAuras = s.maxAuras or 5
-        local auraFilter = "HARMFUL"
-        if s.showOnlyMyAuras then auraFilter = "HARMFUL|PLAYER" end
-
-        CaptureSlots(_npSlotResults, C_UnitAuras.GetAuraSlots(unit, auraFilter))
-        local slotIdx = 2
-        while _npSlotResults[slotIdx] do
-            if auraIndex >= maxAuras then break end
-            local data = C_UnitAuras.GetAuraDataBySlot(unit, _npSlotResults[slotIdx])
-            if data then
-                auraIndex = auraIndex + 1
-                local auraFrame = plate.auras[auraIndex]
-                if auraFrame then
-                    auraFrame.icon:SetTexture(data.icon)
-                    local durObj = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
-                    auraFrame._auraUnit = unit
-                    auraFrame._auraInstanceID = data.auraInstanceID
-                    if durObj then
-                        auraFrame.cooldown:Hide()
-                        if auraFrame.duration then
-                            auraFrame.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
-                            auraFrame.duration:Show()
-                        end
-                    else
-                        auraFrame.cooldown:Hide()
-                        if auraFrame.duration then auraFrame.duration:Hide() end
-                    end
-                    local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(unit, data.auraInstanceID, 2, 1000)
-                    auraFrame.count:SetText(stackStr or "")
-                    auraFrame.count:Show()
-                    auraFrame:Show()
-                end
-            end
-            slotIdx = slotIdx + 1
-        end
-        for i = auraIndex + 1, maxAuras do
-            if plate.auras[i] then plate.auras[i]:Hide() end
-        end
-    else
-        for _, a in ipairs(plate.auras) do a:Hide() end
-    end
-
-    -- Enemy Buffs
-    if s.showEnemyBuffs and plate.enemyBuffs and UnitCanAttack("player", unit) then
-        for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
-
-        _ebBuffIndex = 0
-        _ebPlate = plate
-        _ebUnit = unit
-        _ebMaxBuffs = s.maxEnemyBuffs or 4
-        ProcessEnemyBuffSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
-    elseif plate.enemyBuffs then
-        for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
-    end
+    -- Auras + Enemy Buffs — déléguées à UpdatePlateAuras (partagé avec le dirty auras-only)
+    UpdatePlateAuras(plate, unit)
 end
 
 -- =====================================
@@ -1475,24 +1482,36 @@ local npUnitEvents = {
 }
 
 -- [PERF] Dirty-flag batch system: coalesce multiple events per unit into one update per frame
-local dirtyPlates = {}
+-- [PERF] Deux niveaux de dirty :
+--   dirtyFull  → UpdatePlate complet (health, name, level, threat, auras, alpha…)
+--   dirtyAuras → UpdatePlateAuras uniquement (UNIT_AURA)
+-- Sans ce split, UNIT_AURA déclenchait UpdatePlate complet sur 20+ plaques en même frame → pic CPU.
+local dirtyFull   = {}
+local dirtyAuras  = {}
 local dirtyCastbars = {}
+
+
 local dirtyBatchFrame = CreateFrame("Frame")
 dirtyBatchFrame:Hide()
 dirtyBatchFrame:SetScript("OnUpdate", function(self)
     self:Hide()
-    for unit in pairs(dirtyPlates) do
+    -- Plaques nécessitant un refresh complet
+    for unit in pairs(dirtyFull) do
         local p = unitPlates[unit]
-        if p then
-            UpdatePlate(p, unit)
-        end
+        if p then UpdatePlate(p, unit) end
+        dirtyAuras[unit] = nil  -- full update couvre déjà les auras
     end
-    wipe(dirtyPlates)
+    wipe(dirtyFull)
+    -- Plaques nécessitant uniquement une mise à jour des auras (UNIT_AURA)
+    for unit in pairs(dirtyAuras) do
+        local p = unitPlates[unit]
+        if p and p:IsVisible() then UpdatePlateAuras(p, unit) end
+    end
+    wipe(dirtyAuras)
+    -- Castbars
     for unit in pairs(dirtyCastbars) do
         local p = unitPlates[unit]
-        if p then
-            UpdateCastbar(p, unit)
-        end
+        if p then UpdateCastbar(p, unit) end
     end
     wipe(dirtyCastbars)
 end)
@@ -1500,11 +1519,14 @@ end)
 local function HandleNPUnitEvent(event, unit)
     if not unitPlates[unit] then return end
 
-    if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" or event == "UNIT_THREAT_SITUATION_UPDATE"
-        or event == "UNIT_FACTION" or event == "UNIT_AURA"
-        or event == "UNIT_ABSORB_AMOUNT_CHANGED" then
+    if event == "UNIT_AURA" then
+        -- [PERF] UNIT_AURA → seulement les auras, pas le plate complet
+        dirtyAuras[unit] = true
+        dirtyBatchFrame:Show()
+    elseif event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" or event == "UNIT_THREAT_SITUATION_UPDATE"
+        or event == "UNIT_FACTION" or event == "UNIT_ABSORB_AMOUNT_CHANGED" then
         -- [PERF] Mark dirty instead of creating a timer+closure per event
-        dirtyPlates[unit] = true
+        dirtyFull[unit] = true
         dirtyBatchFrame:Show()
     elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
         dirtyCastbars[unit] = true
@@ -1676,7 +1698,7 @@ function NP.Enable()
 
     if not NP._auraTicker then
         -- [PERF] 0.25s instead of 0.1s, skip invisible plates, use C-side SetFormattedText
-        NP._auraTicker = C_Timer.NewTicker(0.25, function()
+        NP._auraTicker = C_Timer.NewTicker(0.5, function() -- [PERF] 0.5s au lieu de 0.25
             for u, p in pairs(unitPlates) do
                 if p:IsVisible() then
                     if p.auras then

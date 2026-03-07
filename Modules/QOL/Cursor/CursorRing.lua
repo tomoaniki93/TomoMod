@@ -6,7 +6,6 @@ TomoMod_CursorRing = {}
 
 local cursorFrame
 local ringTexture
-local updateTimer = 0
 
 -- Créer le frame du cursor ring
 function TomoMod_CursorRing.Create()
@@ -23,16 +22,20 @@ function TomoMod_CursorRing.Create()
     ringTexture:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\Ring")
     ringTexture:SetBlendMode("ADD")
     
-    -- Update la position selon le curseur
-    -- [PERF] Frame is hidden when disabled; OnUpdate only runs when visible
-    cursorFrame:SetScript("OnUpdate", function(self, elapsed)
-        updateTimer = updateTimer + elapsed
-        if updateTimer >= 0.016 then -- [PERF] 60fps instead of 100fps
-            updateTimer = 0
-            local x, y = GetCursorPosition()
-            local scale = UIParent:GetEffectiveScale()
-            self:ClearAllPoints()
-            self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", x / scale, y / scale)
+    -- Update la position selon le curseur.
+    -- Inspiré de Ellesmere : tourne CHAQUE frame (pas de throttle) mais saute SetPoint
+    -- si la position pixel n'a pas changé → aucun overhead quand la souris est immobile.
+    -- math.floor(x/s + 0.5) snape à la grille pixel et évite le jitter sub-pixel.
+    -- Pas de ClearAllPoints → pas d'invalidation layout à chaque frame.
+    local lastPX, lastPY = nil, nil
+    cursorFrame:SetScript("OnUpdate", function(self)
+        local s = UIParent:GetEffectiveScale()
+        local x, y = GetCursorPosition()
+        local px = math.floor(x / s + 0.5)
+        local py = math.floor(y / s + 0.5)
+        if px ~= lastPX or py ~= lastPY then
+            lastPX, lastPY = px, py
+            self:SetPoint("CENTER", UIParent, "BOTTOMLEFT", px, py)
         end
     end)
     

@@ -1,6 +1,24 @@
 ## ####################################
 
-## CHANGELOG 2.2.5
+## CHANGELOG 2.3.0
+
+### Systeme Layout Unified (Movers)
+- New centralized system for moving all UI elements
+- Layout button in the Config panel title bar
+- The command `/tm layout` (alias `/tm l`) to enable/disable Layout mode
+- Floating header bar in Layout mode with Lock and Reload UI buttons
+- Replaces all separate commands: `/tm uf`, `/tm sr`, `/tm rb` now unlock via the unified system (backward compatible)
+- All elements unlocked in a single action: UnitFrames, BossFrames, ResourceBars, SkyRide, LevelingBar, FrameAnchors, CoTankTracker
+- RL (Reload UI) button added to the Config title bar for quick reloading
+- Animated transition, grid overlay
+
+### Ameliorations internes
+- Added `IsLocked()` to all mobile modules (UnitFrames, BossFrames, ResourceBars, LevelingBar)
+- Improved synchronization between layout mode and the actual state of modules 
+
+## ####################################
+
+## CHANGELOG 2.2.8
 
 - Fix Absent enchant
 - Fix Buffs on Target

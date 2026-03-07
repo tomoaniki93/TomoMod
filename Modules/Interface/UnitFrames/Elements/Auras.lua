@@ -548,7 +548,7 @@ function UF_Elements.StartAuraDurationUpdater(frames)
     if auraDurationTicker then return end
     -- TWW: C_UnitAuras.GetAuraDuration returns Duration objects with non-secret methods.
     -- [PERF] 0.2s instead of 0.1s — sufficient for numeric duration display
-    auraDurationTicker = C_Timer.NewTicker(0.2, function()
+    auraDurationTicker = C_Timer.NewTicker(0.5, function() -- [PERF] 0.5s: 2fps suffisant pour l'affichage durée
         for _, frame in pairs(frames) do
             -- Standard aura container (debuffs)
             if frame.auraContainer and frame.auraContainer:IsVisible() then
@@ -556,7 +556,7 @@ function UF_Elements.StartAuraDurationUpdater(frames)
                     if icon:IsShown() and icon.duration and icon._auraUnit and icon._auraInstanceID then
                         local durObj = C_UnitAuras.GetAuraDuration(icon._auraUnit, icon._auraInstanceID)
                         if durObj then
-                            icon.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                            icon.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
                         end
                     end
                 end
@@ -567,7 +567,7 @@ function UF_Elements.StartAuraDurationUpdater(frames)
                     if icon:IsShown() and icon.duration and icon._auraUnit and icon._auraInstanceID then
                         local durObj = C_UnitAuras.GetAuraDuration(icon._auraUnit, icon._auraInstanceID)
                         if durObj then
-                            icon.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                            icon.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
                         end
                     end
                 end

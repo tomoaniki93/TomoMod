@@ -748,4 +748,38 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_char_skin_midnight"]          = "Midnight Enchant Slots (Head/Shoulder instead of Wrist/Back)",
     ["opt_char_skin_scale"]             = "Window Scale",
     ["msg_char_skin_reload"]            = "Character Skin: /reload to apply changes.",
+
+    -- =====================
+    -- LAYOUT / MOVERS SYSTEM
+    -- =====================
+    ["btn_layout"]                      = "Layout",
+    ["btn_layout_tooltip"]              = "Layout Mode: unlock all UI elements to drag & reposition them.",
+    ["btn_reload_ui"]                   = "Reload UI",
+    ["layout_mode_title"]               = "TomoMod — Layout Mode",
+    ["layout_mode_hint"]                = "Drag elements to reposition — click Lock when done",
+    ["layout_btn_lock"]                 = "Lock",
+    ["layout_btn_reload"]               = "RL",
+    ["grid_dimmed"]                    = "Grid",
+    ["grid_bright"]                    = "Grid +",
+    ["grid_disabled"]                  = "Grid OFF",
+    ["layout_unlocked"]                 = "Layout Mode ON — drag elements to reposition. Click Lock or /tm layout when done.",
+    ["layout_locked"]                   = "Layout Mode OFF — positions saved.",
+    ["msg_help_layout"]                 = "Toggle Layout Mode (move all UI elements)",
+    ["mover_unitframes"]                = "Unit Frames",
+    ["mover_resources"]                 = "Resource Bars",
+    ["mover_skyriding"]                 = "Skyriding Bar",
+    ["mover_levelingbar"]               = "XP / Leveling Bar",
+    ["mover_anchors"]                   = "Alert & Loot Anchors",
+    ["mover_cotank"]                    = "CoTank Tracker",
+    ["mover_battletext"]             = "Battle Text Zones",
+
+    -- =====================
+    -- DAMAGE METER SKIN
+    -- =====================
+
+
+
+
+
+
 })

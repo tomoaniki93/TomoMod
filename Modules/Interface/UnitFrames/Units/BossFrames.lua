@@ -389,6 +389,10 @@ end)
 -- PUBLIC API
 -- =====================================
 
+function BF.IsLocked()
+    return isLocked
+end
+
 function BF.ToggleLock()
     isLocked = not isLocked
 
