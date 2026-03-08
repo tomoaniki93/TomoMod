@@ -26,7 +26,7 @@ Full replacement for Blizzard's unit frames with a clean, minimal aesthetic.
 - **Raid icons** on target
 - **Leader/Assistant icons** on player and target with configurable X/Y offset
 - **Health text formats:** current, percent, current+percent, current/max, deficit
-- **Drag-to-move** with `/tm uf` — unlock all frames, reposition freely, lock again
+- **Drag-to-move** via Layout Mode — unlock all frames, reposition freely, lock again
 - **Per-unit configuration** — enable/disable, dimensions, offsets for each element
 - **Blizzard frames hidden** automatically when custom frames are enabled
 
@@ -44,7 +44,7 @@ Comprehensive class resource display system sitting below the action bars.
 - **Fully configurable:** width, height, scale, text alignment (L/C/R), font, font size
 - **All resource colors editable** individually in the config panel
 - **Width sync** with Cooldown Manager via `/tm rb sync`
-- **Draggable** via `/tm uf` or `/tm rb`
+- **Draggable** via Layout Mode or `/tm rb`
 
 ### 🔲 Nameplates
 
@@ -60,6 +60,7 @@ Custom nameplate system replacing Blizzard's default nameplates.
 - **Overlap and inset** settings for fine-tuning plate stacking
 - **Per-unit event registration** — no global `UNIT_*` events, completely taint-free
 - **Friendly plates** toggle
+- **Optimized UNIT_AURA handling** — split into two dirty levels: full update only for health/threat events, aura-only update for buff/debuff ticks (significant CPU reduction in raids)
 
 ### ⚡ Cooldown Manager (CDM)
 
@@ -73,23 +74,41 @@ Reskins Blizzard's cooldown icons (Essential, Utility, Buffs) with a clean, unif
 - **3-level alpha system:** in combat (1.0), with target out of combat (0.8), no target (0.5) — all configurable
 - **Blizzard Edit Mode** used for positioning — no custom position system needed
 
-## 🎨 Action Bars
-
-### ActionBarSkin
+### 🎨 Action Bars
 
 Complete reskin of action buttons with 9-slice borders.
 
 - **Rounded borders** for all buttons (10 bars supported)
 - **Optional class color** for borders
-- **Opacity per bar**: Individual slider for each action bar (0-100%)
-- Bar selection dropdown
-- "Apply to all" button to standardize
-- **🆕 Shift Reveal**: Hold `Shift` to temporarily reveal all hidden bars at 100% opacity — releasing restores the configured values
+- **Opacity per bar:** individual slider for each action bar (0–100%)
+- **Shift Reveal:** hold `Shift` to temporarily reveal all hidden bars at 100% opacity — releasing restores configured values
 - Removal of Blizzard's NormalTexture, SlotArt, and Border textures
 
-**Supported bars:** Action Bar 1-8, Pet Bar, Stance Bar
+**Supported bars:** Action Bar 1–8, Pet Bar, Stance Bar
 
-### 🛠️ QOL Modules
+---
+
+### 🗺️ Layout Mode *(New in 2.3.0)*
+
+Centralized system to move and reposition all UI elements at once.
+
+- **Single toggle** unlocks every movable element simultaneously: UnitFrames, BossFrames, ResourceBars, SkyRide, LevelingBar, FrameAnchors, CoTankTracker
+- **Floating header bar** during Layout Mode with Lock, Reload UI, and Grid buttons
+- Activate with `/tm layout` (alias `/tm l`) or the **Layout** button in the Config panel header
+- Per-module slash commands (`/tm uf`, `/tm sr`, `/tm rb`) remain functional and route through the unified system
+
+### 🔲 Alignment Grid *(New in 2.3.0)*
+
+Full-screen grid overlay displayed while Layout Mode is active.
+
+- **Three modes** cycled via the Grid button in the Layout header: Grid (dimmed), Grid+ (bright), Grid OFF
+- Brighter center crosshair for pixel-perfect screen-center alignment
+- **Cursor flashlight effect** — grid lines near the cursor glow with a smooth radial falloff, making it easy to align frames to specific coordinates
+- Zero per-frame allocations — pre-allocated texture pool, no garbage on hover
+
+---
+
+### 🧩 QOL Modules
 
 #### Minimap
 - Square minimap with class-colored or black border
@@ -105,6 +124,7 @@ Complete reskin of action buttons with 9-slice borders.
 - Animated rotating ring following your cursor
 - Optional class color
 - Can anchor tooltip to cursor position
+- Per-frame pixel-position caching — zero layout invalidation
 
 #### Cinematic Skip
 - Automatically skips previously-seen cinematics
@@ -114,8 +134,7 @@ Complete reskin of action buttons with 9-slice borders.
 
 #### Frame Anchors
 - Movable anchors for AlertFrame and LootFrame
-- Invisible during gameplay, blue border when unlocked
-- Toggle lock with `/tm sr`
+- Invisible during gameplay, visible border when unlocked
 
 #### Skyriding Bar
 - Vigor tracking bar for Dragonriding/Skyriding
@@ -123,44 +142,42 @@ Complete reskin of action buttons with 9-slice borders.
 - Surge Forward and Skyward Ascent indicators
 - Fully configurable dimensions, colors, and position
 
-## MythicKeys — Clés Mythiques du Groupe
-
-Compact display of Mythic Keys for the entire group.
-
-- **Multi-protocol detection**: TMKeyTracker, AstralKeys, AngryKeystones, parsing chat links
-- **DataKeys.lua**: database of 80+ dungeons (WotLK → Midnight) for name resolution
-- **🆕 Teleportation Tab**: teleportation buttons for the 8 dungeons of the current Mythic+ season (S3 TWW)
-- Teleportation ownership detection (owned/locked)
-- Buttons are grayed out if the teleportation is locked
-- Anti-combat protection (secure lockdown)
-- Tabbed interface: Keys | Teleports
+#### MythicKeys
+- Compact display of Mythic Keys for the entire group
+- **Multi-protocol detection:** TMKeyTracker, AstralKeys, AngryKeystones, chat link parsing
+- **DataKeys.lua:** database of 80+ dungeons (WotLK → Midnight) for name resolution
+- **Teleportation Tab:** teleportation buttons for the 8 dungeons of the current Mythic+ season (S3 TWW)
+- Teleportation ownership detection (owned/locked), anti-combat protection
 - `/tm key` to show/hide
 
-### TooltipIDs
-
-Affiche les IDs dans les tooltips pour :
-
-- Sorts (SpellID)
-- Objets (ItemID)
-- PNJs (NPC ID)
-- Quêtes (QuestID)
-- Montures, Monnaies, Succès
-- Compatible TWW Secret Values
+#### TooltipIDs
+- Displays IDs in tooltips: SpellID, ItemID, NPC ID, QuestID, Mount, Currency, Achievement
+- Compatible with TWW Secret Values
 
 #### Auto Modules
+
 | Module | Description |
 |--------|-------------|
 | **AutoAcceptInvite** | Auto-accepts group invites from friends and guild members |
 | **AutoSummon** | Auto-accepts summons from friends/guild with configurable delay |
-| **AutoFillDelete** | Auto-fills "DELETE" in item destruction popups + focuses confirm button |
+| **AutoFillDelete** | Auto-fills "DELETE" in item destruction popups |
 | **AutoVendorRepair** | Sells grey items and auto-repairs gear at vendors |
 | **FastLoot** | Instant auto-loot on every loot window |
-| **HideCastBar** | Hides the default player castbar (useful with custom UF castbar) |
+| **HideCastBar** | Hides the default player castbar |
 | **HideTalkingHead** | Removes the TalkingHead popup frame |
-| **AutoQuest** | Auto-accept / auto-turn-in quests (hold Shift to override; won't auto-pick when multiple rewards) |
+| **AutoQuest** | Auto-accept / auto-turn-in quests (hold Shift to override) |
 
-#### Companion Status
-- Tracks and displays pet companion status with configurable icon/text display
+---
+
+## 🧷 Profile System *(Reworked in 2.3.0)*
+
+Named profiles, per-specialization assignment, and import/export.
+
+- **Named profiles** — create, rename, duplicate, delete
+- **Spec assignment** — each specialization maps to a named profile; changing spec automatically loads the assigned profile (specs point to profile names, so editing a profile reflects on all specs assigned to it)
+- **Auto-save** — active profile saved before every switch and on Config panel close
+- **Import / Export** — full-screen modal popup with compressed string (LibSerialize + LibDeflate); import can be saved as a new named profile without overwriting the active one
+- **Boot-time sync** — orphaned profiles automatically reconciled into the display list on login
 
 ---
 
@@ -171,11 +188,11 @@ Open the config panel with `/tm` — a custom dark-themed interface with sidebar
 | Tab | Contents |
 |-----|----------|
 | **General** | About, Minimap, Info Panel, Cursor Ring, Cinematic Skip, Frame Anchors |
-| **UnitFrames** | Per-unit tabs (Player, Target, ToT, Pet, Focus) with dimensions, elements, castbar, auras |
+| **UnitFrames** | Per-unit tabs with dimensions, elements, castbar, auras |
 | **Nameplates** | Enable/disable, dimensions, colors, classification, tank mode, auras, alpha |
 | **CD & Resource** | Cooldown Manager (enable, hotkeys, alpha), Resource Bars (visibility, dimensions, colors, text) |
 | **QOL / Auto** | SkyRide, Mythic Keys, AutoAcceptInvite, AutoSummon, AutoFillDelete, HideCastBar, AutoQuest |
-| **Profiles** | Per-specialization profiles, import/export (LibSerialize + LibDeflate encoded) |
+| **Profiles** | Named profiles, per-spec assignment, import/export |
 
 ---
 
@@ -186,7 +203,8 @@ Open the config panel with `/tm` — a custom dark-themed interface with sidebar
 | `/tm` or `/tomomod` | Open config panel |
 | `/tm help` | Show all commands |
 | `/tm reset` | Reset ALL settings + reload UI |
-| `/tm uf` | Toggle UnitFrames + ResourceBars lock (drag to reposition) |
+| `/tm layout` / `/tm l` | Toggle Layout Mode (move all elements at once) |
+| `/tm uf` | Toggle UnitFrames lock |
 | `/tm uf reset` | Reset UnitFrames to defaults + reload |
 | `/tm rb` | Toggle ResourceBars lock only |
 | `/tm rb sync` | Sync ResourceBars width with Cooldown Manager |
@@ -201,21 +219,15 @@ Open the config panel with `/tm` — a custom dark-themed interface with sidebar
 
 ---
 
-## 🔧 Technical Notes (TWW Compatibility)
+## 🔧 Technical Notes (TWW / Midnight Compatibility)
 
-TomoMod is designed from the ground up for **The War Within** API changes:
+TomoMod is built from the ground up for **The War Within** and **Midnight** API constraints:
 
-- **Secret Values:** Functions like `UnitHealth()`, `GetCooldownTimes()`, `UnitCastingInfo()` return opaque "secret numbers" in TWW. TomoMod handles these by:
-  - Using `type()` checks and `issecretvalue()` validation before any comparisons
-  - Passing secrets directly to C-side methods (`SetMinMaxValues`, `SetValue`, `SetAlpha`, `SetFormattedText`) which accept them natively
-  - Using `GetRemainingDuration(0)` for castbar timers
-  - Using `EvaluateColorValueFromBoolean` for interruptible state detection
-  - Arithmetic on secrets produces new secrets usable in C-side calls (cooldown timers, aura durations)
-
-- **Taint Prevention:** Zero global `RegisterEvent("UNIT_*")` calls. All unit events use `RegisterUnitEvent` scoped to specific managed units. Nameplates use dynamic per-unit registration on `NAME_PLATE_UNIT_ADDED` / `NAME_PLATE_UNIT_REMOVED`. This prevents addon handlers from tainting Blizzard's secure frame dispatch context.
-
-- **Edit Mode Compatible:** No interference with Blizzard's Edit Mode system. The Cooldown Manager delegates positioning entirely to Blizzard's native layout.
-
+- **Secret Values:** `UnitHealth()`, `GetCooldownTimes()`, `UnitCastingInfo()` return opaque secret numbers. TomoMod handles these by passing secrets directly to C-side methods (`SetMinMaxValues`, `SetValue`, `SetAlpha`, `SetFormattedText`) which accept them natively, and using `GetRemainingDuration(0)` for castbar timers.
+- **Threat:** Uses `UnitThreatSituation()` (safe int 0–3) instead of `UnitDetailedThreatSituation()` which returns tainted secret values.
+- **Taint Prevention:** Zero global `RegisterEvent("UNIT_*")` calls. All unit events use `RegisterUnitEvent` scoped to specific managed units. Nameplates use dynamic per-unit registration on `NAME_PLATE_UNIT_ADDED` / `NAME_PLATE_UNIT_REMOVED`.
+- **Memory Management:** No table or closure allocations inside OnUpdate handlers or ticker functions. Pre-allocated pools, `wipe()` reuse, and children caching throughout.
+- **Edit Mode Compatible:** No interference with Blizzard's Edit Mode system.
 - **Cross-realm Support:** Proper name normalization with `Ambiguate()` for Mythic Keys group tracking.
 
 ---
@@ -238,8 +250,8 @@ TomoMod is designed from the ground up for **The War Within** API changes:
 
 ## 📥 Installation
 
-1. Download the latest release
-2. Extract `TomoMod` folder into `World of Warcraft/_retail_/Interface/AddOns/`
+1. Download the latest release from CurseForge
+2. Extract the `TomoMod` folder into `World of Warcraft/_retail_/Interface/AddOns/`
 3. Restart WoW or type `/reload`
 4. Type `/tm` to open the configuration panel
 
@@ -251,4 +263,4 @@ Use the CurseForge project page to report bugs or suggest features.
 When reporting issues, please include:
 - Your class and specialization
 - Steps to reproduce the problem
-- Any error messages from BugSack/BugGrabber if available
+- Any error messages from BugSack / BugGrabber if available
