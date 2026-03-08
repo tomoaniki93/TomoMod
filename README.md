@@ -1,7 +1,5 @@
 # ![TomoMod](https://img.shields.io/badge/TomoMod-v2.3.1-0cd29f?style=for-the-badge) ![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120001-orange?style=for-the-badge)
 
-# ![TomoModMini](https://img.shields.io/badge/TomoModMini-v2.1.7-0cd29f?style=for-the-badge)
-
 # **TomoMod**
 
 **Lightweight, modular WoW addon** — Custom UnitFrames, Nameplates, Resource Bars, Cooldown Manager & 17+ QOL modules.
