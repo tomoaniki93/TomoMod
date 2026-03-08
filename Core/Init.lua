@@ -244,6 +244,18 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_Profiles then
             TomoMod_Profiles.EnsureProfilesDB()
             TomoMod_Profiles.InitSpecTracking()
+            -- Auto-save : sauvegarder le profil actif à la fermeture du panneau Config
+            C_Timer.After(1, function()
+                local configFrame = _G["TomoModConfigFrame"]
+                if configFrame and not configFrame._profileAutoSaveHooked then
+                    configFrame._profileAutoSaveHooked = true
+                    configFrame:HookScript("OnHide", function()
+                        if TomoMod_Profiles then
+                            TomoMod_Profiles.AutoSaveActiveProfile()
+                        end
+                    end)
+                end
+            end)
         end
 
         -- QOL Modules
