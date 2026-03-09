@@ -1,6 +1,7 @@
 -- =====================================
 -- TomoMod_SkyRide.lua
--- Module de barre Dragonriding/Skyriding
+-- Module de barre Skyriding — v2.3.1+
+-- Deux rangées : Vigor (6 charges) + Second Souffle (3 charges)
 -- =====================================
 
 TomoMod_SkyRide = TomoMod_SkyRide or {}
@@ -9,541 +10,623 @@ local SR = TomoMod_SkyRide
 -- =====================================
 -- CONSTANTES
 -- =====================================
-local SURGE_FORWARD_SPELL = 372608  -- Surge Forward (vitesse avant)
-local SKYWARD_ASCENT_SPELL = 425782 -- Skyward Ascent (ascension)
-local VIGOR_SPELL = 361584          -- Vigor (récupération)
+-- Vigor : IDs testés par ordre jusqu'au premier qui retourne des charges
+-- 404966 = Skyriding passive TWW, 425782 = Skyward Ascent, 404963 = Surge Forward
+-- IDs confirmés TWW
+-- Vigor (6 charges) : Accélération 372608 / Ascension 372610 — même pool partagé
+local VIGOR_SPELL_IDS = { 372608, 372610 }
+-- Second Souffle (3 charges) : 425782
+local WIND_SPELL_IDS  = { 425782 }
+local SPEED_MULTIPLIER     = 14.285
+local SPEED_MAX            = 1100
+local VIGOR_MAX_SEGMENTS   = 6
+local _vigorSpellID        = nil   -- détecté dynamiquement au premier tick
+local _windSpellID         = nil   -- idem pour Second Souffle
+local WIND_MAX_SEGMENTS    = 3
 
--- Constantes pour le calcul de vitesse
-local SPEED_MULTIPLIER = 14.285  -- Multiplicateur pour convertir forwardSpeed en %
-local BASE_MOVEMENT_SPEED = 7    -- Vitesse de base du joueur
-
-local STATUSBAR_COLORS = {
-    [1] = {r = 0.3, g = 0.8, b = 1}, -- Bleu clair pour Surge Forward
-    [2] = {r = 0.1, g = 0.6, b = 1}, -- Bleu foncé pour Skyward Ascent
+-- Palette TomoMod
+local C = {
+    teal     = { r = 0.047, g = 0.824, b = 0.624 },
+    tealDim  = { r = 0.031, g = 0.549, b = 0.416 },
+    wind     = { r = 0.35,  g = 0.65,  b = 0.95  },  -- bleu ciel pour Second Souffle
+    windDim  = { r = 0.18,  g = 0.38,  b = 0.58  },
+    bgDark   = { r = 0.06,  g = 0.06,  b = 0.09,  a = 0.88 },
+    bgCharge = { r = 0.10,  g = 0.10,  b = 0.13,  a = 1    },
+    text     = { r = 0.95,  g = 0.95,  b = 0.97  },
+    border   = { r = 0.20,  g = 0.20,  b = 0.24,  a = 0.9  },
 }
 
--- Fonction Round
-local function Round(num)
-    return math.floor(num + 0.5)
-end
+local BAR_TEXTURE = "Interface\\Buttons\\WHITE8X8"
 
 -- =====================================
--- VARIABLES DU MODULE
+-- VARIABLES MODULE
 -- =====================================
 local frame
 local speedBar
-local comboBars = {}
-local maxCombos = {}
-local isLocked = true
-local updateSpeedTimer
-local updateSpellTimer
+local vigorSegments  = {}
+local vigorTimers    = {}
+local windSegments   = {}   -- Second Souffle
+local windTimers     = {}
+local isLocked       = true
+local updateTicker
+
+local PREVIEW_CHARGES = 4
+local PREVIEW_SPEED   = 580
+local PREVIEW_WIND    = 2
 
 -- =====================================
--- FONCTIONS UTILITAIRES
+-- UTILITAIRES
 -- =====================================
 local function GetSettings()
-    if not TomoModDB or not TomoModDB.skyRide then
-        return nil
-    end
-    return TomoModDB.skyRide
+    return TomoModDB and TomoModDB.skyRide
 end
 
 local function SavePosition()
-    local settings = GetSettings()
-    if not settings then return end
-    
-    local point, _, relativePoint, x, y = frame:GetPoint()
-    settings.position = {
-        point = point or "BOTTOM",
-        relativePoint = relativePoint or "CENTER",
-        x = x or 0,
-        y = y or -180,
-    }
-    
+    local s = GetSettings(); if not s then return end
+    local point, _, rp, x, y = frame:GetPoint()
+    s.position = { point = point or "BOTTOM", relativePoint = rp or "CENTER", x = x or 0, y = y or -180 }
     print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_sr_pos_saved"])
 end
 
 local function ApplyPosition()
-    local settings = GetSettings()
-    if not settings then return end
-    
-    local pos = settings.position
+    local s = GetSettings(); if not s then return end
+    local p = s.position
     frame:ClearAllPoints()
-    frame:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
+    frame:SetPoint(p.point, UIParent, p.relativePoint, p.x, p.y)
 end
 
 local function UpdateVisibility()
-    local settings = GetSettings()
-    if not settings or not settings.enabled then
-        frame:Hide()
-        return
-    end
-    
-    -- En mode unlock (déverrouillé), toujours afficher pour permettre le positionnement
-    if not isLocked then
-        frame:Show()
-        return
-    end
-    
-    -- En mode lock (verrouillé), afficher seulement si en vol
-    if IsFlying("player") then
-        frame:Show()
-    else
-        frame:Hide()
-    end
+    local s = GetSettings()
+    if not s or not s.enabled then frame:Hide(); return end
+    if not isLocked then frame:Show(); return end
+    if IsFlying("player") then frame:Show() else frame:Hide() end
 end
 
 -- =====================================
--- SYSTÈME DE LOCK/UNLOCK
+-- LOCK / UNLOCK
 -- =====================================
 local dragOverlay, dragLabel
 
 local function SetLocked(locked)
     isLocked = locked
-    
     if locked then
-        -- Mode verrouillé
         frame:EnableMouse(false)
         if dragOverlay then dragOverlay:Hide() end
-        if dragLabel then dragLabel:Hide() end
-        
-        -- Mettre à jour la visibilité (va cacher si au sol)
+        if dragLabel   then dragLabel:Hide()   end
         UpdateVisibility()
     else
-        -- Mode déplacement
         frame:EnableMouse(true)
         if dragOverlay then dragOverlay:Show() end
-        if dragLabel then dragLabel:Show() end
-        
-        -- Forcer l'affichage en mode déplacement
+        if dragLabel   then dragLabel:Show()   end
         frame:Show()
-        frame:SetAlpha(1)
     end
 end
 
 function SR.SetLocked(locked)
     SetLocked(locked)
-    
-    if locked then
-        print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_sr_locked"])
-    else
-        print("|cffffff00TomoMod:|r " .. TomoMod_L["msg_sr_unlock"])
+    local msg = locked and TomoMod_L["msg_sr_locked"] or TomoMod_L["msg_sr_unlock"]
+    print((locked and "|cff00ff00" or "|cffffff00") .. "TomoMod:|r " .. msg)
+end
+
+function SR.ToggleLock() SetLocked(not isLocked); return isLocked end
+function SR.IsLocked()   return isLocked end
+
+-- =====================================
+-- LAYOUT
+-- =====================================
+local function AddBorder(parent)
+    local function Edge(anchorA, offAx, offAy, anchorB, offBx, offBy)
+        local t = parent:CreateTexture(nil, "BORDER")
+        t:SetColorTexture(C.border.r, C.border.g, C.border.b, C.border.a)
+        t:SetPoint(anchorA, parent, anchorA, offAx, offAy)
+        t:SetPoint(anchorB, parent, anchorB, offBx, offBy)
+        return t
     end
+    local top = Edge("TOPLEFT",    0,  1, "TOPRIGHT",    0,  1); top:SetHeight(1)
+    local bot = Edge("BOTTOMLEFT", 0, -1, "BOTTOMRIGHT", 0, -1); bot:SetHeight(1)
+    local lft = Edge("TOPLEFT",   -1,  1, "BOTTOMLEFT", -1, -1); lft:SetWidth(1)
+    local rgt = Edge("TOPRIGHT",   1,  1, "BOTTOMRIGHT", 1, -1); rgt:SetWidth(1)
 end
 
-function SR.ToggleLock()
-    SetLocked(not isLocked)
-    return isLocked
-end
+local function RelayoutUI()
+    local s = GetSettings()
+    if not s or not frame then return end
 
-function SR.IsLocked()
-    return isLocked
+    local W       = s.width
+    local speedH  = s.height
+    local chargeH = s.comboHeight
+    local windH   = s.windHeight or chargeH   -- hauteur rangée Second Souffle
+    local gap     = s.chargeGap
+    -- Layout (bas → haut) : vitesse / gap / vigor / gap / second souffle
+    local totalH  = speedH + gap + chargeH + gap + windH
+
+    frame:SetSize(W, totalH)
+
+    -- ── Barre vitesse (bas) ───────────────────────────────────────
+    speedBar:ClearAllPoints()
+    speedBar:SetPoint("BOTTOMLEFT",  frame, "BOTTOMLEFT",  0, 0)
+    speedBar:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", 0, 0)
+    speedBar:SetHeight(speedH)
+
+    if speedBar.speedText then
+        speedBar.speedText:SetFont(
+            s.font or STANDARD_TEXT_FONT,
+            s.fontSize or 11,
+            s.fontOutline or "OUTLINE"
+        )
+    end
+
+    -- ── Segments Vigor (milieu) ───────────────────────────────────
+    local numVig = VIGOR_MAX_SEGMENTS
+    local vigW   = (W - (gap * (numVig - 1))) / numVig
+
+    for i = 1, numVig do
+        local seg = vigorSegments[i]
+        seg:SetHeight(chargeH)
+        seg:SetWidth(vigW)
+        seg:ClearAllPoints()
+        if i == 1 then
+            seg:SetPoint("BOTTOMLEFT", speedBar, "TOPLEFT", 0, gap)
+        else
+            seg:SetPoint("LEFT", vigorSegments[i - 1], "RIGHT", gap, 0)
+        end
+        if vigorTimers[i] then
+            vigorTimers[i]:SetFont(
+                s.font or STANDARD_TEXT_FONT,
+                s.chargeFontSize or 10,
+                s.fontOutline or "OUTLINE"
+            )
+        end
+    end
+
+    -- ── Segments Second Souffle (haut) ────────────────────────────
+    local numWind = WIND_MAX_SEGMENTS
+    local windW   = (W - (gap * (numWind - 1))) / numWind
+
+    for i = 1, numWind do
+        local seg = windSegments[i]
+        seg:SetHeight(windH)
+        seg:SetWidth(windW)
+        seg:ClearAllPoints()
+        if i == 1 then
+            seg:SetPoint("BOTTOMLEFT", vigorSegments[1], "TOPLEFT", 0, gap)
+        else
+            seg:SetPoint("LEFT", windSegments[i - 1], "RIGHT", gap, 0)
+        end
+        if windTimers[i] then
+            windTimers[i]:SetFont(
+                s.font or STANDARD_TEXT_FONT,
+                s.chargeFontSize or 10,
+                s.fontOutline or "OUTLINE"
+            )
+        end
+    end
+
+    -- Labels positionnés au-dessus de chaque rangée (côté droit, petits)
+    if frame.vigorLabel then
+        frame.vigorLabel:ClearAllPoints()
+        frame.vigorLabel:SetPoint("BOTTOMRIGHT", vigorSegments[VIGOR_MAX_SEGMENTS], "TOPRIGHT", 0, 1)
+    end
+    if frame.windLabel then
+        frame.windLabel:ClearAllPoints()
+        frame.windLabel:SetPoint("BOTTOMRIGHT", windSegments[WIND_MAX_SEGMENTS], "TOPRIGHT", 0, 1)
+    end
+
+    ApplyPosition()
 end
 
 -- =====================================
--- SETUP DES COMBOS (CHARGES)
+-- UPDATE VIGOR (6 charges)
 -- =====================================
-local function SetupMaxCombo(max, index)
-    if issecretvalue and issecretvalue(max) then
-        return
-    end
-    
-    if max == 0 then
-        return
-    end
-    
-    maxCombos[index] = max
-    
-    local settings = GetSettings()
-    if not settings then return end
-    
-    local width = (settings.width - (1 * (max - 1))) / max
-    local bars = comboBars[index]
-    
-    -- Cacher toutes les barres
-    for i = 1, 10 do
-        bars[i]:Hide()
-    end
-    
-    -- Afficher et configurer les barres nécessaires
-    for i = 1, max do
-        local bar = bars[i]
-        bar:SetWidth(width)
-        bar:SetMinMaxValues(0, 1)
-        bar:SetValue(0)
-        bar:Show()
-    end
-end
+local function UpdateVigorSegments(preview)
+    local s = GetSettings()
+    if not s then return end
 
-local function CheckSpellCooldown(spellID, index)
-    local chargeInfo = C_Spell.GetSpellCharges(spellID)
-    local durationInfo = C_Spell.GetSpellChargeDuration(spellID)
-    
-    if chargeInfo and durationInfo and not (issecretvalue and issecretvalue(chargeInfo.currentCharges)) then
-        SetupMaxCombo(chargeInfo.maxCharges, index)
-        
-        local bars = comboBars[index]
-        
-        for i = 1, maxCombos[index] do
-            local bar = bars[i]
-            if i <= chargeInfo.currentCharges then
-                -- Charge disponible
-                local color = STATUSBAR_COLORS[index]
-                bar:SetStatusBarColor(color.r, color.g, color.b)
-                bar:SetMinMaxValues(0, 1)
-                bar:SetValue(1)
-            elseif i == chargeInfo.currentCharges + 1 then
-                -- Charge en recharge
-                bar:SetStatusBarColor(0.5, 0.5, 0.5)
-                if bar.SetTimerDuration then
-                    bar:SetTimerDuration(durationInfo)
-                end
+    if preview then
+        for i = 1, VIGOR_MAX_SEGMENTS do
+            local seg   = vigorSegments[i]
+            local timer = vigorTimers[i]
+            seg:SetMinMaxValues(0, 1)
+            if i <= PREVIEW_CHARGES then
+                seg:SetStatusBarColor(C.teal.r, C.teal.g, C.teal.b)
+                seg:SetValue(1)
+                if timer then timer:Hide() end
+            elseif i == PREVIEW_CHARGES + 1 then
+                seg:SetStatusBarColor(C.tealDim.r, C.tealDim.g, C.tealDim.b)
+                seg:SetValue(0.55)
+                if timer and s.showChargeTimer then timer:SetText("3"); timer:Show()
+                elseif timer then timer:Hide() end
             else
-                -- Charge vide
-                bar:SetMinMaxValues(0, 1)
-                bar:SetValue(0)
+                seg:SetStatusBarColor(0, 0, 0)
+                seg:SetValue(0)
+                if timer then timer:Hide() end
             end
+        end
+        return
+    end
+
+    -- Détection dynamique du bon spell ID pour le vigor
+    local info
+    if _vigorSpellID then
+        info = C_Spell.GetSpellCharges(_vigorSpellID)
+        if not info then _vigorSpellID = nil end  -- ID devenu invalide
+    end
+    if not info then
+        for _, spellID in ipairs(VIGOR_SPELL_IDS) do
+            local try = C_Spell.GetSpellCharges(spellID)
+            if try and try.maxCharges and try.maxCharges >= 1 then
+                _vigorSpellID = spellID
+                info = try
+                break
+            end
+        end
+    end
+    if not info then return end
+
+    local charges    = info.currentCharges
+    local maxCharges = math.min(info.maxCharges or VIGOR_MAX_SEGMENTS, VIGOR_MAX_SEGMENTS)
+    local now        = GetTime()
+    local rechargeProgress, rechargeRemaining = 0, 0
+
+    if charges < maxCharges and info.cooldownDuration and info.cooldownDuration > 0 then
+        local elapsed      = now - info.cooldownStartTime
+        rechargeProgress   = math.min(elapsed / info.cooldownDuration, 1)
+        rechargeRemaining  = math.max(0, info.cooldownDuration - elapsed)
+    end
+
+    for i = 1, VIGOR_MAX_SEGMENTS do
+        local seg   = vigorSegments[i]
+        local timer = vigorTimers[i]
+        seg:SetMinMaxValues(0, 1)
+
+        if i <= charges then
+            seg:SetStatusBarColor(C.teal.r, C.teal.g, C.teal.b)
+            seg:SetValue(1)
+            if timer then timer:Hide() end
+        elseif i == charges + 1 and charges < maxCharges then
+            seg:SetStatusBarColor(C.tealDim.r, C.tealDim.g, C.tealDim.b)
+            seg:SetValue(rechargeProgress)
+            if timer and s.showChargeTimer then
+                local secs = math.ceil(rechargeRemaining)
+                timer:SetText(secs > 0 and tostring(secs) or "")
+                timer:Show()
+            elseif timer then timer:Hide() end
+        else
+            seg:SetStatusBarColor(0, 0, 0)
+            seg:SetValue(0)
+            if timer then timer:Hide() end
         end
     end
 end
 
 -- =====================================
--- UPDATE DE LA VITESSE
+-- UPDATE SECOND SOUFFLE (3 charges)
+-- =====================================
+local function UpdateWindSegments(preview)
+    local s = GetSettings()
+    if not s then return end
+
+    if preview then
+        for i = 1, WIND_MAX_SEGMENTS do
+            local seg   = windSegments[i]
+            local timer = windTimers[i]
+            seg:SetMinMaxValues(0, 1)
+            if i <= PREVIEW_WIND then
+                seg:SetStatusBarColor(C.wind.r, C.wind.g, C.wind.b)
+                seg:SetValue(1)
+                if timer then timer:Hide() end
+            else
+                seg:SetStatusBarColor(C.windDim.r, C.windDim.g, C.windDim.b)
+                seg:SetValue(0.35)
+                if timer and s.showChargeTimer then timer:SetText("6"); timer:Show()
+                elseif timer then timer:Hide() end
+            end
+        end
+        return
+    end
+
+    -- Détection dynamique du bon spell ID pour Second Souffle
+    local info
+    if _windSpellID then
+        info = C_Spell.GetSpellCharges(_windSpellID)
+        if not info then _windSpellID = nil end
+    end
+    if not info then
+        for _, spellID in ipairs(WIND_SPELL_IDS) do
+            local try = C_Spell.GetSpellCharges(spellID)
+            if try and try.maxCharges and try.maxCharges >= 1 then
+                _windSpellID = spellID
+                info = try
+                break
+            end
+        end
+    end
+    if not info then
+        -- Sort non trouvé/appris → cacher la rangée
+        for i = 1, WIND_MAX_SEGMENTS do
+            windSegments[i]:SetStatusBarColor(0, 0, 0)
+            windSegments[i]:SetValue(0)
+            if windTimers[i] then windTimers[i]:Hide() end
+        end
+        return
+    end
+
+    local charges    = info.currentCharges
+    local maxCharges = math.min(info.maxCharges, WIND_MAX_SEGMENTS)
+    local now        = GetTime()
+    local rechargeProgress, rechargeRemaining = 0, 0
+
+    if charges < maxCharges and info.cooldownDuration and info.cooldownDuration > 0 then
+        local elapsed      = now - info.cooldownStartTime
+        rechargeProgress   = math.min(elapsed / info.cooldownDuration, 1)
+        rechargeRemaining  = math.max(0, info.cooldownDuration - elapsed)
+    end
+
+    for i = 1, WIND_MAX_SEGMENTS do
+        local seg   = windSegments[i]
+        local timer = windTimers[i]
+        seg:SetMinMaxValues(0, 1)
+
+        if i <= charges then
+            seg:SetStatusBarColor(C.wind.r, C.wind.g, C.wind.b)
+            seg:SetValue(1)
+            if timer then timer:Hide() end
+        elseif i == charges + 1 and charges < maxCharges then
+            seg:SetStatusBarColor(C.windDim.r, C.windDim.g, C.windDim.b)
+            seg:SetValue(rechargeProgress)
+            if timer and s.showChargeTimer then
+                local secs = math.ceil(rechargeRemaining)
+                timer:SetText(secs > 0 and tostring(secs) or "")
+                timer:Show()
+            elseif timer then timer:Hide() end
+        else
+            seg:SetStatusBarColor(0, 0, 0)
+            seg:SetValue(0)
+            if timer then timer:Hide() end
+        end
+    end
+end
+
+-- =====================================
+-- UPDATE VITESSE
 -- =====================================
 local function UpdateSpeed()
-    local settings = GetSettings()
-    if not settings or not settings.enabled then
-        frame:Hide()
-        return
-    end
-    
-    -- En mode unlock, ne pas cacher le frame et afficher des valeurs de preview
-    if not IsFlying("player") then
-        if isLocked then
-            frame:Hide()
-        else
-            -- Mode unlock: afficher des valeurs de preview
-            frame:Show()
-            speedBar:SetMinMaxValues(0, 1100)
-            speedBar:SetValue(550, Enum.StatusBarInterpolation.ExponentialEaseOut) -- 50% pour preview
-            if speedBar.text then
-                speedBar.text:SetText("--") -- Pas de cooldown en preview
-            end
-        end
-        return
-    end
-    
-    frame:Show()
-    
-    -- Calcul de la vitesse (en vol)
-    local isGliding, canGlide, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
-    
-    -- Calculer la vitesse en pourcentage
-    local moveSpeed = 0
-    if isGliding and forwardSpeed then
-        -- Utiliser forwardSpeed avec le multiplicateur approprié
-        moveSpeed = Round(forwardSpeed * SPEED_MULTIPLIER * 10) -- Multiplier par 10 pour obtenir le % correct
-    else
-        -- Fallback sur GetUnitSpeed si pas en gliding
-        local speed = GetUnitSpeed("player")
-        moveSpeed = Round(speed / BASE_MOVEMENT_SPEED * 100)
-    end
-    
-    -- Limiter entre 0 et 1100
-    moveSpeed = math.max(0, math.min(moveSpeed, 1100))
-    
-    speedBar:SetMinMaxValues(0, 1100)
-    speedBar:SetValue(moveSpeed, Enum.StatusBarInterpolation.ExponentialEaseOut)
-    
-    -- Afficher le cooldown de Vigor
-    local durationInfo = C_Spell.GetSpellCooldownDuration(VIGOR_SPELL)
-    if durationInfo and speedBar.text then
-        local remaining = durationInfo:GetRemainingDuration(0)
-        speedBar.text:SetText(string.format("%2d", remaining))
-    end
-end
+    local s = GetSettings()
+    if not s or not s.enabled then frame:Hide(); return end
 
--- =====================================
--- UPDATE DES SORTS
--- =====================================
-local function UpdateSpells()
     if not IsFlying("player") then
-        -- En mode unlock, afficher un preview des charges
         if not isLocked then
-            -- Preview: 3 charges Surge Forward (ligne 1)
-            if comboBars[1] and maxCombos[1] then
-                for i = 1, maxCombos[1] do
-                    local bar = comboBars[1][i]
-                    if bar then
-                        if i <= 3 then
-                            -- 3 premières charges pleines
-                            local color = STATUSBAR_COLORS[1]
-                            bar:SetStatusBarColor(color.r, color.g, color.b)
-                            bar:SetMinMaxValues(0, 1)
-                            bar:SetValue(1)
-                        else
-                            -- Autres charges vides
-                            bar:SetMinMaxValues(0, 1)
-                            bar:SetValue(0)
-                        end
-                    end
-                end
+            speedBar:SetMinMaxValues(0, SPEED_MAX)
+            speedBar:SetValue(PREVIEW_SPEED)
+            if speedBar.speedText and s.showSpeedText then
+                speedBar.speedText:SetText(PREVIEW_SPEED .. "%")
+                speedBar.speedText:Show()
             end
-            
-            -- Preview: 2 charges Skyward Ascent (ligne 2)
-            if comboBars[2] and maxCombos[2] then
-                for i = 1, maxCombos[2] do
-                    local bar = comboBars[2][i]
-                    if bar then
-                        if i <= 2 then
-                            -- 2 premières charges pleines
-                            local color = STATUSBAR_COLORS[2]
-                            bar:SetStatusBarColor(color.r, color.g, color.b)
-                            bar:SetMinMaxValues(0, 1)
-                            bar:SetValue(1)
-                        else
-                            -- Autres charges vides
-                            bar:SetMinMaxValues(0, 1)
-                            bar:SetValue(0)
-                        end
-                    end
-                end
-            end
+        else
+            frame:Hide()
         end
         return
     end
-    
-    CheckSpellCooldown(SURGE_FORWARD_SPELL, 1)
-    CheckSpellCooldown(SKYWARD_ASCENT_SPELL, 2)
+
+    frame:Show()
+
+    local isGliding, _, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
+    local moveSpeed = 0
+    if isGliding and forwardSpeed and forwardSpeed > 0 then
+        moveSpeed = math.floor(forwardSpeed * SPEED_MULTIPLIER + 0.5)
+    else
+        local speed = GetUnitSpeed("player")
+        moveSpeed   = math.floor(speed / 7 * 100 + 0.5)
+    end
+    moveSpeed = math.max(0, math.min(moveSpeed, SPEED_MAX))
+
+    speedBar:SetMinMaxValues(0, SPEED_MAX)
+    speedBar:SetValue(moveSpeed, Enum.StatusBarInterpolation.ExponentialEaseOut)
+
+    if speedBar.speedText then
+        if s.showSpeedText and moveSpeed > 0 then
+            speedBar.speedText:SetText(moveSpeed .. "%")
+            speedBar.speedText:Show()
+        else
+            speedBar.speedText:Hide()
+        end
+    end
 end
 
 -- =====================================
--- CRÉATION DE L'INTERFACE
+-- TICK
+-- =====================================
+local function OnTick()
+    local inPreview = not isLocked and not IsFlying("player")
+    UpdateSpeed()
+    UpdateVigorSegments(inPreview)
+    UpdateWindSegments(inPreview)
+end
+
+-- =====================================
+-- CRÉATION UI
 -- =====================================
 local function CreateUI()
-    local settings = GetSettings()
-    if not settings then return end
-    
-    -- Frame principal
+    local s = GetSettings()
+    if not s then return end
+
     frame = CreateFrame("Frame", "TomoModSkyRideFrame", UIParent)
-    frame:SetSize(settings.width, settings.height)
     frame:SetFrameLevel(9600)
     frame:SetMovable(true)
     frame:SetClampedToScreen(true)
-    
-    -- Setup drag handlers
-    frame:SetScript("OnMouseDown", function(self, button)
-        if not isLocked and button == "LeftButton" then
-            self:StartMoving()
-        end
+
+    frame:SetScript("OnMouseDown", function(self, btn)
+        if not isLocked and btn == "LeftButton" then self:StartMoving() end
     end)
-    
-    frame:SetScript("OnMouseUp", function(self, button)
-        if not isLocked and button == "LeftButton" then
+    frame:SetScript("OnMouseUp", function(self, btn)
+        if not isLocked and btn == "LeftButton" then
             self:StopMovingOrSizing()
             SavePosition()
         end
     end)
-    
-    -- Overlay pour le mode déplacement
+
     dragOverlay = frame:CreateTexture(nil, "OVERLAY")
     dragOverlay:SetAllPoints()
-    dragOverlay:SetColorTexture(1, 1, 1, 0.1)
+    dragOverlay:SetColorTexture(1, 1, 1, 0.06)
     dragOverlay:Hide()
-    
-    dragLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+
+    dragLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     dragLabel:SetPoint("CENTER")
-    dragLabel:SetTextColor(1, 1, 0)
+    dragLabel:SetTextColor(C.teal.r, C.teal.g, C.teal.b)
     dragLabel:SetText("SKYRIDE\n|cffaaaaaa(Cliquez et glissez)")
     dragLabel:Hide()
-    
-    -- Barre de vitesse principale
+
+    -- ── Barre de vitesse ─────────────────────────────────────────
     speedBar = CreateFrame("StatusBar", nil, frame)
-    speedBar:SetStatusBarTexture("RaidFrame-Hp-Fill")
+    speedBar:SetStatusBarTexture(BAR_TEXTURE)
     speedBar:GetStatusBarTexture():SetHorizTile(false)
-    speedBar:SetMinMaxValues(0, 100)
-    speedBar:SetValue(100)
-    speedBar:SetSize(settings.width, settings.height)
-    speedBar:SetPoint("BOTTOM", frame, "BOTTOM", 0, 0)
+    speedBar:SetMinMaxValues(0, SPEED_MAX)
+    speedBar:SetValue(0)
+    speedBar:SetStatusBarColor(C.teal.r, C.teal.g, C.teal.b)
     speedBar:EnableMouse(false)
-    speedBar:SetStatusBarColor(1, 1, 0)
-    
-    -- Background de la barre de vitesse
+    speedBar:SetFrameLevel(9601)
+
     speedBar.bg = speedBar:CreateTexture(nil, "BACKGROUND")
-    speedBar.bg:SetPoint("TOPLEFT", speedBar, "TOPLEFT", -1, 1)
-    speedBar.bg:SetPoint("BOTTOMRIGHT", speedBar, "BOTTOMRIGHT", 1, -1)
-    speedBar.bg:SetColorTexture(0, 0, 0, 1)
-    
-    -- Texte (cooldown Vigor)
-    speedBar.text = speedBar:CreateFontString(nil, "ARTWORK")
-    speedBar.text:SetFont(settings.font or STANDARD_TEXT_FONT, settings.fontSize, settings.fontOutline)
-    speedBar.text:SetPoint("CENTER", speedBar, "CENTER", 0, 0)
-    speedBar.text:SetTextColor(1, 1, 1, 1)
-    
-    -- Création des combobars (2 rangées)
-    comboBars[1] = {}
-    comboBars[2] = {}
-    
-    -- Première rangée (Surge Forward)
-    for i = 1, 10 do
-        local bar = CreateFrame("StatusBar", nil, frame)
-        bar:SetStatusBarTexture("RaidFrame-Hp-Fill")
-        bar:GetStatusBarTexture():SetHorizTile(false)
-        bar:SetFrameLevel(9600)
-        bar:SetMinMaxValues(0, 100)
-        bar:SetValue(100)
-        bar:SetHeight(settings.comboHeight)
-        bar:SetWidth(20)
-        bar:EnableMouse(false)
-        bar:SetStatusBarColor(0, 0.8, 0.8)
-        
-        -- Background
-        bar.bg = bar:CreateTexture(nil, "BACKGROUND")
-        bar.bg:SetPoint("TOPLEFT", bar, "TOPLEFT", -1, 1)
-        bar.bg:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 1, -1)
-        bar.bg:SetColorTexture(0, 0, 0, 1)
-        
-        -- Position
-        if i == 1 then
-            bar:SetPoint("BOTTOMLEFT", speedBar, "TOPLEFT", 0, 1)
-        else
-            bar:SetPoint("LEFT", comboBars[1][i - 1], "RIGHT", 1, 0)
-        end
-        
-        bar:Hide()
-        comboBars[1][i] = bar
+    speedBar.bg:SetAllPoints()
+    speedBar.bg:SetColorTexture(C.bgDark.r, C.bgDark.g, C.bgDark.b, C.bgDark.a)
+    AddBorder(speedBar)
+
+    speedBar.speedText = speedBar:CreateFontString(nil, "ARTWORK")
+    speedBar.speedText:SetPoint("LEFT", speedBar, "LEFT", 5, 0)
+    speedBar.speedText:SetTextColor(C.text.r, C.text.g, C.text.b)
+    speedBar.speedText:Hide()
+
+    -- ── Segments Vigor (milieu — teal) ───────────────────────────
+    for i = 1, VIGOR_MAX_SEGMENTS do
+        local seg = CreateFrame("StatusBar", nil, frame)
+        seg:SetStatusBarTexture(BAR_TEXTURE)
+        seg:GetStatusBarTexture():SetHorizTile(false)
+        seg:SetFrameLevel(9601)
+        seg:SetMinMaxValues(0, 1)
+        seg:SetValue(0)
+        seg:EnableMouse(false)
+
+        seg.bg = seg:CreateTexture(nil, "BACKGROUND")
+        seg.bg:SetAllPoints()
+        seg.bg:SetColorTexture(C.bgCharge.r, C.bgCharge.g, C.bgCharge.b, C.bgCharge.a)
+        AddBorder(seg)
+        vigorSegments[i] = seg
+
+        local timer = seg:CreateFontString(nil, "OVERLAY")
+        timer:SetPoint("CENTER", seg, "CENTER", 0, 0)
+        timer:SetTextColor(C.text.r, C.text.g, C.text.b)
+        timer:SetDrawLayer("OVERLAY", 7)
+        timer:Hide()
+        vigorTimers[i] = timer
     end
-    
-    -- Deuxième rangée (Skyward Ascent)
-    for i = 1, 10 do
-        local bar = CreateFrame("StatusBar", nil, frame)
-        bar:SetStatusBarTexture("RaidFrame-Hp-Fill")
-        bar:GetStatusBarTexture():SetHorizTile(false)
-        bar:SetFrameLevel(9600)
-        bar:SetMinMaxValues(0, 100)
-        bar:SetValue(100)
-        bar:SetHeight(settings.comboHeight)
-        bar:SetWidth(20)
-        bar:EnableMouse(false)
-        bar:SetStatusBarColor(0.8, 0.5, 0)
-        
-        -- Background
-        bar.bg = bar:CreateTexture(nil, "BACKGROUND")
-        bar.bg:SetPoint("TOPLEFT", bar, "TOPLEFT", -1, 1)
-        bar.bg:SetPoint("BOTTOMRIGHT", bar, "BOTTOMRIGHT", 1, -1)
-        bar.bg:SetColorTexture(0, 0, 0, 1)
-        
-        -- Position
-        if i == 1 then
-            bar:SetPoint("BOTTOMLEFT", comboBars[1][1], "TOPLEFT", 0, 1)
-        else
-            bar:SetPoint("LEFT", comboBars[2][i - 1], "RIGHT", 1, 0)
-        end
-        
-        bar:Hide()
-        comboBars[2][i] = bar
+
+    -- ── Segments Second Souffle (haut — bleu ciel) ───────────────
+    for i = 1, WIND_MAX_SEGMENTS do
+        local seg = CreateFrame("StatusBar", nil, frame)
+        seg:SetStatusBarTexture(BAR_TEXTURE)
+        seg:GetStatusBarTexture():SetHorizTile(false)
+        seg:SetFrameLevel(9601)
+        seg:SetMinMaxValues(0, 1)
+        seg:SetValue(0)
+        seg:EnableMouse(false)
+
+        seg.bg = seg:CreateTexture(nil, "BACKGROUND")
+        seg.bg:SetAllPoints()
+        seg.bg:SetColorTexture(C.bgCharge.r, C.bgCharge.g, C.bgCharge.b, C.bgCharge.a)
+        AddBorder(seg)
+        windSegments[i] = seg
+
+        local timer = seg:CreateFontString(nil, "OVERLAY")
+        timer:SetPoint("CENTER", seg, "CENTER", 0, 0)
+        timer:SetTextColor(C.text.r, C.text.g, C.text.b)
+        timer:SetDrawLayer("OVERLAY", 7)
+        timer:Hide()
+        windTimers[i] = timer
     end
-    
-    ApplyPosition()
+
+    -- ── Labels de rangée ─────────────────────────────────────────
+    frame.vigorLabel = frame:CreateFontString(nil, "OVERLAY")
+    frame.vigorLabel:SetFont(STANDARD_TEXT_FONT, 8, "OUTLINE")
+    frame.vigorLabel:SetTextColor(C.teal.r, C.teal.g, C.teal.b, 0.70)
+    --frame.vigorLabel:SetText("VIGOR")
+
+    frame.windLabel = frame:CreateFontString(nil, "OVERLAY")
+    frame.windLabel:SetFont(STANDARD_TEXT_FONT, 8, "OUTLINE")
+    frame.windLabel:SetTextColor(C.wind.r, C.wind.g, C.wind.b, 0.70)
+    --frame.windLabel:SetText("2ND SOUFFLE")
+
+    RelayoutUI()
     SetLocked(true)
     UpdateVisibility()
 end
 
 -- =====================================
--- FONCTIONS D'APPLICATION DES SETTINGS
+-- API PUBLIQUE
 -- =====================================
 function SR.ApplySettings()
-    local settings = GetSettings()
-    if not settings or not frame then return end
-    
-    -- Taille
-    frame:SetSize(settings.width, settings.height)
-    speedBar:SetSize(settings.width, settings.height)
-    
-    -- Police
-    if speedBar.text then
-        speedBar.text:SetFont(settings.font or STANDARD_TEXT_FONT, settings.fontSize, settings.fontOutline)
-    end
-    
-    -- Couleur de la barre de vitesse
-    speedBar:SetStatusBarColor(
-        settings.barColor.r,
-        settings.barColor.g,
-        settings.barColor.b
-    )
-    
-    -- Hauteur des combobars
-    for row = 1, 2 do
-        for i = 1, 10 do
-            comboBars[row][i]:SetHeight(settings.comboHeight)
-        end
-    end
-    
-    ApplyPosition()
+    local s = GetSettings()
+    if not s or not frame then return end
+    RelayoutUI()
     UpdateVisibility()
 end
 
 function SR.ResetPosition()
-    local settings = GetSettings()
-    if not settings then return end
-    
-    settings.position = {
-        point = "BOTTOM",
-        relativePoint = "CENTER",
-        x = 0,
-        y = -180,
-    }
-    
+    local s = GetSettings(); if not s then return end
+    s.position = { point = "BOTTOM", relativePoint = "CENTER", x = 0, y = -180 }
     ApplyPosition()
     print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_sr_pos_reset"])
 end
 
 function SR.SetEnabled(enabled)
-    local settings = GetSettings()
-    if not settings then return end
-    
-    settings.enabled = enabled
+    local s = GetSettings(); if not s then return end
+    s.enabled = enabled
+    if not enabled then
+        if updateTicker then updateTicker:Cancel(); updateTicker = nil end
+    else
+        if not updateTicker then
+            updateTicker = C_Timer.NewTicker(0.15, OnTick)
+        end
+    end
     UpdateVisibility()
 end
 
 -- =====================================
--- INITIALISATION
+-- INIT
 -- =====================================
 function SR.Initialize()
     if not TomoModDB then
         print("|cffff0000TomoMod SkyRide:|r " .. TomoMod_L["msg_sr_db_not_init"])
         return
     end
-    
-    -- Initialiser les settings si nécessaire
-    if not TomoModDB.skyRide then
-        TomoModDB.skyRide = {
-            enabled = false, -- Désactivé par défaut
-            width = 340,
-            height = 20,
-            comboHeight = 5,
-            font = STANDARD_TEXT_FONT,
-            fontSize = 12,
-            fontOutline = "OUTLINE",
-            barColor = {r = 1, g = 1, b = 0},
-            position = {
-                point = "BOTTOM",
-                relativePoint = "CENTER",
-                x = 0,
-                y = -180,
-            },
-        }
+
+    if not TomoModDB.skyRide then TomoModDB.skyRide = {} end
+    local db = TomoModDB.skyRide
+
+    if db.enabled         == nil then db.enabled         = false        end
+    if db.width           == nil then db.width           = 340          end
+    if db.height          == nil then db.height          = 18           end
+    if db.comboHeight     == nil then db.comboHeight     = 10           end
+    if db.windHeight      == nil then db.windHeight      = 8            end  -- Second Souffle légèrement plus fin
+    if db.chargeGap       == nil then db.chargeGap       = 2            end
+    if db.fontSize        == nil then db.fontSize        = 11           end
+    if db.chargeFontSize  == nil then db.chargeFontSize  = 10           end
+    if db.fontOutline     == nil then db.fontOutline     = "OUTLINE"    end
+    if db.showSpeedText   == nil then db.showSpeedText   = true         end
+    if db.showChargeTimer == nil then db.showChargeTimer = true         end
+    if not db.position then
+        db.position = { point = "BOTTOM", relativePoint = "CENTER", x = 0, y = -180 }
     end
-    
-    -- Créer l'interface
+
+    db.barColor = nil
+    db.font     = db.font or STANDARD_TEXT_FONT
+
     CreateUI()
-    
-    -- Démarrer les timers d'update
-    updateSpeedTimer = C_Timer.NewTicker(0.2, UpdateSpeed)
-    updateSpellTimer = C_Timer.NewTicker(0.2, UpdateSpells)
-    
+
+    if db.enabled then
+        updateTicker = C_Timer.NewTicker(0.15, OnTick)
+    end
+
     print("|cff00ff00TomoMod SkyRide:|r " .. TomoMod_L["msg_sr_initialized"])
 end
 
--- Export
 _G.TomoMod_SkyRide = SR

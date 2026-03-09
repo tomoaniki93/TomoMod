@@ -83,6 +83,10 @@ TomoMod_Defaults = {
         height = 28,
         position = nil,
     },
+    cvarOptimizer = {
+        backup           = nil,
+        individualBackup = nil,
+    },
     reputationBar = {
         enabled         = true,
         width           = 350,
@@ -332,6 +336,12 @@ TomoMod_Defaults = {
             showPowerText = false,
             showAbsorb = false,
             showThreat = true,
+            threatText = {
+                enabled  = false,
+                offsetX  = 0,
+                offsetY  = 0,
+                fontSize = 13,
+            },
             showRaidIcon = true,
             showQuestIcon = true,
             showLeaderIcon = true,

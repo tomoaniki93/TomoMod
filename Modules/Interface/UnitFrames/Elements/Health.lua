@@ -360,6 +360,32 @@ function UF_Elements.CreateThreatIndicator(parent)
 end
 
 -- =====================================
+-- THREAT TEXT (% menace sur target)
+-- =====================================
+-- Crée le FontString de pourcentage de menace sur la frame target.
+-- Ancrage sur le healthbar avec offset X/Y configurable.
+-- TWW: UnitDetailedThreatSituation retourne des secret values →
+--   on utilise UNIQUEMENT SetFormattedText (C-side) pour l'affichage.
+--   UnitThreatSituation (int 0-3, safe) est utilisé pour les couleurs et la logique de branchement.
+function UF_Elements.CreateThreatText(healthBar, settings)
+    local tt = settings and settings.threatText
+    local globalDB = TomoModDB and TomoModDB.unitFrames
+
+    local font    = (globalDB and globalDB.fontFamily) or STANDARD_TEXT_FONT
+    local fsize   = (tt and tt.fontSize) or 13
+    local outline = (globalDB and globalDB.fontOutline) or "OUTLINE"
+    local ox      = (tt and tt.offsetX) or 0
+    local oy      = (tt and tt.offsetY) or 0
+
+    local fs = healthBar:CreateFontString(nil, "OVERLAY")
+    fs:SetFont(font, fsize, outline)
+    fs:SetPoint("CENTER", healthBar, "CENTER", ox, oy)
+    fs:SetTextColor(1, 0, 0, 1)
+    fs:Hide()
+    return fs
+end
+
+-- =====================================
 -- GENERIC BORDER HELPER
 -- =====================================
 

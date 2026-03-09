@@ -59,6 +59,20 @@ local function CreateConfigFrame()
     configFrame:SetScript("OnDragStop", configFrame.StopMovingOrSizing)
     configFrame:Hide()
 
+    -- Preview hooks : certains éléments s'affichent pendant l'ouverture du GUI
+    configFrame:SetScript("OnShow", function()
+        C.isOpen = true
+        if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
+            TomoMod_UnitFrames.RefreshThreatPreview(true)
+        end
+    end)
+    configFrame:SetScript("OnHide", function()
+        C.isOpen = false
+        if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
+            TomoMod_UnitFrames.RefreshThreatPreview(false)
+        end
+    end)
+
     -- Close with Escape
     tinsert(UISpecialFrames, "TomoModConfigFrame")
 
@@ -82,7 +96,7 @@ local function CreateConfigFrame()
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -1)
     versionText:SetTextColor(unpack(T.textDim))
-    versionText:SetText("v2.3.1")
+    versionText:SetText("v2.3.2")
 
     -- =====================================
     -- RELOAD UI BUTTON (↺)  — positioned after close is created

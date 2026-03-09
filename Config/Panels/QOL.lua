@@ -262,6 +262,13 @@ local function BuildSkyRideTab(parent)
     local c = scroll.child
     local y = -10
 
+    local function SR_Apply()
+        if TomoMod_SkyRide and TomoMod_SkyRide.ApplySettings then
+            TomoMod_SkyRide.ApplySettings()
+        end
+    end
+
+    -- ── Activation ──────────────────────────────────────────────
     local _, ny = W.CreateSectionHeader(c, L["section_skyride"], y)
     y = ny
 
@@ -272,28 +279,56 @@ local function BuildSkyRideTab(parent)
     end)
     y = ny
 
+    -- ── Dimensions ──────────────────────────────────────────────
+    local _, ny = W.CreateSectionHeader(c, L["section_skyride_dims"], y)
+    y = ny
+
     local _, ny = W.CreateSlider(c, L["opt_width"], TomoModDB.skyRide.width, 100, 600, 10, y, function(v)
-        TomoModDB.skyRide.width = v
-        if TomoMod_SkyRide and TomoMod_SkyRide.ApplySettings then
-            TomoMod_SkyRide.ApplySettings()
-        end
+        TomoModDB.skyRide.width = v; SR_Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_skyride_bar_height"], TomoModDB.skyRide.height, 10, 40, 1, y, function(v)
-        TomoModDB.skyRide.height = v
-        if TomoMod_SkyRide and TomoMod_SkyRide.ApplySettings then
-            TomoMod_SkyRide.ApplySettings()
-        end
+    local _, ny = W.CreateSlider(c, L["opt_skyride_bar_height"], TomoModDB.skyRide.height, 8, 40, 1, y, function(v)
+        TomoModDB.skyRide.height = v; SR_Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_font_size"], TomoModDB.skyRide.fontSize, 8, 24, 1, y, function(v)
-        TomoModDB.skyRide.fontSize = v
-        if TomoMod_SkyRide and TomoMod_SkyRide.ApplySettings then
-            TomoMod_SkyRide.ApplySettings()
-        end
+    local _, ny = W.CreateSlider(c, L["opt_skyride_charge_height"], TomoModDB.skyRide.comboHeight, 4, 30, 1, y, function(v)
+        TomoModDB.skyRide.comboHeight = v; SR_Apply()
     end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_skyride_charge_gap"], TomoModDB.skyRide.chargeGap, 0, 8, 1, y, function(v)
+        TomoModDB.skyRide.chargeGap = v; SR_Apply()
+    end)
+    y = ny
+
+    -- ── Texte ────────────────────────────────────────────────────
+    local _, ny = W.CreateSectionHeader(c, L["section_skyride_text"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_skyride_show_speed_text"], TomoModDB.skyRide.showSpeedText, y, function(v)
+        TomoModDB.skyRide.showSpeedText = v; SR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_skyride_speed_font_size"], TomoModDB.skyRide.fontSize, 8, 24, 1, y, function(v)
+        TomoModDB.skyRide.fontSize = v; SR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_skyride_show_charge_timer"], TomoModDB.skyRide.showChargeTimer, y, function(v)
+        TomoModDB.skyRide.showChargeTimer = v; SR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_skyride_charge_font_size"], TomoModDB.skyRide.chargeFontSize, 8, 20, 1, y, function(v)
+        TomoModDB.skyRide.chargeFontSize = v; SR_Apply()
+    end)
+    y = ny
+
+    -- ── Position ─────────────────────────────────────────────────
+    local _, ny = W.CreateSeparator(c, y)
     y = ny
 
     local _, ny = W.CreateButton(c, L["btn_reset_skyride"], 200, y, function()
@@ -495,9 +530,221 @@ local function BuildLevelingTab(parent)
 end
 
 -- =====================================
--- Tab: Damage Meter Skin (12.x)
+-- TAB: CVAR OPTIMIZER
 -- =====================================
 
+local function BuildCVarOptimizerTab(parent)
+    local OPT = TomoMod_CVarOptimizer
+    if not OPT then return W.CreateScrollPanel(parent) end
+
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+
+    -- Palette locale (reprend T.accent du thème)
+    local TEAL   = { 0.047, 0.824, 0.624 }
+    local ORANGE = { 1.0,   0.65,  0.10  }
+    local RED    = { 0.9,   0.25,  0.25  }
+    local DIM    = { 0.55,  0.55,  0.60  }
+    local FONT   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+    local FONT_B = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Bold.ttf"
+
+    local y = -10
+
+    -- ── En-tête ──────────────────────────────────────────────────
+    local _, ny = W.CreateSectionHeader(c, L["section_cvar_optimizer"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_cvar_optimizer"], y)
+    y = ny
+
+    -- ── Boutons Apply All / Revert All ───────────────────────────
+    local applyAllBtn, ny2 = W.CreateButton(c, L["btn_cvar_apply_all"], 160, y, function()
+        OPT.ApplyAll()
+        -- Refresh toutes les lignes via leur update callback
+        for _, child in ipairs(c.cvarRows or {}) do
+            if child.Refresh then child:Refresh() end
+        end
+    end)
+    y = ny2
+
+    local revertAllBtn, ny3 = W.CreateButton(c, L["btn_cvar_revert_all"], 160, y, function()
+        OPT.RevertAll()
+        for _, child in ipairs(c.cvarRows or {}) do
+            if child.Refresh then child:Refresh() end
+        end
+    end)
+    -- Placer Revert All à droite de Apply All
+    revertAllBtn:ClearAllPoints()
+    revertAllBtn:SetPoint("LEFT", applyAllBtn, "RIGHT", 10, 0)
+    y = y  -- ny3 déjà avancé par Apply All
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- ── Helper : couleur selon statut ────────────────────────────
+    local function StatusColor(isOptimal)
+        if isOptimal then return TEAL[1], TEAL[2], TEAL[3]
+        else               return ORANGE[1], ORANGE[2], ORANGE[3] end
+    end
+
+    -- ── Création d'une ligne CVar ─────────────────────────────────
+    -- Layout : [Nom 170px] [Valeur actuelle 90px] [→] [Optimal 90px] [Apply 70px] [Revert 70px]
+    local ROW_H   = 26
+    local COL_VAL = 158   -- x valeur actuelle
+    local COL_SEP = 248   -- x séparateur ->
+    local COL_OPT = 264   -- x valeur optimale
+    local COL_APP = 372   -- x bouton Apply
+    local COL_REV = 442   -- x bouton Revert
+
+    c.cvarRows = {}
+
+    local function CreateCVarRow(entry, yRow)
+        local row = CreateFrame("Frame", nil, c)
+        row:SetSize(c:GetWidth() - 20, ROW_H)
+        row:SetPoint("TOPLEFT", c, "TOPLEFT", 16, yRow)
+
+        -- Fond alternant léger
+        local bg = row:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bg:SetColorTexture(0, 0, 0, 0)
+
+        -- Nom de la CVar
+        local nameFS = row:CreateFontString(nil, "OVERLAY")
+        nameFS:SetFont(FONT, 11, "")
+        nameFS:SetPoint("LEFT", 0, 0)
+        nameFS:SetWidth(COL_VAL - 10)
+        nameFS:SetJustifyH("LEFT")
+        nameFS:SetText(L[entry.labelKey] or entry.cvar)
+        nameFS:SetTextColor(0.90, 0.90, 0.92)
+
+        -- Valeur actuelle
+        local curFS = row:CreateFontString(nil, "OVERLAY")
+        curFS:SetFont(FONT, 11, "OUTLINE")
+        curFS:SetPoint("LEFT", COL_VAL, 0)
+        curFS:SetWidth(82)
+        curFS:SetJustifyH("LEFT")
+
+        -- Flèche
+        local arrFS = row:CreateFontString(nil, "OVERLAY")
+        arrFS:SetFont(FONT, 10, "")
+        arrFS:SetPoint("LEFT", COL_SEP, 0)
+        arrFS:SetTextColor(unpack(DIM))
+        arrFS:SetText("->")
+
+        -- Valeur optimale
+        local optFS = row:CreateFontString(nil, "OVERLAY")
+        optFS:SetFont(FONT_B, 11, "OUTLINE")
+        optFS:SetPoint("LEFT", COL_OPT, 0)
+        optFS:SetWidth(100)
+        optFS:SetJustifyH("LEFT")
+        optFS:SetText(OPT.FormatValue(entry.cvar, entry.optimal))
+        optFS:SetTextColor(unpack(TEAL))
+
+        -- Bouton Apply
+        local appBtn = CreateFrame("Button", nil, row, "BackdropTemplate")
+        appBtn:SetSize(62, 20)
+        appBtn:SetPoint("LEFT", COL_APP, 0)
+        appBtn:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8",
+                              edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
+        appBtn:SetBackdropColor(0.035, 0.60, 0.45, 1)
+        appBtn:SetBackdropBorderColor(0.047, 0.824, 0.624, 1)
+        local appLabel = appBtn:CreateFontString(nil, "OVERLAY")
+        appLabel:SetFont(FONT, 10, "")
+        appLabel:SetPoint("CENTER")
+        appLabel:SetText(L["btn_cvar_apply"])
+        appLabel:SetTextColor(1, 1, 1, 1)
+        appBtn:SetScript("OnEnter", function() appBtn:SetBackdropColor(0.047, 0.824, 0.624, 1); appLabel:SetTextColor(0.05, 0.05, 0.08, 1) end)
+        appBtn:SetScript("OnLeave", function() appBtn:SetBackdropColor(0.035, 0.60, 0.45, 1); appLabel:SetTextColor(1, 1, 1, 1) end)
+
+        -- Bouton Revert
+        local revBtn = CreateFrame("Button", nil, row, "BackdropTemplate")
+        revBtn:SetSize(62, 20)
+        revBtn:SetPoint("LEFT", COL_REV, 0)
+        revBtn:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8",
+                              edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
+        revBtn:SetBackdropColor(0.20, 0.08, 0.08, 1)
+        revBtn:SetBackdropBorderColor(0.60, 0.20, 0.20, 1)
+        local revLabel = revBtn:CreateFontString(nil, "OVERLAY")
+        revLabel:SetFont(FONT, 10, "")
+        revLabel:SetPoint("CENTER")
+        revLabel:SetText(L["btn_cvar_revert"])
+        revLabel:SetTextColor(1, 1, 1, 1)
+        revBtn:SetScript("OnEnter", function() revBtn:SetBackdropColor(0.60, 0.20, 0.20, 1); revLabel:SetTextColor(1, 1, 1, 1) end)
+        revBtn:SetScript("OnLeave", function() revBtn:SetBackdropColor(0.20, 0.08, 0.08, 1); revLabel:SetTextColor(1, 1, 1, 1) end)
+
+        -- Tooltip hover sur le nom
+        row:EnableMouse(true)
+        row:SetScript("OnEnter", function()
+            GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
+            GameTooltip:SetText(entry.cvar, 1, 0.8, 0.2, 1, true)
+            local raw = OPT.GetRaw(entry.cvar)
+            GameTooltip:AddLine("Actuel : " .. tostring(raw or "?"), 0.8, 0.8, 0.8)
+            GameTooltip:AddLine("Optimal : " .. entry.optimal, 0.047, 0.824, 0.624)
+            GameTooltip:Show()
+        end)
+        row:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+        -- Fonction de rafraîchissement
+        local function Refresh()
+            local raw = OPT.GetRaw(entry.cvar)
+            local isOpt = OPT.IsOptimal(entry.cvar, entry.optimal)
+            curFS:SetText(OPT.FormatValue(entry.cvar, raw))
+            curFS:SetTextColor(StatusColor(isOpt))
+
+            -- Revert dispo seulement si backup individuel existe
+            local hasBackup = OPT.HasIndividualBackup(entry.cvar)
+            revBtn:SetEnabled(hasBackup)
+            revBtn:SetAlpha(hasBackup and 1 or 0.4)
+        end
+        Refresh()
+
+        appBtn:SetScript("OnClick", function()
+            OPT.ApplyOne(entry.cvar, entry.optimal)
+            C_Timer.After(0.05, Refresh)
+        end)
+
+        revBtn:SetScript("OnClick", function()
+            OPT.RevertOne(entry.cvar)
+            C_Timer.After(0.05, Refresh)
+        end)
+
+        row.Refresh = Refresh
+        table.insert(c.cvarRows, row)
+
+        return row, yRow - ROW_H - 2
+    end
+
+    -- ── Rendu par catégorie ───────────────────────────────────────
+    for _, cat in ipairs(OPT.CATEGORIES) do
+        local _, ny = W.CreateSectionHeader(c, L[cat.labelKey] or cat.key, y)
+        y = ny
+
+        for _, entry in ipairs(OPT.CVARS) do
+            if entry.category == cat.key then
+                local _, newY = CreateCVarRow(entry, y)
+                y = newY
+            end
+        end
+
+        local _, ny = W.CreateSeparator(c, y)
+        y = ny
+    end
+
+    -- ── Refresh All visible au scroll ─────────────────────────────
+    -- Rafraîchit toutes les lignes à l'ouverture du panneau (CVar peuvent changer hors addon)
+    scroll:SetScript("OnShow", function()
+        for _, row in ipairs(c.cvarRows) do
+            if row.Refresh then row:Refresh() end
+        end
+        -- Griser Revert All si pas de backup global
+        revertAllBtn:SetEnabled(OPT.HasGlobalBackup())
+        revertAllBtn:SetAlpha(OPT.HasGlobalBackup() and 1 or 0.4)
+    end)
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
 
 -- =====================================
 -- MAIN PANEL ENTRY POINT
@@ -514,6 +761,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "objtracker",   label = L["tab_qol_obj_tracker"],  builder = function(p) return BuildObjectiveTrackerTab(p) end },
         { key = "charskin",     label = L["tab_qol_char_skin"],    builder = function(p) return BuildCharacterSkinTab(p) end },
         { key = "leveling",     label = L["tab_qol_leveling"],     builder = function(p) return BuildLevelingTab(p) end },
+        { key = "cvaropt",      label = L["tab_qol_cvar_opt"],     builder = function(p) return BuildCVarOptimizerTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

@@ -38,6 +38,9 @@
     <!-- Modules: Skyriding -->
     <Include file="Skyriding\SkyRide.lua" />
 
+    <!-- Modules: CVar Optimizer -->
+    <Include file="Optimizations\CVarOptimizer.lua" />
+
     <!-- Modules: Leveling -->
     <Include file="Leveling\LevelingBar.lua" />
 

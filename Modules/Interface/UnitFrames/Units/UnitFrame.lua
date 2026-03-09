@@ -65,9 +65,14 @@ local function CreateUnitFrame(unit, settings)
         frame.absorb = E.CreateAbsorb(frame, frame.health, settings)
     end
 
-    -- Threat indicator
+    -- Threat indicator (border glow)
     if settings.showThreat then
         frame.threat = E.CreateThreatIndicator(frame.health)
+    end
+
+    -- Threat text (% on target frame)
+    if settings.threatText and settings.threatText.enabled then
+        frame.threatText = E.CreateThreatText(frame.health, settings)
     end
 
     -- Castbar
@@ -290,6 +295,69 @@ local function UpdateThreat(frame)
     end
 end
 
+-- =====================================
+-- UPDATE THREAT TEXT (% menace — target uniquement)
+-- TWW safety:
+--   UnitThreatSituation  → int 0-3 (safe Lua value) — pour logique + couleur
+--   UnitDetailedThreatSituation → secret float — UNIQUEMENT passé à SetFormattedText (C-side)
+--   UnitThreatPercentageOfLead  → secret float — idem, C-side uniquement
+--   Jamais de comparaison Lua sur les valeurs secrètes (percentage ~= 0, etc.)
+-- =====================================
+local function UpdateThreatText(frame, forcePreview)
+    if not frame or not frame.threatText then return end
+    local unit = frame.unit
+
+    local settings = TomoModDB.unitFrames[unit]
+    local tt = settings and settings.threatText
+    if not tt or not tt.enabled then
+        frame.threatText:Hide()
+        return
+    end
+
+    -- Mode preview (GUI ouvert) : affiche 0% gris pour permettre le placement
+    if forcePreview then
+        frame.threatText:SetTextColor(0.6, 0.6, 0.6, 1)
+        frame.threatText:SetText("0%")
+        frame.threatText:Show()
+        return
+    end
+
+    -- Uniquement sur target non-joueur existante
+    if not UnitExists(unit) or UnitIsPlayer(unit) then
+        frame.threatText:Hide()
+        return
+    end
+
+    -- Status int (safe, 0-3) depuis UnitThreatSituation
+    local status = UnitThreatSituation("player", unit)
+    if not status or status == 0 then
+        frame.threatText:Hide()
+        return
+    end
+
+    -- Couleur basée sur status (valeurs normales C-side)
+    local r, g, b = GetThreatStatusColor(status)
+    frame.threatText:SetTextColor(r, g, b, 1)
+
+    -- Pourcentage : si on est en tête (status >= 3) → % d'avance sur le 2e
+    --               sinon → % de la menace du tank
+    -- Les deux retournent des secret floats → on les passe UNIQUEMENT à SetFormattedText
+    if status >= 3 then
+        local lead = UnitThreatPercentageOfLead("player", unit)
+        if lead then
+            frame.threatText:SetFormattedText("+%1.0f%%", lead)
+        else
+            local _, _, pct = UnitDetailedThreatSituation("player", unit)
+            frame.threatText:SetFormattedText("%1.0f%%", pct or 0)
+        end
+    else
+        local _, _, pct = UnitDetailedThreatSituation("player", unit)
+        frame.threatText:SetFormattedText("%1.0f%%", pct or 0)
+    end
+
+    frame.threatText:Show()
+end
+
 local function UpdateRaidIcon(frame)
     if not frame or not frame.health or not frame.health.raidIcon then return end
 
@@ -344,6 +412,7 @@ local function UpdateFrame(frame)
     UpdateName(frame)
     UpdateLevel(frame)
     UpdateThreat(frame)
+    UpdateThreatText(frame)
     UpdateRaidIcon(frame)
     UpdateLeaderIcon(frame)
     E.UpdateAuras(frame)
@@ -418,6 +487,7 @@ local function HandleUnitEvent(event, unit)
     elseif event == "UNIT_THREAT_SITUATION_UPDATE" then
         if frames[unit] then
             UpdateThreat(frames[unit])
+            UpdateThreatText(frames[unit])
             -- Also refresh health color (threat colors)
             uf_dirtyHealth[unit] = true
             uf_dirtyBatchFrame:Show()
@@ -555,6 +625,21 @@ local function HideBlizzardFrames()
             castFrame:SetAlpha(0)
         end
     end
+
+    -- TWW: ActionBarActionEventsFrame affiche un overlay de cast sur le bouton
+    -- du sort en cours. On désactive son tracking de cast pour éviter l'animation.
+    if ActionBarActionEventsFrame then
+        ActionBarActionEventsFrame:UnregisterEvent("UNIT_SPELLCAST_START")
+        ActionBarActionEventsFrame:UnregisterEvent("UNIT_SPELLCAST_STOP")
+        ActionBarActionEventsFrame:UnregisterEvent("UNIT_SPELLCAST_FAILED")
+        ActionBarActionEventsFrame:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTED")
+        ActionBarActionEventsFrame:UnregisterEvent("UNIT_SPELLCAST_DELAYED")
+        ActionBarActionEventsFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START")
+        ActionBarActionEventsFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
+        ActionBarActionEventsFrame:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
+        ActionBarActionEventsFrame:UnregisterEvent("UNIT_SPELLCAST_INTERRUPTIBLE")
+        ActionBarActionEventsFrame:UnregisterEvent("UNIT_SPELLCAST_NOT_INTERRUPTIBLE")
+    end
 end
 
 -- =====================================
@@ -637,6 +722,34 @@ function UF.ToggleLock()
     -- Also toggle boss frames lock
     if TomoMod_BossFrames and TomoMod_BossFrames.ToggleLock then
         TomoMod_BossFrames.ToggleLock()
+    end
+end
+
+-- Movers integration helpers (castbar player)
+function UF.IsPlayerCastbarLocked()
+    local frame = frames["player"]
+    if not frame or not frame.castbar then return true end
+    local cb = frame.castbar
+    return cb.IsLocked and cb:IsLocked() or true
+end
+
+function UF.UnlockPlayerCastbar()
+    local frame = frames["player"]
+    if not frame or not frame.castbar then return end
+    local cb = frame.castbar
+    if cb.SetLocked and cb:IsLocked() then
+        cb:SetLocked(false)
+        cb:ShowPreview()
+    end
+end
+
+function UF.LockPlayerCastbar()
+    local frame = frames["player"]
+    if not frame or not frame.castbar then return end
+    local cb = frame.castbar
+    if cb.SetLocked and not cb:IsLocked() then
+        cb:SetLocked(true)
+        cb:HidePreview()
     end
 end
 
@@ -762,6 +875,23 @@ function UF.RefreshUnit(unitKey)
         frame.health.leaderIcon:SetPoint("BOTTOMLEFT", frame.health, "TOPLEFT", ofs.x, ofs.y)
     end
 
+    -- Threat text — repositionnement et taille police en live
+    if frame.threatText then
+        local tt = settings.threatText
+        local globalDB = TomoModDB.unitFrames
+        local font    = (globalDB and globalDB.fontFamily) or STANDARD_TEXT_FONT
+        local fsize   = (tt and tt.fontSize) or 13
+        local outline = (globalDB and globalDB.fontOutline) or "OUTLINE"
+        local ox      = (tt and tt.offsetX) or 0
+        local oy      = (tt and tt.offsetY) or 0
+        frame.threatText:SetFont(font, fsize, outline)
+        frame.threatText:ClearAllPoints()
+        frame.threatText:SetPoint("CENTER", frame.health, "CENTER", ox, oy)
+    elseif settings.threatText and settings.threatText.enabled then
+        -- Création si le FontString n'existe pas encore
+        frame.threatText = E.CreateThreatText(frame.health, settings)
+    end
+
     -- Resize aura icons if size changed
     if frame.auraContainer and frame.auraContainer.icons and settings.auras then
         local auraSize = settings.auras.size or 30
@@ -811,6 +941,20 @@ function UF.RefreshUnit(unitKey)
     end
 
     UpdateFrame(frame)
+end
+
+-- Preview threat text (appelé par ConfigUI OnShow/OnHide)
+function UF.RefreshThreatPreview(enabled)
+    local targetFrame = frames["target"]
+    if not targetFrame or not targetFrame.threatText then return end
+    local settings = TomoModDB.unitFrames and TomoModDB.unitFrames["target"]
+    local tt = settings and settings.threatText
+    if not tt or not tt.enabled then return end
+    if enabled then
+        UpdateThreatText(targetFrame, true)   -- forcePreview = true
+    else
+        UpdateThreatText(targetFrame, false)  -- retour mode normal
+    end
 end
 
 function UF.RefreshAllUnits()

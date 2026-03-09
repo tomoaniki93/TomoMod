@@ -122,6 +122,25 @@ local function BuildEntries()
             return TomoModDB and TomoModDB.reputationBar and TomoModDB.reputationBar.enabled
         end,
     })
+    table.insert(moduleEntries, {
+        label    = L["mover_castbar"],
+        unlock   = function()
+            if TomoMod_UnitFrames and TomoMod_UnitFrames.UnlockPlayerCastbar then
+                TomoMod_UnitFrames.UnlockPlayerCastbar()
+            end
+        end,
+        lock     = function()
+            if TomoMod_UnitFrames and TomoMod_UnitFrames.LockPlayerCastbar then
+                TomoMod_UnitFrames.LockPlayerCastbar()
+            end
+        end,
+        isActive = function()
+            return TomoModDB and TomoModDB.unitFrames
+                and TomoModDB.unitFrames.player
+                and TomoModDB.unitFrames.player.castbar
+                and TomoModDB.unitFrames.player.castbar.enabled
+        end,
+    })
 end
 
 -- =====================================
@@ -137,6 +156,9 @@ local function PatchIsLocked()
         { TomoMod_BossFrames,       "IsLocked" },
         { TomoMod_UnitFrames,       "IsLocked" },
         { TomoMod_CombatResTracker, "IsLocked" },
+        { TomoMod_UnitFrames,       "IsPlayerCastbarLocked" },
+        { TomoMod_UnitFrames,       "UnlockPlayerCastbar"   },
+        { TomoMod_UnitFrames,       "LockPlayerCastbar"     },
     }
     for _, p in ipairs(patches) do
         if p[1] and not p[1][p[2]] then p[1][p[2]] = function() return true end end

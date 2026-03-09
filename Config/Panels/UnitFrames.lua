@@ -237,6 +237,39 @@ local function BuildDisplayTab(parent, unitKey)
         y = ny
     end
 
+    -- Threat text (% de menace — target uniquement)
+    if db.threatText ~= nil then
+        local _, ny = W.CreateSectionHeader(c, L["section_threat_text"], y)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_threat_text_enable"], db.threatText.enabled, y, function(v)
+            db.threatText.enabled = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_threat_text_font_size"], db.threatText.fontSize, 8, 24, 1, y, function(v)
+            db.threatText.fontSize = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_threat_text_offset_x"], db.threatText.offsetX, -200, 200, 1, y, function(v)
+            db.threatText.offsetX = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_threat_text_offset_y"], db.threatText.offsetY, -200, 200, 1, y, function(v)
+            db.threatText.offsetY = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        local _, ny = W.CreateInfoText(c, L["info_threat_text"], y)
+        y = ny
+    end
+
     if db.showLeaderIcon ~= nil then
         local _, ny = W.CreateCheckbox(c, L["opt_show_leader_icon"], db.showLeaderIcon, y, function(v)
             db.showLeaderIcon = v
