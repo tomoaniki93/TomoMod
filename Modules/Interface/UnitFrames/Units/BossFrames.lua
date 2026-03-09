@@ -243,60 +243,97 @@ local function SetupBossDrag()
     boss1:SetClampedToScreen(true)
 
     -- Create drag overlay (same pattern as UnitFrame.lua SetupDraggable)
-    local dragFrame = CreateFrame("Frame", nil, boss1)
+    local dragFrame = CreateFrame("Frame", nil, boss1, "BackdropTemplate")
     dragFrame:SetAllPoints(boss1)
     dragFrame:SetFrameLevel(boss1:GetFrameLevel() + 20)
     dragFrame:EnableMouse(false)
     dragFrame:Hide()
 
-    local dragOverlay = dragFrame:CreateTexture(nil, "OVERLAY")
-    dragOverlay:SetAllPoints(dragFrame)
-    dragOverlay:SetColorTexture(1, 1, 0, 0.1)
+    local ACCENT = { 0.047, 0.824, 0.624 }
+    local BG_COL = { 0.02, 0.07, 0.05, 0.80 }
+    local BD_COL = { ACCENT[1], ACCENT[2], ACCENT[3], 0.90 }
 
-    local dragLabel = dragFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    dragFrame:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = 1,
+    })
+    dragFrame:SetBackdropColor(BG_COL[1], BG_COL[2], BG_COL[3], BG_COL[4])
+    dragFrame:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
+
+    local accentLine = dragFrame:CreateTexture(nil, "OVERLAY")
+    accentLine:SetHeight(1)
+    accentLine:SetPoint("TOPLEFT",  dragFrame, "TOPLEFT",  0, 0)
+    accentLine:SetPoint("TOPRIGHT", dragFrame, "TOPRIGHT", 0, 0)
+    accentLine:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.8)
+
+    local dragLabel = dragFrame:CreateFontString(nil, "OVERLAY")
+    dragLabel:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11, "OUTLINE")
     dragLabel:SetPoint("CENTER", dragFrame, "CENTER")
-    dragLabel:SetTextColor(1, 1, 0)
-    dragLabel:SetText("(Boss)")
+    dragLabel:SetTextColor(1, 1, 1, 0.90)
+    dragLabel:SetText("Boss Frames")
+    boss1.dragLabel = dragLabel
 
     dragFrame:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then
             boss1:StartMoving()
+            self:SetBackdropBorderColor(1, 1, 1, 1)
         end
     end)
-
     dragFrame:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
             boss1:StopMovingOrSizing()
-            -- Save position
+            self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
             local db = TomoModDB.unitFrames.bossFrames
             if db then
-                local point, _, relativePoint, x, y = boss1:GetPoint()
-                db.position = db.position or {}
-                db.position.point = point
-                db.position.relativePoint = relativePoint
-                db.position.x = x
-                db.position.y = y
+                local left   = boss1:GetLeft()   or 0
+                local bottom = boss1:GetBottom() or 0
+                db.position = {
+                    point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT",
+                    x = left, y = bottom,
+                }
             end
-            -- Re-anchor boss2–5 below boss1
             PositionBossFrames()
         end
     end)
+    dragFrame:SetScript("OnEnter", function(self)
+        self:SetBackdropBorderColor(1, 1, 1, 1)
+        dragLabel:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
+    end)
+    dragFrame:SetScript("OnLeave", function(self)
+        self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
+        dragLabel:SetTextColor(1, 1, 1, 0.90)
+    end)
 
     boss1.dragFrame = dragFrame
-    boss1.dragOverlay = dragOverlay
-    boss1.dragLabel = dragLabel
 
-    -- Boss2–5: not movable individually, just show overlay labels when unlocked
+    -- Boss2–5 : mini overlay teal (indicateur visuel, non draggable)
     for i = 2, MAX_BOSSES do
         local f = bossFrames[i]
         if f then
             f:SetMovable(false)
-            local label = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            label:SetPoint("CENTER")
-            label:SetTextColor(1, 1, 0, 0.7)
-            label:SetText("Boss " .. i)
-            label:Hide()
-            f.lockLabel = label
+            local miniOverlay = CreateFrame("Frame", nil, f, "BackdropTemplate")
+            miniOverlay:SetAllPoints(f)
+            miniOverlay:SetFrameLevel(f:GetFrameLevel() + 10)
+            miniOverlay:SetBackdrop({
+                bgFile   = "Interface\\Buttons\\WHITE8X8",
+                edgeFile = "Interface\\Buttons\\WHITE8X8",
+                edgeSize = 1,
+            })
+            miniOverlay:SetBackdropColor(BG_COL[1], BG_COL[2], BG_COL[3], BG_COL[4])
+            miniOverlay:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
+            local miniAccent = miniOverlay:CreateTexture(nil, "OVERLAY")
+            miniAccent:SetHeight(1)
+            miniAccent:SetPoint("TOPLEFT",  miniOverlay, "TOPLEFT",  0, 0)
+            miniAccent:SetPoint("TOPRIGHT", miniOverlay, "TOPRIGHT", 0, 0)
+            miniAccent:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.8)
+            local miniLabel = miniOverlay:CreateFontString(nil, "OVERLAY")
+            miniLabel:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 10, "OUTLINE")
+            miniLabel:SetPoint("CENTER")
+            miniLabel:SetTextColor(1, 1, 1, 0.80)
+            miniLabel:SetText("Boss " .. i)
+            miniOverlay:Hide()
+            f.lockLabel = miniOverlay
         end
     end
 end
@@ -465,12 +502,34 @@ function BF.RefreshAll()
     PositionBossFrames()
 end
 
+-- Masque les boss frames Blizzard natives (offscreen + alpha 0, sans taint)
+local _blizzBossHidden = false
+local function HideBlizzBossFrames()
+    if _blizzBossHidden then return end
+    _blizzBossHidden = true
+    for i = 1, MAX_BOSSES do
+        local fname = "Boss" .. i .. "TargetFrame"
+        local f = _G[fname]
+        if f then
+            UnregisterUnitWatch(f)
+            f:UnregisterAllEvents()
+            f:Hide()
+            f:ClearAllPoints()
+            f:SetPoint("TOPLEFT", UIParent, "TOPLEFT", -9999, 9999)
+            f:SetAlpha(0)
+        end
+    end
+end
+
 function BF.Initialize()
     if not TomoModDB or not TomoModDB.unitFrames then return end
     if not TomoModDB.unitFrames.enabled then return end
 
     local db = TomoModDB.unitFrames.bossFrames
     if not db or not db.enabled then return end
+
+    -- Masquer les boss frames natives de Blizzard
+    HideBlizzBossFrames()
 
     -- Create 5 boss frames
     for i = 1, MAX_BOSSES do
@@ -485,6 +544,9 @@ function BF.Initialize()
 
     -- Register per-unit events
     RegisterBossEvents()
+
+    -- Aussi masquer après PLAYER_ENTERING_WORLD (rechargement en instance)
+    C_Timer.After(0.5, HideBlizzBossFrames)
 
     print("|cff0cd29fTomoMod Boss:|r " .. TomoMod_L["msg_boss_initialized"])
 end

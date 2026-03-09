@@ -608,6 +608,20 @@ function UF.ToggleLock()
                     pos.y or 0
                 )
             end
+            -- Re-anchor castbar to parent (StartMoving can corrupt child anchors)
+            if frame.castbar and unit ~= "player" then
+                local cbPos = unitSettings and unitSettings.castbar and unitSettings.castbar.position
+                local offsets = unitSettings and unitSettings.elementOffsets and unitSettings.elementOffsets.castbar
+                frame.castbar:ClearAllPoints()
+                frame.castbar:SetPoint(
+                    (cbPos and cbPos.point) or "TOP",
+                    frame,
+                    (cbPos and cbPos.relativePoint) or "BOTTOM",
+                    ((cbPos and cbPos.x) or 0) + (offsets and offsets.x or 0),
+                    ((cbPos and cbPos.y) or -6) + (offsets and offsets.y or 0)
+                )
+            end
+
             if UnitExists(unit) then
                 UpdateFrame(frame)
             end

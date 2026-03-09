@@ -267,6 +267,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.Initialize() end
         if TomoMod_SkyRide then TomoMod_SkyRide.Initialize() end
         if TomoMod_LevelingBar then TomoMod_LevelingBar.Initialize() end
+        if TomoMod_ReputationBar then TomoMod_ReputationBar.Initialize() end
         if TomoMod_CooldownManager then TomoMod_CooldownManager.Initialize() end
         if TomoMod_AutoAcceptInvite then TomoMod_AutoAcceptInvite.Initialize() end
         if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.Initialize() end

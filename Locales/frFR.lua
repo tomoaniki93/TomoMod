@@ -774,6 +774,7 @@ TomoMod_RegisterLocale("frFR", {
     ["mover_levelingbar"]               = "Barre XP / Expérience",
     ["mover_anchors"]                   = "Ancres Alertes & Butin",
     ["mover_cotank"]                    = "Suivi Co-Tank",
+    ["mover_repbar"]                    = "Barre de réputation",
     ["mover_battletext"]             = "Zones Battle Text",
 
     -- =====================

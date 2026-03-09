@@ -106,6 +106,22 @@ local function BuildEntries()
         end,
         isActive = function() return true end,
     })
+    table.insert(moduleEntries, {
+        label    = L["mover_repbar"],
+        unlock   = function()
+            if TomoMod_ReputationBar and TomoMod_ReputationBar.IsLocked and TomoMod_ReputationBar.IsLocked() then
+                TomoMod_ReputationBar.ToggleLock()
+            end
+        end,
+        lock     = function()
+            if TomoMod_ReputationBar and TomoMod_ReputationBar.IsLocked and not TomoMod_ReputationBar.IsLocked() then
+                TomoMod_ReputationBar.ToggleLock()
+            end
+        end,
+        isActive = function()
+            return TomoModDB and TomoModDB.reputationBar and TomoModDB.reputationBar.enabled
+        end,
+    })
 end
 
 -- =====================================

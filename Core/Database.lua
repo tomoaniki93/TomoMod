@@ -83,6 +83,13 @@ TomoMod_Defaults = {
         height = 28,
         position = nil,
     },
+    reputationBar = {
+        enabled         = true,
+        width           = 350,
+        height          = 22,
+        hideBlizzRepBar = true,
+        position        = nil,
+    },
     autoAcceptInvite = {
         enabled = false,
         acceptFriends = true,

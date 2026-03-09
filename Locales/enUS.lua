@@ -792,6 +792,7 @@ TomoMod_RegisterLocale("enUS", {
     ["mover_levelingbar"]               = "XP / Leveling Bar",
     ["mover_anchors"]                   = "Alert & Loot Anchors",
     ["mover_cotank"]                    = "CoTank Tracker",
+    ["mover_repbar"]                    = "Reputation Bar",
     ["mover_battletext"]             = "Battle Text Zones",
 
     -- =====================

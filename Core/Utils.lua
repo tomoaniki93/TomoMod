@@ -160,46 +160,63 @@ end
 -- LOCK/UNLOCK DRAG SYSTEM
 -- =====================================
 
-function U.SetupDraggable(frame, savePositionCallback)
+function U.SetupDraggable(frame, savePositionCallback, labelText)
     if not frame then return end
     frame.isLocked = true
     frame:SetMovable(true)
     frame:SetClampedToScreen(true)
 
-    -- Create a SEPARATE overlay Frame for drag handling.
-    -- This sits on top of the main frame and captures mouse events ONLY when unlocked.
-    -- When locked/hidden, clicks pass through to the SecureUnitButtonTemplate below.
-    local dragFrame = CreateFrame("Frame", nil, frame)
+    local ACCENT = { 0.047, 0.824, 0.624 }
+    local BG_COL = { 0.02, 0.07, 0.05, 0.80 }
+    local BD_COL = { ACCENT[1], ACCENT[2], ACCENT[3], 0.90 }
+
+    local dragFrame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     dragFrame:SetAllPoints(frame)
     dragFrame:SetFrameLevel(frame:GetFrameLevel() + 20)
     dragFrame:EnableMouse(false)
     dragFrame:Hide()
 
-    local dragOverlay = dragFrame:CreateTexture(nil, "OVERLAY")
-    dragOverlay:SetAllPoints(dragFrame)
-    dragOverlay:SetColorTexture(1, 1, 0, 0.1)
-    frame.dragOverlay = dragOverlay
+    dragFrame:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = 1,
+    })
+    dragFrame:SetBackdropColor(BG_COL[1], BG_COL[2], BG_COL[3], BG_COL[4])
+    dragFrame:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
 
-    local dragLabel = dragFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    local accentLine = dragFrame:CreateTexture(nil, "OVERLAY")
+    accentLine:SetHeight(1)
+    accentLine:SetPoint("TOPLEFT",  dragFrame, "TOPLEFT",  0, 0)
+    accentLine:SetPoint("TOPRIGHT", dragFrame, "TOPRIGHT", 0, 0)
+    accentLine:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.8)
+
+    local dragLabel = dragFrame:CreateFontString(nil, "OVERLAY")
+    dragLabel:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11, "OUTLINE")
     dragLabel:SetPoint("CENTER", dragFrame, "CENTER")
-    dragLabel:SetTextColor(1, 1, 0)
-    dragLabel:SetText("(Déplacer)")
+    dragLabel:SetTextColor(1, 1, 1, 0.90)
+    dragLabel:SetText(labelText or "Déplacer")
     frame.dragLabel = dragLabel
 
-    -- Drag handlers on the OVERLAY frame, not the main secure frame
     dragFrame:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then
             frame:StartMoving()
+            self:SetBackdropBorderColor(1, 1, 1, 1)
         end
     end)
-
     dragFrame:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
             frame:StopMovingOrSizing()
-            if savePositionCallback then
-                savePositionCallback()
-            end
+            self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
+            if savePositionCallback then savePositionCallback() end
         end
+    end)
+    dragFrame:SetScript("OnEnter", function(self)
+        self:SetBackdropBorderColor(1, 1, 1, 1)
+        dragLabel:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
+    end)
+    dragFrame:SetScript("OnLeave", function(self)
+        self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
+        dragLabel:SetTextColor(1, 1, 1, 0.90)
     end)
 
     frame.dragFrame = dragFrame
@@ -207,11 +224,9 @@ function U.SetupDraggable(frame, savePositionCallback)
     frame.SetLocked = function(self, locked)
         self.isLocked = locked
         if locked then
-            -- Hide drag overlay — clicks pass to SecureUnitButtonTemplate
             dragFrame:EnableMouse(false)
             dragFrame:Hide()
         else
-            -- Show drag overlay — it captures mouse for dragging
             dragFrame:EnableMouse(true)
             dragFrame:Show()
             self:SetAlpha(1)

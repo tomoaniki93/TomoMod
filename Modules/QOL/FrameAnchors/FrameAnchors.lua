@@ -59,15 +59,23 @@ local function CreateAnchor(def)
     anchor:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8X8",
         edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = 2,
+        edgeSize = 1,
     })
-    anchor:SetBackdropColor(0.1, 0.15, 0.3, 0.6)
-    anchor:SetBackdropBorderColor(0.3, 0.5, 1.0, 1)
+    anchor:SetBackdropColor(0.02, 0.07, 0.05, 0.80)
+    anchor:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.90)
+
+    -- Ligne d'accent teal en haut
+    local accentLine = anchor:CreateTexture(nil, "OVERLAY")
+    accentLine:SetHeight(1)
+    accentLine:SetPoint("TOPLEFT",  anchor, "TOPLEFT",  0, 0)
+    accentLine:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", 0, 0)
+    accentLine:SetColorTexture(0.047, 0.824, 0.624, 0.8)
 
     -- Label
-    local label = anchor:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    local label = anchor:CreateFontString(nil, "OVERLAY")
+    label:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11, "OUTLINE")
     label:SetPoint("CENTER")
-    label:SetTextColor(0.5, 0.7, 1.0, 1)
+    label:SetTextColor(1, 1, 1, 0.90)
     label:SetText(def.label)
     anchor.label = label
 
