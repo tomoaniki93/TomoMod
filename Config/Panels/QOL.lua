@@ -406,6 +406,15 @@ local function BuildObjectiveTrackerTab(parent)
     end)
     y = ny
 
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_max_quests"], TomoModDB.objectiveTracker.maxQuestsShown, 0, 25, 1, y, function(v)
+        TomoModDB.objectiveTracker.maxQuestsShown = v
+        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
+    end)
+    y = ny
+
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
@@ -747,6 +756,68 @@ local function BuildCVarOptimizerTab(parent)
 end
 
 -- =====================================
+-- TAB: BAG & MICRO MENU
+-- =====================================
+
+local function BuildBagMicroMenuTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["section_bag_micro"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_bag_micro"], y)
+    y = ny
+
+    -- Bag Bar
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_bag_bar"], y)
+    y = ny
+
+    local bagModeOptions = {
+        { value = "show",  text = L["mode_show"] },
+        { value = "hover", text = L["mode_hover"] },
+    }
+
+    local _, ny = W.CreateDropdown(c, L["opt_bag_bar_mode"],
+        bagModeOptions,
+        TomoModDB.bagMicroMenu and TomoModDB.bagMicroMenu.bagBarMode or "show",
+        y, function(v)
+        if not TomoModDB.bagMicroMenu then TomoModDB.bagMicroMenu = {} end
+        TomoModDB.bagMicroMenu.bagBarMode = v
+        if TomoMod_BagMicroMenu then TomoMod_BagMicroMenu.SetBagBarMode(v) end
+    end)
+    y = ny
+
+    -- Micro Menu
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_micro_menu"], y)
+    y = ny
+
+    local microModeOptions = {
+        { value = "show",  text = L["mode_show"] },
+        { value = "hover", text = L["mode_hover"] },
+    }
+
+    local _, ny = W.CreateDropdown(c, L["opt_micro_menu_mode"],
+        microModeOptions,
+        TomoModDB.bagMicroMenu and TomoModDB.bagMicroMenu.microMenuMode or "show",
+        y, function(v)
+        if not TomoModDB.bagMicroMenu then TomoModDB.bagMicroMenu = {} end
+        TomoModDB.bagMicroMenu.microMenuMode = v
+        if TomoMod_BagMicroMenu then TomoMod_BagMicroMenu.SetMicroMenuMode(v) end
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -759,6 +830,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "skyride",      label = L["tab_qol_skyride"],      builder = function(p) return BuildSkyRideTab(p) end },
         --{ key = "tooltip",      label = L["tab_qol_tooltip_skin"], builder = function(p) return BuildTooltipSkinTab(p) end },
         { key = "objtracker",   label = L["tab_qol_obj_tracker"],  builder = function(p) return BuildObjectiveTrackerTab(p) end },
+        { key = "bagmicro",     label = L["tab_qol_bag_micro"],    builder = function(p) return BuildBagMicroMenuTab(p) end },
         { key = "charskin",     label = L["tab_qol_char_skin"],    builder = function(p) return BuildCharacterSkinTab(p) end },
         { key = "leveling",     label = L["tab_qol_leveling"],     builder = function(p) return BuildLevelingTab(p) end },
         { key = "cvaropt",      label = L["tab_qol_cvar_opt"],     builder = function(p) return BuildCVarOptimizerTab(p) end },

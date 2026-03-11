@@ -21,16 +21,17 @@ local categoryButtons = {}
 -- =====================================
 -- CATEGORIES
 -- =====================================
+local ICON_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\"
 
 local categories = {
-    { key = "general",    label = L["cat_general"],     icon = "+", builder = "TomoMod_ConfigPanel_General" },
-    { key = "unitframes", label = L["cat_unitframes"],  icon = "+", builder = "TomoMod_ConfigPanel_UnitFrames" },
-    { key = "nameplates", label = L["cat_nameplates"],  icon = "+", builder = "TomoMod_ConfigPanel_Nameplates" },
-    { key = "resources",  label = L["cat_cd_resource"], icon = "+", builder = "TomoMod_ConfigPanel_CooldownResource" },
-    { key = "actionbars", label = L["cat_action_bars"], icon = "+", builder = "TomoMod_ConfigPanel_ActionBars" },
-    { key = "sound",      label = L["cat_sound"],       icon = "+", builder = "TomoMod_ConfigPanel_Sound" },
-    { key = "qol",        label = L["cat_qol"],  icon = "+", builder = "TomoMod_ConfigPanel_QOL" },
-    { key = "profiles",   label = L["cat_profiles"],     icon = "+", builder = "TomoMod_ConfigPanel_Profiles" },
+    { key = "general",    label = L["cat_general"],     icon = ICON_PATH .. "icon_general.tga",     builder = "TomoMod_ConfigPanel_General" },
+    { key = "unitframes", label = L["cat_unitframes"],  icon = ICON_PATH .. "icon_unitframes.tga",  builder = "TomoMod_ConfigPanel_UnitFrames" },
+    { key = "nameplates", label = L["cat_nameplates"],  icon = ICON_PATH .. "icon_nameplates.tga",  builder = "TomoMod_ConfigPanel_Nameplates" },
+    { key = "resources",  label = L["cat_cd_resource"], icon = ICON_PATH .. "icon_resources.tga",   builder = "TomoMod_ConfigPanel_CooldownResource" },
+    { key = "actionbars", label = L["cat_action_bars"], icon = ICON_PATH .. "icon_actionbars.tga",  builder = "TomoMod_ConfigPanel_ActionBars" },
+    { key = "sound",      label = L["cat_sound"],       icon = ICON_PATH .. "icon_sound.tga",       builder = "TomoMod_ConfigPanel_Sound" },
+    { key = "qol",        label = L["cat_qol"],         icon = ICON_PATH .. "icon_qol.tga",         builder = "TomoMod_ConfigPanel_QOL" },
+    { key = "profiles",   label = L["cat_profiles"],    icon = ICON_PATH .. "icon_profiles.tga",    builder = "TomoMod_ConfigPanel_Profiles" },
 }
 
 -- =====================================
@@ -41,7 +42,7 @@ local function CreateConfigFrame()
     if configFrame then return end
 
     configFrame = CreateFrame("Frame", "TomoModConfigFrame", UIParent, "BackdropTemplate")
-    configFrame:SetSize(720, 560)
+    configFrame:SetSize(840, 620)
     configFrame:SetPoint("CENTER")
     configFrame:SetFrameStrata("HIGH")
     configFrame:SetBackdrop({
@@ -79,24 +80,32 @@ local function CreateConfigFrame()
     -- =====================================
     -- TITLE BAR
     -- =====================================
+    local TITLE_H = 44
+
     local titleBar = CreateFrame("Frame", nil, configFrame)
-    titleBar:SetSize(configFrame:GetWidth(), 40)
+    titleBar:SetSize(configFrame:GetWidth(), TITLE_H)
     titleBar:SetPoint("TOP", 0, 0)
 
     local titleBg = titleBar:CreateTexture(nil, "BACKGROUND")
     titleBg:SetAllPoints()
     titleBg:SetColorTexture(0.06, 0.06, 0.08, 1)
 
+    -- Logo area
+    local logoTex = titleBar:CreateTexture(nil, "OVERLAY")
+    logoTex:SetSize(28, 28)
+    logoTex:SetPoint("LEFT", 14, 0)
+    logoTex:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\Logo.tga")
+
     local titleText = titleBar:CreateFontString(nil, "OVERLAY")
     titleText:SetFont(FONT_BOLD, 16, "")
-    titleText:SetPoint("LEFT", 20, 0)
+    titleText:SetPoint("LEFT", logoTex, "RIGHT", 8, 1)
     titleText:SetText("|cff0cd29fTomo|r|cffffffffMod|r")
 
     local versionText = titleBar:CreateFontString(nil, "OVERLAY")
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -1)
     versionText:SetTextColor(unpack(T.textDim))
-    versionText:SetText("v2.3.2")
+    versionText:SetText("v2.3.3")
 
     -- =====================================
     -- RELOAD UI BUTTON (↺)  — positioned after close is created
@@ -229,7 +238,7 @@ local function CreateConfigFrame()
     -- =====================================
     -- SIDEBAR
     -- =====================================
-    local sidebarWidth = 160
+    local sidebarWidth = 170
 
     local sidebar = CreateFrame("Frame", nil, configFrame)
     sidebar:SetPoint("TOPLEFT", 0, -41)
@@ -265,11 +274,11 @@ local function CreateConfigFrame()
         indicator:Hide()
         btn.indicator = indicator
 
-        local icon = btn:CreateFontString(nil, "OVERLAY")
-        icon:SetFont(FONT, 13, "")
+        local icon = btn:CreateTexture(nil, "OVERLAY")
+        icon:SetSize(18, 18)
         icon:SetPoint("LEFT", 14, 0)
-        icon:SetText(cat.icon)
-        icon:SetTextColor(unpack(T.textDim))
+        icon:SetTexture(cat.icon)
+        icon:SetVertexColor(unpack(T.textDim))
         btn.icon = icon
 
         local label = btn:CreateFontString(nil, "OVERLAY")
@@ -337,12 +346,12 @@ function C.SwitchCategory(key)
         if catKey == key then
             btn.bg:SetColorTexture(0.10, 0.10, 0.13, 1)
             btn.indicator:Show()
-            btn.icon:SetTextColor(unpack(T.accent))
+            btn.icon:SetVertexColor(unpack(T.accent))
             btn.label:SetTextColor(unpack(T.text))
         else
             btn.bg:SetColorTexture(0, 0, 0, 0)
             btn.indicator:Hide()
-            btn.icon:SetTextColor(unpack(T.textDim))
+            btn.icon:SetVertexColor(unpack(T.textDim))
             btn.label:SetTextColor(unpack(T.textDim))
         end
     end

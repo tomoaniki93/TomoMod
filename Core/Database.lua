@@ -60,6 +60,7 @@ TomoMod_Defaults = {
         categoryFontSize = 11,
         questFontSize = 12,
         objectiveFontSize = 11,
+        maxQuestsShown = 0,
     },
     skyRide = {
         enabled = false,
@@ -161,6 +162,10 @@ TomoMod_Defaults = {
     },
     hideCastBar = {
         enabled = false,
+    },
+    bagMicroMenu = {
+        bagBarMode = "show",
+        microMenuMode = "show",
     },
     MythicKeys = {
         enabled = true,

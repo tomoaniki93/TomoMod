@@ -392,11 +392,11 @@ function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
     btnText:SetPoint("LEFT", 8, 0)
     btnText:SetTextColor(unpack(T.text))
 
-    local arrow = btn:CreateFontString(nil, "OVERLAY")
-    arrow:SetFont(FONT, 11, "")
-    arrow:SetPoint("RIGHT", -8, 0)
-    arrow:SetText("▾")
-    arrow:SetTextColor(unpack(T.textDim))
+    local arrow = btn:CreateTexture(nil, "OVERLAY")
+    arrow:SetSize(12, 12)
+    arrow:SetPoint("RIGHT", -6, 0)
+    arrow:SetTexture("Interface\\Buttons\\Arrow-Down-Down")
+    arrow:SetVertexColor(unpack(T.textDim))
 
     -- Find display text
     local function GetDisplayText(val)
