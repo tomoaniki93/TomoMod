@@ -281,6 +281,68 @@ local function ScanAndStyle(frame, depth)
 end
 
 -- =====================================
+-- QUEST DISPLAY LIMITER
+-- =====================================
+
+local overflowText = nil
+
+local function CollectQuestBlocks(frame, depth, blocks)
+    if not frame or depth > 6 then return end
+    if frame == skinFrame or frame == headerBar then return end
+
+    -- A frame with HeaderText is a quest/objective block
+    if frame.HeaderText and frame.HeaderText.GetText then
+        local txt = frame.HeaderText:GetText()
+        if txt and txt ~= "" then
+            blocks[#blocks + 1] = frame
+        end
+    end
+
+    local children = { frame:GetChildren() }
+    for _, child in ipairs(children) do
+        CollectQuestBlocks(child, depth + 1, blocks)
+    end
+end
+
+local function LimitDisplayedQuests()
+    local s = S()
+    local maxQuests = s.maxQuestsShown or 0
+    if maxQuests <= 0 then
+        -- No limit: show all and hide overflow text
+        if overflowText then overflowText:Hide() end
+        return
+    end
+
+    local tracker = ObjectiveTrackerFrame
+    if not tracker then return end
+
+    local blocks = {}
+    CollectQuestBlocks(tracker, 0, blocks)
+
+    local hiddenCount = 0
+    for i, block in ipairs(blocks) do
+        if i > maxQuests then
+            block:Hide()
+            hiddenCount = hiddenCount + 1
+        end
+    end
+
+    -- Show overflow indicator
+    if hiddenCount > 0 and skinFrame then
+        if not overflowText then
+            overflowText = skinFrame:CreateFontString(nil, "OVERLAY")
+            overflowText:SetFont(ADDON_FONT, 10, "OUTLINE")
+            overflowText:SetTextColor(0.55, 0.55, 0.60, 0.9)
+            overflowText:SetPoint("BOTTOMRIGHT", skinFrame, "BOTTOMRIGHT", -10, 6)
+        end
+        overflowText:SetText(string.format(L["ot_overflow_text"], hiddenCount))
+        overflowText:Show()
+    elseif overflowText then
+        overflowText:Hide()
+    end
+end
+
+-- =====================================
 -- BACKGROUND PANEL
 -- =====================================
 
@@ -510,6 +572,7 @@ local function OnTrackerUpdate()
     HideBlizzardHeader()
     ScanAndStyle(tracker, 0)
     UpdateQuestCount()
+    LimitDisplayedQuests()
 
     -- In M+: hide title, count, dash — keep Options visible
     local inMP = IsInMythicPlus()

@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.3.2 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.3.3 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -363,6 +363,8 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_obj_tracker_cat_size"]        = "Taille police catégorie",
     ["opt_obj_tracker_quest_size"]      = "Taille police titre quête",
     ["opt_obj_tracker_obj_size"]        = "Taille police objectif",
+    ["opt_obj_tracker_max_quests"]       = "Quêtes affichées max (0 = illimité)",
+    ["ot_overflow_text"]                 = "%d quête(s) masquée(s)...",
     ["info_obj_tracker"]                = "Applique un affichage sombre au Suivi d'Objectifs Blizzard avec un panneau, des polices personnalisées et des catégories colorées.",
     ["ot_header_title"]                 = "OBJECTIFS",
     ["ot_header_options"]               = "Options",
@@ -798,6 +800,19 @@ TomoMod_RegisterLocale("frFR", {
     ["info_sound_fade_tooltip"]         = "Quand le haste retombe sous ce ratio par rapport à la baseline, l'effet est considéré comme terminé. (Défaut: 115%)",
     ["btn_sound_reset_detection"]       = "Réinitialiser les ratios",
     ["msg_sound_detection_reset"]       = "Ratios de détection réinitialisés.",
+
+    -- =====================
+    -- BAG & MICRO MENU
+    -- =====================
+    ["tab_qol_bag_micro"]               = "Sac & Menu",
+    ["section_bag_micro"]               = "Barre de sac & Micro Menu",
+    ["info_bag_micro"]                  = "Choisissez d'afficher en permanence ou de révéler au survol de la souris.",
+    ["sublabel_bag_bar"]                = "— Barre de sac —",
+    ["sublabel_micro_menu"]             = "— Micro Menu —",
+    ["opt_bag_bar_mode"]                = "Barre de sac",
+    ["opt_micro_menu_mode"]             = "Micro Menu",
+    ["mode_show"]                       = "Toujours visible",
+    ["mode_hover"]                      = "Afficher au survol",
 
     -- =====================
     -- CHARACTER SKIN

@@ -19,6 +19,7 @@
     <Include file="Auto\AutoFillDelete.lua"/>
     <Include file="Auto\AutoSkipRole.lua"/>
     <Include file="Auto\TooltipIDs.lua"/>
+    <Include file="Auto\BagMicroMenu.lua"/>
 
     <!-- Modules: Classes -->
     <Include file="Classes\CompanionStatus.lua" />

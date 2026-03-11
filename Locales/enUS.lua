@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.3.2 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.3.3 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -381,6 +381,8 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_obj_tracker_cat_size"]        = "Category font size",
     ["opt_obj_tracker_quest_size"]      = "Quest title font size",
     ["opt_obj_tracker_obj_size"]        = "Objective font size",
+    ["opt_obj_tracker_max_quests"]       = "Max quests displayed (0 = no limit)",
+    ["ot_overflow_text"]                 = "%d more quest(s) hidden...",
     ["info_obj_tracker"]                = "Reskins the Blizzard Objective Tracker with a dark panel, custom fonts and colored category headers.",
     ["ot_header_title"]                 = "OBJECTIVES",
     ["ot_header_options"]               = "Options",
@@ -816,6 +818,19 @@ TomoMod_RegisterLocale("enUS", {
     ["info_sound_fade_tooltip"]         = "Quand le haste retombe sous ce ratio par rapport à la baseline, l'effet est considéré comme terminé. (Défaut: 115%)",
     ["btn_sound_reset_detection"]       = "Réinitialiser les ratios",
     ["msg_sound_detection_reset"]       = "Ratios de détection réinitialisés.",
+
+    -- =====================
+    -- BAG & MICRO MENU
+    -- =====================
+    ["tab_qol_bag_micro"]               = "Bag & Menu",
+    ["section_bag_micro"]               = "Bag Bar & Micro Menu",
+    ["info_bag_micro"]                  = "Choose whether to always show or reveal on mouse hover.",
+    ["sublabel_bag_bar"]                = "— Bag Bar —",
+    ["sublabel_micro_menu"]             = "— Micro Menu —",
+    ["opt_bag_bar_mode"]                = "Bag Bar",
+    ["opt_micro_menu_mode"]             = "Micro Menu",
+    ["mode_show"]                       = "Always visible",
+    ["mode_hover"]                      = "Show on hover",
 
     -- =====================
     -- CHARACTER SKIN

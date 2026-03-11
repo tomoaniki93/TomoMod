@@ -18,6 +18,7 @@ local BG_COLOR = { 0.05, 0.05, 0.1, 1 }
 
 local skinnedButtons = {}
 local classColor
+local playerInVehicle = false
 
 -- =====================================
 -- HELPERS
@@ -94,6 +95,12 @@ local function SkinButton(button)
     -- Get the icon texture
     local icon = button.icon or button.Icon
     if not icon then return end
+
+    -- Don't skin vehicle/override buttons while in vehicle (will skin after exit)
+    if playerInVehicle then
+        if name:match("^OverrideActionBarButton") or name:match("^PossessButton") then return end
+        if name:match("^ActionButton") and HasVehicleActionBar and HasVehicleActionBar() then return end
+    end
 
     -- Mark as skinned
     skinnedButtons[button] = true
@@ -224,7 +231,7 @@ local BAR_DEFS = {
     { prefix = "MultiBar7Button",           barKey = "MultiBar7",              count = 12 },
     { prefix = "PetActionButton",           barKey = "PetActionButton",        count = 10 },
     { prefix = "StanceButton",              barKey = "StanceButton",           count = 10 },
-    { prefix = "PossessButton",             barKey = "StanceButton",           count = 12 },
+    { prefix = "PossessButton",             barKey = "PossessBar",             count = 12 },
     { prefix = "OverrideActionBarButton",   barKey = "OverrideBar",            count = 6  },
     { prefix = "ExtraActionButton",         barKey = "ActionButton",           count = 1  },
 }
@@ -252,13 +259,67 @@ local function SkinAllButtons()
 end
 
 -- =====================================
+-- VEHICLE BUTTON HELPERS
+-- =====================================
+local function IsVehicleButton(button)
+    if not playerInVehicle then return false end
+    local bk = buttonBarKey[button]
+    if bk == "OverrideBar" or bk == "PossessBar" then return true end
+    if bk == "ActionButton" and HasVehicleActionBar and HasVehicleActionBar() then return true end
+    return false
+end
+
+local function TempUnskinButton(button)
+    if not skinnedButtons[button] then return end
+    if button._tmBorder then
+        for _, tex in ipairs(button._tmBorder) do
+            tex:Hide()
+        end
+    end
+    if button._tmBG then
+        button._tmBG:Hide()
+    end
+    local normal = button:GetNormalTexture()
+    if normal then
+        normal:SetAlpha(1)
+        normal:Show()
+    end
+    if button.SlotArt then button.SlotArt:Show() end
+    if button.SlotBackground then button.SlotBackground:Show() end
+    button._tmVehicleUnskinned = true
+end
+
+local function ReskinButton(button)
+    if not skinnedButtons[button] then return end
+    if not button._tmVehicleUnskinned then return end
+    button._tmVehicleUnskinned = nil
+    if button._tmBorder then
+        for _, tex in ipairs(button._tmBorder) do
+            tex:Show()
+        end
+    end
+    if button._tmBG then
+        button._tmBG:Show()
+    end
+    local normal = button:GetNormalTexture()
+    if normal then
+        normal:SetTexture(nil)
+        normal:SetAlpha(0)
+        normal:Hide()
+    end
+    if button.SlotArt then button.SlotArt:Hide() end
+    if button.SlotBackground then button.SlotBackground:Hide() end
+end
+
+-- =====================================
 -- PER-BAR OPACITY
 -- =====================================
 local function ApplyBarOpacityInternal(barKey, pct)
     local alpha = (pct or 100) / 100
-    -- Ne jamais masquer la barre véhicule si on est dans un véhicule
-    if barKey == "OverrideBar" and UnitInVehicle and UnitInVehicle("player") then
-        return
+    -- Ne jamais masquer les barres véhicule si on est dans un véhicule
+    if playerInVehicle then
+        if barKey == "OverrideBar" or barKey == "PossessBar" then return end
+        if barKey == "ActionButton" and HasVehicleActionBar and HasVehicleActionBar() then return end
     end
     for button, bk in pairs(buttonBarKey) do
         if bk == barKey then
@@ -293,18 +354,29 @@ vehicleFrame:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
 vehicleFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 local function RefreshVehicleBarVisibility()
-    local inVehicle = UnitInVehicle and UnitInVehicle("player")
-    for button, bk in pairs(buttonBarKey) do
-        if bk == "OverrideBar" then
-            if inVehicle then
+    playerInVehicle = (UnitInVehicle and UnitInVehicle("player")) or
+                      (HasVehicleActionBar and HasVehicleActionBar()) or
+                      (HasOverrideActionBar and HasOverrideActionBar()) or false
+
+    if playerInVehicle then
+        -- Temporarily unskin vehicle buttons and force full visibility
+        for button, bk in pairs(buttonBarKey) do
+            if bk == "OverrideBar" or bk == "PossessBar" then
+                TempUnskinButton(button)
                 button:SetAlpha(1)
-            else
-                -- Rétablir l'opacité configurée hors véhicule
-                local settings = GetSettings()
-                local pct = settings and settings.barOpacity and settings.barOpacity["OverrideBar"] or 0
-                button:SetAlpha(pct / 100)
+            elseif bk == "ActionButton" and HasVehicleActionBar and HasVehicleActionBar() then
+                TempUnskinButton(button)
+                button:SetAlpha(1)
             end
         end
+    else
+        -- Re-skin buttons and restore configured opacities
+        for button, bk in pairs(buttonBarKey) do
+            if bk == "OverrideBar" or bk == "PossessBar" or button._tmVehicleUnskinned then
+                ReskinButton(button)
+            end
+        end
+        ApplyAllOpacities()
     end
 end
 
@@ -312,7 +384,11 @@ vehicleFrame:SetScript("OnEvent", function(_, event, unit)
     if event == "UNIT_ENTERED_VEHICLE" or event == "UNIT_EXITED_VEHICLE" then
         if unit ~= "player" then return end
     end
-    -- Petit délai pour que WoW finisse de set up la barre override
+    -- Update vehicle state immediately so hooks react correctly
+    playerInVehicle = (UnitInVehicle and UnitInVehicle("player")) or
+                      (HasVehicleActionBar and HasVehicleActionBar()) or
+                      (HasOverrideActionBar and HasOverrideActionBar()) or false
+    -- Delay the visual refresh to let WoW finish setting up the bar
     C_Timer.After(0.1, RefreshVehicleBarVisibility)
 end)
 
@@ -325,9 +401,10 @@ combatFrame:Hide()
 local function SetBarVisible(barKey, visible)
     local settings = GetSettings()
     if not settings then return end
-    -- Ne jamais masquer la barre véhicule si on est dans un véhicule
-    if barKey == "OverrideBar" and UnitInVehicle and UnitInVehicle("player") then
-        return
+    -- Ne jamais masquer les barres véhicule si on est dans un véhicule
+    if playerInVehicle then
+        if barKey == "OverrideBar" or barKey == "PossessBar" then return end
+        if barKey == "ActionButton" and HasVehicleActionBar and HasVehicleActionBar() then return end
     end
     local opacities = settings.barOpacity or {}
     local targetAlpha = visible and ((opacities[barKey] or 100) / 100) or 0
@@ -436,6 +513,8 @@ local function SetupHooks()
     -- Suppress NormalTexture on various update events
     local function SuppressNormal(self)
         if not skinnedButtons[self] then return end
+        -- Skip suppression for vehicle buttons when in vehicle
+        if IsVehicleButton(self) then return end
         local normal = self:GetNormalTexture()
         if normal then
             normal:SetTexture(nil)
@@ -461,7 +540,7 @@ local function SetupHooks()
     pcall(hooksecurefunc, "ActionButton_Update", function(self)
         SuppressNormal(self)
         local settings = GetSettings()
-        if settings and settings.enabled then
+        if settings and settings.enabled and not IsVehicleButton(self) then
             SkinButton(self)
         end
     end)
@@ -471,7 +550,7 @@ local function SetupHooks()
         pcall(hooksecurefunc, ActionBarActionButtonMixin, "Update", function(self)
             SuppressNormal(self)
             local settings = GetSettings()
-            if settings and settings.enabled then
+            if settings and settings.enabled and not IsVehicleButton(self) then
                 SkinButton(self)
             end
         end)
