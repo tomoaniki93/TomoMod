@@ -1,22 +1,43 @@
 -- =====================================
--- CooldownManager.lua
--- Module de reskin des icônes Blizzard CooldownManager
--- Bordures 1px noires, overlay classe, CD texte custom,
--- alignement centré des buffs, hotkeys optionnels
+-- CooldownManager V2
+-- Clean & modern reskin of Blizzard CooldownManager
+-- 9-slice rounded borders, class overlay on active auras,
+-- custom swipe colors, utility dimming, centered layout,
+-- hotkeys, custom CD text
 -- =====================================
 
 TomoMod_CooldownManager = TomoMod_CooldownManager or {}
 local CDM = TomoMod_CooldownManager
 
 -- =====================================
--- CONSTANTES
+-- CONSTANTS
 -- =====================================
-local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
-local BORDER_TEX = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Nameplates\\border.png"
-local BORDER_CORNER = 4
-local ICON_INSET = 3 -- pixels inset for icon inside border
-local SPACING = 1 -- gap between icons
-local TICK_RATE = 0.25 -- [PERF] 4fps — perceptually identical, 2.5x less CPU than 0.1
+local FONT            = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
+local BORDER_TEX      = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Nameplates\\border.png"
+local BORDER_CORNER   = 4
+local ICON_INSET      = 3
+local SPACING         = 1
+local TICK_RATE       = 0.25
+local floor, abs, ceil = math.floor, math.abs, math.ceil
+
+-- =====================================
+-- CLASS OVERLAY COLOR TABLE
+-- =====================================
+local CLASS_OVERLAY_COLORS = {
+    WARRIOR     = { r = 0.78, g = 0.61, b = 0.43 },
+    PALADIN     = { r = 0.96, g = 0.55, b = 0.73 },
+    HUNTER      = { r = 0.67, g = 0.83, b = 0.45 },
+    ROGUE       = { r = 1.00, g = 0.96, b = 0.41 },
+    PRIEST      = { r = 1.00, g = 1.00, b = 1.00 },
+    DEATHKNIGHT = { r = 0.77, g = 0.12, b = 0.23 },
+    SHAMAN      = { r = 0.00, g = 0.44, b = 0.87 },
+    MAGE        = { r = 0.25, g = 0.78, b = 0.92 },
+    WARLOCK     = { r = 0.53, g = 0.53, b = 0.93 },
+    MONK        = { r = 0.00, g = 1.00, b = 0.60 },
+    DRUID       = { r = 1.00, g = 0.49, b = 0.04 },
+    DEMONHUNTER = { r = 0.64, g = 0.19, b = 0.79 },
+    EVOKER      = { r = 0.20, g = 0.58, b = 0.50 },
+}
 
 -- =====================================
 -- 9-SLICE ROUNDED BORDER HELPER
@@ -34,32 +55,24 @@ local function Create9SliceBorder(parent, r, g, b, a, sublevel)
         return t
     end
 
-    -- Corners
     local tl = Tex(); tl:SetSize(BORDER_CORNER, BORDER_CORNER)
     tl:SetPoint("TOPLEFT"); tl:SetTexCoord(0, 0.5, 0, 0.5)
-
     local tr = Tex(); tr:SetSize(BORDER_CORNER, BORDER_CORNER)
     tr:SetPoint("TOPRIGHT"); tr:SetTexCoord(0.5, 1, 0, 0.5)
-
     local bl = Tex(); bl:SetSize(BORDER_CORNER, BORDER_CORNER)
     bl:SetPoint("BOTTOMLEFT"); bl:SetTexCoord(0, 0.5, 0.5, 1)
-
     local br = Tex(); br:SetSize(BORDER_CORNER, BORDER_CORNER)
     br:SetPoint("BOTTOMRIGHT"); br:SetTexCoord(0.5, 1, 0.5, 1)
 
-    -- Edges
     local top = Tex(); top:SetHeight(BORDER_CORNER)
     top:SetPoint("TOPLEFT", tl, "TOPRIGHT"); top:SetPoint("TOPRIGHT", tr, "TOPLEFT")
     top:SetTexCoord(0.5, 0.5, 0, 0.5)
-
     local bot = Tex(); bot:SetHeight(BORDER_CORNER)
     bot:SetPoint("BOTTOMLEFT", bl, "BOTTOMRIGHT"); bot:SetPoint("BOTTOMRIGHT", br, "BOTTOMLEFT")
     bot:SetTexCoord(0.5, 0.5, 0.5, 1)
-
     local left = Tex(); left:SetWidth(BORDER_CORNER)
     left:SetPoint("TOPLEFT", tl, "BOTTOMLEFT"); left:SetPoint("BOTTOMLEFT", bl, "TOPLEFT")
     left:SetTexCoord(0, 0.5, 0.5, 0.5)
-
     local right = Tex(); right:SetWidth(BORDER_CORNER)
     right:SetPoint("TOPRIGHT", tr, "BOTTOMRIGHT"); right:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT")
     right:SetTexCoord(0.5, 1, 0.5, 0.5)
@@ -72,14 +85,15 @@ end
 -- =====================================
 local _, playerClass = UnitClass("player")
 local classColor = RAID_CLASS_COLORS[playerClass]
+local overlayColor = CLASS_OVERLAY_COLORS[playerClass] or classColor
 local hotkeys = {}
 local viewers = {}
-local cdViewers = {} -- Essential + Utility only
+local cdViewers = {}
 local todoList = {}
 local isInitialized = false
 local mainFrame, updateFrame, tickerFrame
 
--- [PERF] Children cache — avoids {GetChildren()} table alloc every tick
+-- Children cache
 local childrenCache = {}
 local function InvalidateChildrenCache(viewer)
     childrenCache[viewer] = nil
@@ -91,15 +105,12 @@ local function GetCachedChildren(viewer)
     return childrenCache[viewer]
 end
 
--- [PERF] Named sort functions — avoids anonymous closure allocation per layout
+-- Named sort functions
 local function SortByStableSlot(a, b)
     return (a._cdm_stableSlot or 0) < (b._cdm_stableSlot or 0)
 end
-local function SortByOrigPosition(a, b)
-    if math.abs(a._cdm_origY - b._cdm_origY) < 1 then
-        return a._cdm_origX < b._cdm_origX
-    end
-    return a._cdm_origY > b._cdm_origY
+local function SortByLayoutIndex(a, b)
+    return (a.layoutIndex or 0) < (b.layoutIndex or 0)
 end
 
 -- =====================================
@@ -109,11 +120,27 @@ local function GetSettings()
     return TomoModDB and TomoModDB.cooldownManager
 end
 
+local function GetOverlayColor()
+    local s = GetSettings()
+    if s and s.useCustomOverlay then
+        return { r = s.overlayR or overlayColor.r, g = s.overlayG or overlayColor.g, b = s.overlayB or overlayColor.b }
+    end
+    return overlayColor
+end
+
+local function GetActiveSwipeColor()
+    local s = GetSettings()
+    if s and s.customSwipeEnabled then
+        return s.swipeR or 1, s.swipeG or 0.95, s.swipeB or 0.57, s.swipeA or 0.55
+    end
+    return nil
+end
+
 local function FormatCooldown(remaining)
     if remaining >= 60 then
-        return string.format("%dm", math.ceil(remaining / 60))
+        return string.format("%dm", ceil(remaining / 60))
     elseif remaining >= 10 then
-        return string.format("%d", math.floor(remaining))
+        return string.format("%d", floor(remaining))
     elseif remaining >= 0 then
         return string.format("%.1f", remaining)
     end
@@ -122,12 +149,54 @@ end
 
 local function FormatDuration(remaining)
     if remaining >= 60 then
-        return string.format("%dm", math.ceil(remaining / 60))
+        return string.format("%dm", ceil(remaining / 60))
     elseif remaining >= 10 then
-        return string.format("%d", math.floor(remaining))
+        return string.format("%d", floor(remaining))
     else
         return string.format("%.0f", remaining)
     end
+end
+
+-- =====================================
+-- LAYOUT ENGINE (inspired by CooldownManagerCentered)
+-- Pure math — no frame access
+-- =====================================
+local LayoutEngine = {}
+
+function LayoutEngine.CenteredRowXOffsets(count, itemWidth, padding, directionMod, iconLimit)
+    if not count or count <= 0 then return {} end
+    local dir = directionMod or 1
+    local missing = (iconLimit or count) - count
+    local startX = ((itemWidth + padding) * missing / 2) * dir
+    local offsets = {}
+    for i = 1, count do
+        offsets[i] = startX + (i - 1) * (itemWidth + padding) * dir
+    end
+    return offsets
+end
+
+function LayoutEngine.CenteredColYOffsets(count, itemHeight, padding, directionMod, iconLimit)
+    if not count or count <= 0 then return {} end
+    local dir = directionMod or 1
+    local missing = (iconLimit or count) - count
+    local startY = -((itemHeight + padding) * missing / 2) * dir
+    local offsets = {}
+    for i = 1, count do
+        offsets[i] = startY - (i - 1) * (itemHeight + padding) * dir
+    end
+    return offsets
+end
+
+function LayoutEngine.BuildRows(iconLimit, children)
+    local rows = {}
+    local limit = iconLimit or 0
+    if limit <= 0 then return rows end
+    for i = 1, #children do
+        local ri = floor((i - 1) / limit) + 1
+        rows[ri] = rows[ri] or {}
+        rows[ri][#rows[ri] + 1] = children[i]
+    end
+    return rows
 end
 
 -- =====================================
@@ -204,7 +273,7 @@ local function GetSpellHotkey(spellID)
 end
 
 -- =====================================
--- STYLE: APPLY CLEAN BORDER + ICON CROP
+-- STYLE: CLEAN BORDER + ICON CROP
 -- =====================================
 local function StyleButton(button, isBuff)
     if button._cdm_styled then return end
@@ -213,8 +282,8 @@ local function StyleButton(button, isBuff)
     local width = button:GetWidth()
     local rate = isBuff and 0.85 or 0.92
     local iconRate = isBuff and 0.12 or 0.07
+    local oc = GetOverlayColor()
 
-    -- Resize button slightly rectangular
     button:SetSize(width, width * rate)
 
     -- Strip mask, crop icon
@@ -227,26 +296,26 @@ local function StyleButton(button, isBuff)
         button.Icon:SetTexCoord(0.07, 0.93, iconRate, 1 - iconRate)
     end
 
-    -- Dark background (fills behind rounded corners)
+    -- Dark background
     local bg = button:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
     bg:SetColorTexture(0, 0, 0, 1)
 
-    -- 9-slice rounded border (black)
+    -- 9-slice rounded border (black — default state)
     button._cdm_borders = Create9SliceBorder(button, nil, nil, nil, nil, 7)
 
-    -- Class-colored overlay glow (shown when spell is active/aura)
+    -- Class overlay (shown when spell is active/aura)
     button._cdm_classOverlay = button:CreateTexture(nil, "OVERLAY", nil, 6)
     button._cdm_classOverlay:SetPoint("TOPLEFT", ICON_INSET, -ICON_INSET)
     button._cdm_classOverlay:SetPoint("BOTTOMRIGHT", -ICON_INSET, ICON_INSET)
-    button._cdm_classOverlay:SetColorTexture(classColor.r, classColor.g, classColor.b, 0.25)
+    button._cdm_classOverlay:SetColorTexture(oc.r, oc.g, oc.b, 0.25)
     button._cdm_classOverlay:Hide()
 
-    -- 9-slice rounded border (class-colored, shown when active)
-    button._cdm_activeBorders = Create9SliceBorder(button, classColor.r, classColor.g, classColor.b, 1, 7)
+    -- 9-slice rounded border (class-colored — active state)
+    button._cdm_activeBorders = Create9SliceBorder(button, oc.r, oc.g, oc.b, 1, 7)
     for _, t in ipairs(button._cdm_activeBorders) do t:Hide() end
 
-    -- Custom CD text (center of icon)
+    -- Custom CD text
     button._cdm_cdText = button:CreateFontString(nil, "OVERLAY", nil)
     button._cdm_cdText:SetFont(FONT, isBuff and (width / 3) or (width / 2.8), "OUTLINE")
     button._cdm_cdText:SetShadowOffset(1, -1)
@@ -257,9 +326,9 @@ local function StyleButton(button, isBuff)
         button._cdm_cdText:SetPoint("CENTER", 0, 0)
     end
 
-    -- Charge count styling
+    -- Charge count
     if button.ChargeCount then
-        for _, r in next, {button.ChargeCount:GetRegions()} do
+        for _, r in next, { button.ChargeCount:GetRegions() } do
             if r:GetObjectType() == "FontString" then
                 r:SetFont(FONT, width / 3, "OUTLINE")
                 r:ClearAllPoints()
@@ -271,9 +340,9 @@ local function StyleButton(button, isBuff)
         end
     end
 
-    -- Applications (stack count)
+    -- Stack count
     if button.Applications then
-        for _, r in next, {button.Applications:GetRegions()} do
+        for _, r in next, { button.Applications:GetRegions() } do
             if r:GetObjectType() == "FontString" then
                 r:SetFont(FONT, width / 3, "OUTLINE")
                 r:ClearAllPoints()
@@ -292,18 +361,41 @@ local function StyleButton(button, isBuff)
         button.DebuffBorder:SetPoint("BOTTOMRIGHT", 2, -2)
     end
 
-    -- Hide Blizzard's default CD text
+    -- Hide Blizzard CD text
     if button.Cooldown then
         button.Cooldown:SetHideCountdownNumbers(true)
-        for _, r in next, {button.Cooldown:GetRegions()} do
+        for _, r in next, { button.Cooldown:GetRegions() } do
             if r:GetObjectType() == "FontString" then
                 r:SetAlpha(0)
                 break
             end
         end
+
+        -- Custom swipe color on active aura
+        local sr, sg, sb, sa = GetActiveSwipeColor()
+        if sr then
+            hooksecurefunc(button.Cooldown, "SetCooldown", function(self)
+                local parent = self:GetParent()
+                if parent and parent.cooldownUseAuraDisplayTime then
+                    local af = parent.cooldownUseAuraDisplayTime
+                    local isAura = false
+                    if issecretvalue and issecretvalue(af) then
+                        if (parent.SpellActivationAlert and parent.SpellActivationAlert:IsShown())
+                            or (parent.ActiveAuraHighlight and parent.ActiveAuraHighlight:IsShown()) then
+                            isAura = true
+                        end
+                    else
+                        isAura = (af == true)
+                    end
+                    if isAura then
+                        self:SetSwipeColor(sr, sg, sb, sa)
+                    end
+                end
+            end)
+        end
     end
 
-    -- Hotkey text (cooldown viewers only)
+    -- Hotkey text (Essential/Utility only)
     if not isBuff then
         button._cdm_hotkey = button:CreateFontString(nil, "OVERLAY")
         button._cdm_hotkey:SetFont(FONT, math.max(8, width / 4 - 1), "OUTLINE")
@@ -321,14 +413,11 @@ end
 local function UpdateButtonState(button, isBuff)
     if not button._cdm_styled then return end
 
-    -- Active state detection (TWW secret-value safe)
-    -- cooldownUseAuraDisplayTime may be a secret value for newer specs (e.g. Devourer)
+    -- Active state detection (TWW issecretvalue-safe)
     local isActive = false
     local auraField = button.cooldownUseAuraDisplayTime
     if auraField ~= nil then
         if issecretvalue and issecretvalue(auraField) then
-            -- Secret value: can't read directly, use fallback methods
-            -- Check if Blizzard's overlay glow is active on this button
             if button.SpellActivationAlert and button.SpellActivationAlert:IsShown() then
                 isActive = true
             elseif button.ActiveAuraHighlight and button.ActiveAuraHighlight:IsShown() then
@@ -339,7 +428,7 @@ local function UpdateButtonState(button, isBuff)
         end
     end
 
-    -- Toggle class-colored overlay + border
+    -- Toggle overlay + border
     if isActive then
         button._cdm_classOverlay:Show()
         for _, t in ipairs(button._cdm_activeBorders) do t:Show() end
@@ -353,8 +442,6 @@ local function UpdateButtonState(button, isBuff)
     -- Custom CD text
     if button.Cooldown then
         local start, duration = button.Cooldown:GetCooldownTimes()
-        -- TWW: GetCooldownTimes may return secrets — can't do boolean test or compare
-        -- Must use type() first (no boolean test), then issecretvalue() before arithmetic
         if type(start) ~= "nil" and type(duration) ~= "nil"
             and not issecretvalue(start) and not issecretvalue(duration) then
             if start > 0 and duration > 0 then
@@ -417,7 +504,6 @@ local function StyleBuffBar(item)
         if bar.BarBG then bar.BarBG:Hide() end
         bar.Name:Hide()
 
-        -- 1px border around bar
         if not bar._cdm_bg then
             bar._cdm_bg = bar:CreateTexture(nil, "BACKGROUND")
             bar._cdm_bg:SetPoint("TOPLEFT", -1, 1)
@@ -441,7 +527,6 @@ local function StyleBuffBar(item)
             btn.Icon:SetTexCoord(0.07, 0.93, 0.1, 0.9)
         end
 
-        -- Border
         if not btn._cdm_border then
             btn._cdm_border = btn:CreateTexture(nil, "BACKGROUND")
             btn._cdm_border:SetAllPoints(btn)
@@ -459,42 +544,158 @@ local function StyleBuffBar(item)
 end
 
 -- =====================================
--- LAYOUT: CENTERED ALIGNMENT
--- Essential/Utility: simple centered rows
--- Buffs: center-outward pattern (1 center, 2 left, 3 right...)
+-- VIEWER ADAPTERS
+-- Collect visible children for each viewer type
 -- =====================================
-local function LayoutViewer(viewer, isBuff)
-    if EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive() then return end
+local ViewerAdapters = {}
 
+function ViewerAdapters.CollectVisibleSorted(viewer)
     local children = GetCachedChildren(viewer)
     local visible = {}
     for _, child in ipairs(children) do
-        if child:IsShown() then
-            local point, relativeTo, relativePoint, x, y = child:GetPoint(1)
-            child._cdm_origX = x or 0
-            child._cdm_origY = y or 0
-            table.insert(visible, child)
+        if child:IsShown() and child.layoutIndex then
+            visible[#visible + 1] = child
         end
     end
+    table.sort(visible, SortByLayoutIndex)
+    return visible
+end
 
-    if #visible == 0 then
-        -- Reset stable slot counter when bar is empty so slots don't accumulate forever
-        if viewer == BuffBarCooldownViewer then
-            viewer._cdm_nextSlot = nil
-            local children2 = GetCachedChildren(viewer)
-            for _, child in ipairs(children2) do
-                child._cdm_stableSlot = nil
+function ViewerAdapters.CollectVisibleBuffIcons()
+    if not BuffIconCooldownViewer then return {}, 0 end
+    local children = GetCachedChildren(BuffIconCooldownViewer)
+    local visible = {}
+    local total = 0
+    for _, child in ipairs(children) do
+        if child and (child.Icon or child.icon) and child.layoutIndex then
+            total = total + 1
+            if child:IsShown() then
+                visible[#visible + 1] = child
+                -- Hook aura events for auto-relayout
+                if not child._cdm_hooked then
+                    child._cdm_hooked = true
+                    if child.OnActiveStateChanged then
+                        hooksecurefunc(child, "OnActiveStateChanged", function()
+                            todoList[BuffIconCooldownViewer] = true
+                            InvalidateChildrenCache(BuffIconCooldownViewer)
+                            if updateFrame then updateFrame:Show() end
+                        end)
+                    end
+                    if child.OnUnitAuraAddedEvent then
+                        hooksecurefunc(child, "OnUnitAuraAddedEvent", function()
+                            todoList[BuffIconCooldownViewer] = true
+                            InvalidateChildrenCache(BuffIconCooldownViewer)
+                            if updateFrame then updateFrame:Show() end
+                        end)
+                    end
+                    if child.OnUnitAuraRemovedEvent then
+                        hooksecurefunc(child, "OnUnitAuraRemovedEvent", function()
+                            todoList[BuffIconCooldownViewer] = true
+                            InvalidateChildrenCache(BuffIconCooldownViewer)
+                            if updateFrame then updateFrame:Show() end
+                        end)
+                    end
+                end
             end
         end
-        return
     end
+    table.sort(visible, SortByLayoutIndex)
+    return visible, total
+end
 
-    -- Style all visible buttons
+-- =====================================
+-- UTILITY DIMMING
+-- Dim utility icons when NOT on cooldown
+-- =====================================
+local _dimCurve, _dimCurveOpacity
+
+local function GetDimCurve(opacity)
+    if _dimCurve and _dimCurveOpacity == opacity then return _dimCurve end
+    _dimCurve = C_CurveUtil.CreateCurve()
+    _dimCurve:AddPoint(0.0, opacity)
+    _dimCurve:AddPoint(0.1, 1)
+    _dimCurveOpacity = opacity
+    return _dimCurve
+end
+
+local function UpdateUtilityDimming()
+    local viewer = UtilityCooldownViewer
+    if not viewer then return end
+    local s = GetSettings()
+    if not s or not s.dimUtility then return end
+    local dimOpacity = s.dimOpacity or 0.35
+
+    local children = GetCachedChildren(viewer)
+    for _, child in ipairs(children) do
+        if child and child:IsShown() and child.Icon and child.cooldownID then
+            local ok, info = pcall(C_CooldownViewer.GetCooldownViewerCooldownInfo, child.cooldownID)
+            if ok and info then
+                local spellID = info.overrideSpellID or info.spellID
+                if spellID then
+                    local cd = C_Spell.GetSpellCooldown(spellID)
+                    if cd and not cd.isOnGCD then
+                        local duration = C_Spell.GetSpellCooldownDuration(spellID)
+                        if duration and duration.EvaluateRemainingDuration then
+                            local curve = GetDimCurve(dimOpacity)
+                            local alpha = duration:EvaluateRemainingDuration(curve)
+                            if alpha then
+                                child:SetAlpha(alpha)
+                            end
+                        else
+                            child:SetAlpha(dimOpacity)
+                        end
+                    else
+                        child:SetAlpha(dimOpacity)
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- =====================================
+-- LAYOUT: CENTERED ALIGNMENT V2
+-- Uses LayoutEngine for proper centered rows with iconLimit,
+-- dirty-check positioning, center-outward buffs
+-- =====================================
+local function PositionRowHorizontal(viewer, row, yOffset, w, padding, dirMod, anchor, iconLimit)
+    local count = #row
+    local xOffsets = LayoutEngine.CenteredRowXOffsets(count, w, padding, dirMod, iconLimit)
+    for i, icon in ipairs(row) do
+        local x = xOffsets[i] or 0
+        -- Dirty-check: skip repositioning if already correct
+        local needSet = true
+        if icon.GetPoint then
+            local pt, _, rp, ox, oy = icon:GetPoint()
+            if ox and oy then
+                if pt == anchor and rp == anchor and abs(x - ox) < 1 and abs(yOffset - oy) < 1 then
+                    needSet = false
+                end
+            end
+        end
+        if needSet then
+            icon:ClearAllPoints()
+            icon:SetPoint(anchor, viewer, anchor, x, yOffset)
+        end
+    end
+end
+
+local function LayoutViewer(viewer, isBuff)
+    if EditModeManagerFrame and EditModeManagerFrame:IsEditModeActive() then return end
+
+    -- Buff bars: stable-slot vertical stack
     local isBar = (viewer == BuffBarCooldownViewer)
     if isBar then
-        -- Style + assign stable slots so bars never reorder
-        -- _cdm_stableSlot is assigned once on first appearance (monotonic counter)
-        -- and never changes, giving each spell a fixed vertical position.
+        local children = GetCachedChildren(viewer)
+        local visible = {}
+        for _, child in ipairs(children) do
+            if child:IsShown() then visible[#visible + 1] = child end
+        end
+        if #visible == 0 then
+            viewer._cdm_nextSlot = nil
+            for _, child in ipairs(children) do child._cdm_stableSlot = nil end
+            return
+        end
         for _, item in ipairs(visible) do
             StyleBuffBar(item)
             if not item._cdm_stableSlot then
@@ -502,11 +703,7 @@ local function LayoutViewer(viewer, isBuff)
                 item._cdm_stableSlot = viewer._cdm_nextSlot
             end
         end
-
-        -- Sort by stable slot so the order is deterministic
         table.sort(visible, SortByStableSlot)
-
-        -- Stack bars vertically from the top of the viewer, 2px gap
         local BAR_GAP = 2
         local yOff = 0
         for _, item in ipairs(visible) do
@@ -519,36 +716,44 @@ local function LayoutViewer(viewer, isBuff)
         return
     end
 
+    -- Buff Icons: use dedicated adapter for aura hooks
+    local visible, totalSlots
+    if isBuff then
+        visible, totalSlots = ViewerAdapters.CollectVisibleBuffIcons()
+    else
+        visible = ViewerAdapters.CollectVisibleSorted(viewer)
+    end
+
+    if #visible == 0 then return end
+
+    -- Style + hotkey
     for _, button in ipairs(visible) do
         StyleButton(button, isBuff)
-        UpdateButtonHotkey(button)
+        if not isBuff then UpdateButtonHotkey(button) end
     end
 
     -- Only re-layout horizontal viewers
     if not viewer.isHorizontal then return end
 
-    local stride = viewer.stride or 8
     local btnW = visible[1]:GetWidth()
     local btnH = visible[1]:GetHeight()
-    local numIcons = #visible
-
-    -- Sort by original position (row then column)
-    table.sort(visible, SortByOrigPosition)
+    local iconLimit = viewer.iconLimit or viewer.stride or 8
+    local padding = viewer.childXPadding or SPACING
 
     if isBuff then
         -- ======================================
         -- BUFF CENTER-OUTWARD PATTERN
-        -- 1st: center, 2nd: left, 3rd: right, 4th: further left, 5th: further right...
+        -- 1st: center, 2nd: left, 3rd: right...
         -- ======================================
-        local gap = SPACING
+        local numIcons = #visible
+        local gap = padding
         local positions = {}
-
         for i = 1, numIcons do
             if i == 1 then
                 positions[i] = 0
             else
-                local slot = math.ceil((i - 1) / 2)
-                local isRight = ((i - 1) % 2 == 1) -- odd offset = right
+                local slot = ceil((i - 1) / 2)
+                local isRight = ((i - 1) % 2 == 1)
                 if isRight then
                     positions[i] = slot * (btnW + gap)
                 else
@@ -556,42 +761,37 @@ local function LayoutViewer(viewer, isBuff)
                 end
             end
         end
-
         for i, child in ipairs(visible) do
             child:ClearAllPoints()
             child:SetPoint("TOP", viewer, "TOP", positions[i], 0)
         end
     else
         -- ======================================
-        -- ESSENTIAL / UTILITY: simple centered rows
+        -- ESSENTIAL / UTILITY: Centered rows via LayoutEngine
         -- ======================================
-        local gap = SPACING
-
-        for i, child in ipairs(visible) do
-            local index = i - 1
-            local row = math.floor(index / stride)
-            local col = index % stride
-
-            local rowStart = row * stride + 1
-            local rowEnd = math.min(rowStart + stride - 1, numIcons)
-            local iconsInRow = rowEnd - rowStart + 1
-
-            local rowWidth = iconsInRow * btnW + (iconsInRow - 1) * gap
-            local startX = -rowWidth / 2
-
-            local xOff = startX + col * (btnW + gap)
-            local yOff = row * (btnH + gap)
-
-            child:ClearAllPoints()
-            child:SetPoint("TOP", viewer, "TOP", xOff + btnW / 2, -yOff)
+        local rows = LayoutEngine.BuildRows(iconLimit, visible)
+        if #rows == 0 then return end
+        local maxIcons = math.min(iconLimit, #visible)
+        local yPadding = viewer.childYPadding or SPACING
+        local iconDirMod = (viewer.iconDirection == 1) and 1 or -1
+        local fromAnchor1 = "TOP"
+        local fromAnchor2 = (viewer.iconDirection == 1) and "LEFT" or "RIGHT"
+        local rowAnchor = fromAnchor1 .. fromAnchor2
+        local cumY = 0
+        for _, row in ipairs(rows) do
+            PositionRowHorizontal(viewer, row, -cumY, btnW, padding, iconDirMod, rowAnchor, maxIcons)
+            cumY = cumY + btnH + yPadding
         end
     end
 end
 
 -- =====================================
--- TICKER: Update CD text + active state
+-- TICKER: Update CD text + active state + dimming
 -- =====================================
-local function TickerUpdate()
+local dimElapsed = 0
+local DIM_RATE = 0.1
+
+local function TickerUpdate(dt)
     for _, viewer in ipairs(viewers) do
         if viewer and viewer:IsShown() then
             local isBar = (viewer == BuffBarCooldownViewer)
@@ -605,6 +805,13 @@ local function TickerUpdate()
                 end
             end
         end
+    end
+
+    -- Utility dimming at a lower rate
+    dimElapsed = dimElapsed + dt
+    if dimElapsed >= DIM_RATE then
+        dimElapsed = 0
+        UpdateUtilityDimming()
     end
 end
 
@@ -685,18 +892,14 @@ local function InitViewers()
     for _, viewer in ipairs(viewers) do
         if viewer then
             local isBuff = (viewer == BuffIconCooldownViewer)
-
-            -- Initial layout
             LayoutViewer(viewer, isBuff)
 
-            -- Hook Layout
             if viewer.Layout then
                 hooksecurefunc(viewer, "Layout", function()
                     AddToDoList(viewer)
                 end)
             end
 
-            -- Hook child Show/Hide
             local children = GetCachedChildren(viewer)
             for _, child in ipairs(children) do
                 child:HookScript("OnShow", function() AddToDoList(viewer) end)
@@ -705,14 +908,15 @@ local function InitViewers()
         end
     end
 
-    -- Ticker for CD text + active state
+    -- Ticker for CD text + active state + dimming
     tickerFrame = CreateFrame("Frame")
     tickerFrame.elapsed = 0
     tickerFrame:SetScript("OnUpdate", function(self, dt)
         self.elapsed = self.elapsed + dt
         if self.elapsed >= TICK_RATE then
+            local e = self.elapsed
             self.elapsed = 0
-            TickerUpdate()
+            TickerUpdate(e)
         end
     end)
 
@@ -728,9 +932,7 @@ local function InitViewers()
         end
     end)
 
-    -- Initial alpha
     UpdateAlpha()
-
     isInitialized = true
     return true
 end
@@ -776,19 +978,8 @@ end
 function CDM.Initialize()
     if not TomoModDB then return end
 
-    if not TomoModDB.cooldownManager then
-        TomoModDB.cooldownManager = {
-            enabled = true,
-            showHotKey = false,
-            combatAlpha = true,
-            alphaInCombat = 1.0,
-            alphaWithTarget = 0.8,
-            alphaOutOfCombat = 0.5,
-        }
-    end
-
     local settings = GetSettings()
-    if not settings.enabled then return end
+    if not settings or not settings.enabled then return end
 
     mainFrame = CreateFrame("Frame")
     mainFrame:RegisterEvent("ADDON_LOADED")
@@ -808,6 +999,9 @@ function CDM.ApplySettings()
     if not isInitialized then return end
     local settings = GetSettings()
     if not settings then return end
+
+    -- Update overlay color reference
+    overlayColor = CLASS_OVERLAY_COLORS[playerClass] or classColor
 
     RefreshHotkeyVisibility()
 

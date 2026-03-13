@@ -168,6 +168,30 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
+    -- Combat Text
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_combat_text"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_combat_text_enable"], TomoModDB.combatText.enabled, y, function(v)
+        TomoModDB.combatText.enabled = v
+        if TomoMod_CombatText then TomoMod_CombatText.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_combat_text_offset_x"], TomoModDB.combatText.offsetX, -200, 200, 1, y, function(v)
+        TomoModDB.combatText.offsetX = v
+        if TomoMod_CombatText then TomoMod_CombatText.UpdatePosition() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_combat_text_offset_y"], TomoModDB.combatText.offsetY, -200, 200, 1, y, function(v)
+        TomoModDB.combatText.offsetY = v
+        if TomoMod_CombatText then TomoMod_CombatText.UpdatePosition() end
+    end)
+    y = ny
+
     -- Tooltip IDs
     local _, ny = W.CreateSeparator(c, y)
     y = ny
@@ -458,6 +482,12 @@ local function BuildCharacterSkinTab(parent)
 
     local _, ny = W.CreateCheckbox(c, L["opt_char_skin_iteminfo"], TomoModDB.characterSkin.showItemInfo, y, function(v)
         TomoModDB.characterSkin.showItemInfo = v
+        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_gems"], TomoModDB.characterSkin.showGems, y, function(v)
+        TomoModDB.characterSkin.showGems = v
         if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
     end)
     y = ny
@@ -756,6 +786,50 @@ local function BuildCVarOptimizerTab(parent)
 end
 
 -- =====================================
+-- TAB: SKINS (Chat)
+-- =====================================
+
+local function BuildSkinsTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["section_skins"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_skins_desc"], y)
+    y = ny
+
+    -- ── Chat Frame Skin ──
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_chat_skin"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_enable"], TomoModDB.chatFrameSkin.enabled, y, function(v)
+        TomoModDB.chatFrameSkin.enabled = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_chat_skin_bg_alpha"], (TomoModDB.chatFrameSkin.bgAlpha or 0.70) * 100, 0, 100, 5, y, function(v)
+        TomoModDB.chatFrameSkin.bgAlpha = v / 100
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end, "%.0f%%")
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_chat_skin_font_size"], TomoModDB.chatFrameSkin.fontSize or 13, 9, 18, 1, y, function(v)
+        TomoModDB.chatFrameSkin.fontSize = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- TAB: BAG & MICRO MENU
 -- =====================================
 
@@ -828,7 +902,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "automations",  label = L["tab_qol_automations"],  builder = function(p) return BuildAutomationsTab(p) end },
         { key = "mythickeys",   label = L["tab_qol_mythic_keys"],  builder = function(p) return BuildMythicKeysTab(p) end },
         { key = "skyride",      label = L["tab_qol_skyride"],      builder = function(p) return BuildSkyRideTab(p) end },
-        --{ key = "tooltip",      label = L["tab_qol_tooltip_skin"], builder = function(p) return BuildTooltipSkinTab(p) end },
+        { key = "skins",        label = L["tab_qol_skins"],        builder = function(p) return BuildSkinsTab(p) end },
         { key = "objtracker",   label = L["tab_qol_obj_tracker"],  builder = function(p) return BuildObjectiveTrackerTab(p) end },
         { key = "bagmicro",     label = L["tab_qol_bag_micro"],    builder = function(p) return BuildBagMicroMenuTab(p) end },
         { key = "charskin",     label = L["tab_qol_char_skin"],    builder = function(p) return BuildCharacterSkinTab(p) end },

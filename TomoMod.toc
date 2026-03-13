@@ -1,4 +1,4 @@
-## Interface: 120001, 120000
+## Interface: 120005, 120001, 120000
 ## 
 ## Title: |cff0cd29fTomo|rMod
 ## Notes: Lite interface and code with QOL and UnitFrame.
@@ -7,7 +7,7 @@
 ## SavedVariables: TomoModDB
 ## X-Curse-Project-ID: 1446255
 ## Author: TomoAniki
-## Version: 2.3.3
+## Version: 2.4.0
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -21,6 +21,10 @@ libs.xml
 Locales\Localization.lua
 Locales\enUS.lua
 Locales\frFR.lua
+Locales\deDE.lua
+Locales\esES.lua
+Locales\itIT.lua
+Locales\ptBR.lua
 
 ## =====================
 ## Core

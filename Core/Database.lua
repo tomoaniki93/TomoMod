@@ -115,15 +115,6 @@ TomoMod_Defaults = {
         showCurrencyID = true,
         showAchievementID = true,
     },
-    combatResTracker = {
-        enabled = true,
-        showRating = true,
-        showMessages = true,
-        width = 160,
-        height = 36,
-        iconSize = 18,
-        position = nil,
-    },
     actionBarSkin = {
         enabled = false,
         useClassColor = true,
@@ -163,6 +154,11 @@ TomoMod_Defaults = {
     hideCastBar = {
         enabled = false,
     },
+    combatText = {
+        enabled = false,
+        offsetX = 0,
+        offsetY = 0,
+    },
     bagMicroMenu = {
         bagBarMode = "show",
         microMenuMode = "show",
@@ -183,8 +179,17 @@ TomoMod_Defaults = {
         skinCharacter = true,
         skinInspect = true,
         showItemInfo = true,
+        showGems = true,
         midnightEnchants = false,
         scale = 1.0,
+    },
+    chatFrameSkin = {
+        enabled = false,
+        bgAlpha = 0.70,
+        fontSize = 13,
+    },
+    mailSkin = {
+        enabled = true,
     },
 
     lustSound = {
@@ -207,6 +212,19 @@ TomoMod_Defaults = {
         alphaInCombat = 1.0,
         alphaWithTarget = 0.8,
         alphaOutOfCombat = 0.5,
+        -- V2: overlay & swipe
+        useCustomOverlay = false,
+        overlayR = 1.0,
+        overlayG = 1.0,
+        overlayB = 1.0,
+        customSwipeEnabled = false,
+        swipeR = 1.0,
+        swipeG = 0.95,
+        swipeB = 0.57,
+        swipeA = 0.55,
+        -- V2: utility dimming
+        dimUtility = false,
+        dimOpacity = 0.35,
     },
 
     -- =====================

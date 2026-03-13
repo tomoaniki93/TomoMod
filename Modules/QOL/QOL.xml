@@ -54,9 +54,13 @@
     <!-- Modules: LustSound -->
     <Include file="LustSound\LustSound.lua" />
 
+    <!-- Modules: Combat -->
+    <Include file="Combat\CombatText.lua" />
+
     <!-- Modules: Skins -->
     <Include file="Skins\CharacterSkin.lua" />
     <Include file="Skins\ReputationBar.lua" />
+    <Include file="Skins\ChatFrameSkin.lua" />
     <!-- Modules: Movers (Layout System — doit être en dernier) -->
     <Include file="Movers\Movers.lua" />
 

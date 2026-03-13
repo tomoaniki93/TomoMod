@@ -8,7 +8,6 @@
 --   • Cooldowns défensifs du co-tank (icônes grisées en recharge)
 --
 -- Visible uniquement : en raid, quand le joueur est tank, et qu'un co-tank existe.
--- Inspiré de NaowhQOL/Modules/CoTankDisplay.lua.
 -- =====================================
 
 TomoMod_CoTankTracker = TomoMod_CoTankTracker or {}

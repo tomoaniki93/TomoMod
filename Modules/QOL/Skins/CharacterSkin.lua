@@ -797,6 +797,175 @@ local function IsEnchantableSlot(slotName)
     end
 end
 
+-- =====================================
+-- GEM / SOCKET DISPLAY SYSTEM
+-- =====================================
+
+local GEM_ICON_SIZE = 12
+local MAX_GEM_SLOTS = 4
+
+-- Fallback colors when gem icon is not cached yet
+local GEM_COLORS = {
+    Blue      = { 0.20, 0.40, 1.00, 1 },
+    Red       = { 1.00, 0.20, 0.20, 1 },
+    Yellow    = { 1.00, 1.00, 0.20, 1 },
+    Green     = { 0.20, 1.00, 0.20, 1 },
+    Purple    = { 0.70, 0.20, 1.00, 1 },
+    Orange    = { 1.00, 0.60, 0.20, 1 },
+    Meta      = { 0.90, 0.90, 0.90, 1 },
+    Prismatic = { 1.00, 1.00, 1.00, 1 },
+}
+
+local function GetGemInfo(unit, slotId)
+    local itemLink = GetInventoryItemLink(unit, slotId)
+    if not itemLink then return {}, 0 end
+
+    local gems = {}
+    local totalSockets = 0
+
+    -- Detect total socket count via tooltip data
+    if C_TooltipInfo and C_TooltipInfo.GetInventoryItem then
+        local tooltipData = C_TooltipInfo.GetInventoryItem(unit, slotId)
+        if tooltipData and tooltipData.lines then
+            for _, line in ipairs(tooltipData.lines) do
+                if line.type == 3 then
+                    totalSockets = totalSockets + 1
+                end
+            end
+        end
+    end
+
+    -- Get filled gems (up to 4 slots)
+    local filledCount = 0
+    for i = 1, 4 do
+        local gemName, gemLink = GetItemGem(itemLink, i)
+        if gemLink then
+            filledCount = filledCount + 1
+            local _, _, _, _, _, _, gemSubType, _, _, gemIcon = GetItemInfo(gemLink)
+            if not gemIcon and C_Item and C_Item.GetItemIconByID then
+                local itemID = GetItemInfoInstant(gemLink)
+                if itemID then
+                    gemIcon = C_Item.GetItemIconByID(itemID)
+                end
+            end
+            table.insert(gems, {
+                link = gemLink,
+                icon = gemIcon,
+                type = gemSubType or "Prismatic",
+                filled = true,
+            })
+        end
+    end
+
+    if totalSockets < filledCount then
+        totalSockets = filledCount
+    end
+
+    -- Add empty socket entries
+    local emptySockets = totalSockets - filledCount
+    for i = 1, emptySockets do
+        table.insert(gems, {
+            link = nil,
+            icon = nil,
+            type = "Empty",
+            filled = false,
+        })
+    end
+
+    return gems, totalSockets
+end
+
+local gemOverlays = {} -- slotName -> frame with .gems textures
+
+local function CreateGemOverlay(slot, slotName)
+    local frame = CreateFrame("Frame", nil, slot)
+    frame:SetSize(MAX_GEM_SLOTS * (GEM_ICON_SIZE + 1), GEM_ICON_SIZE)
+    frame:SetPoint("BOTTOM", slot, "BOTTOM", 0, 1)
+    frame:SetFrameLevel(slot:GetFrameLevel() + 10)
+
+    frame.gems = {}
+    for i = 1, MAX_GEM_SLOTS do
+        local tex = frame:CreateTexture(nil, "OVERLAY")
+        tex:SetSize(GEM_ICON_SIZE, GEM_ICON_SIZE)
+        tex:SetPoint("LEFT", frame, "LEFT", (i - 1) * (GEM_ICON_SIZE + 1), 0)
+        tex:Hide()
+        frame.gems[i] = tex
+    end
+
+    frame:Hide()
+    gemOverlays[slotName] = frame
+    return frame
+end
+
+local function UpdateGemOverlay(slot, slotName, unit)
+    local showGems = GetSettings().showGems
+    local overlay = gemOverlays[slotName]
+    if not overlay then
+        overlay = CreateGemOverlay(slot, slotName)
+    end
+
+    if not showGems then
+        overlay:Hide()
+        return
+    end
+
+    local slotID = slot.slotID or slot:GetID()
+    if not slotID or slotID == 0 then
+        overlay:Hide()
+        return
+    end
+
+    local itemLink = GetInventoryItemLink(unit, slotID)
+    if not itemLink then
+        overlay:Hide()
+        return
+    end
+
+    local gems, totalSockets = GetGemInfo(unit, slotID)
+    if totalSockets == 0 then
+        overlay:Hide()
+        return
+    end
+
+    -- Center the gem icons based on actual count
+    local totalWidth = totalSockets * GEM_ICON_SIZE + (totalSockets - 1)
+    overlay:SetSize(totalWidth, GEM_ICON_SIZE)
+    overlay:ClearAllPoints()
+    overlay:SetPoint("BOTTOM", slot, "BOTTOM", 0, 1)
+
+    for i, gemTex in ipairs(overlay.gems) do
+        if gems[i] then
+            if gems[i].filled then
+                local gemIcon = gems[i].icon
+                if gemIcon and gemIcon ~= 0 and type(gemIcon) == "number" then
+                    gemTex:SetTexture(gemIcon)
+                    gemTex:SetDesaturated(false)
+                    gemTex:SetVertexColor(1, 1, 1, 1)
+                    gemTex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+                    gemTex:Show()
+                else
+                    local gemType = gems[i].type or "Prismatic"
+                    local color = GEM_COLORS[gemType] or GEM_COLORS.Prismatic
+                    gemTex:SetColorTexture(color[1], color[2], color[3], color[4])
+                    gemTex:SetDesaturated(false)
+                    gemTex:Show()
+                end
+            else
+                -- Empty socket: grey prismatic icon
+                gemTex:SetTexture("Interface\\ItemSocketingFrame\\UI-EmptySocket-Prismatic")
+                gemTex:SetTexCoord(0, 1, 0, 1)
+                gemTex:SetDesaturated(true)
+                gemTex:SetVertexColor(0.6, 0.6, 0.6, 0.9)
+                gemTex:Show()
+            end
+        else
+            gemTex:Hide()
+        end
+    end
+
+    overlay:Show()
+end
+
 -- Hidden tooltip for scanning
 local scanTip = CreateFrame("GameTooltip", "TomoModItemScanTip", nil, "GameTooltipTemplate")
 scanTip:SetOwner(WorldFrame, "ANCHOR_NONE")
@@ -846,8 +1015,11 @@ local function GetUpgradeTrackFromTooltip(slotID)
                 if enchantPattern then
                     local enchText = text:match(enchantPattern)
                     if enchText then
-                        -- Strip atlas/quality icons from the text
-                        enchText = enchText:gsub("|A.-|a", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+                        -- Strip atlas/quality icons and texture codes from the text
+                        enchText = enchText:gsub("|A.-|a", ""):gsub("|T.-|t", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+                        -- Strip stray Unicode quality icons (stars, circles, etc.)
+                        enchText = enchText:gsub("[\226\227\228\229\230\231\232\233\234\235\236\237\238\239][\128-\191]+", "")
+                        enchText = enchText:match("^%s*(.-)%s*$") or enchText
                         enchantLine = enchText
                     end
                 end
@@ -1033,7 +1205,7 @@ local function UpdateItemInfoOverlay(slot, slotName)
         -- ── Slot enchantable mais AUCUN enchantement détecté ──────────────────
         -- Affiche un avertissement rouge compact selon le type de slot
         local locale = GetLocale()
-        local missingLabel = (locale == "frFR") and "✗ Manquant" or "✗ Missing"
+        local missingLabel = (locale == "frFR") and "x Manquant" or "x Missing"
 
         if frame.isBottom then
             -- Armes : ajouter en fin de ligne ilvl
@@ -1054,18 +1226,33 @@ local function UpdateItemInfoOverlay(slot, slotName)
 end
 
 local function UpdateAllItemInfoOverlays()
-    if not GetSettings().showItemInfo then
-        -- Hide all overlays
+    local settings = GetSettings()
+
+    -- Item info overlays
+    if not settings.showItemInfo then
         for _, frame in pairs(itemInfoFrames) do
             frame:Hide()
         end
-        return
+    else
+        for slotName, _ in pairs(SLOT_SIDE) do
+            local slot = _G[slotName]
+            if slot then
+                UpdateItemInfoOverlay(slot, slotName)
+            end
+        end
     end
 
-    for slotName, _ in pairs(SLOT_SIDE) do
-        local slot = _G[slotName]
-        if slot then
-            UpdateItemInfoOverlay(slot, slotName)
+    -- Gem overlays
+    if not settings.showGems then
+        for _, overlay in pairs(gemOverlays) do
+            overlay:Hide()
+        end
+    else
+        for slotName, _ in pairs(SLOT_SIDE) do
+            local slot = _G[slotName]
+            if slot then
+                UpdateGemOverlay(slot, slotName, "player")
+            end
         end
     end
 end
@@ -1164,8 +1351,8 @@ local function SkinCharacterFrame()
         end)
     end
 
-    -- ===== Item Info Overlays =====
-    if GetSettings().showItemInfo then
+    -- ===== Item Info Overlays & Gem Display =====
+    if GetSettings().showItemInfo or GetSettings().showGems then
         -- Initial update
         UpdateAllItemInfoOverlays()
 
@@ -1174,7 +1361,10 @@ local function SkinCharacterFrame()
             hooksecurefunc("PaperDollItemSlotButton_Update", function(slot)
                 local slotName = slot and slot:GetName()
                 if slotName and SLOT_SIDE[slotName] then
-                    UpdateItemInfoOverlay(slot, slotName)
+                    if GetSettings().showItemInfo then
+                        UpdateItemInfoOverlay(slot, slotName)
+                    end
+                    UpdateGemOverlay(slot, slotName, "player")
                 end
             end)
         end

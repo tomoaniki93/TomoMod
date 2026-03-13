@@ -5,8 +5,6 @@
 -- Affiche le temps écoulé depuis l'entrée en combat.
 -- À la sortie du combat, imprime la durée dans le chat local.
 -- Options : instance only, sticky (garde la dernière valeur), rapport chat.
---
--- Inspiré de NaowhQOL/Modules/CombatTimerDisplay.lua.
 -- =====================================
 
 TomoMod_CombatTimer = TomoMod_CombatTimer or {}

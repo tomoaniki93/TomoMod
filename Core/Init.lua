@@ -272,7 +272,6 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_AutoAcceptInvite then TomoMod_AutoAcceptInvite.Initialize() end
         if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.Initialize() end
         if TomoMod_TooltipIDs then TomoMod_TooltipIDs.Initialize() end
-        if TomoMod_CombatResTracker then TomoMod_CombatResTracker.Initialize() end
         if TomoMod_AutoSummon then TomoMod_AutoSummon.Initialize() end
         if TomoMod_HideCastBar then TomoMod_HideCastBar.Initialize() end
         if TomoMod_BagMicroMenu then TomoMod_BagMicroMenu.Initialize() end
@@ -281,7 +280,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
         if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.Initialize() end
         if TomoMod_CharacterSkin then TomoMod_CharacterSkin.Initialize() end
-        if TomoMod_BuffSkin      then TomoMod_BuffSkin.Initialize()      end
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.Initialize() end
 
         -- Interface Modules (new v2)
         if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end

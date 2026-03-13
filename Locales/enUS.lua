@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.3.3 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.0 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -290,12 +290,21 @@ TomoMod_RegisterLocale("enUS", {
 
     ["section_cdm"]                     = "Cooldown Manager",
     ["opt_cdm_enable"]                  = "Enable Cooldown Manager",
-    ["info_cdm_description"]            = "Reskins Blizzard CooldownManager icons: 1px borders, class overlay when active, custom CD text, centered buff alignment. Placement via Blizzard Edit Mode.",
+    ["info_cdm_description"]            = "Reskins Blizzard CooldownManager icons: rounded borders, class overlay on active auras, custom swipe colors, utility dimming, centered layout. Placement via Blizzard Edit Mode.",
     ["opt_cdm_show_hotkeys"]            = "Show hotkeys",
     ["opt_cdm_combat_alpha"]            = "Modify opacity (combat / target)",
     ["opt_cdm_alpha_combat"]            = "In-combat alpha",
     ["opt_cdm_alpha_target"]            = "With target alpha (out of combat)",
     ["opt_cdm_alpha_ooc"]               = "Out of combat alpha",
+    ["section_cdm_overlay"]             = "Overlay & Borders",
+    ["opt_cdm_custom_overlay"]          = "Use custom overlay color",
+    ["opt_cdm_overlay_color"]           = "Overlay color",
+    ["opt_cdm_custom_swipe"]            = "Custom active swipe color",
+    ["opt_cdm_swipe_color"]             = "Swipe color",
+    ["opt_cdm_swipe_alpha"]             = "Swipe opacity",
+    ["section_cdm_utility"]             = "Utility",
+    ["opt_cdm_dim_utility"]             = "Dim utility icons when off cooldown",
+    ["opt_cdm_dim_opacity"]             = "Dim opacity",
     ["info_cdm_editmode"]               = "Placement is done via Blizzard Edit Mode (Esc → Edit Mode).",
 
     -- Resource Bars
@@ -395,15 +404,6 @@ TomoMod_RegisterLocale("enUS", {
     ["sublabel_auto_accept_invite"]     = "— Auto Accept Invite —",
     ["sublabel_auto_skip_role"]         = "— Auto Skip Role Check —",
     ["sublabel_tooltip_ids"]            = "— Tooltip IDs —",
-    ["sublabel_tooltip_skin"]           = "— Tooltip Skin —",
-    ["opt_tooltip_skin"]                = "Enable Tooltip Skin",
-    ["opt_tooltip_healthbar"]           = "Health bar",
-    ["opt_tooltip_healthtext"]          = "Health text on bar",
-    ["opt_tooltip_quality_border"]      = "Item quality border color",
-    ["opt_tooltip_bg_alpha"]            = "Background opacity",
-    ["opt_tooltip_healthbar_height"]    = "Health bar height",
-    ["opt_tooltip_font_size"]           = "Tooltip font size",
-    ["opt_tooltip_bg_color"]            = "Background color",
     ["sublabel_combat_res_tracker"]     = "— Combat Res Tracker —",
     ["opt_cr_show_rating"]              = "Show M+ Rating",
     ["opt_show_messages"]               = "Show chat messages",
@@ -661,8 +661,6 @@ TomoMod_RegisterLocale("enUS", {
     ["msg_asr_disabled"]                = "Auto skip role check disabled",
     ["msg_tid_enabled"]                 = "Tooltip IDs enabled",
     ["msg_tid_disabled"]                = "Tooltip IDs disabled",
-    ["msg_tooltip_skin_enabled"]        = "Tooltip Skin enabled",
-    ["msg_tooltip_skin_disabled"]       = "Tooltip Skin disabled (reload to fully revert)",
     ["msg_cr_enabled"]                  = "Combat Res Tracker enabled",
     ["msg_cr_disabled"]                 = "Combat Res Tracker disabled",
     ["msg_cr_locked"]                   = "Combat Res Tracker locked",
@@ -842,6 +840,7 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_char_skin_character"]         = "Skin Character / Reputation / Currency",
     ["opt_char_skin_inspect"]           = "Skin Inspect Frame",
     ["opt_char_skin_iteminfo"]          = "Show Item Info on Slots",
+    ["opt_char_skin_gems"]              = "Show Gem Sockets on Slots",
     ["opt_char_skin_midnight"]          = "Midnight Enchant Slots (Head/Shoulder instead of Wrist/Back)",
     ["opt_char_skin_scale"]             = "Window Scale",
     ["msg_char_skin_reload"]            = "Character Skin: /reload to apply changes.",
@@ -870,15 +869,29 @@ TomoMod_RegisterLocale("enUS", {
     ["mover_cotank"]                    = "CoTank Tracker",
     ["mover_repbar"]                    = "Reputation Bar",
     ["mover_castbar"]                   = "Player Castbar",
-    ["mover_battletext"]             = "Battle Text Zones",
 
     -- =====================
-    -- DAMAGE METER SKIN
+    -- COMBAT TEXT
     -- =====================
+    ["sublabel_combat_text"]             = "— Combat Text —",
+    ["opt_combat_text_enable"]           = "Enable combat text",
+    ["opt_combat_text_offset_x"]         = "Offset X",
+    ["opt_combat_text_offset_y"]         = "Offset Y",
 
-
-
-
-
-
+    -- =====================
+    -- SKINS (Chat)
+    -- =====================
+    ["tab_qol_skins"]                    = "Skins",
+    ["section_skins"]                    = "UI Skins",
+    ["info_skins_desc"]                  = "Apply the TomoMod dark theme to various Blizzard UI elements. Reload may be needed to fully revert.",
+    ["sublabel_chat_skin"]               = "— Chat Frame —",
+    ["opt_chat_skin_enable"]             = "Skin Chat Frame",
+    ["opt_chat_skin_bg_alpha"]           = "Background opacity",
+    ["opt_chat_skin_font_size"]          = "Chat font size",
+    ["msg_chat_skin_enabled"]            = "Chat Frame Skin enabled",
+    ["msg_chat_skin_disabled"]           = "Chat Frame Skin disabled (reload to revert)",
+    ["sublabel_mail_skin"]               = "— Mail Frame —",
+    ["opt_mail_skin_enable"]             = "Skin Mail Frame",
+    ["msg_mail_skin_enabled"]            = "Mail Skin enabled",
+    ["msg_mail_skin_disabled"]           = "Mail Skin disabled (reload to revert)",
 })

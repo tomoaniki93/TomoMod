@@ -61,6 +61,58 @@ local function BuildCooldownManagerTab(parent)
     end, "%.2f")
     y = ny
 
+    -- V2: Overlay color section
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSectionHeader(c, L["section_cdm_overlay"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_cdm_custom_overlay"], cdm.useCustomOverlay, y, function(v)
+        cdm.useCustomOverlay = v; ApplyCDM()
+    end)
+    y = ny
+
+    local overlayCol = { r = cdm.overlayR or 1, g = cdm.overlayG or 1, b = cdm.overlayB or 1 }
+    local _, ny = W.CreateColorPicker(c, L["opt_cdm_overlay_color"], overlayCol, y, function(r, g, b)
+        cdm.overlayR = r; cdm.overlayG = g; cdm.overlayB = b; ApplyCDM()
+    end)
+    y = ny
+
+    -- V2: Custom swipe color
+    local _, ny = W.CreateCheckbox(c, L["opt_cdm_custom_swipe"], cdm.customSwipeEnabled, y, function(v)
+        cdm.customSwipeEnabled = v; ApplyCDM()
+    end)
+    y = ny
+
+    local swipeCol = { r = cdm.swipeR or 1, g = cdm.swipeG or 0.95, b = cdm.swipeB or 0.57 }
+    local _, ny = W.CreateColorPicker(c, L["opt_cdm_swipe_color"], swipeCol, y, function(r, g, b)
+        cdm.swipeR = r; cdm.swipeG = g; cdm.swipeB = b; ApplyCDM()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_cdm_swipe_alpha"], cdm.swipeA or 0.55, 0, 1, 0.05, y, function(v)
+        cdm.swipeA = v; ApplyCDM()
+    end, "%.2f")
+    y = ny
+
+    -- V2: Utility dimming
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSectionHeader(c, L["section_cdm_utility"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_cdm_dim_utility"], cdm.dimUtility, y, function(v)
+        cdm.dimUtility = v; ApplyCDM()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_cdm_dim_opacity"], cdm.dimOpacity or 0.35, 0.1, 1, 0.05, y, function(v)
+        cdm.dimOpacity = v; ApplyCDM()
+    end, "%.2f")
+    y = ny
+
     local _, ny = W.CreateInfoText(c, L["info_cdm_editmode"], y)
     y = ny
 

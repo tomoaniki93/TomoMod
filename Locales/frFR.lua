@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.3.3 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.0 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -272,12 +272,21 @@ TomoMod_RegisterLocale("frFR", {
 
     ["section_cdm"]                     = "Cooldown Manager",
     ["opt_cdm_enable"]                  = "Activer le Cooldown Manager",
-    ["info_cdm_description"]            = "Reskin des icônes du CooldownManager Blizzard : bordures 1px, overlay de classe quand actif, texte de CD personnalisé, alignement centré des buffs. Placement via Edit Mode Blizzard.",
+    ["info_cdm_description"]            = "Reskin des icônes du CooldownManager Blizzard : bordures arrondies, overlay de classe sur les auras actives, couleurs de balayage personnalisées, atténuation utilitaire, disposition centrée. Placement via Edit Mode Blizzard.",
     ["opt_cdm_show_hotkeys"]            = "Afficher les hotkeys",
     ["opt_cdm_combat_alpha"]            = "Modifier l'opacité (combat / cible)",
     ["opt_cdm_alpha_combat"]            = "Alpha en combat",
     ["opt_cdm_alpha_target"]            = "Alpha avec cible (hors combat)",
     ["opt_cdm_alpha_ooc"]               = "Alpha hors combat",
+    ["section_cdm_overlay"]             = "Overlay et bordures",
+    ["opt_cdm_custom_overlay"]          = "Couleur d'overlay personnalisée",
+    ["opt_cdm_overlay_color"]           = "Couleur de l'overlay",
+    ["opt_cdm_custom_swipe"]            = "Couleur de balayage actif personnalisée",
+    ["opt_cdm_swipe_color"]             = "Couleur du balayage",
+    ["opt_cdm_swipe_alpha"]             = "Opacité du balayage",
+    ["section_cdm_utility"]             = "Utilitaire",
+    ["opt_cdm_dim_utility"]             = "Atténuer les icônes utilitaires hors CD",
+    ["opt_cdm_dim_opacity"]             = "Opacité d'atténuation",
     ["info_cdm_editmode"]               = "Le placement des barres se fait via le Edit Mode de Blizzard (Échap → Edit Mode).",
 
     -- Resource Bars
@@ -377,15 +386,6 @@ TomoMod_RegisterLocale("frFR", {
     ["sublabel_auto_accept_invite"]     = "— Auto Accept Invite —",
     ["sublabel_auto_skip_role"]         = "— Auto Skip Role Check —",
     ["sublabel_tooltip_ids"]            = "— Tooltip IDs —",
-    ["sublabel_tooltip_skin"]           = "— Skin Tooltip —",
-    ["opt_tooltip_skin"]                = "Activer le skin tooltip",
-    ["opt_tooltip_healthbar"]           = "Barre de vie",
-    ["opt_tooltip_healthtext"]          = "Texte de vie sur la barre",
-    ["opt_tooltip_quality_border"]      = "Bordure couleur qualité d'objet",
-    ["opt_tooltip_bg_alpha"]            = "Opacité du fond",
-    ["opt_tooltip_healthbar_height"]    = "Hauteur barre de vie",
-    ["opt_tooltip_font_size"]           = "Taille de police tooltip",
-    ["opt_tooltip_bg_color"]            = "Couleur du fond",
     ["sublabel_combat_res_tracker"]     = "— Combat Res Tracker —",
     ["opt_cr_show_rating"]              = "Afficher le score M+",
     ["opt_show_messages"]               = "Afficher les messages chat",
@@ -643,8 +643,6 @@ TomoMod_RegisterLocale("frFR", {
     ["msg_asr_disabled"]                = "Auto skip role check désactivé",
     ["msg_tid_enabled"]                 = "Tooltip IDs activé",
     ["msg_tid_disabled"]                = "Tooltip IDs désactivé",
-    ["msg_tooltip_skin_enabled"]        = "Skin Tooltip activé",
-    ["msg_tooltip_skin_disabled"]       = "Skin Tooltip désactivé (rechargement pour revenir entièrement)",
     ["msg_cr_enabled"]                  = "Combat Res Tracker activé",
     ["msg_cr_disabled"]                 = "Combat Res Tracker désactivé",
     ["msg_cr_locked"]                   = "Combat Res Tracker verrouillé",
@@ -824,6 +822,7 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_char_skin_character"]         = "Skin Personnage / Réputation / Monnaies",
     ["opt_char_skin_inspect"]           = "Skin fenêtre d'inspection",
     ["opt_char_skin_iteminfo"]          = "Afficher les infos d'objet sur les emplacements",
+    ["opt_char_skin_gems"]              = "Afficher les gemmes sur les emplacements",
     ["opt_char_skin_midnight"]          = "Enchantements Midnight (Tête/Épaules au lieu de Brassard/Cape)",
     ["opt_char_skin_scale"]             = "Échelle de la fenêtre",
     ["msg_char_skin_reload"]            = "Skin Personnage : /reload pour appliquer.",
@@ -852,15 +851,29 @@ TomoMod_RegisterLocale("frFR", {
     ["mover_cotank"]                    = "Suivi Co-Tank",
     ["mover_repbar"]                    = "Barre de réputation",
     ["mover_castbar"]                   = "Barre de cast (joueur)",
-    ["mover_battletext"]             = "Zones Battle Text",
 
     -- =====================
-    -- DAMAGE METER SKIN
+    -- COMBAT TEXT
     -- =====================
+    ["sublabel_combat_text"]             = "— Texte de combat —",
+    ["opt_combat_text_enable"]           = "Activer le texte de combat",
+    ["opt_combat_text_offset_x"]         = "Décalage X",
+    ["opt_combat_text_offset_y"]         = "Décalage Y",
 
-
-
-
-
-
+    -- =====================
+    -- SKINS (Chat)
+    -- =====================
+    ["tab_qol_skins"]                    = "Skins",
+    ["section_skins"]                    = "Skins d'interface",
+    ["info_skins_desc"]                  = "Applique le thème sombre TomoMod à divers éléments de l'interface Blizzard. Un /reload peut être nécessaire pour revenir en arrière.",
+    ["sublabel_chat_skin"]               = "— Fenêtre de chat —",
+    ["opt_chat_skin_enable"]             = "Skin de la fenêtre de chat",
+    ["opt_chat_skin_bg_alpha"]           = "Opacité du fond",
+    ["opt_chat_skin_font_size"]          = "Taille de police du chat",
+    ["msg_chat_skin_enabled"]            = "Skin du chat activé",
+    ["msg_chat_skin_disabled"]           = "Skin du chat désactivé (reload pour revenir)",
+    ["sublabel_mail_skin"]               = "— Courrier —",
+    ["opt_mail_skin_enable"]             = "Skin du courrier",
+    ["msg_mail_skin_enabled"]            = "Skin du courrier activé",
+    ["msg_mail_skin_disabled"]           = "Skin du courrier désactivé (reload pour revenir)",
 })
