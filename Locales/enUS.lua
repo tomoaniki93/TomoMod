@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.1 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.2 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -175,6 +175,13 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_np_show_classification"]      = "Show classification (elite, rare, boss)",
     ["opt_np_show_absorb"]               = "Show absorb bar",
     ["opt_np_class_colors"]             = "Class colors (players)",
+
+    -- Raid Marker
+    ["section_raid_marker"]             = "Raid Marker",
+    ["opt_np_raid_icon_anchor"]         = "Icon position",
+    ["opt_np_raid_icon_x"]              = "Offset X",
+    ["opt_np_raid_icon_y"]              = "Offset Y",
+    ["opt_np_raid_icon_size"]           = "Icon size",
 
     -- Castbar
     ["section_castbar"]                 = "Castbar",
@@ -942,9 +949,11 @@ TomoMod_RegisterLocale("enUS", {
     ["ph_select_all"]                    = "Select All",
     ["ph_deselect_all"]                  = "Deselect All",
     ["ph_btn_process"]                   = "Process Selected",
+    ["ph_btn_click_process"]              = "Click to Process",
     ["ph_btn_stop"]                      = "Stop",
     ["ph_status_idle"]                   = "Select items and click Process",
     ["ph_status_processing"]             = "Processing %d/%d: %s",
+    ["ph_status_done"]                   = "Done! All items processed.",
     ["ph_item_count"]                    = "%d items available",
     ["ph_ilvl"]                          = "iLvl %d",
     ["ph_processable"]                   = "%d processable",

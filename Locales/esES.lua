@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("esES", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Acerca de",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.1 por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.2 por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reiniciar todo",
     ["info_reset_all"]                  = "Esto reiniciará TODOS los ajustes y recargará la interfaz.",
@@ -175,6 +175,13 @@ TomoMod_RegisterLocale("esES", {
     ["opt_np_show_classification"]      = "Mostrar clasificación (élite, raro, jefe)",
     ["opt_np_show_absorb"]               = "Mostrar barra de absorción",
     ["opt_np_class_colors"]             = "Colores de clase (jugadores)",
+
+    -- Raid Marker
+    ["section_raid_marker"]             = "Marcador de banda",
+    ["opt_np_raid_icon_anchor"]         = "Posición del icono",
+    ["opt_np_raid_icon_x"]              = "Desplazamiento X",
+    ["opt_np_raid_icon_y"]              = "Desplazamiento Y",
+    ["opt_np_raid_icon_size"]           = "Tamaño del icono",
 
     -- Castbar
     ["section_castbar"]                 = "Barra de lanzamiento",
@@ -895,4 +902,34 @@ TomoMod_RegisterLocale("esES", {
     ["wq_sort_reward"]                   = "Recompensa",
     ["wq_sort_faction"]                  = "Facción",
     ["wq_status_count"]                  = "Mostrando %d / %d misiones",
+
+    -- Profession Helper
+    ["tab_qol_prof_helper"]              = "Profesiones",
+    ["section_prof_helper"]              = "Asistente de profesiones",
+    ["info_prof_helper_desc"]            = "Desencantar, moler y prospectar objetos en lote con una interfaz visual.",
+    ["opt_prof_helper_enable"]           = "Activar asistente de profesiones",
+    ["sublabel_prof_de_filters"]         = "— Filtros de calidad de desencantamiento —",
+    ["opt_prof_filter_green"]            = "Incluir objetos Poco común (Verdes)",
+    ["opt_prof_filter_blue"]             = "Incluir objetos Raros (Azules)",
+    ["opt_prof_filter_epic"]             = "Incluir objetos Épicos (Morados)",
+    ["btn_prof_open_helper"]             = "Abrir asistente de profesiones",
+    ["ph_title"]                         = "Asistente de profesiones",
+    ["ph_tab_disenchant"]                = "Desencantar",
+    ["ph_tab_milling"]                   = "Moler",
+    ["ph_tab_prospecting"]               = "Prospectar",
+    ["ph_filter_quality"]                = "Calidad:",
+    ["ph_quality_green"]                 = "Verde",
+    ["ph_quality_blue"]                  = "Azul",
+    ["ph_quality_epic"]                  = "Épico",
+    ["ph_select_all"]                    = "Seleccionar todo",
+    ["ph_deselect_all"]                  = "Deseleccionar todo",
+    ["ph_btn_process"]                   = "Procesar",
+    ["ph_btn_click_process"]             = "Clic para procesar",
+    ["ph_btn_stop"]                      = "Detener",
+    ["ph_status_idle"]                   = "Haz clic en Procesar",
+    ["ph_status_processing"]             = "Procesando %d/%d: %s",
+    ["ph_status_done"]                   = "¡Listo! Todos los objetos procesados.",
+    ["ph_item_count"]                    = "%d objetos disponibles",
+    ["ph_ilvl"]                          = "iLvl %d",
+    ["ph_processable"]                   = "%d procesables",
 })

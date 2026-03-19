@@ -1,5 +1,27 @@
 ## ####################################
 
+## CHANGELOG 2.4.2
+
+### Profession Helper (New QOL Module)
+- New batch processing tool for Disenchant, Milling, and Prospecting
+- Visual UI with 3 tabs (one per profession spell)
+- Automatically scans bags for eligible items matching your known professions
+- Quality filters for Disenchant (Uncommon, Rare, Epic)
+- Item list showing name, icon, quality color stripe, item level / processable count
+- Process button using SecureActionButtonTemplate — click repeatedly to process each item
+- Stop button to cancel at any time
+- Slash commands: `/tm prof` or `/tm ph` to open
+- Config panel under QOL > Professions with enable toggle, quality filters, and open button
+
+### Nameplates — Raid Marker Positioning
+- New config section "Raid Marker" in Nameplates > General tab
+- Dropdown to choose raid icon anchor point (Top, TopLeft, TopRight, Bottom, BottomLeft, BottomRight, Left, Right, Center)
+- X and Y offset sliders (-50 to +50) for fine-tuning position
+- Icon size slider (10 to 60)
+- Changes apply in real-time to all active nameplates
+
+## ####################################
+
 ## CHANGELOG 2.4.1
 
 ### World Quest Tab (New Module)

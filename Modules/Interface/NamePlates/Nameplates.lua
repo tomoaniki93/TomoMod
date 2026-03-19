@@ -1,7 +1,6 @@
 -- =====================================
 -- Nameplates.lua — Complete Nameplate System
 -- Castbar, Auras, Tank Mode, Alpha
--- Visual style inspired by EllesmereNameplates
 -- =====================================
 
 TomoMod_Nameplates = TomoMod_Nameplates or {}
@@ -14,7 +13,7 @@ local NP = TomoMod_Nameplates
 local activePlates = {} -- [nameplateFrame] = ourPlate
 local unitPlates = {}   -- [unitToken] = ourPlate
 
--- [PERF] Offscreen parent technique (à la Ellesmere): reparent Blizzard elements
+-- [PERF] Offscreen parent technique: reparent Blizzard elements
 -- under a hidden frame so they can NEVER render, regardless of SetAlpha/Show calls
 local npOffscreenParent = CreateFrame("Frame")
 npOffscreenParent:Hide()
@@ -687,9 +686,22 @@ local function CreatePlate(baseFrame)
     plate.questIcon:Hide()
 
     -- =========== RAID MARKER ===========
+    local rs = DB()
+    local riAnchor = rs.raidIconAnchor or "TOPRIGHT"
+    local riSize = rs.raidIconSize or 24
+    local riX = rs.raidIconX or 2
+    local riY = rs.raidIconY or 2
+    -- Map anchor to health point: icon anchor -> health point
+    local ANCHOR_MAP = {
+        TOP = "TOP", TOPLEFT = "TOPLEFT", TOPRIGHT = "TOPRIGHT",
+        BOTTOM = "BOTTOM", BOTTOMLEFT = "BOTTOMLEFT", BOTTOMRIGHT = "BOTTOMRIGHT",
+        LEFT = "LEFT", RIGHT = "RIGHT", CENTER = "CENTER",
+    }
+    local healthPoint = ANCHOR_MAP[riAnchor] or "TOPRIGHT"
     plate.raidFrame = CreateFrame("Frame", nil, plate)
-    plate.raidFrame:SetSize(24, 24)
-    plate.raidFrame:SetPoint("BOTTOMRIGHT", plate.health, "TOPRIGHT", 2, 2)
+    plate.raidFrame:SetSize(riSize, riSize)
+    plate.raidFrame:SetPoint(riAnchor, plate.health, healthPoint, riX, riY)
+    plate.raidFrame:SetFrameStrata("TOOLTIP")
     plate.raidFrame:Hide()
     plate.raidIcon = plate.raidFrame:CreateTexture(nil, "ARTWORK")
     plate.raidIcon:SetPoint("TOPLEFT", 1, -1)
@@ -736,6 +748,17 @@ local function UpdateSize(plate)
         local arrowSize = h + 6
         plate.targetArrowLeft:SetSize(arrowSize * 0.6, arrowSize)
         plate.targetArrowRight:SetSize(arrowSize * 0.6, arrowSize)
+    end
+
+    -- Raid marker reposition
+    if plate.raidFrame then
+        local riAnchor = s.raidIconAnchor or "TOPRIGHT"
+        local riSize = s.raidIconSize or 24
+        local riX = s.raidIconX or 2
+        local riY = s.raidIconY or 2
+        plate.raidFrame:SetSize(riSize, riSize)
+        plate.raidFrame:ClearAllPoints()
+        plate.raidFrame:SetPoint(riAnchor, plate.health, riAnchor, riX, riY)
     end
 
     if plate.auras then

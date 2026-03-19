@@ -44,13 +44,36 @@ local MODES = {
         spellID   = SPELL_DISENCHANT,
         label     = function() return L["ph_tab_disenchant"] end,
         filter    = function(itemInfo, settings)
-            -- Disenchantable: equipment (armor/weapons) of green+ quality
+            -- Disenchantable: equipment of green+ quality
             if not itemInfo then return false end
             local quality = itemInfo.quality or 0
             local classID = itemInfo.classID
-            -- classID 2 = Weapon, 4 = Armor
-            if classID ~= 2 and classID ~= 4 then return false end
-            if quality < QUALITY_UNCOMMON then return false end
+            local subclassID = itemInfo.subclassID
+            local itemSubType = itemInfo.itemSubType
+
+            -- Must be green (2) through epic (4)
+            if quality < QUALITY_UNCOMMON or quality > QUALITY_EPIC then return false end
+
+            -- Must be a valid equipment type:
+            -- classID 2 = Weapon (but not subclass 14 = Miscellaneous)
+            -- classID 4 = Armor
+            -- classID 19 = Profession Equipment
+            -- classID 3 + subclass 11 = Gem (Artifact Relic)
+            local isValidType = false
+            if classID == 2 and subclassID ~= 14 then
+                isValidType = true
+            elseif classID == 4 then
+                isValidType = true
+            elseif classID == 19 then
+                isValidType = true
+            elseif classID == 3 and subclassID == 11 then
+                isValidType = true
+            end
+            if not isValidType then return false end
+
+            -- Cosmetic items cannot be disenchanted
+            if itemSubType and ITEM_COSMETIC and itemSubType == ITEM_COSMETIC then return false end
+
             -- Apply quality filter from settings
             if settings.filterGreen and quality == QUALITY_UNCOMMON then return true end
             if settings.filterBlue and quality == QUALITY_RARE then return true end
@@ -91,7 +114,6 @@ local MODES = {
 local mainFrame
 local currentMode = 1  -- index into MODES
 local itemButtons = {}
-local selectedItems = {}     -- [itemID] = true/false
 local isProcessing = false
 local processQueue = {}
 local processIndex = 0
@@ -117,6 +139,8 @@ local function GetAvailableModes()
 end
 
 local pendingCacheRetry = nil
+local cacheRetryCount = 0
+local MAX_CACHE_RETRIES = 5
 
 local function ScanBags(mode)
     local settings = GetSettings()
@@ -124,7 +148,7 @@ local function ScanBags(mode)
     local seen = {}
     local hasMissing = false
 
-    -- Scan all bags (0-4 normal, 5 reagent bag)
+    -- Scan all bags: 0-4 normal, 5 reagent bag
     for bag = 0, 5 do
         local numSlots = C_Container.GetContainerNumSlots(bag)
         for slot = 1, numSlots do
@@ -133,12 +157,12 @@ local function ScanBags(mode)
                 local itemID = info.itemID
                 if not seen[itemID] then
                     seen[itemID] = {
-                        count    = 0,
-                        bag      = bag,
-                        slot     = slot,
-                        quality  = info.quality,
-                        link     = info.hyperlink,
-                        iconID   = info.iconFileID,
+                        count       = 0,
+                        bag         = bag,
+                        slot        = slot,
+                        quality     = info.quality,
+                        link        = info.hyperlink,
+                        iconID      = info.iconFileID,
                     }
                 end
                 seen[itemID].count = seen[itemID].count + (info.stackCount or 1)
@@ -147,34 +171,37 @@ local function ScanBags(mode)
     end
 
     for itemID, data in pairs(seen) do
-        -- GetItemInfo (global) returns full item details from cache
-        local itemName, itemLink, itemQuality, itemLevel, _, _, _, _, _, itemTexture, _, classID, subclassID = GetItemInfo(itemID)
+        -- Use the hyperlink from container info — more reliable for cache lookups
+        local source = data.link or itemID
+        local itemName, itemLink, itemQuality, itemLevel, _, _, itemSubType, _, _, itemTexture, _, classID, subclassID = GetItemInfo(source)
         if itemName then
             local itemInfo = {
-                itemID     = itemID,
-                name       = itemName,
-                link       = itemLink or data.link,
-                quality    = itemQuality or data.quality or 0,
-                level      = itemLevel or 0,
-                texture    = itemTexture or data.iconID,
-                classID    = classID,
-                subclassID = subclassID,
-                count      = data.count,
+                itemID      = itemID,
+                name        = itemName,
+                link        = itemLink or data.link,
+                quality     = itemQuality or data.quality or 0,
+                level       = itemLevel or 0,
+                texture     = itemTexture or data.iconID,
+                classID     = classID,
+                subclassID  = subclassID,
+                itemSubType = itemSubType,
+                count       = data.count,
             }
             if mode.filter(itemInfo, settings) and data.count >= mode.minStack then
                 table.insert(items, itemInfo)
             end
         else
-            -- Item not in cache yet — request it
+            -- Item not in cache — request load
             C_Item.RequestLoadItemDataByID(itemID)
             hasMissing = true
         end
     end
 
-    -- If some items weren't cached, retry after a short delay
-    if hasMissing and not pendingCacheRetry then
+    -- Retry with increasing delay if items not cached yet
+    if hasMissing and (not pendingCacheRetry) and cacheRetryCount < MAX_CACHE_RETRIES then
         pendingCacheRetry = true
-        C_Timer.After(0.5, function()
+        cacheRetryCount = cacheRetryCount + 1
+        C_Timer.After(0.3 + (cacheRetryCount * 0.2), function()
             pendingCacheRetry = nil
             if mainFrame and mainFrame:IsShown() then
                 PH.RefreshItems()
@@ -203,86 +230,101 @@ local function FindItemInBags(itemID)
     return nil, nil
 end
 
+-- ─── Secure Spell Button (hidden, casts the profession spell on a bag slot) ───
+local spellButton = CreateFrame("Button", "TomoMod_PH_SpellButton", UIParent, "SecureActionButtonTemplate")
+spellButton:RegisterForClicks("AnyUp", "AnyDown")
+spellButton:SetAttribute("type", "spell")
+spellButton:Hide()
+
 -- ─── Processing Logic ────────────────────────────────────────────
+
+local function BuildProcessQueue()
+    local mode = MODES[currentMode]
+    if not mode then return {} end
+
+    local queue = {}
+    local items = ScanBags(mode)
+    for _, item in ipairs(items) do
+        local timesToProcess = math.floor(item.count / mode.minStack)
+        for _ = 1, timesToProcess do
+            table.insert(queue, { itemID = item.itemID, name = item.name })
+        end
+    end
+    return queue
+end
+
+-- Configure spellButton + processBtn macro for the current processIndex
+local function ConfigureNextTarget()
+    if InCombatLockdown() then return false end
+    if not isProcessing or processIndex > #processQueue then return false end
+
+    local entry = processQueue[processIndex]
+    if not entry then return false end
+
+    local bag, slot = FindItemInBags(entry.itemID)
+    if not bag then
+        -- Item gone from bags — skip it
+        return false
+    end
+
+    -- Point the hidden spell button at this bag/slot
+    local mode = MODES[currentMode]
+    spellButton:SetAttribute("spell", tostring(mode.spellID))
+    spellButton:SetAttribute("target-bag", bag)
+    spellButton:SetAttribute("target-slot", slot)
+
+    -- Set the visible process button to /click the spell button
+    local mouseClickSuffix = ""
+    if GetCVar("ActionButtonUseKeyDown") == "1" then
+        mouseClickSuffix = " LeftButton 1"
+    end
+    if mainFrame and mainFrame.processBtn then
+        mainFrame.processBtn:SetAttribute("type", "macro")
+        mainFrame.processBtn:SetAttribute("macrotext", "/click TomoMod_PH_SpellButton" .. mouseClickSuffix)
+    end
+
+    -- Update status text
+    if mainFrame and mainFrame.statusText then
+        mainFrame.statusText:SetText(string.format(L["ph_status_processing"], processIndex, #processQueue, entry.name))
+    end
+
+    return true
+end
 
 local function StopProcessing()
     isProcessing = false
     processQueue = {}
     processIndex = 0
-    if mainFrame and mainFrame.processBtn then
-        mainFrame.processBtn:SetText(L["ph_btn_process"])
-        mainFrame.processBtn:Enable()
+    if not InCombatLockdown() then
+        if mainFrame and mainFrame.processBtn then
+            mainFrame.processBtn.label:SetText(L["ph_btn_process"])
+            mainFrame.processBtn:SetAttribute("type", nil)
+            mainFrame.processBtn:SetAttribute("macrotext", nil)
+        end
     end
     if mainFrame and mainFrame.statusText then
         mainFrame.statusText:SetText(L["ph_status_idle"])
     end
 end
 
-local function ProcessNext()
-    if not isProcessing then return end
-    processIndex = processIndex + 1
-    if processIndex > #processQueue then
-        StopProcessing()
-        -- Refresh the list after processing
-        C_Timer.After(0.5, function()
-            if mainFrame and mainFrame:IsShown() then
-                PH.RefreshItems()
-            end
-        end)
-        return
-    end
-
-    local entry = processQueue[processIndex]
-    local bag, slot = FindItemInBags(entry.itemID)
-    if not bag then
-        -- Item not found, skip
-        C_Timer.After(0.1, ProcessNext)
-        return
-    end
-
-    if mainFrame and mainFrame.statusText then
-        mainFrame.statusText:SetText(string.format(L["ph_status_processing"], processIndex, #processQueue, entry.name))
-    end
-
-    local mode = MODES[currentMode]
-    C_Container.UseContainerItem(bag, slot)
-
-    -- Wait for spell cast to complete then process next
-    C_Timer.After(1.5, ProcessNext)
-end
-
+-- Called by processBtn PreClick on the FIRST click only
 local function StartProcessing()
+    if InCombatLockdown() then return end
     local mode = MODES[currentMode]
     if not mode then return end
 
-    -- Build queue from selected items
-    processQueue = {}
-    local items = ScanBags(mode)
-    for _, item in ipairs(items) do
-        if selectedItems[item.itemID] then
-            local timesToProcess = math.floor(item.count / mode.minStack)
-            for i = 1, timesToProcess do
-                table.insert(processQueue, item)
-            end
-        end
-    end
-
+    processQueue = BuildProcessQueue()
     if #processQueue == 0 then return end
 
     isProcessing = true
-    processIndex = 0
+    processIndex = 1  -- Start at first item
 
     if mainFrame and mainFrame.processBtn then
-        mainFrame.processBtn:SetText(L["ph_btn_stop"])
+        mainFrame.processBtn.label:SetText(L["ph_btn_click_process"])
     end
 
-    -- Cast the profession spell and start processing
-    local spellName = C_Spell.GetSpellName(mode.spellID)
-    if spellName then
-        CastSpellByName(spellName)
-    end
-
-    C_Timer.After(0.3, ProcessNext)
+    -- Configure target for the first click (this PreClick sets attrs BEFORE secure action fires)
+    ConfigureNextTarget()
 end
 
 -- ─── UI Creation ─────────────────────────────────────────────────
@@ -336,14 +378,6 @@ local function CreateItemButton(parent, index)
     countText:SetTextColor(unpack(ACCENT))
     btn.countText = countText
 
-    -- Selection indicator (checkmark overlay)
-    local checkmark = btn:CreateTexture(nil, "OVERLAY")
-    checkmark:SetSize(16, 16)
-    checkmark:SetPoint("TOPRIGHT", -4, -4)
-    checkmark:SetTexture("Interface\\RaidFrame\\ReadyCheck-Ready")
-    checkmark:Hide()
-    btn.checkmark = checkmark
-
     -- Hover highlight
     btn:SetScript("OnEnter", function(self)
         self:SetBackdropColor(0.18, 0.18, 0.22, 1)
@@ -357,23 +391,9 @@ local function CreateItemButton(parent, index)
     end)
 
     btn:SetScript("OnLeave", function(self)
-        local selected = self.itemID and selectedItems[self.itemID]
-        if selected then
-            self:SetBackdropColor(0.05, 0.20, 0.15, 1)
-            self:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
-        else
-            self:SetBackdropColor(0.12, 0.12, 0.14, 1)
-            self:SetBackdropBorderColor(0.20, 0.20, 0.25, 0.8)
-        end
+        self:SetBackdropColor(0.12, 0.12, 0.14, 1)
+        self:SetBackdropBorderColor(0.20, 0.20, 0.25, 0.8)
         GameTooltip:Hide()
-    end)
-
-    -- Click to toggle selection
-    btn:SetScript("OnClick", function(self)
-        if not self.itemID then return end
-        selectedItems[self.itemID] = not selectedItems[self.itemID]
-        PH.UpdateItemButton(self)
-        PH.UpdateProcessButton()
     end)
 
     return btn
@@ -384,34 +404,33 @@ function PH.UpdateItemButton(btn)
         btn:Hide()
         return
     end
-
-    local selected = selectedItems[btn.itemID]
-    btn.checkmark:SetShown(selected)
-    if selected then
-        btn:SetBackdropColor(0.05, 0.20, 0.15, 1)
-        btn:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
-    else
-        btn:SetBackdropColor(0.12, 0.12, 0.14, 1)
-        btn:SetBackdropBorderColor(0.20, 0.20, 0.25, 0.8)
-    end
+    btn:SetBackdropColor(0.12, 0.12, 0.14, 1)
+    btn:SetBackdropBorderColor(0.20, 0.20, 0.25, 0.8)
 end
 
 function PH.UpdateProcessButton()
     if not mainFrame or not mainFrame.processBtn then return end
+    if InCombatLockdown() then return end
 
     if isProcessing then
-        mainFrame.processBtn:SetText(L["ph_btn_stop"])
-        mainFrame.processBtn:Enable()
+        -- Already processing — button is in macro mode, keep it
         return
     end
 
-    local hasSelected = false
-    for _, v in pairs(selectedItems) do
-        if v then hasSelected = true; break end
-    end
+    -- When not processing, clear the macro so clicking does PreClick -> StartProcessing
+    mainFrame.processBtn:SetAttribute("type", nil)
+    mainFrame.processBtn:SetAttribute("macrotext", nil)
+    mainFrame.processBtn.label:SetText(L["ph_btn_process"])
 
-    mainFrame.processBtn:SetEnabled(hasSelected)
-    mainFrame.processBtn:SetAlpha(hasSelected and 1 or 0.4)
+    -- Enable if there are any items to process
+    local hasItems = false
+    for _, btn in ipairs(itemButtons) do
+        if btn.itemID and btn:IsShown() then
+            hasItems = true
+            break
+        end
+    end
+    mainFrame.processBtn:SetAlpha(hasItems and 1 or 0.4)
 end
 
 function PH.RefreshItems()
@@ -458,12 +477,6 @@ function PH.RefreshItems()
 
         btn.countText:SetText("x" .. item.count)
 
-        -- Preserve or default selection
-        if selectedItems[item.itemID] == nil then
-            selectedItems[item.itemID] = true
-        end
-
-        PH.UpdateItemButton(btn)
         btn:Show()
     end
 
@@ -506,7 +519,6 @@ local function CreateTabButton(parent, modeIndex, mode, xOffset)
     tab:SetScript("OnClick", function()
         if isProcessing then return end
         currentMode = modeIndex
-        selectedItems = {}
         PH.UpdateTabs()
         PH.RefreshItems()
         PH.UpdateFilterSection()
@@ -580,7 +592,6 @@ local function CreateFilterSection(parent)
             if TomoModDB and TomoModDB.professionHelper then
                 TomoModDB.professionHelper[settingKey] = val
             end
-            selectedItems = {}
             PH.RefreshItems()
         end)
 
@@ -600,80 +611,7 @@ local function CreateFilterSection(parent)
     return container
 end
 
--- ─── Select All / Deselect All ───────────────────────────────────
 
-local function CreateActionButtons(parent, yOffset)
-    local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(parent:GetWidth() - 20, 28)
-    container:SetPoint("TOPLEFT", parent, "TOPLEFT", 10, yOffset)
-
-    -- Select All
-    local selectAll = CreateFrame("Button", nil, container, "BackdropTemplate")
-    selectAll:SetSize(100, 24)
-    selectAll:SetPoint("LEFT", 0, 0)
-    selectAll:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    selectAll:SetBackdropColor(0.15, 0.15, 0.18, 1)
-    selectAll:SetBackdropBorderColor(unpack(BORDER))
-
-    local saLabel = selectAll:CreateFontString(nil, "OVERLAY")
-    saLabel:SetFont(FONT, 10, "")
-    saLabel:SetPoint("CENTER")
-    saLabel:SetText(L["ph_select_all"])
-    saLabel:SetTextColor(unpack(TEXT))
-    selectAll:SetScript("OnClick", function()
-        for _, btn in ipairs(itemButtons) do
-            if btn.itemID and btn:IsShown() then
-                selectedItems[btn.itemID] = true
-                PH.UpdateItemButton(btn)
-            end
-        end
-        PH.UpdateProcessButton()
-    end)
-    selectAll:SetScript("OnEnter", function(self) self:SetBackdropColor(0.20, 0.20, 0.25, 1) end)
-    selectAll:SetScript("OnLeave", function(self) self:SetBackdropColor(0.15, 0.15, 0.18, 1) end)
-
-    -- Deselect All
-    local deselectAll = CreateFrame("Button", nil, container, "BackdropTemplate")
-    deselectAll:SetSize(100, 24)
-    deselectAll:SetPoint("LEFT", selectAll, "RIGHT", 6, 0)
-    deselectAll:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    deselectAll:SetBackdropColor(0.15, 0.15, 0.18, 1)
-    deselectAll:SetBackdropBorderColor(unpack(BORDER))
-
-    local daLabel = deselectAll:CreateFontString(nil, "OVERLAY")
-    daLabel:SetFont(FONT, 10, "")
-    daLabel:SetPoint("CENTER")
-    daLabel:SetText(L["ph_deselect_all"])
-    daLabel:SetTextColor(unpack(TEXT))
-    deselectAll:SetScript("OnClick", function()
-        for _, btn in ipairs(itemButtons) do
-            if btn.itemID and btn:IsShown() then
-                selectedItems[btn.itemID] = false
-                PH.UpdateItemButton(btn)
-            end
-        end
-        PH.UpdateProcessButton()
-    end)
-    deselectAll:SetScript("OnEnter", function(self) self:SetBackdropColor(0.20, 0.20, 0.25, 1) end)
-    deselectAll:SetScript("OnLeave", function(self) self:SetBackdropColor(0.15, 0.15, 0.18, 1) end)
-
-    -- Item count
-    local countText = container:CreateFontString(nil, "OVERLAY")
-    countText:SetFont(FONT, 10, "")
-    countText:SetPoint("RIGHT", -4, 0)
-    countText:SetJustifyH("RIGHT")
-    countText:SetTextColor(unpack(DIM))
-
-    return container, countText
-end
 
 -- ─── Main Frame Builder ──────────────────────────────────────────
 
@@ -743,11 +681,12 @@ local function BuildMainFrame()
     filterContainer:SetPoint("TOPLEFT", tabBar, "BOTTOMLEFT", 10, -4)
     f.filterContainer = filterContainer
 
-    -- Action buttons (select all / deselect all)
-    local filterBottomOffset = -88  -- below tabs + filter
-    local actionContainer, countText = CreateActionButtons(f, filterBottomOffset)
-    actionContainer:SetPoint("TOPLEFT", tabBar, "BOTTOMLEFT", 10, -44)
-    f.actionContainer = actionContainer
+    -- Item count text (right-aligned below filter)
+    local countText = f:CreateFontString(nil, "OVERLAY")
+    countText:SetFont(FONT, 10, "")
+    countText:SetPoint("TOPRIGHT", tabBar, "BOTTOMRIGHT", -14, -44)
+    countText:SetJustifyH("RIGHT")
+    countText:SetTextColor(unpack(DIM))
     f.countText = countText
 
     -- ── Custom themed scroll area ─────────────────────────────────
@@ -757,7 +696,7 @@ local function BuildMainFrame()
     local THUMB_MIN_H   = 24
 
     local scrollContainer = CreateFrame("Frame", nil, f)
-    scrollContainer:SetPoint("TOPLEFT", actionContainer, "BOTTOMLEFT", 0, -6)
+    scrollContainer:SetPoint("TOPLEFT", filterContainer, "BOTTOMLEFT", 0, -20)
     scrollContainer:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -6, 70)
 
     -- Track background
@@ -861,8 +800,9 @@ local function BuildMainFrame()
     })
     bottomBar:SetBackdropColor(0.05, 0.05, 0.07, 1)
 
-    -- Process button
-    local processBtn = CreateFrame("Button", nil, bottomBar, "BackdropTemplate")
+    -- Process button — SecureActionButtonTemplate so it can /click the spell button
+    local processBtn = CreateFrame("Button", "TomoMod_PH_ProcessButton", bottomBar, "SecureActionButtonTemplate, BackdropTemplate")
+    processBtn:RegisterForClicks("AnyUp", "AnyDown")
     processBtn:SetSize(180, 34)
     processBtn:SetPoint("CENTER", 0, 6)
     processBtn:SetBackdrop({
@@ -879,24 +819,88 @@ local function BuildMainFrame()
     processLabel:SetText(L["ph_btn_process"])
     processLabel:SetTextColor(1, 1, 1, 1)
     processBtn.label = processLabel
-    processBtn.SetText = function(self, text) self.label:SetText(text) end
 
-    processBtn:SetScript("OnClick", function()
-        if isProcessing then
-            StopProcessing()
-        else
+    -- PreClick: runs BEFORE the secure action system processes the click.
+    -- First click → StartProcessing (builds queue, sets index=1, configures item 1)
+    -- Subsequent clicks → advance index, configure next item for THIS click
+    processBtn:SetScript("PreClick", function(self, button, down)
+        if InCombatLockdown() then return end
+
+        if not isProcessing then
             StartProcessing()
+            return
         end
+
+        -- Already processing: advance to next item
+        processIndex = processIndex + 1
+        if processIndex > #processQueue then
+            -- All done
+            StopProcessing()
+            if mainFrame and mainFrame.statusText then
+                mainFrame.statusText:SetText(L["ph_status_done"])
+            end
+            C_Timer.After(0.5, function()
+                if mainFrame and mainFrame:IsShown() then
+                    PH.RefreshItems()
+                end
+            end)
+            return
+        end
+
+        -- Skip any items that are no longer in bags
+        while processIndex <= #processQueue do
+            if ConfigureNextTarget() then
+                return  -- configured successfully
+            end
+            processIndex = processIndex + 1
+        end
+
+        -- If we got here, all remaining items were gone
+        StopProcessing()
+        if mainFrame and mainFrame.statusText then
+            mainFrame.statusText:SetText(L["ph_status_done"])
+        end
+        C_Timer.After(0.5, function()
+            if mainFrame and mainFrame:IsShown() then
+                PH.RefreshItems()
+            end
+        end)
+    end)
+    -- PostClick: no-op
+    processBtn:SetScript("PostClick", function(self, button, down)
     end)
     processBtn:SetScript("OnEnter", function(self)
         self:SetBackdropColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
-        self.label:SetTextColor(0.05, 0.05, 0.08, 1)
+        processLabel:SetTextColor(0.05, 0.05, 0.08, 1)
     end)
     processBtn:SetScript("OnLeave", function(self)
         self:SetBackdropColor(ACCENT[1] * 0.6, ACCENT[2] * 0.6, ACCENT[3] * 0.6, 1)
-        self.label:SetTextColor(1, 1, 1, 1)
+        processLabel:SetTextColor(1, 1, 1, 1)
     end)
     f.processBtn = processBtn
+
+    -- Stop button (separate, to cancel processing)
+    local stopBtn = CreateFrame("Button", nil, bottomBar, "BackdropTemplate")
+    stopBtn:SetSize(60, 34)
+    stopBtn:SetPoint("LEFT", processBtn, "RIGHT", 8, 0)
+    stopBtn:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    stopBtn:SetBackdropColor(0.25, 0.08, 0.08, 1)
+    stopBtn:SetBackdropBorderColor(0.60, 0.20, 0.20, 1)
+    local stopLabel = stopBtn:CreateFontString(nil, "OVERLAY")
+    stopLabel:SetFont(FONT_B, 11, "")
+    stopLabel:SetPoint("CENTER")
+    stopLabel:SetText(L["ph_btn_stop"])
+    stopLabel:SetTextColor(1, 1, 1, 1)
+    stopBtn:SetScript("OnClick", function()
+        StopProcessing()
+    end)
+    stopBtn:SetScript("OnEnter", function(self) self:SetBackdropColor(0.60, 0.20, 0.20, 1) end)
+    stopBtn:SetScript("OnLeave", function(self) self:SetBackdropColor(0.25, 0.08, 0.08, 1) end)
+    f.stopBtn = stopBtn
 
     -- Status text
     local statusText = bottomBar:CreateFontString(nil, "OVERLAY")
@@ -911,9 +915,18 @@ local function BuildMainFrame()
 
     -- Register events for auto-refresh
     f:RegisterEvent("BAG_UPDATE")
-    f:SetScript("OnEvent", function(self, event)
+    f:RegisterEvent("GET_ITEM_INFO_RECEIVED")
+    f:SetScript("OnEvent", function(self, event, ...)
+        if not self:IsShown() then return end
         if event == "BAG_UPDATE" and not isProcessing then
             C_Timer.After(0.2, function()
+                if self:IsShown() then
+                    PH.RefreshItems()
+                end
+            end)
+        elseif event == "GET_ITEM_INFO_RECEIVED" then
+            -- Item info arrived from server — re-scan
+            C_Timer.After(0.1, function()
                 if self:IsShown() then
                     PH.RefreshItems()
                 end
@@ -939,7 +952,8 @@ function PH.Toggle()
         f:Hide()
     else
         currentMode = 1
-        selectedItems = {}
+        cacheRetryCount = 0
+        pendingCacheRetry = nil
 
         -- Auto-select the first available mode
         for i, mode in ipairs(MODES) do

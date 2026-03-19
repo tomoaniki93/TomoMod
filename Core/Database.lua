@@ -585,6 +585,10 @@ TomoMod_Defaults = {
             trivial       = { r = 0.50, g = 0.50, b = 0.50 },
         },
         useClassificationColors = true,
+        raidIconAnchor = "TOPRIGHT",
+        raidIconX = 2,
+        raidIconY = 2,
+        raidIconSize = 24,
         tankColors = {
             noThreat      = { r = 1.00, g = 0.22, b = 0.17 },
             lowThreat     = { r = 0.81, g = 0.72, b = 0.19 },

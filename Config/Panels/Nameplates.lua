@@ -106,6 +106,40 @@ local function BuildGeneralTab(parent)
     end)
     y = ny
 
+    -- Raid Marker
+    local _, ny = W.CreateSectionHeader(c, L["section_raid_marker"], y)
+    y = ny
+
+    local _, ny = W.CreateDropdown(c, L["opt_np_raid_icon_anchor"], {
+        { text = "Top",          value = "TOP" },
+        { text = "Top Left",     value = "TOPLEFT" },
+        { text = "Top Right",    value = "TOPRIGHT" },
+        { text = "Bottom",       value = "BOTTOM" },
+        { text = "Bottom Left",  value = "BOTTOMLEFT" },
+        { text = "Bottom Right", value = "BOTTOMRIGHT" },
+        { text = "Left",         value = "LEFT" },
+        { text = "Right",        value = "RIGHT" },
+        { text = "Center",       value = "CENTER" },
+    }, db.raidIconAnchor or "TOPRIGHT", y, function(v)
+        db.raidIconAnchor = v; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_np_raid_icon_x"], db.raidIconX or 2, -50, 50, 1, y, function(v)
+        db.raidIconX = v; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_np_raid_icon_y"], db.raidIconY or 2, -50, 50, 1, y, function(v)
+        db.raidIconY = v; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_np_raid_icon_size"], db.raidIconSize or 24, 10, 60, 1, y, function(v)
+        db.raidIconSize = v; RefreshNP()
+    end)
+    y = ny
+
     -- Castbar
     local _, ny = W.CreateSectionHeader(c, L["section_castbar"], y)
     y = ny

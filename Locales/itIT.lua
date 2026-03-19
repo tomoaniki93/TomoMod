@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("itIT", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Informazioni",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.1 di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.2 di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
     ["section_general"]                 = "Generale",
     ["btn_reset_all"]                   = "Ripristina tutto",
     ["info_reset_all"]                  = "Questo ripristinerà TUTTE le impostazioni e ricaricherà l'interfaccia.",
@@ -175,6 +175,13 @@ TomoMod_RegisterLocale("itIT", {
     ["opt_np_show_classification"]      = "Mostra classificazione (élite, raro, boss)",
     ["opt_np_show_absorb"]               = "Mostra barra di assorbimento",
     ["opt_np_class_colors"]             = "Colori di classe (giocatori)",
+
+    -- Raid Marker
+    ["section_raid_marker"]             = "Indicatore del raid",
+    ["opt_np_raid_icon_anchor"]         = "Posizione dell'icona",
+    ["opt_np_raid_icon_x"]              = "Offset X",
+    ["opt_np_raid_icon_y"]              = "Offset Y",
+    ["opt_np_raid_icon_size"]           = "Dimensione icona",
 
     -- Castbar
     ["section_castbar"]                 = "Barra di lancio",
@@ -895,4 +902,34 @@ TomoMod_RegisterLocale("itIT", {
     ["wq_sort_reward"]                   = "Ricompensa",
     ["wq_sort_faction"]                  = "Fazione",
     ["wq_status_count"]                  = "Mostrando %d / %d missioni",
+
+    -- Profession Helper
+    ["tab_qol_prof_helper"]              = "Professioni",
+    ["section_prof_helper"]              = "Assistente professioni",
+    ["info_prof_helper_desc"]            = "Disincanta, macina e prospezione di oggetti in blocco con un'interfaccia visiva.",
+    ["opt_prof_helper_enable"]           = "Attiva assistente professioni",
+    ["sublabel_prof_de_filters"]         = "— Filtri qualità disincantamento —",
+    ["opt_prof_filter_green"]            = "Includi oggetti Non comuni (Verdi)",
+    ["opt_prof_filter_blue"]             = "Includi oggetti Rari (Blu)",
+    ["opt_prof_filter_epic"]             = "Includi oggetti Epici (Viola)",
+    ["btn_prof_open_helper"]             = "Apri assistente professioni",
+    ["ph_title"]                         = "Assistente professioni",
+    ["ph_tab_disenchant"]                = "Disincanta",
+    ["ph_tab_milling"]                   = "Macinazione",
+    ["ph_tab_prospecting"]               = "Prospezione",
+    ["ph_filter_quality"]                = "Qualità:",
+    ["ph_quality_green"]                 = "Verde",
+    ["ph_quality_blue"]                  = "Blu",
+    ["ph_quality_epic"]                  = "Epico",
+    ["ph_select_all"]                    = "Seleziona tutto",
+    ["ph_deselect_all"]                  = "Deseleziona tutto",
+    ["ph_btn_process"]                   = "Elabora",
+    ["ph_btn_click_process"]             = "Clicca per elaborare",
+    ["ph_btn_stop"]                      = "Ferma",
+    ["ph_status_idle"]                   = "Clicca su Elabora",
+    ["ph_status_processing"]             = "Elaborazione %d/%d: %s",
+    ["ph_status_done"]                   = "Fatto! Tutti gli oggetti elaborati.",
+    ["ph_item_count"]                    = "%d oggetti disponibili",
+    ["ph_ilvl"]                          = "iLvl %d",
+    ["ph_processable"]                   = "%d elaborabili",
 })

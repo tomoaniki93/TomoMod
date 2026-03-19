@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("deDE", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Über",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.1 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.2 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
     ["section_general"]                 = "Allgemein",
     ["btn_reset_all"]                   = "Alles zurücksetzen",
     ["info_reset_all"]                  = "Dies setzt ALLE Einstellungen zurück und lädt die Oberfläche neu.",
@@ -175,6 +175,13 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_np_show_classification"]      = "Klassifizierung anzeigen (Elite, Selten, Boss)",
     ["opt_np_show_absorb"]               = "Absorptionsleiste anzeigen",
     ["opt_np_class_colors"]             = "Klassenfarben (Spieler)",
+
+    -- Raid Marker
+    ["section_raid_marker"]             = "Raid-Markierung",
+    ["opt_np_raid_icon_anchor"]         = "Symbol-Position",
+    ["opt_np_raid_icon_x"]              = "Versatz X",
+    ["opt_np_raid_icon_y"]              = "Versatz Y",
+    ["opt_np_raid_icon_size"]           = "Symbolgröße",
 
     -- Castbar
     ["section_castbar"]                 = "Zauberleiste",
@@ -895,4 +902,34 @@ TomoMod_RegisterLocale("deDE", {
     ["wq_sort_reward"]                   = "Belohnung",
     ["wq_sort_faction"]                  = "Fraktion",
     ["wq_status_count"]                  = "Zeige %d / %d Quests",
+
+    -- Profession Helper
+    ["tab_qol_prof_helper"]              = "Berufe",
+    ["section_prof_helper"]              = "Berufshelfer",
+    ["info_prof_helper_desc"]            = "Entzaubern, Mahlen und Sondieren von Gegenständen im Stapel mit einer visuellen Oberfläche.",
+    ["opt_prof_helper_enable"]           = "Berufshelfer aktivieren",
+    ["sublabel_prof_de_filters"]         = "— Entzauber-Qualitätsfilter —",
+    ["opt_prof_filter_green"]            = "Ungewöhnliche (Grüne) einschließen",
+    ["opt_prof_filter_blue"]             = "Seltene (Blaue) einschließen",
+    ["opt_prof_filter_epic"]             = "Epische (Lila) einschließen",
+    ["btn_prof_open_helper"]             = "Berufshelfer öffnen",
+    ["ph_title"]                         = "Berufshelfer",
+    ["ph_tab_disenchant"]                = "Entzaubern",
+    ["ph_tab_milling"]                   = "Mahlen",
+    ["ph_tab_prospecting"]               = "Sondieren",
+    ["ph_filter_quality"]                = "Qualität:",
+    ["ph_quality_green"]                 = "Grün",
+    ["ph_quality_blue"]                  = "Blau",
+    ["ph_quality_epic"]                  = "Episch",
+    ["ph_select_all"]                    = "Alle auswählen",
+    ["ph_deselect_all"]                  = "Alle abwählen",
+    ["ph_btn_process"]                   = "Verarbeiten",
+    ["ph_btn_click_process"]             = "Klicken zum Verarbeiten",
+    ["ph_btn_stop"]                      = "Stopp",
+    ["ph_status_idle"]                   = "Klicke auf Verarbeiten",
+    ["ph_status_processing"]             = "Verarbeite %d/%d: %s",
+    ["ph_status_done"]                   = "Fertig! Alle Gegenstände verarbeitet.",
+    ["ph_item_count"]                    = "%d Gegenstände verfügbar",
+    ["ph_ilvl"]                          = "iLvl %d",
+    ["ph_processable"]                   = "%d verarbeitbar",
 })

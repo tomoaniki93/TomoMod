@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.1 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.2 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -175,6 +175,13 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_np_show_classification"]      = "Afficher classification (élite, rare, boss)",
     ["opt_np_show_absorb"]               = "Afficher la barre d'absorption",
     ["opt_np_class_colors"]             = "Couleurs de classe (joueurs)",
+
+    -- Raid Marker
+    ["section_raid_marker"]             = "Marqueur de raid",
+    ["opt_np_raid_icon_anchor"]         = "Position de l'icône",
+    ["opt_np_raid_icon_x"]              = "Décalage X",
+    ["opt_np_raid_icon_y"]              = "Décalage Y",
+    ["opt_np_raid_icon_size"]           = "Taille de l'icône",
 
     -- Castbar
     ["section_castbar"]                 = "Barre de sort",
@@ -924,9 +931,11 @@ TomoMod_RegisterLocale("frFR", {
     ["ph_select_all"]                    = "Tout sélectionner",
     ["ph_deselect_all"]                  = "Tout désélectionner",
     ["ph_btn_process"]                   = "Traiter la sélection",
+    ["ph_btn_click_process"]              = "Cliquez pour traiter",
     ["ph_btn_stop"]                      = "Arrêter",
     ["ph_status_idle"]                   = "Sélectionnez des objets puis cliquez Traiter",
     ["ph_status_processing"]             = "Traitement %d/%d : %s",
+    ["ph_status_done"]                   = "Terminé ! Tous les objets traités.",
     ["ph_item_count"]                    = "%d objets disponibles",
     ["ph_ilvl"]                          = "iNiv %d",
     ["ph_processable"]                   = "%d traitables",
