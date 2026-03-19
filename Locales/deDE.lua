@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("deDE", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Über",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.0 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.1 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
     ["section_general"]                 = "Allgemein",
     ["btn_reset_all"]                   = "Alles zurücksetzen",
     ["info_reset_all"]                  = "Dies setzt ALLE Einstellungen zurück und lädt die Oberfläche neu.",
@@ -771,10 +771,8 @@ TomoMod_RegisterLocale("deDE", {
     -- SOUND / LUST DETECTION
     -- =====================
     ["cat_sound"]                       = "Sound",
-    ["tab_sound_general"]               = "Allgemein",
-    ["tab_sound_detection"]             = "Erkennung",
     ["section_sound_general"]           = "Bloodlust-Sound",
-    ["info_sound_desc"]                 = "Spielt einen benutzerdefinierten Sound ab, wenn ein Bloodlust-Effekt auf deinem Charakter erkannt wird. Die Erkennung nutzt eine Kombination aus Haste-Spitzen und Sated-Debuff-Erkennung.",
+        ["info_sound_desc"]                 = "Spielt einen benutzerdefinierten Sound ab, wenn ein Bloodlust-Effekt erkannt wird. Die Erkennung prueft direkt die Lust-Buffs und Sated/Exhaustion-Debuffs.",
     ["opt_sound_enable"]                = "Bloodlust-Erkennung aktivieren",
     ["sublabel_sound_choice"]           = "Sound & Kanal",
     ["opt_sound_file"]                  = "Abzuspielender Sound",
@@ -782,17 +780,7 @@ TomoMod_RegisterLocale("deDE", {
     ["btn_sound_preview"]               = ">> Sound anhören",
     ["btn_sound_stop"]                  = "■  Stoppen",
     ["opt_sound_chat"]                  = "Chatnachrichten anzeigen",
-    ["opt_sound_debug"]                 = "Debug-Modus (Haste in Echtzeit)",
-    ["section_sound_detection"]         = "Erkennungseinstellungen",
-    ["info_sound_detection_desc"]       = "Diese Einstellungen steuern die Empfindlichkeit der Bloodlust-Erkennung über Haste-Schwankungen. Niedrigere Werte lösen häufiger aus (z.B. Power Infusion).",
-    ["opt_sound_spike_ratio"]           = "Spike-Verhältnis",
-    ["info_sound_spike_tooltip"]        = "Verhältnis des aktuellen Haste zum Durchschnitt. 160% = Haste muss 1,6× den Durchschnitt betragen. (Standard: 160%)",
-    ["opt_sound_jump_ratio"]            = "Sprung-Verhältnis",
-    ["info_sound_jump_tooltip"]         = "Verhältnis zum letzten Maximum. Verhindert, dass langsame Anstiege die Erkennung auslösen. (Standard: 140%)",
-    ["opt_sound_fade_ratio"]            = "Abkling-Verhältnis",
-    ["info_sound_fade_tooltip"]         = "Wenn Haste unter dieses Verhältnis zur Baseline fällt, gilt der Effekt als beendet. (Standard: 115%)",
-    ["btn_sound_reset_detection"]       = "Verhältnisse zurücksetzen",
-    ["msg_sound_detection_reset"]       = "Erkennungsverhältnisse zurückgesetzt.",
+        ["opt_sound_debug"]                 = "Mode debug",
 
     -- =====================
     -- BAG & MICRO MENU
@@ -871,4 +859,40 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_mail_skin_enable"]             = "Postfenster-Skin",
     ["msg_mail_skin_enabled"]            = "Post-Skin aktiviert",
     ["msg_mail_skin_disabled"]           = "Post-Skin deaktiviert (Reload zum Zurücksetzen)",
+
+    -- =====================
+    -- WORLD QUEST TAB
+    -- =====================
+    ["tab_qol_world_quests"]             = "Weltquests",
+    ["section_wq_tab"]                   = "Weltquest-Tab",
+    ["info_wq_tab_desc"]                 = "Zeigt eine Liste verfügbarer Weltquests neben der Weltkarte mit Details zu Belohnungen, Zone, Fraktion und verbleibender Zeit. Klicke auf eine Quest, um zur Zone zu navigieren. Shift-Klick zum Super-Tracking.",
+    ["opt_wq_enable"]                    = "Weltquest-Tab aktivieren",
+    ["opt_wq_auto_show"]                 = "Automatisch beim Öffnen der Karte anzeigen",
+    ["opt_wq_max_quests"]                = "Max. angezeigte Quests (0 = unbegrenzt)",
+    ["opt_wq_min_time"]                  = "Min. verbleibende Zeit (Minuten, 0 = alle)",
+    ["section_wq_filters"]               = "Belohnungsfilter",
+    ["opt_wq_filter_gold"]               = "Goldbelohnungen anzeigen",
+    ["opt_wq_filter_gear"]               = "Ausrüstungsbelohnungen anzeigen",
+    ["opt_wq_filter_rep"]                = "Rufbelohnungen anzeigen",
+    ["opt_wq_filter_currency"]           = "Währungsbelohnungen anzeigen",
+    ["opt_wq_filter_anima"]              = "Animabelohnungen anzeigen",
+    ["opt_wq_filter_pet"]                = "Haustierbelohnungen anzeigen",
+    ["opt_wq_filter_other"]              = "Sonstige Belohnungen anzeigen",
+    ["wq_tab_title"]                     = "WQ Liste",
+    ["wq_panel_title"]                   = "Weltquests",
+    ["wq_col_name"]                      = "Name",
+    ["wq_col_zone"]                      = "Zone",
+    ["wq_col_reward"]                    = "Belohnung",
+    ["wq_col_time"]                      = "Zeit",
+    ["wq_zone"]                          = "Zone",
+    ["wq_faction"]                       = "Fraktion",
+    ["wq_reward"]                        = "Belohnung",
+    ["wq_time_left"]                     = "Verbleibende Zeit",
+    ["wq_elite"]                         = "Elite-Weltquest",
+    ["wq_sort_time"]                     = "Zeit",
+    ["wq_sort_zone"]                     = "Zone",
+    ["wq_sort_name"]                     = "Name",
+    ["wq_sort_reward"]                   = "Belohnung",
+    ["wq_sort_faction"]                  = "Fraktion",
+    ["wq_status_count"]                  = "Zeige %d / %d Quests",
 })

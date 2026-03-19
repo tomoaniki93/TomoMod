@@ -1,6 +1,7 @@
 -- =====================================
 -- Elements/Castbar.lua — Castbar Element
--- Supports: Casts, Channels, Empowered (Evoker stages)
+-- Supports: Casts, Channels, Empowered (Evoker stages + gradient)
+-- Channel tick markers via spell database lookup
 -- =====================================
 
 local UF_Elements = UF_Elements or {}
@@ -9,6 +10,51 @@ local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 
 local MAX_EMPOWER_STAGES = 4
+local MAX_TICK_MARKERS = 20
+
+-- =====================================
+-- CHANNEL TICK DATABASE
+-- Maps spellID -> number of ticks (base, before haste)
+-- UnitChannelInfo already returns haste-adjusted duration,
+-- so we just divide evenly by tick count
+-- =====================================
+local CHANNEL_TICKS = {
+    -- Evoker
+    [356995] = 3,   -- Disintegrate (3 ticks)
+    -- Priest
+    [15407]  = 3,   -- Mind Flay (3 ticks)
+    [391403] = 3,   -- Mind Flay: Insanity (3 ticks)
+    [48045]  = 4,   -- Mind Sear (4 ticks)
+    [64843]  = 4,   -- Divine Hymn (4 ticks)
+    [47540]  = 4,   -- Penance (4 ticks)
+    -- Mage
+    [5143]   = 5,   -- Arcane Missiles (5 ticks)
+    [205021] = 5,   -- Ray of Frost (5 ticks)
+    -- Warlock
+    [234153] = 5,   -- Drain Life (5 ticks)
+    [198590] = 6,   -- Drain Soul (6 ticks)
+    [755]    = 6,   -- Health Funnel (6 ticks)
+    -- Druid
+    [740]    = 4,   -- Tranquility (4 ticks)
+    -- Shaman
+    [469931] = 5,   -- Tempest (5 ticks)
+    -- Monk
+    [115175] = 6,   -- Soothing Mist (6 ticks)
+    [191837] = 3,   -- Essence Font (3 ticks)
+    -- Hunter
+    [120360] = 3,   -- Barrage (3 ticks)
+    -- Demon Hunter
+    [198013] = 5,   -- Eye Beam (5 ticks)
+}
+
+-- Stage gradient colors (from base towards gold)
+-- Applied as vertex color multipliers on stage overlays
+local STAGE_COLORS = {
+    { 1.0,  1.0,  1.0,  0    },  -- stage 1: base color (no overlay)
+    { 1.0,  0.85, 0.4,  0.15 },  -- stage 2: warm tint
+    { 1.0,  0.7,  0.2,  0.25 },  -- stage 3: orange tint
+    { 1.0,  0.55, 0.1,  0.35 },  -- stage 4: deep gold tint
+}
 
 -- =====================================
 -- CREATE CASTBAR
@@ -69,7 +115,6 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     UF_Elements.CreateBorder(castbar)
 
     -- Not-interruptible overlay (grey, anchored to statusbar fill texture)
-    -- SetAlpha accepts secret values from C_CurveUtil — key TWW technique from asTargetCastBar
     local statustexture = castbar:GetStatusBarTexture()
     local niOverlay = castbar:CreateTexture(nil, "ARTWORK", nil, 1)
     niOverlay:SetPoint("TOPLEFT", statustexture, "TOPLEFT", 0, 0)
@@ -98,9 +143,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     end
 
     -- =====================================
-    -- EMPOWER STAGE MARKERS
-    -- Vertical lines showing stage boundaries for empowered casts (Evoker)
-    -- Pre-created pool of MAX_EMPOWER_STAGES markers, shown/hidden as needed
+    -- EMPOWER STAGE MARKERS (vertical lines)
     -- =====================================
     castbar.stageMarkers = {}
     for i = 1, MAX_EMPOWER_STAGES do
@@ -111,6 +154,35 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         marker:SetColorTexture(1, 1, 1, 0.7)
         marker:Hide()
         castbar.stageMarkers[i] = marker
+    end
+
+    -- =====================================
+    -- EMPOWER STAGE OVERLAYS (gradient color per stage section)
+    -- Colored textures anchored between stage boundaries
+    -- =====================================
+    castbar.stageOverlays = {}
+    for i = 1, MAX_EMPOWER_STAGES do
+        local overlay = castbar:CreateTexture(nil, "ARTWORK", nil, 2)
+        overlay:SetPoint("TOP", castbar, "TOP", 0, 0)
+        overlay:SetPoint("BOTTOM", castbar, "BOTTOM", 0, 0)
+        overlay:SetColorTexture(1, 0.6, 0.1, 1)
+        overlay:SetAlpha(0)
+        overlay:Hide()
+        castbar.stageOverlays[i] = overlay
+    end
+
+    -- =====================================
+    -- CHANNEL TICK MARKERS (vertical lines for periodic ticks)
+    -- =====================================
+    castbar.tickMarkers = {}
+    for i = 1, MAX_TICK_MARKERS do
+        local tick = castbar:CreateTexture(nil, "OVERLAY", nil, 1)
+        tick:SetWidth(1)
+        tick:SetPoint("TOP", castbar, "TOP", 0, 0)
+        tick:SetPoint("BOTTOM", castbar, "BOTTOM", 0, 0)
+        tick:SetColorTexture(1, 1, 1, 0.45)
+        tick:Hide()
+        castbar.tickMarkers[i] = tick
     end
 
     -- Icon
@@ -156,20 +228,42 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     castbar._castStartMS = nil
     castbar._castEndMS = nil
 
+    -- Empower stage tracking
+    castbar._stageBoundaries = {}   -- cumulative ms boundaries per stage
+    castbar._currentStage = 0
+    castbar._empSpellName = nil
+
+    -- Channel tick tracking
+    castbar._ticksPlaced = false
+
     castbar:Hide()
 
     -- =====================================
-    -- HELPER: Hide all stage markers
+    -- HELPER: Hide all stage markers + overlays
     -- =====================================
     local function HideStageMarkers(self)
         for i = 1, MAX_EMPOWER_STAGES do
             self.stageMarkers[i]:Hide()
+            self.stageOverlays[i]:SetAlpha(0)
+            self.stageOverlays[i]:Hide()
         end
+        self._stageBoundaries = {}
+        self._currentStage = 0
+        self._empSpellName = nil
     end
 
     -- =====================================
-    -- HELPER: Position stage markers for empowered cast
-    -- Uses GetUnitEmpowerStageDuration() to compute where each stage boundary falls
+    -- HELPER: Hide all tick markers
+    -- =====================================
+    local function HideTickMarkers(self)
+        for i = 1, MAX_TICK_MARKERS do
+            self.tickMarkers[i]:Hide()
+        end
+        self._ticksPlaced = false
+    end
+
+    -- =====================================
+    -- HELPER: Position stage markers + gradient overlays for empowered cast
     -- =====================================
     local function UpdateStageMarkers(self)
         HideStageMarkers(self)
@@ -180,19 +274,20 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         local endMS = self._castEndMS
         if not startMS or not endMS then return end
 
-        -- Compute total cast duration and cumulative stage positions
-        -- GetUnitEmpowerStageDuration(unit, stage): stage is 0-indexed
         local ok, _ = pcall(function()
             local totalDuration = endMS - startMS
             if totalDuration <= 0 then return end
 
             local cumulative = 0
+            local boundaries = {}
+
             for stage = 0, self.numStages - 1 do
                 local stageDuration = GetUnitEmpowerStageDuration(self.unit, stage)
                 if not stageDuration or stageDuration <= 0 then break end
                 cumulative = cumulative + stageDuration
+                boundaries[stage + 1] = cumulative
 
-                -- Don't place marker after the last stage (it would be at the end of the bar)
+                -- Stage marker (vertical white line between stages)
                 if stage < self.numStages - 1 then
                     local pct = cumulative / totalDuration
                     local xPos = barWidth * pct
@@ -204,8 +299,79 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
                         marker:Show()
                     end
                 end
+
+                -- Stage overlay (gradient color section)
+                local overlay = self.stageOverlays[stage + 1]
+                if overlay then
+                    local prevPct = (stage > 0 and boundaries[stage]) and (boundaries[stage] / totalDuration) or 0
+                    local curPct = cumulative / totalDuration
+                    local xStart = barWidth * prevPct
+                    local xEnd = barWidth * curPct
+
+                    overlay:ClearAllPoints()
+                    overlay:SetPoint("TOP", self, "TOP", 0, 0)
+                    overlay:SetPoint("BOTTOM", self, "BOTTOM", 0, 0)
+                    overlay:SetPoint("LEFT", self, "LEFT", xStart, 0)
+                    overlay:SetWidth(math.max(1, xEnd - xStart))
+
+                    local sc = STAGE_COLORS[stage + 1] or STAGE_COLORS[#STAGE_COLORS]
+                    overlay:SetColorTexture(sc[1], sc[2], sc[3], 1)
+                    overlay:SetAlpha(sc[4])
+                    overlay:Show()
+                end
             end
+
+            self._stageBoundaries = boundaries
         end)
+    end
+
+    -- =====================================
+    -- HELPER: Compute current empower stage from elapsed time
+    -- =====================================
+    local function GetCurrentEmpowerStage(self)
+        if not self.empowered or not self._castStartMS then return 0 end
+
+        local elapsedMS = GetTime() * 1000 - self._castStartMS
+        local boundaries = self._stageBoundaries
+        if not boundaries or #boundaries == 0 then return 0 end
+
+        local stage = 0
+        for i = 1, #boundaries do
+            if elapsedMS >= boundaries[i] then
+                stage = i
+            else
+                break
+            end
+        end
+        return stage
+    end
+
+    -- =====================================
+    -- HELPER: Place tick markers evenly from known tick count
+    -- =====================================
+    local function PlaceTickMarkers(self, tickCount)
+        HideTickMarkers(self)
+        if not tickCount or tickCount < 2 then return end
+
+        local barWidth = self:GetWidth()
+
+        -- Place (tickCount - 1) markers between tick boundaries
+        -- e.g. 3 ticks => 2 markers at 1/3 and 2/3
+        for i = 1, tickCount - 1 do
+            if i > MAX_TICK_MARKERS then break end
+
+            local pct = i / tickCount
+            local xPos = barWidth * pct
+            local marker = self.tickMarkers[i]
+            if marker then
+                marker:ClearAllPoints()
+                marker:SetPoint("TOP", self, "TOPLEFT", xPos, 0)
+                marker:SetPoint("BOTTOM", self, "BOTTOMLEFT", xPos, 0)
+                marker:Show()
+            end
+        end
+
+        self._ticksPlaced = true
     end
 
     -- =====================================
@@ -220,6 +386,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         self._castStartMS = nil
         self._castEndMS = nil
         HideStageMarkers(self)
+        HideTickMarkers(self)
         if self.latencyTex then self.latencyTex:Hide() end
     end
 
@@ -268,6 +435,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         if self.icon then self.icon:SetTexture(nil) end
         if self.latencyTex then self.latencyTex:Hide() end
         HideStageMarkers(self)
+        HideTickMarkers(self)
         if not self.casting and not self.channeling and not self.empowered and not self.failstart then
             self:Hide()
         end
@@ -356,15 +524,13 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         local bchannel = false
         local bempowered = false
         local numStages = 0
+        local channelSpellID = nil
 
-        -- [FIX] Un seul appel à UnitCastingInfo (deux appels successifs = données potentiellement
-        -- incohérentes si le sort se termine entre les deux appels).
         local name, _, texture, startTimeMS, endTimeMS, _, _, notInterruptible = UnitCastingInfo(unitID)
 
         -- ===== Check channel / empowered =====
         if type(name) == "nil" then
-            -- [FIX] Même chose : UnitChannelInfo appelé une seule fois.
-            local chanName, _, chanTex, chanStart, chanEnd, _, chanNI, _, _, chanStages = UnitChannelInfo(unitID)
+            local chanName, _, chanTex, chanStart, chanEnd, _, chanNI, chanSpellID, _, chanStages = UnitChannelInfo(unitID)
             if type(chanName) ~= "nil" then
                 name = chanName
                 texture = chanTex
@@ -379,11 +545,12 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
                 else
                     -- Regular channel (Disintegrate, etc.)
                     bchannel = true
+                    channelSpellID = chanSpellID
                 end
             end
         end
 
-        -- Nothing found → hide
+        -- Nothing found -> hide
         if type(name) == "nil" then
             ResetState(self)
             self:Hide()
@@ -423,19 +590,38 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         self:SetStatusBarColor(bc[1], bc[2], bc[3], 1)
 
         -- SetText/SetTexture are C-side, accept secrets
-        if self.spellText then self.spellText:SetFormattedText("%s", name) end
         if self.icon then self.icon:SetTexture(texture) end
+
+        -- Empower: show stage markers + overlays, store spell name
+        if bempowered then
+            self._empSpellName = name
+            self._currentStage = 0
+            UpdateStageMarkers(self)
+            HideTickMarkers(self)
+            -- Spell text will be updated in OnUpdate with stage indicator
+            if self.spellText then self.spellText:SetFormattedText("%s", name) end
+        else
+            HideStageMarkers(self)
+            if self.spellText then self.spellText:SetFormattedText("%s", name) end
+        end
+
+        -- Channel: place tick markers from spell database (player only)
+        -- channelSpellID is a secret value for target/focus in TWW — cannot
+        -- be used as a table index without triggering "table index is secret"
+        if bchannel and unit == "player" and channelSpellID then
+            local ok, tickCount = pcall(function() return CHANNEL_TICKS[channelSpellID] end)
+            if ok and tickCount and tickCount > 1 then
+                PlaceTickMarkers(self, tickCount)
+            else
+                HideTickMarkers(self)
+            end
+        else
+            HideTickMarkers(self)
+        end
 
         -- TWW: SetAlpha ACCEPTS secrets from C_CurveUtil
         local alpha = C_CurveUtil.EvaluateColorValueFromBoolean(notInterruptible, 1, 0)
         self.niOverlay:SetAlpha(alpha)
-
-        -- Empower: show stage markers
-        if bempowered then
-            UpdateStageMarkers(self)
-        else
-            HideStageMarkers(self)
-        end
 
         -- Latency (regular casts only)
         UpdateLatency(self)
@@ -443,7 +629,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         self:Show()
     end
 
-    -- OnUpdate: bar progress + timer text
+    -- OnUpdate: bar progress + timer text + empower stage tracking
     castbar:SetScript("OnUpdate", function(self, elapsed)
         -- Preview mode: keep bar visible, skip all logic
         if self._preview then return end
@@ -468,6 +654,35 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         -- Timer from stored duration object (param 0 for displayable value)
         if self.timerText and self.duration_obj then
             self.timerText:SetText(string.format("%.1f", self.duration_obj:GetRemainingDuration(0)))
+        end
+
+        -- Empower: track current stage and update spell text (player only)
+        -- _castStartMS is a secret value for target/focus in TWW
+        if self.empowered and self.unit == "player" then
+            local newStage = GetCurrentEmpowerStage(self)
+            if newStage ~= self._currentStage then
+                self._currentStage = newStage
+                -- Update stage overlay visibility: highlight current + completed stages
+                for i = 1, MAX_EMPOWER_STAGES do
+                    local overlay = self.stageOverlays[i]
+                    if overlay then
+                        local sc = STAGE_COLORS[i] or STAGE_COLORS[#STAGE_COLORS]
+                        if i <= newStage then
+                            overlay:SetAlpha(sc[4] + 0.15)
+                        else
+                            overlay:SetAlpha(sc[4])
+                        end
+                    end
+                end
+            end
+            -- Show stage in spell text (player only — name is secret for target/focus)
+            if self.spellText and self.numStages > 0 and self.unit == "player" then
+                local displayStage = math.max(1, self._currentStage)
+                local ok, spellName = pcall(tostring, self._empSpellName)
+                if ok and spellName then
+                    self.spellText:SetText(spellName .. "  [" .. displayStage .. "/" .. self.numStages .. "]")
+                end
+            end
         end
     end)
 
@@ -543,19 +758,13 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             CheckCast(castbar, true)
 
         -- ===== CAST SUCCEEDED =====
-        -- Some spells fire SUCCEEDED then immediately start a channel/empower phase.
-        -- Only hide if no active channel/empower follows.
-        -- Re-check via CheckCast to avoid killing a newly started cast (race condition).
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
             if castbar.channeling or castbar.empowered then
-                -- A channel/empower is active: ignore SUCCEEDED (it's the initial cast completing)
                 return
             end
             CheckCast(castbar, false)
 
         -- ===== STOP / FAILED / CHANNEL STOP / EMPOWER STOP =====
-        -- Re-check via CheckCast: if a new cast already started, show it instead of hiding.
-        -- This prevents the race where STOP(old) arrives after START(new).
         elseif event == "UNIT_SPELLCAST_STOP"
             or event == "UNIT_SPELLCAST_FAILED"
             or event == "UNIT_SPELLCAST_CHANNEL_STOP"

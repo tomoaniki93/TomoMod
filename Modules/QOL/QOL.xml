@@ -36,6 +36,9 @@
     <Include file="Quest\AutoQuest.lua" />
     <Include file="Quest\ObjectiveTracker.lua" />
 
+    <!-- Modules: World Quest Tab -->
+    <Include file="WorldQuests\WorldQuestTab.lua" />
+
     <!-- Modules: Skyriding -->
     <Include file="Skyriding\SkyRide.lua" />
 
@@ -53,6 +56,9 @@
 
     <!-- Modules: LustSound -->
     <Include file="LustSound\LustSound.lua" />
+
+    <!-- Modules: ProfessionHelper -->
+    <Include file="ProfessionHelper\ProfessionHelper.lua" />
 
     <!-- Modules: Combat -->
     <Include file="Combat\CombatText.lua" />

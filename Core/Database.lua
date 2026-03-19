@@ -192,17 +192,34 @@ TomoMod_Defaults = {
         enabled = true,
     },
 
+    worldQuestTab = {
+        enabled = false,
+        autoShow = true,
+        maxQuestsShown = 50,
+        minTimeMinutes = 0,
+        filterGold = true,
+        filterGear = true,
+        filterAP = true,
+        filterRep = true,
+        filterPet = true,
+        filterCurrency = true,
+        filterAnima = true,
+        filterOther = true,
+    },
+
+    professionHelper = {
+        enabled = true,
+        filterGreen = true,
+        filterBlue = true,
+        filterEpic = false,
+    },
+
     lustSound = {
         enabled = true,
         sound = "TALUANI",
         channel = "Master",
         showChat = false,
         debug = false,
-        detection = {
-            spike_ratio = 160,  -- % above mean to trigger
-            jump_ratio = 140,   -- % above max recent to confirm
-            fade_ratio = 115,   -- when below this %, lust is over
-        },
     },
 
     cooldownManager = {

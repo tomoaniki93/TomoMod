@@ -892,6 +892,151 @@ local function BuildBagMicroMenuTab(parent)
 end
 
 -- =====================================
+-- TAB 12: WORLD QUEST TAB
+-- =====================================
+
+local function BuildWorldQuestTabTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["section_wq_tab"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_wq_tab_desc"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_wq_enable"], TomoModDB.worldQuestTab.enabled, y, function(v)
+        TomoModDB.worldQuestTab.enabled = v
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_wq_auto_show"], TomoModDB.worldQuestTab.autoShow, y, function(v)
+        TomoModDB.worldQuestTab.autoShow = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_wq_max_quests"], TomoModDB.worldQuestTab.maxQuestsShown, 0, 100, 1, y, function(v)
+        TomoModDB.worldQuestTab.maxQuestsShown = v
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_wq_min_time"], TomoModDB.worldQuestTab.minTimeMinutes, 0, 1440, 10, y, function(v)
+        TomoModDB.worldQuestTab.minTimeMinutes = v
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.ApplySettings() end
+    end)
+    y = ny
+
+    -- Reward filters section
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSectionHeader(c, L["section_wq_filters"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_wq_filter_gold"], TomoModDB.worldQuestTab.filterGold, y, function(v)
+        TomoModDB.worldQuestTab.filterGold = v
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_wq_filter_gear"], TomoModDB.worldQuestTab.filterGear, y, function(v)
+        TomoModDB.worldQuestTab.filterGear = v
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_wq_filter_rep"], TomoModDB.worldQuestTab.filterRep, y, function(v)
+        TomoModDB.worldQuestTab.filterRep = v
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_wq_filter_currency"], TomoModDB.worldQuestTab.filterCurrency, y, function(v)
+        TomoModDB.worldQuestTab.filterCurrency = v
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_wq_filter_anima"], TomoModDB.worldQuestTab.filterAnima, y, function(v)
+        TomoModDB.worldQuestTab.filterAnima = v
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_wq_filter_pet"], TomoModDB.worldQuestTab.filterPet, y, function(v)
+        TomoModDB.worldQuestTab.filterPet = v
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_wq_filter_other"], TomoModDB.worldQuestTab.filterOther, y, function(v)
+        TomoModDB.worldQuestTab.filterOther = v
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.ApplySettings() end
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
+-- TAB: PROFESSION HELPER
+-- =====================================
+
+local function BuildProfessionHelperTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["section_prof_helper"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_prof_helper_desc"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_prof_helper_enable"], TomoModDB.professionHelper.enabled, y, function(v)
+        TomoModDB.professionHelper.enabled = v
+    end)
+    y = ny
+
+    -- Quality filters for disenchant
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_prof_de_filters"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_prof_filter_green"], TomoModDB.professionHelper.filterGreen, y, function(v)
+        TomoModDB.professionHelper.filterGreen = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_prof_filter_blue"], TomoModDB.professionHelper.filterBlue, y, function(v)
+        TomoModDB.professionHelper.filterBlue = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_prof_filter_epic"], TomoModDB.professionHelper.filterEpic, y, function(v)
+        TomoModDB.professionHelper.filterEpic = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateButton(c, L["btn_prof_open_helper"], 200, y, function()
+        if TomoMod_ProfessionHelper then TomoMod_ProfessionHelper.Toggle() end
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -908,6 +1053,8 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "charskin",     label = L["tab_qol_char_skin"],    builder = function(p) return BuildCharacterSkinTab(p) end },
         { key = "leveling",     label = L["tab_qol_leveling"],     builder = function(p) return BuildLevelingTab(p) end },
         { key = "cvaropt",      label = L["tab_qol_cvar_opt"],     builder = function(p) return BuildCVarOptimizerTab(p) end },
+        { key = "worldquests",  label = L["tab_qol_world_quests"], builder = function(p) return BuildWorldQuestTabTab(p) end },
+        { key = "profhelper",   label = L["tab_qol_prof_helper"],  builder = function(p) return BuildProfessionHelperTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

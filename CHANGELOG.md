@@ -1,5 +1,29 @@
 ## ####################################
 
+## CHANGELOG 2.4.1
+
+### World Quest Tab (New Module)
+- New side panel attached to the World Map displaying all available World Quests
+- Toggle button ("WQ List") on the top-right of the World Map
+- Sortable columns: Name, Zone, Reward, Time remaining (click headers to sort asc/desc)
+- Detailed reward classification: Gold, Gear (with ilvl), Reputation, Currency, Anima, Pet, Other
+- Color-coded quality indicator per quest (Common / Rare / Epic)
+- Elite quest marker (★)
+- Tooltip on hover with full details: zone, faction, reward, time left, elite status, quest ID
+- Click a row to navigate to the quest's zone on the map
+- Shift-Click to super-track the quest
+- Scans child zones automatically for full continent coverage
+- Auto-refresh on map zone change + 60-second timer update for time remaining
+
+### Config Panel (QOL > World Quests)
+- Enable / Disable toggle
+- Auto-show panel when opening the World Map
+- Max quests shown slider (0 = unlimited)
+- Minimum time remaining filter (in minutes)
+- 7 individual reward type filters (Gold, Gear, Reputation, Currency, Anima, Pet, Other)
+
+## ####################################
+
 ## CHANGELOG 2.3.0
 
 ### Systeme Layout Unified (Movers)

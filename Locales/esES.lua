@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("esES", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Acerca de",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.0 por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.1 por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reiniciar todo",
     ["info_reset_all"]                  = "Esto reiniciará TODOS los ajustes y recargará la interfaz.",
@@ -771,10 +771,8 @@ TomoMod_RegisterLocale("esES", {
     -- SOUND / LUST DETECTION
     -- =====================
     ["cat_sound"]                       = "Sonido",
-    ["tab_sound_general"]               = "General",
-    ["tab_sound_detection"]             = "Detección",
     ["section_sound_general"]           = "Sonido de Bloodlust",
-    ["info_sound_desc"]                 = "Reproduce un sonido personalizado cuando se detecta un efecto de Bloodlust en tu personaje. La detección usa una combinación de picos de celeridad y detección del debuff Sated.",
+        ["info_sound_desc"]                 = "Reproduce un sonido personalizado cuando se detecta un efecto de Bloodlust. La deteccion verifica directamente los buffs de Lust y los debuffs Sated/Exhaustion.",
     ["opt_sound_enable"]                = "Activar detección de Bloodlust",
     ["sublabel_sound_choice"]           = "Sonido y canal",
     ["opt_sound_file"]                  = "Sonido a reproducir",
@@ -782,17 +780,7 @@ TomoMod_RegisterLocale("esES", {
     ["btn_sound_preview"]               = ">> Escuchar sonido",
     ["btn_sound_stop"]                  = "■  Detener",
     ["opt_sound_chat"]                  = "Mostrar mensajes en chat",
-    ["opt_sound_debug"]                 = "Modo debug (celeridad en tiempo real)",
-    ["section_sound_detection"]         = "Ajustes de detección",
-    ["info_sound_detection_desc"]       = "Estos ajustes controlan la sensibilidad de la detección de Bloodlust mediante variaciones de celeridad. Valores más bajos se activarán más frecuentemente (ej: Power Infusion).",
-    ["opt_sound_spike_ratio"]           = "Ratio de pico",
-    ["info_sound_spike_tooltip"]        = "Ratio de la celeridad actual respecto a la media. 160% = la celeridad debe ser 1.6× la media para activarse. (Por defecto: 160%)",
-    ["opt_sound_jump_ratio"]            = "Ratio de salto",
-    ["info_sound_jump_tooltip"]         = "Ratio respecto al máximo reciente. Evita que incrementos graduales activen la detección. (Por defecto: 140%)",
-    ["opt_sound_fade_ratio"]            = "Ratio de fin",
-    ["info_sound_fade_tooltip"]         = "Cuando la celeridad cae bajo este ratio respecto a la base, el efecto se considera terminado. (Por defecto: 115%)",
-    ["btn_sound_reset_detection"]       = "Reiniciar ratios",
-    ["msg_sound_detection_reset"]       = "Ratios de detección reiniciados.",
+        ["opt_sound_debug"]                 = "Mode debug",
 
     -- =====================
     -- BAG & MICRO MENU
@@ -871,4 +859,40 @@ TomoMod_RegisterLocale("esES", {
     ["opt_mail_skin_enable"]             = "Skin del correo",
     ["msg_mail_skin_enabled"]            = "Skin del correo activado",
     ["msg_mail_skin_disabled"]           = "Skin del correo desactivado (reload para revertir)",
+
+    -- =====================
+    -- WORLD QUEST TAB
+    -- =====================
+    ["tab_qol_world_quests"]             = "Misiones de mundo",
+    ["section_wq_tab"]                   = "Pestaña de misiones de mundo",
+    ["info_wq_tab_desc"]                 = "Muestra una lista de misiones de mundo disponibles junto al mapa del mundo con detalles de recompensas, zona, facción y tiempo restante. Haz clic en una misión para navegar a su zona, Shift-Clic para super-rastrear.",
+    ["opt_wq_enable"]                    = "Activar pestaña de misiones de mundo",
+    ["opt_wq_auto_show"]                 = "Mostrar automáticamente al abrir el mapa",
+    ["opt_wq_max_quests"]                = "Máx. misiones mostradas (0 = ilimitado)",
+    ["opt_wq_min_time"]                  = "Tiempo restante mín. (minutos, 0 = todas)",
+    ["section_wq_filters"]               = "Filtros de recompensa",
+    ["opt_wq_filter_gold"]               = "Mostrar recompensas de oro",
+    ["opt_wq_filter_gear"]               = "Mostrar recompensas de equipo",
+    ["opt_wq_filter_rep"]                = "Mostrar recompensas de reputación",
+    ["opt_wq_filter_currency"]           = "Mostrar recompensas de moneda",
+    ["opt_wq_filter_anima"]              = "Mostrar recompensas de ánima",
+    ["opt_wq_filter_pet"]                = "Mostrar recompensas de mascota",
+    ["opt_wq_filter_other"]              = "Mostrar otras recompensas",
+    ["wq_tab_title"]                     = "MM Lista",
+    ["wq_panel_title"]                   = "Misiones de mundo",
+    ["wq_col_name"]                      = "Nombre",
+    ["wq_col_zone"]                      = "Zona",
+    ["wq_col_reward"]                    = "Recompensa",
+    ["wq_col_time"]                      = "Tiempo",
+    ["wq_zone"]                          = "Zona",
+    ["wq_faction"]                       = "Facción",
+    ["wq_reward"]                        = "Recompensa",
+    ["wq_time_left"]                     = "Tiempo restante",
+    ["wq_elite"]                         = "Misión de mundo élite",
+    ["wq_sort_time"]                     = "Tiempo",
+    ["wq_sort_zone"]                     = "Zona",
+    ["wq_sort_name"]                     = "Nombre",
+    ["wq_sort_reward"]                   = "Recompensa",
+    ["wq_sort_faction"]                  = "Facción",
+    ["wq_status_count"]                  = "Mostrando %d / %d misiones",
 })

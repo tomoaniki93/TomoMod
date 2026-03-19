@@ -1,6 +1,6 @@
 -- =====================================
 -- Panels/Sound.lua — Sound/Lust Config Panel
--- New sidebar category "Son"
+-- Sidebar category "Son"
 -- =====================================
 
 local W = TomoMod_Widgets
@@ -31,10 +31,10 @@ local function GetChannelOptions()
 end
 
 -- =====================================
--- TAB 1: GÉNÉRAL
+-- MAIN PANEL (single tab, no detection sliders needed)
 -- =====================================
 
-local function BuildGeneralTab(parent)
+function TomoMod_ConfigPanel_Sound(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
     local db = TomoModDB.lustSound
@@ -103,77 +103,4 @@ local function BuildGeneralTab(parent)
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
-end
-
--- =====================================
--- TAB 2: DÉTECTION
--- =====================================
-
-local function BuildDetectionTab(parent)
-    local scroll = W.CreateScrollPanel(parent)
-    local c = scroll.child
-    local db = TomoModDB.lustSound
-    if not db then return scroll end
-    local det = db.detection
-    local y = -10
-
-    local _, ny = W.CreateSectionHeader(c, L["section_sound_detection"], y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_sound_detection_desc"], y)
-    y = ny
-
-    -- Spike ratio
-    local _, ny = W.CreateSlider(c, L["opt_sound_spike_ratio"], det.spike_ratio, 120, 240, 5, y, function(v)
-        det.spike_ratio = v
-    end, "%d%%")
-    y = ny
-    local _, ny = W.CreateInfoText(c, L["info_sound_spike_tooltip"], y)
-    y = ny
-
-    -- Jump ratio
-    local _, ny = W.CreateSlider(c, L["opt_sound_jump_ratio"], det.jump_ratio, 110, 180, 5, y, function(v)
-        det.jump_ratio = v
-    end, "%d%%")
-    y = ny
-    local _, ny = W.CreateInfoText(c, L["info_sound_jump_tooltip"], y)
-    y = ny
-
-    -- Fade ratio
-    local _, ny = W.CreateSlider(c, L["opt_sound_fade_ratio"], det.fade_ratio, 105, 140, 5, y, function(v)
-        det.fade_ratio = v
-    end, "%d%%")
-    y = ny
-    local _, ny = W.CreateInfoText(c, L["info_sound_fade_tooltip"], y)
-    y = ny
-
-    -- Reset detection
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateButton(c, L["btn_sound_reset_detection"], 220, y, function()
-        local defaults = TomoMod_Defaults.lustSound.detection
-        det.spike_ratio = defaults.spike_ratio
-        det.jump_ratio = defaults.jump_ratio
-        det.fade_ratio = defaults.fade_ratio
-        print("|cff0cd29fTomoMod|r " .. L["msg_sound_detection_reset"])
-    end)
-    y = ny
-
-    c:SetHeight(math.abs(y) + 40)
-    if scroll.UpdateScroll then scroll.UpdateScroll() end
-    return scroll
-end
-
--- =====================================
--- MAIN PANEL ENTRY POINT
--- =====================================
-
-function TomoMod_ConfigPanel_Sound(parent)
-    local tabs = {
-        { key = "general",   label = L["tab_sound_general"],   builder = function(p) return BuildGeneralTab(p) end },
-        { key = "detection", label = L["tab_sound_detection"], builder = function(p) return BuildDetectionTab(p) end },
-    }
-
-    return W.CreateTabPanel(parent, tabs)
 end

@@ -82,6 +82,10 @@ SlashCmdList["TOMOMOD"] = function(msg)
                 TomoMod_LevelingBar.ToggleLock()
             end
         end
+    elseif msg == "prof" or msg == "ph" then
+        if TomoMod_ProfessionHelper then
+            TomoMod_ProfessionHelper.Toggle()
+        end
     elseif msg == "cdm" or msg == "ci" then
         if TomoMod_CooldownManager then
             local enabled = TomoModDB and TomoModDB.cooldownManager and TomoModDB.cooldownManager.enabled
@@ -278,6 +282,8 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_AutoFillDelete then TomoMod_AutoFillDelete.Initialize() end
         if TomoMod_LustSound then TomoMod_LustSound.Initialize() end
         if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
+        if TomoMod_ProfessionHelper then TomoMod_ProfessionHelper.Initialize() end
+        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.Initialize() end
         if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.Initialize() end
         if TomoMod_CharacterSkin then TomoMod_CharacterSkin.Initialize() end
         if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.Initialize() end
