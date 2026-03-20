@@ -1,5 +1,5 @@
 -- =====================================
--- ProfessionHelper.lua — Disenchant / Mill / Prospect batch helper
+-- ProfessionHelper.lua — Disenchant batch helper
 -- =====================================
 
 TomoMod_ProfessionHelper = {}
@@ -17,10 +17,8 @@ local BORDER  = { 0.20, 0.20, 0.25, 1 }
 local TEXT    = { 0.90, 0.90, 0.92, 1 }
 local DIM     = { 0.55, 0.55, 0.60, 1 }
 
--- Spell IDs for the three operations
+-- Spell ID for disenchant
 local SPELL_DISENCHANT = 13262
-local SPELL_MILLING    = 51005
-local SPELL_PROSPECT   = 31252
 
 -- Quality constants (Enum.ItemQuality)
 local QUALITY_UNCOMMON = 2  -- Green
@@ -37,82 +35,53 @@ local QUALITY_COLORS = {
     [5] = { 1.00, 0.50, 0.00 },  -- Legendary (orange)
 }
 
--- ─── Mode definitions ────────────────────────────────────────────
-local MODES = {
-    {
-        key       = "disenchant",
-        spellID   = SPELL_DISENCHANT,
-        label     = function() return L["ph_tab_disenchant"] end,
-        filter    = function(itemInfo, settings)
-            -- Disenchantable: equipment of green+ quality
-            if not itemInfo then return false end
-            local quality = itemInfo.quality or 0
-            local classID = itemInfo.classID
-            local subclassID = itemInfo.subclassID
-            local itemSubType = itemInfo.itemSubType
+-- ─── Mode definition (Disenchant only) ───────────────────────────
+local MODE = {
+    key       = "disenchant",
+    spellID   = SPELL_DISENCHANT,
+    label     = function() return L["ph_tab_disenchant"] end,
+    filter    = function(itemInfo, settings)
+        -- Disenchantable: equipment of green+ quality
+        if not itemInfo then return false end
+        local quality = itemInfo.quality or 0
+        local classID = itemInfo.classID
+        local subclassID = itemInfo.subclassID
+        local itemSubType = itemInfo.itemSubType
 
-            -- Must be green (2) through epic (4)
-            if quality < QUALITY_UNCOMMON or quality > QUALITY_EPIC then return false end
+        -- Must be green (2) through epic (4)
+        if quality < QUALITY_UNCOMMON or quality > QUALITY_EPIC then return false end
 
-            -- Must be a valid equipment type:
-            -- classID 2 = Weapon (but not subclass 14 = Miscellaneous)
-            -- classID 4 = Armor
-            -- classID 19 = Profession Equipment
-            -- classID 3 + subclass 11 = Gem (Artifact Relic)
-            local isValidType = false
-            if classID == 2 and subclassID ~= 14 then
-                isValidType = true
-            elseif classID == 4 then
-                isValidType = true
-            elseif classID == 19 then
-                isValidType = true
-            elseif classID == 3 and subclassID == 11 then
-                isValidType = true
-            end
-            if not isValidType then return false end
+        -- Must be a valid equipment type:
+        -- classID 2 = Weapon (but not subclass 14 = Miscellaneous)
+        -- classID 4 = Armor
+        -- classID 19 = Profession Equipment
+        -- classID 3 + subclass 11 = Gem (Artifact Relic)
+        local isValidType = false
+        if classID == 2 and subclassID ~= 14 then
+            isValidType = true
+        elseif classID == 4 then
+            isValidType = true
+        elseif classID == 19 then
+            isValidType = true
+        elseif classID == 3 and subclassID == 11 then
+            isValidType = true
+        end
+        if not isValidType then return false end
 
-            -- Cosmetic items cannot be disenchanted
-            if itemSubType and ITEM_COSMETIC and itemSubType == ITEM_COSMETIC then return false end
+        -- Cosmetic items cannot be disenchanted
+        if itemSubType and ITEM_COSMETIC and itemSubType == ITEM_COSMETIC then return false end
 
-            -- Apply quality filter from settings
-            if settings.filterGreen and quality == QUALITY_UNCOMMON then return true end
-            if settings.filterBlue and quality == QUALITY_RARE then return true end
-            if settings.filterEpic and quality == QUALITY_EPIC then return true end
-            return false
-        end,
-        minStack  = 1,
-    },
-    {
-        key       = "milling",
-        spellID   = SPELL_MILLING,
-        label     = function() return L["ph_tab_milling"] end,
-        filter    = function(itemInfo, settings)
-            -- Millable herbs (classID 7 = Tradeskill, subclassID 9 = Herb)
-            if not itemInfo then return false end
-            if itemInfo.classID ~= 7 then return false end
-            if itemInfo.subclassID ~= 9 then return false end
-            return true
-        end,
-        minStack  = 5,
-    },
-    {
-        key       = "prospecting",
-        spellID   = SPELL_PROSPECT,
-        label     = function() return L["ph_tab_prospecting"] end,
-        filter    = function(itemInfo, settings)
-            -- Prospectable ores (classID 7 = Tradeskill, subclassID 7 = Metal & Stone)
-            if not itemInfo then return false end
-            if itemInfo.classID ~= 7 then return false end
-            if itemInfo.subclassID ~= 7 then return false end
-            return true
-        end,
-        minStack  = 5,
-    },
+        -- Apply quality filter from settings
+        if settings.filterGreen and quality == QUALITY_UNCOMMON then return true end
+        if settings.filterBlue and quality == QUALITY_RARE then return true end
+        if settings.filterEpic and quality == QUALITY_EPIC then return true end
+        return false
+    end,
+    minStack  = 1,
 }
 
 -- ─── State ───────────────────────────────────────────────────────
 local mainFrame
-local currentMode = 1  -- index into MODES
 local itemButtons = {}
 local isProcessing = false
 local processQueue = {}
@@ -126,16 +95,6 @@ end
 
 local function HasSpellLearned(spellID)
     return IsSpellKnown(spellID) or IsPlayerSpell(spellID)
-end
-
-local function GetAvailableModes()
-    local available = {}
-    for _, mode in ipairs(MODES) do
-        if HasSpellLearned(mode.spellID) then
-            table.insert(available, mode)
-        end
-    end
-    return available
 end
 
 local pendingCacheRetry = nil
@@ -239,13 +198,10 @@ spellButton:Hide()
 -- ─── Processing Logic ────────────────────────────────────────────
 
 local function BuildProcessQueue()
-    local mode = MODES[currentMode]
-    if not mode then return {} end
-
     local queue = {}
-    local items = ScanBags(mode)
+    local items = ScanBags(MODE)
     for _, item in ipairs(items) do
-        local timesToProcess = math.floor(item.count / mode.minStack)
+        local timesToProcess = math.floor(item.count / MODE.minStack)
         for _ = 1, timesToProcess do
             table.insert(queue, { itemID = item.itemID, name = item.name })
         end
@@ -268,8 +224,7 @@ local function ConfigureNextTarget()
     end
 
     -- Point the hidden spell button at this bag/slot
-    local mode = MODES[currentMode]
-    spellButton:SetAttribute("spell", tostring(mode.spellID))
+    spellButton:SetAttribute("spell", tostring(MODE.spellID))
     spellButton:SetAttribute("target-bag", bag)
     spellButton:SetAttribute("target-slot", slot)
 
@@ -310,8 +265,6 @@ end
 -- Called by processBtn PreClick on the FIRST click only
 local function StartProcessing()
     if InCombatLockdown() then return end
-    local mode = MODES[currentMode]
-    if not mode then return end
 
     processQueue = BuildProcessQueue()
     if #processQueue == 0 then return end
@@ -436,10 +389,7 @@ end
 function PH.RefreshItems()
     if not mainFrame or not mainFrame:IsShown() then return end
 
-    local mode = MODES[currentMode]
-    if not mode then return end
-
-    local items = ScanBags(mode)
+    local items = ScanBags(MODE)
     local scrollChild = mainFrame.scrollChild
 
     -- Clean up old buttons
@@ -468,12 +418,7 @@ function PH.RefreshItems()
         btn.nameText:SetTextColor(qColor[1], qColor[2], qColor[3])
         btn.qualStripe:SetColorTexture(qColor[1], qColor[2], qColor[3], 1)
 
-        local mode = MODES[currentMode]
-        if mode.key == "disenchant" then
-            btn.subText:SetText(string.format(L["ph_ilvl"], item.level))
-        else
-            btn.subText:SetText(string.format(L["ph_processable"], math.floor(item.count / mode.minStack)))
-        end
+        btn.subText:SetText(string.format(L["ph_ilvl"], item.level))
 
         btn.countText:SetText("x" .. item.count)
 
@@ -496,70 +441,7 @@ function PH.RefreshItems()
     PH.UpdateProcessButton()
 end
 
--- ─── Tab Buttons ─────────────────────────────────────────────────
-
-local function CreateTabButton(parent, modeIndex, mode, xOffset)
-    local tab = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    tab:SetSize(110, 30)
-    tab:SetPoint("TOPLEFT", parent, "TOPLEFT", xOffset, -8)
-    tab:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-
-    local label = tab:CreateFontString(nil, "OVERLAY")
-    label:SetFont(FONT_B, 11, "")
-    label:SetPoint("CENTER")
-    label:SetText(mode.label())
-    tab.label = label
-
-    tab.modeIndex = modeIndex
-
-    tab:SetScript("OnClick", function()
-        if isProcessing then return end
-        currentMode = modeIndex
-        PH.UpdateTabs()
-        PH.RefreshItems()
-        PH.UpdateFilterSection()
-    end)
-
-    tab:SetScript("OnEnter", function(self)
-        if self.modeIndex == currentMode then return end
-        self:SetBackdropColor(0.15, 0.15, 0.18, 1)
-    end)
-
-    tab:SetScript("OnLeave", function(self)
-        if self.modeIndex == currentMode then return end
-        self:SetBackdropColor(0.10, 0.10, 0.12, 1)
-    end)
-
-    return tab
-end
-
-function PH.UpdateTabs()
-    if not mainFrame or not mainFrame.tabs then return end
-    for _, tab in ipairs(mainFrame.tabs) do
-        if tab.modeIndex == currentMode then
-            tab:SetBackdropColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.25)
-            tab:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
-            tab.label:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
-        else
-            tab:SetBackdropColor(0.10, 0.10, 0.12, 1)
-            tab:SetBackdropBorderColor(unpack(BORDER))
-            tab.label:SetTextColor(unpack(DIM))
-        end
-    end
-end
-
 -- ─── Filter Section (Disenchant quality filters) ─────────────────
-
-function PH.UpdateFilterSection()
-    if not mainFrame or not mainFrame.filterContainer then return end
-    local mode = MODES[currentMode]
-    -- Show quality filters only for disenchant
-    mainFrame.filterContainer:SetShown(mode.key == "disenchant")
-end
 
 local function CreateFilterSection(parent)
     local container = CreateFrame("Frame", nil, parent, "BackdropTemplate")
@@ -662,29 +544,15 @@ local function BuildMainFrame()
         f:Hide()
     end)
 
-    -- Tab bar area
-    local tabBar = CreateFrame("Frame", nil, f)
-    tabBar:SetSize(f:GetWidth(), 42)
-    tabBar:SetPoint("TOPLEFT", titleBar, "BOTTOMLEFT", 0, 0)
-
-    -- Create tabs for available modes
-    f.tabs = {}
-    local xOff = 10
-    for i, mode in ipairs(MODES) do
-        local tab = CreateTabButton(tabBar, i, mode, xOff)
-        table.insert(f.tabs, tab)
-        xOff = xOff + 116
-    end
-
-    -- Filter section (disenchant quality filters)
+    -- Filter section (quality filters — always visible)
     local filterContainer = CreateFilterSection(f)
-    filterContainer:SetPoint("TOPLEFT", tabBar, "BOTTOMLEFT", 10, -4)
+    filterContainer:SetPoint("TOPLEFT", titleBar, "BOTTOMLEFT", 10, -4)
     f.filterContainer = filterContainer
 
     -- Item count text (right-aligned below filter)
     local countText = f:CreateFontString(nil, "OVERLAY")
     countText:SetFont(FONT, 10, "")
-    countText:SetPoint("TOPRIGHT", tabBar, "BOTTOMRIGHT", -14, -44)
+    countText:SetPoint("TOPRIGHT", titleBar, "BOTTOMRIGHT", -14, -44)
     countText:SetJustifyH("RIGHT")
     countText:SetTextColor(unpack(DIM))
     f.countText = countText
@@ -951,20 +819,8 @@ function PH.Toggle()
         StopProcessing()
         f:Hide()
     else
-        currentMode = 1
         cacheRetryCount = 0
         pendingCacheRetry = nil
-
-        -- Auto-select the first available mode
-        for i, mode in ipairs(MODES) do
-            if HasSpellLearned(mode.spellID) then
-                currentMode = i
-                break
-            end
-        end
-
-        PH.UpdateTabs()
-        PH.UpdateFilterSection()
         f:Show()
         PH.RefreshItems()
     end

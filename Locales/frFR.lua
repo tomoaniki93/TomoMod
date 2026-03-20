@@ -922,8 +922,6 @@ TomoMod_RegisterLocale("frFR", {
     ["btn_prof_open_helper"]             = "Ouvrir l'assistant Métiers",
     ["ph_title"]                         = "Assistant Métiers",
     ["ph_tab_disenchant"]                = "Désenchantement",
-    ["ph_tab_milling"]                   = "Mouture",
-    ["ph_tab_prospecting"]               = "Prospection",
     ["ph_filter_quality"]                = "Qualité :",
     ["ph_quality_green"]                 = "Vert",
     ["ph_quality_blue"]                  = "Bleu",
@@ -938,5 +936,4 @@ TomoMod_RegisterLocale("frFR", {
     ["ph_status_done"]                   = "Terminé ! Tous les objets traités.",
     ["ph_item_count"]                    = "%d objets disponibles",
     ["ph_ilvl"]                          = "iNiv %d",
-    ["ph_processable"]                   = "%d traitables",
 })

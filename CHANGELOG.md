@@ -3,9 +3,9 @@
 ## CHANGELOG 2.4.2
 
 ### Profession Helper (New QOL Module)
-- New batch processing tool for Disenchant, Milling, and Prospecting
-- Visual UI with 3 tabs (one per profession spell)
-- Automatically scans bags for eligible items matching your known professions
+- New batch processing tool for Disenchant
+- Visual UI with 1 tabs
+- Automatically scans bags for eligible items matching your professions
 - Quality filters for Disenchant (Uncommon, Rare, Epic)
 - Item list showing name, icon, quality color stripe, item level / processable count
 - Process button using SecureActionButtonTemplate — click repeatedly to process each item

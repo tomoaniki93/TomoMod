@@ -915,8 +915,6 @@ TomoMod_RegisterLocale("deDE", {
     ["btn_prof_open_helper"]             = "Berufshelfer öffnen",
     ["ph_title"]                         = "Berufshelfer",
     ["ph_tab_disenchant"]                = "Entzaubern",
-    ["ph_tab_milling"]                   = "Mahlen",
-    ["ph_tab_prospecting"]               = "Sondieren",
     ["ph_filter_quality"]                = "Qualität:",
     ["ph_quality_green"]                 = "Grün",
     ["ph_quality_blue"]                  = "Blau",
@@ -931,5 +929,4 @@ TomoMod_RegisterLocale("deDE", {
     ["ph_status_done"]                   = "Fertig! Alle Gegenstände verarbeitet.",
     ["ph_item_count"]                    = "%d Gegenstände verfügbar",
     ["ph_ilvl"]                          = "iLvl %d",
-    ["ph_processable"]                   = "%d verarbeitbar",
 })

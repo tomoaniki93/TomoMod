@@ -915,8 +915,6 @@ TomoMod_RegisterLocale("ptBR", {
     ["btn_prof_open_helper"]             = "Abrir auxiliar de profissões",
     ["ph_title"]                         = "Auxiliar de profissões",
     ["ph_tab_disenchant"]                = "Desencantar",
-    ["ph_tab_milling"]                   = "Triturar",
-    ["ph_tab_prospecting"]               = "Prospectar",
     ["ph_filter_quality"]                = "Qualidade:",
     ["ph_quality_green"]                 = "Verde",
     ["ph_quality_blue"]                  = "Azul",
@@ -931,5 +929,4 @@ TomoMod_RegisterLocale("ptBR", {
     ["ph_status_done"]                   = "Pronto! Todos os itens processados.",
     ["ph_item_count"]                    = "%d itens disponíveis",
     ["ph_ilvl"]                          = "iLvl %d",
-    ["ph_processable"]                   = "%d processáveis",
 })

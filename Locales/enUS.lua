@@ -940,8 +940,6 @@ TomoMod_RegisterLocale("enUS", {
     ["btn_prof_open_helper"]             = "Open Profession Helper",
     ["ph_title"]                         = "Profession Helper",
     ["ph_tab_disenchant"]                = "Disenchant",
-    ["ph_tab_milling"]                   = "Milling",
-    ["ph_tab_prospecting"]               = "Prospecting",
     ["ph_filter_quality"]                = "Quality:",
     ["ph_quality_green"]                 = "Green",
     ["ph_quality_blue"]                  = "Blue",
@@ -956,5 +954,4 @@ TomoMod_RegisterLocale("enUS", {
     ["ph_status_done"]                   = "Done! All items processed.",
     ["ph_item_count"]                    = "%d items available",
     ["ph_ilvl"]                          = "iLvl %d",
-    ["ph_processable"]                   = "%d processable",
 })

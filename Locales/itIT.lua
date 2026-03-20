@@ -915,8 +915,6 @@ TomoMod_RegisterLocale("itIT", {
     ["btn_prof_open_helper"]             = "Apri assistente professioni",
     ["ph_title"]                         = "Assistente professioni",
     ["ph_tab_disenchant"]                = "Disincanta",
-    ["ph_tab_milling"]                   = "Macinazione",
-    ["ph_tab_prospecting"]               = "Prospezione",
     ["ph_filter_quality"]                = "Qualità:",
     ["ph_quality_green"]                 = "Verde",
     ["ph_quality_blue"]                  = "Blu",
@@ -931,5 +929,4 @@ TomoMod_RegisterLocale("itIT", {
     ["ph_status_done"]                   = "Fatto! Tutti gli oggetti elaborati.",
     ["ph_item_count"]                    = "%d oggetti disponibili",
     ["ph_ilvl"]                          = "iLvl %d",
-    ["ph_processable"]                   = "%d elaborabili",
 })
