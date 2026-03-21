@@ -44,7 +44,15 @@ local function AddLine(tooltip, label, id)
     if addedIDs[key] then return end
     addedIDs[key] = true
     tooltip:AddLine(COLOR .. label .. " |r" .. idStr)
-    tooltip:Show()
+    -- Defer Show() to next frame so it runs outside any secure
+    -- hook / TooltipDataProcessor callback.  Calling Show()
+    -- synchronously taints FontString metrics ("secret numbers")
+    -- which breaks Blizzard UIWidget textHeight arithmetic.
+    C_Timer.After(0, function()
+        if tooltip:IsShown() then
+            tooltip:Show()
+        end
+    end)
 end
 
 -- Extract NPC ID from GUID: "Creature-0-xxxx-xxxx-xxxx-xxxxxx-NPCID-xxxx"

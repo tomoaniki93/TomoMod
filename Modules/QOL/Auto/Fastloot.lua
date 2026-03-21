@@ -37,7 +37,7 @@ local function CollectLoot()
     if GetCursorInfo() then return end
 
     local count = GetNumLootItems()
-    for i = 1, count do
+    for i = count, 1, -1 do
         LootSlot(i)
     end
 end

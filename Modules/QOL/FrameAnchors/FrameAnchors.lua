@@ -166,6 +166,9 @@ end
 
 local hookedFrames = {}
 
+-- [PERF] Pre-built callbacks per anchor key to avoid closure allocation on every SetPoint
+local hookCallbacks = {}
+
 local function HookTargetFrame(def)
     local target = def.target()
     if not target or hookedFrames[def.key] then return end
@@ -173,18 +176,26 @@ local function HookTargetFrame(def)
     -- Apply initial position
     FA.ApplyAnchor(def)
 
+    -- Build callback once per key
+    if not hookCallbacks[def.key] then
+        local key = def.key
+        local defRef = def
+        hookCallbacks[key] = function()
+            local anchor = anchors[key]
+            if anchor then
+                anchor._applying = true
+                FA.ApplyAnchor(defRef)
+                anchor._applying = nil
+            end
+        end
+    end
+    local cb = hookCallbacks[def.key]
+
     -- Hook SetPoint to force our position (Blizzard may try to reposition)
     hooksecurefunc(target, "SetPoint", function()
         -- Only override if we're not in the middle of our own SetPoint
         if not anchors[def.key] or not anchors[def.key]._applying then
-            C_Timer.After(0, function()
-                local anchor = anchors[def.key]
-                if anchor then
-                    anchor._applying = true
-                    FA.ApplyAnchor(def)
-                    anchor._applying = nil
-                end
-            end)
+            C_Timer.After(0, cb)
         end
     end)
 

@@ -415,6 +415,23 @@ local function BuildPositionTab(parent, unitKey, displayName)
         end
     end
 
+    -- Raid icon offsets
+    if db.showRaidIcon and db.raidIconOffset then
+        local _, ny = W.CreateSeparator(c, y)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_raid_icon_x"], db.raidIconOffset.x, -100, 100, 1, y, function(v)
+            db.raidIconOffset.x = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+        local _, ny = W.CreateSlider(c, L["opt_raid_icon_y"], db.raidIconOffset.y, -100, 100, 1, y, function(v)
+            db.raidIconOffset.y = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+    end
+
     -- Leader icon offsets
     if db.showLeaderIcon ~= nil and db.leaderIconOffset then
         local _, ny = W.CreateSeparator(c, y)

@@ -67,14 +67,19 @@ local tooltipHooked = false
 function TomoMod_CursorRing.SetupTooltipAnchor()
     if not tooltipHooked then
         -- Hook le positionnement par défaut du tooltip
-        -- [PERF] Early-exit when anchorTooltip is off
+        -- [PERF] Early-exit when anchorTooltip is off; skip layout when position unchanged
+        local ttLastPX, ttLastPY = 0, 0
         GameTooltip:HookScript("OnUpdate", function(self, elapsed)
             if not TomoModDB.cursorRing.anchorTooltip then return end
             if not self:IsShown() then return end
             local x, y = GetCursorPosition()
             local scale = UIParent:GetEffectiveScale()
+            local px = math.floor((x / scale) + 0.5) + 15
+            local py = math.floor((y / scale) + 0.5) + 15
+            if px == ttLastPX and py == ttLastPY then return end
+            ttLastPX, ttLastPY = px, py
             self:ClearAllPoints()
-            self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", (x / scale) + 15, (y / scale) + 15)
+            self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", px, py)
         end)
         tooltipHooked = true
     end

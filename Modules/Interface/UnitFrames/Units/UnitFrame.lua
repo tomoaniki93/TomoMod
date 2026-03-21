@@ -7,6 +7,20 @@ TomoMod_UnitFrames = TomoMod_UnitFrames or {}
 local UF = TomoMod_UnitFrames
 local E = UF_Elements
 
+-- [PERF] Local caching of hot-path WoW API globals
+local UnitExists = UnitExists
+local UnitHealth = UnitHealth
+local UnitHealthMax = UnitHealthMax
+local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
+local UnitName = UnitName
+local UnitLevel = UnitLevel
+local UnitClassification = UnitClassification
+local UnitIsGroupLeader = UnitIsGroupLeader
+local UnitThreatSituation = UnitThreatSituation
+local GetRaidTargetIndex = GetRaidTargetIndex
+local SetRaidTargetIconTexture = SetRaidTargetIconTexture
+local pairs, wipe = pairs, wipe
+
 local frames = {}
 local isLocked = true
 
@@ -587,9 +601,12 @@ throttleFrame:Hide()
 throttleFrame:SetScript("OnUpdate", function(self, elapsed)
     updateTimer = updateTimer + elapsed
     if updateTimer >= 0.15 then
-        updateTimer = 0
+        updateTimer = updateTimer - 0.15
         if frames.targettarget and UnitExists("target") then
-            UpdateFrame(frames.targettarget)
+            -- [PERF] Only update what matters for ToT (health + name)
+            local f = frames.targettarget
+            UpdateHealth(f)
+            UpdateName(f)
         else
             self:Hide()
         end
@@ -866,6 +883,13 @@ function UF.RefreshUnit(unitKey)
                 )
             end
         end
+    end
+
+    -- Raid icon offset
+    if frame.health and frame.health.raidIcon and settings.raidIconOffset then
+        local ofs = settings.raidIconOffset
+        frame.health.raidIcon:ClearAllPoints()
+        frame.health.raidIcon:SetPoint("BOTTOM", frame.health, "TOP", ofs.x, ofs.y)
     end
 
     -- Leader icon offset

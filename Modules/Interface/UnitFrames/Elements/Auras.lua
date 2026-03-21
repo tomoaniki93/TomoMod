@@ -8,7 +8,16 @@ local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 
 -- [PERF] Pre-allocated tables for UpdateAuras (avoids alloc per UNIT_AURA event)
 local _uf_auraCollect = {}
-local _uf_auraFilters = {}
+
+-- [PERF] Pre-computed filter string sets (avoid table allocation per UNIT_AURA)
+local AURA_FILTERS = {
+    HARMFUL           = { "HARMFUL" },
+    HELPFUL           = { "HELPFUL" },
+    ALL               = { "HARMFUL", "HELPFUL" },
+    ["HARMFUL|PLAYER"]= { "HARMFUL|PLAYER" },
+    ["HELPFUL|PLAYER"]= { "HELPFUL|PLAYER" },
+    ["ALL|PLAYER"]    = { "HARMFUL|PLAYER", "HELPFUL|PLAYER" },
+}
 
 -- [PERF] Pre-allocated table for CollectEnemyBuffData
 local _uf_enemyBuffCollect = {}
@@ -189,25 +198,17 @@ function UF_Elements.UpdateAuras(frame)
     -- Collect auras
     -- In TWW, ALL aura data fields are secret — cannot do ANY Lua operations on them.
     -- Use |PLAYER filter string so C-side handles "only mine" filtering.
-    -- [PERF] Reuse module-level tables instead of allocating new ones per call
+    -- [PERF] Use pre-computed filter tables instead of allocating new ones per call
     wipe(_uf_auraCollect)
-    wipe(_uf_auraFilters)
     local auras = _uf_auraCollect
-    local filters = _uf_auraFilters
 
+    local filterKey
     if auraType == "ALL" then
-        if showOnlyMine then
-            filters = { "HARMFUL|PLAYER", "HELPFUL|PLAYER" }
-        else
-            filters = { "HARMFUL", "HELPFUL" }
-        end
+        filterKey = showOnlyMine and "ALL|PLAYER" or "ALL"
     else
-        if showOnlyMine then
-            filters = { auraType .. "|PLAYER" }
-        else
-            filters = { auraType }
-        end
+        filterKey = showOnlyMine and (auraType .. "|PLAYER") or auraType
     end
+    local filters = AURA_FILTERS[filterKey] or AURA_FILTERS.HARMFUL
 
     for _, filter in ipairs(filters) do
         -- GetAuraSlots returns: continuationToken, slot1, slot2, ... (varargs, NOT a table)
@@ -223,7 +224,7 @@ function UF_Elements.UpdateAuras(frame)
                 data._filter = filter
                 data._slotIndex = _uf_slotResults[idx]
                 data._unit = unit
-                table.insert(auras, data)
+                auras[#auras + 1] = data
             end
             idx = idx + 1
         end
@@ -421,26 +422,22 @@ end
 -- Shows all HELPFUL auras on ANY target (enemy, friendly, neutral).
 -- =====================================
 
--- Collect HELPFUL aura slots safely via select() on varargs.
+-- Collect HELPFUL aura slots safely via UF_CaptureSlots (no closure per call).
 -- [PERF] Reuses module-level table to avoid alloc per call
 local function CollectEnemyBuffData(unit, maxAuras)
     wipe(_uf_enemyBuffCollect)
     local auras = _uf_enemyBuffCollect
-    local function processSlots(token, ...)
-        local n = select("#", ...)
-        for i = 1, n do
-            if #auras >= maxAuras then return end
-            local slot = select(i, ...)
-            if slot then
-                local data = C_UnitAuras.GetAuraDataBySlot(unit, slot)
-                if data then
-                    data._unit = unit
-                    table.insert(auras, data)
-                end
-            end
+    UF_CaptureSlots(_uf_slotResults, C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
+    local idx = 2
+    while _uf_slotResults[idx] do
+        if #auras >= maxAuras then break end
+        local data = C_UnitAuras.GetAuraDataBySlot(unit, _uf_slotResults[idx])
+        if data then
+            data._unit = unit
+            auras[#auras + 1] = data
         end
+        idx = idx + 1
     end
-    processSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
     return auras
 end
 

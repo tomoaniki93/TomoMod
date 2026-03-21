@@ -281,6 +281,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_BagMicroMenu then TomoMod_BagMicroMenu.Initialize() end
         if TomoMod_AutoFillDelete then TomoMod_AutoFillDelete.Initialize() end
         if TomoMod_LustSound then TomoMod_LustSound.Initialize() end
+        if TomoMod_ClassReminder then TomoMod_ClassReminder.Initialize() end
         if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
         if TomoMod_ProfessionHelper then TomoMod_ProfessionHelper.Initialize() end
         if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.Initialize() end

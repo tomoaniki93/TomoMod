@@ -1037,6 +1037,70 @@ local function BuildProfessionHelperTab(parent)
 end
 
 -- =====================================
+-- TAB: CLASS REMINDER
+-- =====================================
+
+local function BuildClassReminderTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local function CR_Apply()
+        if TomoMod_ClassReminder and TomoMod_ClassReminder.ApplySettings then
+            TomoMod_ClassReminder.ApplySettings()
+        end
+    end
+
+    local _, ny = W.CreateSectionHeader(c, L["section_class_reminder"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_class_reminder"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_class_reminder_enable"], TomoModDB.classReminder.enabled, y, function(v)
+        TomoModDB.classReminder.enabled = v
+        if TomoMod_ClassReminder then TomoMod_ClassReminder.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_class_reminder_scale"], TomoModDB.classReminder.scale, 0.5, 3.0, 0.1, y, function(v)
+        TomoModDB.classReminder.scale = v; CR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, L["opt_class_reminder_color"], TomoModDB.classReminder.textColor, y, function(r, g, b)
+        TomoModDB.classReminder.textColor.r = r
+        TomoModDB.classReminder.textColor.g = g
+        TomoModDB.classReminder.textColor.b = b
+        CR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_pos"], y)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_class_reminder_x"], TomoModDB.classReminder.offsetX, -250, 250, 1, y, function(v)
+        TomoModDB.classReminder.offsetX = v; CR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_class_reminder_y"], TomoModDB.classReminder.offsetY, -250, 250, 1, y, function(v)
+        TomoModDB.classReminder.offsetY = v; CR_Apply()
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -1055,6 +1119,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "cvaropt",      label = L["tab_qol_cvar_opt"],     builder = function(p) return BuildCVarOptimizerTab(p) end },
         { key = "worldquests",  label = L["tab_qol_world_quests"], builder = function(p) return BuildWorldQuestTabTab(p) end },
         { key = "profhelper",   label = L["tab_qol_prof_helper"],  builder = function(p) return BuildProfessionHelperTab(p) end },
+        { key = "classremind", label = L["tab_qol_class_reminder"], builder = function(p) return BuildClassReminderTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

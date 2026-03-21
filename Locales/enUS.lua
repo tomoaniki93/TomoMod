@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.2 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.3 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -124,6 +124,8 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_show_leader_icon"]            = "Leader icon",
     ["opt_leader_icon_x"]               = "Leader icon X",
     ["opt_leader_icon_y"]               = "Leader icon Y",
+    ["opt_raid_icon_x"]                 = "Raid marker X",
+    ["opt_raid_icon_y"]                 = "Raid marker Y",
 
     -- Castbar
     ["opt_castbar_enable"]              = "Enable castbar",
@@ -954,4 +956,31 @@ TomoMod_RegisterLocale("enUS", {
     ["ph_status_done"]                   = "Done! All items processed.",
     ["ph_item_count"]                    = "%d items available",
     ["ph_ilvl"]                          = "iLvl %d",
+
+    -- =====================
+    -- CLASS REMINDER
+    -- =====================
+    ["tab_qol_class_reminder"]            = "Class Reminder",
+    ["section_class_reminder"]            = "Class Buff / Form Reminder",
+    ["info_class_reminder"]               = "Displays a pulsing text warning when you are missing your class buff, form, stance, or aura.",
+    ["opt_class_reminder_enable"]         = "Enable Class Reminder",
+    ["opt_class_reminder_scale"]          = "Text Scale",
+    ["opt_class_reminder_color"]          = "Text Color",
+    ["sublabel_class_reminder_pos"]       = "— Position Offset —",
+    ["opt_class_reminder_x"]             = "Offset X",
+    ["opt_class_reminder_y"]             = "Offset Y",
+
+    -- Class Reminder: buff/form names
+    ["cr_fortitude"]                     = "Power Word: Fortitude",
+    ["cr_shadowform"]                    = "Shadowform",
+    ["cr_arcane_intellect"]              = "Arcane Intellect",
+    ["cr_skyfury"]                       = "Skyfury",
+    ["cr_mark_of_the_wild"]              = "Mark of the Wild",
+    ["cr_cat_form"]                      = "Cat Form",
+    ["cr_bear_form"]                     = "Bear Form",
+    ["cr_moonkin_form"]                  = "Moonkin Form",
+    ["cr_battle_shout"]                  = "Battle Shout",
+    ["cr_stance"]                        = "Stance",
+    ["cr_aura"]                          = "Aura",
+    ["cr_blessing_bronze"]               = "Blessing of the Bronze",
 })

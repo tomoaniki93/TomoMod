@@ -214,6 +214,14 @@ TomoMod_Defaults = {
         filterEpic = false,
     },
 
+    classReminder = {
+        enabled = true,
+        scale = 1.0,
+        textColor = { r = 1, g = 1, b = 1 },
+        offsetX = 0,
+        offsetY = 0,
+    },
+
     lustSound = {
         enabled = true,
         sound = "TALUANI",
@@ -383,6 +391,7 @@ TomoMod_Defaults = {
                 fontSize = 13,
             },
             showRaidIcon = true,
+            raidIconOffset = { x = 0, y = 2 },
             showQuestIcon = true,
             showLeaderIcon = true,
             leaderIconOffset = { x = -2, y = 0 },

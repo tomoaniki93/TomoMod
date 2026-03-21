@@ -3,6 +3,12 @@
 -- Backward compatible with all QOL modules
 -- =====================================
 
+-- [PERF] Local caching of stdlib functions used in hot paths
+local pairs, type, tostring, select = pairs, type, tostring, select
+local format = string.format
+local gsub = string.gsub
+local floor = math.floor
+
 -- Keep global namespace for QOL backward compat
 TomoMod_Utils = TomoMod_Utils or {}
 local U = TomoMod_Utils
@@ -28,9 +34,9 @@ function U.DeepCopy(orig)
     if type(orig) ~= "table" then return orig end
     local copy = {}
     for k, v in pairs(orig) do
-        copy[U.DeepCopy(k)] = U.DeepCopy(v)
+        copy[k] = U.DeepCopy(v)
     end
-    return setmetatable(copy, getmetatable(orig))
+    return copy
 end
 
 -- =====================================
@@ -64,11 +70,11 @@ function U.GetReactionColor(unit)
 end
 
 function U.HexColor(r, g, b)
-    return string.format("|cff%02x%02x%02x", r * 255, g * 255, b * 255)
+    return format("|cff%02x%02x%02x", r * 255, g * 255, b * 255)
 end
 
 function U.ColorText(text, r, g, b)
-    return string.format("|cff%02x%02x%02x%s|r", r * 255, g * 255, b * 255, text)
+    return format("|cff%02x%02x%02x%s|r", r * 255, g * 255, b * 255, text)
 end
 
 function U.ClassColorText(text, unit)
@@ -85,7 +91,7 @@ function U.FormatNumber(num)
     local formatted = tostring(num)
     local k
     while true do
-        formatted, k = string.gsub(formatted, "^(-?%d+)(%d%d%d)", "%1,%2")
+        formatted, k = gsub(formatted, "^(-?%d+)(%d%d%d)", "%1,%2")
         if k == 0 then break end
     end
     return formatted
@@ -94,28 +100,28 @@ end
 function U.AbbreviateNumber(num)
     if not num then return "0" end
     if num >= 1000000000 then
-        return string.format("%.1fB", num / 1000000000)
+        return format("%.1fB", num / 1000000000)
     elseif num >= 1000000 then
-        return string.format("%.1fM", num / 1000000)
+        return format("%.1fM", num / 1000000)
     elseif num >= 1000 then
-        return string.format("%.1fK", num / 1000)
+        return format("%.1fK", num / 1000)
     else
-        return tostring(math.floor(num))
+        return tostring(floor(num))
     end
 end
 
 function U.FormatTime(seconds)
     if not seconds or seconds <= 0 then return "" end
     if seconds >= 86400 then
-        return string.format("%dd", math.floor(seconds / 86400))
+        return format("%dd", floor(seconds / 86400))
     elseif seconds >= 3600 then
-        return string.format("%dh", math.floor(seconds / 3600))
+        return format("%dh", floor(seconds / 3600))
     elseif seconds >= 60 then
-        return string.format("%dm", math.floor(seconds / 60))
+        return format("%dm", floor(seconds / 60))
     elseif seconds >= 10 then
-        return string.format("%d", math.floor(seconds))
+        return format("%d", floor(seconds))
     else
-        return string.format("%.1f", seconds)
+        return format("%.1f", seconds)
     end
 end
 
@@ -160,15 +166,20 @@ end
 -- LOCK/UNLOCK DRAG SYSTEM
 -- =====================================
 
+-- [PERF] Constant color tables — shared by all draggable frames
+local DRAG_ACCENT = { 0.047, 0.824, 0.624 }
+local DRAG_BG_COL = { 0.02, 0.07, 0.05, 0.80 }
+local DRAG_BD_COL = { 0.047, 0.824, 0.624, 0.60 }
+
 function U.SetupDraggable(frame, savePositionCallback, labelText)
     if not frame then return end
     frame.isLocked = true
     frame:SetMovable(true)
     frame:SetClampedToScreen(true)
 
-    local ACCENT = { 0.047, 0.824, 0.624 }
-    local BG_COL = { 0.02, 0.07, 0.05, 0.80 }
-    local BD_COL = { ACCENT[1], ACCENT[2], ACCENT[3], 0.90 }
+    local ACCENT = DRAG_ACCENT
+    local BG_COL = DRAG_BG_COL
+    local BD_COL = DRAG_BD_COL
 
     local dragFrame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     dragFrame:SetAllPoints(frame)

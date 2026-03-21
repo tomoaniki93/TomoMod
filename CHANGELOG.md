@@ -1,5 +1,100 @@
 ## ####################################
 
+## CHANGELOG 2.4.3
+
+#### Class Reminder (QOL)
+- Displays missing class buffs and auras on screen with a pulsing animation
+- Per-class tracked buffs: Priest (Fortitude), Mage (Arcane Intellect), Shaman (Skyfury), Druid (Mark of the Wild + form tracking), Warrior (Battle Shout + stance), Paladin (Aura tracking), Evoker (Blessing of Bronze)
+- Configurable scale, text color, and X/Y offset
+
+#### CoTankTracker (QOL)
+- Monitors co-tank health, debuffs, and defensive cooldowns in raids
+- Health bar with click-to-target, active debuff display with duration timers, defensive cooldown status (grayed out when on CD)
+- Supports up to 8 debuffs and 6 defensive CDs
+- Auto-detects the other raid tank; only visible in raids when player is tank role
+- Per-class defensive cooldown sets (Blood DK, Demon Hunter, Druid, Evoker, Monk, Paladin, Warrior, Shaman)
+
+#### Hide Blizzard Castbar (QOL — Automations)
+- Completely hides the default player casting bar frame
+- Complements UnitFrames' built-in player castbar
+- Toggle in Config > QOL > Automations
+
+#### TooltipIDs — TWW Compatibility Upgrade
+- Added support for TWW "secret values" across all tooltips
+- Improved tooltip hook system using `TooltipDataProcessor` for spell/item/unit tooltips
+- New tooltip types: achievements, currencies, auras (`SetUnitBuffByAuraInstanceID` / `SetUnitDebuffByAuraInstanceID`)
+- Deferred `Show()` calls to prevent FontString metrics tainting
+- Duplicate ID prevention on tooltip refresh
+
+#### ResourceBars — New Class/Spec Support
+- Demon Hunter Devourer: aura-based Soul Fragments bar with talent detection
+- Shaman Enhancement: Maelstrom Weapon aura stack display (adaptive max from talents)
+- Hunter Survival: Tip of the Spear tracking
+- Improved Druid form detection and adaptive resource display
+
+#### LevelingBar — Session XP Tracking
+- Added session XP tracking to calculate XP/hour
+- Rested XP shown as a separate overlay bar with different color
+- Displays 5 text elements: Level, XP current/max, percentage, XP/hour, Rested %
+- Number formatting with thousand separators
+- Animated progress bars with smooth color transitions
+- Session tracking resets on level-up
+
+#### CooldownManager — New Customization Options
+- Custom overlay color for active auras
+- Custom swipe color and opacity slider for cooldown animation
+- Utility icon dimming when off cooldown
+- Per-module on/off toggle for each feature
+
+#### FastLoot — Behavior Refinement
+- Throttle system (0.2s) prevents double-triggering
+- Respects CVar `autoLootDefault` + `AUTOLOOTTOGGLE` modifier (XOR logic)
+- Cursor item detection prevents conflicts with other addons (TSM/Destroy compat)
+
+#### AutoVendorRepair — Improved Implementation
+- Ticker-based gray item selling (0.15s intervals) prevents lag spikes
+- Dynamic price calculation per stack
+- Colored gold amounts in chat messages
+
+#### CursorRing — Performance Optimization
+- Only calls `SetPoint` when cursor position actually changes (pixel-level snapping)
+- Reduces sub-pixel jitter with `math.floor` rounding
+- Tooltip anchoring optimized with early-exit when disabled
+
+#### FrameAnchors — Enhanced Visual Design
+- Added teal accent line at top of anchor frame
+- Improved label positioning and 1px black border backdrop
+
+#### Profiles — Migration & Cleanup
+- Automatic migration from old `specs = { [specID] = snapshot }` format
+- Cleanup of legacy "Spec-NNN" profiles from previous versions
+- Performance flag prevents redundant initialization work
+
+#### ConfigUI — Enhanced Title Bar
+- Added Layout button (⊹) with icon and tooltip
+- Reload UI button (↺) with hover effects
+- Active state indicator for Layout mode
+- Version display updated to v2.4.3
+
+#### Config Panel — New Automations Tab (QOL)
+- Consolidated automation settings: HideCastBar, AutoAcceptInvite, AutoSkipRole, AutoSummon, AutoFillDelete, CombatText
+- Per-automation enable toggles and fine-tuning options
+
+#### Widgets — UI Polish
+- Custom scrollbar with hover feedback and smooth thumb dragging
+- Improved visual theme consistency
+
+### Bug Fixes
+- Fixed TooltipIDs crash on TWW secret number operations
+- Fixed TooltipIDs tooltip layout invalidation causing metrics corruption
+- Fixed CursorRing excessive OnUpdate calls causing performance loss
+- Fixed FastLoot auto-loot not respecting modifier keys correctly
+- Fixed LevelingBar XP session not resetting on level-up
+- Fixed LevelingBar max-level detection for Shadowlands+ expansions
+- Fixed ConfigUI icon rendering for title bar buttons (now uses texture icons)
+
+## ####################################
+
 ## CHANGELOG 2.4.2
 
 ### Profession Helper (New QOL Module)

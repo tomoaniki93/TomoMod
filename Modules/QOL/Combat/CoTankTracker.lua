@@ -16,37 +16,29 @@ local CTK = TomoMod_CoTankTracker
 -- =====================================
 -- Cooldowns défensifs par classe
 -- SpellID référencés dans The War Within (TWW patch 11.x)
+-- Filtrés par classe pour éviter des scans inutiles
 -- =====================================
-local DEFENSIVE_CDS = {
-    -- Death Knight
-    [48707]  = true,   -- Anti-Magic Shell
-    [49028]  = true,   -- Dancing Rune Weapon
-    [55233]  = true,   -- Vampiric Blood
-    [194679] = true,   -- Rune Tap
-    -- Demon Hunter
-    [187827] = true,   -- Metamorphosis (Vengeance)
-    [196555] = true,   -- Netherwalk
-    -- Druid
-    [22812]  = true,   -- Barkskin
-    [61336]  = true,   -- Survival Instincts
-    -- Evoker (Preservation/Augmentation tanking edge cases)
-    [363916] = true,   -- Obsidian Scales
-    -- Monk
-    [122278] = true,   -- Dampen Harm
-    [116849] = true,   -- Life Cocoon
-    [243435] = true,   -- Fortifying Brew
-    -- Paladin
-    [642]    = true,   -- Divine Shield
-    [498]    = true,   -- Divine Protection
-    [86659]  = true,   -- Guardian of Ancient Kings
-    [31850]  = true,   -- Ardent Defender
-    -- Warrior
-    [871]    = true,   -- Shield Wall
-    [12975]  = true,   -- Last Stand
-    [23920]  = true,   -- Spell Reflection
-    -- Shaman (hors-raid but useful)
-    [108271] = true,   -- Astral Shift
+local DEFENSIVE_CDS_BY_CLASS = {
+    DEATHKNIGHT  = { 48707, 49028, 55233, 194679 },
+    DEMONHUNTER  = { 187827, 196555 },
+    DRUID        = { 22812, 61336 },
+    EVOKER       = { 363916 },
+    MONK         = { 122278, 116849, 243435 },
+    PALADIN      = { 642, 498, 86659, 31850 },
+    WARRIOR      = { 871, 12975, 23920 },
+    SHAMAN       = { 108271 },
 }
+
+-- Lookup set (all spellIDs) for fast matching during buff scan
+local DEFENSIVE_CDS_SET = {}
+for _, ids in pairs(DEFENSIVE_CDS_BY_CLASS) do
+    for _, id in ipairs(ids) do
+        DEFENSIVE_CDS_SET[id] = true
+    end
+end
+
+-- Cached spell info (populated once at PLAYER_LOGIN)
+local spellInfoCache = {}
 
 local MAX_DEBUFFS = 8
 local ICON_SIZE   = 24
@@ -91,7 +83,7 @@ local function ShouldBeVisible()
     if not db or not db.enabled then return false end
     if not IsInRaid() then return false end
     if not isPlayerTank then return false end
-    return FindOtherTank() ~= nil
+    return currentTank ~= nil and UnitExists(currentTank)
 end
 
 -- =====================================
@@ -310,6 +302,7 @@ end
 
 -- =====================================
 -- Update defensive CD icons
+-- Single-pass: scan buffs once, match against class-filtered set
 -- =====================================
 local function UpdateDefensiveCDs()
     for _, icon in ipairs(cdIcons) do icon:Hide() end
@@ -318,48 +311,48 @@ local function UpdateDefensiveCDs()
     local _, class = UnitClass(currentTank)
     if not class then return end
 
-    local slot = 1
-    for spellID in pairs(DEFENSIVE_CDS) do
-        if slot > MAX_CDS then break end
+    -- Only check spells relevant to the co-tank's class
+    local classSpells = DEFENSIVE_CDS_BY_CLASS[class]
+    if not classSpells then return end
 
-        local spellInfo = C_Spell and C_Spell.GetSpellInfo and C_Spell.GetSpellInfo(spellID)
-        if not spellInfo then goto continue end
+    -- Build a lookup of the spells we care about for this class
+    local wantedSet = {}
+    for _, id in ipairs(classSpells) do
+        wantedSet[id] = true
+    end
 
-        -- Vérifier si le sort existe pour cette classe (pas de filtre par classe en API retail)
-        -- On affiche les CDs actifs sur l'unité via UNIT_AURA
-        local aura = C_UnitAuras.GetBuffDataByIndex and nil
-        -- Chercher le buff actif
-        local auraIdx = 1
-        local found = false
-        while true do
-            local buffData = C_UnitAuras.GetBuffDataByIndex(currentTank, auraIdx)
-            if not buffData then break end
-            if buffData.spellId == spellID then
-                aura = buffData
-                found = true
-                break
-            end
-            auraIdx = auraIdx + 1
+    -- Single pass over all buffs — collect matching defensive CDs
+    local found = {}
+    local auraIdx = 1
+    while true do
+        local buffData = C_UnitAuras.GetBuffDataByIndex(currentTank, auraIdx)
+        if not buffData then break end
+        if wantedSet[buffData.spellId] then
+            found[#found + 1] = buffData
         end
+        auraIdx = auraIdx + 1
+    end
 
-        if found and aura then
-            local icon = cdIcons[slot]
-            icon.tex:SetTexture(aura.icon or spellInfo.iconID)
-            icon.tex:SetVertexColor(1, 0.8, 0.1)   -- doré = actif
-            icon.overlay:Hide()
-            if aura.duration and aura.duration > 0 then
-                icon.cd:SetCooldown(aura.expirationTime - aura.duration, aura.duration)
-                local remaining = aura.expirationTime - GetTime()
-                icon.dur:SetText(math.ceil(remaining))
-            else
-                icon.cd:Clear()
-                icon.dur:SetText("")
-            end
-            icon:Show()
-            slot = slot + 1
+    -- Sort by spellId for stable icon order (no flickering)
+    table.sort(found, function(a, b) return a.spellId < b.spellId end)
+
+    -- Display found CDs
+    for i = 1, math.min(#found, MAX_CDS) do
+        local aura = found[i]
+        local icon = cdIcons[i]
+        local cached = spellInfoCache[aura.spellId]
+        icon.tex:SetTexture(aura.icon or (cached and cached.iconID) or 134400)
+        icon.tex:SetVertexColor(1, 0.8, 0.1)   -- doré = actif
+        icon.overlay:Hide()
+        if aura.duration and aura.duration > 0 then
+            icon.cd:SetCooldown(aura.expirationTime - aura.duration, aura.duration)
+            local remaining = aura.expirationTime - GetTime()
+            icon.dur:SetText(math.ceil(remaining))
+        else
+            icon.cd:Clear()
+            icon.dur:SetText("")
         end
-
-        ::continue::
+        icon:Show()
     end
 end
 
@@ -367,16 +360,12 @@ end
 -- UpdateDisplay complet
 -- =====================================
 local function UpdateDisplay()
+    currentTank = FindOtherTank()
+
     if not ShouldBeVisible() then
         if not InCombatLockdown() then
             mainFrame:Hide()
         end
-        return
-    end
-
-    currentTank = FindOtherTank()
-    if not currentTank then
-        if not InCombatLockdown() then mainFrame:Hide() end
         return
     end
 
@@ -490,6 +479,12 @@ eventFrame:SetScript("OnEvent", function(self, event, arg1)
         end
         local db = GetDB()
         if not db or not db.enabled then return end
+        -- Cache spell info once at login
+        if C_Spell and C_Spell.GetSpellInfo then
+            for id in pairs(DEFENSIVE_CDS_SET) do
+                spellInfoCache[id] = C_Spell.GetSpellInfo(id)
+            end
+        end
         isPlayerTank = IsPlayerTankSpec()
         EnableDrag()
         UpdateDisplay()
@@ -511,11 +506,10 @@ eventFrame:SetScript("OnEvent", function(self, event, arg1)
     end
 
     if event == "PLAYER_REGEN_ENABLED" then
-        currentTank = FindOtherTank()
-        if not InCombatLockdown() then
+        UpdateDisplay()
+        if not InCombatLockdown() and currentTank then
             mainFrame:SetAttribute("unit", currentTank)
         end
-        UpdateDisplay()
         return
     end
 end)

@@ -444,16 +444,10 @@ local function SetupEvents()
         end
     end)
 
-    -- Slow ticker for XP/h updates (every 10s)
-    local elapsed = 0
-    local tickFrame = CreateFrame("Frame")
-    tickFrame:SetScript("OnUpdate", function(self, dt)
-        elapsed = elapsed + dt
-        if elapsed >= 10 then
-            elapsed = 0
-            if barFrame and barFrame:IsShown() then
-                LB.Update()
-            end
+    -- [PERF] Use C_Timer instead of OnUpdate ticking at 60fps
+    C_Timer.NewTicker(10, function()
+        if barFrame and barFrame:IsShown() then
+            LB.Update()
         end
     end)
 end

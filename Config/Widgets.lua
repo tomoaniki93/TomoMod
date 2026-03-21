@@ -596,7 +596,11 @@ function W.CreateInfoText(parent, text, yOffset)
     info:SetJustifyH("LEFT")
     info:SetTextColor(unpack(T.textDim))
     info:SetText(text)
-    local lines = math.ceil(info:GetStringHeight() / 12)
+    -- GetStringHeight() can return a secret number in TWW;
+    -- funnel through tonumber(tostring()) to get a plain Lua number.
+    local rawH = info:GetStringHeight()
+    local h = tonumber(tostring(rawH)) or 12
+    local lines = math.ceil(h / 12)
     return info, yOffset - (lines * 14 + 6)
 end
 

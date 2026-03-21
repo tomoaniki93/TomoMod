@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("deDE", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Über",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.2 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.3 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
     ["section_general"]                 = "Allgemein",
     ["btn_reset_all"]                   = "Alles zurücksetzen",
     ["info_reset_all"]                  = "Dies setzt ALLE Einstellungen zurück und lädt die Oberfläche neu.",
@@ -124,6 +124,8 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_show_leader_icon"]            = "Anführersymbol",
     ["opt_leader_icon_x"]               = "Anführersymbol X",
     ["opt_leader_icon_y"]               = "Anführersymbol Y",
+    ["opt_raid_icon_x"]                 = "Raidmarkierung X",
+    ["opt_raid_icon_y"]                 = "Raidmarkierung Y",
 
     -- Castbar
     ["opt_castbar_enable"]              = "Zauberleiste aktivieren",
@@ -929,4 +931,29 @@ TomoMod_RegisterLocale("deDE", {
     ["ph_status_done"]                   = "Fertig! Alle Gegenstände verarbeitet.",
     ["ph_item_count"]                    = "%d Gegenstände verfügbar",
     ["ph_ilvl"]                          = "iLvl %d",
+
+    -- ── Class Reminder ──────────────────────────────────────────
+    ["tab_qol_class_reminder"]           = "Klassenerinnerung",
+    ["section_class_reminder"]           = "Klassen-Buff / Form-Erinnerung",
+    ["info_class_reminder"]              = "Zeigt eine pulsierende Textwarnung in der Bildschirmmitte an, wenn ein Klassen-Buff, eine Form, eine Haltung oder eine Aura fehlt.",
+    ["opt_class_reminder_enable"]        = "Klassenerinnerung aktivieren",
+    ["opt_class_reminder_scale"]         = "Textgröße",
+    ["opt_class_reminder_color"]         = "Textfarbe",
+    ["sublabel_class_reminder_pos"]      = "— Positionsversatz —",
+    ["opt_class_reminder_x"]             = "Versatz X",
+    ["opt_class_reminder_y"]             = "Versatz Y",
+
+    -- Buff / Form names
+    ["cr_fortitude"]                     = "Machtwort: Seelenstärke",
+    ["cr_shadowform"]                    = "Schattengestalt",
+    ["cr_arcane_intellect"]              = "Arkane Intelligenz",
+    ["cr_skyfury"]                       = "Himmelszorn",
+    ["cr_mark_of_the_wild"]              = "Mal der Wildnis",
+    ["cr_cat_form"]                      = "Katzengestalt",
+    ["cr_bear_form"]                     = "Bärengestalt",
+    ["cr_moonkin_form"]                  = "Mondkingestalt",
+    ["cr_battle_shout"]                  = "Schlachtruf",
+    ["cr_stance"]                        = "Haltung",
+    ["cr_aura"]                          = "Aura",
+    ["cr_blessing_bronze"]               = "Segen der Bronze",
 })

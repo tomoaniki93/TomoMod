@@ -10,6 +10,15 @@ local NP = TomoMod_Nameplates
 -- LOCALS
 -- =====================================
 
+-- [PERF] Local caching of hot-path WoW API globals
+local GetTime = GetTime
+local UnitExists = UnitExists
+local UnitGUID = UnitGUID
+local UnitName = UnitName
+local UnitIsPlayer = UnitIsPlayer
+local wipe = wipe
+local pairs = pairs
+
 local activePlates = {} -- [nameplateFrame] = ourPlate
 local unitPlates = {}   -- [unitToken] = ourPlate
 
@@ -579,7 +588,7 @@ local function CreatePlate(baseFrame)
         end
         self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
         if self.timer and self.duration_obj then
-            self.timer:SetText(string.format("%.1f", self.duration_obj:GetRemainingDuration(0)))
+            self.timer:SetFormattedText("%.1f", self.duration_obj:GetRemainingDuration(0))
         end
     end)
 
@@ -996,6 +1005,12 @@ end
 local questScanTip = CreateFrame("GameTooltip", "TomoModNPQuestScanTip", nil, "GameTooltipTemplate")
 questScanTip:SetOwner(WorldFrame, "ANCHOR_NONE")
 
+-- [PERF] Pre-build tooltip line references to avoid string concat in the scan loop
+local questTipLines = {}
+for i = 1, 20 do
+    questTipLines[i] = _G["TomoModNPQuestScanTipTextLeft" .. i]
+end
+
 local questIconCache = {} -- [guid] = { isQuest = bool, time = GetTime() }
 local QUEST_CACHE_TTL = 2 -- seconds
 
@@ -1020,7 +1035,7 @@ local function IsQuestUnit(unit)
     local playerName = UnitName("player")
 
     for i = 2, questScanTip:NumLines() do
-        local left = _G["TomoModNPQuestScanTipTextLeft" .. i]
+        local left = questTipLines[i]
         if left then
             local text = left:GetText()
             if text then

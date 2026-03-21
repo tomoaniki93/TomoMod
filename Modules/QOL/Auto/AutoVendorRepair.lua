@@ -24,29 +24,44 @@ local function FormatGold(amount)
 end
 
 --------------------------------------------------
--- Sell gray items
+-- Sell gray items (one per tick to avoid lag spikes)
 --------------------------------------------------
 local function SellGrayItems()
-    if not SELL_GRAYS then return 0 end
+    if not SELL_GRAYS then return end
 
-    local total = 0
-
+    local greyItems = {}
     for bag = 0, NUM_BAG_FRAMES do
         local slots = C_Container.GetContainerNumSlots(bag)
         for slot = 1, slots do
             local itemInfo = C_Container.GetContainerItemInfo(bag, slot)
-            if itemInfo and itemInfo.hyperlink then
-                local quality = itemInfo.quality
-                if quality == Enum.ItemQuality.Poor then
-                    local price = itemInfo.stackCount * (select(11, GetItemInfo(itemInfo.itemID)) or 0)
-                    C_Container.UseContainerItem(bag, slot)
-                    total = total + price
-                end
+            if itemInfo and itemInfo.hyperlink and itemInfo.quality == Enum.ItemQuality.Poor then
+                tinsert(greyItems, { bag = bag, slot = slot, id = itemInfo.itemID })
             end
         end
     end
 
-    return total
+    if #greyItems == 0 then return end
+
+    local total = 0
+    local idx = 0
+    local ticker
+    ticker = C_Timer.NewTicker(0.15, function()
+        idx = idx + 1
+        if idx > #greyItems then
+            ticker:Cancel()
+            if PRINT_SUMMARY and total > 0 then
+                print(string.format(TomoMod_L["msg_avr_sold"], FormatGold(total)))
+            end
+            return
+        end
+        local item = greyItems[idx]
+        local info = C_Container.GetContainerItemInfo(item.bag, item.slot)
+        if info and info.itemID == item.id and info.quality == Enum.ItemQuality.Poor then
+            local price = info.stackCount * (select(11, GetItemInfo(item.id)) or 0)
+            C_Container.UseContainerItem(item.bag, item.slot)
+            total = total + price
+        end
+    end)
 end
 
 --------------------------------------------------
@@ -71,18 +86,12 @@ end
 f:RegisterEvent("MERCHANT_SHOW")
 
 f:SetScript("OnEvent", function()
-    local sold = SellGrayItems()
     local repairCost = RepairItems()
 
-    if PRINT_SUMMARY and (sold > 0 or repairCost > 0) then
+    if PRINT_SUMMARY and repairCost > 0 then
         print("|cff00ff00" .. TomoMod_L["msg_avr_header"] .. "|r")
-
-        if sold > 0 then
-            print(string.format(TomoMod_L["msg_avr_sold"], FormatGold(sold)))
-        end
-
-        if repairCost > 0 then
-            print(string.format(TomoMod_L["msg_avr_repaired"], FormatGold(repairCost)))
-        end
+        print(string.format(TomoMod_L["msg_avr_repaired"], FormatGold(repairCost)))
     end
+
+    SellGrayItems()
 end)

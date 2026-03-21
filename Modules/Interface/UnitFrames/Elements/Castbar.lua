@@ -6,6 +6,10 @@
 
 local UF_Elements = UF_Elements or {}
 
+-- [PERF] Local caching of hot-path globals
+local GetTime = GetTime
+local math_max = math.max
+
 local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 
@@ -630,13 +634,16 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
     end
 
     -- OnUpdate: bar progress + timer text + empower stage tracking
+    castbar._textTimer = 0
     castbar:SetScript("OnUpdate", function(self, elapsed)
         -- Preview mode: keep bar visible, skip all logic
         if self._preview then return end
 
+        local now = GetTime()
+
         -- Handle interrupt fadeout
         if self.failstart then
-            if GetTime() - self.failstart > 1 then
+            if now - self.failstart > 1 then
                 self.failstart = nil
                 self:Hide()
             end
@@ -649,11 +656,16 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         end
 
         -- Progress: GetTime() * 1000 is non-secret, bar fill handled C-side
-        self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
+        self:SetValue(now * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
+
+        -- [PERF] Throttle text/stage updates to ~20fps instead of full framerate
+        self._textTimer = self._textTimer + elapsed
+        if self._textTimer < 0.05 then return end
+        self._textTimer = 0
 
         -- Timer from stored duration object (param 0 for displayable value)
         if self.timerText and self.duration_obj then
-            self.timerText:SetText(string.format("%.1f", self.duration_obj:GetRemainingDuration(0)))
+            self.timerText:SetFormattedText("%.1f", self.duration_obj:GetRemainingDuration(0))
         end
 
         -- Empower: track current stage and update spell text (player only)
@@ -677,10 +689,9 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             end
             -- Show stage in spell text (player only — name is secret for target/focus)
             if self.spellText and self.numStages > 0 and self.unit == "player" then
-                local displayStage = math.max(1, self._currentStage)
-                local ok, spellName = pcall(tostring, self._empSpellName)
-                if ok and spellName then
-                    self.spellText:SetText(spellName .. "  [" .. displayStage .. "/" .. self.numStages .. "]")
+                local displayStage = math_max(1, self._currentStage)
+                if self._empSpellName then
+                    self.spellText:SetFormattedText("%s  [%d/%d]", tostring(self._empSpellName), displayStage, self.numStages)
                 end
             end
         end

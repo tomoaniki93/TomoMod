@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("ptBR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Sobre",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.2 por TomoAniki\nInterface leve com QOL, UnitFrames e Nameplates.\nDigite /tm help para a lista de comandos.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.3 por TomoAniki\nInterface leve com QOL, UnitFrames e Nameplates.\nDigite /tm help para a lista de comandos.",
     ["section_general"]                 = "Geral",
     ["btn_reset_all"]                   = "Redefinir tudo",
     ["info_reset_all"]                  = "Isso redefinirá TODAS as configurações e recarregará a interface.",
@@ -124,6 +124,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["opt_show_leader_icon"]            = "Ícone de líder",
     ["opt_leader_icon_x"]               = "Ícone de líder X",
     ["opt_leader_icon_y"]               = "Ícone de líder Y",
+    ["opt_raid_icon_x"]                 = "Marcador de raid X",
+    ["opt_raid_icon_y"]                 = "Marcador de raid Y",
 
     -- Castbar
     ["opt_castbar_enable"]              = "Ativar barra de lançamento",
@@ -929,4 +931,29 @@ TomoMod_RegisterLocale("ptBR", {
     ["ph_status_done"]                   = "Pronto! Todos os itens processados.",
     ["ph_item_count"]                    = "%d itens disponíveis",
     ["ph_ilvl"]                          = "iLvl %d",
+
+    -- ── Class Reminder ──────────────────────────────────────────
+    ["tab_qol_class_reminder"]           = "Lembrete de classe",
+    ["section_class_reminder"]           = "Lembrete de buff / forma de classe",
+    ["info_class_reminder"]              = "Exibe um texto pulsante no centro da tela quando um buff de classe, forma, postura ou aura estiver ausente.",
+    ["opt_class_reminder_enable"]        = "Ativar lembrete de classe",
+    ["opt_class_reminder_scale"]         = "Escala do texto",
+    ["opt_class_reminder_color"]         = "Cor do texto",
+    ["sublabel_class_reminder_pos"]      = "— Deslocamento de posição —",
+    ["opt_class_reminder_x"]             = "Deslocamento X",
+    ["opt_class_reminder_y"]             = "Deslocamento Y",
+
+    -- Buff / Form names
+    ["cr_fortitude"]                     = "Palavra de Poder: Fortitude",
+    ["cr_shadowform"]                    = "Forma de Sombra",
+    ["cr_arcane_intellect"]              = "Intelecto Arcano",
+    ["cr_skyfury"]                       = "Fúria Celeste",
+    ["cr_mark_of_the_wild"]              = "Marca da Natureza",
+    ["cr_cat_form"]                      = "Forma de Felino",
+    ["cr_bear_form"]                     = "Forma de Urso",
+    ["cr_moonkin_form"]                  = "Forma de Lua-Coruja",
+    ["cr_battle_shout"]                  = "Grito de Batalha",
+    ["cr_stance"]                        = "Postura",
+    ["cr_aura"]                          = "Aura",
+    ["cr_blessing_bronze"]               = "Bênção do Bronze",
 })

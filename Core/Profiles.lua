@@ -41,7 +41,7 @@ local function DeepMerge(dst, src)
         if type(v) == "table" and type(dst[k]) == "table" then
             DeepMerge(dst[k], v)
         else
-            dst[k] = DeepCopy(v)
+            dst[k] = (type(v) == "table") and DeepCopy(v) or v
         end
     end
 end
@@ -72,7 +72,12 @@ end
 -- DB INIT
 -- =====================================
 
+-- [PERF] Flag to avoid redundant init work on chained calls
+local _profilesDBReady = false
+
 function P.EnsureProfilesDB()
+    if _profilesDBReady then return end
+
     if not TomoModDB._profiles then TomoModDB._profiles = {} end
     local db = TomoModDB._profiles
 
@@ -141,6 +146,8 @@ function P.EnsureProfilesDB()
             table.insert(db.profileOrder, name)
         end
     end
+
+    _profilesDBReady = true
 end
 
 -- =====================================
@@ -363,8 +370,12 @@ function P.OnSpecChanged(newSpecID)
     -- Sauvegarder le profil courant avant de switcher (pattern EllesmereUI)
     P.AutoSaveActiveProfile()
 
-    local ok = P.LoadNamedProfile(targetName)
-    if ok then
+    -- [PERF] Load directly without the redundant auto-save inside LoadNamedProfile
+    local db = TomoModDB._profiles
+    local snap = db.named[targetName]
+    if snap then
+        ApplySnapshot(snap)
+        db.activeProfile = targetName
         P._lastSpecID = newSpecID
         return true  -- reload recommandé
     end

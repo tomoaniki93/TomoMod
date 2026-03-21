@@ -5,6 +5,24 @@
 
 UF_Elements = UF_Elements or {}
 
+-- [PERF] Local caching of hot-path WoW API globals
+local UnitIsTapDenied = UnitIsTapDenied
+local UnitReaction = UnitReaction
+local UnitCanAttack = UnitCanAttack
+local UnitIsEnemy = UnitIsEnemy
+local UnitIsPlayer = UnitIsPlayer
+local UnitIsUnit = UnitIsUnit
+local UnitAffectingCombat = UnitAffectingCombat
+local UnitClassification = UnitClassification
+local UnitLevel = UnitLevel
+local UnitThreatSituation = UnitThreatSituation
+local UnitGroupRolesAssigned = UnitGroupRolesAssigned
+local UnitClass = UnitClass
+local UnitIsDead = UnitIsDead
+local UnitIsGhost = UnitIsGhost
+local UnitIsConnected = UnitIsConnected
+local type = type
+
 local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 
@@ -27,6 +45,15 @@ local function InRealInstancedContent()
     if instanceType == "party" or instanceType == "raid" then return true end
     return false
 end
+
+-- [PERF] Cache instance check — updated on zone change, not every health update
+local _cachedInInstance = false
+local _instanceCacheFrame = CreateFrame("Frame")
+_instanceCacheFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+_instanceCacheFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+_instanceCacheFrame:SetScript("OnEvent", function()
+    _cachedInInstance = InRealInstancedContent()
+end)
 
 -- Nameplate-style color logic for enemy units (caster, miniboss, threat, darken OOC)
 local function GetNameplateStyleColor(unit)
@@ -105,7 +132,8 @@ local function GetNameplateStyleColor(unit)
 
     -- Tank/DPS threat coloring (instanced content)
     -- UnitThreatSituation retourne un int 0-3 (safe), pas de secret values
-    if npDB.tankMode and InRealInstancedContent() then
+    -- [PERF] Use cached instance check instead of API call per health update
+    if npDB.tankMode and _cachedInInstance then
         local tankColors = npDB.tankColors
         if tankColors then
             local status = UnitThreatSituation("player", unit)
@@ -274,10 +302,10 @@ function UF_Elements.CreateHealth(parent, unit, settings)
     levelText:SetTextColor(1, 1, 0.6, 0.9)
     health.levelText = levelText
 
-    -- Raid icon
+    -- Raid icon (default: top center, adjustable via raidIconOffset)
     local raidIcon = health:CreateTexture(nil, "OVERLAY")
-    raidIcon:SetSize(18, 18)
-    raidIcon:SetPoint("LEFT", health, "LEFT", -22, 0)
+    raidIcon:SetSize(20, 20)
+    raidIcon:SetPoint("BOTTOM", health, "TOP", 0, 2)
     raidIcon:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons")
     raidIcon:Hide()
     health.raidIcon = raidIcon

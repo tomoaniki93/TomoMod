@@ -23,6 +23,7 @@
 
     <!-- Modules: Classes -->
     <Include file="Classes\CompanionStatus.lua" />
+    <Include file="Classes\ClassReminder.lua" />
 
     <!-- Modules: Cursor -->
     <Include file="Cursor\CursorRing.lua" />
