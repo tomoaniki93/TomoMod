@@ -218,7 +218,7 @@ local function GetCurrentMapQuests()
                 local rewardType, rewardValue, rewardItemID, rewardQuantity = ClassifyReward(questID)
                 local quality = tagInfo and tagInfo.quality or Enum.WorldQuestQuality.Common
 
-                table.insert(quests, {
+                quests[#quests + 1] = {
                     questID       = questID,
                     title         = title or ("Quest " .. questID),
                     mapID         = questMapID,
@@ -235,7 +235,7 @@ local function GetCurrentMapQuests()
                     quality       = quality,
                     isElite       = tagInfo and tagInfo.isElite or false,
                     questType     = tagInfo and tagInfo.worldQuestType,
-                })
+                }
             end
         end
     end
@@ -720,7 +720,7 @@ function WQT.RefreshList()
     local filtered = {}
     for _, data in ipairs(questCache) do
         if PassesFilter(data) then
-            table.insert(filtered, data)
+            filtered[#filtered + 1] = data
         end
     end
 

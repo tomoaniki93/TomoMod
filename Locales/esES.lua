@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("esES", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Acerca de",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.3 por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.4 por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reiniciar todo",
     ["info_reset_all"]                  = "Esto reiniciará TODOS los ajustes y recargará la interfaz.",

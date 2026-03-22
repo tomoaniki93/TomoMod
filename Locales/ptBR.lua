@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("ptBR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Sobre",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.3 por TomoAniki\nInterface leve com QOL, UnitFrames e Nameplates.\nDigite /tm help para a lista de comandos.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.4 por TomoAniki\nInterface leve com QOL, UnitFrames e Nameplates.\nDigite /tm help para a lista de comandos.",
     ["section_general"]                 = "Geral",
     ["btn_reset_all"]                   = "Redefinir tudo",
     ["info_reset_all"]                  = "Isso redefinirá TODAS as configurações e recarregará a interface.",

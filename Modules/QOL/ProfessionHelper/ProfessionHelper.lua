@@ -13,6 +13,12 @@ local FONT_B = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local ACCENT  = { 0.047, 0.824, 0.624, 1 }
 local BG      = { 0.08, 0.08, 0.10, 0.97 }
 local BG_DARK = { 0.06, 0.06, 0.08, 1 }
+
+-- [PERF] Hoisted sort comparator
+local function SortItemsByQualityName(a, b)
+    if a.quality ~= b.quality then return a.quality > b.quality end
+    return a.name < b.name
+end
 local BORDER  = { 0.20, 0.20, 0.25, 1 }
 local TEXT    = { 0.90, 0.90, 0.92, 1 }
 local DIM     = { 0.55, 0.55, 0.60, 1 }
@@ -147,7 +153,7 @@ local function ScanBags(mode)
                 count       = data.count,
             }
             if mode.filter(itemInfo, settings) and data.count >= mode.minStack then
-                table.insert(items, itemInfo)
+                items[#items + 1] = itemInfo
             end
         else
             -- Item not in cache — request load
@@ -168,10 +174,7 @@ local function ScanBags(mode)
         end)
     end
 
-    table.sort(items, function(a, b)
-        if a.quality ~= b.quality then return a.quality > b.quality end
-        return a.name < b.name
-    end)
+    table.sort(items, SortItemsByQualityName)
 
     return items
 end
@@ -203,7 +206,7 @@ local function BuildProcessQueue()
     for _, item in ipairs(items) do
         local timesToProcess = math.floor(item.count / MODE.minStack)
         for _ = 1, timesToProcess do
-            table.insert(queue, { itemID = item.itemID, name = item.name })
+            queue[#queue + 1] = { itemID = item.itemID, name = item.name }
         end
     end
     return queue

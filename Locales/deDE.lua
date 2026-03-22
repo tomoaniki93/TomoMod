@@ -18,7 +18,7 @@ TomoMod_RegisterLocale("deDE", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Über",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.3 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.4 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
     ["section_general"]                 = "Allgemein",
     ["btn_reset_all"]                   = "Alles zurücksetzen",
     ["info_reset_all"]                  = "Dies setzt ALLE Einstellungen zurück und lädt die Oberfläche neu.",

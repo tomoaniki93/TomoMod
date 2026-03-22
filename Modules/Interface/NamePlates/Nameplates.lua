@@ -1097,11 +1097,16 @@ end
 -- Periodic cache cleanup
 C_Timer.NewTicker(10, function()
     local now = GetTime()
+    local count = 0
     for guid, data in pairs(questIconCache) do
         if (now - data.time) > 30 then
             questIconCache[guid] = nil
+        else
+            count = count + 1
         end
     end
+    -- Safety cap: flush entire cache if it grows too large
+    if count > 200 then wipe(questIconCache) end
 end)
 
 -- Clear quest cache when quest log changes

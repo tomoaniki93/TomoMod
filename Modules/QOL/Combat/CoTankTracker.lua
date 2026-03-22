@@ -18,6 +18,11 @@ local CTK = TomoMod_CoTankTracker
 -- SpellID référencés dans The War Within (TWW patch 11.x)
 -- Filtrés par classe pour éviter des scans inutiles
 -- =====================================
+-- [PERF] Pre-allocated tables for UpdateDefensiveCDs — avoid per-tick allocs
+local _ctk_wantedSet = {}
+local _ctk_found = {}
+local function SortBySpellId(a, b) return a.spellId < b.spellId end
+
 local DEFENSIVE_CDS_BY_CLASS = {
     DEATHKNIGHT  = { 48707, 49028, 55233, 194679 },
     DEMONHUNTER  = { 187827, 196555 },
@@ -316,29 +321,29 @@ local function UpdateDefensiveCDs()
     if not classSpells then return end
 
     -- Build a lookup of the spells we care about for this class
-    local wantedSet = {}
+    wipe(_ctk_wantedSet)
     for _, id in ipairs(classSpells) do
-        wantedSet[id] = true
+        _ctk_wantedSet[id] = true
     end
 
     -- Single pass over all buffs — collect matching defensive CDs
-    local found = {}
+    wipe(_ctk_found)
     local auraIdx = 1
     while true do
         local buffData = C_UnitAuras.GetBuffDataByIndex(currentTank, auraIdx)
         if not buffData then break end
-        if wantedSet[buffData.spellId] then
-            found[#found + 1] = buffData
+        if _ctk_wantedSet[buffData.spellId] then
+            _ctk_found[#_ctk_found + 1] = buffData
         end
         auraIdx = auraIdx + 1
     end
 
     -- Sort by spellId for stable icon order (no flickering)
-    table.sort(found, function(a, b) return a.spellId < b.spellId end)
+    table.sort(_ctk_found, SortBySpellId)
 
     -- Display found CDs
-    for i = 1, math.min(#found, MAX_CDS) do
-        local aura = found[i]
+    for i = 1, math.min(#_ctk_found, MAX_CDS) do
+        local aura = _ctk_found[i]
         local icon = cdIcons[i]
         local cached = spellInfoCache[aura.spellId]
         icon.tex:SetTexture(aura.icon or (cached and cached.iconID) or 134400)

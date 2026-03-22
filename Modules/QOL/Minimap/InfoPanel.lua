@@ -438,16 +438,8 @@ function IP.Initialize()
             C_Timer.After(0.1, IP.Update)
         end)
 
-        -- Throttled OnUpdate for clock + coords (every 1s)
-        local elapsed = 0
-        local updateFrame = CreateFrame("Frame")
-        updateFrame:SetScript("OnUpdate", function(self, dt)
-            elapsed = elapsed + dt
-            if elapsed >= 1 then
-                elapsed = 0
-                IP.Update()
-            end
-        end)
+        -- Throttled ticker for clock + coords (every 1s)
+        C_Timer.NewTicker(1, IP.Update)
 
         isInitialized = true
     end)

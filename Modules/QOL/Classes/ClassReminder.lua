@@ -113,20 +113,21 @@ local function PlayerHasAnyForm(formIndices)
     return false
 end
 
+local _cr_missing = {}
+
 local function CheckMissing()
+    wipe(_cr_missing)
     local db = GetDB()
-    if not db or not db.enabled then return {} end
+    if not db or not db.enabled then return _cr_missing end
 
     local data = CLASS_DATA[playerClass]
-    if not data then return {} end
-
-    local missing = {}
+    if not data then return _cr_missing end
 
     -- Check buffs
     if data.buffs then
         for _, buff in ipairs(data.buffs) do
             if not PlayerHasBuff(buff.spellIDs) then
-                table.insert(missing, L[buff.nameKey])
+                _cr_missing[#_cr_missing + 1] = L[buff.nameKey]
             end
         end
     end
@@ -139,12 +140,12 @@ local function CheckMissing()
                 matchSpec = false
             end
             if matchSpec and not PlayerHasAnyForm(form.formIndices) then
-                table.insert(missing, L[form.nameKey])
+                _cr_missing[#_cr_missing + 1] = L[form.nameKey]
             end
         end
     end
 
-    return missing
+    return _cr_missing
 end
 
 local function UpdateDisplay()

@@ -1,5 +1,40 @@
 ## ####################################
 
+## CHANGELOG 2.4.4
+
+#### Performance & GC Pressure Optimizations
+- **CooldownManager**: Pre-allocate reusable tables (`_cdm_visible`, `_cdm_buffVisible`, `_cdm_positions`) at module scope with `wipe()` instead of creating new tables every layout pass — eliminates ~30-60 ephemeral tables/sec in combat
+- **CooldownManager LayoutEngine**: Pre-allocate `_le_offsets` and `_le_rows` (with sub-table reuse) — eliminates ~16 table allocs per layout flush
+- **CoTankTracker**: Pre-allocate `_ctk_wantedSet` and `_ctk_found` tables, hoist sort comparator `SortBySpellId` — eliminates 3 allocs × 2/sec in combat
+- **ClassReminder**: Pre-allocate `_cr_missing` table with `wipe()` instead of allocating in `CheckMissing()` every tick
+- **Castbar**: Use `wipe(self._stageBoundaries)` instead of `= {}` for empowered casts; write stage data directly in-place instead of intermediate local table
+- **InfoPanel**: Replace per-frame `OnUpdate` throttle with `C_Timer.NewTicker(1, ...)` — eliminates ~60-144 unnecessary calls/sec
+- **ProfessionHelper**: Hoist sort closure to named module-scope function `SortItemsByQualityName`
+- **Nameplates**: Add safety cap (200 entries) on `questIconCache` to prevent unbounded growth in open world
+- Replace `table.insert(t, v)` with `t[#t + 1] = v` across hot paths (ClassReminder, ProfessionHelper, WorldQuestTab, CharacterSkin, MythicKeys)
+
+#### Chat Frame Skin — Redesign (QOL — Skins)
+- Complete visual overhaul matching the ObjectiveTracker panel style
+- Dark wrapper frame per chat window with 1px borders and teal accent line
+- Tab header bar with dark background and accent underline (like OT header)
+- Tabs: inactive grey text, active white text, teal accent underline on selected tab, teal hover highlight
+- Styled editbox with dark background and vertical teal accent bar on the left
+- Status line (bottom-right) showing message count and fade timer (e.g. "500 lines | 24s + 8s fade")
+- Periodic status updater (every 2s) keeps line count and fade info current
+- Hook on `FCF_DockUpdate` to resync skin positions when chat frames move
+- Visibility sync: skin frames show/hide with their parent chat frame
+
+#### Mythic+ Score Widget (Character Skin)
+- Displays the player's overall Mythic+ dungeon score in the top-left corner of the Character Frame
+- Dark panel styled to match ObjectiveTracker (dark background, 1px borders, accent line)
+- Score color dynamically adapts based on rating tier: orange (2500+), purple (2000+), blue (1500+), green (1000+), white (500+), grey (below 500)
+- Accent line color matches the score tier
+- Click to open/close the Great Vault (Weekly Rewards); auto-loads the Blizzard addon if needed
+- Tooltip on hover with score and "Click to open Great Vault" hint
+- Updates on Character Frame open, `CHALLENGE_MODE_COMPLETED`, and `PLAYER_ENTERING_WORLD`
+
+## ####################################
+
 ## CHANGELOG 2.4.3
 
 #### Class Reminder (QOL)

@@ -848,12 +848,12 @@ local function GetGemInfo(unit, slotId)
                     gemIcon = C_Item.GetItemIconByID(itemID)
                 end
             end
-            table.insert(gems, {
+            gems[#gems + 1] = {
                 link = gemLink,
                 icon = gemIcon,
                 type = gemSubType or "Prismatic",
                 filled = true,
-            })
+            }
         end
     end
 
@@ -864,12 +864,12 @@ local function GetGemInfo(unit, slotId)
     -- Add empty socket entries
     local emptySockets = totalSockets - filledCount
     for i = 1, emptySockets do
-        table.insert(gems, {
+        gems[#gems + 1] = {
             link = nil,
             icon = nil,
             type = "Empty",
             filled = false,
-        })
+        }
     end
 
     return gems, totalSockets
@@ -1475,6 +1475,133 @@ local function SkinCharacterFrame()
     local scale = GetSettings().scale or 1.0
     if scale ~= 1.0 then
         CharacterFrame:SetScale(scale)
+    end
+
+    -- ===== Mythic+ Score Widget (top-left corner) =====
+    do
+        local mplusFrame = CreateFrame("Button", "TomoMod_MythicScoreWidget", CharacterFrame)
+        mplusFrame:SetSize(110, 40)
+        mplusFrame:SetPoint("TOPLEFT", CharacterFrame, "TOPLEFT", 12, -28)
+        mplusFrame:SetFrameLevel(CharacterFrame:GetFrameLevel() + 10)
+
+        -- Background (dark panel, OT style)
+        local bg = mplusFrame:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bg:SetColorTexture(0.06, 0.06, 0.08, 0.90)
+
+        -- 1px border
+        for _, info in ipairs({
+            { "TOPLEFT", "TOPLEFT", "TOPRIGHT", "TOPRIGHT", nil, 1 },
+            { "BOTTOMLEFT", "BOTTOMLEFT", "BOTTOMRIGHT", "BOTTOMRIGHT", nil, 1 },
+            { "TOPLEFT", "TOPLEFT", "BOTTOMLEFT", "BOTTOMLEFT", 1, nil },
+            { "TOPRIGHT", "TOPRIGHT", "BOTTOMRIGHT", "BOTTOMRIGHT", 1, nil },
+        }) do
+            local t = mplusFrame:CreateTexture(nil, "BORDER")
+            t:SetColorTexture(0.25, 0.25, 0.30, 0.6)
+            t:SetPoint(info[1], mplusFrame, info[2])
+            t:SetPoint(info[3], mplusFrame, info[4])
+            if info[5] then t:SetWidth(info[5]) end
+            if info[6] then t:SetHeight(info[6]) end
+        end
+
+        -- Accent line at bottom
+        local accent = mplusFrame:CreateTexture(nil, "ARTWORK")
+        accent:SetHeight(1)
+        accent:SetPoint("BOTTOMLEFT", mplusFrame, "BOTTOMLEFT", 0, 0)
+        accent:SetPoint("BOTTOMRIGHT", mplusFrame, "BOTTOMRIGHT", 0, 0)
+        accent:SetColorTexture(0.05, 0.82, 0.62, 0.60)
+
+        -- Label
+        local label = mplusFrame:CreateFontString(nil, "OVERLAY")
+        label:SetFont(ADDON_FONT, 9, "OUTLINE")
+        label:SetPoint("TOP", mplusFrame, "TOP", 0, -4)
+        label:SetTextColor(0.55, 0.55, 0.60, 1)
+        label:SetText("M+ Score")
+
+        -- Score value
+        local scoreText = mplusFrame:CreateFontString(nil, "OVERLAY")
+        scoreText:SetFont(ADDON_FONT_BOLD, 16, "OUTLINE")
+        scoreText:SetPoint("TOP", label, "BOTTOM", 0, -2)
+        mplusFrame.scoreText = scoreText
+
+        -- Color thresholds for M+ score (matching Blizzard's tier colors)
+        local function GetScoreColor(score)
+            if score >= 2500 then return 1.00, 0.50, 0.00       -- orange (top)
+            elseif score >= 2000 then return 0.64, 0.21, 0.93   -- purple
+            elseif score >= 1500 then return 0.00, 0.44, 0.87   -- blue
+            elseif score >= 1000 then return 0.12, 1.00, 0.00   -- green
+            elseif score >= 500  then return 1.00, 1.00, 1.00   -- white
+            else return 0.62, 0.62, 0.62                         -- grey
+            end
+        end
+
+        local function UpdateMythicScore()
+            local score = 0
+            if C_ChallengeMode and C_ChallengeMode.GetOverallDungeonScore then
+                score = C_ChallengeMode.GetOverallDungeonScore() or 0
+            end
+
+            if score > 0 then
+                scoreText:SetText(score)
+                local r, g, b = GetScoreColor(score)
+                scoreText:SetTextColor(r, g, b, 1)
+                -- Also tint the accent line to match score color
+                accent:SetColorTexture(r, g, b, 0.60)
+                mplusFrame:Show()
+            else
+                scoreText:SetText("—")
+                scoreText:SetTextColor(0.40, 0.40, 0.40, 1)
+                accent:SetColorTexture(0.25, 0.25, 0.30, 0.40)
+                mplusFrame:Show()
+            end
+        end
+
+        -- Click: open Great Vault
+        mplusFrame:SetScript("OnClick", function()
+            if WeeklyRewardsFrame and WeeklyRewardsFrame:IsShown() then
+                HideUIPanel(WeeklyRewardsFrame)
+            else
+                if not C_AddOns.IsAddOnLoaded("Blizzard_WeeklyRewards") then
+                    C_AddOns.LoadAddOn("Blizzard_WeeklyRewards")
+                end
+                if WeeklyRewardsFrame then
+                    ShowUIPanel(WeeklyRewardsFrame)
+                end
+            end
+        end)
+
+        -- Tooltip on hover
+        mplusFrame:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText("Mythic+ Score", 0.05, 0.82, 0.62)
+            local score = 0
+            if C_ChallengeMode and C_ChallengeMode.GetOverallDungeonScore then
+                score = C_ChallengeMode.GetOverallDungeonScore() or 0
+            end
+            local r, g, b = GetScoreColor(score)
+            GameTooltip:AddLine(tostring(score), r, g, b)
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine("Click to open Great Vault", 0.55, 0.55, 0.60)
+            GameTooltip:Show()
+        end)
+        mplusFrame:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+
+        -- Update on show and events
+        UpdateMythicScore()
+        CharacterFrame:HookScript("OnShow", function()
+            C_Timer.After(0.2, UpdateMythicScore)
+        end)
+
+        local mplusEvFrame = CreateFrame("Frame")
+        mplusEvFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+        mplusEvFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+        mplusEvFrame:SetScript("OnEvent", function()
+            if CharacterFrame:IsShown() then
+                C_Timer.After(0.3, UpdateMythicScore)
+            end
+        end)
     end
 end
 

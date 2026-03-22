@@ -251,7 +251,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             self.stageOverlays[i]:SetAlpha(0)
             self.stageOverlays[i]:Hide()
         end
-        self._stageBoundaries = {}
+        if self._stageBoundaries then wipe(self._stageBoundaries) else self._stageBoundaries = {} end
         self._currentStage = 0
         self._empSpellName = nil
     end
@@ -283,15 +283,13 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
             if totalDuration <= 0 then return end
 
             local cumulative = 0
-            local boundaries = {}
 
             for stage = 0, self.numStages - 1 do
                 local stageDuration = GetUnitEmpowerStageDuration(self.unit, stage)
                 if not stageDuration or stageDuration <= 0 then break end
                 cumulative = cumulative + stageDuration
-                boundaries[stage + 1] = cumulative
+                self._stageBoundaries[stage + 1] = cumulative
 
-                -- Stage marker (vertical white line between stages)
                 if stage < self.numStages - 1 then
                     local pct = cumulative / totalDuration
                     local xPos = barWidth * pct
@@ -307,7 +305,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
                 -- Stage overlay (gradient color section)
                 local overlay = self.stageOverlays[stage + 1]
                 if overlay then
-                    local prevPct = (stage > 0 and boundaries[stage]) and (boundaries[stage] / totalDuration) or 0
+                    local prevPct = (stage > 0 and self._stageBoundaries[stage]) and (self._stageBoundaries[stage] / totalDuration) or 0
                     local curPct = cumulative / totalDuration
                     local xStart = barWidth * prevPct
                     local xEnd = barWidth * curPct
@@ -325,7 +323,7 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
                 end
             end
 
-            self._stageBoundaries = boundaries
+            -- _stageBoundaries already populated in-place
         end)
     end
 

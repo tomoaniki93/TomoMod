@@ -113,6 +113,13 @@ local function SortByLayoutIndex(a, b)
     return (a.layoutIndex or 0) < (b.layoutIndex or 0)
 end
 
+-- [PERF] Pre-allocated tables for hot-path layout functions
+local _cdm_visible = {}
+local _cdm_buffVisible = {}
+local _cdm_positions = {}
+local _le_offsets = {}
+local _le_rows = {}
+
 -- =====================================
 -- UTILS
 -- =====================================
@@ -164,39 +171,48 @@ end
 local LayoutEngine = {}
 
 function LayoutEngine.CenteredRowXOffsets(count, itemWidth, padding, directionMod, iconLimit)
-    if not count or count <= 0 then return {} end
+    if not count or count <= 0 then return _le_offsets end
     local dir = directionMod or 1
     local missing = (iconLimit or count) - count
     local startX = ((itemWidth + padding) * missing / 2) * dir
-    local offsets = {}
+    wipe(_le_offsets)
     for i = 1, count do
-        offsets[i] = startX + (i - 1) * (itemWidth + padding) * dir
+        _le_offsets[i] = startX + (i - 1) * (itemWidth + padding) * dir
     end
-    return offsets
+    return _le_offsets
 end
 
 function LayoutEngine.CenteredColYOffsets(count, itemHeight, padding, directionMod, iconLimit)
-    if not count or count <= 0 then return {} end
+    if not count or count <= 0 then return _le_offsets end
     local dir = directionMod or 1
     local missing = (iconLimit or count) - count
     local startY = -((itemHeight + padding) * missing / 2) * dir
-    local offsets = {}
+    wipe(_le_offsets)
     for i = 1, count do
-        offsets[i] = startY - (i - 1) * (itemHeight + padding) * dir
+        _le_offsets[i] = startY - (i - 1) * (itemHeight + padding) * dir
     end
-    return offsets
+    return _le_offsets
 end
 
 function LayoutEngine.BuildRows(iconLimit, children)
-    local rows = {}
+    -- Wipe sub-rows in-place to reuse them, then trim excess
+    for _, row in pairs(_le_rows) do wipe(row) end
     local limit = iconLimit or 0
-    if limit <= 0 then return rows end
+    if limit <= 0 then
+        -- Remove all rows
+        for k in pairs(_le_rows) do _le_rows[k] = nil end
+        return _le_rows
+    end
+    local maxRow = 0
     for i = 1, #children do
         local ri = floor((i - 1) / limit) + 1
-        rows[ri] = rows[ri] or {}
-        rows[ri][#rows[ri] + 1] = children[i]
+        if ri > maxRow then maxRow = ri end
+        _le_rows[ri] = _le_rows[ri] or {}
+        _le_rows[ri][#_le_rows[ri] + 1] = children[i]
     end
-    return rows
+    -- Trim rows beyond what we need
+    for k = maxRow + 1, #_le_rows do _le_rows[k] = nil end
+    return _le_rows
 end
 
 -- =====================================
@@ -551,26 +567,26 @@ local ViewerAdapters = {}
 
 function ViewerAdapters.CollectVisibleSorted(viewer)
     local children = GetCachedChildren(viewer)
-    local visible = {}
+    wipe(_cdm_visible)
     for _, child in ipairs(children) do
         if child:IsShown() and child.layoutIndex then
-            visible[#visible + 1] = child
+            _cdm_visible[#_cdm_visible + 1] = child
         end
     end
-    table.sort(visible, SortByLayoutIndex)
-    return visible
+    table.sort(_cdm_visible, SortByLayoutIndex)
+    return _cdm_visible
 end
 
 function ViewerAdapters.CollectVisibleBuffIcons()
-    if not BuffIconCooldownViewer then return {}, 0 end
+    if not BuffIconCooldownViewer then return _cdm_buffVisible, 0 end
     local children = GetCachedChildren(BuffIconCooldownViewer)
-    local visible = {}
+    wipe(_cdm_buffVisible)
     local total = 0
     for _, child in ipairs(children) do
         if child and (child.Icon or child.icon) and child.layoutIndex then
             total = total + 1
             if child:IsShown() then
-                visible[#visible + 1] = child
+                _cdm_buffVisible[#_cdm_buffVisible + 1] = child
                 -- Hook aura events for auto-relayout
                 if not child._cdm_hooked then
                     child._cdm_hooked = true
@@ -599,8 +615,8 @@ function ViewerAdapters.CollectVisibleBuffIcons()
             end
         end
     end
-    table.sort(visible, SortByLayoutIndex)
-    return visible, total
+    table.sort(_cdm_buffVisible, SortByLayoutIndex)
+    return _cdm_buffVisible, total
 end
 
 -- =====================================
@@ -687,26 +703,26 @@ local function LayoutViewer(viewer, isBuff)
     local isBar = (viewer == BuffBarCooldownViewer)
     if isBar then
         local children = GetCachedChildren(viewer)
-        local visible = {}
+        wipe(_cdm_visible)
         for _, child in ipairs(children) do
-            if child:IsShown() then visible[#visible + 1] = child end
+            if child:IsShown() then _cdm_visible[#_cdm_visible + 1] = child end
         end
-        if #visible == 0 then
+        if #_cdm_visible == 0 then
             viewer._cdm_nextSlot = nil
             for _, child in ipairs(children) do child._cdm_stableSlot = nil end
             return
         end
-        for _, item in ipairs(visible) do
+        for _, item in ipairs(_cdm_visible) do
             StyleBuffBar(item)
             if not item._cdm_stableSlot then
                 viewer._cdm_nextSlot = (viewer._cdm_nextSlot or 0) + 1
                 item._cdm_stableSlot = viewer._cdm_nextSlot
             end
         end
-        table.sort(visible, SortByStableSlot)
+        table.sort(_cdm_visible, SortByStableSlot)
         local BAR_GAP = 2
         local yOff = 0
-        for _, item in ipairs(visible) do
+        for _, item in ipairs(_cdm_visible) do
             local h = item:GetHeight()
             item:ClearAllPoints()
             item:SetPoint("TOPLEFT", viewer, "TOPLEFT", 0, -yOff)
@@ -747,23 +763,23 @@ local function LayoutViewer(viewer, isBuff)
         -- ======================================
         local numIcons = #visible
         local gap = padding
-        local positions = {}
+        wipe(_cdm_positions)
         for i = 1, numIcons do
             if i == 1 then
-                positions[i] = 0
+                _cdm_positions[i] = 0
             else
                 local slot = ceil((i - 1) / 2)
                 local isRight = ((i - 1) % 2 == 1)
                 if isRight then
-                    positions[i] = slot * (btnW + gap)
+                    _cdm_positions[i] = slot * (btnW + gap)
                 else
-                    positions[i] = -slot * (btnW + gap)
+                    _cdm_positions[i] = -slot * (btnW + gap)
                 end
             end
         end
         for i, child in ipairs(visible) do
             child:ClearAllPoints()
-            child:SetPoint("TOP", viewer, "TOP", positions[i], 0)
+            child:SetPoint("TOP", viewer, "TOP", _cdm_positions[i], 0)
         end
     else
         -- ======================================

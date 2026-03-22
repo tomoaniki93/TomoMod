@@ -88,7 +88,7 @@ local function GetGroupMembers()
 
     if not IsInGroup() then
         local _, classFile = UnitClass("player")
-        table.insert(members, { name = myName, unit = "player", classFile = classFile })
+        members[#members + 1] = { name = myName, unit = "player", classFile = classFile }
         return members
     end
 
@@ -105,7 +105,7 @@ local function GetGroupMembers()
             if name and not added[name] then
                 added[name] = true
                 local _, classFile = UnitClass(unit)
-                table.insert(members, { name = name, unit = unit, classFile = classFile })
+                members[#members + 1] = { name = name, unit = unit, classFile = classFile }
             end
         end
         if #members >= MAX_MEMBERS then break end
@@ -113,7 +113,7 @@ local function GetGroupMembers()
 
     if not added[myName] and #members < MAX_MEMBERS then
         local _, classFile = UnitClass("player")
-        table.insert(members, { name = myName, unit = "player", classFile = classFile })
+        members[#members + 1] = { name = myName, unit = "player", classFile = classFile }
     end
 
     return members
