@@ -141,6 +141,36 @@ local function BuildEntries()
                 and TomoModDB.unitFrames.player.castbar.enabled
         end,
     })
+    table.insert(moduleEntries, {
+        label    = L["mover_mythictracker"],
+        unlock   = function()
+            if TomoMod_MythicTracker then
+                TomoMod_MythicTracker:SetMovable(true)
+                if not TomoMod_MythicTracker.Frame then
+                    TomoMod_MythicTracker:BuildFrame()
+                    local db = TomoModDB and TomoModDB.MythicTracker
+                    if db then
+                        local p = db.position
+                        TomoMod_MythicTracker.Frame:ClearAllPoints()
+                        TomoMod_MythicTracker.Frame:SetPoint(p.anchor, UIParent, p.relTo, p.x, p.y)
+                        TomoMod_MythicTracker.Frame:SetScale(db.scale)
+                    end
+                end
+                TomoMod_MythicTracker:Preview()
+            end
+        end,
+        lock     = function()
+            if TomoMod_MythicTracker then
+                TomoMod_MythicTracker:SetMovable(false)
+                if TomoMod_MythicTracker.Frame and not C_ChallengeMode.IsChallengeModeActive() then
+                    TomoMod_MythicTracker:HideFrame()
+                end
+            end
+        end,
+        isActive = function()
+            return TomoModDB and TomoModDB.MythicTracker and TomoModDB.MythicTracker.enabled
+        end,
+    })
 end
 
 -- =====================================

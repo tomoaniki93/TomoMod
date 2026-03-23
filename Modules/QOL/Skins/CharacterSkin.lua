@@ -1556,17 +1556,10 @@ local function SkinCharacterFrame()
             end
         end
 
-        -- Click: open Great Vault
+        -- Click: open MythicHub panel
         mplusFrame:SetScript("OnClick", function()
-            if WeeklyRewardsFrame and WeeklyRewardsFrame:IsShown() then
-                HideUIPanel(WeeklyRewardsFrame)
-            else
-                if not C_AddOns.IsAddOnLoaded("Blizzard_WeeklyRewards") then
-                    C_AddOns.LoadAddOn("Blizzard_WeeklyRewards")
-                end
-                if WeeklyRewardsFrame then
-                    ShowUIPanel(WeeklyRewardsFrame)
-                end
+            if TomoMod_MythicHub then
+                TomoMod_MythicHub:Toggle()
             end
         end)
 
@@ -1581,7 +1574,7 @@ local function SkinCharacterFrame()
             local r, g, b = GetScoreColor(score)
             GameTooltip:AddLine(tostring(score), r, g, b)
             GameTooltip:AddLine(" ")
-            GameTooltip:AddLine("Click to open Great Vault", 0.55, 0.55, 0.60)
+            GameTooltip:AddLine("Click to open Mythic+ Hub", 0.55, 0.55, 0.60)
             GameTooltip:Show()
         end)
         mplusFrame:SetScript("OnLeave", function()
