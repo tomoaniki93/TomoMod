@@ -61,9 +61,10 @@ local CLASS_DATA = {
         },
     },
     PALADIN = {
-        buffs = {
+        forms = {
             -- Devotion Aura / Crusader Aura / Concentration Aura / Retribution Aura
-            { nameKey = "cr_aura", spellIDs = { 465, 32223, 317920, 183435 } },
+            -- Paladin auras use the shapeshift form system, not player buffs
+            { nameKey = "cr_aura", formIndices = { 1, 2, 3, 4, 5, 6, 7 } },
         },
     },
     EVOKER = {

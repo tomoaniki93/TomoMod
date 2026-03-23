@@ -132,9 +132,7 @@ local function SkinChatTab(tab)
     if not tab or skinnedTabs[tab] then return end
     skinnedTabs[tab] = true
 
-    -- Strip Blizzard tab textures
-    StripTextures(tab)
-
+    -- Strip only Blizzard tab background textures (NOT the FontString)
     for _, key in ipairs({ "leftTexture", "middleTexture", "rightTexture",
                            "leftSelectedTexture", "middleSelectedTexture", "rightSelectedTexture",
                            "leftHighlightTexture", "middleHighlightTexture", "rightHighlightTexture" }) do
@@ -148,11 +146,27 @@ local function SkinChatTab(tab)
     if tab.GetMiddleTexture then pcall(function() tab:GetMiddleTexture():SetAlpha(0) end) end
     if tab.GetRightTexture then pcall(function() tab:GetRightTexture():SetAlpha(0) end) end
 
-    -- Tab text with bold font
+    -- Strip remaining background textures but preserve the fontstring
+    if tab.GetRegions then
+        for _, region in pairs({ tab:GetRegions() }) do
+            if region:IsObjectType("Texture") then
+                region:SetTexture(nil)
+                region:SetAlpha(0)
+                region:Hide()
+            end
+        end
+    end
+
+    -- Tab text with bold font — force visible
     local text = tab.Text or tab:GetFontString()
-    if text and text.SetFont then
+    if text then
         local s = S()
-        text:SetFont(ADDON_FONT_BOLD, (s.fontSize or 13) - 2, "OUTLINE")
+        if text.SetFont then
+            text:SetFont(ADDON_FONT_BOLD, (s.fontSize or 13) - 1, "OUTLINE")
+        end
+        text:SetAlpha(1)
+        text:Show()
+        text:SetDrawLayer("OVERLAY")
     end
 
     -- Accent underline (like OT header accent)
@@ -180,14 +194,25 @@ local function SkinChatTab(tab)
         end)
     end
 
-    -- Hook SetAlpha to track selection state
+    -- Hook SetAlpha: Blizzard fades inactive tabs to very low alpha (0.2-0.4),
+    -- which makes all children (including text) nearly invisible.
+    -- We force tab alpha to 1.0 and handle active/inactive purely via text color.
     if not tab._tmAlphaHooked then
         tab._tmAlphaHooked = true
-        hooksecurefunc(tab, "SetAlpha", function(self)
-            local a = self:GetAlpha()
-            UpdateTabVisuals(self, a >= 0.9)
+        hooksecurefunc(tab, "SetAlpha", function(self, a)
+            -- Blizzard sets ~1.0 for selected, lower for unselected
+            local isSelected = (a or self:GetAlpha()) >= 0.9
+            UpdateTabVisuals(self, isSelected)
+            -- Force tab to stay fully opaque so text is always readable
+            if self:GetAlpha() < 1 then
+                self:SetAlpha(1)
+            end
         end)
     end
+
+    -- Force initial alpha to 1
+    tab:SetAlpha(1)
+    UpdateTabVisuals(tab, tab == _G["ChatFrame1Tab"])
 end
 
 -- =====================================
@@ -240,6 +265,15 @@ local function SkinEditBox(editBox)
     local header = editBox.header or _G[editBox:GetName() and (editBox:GetName() .. "Header")]
     if header and header.SetFont then
         header:SetFont(ADDON_FONT_BOLD, s.fontSize or 13, "OUTLINE")
+    end
+
+    -- Reposition editbox to align properly with the skinned chat frame
+    editBox:ClearAllPoints()
+    local chatFrameName = editBox:GetName() and editBox:GetName():gsub("EditBox$", "")
+    local chatFrame = chatFrameName and _G[chatFrameName]
+    if chatFrame then
+        editBox:SetPoint("TOPLEFT", chatFrame, "BOTTOMLEFT", -8, -2)
+        editBox:SetPoint("TOPRIGHT", chatFrame, "BOTTOMRIGHT", 8, -2)
     end
 end
 
@@ -296,8 +330,8 @@ local function SkinChatFrame(chatFrame)
     local name = chatFrame:GetName()
     local idx = name and tonumber(name:match("ChatFrame(%d+)")) or 0
 
-    -- Strip background textures
-    StripTextures(chatFrame)
+    -- Strip only the background (NOT StripTextures on the chatFrame itself,
+    -- as that kills internal ScrollingMessageFrame textures used for text rendering)
     KillNineSlice(chatFrame)
 
     local bg = chatFrame.Background or (name and _G[name .. "Background"])
@@ -329,8 +363,8 @@ local function SkinChatFrame(chatFrame)
 
     if not skinData.skinFrame then
         local sf = CreateFrame("Frame", "TomoMod_ChatSkin" .. idx, UIParent)
-        sf:SetFrameStrata(chatFrame:GetFrameStrata())
-        sf:SetFrameLevel(math.max(chatFrame:GetFrameLevel() - 1, 0))
+        sf:SetFrameStrata("BACKGROUND")
+        sf:SetFrameLevel(0)
 
         -- Background
         local sfBG = sf:CreateTexture(nil, "BACKGROUND")
@@ -374,7 +408,12 @@ local function SkinChatFrame(chatFrame)
     CreateStatusLine(skinData)
     UpdateStatusLine(chatFrame, skinData)
 
-    sf:Show()
+    -- Only show the skin frame if this chat frame is actually visible
+    if chatFrame:IsVisible() then
+        sf:Show()
+    else
+        sf:Hide()
+    end
 
     -- Hide chat buttons
     local buttonFrame = name and _G[name .. "ButtonFrame"]
@@ -389,9 +428,12 @@ local function SkinChatFrame(chatFrame)
         SkinEditBox(editBox)
     end
 
-    -- Apply chat font
-    if chatFrame.SetFont then
-        chatFrame:SetFont(ADDON_FONT, s.fontSize or 13, "")
+    -- Apply chat font safely — preserve flags and use SetFont on the fontObject
+    -- to avoid breaking existing message rendering in the ScrollingMessageFrame
+    local fontObj = chatFrame:GetFontObject()
+    if fontObj then
+        local _, _, flags = fontObj:GetFont()
+        fontObj:SetFont(ADDON_FONT, s.fontSize or 13, flags or "")
     end
 
     -- Hook visibility to sync skin frame
@@ -422,14 +464,22 @@ local function SkinAllChatFrames()
             local skinData = frameSkins[i]
             if skinData and skinData.skinFrame then
                 skinData.skinFrame.bg:SetColorTexture(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], s.bgAlpha or 0.70)
-                if chatFrame.SetFont then
-                    chatFrame:SetFont(ADDON_FONT, s.fontSize or 13, "")
+                local fontObj = chatFrame:GetFontObject()
+                if fontObj then
+                    local _, _, flags = fontObj:GetFont()
+                    fontObj:SetFont(ADDON_FONT, s.fontSize or 13, flags or "")
                 end
                 UpdateStatusLine(chatFrame, skinData)
                 -- Sync position
                 skinData.skinFrame:ClearAllPoints()
                 skinData.skinFrame:SetPoint("TOPLEFT", chatFrame, "TOPLEFT", -8, 26)
                 skinData.skinFrame:SetPoint("BOTTOMRIGHT", chatFrame, "BOTTOMRIGHT", 8, -8)
+                -- Only show if chat frame is actually visible
+                if chatFrame:IsVisible() then
+                    skinData.skinFrame:Show()
+                else
+                    skinData.skinFrame:Hide()
+                end
             end
         end
 
