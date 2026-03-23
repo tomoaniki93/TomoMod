@@ -1,5 +1,45 @@
 ## ####################################
 
+## CHANGELOG 2.4.5
+
+#### MythicHub — Mythic+ Overview Panel (Mythic+ Category)
+- Custom Mythic+ Hub panel replacing the default Great Vault shortcut on CharacterFrame
+- Overall M+ rating displayed prominently at top with tier-based coloring
+- Season dungeon table: icon, name, key level, rating, and best time for each dungeon
+- Clickable dungeon icons to cast teleport spell (if learned) directly from the panel
+- Fortified/Tyrannical best scores shown per dungeon via `C_MythicPlus.GetSeasonBestAffixScoreInfoForMap()`
+- Great Vault section with 9 slots (3×3 grid): Dungeons, Raids, World activities
+- Vault slots show reward status (locked/unlocked/completed) with item level tooltips via `C_WeeklyRewards` API
+- Dark/teal themed UI consistent with TomoMod aesthetic
+- Anchored to CharacterFrame, toggled via the M+ score widget click
+- Slash commands: `/tm mhub` or `/tm mythichub`
+- Full localization (enUS + frFR)
+
+#### TomoScore — Dungeon Scoreboard (Mythic+ Category)
+- End-of-dungeon scoreboard showing damage, healing, interrupts and M+ rating for all group members
+- Uses the Midnight `C_DamageMeter` API for data collection (no CLEU parsing)
+- Auto-shows after Mythic+ completion (`CHALLENGE_MODE_COMPLETED`) and Mythic 0 last boss kill (via scenario tracking)
+- Dark/teal themed UI matching TomoMod's aesthetic: accent strip, proportional stat bars, role-based bar colors
+- Supports up to 40 players (raid-safe), sorted by role (Tank → Healer → DPS) then by damage
+- Rating color tiers: orange (2500+), teal (2000+), blue (1500+), green (1000+), grey (below)
+- Footer row with group totals and average M+ rating
+- Draggable frame with saved position, scale, and opacity
+- Config panel integrated into the Mythic+ category: enable/disable, auto-show toggles (M+ and M0 separately), scale/alpha sliders, preview, show last run, reset position
+- Slash commands: `/tm score` (preview), `/tm score last` (show last run)
+- Saves last run data to `TomoModDB.TomoScore.lastRun` for recall after logout
+- Full localization (enUS + frFR)
+
+#### Mythic+ Tracker — Config GUI Integration
+- Integrated the Mythic+ Tracker settings into TomoMod's main Config panel as a new "Mythic Plus" category with a dedicated sidebar icon
+- Full config panel with Enable/Display/Frame/Actions sections: toggle tracker, show/hide timer, forces, bosses, Blizzard overlay, lock frame, scale/alpha sliders, preview and reset position buttons
+- `/tmt` slash command now opens the integrated Config GUI at the Mythic Plus category instead of the standalone config panel
+
+#### Mythic+ Tracker — Movers/Layout Integration
+- Registered MythicTracker in the Movers/Layout system so the frame can be positioned via `/tm unlock`
+- Unlock shows a preview of the tracker frame; lock hides it when not in an active M+ dungeon
+
+## ####################################
+
 ## CHANGELOG 2.4.4
 
 #### Performance & GC Pressure Optimizations

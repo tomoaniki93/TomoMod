@@ -53,6 +53,18 @@ SlashCmdList["TOMOMOD"] = function(msg)
     elseif msg == "key" then
         TomoMod_EnableModule("MythicKeys")
         if MK then MK:Toggle() end
+    elseif msg == "score" or msg == "tscore" then
+        if TomoMod_TomoScore then
+            TomoMod_TomoScore:ShowPreview()
+        end
+    elseif msg == "score last" then
+        if TomoMod_TomoScore then
+            TomoMod_TomoScore:ShowLastRun()
+        end
+    elseif msg == "mhub" or msg == "mythichub" then
+        if TomoMod_MythicHub then
+            TomoMod_MythicHub:Toggle()
+        end
     elseif msg == "skyride" then
         TomoMod_ResetModule("skyRide")
         if TomoMod_SkyRide then

@@ -31,6 +31,7 @@ local categories = {
     { key = "actionbars", label = L["cat_action_bars"], icon = ICON_PATH .. "icon_actionbars.tga",  builder = "TomoMod_ConfigPanel_ActionBars" },
     { key = "sound",      label = L["cat_sound"],       icon = ICON_PATH .. "icon_sound.tga",       builder = "TomoMod_ConfigPanel_Sound" },
     { key = "qol",        label = L["cat_qol"],         icon = ICON_PATH .. "icon_qol.tga",         builder = "TomoMod_ConfigPanel_QOL" },
+    { key = "mythicplus", label = L["cat_mythicplus"],  icon = ICON_PATH .. "icon_mythicplus.tga",  builder = "TomoMod_ConfigPanel_MythicPlus" },
     { key = "profiles",   label = L["cat_profiles"],    icon = ICON_PATH .. "icon_profiles.tga",    builder = "TomoMod_ConfigPanel_Profiles" },
 }
 
@@ -105,7 +106,7 @@ local function CreateConfigFrame()
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -1)
     versionText:SetTextColor(unpack(T.textDim))
-    versionText:SetText("v2.4.4")
+    versionText:SetText("v2.4.5")
 
     -- =====================================
     -- RELOAD UI BUTTON (↺)  — positioned after close is created

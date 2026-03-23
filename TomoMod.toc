@@ -1,13 +1,13 @@
 ## Interface: 120005, 120001, 120000
 ## 
 ## Title: |cff0cd29fTomo|rMod
-## Notes: Lite interface and code with QOL and UnitFrame.
+## Notes: Interface and code with QOL and UnitFrame.
 ## Category: |cff0cd29fHUD|r
 ## 
 ## SavedVariables: TomoModDB
 ## X-Curse-Project-ID: 1446255
 ## Author: TomoAniki
-## Version: 2.4.4
+## Version: 2.4.5
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -45,6 +45,7 @@ Config\Panels\CooldownResource.lua
 Config\Panels\QOL.lua
 Config\Panels\Sound.lua
 Config\Panels\ActionBars.lua
+Config\Panels\MythicPlus.lua
 Config\Panels\Profiles.lua
 Config\ConfigUI.lua
 

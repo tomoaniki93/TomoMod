@@ -4,4 +4,5 @@
     <include file="Libs\libserialize\embeds.xml"/>
     <Script file="Libs\libserialize\serializer.lua"/>
     <include file="Libs\LibDeflate\lib.xml"/>
+    <include file="Libs\LibOpenRaid\lib.xml"/>
 </Ui>
