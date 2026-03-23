@@ -12,13 +12,14 @@ TomoMod_RegisterLocale("deDE", {
     ["cat_nameplates"]      = "Nameplates",
     ["cat_cd_resource"]     = "CD & Ressourcen",
     ["cat_qol"]             = "Lebensqualität",
+    ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Profile",
 
     -- =====================
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Über",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.4 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.5 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
     ["section_general"]                 = "Allgemein",
     ["btn_reset_all"]                   = "Alles zurücksetzen",
     ["info_reset_all"]                  = "Dies setzt ALLE Einstellungen zurück und lädt die Oberfläche neu.",
@@ -843,6 +844,7 @@ TomoMod_RegisterLocale("deDE", {
     ["mover_cotank"]                    = "Co-Tank-Tracker",
     ["mover_repbar"]                    = "Rufleiste",
     ["mover_castbar"]                   = "Spieler-Zauberleiste",
+    ["mover_mythictracker"]             = "M+ Tracker",
 
     -- =====================
     -- COMBAT TEXT
@@ -956,4 +958,58 @@ TomoMod_RegisterLocale("deDE", {
     ["cr_stance"]                        = "Haltung",
     ["cr_aura"]                          = "Aura",
     ["cr_blessing_bronze"]               = "Segen der Bronze",
+
+    -- =====================
+    -- MYTHIC TRACKER (TomoMythic integration)
+    -- =====================
+    ["tmt_cmd_usage"]               = "|cFF55B400/tmt|r : Einstellungen  |  |cFF55B400unlock|r : verschieben  |  |cFF55B400lock|r : sperren  |  |cFF55B400preview|r : Vorschau  |  |cFF55B400key|r : Gruppenschlüssel  |  |cFF55B400kr|r : Roulette",
+    ["tmt_unlock_msg"]              = "|cff0cd29fTomoMod|r M+ Tracker: Rahmen entsperrt \226\128\148 ziehen zum Verschieben.",
+    ["tmt_lock_msg"]                = "|cff0cd29fTomoMod|r M+ Tracker: Rahmen gesperrt.",
+    ["tmt_reset_msg"]               = "|cff0cd29fTomoMod|r M+ Tracker: Position zurückgesetzt.",
+    ["tmt_unknown_cmd"]             = "|cff0cd29fTomoMod|r M+ Tracker: Unbekannter Befehl.",
+    ["tmt_key_level"]               = "+%d",
+    ["tmt_dungeon_unknown"]         = "Mythisch+",
+    ["tmt_overtime"]                = "ÜBERZOGEN",
+    ["tmt_completed_on_time"]       = "ABGESCHLOSSEN",
+    ["tmt_completed_depleted"]      = "GESCHEITERT",
+    ["tmt_forces"]                  = "KRÄFTE",
+    ["tmt_forces_done"]             = "KOMPLETT",
+    ["tmt_forces_pct"]              = "%.1f%%",
+    ["tmt_forces_count"]            = "%d / %d",
+    ["tmt_cfg_title"]               = "Mythic",
+    ["tmt_cfg_panel_enable"]         = "M+ Tracker aktivieren",
+    ["tmt_cfg_show_timer"]          = "Timerleiste anzeigen",
+    ["tmt_cfg_show_forces"]         = "Feindkräfte anzeigen",
+    ["tmt_cfg_show_bosses"]         = "Boss-Timer anzeigen",
+    ["tmt_cfg_hide_blizzard"]       = "Blizzard-Tracker ausblenden",
+    ["tmt_cfg_lock"]                = "Rahmen sperren",
+    ["tmt_cfg_scale"]               = "Skalierung",
+    ["tmt_cfg_alpha"]               = "Hintergrundtransparenz",
+    ["tmt_cfg_reset_pos"]           = "Position zurücksetzen",
+    ["tmt_cfg_preview"]             = "Vorschau",
+    ["tmt_cfg_section_display"]     = "Anzeige",
+    ["tmt_cfg_section_frame"]       = "Rahmen",
+    ["tmt_cfg_section_actions"]     = "Aktionen",
+    ["tmt_key_not_available"]       = "nicht verfügbar.",
+    ["tmt_key_not_in_group"]        = "Du bist in keiner Gruppe.",
+    ["tmt_key_none_found"]          = "Keine Schlüsselsteine gefunden.",
+    ["tmt_kr_spin"]                 = "|TInterface\\Icons\\INV_Misc_Dice_02:14|t  Drehen!",
+    ["tmt_preview_active"]          = "|cff0cd29fTomoMod|r M+ Tracker: Vorschau aktiv \226\128\148 |cFF55B400/tmt lock|r zum Sperren.",
+
+    -- MythicHub
+    ["mhub_title"]                  = "Mythisch+ Wertung",
+    ["mhub_col_dungeon"]            = "Dungeon",
+    ["mhub_col_level"]              = "Stufe",
+    ["mhub_col_rating"]             = "Wertung",
+    ["mhub_col_best"]               = "Beste",
+    ["mhub_tp_click"]               = "Klicke zum Teleportieren",
+    ["mhub_tp_not_available"]        = "Teleport nicht gelernt",
+    ["mhub_tp_not_learned"]          = "|cff0cd29fTomoMod|r: Teleportzauber nicht gelernt.",
+    ["mhub_vault_title"]            = "Die Gro\195\159e Schatzkammer",
+    ["mhub_vault_dungeons"]         = "Dungeons",
+    ["mhub_vault_raids"]            = "Schlachtz\195\188ge",
+    ["mhub_vault_world"]            = "Tiefen",
+    ["mhub_vault_ilvl"]             = "Gegenstandsstufe",
+    ["mhub_vault_locked"]           = "Gesperrt",
+    ["mhub_vault_claim"]            = "Kehre zur Gro\195\159en Schatzkammer zur\195\188ck, um deine Belohnung abzuholen",
 })

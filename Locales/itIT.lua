@@ -12,13 +12,14 @@ TomoMod_RegisterLocale("itIT", {
     ["cat_nameplates"]      = "Nameplates",
     ["cat_cd_resource"]     = "CD e Risorse",
     ["cat_qol"]             = "Qualità della vita",
+    ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Profili",
 
     -- =====================
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Informazioni",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.4 di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.5 di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
     ["section_general"]                 = "Generale",
     ["btn_reset_all"]                   = "Ripristina tutto",
     ["info_reset_all"]                  = "Questo ripristinerà TUTTE le impostazioni e ricaricherà l'interfaccia.",
@@ -843,6 +844,7 @@ TomoMod_RegisterLocale("itIT", {
     ["mover_cotank"]                    = "Tracciatore Co-Tank",
     ["mover_repbar"]                    = "Barra reputazione",
     ["mover_castbar"]                   = "Barra di lancio (giocatore)",
+    ["mover_mythictracker"]             = "Tracker M+",
 
     -- =====================
     -- COMBAT TEXT
@@ -956,4 +958,58 @@ TomoMod_RegisterLocale("itIT", {
     ["cr_stance"]                        = "Postura",
     ["cr_aura"]                          = "Aura",
     ["cr_blessing_bronze"]               = "Benedizione del Bronzo",
+
+    -- =====================
+    -- MYTHIC TRACKER (TomoMythic integration)
+    -- =====================
+    ["tmt_cmd_usage"]               = "|cFF55B400/tmt|r : configurazione  |  |cFF55B400unlock|r : sposta  |  |cFF55B400lock|r : blocca  |  |cFF55B400preview|r : anteprima  |  |cFF55B400key|r : chiavi del gruppo  |  |cFF55B400kr|r : roulette",
+    ["tmt_unlock_msg"]              = "|cff0cd29fTomoMod|r M+ Tracker: Riquadro sbloccato \226\128\148 trascina per riposizionare.",
+    ["tmt_lock_msg"]                = "|cff0cd29fTomoMod|r M+ Tracker: Riquadro bloccato.",
+    ["tmt_reset_msg"]               = "|cff0cd29fTomoMod|r M+ Tracker: Posizione reimpostata.",
+    ["tmt_unknown_cmd"]             = "|cff0cd29fTomoMod|r M+ Tracker: Comando sconosciuto.",
+    ["tmt_key_level"]               = "+%d",
+    ["tmt_dungeon_unknown"]         = "Mitico+",
+    ["tmt_overtime"]                = "TEMPO SCADUTO",
+    ["tmt_completed_on_time"]       = "COMPLETATO",
+    ["tmt_completed_depleted"]      = "FALLITO",
+    ["tmt_forces"]                  = "FORZE",
+    ["tmt_forces_done"]             = "COMPLETO",
+    ["tmt_forces_pct"]              = "%.1f%%",
+    ["tmt_forces_count"]            = "%d / %d",
+    ["tmt_cfg_title"]               = "Mythic",
+    ["tmt_cfg_panel_enable"]         = "Abilita tracker M+",
+    ["tmt_cfg_show_timer"]          = "Mostra barra del timer",
+    ["tmt_cfg_show_forces"]         = "Mostra forze nemiche",
+    ["tmt_cfg_show_bosses"]         = "Mostra timer dei boss",
+    ["tmt_cfg_hide_blizzard"]       = "Nascondi tracker di Blizzard",
+    ["tmt_cfg_lock"]                = "Blocca riquadro",
+    ["tmt_cfg_scale"]               = "Scala",
+    ["tmt_cfg_alpha"]               = "Opacità sfondo",
+    ["tmt_cfg_reset_pos"]           = "Reimposta posizione",
+    ["tmt_cfg_preview"]             = "Anteprima",
+    ["tmt_cfg_section_display"]     = "Visualizzazione",
+    ["tmt_cfg_section_frame"]       = "Riquadro",
+    ["tmt_cfg_section_actions"]     = "Azioni",
+    ["tmt_key_not_available"]       = "non disponibile.",
+    ["tmt_key_not_in_group"]        = "Non sei in un gruppo.",
+    ["tmt_key_none_found"]          = "Nessuna chiave trovata.",
+    ["tmt_kr_spin"]                 = "|TInterface\\Icons\\INV_Misc_Dice_02:14|t  Gira!",
+    ["tmt_preview_active"]          = "|cff0cd29fTomoMod|r M+ Tracker: Anteprima attiva \226\128\148 |cFF55B400/tmt lock|r per bloccare.",
+
+    -- MythicHub
+    ["mhub_title"]                  = "Punteggio Mitica+",
+    ["mhub_col_dungeon"]            = "Spedizione",
+    ["mhub_col_level"]              = "Livello",
+    ["mhub_col_rating"]             = "Punteggio",
+    ["mhub_col_best"]               = "Migliore",
+    ["mhub_tp_click"]               = "Clicca per teletrasportarti",
+    ["mhub_tp_not_available"]        = "Teletrasporto non appreso",
+    ["mhub_tp_not_learned"]          = "|cff0cd29fTomoMod|r: Incantesimo di teletrasporto non appreso.",
+    ["mhub_vault_title"]            = "Grande Camera Blindata",
+    ["mhub_vault_dungeons"]         = "Spedizioni",
+    ["mhub_vault_raids"]            = "Incursioni",
+    ["mhub_vault_world"]            = "Abissi",
+    ["mhub_vault_ilvl"]             = "Livello oggetto",
+    ["mhub_vault_locked"]           = "Bloccato",
+    ["mhub_vault_claim"]            = "Torna alla Grande Camera Blindata per riscuotere la tua ricompensa",
 })

@@ -12,13 +12,14 @@ TomoMod_RegisterLocale("esES", {
     ["cat_nameplates"]      = "Nameplates",
     ["cat_cd_resource"]     = "CD y Recursos",
     ["cat_qol"]             = "Calidad de vida",
+    ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Perfiles",
 
     -- =====================
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Acerca de",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.4 por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.5 por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reiniciar todo",
     ["info_reset_all"]                  = "Esto reiniciará TODOS los ajustes y recargará la interfaz.",
@@ -843,6 +844,7 @@ TomoMod_RegisterLocale("esES", {
     ["mover_cotank"]                    = "Rastreador de Co-Tank",
     ["mover_repbar"]                    = "Barra de reputación",
     ["mover_castbar"]                   = "Barra de lanzamiento (jugador)",
+    ["mover_mythictracker"]             = "Tracker M+",
 
     -- =====================
     -- COMBAT TEXT
@@ -956,4 +958,58 @@ TomoMod_RegisterLocale("esES", {
     ["cr_stance"]                        = "Postura",
     ["cr_aura"]                          = "Aura",
     ["cr_blessing_bronze"]               = "Bendición del Bronce",
+
+    -- =====================
+    -- MYTHIC TRACKER (TomoMythic integration)
+    -- =====================
+    ["tmt_cmd_usage"]               = "|cFF55B400/tmt|r : configuración  |  |cFF55B400unlock|r : mover  |  |cFF55B400lock|r : bloquear  |  |cFF55B400preview|r : vista previa  |  |cFF55B400key|r : llaves del grupo  |  |cFF55B400kr|r : ruleta",
+    ["tmt_unlock_msg"]              = "|cff0cd29fTomoMod|r M+ Tracker: Marco desbloqueado \226\128\148 arrastra para reposicionar.",
+    ["tmt_lock_msg"]                = "|cff0cd29fTomoMod|r M+ Tracker: Marco bloqueado.",
+    ["tmt_reset_msg"]               = "|cff0cd29fTomoMod|r M+ Tracker: Posición reiniciada.",
+    ["tmt_unknown_cmd"]             = "|cff0cd29fTomoMod|r M+ Tracker: Comando desconocido.",
+    ["tmt_key_level"]               = "+%d",
+    ["tmt_dungeon_unknown"]         = "Mítico+",
+    ["tmt_overtime"]                = "TIEMPO AGOTADO",
+    ["tmt_completed_on_time"]       = "COMPLETADO",
+    ["tmt_completed_depleted"]      = "FRACASADO",
+    ["tmt_forces"]                  = "FUERZAS",
+    ["tmt_forces_done"]             = "COMPLETO",
+    ["tmt_forces_pct"]              = "%.1f%%",
+    ["tmt_forces_count"]            = "%d / %d",
+    ["tmt_cfg_title"]               = "Mythic",
+    ["tmt_cfg_panel_enable"]         = "Activar tracker M+",
+    ["tmt_cfg_show_timer"]          = "Mostrar barra de tiempo",
+    ["tmt_cfg_show_forces"]         = "Mostrar fuerzas enemigas",
+    ["tmt_cfg_show_bosses"]         = "Mostrar temporizadores de jefe",
+    ["tmt_cfg_hide_blizzard"]       = "Ocultar rastreador de Blizzard",
+    ["tmt_cfg_lock"]                = "Bloquear marco",
+    ["tmt_cfg_scale"]               = "Escala",
+    ["tmt_cfg_alpha"]               = "Opacidad de fondo",
+    ["tmt_cfg_reset_pos"]           = "Reiniciar posición",
+    ["tmt_cfg_preview"]             = "Vista previa",
+    ["tmt_cfg_section_display"]     = "Pantalla",
+    ["tmt_cfg_section_frame"]       = "Marco",
+    ["tmt_cfg_section_actions"]     = "Acciones",
+    ["tmt_key_not_available"]       = "no disponible.",
+    ["tmt_key_not_in_group"]        = "No estás en un grupo.",
+    ["tmt_key_none_found"]          = "No se encontraron piedras angulares.",
+    ["tmt_kr_spin"]                 = "|TInterface\\Icons\\INV_Misc_Dice_02:14|t  ¡Girar!",
+    ["tmt_preview_active"]          = "|cff0cd29fTomoMod|r M+ Tracker: Vista previa activa \226\128\148 |cFF55B400/tmt lock|r para bloquear.",
+
+    -- MythicHub
+    ["mhub_title"]                  = "Puntuaci\195\179n M\195\173tica+",
+    ["mhub_col_dungeon"]            = "Mazmorra",
+    ["mhub_col_level"]              = "Nivel",
+    ["mhub_col_rating"]             = "Puntuaci\195\179n",
+    ["mhub_col_best"]               = "Mejor",
+    ["mhub_tp_click"]               = "Clic para teletransportarte",
+    ["mhub_tp_not_available"]        = "Teletransporte no aprendido",
+    ["mhub_tp_not_learned"]          = "|cff0cd29fTomoMod|r: Hechizo de teletransporte no aprendido.",
+    ["mhub_vault_title"]            = "Gran C\195\161mara",
+    ["mhub_vault_dungeons"]         = "Mazmorras",
+    ["mhub_vault_raids"]            = "Bandas",
+    ["mhub_vault_world"]            = "Profundidades",
+    ["mhub_vault_ilvl"]             = "Nivel de objeto",
+    ["mhub_vault_locked"]           = "Bloqueado",
+    ["mhub_vault_claim"]            = "Vuelve a la Gran C\195\161mara para reclamar tu recompensa",
 })

@@ -12,13 +12,14 @@ TomoMod_RegisterLocale("frFR", {
     ["cat_nameplates"]      = "Nameplates",
     ["cat_cd_resource"]     = "CD & Ressource",
     ["cat_qol"]             = "Qualité de vie",
+    ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Profils",
 
     -- =====================
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.4 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.5 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -848,6 +849,7 @@ TomoMod_RegisterLocale("frFR", {
     ["mover_cotank"]                    = "Suivi Co-Tank",
     ["mover_repbar"]                    = "Barre de réputation",
     ["mover_castbar"]                   = "Barre de cast (joueur)",
+    ["mover_mythictracker"]             = "Tracker M+",
 
     -- =====================
     -- COMBAT TEXT
@@ -965,4 +967,90 @@ TomoMod_RegisterLocale("frFR", {
     ["cr_stance"]                        = "Posture",
     ["cr_aura"]                          = "Aura",
     ["cr_blessing_bronze"]               = "Bénédiction du Bronze",
+
+    -- =====================
+    -- MYTHIC TRACKER (TomoMythic integration)
+    -- =====================
+    ["tmt_cmd_usage"]               = "|cFF55B400/tmt|r : config  |  |cFF55B400unlock|r : déplacer  |  |cFF55B400lock|r : verrouiller  |  |cFF55B400preview|r : aperçu",
+    ["tmt_unlock_msg"]              = "|cff0cd29fTomoMod|r M+ Tracker : Cadre déverrouillé \226\128\148 glissez pour repositionner.",
+    ["tmt_lock_msg"]                = "|cff0cd29fTomoMod|r M+ Tracker : Cadre verrouillé.",
+    ["tmt_reset_msg"]               = "|cff0cd29fTomoMod|r M+ Tracker : Position réinitialisée.",
+    ["tmt_unknown_cmd"]             = "|cff0cd29fTomoMod|r M+ Tracker : Commande inconnue.",
+    ["tmt_key_level"]               = "+%d",
+    ["tmt_dungeon_unknown"]         = "Mythic+",
+    ["tmt_overtime"]                = "TEMPS DÉPASSÉ",
+    ["tmt_completed_on_time"]       = "TERMINÉ",
+    ["tmt_completed_depleted"]      = "ÉCHOUÉ",
+    ["tmt_forces"]                  = "FORCES",
+    ["tmt_forces_done"]             = "COMPLET",
+    ["tmt_forces_pct"]              = "%.1f%%",
+    ["tmt_forces_count"]            = "%d / %d",
+    ["tmt_cfg_title"]               = "Mythic",
+    ["tmt_cfg_panel_enable"]         = "Activer le tracker M+",
+    ["tmt_cfg_show_timer"]          = "Barre de chronomètre",
+    ["tmt_cfg_show_forces"]         = "Forces ennemies",
+    ["tmt_cfg_show_bosses"]         = "Chronomètres de boss",
+    ["tmt_cfg_hide_blizzard"]       = "Masquer le tracker Blizzard",
+    ["tmt_cfg_lock"]                = "Verrouiller le cadre",
+    ["tmt_cfg_scale"]               = "Échelle",
+    ["tmt_cfg_alpha"]               = "Opacité du fond",
+    ["tmt_cfg_reset_pos"]           = "Réinitialiser la position",
+    ["tmt_cfg_preview"]             = "Aperçu",
+    ["tmt_cfg_section_display"]     = "Affichage",
+    ["tmt_cfg_section_frame"]       = "Cadre",
+    ["tmt_cfg_section_actions"]     = "Actions",
+    ["tmt_key_not_available"]       = "non disponible.",
+    ["tmt_key_not_in_group"]        = "Vous n'êtes pas dans un groupe.",
+    ["tmt_key_none_found"]          = "Aucune clé trouvée.",
+    ["tmt_kr_spin"]                 = "|TInterface\\Icons\\INV_Misc_Dice_02:14|t  Tourner!",
+    ["tmt_preview_active"]          = "|cff0cd29fTomoMod|r M+ Tracker : Aperçu actif \226\128\148 |cFF55B400/tmt lock|r pour verrouiller.",
+
+    -- =====================
+    -- TOMOSCORE (Scoreboard)
+    -- =====================
+    ["ts_cfg_title"]                = "Tableau de scores",
+    ["ts_cfg_enable"]               = "Activer le tableau de fin de donjon",
+    ["ts_cfg_auto_show_mplus"]      = "Afficher en Mythique+",
+    ["ts_cfg_auto_show_m0"]         = "Afficher en Mythique 0",
+    ["ts_cfg_scale"]                = "\195\137chelle",
+    ["ts_cfg_alpha"]                = "Opacit\195\169 du fond",
+    ["ts_cfg_section_display"]      = "Affichage",
+    ["ts_cfg_section_frame"]        = "Cadre",
+    ["ts_cfg_section_actions"]      = "Actions",
+    ["ts_cfg_preview"]              = "Aper\195\167u",
+    ["ts_cfg_last_run"]             = "Dernier donjon",
+    ["ts_cfg_reset_pos"]            = "R\195\169initialiser la position",
+    ["ts_reset_msg"]                = "|cff0cd29fTomoMod|r Scoreboard : Position r\195\169initialis\195\169e.",
+    ["ts_no_data"]                  = "|cff0cd29fTomoMod|r Scoreboard : Aucune donn\195\169e de donjon disponible.",
+    ["ts_mythic_zero"]              = "Mythique",
+    ["ts_key_level"]                = "+%d",
+    ["ts_completed"]                = "TERMIN\195\137",
+    ["ts_depleted"]                 = "\195\137CHOU\195\137",
+    ["ts_duration"]                 = "Dur\195\169e",
+    ["ts_col_player"]               = "Joueur",
+    ["ts_col_rating"]               = "M+",
+    ["ts_col_damage"]               = "D\195\169g\195\162ts",
+    ["ts_col_healing"]              = "Soins",
+    ["ts_col_interrupts"]           = "Interr.",
+    ["ts_footer_total"]             = "Total",
+    ["ts_footer_players"]           = "%d joueurs",
+
+    -- =====================
+    -- MYTHIC HUB (M+ Overview Panel)
+    -- =====================
+    ["mhub_title"]                  = "Cote Mythique+",
+    ["mhub_col_dungeon"]            = "Donjon",
+    ["mhub_col_level"]              = "Niveau",
+    ["mhub_col_rating"]             = "Cote",
+    ["mhub_col_best"]               = "Meilleur",
+    ["mhub_tp_click"]               = "Cliquez pour vous t\195\169l\195\169porter",
+    ["mhub_tp_not_available"]        = "T\195\169l\195\169portation non apprise",
+    ["mhub_tp_not_learned"]          = "|cff0cd29fTomoMod|r : Sort de t\195\169l\195\169portation non appris.",
+    ["mhub_vault_title"]            = "Grande Chambre forte",
+    ["mhub_vault_dungeons"]         = "Donjons",
+    ["mhub_vault_raids"]            = "Raids",
+    ["mhub_vault_world"]            = "Gouffres",
+    ["mhub_vault_ilvl"]             = "Niveau d'objet",
+    ["mhub_vault_locked"]           = "Verrouill\195\169",
+    ["mhub_vault_claim"]            = "Retournez \195\160 la Grande Chambre forte pour r\195\169clamer votre r\195\169compense",
 })

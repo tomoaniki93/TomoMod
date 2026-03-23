@@ -12,13 +12,14 @@ TomoMod_RegisterLocale("enUS", {
     ["cat_nameplates"]      = "Nameplates",
     ["cat_cd_resource"]     = "CD & Resource",
     ["cat_qol"]             = "QOL / Auto",
+    ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Profiles",
 
     -- =====================
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.4 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.5 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -866,6 +867,7 @@ TomoMod_RegisterLocale("enUS", {
     ["mover_cotank"]                    = "CoTank Tracker",
     ["mover_repbar"]                    = "Reputation Bar",
     ["mover_castbar"]                   = "Player Castbar",
+    ["mover_mythictracker"]             = "M+ Tracker",
 
     -- =====================
     -- COMBAT TEXT
@@ -983,4 +985,90 @@ TomoMod_RegisterLocale("enUS", {
     ["cr_stance"]                        = "Stance",
     ["cr_aura"]                          = "Aura",
     ["cr_blessing_bronze"]               = "Blessing of the Bronze",
+
+    -- =====================
+    -- MYTHIC TRACKER (TomoMythic integration)
+    -- =====================
+    ["tmt_cmd_usage"]               = "|cFF55B400/tmt|r : config  |  |cFF55B400unlock|r : drag  |  |cFF55B400lock|r : lock  |  |cFF55B400preview|r : preview  |  |cFF55B400key|r : party keys  |  |cFF55B400kr|r : roulette",
+    ["tmt_unlock_msg"]              = "|cff0cd29fTomoMod|r M+ Tracker: Frame unlocked \226\128\148 drag to reposition.",
+    ["tmt_lock_msg"]                = "|cff0cd29fTomoMod|r M+ Tracker: Frame locked.",
+    ["tmt_reset_msg"]               = "|cff0cd29fTomoMod|r M+ Tracker: Position reset.",
+    ["tmt_unknown_cmd"]             = "|cff0cd29fTomoMod|r M+ Tracker: Unknown command.",
+    ["tmt_key_level"]               = "+%d",
+    ["tmt_dungeon_unknown"]         = "Mythic+",
+    ["tmt_overtime"]                = "OVERTIME",
+    ["tmt_completed_on_time"]       = "COMPLETED",
+    ["tmt_completed_depleted"]      = "DEPLETED",
+    ["tmt_forces"]                  = "FORCES",
+    ["tmt_forces_done"]             = "COMPLETE",
+    ["tmt_forces_pct"]              = "%.1f%%",
+    ["tmt_forces_count"]            = "%d / %d",
+    ["tmt_cfg_title"]               = "Mythic",
+    ["tmt_cfg_panel_enable"]         = "Enable M+ Tracker",
+    ["tmt_cfg_show_timer"]          = "Show Timer Bar",
+    ["tmt_cfg_show_forces"]         = "Show Enemy Forces",
+    ["tmt_cfg_show_bosses"]         = "Show Boss Timers",
+    ["tmt_cfg_hide_blizzard"]       = "Hide Blizzard Tracker",
+    ["tmt_cfg_lock"]                = "Lock Frame",
+    ["tmt_cfg_scale"]               = "Scale",
+    ["tmt_cfg_alpha"]               = "Background Opacity",
+    ["tmt_cfg_reset_pos"]           = "Reset Position",
+    ["tmt_cfg_preview"]             = "Preview",
+    ["tmt_cfg_section_display"]     = "Display",
+    ["tmt_cfg_section_frame"]       = "Frame",
+    ["tmt_cfg_section_actions"]     = "Actions",
+    ["tmt_key_not_available"]       = "not available.",
+    ["tmt_key_not_in_group"]        = "You are not in a group.",
+    ["tmt_key_none_found"]          = "No keystones found.",
+    ["tmt_kr_spin"]                 = "|TInterface\\Icons\\INV_Misc_Dice_02:14|t  Spin!",
+    ["tmt_preview_active"]          = "|cff0cd29fTomoMod|r M+ Tracker: Preview active \226\128\148 |cFF55B400/tmt lock|r to lock.",
+
+    -- =====================
+    -- TOMOSCORE (Scoreboard)
+    -- =====================
+    ["ts_cfg_title"]                = "Scoreboard",
+    ["ts_cfg_enable"]               = "Enable Dungeon Scoreboard",
+    ["ts_cfg_auto_show_mplus"]      = "Auto-show for Mythic+",
+    ["ts_cfg_auto_show_m0"]         = "Auto-show for Mythic 0",
+    ["ts_cfg_scale"]                = "Scale",
+    ["ts_cfg_alpha"]                = "Background Opacity",
+    ["ts_cfg_section_display"]      = "Display",
+    ["ts_cfg_section_frame"]        = "Frame",
+    ["ts_cfg_section_actions"]      = "Actions",
+    ["ts_cfg_preview"]              = "Preview",
+    ["ts_cfg_last_run"]             = "Show Last Run",
+    ["ts_cfg_reset_pos"]            = "Reset Position",
+    ["ts_reset_msg"]                = "|cff0cd29fTomoMod|r Scoreboard: Position reset.",
+    ["ts_no_data"]                  = "|cff0cd29fTomoMod|r Scoreboard: No dungeon data available.",
+    ["ts_mythic_zero"]              = "Mythic",
+    ["ts_key_level"]                = "+%d",
+    ["ts_completed"]                = "COMPLETED",
+    ["ts_depleted"]                 = "DEPLETED",
+    ["ts_duration"]                 = "Duration",
+    ["ts_col_player"]               = "Player",
+    ["ts_col_rating"]               = "M+",
+    ["ts_col_damage"]               = "Damage",
+    ["ts_col_healing"]              = "Healing",
+    ["ts_col_interrupts"]           = "Interrupts",
+    ["ts_footer_total"]             = "Total",
+    ["ts_footer_players"]           = "%d players",
+
+    -- =====================
+    -- MYTHIC HUB (M+ Overview Panel)
+    -- =====================
+    ["mhub_title"]                  = "Mythic+ Rating",
+    ["mhub_col_dungeon"]            = "Dungeon",
+    ["mhub_col_level"]              = "Level",
+    ["mhub_col_rating"]             = "Rating",
+    ["mhub_col_best"]               = "Best",
+    ["mhub_tp_click"]               = "Click to teleport",
+    ["mhub_tp_not_available"]        = "Teleport not learned",
+    ["mhub_tp_not_learned"]          = "|cff0cd29fTomoMod|r: Teleport spell not learned.",
+    ["mhub_vault_title"]            = "Great Vault",
+    ["mhub_vault_dungeons"]         = "Dungeons",
+    ["mhub_vault_raids"]            = "Raids",
+    ["mhub_vault_world"]            = "Delves",
+    ["mhub_vault_ilvl"]             = "Item Level",
+    ["mhub_vault_locked"]           = "Locked",
+    ["mhub_vault_claim"]            = "Return to the Great Vault to Claim your Reward",
 })
