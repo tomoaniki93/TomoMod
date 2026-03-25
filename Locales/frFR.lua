@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.5 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.5.0 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -178,6 +178,12 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_np_show_classification"]      = "Afficher classification (élite, rare, boss)",
     ["opt_np_show_absorb"]               = "Afficher la barre d'absorption",
     ["opt_np_class_colors"]             = "Couleurs de classe (joueurs)",
+    ["opt_np_friendly_name_only"]       = "Alliés : nom uniquement (sans barre de vie)",
+    ["opt_np_friendly_role_icons"]      = "Afficher icônes de rôle (donjon/delve)",
+    ["opt_np_role_show_tank"]           = "Afficher icône Tank",
+    ["opt_np_role_show_healer"]         = "Afficher icône Healer",
+    ["opt_np_role_show_dps"]            = "Afficher icône DPS",
+    ["opt_np_role_icon_size"]           = "Taille icône de rôle",
 
     -- Raid Marker
     ["section_raid_marker"]             = "Marqueur de raid",
@@ -850,7 +856,6 @@ TomoMod_RegisterLocale("frFR", {
     ["mover_repbar"]                    = "Barre de réputation",
     ["mover_castbar"]                   = "Barre de cast (joueur)",
     ["mover_mythictracker"]             = "Tracker M+",
-
     -- =====================
     -- COMBAT TEXT
     -- =====================
@@ -869,6 +874,21 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_chat_skin_enable"]             = "Skin de la fenêtre de chat",
     ["opt_chat_skin_bg_alpha"]           = "Opacité du fond",
     ["opt_chat_skin_font_size"]          = "Taille de police du chat",
+
+    -- Buff Skin
+    ["sublabel_buff_skin"]               = "— Skin Buffs / Debuffs —",
+    ["opt_buff_skin_enable"]             = "Skinner les icônes Buff/Debuff",
+    ["opt_buff_skin_buffs"]              = "Appliquer aux Buffs",
+    ["opt_buff_skin_debuffs"]            = "Appliquer aux Debuffs",
+    ["opt_buff_skin_glow"]               = "Effet de lueur sur les Buffs",
+    ["opt_buff_skin_hide_buffs"]         = "Masquer le cadre des Buffs",
+    ["opt_buff_skin_hide_debuffs"]       = "Masquer le cadre des Debuffs",
+    ["opt_buff_skin_font_size"]          = "Taille de police des timers",
+
+    -- Game Menu Skin
+    ["sublabel_game_menu_skin"]          = "— Menu Echap —",
+    ["opt_game_menu_skin_enable"]        = "Skinner le menu Echap",
+    ["info_game_menu_skin_reload"]       = "Un /reload est nécessaire pour annuler ce skin.",
     ["msg_chat_skin_enabled"]            = "Skin du chat activé",
     ["msg_chat_skin_disabled"]           = "Skin du chat désactivé (reload pour revenir)",
     ["sublabel_mail_skin"]               = "— Courrier —",
@@ -1011,7 +1031,6 @@ TomoMod_RegisterLocale("frFR", {
     ["ts_cfg_title"]                = "Tableau de scores",
     ["ts_cfg_enable"]               = "Activer le tableau de fin de donjon",
     ["ts_cfg_auto_show_mplus"]      = "Afficher en Mythique+",
-    ["ts_cfg_auto_show_m0"]         = "Afficher en Mythique 0",
     ["ts_cfg_scale"]                = "\195\137chelle",
     ["ts_cfg_alpha"]                = "Opacit\195\169 du fond",
     ["ts_cfg_section_display"]      = "Affichage",

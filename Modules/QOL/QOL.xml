@@ -77,6 +77,8 @@
     <Include file="Skins\CharacterSkin.lua" />
     <Include file="Skins\ReputationBar.lua" />
     <Include file="Skins\ChatFrameSkin.lua" />
+    <Include file="Skins\BuffSkin.lua" />
+    <Include file="Skins\GameMenuSkin.lua" />
     <!-- Modules: Movers (Layout System — doit être en dernier) -->
     <Include file="Movers\Movers.lua" />
 

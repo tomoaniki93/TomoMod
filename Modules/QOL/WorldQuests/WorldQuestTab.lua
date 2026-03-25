@@ -81,8 +81,8 @@ local function ClassifyReward(questID)
     if numRewards and numRewards > 0 then
         local _, _, _, _, _, itemID, itemQuantity = GetQuestLogRewardInfo(1, questID)
         if itemID then
-            local _, _, quality, baseIlvl, _, _, _, _, equipLoc = C_Item.GetItemInfo(itemID)
-            if equipLoc and equipLoc ~= "" then
+            local itemName, _, quality, baseIlvl, _, _, _, _, equipLoc = C_Item.GetItemInfo(itemID)
+            if itemName and equipLoc and equipLoc ~= "" then
                 -- Get accurate ilvl from tooltip (WQ rewards are scaled)
                 local itemLevel = baseIlvl or 0
                 local tooltipData = C_TooltipInfo.GetQuestLogItem("reward", 1, questID)
@@ -97,7 +97,7 @@ local function ClassifyReward(questID)
                 return REWARD_GEAR, itemLevel, itemID, itemQuantity or 1
             end
             -- Check for pet
-            if quality and quality >= 3 then
+            if quality and quality >= 3 and C_Item.GetItemInfoInstant(itemID) then
                 local _, _, _, _, _, classID = C_Item.GetItemInfoInstant(itemID)
                 if classID == 17 then -- LE_ITEM_CLASS_BATTLEPET
                     return REWARD_PET, 0, itemID, itemQuantity or 1

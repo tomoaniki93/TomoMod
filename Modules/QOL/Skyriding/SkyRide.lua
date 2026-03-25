@@ -584,7 +584,7 @@ function SR.SetEnabled(enabled)
         if updateTicker then updateTicker:Cancel(); updateTicker = nil end
     else
         if not updateTicker then
-            updateTicker = C_Timer.NewTicker(0.15, OnTick)
+            updateTicker = C_Timer.NewTicker(0.25, OnTick)
         end
     end
     UpdateVisibility()
@@ -623,7 +623,7 @@ function SR.Initialize()
     CreateUI()
 
     if db.enabled then
-        updateTicker = C_Timer.NewTicker(0.15, OnTick)
+        updateTicker = C_Timer.NewTicker(0.25, OnTick)
     end
 
     print("|cff00ff00TomoMod SkyRide:|r " .. TomoMod_L["msg_sr_initialized"])

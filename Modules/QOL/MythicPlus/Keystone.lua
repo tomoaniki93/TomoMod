@@ -6,7 +6,7 @@ local function FindKeystoneInBags()
         local slots = C_Container.GetContainerNumSlots(bag)
         for slot = 1, slots do
             local itemID = C_Container.GetContainerItemID(bag, slot)
-            if itemID then
+            if itemID and C_Item.GetItemInfoInstant(itemID) then
                 local classID, subClassID = select(6, C_Item.GetItemInfoInstant(itemID))
                 if classID == Enum.ItemClass.Reagent
                 and subClassID == Enum.ItemReagentSubclass.Keystone then

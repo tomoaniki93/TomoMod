@@ -449,8 +449,10 @@ function BF.ToggleLock()
                 end
             else
                 -- Lock: re-register unit watch
-                frame:SetAttribute("unit", "boss" .. i)
-                RegisterUnitWatch(frame)
+                if not InCombatLockdown() then
+                    frame:SetAttribute("unit", "boss" .. i)
+                    RegisterUnitWatch(frame)
+                end
 
                 if i == 1 and frame.dragFrame then
                     frame.dragFrame:EnableMouse(false)

@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("deDE", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Über",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.5 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.5.0 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
     ["section_general"]                 = "Allgemein",
     ["btn_reset_all"]                   = "Alles zurücksetzen",
     ["info_reset_all"]                  = "Dies setzt ALLE Einstellungen zurück und lädt die Oberfläche neu.",
@@ -178,6 +178,12 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_np_show_classification"]      = "Klassifizierung anzeigen (Elite, Selten, Boss)",
     ["opt_np_show_absorb"]               = "Absorptionsleiste anzeigen",
     ["opt_np_class_colors"]             = "Klassenfarben (Spieler)",
+    ["opt_np_friendly_name_only"]       = "Verbündete: nur Name (ohne Lebensbalken)",
+    ["opt_np_friendly_role_icons"]      = "Rollensymbole anzeigen (Dungeon/Delve)",
+    ["opt_np_role_show_tank"]           = "Tank-Symbol anzeigen",
+    ["opt_np_role_show_healer"]         = "Heiler-Symbol anzeigen",
+    ["opt_np_role_show_dps"]            = "DPS-Symbol anzeigen",
+    ["opt_np_role_icon_size"]           = "Rollensymbol-Größe",
 
     -- Raid Marker
     ["section_raid_marker"]             = "Raid-Markierung",
@@ -864,6 +870,21 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_chat_skin_enable"]             = "Chat-Fenster-Skin",
     ["opt_chat_skin_bg_alpha"]           = "Hintergrund-Deckkraft",
     ["opt_chat_skin_font_size"]          = "Chat-Schriftgröße",
+
+    -- Buff Skin
+    ["sublabel_buff_skin"]               = "— Buff-/Debuff-Skin —",
+    ["opt_buff_skin_enable"]             = "Buff-/Debuff-Symbole skinnen",
+    ["opt_buff_skin_buffs"]              = "Auf Buffs anwenden",
+    ["opt_buff_skin_debuffs"]            = "Auf Debuffs anwenden",
+    ["opt_buff_skin_glow"]               = "Buff-Leuchteffekt",
+    ["opt_buff_skin_hide_buffs"]         = "Buff-Rahmen ausblenden",
+    ["opt_buff_skin_hide_debuffs"]       = "Debuff-Rahmen ausblenden",
+    ["opt_buff_skin_font_size"]          = "Timer-Schriftgröße",
+
+    -- Game Menu Skin
+    ["sublabel_game_menu_skin"]          = "— Spielmenü (Escape) —",
+    ["opt_game_menu_skin_enable"]        = "Spielmenü skinnen",
+    ["info_game_menu_skin_reload"]       = "Ein /reload ist nötig, um den Skin rückgängig zu machen.",
     ["msg_chat_skin_enabled"]            = "Chat-Skin aktiviert",
     ["msg_chat_skin_disabled"]           = "Chat-Skin deaktiviert (Reload zum Zurücksetzen)",
     ["sublabel_mail_skin"]               = "— Postfenster —",

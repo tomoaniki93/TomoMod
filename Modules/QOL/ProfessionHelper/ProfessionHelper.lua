@@ -785,19 +785,27 @@ local function BuildMainFrame()
     tinsert(UISpecialFrames, f:GetName())
 
     -- Register events for auto-refresh
+    -- [PERF] Debounce flag prevents multiple timers from accumulating on rapid BAG_UPDATE bursts
+    local bagUpdatePending = false
+    local itemInfoPending = false
     f:RegisterEvent("BAG_UPDATE")
     f:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     f:SetScript("OnEvent", function(self, event, ...)
         if not self:IsShown() then return end
         if event == "BAG_UPDATE" and not isProcessing then
+            if bagUpdatePending then return end
+            bagUpdatePending = true
             C_Timer.After(0.2, function()
+                bagUpdatePending = false
                 if self:IsShown() then
                     PH.RefreshItems()
                 end
             end)
         elseif event == "GET_ITEM_INFO_RECEIVED" then
-            -- Item info arrived from server — re-scan
+            if itemInfoPending then return end
+            itemInfoPending = true
             C_Timer.After(0.1, function()
+                itemInfoPending = false
                 if self:IsShown() then
                     PH.RefreshItems()
                 end

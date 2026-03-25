@@ -1,6 +1,91 @@
 ## ####################################
 
-## CHANGELOG 2.4.5
+## CHANGELOG 2.5.0
+
+#### Performance & Stability Audit
+- **Nameplates**: Replaced per-unit `CreateFrame()` with a frame pool — eliminates GC pressure in raids (40+ frames no longer created/destroyed per pull)
+- **Nameplates**: Simplified `SetAlpha` hook to check `GetAlpha() > 0` instead of recursive lock pattern
+- **Movers**: Added ~33fps throttle to grid overlay OnUpdate (was running unthrottled every frame with heavy math)
+- **CursorRing**: Removed `ClearAllPoints()` on GameTooltip anchor hook — `SetPoint` now replaces the anchor in-place, avoiding layout invalidation
+- **ProfessionHelper**: Added debounce flags on `BAG_UPDATE` and `GET_ITEM_INFO_RECEIVED` to prevent timer accumulation during rapid bag activity
+- **ResourceBars**: Guarded `UnitPowerMax()` returning 0 in UpdatePrimaryBar, UpdatePoints, and UpdateDruidMana (prevents undefined statusbar behavior)
+- **Power.lua**: Guarded `UnitPowerType()` nil return (fallback to 0) and `UnitPowerMax()` zero guard
+
+#### Taint Fixes
+- **ObjectiveTracker**: Added `InCombatLockdown()` guard before modifying ObjectiveTrackerFrame header regions/children (protected frame in retail)
+- **HideTalkingHead**: Replaced `SetScript("OnShow")` override with `HookScript` + `InCombatLockdown()` guard + double-apply prevention flag
+- **UnitFrame**: Added `InCombatLockdown()` guard on `SetAttribute`/`RegisterUnitWatch` during lock toggle
+- **BossFrames**: Same combat lockdown guard on `SetAttribute`/`RegisterUnitWatch` during lock toggle
+- **HideCastBar**: Guarded `PlayerCastingBarFrame:UnregisterAllEvents()` with `InCombatLockdown()` check
+
+#### Lua Error Prevention
+- **Keystone**: Added nil guard on `C_Item.GetItemInfoInstant()` before `select(6, ...)` — prevents crash when item data is not yet cached
+- **WorldQuestTab**: Added nil guard on `C_Item.GetItemInfo()` and `C_Item.GetItemInfoInstant()` return values
+- **AutoVendorRepair**: Cleaner destructuring of `GetItemInfo()` return for vendor price
+
+#### Dungeon Scoreboard
+- Scoreboard now only triggers on `CHALLENGE_MODE_COMPLETED` (Mythic+ only) — removed Mythic 0 auto-show
+- Removed M0 boss tracking events (`ENCOUNTER_END`, `SCENARIO_CRITERIA_UPDATE`, `SCENARIO_COMPLETED`)
+- Removed M0 helper functions (`_UpdateBossCount`, `_UpdateBossProgress`, `_CheckM0Completion`)
+- Removed `autoShowM0` setting, config checkbox, and locale strings (enUS, frFR)
+
+#### GameMenuSkin — Improved Escape Menu Skin
+- Rewrote button texture stripping with recursive `NukeTextures()` that destroys all nested Blizzard sub-elements (NineSlice, Left/Right/Middle, Border, TopLeft/TopRight, etc.)
+- Added `LockoutTextures()` hooks on SetNormalTexture/SetHighlightTexture/SetPushedTexture/SetDisabledTexture to prevent Blizzard from re-applying textures after skinning
+- Buttons without a name are now also skinned (removed `GetName()` filter on child iteration)
+- Added OnMouseDown/OnMouseUp pressed state with deeper teal overlay
+- Added subtle left accent bar on hover (2px teal indicator)
+- Frame border now uses teal tint instead of grey
+- PortraitContainer and TitleText explicitly handled
+- Font strings forced to OVERLAY layer 7 to render above all custom textures
+
+#### Nameplates — Friendly Name-Only Mode (New Feature)
+- Friendly units (reaction >= 5) now display only their colored name — no health bar, absorb, auras, castbar, threat, classification, or level text
+- Player names colored by class color, NPC names use the friendly green color
+- Nameplate anchored to plate center instead of health bar top
+- Glow frame, target arrows, and mouseover highlight disabled for friendly plates in `OnTargetChanged_Deferred` and `UPDATE_MOUSEOVER_UNIT` handlers
+- Castbar blocked for friendly units when name-only mode is active
+- Plates automatically restore full mode if unit reaction changes (e.g. mind control)
+- New setting: `friendlyNameOnly` (enabled by default)
+- Config checkbox: "Friendly: name only (no health bar)"
+- Full localization (enUS, frFR, deDE, esES, itIT, ptBR)
+
+#### Nameplates — Friendly Role Icons in Dungeons/Delves (New Feature)
+- Role icons (Tank shield, Healer cross, DPS axes) displayed above friendly player names in dungeons (all modes) and delves
+- Uses custom TGA textures with circular dark background (`Circle128x128.tga`)
+- Icons colored by player class color, with role-based fallback colors (blue/green/red)
+- Instance detection via `InDungeonOrDelve()` checking for `party` and `scenario` instance types
+- Raid markers automatically repositioned above the role icon when both are present
+- Role icon frame created lazily on first use (`EnsureRoleIcon`) and resized dynamically
+- Per-role visibility filters: show/hide Tank, Healer, and DPS icons independently
+- Configurable icon size via slider (16–60px, default 32)
+- New settings: `friendlyRoleIcons`, `roleIconSize`, `roleShowTank`, `roleShowHealer`, `roleShowDps`
+- Cleanup on `OnNamePlateRemoved` and `RAID_TARGET_UPDATE` respects friendly positioning
+- Full localization (enUS, frFR, deDE, esES, itIT, ptBR)
+
+#### GameMenuSkin — Escape Menu Skin (Skins Category)
+- New skin module for the Blizzard Game Menu (Escape menu)
+- Dark background with TomoMod teal accent strip at top
+- All menu buttons restyled: dark flat background, subtle border, Poppins font
+- Hover effect: teal highlight border and teal text color matching the addon theme
+- Strips Blizzard NineSlice chrome and default button textures for a clean modern look
+- OnShow hook catches buttons injected by other addons and skins them dynamically
+- Config toggle in QOL > Skins tab (requires /reload to revert)
+- Full localization (enUS, frFR, deDE, esES, itIT, ptBR)
+
+#### BuffSkin — Buff/Debuff Icon Skin (Skins Category)
+- New skin module for Blizzard buff/debuff icons in the top-right corner
+- Replaces default borders with rounded 9-slice borders using the Nameplate `border.png` texture for a consistent TomoMod look
+- Optional ADD-blend glow effect (`background.png`) — red for debuffs, teal (addon accent) for buffs when enabled
+- Dark background behind icons and cropped icon edges (`SetTexCoord 0.07–0.93`) for a clean, modern appearance
+- Hides default Blizzard aura borders automatically
+- Applies Poppins font to duration and stack count text with configurable font size
+- Option to completely hide the Buff Frame and/or Debuff Frame (taint-safe, deferred via `C_Timer.After`)
+- Skinning can be toggled independently for buffs and debuffs
+- Hooks into `BuffFrame.Update`, `DebuffFrame.Update`, `AuraContainer.Update`, and `UNIT_AURA` event with 150ms debounce for performance
+- All hooks use `C_Timer.After(0)` deferral to avoid taint in the Midnight (12.0+) taint model
+- Config panel integrated into QOL > Skins tab with enable, per-type toggles, glow toggle, hide frame options, and font size slider
+- Full localization (enUS, frFR, deDE, esES, itIT, ptBR)
 
 #### MythicHub — Mythic+ Overview Panel (Mythic+ Category)
 - Custom Mythic+ Hub panel replacing the default Great Vault shortcut on CharacterFrame

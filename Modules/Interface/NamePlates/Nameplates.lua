@@ -53,7 +53,16 @@ local function HideBlizzardFrame(nameplate, unit)
     if not uf then return end
 
     uf:SetAlpha(0)
-    -- Move key Blizzard sub-elements to the offscreen parent
+
+    -- Move ALL children of the UnitFrame to offscreen (catches healthBar + any TWW additions)
+    pcall(function()
+        for i = 1, uf:GetNumChildren() do
+            local child = select(i, uf:GetChildren())
+            if child then MoveToOffscreen(child) end
+        end
+    end)
+
+    -- Also move known sub-elements (redundant but safe for varied frame structures)
     if uf.healthBar then MoveToOffscreen(uf.healthBar) end
     MoveToOffscreen(uf.selectionHighlight)
     MoveToOffscreen(uf.aggroHighlight)
@@ -63,16 +72,46 @@ local function HideBlizzardFrame(nameplate, unit)
     MoveToOffscreen(uf.RaidTargetFrame)
     if uf.BuffFrame then uf.BuffFrame:SetAlpha(0) end
 
+    -- Hide all UnitFrame regions (textures, fontstrings) that may bypass child reparenting
+    pcall(function()
+        for i = 1, uf:GetNumRegions() do
+            local region = select(i, uf:GetRegions())
+            if region and region.SetAlpha then region:SetAlpha(0) end
+            if region and region.Hide then region:Hide() end
+        end
+    end)
+
+    -- Hide any extra children on the nameplate base frame (TWW dungeon friendly bars)
+    local ourPlate = activePlates[nameplate]
+    pcall(function()
+        for i = 1, nameplate:GetNumChildren() do
+            local child = select(i, nameplate:GetChildren())
+            if child and child ~= ourPlate and child ~= uf then
+                child:SetAlpha(0)
+                child:EnableMouse(false)
+            end
+        end
+    end)
+
+    -- Hide Blizzard role icon textures on the nameplate BASE frame itself
+    -- (TWW puts role icons as Texture/MaskTexture regions directly on the nameplate)
+    pcall(function()
+        for i = 1, nameplate:GetNumRegions() do
+            local region = select(i, nameplate:GetRegions())
+            if region and region.SetAlpha then region:SetAlpha(0) end
+            if region and region.Hide then region:Hide() end
+        end
+    end)
+
     -- Hook SetAlpha once per UnitFrame to prevent Blizzard from restoring visibility
     if not hookedUFs[uf] then
         hookedUFs[uf] = true
-        local locked = false
         hooksecurefunc(uf, "SetAlpha", function(self)
             if not npModuleActive then return end
-            if locked then return end
-            locked = true
-            self:SetAlpha(0)
-            locked = false
+            -- Only force alpha back to 0 if Blizzard tried to restore it
+            if self:GetAlpha() > 0 then
+                self:SetAlpha(0)
+            end
         end)
     end
 end
@@ -81,15 +120,38 @@ local function RestoreBlizzardFrame(nameplate)
     if not nameplate then return end
     local uf = nameplate.UnitFrame
     if not uf then return end
-    -- Restore sub-elements to their original parent
-    if uf.healthBar then RestoreFromOffscreen(uf.healthBar) end
-    RestoreFromOffscreen(uf.selectionHighlight)
-    RestoreFromOffscreen(uf.aggroHighlight)
-    RestoreFromOffscreen(uf.softTargetFrame)
-    RestoreFromOffscreen(uf.SoftTargetFrame)
-    RestoreFromOffscreen(uf.ClassificationFrame)
-    RestoreFromOffscreen(uf.RaidTargetFrame)
+    -- Restore ALL offscreen elements back to their original parent
+    for element, origParent in pairs(storedParents) do
+        if origParent then
+            pcall(function() element:SetParent(origParent) end)
+        end
+    end
+    -- Restore regions
+    pcall(function()
+        for i = 1, uf:GetNumRegions() do
+            local region = select(i, uf:GetRegions())
+            if region and region.SetAlpha then region:SetAlpha(1) end
+            if region and region.Show then region:Show() end
+        end
+    end)
     if uf.BuffFrame then uf.BuffFrame:SetAlpha(1) end
+    -- Restore extra children on base frame
+    pcall(function()
+        for i = 1, nameplate:GetNumChildren() do
+            local child = select(i, nameplate:GetChildren())
+            if child and child ~= uf then
+                child:SetAlpha(1)
+            end
+        end
+    end)
+    -- Restore regions on the nameplate base frame (role icon textures etc)
+    pcall(function()
+        for i = 1, nameplate:GetNumRegions() do
+            local region = select(i, nameplate:GetRegions())
+            if region and region.SetAlpha then region:SetAlpha(1) end
+            if region and region.Show then region:Show() end
+        end
+    end)
     -- Note: can't unhook SetAlpha, but since elements are restored it's cosmetic
     uf:SetAlpha(1)
 end
@@ -313,7 +375,8 @@ local function CreatePlate(baseFrame)
 
     local plate = CreateFrame("Frame", nil, baseFrame)
     plate:SetAllPoints(baseFrame)
-    plate:SetFrameStrata("BACKGROUND")
+    plate:SetFrameStrata("MEDIUM")
+    plate:SetFrameLevel(20)
     plate:EnableMouse(false)
 
     -- =========== HEALTH BAR ===========
@@ -574,6 +637,7 @@ local function CreatePlate(baseFrame)
         plate.castbar.stageMarkers[i] = marker
     end
 
+    plate.castbar._elapsed = 0
     plate.castbar:SetScript("OnUpdate", function(self, elapsed)
         if self.failstart then
             if GetTime() - self.failstart > 1 then
@@ -586,6 +650,9 @@ local function CreatePlate(baseFrame)
             self:Hide()
             return
         end
+        self._elapsed = self._elapsed + elapsed
+        if self._elapsed < 0.05 then return end  -- throttle to ~20fps
+        self._elapsed = 0
         self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
         if self.timer and self.duration_obj then
             self.timer:SetFormattedText("%.1f", self.duration_obj:GetRemainingDuration(0))
@@ -808,6 +875,323 @@ local function InRealInstancedContent()
     if C_Garrison and C_Garrison.IsOnGarrisonMap and C_Garrison.IsOnGarrisonMap() then return false end
     if instanceType == "party" or instanceType == "raid" then return true end
     return false
+end
+
+-- Check if player is in dungeon (all modes) or delve (scenario)
+local function InDungeonOrDelve()
+    local _, instanceType, difficultyID = GetInstanceInfo()
+    difficultyID = tonumber(difficultyID) or 0
+    if difficultyID == 0 then return false end
+    if C_Garrison and C_Garrison.IsOnGarrisonMap and C_Garrison.IsOnGarrisonMap() then return false end
+    if instanceType == "party" or instanceType == "scenario" then return true end
+    return false
+end
+
+-- =====================================
+-- FRIENDLY NAME-ONLY HELPER
+-- =====================================
+
+local function IsFriendlyUnit(unit)
+    local reaction = UnitReaction(unit, "player")
+    return reaction and reaction >= 5
+end
+
+local function GetFriendlyNameColor(unit)
+    -- Players: class color
+    if UnitIsPlayer(unit) then
+        local _, class = UnitClass(unit)
+        if class and RAID_CLASS_COLORS[class] then
+            local c = RAID_CLASS_COLORS[class]
+            return c.r, c.g, c.b
+        end
+    end
+    -- NPCs: friendly green
+    local s = DB()
+    local c = s.colors.friendly
+    return c.r, c.g, c.b
+end
+
+-- =====================================
+-- ROLE ICON SYSTEM (dungeon/delve friendly plates)
+-- =====================================
+
+local ROLE_MEDIA = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Roles\\"
+local ROLE_TEX = {
+    TANK    = ROLE_MEDIA .. "TANK",
+    HEALER  = ROLE_MEDIA .. "HEALER",
+    DAMAGER = ROLE_MEDIA .. "DAMAGER",
+}
+local ROLE_CIRCLE = ROLE_MEDIA .. "Circle128x128"
+local ROLE_BG_PADDING = 5
+
+-- Follower dungeon: detect NPC role when UnitGroupRolesAssigned returns NONE
+local function IsFollowerDungeon()
+    if not C_LFGInfo then return false end
+    -- IsInFollowerDungeon was added for this exact purpose
+    if C_LFGInfo.IsInFollowerDungeon then
+        return C_LFGInfo.IsInFollowerDungeon()
+    end
+    return false
+end
+
+local function GetUnitRole(unit)
+    local role = UnitGroupRolesAssigned(unit)
+    if role and role ~= "NONE" then return role end
+
+    -- Fallback: detect NPC roles in follower dungeons
+    if not UnitIsPlayer(unit) and IsFriendlyUnit(unit) and IsFollowerDungeon() then
+        -- Tank detection: NPC has high threat on something (isTanking flag)
+        local isTanking = UnitDetailedThreatSituation(unit, "target")
+        if isTanking then return "TANK" end
+
+        -- Healer detection: NPC is casting/channeling a healing spell
+        -- UnitCreatureType "Humanoid" NPCs that channel/cast on friendlies
+        -- Simplest heuristic: check if unit has mana and no melee weapon (healer archetype)
+        local powerType = UnitPowerType(unit)
+        if powerType == 0 then -- Mana user
+            local maxPower = UnitPowerMax(unit, 0)
+            if maxPower and maxPower > 0 then
+                -- Mana-using friendly NPC that isn't tanking → likely healer
+                -- Further check: threat situation is low (healers don't have aggro normally)
+                local _, _, scaledPct = UnitDetailedThreatSituation(unit, "target")
+                if not scaledPct or scaledPct < 50 then
+                    return "HEALER"
+                end
+            end
+        end
+
+        -- Default: DPS
+        return "DAMAGER"
+    end
+
+    return role
+end
+
+-- Role-specific tint colors (fallback when class color unavailable)
+local ROLE_COLORS = {
+    TANK    = { 0.33, 0.55, 0.95 },  -- Blue
+    HEALER  = { 0.30, 0.85, 0.40 },  -- Green
+    DAMAGER = { 0.85, 0.30, 0.30 },  -- Red
+}
+
+local function GetRoleIconSize()
+    local s = DB()
+    return s.roleIconSize or 32
+end
+
+local function EnsureRoleIcon(plate)
+    if plate.roleIconFrame then return end
+
+    local size = GetRoleIconSize()
+    local totalSize = size + ROLE_BG_PADDING * 2
+
+    local f = CreateFrame("Frame", nil, plate)
+    f:SetFrameStrata("TOOLTIP")
+    f:SetSize(totalSize, totalSize)
+    f:EnableMouse(false)
+    plate.roleIconFrame = f
+
+    -- Circular dark background
+    local bg = f:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetTexture(ROLE_CIRCLE)
+    bg:SetVertexColor(0.06, 0.06, 0.08, 0.92)
+    plate.roleIconBg = bg
+
+    -- Role icon texture
+    local icon = f:CreateTexture(nil, "OVERLAY", nil, 7)
+    icon:SetSize(size, size)
+    icon:SetPoint("CENTER")
+    plate.roleIconTex = icon
+
+    f:Hide()
+end
+
+local function ResizeRoleIcon(plate)
+    if not plate.roleIconFrame then return end
+    local size = GetRoleIconSize()
+    local totalSize = size + ROLE_BG_PADDING * 2
+    plate.roleIconFrame:SetSize(totalSize, totalSize)
+    plate.roleIconTex:SetSize(size, size)
+end
+
+local function UpdateFriendlyRoleIcon(plate, unit)
+    local s = DB()
+    if s.friendlyRoleIcons == false then
+        if plate.roleIconFrame then plate.roleIconFrame:Hide() end
+        return false
+    end
+
+    if not InDungeonOrDelve() then
+        if plate.roleIconFrame then plate.roleIconFrame:Hide() end
+        return false
+    end
+
+    local role = GetUnitRole(unit)
+    if not role or role == "NONE" then
+        if plate.roleIconFrame then plate.roleIconFrame:Hide() end
+        return false
+    end
+
+    -- Per-role filter
+    if role == "TANK" and s.roleShowTank == false then
+        if plate.roleIconFrame then plate.roleIconFrame:Hide() end
+        return false
+    elseif role == "HEALER" and s.roleShowHealer == false then
+        if plate.roleIconFrame then plate.roleIconFrame:Hide() end
+        return false
+    elseif role == "DAMAGER" and s.roleShowDps == false then
+        if plate.roleIconFrame then plate.roleIconFrame:Hide() end
+        return false
+    end
+
+    local tex = ROLE_TEX[role]
+    if not tex then
+        if plate.roleIconFrame then plate.roleIconFrame:Hide() end
+        return false
+    end
+
+    EnsureRoleIcon(plate)
+    ResizeRoleIcon(plate)
+
+    plate.roleIconTex:SetTexture(tex)
+
+    -- Color by class if player, else use role color
+    local rc = ROLE_COLORS[role]
+    if UnitIsPlayer(unit) then
+        local _, class = UnitClass(unit)
+        if class and RAID_CLASS_COLORS[class] then
+            local cc = RAID_CLASS_COLORS[class]
+            plate.roleIconTex:SetVertexColor(cc.r, cc.g, cc.b, 1)
+        elseif rc then
+            plate.roleIconTex:SetVertexColor(rc[1], rc[2], rc[3], 1)
+        end
+    elseif rc then
+        plate.roleIconTex:SetVertexColor(rc[1], rc[2], rc[3], 1)
+    end
+
+    -- Position above name
+    plate.roleIconFrame:ClearAllPoints()
+    plate.roleIconFrame:SetPoint("BOTTOM", plate.nameText, "TOP", 0, 2)
+    plate.roleIconFrame:Show()
+
+    return true
+end
+
+local function UpdateFriendlyRaidMarker(plate, unit, hasRoleIcon)
+    if not plate.raidIcon then return end
+
+    local index = GetRaidTargetIndex(unit)
+    if index then
+        SetRaidTargetIconTexture(plate.raidIcon, index)
+        plate.raidFrame:ClearAllPoints()
+        if hasRoleIcon and plate.roleIconFrame and plate.roleIconFrame:IsShown() then
+            -- Position raid marker above the role icon
+            plate.raidFrame:SetPoint("BOTTOM", plate.roleIconFrame, "TOP", 0, 2)
+        else
+            -- Position raid marker above the name
+            plate.raidFrame:SetPoint("BOTTOM", plate.nameText, "TOP", 0, 2)
+        end
+        plate.raidFrame:Show()
+    else
+        plate.raidFrame:Hide()
+    end
+end
+
+local function ApplyFriendlyNameOnly(plate, unit)
+    local s = DB()
+
+    -- Hide health bar (also hides its children: border frame, bg, etc.)
+    plate.health:Hide()
+
+    -- Explicitly hide border frame in case it has a different parent
+    if plate.borderFrame then plate.borderFrame:Hide() end
+
+    -- Hide health text
+    plate.hpNumber:Hide()
+    plate.hpPercent:Hide()
+
+    -- Hide absorb
+    plate.absorb:Hide()
+
+    -- Hide level
+    plate.levelText:Hide()
+
+    -- Hide classification
+    plate.classFrame:Hide()
+    plate.classText:Hide()
+
+    -- Hide threat
+    plate.threatFrame:Hide()
+    if plate.threatGlowFrame then plate.threatGlowFrame:Hide() end
+
+    -- Hide glow
+    if plate.glowFrame then plate.glowFrame:Hide() end
+
+    -- Hide highlight
+    plate.highlight:Hide()
+
+    -- Hide quest icon
+    if plate.questIcon then plate.questIcon:Hide() end
+
+    -- Hide auras
+    if plate.auras then
+        for _, a in ipairs(plate.auras) do a:Hide() end
+    end
+    if plate.enemyBuffs then
+        for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
+    end
+
+    -- Hide castbar
+    if plate.castbar then
+        plate.castbar:Hide()
+        if plate.castbar.shieldFrame then plate.castbar.shieldFrame:Hide() end
+    end
+
+    -- Hide target arrows
+    if plate.targetArrowLeft then plate.targetArrowLeft:Hide() end
+    if plate.targetArrowRight then plate.targetArrowRight:Hide() end
+
+    -- Show name only, anchored to plate center
+    if s.showName then
+        local name = UnitName(unit)
+        if name then
+            plate.nameText:SetFormattedText("%s", name)
+        else
+            plate.nameText:SetText("")
+        end
+        plate.nameText:ClearAllPoints()
+        plate.nameText:SetPoint("CENTER", plate, "CENTER", 0, 0)
+        local r, g, b = GetFriendlyNameColor(unit)
+        plate.nameText:SetTextColor(r, g, b, 1)
+        plate.nameText:Show()
+    else
+        plate.nameText:Hide()
+    end
+
+    -- Role icon (dungeon/delve only)
+    local hasRoleIcon = UpdateFriendlyRoleIcon(plate, unit)
+
+    -- Raid marker (repositioned above role icon if present)
+    UpdateFriendlyRaidMarker(plate, unit, hasRoleIcon)
+
+    -- Alpha (dimmer for non-target)
+    local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
+    if nameplate then
+        local isTarget = UnitIsUnit(unit, "target")
+        nameplate:SetAlpha(isTarget and (s.selectedAlpha or 1) or (s.unselectedAlpha or 0.8))
+    end
+end
+
+local function RestorePlateFromFriendlyMode(plate)
+    -- Re-show health bar and border (hidden in friendly name-only mode)
+    plate.health:Show()
+    if plate.borderFrame then plate.borderFrame:Show() end
+    -- Re-anchor name to health bar top
+    plate.nameText:ClearAllPoints()
+    plate.nameText:SetPoint("BOTTOM", plate.health, "TOP", 0, 4)
+    -- Hide role icon if visible
+    if plate.roleIconFrame then plate.roleIconFrame:Hide() end
 end
 
 local function GetHealthColor(unit)
@@ -1189,6 +1573,17 @@ local function UpdatePlate(plate, unit)
     if not plate or not unit then return end
     local s = DB()
 
+    -- Friendly name-only mode: show only colored name, hide everything else
+    if s.friendlyNameOnly ~= false and IsFriendlyUnit(unit) then
+        ApplyFriendlyNameOnly(plate, unit)
+        return
+    end
+
+    -- Restore plate if it was previously in friendly-only mode
+    if not plate.health:IsShown() then
+        RestorePlateFromFriendlyMode(plate)
+    end
+
     -- Always update health directly — hpCalculator is only used for absorb overlay
     local hp = UnitHealth(unit)
     local hpMax = UnitHealthMax(unit)
@@ -1376,6 +1771,8 @@ local function UpdateCastbar(plate, unit)
     if not plate or not plate.castbar then return end
     local s = DB()
     if not s.showCastbar then plate.castbar:Hide(); return end
+    -- Hide castbar for friendly units in name-only mode
+    if s.friendlyNameOnly ~= false and IsFriendlyUnit(unit) then plate.castbar:Hide(); return end
     plate.castbar.unit = unit
 
     -- [FIX] Ne pas retourner immédiatement si failstart est défini.
@@ -1500,6 +1897,7 @@ local function OnNamePlateRemoved(unit)
         if plate.threatGlowFrame then plate.threatGlowFrame:Hide() end
         plate.highlight:Hide()
         plate.absorb:Hide()
+        if plate.roleIconFrame then plate.roleIconFrame:Hide() end
         for _, a in ipairs(plate.auras) do a:Hide() end
         if plate.enemyBuffs then
             for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
@@ -1623,39 +2021,49 @@ local function HandleNPUnitEvent(event, unit)
     end
 end
 
+-- [PERF] Frame pool: reuse event frames instead of creating/GC'ing one per unit
+local npUnitEventPool = {}
+
+local function npUnitEventHandler(_, event, u)
+    HandleNPUnitEvent(event, u)
+end
+
 local function RegisterNPUnitEvents(unit)
     if npUnitEventFrames[unit] then return end
-    local uef = CreateFrame("Frame")
+    local uef = tremove(npUnitEventPool) or CreateFrame("Frame")
     for _, ev in ipairs(npUnitEvents) do
         uef:RegisterUnitEvent(ev, unit)
     end
-    uef:SetScript("OnEvent", function(_, event, u)
-        HandleNPUnitEvent(event, u)
-    end)
+    uef:SetScript("OnEvent", npUnitEventHandler)
     npUnitEventFrames[unit] = uef
 end
 
 local function UnregisterNPUnitEvents(unit)
-    if npUnitEventFrames[unit] then
-        npUnitEventFrames[unit]:UnregisterAllEvents()
-        npUnitEventFrames[unit]:SetScript("OnEvent", nil)
+    local uef = npUnitEventFrames[unit]
+    if uef then
+        uef:UnregisterAllEvents()
+        uef:SetScript("OnEvent", nil)
         npUnitEventFrames[unit] = nil
+        tinsert(npUnitEventPool, uef)
     end
 end
 
 -- [PERF] Named deferred function for target changed (avoids closure alloc per event)
 local function OnTargetChanged_Deferred()
     local s = DB()
+    local friendlyNoDecor = (s.friendlyNameOnly ~= false)
     for u, p in pairs(unitPlates) do
         local np = C_NamePlate.GetNamePlateForUnit(u)
         if np then
             local isTarget = UnitIsUnit(u, "target")
             np:SetAlpha(isTarget and (s.selectedAlpha or 1) or (s.unselectedAlpha or 0.8))
+            -- Skip glow/arrows for friendly name-only plates
+            local skipDecor = friendlyNoDecor and IsFriendlyUnit(u)
             if p.glowFrame then
-                if isTarget then p.glowFrame:Show() else p.glowFrame:Hide() end
+                if isTarget and not skipDecor then p.glowFrame:Show() else p.glowFrame:Hide() end
             end
             if p.targetArrowLeft and p.targetArrowRight then
-                if isTarget then
+                if isTarget and not skipDecor then
                     p.targetArrowLeft:Show(); p.targetArrowRight:Show()
                 else
                     p.targetArrowLeft:Hide(); p.targetArrowRight:Hide()
@@ -1680,9 +2088,12 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
     elseif event == "PLAYER_TARGET_CHANGED" then
         C_Timer.After(0, OnTargetChanged_Deferred)
     elseif event == "UPDATE_MOUSEOVER_UNIT" then
+        local s2 = DB()
+        local friendlyNoDecor2 = (s2.friendlyNameOnly ~= false)
         for u, p in pairs(unitPlates) do
             if p.highlight then
-                if UnitExists("mouseover") and UnitIsUnit(u, "mouseover") then
+                local skipHL = friendlyNoDecor2 and IsFriendlyUnit(u)
+                if not skipHL and UnitExists("mouseover") and UnitIsUnit(u, "mouseover") then
                     p.highlight:Show()
                 else
                     p.highlight:Hide()
@@ -1690,10 +2101,16 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
             end
         end
     elseif event == "RAID_TARGET_UPDATE" then
+        local s3 = DB()
+        local friendlyMode = (s3.friendlyNameOnly ~= false)
         for u, p in pairs(unitPlates) do
             if p.raidIcon then
                 local index = GetRaidTargetIndex(u)
-                if index then
+                -- For friendly name-only plates, use special positioning
+                if friendlyMode and IsFriendlyUnit(u) then
+                    local hasRole = p.roleIconFrame and p.roleIconFrame:IsShown()
+                    UpdateFriendlyRaidMarker(p, u, hasRole)
+                elseif index then
                     SetRaidTargetIconTexture(p.raidIcon, index)
                     p.raidFrame:Show()
                 else
@@ -1701,6 +2118,39 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
                 end
             end
         end
+    elseif event == "GROUP_ROSTER_UPDATE" or event == "PLAYER_ROLES_ASSIGNED" then
+        -- Refresh all friendly plates so role icons update when group or roles change
+        local s4 = DB()
+        if s4.friendlyNameOnly ~= false then
+            for u, p in pairs(unitPlates) do
+                if IsFriendlyUnit(u) then
+                    ApplyFriendlyNameOnly(p, u)
+                end
+            end
+        end
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        -- Instance transition: refresh all plates (role icons depend on InDungeonOrDelve)
+        -- Re-force the CVar in case the game reset it on zone change
+        local s5 = DB()
+        if s5.friendlyNameOnly ~= false then
+            SetCVar("nameplateShowFriends", 1)
+        end
+        -- Re-hide all Blizzard frames and refresh custom plates after zone loads
+        C_Timer.After(0.5, function()
+            if not npModuleActive then return end
+            for nameplate, plate in pairs(activePlates) do
+                HideBlizzardFrame(nameplate, plate.unit)
+            end
+            NP.RefreshAll()
+        end)
+        -- Second pass for late-loading nameplates
+        C_Timer.After(1.5, function()
+            if not npModuleActive then return end
+            for nameplate, plate in pairs(activePlates) do
+                HideBlizzardFrame(nameplate, plate.unit)
+            end
+            NP.RefreshAll()
+        end)
     end
 end)
 
@@ -1727,16 +2177,26 @@ function NP.Enable()
         nameplateOverlapV = GetCVar("nameplateOverlapV"),
         nameplateOtherTopInset = GetCVar("nameplateOtherTopInset"),
         nameplateOtherBottomInset = GetCVar("nameplateOtherBottomInset"),
+        nameplateShowFriends = GetCVar("nameplateShowFriends"),
     }
     SetCVar("nameplateOverlapV", s.overlapV or 1.05)
     SetCVar("nameplateOtherTopInset", s.topInset or 0.065)
     SetCVar("nameplateOtherBottomInset", 0.1)
+
+    -- Force friendly player nameplates so NAME_PLATE_UNIT_ADDED fires for party members
+    -- This is required for custom friendly plates (name-only + role icons) to work
+    if s.friendlyNameOnly ~= false then
+        SetCVar("nameplateShowFriends", 1)
+    end
 
     eventFrame:RegisterEvent("NAME_PLATE_UNIT_ADDED")
     eventFrame:RegisterEvent("NAME_PLATE_UNIT_REMOVED")
     eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
     eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
     eventFrame:RegisterEvent("UPDATE_MOUSEOVER_UNIT")
+    eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
+    eventFrame:RegisterEvent("PLAYER_ROLES_ASSIGNED")
+    eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     NP.RefreshAll()
 
     if not NP._auraTicker then
@@ -1779,6 +2239,9 @@ function NP.Disable()
     eventFrame:UnregisterEvent("RAID_TARGET_UPDATE")
     eventFrame:UnregisterEvent("PLAYER_TARGET_CHANGED")
     eventFrame:UnregisterEvent("UPDATE_MOUSEOVER_UNIT")
+    eventFrame:UnregisterEvent("GROUP_ROSTER_UPDATE")
+    eventFrame:UnregisterEvent("PLAYER_ROLES_ASSIGNED")
+    eventFrame:UnregisterEvent("PLAYER_ENTERING_WORLD")
 
     if NP._auraTicker then
         NP._auraTicker:Cancel()
@@ -1817,6 +2280,12 @@ function NP.ApplySettings()
     local s = DB()
     SetCVar("nameplateOverlapV", s.overlapV or 1.05)
     SetCVar("nameplateOtherTopInset", s.topInset or 0.065)
+    -- Update friendly nameplate CVar when settings change
+    if s.friendlyNameOnly ~= false then
+        SetCVar("nameplateShowFriends", 1)
+    elseif NP._savedCVars and NP._savedCVars.nameplateShowFriends then
+        SetCVar("nameplateShowFriends", NP._savedCVars.nameplateShowFriends)
+    end
     NP.RefreshAll()
 end
 

@@ -689,8 +689,10 @@ function UF.ToggleLock()
             end
         else
             -- Lock: re-register unit watch for proper visibility
-            frame:SetAttribute("unit", unit)
-            RegisterUnitWatch(frame)
+            if not InCombatLockdown() then
+                frame:SetAttribute("unit", unit)
+                RegisterUnitWatch(frame)
+            end
             if frame.auraContainer then
                 frame.auraContainer:EnableMouse(false)
             end

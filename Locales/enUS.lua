@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.4.5 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.5.0 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -178,6 +178,12 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_np_show_classification"]      = "Show classification (elite, rare, boss)",
     ["opt_np_show_absorb"]               = "Show absorb bar",
     ["opt_np_class_colors"]             = "Class colors (players)",
+    ["opt_np_friendly_name_only"]       = "Friendly: name only (no health bar)",
+    ["opt_np_friendly_role_icons"]      = "Show role icons (dungeon/delve)",
+    ["opt_np_role_show_tank"]           = "Show Tank icon",
+    ["opt_np_role_show_healer"]         = "Show Healer icon",
+    ["opt_np_role_show_dps"]            = "Show DPS icon",
+    ["opt_np_role_icon_size"]           = "Role icon size",
 
     -- Raid Marker
     ["section_raid_marker"]             = "Raid Marker",
@@ -868,7 +874,6 @@ TomoMod_RegisterLocale("enUS", {
     ["mover_repbar"]                    = "Reputation Bar",
     ["mover_castbar"]                   = "Player Castbar",
     ["mover_mythictracker"]             = "M+ Tracker",
-
     -- =====================
     -- COMBAT TEXT
     -- =====================
@@ -887,6 +892,21 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_chat_skin_enable"]             = "Skin Chat Frame",
     ["opt_chat_skin_bg_alpha"]           = "Background opacity",
     ["opt_chat_skin_font_size"]          = "Chat font size",
+
+    -- Buff Skin
+    ["sublabel_buff_skin"]               = "— Buff / Debuff Skin —",
+    ["opt_buff_skin_enable"]             = "Skin Buff/Debuff Icons",
+    ["opt_buff_skin_buffs"]              = "Apply to Buffs",
+    ["opt_buff_skin_debuffs"]            = "Apply to Debuffs",
+    ["opt_buff_skin_glow"]               = "Buff glow effect",
+    ["opt_buff_skin_hide_buffs"]         = "Hide Buff Frame",
+    ["opt_buff_skin_hide_debuffs"]       = "Hide Debuff Frame",
+    ["opt_buff_skin_font_size"]          = "Timer font size",
+
+    -- Game Menu Skin
+    ["sublabel_game_menu_skin"]          = "— Game Menu (Escape) —",
+    ["opt_game_menu_skin_enable"]        = "Skin Game Menu",
+    ["info_game_menu_skin_reload"]       = "Reload UI to fully revert this skin.",
     ["msg_chat_skin_enabled"]            = "Chat Frame Skin enabled",
     ["msg_chat_skin_disabled"]           = "Chat Frame Skin disabled (reload to revert)",
     ["sublabel_mail_skin"]               = "— Mail Frame —",
@@ -1029,7 +1049,6 @@ TomoMod_RegisterLocale("enUS", {
     ["ts_cfg_title"]                = "Scoreboard",
     ["ts_cfg_enable"]               = "Enable Dungeon Scoreboard",
     ["ts_cfg_auto_show_mplus"]      = "Auto-show for Mythic+",
-    ["ts_cfg_auto_show_m0"]         = "Auto-show for Mythic 0",
     ["ts_cfg_scale"]                = "Scale",
     ["ts_cfg_alpha"]                = "Background Opacity",
     ["ts_cfg_section_display"]      = "Display",

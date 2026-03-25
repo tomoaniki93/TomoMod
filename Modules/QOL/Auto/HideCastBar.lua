@@ -22,7 +22,9 @@ local function HideCastBar()
     -- Cacher la barre de cast du joueur
     if PlayerCastingBarFrame then
         PlayerCastingBarFrame:SetAlpha(0)
-        PlayerCastingBarFrame:UnregisterAllEvents()
+        if not InCombatLockdown() then
+            PlayerCastingBarFrame:UnregisterAllEvents()
+        end
     end
 end
 

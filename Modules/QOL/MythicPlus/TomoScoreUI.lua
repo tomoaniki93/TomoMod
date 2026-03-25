@@ -572,8 +572,6 @@ end
 -- ═════════════════════════════════════════════════════════════════════════════
 TS._inMythicDungeon = false
 TS._challengeActive = false
-TS._totalBosses     = 0
-TS._bossesKilled    = 0
 TS._completionShown = false
 
 local EF = CreateFrame("Frame")
@@ -583,9 +581,6 @@ EF:RegisterEvent("PLAYER_LOGIN")
 EF:RegisterEvent("PLAYER_ENTERING_WORLD")
 EF:RegisterEvent("CHALLENGE_MODE_START")
 EF:RegisterEvent("CHALLENGE_MODE_COMPLETED")
-EF:RegisterEvent("ENCOUNTER_END")
-EF:RegisterEvent("SCENARIO_CRITERIA_UPDATE")
-EF:RegisterEvent("SCENARIO_COMPLETED")
 
 EF:SetScript("OnEvent", function(_, event, ...) TS:OnScoreEvent(event, ...) end)
 
@@ -603,11 +598,6 @@ function TS:OnScoreEvent(event, ...)
         if difficultyID == 8 then
             self._inMythicDungeon = true
             self._challengeActive = true
-            self:_UpdateBossCount()
-        elseif difficultyID == 23 then
-            self._inMythicDungeon = true
-            self._challengeActive = false
-            self:_UpdateBossCount()
         else
             self._inMythicDungeon = false
             self._challengeActive = false
@@ -616,8 +606,6 @@ function TS:OnScoreEvent(event, ...)
     elseif event == "CHALLENGE_MODE_START" then
         self._challengeActive = true
         self._completionShown = false
-        self._bossesKilled = 0
-        self:_UpdateBossCount()
 
     elseif event == "CHALLENGE_MODE_COMPLETED" then
         if self._completionShown then return end
@@ -628,73 +616,6 @@ function TS:OnScoreEvent(event, ...)
             self:_TriggerScoreboard()
         end)
 
-    elseif event == "ENCOUNTER_END" then
-        if not self._inMythicDungeon or self._challengeActive then return end
-        local _, _, _, _, success = ...
-        if success == 1 then
-            self._bossesKilled = self._bossesKilled + 1
-            self:_CheckM0Completion()
-        end
-
-    elseif event == "SCENARIO_CRITERIA_UPDATE" or event == "SCENARIO_COMPLETED" then
-        if not self._inMythicDungeon or self._challengeActive then return end
-        self:_UpdateBossProgress()
-        self:_CheckM0Completion()
-    end
-end
-
-function TS:_UpdateBossCount()
-    local _, _, numSteps = C_Scenario.GetStepInfo()
-    if numSteps and numSteps > 0 then
-        local totalBosses = 0
-        local killed = 0
-        for stepIdx = 1, numSteps do
-            local stepInfo = C_ScenarioInfo.GetCriteriaInfo(stepIdx)
-            if stepInfo then
-                totalBosses = totalBosses + 1
-                if stepInfo.completed then
-                    killed = killed + 1
-                end
-            end
-        end
-        if totalBosses == 0 then
-            totalBosses = numSteps
-        end
-        self._totalBosses  = totalBosses
-        self._bossesKilled = killed
-    end
-end
-
-function TS:_UpdateBossProgress()
-    local _, _, numSteps = C_Scenario.GetStepInfo()
-    if not numSteps or numSteps == 0 then return end
-    local killed = 0
-    local total  = 0
-    for stepIdx = 1, numSteps do
-        local stepInfo = C_ScenarioInfo.GetCriteriaInfo(stepIdx)
-        if stepInfo then
-            total = total + 1
-            if stepInfo.completed then
-                killed = killed + 1
-            end
-        end
-    end
-    if total > 0 then
-        self._totalBosses  = total
-        self._bossesKilled = killed
-    end
-end
-
-function TS:_CheckM0Completion()
-    if self._completionShown then return end
-    if self._totalBosses <= 0 then return end
-    if self._bossesKilled >= self._totalBosses then
-        self._completionShown = true
-        local db = self:GetDB()
-        if db and not db.autoShowM0 then return end
-        C_Timer.After(2.0, function()
-            self:_TriggerScoreboard()
-        end)
     end
 end
 

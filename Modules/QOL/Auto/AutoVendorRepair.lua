@@ -57,7 +57,8 @@ local function SellGrayItems()
         local item = greyItems[idx]
         local info = C_Container.GetContainerItemInfo(item.bag, item.slot)
         if info and info.itemID == item.id and info.quality == Enum.ItemQuality.Poor then
-            local price = info.stackCount * (select(11, GetItemInfo(item.id)) or 0)
+            local _, _, _, _, _, _, _, _, _, _, vendorPrice = GetItemInfo(item.id)
+            local price = info.stackCount * (vendorPrice or 0)
             C_Container.UseContainerItem(item.bag, item.slot)
             total = total + price
         end

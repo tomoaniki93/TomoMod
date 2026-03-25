@@ -94,8 +94,9 @@ function TS:CollectRunData()
     end
 
     -- Pull totals from C_DamageMeter
+    local SESSION_CURRENT = 0
     if C_DamageMeter and C_DamageMeter.GetCombatSessionSourceFromType then
-        local damageSources = C_DamageMeter.GetCombatSessionSourceFromType(SOURCE_DAMAGE)
+        local damageSources = C_DamageMeter.GetCombatSessionSourceFromType(SESSION_CURRENT, SOURCE_DAMAGE)
         if damageSources then
             for _, src in ipairs(damageSources) do
                 local pName = src.name or src.unitName
@@ -108,7 +109,7 @@ function TS:CollectRunData()
             end
         end
 
-        local healSources = C_DamageMeter.GetCombatSessionSourceFromType(SOURCE_HEALING)
+        local healSources = C_DamageMeter.GetCombatSessionSourceFromType(SESSION_CURRENT, SOURCE_HEALING)
         if healSources then
             for _, src in ipairs(healSources) do
                 local pName = src.name or src.unitName
@@ -122,7 +123,7 @@ function TS:CollectRunData()
         end
 
         local interruptType = Enum.DamageMeterType and Enum.DamageMeterType.Actions or 2
-        local ok, intSources = pcall(C_DamageMeter.GetCombatSessionSourceFromType, interruptType)
+        local ok, intSources = pcall(C_DamageMeter.GetCombatSessionSourceFromType, SESSION_CURRENT, interruptType)
         if ok and intSources then
             for _, src in ipairs(intSources) do
                 local pName = src.name or src.unitName

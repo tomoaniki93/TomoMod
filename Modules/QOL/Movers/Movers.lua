@@ -367,8 +367,12 @@ local function CreateGridOverlay()
         return g
     end
 
-    gridFrame:SetScript("OnUpdate", function(self)
+    gridFrame._gridElapsed = 0
+    gridFrame:SetScript("OnUpdate", function(self, elapsed)
         if not self:IsShown() then return end
+        self._gridElapsed = self._gridElapsed + elapsed
+        if self._gridElapsed < 0.03 then return end  -- throttle to ~33fps (plenty for glow effect)
+        self._gridElapsed = 0
 
         local ar2 = ACCENT[1]; local ag2 = ACCENT[2]; local ab2 = ACCENT[3]
         local uiH   = UIParent:GetHeight()

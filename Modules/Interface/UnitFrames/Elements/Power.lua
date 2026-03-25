@@ -48,9 +48,10 @@ function UF_Elements.UpdatePower(frame)
     if not UnitExists(frame.unit) then return end
 
     local unit = frame.unit
-    local powerType = UnitPowerType(unit)
-    local current = UnitPower(unit, powerType) or 0
-    local max = UnitPowerMax(unit, powerType) or 1
+    local powerType = UnitPowerType(unit) or 0
+    -- UnitPower/UnitPowerMax return secret numbers in TWW — pass directly to C-side APIs, do not compare
+    local current = UnitPower(unit, powerType)
+    local max = UnitPowerMax(unit, powerType)
 
     frame.power:SetMinMaxValues(0, max)
     frame.power:SetValue(current)

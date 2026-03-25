@@ -478,6 +478,7 @@ local function UpdatePrimaryBar(resDef)
     local pType = resDef.powerType
     local current = UnitPower("player", pType)
     local max = UnitPowerMax("player", pType)
+    if max == 0 then max = 1 end
 
     primaryBar:SetMinMaxValues(0, max)
     primaryBar:SetValue(current)
@@ -509,6 +510,7 @@ local function UpdatePoints(pointFrame, resDef)
     else
         current = UnitPower("player", resDef.powerType)
         max = UnitPowerMax("player", resDef.powerType)
+        if max == 0 then max = 1 end
         partialFrac = 0
 
         if resDef.showPartial then
@@ -617,6 +619,7 @@ local function UpdateDruidMana()
     druidManaBar:Show()
     local current = UnitPower("player", POWER_MANA)
     local max = UnitPowerMax("player", POWER_MANA)
+    if max == 0 then max = 1 end
     druidManaBar:SetMinMaxValues(0, max)
     druidManaBar:SetValue(current)
     local r, g, b = GetColor("mana")

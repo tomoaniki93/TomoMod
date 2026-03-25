@@ -90,9 +90,6 @@ local function HookCinematicEvents()
             C_Timer.NewTicker(0.1, function()
                 skipAttempts = skipAttempts + 1
                 TrySkipCinematic()
-                if skipAttempts >= maxSkipAttempts then
-                    return true -- Arrêter le ticker
-                end
             end, maxSkipAttempts)
             
         elseif event == "PLAY_MOVIE" then

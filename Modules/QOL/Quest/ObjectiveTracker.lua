@@ -524,6 +524,8 @@ end
 -- =====================================
 
 local function HideBlizzardHeader()
+    if InCombatLockdown() then return end
+
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
 
@@ -682,6 +684,8 @@ end
 function OT.Disable()
     if skinFrame then skinFrame:Hide() end
     if headerBar then headerBar:Hide() end
+
+    if InCombatLockdown() then return end
 
     local tracker = ObjectiveTrackerFrame
     if tracker then
