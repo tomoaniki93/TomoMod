@@ -126,11 +126,6 @@ function TomoMod_ConfigPanel_MythicPlus(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["ts_cfg_auto_show_m0"], TomoModDB.TomoScore.autoShowM0, y, function(v)
-        TomoModDB.TomoScore.autoShowM0 = v
-    end)
-    y = ny
-
     -- ── Frame ────────────────────────────────────────────────────
     local _, ny = W.CreateSectionHeader(c, L["ts_cfg_section_frame"], y)
     y = ny

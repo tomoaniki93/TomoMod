@@ -34,7 +34,7 @@ TomoMod_Defaults = {
         anchorTooltip = false,
     },
     cinematicSkip = {
-        enabled = true,
+        enabled = false,
         viewedCinematics = {},
     },
     frameAnchors = {
@@ -52,7 +52,7 @@ TomoMod_Defaults = {
         autoGossip = false,
     },
     objectiveTracker = {
-        enabled = false,
+        enabled = true,
         bgAlpha = 0.65,
         showBorder = true,
         hideWhenEmpty = false,
@@ -63,7 +63,7 @@ TomoMod_Defaults = {
         maxQuestsShown = 0,
     },
     skyRide = {
-        enabled = false,
+        enabled = true,
         width = 340,
         height = 20,
         comboHeight = 5,
@@ -106,7 +106,7 @@ TomoMod_Defaults = {
         showMessages = true,
     },
     tooltipIDs = {
-        enabled = true,
+        enabled = false,
         showSpellID = true,
         showItemID = true,
         showNPCID = true,
@@ -186,7 +186,6 @@ TomoMod_Defaults = {
         scale         = 1.0,
         alpha         = 0.95,
         autoShowMPlus = true,
-        autoShowM0    = true,
         lastRun       = nil,
     },
     autoFillDelete = {
@@ -204,9 +203,22 @@ TomoMod_Defaults = {
         scale = 1.0,
     },
     chatFrameSkin = {
-        enabled = false,
+        enabled = true,
         bgAlpha = 0.70,
         fontSize = 13,
+    },
+    buffSkin = {
+        enabled = false,
+        skinBuffs = true,
+        skinDebuffs = true,
+        hideBuffFrame = false,
+        hideDebuffFrame = false,
+        buffGlow = false,
+        fontSize = 12,
+        fontOutline = "OUTLINE",
+    },
+    gameMenuSkin = {
+        enabled = true,
     },
     mailSkin = {
         enabled = true,
@@ -562,7 +574,7 @@ TomoMod_Defaults = {
     -- NAMEPLATES
     -- =====================
     nameplates = {
-        enabled = false,
+        enabled = true,
         width = 156,
         height = 17,
         texture = ADDON_TEXTURE,
@@ -591,6 +603,12 @@ TomoMod_Defaults = {
         maxEnemyBuffs = 4,
         enemyBuffYOffset = 4,
         friendlyPlates = false,
+        friendlyNameOnly = true,
+        friendlyRoleIcons = true,
+        roleIconSize = 32,
+        roleShowTank = true,
+        roleShowHealer = true,
+        roleShowDps = true,
         tankMode = false,
         selectedAlpha = 1.0,
         unselectedAlpha = 0.8,

@@ -26,6 +26,20 @@ end
 local L = TomoMod_L
 
 -- =====================================
+-- STATIC POPUPS
+-- =====================================
+StaticPopupDialogs["TOMOMOD_SPEC_RELOAD"] = {
+    text = "|cff0cd29fTomoMod|r\n" .. (L and L["msg_spec_changed_reload"] or "Spec changed. Reload UI to apply profile?"),
+    button1 = OKAY or "OK",
+    button2 = CANCEL or "Cancel",
+    OnAccept = function() ReloadUI() end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
+-- =====================================
 -- SLASH COMMANDS
 -- =====================================
 
@@ -300,6 +314,8 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.Initialize() end
         if TomoMod_CharacterSkin then TomoMod_CharacterSkin.Initialize() end
         if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.Initialize() end
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.Initialize() end
+        if TomoMod_GameMenuSkin then TomoMod_GameMenuSkin.Initialize() end
 
         -- Interface Modules (new v2)
         if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end
@@ -319,10 +335,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
             local newSpecID = TomoMod_Profiles.GetCurrentSpecID()
             local needReload = TomoMod_Profiles.OnSpecChanged(newSpecID)
             if needReload then
-                print("|cff0cd29fTomoMod|r " .. L["msg_spec_changed_reload"])
-                C_Timer.After(0.5, function()
-                    ReloadUI()
-                end)
+                StaticPopup_Show("TOMOMOD_SPEC_RELOAD")
             end
         end
     end

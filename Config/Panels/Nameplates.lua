@@ -106,6 +106,36 @@ local function BuildGeneralTab(parent)
     end)
     y = ny
 
+    local _, ny = W.CreateCheckbox(c, L["opt_np_friendly_name_only"] or "Friendly: name only (no health bar)", db.friendlyNameOnly ~= false, y, function(v)
+        db.friendlyNameOnly = v; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_np_friendly_role_icons"] or "Show role icons (dungeon/delve)", db.friendlyRoleIcons ~= false, y, function(v)
+        db.friendlyRoleIcons = v; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_np_role_show_tank"] or "Show Tank icon", db.roleShowTank ~= false, y, function(v)
+        db.roleShowTank = v; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_np_role_show_healer"] or "Show Healer icon", db.roleShowHealer ~= false, y, function(v)
+        db.roleShowHealer = v; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_np_role_show_dps"] or "Show DPS icon", db.roleShowDps ~= false, y, function(v)
+        db.roleShowDps = v; RefreshNP()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_np_role_icon_size"] or "Role icon size", db.roleIconSize or 32, 16, 60, 2, y, function(v)
+        db.roleIconSize = v; RefreshNP()
+    end)
+    y = ny
+
     -- Raid Marker
     local _, ny = W.CreateSectionHeader(c, L["section_raid_marker"], y)
     y = ny

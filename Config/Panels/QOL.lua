@@ -824,6 +824,75 @@ local function BuildSkinsTab(parent)
     end)
     y = ny
 
+    -- ── Buff / Debuff Skin ──
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_buff_skin"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_enable"], TomoModDB.buffSkin.enabled, y, function(v)
+        TomoModDB.buffSkin.enabled = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_buffs"], TomoModDB.buffSkin.skinBuffs, y, function(v)
+        TomoModDB.buffSkin.skinBuffs = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_debuffs"], TomoModDB.buffSkin.skinDebuffs, y, function(v)
+        TomoModDB.buffSkin.skinDebuffs = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_glow"], TomoModDB.buffSkin.buffGlow, y, function(v)
+        TomoModDB.buffSkin.buffGlow = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_hide_buffs"], TomoModDB.buffSkin.hideBuffFrame, y, function(v)
+        TomoModDB.buffSkin.hideBuffFrame = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_hide_debuffs"], TomoModDB.buffSkin.hideDebuffFrame, y, function(v)
+        TomoModDB.buffSkin.hideDebuffFrame = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_buff_skin_font_size"], TomoModDB.buffSkin.fontSize or 12, 8, 20, 1, y, function(v)
+        TomoModDB.buffSkin.fontSize = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
+    end)
+    y = ny
+
+    -- ── Game Menu Skin ──
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_game_menu_skin"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_game_menu_skin_enable"], TomoModDB.gameMenuSkin.enabled, y, function(v)
+        TomoModDB.gameMenuSkin.enabled = v
+        if TomoMod_GameMenuSkin then TomoMod_GameMenuSkin.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_game_menu_skin_reload"], y)
+    y = ny
+
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
