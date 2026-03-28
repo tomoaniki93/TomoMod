@@ -622,12 +622,21 @@ function HUB:Refresh()
                 end
             end
 
-            -- Also try GetSeasonBestForMap
+            -- Also try GetSeasonBestForMap (TWW 11.1: returns an info table, not two numbers)
             if C_MythicPlus.GetSeasonBestForMap then
-                local bestLevel, bestDuration = C_MythicPlus.GetSeasonBestForMap(mapID)
-                if bestLevel and bestLevel > (dungeonScores[mapID].level or 0) then
-                    dungeonScores[mapID].level = bestLevel
-                    dungeonScores[mapID].durationMS = bestDuration or 0
+                local result = C_MythicPlus.GetSeasonBestForMap(mapID)
+                if result then
+                    local bestLevel, bestDuration
+                    if type(result) == "table" then
+                        bestLevel = result.level
+                        bestDuration = result.durationSec and (result.durationSec * 1000)
+                    else
+                        bestLevel = result
+                    end
+                    if bestLevel and bestLevel > (dungeonScores[mapID].level or 0) then
+                        dungeonScores[mapID].level = bestLevel
+                        dungeonScores[mapID].durationMS = bestDuration or 0
+                    end
                 end
             end
         end

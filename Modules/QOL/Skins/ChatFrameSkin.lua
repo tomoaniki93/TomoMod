@@ -529,14 +529,10 @@ end
 
 local statusTicker
 
+-- [PERF] C_Timer.NewTicker replaces OnUpdate accumulator for 2s poll
 local function StartStatusUpdater()
     if statusTicker then return end
-    local evFrame = CreateFrame("Frame")
-    local elapsed = 0
-    evFrame:SetScript("OnUpdate", function(_, dt)
-        elapsed = elapsed + dt
-        if elapsed < 2 then return end
-        elapsed = 0
+    statusTicker = C_Timer.NewTicker(2, function()
         if not IsEnabled() then return end
         for i = 1, NUM_CHAT_WINDOWS or 10 do
             local chatFrame = _G["ChatFrame" .. i]
@@ -546,7 +542,6 @@ local function StartStatusUpdater()
             end
         end
     end)
-    statusTicker = evFrame
 end
 
 -- =====================================

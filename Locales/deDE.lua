@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("deDE", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Über",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.5.0 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.5.1 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
     ["section_general"]                 = "Allgemein",
     ["btn_reset_all"]                   = "Alles zurücksetzen",
     ["info_reset_all"]                  = "Dies setzt ALLE Einstellungen zurück und lädt die Oberfläche neu.",
@@ -570,6 +570,7 @@ TomoMod_RegisterLocale("deDE", {
     ["msg_module_reset"]                = "Modul '%s' zurückgesetzt",
     ["msg_db_not_init"]                 = "Datenbank nicht initialisiert",
     ["msg_loaded"]                      = "v2.0 geladen — %s für Konfiguration",
+    ["msg_report_issue"]                = "Falls ein Problem auftritt, hinterlasst bitte einen Kommentar auf CurseForge.",
     ["msg_help_title"]                  = "v2.0 — Befehle:",
     ["msg_help_open"]                   = "Konfiguration öffnen",
     ["msg_help_reset"]                  = "Alles zurücksetzen + Neuladen",
@@ -795,8 +796,9 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_sound_channel"]               = "Audiokanal",
     ["btn_sound_preview"]               = ">> Sound anhören",
     ["btn_sound_stop"]                  = "■  Stoppen",
+    ["opt_sound_force"]                 = "Sound erzwingen, auch wenn das Spiel stummgeschaltet ist",
     ["opt_sound_chat"]                  = "Chatnachrichten anzeigen",
-        ["opt_sound_debug"]                 = "Mode debug",
+    ["opt_sound_debug"]                 = "Mode debug",
 
     -- =====================
     -- BAG & MICRO MENU

@@ -519,7 +519,9 @@ function UF_Elements.UpdateEnemyBuffs(frame)
             if durObj then
                 iconFrame.cooldown:Hide()
                 if iconFrame.duration then
-                    iconFrame.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
+                    -- TWW 11.1: GetRemainingDuration() returns a secret number —
+                    -- pass directly to C-side SetFormattedText (no Lua arithmetic)
+                    iconFrame.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
                     iconFrame.duration:Show()
                 end
             else
@@ -543,9 +545,9 @@ end
 local auraDurationTicker
 function UF_Elements.StartAuraDurationUpdater(frames)
     if auraDurationTicker then return end
-    -- TWW: C_UnitAuras.GetAuraDuration returns Duration objects with non-secret methods.
-    -- [PERF] 0.2s instead of 0.1s — sufficient for numeric duration display
-    auraDurationTicker = C_Timer.NewTicker(0.5, function() -- [PERF] 0.5s: 2fps suffisant pour l'affichage durée
+    -- TWW 11.1: GetRemainingDuration() returns a secret number — pass directly
+    -- to C-side SetFormattedText("%.0f", ...) to avoid Lua arithmetic on it.
+    auraDurationTicker = C_Timer.NewTicker(0.5, function()
         for _, frame in pairs(frames) do
             -- Standard aura container (debuffs)
             if frame.auraContainer and frame.auraContainer:IsVisible() then

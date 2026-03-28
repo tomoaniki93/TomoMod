@@ -169,22 +169,30 @@ local function SkinButton(button, isBuff)
     -- Crop icon edges for cleaner look
     icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 
+    -- Remove Blizzard circular mask so the full square icon is visible
+    if icon.SetMask then icon:SetMask("") end
+    if button.IconMask then button.IconMask:Hide() end
+    if button.CircleMask then button.CircleMask:Hide() end
+
+    -- Hide Blizzard overlays that darken the icon
+    if button.IconOverlay and button.IconOverlay.SetAlpha then button.IconOverlay:SetAlpha(0) end
+    if button.Highlight and button.Highlight.SetAlpha then button.Highlight:SetAlpha(0) end
+
     -- Hide Blizzard default border
-    local blizzBorder = button.Border or button.border
+    local blizzBorder = button.Border or button.border or button.IconBorder
     if blizzBorder and blizzBorder.SetAlpha then
         blizzBorder:SetAlpha(0)
     end
 
-    -- Determine colors
-    local borderR, borderG, borderB = 0, 0, 0         -- black border by default
+    -- Determine colors — teal border on all auras (addon accent)
+    local borderR, borderG, borderB = 0.047, 0.824, 0.624
     local glowR, glowG, glowB, glowA = 0, 0, 0, 0    -- no glow by default
 
     if not isBuff then
-        -- Debuffs: dark red border + red glow
-        borderR, borderG, borderB = 0.5, 0, 0
+        -- Debuffs: keep red glow to distinguish
         glowR, glowG, glowB, glowA = 0.8, 0.1, 0.1, 0.5
     elseif settings.buffGlow then
-        -- Buffs with glow enabled: subtle teal glow (addon accent)
+        -- Buffs with glow enabled: subtle teal glow
         glowR, glowG, glowB, glowA = 0.047, 0.824, 0.624, 0.3
     end
 

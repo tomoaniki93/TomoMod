@@ -489,7 +489,7 @@ function TMT:UpdateTimerBar(preview)
     elseif self.completionTime then
         elapsed = self.completionTime / 1000
     elseif C_ChallengeMode.IsChallengeModeActive() then
-        elapsed = (C_ChallengeMode.GetActiveChallengeElapsedTime and C_ChallengeMode.GetActiveChallengeElapsedTime()) or select(2, GetWorldElapsedTime and GetWorldElapsedTime(1) or 0, 0) or 0
+        elapsed = select(2, GetWorldElapsedTime(1)) or 0
     end
     if timeLimit <= 0 then timeLimit = 1800 end
 
@@ -607,11 +607,11 @@ function TMT:UpdateForcesBar(preview)
     else
         local steps = select(3, C_Scenario.GetStepInfo())
         if steps and steps > 0 then
-            for i = steps, 1, -1 do
+            for i = 1, steps do
                 local cr = C_ScenarioInfo.GetCriteriaInfo(i)
-                if cr and cr.isWeightedProgress then
-                    qty   = cr.quantity      or 0
-                    total = cr.totalQuantity or 1
+                if cr and cr.isWeightedProgress and cr.totalQuantity and cr.totalQuantity > 0 then
+                    qty   = cr.quantityString and tonumber(cr.quantityString:match("%d+")) or 0
+                    total = cr.totalQuantity
                     break
                 end
             end
@@ -649,7 +649,7 @@ function TMT:UpdateBossRows(preview)
     local elapsed = 0
 
     if not preview and C_ChallengeMode.IsChallengeModeActive() then
-        elapsed = (C_ChallengeMode.GetActiveChallengeElapsedTime and C_ChallengeMode.GetActiveChallengeElapsedTime()) or select(2, GetWorldElapsedTime and GetWorldElapsedTime(1) or 0, 0) or 0
+        elapsed = select(2, GetWorldElapsedTime(1)) or 0
     end
 
     local criteria = {}
@@ -939,8 +939,10 @@ function TMT:StartTicker()
     if self._ticker then return end
     local function tick()
         TMT._ticker = nil
-        if C_ChallengeMode.IsChallengeModeActive() then
+        if TMT.Frame and C_ChallengeMode.IsChallengeModeActive() then
             TMT:UpdateTimerBar()
+            TMT:UpdateForcesBar()
+            TMT:UpdateHeader()
             TMT._ticker = C_Timer.NewTimer(TMT.UPDATE_RATE, tick)
         end
     end
@@ -1017,7 +1019,7 @@ EF:SetScript("OnEvent", function(_, event, ...)
 
     elseif event == "SCENARIO_CRITERIA_UPDATE"
         or event == "SCENARIO_POI_UPDATE" then
-        if C_ChallengeMode.IsChallengeModeActive() then
+        if TMT.Frame and C_ChallengeMode.IsChallengeModeActive() then
             TMT:UpdateBossRows()
             TMT:UpdateForcesBar()
             TMT:LayoutFrame()

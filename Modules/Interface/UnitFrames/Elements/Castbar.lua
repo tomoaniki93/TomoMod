@@ -662,8 +662,14 @@ function UF_Elements.CreateCastbar(parent, unit, settings)
         self._textTimer = 0
 
         -- Timer from stored duration object (param 0 for displayable value)
+        -- [PERF] Cache tenths — skip SetFormattedText when 1-decimal display unchanged
         if self.timerText and self.duration_obj then
-            self.timerText:SetFormattedText("%.1f", self.duration_obj:GetRemainingDuration(0))
+            local rem = self.duration_obj:GetRemainingDuration(0)
+            local tenths = math.floor(rem * 10 + 0.5)
+            if tenths ~= self._lastTenths then
+                self._lastTenths = tenths
+                self.timerText:SetFormattedText("%.1f", rem)
+            end
         end
 
         -- Empower: track current stage and update spell text (player only)

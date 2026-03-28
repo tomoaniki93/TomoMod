@@ -924,16 +924,9 @@ local function InitViewers()
         end
     end
 
-    -- Ticker for CD text + active state + dimming
-    tickerFrame = CreateFrame("Frame")
-    tickerFrame.elapsed = 0
-    tickerFrame:SetScript("OnUpdate", function(self, dt)
-        self.elapsed = self.elapsed + dt
-        if self.elapsed >= TICK_RATE then
-            local e = self.elapsed
-            self.elapsed = 0
-            TickerUpdate(e)
-        end
+    -- [PERF] C_Timer.NewTicker replaces OnUpdate accumulator — no per-frame Lua callback
+    tickerFrame = C_Timer.NewTicker(TICK_RATE, function()
+        TickerUpdate(TICK_RATE)
     end)
 
     -- Deferred layout processor

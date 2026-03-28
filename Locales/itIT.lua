@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("itIT", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Informazioni",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.5.0 di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.5.1 di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
     ["section_general"]                 = "Generale",
     ["btn_reset_all"]                   = "Ripristina tutto",
     ["info_reset_all"]                  = "Questo ripristinerà TUTTE le impostazioni e ricaricherà l'interfaccia.",
@@ -570,6 +570,7 @@ TomoMod_RegisterLocale("itIT", {
     ["msg_module_reset"]                = "Modulo '%s' ripristinato",
     ["msg_db_not_init"]                 = "Database non inizializzato",
     ["msg_loaded"]                      = "v2.0 caricato — %s per configurazione",
+    ["msg_report_issue"]                = "Se riscontri un problema, lascia un commento su CurseForge.",
     ["msg_help_title"]                  = "v2.0 — Comandi:",
     ["msg_help_open"]                   = "Apri configurazione",
     ["msg_help_reset"]                  = "Ripristina tutto + ricarica",
@@ -795,8 +796,9 @@ TomoMod_RegisterLocale("itIT", {
     ["opt_sound_channel"]               = "Canale audio",
     ["btn_sound_preview"]               = ">> Ascolta suono",
     ["btn_sound_stop"]                  = "■  Ferma",
+    ["opt_sound_force"]                 = "Forza il suono anche se il gioco è in muto",
     ["opt_sound_chat"]                  = "Mostra messaggi in chat",
-        ["opt_sound_debug"]                 = "Mode debug",
+    ["opt_sound_debug"]                 = "Mode debug",
 
     -- =====================
     -- BAG & MICRO MENU

@@ -419,42 +419,27 @@ local function EnableDrag()
 end
 
 -- =====================================
--- Health update ticker (0.1 s)
--- [PERF] Starts hidden — enabled/disabled alongside mainFrame to avoid OnUpdate overhead
+-- Health + Aura update tickers
+-- [PERF] C_Timer.NewTicker replaces OnUpdate accumulators — no per-frame Lua callback
+-- Synced with mainFrame Show/Hide to avoid work when hidden
 -- =====================================
-local updateFrame = CreateFrame("Frame")
-local updateElapsed = 0
-updateFrame:Hide()
-updateFrame:SetScript("OnUpdate", function(self, elapsed)
-    updateElapsed = updateElapsed + elapsed
-    if updateElapsed < 0.1 then return end
-    updateElapsed = 0
-    UpdateHealth()
-end)
+local _ctHealthTicker = nil
+local _ctAuraTicker = nil
 
--- =====================================
--- Aura update ticker (0.5 s)
--- [PERF] Starts hidden — enabled/disabled alongside mainFrame
--- =====================================
-local auraFrame = CreateFrame("Frame")
-local auraElapsed = 0
-auraFrame:Hide()
-auraFrame:SetScript("OnUpdate", function(self, elapsed)
-    auraElapsed = auraElapsed + elapsed
-    if auraElapsed < 0.5 then return end
-    auraElapsed = 0
-    UpdateDebuffs()
-    UpdateDefensiveCDs()
-end)
-
--- [PERF] Sync ticker frames with mainFrame visibility
 mainFrame:HookScript("OnShow", function()
-    updateFrame:Show()
-    auraFrame:Show()
+    if not _ctHealthTicker then
+        _ctHealthTicker = C_Timer.NewTicker(0.1, UpdateHealth)
+    end
+    if not _ctAuraTicker then
+        _ctAuraTicker = C_Timer.NewTicker(0.5, function()
+            UpdateDebuffs()
+            UpdateDefensiveCDs()
+        end)
+    end
 end)
 mainFrame:HookScript("OnHide", function()
-    updateFrame:Hide()
-    auraFrame:Hide()
+    if _ctHealthTicker then _ctHealthTicker:Cancel(); _ctHealthTicker = nil end
+    if _ctAuraTicker then _ctAuraTicker:Cancel(); _ctAuraTicker = nil end
 end)
 
 -- =====================================

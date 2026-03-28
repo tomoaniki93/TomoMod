@@ -423,11 +423,16 @@ local function UpdateSpeed()
     speedBar:SetMinMaxValues(0, SPEED_MAX)
     speedBar:SetValue(moveSpeed, Enum.StatusBarInterpolation.ExponentialEaseOut)
 
+    -- [PERF] Cache speed text — skip SetText when value unchanged (avoids string concat + font update)
     if speedBar.speedText then
         if s.showSpeedText and moveSpeed > 0 then
-            speedBar.speedText:SetText(moveSpeed .. "%")
+            if moveSpeed ~= speedBar._lastSpeed then
+                speedBar._lastSpeed = moveSpeed
+                speedBar.speedText:SetText(moveSpeed .. "%")
+            end
             speedBar.speedText:Show()
         else
+            speedBar._lastSpeed = nil
             speedBar.speedText:Hide()
         end
     end
@@ -436,8 +441,24 @@ end
 -- =====================================
 -- TICK
 -- =====================================
+-- [PERF] Early-exit when not flying + locked: ticker stays alive (cheap IsFlying check)
+-- but skips all heavy work (UpdateSpeed, UpdateVigor, UpdateWind).
+-- No self-cancel — IsFlying() is not true yet when mount events fire, so
+-- event-driven restart was unreliable.
+local _srWasFlying = false
 local function OnTick()
-    local inPreview = not isLocked and not IsFlying("player")
+    local flying = IsFlying("player")
+    local inPreview = not isLocked and not flying
+    -- [PERF] Skip all heavy work when grounded + locked (single API call per tick)
+    -- Hide the frame once on the flying→grounded transition
+    if not flying and isLocked then
+        if _srWasFlying then
+            _srWasFlying = false
+            frame:Hide()
+        end
+        return
+    end
+    _srWasFlying = flying
     UpdateSpeed()
     UpdateVigorSegments(inPreview)
     UpdateWindSegments(inPreview)

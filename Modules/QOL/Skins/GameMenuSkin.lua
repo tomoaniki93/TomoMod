@@ -109,30 +109,48 @@ end
 
 -- Prevent Blizzard from re-applying textures via hooks
 local function LockoutTextures(button)
-    -- Hook texture setters to prevent re-application
-    local noop = function() end
-
-    if button.SetNormalTexture then
-        hooksecurefunc(button, "SetNormalTexture", function(self)
-            local tex = self:GetNormalTexture()
-            if tex then tex:SetAlpha(0); tex:Hide() end
-        end)
+    -- Kill and permanently disable each standard button texture
+    local function KillButtonTex(getTex, hookMethod)
+        local tex = getTex and getTex(button)
+        if tex then
+            tex:SetAlpha(0)
+            tex:Hide()
+            tex:SetTexture(nil)
+            tex:SetSize(0.001, 0.001)
+            -- Hook Show on the texture object itself so Blizzard can't re-show it
+            if tex.Show and not tex._tmLocked then
+                tex._tmLocked = true
+                hooksecurefunc(tex, "Show", function(self) self:Hide(); self:SetAlpha(0) end)
+                hooksecurefunc(tex, "SetAlpha", function(self) if self._tmLocked then self:Hide() end end)
+            end
+        end
+        -- Hook the setter on the button so new textures get killed too
+        if button[hookMethod] then
+            hooksecurefunc(button, hookMethod, function(self)
+                local t = getTex(self)
+                if t then t:SetAlpha(0); t:Hide(); t:SetTexture(nil) end
+            end)
+        end
     end
-    if button.SetHighlightTexture then
-        hooksecurefunc(button, "SetHighlightTexture", function(self)
+
+    KillButtonTex(button.GetNormalTexture, "SetNormalTexture")
+    KillButtonTex(button.GetHighlightTexture, "SetHighlightTexture")
+    KillButtonTex(button.GetPushedTexture, "SetPushedTexture")
+    KillButtonTex(button.GetDisabledTexture, "SetDisabledTexture")
+
+    -- Also catch SetHighlightAtlas (TWW uses this on some buttons)
+    if button.SetHighlightAtlas and not button._tmAtlasHooked then
+        button._tmAtlasHooked = true
+        hooksecurefunc(button, "SetHighlightAtlas", function(self)
             local tex = self:GetHighlightTexture()
             if tex then tex:SetAlpha(0); tex:Hide() end
         end)
     end
-    if button.SetPushedTexture then
-        hooksecurefunc(button, "SetPushedTexture", function(self)
-            local tex = self:GetPushedTexture()
-            if tex then tex:SetAlpha(0); tex:Hide() end
-        end)
-    end
-    if button.SetDisabledTexture then
-        hooksecurefunc(button, "SetDisabledTexture", function(self)
-            local tex = self:GetDisabledTexture()
+    -- Catch SetNormalAtlas too
+    if button.SetNormalAtlas and not button._tmNormalAtlasHooked then
+        button._tmNormalAtlasHooked = true
+        hooksecurefunc(button, "SetNormalAtlas", function(self)
+            local tex = self:GetNormalTexture()
             if tex then tex:SetAlpha(0); tex:Hide() end
         end)
     end
@@ -241,18 +259,20 @@ local function SkinButton(button)
     -- =====================
 
     -- Dark background
+    -- Dark background (very low layer — guaranteed behind everything)
     local bg = button:CreateTexture(nil, "BACKGROUND", nil, -8)
     bg:SetAllPoints()
     bg:SetColorTexture(BTN_NORMAL[1], BTN_NORMAL[2], BTN_NORMAL[3], BTN_NORMAL[4])
 
-    -- Hover overlay (teal tint)
-    local hover = button:CreateTexture(nil, "ARTWORK", nil, 1)
+    -- Hover overlay (teal tint) — OVERLAY sublevel 2, above any Blizzard
+    -- ARTWORK re-applications, below our borders (sublevel 7) and text
+    local hover = button:CreateTexture(nil, "OVERLAY", nil, 2)
     hover:SetAllPoints()
     hover:SetColorTexture(BTN_HOVER[1], BTN_HOVER[2], BTN_HOVER[3], BTN_HOVER[4])
     hover:Hide()
 
-    -- Pressed overlay (deeper teal)
-    local pressed = button:CreateTexture(nil, "ARTWORK", nil, 1)
+    -- Pressed overlay (deeper teal) — same layer as hover
+    local pressed = button:CreateTexture(nil, "OVERLAY", nil, 2)
     pressed:SetAllPoints()
     pressed:SetColorTexture(BTN_PRESSED[1], BTN_PRESSED[2], BTN_PRESSED[3], BTN_PRESSED[4])
     pressed:Hide()
@@ -331,6 +351,25 @@ local function SkinButton(button)
     button:HookScript("OnMouseUp", function(self)
         if self._tmPressed then self._tmPressed:Hide() end
         if self._tmHover and self:IsMouseOver() then self._tmHover:Show() end
+    end)
+
+    -- Re-nuke Blizzard textures every time the button is shown,
+    -- in case Blizzard's layout system re-applies decorations
+    button:HookScript("OnShow", function(self)
+        -- Kill standard textures again
+        for _, getter in ipairs({ "GetNormalTexture", "GetHighlightTexture", "GetPushedTexture", "GetDisabledTexture" }) do
+            if self[getter] then
+                local tex = self[getter](self)
+                if tex then tex:SetAlpha(0); tex:Hide() end
+            end
+        end
+        -- Kill any NineSlice children that crept back
+        if self.NineSlice then
+            self.NineSlice:SetAlpha(0)
+            self.NineSlice:Hide()
+        end
+        -- Ensure our bg is visible and at the right layer
+        if self._tmBg then self._tmBg:Show() end
     end)
 end
 

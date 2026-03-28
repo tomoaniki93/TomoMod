@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.5.0 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.5.1 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -593,6 +593,7 @@ TomoMod_RegisterLocale("enUS", {
     ["msg_module_reset"]                = "Module '%s' reset",
     ["msg_db_not_init"]                 = "Database not initialized",
     ["msg_loaded"]                      = "v2.0 loaded — %s for config",
+    ["msg_report_issue"]                = "If you encounter any issue, please leave a comment on CurseForge.",
     ["msg_help_title"]                  = "v2.0 — Commands:",
     ["msg_help_open"]                   = "Open config",
     ["msg_help_reset"]                  = "Reset all + reload",
@@ -818,6 +819,7 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_sound_channel"]               = "Canal audio",
     ["btn_sound_preview"]               = ">> Ecouter le son",
     ["btn_sound_stop"]                  = "■  Arrêter",
+    ["opt_sound_force"]                 = "Forcer le son même si le jeu est muet",
     ["opt_sound_chat"]                  = "Afficher les messages en chat",
     ["opt_sound_debug"]                 = "Mode debug",
 

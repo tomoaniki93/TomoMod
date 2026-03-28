@@ -225,7 +225,12 @@ local function ProcessEnemyBuffSlots(token, ...)
                 if durObj then
                     buffFrame.cooldown:Hide()
                     if buffFrame.duration then
-                        buffFrame.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
+                        -- [PERF] Cache integer duration — skip SetFormattedText when unchanged
+                        local durInt = math.floor(durObj:GetRemainingDuration() + 0.5)
+                        if durInt ~= buffFrame._lastDurInt then
+                            buffFrame._lastDurInt = durInt
+                            buffFrame.duration:SetFormattedText("%d", durInt)
+                        end
                         buffFrame.duration:Show()
                     end
                 else
@@ -655,7 +660,13 @@ local function CreatePlate(baseFrame)
         self._elapsed = 0
         self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
         if self.timer and self.duration_obj then
-            self.timer:SetFormattedText("%.1f", self.duration_obj:GetRemainingDuration(0))
+            -- [PERF] Cache timer text — skip SetFormattedText when 1-decimal display unchanged
+            local rem = self.duration_obj:GetRemainingDuration(0)
+            local tenths = math.floor(rem * 10 + 0.5)
+            if tenths ~= self._lastTenths then
+                self._lastTenths = tenths
+                self.timer:SetFormattedText("%.1f", rem)
+            end
         end
     end)
 
@@ -1531,6 +1542,8 @@ local function UpdatePlateAuras(plate, unit)
                     if durObj then
                         auraFrame.cooldown:Hide()
                         if auraFrame.duration then
+                            -- TWW 11.1: GetRemainingDuration() returns a secret number —
+                            -- pass directly to C-side SetFormattedText (no Lua arithmetic)
                             auraFrame.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
                             auraFrame.duration:Show()
                         end
@@ -2200,8 +2213,8 @@ function NP.Enable()
     NP.RefreshAll()
 
     if not NP._auraTicker then
-        -- [PERF] 0.25s instead of 0.1s, skip invisible plates, use C-side SetFormattedText
-        NP._auraTicker = C_Timer.NewTicker(0.5, function() -- [PERF] 0.5s au lieu de 0.25
+        -- TWW 11.1: GetRemainingDuration() returns a secret number — use SetFormattedText directly
+        NP._auraTicker = C_Timer.NewTicker(0.5, function()
             for u, p in pairs(unitPlates) do
                 if p:IsVisible() then
                     if p.auras then

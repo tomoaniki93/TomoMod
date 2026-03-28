@@ -28,7 +28,12 @@ function TomoMod_CursorRing.Create()
     -- math.floor(x/s + 0.5) snape à la grille pixel et évite le jitter sub-pixel.
     -- Pas de ClearAllPoints → pas d'invalidation layout à chaque frame.
     local lastPX, lastPY = nil, nil
-    cursorFrame:SetScript("OnUpdate", function(self)
+    local _crElapsed = 0
+    cursorFrame:SetScript("OnUpdate", function(self, elapsed)
+        -- [PERF] Cap at ~60fps — GetCursorPosition + math.floor every render frame is wasteful at 120+fps
+        _crElapsed = _crElapsed + elapsed
+        if _crElapsed < 0.016 then return end
+        _crElapsed = 0
         local s = UIParent:GetEffectiveScale()
         local x, y = GetCursorPosition()
         local px = math.floor(x / s + 0.5)

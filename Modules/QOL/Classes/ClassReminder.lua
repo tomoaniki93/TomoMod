@@ -208,16 +208,8 @@ end)
 
 -- ── Throttled Update ─────────────────────────────────────────
 
-local UPDATE_INTERVAL = 1.0
-local timeSinceUpdate = 0
-
-local function OnUpdate(_, elapsed)
-    timeSinceUpdate = timeSinceUpdate + elapsed
-    if timeSinceUpdate >= UPDATE_INTERVAL then
-        timeSinceUpdate = 0
-        UpdateDisplay()
-    end
-end
+-- [PERF] C_Timer.NewTicker replaces OnUpdate accumulator — no per-frame Lua callback for 1s check
+local _crTicker = nil
 
 -- ── Public API ───────────────────────────────────────────────
 
@@ -225,10 +217,12 @@ function CR.SetEnabled(v)
     local db = GetDB()
     if db then db.enabled = v end
     if v then
-        reminderFrame:SetScript("OnUpdate", OnUpdate)
+        if not _crTicker then
+            _crTicker = C_Timer.NewTicker(1.0, UpdateDisplay)
+        end
         UpdateDisplay()
     else
-        reminderFrame:SetScript("OnUpdate", nil)
+        if _crTicker then _crTicker:Cancel(); _crTicker = nil end
         reminderFrame:Hide()
     end
 end
@@ -252,7 +246,9 @@ function CR.Initialize()
     currentSpecID = GetSpecializationInfo(GetSpecialization() or 1) or 0
 
     if db.enabled then
-        reminderFrame:SetScript("OnUpdate", OnUpdate)
+        if not _crTicker then
+            _crTicker = C_Timer.NewTicker(1.0, UpdateDisplay)
+        end
         UpdateDisplay()
     end
 end
