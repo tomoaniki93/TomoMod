@@ -256,6 +256,18 @@ SlashCmdList["TOMOMOD"] = function(msg)
 end
 
 -- =====================================
+-- CONVENIENCE SLASH COMMANDS
+-- =====================================
+
+SLASH_TOMOMOD_RL1 = "/rl"
+SlashCmdList["TOMOMOD_RL"] = ReloadUI
+
+SLASH_TOMOMOD_KB1 = "/kb"
+SlashCmdList["TOMOMOD_KB"] = function()
+    Settings.OpenToCategory(Settings.KEYBINDINGS_CATEGORY_ID or BINDING_HEADER or "Keybindings")
+end
+
+-- =====================================
 -- EVENT HANDLERS
 -- =====================================
 
@@ -329,6 +341,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         -- Welcome
         local r, g, b = TomoMod_Utils.GetClassColor()
         print("|cff0cd29fTomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
+        print("|cff0cd29fTomoMod|r |cffff3333" .. L["msg_report_issue"] .. "|r")
 
     elseif event == "PLAYER_SPECIALIZATION_CHANGED" and arg1 == "player" then
         if TomoMod_Profiles then

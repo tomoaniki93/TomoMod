@@ -72,6 +72,15 @@ function TomoMod_ConfigPanel_Sound(parent)
     end)
     y = ny
 
+    -- Force sound
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_sound_force"], db.forceSound, y, function(v)
+        db.forceSound = v
+    end)
+    y = ny
+
     -- Preview buttons
     local _, ny = W.CreateSeparator(c, y)
     y = ny

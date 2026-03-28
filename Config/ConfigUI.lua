@@ -106,7 +106,7 @@ local function CreateConfigFrame()
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -1)
     versionText:SetTextColor(unpack(T.textDim))
-    versionText:SetText("v2.5.0")
+    versionText:SetText("v2.5.1")
 
     -- =====================================
     -- RELOAD UI BUTTON (↺)  — positioned after close is created

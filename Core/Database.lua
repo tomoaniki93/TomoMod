@@ -258,6 +258,7 @@ TomoMod_Defaults = {
         enabled = true,
         sound = "TALUANI",
         channel = "Master",
+        forceSound = true,
         showChat = false,
         debug = false,
     },
