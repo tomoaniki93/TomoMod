@@ -10,6 +10,16 @@ Fully compatible with **Midnight 12.x** with native handling of Blizzard's secre
 
 ---
 
+## 💬 Feedback & Issues
+
+Use the CurseForge project page to report bugs or suggest features.
+When reporting issues, please include:
+- Your class and specialization
+- Steps to reproduce the problem
+- Any error messages from BugSack / BugGrabber if available
+
+---
+
 ## ✨ Features Overview
 
 ### 🎯 UnitFrames
@@ -204,31 +214,6 @@ Open the config panel with `/tm` — a custom dark-themed interface with sidebar
 | `/tm help` | Show all commands |
 | `/tm reset` | Reset ALL settings + reload UI |
 | `/tm layout` / `/tm l` | Toggle Layout Mode (move all elements at once) |
-| `/tm uf` | Toggle UnitFrames lock |
-| `/tm uf reset` | Reset UnitFrames to defaults + reload |
-| `/tm rb` | Toggle ResourceBars lock only |
-| `/tm rb sync` | Sync ResourceBars width with Cooldown Manager |
-| `/tm np` | Toggle Nameplates on/off |
-| `/tm sr` | Toggle lock for SkyRide bar + Frame Anchors |
-| `/tm key` | Toggle Mythic Keys frame |
-| `/tm minimap` | Reset minimap settings |
-| `/tm panel` | Reset info panel |
-| `/tm cursor` | Reset cursor ring |
-| `/tm clearcinema` | Clear cinematic skip history |
-| `/tm cdm` | Show Cooldown Manager status |
-
----
-
-## 🔧 Technical Notes (TWW / Midnight Compatibility)
-
-TomoMod is built from the ground up for **The War Within** and **Midnight** API constraints:
-
-- **Secret Values:** `UnitHealth()`, `GetCooldownTimes()`, `UnitCastingInfo()` return opaque secret numbers. TomoMod handles these by passing secrets directly to C-side methods (`SetMinMaxValues`, `SetValue`, `SetAlpha`, `SetFormattedText`) which accept them natively, and using `GetRemainingDuration(0)` for castbar timers.
-- **Threat:** Uses `UnitThreatSituation()` (safe int 0–3) instead of `UnitDetailedThreatSituation()` which returns tainted secret values.
-- **Taint Prevention:** Zero global `RegisterEvent("UNIT_*")` calls. All unit events use `RegisterUnitEvent` scoped to specific managed units. Nameplates use dynamic per-unit registration on `NAME_PLATE_UNIT_ADDED` / `NAME_PLATE_UNIT_REMOVED`.
-- **Memory Management:** No table or closure allocations inside OnUpdate handlers or ticker functions. Pre-allocated pools, `wipe()` reuse, and children caching throughout.
-- **Edit Mode Compatible:** No interference with Blizzard's Edit Mode system.
-- **Cross-realm Support:** Proper name normalization with `Ambiguate()` for Mythic Keys group tracking.
 
 ---
 
@@ -254,13 +239,3 @@ TomoMod is built from the ground up for **The War Within** and **Midnight** API 
 2. Extract the `TomoMod` folder into `World of Warcraft/_retail_/Interface/AddOns/`
 3. Restart WoW or type `/reload`
 4. Type `/tm` to open the configuration panel
-
----
-
-## 💬 Feedback & Issues
-
-Use the CurseForge project page to report bugs or suggest features.
-When reporting issues, please include:
-- Your class and specialization
-- Steps to reproduce the problem
-- Any error messages from BugSack / BugGrabber if available
