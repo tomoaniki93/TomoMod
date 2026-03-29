@@ -47,34 +47,39 @@ LS.channelRegistry = {
 -- Same list as PedroBL — covers all class lusts, drums, and pet abilities
 -- =====================================
 
+-- TWW 11.1: spellID from UNIT_SPELLCAST_SUCCEEDED is a secret number —
+-- can't be used as table index, so we use a list and compare with ==
 local BL_SPELLS = {
     -- Class abilities (30% haste)
-    [2825]   = true,  -- Bloodlust (Shaman Horde)
-    [32182]  = true,  -- Heroism (Shaman Alliance)
-    [80353]  = true,  -- Time Warp (Mage)
-    [264667] = true,  -- Primal Rage (Hunter Alliance — Ferocity pet)
-    [272678] = true,  -- Primal Rage (Hunter Horde — Ferocity pet)
-    [390386] = true,  -- Fury of the Aspects (Evoker)
+    2825,    -- Bloodlust (Shaman Horde)
+    32182,   -- Heroism (Shaman Alliance)
+    80353,   -- Time Warp (Mage)
+    264667,  -- Primal Rage (Hunter Alliance — Ferocity pet)
+    272678,  -- Primal Rage (Hunter Horde — Ferocity pet)
+    390386,  -- Fury of the Aspects (Evoker)
 
     -- Drums (15% haste)
-    [146555] = true,  -- Drums of the Legion
-    [178207] = true,  -- Drums of Fury
-    [230935] = true,  -- Drums of the Mountain
-    [256740] = true,  -- Drums of Deadly Ferocity
-    [309658] = true,  -- Drums of Deathly Ferocity (SL/DF/TWW)
-    [444257] = true,  -- Thunderous Drums
-    [444120] = true,  -- War Drums
+    146555,  -- Drums of the Legion
+    178207,  -- Drums of Fury
+    230935,  -- Drums of the Mountain
+    256740,  -- Drums of Deadly Ferocity
+    309658,  -- Drums of Deathly Ferocity (SL/DF/TWW)
+    444257,  -- Thunderous Drums
+    444120,  -- War Drums
 
     -- Other (pets / specials)
-    [160452] = true,  -- Abyssal Celerity
-    [90355]  = true,  -- Ancient Hysteria (Hunter core hound)
-    [110309] = true,  -- Symbiosis: Bloodlust
-    [466904] = true,  -- Eaglet Screech (Hunter TWW)
+    160452,  -- Abyssal Celerity
+    90355,   -- Ancient Hysteria (Hunter core hound)
+    110309,  -- Symbiosis: Bloodlust
+    466904,  -- Eaglet Screech (Hunter TWW)
 }
 
 -- =====================================
--- SATED / EXHAUSTION DEBUFF SPELL IDS (fallback polling)
+-- SATED / EXHAUSTION DEBUFF SPELL IDS (detection via polling)
 -- When any of these appears on the player, Bloodlust was cast.
+-- TWW 11.1: spellID from UNIT_SPELLCAST_SUCCEEDED is a secret number —
+-- cannot be compared, indexed, or used in arithmetic, so instant spell
+-- detection is no longer possible. We rely entirely on Sated polling.
 -- =====================================
 
 local SATED_IDS = {
@@ -220,26 +225,10 @@ local function OnLustEnded()
 end
 
 -- =====================================
--- PATH 1: INSTANT DETECTION via UNIT_SPELLCAST_SUCCEEDED
--- Triggers the moment someone casts a BL spell — zero delay.
--- =====================================
-
-local spellListener = CreateFrame("Frame")
-
-local function OnSpellEvent(self, event, unitID, _, spellID)
-    if event ~= "UNIT_SPELLCAST_SUCCEEDED" then return end
-
-    local db = TomoModDB and TomoModDB.lustSound
-    if not db or not db.enabled then return end
-
-    if spellID and BL_SPELLS[spellID] then
-        OnLustDetected("spell cast " .. tostring(spellID))
-    end
-end
-
--- =====================================
--- PATH 2: SATED DEBUFF POLLING (fallback)
--- Catches anything the spell list might miss.
+-- SATED DEBUFF POLLING (primary detection)
+-- TWW 11.1: UNIT_SPELLCAST_SUCCEEDED spellID is a secret number —
+-- even == comparison is blocked, so spell-cast detection is removed.
+-- Polling catches all BL variants via Sated/Exhaustion debuffs.
 -- =====================================
 
 local function OnPollTick()
@@ -260,22 +249,12 @@ end
 -- =====================================
 
 local function StartDetection()
-    -- Path 1: event listener
-    spellListener:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-    spellListener:SetScript("OnEvent", OnSpellEvent)
-
-    -- Path 2: sated polling
     if not mainTicker then
         mainTicker = C_Timer.NewTicker(POLL_INTERVAL, OnPollTick)
     end
 end
 
 local function StopDetection()
-    -- Path 1
-    spellListener:UnregisterAllEvents()
-    spellListener:SetScript("OnEvent", nil)
-
-    -- Path 2
     if mainTicker then mainTicker:Cancel(); mainTicker = nil end
 
     if active then

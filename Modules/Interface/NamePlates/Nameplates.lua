@@ -225,12 +225,9 @@ local function ProcessEnemyBuffSlots(token, ...)
                 if durObj then
                     buffFrame.cooldown:Hide()
                     if buffFrame.duration then
-                        -- [PERF] Cache integer duration — skip SetFormattedText when unchanged
-                        local durInt = math.floor(durObj:GetRemainingDuration() + 0.5)
-                        if durInt ~= buffFrame._lastDurInt then
-                            buffFrame._lastDurInt = durInt
-                            buffFrame.duration:SetFormattedText("%d", durInt)
-                        end
+                        -- TWW 11.1: GetRemainingDuration() returns a secret number —
+                        -- pass directly to C-side SetFormattedText (no Lua arithmetic)
+                        buffFrame.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
                         buffFrame.duration:Show()
                     end
                 else
@@ -660,13 +657,9 @@ local function CreatePlate(baseFrame)
         self._elapsed = 0
         self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
         if self.timer and self.duration_obj then
-            -- [PERF] Cache timer text — skip SetFormattedText when 1-decimal display unchanged
-            local rem = self.duration_obj:GetRemainingDuration(0)
-            local tenths = math.floor(rem * 10 + 0.5)
-            if tenths ~= self._lastTenths then
-                self._lastTenths = tenths
-                self.timer:SetFormattedText("%.1f", rem)
-            end
+            -- TWW 11.1: GetRemainingDuration() returns a secret number —
+            -- no arithmetic allowed, pass directly to C-side SetFormattedText
+            self.timer:SetFormattedText("%.1f", self.duration_obj:GetRemainingDuration(0))
         end
     end)
 
