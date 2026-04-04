@@ -62,6 +62,7 @@
     <Include file="FrameAnchors\FrameAnchors.lua" />
 
     <!-- Modules: ActionBars -->
+    <Include file="ActionBars\ActionBars.lua" />
     <Include file="ActionBars\ActionBarSkin.lua" />
 
     <!-- Modules: LustSound -->

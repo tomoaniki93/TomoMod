@@ -1,14 +1,6 @@
--- =====================================
--- Panels/Sound.lua — Sound/Lust Config Panel
--- Sidebar category "Son"
--- =====================================
-
+-- Panels/Sound.lua v2.7.0
 local W = TomoMod_Widgets
 local L = TomoMod_L
-
--- =====================================
--- HELPER: Build sorted dropdown options from registry
--- =====================================
 
 local function GetSoundOptions()
     if not TomoMod_LustSound or not TomoMod_LustSound.soundRegistry then return {} end
@@ -20,96 +12,89 @@ local function GetSoundOptions()
     return opts
 end
 
-local function GetChannelOptions()
-    return {
-        { text = "Master",   value = "Master" },
-        { text = "SFX",      value = "SFX" },
-        { text = "Music",    value = "Music" },
-        { text = "Ambience", value = "Ambience" },
-        { text = "Dialog",   value = "Dialog" },
-    }
-end
-
--- =====================================
--- MAIN PANEL (single tab, no detection sliders needed)
--- =====================================
+local CHANNEL_OPTIONS = {
+    { text = "Master",   value = "Master"   },
+    { text = "SFX",      value = "SFX"      },
+    { text = "Music",    value = "Music"     },
+    { text = "Ambience", value = "Ambience"  },
+    { text = "Dialog",   value = "Dialog"    },
+}
 
 function TomoMod_ConfigPanel_Sound(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
     local db = TomoModDB.lustSound
     if not db then return scroll end
-    local y = -10
+    local y = -12
 
-    local _, ny = W.CreateSectionHeader(c, L["section_sound_general"], y)
-    y = ny
+    -- ═══════════════════════════════════════════════
+    -- ACTIVATION
+    -- ═══════════════════════════════════════════════
+    local card, cy = W.CreateCard(c, L["section_sound_general"] or "LustSound", y)
 
-    local _, ny = W.CreateInfoText(c, L["info_sound_desc"], y)
-    y = ny
-
-    -- Enable
-    local _, ny = W.CreateCheckbox(c, L["opt_sound_enable"], db.enabled, y, function(v)
-        if TomoMod_LustSound and TomoMod_LustSound.SetEnabled then
-            TomoMod_LustSound.SetEnabled(v)
-        end
+    local _, cy = W.CreateInfoText(card.inner, L["info_sound_desc"] or "Joue un son personnalisé lors du Bloodlust / Héroïsme.", cy)
+    local _, cy = W.CreateCheckbox(card.inner, L["opt_sound_enable"] or "Activer LustSound", db.enabled, cy, function(v)
+        db.enabled = v
+        if TomoMod_LustSound and TomoMod_LustSound.SetEnabled then TomoMod_LustSound.SetEnabled(v) end
     end)
-    y = ny
 
-    -- Sound selection
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_sound_choice"], y)
-    y = ny
+    y = W.FinalizeCard(card, cy)
 
-    local _, ny = W.CreateDropdown(c, L["opt_sound_file"], GetSoundOptions(), db.sound, y, function(v)
+    -- ═══════════════════════════════════════════════
+    -- CHOIX DU SON
+    -- ═══════════════════════════════════════════════
+    local card2, cy = W.CreateCard(c, L["sublabel_sound_choice"] or "Son & canal", y)
+
+    local _, cy = W.CreateDropdown(card2.inner, L["opt_sound_file"] or "Fichier audio", GetSoundOptions(), db.sound, cy, function(v)
         db.sound = v
     end)
-    y = ny
 
-    -- Channel
-    local _, ny = W.CreateDropdown(c, L["opt_sound_channel"], GetChannelOptions(), db.channel, y, function(v)
+    local _, cy = W.CreateDropdown(card2.inner, L["opt_sound_channel"] or "Canal audio", CHANNEL_OPTIONS, db.channel, cy, function(v)
         db.channel = v
     end)
-    y = ny
 
-    -- Force sound
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_sound_force"], db.forceSound, y, function(v)
+    local _, cy = W.CreateCheckbox(card2.inner, L["opt_sound_force"] or "Forcer le son même si musique désactivée", db.forceSound, cy, function(v)
         db.forceSound = v
     end)
-    y = ny
 
-    -- Preview buttons
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
+    y = W.FinalizeCard(card2, cy)
 
-    local _, ny = W.CreateButton(c, L["btn_sound_preview"], 200, y, function()
-        if TomoMod_LustSound then TomoMod_LustSound.PlayPreview() end
-    end)
-    y = ny
+    -- ═══════════════════════════════════════════════
+    -- PRÉVISUALISATION + OPTIONS
+    -- ═══════════════════════════════════════════════
+    local card3, cy = W.CreateCard(c, L["section_sound_preview"] or "Prévisualisation & options", y)
 
-    local _, ny = W.CreateButton(c, L["btn_sound_stop"], 200, y, function()
-        if TomoMod_LustSound then TomoMod_LustSound.StopPreview() end
-    end)
-    y = ny
+    local _, cy = W.CreateTwoColumnRow(card3.inner, cy,
+        function(col)
+            local _, ny = W.CreateButton(col, L["btn_sound_preview"] or "▶ Prévisualiser", 180, 0, function()
+                if TomoMod_LustSound then TomoMod_LustSound.PlayPreview() end
+            end)
+            return ny
+        end,
+        function(col)
+            local _, ny = W.CreateButton(col, L["btn_sound_stop"] or "■ Arrêter", 180, 0, function()
+                if TomoMod_LustSound then TomoMod_LustSound.StopPreview() end
+            end)
+            return ny
+        end)
 
-    -- Chat messages
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
+    local _, cy = W.CreateTwoColumnRow(card3.inner, cy,
+        function(col)
+            local _, ny = W.CreateCheckbox(col, L["opt_sound_chat"] or "Message dans le chat", db.showChat, 0, function(v)
+                db.showChat = v
+            end)
+            return ny
+        end,
+        function(col)
+            local _, ny = W.CreateCheckbox(col, L["opt_sound_debug"] or "Debug", db.debug, 0, function(v)
+                db.debug = v
+            end)
+            return ny
+        end)
 
-    local _, ny = W.CreateCheckbox(c, L["opt_sound_chat"], db.showChat, y, function(v)
-        db.showChat = v
-    end)
-    y = ny
+    y = W.FinalizeCard(card3, cy)
 
-    local _, ny = W.CreateCheckbox(c, L["opt_sound_debug"], db.debug, y, function(v)
-        db.debug = v
-    end)
-    y = ny
-
-    c:SetHeight(math.abs(y) + 40)
+    c:SetHeight(math.abs(y) + 20)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end

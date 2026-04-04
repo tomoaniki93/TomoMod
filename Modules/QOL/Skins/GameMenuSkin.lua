@@ -477,13 +477,16 @@ end
 -- HOOKS
 -- =====================================
 
+local RefreshTomoModButton  -- forward-declare
+
 local function InstallHooks()
     if isHooked then return end
     isHooked = true
 
     if GameMenuFrame then
-        -- Re-skin on show to catch newly added buttons (addons can inject)
         GameMenuFrame:HookScript("OnShow", function()
+            -- Toujours rafraîchir le bouton TomoMod, skin activé ou non
+            RefreshTomoModButton()
             if not IsEnabled() then return end
             local children = { GameMenuFrame:GetChildren() }
             for _, child in ipairs(children) do
@@ -493,7 +496,6 @@ local function InstallHooks()
             end
         end)
 
-        -- Also hook OnSizeChanged to catch layout changes
         GameMenuFrame:HookScript("OnSizeChanged", function()
             if not IsEnabled() then return end
             local children = { GameMenuFrame:GetChildren() }
@@ -507,6 +509,61 @@ local function InstallHooks()
 end
 
 -- =====================================
+-- BOUTON TOMOMOD dans le Game Menu
+-- =====================================
+
+local gmButton = nil
+
+local function CloseGameMenu()
+    if HideUIPanel and GameMenuFrame then pcall(HideUIPanel, GameMenuFrame) end
+end
+
+local function GetRefButtonSize()
+    for _, name in ipairs({"GameMenuButtonContinue","GameMenuButtonSettings","GameMenuButtonLogout"}) do
+        local b = _G[name]
+        if b then
+            local w, h = b:GetWidth(), b:GetHeight()
+            if w and w > 10 and h and h > 0 then return w, h end
+        end
+    end
+    return 180, 24
+end
+
+local function EnsureTomoModButton()
+    if gmButton then return gmButton end
+    if not GameMenuFrame then return nil end
+
+    -- UIPanelButtonTemplate = intégré au layout Blizzard (TWW 12.x)
+    gmButton = CreateFrame("Button", "GameMenuButtonTomoMod", GameMenuFrame, "UIPanelButtonTemplate")
+    gmButton:SetText("|cff0cd29fTomo|rMod")
+
+    local w, h = GetRefButtonSize()
+    gmButton:SetSize(w, h)
+
+    gmButton:SetScript("OnClick", function()
+        CloseGameMenu()
+        C_Timer.After(0.05, function()
+            if TomoMod_Config and TomoMod_Config.Toggle then
+                TomoMod_Config.Toggle()
+            end
+        end)
+    end)
+
+    gmButton:Show()
+    return gmButton
+end
+
+RefreshTomoModButton = function()
+    local btn = EnsureTomoModButton()
+    if not btn then return end
+    local w, h = GetRefButtonSize()
+    if w > 10 then btn:SetSize(w, h) end
+    btn:Show()
+    -- Appliquer le skin TomoMod sur le bouton
+    if IsEnabled() then SkinButton(btn) end
+end
+
+-- =====================================
 -- PUBLIC API
 -- =====================================
 
@@ -515,9 +572,9 @@ function GMS.Initialize()
     if not IsEnabled() then return end
     isInitialized = true
 
-    -- GameMenuFrame might not exist yet at PLAYER_LOGIN, defer slightly
     C_Timer.After(0.5, function()
         if GameMenuFrame then
+            EnsureTomoModButton()  -- créer avant SkinGameMenu pour qu'il soit skinné
             SkinGameMenu()
             InstallHooks()
         end
@@ -536,6 +593,8 @@ end
 function GMS.SetEnabled(value)
     if not TomoModDB or not TomoModDB.gameMenuSkin then return end
     TomoModDB.gameMenuSkin.enabled = value
+    -- Le bouton TomoMod existe indépendamment du skin
+    EnsureTomoModButton()
     if value then
         if not isInitialized then
             GMS.Initialize()
@@ -546,3 +605,4 @@ function GMS.SetEnabled(value)
         end
     end
 end
+

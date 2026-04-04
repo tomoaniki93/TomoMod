@@ -52,14 +52,11 @@ local function BuildAutoQuestTab(parent)
     local _, ny = W.CreateSectionHeader(c, L["section_auto_quest"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_quest_auto_accept"], TomoModDB.autoQuest.autoAccept, y, function(v)
-        TomoModDB.autoQuest.autoAccept = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_quest_auto_turnin"], TomoModDB.autoQuest.autoTurnIn, y, function(v)
-        TomoModDB.autoQuest.autoTurnIn = v
-    end)
+    local _, ny = W.CreateCheckboxPair(c,
+        L["opt_quest_auto_accept"], TomoModDB.autoQuest.autoAccept, y,
+        function(v) TomoModDB.autoQuest.autoAccept = v end,
+        L["opt_quest_auto_turnin"], TomoModDB.autoQuest.autoTurnIn,
+        function(v) TomoModDB.autoQuest.autoTurnIn = v end)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_quest_auto_gossip"], TomoModDB.autoQuest.autoGossip, y, function(v)
@@ -104,14 +101,11 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_accept_friends"], TomoModDB.autoAcceptInvite.acceptFriends, y, function(v)
-        TomoModDB.autoAcceptInvite.acceptFriends = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_accept_guild"], TomoModDB.autoAcceptInvite.acceptGuild, y, function(v)
-        TomoModDB.autoAcceptInvite.acceptGuild = v
-    end)
+    local _, ny = W.CreateCheckboxPair(c,
+        L["opt_accept_friends"], TomoModDB.autoAcceptInvite.acceptFriends, y,
+        function(v) TomoModDB.autoAcceptInvite.acceptFriends = v end,
+        L["opt_accept_guild"],   TomoModDB.autoAcceptInvite.acceptGuild,
+        function(v) TomoModDB.autoAcceptInvite.acceptGuild = v end)
     y = ny
 
     -- Auto Skip Role
@@ -848,8 +842,20 @@ local function BuildSkinsTab(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_glow"], TomoModDB.buffSkin.buffGlow, y, function(v)
-        TomoModDB.buffSkin.buffGlow = v
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_color_by_type"], TomoModDB.buffSkin.colorByType, y, function(v)
+        TomoModDB.buffSkin.colorByType = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_teal_border"], TomoModDB.buffSkin.tealBorder, y, function(v)
+        TomoModDB.buffSkin.tealBorder = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_desaturate"], TomoModDB.buffSkin.desaturateDebuffs, y, function(v)
+        TomoModDB.buffSkin.desaturateDebuffs = v
         if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
     end)
     y = ny
@@ -872,7 +878,7 @@ local function BuildSkinsTab(parent)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_buff_skin_font_size"], TomoModDB.buffSkin.fontSize or 12, 8, 20, 1, y, function(v)
+    local _, ny = W.CreateSlider(c, L["opt_buff_skin_font_size"], TomoModDB.buffSkin.fontSize or 11, 8, 20, 1, y, function(v)
         TomoModDB.buffSkin.fontSize = v
         if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
     end)

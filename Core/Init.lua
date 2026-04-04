@@ -48,7 +48,10 @@ SLASH_TOMOMOD2 = "/tomomod"
 SlashCmdList["TOMOMOD"] = function(msg)
     msg = string.lower(msg or "")
 
-    if msg == "reset" then
+    if msg == "install" or msg == "installer" then
+        if TomoMod_Installer then TomoMod_Installer.Show() end
+        return
+    elseif msg == "reset" then
         TomoMod_ResetDatabase()
         ReloadUI()
     elseif msg == "minimap" then
@@ -231,6 +234,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         end
     elseif msg == "help" or msg == "?" then
         print("|cff0cd29fTomoMod|r " .. L["msg_help_title"])
+        print("  |cff0cd29f/tm install|r — Relancer l'assistant de configuration")
         print("  |cff0cd29f/tm layout|r — " .. L["msg_help_layout"])
         print("  |cff0cd29f/tm|r — " .. L["msg_help_open"])
         print("  |cff0cd29f/tm reset|r — " .. L["msg_help_reset"])
@@ -323,7 +327,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
         if TomoMod_ProfessionHelper then TomoMod_ProfessionHelper.Initialize() end
         if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.Initialize() end
-        if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.Initialize() end
+        if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.Initialize then TomoMod_ActionBarSkin.Initialize() end
         if TomoMod_CharacterSkin then TomoMod_CharacterSkin.Initialize() end
         if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.Initialize() end
         if TomoMod_BuffSkin then TomoMod_BuffSkin.Initialize() end

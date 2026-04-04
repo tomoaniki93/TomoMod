@@ -2,8 +2,11 @@
 -- TomoScoreData.lua — Data collection via C_DamageMeter API + preview
 -- =====================================================================
 
-local L = TomoMod_L
+local L  = TomoMod_L
 local TS = TomoMod_TomoScore
+local DK = TomoMod_DataKeys
+
+local openRaidLib = LibStub and LibStub:GetLibrary("LibOpenRaid-1.0", true)
 
 local SOURCE_DAMAGE  = Enum.DamageMeterType and Enum.DamageMeterType.DamageDone  or 0
 local SOURCE_HEALING = Enum.DamageMeterType and Enum.DamageMeterType.HealingDone or 1
@@ -77,18 +80,42 @@ function TS:CollectRunData()
                 end
 
                 playersByName[fullName] = {
-                    name      = name,
-                    fullName  = fullName,
-                    unit      = unit,
-                    class     = classFile,
-                    role      = role,
-                    specID    = specID or 0,
-                    specIcon  = specIcon or nil,
-                    rating    = rating,
-                    damage    = 0,
-                    healing   = 0,
+                    name       = name,
+                    fullName   = fullName,
+                    unit       = unit,
+                    class      = classFile,
+                    role       = role,
+                    specID     = specID or 0,
+                    specIcon   = specIcon or nil,
+                    rating     = rating,
+                    keyLevel   = 0,
+                    keyMapID   = nil,
+                    keyName    = nil,
+                    keySpellID = nil,
+                    damage     = 0,
+                    healing    = 0,
                     interrupts = 0,
                 }
+            end
+        end
+    end
+
+    -- Pull keystone info from LibOpenRaid
+    if openRaidLib then
+        local allKeys = openRaidLib.GetAllKeystonesInfo and openRaidLib.GetAllKeystonesInfo() or {}
+        for pName, pData in pairs(playersByName) do
+            local info = allKeys[pName] or allKeys[pData.name]
+            if not info and pData.unit then
+                info = openRaidLib.GetKeystoneInfo and openRaidLib.GetKeystoneInfo(pData.unit)
+            end
+            if info and info.level and info.level > 0 then
+                local mapID = info.challengeMapID or info.mythicPlusMapID
+                pData.keyLevel = info.level
+                pData.keyMapID = mapID
+                if mapID and DK then
+                    pData.keyName    = DK.GetShortName(mapID) or DK.GetDungeonName(mapID)
+                    pData.keySpellID = DK.GetTeleportSpellID(mapID)
+                end
             end
         end
     end
@@ -165,11 +192,11 @@ function TS:GetPreviewData()
         onTime      = true,
         duration    = 1523,
         players     = {
-            { name = "Tomotank",   fullName = "Tomotank",   class = "WARRIOR",     role = "TANK",    specID = 73,  specIcon = 134952, rating = 2480, damage = 18450000, healing = 1200000,  interrupts = 14 },
-            { name = "Holyspring", fullName = "Holyspring", class = "PRIEST",      role = "HEALER",  specID = 257, specIcon = 135940, rating = 2310, damage = 4200000,  healing = 42800000, interrupts = 3  },
-            { name = "Blazefury",  fullName = "Blazefury",  class = "MAGE",        role = "DAMAGER", specID = 63,  specIcon = 135810, rating = 2650, damage = 52300000, healing = 350000,   interrupts = 22 },
-            { name = "Shadowkill", fullName = "Shadowkill", class = "ROGUE",       role = "DAMAGER", specID = 261, specIcon = 236270, rating = 2120, damage = 48700000, healing = 280000,   interrupts = 18 },
-            { name = "Natureclaw", fullName = "Natureclaw", class = "DRUID",       role = "DAMAGER", specID = 102, specIcon = 136096, rating = 1890, damage = 44100000, healing = 1800000,  interrupts = 7  },
+            { name = "Tomotank",   fullName = "Tomotank",   class = "WARRIOR",     role = "TANK",    specID = 73,  specIcon = 134952, rating = 2480, keyLevel = 14, keyMapID = 503, keyName = "ARAK",  keySpellID = 445417, damage = 18450000, healing = 1200000,  interrupts = 14 },
+            { name = "Holyspring", fullName = "Holyspring", class = "PRIEST",      role = "HEALER",  specID = 257, specIcon = 135940, rating = 2310, keyLevel = 11, keyMapID = 499, keyName = "PSF",   keySpellID = 445444, damage = 4200000,  healing = 42800000, interrupts = 3  },
+            { name = "Blazefury",  fullName = "Blazefury",  class = "MAGE",        role = "DAMAGER", specID = 63,  specIcon = 135810, rating = 2650, keyLevel = 11, keyMapID = 501, keyName = "SV",    keySpellID = 445269, damage = 52300000, healing = 350000,   interrupts = 22 },
+            { name = "Shadowkill", fullName = "Shadowkill", class = "ROGUE",       role = "DAMAGER", specID = 261, specIcon = 236270, rating = 2120, keyLevel = 0,  keyMapID = nil, keyName = nil,     keySpellID = nil,    damage = 48700000, healing = 280000,   interrupts = 18 },
+            { name = "Natureclaw", fullName = "Natureclaw", class = "DRUID",       role = "DAMAGER", specID = 102, specIcon = 136096, rating = 1890, keyLevel = 11, keyMapID = 378, keyName = "HOA",   keySpellID = 354465, damage = 44100000, healing = 1800000,  interrupts = 7  },
         },
     }
 end

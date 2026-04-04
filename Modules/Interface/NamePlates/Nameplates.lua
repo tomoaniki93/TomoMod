@@ -22,66 +22,29 @@ local pairs = pairs
 local activePlates = {} -- [nameplateFrame] = ourPlate
 local unitPlates = {}   -- [unitToken] = ourPlate
 
--- [PERF] Offscreen parent technique: reparent Blizzard elements
--- under a hidden frame so they can NEVER render, regardless of SetAlpha/Show calls
-local npOffscreenParent = CreateFrame("Frame")
-npOffscreenParent:Hide()
-local hookedUFs = {}
-local storedParents = {}
-local npModuleActive = false  -- global flag to control hooks
+-- ── Approche hybride oUF ─────────────────────────────────────────────────────
+-- HideBlizzardFrame est remplacé par oUF:DisableBlizzardNamePlate (appelé via
+-- TomoMod_oUF dans OnNamePlateAdded). Cela utilise hooksecurefunc sur SetAlpha
+-- pour forcer UnitFrame:SetAlpha(0) de façon permanente — plus propre que
+-- l'offscreen-parent car compatible avec les WidgetContainer TWW.
+-- ─────────────────────────────────────────────────────────────────────────────
 
-local function MoveToOffscreen(element)
-    if not element then return end
-    if not storedParents[element] then
-        storedParents[element] = element:GetParent()
-    end
-    element:SetParent(npOffscreenParent)
-end
+local npModuleActive = false  -- flag global pour les hooks actifs
 
-local function RestoreFromOffscreen(element)
-    if not element then return end
-    local origParent = storedParents[element]
-    if origParent then
-        element:SetParent(origParent)
-        storedParents[element] = nil
-    end
-end
-
-local function HideBlizzardFrame(nameplate, unit)
+-- ── Masquage Blizzard via oUF:DisableBlizzardNamePlate ───────────────────────
+-- oUF:DisableBlizzardNamePlate pose un hooksecurefunc sur UnitFrame:SetAlpha
+-- pour forcer SetAlpha(0) en permanence, et reparente UnitFrame sous hiddenParent.
+-- On complète en masquant les régions résiduelles (role icons, BuffFrame…)
+-- directement sur la base nameplate, que oUF ne touche pas.
+local function HideBlizzardExtra(nameplate)
     if not nameplate then return end
     local uf = nameplate.UnitFrame
-    if not uf then return end
+    if not uf or uf:IsForbidden() then return end
 
-    uf:SetAlpha(0)
-
-    -- Move ALL children of the UnitFrame to offscreen (catches healthBar + any TWW additions)
-    pcall(function()
-        for i = 1, uf:GetNumChildren() do
-            local child = select(i, uf:GetChildren())
-            if child then MoveToOffscreen(child) end
-        end
-    end)
-
-    -- Also move known sub-elements (redundant but safe for varied frame structures)
-    if uf.healthBar then MoveToOffscreen(uf.healthBar) end
-    MoveToOffscreen(uf.selectionHighlight)
-    MoveToOffscreen(uf.aggroHighlight)
-    MoveToOffscreen(uf.softTargetFrame)
-    MoveToOffscreen(uf.SoftTargetFrame)
-    MoveToOffscreen(uf.ClassificationFrame)
-    MoveToOffscreen(uf.RaidTargetFrame)
     if uf.BuffFrame then uf.BuffFrame:SetAlpha(0) end
 
-    -- Hide all UnitFrame regions (textures, fontstrings) that may bypass child reparenting
-    pcall(function()
-        for i = 1, uf:GetNumRegions() do
-            local region = select(i, uf:GetRegions())
-            if region and region.SetAlpha then region:SetAlpha(0) end
-            if region and region.Hide then region:Hide() end
-        end
-    end)
-
-    -- Hide any extra children on the nameplate base frame (TWW dungeon friendly bars)
+    -- Masquer les régions résiduelles sur le frame de BASE nameplate
+    -- (role icons, textures Blizzard qui ne passent pas par UnitFrame)
     local ourPlate = activePlates[nameplate]
     pcall(function()
         for i = 1, nameplate:GetNumChildren() do
@@ -92,68 +55,13 @@ local function HideBlizzardFrame(nameplate, unit)
             end
         end
     end)
-
-    -- Hide Blizzard role icon textures on the nameplate BASE frame itself
-    -- (TWW puts role icons as Texture/MaskTexture regions directly on the nameplate)
     pcall(function()
         for i = 1, nameplate:GetNumRegions() do
             local region = select(i, nameplate:GetRegions())
             if region and region.SetAlpha then region:SetAlpha(0) end
-            if region and region.Hide then region:Hide() end
+            if region and region.Hide    then region:Hide() end
         end
     end)
-
-    -- Hook SetAlpha once per UnitFrame to prevent Blizzard from restoring visibility
-    if not hookedUFs[uf] then
-        hookedUFs[uf] = true
-        hooksecurefunc(uf, "SetAlpha", function(self)
-            if not npModuleActive then return end
-            -- Only force alpha back to 0 if Blizzard tried to restore it
-            if self:GetAlpha() > 0 then
-                self:SetAlpha(0)
-            end
-        end)
-    end
-end
-
-local function RestoreBlizzardFrame(nameplate)
-    if not nameplate then return end
-    local uf = nameplate.UnitFrame
-    if not uf then return end
-    -- Restore ALL offscreen elements back to their original parent
-    for element, origParent in pairs(storedParents) do
-        if origParent then
-            pcall(function() element:SetParent(origParent) end)
-        end
-    end
-    -- Restore regions
-    pcall(function()
-        for i = 1, uf:GetNumRegions() do
-            local region = select(i, uf:GetRegions())
-            if region and region.SetAlpha then region:SetAlpha(1) end
-            if region and region.Show then region:Show() end
-        end
-    end)
-    if uf.BuffFrame then uf.BuffFrame:SetAlpha(1) end
-    -- Restore extra children on base frame
-    pcall(function()
-        for i = 1, nameplate:GetNumChildren() do
-            local child = select(i, nameplate:GetChildren())
-            if child and child ~= uf then
-                child:SetAlpha(1)
-            end
-        end
-    end)
-    -- Restore regions on the nameplate base frame (role icon textures etc)
-    pcall(function()
-        for i = 1, nameplate:GetNumRegions() do
-            local region = select(i, nameplate:GetRegions())
-            if region and region.SetAlpha then region:SetAlpha(1) end
-            if region and region.Show then region:Show() end
-        end
-    end)
-    -- Note: can't unhook SetAlpha, but since elements are restored it's cosmetic
-    uf:SetAlpha(1)
 end
 
 local UnitName, UnitLevel, UnitEffectiveLevel = UnitName, UnitLevel, UnitEffectiveLevel
@@ -1883,8 +1791,34 @@ local function OnNamePlateAdded(unit)
     plate._blizzUnitFrame = nameplate.UnitFrame
     unitPlates[unit] = plate
 
-    -- [PERF] Hide Blizzard frame using offscreen parent technique
-    HideBlizzardFrame(nameplate, unit)
+    -- ── Masquage Blizzard via oUF (approche hybride) ─────────────────────────
+    -- oUF:DisableBlizzardNamePlate pose hooksecurefunc(UnitFrame, "SetAlpha")
+    -- pour forcer SetAlpha(0) en permanence ET reparente UnitFrame sous
+    -- le hiddenParent d'oUF — plus robuste que notre ancienne technique offscreen.
+    local oUF = TomoMod_oUF
+    if oUF and oUF.DisableBlizzardNamePlate then
+        oUF:DisableBlizzardNamePlate(nameplate)
+    end
+
+    -- Masquer les régions résiduelles que oUF ne touche pas (base nameplate)
+    HideBlizzardExtra(nameplate)
+
+    -- ── Transfert TWW : WidgetContainer + SoftTargetFrame ────────────────────
+    -- oUF le fait dans son driver pour SpawnNamePlates — on l'applique ici
+    -- manuellement pour garder la compatibilité TWW (interaction icons, target ring).
+    local uf = nameplate.UnitFrame
+    if uf then
+        if uf.WidgetContainer then
+            uf.WidgetContainer:SetParent(plate)
+            uf.WidgetContainer:SetIgnoreParentAlpha(true)
+            plate.WidgetContainer = uf.WidgetContainer
+        end
+        if uf.SoftTargetFrame then
+            uf.SoftTargetFrame:SetParent(plate)
+            uf.SoftTargetFrame:SetIgnoreParentAlpha(true)
+            plate.SoftTargetFrame = uf.SoftTargetFrame
+        end
+    end
 
     UpdateSize(plate)
     UpdatePlate(plate, unit)
@@ -2144,16 +2078,24 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
         -- Re-hide all Blizzard frames and refresh custom plates after zone loads
         C_Timer.After(0.5, function()
             if not npModuleActive then return end
+            local oUF = TomoMod_oUF
             for nameplate, plate in pairs(activePlates) do
-                HideBlizzardFrame(nameplate, plate.unit)
+                if oUF and oUF.DisableBlizzardNamePlate then
+                    oUF:DisableBlizzardNamePlate(nameplate)
+                end
+                HideBlizzardExtra(nameplate)
             end
             NP.RefreshAll()
         end)
         -- Second pass for late-loading nameplates
         C_Timer.After(1.5, function()
             if not npModuleActive then return end
+            local oUF = TomoMod_oUF
             for nameplate, plate in pairs(activePlates) do
-                HideBlizzardFrame(nameplate, plate.unit)
+                if oUF and oUF.DisableBlizzardNamePlate then
+                    oUF:DisableBlizzardNamePlate(nameplate)
+                end
+                HideBlizzardExtra(nameplate)
             end
             NP.RefreshAll()
         end)
@@ -2263,8 +2205,10 @@ function NP.Disable()
 
     for nameplate, plate in pairs(activePlates) do
         plate:Hide()
-        -- Restore Blizzard elements from offscreen parent
-        RestoreBlizzardFrame(nameplate)
+        -- Note: oUF:DisableBlizzardNamePlate pose un hooksecurefunc qui ne peut
+        -- pas être retiré. Quand TomoMod NP est désactivé, les plates custom sont
+        -- masquées mais le UnitFrame Blizzard reste à alpha 0. Un /reload
+        -- est nécessaire pour restaurer l'état Blizzard natif.
     end
     for unit, uef in pairs(npUnitEventFrames) do
         uef:UnregisterAllEvents()

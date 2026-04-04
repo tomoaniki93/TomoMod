@@ -33,6 +33,10 @@ TomoMod_Defaults = {
         useClassColor = false,
         anchorTooltip = false,
     },
+    installer = {
+        completed = false,
+        step      = 1,
+    },
     cinematicSkip = {
         enabled = false,
         viewedCinematics = {},
@@ -117,6 +121,7 @@ TomoMod_Defaults = {
     },
     actionBarSkin = {
         enabled = false,
+        skinStyle = "classic",
         useClassColor = true,
         shiftReveal = false,
         barOpacity = {
@@ -213,9 +218,10 @@ TomoMod_Defaults = {
         skinDebuffs = true,
         hideBuffFrame = false,
         hideDebuffFrame = false,
-        buffGlow = false,
-        fontSize = 12,
-        fontOutline = "OUTLINE",
+        colorByType = true,          -- border colorée par type de dispel (Magic/Poison/Curse/Disease)
+        tealBorder = true,           -- border teal sur les buffs (accent TomoMod)
+        desaturateDebuffs = false,   -- désaturer les icônes de debuff
+        fontSize = 11,
     },
     gameMenuSkin = {
         enabled = true,

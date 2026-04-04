@@ -1,452 +1,200 @@
--- =====================================
--- Panels/Nameplates.lua — Nameplates Config (Tabbed)
--- =====================================
-
+-- Panels/Nameplates.lua v2.7.0 — Cards + 2-col layout
 local W = TomoMod_Widgets
 local L = TomoMod_L
 
--- Shortcut: refresh all nameplates
-local function RefreshNP()
-    if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
-end
+local function RefreshNP() if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end end
+local function ApplyNP()   if TomoMod_Nameplates then TomoMod_Nameplates.ApplySettings() end end
 
-local function ApplyNP()
-    if TomoMod_Nameplates then TomoMod_Nameplates.ApplySettings() end
-end
-
--- =====================================
--- TAB 1: GENERAL (enable, dimensions, display, castbar)
--- =====================================
-
+-- ══════════════════════════════════════════════
+-- TAB 1 : GÉNÉRAL
+-- ══════════════════════════════════════════════
 local function BuildGeneralTab(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
     local db = TomoModDB.nameplates
-    local y = -10
+    local y = -12
 
-    -- Enable
-    local _, ny = W.CreateSectionHeader(c, L["section_np_general"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_enable"], db.enabled, y, function(v)
+    -- Activation
+    local card, cy = W.CreateCard(c, L["section_np_general"] or "Nameplates", y)
+    local _, cy = W.CreateCheckbox(card.inner, L["opt_np_enable"] or "Activer", db.enabled, cy, function(v)
         db.enabled = v
-        if TomoMod_Nameplates then
-            if v then TomoMod_Nameplates.Enable() else TomoMod_Nameplates.Disable() end
-        end
+        if TomoMod_Nameplates then if v then TomoMod_Nameplates.Enable() else TomoMod_Nameplates.Disable() end end
     end)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_np_description"], y)
-    y = ny
+    local _, cy = W.CreateInfoText(card.inner, L["info_np_description"] or "", cy)
+    y = W.FinalizeCard(card, cy)
 
     -- Dimensions
-    local _, ny = W.CreateSectionHeader(c, L["section_dimensions"], y)
-    y = ny
+    local card2, cy = W.CreateCard(c, L["section_dimensions"] or "Dimensions", y)
+    local _, cy = W.CreateTwoColumnRow(card2.inner, cy,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_width"] or "Largeur", db.width, 60, 300, 5, 0, function(v) db.width = v; RefreshNP() end) return ny end,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_health_height"] or "Hauteur HP", db.height, 6, 40, 1, 0, function(v) db.height = v; RefreshNP() end) return ny end)
+    local _, cy = W.CreateSlider(card2.inner, L["opt_np_name_font_size"] or "Taille police nom", db.nameFontSize or 10, 6, 20, 1, cy, function(v) db.nameFontSize = v; RefreshNP() end)
+    y = W.FinalizeCard(card2, cy)
 
-    local _, ny = W.CreateSlider(c, L["opt_width"], db.width, 60, 300, 5, y, function(v)
-        db.width = v; RefreshNP()
-    end)
-    y = ny
+    -- Affichage
+    local card3, cy = W.CreateCard(c, L["section_display"] or "Affichage", y)
+    local _, cy = W.CreateCheckboxPair(card3.inner, L["opt_show_name"] or "Nom", db.showName, cy, function(v) db.showName = v; RefreshNP() end,
+        L["opt_show_level"] or "Niveau", db.showLevel, function(v) db.showLevel = v; RefreshNP() end)
+    local _, cy = W.CreateCheckboxPair(card3.inner, L["opt_show_health_text"] or "Texte HP", db.showHealthText, cy, function(v) db.showHealthText = v; RefreshNP() end,
+        L["opt_np_show_classification"] or "Classification", db.showClassification, function(v) db.showClassification = v; RefreshNP() end)
+    local _, cy = W.CreateCheckboxPair(card3.inner, L["opt_show_threat"] or "Menace", db.showThreat, cy, function(v) db.showThreat = v; RefreshNP() end,
+        L["opt_np_class_colors"] or "Couleurs de classe", db.useClassColors, function(v) db.useClassColors = v; RefreshNP() end)
+    local _, cy = W.CreateCheckboxPair(card3.inner, L["opt_np_show_absorb"] or "Absorb", db.showAbsorb ~= false, cy, function(v) db.showAbsorb = v; RefreshNP() end,
+        L["opt_np_friendly_name_only"] or "Alliés : nom uniquement", db.friendlyNameOnly ~= false, function(v) db.friendlyNameOnly = v; RefreshNP() end)
+    local _, cy = W.CreateDropdown(card3.inner, L["opt_health_format"] or "Format HP", {
+        { text = L["np_fmt_percent"]         or "%", value = "percent" },
+        { text = L["np_fmt_current"]         or "Valeur", value = "current" },
+        { text = L["np_fmt_current_percent"] or "Valeur + %", value = "current_percent" },
+    }, db.healthTextFormat or "percent", cy, function(v) db.healthTextFormat = v; RefreshNP() end)
+    y = W.FinalizeCard(card3, cy)
 
-    local _, ny = W.CreateSlider(c, L["opt_health_height"], db.height, 6, 40, 1, y, function(v)
-        db.height = v; RefreshNP()
-    end)
-    y = ny
+    -- Icônes de rôle
+    local card4, cy = W.CreateCard(c, L["opt_np_friendly_role_icons"] or "Icônes de rôle", y)
+    local _, cy = W.CreateCheckbox(card4.inner, L["opt_np_friendly_role_icons"] or "Afficher les icônes de rôle", db.friendlyRoleIcons ~= false, cy, function(v) db.friendlyRoleIcons = v; RefreshNP() end)
+    local _, cy = W.CreateCheckboxPair(card4.inner, L["opt_np_role_show_tank"] or "Tank", db.roleShowTank ~= false, cy, function(v) db.roleShowTank = v; RefreshNP() end,
+        L["opt_np_role_show_healer"] or "Healeur", db.roleShowHealer ~= false, function(v) db.roleShowHealer = v; RefreshNP() end)
+    local _, cy = W.CreateCheckbox(card4.inner, L["opt_np_role_show_dps"] or "DPS", db.roleShowDps ~= false, cy, function(v) db.roleShowDps = v; RefreshNP() end)
+    local _, cy = W.CreateSlider(card4.inner, L["opt_np_role_icon_size"] or "Taille icône", db.roleIconSize or 32, 16, 60, 2, cy, function(v) db.roleIconSize = v; RefreshNP() end)
+    y = W.FinalizeCard(card4, cy)
 
-    local _, ny = W.CreateSlider(c, L["opt_np_name_font_size"], db.nameFontSize or 10, 6, 20, 1, y, function(v)
-        db.nameFontSize = v; RefreshNP()
-    end)
-    y = ny
-
-    -- Display
-    local _, ny = W.CreateSectionHeader(c, L["section_display"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_show_name"], db.showName, y, function(v)
-        db.showName = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_show_level"], db.showLevel, y, function(v)
-        db.showLevel = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_show_health_text"], db.showHealthText, y, function(v)
-        db.showHealthText = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateDropdown(c, L["opt_health_format"], {
-        { text = L["np_fmt_percent"], value = "percent" },
-        { text = L["np_fmt_current"], value = "current" },
-        { text = L["np_fmt_current_percent"], value = "current_percent" },
-    }, db.healthTextFormat or "percent", y, function(v)
-        db.healthTextFormat = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_show_classification"], db.showClassification, y, function(v)
-        db.showClassification = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_show_absorb"] or "Show Absorb Bar", db.showAbsorb ~= false, y, function(v)
-        db.showAbsorb = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_show_threat"], db.showThreat, y, function(v)
-        db.showThreat = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_class_colors"], db.useClassColors, y, function(v)
-        db.useClassColors = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_friendly_name_only"] or "Friendly: name only (no health bar)", db.friendlyNameOnly ~= false, y, function(v)
-        db.friendlyNameOnly = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_friendly_role_icons"] or "Show role icons (dungeon/delve)", db.friendlyRoleIcons ~= false, y, function(v)
-        db.friendlyRoleIcons = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_role_show_tank"] or "Show Tank icon", db.roleShowTank ~= false, y, function(v)
-        db.roleShowTank = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_role_show_healer"] or "Show Healer icon", db.roleShowHealer ~= false, y, function(v)
-        db.roleShowHealer = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_role_show_dps"] or "Show DPS icon", db.roleShowDps ~= false, y, function(v)
-        db.roleShowDps = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_role_icon_size"] or "Role icon size", db.roleIconSize or 32, 16, 60, 2, y, function(v)
-        db.roleIconSize = v; RefreshNP()
-    end)
-    y = ny
-
-    -- Raid Marker
-    local _, ny = W.CreateSectionHeader(c, L["section_raid_marker"], y)
-    y = ny
-
-    local _, ny = W.CreateDropdown(c, L["opt_np_raid_icon_anchor"], {
-        { text = "Top",          value = "TOP" },
-        { text = "Top Left",     value = "TOPLEFT" },
-        { text = "Top Right",    value = "TOPRIGHT" },
-        { text = "Bottom",       value = "BOTTOM" },
-        { text = "Bottom Left",  value = "BOTTOMLEFT" },
-        { text = "Bottom Right", value = "BOTTOMRIGHT" },
-        { text = "Left",         value = "LEFT" },
-        { text = "Right",        value = "RIGHT" },
-        { text = "Center",       value = "CENTER" },
-    }, db.raidIconAnchor or "TOPRIGHT", y, function(v)
-        db.raidIconAnchor = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_raid_icon_x"], db.raidIconX or 2, -50, 50, 1, y, function(v)
-        db.raidIconX = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_raid_icon_y"], db.raidIconY or 2, -50, 50, 1, y, function(v)
-        db.raidIconY = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_raid_icon_size"], db.raidIconSize or 24, 10, 60, 1, y, function(v)
-        db.raidIconSize = v; RefreshNP()
-    end)
-    y = ny
+    -- Marqueur de raid
+    local card5, cy = W.CreateCard(c, L["section_raid_marker"] or "Marqueur de raid", y)
+    local _, cy = W.CreateDropdown(card5.inner, L["opt_np_raid_icon_anchor"] or "Ancre", {
+        { text = "Top",    value = "TOP" }, { text = "TopRight", value = "TOPRIGHT" }, { text = "TopLeft", value = "TOPLEFT" },
+        { text = "Bottom", value = "BOTTOM" }, { text = "BottomRight", value = "BOTTOMRIGHT" }, { text = "BottomLeft", value = "BOTTOMLEFT" },
+        { text = "Left",   value = "LEFT" }, { text = "Right", value = "RIGHT" }, { text = "Center", value = "CENTER" },
+    }, db.raidIconAnchor or "TOPRIGHT", cy, function(v) db.raidIconAnchor = v; RefreshNP() end)
+    local _, cy = W.CreateTwoColumnRow(card5.inner, cy,
+        function(col) local _, ny = W.CreateSlider(col, "X", db.raidIconX or 2, -50, 50, 1, 0, function(v) db.raidIconX = v; RefreshNP() end) return ny end,
+        function(col) local _, ny = W.CreateSlider(col, "Y", db.raidIconY or 2, -50, 50, 1, 0, function(v) db.raidIconY = v; RefreshNP() end) return ny end)
+    local _, cy = W.CreateSlider(card5.inner, L["opt_np_raid_icon_size"] or "Taille", db.raidIconSize or 24, 10, 60, 1, cy, function(v) db.raidIconSize = v; RefreshNP() end)
+    y = W.FinalizeCard(card5, cy)
 
     -- Castbar
-    local _, ny = W.CreateSectionHeader(c, L["section_castbar"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_show_castbar"], db.showCastbar, y, function(v)
-        db.showCastbar = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_castbar_height"], db.castbarHeight, 4, 20, 1, y, function(v)
-        db.castbarHeight = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_castbar"], db.castbarColor, y, function(r, g, b)
-        db.castbarColor = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_castbar_uninterruptible"], db.castbarUninterruptible, y, function(r, g, b)
-        db.castbarUninterruptible = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    c:SetHeight(math.abs(y) + 40)
-    if scroll.UpdateScroll then scroll.UpdateScroll() end
-    return scroll
-end
-
--- =====================================
--- TAB 2: AURAS (debuffs + enemy buffs)
--- =====================================
-
-local function BuildAurasTab(parent)
-    local scroll = W.CreateScrollPanel(parent)
-    local c = scroll.child
-    local db = TomoModDB.nameplates
-    local y = -10
-
-    -- Debuff Auras
-    local _, ny = W.CreateSectionHeader(c, L["section_auras"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_show_auras"], db.showAuras, y, function(v)
-        db.showAuras = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_aura_size"], db.auraSize, 12, 36, 1, y, function(v)
-        db.auraSize = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_max_auras"], db.maxAuras, 1, 10, 1, y, function(v)
-        db.maxAuras = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_only_my_debuffs"], db.showOnlyMyAuras, y, function(v)
-        db.showOnlyMyAuras = v; RefreshNP()
-    end)
-    y = ny
-
-    -- Enemy Buffs
-    local _, ny = W.CreateSectionHeader(c, L["section_enemy_buffs"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_show_enemy_buffs"], db.showEnemyBuffs, y, function(v)
-        db.showEnemyBuffs = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_enemy_buff_size"], db.enemyBuffSize or 18, 12, 36, 1, y, function(v)
-        db.enemyBuffSize = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_max_enemy_buffs"], db.maxEnemyBuffs or 3, 1, 8, 1, y, function(v)
-        db.maxEnemyBuffs = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_enemy_buff_y_offset"], db.enemyBuffYOffset or 4, 0, 20, 1, y, function(v)
-        db.enemyBuffYOffset = v; RefreshNP()
-    end)
-    y = ny
-
-    c:SetHeight(math.abs(y) + 40)
-    if scroll.UpdateScroll then scroll.UpdateScroll() end
-    return scroll
-end
-
--- =====================================
--- TAB 3: ADVANCED (transparency, stacking, colors, tank, reset)
--- =====================================
-
-local function BuildAdvancedTab(parent)
-    local scroll = W.CreateScrollPanel(parent)
-    local c = scroll.child
-    local db = TomoModDB.nameplates
-    local y = -10
-
-    -- Transparency
-    local _, ny = W.CreateSectionHeader(c, L["section_transparency"], y)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_selected_alpha"], db.selectedAlpha, 0.3, 1.0, 0.05, y, function(v)
-        db.selectedAlpha = v
-    end, "%.2f")
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_unselected_alpha"], db.unselectedAlpha, 0.3, 1.0, 0.05, y, function(v)
-        db.unselectedAlpha = v
-    end, "%.2f")
-    y = ny
-
-    -- Stacking
-    local _, ny = W.CreateSectionHeader(c, L["section_stacking"], y)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_overlap"], db.overlapV or 1.6, 0.5, 3.0, 0.1, y, function(v)
-        db.overlapV = v; ApplyNP()
-    end, "%.1f")
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_np_top_inset"], db.topInset or 0.065, 0.01, 0.5, 0.005, y, function(v)
-        db.topInset = v; ApplyNP()
-    end, "%.3f")
-    y = ny
-
-    -- Colors
-    local _, ny = W.CreateSectionHeader(c, L["section_colors"], y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_np_colors_custom"], y)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_hostile"], db.colors.hostile, y, function(r, g, b)
-        db.colors.hostile = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_neutral"], db.colors.neutral, y, function(r, g, b)
-        db.colors.neutral = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_friendly"], db.colors.friendly, y, function(r, g, b)
-        db.colors.friendly = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_tapped"], db.colors.tapped, y, function(r, g, b)
-        db.colors.tapped = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_focus"], db.colors.focus, y, function(r, g, b)
-        db.colors.focus = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    -- NPC Type Colors (Ellesmere-style)
-    local _, ny = W.CreateSectionHeader(c, L["section_npc_type_colors"], y)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_caster"], db.colors.caster, y, function(r, g, b)
-        db.colors.caster = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_miniboss"], db.colors.miniboss, y, function(r, g, b)
-        db.colors.miniboss = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_enemy_in_combat"], db.colors.enemyInCombat, y, function(r, g, b)
-        db.colors.enemyInCombat = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_np_darken_ooc"], y)
-    y = ny
-
-    -- Classification Colors
-    local _, ny = W.CreateSectionHeader(c, L["section_classification_colors"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_use_classification"], db.useClassificationColors, y, function(v)
-        db.useClassificationColors = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_boss"], db.colors.boss, y, function(r, g, b)
-        db.colors.boss = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_elite"], db.colors.elite, y, function(r, g, b)
-        db.colors.elite = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_rare"], db.colors.rare, y, function(r, g, b)
-        db.colors.rare = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_normal"], db.colors.normal, y, function(r, g, b)
-        db.colors.normal = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_trivial"], db.colors.trivial, y, function(r, g, b)
-        db.colors.trivial = { r = r, g = g, b = b }; RefreshNP()
-    end)
-    y = ny
-
-    -- Tank Mode
-    local _, ny = W.CreateSectionHeader(c, L["section_tank_mode"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_np_tank_mode"], db.tankMode, y, function(v)
-        db.tankMode = v; RefreshNP()
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_no_threat"], db.tankColors.noThreat, y, function(r, g, b)
-        db.tankColors.noThreat = { r = r, g = g, b = b }
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_low_threat"], db.tankColors.lowThreat, y, function(r, g, b)
-        db.tankColors.lowThreat = { r = r, g = g, b = b }
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_has_threat"], db.tankColors.hasThreat, y, function(r, g, b)
-        db.tankColors.hasThreat = { r = r, g = g, b = b }
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_dps_has_aggro"], db.tankColors.dpsHasAggro, y, function(r, g, b)
-        db.tankColors.dpsHasAggro = { r = r, g = g, b = b }
-    end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["color_dps_near_aggro"], db.tankColors.dpsNearAggro, y, function(r, g, b)
-        db.tankColors.dpsNearAggro = { r = r, g = g, b = b }
-    end)
-    y = ny
-
-    -- Reset
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateButton(c, L["btn_reset_nameplates"], 220, y, function()
-        TomoMod_ResetModule("nameplates")
-        print("|cff0cd29fTomoMod|r " .. L["msg_np_reset"])
-    end)
-    y = ny - 20
+    local card6, cy = W.CreateCard(c, L["section_castbar"] or "Barre de cast", y)
+    local _, cy = W.CreateCheckbox(card6.inner, L["opt_np_show_castbar"] or "Afficher la castbar", db.showCastbar, cy, function(v) db.showCastbar = v; RefreshNP() end)
+    local _, cy = W.CreateSlider(card6.inner, L["opt_np_castbar_height"] or "Hauteur", db.castbarHeight, 4, 20, 1, cy, function(v) db.castbarHeight = v; RefreshNP() end)
+    local _, cy = W.CreateColorPickerPair(card6.inner, L["color_castbar"] or "Interruptible", db.castbarColor, L["color_castbar_uninterruptible"] or "Non-interruptible", db.castbarUninterruptible, cy,
+        function(r,g,b) db.castbarColor = {r=r,g=g,b=b}; RefreshNP() end,
+        function(r,g,b) db.castbarUninterruptible = {r=r,g=g,b=b}; RefreshNP() end)
+    y = W.FinalizeCard(card6, cy)
 
     c:SetHeight(math.abs(y) + 20)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
 
--- =====================================
--- MAIN PANEL ENTRY POINT
--- =====================================
+-- ══════════════════════════════════════════════
+-- TAB 2 : AURAS
+-- ══════════════════════════════════════════════
+local function BuildAurasTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local db = TomoModDB.nameplates
+    local y = -12
+
+    local card, cy = W.CreateCard(c, L["section_auras"] or "Debuffs", y)
+    local _, cy = W.CreateCheckbox(card.inner, L["opt_np_show_auras"] or "Afficher les auras", db.showAuras, cy, function(v) db.showAuras = v; RefreshNP() end)
+    local _, cy = W.CreateCheckbox(card.inner, L["opt_np_only_my_debuffs"] or "Seulement mes debuffs", db.showOnlyMyAuras, cy, function(v) db.showOnlyMyAuras = v; RefreshNP() end)
+    local _, cy = W.CreateTwoColumnRow(card.inner, cy,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_np_aura_size"] or "Taille", db.auraSize, 12, 36, 1, 0, function(v) db.auraSize = v; RefreshNP() end) return ny end,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_np_max_auras"] or "Nb max", db.maxAuras, 1, 10, 1, 0, function(v) db.maxAuras = v; RefreshNP() end) return ny end)
+    y = W.FinalizeCard(card, cy)
+
+    local card2, cy = W.CreateCard(c, L["section_enemy_buffs"] or "Buffs ennemis", y)
+    local _, cy = W.CreateCheckbox(card2.inner, L["opt_np_show_enemy_buffs"] or "Afficher les buffs ennemis", db.showEnemyBuffs, cy, function(v) db.showEnemyBuffs = v; RefreshNP() end)
+    local _, cy = W.CreateTwoColumnRow(card2.inner, cy,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_np_enemy_buff_size"] or "Taille", db.enemyBuffSize or 18, 12, 36, 1, 0, function(v) db.enemyBuffSize = v; RefreshNP() end) return ny end,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_np_max_enemy_buffs"] or "Nb max", db.maxEnemyBuffs or 3, 1, 8, 1, 0, function(v) db.maxEnemyBuffs = v; RefreshNP() end) return ny end)
+    local _, cy = W.CreateSlider(card2.inner, L["opt_np_enemy_buff_y_offset"] or "Offset Y", db.enemyBuffYOffset or 4, 0, 20, 1, cy, function(v) db.enemyBuffYOffset = v; RefreshNP() end)
+    y = W.FinalizeCard(card2, cy)
+
+    c:SetHeight(math.abs(y) + 20)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- ══════════════════════════════════════════════
+-- TAB 3 : AVANCÉ
+-- ══════════════════════════════════════════════
+local function BuildAdvancedTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local db = TomoModDB.nameplates
+    local y = -12
+
+    -- Transparence
+    local card, cy = W.CreateCard(c, L["section_transparency"] or "Transparence", y)
+    local _, cy = W.CreateTwoColumnRow(card.inner, cy,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_np_selected_alpha"] or "Sélectionné", db.selectedAlpha, 0.3, 1.0, 0.05, 0, function(v) db.selectedAlpha = v end, "%.2f") return ny end,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_np_unselected_alpha"] or "Non-sélectionné", db.unselectedAlpha, 0.3, 1.0, 0.05, 0, function(v) db.unselectedAlpha = v end, "%.2f") return ny end)
+    y = W.FinalizeCard(card, cy)
+
+    -- Empilement
+    local card2, cy = W.CreateCard(c, L["section_stacking"] or "Empilement", y)
+    local _, cy = W.CreateTwoColumnRow(card2.inner, cy,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_np_overlap"] or "Chevauchement V", db.overlapV or 1.6, 0.5, 3.0, 0.1, 0, function(v) db.overlapV = v; ApplyNP() end, "%.1f") return ny end,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_np_top_inset"] or "Inset haut", db.topInset or 0.065, 0.01, 0.5, 0.005, 0, function(v) db.topInset = v; ApplyNP() end, "%.3f") return ny end)
+    y = W.FinalizeCard(card2, cy)
+
+    -- Couleurs générales
+    local card3, cy = W.CreateCard(c, L["section_colors"] or "Couleurs", y)
+    local _, cy = W.CreateInfoText(card3.inner, L["info_np_colors_custom"] or "", cy)
+    local _, cy = W.CreateColorPickerPair(card3.inner, L["color_hostile"] or "Hostile", db.colors.hostile, L["color_neutral"] or "Neutre", db.colors.neutral, cy,
+        function(r,g,b) db.colors.hostile = {r=r,g=g,b=b}; RefreshNP() end,
+        function(r,g,b) db.colors.neutral = {r=r,g=g,b=b}; RefreshNP() end)
+    local _, cy = W.CreateColorPickerPair(card3.inner, L["color_friendly"] or "Allié", db.colors.friendly, L["color_tapped"] or "Tapped", db.colors.tapped, cy,
+        function(r,g,b) db.colors.friendly = {r=r,g=g,b=b}; RefreshNP() end,
+        function(r,g,b) db.colors.tapped = {r=r,g=g,b=b}; RefreshNP() end)
+    local _, cy = W.CreateColorPickerPair(card3.inner, L["color_focus"] or "Focus", db.colors.focus, L["color_caster"] or "Lanceur", db.colors.caster, cy,
+        function(r,g,b) db.colors.focus = {r=r,g=g,b=b}; RefreshNP() end,
+        function(r,g,b) db.colors.caster = {r=r,g=g,b=b}; RefreshNP() end)
+    local _, cy = W.CreateColorPickerPair(card3.inner, L["color_miniboss"] or "Mini-boss", db.colors.miniboss, L["color_enemy_in_combat"] or "En combat", db.colors.enemyInCombat, cy,
+        function(r,g,b) db.colors.miniboss = {r=r,g=g,b=b}; RefreshNP() end,
+        function(r,g,b) db.colors.enemyInCombat = {r=r,g=g,b=b}; RefreshNP() end)
+    y = W.FinalizeCard(card3, cy)
+
+    -- Classification
+    local card4, cy = W.CreateCard(c, L["section_classification_colors"] or "Couleurs de classification", y)
+    local _, cy = W.CreateCheckbox(card4.inner, L["opt_np_use_classification"] or "Utiliser les couleurs de classification", db.useClassificationColors, cy, function(v) db.useClassificationColors = v; RefreshNP() end)
+    local _, cy = W.CreateColorPickerPair(card4.inner, L["color_boss"] or "Boss", db.colors.boss, L["color_elite"] or "Élite", db.colors.elite, cy,
+        function(r,g,b) db.colors.boss = {r=r,g=g,b=b}; RefreshNP() end,
+        function(r,g,b) db.colors.elite = {r=r,g=g,b=b}; RefreshNP() end)
+    local _, cy = W.CreateColorPickerPair(card4.inner, L["color_rare"] or "Rare", db.colors.rare, L["color_normal"] or "Normal", db.colors.normal, cy,
+        function(r,g,b) db.colors.rare = {r=r,g=g,b=b}; RefreshNP() end,
+        function(r,g,b) db.colors.normal = {r=r,g=g,b=b}; RefreshNP() end)
+    local _, cy = W.CreateColorPicker(card4.inner, L["color_trivial"] or "Trivial", db.colors.trivial, cy, function(r,g,b) db.colors.trivial = {r=r,g=g,b=b}; RefreshNP() end)
+    y = W.FinalizeCard(card4, cy)
+
+    -- Mode tank
+    local card5, cy = W.CreateCard(c, L["section_tank_mode"] or "Mode Tank", y)
+    local _, cy = W.CreateCheckbox(card5.inner, L["opt_np_tank_mode"] or "Activer le mode tank", db.tankMode, cy, function(v) db.tankMode = v; RefreshNP() end)
+    local _, cy = W.CreateColorPickerPair(card5.inner, L["color_no_threat"] or "Pas de menace", db.tankColors.noThreat, L["color_low_threat"] or "Faible menace", db.tankColors.lowThreat, cy,
+        function(r,g,b) db.tankColors.noThreat = {r=r,g=g,b=b} end,
+        function(r,g,b) db.tankColors.lowThreat = {r=r,g=g,b=b} end)
+    local _, cy = W.CreateColorPickerPair(card5.inner, L["color_has_threat"] or "Menace", db.tankColors.hasThreat, L["color_dps_has_aggro"] or "DPS aggro", db.tankColors.dpsHasAggro, cy,
+        function(r,g,b) db.tankColors.hasThreat = {r=r,g=g,b=b} end,
+        function(r,g,b) db.tankColors.dpsHasAggro = {r=r,g=g,b=b} end)
+    local _, cy = W.CreateColorPicker(card5.inner, L["color_dps_near_aggro"] or "DPS proche aggro", db.tankColors.dpsNearAggro, cy, function(r,g,b) db.tankColors.dpsNearAggro = {r=r,g=g,b=b} end)
+    y = W.FinalizeCard(card5, cy)
+
+    -- Reset
+    local card6, cy = W.CreateCard(c, "", y)
+    local _, cy = W.CreateButton(card6.inner, L["btn_reset_nameplates"] or "Réinitialiser les nameplates", 280, cy, function()
+        if TomoMod_ResetModule then TomoMod_ResetModule("nameplates") end
+        print("|cff0cd29fTomoMod|r " .. (L["msg_np_reset"] or "Nameplates réinitialisées."))
+    end)
+    y = W.FinalizeCard(card6, cy)
+
+    c:SetHeight(math.abs(y) + 20)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
 
 function TomoMod_ConfigPanel_Nameplates(parent)
-    local tabs = {
-        { key = "general", label = L["tab_general"],      builder = function(p) return BuildGeneralTab(p) end },
-        { key = "auras",   label = L["tab_np_auras"],     builder = function(p) return BuildAurasTab(p) end },
-        { key = "advanced", label = L["tab_np_advanced"],  builder = function(p) return BuildAdvancedTab(p) end },
-    }
-
-    return W.CreateTabPanel(parent, tabs)
+    return W.CreateTabPanel(parent, {
+        { key = "general",  label = L["tab_general"]     or "Général",  builder = BuildGeneralTab  },
+        { key = "auras",    label = L["tab_np_auras"]    or "Auras",    builder = BuildAurasTab    },
+        { key = "advanced", label = L["tab_np_advanced"] or "Avancé",   builder = BuildAdvancedTab },
+    })
 end

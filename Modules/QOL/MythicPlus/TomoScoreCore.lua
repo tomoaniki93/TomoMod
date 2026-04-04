@@ -48,7 +48,7 @@ TS.CLASS_COLORS = {
 }
 
 -- ── Layout constants ──────────────────────────────────────────────────────────
-TS.FRAME_W      = 520
+TS.FRAME_W      = 680
 TS.HEADER_H     = 44
 TS.COL_HEADER_H = 20
 TS.ROW_H        = 36
@@ -57,11 +57,13 @@ TS.EDGE         = 1
 TS.MAX_PLAYERS  = 40
 
 TS.COL = {
-    ICON    = 28,
-    NAME    = 120,
-    RATING  = 52,
-    DAMAGE  = 100,
-    HEALING = 100,
+    ICON       = 28,
+    NAME       = 120,
+    RATING     = 52,
+    KEY_LEVEL  = 36,
+    KEY_NAME   = 100,
+    DAMAGE     = 100,
+    HEALING    = 100,
     INTERRUPTS = 68,
 }
 

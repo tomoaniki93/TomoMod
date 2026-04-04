@@ -1,41 +1,44 @@
 -- =====================================
--- BuffSkin.lua
--- Skins Blizzard buff/debuff icons (top-right)
--- with rounded 9-slice border + glow from Nameplate assets
--- Compatible with WoW 12.x (TWW / Midnight)
+-- BuffSkin.lua — v2 (ElvUI-style)
+-- Backdrop dark bg + 1px border coloré par type de debuff
+-- Compatible TWW 12.x (secret values guard)
 -- =====================================
 
 TomoMod_BuffSkin = TomoMod_BuffSkin or {}
 local BS = TomoMod_BuffSkin
 
 -- =====================================
--- LOCALS & CACHES
+-- LOCALS
 -- =====================================
 
-local ADDON_FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
-local NP_MEDIA   = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Nameplates\\"
-local BORDER_TEX = NP_MEDIA .. "border.png"
-local GLOW_TEX   = NP_MEDIA .. "background.png"
+local ADDON_FONT  = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local FLAT_TEX    = "Interface\\Buttons\\WHITE8x8"
 
-local BORDER_CORNER = 4          -- corner size for aura icons (smaller than nameplates)
-local GLOW_MARGIN   = 0.48
-local GLOW_CORNER   = 8
-local GLOW_EXTEND   = 4
+-- Couleurs de dispel (même palette qu'ElvUI / Blizzard standard)
+local DISPEL_COLORS = {
+    Magic   = { r = 0.20, g = 0.60, b = 1.00 },  -- bleu
+    Poison  = { r = 0.10, g = 0.78, b = 0.10 },  -- vert
+    Curse   = { r = 0.60, g = 0.10, b = 0.80 },  -- violet
+    Disease = { r = 0.73, g = 0.46, b = 0.10 },  -- marron
+    Enrage  = { r = 0.80, g = 0.20, b = 0.20 },  -- rouge sombre
+}
 
-local isInitialized = false
+-- Couleur de bord par défaut (buffs ou debuffs sans type connu)
+local DEFAULT_BORDER  = { r = 0.12, g = 0.12, b = 0.12 }
+-- Teal accent pour les buffs du joueur
+local BUFF_BORDER     = { r = 0.047, g = 0.824, b = 0.624 }
 
--- Dedup: weak-keyed tables to avoid processing same button twice
-local skinnedButtons = setmetatable({}, { __mode = "k" })
+-- Fond sombre identique à ElvUI
+local BG_COLOR = { r = 0.09, g = 0.09, b = 0.09, a = 0.95 }
 
--- Per-button skin data (border textures, glow textures, bg)
-local buttonSkins = setmetatable({}, { __mode = "k" })
+-- Padding icône dans la border (1px comme ElvUI PixelMode)
+local INSET = 2
 
--- Hook guards (local, NOT on Blizzard frames — taint safety)
-local buffFrameShowHooked  = false
-local debuffFrameShowHooked = false
-
--- Debounce
-local updatePending = false
+local isInitialized   = false
+local skinnedButtons  = setmetatable({}, { __mode = "k" })
+local updatePending   = false
+local buffHookDone    = false
+local debuffHookDone  = false
 
 -- =====================================
 -- SETTINGS
@@ -50,276 +53,257 @@ local function IsEnabled()
 end
 
 -- =====================================
--- 9-SLICE BORDER (border.png)
+-- BACKDROP HELPER
+-- Applique un backdrop dark + border colored sur un frame.
+-- Mixin BackdropTemplateMixin si SetBackdrop absent (TWW).
 -- =====================================
 
-local function CreateRoundedBorder(parent, icon, r, g, b)
-    r, g, b = r or 0, g or 0, b or 0
-    local c = BORDER_CORNER
+local function ApplyBackdrop(frame, r, g, b)
+    if not frame then return end
 
-    local bf = CreateFrame("Frame", nil, parent)
-    bf:SetFrameLevel(parent:GetFrameLevel() + 5)
-    bf:SetPoint("TOPLEFT",     icon, "TOPLEFT",     -c * 0.5,  c * 0.5)
-    bf:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT",  c * 0.5, -c * 0.5)
-
-    local borders = {}
-    local function Tex()
-        local t = bf:CreateTexture(nil, "OVERLAY", nil, 7)
-        t:SetTexture(BORDER_TEX)
-        t:SetVertexColor(r, g, b, 1)
-        borders[#borders + 1] = t
-        return t
+    -- TWW: BackdropTemplate n'est pas hérité automatiquement sur les Buttons
+    if not frame.SetBackdrop then
+        if BackdropTemplateMixin then
+            Mixin(frame, BackdropTemplateMixin)
+        else
+            return
+        end
     end
 
-    -- Corners
-    local tl = Tex(); tl:SetSize(c, c); tl:SetPoint("TOPLEFT");     tl:SetTexCoord(0, 0.5, 0, 0.5)
-    local tr = Tex(); tr:SetSize(c, c); tr:SetPoint("TOPRIGHT");    tr:SetTexCoord(0.5, 1, 0, 0.5)
-    local bl = Tex(); bl:SetSize(c, c); bl:SetPoint("BOTTOMLEFT");  bl:SetTexCoord(0, 0.5, 0.5, 1)
-    local br = Tex(); br:SetSize(c, c); br:SetPoint("BOTTOMRIGHT"); br:SetTexCoord(0.5, 1, 0.5, 1)
-
-    -- Edges
-    local top = Tex(); top:SetHeight(c)
-    top:SetPoint("TOPLEFT", tl, "TOPRIGHT"); top:SetPoint("TOPRIGHT", tr, "TOPLEFT")
-    top:SetTexCoord(0.5, 0.5, 0, 0.5)
-
-    local bot = Tex(); bot:SetHeight(c)
-    bot:SetPoint("BOTTOMLEFT", bl, "BOTTOMRIGHT"); bot:SetPoint("BOTTOMRIGHT", br, "BOTTOMLEFT")
-    bot:SetTexCoord(0.5, 0.5, 0.5, 1)
-
-    local lft = Tex(); lft:SetWidth(c)
-    lft:SetPoint("TOPLEFT", tl, "BOTTOMLEFT"); lft:SetPoint("BOTTOMLEFT", bl, "TOPLEFT")
-    lft:SetTexCoord(0, 0.5, 0.5, 0.5)
-
-    local rgt = Tex(); rgt:SetWidth(c)
-    rgt:SetPoint("TOPRIGHT", tr, "BOTTOMRIGHT"); rgt:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT")
-    rgt:SetTexCoord(0.5, 1, 0.5, 0.5)
-
-    return bf, borders
+    frame:SetBackdrop({
+        bgFile   = FLAT_TEX,
+        edgeFile = FLAT_TEX,
+        edgeSize = 1,
+        insets   = { left = 1, right = 1, top = 1, bottom = 1 },
+    })
+    frame:SetBackdropColor(BG_COLOR.r, BG_COLOR.g, BG_COLOR.b, BG_COLOR.a)
+    frame:SetBackdropBorderColor(r or DEFAULT_BORDER.r, g or DEFAULT_BORDER.g, b or DEFAULT_BORDER.b, 1)
 end
 
 -- =====================================
--- GLOW (background.png, ADD blend)
+-- COLOR PAR TYPE DE DEBUFF
+-- dispelType est une string Blizzard ("Magic", "Poison", etc.)
+-- En TWW, elle peut être un secret value → on pcall + type-check.
 -- =====================================
 
-local function CreateGlow(parent, icon, r, g, b, a)
-    r, g, b, a = r or 0, g or 0, b or 0, a or 0.6
-    local gm = GLOW_MARGIN
-    local gc = GLOW_CORNER
-    local ext = GLOW_EXTEND
+local function GetBorderColor(button, isDebuff)
+    local settings = S()
 
-    local gf = CreateFrame("Frame", nil, parent)
-    gf:SetFrameLevel(math.max(1, parent:GetFrameLevel() - 1))
-    gf:SetPoint("TOPLEFT",     icon, "TOPLEFT",     -ext,  ext)
-    gf:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT",  ext, -ext)
-
-    local glows = {}
-    local function GTex()
-        local t = gf:CreateTexture(nil, "BACKGROUND")
-        t:SetTexture(GLOW_TEX)
-        t:SetBlendMode("ADD")
-        t:SetVertexColor(r, g, b, a)
-        glows[#glows + 1] = t
-        return t
+    -- Debuffs : couleur par type de dispel
+    if isDebuff and settings.colorByType then
+        local debuffType
+        local ok = pcall(function()
+            -- button.debuffType posé par AuraButton_UpdateType (Blizzard)
+            -- button.dispelName posé par Blizzard (TWW) — on essaie les deux
+            debuffType = button.debuffType or button.dispelName
+        end)
+        if ok and debuffType and type(debuffType) == "string" then
+            local c = DISPEL_COLORS[debuffType]
+            if c then return c.r, c.g, c.b end
+        end
+        -- Fallback debuff sans type : rouge sombre discret
+        return 0.65, 0.12, 0.12
     end
 
-    -- Corners
-    local gtl = GTex(); gtl:SetSize(gc, gc); gtl:SetPoint("TOPLEFT");     gtl:SetTexCoord(0, gm, 0, gm)
-    local gtr = GTex(); gtr:SetSize(gc, gc); gtr:SetPoint("TOPRIGHT");    gtr:SetTexCoord(1 - gm, 1, 0, gm)
-    local gbl = GTex(); gbl:SetSize(gc, gc); gbl:SetPoint("BOTTOMLEFT");  gbl:SetTexCoord(0, gm, 1 - gm, 1)
-    local gbr = GTex(); gbr:SetSize(gc, gc); gbr:SetPoint("BOTTOMRIGHT"); gbr:SetTexCoord(1 - gm, 1, 1 - gm, 1)
+    -- Buffs : teal accent si activé, sinon dark border
+    if not isDebuff then
+        local accent = settings.tealBorder ~= false  -- true par défaut
+        if accent then
+            return BUFF_BORDER.r, BUFF_BORDER.g, BUFF_BORDER.b
+        end
+    end
 
-    -- Edges
-    local gtop = GTex(); gtop:SetHeight(gc)
-    gtop:SetPoint("TOPLEFT", gtl, "TOPRIGHT"); gtop:SetPoint("TOPRIGHT", gtr, "TOPLEFT")
-    gtop:SetTexCoord(gm, 1 - gm, 0, gm)
-
-    local gbot = GTex(); gbot:SetHeight(gc)
-    gbot:SetPoint("BOTTOMLEFT", gbl, "BOTTOMRIGHT"); gbot:SetPoint("BOTTOMRIGHT", gbr, "BOTTOMLEFT")
-    gbot:SetTexCoord(gm, 1 - gm, 1 - gm, 1)
-
-    local glft = GTex(); glft:SetWidth(gc)
-    glft:SetPoint("TOPLEFT", gtl, "BOTTOMLEFT"); glft:SetPoint("BOTTOMLEFT", gbl, "TOPLEFT")
-    glft:SetTexCoord(0, gm, gm, 1 - gm)
-
-    local grgt = GTex(); grgt:SetWidth(gc)
-    grgt:SetPoint("TOPRIGHT", gtr, "BOTTOMRIGHT"); grgt:SetPoint("BOTTOMRIGHT", gbr, "TOPRIGHT")
-    grgt:SetTexCoord(1 - gm, 1, gm, 1 - gm)
-
-    return gf, glows
+    return DEFAULT_BORDER.r, DEFAULT_BORDER.g, DEFAULT_BORDER.b
 end
 
 -- =====================================
--- SKIN A SINGLE AURA BUTTON
+-- SKIN D'UN BOUTON
+-- Applique backdrop + crop icône + nettoyage Blizzard
 -- =====================================
 
-local function SkinButton(button, isBuff)
-    if not button or skinnedButtons[button] then return end
+local function SkinButton(button, isDebuff)
+    if not button then return end
 
     local settings = S()
-    if isBuff and not settings.skinBuffs then return end
-    if not isBuff and not settings.skinDebuffs then return end
+    if isDebuff and not settings.skinDebuffs then return end
+    if not isDebuff and not settings.skinBuffs then return end
 
-    -- Find icon texture
     local icon = button.Icon or button.icon
     if not icon then return end
 
-    -- Validate: must be a proper Frame
-    if not button.CreateTexture or type(button.CreateTexture) ~= "function" then return end
+    -- Appliquer le backdrop ElvUI-style
+    local r, g, b = GetBorderColor(button, isDebuff)
+    ApplyBackdrop(button, r, g, b)
 
-    -- Crop icon edges for cleaner look
-    icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    if not skinnedButtons[button] then
+        -- ── Icône insetée dans la border (comme ElvUI Icon:SetInside) ──────
+        icon:ClearAllPoints()
+        icon:SetPoint("TOPLEFT",     button, "TOPLEFT",     INSET,  -INSET)
+        icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -INSET,  INSET)
+        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        icon:SetDrawLayer("ARTWORK", 0)
 
-    -- Remove Blizzard circular mask so the full square icon is visible
-    if icon.SetMask then icon:SetMask("") end
-    if button.IconMask then button.IconMask:Hide() end
-    if button.CircleMask then button.CircleMask:Hide() end
+        -- Supprimer le masque circulaire Blizzard
+        if icon.SetMask then icon:SetMask("") end
+        if button.IconMask    then button.IconMask:Hide()    end
+        if button.CircleMask  then button.CircleMask:Hide()  end
 
-    -- Hide Blizzard overlays that darken the icon
-    if button.IconOverlay and button.IconOverlay.SetAlpha then button.IconOverlay:SetAlpha(0) end
-    if button.Highlight and button.Highlight.SetAlpha then button.Highlight:SetAlpha(0) end
+        -- Supprimer les overlays qui assombrissent l'icône
+        if button.IconOverlay then button.IconOverlay:SetAlpha(0) end
+        if button.Highlight   then button.Highlight:SetAlpha(0)   end
 
-    -- Hide Blizzard default border
-    local blizzBorder = button.Border or button.border or button.IconBorder
-    if blizzBorder and blizzBorder.SetAlpha then
-        blizzBorder:SetAlpha(0)
-    end
+        -- Masquer le texte Symbol (type d'aura Blizzard) qui peut apparaître derrière l'icône
+        if button.Symbol then button.Symbol:SetAlpha(0) end
 
-    -- Determine colors — teal border on all auras (addon accent)
-    local borderR, borderG, borderB = 0.047, 0.824, 0.624
-    local glowR, glowG, glowB, glowA = 0, 0, 0, 0    -- no glow by default
+        -- Supprimer la border Blizzard par défaut
+        local blizzBorder = button.Border or button.border or button.IconBorder
+        if blizzBorder then blizzBorder:SetAlpha(0) end
 
-    if not isBuff then
-        -- Debuffs: keep red glow to distinguish
-        glowR, glowG, glowB, glowA = 0.8, 0.1, 0.1, 0.5
-    elseif settings.buffGlow then
-        -- Buffs with glow enabled: subtle teal glow
-        glowR, glowG, glowB, glowA = 0.047, 0.824, 0.624, 0.3
-    end
+        -- ── Overlay de highlight souris (blanc translucide comme ElvUI) ────
+        if not button._tomoHighlight then
+            local hl = button:CreateTexture(nil, "HIGHLIGHT")
+            hl:SetColorTexture(1, 1, 1, 0.15)
+            hl:SetAllPoints(icon)
+            button._tomoHighlight = hl
+        end
 
-    -- Create dark background behind icon
-    local bg = button:CreateTexture(nil, "BACKGROUND")
-    bg:SetPoint("TOPLEFT", icon, "TOPLEFT", -1, 1)
-    bg:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 1, -1)
-    bg:SetColorTexture(0.05, 0.05, 0.05, 0.9)
+        -- ── Police Poppins sur count et duration ────────────────────────────
+        local fontSize = settings.fontSize or 11
+        local outline  = "OUTLINE"
+        local count    = button.Count or button.count
+        if count and count.SetFont then
+            count:SetFont(ADDON_FONT, fontSize, outline)
+            count:SetDrawLayer("OVERLAY", 7)
+            count:ClearAllPoints()
+            count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
+            count:SetJustifyH("RIGHT")
+        end
+        local duration = button.Duration or button.duration
+        if duration and duration.SetFont then
+            duration:SetFont(ADDON_FONT, fontSize - 1, outline)
+            duration:SetDrawLayer("OVERLAY", 7)
+        end
 
-    -- Create 9-slice rounded border
-    local borderFrame, borders = CreateRoundedBorder(button, icon, borderR, borderG, borderB)
+        -- ── Désaturation des debuffs ennemis (option) ────────────────────
+        -- (appliquée dans UpdateButtonColor pour les debuffs uniquement)
 
-    -- Create glow (only if alpha > 0)
-    local glowFrame, glows
-    if glowA > 0 then
-        glowFrame, glows = CreateGlow(button, icon, glowR, glowG, glowB, glowA)
-    end
-
-    -- Store references
-    buttonSkins[button] = {
-        bg = bg,
-        borderFrame = borderFrame,
-        borders = borders,
-        glowFrame = glowFrame,
-        glows = glows,
-        isBuff = isBuff,
-    }
-
-    skinnedButtons[button] = true
-end
-
--- =====================================
--- FONT SETTINGS
--- =====================================
-
-local function ApplyFontToButton(button)
-    if not button then return end
-    local settings = S()
-    local fontSize = settings.fontSize or 12
-    local fontOutline = settings.fontOutline or "OUTLINE"
-
-    -- Duration text
-    local duration = button.Duration or button.duration
-    if duration and duration.SetFont then
-        duration:SetFont(ADDON_FONT, fontSize, fontOutline)
-    end
-
-    -- Count text
-    local count = button.Count or button.count
-    if count and count.SetFont then
-        count:SetFont(ADDON_FONT, fontSize, fontOutline)
+        skinnedButtons[button] = isDebuff and "debuff" or "buff"
     end
 end
 
 -- =====================================
--- PROCESS CONTAINERS
+-- MISE À JOUR DE LA COULEUR DE BORDER
+-- Appelée à chaque update d'aura pour refléter le type de dispel.
 -- =====================================
 
-local function ProcessAuraContainer(container, isBuff)
-    if not container then return end
-    local frames = { container:GetChildren() }
-    for _, frame in ipairs(frames) do
-        if frame.Icon or frame.icon then
-            SkinButton(frame, isBuff)
-            ApplyFontToButton(frame)
+local function UpdateButtonColor(button)
+    if not skinnedButtons[button] then return end
+    if not button.SetBackdropBorderColor then return end
+
+    local isDebuff = (skinnedButtons[button] == "debuff")
+    local r, g, b  = GetBorderColor(button, isDebuff)
+    button:SetBackdropBorderColor(r, g, b, 1)
+
+    -- Désaturation optionnelle des debuffs
+    local icon = button.Icon or button.icon
+    if icon and icon.SetDesaturated then
+        if isDebuff and S().desaturateDebuffs then
+            icon:SetDesaturated(true)
+        else
+            icon:SetDesaturated(false)
         end
     end
 end
 
 -- =====================================
--- FRAME HIDING
+-- TRAITEMENT DES CONTAINERS
 -- =====================================
 
-local _frameHidingPendingRegen = false
+local function ProcessContainer(container, isDebuff)
+    if not container then return end
+    for _, child in ipairs({ container:GetChildren() }) do
+        local icon = child.Icon or child.icon
+        -- In Midnight, aura buttons use AuraButtonMixin with buttonInfo/auraInstanceID.
+        -- Only skin visible buttons that have a valid icon texture set.
+        if icon and child:IsShown() and icon:GetTexture() then
+            SkinButton(child, isDebuff)
+            UpdateButtonColor(child)
+        end
+    end
+end
+
+local function ApplyBuffSkin()
+    if not IsEnabled() then return end
+
+    local s = S()
+
+    -- Buffs joueur
+    if s.skinBuffs then
+        if BuffFrame and BuffFrame.AuraContainer then
+            ProcessContainer(BuffFrame.AuraContainer, false)
+        end
+    end
+
+    -- Debuffs joueur
+    if s.skinDebuffs then
+        if DebuffFrame and DebuffFrame.AuraContainer then
+            ProcessContainer(DebuffFrame.AuraContainer, true)
+        end
+    end
+
+    -- Enchantements temporaires (weapon buffs)
+    if s.skinBuffs and TemporaryEnchantFrame then
+        for _, child in ipairs({ TemporaryEnchantFrame:GetChildren() }) do
+            if child.Icon or child.icon then
+                SkinButton(child, false)
+                UpdateButtonColor(child)
+            end
+        end
+    end
+end
+
+-- =====================================
+-- FRAME HIDING (inchangé, taint-safe)
+-- =====================================
+
+local _hidingPendingRegen = false
 
 local function ApplyFrameHiding()
     if InCombatLockdown() then
-        if not _frameHidingPendingRegen then
-            _frameHidingPendingRegen = true
+        if not _hidingPendingRegen then
+            _hidingPendingRegen = true
             local f = CreateFrame("Frame")
             f:RegisterEvent("PLAYER_REGEN_ENABLED")
             f:SetScript("OnEvent", function(self)
                 self:UnregisterEvent("PLAYER_REGEN_ENABLED")
-                _frameHidingPendingRegen = false
+                _hidingPendingRegen = false
                 ApplyFrameHiding()
             end)
         end
         return
     end
 
-    local settings = S()
+    local s = S()
 
-    -- BuffFrame hiding
     if BuffFrame then
-        if settings.hideBuffFrame then
-            BuffFrame:Hide()
-        else
-            BuffFrame:Show()
-        end
-        if not buffFrameShowHooked then
-            buffFrameShowHooked = true
+        if s.hideBuffFrame then BuffFrame:Hide() else BuffFrame:Show() end
+        if not buffHookDone then
+            buffHookDone = true
             hooksecurefunc(BuffFrame, "Show", function(self)
                 C_Timer.After(0, function()
-                    local s = S()
-                    if s and s.hideBuffFrame then
-                        self:Hide()
-                    end
+                    if S().hideBuffFrame then self:Hide() end
                 end)
             end)
         end
     end
 
-    -- DebuffFrame hiding
     if DebuffFrame then
-        if settings.hideDebuffFrame then
-            DebuffFrame:Hide()
-        else
-            DebuffFrame:Show()
-        end
-        if not debuffFrameShowHooked then
-            debuffFrameShowHooked = true
+        if s.hideDebuffFrame then DebuffFrame:Hide() else DebuffFrame:Show() end
+        if not debuffHookDone then
+            debuffHookDone = true
             hooksecurefunc(DebuffFrame, "Show", function(self)
                 C_Timer.After(0, function()
-                    local s = S()
-                    if s and s.hideDebuffFrame then
-                        self:Hide()
-                    end
+                    if S().hideDebuffFrame then self:Hide() end
                 end)
             end)
         end
@@ -327,82 +311,71 @@ local function ApplyFrameHiding()
 end
 
 -- =====================================
--- MAIN APPLY
+-- DEBOUNCE
 -- =====================================
 
-local function ApplyBuffSkin()
-    if not IsEnabled() then return end
-
-    ApplyFrameHiding()
-
-    -- Buffs
-    if BuffFrame and BuffFrame.AuraContainer then
-        ProcessAuraContainer(BuffFrame.AuraContainer, true)
-    end
-
-    -- Debuffs
-    if DebuffFrame and DebuffFrame.AuraContainer then
-        ProcessAuraContainer(DebuffFrame.AuraContainer, false)
-    end
-
-    -- Temporary enchants (weapon buffs)
-    if TemporaryEnchantFrame then
-        local frames = { TemporaryEnchantFrame:GetChildren() }
-        for _, frame in ipairs(frames) do
-            SkinButton(frame, true)
-            ApplyFontToButton(frame)
-        end
-    end
-end
-
--- Debounced update
 local function ScheduleUpdate()
     if updatePending then return end
     updatePending = true
-    C_Timer.After(0.15, function()
+    C_Timer.After(0.1, function()
         updatePending = false
         ApplyBuffSkin()
     end)
 end
 
 -- =====================================
--- HOOKS (taint-safe via C_Timer.After)
+-- HOOKS
+-- AuraButton_Update hook = mettre à jour la couleur de border
+-- quand Blizzard met à jour le type de l'aura.
 -- =====================================
 
 local function InstallHooks()
+    -- Hook global AuraButton_Update (legacy, pre-Midnight)
+    if type(AuraButton_Update) == "function" then
+        hooksecurefunc("AuraButton_Update", function(button)
+            if skinnedButtons[button] then
+                local isDebuff = (skinnedButtons[button] == "debuff")
+                    or (button:GetParent() and button:GetParent():GetParent() == DebuffFrame)
+                SkinButton(button, isDebuff)
+                UpdateButtonColor(button)
+            end
+        end)
+    end
+
+    -- Hook AuraButton_UpdateType (legacy, pre-Midnight)
+    if type(AuraButton_UpdateType) == "function" then
+        hooksecurefunc("AuraButton_UpdateType", function(button)
+            UpdateButtonColor(button)
+        end)
+    end
+
+    -- Hook BuffFrame.Update / DebuffFrame.Update (Midnight 12.x+)
     if BuffFrame and BuffFrame.Update then
         hooksecurefunc(BuffFrame, "Update", function()
             C_Timer.After(0, ScheduleUpdate)
         end)
     end
-
-    if BuffFrame and BuffFrame.AuraContainer and BuffFrame.AuraContainer.Update then
-        hooksecurefunc(BuffFrame.AuraContainer, "Update", function()
-            C_Timer.After(0, ScheduleUpdate)
-        end)
-    end
-
     if DebuffFrame and DebuffFrame.Update then
         hooksecurefunc(DebuffFrame, "Update", function()
             C_Timer.After(0, ScheduleUpdate)
         end)
     end
 
-    if DebuffFrame and DebuffFrame.AuraContainer and DebuffFrame.AuraContainer.Update then
-        hooksecurefunc(DebuffFrame.AuraContainer, "Update", function()
+    -- Hook sur les containers Update pour attraper les nouveaux boutons
+    if BuffFrame and BuffFrame.AuraContainer and BuffFrame.AuraContainer.Update then
+        hooksecurefunc(BuffFrame.AuraContainer, "Update", function()
             C_Timer.After(0, ScheduleUpdate)
         end)
     end
-
-    if type(AuraButton_Update) == "function" then
-        hooksecurefunc("AuraButton_Update", function()
+    if DebuffFrame and DebuffFrame.AuraContainer and DebuffFrame.AuraContainer.Update then
+        hooksecurefunc(DebuffFrame.AuraContainer, "Update", function()
             C_Timer.After(0, ScheduleUpdate)
         end)
     end
 end
 
 -- =====================================
--- PUBLIC API
+-- API PUBLIQUE
 -- =====================================
 
 function BS.Initialize()
@@ -410,17 +383,16 @@ function BS.Initialize()
     if not IsEnabled() then return end
     isInitialized = true
 
-    -- Event: UNIT_AURA for dynamic updates
     local eventFrame = CreateFrame("Frame")
     eventFrame:RegisterEvent("UNIT_AURA")
-    eventFrame:SetScript("OnEvent", function(self, event, arg)
-        if event == "UNIT_AURA" and arg == "player" then
+    eventFrame:SetScript("OnEvent", function(_, event, unit)
+        if event == "UNIT_AURA" and unit == "player" then
             ScheduleUpdate()
         end
     end)
 
-    -- Initial apply + hooks (delayed to ensure frames exist)
     C_Timer.After(1, function()
+        ApplyFrameHiding()
         ApplyBuffSkin()
         InstallHooks()
     end)
@@ -428,8 +400,8 @@ end
 
 function BS.ApplySettings()
     if not IsEnabled() then return end
-    -- Clear dedup to force re-skin
     wipe(skinnedButtons)
+    ApplyFrameHiding()
     ApplyBuffSkin()
 end
 
@@ -441,6 +413,7 @@ function BS.SetEnabled(value)
         if not isInitialized then
             BS.Initialize()
         else
+            ApplyFrameHiding()
             ApplyBuffSkin()
         end
     end

@@ -163,6 +163,8 @@ function TS:BuildScoreboard()
 
     CH.colPlayer     = makeColLabel(L["ts_col_player"],     COL.NAME,       "LEFT")
     CH.colRating     = makeColLabel(L["ts_col_rating"],     COL.RATING,     "CENTER")
+    CH.colKeyLevel   = makeColLabel(L["ts_col_key_level"],  COL.KEY_LEVEL,  "CENTER")
+    CH.colKeyName    = makeColLabel(L["ts_col_key_name"],   COL.KEY_NAME,   "LEFT")
     CH.colDamage     = makeColLabel(L["ts_col_damage"],     COL.DAMAGE,     "RIGHT")
     CH.colHealing    = makeColLabel(L["ts_col_healing"],    COL.HEALING,    "RIGHT")
     CH.colInterrupts = makeColLabel(L["ts_col_interrupts"], COL.INTERRUPTS, "CENTER")
@@ -201,7 +203,7 @@ function TS:BuildScoreboard()
     FTR.avgRating:SetWidth(COL.RATING)
     FTR.avgRating:SetJustifyH("CENTER")
     FTR.avgRating:SetTextColor(unpack(C.TEXT_TEAL))
-    colX = colX + COL.RATING
+    colX = colX + COL.RATING + COL.KEY_LEVEL + COL.KEY_NAME
 
     FTR.totalDmg = self:MakeFS(FTR, 10, "OUTLINE")
     FTR.totalDmg:SetPoint("LEFT", FTR, "LEFT", colX, 0)
@@ -268,6 +270,47 @@ function TS:CreatePlayerRow(parent, index)
     row.ratingFS:SetWidth(COL.RATING)
     row.ratingFS:SetJustifyH("CENTER")
     colX = colX + COL.RATING
+
+    -- Keystone level
+    row.keyLevelFS = self:MakeFS(row, 11, "OUTLINE")
+    row.keyLevelFS:SetPoint("LEFT", row, "LEFT", colX, 0)
+    row.keyLevelFS:SetWidth(COL.KEY_LEVEL)
+    row.keyLevelFS:SetJustifyH("CENTER")
+    colX = colX + COL.KEY_LEVEL
+
+    -- Keystone dungeon name (clickable for teleport)
+    row.keyNameBtn = CreateFrame("Button", nil, row)
+    row.keyNameBtn:SetSize(COL.KEY_NAME, self.ROW_H)
+    row.keyNameBtn:SetPoint("LEFT", row, "LEFT", colX, 0)
+
+    row.keyNameFS = self:MakeFS(row.keyNameBtn, 10, "OUTLINE")
+    row.keyNameFS:SetPoint("LEFT", row.keyNameBtn, "LEFT", 2, 0)
+    row.keyNameFS:SetWidth(COL.KEY_NAME - 4)
+    row.keyNameFS:SetJustifyH("LEFT")
+    row.keyNameFS:SetWordWrap(false)
+
+    row.keyNameBtn:SetScript("OnClick", function(btn)
+        if not btn._spellID then return end
+        if IsSpellKnown(btn._spellID) then
+            CastSpellByID(btn._spellID)
+        else
+            print(L["mhub_tp_not_learned"])
+        end
+    end)
+    row.keyNameBtn:SetScript("OnEnter", function(btn)
+        if not btn._spellID then return end
+        GameTooltip:SetOwner(btn, "ANCHOR_RIGHT")
+        if IsSpellKnown(btn._spellID) then
+            GameTooltip:AddLine(L["mhub_tp_click"], 0.10, 0.82, 0.62)
+        else
+            GameTooltip:AddLine(L["mhub_tp_not_available"], 0.55, 0.55, 0.55)
+        end
+        GameTooltip:Show()
+    end)
+    row.keyNameBtn:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+    colX = colX + COL.KEY_NAME
 
     row.dmgBar = self:CreateStatBar(row, colX, COL.DAMAGE)
     colX = colX + COL.DAMAGE
@@ -456,6 +499,46 @@ function TS:PopulateScoreboard(data)
         else
             row.ratingFS:SetText("\226\128\148")
             row.ratingFS:SetTextColor(unpack(C.TEXT_GREY))
+        end
+
+        -- Keystone columns
+        local keyLevel = p.keyLevel or 0
+        local keyMapID = p.keyMapID
+        local keyName  = p.keyName
+        local keySpell = p.keySpellID
+
+        if keyLevel > 0 then
+            row.keyLevelFS:SetText("+" .. keyLevel)
+            if keyLevel >= 12 then
+                row.keyLevelFS:SetTextColor(1.00, 0.50, 0.00)
+            elseif keyLevel >= 10 then
+                row.keyLevelFS:SetTextColor(0.64, 0.21, 0.93)
+            elseif keyLevel >= 7 then
+                row.keyLevelFS:SetTextColor(0.00, 0.44, 0.87)
+            elseif keyLevel >= 5 then
+                row.keyLevelFS:SetTextColor(0.12, 0.75, 0.26)
+            else
+                row.keyLevelFS:SetTextColor(unpack(C.TEXT_WHITE))
+            end
+        else
+            row.keyLevelFS:SetText("\226\128\148")
+            row.keyLevelFS:SetTextColor(unpack(C.TEXT_GREY))
+        end
+
+        if keyName and keyName ~= "" then
+            row.keyNameFS:SetText(keyName)
+            row.keyNameBtn._spellID = keySpell
+            if keySpell and IsSpellKnown(keySpell) then
+                row.keyNameFS:SetTextColor(unpack(C.TEXT_TEAL))
+            else
+                row.keyNameFS:SetTextColor(unpack(C.TEXT_GREY))
+            end
+            row.keyNameBtn:EnableMouse(true)
+        else
+            row.keyNameFS:SetText("\226\128\148")
+            row.keyNameFS:SetTextColor(unpack(C.TEXT_GREY))
+            row.keyNameBtn._spellID = nil
+            row.keyNameBtn:EnableMouse(false)
         end
 
         local dmg = p.damage or 0

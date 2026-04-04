@@ -26,11 +26,17 @@ local function RefreshAll()
     if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshAllUnits then
         TomoMod_UnitFrames.RefreshAllUnits()
     end
+    if TomoMod_UFPreview and TomoMod_UFPreview.Refresh then
+        TomoMod_UFPreview.Refresh()
+    end
 end
 
 local function RefreshUnit(unitKey)
     if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
         TomoMod_UnitFrames.RefreshUnit(unitKey)
+    end
+    if TomoMod_UFPreview and TomoMod_UFPreview.Refresh then
+        TomoMod_UFPreview.Refresh()
     end
 end
 
@@ -58,17 +64,21 @@ local function BuildDimensionsTab(parent, unitKey, displayName)
     local _, ny = W.CreateSubLabel(c, L["sublabel_dimensions"], y)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_width"], db.width, 80, 400, 5, y, function(v)
-        db.width = v
-        RefreshUnit(unitKey)
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_health_height"], db.healthHeight, 10, 80, 2, y, function(v)
-        db.healthHeight = v
-        db.height = v + (db.powerHeight or 0) + 6
-        RefreshUnit(unitKey)
-    end)
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, ny2 = W.CreateSlider(col, L["opt_width"], db.width, 80, 400, 5, 0, function(v)
+                db.width = v; RefreshUnit(unitKey)
+            end)
+            return ny2
+        end,
+        function(col)
+            local _, ny2 = W.CreateSlider(col, L["opt_health_height"], db.healthHeight, 10, 80, 2, 0, function(v)
+                db.healthHeight = v
+                db.height = v + (db.powerHeight or 0) + 6
+                RefreshUnit(unitKey)
+            end)
+            return ny2
+        end)
     y = ny
 
     if db.powerHeight and db.powerHeight > 0 or unitKey == "player" or unitKey == "target" or unitKey == "focus" then
@@ -92,26 +102,22 @@ local function BuildDimensionsTab(parent, unitKey, displayName)
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(c, L["opt_castbar_width"], db.castbar.width, 50, 400, 5, y, function(v)
-            db.castbar.width = v
-            RefreshUnit(unitKey)
-        end)
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, ny2 = W.CreateSlider(col, L["opt_castbar_width"],  db.castbar.width, 50, 400, 5, 0,
+                    function(v) db.castbar.width  = v; RefreshUnit(unitKey) end)
+                return ny2
+            end,
+            function(col)
+                local _, ny2 = W.CreateSlider(col, L["opt_castbar_height"], db.castbar.height, 8, 40, 1, 0,
+                    function(v) db.castbar.height = v; RefreshUnit(unitKey) end)
+                return ny2
+            end)
         y = ny
 
-        local _, ny = W.CreateSlider(c, L["opt_castbar_height"], db.castbar.height, 8, 40, 1, y, function(v)
-            db.castbar.height = v
-            RefreshUnit(unitKey)
-        end)
-        y = ny
-
-        local _, ny = W.CreateCheckbox(c, L["opt_castbar_show_icon"], db.castbar.showIcon, y, function(v)
-            db.castbar.showIcon = v
-        end)
-        y = ny
-
-        local _, ny = W.CreateCheckbox(c, L["opt_castbar_show_timer"], db.castbar.showTimer, y, function(v)
-            db.castbar.showTimer = v
-        end)
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_castbar_show_icon"],  db.castbar.showIcon,  y, function(v) db.castbar.showIcon  = v end,
+            L["opt_castbar_show_timer"], db.castbar.showTimer,    function(v) db.castbar.showTimer = v end)
         y = ny
 
         -- Player castbar: drag & drop info + reset button
@@ -201,16 +207,14 @@ local function BuildDisplayTab(parent, unitKey)
         y = ny
     end
 
-    local _, ny = W.CreateCheckbox(c, L["opt_class_color_uf"], db.useClassColor, y, function(v)
-        db.useClassColor = v
-        RefreshUnit(unitKey)
-    end)
-    y = ny
-
     if db.useFactionColor ~= nil then
-        local _, ny = W.CreateCheckbox(c, L["opt_faction_color"], db.useFactionColor, y, function(v)
-            db.useFactionColor = v
-            RefreshUnit(unitKey)
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_class_color_uf"], db.useClassColor,   y, function(v) db.useClassColor   = v; RefreshUnit(unitKey) end,
+            L["opt_faction_color"],  db.useFactionColor,    function(v) db.useFactionColor  = v; RefreshUnit(unitKey) end)
+        y = ny
+    else
+        local _, ny = W.CreateCheckbox(c, L["opt_class_color_uf"], db.useClassColor, y, function(v)
+            db.useClassColor = v; RefreshUnit(unitKey)
         end)
         y = ny
     end
@@ -505,17 +509,21 @@ local function BuildSimpleUnitContent(parent, unitKey, displayName)
     local _, ny = W.CreateSubLabel(c, L["sublabel_dimensions"], y)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_width"], db.width, 80, 400, 5, y, function(v)
-        db.width = v
-        RefreshUnit(unitKey)
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_health_height"], db.healthHeight, 10, 80, 2, y, function(v)
-        db.healthHeight = v
-        db.height = v + (db.powerHeight or 0) + 6
-        RefreshUnit(unitKey)
-    end)
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, ny2 = W.CreateSlider(col, L["opt_width"], db.width, 80, 400, 5, 0, function(v)
+                db.width = v; RefreshUnit(unitKey)
+            end)
+            return ny2
+        end,
+        function(col)
+            local _, ny2 = W.CreateSlider(col, L["opt_health_height"], db.healthHeight, 10, 80, 2, 0, function(v)
+                db.healthHeight = v
+                db.height = v + (db.powerHeight or 0) + 6
+                RefreshUnit(unitKey)
+            end)
+            return ny2
+        end)
     y = ny
 
     -- Display
@@ -544,16 +552,14 @@ local function BuildSimpleUnitContent(parent, unitKey, displayName)
         y = ny
     end
 
-    local _, ny = W.CreateCheckbox(c, L["opt_class_color_uf"], db.useClassColor, y, function(v)
-        db.useClassColor = v
-        RefreshUnit(unitKey)
-    end)
-    y = ny
-
     if db.useFactionColor ~= nil then
-        local _, ny = W.CreateCheckbox(c, L["opt_faction_color"], db.useFactionColor, y, function(v)
-            db.useFactionColor = v
-            RefreshUnit(unitKey)
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_class_color_uf"], db.useClassColor,   y, function(v) db.useClassColor   = v; RefreshUnit(unitKey) end,
+            L["opt_faction_color"],  db.useFactionColor,    function(v) db.useFactionColor  = v; RefreshUnit(unitKey) end)
+        y = ny
+    else
+        local _, ny = W.CreateCheckbox(c, L["opt_class_color_uf"], db.useClassColor, y, function(v)
+            db.useClassColor = v; RefreshUnit(unitKey)
         end)
         y = ny
     end
@@ -588,15 +594,14 @@ local function BuildGeneralContent(parent)
     local _, ny = W.CreateSectionHeader(c, L["section_general_settings"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_uf_enable"], TomoModDB.unitFrames.enabled, y, function(v)
-        TomoModDB.unitFrames.enabled = v
-        print("|cff0cd29fTomoMod|r " .. string.format(L["msg_uf_toggle"], v and L["enabled"] or L["disabled"]))
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_hide_blizzard"], TomoModDB.unitFrames.hideBlizzardFrames, y, function(v)
-        TomoModDB.unitFrames.hideBlizzardFrames = v
-    end)
+    local _, ny = W.CreateCheckboxPair(c,
+        L["opt_uf_enable"],    TomoModDB.unitFrames.enabled,             y,
+        function(v)
+            TomoModDB.unitFrames.enabled = v
+            print("|cff0cd29fTomoMod|r " .. string.format(L["msg_uf_toggle"], v and L["enabled"] or L["disabled"]))
+        end,
+        L["opt_hide_blizzard"], TomoModDB.unitFrames.hideBlizzardFrames,
+        function(v) TomoModDB.unitFrames.hideBlizzardFrames = v end)
     y = ny
 
     -- Font family dropdown
@@ -623,11 +628,13 @@ local function BuildGeneralContent(parent)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local _, ny = W.CreateButton(c, L["btn_toggle_lock"], 240, y, function()
-        if TomoMod_UnitFrames and TomoMod_UnitFrames.ToggleLock then
-            TomoMod_UnitFrames.ToggleLock()
-        end
-    end)
+    local _, ny = W.CreateButtonRow(c, {
+        { text = L["btn_toggle_lock"], width = 200, cb = function()
+            if TomoMod_UnitFrames and TomoMod_UnitFrames.ToggleLock then
+                TomoMod_UnitFrames.ToggleLock()
+            end
+        end },
+    }, y)
     y = ny
 
     local _, ny = W.CreateInfoText(c, L["info_unlock_drag"], y)
@@ -656,20 +663,17 @@ local function BuildColorsContent(parent)
 
     -- Interruptible castbar color (default: red)
     if not db.castbarColor then db.castbarColor = { r = 0.80, g = 0.10, b = 0.10 } end
-    local _, ny = W.CreateColorPicker(c, L["opt_castbar_color"], db.castbarColor, y, function(r, g, b)
-        db.castbarColor.r, db.castbarColor.g, db.castbarColor.b = r, g, b
-    end)
-    y = ny
-
-    -- Non-interruptible overlay color (default: grey)
-    if not db.castbarNIColor then db.castbarNIColor = { r = 0.50, g = 0.50, b = 0.50 } end
-    local _, ny = W.CreateColorPicker(c, L["opt_castbar_ni_color"], db.castbarNIColor, y, function(r, g, b)
-        db.castbarNIColor.r, db.castbarNIColor.g, db.castbarNIColor.b = r, g, b
-    end)
-    y = ny
-
-    -- Interrupt color (default: green)
+    if not db.castbarNIColor        then db.castbarNIColor        = { r = 0.50, g = 0.50, b = 0.50 } end
     if not db.castbarInterruptColor then db.castbarInterruptColor = { r = 0.10, g = 0.80, b = 0.10 } end
+
+    local _, ny = W.CreateColorPickerPair(c,
+        L["opt_castbar_color"],    db.castbarColor,
+        L["opt_castbar_ni_color"], db.castbarNIColor,
+        y,
+        function(r,g,b) db.castbarColor.r,db.castbarColor.g,db.castbarColor.b=r,g,b end,
+        function(r,g,b) db.castbarNIColor.r,db.castbarNIColor.g,db.castbarNIColor.b=r,g,b end)
+    y = ny
+
     local _, ny = W.CreateColorPicker(c, L["opt_castbar_interrupt_color"], db.castbarInterruptColor, y, function(r, g, b)
         db.castbarInterruptColor.r, db.castbarInterruptColor.g, db.castbarInterruptColor.b = r, g, b
     end)
@@ -711,20 +715,17 @@ local function BuildBossContent(parent)
     local _, ny = W.CreateSubLabel(c, L["sublabel_dimensions"], y)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_width"], db.width, 100, 350, 5, y, function(v)
-        db.width = v
-        if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
-            TomoMod_BossFrames.RefreshAll()
-        end
-    end)
-    y = ny
+    local function RefreshBoss() if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then TomoMod_BossFrames.RefreshAll() end end
 
-    local _, ny = W.CreateSlider(c, L["opt_boss_height"], db.height, 16, 50, 2, y, function(v)
-        db.height = v
-        if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
-            TomoMod_BossFrames.RefreshAll()
-        end
-    end)
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, ny2 = W.CreateSlider(col, L["opt_width"],       db.width,  100, 350, 5, 0, function(v) db.width  = v; RefreshBoss() end)
+            return ny2
+        end,
+        function(col)
+            local _, ny2 = W.CreateSlider(col, L["opt_boss_height"], db.height,  16,  50, 2, 0, function(v) db.height = v; RefreshBoss() end)
+            return ny2
+        end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_boss_spacing"], db.spacing, 0, 20, 1, y, function(v)
@@ -769,8 +770,40 @@ end
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
+-- ============================================================
+-- MAIN ENTRY POINT
+-- Layout :
+--   ┌─ wrapper ──────────────────────────────────┐
+--   │  preview strip  (hauteur dynamique ~165px) │
+--   │────────────────────────────────────────────│
+--   │  tab bar + contenus (remplit le reste)     │
+--   └────────────────────────────────────────────┘
+-- ============================================================
+
+local PREVIEW_H_INITIAL = 165   -- hauteur initiale avant premier Refresh
+
 function TomoMod_ConfigPanel_UnitFrames(parent)
-    local tabs = {
+    local wrapper = CreateFrame("Frame", nil, parent)
+    wrapper:SetAllPoints()
+
+    -- ── Preview strip ──────────────────────────────────────
+    local preview = TomoMod_UFPreview.Create(wrapper)
+
+    -- ── Tab host (positionné juste sous le strip) ──────────
+    local tabHost = CreateFrame("Frame", nil, wrapper)
+    tabHost:SetPoint("TOPLEFT",     wrapper, "TOPLEFT",     0, -PREVIEW_H_INITIAL)
+    tabHost:SetPoint("BOTTOMRIGHT", wrapper, "BOTTOMRIGHT", 0, 0)
+
+    -- Ré-ancrage automatique quand le strip change de hauteur
+    preview:SetScript("OnSizeChanged", function(self)
+        local h = math.floor(self:GetHeight() + 0.5)
+        tabHost:ClearAllPoints()
+        tabHost:SetPoint("TOPLEFT",     wrapper, "TOPLEFT",     0, -h)
+        tabHost:SetPoint("BOTTOMRIGHT", wrapper, "BOTTOMRIGHT", 0, 0)
+    end)
+
+    -- ── Onglets ────────────────────────────────────────────
+    local TAB_DEFS = {
         { key = "general",      label = L["tab_general"],  builder = function(p) return BuildGeneralContent(p) end },
         { key = "player",       label = L["tab_player"],   builder = function(p) return BuildUnitWithSubTabs(p, "player", L["unit_player"]) end },
         { key = "target",       label = L["tab_target"],   builder = function(p) return BuildUnitWithSubTabs(p, "target", L["unit_target"]) end },
@@ -781,5 +814,26 @@ function TomoMod_ConfigPanel_UnitFrames(parent)
         { key = "colors",       label = L["tab_colors"],   builder = function(p) return BuildColorsContent(p) end },
     }
 
-    return W.CreateTabPanel(parent, tabs)
+    local tabWidget = W.CreateTabPanel(tabHost, TAB_DEFS)
+    tabWidget:SetAllPoints(tabHost)
+
+    -- ── Clic sur un aperçu → navigation vers son onglet ───
+    local unitToTab = {
+        player = "player", target = "target",
+        targettarget = "targettarget", pet = "pet", focus = "focus",
+    }
+    for unitKey, tabKey in pairs(unitToTab) do
+        preview.onUnitClick[unitKey] = function()
+            tabWidget.SwitchTab(tabKey)
+        end
+    end
+
+    -- Forcer un refresh à l'ouverture du panel
+    wrapper:SetScript("OnShow", function()
+        if TomoMod_UFPreview and TomoMod_UFPreview.ForceRefresh then
+            TomoMod_UFPreview.ForceRefresh()
+        end
+    end)
+
+    return wrapper
 end
