@@ -6,8 +6,9 @@
 ## 
 ## SavedVariables: TomoModDB
 ## X-Curse-Project-ID: 1446255
+## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 2.5.1
+## Version: 2.7.1
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -39,6 +40,7 @@ Core\Init.lua
 ## =====================
 Config\Widgets.lua
 Config\Panels\General.lua
+Config\Panels\UFPreview.lua
 Config\Panels\UnitFrames.lua
 Config\Panels\Nameplates.lua
 Config\Panels\CooldownResource.lua
@@ -48,6 +50,7 @@ Config\Panels\ActionBars.lua
 Config\Panels\MythicPlus.lua
 Config\Panels\Profiles.lua
 Config\ConfigUI.lua
+Config\Installer.lua
 
 ## =====================
 ## QOL Modules (unchanged)

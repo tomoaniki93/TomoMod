@@ -1,5 +1,8 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
-	<Script file="Libs\LibStub\LibStub.lua"/>
+    <!-- oUF — bibliothèque UnitFrame, exposée en global via X-oUF: TomoMod_oUF dans le TOC -->
+    <Script file='Libs\LibDispel\LibDispel.lua'/> <!-- keep over oUF -->
+    <Include file="Libs\oUF\oUF_Mainline.xml"/>
+    <Script file="Libs\LibStub\LibStub.lua"/>
     <Script file="Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua"/>
     <include file="Libs\libserialize\embeds.xml"/>
     <Script file="Libs\libserialize\serializer.lua"/>

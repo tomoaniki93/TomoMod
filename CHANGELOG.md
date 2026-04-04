@@ -1,5 +1,168 @@
 ## ####################################
 
+## CHANGELOG 2.7.1
+
+#### TomoScore — Keystone Columns
+- **Two new columns** added to the end-of-dungeon scoreboard between M+ Rating and Damage:
+  - **Key Level** — displays each player's current keystone level (`+14`, `+11`, etc.) with color-coded tiers (green 5+, blue 7+, purple 10+, orange 12+), or `—` if no key
+  - **Dungeon Name** — shows the abbreviated dungeon name of each player's keystone (e.g., "ARAK", "PSF", "SV"); displayed in **teal** if the teleport spell is known, **grey** if not
+- **Click-to-teleport** — clicking a dungeon name casts the corresponding teleport spell (`CastSpellByID`); tooltip shows "Click to teleport" (green) or "Teleport not learned" (grey)
+- **Data source**: keystone info pulled from **LibOpenRaid** (`GetAllKeystonesInfo` / `GetKeystoneInfo`) at dungeon completion; dungeon name and teleport spell resolved via `TomoMod_DataKeys`
+- **Preview data** updated with sample keystones (4/5 players have keys, 1 without for `—` display)
+- **Frame width** increased from 520px to 680px to accommodate the new columns
+- **Locale keys** added: `ts_col_key_level` ("Key" / "Clé"), `ts_col_key_name` ("Dungeon" / "Nom des Clés") in enUS and frFR
+
+#### ActionBar Skin — Taint & Boot Fixes
+- **SetScaleBase taint fix** — `MultiBarBottomLeft:SetScaleBase()` is protected in Midnight 12.x; now checks `bf.SetScaleBase` existence and scales individual buttons instead of the parent frame when EditMode is detected
+- **Boot sequence fix** — bars didn't fade out of combat and Shift-reveal didn't work after login; boot now calls `ApplyCombatShow()` and `SetShiftReveal(true)` after `SkinAllButtons()`
+- **CombatShow logic fix** — bars set to 0% opacity with "combat only" enabled now correctly show at 100% in combat (was re-using barOpacity of 0%)
+- **CombatShow conflict fix** — `ApplyAllOpacities()` (vehicle handler) and `SetShiftReveal` OnUpdate now both respect `combatShow` bars instead of overriding them
+
+#### BuffSkin — Midnight Compatibility
+- **Detection rewrite** — switched from `child.buttonInfo` to `IsShown() + GetTexture()` detection for buff/debuff buttons
+- **Hooks** added for `BuffFrame:Update()` and `DebuffFrame:Update()` to re-skin after Blizzard updates
+- **Symbol text** hidden via `button.Symbol:SetAlpha(0)`
+- **Count & Duration** FontStrings set to `OVERLAY, 7` draw layer (above icon at `ARTWORK, 0`)
+
+#### Font & Unicode — Texture Escapes
+- **Replaced 6 Unicode symbols** that were missing from Poppins font with native WoW `|T...|t` texture escapes across all 6 locale files:
+  - `←` → `UI-SpellbookIcon-PrevPage` (installer Previous button)
+  - `→` → `UI-SpellbookIcon-NextPage` (installer Next/Finish/recap arrows)
+  - `↺` → `UI-RefreshButton` (Reload UI button)
+  - `▶` → `UI-SpellbookIcon-NextPage` (Sound preview button)
+  - `⚡` → `UI-OptionsFrame-NewFeatureIcon` (Apply CVars button)
+  - `✓` → `RAIDFRAME/ReadyCheck-Ready` (CVar success, Done check, import valid)
+- **Em dash `—` and middle dot `·` preserved** — these glyphs exist in Poppins and render correctly
+
+#### Localization — Config Panel i18n
+- **31 hardcoded French strings** in 5 config panel files replaced with `L["key"]` references:
+  - `Config/Panels/ActionBars.lua` (13 strings): style, opacity, bar select, combat-only, management, unlock, quick settings, tab labels
+  - `Config/Panels/General.lua` (2 strings): relaunch installer button + info
+  - `Config/Panels/Sound.lua` (1 string): preview section header
+  - `Config/Panels/UFPreview.lua` (14 strings): header, unit names, spell names, labels, click-to-navigate tooltip
+  - `Config/ConfigUI.lua` (1 string): footer hint
+- **31 locale keys** added to all 6 languages (enUS, frFR, deDE, esES, itIT, ptBR) with proper translations
+
+#### Bar Editor — Fixes
+- **Backdrop restoration** fixed after cleanup
+- **Positioning** — editor now opens to the right of the config panel
+
+#### Widget & Layout Fixes
+- **MythicPlus panel** — replaced TwoColumnRow slider pairs with full-width stacked sliders (slider controls need full width for drag precision)
+- **UnitFrames panel** — fixed SectionHeader label overlap, preview right-side cutoff
+- **TwoColumnRow** — changed column anchoring from `CENTER` to `TOP` for proper vertical alignment
+- **Checkbox** — changed to 2-point anchoring `TOPLEFT`/`TOPRIGHT` for reliable width
+
+##### #########
+
+#### Installer — First-Run Setup Wizard (12 steps)
+- **New file `Config/Installer.lua`** (946 lines) — guided wizard launched automatically on first startup; reopenable via `/tm install` or the button in General → Reset
+- **Step 1 — Welcome**: animated logo, TomoMod description, 12-step overview
+- **Step 2 — Profile**: editbox for naming your profile, "Create Profile" button calls `TomoMod_Profiles.CreateNamedProfile()` + `LoadNamedProfile()`, note about per-spec assignment
+- **Step 3 — Visual Skins**: checkboxes for Game Menu, ActionBar, Buffs, Chat, Character + button style dropdown (Classic / Flat / Outlined / Glass)
+- **Step 4 — Tank Mode**: tank mode nameplates, threat indicator and text on target, CoTank Tracker
+- **Step 5 — Nameplates**: enable/disable, class colors, castbar, health text, auras, role icons, width slider
+- **Step 6 — Action Bars**: skin enable, class color border, shift-reveal, global opacity slider applied to all bars simultaneously
+- **Step 7 — LustSound**: enable, sound dropdown from `TomoMod_LustSound.soundRegistry`, channel dropdown, preview button
+- **Step 8 — Mythic+**: M+ Tracker (enable/timer/forces/hide Blizzard) + TomoScore (enable/auto-show)
+- **Step 9 — CVars**: list of 6 included optimizations, "Apply all CVars" button → `TomoMod_CVarOptimizer.ApplyAll()`, success indicator
+- **Step 10 — QOL**: 8 toggles (auto-repair, fast loot, skip cinematics, hide talking head, auto-accept invites, tooltip IDs, combat text, hide Blizzard castbar)
+- **Step 11 — SkyRide**: enable, width/height sliders, reset position button
+- **Step 12 — Done**: slash command recap (`/tm`, `/tm sr`, `/tm install`), reminder that everything is editable in the GUI, "Reload UI" button (marks `installer.completed = true`)
+- **Navigation**: progress dot bar (12 dots, active = teal/large, past = dim teal, future = grey), Previous/Next/Finish buttons, "Skip installation" link
+- **Auto-open**: `PLAYER_LOGIN` + `C_Timer.After(1.5)` checks `TomoModDB.installer.completed`; if `false` → opens the installer
+- **Fullscreen dimmer**: 60% black overlay behind the panel during installation
+
+#### Integrations
+- **`/tm install`** added to `Core/Init.lua` → `TomoMod_Installer.Show()`
+- **`/tm help`**: added `/tm install — Relaunch the setup wizard` line
+- **General panel**: "⚙ Relaunch Installer" button added to the General card, above the Reset button
+- **`Core/Database.lua`**: added `installer = { completed = false, step = 1 }` to defaults
+
+#### Localization
+- **Full i18n for the Installer** — all 118 user-facing strings (step titles, descriptions, section headers, checkbox labels, button labels, navigation) use `L["ins_*"]` locale keys instead of hardcoded text
+- **6 languages supported**: enUS (English), frFR (French), deDE (German), esES (Spanish), itIT (Italian), ptBR (Brazilian Portuguese)
+- Installer text automatically matches the game client language
+
+## ####################################
+
+## CHANGELOG 2.7.0
+
+#### Config GUI — Full Redesign
+- **Panel enlarged to 1020×720** (was 840×620) — gives 810px of content width vs 670px previously, enabling two-column layouts throughout
+- **Style icon-box navigation** — each sidebar category button now features a styled icon container with `BackdropTemplate` (dark bg + accent border on selection), left accent bar indicator, and smooth hover states; replaces the previous simple text+icon buttons
+- **Gradient header wash** — subtle teal-tinted gradient under the title bar in the content area
+- **Live performance footer** — FPS and memory usage sampled every 2 seconds via `C_Timer.NewTicker`, displayed bottom-right; ticker auto-stops when panel is hidden to avoid OnUpdate overhead
+- **Close, Reload, Layout buttons** refined — new sizing, consistent hover states, tooltip on Reload
+
+#### Config Widgets — Complete Overhaul
+- **`CreateSectionHeader`** — now renders a tinted bg strip + 3px left accent bar + bold title; far more visually prominent than the old text+line version
+- **`CreateSlider`** — added **filled track** (accent color fills left portion proportional to value) + right-aligned value badge in a framed box; visual state is always clear at a glance
+- **`CreateCheckbox`** — box uses `BackdropTemplate` with accent-tinted bg and accent border when checked; clicking the label also toggles
+- **`CreateButton`** — accent invert on hover (teal fill + dark text)
+- **`CreateDropdown`** — accent border on open, accent highlight on item hover
+- **`CreateColorPicker`** — swatch right-aligned, RGB values displayed inline
+- **`CreateTabPanel`** — bottom indicator line on active tab, accent bg tint; no more top-flush style
+- **`CreateCard()`** *(new)* — framed group container with optional title strip, left accent stripe, inner padding; used in MythicPlus and available for all panels
+- **`CreateTwoColumnRow()`** *(new)* — splits available width into two equal columns for placing two widgets side by side
+- **`CreateCheckboxPair()`** *(new)* — convenience wrapper for two checkboxes on one line
+- **`CreateColorPickerPair()`** *(new)* — two color pickers side by side
+- **`CreateButtonRow()`** *(new)* — horizontal row of multiple buttons with consistent spacing
+
+#### Config Panels — Layout Improvements (all panels, no logic changes)
+- **General** — minimap size/scale, cursor ring class-color/tooltip in 2-column pairs
+- **Sound** — preview/stop buttons side by side; chat/debug checkboxes paired
+- **Nameplates** — name/level, threat/class-color, tank/healer role icon checkboxes paired; 3 pairs total in Display section
+- **UnitFrames** — frame width/health height paired; show name/level paired; class color/faction color paired; castbar width/height paired; castbar icon/timer paired; castbar color pickers paired; boss frame width/height paired; lock button now uses `CreateButtonRow`
+- **CooldownResource** — CDM show-hotkeys/combat-alpha paired; combat+target alpha sliders side by side; custom overlay/swipe checkboxes paired; overlay/swipe color pickers paired; resource bar width/scale paired; primary/secondary bar height paired; all 21 resource color pickers rendered in 2-per-row grid
+- **MythicPlus** — fully uses `CreateCard` containers + `CreateTwoColumnRow` throughout; timer/forces, bosses/hide-blizzard paired; scale/alpha sliders paired; action buttons in 2-col rows
+- **QOL** — auto-quest accept/turnin paired; auto-accept-invite friends/guild paired
+
+#### Action Bars — New `TomoBar` Management System (`ActionBars.lua`)
+- **`TomoBar` class** wraps each of the 10 native Blizzard action bars (bar1–bar8, pet, stance) with per-bar settings management
+- **Drag overlay** — red handle frame anchored above each bar (visible in unlock mode), draggable to reposition the Blizzard bar; right-click opens the per-bar **BarEditor**
+- **BarEditor popup** — per-bar config: alpha slider, scale slider, fade toggle, fade-alpha slider, show hotkey, show macro, hotkey/macro font size; slides update live
+- **Fade system** — `UIFrameFadeIn/Out` on bar + button hover with configurable resting alpha
+- **`AB.LockAll()` / `AB.UnlockAll()`** — toggle all overlays; unlock button in ActionBars config panel
+- **`TomoMod_ActionBars`** global exposes `Initialize`, `ApplyAll`, `GetBar`, `ShowBarEditor`, `LockAll`, `UnlockAll`
+
+#### Action Bar Skin — Four Visual Styles (`ActionBarSkin.lua`)
+- **`classic`** — original 9-slice rounded border (unchanged behavior)
+- **`flat`** — dark bg + thin teal border via `CreateFlatBorder`
+- **`outlined`** — 30% transparent bg + subdued 55% opacity flat border
+- **`glass`** — semi-transparent blue-dark bg + outer glow layer + teal flat border
+- **`ABS.Reskin()`** — clears and re-skins all buttons when style changes at runtime
+- Style selector dropdown added to ActionBars panel → Skin tab
+
+#### Database
+- Added `actionBarSkin.skinStyle = "classic"` default
+- `TomoModDB.actionBars.bars[id]` per-bar settings lazily initialized by `TomoBar:Create`
+
+## ####################################
+
+## CHANGELOG 2.6.0
+
+#### UnitFrames — oUF Engine Migration
+- **Replaced the custom UnitFrame engine with oUF** — TomoMod now uses the battle-tested oUF library as the foundation for all unit frames (player, target, focus, target-of-target, pet)
+- **oUF bundled as a library** — added `Libs/oUF/` (43 files) and registered it via `X-oUF: TomoMod_oUF` in the TOC; the library is exposed as `_G["TomoMod_oUF"]` at load time without conflicts
+- **Removed ~200 lines of manual event handling** — `RegisterUnitEvents()`, the dirty-flag batch system (`uf_dirtyHealth`, `uf_dirtyPower`, `uf_dirtyAbsorb`, `uf_dirtyAuras`), the `throttleFrame` OnUpdate for target-of-target, and all manual `RegisterUnitWatch()` calls are now handled by oUF internally
+- **Style callback** — `StyleTomoMod(self, unit)` replaces `CreateUnitFrame()`: creates all sub-elements using the existing `UF_Elements` API and registers `Health.Override` / `Power.Override` so TomoMod's color logic and text formatting remain fully intact
+- **oUF:DisableBlizzard(unit) called automatically** on every `oUF:Spawn()` — PlayerFrame, TargetFrame, FocusFrame, and PetFrame are hidden via oUF's `hiddenParent` technique; `HideBlizzardExtra()` handles castbars and `ActionBarActionEventsFrame` cast overlay separately
+- **All existing Elements unchanged** — `Health.lua`, `Power.lua`, `Castbar.lua` (empowered stages, channel ticks, latency overlay), and `Auras.lua` required zero modifications; logic is preserved via `Override` callbacks
+- **Full public API preserved** — `ToggleLock`, `RefreshUnit`, `RefreshAllUnits`, `TogglePlayerCastbarLock`, `RefreshThreatPreview`, and `IsLocked` all work identically; `UpdateAllElements` is now available on every frame for external use
+- **Supplementary events** (threat, absorb, UNIT_AURA, raid icons, leader icons) are registered via a separate `RegisterSupplementaryEvents()` step after all frames are spawned, maintaining the same behavior as before with no new overhead
+
+#### Nameplates — Hybrid oUF Approach
+- **Replaced custom offscreen-parent technique with `oUF:DisableBlizzardNamePlate`** — the previous approach reparented UnitFrame children under a hidden frame; oUF's approach uses `hooksecurefunc(UnitFrame, "SetAlpha")` to permanently force `SetAlpha(0)`, which is more robust against Blizzard restoring visibility
+- **Removed ~130 lines** — `npOffscreenParent`, `hookedUFs`, `storedParents`, `MoveToOffscreen()`, `RestoreFromOffscreen()`, `HideBlizzardFrame()`, and `RestoreBlizzardFrame()` are all gone
+- **Added `HideBlizzardExtra()`** — lightweight replacement that masks residual regions on the base nameplate frame (role icon textures, `BuffFrame`) that `oUF:DisableBlizzardNamePlate` does not touch
+- **WidgetContainer transfer** — `nameplate.UnitFrame.WidgetContainer` is now reparented to the custom plate with `SetIgnoreParentAlpha(true)`, ensuring TWW interaction icons (vendor, repair, quest) display correctly above TomoMod nameplates
+- **SoftTargetFrame transfer** — `nameplate.UnitFrame.SoftTargetFrame` is reparented to the custom plate, restoring the soft-target ring indicator that was previously invisible
+- **Full motor unchanged** — `CreatePlate()`, `UpdatePlate()`, `UpdateCastbar()`, the dirty-batch system, friendly mode, role icons, and all config remain untouched
+- **Disable() note** — because `hooksecurefunc` cannot be unregistered, disabling TomoMod nameplates without `/reload` will leave Blizzard UnitFrames at alpha 0
+
+## ####################################
+
 ## CHANGELOG 2.5.1
 
 #### 12.x Secret Number Fixes

@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("esES", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Acerca de",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.5.1 por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.7.1 por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reiniciar todo",
     ["info_reset_all"]                  = "Esto reiniciará TODOS los ajustes y recargará la interfaz.",
@@ -301,7 +301,7 @@ TomoMod_RegisterLocale("esES", {
     ["section_cdm_utility"]             = "Utilidad",
     ["opt_cdm_dim_utility"]             = "Atenuar iconos de utilidad fuera de CD",
     ["opt_cdm_dim_opacity"]             = "Opacidad de atenuación",
-    ["info_cdm_editmode"]               = "La colocación se realiza mediante el Edit Mode de Blizzard (Esc → Edit Mode).",
+    ["info_cdm_editmode"]               = "La colocación se realiza mediante el Edit Mode de Blizzard (Esc |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Edit Mode).",
 
     -- Resource Bars
     ["section_resource_bars"]           = "Barras de recursos",
@@ -337,7 +337,7 @@ TomoMod_RegisterLocale("esES", {
     -- Position
     ["section_position"]                = "Posición",
     ["info_rb_position"]                = "Usa /tm uf para desbloquear y mover las barras. La posición se guarda automáticamente.",
-    ["info_rb_druid"]                   = "Las barras se adaptan automáticamente a tu clase y especialización.\nDruida: el recurso cambia con la forma (Oso → Ira, Gato → Energía, Equilibrio → Poder astral).",
+    ["info_rb_druid"]                   = "Las barras se adaptan automáticamente a tu clase y especialización.\nDruida: el recurso cambia con la forma (Oso |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Ira, Gato |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Energía, Equilibrio |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Poder astral).",
 
     -- =====================
     -- CONFIG: QOL Panel
@@ -549,7 +549,7 @@ TomoMod_RegisterLocale("esES", {
     ["btn_import"]                      = "Importar y aplicar",
     ["btn_paste_clipboard"]             = "Pegar texto",
     ["import_preview"]                  = "Clase: %s | Módulos: %s | Fecha: %s",
-    ["import_preview_valid"]            = "✓ Cadena válida",
+    ["import_preview_valid"]            = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:0|t Cadena válida",
     ["import_preview_invalid"]          = "Cadena inválida o corrupta",
     ["info_import_warning"]             = "La importación SOBRESCRIBIRÁ todos tus ajustes actuales y recargará la interfaz. Esta acción no se puede deshacer.",
 
@@ -878,7 +878,9 @@ TomoMod_RegisterLocale("esES", {
     ["opt_buff_skin_enable"]             = "Skinear iconos de Buff/Debuff",
     ["opt_buff_skin_buffs"]              = "Aplicar a Buffs",
     ["opt_buff_skin_debuffs"]            = "Aplicar a Debuffs",
-    ["opt_buff_skin_glow"]               = "Efecto de brillo en Buffs",
+    ["opt_buff_skin_color_by_type"]       = "Colorear borde por tipo de debuff (Magia/Veneno/Maldición…)",
+    ["opt_buff_skin_teal_border"]         = "Borde turquesa en buffs",
+    ["opt_buff_skin_desaturate"]          = "Desaturar iconos de debuff",
     ["opt_buff_skin_hide_buffs"]         = "Ocultar marco de Buffs",
     ["opt_buff_skin_hide_debuffs"]       = "Ocultar marco de Debuffs",
     ["opt_buff_skin_font_size"]          = "Tamaño de fuente del temporizador",
@@ -1035,4 +1037,190 @@ TomoMod_RegisterLocale("esES", {
     ["mhub_vault_ilvl"]             = "Nivel de objeto",
     ["mhub_vault_locked"]           = "Bloqueado",
     ["mhub_vault_claim"]            = "Vuelve a la Gran C\195\161mara para reclamar tu recompensa",
+
+    -- ══════════════════════════════════════════════════════════
+    -- INSTALLER
+    -- ══════════════════════════════════════════════════════════
+
+    -- Navigation
+    ["ins_header_title"]             = "|cff0cd29fTomo|r|cffe4e4e4Mod|r  \226\128\148  Asistente de configuraci\195\179n",
+    ["ins_step_counter"]             = "Paso %d / %d",
+    ["ins_btn_prev"]                 = "|TInterface\\BUTTONS\\UI-SpellbookIcon-PrevPage:0|t Anterior",
+    ["ins_btn_next"]                 = "Siguiente |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t",
+    ["ins_btn_finish"]               = "Finalizar |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t",
+    ["ins_btn_skip"]                 = "Omitir instalaci\195\179n",
+
+    -- Step 1: Welcome
+    ["ins_step1_title"]              = "Bienvenido a TomoMod",
+    ["ins_subtitle"]                 = "Suite de interfaz y QOL para The War Within",
+    ["ins_welcome_desc"]             = "Este asistente te guiar\195\161 en |cff0cd29f12 pasos|r para configurar TomoMod seg\195\186n\ntus preferencias: perfil, skins, nameplates, barras de acci\195\179n, sonido, Mythic+,\noptimizaciones, QOL y SkyRide.\n\nTodas estas opciones pueden cambiarse en cualquier momento con |cff0cd29f/tm|r.",
+
+    -- Step 2: Profile
+    ["ins_step2_title"]              = "Perfil de juego",
+    ["ins_profile_info"]             = "Crea un perfil con nombre para guardar tu configuraci\195\179n.",
+    ["ins_profile_section"]          = "Nombre del perfil",
+    ["ins_profile_placeholder"]      = "Mi perfil",
+    ["ins_profile_create"]           = "Crear perfil",
+    ["ins_profile_created"]          = "Perfil creado: ",
+    ["ins_spec_section"]             = "Asignaci\195\179n de especializaci\195\179n",
+    ["ins_spec_info"]                = "Puedes asignar este perfil a tus especializaciones desde el panel Perfiles (/tm).\nCada especializaci\195\179n puede usar una configuraci\195\179n diferente.",
+
+    -- Step 3: Visual Skins
+    ["ins_step3_title"]              = "Skins visuales",
+    ["ins_skins_info"]               = "Personaliza la interfaz de Blizzard con el tema oscuro de TomoMod.",
+    ["ins_skins_section"]            = "Skins disponibles",
+    ["ins_skin_gamemenu"]            = "Skin del men\195\186 de juego (Escape)",
+    ["ins_skin_actionbar"]           = "Skin de botones de barra de acci\195\179n",
+    ["ins_skin_buffs"]               = "Skin de buffs / debuffs",
+    ["ins_skin_chat"]                = "Skin del chat",
+    ["ins_skin_character"]           = "Skin de la hoja de personaje",
+    ["ins_skin_style_section"]       = "Estilo de botones de barra de acci\195\179n",
+    ["ins_skin_style"]               = "Estilo visual",
+
+    -- Step 4: Tank Mode
+    ["ins_step4_title"]              = "Modo Tank",
+    ["ins_tank_info"]                = "En modo tank, las nameplates y UnitFrames muestran\nel estado de amenaza por color para cada enemigo.",
+    ["ins_tank_np_section"]          = "Nameplates \226\128\148 Colores de amenaza",
+    ["ins_tank_enable_np"]           = "Activar modo tank (nameplates)",
+    ["ins_tank_colors_info"]         = "Verde = tienes aggro  \194\183  Naranja = cerca de perderlo  \194\183  Rojo = aggro perdido",
+    ["ins_tank_uf_section"]          = "UnitFrames \226\128\148 Indicador de amenaza",
+    ["ins_tank_threat_indicator"]    = "Mostrar indicador de amenaza en el objetivo",
+    ["ins_tank_threat_text"]         = "Mostrar texto de amenaza % en el objetivo",
+    ["ins_tank_cotank_section"]      = "CoTank Tracker",
+    ["ins_tank_cotank_enable"]       = "Activar seguimiento del co-tank",
+    ["ins_tank_cotank_info"]         = "Muestra la amenaza del segundo tank en instancias.",
+
+    -- Step 5: Nameplates
+    ["ins_step5_title"]              = "Nameplates",
+    ["ins_np_general"]               = "General",
+    ["ins_np_enable"]                = "Activar nameplates de TomoMod",
+    ["ins_np_reload_info"]           = "Se necesita un reload para activar/desactivar las nameplates.",
+    ["ins_np_display"]               = "Visualizaci\195\179n",
+    ["ins_np_class_colors"]          = "Colores de clase",
+    ["ins_np_castbar"]               = "Mostrar barra de lanzamiento",
+    ["ins_np_health_text"]           = "Mostrar texto de salud (porcentaje)",
+    ["ins_np_auras"]                 = "Mostrar auras (debuffs)",
+    ["ins_np_role_icons"]            = "Mostrar iconos de rol (mazmorra)",
+    ["ins_np_dimensions"]            = "Dimensiones",
+    ["ins_np_width"]                 = "Ancho",
+
+    -- Step 6: Action Bars
+    ["ins_step6_title"]              = "Barras de acci\195\179n",
+    ["ins_ab_skin_section"]          = "Skin de botones",
+    ["ins_ab_enable"]                = "Activar skin en botones de acci\195\179n",
+    ["ins_ab_class_color"]           = "Color de borde = color de clase",
+    ["ins_ab_shift_reveal"]          = "Mantener Shift para mostrar barras ocultas",
+    ["ins_ab_opacity_section"]       = "Opacidad global de barras",
+    ["ins_ab_opacity"]               = "Opacidad",
+    ["ins_ab_manage_section"]        = "Gesti\195\179n de barras",
+    ["ins_ab_manage_info"]           = "Usa el panel Barras de acci\195\179n (/tm |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Barras de acci\195\179n |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Gesti\195\179n)\npara desbloquear y reposicionar cada barra.",
+
+    -- Step 7: LustSound
+    ["ins_step7_title"]              = "Sonido \226\128\148 Hero\195\173smo / Sed de sangre",
+    ["ins_sound_info"]               = "Reproduce un sonido personalizado cuando Hero\195\173smo o Sed de sangre\nes lanzado por cualquier miembro del grupo.",
+    ["ins_sound_activation"]         = "Activaci\195\179n",
+    ["ins_sound_enable"]             = "Activar sonido de lust",
+    ["ins_sound_choice"]             = "Selecci\195\179n de sonido",
+    ["ins_sound_sound"]              = "Sonido",
+    ["ins_sound_channel"]            = "Canal de audio",
+    ["ins_sound_default"]            = "Por defecto",
+    ["ins_sound_preview_section"]    = "Vista previa",
+    ["ins_sound_preview_btn"]        = "|TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Vista previa",
+
+    -- Step 8: Mythic+
+    ["ins_step8_title"]              = "Mythic+ \226\128\148 Tracker y Tabla de puntuaci\195\179n",
+    ["ins_mplus_tracker_section"]    = "M+ Tracker",
+    ["ins_mplus_tracker_info"]       = "Muestra un temporizador, fuerzas, jefes y progreso\nde tu mazmorra Mythic+ en tiempo real.",
+    ["ins_mplus_tracker_enable"]     = "Activar M+ Tracker",
+    ["ins_mplus_show_timer"]         = "Mostrar temporizador",
+    ["ins_mplus_show_forces"]        = "Mostrar fuerzas (%)",
+    ["ins_mplus_hide_blizzard"]      = "Ocultar interfaz Blizzard en Mythic+",
+    ["ins_mplus_score_section"]      = "TomoScore \226\128\148 Tabla de puntuaci\195\179n",
+    ["ins_mplus_score_info"]         = "Muestra puntuaciones personales y de grupo al final de un Mythic+.",
+    ["ins_mplus_score_enable"]       = "Activar TomoScore",
+    ["ins_mplus_score_auto"]         = "Mostrar autom\195\161ticamente en M+",
+
+    -- Step 9: CVars
+    ["ins_step9_title"]              = "Optimizaciones del sistema (CVars)",
+    ["ins_cvar_info"]                = "TomoMod puede aplicar un conjunto de CVars de WoW recomendadas\npara mejorar el rendimiento y la capacidad de respuesta.",
+    ["ins_cvar_section"]             = "Optimizaciones incluidas",
+    ["ins_cvar_opt1"]                = "Reducir el Level of Detail (LOD) innecesario",
+    ["ins_cvar_opt2"]                = "Optimizar el frustum culling",
+    ["ins_cvar_opt3"]                = "Desactivar el temporal AA excesivo",
+    ["ins_cvar_opt4"]                = "Mejorar la capacidad de respuesta de red",
+    ["ins_cvar_opt5"]                = "Desactivar animaciones de interfaz innecesarias",
+    ["ins_cvar_opt6"]                = "Optimizar el streaming de texturas",
+    ["ins_cvar_success"]             = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:0|t  \194\161CVars aplicadas con \195\169xito!",
+    ["ins_cvar_apply_btn"]           = "|TInterface\\OptionsFrame\\UI-OptionsFrame-NewFeatureIcon:0|t Aplicar todas las CVars",
+    ["ins_cvar_applied"]             = "CVars optimizadas aplicadas.",
+
+    -- Step 10: QOL
+    ["ins_step10_title"]             = "Calidad de vida (QOL)",
+    ["ins_qol_info"]                 = "Activa los m\195\179dulos QOL que desees.\nTodos son accesibles por separado en /tm |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t QOL.",
+    ["ins_qol_auto_section"]         = "Automatizaciones",
+    ["ins_qol_auto_repair"]          = "Reparar autom\195\161ticamente en el comerciante",
+    ["ins_qol_fast_loot"]            = "Saqueo r\195\161pido (recogida r\195\161pida de objetos)",
+    ["ins_qol_skip_cinematics"]      = "Omitir cinem\195\161ticas ya vistas",
+    ["ins_qol_hide_talking_head"]    = "Ocultar Talking Head (di\195\161logos de desplazamiento)",
+    ["ins_qol_auto_accept"]          = "Aceptar inv. de grupo autom\195\161ticamente (amigos y hermandad)",
+    ["ins_qol_tooltip_ids"]          = "Mostrar IDs en tooltips (spell ID, item ID...)",
+    ["ins_qol_combat_section"]       = "Combate",
+    ["ins_qol_combat_text"]          = "Texto flotante de combate personalizado",
+    ["ins_qol_hide_castbar"]         = "Ocultar barra de lanzamiento de Blizzard (usar la de TomoMod)",
+
+    -- Step 11: SkyRide
+    ["ins_step11_title"]             = "SkyRide \226\128\148 Barra de cabalgata drac\195\179nica",
+    ["ins_skyride_info"]             = "SkyRide muestra una barra de Vigor (6 cargas) y una barra\nde Segundo Aliento (3 cargas) para la cabalgata drac\195\179nica.",
+    ["ins_skyride_activation"]       = "Activaci\195\179n",
+    ["ins_skyride_enable"]           = "Activar barra SkyRide",
+    ["ins_skyride_auto_info"]        = "La barra aparece autom\195\161ticamente en modo de vuelo drac\195\179nico\ny se oculta fuera de \195\169l.",
+    ["ins_skyride_dimensions"]       = "Dimensiones",
+    ["ins_skyride_width"]            = "Ancho",
+    ["ins_skyride_height"]           = "Altura",
+    ["ins_skyride_reset_section"]    = "Reiniciar posici\195\179n",
+    ["ins_skyride_reset_btn"]        = "Reiniciar posici\195\179n",
+
+    -- Step 12: Done
+    ["ins_step12_title"]             = "\194\161Configuraci\195\179n completada!",
+    ["ins_done_check"]               = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:0|t  \194\161Todo listo!",
+    ["ins_done_recap"]               = "Tu configuraci\195\179n de TomoMod est\195\161 guardada. Algunos recordatorios:\n\n|cff0cd29f/tm|r              |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Abrir el panel de configuraci\195\179n\n|cff0cd29f/tm sr|r           |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Desbloquear y mover elementos\n|cff0cd29f/tm install|r      |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Relanzar este instalador\n\nTodas las opciones configuradas aqu\195\173 pueden cambiarse en cualquier momento\ndesde los paneles correspondientes en la GUI de TomoMod.\n\nSe necesita un |cff0cd29freload de la UI|r para aplicar ciertos cambios\n(nameplates, skins, UnitFrames).",
+    ["ins_done_reload"]              = "|TInterface\\BUTTONS\\UI-RefreshButton:0|t  Recargar UI",
+
+    -- =========== Config Panels — i18n ===========
+    -- ActionBars panel
+    ["opt_abs_style"]                = "Estilo visual",
+    ["section_bar_opacity"]          = "Opacidad por barra",
+    ["opt_abs_bar_select"]           = "Barra a configurar",
+    ["opt_abs_opacity"]              = "Opacidad",
+    ["btn_abs_apply_all"]            = "Aplicar a todas las barras",
+    ["opt_abs_combat_only_label"]    = "Mostrar solo en combate:",
+    ["opt_abs_combat_only"]          = "Barra visible solo en combate",
+    ["section_bar_management"]       = "Gesti\195\179n de barras de acci\195\179n",
+    ["btn_abs_unlock"]               = "Desbloquear barras",
+    ["info_abs_unlock"]              = "Desbloquea las barras para mostrar los controles de arrastre.\nHaz clic derecho en un control para configurar una barra individualmente.",
+    ["section_bar_quick"]            = "Ajustes r\195\161pidos",
+    ["tab_abs_skin"]                 = "Skin de botones",
+    ["tab_abs_bars"]                 = "Gesti\195\179n de barras",
+    -- General panel
+    ["btn_relaunch_installer"]       = "Relanzar instalador",
+    ["info_relaunch_installer"]      = "Inicia el asistente de configuraci\195\179n de 12 pasos.",
+    -- Sound panel
+    ["section_sound_preview"]        = "Vista previa y opciones",
+    -- UFPreview
+    ["preview_header"]               = "VISTA PREVIA EN VIVO",
+    ["preview_player"]               = "Jugador",
+    ["preview_target_name"]          = "Taurache",
+    ["preview_focus_name"]           = "Sacerdotisa",
+    ["preview_pet_name"]             = "Lobo de agua",
+    ["preview_tot_name"]             = "Objetivo-del-objetivo",
+    ["preview_cast_player"]          = "Descarga de Escarcha",
+    ["preview_cast_target"]          = "Bola de Fuego",
+    ["preview_lbl_player"]           = "JUGADOR",
+    ["preview_lbl_target"]           = "OBJETIVO",
+    ["preview_lbl_focus"]            = "FOCO",
+    ["preview_lbl_pet"]              = "MASCOTA",
+    ["preview_lbl_tot"]              = "TOT",
+    ["preview_click_nav"]            = "clic para navegar",
+    -- ConfigUI footer
+    ["ui_footer_hint"]               = "/tm  \194\183  /tm sr para mover elementos",
 })
