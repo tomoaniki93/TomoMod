@@ -1,0 +1,276 @@
+local _, ns = ...
+local oUF = ns.oUF
+
+local next = next
+local wipe = wipe
+local pcall = pcall
+local select = select
+
+local UnitGUID = UnitGUID
+local UnitName = UnitName
+local UnitClass = UnitClass
+
+local GetAuraSlots = C_UnitAuras.GetAuraSlots
+local GetAuraDataBySlot = C_UnitAuras.GetAuraDataBySlot
+local GetAuraDataByIndex = C_UnitAuras.GetAuraDataByIndex
+local GetAuraDataByAuraInstanceID = C_UnitAuras.GetAuraDataByAuraInstanceID
+local IsAuraFilteredOutByInstanceID = C_UnitAuras.IsAuraFilteredOutByInstanceID
+
+local auraInfo = {}
+local auraFiltered = {
+	HELPFUL = {},
+	HARMFUL = {},
+	RAID = {}
+}
+
+oUF.AuraInfo = auraInfo -- export it, not filtered
+oUF.AuraFiltered = auraFiltered -- by filter
+
+local hasValidPlayer
+local eventFrame = CreateFrame('Frame')
+eventFrame:RegisterEvent('PLAYER_ENTERING_WORLD')
+eventFrame:RegisterEvent('PLAYER_LEAVING_WORLD')
+eventFrame:SetScript('OnEvent', function(_, event)
+	if event == 'PLAYER_ENTERING_WORLD' then
+		hasValidPlayer = true
+	elseif event == 'PLAYER_LEAVING_WORLD' then
+		hasValidPlayer = false
+	end
+end)
+
+local function AllowAura(frame, aura)
+	if oUF:NotSecretValue(aura.isNameplateOnly) and aura.isNameplateOnly then
+		return frame.isNamePlate
+	end
+
+	return true
+end
+
+local function InstanceFiltered(unit, aura, helpful, harmful)
+	local isHelpful = not IsAuraFilteredOutByInstanceID(unit, aura.auraInstanceID, helpful)
+	local isHarmful = not IsAuraFilteredOutByInstanceID(unit, aura.auraInstanceID, harmful)
+
+	return isHelpful or isHarmful
+end
+
+local function UpdateFilter(which, filter, filtered, allow, unit, auraInstanceID, aura)
+	local unitAuraFiltered = filtered[unit]
+
+	local allowed = which ~= 'remove' and allow and aura
+	if allowed then -- irrelevant filters: IncludeNameplateOnly, Maw
+		aura.auraIsHarmful = not IsAuraFilteredOutByInstanceID(unit, aura.auraInstanceID, 'HARMFUL')
+		aura.auraIsHelpful = not IsAuraFilteredOutByInstanceID(unit, aura.auraInstanceID, 'HELPFUL')
+
+		aura.auraIsImportant = InstanceFiltered(unit, aura, 'HELPFUL|IMPORTANT', 'HARMFUL|IMPORTANT')
+		aura.auraIsCancelable = InstanceFiltered(unit, aura, 'HELPFUL|CANCELABLE', 'HARMFUL|CANCELABLE')
+		aura.auraIsCrowdControl = InstanceFiltered(unit, aura, 'HELPFUL|CROWD_CONTROL', 'HARMFUL|CROWD_CONTROL')
+		aura.auraIsBigDefensive = InstanceFiltered(unit, aura, 'HELPFUL|BIG_DEFENSIVE', 'HARMFUL|BIG_DEFENSIVE')
+		aura.auraIsExternalDefensive = InstanceFiltered(unit, aura, 'HELPFUL|EXTERNAL_DEFENSIVE', 'HARMFUL|EXTERNAL_DEFENSIVE')
+		aura.auraIsPlayer = InstanceFiltered(unit, aura, 'HELPFUL|PLAYER', 'HARMFUL|PLAYER')
+		aura.auraIsRaid = InstanceFiltered(unit, aura, 'HELPFUL|RAID', 'HARMFUL|RAID')
+		aura.auraIsRaidInCombat = InstanceFiltered(unit, aura, 'HELPFUL|RAID_IN_COMBAT', 'HARMFUL|RAID_IN_COMBAT') -- Auras flagged to show on raid frames in combat
+		aura.auraIsRaidPlayerDispellable = InstanceFiltered(unit, aura, 'HELPFUL|RAID_PLAYER_DISPELLABLE', 'HARMFUL|RAID_PLAYER_DISPELLABLE') -- Auras with a dispel type the player can dispel
+	end
+
+	unitAuraFiltered[auraInstanceID] = not oUF:ShouldSkipAuraFilter(aura, filter) and allowed or nil
+end
+
+local function UpdateAuraFilters(which, frame, event, unit, showFunc, auraInstanceID, aura)
+	local unitAuraInfo = auraInfo[unit]
+
+	if which == 'update' then
+		aura = GetAuraDataByAuraInstanceID(unit, auraInstanceID)
+	elseif which == 'remove' then
+		aura = unitAuraInfo[auraInstanceID]
+	end
+
+	if aura and oUF:NotSecretValue(aura.sourceUnit) and aura.sourceUnit then
+		aura.unitGUID = UnitGUID(aura.sourceUnit) -- fetch the new unit token with UnitTokenFromGUID
+		aura.unitName, aura.unitRealm = UnitName(aura.sourceUnit)
+		aura.unitClassName, aura.unitClassFilename, aura.unitClassID = UnitClass(aura.sourceUnit)
+	elseif aura then
+		aura.unitGUID = nil
+		aura.unitName, aura.unitRealm = nil, nil
+		aura.unitClassName, aura.unitClassFilename, aura.unitClassID = nil, nil, nil
+	end
+
+	unitAuraInfo[auraInstanceID] = (which ~= 'remove' and aura) or nil
+
+	local allow = (which == 'remove') or not aura or AllowAura(frame, aura)
+	for filter, filtered in next, auraFiltered do
+		UpdateFilter(which, filter, filtered, allow, unit, auraInstanceID, aura)
+	end
+
+	if showFunc then
+		return showFunc(frame, event, unit, auraInstanceID, aura)
+	else
+		return allow
+	end
+end
+
+local function TryAdded(which, frame, event, unit, showFunc, aura)
+	return UpdateAuraFilters(which, frame, event, unit, showFunc, aura and aura.auraInstanceID, aura)
+end
+
+local function TryUpdated(which, frame, event, unit, showFunc, auraInstanceID)
+	return UpdateAuraFilters(which, frame, event, unit, showFunc, auraInstanceID)
+end
+
+local function TryRemove(which, frame, event, unit, showFunc, auraInstanceID)
+	return UpdateAuraFilters(which, frame, event, unit, showFunc, auraInstanceID)
+end
+
+local function TrySkipAura(which, frame, event, unit, showFunc, tryFunc, auras)
+	if not auras then return end
+
+	local show -- assume we skip it
+	for _, value in next, auras do -- lets process them all
+		if tryFunc(which, frame, event, unit, showFunc, value) then
+			show = true -- something is shown
+		end
+	end
+
+	return show
+end
+
+local function ProcessAura(frame, event, unit, token, ...)
+	local numSlots = select('#', ...)
+	for i = 1, numSlots do
+		local slot = select(i, ...)
+		local aura = GetAuraDataBySlot(unit, slot) -- unit verified by ProcessExisting
+		if aura then
+			TryAdded('add', frame, event, unit, nil, aura)
+		end
+	end
+
+	return token
+end
+
+local function ProcessTokens(frame, event, unit, success, token, ...)
+	repeat token = success and ProcessAura(frame, event, unit, token, ...)
+	until not token
+end
+
+local function ProcessExisting(frame, event, unit)
+	ProcessTokens(frame, event, unit, pcall(GetAuraSlots, unit, 'HELPFUL'))
+	ProcessTokens(frame, event, unit, pcall(GetAuraSlots, unit, 'HARMFUL'))
+end
+
+local function ShouldSkipAura(frame, event, unit, updateInfo, showFunc)
+	if not auraInfo[unit] then
+		oUF:CreateUnitAuraInfo(unit)
+	end
+
+	if event == 'UNIT_AURA' and updateInfo and not updateInfo.isFullUpdate then
+		-- these try functions will update the aura info table, so let them process before returning
+		local added = TrySkipAura('add', frame, event, unit, showFunc, TryAdded, updateInfo.addedAuras)
+		local updated = TrySkipAura('update', frame, event, unit, showFunc, TryUpdated, updateInfo.updatedAuraInstanceIDs)
+		local removed = TrySkipAura('remove', frame, event, unit, showFunc, TryRemove, updateInfo.removedAuraInstanceIDs)
+
+		if added then return false end -- a new aura has appeared
+		if updated then return false end -- an existing aura has been altered
+		if removed then return false end -- an aura has been yeeted into the abyss
+
+		return true -- who are you
+	elseif hasValidPlayer ~= false and event ~= 'ElvUI_UpdateAllElements' then -- skip in this case
+		oUF:ClearUnitAuraInfo(unit) -- clear these since we cant verify it
+
+		ProcessExisting(frame, event, unit) -- we need to collect full data here
+	end
+
+	return false -- this is from something
+end
+
+function oUF:ClearUnitAuraInfo(unit)
+	wipe(auraInfo[unit])
+
+	for _, data in next, auraFiltered do
+		wipe(data[unit])
+	end
+end
+
+function oUF:CreateUnitAuraInfo(unit)
+	if not auraInfo[unit] then
+		auraInfo[unit] = {}
+	end
+
+	for _, data in next, auraFiltered do
+		if not data[unit] then
+			data[unit] = {}
+		end
+	end
+end
+
+-- now you can just use AuraFiltered
+function oUF:ShouldSkipAuraFilter(aura, filter)
+	if not aura then
+		return true
+	elseif filter == 'HELPFUL' then
+		if oUF:NotSecretValue(aura.isHelpful) then
+			return not aura.isHelpful
+		else
+			return not aura.auraIsHelpful
+		end
+	elseif filter == 'HARMFUL' then
+		if oUF:NotSecretValue(aura.isHarmful) then
+			return not aura.isHarmful
+		else
+			return not aura.auraIsHarmful
+		end
+	elseif filter == 'RAID' then
+		if oUF:NotSecretValue(aura.isRaid) then
+			return not aura.isRaid
+		else
+			return not aura.auraIsRaid
+		end
+	else -- hello?
+		return true
+	end
+end
+
+-- ShouldSkipAuraUpdate by Blizzard (implemented and heavily modified by Simpy)
+function oUF:ShouldSkipAuraUpdate(frame, event, unit, updateInfo, showFunc)
+	if not unit or (frame.unit and frame.unit ~= unit) then
+		return true
+	end
+
+	return ShouldSkipAura(frame, event, unit, updateInfo, showFunc)
+end
+
+-- Blizzard didnt implement the tooltip functions on Era or Mists
+function oUF:GetAuraIndexByInstanceID(unit, auraInstanceID, filter)
+	local index = 1
+	local success, aura = pcall(GetAuraDataByIndex, unit, index, filter)
+	while (success and aura) do
+		if aura.auraInstanceID == auraInstanceID then
+			return index
+		end
+
+		index = index + 1
+		success, aura = pcall(GetAuraDataByIndex, unit, index, filter)
+	end
+end
+
+function oUF:SetTooltipByAuraInstanceID(tt, unit, auraInstanceID, filter)
+	if not auraInstanceID then
+		return
+	end
+
+	if filter == 'HELPFUL' then
+		if tt.SetUnitBuffByAuraInstanceID then
+			tt:SetUnitBuffByAuraInstanceID(unit, auraInstanceID)
+		else
+			local index = oUF:GetAuraIndexByInstanceID(unit, auraInstanceID, filter)
+			if index then
+				tt:SetUnitBuff(unit, index, filter)
+			end
+		end
+	elseif tt.SetUnitDebuffByAuraInstanceID then
+		tt:SetUnitDebuffByAuraInstanceID(unit, auraInstanceID)
+	else
+		local index = oUF:GetAuraIndexByInstanceID(unit, auraInstanceID, filter)
+		if index then
+			tt:SetUnitDebuff(unit, index, filter)
+		end
+	end
+end
