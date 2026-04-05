@@ -147,7 +147,7 @@ function W.CreateScrollPanel(parent)
     container.scroll = scroll
     scroll.child        = child
     scroll.UpdateScroll = UpdateThumb
-    return scroll
+    return container
 end
 
 -- =====================================================================

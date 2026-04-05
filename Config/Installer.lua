@@ -50,7 +50,7 @@ local function Sec(parent, text, y)
     bar:SetColorTexture(A[1], A[2], A[3], 1)
     local lbl = parent:CreateFontString(nil, "OVERLAY")
     lbl:SetFont(FONT_BOLD, 11, "")
-    lbl:SetPoint("LEFT", 14, y - 12)
+    lbl:SetPoint("LEFT", strip, "LEFT", 6, 0)
     lbl:SetTextColor(A[1], A[2], A[3], 1)
     lbl:SetText(text)
     return y - 30
@@ -188,7 +188,7 @@ end
 
 local function BigBtn(parent, text, y, clickCb, accent)
     local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    btn:SetSize(260, 36); btn:SetPoint("LEFT", 12, y-18)
+    btn:SetSize(260, 36); btn:SetPoint("TOPLEFT", 12, y)
     if accent then
         btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         btn:SetBackdropColor(AD[1],AD[2],AD[3],0.9); btn:SetBackdropBorderColor(A[1],A[2],A[3],0.75)
@@ -238,6 +238,7 @@ steps[1] = {
         desc:SetJustifyH("LEFT"); desc:SetSpacing(3); desc:SetWordWrap(true)
         desc:SetTextColor(TX[1],TX[2],TX[3],0.85)
         desc:SetText(L["ins_welcome_desc"])
+        return -300
     end,
 }
 
@@ -279,6 +280,7 @@ steps[2] = {
 
         y = Sec(c, L["ins_spec_section"], y)
         y = Info(c, L["ins_spec_info"], y)
+        return y
     end,
 }
 
@@ -330,6 +332,7 @@ steps[3] = {
             TomoModDB.actionBarSkin.skinStyle = v
             if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.Reskin then TomoMod_ActionBarSkin.Reskin() end
         end); y = ny
+        return y
     end,
 }
 
@@ -376,6 +379,7 @@ steps[4] = {
                 TomoModDB.coTankTracker.enabled = v
             end); y = ny
         y = Info(c, L["ins_tank_cotank_info"], y)
+        return y
     end,
 }
 
@@ -409,6 +413,7 @@ steps[5] = {
             TomoModDB.nameplates.width = v
             if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
         end); y = ny
+        return y
     end,
 }
 
@@ -446,6 +451,7 @@ steps[6] = {
 
         y = Sec(c,L["ins_ab_manage_section"], y)
         y = Info(c,L["ins_ab_manage_info"], y)
+        return y
     end,
 }
 
@@ -492,6 +498,7 @@ steps[7] = {
         local _, ny = BigBtn(c,L["ins_sound_preview_btn"], y, function()
             if TomoMod_LustSound then TomoMod_LustSound.PlayPreview() end
         end, false); y=ny
+        return y
     end,
 }
 
@@ -528,6 +535,7 @@ steps[8] = {
         local _, ny = Cb(c,L["ins_mplus_score_auto"], tsDB.autoShowMPlus, y, function(v)
             TomoModDB.TomoScore.autoShowMPlus = v
         end); y=ny
+        return y
     end,
 }
 
@@ -568,6 +576,7 @@ steps[9] = {
             end
         end, true); y=ny
         y = y - 44  -- room for status label
+        return y
     end,
 }
 
@@ -614,6 +623,7 @@ steps[10] = {
         y = qol(L["ins_qol_hide_castbar"],
             function() return TomoModDB.hideCastBar and TomoModDB.hideCastBar.enabled end,
             function(v) TomoModDB.hideCastBar.enabled = v end, nil, y)
+        return y
     end,
 }
 
@@ -647,6 +657,7 @@ steps[11] = {
         local _, ny = BigBtn(c,L["ins_skyride_reset_btn"], y, function()
             if TomoMod_SkyRide then TomoMod_SkyRide.ResetPosition() end
         end, false); y=ny
+        return y
     end,
 }
 
@@ -670,7 +681,7 @@ steps[12] = {
         recap:SetText(L["ins_done_recap"])
 
         local rlBtn = CreateFrame("Button", nil, c, "BackdropTemplate")
-        rlBtn:SetSize(280, 42); rlBtn:SetPoint("BOTTOM",0,30)
+        rlBtn:SetSize(280, 42); rlBtn:SetPoint("TOP", recap, "BOTTOM", 0, -30)
         rlBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
         rlBtn:SetBackdropColor(AD[1],AD[2],AD[3],0.9)
         rlBtn:SetBackdropBorderColor(A[1],A[2],A[3],0.8)
@@ -687,6 +698,7 @@ steps[12] = {
             TomoModDB.installer.completed = true
             ReloadUI()
         end)
+        return -300
     end,
 }
 
@@ -790,6 +802,7 @@ local function BuildFrame()
     -- ── CONTENT HOST ───────────────────────────────────────
     contentHost = CreateFrame("Frame",nil,frame)
     contentHost:SetPoint("TOPLEFT",0,-123); contentHost:SetPoint("BOTTOMRIGHT",0,60)
+    contentHost:SetClipsChildren(true)
 
     -- ── NAV BUTTONS ────────────────────────────────────────
     local navBar = CreateFrame("Frame",nil,frame)
@@ -845,19 +858,86 @@ function INS.GoToStep(n)
     if not frame then return end
     n = math.max(1, math.min(TOTAL_STEPS, n))
 
-    -- Hide all panels
-    for _, p in pairs(stepPanels) do p:Hide() end
+    -- Hide all panels, reset scroll position
+    for _, p in pairs(stepPanels) do
+        p:Hide()
+        if p._sf then p._sf:SetVerticalScroll(0) end
+    end
 
     -- Build panel if not done yet
     if not stepPanels[n] then
+        local SCROLL_W   = 5
+        local SCROLL_PAD = 8
+        local SF_INSET   = 16  -- right inset reserved for scrollbar
+
         local p = CreateFrame("Frame", nil, contentHost)
+        p:Hide()  -- hide before building to prevent overlap flash
         p:SetAllPoints(contentHost)
-        if steps[n] and steps[n].build then
-            steps[n].build(p)
+
+        -- Scrollbar track
+        local track = p:CreateTexture(nil, "BACKGROUND")
+        track:SetWidth(SCROLL_W)
+        track:SetPoint("TOPRIGHT",    -SCROLL_PAD, -SCROLL_PAD)
+        track:SetPoint("BOTTOMRIGHT", -SCROLL_PAD,  SCROLL_PAD)
+        track:SetColorTexture(0.12, 0.12, 0.16, 0.70)
+        track:Hide()
+
+        -- Scrollbar thumb
+        local thumbF = CreateFrame("Frame", nil, p)
+        thumbF:SetWidth(SCROLL_W)
+        local thumbTex = thumbF:CreateTexture(nil, "OVERLAY")
+        thumbTex:SetAllPoints()
+        thumbTex:SetColorTexture(A[1], A[2], A[3], 0.75)
+        thumbF:Hide()
+
+        -- ScrollFrame (inset on right for scrollbar)
+        local sf = CreateFrame("ScrollFrame", nil, p)
+        sf:SetPoint("TOPLEFT",     0, 0)
+        sf:SetPoint("BOTTOMRIGHT", -SF_INSET, 0)
+        p._sf = sf
+
+        -- Content child
+        local c = CreateFrame("Frame", nil, sf)
+        c:SetWidth(PANEL_W - SF_INSET)
+        c:SetHeight(1)
+        sf:SetScrollChild(c)
+
+        -- Build content, capture final y for height
+        local finalY = steps[n] and steps[n].build and steps[n].build(c) or -10
+        c:SetHeight(math.max(math.abs(finalY) + 20, 100))
+
+        -- Scrollbar update
+        local function Upd()
+            local sfH  = sf:GetHeight() or 0
+            local cH   = c:GetHeight()  or 0
+            local maxS = cH - sfH
+            if maxS <= 0 then track:Hide(); thumbF:Hide(); return end
+            track:Show(); thumbF:Show()
+            local trkH  = sfH - 2 * SCROLL_PAD
+            local ratio = sfH / cH
+            local thH   = math.max(20, math.floor(trkH * ratio))
+            thumbF:SetHeight(thH)
+            local cur = sf:GetVerticalScroll()
+            local thY = (cur / maxS) * (trkH - thH)
+            thumbF:ClearAllPoints()
+            thumbF:SetPoint("TOPRIGHT", p, "TOPRIGHT", -SCROLL_PAD, -(SCROLL_PAD + thY))
         end
+
+        sf:EnableMouseWheel(true)
+        sf:SetScript("OnMouseWheel", function(self, delta)
+            local cur = self:GetVerticalScroll()
+            self:SetVerticalScroll(math.max(0, math.min(cur - delta * 36, self:GetVerticalScrollRange())))
+            Upd()
+        end)
+        sf:SetScript("OnShow",        function(self) local w = self:GetWidth(); if w and w > 0 then c:SetWidth(w) end; C_Timer.After(0, Upd) end)
+        sf:SetScript("OnSizeChanged", function(self, w) if w and w > 10 then c:SetWidth(w) end; Upd() end)
+
+        p._upd = Upd
         stepPanels[n] = p
     end
+
     stepPanels[n]:Show()
+    C_Timer.After(0, stepPanels[n]._upd)
 
     currentStep = n
     TomoModDB.installer.step = n

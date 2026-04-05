@@ -152,7 +152,7 @@ local rouletteKeys    = {}
 local ROULETTE_W      = 280
 local ROW_H           = 30
 local HEADER_H        = 36
-local FOOTER_H        = 44
+local FOOTER_H        = 62
 local SPIN_STEPS      = 20
 local SPIN_INTERVAL   = 0.08
 
@@ -224,7 +224,7 @@ local function EnsureRouletteFrame()
     closeBtn:SetPoint("TOPRIGHT", F, "TOPRIGHT", -4, -7)
     local closeX = MakeFS(closeBtn, 13, "OUTLINE")
     closeX:SetPoint("CENTER")
-    closeX:SetText("|cFFCC3322\xe2\x9c\x95|r")
+    closeX:SetText("|cFFCC3322X|r")
     closeBtn:SetScript("OnClick", function() F:Hide() end)
 
     -- Rows container

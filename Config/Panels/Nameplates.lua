@@ -163,7 +163,9 @@ local function BuildAdvancedTab(parent)
     local _, cy = W.CreateColorPickerPair(card4.inner, L["color_rare"] or "Rare", db.colors.rare, L["color_normal"] or "Normal", db.colors.normal, cy,
         function(r,g,b) db.colors.rare = {r=r,g=g,b=b}; RefreshNP() end,
         function(r,g,b) db.colors.normal = {r=r,g=g,b=b}; RefreshNP() end)
-    local _, cy = W.CreateColorPicker(card4.inner, L["color_trivial"] or "Trivial", db.colors.trivial, cy, function(r,g,b) db.colors.trivial = {r=r,g=g,b=b}; RefreshNP() end)
+    local _, cy = W.CreateTwoColumnRow(card4.inner, cy,
+        function(col) local _, ny = W.CreateColorPicker(col, L["color_trivial"] or "Trivial", db.colors.trivial, 0, function(r,g,b) db.colors.trivial = {r=r,g=g,b=b}; RefreshNP() end) return ny end,
+        nil)
     y = W.FinalizeCard(card4, cy)
 
     -- Mode tank
@@ -175,7 +177,9 @@ local function BuildAdvancedTab(parent)
     local _, cy = W.CreateColorPickerPair(card5.inner, L["color_has_threat"] or "Menace", db.tankColors.hasThreat, L["color_dps_has_aggro"] or "DPS aggro", db.tankColors.dpsHasAggro, cy,
         function(r,g,b) db.tankColors.hasThreat = {r=r,g=g,b=b} end,
         function(r,g,b) db.tankColors.dpsHasAggro = {r=r,g=g,b=b} end)
-    local _, cy = W.CreateColorPicker(card5.inner, L["color_dps_near_aggro"] or "DPS proche aggro", db.tankColors.dpsNearAggro, cy, function(r,g,b) db.tankColors.dpsNearAggro = {r=r,g=g,b=b} end)
+    local _, cy = W.CreateTwoColumnRow(card5.inner, cy,
+        function(col) local _, ny = W.CreateColorPicker(col, L["color_dps_near_aggro"] or "DPS proche aggro", db.tankColors.dpsNearAggro, 0, function(r,g,b) db.tankColors.dpsNearAggro = {r=r,g=g,b=b} end) return ny end,
+        nil)
     y = W.FinalizeCard(card5, cy)
 
     -- Reset

@@ -271,28 +271,27 @@ function HUB:Build()
     ratingFS:SetPoint("TOP", titleLabel, "BOTTOM", 0, -2)
     F._ratingFS = ratingFS
 
-    -- Chest icons (right side of header)
-    F._chestIcons = {}
-    local chestLevels = { 4, 7, 10, 12 }
-    local chestAnchor = hdr
-    for i, lvl in ipairs(chestLevels) do
+    -- Affix icons (right side of header)
+    F._affixIcons = {}
+    local MAX_AFFIXES = 4
+    for i = 1, MAX_AFFIXES do
         local icon = hdr:CreateTexture(nil, "ARTWORK")
-        icon:SetSize(22, 22)
+        icon:SetSize(24, 24)
         if i == 1 then
-            icon:SetPoint("TOPRIGHT", hdr, "TOPRIGHT", -30, -6)
+            icon:SetPoint("TOPRIGHT", hdr, "TOPRIGHT", -30, -10)
         else
-            icon:SetPoint("RIGHT", F._chestIcons[i - 1], "LEFT", -4, 0)
+            icon:SetPoint("RIGHT", F._affixIcons[i - 1], "LEFT", -6, 0)
         end
-        icon:SetTexture("Interface\\Icons\\Achievement_ChallengeMode_Platinum")
         icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        icon:SetAlpha(0.35)
+        icon:Hide()
 
         local lvlFS = MakeFS(hdr, ADDON_FONT, 8, "OUTLINE")
-        lvlFS:SetPoint("BOTTOM", icon, "BOTTOM", 0, -1)
-        lvlFS:SetText(tostring(lvl))
+        lvlFS:SetPoint("BOTTOM", icon, "BOTTOM", 0, -2)
         lvlFS:SetTextColor(unpack(C.TEXT_DIM))
+        icon._labelFS = lvlFS
+        lvlFS:Hide()
 
-        F._chestIcons[i] = icon
+        F._affixIcons[i] = icon
     end
 
     -- Header bottom separator
@@ -601,6 +600,31 @@ function HUB:Refresh()
         F._accentLine:SetColorTexture(unpack(C.ACCENT))
     end
 
+    -- ── Affix Icons ────────────────────────────────────────────────
+    if F._affixIcons and C_MythicPlus and C_MythicPlus.GetCurrentAffixes then
+        local affixes = C_MythicPlus.GetCurrentAffixes()
+        -- Hide all first
+        for _, ic in ipairs(F._affixIcons) do
+            ic:Hide()
+            if ic._labelFS then ic._labelFS:Hide() end
+        end
+        if affixes then
+            for i, affixInfo in ipairs(affixes) do
+                local ic = F._affixIcons[i]
+                if not ic then break end
+                local name, desc, texPath = C_ChallengeMode.GetAffixInfo(affixInfo.id)
+                if texPath then
+                    ic:SetTexture(texPath)
+                    ic:Show()
+                    if ic._labelFS and affixInfo.id then
+                        ic._labelFS:SetText("+" .. (affixInfo.seasonLevel or ""))
+                        ic._labelFS:Show()
+                    end
+                end
+            end
+        end
+    end
+
     -- ── Dungeon Rows ─────────────────────────────────────────────────
     local seasonIDs = DK.GetCurrentSeasonIDs()
 
@@ -613,12 +637,28 @@ function HUB:Refresh()
 
             -- Best overall for this map
             if C_MythicPlus.GetSeasonBestAffixScoreInfoForMap then
-                local overallInfo = C_MythicPlus.GetSeasonBestAffixScoreInfoForMap(mapID)
-                if overallInfo then
-                    dungeonScores[mapID].level = overallInfo.level or 0
-                    dungeonScores[mapID].score = overallInfo.score or 0
-                    dungeonScores[mapID].durationMS = overallInfo.durationSec and (overallInfo.durationSec * 1000) or 0
-                    dungeonScores[mapID].overTime = overallInfo.overTime or false
+                local affixScores = C_MythicPlus.GetSeasonBestAffixScoreInfoForMap(mapID)
+                if affixScores then
+                    -- API returns an array of MythicPlusAffixScoreInfo — pick the best
+                    local best = nil
+                    if type(affixScores) == "table" then
+                        if affixScores.score then
+                            -- Single object (legacy format)
+                            best = affixScores
+                        else
+                            for _, info in ipairs(affixScores) do
+                                if not best or (info.score or 0) > (best.score or 0) then
+                                    best = info
+                                end
+                            end
+                        end
+                    end
+                    if best then
+                        dungeonScores[mapID].level = best.level or 0
+                        dungeonScores[mapID].score = best.score or 0
+                        dungeonScores[mapID].durationMS = best.durationSec and (best.durationSec * 1000) or 0
+                        dungeonScores[mapID].overTime = best.overTime or false
+                    end
                 end
             end
 

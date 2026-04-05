@@ -484,17 +484,33 @@ local function InstallHooks()
     isHooked = true
 
     if GameMenuFrame then
-        GameMenuFrame:HookScript("OnShow", function()
-            -- Toujours rafraîchir le bouton TomoMod, skin activé ou non
-            RefreshTomoModButton()
-            if not IsEnabled() then return end
-            local children = { GameMenuFrame:GetChildren() }
-            for _, child in ipairs(children) do
-                if child:GetObjectType() == "Button" then
-                    SkinButton(child)
+        if GameMenuFrame.buttonPool then
+            -- TWW retail : les boutons sont dans un pool, Layout les repositionne
+            hooksecurefunc(GameMenuFrame, "Layout", function()
+                RefreshTomoModButton()
+                if not IsEnabled() then return end
+                local children = { GameMenuFrame:GetChildren() }
+                for _, child in ipairs(children) do
+                    if child:GetObjectType() == "Button" then
+                        SkinButton(child)
+                    end
                 end
-            end
-        end)
+            end)
+        else
+            -- Versions plus anciennes de WoW
+            GameMenuFrame:HookScript("OnShow", function()
+                C_Timer.After(0, function()
+                    RefreshTomoModButton()
+                    if not IsEnabled() then return end
+                    local children = { GameMenuFrame:GetChildren() }
+                    for _, child in ipairs(children) do
+                        if child:GetObjectType() == "Button" then
+                            SkinButton(child)
+                        end
+                    end
+                end)
+            end)
+        end
 
         GameMenuFrame:HookScript("OnSizeChanged", function()
             if not IsEnabled() then return end
@@ -518,28 +534,13 @@ local function CloseGameMenu()
     if HideUIPanel and GameMenuFrame then pcall(HideUIPanel, GameMenuFrame) end
 end
 
-local function GetRefButtonSize()
-    for _, name in ipairs({"GameMenuButtonContinue","GameMenuButtonSettings","GameMenuButtonLogout"}) do
-        local b = _G[name]
-        if b then
-            local w, h = b:GetWidth(), b:GetHeight()
-            if w and w > 10 and h and h > 0 then return w, h end
-        end
-    end
-    return 180, 24
-end
-
 local function EnsureTomoModButton()
     if gmButton then return gmButton end
     if not GameMenuFrame then return nil end
 
-    -- UIPanelButtonTemplate = intégré au layout Blizzard (TWW 12.x)
-    gmButton = CreateFrame("Button", "GameMenuButtonTomoMod", GameMenuFrame, "UIPanelButtonTemplate")
-    gmButton:SetText("|cff0cd29fTomo|rMod")
-
-    local w, h = GetRefButtonSize()
-    gmButton:SetSize(w, h)
-
+    -- MainMenuFrameButtonTemplate = template des boutons natifs du GameMenu en TWW
+    gmButton = CreateFrame("Button", "GameMenuButtonTomoMod", GameMenuFrame, "MainMenuFrameButtonTemplate")
+    gmButton:SetText("|cff0cd29fTomo|r|cffFFFFFFMod|r")
     gmButton:SetScript("OnClick", function()
         CloseGameMenu()
         C_Timer.After(0.05, function()
@@ -548,18 +549,103 @@ local function EnsureTomoModButton()
             end
         end)
     end)
-
     gmButton:Show()
     return gmButton
+end
+
+local function PositionTomoModButton()
+    local btn = gmButton
+    if not btn or not GameMenuFrame then return end
+
+    -- ── Chemin TWW retail : les boutons vivent dans un buttonPool ──
+    if GameMenuFrame.buttonPool then
+        -- Textes des boutons du "groupe 1" (Options + Boutique + évent saisonnier)
+        local group1 = {}
+        if GAMEMENU_OPTIONS       then group1[GAMEMENU_OPTIONS]       = true end
+        if BLIZZARD_STORE         then group1[BLIZZARD_STORE]         = true end
+        if GAMEMENU_EXTERNALEVENT then group1[GAMEMENU_EXTERNALEVENT] = true end
+
+        local h, offset = btn:GetHeight(), btn:GetHeight() + 8
+        local storeBtn, sizeSet = nil, false
+
+        for poolBtn in GameMenuFrame.buttonPool:EnumerateActive() do
+            local text = poolBtn:GetText() or ""
+
+            -- Prend la taille depuis le premier bouton du pool
+            if not sizeSet then
+                local pw, ph = poolBtn:GetWidth(), poolBtn:GetHeight()
+                if pw > 10 and ph > 0 then
+                    btn:SetSize(pw, ph)
+                    h, offset = ph, ph + 8
+                    sizeSet = true
+                end
+            end
+
+            if BLIZZARD_STORE and text == BLIZZARD_STORE then
+                storeBtn = poolBtn                          -- dernier bouton du groupe 1
+            elseif not group1[text] then
+                poolBtn:AdjustPointsOffset(0, -offset)     -- descend groupes 2+
+            end
+        end
+
+        btn:ClearAllPoints()
+        btn:Show()
+
+        if storeBtn then
+            -- Positionné juste sous "Boutique", avant "Add-ons"
+            btn:SetPoint("TOPLEFT",  storeBtn, "BOTTOMLEFT",  0, -8)
+            btn:SetPoint("TOPRIGHT", storeBtn, "BOTTOMRIGHT", 0, -8)
+        else
+            btn:SetPoint("BOTTOMLEFT",  GameMenuFrame, "BOTTOMLEFT",  8, 8)
+            btn:SetPoint("BOTTOMRIGHT", GameMenuFrame, "BOTTOMRIGHT", -8, 8)
+        end
+
+        -- Layout réinitialise la hauteur à chaque appel → on ajoute l'offset à chaque fois
+        GameMenuFrame:SetHeight(GameMenuFrame:GetHeight() + offset)
+        return
+    end
+
+    -- ── Fallback versions plus anciennes : détection par Y ──
+    local buttons = {}
+    for _, child in ipairs({ GameMenuFrame:GetChildren() }) do
+        if child:GetObjectType() == "Button" and child ~= btn then
+            local cx, cy = child:GetCenter()
+            local cw, ch = child:GetWidth(), child:GetHeight()
+            if cy and cw and cw > 10 and ch and ch > 0 then
+                table.insert(buttons, { frame = child, y = cy, w = cw, h = ch })
+            end
+        end
+    end
+    table.sort(buttons, function(a, b) return a.y > b.y end)
+
+    local w, h = 180, 24
+    if #buttons > 0 then w, h = buttons[1].w, buttons[1].h end
+    btn:SetSize(w, h)
+    btn:ClearAllPoints()
+    btn:Show()
+
+    local refBtn = nil
+    for i = 1, #buttons - 1 do
+        if (buttons[i].y - buttons[i + 1].y) > h * 1.3 then
+            refBtn = buttons[i + 1].frame
+            break
+        end
+    end
+    if not refBtn and #buttons > 0 then refBtn = buttons[#buttons].frame end
+
+    if refBtn then
+        btn:SetPoint("BOTTOM", refBtn, "TOP", 0, 4)
+    else
+        btn:SetPoint("BOTTOMLEFT",  GameMenuFrame, "BOTTOMLEFT",  8, 8)
+        btn:SetPoint("BOTTOMRIGHT", GameMenuFrame, "BOTTOMRIGHT", -8, 8)
+    end
+    GameMenuFrame:SetHeight(GameMenuFrame:GetHeight() + h + 8)
 end
 
 RefreshTomoModButton = function()
     local btn = EnsureTomoModButton()
     if not btn then return end
-    local w, h = GetRefButtonSize()
-    if w > 10 then btn:SetSize(w, h) end
-    btn:Show()
-    -- Appliquer le skin TomoMod sur le bouton
+    PositionTomoModButton()
     if IsEnabled() then SkinButton(btn) end
 end
 
@@ -569,14 +655,15 @@ end
 
 function GMS.Initialize()
     if isInitialized then return end
-    if not IsEnabled() then return end
     isInitialized = true
 
     C_Timer.After(0.5, function()
         if GameMenuFrame then
-            EnsureTomoModButton()  -- créer avant SkinGameMenu pour qu'il soit skinné
-            SkinGameMenu()
+            EnsureTomoModButton()
             InstallHooks()
+            if IsEnabled() then
+                SkinGameMenu()
+            end
         end
     end)
 end

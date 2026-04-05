@@ -48,7 +48,7 @@ TS.CLASS_COLORS = {
 }
 
 -- ── Layout constants ──────────────────────────────────────────────────────────
-TS.FRAME_W      = 680
+TS.FRAME_W      = 340
 TS.HEADER_H     = 44
 TS.COL_HEADER_H = 20
 TS.ROW_H        = 36
@@ -61,10 +61,7 @@ TS.COL = {
     NAME       = 120,
     RATING     = 52,
     KEY_LEVEL  = 36,
-    KEY_NAME   = 100,
-    DAMAGE     = 100,
-    HEALING    = 100,
-    INTERRUPTS = 68,
+    KEY_NAME   = 90,
 }
 
 -- ── DB access ─────────────────────────────────────────────────────────────────

@@ -165,9 +165,6 @@ function TS:BuildScoreboard()
     CH.colRating     = makeColLabel(L["ts_col_rating"],     COL.RATING,     "CENTER")
     CH.colKeyLevel   = makeColLabel(L["ts_col_key_level"],  COL.KEY_LEVEL,  "CENTER")
     CH.colKeyName    = makeColLabel(L["ts_col_key_name"],   COL.KEY_NAME,   "LEFT")
-    CH.colDamage     = makeColLabel(L["ts_col_damage"],     COL.DAMAGE,     "RIGHT")
-    CH.colHealing    = makeColLabel(L["ts_col_healing"],    COL.HEALING,    "RIGHT")
-    CH.colInterrupts = makeColLabel(L["ts_col_interrupts"], COL.INTERRUPTS, "CENTER")
 
     local sep2 = F:CreateTexture(nil, "ARTWORK")
     sep2:SetHeight(1)
@@ -203,27 +200,6 @@ function TS:BuildScoreboard()
     FTR.avgRating:SetWidth(COL.RATING)
     FTR.avgRating:SetJustifyH("CENTER")
     FTR.avgRating:SetTextColor(unpack(C.TEXT_TEAL))
-    colX = colX + COL.RATING + COL.KEY_LEVEL + COL.KEY_NAME
-
-    FTR.totalDmg = self:MakeFS(FTR, 10, "OUTLINE")
-    FTR.totalDmg:SetPoint("LEFT", FTR, "LEFT", colX, 0)
-    FTR.totalDmg:SetWidth(COL.DAMAGE)
-    FTR.totalDmg:SetJustifyH("CENTER")
-    FTR.totalDmg:SetTextColor(unpack(C.TEXT_WHITE))
-    colX = colX + COL.DAMAGE
-
-    FTR.totalHeal = self:MakeFS(FTR, 10, "OUTLINE")
-    FTR.totalHeal:SetPoint("LEFT", FTR, "LEFT", colX, 0)
-    FTR.totalHeal:SetWidth(COL.HEALING)
-    FTR.totalHeal:SetJustifyH("CENTER")
-    FTR.totalHeal:SetTextColor(unpack(C.TEXT_WHITE))
-    colX = colX + COL.HEALING
-
-    FTR.totalInt = self:MakeFS(FTR, 10, "OUTLINE")
-    FTR.totalInt:SetPoint("LEFT", FTR, "LEFT", colX, 0)
-    FTR.totalInt:SetWidth(COL.INTERRUPTS)
-    FTR.totalInt:SetJustifyH("CENTER")
-    FTR.totalInt:SetTextColor(unpack(C.TEXT_WHITE))
 
     return F
 end
@@ -279,9 +255,13 @@ function TS:CreatePlayerRow(parent, index)
     colX = colX + COL.KEY_LEVEL
 
     -- Keystone dungeon name (clickable for teleport)
-    row.keyNameBtn = CreateFrame("Button", nil, row)
+    -- Secure button parented to main frame, never anchored to row (prevents taint)
+    row.keyNameBtn = CreateFrame("Button", nil, parent, "SecureActionButtonTemplate")
     row.keyNameBtn:SetSize(COL.KEY_NAME, self.ROW_H)
-    row.keyNameBtn:SetPoint("LEFT", row, "LEFT", colX, 0)
+    row.keyNameBtn:SetFrameLevel(row:GetFrameLevel() + 5)
+    row.keyNameBtn:SetAttribute("type", "spell")
+    row.keyNameBtn:RegisterForClicks("AnyUp", "AnyDown")
+    row.keyNameBtn._rowIndex = index
 
     row.keyNameFS = self:MakeFS(row.keyNameBtn, 10, "OUTLINE")
     row.keyNameFS:SetPoint("LEFT", row.keyNameBtn, "LEFT", 2, 0)
@@ -289,11 +269,9 @@ function TS:CreatePlayerRow(parent, index)
     row.keyNameFS:SetJustifyH("LEFT")
     row.keyNameFS:SetWordWrap(false)
 
-    row.keyNameBtn:SetScript("OnClick", function(btn)
+    row.keyNameBtn:HookScript("OnClick", function(btn)
         if not btn._spellID then return end
-        if IsSpellKnown(btn._spellID) then
-            CastSpellByID(btn._spellID)
-        else
+        if not IsSpellKnown(btn._spellID) then
             print(L["mhub_tp_not_learned"])
         end
     end)
@@ -312,55 +290,8 @@ function TS:CreatePlayerRow(parent, index)
     end)
     colX = colX + COL.KEY_NAME
 
-    row.dmgBar = self:CreateStatBar(row, colX, COL.DAMAGE)
-    colX = colX + COL.DAMAGE
-
-    row.healBar = self:CreateStatBar(row, colX, COL.HEALING)
-    colX = colX + COL.HEALING
-
-    row.intFS = self:MakeFS(row, 12, "OUTLINE")
-    row.intFS:SetPoint("LEFT", row, "LEFT", colX, 0)
-    row.intFS:SetWidth(COL.INTERRUPTS)
-    row.intFS:SetJustifyH("CENTER")
-
     row:Hide()
     return row
-end
-
--- ═════════════════════════════════════════════════════════════════════════════
---  STAT BAR
--- ═════════════════════════════════════════════════════════════════════════════
-function TS:CreateStatBar(parent, xOffset, width)
-    local C = self.C
-    local barH = 14
-
-    local container = CreateFrame("Frame", nil, parent)
-    container:SetSize(width - 4, self.ROW_H)
-    container:SetPoint("LEFT", parent, "LEFT", xOffset, 0)
-
-    local track = container:CreateTexture(nil, "BACKGROUND")
-    track:SetPoint("LEFT",  container, "LEFT",  2, 0)
-    track:SetPoint("RIGHT", container, "RIGHT", -2, 0)
-    track:SetHeight(barH)
-    track:SetColorTexture(unpack(C.BAR_TRACK))
-
-    local fill = container:CreateTexture(nil, "ARTWORK")
-    fill:SetPoint("TOPLEFT", track, "TOPLEFT", 0, 0)
-    fill:SetPoint("BOTTOMLEFT", track, "BOTTOMLEFT", 0, 0)
-    fill:SetWidth(1)
-    fill:SetColorTexture(unpack(C.BAR_TEAL))
-
-    local fs = self:MakeFS(container, 10, "OUTLINE")
-    fs:SetPoint("CENTER", track, "CENTER", 0, 0)
-    fs:SetTextColor(unpack(C.TEXT_WHITE))
-
-    return {
-        container = container,
-        track     = track,
-        fill      = fill,
-        text      = fs,
-        width     = width - 8,
-    }
 end
 
 -- ═════════════════════════════════════════════════════════════════════════════
@@ -373,6 +304,7 @@ function TS:LayoutScoreboard(numPlayers)
     numPlayers = math.max(numPlayers or 0, 0)
     local C = self.C
 
+    -- Position rows (non-secure)
     local prevAnchor = F._sep2
     for i = 1, numPlayers do
         local row = self:GetRow(i)
@@ -387,6 +319,22 @@ function TS:LayoutScoreboard(numPlayers)
 
     for i = numPlayers + 1, #F.Rows do
         F.Rows[i]:Hide()
+    end
+
+    -- Position secure teleport buttons absolutely (never anchor to rows)
+    local COL = TS.COL
+    local keyColX = COL.ICON + 4 + COL.NAME + COL.RATING + COL.KEY_LEVEL
+    local baseY   = TS.HEADER_H + 2 + TS.COL_HEADER_H + 1
+    for i = 1, numPlayers do
+        local row = self:GetRow(i)
+        if row.keyNameBtn then
+            row.keyNameBtn:ClearAllPoints()
+            row.keyNameBtn:SetPoint("TOPLEFT", F, "TOPLEFT", keyColX, -(baseY + (i - 1) * TS.ROW_H))
+            row.keyNameBtn:Show()
+        end
+    end
+    for i = numPlayers + 1, #F.Rows do
+        if F.Rows[i].keyNameBtn then F.Rows[i].keyNameBtn:Hide() end
     end
 
     F._sepFooter:ClearAllPoints()
@@ -444,17 +392,7 @@ function TS:PopulateScoreboard(data)
         F.Header.duration:SetText("")
     end
 
-    local maxDmg  = 1
-    local maxHeal = 1
-    for _, p in ipairs(data.players) do
-        if (p.damage  or 0) > maxDmg  then maxDmg  = p.damage  end
-        if (p.healing or 0) > maxHeal then maxHeal = p.healing end
-    end
-
     local numPlayers  = math.min(#data.players, TS.MAX_PLAYERS)
-    local totalDmg    = 0
-    local totalHeal   = 0
-    local totalInt    = 0
     local totalRating = 0
     local ratingCount = 0
 
@@ -530,35 +468,19 @@ function TS:PopulateScoreboard(data)
             row.keyNameBtn._spellID = keySpell
             if keySpell and IsSpellKnown(keySpell) then
                 row.keyNameFS:SetTextColor(unpack(C.TEXT_TEAL))
+                row.keyNameBtn:SetAttribute("spell", keySpell)
             else
                 row.keyNameFS:SetTextColor(unpack(C.TEXT_GREY))
+                row.keyNameBtn:SetAttribute("spell", nil)
             end
             row.keyNameBtn:EnableMouse(true)
         else
             row.keyNameFS:SetText("\226\128\148")
             row.keyNameFS:SetTextColor(unpack(C.TEXT_GREY))
             row.keyNameBtn._spellID = nil
+            row.keyNameBtn:SetAttribute("spell", nil)
             row.keyNameBtn:EnableMouse(false)
         end
-
-        local dmg = p.damage or 0
-        self:FillStatBar(row.dmgBar, dmg, maxDmg, self:GetBarColorForRole(p.role, "damage"))
-        totalDmg = totalDmg + dmg
-
-        local heal = p.healing or 0
-        self:FillStatBar(row.healBar, heal, maxHeal, self:GetBarColorForRole(p.role, "healing"))
-        totalHeal = totalHeal + heal
-
-        local ints = p.interrupts or 0
-        row.intFS:SetText(ints > 0 and tostring(ints) or "\226\128\148")
-        if ints >= 15 then
-            row.intFS:SetTextColor(unpack(C.TEXT_GREEN))
-        elseif ints > 0 then
-            row.intFS:SetTextColor(unpack(C.TEXT_WHITE))
-        else
-            row.intFS:SetTextColor(unpack(C.TEXT_GREY))
-        end
-        totalInt = totalInt + ints
     end
 
     local FTR = F.Footer
@@ -570,44 +492,7 @@ function TS:PopulateScoreboard(data)
         FTR.avgRating:SetText("\226\128\148")
     end
 
-    FTR.totalDmg:SetText(self:FormatNumber(totalDmg))
-    FTR.totalHeal:SetText(self:FormatNumber(totalHeal))
-    FTR.totalInt:SetText(tostring(totalInt))
-
     self:LayoutScoreboard(numPlayers)
-end
-
--- ═════════════════════════════════════════════════════════════════════════════
---  BAR HELPERS
--- ═════════════════════════════════════════════════════════════════════════════
-function TS:FillStatBar(bar, value, maxVal, color)
-    bar.text:SetText(self:FormatNumber(value))
-    local ratio = 0
-    if maxVal > 0 and value > 0 then
-        ratio = value / maxVal
-    end
-    local fillW = math.max(1, math.floor(bar.width * ratio))
-    bar.fill:SetWidth(fillW)
-    bar.fill:SetColorTexture(color[1], color[2], color[3], color[4] or 0.75)
-    if value == 0 then
-        bar.text:SetTextColor(unpack(self.C.TEXT_GREY))
-    else
-        bar.text:SetTextColor(unpack(self.C.TEXT_WHITE))
-    end
-end
-
-function TS:GetBarColorForRole(role, stat)
-    local C = self.C
-    if stat == "healing" then
-        return { 0.18, 0.70, 0.30, 0.75 }
-    end
-    if role == "TANK" then
-        return { 0.40, 0.55, 0.80, 0.70 }
-    elseif role == "HEALER" then
-        return { 0.30, 0.60, 0.40, 0.65 }
-    else
-        return { C.ACCENT[1], C.ACCENT[2], C.ACCENT[3], 0.70 }
-    end
 end
 
 -- ═════════════════════════════════════════════════════════════════════════════
