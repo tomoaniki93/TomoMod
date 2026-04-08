@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.7.1 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.0 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -1280,4 +1280,99 @@ TomoMod_RegisterLocale("enUS", {
     ["preview_click_nav"]            = "click to navigate",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  ·  /tm sr to move elements",
+
+    -- =====================
+    -- SKINS CATEGORY (top-level)
+    -- =====================
+    ["cat_skins"]                        = "Skins",
+
+    -- Skins > Chat Frame V2 — tab labels & UI strings
+    ["chatv2_tab_general"]               = "General",
+    ["chatv2_tab_instance"]              = "Instance",
+    ["chatv2_tab_chucho"]                = "Chucho",
+    ["chatv2_tab_personnel"]             = "Personal",
+    ["chatv2_tab_combat"]                = "Combat",
+    ["chatv2_sidebar_title"]             = "CHAT",
+    ["chatv2_expand_btn"]                = "Chat",
+    ["chatv2_mover_label"]               = "Chat Frame V2",
+    ["chatv2_input_hint"]                = "Press Enter to type...",
+
+    -- Skins > Chat Frame tab (config panel)
+    ["tab_skin_chatframe"]               = "Chat Frame",
+    ["section_skin_chatframe"]           = "Chat Frame Skin",
+    ["info_skin_chatframe_desc"]         = "Sidebar chat panel — General, Instance, Chucho, Personal, Combat — with unread badges and pin indicators.",
+    ["opt_skin_chatframe_enable"]        = "Enable Chat Frame Skin",
+    ["opt_skin_chatframe_width"]         = "Width",
+    ["opt_skin_chatframe_height"]        = "Height",
+    ["opt_skin_chatframe_scale"]         = "Scale %",
+    ["opt_skin_chatframe_opacity"]       = "Background opacity",
+    ["opt_skin_chatframe_font_size"]     = "Font size",
+    ["opt_skin_chatframe_timestamp"]     = "Show timestamp",
+
+    -- Skins > Bags tab (config panel)
+    ["tab_skin_bags"]                    = "Bags",
+    ["section_skin_bags"]                = "Bag Skin",
+    ["info_skin_bags_desc"]              = "Unified bag grid with quality borders, search filter, cooldown overlays, and quantity badges.",
+    ["opt_skin_bags_enable"]             = "Enable Bag Skin",
+    -- Bag skin — disenchant feature
+    ["bagskin_de_badge"]                 = "DE",
+    ["bagskin_de_tooltip"]               = "|cff0cd29f[Right-click]|r Disenchant",
+    ["bagskin_currencies_none"]          = "No tracked currencies (right-click a currency → Show in Backpack)",
+    ["opt_skin_bags_unified"]            = "Unified grid (combine all bags)",
+    ["opt_skin_bags_columns"]            = "Columns",
+    ["opt_skin_bags_slot_size"]          = "Slot size",
+    ["opt_skin_bags_slot_spacing"]       = "Slot spacing",
+    ["opt_skin_bags_scale"]              = "Scale %",
+    ["opt_skin_bags_opacity"]            = "Background opacity",
+    ["opt_skin_bags_quality_borders"]    = "Show quality borders",
+    ["opt_skin_bags_cooldowns"]          = "Show cooldown overlays",
+    ["opt_skin_bags_quantity"]           = "Show quantity badges",
+    ["opt_skin_bags_search"]             = "Show search bar",
+    ["opt_skin_bags_sort_mode"]          = "Sort mode",
+    ["opt_skin_bags_sort_quality"]       = "Quality",
+    ["opt_skin_bags_sort_name"]          = "Name",
+    ["opt_skin_bags_sort_type"]          = "Type",
+    ["opt_skin_bags_sort_recent"]        = "Recent",
+    ["opt_skin_bags_show_gold"]          = "Show gold (footer)",
+    ["opt_skin_bags_show_currencies"]    = "Show tracked currencies (footer)",
+
+    -- Skins > Objective Tracker tab
+    ["tab_skin_objtracker"]              = "Obj. Tracker",
+
+    -- Skins > Character tab
+    ["tab_skin_character"]               = "Character",
+
+    -- Skins > Buffs tab
+    ["tab_skin_buffs"]                   = "Buffs",
+
+    -- Skins > Game Menu tab
+    ["tab_skin_gamemenu"]                = "Game Menu",
+
+    -- Skins > Mail tab
+    ["tab_skin_mail"]                    = "Game Menu",
+
+    -- =====================
+    -- WAYPOINT MODULE (/tm way)
+    -- =====================
+    -- GUI
+    ["tab_qol_waypoint"]                  = "Waypoint",
+    ["section_waypoint"]                  = "Waypoint",
+    ["opt_way_zone_only"]                 = "Show only in current zone",
+    ["opt_way_size"]                      = "Beacon size",
+    ["opt_way_shape"]                     = "Shape",
+    ["way_shape_ring"]                    = "Ring",
+    ["way_shape_arrow"]                   = "Arrow",
+    ["opt_way_color"]                     = "Waypoint color",
+    -- Slash
+    ["msg_help_way"]                     = "Place a waypoint at your current position",
+    ["msg_help_way_coords"]              = "Place a waypoint at (x, y) on the current map",
+    ["msg_help_way_clear"]               = "Clear the active waypoint",
+    ["way_cleared"]                      = "Waypoint cleared.",
+    ["way_set"]                          = "Waypoint set to %s%s.",
+    ["way_here"]                         = "Waypoint placed at current position.",
+    ["way_no_map"]                       = "Cannot determine current map.",
+    ["way_no_pos"]                       = "Cannot determine player position.",
+    ["way_bad_map"]                      = "Cannot place a waypoint on this map.",
+    ["way_bad_coords"]                   = "Coordinates must be between 0 and 100.",
+    ["way_usage"]                        = "Usage: /tm way [mapID] x y [name]  |  /tm way clear",
 })

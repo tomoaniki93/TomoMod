@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("itIT", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Informazioni",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.7.1 di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.0 di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
     ["section_general"]                 = "Generale",
     ["btn_reset_all"]                   = "Ripristina tutto",
     ["info_reset_all"]                  = "Questo ripristinerà TUTTE le impostazioni e ricaricherà l'interfaccia.",
@@ -1223,4 +1223,99 @@ TomoMod_RegisterLocale("itIT", {
     ["preview_click_nav"]            = "clicca per navigare",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  \194\183  /tm sr per spostare gli elementi",
+
+    -- =====================
+    -- SKINS CATEGORY (top-level)
+    -- =====================
+    ["cat_skins"]                        = "Skins",
+
+    -- Chat Frame V2 — etichette schede e interfaccia
+    ["chatv2_tab_general"]               = "Generale",
+    ["chatv2_tab_instance"]              = "Istanza",
+    ["chatv2_tab_chucho"]                = "Chucho",
+    ["chatv2_tab_personnel"]             = "Personale",
+    ["chatv2_tab_combat"]                = "Combattimento",
+    ["chatv2_sidebar_title"]             = "CHAT",
+    ["chatv2_expand_btn"]                = "Chat",
+    ["chatv2_mover_label"]               = "Finestra chat V2",
+    ["chatv2_input_hint"]                = "Premi Invio per scrivere...",
+
+    -- Skins > Chat Frame tab
+    ["tab_skin_chatframe"]               = "Finestra di chat",
+    ["section_skin_chatframe"]           = "Skin finestra di chat",
+    ["info_skin_chatframe_desc"]         = "Pannello chat con barra laterale \226\128\148 Generale, Istanza, Chucho, Personale, Combattimento \226\128\148 con badge non letti e indicatori pin.",
+    ["opt_skin_chatframe_enable"]        = "Attiva skin della chat",
+    ["opt_skin_chatframe_width"]         = "Larghezza",
+    ["opt_skin_chatframe_height"]        = "Altezza",
+    ["opt_skin_chatframe_scale"]         = "Scala %",
+    ["opt_skin_chatframe_opacity"]       = "Opacit\195\160 dello sfondo",
+    ["opt_skin_chatframe_font_size"]     = "Dimensione del carattere",
+    ["opt_skin_chatframe_timestamp"]     = "Mostra data e ora",
+
+    -- Skins > Bags tab
+    ["tab_skin_bags"]                    = "Borse",
+    ["section_skin_bags"]                = "Skin delle borse",
+    ["info_skin_bags_desc"]              = "Griglia borse unificata con bordi qualit\195\160, filtro di ricerca, tempi di ricarica e badge quantit\195\160.",
+    ["opt_skin_bags_enable"]             = "Attiva skin delle borse",
+    -- Borse — Disincanto
+    ["bagskin_de_badge"]                 = "DI",
+    ["bagskin_de_tooltip"]               = "|cff0cd29f[Clic destro]|r Disincantare",
+    ["bagskin_currencies_none"]          = "Nessuna valuta monitorata (clic destro su una valuta \226\134\146 Mostra nello zaino)",
+    ["opt_skin_bags_unified"]            = "Griglia unificata (combina tutte le borse)",
+    ["opt_skin_bags_columns"]            = "Colonne",
+    ["opt_skin_bags_slot_size"]          = "Dimensione slot",
+    ["opt_skin_bags_slot_spacing"]       = "Spaziatura slot",
+    ["opt_skin_bags_scale"]              = "Scala %",
+    ["opt_skin_bags_opacity"]            = "Opacit\195\160 dello sfondo",
+    ["opt_skin_bags_quality_borders"]    = "Mostra bordi qualit\195\160",
+    ["opt_skin_bags_cooldowns"]          = "Mostra tempi di ricarica",
+    ["opt_skin_bags_quantity"]           = "Mostra badge quantit\195\160",
+    ["opt_skin_bags_search"]             = "Mostra barra di ricerca",
+    ["opt_skin_bags_sort_mode"]          = "Modalit\195\160 di ordinamento",
+    ["opt_skin_bags_sort_quality"]       = "Qualit\195\160",
+    ["opt_skin_bags_sort_name"]          = "Nome",
+    ["opt_skin_bags_sort_type"]          = "Tipo",
+    ["opt_skin_bags_sort_recent"]        = "Recente",
+    ["opt_skin_bags_show_gold"]          = "Mostra oro (pi\195\168 di pagina)",
+    ["opt_skin_bags_show_currencies"]    = "Mostra valute tracciate (pi\195\168 di pagina)",
+
+    -- Skins > Objective Tracker tab
+    ["tab_skin_objtracker"]              = "Obiettivi",
+
+    -- Skins > Character tab
+    ["tab_skin_character"]               = "Personaggio",
+
+    -- Skins > Buffs tab
+    ["tab_skin_buffs"]                   = "Buff",
+
+    -- Skins > Game Menu tab
+    ["tab_skin_gamemenu"]                = "Menu di gioco",
+
+    -- Skins > Mail tab
+    ["tab_skin_mail"]                    = "Posta",
+
+    -- =====================
+    -- MODULO WAYPOINT (/tm way)
+    -- =====================
+    -- GUI
+    ["tab_qol_waypoint"]                  = "Waypoint",
+    ["section_waypoint"]                  = "Waypoint",
+    ["opt_way_zone_only"]                 = "Mostra solo nella zona corrente",
+    ["opt_way_size"]                      = "Dimensione del segnale",
+    ["opt_way_shape"]                     = "Forma",
+    ["way_shape_ring"]                    = "Anello",
+    ["way_shape_arrow"]                   = "Freccia",
+    ["opt_way_color"]                     = "Colore del waypoint",
+    -- Slash
+    ["msg_help_way"]                     = "Posiziona un waypoint alla tua posizione attuale",
+    ["msg_help_way_coords"]              = "Posiziona un waypoint alle coordinate (x, y)",
+    ["msg_help_way_clear"]               = "Rimuovi il waypoint attivo",
+    ["way_cleared"]                      = "Waypoint rimosso.",
+    ["way_set"]                          = "Waypoint impostato su %s%s.",
+    ["way_here"]                         = "Waypoint posizionato alla posizione attuale.",
+    ["way_no_map"]                       = "Impossibile determinare la mappa attuale.",
+    ["way_no_pos"]                       = "Impossibile determinare la posizione del giocatore.",
+    ["way_bad_map"]                      = "Impossibile posizionare un waypoint su questa mappa.",
+    ["way_bad_coords"]                   = "Le coordinate devono essere comprese tra 0 e 100.",
+    ["way_usage"]                        = "Uso: /tm way [mapID] x y [nome]  |  /tm way clear",
 })

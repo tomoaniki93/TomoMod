@@ -4,11 +4,11 @@
 ## Notes: Interface and code with QOL and UnitFrame.
 ## Category: |cff0cd29fHUD|r
 ## 
-## SavedVariables: TomoModDB
+## SavedVariables: TomoModDB, CompanionStatusDB
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 2.7.1
+## Version: 2.8.0
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -48,6 +48,7 @@ Config\Panels\QOL.lua
 Config\Panels\Sound.lua
 Config\Panels\ActionBars.lua
 Config\Panels\MythicPlus.lua
+Config\Panels\Skins.lua
 Config\Panels\Profiles.lua
 Config\ConfigUI.lua
 Config\Installer.lua

@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("ptBR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Sobre",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.7.1 por TomoAniki\nInterface leve com QOL, UnitFrames e Nameplates.\nDigite /tm help para a lista de comandos.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.0 por TomoAniki\nInterface leve com QOL, UnitFrames e Nameplates.\nDigite /tm help para a lista de comandos.",
     ["section_general"]                 = "Geral",
     ["btn_reset_all"]                   = "Redefinir tudo",
     ["info_reset_all"]                  = "Isso redefinirá TODAS as configurações e recarregará a interface.",
@@ -1223,4 +1223,99 @@ TomoMod_RegisterLocale("ptBR", {
     ["preview_click_nav"]            = "clique para navegar",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  \194\183  /tm sr para mover elementos",
+
+    -- =====================
+    -- SKINS CATEGORY (top-level)
+    -- =====================
+    ["cat_skins"]                        = "Skins",
+
+    -- Chat Frame V2 — r\195\179tulos das abas e interface
+    ["chatv2_tab_general"]               = "Geral",
+    ["chatv2_tab_instance"]              = "Inst\195\162ncia",
+    ["chatv2_tab_chucho"]                = "Chucho",
+    ["chatv2_tab_personnel"]             = "Pessoal",
+    ["chatv2_tab_combat"]                = "Combate",
+    ["chatv2_sidebar_title"]             = "CHAT",
+    ["chatv2_expand_btn"]                = "Chat",
+    ["chatv2_mover_label"]               = "Janela de chat V2",
+    ["chatv2_input_hint"]                = "Pressione Enter para digitar...",
+
+    -- Skins > Chat Frame tab
+    ["tab_skin_chatframe"]               = "Janela de chat",
+    ["section_skin_chatframe"]           = "Skin da janela de chat",
+    ["info_skin_chatframe_desc"]         = "Painel de chat com barra lateral \226\128\148 Geral, Inst\195\162ncia, Chucho, Pessoal, Combate \226\128\148 com emblemas de n\195\163o lidos e indicadores de pin.",
+    ["opt_skin_chatframe_enable"]        = "Ativar skin de chat",
+    ["opt_skin_chatframe_width"]         = "Largura",
+    ["opt_skin_chatframe_height"]        = "Altura",
+    ["opt_skin_chatframe_scale"]         = "Escala %",
+    ["opt_skin_chatframe_opacity"]       = "Opacidade do fundo",
+    ["opt_skin_chatframe_font_size"]     = "Tamanho da fonte",
+    ["opt_skin_chatframe_timestamp"]     = "Mostrar data/hora",
+
+    -- Skins > Bags tab
+    ["tab_skin_bags"]                    = "Bolsas",
+    ["section_skin_bags"]                = "Skin das bolsas",
+    ["info_skin_bags_desc"]              = "Grade de bolsas unificada com bordas de qualidade, filtro de busca, tempos de recarga e emblemas de quantidade.",
+    ["opt_skin_bags_enable"]             = "Ativar skin das bolsas",
+    -- Bolsas — Desencantamento
+    ["bagskin_de_badge"]                 = "DE",
+    ["bagskin_de_tooltip"]               = "|cff0cd29f[Clique direito]|r Desencantamento",
+    ["bagskin_currencies_none"]          = "Nenhuma moeda rastreada (clique direito em uma moeda \226\134\146 Mostrar na mochila)",
+    ["opt_skin_bags_unified"]            = "Grade unificada (combinar todas as bolsas)",
+    ["opt_skin_bags_columns"]            = "Colunas",
+    ["opt_skin_bags_slot_size"]          = "Tamanho do espa\195\167o",
+    ["opt_skin_bags_slot_spacing"]       = "Espa\195\167amento",
+    ["opt_skin_bags_scale"]              = "Escala %",
+    ["opt_skin_bags_opacity"]            = "Opacidade do fundo",
+    ["opt_skin_bags_quality_borders"]    = "Mostrar bordas de qualidade",
+    ["opt_skin_bags_cooldowns"]          = "Mostrar tempos de recarga",
+    ["opt_skin_bags_quantity"]           = "Mostrar emblemas de quantidade",
+    ["opt_skin_bags_search"]             = "Mostrar barra de busca",
+    ["opt_skin_bags_sort_mode"]          = "Modo de ordena\195\167\195\163o",
+    ["opt_skin_bags_sort_quality"]       = "Qualidade",
+    ["opt_skin_bags_sort_name"]          = "Nome",
+    ["opt_skin_bags_sort_type"]          = "Tipo",
+    ["opt_skin_bags_sort_recent"]        = "Recente",
+    ["opt_skin_bags_show_gold"]          = "Mostrar ouro (rodap\195\169)",
+    ["opt_skin_bags_show_currencies"]    = "Mostrar moedas rastreadas (rodap\195\169)",
+
+    -- Skins > Objective Tracker tab
+    ["tab_skin_objtracker"]              = "Rastreador",
+
+    -- Skins > Character tab
+    ["tab_skin_character"]               = "Personagem",
+
+    -- Skins > Buffs tab
+    ["tab_skin_buffs"]                   = "Buffs",
+
+    -- Skins > Game Menu tab
+    ["tab_skin_gamemenu"]                = "Menu do jogo",
+
+    -- Skins > Mail tab
+    ["tab_skin_mail"]                    = "Correio",
+
+    -- =====================
+    -- MÓDULO WAYPOINT (/tm way)
+    -- =====================
+    -- GUI
+    ["tab_qol_waypoint"]                  = "Waypoint",
+    ["section_waypoint"]                  = "Waypoint",
+    ["opt_way_zone_only"]                 = "Mostrar apenas na zona atual",
+    ["opt_way_size"]                      = "Tamanho do sinal",
+    ["opt_way_shape"]                     = "Forma",
+    ["way_shape_ring"]                    = "Anel",
+    ["way_shape_arrow"]                   = "Seta",
+    ["opt_way_color"]                     = "Cor do waypoint",
+    -- Slash
+    ["msg_help_way"]                     = "Colocar um waypoint na sua posição atual",
+    ["msg_help_way_coords"]              = "Colocar um waypoint nas coordenadas (x, y)",
+    ["msg_help_way_clear"]               = "Remover o waypoint ativo",
+    ["way_cleared"]                      = "Waypoint removido.",
+    ["way_set"]                          = "Waypoint definido em %s%s.",
+    ["way_here"]                         = "Waypoint colocado na posição atual.",
+    ["way_no_map"]                       = "Não foi possível determinar o mapa atual.",
+    ["way_no_pos"]                       = "Não foi possível determinar a posição do jogador.",
+    ["way_bad_map"]                      = "Não é possível colocar um waypoint neste mapa.",
+    ["way_bad_coords"]                   = "As coordenadas devem estar entre 0 e 100.",
+    ["way_usage"]                        = "Uso: /tm way [mapID] x y [nome]  |  /tm way clear",
 })

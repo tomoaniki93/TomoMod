@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("deDE", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Über",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.7.1 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.0 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
     ["section_general"]                 = "Allgemein",
     ["btn_reset_all"]                   = "Alles zurücksetzen",
     ["info_reset_all"]                  = "Dies setzt ALLE Einstellungen zurück und lädt die Oberfläche neu.",
@@ -1223,4 +1223,99 @@ TomoMod_RegisterLocale("deDE", {
     ["preview_click_nav"]            = "Klicken zum Navigieren",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  \194\183  /tm sr zum Verschieben der Elemente",
+
+    -- =====================
+    -- SKINS CATEGORY (top-level)
+    -- =====================
+    ["cat_skins"]                        = "Skins",
+
+    -- Chat Frame V2 — Reiter-Bezeichnungen & UI
+    ["chatv2_tab_general"]               = "Allgemein",
+    ["chatv2_tab_instance"]              = "Instanz",
+    ["chatv2_tab_chucho"]                = "Chucho",
+    ["chatv2_tab_personnel"]             = "Pers\195\182nlich",
+    ["chatv2_tab_combat"]                = "Kampf",
+    ["chatv2_sidebar_title"]             = "CHAT",
+    ["chatv2_expand_btn"]                = "Chat",
+    ["chatv2_mover_label"]               = "Chatfenster V2",
+    ["chatv2_input_hint"]                = "Enter zum Tippen...",
+
+    -- Skins > Chat Frame tab
+    ["tab_skin_chatframe"]               = "Chatfenster",
+    ["section_skin_chatframe"]           = "Chatfenster-Skin",
+    ["info_skin_chatframe_desc"]         = "Chat-Panel mit Seitenleiste \226\128\148 Allgemein, Instanz, Chucho, Pers\195\182nlich, Kampf \226\128\148 mit Abzeichen f\195\188r ungelesene Nachrichten.",
+    ["opt_skin_chatframe_enable"]        = "Chatfenster-Skin aktivieren",
+    ["opt_skin_chatframe_width"]         = "Breite",
+    ["opt_skin_chatframe_height"]        = "H\195\182he",
+    ["opt_skin_chatframe_scale"]         = "Skalierung %",
+    ["opt_skin_chatframe_opacity"]       = "Hintergrund-Transparenz",
+    ["opt_skin_chatframe_font_size"]     = "Schriftgr\195\182\195\159e",
+    ["opt_skin_chatframe_timestamp"]     = "Zeitstempel anzeigen",
+
+    -- Skins > Bags tab
+    -- Taschen — Entzauberung
+    ["bagskin_de_badge"]                 = "DE",
+    ["bagskin_de_tooltip"]               = "|cff0cd29f[Rechtsklick]|r Entzaubern",
+    ["bagskin_currencies_none"]          = "Keine verfolgten W\195\164hrungen (Rechtsklick auf W\195\164hrung \226\134\146 In Rucksack anzeigen)",
+    ["tab_skin_bags"]                    = "Taschen",
+    ["section_skin_bags"]                = "Taschen-Skin",
+    ["info_skin_bags_desc"]              = "Einheitliches Taschenraster mit Qualit\195\164tsrahmen, Suchfilter, Abklingzeit-Anzeigen und Mengenabzeichen.",
+    ["opt_skin_bags_enable"]             = "Taschen-Skin aktivieren",
+    ["opt_skin_bags_unified"]            = "Einheitliches Raster (alle Taschen zusammen)",
+    ["opt_skin_bags_columns"]            = "Spalten",
+    ["opt_skin_bags_slot_size"]          = "Platzgr\195\182\195\159e",
+    ["opt_skin_bags_slot_spacing"]       = "Platzabstand",
+    ["opt_skin_bags_scale"]              = "Skalierung %",
+    ["opt_skin_bags_opacity"]            = "Hintergrund-Transparenz",
+    ["opt_skin_bags_quality_borders"]    = "Qualit\195\164tsrahmen anzeigen",
+    ["opt_skin_bags_cooldowns"]          = "Abklingzeiten anzeigen",
+    ["opt_skin_bags_quantity"]           = "Mengenabzeichen anzeigen",
+    ["opt_skin_bags_search"]             = "Suchleiste anzeigen",
+    ["opt_skin_bags_sort_mode"]          = "Sortiermodus",
+    ["opt_skin_bags_sort_quality"]       = "Qualit\195\164t",
+    ["opt_skin_bags_sort_name"]          = "Name",
+    ["opt_skin_bags_sort_type"]          = "Typ",
+    ["opt_skin_bags_sort_recent"]        = "Neueste",
+    ["opt_skin_bags_show_gold"]          = "Gold anzeigen (Fu\195\159zeile)",
+    ["opt_skin_bags_show_currencies"]    = "Verfolgte W\195\164hrungen anzeigen (Fu\195\159zeile)",
+
+    -- Skins > Objective Tracker tab
+    ["tab_skin_objtracker"]              = "Zieltracker",
+
+    -- Skins > Character tab
+    ["tab_skin_character"]               = "Charakter",
+
+    -- Skins > Buffs tab
+    ["tab_skin_buffs"]                   = "Buffs",
+
+    -- Skins > Game Menu tab
+    ["tab_skin_gamemenu"]                = "Spielmen\195\188",
+
+    -- Skins > Mail tab
+    ["tab_skin_mail"]                    = "Post",
+
+    -- =====================
+    -- WEGPUNKT-MODUL (/tm way)
+    -- =====================
+    -- GUI
+    ["tab_qol_waypoint"]                  = "Wegpunkt",
+    ["section_waypoint"]                  = "Wegpunkt",
+    ["opt_way_zone_only"]                 = "Nur in der aktuellen Zone anzeigen",
+    ["opt_way_size"]                      = "Gr\195\182\195\159e des Leuchtfeuers",
+    ["opt_way_shape"]                     = "Form",
+    ["way_shape_ring"]                    = "Ring",
+    ["way_shape_arrow"]                   = "Pfeil",
+    ["opt_way_color"]                     = "Wegpunkt-Farbe",
+    -- Slash
+    ["msg_help_way"]                     = "Wegpunkt an aktueller Position setzen",
+    ["msg_help_way_coords"]              = "Wegpunkt bei Koordinaten (x, y) setzen",
+    ["msg_help_way_clear"]               = "Aktiven Wegpunkt entfernen",
+    ["way_cleared"]                      = "Wegpunkt entfernt.",
+    ["way_set"]                          = "Wegpunkt gesetzt auf %s%s.",
+    ["way_here"]                         = "Wegpunkt an aktueller Position gesetzt.",
+    ["way_no_map"]                       = "Aktuelle Karte konnte nicht ermittelt werden.",
+    ["way_no_pos"]                       = "Spielerposition konnte nicht ermittelt werden.",
+    ["way_bad_map"]                      = "Auf dieser Karte kann kein Wegpunkt gesetzt werden.",
+    ["way_bad_coords"]                   = "Koordinaten m\195\188ssen zwischen 0 und 100 liegen.",
+    ["way_usage"]                        = "Verwendung: /tm way [MapID] x y [Name]  |  /tm way clear",
 })

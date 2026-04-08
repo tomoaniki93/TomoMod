@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.7.1 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.0 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -1250,4 +1250,99 @@ TomoMod_RegisterLocale("frFR", {
     ["preview_click_nav"]            = "cliquer pour naviguer",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  \194\183  /tm sr pour d\195\169placer les \195\169l\195\169ments",
+
+    -- =====================
+    -- SKINS CATEGORY (top-level)
+    -- =====================
+    ["cat_skins"]                        = "Skins",
+
+    -- Skins > Chat Frame V2 — labels des onglets & UI
+    ["chatv2_tab_general"]               = "G\195\169n\195\169ral",
+    ["chatv2_tab_instance"]              = "Instance",
+    ["chatv2_tab_chucho"]                = "Chucho",
+    ["chatv2_tab_personnel"]             = "Personnel",
+    ["chatv2_tab_combat"]                = "Combat",
+    ["chatv2_sidebar_title"]             = "CHAT",
+    ["chatv2_expand_btn"]                = "Chat",
+    ["chatv2_mover_label"]               = "Fen\195\170tre de chat V2",
+    ["chatv2_input_hint"]                = "Entr\195\169e pour \195\169crire...",
+
+    -- Skins > Chat Frame tab (panneau de config)
+    ["tab_skin_chatframe"]               = "Fen\195\170tre de discussion",
+    ["section_skin_chatframe"]           = "Skin de la fen\195\170tre de discussion",
+    ["info_skin_chatframe_desc"]         = "Panneau de discussion \195\160 barre lat\195\169rale \226\128\148 G\195\169n\195\169ral, Instance, Chucho, Personnel, Combat \226\128\148 avec badges non lus et indicateurs de pins.",
+    ["opt_skin_chatframe_enable"]        = "Activer le skin de discussion",
+    ["opt_skin_chatframe_width"]         = "Largeur",
+    ["opt_skin_chatframe_height"]        = "Hauteur",
+    ["opt_skin_chatframe_scale"]         = "\195\137chelle %",
+    ["opt_skin_chatframe_opacity"]       = "Opacit\195\169 du fond",
+    ["opt_skin_chatframe_font_size"]     = "Taille de la police",
+    ["opt_skin_chatframe_timestamp"]     = "Afficher l'horodatage",
+    -- Bag skin — d\195\169senchantement
+    ["bagskin_de_badge"]                 = "DE",
+    ["bagskin_de_tooltip"]               = "|cff0cd29f[Clic-droit]|r D\195\169senchanter",
+    ["bagskin_currencies_none"]          = "Aucune devise suivie (clic-droit sur une devise \226\134\146 Afficher dans le sac \195\160 dos)",
+
+    -- Skins > Bags tab
+    ["tab_skin_bags"]                    = "Sacs",
+    ["section_skin_bags"]                = "Skin des sacs",
+    ["info_skin_bags_desc"]              = "Grille de sacs unifi\195\169e avec bordures de qualit\195\169, filtre de recherche, cooldowns et badges de quantit\195\169.",
+    ["opt_skin_bags_enable"]             = "Activer le skin des sacs",
+    ["opt_skin_bags_unified"]            = "Grille unifi\195\169e (combiner tous les sacs)",
+    ["opt_skin_bags_columns"]            = "Colonnes",
+    ["opt_skin_bags_slot_size"]          = "Taille des emplacements",
+    ["opt_skin_bags_slot_spacing"]       = "Espacement des emplacements",
+    ["opt_skin_bags_scale"]              = "\195\137chelle %",
+    ["opt_skin_bags_opacity"]            = "Opacit\195\169 du fond",
+    ["opt_skin_bags_quality_borders"]    = "Afficher les bordures de qualit\195\169",
+    ["opt_skin_bags_cooldowns"]          = "Afficher les cooldowns",
+    ["opt_skin_bags_quantity"]           = "Afficher les badges de quantit\195\169",
+    ["opt_skin_bags_search"]             = "Afficher la barre de recherche",
+    ["opt_skin_bags_sort_mode"]          = "Mode de tri",
+    ["opt_skin_bags_sort_quality"]       = "Qualit\195\169",
+    ["opt_skin_bags_sort_name"]          = "Nom",
+    ["opt_skin_bags_sort_type"]          = "Type",
+    ["opt_skin_bags_sort_recent"]        = "R\195\169cent",
+    ["opt_skin_bags_show_gold"]          = "Afficher l'or (pied de page)",
+    ["opt_skin_bags_show_currencies"]    = "Afficher les devises suivies (pied de page)",
+
+    -- Skins > Objective Tracker tab
+    ["tab_skin_objtracker"]              = "Suivi d'objectifs",
+
+    -- Skins > Character tab
+    ["tab_skin_character"]               = "Personnage",
+
+    -- Skins > Buffs tab
+    ["tab_skin_buffs"]                   = "Buffs",
+
+    -- Skins > Game Menu tab
+    ["tab_skin_gamemenu"]                = "Menu de jeu",
+
+    -- Skins > Mail tab
+    ["tab_skin_mail"]                    = "Courrier",
+
+    -- =====================
+    -- MODULE WAYPOINT (/tm way)
+    -- =====================
+    -- GUI
+    ["tab_qol_waypoint"]                  = "Waypoint",
+    ["section_waypoint"]                  = "Waypoint",
+    ["opt_way_zone_only"]                 = "Afficher uniquement dans la zone actuelle",
+    ["opt_way_size"]                      = "Taille du balise",
+    ["opt_way_shape"]                     = "Forme",
+    ["way_shape_ring"]                    = "Anneau",
+    ["way_shape_arrow"]                   = "Fl\232che",
+    ["opt_way_color"]                     = "Couleur du waypoint",
+    -- Slash
+    ["msg_help_way"]                     = "Placer un point de cheminement \195\160 votre position",
+    ["msg_help_way_coords"]              = "Placer un point de cheminement aux coordonnées (x, y)",
+    ["msg_help_way_clear"]               = "Supprimer le point de cheminement actif",
+    ["way_cleared"]                      = "Point de cheminement supprimé.",
+    ["way_set"]                          = "Point de cheminement défini à %s%s.",
+    ["way_here"]                         = "Point de cheminement placé à la position actuelle.",
+    ["way_no_map"]                       = "Impossible de déterminer la carte actuelle.",
+    ["way_no_pos"]                       = "Impossible de déterminer la position du joueur.",
+    ["way_bad_map"]                      = "Impossible de placer un point de cheminement sur cette carte.",
+    ["way_bad_coords"]                   = "Les coordonnées doivent être comprises entre 0 et 100.",
+    ["way_usage"]                        = "Usage : /tm way [mapID] x y [nom]  |  /tm way clear",
 })
