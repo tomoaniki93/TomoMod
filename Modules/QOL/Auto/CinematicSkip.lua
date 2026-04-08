@@ -2,7 +2,7 @@
 -- CinematicSkip.lua
 -- =====================================
 
-TomoMod_CinematicSkip = {}
+TomoMod_CinematicSkip = TomoMod_CinematicSkip or {}
 local cinematicFrame
 local skipAttempts = 0
 local maxSkipAttempts = 10

@@ -2,7 +2,7 @@
 -- WorldQuestTab.lua — World Quest List Tab on the World Map
 -- =====================================
 
-TomoMod_WorldQuestTab = {}
+TomoMod_WorldQuestTab = TomoMod_WorldQuestTab or {}
 local WQT = TomoMod_WorldQuestTab
 
 local U = TomoMod_Utils

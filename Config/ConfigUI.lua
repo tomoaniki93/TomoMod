@@ -36,6 +36,7 @@ local categories = {
     { key = "resources",  label = L["cat_cd_resource"], icon = ICON_PATH .. "icon_resources.tga"   },
     { key = "actionbars", label = L["cat_action_bars"], icon = ICON_PATH .. "icon_actionbars.tga"  },
     { key = "sound",      label = L["cat_sound"],       icon = ICON_PATH .. "icon_sound.tga"       },
+    { key = "skins",      label = L["cat_skins"],       icon = ICON_PATH .. "icon_skins.tga"       },
     { key = "qol",        label = L["cat_qol"],         icon = ICON_PATH .. "icon_qol.tga"         },
     { key = "mythicplus", label = L["cat_mythicplus"],  icon = ICON_PATH .. "icon_mythicplus.tga"  },
     { key = "profiles",   label = L["cat_profiles"],    icon = ICON_PATH .. "icon_profiles.tga"    },
@@ -257,7 +258,7 @@ local function CreateConfigFrame()
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -2)
     versionText:SetTextColor(0.30, 0.30, 0.35, 1)
-    versionText:SetText("v2.7.1")
+    versionText:SetText("v2.8.0")
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, titleBar)
@@ -430,6 +431,7 @@ function C.SwitchCategory(key)
             actionbars = "TomoMod_ConfigPanel_ActionBars",
             sound      = "TomoMod_ConfigPanel_Sound",
             qol        = "TomoMod_ConfigPanel_QOL",
+            skins      = "TomoMod_ConfigPanel_Skins",
             mythicplus = "TomoMod_ConfigPanel_MythicPlus",
             profiles   = "TomoMod_ConfigPanel_Profiles",
         }

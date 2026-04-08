@@ -50,6 +50,20 @@ end
 -- SNAPSHOT / APPLY
 -- =====================================
 
+-- [PERF] Cache snapshots to avoid redundant DeepCopy on repeated saves
+local _snapshotCache = {}
+local _snapshotDirty = {}
+
+local function InvalidateSnapshotCache(name)
+    if name then
+        _snapshotCache[name] = nil
+        _snapshotDirty[name] = nil
+    else
+        wipe(_snapshotCache)
+        wipe(_snapshotDirty)
+    end
+end
+
 local function SnapshotSettings()
     local snap = {}
     for k, v in pairs(TomoModDB) do
@@ -191,7 +205,9 @@ end
 function P.AutoSaveActiveProfile()
     P.EnsureProfilesDB()
     local name = TomoModDB._profiles.activeProfile or "Default"
-    TomoModDB._profiles.named[name] = SnapshotSettings()
+    local snap = SnapshotSettings()
+    TomoModDB._profiles.named[name] = snap
+    _snapshotCache[name] = snap
 end
 
 --- Crée un nouveau profil depuis les paramètres actuels
@@ -229,6 +245,7 @@ function P.LoadNamedProfile(name)
 
     ApplySnapshot(snap)
     db.activeProfile = name
+    InvalidateSnapshotCache()
     return true
 end
 
@@ -238,6 +255,7 @@ function P.DeleteNamedProfile(name)
     P.EnsureProfilesDB()
     local db = TomoModDB._profiles
     db.named[name] = nil
+    InvalidateSnapshotCache(name)
     for i, n in ipairs(db.profileOrder) do
         if n == name then table.remove(db.profileOrder, i); break end
     end

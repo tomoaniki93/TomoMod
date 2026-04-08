@@ -4,7 +4,7 @@
 -- Draggable, toggleable via config
 -- =====================================
 
-TomoMod_LevelingBar = {}
+TomoMod_LevelingBar = TomoMod_LevelingBar or {}
 local LB = TomoMod_LevelingBar
 
 -- =====================================

@@ -10,8 +10,9 @@ local openRaidLib = LibStub and LibStub:GetLibrary("LibOpenRaid-1.0", true)
 
 local PREFIX = "|cff0cd29fTomo|r|cFF3377CCMod|r"
 
--- Keep the MK global for backward compatibility (/tm key)
-MK = MK or {}
+-- Keep a namespaced global + local alias for backward compatibility (/tm key)
+TomoMod_MythicKeys = TomoMod_MythicKeys or {}
+local MK = TomoMod_MythicKeys
 MK.enabled = false
 MK.keyData = {}
 

@@ -5,7 +5,7 @@
 
 local L = TomoMod_L
 
-TomoMod_TomoScore = {}
+TomoMod_TomoScore = TomoMod_TomoScore or {}
 local TS = TomoMod_TomoScore
 
 -- ── Color palette (dark/teal theme) ───────────────────────────────────────

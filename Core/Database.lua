@@ -105,6 +105,9 @@ TomoMod_Defaults = {
         acceptGuild = true,
         showMessages = true,
     },
+    addonDetect = {
+        enabled = true,
+    },
     autoSkipRole = {
         enabled = false,
         showMessages = true,
@@ -212,6 +215,36 @@ TomoMod_Defaults = {
         bgAlpha = 0.70,
         fontSize = 13,
     },
+    chatFrameSkinV2 = {
+        enabled       = false,
+        width         = 550,
+        height        = 320,
+        scale         = 100,
+        opacity       = 88,
+        fontSize      = 13,
+        defaultTab    = "general",
+        collapsed     = false,
+        showTimestamp = true,
+        history       = {},
+        position      = { anchor = "BOTTOMLEFT", relTo = "BOTTOMLEFT", x = 20, y = 24 },
+    },
+    bagSkin = {
+        enabled = false,
+        unified = false,
+        columns = 12,
+        slotSize = 36,
+        slotSpacing = 3,
+        scale = 100,
+        opacity = 92,
+        showQualityBorders = true,
+        showCooldowns = true,
+        showQuantityBadges = true,
+        showSearchBar = true,
+        sortMode = "quality",
+        showGold = true,
+        showCurrencies = false,
+        position = { anchor = "BOTTOMRIGHT", relTo = "BOTTOMRIGHT", x = -20, y = 24 },
+    },
     buffSkin = {
         enabled = false,
         skinBuffs = true,
@@ -243,6 +276,26 @@ TomoMod_Defaults = {
         filterCurrency = true,
         filterAnima = true,
         filterOther = true,
+    },
+
+    loots = {
+        enabled     = true,
+        position    = nil,  -- { point, relPoint, x, y } — saved on drag
+        filterClass = nil,  -- nil = player class, 0 = "Tous", classID = specific class
+        filterDiff  = 15,   -- 14=Normal 15=Héroïque 16=Mythique 17=LFR
+        favorites   = {},
+    },
+
+    waypoint = {
+        enabled      = true,
+        beaconScale  = 1.0,   -- global scale multiplier on the in-world beacon
+        showBeam     = true,  -- show the vertical teal beam below the beacon
+        showETA      = true,  -- append arrival-time estimate to distance text
+        sessionName  = nil,   -- restored label after /reload
+        zoneOnly     = true,  -- hide waypoint when not in the same zone
+        beaconSize   = 32,    -- icon diameter (px)
+        shape        = "ring", -- "ring" or "arrow"
+        color        = { r = 0.047, g = 0.824, b = 0.624 }, -- accent teal
     },
 
     professionHelper = {

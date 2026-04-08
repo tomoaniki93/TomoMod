@@ -2,7 +2,7 @@
 -- Minimap.lua
 -- =====================================
 
-TomoMod_Minimap = {}
+TomoMod_Minimap = TomoMod_Minimap or {}
 local minimapBorder
 
 -- Masquer la forme ronde et rendre carré

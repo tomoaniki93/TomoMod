@@ -2,7 +2,7 @@
 -- CursorRing.lua
 -- =====================================
 
-TomoMod_CursorRing = {}
+TomoMod_CursorRing = TomoMod_CursorRing or {}
 
 local cursorFrame
 local ringTexture

@@ -361,158 +361,6 @@ local function BuildSkyRideTab(parent)
     return scroll
 end
 
-    -- =====================================
--- TAB: OBJECTIVE TRACKER SKIN
--- =====================================
-
-local function BuildObjectiveTrackerTab(parent)
-    local scroll = W.CreateScrollPanel(parent)
-    local c = scroll.child
-    local y = -10
-
-    local _, ny = W.CreateSectionHeader(c, L["section_obj_tracker"], y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_obj_tracker"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_obj_tracker_enable"], TomoModDB.objectiveTracker.enabled, y, function(v)
-        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.SetEnabled(v) end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_bg_alpha"], TomoModDB.objectiveTracker.bgAlpha, 0, 1, 0.05, y, function(v)
-        TomoModDB.objectiveTracker.bgAlpha = v
-        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_obj_tracker_border"], TomoModDB.objectiveTracker.showBorder, y, function(v)
-        TomoModDB.objectiveTracker.showBorder = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_obj_tracker_hide_empty"], TomoModDB.objectiveTracker.hideWhenEmpty, y, function(v)
-        TomoModDB.objectiveTracker.hideWhenEmpty = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_header_size"], TomoModDB.objectiveTracker.headerFontSize, 8, 20, 1, y, function(v)
-        TomoModDB.objectiveTracker.headerFontSize = v
-        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_cat_size"], TomoModDB.objectiveTracker.categoryFontSize, 8, 18, 1, y, function(v)
-        TomoModDB.objectiveTracker.categoryFontSize = v
-        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_quest_size"], TomoModDB.objectiveTracker.questFontSize, 8, 18, 1, y, function(v)
-        TomoModDB.objectiveTracker.questFontSize = v
-        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_obj_size"], TomoModDB.objectiveTracker.objectiveFontSize, 8, 16, 1, y, function(v)
-        TomoModDB.objectiveTracker.objectiveFontSize = v
-        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_obj_tracker_max_quests"], TomoModDB.objectiveTracker.maxQuestsShown, 0, 25, 1, y, function(v)
-        TomoModDB.objectiveTracker.maxQuestsShown = v
-        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
-    end)
-    y = ny
-
-    c:SetHeight(math.abs(y) + 40)
-    if scroll.UpdateScroll then scroll.UpdateScroll() end
-    return scroll
-end
-
--- =====================================
--- TAB: CHARACTER SKIN
--- =====================================
-
-local function BuildCharacterSkinTab(parent)
-    local scroll = W.CreateScrollPanel(parent)
-    local c = scroll.child
-    local y = -10
-
-    local _, ny = W.CreateSectionHeader(c, L["section_char_skin"], y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_char_skin_desc"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_enable"], TomoModDB.characterSkin.enabled, y, function(v)
-        TomoModDB.characterSkin.enabled = v
-        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_character"], TomoModDB.characterSkin.skinCharacter, y, function(v)
-        TomoModDB.characterSkin.skinCharacter = v
-        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_inspect"], TomoModDB.characterSkin.skinInspect, y, function(v)
-        TomoModDB.characterSkin.skinInspect = v
-        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_iteminfo"], TomoModDB.characterSkin.showItemInfo, y, function(v)
-        TomoModDB.characterSkin.showItemInfo = v
-        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_gems"], TomoModDB.characterSkin.showGems, y, function(v)
-        TomoModDB.characterSkin.showGems = v
-        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_midnight"], TomoModDB.characterSkin.midnightEnchants, y, function(v)
-        TomoModDB.characterSkin.midnightEnchants = v
-        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_char_skin_scale"], (TomoModDB.characterSkin.scale or 1.0) * 100, 70, 150, 5, y, function(v)
-        local scale = v / 100
-        TomoModDB.characterSkin.scale = scale
-        -- Apply scale live
-        if _G.CharacterFrame then
-            _G.CharacterFrame:SetScale(scale)
-        end
-        if _G.InspectFrame then
-            _G.InspectFrame:SetScale(scale)
-        end
-    end, "%.0f%%")
-    y = ny
-
-    c:SetHeight(math.abs(y) + 40)
-    if scroll.UpdateScroll then scroll.UpdateScroll() end
-    return scroll
-end
-
 -- =====================================
 -- Tab: Leveling Bar
 -- =====================================
@@ -773,131 +621,6 @@ local function BuildCVarOptimizerTab(parent)
         revertAllBtn:SetEnabled(OPT.HasGlobalBackup())
         revertAllBtn:SetAlpha(OPT.HasGlobalBackup() and 1 or 0.4)
     end)
-
-    c:SetHeight(math.abs(y) + 40)
-    if scroll.UpdateScroll then scroll.UpdateScroll() end
-    return scroll
-end
-
--- =====================================
--- TAB: SKINS (Chat)
--- =====================================
-
-local function BuildSkinsTab(parent)
-    local scroll = W.CreateScrollPanel(parent)
-    local c = scroll.child
-    local y = -10
-
-    local _, ny = W.CreateSectionHeader(c, L["section_skins"], y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_skins_desc"], y)
-    y = ny
-
-    -- ── Chat Frame Skin ──
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_chat_skin"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_enable"], TomoModDB.chatFrameSkin.enabled, y, function(v)
-        TomoModDB.chatFrameSkin.enabled = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.SetEnabled(v) end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_chat_skin_bg_alpha"], (TomoModDB.chatFrameSkin.bgAlpha or 0.70) * 100, 0, 100, 5, y, function(v)
-        TomoModDB.chatFrameSkin.bgAlpha = v / 100
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
-    end, "%.0f%%")
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_chat_skin_font_size"], TomoModDB.chatFrameSkin.fontSize or 13, 9, 18, 1, y, function(v)
-        TomoModDB.chatFrameSkin.fontSize = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
-    end)
-    y = ny
-
-    -- ── Buff / Debuff Skin ──
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_buff_skin"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_enable"], TomoModDB.buffSkin.enabled, y, function(v)
-        TomoModDB.buffSkin.enabled = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.SetEnabled(v) end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_buffs"], TomoModDB.buffSkin.skinBuffs, y, function(v)
-        TomoModDB.buffSkin.skinBuffs = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_debuffs"], TomoModDB.buffSkin.skinDebuffs, y, function(v)
-        TomoModDB.buffSkin.skinDebuffs = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_color_by_type"], TomoModDB.buffSkin.colorByType, y, function(v)
-        TomoModDB.buffSkin.colorByType = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_teal_border"], TomoModDB.buffSkin.tealBorder, y, function(v)
-        TomoModDB.buffSkin.tealBorder = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_desaturate"], TomoModDB.buffSkin.desaturateDebuffs, y, function(v)
-        TomoModDB.buffSkin.desaturateDebuffs = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_hide_buffs"], TomoModDB.buffSkin.hideBuffFrame, y, function(v)
-        TomoModDB.buffSkin.hideBuffFrame = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_hide_debuffs"], TomoModDB.buffSkin.hideDebuffFrame, y, function(v)
-        TomoModDB.buffSkin.hideDebuffFrame = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_buff_skin_font_size"], TomoModDB.buffSkin.fontSize or 11, 8, 20, 1, y, function(v)
-        TomoModDB.buffSkin.fontSize = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    -- ── Game Menu Skin ──
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_game_menu_skin"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_game_menu_skin_enable"], TomoModDB.gameMenuSkin.enabled, y, function(v)
-        TomoModDB.gameMenuSkin.enabled = v
-        if TomoMod_GameMenuSkin then TomoMod_GameMenuSkin.SetEnabled(v) end
-    end)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_game_menu_skin_reload"], y)
-    y = ny
 
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
@@ -1176,6 +899,84 @@ local function BuildClassReminderTab(parent)
 end
 
 -- =====================================
+-- TAB: WAYPOINT
+-- =====================================
+
+local function BuildWaypointTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local function WY_Apply()
+        if TomoMod_Waypoint and TomoMod_Waypoint.ApplySettings then
+            TomoMod_Waypoint.ApplySettings()
+        end
+        -- Re-evaluate zone visibility
+        if TomoMod_Waypoint and TomoMod_Waypoint.CheckActivePublic then
+            TomoMod_Waypoint.CheckActivePublic()
+        end
+    end
+
+    local _, ny = W.CreateSectionHeader(c, L["section_waypoint"], y)
+    y = ny
+
+    -- Zone-only toggle
+    local _, ny = W.CreateCheckbox(c, L["opt_way_zone_only"],
+        TomoModDB.waypoint and TomoModDB.waypoint.zoneOnly or false, y, function(v)
+        if not TomoModDB.waypoint then TomoModDB.waypoint = {} end
+        TomoModDB.waypoint.zoneOnly = v
+        WY_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- Beacon size
+    local _, ny = W.CreateSlider(c, L["opt_way_size"],
+        TomoModDB.waypoint and TomoModDB.waypoint.beaconSize or 32, 16, 64, 1, y, function(v)
+        if not TomoModDB.waypoint then TomoModDB.waypoint = {} end
+        TomoModDB.waypoint.beaconSize = v
+        WY_Apply()
+    end)
+    y = ny
+
+    -- Shape dropdown
+    local shapeOptions = {
+        { value = "ring",  text = L["way_shape_ring"] },
+        { value = "arrow", text = L["way_shape_arrow"] },
+    }
+    local _, ny = W.CreateDropdown(c, L["opt_way_shape"],
+        shapeOptions,
+        TomoModDB.waypoint and TomoModDB.waypoint.shape or "ring",
+        y, function(v)
+        if not TomoModDB.waypoint then TomoModDB.waypoint = {} end
+        TomoModDB.waypoint.shape = v
+        WY_Apply()
+    end)
+    y = ny
+
+    -- Color picker
+    if not TomoModDB.waypoint then TomoModDB.waypoint = {} end
+    if not TomoModDB.waypoint.color then
+        TomoModDB.waypoint.color = { r = 0.047, g = 0.824, b = 0.624 }
+    end
+    local _, ny = W.CreateColorPicker(c, L["opt_way_color"], TomoModDB.waypoint.color, y, function(r, g, b)
+        if not TomoModDB.waypoint then TomoModDB.waypoint = {} end
+        if not TomoModDB.waypoint.color then TomoModDB.waypoint.color = {} end
+        TomoModDB.waypoint.color.r = r
+        TomoModDB.waypoint.color.g = g
+        TomoModDB.waypoint.color.b = b
+        WY_Apply()
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -1186,15 +987,13 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "automations",  label = L["tab_qol_automations"],  builder = function(p) return BuildAutomationsTab(p) end },
         { key = "mythickeys",   label = L["tab_qol_mythic_keys"],  builder = function(p) return BuildMythicKeysTab(p) end },
         { key = "skyride",      label = L["tab_qol_skyride"],      builder = function(p) return BuildSkyRideTab(p) end },
-        { key = "skins",        label = L["tab_qol_skins"],        builder = function(p) return BuildSkinsTab(p) end },
-        { key = "objtracker",   label = L["tab_qol_obj_tracker"],  builder = function(p) return BuildObjectiveTrackerTab(p) end },
         { key = "bagmicro",     label = L["tab_qol_bag_micro"],    builder = function(p) return BuildBagMicroMenuTab(p) end },
-        { key = "charskin",     label = L["tab_qol_char_skin"],    builder = function(p) return BuildCharacterSkinTab(p) end },
         { key = "leveling",     label = L["tab_qol_leveling"],     builder = function(p) return BuildLevelingTab(p) end },
         { key = "cvaropt",      label = L["tab_qol_cvar_opt"],     builder = function(p) return BuildCVarOptimizerTab(p) end },
         { key = "worldquests",  label = L["tab_qol_world_quests"], builder = function(p) return BuildWorldQuestTabTab(p) end },
         { key = "profhelper",   label = L["tab_qol_prof_helper"],  builder = function(p) return BuildProfessionHelperTab(p) end },
         { key = "classremind", label = L["tab_qol_class_reminder"], builder = function(p) return BuildClassReminderTab(p) end },
+        { key = "waypoint",    label = L["tab_qol_waypoint"],       builder = function(p) return BuildWaypointTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

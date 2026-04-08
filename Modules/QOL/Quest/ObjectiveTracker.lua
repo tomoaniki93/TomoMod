@@ -4,7 +4,7 @@
 -- Uses recursive child scanning for maximum compatibility
 -- =====================================
 
-TomoMod_ObjectiveTracker = {}
+TomoMod_ObjectiveTracker = TomoMod_ObjectiveTracker or {}
 local OT = TomoMod_ObjectiveTracker
 
 -- =====================================

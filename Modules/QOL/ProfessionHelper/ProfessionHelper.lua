@@ -2,7 +2,7 @@
 -- ProfessionHelper.lua — Disenchant batch helper
 -- =====================================
 
-TomoMod_ProfessionHelper = {}
+TomoMod_ProfessionHelper = TomoMod_ProfessionHelper or {}
 local PH = TomoMod_ProfessionHelper
 local L  = TomoMod_L
 

@@ -1,5 +1,196 @@
 ## ####################################
 
+## CHANGELOG 2.8.0 — Performance & Stability Audit
+
+#### Global Safety
+- Protected all 14 module globals with `X = X or {}` pattern to prevent data loss on `/reload` or double-load: Loots, CursorRing, Minimap, WorldQuestTab, InfoPanel, Waypoint, FrameAnchors, DataKeys, LevelingBar, MythicHub, TomoScore, ProfessionHelper, CinematicSkip, ObjectiveTracker
+
+#### SavedVariables
+- Added `CompanionStatusDB` to `.toc` `SavedVariables` — previously declared in Lua but never persisted across sessions
+
+#### Profiles (CPU/RAM)
+- Added `_snapshotCache` to `Core/Profiles.lua` — avoids redundant `DeepCopy` of the entire database on repeated profile saves
+- Cache is automatically invalidated on profile load, delete, and switch
+
+#### Namespace Collision
+- Renamed bare `MK` global (MythicKeys) to `TomoMod_MythicKeys` — short name had high collision risk with other addons; local `MK` alias preserved for internal use
+
+#### GameMenuSkin (CPU)
+- Removed redundant `SetAtlas("")` and `SetColorTexture(0,0,0,0)` calls in `NukeTextures` — `SetTexture(nil)` is sufficient
+- Replaced per-texture closure creation in `LockoutTextures` with shared `_tmHookShow` / `_tmHookSetAlpha` functions — eliminates ~160 closures when opening the game menu
+
+#### BagSkin (CPU)
+- Added `GetCachedItemExtras()` with a 10-second TTL cache for expensive `C_Item.GetCurrentItemLevel` and `C_TradeSkillUI.GetItemReagentQualityByItemInfo` queries — avoids repeated `pcall` + `ItemLocation` creation on every bag refresh
+
+#### Waypoint (CPU)
+- Localized `math.sqrt`, `math.atan2`, `math.pi` for the OnUpdate hot path
+- Replaced `while` loop angle normalization with single modulo operation: `((diff + pi) % TWO_PI) - pi`
+- `SetPoint` and `SetRotation` now only called when position/angle delta exceeds threshold — reduces unnecessary layout invalidation
+
+## ####################################
+
+## CHANGELOG 2.7.8
+
+#### Waypoint — Zone Restriction & Visual Customization
+- **Zone-only visibility**: waypoint beacon and navigator are now automatically hidden when the player is outside the zone where the waypoint was placed — re-appear instantly on zone entry; controlled via the new `zoneOnly` DB flag (enabled by default); uses `C_Map.GetPlayerMapPosition(waypointMapID, "player")` to detect zone presence without any additional map API calls
+- **`WP.ApplySettings()`** — new public function that reads `TomoModDB.waypoint` and applies color, shape, and size live without a reload:
+  - **Color**: glow ring, beacon icon, vertical beam, navigator arrow, and distance text all recolor together from the stored `{ r, g, b }` table
+  - **Shape**: `"ring"` uses the existing `TEX_RING` texture; `"arrow"` swaps to `TEX_ARROW` on the beacon icon
+  - **Size**: beacon frame and proportional glow ring resize from `beaconSize` (16–64 px)
+- **`WP.CheckActivePublic()`** — thin wrapper around `CheckActive()` exposed for the config UI to re-evaluate visibility after toggling zone-only without waiting for the next event
+- **`waypointMapID`** stored at `NewWaypoint()` time and cleared at `ClearWaypoint()` — used as the reference map for zone detection
+- All new symbols and icon references use `|T...|t` WoW texture escapes (Poppins font compatibility)
+
+#### Config GUI — QOL > Waypoint tab (new)
+- New **"Waypoint"** tab added to the QOL config panel (`BuildWaypointTab`):
+  - **Checkbox** — "Show only in current zone" (`opt_way_zone_only`): hides the waypoint when not in its zone; calls `WP.CheckActivePublic()` on change
+  - **Slider** — "Beacon size" (`opt_way_size`): 16–64 px, updates `TomoModDB.waypoint.beaconSize` and calls `WP.ApplySettings()` live
+  - **Dropdown** — "Shape" (`opt_way_shape`): Ring / Arrow; switches the beacon icon texture live
+  - **Color picker** — "Waypoint color" (`opt_way_color`): full RGB picker; recolors all beacon, beam, and navigator elements live
+
+#### Database
+- Extended `waypoint` defaults: added `zoneOnly = true`, `beaconSize = 32`, `shape = "ring"`, `color = { r = 0.047, g = 0.824, b = 0.624 }`
+
+#### Locale
+- **8 new keys** across all 6 locales (enUS, frFR, deDE, esES, itIT, ptBR): `tab_qol_waypoint`, `section_waypoint`, `opt_way_zone_only`, `opt_way_size`, `opt_way_shape`, `way_shape_ring`, `way_shape_arrow`, `opt_way_color`
+
+## ####################################
+
+## CHANGELOG 2.7.7 — Hotfix
+
+#### Bug Fix — ChatFrameSkinV2
+- Removed `CHAT_MSG_BN_CONVERSATION` from `ALL_EVENTS` — this event was removed from WoW in Midnight 12.x and caused an immediate Lua error (`Frame:RegisterEvent(): Attempt to register unknown event`) on login when the skin was enabled
+- Removed `"BN_CONVERSATION"` from the `chucho` tab's `chatTypes` list accordingly
+
+## ####################################
+
+## CHANGELOG 2.7.6
+
+#### Waypoint — In-world Navigation (`/tm way`)
+- **New module** `Modules/QOL/Waypoint/Waypoint.lua` — self-contained in-world waypoint system inspired by WaypointUI (AdaptiveX)
+- **Beacon mode** (target on-screen): teal circle icon + vertical beam anchored to `C_Navigation.GetFrame()` — Blizzard's navigation frame that tracks the super-tracked target in 2D screen space; scales dynamically with distance (closer = larger, base scale at ~1800 yds)
+- **Navigator mode** (target off-screen): rotating arrow positioned on an elliptical orbit around screen centre, interpolated to face the off-screen target; switches automatically when the nav frame reaches the screen edge
+- **Distance & ETA**: live distance text (yards / km) with a moving-average arrival-time estimate appended (`42s`, `3m05s`) displayed below the beacon or next to the navigator arrow; updates at 20 fps
+- **Slash command** `/tm way` — place waypoint at current player position
+- **Slash command** `/tm way x y [name]` — waypoint at (x, y) on the current map with optional label
+- **Slash command** `/tm way mapID x y [name]` — waypoint on any map by ID
+- **Slash command** `/tm way clear` — remove active waypoint and stop tracking
+- **MapPin API** (`TomoMod_Waypoint`):
+  - `NewWaypoint(name, mapID, x, y)` — sets `C_Map.SetUserWaypoint` + `C_SuperTrack.SetSuperTrackedUserWaypoint`
+  - `ClearWaypoint()` — clears map pin and super-tracking
+  - `NewWaypointHere([name])` — places pin at player's current coordinates
+  - `HandleSlashCommand(args)` — full slash-command parser
+- **State machine**: `HIDDEN` → `WAYPOINT` ↔ `NAVIGATOR`; resets on `SUPER_TRACKING_CHANGED`, `NAVIGATION_FRAME_DESTROYED`, zone transitions
+- **Session label** persisted to `TomoModDB.waypoint.sessionName` (restored after `/reload`)
+- All print messages use `|T...|t` texture escapes instead of Unicode symbols (Poppins font compatibility)
+
+#### Database
+- Added `waypoint` defaults: `enabled`, `beaconScale`, `showBeam`, `showETA`, `sessionName`
+- Added `favorites = {}` to `loots` defaults (backfill from v2.7.5)
+
+#### Locale
+- **11 new keys** across all 6 locales: `msg_help_way`, `msg_help_way_coords`, `msg_help_way_clear`, `way_cleared`, `way_set`, `way_here`, `way_no_map`, `way_no_pos`, `way_bad_map`, `way_bad_coords`, `way_usage`
+
+#### Load Order
+- `Waypoint\Waypoint.lua` added to `QOL.xml` (before Loots)
+- `TomoMod_Waypoint.Initialize()` called in `Core/Init.lua` on `PLAYER_LOGIN`
+
+## ####################################
+
+## CHANGELOG 2.7.5
+
+#### Loot Browser — Global Filter Bar (`/tm loot`)
+- **Global filter bar** added between the header and the content panels, spanning the full 840 px frame width — class, specialization, and difficulty are now chosen once and apply to both the Dungeons and Raids tabs
+- **Class filter (Row 1 — left):** "Tous" button + one 22×22 button per class; icons rendered via `|T...|t` texture escapes inside Poppins FontStrings using `AtlasIconStr("classicon-<class>")` — fully locale-independent; class color tinted background; tooltip shows class name on hover
+- **Difficulty filter (Row 1 — right):** four buttons always visible — Raid Find · Normal · Héroïque · Mythique; clicking a difficulty triggers a redraw of the raid item grid; ignored for Dungeon tab (dungeons have a single M+ loot pool)
+- **Specialization filter (Row 2):** spec buttons appear when a class is selected; each button shows the spec icon (`|T fileDataID:14:14|t`) + localized spec name via `GetSpecializationInfoByID`; clicking toggles selection (click again to deselect); `CLASS_SPECS` table covers all 13 classes including Evoker (Devastation / Preservation / Augmentation)
+- **Filter persistence:** selected class and difficulty are saved to `TomoModDB.loots.filterClass` / `.filterDiff` and restored on next `/tm loot` open; `filterClass = 0` encodes the explicit "Tous" choice
+- **Per-panel filter bar removed:** difficulty row and class row that previously lived inside the right panel have been removed; item scroll frame now starts at `y = -30` (immediately below the instance name label), reclaiming ~60 px of vertical item display space
+- **`AtlasIconStr(atlasName, size)`** helper — resolves atlas `leftTexCoord / rightTexCoord / topTexCoord / bottomTexCoord` into a full `|T file:h:w:0:0:texW:texH:l:r:t:b|t` pixel-accurate escape
+- **`FileIconStr(fileDataID, size)`** helper — shorthand `|T fileDataID:h:w|t` for spec icons returned by `GetSpecializationInfoByID`
+
+#### Database
+- Added `filterClass = nil` and `filterDiff = 15` to `loots` defaults in `Core/Database.lua`
+
+#### Loot Browser — Item Level Fix
+- **BonusId-based item links**: items now display the correct item level in tooltips based on active difficulty — LFR=233, Normal=246, Héroïque=259, Mythique=272 (was always showing base ilvl 44)
+- **`DIFF_BONUS_ID` table** maps each `difficultyID` to its Season 16 rank-1 bonusId (sourced from KeystoneLoot `upgrade_tracks.lua`)
+- **`ItemLink(itemID, bonusId)`** helper builds `item:ID:0:0:0:0:0:0:0:0:0:0:0:1:BONUSID` hyperlinks; falls back to `item:ID` when no bonusId available
+- **`DUNGEON_BONUS_ID = 12785`** — Champion track rank 1 (ilvl 246) applied to all M+ dungeon drops
+
+#### Loot Browser — Class & Spec Filter Fix
+- **`ItemClasses.lua`** — new file (`Modules/QOL/Loots/ItemClasses.lua`) with 347 entries mapping `itemID → { [classID] = { specID, ... } }`; auto-generated from KeystoneLoot `data/items.lua`; registered globally as `TomoMod_ItemClasses`
+- **`ItemMatchesClass`** rewritten to use `TomoMod_ItemClasses`: items absent from the table are treated as universal (rings, necks, trinkets); items present must match classID and optionally specID — e.g., Evoker no longer sees glaives, Warriors no longer see wands
+- **Load order**: `ItemClasses.lua` included in `QOL.xml` between `Data.lua` and `Loots.lua`
+
+#### Loot Browser — Favorites Tab
+- **New "Favoris" tab** added beside Donjons and Raids; tab label updates dynamically to "Favoris (N)" when N items are pinned
+- **Pin indicator**: `pin_alert.tga` (16×16, OVERLAY, TOPRIGHT corner) displayed at full alpha when pinned, 35% alpha on hover, hidden otherwise — implemented as a plain texture on the main button to avoid nested-button click-capture issues
+- **Left-click**: toggles favorite state (pin/unpin) and refreshes the tab label counter
+- **Shift+click**: inserts the bonusId-encoded item hyperlink into the active chat edit box
+- **Persistence**: saved to `TomoModDB.loots.favorites[itemID] = bonusId` across sessions; removed by clicking the item again
+
+#### Loot Browser — Favorites Grouped by Source
+- **Grouped display**: favorites rendered grouped by dungeon or raid source; each group is one horizontal row — source label on the left, item icons to the right
+- **Source label** (170 px): "Donjon : Name" or "Raid : Name" in teal (`C.TEXT_ACC`); dungeon names via `C_ChallengeMode.GetMapUIInfo`, raid boss names via `EJ_GetEncounterInfo`
+- **Vertical teal separator** (1 px) between label column and item grid; items wrap to additional rows if count exceeds `FAV_PER_ROW`
+- **Sort order**: dungeons listed before raids; alphabetical within each type
+- **Horizontal border** separates each source group
+- **Reverse-lookup** built at render time from `TomoMod_LootsData.dungeons` and `.raidBosses`
+
+#### Database
+- Added `favorites = {}` to `loots` defaults in `Core/Database.lua`
+
+## ####################################
+
+## CHANGELOG 2.7.4
+
+#### New "Skins" Config Category
+- **New top-level sidebar category** added to the config panel with a dedicated teal diamond icon (`icon_skins.tga`)
+- **7-tab panel** (`Config/Panels/Skins.lua`): Chat Frame, Bags, Objective Tracker, Character, Buffs, Game Menu, Mail
+- Proxy tabs for existing skins delegate to their original builders; placeholder text shown for skins not yet implemented
+- Category wired into `builderMap` and `categories` array in `ConfigUI.lua`
+
+#### ChatFrameSkinV2 — Tabbed Chat Panel
+- **New module** `Modules/QOL/Skins/ChatFrameSkinV2.lua` — full chat panel replacement with 4 tabs: General, Instance, Personal, Combat
+- **Tab routing**: ~30 `CHAT_MSG_*` events intercepted and routed to the correct tab based on chat type (SAY/YELL → General, RAID/PARTY/INSTANCE → Instance, WHISPER/BN → Personal, etc.)
+- **Pin indicators**: collapsed mode shows small dots per tab — dark gray idle (`pin_idle.tga`), teal alert (`pin_alert.tga`) for unread messages
+- **Collapse/expand**: click header to toggle between full panel and compact pin-only strip
+- **Edit box**: auto-targets the correct channel based on active tab (SAY, RAID/PARTY, GUILD)
+- **Mover-compatible**: registers with `TomoMod_Movers` for drag positioning; position persisted to `TomoModDB.chatFrameSkinV2.position`
+- **Config options**: enable/disable, width, height, scale, opacity, font size, default tab
+
+#### BagSkin — Unified Bag Grid
+- **New module** `Modules/QOL/Skins/BagSkin.lua` — replaces default bags with a single unified grid
+- **Quality borders**: slot borders color-coded by item quality (Poor → Legendary) using `ITEM_QUALITY_COLORS`
+- **Cooldown overlays**: `CooldownFrameTemplate` on each slot, updated on `BAG_UPDATE_COOLDOWN`
+- **Quantity badges**: stack count shown bottom-right on stacked items
+- **Search/filter bar**: live search dims non-matching items; Escape to clear
+- **Sort button**: triggers `C_Container.SortBags()` with a 0.5s delayed grid refresh
+- **Sort modes**: quality, name, type, recent (configurable in Skins panel)
+- **Hooks**: `OpenAllBags`, `ToggleAllBags`, `CloseAllBags` intercepted to show/hide the custom frame
+- **Auto-refresh**: listens to `BAG_UPDATE`, `BAG_UPDATE_DELAYED`, `ITEM_LOCK_CHANGED`, `BAG_UPDATE_COOLDOWN`
+- **Mover-compatible**: draggable frame with position persistence + `TomoMod_Movers` registration
+- **Config options**: enable/disable, unified mode, columns, slot size, slot spacing, scale, opacity, quality borders, cooldowns, quantity badges, search bar, sort mode
+
+#### New Assets
+- `Assets/Textures/pin_idle.tga` — 8×8 dark gray circle for idle tab pin
+- `Assets/Textures/pin_alert.tga` — 8×8 teal circle for unread tab pin
+- `Assets/Textures/icons/icon_skins.tga` — 22×22 teal diamond sidebar icon
+
+#### Database Defaults
+- Added `chatFrameSkinV2` defaults: enabled, width (480), height (280), scale (100), opacity (88), fontSize (13), defaultTab, position
+- Added `bagSkin` defaults: enabled, unified, columns (12), slotSize (36), slotSpacing (3), scale (100), opacity (92), quality borders, cooldowns, quantity badges, search bar, sortMode
+
+#### Locale
+- **~50 new locale keys** added to `enUS.lua`: `cat_skins`, all `tab_skin_*`, `section_skin_*`, `info_skin_*`, `opt_skin_*` keys for Skins category, Chat Frame, and Bags config panels
+
+#### Load Order
+- `Config\Panels\Skins.lua` added to `TomoMod.toc` (before `Profiles.lua`)
+- `Skins\ChatFrameSkinV2.lua` and `Skins\BagSkin.lua` added to `QOL.xml`
+
+## ####################################
+
 ## CHANGELOG 2.7.1
 
 #### TomoScore — Keystone Columns

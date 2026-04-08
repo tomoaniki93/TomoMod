@@ -8,7 +8,7 @@
 -- dungeon names and season data from Blizzard APIs once loaded.
 -- =====================================
 
-TomoMod_DataKeys = {}
+TomoMod_DataKeys = TomoMod_DataKeys or {}
 
 -- Master table: [mapChallengeModeID] = { full, short, teleportSpellID }
 local DB = {

@@ -69,7 +69,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         end
     elseif msg == "key" then
         TomoMod_EnableModule("MythicKeys")
-        if MK then MK:Toggle() end
+        if TomoMod_MythicKeys then TomoMod_MythicKeys:Toggle() end
     elseif msg == "score" or msg == "tscore" then
         if TomoMod_TomoScore then
             TomoMod_TomoScore:ShowPreview()
@@ -77,6 +77,15 @@ SlashCmdList["TOMOMOD"] = function(msg)
     elseif msg == "score last" then
         if TomoMod_TomoScore then
             TomoMod_TomoScore:ShowLastRun()
+        end
+    elseif msg == "loot" or msg == "loots" then
+        if TomoMod_Loots then
+            TomoMod_Loots:Toggle()
+        end
+    elseif msg:sub(1, 3) == "way" then
+        if TomoMod_Waypoint then
+            local args = msg:sub(5)  -- strip "way" + space
+            TomoMod_Waypoint.HandleSlashCommand(args)
         end
     elseif msg == "mhub" or msg == "mythichub" then
         if TomoMod_MythicHub then
@@ -248,6 +257,10 @@ SlashCmdList["TOMOMOD"] = function(msg)
         print("  |cff0cd29f/tm cursor|r — " .. L["msg_help_cursor"])
         print("  |cff0cd29f/tm clearcinema|r — " .. L["msg_help_clearcinema"])
         print("  |cff0cd29f/tm sr|r — " .. L["msg_help_sr"])
+        print("  |cff0cd29f/tm loot|r — Ouvrir le navigateur de loots (donjons & raids)")
+        print("  |cff0cd29f/tm way|r — " .. L["msg_help_way"])
+        print("  |cff0cd29f/tm way x y [name]|r — " .. L["msg_help_way_coords"])
+        print("  |cff0cd29f/tm way clear|r — " .. L["msg_help_way_clear"])
         print("  |cff0cd29f/tm key|r — " .. L["msg_help_key"])
         print("  |cff0cd29f/tm cr|r — " .. L["msg_help_cr"])
         print("  |cff0cd29f/tm help|r — " .. L["msg_help_help"])
@@ -315,6 +328,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_LevelingBar then TomoMod_LevelingBar.Initialize() end
         if TomoMod_ReputationBar then TomoMod_ReputationBar.Initialize() end
         if TomoMod_CooldownManager then TomoMod_CooldownManager.Initialize() end
+        if TomoMod_AddonDetect then TomoMod_AddonDetect.Initialize() end
         if TomoMod_AutoAcceptInvite then TomoMod_AutoAcceptInvite.Initialize() end
         if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.Initialize() end
         if TomoMod_TooltipIDs then TomoMod_TooltipIDs.Initialize() end
@@ -326,6 +340,8 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_ClassReminder then TomoMod_ClassReminder.Initialize() end
         if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
         if TomoMod_ProfessionHelper then TomoMod_ProfessionHelper.Initialize() end
+        if TomoMod_Waypoint then TomoMod_Waypoint.Initialize() end
+        if TomoMod_Loots then TomoMod_Loots.Initialize() end
         if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.Initialize() end
         if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.Initialize then TomoMod_ActionBarSkin.Initialize() end
         if TomoMod_CharacterSkin then TomoMod_CharacterSkin.Initialize() end

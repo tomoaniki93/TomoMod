@@ -54,6 +54,7 @@ end
 -- =====================================
 
 -- Aggressively kill all textures on a frame, including nested sub-frames
+-- [PERF] SetTexture(nil) is sufficient — removed redundant SetAtlas/SetColorTexture
 local function NukeTextures(frame, depth)
     if not frame then return end
     depth = depth or 0
@@ -64,8 +65,6 @@ local function NukeTextures(frame, depth)
         for _, region in pairs({ frame:GetRegions() }) do
             if region:IsObjectType("Texture") then
                 region:SetTexture(nil)
-                region:SetAtlas("")
-                region:SetColorTexture(0, 0, 0, 0)
                 region:SetAlpha(0)
                 region:Hide()
                 region:SetSize(0.001, 0.001)
@@ -82,8 +81,6 @@ local function NukeTextures(frame, depth)
         if child then
             if child.IsObjectType and child:IsObjectType("Texture") then
                 child:SetTexture(nil)
-                child:SetAtlas("")
-                child:SetColorTexture(0, 0, 0, 0)
                 child:SetAlpha(0)
                 child:Hide()
                 child:SetSize(0.001, 0.001)
@@ -107,6 +104,10 @@ local function NukeTextures(frame, depth)
     end
 end
 
+-- [PERF] Shared hook functions — avoid closure creation per texture
+local function _tmHookShow(self) self:Hide(); self:SetAlpha(0) end
+local function _tmHookSetAlpha(self) if self._tmLocked then self:Hide() end end
+
 -- Prevent Blizzard from re-applying textures via hooks
 local function LockoutTextures(button)
     -- Kill and permanently disable each standard button texture
@@ -120,8 +121,8 @@ local function LockoutTextures(button)
             -- Hook Show on the texture object itself so Blizzard can't re-show it
             if tex.Show and not tex._tmLocked then
                 tex._tmLocked = true
-                hooksecurefunc(tex, "Show", function(self) self:Hide(); self:SetAlpha(0) end)
-                hooksecurefunc(tex, "SetAlpha", function(self) if self._tmLocked then self:Hide() end end)
+                hooksecurefunc(tex, "Show", _tmHookShow)
+                hooksecurefunc(tex, "SetAlpha", _tmHookSetAlpha)
             end
         end
         -- Hook the setter on the button so new textures get killed too

@@ -3,7 +3,7 @@
 -- Zone header, subzone + coords overlay, clock
 -- =====================================
 
-TomoMod_InfoPanel = {}
+TomoMod_InfoPanel = TomoMod_InfoPanel or {}
 local IP = TomoMod_InfoPanel
 
 -- =====================================

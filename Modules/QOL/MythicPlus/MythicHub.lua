@@ -11,7 +11,7 @@ local DK = TomoMod_DataKeys
 local ADDON_FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local ADDON_FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 
-TomoMod_MythicHub = {}
+TomoMod_MythicHub = TomoMod_MythicHub or {}
 local HUB = TomoMod_MythicHub
 
 -- ═══════════════════════════════════════════════════════════════════════

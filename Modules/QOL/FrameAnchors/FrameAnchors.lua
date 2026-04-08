@@ -3,7 +3,7 @@
 -- Invisible in normal play, blue border when unlocked via /tm sr
 -- =====================================
 
-TomoMod_FrameAnchors = {}
+TomoMod_FrameAnchors = TomoMod_FrameAnchors or {}
 local FA = TomoMod_FrameAnchors
 local L = TomoMod_L
 

@@ -9,6 +9,7 @@
     <Include file="CooldownManager\CooldownManager.lua" />
 
     <!-- Modules: Auto -->
+    <Include file="Auto\AddonDetect.lua" />
     <Include file="Auto\AutoVendorRepair.lua" />
     <Include file="Auto\Fastloot.lua"/>
     <Include file="Auto\HideTalkingHead.lua"/>
@@ -78,8 +79,19 @@
     <Include file="Skins\CharacterSkin.lua" />
     <Include file="Skins\ReputationBar.lua" />
     <Include file="Skins\ChatFrameSkin.lua" />
+    <!-- ChatFrameSkinV2 disabled — experimental, WIP -->
+    <!-- <Include file="Skins\ChatFrameSkinV2.lua" /> -->
+    <Include file="Skins\BagSkin.lua" />
     <Include file="Skins\BuffSkin.lua" />
     <Include file="Skins\GameMenuSkin.lua" />
+    <!-- Modules: Waypoint (In-world navigation — /tm way) -->
+    <Include file="Waypoint\Waypoint.lua" />
+
+    <!-- Modules: Loots (Loot Browser — /tm loot) -->
+    <Include file="Loots\Data.lua" />
+    <Include file="Loots\ItemClasses.lua" />
+    <Include file="Loots\Loots.lua" />
+
     <!-- Modules: Movers (Layout System — doit être en dernier) -->
     <Include file="Movers\Movers.lua" />
 
