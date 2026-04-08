@@ -1195,7 +1195,8 @@ end
         end,
 
         ["UNIT_PET"] = function(unitId)
-            if (UnitIsUnit(unitId, "player")) then
+            local unitCheckOk, bIsPlayer = pcall(UnitIsUnit, unitId, "player")
+            if (unitCheckOk and not issecretvalue(bIsPlayer) and bIsPlayer) then
                 openRaidLib.Schedules.NewUniqueTimer(1.1, function() openRaidLib.internalCallback.TriggerEvent("playerPetChange") end, "mainControl", "petStatus_Schedule")
                 --if the pet is alive, register to know when it dies
                 local petHealth = UnitHealth("pet")
@@ -3588,8 +3589,9 @@ local createLocalCooldownTracker = function()
             local unitId, castGUID, spellId = ...
 
             --don't track spells casted by the player
-            local bUnitIsThePlayer = UnitIsUnit(unitId, "player")
-            if (not bUnitIsThePlayer) then
+            --use pcall+issecretvalue to handle secret values from nameplate units in Midnight
+            local unitCheckSuccess, bUnitIsThePlayer = pcall(UnitIsUnit, unitId, "player")
+            if (unitCheckSuccess and not issecretvalue(bUnitIsThePlayer) and not bUnitIsThePlayer) then
                 --get the caster name and check if it's a unit in the group
                 --use pcall to handle secret values from nameplate units in Midnight
                 local success, casterName = pcall(GetUnitName, unitId, true)
