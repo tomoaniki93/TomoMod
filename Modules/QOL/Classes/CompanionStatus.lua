@@ -17,7 +17,7 @@ local DEFAULTS = {
     debug = false,
     scale = 4.0,
     size = 36,
-    point = { "CENTER", UIParent, "CENTER", 0, 0 },
+    point = { "CENTER", "CENTER", 0, 0 },
     displayMode = "both", -- icon | text | both
 }
 
@@ -175,7 +175,15 @@ end
 
 local function ApplyPosition()
     CompanionStatus:ClearAllPoints()
-    CompanionStatus:SetPoint(unpack(DB.point))
+    if not DB.point or #DB.point == 0 then
+        DB.point = { unpack(DEFAULTS.point) }
+    end
+    -- point stores { anchorPoint, relativePoint, offsetX, offsetY } without frame refs (can't serialize)
+    if #DB.point == 5 then
+        -- migrate old format that included a frame reference
+        DB.point = { DB.point[1], DB.point[3], DB.point[4], DB.point[5] }
+    end
+    CompanionStatus:SetPoint(DB.point[1], UIParent, DB.point[2], DB.point[3], DB.point[4])
 end
 
 function UpdateIcon()

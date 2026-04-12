@@ -1,16 +1,16 @@
--- =====================================
--- BagSkin.lua
--- Unified bag grid skin
--- Features: unified/separate mode, quality borders, search/filter,
---           cooldown overlays, quantity badges, drag via Movers
--- Dark theme matching TomoMod palette
+﻿-- =====================================
+-- BagSkin.lua (v4 — GW2_UI-inspired)
+-- Combined resizable bag frame with custom slots,
+-- quality borders, ilvl badges, junk icons, bag bar,
+-- search, sort, categories/separate bags, money & currencies.
+-- Built on GW2_UI inventory architecture + TomoMod dark theme.
 -- =====================================
 
 TomoMod_BagSkin = TomoMod_BagSkin or {}
 local BS = TomoMod_BagSkin
 
 -- =====================================
--- CONSTANTS & LOCALS
+-- CONSTANTS
 -- =====================================
 
 local ADDON_PATH       = "Interface\\AddOns\\TomoMod\\"
@@ -18,7 +18,7 @@ local ADDON_FONT       = ADDON_PATH .. "Assets\\Fonts\\Poppins-Medium.ttf"
 local ADDON_FONT_BOLD  = ADDON_PATH .. "Assets\\Fonts\\Poppins-SemiBold.ttf"
 local L = TomoMod_L
 
--- Palette
+-- Theme
 local ACCENT          = { 0.047, 0.824, 0.624 }
 local BG_COLOR        = { 0.045, 0.045, 0.060 }
 local HEADER_BG       = { 0.065, 0.065, 0.082 }
@@ -26,25 +26,29 @@ local BORDER_COLOR    = { 0.18,  0.18,  0.22 }
 local SLOT_BG         = { 0.07,  0.07,  0.09 }
 local SLOT_BORDER     = { 0.22,  0.22,  0.28 }
 local SEPARATOR       = { 0.14,  0.14,  0.17 }
-local TAB_IDLE_TEXT   = { 0.48,  0.48,  0.54 }
-local TAB_ACTIVE_TEXT = { 0.92,  0.95,  0.93 }
+local MUTED_TEXT      = { 0.48,  0.48,  0.54 }
 local SEARCH_BG       = { 0.055, 0.055, 0.072 }
+local SECTION_BG      = { 0.055, 0.055, 0.070 }
+local SECTION_HDR_BG  = { 0.075, 0.075, 0.095 }
 local FOOTER_H        = 28
+local HEADER_H        = 36
+local SEARCH_H        = 28
+local SECTION_HDR_H   = 22
+local SECTION_PAD     = 6
+local SECTION_GAP     = 4
+local BAGBAR_W        = 40
+local SIDE_PAD        = 5
+local MIN_WIDTH       = 320
+local MIN_HEIGHT      = 280
 
--- Quality colors (matches WoW item quality enum)
 local QUALITY_COLORS = {
-    [0] = { 0.62, 0.62, 0.62 },  -- Poor (gray)
-    [1] = { 1.00, 1.00, 1.00 },  -- Common (white)
-    [2] = { 0.12, 1.00, 0.00 },  -- Uncommon (green)
-    [3] = { 0.00, 0.44, 0.87 },  -- Rare (blue)
-    [4] = { 0.64, 0.21, 0.93 },  -- Epic (purple)
-    [5] = { 1.00, 0.50, 0.00 },  -- Legendary (orange)
-    [6] = { 0.90, 0.80, 0.50 },  -- Artifact (gold)
-    [7] = { 0.00, 0.80, 1.00 },  -- Heirloom (cyan)
-    [8] = { 0.00, 0.80, 1.00 },  -- WoW Token (cyan)
+    [0] = { 0.62, 0.62, 0.62 }, [1] = { 1.00, 1.00, 1.00 },
+    [2] = { 0.12, 1.00, 0.00 }, [3] = { 0.00, 0.44, 0.87 },
+    [4] = { 0.64, 0.21, 0.93 }, [5] = { 1.00, 0.50, 0.00 },
+    [6] = { 0.90, 0.80, 0.50 }, [7] = { 0.00, 0.80, 1.00 },
+    [8] = { 0.00, 0.80, 1.00 },
 }
 
--- Crafting quality icons (professions/reagents, tiers 1–5)
 local CRAFTING_QUALITY_ATLAS = {
     [1] = "UI-TradeSkill-Quality-Tier1-Icon",
     [2] = "UI-TradeSkill-Quality-Tier2-Icon",
@@ -53,50 +57,74 @@ local CRAFTING_QUALITY_ATLAS = {
     [5] = "UI-TradeSkill-Quality-Tier5-Icon",
 }
 
--- Sort functions
 local SORT_FUNCS = {
     quality = function(a, b)
         if a.quality ~= b.quality then return (a.quality or 0) > (b.quality or 0) end
         return (a.name or "") < (b.name or "")
     end,
-    name = function(a, b) return (a.name or "") < (b.name or "") end,
-    type = function(a, b)
-        if a.itemType ~= b.itemType then return (a.itemType or "") < (b.itemType or "") end
+    name    = function(a, b) return (a.name or "") < (b.name or "") end,
+    type    = function(a, b)
+        if a.subType ~= b.subType then return (a.subType or "") < (b.subType or "") end
         return (a.name or "") < (b.name or "")
     end,
-    recent = function(a, b) return (a.bagID or 0) < (b.bagID or 0) end,
+    ilvl    = function(a, b)
+        if (a.ilvl or 0) ~= (b.ilvl or 0) then return (a.ilvl or 0) > (b.ilvl or 0) end
+        return (a.name or "") < (b.name or "")
+    end,
+    recent  = function(a, b) return (a.bagID or 0) < (b.bagID or 0) end,
+    none    = nil, -- nil = no sorting, keeps natural bag/slot order
 }
-
--- Bag display names
-local BAG_NAMES = {
-    [0] = "Backpack",
-    [1] = "Bag 1",
-    [2] = "Bag 2",
-    [3] = "Bag 3",
-    [4] = "Bag 4",
-}
-if Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag then
-    BAG_NAMES[Enum.BagIndex.ReagentBag] = "Reagent Bag"
-end
-
--- State
-local isInitialized = false
-local bagFrame      = nil
-local slotButtons   = {}
-local bagLabels     = {}  -- pool of FontStrings for bag section headers
-local searchBox     = nil
-local currentFilter = ""
-local tomoButtonCount = 0  -- counter for unique button names (required by SetItemButtonDesaturated)
-
--- Bag IDs: 0 (backpack), 1-4 (bags), 5 (reagent bag in retail)
-local BAG_IDS = { 0, 1, 2, 3, 4 }
--- In retail, also check for reagent bag
-if Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag then
-    BAG_IDS[#BAG_IDS + 1] = Enum.BagIndex.ReagentBag
-end
 
 -- =====================================
--- SETTINGS
+-- CATEGORY DEFINITIONS (layout = "categories")
+-- =====================================
+
+local REAGENT_BAG_ID = Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag
+
+local CATEGORIES = {
+    { key="recentItems",  nameKey="bagskin_cat_recent",     fallback="Recent Items",        priority=1,   color={0.30,0.85,1.00},
+      match=function(i) return i.hasItem and C_NewItems and C_NewItems.IsNewItem(i.bagID,i.slotIndex) end },
+    { key="equipment",    nameKey="bagskin_cat_equipment",   fallback="Equipment",           priority=2,   color={0.90,0.70,0.30}, defaultSort="ilvl",
+      match=function(i) return i.hasItem and (i.classID==2 or i.classID==4) end },
+    { key="consumables",  nameKey="bagskin_cat_consumables", fallback="Consumables",         priority=3,   color={0.40,0.90,0.40},
+      match=function(i) return i.hasItem and i.classID==0 end },
+    { key="questItems",   nameKey="bagskin_cat_quest",       fallback="Quest Items",         priority=4,   color={1.00,0.80,0.20},
+      match=function(i) return i.hasItem and i.classID==12 end },
+    { key="tradeGoods",   nameKey="bagskin_cat_tradegoods",  fallback="Trade Goods",         priority=5,   color={0.70,0.55,0.35},
+      match=function(i) return i.hasItem and i.classID==7 end },
+    { key="reagents",     nameKey="bagskin_cat_reagents",    fallback="Reagents",            priority=6,   color={0.55,0.75,0.90},
+      match=function(i) if not i.hasItem then return false end; if REAGENT_BAG_ID and i.bagID==REAGENT_BAG_ID then return true end; return i.classID==5 end },
+    { key="gemsEnchants", nameKey="bagskin_cat_gems",        fallback="Gems & Enhancements", priority=7,   color={0.80,0.40,0.90},
+      match=function(i) return i.hasItem and (i.classID==3 or i.classID==8) end },
+    { key="recipes",      nameKey="bagskin_cat_recipes",     fallback="Recipes",             priority=8,   color={0.85,0.65,0.35},
+      match=function(i) return i.hasItem and i.classID==9 end },
+    { key="battlePets",   nameKey="bagskin_cat_pets",        fallback="Battle Pets",         priority=9,   color={0.50,0.80,0.95},
+      match=function(i) return i.hasItem and i.classID==17 end },
+    { key="junk",         nameKey="bagskin_cat_junk",        fallback="Junk",                priority=10,  color={0.62,0.62,0.62},
+      match=function(i) return i.hasItem and (i.quality or 0)==0 end },
+    { key="miscellaneous",nameKey="bagskin_cat_misc",        fallback="Miscellaneous",       priority=11,  color={0.60,0.60,0.70},
+      match=function(i) return i.hasItem end },
+    { key="freeSlots",    nameKey="bagskin_cat_free",        fallback="Free Slots",          priority=100, color={0.35,0.35,0.42},
+      match=function(i) return not i.hasItem end },
+}
+
+-- =====================================
+-- STATE
+-- =====================================
+
+local isInitialized   = false
+local bagFrame        = nil
+local slotButtons     = {}
+local sectionFrames   = {}
+local currentFilter   = ""
+local tomoButtonCount = 0
+local _layoutPending  = false
+
+local BAG_IDS = { 0, 1, 2, 3, 4 }
+if REAGENT_BAG_ID then BAG_IDS[#BAG_IDS+1] = REAGENT_BAG_ID end
+
+-- =====================================
+-- SETTINGS HELPER
 -- =====================================
 
 local function S()
@@ -108,16 +136,16 @@ local function IsEnabled()
 end
 
 -- =====================================
--- HELPER: 1px border
+-- HELPERS
 -- =====================================
 
 local function CreateBorders(parent, r, g, b, a, layer)
     local borders = {}
     for _, info in ipairs({
-        { "TOPLEFT", "TOPLEFT", "TOPRIGHT", "TOPRIGHT", nil, 1 },
-        { "BOTTOMLEFT", "BOTTOMLEFT", "BOTTOMRIGHT", "BOTTOMRIGHT", nil, 1 },
-        { "TOPLEFT", "TOPLEFT", "BOTTOMLEFT", "BOTTOMLEFT", 1, nil },
-        { "TOPRIGHT", "TOPRIGHT", "BOTTOMRIGHT", "BOTTOMRIGHT", 1, nil },
+        {"TOPLEFT","TOPLEFT","TOPRIGHT","TOPRIGHT", nil, 1},
+        {"BOTTOMLEFT","BOTTOMLEFT","BOTTOMRIGHT","BOTTOMRIGHT", nil, 1},
+        {"TOPLEFT","TOPLEFT","BOTTOMLEFT","BOTTOMLEFT", 1, nil},
+        {"TOPRIGHT","TOPRIGHT","BOTTOMRIGHT","BOTTOMRIGHT", 1, nil},
     }) do
         local t = parent:CreateTexture(nil, layer or "BORDER")
         t:SetColorTexture(r, g, b, a or 1)
@@ -125,124 +153,67 @@ local function CreateBorders(parent, r, g, b, a, layer)
         t:SetPoint(info[3], parent, info[4])
         if info[5] then t:SetWidth(info[5]) end
         if info[6] then t:SetHeight(info[6]) end
-        borders[#borders + 1] = t
+        borders[#borders+1] = t
     end
     return borders
 end
 
--- =====================================
--- FORMAT GOLD
--- =====================================
+local function ColCount(slotSize, spacingX, frameWidth)
+    local isize = slotSize + spacingX
+    return math.max(1, math.floor((frameWidth - SIDE_PAD * 2 + spacingX) / isize))
+end
 
 local function FormatGold(money)
-    if not money or money <= 0 then return "|cff666677—|r" end
+    if not money or money <= 0 then return "|cff666677---|r" end
     return GetCoinTextureString(money)
 end
 
 -- =====================================
--- UPDATE FOOTER (gold + backpack currencies)
+-- ITEM INFO CACHE
 -- =====================================
 
-local function UpdateFooter()
-    if not bagFrame or not bagFrame._footer then return end
-    local s = S()
+local _itemCache = {}
+local _itemCacheTime = 0
 
-    -- Gold (GetCoinTextureString generates proper |T...|t coin icon escapes)
-    if s.showGold ~= false then
-        bagFrame._goldText:SetText(FormatGold(GetMoney()))
-        bagFrame._goldText:Show()
-    else
-        bagFrame._goldText:Hide()
-    end
+local function GetItemExtras(itemID, bagID, slotIndex, classID)
+    local key = itemID .. ":" .. bagID .. ":" .. slotIndex
+    local now = GetTime()
+    if (now - _itemCacheTime) > 10 then wipe(_itemCache); _itemCacheTime = now end
+    if _itemCache[key] then return _itemCache[key].ilvl, _itemCache[key].cq end
 
-    -- Backpack-pinned currencies
-    -- Uses global GetNumBackpackCurrencies / GetBackpackCurrencyInfo (available since Cata)
-    -- which return texturePath directly usable in |T...|t
-    if s.showCurrencies then
-        local count = (GetNumBackpackCurrencies and GetNumBackpackCurrencies()) or 0
-        if count == 0 then
-            bagFrame._currencyText:SetText("|cff555566" .. L["bagskin_currencies_none"] .. "|r")
-            bagFrame._currencyText:Show()
-        else
-            local parts = {}
-            for i = 1, math.min(count, 8) do
-                local name, amount, texturePath = GetBackpackCurrencyInfo(i)
-                if amount then
-                    local qty = amount >= 10000
-                        and string.format("%d,%03d", math.floor(amount / 1000), amount % 1000)
-                        or tostring(amount)
-                    if texturePath and texturePath ~= "" then
-                        parts[#parts + 1] = "|T" .. texturePath .. ":16:16|t |cffdddddd" .. qty .. "|r"
-                    else
-                        parts[#parts + 1] = "|cffdddddd" .. qty .. "|r"
-                    end
-                end
-            end
-            if #parts > 0 then
-                bagFrame._currencyText:SetText(table.concat(parts, "  "))
-                bagFrame._currencyText:Show()
-            else
-                bagFrame._currencyText:SetText("")
-                bagFrame._currencyText:Hide()
-            end
+    local ilvl, cq
+    if classID == 2 or classID == 4 then
+        local ok, loc = pcall(ItemLocation.CreateFromBagAndSlot, ItemLocation, bagID, slotIndex)
+        if ok and loc and loc:IsValid() then
+            local lOk, lv = pcall(C_Item.GetCurrentItemLevel, loc)
+            if lOk and lv and lv > 0 then ilvl = lv end
         end
-    else
-        bagFrame._currencyText:SetText("")
-        bagFrame._currencyText:Hide()
     end
+    if classID == 7 and C_TradeSkillUI and C_TradeSkillUI.GetItemReagentQualityByItemInfo then
+        local link = C_Container.GetContainerItemLink(bagID, slotIndex)
+        if link then
+            local qOk, q = pcall(C_TradeSkillUI.GetItemReagentQualityByItemInfo, link)
+            if qOk then cq = q end
+        end
+    end
+
+    _itemCache[key] = { ilvl = ilvl, cq = cq }
+    return ilvl, cq
 end
 
 -- =====================================
 -- COLLECT ALL ITEMS
 -- =====================================
 
--- [PERF] Cache expensive item queries (ilvl, crafting quality) for 10 seconds
-local _itemInfoCache = {}
-local _itemInfoCacheTime = 0
-local ITEM_CACHE_TTL = 10
-
-local function GetCachedItemExtras(itemID, bagID, slotIndex, classID)
-    local cacheKey = itemID .. ":" .. bagID .. ":" .. slotIndex
-    local now = GetTime()
-    -- Invalidate entire cache if TTL expired
-    if (now - _itemInfoCacheTime) > ITEM_CACHE_TTL then
-        wipe(_itemInfoCache)
-        _itemInfoCacheTime = now
-    end
-    local cached = _itemInfoCache[cacheKey]
-    if cached then return cached.ilvl, cached.craftingQuality end
-
-    local ilvl, craftingQuality
-    -- Item level for equippable items (Weapon=2, Armor=4)
-    if classID == 2 or classID == 4 then
-        local ok, loc = pcall(ItemLocation.CreateFromBagAndSlot, ItemLocation, bagID, slotIndex)
-        if ok and loc and loc:IsValid() then
-            local lvlOk, lvl = pcall(C_Item.GetCurrentItemLevel, loc)
-            if lvlOk and lvl and lvl > 0 then ilvl = lvl end
-        end
-    end
-    -- Crafting quality for tradeskill reagents (classID=7)
-    if classID == 7 and C_TradeSkillUI and C_TradeSkillUI.GetItemReagentQualityByItemInfo then
-        local link = C_Container.GetContainerItemLink(bagID, slotIndex)
-        if link then
-            local qOk, qual = pcall(C_TradeSkillUI.GetItemReagentQualityByItemInfo, link)
-            if qOk then craftingQuality = qual end
-        end
-    end
-
-    _itemInfoCache[cacheKey] = { ilvl = ilvl, craftingQuality = craftingQuality }
-    return ilvl, craftingQuality
-end
-
-local function CollectBagItems()
+local function CollectItems()
     local items = {}
     for _, bagID in ipairs(BAG_IDS) do
         local numSlots = C_Container.GetContainerNumSlots(bagID)
-        for slotIndex = 1, numSlots do
-            local info = C_Container.GetContainerItemInfo(bagID, slotIndex)
+        for slot = 1, numSlots do
+            local info = C_Container.GetContainerItemInfo(bagID, slot)
             local entry = {
                 bagID     = bagID,
-                slotIndex = slotIndex,
+                slotIndex = slot,
                 hasItem   = info ~= nil,
                 itemID    = info and info.itemID,
                 name      = info and info.itemName or "",
@@ -250,158 +221,129 @@ local function CollectBagItems()
                 icon      = info and info.iconFileID,
                 count     = info and info.stackCount or 0,
                 locked    = info and info.isLocked,
-                itemType  = "",
-                isFiltered = info and info.isFiltered,
+                classID   = nil,
+                subType   = "",
+                ilvl      = nil,
+                craftingQuality = nil,
             }
-            -- Get item type, item level (gear) and crafting quality (reagents)
             if entry.itemID then
-                local _, _, _, _, _, classID = C_Item.GetItemInfoInstant(entry.itemID)
-                entry.itemType = classID or ""
-                local ilvl, craftingQuality = GetCachedItemExtras(entry.itemID, bagID, slotIndex, classID)
-                entry.ilvl = ilvl
-                entry.craftingQuality = craftingQuality
+                local _, _, _, _, _, cid, scid = C_Item.GetItemInfoInstant(entry.itemID)
+                entry.classID = cid
+                entry.subType = scid or ""
+                entry.ilvl, entry.craftingQuality = GetItemExtras(entry.itemID, bagID, slot, cid)
             end
-            items[#items + 1] = entry
+            items[#items+1] = entry
         end
     end
     return items
 end
 
 -- =====================================
--- DISENCHANT HELPERS
+-- CATEGORIZE ITEMS
 -- =====================================
 
--- Item classes that can be disenchanted (Armor=4, Weapon=2)
-local DE_ITEM_CLASSES = { [2] = true, [4] = true }
--- Minimum quality for disenchanting (Uncommon=2)
-local DE_MIN_QUALITY = 2
+local function Categorize(items)
+    local cats = {}
+    for _, cat in ipairs(CATEGORIES) do cats[cat.key] = {} end
 
-local isEnchanterCached = nil
-local enchanterCheckTime = 0
-
-local function IsPlayerEnchanter()
-    local now = GetTime()
-    if isEnchanterCached ~= nil and (now - enchanterCheckTime) < 60 then
-        return isEnchanterCached
-    end
-    enchanterCheckTime = now
-    isEnchanterCached = false
-    local p1, p2, p3, p4, p5, p6 = GetProfessions()
-    for _, idx in ipairs({ p1, p2, p3, p4, p5, p6 }) do
-        if idx then
-            local name = GetProfessionInfo(idx)
-            if name and name:lower():find("enchant") then
-                isEnchanterCached = true
+    for _, item in ipairs(items) do
+        for _, cat in ipairs(CATEGORIES) do
+            if cat.match(item) then
+                cats[cat.key][#cats[cat.key]+1] = item
                 break
             end
         end
     end
-    return isEnchanterCached
-end
-
-local function IsItemDisenchantable(bagID, slotID, quality, classID)
-    if not IsPlayerEnchanter() then return false end
-    if not quality or quality < DE_MIN_QUALITY then return false end
-    if quality >= 7 then return false end  -- Heirloom / WoW Token: not DE-able
-    if not DE_ITEM_CLASSES[classID] then return false end
-    return true
+    return cats
 end
 
 -- =====================================
--- CREATE SLOT BUTTON
+-- STACK MERGING (optional)
+-- =====================================
+
+local function MergeStacks(items)
+    local merged, seen = {}, {}
+    for _, item in ipairs(items) do
+        if not item.hasItem then
+            local fk = "free_" .. item.bagID
+            if seen[fk] then
+                merged[seen[fk]].count = merged[seen[fk]].count + 1
+            else
+                local c = {}; for k,v in pairs(item) do c[k]=v end
+                c.count = 1; c._isFreeSlot = true
+                merged[#merged+1] = c; seen[fk] = #merged
+            end
+        elseif item.itemID and seen[item.itemID] then
+            merged[seen[item.itemID]].count = merged[seen[item.itemID]].count + (item.count > 0 and item.count or 1)
+            merged[seen[item.itemID]]._mergedSlots = merged[seen[item.itemID]]._mergedSlots or {{ merged[seen[item.itemID]].bagID, merged[seen[item.itemID]].slotIndex }}
+            merged[seen[item.itemID]]._mergedSlots[#merged[seen[item.itemID]]._mergedSlots+1] = { item.bagID, item.slotIndex }
+        else
+            local c = {}; for k,v in pairs(item) do c[k]=v end
+            merged[#merged+1] = c
+            if item.itemID then seen[item.itemID] = #merged end
+        end
+    end
+    return merged
+end
+
+-- =====================================
+-- SLOT BUTTON POOL
 -- =====================================
 
 local function CreateSlotButton(parent, size)
-    -- ContainerFrameItemButtonTemplate's click handler calls:
-    --   PickupContainerItem(self:GetParent():GetID(), self:GetID())
-    -- so the DIRECT parent's ID must equal bagID, and the button's ID must equal slotIndex.
-    -- We create a per-slot wrapper frame whose ID is set to bagID each update.
-    -- The named ItemButton is a child of the wrapper. (Same pattern as BetterBags)
     tomoButtonCount = tomoButtonCount + 1
     local btnName = "TomoModBagBtn" .. tomoButtonCount
 
-    -- Wrapper: positioned in the grid, holds the bagID
     local wrapper = CreateFrame("Frame", nil, parent)
     wrapper:SetSize(size, size)
+    wrapper:EnableMouse(true)
 
-    -- Named ItemButton parented to wrapper — template reads wrapper:GetID() = bagID
-    local btn = CreateFrame("Button", btnName, wrapper, "ContainerFrameItemButtonTemplate")
+    local btn = CreateFrame("Button", btnName, wrapper, "SecureActionButtonTemplate")
     btn:SetAllPoints(wrapper)
-    wrapper.btn = btn   -- expose for UpdateSlotButton
-
-    -- Disable template auto-update scripts (they would re-read parent ID on every frame)
-    btn:SetScript("OnEvent",  nil)
-    btn:SetScript("OnShow",   nil)
-    btn:SetScript("OnUpdate", nil)
-    -- Disable mouse wheel so scroll events pass through to the bag scroll frame
-    btn:SetScript("OnMouseWheel", nil)
+    wrapper.btn = btn
     btn:EnableMouseWheel(false)
 
-    -- Dark background on top of whatever the template draws (sub-level 2 > template default)
+    -- Backdrop
     local bg = btn:CreateTexture(nil, "BACKGROUND", nil, 2)
     bg:SetAllPoints()
     bg:SetColorTexture(SLOT_BG[1], SLOT_BG[2], SLOT_BG[3], 1)
     btn._bg = bg
 
-    -- Create our own icon texture and redirect btn.icon to it.
-    -- Blizzard helpers (SetItemButtonDesaturated, SetItemButtonTexture) check btn.icon
-    -- first, then fall back to _G[name.."IconTexture"]. By aliasing btn.icon here we
-    -- let those helpers operate on our custom texture. (BetterBags pattern)
+    -- Icon
     local icon = btn:CreateTexture(nil, "ARTWORK", nil, 1)
     icon:SetPoint("TOPLEFT", 1, -1)
     icon:SetPoint("BOTTOMRIGHT", -1, 1)
     icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     icon:Hide()
     btn._icon = icon
-    btn.icon  = icon  -- alias so Blizzard item-button helpers target our texture
-    -- Hide the template's own IconTexture so it doesn't render behind our custom one
-    if btn.IconTexture then btn.IconTexture:Hide() end
+    btn.icon  = icon
 
-    -- Hide template's built-in quality border and count badge (we draw our own)
-    if btn.IconBorder   then btn.IconBorder:Hide()   end
-    if btn.IconOverlay  then btn.IconOverlay:Hide()  end
-    if btn.Count        then btn.Count:Hide()        end
-    -- Hide template's default slot textures (blue rounded-square empty-slot look)
-    if btn.BagIndicator then btn.BagIndicator:Hide() end
-    if btn.ExtendedSlot then btn.ExtendedSlot:Hide() end
-    if btn.JunkIcon     then btn.JunkIcon:Hide()     end
-    if btn.BattlepayItemTexture then btn.BattlepayItemTexture:Hide() end
-    if btn.NewItemTexture       then btn.NewItemTexture:Hide()       end
-    if btn.UpgradeIcon          then btn.UpgradeIcon:Hide()         end
-    if btn.flash                then btn.flash:Hide()               end
-    btn:SetNormalTexture("")
-    btn:SetPushedTexture("")
-
-    -- Custom 1px quality border lines at OVERLAY so they draw above the icon
+    -- Quality border
     btn._qualBorders = CreateBorders(btn, SLOT_BORDER[1], SLOT_BORDER[2], SLOT_BORDER[3], 0.6, "OVERLAY")
 
-    -- Reuse template's cooldown frame; fall back to creating one if absent
-    btn._cooldown = btn.Cooldown
-    if not btn._cooldown then
-        local cd = CreateFrame("Cooldown", nil, btn, "CooldownFrameTemplate")
-        cd:SetAllPoints(icon)
-        cd:SetDrawEdge(false)
-        cd:SetHideCountdownNumbers(false)
-        btn._cooldown = cd
-    else
-        btn._cooldown:SetAllPoints(icon)
-    end
+    -- Cooldown
+    local cd = CreateFrame("Cooldown", nil, btn, "CooldownFrameTemplate")
+    cd:SetAllPoints(icon)
+    cd:SetDrawEdge(false)
+    cd:SetHideCountdownNumbers(false)
+    cd:EnableMouse(false)
+    btn._cooldown = cd
 
-    -- Custom quantity badge (our font/style)
+    -- Count text
     local qty = btn:CreateFontString(nil, "OVERLAY")
     qty:SetFont(ADDON_FONT_BOLD, 10, "OUTLINE")
     qty:SetPoint("BOTTOMRIGHT", -2, 2)
     qty:SetTextColor(1, 1, 1, 1)
     btn._qtyText = qty
 
-    -- Crafting quality icon (top-left, tier star for reagents)
+    -- Crafting quality icon
     local qualIcon = btn:CreateTexture(nil, "OVERLAY", nil, 2)
     qualIcon:SetSize(14, 14)
     qualIcon:SetPoint("TOPLEFT", 2, -2)
     qualIcon:Hide()
     btn._qualIcon = qualIcon
 
-    -- Item level badge (bottom-left, for equippable items)
+    -- Item level badge
     local ilvlBadge = btn:CreateFontString(nil, "OVERLAY")
     ilvlBadge:SetFont(ADDON_FONT_BOLD, 8, "OUTLINE")
     ilvlBadge:SetPoint("BOTTOMLEFT", 2, 2)
@@ -409,7 +351,23 @@ local function CreateSlotButton(parent, size)
     ilvlBadge:Hide()
     btn._ilvlBadge = ilvlBadge
 
-    -- Override tooltip (ANCHOR_RIGHT instead of template default)
+    -- Junk icon
+    local junkIcon = btn:CreateTexture(nil, "OVERLAY", nil, 2)
+    junkIcon:SetAtlas("bags-junkcoin", true)
+    junkIcon:SetPoint("TOPLEFT", -3, 3)
+    junkIcon:Hide()
+    btn._junkIcon = junkIcon
+
+    -- Highlight
+    local high = btn:CreateTexture(nil, "HIGHLIGHT")
+    high:SetAllPoints()
+    high:SetColorTexture(1, 1, 1, 0.12)
+    high:SetBlendMode("ADD")
+
+    btn:RegisterForClicks("AnyUp", "AnyDown")
+    btn:RegisterForDrag("LeftButton")
+
+    -- Tooltip (like GW2_UI — native SetBagItem)
     btn:SetScript("OnEnter", function(self)
         if self.bag and self:GetID() > 0 then
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
@@ -417,97 +375,129 @@ local function CreateSlotButton(parent, size)
             GameTooltip:Show()
         end
     end)
-    btn:SetScript("OnLeave", function()
-        GameTooltip:Hide()
+    btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    -- Click handling: PreClick intercepts special cases, otherwise secure macro handles it
+    btn:SetScript("PreClick", function(self, button, down)
+        if not self.bag or self:GetID() == 0 then return end
+        if down then return end
+        local bagID, slotID = self.bag, self:GetID()
+        if button == "LeftButton" then
+            local cursorType = GetCursorInfo()
+            -- If cursor already holds an item, place/swap it here
+            if cursorType == "item" then
+                C_Container.PickupContainerItem(bagID, slotID)
+                self:SetAttribute("type1", nil)
+                return
+            end
+            if IsModifiedClick("CHATLINK") then
+                local link = C_Container.GetContainerItemLink(bagID, slotID)
+                if link then ChatEdit_InsertLink(link) end
+                self:SetAttribute("type1", nil)
+            elseif IsModifiedClick("SPLITSTACK") then
+                local info = C_Container.GetContainerItemInfo(bagID, slotID)
+                if info and (info.stackCount or 0) > 1 then
+                    self.SplitStack = function(_, amount)
+                        C_Container.SplitContainerItem(bagID, slotID, amount)
+                    end
+                    OpenStackSplitFrame(info.stackCount, self, "BOTTOMLEFT", "TOPLEFT")
+                end
+                self:SetAttribute("type1", nil)
+            elseif SpellIsTargeting() then
+                -- Spell on cursor (Disenchant, Milling, Prospecting) → secure /use
+                self:SetAttribute("type1", "macro")
+                self:SetAttribute("macrotext1", "/use " .. bagID .. " " .. slotID)
+            else
+                -- Normal click → pick up item for moving
+                C_Container.PickupContainerItem(bagID, slotID)
+                self:SetAttribute("type1", nil)
+            end
+        end
     end)
 
-    -- PostClick handles modifier actions only.
-    -- All standard clicks (pickup, place, use, equip, craft-slot/DE routing) are
-    -- handled securely by ContainerFrameItemButtonTemplate.
-    btn:HookScript("PostClick", function(self, button, down)
-        if down then return end
-        if not self.bag or self:GetID() == 0 then return end
-        if IsModifiedClick("CHATLINK") then
-            local link = C_Container.GetContainerItemLink(self.bag, self:GetID())
-            if link then ChatEdit_InsertLink(link) end
-        elseif IsModifiedClick("SPLITSTACK") then
-            local info = C_Container.GetContainerItemInfo(self.bag, self:GetID())
-            if info and (info.stackCount or 0) > 1 then
-                C_Container.SplitContainerItem(self.bag, self:GetID(), 1)
-            end
+    btn:SetScript("OnDragStart", function(self)
+        if self.bag and self:GetID() > 0 then
+            C_Container.PickupContainerItem(self.bag, self:GetID())
+        end
+    end)
+
+    btn:SetScript("OnReceiveDrag", function(self)
+        if self.bag and self:GetID() > 0 then
+            C_Container.PickupContainerItem(self.bag, self:GetID())
         end
     end)
 
     return wrapper
 end
 
+-- Slot pool management
+local slotPoolIdx = 0
+
+local function AcquireSlot(parent, size)
+    slotPoolIdx = slotPoolIdx + 1
+    if slotPoolIdx <= #slotButtons then
+        local w = slotButtons[slotPoolIdx]
+        w:SetParent(parent)
+        w:SetSize(size, size)
+        w:Show()
+        w.btn._qtyText:SetTextColor(1, 1, 1, 1)
+        return w
+    end
+    local w = CreateSlotButton(parent, size)
+    slotButtons[#slotButtons+1] = w
+    return w
+end
+
+local function ResetSlotPool() slotPoolIdx = 0 end
+
+local function HideUnusedSlots()
+    for i = slotPoolIdx+1, #slotButtons do slotButtons[i]:Hide() end
+end
+
 -- =====================================
--- SET QUALITY BORDER COLOR
+-- SET QUALITY BORDER
 -- =====================================
 
 local function SetQualityBorder(btn, quality)
     local s = S()
     if not s.showQualityBorders then
-        for _, tex in ipairs(btn._qualBorders) do
-            tex:SetColorTexture(SLOT_BORDER[1], SLOT_BORDER[2], SLOT_BORDER[3], 0.4)
+        for _, t in ipairs(btn._qualBorders) do
+            t:SetColorTexture(SLOT_BORDER[1], SLOT_BORDER[2], SLOT_BORDER[3], 0.4)
         end
         return
     end
-
-    local color = QUALITY_COLORS[quality or 0] or QUALITY_COLORS[1]
-    local alpha = (quality and quality >= 2) and 0.8 or 0.3
-    for _, tex in ipairs(btn._qualBorders) do
-        tex:SetColorTexture(color[1], color[2], color[3], alpha)
-    end
+    local c = QUALITY_COLORS[quality or 0] or QUALITY_COLORS[1]
+    local a = (quality and quality >= 2) and 0.8 or 0.3
+    for _, t in ipairs(btn._qualBorders) do t:SetColorTexture(c[1], c[2], c[3], a) end
 end
 
 -- =====================================
--- UPDATE A SINGLE SLOT
+-- UPDATE SLOT BUTTON (item data → visual)
 -- =====================================
 
-local function UpdateSlotButton(wrapper, item)
+local function UpdateSlot(wrapper, item)
     if not wrapper then return end
     local btn = wrapper.btn
     if not btn then return end
     local s = S()
 
-    -- ContainerFrameItemButtonTemplate's OnLoad calls SetHasItem(false) → btn:Hide().
-    -- Showing the wrapper alone does NOT re-show an explicitly-hidden child button.
-    -- Always show btn explicitly here (same as BetterBags self.button:Show()). 
     btn:Show()
-
-    -- The template's click handler calls:
-    --   PickupContainerItem(self:GetParent():GetID(), self:GetID())
-    -- wrapper:SetID(bagID) ensures self:GetParent():GetID() = bagID (correct).
-    -- btn:SetID(slotIndex) ensures self:GetID() = slotIndex (correct).
     wrapper:SetID(item.bagID)
     btn:SetID(item.slotIndex)
+    btn.bag = item.bagID
 
-    -- Also store on btn for our custom OnEnter tooltip
-    btn.bag       = item.bagID
-    btn._bagID    = item.bagID
-    btn._slotIndex = item.slotIndex
-    btn._hasItem  = item.hasItem
-    btn._count    = item.count
-
-    -- Right-click /use macro kept as insurance (belt-and-suspenders with wrapper SetID)
+    -- Secure right-click use (like GW2_UI macro approach)
     if not InCombatLockdown() then
-        local macro = "/use " .. item.bagID .. " " .. item.slotIndex
-        if btn._secMacro ~= macro then
-            btn:SetAttribute("type2", "macro")
-            btn:SetAttribute("macrotext2", macro)
-            btn._secMacro = macro
-        end
+        btn:SetAttribute("type2", "macro")
+        btn:SetAttribute("macrotext2", "/use " .. item.bagID .. " " .. item.slotIndex)
     end
 
     if item.hasItem and item.icon then
-        if btn._icon then
-            btn._icon:SetTexture(item.icon)
-            btn._icon:Show()
-        end
+        btn._icon:SetTexture(item.icon)
+        btn._icon:Show()
         SetQualityBorder(btn, item.quality)
 
-        -- Quantity badge
+        -- Quantity
         if s.showQuantityBadges and item.count > 1 then
             btn._qtyText:SetText(tostring(item.count))
             btn._qtyText:Show()
@@ -517,9 +507,9 @@ local function UpdateSlotButton(wrapper, item)
 
         -- Cooldown
         if s.showCooldowns and btn._cooldown then
-            local start, duration, enable = C_Container.GetContainerItemCooldown(item.bagID, item.slotIndex)
-            if start and duration and duration > 0 and enable == 1 then
-                btn._cooldown:SetCooldown(start, duration)
+            local start, dur, en = C_Container.GetContainerItemCooldown(item.bagID, item.slotIndex)
+            if start and dur and dur > 0 and en == 1 then
+                btn._cooldown:SetCooldown(start, dur)
                 btn._cooldown:Show()
             else
                 btn._cooldown:Hide()
@@ -528,327 +518,712 @@ local function UpdateSlotButton(wrapper, item)
             btn._cooldown:Hide()
         end
 
-        -- Locked / search filter / normal state
-        local desaturate = false
-        local alpha = 1
-        if item.locked then
-            desaturate = true
-            alpha = 0.4
+        -- Search filter / locked
+        local desat, alpha = false, 1
+        if item.locked then desat, alpha = true, 0.4
         elseif currentFilter ~= "" then
-            local name = (item.name or ""):lower()
-            local match = name:find(currentFilter, 1, true) ~= nil
-            desaturate = not match
-            alpha = match and 1 or 0.3
+            local m = (item.name or ""):lower():find(currentFilter, 1, true)
+            desat = not m; alpha = m and 1 or 0.3
         end
-        SetItemButtonDesaturated(btn, desaturate)
-        if btn._icon then btn._icon:SetAlpha(alpha) end
+        btn._icon:SetDesaturated(desat)
+        btn._icon:SetAlpha(alpha)
 
-        -- Item level badge for equippable items (Weapon=2, Armor=4)
-        if btn._ilvlBadge then
-            if item.ilvl and (item.itemType == 2 or item.itemType == 4) then
+        -- Item level (GW2_UI-inspired)
+        if s.showItemLevel and btn._ilvlBadge then
+            if item.ilvl and (item.classID == 2 or item.classID == 4) then
                 btn._ilvlBadge:SetText(tostring(item.ilvl))
                 btn._ilvlBadge:Show()
-            else
-                btn._ilvlBadge:Hide()
-            end
-        end
+            else btn._ilvlBadge:Hide() end
+        elseif btn._ilvlBadge then btn._ilvlBadge:Hide() end
 
-        -- Crafting quality icon for tradeskill reagents (classID=7)
+        -- Junk icon (GW2_UI-inspired)
+        if s.showJunkIcon and btn._junkIcon then
+            btn._junkIcon:SetShown((item.quality or 0) == 0 and item.hasItem)
+        elseif btn._junkIcon then btn._junkIcon:Hide() end
+
+        -- Crafting quality
         if btn._qualIcon then
             local atlas = item.craftingQuality and CRAFTING_QUALITY_ATLAS[item.craftingQuality]
-            if atlas then
-                btn._qualIcon:SetAtlas(atlas, false)
-                btn._qualIcon:SetSize(14, 14)
-                btn._qualIcon:Show()
-            else
-                btn._qualIcon:Hide()
-            end
+            if atlas then btn._qualIcon:SetAtlas(atlas, false); btn._qualIcon:SetSize(14,14); btn._qualIcon:Show()
+            else btn._qualIcon:Hide() end
         end
     else
-        if btn._icon then
-            btn._icon:SetTexture(nil)
-            btn._icon:Hide()
-        end
+        -- Empty slot
+        btn._icon:SetTexture(nil); btn._icon:Hide()
         btn._qtyText:Hide()
         if btn._cooldown then btn._cooldown:Hide() end
         if btn._ilvlBadge then btn._ilvlBadge:Hide() end
-        if btn._qualIcon  then btn._qualIcon:Hide()  end
-        SetItemButtonDesaturated(btn, false)
-        for _, tex in ipairs(btn._qualBorders) do
-            tex:SetColorTexture(SLOT_BORDER[1], SLOT_BORDER[2], SLOT_BORDER[3], 0.2)
+        if btn._qualIcon then btn._qualIcon:Hide() end
+        if btn._junkIcon then btn._junkIcon:Hide() end
+        btn._icon:SetDesaturated(false)
+
+        -- Free slot count
+        if item._isFreeSlot and item.count > 1 then
+            btn._qtyText:SetText(tostring(item.count))
+            btn._qtyText:SetTextColor(MUTED_TEXT[1], MUTED_TEXT[2], MUTED_TEXT[3])
+            btn._qtyText:Show()
+        end
+
+        for _, t in ipairs(btn._qualBorders) do
+            t:SetColorTexture(SLOT_BORDER[1], SLOT_BORDER[2], SLOT_BORDER[3], 0.2)
         end
     end
 end
 
 -- =====================================
--- HELPER: get or create bag section label
+-- SECTION FRAME (categories / separate bags)
 -- =====================================
 
-local function GetBagLabel(content, index)
-    if bagLabels[index] then return bagLabels[index] end
-    local lbl = content:CreateFontString(nil, "OVERLAY")
-    lbl:SetFont(ADDON_FONT_BOLD, 11, "")
-    lbl:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.85)
-    bagLabels[index] = lbl
-    return lbl
+local function CreateSectionFrame(parent, key, col, fallback)
+    local section = CreateFrame("Frame", nil, parent)
+    section:SetWidth(parent:GetWidth() or 400)
+
+    local bg = section:CreateTexture(nil, "BACKGROUND", nil, 0)
+    bg:SetAllPoints()
+    bg:SetColorTexture(SECTION_BG[1], SECTION_BG[2], SECTION_BG[3], 0.4)
+
+    CreateBorders(section, BORDER_COLOR[1], BORDER_COLOR[2], BORDER_COLOR[3], 0.3)
+
+    -- Header
+    local hdr = CreateFrame("Button", nil, section)
+    hdr:SetHeight(SECTION_HDR_H)
+    hdr:SetPoint("TOPLEFT", 0, 0)
+    hdr:SetPoint("TOPRIGHT", 0, 0)
+    section._header = hdr
+
+    local hdrBg = hdr:CreateTexture(nil, "BACKGROUND", nil, 1)
+    hdrBg:SetAllPoints()
+    hdrBg:SetColorTexture(SECTION_HDR_BG[1], SECTION_HDR_BG[2], SECTION_HDR_BG[3], 0.6)
+    section._hdrBg = hdrBg
+
+    -- Accent bar
+    local accentBar = hdr:CreateTexture(nil, "ARTWORK", nil, 2)
+    accentBar:SetWidth(3)
+    accentBar:SetPoint("TOPLEFT", 0, 0)
+    accentBar:SetPoint("BOTTOMLEFT", 0, 0)
+    accentBar:SetColorTexture(col[1], col[2], col[3], 0.9)
+
+    -- Arrow
+    local arrow = hdr:CreateFontString(nil, "OVERLAY")
+    arrow:SetFont(ADDON_FONT, 10, "")
+    arrow:SetPoint("LEFT", 8, 0)
+    arrow:SetTextColor(MUTED_TEXT[1], MUTED_TEXT[2], MUTED_TEXT[3], 0.8)
+    section._arrow = arrow
+
+    -- Title
+    local title = hdr:CreateFontString(nil, "OVERLAY")
+    title:SetFont(ADDON_FONT_BOLD, 10, "")
+    title:SetPoint("LEFT", arrow, "RIGHT", 4, 0)
+    title:SetTextColor(col[1], col[2], col[3], 1)
+    section._title = title
+
+    -- Count
+    local cnt = hdr:CreateFontString(nil, "OVERLAY")
+    cnt:SetFont(ADDON_FONT, 9, "")
+    cnt:SetPoint("LEFT", title, "RIGHT", 6, 0)
+    cnt:SetTextColor(MUTED_TEXT[1], MUTED_TEXT[2], MUTED_TEXT[3], 0.8)
+    section._countBadge = cnt
+
+    -- Separator
+    local sep = hdr:CreateTexture(nil, "ARTWORK")
+    sep:SetHeight(1); sep:SetPoint("BOTTOMLEFT", 0, 0); sep:SetPoint("BOTTOMRIGHT", 0, 0)
+    sep:SetColorTexture(SEPARATOR[1], SEPARATOR[2], SEPARATOR[3], 0.4)
+
+    -- Grid area
+    local grid = CreateFrame("Frame", nil, section)
+    grid:SetPoint("TOPLEFT", 0, -SECTION_HDR_H)
+    grid:SetPoint("TOPRIGHT", 0, -SECTION_HDR_H)
+    grid:SetHeight(1)
+    section._grid = grid
+
+    -- Collapse click
+    hdr:SetScript("OnClick", function()
+        local db = TomoModDB and TomoModDB.bagSkin
+        if not db then return end
+        db.collapsedSections = db.collapsedSections or {}
+        db.collapsedSections[key] = not db.collapsedSections[key]
+        BS._LayoutGrid()
+    end)
+
+    hdr:SetScript("OnEnter", function()
+        hdrBg:SetColorTexture(SECTION_HDR_BG[1]+0.03, SECTION_HDR_BG[2]+0.03, SECTION_HDR_BG[3]+0.03, 0.8)
+    end)
+    hdr:SetScript("OnLeave", function()
+        hdrBg:SetColorTexture(SECTION_HDR_BG[1], SECTION_HDR_BG[2], SECTION_HDR_BG[3], 0.6)
+    end)
+
+    section._catKey = key
+    return section
+end
+
+local function GetSection(content, key, col, fallback)
+    if sectionFrames[key] then return sectionFrames[key] end
+    local sec = CreateSectionFrame(content, key, col, fallback)
+    sectionFrames[key] = sec
+    return sec
 end
 
 -- =====================================
--- LAYOUT GRID
+-- UPDATE FREE SLOTS (GW2_UI-style)
+-- =====================================
+
+local function UpdateFreeSlots()
+    if not bagFrame or not bagFrame._spaceStr then return end
+    local free, full = 0, 0
+    for _, bagID in ipairs(BAG_IDS) do
+        free = free + C_Container.GetContainerNumFreeSlots(bagID)
+        full = full + C_Container.GetContainerNumSlots(bagID)
+    end
+    bagFrame._spaceStr:SetText((full - free) .. " / " .. full)
+end
+
+-- =====================================
+-- UPDATE FOOTER (gold + currencies)
+-- =====================================
+
+local function UpdateFooter()
+    if not bagFrame or not bagFrame._footer then return end
+    local s = S()
+
+    if s.showGold ~= false then
+        bagFrame._goldText:SetText(FormatGold(GetMoney()))
+        bagFrame._goldText:Show()
+    else
+        bagFrame._goldText:Hide()
+    end
+
+    if s.showCurrencies then
+        local count = (C_CurrencyInfo and C_CurrencyInfo.GetNumTrackedCurrencies and C_CurrencyInfo.GetNumTrackedCurrencies()) or 0
+        if count == 0 then
+            bagFrame._currencyText:SetText("|cff555566" .. (L and L["bagskin_currencies_none"] or "No tracked currencies") .. "|r")
+            bagFrame._currencyText:Show()
+        else
+            local parts = {}
+            for i = 1, math.min(count, 6) do
+                local ci = C_CurrencyInfo.GetBackpackCurrencyInfo(i)
+                if ci and ci.quantity then
+                    local qty = ci.quantity >= 10000
+                        and string.format("%d,%03d", math.floor(ci.quantity/1000), ci.quantity%1000)
+                        or tostring(ci.quantity)
+                    parts[#parts+1] = (ci.iconFileID and ("|T"..ci.iconFileID..":14:14|t ") or "") .. "|cffdddddd" .. qty .. "|r"
+                end
+            end
+            bagFrame._currencyText:SetText(#parts > 0 and table.concat(parts, "  ") or "")
+            bagFrame._currencyText:SetShown(#parts > 0)
+        end
+    else
+        bagFrame._currencyText:SetText("")
+        bagFrame._currencyText:Hide()
+    end
+end
+
+-- =====================================
+-- LAYOUT: MAIN GRID
 -- =====================================
 
 local function LayoutGrid()
     if not bagFrame then return end
     local s = S()
 
-    local columns   = s.columns or 12
-    local slotSize  = s.slotSize or 36
-    local spacing   = s.slotSpacing or 3
-    local sortMode  = s.sortMode or "quality"
-    local unified   = s.unified ~= false
+    local slotSize   = s.slotSize or 40
+    local spacingX   = s.slotSpacingX or 5
+    local spacingY   = s.slotSpacingY or 5
+    local sortMode   = s.sortMode or "quality"
+    local doMerge    = s.stackMerge or false
+    local showEmpty  = s.showEmptySlots ~= false
+    local showRecent = s.showRecentItems ~= false
+    local showBagBar = s.showBagBar ~= false
+    local layoutMode = s.layoutMode or "combined"
+
+    local content  = bagFrame._content
+    local barOfs   = showBagBar and BAGBAR_W or 0
+    local frameW   = bagFrame:GetWidth()
+    local contentW = frameW - barOfs
+    local columns  = ColCount(slotSize, spacingX, contentW)
+
+    content:SetWidth(contentW)
+    content:ClearAllPoints()
+    content:SetPoint("TOPLEFT", bagFrame._scrollFrame, "TOPLEFT", 0, 0)
+    content:SetPoint("TOPRIGHT", bagFrame._scrollFrame, "TOPRIGHT", 0, 0)
 
     -- Collect items
-    local items = CollectBagItems()
-    local sortFn = SORT_FUNCS[sortMode] or SORT_FUNCS.quality
+    local allItems = CollectItems()
 
-    local content = bagFrame._content
-    local PADDING = 8
-    local LABEL_H = 20  -- height reserved for bag section headers
-    local SEP_GAP = 6   -- extra gap before each bag section header
+    ResetSlotPool()
 
-    -- Ensure we have enough slot buttons
-    while #slotButtons < #items do
-        local wrapper = CreateSlotButton(content, slotSize)
-        slotButtons[#slotButtons + 1] = wrapper
-    end
+    -- ===== LAYOUT: COMBINED =====
+    if layoutMode == "combined" then
+        -- Hide all section frames
+        for _, sec in pairs(sectionFrames) do sec:Hide() end
 
-    -- Hide all bag labels first
-    for _, lbl in ipairs(bagLabels) do
-        lbl:Hide()
-    end
-
-    if unified then
-        -- Unified mode: merge all regular bags, keep reagent bag separate
-        local reagentBagID = Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag
-        local mainItems = {}
-        local reagentItems = {}
-
-        for _, item in ipairs(items) do
-            if reagentBagID and item.bagID == reagentBagID then
-                reagentItems[#reagentItems + 1] = item
-            else
-                mainItems[#mainItems + 1] = item
-            end
-        end
-
-        table.sort(mainItems, sortFn)
-        table.sort(reagentItems, sortFn)
-
-        local x, y = PADDING, -PADDING
-        local col = 0
-        local slotIdx = 0
-
-        -- Layout main bag items
-        for _, item in ipairs(mainItems) do
-            slotIdx = slotIdx + 1
-            local wrapper = slotButtons[slotIdx]
-            wrapper:SetSize(slotSize, slotSize)
-            wrapper:ClearAllPoints()
-            wrapper:SetPoint("TOPLEFT", content, "TOPLEFT", x, y)
-            wrapper:Show()
-            UpdateSlotButton(wrapper, item)
-
-            col = col + 1
-            if col >= columns then
-                col = 0
-                x = PADDING
-                y = y - slotSize - spacing
-            else
-                x = x + slotSize + spacing
-            end
-        end
-
-        -- Finish last row of main items
-        if col > 0 then
-            y = y - slotSize - spacing
-            col = 0
-            x = PADDING
-        end
-
-        -- Reagent bag section (if it has items)
-        if #reagentItems > 0 then
-            local labelIdx = 1
-            -- Separator
-            y = y - SEP_GAP
-            local sepKey = "_sep_reagent"
-            if not content[sepKey] then
-                local sep = content:CreateTexture(nil, "ARTWORK")
-                sep:SetHeight(1)
-                sep:SetColorTexture(SEPARATOR[1], SEPARATOR[2], SEPARATOR[3], 0.5)
-                content[sepKey] = sep
-            end
-            local sep = content[sepKey]
-            sep:ClearAllPoints()
-            sep:SetPoint("TOPLEFT", content, "TOPLEFT", PADDING, y)
-            sep:SetPoint("TOPRIGHT", content, "TOPRIGHT", -PADDING, y)
-            sep:Show()
-            y = y - 4
-
-            -- Header
-            local lbl = GetBagLabel(content, labelIdx)
-            lbl:ClearAllPoints()
-            lbl:SetPoint("TOPLEFT", content, "TOPLEFT", PADDING, y)
-            local numSlots = C_Container.GetContainerNumSlots(reagentBagID)
-            lbl:SetText((BAG_NAMES[reagentBagID] or "Reagent Bag") .. "  |cff777788(" .. numSlots .. " slots)|r")
-            lbl:Show()
-            y = y - LABEL_H
-
-            -- Layout reagent items
-            for _, item in ipairs(reagentItems) do
-                slotIdx = slotIdx + 1
-                local wrapper = slotButtons[slotIdx]
-                wrapper:SetSize(slotSize, slotSize)
-                wrapper:ClearAllPoints()
-                wrapper:SetPoint("TOPLEFT", content, "TOPLEFT", x, y)
-                wrapper:Show()
-                UpdateSlotButton(wrapper, item)
-
-                col = col + 1
-                if col >= columns then
-                    col = 0
-                    x = PADDING
-                    y = y - slotSize - spacing
-                else
-                    x = x + slotSize + spacing
+        -- Sort
+        local display = {}
+        if sortMode == "none" then
+            -- Manual mode: keep natural bag/slot order, don't separate filled/empty
+            for _, item in ipairs(allItems) do
+                if item.hasItem or showEmpty then
+                    display[#display+1] = item
                 end
-            end
-
-            if col > 0 then
-                y = y - slotSize - spacing
             end
         else
-            -- Hide reagent separator if no reagent items
-            local sepKey = "_sep_reagent"
-            if content[sepKey] then content[sepKey]:Hide() end
+            local filled, empty = {}, {}
+            for _, item in ipairs(allItems) do
+                if item.hasItem then filled[#filled+1] = item
+                else empty[#empty+1] = item end
+            end
+            local fn = SORT_FUNCS[sortMode]
+            if fn then table.sort(filled, fn) end
+
+            -- Reverse bag order
+            if s.reverseBagOrder then
+                for i = #filled, 1, -1 do display[#display+1] = filled[i] end
+            else
+                for _, item in ipairs(filled) do display[#display+1] = item end
+            end
+            if showEmpty then
+                if doMerge then
+                    local merged = MergeStacks(empty)
+                    for _, item in ipairs(merged) do display[#display+1] = item end
+                else
+                    for _, item in ipairs(empty) do display[#display+1] = item end
+                end
+            end
         end
 
-        -- Hide unused buttons
-        for i = slotIdx + 1, #slotButtons do
-            slotButtons[i]:Hide()
+        -- Apply search filter
+        if currentFilter ~= "" then
+            local filtered = {}
+            for _, item in ipairs(display) do
+                if not item.hasItem or (item.name or ""):lower():find(currentFilter, 1, true) then
+                    filtered[#filtered+1] = item
+                end
+            end
+            display = filtered
         end
 
-        -- Resize content
-        local contentH = math.abs(y) + PADDING
-        content:SetHeight(math.max(contentH, 10))
-    else
-        -- Separate mode: group items by bag, each bag gets a header + own grid
-        local bagGroups = {}
+        -- Position in grid
+        local gx, gy = SIDE_PAD, -SIDE_PAD
+        local col = 0
+        for _, item in ipairs(display) do
+            local w = AcquireSlot(content, slotSize)
+            w:ClearAllPoints()
+            w:SetPoint("TOPLEFT", content, "TOPLEFT", gx, gy)
+            UpdateSlot(w, item)
+            col = col + 1
+            if col >= columns then
+                col = 0; gx = SIDE_PAD; gy = gy - slotSize - spacingY
+            else
+                gx = gx + slotSize + spacingX
+            end
+        end
+        if col > 0 then gy = gy - slotSize - spacingY end
+        content:SetHeight(math.abs(gy) + SIDE_PAD)
+
+    -- ===== LAYOUT: CATEGORIES =====
+    elseif layoutMode == "categories" then
+        local cats = Categorize(allItems)
+        local collapsedDB = s.collapsedSections or {}
+        local y = 0
+
+        for _, catDef in ipairs(CATEGORIES) do
+            local items = cats[catDef.key]
+            if not items or #items == 0 then
+                if sectionFrames[catDef.key] then sectionFrames[catDef.key]:Hide() end
+            elseif catDef.key == "recentItems" and not showRecent then
+                if sectionFrames[catDef.key] then sectionFrames[catDef.key]:Hide() end
+            elseif catDef.key == "freeSlots" and not showEmpty then
+                if sectionFrames[catDef.key] then sectionFrames[catDef.key]:Hide() end
+            else
+                local section = GetSection(content, catDef.key, catDef.color, catDef.fallback)
+                section:SetWidth(contentW)
+                local collapsed = collapsedDB[catDef.key] or false
+                local catName = (L and L[catDef.nameKey]) or catDef.fallback
+
+                section._arrow:SetText(collapsed and ">" or "v")
+                section._title:SetText(catName)
+                section._countBadge:SetText("(" .. #items .. ")")
+
+                if y > 0 then y = y + SECTION_GAP end
+                section:ClearAllPoints()
+                section:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -y)
+
+                if collapsed then
+                    section._grid:Hide()
+                    section:SetHeight(SECTION_HDR_H)
+                    y = y + SECTION_HDR_H
+                else
+                    section._grid:Show()
+                    local displayItems = doMerge and MergeStacks(items) or items
+                    local sSort = catDef.defaultSort or sortMode
+                    local fn = SORT_FUNCS[sSort]
+                    if fn and catDef.key ~= "freeSlots" then table.sort(displayItems, fn) end
+
+                    -- Filter
+                    local skipSection = false
+                    if currentFilter ~= "" and catDef.key ~= "freeSlots" then
+                        local f = {}
+                        for _, item in ipairs(displayItems) do
+                            if item.hasItem and (item.name or ""):lower():find(currentFilter, 1, true) then
+                                f[#f+1] = item
+                            end
+                        end
+                        if #f == 0 then
+                            section:Hide()
+                            skipSection = true
+                        else
+                            displayItems = f
+                        end
+                    end
+
+                    if not skipSection then
+                        local gx, gy = SIDE_PAD, -SECTION_PAD
+                        local col = 0
+                        for _, item in ipairs(displayItems) do
+                            local w = AcquireSlot(section._grid, slotSize)
+                            w:ClearAllPoints()
+                            w:SetPoint("TOPLEFT", section._grid, "TOPLEFT", gx, gy)
+                            UpdateSlot(w, item)
+                            col = col + 1
+                            if col >= columns then
+                                col = 0; gx = SIDE_PAD; gy = gy - slotSize - spacingY
+                            else gx = gx + slotSize + spacingX end
+                        end
+                        if col > 0 then gy = gy - slotSize - spacingY end
+
+                        local gridH = math.abs(gy) + SECTION_PAD
+                        section._grid:SetHeight(gridH)
+                        section:SetHeight(SECTION_HDR_H + gridH)
+                        y = y + SECTION_HDR_H + gridH
+                        section:Show()
+                    end
+                end
+            end
+        end
+        content:SetHeight(math.max(y + SIDE_PAD, 10))
+
+    -- ===== LAYOUT: SEPARATE BAGS (GW2_UI-style) =====
+    elseif layoutMode == "separateBags" then
+        local collapsedDB = s.collapsedSections or {}
+        local y = 0
+
         local bagOrder = {}
-        for _, item in ipairs(items) do
-            local bid = item.bagID
-            if not bagGroups[bid] then
-                bagGroups[bid] = {}
-                bagOrder[#bagOrder + 1] = bid
-            end
-            bagGroups[bid][#bagGroups[bid] + 1] = item
+        for _, bagID in ipairs(BAG_IDS) do bagOrder[#bagOrder+1] = bagID end
+        if s.reverseBagOrder then
+            local rev = {}
+            for i = #bagOrder, 1, -1 do rev[#rev+1] = bagOrder[i] end
+            bagOrder = rev
         end
 
-        local y = -PADDING
-        local slotIdx = 0
-        local labelIdx = 0
+        local function processBag(bagID)
+            local items = {}
+            for _, item in ipairs(allItems) do
+                if item.bagID == bagID then items[#items+1] = item end
+            end
+            if #items == 0 then return end
 
-        for _, bid in ipairs(bagOrder) do
-            local group = bagGroups[bid]
-            if #group > 0 then
-                -- Bag section header
-                labelIdx = labelIdx + 1
-                local lbl = GetBagLabel(content, labelIdx)
-                lbl:ClearAllPoints()
-
-                -- Add separator gap between bags (not before the first)
-                if labelIdx > 1 then
-                    y = y - SEP_GAP
-
-                    -- Separator line
-                    local sepKey = "_sep" .. labelIdx
-                    if not content[sepKey] then
-                        local sep = content:CreateTexture(nil, "ARTWORK")
-                        sep:SetHeight(1)
-                        sep:SetColorTexture(SEPARATOR[1], SEPARATOR[2], SEPARATOR[3], 0.5)
-                        content[sepKey] = sep
-                    end
-                    local sep = content[sepKey]
-                    sep:ClearAllPoints()
-                    sep:SetPoint("TOPLEFT", content, "TOPLEFT", PADDING, y)
-                    sep:SetPoint("TOPRIGHT", content, "TOPRIGHT", -PADDING, y)
-                    sep:Show()
-                    y = y - 4
-                end
-
-                lbl:SetPoint("TOPLEFT", content, "TOPLEFT", PADDING, y)
-                local bagName = BAG_NAMES[bid] or ("Bag " .. bid)
-                local numSlots = C_Container.GetContainerNumSlots(bid)
-                lbl:SetText(bagName .. "  |cff777788(" .. numSlots .. " slots)|r")
-                lbl:Show()
-                y = y - LABEL_H
-
-                -- Layout this bag's grid
-                local x = PADDING
-                local col = 0
-                for _, item in ipairs(group) do
-                    slotIdx = slotIdx + 1
-                    local wrapper = slotButtons[slotIdx]
-                    wrapper:SetSize(slotSize, slotSize)
-                    wrapper:ClearAllPoints()
-                    wrapper:SetPoint("TOPLEFT", content, "TOPLEFT", x, y)
-                    wrapper:Show()
-                    UpdateSlotButton(wrapper, item)
-
-                    col = col + 1
-                    if col >= columns then
-                        col = 0
-                        x = PADDING
-                        y = y - slotSize - spacing
-                    else
-                        x = x + slotSize + spacing
-                    end
-                end
-
-                -- Finish the last row
-                if col > 0 then
-                    y = y - slotSize - spacing
+            -- Bag name
+            local bagName
+            if bagID == 0 then
+                bagName = BACKPACK_TOOLTIP or "Backpack"
+            else
+                local slotName = (bagID == (REAGENT_BAG_ID or -1)) and "ReagentBag0Slot" or ("Bag" .. (bagID-1) .. "Slot")
+                local slotID = GetInventorySlotInfo(slotName)
+                local itemID = slotID and GetInventoryItemID("player", slotID)
+                if itemID then
+                    bagName = C_Item.GetItemInfo(itemID) or ("Bag " .. bagID)
+                else
+                    bagName = "Bag " .. bagID
                 end
             end
+
+            local secKey = "bag_" .. bagID
+            local col = ACCENT
+            local section = GetSection(content, secKey, col, bagName)
+            section:SetWidth(contentW)
+            local collapsed = collapsedDB[secKey] or false
+
+            section._arrow:SetText(collapsed and ">" or "v")
+            section._title:SetText(bagName)
+            local filledCount, freeCount = 0, 0
+            for _, item in ipairs(items) do
+                if item.hasItem then filledCount = filledCount + 1
+                else freeCount = freeCount + 1 end
+            end
+            section._countBadge:SetText("(" .. filledCount .. "/" .. #items .. ")")
+
+            if y > 0 then y = y + SECTION_GAP end
+            section:ClearAllPoints()
+            section:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -y)
+
+            if collapsed then
+                section._grid:Hide()
+                section:SetHeight(SECTION_HDR_H)
+                y = y + SECTION_HDR_H
+            else
+                section._grid:Show()
+                local displayItems = {}
+                if sortMode == "none" then
+                    -- Manual mode: keep natural slot order
+                    for _, item in ipairs(items) do
+                        if item.hasItem or showEmpty then
+                            displayItems[#displayItems+1] = item
+                        end
+                    end
+                else
+                    local fn = SORT_FUNCS[sortMode]
+                    local filled, empty = {}, {}
+                    for _, item in ipairs(items) do
+                        if item.hasItem then filled[#filled+1] = item
+                        else empty[#empty+1] = item end
+                    end
+                    if fn then table.sort(filled, fn) end
+                    for _, item in ipairs(filled) do displayItems[#displayItems+1] = item end
+                    if showEmpty then
+                        for _, item in ipairs(empty) do displayItems[#displayItems+1] = item end
+                    end
+                end
+
+                if currentFilter ~= "" then
+                    local f = {}
+                    for _, item in ipairs(displayItems) do
+                        if not item.hasItem or (item.name or ""):lower():find(currentFilter, 1, true) then
+                            f[#f+1] = item
+                        end
+                    end
+                    if #f == 0 then section:Hide(); return end
+                    displayItems = f
+                end
+
+                local gx, gy = SIDE_PAD, -SECTION_PAD
+                local c = 0
+                for _, item in ipairs(displayItems) do
+                    local w = AcquireSlot(section._grid, slotSize)
+                    w:ClearAllPoints()
+                    w:SetPoint("TOPLEFT", section._grid, "TOPLEFT", gx, gy)
+                    UpdateSlot(w, item)
+                    c = c + 1
+                    if c >= columns then
+                        c = 0; gx = SIDE_PAD; gy = gy - slotSize - spacingY
+                    else gx = gx + slotSize + spacingX end
+                end
+                if c > 0 then gy = gy - slotSize - spacingY end
+
+                local gridH = math.abs(gy) + SECTION_PAD
+                section._grid:SetHeight(gridH)
+                section:SetHeight(SECTION_HDR_H + gridH)
+                y = y + SECTION_HDR_H + gridH
+                section:Show()
+            end
         end
 
-        -- Hide unused buttons
-        for i = slotIdx + 1, #slotButtons do
-            slotButtons[i]:Hide()
+        for _, bagID in ipairs(bagOrder) do
+            processBag(bagID)
         end
 
-        -- Resize content
-        local contentH = math.abs(y) + PADDING
-        content:SetHeight(math.max(contentH, 10))
+        -- Hide unused sections
+        for k, sec in pairs(sectionFrames) do
+            local found = false
+            for _, bagID in ipairs(bagOrder) do
+                if k == "bag_" .. bagID then found = true; break end
+            end
+            if not found and layoutMode == "separateBags" then sec:Hide() end
+        end
+        content:SetHeight(math.max(y + SIDE_PAD, 10))
     end
 
-    -- Resize frame width
-    local frameW = columns * (slotSize + spacing) - spacing + PADDING * 2
-    bagFrame:SetWidth(frameW)
+    HideUnusedSlots()
 
-    -- Auto-resize frame height to fit content (capped at 75% screen height)
-    local s2 = S()
-    local HEADER_H = 32
-    local SEARCH_H = (s2.showSearchBar ~= false) and 28 or 0
-    local topOffset = HEADER_H + SEARCH_H
-    local contentH = bagFrame._content:GetHeight()
-    local maxH = (UIParent:GetHeight() / ((s2.scale or 100) / 100)) * 0.75
-    local totalH = topOffset + contentH + FOOTER_H
-    bagFrame:SetHeight(math.min(totalH, math.max(maxH, 200)))
+    -- Auto-resize height (capped at 75% screen)
+    local SEARCH_OFS = (s.showSearchBar ~= false) and SEARCH_H or 0
+    local topOfs = HEADER_H + SEARCH_OFS
+    local contentH = content:GetHeight()
+    local maxH = (UIParent:GetHeight() / ((s.scale or 100)/100)) * 0.75
+    local totalH = topOfs + contentH + FOOTER_H
+    bagFrame:SetHeight(math.min(totalH, math.max(maxH, MIN_HEIGHT)))
 
-    -- Update content frame width to match
-    bagFrame._content:SetWidth(frameW)
-
+    UpdateFreeSlots()
     UpdateFooter()
+end
+
+BS._LayoutGrid = LayoutGrid
+
+-- =====================================
+-- BAG BAR (GW2_UI-inspired sidebar)
+-- =====================================
+
+local function CreateBagBar(f)
+    local bar = CreateFrame("Frame", nil, f)
+    bar:SetWidth(BAGBAR_W)
+    bar:SetPoint("TOPLEFT", 0, -HEADER_H)
+    bar:SetPoint("BOTTOMLEFT", 0, FOOTER_H)
+    f._bagBar = bar
+
+    local barBg = bar:CreateTexture(nil, "BACKGROUND")
+    barBg:SetAllPoints()
+    barBg:SetColorTexture(HEADER_BG[1], HEADER_BG[2], HEADER_BG[3], 0.6)
+
+    local sep = bar:CreateTexture(nil, "ARTWORK")
+    sep:SetWidth(1)
+    sep:SetPoint("TOPRIGHT", 0, 0)
+    sep:SetPoint("BOTTOMRIGHT", 0, 0)
+    sep:SetColorTexture(SEPARATOR[1], SEPARATOR[2], SEPARATOR[3], 0.6)
+
+    bar._bagBtns = {}
+    local bagSize = 28
+    local pad = 4
+    local y = -8
+
+    for _, bagID in ipairs(BAG_IDS) do
+        local btn = CreateFrame("Button", nil, bar)
+        btn:SetSize(bagSize, bagSize)
+        btn:SetPoint("TOP", bar, "TOP", 0, y)
+        y = y - bagSize - pad
+
+        local icon = btn:CreateTexture(nil, "ARTWORK")
+        icon:SetAllPoints()
+        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        btn._icon = icon
+
+        CreateBorders(btn, SLOT_BORDER[1], SLOT_BORDER[2], SLOT_BORDER[3], 0.4, "OVERLAY")
+
+        local high = btn:CreateTexture(nil, "HIGHLIGHT")
+        high:SetAllPoints()
+        high:SetColorTexture(1, 1, 1, 0.15)
+
+        -- Count
+        local cnt = btn:CreateFontString(nil, "OVERLAY")
+        cnt:SetFont(ADDON_FONT_BOLD, 8, "OUTLINE")
+        cnt:SetPoint("BOTTOMRIGHT", -1, 1)
+        cnt:SetTextColor(1, 1, 1, 0.8)
+        btn._count = cnt
+
+        btn:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            if bagID == 0 then
+                GameTooltip:SetText(BACKPACK_TOOLTIP or "Backpack")
+            else
+                local slotName = (bagID == (REAGENT_BAG_ID or -1)) and "ReagentBag0Slot" or ("Bag" .. (bagID-1) .. "Slot")
+                local slotID = GetInventorySlotInfo(slotName)
+                if slotID then GameTooltip:SetInventoryItem("player", slotID) end
+            end
+            GameTooltip:Show()
+        end)
+        btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        btn:SetScript("OnClick", function(self, mb)
+            if mb == "LeftButton" then
+                if bagID > 0 then
+                    local slotName = (bagID == (REAGENT_BAG_ID or -1)) and "ReagentBag0Slot" or ("Bag" .. (bagID-1) .. "Slot")
+                    local slotID = GetInventorySlotInfo(slotName)
+                    if slotID then PutItemInBag(slotID) end
+                end
+            end
+        end)
+        btn:RegisterForClicks("AnyUp")
+        btn._bagID = bagID
+        bar._bagBtns[#bar._bagBtns+1] = btn
+    end
+end
+
+local function UpdateBagBar(f)
+    if not f._bagBar then return end
+    for _, btn in ipairs(f._bagBar._bagBtns) do
+        local bagID = btn._bagID
+        if bagID == 0 then
+            btn._icon:SetTexture("Interface\\Buttons\\Button-Backpack-Up")
+            local free = C_Container.GetContainerNumFreeSlots(0)
+            btn._count:SetText(tostring(free))
+        else
+            local slotName = (bagID == (REAGENT_BAG_ID or -1)) and "ReagentBag0Slot" or ("Bag" .. (bagID-1) .. "Slot")
+            local slotID = GetInventorySlotInfo(slotName)
+            local tex = slotID and GetInventoryItemTexture("player", slotID)
+            if tex then
+                btn._icon:SetTexture(tex)
+                btn._icon:SetDesaturated(slotID and IsInventoryItemLocked(slotID))
+                local free = C_Container.GetContainerNumFreeSlots(bagID)
+                btn._count:SetText(tostring(free))
+            else
+                btn._icon:SetTexture("Interface\\PaperDoll\\UI-PaperDoll-Slot-Bag")
+                btn._icon:SetDesaturated(false)
+                btn._count:SetText("")
+            end
+        end
+    end
+end
+
+-- =====================================
+-- SETTINGS CONTEXT MENU (GW2_UI-inspired)
+-- =====================================
+
+local function ShowSettingsMenu(anchor)
+    if not MenuUtil or not MenuUtil.CreateContextMenu then return end
+    MenuUtil.CreateContextMenu(anchor, function(_, root)
+        root:SetMinimumWidth(1)
+        local s = S()
+
+        -- Layout mode
+        local lmSub = root:CreateButton((L and L["opt_skin_bags_layout_mode"]) or "Layout Mode")
+        for _, opt in ipairs({
+            { "combined",      (L and L["opt_skin_bags_layout_combined"])   or "Combined Grid" },
+            { "categories",    (L and L["opt_skin_bags_layout_categories"]) or "Categories" },
+            { "separateBags",  (L and L["opt_skin_bags_layout_separate"])   or "Separate Bags" },
+        }) do
+            lmSub:CreateRadio(opt[2],
+                function() return s.layoutMode == opt[1] end,
+                function() s.layoutMode = opt[1]; LayoutGrid() end)
+        end
+
+        -- Sort mode
+        local smSub = root:CreateButton((L and L["opt_skin_bags_sort_mode"]) or "Sort Mode")
+        for _, opt in ipairs({
+            { "none",    (L and L["opt_skin_bags_sort_none"])    or "Manual" },
+            { "quality", (L and L["opt_skin_bags_sort_quality"]) or "Quality" },
+            { "name",    (L and L["opt_skin_bags_sort_name"])    or "Name" },
+            { "type",    (L and L["opt_skin_bags_sort_type"])    or "Type" },
+            { "ilvl",    (L and L["opt_skin_bags_sort_ilvl"])    or "Item Level" },
+        }) do
+            smSub:CreateRadio(opt[2],
+                function() return s.sortMode == opt[1] end,
+                function() s.sortMode = opt[1]; LayoutGrid() end)
+        end
+
+        -- Toggles
+        local function addCheck(label, key, cb)
+            root:CreateCheckbox(label, function() return s[key] end, function()
+                s[key] = not s[key]
+                if cb then cb() else LayoutGrid() end
+            end)
+        end
+
+        addCheck((L and L["opt_skin_bags_quality_borders"]) or "Quality Borders", "showQualityBorders")
+        addCheck((L and L["opt_skin_bags_show_ilvl"])       or "Show Item Level",  "showItemLevel")
+        addCheck((L and L["opt_skin_bags_show_junk_icon"])  or "Show Junk Icon",   "showJunkIcon")
+        addCheck((L and L["opt_skin_bags_cooldowns"])       or "Cooldown Overlays", "showCooldowns")
+        addCheck((L and L["opt_skin_bags_quantity"])         or "Quantity Badges",   "showQuantityBadges")
+        addCheck((L and L["opt_skin_bags_search"])           or "Search Bar",        "showSearchBar", function()
+            if bagFrame._searchFrame then
+                bagFrame._searchFrame:SetShown(s.showSearchBar ~= false)
+                local SEARCH_OFS = (s.showSearchBar ~= false) and SEARCH_H or 0
+                bagFrame._scrollFrame:SetPoint("TOPLEFT", s.showBagBar ~= false and BAGBAR_W or 0, -(HEADER_H + SEARCH_OFS))
+            end
+            LayoutGrid()
+        end)
+        addCheck((L and L["opt_skin_bags_show_empty"]) or "Show Free Slots", "showEmptySlots")
+        addCheck((L and L["opt_skin_bags_show_gold"])  or "Show Gold",        "showGold",  function() UpdateFooter() end)
+        addCheck((L and L["opt_skin_bags_show_currencies"]) or "Show Currencies", "showCurrencies", function() UpdateFooter() end)
+        addCheck((L and L["opt_skin_bags_reverse_order"]) or "Reverse Bag Order", "reverseBagOrder")
+        addCheck((L and L["opt_skin_bags_stack_merge"]) or "Merge Stacks", "stackMerge")
+        addCheck((L and L["opt_skin_bags_show_bag_bar"]) or "Show Bag Bar", "showBagBar", function()
+            if bagFrame._bagBar then
+                bagFrame._bagBar:SetShown(s.showBagBar ~= false)
+                local barOfs = (s.showBagBar ~= false) and BAGBAR_W or 0
+                local SEARCH_OFS = (s.showSearchBar ~= false) and SEARCH_H or 0
+                bagFrame._scrollFrame:SetPoint("TOPLEFT", barOfs, -(HEADER_H + SEARCH_OFS))
+                bagFrame._searchFrame:SetPoint("TOPLEFT", barOfs, -HEADER_H)
+                bagFrame._searchFrame:SetPoint("TOPRIGHT", 0, -HEADER_H)
+            end
+            LayoutGrid()
+        end)
+    end)
 end
 
 -- =====================================
@@ -857,27 +1232,25 @@ end
 
 local function CreateBagFrame()
     if bagFrame then return bagFrame end
-
     local s = S()
-    local HEADER_H = 32
-    local SEARCH_H = 28
 
     local f = CreateFrame("Frame", "TomoMod_BagSkin_Main", UIParent)
-    f:SetSize(500, 400)
+    f:SetSize(s.width or 480, 500)
     f:SetFrameStrata("HIGH")
     f:SetFrameLevel(100)
     f:SetClampedToScreen(true)
     f:SetMovable(true)
+    f:SetResizable(true)
+    f:SetResizeBounds(MIN_WIDTH, MIN_HEIGHT)
     f:EnableMouse(true)
 
     -- Position
     local pos = s.position
     if pos then
-        f:SetPoint(pos.anchor or "BOTTOMRIGHT", UIParent, pos.relTo or "BOTTOMRIGHT", pos.x or -20, pos.y or 24)
+        f:SetPoint(pos.anchor or "BOTTOMRIGHT", UIParent, pos.relTo or "BOTTOMRIGHT", pos.x or -20, pos.y or 60)
     else
-        f:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -20, 24)
+        f:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -20, 60)
     end
-
     f:SetScale((s.scale or 100) / 100)
 
     -- Background
@@ -885,349 +1258,351 @@ local function CreateBagFrame()
     bg:SetAllPoints()
     bg:SetColorTexture(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], (s.opacity or 92) / 100)
     f._bg = bg
-
-    -- Border
     CreateBorders(f, BORDER_COLOR[1], BORDER_COLOR[2], BORDER_COLOR[3], 0.6)
 
-    -- Header
+    -- ===== HEADER =====
     local header = CreateFrame("Frame", nil, f)
     header:SetHeight(HEADER_H)
-    header:SetPoint("TOPLEFT", 0, 0)
-    header:SetPoint("TOPRIGHT", 0, 0)
+    header:SetPoint("TOPLEFT", 0, 0); header:SetPoint("TOPRIGHT", 0, 0)
 
-    local headerBg = header:CreateTexture(nil, "BACKGROUND")
-    headerBg:SetAllPoints()
-    headerBg:SetColorTexture(HEADER_BG[1], HEADER_BG[2], HEADER_BG[3], 1)
+    local hBg = header:CreateTexture(nil, "BACKGROUND")
+    hBg:SetAllPoints()
+    hBg:SetColorTexture(HEADER_BG[1], HEADER_BG[2], HEADER_BG[3], 1)
 
-    -- Header separator
-    local headerSep = header:CreateTexture(nil, "ARTWORK")
-    headerSep:SetHeight(1)
-    headerSep:SetPoint("BOTTOMLEFT", 0, 0)
-    headerSep:SetPoint("BOTTOMRIGHT", 0, 0)
-    headerSep:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.30)
+    local hSep = header:CreateTexture(nil, "ARTWORK")
+    hSep:SetHeight(1); hSep:SetPoint("BOTTOMLEFT", 0, 0); hSep:SetPoint("BOTTOMRIGHT", 0, 0)
+    hSep:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.30)
 
     -- Title
-    local titleLbl = header:CreateFontString(nil, "OVERLAY")
-    titleLbl:SetFont(ADDON_FONT_BOLD, 12, "")
-    titleLbl:SetPoint("LEFT", 10, 0)
-    titleLbl:SetText("|cff0cd29fBags|r")
-    f._title = titleLbl
+    local title = header:CreateFontString(nil, "OVERLAY")
+    title:SetFont(ADDON_FONT_BOLD, 13, "")
+    title:SetPoint("LEFT", 10, 0)
+    title:SetText("|cff0cd29fBags|r")
+
+    -- Space string
+    local spaceStr = header:CreateFontString(nil, "OVERLAY")
+    spaceStr:SetFont(ADDON_FONT, 10, "")
+    spaceStr:SetPoint("LEFT", title, "RIGHT", 12, 0)
+    spaceStr:SetTextColor(MUTED_TEXT[1], MUTED_TEXT[2], MUTED_TEXT[3])
+    f._spaceStr = spaceStr
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, header)
-    closeBtn:SetSize(24, HEADER_H)
-    closeBtn:SetPoint("RIGHT", -4, 0)
+    closeBtn:SetSize(HEADER_H, HEADER_H)
+    closeBtn:SetPoint("RIGHT", 0, 0)
     local closeTxt = closeBtn:CreateFontString(nil, "OVERLAY")
-    closeTxt:SetFont(ADDON_FONT_BOLD, 16, "")
-    closeTxt:SetPoint("CENTER")
-    closeTxt:SetText("×")
-    closeTxt:SetTextColor(TAB_IDLE_TEXT[1], TAB_IDLE_TEXT[2], TAB_IDLE_TEXT[3], 1)
-    closeBtn:SetScript("OnEnter", function()
-        closeTxt:SetTextColor(0.90, 0.28, 0.28, 1)
-    end)
-    closeBtn:SetScript("OnLeave", function()
-        closeTxt:SetTextColor(TAB_IDLE_TEXT[1], TAB_IDLE_TEXT[2], TAB_IDLE_TEXT[3], 1)
-    end)
+    closeTxt:SetFont(ADDON_FONT_BOLD, 16, ""); closeTxt:SetPoint("CENTER")
+    closeTxt:SetText("\195\151"); closeTxt:SetTextColor(MUTED_TEXT[1], MUTED_TEXT[2], MUTED_TEXT[3])
+    closeBtn:SetScript("OnEnter", function() closeTxt:SetTextColor(0.90, 0.28, 0.28, 1) end)
+    closeBtn:SetScript("OnLeave", function() closeTxt:SetTextColor(MUTED_TEXT[1], MUTED_TEXT[2], MUTED_TEXT[3]) end)
     closeBtn:SetScript("OnClick", function()
         f:Hide()
-        if _G.CloseAllBags then CloseAllBags() end
+        if CloseAllBags then CloseAllBags() end
     end)
 
-    -- Sort button
+    -- Settings button (GW2_UI-inspired kogwheel)
+    local setBtn = CreateFrame("Button", nil, header)
+    setBtn:SetSize(HEADER_H, HEADER_H)
+    setBtn:SetPoint("RIGHT", closeBtn, "LEFT", 0, 0)
+    local setTxt = setBtn:CreateFontString(nil, "OVERLAY")
+    setTxt:SetFont(ADDON_FONT, 14, ""); setTxt:SetPoint("CENTER")
+    setTxt:SetText("|TInterface\\GossipFrame\\BinderGossipIcon:16:16|t")
+    setTxt:SetTextColor(MUTED_TEXT[1], MUTED_TEXT[2], MUTED_TEXT[3])
+    setBtn:SetScript("OnEnter", function()
+        setTxt:SetTextColor(1, 1, 1)
+        GameTooltip:SetOwner(setBtn, "ANCHOR_TOP")
+        GameTooltip:SetText((L and L["opt_skin_bags_settings"]) or "Bag Settings", 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    setBtn:SetScript("OnLeave", function() setTxt:SetTextColor(MUTED_TEXT[1], MUTED_TEXT[2], MUTED_TEXT[3]); GameTooltip:Hide() end)
+    setBtn:SetScript("OnClick", function(self) ShowSettingsMenu(self) end)
+
+    -- Sort button (GW2_UI-inspired)
     local sortBtn = CreateFrame("Button", nil, header, "BackdropTemplate")
-    sortBtn:SetSize(50, 22)
-    sortBtn:SetPoint("RIGHT", closeBtn, "LEFT", -4, 0)
+    sortBtn:SetSize(50, 22); sortBtn:SetPoint("RIGHT", setBtn, "LEFT", -4, 0)
     sortBtn:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
-    sortBtn:SetBackdropColor(ACCENT[1] * 0.15, ACCENT[2] * 0.15, ACCENT[3] * 0.15, 0.8)
+    sortBtn:SetBackdropColor(ACCENT[1]*0.15, ACCENT[2]*0.15, ACCENT[3]*0.15, 0.8)
     sortBtn:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.4)
     local sortTxt = sortBtn:CreateFontString(nil, "OVERLAY")
-    sortTxt:SetFont(ADDON_FONT, 10, "")
-    sortTxt:SetPoint("CENTER")
-    sortTxt:SetText("Sort")
-    sortTxt:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
+    sortTxt:SetFont(ADDON_FONT, 10, ""); sortTxt:SetPoint("CENTER")
+    sortTxt:SetText("Sort"); sortTxt:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
     sortBtn:SetScript("OnClick", function()
         C_Container.SortBags()
         C_Timer.After(0.5, LayoutGrid)
     end)
     sortBtn:SetScript("OnEnter", function()
         sortBtn:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
-        sortTxt:SetTextColor(1, 1, 1, 1)
+        sortTxt:SetTextColor(1, 1, 1)
     end)
     sortBtn:SetScript("OnLeave", function()
         sortBtn:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.4)
-        sortTxt:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
+        sortTxt:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
     end)
 
-    -- Search bar (below header)
+    -- ===== SEARCH BAR =====
+    local showBagBar = s.showBagBar ~= false
+    local barOfs = showBagBar and BAGBAR_W or 0
+
     local searchFrame = CreateFrame("Frame", nil, f)
     searchFrame:SetHeight(SEARCH_H)
-    searchFrame:SetPoint("TOPLEFT", 0, -HEADER_H)
+    searchFrame:SetPoint("TOPLEFT", barOfs, -HEADER_H)
     searchFrame:SetPoint("TOPRIGHT", 0, -HEADER_H)
     f._searchFrame = searchFrame
 
-    local searchBg = searchFrame:CreateTexture(nil, "BACKGROUND")
-    searchBg:SetAllPoints()
-    searchBg:SetColorTexture(SEARCH_BG[1], SEARCH_BG[2], SEARCH_BG[3], 0.9)
+    local sBg = searchFrame:CreateTexture(nil, "BACKGROUND")
+    sBg:SetAllPoints()
+    sBg:SetColorTexture(SEARCH_BG[1], SEARCH_BG[2], SEARCH_BG[3], 0.9)
 
-    local searchSep = searchFrame:CreateTexture(nil, "ARTWORK")
-    searchSep:SetHeight(1)
-    searchSep:SetPoint("BOTTOMLEFT", 0, 0)
-    searchSep:SetPoint("BOTTOMRIGHT", 0, 0)
-    searchSep:SetColorTexture(SEPARATOR[1], SEPARATOR[2], SEPARATOR[3], 1)
+    local sSep = searchFrame:CreateTexture(nil, "ARTWORK")
+    sSep:SetHeight(1); sSep:SetPoint("BOTTOMLEFT", 0, 0); sSep:SetPoint("BOTTOMRIGHT", 0, 0)
+    sSep:SetColorTexture(SEPARATOR[1], SEPARATOR[2], SEPARATOR[3], 1)
 
-    local searchIcon = searchFrame:CreateFontString(nil, "OVERLAY")
-    searchIcon:SetFont(ADDON_FONT, 13, "")
-    searchIcon:SetPoint("LEFT", 8, 0)
-    searchIcon:SetText("|TInterface\\Common\\UI-Searchbox-Icon:14:14|t")
-    searchIcon:SetTextColor(TAB_IDLE_TEXT[1], TAB_IDLE_TEXT[2], TAB_IDLE_TEXT[3], 0.6)
+    local sIcon = searchFrame:CreateFontString(nil, "OVERLAY")
+    sIcon:SetFont(ADDON_FONT, 13, ""); sIcon:SetPoint("LEFT", 8, 0)
+    sIcon:SetText("|TInterface\\Common\\UI-Searchbox-Icon:14:14|t")
+    sIcon:SetTextColor(MUTED_TEXT[1], MUTED_TEXT[2], MUTED_TEXT[3], 0.6)
 
-    local searchEditBox = CreateFrame("EditBox", "TomoMod_BagSkin_Search", searchFrame)
-    searchEditBox:SetPoint("LEFT", searchIcon, "RIGHT", 6, 0)
-    searchEditBox:SetPoint("RIGHT", -8, 0)
-    searchEditBox:SetHeight(SEARCH_H - 4)
-    searchEditBox:SetFont(ADDON_FONT, 11, "")
-    searchEditBox:SetTextColor(0.85, 0.85, 0.85, 1)
-    searchEditBox:SetAutoFocus(false)
-    searchEditBox:SetMaxLetters(50)
-    searchEditBox:SetScript("OnTextChanged", function(self)
+    local searchBox = CreateFrame("EditBox", "TomoMod_BagSkin_Search", searchFrame)
+    searchBox:SetPoint("LEFT", sIcon, "RIGHT", 6, 0)
+    searchBox:SetPoint("RIGHT", -8, 0)
+    searchBox:SetHeight(SEARCH_H - 4)
+    searchBox:SetFont(ADDON_FONT, 11, "")
+    searchBox:SetTextColor(0.85, 0.85, 0.85)
+    searchBox:SetAutoFocus(false)
+    searchBox:SetMaxLetters(50)
+    searchBox:SetScript("OnTextChanged", function(self)
         currentFilter = (self:GetText() or ""):lower()
         LayoutGrid()
     end)
-    searchEditBox:SetScript("OnEscapePressed", function(self)
-        self:SetText("")
-        self:ClearFocus()
-        currentFilter = ""
-        LayoutGrid()
+    searchBox:SetScript("OnEscapePressed", function(self)
+        self:SetText(""); self:ClearFocus()
+        currentFilter = ""; LayoutGrid()
     end)
-    searchBox = searchEditBox
 
-    -- Content area (scrollable grid)
+    if s.showSearchBar == false then searchFrame:Hide() end
+
+    -- ===== BAG BAR (left sidebar) =====
+    CreateBagBar(f)
+    if not showBagBar then f._bagBar:Hide() end
+
+    -- ===== SCROLL BODY =====
+    local SEARCH_OFS = (s.showSearchBar ~= false) and SEARCH_H or 0
     local scrollFrame = CreateFrame("ScrollFrame", nil, f)
-    local topOffset = HEADER_H + ((s.showSearchBar ~= false) and SEARCH_H or 0)
-    scrollFrame:SetPoint("TOPLEFT", 0, -topOffset)
+    scrollFrame:SetPoint("TOPLEFT", barOfs, -(HEADER_H + SEARCH_OFS))
     scrollFrame:SetPoint("BOTTOMRIGHT", 0, FOOTER_H)
     scrollFrame:EnableMouseWheel(true)
     scrollFrame:SetScript("OnMouseWheel", function(self, delta)
         local cur = self:GetVerticalScroll()
-        local max = self:GetVerticalScrollRange()
-        self:SetVerticalScroll(math.max(0, math.min(cur - delta * 36, max)))
+        local mx  = self:GetVerticalScrollRange()
+        local step = (s.slotSize or 40) + (s.slotSpacingY or 5)
+        self:SetVerticalScroll(math.max(0, math.min(cur - delta * step, mx)))
     end)
 
     local content = CreateFrame("Frame", nil, scrollFrame)
-    content:SetWidth(scrollFrame:GetWidth() or 500)
+    content:SetWidth(scrollFrame:GetWidth() or 440)
     content:SetHeight(1)
     scrollFrame:SetScrollChild(content)
     f._content = content
     f._scrollFrame = scrollFrame
 
-    -- Footer bar (gold + currencies)
+    -- ===== FOOTER =====
     local footer = CreateFrame("Frame", nil, f)
     footer:SetHeight(FOOTER_H)
-    footer:SetPoint("BOTTOMLEFT", 0, 0)
-    footer:SetPoint("BOTTOMRIGHT", 0, 0)
+    footer:SetPoint("BOTTOMLEFT", 0, 0); footer:SetPoint("BOTTOMRIGHT", 0, 0)
 
-    local footerBg = footer:CreateTexture(nil, "BACKGROUND")
-    footerBg:SetAllPoints()
-    footerBg:SetColorTexture(HEADER_BG[1], HEADER_BG[2], HEADER_BG[3], 1)
+    local fBg = footer:CreateTexture(nil, "BACKGROUND")
+    fBg:SetAllPoints()
+    fBg:SetColorTexture(HEADER_BG[1], HEADER_BG[2], HEADER_BG[3], 1)
 
-    local footerSep = footer:CreateTexture(nil, "ARTWORK")
-    footerSep:SetHeight(1)
-    footerSep:SetPoint("TOPLEFT", 0, 0)
-    footerSep:SetPoint("TOPRIGHT", 0, 0)
-    footerSep:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.20)
+    local fSep = footer:CreateTexture(nil, "ARTWORK")
+    fSep:SetHeight(1); fSep:SetPoint("TOPLEFT", 0, 0); fSep:SetPoint("TOPRIGHT", 0, 0)
+    fSep:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.20)
 
     local goldText = footer:CreateFontString(nil, "OVERLAY")
-    goldText:SetFont(ADDON_FONT_BOLD, 11, "")
-    goldText:SetPoint("LEFT", 10, 0)
+    goldText:SetFont(ADDON_FONT_BOLD, 11, ""); goldText:SetPoint("LEFT", 10, 0)
     goldText:SetJustifyH("LEFT")
     f._goldText = goldText
 
-    local currencyText = footer:CreateFontString(nil, "OVERLAY")
-    currencyText:SetFont(ADDON_FONT, 10, "")
-    currencyText:SetPoint("RIGHT", footer, "RIGHT", -10, 0)
-    currencyText:SetJustifyH("RIGHT")
-    currencyText:SetMaxLines(1)
-    f._currencyText = currencyText
-
+    local currText = footer:CreateFontString(nil, "OVERLAY")
+    currText:SetFont(ADDON_FONT, 10, ""); currText:SetPoint("RIGHT", -10, 0)
+    currText:SetJustifyH("RIGHT"); currText:SetMaxLines(1)
+    f._currencyText = currText
     f._footer = footer
 
-    -- Drag handling
-    f:RegisterForDrag("LeftButton")
-    f:SetScript("OnDragStart", function(self)
-        self:StartMoving()
+    -- ===== RESIZE HANDLE (GW2_UI-inspired) =====
+    local sizer = CreateFrame("Frame", nil, f)
+    sizer:SetSize(16, 16)
+    sizer:SetPoint("BOTTOMRIGHT", 0, 0)
+    sizer:EnableMouse(true)
+
+    local sizerTex = sizer:CreateTexture(nil, "OVERLAY")
+    sizerTex:SetAllPoints()
+    sizerTex:SetTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    sizer:SetScript("OnMouseDown", function(self, btn)
+        if btn == "LeftButton" then f:StartSizing("BOTTOMRIGHT") end
     end)
-    f:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        local db = TomoModDB and TomoModDB.bagSkin
-        if db then
-            local point, _, relPoint, x, y = self:GetPoint(1)
-            db.position = {
-                anchor = point or "BOTTOMRIGHT",
-                relTo  = relPoint or "BOTTOMRIGHT",
-                x      = x or -20,
-                y      = y or 24,
-            }
+    sizer:SetScript("OnMouseUp", function(self, btn)
+        if btn == "LeftButton" then
+            f:StopMovingOrSizing()
+            local db = TomoModDB and TomoModDB.bagSkin
+            if db then db.width = f:GetWidth() end
+            LayoutGrid()
+        end
+    end)
+    sizer:SetScript("OnEnter", function() sizerTex:SetTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight") end)
+    sizer:SetScript("OnLeave", function() sizerTex:SetTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up") end)
+
+    -- Resize callback (GW2_UI recalculates cols live during resize)
+    local _lastCols = 0
+    f:SetScript("OnSizeChanged", function(self, w, h)
+        if self._content then
+            local bOfs = (S().showBagBar ~= false) and BAGBAR_W or 0
+            self._content:SetWidth(w - bOfs)
+            -- Re-layout when column count changes (like GW2_UI's onBagFrameChangeSize)
+            local newCols = ColCount(S().slotSize or 40, S().slotSpacingX or 5, w - bOfs)
+            if newCols ~= _lastCols then
+                _lastCols = newCols
+                if not _layoutPending then
+                    _layoutPending = true
+                    C_Timer.After(0, function()
+                        _layoutPending = false
+                        LayoutGrid()
+                    end)
+                end
+            end
         end
     end)
 
-    -- Show/hide search bar based on setting
-    if s.showSearchBar == false then
-        searchFrame:Hide()
-    end
+    -- ===== DRAG (header) =====
+    header:EnableMouse(true)
+    header:RegisterForDrag("LeftButton")
+    header:SetScript("OnDragStart", function() f:StartMoving() end)
+    header:SetScript("OnDragStop", function()
+        f:StopMovingOrSizing()
+        local db = TomoModDB and TomoModDB.bagSkin
+        if db then
+            local pt, _, rel, x, y = f:GetPoint(1)
+            db.position = { anchor = pt, relTo = rel, x = x, y = y }
+        end
+    end)
 
-    f:Hide()  -- start hidden; only show when player opens bags
+    -- Register as special frame for Escape close
+    tinsert(UISpecialFrames, "TomoMod_BagSkin_Main")
 
+    f:Hide()
     bagFrame = f
     return f
 end
 
 -- =====================================
--- SUPPRESS BLIZZARD BAG FRAMES
+-- BLIZZARD BAG SUPPRESSION
 -- =====================================
 
-local _suppressingBags = false
+local _suppressing = false
 
 local function HideBlizzardBags()
-    if _suppressingBags then return end
-    _suppressingBags = true
-    -- Hide the combined bag (retail ContainerFrameCombinedBags)
-    if _G.ContainerFrameCombinedBags and _G.ContainerFrameCombinedBags:IsShown() then
-        _G.ContainerFrameCombinedBags:Hide()
+    if _suppressing then return end
+    _suppressing = true
+    if ContainerFrameCombinedBags and ContainerFrameCombinedBags:IsShown() then
+        ContainerFrameCombinedBags:Hide()
     end
-    -- Hide all individual container frames
     for i = 1, 13 do
-        local frame = _G["ContainerFrame" .. i]
-        if frame and frame:IsShown() then
-            frame:Hide()
-        end
+        local cf = _G["ContainerFrame" .. i]
+        if cf and cf:IsShown() then cf:Hide() end
     end
-    _suppressingBags = false
+    _suppressing = false
 end
 
--- Hook :Show() on each Blizzard bag frame so they get immediately
--- re-hidden whenever Blizzard tries to display them (like MidnightUI does).
-local _blizzardBagsHooked = false
+local _blizzHooked = false
 
-local function HookBlizzardBagFrames()
-    if _blizzardBagsHooked then return end
-    _blizzardBagsHooked = true
+local function HookBlizzardBags()
+    if _blizzHooked then return end
+    _blizzHooked = true
 
-    if _G.ContainerFrameCombinedBags then
-        hooksecurefunc(_G.ContainerFrameCombinedBags, "Show", function(self)
-            if not _suppressingBags and IsEnabled() then
-                _suppressingBags = true
-                self:Hide()
-                _suppressingBags = false
-            end
-        end)
+    -- Parent ContainerFrameCombinedBags to a hidden frame (GW2_UI approach)
+    if ContainerFrameCombinedBags then
+        ContainerFrameCombinedBags:SetScript("OnShow", nil)
+        ContainerFrameCombinedBags:SetScript("OnHide", nil)
+        local hider = CreateFrame("Frame")
+        hider:Hide()
+        ContainerFrameCombinedBags:SetParent(hider)
+        ContainerFrameCombinedBags:ClearAllPoints()
+        ContainerFrameCombinedBags:SetPoint("BOTTOM")
     end
 
+    -- Suppress individual bag frames
     for i = 1, 13 do
         local cf = _G["ContainerFrame" .. i]
         if cf then
             hooksecurefunc(cf, "Show", function(self)
-                if not _suppressingBags and IsEnabled() then
-                    _suppressingBags = true
-                    self:Hide()
-                    _suppressingBags = false
+                if not _suppressing and IsEnabled() then
+                    _suppressing = true; self:Hide(); _suppressing = false
                 end
             end)
         end
     end
 
-    -- BagsBar is the bag-slot icon row in the action bar area (not a bag window)
-    -- — do NOT suppress it; the user needs it to open bags.
+    -- Disable combined bags CVar (like GW2_UI)
+    if SetCVar then
+        pcall(SetCVar, "combinedBags", "0")
+    end
 end
 
 -- =====================================
--- HOOK BLIZZARD BAG OPEN/CLOSE
+-- BAG OPEN / CLOSE HOOKS
 -- =====================================
 
 local hooksInstalled = false
-local hookHandledThisFrame = false
+local hookGuard = false
 
-local function ShowCustomBags()
-    if not IsEnabled() then return end
-    if hookHandledThisFrame then return end
-    hookHandledThisFrame = true
-    C_Timer.After(0, function() hookHandledThisFrame = false end)
-
+local function ShowBag()
+    if not IsEnabled() or hookGuard then return end
+    hookGuard = true
+    C_Timer.After(0, function() hookGuard = false end)
     HideBlizzardBags()
     if bagFrame then
+        UpdateBagBar(bagFrame)
         LayoutGrid()
         bagFrame:Show()
     end
 end
 
-local function ToggleCustomBags()
-    if not IsEnabled() then return end
-    if hookHandledThisFrame then return end
-    hookHandledThisFrame = true
-    C_Timer.After(0, function() hookHandledThisFrame = false end)
-
+local function ToggleBag()
+    if not IsEnabled() or hookGuard then return end
+    hookGuard = true
+    C_Timer.After(0, function() hookGuard = false end)
     HideBlizzardBags()
     if bagFrame then
         if bagFrame:IsShown() then
             bagFrame:Hide()
         else
+            UpdateBagBar(bagFrame)
             LayoutGrid()
             bagFrame:Show()
         end
     end
 end
 
-local function InstallBagHooks()
+local function InstallHooks()
     if hooksInstalled then return end
     hooksInstalled = true
 
-    -- Hook :Show() on all Blizzard bag frames so they can never appear
-    HookBlizzardBagFrames()
+    HookBlizzardBags()
 
-    -- Blizzard's bag functions call each other in a chain
-    -- (ToggleAllBags → ToggleBackpack → OpenBag×5)
-    -- Only act on the FIRST hook in the chain, ignore the rest this frame.
-    if _G.ToggleAllBags then
-        hooksecurefunc("ToggleAllBags", ToggleCustomBags)
-    end
+    if ToggleAllBags   then hooksecurefunc("ToggleAllBags",   ToggleBag) end
+    if ToggleBackpack  then hooksecurefunc("ToggleBackpack",  ToggleBag) end
+    if ToggleBag       then hooksecurefunc("ToggleBag",       function() ToggleBag() end) end
+    if OpenAllBags     then hooksecurefunc("OpenAllBags",     ShowBag) end
+    if OpenBackpack    then hooksecurefunc("OpenBackpack",    ShowBag) end
+    if OpenBag         then hooksecurefunc("OpenBag",         function() ShowBag() end) end
+    if CloseAllBags    then hooksecurefunc("CloseAllBags",    function()
+        if not InCombatLockdown() and bagFrame then bagFrame:Hide() end
+    end) end
+    if CloseBackpack   then hooksecurefunc("CloseBackpack",   function()
+        if not InCombatLockdown() and IsEnabled() and bagFrame then bagFrame:Hide() end
+    end) end
 
-    if _G.ToggleBackpack then
-        hooksecurefunc("ToggleBackpack", ToggleCustomBags)
-    end
-
-    if _G.ToggleBag then
-        hooksecurefunc("ToggleBag", function()
-            ToggleCustomBags()
-        end)
-    end
-
-    if _G.OpenAllBags then
-        hooksecurefunc("OpenAllBags", ShowCustomBags)
-    end
-
-    if _G.OpenBackpack then
-        hooksecurefunc("OpenBackpack", ShowCustomBags)
-    end
-
-    if _G.OpenBag then
-        hooksecurefunc("OpenBag", function()
-            ShowCustomBags()
-        end)
-    end
-
-    if _G.CloseAllBags then
-        hooksecurefunc("CloseAllBags", function()
-            if bagFrame then bagFrame:Hide() end
-        end)
-    end
-
-    if _G.CloseBackpack then
-        hooksecurefunc("CloseBackpack", function()
-            if not IsEnabled() then return end
-            if bagFrame then bagFrame:Hide() end
-        end)
-    end
-
-    -- Register for bag update events
+    -- Events
     local events = CreateFrame("Frame")
     events:RegisterEvent("BAG_UPDATE")
     events:RegisterEvent("BAG_UPDATE_DELAYED")
@@ -1235,50 +1610,62 @@ local function InstallBagHooks()
     events:RegisterEvent("BAG_UPDATE_COOLDOWN")
     events:RegisterEvent("PLAYER_MONEY")
     events:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
-    events:SetScript("OnEvent", function(self, event)
+    events:RegisterEvent("BAG_NEW_ITEMS_UPDATED")
+    events:RegisterEvent("CVAR_UPDATE")
+    events:SetScript("OnEvent", function(_, event, ...)
         if not IsEnabled() then return end
+
+        if event == "CVAR_UPDATE" then
+            local name, val = ...
+            if name == "combinedBags" and val == "1" then
+                pcall(SetCVar, "combinedBags", "0")
+            end
+            return
+        end
+
         if event == "PLAYER_MONEY" or event == "CURRENCY_DISPLAY_UPDATE" then
             UpdateFooter()
             return
         end
+
+        if event == "ITEM_LOCK_CHANGED" then
+            if bagFrame and bagFrame:IsShown() then UpdateBagBar(bagFrame) end
+        end
+
         if bagFrame and bagFrame:IsShown() then
-            C_Timer.After(0.1, LayoutGrid)
+            if not _layoutPending then
+                _layoutPending = true
+                C_Timer.After(0.1, function()
+                    _layoutPending = false
+                    LayoutGrid()
+                    UpdateBagBar(bagFrame)
+                end)
+            end
         end
     end)
 end
 
 -- =====================================
--- REGISTER WITH MOVERS
+-- MOVERS INTEGRATION
 -- =====================================
 
 local function RegisterWithMovers()
     if not TomoMod_Movers or not TomoMod_Movers.RegisterEntry then return end
-
     TomoMod_Movers.RegisterEntry({
         label = "Bag Skin",
         unlock = function()
-            if bagFrame then
-                bagFrame:SetMovable(true)
-                bagFrame:EnableMouse(true)
-            end
+            if bagFrame then bagFrame:SetMovable(true); bagFrame:EnableMouse(true) end
         end,
         lock = function()
             if bagFrame then
                 local db = TomoModDB and TomoModDB.bagSkin
                 if db then
-                    local point, _, relPoint, x, y = bagFrame:GetPoint(1)
-                    db.position = {
-                        anchor = point or "BOTTOMRIGHT",
-                        relTo  = relPoint or "BOTTOMRIGHT",
-                        x      = x or -20,
-                        y      = y or 24,
-                    }
+                    local pt, _, rel, x, y = bagFrame:GetPoint(1)
+                    db.position = { anchor = pt, relTo = rel, x = x, y = y }
                 end
             end
         end,
-        isActive = function()
-            return IsEnabled()
-        end,
+        isActive = function() return IsEnabled() end,
     })
 end
 
@@ -1289,20 +1676,22 @@ end
 function BS.ApplySettings()
     if not bagFrame then return end
     local s = S()
-
     bagFrame:SetScale((s.scale or 100) / 100)
     bagFrame._bg:SetColorTexture(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], (s.opacity or 92) / 100)
 
-    -- Show/hide search bar
+    local showBagBar = s.showBagBar ~= false
+    local barOfs = showBagBar and BAGBAR_W or 0
+    local SEARCH_OFS = (s.showSearchBar ~= false) and SEARCH_H or 0
+
     if bagFrame._searchFrame then
-        if s.showSearchBar ~= false then
-            bagFrame._searchFrame:Show()
-            bagFrame._scrollFrame:SetPoint("TOPLEFT", 0, -(32 + 28))
-        else
-            bagFrame._searchFrame:Hide()
-            bagFrame._scrollFrame:SetPoint("TOPLEFT", 0, -32)
-        end
+        bagFrame._searchFrame:SetShown(s.showSearchBar ~= false)
+        bagFrame._searchFrame:SetPoint("TOPLEFT", barOfs, -HEADER_H)
+        bagFrame._searchFrame:SetPoint("TOPRIGHT", 0, -HEADER_H)
     end
+    if bagFrame._bagBar then
+        bagFrame._bagBar:SetShown(showBagBar)
+    end
+    bagFrame._scrollFrame:SetPoint("TOPLEFT", barOfs, -(HEADER_H + SEARCH_OFS))
 
     LayoutGrid()
 end
@@ -1310,10 +1699,9 @@ end
 function BS.SetEnabled(enabled)
     local db = TomoModDB and TomoModDB.bagSkin
     if db then db.enabled = enabled end
-
     if enabled then
         if not bagFrame then CreateBagFrame() end
-        InstallBagHooks()
+        InstallHooks()
     else
         if bagFrame then bagFrame:Hide() end
     end
@@ -1322,45 +1710,51 @@ end
 function BS.Initialize()
     if isInitialized then return end
     isInitialized = true
-
     if not IsEnabled() then return end
-
     C_Timer.After(0.5, function()
         CreateBagFrame()
-        InstallBagHooks()
+        InstallHooks()
         RegisterWithMovers()
-        -- Don't auto-show; wait for player to open bags
     end)
 end
 
 -- =====================================
--- AUTO-INIT ON PLAYER_LOGIN
+-- AUTO-INIT
 -- =====================================
 
 local loader = CreateFrame("Frame")
 loader:RegisterEvent("PLAYER_LOGIN")
-loader:SetScript("OnEvent", function(self, event)
+loader:SetScript("OnEvent", function(self)
     self:UnregisterEvent("PLAYER_LOGIN")
 
-    -- Ensure DB exists
     if TomoModDB and not TomoModDB.bagSkin then
-        TomoModDB.bagSkin = {
-            enabled = false,
-            unified = true,
-            columns = 12,
-            slotSize = 36,
-            slotSpacing = 3,
-            scale = 100,
-            opacity = 92,
-            showQualityBorders = true,
-            showCooldowns = true,
-            showQuantityBadges = true,
-            showSearchBar = true,
-            sortMode = "quality",
-            showGold = true,
-            showCurrencies = false,
-            position = { anchor = "BOTTOMRIGHT", relTo = "BOTTOMRIGHT", x = -20, y = 24 },
+        TomoModDB.bagSkin = {}
+    end
+    if TomoModDB and TomoModDB.bagSkin then
+        local db = TomoModDB.bagSkin
+        local D = {
+            enabled = false, slotSize = 40, slotSpacingX = 5, slotSpacingY = 5,
+            width = 480, scale = 100, opacity = 92,
+            showQualityBorders = true, showCooldowns = true, showQuantityBadges = true,
+            showItemLevel = false, showJunkIcon = false, showSearchBar = true,
+            showGold = true, showCurrencies = false,
+            layoutMode = "combined", sortMode = "quality",
+            reverseBagOrder = false, stackMerge = false,
+            showEmptySlots = true, showRecentItems = true,
+            showBagBar = true, collapsedSections = {},
         }
+        for k, v in pairs(D) do
+            if db[k] == nil then db[k] = v end
+        end
+        if db.position == nil then
+            db.position = { anchor = "BOTTOMRIGHT", relTo = "BOTTOMRIGHT", x = -20, y = 60 }
+        end
+        -- Migrate old single slotSpacing → separate X/Y
+        if db.slotSpacing and not db._migratedSpacing then
+            db.slotSpacingX = db.slotSpacing
+            db.slotSpacingY = db.slotSpacing
+            db._migratedSpacing = true
+        end
     end
 
     BS.Initialize()

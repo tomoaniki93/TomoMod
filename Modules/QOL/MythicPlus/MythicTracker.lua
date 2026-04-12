@@ -29,6 +29,13 @@ TMT.C = {
     BAR_BLUE    = { 0.15, 0.38, 0.72, 0.85 },
     BAR_TEAL    = { 0.10, 0.68, 0.72, 0.85 },
     BAR_TRACK   = { 0.04, 0.08, 0.14, 1.00 },
+    -- 5-stage forces gradient (inspired by MPlusTimer)
+    FORCES_1    = { 1.00, 0.46, 0.50, 1.00 },  -- < 20%
+    FORCES_2    = { 1.00, 0.51, 0.28, 1.00 },  -- < 40%
+    FORCES_3    = { 1.00, 0.77, 0.40, 1.00 },  -- < 60%
+    FORCES_4    = { 1.00, 0.98, 0.59, 1.00 },  -- < 80%
+    FORCES_5    = { 0.41, 0.80, 1.00, 1.00 },  -- < 100%
+    FORCES_DONE = { 0.80, 1.00, 0.65, 1.00 },  -- 100%
     TEXT_WHITE  = { 1.00, 1.00, 1.00, 1.00 },
     TEXT_GREY   = { 0.55, 0.55, 0.55, 1.00 },
     TEXT_GREEN  = { 0.55, 0.90, 0.20, 1.00 },
@@ -42,13 +49,14 @@ TMT.C = {
 -- ═══════════════════════════════════════════════════════════════════════
 --  LAYOUT CONSTANTS
 -- ═══════════════════════════════════════════════════════════════════════
-TMT.W           = 260
+TMT.W           = 300
 TMT.HEADER_H    = 38
-TMT.BAR_H       = 20
-TMT.BOSS_H      = 18
+TMT.BAR_H       = 22
+TMT.BOSS_H      = 20
 TMT.GAP         = 2
 TMT.EDGE        = 1
-TMT.UPDATE_RATE  = 0.25
+TMT.UPDATE_RATE  = 0.20
+TMT.BOSS_NAME_MAX = 22
 
 -- ═══════════════════════════════════════════════════════════════════════
 --  DB ACCESS
@@ -123,6 +131,33 @@ function TMT:MakeFS(parent, size, flags, anchor, relTo, x, y)
     return fs
 end
 
+-- UTF-8 safe substring (for boss names with special characters)
+function TMT:Utf8Sub(str, startChar, numChars)
+    if not str then return "" end
+    local i = 1
+    local curChar = 0
+    local len = #str
+    while i <= len and curChar < startChar - 1 do
+        local byte = string.byte(str, i)
+        if byte < 128 then i = i + 1
+        elseif byte < 224 then i = i + 2
+        elseif byte < 240 then i = i + 3
+        else i = i + 4 end
+        curChar = curChar + 1
+    end
+    local startByte = i
+    curChar = 0
+    while i <= len and curChar < numChars do
+        local byte = string.byte(str, i)
+        if byte < 128 then i = i + 1
+        elseif byte < 224 then i = i + 2
+        elseif byte < 240 then i = i + 3
+        else i = i + 4 end
+        curChar = curChar + 1
+    end
+    return string.sub(str, startByte, i - 1)
+end
+
 -- ═══════════════════════════════════════════════════════════════════════
 --  BUILD FRAME
 -- ═══════════════════════════════════════════════════════════════════════
@@ -191,6 +226,33 @@ function TMT:BuildFrame()
     HDR.deaths:SetPoint("BOTTOMRIGHT", HDR, "BOTTOMRIGHT", -8, 5)
     HDR.deaths:SetTextColor(unpack(C.TEXT_SKULL))
 
+    -- ── DEATH TOOLTIP BUTTON ──────────────────────────────────────────
+    HDR.deathBtn = CreateFrame("Button", nil, HDR)
+    HDR.deathBtn:SetSize(80, 16)
+    HDR.deathBtn:SetPoint("BOTTOMRIGHT", HDR, "BOTTOMRIGHT", -4, 3)
+    HDR.deathBtn:EnableMouse(true)
+    HDR.deathBtn:SetScript("OnEnter", function(btn)
+        local deaths, timeLost = C_ChallengeMode.GetDeathCount()
+        if not deaths or deaths == 0 then return end
+        GameTooltip:SetOwner(btn, "ANCHOR_CURSOR")
+        GameTooltip:AddLine("Deaths", 1, 0.35, 0.30)
+        GameTooltip:AddLine(string.format("Time lost: %s", TMT:FormatTime(timeLost or 0)), 0.7, 0.7, 0.7)
+        local playerDeaths = TMT.playerDeaths or {}
+        local sorted = {}
+        for name, count in pairs(playerDeaths) do
+            table.insert(sorted, {name, count})
+        end
+        table.sort(sorted, function(a, b)
+            if a[2] == b[2] then return a[1] < b[1] end
+            return a[2] > b[2]
+        end)
+        for _, v in ipairs(sorted) do
+            GameTooltip:AddLine(string.format("%s  %d", v[1], v[2]), 1, 1, 1)
+        end
+        GameTooltip:Show()
+    end)
+    HDR.deathBtn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
     HDR.affixes = {}
     for i = 1, 4 do
         local ic = HDR:CreateTexture(nil, "OVERLAY")
@@ -232,9 +294,9 @@ function TMT:BuildFrame()
     TB.limit:SetTextColor(unpack(C.TEXT_GREY))
 
     TB.ticks = {}
-    for i = 1, 2 do
+    for i = 1, 3 do
         local tick = TB:CreateTexture(nil, "OVERLAY")
-        tick:SetSize(1, self.BAR_H)
+        tick:SetSize(2, self.BAR_H)
         tick:SetColorTexture(1, 1, 1, 0.40)
         tick:Hide()
         TB.ticks[i] = tick
@@ -247,9 +309,14 @@ function TMT:BuildFrame()
     CR:SetPoint("TOPLEFT",  TB, "BOTTOMLEFT",  0, -1)
     CR:SetPoint("TOPRIGHT", TB, "BOTTOMRIGHT", 0, -1)
 
+    CR.chest3 = self:MakeFS(CR, 10, "OUTLINE")
+    CR.chest3:SetPoint("LEFT", CR, "LEFT", 8, 0)
+    CR.chest3:SetTextColor(unpack(C.TEXT_GREEN))
+    CR.chest3:Hide()
+
     CR.chest2 = self:MakeFS(CR, 10, "OUTLINE")
-    CR.chest2:SetPoint("LEFT", CR, "LEFT", 8, 0)
-    CR.chest2:SetTextColor(unpack(C.TEXT_GREEN))
+    CR.chest2:SetPoint("CENTER", CR, "CENTER", 0, 0)
+    CR.chest2:SetTextColor(unpack(C.TEXT_TEAL))
     CR.chest2:Hide()
 
     CR.chest1 = self:MakeFS(CR, 10, "OUTLINE")
@@ -291,11 +358,23 @@ function TMT:BuildFrame()
     FB.count:SetPoint("RIGHT", FB, "RIGHT", -8, 0)
     FB.count:SetTextColor(unpack(C.TEXT_GREY))
 
+    -- ── FORCES COMPLETION ROW ─────────────────────────────────────────
+    local FCR = CreateFrame("Frame", nil, F)
+    F.ForcesCompRow = FCR
+    FCR:SetHeight(14)
+    FCR:SetPoint("TOPLEFT",  FB, "BOTTOMLEFT",  0, -1)
+    FCR:SetPoint("TOPRIGHT", FB, "BOTTOMRIGHT", 0, -1)
+
+    FCR.time = self:MakeFS(FCR, 10, "OUTLINE")
+    FCR.time:SetPoint("LEFT", FCR, "LEFT", 8, 0)
+    FCR.time:SetTextColor(unpack(C.TEXT_GREEN))
+    FCR:Hide()
+
     -- ── SEPARATOR 3 ───────────────────────────────────────────────────
     F._sep3 = F:CreateTexture(nil, "ARTWORK")
     F._sep3:SetHeight(1)
-    F._sep3:SetPoint("TOPLEFT",  FB, "BOTTOMLEFT",  0, -self.GAP)
-    F._sep3:SetPoint("TOPRIGHT", FB, "BOTTOMRIGHT", 0, -self.GAP)
+    F._sep3:SetPoint("TOPLEFT",  FCR, "BOTTOMLEFT",  0, -self.GAP)
+    F._sep3:SetPoint("TOPRIGHT", FCR, "BOTTOMRIGHT", 0, -self.GAP)
     F._sep3:SetColorTexture(unpack(C.SEP))
 
     -- ── BOSS ROWS (up to 8) ──────────────────────────────────────────
@@ -318,7 +397,13 @@ function TMT:BuildFrame()
 
         row.name = self:MakeFS(row, 11, "OUTLINE")
         row.name:SetPoint("LEFT", row, "LEFT", 20, 0)
+        row.name:SetMaxLines(1)
+        row.name:SetWordWrap(false)
         row.name:SetTextColor(unpack(C.TEXT_GREY))
+
+        row.split = self:MakeFS(row, 10, "OUTLINE")
+        row.split:SetPoint("RIGHT", row, "RIGHT", -55, 0)
+        row.split:SetTextColor(unpack(C.TEXT_GREY))
 
         row.time = self:MakeFS(row, 11, "OUTLINE")
         row.time:SetPoint("RIGHT", row, "RIGHT", -8, 0)
@@ -533,8 +618,8 @@ function TMT:UpdateTimerBar(preview)
         TB.delta:SetText("|cFFE03020" .. ds .. "|r")
     end
 
-    local ct = preview and {timeLimit, math.floor(timeLimit * 0.80)} or (self.chestTimes or {})
-    for i = 1, 2 do
+    local ct = preview and {timeLimit, math.floor(timeLimit * 0.80), math.floor(timeLimit * 0.60)} or (self.chestTimes or {})
+    for i = 1, 3 do
         local tick  = TB.ticks[i]
         local ctime = ct[i]
         if ctime and ctime > 0 and ctime < timeLimit then
@@ -547,17 +632,36 @@ function TMT:UpdateTimerBar(preview)
         end
     end
 
-    -- Chest countdown row
+    -- Chest countdown row (+3 / +2 / +1)
     local anyChest = false
+
+    -- +3 chest (60% time)
+    local ct3 = ct[3]
+    if ct3 and ct3 > 0 and ct3 < timeLimit then
+        local rem3 = ct3 - elapsed
+        local txt3
+        if rem3 > 0 then
+            txt3 = "|cFF55E210+3|r  " .. self:FormatTime(rem3)
+            CR.chest3:SetTextColor(unpack(C.TEXT_GREEN))
+        else
+            txt3 = "|cFF55E210+3|r  |cFF888888-" .. self:FormatTime(-rem3) .. "|r"
+        end
+        CR.chest3:SetText(txt3)
+        CR.chest3:Show()
+        anyChest = true
+    else
+        CR.chest3:Hide()
+    end
+
     local ct2 = ct[2]
     if ct2 and ct2 > 0 and ct2 < timeLimit then
         local rem2 = ct2 - elapsed
         local txt2
         if rem2 > 0 then
-            txt2 = "|cFF55E210+2|r  " .. self:FormatTime(rem2)
-            CR.chest2:SetTextColor(unpack(C.TEXT_GREEN))
+            txt2 = "|cFF30D9E0+2|r  " .. self:FormatTime(rem2)
+            CR.chest2:SetTextColor(unpack(C.TEXT_TEAL))
         else
-            txt2 = "|cFF55E210+2|r  |cFF888888-" .. self:FormatTime(-rem2) .. "|r"
+            txt2 = "|cFF30D9E0+2|r  |cFF888888-" .. self:FormatTime(-rem2) .. "|r"
         end
         CR.chest2:SetText(txt2)
         CR.chest2:Show()
@@ -591,10 +695,11 @@ end
 -- ═══════════════════════════════════════════════════════════════════════
 function TMT:UpdateForcesBar(preview)
     local FB  = self.Frame.ForcesBar
+    local FCR = self.Frame.ForcesCompRow
     local sep = self.Frame._sep3
     local db  = GetDB()
     if not db or not db.showForces then
-        FB:Hide(); sep:Hide()
+        FB:Hide(); FCR:Hide(); sep:Hide()
         return
     end
     FB:Show(); sep:Show()
@@ -623,16 +728,39 @@ function TMT:UpdateForcesBar(preview)
     FB:SetValue(ratio)
 
     if pct >= 100 then
-        FB:SetStatusBarColor(unpack(C.BAR_GREEN))
+        FB:SetStatusBarColor(unpack(C.FORCES_DONE))
         FB.pct:SetText(L["tmt_forces_done"])
         FB.pct:SetTextColor(unpack(C.TEXT_GREEN))
+        FB.label:Hide()
+        FB.count:Hide()
+
+        -- Show forces completion time
+        local elapsed = 0
+        if preview then
+            elapsed = 620
+        elseif C_ChallengeMode.IsChallengeModeActive() then
+            elapsed = select(2, GetWorldElapsedTime(1)) or 0
+        end
+        if not self.forcesCompTime then
+            self.forcesCompTime = elapsed
+        end
+        FCR.time:SetText("|cFF55E210" .. L["tmt_forces"] .. "|r  " .. self:FormatTime(self.forcesCompTime))
+        FCR:Show()
     else
-        local r = C.BAR_BLUE[1] + (C.BAR_TEAL[1] - C.BAR_BLUE[1]) * ratio
-        local g = C.BAR_BLUE[2] + (C.BAR_TEAL[2] - C.BAR_BLUE[2]) * ratio
-        local b = C.BAR_BLUE[3] + (C.BAR_TEAL[3] - C.BAR_BLUE[3]) * ratio
-        FB:SetStatusBarColor(r, g, b, 0.88)
+        -- 5-stage gradient colors (inspired by MPlusTimer)
+        local forcesColor
+        if     pct < 20  then forcesColor = C.FORCES_1
+        elseif pct < 40  then forcesColor = C.FORCES_2
+        elseif pct < 60  then forcesColor = C.FORCES_3
+        elseif pct < 80  then forcesColor = C.FORCES_4
+        else                   forcesColor = C.FORCES_5
+        end
+        FB:SetStatusBarColor(unpack(forcesColor))
         FB.pct:SetText(string.format(L["tmt_forces_pct"], pct))
         FB.pct:SetTextColor(unpack(C.TEXT_WHITE))
+        FB.label:Show()
+        FCR:Hide()
+        self.forcesCompTime = nil
     end
     FB.count:SetText(string.format(L["tmt_forces_count"], qty, total))
 end
@@ -672,6 +800,7 @@ function TMT:UpdateBossRows(preview)
     end
 
     self.bossKillTimes = self.bossKillTimes or {}
+    self.prevBossKillTimes = self.prevBossKillTimes or {}
 
     for i, cr in ipairs(criteria) do
         local row = self.Frame.BossRows[i]
@@ -684,7 +813,10 @@ function TMT:UpdateBossRows(preview)
             row._bg:SetColorTexture(0, 0, 0, 0)
         end
 
-        row.name:SetText(cr.criteriaString or ("Boss " .. i))
+        -- Truncate boss name like MPlusTimer
+        local bossName = cr.criteriaString or ("Boss " .. i)
+        bossName = self:Utf8Sub(bossName, 1, self.BOSS_NAME_MAX)
+        row.name:SetText(bossName)
 
         if cr.completed then
             row.dot:SetColorTexture(unpack(C.ACCENT))
@@ -698,11 +830,24 @@ function TMT:UpdateBossRows(preview)
             local checkIcon = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:12:12:0:0|t"
             row.time:SetText(kt and (checkIcon .. "  " .. self:FormatTime(kt)) or checkIcon)
             row.time:SetTextColor(unpack(C.TEXT_GREEN))
+
+            -- Show split time (delta to previous boss)
+            if kt and i > 1 and self.bossKillTimes[i - 1] then
+                local split = kt - self.bossKillTimes[i - 1]
+                row.split:SetText(self:FormatTime(split))
+                row.split:SetTextColor(unpack(C.TEXT_GREY))
+            elseif kt and i == 1 then
+                row.split:SetText(self:FormatTime(kt))
+                row.split:SetTextColor(unpack(C.TEXT_GREY))
+            else
+                row.split:SetText("")
+            end
         else
             row.dot:SetColorTexture(0.30, 0.30, 0.30, 1)
             row.name:SetTextColor(unpack(C.TEXT_GREY))
             row.time:SetText("\226\128\148")
             row.time:SetTextColor(unpack(C.TEXT_GREY))
+            row.split:SetText("")
         end
     end
 end
@@ -716,9 +861,11 @@ function TMT:UpdateBanner()
     if info and info.time and info.time > 0 then
         local sec    = info.time / 1000
         local inTime = self.timeLimit and (sec <= self.timeLimit)
+        local upgrades = info.keystoneUpgradeLevels or 0
         if inTime then
             BNR._bg:SetColorTexture(0, 0.22, 0.04, 0.92)
-            BNR.text:SetText("|cFF55E210" .. L["tmt_completed_on_time"] .. "|r  " .. self:FormatTime(sec))
+            local upText = upgrades > 0 and (" |cFFFFCC00+" .. upgrades .. "|r") or ""
+            BNR.text:SetText("|cFF55E210" .. L["tmt_completed_on_time"] .. "|r" .. upText .. "  " .. self:FormatTime(sec))
         else
             BNR._bg:SetColorTexture(0.22, 0.04, 0, 0.92)
             BNR.text:SetText("|cFFE03020" .. L["tmt_completed_depleted"] .. "|r  " .. self:FormatTime(sec))
@@ -748,8 +895,31 @@ function TMT:LayoutFrame()
         end
     end
 
+    -- Re-anchor sep2 based on ChestRow visibility
+    F._sep2:ClearAllPoints()
+    if F.ChestRow:IsShown() then
+        F._sep2:SetPoint("TOPLEFT",  F.ChestRow, "BOTTOMLEFT",  0, -GAP)
+        F._sep2:SetPoint("TOPRIGHT", F.ChestRow, "BOTTOMRIGHT", 0, -GAP)
+    else
+        F._sep2:SetPoint("TOPLEFT",  F.TimerBar, "BOTTOMLEFT",  0, -GAP)
+        F._sep2:SetPoint("TOPRIGHT", F.TimerBar, "BOTTOMRIGHT", 0, -GAP)
+    end
+
     if db.showForces then
         h = h + GAP + 1 + GAP + self.BAR_H
+        if F.ForcesCompRow and F.ForcesCompRow:IsShown() then
+            h = h + 1 + 14
+        end
+    end
+
+    -- Re-anchor sep3 based on ForcesCompRow visibility
+    F._sep3:ClearAllPoints()
+    if F.ForcesCompRow and F.ForcesCompRow:IsShown() then
+        F._sep3:SetPoint("TOPLEFT",  F.ForcesCompRow, "BOTTOMLEFT",  0, -GAP)
+        F._sep3:SetPoint("TOPRIGHT", F.ForcesCompRow, "BOTTOMRIGHT", 0, -GAP)
+    else
+        F._sep3:SetPoint("TOPLEFT",  F.ForcesBar, "BOTTOMLEFT",  0, -GAP)
+        F._sep3:SetPoint("TOPRIGHT", F.ForcesBar, "BOTTOMRIGHT", 0, -GAP)
     end
 
     local bossCnt  = 0
@@ -805,7 +975,7 @@ function TMT:Preview()
     self.level          = 20
     self.affixes        = {}
     self.timeLimit      = 1800
-    self.chestTimes     = { [1] = 1800, [2] = 1440 }
+    self.chestTimes     = { [1] = 1800, [2] = 1440, [3] = 1080 }
     self.bossKillTimes  = {}
     self.completionTime = nil
     self:RefreshAll(true)
@@ -943,6 +1113,7 @@ function TMT:StartTicker()
             TMT:UpdateTimerBar()
             TMT:UpdateForcesBar()
             TMT:UpdateHeader()
+            TMT:LayoutFrame()
             TMT._ticker = C_Timer.NewTimer(TMT.UPDATE_RATE, tick)
         end
     end
@@ -961,17 +1132,23 @@ function TMT:_LoadActiveKey()
     self.chestTimes = {
         [1] = self.timeLimit,
         [2] = math.floor(self.timeLimit * 0.80),
+        [3] = math.floor(self.timeLimit * 0.60),
     }
 end
 
 local EF = CreateFrame("Frame")
-EF:RegisterEvent("PLAYER_ENTERING_WORLD")
-EF:RegisterEvent("CHALLENGE_MODE_START")
-EF:RegisterEvent("CHALLENGE_MODE_COMPLETED")
-EF:RegisterEvent("CHALLENGE_MODE_DEATH_COUNT_UPDATED")
-EF:RegisterEvent("SCENARIO_CRITERIA_UPDATE")
-EF:RegisterEvent("SCENARIO_POI_UPDATE")
+EF:RegisterEvent("PLAYER_LOGIN")
 EF:SetScript("OnEvent", function(_, event, ...)
+    if event == "PLAYER_LOGIN" then
+        EF:UnregisterEvent("PLAYER_LOGIN")
+        EF:RegisterEvent("PLAYER_ENTERING_WORLD")
+        EF:RegisterEvent("CHALLENGE_MODE_START")
+        EF:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+        EF:RegisterEvent("CHALLENGE_MODE_DEATH_COUNT_UPDATED")
+        EF:RegisterEvent("SCENARIO_CRITERIA_UPDATE")
+        EF:RegisterEvent("SCENARIO_POI_UPDATE")
+        return
+    end
     local db = GetDB()
     if not db or not db.enabled then return end
 
@@ -999,6 +1176,8 @@ EF:SetScript("OnEvent", function(_, event, ...)
     elseif event == "CHALLENGE_MODE_START" then
         TMT.bossKillTimes = {}
         TMT.completionTime = nil
+        TMT.playerDeaths = {}
+        TMT.forcesCompTime = nil
         if db.hideBlizzard then TMT:SuppressBlizzardUI() end
         TMT:_LoadActiveKey()
         TMT:RefreshAll(false)
@@ -1024,6 +1203,7 @@ EF:SetScript("OnEvent", function(_, event, ...)
             TMT:UpdateForcesBar()
             TMT:LayoutFrame()
         end
+
     end
 end)
 

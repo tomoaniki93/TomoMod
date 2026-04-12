@@ -34,25 +34,38 @@ local styledFonts = setmetatable({}, { __mode = "k" })
 -- =====================================
 
 local HEADER_COLORS = {
-    -- FR + EN keywords
-    ["CAMPAIGN"]        = { 1.00, 0.40, 0.20 },
-    ["CAMPAGNE"]        = { 1.00, 0.40, 0.20 },
-    ["QUÊTES"]          = { 1.00, 0.82, 0.00 },
-    ["QUESTS"]          = { 1.00, 0.82, 0.00 },
-    ["QUEST"]           = { 1.00, 0.82, 0.00 },
-    ["WORLD QUESTS"]    = { 0.00, 0.80, 1.00 },
-    ["EXPÉDITIONS"]     = { 0.00, 0.80, 1.00 },
-    ["BONUS"]           = { 0.00, 0.90, 0.70 },
-    ["SCENARIO"]        = { 0.70, 0.40, 1.00 },
-    ["SCÉNARIO"]        = { 0.70, 0.40, 1.00 },
-    ["ACHIEVEMENTS"]    = { 0.80, 1.00, 0.00 },
-    ["HAUTS FAITS"]     = { 0.80, 1.00, 0.00 },
-    ["PROFESSIONS"]     = { 0.90, 0.65, 0.30 },
-    ["MÉTIERS"]         = { 0.90, 0.65, 0.30 },
+    -- FR + EN keywords — colors aligned with HorizonSuite palette
+    ["CAMPAIGN"]        = { 1.00, 0.82, 0.20 },   -- Gold
+    ["CAMPAGNE"]        = { 1.00, 0.82, 0.20 },
+    ["QUÊTES"]          = { 0.90, 0.90, 0.90 },   -- Light grey (generic)
+    ["QUESTS"]          = { 0.90, 0.90, 0.90 },
+    ["QUEST"]           = { 0.90, 0.90, 0.90 },
+    ["WORLD QUESTS"]    = { 0.78, 0.42, 0.95 },   -- Purple-violet
+    ["QUÊTES MONDIALES"]= { 0.78, 0.42, 0.95 },
+    ["EXPÉDITIONS"]     = { 0.32, 0.72, 0.68 },   -- Teal
+    ["DELVES"]          = { 0.32, 0.72, 0.68 },
+    ["BONUS"]           = { 0.25, 0.88, 0.92 },   -- Cyan
+    ["SCENARIO"]        = { 0.38, 0.52, 0.88 },   -- Deep blue
+    ["SCÉNARIO"]        = { 0.38, 0.52, 0.88 },
+    ["ACHIEVEMENTS"]    = { 0.78, 0.48, 0.22 },   -- Bronze
+    ["HAUTS FAITS"]     = { 0.78, 0.48, 0.22 },
+    ["PROFESSIONS"]     = { 0.55, 0.75, 0.45 },   -- Sage green
+    ["MÉTIERS"]         = { 0.55, 0.75, 0.45 },
     ["MONTHLY"]         = { 0.90, 0.30, 0.70 },
     ["MENSUEL"]         = { 0.90, 0.30, 0.70 },
-    ["ADVENTURE"]       = { 0.30, 0.85, 0.65 },
-    ["AVENTURE"]        = { 0.30, 0.85, 0.65 },
+    ["ADVENTURE"]       = { 0.90, 0.80, 0.50 },   -- Artifact gold
+    ["AVENTURE"]        = { 0.90, 0.80, 0.50 },
+    ["DUNGEON"]         = { 0.64, 0.21, 0.93 },   -- Epic purple
+    ["DONJON"]          = { 0.64, 0.21, 0.93 },
+    ["RAID"]            = { 0.85, 0.25, 0.25 },   -- Red
+    ["CALLING"]         = { 0.20, 0.60, 1.00 },   -- Blue
+    ["APPEL"]           = { 0.20, 0.60, 1.00 },
+    ["WEEKLY"]          = { 0.25, 0.88, 0.92 },   -- Cyan
+    ["HEBDOMADAIRE"]    = { 0.25, 0.88, 0.92 },
+    ["DAILY"]           = { 0.25, 0.88, 0.92 },   -- Cyan
+    ["QUOTIDIEN"]       = { 0.25, 0.88, 0.92 },
+    ["PREY"]            = { 0.72, 0.22, 0.22 },   -- Dark crimson (Midnight)
+    ["PROIE"]           = { 0.72, 0.22, 0.22 },
 }
 
 -- =====================================
@@ -156,19 +169,229 @@ local function StyleModuleHeader(frame, headerText)
     frame._tomoLine:SetColorTexture(color[1], color[2], color[3], 0.35)
 end
 
-local function StyleQuestTitle(fs)
-    local s = S()
-    StyleFontString(fs, ADDON_FONT_BOLD, s.questFontSize or 12, "OUTLINE", 1, 1, 1, 0.95)
+-- =====================================
+-- QUEST TITLE COLORS (by quest type)
+-- Inspired by HorizonSuite's color matrix system
+-- Priority: complete > campaign > important > legendary > calling > dungeon > raid > world > weekly > daily > prey > delves > scenario > default
+-- =====================================
+
+local QUEST_TITLE_COLORS = {
+    COMPLETE    = { 0.20, 1.00, 0.40 },   -- Green (ready to turn in)
+    CAMPAIGN    = { 1.00, 0.82, 0.20 },   -- Gold
+    IMPORTANT   = { 1.00, 0.45, 0.80 },   -- Pink
+    LEGENDARY   = { 1.00, 0.50, 0.00 },   -- Orange
+    CALLING     = { 0.20, 0.60, 1.00 },   -- Blue
+    DUNGEON     = { 0.64, 0.21, 0.93 },   -- Epic purple
+    RAID        = { 0.85, 0.25, 0.25 },   -- Red
+    WORLD       = { 0.78, 0.42, 0.95 },   -- Purple-violet
+    WEEKLY      = { 0.25, 0.88, 0.92 },   -- Cyan
+    DAILY       = { 0.25, 0.88, 0.92 },   -- Cyan
+    PREY        = { 0.72, 0.22, 0.22 },   -- Dark crimson (Midnight)
+    DELVES      = { 0.32, 0.72, 0.68 },   -- Teal/seafoam
+    SCENARIO    = { 0.38, 0.52, 0.88 },   -- Deep blue
+    ADVENTURE   = { 0.90, 0.80, 0.50 },   -- Artifact gold
+    ACHIEVEMENT = { 0.78, 0.48, 0.22 },   -- Bronze
+    PROFESSION  = { 0.55, 0.75, 0.45 },   -- Sage green
+    DEFAULT     = { 0.90, 0.90, 0.90 },   -- Light grey
+}
+
+-- Objective line colors per quest type (slightly dimmed vs title)
+local QUEST_OBJECTIVE_COLORS = {
+    COMPLETE    = { 0.20, 0.85, 0.35 },
+    CAMPAIGN    = { 0.90, 0.75, 0.25 },
+    IMPORTANT   = { 0.90, 0.45, 0.72 },
+    LEGENDARY   = { 0.90, 0.48, 0.10 },
+    CALLING     = { 0.25, 0.58, 0.90 },
+    DUNGEON     = { 0.58, 0.25, 0.82 },
+    RAID        = { 0.78, 0.28, 0.28 },
+    WORLD       = { 0.70, 0.40, 0.85 },
+    WEEKLY      = { 0.28, 0.78, 0.82 },
+    DAILY       = { 0.28, 0.78, 0.82 },
+    PREY        = { 0.65, 0.25, 0.25 },
+    DELVES      = { 0.32, 0.65, 0.62 },
+    SCENARIO    = { 0.38, 0.48, 0.78 },
+    DEFAULT     = { 0.75, 0.75, 0.75 },
+}
+
+-- Extract questID from an objective tracker block (walks up parent chain)
+local function GetBlockQuestID(frame)
+    local f = frame
+    for _ = 1, 4 do
+        if not f then break end
+        if f.questID then return f.questID end
+        if f.id then return f.id end
+        f = f:GetParent()
+    end
+    return nil
 end
 
-local function StyleObjectiveLine(fs, completed)
+-- =====================================
+-- QUEST BASE CATEGORY (inspired by HorizonSuite)
+-- Uses C_QuestInfoSystem.GetQuestClassification + tag info fallbacks
+-- =====================================
+
+local questCategoryCache = setmetatable({}, { __mode = "v" })
+
+local function GetQuestBaseCategory(questID)
+    if not questID or questID <= 0 then return "DEFAULT" end
+
+    -- Cache lookup
+    local cached = questCategoryCache[questID]
+    if cached then return cached end
+
+    local category = "DEFAULT"
+
+    -- 1) C_QuestInfoSystem.GetQuestClassification (most reliable on 12.x)
+    if C_QuestInfoSystem and C_QuestInfoSystem.GetQuestClassification then
+        local ok, qc = pcall(C_QuestInfoSystem.GetQuestClassification, questID)
+        if ok and qc then
+            if qc == Enum.QuestClassification.Campaign then
+                category = "CAMPAIGN"
+            elseif qc == Enum.QuestClassification.Important then
+                category = "IMPORTANT"
+            elseif qc == Enum.QuestClassification.Legendary then
+                category = "LEGENDARY"
+            elseif qc == Enum.QuestClassification.Calling then
+                category = "CALLING"
+            elseif qc == Enum.QuestClassification.Recurring then
+                -- Recurring: differentiate weekly vs daily via frequency
+                local tagInfo = C_QuestLog.GetQuestTagInfo and C_QuestLog.GetQuestTagInfo(questID)
+                if tagInfo and tagInfo.frequency then
+                    if tagInfo.frequency == Enum.QuestFrequency.Daily then
+                        category = "DAILY"
+                    elseif tagInfo.frequency == Enum.QuestFrequency.Weekly then
+                        category = "WEEKLY"
+                    else
+                        category = "WEEKLY" -- fallback for recurring
+                    end
+                else
+                    category = "WEEKLY"
+                end
+            end
+        end
+    end
+
+    -- 2) Fallback: Campaign detection via C_CampaignInfo
+    if category == "DEFAULT" and C_CampaignInfo and C_CampaignInfo.IsCampaignQuest then
+        local ok, isCampaign = pcall(C_CampaignInfo.IsCampaignQuest, questID)
+        if ok and isCampaign then
+            category = "CAMPAIGN"
+        end
+    end
+
+    -- 3) Fallback: Important quest
+    if category == "DEFAULT" and C_QuestLog.IsImportantQuest then
+        local ok, isImp = pcall(C_QuestLog.IsImportantQuest, questID)
+        if ok and isImp then
+            category = "IMPORTANT"
+        end
+    end
+
+    -- 4) World quest detection
+    if category == "DEFAULT" then
+        local isWorld = false
+        if C_QuestLog.IsWorldQuest then
+            local ok, val = pcall(C_QuestLog.IsWorldQuest, questID)
+            isWorld = ok and val
+        end
+        if not isWorld and QuestUtils_IsQuestWorldQuest then
+            local ok, val = pcall(QuestUtils_IsQuestWorldQuest, questID)
+            isWorld = ok and val
+        end
+        if isWorld then
+            category = "WORLD"
+        end
+    end
+
+    -- 5) Tag-based detection: dungeon, raid, scenario, daily/weekly frequency
+    if category == "DEFAULT" or category == "WORLD" then
+        local tagInfo = C_QuestLog.GetQuestTagInfo and C_QuestLog.GetQuestTagInfo(questID)
+        if tagInfo then
+            -- Dungeon / Raid from tagID
+            if tagInfo.tagID then
+                if tagInfo.tagID == 81 then -- Dungeon
+                    category = "DUNGEON"
+                elseif tagInfo.tagID == 62 then -- Raid
+                    category = "RAID"
+                end
+            end
+            -- Frequency fallback for daily/weekly (if not already categorized)
+            if category == "DEFAULT" and tagInfo.frequency then
+                if tagInfo.frequency == Enum.QuestFrequency.Daily then
+                    category = "DAILY"
+                elseif tagInfo.frequency == Enum.QuestFrequency.Weekly then
+                    category = "WEEKLY"
+                end
+            end
+        end
+    end
+
+    -- 6) Calling detection (fallback)
+    if category == "DEFAULT" and C_QuestLog.IsQuestCalling then
+        local ok, isCalling = pcall(C_QuestLog.IsQuestCalling, questID)
+        if ok and isCalling then
+            category = "CALLING"
+        end
+    end
+
+    questCategoryCache[questID] = category
+    return category
+end
+
+-- Determine quest title color based on quest type
+local function GetQuestTitleColor(questID)
+    if not questID then return QUEST_TITLE_COLORS.DEFAULT end
+
+    -- Ready to turn in (completed, not yet turned in) — always green
+    if C_QuestLog.IsComplete and C_QuestLog.IsComplete(questID) then
+        return QUEST_TITLE_COLORS.COMPLETE
+    end
+    if C_QuestLog.ReadyForTurnIn and C_QuestLog.ReadyForTurnIn(questID) then
+        return QUEST_TITLE_COLORS.COMPLETE
+    end
+
+    local category = GetQuestBaseCategory(questID)
+    return QUEST_TITLE_COLORS[category] or QUEST_TITLE_COLORS.DEFAULT
+end
+
+-- Get quest category string for objective coloring
+local function GetQuestCategory(questID)
+    if not questID then return "DEFAULT" end
+    if C_QuestLog.IsComplete and C_QuestLog.IsComplete(questID) then
+        return "COMPLETE"
+    end
+    if C_QuestLog.ReadyForTurnIn and C_QuestLog.ReadyForTurnIn(questID) then
+        return "COMPLETE"
+    end
+    return GetQuestBaseCategory(questID)
+end
+
+local function StyleQuestTitle(fs, parentFrame)
+    local s = S()
+    local questID = GetBlockQuestID(parentFrame or (fs and fs:GetParent()))
+    local color = GetQuestTitleColor(questID)
+    StyleFontString(fs, ADDON_FONT_BOLD, s.questFontSize or 12, "OUTLINE", color[1], color[2], color[3], 0.95)
+    -- Force color every pass (dedup only checks font/size, not color)
+    if fs and fs.SetTextColor then
+        fs:SetTextColor(color[1], color[2], color[3], 0.95)
+    end
+end
+
+local function StyleObjectiveLine(fs, completed, parentFrame)
     local s = S()
     if completed then
-        -- Completed: green
-        StyleFontString(fs, ADDON_FONT, s.objectiveFontSize or 11, "OUTLINE", 0.30, 0.90, 0.30, 1)
+        -- Completed: always green
+        StyleFontString(fs, ADDON_FONT, s.objectiveFontSize or 11, "OUTLINE", 0.20, 0.85, 0.35, 1)
     else
-        -- Incomplete: light grey
-        StyleFontString(fs, ADDON_FONT, s.objectiveFontSize or 11, "OUTLINE", 0.85, 0.85, 0.85, 0.90)
+        -- Incomplete: use quest-type tinted color for objectives
+        local questID = GetBlockQuestID(parentFrame or (fs and fs:GetParent()))
+        local category = GetQuestCategory(questID)
+        local objColor = QUEST_OBJECTIVE_COLORS[category] or QUEST_OBJECTIVE_COLORS.DEFAULT
+        StyleFontString(fs, ADDON_FONT, s.objectiveFontSize or 11, "OUTLINE", objColor[1], objColor[2], objColor[3], 0.90)
+        -- Force color update
+        if fs and fs.SetTextColor then
+            fs:SetTextColor(objColor[1], objColor[2], objColor[3], 0.90)
+        end
     end
 end
 
@@ -253,7 +476,7 @@ local function ScanAndStyle(frame, depth)
 
     -- Check for HeaderText (quest block title)
     if frame.HeaderText and frame.HeaderText.GetText then
-        StyleQuestTitle(frame.HeaderText)
+        StyleQuestTitle(frame.HeaderText, frame)
     end
 
     -- Check for objective lines (.Text + optional .Dash)
@@ -262,8 +485,8 @@ local function ScanAndStyle(frame, depth)
         if txt and txt ~= "" then
             if frame.Dash then
                 local done = IsObjectiveComplete(frame)
-                StyleObjectiveLine(frame.Text, done)
-                StyleObjectiveLine(frame.Dash, done)
+                StyleObjectiveLine(frame.Text, done, frame)
+                StyleObjectiveLine(frame.Dash, done, frame)
             end
         end
     end
@@ -566,8 +789,9 @@ local function OnTrackerUpdate()
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
 
-    -- Reset font dedup so settings changes apply
+    -- Reset font dedup and category cache so settings/status changes apply
     wipe(styledFonts)
+    wipe(questCategoryCache)
 
     CreateOrUpdateBackground()
     CreateOrUpdateHeader()

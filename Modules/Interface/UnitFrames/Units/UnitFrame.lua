@@ -323,10 +323,20 @@ local function StyleTomoMod(self, unit)
     local settings = db.unitFrames[unit]
     if not settings then return end
 
-    self:SetSize(settings.width, settings.healthHeight + (settings.powerHeight or 0))
+    self:SetSize(settings.width, settings.healthHeight + (settings.powerHeight or 0) + (settings.infoBarHeight or 0))
     self:SetAttribute("type1", "target")
     self:SetAttribute("type2", "togglemenu")
     self:RegisterForClicks("AnyDown", "AnyUp")
+
+    -- ── Tooltip on hover ─────────────────────────────────────────
+    self:SetScript("OnEnter", function(frame)
+        GameTooltip_SetDefaultAnchor(GameTooltip, frame)
+        GameTooltip:SetUnit(frame:GetAttribute("unit"))
+        GameTooltip:Show()
+    end)
+    self:SetScript("OnLeave", function()
+        GameTooltip:FadeOut()
+    end)
 
     -- ── Health (élément oUF géré) ────────────────────────────────
     local health = E.CreateHealth(self, unit, settings)
@@ -343,6 +353,7 @@ local function StyleTomoMod(self, unit)
         UpdateLevel(oufFrame)
         UpdateRaidIcon(oufFrame)
         UpdateLeaderIcon(oufFrame)
+        E.UpdateInfoBar(oufFrame)
     end
 
     -- ── Power (élément oUF géré) ─────────────────────────────────
@@ -354,8 +365,17 @@ local function StyleTomoMod(self, unit)
             self.power = power  -- alias TomoMod
             self.Power.Override = function(oufFrame, event, u)
                 E.UpdatePower(oufFrame)
+                E.UpdateInfoBar(oufFrame)
             end
         end
+    end
+
+    -- ── Info Bar (dark strip: power value + total HP) ────────────
+    if settings.infoBarHeight and settings.infoBarHeight > 0 then
+        local infoBar = E.CreateInfoBar(self, unit, settings)
+        local anchorTo = self.power or health
+        infoBar:SetPoint("TOP", anchorTo, "BOTTOM", 0, 0)
+        self.infoBar = infoBar
     end
 
     -- ── Absorb (custom — pas un élément oUF) ────────────────────
@@ -586,6 +606,7 @@ function UF.ToggleLock()
                     UpdateHealth(frame)
                     UpdateAbsorb(frame)
                     if frame.power then E.UpdatePower(frame) end
+                    E.UpdateInfoBar(frame)
                     UpdateName(frame)
                     UpdateLevel(frame)
                     UpdateThreat(frame)
@@ -664,7 +685,7 @@ function UF.RefreshUnit(unitKey)
     local fontSize    = globalDB.fontSize or 12
     local fontOutline = globalDB.fontOutline or "OUTLINE"
 
-    frame:SetSize(settings.width, settings.healthHeight + (settings.powerHeight or 0))
+    frame:SetSize(settings.width, settings.healthHeight + (settings.powerHeight or 0) + (settings.infoBarHeight or 0))
     frame.health:SetSize(settings.width, settings.healthHeight)
 
     if frame.health.text     then frame.health.text:SetFont(font, fontSize,     fontOutline) end
@@ -674,6 +695,12 @@ function UF.RefreshUnit(unitKey)
     if frame.power and settings.powerHeight then
         frame.power:SetSize(settings.width, settings.powerHeight)
         if frame.power.text then frame.power.text:SetFont(font, 8, fontOutline) end
+    end
+
+    if frame.infoBar and settings.infoBarHeight then
+        frame.infoBar:SetSize(settings.width, settings.infoBarHeight)
+        if frame.infoBar.powerText then frame.infoBar.powerText:SetFont(font, fontSize - 1, fontOutline) end
+        if frame.infoBar.hpText    then frame.infoBar.hpText:SetFont(font, fontSize - 1, fontOutline) end
     end
 
     if frame.castbar and settings.castbar then
@@ -799,6 +826,7 @@ function UF.RefreshUnit(unitKey)
         UpdateHealth(frame)
         UpdateAbsorb(frame)
         if frame.power then E.UpdatePower(frame) end
+        E.UpdateInfoBar(frame)
         UpdateName(frame)
         UpdateLevel(frame)
         UpdateThreat(frame)

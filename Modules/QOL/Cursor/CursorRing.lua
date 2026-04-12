@@ -19,7 +19,7 @@ function TomoMod_CursorRing.Create()
     -- Créer la texture du ring
     ringTexture = cursorFrame:CreateTexture(nil, "ARTWORK")
     ringTexture:SetAllPoints(cursorFrame)
-    ringTexture:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\Ring")
+    ringTexture:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\Cursor\\Ring")
     ringTexture:SetBlendMode("ADD")
     
     -- Update la position selon le curseur.

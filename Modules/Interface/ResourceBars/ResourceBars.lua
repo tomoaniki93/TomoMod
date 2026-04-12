@@ -1,7 +1,9 @@
 -- =====================================
--- ResourceBars.lua — Class Resource Bars System
--- Primary, Secondary, Tertiary resource display per class/spec
--- Supports: all classes, Druid form-adaptive, DK runes, Monk stagger
+-- ResourceBars.lua — Class Power Display System
+-- Displays class-specific resources: combo points, holy power,
+-- soul shards, chi, essence, arcane charges, runes, stagger, etc.
+-- Primary power (mana/rage/energy/etc.) is shown in UnitFrame info bar.
+-- Inspired by GW2_UI classpower architecture.
 -- =====================================
 
 TomoMod_ResourceBars = TomoMod_ResourceBars or {}
@@ -13,22 +15,104 @@ local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 -- =====================================
 -- POWER TYPE CONSTANTS (Enum.PowerType)
 -- =====================================
-local POWER_MANA          = 0
-local POWER_RAGE          = 1
-local POWER_FOCUS         = 2
-local POWER_ENERGY        = 3
-local POWER_COMBO_POINTS  = 4
-local POWER_RUNES         = 5
-local POWER_RUNIC_POWER   = 6
-local POWER_SOUL_SHARDS   = 7
-local POWER_LUNAR_POWER   = 8  -- Astral Power
-local POWER_HOLY_POWER    = 9
-local POWER_MAELSTROM     = 11
-local POWER_CHI           = 12
-local POWER_INSANITY      = 13
+local POWER_MANA           = 0
+local POWER_COMBO_POINTS   = 4
+local POWER_RUNES          = 5
+local POWER_SOUL_SHARDS    = 7
+local POWER_HOLY_POWER     = 9
+local POWER_CHI            = 12
 local POWER_ARCANE_CHARGES = 16
-local POWER_FURY          = 17
-local POWER_ESSENCE       = 19
+local POWER_ESSENCE        = 19
+
+-- =====================================
+-- CLASS POWER TEXTURES (GW2_UI-inspired)
+-- =====================================
+local TEX_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\ClassPower\\"
+local CP_TEXTURES = {
+    comboPoints   = { fill = TEX_PATH .. "combopoints",    flash = TEX_PATH .. "combo-flash" },
+    holyPower     = { fill = TEX_PATH .. "holypower",      flash = TEX_PATH .. "holypower-flare" },
+    soulShards    = { fill = TEX_PATH .. "soulshard",       flash = TEX_PATH .. "soulshardflare",
+                      fragBg = TEX_PATH .. "soulshardfragmentbarbg", fragFill = TEX_PATH .. "soulshardfragmentbarfill" },
+    chi           = { fill = TEX_PATH .. "chi",             flash = TEX_PATH .. "chi-flare" },
+    essence       = { fill = TEX_PATH .. "evoker" },
+    arcaneCharges = { fill = TEX_PATH .. "arcane",          flash = TEX_PATH .. "arcane-flash" },
+    runes         = { frost = TEX_PATH .. "runes",          blood = TEX_PATH .. "runes-blood",
+                      unholy = TEX_PATH .. "runes-unholy",  flash = TEX_PATH .. "runeflash" },
+    maelstromWeapon = { fill = TEX_PATH .. "enchantmentbars" },
+    stagger       = { bg   = TEX_PATH .. "monk\\stagger-bg",
+                      low  = TEX_PATH .. "monk\\stagger-yellow",
+                      med  = TEX_PATH .. "monk\\stagger-blue",
+                      high = TEX_PATH .. "monk\\stagger-red" },
+}
+
+-- =====================================
+-- ICON TEXCOORDS (per-point spritesheets)
+-- =====================================
+local ICON_TEXCOORDS = {
+    comboPoints = {
+        empty   = {0, 0.5, 0.5, 0},
+        filled  = {0.5, 1, 0.5, 0},
+        charged = {0, 0.5, 0.5, 1},
+    },
+    soulShards = {
+        empty  = {0.5, 1, 1, 0},
+        filled = {0, 0.5, 1, 0},
+    },
+    runes = {
+        empty  = {0, 0.5, 0, 1},
+        filled = {0.5, 1, 0, 1},
+    },
+    essence = {
+        empty  = {0.5, 1, 0, 1},
+        filled = {0, 0.5, 0, 1},
+    },
+}
+
+-- =====================================
+-- BAND TEXCOORDS (row-based spritesheets: chi, holypower, arcane)
+-- =====================================
+local BAND_CONFIG = {
+    chi = {
+        texture    = CP_TEXTURES.chi.fill,
+        multiplier = 0.111,          -- 9 rows
+        bgRow      = function(max) return max + 2 end,
+    },
+    holyPower = {
+        texture    = CP_TEXTURES.holyPower.fill,
+        multiplier = 0.125,          -- 8 rows
+        bgRow      = function(max) return max - 1 end,
+        desaturateBg = true,         -- show all symbols greyed out, fill saturates them
+    },
+    arcaneCharges = {
+        texture    = CP_TEXTURES.arcaneCharges.fill,
+        multiplier = 0.125,          -- 8 rows
+        bgRow      = function(max) return max - 1 end,
+        desaturateBg = true,         -- show all symbols greyed out, fill saturates them
+    },
+}
+
+-- =====================================
+-- POWER TYPE → TEXTURE TYPE MAP
+-- =====================================
+local POWER_TEXTURE_TYPE = {
+    [POWER_COMBO_POINTS]   = "comboPoints",
+    [POWER_SOUL_SHARDS]    = "soulShards",
+    [POWER_HOLY_POWER]     = "holyPower",
+    [POWER_CHI]            = "chi",
+    [POWER_ARCANE_CHARGES] = "arcaneCharges",
+    [POWER_ESSENCE]        = "essence",
+}
+
+-- =====================================
+-- STAGGER LEVEL DETECTION (via auras, avoids secret number math)
+-- =====================================
+local STAGGER_HEAVY  = 124273
+local STAGGER_MEDIUM = 124274
+local function GetStaggerLevel()
+    if C_UnitAuras.GetPlayerAuraBySpellID(STAGGER_HEAVY) then return "high" end
+    if C_UnitAuras.GetPlayerAuraBySpellID(STAGGER_MEDIUM) then return "med" end
+    return "low"
+end
 
 -- =====================================
 -- AURA BAR HELPERS (Devourer Soul Fragments, etc.)
@@ -56,185 +140,97 @@ local function GetAuraBarValues(def)
 end
 
 -- =====================================
--- CLASS / SPEC RESOURCE DEFINITIONS
+-- CLASS / SPEC — CLASS POWER DEFINITIONS
+-- Only class-specific resources (not shown in UnitFrame info bar)
 -- =====================================
 local CLASS_RESOURCES = {
     SHAMAN = {
-        [1] = { -- Elemental
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-            secondary = { display = "bar", powerType = POWER_MAELSTROM, label = "Maelstrom" },
-        },
+        -- [1] Elemental: Maelstrom in UF info bar
         [2] = { -- Enhancement
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-            secondary = { display = "aura", spellID = 344179, label = "Maelstrom Weapon", maxStacks = 10 },
+            classPower = { display = "aura", spellID = 344179, label = "Maelstrom Weapon", maxStacks = 10 },
         },
-        [3] = { -- Restoration
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-        },
+        -- [3] Restoration: Mana in UF info bar
     },
     HUNTER = {
-        [1] = { -- Beast Mastery
-            primary   = { display = "bar", powerType = POWER_FOCUS, label = "Focus" },
-        },
-        [2] = { -- Marksmanship
-            primary   = { display = "bar", powerType = POWER_FOCUS, label = "Focus" },
-        },
+        -- [1] BM: Focus in UF info bar
+        -- [2] MM: Focus in UF info bar
         [3] = { -- Survival
-            primary   = { display = "bar", powerType = POWER_FOCUS, label = "Focus" },
-            secondary = { display = "aura", spellID = 260286, label = "Tip of the Spear", maxStacks = 3 },
+            classPower = { display = "aura", spellID = 260286, label = "Tip of the Spear", maxStacks = 3 },
         },
     },
     DEMONHUNTER = {
-        [1] = { -- Havoc
-            primary   = { display = "bar", powerType = POWER_FURY, label = "Fury" },
-        },
+        -- [1] Havoc: Fury in UF info bar
         [2] = { -- Vengeance
-            primary   = { display = "bar", powerType = POWER_FURY, label = "Fury" },
-            secondary = { display = "aura", spellID = 203981, label = "Soul Fragments", maxStacks = 6 },
+            classPower = { display = "aura", spellID = 203981, label = "Soul Fragments", maxStacks = 6 },
         },
-        [3] = { -- Devourer - Soul Fragments / Collapsing Star / Soul Glutton adaptive display
-            primary   = { display = "bar", powerType = POWER_FURY, label = "Fury" },
-            secondary = { display = "aura_bar", label = "Soul Fragments", colorKey = "soulFragments", spellIDs = { 1225789, 1227702 }, talentSpellID = 1247534, maxDefault = 50, maxWithTalent = 35 },
+        [3] = { -- Devourer
+            classPower = { display = "aura_bar", label = "Soul Fragments", colorKey = "soulFragments", spellIDs = { 1225789, 1227702 }, talentSpellID = 1247534, maxDefault = 50, maxWithTalent = 35 },
         },
     },
     DEATHKNIGHT = {
-        [1] = { -- Blood
-            primary   = { display = "bar", powerType = POWER_RUNIC_POWER, label = "Runic Power" },
-            secondary = { display = "runes", label = "Runes" },
-        },
-        [2] = { -- Frost
-            primary   = { display = "bar", powerType = POWER_RUNIC_POWER, label = "Runic Power" },
-            secondary = { display = "runes", label = "Runes" },
-        },
-        [3] = { -- Unholy
-            primary   = { display = "bar", powerType = POWER_RUNIC_POWER, label = "Runic Power" },
-            secondary = { display = "runes", label = "Runes" },
-        },
+        [1] = { classPower = { display = "runes", label = "Runes" } },
+        [2] = { classPower = { display = "runes", label = "Runes" } },
+        [3] = { classPower = { display = "runes", label = "Runes" } },
     },
     WARLOCK = {
-        [1] = { -- Affliction
-            primary   = { display = "points", powerType = POWER_SOUL_SHARDS, label = "Soul Shards", maxPoints = 5, showPartial = true },
-        },
-        [2] = { -- Demonology
-            primary   = { display = "points", powerType = POWER_SOUL_SHARDS, label = "Soul Shards", maxPoints = 5, showPartial = true },
-        },
-        [3] = { -- Destruction
-            primary   = { display = "points", powerType = POWER_SOUL_SHARDS, label = "Soul Shards", maxPoints = 5, showPartial = true },
-        },
+        [1] = { classPower = { display = "points", powerType = POWER_SOUL_SHARDS, label = "Soul Shards", maxPoints = 5, showPartial = true } },
+        [2] = { classPower = { display = "points", powerType = POWER_SOUL_SHARDS, label = "Soul Shards", maxPoints = 5, showPartial = true } },
+        [3] = { classPower = { display = "points", powerType = POWER_SOUL_SHARDS, label = "Soul Shards", maxPoints = 5, showPartial = true } },
     },
     DRUID = {
-        [1] = { -- Balance
-            primary   = { display = "bar", powerType = POWER_LUNAR_POWER, label = "Astral Power" },
-            druidMana = true,
-        },
+        [1] = { druidMana = true }, -- Balance: Astral Power in UF info bar
         [2] = { -- Feral
-            primary   = { display = "bar", powerType = POWER_ENERGY, label = "Energy" },
-            secondary = { display = "points", powerType = POWER_COMBO_POINTS, label = "Combo Points", maxPoints = 5 },
+            classPower = { display = "points", powerType = POWER_COMBO_POINTS, label = "Combo Points", maxPoints = 5 },
             druidMana = true,
         },
-        [3] = { -- Guardian
-            primary   = { display = "bar", powerType = POWER_RAGE, label = "Rage" },
-            druidMana = true,
-        },
-        [4] = { -- Restoration
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-        },
+        [3] = { druidMana = true }, -- Guardian: Rage in UF info bar
+        -- [4] Restoration: Mana in UF info bar
     },
     EVOKER = {
-        [1] = { -- Devastation
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-            secondary = { display = "points", powerType = POWER_ESSENCE, label = "Essence", maxPoints = 6 },
-        },
-        [2] = { -- Preservation
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-            secondary = { display = "points", powerType = POWER_ESSENCE, label = "Essence", maxPoints = 6 },
-        },
-        [3] = { -- Augmentation
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-            secondary = { display = "points", powerType = POWER_ESSENCE, label = "Essence", maxPoints = 6 },
-        },
+        [1] = { classPower = { display = "points", powerType = POWER_ESSENCE, label = "Essence", maxPoints = 6 } },
+        [2] = { classPower = { display = "points", powerType = POWER_ESSENCE, label = "Essence", maxPoints = 6 } },
+        [3] = { classPower = { display = "points", powerType = POWER_ESSENCE, label = "Essence", maxPoints = 6 } },
     },
-    WARRIOR = {
-        [1] = { primary = { display = "bar", powerType = POWER_RAGE, label = "Rage" } },
-        [2] = { primary = { display = "bar", powerType = POWER_RAGE, label = "Rage" } },
-        [3] = { primary = { display = "bar", powerType = POWER_RAGE, label = "Rage" } },
-    },
+    -- WARRIOR: all specs — Rage in UF info bar, no class power
     MAGE = {
         [1] = { -- Arcane
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-            secondary = { display = "points", powerType = POWER_ARCANE_CHARGES, label = "Arcane Charges", maxPoints = 4 },
+            classPower = { display = "points", powerType = POWER_ARCANE_CHARGES, label = "Arcane Charges", maxPoints = 4 },
         },
-        [2] = { primary = { display = "bar", powerType = POWER_MANA, label = "Mana" } },
-        [3] = { primary = { display = "bar", powerType = POWER_MANA, label = "Mana" } },
+        -- [2] Fire, [3] Frost: Mana in UF info bar
     },
     MONK = {
         [1] = { -- Brewmaster
-            primary   = { display = "bar", powerType = POWER_ENERGY, label = "Energy" },
-            secondary = { display = "stagger", label = "Stagger" },
+            classPower = { display = "stagger", label = "Stagger" },
         },
-        [2] = { primary = { display = "bar", powerType = POWER_MANA, label = "Mana" } },
+        -- [2] Mistweaver: Mana in UF info bar
         [3] = { -- Windwalker
-            primary   = { display = "bar", powerType = POWER_ENERGY, label = "Energy" },
-            secondary = { display = "points", powerType = POWER_CHI, label = "Chi", maxPoints = 6 },
+            classPower = { display = "points", powerType = POWER_CHI, label = "Chi", maxPoints = 6 },
         },
     },
     PALADIN = {
-        [1] = {
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-            secondary = { display = "points", powerType = POWER_HOLY_POWER, label = "Holy Power", maxPoints = 5 },
-        },
-        [2] = {
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-            secondary = { display = "points", powerType = POWER_HOLY_POWER, label = "Holy Power", maxPoints = 5 },
-        },
-        [3] = {
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-            secondary = { display = "points", powerType = POWER_HOLY_POWER, label = "Holy Power", maxPoints = 5 },
-        },
+        [1] = { classPower = { display = "points", powerType = POWER_HOLY_POWER, label = "Holy Power", maxPoints = 5 } },
+        [2] = { classPower = { display = "points", powerType = POWER_HOLY_POWER, label = "Holy Power", maxPoints = 5 } },
+        [3] = { classPower = { display = "points", powerType = POWER_HOLY_POWER, label = "Holy Power", maxPoints = 5 } },
     },
-    PRIEST = {
-        [1] = { primary = { display = "bar", powerType = POWER_MANA, label = "Mana" } },
-        [2] = { primary = { display = "bar", powerType = POWER_MANA, label = "Mana" } },
-        [3] = { -- Shadow
-            primary   = { display = "bar", powerType = POWER_MANA, label = "Mana" },
-            secondary = { display = "bar", powerType = POWER_INSANITY, label = "Insanity" },
-        },
-    },
+    -- PRIEST: all specs — Mana/Insanity in UF info bar, no class power
     ROGUE = {
-        [1] = {
-            primary   = { display = "bar", powerType = POWER_ENERGY, label = "Energy" },
-            secondary = { display = "points", powerType = POWER_COMBO_POINTS, label = "Combo Points", maxPoints = 7 },
-        },
-        [2] = {
-            primary   = { display = "bar", powerType = POWER_ENERGY, label = "Energy" },
-            secondary = { display = "points", powerType = POWER_COMBO_POINTS, label = "Combo Points", maxPoints = 7 },
-        },
-        [3] = {
-            primary   = { display = "bar", powerType = POWER_ENERGY, label = "Energy" },
-            secondary = { display = "points", powerType = POWER_COMBO_POINTS, label = "Combo Points", maxPoints = 7 },
-        },
+        [1] = { classPower = { display = "points", powerType = POWER_COMBO_POINTS, label = "Combo Points", maxPoints = 7 } },
+        [2] = { classPower = { display = "points", powerType = POWER_COMBO_POINTS, label = "Combo Points", maxPoints = 7 } },
+        [3] = { classPower = { display = "points", powerType = POWER_COMBO_POINTS, label = "Combo Points", maxPoints = 7 } },
     },
 }
 
 -- =====================================
--- POWER → COLOR KEY MAP
+-- POWER → COLOR KEY MAP (class powers only)
 -- =====================================
 local POWER_COLOR_KEYS = {
     [POWER_MANA]           = "mana",
-    [POWER_RAGE]           = "rage",
-    [POWER_FOCUS]          = "focus",
-    [POWER_ENERGY]         = "energy",
     [POWER_COMBO_POINTS]   = "comboPoints",
     [POWER_RUNES]          = "runes",
-    [POWER_RUNIC_POWER]    = "runicPower",
     [POWER_SOUL_SHARDS]    = "soulShards",
-    [POWER_LUNAR_POWER]    = "astralPower",
     [POWER_HOLY_POWER]     = "holyPower",
-    [POWER_MAELSTROM]      = "maelstrom",
     [POWER_CHI]            = "chi",
-    [POWER_INSANITY]       = "insanity",
     [POWER_ARCANE_CHARGES] = "arcaneCharges",
-    [POWER_FURY]           = "fury",
     [POWER_ESSENCE]        = "essence",
 }
 
@@ -244,8 +240,7 @@ local POWER_COLOR_KEYS = {
 local _, playerClass = UnitClass("player")
 local mainFrame
 local container
-local primaryBar
-local secondaryContainer
+local classPowerFrame
 local druidManaBar
 local currentResources
 local currentSpec = 0
@@ -283,6 +278,11 @@ local function GetTextAlignment()
     return s and s.textAlignment or "CENTER"
 end
 
+local function UseTextures()
+    local s = GetSettings()
+    return s and s.displayMode == "icons"
+end
+
 -- =====================================
 -- BORDER (mirrors UF_Elements.CreateBorder)
 -- =====================================
@@ -301,12 +301,12 @@ local function CreateBorder(frame)
 end
 
 -- =====================================
--- CREATE: PRIMARY BAR (continuous StatusBar)
+-- CREATE: BAR DISPLAY (used for aura_bar class powers)
 -- =====================================
-local function CreatePrimaryBar(parent, width, height)
+local function CreateBarDisplay(parent, width, height)
     local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
 
-    local bar = CreateFrame("StatusBar", "TomoMod_RB_Primary", parent)
+    local bar = CreateFrame("StatusBar", "TomoMod_RB_AuraBar", parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(tex)
     bar:GetStatusBarTexture():SetHorizTile(false)
@@ -337,30 +337,50 @@ local function CreatePrimaryBar(parent, width, height)
 end
 
 -- =====================================
--- CREATE: POINT DISPLAY (Combo, Holy Power, Chi, etc.)
+-- CREATE: POINT DISPLAY (Combo, Soul Shards, Essence, auras)
+-- Supports both icon textures and flat color bars
 -- =====================================
-local function CreatePointDisplay(parent, maxPoints, width, height, colorKey)
+local function CreatePointDisplay(parent, maxPoints, width, height, colorKey, texType)
     local frame = CreateFrame("Frame", "TomoMod_RB_Points", parent)
     frame:SetSize(width, height)
 
-    local spacing = 2
-    local pw = (width - (maxPoints - 1) * spacing) / maxPoints
+    local useTex = UseTextures() and texType and ICON_TEXCOORDS[texType]
+    local tc = useTex and ICON_TEXCOORDS[texType]
+    local texPath = useTex and CP_TEXTURES[texType] and CP_TEXTURES[texType].fill
+
+    local spacing = useTex and 4 or 2
+    local pw = useTex and height or (width - (maxPoints - 1) * spacing) / maxPoints
+    local totalW = maxPoints * pw + (maxPoints - 1) * spacing
+    local offsetX = useTex and math.max((width - totalW) / 2, 0) or 0
+
     frame.points = {}
     frame.maxPoints = maxPoints
     frame.colorKey = colorKey
+    frame.useTextures = useTex and true or false
 
     for i = 1, maxPoints do
-        local pt = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+        local pt = CreateFrame("Frame", nil, frame)
         pt:SetSize(pw, height)
-        pt:SetPoint("LEFT", frame, "LEFT", (i - 1) * (pw + spacing), 0)
+        pt:SetPoint("LEFT", frame, "LEFT", offsetX + (i - 1) * (pw + spacing), 0)
 
         local bg = pt:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints(); bg:SetColorTexture(0.06, 0.06, 0.08, 0.8)
+        bg:SetAllPoints()
+        if useTex and texPath and tc then
+            bg:SetTexture(texPath)
+            bg:SetTexCoord(unpack(tc.empty))
+        else
+            bg:SetColorTexture(0.06, 0.06, 0.08, 0.8)
+        end
         pt.bg = bg
 
         local fill = pt:CreateTexture(nil, "ARTWORK")
         fill:SetAllPoints()
-        fill:SetColorTexture(GetColor(colorKey))
+        if useTex and texPath and tc then
+            fill:SetTexture(texPath)
+            fill:SetTexCoord(unpack(tc.filled))
+        else
+            fill:SetColorTexture(GetColor(colorKey))
+        end
         fill:Hide()
         pt.fill = fill
 
@@ -368,14 +388,49 @@ local function CreatePointDisplay(parent, maxPoints, width, height, colorKey)
         local partial = pt:CreateTexture(nil, "ARTWORK")
         partial:SetPoint("BOTTOMLEFT"); partial:SetPoint("TOPLEFT")
         partial:SetWidth(0)
-        partial:SetColorTexture(GetColor(colorKey))
+        if useTex and texPath and tc then
+            partial:SetTexture(texPath)
+            partial:SetTexCoord(unpack(tc.filled))
+        else
+            partial:SetColorTexture(GetColor(colorKey))
+        end
         partial:SetAlpha(0.5)
         partial:Hide()
         pt.partial = partial
 
-        CreateBorder(pt)
+        if not useTex then CreateBorder(pt) end
         frame.points[i] = pt
     end
+
+    return frame
+end
+
+-- =====================================
+-- CREATE: BAND DISPLAY (Chi, Holy Power, Arcane — row-based spritesheet)
+-- =====================================
+local function CreateBandDisplay(parent, width, height, texType)
+    local frame = CreateFrame("Frame", "TomoMod_RB_Band", parent)
+    frame:SetSize(width, height)
+    frame.texType = texType
+    frame.isBand = true
+
+    local cfg = BAND_CONFIG[texType]
+    if not cfg then return frame end
+
+    local bg = frame:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetTexture(cfg.texture)
+    if cfg.desaturateBg then
+        bg:SetDesaturated(true)
+        bg:SetAlpha(0.5)
+    end
+    frame.bg = bg
+
+    local fill = frame:CreateTexture(nil, "ARTWORK")
+    fill:SetAllPoints()
+    fill:SetTexture(cfg.texture)
+    fill:Hide()
+    frame.fill = fill
 
     return frame
 end
@@ -387,31 +442,69 @@ local function CreateRuneDisplay(parent, width, height)
     local frame = CreateFrame("Frame", "TomoMod_RB_Runes", parent)
     frame:SetSize(width, height)
 
-    local spacing = 2
-    local rw = (width - 5 * spacing) / 6
+    local useTex = UseTextures()
+    local tc = useTex and ICON_TEXCOORDS.runes
+    local texPath = useTex and CP_TEXTURES.runes.frost
+
+    local spacing = useTex and 4 or 2
+    local rw = useTex and height or (width - 5 * spacing) / 6
+    local totalW = 6 * rw + 5 * spacing
+    local offsetX = useTex and math.max((width - totalW) / 2, 0) or 0
     frame.runes = {}
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    frame.useTextures = useTex and true or false
 
-    for i = 1, 6 do
-        local rune = CreateFrame("StatusBar", nil, frame)
-        rune:SetSize(rw, height)
-        rune:SetPoint("LEFT", frame, "LEFT", (i - 1) * (rw + spacing), 0)
-        rune:SetStatusBarTexture(tex)
-        rune:GetStatusBarTexture():SetHorizTile(false)
-        rune:SetMinMaxValues(0, 1); rune:SetValue(1)
+    if useTex and tc and texPath then
+        -- Icon mode: per-rune frames with texture + height-based fill
+        for i = 1, 6 do
+            local runeF = CreateFrame("Frame", nil, frame)
+            runeF:SetSize(rw, height)
+            runeF:SetPoint("LEFT", frame, "LEFT", offsetX + (i - 1) * (rw + spacing), 0)
 
-        local bg = rune:CreateTexture(nil, "BACKGROUND")
-        bg:SetAllPoints(); bg:SetTexture(tex)
-        bg:SetVertexColor(0.06, 0.06, 0.08, 0.8)
-        rune.bg = bg
+            local bg = runeF:CreateTexture(nil, "BACKGROUND")
+            bg:SetAllPoints()
+            bg:SetTexture(texPath)
+            bg:SetTexCoord(unpack(tc.empty))
+            runeF.bg = bg
 
-        local cd = rune:CreateFontString(nil, "OVERLAY")
-        cd:SetFont(GetFont(), math.max(GetFontSize() - 2, 7), "OUTLINE")
-        cd:SetPoint("CENTER"); cd:SetTextColor(1, 1, 1, 0.8)
-        rune.cdText = cd
+            local fill = runeF:CreateTexture(nil, "ARTWORK")
+            fill:SetPoint("BOTTOMLEFT")
+            fill:SetPoint("BOTTOMRIGHT")
+            fill:SetHeight(height)
+            fill:SetTexture(texPath)
+            fill:SetTexCoord(unpack(tc.filled))
+            runeF.fill = fill
 
-        CreateBorder(rune)
-        frame.runes[i] = rune
+            local cd = runeF:CreateFontString(nil, "OVERLAY")
+            cd:SetFont(GetFont(), math.max(GetFontSize() - 2, 7), "OUTLINE")
+            cd:SetPoint("CENTER"); cd:SetTextColor(1, 1, 1, 0.8)
+            runeF.cdText = cd
+
+            frame.runes[i] = runeF
+        end
+    else
+        -- Bar mode: StatusBar per rune
+        local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+        for i = 1, 6 do
+            local rune = CreateFrame("StatusBar", nil, frame)
+            rune:SetSize(rw, height)
+            rune:SetPoint("LEFT", frame, "LEFT", (i - 1) * (rw + spacing), 0)
+            rune:SetStatusBarTexture(tex)
+            rune:GetStatusBarTexture():SetHorizTile(false)
+            rune:SetMinMaxValues(0, 1); rune:SetValue(1)
+
+            local bg = rune:CreateTexture(nil, "BACKGROUND")
+            bg:SetAllPoints()
+            bg:SetColorTexture(0.06, 0.06, 0.08, 0.8)
+            rune.bg = bg
+
+            local cd = rune:CreateFontString(nil, "OVERLAY")
+            cd:SetFont(GetFont(), math.max(GetFontSize() - 2, 7), "OUTLINE")
+            cd:SetPoint("CENTER"); cd:SetTextColor(1, 1, 1, 0.8)
+            rune.cdText = cd
+
+            CreateBorder(rune)
+            frame.runes[i] = rune
+        end
     end
 
     return frame
@@ -421,16 +514,21 @@ end
 -- CREATE: STAGGER BAR (Monk Brewmaster)
 -- =====================================
 local function CreateStaggerBar(parent, width, height)
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local useTex = UseTextures()
+    local staggerTex = useTex and CP_TEXTURES.stagger
+    local barTex = (staggerTex and staggerTex.low) or (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local bgTex  = (staggerTex and staggerTex.bg)  or barTex
+
     local bar = CreateFrame("StatusBar", "TomoMod_RB_Stagger", parent)
     bar:SetSize(width, height)
-    bar:SetStatusBarTexture(tex)
+    bar:SetStatusBarTexture(barTex)
     bar:GetStatusBarTexture():SetHorizTile(false)
     bar:SetMinMaxValues(0, 100); bar:SetValue(0)
+    bar.useTextures = useTex and true or false
 
     local bg = bar:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints(); bg:SetTexture(tex)
-    bg:SetVertexColor(0.06, 0.06, 0.08, 0.8)
+    bg:SetAllPoints(); bg:SetTexture(bgTex)
+    if not useTex then bg:SetVertexColor(0.06, 0.06, 0.08, 0.8) end
     bar.bg = bg
     CreateBorder(bar)
 
@@ -471,29 +569,8 @@ local function CreateDruidManaBar(parent, width, height)
 end
 
 -- =====================================
--- UPDATE: PRIMARY BAR
+-- (Primary bar update removed — main power is in UnitFrame info bar)
 -- =====================================
-local function UpdatePrimaryBar(resDef)
-    if not primaryBar or not resDef then return end
-    local pType = resDef.powerType
-    local current = UnitPower("player", pType)
-    local max = UnitPowerMax("player", pType)
-    if max == 0 then max = 1 end
-
-    primaryBar:SetMinMaxValues(0, max)
-    primaryBar:SetValue(current)
-
-    local colorKey = POWER_COLOR_KEYS[pType] or "mana"
-    local r, g, b = GetColor(colorKey)
-    primaryBar:SetStatusBarColor(r, g, b, 1)
-
-    local s = GetSettings()
-    if s and s.showText and primaryBar.text then
-        primaryBar.text:SetFormattedText("%s / %s", AbbreviateLargeNumbers(current), AbbreviateLargeNumbers(max))
-    elseif primaryBar.text then
-        primaryBar.text:SetText("")
-    end
-end
 
 -- =====================================
 -- UPDATE: POINTS / AURA DISPLAY
@@ -525,6 +602,7 @@ local function UpdatePoints(pointFrame, resDef)
         end
     end
 
+    local useTex = pointFrame.useTextures
     local colorKey = pointFrame.colorKey or "comboPoints"
     local r, g, b = GetColor(colorKey)
     local displayMax = math.min(max, #pointFrame.points)
@@ -536,11 +614,12 @@ local function UpdatePoints(pointFrame, resDef)
         else
             pt:Show()
             if i <= current then
-                pt.fill:SetColorTexture(r, g, b); pt.fill:Show()
+                if not useTex then pt.fill:SetColorTexture(r, g, b) end
+                pt.fill:Show()
                 pt.partial:Hide()
             elseif i == current + 1 and partialFrac > 0 then
                 pt.fill:Hide()
-                pt.partial:SetColorTexture(r, g, b)
+                if not useTex then pt.partial:SetColorTexture(r, g, b) end
                 pt.partial:SetWidth(math.max(pt:GetWidth() * partialFrac, 1))
                 pt.partial:Show()
             else
@@ -551,32 +630,93 @@ local function UpdatePoints(pointFrame, resDef)
 end
 
 -- =====================================
+-- UPDATE: BAND DISPLAY (Chi, Holy Power, Arcane)
+-- =====================================
+local function UpdateBandDisplay(bandFrame, resDef)
+    if not bandFrame or not bandFrame.fill then return end
+
+    local texType = bandFrame.texType
+    local cfg = BAND_CONFIG[texType]
+    if not cfg then return end
+
+    local current = UnitPower("player", resDef.powerType)
+    local max = UnitPowerMax("player", resDef.powerType)
+    if max == 0 then max = 1 end
+
+    local m = cfg.multiplier
+
+    -- Background: empty state showing full capacity
+    local bgRow = cfg.bgRow(max)
+    bandFrame.bg:SetTexCoord(0, 1, m * bgRow, m * (bgRow + 1))
+
+    -- Fill: current count
+    if current > 0 then
+        local fillRow = current - 1
+        bandFrame.fill:SetTexCoord(0, 1, m * fillRow, m * (fillRow + 1))
+        bandFrame.fill:Show()
+    else
+        bandFrame.fill:Hide()
+    end
+end
+
+-- =====================================
 -- UPDATE: RUNES (DK)
 -- =====================================
 local function UpdateRunes(runeFrame)
     if not runeFrame or not runeFrame.runes then return end
     local now = GetTime()
-    local rR, gR, bR = GetColor("runesReady")
-    local rC, gC, bC = GetColor("runes")
+    local useTex = runeFrame.useTextures
 
-    for i = 1, 6 do
-        local rune = runeFrame.runes[i]
-        if rune then
-            local start, duration, runeReady = GetRuneCooldown(i)
-            if runeReady then
-                rune:SetValue(1)
-                rune:SetStatusBarColor(rR, gR, bR, 1)
-                rune.cdText:SetText("")
-            else
-                local elapsed = now - start
-                local progress = math.min(elapsed / duration, 1)
-                rune:SetValue(progress)
-                rune:SetStatusBarColor(rC, gC, bC, 0.6)
-                local remaining = duration - elapsed
-                if remaining > 0 then
-                    rune.cdText:SetFormattedText("%.1f", remaining)
-                else
+    if useTex then
+        -- Icon mode: height-based fill animation
+        for i = 1, 6 do
+            local rune = runeFrame.runes[i]
+            if rune and rune.fill then
+                local start, duration, runeReady = GetRuneCooldown(i)
+                local maxH = rune:GetHeight()
+                if runeReady then
+                    rune.fill:SetTexCoord(0.5, 1, 0, 1)
+                    rune.fill:SetHeight(maxH)
+                    rune.fill:SetAlpha(1)
                     rune.cdText:SetText("")
+                else
+                    local elapsed = now - start
+                    local progress = math.min(elapsed / duration, 1)
+                    rune.fill:SetTexCoord(0.5, 1, 1 - progress, 1)
+                    rune.fill:SetHeight(math.max(maxH * progress, 0.1))
+                    rune.fill:SetAlpha(0.7)
+                    local remaining = duration - elapsed
+                    if remaining > 0 then
+                        rune.cdText:SetFormattedText("%.1f", remaining)
+                    else
+                        rune.cdText:SetText("")
+                    end
+                end
+            end
+        end
+    else
+        -- Bar mode: StatusBar fill
+        local rR, gR, bR = GetColor("runesReady")
+        local rC, gC, bC = GetColor("runes")
+        for i = 1, 6 do
+            local rune = runeFrame.runes[i]
+            if rune then
+                local start, duration, runeReady = GetRuneCooldown(i)
+                if runeReady then
+                    rune:SetValue(1)
+                    rune:SetStatusBarColor(rR, gR, bR, 1)
+                    rune.cdText:SetText("")
+                else
+                    local elapsed = now - start
+                    local progress = math.min(elapsed / duration, 1)
+                    rune:SetValue(progress)
+                    rune:SetStatusBarColor(rC, gC, bC, 0.6)
+                    local remaining = duration - elapsed
+                    if remaining > 0 then
+                        rune.cdText:SetFormattedText("%.1f", remaining)
+                    else
+                        rune.cdText:SetText("")
+                    end
                 end
             end
         end
@@ -595,10 +735,22 @@ local function UpdateStagger(bar)
     bar:SetMinMaxValues(0, maxHP)
     bar:SetValue(stagger)
 
-    -- TWW: UnitStagger returns a secret value — cannot compute percentage in Lua
-    -- Use default stagger color (visual bar still shows correct proportion)
-    local r, g, b = GetColor("stagger")
-    bar:SetStatusBarColor(r, g, b, 1)
+    if bar.useTextures then
+        -- Swap texture by stagger level (light/moderate/heavy)
+        local level = GetStaggerLevel()
+        local stTex = CP_TEXTURES.stagger
+        if level == "high" then
+            bar:SetStatusBarTexture(stTex.high)
+        elseif level == "med" then
+            bar:SetStatusBarTexture(stTex.med)
+        else
+            bar:SetStatusBarTexture(stTex.low)
+        end
+        bar:GetStatusBarTexture():SetHorizTile(false)
+    else
+        local r, g, b = GetColor("stagger")
+        bar:SetStatusBarColor(r, g, b, 1)
+    end
 
     local s = GetSettings()
     if s and s.showText and bar.text then
@@ -634,20 +786,8 @@ local function UpdateDruidMana()
 end
 
 -- =====================================
--- DRUID ADAPTIVE PRIMARY
+-- (Druid adaptive primary removed — power is in UnitFrame info bar)
 -- =====================================
-local function GetDruidAdaptivePrimary()
-    local pType = UnitPowerType("player")
-    if pType == POWER_RAGE then
-        return { display = "bar", powerType = POWER_RAGE, label = "Rage" }
-    elseif pType == POWER_ENERGY then
-        return { display = "bar", powerType = POWER_ENERGY, label = "Energy" }
-    elseif pType == POWER_LUNAR_POWER then
-        return { display = "bar", powerType = POWER_LUNAR_POWER, label = "Astral Power" }
-    else
-        return { display = "bar", powerType = POWER_MANA, label = "Mana" }
-    end
-end
 
 -- =====================================
 -- AURA COLOR KEY RESOLVER
@@ -660,7 +800,7 @@ local function GetAuraColorKey(label)
 end
 
 -- =====================================
--- BUILD/REBUILD RESOURCE DISPLAY
+-- BUILD/REBUILD CLASS POWER DISPLAY
 -- =====================================
 local function BuildResourceDisplay()
     local s = GetSettings()
@@ -670,22 +810,19 @@ local function BuildResourceDisplay()
     if not specIndex or specIndex == 0 then return end
 
     local classData = CLASS_RESOURCES[playerClass]
-    if not classData then return end
+    local resources = classData and classData[specIndex]
 
-    local resources = classData[specIndex]
-    if not resources then return end
-
+    -- Specs with no class power at all (e.g. Warrior, Hunter BM/MM, Priest, etc.)
     currentResources = resources
     currentSpec = specIndex
 
     local width = s.width or 260
-    local pH = s.primaryHeight or 16
-    local sH = s.secondaryHeight or 12
+    local cpH = s.primaryHeight or 16     -- height for class power display
+    local dmH = s.secondaryHeight or 12   -- height for druid mana bar
     local gap = 2
 
     -- Clear old
-    if primaryBar then primaryBar:Hide(); primaryBar = nil end
-    if secondaryContainer then secondaryContainer:Hide(); secondaryContainer = nil end
+    if classPowerFrame then classPowerFrame:Hide(); classPowerFrame = nil end
     if druidManaBar then druidManaBar:Hide(); druidManaBar = nil end
 
     -- Container
@@ -715,69 +852,57 @@ local function BuildResourceDisplay()
     end
 
     local totalH, nextY = 0, 0
+    local hasContent = false
 
-    -- === PRIMARY ===
-    local primaryDef = resources.primary
-    if playerClass == "DRUID" then
-        primaryDef = GetDruidAdaptivePrimary()
-    end
+    -- === CLASS POWER ===
+    if resources and resources.classPower then
+        local cpDef = resources.classPower
+        if cpDef.display == "points" then
+            local ck = POWER_COLOR_KEYS[cpDef.powerType] or "comboPoints"
+            local texType = POWER_TEXTURE_TYPE[cpDef.powerType]
+            -- Band textures (chi, holypower, arcane) use a single wide spritesheet
+            if UseTextures() and texType and BAND_CONFIG[texType] then
+                classPowerFrame = CreateBandDisplay(container, width, cpH, texType)
+            else
+                classPowerFrame = CreatePointDisplay(container, cpDef.maxPoints or 5, width, cpH, ck, texType)
+            end
+        elseif cpDef.display == "runes" then
+            classPowerFrame = CreateRuneDisplay(container, width, cpH)
+        elseif cpDef.display == "stagger" then
+            classPowerFrame = CreateStaggerBar(container, width, cpH)
+        elseif cpDef.display == "aura" then
+            local ck = GetAuraColorKey(cpDef.label)
+            classPowerFrame = CreatePointDisplay(container, cpDef.maxStacks or 5, width, cpH, ck, nil)
+        elseif cpDef.display == "aura_bar" then
+            classPowerFrame = CreateBarDisplay(container, width, cpH)
+        end
 
-    if primaryDef then
-        if primaryDef.display == "bar" then
-            primaryBar = CreatePrimaryBar(container, width, pH)
-            primaryBar:ClearAllPoints()
-            primaryBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
-            nextY = nextY + pH + gap
-            totalH = totalH + pH + gap
-        elseif primaryDef.display == "points" then
-            local ck = POWER_COLOR_KEYS[primaryDef.powerType] or "soulShards"
-            primaryBar = CreatePointDisplay(container, primaryDef.maxPoints or 5, width, pH, ck)
-            primaryBar:ClearAllPoints()
-            primaryBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
-            primaryBar.isPrimaryPoints = true
-            nextY = nextY + pH + gap
-            totalH = totalH + pH + gap
+        if classPowerFrame then
+            classPowerFrame:ClearAllPoints()
+            classPowerFrame:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
+            nextY = nextY + cpH + gap
+            totalH = totalH + cpH + gap
+            hasContent = true
         end
     end
 
     -- === DRUID MANA BAR ===
-    if playerClass == "DRUID" and resources.druidMana then
-        druidManaBar = CreateDruidManaBar(container, width, sH)
+    if resources and resources.druidMana then
+        druidManaBar = CreateDruidManaBar(container, width, dmH)
         druidManaBar:ClearAllPoints()
         druidManaBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
-        nextY = nextY + sH + gap
-        totalH = totalH + sH + gap
+        nextY = nextY + dmH + gap
+        totalH = totalH + dmH + gap
+        hasContent = true
     end
 
-    -- === SECONDARY ===
-    local secDef = resources.secondary
-    if secDef then
-        if secDef.display == "points" then
-            local ck = POWER_COLOR_KEYS[secDef.powerType] or "comboPoints"
-            secondaryContainer = CreatePointDisplay(container, secDef.maxPoints or 5, width, sH, ck)
-        elseif secDef.display == "bar" then
-            secondaryContainer = CreatePrimaryBar(container, width, sH)
-        elseif secDef.display == "runes" then
-            secondaryContainer = CreateRuneDisplay(container, width, sH)
-        elseif secDef.display == "stagger" then
-            secondaryContainer = CreateStaggerBar(container, width, sH)
-        elseif secDef.display == "aura" then
-            local ck = GetAuraColorKey(secDef.label)
-            secondaryContainer = CreatePointDisplay(container, secDef.maxStacks or 5, width, sH, ck)
-        elseif secDef.display == "aura_bar" then
-            secondaryContainer = CreatePrimaryBar(container, width, sH)
-        end
-
-        if secondaryContainer then
-            secondaryContainer:ClearAllPoints()
-            secondaryContainer:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
-            nextY = nextY + sH + gap
-            totalH = totalH + sH + gap
-        end
+    if hasContent then
+        container:SetSize(width, math.max(totalH, 1))
+        container:Show()
+    else
+        container:SetSize(width, 1)
+        container:Hide()
     end
-
-    container:SetSize(width, math.max(totalH, 1))
-    container:Show()
 end
 
 -- =====================================
@@ -788,60 +913,36 @@ local function UpdateAll()
     if not currentResources then return end
 
     local resources = currentResources
-    local primaryDef = resources.primary
-    if playerClass == "DRUID" then primaryDef = GetDruidAdaptivePrimary() end
 
-    -- Primary
-    if primaryBar then
-        if primaryBar.isPrimaryPoints then
-            UpdatePoints(primaryBar, resources.primary)
-        elseif primaryDef and primaryDef.display == "bar" then
-            UpdatePrimaryBar(primaryDef)
+    -- Class Power
+    if classPowerFrame and resources.classPower then
+        local cpDef = resources.classPower
+        if classPowerFrame.isBand then
+            UpdateBandDisplay(classPowerFrame, cpDef)
+        elseif cpDef.display == "points" or cpDef.display == "aura" then
+            UpdatePoints(classPowerFrame, cpDef)
+        elseif cpDef.display == "aura_bar" then
+            local cur, max = GetAuraBarValues(cpDef)
+            classPowerFrame:SetMinMaxValues(0, max)
+            classPowerFrame:SetValue(cur)
+            local ck = cpDef.colorKey or "soulFragments"
+            local r, g, b = GetColor(ck)
+            classPowerFrame:SetStatusBarColor(r, g, b, 1)
+            local s = GetSettings()
+            if s and s.showText and classPowerFrame.text then
+                classPowerFrame.text:SetFormattedText("%d / %d", cur, max)
+            elseif classPowerFrame.text then
+                classPowerFrame.text:SetText("")
+            end
+        elseif cpDef.display == "runes" then
+            UpdateRunes(classPowerFrame)
+        elseif cpDef.display == "stagger" then
+            UpdateStagger(classPowerFrame)
         end
     end
 
     -- Druid Mana
     if druidManaBar then UpdateDruidMana() end
-
-    -- Secondary
-    if secondaryContainer and resources.secondary then
-        local sec = resources.secondary
-        if sec.display == "points" or sec.display == "aura" then
-            UpdatePoints(secondaryContainer, sec)
-        elseif sec.display == "aura_bar" then
-            local cur, max = GetAuraBarValues(sec)
-            secondaryContainer:SetMinMaxValues(0, max)
-            secondaryContainer:SetValue(cur)
-            local ck = sec.colorKey or "soulFragments"
-            local r, g, b = GetColor(ck)
-            secondaryContainer:SetStatusBarColor(r, g, b, 1)
-            local s = GetSettings()
-            if s and s.showText and secondaryContainer.text then
-                secondaryContainer.text:SetFormattedText("%d / %d", cur, max)
-            elseif secondaryContainer.text then
-                secondaryContainer.text:SetText("")
-            end
-        elseif sec.display == "bar" then
-            local pType = sec.powerType
-            local cur = UnitPower("player", pType)
-            local max = UnitPowerMax("player", pType)
-            secondaryContainer:SetMinMaxValues(0, max)
-            secondaryContainer:SetValue(cur)
-            local ck = POWER_COLOR_KEYS[pType] or "insanity"
-            local r, g, b = GetColor(ck)
-            secondaryContainer:SetStatusBarColor(r, g, b, 1)
-            local s = GetSettings()
-            if s and s.showText and secondaryContainer.text then
-                secondaryContainer.text:SetFormattedText("%s", AbbreviateLargeNumbers(cur))
-            elseif secondaryContainer.text then
-                secondaryContainer.text:SetText("")
-            end
-        elseif sec.display == "runes" then
-            UpdateRunes(secondaryContainer)
-        elseif sec.display == "stagger" then
-            UpdateStagger(secondaryContainer)
-        end
-    end
 end
 
 -- =====================================
@@ -890,21 +991,21 @@ local function OnEvent(self, event, arg1)
     elseif event == "UNIT_POWER_FREQUENT" or event == "UNIT_POWER_UPDATE" or event == "UNIT_MAXPOWER" then
         if arg1 == "player" then UpdateAll() end
     elseif event == "RUNE_POWER_UPDATE" then
-        if secondaryContainer and currentResources and currentResources.secondary
-           and currentResources.secondary.display == "runes" then
-            UpdateRunes(secondaryContainer)
+        if classPowerFrame and currentResources and currentResources.classPower
+           and currentResources.classPower.display == "runes" then
+            UpdateRunes(classPowerFrame)
         end
     elseif event == "UNIT_AURA" then
         if arg1 == "player" then UpdateAll() end
     elseif event == "UPDATE_SHAPESHIFT_FORM" then
-        if playerClass == "DRUID" then BuildResourceDisplay(); if RB._refreshOnUpdate then RB._refreshOnUpdate() end end
+        if playerClass == "DRUID" then UpdateDruidMana() end
     elseif event == "PLAYER_REGEN_DISABLED" or event == "PLAYER_REGEN_ENABLED"
         or event == "PLAYER_TARGET_CHANGED" then
         UpdateAlpha()
     elseif event == "UNIT_HEALTH" then
-        if arg1 == "player" and secondaryContainer and currentResources
-           and currentResources.secondary and currentResources.secondary.display == "stagger" then
-            UpdateStagger(secondaryContainer)
+        if arg1 == "player" and classPowerFrame and currentResources
+           and currentResources.classPower and currentResources.classPower.display == "stagger" then
+            UpdateStagger(classPowerFrame)
         end
     end
 end
@@ -915,13 +1016,14 @@ local function OnUpdate(self, elapsed)
     updateTimer = updateTimer + elapsed
     if updateTimer >= 0.05 then
         updateTimer = 0
-        -- [PERF] Only update runes here; other resources are event-driven
-        if secondaryContainer and currentResources and currentResources.secondary
-           and currentResources.secondary.display == "runes" then
-            UpdateRunes(secondaryContainer)
-        elseif secondaryContainer and currentResources and currentResources.secondary
-           and currentResources.secondary.display == "stagger" then
-            UpdateStagger(secondaryContainer)
+        -- [PERF] Only update runes/stagger here; other resources are event-driven
+        if classPowerFrame and currentResources and currentResources.classPower then
+            local d = currentResources.classPower.display
+            if d == "runes" then
+                UpdateRunes(classPowerFrame)
+            elseif d == "stagger" then
+                UpdateStagger(classPowerFrame)
+            end
         end
     end
 end
@@ -973,8 +1075,8 @@ function RB.Initialize()
 
     -- [PERF] Only attach OnUpdate for specs that need frame-level updates (runes, stagger)
     local function RefreshOnUpdate()
-        if currentResources and currentResources.secondary then
-            local d = currentResources.secondary.display
+        if currentResources and currentResources.classPower then
+            local d = currentResources.classPower.display
             if d == "runes" or d == "stagger" then
                 mainFrame:SetScript("OnUpdate", OnUpdate)
                 return

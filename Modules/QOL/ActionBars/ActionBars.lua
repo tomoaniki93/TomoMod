@@ -1,7 +1,8 @@
 -- =====================================
--- ActionBars.lua — TomoBar system v2.7.0
+-- ActionBars.lua — TomoBar system v3.0.0
 -- Bar management: per-bar settings, drag overlays, BarEditor
--- Wraps native Blizzard action bars with full settings control
+-- Centralized FadeManager, display conditions, click-through
+-- Inspired by Dominos architecture
 -- =====================================
 
 TomoMod_ActionBars = TomoMod_ActionBars or {}
@@ -35,16 +36,24 @@ AB.bars = {}
 -- DB DEFAULTS
 -- =====================================================================
 local DB_DEFAULTS = {
-    enabled       = true,
-    alpha         = 1.0,
-    fade          = false,
-    fadeAlpha     = 0.0,
-    scale         = 1.0,
-    showHotkey    = true,
-    showMacro     = true,
-    combatOnly    = false,
-    hotkeySize    = 12,
-    macroSize     = 9,
+    enabled         = true,
+    alpha           = 1.0,
+    fade            = false,
+    fadeAlpha        = 0.0,
+    fadeInDelay     = 0,
+    fadeInDuration  = 0.15,
+    fadeOutDelay    = 0.3,
+    fadeOutDuration = 0.25,
+    scale           = 1.0,
+    showHotkey      = true,
+    showMacro       = true,
+    showCount       = true,
+    showEmptyButtons = false,
+    clickThrough    = false,
+    displayCondition = "",
+    combatOnly      = false,
+    hotkeySize      = 12,
+    macroSize       = 9,
 }
 
 local function GetBarDB(id)
@@ -59,6 +68,124 @@ local function GetBarDB(id)
     end
     return db
 end
+
+-- =====================================================================
+-- FADE MANAGER (inspired by Dominos fadeManager.lua)
+-- Centralized polling-based fade system with proper focus detection
+-- =====================================================================
+local FadeManager = {}
+FadeManager.watched = {}
+FadeManager._timer = nil
+
+-- Check if the mouse is over a frame or any of its descendants (incl. flyouts)
+local function IsDescendant(frame, ancestor)
+    if not frame or frame == ancestor then return frame == ancestor end
+    if frame.IsForbidden and frame:IsForbidden() then return false end
+    return IsDescendant(frame:GetParent(), ancestor)
+end
+
+local function IsFlyoutFocus(flyout, owner)
+    if flyout and flyout:IsVisible() and flyout:IsMouseOver(1, -1, -1, 1) then
+        return IsDescendant(flyout, owner)
+    end
+    return false
+end
+
+local function IsBarFocused(bar)
+    local bf = bar.blizzFrame
+    if not bf then return false end
+    if bf.IsForbidden and bf:IsForbidden() then return false end
+
+    -- Direct mouse-over check on the bar frame
+    if bf:IsMouseOver(1, -1, -1, 1) then return true end
+
+    -- Check each button for mouse focus
+    for i = 1, bar.count do
+        local btn = _G[bar.prefix .. i]
+        if btn and btn:IsVisible() and btn:IsMouseOver(1, -1, -1, 1) then
+            return true
+        end
+    end
+
+    -- Check flyout menus (spell flyouts anchored to action buttons)
+    if _G.SpellFlyout and IsFlyoutFocus(_G.SpellFlyout, bf) then
+        return true
+    end
+
+    -- Check GetMouseFocus descendants
+    if type(GetMouseFoci) == "function" then
+        for _, focus in ipairs(GetMouseFoci()) do
+            if IsDescendant(focus, bf) then return true end
+        end
+    elseif type(GetMouseFocus) == "function" then
+        local focus = GetMouseFocus()
+        if focus and IsDescendant(focus, bf) then return true end
+    end
+
+    return false
+end
+
+function FadeManager:Update()
+    for bar in pairs(self.watched) do
+        local focused = IsBarFocused(bar)
+        if focused and not bar._focused then
+            bar._focused = true
+            bar:FadeIn()
+        elseif not focused and bar._focused then
+            bar._focused = nil
+            bar:FadeOut()
+        end
+    end
+
+    if next(self.watched) then
+        self:RequestUpdate()
+    end
+end
+
+function FadeManager:RequestUpdate()
+    if not self._updateFunc then
+        self._updateFunc = function()
+            self._waiting = false
+            self:Update()
+        end
+    end
+    if not self._waiting then
+        self._waiting = true
+        C_Timer.After(0.15, self._updateFunc)
+    end
+end
+
+function FadeManager:Add(bar)
+    if not self.watched[bar] then
+        self.watched[bar] = true
+        bar._focused = IsBarFocused(bar) or nil
+        self:RequestUpdate()
+    end
+end
+
+function FadeManager:Remove(bar)
+    if self.watched[bar] then
+        self.watched[bar] = nil
+        bar._focused = nil
+    end
+end
+
+AB.FadeManager = FadeManager
+
+-- =====================================================================
+-- DISPLAY CONDITION PRESETS (inspired by Dominos barStates)
+-- =====================================================================
+AB.DISPLAY_PRESETS = {
+    { value = "",                                text = "Toujours visible" },
+    { value = "[combat]show;hide",               text = "Combat uniquement" },
+    { value = "[mod:shift]show;hide",            text = "Shift maintenu" },
+    { value = "[mod:ctrl]show;hide",             text = "Ctrl maintenu" },
+    { value = "[mod:alt]show;hide",              text = "Alt maintenu" },
+    { value = "[combat]show;[mod:shift]show;hide", text = "Combat ou Shift" },
+    { value = "[group]show;hide",                text = "En groupe uniquement" },
+    { value = "[harm,nodead]show;hide",          text = "Cible hostile" },
+    { value = "custom",                          text = "Personnalisé..." },
+}
 
 -- =====================================================================
 -- TOMOBAR CLASS
@@ -77,11 +204,66 @@ function TomoBar:Create(def)
     -- Reference to the Blizzard bar frame
     self.blizzFrame = def.frame and _G[def.frame]
 
+    -- State tracking
+    self._focused    = nil
+    self._transparent = false
+
+    -- Create display condition wrapper (SecureHandlerStateTemplate)
+    self:_CreateDisplayWrapper()
+
     -- Create drag overlay anchor frame
     self:_CreateOverlay()
     self:ApplySettings()
 
     return self
+end
+
+-- =====================================================================
+-- DISPLAY CONDITION WRAPPER (inspired by Dominos frame.lua)
+-- Uses RegisterStateDriver for macro-conditional visibility
+-- =====================================================================
+function TomoBar:_CreateDisplayWrapper()
+    local bf = self.blizzFrame
+    if not bf then return end
+
+    -- Create a secure state handler frame for display conditions
+    local wrapper = CreateFrame("Frame", "TomoBar_Display_" .. self.id, UIParent, "SecureHandlerStateTemplate")
+    wrapper:SetAllPoints(bf)
+
+    -- Store reference to the Blizzard frame as a frame ref
+    wrapper:SetFrameRef("bar", bf)
+
+    -- Secure snippet: show/hide the bar based on state-display
+    wrapper:SetAttribute("_onstate-display", [[
+        local bar = self:GetFrameRef("bar")
+        if bar then
+            if newstate == "hide" then
+                bar:Hide()
+            else
+                bar:Show()
+            end
+        end
+    ]])
+
+    self._displayWrapper = wrapper
+end
+
+function TomoBar:UpdateDisplayCondition()
+    local db = self.db
+    local wrapper = self._displayWrapper
+    if not wrapper then return end
+
+    local condition = db.displayCondition or ""
+
+    if condition ~= "" then
+        RegisterStateDriver(wrapper, "display", condition)
+    else
+        UnregisterStateDriver(wrapper, "display")
+        -- Ensure bar is shown when no condition is set
+        if self.blizzFrame and not InCombatLockdown() then
+            self.blizzFrame:Show()
+        end
+    end
 end
 
 function TomoBar:_CreateOverlay()
@@ -205,62 +387,130 @@ function TomoBar:ApplySettings()
                     mn:Hide()
                 end
             end
+            -- Count text
+            local ct = btn.Count or _G[btn:GetName() and (btn:GetName() .. "Count")]
+            if ct then
+                if db.showCount then ct:Show() else ct:Hide() end
+            end
+            -- Click-through
+            btn:EnableMouse(not db.clickThrough)
+            -- Empty buttons visibility
+            if not db.showEmptyButtons then
+                local action = btn.action or btn:GetAttribute("action")
+                if action and HasAction and not HasAction(action) then
+                    -- Let Blizzard handle empty slot visibility
+                end
+            end
         end
     end
 
-    -- Fade setup
+    -- Fade setup via FadeManager
+    self:UpdateFade()
+
+    -- Display conditions
+    self:UpdateDisplayCondition()
+
+    -- Update transparency state (hide cooldowns on invisible bars)
+    self:UpdateTransparent()
+end
+
+-- =====================================================================
+-- FADE (via centralized FadeManager, inspired by Dominos)
+-- =====================================================================
+function TomoBar:UpdateFade()
+    local db = self.db
+    local bf = self.blizzFrame
+    if not bf then return end
+
     if db.fade then
-        self:_SetupFade()
+        -- Set initial faded alpha
+        if not self._focused then
+            bf:SetAlpha(db.fadeAlpha or 0)
+        end
+        FadeManager:Add(self)
     else
-        self:_TeardownFade()
+        FadeManager:Remove(self)
         bf:SetAlpha(db.alpha or 1)
     end
 end
 
-function TomoBar:_SetupFade()
+function TomoBar:FadeIn()
     local db  = self.db
     local bf  = self.blizzFrame
-    if not bf or self._fadeSetup then return end
-    self._fadeSetup = true
+    if not bf or not db.fade then return end
 
-    bf:SetAlpha(db.fadeAlpha or 0)
+    local targetAlpha = db.alpha or 1
+    local delay       = db.fadeInDelay or 0
+    local duration    = db.fadeInDuration or 0.15
 
-    local self_ref = self
-    bf:HookScript("OnEnter", function()
-        if not self_ref.db.fade then return end
-        UIFrameFadeIn(bf, 0.15, bf:GetAlpha(), self_ref.db.alpha or 1)
-    end)
-    bf:HookScript("OnLeave", function()
-        if not self_ref.db.fade then return end
-        C_Timer.After(0.3, function()
-            if not MouseIsOver(bf) then
-                UIFrameFadeOut(bf, 0.25, bf:GetAlpha(), self_ref.db.fadeAlpha or 0)
+    if delay > 0 then
+        C_Timer.After(delay, function()
+            if self._focused then
+                UIFrameFadeIn(bf, duration, bf:GetAlpha(), targetAlpha)
             end
         end)
-    end)
+    else
+        UIFrameFadeIn(bf, duration, bf:GetAlpha(), targetAlpha)
+    end
+end
 
-    -- Also hook each button
-    for i = 1, self.count do
-        local btn = _G[self.prefix .. i]
-        if btn then
-            btn:HookScript("OnEnter", function()
-                if not self_ref.db.fade then return end
-                UIFrameFadeIn(bf, 0.15, bf:GetAlpha(), self_ref.db.alpha or 1)
-            end)
-            btn:HookScript("OnLeave", function()
-                if not self_ref.db.fade then return end
-                C_Timer.After(0.3, function()
-                    if not MouseIsOver(bf) then
-                        UIFrameFadeOut(bf, 0.25, bf:GetAlpha(), self_ref.db.fadeAlpha or 0)
+function TomoBar:FadeOut()
+    local db  = self.db
+    local bf  = self.blizzFrame
+    if not bf or not db.fade then return end
+
+    local targetAlpha = db.fadeAlpha or 0
+    local delay       = db.fadeOutDelay or 0.3
+    local duration    = db.fadeOutDuration or 0.25
+
+    if delay > 0 then
+        C_Timer.After(delay, function()
+            if not self._focused then
+                UIFrameFadeOut(bf, duration, bf:GetAlpha(), targetAlpha)
+            end
+        end)
+    else
+        UIFrameFadeOut(bf, duration, bf:GetAlpha(), targetAlpha)
+    end
+end
+
+-- =====================================================================
+-- TRANSPARENT STATE (inspired by Dominos — hide cooldowns at 0 alpha)
+-- =====================================================================
+function TomoBar:UpdateTransparent()
+    local bf = self.blizzFrame
+    if not bf then return end
+
+    local isTransparent = bf:GetAlpha() == 0
+    if self._transparent ~= isTransparent then
+        self._transparent = isTransparent
+        for i = 1, self.count do
+            local btn = _G[self.prefix .. i]
+            if btn then
+                local cd = btn.cooldown or _G[btn:GetName() and (btn:GetName() .. "Cooldown")]
+                if cd then
+                    if isTransparent then
+                        cd:SetAlpha(0)
+                    else
+                        cd:SetAlpha(1)
                     end
-                end)
-            end)
+                end
+            end
         end
     end
 end
 
-function TomoBar:_TeardownFade()
-    self._fadeSetup = false
+-- =====================================================================
+-- CLICK-THROUGH
+-- =====================================================================
+function TomoBar:SetClickThrough(enable)
+    self.db.clickThrough = enable
+    for i = 1, self.count do
+        local btn = _G[self.prefix .. i]
+        if btn then
+            btn:EnableMouse(not enable)
+        end
+    end
 end
 
 function TomoBar:Lock()
@@ -539,20 +789,138 @@ function AB.ShowBarEditor(bar)
     end, "%.2f")
     y = ny2
 
-    -- Fade
-    local _, ny3 = MakeCheckbox("Disparition au repos (fade)", db.fade, y, function(v)
+    -- === FADE SECTION ===
+    y = MakeLabel("— Fondu (Fade) —", y)
+
+    -- Fade toggle
+    local _, ny3 = MakeCheckbox("Activer le fondu au repos", db.fade, y, function(v)
         db.fade = v
         bar:ApplySettings()
     end)
     y = ny3
 
     -- Fade alpha
-    y = MakeLabel("Opacité au repos (fade)", y)
+    y = MakeLabel("Opacité au repos", y)
     local _, ny4 = MakeSlider("", db.fadeAlpha, 0, 1, 0.05, y, function(v)
         db.fadeAlpha = v
         bar:ApplySettings()
     end, "%.2f")
     y = ny4
+
+    -- Fade-in duration
+    y = MakeLabel("Durée fondu entrant (sec)", y)
+    local _, nyFiD = MakeSlider("", db.fadeInDuration or 0.15, 0, 1, 0.05, y, function(v)
+        db.fadeInDuration = v
+    end, "%.2f")
+    y = nyFiD
+
+    -- Fade-out delay
+    y = MakeLabel("Délai fondu sortant (sec)", y)
+    local _, nyFoDelay = MakeSlider("", db.fadeOutDelay or 0.3, 0, 2, 0.1, y, function(v)
+        db.fadeOutDelay = v
+    end, "%.1f")
+    y = nyFoDelay
+
+    -- Fade-out duration
+    y = MakeLabel("Durée fondu sortant (sec)", y)
+    local _, nyFoD = MakeSlider("", db.fadeOutDuration or 0.25, 0, 1, 0.05, y, function(v)
+        db.fadeOutDuration = v
+    end, "%.2f")
+    y = nyFoD
+
+    -- === VISIBILITY SECTION ===
+    y = MakeLabel("— Visibilité —", y)
+
+    -- Display condition dropdown
+    y = MakeLabel("Condition d'affichage", y)
+    local presetValues = {}
+    local presetLabels = {}
+    for _, p in ipairs(AB.DISPLAY_PRESETS) do
+        presetValues[#presetValues + 1] = p.value
+        presetLabels[#presetLabels + 1] = p.text
+    end
+
+    -- Find current preset index
+    local currentPreset = db.displayCondition or ""
+    local isCustom = true
+    for _, p in ipairs(AB.DISPLAY_PRESETS) do
+        if p.value == currentPreset then isCustom = false; break end
+    end
+
+    -- Preset buttons (compact 2-column layout)
+    local col1X, col2X = 16, 170
+    local btnH = 22
+    for idx, preset in ipairs(AB.DISPLAY_PRESETS) do
+        if preset.value ~= "custom" then
+            local pBtn = CreateFrame("Button", nil, ef, "BackdropTemplate")
+            pBtn:SetSize(146, btnH)
+            local col = ((idx - 1) % 2)
+            local row = math.floor((idx - 1) / 2)
+            pBtn:SetPoint("TOPLEFT", col == 0 and col1X or col2X, y - (row * (btnH + 2)))
+            pBtn:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
+
+            local isActive = (currentPreset == preset.value)
+            if isActive then
+                pBtn:SetBackdropColor(aR * 0.3, aG * 0.3, aB * 0.3, 0.9)
+                pBtn:SetBackdropBorderColor(aR, aG, aB, 0.8)
+            else
+                pBtn:SetBackdropColor(0.08, 0.08, 0.10, 1)
+                pBtn:SetBackdropBorderColor(0.20, 0.20, 0.24, 1)
+            end
+
+            local pLbl = pBtn:CreateFontString(nil, "OVERLAY")
+            pLbl:SetFont(FONT_PATH, 9, "")
+            pLbl:SetPoint("CENTER")
+            pLbl:SetTextColor(0.80, 0.82, 0.81, 1)
+            pLbl:SetText(preset.text)
+
+            pBtn:SetScript("OnClick", function()
+                db.displayCondition = preset.value
+                bar:UpdateDisplayCondition()
+                -- Refresh the editor
+                AB.ShowBarEditor(bar)
+            end)
+            pBtn:SetScript("OnEnter", function()
+                pBtn:SetBackdropBorderColor(aR, aG, aB, 1)
+            end)
+            pBtn:SetScript("OnLeave", function()
+                if currentPreset == preset.value then
+                    pBtn:SetBackdropBorderColor(aR, aG, aB, 0.8)
+                else
+                    pBtn:SetBackdropBorderColor(0.20, 0.20, 0.24, 1)
+                end
+            end)
+        end
+    end
+    local totalPresetRows = math.ceil((#AB.DISPLAY_PRESETS - 1) / 2)
+    y = y - (totalPresetRows * (btnH + 2)) - 6
+
+    -- Custom condition editbox
+    if isCustom and currentPreset ~= "" then
+        y = MakeLabel("Condition personnalisée :", y)
+        local editBox = CreateFrame("EditBox", nil, ef, "BackdropTemplate")
+        editBox:SetSize(308, 24)
+        editBox:SetPoint("TOPLEFT", 16, y)
+        editBox:SetFontObject(ChatFontNormal)
+        editBox:SetFont(FONT_PATH, 10, "")
+        editBox:SetTextColor(0.9, 0.9, 0.9, 1)
+        editBox:SetAutoFocus(false)
+        editBox:SetText(currentPreset)
+        editBox:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
+        editBox:SetBackdropColor(0.06, 0.06, 0.08, 1)
+        editBox:SetBackdropBorderColor(0.22, 0.22, 0.26, 1)
+        editBox:SetTextInsets(6, 6, 2, 2)
+        editBox:SetScript("OnEnterPressed", function(self)
+            db.displayCondition = self:GetText()
+            bar:UpdateDisplayCondition()
+            self:ClearFocus()
+        end)
+        editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+        y = y - 30
+    end
+
+    -- === BUTTON OPTIONS ===
+    y = MakeLabel("— Boutons —", y)
 
     -- Show hotkey
     local _, ny5 = MakeCheckbox("Afficher les raccourcis (hotkey)", db.showHotkey, y, function(v)
@@ -567,6 +935,27 @@ function AB.ShowBarEditor(bar)
         bar:ApplySettings()
     end)
     y = ny6
+
+    -- Show count
+    local _, nyCt = MakeCheckbox("Afficher les compteurs (stacks)", db.showCount, y, function(v)
+        db.showCount = v
+        bar:ApplySettings()
+    end)
+    y = nyCt
+
+    -- Show empty buttons
+    local _, nyEB = MakeCheckbox("Afficher les emplacements vides", db.showEmptyButtons, y, function(v)
+        db.showEmptyButtons = v
+        bar:ApplySettings()
+    end)
+    y = nyEB
+
+    -- Click-through
+    local _, nyCT = MakeCheckbox("Clic traversant (click-through)", db.clickThrough, y, function(v)
+        db.clickThrough = v
+        bar:SetClickThrough(v)
+    end)
+    y = nyCT
 
     -- Hotkey font size
     y = MakeLabel("Taille police raccourcis", y)

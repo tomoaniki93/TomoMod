@@ -1,7 +1,8 @@
 -- =====================================
--- ActionBarSkin.lua v2.7.0
--- Multi-style button skinning (Classic / Flat / Outlined / Glass)
+-- ActionBarSkin.lua v3.0.0
+-- Multi-style button skinning (Classic / Flat / Outlined / Glass / Minimal)
 -- Integrates with TomoBar for per-bar settings
+-- Improved cooldown/range/pushed handling (inspired by Dominos)
 -- =====================================
 
 TomoMod_ActionBarSkin = TomoMod_ActionBarSkin or {}
@@ -20,7 +21,8 @@ local ICON_INSET    = 3
 --   "flat"     : flat dark bg + thin teal border
 --   "outlined" : very thin 1px border, mostly transparent bg
 --   "glass"    : semi-transparent glass bg, subtle glow border
-local SKIN_STYLES = { "classic", "flat", "outlined", "glass" }
+--   "minimal"  : borderless with subtle inner shadow (Dominos-inspired)
+local SKIN_STYLES = { "classic", "flat", "outlined", "glass", "minimal" }
 
 local skinnedButtons  = {}
 local buttonBarKey    = {}
@@ -189,21 +191,25 @@ local function SkinButton(button)
     elseif style == "flat"     then bgAlpha = 0.92
     elseif style == "outlined" then bgAlpha = 0.30
     elseif style == "glass"    then bgAlpha = 0.45
+    elseif style == "minimal"  then bgAlpha = 0.85
     end
 
     local bg = button:CreateTexture(nil, "BACKGROUND", nil, -1)
     bg:SetAllPoints()
     if style == "glass" then
         bg:SetColorTexture(0.06, 0.08, 0.14, bgAlpha)
+    elseif style == "minimal" then
+        bg:SetColorTexture(0.04, 0.04, 0.06, bgAlpha)
     else
         bg:SetColorTexture(0.05, 0.05, 0.10, bgAlpha)
     end
     button._tmBG = bg
 
     -- ---- Inset icon ----
+    local inset = (style == "minimal") and 2 or ICON_INSET
     icon:ClearAllPoints()
-    icon:SetPoint("TOPLEFT",     ICON_INSET, -ICON_INSET)
-    icon:SetPoint("BOTTOMRIGHT", -ICON_INSET, ICON_INSET)
+    icon:SetPoint("TOPLEFT",     inset, -inset)
+    icon:SetPoint("BOTTOMRIGHT", -inset, inset)
     icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 
     -- ---- Border ----
@@ -221,8 +227,47 @@ local function SkinButton(button)
         glow:SetColorTexture(bR * 0.6, bG * 0.6, bB * 0.6, 0.18)
         borderParts = CreateFlatBorder(button, bR, bG, bB, 0.60)
         borderParts[5] = glow
+    elseif style == "minimal" then
+        -- No external border — just subtle inner shadow edges
+        borderParts = {}
+        local shadowTop = button:CreateTexture(nil, "ARTWORK", nil, 1)
+        shadowTop:SetHeight(2)
+        shadowTop:SetPoint("TOPLEFT", inset, -inset)
+        shadowTop:SetPoint("TOPRIGHT", -inset, -inset)
+        shadowTop:SetColorTexture(0, 0, 0, 0.35)
+        borderParts[1] = shadowTop
+        local shadowLeft = button:CreateTexture(nil, "ARTWORK", nil, 1)
+        shadowLeft:SetWidth(2)
+        shadowLeft:SetPoint("TOPLEFT", inset, -inset)
+        shadowLeft:SetPoint("BOTTOMLEFT", inset, inset)
+        shadowLeft:SetColorTexture(0, 0, 0, 0.25)
+        borderParts[2] = shadowLeft
+        -- Bottom highlight
+        local hlBot = button:CreateTexture(nil, "ARTWORK", nil, 1)
+        hlBot:SetHeight(1)
+        hlBot:SetPoint("BOTTOMLEFT", inset, inset)
+        hlBot:SetPoint("BOTTOMRIGHT", -inset, inset)
+        hlBot:SetColorTexture(1, 1, 1, 0.04)
+        borderParts[3] = hlBot
     end
     button._tmBorder = borderParts
+
+    -- ---- Pushed overlay (improved: subtle dark tint instead of hidden) ----
+    if not button._tmPushed then
+        local pushOverlay = button:CreateTexture(nil, "OVERLAY", nil, 5)
+        pushOverlay:SetPoint("TOPLEFT",     inset, -inset)
+        pushOverlay:SetPoint("BOTTOMRIGHT", -inset, inset)
+        pushOverlay:SetColorTexture(0, 0, 0, 0.30)
+        pushOverlay:Hide()
+        button._tmPushed = pushOverlay
+
+        -- Hook button state changes for pushed effect
+        hooksecurefunc(button, "SetButtonState", function(btn, state)
+            if btn._tmPushed then
+                btn._tmPushed:SetShown(state == "PUSHED")
+            end
+        end)
+    end
 
     -- ---- Cooldown alignment ----
     local cooldown = button.cooldown or _G[name .. "Cooldown"]
@@ -260,9 +305,35 @@ local function SkinButton(button)
     local flash = button.Flash or _G[name .. "Flash"]
     if flash then
         flash:ClearAllPoints()
-        flash:SetPoint("TOPLEFT",     ICON_INSET, -ICON_INSET)
-        flash:SetPoint("BOTTOMRIGHT", -ICON_INSET, ICON_INSET)
+        flash:SetPoint("TOPLEFT",     inset, -inset)
+        flash:SetPoint("BOTTOMRIGHT", -inset, inset)
         flash:SetColorTexture(1, 0.2, 0.2, 0.30)
+    end
+
+    -- ---- Out-of-range desaturation hook ----
+    if not button._tmRangeHooked and button.action then
+        button._tmRangeHooked = true
+        local rangeTimer = 0
+        button:HookScript("OnUpdate", function(btn, elapsed)
+            rangeTimer = rangeTimer + elapsed
+            if rangeTimer < 0.2 then return end
+            rangeTimer = 0
+            local action = btn.action
+            if action and IsActionInRange and IsActionInRange(action) == false then
+                icon:SetVertexColor(0.8, 0.2, 0.2)
+            elseif action and IsUsableAction then
+                local usable, noMana = IsUsableAction(action)
+                if noMana then
+                    icon:SetVertexColor(0.3, 0.3, 0.9)
+                elseif not usable then
+                    icon:SetVertexColor(0.4, 0.4, 0.4)
+                else
+                    icon:SetVertexColor(1, 1, 1)
+                end
+            else
+                icon:SetVertexColor(1, 1, 1)
+            end
+        end)
     end
 end
 

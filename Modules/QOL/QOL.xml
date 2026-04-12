@@ -22,6 +22,9 @@
     <Include file="Auto\TooltipIDs.lua"/>
     <Include file="Auto\BagMicroMenu.lua"/>
 
+    <!-- Modules: AFK Display -->
+    <Include file="AFK\AFKDisplay.lua" />
+
     <!-- Modules: Classes -->
     <Include file="Classes\CompanionStatus.lua" />
     <Include file="Classes\ClassReminder.lua" />
@@ -79,11 +82,10 @@
     <Include file="Skins\CharacterSkin.lua" />
     <Include file="Skins\ReputationBar.lua" />
     <Include file="Skins\ChatFrameSkin.lua" />
-    <!-- ChatFrameSkinV2 disabled — experimental, WIP -->
-    <!-- <Include file="Skins\ChatFrameSkinV2.lua" /> -->
     <Include file="Skins\BagSkin.lua" />
     <Include file="Skins\BuffSkin.lua" />
     <Include file="Skins\GameMenuSkin.lua" />
+    <Include file="Skins\TooltipSkin.lua" />
     <!-- Modules: Waypoint (In-world navigation — /tm way) -->
     <Include file="Waypoint\Waypoint.lua" />
 
