@@ -84,6 +84,10 @@ local function BuildResourceBarsTab(parent)
         db.enabled = v
         if TomoMod_ResourceBars then TomoMod_ResourceBars.SetEnabled(v) end
     end)
+    local _, cy = W.CreateDropdown(card.inner, L["opt_rb_display_mode"] or "Display mode", {
+        { text = L["display_mode_icons"] or "Icons (GW2)", value = "icons" },
+        { text = L["display_mode_bars"]  or "Bars (flat)",  value = "bars"  },
+    }, db.displayMode or "icons", cy, function(v) db.displayMode = v; ApplyRB() end)
     local _, cy = W.CreateInfoText(card.inner, L["info_rb_description"] or "", cy)
     y = W.FinalizeCard(card, cy)
 
@@ -106,8 +110,8 @@ local function BuildResourceBarsTab(parent)
         function(col) local _, ny = W.CreateSlider(col, L["opt_rb_width"]            or "Largeur",    db.width or 260,         80, 600, 5,    0, function(v) db.width  = v; ApplyRB() end) return ny end,
         function(col) local _, ny = W.CreateSlider(col, L["opt_rb_global_scale"]     or "Échelle",    db.scale or 1.0,       0.5, 2.0, 0.05,  0, function(v) db.scale  = v; ApplyRB() end, "%.2f") return ny end)
     local _, cy = W.CreateTwoColumnRow(card3.inner, cy,
-        function(col) local _, ny = W.CreateSlider(col, L["opt_rb_primary_height"]   or "Haut. primaire",  db.primaryHeight   or 16, 6, 40, 1, 0, function(v) db.primaryHeight   = v; ApplyRB() end) return ny end,
-        function(col) local _, ny = W.CreateSlider(col, L["opt_rb_secondary_height"] or "Haut. secondaire", db.secondaryHeight or 12, 6, 30, 1, 0, function(v) db.secondaryHeight = v; ApplyRB() end) return ny end)
+        function(col) local _, ny = W.CreateSlider(col, L["opt_rb_classpower_height"]  or "Haut. pouvoir de classe",  db.primaryHeight   or 16, 6, 40, 1, 0, function(v) db.primaryHeight   = v; ApplyRB() end) return ny end,
+        function(col) local _, ny = W.CreateSlider(col, L["opt_rb_druidmana_height"] or "Haut. mana druide", db.secondaryHeight or 12, 6, 30, 1, 0, function(v) db.secondaryHeight = v; ApplyRB() end) return ny end)
     y = W.FinalizeCard(card3, cy)
 
     -- Sync & position
@@ -183,18 +187,13 @@ local function BuildColorsTab(parent)
     local _, cy = W.CreateInfoText(card.inner, L["info_rb_colors_custom"] or "Personnalisez la couleur de chaque type de ressource.", cy)
 
     local entries = {
-        { key = "mana", label = L["res_mana"] or "Mana" }, { key = "rage", label = L["res_rage"] or "Rage" },
-        { key = "energy", label = L["res_energy"] or "Énergie" }, { key = "focus", label = L["res_focus"] or "Focus" },
-        { key = "runicPower", label = L["res_runic_power"] or "Puissance runique" }, { key = "runesReady", label = L["res_runes_ready"] or "Runes prêtes" },
-        { key = "runes", label = L["res_runes_cd"] or "Runes (CD)" }, { key = "soulShards", label = L["res_soul_shards"] or "Fragments d'âme" },
-        { key = "astralPower", label = L["res_astral_power"] or "Puissance astrale" }, { key = "holyPower", label = L["res_holy_power"] or "Puissance sacrée" },
-        { key = "maelstrom", label = L["res_maelstrom"] or "Maelstrom" }, { key = "chi", label = L["res_chi"] or "Chi" },
-        { key = "insanity", label = L["res_insanity"] or "Démence" }, { key = "fury", label = L["res_fury"] or "Fureur" },
-        { key = "comboPoints", label = L["res_combo_points"] or "Points de combo" }, { key = "arcaneCharges", label = L["res_arcane_charges"] or "Charges arcaniques" },
-        { key = "essence", label = L["res_essence"] or "Essence" }, { key = "stagger", label = L["res_stagger"] or "Titubement" },
-        { key = "soulFragments", label = L["res_soul_fragments"] or "Fragments d'âme" },
-        { key = "tipOfTheSpear", label = L["res_tip_of_spear"] or "Pointe de lance" },
-        { key = "maelstromWeapon", label = L["res_maelstrom_weapon"] or "Arme maelstrom" },
+        { key = "comboPoints", label = L["res_combo_points"] or "Combo Points" }, { key = "holyPower", label = L["res_holy_power"] or "Holy Power" },
+        { key = "soulShards", label = L["res_soul_shards"] or "Soul Shards" }, { key = "chi", label = L["res_chi"] or "Chi" },
+        { key = "essence", label = L["res_essence"] or "Essence" }, { key = "arcaneCharges", label = L["res_arcane_charges"] or "Arcane Charges" },
+        { key = "runes", label = L["res_runes_cd"] or "Runes (CD)" }, { key = "runesReady", label = L["res_runes_ready"] or "Runes Ready" },
+        { key = "stagger", label = L["res_stagger"] or "Stagger" }, { key = "mana", label = L["res_mana"] or "Mana (Druid)" },
+        { key = "soulFragments", label = L["res_soul_fragments"] or "Soul Fragments" }, { key = "tipOfTheSpear", label = L["res_tip_of_spear"] or "Tip of the Spear" },
+        { key = "maelstromWeapon", label = L["res_maelstrom_weapon"] or "Maelstrom Weapon" },
     }
 
     local i = 1

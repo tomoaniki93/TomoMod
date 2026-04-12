@@ -41,6 +41,58 @@ local function BuildChatFrameTab(parent)
     end)
     y = ny
 
+    -- New settings
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_fade"], TomoModDB.chatFrameSkin.fade, y, function(v)
+        TomoModDB.chatFrameSkin.fade = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_short_channels"], TomoModDB.chatFrameSkin.shortChannelNames, y, function(v)
+        TomoModDB.chatFrameSkin.shortChannelNames = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_timestamp"], TomoModDB.chatFrameSkin.showTimestamp, y, function(v)
+        TomoModDB.chatFrameSkin.showTimestamp = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_url"], TomoModDB.chatFrameSkin.findURL, y, function(v)
+        TomoModDB.chatFrameSkin.findURL = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_emoji"], TomoModDB.chatFrameSkin.emoji, y, function(v)
+        TomoModDB.chatFrameSkin.emoji = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_class_colors"], TomoModDB.chatFrameSkin.classColorMentions, y, function(v)
+        TomoModDB.chatFrameSkin.classColorMentions = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_history"], TomoModDB.chatFrameSkin.chatHistory, y, function(v)
+        TomoModDB.chatFrameSkin.chatHistory = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_copy_lines"], TomoModDB.chatFrameSkin.copyChatLines, y, function(v)
+        TomoModDB.chatFrameSkin.copyChatLines = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
@@ -67,42 +119,70 @@ local function BuildBagsTab(parent)
         db = TomoModDB.bagSkin
     end
 
+    -- Enable
     local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_enable"], db.enabled, y, function(v)
         db.enabled = v
         if TomoMod_BagSkin then TomoMod_BagSkin.SetEnabled(v) end
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_unified"], db.unified ~= false, y, function(v)
-        db.unified = v
+    -- Layout mode (GW2_UI-inspired: combined / categories / separate bags)
+    local _, ny = W.CreateDropdown(c, (L and L["opt_skin_bags_layout_mode"]) or "Layout Mode", {
+        { text = (L and L["opt_skin_bags_layout_combined"])   or "Combined Grid",  value = "combined" },
+        { text = (L and L["opt_skin_bags_layout_categories"]) or "Categories",     value = "categories" },
+        { text = (L and L["opt_skin_bags_layout_separate"])   or "Separate Bags",  value = "separateBags" },
+    }, db.layoutMode or "combined", y, function(v)
+        db.layoutMode = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_skin_bags_columns"], db.columns or 12, 4, 20, 1, y, function(v)
-        db.columns = v
+    -- Sort mode
+    local _, ny = W.CreateDropdown(c, L["opt_skin_bags_sort_mode"], {
+        { text = L["opt_skin_bags_sort_none"],    value = "none" },
+        { text = L["opt_skin_bags_sort_quality"], value = "quality" },
+        { text = L["opt_skin_bags_sort_name"],    value = "name" },
+        { text = L["opt_skin_bags_sort_type"],    value = "type" },
+        { text = L["opt_skin_bags_sort_ilvl"],    value = "ilvl" },
+        { text = L["opt_skin_bags_sort_recent"],  value = "recent" },
+    }, db.sortMode or "quality", y, function(v)
+        db.sortMode = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_skin_bags_slot_size"], db.slotSize or 36, 24, 64, 2, y, function(v)
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- Slot size (GW2_UI: BAG_ITEM_SIZE 26–48)
+    local _, ny = W.CreateSlider(c, L["opt_skin_bags_slot_size"], db.slotSize or 40, 26, 48, 1, y, function(v)
         db.slotSize = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_skin_bags_slot_spacing"], db.slotSpacing or 3, 0, 10, 1, y, function(v)
-        db.slotSpacing = v
+    -- Slot spacing X (GW2_UI-style separate X/Y)
+    local _, ny = W.CreateSlider(c, (L and L["opt_skin_bags_slot_spacing_x"]) or "Slot Spacing X", db.slotSpacingX or 5, 0, 20, 1, y, function(v)
+        db.slotSpacingX = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
     end)
     y = ny
 
+    -- Slot spacing Y
+    local _, ny = W.CreateSlider(c, (L and L["opt_skin_bags_slot_spacing_y"]) or "Slot Spacing Y", db.slotSpacingY or 5, 0, 20, 1, y, function(v)
+        db.slotSpacingY = v
+        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    end)
+    y = ny
+
+    -- Scale
     local _, ny = W.CreateSlider(c, L["opt_skin_bags_scale"], db.scale or 100, 50, 200, 5, y, function(v)
         db.scale = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
     end, "%.0f%%")
     y = ny
 
+    -- Opacity
     local _, ny = W.CreateSlider(c, L["opt_skin_bags_opacity"], db.opacity or 92, 0, 100, 5, y, function(v)
         db.opacity = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
@@ -112,8 +192,21 @@ local function BuildBagsTab(parent)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
+    -- Visual options
     local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_quality_borders"], db.showQualityBorders ~= false, y, function(v)
         db.showQualityBorders = v
+        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, (L and L["opt_skin_bags_show_ilvl"]) or "Show Item Level", db.showItemLevel == true, y, function(v)
+        db.showItemLevel = v
+        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, (L and L["opt_skin_bags_show_junk_icon"]) or "Show Junk Icon", db.showJunkIcon == true, y, function(v)
+        db.showJunkIcon = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
     end)
     y = ny
@@ -139,6 +232,41 @@ local function BuildBagsTab(parent)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
+    -- Feature toggles
+    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_stack_merge"], db.stackMerge == true, y, function(v)
+        db.stackMerge = v
+        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_show_empty"], db.showEmptySlots ~= false, y, function(v)
+        db.showEmptySlots = v
+        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_show_recent"], db.showRecentItems ~= false, y, function(v)
+        db.showRecentItems = v
+        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, (L and L["opt_skin_bags_reverse_order"]) or "Reverse Bag Order", db.reverseBagOrder == true, y, function(v)
+        db.reverseBagOrder = v
+        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, (L and L["opt_skin_bags_show_bag_bar"]) or "Show Bag Bar", db.showBagBar ~= false, y, function(v)
+        db.showBagBar = v
+        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- Footer options
     local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_show_gold"], db.showGold ~= false, y, function(v)
         db.showGold = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
@@ -147,20 +275,6 @@ local function BuildBagsTab(parent)
 
     local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_show_currencies"], db.showCurrencies == true, y, function(v)
         db.showCurrencies = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateDropdown(c, L["opt_skin_bags_sort_mode"], {
-        { text = L["opt_skin_bags_sort_quality"], value = "quality" },
-        { text = L["opt_skin_bags_sort_name"],    value = "name" },
-        { text = L["opt_skin_bags_sort_type"],    value = "type" },
-        { text = L["opt_skin_bags_sort_recent"],  value = "recent" },
-    }, db.sortMode or "quality", y, function(v)
-        db.sortMode = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
     end)
     y = ny
@@ -429,6 +543,93 @@ end
 end]]
 
 -- =====================================================================
+-- TAB: TOOLTIP
+-- =====================================================================
+
+local function BuildTooltipSkinTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["section_tooltip_skin"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_skin_enable"], TomoModDB.tooltipSkin.enabled, y, function(v)
+        TomoModDB.tooltipSkin.enabled = v
+        if TomoMod_TooltipSkin then TomoMod_TooltipSkin.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_tooltip_skin_reload"], y)
+    y = ny
+
+    -- Background alpha
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSlider(c, L["opt_tooltip_bg_alpha"], (TomoModDB.tooltipSkin.bgAlpha or 0.92) * 100, 0, 100, 5, y, function(v)
+        TomoModDB.tooltipSkin.bgAlpha = v / 100
+    end, "%.0f%%")
+    y = ny
+
+    -- Border alpha
+    local _, ny = W.CreateSlider(c, L["opt_tooltip_border_alpha"], (TomoModDB.tooltipSkin.borderAlpha or 0.8) * 100, 0, 100, 5, y, function(v)
+        TomoModDB.tooltipSkin.borderAlpha = v / 100
+    end, "%.0f%%")
+    y = ny
+
+    -- Font size
+    local _, ny = W.CreateSlider(c, L["opt_tooltip_font_size"], TomoModDB.tooltipSkin.fontSize or 12, 9, 18, 1, y, function(v)
+        TomoModDB.tooltipSkin.fontSize = v
+    end)
+    y = ny
+
+    -- Hide health bar
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_hide_healthbar"], TomoModDB.tooltipSkin.hideHealthBar, y, function(v)
+        TomoModDB.tooltipSkin.hideHealthBar = v
+    end)
+    y = ny
+
+    -- Class color names
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_class_color"], TomoModDB.tooltipSkin.useClassColorNames, y, function(v)
+        TomoModDB.tooltipSkin.useClassColorNames = v
+    end)
+    y = ny
+
+    -- Hide server
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_hide_server"], TomoModDB.tooltipSkin.hidePlayerServer, y, function(v)
+        TomoModDB.tooltipSkin.hidePlayerServer = v
+    end)
+    y = ny
+
+    -- Hide title
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_hide_title"], TomoModDB.tooltipSkin.hidePlayerTitle, y, function(v)
+        TomoModDB.tooltipSkin.hidePlayerTitle = v
+    end)
+    y = ny
+
+    -- Guild name color
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_guild_color"], TomoModDB.tooltipSkin.useGuildNameColor, y, function(v)
+        TomoModDB.tooltipSkin.useGuildNameColor = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, L["opt_tooltip_guild_color_pick"], TomoModDB.tooltipSkin.guildNameColor, y, function(r, g, b)
+        TomoModDB.tooltipSkin.guildNameColor.r = r
+        TomoModDB.tooltipSkin.guildNameColor.g = g
+        TomoModDB.tooltipSkin.guildNameColor.b = b
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================================================
 
@@ -440,6 +641,7 @@ function TomoMod_ConfigPanel_Skins(parent)
         { key = "character",  label = L["tab_skin_character"],  builder = function(p) return BuildCharacterSkinTab(p) end },
         { key = "buffs",      label = L["tab_skin_buffs"],      builder = function(p) return BuildBuffsSkinTab(p) end },
         { key = "gamemenu",   label = L["tab_skin_gamemenu"],   builder = function(p) return BuildGameMenuSkinTab(p) end },
+        { key = "tooltip",    label = L["tab_skin_tooltip"],    builder = function(p) return BuildTooltipSkinTab(p) end },
         --{ key = "mail",       label = L["tab_skin_mail"],       builder = function(p) return BuildMailSkinTab(p) end },
     }
 

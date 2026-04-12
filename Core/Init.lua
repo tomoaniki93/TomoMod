@@ -338,6 +338,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_AutoFillDelete then TomoMod_AutoFillDelete.Initialize() end
         if TomoMod_LustSound then TomoMod_LustSound.Initialize() end
         if TomoMod_ClassReminder then TomoMod_ClassReminder.Initialize() end
+        if TomoMod_AFKDisplay then TomoMod_AFKDisplay.Initialize() end
         if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
         if TomoMod_ProfessionHelper then TomoMod_ProfessionHelper.Initialize() end
         if TomoMod_Waypoint then TomoMod_Waypoint.Initialize() end
@@ -348,6 +349,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.Initialize() end
         if TomoMod_BuffSkin then TomoMod_BuffSkin.Initialize() end
         if TomoMod_GameMenuSkin then TomoMod_GameMenuSkin.Initialize() end
+        if TomoMod_TooltipSkin then TomoMod_TooltipSkin.Initialize() end
 
         -- Interface Modules (new v2)
         if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end

@@ -1,5 +1,5 @@
 -- =====================================
--- Config/Panels/ActionBars.lua v2.7.0
+-- Config/Panels/ActionBars.lua v3.0.0
 -- Action bars: Skin style + per-bar management via tabs
 -- =====================================
 
@@ -39,6 +39,7 @@ local SKIN_STYLES_LIST = {
     { value = "flat",     text = "Flat" },
     { value = "outlined", text = "Outlined" },
     { value = "glass",    text = "Glass" },
+    { value = "minimal",  text = "Minimal (sans bordure)" },
 }
 
 -- =====================================================================
@@ -183,17 +184,20 @@ local function BuildManagementTab(parent)
         -- Ensure DB entry
         TomoModDB.actionBars.bars[def.id] = TomoModDB.actionBars.bars[def.id] or {}
         local db = TomoModDB.actionBars.bars[def.id]
-        if db.alpha      == nil then db.alpha      = 1.0 end
-        if db.scale      == nil then db.scale      = 1.0 end
-        if db.fade       == nil then db.fade       = false end
-        if db.showHotkey == nil then db.showHotkey = true end
-        if db.showMacro  == nil then db.showMacro  = true end
+        if db.alpha           == nil then db.alpha           = 1.0 end
+        if db.scale           == nil then db.scale           = 1.0 end
+        if db.fade            == nil then db.fade            = false end
+        if db.showHotkey      == nil then db.showHotkey      = true end
+        if db.showMacro       == nil then db.showMacro       = true end
+        if db.showCount       == nil then db.showCount       = true end
+        if db.clickThrough    == nil then db.clickThrough    = false end
+        if db.displayCondition == nil then db.displayCondition = "" end
 
-        -- Mini row: bar name + alpha slider + config button
+        -- Mini row: bar name + status indicators + config button
         local row = CreateFrame("Frame", nil, c, "BackdropTemplate")
         row:SetPoint("TOPLEFT", 8, y)
         row:SetPoint("TOPRIGHT", -8, y)
-        row:SetHeight(46)
+        row:SetHeight(54)
         row:SetBackdrop({
             bgFile   = "Interface\\Buttons\\WHITE8x8",
             edgeFile = "Interface\\Buttons\\WHITE8x8",
@@ -205,22 +209,36 @@ local function BuildManagementTab(parent)
         -- Bar name
         local nameLbl = row:CreateFontString(nil, "OVERLAY")
         nameLbl:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11, "")
-        nameLbl:SetPoint("LEFT", 10, 8)
+        nameLbl:SetPoint("LEFT", 10, 12)
         nameLbl:SetTextColor(0.80, 0.82, 0.81, 1)
         nameLbl:SetText(def.name)
 
-        -- Alpha mini-slider
-        local alphaLbl = row:CreateFontString(nil, "OVERLAY")
-        alphaLbl:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 9, "")
-        alphaLbl:SetPoint("LEFT", 10, -10)
-        alphaLbl:SetTextColor(0.35, 0.35, 0.40, 1)
-        alphaLbl:SetText("Alpha:")
+        -- Status line: alpha + feature badges
+        local statusLbl = row:CreateFontString(nil, "OVERLAY")
+        statusLbl:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 9, "")
+        statusLbl:SetPoint("LEFT", 10, -4)
+        statusLbl:SetTextColor(0.35, 0.35, 0.40, 1)
 
-        local alphaValLbl = row:CreateFontString(nil, "OVERLAY")
-        alphaValLbl:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 9, "")
-        alphaValLbl:SetPoint("LEFT", 52, -10)
-        alphaValLbl:SetTextColor(0.047, 0.824, 0.624, 1)
-        alphaValLbl:SetText(string.format("%.0f%%", (db.alpha or 1) * 100))
+        local statusParts = {}
+        statusParts[#statusParts + 1] = string.format("Alpha: |cff0cd29f%.0f%%|r", (db.alpha or 1) * 100)
+        if db.fade then statusParts[#statusParts + 1] = "|cff8888ccFade|r" end
+        if db.clickThrough then statusParts[#statusParts + 1] = "|cffcc8844Click-through|r" end
+        if db.displayCondition and db.displayCondition ~= "" then
+            statusParts[#statusParts + 1] = "|cffcccc44Cond.|r"
+        end
+        statusLbl:SetText(table.concat(statusParts, "  "))
+
+        -- Feature mini-toggle: Fade
+        local fadeTag = row:CreateFontString(nil, "OVERLAY")
+        fadeTag:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 8, "")
+        fadeTag:SetPoint("LEFT", 10, -16)
+        if db.fade then
+            fadeTag:SetTextColor(0.047, 0.824, 0.624, 0.8)
+            fadeTag:SetText("FADE ON")
+        else
+            fadeTag:SetTextColor(0.30, 0.30, 0.35, 0.6)
+            fadeTag:SetText("FADE OFF")
+        end
 
         -- Config button (opens BarEditor)
         local barId = def.id
@@ -254,7 +272,7 @@ local function BuildManagementTab(parent)
             end
         end)
 
-        y = y - 52
+        y = y - 60
     end
 
     c:SetHeight(math.abs(y) + 40)

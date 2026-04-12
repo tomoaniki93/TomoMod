@@ -693,7 +693,7 @@ end
 -- TAB 12: WORLD QUEST TAB
 -- =====================================
 
-local function BuildWorldQuestTabTab(parent)
+local function BuildWorldQuestTab(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
     local y = -10
@@ -990,7 +990,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "bagmicro",     label = L["tab_qol_bag_micro"],    builder = function(p) return BuildBagMicroMenuTab(p) end },
         { key = "leveling",     label = L["tab_qol_leveling"],     builder = function(p) return BuildLevelingTab(p) end },
         { key = "cvaropt",      label = L["tab_qol_cvar_opt"],     builder = function(p) return BuildCVarOptimizerTab(p) end },
-        { key = "worldquests",  label = L["tab_qol_world_quests"], builder = function(p) return BuildWorldQuestTabTab(p) end },
+        { key = "worldquests",  label = L["tab_qol_world_quests"], builder = function(p) return BuildWorldQuestTab(p) end },
         { key = "profhelper",   label = L["tab_qol_prof_helper"],  builder = function(p) return BuildProfessionHelperTab(p) end },
         { key = "classremind", label = L["tab_qol_class_reminder"], builder = function(p) return BuildClassReminderTab(p) end },
         { key = "waypoint",    label = L["tab_qol_waypoint"],       builder = function(p) return BuildWaypointTab(p) end },

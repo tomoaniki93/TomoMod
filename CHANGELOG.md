@@ -1,5 +1,254 @@
 ## ####################################
 
+## CHANGELOG 2.8.11 — AFK Display Screen
+
+#### AFK Display Module
+- **Stylized AFK screen** — automatically shown when player goes AFK, hides UIParent for a clean cinematic look
+- **3D player model** — race/gender-aware positioning with drag support, falling animation, and idle/pickup emotes
+- **Elapsed timer** — displays time spent AFK in MM:SS format
+- **Player info overlay** — shows character name, realm, level, specialization, and class-colored text
+- **Chat counters** — tracks whisper and guild messages received while AFK
+- **Camera rotation** — optional slow camera pan while AFK (configurable)
+- **Auto-hide safety** — automatically exits AFK screen on combat, Auction House, or cinematic playback
+- **Configurable settings** — `enabled`, `rotateCamera`, `playerModel`, `modelScale` via saved variables
+
+## ####################################
+
+## CHANGELOG 2.8.10 — Chat System Overhaul (TUI_Core Visual Style)
+
+#### TUI_Core-Inspired Chat Container
+- **Sidebar + Window layout** — vertical sidebar (`sidebar.tga`) with adjacent window background (`window.tga`) forming a unified chat container
+- **Tab bar texture** — custom `tabs.tga` strip replaces default Blizzard tab chrome for a clean, modern look
+- **Sidebar icons** — five quick-access buttons on the sidebar: Professions (`book.tga`), Shortcuts (`shortcuts.tga`), Copy Chat (`copyIcon.tga`), Emotes (`speechIcon.tga`), and Player Status
+- **Scroll bar theming** — colored thumb (purple accent), hidden by default, appears on scroll via `OnScrollChangedCallback`
+- **Blizzard fading disabled** — `FCF_FadeInChatFrame`/`FCF_FadeOutChatFrame` overridden with NoOp for always-visible chat
+
+#### Tab System (TUI_Core Style)
+- **Clean tab styling** — all default Blizzard tab textures killed; white text, alpha-based visibility
+- **Tab notification flash** — uses `notify.tga` icon with `UIFrameFlash` for unread tab alerts
+- **Dock-aware tab positioning** — tabs repositioned left-to-right following the dock order
+
+#### Message Formatting & Display
+- **Timestamps** — optional configurable timestamps (`%H:%M` default) with customizable color via `timestampColor`
+- **Short channel names** — abbreviates channel prefixes (Guild → [G], Party → [P], Raid → [R], etc.)
+- **Class-colored mentions** — highlights player names in messages using their class color
+- **Keyword highlighting** — custom keyword list with orange highlight alerts (supports `%MYNAME%` placeholder)
+- **URL detection (TUI_Core style)** — converts URLs to clickable links; click opens a `StaticPopup` copy dialog instead of inserting into edit box
+- **LFG role icons** — displays tank/healer/DPS role icons next to player names in group chat
+- **BattleNet friend coloring** — applies class colors to BattleNet friend names in whispers
+
+#### Edit Box (TUI_Core Style)
+- **Backdrop styling** — dark background with tooltip-style border, colored by active chat type (say/whisper/guild etc.)
+- **Character counter** — displays remaining character count while typing
+- **History navigation** — Up/Down arrow keys cycle through previously sent messages (20-line buffer)
+
+#### Chat Utilities
+- **Copy chat frame** — sidebar icon opens a draggable/resizable scrollable text window with the last 128 messages
+- **Per-line copy arrow** — optional inline arrow icon per message for quick copy
+- **Chat history persistence** — saves and restores whisper, guild, party, raid, instance, officer, and emote chat across sessions
+- **Spam throttle** — suppresses duplicate messages from the same author within a 10-second window
+
+#### Emoji System
+- **Inline emoji replacement** — converts text emoticons (`:)`, `:D`, `;)`, etc.) to display strings in chat messages
+
+#### Config Panel — Chat Options
+- Toggle options: Short Channel Names, Timestamps, URL Detection, Emoji, Class Color Mentions, Chat History, Copy Chat Lines, Font Size
+
+#### Assets
+- **76 new textures** added under `Assets/Textures/Chat/` (chat UI elements, emoji sprites, chat bubble textures)
+
+## ####################################
+
+## CHANGELOG 2.8.9 — ActionBar System Overhaul (Dominos-inspired)
+
+#### Centralized Fade Manager
+- **Polling-based fade system** (150ms cycle) replaces per-button HookScript approach
+- **Proper focus detection** — checks descendants, spell flyouts, and GetMouseFoci for accurate hover tracking
+- **Per-bar fade timing** — configurable fade-in delay, fade-in duration, fade-out delay, and fade-out duration
+- Transparent bars automatically **hide cooldown sparks** at 0 alpha
+
+#### Display Conditions (Macro-Conditional Visibility)
+- **SecureHandlerStateTemplate wrapper** per bar for combat-safe show/hide
+- **8 built-in presets**: Always visible, Combat only, Shift/Ctrl/Alt held, Combat or Shift, In group only, Hostile target
+- **Custom macro conditions** supported via editbox (e.g. `[combat,mod:shift]show;hide`)
+- Replaces the previous basic `combatOnly` toggle
+
+#### Per-Bar Button Controls
+- **Click-through** toggle per bar — buttons pass clicks to the world
+- **Show/hide count text** (stack numbers) per bar
+- **Show empty button slots** toggle per bar
+
+#### Bar Editor — Expanded UI
+- Reorganized into sections: Opacity/Scale, Fade, Visibility, Buttons
+- Display condition presets shown as compact 2-column button grid with active state highlighting
+- Custom condition editbox appears when a non-preset condition is detected
+
+#### Button Skinning — New Style & Improvements
+- **New "Minimal" skin style** — borderless with subtle inner shadow edges and tighter icon inset
+- **Pushed overlay** — proper dark tint on click replaces hidden pushed texture
+- **Out-of-range coloring** — red tint when out of range, blue when out of mana, grey when unusable (0.2s polling)
+
+#### Config Panel Updates
+- "Minimal" added to the skin style dropdown
+- Bar management cards now show **status badges** (Fade ON/OFF, Click-through, Display condition active)
+
+## ####################################
+
+## CHANGELOG 2.8.8 — Mythic+ Tracker Display Overhaul
+
+#### Timer Bar — 3-Tier Chest System
+- **3 chest countdown timers (+3/+2/+1)** displayed below the timer bar, replacing the previous 2-tier system
+- **3 tick marks** on the timer bar at 60%, 80%, and 100% thresholds with 2px width for better visibility
+- Timer bar and boss rows slightly taller (22px / 20px) for improved readability
+
+#### Forces Bar — 5-Stage Color Gradient
+- **5-stage color progression** for enemy forces (< 20%, < 40%, < 60%, < 80%, < 100%) inspired by MPlusTimer's gradient system, replacing the 2-color interpolation
+- **Forces completion time** — when forces reach 100%, the exact completion time is displayed below the bar
+- Forces completion state resets properly on new key start
+
+#### Boss Rows — Split Times & Name Truncation
+- **Split times column** — each boss now shows the time elapsed since the previous boss kill (or from start for the first boss)
+- **UTF-8 safe name truncation** — boss names capped at 22 characters to prevent overflow, using a proper multibyte-aware substring function
+- Boss rows now support `SetMaxLines(1)` and `SetWordWrap(false)` for clean single-line display
+
+#### Death Tracking — Per-Player Breakdown
+- **Death tooltip on hover** — hovering the skull/death counter in the header shows a tooltip with per-player death counts
+- Deaths tracked via `COMBAT_LOG_EVENT_UNFILTERED` / `UNIT_DIED` with class-colored player names
+- Feign Death correctly ignored
+- Death data resets on each new key start
+
+#### Completion Banner — Upgrade Display
+- Completion banner now shows the **keystone upgrade level** (+1, +2, +3) when the timer is beaten
+
+#### Layout & Frame
+- Frame width increased from 260px to 300px for better content spacing
+- Update rate improved from 0.25s to 0.20s for smoother timer updates
+- `LayoutFrame()` now called in the ticker loop to handle dynamic resizing (forces completion row)
+
+## ####################################
+
+## CHANGELOG 2.8.7 — Objective Tracker Color Overhaul (HorizonSuite-inspired)
+
+#### Objective Tracker — Quest Type Color System
+- **17 quest categories** now detected and color-coded (up from 6), inspired by HorizonSuite's color matrix system
+- New quest title colors:
+  - **Green** — complete (ready to turn in)
+  - **Gold** — campaign quests
+  - **Pink** — important quests
+  - **Orange** — legendary quests
+  - **Blue** — calling quests
+  - **Epic purple** — dungeon quests
+  - **Red** — raid quests
+  - **Purple-violet** — world quests
+  - **Cyan** — weekly / daily quests
+  - **Dark crimson** — Prey quests (Midnight)
+  - **Teal** — Delves
+  - **Deep blue** — scenarios
+  - **Artifact gold** — adventure quests
+  - **Bronze** — achievements
+  - **Sage green** — profession quests
+  - **Light grey** — default
+- **Quest classification engine** (`GetQuestBaseCategory`) using `C_QuestInfoSystem.GetQuestClassification()` (WoW 12.x API) with multi-level fallback chain: `C_CampaignInfo`, `IsImportantQuest`, `IsWorldQuest`, `GetQuestTagInfo` (tagID for dungeon/raid), frequency detection, `IsQuestCalling`
+- **Objective lines now tinted by quest type** — incomplete objectives use a slightly dimmed version of the quest category color instead of flat grey
+- **Category cache** (`questCategoryCache`) with automatic invalidation on each tracker update for responsive state changes
+
+#### Objective Tracker — Category Header Colors
+- Header colors realigned with HorizonSuite palette across all categories
+- New header keywords added: Dungeon/Donjon, Raid, Calling/Appel, Weekly/Hebdomadaire, Daily/Quotidien, Prey/Proie, Delves, World Quests/Quêtes Mondiales
+- Full FR+EN bilingual keyword support for all category headers
+
+## ####################################
+
+## CHANGELOG 2.8.6 — UnitFrame Redesign, Tooltip Skin & Objective Tracker
+
+#### UnitFrames — Visual Redesign
+- **New info bar** below the health bar displaying power value (left) and total HP (right) for the player, mirrored layout for the target
+- **Thin 2px power accent bar** between health and info bar, with matching left/right 1px borders to align perfectly with the health bar edges
+- **Health bar** now shows centered percentage text by default
+- **Tooltip on hover** — player and target UnitFrames now display the standard GameTooltip on mouseover (oUF's `Spawn()` does not set this by default)
+
+#### Tooltip Skin — New Module
+- **Dark semi-transparent background** with NineSlice vertex color override and subtle class-colored accent line at the top
+- **Class-colored unit names** for players
+- **Guild name** displayed in teal color below the unit name
+- **Font override** using Poppins across all tooltip text
+- **Optional features**: hide health bar, hide player server name, hide player title
+- **Config panel** under Skins > Tooltip with controls for background/border alpha, font size, and all toggle options
+- Hooks applied to `GameTooltip`, `ShoppingTooltip1/2`, and `ItemRefTooltip`
+
+#### Objective Tracker — Quest Title Coloring
+- Quest titles are now **color-coded by quest type**:
+  - **Green** — ready to turn in (complete)
+  - **Golden yellow** — campaign quests
+  - **Pink** — important quests
+  - **Violet** — world quests
+  - **Blue** — weekly quests
+  - **White** — default for all other quests
+- Color detection uses `C_QuestLog.IsComplete`, `C_CampaignInfo.IsCampaignQuest`, `C_QuestLog.IsImportantQuest`, `C_QuestLog.IsWorldQuest`, and quest frequency checks
+
+#### Config Panel
+- Fixed **empty "World Quests" tab** caused by function name typo (`BuildWorldQuestTabTab` → `BuildWorldQuestTab`)
+- New **Tooltip Skin tab** under Skins panel with full configuration options
+
+#### Database
+- New `tooltipSkin` defaults: `enabled`, `bgAlpha` (0.92), `borderAlpha` (0.8), `fontSize` (12), `hideHealthBar`, `useClassColorNames`, `hidePlayerServer`, `hidePlayerTitle`, `useGuildNameColor`, `guildNameColor`
+- Updated player/target defaults: `powerHeight=2`, `infoBarHeight=18`, `healthTextFormat="percent"`
+
+#### Locale
+- **enUS/frFR**: 17 new tooltip skin locale keys added
+
+## ####################################
+
+## CHANGELOG 2.8.5 — BagSkin v4 Rewrite (GW2_UI-inspired)
+
+#### BagSkin — Complete Rewrite (v4)
+- **Full rewrite** of `BagSkin.lua` (~1700 lines) inspired by GW2_UI's inventory system architecture
+- **Resizable frame** with live column recalculation during resize (drag handle bottom-right)
+- **3 layout modes**: Combined Grid, Categories (collapsible sections), Separate Bags (per-bag sections with collapse)
+- **Bag bar sidebar** (left) showing each bag icon, tooltip, and free slot count per bag
+- **Settings context menu** (GW2_UI-style) via cogwheel button — layout mode, sort mode, and all toggle options accessible in-game without opening the config panel
+- **5 sort modes**: Manual (no sorting — preserves natural bag/slot order), Quality, Name, Type, Item Level
+- **Manual sort mode** keeps items AND empty slots in their natural bag/slot position — drag-and-drop reordering is preserved across refreshes
+- **Sort button** triggers `C_Container.SortBags()` with delayed re-layout
+- **Item level badges** on equipment slots (toggleable)
+- **Junk coin icon** (`bags-junkcoin` atlas) on poor-quality items (toggleable)
+- **Crafting quality icons** (Tier 1–5 atlas) on trade goods
+- **Quality borders** with per-quality color coding (0=gray through 8=WoW Token blue)
+- **Cooldown overlays** on items with active cooldowns
+- **Search bar** with real-time filtering — non-matching items desaturated and dimmed
+- **Free slots display** with count badge per section (separate bags: `used/total` format)
+- **Gold + tracked currencies** in footer bar
+- **Drag-and-drop** between bags and within same bag — cursor detection (`GetCursorInfo()`) prevents pick-up/place conflict
+- **Right-click use** via secure macro attribute (`/use bagID slotIndex`)
+- **Stack splitting** via Shift+click with `OpenStackSplitFrame`
+- **Chat linking** via Shift+click with `ChatEdit_InsertLink`
+- **Escape to close** via `UISpecialFrames` registration
+- **Mover integration** with `TomoMod_Movers`
+
+#### BagSkin — Blizzard Suppression
+- `ContainerFrameCombinedBags` parented to hidden frame with scripts cleared (GW2_UI approach — more robust than hook-only)
+- Individual `ContainerFrame1–13` suppressed via `hooksecurefunc` Show hook
+- `combinedBags` CVar forced to `0` on init and monitored via `CVAR_UPDATE`
+- Bag open/close hooks with `hookGuard` + `C_Timer.After(0)` deferral to prevent recursion
+
+#### Database
+- Updated `bagSkin` defaults: `slotSpacingX`/`slotSpacingY` (replaced single `slotSpacing`), `width`, `showItemLevel`, `showJunkIcon`, `layoutMode`, `sortMode`, `reverseBagOrder`, `showBagBar`, `collapsedSections`
+- DB migration: old `slotSpacing` → separate `slotSpacingX`/`slotSpacingY`
+
+#### Config Panel (Skins > Bags)
+- **Layout Mode** dropdown: Combined Grid / Categories / Separate Bags
+- **Sort Mode** dropdown: Manual / Quality / Name / Type / Item Level / Recent
+- **Slot Spacing X** and **Slot Spacing Y** separate sliders (0–20, matching GW2_UI range)
+- **Slot Size** slider range updated to 26–48 (matching GW2_UI)
+- New checkboxes: Show Item Level, Show Junk Icon, Reverse Bag Order, Show Bag Bar
+
+#### Locale
+- **enUS**: 12 new keys — `opt_skin_bags_layout_mode`, `opt_skin_bags_layout_combined`, `opt_skin_bags_layout_categories`, `opt_skin_bags_layout_separate`, `opt_skin_bags_slot_spacing_x`, `opt_skin_bags_slot_spacing_y`, `opt_skin_bags_show_ilvl`, `opt_skin_bags_show_junk_icon`, `opt_skin_bags_reverse_order`, `opt_skin_bags_show_bag_bar`, `opt_skin_bags_settings`, `opt_skin_bags_sort_none`
+- **frFR**: matching French translations with proper UTF-8 octal encoding (`\195\169` etc.)
+- Updated `info_skin_bags_desc` in both locales to reflect v4 architecture
+
+## ####################################
+
 ## CHANGELOG 2.8.0 — Performance & Stability Audit
 
 #### Global Safety

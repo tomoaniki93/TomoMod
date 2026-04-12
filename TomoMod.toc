@@ -1,4 +1,4 @@
-## Interface: 120005, 120001, 120000
+## Interface: 120005, 120001
 ## 
 ## Title: |cff0cd29fTomo|rMod
 ## Notes: Interface and code with QOL and UnitFrame.
@@ -8,7 +8,7 @@
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 2.8.0
+## Version: 2.8.11
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
