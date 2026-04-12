@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("itIT", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Informazioni",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.0 di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.11 di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
     ["section_general"]                 = "Generale",
     ["btn_reset_all"]                   = "Ripristina tutto",
     ["info_reset_all"]                  = "Questo ripristinerà TUTTE le impostazioni e ricaricherà l'interfaccia.",
@@ -316,8 +316,8 @@ TomoMod_RegisterLocale("itIT", {
     ["opt_rb_combat_alpha"]             = "Alfa in combattimento",
     ["opt_rb_ooc_alpha"]                = "Alfa fuori combattimento",
     ["opt_rb_width"]                    = "Larghezza",
-    ["opt_rb_primary_height"]           = "Altezza barra primaria",
-    ["opt_rb_secondary_height"]         = "Altezza barra secondaria",
+    ["opt_rb_classpower_height"]        = "Altezza potere di classe",
+    ["opt_rb_druidmana_height"]         = "Altezza mana druido",
     ["opt_rb_global_scale"]             = "Scala globale",
     ["opt_rb_sync_width"]               = "Sincronizza larghezza con Essential Cooldowns",
     ["btn_sync_now"]                    = "Sincronizza ora",
@@ -872,6 +872,14 @@ TomoMod_RegisterLocale("itIT", {
     ["opt_chat_skin_enable"]             = "Skin della finestra chat",
     ["opt_chat_skin_bg_alpha"]           = "Opacità dello sfondo",
     ["opt_chat_skin_font_size"]          = "Dimensione font chat",
+    ["opt_chat_skin_fade"]               = "Fade chat when inactive",
+    ["opt_chat_skin_short_channels"]     = "Short channel names (G, P, R…)",
+    ["opt_chat_skin_timestamp"]          = "Show timestamps",
+    ["opt_chat_skin_url"]                = "Clickable URLs",
+    ["opt_chat_skin_emoji"]              = "Replace text emoticons with emoji",
+    ["opt_chat_skin_class_colors"]       = "Class-color player names in chat",
+    ["opt_chat_skin_history"]            = "Restore chat history on login",
+    ["opt_chat_skin_copy_lines"]         = "Show copy icon per message",
 
     -- Buff Skin
     ["sublabel_buff_skin"]               = "— Skin Buff / Debuff —",
@@ -1255,13 +1263,15 @@ TomoMod_RegisterLocale("itIT", {
     -- Skins > Bags tab
     ["tab_skin_bags"]                    = "Borse",
     ["section_skin_bags"]                = "Skin delle borse",
-    ["info_skin_bags_desc"]              = "Griglia borse unificata con bordi qualit\195\160, filtro di ricerca, tempi di ricarica e badge quantit\195\160.",
+    ["info_skin_bags_desc"]              = "Griglia borse per categoria ispirata a BetterBags. Oggetti raggruppati in sezioni comprimibili con bordi qualit\195\160, ricerca, tempi di ricarica e livello oggetto.",
     ["opt_skin_bags_enable"]             = "Attiva skin delle borse",
     -- Borse — Disincanto
     ["bagskin_de_badge"]                 = "DI",
     ["bagskin_de_tooltip"]               = "|cff0cd29f[Clic destro]|r Disincantare",
     ["bagskin_currencies_none"]          = "Nessuna valuta monitorata (clic destro su una valuta \226\134\146 Mostra nello zaino)",
-    ["opt_skin_bags_unified"]            = "Griglia unificata (combina tutte le borse)",
+    ["opt_skin_bags_stack_merge"]        = "Unisci pile identiche",
+    ["opt_skin_bags_show_empty"]         = "Mostra sezione slot liberi",
+    ["opt_skin_bags_show_recent"]        = "Mostra sezione oggetti recenti",
     ["opt_skin_bags_columns"]            = "Colonne",
     ["opt_skin_bags_slot_size"]          = "Dimensione slot",
     ["opt_skin_bags_slot_spacing"]       = "Spaziatura slot",
@@ -1275,9 +1285,22 @@ TomoMod_RegisterLocale("itIT", {
     ["opt_skin_bags_sort_quality"]       = "Qualit\195\160",
     ["opt_skin_bags_sort_name"]          = "Nome",
     ["opt_skin_bags_sort_type"]          = "Tipo",
+    ["opt_skin_bags_sort_ilvl"]          = "Livello oggetto",
     ["opt_skin_bags_sort_recent"]        = "Recente",
     ["opt_skin_bags_show_gold"]          = "Mostra oro (pi\195\168 di pagina)",
     ["opt_skin_bags_show_currencies"]    = "Mostra valute tracciate (pi\195\168 di pagina)",
+    ["bagskin_cat_recent"]               = "Oggetti recenti",
+    ["bagskin_cat_equipment"]            = "Equipaggiamento",
+    ["bagskin_cat_consumables"]          = "Consumabili",
+    ["bagskin_cat_quest"]                = "Oggetti missione",
+    ["bagskin_cat_tradegoods"]           = "Merci commerciali",
+    ["bagskin_cat_reagents"]             = "Reagenti",
+    ["bagskin_cat_gems"]                 = "Gemme e potenziamenti",
+    ["bagskin_cat_recipes"]              = "Ricette",
+    ["bagskin_cat_pets"]                 = "Mascotte da combattimento",
+    ["bagskin_cat_junk"]                 = "Cianfrusaglie",
+    ["bagskin_cat_misc"]                 = "Varie",
+    ["bagskin_cat_free"]                 = "Slot liberi",
 
     -- Skins > Objective Tracker tab
     ["tab_skin_objtracker"]              = "Obiettivi",
@@ -1318,4 +1341,90 @@ TomoMod_RegisterLocale("itIT", {
     ["way_bad_map"]                      = "Impossibile posizionare un waypoint su questa mappa.",
     ["way_bad_coords"]                   = "Le coordinate devono essere comprese tra 0 e 100.",
     ["way_usage"]                        = "Uso: /tm way [mapID] x y [nome]  |  /tm way clear",
+
+    -- =====================
+    -- Resource names
+    -- =====================
+    ["res_mana"]                        = "Mana (Druido)",
+    ["res_soul_shards"]                 = "Frammenti d'anima",
+    ["res_holy_power"]                  = "Potere sacro",
+    ["res_chi"]                         = "Chi",
+    ["res_combo_points"]                = "Punti combo",
+    ["res_arcane_charges"]              = "Cariche arcane",
+    ["res_essence"]                     = "Essenza",
+    ["res_stagger"]                     = "Barcollamento",
+    ["res_soul_fragments"]              = "Frammenti d'anima",
+    ["res_tip_of_spear"]                = "Punta della lancia",
+    ["res_maelstrom_weapon"]            = "Arma del Maelstrom",
+
+    -- =====================
+    -- Resource Bars display mode
+    -- =====================
+    ["opt_rb_display_mode"]             = "Modalità di visualizzazione",
+    ["display_mode_icons"]              = "Icone (texture GW2)",
+    ["display_mode_bars"]               = "Barre (colori piatti)",
+
+    -- =====================
+    -- Tooltip Skin
+    -- =====================
+    ["tab_skin_tooltip"]                 = "Tooltip",
+    ["section_tooltip_skin"]             = "Skin Tooltip",
+    ["opt_tooltip_skin_enable"]          = "Attiva skin tooltip",
+    ["info_tooltip_skin_reload"]         = "Alcune modifiche richiedono di passare il cursore su un nuovo bersaglio.",
+    ["opt_tooltip_bg_alpha"]             = "Opacità sfondo",
+    ["opt_tooltip_border_alpha"]         = "Opacità bordo",
+    ["opt_tooltip_font_size"]            = "Dimensione font",
+    ["opt_tooltip_hide_healthbar"]       = "Nascondi barra vita",
+    ["opt_tooltip_class_color"]          = "Nomi giocatore con colore di classe",
+    ["opt_tooltip_hide_server"]          = "Nascondi server nei nomi giocatore",
+    ["opt_tooltip_hide_title"]           = "Nascondi titolo nei nomi giocatore",
+    ["opt_tooltip_guild_color"]          = "Colore personalizzato nome gilda",
+    ["opt_tooltip_guild_color_pick"]     = "Colore nome gilda",
+
+    -- =====================
+    -- Bag Skin extras
+    -- =====================
+    ["opt_skin_bags_show_ilvl"]          = "Mostra livello oggetto sull'equipaggiamento",
+    ["opt_skin_bags_show_junk_icon"]     = "Mostra icona spazzatura",
+    ["opt_skin_bags_layout_mode"]        = "Modalità layout",
+    ["opt_skin_bags_layout_combined"]    = "Griglia combinata",
+    ["opt_skin_bags_layout_categories"]  = "Categorie",
+    ["opt_skin_bags_layout_separate"]    = "Borse separate",
+    ["opt_skin_bags_reverse_order"]      = "Inverti ordine borse",
+    ["opt_skin_bags_show_bag_bar"]       = "Mostra barra borse",
+    ["opt_skin_bags_settings"]           = "Impostazioni borse",
+    ["opt_skin_bags_slot_spacing_x"]     = "Spaziatura slot X",
+    ["opt_skin_bags_slot_spacing_y"]     = "Spaziatura slot Y",
+    ["opt_skin_bags_sort_none"]          = "Manuale",
+
+    -- =====================
+    -- TOMOSCORE (Scoreboard)
+    -- =====================
+    ["ts_cfg_title"]                = "Tabellone",
+    ["ts_cfg_enable"]               = "Attiva tabellone dungeon",
+    ["ts_cfg_auto_show_mplus"]      = "Mostra automaticamente per Mythic+",
+    ["ts_cfg_scale"]                = "Scala",
+    ["ts_cfg_alpha"]                = "Opacità sfondo",
+    ["ts_cfg_section_display"]      = "Visualizzazione",
+    ["ts_cfg_section_frame"]        = "Cornice",
+    ["ts_cfg_section_actions"]      = "Azioni",
+    ["ts_cfg_preview"]              = "Anteprima",
+    ["ts_cfg_last_run"]             = "Mostra ultima partita",
+    ["ts_cfg_reset_pos"]            = "Ripristina posizione",
+    ["ts_reset_msg"]                = "|cff0cd29fTomoMod|r Tabellone: Posizione ripristinata.",
+    ["ts_no_data"]                  = "|cff0cd29fTomoMod|r Tabellone: Nessun dato dungeon disponibile.",
+    ["ts_mythic_zero"]              = "Mitico",
+    ["ts_key_level"]                = "+%d",
+    ["ts_completed"]                = "COMPLETATO",
+    ["ts_depleted"]                 = "ESAURITO",
+    ["ts_duration"]                 = "Durata",
+    ["ts_col_player"]               = "Giocatore",
+    ["ts_col_rating"]               = "M+",
+    ["ts_col_key_level"]            = "Chiave",
+    ["ts_col_key_name"]             = "Dungeon",
+    ["ts_col_damage"]               = "Danni",
+    ["ts_col_healing"]              = "Cure",
+    ["ts_col_interrupts"]           = "Interruzioni",
+    ["ts_footer_total"]             = "Totale",
+    ["ts_footer_players"]           = "%d giocatori",
 })

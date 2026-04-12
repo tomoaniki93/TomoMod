@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.0 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.11 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -272,22 +272,14 @@ TomoMod_RegisterLocale("enUS", {
     -- =====================
     -- CONFIG: CD & Resource Panel
     -- =====================
-    -- Resource colors
-    ["section_resource_colors"]         = "Resource Colors",
-    ["res_mana"]                        = "Mana",
-    ["res_rage"]                        = "Rage",
-    ["res_energy"]                      = "Energy",
-    ["res_focus"]                       = "Focus",
-    ["res_runic_power"]                 = "Runic Power",
+    -- Resource colors (class powers only — primary power in UF info bar)
+    ["section_resource_colors"]         = "Class Power Colors",
+    ["res_mana"]                        = "Mana (Druid)",
     ["res_runes_ready"]                 = "Runes (ready)",
     ["res_runes_cd"]                    = "Runes (cooldown)",
     ["res_soul_shards"]                 = "Soul Shards",
-    ["res_astral_power"]                = "Astral Power",
     ["res_holy_power"]                  = "Holy Power",
-    ["res_maelstrom"]                   = "Maelstrom",
     ["res_chi"]                         = "Chi",
-    ["res_insanity"]                    = "Insanity",
-    ["res_fury"]                        = "Fury",
     ["res_combo_points"]                = "Combo Points",
     ["res_arcane_charges"]              = "Arcane Charges",
     ["res_essence"]                     = "Essence",
@@ -324,9 +316,12 @@ TomoMod_RegisterLocale("enUS", {
     ["info_cdm_editmode"]               = "Placement is done via Blizzard Edit Mode (Esc |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Edit Mode).",
 
     -- Resource Bars
-    ["section_resource_bars"]           = "Resource Bars",
-    ["opt_rb_enable"]                   = "Enable resource bars",
-    ["info_rb_description"]             = "Displays class resources (Mana, Rage, Energy, Combo Points, Runes, etc.) with adaptive Druid support.",
+    ["section_resource_bars"]           = "Class Powers",
+    ["opt_rb_enable"]                   = "Enable class power display",
+    ["opt_rb_display_mode"]             = "Display mode",
+    ["display_mode_icons"]              = "Icons (GW2 textures)",
+    ["display_mode_bars"]               = "Bars (flat colors)",
+    ["info_rb_description"]             = "Shows class-specific resources (Combo Points, Runes, Soul Shards, Holy Power, etc.). Primary power (Mana, Rage, Energy...) is now in the UnitFrame info bar.",
     ["section_visibility"]              = "Visibility",
     ["opt_rb_visibility_mode"]          = "Visibility mode",
     ["vis_always"]                      = "Always visible",
@@ -336,8 +331,8 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_rb_combat_alpha"]             = "In-combat alpha",
     ["opt_rb_ooc_alpha"]                = "Out of combat alpha",
     ["opt_rb_width"]                    = "Width",
-    ["opt_rb_primary_height"]           = "Primary bar height",
-    ["opt_rb_secondary_height"]         = "Secondary bar height",
+    ["opt_rb_classpower_height"]        = "Class power height",
+    ["opt_rb_druidmana_height"]         = "Druid mana height",
     ["opt_rb_global_scale"]             = "Global scale",
     ["opt_rb_sync_width"]               = "Sync width with Essential Cooldowns",
     ["btn_sync_now"]                    = "Sync now",
@@ -894,6 +889,14 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_chat_skin_enable"]             = "Skin Chat Frame",
     ["opt_chat_skin_bg_alpha"]           = "Background opacity",
     ["opt_chat_skin_font_size"]          = "Chat font size",
+    ["opt_chat_skin_fade"]               = "Fade chat when inactive",
+    ["opt_chat_skin_short_channels"]     = "Short channel names (G, P, R…)",
+    ["opt_chat_skin_timestamp"]          = "Show timestamps",
+    ["opt_chat_skin_url"]                = "Clickable URLs",
+    ["opt_chat_skin_emoji"]              = "Replace text emoticons with emoji",
+    ["opt_chat_skin_class_colors"]       = "Class-color player names in chat",
+    ["opt_chat_skin_history"]            = "Restore chat history on login",
+    ["opt_chat_skin_copy_lines"]         = "Show copy icon per message",
 
     -- Buff Skin
     ["sublabel_buff_skin"]               = "— Buff / Debuff Skin —",
@@ -1027,6 +1030,7 @@ TomoMod_RegisterLocale("enUS", {
     ["tmt_forces_done"]             = "COMPLETE",
     ["tmt_forces_pct"]              = "%.1f%%",
     ["tmt_forces_count"]            = "%d / %d",
+    ["tmt_preview_active"]          = "|cff0cd29fTomoMod|r M+ Tracker: Preview mode active.",
     ["tmt_cfg_title"]               = "Mythic",
     ["tmt_cfg_panel_enable"]         = "Enable M+ Tracker",
     ["tmt_cfg_show_timer"]          = "Show Timer Bar",
@@ -1312,29 +1316,57 @@ TomoMod_RegisterLocale("enUS", {
     -- Skins > Bags tab (config panel)
     ["tab_skin_bags"]                    = "Bags",
     ["section_skin_bags"]                = "Bag Skin",
-    ["info_skin_bags_desc"]              = "Unified bag grid with quality borders, search filter, cooldown overlays, and quantity badges.",
+    ["info_skin_bags_desc"]              = "Combined/category/per-bag layouts with quality borders, search, item-level badges, junk icons, bag bar, and resizable frame.",
     ["opt_skin_bags_enable"]             = "Enable Bag Skin",
-    -- Bag skin — disenchant feature
+    -- Bag skin — extra features
     ["bagskin_de_badge"]                 = "DE",
     ["bagskin_de_tooltip"]               = "|cff0cd29f[Right-click]|r Disenchant",
     ["bagskin_currencies_none"]          = "No tracked currencies (right-click a currency → Show in Backpack)",
-    ["opt_skin_bags_unified"]            = "Unified grid (combine all bags)",
+    ["opt_skin_bags_stack_merge"]        = "Merge identical item stacks",
+    ["opt_skin_bags_show_empty"]         = "Show free slots section",
+    ["opt_skin_bags_show_recent"]        = "Show recent items section",
     ["opt_skin_bags_columns"]            = "Columns",
     ["opt_skin_bags_slot_size"]          = "Slot size",
     ["opt_skin_bags_slot_spacing"]       = "Slot spacing",
+    ["opt_skin_bags_slot_spacing_x"]     = "Slot Spacing X",
+    ["opt_skin_bags_slot_spacing_y"]     = "Slot Spacing Y",
     ["opt_skin_bags_scale"]              = "Scale %",
     ["opt_skin_bags_opacity"]            = "Background opacity",
     ["opt_skin_bags_quality_borders"]    = "Show quality borders",
     ["opt_skin_bags_cooldowns"]          = "Show cooldown overlays",
     ["opt_skin_bags_quantity"]           = "Show quantity badges",
     ["opt_skin_bags_search"]             = "Show search bar",
+    ["opt_skin_bags_show_ilvl"]          = "Show item level on equipment",
+    ["opt_skin_bags_show_junk_icon"]     = "Show junk coin icon",
+    ["opt_skin_bags_layout_mode"]        = "Layout mode",
+    ["opt_skin_bags_layout_combined"]    = "Combined Grid",
+    ["opt_skin_bags_layout_categories"]  = "Categories",
+    ["opt_skin_bags_layout_separate"]    = "Separate Bags",
+    ["opt_skin_bags_reverse_order"]      = "Reverse bag order",
+    ["opt_skin_bags_show_bag_bar"]       = "Show bag bar",
+    ["opt_skin_bags_settings"]           = "Bag Settings",
     ["opt_skin_bags_sort_mode"]          = "Sort mode",
+    ["opt_skin_bags_sort_none"]          = "Manual",
     ["opt_skin_bags_sort_quality"]       = "Quality",
     ["opt_skin_bags_sort_name"]          = "Name",
     ["opt_skin_bags_sort_type"]          = "Type",
+    ["opt_skin_bags_sort_ilvl"]          = "Item Level",
     ["opt_skin_bags_sort_recent"]        = "Recent",
     ["opt_skin_bags_show_gold"]          = "Show gold (footer)",
     ["opt_skin_bags_show_currencies"]    = "Show tracked currencies (footer)",
+    -- Bag skin — category names
+    ["bagskin_cat_recent"]               = "Recent Items",
+    ["bagskin_cat_equipment"]            = "Equipment",
+    ["bagskin_cat_consumables"]          = "Consumables",
+    ["bagskin_cat_quest"]                = "Quest Items",
+    ["bagskin_cat_tradegoods"]           = "Trade Goods",
+    ["bagskin_cat_reagents"]             = "Reagents",
+    ["bagskin_cat_gems"]                 = "Gems & Enhancements",
+    ["bagskin_cat_recipes"]              = "Recipes",
+    ["bagskin_cat_pets"]                 = "Battle Pets",
+    ["bagskin_cat_junk"]                 = "Junk",
+    ["bagskin_cat_misc"]                 = "Miscellaneous",
+    ["bagskin_cat_free"]                 = "Free Slots",
 
     -- Skins > Objective Tracker tab
     ["tab_skin_objtracker"]              = "Obj. Tracker",
@@ -1348,10 +1380,25 @@ TomoMod_RegisterLocale("enUS", {
     -- Skins > Game Menu tab
     ["tab_skin_gamemenu"]                = "Game Menu",
 
+    -- Skins > Tooltip tab
+    ["tab_skin_tooltip"]                 = "Tooltip",
+    ["section_tooltip_skin"]             = "Tooltip Skin",
+    ["opt_tooltip_skin_enable"]          = "Enable tooltip skin",
+    ["info_tooltip_skin_reload"]         = "Some changes require hovering a new target.",
+    ["opt_tooltip_bg_alpha"]             = "Background opacity",
+    ["opt_tooltip_border_alpha"]         = "Border opacity",
+    ["opt_tooltip_font_size"]            = "Font size",
+    ["opt_tooltip_hide_healthbar"]       = "Hide health bar",
+    ["opt_tooltip_class_color"]          = "Class-colored player names",
+    ["opt_tooltip_hide_server"]          = "Hide server in player names",
+    ["opt_tooltip_hide_title"]           = "Hide title in player names",
+    ["opt_tooltip_guild_color"]          = "Custom guild name color",
+    ["opt_tooltip_guild_color_pick"]     = "Guild name color",
+
     -- Skins > Mail tab
     ["tab_skin_mail"]                    = "Game Menu",
 
-    -- =====================
+        -- =====================
     -- WAYPOINT MODULE (/tm way)
     -- =====================
     -- GUI
