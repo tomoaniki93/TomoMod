@@ -315,6 +315,38 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_cdm_dim_opacity"]             = "Dim opacity",
     ["info_cdm_editmode"]               = "Placement is done via Blizzard Edit Mode (Esc |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Edit Mode).",
 
+    -- CDM V3: CD Swipe
+    ["opt_cdm_custom_cd_swipe"]          = "Custom CD swipe color",
+    ["opt_cdm_cd_swipe_color"]           = "CD swipe color",
+    ["opt_cdm_cd_swipe_alpha"]           = "CD swipe opacity",
+
+    -- CDM V3: Advanced
+    ["section_cdm_advanced"]             = "Advanced",
+    ["opt_cdm_hide_gcd"]                 = "Hide GCD",
+    ["opt_cdm_desaturate"]               = "Desaturate on CD",
+    ["opt_cdm_buff_alignment"]           = "Buff alignment",
+    ["align_center_outward"]             = "Center → Outward",
+    ["align_start"]                      = "Start (left)",
+    ["align_end"]                        = "End (right)",
+
+    -- CDM V3: Visibility Rules
+    ["section_cdm_visibility"]           = "Visibility Rules",
+    ["info_cdm_visibility"]              = "Priority hiding rules. 'Show' conditions override 'Hide' conditions.",
+    ["opt_cdm_hide_mounted"]             = "Hide when mounted",
+    ["opt_cdm_hide_vehicle"]             = "Hide in vehicle",
+    ["opt_cdm_hide_ooc"]                 = "Hide out of combat (no target)",
+    ["opt_cdm_show_combat"]              = "Always show in combat",
+    ["opt_cdm_show_instance"]            = "Always show in instance",
+    ["opt_cdm_show_enemy"]               = "Show with enemy target",
+
+    -- CDM V3.1: Sound / Pandemic / Range
+    ["section_cdm_extras"]               = "Sound / Pandemic / Range",
+    ["opt_cdm_sound_alert"]              = "Sound when spell is ready",
+    ["opt_cdm_sound_file"]               = "Sound file",
+    ["opt_cdm_pandemic"]                 = "Pandemic (refresh border)",
+    ["opt_cdm_pandemic_threshold"]       = "Pandemic threshold (%)",
+    ["opt_cdm_range_check"]              = "Tint red when out of range",
+
     -- Resource Bars
     ["section_resource_bars"]           = "Class Powers",
     ["opt_rb_enable"]                   = "Enable class power display",
@@ -871,6 +903,7 @@ TomoMod_RegisterLocale("enUS", {
     ["mover_repbar"]                    = "Reputation Bar",
     ["mover_castbar"]                   = "Player Castbar",
     ["mover_mythictracker"]             = "M+ Tracker",
+    ["mover_chatframe"]                 = "Chat Frame",
     -- =====================
     -- COMBAT TEXT
     -- =====================
@@ -887,6 +920,11 @@ TomoMod_RegisterLocale("enUS", {
     ["info_skins_desc"]                  = "Apply the TomoMod dark theme to various Blizzard UI elements. Reload may be needed to fully revert.",
     ["sublabel_chat_skin"]               = "— Chat Frame —",
     ["opt_chat_skin_enable"]             = "Skin Chat Frame",
+    ["opt_chat_skin_style"]              = "Skin Style",
+    ["opt_chat_skin_style_tui"]          = "TUI (Sidebar + Window)",
+    ["opt_chat_skin_style_classic"]      = "Classic (Framed)",
+    ["opt_chat_skin_style_glass"]        = "Glass (Frosted)",
+    ["opt_chat_skin_style_minimal"]      = "Minimal (Borderless)",
     ["opt_chat_skin_bg_alpha"]           = "Background opacity",
     ["opt_chat_skin_font_size"]          = "Chat font size",
     ["opt_chat_skin_fade"]               = "Fade chat when inactive",

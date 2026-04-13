@@ -305,6 +305,38 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_cdm_dim_opacity"]             = "Opacité d'atténuation",
     ["info_cdm_editmode"]               = "Le placement des barres se fait via le Edit Mode de Blizzard (Échap |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Edit Mode).",
 
+    -- CDM V3: CD Swipe
+    ["opt_cdm_custom_cd_swipe"]          = "Couleur de balayage CD personnalisée",
+    ["opt_cdm_cd_swipe_color"]           = "Couleur balayage CD",
+    ["opt_cdm_cd_swipe_alpha"]           = "Opacité balayage CD",
+
+    -- CDM V3: Advanced
+    ["section_cdm_advanced"]             = "Avancé",
+    ["opt_cdm_hide_gcd"]                 = "Masquer le GCD",
+    ["opt_cdm_desaturate"]               = "Désaturer en CD",
+    ["opt_cdm_buff_alignment"]           = "Alignement des buffs",
+    ["align_center_outward"]             = "Centre → Extérieur",
+    ["align_start"]                      = "Début (gauche)",
+    ["align_end"]                        = "Fin (droite)",
+
+    -- CDM V3: Visibility Rules
+    ["section_cdm_visibility"]           = "Règles de visibilité",
+    ["info_cdm_visibility"]              = "Règles prioritaires de masquage. Les conditions 'Afficher' supplantent 'Masquer'.",
+    ["opt_cdm_hide_mounted"]             = "Masquer sur monture",
+    ["opt_cdm_hide_vehicle"]             = "Masquer en véhicule",
+    ["opt_cdm_hide_ooc"]                 = "Masquer hors combat (pas de cible)",
+    ["opt_cdm_show_combat"]              = "Toujours afficher en combat",
+    ["opt_cdm_show_instance"]            = "Toujours afficher en instance",
+    ["opt_cdm_show_enemy"]               = "Afficher avec cible ennemie",
+
+    -- CDM V3.1: Sound / Pandemic / Range
+    ["section_cdm_extras"]               = "Son / Pandemic / Portée",
+    ["opt_cdm_sound_alert"]              = "Son quand un sort est prêt",
+    ["opt_cdm_sound_file"]               = "Fichier son",
+    ["opt_cdm_pandemic"]                 = "Pandemic (bordure de refresh)",
+    ["opt_cdm_pandemic_threshold"]       = "Seuil pandemic (%)",
+    ["opt_cdm_range_check"]              = "Teinter rouge hors portée",
+
     -- Resource Bars
     ["section_resource_bars"]           = "Barres de Ressources",
     ["opt_rb_enable"]                   = "Activer les barres de ressources",
@@ -861,6 +893,7 @@ TomoMod_RegisterLocale("frFR", {
     ["mover_repbar"]                    = "Barre de réputation",
     ["mover_castbar"]                   = "Barre de cast (joueur)",
     ["mover_mythictracker"]             = "Tracker M+",
+    ["mover_chatframe"]                 = "Fenêtre de chat",
     -- =====================
     -- COMBAT TEXT
     -- =====================
@@ -877,6 +910,11 @@ TomoMod_RegisterLocale("frFR", {
     ["info_skins_desc"]                  = "Applique le thème sombre TomoMod à divers éléments de l'interface Blizzard. Un /reload peut être nécessaire pour revenir en arrière.",
     ["sublabel_chat_skin"]               = "— Fenêtre de chat —",
     ["opt_chat_skin_enable"]             = "Skin de la fenêtre de chat",
+    ["opt_chat_skin_style"]              = "Style du skin",
+    ["opt_chat_skin_style_tui"]          = "TUI (Barre latérale + Fenêtre)",
+    ["opt_chat_skin_style_classic"]      = "Classique (Encadré)",
+    ["opt_chat_skin_style_glass"]        = "Verre (Givré)",
+    ["opt_chat_skin_style_minimal"]      = "Minimal (Sans bordure)",
     ["opt_chat_skin_bg_alpha"]           = "Opacité du fond",
     ["opt_chat_skin_font_size"]          = "Taille de police du chat",
     ["opt_chat_skin_fade"]               = "Masquer le chat en cas d'inactivité",

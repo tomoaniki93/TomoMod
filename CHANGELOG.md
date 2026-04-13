@@ -1,5 +1,102 @@
 ## ####################################
 
+## CHANGELOG 2.8.13 — Cooldown Manager V3.1: Sound Alerts, Pandemic Detection, Range Check
+
+#### Sound Alerts
+- **Cooldown-ready notification** — plays a configurable sound when an Essential or Utility spell comes off cooldown
+- **Debounce system** — 1-second minimum gap between alerts to avoid sound spam
+- **Sound picker** — choose from 4 bundled sounds (Golden Lust, Chipi, Spinning Cat, Taluani BL) in the config panel
+- **Per-spell tracking** — tracks individual spell CD states; only fires when a spell transitions from on-cooldown to ready
+
+#### Pandemic Detection
+- **Buff refresh window indicator** — displays an orange border on buff icons when remaining duration is within the pandemic threshold (default: 30% of total duration)
+- **Configurable threshold** — slider in config panel to adjust the pandemic window from 10% to 50%
+- **Dedicated 9-slice border** — separate orange border layer that overrides both default and active borders during pandemic window
+
+#### Range Check Coloring
+- **Out-of-range tinting** — Essential and Utility spell icons turn red when the target is out of spell range
+- **Smart detection** — uses `C_Spell.IsSpellInRange()` which only tints when a target exists AND the spell has a range component AND the target is out of range
+- **Automatic recovery** — icon color resets immediately when target comes back in range or is lost
+
+#### Localization
+- **Missing locale keys** — added all V3/V3.1 CDM keys to `frFR.lua` and `enUS.lua` (CD Swipe, Advanced, Visibility Rules, Sound/Pandemic/Range options)
+- **Config panel fix** — labels now display properly translated text instead of raw key names (e.g. `opt_cdm_hide_gcd` → "Masquer le GCD")
+
+## ####################################
+
+## CHANGELOG 2.8.12 — Cooldown Manager V3 Overhaul (Inspired by CooldownManagerCentered)
+
+#### Runtime & Stability
+- **Runtime readiness system** — checks `IsInitialized()` and `layoutApplyInProgress` before any viewer operation, preventing errors during Edit Mode transitions and layout changes
+- **Edit Mode callbacks** — hooks `EditMode.Enter/Exit` and `CooldownViewerSettings.OnDataChanged` for automatic refresh when layout settings change
+- **Client scene awareness** — tracks `CLIENT_SCENE_OPENED/CLOSED` to properly handle vehicle/cinematic states
+
+#### Cooldown Tracker (Performance)
+- **Spell cooldown duration caching** — caches `C_Spell.GetSpellCooldownDuration()` objects instead of creating new ones every tick
+- **Charge cooldown caching** — separate cache for `C_Spell.GetSpellChargeDuration()` on charge-based spells
+- **Event-driven cache invalidation** — updates on `SPELL_UPDATE_COOLDOWN`, `SPELL_UPDATE_CHARGES`, and `PLAYER_ENTERING_WORLD`
+
+#### Keybind System Improvements
+- **Macro spell support** — extracts spell IDs from macros via `GetMacroSpell()` for accurate keybind display
+- **Item spell support** — resolves item action slots to their spell IDs via `C_Item.GetItemSpell()`
+- **ElvUI bar support** — reads keybinds from `ElvUI_Bar1Button` through `ElvUI_Bar10Button` using `GetBindingKey()`
+- **Dominos bar support** — scans `DominosActionButton1`–`168` for keybind text
+- **`GetBindingKey` API** — uses Blizzard's native binding API for Blizzard bars instead of parsing HotKey text, improving reliability
+- **Override/base spell fallback** — tries `C_Spell.GetOverrideSpell()` and `C_Spell.GetBaseSpell()` before slot lookup
+- **CooldownID extraction** — uses `C_CooldownViewer.GetCooldownViewerCooldownInfo()` for more reliable spell ID resolution on keybind display
+- **Improved key formatting** — handles gamepad bindings (LT, RT, LB, RB), German keyboard (STRG), META key, and more edge cases
+
+#### Swipe Color System
+- **Separate active aura swipe** — configurable color and alpha for active aura (buff) swipe overlay
+- **Separate cooldown swipe** — new independent color and alpha for normal cooldown swipe (defaults: black, 0.7 alpha)
+- **Dual swipe hook** — single `SetCooldown` hook applies the correct color based on aura vs cooldown state
+
+#### GCD Hiding
+- **Hide Global Cooldown option** — new `hideGCD` toggle that intercepts `SetCooldown` and replaces GCD swipes with an empty duration object
+- Uses `C_Spell.GetSpellCooldown().isOnGCD` for reliable GCD detection
+
+#### Desaturation on Cooldown
+- **Desaturation curve** — icons on cooldown are desaturated (greyed out) using `C_CurveUtil` (0 when ready, 1 when on cooldown)
+- Only applies to Essential/Utility viewers, not buff icons
+- Skips desaturation on active aura spells
+
+#### Buff Icon Alignment Modes
+- **CENTER** — center-outward pattern (1st center, 2nd left, 3rd right) — existing V2 behavior
+- **START** — left-aligned (or top-aligned in vertical mode)
+- **END** — right-aligned (or bottom-aligned in vertical mode)
+- Configurable via dropdown in the CDM settings panel
+
+#### Vertical Layout Support
+- **Essential/Utility viewers** now support vertical orientation when `isHorizontal` is false
+- **Buff icons** support vertical alignment with proper anchor calculation
+- Uses `PositionRowVertical()` with `CenteredColYOffsets` for column-based positioning
+
+#### Charge-Aware Utility Dimming
+- **Charge cooldown duration** — spells with charges now use `GetSpellChargeDuration()` for dimming calculation instead of the full spell cooldown
+- Detected via `cooldownChargesShown` property on the cooldown frame
+
+#### Visibility Rules (Advanced)
+- **Hide when mounted** — detects mount and druid travel forms (shapeshift IDs 3, 27, 29)
+- **Hide in vehicles** — combines `CLIENT_SCENE`, `HasOverrideActionBar`, and `UnitInVehicle`
+- **Hide out of combat** — hides when not in combat and no target exists
+- **Show in combat** — override that forces display during combat
+- **Show in instance** — override that forces display inside instances
+- **Show with enemy target** — override that forces display when targeting an attackable unit
+- Visibility rules are evaluated with priority: hide conditions first, then show overrides
+- Backward-compatible with the V2 simple combat alpha system
+
+#### Additional Events
+- `UPDATE_SHAPESHIFT_FORM` — triggers re-layout and visibility update on form changes
+- `SPELL_UPDATE_COOLDOWN` — triggers immediate utility dimming refresh
+- `MOUNT_JOURNAL_USABILITY_CHANGED` / `PLAYER_MOUNT_DISPLAY_CHANGED` — visibility updates on mount state changes
+
+#### Config Panel — New Options
+- **Advanced card** — Hide GCD toggle, Desaturation toggle, Buff alignment dropdown (Center/Start/End)
+- **Overlay & Swipe card** — expanded with CD swipe color picker, CD swipe alpha slider, and separate active/CD swipe toggles
+- **Visibility Rules card** — 6 toggleable rules (hide mounted, hide vehicle, hide OOC, show combat, show instance, show enemy target)
+
+## ####################################
+
 ## CHANGELOG 2.8.11 — AFK Display Screen
 
 #### AFK Display Module

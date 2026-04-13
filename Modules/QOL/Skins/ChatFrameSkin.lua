@@ -1708,6 +1708,323 @@ local function SetupSideBarIcons(container, sidebarTexture)
 end
 
 -- =====================================
+-- SKIN STYLE BUILDERS
+-- =====================================
+
+-- Skin: TUI (current sidebar + window textures)
+local function ApplySkin_TUI(container, T, s)
+    -- Sidebar texture
+    if not container.sidebar then
+        container.sidebar = container:CreateTexture(nil, "ARTWORK")
+    end
+    container.sidebar:SetTexture(T .. "sidebar")
+    container.sidebar:SetSize(24, 300)
+    container.sidebar:ClearAllPoints()
+    container.sidebar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -10)
+    container.sidebar:Show()
+
+    -- Window texture
+    if not container.window then
+        container.window = CreateFrame("Frame", nil, container)
+        container.window.texture = container.window:CreateTexture(nil, "ARTWORK")
+        container.window.texture:SetAllPoints(true)
+    end
+    container.window:ClearAllPoints()
+    container.window:SetSize(367, 248)
+    container.window:SetPoint("TOPLEFT", container.sidebar, "TOPRIGHT", 2, -37)
+    container.window.texture:SetTexture(T .. "window")
+    container.window.texture:SetAlpha(s.bgAlpha or 0.70)
+    container.window:Show()
+
+    -- Tab bar texture
+    if not container.tabsTex then
+        container.tabsTex = container:CreateTexture(nil, "ARTWORK")
+    end
+    container.tabsTex:SetTexture(T .. "tabs")
+    container.tabsTex:SetSize(358, 23)
+    container.tabsTex:ClearAllPoints()
+    container.tabsTex:SetPoint("TOPLEFT", container.sidebar, "TOPRIGHT", 0, -12)
+    container.tabsTex:Show()
+
+    -- Hide non-TUI elements
+    if container.bgFrame then container.bgFrame:Hide() end
+
+    -- Setup sidebar icons
+    SetupSideBarIcons(container, container.sidebar)
+
+    -- OnUpdate: follow ChatFrame1
+    container:SetScript("OnUpdate", function(self)
+        if not ChatFrame1 then return end
+        self:ClearAllPoints()
+        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -30, 15)
+        self:SetHeight(ChatFrame1:GetHeight() + 55)
+        self:SetWidth(ChatFrame1:GetWidth() + 40)
+        self.sidebar:SetHeight(ChatFrame1:GetHeight() + 30)
+        self.window:SetSize(ChatFrame1:GetWidth() + 10, ChatFrame1:GetHeight() - 20)
+    end)
+end
+
+-- Skin: Classic (old-style framed look, like the screenshot)
+local function ApplySkin_Classic(container, T, s)
+    -- Hide TUI-specific elements
+    if container.sidebar then container.sidebar:Hide() end
+    if container.tabsTex then container.tabsTex:Hide() end
+
+    -- Background frame with classic border
+    if not container.bgFrame then
+        container.bgFrame = CreateFrame("Frame", nil, container, "BackdropTemplate")
+    end
+    local bg = container.bgFrame
+    bg:ClearAllPoints()
+    bg:SetAllPoints(container)
+    bg:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Gold-Border",
+        edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 },
+    })
+    bg:SetBackdropColor(0.06, 0.06, 0.08, s.bgAlpha or 0.70)
+    bg:SetBackdropBorderColor(0.65, 0.55, 0.35, 1)
+    bg:Show()
+
+    -- Inner gradient overlay
+    if not bg.gradient then
+        bg.gradient = bg:CreateTexture(nil, "ARTWORK")
+    end
+    bg.gradient:SetTexture("Interface\\Buttons\\WHITE8X8")
+    bg.gradient:SetPoint("TOPLEFT", bg, "TOPLEFT", 4, -4)
+    bg.gradient:SetPoint("BOTTOMRIGHT", bg, "BOTTOMRIGHT", -4, 4)
+    if bg.gradient.SetGradient then
+        bg.gradient:SetGradient("VERTICAL", CreateColor(0.02, 0.02, 0.04, 0.6), CreateColor(0.08, 0.06, 0.12, 0.3))
+    end
+    bg.gradient:Show()
+
+    -- Window (used for alpha tracking)
+    if not container.window then
+        container.window = CreateFrame("Frame", nil, container)
+        container.window.texture = container.window:CreateTexture(nil, "ARTWORK")
+        container.window.texture:SetAllPoints(true)
+    end
+    container.window:Hide()
+
+    -- Hide sidebar icons
+    for _, icon in ipairs(sidebarIcons) do
+        if icon then icon:Hide() end
+    end
+
+    -- OnUpdate: follow ChatFrame1
+    container:SetScript("OnUpdate", function(self)
+        if not ChatFrame1 then return end
+        self:ClearAllPoints()
+        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -6, 18)
+        self:SetHeight(ChatFrame1:GetHeight() + 30)
+        self:SetWidth(ChatFrame1:GetWidth() + 12)
+    end)
+end
+
+-- Skin: Glass (frosted glass look)
+local function ApplySkin_Glass(container, T, s)
+    -- Hide TUI-specific elements
+    if container.sidebar then container.sidebar:Hide() end
+    if container.tabsTex then container.tabsTex:Hide() end
+
+    -- Background frame with glass effect
+    if not container.bgFrame then
+        container.bgFrame = CreateFrame("Frame", nil, container, "BackdropTemplate")
+    end
+    local bg = container.bgFrame
+    bg:ClearAllPoints()
+    bg:SetAllPoints(container)
+    bg:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = 1,
+        insets = { left = 1, right = 1, top = 1, bottom = 1 },
+    })
+    bg:SetBackdropColor(0.08, 0.10, 0.14, s.bgAlpha or 0.70)
+    bg:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.5)  -- accent teal border
+    bg:Show()
+
+    -- Inner gradient
+    if not bg.gradient then
+        bg.gradient = bg:CreateTexture(nil, "ARTWORK")
+    end
+    bg.gradient:SetTexture("Interface\\Buttons\\WHITE8X8")
+    bg.gradient:SetPoint("TOPLEFT", bg, "TOPLEFT", 1, -1)
+    bg.gradient:SetPoint("BOTTOMRIGHT", bg, "BOTTOMRIGHT", -1, 1)
+    if bg.gradient.SetGradient then
+        bg.gradient:SetGradient("VERTICAL", CreateColor(0.05, 0.12, 0.15, 0.45), CreateColor(0.02, 0.04, 0.06, 0.25))
+    end
+    bg.gradient:Show()
+
+    -- Top accent line
+    if not bg.topLine then
+        bg.topLine = bg:CreateTexture(nil, "OVERLAY")
+    end
+    bg.topLine:SetTexture("Interface\\Buttons\\WHITE8X8")
+    bg.topLine:SetHeight(2)
+    bg.topLine:SetPoint("TOPLEFT", bg, "TOPLEFT", 1, -1)
+    bg.topLine:SetPoint("TOPRIGHT", bg, "TOPRIGHT", -1, -1)
+    bg.topLine:SetColorTexture(0.047, 0.824, 0.624, 0.7)
+    bg.topLine:Show()
+
+    -- Window (used for alpha tracking)
+    if not container.window then
+        container.window = CreateFrame("Frame", nil, container)
+        container.window.texture = container.window:CreateTexture(nil, "ARTWORK")
+        container.window.texture:SetAllPoints(true)
+    end
+    container.window:Hide()
+
+    -- Hide sidebar icons
+    for _, icon in ipairs(sidebarIcons) do
+        if icon then icon:Hide() end
+    end
+
+    container:SetScript("OnUpdate", function(self)
+        if not ChatFrame1 then return end
+        self:ClearAllPoints()
+        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -4, 14)
+        self:SetHeight(ChatFrame1:GetHeight() + 22)
+        self:SetWidth(ChatFrame1:GetWidth() + 8)
+    end)
+end
+
+-- Skin: Minimal (no border, flat dark bg)
+local function ApplySkin_Minimal(container, T, s)
+    -- Hide TUI-specific elements
+    if container.sidebar then container.sidebar:Hide() end
+    if container.tabsTex then container.tabsTex:Hide() end
+
+    -- Background frame
+    if not container.bgFrame then
+        container.bgFrame = CreateFrame("Frame", nil, container, "BackdropTemplate")
+    end
+    local bg = container.bgFrame
+    bg:ClearAllPoints()
+    bg:SetAllPoints(container)
+    bg:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8X8",
+    })
+    bg:SetBackdropColor(0.04, 0.04, 0.06, s.bgAlpha or 0.70)
+    bg:Show()
+
+    -- Hide gradient if it existed from another skin
+    if bg.gradient then bg.gradient:Hide() end
+    if bg.topLine then bg.topLine:Hide() end
+
+    -- Window (used for alpha tracking)
+    if not container.window then
+        container.window = CreateFrame("Frame", nil, container)
+        container.window.texture = container.window:CreateTexture(nil, "ARTWORK")
+        container.window.texture:SetAllPoints(true)
+    end
+    container.window:Hide()
+
+    -- Hide sidebar icons
+    for _, icon in ipairs(sidebarIcons) do
+        if icon then icon:Hide() end
+    end
+
+    container:SetScript("OnUpdate", function(self)
+        if not ChatFrame1 then return end
+        self:ClearAllPoints()
+        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -2, 14)
+        self:SetHeight(ChatFrame1:GetHeight() + 18)
+        self:SetWidth(ChatFrame1:GetWidth() + 4)
+    end)
+end
+
+-- Dispatch skin application
+local skinApplicators = {
+    tui     = ApplySkin_TUI,
+    classic = ApplySkin_Classic,
+    glass   = ApplySkin_Glass,
+    minimal = ApplySkin_Minimal,
+}
+
+local function ApplyContainerSkin(container, T, s)
+    local style = s.skinStyle or "tui"
+    local applicator = skinApplicators[style] or skinApplicators.tui
+    applicator(container, T, s)
+end
+
+-- =====================================
+-- MOVER INTEGRATION — lock/unlock chat frame position
+-- =====================================
+
+local chatIsLocked = true
+local chatMoverOverlay = nil
+
+local function SaveChatPosition()
+    if not ChatFrame1 then return end
+    local s = S()
+    local point, _, relTo, x, y = ChatFrame1:GetPoint()
+    s.position = s.position or {}
+    s.position.anchor = point or "BOTTOMLEFT"
+    s.position.relTo = relTo or "BOTTOMLEFT"
+    s.position.x = x or 2
+    s.position.y = y or 2
+end
+
+local function RestoreChatPosition()
+    if not ChatFrame1 then return end
+    local s = S()
+    local pos = s.position
+    if not pos then return end
+    ChatFrame1:SetUserPlaced(true)
+    ChatFrame1:ClearAllPoints()
+    ChatFrame1:SetPoint(pos.anchor or "BOTTOMLEFT", UIParent, pos.relTo or "BOTTOMLEFT", pos.x or 2, pos.y or 2)
+end
+
+function CFS.IsLocked()
+    return chatIsLocked
+end
+
+function CFS.ToggleLock()
+    chatIsLocked = not chatIsLocked
+    if chatIsLocked then
+        -- lock
+        if chatMoverOverlay then chatMoverOverlay:Hide() end
+        ChatFrame1:SetMovable(false)
+        SaveChatPosition()
+    else
+        -- unlock
+        ChatFrame1:SetMovable(true)
+        -- Create mover overlay for visual feedback
+        if not chatMoverOverlay then
+            chatMoverOverlay = CreateFrame("Frame", "TomoMod_ChatMoverOverlay", ChatFrame1, "BackdropTemplate")
+            chatMoverOverlay:SetAllPoints(ChatFrame1)
+            chatMoverOverlay:SetBackdrop({
+                bgFile = "Interface\\Buttons\\WHITE8X8",
+                edgeFile = "Interface\\Buttons\\WHITE8X8",
+                edgeSize = 1,
+            })
+            chatMoverOverlay:SetBackdropColor(0.047, 0.824, 0.624, 0.15)
+            chatMoverOverlay:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.8)
+            chatMoverOverlay:SetFrameStrata("HIGH")
+            chatMoverOverlay:EnableMouse(true)
+            chatMoverOverlay:RegisterForDrag("LeftButton")
+
+            local label = chatMoverOverlay:CreateFontString(nil, "OVERLAY")
+            label:SetFont(ADDON_FONT_BOLD, 14, "OUTLINE")
+            label:SetPoint("CENTER")
+            label:SetText("Chat Frame")
+            label:SetTextColor(0.047, 0.824, 0.624, 1)
+
+            chatMoverOverlay:SetScript("OnDragStart", function()
+                ChatFrame1:StartMoving()
+            end)
+            chatMoverOverlay:SetScript("OnDragStop", function()
+                ChatFrame1:StopMovingOrSizing()
+                SaveChatPosition()
+            end)
+        end
+        chatMoverOverlay:Show()
+    end
+end
+
+-- =====================================
 -- STYLE CHAT WINDOW (TUI_Core visual style)
 -- =====================================
 
@@ -1731,7 +2048,7 @@ local function styleChatWindow(frame)
     local scrollToBottom = frame.ScrollToBottomButton
 
     -- =============================================
-    -- TUI_Core CONTAINER: sidebar + window texture
+    -- SKINNED CONTAINER (dispatches to selected skin style)
     -- =============================================
     if not frame.tuiContainer and id == 1 then
         local container = CreateFrame("Frame", "TomoMod_ChatContainer", UIParent)
@@ -1740,42 +2057,10 @@ local function styleChatWindow(frame)
         container:SetSize(358, 310)
         container:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 2, -2)
 
-        -- Sidebar texture
-        container.sidebar = container:CreateTexture(nil, "ARTWORK")
-        container.sidebar:SetTexture(T .. "sidebar")
-        container.sidebar:SetSize(24, 300)
-        container.sidebar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -10)
-
-        -- Window texture
-        container.window = CreateFrame("Frame", nil, container)
-        container.window:SetSize(367, 248)
-        container.window:SetPoint("TOPLEFT", container.sidebar, "TOPRIGHT", 2, -37)
-
-        container.window.texture = container.window:CreateTexture(nil, "ARTWORK")
-        container.window.texture:SetTexture(T .. "window")
-        container.window.texture:SetAllPoints(true)
-        container.window.texture:SetAlpha(S().bgAlpha or 0.70)
-
-        -- Tab bar texture
-        container.tabs = container:CreateTexture(nil, "ARTWORK")
-        container.tabs:SetTexture(T .. "tabs")
-        container.tabs:SetSize(358, 23)
-        container.tabs:SetPoint("TOPLEFT", container.sidebar, "TOPRIGHT", 0, -12)
-
         frame.tuiContainer = container
 
-        -- Setup sidebar icons
-        SetupSideBarIcons(container, container.sidebar)
-
-        -- Position container to follow ChatFrame1
-        container:SetScript("OnUpdate", function(self)
-            if not ChatFrame1 then return end
-            self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -30, 15)
-            self:SetHeight(ChatFrame1:GetHeight() + 55)
-            self:SetWidth(ChatFrame1:GetWidth() + 40)
-            self.sidebar:SetHeight(ChatFrame1:GetHeight() + 30)
-            self.window:SetSize(ChatFrame1:GetWidth() + 10, ChatFrame1:GetHeight() - 20)
-        end)
+        -- Apply the selected skin
+        ApplyContainerSkin(container, T, s)
     end
 
     -- Kill Blizzard frame textures
@@ -2309,6 +2594,38 @@ local function LoadChat()
         GENERAL_CHAT_DOCK:SetPoint("BOTTOMRIGHT", ChatFrame1, "TOPRIGHT", 0, 12)
     end
 
+    -- =============================================
+    -- Disable Blizzard Edit Mode for chat frames
+    -- =============================================
+    if FCF_SetLocked then
+        for _, frameName in ipairs(CHAT_FRAMES) do
+            local frame = _G[frameName]
+            if frame then FCF_SetLocked(frame, 1) end
+        end
+    end
+    -- Prevent Blizzard from making chat frames draggable via their default handler
+    if FCF_StartDragging then FCF_StartDragging = NoOp end
+    if FCF_StopDragging then FCF_StopDragging = NoOp end
+
+    -- Restore saved position
+    RestoreChatPosition()
+
+    -- Register with mover system
+    if TomoMod_Movers and TomoMod_Movers.RegisterEntry then
+        TomoMod_Movers.RegisterEntry({
+            label    = (TomoMod_L and TomoMod_L["mover_chatframe"]) or "Chat Frame",
+            unlock   = function()
+                if CFS.IsLocked() then CFS.ToggleLock() end
+            end,
+            lock     = function()
+                if not CFS.IsLocked() then CFS.ToggleLock() end
+            end,
+            isActive = function()
+                return TomoModDB and TomoModDB.chatFrameSkin and TomoModDB.chatFrameSkin.enabled
+            end,
+        })
+    end
+
     -- Hyperlink + keyword + emoji setup
     SetupHyperlink()
     UpdateChatKeywords()
@@ -2376,6 +2693,7 @@ end
 function CFS.ApplySettings()
     if not chatModuleInit then return end
     local s = S()
+    local T = TEX_CHAT:gsub("\\", "/")
 
     -- Font size
     for _, frameName in ipairs(CHAT_FRAMES) do
@@ -2393,10 +2711,16 @@ function CFS.ApplySettings()
         end
     end
 
-    -- Background alpha
+    -- Re-apply skin style to container (allows live switching)
     local container = ChatFrame1 and ChatFrame1.tuiContainer
-    if container and container.window and container.window.texture then
-        container.window.texture:SetAlpha(s.bgAlpha or 0.70)
+    if container then
+        ApplyContainerSkin(container, T, s)
+    end
+
+    -- Background alpha (for skins that use bgFrame)
+    if container and container.bgFrame and container.bgFrame.SetBackdropColor then
+        local r, g, b = container.bgFrame:GetBackdropColor()
+        container.bgFrame:SetBackdropColor(r, g, b, s.bgAlpha or 0.70)
     end
 
     -- Fading: when fade=true, our custom handleChatFrameFadeIn/Out will work

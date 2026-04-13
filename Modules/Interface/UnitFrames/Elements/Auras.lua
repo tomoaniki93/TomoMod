@@ -269,10 +269,16 @@ function UF_Elements.UpdateAuras(frame)
                 if iconFrame.duration then iconFrame.duration:Hide() end
             end
 
-            -- Stack count (non-secret display string, empty if < 2)
+            -- Stack count: value may be secret/tainted — never read back or compare
+            -- Just SetText and always Show; empty text renders as nothing visually
             local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(aura._unit or unit, aura.auraInstanceID, 2, 1000)
-            iconFrame.count:SetText(stackStr or "")
-            iconFrame.count:Show()
+            if stackStr then
+                iconFrame.count:SetText(stackStr)
+                iconFrame.count:Show()
+            else
+                iconFrame.count:SetText("")
+                iconFrame.count:Hide()
+            end
 
             iconFrame:Show()
         elseif iconFrame then
@@ -529,9 +535,15 @@ function UF_Elements.UpdateEnemyBuffs(frame)
                 if iconFrame.duration then iconFrame.duration:Hide() end
             end
 
+            -- Stack count: value may be secret/tainted — never read back or compare
             local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(unit, aura.auraInstanceID, 2, 1000)
-            iconFrame.count:SetText(stackStr or "")
-            iconFrame.count:Show()
+            if stackStr then
+                iconFrame.count:SetText(stackStr)
+                iconFrame.count:Show()
+            else
+                iconFrame.count:SetText("")
+                iconFrame.count:Hide()
+            end
 
             iconFrame:Show()
         end

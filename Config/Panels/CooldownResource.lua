@@ -50,11 +50,16 @@ local function BuildCooldownManagerTab(parent)
     local card3, cy = W.CreateCard(c, L["section_cdm_overlay"] or "Overlay & Swipe", y)
     local _, cy = W.CreateCheckboxPair(card3.inner,
         L["opt_cdm_custom_overlay"] or "Overlay personnalisé", cdm.useCustomOverlay,  cy, function(v) cdm.useCustomOverlay   = v; ApplyCDM() end,
-        L["opt_cdm_custom_swipe"]   or "Swipe personnalisé",   cdm.customSwipeEnabled,    function(v) cdm.customSwipeEnabled = v; ApplyCDM() end)
-    local _, cy = W.CreateColorPickerPair(card3.inner, L["opt_cdm_overlay_color"] or "Overlay", overlayCol, L["opt_cdm_swipe_color"] or "Swipe", swipeCol, cy,
+        L["opt_cdm_custom_swipe"]   or "Swipe actif personnalisé",   cdm.customSwipeEnabled,    function(v) cdm.customSwipeEnabled = v; ApplyCDM() end)
+    local _, cy = W.CreateColorPickerPair(card3.inner, L["opt_cdm_overlay_color"] or "Overlay", overlayCol, L["opt_cdm_swipe_color"] or "Swipe actif", swipeCol, cy,
         function(r,g,b) cdm.overlayR=r; cdm.overlayG=g; cdm.overlayB=b; ApplyCDM() end,
         function(r,g,b) cdm.swipeR=r;   cdm.swipeG=g;   cdm.swipeB=b;   ApplyCDM() end)
-    local _, cy = W.CreateSlider(card3.inner, L["opt_cdm_swipe_alpha"] or "Alpha swipe", cdm.swipeA or 0.55, 0, 1, 0.05, cy, function(v) cdm.swipeA = v; ApplyCDM() end, "%.2f")
+    local _, cy = W.CreateSlider(card3.inner, L["opt_cdm_swipe_alpha"] or "Alpha swipe actif", cdm.swipeA or 0.55, 0, 1, 0.05, cy, function(v) cdm.swipeA = v; ApplyCDM() end, "%.2f")
+    -- V3: Separate CD swipe color
+    local cdSwipeCol = { r = cdm.cdSwipeR or 0, g = cdm.cdSwipeG or 0, b = cdm.cdSwipeB or 0 }
+    local _, cy = W.CreateCheckbox(card3.inner, L["opt_cdm_custom_cd_swipe"] or "Swipe CD personnalisé", cdm.customCDSwipeEnabled or false, cy, function(v) cdm.customCDSwipeEnabled = v; ApplyCDM() end)
+    local _, cy = W.CreateColorPicker(card3.inner, L["opt_cdm_cd_swipe_color"] or "Couleur swipe CD", cdSwipeCol, cy, function(r,g,b) cdm.cdSwipeR=r; cdm.cdSwipeG=g; cdm.cdSwipeB=b; ApplyCDM() end)
+    local _, cy = W.CreateSlider(card3.inner, L["opt_cdm_cd_swipe_alpha"] or "Alpha swipe CD", cdm.cdSwipeA or 0.7, 0, 1, 0.05, cy, function(v) cdm.cdSwipeA = v; ApplyCDM() end, "%.2f")
     y = W.FinalizeCard(card3, cy)
 
     -- Utilitaires
@@ -63,6 +68,49 @@ local function BuildCooldownManagerTab(parent)
     local _, cy = W.CreateSlider(card4.inner, L["opt_cdm_dim_opacity"] or "Opacité assombrie", cdm.dimOpacity or 0.35, 0.1, 1, 0.05, cy, function(v) cdm.dimOpacity = v; ApplyCDM() end, "%.2f")
     local _, cy = W.CreateInfoText(card4.inner, L["info_cdm_editmode"] or "", cy)
     y = W.FinalizeCard(card4, cy)
+
+    -- Avancé (V3)
+    local card5, cy = W.CreateCard(c, L["section_cdm_advanced"] or "Avancé", y)
+    local _, cy = W.CreateCheckboxPair(card5.inner,
+        L["opt_cdm_hide_gcd"] or "Masquer le GCD", cdm.hideGCD or false, cy, function(v) cdm.hideGCD = v; ApplyCDM() end,
+        L["opt_cdm_desaturate"] or "Désaturer en CD", cdm.desaturateOnCD or false, function(v) cdm.desaturateOnCD = v; ApplyCDM() end)
+    local _, cy = W.CreateDropdown(card5.inner, L["opt_cdm_buff_alignment"] or "Alignement buffs", {
+        { text = L["align_center_outward"] or "Centre→Extérieur", value = "CENTER" },
+        { text = L["align_start"] or "Début (gauche)", value = "START" },
+        { text = L["align_end"] or "Fin (droite)", value = "END" },
+    }, cdm.buffAlignment or "CENTER", cy, function(v) cdm.buffAlignment = v; ApplyCDM() end)
+    y = W.FinalizeCard(card5, cy)
+
+    -- Règles de visibilité (V3)
+    local visRules = cdm.visibilityRules or {}
+    local card6, cy = W.CreateCard(c, L["section_cdm_visibility"] or "Règles de visibilité", y)
+    local _, cy = W.CreateInfoText(card6.inner, L["info_cdm_visibility"] or "Règles prioritaires de masquage. Les conditions 'Afficher' overrides 'Masquer'.", cy)
+    local _, cy = W.CreateCheckboxPair(card6.inner,
+        L["opt_cdm_hide_mounted"] or "Masquer sur monture", visRules.hideWhenMounted or false, cy, function(v) visRules.hideWhenMounted = v; cdm.visibilityRules = visRules; ApplyCDM() end,
+        L["opt_cdm_hide_vehicle"] or "Masquer en véhicule", visRules.hideInVehicles or false, function(v) visRules.hideInVehicles = v; cdm.visibilityRules = visRules; ApplyCDM() end)
+    local _, cy = W.CreateCheckbox(card6.inner, L["opt_cdm_hide_ooc"] or "Masquer hors combat (pas de cible)", visRules.hideOutOfCombat or false, cy, function(v) visRules.hideOutOfCombat = v; cdm.visibilityRules = visRules; ApplyCDM() end)
+    local _, cy = W.CreateCheckboxPair(card6.inner,
+        L["opt_cdm_show_combat"] or "Toujours afficher en combat", visRules.showInCombat or false, cy, function(v) visRules.showInCombat = v; cdm.visibilityRules = visRules; ApplyCDM() end,
+        L["opt_cdm_show_instance"] or "Toujours afficher en instance", visRules.showInInstance or false, function(v) visRules.showInInstance = v; cdm.visibilityRules = visRules; ApplyCDM() end)
+    local _, cy = W.CreateCheckbox(card6.inner, L["opt_cdm_show_enemy"] or "Afficher avec cible ennemie", visRules.showWithEnemyTarget or false, cy, function(v) visRules.showWithEnemyTarget = v; cdm.visibilityRules = visRules; ApplyCDM() end)
+    y = W.FinalizeCard(card6, cy)
+
+    -- Sound Alerts, Pandemic, Range Check (V3.1)
+    local card7, cy = W.CreateCard(c, L["section_cdm_extras"] or "Sound / Pandemic / Range", y)
+    -- Sound Alerts
+    local _, cy = W.CreateCheckbox(card7.inner, L["opt_cdm_sound_alert"] or "Son quand un sort est prêt", cdm.soundAlertEnabled or false, cy, function(v) cdm.soundAlertEnabled = v; ApplyCDM() end)
+    local _, cy = W.CreateDropdown(card7.inner, L["opt_cdm_sound_file"] or "Fichier son", {
+        { text = "Golden Lust",  value = "Interface\\AddOns\\TomoMod\\Assets\\Sounds\\Golden_Lust.ogg"  },
+        { text = "Chipi",        value = "Interface\\AddOns\\TomoMod\\Assets\\Sounds\\Chipi.ogg"        },
+        { text = "Spinning Cat", value = "Interface\\AddOns\\TomoMod\\Assets\\Sounds\\Spining_Cat.ogg"  },
+        { text = "Taluani BL",   value = "Interface\\AddOns\\TomoMod\\Assets\\Sounds\\Taluani_BL.ogg"   },
+    }, cdm.soundAlertFile or "Interface\\AddOns\\TomoMod\\Assets\\Sounds\\Golden_Lust.ogg", cy, function(v) cdm.soundAlertFile = v; ApplyCDM() end)
+    -- Pandemic Detection
+    local _, cy = W.CreateCheckbox(card7.inner, L["opt_cdm_pandemic"] or "Pandemic (bordure de refresh)", cdm.pandemicEnabled or false, cy, function(v) cdm.pandemicEnabled = v; ApplyCDM() end)
+    local _, cy = W.CreateSlider(card7.inner, L["opt_cdm_pandemic_threshold"] or "Seuil pandemic (%)", (cdm.pandemicThreshold or 0.3) * 100, 10, 50, 5, cy, function(v) cdm.pandemicThreshold = v / 100; ApplyCDM() end, "%.0f%%")
+    -- Range Check
+    local _, cy = W.CreateCheckbox(card7.inner, L["opt_cdm_range_check"] or "Teinter rouge hors portée", cdm.rangeCheckEnabled or false, cy, function(v) cdm.rangeCheckEnabled = v; ApplyCDM() end)
+    y = W.FinalizeCard(card7, cy)
 
     c:SetHeight(math.abs(y) + 20)
     if scroll.UpdateScroll then scroll.UpdateScroll() end

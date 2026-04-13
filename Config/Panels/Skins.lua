@@ -29,6 +29,17 @@ local function BuildChatFrameTab(parent)
     end)
     y = ny
 
+    local _, ny = W.CreateDropdown(c, L["opt_chat_skin_style"], {
+        { text = L["opt_chat_skin_style_tui"],     value = "tui" },
+        { text = L["opt_chat_skin_style_classic"],  value = "classic" },
+        { text = L["opt_chat_skin_style_glass"],    value = "glass" },
+        { text = L["opt_chat_skin_style_minimal"],  value = "minimal" },
+    }, TomoModDB.chatFrameSkin.skinStyle or "tui", y, function(v)
+        TomoModDB.chatFrameSkin.skinStyle = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
     local _, ny = W.CreateSlider(c, L["opt_chat_skin_bg_alpha"], (TomoModDB.chatFrameSkin.bgAlpha or 0.70) * 100, 0, 100, 5, y, function(v)
         TomoModDB.chatFrameSkin.bgAlpha = v / 100
         if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end

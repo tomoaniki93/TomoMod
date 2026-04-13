@@ -853,6 +853,7 @@ TomoMod_RegisterLocale("deDE", {
     ["mover_repbar"]                    = "Rufleiste",
     ["mover_castbar"]                   = "Spieler-Zauberleiste",
     ["mover_mythictracker"]             = "M+ Tracker",
+    ["mover_chatframe"]                 = "Chat-Fenster",
 
     -- =====================
     -- COMBAT TEXT
@@ -870,6 +871,11 @@ TomoMod_RegisterLocale("deDE", {
     ["info_skins_desc"]                  = "Wendet das dunkle TomoMod-Design auf verschiedene Blizzard-UI-Elemente an. Ein /reload kann nötig sein.",
     ["sublabel_chat_skin"]               = "— Chat-Fenster —",
     ["opt_chat_skin_enable"]             = "Chat-Fenster-Skin",
+    ["opt_chat_skin_style"]              = "Skin-Stil",
+    ["opt_chat_skin_style_tui"]          = "TUI (Seitenleiste + Fenster)",
+    ["opt_chat_skin_style_classic"]      = "Klassisch (Gerahmt)",
+    ["opt_chat_skin_style_glass"]        = "Glas (Mattiert)",
+    ["opt_chat_skin_style_minimal"]      = "Minimal (Randlos)",
     ["opt_chat_skin_bg_alpha"]           = "Hintergrund-Deckkraft",
     ["opt_chat_skin_font_size"]          = "Chat-Schriftgröße",
     ["opt_chat_skin_fade"]               = "Fade chat when inactive",

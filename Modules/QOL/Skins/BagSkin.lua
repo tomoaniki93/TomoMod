@@ -694,26 +694,72 @@ local function UpdateFooter()
 
     if s.showCurrencies then
         local count = (C_CurrencyInfo and C_CurrencyInfo.GetNumTrackedCurrencies and C_CurrencyInfo.GetNumTrackedCurrencies()) or 0
+        -- Hide all existing currency frames first
+        for _, cf in ipairs(bagFrame._currencyFrames) do
+            cf:Hide()
+        end
         if count == 0 then
-            bagFrame._currencyText:SetText("|cff555566" .. (L and L["bagskin_currencies_none"] or "No tracked currencies") .. "|r")
-            bagFrame._currencyText:Show()
+            bagFrame._currencyNoneText:SetText("|cff555566" .. (L and L["bagskin_currencies_none"] or "No tracked currencies") .. "|r")
+            bagFrame._currencyNoneText:Show()
+            bagFrame._currencyContainer:Hide()
         else
-            local parts = {}
-            for i = 1, math.min(count, 6) do
+            bagFrame._currencyNoneText:Hide()
+            bagFrame._currencyContainer:Show()
+            local anchor = nil
+            local shown = 0
+            for i = 1, math.min(count, 7) do
                 local ci = C_CurrencyInfo.GetBackpackCurrencyInfo(i)
-                if ci and ci.quantity then
+                if ci and ci.quantity ~= nil then
+                    shown = shown + 1
+                    local cf = bagFrame._currencyFrames[shown]
+                    if not cf then
+                        cf = CreateFrame("Frame", nil, bagFrame._currencyContainer)
+                        cf:SetHeight(18)
+                        cf:EnableMouse(true)
+                        local icon = cf:CreateTexture(nil, "ARTWORK")
+                        icon:SetSize(14, 14)
+                        icon:SetPoint("LEFT", 0, 0)
+                        cf._icon = icon
+                        local text = cf:CreateFontString(nil, "OVERLAY")
+                        text:SetFont(ADDON_FONT, 10, "")
+                        text:SetPoint("LEFT", icon, "RIGHT", 3, 0)
+                        cf._text = text
+                        cf:SetScript("OnEnter", function(self)
+                            GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 5)
+                            if self._currencyID then
+                                GameTooltip:SetCurrencyByID(self._currencyID)
+                            end
+                            GameTooltip:Show()
+                        end)
+                        cf:SetScript("OnLeave", function()
+                            GameTooltip:Hide()
+                        end)
+                        bagFrame._currencyFrames[shown] = cf
+                    end
+                    cf._currencyID = ci.currencyTypesID
+                    cf._icon:SetTexture(ci.iconFileID)
                     local qty = ci.quantity >= 10000
                         and string.format("%d,%03d", math.floor(ci.quantity/1000), ci.quantity%1000)
                         or tostring(ci.quantity)
-                    parts[#parts+1] = (ci.iconFileID and ("|T"..ci.iconFileID..":14:14|t ") or "") .. "|cffdddddd" .. qty .. "|r"
+                    cf._text:SetText("|cffdddddd" .. qty .. "|r")
+                    cf:ClearAllPoints()
+                    if anchor then
+                        cf:SetPoint("RIGHT", anchor, "LEFT", -8, 0)
+                    else
+                        cf:SetPoint("RIGHT", bagFrame._currencyContainer, "RIGHT", 0, 0)
+                    end
+                    cf:SetWidth(cf._text:GetStringWidth() + 14 + 3)
+                    cf:Show()
+                    anchor = cf
                 end
             end
-            bagFrame._currencyText:SetText(#parts > 0 and table.concat(parts, "  ") or "")
-            bagFrame._currencyText:SetShown(#parts > 0)
         end
     else
-        bagFrame._currencyText:SetText("")
-        bagFrame._currencyText:Hide()
+        bagFrame._currencyNoneText:Hide()
+        bagFrame._currencyContainer:Hide()
+        for _, cf in ipairs(bagFrame._currencyFrames) do
+            cf:Hide()
+        end
     end
 end
 
@@ -1423,10 +1469,19 @@ local function CreateBagFrame()
     goldText:SetJustifyH("LEFT")
     f._goldText = goldText
 
-    local currText = footer:CreateFontString(nil, "OVERLAY")
-    currText:SetFont(ADDON_FONT, 10, ""); currText:SetPoint("RIGHT", -10, 0)
-    currText:SetJustifyH("RIGHT"); currText:SetMaxLines(1)
-    f._currencyText = currText
+    local currContainer = CreateFrame("Frame", nil, footer)
+    currContainer:SetHeight(FOOTER_H)
+    currContainer:SetPoint("RIGHT", -10, 0)
+    currContainer:SetPoint("LEFT", goldText, "RIGHT", 10, 0)
+    f._currencyContainer = currContainer
+    f._currencyFrames = {}
+
+    local currNone = footer:CreateFontString(nil, "OVERLAY")
+    currNone:SetFont(ADDON_FONT, 10, "")
+    currNone:SetPoint("RIGHT", -10, 0)
+    currNone:SetJustifyH("RIGHT")
+    currNone:Hide()
+    f._currencyNoneText = currNone
     f._footer = footer
 
     -- ===== RESIZE HANDLE (GW2_UI-inspired) =====

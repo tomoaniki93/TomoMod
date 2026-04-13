@@ -212,6 +212,7 @@ TomoMod_Defaults = {
     },
     chatFrameSkin = {
         enabled = true,
+        skinStyle = "tui",          -- "tui" (current sidebar+window), "classic" (old image-based), "glass", "minimal"
         bgAlpha = 0.70,
         fontSize = 13,
         fade = true,
@@ -237,6 +238,7 @@ TomoMod_Defaults = {
             EMOTE = false,
         },
         history = {},
+        position = { anchor = "BOTTOMLEFT", relTo = "BOTTOMLEFT", x = 2, y = 2 },
     },
     chatFrameSkinV2 = {
         enabled       = false,
@@ -393,6 +395,35 @@ TomoMod_Defaults = {
         -- V2: utility dimming
         dimUtility = false,
         dimOpacity = 0.35,
+        -- V3: separate CD swipe color
+        customCDSwipeEnabled = false,
+        cdSwipeR = 0.0,
+        cdSwipeG = 0.0,
+        cdSwipeB = 0.0,
+        cdSwipeA = 0.7,
+        -- V3: GCD hiding
+        hideGCD = false,
+        -- V3: desaturation on cooldown
+        desaturateOnCD = false,
+        -- V3: buff icon alignment (CENTER, START, END)
+        buffAlignment = "CENTER",
+        -- V3: visibility rules (advanced)
+        visibilityRules = {
+            hideWhenMounted = false,
+            hideInVehicles = false,
+            hideOutOfCombat = false,
+            showInCombat = false,
+            showInInstance = false,
+            showWithEnemyTarget = false,
+        },
+        -- V3.1: sound alerts
+        soundAlertEnabled = false,
+        soundAlertFile = "Interface\\AddOns\\TomoMod\\Assets\\Sounds\\Golden_Lust.ogg",
+        -- V3.1: pandemic detection (buff refresh window)
+        pandemicEnabled = false,
+        pandemicThreshold = 0.3,
+        -- V3.1: range check coloring
+        rangeCheckEnabled = false,
     },
 
     -- =====================
