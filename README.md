@@ -173,7 +173,7 @@ Complete chat replacement inspired by TUI_Core's visual style.
 - **Spam throttle** — suppresses duplicate messages within 10 seconds
 - **Inline emoji replacement** — text emoticons converted to display glyphs
 
-### 🎒 Bag System — *GW2_UI-Inspired*
+### 🎒 Bag System — *TUI-Inspired*
 
 Full inventory replacement with a modern, resizable grid.
 
