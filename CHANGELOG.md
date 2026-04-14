@@ -1,5 +1,191 @@
 ## ####################################
 
+## CHANGELOG 2.9.0 — Bug Fixes, Minimap Mover & Party Frame Polish
+
+#### Minimap Mover
+- **Minimap & InfoPanel** now registered in the unified Layout system (`/tm layout`)
+- Drag to reposition the minimap (zone bar + clock bar follow automatically)
+- Position saved/restored across sessions in `TomoModDB.minimap.position`
+- Teal mover overlay with "Minimap" label when unlocked
+
+#### Party Frames — Bug Fixes
+- **Secret value taint fixes** — `issecretvalue()` guards on UnitHealth, UnitHealthMax, UnitGetTotalAbsorbs, GetRaidTargetIndex, UnitIsConnected; raw values passed to StatusBar C-API (handles secrets natively), only Lua arithmetic/comparison guarded
+- **GetTexCoordsForRoleSmallCircle removed** — replaced with manual `ROLE_TEX_COORDS` UV lookup table for TANK/HEALER/DAMAGER
+- **Combat lockdown protection** — `RegisterUnitWatch`/`UnregisterUnitWatch` gated by `InCombatLockdown()` with deferred refresh on `PLAYER_REGEN_ENABLED`
+- **Right-click toggle menu** — `EnableMouse(false)` on overlay frames (content, dispelHighlight) so clicks pass through to SecureUnitButtonTemplate; `RegisterForClicks("AnyUp")` prevents double-fire
+- **CD Tracker tainted spellIDs** — pcall-wrapped equality check loop over known spell databases instead of silently dropping events
+
+#### Party Frames — Improvements
+- **Name centered** — nameText anchored TOP-CENTER with LEFT+RIGHT padding, `SetWordWrap(false)`, `SetMaxLines(1)` for truncation
+- **Name max letters slider** — new `nameMaxLength` setting (0 = no limit) with ellipsis truncation in config Display card
+- **Power bar healer-only** — power bar hidden for non-HEALER roles via `UnitGroupRolesAssigned` check
+- **Power bar sliders now live-refresh** — changing power height/visibility instantly resizes health + power bars via `ApplySettings`
+- **Horizontal mover** — anchor size adapts to `growDirection` (horizontal for RIGHT/LEFT, vertical for DOWN/UP)
+
+#### Party Frames — CD Tracker Overhaul
+- **Always-visible CD icons** — interrupt and battle rez icons now show as placeholders when ready (teal border, full color) and switch to desaturated + red border + swipe when on cooldown; hidden only if the class lacks the ability
+- **Class-based spell lookup** — `CLASS_INTERRUPT` (13 classes) and `CLASS_BREZ` (4 classes) tables map each class to its default interrupt/brez spellID
+- **Dynamic spell textures** — icons resolved via `C_Spell.GetSpellTexture(spellID)` with cache instead of hardcoded texture paths (fixes missing icons for some classes like Monk)
+- **CD container parented to `f`** — moved from `content` sub-frame to the main secure frame with `SetFrameLevel(+10)` so icons always render above the health bar
+- **Horizontal layout auto-detection** — CD icons automatically display below the frame (centered) when `growDirection` is RIGHT or LEFT, regardless of `cdLayout` setting
+- **CD icon size slider live-refresh** — changing icon size in config now instantly resizes all CD icons, container, and re-layouts via `ApplySettings`
+
+#### Castbar — Bug Fixes
+- **Secret timer value** — `GetRemainingDuration` wrapped in `pcall` + `issecretvalue` check, fallback to 0
+- **Secret interrupter GUID** — guarded GUID comparison and `UnitNameFromGUID` call; shows "Interrupted" without name when tainted
+
+#### UnitFrames
+- **RegisterForClicks fix** — changed from `"AnyDown", "AnyUp"` to `"AnyUp"` to prevent toggle menu double-fire
+
+#### Aura Tracker — Improvements
+- **Proper mover overlay** — BackdropTemplate mover (teal bg + border + label) instead of simple texture overlay
+- **Mover resizes** to full icon strip area when unlocked, back to single icon when locked
+
+#### Spell Database
+- Updated from TWW Season 2 to **Midnight Season 1** — removed S2 trinket and Algari enchant IDs, added placeholder entries for Midnight S1 trinkets and weapon enchants; evergreen Gladiator's Badge/Insignia kept
+
+## ####################################
+
+## CHANGELOG 2.8.18 — Aura Tracker (WeakAura-lite)
+
+#### New QOL Module: Aura Tracker (`Modules/QOL/AuraTracker/`)
+- **Simple icon overlay** tracking important player buffs: trinket procs, weapon enchant procs, self-buff cooldowns, defensives, and raid buffs
+- **5 filterable categories** — Trinkets, Enchants, Self-Buffs, Raid Buffs, Defensives — each togglable in config
+- **Extensive spell database** (`SpellDB.lua`) covering TWW S2 trinkets, Algari weapon enchant procs, and all 13 class major cooldowns/defensives
+- **Cooldown sweep** on each icon with timer text (flashes red below threshold)
+- **Stack count** display for multi-stack buffs
+- **Teal glow animation** on fresh proc detection
+- **Icon pool** system for efficient frame recycling
+- **Sort by expiration** — soonest-to-expire auras shown first
+- **0.1s timer ticker** for smooth countdown updates
+- **Growth direction** — Right, Left, Up, Down layout options
+- **Blacklist / custom spells** — user-configurable spellID overrides in DB
+- **Mover integration** — unlock/drag via `/tm layout` with preview icons
+- **Config tab** in QOL panel with appearance, display, categories, and position sections
+- **No COMBAT_LOG_EVENT_UNFILTERED** — uses `UNIT_AURA` + `C_UnitAuras.GetBuffDataByIndex` with `pcall`/`issecretvalue` safety
+- Locale strings added for all 6 languages (EN, DE, ES, FR, IT, PT-BR)
+
+## ####################################
+
+## CHANGELOG 2.8.17 — Party Frames Module
+
+#### New Module: Party Frames (`Modules/Interface/PartyFrame/`)
+- **Secure party frames** for up to 4 party members using `SecureUnitButtonTemplate` + `RegisterUnitWatch`
+- **Health bar** with class color, green, or gradient modes — absorb overlay and heal prediction via `CreateUnitHealPredictionCalculator`
+- **Power bar** — thin bar below health showing unit power
+- **Name text** with role icon (Tank/Healer/DPS) and raid marker support
+- **Dispel highlight** — border glows by debuff type (Magic, Curse, Disease, Poison) via `C_UnitAuras` scanning
+- **HoT tracking** — class-colored icon indicators for healer HoTs (Priest, Druid, Paladin, Shaman, Monk, Evoker)
+- **Interrupt CD tracker** — monitors party kick cooldowns via `UNIT_SPELLCAST_SUCCEEDED` (all 13 classes)
+- **Battle Rez CD tracker** — monitors brez cooldowns (DK, Druid, Paladin, Warlock) with icon display
+- **Range check** — out-of-range members fade to configurable opacity using `UnitIsVisible` + 0.2s ticker
+- **Role sorting** — optional Tank > Healer > DPS sort order
+- **Growth direction** — Down, Up, Right, or Left layout
+- **Blizzard frame hiding** — auto-hides CompactPartyFrame and PartyFrame when enabled
+- **Mover integration** — unlock/drag via `/tm layout`
+
+#### Arena Enemy Frames
+- **Arena frames** (1–3) with health, power, name display
+- **PvP trinket cooldown** tracking via `C_PvP.GetArenaCrowdControlInfo`
+- **Spec icon** support via `ARENA_PREP_OPPONENT_SPECIALIZATIONS`
+- Separate mover anchor from party frames
+
+#### Config Panel
+- **4-tab config** — General, Features, Cooldowns, Arena
+- Full slider/checkbox/dropdown controls for all settings
+- Reset Position buttons for both party and arena anchors
+
+#### Technical
+- **No `COMBAT_LOG_EVENT_UNFILTERED`** — all cooldown tracking uses `UNIT_SPELLCAST_SUCCEEDED` only
+- All `C_UnitAuras` / `C_PvP` calls wrapped in `pcall` / `issecretvalue` safety checks
+- Auto-hides in raid groups (> 5 members)
+- Added `icon_partyframes.tga` category icon (white monochrome, 32×32)
+- Added 80+ locale strings (`pf_*` prefix) in enUS.lua
+
+## ####################################
+
+## CHANGELOG 2.8.16 — Castbar Anchoring & Cleanup
+
+#### Castbar UnitFrame Anchoring
+- **Target, Focus, Pet and Boss castbars** now automatically anchor below their respective UnitFrame and match its width
+- **Per-unit settings** — `anchorToUnitFrame` and `anchorOffsetY` allow fine-tuning or disabling the anchor behavior per unit
+- **Dynamic re-anchor** — castbars re-sync width and position when UnitFrames are resized or refreshed
+- **Dragging disabled** for anchored castbars (non-player); player castbar remains freely movable
+
+#### UnitFrame Castbar Element Removed
+- **Removed `Elements/Castbar.lua`** — the embedded UnitFrame castbar element is no longer loaded; the standalone module handles all castbar rendering
+- **Cleaned up UnitFrame.lua** — removed castbar creation, positioning, refresh and lock/unlock helper functions
+- **Removed UF castbar database defaults** — `castbarColor`, `castbarNIColor`, `castbarInterruptColor` and per-unit `castbar` blocks removed from `unitFrames` section
+- **Removed UF castbar config panel** — castbar dimensions section and Colors tab removed from UnitFrames config
+- **Removed Mover fallback** — mover system no longer falls back to UF castbar helpers
+- **Removed Init.lua reference** — `/tm layout` no longer calls `UF.TogglePlayerCastbarLock()`
+
+#### Castbar Color Changes
+- **Player castbar** now uses class color by default (`useClassColor = true`)
+- **Other castbars** (Target, Focus, Pet, Boss) use `castbarColor` (red) for interruptible casts
+- Fixed `→` character replaced with `>` to avoid unsupported glyph display in WoW fonts
+
+#### Misc
+- Added `icon_castbars.tga` category icon (white monochrome, 32×32)
+
+## ####################################
+
+## CHANGELOG 2.8.15 — Standalone Castbars Module
+
+#### New: Standalone Castbars
+- **Full castbar module** — standalone castbars for Player, Target, Focus, Pet and Boss (1–5), replacing reliance on UnitFrame-embedded castbars
+- **Spark animations** — 4 animated spark styles: Comet, Pulse, Helix, Glitch with configurable colors and opacity
+- **Class color casting** — optional class-colored cast bars for all units
+- **Channel tick markers** — automatic tick markers for channeled spells with known tick data
+- **Empowered cast support** — stage markers and progressive stage overlays for Evoker empowered casts
+- **Interrupt feedback** — on-screen text notification when you successfully interrupt a target's cast
+- **Latency indicator** — optional latency overlay on the player castbar showing network delay
+- **GCD spark** — optional thin progress bar below the player castbar showing Global Cooldown
+- **Cast transitions** — smooth fade-out and flash animations on cast completion / interruption
+- **Blizzard castbar hiding** — automatically hides default Blizzard castbars when enabled
+
+#### Castbar Config Panel
+- **New "Castbars" category** in the config GUI with tabbed layout: General, Player, Target, Focus, Pet, Boss
+- **General tab** — global settings: texture, font size, background mode, timer format, spark style, colors, GCD, interrupt feedback
+- **Per-unit tabs** — enable/disable, dimensions, icon side, timer, latency (player only), position reset
+
+#### Layout / Mover Integration
+- **Player castbar** is now movable via `/tm layout` (Mover system integration)
+- **Mover entry updated** — castbar mover now prefers the standalone module, with fallback to UnitFrame castbar
+
+## ####################################
+
+## CHANGELOG 2.8.14 — Chat Skin Selection, Mover Integration & Taint Fixes
+
+#### Chat Frame Skin System
+- **Multiple skin styles** — new dropdown in Skins > Chat Frame to choose between 4 skins:
+  - **TUI** (default) — sidebar + window textures with sidebar icons
+  - **Classic** — old-style framed look with golden border and gradient overlay
+  - **Glass** — frosted glass effect with teal accent border and top highlight line
+  - **Minimal** — flat dark background, no border
+- **Live switching** — skin changes apply instantly via `ApplySettings()`, no reload required
+- **Database** — added `skinStyle` setting to `chatFrameSkin` defaults
+
+#### Chat Frame Mover Integration
+- **Layout mode support** — chat frame is now registered with `TomoMod_Movers` and can be repositioned via `/tm layout`
+- **Blizzard Edit Mode disabled** — `FCF_StartDragging`/`FCF_StopDragging` are overridden to prevent Blizzard's default chat drag behavior
+- **Position persistence** — chat frame position saved to `TomoModDB.chatFrameSkin.position` and restored on login
+- **Drag overlay** — teal-highlighted overlay with "Chat Frame" label shown when layout mode is active
+
+#### Unit Frames — Mover Fix
+- **Fixed unit frames not draggable in layout mode** — added missing `frame:SetLocked(false/true)` calls in `UF.ToggleLock()` so that `dragFrame` overlays are properly shown/hidden when entering/exiting layout mode
+
+#### Taint / Secret Value Fixes (TWW Compatibility)
+- **Aura stack count** — fixed `attempt to compare secret string` crash in `UpdateAuras` and `UpdateEnemyBuffs` by avoiding `GetText()` readback on tainted stack count values
+- **Chat GUID taint** — added `issecretvalue(guid)` guard in `TM_GetPlayerInfoByGUID` to skip tainted GUIDs from NPC/monster chat events
+- **Chat TEXT_EMOTE taint** — added `issecretvalue(arg2)` guard in `MessageFormatter` to safely handle tainted player names in emote messages
+- **Rune cooldown nil** — added nil guard for `GetRuneCooldown()` returning nil values during spec changes or loading
+
+#### Localization
+- **New keys** — added skin style labels (`opt_chat_skin_style`, `opt_chat_skin_style_tui/classic/glass/minimal`) and mover label (`mover_chatframe`) to all 6 locale files (enUS, frFR, deDE, esES, itIT, ptBR)
+
+## ####################################
+
 ## CHANGELOG 2.8.13 — Cooldown Manager V3.1: Sound Alerts, Pandemic Detection, Range Check
 
 #### Sound Alerts

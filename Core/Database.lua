@@ -18,6 +18,7 @@ TomoMod_Defaults = {
         scale = 1.0,
         borderColor = "class",
         size = 200,
+        position = { anchor = "TOPRIGHT", relTo = "TOPRIGHT", x = -20, y = -20 },
     },
     infoPanel = {
         enabled = true,
@@ -480,9 +481,6 @@ TomoMod_Defaults = {
         fontOutline = "OUTLINE",
         borderSize = 1,
         borderColor = { r = 0, g = 0, b = 0, a = 1 },
-        castbarColor = { r = 0.80, g = 0.10, b = 0.10 },
-        castbarNIColor = { r = 0.50, g = 0.50, b = 0.50 },
-        castbarInterruptColor = { r = 0.10, g = 0.80, b = 0.10 },
 
         -- Per-unit settings
         player = {
@@ -503,16 +501,6 @@ TomoMod_Defaults = {
             showThreat = false,
             showLeaderIcon = true,
             leaderIconOffset = { x = -2, y = 0 },
-            castbar = {
-                enabled = true,
-                width = 260,
-                height = 20,
-                showIcon = true,
-                showTimer = true,
-                showLatency = true,
-                color = { r = 1.0, g = 0.7, b = 0.0 },
-                position = { point = "BOTTOM", relativePoint = "CENTER", x = -280, y = -220 },
-            },
             auras = {
                 enabled = true,
                 type = "HARMFUL",
@@ -564,15 +552,6 @@ TomoMod_Defaults = {
             showQuestIcon = true,
             showLeaderIcon = true,
             leaderIconOffset = { x = -2, y = 0 },
-            castbar = {
-                enabled = true,
-                width = 260,
-                height = 20,
-                showIcon = true,
-                showTimer = true,
-                color = { r = 1.0, g = 0.7, b = 0.0 },
-                position = { point = "TOP", relativePoint = "BOTTOM", x = 0, y = -6 },
-            },
             auras = {
                 enabled = true,
                 type = "HARMFUL",
@@ -598,7 +577,6 @@ TomoMod_Defaults = {
                 level = { x = -6, y = 0 },
                 healthText = { x = 0, y = 0 },
                 power = { x = 0, y = 0 },
-                castbar = { x = 0, y = 0 },
                 auras = { x = 0, y = 0 },
             },
             position = { point = "BOTTOM", relativePoint = "CENTER", x = 280, y = -190 },
@@ -660,15 +638,6 @@ TomoMod_Defaults = {
             showPowerText = false,
             showAbsorb = false,
             showThreat = false,
-            castbar = {
-                enabled = true,
-                width = 200,
-                height = 16,
-                showIcon = true,
-                showTimer = true,
-                color = { r = 1.0, g = 0.7, b = 0.0 },
-                position = { point = "TOP", relativePoint = "BOTTOM", x = 0, y = -4 },
-            },
             auras = {
                 enabled = true,
                 type = "HARMFUL",
@@ -704,6 +673,127 @@ TomoMod_Defaults = {
                 x = -80,
                 y = 200,
             },
+        },
+    },
+
+    -- =====================
+    -- CASTBARS (standalone)
+    -- =====================
+    castbars = {
+        enabled = true,
+        hideBlizzardCastbar = true,
+
+        -- Global visual
+        barTexture = "blizzard",
+        barTextureLSM = "",
+        font = ADDON_FONT,
+        fontLSM = "",
+        fontSize = 12,
+        backgroundMode = "black",
+        customBackgroundPath = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Castbars\\background",
+        useCustomBorder = false,
+        customBorderPath = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Castbars\\border",
+
+        -- Spark
+        showSpark = true,
+        sparkStyle = "Comet",
+        customSparkPath = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Castbars\\cast_spark",
+        sparkColor    = { r = 1.0, g = 1.0, b = 1.0 },
+        sparkGlowColor = { r = 1.0, g = 0.9, b = 0.5 },
+        sparkTailColor = { r = 1.0, g = 0.8, b = 0.3 },
+        sparkGlowAlpha = 0.7,
+        sparkTailAlpha = 0.6,
+
+        -- Colors
+        castbarColor       = { r = 1.0, g = 0.7, b = 0.0 },
+        castbarNIColor     = { r = 0.5, g = 0.5, b = 0.5 },
+        castbarInterruptColor = { r = 0.1, g = 0.8, b = 0.1 },
+        useClassColor = true,
+
+        -- Timer
+        timerFormat = "remaining",
+        spellNameMaxLen = 0,
+
+        -- Transitions
+        showTransitions = true,
+        showChannelTicks = true,
+
+        -- GCD
+        showGCDSpark = false,
+        gcdHeight = 4,
+        gcdColor = { r = 1, g = 1, b = 1 },
+
+        -- Interrupt feedback
+        showInterruptFeedback = true,
+        interruptFeedbackColor = { r = 0.1, g = 0.8, b = 0.1 },
+        interruptFeedbackFontSize = 28,
+
+        -- ===== PLAYER =====
+        player = {
+            enabled = true,
+            width = 260,
+            height = 22,
+            showIcon = true,
+            iconSide = "LEFT",
+            showTimer = true,
+            showLatency = true,
+            position = { point = "CENTER", relativePoint = "CENTER", x = 0, y = -150 },
+        },
+
+        -- ===== TARGET =====
+        target = {
+            enabled = true,
+            width = 260,
+            height = 22,
+            showIcon = true,
+            iconSide = "LEFT",
+            showTimer = true,
+            showLatency = false,
+            anchorToUnitFrame = true,
+            anchorOffsetY = -4,
+            position = { point = "CENTER", relativePoint = "CENTER", x = 0, y = -200 },
+        },
+
+        -- ===== FOCUS =====
+        focus = {
+            enabled = true,
+            width = 200,
+            height = 18,
+            showIcon = true,
+            iconSide = "LEFT",
+            showTimer = true,
+            showLatency = false,
+            anchorToUnitFrame = true,
+            anchorOffsetY = -4,
+            position = { point = "CENTER", relativePoint = "CENTER", x = -350, y = 100 },
+        },
+
+        -- ===== PET =====
+        pet = {
+            enabled = false,
+            width = 150,
+            height = 14,
+            showIcon = true,
+            iconSide = "LEFT",
+            showTimer = true,
+            showLatency = false,
+            anchorToUnitFrame = true,
+            anchorOffsetY = -4,
+            position = { point = "CENTER", relativePoint = "CENTER", x = -200, y = -150 },
+        },
+
+        -- ===== BOSS =====
+        boss = {
+            enabled = true,
+            width = 200,
+            height = 18,
+            showIcon = true,
+            iconSide = "LEFT",
+            showTimer = true,
+            showLatency = false,
+            anchorToUnitFrame = true,
+            anchorOffsetY = -4,
+            position = { point = "RIGHT", relativePoint = "RIGHT", x = -80, y = 180 },
         },
     },
 
@@ -779,6 +869,127 @@ TomoMod_Defaults = {
             hasThreat     = { r = 0.05, g = 0.82, b = 0.62 },
             dpsHasAggro   = { r = 1.00, g = 0.50, b = 0.00 },  -- ORANGE (DPS has aggro)
             dpsNearAggro  = { r = 0.81, g = 0.72, b = 0.19 },  -- YELLOW (DPS near aggro)
+        },
+    },
+
+    -- =====================
+    -- PARTY FRAMES
+    -- =====================
+    partyFrames = {
+        enabled = true,
+        hideBlizzardFrames = true,
+
+        -- Layout
+        width = 160,
+        height = 40,
+        spacing = 2,
+        growDirection = "DOWN",  -- DOWN, UP, RIGHT, LEFT
+
+        -- Health
+        texture = ADDON_TEXTURE,
+        healthColor = "class",  -- "class", "green", "gradient"
+        showHealthText = true,
+        healthTextFormat = "percent",  -- percent, current, current_percent, deficit
+        font = ADDON_FONT,
+        fontSize = 11,
+        fontOutline = "OUTLINE",
+
+        -- Power
+        showPower = true,
+        powerHeight = 3,
+
+        -- Absorb
+        showAbsorb = true,
+        absorbColor = { r = 0.50, g = 0.50, b = 1.00, a = 0.50 },
+
+        -- Heal Prediction
+        showHealPrediction = true,
+
+        -- Name & Role
+        showName = true,
+        nameMaxLength = 0,  -- 0 = no limit
+        showRoleIcon = true,
+        roleIconSize = 14,
+        showRaidMarker = true,
+        raidMarkerSize = 16,
+
+        -- Range
+        showRange = true,
+        oorAlpha = 0.40,
+
+        -- Dispel highlight
+        showDispel = true,
+
+        -- HoT tracking
+        showHoTs = true,
+        hotSize = 12,
+        maxHoTs = 3,
+
+        -- Cooldown trackers (M+)
+        showInterruptCD = true,
+        showBrezCD = true,
+        cdIconSize = 18,
+        cdLayout = "vertical",  -- "vertical" (on health bar), "horizontal" (below frame)
+
+        -- Sort
+        sortByRole = true,  -- Tank > Healer > DPS
+
+        -- Position
+        position = {
+            point = "LEFT",
+            relativePoint = "LEFT",
+            x = 20,
+            y = 0,
+        },
+
+        -- Arena (enemy frames)
+        arena = {
+            enabled = true,
+            width = 160,
+            height = 40,
+            spacing = 2,
+            showTrinketCD = true,
+            trinketSize = 20,
+            showSpecIcon = true,
+            position = {
+                point = "RIGHT",
+                relativePoint = "RIGHT",
+                x = -20,
+                y = 0,
+            },
+        },
+    },
+
+    -- =====================
+    -- AURA TRACKER (WeakAura-lite)
+    -- =====================
+    auraTracker = {
+        enabled = false,
+        iconSize = 36,
+        spacing = 4,
+        maxIcons = 8,
+        growDirection = "RIGHT",  -- RIGHT, LEFT, UP, DOWN
+        showTimer = true,
+        showStacks = true,
+        showGlow = true,          -- glow on fresh proc
+        glowDuration = 0.6,
+        oorFade = false,
+        timerThreshold = 5,       -- flash timer below X seconds
+        fontSize = 11,
+        categories = {
+            trinkets = true,
+            enchants = true,
+            selfBuffs = true,
+            raidBuffs = false,
+            defensives = true,
+        },
+        customSpells = {},        -- user-added spellIDs: { [spellID] = true }
+        blacklist = {},           -- user-removed spellIDs: { [spellID] = true }
+        position = {
+            point = "CENTER",
+            relativePoint = "CENTER",
+            x = 0,
+            y = -180,
         },
     },
 }

@@ -90,62 +90,6 @@ local function BuildDimensionsTab(parent, unitKey, displayName)
         y = ny
     end
 
-    -- Castbar dimensions (if applicable)
-    if db.castbar then
-        local _, ny = W.CreateSeparator(c, y)
-        y = ny
-        local _, ny = W.CreateSubLabel(c, L["sublabel_castbar"], y)
-        y = ny
-
-        local _, ny = W.CreateCheckbox(c, L["opt_castbar_enable"], db.castbar.enabled, y, function(v)
-            db.castbar.enabled = v
-        end)
-        y = ny
-
-        local _, ny = W.CreateTwoColumnRow(c, y,
-            function(col)
-                local _, ny2 = W.CreateSlider(col, L["opt_castbar_width"],  db.castbar.width, 50, 400, 5, 0,
-                    function(v) db.castbar.width  = v; RefreshUnit(unitKey) end)
-                return ny2
-            end,
-            function(col)
-                local _, ny2 = W.CreateSlider(col, L["opt_castbar_height"], db.castbar.height, 8, 40, 1, 0,
-                    function(v) db.castbar.height = v; RefreshUnit(unitKey) end)
-                return ny2
-            end)
-        y = ny
-
-        local _, ny = W.CreateCheckboxPair(c,
-            L["opt_castbar_show_icon"],  db.castbar.showIcon,  y, function(v) db.castbar.showIcon  = v end,
-            L["opt_castbar_show_timer"], db.castbar.showTimer,    function(v) db.castbar.showTimer = v end)
-        y = ny
-
-        -- Player castbar: drag & drop info + reset button
-        if unitKey == "player" then
-            local _, ny = W.CreateCheckbox(c, L["opt_castbar_show_latency"], db.castbar.showLatency, y, function(v)
-                db.castbar.showLatency = v
-            end)
-            y = ny
-
-            local _, ny = W.CreateInfoText(c, L["info_castbar_drag"], y)
-            y = ny
-
-            local _, ny = W.CreateButton(c, L["btn_reset_castbar_position"], 220, y, function()
-                if TomoMod_Defaults.unitFrames.player and TomoMod_Defaults.unitFrames.player.castbar then
-                    db.castbar.position = CopyTable(TomoMod_Defaults.unitFrames.player.castbar.position)
-                    local cb = _G["TomoMod_Castbar_player"]
-                    if cb then
-                        local pos = db.castbar.position
-                        cb:ClearAllPoints()
-                        cb:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
-                    end
-                    print("|cff0cd29fTomoMod|r Castbar " .. L["msg_uf_position_reset"])
-                end
-            end)
-            y = ny
-        end
-    end
-
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
@@ -646,48 +590,6 @@ local function BuildGeneralContent(parent)
 end
 
 -- =====================================
--- COLORS TAB
--- =====================================
-
-local function BuildColorsContent(parent)
-    local scroll = W.CreateScrollPanel(parent)
-    local c = scroll.child
-    local db = TomoModDB.unitFrames
-    local y = -10
-
-    local _, ny = W.CreateSectionHeader(c, L["section_castbar_colors"], y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_castbar_colors"], y)
-    y = ny
-
-    -- Interruptible castbar color (default: red)
-    if not db.castbarColor then db.castbarColor = { r = 0.80, g = 0.10, b = 0.10 } end
-    if not db.castbarNIColor        then db.castbarNIColor        = { r = 0.50, g = 0.50, b = 0.50 } end
-    if not db.castbarInterruptColor then db.castbarInterruptColor = { r = 0.10, g = 0.80, b = 0.10 } end
-
-    local _, ny = W.CreateColorPickerPair(c,
-        L["opt_castbar_color"],    db.castbarColor,
-        L["opt_castbar_ni_color"], db.castbarNIColor,
-        y,
-        function(r,g,b) db.castbarColor.r,db.castbarColor.g,db.castbarColor.b=r,g,b end,
-        function(r,g,b) db.castbarNIColor.r,db.castbarNIColor.g,db.castbarNIColor.b=r,g,b end)
-    y = ny
-
-    local _, ny = W.CreateColorPicker(c, L["opt_castbar_interrupt_color"], db.castbarInterruptColor, y, function(r, g, b)
-        db.castbarInterruptColor.r, db.castbarInterruptColor.g, db.castbarInterruptColor.b = r, g, b
-    end)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_castbar_colors_reload"], y)
-    y = ny
-
-    c:SetHeight(math.abs(y) + 40)
-    if scroll.UpdateScroll then scroll.UpdateScroll() end
-    return scroll
-end
-
--- =====================================
 -- BUILD BOSS FRAMES CONTENT
 -- =====================================
 
@@ -811,7 +713,6 @@ function TomoMod_ConfigPanel_UnitFrames(parent)
         { key = "pet",          label = L["tab_pet"],      builder = function(p) return BuildSimpleUnitContent(p, "pet", L["unit_pet"]) end },
         { key = "focus",        label = L["tab_focus"],    builder = function(p) return BuildUnitWithSubTabs(p, "focus", L["unit_focus"]) end },
         { key = "boss",         label = L["tab_boss"],     builder = function(p) return BuildBossContent(p) end },
-        { key = "colors",       label = L["tab_colors"],   builder = function(p) return BuildColorsContent(p) end },
     }
 
     local tabWidget = W.CreateTabPanel(tabHost, TAB_DEFS)

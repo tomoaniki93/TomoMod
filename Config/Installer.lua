@@ -1,5 +1,5 @@
 -- ============================================================
--- Installer.lua — Assistant de première installation v2.7.1
+-- Installer.lua — Assistant de première installation v2.9.0
 -- 12 étapes guidées : profil, skins, tank, nameplates,
 -- action bars, lustsound, mythic+, cvars, qol, skyriding, fin.
 -- Ouverture : auto au premier démarrage ou /tm install
@@ -226,7 +226,7 @@ steps[1] = {
         logo:SetTexture(LOGO_TEX); logo:SetVertexColor(A[1],A[2],A[3],1)
         local title = c:CreateFontString(nil,"OVERLAY")
         title:SetFont(FONT_BOLD,20,""); title:SetPoint("TOP",0,-95)
-        title:SetText("|cff0cd29fTomo|r|cffe8e8e8Mod|r  v2.7.1")
+        title:SetText("|cff0cd29fTomo|r|cffe8e8e8Mod|r  v2.9.0")
         title:SetTextColor(1,1,1,1)
         local sub = c:CreateFontString(nil,"OVERLAY")
         sub:SetFont(FONT,12,""); sub:SetPoint("TOP",0,-125)

@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("ptBR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Sobre",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.11 por TomoAniki\nInterface leve com QOL, UnitFrames e Nameplates.\nDigite /tm help para a lista de comandos.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.9.0 por TomoAniki\nInterface leve com QOL, UnitFrames e Nameplates.\nDigite /tm help para a lista de comandos.",
     ["section_general"]                 = "Geral",
     ["btn_reset_all"]                   = "Redefinir tudo",
     ["info_reset_all"]                  = "Isso redefinirá TODAS as configurações e recarregará a interface.",
@@ -1367,7 +1367,7 @@ TomoMod_RegisterLocale("ptBR", {
     -- Resource Bars display mode
     -- =====================
     ["opt_rb_display_mode"]             = "Modo de exibição",
-    ["display_mode_icons"]              = "Ícones (texturas GW2)",
+    ["display_mode_icons"]              = "Ícones (texturas TUI)",
     ["display_mode_bars"]               = "Barras (cores planas)",
 
     -- =====================
@@ -1433,4 +1433,211 @@ TomoMod_RegisterLocale("ptBR", {
     ["ts_col_interrupts"]           = "Interrupções",
     ["ts_footer_total"]             = "Total",
     ["ts_footer_players"]           = "%d jogadores",
+
+    -- =====================
+    -- CASTBARS (módulo autônomo)
+    -- =====================
+    ["cat_castbars"]                     = "Barras de lançamento",
+
+    ["cb_section_general"]               = "Geral",
+    ["opt_cb_enable"]                    = "Ativar barras de lançamento autônomas",
+    ["info_cb_description"]              = "Substitui as barras de lançamento da Blizzard por barras totalmente personalizáveis para Jogador, Alvo, Foco, Bichano e Chefe.",
+    ["opt_cb_hide_blizzard"]             = "Ocultar barras de lançamento da Blizzard",
+    ["opt_cb_class_color"]               = "Usar cor de classe",
+    ["opt_cb_show_transitions"]          = "Animações de início/fim",
+    ["opt_cb_show_channel_ticks"]        = "Mostrar marcas de canalização",
+    ["opt_cb_timer_format"]              = "Formato do temporizador",
+    ["cb_timer_remaining"]               = "Restante (1.5)",
+    ["cb_timer_remaining_total"]         = "Restante / Total (1.5 / 3.0)",
+    ["cb_timer_elapsed"]                 = "Decorrido (1.5)",
+    ["opt_cb_spell_max_len"]             = "Comprimento máx. do nome (0 = ilimitado)",
+
+    ["cb_section_appearance"]            = "Aparência",
+    ["opt_cb_bar_texture"]               = "Textura da barra",
+    ["cb_tex_blizzard"]                  = "Blizzard",
+    ["cb_tex_smooth"]                    = "Suave",
+    ["cb_tex_flat"]                      = "Plano",
+    ["opt_cb_font_size"]                 = "Tamanho da fonte",
+    ["opt_cb_bg_mode"]                   = "Modo de fundo",
+    ["cb_bg_black"]                      = "Preto",
+    ["cb_bg_transparent"]                = "Transparente",
+    ["cb_bg_custom"]                     = "Textura personalizada",
+
+    ["cb_section_colors"]                = "Cores",
+    ["opt_cb_cast_color"]                = "Cor de lançamento",
+    ["opt_cb_ni_color"]                  = "Não interrompível",
+    ["opt_cb_interrupt_color"]           = "Cor de interrupção",
+
+    ["cb_section_spark"]                 = "Faísca",
+    ["opt_cb_show_spark"]                = "Mostrar animação de faísca",
+    ["opt_cb_spark_style"]               = "Estilo de faísca",
+    ["opt_cb_spark_color"]               = "Cor da faísca",
+    ["opt_cb_spark_glow_color"]          = "Cor do brilho",
+    ["opt_cb_spark_tail_color"]          = "Cor da cauda",
+    ["opt_cb_spark_glow_alpha"]          = "Opacidade do brilho",
+    ["opt_cb_spark_tail_alpha"]          = "Opacidade da cauda",
+
+    ["cb_section_gcd"]                   = "Faísca GCD",
+    ["opt_cb_show_gcd"]                  = "Mostrar barra GCD abaixo da barra do jogador",
+    ["opt_cb_gcd_height"]                = "Altura da barra GCD",
+    ["opt_cb_gcd_color"]                 = "Cor GCD",
+
+    ["cb_section_interrupt"]             = "Feedback de interrupção",
+    ["opt_cb_show_interrupt_feedback"]   = "Mostrar texto de interrupção",
+    ["opt_cb_interrupt_fb_color"]        = "Cor do texto",
+    ["opt_cb_interrupt_fb_size"]         = "Tamanho da fonte",
+    ["cb_interrupt_feedback_text"]       = "INTERROMPIDO!",
+    ["cb_interrupt_feedback_full"]       = "INTERROMPIDO: %s",
+    ["cb_interrupted"]                   = "Interrompido",
+
+    ["cb_tab_general"]                   = "Geral",
+    ["cb_tab_player"]                    = "Jogador",
+    ["cb_tab_target"]                    = "Alvo",
+    ["cb_tab_focus"]                     = "Foco",
+    ["cb_tab_pet"]                       = "Bichano",
+    ["cb_tab_boss"]                      = "Chefe",
+
+    ["cb_section_unit"]                  = "Barra de %s",
+    ["opt_cb_unit_enable"]               = "Ativar",
+    ["opt_cb_unit_width"]                = "Largura",
+    ["opt_cb_unit_height"]               = "Altura",
+    ["opt_cb_unit_show_icon"]            = "Mostrar ícone",
+    ["opt_cb_unit_icon_side"]            = "Lado do ícone",
+    ["cb_icon_left"]                     = "Esquerda",
+    ["cb_icon_right"]                    = "Direita",
+    ["opt_cb_unit_show_timer"]           = "Mostrar temporizador",
+    ["opt_cb_unit_show_latency"]         = "Mostrar latência",
+    ["info_cb_latency"]                  = "Exibe uma sobreposição escura mostrando a latência da rede no final da barra.",
+    ["info_cb_position"]                 = "Use /tm layout para desbloquear e arrastar esta barra.",
+    ["btn_cb_reset_position"]            = "Redefinir posição",
+    ["cb_move_label"]                    = "(Arraste para mover)",
+    ["cb_preview_castbar"]               = "Prévia: %s",
+
+    ["mover_castbar_standalone"]         = "Barras de lançamento",
+
+    -- ═══════════════════════════════════
+    -- Quadros de grupo (Party Frames)
+    -- ═══════════════════════════════════
+    ["cat_partyframes"]                  = "Quadros de grupo",
+    ["mover_partyframes"]                = "Quadros de grupo",
+
+    ["pf_tab_general"]                   = "Geral",
+    ["pf_tab_features"]                  = "Recursos",
+    ["pf_tab_cooldowns"]                 = "Recarga",
+    ["pf_tab_arena"]                     = "Arena",
+
+    ["pf_section_general"]               = "Geral",
+    ["pf_opt_enable"]                    = "Ativar quadros de grupo",
+    ["pf_info_description"]              = "Quadros de grupo personalizados para M+ e Arena com saúde, absorção, previsão de cura, HoTs, CD de interrupção/rez de combate e destaque de dissipação.",
+    ["pf_opt_hide_blizzard"]             = "Ocultar quadros de grupo da Blizzard",
+    ["pf_opt_sort_role"]                 = "Ordenar por função (Tanque > Curador > DPS)",
+
+    ["pf_section_dimensions"]            = "Dimensões",
+    ["pf_opt_width"]                     = "Largura do quadro",
+    ["pf_opt_height"]                    = "Altura do quadro",
+    ["pf_opt_spacing"]                   = "Espaçamento",
+    ["pf_opt_grow_direction"]            = "Direção de crescimento",
+    ["pf_dir_down"]                      = "Baixo",
+    ["pf_dir_up"]                        = "Cima",
+    ["pf_dir_right"]                     = "Direita",
+    ["pf_dir_left"]                      = "Esquerda",
+
+    ["pf_section_display"]               = "Exibição",
+    ["pf_opt_show_name"]                 = "Mostrar nome",
+    ["pf_opt_show_health_text"]          = "Mostrar texto de saúde",
+    ["pf_opt_health_format"]             = "Formato de saúde",
+    ["pf_fmt_deficit"]                   = "Déficit",
+    ["pf_opt_health_color"]              = "Modo de cor de saúde",
+    ["pf_color_green"]                   = "Verde",
+    ["pf_color_gradient"]                = "Gradiente",
+    ["pf_opt_show_power"]                = "Mostrar barra de poder",
+    ["pf_opt_power_height"]              = "Altura da barra de poder",
+    ["pf_opt_show_role"]                 = "Mostrar ícone de função",
+    ["pf_opt_role_size"]                 = "Tamanho do ícone de função",
+    ["pf_opt_show_marker"]               = "Mostrar marcador de raide",
+
+    ["pf_section_font"]                  = "Fonte",
+    ["pf_opt_font_size"]                 = "Tamanho da fonte",
+
+    ["pf_section_position"]              = "Posição",
+    ["pf_info_position"]                 = "Use /tm layout para desbloquear e arrastar os quadros de grupo.",
+    ["pf_btn_reset_position"]            = "Redefinir posição",
+
+    ["pf_section_health_extras"]         = "Extras de saúde",
+    ["pf_opt_show_absorb"]               = "Mostrar barra de absorção",
+    ["pf_opt_absorb_color"]              = "Cor de absorção",
+    ["pf_opt_show_heal_pred"]            = "Mostrar previsão de cura",
+
+    ["pf_section_range"]                 = "Verificação de alcance",
+    ["pf_opt_show_range"]                = "Esmaecer membros fora de alcance",
+    ["pf_opt_oor_alpha"]                 = "Opacidade fora de alcance",
+
+    ["pf_section_dispel"]                = "Destaque de dissipação",
+    ["pf_opt_show_dispel"]               = "Destacar debuffs dissipiáveis",
+    ["pf_info_dispel"]                   = "Brilho da borda por tipo de debuff: Magia (azul), Maldição (roxo), Doença (marrom), Veneno (verde).",
+
+    ["pf_section_hots"]                  = "Rastreamento de HoTs",
+    ["pf_opt_show_hots"]                 = "Mostrar indicadores HoT",
+    ["pf_opt_hot_size"]                  = "Tamanho do ícone HoT",
+    ["pf_opt_max_hots"]                  = "Máx. HoTs mostrados",
+    ["pf_info_hots"]                     = "Exibe efeitos de cura ao longo do tempo com bordas coloridas por classe. Suporta Sacerdote, Druida, Paladino, Xamã, Monge e Evocador.",
+
+    ["pf_section_cooldowns"]             = "Rastreador de recarga",
+    ["pf_opt_show_kick"]                 = "Mostrar CD de interrupção",
+    ["pf_opt_show_brez"]                 = "Mostrar CD de rez de combate",
+    ["pf_opt_cd_size"]                   = "Tamanho do ícone CD",
+    ["pf_opt_cd_layout"]                 = "Layout de ícones CD",
+    ["pf_cd_vertical"]                   = "Vertical (no quadro)",
+    ["pf_cd_horizontal"]                 = "Horizontal (abaixo)",
+    ["pf_info_cooldowns"]                = "Rastreia recargas de interrupção e rez de combate de cada membro do grupo.",
+
+    ["pf_section_arena"]                 = "Quadros inimigos de arena",
+    ["pf_opt_arena_enable"]              = "Ativar quadros de arena",
+    ["pf_info_arena"]                    = "Exibe saúde, poder e CD de bijuteria PvP da equipe inimiga na Arena (2v2/3v3).",
+    ["pf_section_arena_dims"]            = "Dimensões de arena",
+    ["pf_opt_arena_width"]               = "Largura",
+    ["pf_opt_arena_height"]              = "Altura",
+    ["pf_opt_arena_spacing"]             = "Espaçamento",
+    ["pf_section_arena_trinket"]         = "Bijuteria PvP",
+    ["pf_opt_show_trinket"]              = "Mostrar CD de bijuteria",
+    ["pf_opt_trinket_size"]              = "Tamanho do ícone de bijuteria",
+    ["pf_opt_show_spec"]                 = "Mostrar ícone de especialização",
+    ["pf_section_arena_pos"]             = "Posição de arena",
+    ["pf_info_arena_pos"]                = "Use /tm layout para desbloquear e arrastar os quadros de arena.",
+    ["pf_btn_reset_arena_pos"]           = "Redefinir posição",
+
+    -- ═══════════════════════════════════
+    -- Aura Tracker
+    -- ═══════════════════════════════════
+    ["tab_qol_aura_tracker"]             = "Rastreador de auras",
+    ["mover_auratracker"]                = "Rastreador de auras",
+
+    ["at_section_general"]               = "Geral",
+    ["at_opt_enable"]                    = "Ativar rastreador de auras",
+    ["at_info_description"]              = "Rastreia buffs importantes: procs de bijuteria, procs de encantamento, buffs pessoais e defensivos em um overlay de ícones.",
+
+    ["at_section_appearance"]            = "Aparência",
+    ["at_opt_icon_size"]                 = "Tamanho do ícone",
+    ["at_opt_spacing"]                   = "Espaçamento",
+    ["at_opt_max_icons"]                 = "Máx. ícones",
+    ["at_opt_grow_direction"]            = "Direção de crescimento",
+    ["at_opt_font_size"]                 = "Tamanho da fonte",
+
+    ["at_section_display"]               = "Exibição",
+    ["at_opt_show_timer"]                = "Mostrar temporizador",
+    ["at_opt_show_stacks"]               = "Mostrar acumulações",
+    ["at_opt_show_glow"]                 = "Brilho em novo proc",
+    ["at_opt_timer_threshold"]           = "Limiar de piscamento (seg)",
+
+    ["at_section_categories"]            = "Categorias",
+    ["at_info_categories"]               = "Escolha quais categorias de auras rastrear.",
+    ["at_cat_trinkets"]                  = "Procs de bijuteria",
+    ["at_cat_enchants"]                  = "Procs de encantamento de arma",
+    ["at_cat_selfbuffs"]                 = "Buffs pessoais (CDs)",
+    ["at_cat_raidbuffs"]                 = "Buffs de raide",
+    ["at_cat_defensives"]                = "Defensivos (externos + pessoais)",
+
+    ["at_section_position"]              = "Posição",
+    ["at_info_position"]                 = "Use /tm layout para desbloquear e arrastar o rastreador.",
+    ["at_btn_reset_position"]            = "Redefinir posição",
 })

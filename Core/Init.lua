@@ -113,9 +113,6 @@ SlashCmdList["TOMOMOD"] = function(msg)
             if TomoMod_FrameAnchors and TomoMod_FrameAnchors.ToggleLock then
                 TomoMod_FrameAnchors.ToggleLock()
             end
-            if TomoMod_UnitFrames and TomoMod_UnitFrames.TogglePlayerCastbarLock then
-                TomoMod_UnitFrames.TogglePlayerCastbarLock()
-            end
             if TomoMod_LevelingBar and TomoMod_LevelingBar.ToggleLock then
                 TomoMod_LevelingBar.ToggleLock()
             end
@@ -345,6 +342,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_Loots then TomoMod_Loots.Initialize() end
         if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.Initialize() end
         if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.Initialize then TomoMod_ActionBarSkin.Initialize() end
+        if TomoMod_AuraTracker then TomoMod_AuraTracker.Initialize() end
         if TomoMod_CharacterSkin then TomoMod_CharacterSkin.Initialize() end
         if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.Initialize() end
         if TomoMod_BuffSkin then TomoMod_BuffSkin.Initialize() end
@@ -356,6 +354,10 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_BossFrames then TomoMod_BossFrames.Initialize() end
         if TomoMod_Nameplates then TomoMod_Nameplates.Initialize() end
         if TomoMod_ResourceBars then TomoMod_ResourceBars.Initialize() end
+        if TomoMod_Castbar then TomoMod_Castbar.Initialize() end
+        if TomoMod_PartyFrames then TomoMod_PartyFrames.Initialize() end
+        if TomoMod_PartyCooldowns then TomoMod_PartyCooldowns.Initialize() end
+        if TomoMod_ArenaFrames then TomoMod_ArenaFrames.Initialize() end
 
         -- Layout Mover System (doit être après tous les autres modules)
         if TomoMod_Movers then TomoMod_Movers.Initialize() end

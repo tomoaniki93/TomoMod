@@ -977,6 +977,81 @@ local function BuildWaypointTab(parent)
 end
 
 -- =====================================
+-- TAB: AURA TRACKER
+-- =====================================
+
+local function BuildAuraTrackerTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local db = TomoModDB.auraTracker
+    if not db then
+        local _, ny = W.CreateInfoText(c, "AuraTracker database not found.", y)
+        c:SetHeight(40)
+        return scroll
+    end
+
+    -- Enable
+    local card, cy = W.CreateCard(c, L["at_section_general"] or "General", y)
+    local _, cy = W.CreateCheckbox(card.inner, L["at_opt_enable"] or "Enable Aura Tracker", db.enabled, cy, function(v)
+        db.enabled = v
+        if TomoMod_AuraTracker then TomoMod_AuraTracker.SetEnabled(v) end
+    end)
+    local _, cy = W.CreateInfoText(card.inner, L["at_info_description"] or "Tracks important buffs: trinket procs, weapon enchant procs, self-buffs, and defensives in a simple icon overlay.", cy)
+    y = W.FinalizeCard(card, cy)
+
+    -- Appearance
+    local card2, cy = W.CreateCard(c, L["at_section_appearance"] or "Appearance", y)
+    local _, cy = W.CreateSlider(card2.inner, L["at_opt_icon_size"] or "Icon size", db.iconSize, 20, 64, 2, cy, function(v) db.iconSize = v end, "%.0f")
+    local _, cy = W.CreateSlider(card2.inner, L["at_opt_spacing"] or "Spacing", db.spacing, 0, 12, 1, cy, function(v) db.spacing = v end, "%.0f")
+    local _, cy = W.CreateSlider(card2.inner, L["at_opt_max_icons"] or "Max icons", db.maxIcons, 1, 16, 1, cy, function(v) db.maxIcons = v end, "%.0f")
+    local _, cy = W.CreateDropdown(card2.inner, L["at_opt_grow_direction"] or "Growth direction", {
+        { text = L["pf_dir_right"] or "Right", value = "RIGHT" },
+        { text = L["pf_dir_left"]  or "Left",  value = "LEFT" },
+        { text = L["pf_dir_up"]    or "Up",    value = "UP" },
+        { text = L["pf_dir_down"]  or "Down",  value = "DOWN" },
+    }, db.growDirection or "RIGHT", cy, function(v) db.growDirection = v end)
+    local _, cy = W.CreateSlider(card2.inner, L["at_opt_font_size"] or "Font size", db.fontSize, 8, 16, 1, cy, function(v) db.fontSize = v end, "%.0f")
+    y = W.FinalizeCard(card2, cy)
+
+    -- Display
+    local card3, cy = W.CreateCard(c, L["at_section_display"] or "Display", y)
+    local _, cy = W.CreateCheckbox(card3.inner, L["at_opt_show_timer"] or "Show timer", db.showTimer, cy, function(v) db.showTimer = v end)
+    local _, cy = W.CreateCheckbox(card3.inner, L["at_opt_show_stacks"] or "Show stack count", db.showStacks, cy, function(v) db.showStacks = v end)
+    local _, cy = W.CreateCheckbox(card3.inner, L["at_opt_show_glow"] or "Glow on new proc", db.showGlow, cy, function(v) db.showGlow = v end)
+    local _, cy = W.CreateSlider(card3.inner, L["at_opt_timer_threshold"] or "Timer flash threshold (sec)", db.timerThreshold, 0, 15, 1, cy, function(v) db.timerThreshold = v end, "%.0f")
+    y = W.FinalizeCard(card3, cy)
+
+    -- Categories
+    local cats = db.categories
+    local card4, cy = W.CreateCard(c, L["at_section_categories"] or "Categories", y)
+    local _, cy = W.CreateInfoText(card4.inner, L["at_info_categories"] or "Choose which aura categories to track.", cy)
+    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_trinkets"] or "Trinket procs", cats.trinkets, cy, function(v) cats.trinkets = v end)
+    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_enchants"] or "Weapon enchant procs", cats.enchants, cy, function(v) cats.enchants = v end)
+    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_selfbuffs"] or "Self-buffs (cooldowns)", cats.selfBuffs, cy, function(v) cats.selfBuffs = v end)
+    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_raidbuffs"] or "Raid buffs", cats.raidBuffs, cy, function(v) cats.raidBuffs = v end)
+    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_defensives"] or "Defensives (external + personal)", cats.defensives, cy, function(v) cats.defensives = v end)
+    y = W.FinalizeCard(card4, cy)
+
+    -- Position
+    local card5, cy = W.CreateCard(c, L["at_section_position"] or "Position", y)
+    local _, cy = W.CreateInfoText(card5.inner, L["at_info_position"] or "Use /tm layout to unlock and drag the aura tracker.", cy)
+    local _, cy = W.CreateButton(card5.inner, L["at_btn_reset_position"] or "Reset Position", 180, cy, function()
+        local defaults = TomoMod_Defaults.auraTracker
+        if defaults and defaults.position then
+            db.position = CopyTable(defaults.position)
+            if TomoMod_AuraTracker then TomoMod_AuraTracker.ApplySettings() end
+        end
+    end)
+    y = W.FinalizeCard(card5, cy)
+
+    c:SetHeight(math.abs(y) + 20)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -994,6 +1069,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "profhelper",   label = L["tab_qol_prof_helper"],  builder = function(p) return BuildProfessionHelperTab(p) end },
         { key = "classremind", label = L["tab_qol_class_reminder"], builder = function(p) return BuildClassReminderTab(p) end },
         { key = "waypoint",    label = L["tab_qol_waypoint"],       builder = function(p) return BuildWaypointTab(p) end },
+        { key = "auratracker", label = L["tab_qol_aura_tracker"],  builder = function(p) return BuildAuraTrackerTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

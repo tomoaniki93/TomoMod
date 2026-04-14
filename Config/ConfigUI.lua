@@ -33,6 +33,8 @@ local categories = {
     { key = "general",    label = L["cat_general"],     icon = ICON_PATH .. "icon_general.tga"     },
     { key = "unitframes", label = L["cat_unitframes"],  icon = ICON_PATH .. "icon_unitframes.tga"  },
     { key = "nameplates", label = L["cat_nameplates"],  icon = ICON_PATH .. "icon_nameplates.tga"  },
+    { key = "castbars",   label = L["cat_castbars"],    icon = ICON_PATH .. "icon_castbars.tga"   },
+    { key = "partyframes", label = L["cat_partyframes"] or "Party Frames", icon = ICON_PATH .. "icon_partyframes.tga" },
     { key = "resources",  label = L["cat_cd_resource"], icon = ICON_PATH .. "icon_resources.tga"   },
     { key = "actionbars", label = L["cat_action_bars"], icon = ICON_PATH .. "icon_actionbars.tga"  },
     { key = "sound",      label = L["cat_sound"],       icon = ICON_PATH .. "icon_sound.tga"       },
@@ -258,7 +260,7 @@ local function CreateConfigFrame()
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -2)
     versionText:SetTextColor(0.30, 0.30, 0.35, 1)
-    versionText:SetText("v2.8.11")
+    versionText:SetText("v2.9.0")
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, titleBar)
@@ -427,6 +429,8 @@ function C.SwitchCategory(key)
             general    = "TomoMod_ConfigPanel_General",
             unitframes = "TomoMod_ConfigPanel_UnitFrames",
             nameplates = "TomoMod_ConfigPanel_Nameplates",
+            castbars   = "TomoMod_ConfigPanel_Castbars",
+            partyframes = "TomoMod_ConfigPanel_PartyFrames",
             resources  = "TomoMod_ConfigPanel_CooldownResource",
             actionbars = "TomoMod_ConfigPanel_ActionBars",
             sound      = "TomoMod_ConfigPanel_Sound",

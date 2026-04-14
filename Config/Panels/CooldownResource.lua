@@ -133,7 +133,7 @@ local function BuildResourceBarsTab(parent)
         if TomoMod_ResourceBars then TomoMod_ResourceBars.SetEnabled(v) end
     end)
     local _, cy = W.CreateDropdown(card.inner, L["opt_rb_display_mode"] or "Display mode", {
-        { text = L["display_mode_icons"] or "Icons (GW2)", value = "icons" },
+        { text = L["display_mode_icons"] or "Icons (TUI)", value = "icons" },
         { text = L["display_mode_bars"]  or "Bars (flat)",  value = "bars"  },
     }, db.displayMode or "icons", cy, function(v) db.displayMode = v; ApplyRB() end)
     local _, cy = W.CreateInfoText(card.inner, L["info_rb_description"] or "", cy)

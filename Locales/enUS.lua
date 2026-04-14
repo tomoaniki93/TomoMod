@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.11 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.9.0 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -351,7 +351,7 @@ TomoMod_RegisterLocale("enUS", {
     ["section_resource_bars"]           = "Class Powers",
     ["opt_rb_enable"]                   = "Enable class power display",
     ["opt_rb_display_mode"]             = "Display mode",
-    ["display_mode_icons"]              = "Icons (GW2 textures)",
+    ["display_mode_icons"]              = "Icons (TUI textures)",
     ["display_mode_bars"]               = "Bars (flat colors)",
     ["info_rb_description"]             = "Shows class-specific resources (Combo Points, Runes, Soul Shards, Holy Power, etc.). Primary power (Mana, Rage, Energy...) is now in the UnitFrame info bar.",
     ["section_visibility"]              = "Visibility",
@@ -903,6 +903,7 @@ TomoMod_RegisterLocale("enUS", {
     ["mover_repbar"]                    = "Reputation Bar",
     ["mover_castbar"]                   = "Player Castbar",
     ["mover_mythictracker"]             = "M+ Tracker",
+    ["mover_minimap"]                   = "Minimap & Panel",
     ["mover_chatframe"]                 = "Chat Frame",
     -- =====================
     -- COMBAT TEXT
@@ -1460,4 +1461,226 @@ TomoMod_RegisterLocale("enUS", {
     ["way_bad_map"]                      = "Cannot place a waypoint on this map.",
     ["way_bad_coords"]                   = "Coordinates must be between 0 and 100.",
     ["way_usage"]                        = "Usage: /tm way [mapID] x y [name]  |  /tm way clear",
+
+    -- =====================
+    -- CASTBARS (standalone module)
+    -- =====================
+    ["cat_castbars"]                     = "Castbars",
+
+    -- General section
+    ["cb_section_general"]               = "General",
+    ["opt_cb_enable"]                    = "Enable Standalone Castbars",
+    ["info_cb_description"]              = "Replaces Blizzard castbars with fully customizable standalone bars for Player, Target, Focus, Pet and Boss.",
+    ["opt_cb_hide_blizzard"]             = "Hide Blizzard castbars",
+    ["opt_cb_class_color"]               = "Use class color",
+    ["opt_cb_show_transitions"]          = "Cast start/end animations",
+    ["opt_cb_show_channel_ticks"]        = "Show channel tick markers",
+    ["opt_cb_timer_format"]              = "Timer format",
+    ["cb_timer_remaining"]               = "Remaining (1.5)",
+    ["cb_timer_remaining_total"]         = "Remaining / Total (1.5 / 3.0)",
+    ["cb_timer_elapsed"]                 = "Elapsed (1.5)",
+    ["opt_cb_spell_max_len"]             = "Spell name max length (0 = no limit)",
+
+    -- Appearance
+    ["cb_section_appearance"]            = "Appearance",
+    ["opt_cb_bar_texture"]               = "Bar texture",
+    ["cb_tex_blizzard"]                  = "Blizzard",
+    ["cb_tex_smooth"]                    = "Smooth",
+    ["cb_tex_flat"]                      = "Flat",
+    ["opt_cb_font_size"]                 = "Font size",
+    ["opt_cb_bg_mode"]                   = "Background mode",
+    ["cb_bg_black"]                      = "Black",
+    ["cb_bg_transparent"]                = "Transparent",
+    ["cb_bg_custom"]                     = "Custom texture",
+
+    -- Colors
+    ["cb_section_colors"]                = "Colors",
+    ["opt_cb_cast_color"]                = "Cast color",
+    ["opt_cb_ni_color"]                  = "Non-interruptible overlay",
+    ["opt_cb_interrupt_color"]           = "Interrupted color",
+
+    -- Spark
+    ["cb_section_spark"]                 = "Spark",
+    ["opt_cb_show_spark"]                = "Show spark animation",
+    ["opt_cb_spark_style"]               = "Spark style",
+    ["opt_cb_spark_color"]               = "Spark color",
+    ["opt_cb_spark_glow_color"]          = "Spark glow color",
+    ["opt_cb_spark_tail_color"]          = "Spark tail color",
+    ["opt_cb_spark_glow_alpha"]          = "Glow opacity",
+    ["opt_cb_spark_tail_alpha"]          = "Tail opacity",
+
+    -- GCD
+    ["cb_section_gcd"]                   = "GCD Spark",
+    ["opt_cb_show_gcd"]                  = "Show GCD bar below player castbar",
+    ["opt_cb_gcd_height"]                = "GCD bar height",
+    ["opt_cb_gcd_color"]                 = "GCD color",
+
+    -- Interrupt feedback
+    ["cb_section_interrupt"]             = "Interrupt Feedback",
+    ["opt_cb_show_interrupt_feedback"]   = "Show interrupt feedback text",
+    ["opt_cb_interrupt_fb_color"]        = "Feedback text color",
+    ["opt_cb_interrupt_fb_size"]         = "Feedback font size",
+    ["cb_interrupt_feedback_text"]       = "INTERRUPTED!",
+    ["cb_interrupt_feedback_full"]       = "INTERRUPTED: %s",
+    ["cb_interrupted"]                   = "Interrupted",
+
+    -- Per-unit tabs
+    ["cb_tab_general"]                   = "General",
+    ["cb_tab_player"]                    = "Player",
+    ["cb_tab_target"]                    = "Target",
+    ["cb_tab_focus"]                     = "Focus",
+    ["cb_tab_pet"]                       = "Pet",
+    ["cb_tab_boss"]                      = "Boss",
+
+    -- Per-unit options
+    ["cb_section_unit"]                  = "%s Castbar",
+    ["opt_cb_unit_enable"]               = "Enable",
+    ["opt_cb_unit_width"]                = "Width",
+    ["opt_cb_unit_height"]               = "Height",
+    ["opt_cb_unit_show_icon"]            = "Show icon",
+    ["opt_cb_unit_icon_side"]            = "Icon side",
+    ["cb_icon_left"]                     = "Left",
+    ["cb_icon_right"]                    = "Right",
+    ["opt_cb_unit_show_timer"]           = "Show timer",
+    ["opt_cb_unit_show_latency"]         = "Show latency",
+    ["info_cb_latency"]                  = "Displays a dark overlay showing network latency at the end of the bar.",
+    ["info_cb_position"]                 = "Use /tm layout to unlock and drag this castbar.",
+    ["btn_cb_reset_position"]            = "Reset Position",
+    ["cb_move_label"]                    = "(Drag to move)",
+    ["cb_preview_castbar"]               = "Preview: %s",
+
+    -- Mover
+    ["mover_castbar_standalone"]         = "Castbars",
+
+    -- ═══════════════════════════════════
+    -- Party Frames
+    -- ═══════════════════════════════════
+    ["cat_partyframes"]                  = "Party Frames",
+    ["mover_partyframes"]                = "Party Frames",
+
+    -- Tabs
+    ["pf_tab_general"]                   = "General",
+    ["pf_tab_features"]                  = "Features",
+    ["pf_tab_cooldowns"]                 = "Cooldowns",
+    ["pf_tab_arena"]                     = "Arena",
+
+    -- General tab
+    ["pf_section_general"]               = "General",
+    ["pf_opt_enable"]                    = "Enable Party Frames",
+    ["pf_info_description"]              = "Custom party frames for M+ and Arena with health, absorb, heal prediction, HoTs, interrupt/brez CD tracking, and dispel highlights.",
+    ["pf_opt_hide_blizzard"]             = "Hide Blizzard party frames",
+    ["pf_opt_sort_role"]                 = "Sort by role (Tank > Healer > DPS)",
+
+    ["pf_section_dimensions"]            = "Dimensions",
+    ["pf_opt_width"]                     = "Frame width",
+    ["pf_opt_height"]                    = "Frame height",
+    ["pf_opt_spacing"]                   = "Spacing",
+    ["pf_opt_grow_direction"]            = "Growth direction",
+    ["pf_dir_down"]                      = "Down",
+    ["pf_dir_up"]                        = "Up",
+    ["pf_dir_right"]                     = "Right",
+    ["pf_dir_left"]                      = "Left",
+
+    ["pf_section_display"]               = "Display",
+    ["pf_opt_show_name"]                 = "Show name",
+    ["pf_opt_show_health_text"]          = "Show health text",
+    ["pf_opt_health_format"]             = "Health format",
+    ["pf_fmt_deficit"]                   = "Deficit",
+    ["pf_opt_health_color"]              = "Health color mode",
+    ["pf_color_green"]                   = "Green",
+    ["pf_color_gradient"]                = "Gradient",
+    ["pf_opt_show_power"]                = "Show power bar",
+    ["pf_opt_power_height"]              = "Power bar height",
+    ["pf_opt_name_max_length"]           = "Name max letters (0 = no limit)",
+    ["pf_opt_show_role"]                 = "Show role icon",
+    ["pf_opt_role_size"]                 = "Role icon size",
+    ["pf_opt_show_marker"]               = "Show raid marker",
+
+    ["pf_section_font"]                  = "Font",
+    ["pf_opt_font_size"]                 = "Font size",
+
+    ["pf_section_position"]              = "Position",
+    ["pf_info_position"]                 = "Use /tm layout to unlock and drag party frames.",
+    ["pf_btn_reset_position"]            = "Reset Position",
+
+    -- Features tab
+    ["pf_section_health_extras"]         = "Health Features",
+    ["pf_opt_show_absorb"]               = "Show absorb bar",
+    ["pf_opt_absorb_color"]              = "Absorb color",
+    ["pf_opt_show_heal_pred"]            = "Show heal prediction",
+
+    ["pf_section_range"]                 = "Range Check",
+    ["pf_opt_show_range"]                = "Fade out-of-range members",
+    ["pf_opt_oor_alpha"]                 = "Out-of-range opacity",
+
+    ["pf_section_dispel"]                = "Dispel Highlight",
+    ["pf_opt_show_dispel"]               = "Highlight dispellable debuffs",
+    ["pf_info_dispel"]                   = "Border glows by debuff type: Magic (blue), Curse (purple), Disease (brown), Poison (green).",
+
+    ["pf_section_hots"]                  = "HoT Tracking",
+    ["pf_opt_show_hots"]                 = "Show HoT indicators",
+    ["pf_opt_hot_size"]                  = "HoT icon size",
+    ["pf_opt_max_hots"]                  = "Max HoTs shown",
+    ["pf_info_hots"]                     = "Displays healing-over-time effects with class-colored borders. Supports Priest, Druid, Paladin, Shaman, Monk, and Evoker HoTs.",
+
+    -- Cooldowns tab
+    ["pf_section_cooldowns"]             = "Cooldown Trackers",
+    ["pf_opt_show_kick"]                 = "Show interrupt cooldown",
+    ["pf_opt_show_brez"]                 = "Show battle rez cooldown",
+    ["pf_opt_cd_size"]                   = "CD icon size",
+    ["pf_opt_cd_layout"]                 = "CD icon layout",
+    ["pf_cd_vertical"]                   = "Vertical (on frame)",
+    ["pf_cd_horizontal"]                 = "Horizontal (below)",
+    ["pf_info_cooldowns"]                = "Tracks interrupt and battle rez cooldowns for each party member. Detected via UNIT_SPELLCAST_SUCCEEDED (no COMBAT_LOG_EVENT_UNFILTERED).",
+
+    -- Arena tab
+    ["pf_section_arena"]                 = "Arena Enemy Frames",
+    ["pf_opt_arena_enable"]              = "Enable Arena Frames",
+    ["pf_info_arena"]                    = "Displays enemy team health, power, and PvP trinket cooldowns in Arena (2v2/3v3).",
+    ["pf_section_arena_dims"]            = "Arena Dimensions",
+    ["pf_opt_arena_width"]               = "Width",
+    ["pf_opt_arena_height"]              = "Height",
+    ["pf_opt_arena_spacing"]             = "Spacing",
+    ["pf_section_arena_trinket"]         = "PvP Trinket",
+    ["pf_opt_show_trinket"]              = "Show trinket cooldown",
+    ["pf_opt_trinket_size"]              = "Trinket icon size",
+    ["pf_opt_show_spec"]                 = "Show spec icon",
+    ["pf_section_arena_pos"]             = "Arena Position",
+    ["pf_info_arena_pos"]                = "Use /tm layout to unlock and drag arena frames.",
+    ["pf_btn_reset_arena_pos"]           = "Reset Position",
+
+    -- ═══════════════════════════════════
+    -- Aura Tracker
+    -- ═══════════════════════════════════
+    ["tab_qol_aura_tracker"]             = "Aura Tracker",
+    ["mover_auratracker"]                = "Aura Tracker",
+
+    ["at_section_general"]               = "General",
+    ["at_opt_enable"]                    = "Enable Aura Tracker",
+    ["at_info_description"]              = "Tracks important buffs: trinket procs, weapon enchant procs, self-buffs, and defensives in a simple icon overlay.",
+
+    ["at_section_appearance"]            = "Appearance",
+    ["at_opt_icon_size"]                 = "Icon size",
+    ["at_opt_spacing"]                   = "Spacing",
+    ["at_opt_max_icons"]                 = "Max icons",
+    ["at_opt_grow_direction"]            = "Growth direction",
+    ["at_opt_font_size"]                 = "Font size",
+
+    ["at_section_display"]               = "Display",
+    ["at_opt_show_timer"]                = "Show timer",
+    ["at_opt_show_stacks"]               = "Show stack count",
+    ["at_opt_show_glow"]                 = "Glow on new proc",
+    ["at_opt_timer_threshold"]           = "Timer flash threshold (sec)",
+
+    ["at_section_categories"]            = "Categories",
+    ["at_info_categories"]               = "Choose which aura categories to track.",
+    ["at_cat_trinkets"]                  = "Trinket procs",
+    ["at_cat_enchants"]                  = "Weapon enchant procs",
+    ["at_cat_selfbuffs"]                 = "Self-buffs (cooldowns)",
+    ["at_cat_raidbuffs"]                 = "Raid buffs",
+    ["at_cat_defensives"]                = "Defensives (external + personal)",
+
+    ["at_section_position"]              = "Position",
+    ["at_info_position"]                 = "Use /tm layout to unlock and drag the aura tracker.",
+    ["at_btn_reset_position"]            = "Reset Position",
 })

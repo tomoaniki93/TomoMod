@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("deDE", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Über",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.8.11 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.9.0 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
     ["section_general"]                 = "Allgemein",
     ["btn_reset_all"]                   = "Alles zurücksetzen",
     ["info_reset_all"]                  = "Dies setzt ALLE Einstellungen zurück und lädt die Oberfläche neu.",
@@ -1367,7 +1367,7 @@ TomoMod_RegisterLocale("deDE", {
     -- Resource Bars display mode
     -- =====================
     ["opt_rb_display_mode"]             = "Anzeigemodus",
-    ["display_mode_icons"]              = "Symbole (GW2-Texturen)",
+    ["display_mode_icons"]              = "Symbole (TUI-Texturen)",
     ["display_mode_bars"]               = "Leisten (flache Farben)",
 
     -- =====================
@@ -1433,4 +1433,220 @@ TomoMod_RegisterLocale("deDE", {
     ["ts_col_interrupts"]           = "Unterbrechungen",
     ["ts_footer_total"]             = "Gesamt",
     ["ts_footer_players"]           = "%d Spieler",
+
+    -- =====================
+    -- CASTBARS (Standalone-Modul)
+    -- =====================
+    ["cat_castbars"]                     = "Zauberleisten",
+
+    -- Allgemein
+    ["cb_section_general"]               = "Allgemein",
+    ["opt_cb_enable"]                    = "Eigenständige Zauberleisten aktivieren",
+    ["info_cb_description"]              = "Ersetzt die Blizzard-Zauberleisten durch vollständig anpassbare Leisten für Spieler, Ziel, Fokus, Begleiter und Boss.",
+    ["opt_cb_hide_blizzard"]             = "Blizzard-Zauberleisten verstecken",
+    ["opt_cb_class_color"]               = "Klassenfarbe verwenden",
+    ["opt_cb_show_transitions"]          = "Start-/Endanimationen",
+    ["opt_cb_show_channel_ticks"]        = "Kanal-Tick-Markierungen anzeigen",
+    ["opt_cb_timer_format"]              = "Timer-Format",
+    ["cb_timer_remaining"]               = "Verbleibend (1.5)",
+    ["cb_timer_remaining_total"]         = "Verbleibend / Gesamt (1.5 / 3.0)",
+    ["cb_timer_elapsed"]                 = "Vergangen (1.5)",
+    ["opt_cb_spell_max_len"]             = "Max. Zaubernamenslänge (0 = unbegrenzt)",
+
+    -- Aussehen
+    ["cb_section_appearance"]            = "Darstellung",
+    ["opt_cb_bar_texture"]               = "Balkentextur",
+    ["cb_tex_blizzard"]                  = "Blizzard",
+    ["cb_tex_smooth"]                    = "Glatt",
+    ["cb_tex_flat"]                      = "Flach",
+    ["opt_cb_font_size"]                 = "Schriftgröße",
+    ["opt_cb_bg_mode"]                   = "Hintergrundmodus",
+    ["cb_bg_black"]                      = "Schwarz",
+    ["cb_bg_transparent"]                = "Transparent",
+    ["cb_bg_custom"]                     = "Eigene Textur",
+
+    -- Farben
+    ["cb_section_colors"]                = "Farben",
+    ["opt_cb_cast_color"]                = "Zauberfarbe",
+    ["opt_cb_ni_color"]                  = "Nicht unterbrechbar",
+    ["opt_cb_interrupt_color"]           = "Unterbrochen-Farbe",
+
+    -- Funke
+    ["cb_section_spark"]                 = "Funke",
+    ["opt_cb_show_spark"]                = "Funken-Animation anzeigen",
+    ["opt_cb_spark_style"]               = "Funken-Stil",
+    ["opt_cb_spark_color"]               = "Funkenfarbe",
+    ["opt_cb_spark_glow_color"]          = "Funkenglühen-Farbe",
+    ["opt_cb_spark_tail_color"]          = "Funkenschweif-Farbe",
+    ["opt_cb_spark_glow_alpha"]          = "Glühen-Deckkraft",
+    ["opt_cb_spark_tail_alpha"]          = "Schweif-Deckkraft",
+
+    -- GCD
+    ["cb_section_gcd"]                   = "GCD-Funke",
+    ["opt_cb_show_gcd"]                  = "GCD-Leiste unter Spieler-Zauberleiste",
+    ["opt_cb_gcd_height"]                = "GCD-Balkenhöhe",
+    ["opt_cb_gcd_color"]                 = "GCD-Farbe",
+
+    -- Unterbrechungs-Feedback
+    ["cb_section_interrupt"]             = "Unterbrechungs-Feedback",
+    ["opt_cb_show_interrupt_feedback"]   = "Unterbrechungs-Feedback anzeigen",
+    ["opt_cb_interrupt_fb_color"]        = "Feedbacktext-Farbe",
+    ["opt_cb_interrupt_fb_size"]         = "Feedback-Schriftgröße",
+    ["cb_interrupt_feedback_text"]       = "UNTERBROCHEN!",
+    ["cb_interrupt_feedback_full"]       = "UNTERBROCHEN: %s",
+    ["cb_interrupted"]                   = "Unterbrochen",
+
+    -- Tabs
+    ["cb_tab_general"]                   = "Allgemein",
+    ["cb_tab_player"]                    = "Spieler",
+    ["cb_tab_target"]                    = "Ziel",
+    ["cb_tab_focus"]                     = "Fokus",
+    ["cb_tab_pet"]                       = "Begleiter",
+    ["cb_tab_boss"]                      = "Boss",
+
+    -- Pro-Einheit
+    ["cb_section_unit"]                  = "%s Zauberleiste",
+    ["opt_cb_unit_enable"]               = "Aktivieren",
+    ["opt_cb_unit_width"]                = "Breite",
+    ["opt_cb_unit_height"]               = "Höhe",
+    ["opt_cb_unit_show_icon"]            = "Symbol anzeigen",
+    ["opt_cb_unit_icon_side"]            = "Symbolseite",
+    ["cb_icon_left"]                     = "Links",
+    ["cb_icon_right"]                    = "Rechts",
+    ["opt_cb_unit_show_timer"]           = "Timer anzeigen",
+    ["opt_cb_unit_show_latency"]         = "Latenz anzeigen",
+    ["info_cb_latency"]                  = "Zeigt ein dunkles Overlay mit Netzwerklatenz am Ende der Leiste.",
+    ["info_cb_position"]                 = "/tm layout eingeben, um diese Zauberleiste zu verschieben.",
+    ["btn_cb_reset_position"]            = "Position zurücksetzen",
+    ["cb_move_label"]                    = "(Ziehen zum Bewegen)",
+    ["cb_preview_castbar"]               = "Vorschau: %s",
+
+    -- Mover
+    ["mover_castbar_standalone"]         = "Zauberleisten",
+
+    -- ═══════════════════════════════════
+    -- Gruppenrahmen (Party Frames)
+    -- ═══════════════════════════════════
+    ["cat_partyframes"]                  = "Gruppenrahmen",
+    ["mover_partyframes"]                = "Gruppenrahmen",
+
+    ["pf_tab_general"]                   = "Allgemein",
+    ["pf_tab_features"]                  = "Funktionen",
+    ["pf_tab_cooldowns"]                 = "Abklingzeiten",
+    ["pf_tab_arena"]                     = "Arena",
+
+    ["pf_section_general"]               = "Allgemein",
+    ["pf_opt_enable"]                    = "Gruppenrahmen aktivieren",
+    ["pf_info_description"]              = "Eigene Gruppenrahmen für M+ und Arena mit Gesundheit, Absorption, Heilungsvorhersage, HoTs, Unterbrechung/Kampfrez-CD und Enthexungs-Hervorhebung.",
+    ["pf_opt_hide_blizzard"]             = "Blizzard-Gruppenrahmen verstecken",
+    ["pf_opt_sort_role"]                 = "Nach Rolle sortieren (Tank > Heiler > DPS)",
+
+    ["pf_section_dimensions"]            = "Abmessungen",
+    ["pf_opt_width"]                     = "Rahmenbreite",
+    ["pf_opt_height"]                    = "Rahmenhöhe",
+    ["pf_opt_spacing"]                   = "Abstand",
+    ["pf_opt_grow_direction"]            = "Wachstumsrichtung",
+    ["pf_dir_down"]                      = "Unten",
+    ["pf_dir_up"]                        = "Oben",
+    ["pf_dir_right"]                     = "Rechts",
+    ["pf_dir_left"]                      = "Links",
+
+    ["pf_section_display"]               = "Anzeige",
+    ["pf_opt_show_name"]                 = "Name anzeigen",
+    ["pf_opt_show_health_text"]          = "Gesundheitstext anzeigen",
+    ["pf_opt_health_format"]             = "Gesundheitsformat",
+    ["pf_fmt_deficit"]                   = "Defizit",
+    ["pf_opt_health_color"]              = "Gesundheitsfarbmodus",
+    ["pf_color_green"]                   = "Grün",
+    ["pf_color_gradient"]                = "Verlauf",
+    ["pf_opt_show_power"]                = "Kraftleiste anzeigen",
+    ["pf_opt_power_height"]              = "Kraftleistenhöhe",
+    ["pf_opt_show_role"]                 = "Rollensymbol anzeigen",
+    ["pf_opt_role_size"]                 = "Rollensymbol-Größe",
+    ["pf_opt_show_marker"]               = "Schlachtzugsmarkierung anzeigen",
+
+    ["pf_section_font"]                  = "Schrift",
+    ["pf_opt_font_size"]                 = "Schriftgröße",
+
+    ["pf_section_position"]              = "Position",
+    ["pf_info_position"]                 = "/tm layout eingeben, um Gruppenrahmen zu verschieben.",
+    ["pf_btn_reset_position"]            = "Position zurücksetzen",
+
+    ["pf_section_health_extras"]         = "Gesundheits-Extras",
+    ["pf_opt_show_absorb"]               = "Absorptionsleiste anzeigen",
+    ["pf_opt_absorb_color"]              = "Absorptionsfarbe",
+    ["pf_opt_show_heal_pred"]            = "Heilungsvorhersage anzeigen",
+
+    ["pf_section_range"]                 = "Reichweitenprüfung",
+    ["pf_opt_show_range"]                = "Außer-Reichweite-Mitglieder ausblenden",
+    ["pf_opt_oor_alpha"]                 = "Außer-Reichweite-Transparenz",
+
+    ["pf_section_dispel"]                = "Enthexungs-Hervorhebung",
+    ["pf_opt_show_dispel"]               = "Enthexbare Debuffs hervorheben",
+    ["pf_info_dispel"]                   = "Rahmenleuchten nach Debuff-Typ: Magie (blau), Fluch (lila), Krankheit (braun), Gift (grün).",
+
+    ["pf_section_hots"]                  = "HoT-Anzeige",
+    ["pf_opt_show_hots"]                 = "HoT-Symbole anzeigen",
+    ["pf_opt_hot_size"]                  = "HoT-Symbolgröße",
+    ["pf_opt_max_hots"]                  = "Max. angezeigte HoTs",
+    ["pf_info_hots"]                     = "Zeigt Heilung-über-Zeit-Effekte mit klassenfarbierten Rändern an. Unterstützt Priester, Druide, Paladin, Schamane, Mönch und Rufer.",
+
+    ["pf_section_cooldowns"]             = "Abklingzeit-Tracker",
+    ["pf_opt_show_kick"]                 = "Unterbrechungs-CD anzeigen",
+    ["pf_opt_show_brez"]                 = "Kampf-Rez-CD anzeigen",
+    ["pf_opt_cd_size"]                   = "CD-Symbolgröße",
+    ["pf_opt_cd_layout"]                 = "CD-Symbol-Layout",
+    ["pf_cd_vertical"]                   = "Vertikal (auf Rahmen)",
+    ["pf_cd_horizontal"]                 = "Horizontal (darunter)",
+    ["pf_info_cooldowns"]                = "Verfolgt Unterbrechungs- und Kampf-Rez-Abklingzeiten für jedes Gruppenmitglied.",
+
+    ["pf_section_arena"]                 = "Arena-Gegnerrahmen",
+    ["pf_opt_arena_enable"]              = "Arena-Rahmen aktivieren",
+    ["pf_info_arena"]                    = "Zeigt Gesundheit, Kraft und PvP-Schmuck-CD der Gegner in der Arena (2v2/3v3).",
+    ["pf_section_arena_dims"]            = "Arena-Abmessungen",
+    ["pf_opt_arena_width"]               = "Breite",
+    ["pf_opt_arena_height"]              = "Höhe",
+    ["pf_opt_arena_spacing"]             = "Abstand",
+    ["pf_section_arena_trinket"]         = "PvP-Schmuck",
+    ["pf_opt_show_trinket"]              = "Schmuck-CD anzeigen",
+    ["pf_opt_trinket_size"]              = "Schmuck-Symbolgröße",
+    ["pf_opt_show_spec"]                 = "Spezialisierungssymbol anzeigen",
+    ["pf_section_arena_pos"]             = "Arena-Position",
+    ["pf_info_arena_pos"]                = "/tm layout eingeben, um Arena-Rahmen zu verschieben.",
+    ["pf_btn_reset_arena_pos"]           = "Position zurücksetzen",
+
+    -- ═══════════════════════════════════
+    -- Aura Tracker
+    -- ═══════════════════════════════════
+    ["tab_qol_aura_tracker"]             = "Aura-Tracker",
+    ["mover_auratracker"]                = "Aura-Tracker",
+
+    ["at_section_general"]               = "Allgemein",
+    ["at_opt_enable"]                    = "Aura-Tracker aktivieren",
+    ["at_info_description"]              = "Verfolgt wichtige Buffs: Schmuck-Procs, Waffen-Verzauberung-Procs, Eigenbuffs und Defensiv-CDs in einem einfachen Symbol-Overlay.",
+
+    ["at_section_appearance"]            = "Darstellung",
+    ["at_opt_icon_size"]                 = "Symbolgröße",
+    ["at_opt_spacing"]                   = "Abstand",
+    ["at_opt_max_icons"]                 = "Max. Symbole",
+    ["at_opt_grow_direction"]            = "Wachstumsrichtung",
+    ["at_opt_font_size"]                 = "Schriftgröße",
+
+    ["at_section_display"]               = "Anzeige",
+    ["at_opt_show_timer"]                = "Timer anzeigen",
+    ["at_opt_show_stacks"]               = "Stapelanzahl anzeigen",
+    ["at_opt_show_glow"]                 = "Leuchten bei neuem Proc",
+    ["at_opt_timer_threshold"]           = "Timer-Blinkschwelle (Sek.)",
+
+    ["at_section_categories"]            = "Kategorien",
+    ["at_info_categories"]               = "Wähle welche Aura-Kategorien verfolgt werden.",
+    ["at_cat_trinkets"]                  = "Schmuck-Procs",
+    ["at_cat_enchants"]                  = "Waffen-Verzauberung-Procs",
+    ["at_cat_selfbuffs"]                 = "Eigenbuffs (Cooldowns)",
+    ["at_cat_raidbuffs"]                 = "Schlachtzug-Buffs",
+    ["at_cat_defensives"]                = "Defensiv (extern + persönlich)",
+
+    ["at_section_position"]              = "Position",
+    ["at_info_position"]                 = "/tm layout eingeben, um den Aura-Tracker zu verschieben.",
+    ["at_btn_reset_position"]            = "Position zurücksetzen",
 })

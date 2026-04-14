@@ -8,7 +8,7 @@
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 2.8.11
+## Version: 2.9.0
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -48,6 +48,8 @@ Config\Panels\QOL.lua
 Config\Panels\Sound.lua
 Config\Panels\ActionBars.lua
 Config\Panels\MythicPlus.lua
+Config\Panels\Castbars.lua
+Config\Panels\PartyFrames.lua
 Config\Panels\Skins.lua
 Config\Panels\Profiles.lua
 Config\ConfigUI.lua
@@ -62,5 +64,8 @@ Modules\QOL\QOL.xml
 ## Interface Modules
 ## =====================
 Modules\Interface\UnitFrames\UnitFrames.xml
+Modules\Interface\CastBars\CastBars.xml
 Modules\Interface\ResourceBars\ResourceBars.xml
 Modules\Interface\NamePlates\Nameplates.xml
+## Modules\Interface\DamageMeter\DamageMeter.xml
+Modules\Interface\PartyFrame\PartyFrame.xml
