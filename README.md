@@ -1,4 +1,4 @@
-# ![TomoMod](https://img.shields.io/badge/TomoMod-v2.8.11-0cd29f?style=for-the-badge) ![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120005-orange?style=for-the-badge)
+# ![TomoMod](https://img.shields.io/badge/TomoMod-v2.9.0-0cd29f?style=for-the-badge) ![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120005-orange?style=for-the-badge)
 
 # **TomoMod — Complete UI Replacement for WoW**
 
@@ -27,7 +27,8 @@ Built from the ground up for **Midnight 12.x** with native handling of Blizzard'
 
 | Category | Modules |
 |----------|---------|
-| **Frames** | UnitFrames (oUF), Nameplates, Resource Bars, Cooldown Manager |
+| **Frames** | UnitFrames (oUF), Party Frames, Nameplates, Resource Bars, Aura Tracker, Cooldown Manager |
+| **Castbars** | Standalone castbars for all units — spark animations, channel ticks, empowered casts, GCD spark |
 | **Action Bars** | 4 skin styles, per-bar fade, display conditions, click-through |
 | **Skins** | Chat, Bags, Tooltips, Buffs/Debuffs, Game Menu, Character Frame, Objective Tracker |
 | **Mythic+** | M+ Tracker, Dungeon Scoreboard, MythicHub, Group Keys, Teleportation |
@@ -47,7 +48,6 @@ Full replacement for Blizzard's unit frames with a clean, minimal aesthetic buil
 - **Health bars** with class colors, faction colors, absorb shields overlay, and centered percentage text
 - **Info bar** below the health bar — power value (left) + total HP (right) with a thin 2px power accent bar
 - **Power bars** with accurate power type coloring
-- **Castbars** on Player, Target, and Focus — casts, channels, empowered stages, channel ticks, and latency overlay
 - **Non-interruptible indicator** — secret-safe grey overlay
 - **Auras** (buffs/debuffs) with duration timers, stack counts, and configurable grow direction
 - **Threat glow** on target frame
@@ -56,6 +56,40 @@ Full replacement for Blizzard's unit frames with a clean, minimal aesthetic buil
 - **Health text formats:** current, percent, current+percent, current/max, deficit
 - **Drag-to-move** via Layout Mode — unlock all frames, reposition freely, lock again
 - **Per-unit configuration** — enable/disable, dimensions, offsets for each element
+
+### 👥 Party Frames
+
+Secure party frames for up to 4 members with full M+ integration.
+
+- **SecureUnitButtonTemplate** — proper left-click target, right-click toggle menu
+- **Health bar** with class color, green, or gradient modes — absorb overlay and heal prediction
+- **Power bar** — healer-only visibility, configurable height with live-refresh slider
+- **Name text** — centered, truncatable with configurable max letters (0 = no limit, ellipsis when truncated)
+- **Role icon** (Tank/Healer/DPS) with configurable size
+- **Dispel highlight** — border glows by debuff type (Magic, Curse, Disease, Poison)
+- **HoT tracking** — class-colored icon indicators for healer HoTs (Priest, Druid, Paladin, Shaman, Monk, Evoker)
+- **Interrupt CD tracker** — always-visible icon per party member showing their kick spell; teal border when ready, desaturated + red border + swipe when on cooldown
+- **Battle Rez CD tracker** — same always-visible pattern for brez classes (DK, Druid, Paladin, Warlock)
+- **Range check** — out-of-range members fade to configurable opacity
+- **Role sorting** — optional Tank > Healer > DPS sort order
+- **Growth direction** — Down, Up, Right, Left layout with auto-adapting mover
+- **Arena enemy frames** (1–3) with PvP trinket cooldown and spec icon tracking
+- **4-tab config** — General, Features, Cooldowns, Arena
+
+### 🎯 Standalone Castbars
+
+Full castbar system for all units — Player, Target, Focus, Pet, Boss 1–5.
+
+- **4 spark animation styles:** Comet, Pulse, Helix, Glitch with configurable colors
+- **Class color casting** — optional class-colored bars
+- **Channel tick markers** — automatic ticks for channeled spells
+- **Empowered cast support** — stage markers and progressive overlays for Evoker
+- **Interrupt feedback** — on-screen text when you successfully interrupt
+- **Latency indicator** — network delay overlay on the player castbar
+- **GCD spark** — optional thin progress bar below the player castbar
+- **Cast transitions** — smooth fade-out and flash on completion/interruption
+- **UnitFrame anchoring** — Target, Focus, Pet, Boss castbars auto-anchor below their UnitFrame
+- **Player castbar** freely movable via `/tm layout`
 
 ### 🔵 Resource Bars
 
@@ -68,7 +102,20 @@ Comprehensive class resource display system — all 13 classes with spec-specifi
 - **Visibility modes:** Always, Combat only, Target only, Hidden
 - **Fully configurable:** width, height, scale, text alignment, font, font size, all resource colors editable
 
-### 🔲 Nameplates
+### � Aura Tracker
+
+Configurable aura watch panel anchored to the player UnitFrame.
+
+- **5 categories:** Buff, Debuff, Cooldown, Totem, Enchant — each with its own grow direction
+- **Spell database** — pre-populated for every class/spec in Midnight Season 1
+- **Cooldown sweep** — animated radial countdown directly on each icon
+- **Stacks & timer text** — readable countdown + stack count
+- **Custom icon list** — add or remove tracked spells per category
+- **Growth directions:** Left, Right, Up, Down — per-category setting
+- **Size & spacing** — icon size, gap, and max icons configurable
+- **Mover overlay** — unlock via `/tm layout` to reposition independently
+
+### �🔲 Nameplates
 
 Custom nameplate system with performance-optimized frame pooling.
 
@@ -262,7 +309,7 @@ Stylized cinematic AFK screen with a 3D player model.
 
 ### 🗺️ Layout Mode & Alignment Grid
 
-- **Single toggle** unlocks every movable element at once
+- **Single toggle** unlocks every movable element at once — UnitFrames, Party Frames, Castbars, Aura Tracker, Minimap & Panel, Mythic+ Tracker
 - **Alignment Grid** with 3 modes: Grid (dimmed), Grid+ (bright), OFF
 - **Cursor flashlight** — grid lines near the cursor glow for pixel-perfect alignment
 - Activate with `/tm layout` or the Layout button in the config panel
@@ -271,7 +318,7 @@ Stylized cinematic AFK screen with a 3D player model.
 
 | Module | Description |
 |--------|-------------|
-| **Minimap** | Square minimap with class-colored border, configurable size/scale |
+| **Minimap** | Square minimap with class-colored border, configurable size/scale, movable via Layout Mode with position persistence |
 | **Info Panel** | Durability, Time (12h/24h), FPS in a draggable bar |
 | **Cursor Ring** | Animated ring following your cursor, optional class color |
 | **Cinematic Skip** | Auto-skips previously-seen cinematics (Shift to watch again) |
@@ -319,8 +366,10 @@ Open the config panel with `/tm` — a custom **1020×720** dark-themed interfac
 |----------|----------|
 | **General** | About, Minimap, Info Panel, Cursor Ring, Cinematic Skip, Frame Anchors, Waypoint |
 | **UnitFrames** | Per-unit tabs with dimensions, elements, castbar, auras, info bar |
+| **Party Frames** | General (size, growth, power), Features (dispel, HoTs, range), Cooldowns (CD tracker, icon size), Arena |
+| **Castbars** | Per-unit castbar config, spark style, channel ticks, empowered, latency, GCD spark |
 | **Nameplates** | Dimensions, colors, classification, tank mode, friendly mode, role icons, auras |
-| **CD & Resource** | Cooldown Manager, Resource Bars (visibility, dimensions, colors, text) |
+| **CD & Resource** | Cooldown Manager, Resource Bars (visibility, dimensions, colors, text), Aura Tracker |
 | **Action Bars** | Skin style, per-bar opacity/fade/display conditions, bar editor |
 | **Mythic+** | M+ Tracker, TomoScore, MythicHub |
 | **QOL / Auto** | SkyRide, Waypoint, Mythic Keys, all automations |
