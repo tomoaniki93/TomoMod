@@ -241,7 +241,9 @@ end
 -- =====================================
 
 local function TM_GetPlayerInfoByGUID(guid)
-    if not guid or guid == "" then return end
+    if not guid then return end
+    if issecretvalue and issecretvalue(guid) then return end
+    if guid == "" then return end
 
     local data = GuidCache[guid]
     if not data then
@@ -1048,8 +1050,13 @@ local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, ch
     elseif chatType == "GUILD_ITEM_LOOTED" then
         body = not isProtected and gsub(message, "$s", senderLink, 1) or message
     elseif chatType == "TEXT_EMOTE" then
-        local classLink = realm and playerLink and not isProtected and (info.colorNameByClass and gsub(playerLink, "(|h|c.-)|r|h$","%1-" .. realm .. "|r|h") or gsub(playerLink, "(|h.-)|h$","%1-" .. realm .. "|h"))
-        body = (classLink and gsub(message, arg2 .. "%-" .. realm, pflag .. classLink, 1)) or ((arg2 ~= senderLink) and gsub(message, arg2, senderLink, 1)) or message
+        local arg2Secret = issecretvalue and issecretvalue(arg2)
+        local classLink = realm and playerLink and not isProtected and not arg2Secret and (info.colorNameByClass and gsub(playerLink, "(|h|c.-)|r|h$","%1-" .. realm .. "|r|h") or gsub(playerLink, "(|h.-)|h$","%1-" .. realm .. "|h"))
+        if arg2Secret then
+            body = message
+        else
+            body = (classLink and gsub(message, arg2 .. "%-" .. realm, pflag .. classLink, 1)) or ((arg2 ~= senderLink) and gsub(message, arg2, senderLink, 1)) or message
+        end
     else
         body = format(_G["CHAT_" .. chatType .. "_GET"], pflag .. senderLink) .. message
     end
@@ -1756,7 +1763,7 @@ local function ApplySkin_TUI(container, T, s)
     container:SetScript("OnUpdate", function(self)
         if not ChatFrame1 then return end
         self:ClearAllPoints()
-        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -30, 15)
+        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -25, 25)
         self:SetHeight(ChatFrame1:GetHeight() + 55)
         self:SetWidth(ChatFrame1:GetWidth() + 40)
         self.sidebar:SetHeight(ChatFrame1:GetHeight() + 30)

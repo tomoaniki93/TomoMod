@@ -94,6 +94,10 @@
     <Include file="Loots\ItemClasses.lua" />
     <Include file="Loots\Loots.lua" />
 
+    <!-- Modules: AuraTracker (WeakAura-lite buff/debuff overlay) -->
+    <Include file="AuraTracker\SpellDB.lua" />
+    <Include file="AuraTracker\AuraTracker.lua" />
+
     <!-- Modules: Movers (Layout System — doit être en dernier) -->
     <Include file="Movers\Movers.lua" />
 

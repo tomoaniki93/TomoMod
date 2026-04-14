@@ -4,6 +4,8 @@
 
 TomoMod_Minimap = TomoMod_Minimap or {}
 local minimapBorder
+local isLocked = true
+local moverOverlay
 
 -- Masquer la forme ronde et rendre carré
 function TomoMod_Minimap.MakeSquare()
@@ -79,6 +81,84 @@ function TomoMod_Minimap.SetupEditMode()
     end
 end
 
+-- =====================================
+-- POSITION SAVE / RESTORE
+-- =====================================
+
+local function SavePosition()
+    local db = TomoModDB and TomoModDB.minimap
+    if not db then return end
+    local point, _, relPoint, x, y = Minimap:GetPoint(1)
+    if point then
+        db.position = { anchor = point, relTo = relPoint, x = x, y = y }
+    end
+end
+
+local function RestorePosition()
+    local db = TomoModDB and TomoModDB.minimap
+    if not db or not db.position then return end
+    local p = db.position
+    Minimap:ClearAllPoints()
+    Minimap:SetPoint(p.anchor, UIParent, p.relTo, p.x, p.y)
+end
+
+-- =====================================
+-- MOVER OVERLAY
+-- =====================================
+
+local function CreateMoverOverlay()
+    if moverOverlay then return end
+    local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+    moverOverlay = CreateFrame("Frame", nil, Minimap, "BackdropTemplate")
+    moverOverlay:SetAllPoints(Minimap)
+    moverOverlay:SetFrameLevel(Minimap:GetFrameLevel() + 10)
+    moverOverlay:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 2,
+    })
+    moverOverlay:SetBackdropColor(0.047, 0.824, 0.624, 0.25)
+    moverOverlay:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.8)
+    local label = moverOverlay:CreateFontString(nil, "OVERLAY")
+    label:SetFont(FONT, 12, "OUTLINE")
+    label:SetPoint("CENTER")
+    label:SetText("Minimap")
+    label:SetTextColor(1, 1, 1, 1)
+    moverOverlay:Hide()
+end
+
+-- =====================================
+-- LOCK / UNLOCK
+-- =====================================
+
+local function SetLocked(locked)
+    isLocked = locked
+    if locked then
+        Minimap:SetScript("OnDragStart", nil)
+        Minimap:SetScript("OnDragStop", nil)
+        Minimap:RegisterForDrag()
+        if moverOverlay then moverOverlay:Hide() end
+        SavePosition()
+    else
+        CreateMoverOverlay()
+        Minimap:RegisterForDrag("LeftButton")
+        Minimap:SetScript("OnDragStart", function(self) self:StartMoving() end)
+        Minimap:SetScript("OnDragStop", function(self)
+            self:StopMovingOrSizing()
+            SavePosition()
+        end)
+        moverOverlay:Show()
+    end
+end
+
+function TomoMod_Minimap.ToggleLock()
+    SetLocked(not isLocked)
+end
+
+function TomoMod_Minimap.IsLocked()
+    return isLocked
+end
+
 -- Appliquer tous les paramètres
 function TomoMod_Minimap.ApplySettings()
     if not TomoModDB.minimap.enabled then return end
@@ -87,6 +167,7 @@ function TomoMod_Minimap.ApplySettings()
     TomoMod_Minimap.CreateBorder()
     TomoMod_Minimap.ApplyScale()
     TomoMod_Minimap.SetupEditMode()
+    RestorePosition()
 end
 
 -- Initialisation du module

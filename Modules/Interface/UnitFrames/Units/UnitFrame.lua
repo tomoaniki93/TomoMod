@@ -393,11 +393,6 @@ local function StyleTomoMod(self, unit)
         self.threatText = E.CreateThreatText(health, settings)
     end
 
-    -- ── Castbar (custom — entièrement auto-géré) ─────────────────
-    if settings.castbar and settings.castbar.enabled then
-        self.castbar = E.CreateCastbar(self, unit, settings)
-    end
-
     -- ── Auras (custom) ───────────────────────────────────────────
     if settings.auras and settings.auras.enabled then
         self.auraContainer = E.CreateAuraContainer(self, unit, settings)
@@ -547,6 +542,7 @@ function UF.ToggleLock()
     for unit, frame in pairs(frames) do
         if not isLocked then
             -- Déverrouillé: retirer RegisterUnitWatch pour garder la frame visible lors du drag
+            if frame.SetLocked then frame:SetLocked(false) end
             UnregisterUnitWatch(frame)
             frame:Show()
             if frame.auraContainer then
@@ -559,6 +555,7 @@ function UF.ToggleLock()
             end
         else
             -- Verrouillé: réactiver RegisterUnitWatch
+            if frame.SetLocked then frame:SetLocked(true) end
             if not InCombatLockdown() then
                 frame:SetAttribute("unit", unit)
                 RegisterUnitWatch(frame)
@@ -581,20 +578,6 @@ function UF.ToggleLock()
                     pos.relativePoint or "TOPRIGHT",
                     pos.x or 8,
                     pos.y or 0
-                )
-            end
-
-            -- Ré-ancrer la castbar au parent (StartMoving peut corrompre les anchors enfants)
-            if frame.castbar and unit ~= "player" then
-                local cbPos   = unitSettings and unitSettings.castbar and unitSettings.castbar.position
-                local offsets = unitSettings and unitSettings.elementOffsets and unitSettings.elementOffsets.castbar
-                frame.castbar:ClearAllPoints()
-                frame.castbar:SetPoint(
-                    (cbPos and cbPos.point) or "TOP",
-                    frame,
-                    (cbPos and cbPos.relativePoint) or "BOTTOM",
-                    ((cbPos and cbPos.x) or 0) + (offsets and offsets.x or 0),
-                    ((cbPos and cbPos.y) or -6) + (offsets and offsets.y or 0)
                 )
             end
 
@@ -632,49 +615,6 @@ function UF.ToggleLock()
     end
 end
 
--- Helpers castbar player (pour le système Movers)
-function UF.IsPlayerCastbarLocked()
-    local frame = frames["player"]
-    if not frame or not frame.castbar then return true end
-    local cb = frame.castbar
-    return cb.IsLocked and cb:IsLocked() or true
-end
-
-function UF.UnlockPlayerCastbar()
-    local frame = frames["player"]
-    if not frame or not frame.castbar then return end
-    local cb = frame.castbar
-    if cb.SetLocked and cb:IsLocked() then
-        cb:SetLocked(false)
-        cb:ShowPreview()
-    end
-end
-
-function UF.LockPlayerCastbar()
-    local frame = frames["player"]
-    if not frame or not frame.castbar then return end
-    local cb = frame.castbar
-    if cb.SetLocked and not cb:IsLocked() then
-        cb:SetLocked(true)
-        cb:HidePreview()
-    end
-end
-
-function UF.TogglePlayerCastbarLock()
-    local frame = frames["player"]
-    if not frame or not frame.castbar then return end
-    local cb = frame.castbar
-    if cb.SetLocked then
-        local newLocked = not cb.isLocked
-        cb:SetLocked(newLocked)
-        if not newLocked then
-            cb:ShowPreview()
-        else
-            cb:HidePreview()
-        end
-    end
-end
-
 function UF.RefreshUnit(unitKey)
     local frame    = frames[unitKey]
     local settings = TomoModDB.unitFrames[unitKey]
@@ -703,13 +643,6 @@ function UF.RefreshUnit(unitKey)
         if frame.infoBar.hpText    then frame.infoBar.hpText:SetFont(font, fontSize - 1, fontOutline) end
     end
 
-    if frame.castbar and settings.castbar then
-        frame.castbar:SetSize(settings.castbar.width, settings.castbar.height)
-        local cbFontSize = math.max(8, settings.castbar.height - 8)
-        if frame.castbar.spellText then frame.castbar.spellText:SetFont(font, cbFontSize, fontOutline) end
-        if frame.castbar.timerText then frame.castbar.timerText:SetFont(font, cbFontSize, fontOutline) end
-    end
-
     -- Offsets d'éléments
     local offsets = settings.elementOffsets
     if offsets then
@@ -728,17 +661,6 @@ function UF.RefreshUnit(unitKey)
         if frame.power and offsets.power then
             frame.power:ClearAllPoints()
             frame.power:SetPoint("TOP", frame.health, "BOTTOM", offsets.power.x, offsets.power.y)
-        end
-        if frame.castbar and settings.castbar and offsets.castbar and unitKey ~= "player" then
-            local cbPos = settings.castbar.position
-            if cbPos then
-                frame.castbar:ClearAllPoints()
-                frame.castbar:SetPoint(
-                    cbPos.point or "TOP", frame, cbPos.relativePoint or "BOTTOM",
-                    (cbPos.x or 0) + offsets.castbar.x,
-                    (cbPos.y or -6) + offsets.castbar.y
-                )
-            end
         end
         if frame.auraContainer and offsets.auras then
             local auraPos = settings.auras and settings.auras.position
@@ -835,6 +757,12 @@ function UF.RefreshUnit(unitKey)
         UpdateLeaderIcon(frame)
         E.UpdateAuras(frame)
         E.UpdateEnemyBuffs(frame)
+    end
+
+    -- Re-anchor standalone castbar to this UF frame (if applicable)
+    if TomoMod_Castbar and TomoMod_Castbar.castbars and TomoMod_Castbar.castbars[unitKey] then
+        local cb = TomoMod_Castbar.castbars[unitKey]
+        if cb.ReanchorToUF then cb:ReanchorToUF() end
     end
 end
 

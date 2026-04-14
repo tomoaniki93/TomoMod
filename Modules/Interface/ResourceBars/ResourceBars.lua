@@ -702,7 +702,11 @@ local function UpdateRunes(runeFrame)
             local rune = runeFrame.runes[i]
             if rune then
                 local start, duration, runeReady = GetRuneCooldown(i)
-                if runeReady then
+                if not start or not duration then
+                    rune:SetValue(1)
+                    rune:SetStatusBarColor(rC, gC, bC, 0.6)
+                    rune.cdText:SetText("")
+                elseif runeReady then
                     rune:SetValue(1)
                     rune:SetStatusBarColor(rR, gR, bR, 1)
                     rune.cdText:SetText("")

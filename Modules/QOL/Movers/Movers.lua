@@ -125,20 +125,55 @@ local function BuildEntries()
     table.insert(moduleEntries, {
         label    = L["mover_castbar"],
         unlock   = function()
-            if TomoMod_UnitFrames and TomoMod_UnitFrames.UnlockPlayerCastbar then
-                TomoMod_UnitFrames.UnlockPlayerCastbar()
+            if TomoMod_Castbar and TomoMod_Castbar.UnlockPlayerCastbar then
+                TomoMod_Castbar.UnlockPlayerCastbar()
             end
         end,
         lock     = function()
-            if TomoMod_UnitFrames and TomoMod_UnitFrames.LockPlayerCastbar then
-                TomoMod_UnitFrames.LockPlayerCastbar()
+            if TomoMod_Castbar and TomoMod_Castbar.LockPlayerCastbar then
+                TomoMod_Castbar.LockPlayerCastbar()
             end
         end,
         isActive = function()
-            return TomoModDB and TomoModDB.unitFrames
-                and TomoModDB.unitFrames.player
-                and TomoModDB.unitFrames.player.castbar
-                and TomoModDB.unitFrames.player.castbar.enabled
+            return TomoModDB and TomoModDB.castbars and TomoModDB.castbars.enabled and TomoModDB.castbars.player and TomoModDB.castbars.player.enabled
+        end,
+    })
+    table.insert(moduleEntries, {
+        label    = L["mover_partyframes"] or "Party Frames",
+        unlock   = function()
+            if TomoMod_PartyFrames and TomoMod_PartyFrames.ToggleLock then
+                if TomoMod_PartyFrames.IsLocked and TomoMod_PartyFrames.IsLocked() then TomoMod_PartyFrames.ToggleLock() end
+            end
+            if TomoMod_ArenaFrames and TomoMod_ArenaFrames.ToggleLock then
+                if TomoMod_ArenaFrames.IsLocked and TomoMod_ArenaFrames.IsLocked() then TomoMod_ArenaFrames.ToggleLock() end
+            end
+        end,
+        lock     = function()
+            if TomoMod_PartyFrames and TomoMod_PartyFrames.ToggleLock then
+                if TomoMod_PartyFrames.IsLocked and not TomoMod_PartyFrames.IsLocked() then TomoMod_PartyFrames.ToggleLock() end
+            end
+            if TomoMod_ArenaFrames and TomoMod_ArenaFrames.ToggleLock then
+                if TomoMod_ArenaFrames.IsLocked and not TomoMod_ArenaFrames.IsLocked() then TomoMod_ArenaFrames.ToggleLock() end
+            end
+        end,
+        isActive = function()
+            return TomoModDB and TomoModDB.partyFrames and TomoModDB.partyFrames.enabled
+        end,
+    })
+    table.insert(moduleEntries, {
+        label    = L["mover_auratracker"],
+        unlock   = function()
+            if TomoMod_AuraTracker and TomoMod_AuraTracker.ToggleLock then
+                if TomoMod_AuraTracker.IsLocked and TomoMod_AuraTracker.IsLocked() then TomoMod_AuraTracker.ToggleLock() end
+            end
+        end,
+        lock     = function()
+            if TomoMod_AuraTracker and TomoMod_AuraTracker.ToggleLock then
+                if TomoMod_AuraTracker.IsLocked and not TomoMod_AuraTracker.IsLocked() then TomoMod_AuraTracker.ToggleLock() end
+            end
+        end,
+        isActive = function()
+            return TomoModDB and TomoModDB.auraTracker and TomoModDB.auraTracker.enabled
         end,
     })
     table.insert(moduleEntries, {
@@ -171,6 +206,22 @@ local function BuildEntries()
             return TomoModDB and TomoModDB.MythicTracker and TomoModDB.MythicTracker.enabled
         end,
     })
+    table.insert(moduleEntries, {
+        label    = L["mover_minimap"],
+        unlock   = function()
+            if TomoMod_Minimap and TomoMod_Minimap.IsLocked and TomoMod_Minimap.IsLocked() then
+                TomoMod_Minimap.ToggleLock()
+            end
+        end,
+        lock     = function()
+            if TomoMod_Minimap and TomoMod_Minimap.IsLocked and not TomoMod_Minimap.IsLocked() then
+                TomoMod_Minimap.ToggleLock()
+            end
+        end,
+        isActive = function()
+            return TomoModDB and TomoModDB.minimap and TomoModDB.minimap.enabled
+        end,
+    })
 end
 
 -- =====================================
@@ -186,9 +237,6 @@ local function PatchIsLocked()
         { TomoMod_BossFrames,       "IsLocked" },
         { TomoMod_UnitFrames,       "IsLocked" },
         { TomoMod_CombatResTracker, "IsLocked" },
-        { TomoMod_UnitFrames,       "IsPlayerCastbarLocked" },
-        { TomoMod_UnitFrames,       "UnlockPlayerCastbar"   },
-        { TomoMod_UnitFrames,       "LockPlayerCastbar"     },
     }
     for _, p in ipairs(patches) do
         if p[1] and not p[1][p[2]] then p[1][p[2]] = function() return true end end

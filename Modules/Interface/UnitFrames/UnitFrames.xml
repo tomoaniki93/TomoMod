@@ -4,7 +4,6 @@
     <!-- UnitFrames Engine -->
     <Include file="Elements\Health.lua" />
     <Include file="Elements\Power.lua" />
-    <Include file="Elements\Castbar.lua" />
     <Include file="Elements\Auras.lua" />
     <Include file="Units\UnitFrame.lua" />
     <Include file="Units\BossFrames.lua" />
