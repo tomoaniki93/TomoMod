@@ -31,6 +31,16 @@ local MAX_EMPOWER_STAGES = 4
 local MAX_CHANNEL_TICKS  = 20
 local TIMER_UPDATE_FREQ  = 0.05
 
+-- [PERF] Scratch table reused each OnUpdate tick to avoid per-frame allocation.
+-- Safe because Lua is single-threaded: only one castbar OnUpdate runs at a time,
+-- and SA.Update reads the fields synchronously without retaining the reference.
+local _sparkArgs = {
+    height = 0,
+    sparkStyle = nil,
+    sparkGlowAlpha = 0.7,
+    sparkTailAlpha = 0.6,
+}
+
 local ADDON_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Castbars\\"
 
 -- =====================================
@@ -840,10 +850,14 @@ function CB.CreateCastbar(unit)
                 local now = GetTime()
                 local pct = self.channeling and ((endSec-now)/(endSec-startSec)) or ((now-startSec)/(endSec-startSec))
                 pct = math_max(0, math_min(pct, 1))
-                SA.Update(self._spark, {
-                    height=unitSettings.height, sparkStyle=db.sparkStyle,
-                    sparkGlowAlpha=db.sparkGlowAlpha or 0.7, sparkTailAlpha=db.sparkTailAlpha or 0.6,
-                }, pct, self:GetWidth(), elapsed)
+                -- [PERF] Reuse scratch table instead of allocating {height=...} every frame.
+                -- Up to 8 castbars × 60 FPS × ~4 fields = ~1920 table slots/sec of GC pressure avoided.
+                local args = _sparkArgs
+                args.height         = unitSettings.height
+                args.sparkStyle     = db.sparkStyle
+                args.sparkGlowAlpha = db.sparkGlowAlpha or 0.7
+                args.sparkTailAlpha = db.sparkTailAlpha or 0.6
+                SA.Update(self._spark, args, pct, self:GetWidth(), elapsed)
             else SA.HideAll(self._spark) end
         end
 
@@ -1028,20 +1042,41 @@ end
 local BLIZZARD_CASTBAR_FRAMES = {
     "PlayerCastingBarFrame","PetCastingBarFrame","TargetFrameSpellBar","FocusFrameSpellBar",
 }
+
+-- [TWW TAINT] The old pattern `frame:SetScript("OnShow", function(self) self:Hide() end)`
+-- is a classic taint propagation vector on secure/protected castbars — especially
+-- PlayerCastingBarFrame which Blizzard touches during combat. Each time Blizzard's
+-- secure code triggers Show(), our Lua OnShow handler taints the call chain, and
+-- that taint bleeds into whatever secure operation Blizzard is doing.
+--
+-- Safe replacement: UnregisterAllEvents() + SetAlpha(0). No events = no updates from
+-- Blizzard. Alpha 0 = invisible even if Show() is called. EnableMouse(false) prevents
+-- the invisible frame from eating clicks. This is the community-standard anti-taint
+-- pattern for hiding protected frames.
 local function KillFrame(frame)
     if not frame then return end
-    frame:UnregisterAllEvents(); frame:Hide()
-    frame:SetScript("OnShow", function(self) self:Hide() end)
-    if frame.Icon then frame.Icon:Hide() end; if frame.Border then frame.Border:Hide() end
-    if frame.BorderShield then frame.BorderShield:Hide() end
-    if frame.Flash then frame.Flash:Hide() end; if frame.Spark then frame.Spark:Hide() end
-    if frame.Text then frame.Text:Hide() end
+    frame:UnregisterAllEvents()
+    frame:SetAlpha(0)
+    frame:EnableMouse(false)
+    if frame.Icon        then frame.Icon:SetAlpha(0) end
+    if frame.Border      then frame.Border:SetAlpha(0) end
+    if frame.BorderShield then frame.BorderShield:SetAlpha(0) end
+    if frame.Flash       then frame.Flash:SetAlpha(0) end
+    if frame.Spark       then frame.Spark:SetAlpha(0) end
+    if frame.Text        then frame.Text:SetAlpha(0) end
 end
 local function RestoreFrame(frame)
     if not frame then return end
-    frame:SetScript("OnShow", nil); frame:Show()
-    if frame.Icon then frame.Icon:Show() end; if frame.Border then frame.Border:Show() end
-    if frame.Text then frame.Text:Show() end; if frame.Spark then frame.Spark:Show() end
+    frame:SetAlpha(1)
+    frame:EnableMouse(true)
+    if frame.Icon        then frame.Icon:SetAlpha(1) end
+    if frame.Border      then frame.Border:SetAlpha(1) end
+    if frame.BorderShield then frame.BorderShield:SetAlpha(1) end
+    if frame.Flash       then frame.Flash:SetAlpha(1) end
+    if frame.Spark       then frame.Spark:SetAlpha(1) end
+    if frame.Text        then frame.Text:SetAlpha(1) end
+    -- Note: Blizzard's event registrations need /reload to fully restore, which is
+    -- standard behavior for addons that disable default UI frames (matches ElvUI, etc.).
 end
 function CB.HideBlizzardCastbar()
     for _, name in ipairs(BLIZZARD_CASTBAR_FRAMES) do KillFrame(_G[name]) end

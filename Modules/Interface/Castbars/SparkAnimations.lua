@@ -22,6 +22,13 @@ end
 
 SA.Styles = {}
 
+-- [PERF] Module-scope constant tables — hoisted out of style functions to avoid
+-- reallocating on every OnUpdate tick. Reassigning the locals inside each function
+-- to these module-level tables is effectively zero-cost (just a register copy).
+local COMET_POSITIONS = { 0.06, 0.13, 0.21, 0.32 }
+local HELIX_OFFSETS   = { -12, -24, -38, -56 }
+local HELIX_PHASES    = { 0, math_pi * 0.5, math_pi, math_pi * 1.5 }
+
 -- =====================================
 -- STYLE 1 : COMET
 -- =====================================
@@ -45,7 +52,7 @@ SA.Styles["Comet"] = function(spark, db, progress, barWidth, elapsed)
         glow:Show()
     end
 
-    local positions = { 0.06, 0.13, 0.21, 0.32 }
+    local positions = COMET_POSITIONS
     for i, tail in ipairs(tails) do
         local trailX = -(positions[i] * barWidth)
         local clampedX = math_max(trailX, -xPos)
@@ -124,8 +131,8 @@ SA.Styles["Helix"] = function(spark, db, progress, barWidth, elapsed)
         glow:Show()
     end
 
-    local xOffsets = { -12, -24, -38, -56 }
-    local phases   = { 0, math_pi / 2, math_pi, math_pi * 1.5 }
+    local xOffsets = HELIX_OFFSETS
+    local phases   = HELIX_PHASES
 
     for i, tail in ipairs(tails) do
         local trailX  = xOffsets[i]

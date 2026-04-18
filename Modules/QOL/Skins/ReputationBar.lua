@@ -52,17 +52,35 @@ local function GetStandingLabel(reaction)
 end
 
 -- =====================================
+-- =====================================
 -- SUPPRESS BLIZZARD REP BAR
 -- =====================================
+
+-- [TWW TAINT] MainStatusTrackingBarContainer and ReputationWatchBar are touched by
+-- Blizzard secure code (notably during UI scaling and keybind clearing). The pattern
+-- `hooksecurefunc(frame, "Show", function(self) self:Hide() end)` propagates taint
+-- because our insecure Hide() forces a state mismatch Blizzard's secure pipeline
+-- wasn't expecting.
+--
+-- Safe replacement: SetAlpha(0) from within the hook. The frame remains "shown"
+-- logically (no state mismatch for Blizzard), but is visually invisible.
+-- EnableMouse(false) prevents it from eating clicks.
+local _tmHiddenRepFrames = {}
 
 local function SuppressBlizzRepBar()
     local db = TomoModDB and TomoModDB.reputationBar
     if not db or not db.hideBlizzRepBar then return end
 
     local function tryHide(f)
-        if f and f.Hide then
-            hooksecurefunc(f, "Show", function(self) self:Hide() end)
-            f:Hide()
+        if not f or f._tmRepHidden then return end
+        f._tmRepHidden = true
+        f:SetAlpha(0)
+        if f.EnableMouse then f:EnableMouse(false) end
+        _tmHiddenRepFrames[#_tmHiddenRepFrames + 1] = f
+        if f.Show then
+            hooksecurefunc(f, "Show", function(self)
+                if self._tmRepHidden then self:SetAlpha(0) end
+            end)
         end
     end
 
@@ -72,7 +90,8 @@ local function SuppressBlizzRepBar()
 
     if StatusTrackingBarManager and StatusTrackingBarManager.UpdateBarsShown then
         hooksecurefunc(StatusTrackingBarManager, "UpdateBarsShown", function()
-            tryHide(_G["ReputationWatchBar"])
+            local f = _G["ReputationWatchBar"]
+            if f and f._tmRepHidden then f:SetAlpha(0) end
         end)
     end
 end

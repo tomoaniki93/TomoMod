@@ -1554,6 +1554,7 @@ end
 -- =====================================
 
 local _suppressing = false
+local _bagHider = nil  -- lazy-init hider frame for reparenting ContainerFrame1..13
 
 local function HideBlizzardBags()
     if _suppressing then return end
@@ -1586,14 +1587,22 @@ local function HookBlizzardBags()
     end
 
     -- Suppress individual bag frames
+    -- [TWW TAINT] ContainerFrame1..13 are protected frames (they hold usable items).
+    -- The previous `hooksecurefunc(cf, "Show", self:Hide())` pattern propagated taint
+    -- to secure inventory operations. Safe replacement: reparent each ContainerFrame
+    -- to a hidden frame — same approach already used for ContainerFrameCombinedBags
+    -- above. Blizzard still updates the frames normally; they just never render
+    -- because their parent is hidden. Zero hooks on Show, zero taint surface.
+    if not _bagHider then
+        _bagHider = CreateFrame("Frame")
+        _bagHider:Hide()
+    end
     for i = 1, 13 do
         local cf = _G["ContainerFrame" .. i]
-        if cf then
-            hooksecurefunc(cf, "Show", function(self)
-                if not _suppressing and IsEnabled() then
-                    _suppressing = true; self:Hide(); _suppressing = false
-                end
-            end)
+        if cf and not cf._tmReparented then
+            cf._tmReparented = true
+            cf._tmOrigParent = cf:GetParent()
+            cf:SetParent(_bagHider)
         end
     end
 

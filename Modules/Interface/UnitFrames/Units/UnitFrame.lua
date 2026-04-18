@@ -223,12 +223,16 @@ local function UpdateThreatText(frame, forcePreview)
         if lead then
             frame.threatText:SetFormattedText("+%1.0f%%", lead)
         else
-            local _, _, pct = UnitDetailedThreatSituation("player", unit)
-            frame.threatText:SetFormattedText("%1.0f%%", pct or 0)
+            -- [TWW TAINT] UnitDetailedThreatSituation 3rd return is a secret float.
+            -- SetFormattedText is C-side and safely unwraps, but `pct or 0` has an `or`
+            -- short-circuit that is technically Lua-side. pcall is a cheap belt-and-braces
+            -- in case Blizzard tightens secret-value handling further.
+            local ok, pct = pcall(function() return select(3, UnitDetailedThreatSituation("player", unit)) end)
+            frame.threatText:SetFormattedText("%1.0f%%", (ok and pct) or 0)
         end
     else
-        local _, _, pct = UnitDetailedThreatSituation("player", unit)
-        frame.threatText:SetFormattedText("%1.0f%%", pct or 0)
+        local ok, pct = pcall(function() return select(3, UnitDetailedThreatSituation("player", unit)) end)
+        frame.threatText:SetFormattedText("%1.0f%%", (ok and pct) or 0)
     end
 
     frame.threatText:Show()

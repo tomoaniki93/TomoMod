@@ -112,6 +112,19 @@ local DEBUFF_TYPE_COLORS = {
 }
 
 -- =====================================
+-- GROUP BUFF SPELL IDS (major class buffs)
+-- =====================================
+local GROUP_BUFF_SPELLS = {
+    [1459]   = true,  -- Mage: Arcane Intellect
+    [6673]   = true,  -- Warrior: Battle Shout
+    [1126]   = true,  -- Druid: Mark of the Wild
+    [21562]  = true,  -- Priest: Power Word: Fortitude
+    [462854] = true,  -- Shaman: Skyfury (Fureur-du-ciel)
+    [381732] = true,  -- Evoker: Blessing of the Bronze
+    [200025] = true,  -- Paladin: Beacon of Virtue (Guide de vertu)
+}
+
+-- =====================================
 -- FORMAT HEALTH TEXT
 -- =====================================
 local function FormatHealth(cur, max, fmt)
@@ -300,6 +313,21 @@ function PF.CreateFrame(index, unit)
         dispel:Hide()
         f.dispelHighlight = dispel
     end
+
+    -- ---- GROUP BUFF ICON ----
+    local gbIcon = CreateFrame("Frame", nil, content, "BackdropTemplate")
+    local gbSize = 14
+    gbIcon:SetSize(gbSize, gbSize)
+    gbIcon:SetPoint("LEFT", content, "LEFT", 2, 0)
+    gbIcon:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
+    gbIcon:SetBackdropBorderColor(0, 0, 0, 0.8)
+    local gbTex = gbIcon:CreateTexture(nil, "ARTWORK")
+    gbTex:SetPoint("TOPLEFT", 1, -1)
+    gbTex:SetPoint("BOTTOMRIGHT", -1, 1)
+    gbTex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    gbIcon.texture = gbTex
+    gbIcon:Hide()
+    f.groupBuff = gbIcon
 
     -- ---- HOT CONTAINER ----
     if db.showHoTs then
@@ -671,6 +699,31 @@ function PF.UpdateDispel(f)
 end
 
 -- =====================================
+-- UPDATE: GROUP BUFF ICON
+-- =====================================
+function PF.UpdateGroupBuff(f)
+    if not f or not f.groupBuff then return end
+    if not f.unit or not UnitExists(f.unit) then f.groupBuff:Hide(); return end
+
+    if C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
+        local idx = 1
+        while idx <= 40 do
+            local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, f.unit, idx, "HELPFUL")
+            if not ok or not aura then break end
+            local sid = aura.spellId
+            if sid and not issecretvalue(sid) and GROUP_BUFF_SPELLS[sid] then
+                f.groupBuff.texture:SetTexture(aura.icon)
+                f.groupBuff:Show()
+                return
+            end
+            idx = idx + 1
+        end
+    end
+
+    f.groupBuff:Hide()
+end
+
+-- =====================================
 -- FULL UPDATE (per frame)
 -- =====================================
 function PF.UpdateFrame(f)
@@ -683,15 +736,15 @@ function PF.UpdateFrame(f)
     PF.UpdateRole(f)
     PF.UpdateRaidMarker(f)
     PF.UpdateDispel(f)
+    PF.UpdateGroupBuff(f)
     -- HoTs and CDs are updated by their own modules
     if TomoMod_PartyHoTs then TomoMod_PartyHoTs.UpdateUnit(f) end
     if TomoMod_PartyCooldowns then TomoMod_PartyCooldowns.UpdateFrame(f) end
 end
 
 -- =====================================
--- RANGE CHECK (ticker)
+-- RANGE CHECK (event + timer fallback)
 -- =====================================
-local rangeTicker = nil
 
 function PF.UpdateRange(f)
     if not f or not f.unit then return end
@@ -702,23 +755,41 @@ function PF.UpdateRange(f)
     if f.unit == "player" then f:SetAlpha(1); return end
     if not UnitExists(f.unit) then f:SetAlpha(1); return end
 
-    local connected = UnitIsConnected(f.unit)
-    if connected and not issecretvalue(connected) and not connected then
+    -- Phased units are always out of range
+    if UnitPhaseReason and UnitPhaseReason(f.unit) then
         f:SetAlpha(db.oorAlpha or 0.40)
         return
     end
 
-    local visible = UnitIsVisible(f.unit)
-    if visible and not issecretvalue(visible) then
-        f:SetAlpha(visible and 1 or (db.oorAlpha or 0.40))
-    else
-        f:SetAlpha(1)
+    -- Disconnected units
+    local connected = UnitIsConnected(f.unit)
+    if not IsPlayerSpell and not connected then
+        f:SetAlpha(db.oorAlpha or 0.40)
+        return
     end
+
+    local inRange = UnitInRange(f.unit)
+    f:SetAlphaFromBoolean(inRange, 1, db.oorAlpha or 0.40)
 end
 
+local rangeEventFrame = nil
+local rangeTicker = nil
+
 function PF.StartRangeChecker()
-    if rangeTicker then return end
-    rangeTicker = C_Timer.NewTicker(0.2, function()
+    if rangeEventFrame then return end
+
+    -- Event-driven: instant response
+    rangeEventFrame = CreateFrame("Frame")
+    rangeEventFrame:RegisterEvent("UNIT_IN_RANGE_UPDATE")
+    rangeEventFrame:SetScript("OnEvent", function(_, _, unit)
+        local f = GetFrameForUnit(unit)
+        if f and f:IsShown() then
+            PF.UpdateRange(f)
+        end
+    end)
+
+    -- Timer fallback: catches edge cases (phased, disconnect, zone changes)
+    rangeTicker = C_Timer.NewTicker(0.5, function()
         local db = TomoModDB and TomoModDB.partyFrames
         if not db or not db.showRange then return end
         for _, f in pairs(PF.frames) do
@@ -727,10 +798,25 @@ function PF.StartRangeChecker()
             end
         end
     end)
+
+    -- Initial pass for all visible frames
+    for _, f in pairs(PF.frames) do
+        if f and f:IsShown() and f.unit then
+            PF.UpdateRange(f)
+        end
+    end
 end
 
 function PF.StopRangeChecker()
-    if rangeTicker then rangeTicker:Cancel(); rangeTicker = nil end
+    if rangeEventFrame then
+        rangeEventFrame:UnregisterAllEvents()
+        rangeEventFrame:SetScript("OnEvent", nil)
+        rangeEventFrame = nil
+    end
+    if rangeTicker then
+        rangeTicker:Cancel()
+        rangeTicker = nil
+    end
 end
 
 -- =====================================
@@ -873,6 +959,7 @@ local function OnEvent(self, event, arg1, ...)
         local f = GetFrameForUnit(arg1)
         if f then
             PF.UpdateDispel(f)
+            PF.UpdateGroupBuff(f)
             if TomoMod_PartyHoTs then TomoMod_PartyHoTs.UpdateUnit(f) end
         end
 
@@ -889,7 +976,11 @@ local function OnEvent(self, event, arg1, ...)
         for _, f in pairs(PF.frames) do
             if f then PF.UpdateRole(f) end
         end
-        PF.LayoutFrames()
+        if InCombatLockdown() then
+            PF._pendingLayout = true
+        else
+            PF.LayoutFrames()
+        end
 
     elseif event == "PLAYER_ENTERING_WORLD" then
         C_Timer.After(0.5, function()
@@ -901,6 +992,10 @@ local function OnEvent(self, event, arg1, ...)
         if PF._pendingRefresh then
             PF._pendingRefresh = nil
             PF.RefreshGroup()
+        end
+        if PF._pendingLayout then
+            PF._pendingLayout = nil
+            PF.LayoutFrames()
         end
     end
 end

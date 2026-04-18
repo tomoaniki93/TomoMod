@@ -459,10 +459,22 @@ function ABS.SetShiftReveal(val)
     local settings = GetSettings()
     if not settings then return end
     if val then
-        shiftRevealFrame:SetScript("OnUpdate", function()
-            local shift      = IsShiftKeyDown()
+        -- [PERF] This OnUpdate runs at 60 FPS and iterates all action bars to
+        -- apply alpha. We dirty-check (shift, inCombat) and skip the inner loop
+        -- when nothing changed — >95% of ticks in practice.
+        shiftRevealFrame._lastShift    = nil
+        shiftRevealFrame._lastInCombat = nil
+        shiftRevealFrame:SetScript("OnUpdate", function(self)
+            local shift    = IsShiftKeyDown()
+            local inCombat = UnitAffectingCombat("player")
+            if shift == self._lastShift and inCombat == self._lastInCombat then
+                return  -- early-out — identical state
+            end
+            self._lastShift    = shift
+            self._lastInCombat = inCombat
+
             local combatShow = settings.combatShow or {}
-            local inCombat   = UnitAffectingCombat("player")
+            local opacities  = settings.barOpacity or {}
             for _, bar in ipairs(BAR_DEFS) do
                 if combatShow[bar.barKey] then
                     -- combat-only bar: show in combat or when Shift held
@@ -472,12 +484,10 @@ function ABS.SetShiftReveal(val)
                         if btn then btn:SetAlpha(alpha) end
                     end
                 else
-                    local opacities = settings.barOpacity or {}
+                    local a = shift and 1 or ((opacities[bar.barKey] or 100) / 100)
                     for i = 1, bar.count do
                         local btn = _G[bar.prefix .. i]
-                        if btn then
-                            btn:SetAlpha(shift and 1 or ((opacities[bar.barKey] or 100) / 100))
-                        end
+                        if btn then btn:SetAlpha(a) end
                     end
                 end
             end

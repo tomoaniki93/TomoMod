@@ -852,21 +852,22 @@ local function GetUnitRole(unit)
 
     -- Fallback: detect NPC roles in follower dungeons
     if not UnitIsPlayer(unit) and IsFriendlyUnit(unit) and IsFollowerDungeon() then
-        -- Tank detection: NPC has high threat on something (isTanking flag)
-        local isTanking = UnitDetailedThreatSituation(unit, "target")
-        if isTanking then return "TANK" end
+        -- [TWW TAINT] UnitDetailedThreatSituation returns a secret float for scaledPct;
+        -- `scaledPct < 50` would throw "attempt to perform arithmetic on a secret value".
+        -- UnitThreatSituation returns a safe integer 0-3 (0=none, 1=higher threat than tank,
+        -- 2=tanking without aggro lock, 3=tanking with aggro lock). We can compare safely.
+        local threatStatus = UnitThreatSituation(unit, "target")
 
-        -- Healer detection: NPC is casting/channeling a healing spell
-        -- UnitCreatureType "Humanoid" NPCs that channel/cast on friendlies
-        -- Simplest heuristic: check if unit has mana and no melee weapon (healer archetype)
+        -- Tank: threatStatus >= 2 means the unit is currently holding aggro on its target
+        if threatStatus and threatStatus >= 2 then return "TANK" end
+
+        -- Healer detection: mana-using friendly NPC that isn't tanking
         local powerType = UnitPowerType(unit)
         if powerType == 0 then -- Mana user
             local maxPower = UnitPowerMax(unit, 0)
             if maxPower and maxPower > 0 then
-                -- Mana-using friendly NPC that isn't tanking → likely healer
-                -- Further check: threat situation is low (healers don't have aggro normally)
-                local _, _, scaledPct = UnitDetailedThreatSituation(unit, "target")
-                if not scaledPct or scaledPct < 50 then
+                -- Not tanking (threatStatus nil or < 2) → likely healer
+                if not threatStatus or threatStatus < 2 then
                     return "HEALER"
                 end
             end

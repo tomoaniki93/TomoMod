@@ -12,6 +12,7 @@ local issecretvalue = issecretvalue
 local UnitExists     = UnitExists
 local UnitHealth     = UnitHealth
 local UnitHealthMax  = UnitHealthMax
+local UnitHealthPercent = UnitHealthPercent
 local UnitName       = UnitName
 local UnitClass      = UnitClass
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
@@ -212,8 +213,15 @@ function AF.UpdateHealth(f)
     end
 
     if f.healthText then
-        local pct = (max > 0) and (cur / max * 100) or 0
-        f.healthText:SetFormattedText("%.0f%%", pct)
+        -- [TWW TAINT] Arena opponents are enemies → UnitHealth/UnitHealthMax return secret
+        -- values. Lua arithmetic (max>0, cur/max*100) throws "attempt to perform arithmetic
+        -- on a secret value". UnitHealthPercent is C-side and safely returns a 0-100 float.
+        local pct = UnitHealthPercent(f.unit)
+        if pct then
+            f.healthText:SetFormattedText("%.0f%%", pct)
+        else
+            f.healthText:SetText("")
+        end
     end
 end
 

@@ -439,8 +439,28 @@ function AT.ToggleLock()
         AT.anchor:SetScript("OnDragStop", function(self)
             self:StopMovingOrSizing()
             if db then
-                local point, _, relativePoint, x, y = self:GetPoint()
-                db.position = { point = point, relativePoint = relativePoint, x = x, y = y }
+                -- [DRAG] StartMoving can corrupt child frame anchors; GetPoint's
+                -- return value depends on the first anchor stored, which may have
+                -- shifted. Use GetLeft/GetBottom (screen-absolute coords) and re-anchor
+                -- relative to UIParent BOTTOMLEFT for a deterministic save.
+                local left   = self:GetLeft()
+                local bottom = self:GetBottom()
+                if left and bottom then
+                    local uiScale = UIParent:GetEffectiveScale()
+                    local sScale  = self:GetEffectiveScale()
+                    -- Convert self's coords (in its own scale) to UIParent's scale
+                    local x = (left   * sScale) / uiScale
+                    local y = (bottom * sScale) / uiScale
+                    db.position = {
+                        point         = "BOTTOMLEFT",
+                        relativePoint = "BOTTOMLEFT",
+                        x             = x,
+                        y             = y,
+                    }
+                    -- Re-anchor cleanly so future :GetPoint() also returns this.
+                    self:ClearAllPoints()
+                    self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, y)
+                end
             end
         end)
 

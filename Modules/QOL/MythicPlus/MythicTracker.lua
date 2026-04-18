@@ -1010,34 +1010,57 @@ local BLIZZARD_OT_MODULES = {
 
 TMT._blizzHooked   = false
 TMT._inChallenge   = false
+TMT._killedFrames  = {}  -- list of frames we've muted, for restore on /leave
 
-local function HookHide(frame)
+-- [TWW TAINT] The old `hooksecurefunc(frame, "Show", function(f) f:Hide() end)` pattern
+-- is a classic taint propagation vector. When Blizzard's secure code calls Show() and
+-- our insecure hook immediately calls Hide(), the ensuing "hidden while secure expected
+-- visible" state taints subsequent secure operations — particularly nasty in M+ where
+-- this module is active.
+--
+-- Safe replacement: SetAlpha(0) from within the hook. SetAlpha is a visual-only
+-- property (not protected), so writing to it from insecure code doesn't taint the
+-- secure state. The frame remains "shown" logically — Blizzard's secure code still
+-- sees it in the expected state — but is visually invisible to the player.
+
+-- Register the hook idempotently (InitBlizzardSuppress calls this at module init
+-- for defensive pre-hooking; the hook body is a no-op until _inChallenge=true).
+local function RegisterShowHook(frame)
     if not frame or frame._tmtHooked then return end
     frame._tmtHooked = true
-    frame:Hide()
     hooksecurefunc(frame, "Show", function(f)
-        if TMT._inChallenge then f:Hide() end
+        if TMT._inChallenge then f:SetAlpha(0) end
     end)
 end
 
-local function HookSetShown(frame)
-    if not frame or frame._tmtShownHooked then return end
-    frame._tmtShownHooked = true
-    hooksecurefunc(frame, "SetShown", function(f, val)
-        if TMT._inChallenge and val then f:Hide() end
-    end)
+-- Actively mute the frame and record it for later restore.
+local function MuteFrame(frame)
+    if not frame or frame._tmtMuted then return end
+    frame._tmtMuted = true
+    frame._tmtOrigAlpha = frame:GetAlpha() or 1
+    frame:SetAlpha(0)
+    if frame.EnableMouse then frame:EnableMouse(false) end
+    TMT._killedFrames[#TMT._killedFrames + 1] = frame
 end
+
+-- Combined: mute now + ensure Show hook is registered (used by SuppressBlizzardUI).
+local function HookHide(frame)
+    if not frame then return end
+    RegisterShowHook(frame)
+    MuteFrame(frame)
+end
+
+-- HookSetShown removed — SetShown(true) calls Show() internally, so the Show hook
+-- above covers it. One hook is enough and reduces taint surface area.
 
 local function SuppressOTModules()
     local OT = ObjectiveTrackerFrame
     if not OT then return end
     HookHide(OT)
-    HookSetShown(OT)
     for _, modKey in ipairs(BLIZZARD_OT_MODULES) do
         local mod = OT[modKey]
         if mod then
             HookHide(mod)
-            HookSetShown(mod)
             if mod.Header   then HookHide(mod.Header) end
             if mod.contents then HookHide(mod.contents) end
         end
@@ -1075,28 +1098,40 @@ end
 
 function TMT:RestoreBlizzardUI()
     TMT._inChallenge = false
+    -- Restore alpha and mouse on all frames we muted during the challenge.
+    -- We don't remove the Show hooks (they're permanent for the session), but
+    -- with _inChallenge=false their body is a no-op.
+    for i = 1, #TMT._killedFrames do
+        local f = TMT._killedFrames[i]
+        if f then
+            f:SetAlpha(f._tmtOrigAlpha or 1)
+            if f.EnableMouse then f:EnableMouse(true) end
+            f._tmtMuted = nil  -- allow re-muting on next challenge
+        end
+    end
+    -- Clear list — next challenge will repopulate via MuteFrame.
+    for i = #TMT._killedFrames, 1, -1 do
+        TMT._killedFrames[i] = nil
+    end
 end
 
 function TMT:InitBlizzardSuppress()
     if TMT._blizzHooked then return end
     TMT._blizzHooked = true
 
+    -- [TAINT] Pre-register the Show hooks at module init but do NOT mute these frames
+    -- yet — they should remain fully visible out of M+. The hook body is gated on
+    -- _inChallenge=true, so it's a no-op until SuppressBlizzardUI is called.
+    -- ObjectiveTrackerFrame and ScenarioObjectiveTracker are routinely touched by
+    -- Blizzard secure code during M+, so never call Hide() from these hooks.
     if ObjectiveTrackerFrame then
-        hooksecurefunc(ObjectiveTrackerFrame, "Show", function(f)
-            if TMT._inChallenge then f:Hide() end
-        end)
+        RegisterShowHook(ObjectiveTrackerFrame)
     end
-
     if UIWidgetBelowMinimapContainerFrame then
-        hooksecurefunc(UIWidgetBelowMinimapContainerFrame, "Show", function(f)
-            if TMT._inChallenge then f:Hide() end
-        end)
+        RegisterShowHook(UIWidgetBelowMinimapContainerFrame)
     end
-
     if ScenarioObjectiveTracker then
-        hooksecurefunc(ScenarioObjectiveTracker, "Show", function(f)
-            if TMT._inChallenge then f:Hide() end
-        end)
+        RegisterShowHook(ScenarioObjectiveTracker)
     end
 end
 

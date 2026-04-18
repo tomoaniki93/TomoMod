@@ -12,8 +12,10 @@
 local L               = TomoMod_L
 local ADDON_FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local ADDON_FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
-local TEX_RING        = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Ring"
-local TEX_ARROW       = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\arrow_right"
+local TEX_RING        = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Waypoint\\Ring"
+local TEX_ARROW       = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Waypoint\\arrow"
+local TEX_BEAM_ATLAS  = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Waypoint\\Waypoint"
+local TEX_BEAM_MASK   = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Waypoint\\Mask-Beam"
 local TEX_SOLID       = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\solid"
 
 -- ── Palette (matches TomoMod teal) ───────────────────────────────────
@@ -23,8 +25,8 @@ local WR, WG, WB = 0.92,  0.94,  0.92   -- near-white text
 -- ── Layout ───────────────────────────────────────────────────────────
 local BEACON_SIZE    = 32     -- icon diameter (px, default; DB overrides)
 local BEACON_GLOW    = 56     -- outer glow ring
-local BEAM_W         = 5      -- beam strip width
-local BEAM_H         = 280    -- beam strip height
+local BEAM_W         = 8      -- beam strip width
+local BEAM_H         = 500    -- beam strip height
 local ARROW_SIZE     = 38     -- navigator arrow
 local ORBIT_DEFAULT  = 175    -- px from screen centre to arrow (at zoom ~35)
 local CLAMP_EDGE     = 0.06   -- fraction of screen from edge = "clamped"
@@ -69,22 +71,45 @@ BeaconIcon:SetVertexColor(TR, TG, TB, 0.90)
 
 -- Teal dot at the very centre
 local BeaconDot = Beacon:CreateTexture(nil, "OVERLAY")
-BeaconDot:SetSize(6, 6)
+BeaconDot:SetSize(4, 4)
 BeaconDot:SetPoint("CENTER")
-BeaconDot:SetColorTexture(1, 1, 1, 0.85)
+BeaconDot:SetColorTexture(TR, TG, TB, 0.90)
 
--- Beam: vertical strip below the icon, fades to transparent at bottom
-local Beam = Root:CreateTexture(nil, "BACKGROUND")
-Beam:SetSize(BEAM_W, BEAM_H)
--- Position is updated dynamically (see UpdateBeam)
-Beam:SetVertexColor(TR, TG, TB, 0.55)
-Beam:Hide()
+-- Beam: vertical pillar of light extending upward from icon (atlas from Waypoint.blp)
+local BeamFrame = CreateFrame("Frame", nil, Root)
+BeamFrame:SetSize(50, 500)
+BeamFrame:SetFrameLevel(2)
+BeamFrame:Hide()
 
--- Beam gradient achieved with a second texture (alpha 0 at top)
-local BeamFade = Root:CreateTexture(nil, "BACKGROUND")
-BeamFade:SetSize(BEAM_W, BEAM_H)
-BeamFade:SetColorTexture(0, 0, 0, 0)  -- transparent overlay; used to mask bottom
-BeamFade:Hide()
+-- Mask texture: soft edges + top fade (from Mask-Beam.blp)
+local BeamMask = BeamFrame:CreateMaskTexture()
+BeamMask:SetAllPoints()
+BeamMask:SetTexture(TEX_BEAM_MASK)
+
+-- Main beam texture (atlas sub-region: 693-843 x 0-1024)
+local Beam = BeamFrame:CreateTexture(nil, "ARTWORK")
+Beam:SetAllPoints()
+Beam:SetTexture(TEX_BEAM_ATLAS)
+Beam:SetTexCoord(693/1024, 843/1024, 0, 1)
+Beam:SetBlendMode("ADD")
+Beam:SetVertexColor(TR, TG, TB, 0.50)
+Beam:AddMaskTexture(BeamMask)
+
+-- FX overlay: scrolling shimmer (atlas sub-region: 896-1024 x 0-1024)
+local BeamFX = BeamFrame:CreateTexture(nil, "ARTWORK", nil, 1)
+BeamFX:SetAllPoints()
+BeamFX:SetTexture(TEX_BEAM_ATLAS)
+BeamFX:SetTexCoord(896/1024, 1, 0, 1)
+BeamFX:SetBlendMode("ADD")
+BeamFX:SetVertexColor(TR, TG, TB, 0.30)
+BeamFX:AddMaskTexture(BeamMask)
+
+-- FX scroll animation (scrolls upward continuously, 5s cycle)
+local beamFXAnimGroup = BeamFX:CreateAnimationGroup()
+beamFXAnimGroup:SetLooping("REPEAT")
+local beamFXScroll = beamFXAnimGroup:CreateAnimation("Translation")
+beamFXScroll:SetOffset(0, 750)
+beamFXScroll:SetDuration(5)
 
 -- Destination name text
 local NameText = CreateFrame("Frame", nil, Root)
@@ -137,11 +162,27 @@ NavDistFS:SetPoint("TOP", Navigator, "BOTTOM", 0, -2)
 -- ══ State ════════════════════════════════════════════════════════════
 
 local navFrame       = nil   -- C_Navigation.GetFrame()
+local navFrameHidden = false -- whether we hid the Blizzard navFrame icon
 local sessionName    = nil   -- destination label
 local currentMode    = "HIDDEN"  -- "HIDDEN" | "WAYPOINT" | "NAVIGATOR"
 local isActive       = false
 local tickTimer      = 0
 local waypointMapID  = nil   -- mapID of the active waypoint (for zone check)
+
+-- Hide/show Blizzard's navigation frame icon so our custom beacon is visible
+local function HideBlizzardNavFrame()
+    if navFrame and not navFrameHidden then
+        navFrame:SetAlpha(0)
+        navFrameHidden = true
+    end
+end
+
+local function ShowBlizzardNavFrame()
+    if navFrame and navFrameHidden then
+        navFrame:SetAlpha(1)
+        navFrameHidden = false
+    end
+end
 
 -- ArrivalTime (moving-average ETA)
 local atLastDist   = nil
@@ -221,12 +262,9 @@ local function AnchorBeacon()
     if not navFrame then return end
     Beacon:ClearAllPoints()
     Beacon:SetPoint("CENTER", navFrame, "CENTER")
-    -- Beam starts at bottom of icon and extends down
-    Beam:ClearAllPoints()
-    Beam:SetPoint("TOP", navFrame, "CENTER", 0, -BEACON_SIZE * 0.5)
-    BeamFade:ClearAllPoints()
-    BeamFade:SetPoint("TOP", Beam, "TOP")
-    BeamFade:SetSize(BEAM_W, BEAM_H)
+    -- Beam frame extends upward from icon
+    BeamFrame:ClearAllPoints()
+    BeamFrame:SetPoint("BOTTOM", navFrame, "CENTER", 0, BEACON_SIZE * 0.5)
     -- Name + dist below beacon
     NameText:ClearAllPoints()
     NameText:SetPoint("TOP", navFrame, "CENTER", 0, -(BEACON_SIZE * 0.5 + 4))
@@ -296,24 +334,30 @@ function WP.SetMode(mode)
     currentMode = mode
 
     if mode == "WAYPOINT" then
+        HideBlizzardNavFrame()
         Root:Show()
         Beacon:Show()
-        Beam:Show()
+        BeamFrame:Show()
+        beamFXAnimGroup:Play()
         NameText:Show()
         DistText:Show()
         Navigator:Hide()
         navCurrX, navCurrY, navCurrAngle = 0, 0, 0  -- reset smoothing
     elseif mode == "NAVIGATOR" then
+        HideBlizzardNavFrame()
         Root:Show()
         Beacon:Hide()
-        Beam:Hide()
+        BeamFrame:Hide()
+        beamFXAnimGroup:Stop()
         NameText:Hide()
         DistText:Hide()
         Navigator:Show()
     else  -- HIDDEN
+        ShowBlizzardNavFrame()
         Root:Hide()
         Beacon:Hide()
-        Beam:Hide()
+        BeamFrame:Hide()
+        beamFXAnimGroup:Stop()
         NameText:Hide()
         DistText:Hide()
         Navigator:Hide()
@@ -418,8 +462,12 @@ EL:RegisterEvent("NAVIGATION_FRAME_DESTROYED")
 EL:SetScript("OnEvent", function(_, event)
     if event == "NAVIGATION_FRAME_CREATED" then
         navFrame = GetNavFrameSafe()
-        if isActive and navFrame then AnchorBeacon() end
+        if isActive and navFrame then
+            HideBlizzardNavFrame()
+            AnchorBeacon()
+        end
     elseif event == "NAVIGATION_FRAME_DESTROYED" then
+        ShowBlizzardNavFrame()
         navFrame = nil
     else
         CheckActive()
@@ -565,8 +613,10 @@ function WP.ApplySettings()
 
     BeaconGlow:SetVertexColor(r, g, b, 0.30)
     BeaconIcon:SetVertexColor(r, g, b, 0.90)
+    BeaconDot:SetColorTexture(r, g, b, 0.90)
     NavArrow:SetVertexColor(r, g, b, 1)
-    Beam:SetVertexColor(r, g, b, 0.55)
+    Beam:SetVertexColor(r, g, b, 0.50)
+    BeamFX:SetVertexColor(r, g, b, 0.30)
     DistFS:SetTextColor(r, g, b, 1)
 
     -- Shape: ring or arrow

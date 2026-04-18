@@ -1718,6 +1718,30 @@ end
 -- SKIN STYLE BUILDERS
 -- =====================================
 
+-- [PERF] Each of the 4 skin builders (TUI, Classic, Glass, Minimal) attaches an
+-- OnUpdate to `container` that re-anchors and resizes it to match ChatFrame1 every
+-- frame. Without dirty-check, that's 5+ frame API calls at 60 FPS even when the
+-- chat window hasn't moved or resized — which is >99% of the time.
+--
+-- This helper wraps the pattern: it caches ChatFrame1's width+height, compares on
+-- each tick, and only runs the updater when something actually changed. It also
+-- keeps the re-anchor call inside the updater (not run every tick) because
+-- SetPoint anchors auto-follow position changes — re-anchoring is only needed
+-- to recover from our own state being cleared.
+local function AttachChatFollowOnUpdate(container, updater)
+    container._cf1w = -1  -- force first run
+    container._cf1h = -1
+    container:SetScript("OnUpdate", function(self)
+        if not ChatFrame1 then return end
+        local w = ChatFrame1:GetWidth()
+        local h = ChatFrame1:GetHeight()
+        if w == self._cf1w and h == self._cf1h then return end  -- [PERF] early-out
+        self._cf1w = w
+        self._cf1h = h
+        updater(self, w, h)
+    end)
+end
+
 -- Skin: TUI (current sidebar + window textures)
 local function ApplySkin_TUI(container, T, s)
     -- Sidebar texture
@@ -1760,14 +1784,13 @@ local function ApplySkin_TUI(container, T, s)
     SetupSideBarIcons(container, container.sidebar)
 
     -- OnUpdate: follow ChatFrame1
-    container:SetScript("OnUpdate", function(self)
-        if not ChatFrame1 then return end
+    AttachChatFollowOnUpdate(container, function(self, w, h)
         self:ClearAllPoints()
-        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -25, 25)
-        self:SetHeight(ChatFrame1:GetHeight() + 55)
-        self:SetWidth(ChatFrame1:GetWidth() + 40)
-        self.sidebar:SetHeight(ChatFrame1:GetHeight() + 30)
-        self.window:SetSize(ChatFrame1:GetWidth() + 10, ChatFrame1:GetHeight() - 20)
+        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -22, 25)
+        self:SetHeight(h + 55)
+        self:SetWidth(w + 40)
+        self.sidebar:SetHeight(h + 30)
+        self.window:SetSize(w + 10, h - 20)
     end)
 end
 
@@ -1820,12 +1843,11 @@ local function ApplySkin_Classic(container, T, s)
     end
 
     -- OnUpdate: follow ChatFrame1
-    container:SetScript("OnUpdate", function(self)
-        if not ChatFrame1 then return end
+    AttachChatFollowOnUpdate(container, function(self, w, h)
         self:ClearAllPoints()
         self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -6, 18)
-        self:SetHeight(ChatFrame1:GetHeight() + 30)
-        self:SetWidth(ChatFrame1:GetWidth() + 12)
+        self:SetHeight(h + 30)
+        self:SetWidth(w + 12)
     end)
 end
 
@@ -1888,12 +1910,11 @@ local function ApplySkin_Glass(container, T, s)
         if icon then icon:Hide() end
     end
 
-    container:SetScript("OnUpdate", function(self)
-        if not ChatFrame1 then return end
+    AttachChatFollowOnUpdate(container, function(self, w, h)
         self:ClearAllPoints()
         self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -4, 14)
-        self:SetHeight(ChatFrame1:GetHeight() + 22)
-        self:SetWidth(ChatFrame1:GetWidth() + 8)
+        self:SetHeight(h + 22)
+        self:SetWidth(w + 8)
     end)
 end
 
@@ -1933,12 +1954,11 @@ local function ApplySkin_Minimal(container, T, s)
         if icon then icon:Hide() end
     end
 
-    container:SetScript("OnUpdate", function(self)
-        if not ChatFrame1 then return end
+    AttachChatFollowOnUpdate(container, function(self, w, h)
         self:ClearAllPoints()
         self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -2, 14)
-        self:SetHeight(ChatFrame1:GetHeight() + 18)
-        self:SetWidth(ChatFrame1:GetWidth() + 4)
+        self:SetHeight(h + 18)
+        self:SetWidth(w + 4)
     end)
 end
 

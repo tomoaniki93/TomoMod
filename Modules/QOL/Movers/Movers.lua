@@ -10,6 +10,14 @@ TomoMod_Movers = TomoMod_Movers or {}
 local M = TomoMod_Movers
 local L  -- assigned in Initialize
 
+-- [PERF] Hoist math functions used in the grid-flashlight OnUpdate (line ~455).
+-- That OnUpdate is throttled to ~20 FPS, but still iterates many grid lines and
+-- calls sqrt/abs/min/max per segment — no reason to re-localize them each tick.
+local math_sqrt = math.sqrt
+local math_abs  = math.abs
+local math_min  = math.min
+local math_max  = math.max
+
 -- =====================================
 -- STATE
 -- =====================================
@@ -436,10 +444,8 @@ local function CreateGridOverlay()
         local R2     = LIGHT_RADIUS * LIGHT_RADIUS
         local gIdx   = 0
         local lc     = self._lineCount or #self._lines
-        local sqrt2  = math.sqrt
-        local abs2   = math.abs
-        local min2   = math.min
-        local max2   = math.max
+        -- [PERF] math_sqrt/abs/min/max are now hoisted to module scope — see top of file.
+        local sqrt2, abs2, min2, max2 = math_sqrt, math_abs, math_min, math_max
 
         for i = 1, lc do
             local tex = self._lines[i]
