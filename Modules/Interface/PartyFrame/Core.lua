@@ -24,6 +24,7 @@ local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local UnitGetTotalAbsorbs    = UnitGetTotalAbsorbs
 local UnitIsVisible    = UnitIsVisible
 local GetRaidTargetIndex = GetRaidTargetIndex
+local GetReadyCheckStatus = GetReadyCheckStatus
 local IsInGroup        = IsInGroup
 local IsInRaid         = IsInRaid
 local GetNumGroupMembers = GetNumGroupMembers
@@ -171,6 +172,16 @@ function PF.CreateFrame(index, unit)
     f:RegisterForClicks("AnyUp")
     RegisterUnitWatch(f)
 
+    -- Tooltip on hover
+    f:SetScript("OnEnter", function(self)
+        GameTooltip_SetDefaultAnchor(GameTooltip, self)
+        GameTooltip:SetUnit(self.unit)
+        GameTooltip:Show()
+    end)
+    f:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+
     -- Backdrop (dark background)
     f:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8X8",
@@ -289,14 +300,31 @@ function PF.CreateFrame(index, unit)
 
     -- ---- RAID MARKER ----
     if db.showRaidMarker then
-        local marker = content:CreateTexture(nil, "OVERLAY")
+        local markerFrame = CreateFrame("Frame", nil, content)
         local mSize = db.raidMarkerSize or 16
-        marker:SetSize(mSize, mSize)
-        marker:SetPoint("TOP", content, "TOP", 0, -2)
-        marker:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons")
-        marker:Hide()
-        f.raidMarker = marker
+        markerFrame:SetSize(mSize, mSize)
+        markerFrame:SetPoint("TOP", f, "TOP", 0, 2)
+        markerFrame:SetFrameLevel(content:GetFrameLevel() + 5)
+        markerFrame:Hide()
+        local markerTex = markerFrame:CreateTexture(nil, "OVERLAY")
+        markerTex:SetAllPoints()
+        markerTex:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons")
+        markerTex:SetDrawLayer("OVERLAY", 6)
+        markerFrame.texture = markerTex
+        f.raidMarker = markerFrame
     end
+
+    -- ---- READY CHECK ICON ----
+    local rcFrame = CreateFrame("Frame", nil, content)
+    rcFrame:SetSize(db.readyCheckSize or 24, db.readyCheckSize or 24)
+    rcFrame:SetPoint("CENTER", f, "CENTER", 0, 0)
+    rcFrame:SetFrameLevel(content:GetFrameLevel() + 5)
+    rcFrame:Hide()
+    local rcTex = rcFrame:CreateTexture(nil, "OVERLAY")
+    rcTex:SetAllPoints()
+    rcTex:SetDrawLayer("OVERLAY", 7)
+    rcFrame.texture = rcTex
+    f.readyCheck = rcFrame
 
     -- ---- DISPEL HIGHLIGHT ----
     if db.showDispel then
@@ -646,17 +674,55 @@ end
 -- =====================================
 function PF.UpdateRaidMarker(f)
     if not f or not f.raidMarker then return end
-    if not UnitExists(f.unit) then f.raidMarker:Hide(); return end
+    if not f.unit or not UnitExists(f.unit) then f.raidMarker:Hide(); return end
 
-    local idx = GetRaidTargetIndex(f.unit)
-    if issecretvalue(idx) then f.raidMarker:Hide(); return end
-    if idx and raidIconCoords[idx] then
-        local c = raidIconCoords[idx]
-        f.raidMarker:SetTexCoord(c[1], c[2], c[3], c[4])
+    local ok, idx = pcall(GetRaidTargetIndex, f.unit)
+    if not ok then f.raidMarker:Hide(); return end
+    if issecretvalue(idx) then
+        -- Midnight secret path: try SetRaidTargetIconTexture via pcall
+        pcall(SetRaidTargetIconTexture, f.raidMarker.texture, idx)
+        f.raidMarker:Show()
+        return
+    end
+    if idx and SetRaidTargetIconTexture then
+        SetRaidTargetIconTexture(f.raidMarker.texture, idx)
         f.raidMarker:Show()
     else
         f.raidMarker:Hide()
     end
+end
+
+-- =====================================
+-- UPDATE: READY CHECK
+-- =====================================
+function PF.UpdateReadyCheck(f)
+    if not f or not f.readyCheck then return end
+    if not f.unit or not UnitExists(f.unit) then f.readyCheck:Hide(); return end
+
+    local status = GetReadyCheckStatus(f.unit)
+    if status == "ready" then
+        f.readyCheck.texture:SetTexture("Interface\\RaidFrame\\ReadyCheck-Ready")
+        f.readyCheck:Show()
+    elseif status == "notready" then
+        f.readyCheck.texture:SetTexture("Interface\\RaidFrame\\ReadyCheck-NotReady")
+        f.readyCheck:Show()
+    elseif status == "waiting" then
+        f.readyCheck.texture:SetTexture("Interface\\RaidFrame\\ReadyCheck-Waiting")
+        f.readyCheck:Show()
+    else
+        f.readyCheck:Hide()
+    end
+end
+
+function PF.FinishReadyCheck()
+    -- Keep icons visible for 6 seconds after check finishes, then hide
+    C_Timer.After(6, function()
+        for _, f in pairs(PF.frames) do
+            if f and f.readyCheck then
+                f.readyCheck:Hide()
+            end
+        end
+    end)
 end
 
 -- =====================================
@@ -774,6 +840,14 @@ end
 
 local rangeEventFrame = nil
 local rangeTicker = nil
+
+-- Forward-declared: also defined in EVENT HANDLER section
+local function GetFrameForUnit(unit)
+    for _, f in pairs(PF.frames) do
+        if f and f.unit == unit then return f end
+    end
+    return nil
+end
 
 function PF.StartRangeChecker()
     if rangeEventFrame then return end
@@ -921,13 +995,6 @@ end
 -- =====================================
 local eventFrame = CreateFrame("Frame")
 
-local function GetFrameForUnit(unit)
-    for _, f in pairs(PF.frames) do
-        if f and f.unit == unit then return f end
-    end
-    return nil
-end
-
 local function OnEvent(self, event, arg1, ...)
     if not PF.initialized then return end
 
@@ -967,6 +1034,14 @@ local function OnEvent(self, event, arg1, ...)
         for _, f in pairs(PF.frames) do
             if f then PF.UpdateRaidMarker(f) end
         end
+
+    elseif event == "READY_CHECK" or event == "READY_CHECK_CONFIRM" then
+        for _, f in pairs(PF.frames) do
+            if f then PF.UpdateReadyCheck(f) end
+        end
+
+    elseif event == "READY_CHECK_FINISHED" then
+        PF.FinishReadyCheck()
 
     elseif event == "GROUP_ROSTER_UPDATE" or event == "PARTY_MEMBER_ENABLE"
         or event == "PARTY_MEMBER_DISABLE" then
@@ -1168,6 +1243,9 @@ function PF.Initialize()
     eventFrame:RegisterEvent("UNIT_NAME_UPDATE")
     eventFrame:RegisterEvent("UNIT_AURA")
     eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
+    eventFrame:RegisterEvent("READY_CHECK")
+    eventFrame:RegisterEvent("READY_CHECK_CONFIRM")
+    eventFrame:RegisterEvent("READY_CHECK_FINISHED")
     eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
     eventFrame:RegisterEvent("PARTY_MEMBER_ENABLE")
     eventFrame:RegisterEvent("PARTY_MEMBER_DISABLE")

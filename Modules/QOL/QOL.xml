@@ -98,6 +98,9 @@
     <Include file="AuraTracker\SpellDB.lua" />
     <Include file="AuraTracker\AuraTracker.lua" />
 
+    <!-- Modules: Diagnostics (Error Capture & Report — /tmdiag) -->
+    <Include file="Diagnostics\Diagnostics.lua" />
+
     <!-- Modules: Movers (Layout System — doit être en dernier) -->
     <Include file="Movers\Movers.lua" />
 

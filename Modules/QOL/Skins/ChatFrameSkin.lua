@@ -874,7 +874,7 @@ local function GetPFlag(specialFlag, zoneChannelID, unitGUID)
         end
     end
 
-    if unitGUID then
+    if unitGUID and not issecretvalue(unitGUID) then
         if C_ChatInfo.IsTimerunningPlayer and C_ChatInfo.IsTimerunningPlayer(unitGUID) then
             flag = flag .. format("|A:timerunning-glues-icon-small:%s:%s:0:0|a ", 12, 10)
         end
@@ -1279,6 +1279,7 @@ local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg
                 frame:AddMessage(format(globalstring, arg8, ResolvePrefixedChannelName(arg4)), info.r, info.g, info.b, info.id, accessID, typeID, nil, nil, nil, isHistory, historyTime)
             end
         elseif chatType == "BN_INLINE_TOAST_ALERT" then
+            if issecretvalue(arg1) then return end
             local globalstring = _G["BN_INLINE_TOAST_" .. arg1]
             if not globalstring then return end
             local message

@@ -263,47 +263,44 @@ local function ApplyBuffSkin()
 end
 
 -- =====================================
--- FRAME HIDING (inchangé, taint-safe)
+-- FRAME HIDING — taint-safe (SetAlpha approach)
+-- Uses SetAlpha(0) + EnableMouse(false) instead of Hide() to
+-- prevent taint propagation on EditMode-managed frames.
+-- Same pattern as ReputationBar, MythicTracker, Castbar fixes.
 -- =====================================
 
-local _hidingPendingRegen = false
+local function HideFrameSafe(frame)
+    frame:SetAlpha(0)
+    if frame.EnableMouse then frame:EnableMouse(false) end
+end
+
+local function ShowFrameSafe(frame)
+    frame:SetAlpha(1)
+    if frame.EnableMouse then frame:EnableMouse(true) end
+end
 
 local function ApplyFrameHiding()
-    if InCombatLockdown() then
-        if not _hidingPendingRegen then
-            _hidingPendingRegen = true
-            local f = CreateFrame("Frame")
-            f:RegisterEvent("PLAYER_REGEN_ENABLED")
-            f:SetScript("OnEvent", function(self)
-                self:UnregisterEvent("PLAYER_REGEN_ENABLED")
-                _hidingPendingRegen = false
-                ApplyFrameHiding()
-            end)
-        end
-        return
-    end
-
     local s = S()
 
     if BuffFrame then
-        if s.hideBuffFrame then BuffFrame:Hide() else BuffFrame:Show() end
+        if s.hideBuffFrame then HideFrameSafe(BuffFrame) else ShowFrameSafe(BuffFrame) end
         if not buffHookDone then
             buffHookDone = true
-            hooksecurefunc(BuffFrame, "Show", function(self)
+            hooksecurefunc(BuffFrame, "Update", function()
                 C_Timer.After(0, function()
-                    if S().hideBuffFrame then self:Hide() end
+                    if S().hideBuffFrame then HideFrameSafe(BuffFrame) end
                 end)
             end)
         end
     end
 
     if DebuffFrame then
-        if s.hideDebuffFrame then DebuffFrame:Hide() else DebuffFrame:Show() end
+        if s.hideDebuffFrame then HideFrameSafe(DebuffFrame) else ShowFrameSafe(DebuffFrame) end
         if not debuffHookDone then
             debuffHookDone = true
-            hooksecurefunc(DebuffFrame, "Show", function(self)
+            hooksecurefunc(DebuffFrame, "Update", function()
                 C_Timer.After(0, function()
-                    if S().hideDebuffFrame then self:Hide() end
+                    if S().hideDebuffFrame then HideFrameSafe(DebuffFrame) end
                 end)
             end)
         end

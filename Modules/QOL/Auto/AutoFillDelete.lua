@@ -104,7 +104,7 @@ local function HookStaticPopups()
         if not DELETE_POPUPS[which] then return end
 
         C_Timer.After(0.1, function()
-            for i = 1, STATICPOPUP_NUMDIALOGS do
+            for i = 1, (STATICPOPUP_NUMDIALOGS or 4) do
                 local dialog = _G["StaticPopup" .. i]
                 if dialog and dialog:IsShown() and dialog.which == which then
                     TryAutoFill(dialog)
