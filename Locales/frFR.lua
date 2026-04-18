@@ -14,6 +14,7 @@ TomoMod_RegisterLocale("frFR", {
     ["cat_qol"]             = "Qualité de vie",
     ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Profils",
+    ["cat_diagnostics"]     = "Diagnostics",
 
     -- =====================
     -- CONFIG: General Panel
@@ -1276,8 +1277,40 @@ TomoMod_RegisterLocale("frFR", {
     ["btn_abs_unlock"]               = "D\195\169verrouiller les barres",
     ["info_abs_unlock"]              = "D\195\169verrouillez les barres pour faire appara\195\174tre les poign\195\169es de d\195\169placement.\nClic droit sur une poign\195\169e pour configurer une barre individuellement.",
     ["section_bar_quick"]            = "Param\195\168tres rapides",
+    ["btn_abs_layout"]               = "Mode Layout (/tm layout)",
+    ["info_abs_layout"]              = "Utilisez le mode Layout pour d\195\169placer les barres.\nGlissez les overlays pour repositionner.",
     ["tab_abs_skin"]                 = "Skin des boutons",
     ["tab_abs_bars"]                 = "Gestion des barres",
+    -- Per-bar config
+    ["opt_bar_enabled"]              = "Activ\195\169e",
+    ["opt_bar_orientation"]          = "Orientation",
+    ["opt_bar_grow_dir"]             = "Direction de croissance",
+    ["opt_bar_columns"]              = "Colonnes",
+    ["opt_bar_button_size"]          = "Taille des boutons",
+    ["opt_bar_spacing"]              = "Espacement",
+    ["opt_bar_alpha"]                = "Alpha",
+    ["opt_bar_scale"]                = "\195\137chelle",
+    ["opt_bar_display_cond"]         = "Condition d'affichage",
+    ["opt_bar_fade"]                 = "Activer le fondu",
+    ["opt_bar_fade_out_alpha"]       = "Alpha en fondu",
+    ["opt_bar_fade_out_delay"]       = "D\195\169lai avant fondu",
+    ["opt_bar_fade_out_dur"]         = "Dur\195\169e du fondu sortant",
+    ["opt_bar_fade_in_dur"]          = "Dur\195\169e du fondu entrant",
+    ["opt_bar_click_through"]        = "Clic traversant",
+    ["opt_bar_show_empty"]           = "Afficher les boutons vides",
+    ["opt_bar_show_hotkey"]          = "Afficher les raccourcis",
+    ["opt_bar_disabled"]             = "D\195\169sactiv\195\169e",
+    -- Bar names
+    ["bar_name_bar1"]                = "Barre 1 (Principale)",
+    ["bar_name_bar2"]                = "Barre 2",
+    ["bar_name_bar3"]                = "Barre 3",
+    ["bar_name_bar4"]                = "Barre 4",
+    ["bar_name_bar5"]                = "Barre 5",
+    ["bar_name_bar6"]                = "Barre 6",
+    ["bar_name_bar7"]                = "Barre 7",
+    ["bar_name_bar8"]                = "Barre 8",
+    ["bar_name_pet"]                 = "Barre du familier",
+    ["bar_name_stance"]              = "Barre de postures",
     -- General panel
     ["btn_relaunch_installer"]       = "Relancer l'installeur",
     ["info_relaunch_installer"]      = "Lance l'assistant de configuration en 12 \195\169tapes.",
@@ -1709,4 +1742,20 @@ TomoMod_RegisterLocale("frFR", {
     ["bt_miss_evade"]                    = "Évasion",
     ["bt_miss_deflect"]                  = "Dévié",
     ["bt_miss_reflect"]                  = "Reflété",
+
+    -- =====================
+    -- CONFIG: Panneau Diagnostics
+    -- =====================
+    ["section_diagnostics"]              = "Diagnostics",
+    ["opt_diag_enabled"]                 = "Activer la capture d'erreurs",
+    ["opt_diag_capture_all"]             = "Capturer tous les addons",
+    ["opt_diag_suppress_popups"]         = "Supprimer les popups d'erreur",
+    ["opt_diag_auto_open"]               = "Ouvrir auto. si erreur TomoMod",
+    ["btn_diag_open_console"]            = "Ouvrir la console",
+    ["btn_diag_clear"]                   = "Effacer les erreurs",
+    ["btn_diag_export"]                  = "Copier le rapport",
+    ["btn_diag_export_tracker"]          = "Exporter pour le Tracker",
+    ["info_diag_desc"]                   = "Capture les erreurs Lua en arrière-plan sans popup en combat. Tapez /tmdiag pour ouvrir la console.",
+    ["info_diag_session"]                = "Session : #%d — %d erreurs capturées (%d TomoMod)",
+    ["info_diag_capture_all_desc"]       = "Quand désactivé, seules les erreurs TomoMod sont capturées. Activez pour capturer toutes les erreurs d'addons.",
 })

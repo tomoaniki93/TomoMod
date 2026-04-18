@@ -127,31 +127,19 @@ TomoMod_Defaults = {
         enabled = false,
         skinStyle = "classic",
         useClassColor = true,
+    },
+    actionBars = {
+        enabled = true,
         shiftReveal = false,
-        barOpacity = {
-            ActionButton           = 100,
-            MultiBarBottomLeft     = 100,
-            MultiBarBottomRight    = 100,
-            MultiBarRight          = 100,
-            MultiBarLeft           = 100,
-            MultiBar5              = 100,
-            MultiBar6              = 100,
-            MultiBar7              = 100,
-            PetActionButton        = 100,
-            StanceButton           = 100,
-        },
-        combatShow = {
-            ActionButton           = false,
-            MultiBarBottomLeft     = false,
-            MultiBarBottomRight    = false,
-            MultiBarRight          = false,
-            MultiBarLeft           = false,
-            MultiBar5              = false,
-            MultiBar6              = false,
-            MultiBar7              = false,
-            PetActionButton        = false,
-            StanceButton           = false,
-        },
+        bars = {},       -- per-bar overrides (lazy-filled by ActionBars.lua)
+        positions = {},  -- per-bar saved positions
+    },
+    diagnostics = {
+        enabled = false,
+        captureAll = false,
+        suppressPopups = true,
+        autoOpenOnError = false,
+        sessionCount = 0,
     },
     autoSummon = {
         enabled = false,

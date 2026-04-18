@@ -1,5 +1,82 @@
 ## ####################################
 
+## CHANGELOG 2.9.3 — PartyFrame Polish, Taint Fixes & Diagnostics Hardening
+
+#### Party Frames — Bug Fixes & New Features
+- **GetFrameForUnit nil fix** — `local function GetFrameForUnit` was declared after its first use in `StartRangeChecker`; Lua does not hoist local functions — moved declaration before first call, eliminating 58 errors/minute on `UNIT_IN_RANGE_UPDATE`
+- **Raid marker rewrite** — Refactored from plain texture to Frame+texture child structure with `SetFrameLevel(content + 5)` and `SetDrawLayer("OVERLAY", 6)`; uses `SetRaidTargetIconTexture()` (Blizzard helper) instead of manual `SetTexCoord`; `pcall`-wrapped `GetRaidTargetIndex` for Midnight secret value safety
+- **Ready check icons (new)** — Frame+texture at `OVERLAY` sublevel 7, centered on each party frame; `UpdateReadyCheck()` queries `GetReadyCheckStatus(unit)` and displays Ready (green check) / Waiting (yellow ?) / Not Ready (red X); icons persist 6 seconds after `READY_CHECK_FINISHED` then auto-hide; events: `READY_CHECK`, `READY_CHECK_CONFIRM`, `READY_CHECK_FINISHED`
+- **Tooltip on hover** — Added `OnEnter`/`OnLeave` scripts with `GameTooltip:SetUnit()` on each `SecureUnitButtonTemplate` frame — previously no tooltip was shown when hovering party members
+
+#### ActionBars — Runtime Fixes
+- **Bars 1–4 interactivity fix** — Removed `btn:UnregisterAllEvents()` from `HideBlizzardBar` which killed button event handlers; added `btn:Show()` after reparenting to ensure buttons remain visible
+- **Show Empty Buttons fix** — Implemented `showgrid=32` attribute approach (ElvUI pattern): Blizzard's `ACTIONBAR_SHOWGRID`/`HIDEGRID` counter cycles 33→32→33, never reaching 0; when disabled, reset to 0 to let `HasAction` visibility take over
+- **Spacing slider** — Was already functional, appeared broken due to bars 1–4 not being interactive
+
+#### Chat Frame Skin — Midnight Taint Fixes
+- **Secret GUID guard** — `unitGUID` passed to `C_ChatInfo.IsTimerunningPlayer` / `C_RecentAllies.IsRecentAllyByGUID` in `GetPFlag` could be a Midnight secret value — added `issecretvalue(unitGUID)` check
+- **Secret BN toast guard** — `arg1` in `BN_INLINE_TOAST_ALERT` handler used as `_G["BN_INLINE_TOAST_" .. arg1]` table index — added `issecretvalue(arg1)` early return
+- **SetTextInsets removed** — `SetTextInsets` does not exist on `ScrollingMessageFrame` (ChatFrame1), only on `EditBox` — removed the call that caused a nil method error
+
+#### Diagnostics Console — Exclusion Hardening
+- **Pattern-based exclusion** — GlobalStrings containing `%s`/`%d`/`%1$s` format tokens are now converted to Lua patterns via `FormatToPattern()` and matched against incoming UI errors (previously only exact string matches worked)
+- **Keyword substring fallback** — 40+ lowercase keyword substrings covering 6 locales (EN, FR, DE, ES, IT, PT) for messages that don't have matching GlobalString keys: stunned, disoriented, in the air, too far, out of range, currency cap, friendly target, dice roll, impossible, can't do yet
+- **pcall-protected matching** — `string.find` in the pattern loop is wrapped in `pcall` to prevent a malformed pattern from crashing the entire filter chain
+- **New excluded keys** — `ERR_MAIL_DATABASE_ERROR`, `ERR_CURRENCY_LIMIT_REACHED_S`, `ERR_LOOT_CURRENCY_S_QUANTITY_OVERFLOW`
+
+#### AutoFillDelete — Midnight Fix
+- **STATICPOPUP_NUMDIALOGS nil** — Global removed in Midnight 12.x; replaced with `(STATICPOPUP_NUMDIALOGS or 4)` fallback
+
+## ####################################
+
+## CHANGELOG 2.9.2 — ActionBar Rewrite & Diagnostics Console
+
+#### ActionBars v4.0.0 — Complete Rewrite
+- **Container-based architecture** — Each bar (bar1–bar8, pet, stance) is a `SecureHandlerStateTemplate` container with Blizzard buttons reparented into it
+- **Shared BAR_DEFS** — Single source of truth for all action bar files (`AB.BAR_DEFS`), eliminating 4× duplicated bar definitions
+- **Grid Layout Engine** — Per-bar configurable columns, spacing, buttonSize, orientation (H/V), growDirection (4 directions), with pixel snapping
+- **Bar1 Paging** — Restricted Lua `_childupdate-offset` for taint-free stance/vehicle/override page switching
+- **Vehicle/Override SecureHandler** — `tomo-user-shown` attribute + `RegisterStateDriver` for petbattle/vehicle/override visibility gating
+- **Position Persistence** — Drag-to-reposition with automatic save to `TomoModDB.actionBars.positions`
+- **Mover Integration** — All bars registered with `TomoMod_Movers.RegisterEntry()` for unified layout mode (`/tm layout`)
+- **Fade System** — Per-bar fade with smoothstep interpolation, configurable delays/durations, SpellFlyout awareness, cooldown spark suppression at alpha 0
+- **Display Conditions** — 8 macro-conditional presets (always, combat, shift, ctrl, alt, combat+shift, group, hostile) via `RegisterStateDriver`
+- **Click-Through** — Per-bar toggle
+- **Shift Reveal** — Global Shift-held override for faded bars
+- **Combat Deferred Queue** — Protected operations queued and flushed on `PLAYER_REGEN_ENABLED`
+
+#### ActionBarSkin v4.0.0 — Unified with New System
+- **Uses AB.BAR_DEFS** — No more duplicate bar definitions; iterates `AB.GetButtons(id)` for skinning
+- **Removed duplicate systems** — barOpacity, combatShow, shiftReveal, vehicle handling all now in ActionBars.lua
+- **Added `ReskinBar(id)`** — Per-bar reskin function called from `AB.RefreshBar()`
+- **Boot timing** — 1.0s delay to let containers initialize before skinning
+
+#### Config Panel v4.0.0
+- **Tab 1 (Skin)** — Streamlined: skin enable, style, class color, shift reveal
+- **Tab 2 (Bars)** — Per-bar cards showing columns/spacing/size/alpha/scale + feature badges (Fade, Click-through, Condition)
+- **Layout mode** — Opens unified Movers system instead of custom unlock/lock
+
+#### Database Updates
+- **New `actionBars` entry** — `{ enabled, shiftReveal, bars = {}, positions = {} }`
+- **Cleaned `actionBarSkin`** — Removed obsolete `barOpacity`, `combatShow`, `shiftReveal` (migrated to `actionBars`)
+
+#### Diagnostics Console v1.0.0 — New Module
+- **Background error capture** — `seterrorhandler()` hook captures Lua errors with stack traces and locals
+- **5 capture sources** — Lua errors, `ADDON_ACTION_FORBIDDEN`/`BLOCKED` taint events, `LUA_WARNING`, `UI_ERROR_MESSAGE`, manual `D.LogDebug()`
+- **Zero combat popups** — `ScriptErrorsFrame` suppression (Hide + no-op Show + HookScript OnShow)
+- **Flood control** — 30 captures/sec limit with dropped-count warning injection
+- **Dedup** — Same error within 2s window increments count instead of duplicating
+- **FIFO pruning** — Max 500 stored entries with oldest-first eviction
+- **Re-entry & stack overflow guards** — `inHandler` flag + skips `debugstack()`/`debuglocals()` on stack overflow
+- **Console UI** — Dark themed 700×500 frame with filter bar (All/Errors/Taint/Warnings/TomoMod), expandable stack traces
+- **Export: Readable** — Human-friendly prose report with environment snapshot and loaded addons list
+- **Export: Tracker** — Structured `@@TOMOMOD_DIAG@@`/`@@END@@` delimited format with `[env]`/`[addons]`/`[error N/M]` blocks and heredoc `msg<<<...>>>`/`stack<<<...>>>`/`locals<<<...>>>` for tracker-tomomod.onkoz.fr
+- **Config panel** — Enable/disable, capture-all toggle, suppress popups, auto-open on TomoMod error
+- **Slash commands** — `/tmdiag` (toggle), `/tmdiag clear`, `/tmdiag export`, `/tmdiag tracker`, `/tmdiag on`, `/tmdiag off`
+- **Public API** — `D.ShowConsole()`, `D.LogDebug(msg)`, `D.LogDebugSource(source, msg)`, `D.GetErrorCount()`, `D.GetTomoModErrorCount()`
+
+## ####################################
+
 ## CHANGELOG 2.9.1 — Midnight Compatibility & Fixes
 
 #### TWW / Midnight Taint Fixes
@@ -25,6 +102,8 @@
 - **BagSkin** — Replaced `hooksecurefunc(cf, "Show", → Hide())` with reparenting ContainerFrame1..13 under hidden frame to prevent taint on protected inventory frames
 - **MythicTracker** — Replaced `Hide()` with `SetAlpha(0)` on ObjectiveTrackerFrame/ScenarioObjectiveTracker + added proper restore on M+ end to prevent taint propagation
 - **Castbar** — Replaced `frame:Hide()` / `OnShow → Hide` with `SetAlpha(0) + EnableMouse(false)` in HideBlizzCastbar/RestoreBlizzCastbar to prevent taint
+- **BuffSkin** — Replaced `hooksecurefunc(BuffFrame/DebuffFrame, "Show", → Hide())` with `SetAlpha(0) + EnableMouse(false)` via `HideFrameSafe`/`ShowFrameSafe` helpers; hook changed from `"Show"` to `"Update"` to avoid tainting EditMode-managed frames (`ClearTarget()` ADDON_ACTION_FORBIDDEN)
+- **ActionBarSkin** — Removed `hooksecurefunc(button, "SetButtonState")` and `button:HookScript("OnUpdate")` which tainted secure action buttons; replaced with a single external polling frame (`_tmRangeFrame`) for range-check coloring and pushed state, preventing `SetAttribute()` ADDON_ACTION_BLOCKED on `MultiBarLeftButton1` etc.
 
 #### Performance Optimizations
 - **ActionBarSkin** — Dirty-check `(shift, inCombat)` in Shift Reveal OnUpdate; skips ~95% of identical ticks at 60 FPS

@@ -14,6 +14,7 @@ TomoMod_RegisterLocale("enUS", {
     ["cat_qol"]             = "QOL / Auto",
     ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Profiles",
+    ["cat_diagnostics"]     = "Diagnostics",
 
     -- =====================
     -- CONFIG: General Panel
@@ -1299,8 +1300,40 @@ TomoMod_RegisterLocale("enUS", {
     ["btn_abs_unlock"]               = "Unlock bars",
     ["info_abs_unlock"]              = "Unlock bars to reveal drag handles.\nRight-click a handle to configure a bar individually.",
     ["section_bar_quick"]            = "Quick settings",
+    ["btn_abs_layout"]               = "Layout Mode (/tm layout)",
+    ["info_abs_layout"]              = "Use Layout mode to move bars.\nDrag the overlays to reposition.",
     ["tab_abs_skin"]                 = "Button skin",
     ["tab_abs_bars"]                 = "Bar management",
+    -- Per-bar config
+    ["opt_bar_enabled"]              = "Enabled",
+    ["opt_bar_orientation"]          = "Orientation",
+    ["opt_bar_grow_dir"]             = "Grow direction",
+    ["opt_bar_columns"]              = "Columns",
+    ["opt_bar_button_size"]          = "Button size",
+    ["opt_bar_spacing"]              = "Spacing",
+    ["opt_bar_alpha"]                = "Alpha",
+    ["opt_bar_scale"]                = "Scale",
+    ["opt_bar_display_cond"]         = "Display condition",
+    ["opt_bar_fade"]                 = "Enable fade",
+    ["opt_bar_fade_out_alpha"]       = "Fade-out alpha",
+    ["opt_bar_fade_out_delay"]       = "Fade-out delay",
+    ["opt_bar_fade_out_dur"]         = "Fade-out duration",
+    ["opt_bar_fade_in_dur"]          = "Fade-in duration",
+    ["opt_bar_click_through"]        = "Click-through",
+    ["opt_bar_show_empty"]           = "Show empty buttons",
+    ["opt_bar_show_hotkey"]          = "Show hotkey text",
+    ["opt_bar_disabled"]             = "Disabled",
+    -- Bar names
+    ["bar_name_bar1"]                = "Bar 1 (Main)",
+    ["bar_name_bar2"]                = "Bar 2",
+    ["bar_name_bar3"]                = "Bar 3",
+    ["bar_name_bar4"]                = "Bar 4",
+    ["bar_name_bar5"]                = "Bar 5",
+    ["bar_name_bar6"]                = "Bar 6",
+    ["bar_name_bar7"]                = "Bar 7",
+    ["bar_name_bar8"]                = "Bar 8",
+    ["bar_name_pet"]                 = "Pet Bar",
+    ["bar_name_stance"]              = "Stance Bar",
     -- General panel
     ["btn_relaunch_installer"]       = "Relaunch installer",
     ["info_relaunch_installer"]      = "Launches the 12-step setup wizard.",
@@ -1730,4 +1763,20 @@ TomoMod_RegisterLocale("enUS", {
     ["bt_miss_evade"]                    = "Evade",
     ["bt_miss_deflect"]                  = "Deflect",
     ["bt_miss_reflect"]                  = "Reflect",
+
+    -- =====================
+    -- CONFIG: Diagnostics Panel
+    -- =====================
+    ["section_diagnostics"]              = "Diagnostics",
+    ["opt_diag_enabled"]                 = "Enable Error Capture",
+    ["opt_diag_capture_all"]             = "Capture All Addons",
+    ["opt_diag_suppress_popups"]         = "Suppress Error Popups",
+    ["opt_diag_auto_open"]               = "Auto-Open on TomoMod Error",
+    ["btn_diag_open_console"]            = "Open Console",
+    ["btn_diag_clear"]                   = "Clear Errors",
+    ["btn_diag_export"]                  = "Copy Report",
+    ["btn_diag_export_tracker"]          = "Export for Tracker",
+    ["info_diag_desc"]                   = "Captures Lua errors in the background with zero combat popups. Use /tmdiag to toggle the console.",
+    ["info_diag_session"]                = "Session: #%d — %d errors captured (%d TomoMod)",
+    ["info_diag_capture_all_desc"]       = "When disabled, only TomoMod errors are captured. Enable to capture all addon errors.",
 })

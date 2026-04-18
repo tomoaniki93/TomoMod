@@ -1,38 +1,14 @@
--- =====================================
--- Config/Panels/ActionBars.lua v3.0.0
--- Action bars: Skin style + per-bar management via tabs
+﻿-- =====================================
+-- Config/Panels/ActionBars.lua v4.0.0
+-- Unified action bars: Skin style + per-bar settings
+-- Uses AB.BAR_DEFS as single source of truth.
 -- =====================================
 
 local L = TomoMod_L
 local W = TomoMod_Widgets
 
--- Bar list for skin opacity tab (matches ActionBarSkin BAR_DEFS barKeys)
-local BAR_LIST = {
-    { value = "ActionButton",          text = "Action Bar 1" },
-    { value = "MultiBarBottomLeft",    text = "Action Bar 2 (BL)" },
-    { value = "MultiBarBottomRight",   text = "Action Bar 3 (BR)" },
-    { value = "MultiBarRight",         text = "Action Bar 4 (Right)" },
-    { value = "MultiBarLeft",          text = "Action Bar 5 (Left)" },
-    { value = "MultiBar5",             text = "Action Bar 6" },
-    { value = "MultiBar6",             text = "Action Bar 7" },
-    { value = "MultiBar7",             text = "Action Bar 8" },
-    { value = "PetActionButton",       text = "Pet Bar" },
-    { value = "StanceButton",          text = "Stance Bar" },
-}
-
--- Bar management list (matches ActionBars.lua BAR_DEFS ids/names)
-local BARS_MGT = {
-    { id = "bar1",   name = "Action Bar 1" },
-    { id = "bar2",   name = "Action Bar 2 (BL)" },
-    { id = "bar3",   name = "Action Bar 3 (BR)" },
-    { id = "bar4",   name = "Action Bar 4 (Right)" },
-    { id = "bar5",   name = "Action Bar 5 (Left)" },
-    { id = "bar6",   name = "Action Bar 6" },
-    { id = "bar7",   name = "Action Bar 7" },
-    { id = "bar8",   name = "Action Bar 8" },
-    { id = "pet",    name = "Pet Bar" },
-    { id = "stance", name = "Stance Bar" },
-}
+local FONT_MEDIUM = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local FONT_SEMI   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 
 local SKIN_STYLES_LIST = {
     { value = "classic",  text = "Classic (9-slice)" },
@@ -42,6 +18,32 @@ local SKIN_STYLES_LIST = {
     { value = "minimal",  text = "Minimal (sans bordure)" },
 }
 
+local ORIENTATION_LIST = {
+    { value = "horizontal", text = "Horizontal" },
+    { value = "vertical",   text = "Vertical" },
+}
+
+local GROW_DIR_LIST = {
+    { value = "rightdown", text = "Droite + Bas" },
+    { value = "rightup",   text = "Droite + Haut" },
+    { value = "leftdown",  text = "Gauche + Bas" },
+    { value = "leftup",    text = "Gauche + Haut" },
+}
+
+-- Build display condition dropdown from presets
+local function GetConditionList()
+    local list = {}
+    local AB = TomoMod_ActionBars
+    if AB and AB.DISPLAY_PRESETS then
+        for _, p in ipairs(AB.DISPLAY_PRESETS) do
+            list[#list + 1] = { value = p.condition, text = p.label }
+        end
+    else
+        list[1] = { value = "", text = "always" }
+    end
+    return list
+end
+
 -- =====================================================================
 -- TAB 1 — SKIN STYLE
 -- =====================================================================
@@ -50,7 +52,6 @@ local function BuildSkinTab(parent)
     local c = scroll.child
     local y = -10
 
-    -- ===== Skin Enable =====
     local _, ny = W.CreateSectionHeader(c, L["section_action_bars"] or "Action Bar Skin", y)
     y = ny
 
@@ -62,7 +63,6 @@ local function BuildSkinTab(parent)
     end)
     y = ny
 
-    -- ===== Skin Style dropdown =====
     local _, ny = W.CreateDropdown(c, L["opt_abs_style"] or "Style visuel", SKIN_STYLES_LIST,
         TomoModDB.actionBarSkin.skinStyle or "classic", y, function(v)
             TomoModDB.actionBarSkin.skinStyle = v
@@ -70,7 +70,6 @@ local function BuildSkinTab(parent)
         end)
     y = ny
 
-    -- ===== Color options =====
     local _, ny = W.CreateCheckbox(c, L["opt_abs_class_color"] or "Couleur de bordure = couleur de classe",
         TomoModDB.actionBarSkin.useClassColor, y, function(v)
             TomoModDB.actionBarSkin.useClassColor = v
@@ -78,68 +77,15 @@ local function BuildSkinTab(parent)
         end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_abs_shift_reveal"] or "Maintenir Shift pour voir les barres cachées",
-        TomoModDB.actionBarSkin.shiftReveal or false, y, function(v)
-            TomoModDB.actionBarSkin.shiftReveal = v
-            if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.SetShiftReveal(v) end
+    -- Shift reveal (now on actionBars)
+    if not TomoModDB.actionBars then TomoModDB.actionBars = {} end
+    local _, ny = W.CreateCheckbox(c, L["opt_abs_shift_reveal"] or "Maintenir Shift pour voir les barres cachees",
+        TomoModDB.actionBars.shiftReveal or false, y, function(v)
+            TomoModDB.actionBars.shiftReveal = v
+            local AB = TomoMod_ActionBars
+            if AB and AB.SetShiftReveal then AB.SetShiftReveal(v) end
         end)
     y = ny
-
-    -- ===== Per-Bar Opacity =====
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSectionHeader(c, L["section_bar_opacity"] or "Opacité par barre", y)
-    y = ny
-
-    if not TomoModDB.actionBarSkin.barOpacity then TomoModDB.actionBarSkin.barOpacity = {} end
-    if not TomoModDB.actionBarSkin.combatShow  then TomoModDB.actionBarSkin.combatShow  = {} end
-
-    local selectedBar = BAR_LIST[1].value
-    local opacitySlider
-    local combatCheck
-
-    local _, ny = W.CreateDropdown(c, L["opt_abs_bar_select"] or "Barre à configurer", BAR_LIST, selectedBar, y, function(barKey)
-        selectedBar = barKey
-        if opacitySlider then
-            opacitySlider:SetValue(TomoModDB.actionBarSkin.barOpacity[barKey] or 100)
-        end
-        if combatCheck then
-            combatCheck:SetChecked(TomoModDB.actionBarSkin.combatShow[barKey] or false)
-        end
-    end)
-    y = ny
-
-    local sl, ny = W.CreateSlider(c, L["opt_abs_opacity"] or "Opacité", TomoModDB.actionBarSkin.barOpacity[selectedBar] or 100,
-        0, 100, 5, y, function(v)
-            TomoModDB.actionBarSkin.barOpacity[selectedBar] = v
-            if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.ApplyBarOpacity(selectedBar, v) end
-        end, "%d%%")
-    y = ny
-    opacitySlider = sl
-
-    -- Apply all
-    local _, ny = W.CreateButton(c, L["btn_abs_apply_all"] or "Appliquer à toutes les barres", 260, y, function()
-        local val = opacitySlider:GetValue()
-        for _, bar in ipairs(BAR_LIST) do
-            TomoModDB.actionBarSkin.barOpacity[bar.value] = val
-            if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.ApplyBarOpacity(bar.value, val) end
-        end
-    end)
-    y = ny
-
-    -- ===== Combat visibility =====
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["opt_abs_combat_only_label"] or "Affichage seulement en combat :", y)
-    y = ny
-
-    local cbF, ny = W.CreateCheckbox(c, L["opt_abs_combat_only"] or "Barre visible en combat seulement",
-        TomoModDB.actionBarSkin.combatShow[selectedBar] or false, y, function(v)
-            TomoModDB.actionBarSkin.combatShow[selectedBar] = v
-            if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.ApplyCombatShow() end
-        end)
-    y = ny
-    combatCheck = cbF
 
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
@@ -147,141 +93,316 @@ local function BuildSkinTab(parent)
 end
 
 -- =====================================================================
--- TAB 2 — BAR MANAGEMENT
+-- TAB 2 — BAR MANAGEMENT (collapsible per-bar sections)
 -- =====================================================================
+
+-- Helper: get localized bar display name
+local function GetBarDisplayName(id)
+    local nameKey = "bar_name_" .. id
+    local localized = L[nameKey]
+    if localized and localized ~= nameKey then return localized end
+    return id:sub(1,1):upper() .. id:sub(2)
+end
+
+-- Helper: apply a single bar setting change and refresh
+local function SetBarVal(id, key, val)
+    if not TomoModDB.actionBars then return end
+    if not TomoModDB.actionBars.bars then TomoModDB.actionBars.bars = {} end
+    if not TomoModDB.actionBars.bars[id] then TomoModDB.actionBars.bars[id] = {} end
+    TomoModDB.actionBars.bars[id][key] = val
+    local AB = TomoMod_ActionBars
+    if AB and AB.RefreshBar then AB.RefreshBar(id) end
+end
+
+-- Accent color helper
+local ACCENT_R, ACCENT_G, ACCENT_B = 0.047, 0.824, 0.624
+local HEADER_H = 30
+local HEADER_GAP = 2
+
+-- Build the content widgets for a single bar inside a parent frame.
+-- Returns the total content height.
+local function BuildBarContent(contentFrame, id, barDB)
+    local AB = TomoMod_ActionBars
+    local cy = -6
+
+    -- Enabled checkbox
+    local _, cny = W.CreateCheckbox(contentFrame, L["opt_bar_enabled"], barDB.enabled ~= false, cy, function(v)
+        SetBarVal(id, "enabled", v)
+    end)
+    cy = cny
+
+    -- Orientation dropdown
+    local _, cny = W.CreateDropdown(contentFrame, L["opt_bar_orientation"], ORIENTATION_LIST,
+        barDB.orientation or "horizontal", cy, function(v)
+            SetBarVal(id, "orientation", v)
+        end)
+    cy = cny
+
+    -- Grow direction dropdown
+    local _, cny = W.CreateDropdown(contentFrame, L["opt_bar_grow_dir"], GROW_DIR_LIST,
+        barDB.growDirection or "rightdown", cy, function(v)
+            SetBarVal(id, "growDirection", v)
+        end)
+    cy = cny
+
+    -- Columns slider
+    local _, cny = W.CreateSlider(contentFrame, L["opt_bar_columns"],
+        barDB.columns or 12, 1, 12, 1, cy, function(v)
+            SetBarVal(id, "columns", v)
+        end, "%.0f")
+    cy = cny
+
+    -- Button size slider
+    local _, cny = W.CreateSlider(contentFrame, L["opt_bar_button_size"],
+        barDB.buttonSize or 36, 20, 64, 1, cy, function(v)
+            SetBarVal(id, "buttonSize", v)
+        end, "%.0f px")
+    cy = cny
+
+    -- Spacing slider
+    local _, cny = W.CreateSlider(contentFrame, L["opt_bar_spacing"],
+        barDB.spacing or 2, 0, 12, 1, cy, function(v)
+            SetBarVal(id, "spacing", v)
+        end, "%.0f px")
+    cy = cny
+
+    -- Alpha slider
+    local _, cny = W.CreateSlider(contentFrame, L["opt_bar_alpha"],
+        (barDB.alpha or 1) * 100, 0, 100, 5, cy, function(v)
+            SetBarVal(id, "alpha", v / 100)
+        end, "%.0f%%")
+    cy = cny
+
+    -- Scale slider
+    local _, cny = W.CreateSlider(contentFrame, L["opt_bar_scale"],
+        (barDB.scale or 1) * 100, 50, 200, 5, cy, function(v)
+            SetBarVal(id, "scale", v / 100)
+        end, "%.0f%%")
+    cy = cny
+
+    -- Display condition dropdown
+    local _, cny = W.CreateDropdown(contentFrame, L["opt_bar_display_cond"], GetConditionList(),
+        barDB.displayCondition or "", cy, function(v)
+            SetBarVal(id, "displayCondition", v)
+            if AB and AB.UpdateDisplayCondition then AB.UpdateDisplayCondition(id) end
+        end)
+    cy = cny
+
+    -- Fade section
+    local _, cny = W.CreateCheckbox(contentFrame, L["opt_bar_fade"], barDB.fadeEnabled or false, cy, function(v)
+        SetBarVal(id, "fadeEnabled", v)
+    end)
+    cy = cny
+
+    if barDB.fadeEnabled then
+        local _, cny2 = W.CreateSlider(contentFrame, L["opt_bar_fade_out_alpha"],
+            (barDB.fadeOutAlpha or 0) * 100, 0, 100, 5, cy, function(v)
+                SetBarVal(id, "fadeOutAlpha", v / 100)
+            end, "%.0f%%")
+        cy = cny2
+
+        local _, cny2 = W.CreateSlider(contentFrame, L["opt_bar_fade_out_delay"],
+            barDB.fadeOutDelay or 0.5, 0, 3, 0.1, cy, function(v)
+                SetBarVal(id, "fadeOutDelay", v)
+            end, "%.1fs")
+        cy = cny2
+
+        local _, cny2 = W.CreateSlider(contentFrame, L["opt_bar_fade_out_dur"],
+            barDB.fadeOutDuration or 0.3, 0.05, 1, 0.05, cy, function(v)
+                SetBarVal(id, "fadeOutDuration", v)
+            end, "%.2fs")
+        cy = cny2
+
+        local _, cny2 = W.CreateSlider(contentFrame, L["opt_bar_fade_in_dur"],
+            barDB.fadeInDuration or 0.2, 0.05, 1, 0.05, cy, function(v)
+                SetBarVal(id, "fadeInDuration", v)
+            end, "%.2fs")
+        cy = cny2
+    end
+
+    -- Click-through
+    local _, cny = W.CreateCheckbox(contentFrame, L["opt_bar_click_through"], barDB.clickThrough or false, cy, function(v)
+        SetBarVal(id, "clickThrough", v)
+    end)
+    cy = cny
+
+    -- Show empty buttons
+    local _, cny = W.CreateCheckbox(contentFrame, L["opt_bar_show_empty"], barDB.showEmptyButtons or false, cy, function(v)
+        SetBarVal(id, "showEmptyButtons", v)
+    end)
+    cy = cny
+
+    -- Show hotkey text
+    local _, cny = W.CreateCheckbox(contentFrame, L["opt_bar_show_hotkey"], barDB.showHotkeyText ~= false, cy, function(v)
+        SetBarVal(id, "showHotkeyText", v)
+    end)
+    cy = cny
+
+    return math.abs(cy) + 10
+end
+
 local function BuildManagementTab(parent)
+    local AB = TomoMod_ActionBars
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
     local y = -10
 
-    local _, ny = W.CreateSectionHeader(c, L["section_bar_management"] or "Gestion des barres d'action", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_bar_management"], y)
     y = ny
 
-    -- Unlock / Lock all button
-    local unlockBtn, ny = W.CreateButton(c, L["btn_abs_unlock"] or "Déverrouiller les barres", 240, y, function()
-        if TomoMod_ActionBars then
-            if TomoMod_ActionBars.IsUnlocked() then
-                TomoMod_ActionBars.LockAll()
-            else
-                TomoMod_ActionBars.UnlockAll()
-            end
+    -- Layout mode button
+    local _, ny = W.CreateButton(c, L["btn_abs_layout"], 260, y, function()
+        if TomoMod_Movers and TomoMod_Movers.Toggle then
+            TomoMod_Movers.Toggle()
         end
     end)
     y = ny
 
-    local _, ny = W.CreateInfoText(c,
-        L["info_abs_unlock"] or "Déverrouillez les barres pour faire apparaître les poignées de déplacement.\nClic droit sur une poignée pour configurer une barre individuellement.", y)
+    local _, ny = W.CreateInfoText(c, L["info_abs_layout"], y)
     y = ny
 
-    -- Per-bar quick settings cards
-    local _, ny = W.CreateSectionHeader(c, L["section_bar_quick"] or "Paramètres rapides", y)
-    y = ny
+    local defs = (AB and AB.BAR_DEFS) or {}
+    if not TomoModDB.actionBars then TomoModDB.actionBars = {} end
+    if not TomoModDB.actionBars.bars then TomoModDB.actionBars.bars = {} end
 
-    if not TomoModDB.actionBars then TomoModDB.actionBars = { bars = {} } end
-    TomoModDB.actionBars.bars = TomoModDB.actionBars.bars or {}
+    -- We collect all section data to allow re-layout on expand/collapse
+    local sections = {}
 
-    for _, def in ipairs(BARS_MGT) do
-        -- Ensure DB entry
-        TomoModDB.actionBars.bars[def.id] = TomoModDB.actionBars.bars[def.id] or {}
-        local db = TomoModDB.actionBars.bars[def.id]
-        if db.alpha           == nil then db.alpha           = 1.0 end
-        if db.scale           == nil then db.scale           = 1.0 end
-        if db.fade            == nil then db.fade            = false end
-        if db.showHotkey      == nil then db.showHotkey      = true end
-        if db.showMacro       == nil then db.showMacro       = true end
-        if db.showCount       == nil then db.showCount       = true end
-        if db.clickThrough    == nil then db.clickThrough    = false end
-        if db.displayCondition == nil then db.displayCondition = "" end
+    for idx, def in ipairs(defs) do
+        local id = def.id
+        local barDB = (AB and AB.GetBarDB) and AB.GetBarDB(id) or (TomoModDB.actionBars.bars[id] or {})
+        local displayName = GetBarDisplayName(id)
 
-        -- Mini row: bar name + status indicators + config button
-        local row = CreateFrame("Frame", nil, c, "BackdropTemplate")
-        row:SetPoint("TOPLEFT", 8, y)
-        row:SetPoint("TOPRIGHT", -8, y)
-        row:SetHeight(54)
-        row:SetBackdrop({
+        -- Header button
+        local header = CreateFrame("Button", nil, c, "BackdropTemplate")
+        header:SetHeight(HEADER_H)
+        header:SetBackdrop({
             bgFile   = "Interface\\Buttons\\WHITE8x8",
             edgeFile = "Interface\\Buttons\\WHITE8x8",
             edgeSize = 1,
         })
-        row:SetBackdropColor(0.09, 0.09, 0.11, 1)
-        row:SetBackdropBorderColor(0.18, 0.18, 0.22, 1)
+        header:SetBackdropColor(0.09, 0.09, 0.11, 1)
+        header:SetBackdropBorderColor(0.18, 0.18, 0.22, 1)
+
+        -- Arrow indicator (texture, not font — Poppins lacks Unicode arrows)
+        local arrow = header:CreateTexture(nil, "OVERLAY")
+        arrow:SetSize(12, 12)
+        arrow:SetPoint("LEFT", 10, 0)
+        arrow:SetTexture("Interface\\ChatFrame\\ChatFrameExpandArrow")
+        arrow:SetVertexColor(ACCENT_R, ACCENT_G, ACCENT_B, 1)
 
         -- Bar name
-        local nameLbl = row:CreateFontString(nil, "OVERLAY")
-        nameLbl:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11, "")
-        nameLbl:SetPoint("LEFT", 10, 12)
-        nameLbl:SetTextColor(0.80, 0.82, 0.81, 1)
-        nameLbl:SetText(def.name)
+        local nameTxt = header:CreateFontString(nil, "OVERLAY")
+        nameTxt:SetFont(FONT_SEMI, 11, "")
+        nameTxt:SetPoint("LEFT", 26, 0)
+        nameTxt:SetTextColor(0.80, 0.82, 0.81, 1)
+        nameTxt:SetText(displayName)
 
-        -- Status line: alpha + feature badges
-        local statusLbl = row:CreateFontString(nil, "OVERLAY")
-        statusLbl:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 9, "")
-        statusLbl:SetPoint("LEFT", 10, -4)
-        statusLbl:SetTextColor(0.35, 0.35, 0.40, 1)
+        -- Summary badge (shown when collapsed)
+        local summary = header:CreateFontString(nil, "OVERLAY")
+        summary:SetFont(FONT_MEDIUM, 9, "")
+        summary:SetPoint("RIGHT", -10, 0)
+        summary:SetTextColor(0.45, 0.45, 0.50, 1)
 
-        local statusParts = {}
-        statusParts[#statusParts + 1] = string.format("Alpha: |cff0cd29f%.0f%%|r", (db.alpha or 1) * 100)
-        if db.fade then statusParts[#statusParts + 1] = "|cff8888ccFade|r" end
-        if db.clickThrough then statusParts[#statusParts + 1] = "|cffcc8844Click-through|r" end
-        if db.displayCondition and db.displayCondition ~= "" then
-            statusParts[#statusParts + 1] = "|cffcccc44Cond.|r"
+        local function UpdateSummary()
+            local parts = {}
+            parts[#parts + 1] = (barDB.columns or 12) .. " col"
+            parts[#parts + 1] = (barDB.buttonSize or 36) .. "px"
+            parts[#parts + 1] = string.format("%.0f%%", (barDB.alpha or 1) * 100)
+            if barDB.fadeEnabled then parts[#parts + 1] = "|cff8888ccFade|r" end
+            if barDB.clickThrough then parts[#parts + 1] = "|cffcc8844CT|r" end
+            if barDB.enabled == false then
+                summary:SetText("|cff666666" .. L["opt_bar_disabled"] .. "|r")
+            else
+                summary:SetText(table.concat(parts, "  "))
+            end
         end
-        statusLbl:SetText(table.concat(statusParts, "  "))
+        UpdateSummary()
 
-        -- Feature mini-toggle: Fade
-        local fadeTag = row:CreateFontString(nil, "OVERLAY")
-        fadeTag:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 8, "")
-        fadeTag:SetPoint("LEFT", 10, -16)
-        if db.fade then
-            fadeTag:SetTextColor(0.047, 0.824, 0.624, 0.8)
-            fadeTag:SetText("FADE ON")
-        else
-            fadeTag:SetTextColor(0.30, 0.30, 0.35, 0.6)
-            fadeTag:SetText("FADE OFF")
-        end
+        -- Hover effect
+        header:SetScript("OnEnter", function()
+            header:SetBackdropBorderColor(ACCENT_R, ACCENT_G, ACCENT_B, 0.5)
+        end)
+        header:SetScript("OnLeave", function()
+            header:SetBackdropBorderColor(0.18, 0.18, 0.22, 1)
+        end)
 
-        -- Config button (opens BarEditor)
-        local barId = def.id
-        local cfgBtn = CreateFrame("Button", nil, row, "BackdropTemplate")
-        cfgBtn:SetSize(22, 22)
-        cfgBtn:SetPoint("RIGHT", -8, 0)
-        cfgBtn:SetBackdrop({
+        -- Content frame (starts hidden)
+        local content = CreateFrame("Frame", nil, c, "BackdropTemplate")
+        content:SetBackdrop({
             bgFile   = "Interface\\Buttons\\WHITE8x8",
             edgeFile = "Interface\\Buttons\\WHITE8x8",
             edgeSize = 1,
         })
-        cfgBtn:SetBackdropColor(0.06, 0.06, 0.08, 1)
-        cfgBtn:SetBackdropBorderColor(0.22, 0.22, 0.26, 1)
-        local cfgTxt = cfgBtn:CreateFontString(nil, "OVERLAY")
-        cfgTxt:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 13, "")
-        cfgTxt:SetPoint("CENTER", 0, 1)
-        cfgTxt:SetText(">")
-        cfgTxt:SetTextColor(0.50, 0.50, 0.55, 1)
-        cfgBtn:SetScript("OnEnter", function()
-            cfgBtn:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.80)
-            cfgTxt:SetTextColor(0.047, 0.824, 0.624, 1)
-        end)
-        cfgBtn:SetScript("OnLeave", function()
-            cfgBtn:SetBackdropBorderColor(0.22, 0.22, 0.26, 1)
-            cfgTxt:SetTextColor(0.50, 0.50, 0.55, 1)
-        end)
-        cfgBtn:SetScript("OnClick", function()
-            if TomoMod_ActionBars then
-                local bar = TomoMod_ActionBars.GetBar(barId)
-                if bar then TomoMod_ActionBars.ShowBarEditor(bar) end
-            end
-        end)
+        content:SetBackdropColor(0.07, 0.07, 0.09, 1)
+        content:SetBackdropBorderColor(0.15, 0.15, 0.18, 0.6)
+        content:Hide()
 
-        y = y - 60
+        -- Build content widgets
+        local contentH = BuildBarContent(content, id, barDB)
+        content:SetHeight(contentH)
+
+        local section = {
+            header    = header,
+            content   = content,
+            contentH  = contentH,
+            arrow     = arrow,
+            summary   = summary,
+            expanded  = false,
+            updateSummary = UpdateSummary,
+        }
+        sections[#sections + 1] = section
+
+        -- Layout function: repositions all sections from the fixed baseY
+        -- (defined after the loop, attached via closure)
     end
 
-    c:SetHeight(math.abs(y) + 40)
-    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    -- Fixed base Y after the header/info elements
+    local baseY = y
+
+    -- Re-layout all sections vertically
+    local function Relayout()
+        local py = baseY
+        for _, sec in ipairs(sections) do
+            sec.header:ClearAllPoints()
+            sec.header:SetPoint("TOPLEFT", 8, py)
+            sec.header:SetPoint("TOPRIGHT", -8, py)
+            py = py - HEADER_H
+
+            if sec.expanded then
+                sec.content:ClearAllPoints()
+                sec.content:SetPoint("TOPLEFT", 8, py)
+                sec.content:SetPoint("TOPRIGHT", -8, py)
+                sec.content:SetHeight(sec.contentH)
+                sec.content:Show()
+                py = py - sec.contentH
+            else
+                sec.content:Hide()
+            end
+            py = py - HEADER_GAP
+
+            sec.arrow:SetRotation(sec.expanded and (math.pi / 2) or 0)
+            sec.summary:SetShown(not sec.expanded)
+        end
+        c:SetHeight(math.abs(py) + 40)
+        if scroll.UpdateScroll then scroll.UpdateScroll() end
+    end
+
+    -- Wire up click handlers
+    for _, sec in ipairs(sections) do
+        sec.header:SetScript("OnClick", function()
+            sec.expanded = not sec.expanded
+            sec.updateSummary()
+            Relayout()
+        end)
+    end
+
+    Relayout()
     return scroll
 end
 
 -- =====================================================================
--- MAIN PANEL (TabPanel wrapper)
+-- MAIN PANEL
 -- =====================================================================
 function TomoMod_ConfigPanel_ActionBars(parent)
     return W.CreateTabPanel(parent, {

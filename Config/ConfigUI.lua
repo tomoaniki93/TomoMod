@@ -42,6 +42,7 @@ local categories = {
     { key = "qol",        label = L["cat_qol"],         icon = ICON_PATH .. "icon_qol.tga"         },
     { key = "mythicplus", label = L["cat_mythicplus"],  icon = ICON_PATH .. "icon_mythicplus.tga"  },
     { key = "profiles",   label = L["cat_profiles"],    icon = ICON_PATH .. "icon_profiles.tga"    },
+    { key = "diagnostics", label = L["cat_diagnostics"] or "Diagnostics", icon = ICON_PATH .. "icon_qol.tga" },
 }
 
 -- State
@@ -438,6 +439,7 @@ function C.SwitchCategory(key)
             skins      = "TomoMod_ConfigPanel_Skins",
             mythicplus = "TomoMod_ConfigPanel_MythicPlus",
             profiles   = "TomoMod_ConfigPanel_Profiles",
+            diagnostics = "TomoMod_ConfigPanel_Diagnostics",
         }
         local builder = builderMap[key] and _G[builderMap[key]]
         if builder then
