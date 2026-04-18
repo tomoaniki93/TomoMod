@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("esES", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Acerca de",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.9.0por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r %s por TomoAniki\nInterfaz ligera con QOL, UnitFrames y Nameplates.\nEscribe /tm help para la lista de comandos.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reiniciar todo",
     ["info_reset_all"]                  = "Esto reiniciará TODOS los ajustes y recargará la interfaz.",
@@ -1640,4 +1640,51 @@ TomoMod_RegisterLocale("esES", {
     ["at_section_position"]              = "Posición",
     ["at_info_position"]                 = "Usa /tm layout para desbloquear y arrastrar el rastreador.",
     ["at_btn_reset_position"]            = "Restablecer posición",
+
+    -- ═══════════════════════════════════
+    -- Battle Text
+    -- ═══════════════════════════════════
+    ["cat_battletext"]                   = "Texto de combate",
+    ["mover_battletext"]                 = "Texto de combate",
+
+    ["bt_section_general"]               = "General",
+    ["bt_info_description"]              = "Texto de combate desplazable: daño y curación, entrante y saliente.",
+    ["bt_opt_enable"]                    = "Activar texto de combate",
+
+    ["bt_section_display"]               = "Visualización",
+    ["bt_opt_outgoing"]                  = "Mostrar daño saliente",
+    ["bt_opt_incoming"]                  = "Mostrar daño entrante",
+    ["bt_opt_overheal"]                  = "Mostrar sobrecuración",
+    ["bt_opt_throttle"]                  = "Fusionar ticks DoT/HoT",
+
+    ["bt_section_appearance"]            = "Apariencia",
+    ["bt_opt_font_size"]                 = "Tamaño de fuente",
+    ["bt_opt_throttle_window"]           = "Ventana de fusión (seg)",
+
+    ["bt_section_position"]              = "Posición",
+    ["bt_info_position"]                 = "Usa /tm layout para desbloquear y arrastrar las zonas.",
+    ["bt_btn_reset_position"]            = "Restablecer posiciones",
+
+    ["bt_zone_outgoing"]                 = "Saliente",
+    ["bt_zone_incoming"]                 = "Entrante",
+    ["bt_zone_heal_out"]                 = "Curación saliente",
+    ["bt_zone_heal_in"]                  = "Curación recibida",
+
+    ["bt_cmd_help"]                      = "/tm bt <cmd>",
+    ["bt_enabled"]                       = "activado",
+    ["bt_disabled"]                      = "desactivado",
+    ["bt_crit"]                          = "!",
+    ["bt_zones_locked"]                  = "zonas bloqueadas",
+    ["bt_zones_unlocked"]                = "zonas desbloqueadas",
+    ["bt_reset_done"]                    = "posiciones restablecidas.",
+    ["bt_miss_miss"]                     = "Fallo",
+    ["bt_miss_dodge"]                    = "Esquivado",
+    ["bt_miss_parry"]                    = "Parado",
+    ["bt_miss_block"]                    = "Bloqueado",
+    ["bt_miss_resist"]                   = "Resistido",
+    ["bt_miss_absorb"]                   = "Absorbido",
+    ["bt_miss_immune"]                   = "Inmune",
+    ["bt_miss_evade"]                    = "Evasión",
+    ["bt_miss_deflect"]                  = "Desviado",
+    ["bt_miss_reflect"]                  = "Reflejado",
 })

@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("enUS", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "About",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.9.0 by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r %s by TomoAniki\nLightweight interface with QOL, UnitFrames and Nameplates.\nType /tm help for the command list.",
     ["section_general"]                 = "General",
     ["btn_reset_all"]                   = "Reset All",
     ["info_reset_all"]                  = "This will reset ALL settings and reload the UI.",
@@ -1683,4 +1683,51 @@ TomoMod_RegisterLocale("enUS", {
     ["at_section_position"]              = "Position",
     ["at_info_position"]                 = "Use /tm layout to unlock and drag the aura tracker.",
     ["at_btn_reset_position"]            = "Reset Position",
+
+    -- ═══════════════════════════════════
+    -- Battle Text
+    -- ═══════════════════════════════════
+    ["cat_battletext"]                   = "Battle Text",
+    ["mover_battletext"]                 = "Battle Text",
+
+    ["bt_section_general"]               = "General",
+    ["bt_info_description"]              = "Scrolling combat text: damage and healing, incoming and outgoing.",
+    ["bt_opt_enable"]                    = "Enable Battle Text",
+
+    ["bt_section_display"]               = "Display",
+    ["bt_opt_outgoing"]                  = "Show outgoing damage",
+    ["bt_opt_incoming"]                  = "Show incoming damage",
+    ["bt_opt_overheal"]                  = "Show overhealing",
+    ["bt_opt_throttle"]                  = "Merge DoT/HoT ticks",
+
+    ["bt_section_appearance"]            = "Appearance",
+    ["bt_opt_font_size"]                 = "Font size",
+    ["bt_opt_throttle_window"]           = "Merge window (sec)",
+
+    ["bt_section_position"]              = "Position",
+    ["bt_info_position"]                 = "Use /tm layout to unlock and drag the battle text zones.",
+    ["bt_btn_reset_position"]            = "Reset Positions",
+
+    ["bt_zone_outgoing"]                 = "Outgoing",
+    ["bt_zone_incoming"]                 = "Incoming",
+    ["bt_zone_heal_out"]                 = "Heal Out",
+    ["bt_zone_heal_in"]                  = "Heal In",
+
+    ["bt_cmd_help"]                      = "/tm bt <cmd>",
+    ["bt_enabled"]                       = "enabled",
+    ["bt_disabled"]                      = "disabled",
+    ["bt_crit"]                          = "!",
+    ["bt_zones_locked"]                  = "zones locked",
+    ["bt_zones_unlocked"]                = "zones unlocked",
+    ["bt_reset_done"]                    = "positions reset.",
+    ["bt_miss_miss"]                     = "Miss",
+    ["bt_miss_dodge"]                    = "Dodge",
+    ["bt_miss_parry"]                    = "Parry",
+    ["bt_miss_block"]                    = "Block",
+    ["bt_miss_resist"]                   = "Resist",
+    ["bt_miss_absorb"]                   = "Absorb",
+    ["bt_miss_immune"]                   = "Immune",
+    ["bt_miss_evade"]                    = "Evade",
+    ["bt_miss_deflect"]                  = "Deflect",
+    ["bt_miss_reflect"]                  = "Reflect",
 })

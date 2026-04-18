@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("deDE", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Über",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.9.0 von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r %s von TomoAniki\nLeichtgewichtige Oberfläche mit QOL, UnitFrames und Nameplates.\nTippe /tm help für die Befehlsliste.",
     ["section_general"]                 = "Allgemein",
     ["btn_reset_all"]                   = "Alles zurücksetzen",
     ["info_reset_all"]                  = "Dies setzt ALLE Einstellungen zurück und lädt die Oberfläche neu.",
@@ -1649,4 +1649,51 @@ TomoMod_RegisterLocale("deDE", {
     ["at_section_position"]              = "Position",
     ["at_info_position"]                 = "/tm layout eingeben, um den Aura-Tracker zu verschieben.",
     ["at_btn_reset_position"]            = "Position zurücksetzen",
+
+    -- ═══════════════════════════════════
+    -- Battle Text
+    -- ═══════════════════════════════════
+    ["cat_battletext"]                   = "Kampftext",
+    ["mover_battletext"]                 = "Kampftext",
+
+    ["bt_section_general"]               = "Allgemein",
+    ["bt_info_description"]              = "Scrollender Kampftext: Schaden und Heilung, ein- und ausgehend.",
+    ["bt_opt_enable"]                    = "Kampftext aktivieren",
+
+    ["bt_section_display"]               = "Anzeige",
+    ["bt_opt_outgoing"]                  = "Ausgehenden Schaden anzeigen",
+    ["bt_opt_incoming"]                  = "Eingehenden Schaden anzeigen",
+    ["bt_opt_overheal"]                  = "Überheilung anzeigen",
+    ["bt_opt_throttle"]                  = "DoT/HoT-Ticks zusammenfassen",
+
+    ["bt_section_appearance"]            = "Darstellung",
+    ["bt_opt_font_size"]                 = "Schriftgröße",
+    ["bt_opt_throttle_window"]           = "Zusammenfassungsfenster (Sek)",
+
+    ["bt_section_position"]              = "Position",
+    ["bt_info_position"]                 = "/tm layout eingeben, um die Kampftext-Zonen zu verschieben.",
+    ["bt_btn_reset_position"]            = "Positionen zurücksetzen",
+
+    ["bt_zone_outgoing"]                 = "Ausgehend",
+    ["bt_zone_incoming"]                 = "Eingehend",
+    ["bt_zone_heal_out"]                 = "Heilung aus",
+    ["bt_zone_heal_in"]                  = "Heilung ein",
+
+    ["bt_cmd_help"]                      = "/tm bt <cmd>",
+    ["bt_enabled"]                       = "aktiviert",
+    ["bt_disabled"]                      = "deaktiviert",
+    ["bt_crit"]                          = "!",
+    ["bt_zones_locked"]                  = "Zonen gesperrt",
+    ["bt_zones_unlocked"]                = "Zonen entsperrt",
+    ["bt_reset_done"]                    = "Positionen zurückgesetzt.",
+    ["bt_miss_miss"]                     = "Verfehlt",
+    ["bt_miss_dodge"]                    = "Ausgewichen",
+    ["bt_miss_parry"]                    = "Pariert",
+    ["bt_miss_block"]                    = "Geblockt",
+    ["bt_miss_resist"]                   = "Widerstanden",
+    ["bt_miss_absorb"]                   = "Absorbiert",
+    ["bt_miss_immune"]                   = "Immun",
+    ["bt_miss_evade"]                    = "Ausweichen",
+    ["bt_miss_deflect"]                  = "Abgelenkt",
+    ["bt_miss_reflect"]                  = "Reflektiert",
 })

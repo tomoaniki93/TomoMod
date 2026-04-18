@@ -260,7 +260,7 @@ local function CreateConfigFrame()
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -2)
     versionText:SetTextColor(0.30, 0.30, 0.35, 1)
-    versionText:SetText("v2.9.0")
+    versionText:SetText("v" .. (C_AddOns.GetAddOnMetadata("TomoMod", "Version") or "?"))
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, titleBar)

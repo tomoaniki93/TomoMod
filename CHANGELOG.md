@@ -1,5 +1,46 @@
 ## ####################################
 
+## CHANGELOG 2.9.1 — Midnight Compatibility & Fixes
+
+#### TWW / Midnight Taint Fixes
+- **PartyFrame LayoutFrames** — `SetSize` sur l'anchor protégé différé hors combat (`PLAYER_ROLES_ASSIGNED` en combat → `_pendingLayout` appliqué à `PLAYER_REGEN_ENABLED`)
+
+#### Party Frame — Range Check Rewrite
+- **Event-driven + timer fallback** — `UNIT_IN_RANGE_UPDATE` pour la réponse instantanée + `C_Timer.NewTicker(0.5)` pour les cas edge (phase, déconnexion, changement de zone)
+- **`SetAlphaFromBoolean`** — Gère nativement les secret booleans de Midnight sans tester en Lua
+- **`UnitPhaseReason`** — Joueurs phasés (warmode, phase de quête) correctement marqués hors portée
+- **`UnitIsConnected`** — Joueurs déconnectés dimmés immédiatement
+
+#### Waypoint Fixes
+- **Icône Blizzard masquée** — `C_Navigation.GetFrame()` caché (`SetAlpha(0)`) quand le beacon custom est actif, restauré quand inactif
+- **TGA headers réparés** — `ring.tga`, `arrow.tga`, `beam.tga`, `glow.tga`, `chevron.tga` avaient des headers corrompus (18 bytes à zéro), données pixels intactes — headers reconstruits
+- **`TEX_ARROW` corrigé** — Chemin pointait vers `arrow_right` (inexistant), corrigé vers `arrow`
+- **Beam** — Remplacé la texture `beam.tga` (carré 128x128 étiré) par `SetColorTexture` pour un trait vertical propre
+
+#### Previous 2.9.1 Fixes
+- **ArenaFrames** — Replaced `cur/max*100` with `UnitHealthPercent()` (C-side) to avoid crash on secret values for arena opponents
+- **UnitFrame** — Wrapped `UnitDetailedThreatSituation` in `pcall()` for threat text to prevent crash on secret floats
+- **Nameplates** — Replaced `UnitDetailedThreatSituation` with `UnitThreatSituation` (safe integer 0-3) in `GetUnitRole()` to avoid arithmetic on secret values
+- **ReputationBar** — Replaced `hooksecurefunc → Hide()` with `SetAlpha(0) + EnableMouse(false)` to prevent taint propagation on Blizzard status tracking bars
+- **BagSkin** — Replaced `hooksecurefunc(cf, "Show", → Hide())` with reparenting ContainerFrame1..13 under hidden frame to prevent taint on protected inventory frames
+- **MythicTracker** — Replaced `Hide()` with `SetAlpha(0)` on ObjectiveTrackerFrame/ScenarioObjectiveTracker + added proper restore on M+ end to prevent taint propagation
+- **Castbar** — Replaced `frame:Hide()` / `OnShow → Hide` with `SetAlpha(0) + EnableMouse(false)` in HideBlizzCastbar/RestoreBlizzCastbar to prevent taint
+
+#### Performance Optimizations
+- **ActionBarSkin** — Dirty-check `(shift, inCombat)` in Shift Reveal OnUpdate; skips ~95% of identical ticks at 60 FPS
+- **Castbar** — Reuse scratch table `_sparkArgs` instead of allocating per-frame (~1920 allocs/sec GC pressure avoided)
+- **SparkAnimations** — Hoisted constant tables `COMET_POSITIONS`, `HELIX_OFFSETS`, `HELIX_PHASES` to module scope
+- **ChatFrameSkin** — Factored `AttachChatFollowOnUpdate` with dirty-check on `(w, h)`; 4 skins × 60 FPS reduced to ~0 work when idle
+- **Movers** — Hoisted `math.sqrt/abs/min/max` to module scope for grid flashlight OnUpdate
+
+#### Bug Fixes
+- **AuraTracker** — Fixed mover position save using `GetLeft()/GetBottom()` with scale conversion instead of unreliable `GetPoint()` after `StartMoving()`
+
+#### Version Automation
+- **Dynamic Version** — ConfigUI title bar, Installer title, and all 6 locale `about_text` strings now read version from `.toc` metadata via `C_AddOns.GetAddOnMetadata()` — only `## Version:` in the `.toc` needs updating per release
+
+## ####################################
+
 ## CHANGELOG 2.9.0 — Bug Fixes, Minimap Mover & Party Frame Polish
 
 #### Minimap Mover

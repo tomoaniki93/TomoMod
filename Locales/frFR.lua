@@ -19,7 +19,7 @@ TomoMod_RegisterLocale("frFR", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "À propos",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r v2.9.0 par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
+    ["about_text"]                      = "|cff0cd29fTomoMod|r %s par TomoAniki\nInterface légère avec Qualité de vie, UnitFrames et Nameplates.\nTapez /tm help pour la liste des commandes.",
     ["section_general"]                 = "Général",
     ["btn_reset_all"]                   = "Réinitialiser tout",
     ["info_reset_all"]                  = "Cela réinitialise TOUS les paramètres et recharge l'UI.",
@@ -1424,7 +1424,7 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_way_size"]                      = "Taille du balise",
     ["opt_way_shape"]                     = "Forme",
     ["way_shape_ring"]                    = "Anneau",
-    ["way_shape_arrow"]                   = "Fl\232che",
+    ["way_shape_arrow"]                   = "Fl\195\168che",
     ["opt_way_color"]                     = "Couleur du waypoint",
     -- Slash
     ["msg_help_way"]                     = "Placer un point de cheminement \195\160 votre position",
@@ -1662,4 +1662,51 @@ TomoMod_RegisterLocale("frFR", {
     ["at_section_position"]              = "Position",
     ["at_info_position"]                 = "Utilisez /tm layout pour déverrouiller et déplacer le suivi d'auras.",
     ["at_btn_reset_position"]            = "Réinitialiser la position",
+
+    -- ═══════════════════════════════════
+    -- Battle Text
+    -- ═══════════════════════════════════
+    ["cat_battletext"]                   = "Texte de combat",
+    ["mover_battletext"]                 = "Texte de combat",
+
+    ["bt_section_general"]               = "Général",
+    ["bt_info_description"]              = "Texte de combat défilant : dégâts et soins, entrants et sortants.",
+    ["bt_opt_enable"]                    = "Activer le texte de combat",
+
+    ["bt_section_display"]               = "Affichage",
+    ["bt_opt_outgoing"]                  = "Afficher les dégâts sortants",
+    ["bt_opt_incoming"]                  = "Afficher les dégâts entrants",
+    ["bt_opt_overheal"]                  = "Afficher le sur-soin",
+    ["bt_opt_throttle"]                  = "Fusionner les ticks DoT/HoT",
+
+    ["bt_section_appearance"]            = "Apparence",
+    ["bt_opt_font_size"]                 = "Taille de police",
+    ["bt_opt_throttle_window"]           = "Fenêtre de fusion (sec)",
+
+    ["bt_section_position"]              = "Position",
+    ["bt_info_position"]                 = "Utilisez /tm layout pour déverrouiller et déplacer les zones.",
+    ["bt_btn_reset_position"]            = "Réinitialiser les positions",
+
+    ["bt_zone_outgoing"]                 = "Sortants",
+    ["bt_zone_incoming"]                 = "Entrants",
+    ["bt_zone_heal_out"]                 = "Soins sortants",
+    ["bt_zone_heal_in"]                  = "Soins reçus",
+
+    ["bt_cmd_help"]                      = "/tm bt <cmd>",
+    ["bt_enabled"]                       = "activé",
+    ["bt_disabled"]                      = "désactivé",
+    ["bt_crit"]                          = "!",
+    ["bt_zones_locked"]                  = "zones verrouillées",
+    ["bt_zones_unlocked"]                = "zones déverrouillées",
+    ["bt_reset_done"]                    = "positions réinitialisées.",
+    ["bt_miss_miss"]                     = "Raté",
+    ["bt_miss_dodge"]                    = "Esquive",
+    ["bt_miss_parry"]                    = "Parade",
+    ["bt_miss_block"]                    = "Bloqué",
+    ["bt_miss_resist"]                   = "Résisté",
+    ["bt_miss_absorb"]                   = "Absorbé",
+    ["bt_miss_immune"]                   = "Immunisé",
+    ["bt_miss_evade"]                    = "Évasion",
+    ["bt_miss_deflect"]                  = "Dévié",
+    ["bt_miss_reflect"]                  = "Reflété",
 })

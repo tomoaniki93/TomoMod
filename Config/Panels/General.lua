@@ -129,7 +129,8 @@ function TomoMod_ConfigPanel_General(parent)
     -- ═══════════════════════════════════════════════
     local card4, cy = W.CreateCard(c, L["section_general"] or "Général", y)
 
-    local _, cy = W.CreateInfoText(card4.inner, L["about_text"] or "TomoMod — Interface personnalisée par TomoAniki.", cy)
+    local ver = "v" .. (C_AddOns.GetAddOnMetadata("TomoMod", "Version") or "?")
+    local _, cy = W.CreateInfoText(card4.inner, string.format(L["about_text"] or "TomoMod %s — Interface personnalisée par TomoAniki.", ver), cy)
 
     local _, cy = W.CreateButton(card4.inner, L["btn_relaunch_installer"] or "Relancer l'installeur", 220, cy, function()
         if TomoMod_Installer then
