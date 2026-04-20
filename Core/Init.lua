@@ -367,6 +367,11 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         print("|cff0cd29fTomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
         print("|cff0cd29fTomoMod|r |cffff3333" .. L["msg_report_issue"] .. "|r")
 
+        -- What's New popup (after update)
+        if TomoMod_WhatsNew then
+            C_Timer.After(3, function() TomoMod_WhatsNew.TryShow() end)
+        end
+
     elseif event == "PLAYER_SPECIALIZATION_CHANGED" and arg1 == "player" then
         if TomoMod_Profiles then
             local newSpecID = TomoMod_Profiles.GetCurrentSpecID()

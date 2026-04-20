@@ -938,6 +938,60 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_chat_skin_history"]            = "Restore chat history on login",
     ["opt_chat_skin_copy_lines"]         = "Show copy icon per message",
 
+    -- Chat Frame UI (multi-position containers — adapted from MayronUI)
+    ["tab_skin_chatframeui"]             = "Chat Frame UI",
+    ["sublabel_chatframeui"]             = "— Multi-Position Chat Frame UI —",
+    ["opt_cfui_enable"]                  = "Enable Chat Frame UI",
+    ["opt_cfui_enable_desc"]             = "Adds decorative containers, button bar, sidebar icons, and layout switching (MayronUI style).",
+    ["opt_cfui_frame_topleft"]           = "Top-Left Frame",
+    ["opt_cfui_frame_topright"]          = "Top-Right Frame",
+    ["opt_cfui_frame_bottomleft"]        = "Bottom-Left Frame",
+    ["opt_cfui_frame_bottomright"]       = "Bottom-Right Frame",
+    ["opt_cfui_show_tab_bar"]            = "Show Tab Bar",
+    ["opt_cfui_tab_bar_offset"]          = "Tab Bar Y-Offset",
+    ["opt_cfui_window_offset"]           = "Window Y-Offset",
+    ["opt_cfui_x_offset"]               = "X-Offset",
+    ["opt_cfui_y_offset"]               = "Y-Offset",
+    ["opt_cfui_icons_anchor"]            = "Sidebar Icons Anchor",
+    ["opt_cfui_raid_frame_mgr"]          = "Reskin Raid Frame Manager",
+    ["opt_cfui_editbox_position"]        = "Edit Box Position",
+    ["opt_cfui_editbox_height"]          = "Edit Box Height",
+    ["opt_cfui_swap_in_combat"]          = "Allow button swap in combat",
+    ["cfui_show_chat_menu"]              = "Show Chat Menu",
+    ["cfui_show_professions"]            = "Show Professions",
+    ["cfui_show_shortcuts"]              = "Show AddOn Shortcuts",
+    ["cfui_copy_chat"]                   = "Copy Chat Text",
+    ["cfui_click_toggle_status"]         = "Click to toggle AFK",
+    ["cfui_layout_button"]               = "TomoMod Layout",
+    ["cfui_left_click"]                  = "Left Click:",
+    ["cfui_switch_layout"]               = "Switch Layout",
+    ["cfui_no_layouts"]                  = "No saved layouts. Use /tm layout save <name>",
+    ["cfui_no_professions"]              = "You have no professions.",
+    ["cfui_config_menu"]                 = "Config",
+    ["cfui_profiles"]                    = "Profiles",
+    ["cfui_clear_chat"]                  = "Clear Chat",
+    ["cfui_reload_ui"]                   = "Reload UI",
+    ["cfui_btn_character"]               = "Character",
+    ["cfui_btn_bags"]                    = "Bags",
+    ["cfui_btn_friends"]                 = "Friends",
+    ["cfui_btn_guild"]                   = "Guild",
+    ["cfui_btn_help"]                    = "Help Menu",
+    ["cfui_btn_pvp"]                     = "PVP",
+    ["cfui_btn_spellbook"]               = "Spell Book",
+    ["cfui_btn_talents"]                 = "Talents",
+    ["cfui_btn_achievements"]            = "Achievements",
+    ["cfui_btn_calendar"]                = "Calendar",
+    ["cfui_btn_lfd"]                     = "LFD",
+    ["cfui_btn_raid"]                    = "Raid",
+    ["cfui_btn_encounter"]               = "Encounter Journal",
+    ["cfui_btn_collections"]             = "Collections Journal",
+    ["cfui_btn_macros"]                  = "Macros",
+    ["cfui_btn_worldmap"]                = "World Map",
+    ["cfui_btn_questlog"]                = "Quest Log",
+    ["cfui_btn_reputation"]              = "Reputation",
+    ["cfui_btn_pvpscore"]                = "PVP Score",
+    ["cfui_btn_currency"]                = "Currency",
+
     -- Buff Skin
     ["sublabel_buff_skin"]               = "— Buff / Debuff Skin —",
     ["opt_buff_skin_enable"]             = "Skin Buff/Debuff Icons",
@@ -1154,7 +1208,7 @@ TomoMod_RegisterLocale("enUS", {
     -- Step 1: Welcome
     ["ins_step1_title"]              = "Welcome to TomoMod",
     ["ins_subtitle"]                 = "Interface & QOL suite for The War Within",
-    ["ins_welcome_desc"]             = "This wizard will guide you through |cff0cd29f12 steps|r to configure TomoMod to\nyour preferences: profile, skins, nameplates, action bars, sound, Mythic+,\noptimizations, QOL and SkyRide.\n\nAll these options can be changed anytime via |cff0cd29f/tm|r.",
+    ["ins_welcome_desc"]             = "This wizard will guide you through |cff0cd29f16 steps|r to configure TomoMod to\nyour preferences: unit frames, party frames, castbars, nameplates, action bars,\nresources, skins, sound, Mythic+, QOL, optimizations and SkyRide.\n\nAll these options can be changed anytime via |cff0cd29f/tm|r.",
 
     -- Step 2: Profile
     ["ins_step2_title"]              = "Game Profile",
@@ -1286,6 +1340,59 @@ TomoMod_RegisterLocale("enUS", {
     ["ins_done_check"]               = "All set!",
     ["ins_done_recap"]               = "Your TomoMod configuration is saved. Here are some reminders:\n\n|cff0cd29f/tm|r              |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Open the configuration panel\n|cff0cd29f/tm sr|r           |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Unlock and move elements\n|cff0cd29f/tm install|r      |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Relaunch this installer\n\nAll options configured here can be changed anytime\nfrom the corresponding panels in the TomoMod GUI.\n\nA |cff0cd29fUI reload|r is required to apply certain changes\n(nameplates, skins, UnitFrames).",
     ["ins_done_reload"]              = "Reload UI",
+
+    -- Step NEW: Unit Frames
+    ["ins_uf_title"]                 = "Unit Frames",
+    ["ins_uf_info"]                  = "TomoMod replaces the default Blizzard unit frames (player, target, focus, pet)\nwith modern, customizable frames.",
+    ["ins_uf_section"]               = "General",
+    ["ins_uf_enable"]                = "Enable TomoMod unit frames",
+    ["ins_uf_hide_blizzard"]         = "Hide Blizzard default frames",
+    ["ins_uf_reload_info"]           = "A reload is required to apply changes to unit frames.",
+
+    -- Step NEW: Party Frames
+    ["ins_pf_title"]                 = "Party Frames",
+    ["ins_pf_info"]                  = "Custom party frames with role icons, dispel highlights,\nand cooldown tracking for group play.",
+    ["ins_pf_section"]               = "General",
+    ["ins_pf_enable"]                = "Enable TomoMod party frames",
+    ["ins_pf_hide_blizzard"]         = "Hide Blizzard party frames",
+    ["ins_pf_cd_section"]            = "Cooldown Trackers",
+    ["ins_pf_cd_info"]               = "Track your group members' interrupt and battle rez cooldowns\ndirectly on their party frames.",
+    ["ins_pf_show_interrupt"]        = "Show interrupt cooldown tracker",
+    ["ins_pf_show_brez"]             = "Show battle rez cooldown tracker",
+    ["ins_pf_reload_info"]           = "A reload is required to apply changes to party frames.",
+
+    -- Step NEW: Castbars
+    ["ins_cb_title"]                 = "Castbars",
+    ["ins_cb_info"]                  = "Custom castbars for player, target, focus and pet\nwith spark animation and interrupt feedback.",
+    ["ins_cb_section"]               = "General",
+    ["ins_cb_enable"]                = "Enable TomoMod castbars",
+    ["ins_cb_hide_blizzard"]         = "Hide Blizzard default castbar",
+    ["ins_cb_class_color"]           = "Use class color for cast bar fill",
+    ["ins_cb_reload_info"]           = "A reload is required to apply changes to castbars.",
+
+    -- Step NEW: Resource Bars & Cooldown Manager
+    ["ins_res_title"]                = "Resources & Cooldowns",
+    ["ins_res_info"]                 = "Class power display (combo points, runes, soul shards, etc.)\nwith icon or bar mode.",
+    ["ins_res_section"]              = "Resource Bars",
+    ["ins_res_enable"]               = "Enable resource bars",
+    ["ins_res_display"]              = "Display mode",
+    ["ins_cdm_section"]              = "Cooldown Manager",
+    ["ins_cdm_info"]                 = "Overlay cooldown spiral on action buttons with\ncombat-aware alpha and GCD filtering.",
+    ["ins_cdm_enable"]               = "Enable cooldown manager",
+    ["ins_cdm_hide_gcd"]             = "Hide GCD spiral",
+    ["ins_cdm_desat"]                = "Desaturate buttons on cooldown",
+
+    -- Enhanced Skins
+    ["ins_skin_bag"]                 = "Bag skin",
+    ["ins_skin_tooltip"]             = "Tooltip skin",
+
+    -- Enhanced QOL
+    ["ins_qol_interface_section"]    = "Interface",
+    ["ins_qol_minimap"]              = "Custom minimap (border & scaling)",
+    ["ins_qol_cursor"]               = "Cursor ring highlight",
+    ["ins_qol_afk"]                  = "Custom AFK screen with 3D model",
+    ["ins_qol_diag"]                 = "Diagnostics (error capture without popups)",
+    ["ins_qol_aura_tracker"]         = "Aura Tracker (trinkets, buffs, defensives)",
 
     -- ═══════════ Config Panels — i18n ═══════════
     -- ActionBars panel
@@ -1779,4 +1886,36 @@ TomoMod_RegisterLocale("enUS", {
     ["info_diag_desc"]                   = "Captures Lua errors in the background with zero combat popups. Use /tmdiag to toggle the console.",
     ["info_diag_session"]                = "Session: #%d — %d errors captured (%d TomoMod)",
     ["info_diag_capture_all_desc"]       = "When disabled, only TomoMod errors are captured. Enable to capture all addon errors.",
+
+    -- =========== What's New Popup ===========
+    ["wn_title"]                         = "What's New",
+    ["wn_version"]                       = "Version %s",
+    ["wn_subtitle"]                      = "Here's what changed since your last update:",
+    ["wn_btn_ok"]                        = "Got it!",
+    ["wn_footer"]                        = "All settings can be changed anytime via |cff0cd29f/tm|r.",
+
+    -- 2.9.5
+    ["wn_295_taint_fix"]                 = "CooldownTrackers: removed COMBAT_LOG_EVENT_UNFILTERED to fix taint (ADDON_ACTION_FORBIDDEN).",
+    ["wn_295_diag_taint"]                = "Diagnostics: taint errors now always captured, even with diagnostics disabled.",
+    ["wn_295_tooltip_ids_moved"]         = "Tooltip IDs options moved from QOL panel to Skins > Tooltip tab.",
+    ["wn_295_chat_text_offset"]          = "Chat Frame Skin: text slightly shifted right to clear the sidebar.",
+
+    -- 2.9.4
+    ["wn_294_installer"]                 = "Installer expanded from 12 to 16 guided steps.",
+    ["wn_294_uf_pf"]                     = "New steps: Unit Frames & Party Frames configuration.",
+    ["wn_294_cb_res"]                    = "New steps: Castbars & Resources / Cooldown Manager.",
+    ["wn_294_skins_qol"]                 = "Enhanced Skins step (bags, tooltips) and QOL step (minimap, cursor, AFK, diagnostics, aura tracker).",
+    ["wn_294_bugfixes"]                  = "Secret value fixes for TooltipIDs & CooldownTrackers (Midnight taint).",
+    ["wn_294_locales"]                   = "50+ new locale keys across all 6 languages.",
+
+    -- 2.9.3
+    ["wn_293_partyframe"]                = "Party Frames: ready check icons, tooltip on hover, raid marker rewrite.",
+    ["wn_293_actionbar_fix"]             = "ActionBars: bars 1-4 interactivity fix, show empty buttons fix.",
+    ["wn_293_chat_taint"]                = "Chat Frame Skin: Midnight taint fixes (secret GUID/BN guards).",
+    ["wn_293_diagnostics"]               = "Diagnostics: pattern-based exclusion, 6-locale keyword fallback.",
+    ["wn_293_autofill"]                  = "AutoFillDelete: Midnight STATICPOPUP_NUMDIALOGS fix.",
+
+    -- 2.9.2
+    ["wn_292_actionbar"]                 = "Complete ActionBars rewrite: container architecture, fade system, display conditions.",
+    ["wn_292_diagnostics"]               = "New Diagnostics Console: background error capture, export, /tmdiag.",
 })

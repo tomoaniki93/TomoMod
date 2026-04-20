@@ -1,5 +1,71 @@
 ## ####################################
 
+## CHANGELOG 2.9.5 — Taint Fix, Diagnostics Improvements & Config Reorganization
+
+#### CooldownTrackers — Taint Fix
+- **Removed COMBAT_LOG_EVENT_UNFILTERED** — This event caused `ADDON_ACTION_FORBIDDEN` taint errors in Midnight; detection now relies solely on `UNIT_SPELLCAST_SUCCEEDED` (BliZzi_Interrupts pattern)
+- **File-scope event registration** — `RegisterEvent` calls moved back to file scope (main chunk) instead of inside `CD.Initialize()` to avoid taint propagation from the `PLAYER_LOGIN` handler chain
+- **Runtime flag gate** — `cdTrackingEnabled` flag prevents event processing until `CD.Initialize()` is called, keeping the pattern taint-safe
+
+#### Diagnostics Console — Always Capture Taint
+- **Taint always captured** — `ADDON_ACTION_FORBIDDEN` / `ADDON_ACTION_BLOCKED` events from TomoMod are now captured even when diagnostics are disabled (`db.enabled = false`)
+- **Auto-open on taint** — Console auto-opens for TomoMod taint errors (previously only triggered for Lua errors)
+- **CaptureEntry bypass** — `KIND_TAINT` entries skip the `IsEnabled()` check in the capture engine
+
+#### Chat Frame Skin — Text Offset
+- **Container offset adjusted** — TUI skin container shifted 8px further left (`-30` instead of `-22`) to create visual clearance between the sidebar icons and chat text
+- **SetTextInsets removed** — `SetTextInsets` does not exist on `ScrollingMessageFrame`; the nil method call error from 2.9.4 is fixed
+
+#### Config Panel — Tooltip IDs Moved
+- **Tooltip IDs → Skins > Tooltip tab** — All 8 Tooltip ID options (enable, spell, item, NPC, quest, mount, currency, achievement) moved from the QOL panel to the Skins > Tooltip tab, grouped after the guild name color picker
+- **QOL panel cleaned** — Tooltip IDs section removed from `Config/Panels/QOL.lua`
+
+#### Skins Panel — ChatFrameUI Block Disabled
+- **CFUI options commented out** — The ChatFrameUI config block in `BuildChatFrameTab` was wrapped in `--[[ ... --]]` by the user; fixed the resulting missing `end` syntax error by closing `BuildChatFrameTab` before the comment block
+
+#### Localization — 2.9.5 Keys
+- **4 new `wn_295_*` keys** added across all 6 locale files (enUS, frFR, deDE, esES, itIT, ptBR)
+
+## ####################################
+
+## CHANGELOG 2.9.4 — Installer Expansion, What's New Popup, Secret Value Fixes & Locale Update
+
+#### What's New Popup — New Module
+- **Automatic post-update notification** — Styled popup displayed once on first login after each addon update, showing version highlights
+- **Version tracking** — Compares `TomoModDB.lastSeenVersion` (new SavedVariable field) with current TOC version; popup only shown when they differ
+- **Installer-aware** — Skips popup when the installer hasn't been completed yet (first-time users see the installer instead)
+- **Styled UI** — Dark themed DIALOG-strata panel (520×480) with dimmer overlay, teal accent palette matching the installer, scrollable content area, logo + version badge
+- **Changelog data** — Lua table with per-version highlight entries (2.9.2, 2.9.3, 2.9.4); easily extensible for future versions
+- **Fully localized** — ~25 `wn_*` locale keys across all 6 languages (enUS, frFR, deDE, esES, itIT, ptBR)
+- **ESC-closable** — Registered in `UISpecialFrames`; OK button or ESC marks version as seen
+- **3-second delay** — Triggered via `C_Timer.After(3, ...)` after `PLAYER_LOGIN` to avoid UI congestion on load
+
+#### Installer — Expanded from 12 to 16 Steps
+- **Step 3 — Unit Frames (new)** — Enable/disable TomoMod UnitFrames, hide Blizzard defaults; reload warning
+- **Step 4 — Party Frames (new)** — Enable/disable TomoMod Party Frames, hide Blizzard defaults; interrupt & battle-rez cooldown trackers; reload warning
+- **Step 5 — Castbars (new)** — Enable/disable TomoMod castbars, hide Blizzard default, class-color fill toggle; reload warning
+- **Step 9 — Resources & Cooldown Manager (new)** — Resource bars (enable + icon/bar display mode), cooldown manager (enable, hide GCD swirl, desaturate buttons)
+- **Steps renumbered** — Previous steps 3–12 shifted to accommodate new steps; TankMode now step 7, ActionBars step 8, Skins step 10, LustSound step 11, Mythic+ step 12, QOL step 13, CVars step 14, SkyRide step 15, Done step 16
+- **Skins step enhanced** — Added bag skin and tooltip skin toggles
+- **QOL step enhanced** — New "Interface" section with minimap, cursor ring, AFK screen, diagnostics, and aura tracker checkboxes
+- **TOTAL_STEPS** constant updated from 12 to 16
+
+#### Bug Fixes — Midnight Secret Value Safety
+- **TooltipIDs** — Added `issecretvalue()` guard on spell/item IDs before displaying in tooltips
+- **CooldownTrackers** — Added `issecretvalue()` guard in `COMBAT_LOG_EVENT_UNFILTERED` handler for source/dest GUIDs and spellID; prevents taint errors in Midnight
+
+#### Diagnostics Console — French Keyword Exclusions
+- **Expanded French keyword list** — Added missing French UI error substrings to the keyword exclusion filter (étourdi, désorienté, en l'air, trop loin, hors de portée, plafond, cible amicale, jet de dés, impossible, pas encore)
+
+#### Localization — All 6 Locales Updated
+- **~75 new locale keys** added across all 6 locale files (enUS, frFR, deDE, esES, itIT, ptBR)
+- **Installer key groups**: `ins_uf_*` (Unit Frames), `ins_pf_*` (Party Frames), `ins_cb_*` (Castbars), `ins_res_*` / `ins_cdm_*` (Resources & Cooldown Manager), `ins_skin_bag`, `ins_skin_tooltip`, `ins_qol_interface_section`, `ins_qol_minimap`, `ins_qol_cursor`, `ins_qol_afk`, `ins_qol_diag`, `ins_qol_aura_tracker`
+- **What's New key group**: `wn_title`, `wn_version`, `wn_subtitle`, `wn_btn_ok`, `wn_footer`, `wn_29x_*` (per-version highlights for 2.9.2, 2.9.3, 2.9.4)
+- **Welcome description** updated in all locales to reference 16 steps and expanded feature list
+- **Relaunch installer** description updated from 12 to 16 steps in all locales
+
+## ####################################
+
 ## CHANGELOG 2.9.3 — PartyFrame Polish, Taint Fixes & Diagnostics Hardening
 
 #### Party Frames — Bug Fixes & New Features

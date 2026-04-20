@@ -1142,7 +1142,7 @@ TomoMod_RegisterLocale("frFR", {
 
     ["ins_step1_title"]              = "Bienvenue dans TomoMod",
     ["ins_subtitle"]                 = "Suite d'interface et de QOL pour The War Within",
-    ["ins_welcome_desc"]             = "Cet assistant va vous guider en |cff0cd29f12 \195\169tapes|r pour configurer TomoMod selon\nvos pr\195\169f\195\169rences : profil, skins, nameplates, barres d'action, son, Mythic+,\noptimisations, QOL et SkyRide.\n\nToutes ces options seront accessibles \195\160 tout moment via |cff0cd29f/tm|r.",
+    ["ins_welcome_desc"]             = "Cet assistant va vous guider en |cff0cd29f16 \195\169tapes|r pour configurer TomoMod selon\nvos pr\195\169f\195\169rences : unit frames, party frames, castbars, nameplates, barres d'action,\nressources, skins, son, Mythic+, QOL, optimisations et SkyRide.\n\nToutes ces options seront accessibles \195\160 tout moment via |cff0cd29f/tm|r.",
 
     ["ins_step2_title"]              = "Profil de jeu",
     ["ins_profile_info"]             = "Cr\195\169ez un profil nomm\195\169 pour sauvegarder votre configuration.",
@@ -1263,6 +1263,59 @@ TomoMod_RegisterLocale("frFR", {
     ["ins_done_check"]               = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:0|t  Tout est pr\195\170t !",
     ["ins_done_recap"]               = "Votre configuration TomoMod est enregistr\195\169e. Voici quelques rappels :\n\n|cff0cd29f/tm|r              |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Ouvrir le panneau de configuration\n|cff0cd29f/tm sr|r           |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  D\195\169verrouiller et d\195\169placer les \195\169l\195\169ments\n|cff0cd29f/tm install|r      |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Relancer cet installeur\n\nToutes les options configur\195\169es ici sont modifiables \195\160 tout moment\ndepuis les panneaux correspondants dans le GUI TomoMod.\n\nUn |cff0cd29freload de l'UI|r est n\195\169cessaire pour appliquer certains changements\n(nameplates, skins, UnitFrames).",
     ["ins_done_reload"]              = "|TInterface\\BUTTONS\\UI-RefreshButton:0|t  Recharger l'UI",
+
+    -- Step NEW: Unit Frames
+    ["ins_uf_title"]                 = "Unit Frames",
+    ["ins_uf_info"]                  = "TomoMod remplace les cadres d'unit\195\169 Blizzard par d\195\169faut (joueur, cible, focus, familier)\npar des cadres modernes et personnalisables.",
+    ["ins_uf_section"]               = "G\195\169n\195\169ral",
+    ["ins_uf_enable"]                = "Activer les unit frames TomoMod",
+    ["ins_uf_hide_blizzard"]         = "Masquer les cadres Blizzard par d\195\169faut",
+    ["ins_uf_reload_info"]           = "Un reload est n\195\169cessaire pour appliquer les changements aux unit frames.",
+
+    -- Step NEW: Party Frames
+    ["ins_pf_title"]                 = "Party Frames",
+    ["ins_pf_info"]                  = "Cadres de groupe personnalis\195\169s avec ic\195\180nes de r\195\180le, surbrillance de dispel\net suivi des cooldowns pour le jeu en groupe.",
+    ["ins_pf_section"]               = "G\195\169n\195\169ral",
+    ["ins_pf_enable"]                = "Activer les party frames TomoMod",
+    ["ins_pf_hide_blizzard"]         = "Masquer les party frames Blizzard",
+    ["ins_pf_cd_section"]            = "Suivi des cooldowns",
+    ["ins_pf_cd_info"]               = "Suivez les cooldowns d'interruption et de brez de combat\nde vos co\195\169quipiers directement sur leurs cadres de groupe.",
+    ["ins_pf_show_interrupt"]        = "Afficher le suivi du cooldown d'interruption",
+    ["ins_pf_show_brez"]             = "Afficher le suivi du cooldown de brez de combat",
+    ["ins_pf_reload_info"]           = "Un reload est n\195\169cessaire pour appliquer les changements aux party frames.",
+
+    -- Step NEW: Castbars
+    ["ins_cb_title"]                 = "Barres de sort",
+    ["ins_cb_info"]                  = "Barres de sort personnalis\195\169es pour joueur, cible, focus et familier\navec animation spark et feedback d'interruption.",
+    ["ins_cb_section"]               = "G\195\169n\195\169ral",
+    ["ins_cb_enable"]                = "Activer les castbars TomoMod",
+    ["ins_cb_hide_blizzard"]         = "Masquer la castbar Blizzard par d\195\169faut",
+    ["ins_cb_class_color"]           = "Couleur de classe pour le remplissage",
+    ["ins_cb_reload_info"]           = "Un reload est n\195\169cessaire pour appliquer les changements aux castbars.",
+
+    -- Step NEW: Resource Bars & Cooldown Manager
+    ["ins_res_title"]                = "Ressources & Cooldowns",
+    ["ins_res_info"]                 = "Affichage de puissance de classe (points de combo, runes, \195\169clats d'\195\162me, etc.)\nen mode ic\195\180ne ou barre.",
+    ["ins_res_section"]              = "Barres de ressources",
+    ["ins_res_enable"]               = "Activer les barres de ressources",
+    ["ins_res_display"]              = "Mode d'affichage",
+    ["ins_cdm_section"]              = "Gestionnaire de cooldowns",
+    ["ins_cdm_info"]                 = "Spirale de cooldown sur les boutons d'action avec\nalpha adaptatif au combat et filtrage du GCD.",
+    ["ins_cdm_enable"]               = "Activer le gestionnaire de cooldowns",
+    ["ins_cdm_hide_gcd"]             = "Masquer la spirale du GCD",
+    ["ins_cdm_desat"]                = "D\195\169saturer les boutons en cooldown",
+
+    -- Enhanced Skins
+    ["ins_skin_bag"]                 = "Skin des sacs",
+    ["ins_skin_tooltip"]             = "Skin des tooltips",
+
+    -- Enhanced QOL
+    ["ins_qol_interface_section"]    = "Interface",
+    ["ins_qol_minimap"]              = "Minimap personnalis\195\169e (bordure & \195\169chelle)",
+    ["ins_qol_cursor"]               = "Anneau de curseur lumineux",
+    ["ins_qol_afk"]                  = "\195\137cran AFK personnalis\195\169 avec mod\195\168le 3D",
+    ["ins_qol_diag"]                 = "Diagnostics (capture d'erreurs sans popups)",
+    ["ins_qol_aura_tracker"]         = "Aura Tracker (trinkets, buffs, d\195\169fensifs)",
 
     -- =========== Config Panels — i18n ===========
     -- ActionBars panel
@@ -1758,4 +1811,36 @@ TomoMod_RegisterLocale("frFR", {
     ["info_diag_desc"]                   = "Capture les erreurs Lua en arrière-plan sans popup en combat. Tapez /tmdiag pour ouvrir la console.",
     ["info_diag_session"]                = "Session : #%d — %d erreurs capturées (%d TomoMod)",
     ["info_diag_capture_all_desc"]       = "Quand désactivé, seules les erreurs TomoMod sont capturées. Activez pour capturer toutes les erreurs d'addons.",
+
+    -- =========== What's New Popup ===========
+    ["wn_title"]                         = "Nouveaut\195\169s",
+    ["wn_version"]                       = "Version %s",
+    ["wn_subtitle"]                      = "Voici les changements depuis votre derni\195\168re mise \195\160 jour :",
+    ["wn_btn_ok"]                        = "Compris !",
+    ["wn_footer"]                        = "Tous les r\195\169glages peuvent \195\170tre modifi\195\169s \195\160 tout moment via |cff0cd29f/tm|r.",
+
+    -- 2.9.5
+    ["wn_295_taint_fix"]                 = "CooldownTrackers : suppression de COMBAT_LOG_EVENT_UNFILTERED pour corriger le taint (ADDON_ACTION_FORBIDDEN).",
+    ["wn_295_diag_taint"]                = "Diagnostics : les erreurs de taint sont maintenant toujours capturées, même avec les diagnostics désactivés.",
+    ["wn_295_tooltip_ids_moved"]         = "Options Tooltip IDs déplacées du panneau QOL vers Skins > onglet Tooltip.",
+    ["wn_295_chat_text_offset"]          = "Skin du chat : texte légèrement décalé vers la droite pour dégager la barre latérale.",
+
+    -- 2.9.4
+    ["wn_294_installer"]                 = "Installateur \195\169tendu de 12 \195\160 16 \195\169tapes guid\195\169es.",
+    ["wn_294_uf_pf"]                     = "Nouvelles \195\169tapes : configuration des Unit Frames et Party Frames.",
+    ["wn_294_cb_res"]                    = "Nouvelles \195\169tapes : Barres de cast et Ressources / Gestionnaire de cooldowns.",
+    ["wn_294_skins_qol"]                 = "\195\137tape Skins am\195\169lior\195\169e (sacs, tooltips) et \195\169tape QOL (minimap, curseur, AFK, diagnostics, tracker d'auras).",
+    ["wn_294_bugfixes"]                  = "Corrections de valeurs secr\195\168tes pour TooltipIDs et CooldownTrackers (taint Midnight).",
+    ["wn_294_locales"]                   = "50+ nouvelles cl\195\169s de traduction dans les 6 langues.",
+
+    -- 2.9.3
+    ["wn_293_partyframe"]                = "Party Frames : ic\195\180nes ready check, tooltip au survol, r\195\169\195\169criture des marqueurs raid.",
+    ["wn_293_actionbar_fix"]             = "Barres d'actions : correction interactivit\195\169 barres 1-4, correction boutons vides.",
+    ["wn_293_chat_taint"]                = "Skin du chat : corrections taint Midnight (gardes GUID/BN secrets).",
+    ["wn_293_diagnostics"]               = "Diagnostics : exclusion par pattern, mots-cl\195\169s 6 langues.",
+    ["wn_293_autofill"]                  = "AutoFillDelete : correction STATICPOPUP_NUMDIALOGS Midnight.",
+
+    -- 2.9.2
+    ["wn_292_actionbar"]                 = "R\195\169\195\169criture compl\195\168te des barres d'actions : architecture conteneur, syst\195\168me de fondu, conditions d'affichage.",
+    ["wn_292_diagnostics"]               = "Nouvelle console de diagnostics : capture d'erreurs en arri\195\168re-plan, export, /tmdiag.",
 })

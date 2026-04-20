@@ -1067,7 +1067,7 @@ TomoMod_RegisterLocale("deDE", {
     -- Step 1: Welcome
     ["ins_step1_title"]              = "Willkommen bei TomoMod",
     ["ins_subtitle"]                 = "Interface- & QOL-Suite f\195\188r The War Within",
-    ["ins_welcome_desc"]             = "Dieser Assistent f\195\188hrt Sie in |cff0cd29f12 Schritten|r durch die Konfiguration von TomoMod:\nProfil, Skins, Nameplates, Aktionsleisten, Sound, Mythic+,\nOptimierungen, QOL und SkyRide.\n\nAlle Optionen k\195\182nnen jederzeit \195\188ber |cff0cd29f/tm|r ge\195\164ndert werden.",
+    ["ins_welcome_desc"]             = "Dieser Assistent f\195\188hrt Sie in |cff0cd29f16 Schritten|r durch die Konfiguration von TomoMod:\nUnitFrames, Party Frames, Zauberleisten, Nameplates, Aktionsleisten,\nRessourcen, Skins, Sound, Mythic+, QOL, Optimierungen und SkyRide.\n\nAlle Optionen k\195\182nnen jederzeit \195\188ber |cff0cd29f/tm|r ge\195\164ndert werden.",
 
     -- Step 2: Profile
     ["ins_step2_title"]              = "Spielprofil",
@@ -1200,6 +1200,59 @@ TomoMod_RegisterLocale("deDE", {
     ["ins_done_recap"]               = "Deine TomoMod-Konfiguration ist gespeichert. Hier einige Hinweise:\n\n|cff0cd29f/tm|r              |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Konfigurationspanel \195\182ffnen\n|cff0cd29f/tm sr|r           |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Elemente entsperren und verschieben\n|cff0cd29f/tm install|r      |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Diesen Installer neu starten\n\nAlle hier konfigurierten Optionen k\195\182nnen jederzeit\n\195\188ber die entsprechenden Panels in der TomoMod-GUI ge\195\164ndert werden.\n\nEin |cff0cd29fUI-Reload|r ist erforderlich, um bestimmte \195\132nderungen anzuwenden\n(Nameplates, Skins, UnitFrames).",
     ["ins_done_reload"]              = "|TInterface\\BUTTONS\\UI-RefreshButton:0|t  UI neu laden",
 
+    -- Step NEW: Unit Frames
+    ["ins_uf_title"]                 = "Unit Frames",
+    ["ins_uf_info"]                  = "TomoMod ersetzt die Standard-Blizzard-UnitFrames (Spieler, Ziel, Fokus, Begleiter)\nmit modernen, anpassbaren Frames.",
+    ["ins_uf_section"]               = "Allgemein",
+    ["ins_uf_enable"]                = "TomoMod UnitFrames aktivieren",
+    ["ins_uf_hide_blizzard"]         = "Standard Blizzard-Frames ausblenden",
+    ["ins_uf_reload_info"]           = "Ein Reload ist erforderlich, um \195\132nderungen an UnitFrames anzuwenden.",
+
+    -- Step NEW: Party Frames
+    ["ins_pf_title"]                 = "Party Frames",
+    ["ins_pf_info"]                  = "Eigene Gruppenframes mit Rollensymbolen, Dispel-Hervorhebung\nund Cooldown-Verfolgung f\195\188r Gruppenspiel.",
+    ["ins_pf_section"]               = "Allgemein",
+    ["ins_pf_enable"]                = "TomoMod Party Frames aktivieren",
+    ["ins_pf_hide_blizzard"]         = "Blizzard Party Frames ausblenden",
+    ["ins_pf_cd_section"]            = "Cooldown-Tracker",
+    ["ins_pf_cd_info"]               = "Verfolge die Interrupt- und Kampfrez-Cooldowns deiner\nGruppenmitglieder direkt auf ihren Frames.",
+    ["ins_pf_show_interrupt"]        = "Interrupt-Cooldown-Tracker anzeigen",
+    ["ins_pf_show_brez"]             = "Kampfrez-Cooldown-Tracker anzeigen",
+    ["ins_pf_reload_info"]           = "Ein Reload ist erforderlich, um \195\132nderungen an Party Frames anzuwenden.",
+
+    -- Step NEW: Castbars
+    ["ins_cb_title"]                 = "Zauberleisten",
+    ["ins_cb_info"]                  = "Eigene Zauberleisten f\195\188r Spieler, Ziel, Fokus und Begleiter\nmit Funken-Animation und Unterbrechungs-Feedback.",
+    ["ins_cb_section"]               = "Allgemein",
+    ["ins_cb_enable"]                = "TomoMod Zauberleisten aktivieren",
+    ["ins_cb_hide_blizzard"]         = "Blizzard Standard-Zauberleiste ausblenden",
+    ["ins_cb_class_color"]           = "Klassenfarbe f\195\188r Balken verwenden",
+    ["ins_cb_reload_info"]           = "Ein Reload ist erforderlich, um \195\132nderungen an Zauberleisten anzuwenden.",
+
+    -- Step NEW: Resource Bars & Cooldown Manager
+    ["ins_res_title"]                = "Ressourcen & Cooldowns",
+    ["ins_res_info"]                 = "Klassenmacht-Anzeige (Kombopunkte, Runen, Seelensplitter usw.)\nim Symbol- oder Balkenmodus.",
+    ["ins_res_section"]              = "Ressourcenleisten",
+    ["ins_res_enable"]               = "Ressourcenleisten aktivieren",
+    ["ins_res_display"]              = "Anzeigemodus",
+    ["ins_cdm_section"]              = "Cooldown-Manager",
+    ["ins_cdm_info"]                 = "Cooldown-Spirale auf Aktionstasten mit\nkampfbewusstem Alpha und GCD-Filterung.",
+    ["ins_cdm_enable"]               = "Cooldown-Manager aktivieren",
+    ["ins_cdm_hide_gcd"]             = "GCD-Spirale ausblenden",
+    ["ins_cdm_desat"]                = "Tasten bei Cooldown ents\195\164ttigen",
+
+    -- Enhanced Skins
+    ["ins_skin_bag"]                 = "Taschen-Skin",
+    ["ins_skin_tooltip"]             = "Tooltip-Skin",
+
+    -- Enhanced QOL
+    ["ins_qol_interface_section"]    = "Oberfl\195\164che",
+    ["ins_qol_minimap"]              = "Eigene Minimap (Rahmen & Skalierung)",
+    ["ins_qol_cursor"]               = "Cursor-Ring-Hervorhebung",
+    ["ins_qol_afk"]                  = "Eigener AFK-Bildschirm mit 3D-Modell",
+    ["ins_qol_diag"]                 = "Diagnose (Fehlererfassung ohne Popups)",
+    ["ins_qol_aura_tracker"]         = "Aura-Tracker (Schmuckst\195\188cke, Buffs, Defensive)",
+
     -- =========== Config Panels — i18n ===========
     -- ActionBars panel
     ["opt_abs_style"]                = "Visueller Stil",
@@ -1217,7 +1270,7 @@ TomoMod_RegisterLocale("deDE", {
     ["tab_abs_bars"]                 = "Leisten-Verwaltung",
     -- General panel
     ["btn_relaunch_installer"]       = "Installer neu starten",
-    ["info_relaunch_installer"]      = "Startet den 12-Schritte-Einrichtungsassistenten.",
+    ["info_relaunch_installer"]      = "Startet den 16-Schritte-Einrichtungsassistenten.",
     -- Sound panel
     ["section_sound_preview"]        = "Vorschau & Optionen",
     -- UFPreview
@@ -1696,4 +1749,36 @@ TomoMod_RegisterLocale("deDE", {
     ["bt_miss_evade"]                    = "Ausweichen",
     ["bt_miss_deflect"]                  = "Abgelenkt",
     ["bt_miss_reflect"]                  = "Reflektiert",
+
+    -- =========== What's New Popup ===========
+    ["wn_title"]                         = "Neuigkeiten",
+    ["wn_version"]                       = "Version %s",
+    ["wn_subtitle"]                      = "Das hat sich seit deinem letzten Update ge\195\164ndert:",
+    ["wn_btn_ok"]                        = "Verstanden!",
+    ["wn_footer"]                        = "Alle Einstellungen k\195\182nnen jederzeit \195\188ber |cff0cd29f/tm|r ge\195\164ndert werden.",
+
+    -- 2.9.5
+    ["wn_295_taint_fix"]                 = "CooldownTrackers: COMBAT_LOG_EVENT_UNFILTERED entfernt, um Taint zu beheben (ADDON_ACTION_FORBIDDEN).",
+    ["wn_295_diag_taint"]                = "Diagnostik: Taint-Fehler werden jetzt immer erfasst, auch bei deaktivierter Diagnostik.",
+    ["wn_295_tooltip_ids_moved"]         = "Tooltip-IDs-Optionen von QOL-Panel nach Skins > Tooltip-Tab verschoben.",
+    ["wn_295_chat_text_offset"]          = "Chat-Skin: Text leicht nach rechts verschoben, um die Seitenleiste freizugeben.",
+
+    -- 2.9.4
+    ["wn_294_installer"]                 = "Installationsassistent von 12 auf 16 gef\195\188hrte Schritte erweitert.",
+    ["wn_294_uf_pf"]                     = "Neue Schritte: Konfiguration von Unit Frames und Party Frames.",
+    ["wn_294_cb_res"]                    = "Neue Schritte: Zauberleisten und Ressourcen / Cooldown-Manager.",
+    ["wn_294_skins_qol"]                 = "Erweiterte Skins (Taschen, Tooltips) und QOL (Minimap, Cursor, AFK, Diagnostik, Aura-Tracker).",
+    ["wn_294_bugfixes"]                  = "Secret-Value-Korrekturen f\195\188r TooltipIDs und CooldownTrackers (Midnight-Taint).",
+    ["wn_294_locales"]                   = "50+ neue \195\156bersetzungsschl\195\188ssel in allen 6 Sprachen.",
+
+    -- 2.9.3
+    ["wn_293_partyframe"]                = "Party Frames: Ready-Check-Symbole, Tooltip beim Hovern, Raid-Marker-Rewrite.",
+    ["wn_293_actionbar_fix"]             = "Aktionsleisten: Interaktivit\195\164tsfix f\195\188r Leisten 1-4, leere Buttons fix.",
+    ["wn_293_chat_taint"]                = "Chat-Skin: Midnight-Taint-Korrekturen (geheime GUID/BN-Guards).",
+    ["wn_293_diagnostics"]               = "Diagnostik: Pattern-basierte Ausnahmen, 6-Sprachen-Schl\195\188sselw\195\182rter.",
+    ["wn_293_autofill"]                  = "AutoFillDelete: Midnight STATICPOPUP_NUMDIALOGS-Fix.",
+
+    -- 2.9.2
+    ["wn_292_actionbar"]                 = "Kompletter Aktionsleisten-Rewrite: Container-Architektur, Fade-System, Anzeigebedingungen.",
+    ["wn_292_diagnostics"]               = "Neue Diagnostik-Konsole: Fehlererfassung im Hintergrund, Export, /tmdiag.",
 })

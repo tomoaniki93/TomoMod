@@ -34,6 +34,7 @@ TomoMod_Defaults = {
         useClassColor = false,
         anchorTooltip = false,
     },
+    lastSeenVersion = "",
     installer = {
         completed = false,
         step      = 1,
@@ -241,6 +242,79 @@ TomoMod_Defaults = {
         showTimestamp = true,
         history       = {},
         position      = { anchor = "BOTTOMLEFT", relTo = "BOTTOMLEFT", x = 20, y = 24 },
+    },
+    -- Chat Frame UI — multi-position containers, button bar, sidebar icons,
+    -- layout switching, raid frame manager (adapted from MayronUI).
+    chatFrameUI = {
+        enabled = false,
+        swapInCombat = false,
+        raidFrameManager = true,
+        chatFrames = {
+            TOPLEFT = {
+                enabled = true,
+                xOffset = 2, yOffset = -2,
+                tabBar  = { show = true, yOffset = -12 },
+                window  = { yOffset = -37 },
+                buttons = {
+                    { "Character", "Spell Book", "Talents" },
+                    { key = "C", "Reputation", "LFD", "Quest Log" },
+                    { key = "S", "Achievements", "Collections Journal", "Encounter Journal" },
+                },
+            },
+            TOPRIGHT = {
+                enabled = false,
+                xOffset = -2, yOffset = -2,
+                tabBar  = { show = true, yOffset = -12 },
+                window  = { yOffset = -37 },
+                buttons = {
+                    { "Character", "Spell Book", "Talents" },
+                    { key = "C", "Reputation", "LFD", "Quest Log" },
+                    { key = "S", "Achievements", "Collections Journal", "Encounter Journal" },
+                },
+            },
+            BOTTOMLEFT = {
+                enabled = false,
+                xOffset = 2, yOffset = 2,
+                tabBar  = { show = true, yOffset = -43 },
+                window  = { yOffset = 12 },
+                buttons = {
+                    { "Character", "Spell Book", "Talents" },
+                    { key = "C", "Reputation", "LFD", "Quest Log" },
+                    { key = "S", "Achievements", "Collections Journal", "Encounter Journal" },
+                },
+            },
+            BOTTOMRIGHT = {
+                enabled = false,
+                xOffset = -2, yOffset = 2,
+                tabBar  = { show = true, yOffset = -43 },
+                window  = { yOffset = 12 },
+                buttons = {
+                    { "Character", "Spell Book", "Talents" },
+                    { key = "C", "Reputation", "LFD", "Quest Log" },
+                    { key = "S", "Achievements", "Collections Journal", "Encounter Journal" },
+                },
+            },
+        },
+        iconsAnchor = "TOPLEFT",
+        icons = {
+            { type = "voiceChat" },
+            { type = "professions" },
+            { type = "shortcuts" },
+            { type = "copyChat" },
+            { type = "emotes" },
+            { type = "playerStatus" },
+        },
+        brightness = 0.7,
+        editBox = {
+            position = "BOTTOM",
+            yOffset = -8,
+            height = 27,
+            inset = 0,
+            backdropColor = { r = 0, g = 0, b = 0, a = 0.6 },
+        },
+        highlighted = {},
+        layouts = {},
+        currentLayout = nil,
     },
     bagSkin = {
         enabled = false,

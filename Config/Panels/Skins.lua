@@ -109,6 +109,80 @@ local function BuildChatFrameTab(parent)
     return scroll
 end
 
+--[[ Chat Frame UI (multi-position containers — MayronUI style) — disabled for now
+    TomoModDB.chatFrameUI = TomoModDB.chatFrameUI or {}
+    local cfuiDB = TomoModDB.chatFrameUI
+
+    local _, ny = W.CreateSeparator(c, y); y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_chatframeui"], y); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_cfui_enable"], cfuiDB.enabled, y, function(v)
+        cfuiDB.enabled = v
+        if TomoMod_ChatFrameUI then TomoMod_ChatFrameUI.SetEnabled(v) end
+    end); y = ny
+
+    -- Per-anchor frame toggles
+    local anchors = {
+        { key = "TOPLEFT",     label = L["opt_cfui_frame_topleft"] },
+        { key = "TOPRIGHT",    label = L["opt_cfui_frame_topright"] },
+        { key = "BOTTOMLEFT",  label = L["opt_cfui_frame_bottomleft"] },
+        { key = "BOTTOMRIGHT", label = L["opt_cfui_frame_bottomright"] },
+    }
+    for _, a in ipairs(anchors) do
+        cfuiDB.chatFrames = cfuiDB.chatFrames or {}
+        cfuiDB.chatFrames[a.key] = cfuiDB.chatFrames[a.key] or {}
+        local fs = cfuiDB.chatFrames[a.key]
+        local _, ny = W.CreateCheckbox(c, a.label, fs.enabled, y, function(v)
+            fs.enabled = v
+            if TomoMod_ChatFrameUI then TomoMod_ChatFrameUI.ApplySettings() end
+        end); y = ny
+    end
+
+    local _, ny = W.CreateSeparator(c, y); y = ny
+
+    -- Icons anchor
+    local _, ny = W.CreateDropdown(c, L["opt_cfui_icons_anchor"], {
+        { text = "Top-Left",     value = "TOPLEFT" },
+        { text = "Top-Right",    value = "TOPRIGHT" },
+        { text = "Bottom-Left",  value = "BOTTOMLEFT" },
+        { text = "Bottom-Right", value = "BOTTOMRIGHT" },
+    }, cfuiDB.iconsAnchor or "TOPLEFT", y, function(v)
+        cfuiDB.iconsAnchor = v
+        if TomoMod_ChatFrameUI then TomoMod_ChatFrameUI.RefreshSideBarIcons() end
+    end); y = ny
+
+    -- Edit box position
+    local _, ny = W.CreateDropdown(c, L["opt_cfui_editbox_position"], {
+        { text = "Top",    value = "TOP" },
+        { text = "Bottom", value = "BOTTOM" },
+    }, (cfuiDB.editBox and cfuiDB.editBox.position) or "BOTTOM", y, function(v)
+        cfuiDB.editBox = cfuiDB.editBox or {}
+        cfuiDB.editBox.position = v
+        if TomoMod_ChatFrameUI then TomoMod_ChatFrameUI.ApplySettings() end
+    end); y = ny
+
+    -- Edit box height
+    local _, ny = W.CreateSlider(c, L["opt_cfui_editbox_height"], (cfuiDB.editBox and cfuiDB.editBox.height) or 27, 20, 50, 1, y, function(v)
+        cfuiDB.editBox = cfuiDB.editBox or {}
+        cfuiDB.editBox.height = v
+        if TomoMod_ChatFrameUI then TomoMod_ChatFrameUI.ApplySettings() end
+    end); y = ny
+
+    -- Raid frame manager
+    local _, ny = W.CreateCheckbox(c, L["opt_cfui_raid_frame_mgr"], cfuiDB.raidFrameManager ~= false, y, function(v)
+        cfuiDB.raidFrameManager = v
+    end); y = ny
+
+    -- Swap buttons in combat
+    local _, ny = W.CreateCheckbox(c, L["opt_cfui_swap_in_combat"], cfuiDB.swapInCombat, y, function(v)
+        cfuiDB.swapInCombat = v
+    end); y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+--]]
+
 -- =====================================================================
 -- TAB: BAGS
 -- =====================================================================
@@ -634,6 +708,45 @@ local function BuildTooltipSkinTab(parent)
         TomoModDB.tooltipSkin.guildNameColor.b = b
     end)
     y = ny
+
+    -- ─────────────────────────────────────────────
+    -- Tooltip IDs
+    -- ─────────────────────────────────────────────
+    local _, ny = W.CreateSeparator(c, y); y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_tooltip_ids"], y); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.tooltipIDs.enabled, y, function(v)
+        TomoModDB.tooltipIDs.enabled = v
+        if TomoMod_TooltipIDs then TomoMod_TooltipIDs.SetEnabled(v) end
+    end); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_spell"], TomoModDB.tooltipIDs.showSpellID, y, function(v)
+        TomoModDB.tooltipIDs.showSpellID = v
+    end); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_item"], TomoModDB.tooltipIDs.showItemID, y, function(v)
+        TomoModDB.tooltipIDs.showItemID = v
+    end); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_npc"], TomoModDB.tooltipIDs.showNPCID, y, function(v)
+        TomoModDB.tooltipIDs.showNPCID = v
+    end); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_quest"], TomoModDB.tooltipIDs.showQuestID, y, function(v)
+        TomoModDB.tooltipIDs.showQuestID = v
+    end); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_mount"], TomoModDB.tooltipIDs.showMountID, y, function(v)
+        TomoModDB.tooltipIDs.showMountID = v
+    end); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_currency"], TomoModDB.tooltipIDs.showCurrencyID, y, function(v)
+        TomoModDB.tooltipIDs.showCurrencyID = v
+    end); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tid_achievement"], TomoModDB.tooltipIDs.showAchievementID, y, function(v)
+        TomoModDB.tooltipIDs.showAchievementID = v
+    end); y = ny
 
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end

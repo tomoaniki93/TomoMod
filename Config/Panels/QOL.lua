@@ -186,53 +186,6 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
-    -- Tooltip IDs
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_tooltip_ids"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.tooltipIDs.enabled, y, function(v)
-        TomoModDB.tooltipIDs.enabled = v
-        if TomoMod_TooltipIDs then TomoMod_TooltipIDs.SetEnabled(v) end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tid_spell"], TomoModDB.tooltipIDs.showSpellID, y, function(v)
-        TomoModDB.tooltipIDs.showSpellID = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tid_item"], TomoModDB.tooltipIDs.showItemID, y, function(v)
-        TomoModDB.tooltipIDs.showItemID = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tid_npc"], TomoModDB.tooltipIDs.showNPCID, y, function(v)
-        TomoModDB.tooltipIDs.showNPCID = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tid_quest"], TomoModDB.tooltipIDs.showQuestID, y, function(v)
-        TomoModDB.tooltipIDs.showQuestID = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tid_mount"], TomoModDB.tooltipIDs.showMountID, y, function(v)
-        TomoModDB.tooltipIDs.showMountID = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tid_currency"], TomoModDB.tooltipIDs.showCurrencyID, y, function(v)
-        TomoModDB.tooltipIDs.showCurrencyID = v
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_tid_achievement"], TomoModDB.tooltipIDs.showAchievementID, y, function(v)
-        TomoModDB.tooltipIDs.showAchievementID = v
-    end)
-    y = ny
-
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll

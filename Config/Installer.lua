@@ -1,7 +1,8 @@
 -- ============================================================
 -- Installer.lua — Assistant de première installation
--- 12 étapes guidées : profil, skins, tank, nameplates,
--- action bars, lustsound, mythic+, cvars, qol, skyriding, fin.
+-- 16 étapes guidées : profil, UF, party, castbars, nameplates,
+-- tank, action bars, resources, skins, lustsound, mythic+,
+-- qol, cvars, skyriding, fin.
 -- Ouverture : auto au premier démarrage ou /tm install
 -- ============================================================
 
@@ -25,7 +26,7 @@ local DM = { 0.48,  0.48,  0.54,  1    }
 
 local PANEL_W = 760
 local PANEL_H = 560
-local TOTAL_STEPS = 12
+local TOTAL_STEPS = 16
 
 -- State
 local frame, dimmer
@@ -284,60 +285,123 @@ steps[2] = {
     end,
 }
 
--- ── STEP 3: Skins visuels ──────────────────────────────────
+-- ── STEP 3: Unit Frames ───────────────────────────────────
 steps[3] = {
-    title = L["ins_step3_title"],
-    icon  = ICON_PATH.."icon_qol.tga",
+    title = L["ins_uf_title"],
+    icon  = ICON_PATH.."icon_unitframes.tga",
     build = function(c)
         local y = -10
-        y = Info(c,L["ins_skins_info"], y)
-        y = Sec(c, L["ins_skins_section"], y)
-        local _, ny = Cb(c,L["ins_skin_gamemenu"],    TomoModDB.gameMenuSkin and TomoModDB.gameMenuSkin.enabled, y, function(v)
-            TomoModDB.gameMenuSkin = TomoModDB.gameMenuSkin or {}
-            TomoModDB.gameMenuSkin.enabled = v
-            if TomoMod_GameMenuSkin then TomoMod_GameMenuSkin.SetEnabled(v) end
+        local ufDB = TomoModDB.unitFrames or {}
+        y = Info(c, L["ins_uf_info"], y)
+        y = Sec(c, L["ins_uf_section"], y)
+        local _, ny = Cb(c, L["ins_uf_enable"], ufDB.enabled ~= false, y, function(v)
+            TomoModDB.unitFrames = TomoModDB.unitFrames or {}
+            TomoModDB.unitFrames.enabled = v
+        end); y = ny
+        local _, ny = Cb(c, L["ins_uf_hide_blizzard"], ufDB.hideBlizzardFrames ~= false, y, function(v)
+            TomoModDB.unitFrames = TomoModDB.unitFrames or {}
+            TomoModDB.unitFrames.hideBlizzardFrames = v
+        end); y = ny
+        y = Info(c, L["ins_uf_reload_info"], y)
+        return y
+    end,
+}
+
+-- ── STEP 4: Party Frames ──────────────────────────────────
+steps[4] = {
+    title = L["ins_pf_title"],
+    icon  = ICON_PATH.."icon_unitframes.tga",
+    build = function(c)
+        local y = -10
+        local pfDB = TomoModDB.partyFrames or {}
+        y = Info(c, L["ins_pf_info"], y)
+        y = Sec(c, L["ins_pf_section"], y)
+        local _, ny = Cb(c, L["ins_pf_enable"], pfDB.enabled ~= false, y, function(v)
+            TomoModDB.partyFrames = TomoModDB.partyFrames or {}
+            TomoModDB.partyFrames.enabled = v
+        end); y = ny
+        local _, ny = Cb(c, L["ins_pf_hide_blizzard"], pfDB.hideBlizzardFrames ~= false, y, function(v)
+            TomoModDB.partyFrames = TomoModDB.partyFrames or {}
+            TomoModDB.partyFrames.hideBlizzardFrames = v
         end); y = ny
 
-        local _, ny = Cb(c,L["ins_skin_actionbar"], TomoModDB.actionBarSkin and TomoModDB.actionBarSkin.enabled, y, function(v)
-            TomoModDB.actionBarSkin = TomoModDB.actionBarSkin or {}
-            TomoModDB.actionBarSkin.enabled = v
-            if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.SetEnabled(v) end
+        y = Sec(c, L["ins_pf_cd_section"], y)
+        y = Info(c, L["ins_pf_cd_info"], y)
+        local _, ny = Cb(c, L["ins_pf_show_interrupt"], pfDB.showInterruptCD ~= false, y, function(v)
+            TomoModDB.partyFrames = TomoModDB.partyFrames or {}
+            TomoModDB.partyFrames.showInterruptCD = v
         end); y = ny
-
-        local _, ny = Cb(c,L["ins_skin_buffs"],           TomoModDB.buffSkin and TomoModDB.buffSkin.enabled, y, function(v)
-            TomoModDB.buffSkin = TomoModDB.buffSkin or {}
-            TomoModDB.buffSkin.enabled = v
-            if TomoMod_BuffSkin then TomoMod_BuffSkin.SetEnabled(v) end
+        local _, ny = Cb(c, L["ins_pf_show_brez"], pfDB.showBrezCD ~= false, y, function(v)
+            TomoModDB.partyFrames = TomoModDB.partyFrames or {}
+            TomoModDB.partyFrames.showBrezCD = v
         end); y = ny
+        y = Info(c, L["ins_pf_reload_info"], y)
+        return y
+    end,
+}
 
-        local _, ny = Cb(c,L["ins_skin_chat"],                       TomoModDB.chatSkin and TomoModDB.chatSkin.enabled, y, function(v)
-            TomoModDB.chatSkin = TomoModDB.chatSkin or {}
-            TomoModDB.chatSkin.enabled = v
-            if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.SetEnabled(v) end
+-- ── STEP 5: Castbars ──────────────────────────────────────
+steps[5] = {
+    title = L["ins_cb_title"],
+    icon  = ICON_PATH.."icon_unitframes.tga",
+    build = function(c)
+        local y = -10
+        local cbDB = TomoModDB.castbars or {}
+        y = Info(c, L["ins_cb_info"], y)
+        y = Sec(c, L["ins_cb_section"], y)
+        local _, ny = Cb(c, L["ins_cb_enable"], cbDB.enabled ~= false, y, function(v)
+            TomoModDB.castbars = TomoModDB.castbars or {}
+            TomoModDB.castbars.enabled = v
         end); y = ny
-
-        local _, ny = Cb(c,L["ins_skin_character"],     TomoModDB.characterSkin and TomoModDB.characterSkin.enabled, y, function(v)
-            TomoModDB.characterSkin = TomoModDB.characterSkin or {}
-            TomoModDB.characterSkin.enabled = v
+        local _, ny = Cb(c, L["ins_cb_hide_blizzard"], cbDB.hideBlizzardCastbar ~= false, y, function(v)
+            TomoModDB.castbars = TomoModDB.castbars or {}
+            TomoModDB.castbars.hideBlizzardCastbar = v
         end); y = ny
+        local _, ny = Cb(c, L["ins_cb_class_color"], cbDB.useClassColor ~= false, y, function(v)
+            TomoModDB.castbars = TomoModDB.castbars or {}
+            TomoModDB.castbars.useClassColor = v
+        end); y = ny
+        y = Info(c, L["ins_cb_reload_info"], y)
+        return y
+    end,
+}
 
-        y = Sec(c, L["ins_skin_style_section"], y)
-        local _, ny = Dd(c, L["ins_skin_style"], {
-            {value="classic",  text="Classic (9-slice)"},
-            {value="flat",     text="Flat"},
-            {value="outlined", text="Outlined"},
-            {value="glass",    text="Glass"},
-        }, (TomoModDB.actionBarSkin and TomoModDB.actionBarSkin.skinStyle) or "classic", y, function(v)
-            TomoModDB.actionBarSkin = TomoModDB.actionBarSkin or {}
-            TomoModDB.actionBarSkin.skinStyle = v
-            if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.Reskin then TomoMod_ActionBarSkin.Reskin() end
+-- ── STEP 6: Nameplates ────────────────────────────────────
+steps[6] = {
+    title = L["ins_step5_title"],
+    icon  = ICON_PATH.."icon_nameplates.tga",
+    build = function(c)
+        local y = -10
+        local npDB = TomoModDB.nameplates or {}
+        y = Sec(c, L["ins_np_general"], y)
+        local _, ny = Cb(c,L["ins_np_enable"], npDB.enabled, y, function(v)
+            TomoModDB.nameplates.enabled = v
+            if TomoMod_Nameplates then
+                if v then TomoMod_Nameplates.Enable() else TomoMod_Nameplates.Disable() end
+            end
+        end); y = ny
+        y = Info(c, L["ins_np_reload_info"], y)
+
+        y = Sec(c, L["ins_np_display"], y)
+        local _, ny = Cb(c,L["ins_np_class_colors"],     npDB.useClassColors,           y,function(v) TomoModDB.nameplates.useClassColors=v end); y=ny
+        local _, ny = Cb(c,L["ins_np_castbar"], npDB.showCastbar,  y,function(v) TomoModDB.nameplates.showCastbar=v end); y=ny
+        local _, ny = Cb(c,L["ins_np_health_text"], npDB.showHealthText, y,function(v) TomoModDB.nameplates.showHealthText=v end); y=ny
+        local _, ny = Cb(c,L["ins_np_auras"], npDB.showAuras,           y,function(v) TomoModDB.nameplates.showAuras=v end); y=ny
+        local _, ny = Cb(c,L["ins_np_role_icons"], npDB.friendlyRoleIcons~=false, y, function(v)
+            TomoModDB.nameplates.friendlyRoleIcons=v
+        end); y=ny
+
+        y = Sec(c, L["ins_np_dimensions"], y)
+        local _, ny = Sldr(c,L["ins_np_width"], npDB.width or 170, 60, 300, 5, y, function(v)
+            TomoModDB.nameplates.width = v
+            if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
         end); y = ny
         return y
     end,
 }
 
--- ── STEP 4: Mode Tank ─────────────────────────────────────
-steps[4] = {
+-- ── STEP 7: Mode Tank ─────────────────────────────────────
+steps[7] = {
     title = L["ins_step4_title"],
     icon  = ICON_PATH.."icon_unitframes.tga",
     build = function(c)
@@ -383,42 +447,8 @@ steps[4] = {
     end,
 }
 
--- ── STEP 5: Nameplates ────────────────────────────────────
-steps[5] = {
-    title = L["ins_step5_title"],
-    icon  = ICON_PATH.."icon_nameplates.tga",
-    build = function(c)
-        local y = -10
-        local npDB = TomoModDB.nameplates or {}
-        y = Sec(c, L["ins_np_general"], y)
-        local _, ny = Cb(c,L["ins_np_enable"], npDB.enabled, y, function(v)
-            TomoModDB.nameplates.enabled = v
-            if TomoMod_Nameplates then
-                if v then TomoMod_Nameplates.Enable() else TomoMod_Nameplates.Disable() end
-            end
-        end); y = ny
-        y = Info(c, L["ins_np_reload_info"], y)
-
-        y = Sec(c, L["ins_np_display"], y)
-        local _, ny = Cb(c,L["ins_np_class_colors"],     npDB.useClassColors,           y,function(v) TomoModDB.nameplates.useClassColors=v end); y=ny
-        local _, ny = Cb(c,L["ins_np_castbar"], npDB.showCastbar,  y,function(v) TomoModDB.nameplates.showCastbar=v end); y=ny
-        local _, ny = Cb(c,L["ins_np_health_text"], npDB.showHealthText, y,function(v) TomoModDB.nameplates.showHealthText=v end); y=ny
-        local _, ny = Cb(c,L["ins_np_auras"], npDB.showAuras,           y,function(v) TomoModDB.nameplates.showAuras=v end); y=ny
-        local _, ny = Cb(c,L["ins_np_role_icons"], npDB.friendlyRoleIcons~=false, y, function(v)
-            TomoModDB.nameplates.friendlyRoleIcons=v
-        end); y=ny
-
-        y = Sec(c, L["ins_np_dimensions"], y)
-        local _, ny = Sldr(c,L["ins_np_width"], npDB.width or 170, 60, 300, 5, y, function(v)
-            TomoModDB.nameplates.width = v
-            if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
-        end); y = ny
-        return y
-    end,
-}
-
--- ── STEP 6: Barres d'action ───────────────────────────────
-steps[6] = {
+-- ── STEP 8: Barres d'action ───────────────────────────────
+steps[8] = {
     title = L["ins_step6_title"],
     icon  = ICON_PATH.."icon_actionbars.tga",
     build = function(c)
@@ -455,8 +485,111 @@ steps[6] = {
     end,
 }
 
--- ── STEP 7: LustSound ─────────────────────────────────────
-steps[7] = {
+-- ── STEP 9: Ressources & Cooldowns ────────────────────────
+steps[9] = {
+    title = L["ins_res_title"],
+    icon  = ICON_PATH.."icon_resources.tga",
+    build = function(c)
+        local y = -10
+        local resDB = TomoModDB.resourceBars or {}
+        local cdmDB = TomoModDB.cooldownManager or {}
+
+        y = Sec(c, L["ins_res_section"], y)
+        y = Info(c, L["ins_res_info"], y)
+        local _, ny = Cb(c, L["ins_res_enable"], resDB.enabled ~= false, y, function(v)
+            TomoModDB.resourceBars = TomoModDB.resourceBars or {}
+            TomoModDB.resourceBars.enabled = v
+        end); y = ny
+        local _, ny = Dd(c, L["ins_res_display"], {
+            {value="icons", text="Icons"},
+            {value="bar",   text="Bar"},
+        }, resDB.displayMode or "icons", y, function(v)
+            TomoModDB.resourceBars = TomoModDB.resourceBars or {}
+            TomoModDB.resourceBars.displayMode = v
+        end); y = ny
+
+        y = Sec(c, L["ins_cdm_section"], y)
+        y = Info(c, L["ins_cdm_info"], y)
+        local _, ny = Cb(c, L["ins_cdm_enable"], cdmDB.enabled ~= false, y, function(v)
+            TomoModDB.cooldownManager = TomoModDB.cooldownManager or {}
+            TomoModDB.cooldownManager.enabled = v
+        end); y = ny
+        local _, ny = Cb(c, L["ins_cdm_hide_gcd"], cdmDB.hideGCD or false, y, function(v)
+            TomoModDB.cooldownManager = TomoModDB.cooldownManager or {}
+            TomoModDB.cooldownManager.hideGCD = v
+        end); y = ny
+        local _, ny = Cb(c, L["ins_cdm_desat"], cdmDB.desaturateOnCD or false, y, function(v)
+            TomoModDB.cooldownManager = TomoModDB.cooldownManager or {}
+            TomoModDB.cooldownManager.desaturateOnCD = v
+        end); y = ny
+        return y
+    end,
+}
+
+-- ── STEP 10: Skins visuels ─────────────────────────────────
+steps[10] = {
+    title = L["ins_step3_title"],
+    icon  = ICON_PATH.."icon_qol.tga",
+    build = function(c)
+        local y = -10
+        y = Info(c,L["ins_skins_info"], y)
+        y = Sec(c, L["ins_skins_section"], y)
+        local _, ny = Cb(c,L["ins_skin_gamemenu"],    TomoModDB.gameMenuSkin and TomoModDB.gameMenuSkin.enabled, y, function(v)
+            TomoModDB.gameMenuSkin = TomoModDB.gameMenuSkin or {}
+            TomoModDB.gameMenuSkin.enabled = v
+            if TomoMod_GameMenuSkin then TomoMod_GameMenuSkin.SetEnabled(v) end
+        end); y = ny
+
+        local _, ny = Cb(c,L["ins_skin_actionbar"], TomoModDB.actionBarSkin and TomoModDB.actionBarSkin.enabled, y, function(v)
+            TomoModDB.actionBarSkin = TomoModDB.actionBarSkin or {}
+            TomoModDB.actionBarSkin.enabled = v
+            if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.SetEnabled(v) end
+        end); y = ny
+
+        local _, ny = Cb(c,L["ins_skin_buffs"],           TomoModDB.buffSkin and TomoModDB.buffSkin.enabled, y, function(v)
+            TomoModDB.buffSkin = TomoModDB.buffSkin or {}
+            TomoModDB.buffSkin.enabled = v
+            if TomoMod_BuffSkin then TomoMod_BuffSkin.SetEnabled(v) end
+        end); y = ny
+
+        local _, ny = Cb(c,L["ins_skin_chat"],                       TomoModDB.chatSkin and TomoModDB.chatSkin.enabled, y, function(v)
+            TomoModDB.chatSkin = TomoModDB.chatSkin or {}
+            TomoModDB.chatSkin.enabled = v
+            if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.SetEnabled(v) end
+        end); y = ny
+
+        local _, ny = Cb(c,L["ins_skin_character"],     TomoModDB.characterSkin and TomoModDB.characterSkin.enabled, y, function(v)
+            TomoModDB.characterSkin = TomoModDB.characterSkin or {}
+            TomoModDB.characterSkin.enabled = v
+        end); y = ny
+
+        local _, ny = Cb(c,L["ins_skin_bag"],     TomoModDB.bagSkin and TomoModDB.bagSkin.enabled, y, function(v)
+            TomoModDB.bagSkin = TomoModDB.bagSkin or {}
+            TomoModDB.bagSkin.enabled = v
+        end); y = ny
+
+        local _, ny = Cb(c,L["ins_skin_tooltip"],     TomoModDB.tooltipSkin and TomoModDB.tooltipSkin.enabled, y, function(v)
+            TomoModDB.tooltipSkin = TomoModDB.tooltipSkin or {}
+            TomoModDB.tooltipSkin.enabled = v
+        end); y = ny
+
+        y = Sec(c, L["ins_skin_style_section"], y)
+        local _, ny = Dd(c, L["ins_skin_style"], {
+            {value="classic",  text="Classic (9-slice)"},
+            {value="flat",     text="Flat"},
+            {value="outlined", text="Outlined"},
+            {value="glass",    text="Glass"},
+        }, (TomoModDB.actionBarSkin and TomoModDB.actionBarSkin.skinStyle) or "classic", y, function(v)
+            TomoModDB.actionBarSkin = TomoModDB.actionBarSkin or {}
+            TomoModDB.actionBarSkin.skinStyle = v
+            if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.Reskin then TomoMod_ActionBarSkin.Reskin() end
+        end); y = ny
+        return y
+    end,
+}
+
+-- ── STEP 11: LustSound ────────────────────────────────────
+steps[11] = {
     title = L["ins_step7_title"],
     icon  = ICON_PATH.."icon_sound.tga",
     build = function(c)
@@ -502,8 +635,8 @@ steps[7] = {
     end,
 }
 
--- ── STEP 8: Mythic+ ───────────────────────────────────────
-steps[8] = {
+-- ── STEP 12: Mythic+ ──────────────────────────────────────
+steps[12] = {
     title = L["ins_step8_title"],
     icon  = ICON_PATH.."icon_mythicplus.tga",
     build = function(c)
@@ -539,8 +672,72 @@ steps[8] = {
     end,
 }
 
--- ── STEP 9: CVars ─────────────────────────────────────────
-steps[9] = {
+-- ── STEP 13: QOL ──────────────────────────────────────────
+steps[13] = {
+    title = L["ins_step10_title"],
+    icon  = ICON_PATH.."icon_qol.tga",
+    build = function(c)
+        local y = -10
+        y = Info(c,L["ins_qol_info"], y)
+        y = Sec(c,L["ins_qol_auto_section"], y)
+        local function qol(lbl, get, set, onTrue, ny)
+            local _, nny = Cb(c, lbl, get(), ny, function(v)
+                set(v); if v and onTrue then onTrue() end
+            end)
+            return nny
+        end
+        y = qol(L["ins_qol_auto_repair"],
+            function() return TomoModDB.autoVendorRepair and TomoModDB.autoVendorRepair.enabled end,
+            function(v)
+                TomoModDB.autoVendorRepair = TomoModDB.autoVendorRepair or {}
+                TomoModDB.autoVendorRepair.enabled = v
+            end, nil, y)
+        y = qol(L["ins_qol_fast_loot"],
+            function() return TomoModDB.fastLoot and TomoModDB.fastLoot.enabled end,
+            function(v) TomoModDB.fastLoot = TomoModDB.fastLoot or {}; TomoModDB.fastLoot.enabled = v end, nil, y)
+        y = qol(L["ins_qol_skip_cinematics"],
+            function() return TomoModDB.cinematicSkip and TomoModDB.cinematicSkip.enabled end,
+            function(v) TomoModDB.cinematicSkip = TomoModDB.cinematicSkip or {}; TomoModDB.cinematicSkip.enabled = v end, nil, y)
+        y = qol(L["ins_qol_hide_talking_head"],
+            function() return TomoModDB.hideTalkingHead and TomoModDB.hideTalkingHead.enabled end,
+            function(v) TomoModDB.hideTalkingHead = TomoModDB.hideTalkingHead or {}; TomoModDB.hideTalkingHead.enabled = v end, nil, y)
+        y = qol(L["ins_qol_auto_accept"],
+            function() return TomoModDB.autoAcceptInvite and TomoModDB.autoAcceptInvite.enabled end,
+            function(v) TomoModDB.autoAcceptInvite = TomoModDB.autoAcceptInvite or {}; TomoModDB.autoAcceptInvite.enabled = v end, nil, y)
+        y = qol(L["ins_qol_tooltip_ids"],
+            function() return TomoModDB.tooltipIDs and TomoModDB.tooltipIDs.enabled end,
+            function(v) TomoModDB.tooltipIDs = TomoModDB.tooltipIDs or {}; TomoModDB.tooltipIDs.enabled = v end, nil, y)
+
+        y = Sec(c,L["ins_qol_combat_section"], y)
+        y = qol(L["ins_qol_combat_text"],
+            function() return TomoModDB.combatText and TomoModDB.combatText.enabled end,
+            function(v) TomoModDB.combatText = TomoModDB.combatText or {}; TomoModDB.combatText.enabled = v end, nil, y)
+        y = qol(L["ins_qol_hide_castbar"],
+            function() return TomoModDB.hideCastBar and TomoModDB.hideCastBar.enabled end,
+            function(v) TomoModDB.hideCastBar = TomoModDB.hideCastBar or {}; TomoModDB.hideCastBar.enabled = v end, nil, y)
+
+        y = Sec(c,L["ins_qol_interface_section"], y)
+        y = qol(L["ins_qol_minimap"],
+            function() return TomoModDB.minimap and TomoModDB.minimap.enabled end,
+            function(v) TomoModDB.minimap = TomoModDB.minimap or {}; TomoModDB.minimap.enabled = v end, nil, y)
+        y = qol(L["ins_qol_cursor"],
+            function() return TomoModDB.cursorRing and TomoModDB.cursorRing.enabled end,
+            function(v) TomoModDB.cursorRing = TomoModDB.cursorRing or {}; TomoModDB.cursorRing.enabled = v end, nil, y)
+        y = qol(L["ins_qol_afk"],
+            function() return TomoModDB.afkDisplay and TomoModDB.afkDisplay.enabled end,
+            function(v) TomoModDB.afkDisplay = TomoModDB.afkDisplay or {}; TomoModDB.afkDisplay.enabled = v end, nil, y)
+        y = qol(L["ins_qol_aura_tracker"],
+            function() return TomoModDB.auraTracker and TomoModDB.auraTracker.enabled end,
+            function(v) TomoModDB.auraTracker = TomoModDB.auraTracker or {}; TomoModDB.auraTracker.enabled = v end, nil, y)
+        y = qol(L["ins_qol_diag"],
+            function() return TomoModDB.diagnostics and TomoModDB.diagnostics.enabled end,
+            function(v) TomoModDB.diagnostics = TomoModDB.diagnostics or {}; TomoModDB.diagnostics.enabled = v end, nil, y)
+        return y
+    end,
+}
+
+-- ── STEP 14: CVars ────────────────────────────────────────
+steps[14] = {
     title = L["ins_step9_title"],
     icon  = ICON_PATH.."icon_qol.tga",
     build = function(c)
@@ -580,55 +777,8 @@ steps[9] = {
     end,
 }
 
--- ── STEP 10: QOL ──────────────────────────────────────────
-steps[10] = {
-    title = L["ins_step10_title"],
-    icon  = ICON_PATH.."icon_qol.tga",
-    build = function(c)
-        local y = -10
-        y = Info(c,L["ins_qol_info"], y)
-        y = Sec(c,L["ins_qol_auto_section"], y)
-        local function qol(lbl, get, set, onTrue, ny)
-            local _, nny = Cb(c, lbl, get(), ny, function(v)
-                set(v); if v and onTrue then onTrue() end
-            end)
-            return nny
-        end
-        y = qol(L["ins_qol_auto_repair"],
-            function() return TomoModDB.autoSummon and TomoModDB.autoSummon.enabled end,
-            function(v)
-                TomoModDB.autoVendorRepair = TomoModDB.autoVendorRepair or {}
-                TomoModDB.autoVendorRepair.enabled = v
-            end, nil, y)
-        y = qol(L["ins_qol_fast_loot"],
-            function() return TomoModDB.fastLoot and TomoModDB.fastLoot.enabled end,
-            function(v) TomoModDB.fastLoot = TomoModDB.fastLoot or {}; TomoModDB.fastLoot.enabled = v end, nil, y)
-        y = qol(L["ins_qol_skip_cinematics"],
-            function() return TomoModDB.cinematicSkip and TomoModDB.cinematicSkip.enabled end,
-            function(v) TomoModDB.cinematicSkip.enabled = v end, nil, y)
-        y = qol(L["ins_qol_hide_talking_head"],
-            function() return false end,
-            function(v) TomoModDB.hideTalkingHead = { enabled = v } end, nil, y)
-        y = qol(L["ins_qol_auto_accept"],
-            function() return TomoModDB.autoAcceptInvite and TomoModDB.autoAcceptInvite.enabled end,
-            function(v) TomoModDB.autoAcceptInvite.enabled = v end, nil, y)
-        y = qol(L["ins_qol_tooltip_ids"],
-            function() return TomoModDB.tooltipIDs and TomoModDB.tooltipIDs.enabled end,
-            function(v) TomoModDB.tooltipIDs.enabled = v end, nil, y)
-
-        y = Sec(c,L["ins_qol_combat_section"], y)
-        y = qol(L["ins_qol_combat_text"],
-            function() return TomoModDB.combatText and TomoModDB.combatText.enabled end,
-            function(v) TomoModDB.combatText.enabled = v end, nil, y)
-        y = qol(L["ins_qol_hide_castbar"],
-            function() return TomoModDB.hideCastBar and TomoModDB.hideCastBar.enabled end,
-            function(v) TomoModDB.hideCastBar.enabled = v end, nil, y)
-        return y
-    end,
-}
-
--- ── STEP 11: SkyRide ──────────────────────────────────────
-steps[11] = {
+-- ── STEP 15: SkyRide ──────────────────────────────────────
+steps[15] = {
     title = L["ins_step11_title"],
     icon  = ICON_PATH.."icon_resources.tga",
     build = function(c)
@@ -661,8 +811,8 @@ steps[11] = {
     end,
 }
 
--- ── STEP 12: Fin ──────────────────────────────────────────
-steps[12] = {
+-- ── STEP 16: Fin ──────────────────────────────────────────
+steps[16] = {
     title = L["ins_step12_title"],
     icon  = ICON_PATH.."icon_general.tga",
     build = function(c)

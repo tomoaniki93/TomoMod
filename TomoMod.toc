@@ -1,14 +1,14 @@
 ## Interface: 120005, 120001
 ## 
 ## Title: |cff0cd29fTomo|rMod
-## Notes: Interface and code with QOL and UnitFrame.
+## Notes: Complete UI Replacement for WoW.
 ## Category: |cff0cd29fHUD|r
 ## 
 ## SavedVariables: TomoModDB, CompanionStatusDB
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 2.9.3
+## Version: 2.9.5
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -33,6 +33,7 @@ Locales\ptBR.lua
 Core\Utils.lua
 Core\Database.lua
 Core\Profiles.lua
+Core\WhatsNew.lua
 Core\Init.lua
 
 ## =====================
@@ -68,5 +69,4 @@ Modules\Interface\UnitFrames\UnitFrames.xml
 Modules\Interface\CastBars\CastBars.xml
 Modules\Interface\ResourceBars\ResourceBars.xml
 Modules\Interface\NamePlates\Nameplates.xml
-## Modules\Interface\DamageMeter\DamageMeter.xml
 Modules\Interface\PartyFrame\PartyFrame.xml
