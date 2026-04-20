@@ -82,6 +82,8 @@
     <Include file="Skins\CharacterSkin.lua" />
     <Include file="Skins\ReputationBar.lua" />
     <Include file="Skins\ChatFrameSkin.lua" />
+    <!-- <Include file="Skins\ChatButtonHandlers.lua" /> -->
+    <!-- <Include file="Skins\ChatFrameUI.lua" /> -->
     <Include file="Skins\BagSkin.lua" />
     <Include file="Skins\BuffSkin.lua" />
     <Include file="Skins\GameMenuSkin.lua" />

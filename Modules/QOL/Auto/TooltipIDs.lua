@@ -40,9 +40,15 @@ local function AddLine(tooltip, label, id)
     local idStr
     local ok = pcall(function() idStr = string.format("%.0f", id) end)
     if not ok or not idStr then return end
-    local key = label .. idStr
-    if addedIDs[key] then return end
-    addedIDs[key] = true
+    -- Dedup: pcall because key may be tainted/secret in TWW and
+    -- cannot be used as a table index directly.
+    local skip = false
+    pcall(function()
+        local key = label .. idStr
+        if addedIDs[key] then skip = true; return end
+        addedIDs[key] = true
+    end)
+    if skip then return end
     tooltip:AddLine(COLOR .. label .. " |r" .. idStr)
     -- Defer Show() to next frame so it runs outside any secure
     -- hook / TooltipDataProcessor callback.  Calling Show()

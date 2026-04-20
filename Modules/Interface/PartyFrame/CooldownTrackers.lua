@@ -1,6 +1,6 @@
 -- =====================================
 -- PartyFrame/CooldownTrackers.lua — Interrupt & Battle Rez CD tracking
--- UNIT_SPELLCAST_SUCCEEDED only (NO COMBAT_LOG_EVENT_UNFILTERED)
+-- UNIT_SPELLCAST_SUCCEEDED only (no CLEU — causes taint)
 -- All spellID checks wrapped in pcall/issecretvalue
 -- =====================================
 
@@ -123,6 +123,7 @@ CD.active = {}
 -- EVENT: UNIT_SPELLCAST_SUCCEEDED
 -- =====================================
 local eventFrame = CreateFrame("Frame")
+local cdTrackingEnabled = false
 
 local function OnSpellCastSucceeded(self, event, unit, _, spellID)
     if not unit or not spellID then return end
@@ -317,9 +318,7 @@ function CD.Initialize()
     if not db then return end
     if not db.showInterruptCD and not db.showBrezCD then return end
 
-    eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-    eventFrame:SetScript("OnEvent", OnSpellCastSucceeded)
-
+    cdTrackingEnabled = true
     CD.StartTicker()
 end
 
@@ -330,3 +329,17 @@ function CD.Reset()
     wipe(CD.active)
     CD.UpdateAllFrames()
 end
+
+-- =====================================
+-- EVENT REGISTRATION (file scope — taint-safe)
+-- Only UNIT_SPELLCAST_SUCCEEDED: no COMBAT_LOG_EVENT_UNFILTERED (causes taint).
+-- Mirrors BliZzi_Interrupts pattern: register at load time,
+-- gate processing behind a runtime flag set by Initialize().
+-- =====================================
+eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+eventFrame:SetScript("OnEvent", function(self, event, ...)
+    if not cdTrackingEnabled then return end
+    if event == "UNIT_SPELLCAST_SUCCEEDED" then
+        OnSpellCastSucceeded(self, event, ...)
+    end
+end)

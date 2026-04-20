@@ -145,7 +145,15 @@ local function BuildExclusionSet()
         "target is friendly", "cible est amicale", "ziel ist freundlich",
         "objetivo es amistoso", "bersaglio \195\168 amichevole", "alvo \195\169 amig",
         -- Generic impossible / cannot
-        "impossible tant que",
+        "impossible tant que", "impossible lorsque", "impossible d'attaquer",
+        -- Horrified (FR horrifié(e))
+        "horrifi",
+        -- Item not found / missing component (FR)
+        "objet introuvable", "composant manquant",
+        -- Outdoor only (FR extérieur)
+        "en ext\195\169rieur",
+        -- Too far to interact (FR rapprocher)
+        "rapprocher",
     }
     for _, kw in ipairs(keywords) do
         EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = kw
@@ -302,7 +310,8 @@ end
 -- =====================================================================
 
 local function CaptureEntry(kind, message, stack, locals, meta)
-    if not IsEnabled() then return end
+    -- Allow TomoMod taint through even when diagnostics are disabled
+    if not IsEnabled() and kind ~= KIND_TAINT then return end
     if inCapture then return end
     inCapture = true
 
@@ -391,8 +400,9 @@ local function CaptureEntry(kind, message, stack, locals, meta)
         D.RefreshConsole()
     end
 
-    -- Auto-open (non-combat only)
-    if db and db.autoOpenOnError and not InCombatLockdown() and kind == KIND_LUA_ERROR and entry.isTomoMod then
+    -- Auto-open (non-combat only) — for Lua errors AND taint from TomoMod
+    if db and db.autoOpenOnError and not InCombatLockdown()
+       and (kind == KIND_LUA_ERROR or kind == KIND_TAINT) and entry.isTomoMod then
         D.ShowConsole()
     end
 end
@@ -442,8 +452,11 @@ end
 -- =====================================================================
 
 local function OnTaintEvent(event, addon, action)
-    if not IsEnabled() then return end
-    local msg = string.format("[%s] %s: %s", event, SafeToString(addon), SafeToString(action))
+    -- Always capture TomoMod taint, even if diagnostics are disabled
+    local addonStr = SafeToString(addon)
+    local isOurs = addonStr:find("TomoMod") ~= nil
+    if not IsEnabled() and not isOurs then return end
+    local msg = string.format("[%s] %s: %s", event, addonStr, SafeToString(action))
     local stack
     local ok, s = pcall(debugstack, 3, 15, 0)
     stack = ok and s or nil

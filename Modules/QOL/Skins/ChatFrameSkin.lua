@@ -844,6 +844,11 @@ local function AddMessageEdits(frame, msg, alwaysAddTimestamp, isHistory, histor
         msg = format("|Hcpl:%s|h%s|h %s", frame:GetID(), format("|T%sarrow:14|t", T), msg)
     end
 
+    -- ChatFrameUI text highlighting (MayronUI-style word groups with color + sound)
+    if TomoMod_ChatFrameUI and TomoMod_ChatFrameUI.IsActive() and TomoMod_ChatFrameUI.HighlightText then
+        msg = TomoMod_ChatFrameUI.HighlightText(msg)
+    end
+
     return msg
 end
 
@@ -1546,7 +1551,11 @@ local function CreateSideBarIcon_Emotes(parent)
 
     btn:SetScript("OnClick", function()
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or 856)
-        ChatFrame_ToggleMenu()
+        if ChatMenu then
+            if ChatMenu:IsShown() then ChatMenu:Hide() else ChatMenu:Show() end
+        else
+            ChatFrame_OpenChat("/emote ")
+        end
     end)
 
     return btn
@@ -1787,9 +1796,9 @@ local function ApplySkin_TUI(container, T, s)
     -- OnUpdate: follow ChatFrame1
     AttachChatFollowOnUpdate(container, function(self, w, h)
         self:ClearAllPoints()
-        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -22, 25)
+        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -30, 25)
         self:SetHeight(h + 55)
-        self:SetWidth(w + 40)
+        self:SetWidth(w + 48)
         self.sidebar:SetHeight(h + 30)
         self.window:SetSize(w + 10, h - 20)
     end)
@@ -2077,8 +2086,9 @@ local function styleChatWindow(frame)
 
     -- =============================================
     -- SKINNED CONTAINER (dispatches to selected skin style)
+    -- Skip when ChatFrameUI is active (it manages its own containers)
     -- =============================================
-    if not frame.tuiContainer and id == 1 then
+    if not frame.tuiContainer and id == 1 and not (TomoMod_ChatFrameUI and TomoMod_ChatFrameUI.IsActive()) then
         local container = CreateFrame("Frame", "TomoMod_ChatContainer", UIParent)
         container:SetFrameStrata("LOW")
         container:SetFrameLevel(1)
@@ -2775,6 +2785,16 @@ function CFS.SetEnabled(value)
     end
 end
 
+-- Public helper for ChatFrameUI's copy-chat sidebar icon
+function CFS.CopyChatToFrame()
+    if not TomoModCopyChatFrame then return end
+    local count = getLines(ChatFrame1)
+    local text = table.concat(copyLines, " \n", 1, count)
+    if TomoModCopyChatFrameEditBox then
+        TomoModCopyChatFrameEditBox:SetText(text)
+    end
+end
+
 function CFS.Initialize()
     if isInitialized then return end
     if not IsEnabled() then return end
@@ -2787,5 +2807,10 @@ function CFS.Initialize()
         PLAYER_NAME = format("%s-%s", myName, PLAYER_REALM)
 
         LoadChat()
+
+        -- Initialize ChatFrameUI if enabled (loads after ChatFrameSkin)
+        if TomoMod_ChatFrameUI and TomoMod_ChatFrameUI.Initialize then
+            TomoMod_ChatFrameUI.Initialize()
+        end
     end)
 end
