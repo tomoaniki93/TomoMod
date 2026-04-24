@@ -27,7 +27,7 @@ Built from the ground up for **Midnight 12.x** with native handling of Blizzard'
 
 | Category | Modules |
 |----------|---------|
-| **Frames** | UnitFrames (oUF), Party Frames, Nameplates, Resource Bars, Aura Tracker, Cooldown Manager |
+| **Frames** | UnitFrames (oUF), Party Frames, Raid Frames, Nameplates, Resource Bars, Aura Tracker, Cooldown Manager |
 | **Castbars** | Standalone castbars for all units — spark animations, channel ticks, empowered casts, GCD spark |
 | **Action Bars** | 4 skin styles, per-bar fade, display conditions, click-through |
 | **Skins** | Chat, Bags, Tooltips, Buffs/Debuffs, Game Menu, Character Frame, Objective Tracker |
