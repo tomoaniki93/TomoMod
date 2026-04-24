@@ -902,5 +902,18 @@ end)
 local bootFrame = CreateFrame("Frame")
 bootFrame:RegisterEvent("PLAYER_LOGIN")
 bootFrame:SetScript("OnEvent", function()
-    C_Timer.After(0.5, function() AB.Initialize() end)
+    C_Timer.After(0.5, function()
+        if InCombatLockdown() then
+            -- RegisterStateDriver calls SetAttribute on SecureStateDriverManager,
+            -- which is blocked in combat. Defer until combat ends.
+            local combatFrame = CreateFrame("Frame")
+            combatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+            combatFrame:SetScript("OnEvent", function(self)
+                self:UnregisterAllEvents()
+                AB.Initialize()
+            end)
+        else
+            AB.Initialize()
+        end
+    end)
 end)

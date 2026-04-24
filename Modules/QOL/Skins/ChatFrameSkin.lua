@@ -1043,7 +1043,8 @@ local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, ch
 
     local pflag = GetPFlag(arg6, arg7, arg12)
     if not bossMonster and arg12 then
-        local lfgRole = (chatType == "PARTY_LEADER" or chatType == "PARTY" or chatType == "RAID" or chatType == "RAID_LEADER" or chatType == "INSTANCE_CHAT" or chatType == "INSTANCE_CHAT_LEADER") and lfgRoles[playerName]
+        local nameIsSecret = issecretvalue and issecretvalue(playerName)
+        local lfgRole = not nameIsSecret and (chatType == "PARTY_LEADER" or chatType == "PARTY" or chatType == "RAID" or chatType == "RAID_LEADER" or chatType == "INSTANCE_CHAT" or chatType == "INSTANCE_CHAT_LEADER") and lfgRoles[playerName]
         if lfgRole then
             pflag = pflag .. lfgRole
         end
@@ -1796,7 +1797,7 @@ local function ApplySkin_TUI(container, T, s)
     -- OnUpdate: follow ChatFrame1
     AttachChatFollowOnUpdate(container, function(self, w, h)
         self:ClearAllPoints()
-        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -30, 25)
+        self:SetPoint("TOPLEFT", ChatFrame1, "TOPLEFT", -34, 25)
         self:SetHeight(h + 55)
         self:SetWidth(w + 48)
         self.sidebar:SetHeight(h + 30)
@@ -1993,25 +1994,42 @@ end
 local chatIsLocked = true
 local chatMoverOverlay = nil
 
+-- Minimum X offset for ChatFrame1 to keep the TUI sidebar (32 px) on-screen.
+-- Other skins add at most 4 px, so 2 is fine for them.
+local function GetSidebarMinX()
+    local style = S().skinStyle or "tui"
+    return (style == "tui") and 34 or 2
+end
+
 local function SaveChatPosition()
     if not ChatFrame1 then return end
+    -- GetLeft/GetBottom always return UIParent-relative screen coords,
+    -- independent of whatever frame ChatFrame1 is internally anchored to.
+    local x = ChatFrame1:GetLeft()
+    local y = ChatFrame1:GetBottom()
+    if not x then return end
     local s = S()
-    local point, _, relTo, x, y = ChatFrame1:GetPoint()
-    s.position = s.position or {}
-    s.position.anchor = point or "BOTTOMLEFT"
-    s.position.relTo = relTo or "BOTTOMLEFT"
-    s.position.x = x or 2
-    s.position.y = y or 2
+    s.position = {
+        anchor = "BOTTOMLEFT",
+        relTo  = "BOTTOMLEFT",
+        x      = x,
+        y      = y,
+    }
 end
 
 local function RestoreChatPosition()
     if not ChatFrame1 then return end
     local s = S()
     local pos = s.position
-    if not pos then return end
-    ChatFrame1:SetUserPlaced(true)
+    local minX = GetSidebarMinX()
+    local x = pos and pos.x or minX
+    local y = pos and pos.y or 200
+    -- Clamp: TUI sidebar extends 32 px left of ChatFrame1; must not go off-screen.
+    x = math.max(x, minX)
+    -- Do NOT call SetUserPlaced(true) — it lets WoW's layout system save its own
+    -- version of the position and restore it on the next reload, fighting our save.
     ChatFrame1:ClearAllPoints()
-    ChatFrame1:SetPoint(pos.anchor or "BOTTOMLEFT", UIParent, pos.relTo or "BOTTOMLEFT", pos.x or 2, pos.y or 2)
+    ChatFrame1:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x, y)
 end
 
 function CFS.IsLocked()

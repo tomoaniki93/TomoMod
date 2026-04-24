@@ -990,6 +990,7 @@ end
 local BLIZZARD_FRAMES = {
     "ScenarioFrame",
     "ScenarioTrackerProgressBar",
+    "ObjectiveTrackerFrame",
     function() return ObjectiveTrackerFrame and ObjectiveTrackerFrame.CHALLENGE_BLOCK end,
     function() return ObjectiveTrackerFrame and ObjectiveTrackerFrame.BONUS_OBJECTIVE_TRACKER_MODULE end,
     "ScenarioStageBlock",

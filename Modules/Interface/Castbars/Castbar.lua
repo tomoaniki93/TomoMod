@@ -663,8 +663,12 @@ function CB.CreateCastbar(unit)
 
     local function FadeOut(self)
         ResetState(self)
-        if db.showTransitions and self._fadeAG and not self._fadeAG:IsPlaying() then
-            self._fadeAG:Play()
+        if db.showTransitions and self._fadeAG then
+            if not self._fadeAG:IsPlaying() then
+                self._fadeAG:Play()
+            end
+            -- Already playing: let it finish naturally.
+            -- Do NOT fall through to self:Hide() — that would cut the animation short.
         else
             self:Hide()
         end
@@ -787,7 +791,15 @@ function CB.CreateCastbar(unit)
                 else bchannel=true end
             end
         end
-        if not info then ResetState(self); self:Hide(); return end
+        if not info then
+            -- UnitCastingInfo/UnitChannelInfo can return nil transiently on mid-cast events
+            -- (INTERRUPTIBLE, NOT_INTERRUPTIBLE, DELAYED, UPDATE).  Hiding immediately here
+            -- causes the bar to vanish mid-cast.  If we are currently tracking a cast, do
+            -- nothing — the canonical STOP / SUCCEEDED event will call FadeOut at the right time.
+            if self.casting or self.channeling or self.empowered then return end
+            self:Hide()
+            return
+        end
 
         if self._fadeAG and self._fadeAG:IsPlaying() then
             self._fadeAG:Stop()
@@ -840,7 +852,15 @@ function CB.CreateCastbar(unit)
             if GetTime() - self.failstart > 1 then self.failstart = nil; FadeOut(self) end
             return
         end
-        if not self.casting and not self.channeling and not self.empowered then self:Hide(); return end
+        if not self.casting and not self.channeling and not self.empowered then
+            -- Let a running fade animation finish before hiding; without this guard
+            -- OnUpdate kills the animation on the very next tick after FadeOut resets
+            -- the cast flags, causing the bar to vanish instantly during combat.
+            if not (self._fadeAG and self._fadeAG:IsPlaying()) then
+                self:Hide()
+            end
+            return
+        end
 
         self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
 
@@ -938,7 +958,13 @@ function CB.CreateCastbar(unit)
             FadeOut(castbar)
         elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
             or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_EMPOWER_STOP" then
-            if not castbar.failstart then FadeOut(castbar) end
+            -- Guard against double-FadeOut: UNIT_SPELLCAST_STOP always follows
+            -- UNIT_SPELLCAST_SUCCEEDED; if the cast was already reset by SUCCEEDED
+            -- the second FadeOut would find _fadeAG already playing and call
+            -- self:Hide() instead, cutting the transition short.
+            if not castbar.failstart and (castbar.casting or castbar.channeling or castbar.empowered) then
+                FadeOut(castbar)
+            end
         end
     end)
 

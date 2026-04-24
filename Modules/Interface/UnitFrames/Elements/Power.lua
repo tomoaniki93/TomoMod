@@ -156,9 +156,9 @@ function UF_Elements.UpdateInfoBar(frame)
         frame.infoBar.powerText:SetFormattedText("%s", AbbreviateLargeNumbers(current))
     end
 
-    -- Total HP
+    -- Current HP
     if frame.infoBar.hpText then
-        local max = UnitHealthMax(unit)
-        frame.infoBar.hpText:SetFormattedText("%s", AbbreviateLargeNumbers(max))
+        local current = UnitHealth(unit)
+        frame.infoBar.hpText:SetFormattedText("%s", AbbreviateLargeNumbers(current))
     end
 end

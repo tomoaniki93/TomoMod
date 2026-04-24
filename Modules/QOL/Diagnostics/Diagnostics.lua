@@ -84,6 +84,18 @@ local EXCLUDED_GLOBAL_KEYS = {
     -- Currency / loot cap
     "ERR_CURRENCY_LIMIT_REACHED_S",
     "ERR_LOOT_CURRENCY_S_QUANTITY_OVERFLOW",
+    -- Death
+    "DEATH_EXPIRED", "DEAD", "ERR_DEAD", "PLAYER_DIED",
+    -- Equipment set
+    "ERR_EQUIPMENT_SET_CANNOT_USE", "ERR_EQUIP_ITEM_UNEQUIPPABLE",
+    "ERR_EQUIP_SWAP_FAILED", "ERR_CANT_EQUIP_ITEM",
+    "EQUIP_ERROR_ITEM_UNIQUE_EQUIPABLE",
+    -- HP / power already full
+    "ERR_ALREADY_AT_FULL_HEALTH", "ERR_ALREADY_AT_FULL_POWER",
+    "ERR_ALREADY_AT_FULL_MANA",
+    -- Instance / zone restriction
+    "ERR_NOT_IN_RAID", "SPELL_FAILED_NOT_IN_RAID_INSTANCE",
+    "ERR_CANT_DO_IN_DUNGEON", "ERR_REQUIRES_NO_GROUP",
 }
 
 -- Convert a WoW format string ("%s", "%d", "%1$s" etc.) to a Lua pattern
@@ -138,6 +150,16 @@ local function BuildExclusionSet()
         -- Too far away / out of range
         "too far", "trop loin", "zu weit", "demasiado lejos", "troppo lontano", "muito longe",
         "out of range", "hors de port\195\169e",
+        -- Mount restrictions (ground mounts not allowed, flying not allowed, etc.)
+        "montures terrestres",                -- FR: "Les montures terrestres ne sont pas autorisées ici"
+        "ground mounts are not allowed",      -- EN equivalent
+        "flying mounts are not allowed",
+        "montures volantes",
+        -- Battle pet cap (too many pets of this type)
+        "mascottes de ce type",               -- FR: "Vous avez atteint le nombre maximum de mascottes de ce type."
+        "maximum de mascottes",               -- FR broader
+        "maximum number of.*this type",       -- EN equivalent pattern
+        "too many pets",
         -- Currency / loot cap
         "can't get any more", "ne pouvez pas obtenir", "nicht mehr erhalten",
         "no puedes obtener", "non puoi ottenere", "obter mais",
@@ -154,6 +176,32 @@ local function BuildExclusionSet()
         "en ext\195\169rieur",
         -- Too far to interact (FR rapprocher)
         "rapprocher",
+        -- Death messages (all locales)
+        "you have died", "vous avez succ",  -- FR "succombé"
+        "you are dead", "vous \195\170tes mort",
+        "bist gestorben", "has muerto", "sei morto", "voc\195\170 morreu",
+        -- Equipment set missing pieces (all locales)
+        "pi\195\168ces de l'ensemble",       -- FR "pièces de l'ensemble"
+        "equipment set", "set d'\195\169quipement",
+        "ausr\195\188stungsset",             -- DE Ausrüstungsset
+        "equipo de equipamiento",            -- ES
+        "set di equipaggiamento",            -- IT
+        "conjunto de equipamento",           -- PT
+        -- HP / power already full (all locales)
+        "d\195\169j\195\160 au maximum",     -- FR "déjà au maximum"
+        "already at full",                   -- EN "already at full health/power"
+        "bereits voll", "bereits auf dem",   -- DE
+        "ya est\195\161 lleno",              -- ES
+        "gi\195\160 pieno",                  -- IT
+        "j\195\161 est\195\161 cheio",       -- PT
+        -- Instance / zone restriction (all locales)
+        "instance de raid",                  -- FR "impossible dans une instance de raid"
+        "in a raid instance",                -- EN
+        "in einer schlachtzug",              -- DE
+        "instancia de incursi",              -- ES
+        "istanza del raid",                  -- IT
+        "inst\195\162ncia de raide",         -- PT
+        "not possible.*instance", "impossible.*instance",
     }
     for _, kw in ipairs(keywords) do
         EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = kw
@@ -229,6 +277,25 @@ end
 local function IsTomoModError(msg, stack)
     local combined = (msg or "") .. (stack or "")
     return combined:find("TomoMod") ~= nil
+end
+
+-- Returns true when the error originates exclusively from Blizzard FrameXML /
+-- Blizzard_ addon files with zero TomoMod involvement.  These represent Blizzard
+-- engine bugs that TomoMod cannot fix and should never appear in its reports,
+-- even when captureAll is enabled.
+local function IsBlizzardOnlyError(msg, stack)
+    local combined = (msg or "") .. "\n" .. (stack or "")
+    if combined:find("TomoMod") then return false end
+    -- Must reference at least one Blizzard_ file (don't mute truly unknown errors)
+    if not combined:find("Blizzard_") then return false end
+    -- Every addon-path reference in the stack must point to a Blizzard_ file
+    for line in combined:gmatch("[^\n]+") do
+        local addonPath = line:match("%[Interface/AddOns/([^%]]+)%]")
+        if addonPath and not addonPath:find("^Blizzard_") then
+            return false
+        end
+    end
+    return true
 end
 
 -- =====================================================================
@@ -431,6 +498,15 @@ local function OnLuaError(msg)
         if prevErrorHandler then
             prevErrorHandler(msg)
         end
+        return
+    end
+
+    -- Always skip errors whose entire call-chain is in Blizzard FrameXML.
+    -- These are Blizzard engine bugs unrelated to TomoMod; captureAll should
+    -- capture other addons' errors, not Blizzard's own regressions.
+    if not isOurs and IsBlizzardOnlyError(msg, stack) then
+        inHandler = false
+        if prevErrorHandler then prevErrorHandler(msg) end
         return
     end
 
