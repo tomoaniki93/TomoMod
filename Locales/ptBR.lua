@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- ptBR.lua — Português (Brasil)
 -- =====================================
 
@@ -14,6 +14,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["cat_qol"]             = "Qualidade de vida",
     ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Perfis",
+    ["cat_diagnostics"]     = "Diagn\195\179sticos",
+    ["cat_housing"]         = "Housing",
 
     -- =====================
     -- CONFIG: General Panel
@@ -1660,6 +1662,66 @@ TomoMod_RegisterLocale("ptBR", {
     ["pf_btn_reset_arena_pos"]           = "Redefinir posição",
 
     -- ═══════════════════════════════════
+    -- Raid Frames
+    -- ═══════════════════════════════════
+    ["cat_raidframes"]                   = "Quadros de raide",
+    ["mover_raidframes"]                 = "Quadros de raide",
+    ["rf_tab_general"]                   = "Geral",
+    ["rf_tab_features"]                  = "Recursos",
+    ["rf_section_general"]               = "Geral",
+    ["rf_opt_enable"]                    = "Ativar quadros de raide",
+    ["rf_info_description"]              = "Quadros de raide personalizados com vida, absorção, previsão de cura, HoTs, debuffs, destaque de dissipação, CDs defensivos e verificação de alcance.",
+    ["rf_opt_hide_blizzard"]             = "Ocultar quadros de raide da Blizzard",
+    ["rf_opt_sort_role"]                 = "Ordenar por função (Tanque > Curandeiro > DPS)",
+    ["rf_section_layout"]                = "Layout",
+    ["rf_opt_layout_mode"]               = "Modo de layout",
+    ["rf_layout_grid"]                   = "Grade (grupos em colunas)",
+    ["rf_layout_list"]                   = "Lista (coluna única)",
+    ["rf_opt_width"]                     = "Largura do quadro",
+    ["rf_opt_height"]                    = "Altura do quadro",
+    ["rf_opt_spacing"]                   = "Espaçamento",
+    ["rf_opt_group_spacing"]             = "Espaçamento de grupo",
+    ["rf_section_display"]               = "Exibição",
+    ["rf_opt_show_name"]                 = "Mostrar nome",
+    ["rf_opt_name_max_length"]           = "Letras máx. do nome",
+    ["rf_opt_show_health_text"]          = "Mostrar texto de vida",
+    ["rf_opt_health_format"]             = "Formato de vida",
+    ["rf_opt_health_color"]              = "Modo de cor da vida",
+    ["rf_opt_show_role"]                 = "Mostrar ícone de função",
+    ["rf_opt_show_marker"]               = "Mostrar marcador de raide",
+    ["rf_section_font"]                  = "Fonte",
+    ["rf_opt_font_size"]                 = "Tamanho da fonte",
+    ["rf_section_position"]              = "Posição",
+    ["rf_info_position"]                 = "Use /tm layout para desbloquear e arrastar os quadros de raide.",
+    ["rf_btn_reset_position"]            = "Redefinir posição",
+    ["rf_info_test_raid"]                = "Simule uma raide de 20 jogadores para pré-visualizar o layout fora de combate.",
+    ["rf_btn_test_raid"]                 = "Simular 20 jogadores",
+    ["rf_btn_test_raid_stop"]            = "Parar simulação",
+    ["rf_preview_group"]                 = "G",
+    ["rf_section_health_extras"]         = "Recursos de vida",
+    ["rf_opt_show_power"]                = "Barra de poder (apenas curandeiros)",
+    ["rf_opt_power_height"]              = "Altura da barra de poder",
+    ["rf_opt_show_absorb"]               = "Mostrar barra de absorção",
+    ["rf_opt_show_heal_pred"]            = "Mostrar previsão de cura",
+    ["rf_section_range"]                 = "Verificação de alcance",
+    ["rf_opt_show_range"]                = "Esmaecer membros fora de alcance",
+    ["rf_opt_oor_alpha"]                 = "Opacidade fora de alcance",
+    ["rf_section_dispel"]                = "Destaque de dissipação",
+    ["rf_opt_show_dispel"]               = "Destacar debuffs dissipaveis",
+    ["rf_section_hots"]                  = "Rastreamento de HoTs",
+    ["rf_opt_show_hots"]                 = "Mostrar indicadores HoT",
+    ["rf_opt_hot_size"]                  = "Tamanho do ícone HoT",
+    ["rf_opt_max_hots"]                  = "Máx. HoTs mostrados",
+    ["rf_section_debuffs"]               = "Rastreamento de debuffs",
+    ["rf_opt_show_debuffs"]              = "Mostrar ícones de debuff",
+    ["rf_opt_debuff_size"]               = "Tamanho do ícone de debuff",
+    ["rf_opt_max_debuffs"]               = "Máx. debuffs mostrados",
+    ["rf_section_defensives"]            = "CDs defensivos",
+    ["rf_opt_show_defensives"]           = "Mostrar buffs defensivos ativos",
+    ["rf_opt_defensive_size"]            = "Tamanho do ícone defensivo",
+    ["rf_info_defensives"]               = "Exibe CDs defensivos ativos (ex: Supressão de Dor, Casca de Ferro, Escudo Divino) em cada membro da raide.",
+
+    -- ═══════════════════════════════════
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["tab_qol_aura_tracker"]             = "Rastreador de auras",
@@ -1748,6 +1810,33 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_btn_ok"]                        = "Entendi!",
     ["wn_footer"]                        = "Todas as configura\195\167\195\181es podem ser alteradas a qualquer momento via |cff0cd29f/tm|r.",
 
+    -- 2.9.8
+    ["wn_298_housing"]                   = "Novo m\195\179dulo Housing: hover de decora\195\167\195\163o, rel\195\179gio do editor e teleporte /tm home (Midnight+).",
+    ["wn_298_housing_hover"]             = "Hover de decora\195\167\195\163o: mostra nome, custo de posicionamento e estoque restante; tecla modificadora para duplicar.",
+    ["wn_298_housing_clock"]             = "Rel\195\179gio do editor: rel\195\179gio anal\195\179gico/digital com rastreamento de tempo por sess\195\163o e total.",
+    ["wn_298_housing_teleport"]          = "/tm home: teleporta para sua casa ou sai automaticamente se estiver visitando.",
+    ["wn_298_icons"]                     = "Novos \195\173cones de categoria: \195\173cone de casa para Housing, \195\173cone de monitor para Diagn\195\179sticos.",
+    ["wn_298_locales"]                   = "Housing + painel Diagn\195\179sticos: suporte completo de locale para frFR, deDE, esES, itIT, ptBR.",
+
+    -- 2.9.6
+    ["wn_296_raid_frames"]               = "Novo módulo Quadros de raide: quadros de raid personalizados em grade ou lista.",
+    ["wn_296_raid_health"]               = "Barras de vida, absorção e previsão de cura + barra de poder (apenas curandeiros).",
+    ["wn_296_raid_auras"]                = "Rastreamento de debuffs e HoTs com bordas coloridas por tipo/classe.",
+    ["wn_296_raid_utilities"]            = "Ícones de CDs defensivos, destaque de dissipação, esmaecimento fora de alcance, ícones de função, marcadores de raide e verificação de prontidão.",
+    ["wn_296_raid_config"]               = "Painel de configuração completo com abas Geral e Recursos, 80+ chaves de idioma em 6 línguas.",
+
+    -- 2.9.7
+    ["wn_297_rf_live_preview"]           = "Quadros de raide: pré-visualização ao vivo no painel de configuração — 20 membros simulados atualizados em tempo real.",
+    ["wn_297_rf_preview_layout"]         = "A pré-visualização mostra todos os modos: grade (rótulos G1–G4) ou lista (2 colunas), com funções e HoTs.",
+    ["wn_297_rf_preview_scaling"]        = "Escala automática à largura do painel; reflete largura, altura, espaçamento, cor, nome, barra de poder e mais.",
+    ["wn_297_taint_blizzard"]            = "Quadros de raide: ocultação de frames Blizzard reescrita (SetAlpha+SetScale) — corrige o taint de CompactPartyFrame e ArenaFrame.",
+    ["wn_297_range_fix"]                 = "Quadros de raide: esmaecimento por distância corrigido para booleanos secretos do Midnight+ (SetAlphaFromBoolean).",
+    ["wn_297_actionbars_fix"]            = "Barras de ação: inicialização adiada após o bloqueio de combate — corrige o taint de SecureStateDriver ao fazer login.",
+    ["wn_297_mp_tracker"]                = "Mythic+: ObjectiveTrackerFrame agora é corretamente ocultado durante o modo desafio.",
+    ["wn_297_role_icon"]                 = "Quadros de raide: tamanho padrão do ícone de função duplicado (10 → 20).",
+    ["wn_297_castbar_fix"]               = "Barras de conjuração: a barra do jogador não desaparece mais em combate — FadeOut agora é idempotente e nil transitório não oculta mais a barra.",
+    ["wn_297_diag_exclusions"]           = "Diagnósticos: mensagens de restrição de montaria e limite de mascotes excluídas da captura de erros.",
+
     -- 2.9.5
     ["wn_295_taint_fix"]                 = "CooldownTrackers: removido COMBAT_LOG_EVENT_UNFILTERED para corrigir taint (ADDON_ACTION_FORBIDDEN).",
     ["wn_295_diag_taint"]                = "Diagnósticos: erros de taint agora são sempre capturados, mesmo com diagnósticos desativados.",
@@ -1772,4 +1861,63 @@ TomoMod_RegisterLocale("ptBR", {
     -- 2.9.2
     ["wn_292_actionbar"]                 = "Reescrita completa das barras de a\195\167\195\163o: arquitetura de container, sistema de fade, condi\195\167\195\181es de exibi\195\167\195\163o.",
     ["wn_292_diagnostics"]               = "Novo console de diagn\195\179sticos: captura de erros em segundo plano, exporta\195\167\195\163o, /tmdiag.",
+
+    -- =====================
+    -- CONFIG: Diagnostics Panel
+    -- =====================
+    ["section_diagnostics"]              = "Diagn\195\179sticos",
+    ["opt_diag_enabled"]                 = "Ativar captura de erros",
+    ["opt_diag_capture_all"]             = "Capturar todos os addons",
+    ["opt_diag_suppress_popups"]         = "Suprimir janelas de erro",
+    ["opt_diag_auto_open"]               = "Abrir automaticamente com erro do TomoMod",
+    ["btn_diag_open_console"]            = "Abrir console",
+    ["btn_diag_clear"]                   = "Limpar erros",
+    ["btn_diag_export"]                  = "Copiar relat\195\179rio",
+    ["btn_diag_export_tracker"]          = "Exportar para Tracker",
+    ["info_diag_desc"]                   = "Captura erros Lua em segundo plano sem popups durante o combate. /tmdiag para abrir o console.",
+    ["info_diag_session"]                = "Sess\195\163o: #%d \226\128\148 %d erros capturados (%d TomoMod)",
+    ["info_diag_capture_all_desc"]       = "Quando desativado, apenas erros do TomoMod s\195\163o capturados. Ative para capturar todos os erros de addons.",
+
+    -- =====================
+    -- HOUSING
+    -- =====================
+    ["section_housing_general"]      = "Housing \226\128\148 Geral",
+    ["section_housing_hover"]        = "Info decora\195\167\195\163o (hover)",
+    ["section_housing_clock"]        = "Rel\195\179gio do editor",
+    ["section_housing_teleport"]     = "Teleporte",
+    ["section_housing_commands"]     = "Comandos",
+
+    ["info_housing_desc"]            = "M\195\179dulo Housing: melhora o editor de casas e adiciona atalhos de teleporte. Requer Midnight / The War Within.",
+    ["info_housing_hover"]           = "No modo 'Decora\195\167\195\163o base', exibe nome, custo de posicionamento e estoque restante. Tamb\195\169m permite duplicar com tecla modificadora.",
+    ["info_housing_clock"]           = "Exibe um rel\195\179gio e registra o tempo no editor de casas. Clique direito para alternar entre anal\195\179gico e digital.",
+    ["info_housing_teleport"]        = "Ativa /tm home: teleporta voc\195\170 para sua casa ou sai automaticamente se estiver visitando.",
+    ["info_housing_commands"]        = "\226\128\162 /tm home \226\128\148 teleportar para sua casa (ou sair)\n\226\128\162 /tm housing \226\128\148 abrir este painel\n\226\128\162 Clique direito no rel\195\179gio \226\128\148 alternar anal\195\179gico/digital",
+
+    ["opt_housing_enable"]           = "Ativar m\195\179dulo Housing",
+    ["opt_housing_decorhover"]       = "Ativar info de decora\195\167\195\163o",
+    ["opt_housing_dupe"]             = "Ativar duplica\195\167\195\163o r\195\161pida (modificador)",
+    ["opt_housing_dupekey"]          = "Tecla de duplica\195\167\195\163o",
+    ["opt_housing_clock"]            = "Ativar rel\195\179gio",
+    ["opt_housing_clock_analog"]     = "Modo anal\195\179gico (sen\195\163o, digital)",
+    ["opt_housing_teleport"]         = "Ativar teleporte /tm home",
+
+    ["btn_housing_tp_home"]          = "Teleportar (teste)",
+    ["btn_housing_refresh"]          = "Atualizar casas",
+
+    ["housing_duplicate"]            = "Duplicar",
+    ["housing_alliance_zone"]        = "Promontório do Fundador",
+    ["housing_horde_zone"]           = "Costa do Vento Lâmina",
+    ["housing_clock_title"]          = "TomoMod \226\128\148 Rel\195\179gio",
+    ["housing_clock_time"]           = "Hora",
+    ["housing_clock_local"]          = "Hora local:",
+    ["housing_clock_realm"]          = "Hora do reino:",
+    ["housing_clock_time_spent"]     = "Tempo no editor",
+    ["housing_clock_session"]        = "Esta sess\195\163o:",
+    ["housing_clock_total"]          = "Total:",
+    ["housing_clock_rightclick"]     = "Clique direito para alternar anal\195\179gico / digital",
+
+    ["msg_help_home"]                = "Teleportar para sua casa (ou sair)",
+    ["msg_help_housing"]             = "Abrir o painel Housing",
+    ["msg_housing_refresh"]          = "Informa\195\167\195\181es de casas solicitadas.",
+    ["msg_housing_unavailable"]      = "M\195\179dulo Housing n\195\163o dispon\195\173vel neste cliente.",
 })

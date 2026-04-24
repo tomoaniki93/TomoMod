@@ -30,6 +30,42 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "2.9.8",
+        highlights = {
+            L["wn_298_housing"],
+            L["wn_298_housing_hover"],
+            L["wn_298_housing_clock"],
+            L["wn_298_housing_teleport"],
+            L["wn_298_icons"],
+            L["wn_298_locales"],
+        },
+    },
+    {
+        version = "2.9.7",
+        highlights = {
+            L["wn_297_rf_live_preview"],
+            L["wn_297_rf_preview_layout"],
+            L["wn_297_rf_preview_scaling"],
+            L["wn_297_taint_blizzard"],
+            L["wn_297_range_fix"],
+            L["wn_297_actionbars_fix"],
+            L["wn_297_mp_tracker"],
+            L["wn_297_role_icon"],
+            L["wn_297_castbar_fix"],
+            L["wn_297_diag_exclusions"],
+        },
+    },
+    {
+        version = "2.9.6",
+        highlights = {
+            L["wn_296_raid_frames"],
+            L["wn_296_raid_health"],
+            L["wn_296_raid_auras"],
+            L["wn_296_raid_utilities"],
+            L["wn_296_raid_config"],
+        },
+    },
+    {
         version = "2.9.5",
         highlights = {
             L["wn_295_taint_fix"],
@@ -199,14 +235,39 @@ local function CreateFrame_WN()
     scrollChild:SetWidth(PANEL_W - 44)
     scrollFrame:SetScrollChild(scrollChild)
 
-    -- Style scrollbar thumb
+
+    -- Style scrollbar (hidden if not needed, modern look if shown)
     local sb = scrollFrame.ScrollBar
     if sb then
+        Mixin(sb, BackdropTemplateMixin)
+        sb:SetWidth(7)
+        sb:ClearAllPoints()
+        sb:SetPoint("TOPRIGHT", scrollFrame, "TOPRIGHT", 2, -2)
+        sb:SetPoint("BOTTOMRIGHT", scrollFrame, "BOTTOMRIGHT", 2, 2)
+        sb:SetBackdrop({
+            bgFile = "Interface\\Buttons\\WHITE8x8",
+            edgeFile = "Interface\\Buttons\\WHITE8x8",
+            edgeSize = 1,
+        })
+        sb:SetBackdropColor(0.13, 0.13, 0.16, 0.18)
+        sb:SetBackdropBorderColor(A[1], A[2], A[3], 0.18)
         local thumb = sb:GetThumbTexture()
         if thumb then
-            thumb:SetColorTexture(A[1], A[2], A[3], 0.35)
-            thumb:SetWidth(4)
+            thumb:SetColorTexture(A[1], A[2], A[3], 0.55)
+            thumb:SetWidth(7)
+            thumb:SetHeight(32)
+            thumb:SetTexelSnappingBias(0)
+            thumb:SetSnapToPixelGrid(false)
+            -- Arrondi visuel (simulateur)
+            if not sb._thumbBG then
+                local bg = sb:CreateTexture(nil, "BACKGROUND")
+                bg:SetColorTexture(0.13, 0.13, 0.16, 0.22)
+                bg:SetPoint("TOPLEFT", sb, "TOPLEFT", 1, -1)
+                bg:SetPoint("BOTTOMRIGHT", sb, "BOTTOMRIGHT", -1, 1)
+                sb._thumbBG = bg
+            end
         end
+        sb:Hide() -- caché par défaut, affiché si besoin
     end
 
     frame._scrollChild = scrollChild
@@ -246,9 +307,11 @@ end
 -- POPULATE CONTENT
 -- ============================================================
 
+
 local function PopulateContent(entry)
     local f = CreateFrame_WN()
     local parent = f._scrollChild
+    local scrollFrame = f._scrollFrame
 
     -- Clear old children
     for _, child in ipairs({ parent:GetChildren() }) do
@@ -317,6 +380,19 @@ local function PopulateContent(entry)
     y = y - (remind:GetStringHeight() or 14) - 8
 
     parent:SetHeight(math.abs(y) + 20)
+
+    -- Hide scrollbar if not needed, show and style if needed
+    if scrollFrame and scrollFrame.ScrollBar then
+        local contentH = parent:GetHeight()
+        local viewH = scrollFrame:GetHeight()
+        if contentH <= viewH + 2 then
+            scrollFrame.ScrollBar:Hide()
+            scrollFrame:EnableMouseWheel(false)
+        else
+            scrollFrame.ScrollBar:Show()
+            scrollFrame:EnableMouseWheel(true)
+        end
+    end
 end
 
 -- ============================================================

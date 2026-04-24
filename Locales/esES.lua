@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- esES.lua — Español
 -- =====================================
 
@@ -14,6 +14,8 @@ TomoMod_RegisterLocale("esES", {
     ["cat_qol"]             = "Calidad de vida",
     ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Perfiles",
+    ["cat_diagnostics"]     = "Diagnósticos",
+    ["cat_housing"]         = "Housing",
 
     -- =====================
     -- CONFIG: General Panel
@@ -1660,6 +1662,66 @@ TomoMod_RegisterLocale("esES", {
     ["pf_btn_reset_arena_pos"]           = "Restablecer posición",
 
     -- ═══════════════════════════════════
+    -- Raid Frames
+    -- ═══════════════════════════════════
+    ["cat_raidframes"]                   = "Marcos de banda",
+    ["mover_raidframes"]                 = "Marcos de banda",
+    ["rf_tab_general"]                   = "General",
+    ["rf_tab_features"]                  = "Funciones",
+    ["rf_section_general"]               = "General",
+    ["rf_opt_enable"]                    = "Activar marcos de banda",
+    ["rf_info_description"]              = "Marcos de banda personalizados con salud, absorción, predicción de curación, HoTs, debuffs, resaltado de disipación, CDs defensivos y verificación de rango.",
+    ["rf_opt_hide_blizzard"]             = "Ocultar marcos de banda de Blizzard",
+    ["rf_opt_sort_role"]                 = "Ordenar por rol (Tanque > Sanador > DPS)",
+    ["rf_section_layout"]                = "Disposición",
+    ["rf_opt_layout_mode"]               = "Modo de disposición",
+    ["rf_layout_grid"]                   = "Cuadrícula (grupos en columnas)",
+    ["rf_layout_list"]                   = "Lista (columna única)",
+    ["rf_opt_width"]                     = "Ancho del marco",
+    ["rf_opt_height"]                    = "Alto del marco",
+    ["rf_opt_spacing"]                   = "Espaciado",
+    ["rf_opt_group_spacing"]             = "Espaciado de grupo",
+    ["rf_section_display"]               = "Visualización",
+    ["rf_opt_show_name"]                 = "Mostrar nombre",
+    ["rf_opt_name_max_length"]           = "Letras máximas del nombre",
+    ["rf_opt_show_health_text"]          = "Mostrar texto de salud",
+    ["rf_opt_health_format"]             = "Formato de salud",
+    ["rf_opt_health_color"]              = "Modo de color de salud",
+    ["rf_opt_show_role"]                 = "Mostrar icono de rol",
+    ["rf_opt_show_marker"]               = "Mostrar marcador de banda",
+    ["rf_section_font"]                  = "Fuente",
+    ["rf_opt_font_size"]                 = "Tamaño de fuente",
+    ["rf_section_position"]              = "Posición",
+    ["rf_info_position"]                 = "Usa /tm layout para desbloquear y mover los marcos de banda.",
+    ["rf_btn_reset_position"]            = "Restablecer posición",
+    ["rf_info_test_raid"]                = "Simula una banda de 20 jugadores para previsualizar el diseño fuera de combate.",
+    ["rf_btn_test_raid"]                 = "Simular 20 jugadores",
+    ["rf_btn_test_raid_stop"]            = "Detener simulación",
+    ["rf_preview_group"]                 = "G",
+    ["rf_section_health_extras"]         = "Funciones de salud",
+    ["rf_opt_show_power"]                = "Barra de poder (solo sanadores)",
+    ["rf_opt_power_height"]              = "Altura de la barra de poder",
+    ["rf_opt_show_absorb"]               = "Mostrar barra de absorción",
+    ["rf_opt_show_heal_pred"]            = "Mostrar predicción de curación",
+    ["rf_section_range"]                 = "Verificación de rango",
+    ["rf_opt_show_range"]                = "Desvanecer miembros fuera de rango",
+    ["rf_opt_oor_alpha"]                 = "Opacidad fuera de rango",
+    ["rf_section_dispel"]                = "Resaltado de disipación",
+    ["rf_opt_show_dispel"]               = "Resaltar debuffs disipables",
+    ["rf_section_hots"]                  = "Rastreo de HoTs",
+    ["rf_opt_show_hots"]                 = "Mostrar indicadores HoT",
+    ["rf_opt_hot_size"]                  = "Tamaño de icono HoT",
+    ["rf_opt_max_hots"]                  = "Máx. HoTs mostrados",
+    ["rf_section_debuffs"]               = "Rastreo de debuffs",
+    ["rf_opt_show_debuffs"]              = "Mostrar iconos de debuff",
+    ["rf_opt_debuff_size"]               = "Tamaño de icono de debuff",
+    ["rf_opt_max_debuffs"]               = "Máx. debuffs mostrados",
+    ["rf_section_defensives"]            = "CDs defensivos",
+    ["rf_opt_show_defensives"]           = "Mostrar buffs defensivos activos",
+    ["rf_opt_defensive_size"]            = "Tamaño de icono defensivo",
+    ["rf_info_defensives"]               = "Muestra CDs defensivos activos (ej: Supresión del dolor, Piel de hierro, Escudo divino) en cada miembro de la banda.",
+
+    -- ═══════════════════════════════════
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["tab_qol_aura_tracker"]             = "Rastreador de auras",
@@ -1748,6 +1810,33 @@ TomoMod_RegisterLocale("esES", {
     ["wn_btn_ok"]                        = "\194\161Entendido!",
     ["wn_footer"]                        = "Todos los ajustes pueden cambiarse en cualquier momento con |cff0cd29f/tm|r.",
 
+    -- 2.9.8
+    ["wn_298_housing"]                   = "Nuevo m\195\179dulo Housing: hover de decoraci\195\179n, reloj del editor y /tm home (Midnight+).",
+    ["wn_298_housing_hover"]             = "Hover de decoraci\195\179n: muestra nombre, coste de colocaci\195\179n y stock restante; tecla modificadora para duplicar.",
+    ["wn_298_housing_clock"]             = "Reloj del editor: reloj anal\195\179gico/digital con seguimiento de tiempo por sesi\195\179n y total.",
+    ["wn_298_housing_teleport"]          = "/tm home: te teletransporta a tu casa o sale autom\195\161ticamente si est\195\161s de visita.",
+    ["wn_298_icons"]                     = "Nuevos iconos de categor\195\173a: icono de casa para Housing, icono de monitor para Diagn\195\179sticos.",
+    ["wn_298_locales"]                   = "Housing + panel Diagn\195\179sticos: soporte completo de locales frFR, deDE, esES, itIT, ptBR.",
+
+    -- 2.9.6
+    ["wn_296_raid_frames"]               = "Nuevo módulo Marcos de banda: marcos de raid personalizados en cuadrícula o lista.",
+    ["wn_296_raid_health"]               = "Barras de salud, absorción y predicción de curación + barra de poder (solo sanadores).",
+    ["wn_296_raid_auras"]                = "Rastreo de debuffs y HoTs con bordes coloreados por tipo/clase.",
+    ["wn_296_raid_utilities"]            = "Iconos de CDs defensivos, resaltado de disipación, desvanecimiento fuera de rango, iconos de rol, marcadores de banda y verificación de preparación.",
+    ["wn_296_raid_config"]               = "Panel de configuración completo con pestañas General y Funciones, 80+ claves de idioma en 6 lenguas.",
+
+    -- 2.9.7
+    ["wn_297_rf_live_preview"]           = "Marcos de banda: vista previa en vivo en el panel de configuración — 20 miembros simulados se actualizan en tiempo real.",
+    ["wn_297_rf_preview_layout"]         = "La vista previa muestra todos los modos: cuadrícula (etiquetas G1–G4) o lista (2 columnas), con roles y HoTs.",
+    ["wn_297_rf_preview_scaling"]        = "Escala automática al ancho del panel; refleja anchura, altura, espaciado, color, nombre, barra de poder y más.",
+    ["wn_297_taint_blizzard"]            = "Marcos de banda: ocultación de frames Blizzard reescrita (SetAlpha+SetScale) — corrige el taint de CompactPartyFrame y ArenaFrame.",
+    ["wn_297_range_fix"]                 = "Marcos de banda: desvanecimiento por distancia corregido para booleanos secretos de Midnight+ (SetAlphaFromBoolean).",
+    ["wn_297_actionbars_fix"]            = "Barras de acción: inicialización aplazada tras el bloqueo de combate — corrige el taint de SecureStateDriver al iniciar.",
+    ["wn_297_mp_tracker"]                = "Mythic+: ObjectiveTrackerFrame ahora se oculta correctamente durante el modo desafío.",
+    ["wn_297_role_icon"]                 = "Marcos de banda: tamaño predeterminado del icono de rol duplicado (10 → 20).",
+    ["wn_297_castbar_fix"]               = "Barras de lanzamiento: la barra del jugador ya no desaparece en combate — FadeOut ahora es idempotente y el nil transitorio ya no oculta la barra.",
+    ["wn_297_diag_exclusions"]           = "Diagnósticos: mensajes de restricción de montura y límite de mascotas excluidos de la captura de errores.",
+
     -- 2.9.5
     ["wn_295_taint_fix"]                 = "CooldownTrackers: eliminado COMBAT_LOG_EVENT_UNFILTERED para corregir taint (ADDON_ACTION_FORBIDDEN).",
     ["wn_295_diag_taint"]                = "Diagnósticos: los errores de taint ahora siempre se capturan, incluso con diagnósticos desactivados.",
@@ -1772,4 +1861,123 @@ TomoMod_RegisterLocale("esES", {
     -- 2.9.2
     ["wn_292_actionbar"]                 = "Reescritura completa de barras de acci\195\179n: arquitectura contenedor, sistema de fade, condiciones de visualizaci\195\179n.",
     ["wn_292_diagnostics"]               = "Nueva consola de diagn\195\179sticos: captura de errores en segundo plano, exportaci\195\179n, /tmdiag.",
+
+    -- =====================
+    -- CONFIG: Diagnostics Panel
+    -- =====================
+    ["section_diagnostics"]              = "Diagn\195\179sticos",
+    ["opt_diag_enabled"]                 = "Activar captura de errores",
+    ["opt_diag_capture_all"]             = "Capturar todos los addons",
+    ["opt_diag_suppress_popups"]         = "Suprimir ventanas de error",
+    ["opt_diag_auto_open"]               = "Abrir auto. con error de TomoMod",
+    ["btn_diag_open_console"]            = "Abrir consola",
+    ["btn_diag_clear"]                   = "Borrar errores",
+    ["btn_diag_export"]                  = "Copiar informe",
+    ["btn_diag_export_tracker"]          = "Exportar para Tracker",
+    ["info_diag_desc"]                   = "Captura errores Lua en segundo plano sin ventanas emergentes en combate. /tmdiag para abrir la consola.",
+    ["info_diag_session"]                = "Sesi\195\179n: #%d \226\128\148 %d errores capturados (%d TomoMod)",
+    ["info_diag_capture_all_desc"]       = "Cuando est\195\161 desactivado, solo se capturan errores de TomoMod. Activa para capturar todos los errores de addons.",
+
+    -- =====================
+    -- HOUSING
+    -- =====================
+    ["section_housing_general"]      = "Housing \226\128\148 General",
+    ["section_housing_hover"]        = "Info decoraci\195\179n (hover)",
+    ["section_housing_clock"]        = "Reloj del editor",
+    ["section_housing_teleport"]     = "Teletransportaci\195\179n",
+    ["section_housing_commands"]     = "Comandos",
+
+    ["info_housing_desc"]            = "M\195\179dulo Housing: mejora el editor de casas y a\195\177ade atajos de teletransportaci\195\179n. Requiere Midnight / The War Within.",
+    ["info_housing_hover"]           = "En el modo 'Decoraci\195\179n base', muestra nombre, coste de colocaci\195\179n y stock restante. Tambi\195\169n permite duplicar con tecla modificadora.",
+    ["info_housing_clock"]           = "Muestra un reloj y registra el tiempo en el editor de casas. Clic derecho para cambiar entre anal\195\179gico y digital.",
+    ["info_housing_teleport"]        = "Activa /tm home: te teletransporta a tu casa o sales autom\195\161ticamente si est\195\161s de visita.",
+    ["info_housing_commands"]        = "\226\128\162 /tm home \226\128\148 teletransportarte a tu casa (o salir)\n\226\128\162 /tm housing \226\128\148 abrir este panel\n\226\128\162 Clic derecho en el reloj \226\128\148 cambiar anal\195\179gico/digital",
+
+    ["opt_housing_enable"]           = "Activar m\195\179dulo Housing",
+    ["opt_housing_decorhover"]       = "Activar info decoraci\195\179n",
+    ["opt_housing_dupe"]             = "Activar duplicaci\195\179n r\195\161pida (modificador)",
+    ["opt_housing_dupekey"]          = "Tecla de duplicaci\195\179n",
+    ["opt_housing_clock"]            = "Activar reloj",
+    ["opt_housing_clock_analog"]     = "Modo anal\195\179gico (si no, digital)",
+    ["opt_housing_teleport"]         = "Activar teletransportaci\195\179n /tm home",
+
+    ["btn_housing_tp_home"]          = "Teletransportar (prueba)",
+    ["btn_housing_refresh"]          = "Actualizar casas",
+
+    ["housing_duplicate"]            = "Duplicar",
+    ["housing_alliance_zone"]        = "Promontorio del Fundador",
+    ["housing_horde_zone"]           = "Costas de Viento Filo",
+    ["housing_clock_title"]          = "TomoMod \226\128\148 Reloj",
+    ["housing_clock_time"]           = "Hora",
+    ["housing_clock_local"]          = "Hora local:",
+    ["housing_clock_realm"]          = "Hora del reino:",
+    ["housing_clock_time_spent"]     = "Tiempo en el editor",
+    ["housing_clock_session"]        = "Esta sesi\195\179n:",
+    ["housing_clock_total"]          = "Total:",
+    ["housing_clock_rightclick"]     = "Clic derecho para cambiar anal\195\179gico / digital",
+
+    ["msg_help_home"]                = "Teletransportarte a tu casa (o salir)",
+    ["msg_help_housing"]             = "Abrir el panel Housing",
+    ["msg_housing_refresh"]          = "Informaci\195\179n de casas solicitada.",
+    ["msg_housing_unavailable"]      = "M\195\179dulo Housing no disponible en este cliente.",
+
+    -- =====================
+    -- CONFIG: Diagnostics Panel
+    -- =====================
+    ["section_diagnostics"]              = "Diagn\195\179sticos",
+    ["opt_diag_enabled"]                 = "Activar captura de errores",
+    ["opt_diag_capture_all"]             = "Capturar todos los addons",
+    ["opt_diag_suppress_popups"]         = "Suprimir ventanas de error",
+    ["opt_diag_auto_open"]               = "Abrir auto. con error de TomoMod",
+    ["btn_diag_open_console"]            = "Abrir consola",
+    ["btn_diag_clear"]                   = "Borrar errores",
+    ["btn_diag_export"]                  = "Copiar informe",
+    ["btn_diag_export_tracker"]          = "Exportar para Tracker",
+    ["info_diag_desc"]                   = "Captura errores Lua en segundo plano sin ventanas emergentes en combate. /tmdiag para abrir la consola.",
+    ["info_diag_session"]                = "Sesi\195\179n: #%d \226\128\148 %d errores capturados (%d TomoMod)",
+    ["info_diag_capture_all_desc"]       = "Cuando est\195\161 desactivado, solo se capturan errores de TomoMod. Activa para capturar todos los errores de addons.",
+
+    -- =====================
+    -- HOUSING
+    -- =====================
+    ["cat_housing"]                  = "Housing",
+    ["section_housing_general"]      = "Housing \226\128\148 General",
+    ["section_housing_hover"]        = "Info decoraci\195\179n (hover)",
+    ["section_housing_clock"]        = "Reloj del editor",
+    ["section_housing_teleport"]     = "Teletransportaci\195\179n",
+    ["section_housing_commands"]     = "Comandos",
+
+    ["info_housing_desc"]            = "M\195\179dulo Housing: mejora el editor de casas y a\195\177ade atajos de teletransportaci\195\179n. Requiere Midnight / The War Within.",
+    ["info_housing_hover"]           = "En el modo 'Decoraci\195\179n base', muestra nombre, coste de colocaci\195\179n y stock restante. Tambi\195\169n permite duplicar con tecla modificadora.",
+    ["info_housing_clock"]           = "Muestra un reloj y registra el tiempo en el editor de casas. Clic derecho para cambiar entre anal\195\179gico y digital.",
+    ["info_housing_teleport"]        = "Activa /tm home: te teletransporta a tu casa o sales autom\195\161ticamente si est\195\161s de visita.",
+    ["info_housing_commands"]        = "\226\128\162 /tm home \226\128\148 teletransportarte a tu casa (o salir)\n\226\128\162 /tm housing \226\128\148 abrir este panel\n\226\128\162 Clic derecho en el reloj \226\128\148 cambiar anal\195\179gico/digital",
+
+    ["opt_housing_enable"]           = "Activar m\195\179dulo Housing",
+    ["opt_housing_decorhover"]       = "Activar info decoraci\195\179n",
+    ["opt_housing_dupe"]             = "Activar duplicaci\195\179n r\195\161pida (modificador)",
+    ["opt_housing_dupekey"]          = "Tecla de duplicaci\195\179n",
+    ["opt_housing_clock"]            = "Activar reloj",
+    ["opt_housing_clock_analog"]     = "Modo anal\195\179gico (si no, digital)",
+    ["opt_housing_teleport"]         = "Activar teletransportaci\195\179n /tm home",
+
+    ["btn_housing_tp_home"]          = "Teletransportar (prueba)",
+    ["btn_housing_refresh"]          = "Actualizar casas",
+
+    ["housing_duplicate"]            = "Duplicar",
+    ["housing_alliance_zone"]        = "Promontorio del Fundador",
+    ["housing_horde_zone"]           = "Costas de Viento Filo",
+    ["housing_clock_title"]          = "TomoMod \226\128\148 Reloj",
+    ["housing_clock_time"]           = "Hora",
+    ["housing_clock_local"]          = "Hora local:",
+    ["housing_clock_realm"]          = "Hora del reino:",
+    ["housing_clock_time_spent"]     = "Tiempo en el editor",
+    ["housing_clock_session"]        = "Esta sesi\195\179n:",
+    ["housing_clock_total"]          = "Total:",
+    ["housing_clock_rightclick"]     = "Clic derecho para cambiar anal\195\179gico / digital",
+
+    ["msg_help_home"]                = "Teletransportarte a tu casa (o salir)",
+    ["msg_help_housing"]             = "Abrir el panel Housing",
+    ["msg_housing_refresh"]          = "Informaci\195\179n de casas solicitada.",
+    ["msg_housing_unavailable"]      = "M\195\179dulo Housing no disponible en este cliente.",
 })

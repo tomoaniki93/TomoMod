@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- itIT.lua — Italiano
 -- =====================================
 
@@ -14,6 +14,8 @@ TomoMod_RegisterLocale("itIT", {
     ["cat_qol"]             = "Qualità della vita",
     ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Profili",
+    ["cat_diagnostics"]     = "Diagnostica",
+    ["cat_housing"]         = "Housing",
 
     -- =====================
     -- CONFIG: General Panel
@@ -1660,6 +1662,66 @@ TomoMod_RegisterLocale("itIT", {
     ["pf_btn_reset_arena_pos"]           = "Reimposta posizione",
 
     -- ═══════════════════════════════════
+    -- Raid Frames
+    -- ═══════════════════════════════════
+    ["cat_raidframes"]                   = "Riquadri incursione",
+    ["mover_raidframes"]                 = "Riquadri incursione",
+    ["rf_tab_general"]                   = "Generale",
+    ["rf_tab_features"]                  = "Funzionalità",
+    ["rf_section_general"]               = "Generale",
+    ["rf_opt_enable"]                    = "Attiva riquadri incursione",
+    ["rf_info_description"]              = "Riquadri incursione personalizzati con salute, assorbimento, previsione cure, HoT, debuff, evidenziazione dissolvi, CD difensivi e controllo distanza.",
+    ["rf_opt_hide_blizzard"]             = "Nascondi riquadri incursione di Blizzard",
+    ["rf_opt_sort_role"]                 = "Ordina per ruolo (Tank > Guaritore > DPS)",
+    ["rf_section_layout"]                = "Layout",
+    ["rf_opt_layout_mode"]               = "Modalità layout",
+    ["rf_layout_grid"]                   = "Griglia (gruppi in colonne)",
+    ["rf_layout_list"]                   = "Lista (colonna singola)",
+    ["rf_opt_width"]                     = "Larghezza riquadro",
+    ["rf_opt_height"]                    = "Altezza riquadro",
+    ["rf_opt_spacing"]                   = "Spaziatura",
+    ["rf_opt_group_spacing"]             = "Spaziatura gruppo",
+    ["rf_section_display"]               = "Visualizzazione",
+    ["rf_opt_show_name"]                 = "Mostra nome",
+    ["rf_opt_name_max_length"]           = "Lettere max del nome",
+    ["rf_opt_show_health_text"]          = "Mostra testo salute",
+    ["rf_opt_health_format"]             = "Formato salute",
+    ["rf_opt_health_color"]              = "Modalità colore salute",
+    ["rf_opt_show_role"]                 = "Mostra icona ruolo",
+    ["rf_opt_show_marker"]               = "Mostra marcatore incursione",
+    ["rf_section_font"]                  = "Carattere",
+    ["rf_opt_font_size"]                 = "Dimensione carattere",
+    ["rf_section_position"]              = "Posizione",
+    ["rf_info_position"]                 = "Usa /tm layout per sbloccare e trascinare i riquadri incursione.",
+    ["rf_btn_reset_position"]            = "Reimposta posizione",
+    ["rf_info_test_raid"]                = "Simula un'incursione di 20 giocatori per visualizzare l'anteprima del layout fuori combattimento.",
+    ["rf_btn_test_raid"]                 = "Simula 20 giocatori",
+    ["rf_btn_test_raid_stop"]            = "Interrompi simulazione",
+    ["rf_preview_group"]                 = "G",
+    ["rf_section_health_extras"]         = "Funzioni salute",
+    ["rf_opt_show_power"]                = "Barra potere (solo guaritori)",
+    ["rf_opt_power_height"]              = "Altezza barra potere",
+    ["rf_opt_show_absorb"]               = "Mostra barra assorbimento",
+    ["rf_opt_show_heal_pred"]            = "Mostra previsione cure",
+    ["rf_section_range"]                 = "Controllo distanza",
+    ["rf_opt_show_range"]                = "Sfuma membri fuori portata",
+    ["rf_opt_oor_alpha"]                 = "Opacità fuori portata",
+    ["rf_section_dispel"]                = "Evidenziazione dissolvi",
+    ["rf_opt_show_dispel"]               = "Evidenzia debuff dissolubili",
+    ["rf_section_hots"]                  = "Tracciamento HoT",
+    ["rf_opt_show_hots"]                 = "Mostra indicatori HoT",
+    ["rf_opt_hot_size"]                  = "Dimensione icona HoT",
+    ["rf_opt_max_hots"]                  = "Max HoT mostrati",
+    ["rf_section_debuffs"]               = "Tracciamento debuff",
+    ["rf_opt_show_debuffs"]              = "Mostra icone debuff",
+    ["rf_opt_debuff_size"]               = "Dimensione icona debuff",
+    ["rf_opt_max_debuffs"]               = "Max debuff mostrati",
+    ["rf_section_defensives"]            = "CD difensivi",
+    ["rf_opt_show_defensives"]           = "Mostra buff difensivi attivi",
+    ["rf_opt_defensive_size"]            = "Dimensione icona difensiva",
+    ["rf_info_defensives"]               = "Mostra i CD difensivi attivi (es: Soppressione del Dolore, Corteccia di Ferro, Scudo Divino) su ogni membro dell'incursione.",
+
+    -- ═══════════════════════════════════
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["tab_qol_aura_tracker"]             = "Tracciatore aure",
@@ -1748,6 +1810,33 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_btn_ok"]                        = "Capito!",
     ["wn_footer"]                        = "Tutte le impostazioni possono essere modificate in qualsiasi momento tramite |cff0cd29f/tm|r.",
 
+    -- 2.9.8
+    ["wn_298_housing"]                   = "Nuovo modulo Housing: hover decorazione, orologio editor e teletrasporto /tm home (Midnight+).",
+    ["wn_298_housing_hover"]             = "Hover decorazione: mostra nome, costo di posizionamento e stock rimanente; tasto modificatore per duplicare.",
+    ["wn_298_housing_clock"]             = "Orologio editor: orologio analogico/digitale con tracciamento del tempo per sessione e totale.",
+    ["wn_298_housing_teleport"]          = "/tm home: ti teletrasporta a casa tua o esce automaticamente se sei in visita.",
+    ["wn_298_icons"]                     = "Nuove icone categoria: icona casa per Housing, icona monitor per Diagnostica.",
+    ["wn_298_locales"]                   = "Housing + pannello Diagnostica: supporto completo locale per frFR, deDE, esES, itIT, ptBR.",
+
+    -- 2.9.6
+    ["wn_296_raid_frames"]               = "Nuovo modulo Riquadri incursione: riquadri raid personalizzati in griglia o lista.",
+    ["wn_296_raid_health"]               = "Barre salute, assorbimento e previsione cure + barra potere (solo guaritori).",
+    ["wn_296_raid_auras"]                = "Tracciamento debuff e HoT con bordi colorati per tipo/classe.",
+    ["wn_296_raid_utilities"]            = "Icone CD difensivi, evidenziazione dissolvi, sfumatura fuori portata, icone ruolo, marcatori raid e controllo pronto.",
+    ["wn_296_raid_config"]               = "Pannello di configurazione completo con schede Generale e Funzionalità, 80+ chiavi locale in 6 lingue.",
+
+    -- 2.9.7
+    ["wn_297_rf_live_preview"]           = "Riquadri incursione: anteprima live nel pannello di configurazione — 20 membri simulati aggiornati in tempo reale.",
+    ["wn_297_rf_preview_layout"]         = "L'anteprima mostra tutti i layout: griglia (etichette G1–G4) o lista (2 colonne), con ruoli e HoT.",
+    ["wn_297_rf_preview_scaling"]        = "Scala automatica alla larghezza del pannello; riflette larghezza, altezza, spaziatura, colore, nome, barra potere e altro.",
+    ["wn_297_taint_blizzard"]            = "Riquadri incursione: occultamento frame Blizzard riscritto (SetAlpha+SetScale) — risolve il taint di CompactPartyFrame e ArenaFrame.",
+    ["wn_297_range_fix"]                 = "Riquadri incursione: dissolvenza per distanza corretta per i booleani segreti di Midnight+ (SetAlphaFromBoolean).",
+    ["wn_297_actionbars_fix"]            = "Barre azioni: inizializzazione posticipata dopo il blocco combattimento — risolve il taint di SecureStateDriver all'accesso.",
+    ["wn_297_mp_tracker"]                = "Mythic+: ObjectiveTrackerFrame ora viene correttamente nascosto durante la modalità sfida.",
+    ["wn_297_role_icon"]                 = "Riquadri incursione: dimensione predefinita icona ruolo raddoppiata (10 → 20).",
+    ["wn_297_castbar_fix"]               = "Barre incantesimo: la barra del giocatore non scompare più in combattimento — FadeOut è ora idempotente e il nil transitorio non nasconde più la barra.",
+    ["wn_297_diag_exclusions"]           = "Diagnostica: messaggi di restrizione mount e limite mascotte esclusi dalla cattura degli errori.",
+
     -- 2.9.5
     ["wn_295_taint_fix"]                 = "CooldownTrackers: rimosso COMBAT_LOG_EVENT_UNFILTERED per correggere il taint (ADDON_ACTION_FORBIDDEN).",
     ["wn_295_diag_taint"]                = "Diagnostica: gli errori di taint vengono ora sempre catturati, anche con la diagnostica disattivata.",
@@ -1772,4 +1861,63 @@ TomoMod_RegisterLocale("itIT", {
     -- 2.9.2
     ["wn_292_actionbar"]                 = "Riscrittura completa barre azione: architettura contenitore, sistema fade, condizioni di visualizzazione.",
     ["wn_292_diagnostics"]               = "Nuova console diagnostica: cattura errori in background, esportazione, /tmdiag.",
+
+    -- =====================
+    -- CONFIG: Diagnostics Panel
+    -- =====================
+    ["section_diagnostics"]              = "Diagnostica",
+    ["opt_diag_enabled"]                 = "Abilita cattura errori",
+    ["opt_diag_capture_all"]             = "Cattura tutti gli addon",
+    ["opt_diag_suppress_popups"]         = "Sopprimi finestre di errore",
+    ["opt_diag_auto_open"]               = "Apri automaticamente con errore TomoMod",
+    ["btn_diag_open_console"]            = "Apri console",
+    ["btn_diag_clear"]                   = "Cancella errori",
+    ["btn_diag_export"]                  = "Copia report",
+    ["btn_diag_export_tracker"]          = "Esporta per Tracker",
+    ["info_diag_desc"]                   = "Cattura errori Lua in background senza popup durante il combattimento. /tmdiag per aprire la console.",
+    ["info_diag_session"]                = "Sessione: #%d \226\128\148 %d errori catturati (%d TomoMod)",
+    ["info_diag_capture_all_desc"]       = "Quando disabilitato, vengono catturati solo gli errori di TomoMod. Attiva per catturare tutti gli errori degli addon.",
+
+    -- =====================
+    -- HOUSING
+    -- =====================
+    ["section_housing_general"]      = "Housing \226\128\148 Generale",
+    ["section_housing_hover"]        = "Info decorazione (hover)",
+    ["section_housing_clock"]        = "Orologio editor",
+    ["section_housing_teleport"]     = "Teletrasporto",
+    ["section_housing_commands"]     = "Comandi",
+
+    ["info_housing_desc"]            = "Modulo Housing: migliora l'editor di case e aggiunge scorciatoie di teletrasporto. Richiede Midnight / The War Within.",
+    ["info_housing_hover"]           = "In modalit\195\160 'Decorazione base', mostra nome, costo di posizionamento e stock rimanente. Consente anche di duplicare con tasto modificatore.",
+    ["info_housing_clock"]           = "Mostra un orologio e registra il tempo nell'editor di case. Clic destro per passare tra analogico e digitale.",
+    ["info_housing_teleport"]        = "Attiva /tm home: ti teletrasporta a casa tua o esci automaticamente se sei in visita.",
+    ["info_housing_commands"]        = "\226\128\162 /tm home \226\128\148 teletrasportati a casa (o esci)\n\226\128\162 /tm housing \226\128\148 apri questo pannello\n\226\128\162 Clic destro sull'orologio \226\128\148 cambia analogico/digitale",
+
+    ["opt_housing_enable"]           = "Abilita modulo Housing",
+    ["opt_housing_decorhover"]       = "Abilita info decorazione",
+    ["opt_housing_dupe"]             = "Abilita duplicazione rapida (modificatore)",
+    ["opt_housing_dupekey"]          = "Tasto di duplicazione",
+    ["opt_housing_clock"]            = "Abilita orologio",
+    ["opt_housing_clock_analog"]     = "Modalit\195\160 analogica (altrimenti digitale)",
+    ["opt_housing_teleport"]         = "Abilita teletrasporto /tm home",
+
+    ["btn_housing_tp_home"]          = "Teletrasportati (test)",
+    ["btn_housing_refresh"]          = "Aggiorna case",
+
+    ["housing_duplicate"]            = "Duplica",
+    ["housing_alliance_zone"]        = "Promontorio del Fondatore",
+    ["housing_horde_zone"]           = "Coste di Vento Lama",
+    ["housing_clock_title"]          = "TomoMod \226\128\148 Orologio",
+    ["housing_clock_time"]           = "Ora",
+    ["housing_clock_local"]          = "Ora locale:",
+    ["housing_clock_realm"]          = "Ora del reame:",
+    ["housing_clock_time_spent"]     = "Tempo nell'editor",
+    ["housing_clock_session"]        = "Questa sessione:",
+    ["housing_clock_total"]          = "Totale:",
+    ["housing_clock_rightclick"]     = "Clic destro per passare analogico / digitale",
+
+    ["msg_help_home"]                = "Teletrasportati a casa tua (o esci)",
+    ["msg_help_housing"]             = "Apri il pannello Housing",
+    ["msg_housing_refresh"]          = "Informazioni sulle case richieste.",
+    ["msg_housing_unavailable"]      = "Modulo Housing non disponibile su questo client.",
 })

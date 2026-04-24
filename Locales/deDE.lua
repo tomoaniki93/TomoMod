@@ -14,6 +14,8 @@ TomoMod_RegisterLocale("deDE", {
     ["cat_qol"]             = "Lebensqualität",
     ["cat_mythicplus"]      = "Mythic+",
     ["cat_profiles"]        = "Profile",
+    ["cat_diagnostics"]     = "Diagnose",
+    ["cat_housing"]         = "Housing",
 
     -- =====================
     -- CONFIG: General Panel
@@ -1669,6 +1671,66 @@ TomoMod_RegisterLocale("deDE", {
     ["pf_btn_reset_arena_pos"]           = "Position zurücksetzen",
 
     -- ═══════════════════════════════════
+    -- Raid Frames
+    -- ═══════════════════════════════════
+    ["cat_raidframes"]                   = "Schlachtzug-Rahmen",
+    ["mover_raidframes"]                 = "Schlachtzug-Rahmen",
+    ["rf_tab_general"]                   = "Allgemein",
+    ["rf_tab_features"]                  = "Funktionen",
+    ["rf_section_general"]               = "Allgemein",
+    ["rf_opt_enable"]                    = "Schlachtzug-Rahmen aktivieren",
+    ["rf_info_description"]              = "Benutzerdefinierte Schlachtzug-Rahmen mit Gesundheit, Absorption, Heilvorhersage, HoTs, Debuffs, Entfluch-Highlight, defensive CDs und Reichweiten-Check.",
+    ["rf_opt_hide_blizzard"]             = "Blizzard Schlachtzug-Rahmen ausblenden",
+    ["rf_opt_sort_role"]                 = "Nach Rolle sortieren (Tank > Heiler > DPS)",
+    ["rf_section_layout"]                = "Layout",
+    ["rf_opt_layout_mode"]               = "Layout-Modus",
+    ["rf_layout_grid"]                   = "Raster (Gruppen als Spalten)",
+    ["rf_layout_list"]                   = "Liste (einzelne Spalte)",
+    ["rf_opt_width"]                     = "Rahmenbreite",
+    ["rf_opt_height"]                    = "Rahmenhöhe",
+    ["rf_opt_spacing"]                   = "Abstand",
+    ["rf_opt_group_spacing"]             = "Gruppenabstand",
+    ["rf_section_display"]               = "Anzeige",
+    ["rf_opt_show_name"]                 = "Name anzeigen",
+    ["rf_opt_name_max_length"]           = "Max. Buchstaben",
+    ["rf_opt_show_health_text"]          = "Gesundheitstext anzeigen",
+    ["rf_opt_health_format"]             = "Gesundheitsformat",
+    ["rf_opt_health_color"]              = "Gesundheitsfarb-Modus",
+    ["rf_opt_show_role"]                 = "Rollensymbol anzeigen",
+    ["rf_opt_show_marker"]               = "Schlachtzug-Markierung anzeigen",
+    ["rf_section_font"]                  = "Schriftart",
+    ["rf_opt_font_size"]                 = "Schriftgröße",
+    ["rf_section_position"]              = "Position",
+    ["rf_info_position"]                 = "Verwende /tm layout zum Entsperren und Verschieben der Schlachtzug-Rahmen.",
+    ["rf_btn_reset_position"]            = "Position zurücksetzen",
+    ["rf_info_test_raid"]                = "Simuliere einen 20-Spieler-Schlachtzug zur Vorschau des Layouts außerhalb des Kampfes.",
+    ["rf_btn_test_raid"]                 = "20 Spieler simulieren",
+    ["rf_btn_test_raid_stop"]            = "Simulation beenden",
+    ["rf_preview_group"]                 = "G",
+    ["rf_section_health_extras"]         = "Gesundheitsfunktionen",
+    ["rf_opt_show_power"]                = "Energieleiste (nur Heiler)",
+    ["rf_opt_power_height"]              = "Energieleisten-Höhe",
+    ["rf_opt_show_absorb"]               = "Absorptionsleiste anzeigen",
+    ["rf_opt_show_heal_pred"]            = "Heilvorhersage anzeigen",
+    ["rf_section_range"]                 = "Reichweiten-Check",
+    ["rf_opt_show_range"]                = "Außer Reichweite ausblenden",
+    ["rf_opt_oor_alpha"]                 = "Außer-Reichweite-Transparenz",
+    ["rf_section_dispel"]                = "Entfluch-Highlight",
+    ["rf_opt_show_dispel"]               = "Entfluchbare Debuffs hervorheben",
+    ["rf_section_hots"]                  = "HoT-Verfolgung",
+    ["rf_opt_show_hots"]                 = "HoT-Indikatoren anzeigen",
+    ["rf_opt_hot_size"]                  = "HoT-Symbolgröße",
+    ["rf_opt_max_hots"]                  = "Max. angezeigte HoTs",
+    ["rf_section_debuffs"]               = "Debuff-Verfolgung",
+    ["rf_opt_show_debuffs"]              = "Debuff-Symbole anzeigen",
+    ["rf_opt_debuff_size"]               = "Debuff-Symbolgröße",
+    ["rf_opt_max_debuffs"]               = "Max. angezeigte Debuffs",
+    ["rf_section_defensives"]            = "Defensive Abklingzeiten",
+    ["rf_opt_show_defensives"]           = "Aktive defensive Buffs anzeigen",
+    ["rf_opt_defensive_size"]            = "Defensive Symbolgröße",
+    ["rf_info_defensives"]               = "Zeigt aktive defensive CDs (z.B. Schmerzunterdrückung, Eisenborke, Gottesschild) bei jedem Schlachtzug-Mitglied an.",
+
+    -- ═══════════════════════════════════
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["tab_qol_aura_tracker"]             = "Aura-Tracker",
@@ -1757,6 +1819,33 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_btn_ok"]                        = "Verstanden!",
     ["wn_footer"]                        = "Alle Einstellungen k\195\182nnen jederzeit \195\188ber |cff0cd29f/tm|r ge\195\164ndert werden.",
 
+    -- 2.9.8
+    ["wn_298_housing"]                   = "Neues Housing-Modul: Dekor-Hover, Editor-Uhr und Teleport /tm home (Midnight+).",
+    ["wn_298_housing_hover"]             = "Dekor-Hover: Name, Platzierungskosten und verbleibender Vorrat beim Hovern; Modifikationstaste zum Duplizieren.",
+    ["wn_298_housing_clock"]             = "Editor-Uhr: analoge/digitale Uhr mit Sitzungs- und Gesamtzeiterfassung.",
+    ["wn_298_housing_teleport"]          = "/tm home: teleportiert euch nach Hause oder verl\195\164sst automatisch beim Besuch.",
+    ["wn_298_icons"]                     = "Neue Seitenleisten-Symbole: Haus-Symbol f\195\188r Housing, Monitor-Symbol f\195\188r Diagnostik.",
+    ["wn_298_locales"]                   = "Housing + Diagnose-Panel: volle Locale-Unterst\195\188tzung f\195\188r frFR, deDE, esES, itIT, ptBR.",
+
+    -- 2.9.6
+    ["wn_296_raid_frames"]               = "Neues Schlachtzug-Rahmen-Modul: benutzerdefinierte Raid-Rahmen im Raster- oder Listenlayout.",
+    ["wn_296_raid_health"]               = "Gesundheits-, Absorptions- und Heilvorhersageleisten + Energieleiste (nur Heiler).",
+    ["wn_296_raid_auras"]                = "Debuff- und HoT-Verfolgung mit typ-/klassencodierten Rahmenfarben.",
+    ["wn_296_raid_utilities"]            = "Defensive-CD-Symbole, Entfluch-Highlight, Reichweiten-Ausblendung, Rollensymbole, Raid-Markierungen und Bereitschaftscheck.",
+    ["wn_296_raid_config"]               = "Vollständiges Konfigurationspanel mit Allgemein- und Funktionen-Tabs, 80+ Sprachschlüssel in 6 Sprachen.",
+
+    -- 2.9.7
+    ["wn_297_rf_live_preview"]           = "Schlachtzug-Rahmen: Live-Vorschau im Konfigurationspanel — 20 simulierte Mitglieder werden in Echtzeit aktualisiert.",
+    ["wn_297_rf_preview_layout"]         = "Vorschau zeigt alle Layouts: Raster (G1–G4 Labels) oder Liste (2 Spalten), mit korrekten Rollen und HoTs.",
+    ["wn_297_rf_preview_scaling"]        = "Automatische Skalierung auf die Panelbreite; spiegelt Breite, Höhe, Abstand, Farbe, Name, Energieleiste und mehr.",
+    ["wn_297_taint_blizzard"]            = "Schlachtzug-Rahmen: Blizzard-Ausblendung umgeschrieben (SetAlpha+SetScale) — behebt CompactPartyFrame- & ArenaFrame-Taint.",
+    ["wn_297_range_fix"]                 = "Schlachtzug-Rahmen: Reichweiten-Fade für Midnight+-Geheimnisse korrigiert (SetAlphaFromBoolean).",
+    ["wn_297_actionbars_fix"]            = "Aktionsleisten: Initialisierung nach Kampfsperre verschoben — behebt SecureStateDriver-Taint beim Login.",
+    ["wn_297_mp_tracker"]                = "Mythic+: ObjectiveTrackerFrame wird nun im Herausforderungsmodus korrekt ausgeblendet.",
+    ["wn_297_role_icon"]                 = "Schlachtzug-Rahmen: Standard-Rollensymbol-Größe verdoppelt (10 → 20).",
+    ["wn_297_castbar_fix"]               = "Zauberstabsleisten: Spieler-Zauberstabsleiste verschwindet nicht mehr im Kampf — FadeOut ist jetzt idempotent, transientes nil blendet die Leiste nicht mehr aus.",
+    ["wn_297_diag_exclusions"]           = "Diagnose: Nachrichten zu Reittier-Beschränkungen und Haustier-Cap aus der Fehlererfassung ausgeschlossen.",
+
     -- 2.9.5
     ["wn_295_taint_fix"]                 = "CooldownTrackers: COMBAT_LOG_EVENT_UNFILTERED entfernt, um Taint zu beheben (ADDON_ACTION_FORBIDDEN).",
     ["wn_295_diag_taint"]                = "Diagnostik: Taint-Fehler werden jetzt immer erfasst, auch bei deaktivierter Diagnostik.",
@@ -1781,4 +1870,63 @@ TomoMod_RegisterLocale("deDE", {
     -- 2.9.2
     ["wn_292_actionbar"]                 = "Kompletter Aktionsleisten-Rewrite: Container-Architektur, Fade-System, Anzeigebedingungen.",
     ["wn_292_diagnostics"]               = "Neue Diagnostik-Konsole: Fehlererfassung im Hintergrund, Export, /tmdiag.",
+
+    -- =====================
+    -- CONFIG: Diagnostics Panel
+    -- =====================
+    ["section_diagnostics"]              = "Diagnose",
+    ["opt_diag_enabled"]                 = "Fehlererfassung aktivieren",
+    ["opt_diag_capture_all"]             = "Alle Addons erfassen",
+    ["opt_diag_suppress_popups"]         = "Fehler-Popups unterdrücken",
+    ["opt_diag_auto_open"]               = "Auto-Öffnen bei TomoMod-Fehler",
+    ["btn_diag_open_console"]            = "Konsole öffnen",
+    ["btn_diag_clear"]                   = "Fehler löschen",
+    ["btn_diag_export"]                  = "Bericht kopieren",
+    ["btn_diag_export_tracker"]          = "Für Tracker exportieren",
+    ["info_diag_desc"]                   = "Erfasst Lua-Fehler im Hintergrund ohne Kampf-Popups. /tmdiag zum Öffnen der Konsole.",
+    ["info_diag_session"]                = "Sitzung: #%d — %d Fehler erfasst (%d TomoMod)",
+    ["info_diag_capture_all_desc"]       = "Wenn deaktiviert, werden nur TomoMod-Fehler erfasst. Aktivieren, um alle Addon-Fehler zu erfassen.",
+
+    -- =====================
+    -- HOUSING
+    -- =====================
+    ["section_housing_general"]      = "Housing — Allgemein",
+    ["section_housing_hover"]        = "Dekor-Info (Hover)",
+    ["section_housing_clock"]        = "Editor-Uhr",
+    ["section_housing_teleport"]     = "Teleportation",
+    ["section_housing_commands"]     = "Befehle",
+
+    ["info_housing_desc"]            = "Housing-Modul: verbessert den Hauseditor und fügt Teleportations-Shortcuts hinzu. Benötigt Midnight / The War Within.",
+    ["info_housing_hover"]           = "Im Modus 'Basis-Dekor' werden Name, Platzierungskosten und Restbestand des gehoverten Dekors angezeigt. Erlaubt auch das Duplizieren eines Dekors mit einer Modifikatortaste.",
+    ["info_housing_clock"]           = "Zeigt eine Uhr an und verfolgt die im Hauseditor verbrachte Zeit. Rechtsklick auf die Uhr zum Wechseln zwischen analog und digital.",
+    ["info_housing_teleport"]        = "Aktiviert den Befehl /tm home: Teleportiert zu deinem Haus oder verlässt es automatisch, wenn du zu Besuch bist.",
+    ["info_housing_commands"]        = "• /tm home — zu deinem Haus teleportieren (oder es verlassen)\n• /tm housing — dieses Panel öffnen\n• Rechtsklick auf Uhr — analog/digital umschalten",
+
+    ["opt_housing_enable"]           = "Housing-Modul aktivieren",
+    ["opt_housing_decorhover"]       = "Dekor-Info aktivieren",
+    ["opt_housing_dupe"]             = "Schnellvervielfältigung aktivieren (Modifikatortaste)",
+    ["opt_housing_dupekey"]          = "Dupliziertaste",
+    ["opt_housing_clock"]            = "Uhr aktivieren",
+    ["opt_housing_clock_analog"]     = "Analogmodus (sonst digital)",
+    ["opt_housing_teleport"]         = "Teleportation /tm home aktivieren",
+
+    ["btn_housing_tp_home"]          = "Teleportieren (Test)",
+    ["btn_housing_refresh"]          = "Häuser aktualisieren",
+
+    ["housing_duplicate"]            = "Duplizieren",
+    ["housing_alliance_zone"]        = "Gründervorgebirge",
+    ["housing_horde_zone"]           = "Rasierklingenküste",
+    ["housing_clock_title"]          = "TomoMod — Uhr",
+    ["housing_clock_time"]           = "Uhrzeit",
+    ["housing_clock_local"]          = "Lokale Zeit:",
+    ["housing_clock_realm"]          = "Serverzeit:",
+    ["housing_clock_time_spent"]     = "Zeit im Editor",
+    ["housing_clock_session"]        = "Diese Sitzung:",
+    ["housing_clock_total"]          = "Gesamt:",
+    ["housing_clock_rightclick"]     = "Rechtsklick zum Umschalten analog / digital",
+
+    ["msg_help_home"]                = "Zu deinem Haus teleportieren (oder es verlassen)",
+    ["msg_help_housing"]             = "Das Housing-Panel öffnen",
+    ["msg_housing_refresh"]          = "Hausinformationen angefragt.",
+    ["msg_housing_unavailable"]      = "Housing-Modul auf diesem Client nicht verfügbar.",
 })

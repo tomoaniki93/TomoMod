@@ -636,6 +636,9 @@ function W.CreateButton(parent, text, width, yOffset, callback)
     end)
     btn:SetScript("OnClick", function() if callback then callback() end end)
 
+    btn.label = lbl
+    btn.SetText = function(self, t) lbl:SetText(t) end
+
     return btn, yOffset - 36
 end
 

@@ -1023,6 +1023,82 @@ TomoMod_Defaults = {
     },
 
     -- =====================
+    -- RAID FRAMES
+    -- =====================
+    raidFrames = {
+        enabled = true,
+        hideBlizzardFrames = true,
+
+        -- Layout
+        layout = "grid",          -- "grid" or "list"
+        width = 72,
+        height = 36,
+        spacing = 2,
+        groupSpacing = 6,
+
+        -- Health
+        texture = ADDON_TEXTURE,
+        healthColor = "class",
+        showHealthText = false,
+        healthTextFormat = "percent",
+        font = ADDON_FONT,
+        fontSize = 10,
+        fontOutline = "OUTLINE",
+
+        -- Power (healers only)
+        showPower = true,
+        powerHeight = 2,
+
+        -- Absorb
+        showAbsorb = true,
+        absorbColor = { r = 0.50, g = 0.50, b = 1.00, a = 0.50 },
+
+        -- Heal Prediction
+        showHealPrediction = true,
+
+        -- Name & Icons
+        showName = true,
+        nameMaxLength = 5,
+        showRoleIcon = true,
+        roleIconSize = 20,
+        showRaidMarker = true,
+        raidMarkerSize = 12,
+        readyCheckSize = 20,
+
+        -- Range
+        showRange = true,
+        oorAlpha = 0.40,
+
+        -- Dispel highlight
+        showDispel = true,
+
+        -- HoT tracking
+        showHoTs = true,
+        hotSize = 10,
+        maxHoTs = 3,
+
+        -- Debuff tracking
+        showDebuffs = true,
+        debuffSize = 14,
+        maxDebuffs = 3,
+
+        -- Defensive CDs
+        showDefensives = true,
+        defensiveIconSize = 14,
+
+        -- Sort
+        sortByRole = true,
+
+        -- Position
+        position = {
+            point = "TOPLEFT",
+            relativePoint = "TOPLEFT",
+            x = 20,
+            y = -200,
+        },
+    },
+
+    -- =====================
     -- AURA TRACKER (WeakAura-lite)
     -- =====================
     auraTracker = {
@@ -1053,6 +1129,27 @@ TomoMod_Defaults = {
             x = 0,
             y = -180,
         },
+    },
+
+    -- =====================
+    -- HOUSING
+    -- =====================
+    housing = {
+        enabled = true,
+
+        -- Sub-modules (each can be toggled independently)
+        decorHover = true,            -- Show name/cost/stock on hovered decor
+        clock      = true,            -- Editor clock + time counter
+        teleport   = true,            -- Enable /tm home + smart teleport
+        itemAlert  = false,           -- Reserved for Phase 2
+
+        -- DecorHover options
+        decorHover_enableDupe    = true,   -- Allow modifier-key duplication
+        decorHover_duplicateKey  = 2,      -- 1 = LCTRL, 2 = LALT
+
+        -- Clock options
+        clock_analog     = false,     -- true = analog dial, false = digital readout
+        clock_totalTime  = 0,         -- Persisted total seconds spent in editor
     },
 }
 

@@ -1,5 +1,118 @@
 ## ####################################
 
+## CHANGELOG 2.9.8 — Housing Module
+
+#### Housing — Config Panel Checkboxes Not Working (Fix)
+- **Root cause** — At `PLAYER_LOGIN`, all handlers (`DecorHover`, `Clock`) were created with `enabled = nil`; `InitSubModules()` saw `anyEnabled = false` and registered no events — the module never started regardless of the checkboxes state
+- **Secondary cause** — `H.Refresh()` had an early `if not IsHousingAvailable() then return end` guard at the top, preventing it from syncing handler states when called outside a housing zone
+- **Fix 1** — `H.Refresh()` is now called **before** `Controller:InitSubModules()` in the boot timer so handlers have their DB-backed enabled state before initialization
+- **Fix 2** — The `IsHousingAvailable()` guard removed from the top of `H.Refresh()`; handler flag sync involves no housing API calls; a `Controller:RequestUpdate()` is still triggered at the end only when housing APIs are available
+
+#### Housing — Editor Clock Improvements
+- **Position** — Clock relocated from `CENTER` on top of the `HouseEditorButton` to `TOP` anchored at `BOTTOM` of the button (4 px gap); the button is now fully clickable when the clock is visible
+- **Default mode** — Clock defaults to **digital** (`clock_analog = false`); previous default was analog
+- **24-hour format** — Digital mode now always displays `HH:MM` (00–23); AM/PM conversion and the `timeMgrUseMilitaryTime` CVar check have been removed
+
+#### Unit Frames — InfoBar Current HP
+- **Bug** — The bottom-right corner on the player frame and the bottom-left corner on the target frame displayed `UnitHealthMax` (total HP, e.g. `566 K`) instead of the live current HP
+- **Fix** — `UpdateInfoBar` in `Elements/Power.lua` now reads `UnitHealth(unit)` instead of `UnitHealthMax(unit)`; the value updates every time `UNIT_HEALTH` fires via `Health.Override`
+
+#### Housing — New Module
+- **Housing module** — Full editor-enhancement suite for the Midnight / The War Within housing system (HousingCore, DecorHover, EditorClock, TeleportMacros sub-modules)
+- **Decor Hover** — In Basic Decor mode, hovering a placed decoration shows its name, placement budget cost and remaining stock in a lightweight overlay; hold a modifier key (Ctrl or Alt) to instantly start placing a duplicate
+- **Editor Clock** — Analog or digital clock shown below the "House Editor" button while the housing editor is open; tracks time spent in the editor per session and lifetime total (persisted in TomoModDB)
+- **Teleport `/tm home`** — New slash command: teleports to your current-faction house (Alliance → Founder's Point, Horde → Razorwind Shores) or auto-leaves if you are visiting another player's house; uses SecureActionButtonTemplate so it works in combat
+- **Config panel** — New "Housing" category in the config sidebar with a dedicated 5-section panel: General, Decor Hover, Editor Clock, Teleportation, Commands
+
+#### Housing — Taint Fix (`ADDON_ACTION_FORBIDDEN`)
+- **Root cause** — `TeleportHome()` is a Blizzard-protected C function; calling `Button:Click()` on a `SecureActionButtonTemplate` from a non-secure context (slash command handler, config panel `OnClick`) raised `ADDON_ACTION_FORBIDDEN` and propagated taint through `SecureTemplates.lua`
+- **`H.ShowTeleportPrompt()` introduced** — replaces direct `SmartTeleportHome()` calls in all non-secure contexts; surfaces the appropriate secure button (Leave or CurrentFaction) centred on screen at 220×36 px with a label; the player's physical click completes the protected action through a clean hardware-event → secure-template chain
+- **5-second auto-hide** — `C_Timer.NewTimer(5, …)` automatically hides the prompt if the player does not click; cancelled immediately on `PostClick`
+- **`SmartTeleportHome()` retained** — function still exists for macro `/click` chains and future programmatic secure contexts; its internal `Button:Click()` calls are now only reachable from legitimate secure paths
+- **`SetAction_ReturnHome` fixed** — was erroneously setting `PostClick` to `nil` on the Leave button, leaving it without cleanup; now assigns the shared `PostClick` handler like all other buttons
+- **`PostClick` hardened** — checks `self:GetAttribute("type")` before calling `CheckTeleportInCooldown` so it is safe on both `teleporthome` and `returnhome` buttons
+- **Call sites updated** — `Core/Init.lua` (`/tm home` slash command) and `Config/Panels/Housing.lua` (test button) both redirected from `SmartTeleportHome` → `ShowTeleportPrompt`
+
+#### Housing — Config Panel Invisible Fix
+- **Root cause** — `Config/Panels/Housing.lua` was missing from `TomoMod.toc`; `TomoMod_ConfigPanel_Housing` was never defined in `_G`, so `ConfigUI.lua` silently skipped panel construction and the Housing tab showed nothing
+- **Fix** — Added `Config\Panels\Housing.lua` to the TOC between `Skins.lua` and `Profiles.lua`
+
+#### Icons — New Config Sidebar Icons
+- **`icon_housing.tga`** — 32×32 white house-silhouette TGA (triangular roof, two windows, centred door); pixel-drawn to match the monochrome style of all other sidebar icons; `SetVertexColor` in `CreateNavButton` applies the accent colour at runtime
+- **`icon_diagnostics.tga`** — 32×32 white monitor/EKG TGA icon for the Diagnostics category in the config sidebar
+- **Bug fixed** — both files were previously valid TGA containers (correct 18-byte header, 4140 bytes total) but contained entirely zero pixel data, rendering as fully transparent; rebuilt with actual pixel art
+
+#### Localization — 2.9.8 Keys
+- **Housing + Diagnostics panel keys** — full locale support added in frFR, deDE, esES, itIT, ptBR (previously English-only fallback)
+- **6 new `wn_298_*` keys** added across all 6 locale files (enUS, frFR, deDE, esES, itIT, ptBR)
+
+## ####################################
+
+## CHANGELOG 2.9.7 — Raid Frame Live Preview & Bug Fixes
+
+#### Config Panel — Live Raid Frame Preview
+- **Embedded live preview** — The Raid Frames config panel now shows a live preview of 20 simulated members directly above the tabs (same architecture as the UnitFrames preview strip)
+- **Real-time updates** — Any parameter change (frame size, spacing, health color, name, power bar, etc.) is reflected instantly in the preview without leaving the panel
+- **Simulated data** — 20 members with varied names, class colors, different HP values, roles (2 tanks in G1/G2, 4 healers, 14 DPS), absorb indicators, heal prediction, HoTs and dispellable debuffs
+- **Adaptive scaling** — The preview auto-scales to the panel width; grid mode (4 groups × 5) with G1–G4 group labels, list mode (2 columns × 10)
+- **Visual consistency** — "LIVE PREVIEW" header with pulsing dot, separator, strip height auto-adjusts based on frame height
+- **Initial render fix** — `GetWidth()` returned 0 before the first layout pass; preview now self-retries via `C_Timer.After(0.05)` until width is available, and fires an initial `Refresh` on creation
+
+#### Raid Frames — Taint & Stability Fixes
+- **Blizzard frame hiding rewritten** — `CompactRaidFrameContainer` and `CompactRaidFrameManager` are now hidden via `SetAlpha(0) + SetScale(0.001)` instead of `Hide()` / `SetParent()` — eliminates the `CompactPartyFrame:SetShown()`, `PartyFrame:SetSize()` and `CompactArenaFrame:HideBase()` taint chain (errors 1–4 in diagnostics)
+- **Range fade fixed for Midnight+** — `UnitInRange` returns secret booleans in Midnight+; `UpdateRange()` now calls `SetAlphaFromBoolean(inRange, 1, oorAlpha)` instead of direct comparison — restores correct fade-out for out-of-range raid members
+- **Default role icon size doubled** — `roleIconSize` default raised from `10` to `20`
+
+#### Action Bars — Combat Lockdown Fix
+- **Initialization deferred past combat** — `AB.Initialize()` now defers to `PLAYER_REGEN_ENABLED` when the addon loads during combat lockdown (e.g. reconnecting mid-fight), eliminating `SecureStateDriverManager:SetAttribute()` taint (x30, errors 5–6 in diagnostics)
+
+#### Mythic+ — Objective Tracker Suppression
+- **Root frame now suppressed** — Added `"ObjectiveTrackerFrame"` to `BLIZZARD_FRAMES` in `MythicTracker.lua`; only sub-modules were previously suppressed, leaving the root visible during challenge mode
+
+#### What's New — Scrollbar Fix
+- **BackdropTemplate mixin** — Scrollbar created from `UIPanelScrollFrameTemplate` lacks `BackdropTemplate`; fixed with `Mixin(sb, BackdropTemplateMixin)` before `SetBackdrop` calls to prevent a nil-method crash
+
+#### Castbars — Player Bar Vanishing Mid-Combat Fix
+- **`FadeOut` made idempotent** — If `_fadeAG` is already playing when `FadeOut` is called a second time (e.g. `UNIT_SPELLCAST_STOP` fires right after `UNIT_SPELLCAST_SUCCEEDED`), the running animation is now left to finish instead of being cut short by a `self:Hide()` call
+- **`OnUpdate` fade guard** — After `FadeOut` resets the cast flags, `OnUpdate` was calling `self:Hide()` on the very next tick, killing the fade animation before it could play; now checks `_fadeAG:IsPlaying()` before hiding
+- **`CheckCast` nil-info guard** — `UnitCastingInfo`/`UnitChannelInfo` can return `nil` transiently on mid-cast events (`INTERRUPTIBLE`, `NOT_INTERRUPTIBLE`, `DELAYED`); the bar no longer hides immediately in that case — canonical `STOP`/`SUCCEEDED` events handle the end of cast
+
+#### Diagnostics — UI Error Exclusions
+- **Mount restriction messages excluded** — "Ground mounts are not allowed here" (and locale equivalents) no longer captured as `UIError`
+- **Battle pet cap messages excluded** — "You have reached the maximum number of pets of this type" (and locale equivalents) no longer captured as `UIError`
+
+#### Localization — 2.9.7 Keys
+- **10 new `wn_297_*` keys** added across all 6 locale files (enUS, frFR, deDE, esES, itIT, ptBR)
+
+## ####################################
+
+## CHANGELOG 2.9.6 — Raid Frames
+
+#### Raid Frames — New Module
+- **Custom raid frames** — Full raid frame system (raid1–raid40) with grid (groups as columns) or list (single column) layout modes
+- **Health bars** — Class-colored or gradient health bars with absorb overlay and incoming heal prediction
+- **Power bar (healers only)** — Thin power bar displayed only for healer-role raid members
+- **Debuff tracking** — Up to 3 debuff icons with debuff-type colored borders (Magic, Curse, Disease, Poison) and duration/stack text
+- **HoT tracking** — Up to 3 HoT indicators with class-colored borders; supports Priest, Druid, Paladin, Shaman, Monk, Evoker HoTs
+- **Defensive CD icons** — Shows active defensive buffs (Pain Suppression, Ironbark, Divine Shield, etc.) on each raid member
+- **Dispel highlight** — Border color changes when a dispellable debuff is present on a raid member
+- **Range check** — Fades out-of-range members with configurable opacity; uses UNIT_IN_RANGE_UPDATE + 0.5s ticker fallback
+- **Role icons & raid markers** — Configurable role icons (tank/healer/DPS) and raid target markers
+- **Ready check** — Ready/waiting/not-ready icons with 6s post-check display
+- **Hide Blizzard frames** — Option to hide default CompactRaidFrameContainer and CompactRaidFrameManager
+- **Sort by role** — Tank > Healer > DPS ordering within each group
+- **Mover system** — Drag-to-position via `/tm layout`, position saved per profile
+- **ClickCast support** — Frames registered with ClickCastFrames for click-casting addon compatibility
+
+#### Config Panel — Raid Frames
+- **2-tab config panel** — General tab (layout, dimensions, display options, font) and Features tab (power, absorb, heal prediction, range, dispel, HoTs, debuffs, defensives)
+- **New category icon** — 32×32 TGA grid icon in the config sidebar
+
+#### Localization — 2.9.6 Keys
+- **~80 new `rf_*` keys + 5 `wn_296_*` keys** added across all 6 locale files (enUS, frFR, deDE, esES, itIT, ptBR)
+
+## ####################################
+
 ## CHANGELOG 2.9.5 — Taint Fix, Diagnostics Improvements & Config Reorganization
 
 #### CooldownTrackers — Taint Fix

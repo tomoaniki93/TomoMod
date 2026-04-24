@@ -1790,6 +1790,90 @@ TomoMod_RegisterLocale("enUS", {
     ["pf_btn_reset_arena_pos"]           = "Reset Position",
 
     -- ═══════════════════════════════════
+    -- Raid Frames
+    -- ═══════════════════════════════════
+    ["cat_raidframes"]                   = "Raid Frames",
+    ["mover_raidframes"]                 = "Raid Frames",
+
+    -- Tabs
+    ["rf_tab_general"]                   = "General",
+    ["rf_tab_features"]                  = "Features",
+
+    -- General
+    ["rf_section_general"]               = "General",
+    ["rf_opt_enable"]                    = "Enable Raid Frames",
+    ["rf_info_description"]              = "Custom raid frames with health, absorb, heal prediction, HoTs, debuffs, dispel highlight, defensive CDs, and range check.",
+    ["rf_opt_hide_blizzard"]             = "Hide Blizzard raid frames",
+    ["rf_opt_sort_role"]                 = "Sort by role (Tank > Healer > DPS)",
+
+    -- Layout
+    ["rf_section_layout"]                = "Layout",
+    ["rf_opt_layout_mode"]               = "Layout mode",
+    ["rf_layout_grid"]                   = "Grid (groups as columns)",
+    ["rf_layout_list"]                   = "List (single column)",
+    ["rf_opt_width"]                     = "Frame width",
+    ["rf_opt_height"]                    = "Frame height",
+    ["rf_opt_spacing"]                   = "Spacing",
+    ["rf_opt_group_spacing"]             = "Group spacing",
+
+    -- Display
+    ["rf_section_display"]               = "Display",
+    ["rf_opt_show_name"]                 = "Show name",
+    ["rf_opt_name_max_length"]           = "Name max letters",
+    ["rf_opt_show_health_text"]          = "Show health text",
+    ["rf_opt_health_format"]             = "Health format",
+    ["rf_opt_health_color"]              = "Health color mode",
+    ["rf_opt_show_role"]                 = "Show role icon",
+    ["rf_opt_show_marker"]               = "Show raid marker",
+
+    -- Font
+    ["rf_section_font"]                  = "Font",
+    ["rf_opt_font_size"]                 = "Font size",
+
+    -- Position
+    ["rf_section_position"]              = "Position",
+    ["rf_info_position"]                 = "Use /tm layout to unlock and drag raid frames.",
+    ["rf_btn_reset_position"]            = "Reset Position",
+    ["rf_info_test_raid"]                = "Simulate a 20-player raid to preview the layout outside of combat.",
+    ["rf_btn_test_raid"]                 = "Simulate 20 Players",
+    ["rf_btn_test_raid_stop"]            = "Stop Simulation",
+    ["rf_preview_group"]                 = "G",
+
+    -- Features: Health
+    ["rf_section_health_extras"]         = "Health Features",
+    ["rf_opt_show_power"]                = "Show power bar (healers only)",
+    ["rf_opt_power_height"]              = "Power bar height",
+    ["rf_opt_show_absorb"]               = "Show absorb bar",
+    ["rf_opt_show_heal_pred"]            = "Show heal prediction",
+
+    -- Features: Range
+    ["rf_section_range"]                 = "Range Check",
+    ["rf_opt_show_range"]                = "Fade out-of-range members",
+    ["rf_opt_oor_alpha"]                 = "Out-of-range opacity",
+
+    -- Features: Dispel
+    ["rf_section_dispel"]                = "Dispel Highlight",
+    ["rf_opt_show_dispel"]               = "Highlight dispellable debuffs",
+
+    -- Features: HoTs
+    ["rf_section_hots"]                  = "HoT Tracking",
+    ["rf_opt_show_hots"]                 = "Show HoT indicators",
+    ["rf_opt_hot_size"]                  = "HoT icon size",
+    ["rf_opt_max_hots"]                  = "Max HoTs shown",
+
+    -- Features: Debuffs
+    ["rf_section_debuffs"]               = "Debuff Tracking",
+    ["rf_opt_show_debuffs"]              = "Show debuff icons",
+    ["rf_opt_debuff_size"]               = "Debuff icon size",
+    ["rf_opt_max_debuffs"]               = "Max debuffs shown",
+
+    -- Features: Defensives
+    ["rf_section_defensives"]            = "Defensive Cooldowns",
+    ["rf_opt_show_defensives"]           = "Show active defensive buffs",
+    ["rf_opt_defensive_size"]            = "Defensive icon size",
+    ["rf_info_defensives"]               = "Displays active defensive cooldowns (e.g. Pain Suppression, Ironbark, Divine Shield) on each raid member.",
+
+    -- ═══════════════════════════════════
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["tab_qol_aura_tracker"]             = "Aura Tracker",
@@ -1887,12 +1971,83 @@ TomoMod_RegisterLocale("enUS", {
     ["info_diag_session"]                = "Session: #%d — %d errors captured (%d TomoMod)",
     ["info_diag_capture_all_desc"]       = "When disabled, only TomoMod errors are captured. Enable to capture all addon errors.",
 
+    -- =====================
+    -- HOUSING
+    -- =====================
+    ["cat_housing"]                  = "Housing",
+    ["section_housing_general"]      = "Housing — General",
+    ["section_housing_hover"]        = "Decor Info (Hover)",
+    ["section_housing_clock"]        = "Editor Clock",
+    ["section_housing_teleport"]     = "Teleportation",
+    ["section_housing_commands"]     = "Commands",
+
+    ["info_housing_desc"]            = "Housing module: enhances the house editor and adds teleport shortcuts. Requires Midnight / The War Within.",
+    ["info_housing_hover"]           = "In Basic Decor mode, shows the name, placement cost and remaining stock of the hovered decor. Also lets you duplicate a decor using a modifier key.",
+    ["info_housing_clock"]           = "Displays a clock and tracks time spent in the house editor. Right-click the clock to toggle analog/digital.",
+    ["info_housing_teleport"]        = "Enables the /tm home command: teleports you home, or leaves the house automatically if you're visiting.",
+    ["info_housing_commands"]        = "• /tm home — teleport to your house (or leave it)\n• /tm housing — open this panel\n• Right-click the clock — toggle analog/digital",
+
+    ["opt_housing_enable"]           = "Enable Housing module",
+    ["opt_housing_decorhover"]       = "Enable decor info",
+    ["opt_housing_dupe"]             = "Enable quick duplicate (modifier)",
+    ["opt_housing_dupekey"]          = "Duplicate key",
+    ["opt_housing_clock"]            = "Enable clock",
+    ["opt_housing_clock_analog"]     = "Analog mode (otherwise digital)",
+    ["opt_housing_teleport"]         = "Enable /tm home teleport",
+
+    ["btn_housing_tp_home"]          = "Teleport (test)",
+    ["btn_housing_refresh"]          = "Refresh houses",
+
+    ["housing_duplicate"]            = "Duplicate",
+    ["housing_alliance_zone"]        = "Founder's Point",
+    ["housing_horde_zone"]           = "Razorwind Shores",
+    ["housing_clock_title"]          = "TomoMod — Clock",
+    ["housing_clock_time"]           = "Time",
+    ["housing_clock_local"]          = "Local time:",
+    ["housing_clock_realm"]          = "Realm time:",
+    ["housing_clock_time_spent"]     = "Time spent in editor",
+    ["housing_clock_session"]        = "This session:",
+    ["housing_clock_total"]          = "Total:",
+    ["housing_clock_rightclick"]     = "Right-click to toggle analog / digital",
+    
+    ["msg_help_home"]                = "Teleport to your house (or leave it)",
+    ["msg_help_housing"]             = "Open the Housing panel",
+    ["msg_housing_refresh"]          = "House information requested.",
+    ["msg_housing_unavailable"]      = "Housing module unavailable on this client.",
+
     -- =========== What's New Popup ===========
     ["wn_title"]                         = "What's New",
     ["wn_version"]                       = "Version %s",
     ["wn_subtitle"]                      = "Here's what changed since your last update:",
     ["wn_btn_ok"]                        = "Got it!",
     ["wn_footer"]                        = "All settings can be changed anytime via |cff0cd29f/tm|r.",
+
+    -- 2.9.8
+    ["wn_298_housing"]                   = "New Housing module: decoration hover, editor clock and /tm home teleport (Midnight+).",
+    ["wn_298_housing_hover"]             = "Decor Hover: shows name, placement cost and remaining stock on hovered decor; modifier key to duplicate.",
+    ["wn_298_housing_clock"]             = "Editor Clock: analog/digital clock with per-session and lifetime time tracking.",
+    ["wn_298_housing_teleport"]          = "/tm home: teleports to your house or auto-leaves if visiting.",
+    ["wn_298_icons"]                     = "New config sidebar icons: house icon for Housing, monitor icon for Diagnostics.",
+    ["wn_298_locales"]                   = "Housing + Diagnostics panel: full locale support in frFR, deDE, esES, itIT, ptBR.",
+
+    -- 2.9.6
+    ["wn_296_raid_frames"]               = "New Raid Frames module: custom raid frames with grid or list layout.",
+    ["wn_296_raid_health"]               = "Health, absorb & heal prediction bars + power bar (healers only).",
+    ["wn_296_raid_auras"]                = "Debuff & HoT tracking with type/class colored borders.",
+    ["wn_296_raid_utilities"]            = "Defensive CD icons, dispel highlight, range fade, role icons, raid markers & ready check.",
+    ["wn_296_raid_config"]               = "Full config panel with General & Features tabs, 80+ locale keys in 6 languages.",
+
+    -- 2.9.7
+    ["wn_297_rf_live_preview"]           = "Raid Frames: live preview strip in the config panel — 20 simulated members update in real time.",
+    ["wn_297_rf_preview_layout"]         = "Preview shows all layout options: grid (G1–G4 labels) or list (2 columns), with correct roles and HoTs.",
+    ["wn_297_rf_preview_scaling"]        = "Preview auto-scales to the panel width; reflects width, height, spacing, color mode, name, power bar and more.",
+    ["wn_297_taint_blizzard"]            = "Raid Frames: Blizzard frame hiding rewritten (SetAlpha+SetScale) — fixes CompactPartyFrame & ArenaFrame taint.",
+    ["wn_297_range_fix"]                 = "Raid Frames: fade distance fixed for Midnight+ secret booleans (SetAlphaFromBoolean).",
+    ["wn_297_actionbars_fix"]            = "Action Bars: initialization deferred past combat lockdown — fixes SecureStateDriver taint on login.",
+    ["wn_297_mp_tracker"]                = "Mythic+: ObjectiveTrackerFrame now properly hidden during challenge mode.",
+    ["wn_297_role_icon"]                 = "Raid Frames: default role icon size doubled (10 → 20).",
+    ["wn_297_castbar_fix"]               = "Castbars: player castbar no longer vanishes mid-combat — FadeOut is now idempotent and transient nil cast info no longer hides the bar.",
+    ["wn_297_diag_exclusions"]           = "Diagnostics: mount restriction and battle pet cap messages excluded from error capture.",
 
     -- 2.9.5
     ["wn_295_taint_fix"]                 = "CooldownTrackers: removed COMBAT_LOG_EVENT_UNFILTERED to fix taint (ADDON_ACTION_FORBIDDEN).",
