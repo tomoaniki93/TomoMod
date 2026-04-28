@@ -1005,6 +1005,84 @@ local function BuildAuraTrackerTab(parent)
 end
 
 -- =====================================
+-- TAB: MERCHANT TOOLS (AlreadyKnown + ExtendPages)
+-- =====================================
+
+local function BuildMerchantToolsTab(parent)
+    local MT     = TomoMod_MerchantTools
+    local scroll = W.CreateScrollPanel(parent)
+    local c      = scroll.child
+    local y      = -10
+
+    -- ── Already Known ─────────────────────────────────────────────────────
+    local _, ny = W.CreateSectionHeader(c, L["section_already_known"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_already_known"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_ak_enable"],
+        TomoModDB.merchantTools and TomoModDB.merchantTools.alreadyKnown.enabled or false,
+        y, function(v)
+            if TomoModDB.merchantTools then
+                TomoModDB.merchantTools.alreadyKnown.enabled = v
+            end
+            if MT then MT.SetAlreadyKnownEnabled(v) end
+        end)
+    y = ny
+
+    local modeOptions = {
+        { value = "MONOCHROME", text = L["ak_mode_mono"] },
+        { value = "COLOR",      text = L["ak_mode_color"] },
+    }
+    local _, ny = W.CreateDropdown(c, L["opt_ak_mode"], modeOptions,
+        TomoModDB.merchantTools and TomoModDB.merchantTools.alreadyKnown.mode or "MONOCHROME",
+        y, function(v)
+            if MT then MT.SetMode(v) end
+        end)
+    y = ny
+
+    local col = (TomoModDB.merchantTools and TomoModDB.merchantTools.alreadyKnown.color)
+             or { r = 0.047, g = 0.824, b = 0.624 }
+    local _, ny = W.CreateColorPicker(c, L["opt_ak_color"], col, y, function(r, g, b)
+        if MT then MT.SetColor(r, g, b) end
+    end)
+    y = ny
+
+    -- ── Extend Vendor Pages ────────────────────────────────────────────────
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSectionHeader(c, L["section_extend_pages"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_extend_pages"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_ep_enable"],
+        TomoModDB.merchantTools and TomoModDB.merchantTools.extendPages.enabled or false,
+        y, function(v)
+            if TomoModDB.merchantTools then
+                TomoModDB.merchantTools.extendPages.enabled = v
+            end
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_ep_columns"],
+        TomoModDB.merchantTools and TomoModDB.merchantTools.extendPages.numberOfPages or 2,
+        1, 4, 1, y, function(v)
+            if TomoModDB.merchantTools then
+                TomoModDB.merchantTools.extendPages.numberOfPages = v
+            end
+        end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -1023,6 +1101,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "classremind", label = L["tab_qol_class_reminder"], builder = function(p) return BuildClassReminderTab(p) end },
         { key = "waypoint",    label = L["tab_qol_waypoint"],       builder = function(p) return BuildWaypointTab(p) end },
         { key = "auratracker", label = L["tab_qol_aura_tracker"],  builder = function(p) return BuildAuraTrackerTab(p) end },
+        { key = "merchant",    label = L["tab_qol_merchant_tools"], builder = function(p) return BuildMerchantToolsTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

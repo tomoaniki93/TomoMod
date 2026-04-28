@@ -303,6 +303,16 @@ TomoMod_RegisterLocale("deDE", {
     ["section_cdm_utility"]             = "Utility",
     ["opt_cdm_dim_utility"]             = "Utility-Symbole dimmen, wenn nicht auf CD",
     ["opt_cdm_dim_opacity"]             = "Dimm-Deckkraft",
+    ["opt_cdm_bufficon_direction"]        = "Richtung der Buff-Symbole",
+    ["opt_cdm_buffbar_direction"]         = "BuffBar-Richtung",
+    ["opt_cdm_buffbar_width"]             = "Balkenbreite (horizontal)",
+    ["buffbar_vertical"]                  = "Vertikal",
+    ["buffbar_horizontal"]                = "Horizontal",
+    ["dir_centered"]                      = "Zentriert (horizontal)",
+    ["dir_left"]                          = "Links",
+    ["dir_right"]                         = "Rechts",
+    ["dir_up"]                            = "Nach oben",
+    ["dir_down"]                          = "Nach unten",
     ["info_cdm_editmode"]               = "Die Platzierung erfolgt über den Blizzard Edit Mode (Esc |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Edit Mode).",
 
     -- Resource Bars
@@ -1290,6 +1300,9 @@ TomoMod_RegisterLocale("deDE", {
     ["preview_lbl_pet"]              = "PET",
     ["preview_lbl_tot"]              = "TOT",
     ["preview_click_nav"]            = "Klicken zum Navigieren",
+    ["preview_click_isolate"]         = "Klicken zum Isolieren",
+    ["preview_click_show_all"]        = "Klicken um alle anzuzeigen",
+    ["preview_show_all"]              = "Alle anzeigen",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  \194\183  /tm sr zum Verschieben der Elemente",
 
@@ -1707,6 +1720,8 @@ TomoMod_RegisterLocale("deDE", {
     ["rf_btn_test_raid"]                 = "20 Spieler simulieren",
     ["rf_btn_test_raid_stop"]            = "Simulation beenden",
     ["rf_preview_group"]                 = "G",
+    ["rf_mode_raid"]                     = "Raid",
+    ["rf_mode_solo"]                     = "Solo",
     ["rf_section_health_extras"]         = "Gesundheitsfunktionen",
     ["rf_opt_show_power"]                = "Energieleiste (nur Heiler)",
     ["rf_opt_power_height"]              = "Energieleisten-Höhe",
@@ -1929,4 +1944,27 @@ TomoMod_RegisterLocale("deDE", {
     ["msg_help_housing"]             = "Das Housing-Panel öffnen",
     ["msg_housing_refresh"]          = "Hausinformationen angefragt.",
     ["msg_housing_unavailable"]      = "Housing-Modul auf diesem Client nicht verfügbar.",
+
+    -- ═══════════════════════════════════
+    -- Merchant Tools (2.9.9)
+    -- ═══════════════════════════════════
+    ["wn_299_merchant_tools"]             = "Neues Händler-Tools-Modul: Bereits bekannt + Erweiterte Händlerseiten (QOL-Tab).",
+    ["wn_299_already_known"]              = "Bereits bekannt: Graut Artikel aus oder färbt sie ein, die du bereits besitzt (Reittiere, Haustiere, Spielzeug, Transmog, Rezepte).",
+    ["wn_299_extend_pages"]               = "Erweiterte Seiten: Das Händlerfenster kann bis zu 4 Spalten mit je 10 Artikeln anzeigen.",
+    ["wn_299_locales"]                    = "Händler-Tools: vollständige Unterstützung in allen 6 Sprachen.",
+
+    ["tab_qol_merchant_tools"]           = "Händler-Tools",
+
+    ["section_already_known"]            = "Bereits bekannt",
+    ["info_already_known"]               = "Graut aus oder färbt Händler-/Rückkaufartikel ein, die du bereits besitzt (Reittiere, Haustiere, Spielzeug, Transmog-Sets, Rezepte).",
+    ["opt_ak_enable"]                    = "Bereits bekannt aktivieren",
+    ["opt_ak_mode"]                      = "Anzeigemodus",
+    ["ak_mode_mono"]                     = "Monochrom (grau)",
+    ["ak_mode_color"]                    = "Farbtönung",
+    ["opt_ak_color"]                     = "Tönungsfarbe",
+
+    ["section_extend_pages"]             = "Erweiterte Händlerseiten",
+    ["info_extend_pages"]                = "Fügt dem Händlerfenster zusätzliche Spalten hinzu.\nNach dem Aktivieren oder Ändern der Spaltenanzahl ist ein UI-Reload erforderlich.",
+    ["opt_ep_enable"]                    = "Erweiterte Händlerseiten aktivieren",
+    ["opt_ep_columns"]                   = "Anzahl der Spalten",
 })

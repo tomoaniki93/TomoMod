@@ -303,6 +303,16 @@ TomoMod_RegisterLocale("ptBR", {
     ["section_cdm_utility"]             = "Utilitário",
     ["opt_cdm_dim_utility"]             = "Esmaecer ícones utilitários fora de CD",
     ["opt_cdm_dim_opacity"]             = "Opacidade de esmaecimento",
+    ["opt_cdm_bufficon_direction"]        = "Direção ícones de buff",
+    ["opt_cdm_buffbar_direction"]         = "Direção BuffBar",
+    ["opt_cdm_buffbar_width"]             = "Largura barra (horizontal)",
+    ["buffbar_vertical"]                  = "Vertical",
+    ["buffbar_horizontal"]                = "Horizontal",
+    ["dir_centered"]                      = "Centralizado (horizontal)",
+    ["dir_left"]                          = "Esquerda",
+    ["dir_right"]                         = "Direita",
+    ["dir_up"]                            = "Cima",
+    ["dir_down"]                          = "Baixo",
     ["info_cdm_editmode"]               = "O posicionamento é feito pelo Edit Mode da Blizzard (Esc |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Edit Mode).",
 
     -- Resource Bars
@@ -1290,6 +1300,9 @@ TomoMod_RegisterLocale("ptBR", {
     ["preview_lbl_pet"]              = "PET",
     ["preview_lbl_tot"]              = "TOT",
     ["preview_click_nav"]            = "clique para navegar",
+    ["preview_click_isolate"]         = "clique para isolar",
+    ["preview_click_show_all"]        = "clique para mostrar tudo",
+    ["preview_show_all"]              = "Mostrar tudo",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  \194\183  /tm sr para mover elementos",
 
@@ -1698,6 +1711,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["rf_btn_test_raid"]                 = "Simular 20 jogadores",
     ["rf_btn_test_raid_stop"]            = "Parar simulação",
     ["rf_preview_group"]                 = "G",
+    ["rf_mode_raid"]                     = "Raid",
+    ["rf_mode_solo"]                     = "Solo",
     ["rf_section_health_extras"]         = "Recursos de vida",
     ["rf_opt_show_power"]                = "Barra de poder (apenas curandeiros)",
     ["rf_opt_power_height"]              = "Altura da barra de poder",
@@ -1920,4 +1935,27 @@ TomoMod_RegisterLocale("ptBR", {
     ["msg_help_housing"]             = "Abrir o painel Housing",
     ["msg_housing_refresh"]          = "Informa\195\167\195\181es de casas solicitadas.",
     ["msg_housing_unavailable"]      = "M\195\179dulo Housing n\195\163o dispon\195\173vel neste cliente.",
+
+    -- ═══════════════════════════════════
+    -- Merchant Tools (2.9.9)
+    -- ═══════════════════════════════════
+    ["wn_299_merchant_tools"]             = "Novo módulo Ferramentas de vendedor: Já conhecido + Páginas estendidas (aba QOL).",
+    ["wn_299_already_known"]              = "Já conhecido: dessatura ou tinge itens do vendedor/recompra que você já possui (montarias, mascotes, brinquedos, transmog, receitas).",
+    ["wn_299_extend_pages"]               = "Páginas estendidas: a janela do vendedor pode mostrar até 4 colunas de 10 itens.",
+    ["wn_299_locales"]                    = "Ferramentas de vendedor: suporte completo nos 6 idiomas.",
+
+    ["tab_qol_merchant_tools"]           = "Ferramentas de vendedor",
+
+    ["section_already_known"]            = "Já conhecido",
+    ["info_already_known"]               = "Dessatura ou tinge itens do vendedor/recompra que você já possui (montarias, mascotes, brinquedos, conjuntos de transmog, receitas).",
+    ["opt_ak_enable"]                    = "Ativar Já conhecido",
+    ["opt_ak_mode"]                      = "Modo de exibição",
+    ["ak_mode_mono"]                     = "Monocromático (cinza)",
+    ["ak_mode_color"]                    = "Tonalidade de cor",
+    ["opt_ak_color"]                     = "Cor da tonalidade",
+
+    ["section_extend_pages"]             = "Páginas de vendedor estendidas",
+    ["info_extend_pages"]                = "Adiciona colunas extras à janela do vendedor.\nRequer recarregamento da interface após ativar ou alterar o número de colunas.",
+    ["opt_ep_enable"]                    = "Ativar páginas estendidas",
+    ["opt_ep_columns"]                   = "Número de colunas",
 })

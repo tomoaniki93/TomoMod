@@ -316,7 +316,7 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_cdm_hide_gcd"]                 = "Masquer le GCD",
     ["opt_cdm_desaturate"]               = "Désaturer en CD",
     ["opt_cdm_buff_alignment"]           = "Alignement des buffs",
-    ["align_center_outward"]             = "Centre → Extérieur",
+    ["align_center_outward"]             = "Centre > Extérieur",
     ["align_start"]                      = "Début (gauche)",
     ["align_end"]                        = "Fin (droite)",
 
@@ -337,6 +337,16 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_cdm_pandemic"]                 = "Pandemic (bordure de refresh)",
     ["opt_cdm_pandemic_threshold"]       = "Seuil pandemic (%)",
     ["opt_cdm_range_check"]              = "Teinter rouge hors portée",
+    ["opt_cdm_bufficon_direction"]        = "Direction buff icons",
+    ["opt_cdm_buffbar_direction"]         = "Direction BuffBar",
+    ["opt_cdm_buffbar_width"]             = "Largeur barre (horizontal)",
+    ["buffbar_vertical"]                  = "Verticale",
+    ["buffbar_horizontal"]                = "Horizontale",
+    ["dir_centered"]                      = "Centré (horizontal)",
+    ["dir_left"]                          = "Gauche",
+    ["dir_right"]                         = "Droite",
+    ["dir_up"]                            = "Haut",
+    ["dir_down"]                          = "Bas",
 
     -- Resource Bars
     ["section_resource_bars"]           = "Barres de Ressources",
@@ -1384,6 +1394,9 @@ TomoMod_RegisterLocale("frFR", {
     ["preview_lbl_pet"]              = "PET",
     ["preview_lbl_tot"]              = "TOT",
     ["preview_click_nav"]            = "cliquer pour naviguer",
+    ["preview_click_isolate"]         = "cliquer pour isoler",
+    ["preview_click_show_all"]        = "cliquer pour tout afficher",
+    ["preview_show_all"]              = "Tout afficher",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  \194\183  /tm sr pour d\195\169placer les \195\169l\195\169ments",
 
@@ -1757,6 +1770,8 @@ TomoMod_RegisterLocale("frFR", {
     ["rf_btn_test_raid"]                 = "Simuler 20 joueurs",
     ["rf_btn_test_raid_stop"]            = "Arrêter la simulation",
     ["rf_preview_group"]                 = "G",
+    ["rf_mode_raid"]                     = "Raid",
+    ["rf_mode_solo"]                     = "Solo",
 
     ["rf_section_health_extras"]         = "Fonctions de santé",
     ["rf_opt_show_power"]                = "Barre de puissance (healers uniquement)",
@@ -1985,6 +2000,29 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_293_autofill"]                  = "AutoFillDelete : correction STATICPOPUP_NUMDIALOGS Midnight.",
 
     -- 2.9.2
-    ["wn_292_actionbar"]                 = "R\195\169\195\169criture compl\195\168te des barres d'actions : architecture conteneur, syst\195\168me de fondu, conditions d'affichage.",
-    ["wn_292_diagnostics"]               = "Nouvelle console de diagnostics : capture d'erreurs en arri\195\168re-plan, export, /tmdiag.",
+    ["wn_292_actionbar"]                 = "Réécriture complète des barres d'actions : architecture conteneur, système de fondu, conditions d'affichage.",
+    ["wn_292_diagnostics"]               = "Nouvelle console de diagnostics : capture d'erreurs en arrière-plan, export, /tmdiag.",
+
+    -- ═══════════════════════════════════
+    -- Merchant Tools (2.9.9)
+    -- ═══════════════════════════════════
+    ["wn_299_merchant_tools"]             = "Nouveau module Outils vendeur : Déjà connu + Pages étendues (onglet Qualité de vie).",
+    ["wn_299_already_known"]              = "Déjà connu : grise ou teinte les objets du marchand/rachat déjà possédés (montures, mascottes, jouets, transmogrification, recettes).",
+    ["wn_299_extend_pages"]               = "Pages étendues : la fenêtre marchand peut afficher jusqu'à 4 colonnes de 10 objets.",
+    ["wn_299_locales"]                    = "Outils vendeur : support complet dans les 6 langues.",
+
+    ["tab_qol_merchant_tools"]           = "Outils vendeur",
+
+    ["section_already_known"]            = "Déjà connu",
+    ["info_already_known"]               = "Désature ou teinte les objets déjà possédés (montures, mascottes, jouets, transmogrification, recettes) dans les fenêtres du marchand et des rachats.",
+    ["opt_ak_enable"]                    = "Activer Déjà connu",
+    ["opt_ak_mode"]                      = "Mode d'affichage",
+    ["ak_mode_mono"]                     = "Monochrome (gris)",
+    ["ak_mode_color"]                    = "Teinte colorée",
+    ["opt_ak_color"]                     = "Couleur de teinte",
+
+    ["section_extend_pages"]             = "Pages vendeur étendues",
+    ["info_extend_pages"]                = "Ajoute des colonnes supplémentaires à la fenêtre du marchand pour afficher plus d'objets par page.\nNécessite un rechargement de l'interface après activation ou changement du nombre de colonnes.",
+    ["opt_ep_enable"]                    = "Activer les pages étendues",
+    ["opt_ep_columns"]                   = "Nombre de colonnes",
 })

@@ -30,6 +30,15 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "2.9.9",
+        highlights = {
+            L["wn_299_merchant_tools"],
+            L["wn_299_already_known"],
+            L["wn_299_extend_pages"],
+            L["wn_299_locales"],
+        },
+    },
+    {
         version = "2.9.8",
         highlights = {
             L["wn_298_housing"],

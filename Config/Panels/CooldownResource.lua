@@ -79,6 +79,18 @@ local function BuildCooldownManagerTab(parent)
         { text = L["align_start"] or "Début (gauche)", value = "START" },
         { text = L["align_end"] or "Fin (droite)", value = "END" },
     }, cdm.buffAlignment or "CENTER", cy, function(v) cdm.buffAlignment = v; ApplyCDM() end)
+    local _, cy = W.CreateDropdown(card5.inner, L["opt_cdm_bufficon_direction"] or "Direction buff icons", {
+        { text = L["dir_centered"] or "Centré (horizontal)", value = "CENTERED" },
+        { text = L["dir_left"]     or "Gauche",              value = "LEFT"     },
+        { text = L["dir_right"]    or "Droite",              value = "RIGHT"    },
+        { text = L["dir_up"]       or "Haut",                value = "UP"       },
+        { text = L["dir_down"]     or "Bas",                 value = "DOWN"     },
+    }, cdm.buffIconDirection or "CENTERED", cy, function(v) cdm.buffIconDirection = v; ApplyCDM() end)
+    local _, cy = W.CreateDropdown(card5.inner, L["opt_cdm_buffbar_direction"] or "Direction BuffBar", {
+        { text = L["buffbar_vertical"]   or "Verticale",    value = "VERTICAL"   },
+        { text = L["buffbar_horizontal"] or "Horizontale",  value = "HORIZONTAL" },
+    }, cdm.buffBarDirection or "VERTICAL", cy, function(v) cdm.buffBarDirection = v; ApplyCDM() end)
+    local _, cy = W.CreateSlider(card5.inner, L["opt_cdm_buffbar_width"] or "Largeur barre (horizontal)", cdm.buffBarWidth or 120, 60, 400, 5, cy, function(v) cdm.buffBarWidth = v; ApplyCDM() end)
     y = W.FinalizeCard(card5, cy)
 
     -- Règles de visibilité (V3)

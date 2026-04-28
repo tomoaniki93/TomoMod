@@ -303,6 +303,16 @@ TomoMod_RegisterLocale("esES", {
     ["section_cdm_utility"]             = "Utilidad",
     ["opt_cdm_dim_utility"]             = "Atenuar iconos de utilidad fuera de CD",
     ["opt_cdm_dim_opacity"]             = "Opacidad de atenuación",
+    ["opt_cdm_bufficon_direction"]        = "Dirección iconos de buff",
+    ["opt_cdm_buffbar_direction"]         = "Dirección BuffBar",
+    ["opt_cdm_buffbar_width"]             = "Ancho barra (horizontal)",
+    ["buffbar_vertical"]                  = "Vertical",
+    ["buffbar_horizontal"]                = "Horizontal",
+    ["dir_centered"]                      = "Centrado (horizontal)",
+    ["dir_left"]                          = "Izquierda",
+    ["dir_right"]                         = "Derecha",
+    ["dir_up"]                            = "Arriba",
+    ["dir_down"]                          = "Abajo",
     ["info_cdm_editmode"]               = "La colocación se realiza mediante el Edit Mode de Blizzard (Esc |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Edit Mode).",
 
     -- Resource Bars
@@ -1290,6 +1300,9 @@ TomoMod_RegisterLocale("esES", {
     ["preview_lbl_pet"]              = "MASCOTA",
     ["preview_lbl_tot"]              = "TOT",
     ["preview_click_nav"]            = "clic para navegar",
+    ["preview_click_isolate"]         = "clic para aislar",
+    ["preview_click_show_all"]        = "clic para mostrar todo",
+    ["preview_show_all"]              = "Mostrar todo",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  \194\183  /tm sr para mover elementos",
 
@@ -1698,6 +1711,8 @@ TomoMod_RegisterLocale("esES", {
     ["rf_btn_test_raid"]                 = "Simular 20 jugadores",
     ["rf_btn_test_raid_stop"]            = "Detener simulación",
     ["rf_preview_group"]                 = "G",
+    ["rf_mode_raid"]                     = "Raid",
+    ["rf_mode_solo"]                     = "Solo",
     ["rf_section_health_extras"]         = "Funciones de salud",
     ["rf_opt_show_power"]                = "Barra de poder (solo sanadores)",
     ["rf_opt_power_height"]              = "Altura de la barra de poder",
@@ -1980,4 +1995,27 @@ TomoMod_RegisterLocale("esES", {
     ["msg_help_housing"]             = "Abrir el panel Housing",
     ["msg_housing_refresh"]          = "Informaci\195\179n de casas solicitada.",
     ["msg_housing_unavailable"]      = "M\195\179dulo Housing no disponible en este cliente.",
+
+    -- ═══════════════════════════════════
+    -- Merchant Tools (2.9.9)
+    -- ═══════════════════════════════════
+    ["wn_299_merchant_tools"]             = "Nuevo módulo Herramientas vendedor: Ya conocido + Páginas extendidas (pestaña QOL).",
+    ["wn_299_already_known"]              = "Ya conocido: atenúa o tinta los artículos del vendedor/recompra que ya posees (monturas, mascotas, juguetes, transmog, recetas).",
+    ["wn_299_extend_pages"]               = "Páginas extendidas: la ventana del vendedor puede mostrar hasta 4 columnas de 10 artículos.",
+    ["wn_299_locales"]                    = "Herramientas vendedor: soporte completo en los 6 idiomas.",
+
+    ["tab_qol_merchant_tools"]           = "Herramientas vendedor",
+
+    ["section_already_known"]            = "Ya conocido",
+    ["info_already_known"]               = "Atenúa o tinta los artículos del vendedor/recompra que ya posees (monturas, mascotas, juguetes, conjuntos de transmog, recetas).",
+    ["opt_ak_enable"]                    = "Activar Ya conocido",
+    ["opt_ak_mode"]                      = "Modo de visualización",
+    ["ak_mode_mono"]                     = "Monocromático (gris)",
+    ["ak_mode_color"]                    = "Tinte de color",
+    ["opt_ak_color"]                     = "Color del tinte",
+
+    ["section_extend_pages"]             = "Páginas de vendedor extendidas",
+    ["info_extend_pages"]                = "Añade columnas extra a la ventana del vendedor.\nRequiere recargar la interfaz tras activar o cambiar el número de columnas.",
+    ["opt_ep_enable"]                    = "Activar páginas extendidas",
+    ["opt_ep_columns"]                   = "Número de columnas",
 })

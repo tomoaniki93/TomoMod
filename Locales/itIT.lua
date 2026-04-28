@@ -303,6 +303,16 @@ TomoMod_RegisterLocale("itIT", {
     ["section_cdm_utility"]             = "Utilità",
     ["opt_cdm_dim_utility"]             = "Attenua icone utilità quando non in CD",
     ["opt_cdm_dim_opacity"]             = "Opacità attenuazione",
+    ["opt_cdm_bufficon_direction"]        = "Direzione icone buff",
+    ["opt_cdm_buffbar_direction"]         = "Direzione BuffBar",
+    ["opt_cdm_buffbar_width"]             = "Larghezza barra (orizzontale)",
+    ["buffbar_vertical"]                  = "Verticale",
+    ["buffbar_horizontal"]                = "Orizzontale",
+    ["dir_centered"]                      = "Centrato (orizzontale)",
+    ["dir_left"]                          = "Sinistra",
+    ["dir_right"]                         = "Destra",
+    ["dir_up"]                            = "Su",
+    ["dir_down"]                          = "Giù",
     ["info_cdm_editmode"]               = "Il posizionamento avviene tramite l'Edit Mode di Blizzard (Esc |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Edit Mode).",
 
     -- Resource Bars
@@ -1290,6 +1300,9 @@ TomoMod_RegisterLocale("itIT", {
     ["preview_lbl_pet"]              = "PET",
     ["preview_lbl_tot"]              = "TOT",
     ["preview_click_nav"]            = "clicca per navigare",
+    ["preview_click_isolate"]         = "clicca per isolare",
+    ["preview_click_show_all"]        = "clicca per mostrare tutto",
+    ["preview_show_all"]              = "Mostra tutto",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  \194\183  /tm sr per spostare gli elementi",
 
@@ -1698,6 +1711,8 @@ TomoMod_RegisterLocale("itIT", {
     ["rf_btn_test_raid"]                 = "Simula 20 giocatori",
     ["rf_btn_test_raid_stop"]            = "Interrompi simulazione",
     ["rf_preview_group"]                 = "G",
+    ["rf_mode_raid"]                     = "Raid",
+    ["rf_mode_solo"]                     = "Solo",
     ["rf_section_health_extras"]         = "Funzioni salute",
     ["rf_opt_show_power"]                = "Barra potere (solo guaritori)",
     ["rf_opt_power_height"]              = "Altezza barra potere",
@@ -1920,4 +1935,27 @@ TomoMod_RegisterLocale("itIT", {
     ["msg_help_housing"]             = "Apri il pannello Housing",
     ["msg_housing_refresh"]          = "Informazioni sulle case richieste.",
     ["msg_housing_unavailable"]      = "Modulo Housing non disponibile su questo client.",
+
+    -- ═══════════════════════════════════
+    -- Merchant Tools (2.9.9)
+    -- ═══════════════════════════════════
+    ["wn_299_merchant_tools"]             = "Nuovo modulo Strumenti venditore: Già noto + Pagine estese (scheda QOL).",
+    ["wn_299_already_known"]              = "Già noto: desatura o colora gli articoli del venditore/riacquisto già posseduti (cavalcature, pet, giocattoli, transmog, ricette).",
+    ["wn_299_extend_pages"]               = "Pagine estese: la finestra del venditore può mostrare fino a 4 colonne da 10 articoli.",
+    ["wn_299_locales"]                    = "Strumenti venditore: supporto completo in tutte e 6 le lingue.",
+
+    ["tab_qol_merchant_tools"]           = "Strumenti venditore",
+
+    ["section_already_known"]            = "Già noto",
+    ["info_already_known"]               = "Desatura o colora gli articoli del venditore/riacquisto già posseduti (cavalcature, pet, giocattoli, set transmog, ricette).",
+    ["opt_ak_enable"]                    = "Abilita Già noto",
+    ["opt_ak_mode"]                      = "Modalità di visualizzazione",
+    ["ak_mode_mono"]                     = "Monocromatico (grigio)",
+    ["ak_mode_color"]                    = "Tinta colorata",
+    ["opt_ak_color"]                     = "Colore tinta",
+
+    ["section_extend_pages"]             = "Pagine venditore estese",
+    ["info_extend_pages"]                = "Aggiunge colonne extra alla finestra del venditore.\nRichiede il ricaricamento dell'interfaccia dopo l'attivazione o la modifica del numero di colonne.",
+    ["opt_ep_enable"]                    = "Abilita pagine estese",
+    ["opt_ep_columns"]                   = "Numero di colonne",
 })

@@ -1,5 +1,60 @@
 ## ####################################
 
+## CHANGELOG 2.9.9 — CooldownManager Layout · MerchantTools Fix · CharacterSkin Performance
+
+#### CooldownManager — Buff Icon Horizontal Layout
+- **Root cause fixed** — `viewer.iconLimit = 1` was flowing into `ResolveDirections` as `rowLimit = 1`, forcing every buff icon viewer to produce exactly one icon per row regardless of the configured direction — resulting in a vertical column even when "Centered (horizontal)" was selected
+- **Fix** — For `isBuff` viewers, `CDMLayout.LayoutViewer` now injects the `buffIconDirection` DB value via a lightweight `setmetatable` wrapper over the viewer's settings table; this overrides any direction derived from `iconLimit`, restoring true horizontal flow
+- **Config panel** — New "Avancé" card (`card5`) in the CD & Resource panel adds:
+  - *Buff icon direction* dropdown (`CENTERED` / `LEFT` / `RIGHT` / `UP` / `DOWN`)
+  - *BuffBar direction* dropdown (`VERTICAL` / `HORIZONTAL`)
+  - *Bar width (horizontal)* slider (60–400 px, default 120)
+- **Database** — New default keys in `cooldownManager`: `buffIconDirection = "CENTERED"`, `buffBarDirection = "HORIZONTAL"`, `buffBarWidth = 120`, `buffBarSpacing = 2`
+- **Localization** — New keys added to **enUS** and **frFR** (all 6 locales now updated in this release):
+  `opt_cdm_bufficon_direction`, `opt_cdm_buffbar_direction`, `opt_cdm_buffbar_width`, `buffbar_vertical`, `buffbar_horizontal`, `dir_centered`, `dir_left`, `dir_right`, `dir_up`, `dir_down`
+
+#### MerchantTools — TOC 120005 Compatibility Fix
+- **Bug** — `frame:GetChild("AltCurrencyFrame")` was called at line 305 of `MerchantTools.lua`; this method does not exist in the Mists of Pandaria client (TOC 120005), causing a nil-method error when the merchant frame opened
+- **Fix** — Removed the `frame:GetChild()` call; the code now relies solely on the `_G["MerchantItem" .. i .. "AltCurrencyFrame"]` global lookup, which works across all supported client versions
+
+#### CharacterSkin — ITEM_DATA_LOAD_RESULT Lag Spike Fix
+- **Root cause** — `ITEM_DATA_LOAD_RESULT` fires for every item loaded into the client cache (dozens of times during crafting or vendor interactions); each fire scheduled a new independent `C_Timer.After(0.1, UpdateAllItemInfoOverlays)` call — when the Character Frame was open, this stacked 20+ simultaneous tooltip scans (one `scanTip:SetInventoryItem` per equipped slot per timer), causing noticeable frame-rate spikes
+- **Fix** — Introduced a `itemInfoPending` debounce flag in `SkinCharacterFrame`; only one timer is active at a time — subsequent events while the timer is pending are silently ignored; the delay is also extended from 0.1 s to 0.3 s to allow WoW's own item cache to settle before scanning
+
+#### New Module — Merchant Tools (`Modules/QOL/Auto/MerchantTools.lua`)
+Two QOL features merged into a single lightweight module, inspired by ElvUI_WindTools (AlreadyKnown & ExtendMerchantPages), fully rewritten for TomoMod (no ElvUI / AceHook dependency).
+
+#### Already Known
+- Automatically desaturates or colour-tints items in the **merchant** and **buyback** windows that the player already owns
+- Detects: **mounts**, **battle pets**, **toys**, **transmog appearances / sets**, **recipes**, and any learnable spell (via tooltip parsing fallback using `COLLECTED` / `ITEM_SPELL_KNOWN` globals)
+- Two display modes configurable via the config panel:
+  - **Monochrome** — icon rendered in grayscale (`SetDesaturated`)
+  - **Color tint** — custom RGBA tint applied; out-of-stock items are tinted at 50 % brightness
+- Known-link cache is reset automatically every time the merchant window closes (`CloseMerchant` hook)
+- Detects and yields to the standalone **AlreadyKnown** addon if loaded
+
+#### Extended Vendor Pages
+- Expands the merchant frame to show **N columns** of 10 items each (configurable 1–4, default 2) instead of the single Blizzard column
+- Dynamically creates extra `MerchantItemTemplate` frames and repositions all items, the buyback slot, and the Prev/Next page buttons to match the wider frame
+- Conflict check against popular vendor-extend addons (`ExtVendor`, `Krowi_ExtendedVendorUI`, `CompactVendor`)
+- Disabled by default; requires a UI reload after enabling or changing column count (noted in config)
+
+#### Config Panel — New "Vendor Tools" Tab
+- Added a new tab `tab_qol_merchant_tools` to the QOL config panel
+- **Already Known** section: enable toggle, display mode dropdown (Mono / Color), colour picker for tint
+- **Extended Vendor Pages** section: enable toggle, column-count slider (1–4), reload reminder
+
+#### Database
+- New default block `merchantTools` in `TomoMod_Defaults`:
+  - `alreadyKnown.enabled = true`, `mode = "MONOCHROME"`, `color = {r=0.047, g=0.824, b=0.624}`
+  - `extendPages.enabled = false`, `numberOfPages = 2`
+
+#### Localization — 2.9.9 Keys
+- New keys added to **all 6 locale files** (enUS, frFR, deDE, esES, itIT, ptBR):
+  `tab_qol_merchant_tools`, `section_already_known`, `info_already_known`, `opt_ak_enable`, `opt_ak_mode`, `ak_mode_mono`, `ak_mode_color`, `opt_ak_color`, `section_extend_pages`, `info_extend_pages`, `opt_ep_enable`, `opt_ep_columns`
+
+## ####################################
+
 ## CHANGELOG 2.9.8 — Housing Module
 
 #### Housing — Config Panel Checkboxes Not Working (Fix)

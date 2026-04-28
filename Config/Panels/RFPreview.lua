@@ -355,6 +355,65 @@ function RFP.Create(parent)
         if dotTicker then dotTicker:Cancel(); dotTicker = nil end
     end)
 
+    -- ── View mode state + toggle buttons ─────────────────────
+    local viewMode = "raid"   -- "raid" = full 20-member grid, "solo" = single frame
+    local Refresh             -- forward declaration
+
+    local function CreateModeBtn(labelText, mode, anchorPoint, anchorTo, anchorRel, offX, offY)
+        local btn = CreateFrame("Button", nil, strip, "BackdropTemplate")
+        btn:SetSize(52, 18)
+        btn:SetPoint(anchorPoint, anchorTo, anchorRel, offX, offY)
+        btn:SetBackdrop({
+            bgFile   = "Interface\\Buttons\\WHITE8x8",
+            edgeFile = "Interface\\Buttons\\WHITE8x8",
+            edgeSize = 1,
+        })
+        local txt = btn:CreateFontString(nil, "OVERLAY")
+        txt:SetFont(FONT_BOLD, 8, "OUTLINE")
+        txt:SetPoint("CENTER")
+        btn.label = txt
+        btn.mode  = mode
+
+        btn.UpdateStyle = function(self)
+            local active = (viewMode == self.mode)
+            if active then
+                self:SetBackdropColor(aR * 0.22, aG * 0.22, aB * 0.22, 0.95)
+                self:SetBackdropBorderColor(aR, aG, aB, 0.70)
+                self.label:SetTextColor(aR, aG, aB, 1)
+            else
+                self:SetBackdropColor(0.06, 0.06, 0.08, 0.80)
+                self:SetBackdropBorderColor(0.18, 0.18, 0.22, 0.60)
+                self.label:SetTextColor(0.55, 0.55, 0.60, 0.80)
+            end
+        end
+        btn.label:SetText(labelText)
+        return btn
+    end
+
+    local btnRaid = CreateModeBtn(L["rf_mode_raid"] or "Raid", "raid", "TOPRIGHT", strip, "TOPRIGHT", -68, -6)
+    local btnSolo = CreateModeBtn(L["rf_mode_solo"] or "Solo", "solo", "LEFT", btnRaid, "RIGHT", 2, 0)
+
+    local function UpdateModeButtons()
+        btnRaid:UpdateStyle()
+        btnSolo:UpdateStyle()
+    end
+
+    btnRaid:SetScript("OnClick", function()
+        viewMode = "raid"
+        UpdateModeButtons()
+        if Refresh then Refresh() end
+    end)
+    btnSolo:SetScript("OnClick", function()
+        viewMode = "solo"
+        UpdateModeButtons()
+        if Refresh then Refresh() end
+    end)
+    btnRaid:SetScript("OnEnter", function(self) self:SetBackdropBorderColor(aR, aG, aB, 0.90) end)
+    btnRaid:SetScript("OnLeave", function(self) self:UpdateStyle() end)
+    btnSolo:SetScript("OnEnter", function(self) self:SetBackdropBorderColor(aR, aG, aB, 0.90) end)
+    btnSolo:SetScript("OnLeave", function(self) self:UpdateStyle() end)
+    UpdateModeButtons()
+
     -- Separator at the bottom edge
     local sep = strip:CreateTexture(nil, "ARTWORK")
     sep:SetHeight(1)
@@ -379,7 +438,7 @@ function RFP.Create(parent)
     end
 
     -- ── Refresh ───────────────────────────────────────────────
-    local function Refresh()
+    Refresh = function()
         local db = TomoModDB and TomoModDB.raidFrames
         if not db then return end
 
@@ -395,6 +454,38 @@ function RFP.Create(parent)
         local spacing      = db.spacing     or 2
         local groupSpacing = db.groupSpacing or 6
         local powerH       = (db.showPower and db.powerHeight or 0)
+
+        -- ── SOLO MODE: show one large centered frame ─────────────
+        if viewMode == "solo" then
+            local soloScale = math.max(0.60, math.min(1.50, availW / (db.width * 2.5)))
+            local frameW = math.max(20, math.floor(db.width  * soloScale + 0.5))
+            local frameH = math.max(10, math.floor(db.height * soloScale + 0.5))
+            local sPowerH = powerH > 0 and math.max(1, math.floor(powerH * soloScale + 0.5)) or 0
+
+            -- Apply + show only index 1, hide the rest
+            ApplyMember(members[1], 1, db, frameW, frameH, sPowerH, soloScale)
+            members[1].frame:ClearAllPoints()
+            members[1].frame:SetPoint("CENTER", strip, "CENTER", 0, -2)
+            members[1].frame:Show()
+
+            for i = 2, MOCK_COUNT do
+                members[i].frame:Hide()
+            end
+            for g = 1, NUM_GROUPS do
+                groupLabels[g]:Hide()
+            end
+
+            local soloH = CONTENT_TOP + frameH + BOTTOM_PAD + 10
+            if soloH < STRIP_H_MIN then soloH = STRIP_H_MIN end
+            strip:SetHeight(soloH)
+            return
+        end
+
+        -- ── RAID MODE (original layout) ──────────────────────────
+        -- Show all members
+        for i = 1, MOCK_COUNT do
+            members[i].frame:Show()
+        end
 
         -- ── Compute scale ──────────────────────────────────────
         local scale

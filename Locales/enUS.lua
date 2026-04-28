@@ -347,6 +347,16 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_cdm_pandemic"]                 = "Pandemic (refresh border)",
     ["opt_cdm_pandemic_threshold"]       = "Pandemic threshold (%)",
     ["opt_cdm_range_check"]              = "Tint red when out of range",
+    ["opt_cdm_bufficon_direction"]        = "Buff icon direction",
+    ["opt_cdm_buffbar_direction"]         = "BuffBar direction",
+    ["opt_cdm_buffbar_width"]             = "Bar width (horizontal)",
+    ["buffbar_vertical"]                  = "Vertical",
+    ["buffbar_horizontal"]                = "Horizontal",
+    ["dir_centered"]                      = "Centered (horizontal)",
+    ["dir_left"]                          = "Left",
+    ["dir_right"]                         = "Right",
+    ["dir_up"]                            = "Up",
+    ["dir_down"]                          = "Down",
 
     -- Resource Bars
     ["section_resource_bars"]           = "Class Powers",
@@ -1461,6 +1471,9 @@ TomoMod_RegisterLocale("enUS", {
     ["preview_lbl_pet"]              = "PET",
     ["preview_lbl_tot"]              = "TOT",
     ["preview_click_nav"]            = "click to navigate",
+    ["preview_click_isolate"]         = "click to isolate",
+    ["preview_click_show_all"]        = "click to show all",
+    ["preview_show_all"]              = "Show All",
     -- ConfigUI footer
     ["ui_footer_hint"]               = "/tm  ·  /tm sr to move elements",
 
@@ -1838,6 +1851,8 @@ TomoMod_RegisterLocale("enUS", {
     ["rf_btn_test_raid"]                 = "Simulate 20 Players",
     ["rf_btn_test_raid_stop"]            = "Stop Simulation",
     ["rf_preview_group"]                 = "G",
+    ["rf_mode_raid"]                     = "Raid",
+    ["rf_mode_solo"]                     = "Solo",
 
     -- Features: Health
     ["rf_section_health_extras"]         = "Health Features",
@@ -2073,4 +2088,27 @@ TomoMod_RegisterLocale("enUS", {
     -- 2.9.2
     ["wn_292_actionbar"]                 = "Complete ActionBars rewrite: container architecture, fade system, display conditions.",
     ["wn_292_diagnostics"]               = "New Diagnostics Console: background error capture, export, /tmdiag.",
+
+    -- ═══════════════════════════════════
+    -- Merchant Tools (2.9.9)
+    -- ═══════════════════════════════════
+    ["wn_299_merchant_tools"]             = "New Vendor Tools module: Already Known + Extended Vendor Pages (QOL tab).",
+    ["wn_299_already_known"]              = "Already Known: grays out or tints vendor/buyback items you already own (mounts, pets, toys, transmog, recipes).",
+    ["wn_299_extend_pages"]               = "Extended Pages: expands the merchant window to show up to 4 columns of 10 items each.",
+    ["wn_299_locales"]                    = "Vendor Tools: full locale support in all 6 languages.",
+
+    ["tab_qol_merchant_tools"]           = "Vendor Tools",
+
+    ["section_already_known"]            = "Already Known",
+    ["info_already_known"]               = "Desaturates or tints vendor/buyback items you already own (mounts, pets, toys, transmog sets, recipes).",
+    ["opt_ak_enable"]                    = "Enable Already Known",
+    ["opt_ak_mode"]                      = "Display mode",
+    ["ak_mode_mono"]                     = "Monochrome (gray)",
+    ["ak_mode_color"]                    = "Color tint",
+    ["opt_ak_color"]                     = "Tint color",
+
+    ["section_extend_pages"]             = "Extend Vendor Pages",
+    ["info_extend_pages"]                = "Adds extra columns to the merchant window to show more items per page.\nRequires a UI reload after enabling or changing column count.",
+    ["opt_ep_enable"]                    = "Enable extended vendor pages",
+    ["opt_ep_columns"]                   = "Number of columns",
 })

@@ -355,6 +355,43 @@ function UFP.Create(parent)
         pu.label = lbl
     end
 
+    -- ── Selected-unit filter state ─────────────────────────
+    local selectedUnit = nil   -- nil = show all, "player"/"target"/… = solo
+    local Refresh  -- forward declaration (defined below)
+
+    -- "Show All" button — hidden by default, shown when a unit is selected
+    local showAllBtn = CreateFrame("Button", nil, strip, "BackdropTemplate")
+    showAllBtn:SetSize(100, 18)
+    showAllBtn:SetPoint("TOPRIGHT", strip, "TOPRIGHT", -12, -6)
+    showAllBtn:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    showAllBtn:SetBackdropColor(aR * 0.18, aG * 0.18, aB * 0.18, 0.90)
+    showAllBtn:SetBackdropBorderColor(aR, aG, aB, 0.45)
+    local showAllText = showAllBtn:CreateFontString(nil, "OVERLAY")
+    showAllText:SetFont(FONT_BOLD, 8, "OUTLINE")
+    showAllText:SetPoint("CENTER")
+    showAllText:SetTextColor(aR, aG, aB, 0.85)
+    showAllText:SetText(L["preview_show_all"] or "Tout afficher")
+    showAllBtn:SetScript("OnEnter", function(self) self:SetBackdropBorderColor(aR, aG, aB, 0.90) end)
+    showAllBtn:SetScript("OnLeave", function(self) self:SetBackdropBorderColor(aR, aG, aB, 0.45) end)
+    showAllBtn:SetScript("OnClick", function()
+        selectedUnit = nil
+        showAllBtn:Hide()
+        Refresh()
+    end)
+    showAllBtn:Hide()
+
+    -- Expose for external read
+    strip.GetSelectedUnit = function() return selectedUnit end
+    strip.ClearSelection  = function()
+        selectedUnit = nil
+        showAllBtn:Hide()
+        Refresh()
+    end
+
     -- Hover effect + click = switch to unit's tab (populated by UnitFrames.lua)
     strip.onUnitClick = {}  -- [unitKey] = function()
 
@@ -366,7 +403,10 @@ function UFP.Create(parent)
             self:SetBackdropBorderColor(aR, aG, aB, 0.80)
             if GameTooltip then
                 GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                GameTooltip:SetText((UNIT_LABELS[key] or key) .. " - " .. (L["preview_click_nav"] or "cliquer pour naviguer"), aR, aG, aB)
+                local hint = selectedUnit == key
+                    and (L["preview_click_show_all"] or "cliquer pour tout afficher")
+                    or  (L["preview_click_isolate"] or "cliquer pour isoler")
+                GameTooltip:SetText((UNIT_LABELS[key] or key) .. " - " .. hint, aR, aG, aB)
                 GameTooltip:Show()
             end
         end)
@@ -380,6 +420,16 @@ function UFP.Create(parent)
             if GameTooltip then GameTooltip:Hide() end
         end)
         pu.frame:SetScript("OnMouseUp", function()
+            -- Toggle selection: click same = deselect, click different = select
+            if selectedUnit == key then
+                selectedUnit = nil
+                showAllBtn:Hide()
+            else
+                selectedUnit = key
+                showAllBtn:Show()
+            end
+            Refresh()
+            -- Also switch to the unit's config tab
             local fn = strip.onUnitClick[key]
             if fn then fn() end
         end)
@@ -388,17 +438,59 @@ function UFP.Create(parent)
     -- ============================================================
     -- Refresh: reads DB and repositions all units
     -- ============================================================
-    local function Refresh()
+    Refresh = function()
         if not TomoModDB or not TomoModDB.unitFrames then return end
         local ufdb    = TomoModDB.unitFrames
         local globalDB = ufdb
 
+        -- ── Solo mode (one unit selected) ────────────────────────
+        if selectedUnit then
+            local SOLO_SCALE = 1.0  -- full size when isolated
+            local origScale = SCALE
+            SCALE = SOLO_SCALE
+
+            for _, k in ipairs(UNIT_ORDER) do
+                if k == selectedUnit then
+                    local db = ufdb[k]
+                    if db then
+                        ApplyPreviewUnit(units[k], k, db, globalDB)
+                    end
+                    units[k].frame:Show()
+                    units[k].label:Show()
+                else
+                    units[k].frame:Hide()
+                    units[k].label:Hide()
+                end
+            end
+
+            SCALE = origScale  -- restore for future all-mode refreshes
+
+            -- Center the solo unit
+            local pu = units[selectedUnit]
+            local frameH = pu.frame:GetHeight() or 40
+            local frameW = pu.frame:GetWidth() or 160
+
+            pu.frame:ClearAllPoints()
+            pu.frame:SetPoint("CENTER", strip, "CENTER", 0, -4)
+            pu.label:ClearAllPoints()
+            pu.label:SetPoint("BOTTOM", pu.frame, "TOP", 0, 4)
+
+            -- Adjust strip height for the solo frame
+            local soloH = UNIT_PAD_TOP + frameH + 30
+            if soloH < STRIP_H_MIN then soloH = STRIP_H_MIN end
+            strip:SetHeight(soloH)
+            return
+        end
+
+        -- ── All-units mode (original layout) ─────────────────────
         -- Apply each unit
         for _, k in ipairs(UNIT_ORDER) do
             local db = ufdb[k]
             if db then
                 ApplyPreviewUnit(units[k], k, db, globalDB)
             end
+            units[k].frame:Show()
+            units[k].label:Show()
         end
 
         -- ── Layout ──────────────────────────────────────────────

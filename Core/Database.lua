@@ -191,6 +191,17 @@ TomoMod_Defaults = {
         focusButton = true,
         showMessages = false,
     },
+    merchantTools = {
+        alreadyKnown = {
+            enabled = true,
+            mode    = "MONOCHROME",  -- "MONOCHROME" ou "COLOR"
+            color   = { r = 0.047, g = 0.824, b = 0.624 },
+        },
+        extendPages = {
+            enabled       = false,
+            numberOfPages = 2,
+        },
+    },
     characterSkin = {
         enabled = true,
         skinCharacter = true,
@@ -445,32 +456,31 @@ TomoMod_Defaults = {
         alphaInCombat = 1.0,
         alphaWithTarget = 0.8,
         alphaOutOfCombat = 0.5,
-        -- V2: overlay & swipe
+        -- Overlay
         useCustomOverlay = false,
         overlayR = 1.0,
         overlayG = 1.0,
         overlayB = 1.0,
+        -- Active aura swipe color
         customSwipeEnabled = false,
         swipeR = 1.0,
         swipeG = 0.95,
         swipeB = 0.57,
         swipeA = 0.55,
-        -- V2: utility dimming
-        dimUtility = false,
-        dimOpacity = 0.35,
-        -- V3: separate CD swipe color
+        -- Cooldown swipe color
         customCDSwipeEnabled = false,
         cdSwipeR = 0.0,
         cdSwipeG = 0.0,
         cdSwipeB = 0.0,
         cdSwipeA = 0.7,
-        -- V3: GCD hiding
+        -- Utility dimming
+        dimUtility = false,
+        dimOpacity = 0.35,
+        -- GCD hiding
         hideGCD = false,
-        -- V3: desaturation on cooldown
+        -- Desaturation on cooldown
         desaturateOnCD = false,
-        -- V3: buff icon alignment (CENTER, START, END)
-        buffAlignment = "CENTER",
-        -- V3: visibility rules (advanced)
+        -- Visibility rules
         visibilityRules = {
             hideWhenMounted = false,
             hideInVehicles = false,
@@ -479,14 +489,34 @@ TomoMod_Defaults = {
             showInInstance = false,
             showWithEnemyTarget = false,
         },
-        -- V3.1: sound alerts
+        -- Sound alerts
         soundAlertEnabled = false,
         soundAlertFile = "Interface\\AddOns\\TomoMod\\Assets\\Sounds\\Golden_Lust.ogg",
-        -- V3.1: pandemic detection (buff refresh window)
+        -- Pandemic detection (buff refresh window)
         pandemicEnabled = false,
         pandemicThreshold = 0.3,
-        -- V3.1: range check coloring
+        -- Range check coloring
         rangeCheckEnabled = false,
+        -- Buff bar layout
+        buffBarDirection = "HORIZONTAL",
+        buffBarWidth = 120,
+        buffBarSpacing = 2,
+        -- Buff icon direction
+        buffIconDirection = "CENTERED",
+        -- Proc glow
+        procGlow = {
+            enabled = true,
+            glowType = "Pixel Glow",
+            color = { 0.95, 0.95, 0.32, 1 },
+            pixelLines = 5,
+            pixelFrequency = 0.25,
+            pixelLength = 8,
+            pixelThickness = 1,
+            autoParticles = 8,
+            autoFrequency = 0.25,
+            autoScale = 1.0,
+            buttonFrequency = 0.25,
+        },
     },
 
     -- =====================
@@ -501,6 +531,8 @@ TomoMod_Defaults = {
         width = 260,
         primaryHeight = 16,          -- class power display height
         secondaryHeight = 12,        -- druid mana bar height
+        primaryPowerCentered = false, -- show primary power (mana/energy/rage) centered on screen
+        primaryPowerBarHeight = 14,   -- height of centered primary power bar
         scale = 1.0,
         showText = true,
         textAlignment = "CENTER",    -- LEFT, CENTER, RIGHT
