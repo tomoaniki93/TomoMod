@@ -242,6 +242,7 @@ local mainFrame
 local container
 local classPowerFrame
 local druidManaBar
+local primaryPowerBar
 local currentResources
 local currentSpec = 0
 local isInitialized = false
@@ -569,8 +570,60 @@ local function CreateDruidManaBar(parent, width, height)
 end
 
 -- =====================================
--- (Primary bar update removed — main power is in UnitFrame info bar)
+-- PRIMARY POWER BAR (centered on screen, replaces UF power bar)
 -- =====================================
+local function CreatePrimaryPowerBar(parent, width, height)
+    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local bar = CreateFrame("StatusBar", "TomoMod_RB_PrimaryPower", parent)
+    bar:SetSize(width, height)
+    bar:SetStatusBarTexture(tex)
+    bar:GetStatusBarTexture():SetHorizTile(false)
+    bar:SetMinMaxValues(0, 100); bar:SetValue(100)
+
+    local bg = bar:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints(); bg:SetTexture(tex)
+    bg:SetVertexColor(0.06, 0.06, 0.08, 0.8)
+    bar.bg = bg
+    CreateBorder(bar)
+
+    local text = bar:CreateFontString(nil, "OVERLAY")
+    text:SetFont(GetFont(), math.max(GetFontSize() - 1, 7), "OUTLINE")
+    text:SetPoint("CENTER"); text:SetTextColor(1, 1, 1, 0.85)
+    bar.text = text
+
+    return bar
+end
+
+local function UpdatePrimaryPower()
+    if not primaryPowerBar then return end
+    if not UnitExists("player") then return end
+
+    local powerType = UnitPowerType("player") or 0
+    local current = UnitPower("player", powerType)
+    local max = UnitPowerMax("player", powerType)
+
+    primaryPowerBar:SetMinMaxValues(0, max)
+    primaryPowerBar:SetValue(current)
+
+    -- Color by power type (reuse TomoMod_Utils if available, fallback to PowerBarColor)
+    local r, g, b
+    if TomoMod_Utils and TomoMod_Utils.GetPowerColor then
+        r, g, b = TomoMod_Utils.GetPowerColor(powerType)
+    else
+        local info = PowerBarColor[powerType]
+        if info then r, g, b = info.r, info.g, info.b
+        else r, g, b = 0.00, 0.00, 1.00 end
+    end
+    primaryPowerBar:SetStatusBarColor(r, g, b, 1)
+
+    -- Text (AbbreviateLargeNumbers is C-side, accepts secret numbers)
+    local s = GetSettings()
+    if s and s.showText and primaryPowerBar.text then
+        primaryPowerBar.text:SetFormattedText("%s", AbbreviateLargeNumbers(current))
+    elseif primaryPowerBar.text then
+        primaryPowerBar.text:SetText("")
+    end
+end
 
 -- =====================================
 -- UPDATE: POINTS / AURA DISPLAY
@@ -828,6 +881,7 @@ local function BuildResourceDisplay()
     -- Clear old
     if classPowerFrame then classPowerFrame:Hide(); classPowerFrame = nil end
     if druidManaBar then druidManaBar:Hide(); druidManaBar = nil end
+    if primaryPowerBar then primaryPowerBar:Hide(); primaryPowerBar = nil end
 
     -- Container
     if not container then
@@ -900,6 +954,27 @@ local function BuildResourceDisplay()
         hasContent = true
     end
 
+    -- === PRIMARY POWER BAR (centered, replaces UF power bar) ===
+    if s.primaryPowerCentered then
+        local ppH = s.primaryPowerBarHeight or 14
+        primaryPowerBar = CreatePrimaryPowerBar(container, width, ppH)
+        primaryPowerBar:ClearAllPoints()
+        primaryPowerBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
+        nextY = nextY + ppH + gap
+        totalH = totalH + ppH + gap
+        hasContent = true
+        -- Immediate update
+        UpdatePrimaryPower()
+        -- Notify UnitFrames to hide player power bar
+        if TomoMod_ResourceBars then
+            TomoMod_ResourceBars._primaryPowerCentered = true
+        end
+    else
+        if TomoMod_ResourceBars then
+            TomoMod_ResourceBars._primaryPowerCentered = false
+        end
+    end
+
     if hasContent then
         container:SetSize(width, math.max(totalH, 1))
         container:Show()
@@ -947,6 +1022,9 @@ local function UpdateAll()
 
     -- Druid Mana
     if druidManaBar then UpdateDruidMana() end
+
+    -- Primary Power (centered bar)
+    if primaryPowerBar then UpdatePrimaryPower() end
 end
 
 -- =====================================

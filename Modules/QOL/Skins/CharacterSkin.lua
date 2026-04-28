@@ -1370,12 +1370,19 @@ local function SkinCharacterFrame()
         end
 
         -- Also update on PLAYER_EQUIPMENT_CHANGED
+        -- Debounced: ITEM_DATA_LOAD_RESULT fires dozens of times during craft/vendor
+        -- interactions. A single pending timer prevents stacking tooltip scans.
+        local itemInfoPending = false
         local itemInfoUpdater = CreateFrame("Frame")
         itemInfoUpdater:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
         itemInfoUpdater:RegisterEvent("ITEM_DATA_LOAD_RESULT")
         itemInfoUpdater:SetScript("OnEvent", function(self, event)
-            if CharacterFrame:IsShown() then
-                C_Timer.After(0.1, UpdateAllItemInfoOverlays)
+            if CharacterFrame:IsShown() and not itemInfoPending then
+                itemInfoPending = true
+                C_Timer.After(0.3, function()
+                    itemInfoPending = false
+                    UpdateAllItemInfoOverlays()
+                end)
             end
         end)
 

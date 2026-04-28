@@ -6,6 +6,10 @@
     <Include file="Minimap\InfoPanel.lua"/>
 
     <!-- CDM -->
+    <Include file="CooldownManager\CDMScanner.lua" />
+    <Include file="CooldownManager\CDMLayout.lua" />
+    <Include file="CooldownManager\CDMKeybinds.lua" />
+    <Include file="CooldownManager\CDMProcGlow.lua" />
     <Include file="CooldownManager\CooldownManager.lua" />
 
     <!-- Modules: Auto -->
@@ -21,6 +25,7 @@
     <Include file="Auto\AutoSkipRole.lua"/>
     <Include file="Auto\TooltipIDs.lua"/>
     <Include file="Auto\BagMicroMenu.lua"/>
+    <Include file="Auto\MerchantTools.lua"/>
 
     <!-- Modules: AFK Display -->
     <Include file="AFK\AFKDisplay.lua" />

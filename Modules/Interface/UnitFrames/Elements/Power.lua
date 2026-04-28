@@ -10,6 +10,12 @@ local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 function UF_Elements.CreatePower(parent, unit, settings)
     if (settings.powerHeight or 0) <= 0 then return nil end
 
+    -- If primary power is centered on screen, skip creating UF power bar for player
+    if unit == "player" and TomoModDB and TomoModDB.resourceBars
+       and TomoModDB.resourceBars.primaryPowerCentered then
+        return nil
+    end
+
     local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
     local font = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.font) or FONT
 

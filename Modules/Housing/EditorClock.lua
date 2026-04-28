@@ -140,6 +140,8 @@ function ClockUIMixin:SetAnalogMode(state)
     self.isAnalogMode = state
     if self.MinuteHand then self.MinuteHand:SetShown(state) end
     if self.HourHand   then self.HourHand:SetShown(state)   end
+    if self.Face       then self.Face:SetShown(state)        end
+    if self.DigitalBg  then self.DigitalBg:SetShown(not state) end
     if self.Digits     then self.Digits:SetShown(not state) end
 end
 
@@ -217,31 +219,42 @@ function Handler:Init()
     f:SetPoint("TOP", anchor, "BOTTOM", 0, -4)
     Mixin(f, ClockUIMixin)
 
-    -- Face (simple coloured circle; we don't ship a custom texture for now)
+    local TEXTURE_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Housing\\"
+
+    -- Face — analog clock dial with hour/minute markers
     f.Face = f:CreateTexture(nil, "BACKGROUND")
-    f.Face:SetSize(64, 64)
+    f.Face:SetSize(72, 72)
     f.Face:SetPoint("CENTER", f, "CENTER", 0, 0)
-    f.Face:SetColorTexture(0.08, 0.08, 0.10, 0.6)
+    f.Face:SetTexture(TEXTURE_PATH .. "clock_face")
 
-    -- Hands (thin bars)
-    local function CreateHand(len, thickness, offsetY)
-        local hand = f:CreateTexture(nil, "OVERLAY")
-        hand:SetSize(thickness, len)
-        hand:SetPoint("CENTER", f, "CENTER", 0, offsetY or 0)
-        hand:SetColorTexture(0.9, 0.9, 0.9, 1)
-        return hand
-    end
-    f.HourHand   = CreateHand(30, 4, 0)
-    f.MinuteHand = CreateHand(44, 3, 0)
+    -- Digital background — rounded rectangle (shown in digital mode only)
+    f.DigitalBg = f:CreateTexture(nil, "BACKGROUND")
+    f.DigitalBg:SetSize(72, 36)
+    f.DigitalBg:SetPoint("CENTER", f, "CENTER", 0, 0)
+    f.DigitalBg:SetTexture(TEXTURE_PATH .. "clock_digital")
+    f.DigitalBg:Hide()
 
-    -- Accent centre dot (teal)
-    local dot = f:CreateTexture(nil, "OVERLAY")
+    -- Hands (textured, pivot at center of 64x64 — hand extends upward)
+    f.HourHand = f:CreateTexture(nil, "OVERLAY")
+    f.HourHand:SetSize(64, 64)
+    f.HourHand:SetPoint("CENTER", f, "CENTER", 0, 0)
+    f.HourHand:SetTexture(TEXTURE_PATH .. "clock_hand_hour")
+
+    f.MinuteHand = f:CreateTexture(nil, "OVERLAY")
+    f.MinuteHand:SetSize(64, 64)
+    f.MinuteHand:SetPoint("CENTER", f, "CENTER", 0, 0)
+    f.MinuteHand:SetTexture(TEXTURE_PATH .. "clock_hand_minute")
+
+    -- Accent centre dot (teal) — drawn on top of hands
+    local dot = f:CreateTexture(nil, "OVERLAY", nil, 1)
     dot:SetSize(6, 6)
     dot:SetPoint("CENTER", f, "CENTER", 0, 0)
     dot:SetColorTexture(0.05, 0.82, 0.62, 1)
 
-    -- Digital fallback text
-    f.Digits = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    -- Digital fallback text (Poppins for consistency)
+    local FONT_DIGITAL = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
+    f.Digits = f:CreateFontString(nil, "OVERLAY")
+    f.Digits:SetFont(FONT_DIGITAL, 18, "OUTLINE")
     f.Digits:SetPoint("CENTER", f, "CENTER", 0, 0)
     f.Digits:SetTextColor(0.88, 0.82, 0.72)
     f.Digits:Hide()
