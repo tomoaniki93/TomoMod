@@ -202,6 +202,36 @@ local function BuildExclusionSet()
         "istanza del raid",                  -- IT
         "inst\195\162ncia de raide",         -- PT
         "not possible.*instance", "impossible.*instance",
+        -- Wrong zone / region for ability (all locales)
+        "bonne r\195\169gion",               -- FR "Vous n'êtes pas dans la bonne région."
+        "right region", "right area",        -- EN equivalents
+        "richtigen bereich",                 -- DE
+        "zona correcta", "regi\195\179n correcta",  -- ES
+        "zona giusta", "regione giusta",     -- IT
+        "regi\195\163o certa",               -- PT
+        -- Monk / class spirit-state errors (all locales)
+        "esprit actif",                      -- FR "Vous n'avez pas d'esprit actif."
+        "active spirit",                     -- EN equivalent
+        "aktiven geist",                     -- DE
+        "esp\195\173ritu activo",            -- ES
+        "spirito attivo",                    -- IT
+        "esp\195\173rito ativo",             -- PT
+        -- Generic "cannot act right now" — cutscene, vehicle cast, loading, etc. (all locales)
+        "ne pouvez effectuer aucune action", -- FR "Vous ne pouvez effectuer aucune action pour l'instant."
+        "cannot perform any action",         -- EN equivalent
+        "can't perform any action",          -- EN contraction variant
+        "keine aktion",                      -- DE
+        "no puedes realizar ninguna acci",   -- ES
+        "nessuna azione",                    -- IT
+        "nenhuma a\195\167\195\163o",        -- PT
+        -- Profession / skill requirement (e.g. "Requiert Herboristerie", "Requires Herbalism")
+        -- These are pure gameplay-feedback messages from UI_ERROR_MESSAGE, never Lua errors.
+        "requiert ",                         -- FR "Requiert <Profession>" (trailing space avoids false positives)
+        "requires ",                         -- EN "Requires <Profession/Skill>"
+        "erfordert ",                        -- DE
+        "requiere ",                         -- ES
+        "richiede ",                         -- IT
+        "requer ",                           -- PT
     }
     for _, kw in ipairs(keywords) do
         EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = kw
@@ -224,6 +254,7 @@ local prevErrorHandler = nil      -- original error handler
 local sessionID       = 0        -- incremented each login
 local suppressActive  = false     -- whether ScriptErrorsFrame is suppressed
 local consoleFrame    = nil       -- the UI frame (lazy-created)
+local consoleDirty    = false     -- deferred-refresh pending
 local L               = nil       -- locale table
 
 -- Environment snapshot (captured once at login)
@@ -462,9 +493,16 @@ local function CaptureEntry(kind, message, stack, locals, meta)
 
     inCapture = false
 
-    -- Refresh console if open
-    if consoleFrame and consoleFrame:IsShown() then
-        D.RefreshConsole()
+    -- Defer console refresh to avoid running expensive frame rebuilds inside
+    -- an error/warning handler, which would exceed WoW's execution limit.
+    if consoleFrame and consoleFrame:IsShown() and not consoleDirty then
+        consoleDirty = true
+        C_Timer.After(0, function()
+            consoleDirty = false
+            if consoleFrame and consoleFrame:IsShown() then
+                D.RefreshConsole()
+            end
+        end)
     end
 
     -- Auto-open (non-combat only) — for Lua errors AND taint from TomoMod
@@ -541,7 +579,15 @@ end
 
 local function OnLuaWarning(_, warnType, msg)
     if not IsEnabled() then return end
-    CaptureEntry(KIND_WARNING, "[LUA_WARNING type=" .. SafeToString(warnType) .. "] " .. SafeToString(msg))
+    local warnStr = SafeToString(warnType)
+    -- Skip WoW's "execution limit exceeded" notification for this module.
+    -- Capturing it would call CaptureEntry → deferred RefreshConsole, but the
+    -- warning itself fires because of previous expensive RefreshConsole work;
+    -- recording it creates a self-referential flood that hits the flood limiter.
+    if warnStr:find("insecure scripts exceeded execution limit", 1, true) then
+        return
+    end
+    CaptureEntry(KIND_WARNING, "[LUA_WARNING type=" .. warnStr .. "] " .. SafeToString(msg))
 end
 
 local function OnUiError(_, _, msg)

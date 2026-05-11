@@ -102,8 +102,11 @@ local mainTicker = nil
 local suppressUntil = 0
 local savedMasterVol = nil
 local savedMasterEnabled = nil
+local satedGen = 0        -- generation counter; bumped on zone change or re-arm to invalidate stale timers
+local flickerTimer = nil  -- pending grace-period timer for Sated disappearing
 
 local POLL_INTERVAL = 0.5
+local FLICKER_GRACE  = 1.5  -- seconds to wait before considering Sated truly gone
 
 -- =====================================
 -- DETECTION: Any Sated debuff present?
@@ -224,6 +227,22 @@ local function OnLustEnded()
     end
 end
 
+-- Schedules a re-arm after a grace period; cancels any previously pending timer.
+-- Mirrors BLDetect's 1s grace period to survive brief aura flickers.
+local function ScheduleRearm()
+    if flickerTimer then
+        flickerTimer:Cancel()
+        flickerTimer = nil
+    end
+    local gen = satedGen
+    flickerTimer = C_Timer.NewTimer(FLICKER_GRACE, function()
+        flickerTimer = nil
+        if satedGen ~= gen then return end  -- invalidated by zone change
+        if HasSatedDebuff() then return end  -- false alarm: Sated is back
+        OnLustEnded()
+    end)
+end
+
 -- =====================================
 -- SATED DEBUFF POLLING (primary detection)
 -- TWW 11.1: UNIT_SPELLCAST_SUCCEEDED spellID is a secret number —
@@ -238,9 +257,12 @@ local function OnPollTick()
     local hasSated = HasSatedDebuff()
 
     if hasSated and not active then
+        -- Cancel any pending flicker timer — Sated is clearly active.
+        if flickerTimer then flickerTimer:Cancel(); flickerTimer = nil end
         OnLustDetected("sated debuff appeared")
-    elseif not hasSated and active then
-        OnLustEnded()
+    elseif not hasSated and active and not flickerTimer then
+        -- Sated just disappeared; wait FLICKER_GRACE before treating it as truly gone.
+        ScheduleRearm()
     end
 end
 
@@ -256,6 +278,7 @@ end
 
 local function StopDetection()
     if mainTicker then mainTicker:Cancel(); mainTicker = nil end
+    if flickerTimer then flickerTimer:Cancel(); flickerTimer = nil end
 
     if active then
         OnLustEnded()
@@ -281,6 +304,42 @@ end
 -- INITIALIZE (called from Init.lua)
 -- =====================================
 
+-- =====================================
+-- ZONE TRANSITION HANDLING
+-- Mirrors BLDetect: suppress sound, bump satedGen, wait for aura resync.
+-- =====================================
+
+local function OnPlayerEnteringWorld()
+    -- Bump generation to invalidate any pending flicker timers.
+    satedGen = satedGen + 1
+    if flickerTimer then flickerTimer:Cancel(); flickerTimer = nil end
+
+    -- Suppress sound during the settle window.
+    local settleGen = satedGen
+    local prevSuppress = suppressUntil
+    suppressUntil = math.max(prevSuppress, GetTime() + 3.0)
+
+    -- Defer state sync so auras have time to resync after the loading screen.
+    C_Timer.After(2.0, function()
+        if satedGen ~= settleGen then return end  -- another zone change fired
+
+        if HasSatedDebuff() then
+            -- Sated carried over: mark active silently (no sound).
+            if not active then
+                active = true
+            end
+        else
+            -- No Sated: ensure clean state.
+            if active then
+                active = false
+                DoStopSound()
+            end
+        end
+
+        suppressUntil = math.max(suppressUntil, GetTime() + 1.0)
+    end)
+end
+
 function LS.Initialize()
     local db = TomoModDB and TomoModDB.lustSound
     if not db or not db.enabled then return end
@@ -295,3 +354,12 @@ function LS.Initialize()
         StartDetection()
     end)
 end
+
+-- Register zone-transition handler (fires on instance entry / loading screens).
+local _zoneFrame = CreateFrame("Frame")
+_zoneFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+_zoneFrame:SetScript("OnEvent", function(_, event)
+    if event == "PLAYER_ENTERING_WORLD" then
+        OnPlayerEnteringWorld()
+    end
+end)

@@ -951,6 +951,25 @@ end
 -- =====================================
 local blizzardHidden = false
 
+local function SuppressBlizzFrame(frame)
+    if not frame or frame._tomoSuppressed then return end
+    frame._tomoSuppressed = true
+    pcall(function() frame:UnregisterAllEvents() end)
+    pcall(function() frame:Hide() end)
+    -- IMPORTANT: never replace frame.Show with an addon function.
+    -- Doing so taints the C Show method; secure code (secureexecuterange /
+    -- EditModeManager) calls frame:Show() and the tainted Lua stub propagates
+    -- taint into UnitHealthMax comparisons → taint errors [3][4][5][6].
+    -- HookScript("OnShow") is a post-hook on the XML script event: it runs
+    -- after the frame has shown, lets us immediately re-hide it, and does NOT
+    -- taint the frame's C Show method itself.
+    pcall(function()
+        frame:HookScript("OnShow", function(self)
+            if not InCombatLockdown() then self:Hide() end
+        end)
+    end)
+end
+
 function PF.HideBlizzardFrames()
     if blizzardHidden then return end
 
@@ -958,34 +977,16 @@ function PF.HideBlizzardFrames()
     if not db or not db.hideBlizzardFrames then return end
 
     -- CompactPartyFrame (Retail)
-    if CompactPartyFrame then
-        pcall(function()
-            CompactPartyFrame:UnregisterAllEvents()
-            CompactPartyFrame:Hide()
-            CompactPartyFrame.Show = function() end
-        end)
-    end
+    SuppressBlizzFrame(CompactPartyFrame)
 
     -- Legacy PartyMemberFrame 1-4
     for i = 1, 4 do
         local pmf = _G["PartyFrame"] and _G["PartyFrame"]["MemberFrame" .. i]
-        if pmf then
-            pcall(function()
-                pmf:UnregisterAllEvents()
-                pmf:Hide()
-                pmf.Show = function() end
-            end)
-        end
+        SuppressBlizzFrame(pmf)
     end
 
     -- PartyFrame container
-    if PartyFrame then
-        pcall(function()
-            PartyFrame:UnregisterAllEvents()
-            PartyFrame:Hide()
-            PartyFrame.Show = function() end
-        end)
-    end
+    SuppressBlizzFrame(PartyFrame)
 
     blizzardHidden = true
 end

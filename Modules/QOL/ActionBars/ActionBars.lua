@@ -316,6 +316,30 @@ end
 
 local suppressedFrames = {}
 
+-- Decorative/sibling frames that Blizzard shows alongside MainMenuBar.
+-- These are separate from MainMenuBar itself and must be hidden independently.
+local BAR1_SIBLING_FRAMES = {
+    "MainMenuBarArtFrame",
+    "StatusTrackingBarManager",
+    "MainMenuExpBar",
+    "MainMenuBarMaxLevelBar",
+}
+
+local function HideSiblingFrame(name)
+    local f = _G[name]
+    if not f then return end
+    f:UnregisterAllEvents()
+    f:SetParent(GetHiddenParent())
+    f:Hide()
+    if f.SetIsShownInEditMode then f:SetIsShownInEditMode(false) end
+    if not f._tomoHooked then
+        f._tomoHooked = true
+        f:HookScript("OnShow", function(self)
+            if not InCombatLockdown() then self:Hide() end
+        end)
+    end
+end
+
 local function HideBlizzardBar(def)
     if InCombatLockdown() then
         QueueProtectedOp("hide_" .. def.id, function() HideBlizzardBar(def) end)
@@ -329,6 +353,20 @@ local function HideBlizzardBar(def)
     blizzFrame:Hide()
     if blizzFrame.SetIsShownInEditMode then
         blizzFrame:SetIsShownInEditMode(false)
+    end
+    -- Prevent Blizzard from re-showing this frame after cinematics or
+    -- PLAYER_ENTERING_WORLD (UIParent_ShowBlizzardUI calls :Show() on bars).
+    if not blizzFrame._tomoHooked then
+        blizzFrame._tomoHooked = true
+        blizzFrame:HookScript("OnShow", function(self)
+            if not InCombatLockdown() then self:Hide() end
+        end)
+    end
+    -- For bar1, also hide the ornament/art frames that are siblings of MainMenuBar.
+    if def.id == "bar1" then
+        for _, name in ipairs(BAR1_SIBLING_FRAMES) do
+            HideSiblingFrame(name)
+        end
     end
 end
 
@@ -890,6 +928,31 @@ vehicleFrame:SetScript("OnEvent", function(_, event, unit)
                 if not barDB.fadeEnabled then
                     SetBarAlpha(def.id, barDB.alpha or 1)
                 end
+            end
+        end
+    end)
+end)
+
+-- =====================================================================
+-- RE-HIDE BLIZZARD BARS AFTER CINEMATIC / ZONE TRANSITION
+-- UIParent_ShowBlizzardUI (called on CINEMATIC_STOP, LOADING_SCREEN_DISABLED
+-- and similar) calls :Show() on all registered Blizzard UI frames.
+-- The OnShow hook above handles the case once the hook is installed.
+-- This frame covers the edge case of PLAYER_ENTERING_WORLD firing before
+-- AB.Initialize() has run (e.g. very early in a fresh login).
+-- =====================================================================
+
+local reHideFrame = CreateFrame("Frame")
+reHideFrame:RegisterEvent("CINEMATIC_STOP")
+reHideFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+reHideFrame:SetScript("OnEvent", function()
+    if not IsEnabled() then return end
+    C_Timer.After(0.2, function()
+        if InCombatLockdown() then return end
+        for _, def in ipairs(AB.BAR_DEFS) do
+            if suppressedFrames[def.id] then
+                local blizzFrame = _G[def.blizzFrame]
+                if blizzFrame then blizzFrame:Hide() end
             end
         end
     end)

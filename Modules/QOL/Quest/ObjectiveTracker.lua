@@ -789,6 +789,13 @@ local function OnTrackerUpdate()
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
 
+    -- In M+: hide the entire skin and let Blizzard's challenge UI take over
+    if IsInMythicPlus() then
+        if skinFrame then skinFrame:Hide() end
+        if headerBar then headerBar:Hide() end
+        return
+    end
+
     -- Reset font dedup and category cache so settings/status changes apply
     wipe(styledFonts)
     wipe(questCategoryCache)
@@ -799,12 +806,6 @@ local function OnTrackerUpdate()
     ScanAndStyle(tracker, 0)
     UpdateQuestCount()
     LimitDisplayedQuests()
-
-    -- In M+: hide title, count, dash — keep Options visible
-    local inMP = IsInMythicPlus()
-    if headerTitle then headerTitle:SetShown(not inMP) end
-    if headerCount then headerCount:SetShown(not inMP) end
-    if headerDash  then headerDash:SetShown(not inMP) end
 
     -- Visibility: check if tracker has actual visible content
     if skinFrame then
@@ -870,6 +871,9 @@ local function InstallHooks()
     evFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
     evFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     evFrame:RegisterEvent("TRACKED_ACHIEVEMENT_UPDATE")
+    evFrame:RegisterEvent("CHALLENGE_MODE_START")
+    evFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+    evFrame:RegisterEvent("CHALLENGE_MODE_RESET")
 
     local lastUpdate = 0
     evFrame:SetScript("OnEvent", function()

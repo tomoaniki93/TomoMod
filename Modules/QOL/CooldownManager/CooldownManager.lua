@@ -359,51 +359,49 @@ local function StyleButton(button, isBuff)
             end
         end
 
-        -- Custom swipe colors: active aura vs normal cooldown
+        -- [PERF] Single combined hook for swipe colors + GCD hiding
+        -- (was two separate hooksecurefunc — each fires on every GCD for every button)
         local sr, sg, sb, sa = GetActiveSwipeColor()
         local cr, cg, cb, ca = GetCDSwipeColor()
-        if sr or cr then
+        local settings = GetSettings()
+        local needsSwipe = (sr or cr)
+        local needsGCDHide = (settings and settings.hideGCD)
+
+        if needsSwipe or needsGCDHide then
             hooksecurefunc(button.Cooldown, "SetCooldown", function(self)
                 local parent = self:GetParent()
-                if parent and parent.cooldownUseAuraDisplayTime then
-                    local af = parent.cooldownUseAuraDisplayTime
-                    local isAura = false
-                    if issecretvalue and issecretvalue(af) then
-                        if (parent.SpellActivationAlert and parent.SpellActivationAlert:IsShown())
-                            or (parent.ActiveAuraHighlight and parent.ActiveAuraHighlight:IsShown()) then
-                            isAura = true
+                if not parent then return end
+
+                -- Swipe color logic
+                if needsSwipe then
+                    if parent.cooldownUseAuraDisplayTime then
+                        local af = parent.cooldownUseAuraDisplayTime
+                        local isAura = false
+                        if issecretvalue and issecretvalue(af) then
+                            if (parent.SpellActivationAlert and parent.SpellActivationAlert:IsShown())
+                                or (parent.ActiveAuraHighlight and parent.ActiveAuraHighlight:IsShown()) then
+                                isAura = true
+                            end
+                        else
+                            isAura = (af == true)
                         end
-                    else
-                        isAura = (af == true)
-                    end
-                    if isAura and sr then
-                        self:SetSwipeColor(sr, sg, sb, sa)
-                    elseif not isAura and cr then
+                        if isAura and sr then
+                            self:SetSwipeColor(sr, sg, sb, sa)
+                        elseif not isAura and cr then
+                            self:SetSwipeColor(cr, cg, cb, ca)
+                        end
+                    elseif cr then
                         self:SetSwipeColor(cr, cg, cb, ca)
                     end
-                elseif cr then
-                    self:SetSwipeColor(cr, cg, cb, ca)
                 end
-            end)
-        end
 
-        -- GCD hiding
-        local settings = GetSettings()
-        if settings and settings.hideGCD then
-            hooksecurefunc(button.Cooldown, "SetCooldown", function(self)
-                local parent = self:GetParent()
-                if parent then
-                    local cdID = Scanner.GetCachedCooldownID(parent)
-                    if cdID then
-                        local ok, info = pcall(C_CooldownViewer.GetCooldownViewerCooldownInfo, cdID)
-                        if ok and info then
-                            local spellID = info.overrideSpellID or info.spellID
-                            if spellID then
-                                local cd = C_Spell.GetSpellCooldown(spellID)
-                                if cd and cd.isOnGCD then
-                                    self:SetCooldownFromDurationObject(C_DurationUtil.CreateDuration())
-                                end
-                            end
+                -- GCD hiding logic (uses Scanner cache — no pcall)
+                if needsGCDHide then
+                    local spellID = Scanner.GetCachedSpellID(parent)
+                    if spellID then
+                        local cd = C_Spell.GetSpellCooldown(spellID)
+                        if cd and cd.isOnGCD then
+                            self:SetCooldownFromDurationObject(C_DurationUtil.CreateDuration())
                         end
                     end
                 end

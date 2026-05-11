@@ -69,8 +69,11 @@ local DEFAULTS = {
 -- =====================================
 local activeGlows  = {}    -- [frame] = true
 local activeSpells = {}    -- [spellID] = true (survives frame recycle)
-local persistTimers = {}   -- [frame] = ticker
 local isInitialized = false
+
+-- [PERF] Single global persistence ticker instead of one ticker per active glow.
+local persistTicker = nil
+local PERSIST_RATE  = 0.3
 
 -- =====================================
 -- VIEWER LIST
@@ -226,7 +229,41 @@ local function ApplyGlowEffect(frame, forceRestart)
 end
 
 -- =====================================
--- START GLOW (with persistence timer)
+-- PERSISTENCE TICKER (single global — replaces per-frame tickers)
+-- =====================================
+local function PersistenceTickerUpdate()
+    if not next(activeGlows) then
+        if persistTicker then
+            persistTicker:Cancel()
+            persistTicker = nil
+        end
+        return
+    end
+
+    local s = GetSettings()
+    if not s or not s.enabled then return end
+    local gt = s.glowType or DEFAULTS.glowType
+
+    for frame in pairs(activeGlows) do
+        if frame:IsShown() then
+            if not IsGlowFramePresent(frame, gt) then
+                ApplyGlowEffect(frame)
+                if gt ~= "Blizzard Glow" then
+                    HideBlizzardGlow(frame)
+                end
+            end
+        end
+    end
+end
+
+local function EnsurePersistTicker()
+    if not persistTicker then
+        persistTicker = C_Timer.NewTicker(PERSIST_RATE, PersistenceTickerUpdate)
+    end
+end
+
+-- =====================================
+-- START GLOW (with global persistence ticker)
 -- =====================================
 local function StartGlow(frame)
     local settings = GetSettings()
@@ -242,33 +279,8 @@ local function StartGlow(frame)
     -- Apply the glow
     ApplyGlowEffect(frame)
 
-    -- Cancel existing persistence timer
-    if persistTimers[frame] then
-        persistTimers[frame]:Cancel()
-        persistTimers[frame] = nil
-    end
-
-    -- Start persistence timer: re-apply if removed externally (every 0.3s)
-    persistTimers[frame] = C_Timer.NewTicker(0.3, function()
-        if not activeGlows[frame] then
-            if persistTimers[frame] then
-                persistTimers[frame]:Cancel()
-                persistTimers[frame] = nil
-            end
-            return
-        end
-        if not frame:IsShown() then return end
-
-        local s = GetSettings()
-        if not s or not s.enabled then return end
-        local gt = s.glowType or DEFAULTS.glowType
-        if not IsGlowFramePresent(frame, gt) then
-            ApplyGlowEffect(frame)
-            if gt ~= "Blizzard Glow" then
-                HideBlizzardGlow(frame)
-            end
-        end
-    end)
+    -- [PERF] Ensure single global persistence ticker is running
+    EnsurePersistTicker()
 end
 
 -- =====================================
@@ -276,12 +288,6 @@ end
 -- =====================================
 local function StopGlow(frame)
     if not frame._cdm_procGlowActive then return end
-
-    -- Cancel persistence timer
-    if persistTimers[frame] then
-        persistTimers[frame]:Cancel()
-        persistTimers[frame] = nil
-    end
 
     -- Remove all glow types
     if LCG then
@@ -378,10 +384,12 @@ local function SetupHooks()
                 button._cdm_procGlowActive = true
                 activeGlows[button] = true
             else
+                -- [FIX] Apply glow synchronously to avoid race with same-frame HideAlert.
+                -- Only defer HideBlizzardGlow (needs to run after Blizzard's update pass).
                 HideBlizzardGlow(button)
+                StartGlow(button)
                 C_Timer.After(0, function()
                     if button._cdm_procActive then
-                        StartGlow(button)
                         HideBlizzardGlow(button)
                     end
                 end)
@@ -451,21 +459,24 @@ end
 
 --- Refresh all glows (after settings change — stop + restart).
 function ProcGlow.RefreshAll()
-    -- Stop all current glows
+    -- Snapshot frames that currently have an active proc
     local procs = {}
     for frame in pairs(activeGlows) do
-        local spellID = GetButtonSpellID(frame)
-        if spellID then procs[frame] = spellID end
+        -- Check _cdm_procActive (set by ShowAlert, cleared by HideAlert)
+        -- rather than assuming all glowed frames still have a live proc.
+        if frame._cdm_procActive then
+            procs[#procs + 1] = frame
+        end
         StopGlow(frame)
     end
-    wipe(activeGlows)
+    -- Note: no wipe(activeGlows) — StopGlow already removes each entry.
 
     -- Re-apply for frames whose proc is still active
     local settings = GetSettings()
     if not settings or not settings.enabled then return end
 
-    for frame, spellID in pairs(procs) do
-        if frame and frame:IsShown() then
+    for _, frame in ipairs(procs) do
+        if frame:IsShown() and frame._cdm_procActive then
             StartGlow(frame)
         end
     end

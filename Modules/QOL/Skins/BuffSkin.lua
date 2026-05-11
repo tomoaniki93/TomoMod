@@ -37,8 +37,8 @@ local INSET = 2
 local isInitialized   = false
 local skinnedButtons  = setmetatable({}, { __mode = "k" })
 local updatePending   = false
-local buffHookDone    = false
-local debuffHookDone  = false
+local hooksInstalled  = false
+-- (buffHookDone/debuffHookDone removed — hooks consolidated in InstallHooks)
 
 -- =====================================
 -- SETTINGS
@@ -135,60 +135,59 @@ local function SkinButton(button, isDebuff)
     local r, g, b = GetBorderColor(button, isDebuff)
     ApplyBackdrop(button, r, g, b)
 
-    if not skinnedButtons[button] then
-        -- ── Icône insetée dans la border (comme ElvUI Icon:SetInside) ──────
-        icon:ClearAllPoints()
-        icon:SetPoint("TOPLEFT",     button, "TOPLEFT",     INSET,  -INSET)
-        icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -INSET,  INSET)
-        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        icon:SetDrawLayer("ARTWORK", 0)
+    -- [FIX] Always re-apply idempotent styling ops — Blizzard may recycle
+    -- the frame (same pointer, new aura) and reset icon anchors/masks.
+    -- The weak-table entry survives but Blizzard's re-init undoes our tweaks.
 
-        -- Supprimer le masque circulaire Blizzard
-        if icon.SetMask then icon:SetMask("") end
-        if button.IconMask    then button.IconMask:Hide()    end
-        if button.CircleMask  then button.CircleMask:Hide()  end
+    -- icon anchors/insets
+    icon:ClearAllPoints()
+    icon:SetPoint("TOPLEFT",     button, "TOPLEFT",     INSET,  -INSET)
+    icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -INSET,  INSET)
+    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    icon:SetDrawLayer("ARTWORK", 0)
 
-        -- Supprimer les overlays qui assombrissent l'icône
-        if button.IconOverlay then button.IconOverlay:SetAlpha(0) end
-        if button.Highlight   then button.Highlight:SetAlpha(0)   end
+    -- Supprimer le masque circulaire Blizzard
+    if icon.SetMask then icon:SetMask("") end
+    if button.IconMask    then button.IconMask:Hide()    end
+    if button.CircleMask  then button.CircleMask:Hide()  end
 
-        -- Masquer le texte Symbol (type d'aura Blizzard) qui peut apparaître derrière l'icône
-        if button.Symbol then button.Symbol:SetAlpha(0) end
+    -- Supprimer les overlays qui assombrissent l'icône
+    if button.IconOverlay then button.IconOverlay:SetAlpha(0) end
+    if button.Highlight   then button.Highlight:SetAlpha(0)   end
 
-        -- Supprimer la border Blizzard par défaut
-        local blizzBorder = button.Border or button.border or button.IconBorder
-        if blizzBorder then blizzBorder:SetAlpha(0) end
+    -- Masquer le texte Symbol (type d'aura Blizzard) qui peut apparaître derrière l'icône
+    if button.Symbol then button.Symbol:SetAlpha(0) end
 
-        -- ── Overlay de highlight souris (blanc translucide comme ElvUI) ────
-        if not button._tomoHighlight then
-            local hl = button:CreateTexture(nil, "HIGHLIGHT")
-            hl:SetColorTexture(1, 1, 1, 0.15)
-            hl:SetAllPoints(icon)
-            button._tomoHighlight = hl
-        end
+    -- Supprimer la border Blizzard par défaut
+    local blizzBorder = button.Border or button.border or button.IconBorder
+    if blizzBorder then blizzBorder:SetAlpha(0) end
 
-        -- ── Police Poppins sur count et duration ────────────────────────────
-        local fontSize = settings.fontSize or 11
-        local outline  = "OUTLINE"
-        local count    = button.Count or button.count
-        if count and count.SetFont then
-            count:SetFont(ADDON_FONT, fontSize, outline)
-            count:SetDrawLayer("OVERLAY", 7)
-            count:ClearAllPoints()
-            count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
-            count:SetJustifyH("RIGHT")
-        end
-        local duration = button.Duration or button.duration
-        if duration and duration.SetFont then
-            duration:SetFont(ADDON_FONT, fontSize - 1, outline)
-            duration:SetDrawLayer("OVERLAY", 7)
-        end
-
-        -- ── Désaturation des debuffs ennemis (option) ────────────────────
-        -- (appliquée dans UpdateButtonColor pour les debuffs uniquement)
-
-        skinnedButtons[button] = isDebuff and "debuff" or "buff"
+    -- Overlay de highlight souris (créé une seule fois)
+    if not button._tomoHighlight then
+        local hl = button:CreateTexture(nil, "HIGHLIGHT")
+        hl:SetColorTexture(1, 1, 1, 0.15)
+        hl:SetAllPoints(icon)
+        button._tomoHighlight = hl
     end
+
+    -- Police Poppins sur count et duration
+    local fontSize = settings.fontSize or 11
+    local outline  = "OUTLINE"
+    local count    = button.Count or button.count
+    if count and count.SetFont then
+        count:SetFont(ADDON_FONT, fontSize, outline)
+        count:SetDrawLayer("OVERLAY", 7)
+        count:ClearAllPoints()
+        count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", 2, -2)
+        count:SetJustifyH("RIGHT")
+    end
+    local duration = button.Duration or button.duration
+    if duration and duration.SetFont then
+        duration:SetFont(ADDON_FONT, fontSize - 1, outline)
+        duration:SetDrawLayer("OVERLAY", 7)
+    end
+
+    skinnedButtons[button] = isDebuff and "debuff" or "buff"
 end
 
 -- =====================================
@@ -282,28 +281,13 @@ end
 local function ApplyFrameHiding()
     local s = S()
 
+    -- [PERF] Only apply initial state here; hooks are consolidated in InstallHooks()
     if BuffFrame then
         if s.hideBuffFrame then HideFrameSafe(BuffFrame) else ShowFrameSafe(BuffFrame) end
-        if not buffHookDone then
-            buffHookDone = true
-            hooksecurefunc(BuffFrame, "Update", function()
-                C_Timer.After(0, function()
-                    if S().hideBuffFrame then HideFrameSafe(BuffFrame) end
-                end)
-            end)
-        end
     end
 
     if DebuffFrame then
         if s.hideDebuffFrame then HideFrameSafe(DebuffFrame) else ShowFrameSafe(DebuffFrame) end
-        if not debuffHookDone then
-            debuffHookDone = true
-            hooksecurefunc(DebuffFrame, "Update", function()
-                C_Timer.After(0, function()
-                    if S().hideDebuffFrame then HideFrameSafe(DebuffFrame) end
-                end)
-            end)
-        end
     end
 end
 
@@ -346,28 +330,37 @@ local function InstallHooks()
         end)
     end
 
-    -- Hook BuffFrame.Update / DebuffFrame.Update (Midnight 12.x+)
+    -- [PERF] Consolidated hooks: BuffFrame.Update and DebuffFrame.Update
+    -- Previously had 2 hooks each (hiding + skinning). Now 1 hook each.
+    -- Also integrates AuraContainer.Update to avoid redundant deferred calls.
     if BuffFrame and BuffFrame.Update then
         hooksecurefunc(BuffFrame, "Update", function()
-            C_Timer.After(0, ScheduleUpdate)
+            C_Timer.After(0, function()
+                if S().hideBuffFrame then HideFrameSafe(BuffFrame) end
+                ScheduleUpdate()
+            end)
         end)
     end
     if DebuffFrame and DebuffFrame.Update then
         hooksecurefunc(DebuffFrame, "Update", function()
-            C_Timer.After(0, ScheduleUpdate)
+            C_Timer.After(0, function()
+                if S().hideDebuffFrame then HideFrameSafe(DebuffFrame) end
+                ScheduleUpdate()
+            end)
         end)
     end
 
-    -- Hook sur les containers Update pour attraper les nouveaux boutons
+    -- AuraContainer hooks: call ScheduleUpdate directly (debounce handles dedup)
     if BuffFrame and BuffFrame.AuraContainer and BuffFrame.AuraContainer.Update then
-        hooksecurefunc(BuffFrame.AuraContainer, "Update", function()
-            C_Timer.After(0, ScheduleUpdate)
-        end)
+        hooksecurefunc(BuffFrame.AuraContainer, "Update", ScheduleUpdate)
     end
     if DebuffFrame and DebuffFrame.AuraContainer and DebuffFrame.AuraContainer.Update then
-        hooksecurefunc(DebuffFrame.AuraContainer, "Update", function()
-            C_Timer.After(0, ScheduleUpdate)
-        end)
+        hooksecurefunc(DebuffFrame.AuraContainer, "Update", ScheduleUpdate)
+    end
+
+    -- [FIX] Hook TemporaryEnchantFrame for weapon enchant updates
+    if TemporaryEnchantFrame and TemporaryEnchantFrame.Update then
+        hooksecurefunc(TemporaryEnchantFrame, "Update", ScheduleUpdate)
     end
 end
 
@@ -376,23 +369,33 @@ end
 -- =====================================
 
 function BS.Initialize()
-    if isInitialized then return end
     if not IsEnabled() then return end
-    isInitialized = true
 
-    local eventFrame = CreateFrame("Frame")
-    eventFrame:RegisterEvent("UNIT_AURA")
-    eventFrame:SetScript("OnEvent", function(_, event, unit)
-        if event == "UNIT_AURA" and unit == "player" then
-            ScheduleUpdate()
-        end
-    end)
+    -- [FIX] Hooks are installed once and persist across enable/disable toggles.
+    -- Skin application is always repeatable.
+    if not hooksInstalled then
+        hooksInstalled = true
 
+        local eventFrame = CreateFrame("Frame")
+        eventFrame:RegisterEvent("UNIT_AURA")
+        eventFrame:SetScript("OnEvent", function(_, event, unit)
+            if event == "UNIT_AURA" and unit == "player" then
+                ScheduleUpdate()
+            end
+        end)
+
+        -- [FIX] Install hooks immediately — they just call ScheduleUpdate which
+        -- debounces at 0.1s, so there's no timing concern.
+        InstallHooks()
+    end
+
+    -- Defer skin application to let frames finish loading
     C_Timer.After(1, function()
         ApplyFrameHiding()
         ApplyBuffSkin()
-        InstallHooks()
     end)
+
+    isInitialized = true
 end
 
 function BS.ApplySettings()
@@ -407,11 +410,8 @@ function BS.SetEnabled(value)
     TomoModDB.buffSkin.enabled = value
     if value then
         wipe(skinnedButtons)
-        if not isInitialized then
-            BS.Initialize()
-        else
-            ApplyFrameHiding()
-            ApplyBuffSkin()
-        end
+        -- [FIX] Always call Initialize — hooks are guarded by hooksInstalled,
+        -- so re-enabling after disable works correctly.
+        BS.Initialize()
     end
 end

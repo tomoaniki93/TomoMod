@@ -159,6 +159,121 @@ function TMT:Utf8Sub(str, startChar, numChars)
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
+--  EJ BOSS NAME LOOKUP
+--  Mirrors WarpDeplete's approach: load the Encounter Journal addon and
+--  resolve boss names via EJ_GetEncounterInfoByIndex so we display proper
+--  localised names instead of the raw scenario criteriaString.
+-- ═══════════════════════════════════════════════════════════════════════
+
+-- MapChallengeMode → JournalInstance (from WarpDeplete / Reloe's M+ Timer)
+local _mapIDToEJID = {
+    -- Cata
+    [438] = 68,  [456] = 65,  [507] = 71,
+    -- MoP
+    [2]   = 313, [56]  = 302, [57]  = 303, [58]  = 312, [59]  = 324,
+    [60]  = 321, [76]  = 246, [77]  = 311, [78]  = 316,
+    -- WoD
+    [161] = 476, [163] = 385, [164] = 547, [165] = 537, [166] = 536,
+    [167] = 559, [168] = 556, [169] = 558,
+    -- Legion
+    [197] = 716, [198] = 762, [199] = 740, [200] = 721, [206] = 767,
+    [207] = 707, [208] = 727, [209] = 726, [210] = 800,
+    [227] = 860, [233] = 900, [234] = 860, [239] = 945,
+    -- BfA
+    [244] = 968,  [245] = 1001, [246] = 1002, [247] = 1012, [248] = 1021,
+    [249] = 1041, [250] = 1030, [251] = 1022, [252] = 1036,
+    [353] = 1023, [369] = 1178, [370] = 1178,
+    -- Shadowlands
+    [375] = 1184, [376] = 1182, [377] = 1188, [378] = 1185, [379] = 1183,
+    [380] = 1189, [381] = 1186, [382] = 1187,
+    [391] = 1194, [392] = 1194,
+    -- Dragonflight
+    [399] = 1202, [400] = 1198, [401] = 1203, [402] = 1201, [403] = 1197,
+    [404] = 1199, [405] = 1196, [406] = 1204,
+    [463] = 1209, [464] = 1209,
+    -- The War Within
+    [499] = 1267, [500] = 1268, [501] = 1269, [502] = 1274,
+    [503] = 1271, [504] = 1210, [505] = 1270, [506] = 1272,
+}
+
+-- Returns the EJ journalInstanceID for the current M+ map, or nil.
+function TMT:GetEJInstanceID()
+    local mapID = C_Map.GetBestMapForUnit("player")
+    local instanceID = mapID and EJ_GetInstanceForMap(mapID) or nil
+    if instanceID and instanceID ~= 0 then return instanceID end
+    local challengeMapID = C_ChallengeMode.GetActiveChallengeMapID()
+    if challengeMapID and _mapIDToEJID[challengeMapID] then
+        return _mapIDToEJID[challengeMapID]
+    end
+    return nil
+end
+
+-- Loads the EJ addon if needed, then returns two tables:
+--   byIndex[i]              = boss name at position i
+--   byEncounterID[encID]    = boss name by dungeonEncounterID
+-- Returns nil, nil on failure.
+function TMT:FetchEJBossNames()
+    local instanceID = self:GetEJInstanceID()
+    if not instanceID then return nil, nil end
+
+    local wasShown = EncounterJournal and EncounterJournal:IsShown()
+    C_AddOns.LoadAddOn("Blizzard_EncounterJournal")
+    EncounterJournal_OpenJournal(8, instanceID)
+    if not wasShown and EncounterJournal and EncounterJournal:IsShown() then
+        HideUIPanel(EncounterJournal)
+    end
+
+    local byIndex    = {}
+    local byEncounterID = {}
+    EJ_SelectInstance(instanceID)
+    for i = 1, 20 do
+        local name, _, _, _, _, _, dungeonEncounterID = EJ_GetEncounterInfoByIndex(i, instanceID)
+        if name then
+            byIndex[#byIndex + 1] = name
+            if dungeonEncounterID then
+                byEncounterID[dungeonEncounterID] = name
+            end
+        end
+    end
+
+    if #byIndex == 0 then return nil, nil end
+    return byIndex, byEncounterID
+end
+
+-- Refresh EJ names and store them on TMT. Retries up to `retries` times
+-- with a 2-second delay if the EJ isn't ready yet.
+function TMT:RefreshEJNames(retries)
+    retries = retries or 5
+    local byIndex, byEncounterID = self:FetchEJBossNames()
+    if byIndex then
+        self._ejByIndex      = byIndex
+        self._ejByEncounterID = byEncounterID
+    elseif retries > 0 then
+        C_Timer.After(2, function() TMT:RefreshEJNames(retries - 1) end)
+    end
+end
+
+-- Resolve a display name for one boss.
+--   description        raw criteriaString from C_ScenarioInfo
+--   index              1-based position among non-forces criteria
+--   dungeonEncounterID from criteriaType==165 + assetID (may be nil)
+function TMT:FindBossName(description, index, dungeonEncounterID)
+    -- 1. Exact match by dungeonEncounterID
+    if dungeonEncounterID and self._ejByEncounterID and self._ejByEncounterID[dungeonEncounterID] then
+        local name = self._ejByEncounterID[dungeonEncounterID]
+        return self:Utf8Sub(name, 1, self.BOSS_NAME_MAX)
+    end
+    -- 2. Match by ordered position in the EJ list
+    if self._ejByIndex and self._ejByIndex[index] then
+        local name = self._ejByIndex[index]
+        return self:Utf8Sub(name, 1, self.BOSS_NAME_MAX)
+    end
+    -- 3. Fallback: strip common noise words from the raw description
+    local filtered = description:gsub("Defeated", ""):gsub("defeated", ""):match("^%s*(.-)%s*$")
+    return self:Utf8Sub(filtered ~= "" and filtered or description, 1, self.BOSS_NAME_MAX)
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
 --  BUILD FRAME
 -- ═══════════════════════════════════════════════════════════════════════
 function TMT:BuildFrame()
@@ -813,9 +928,14 @@ function TMT:UpdateBossRows(preview)
             row._bg:SetColorTexture(0, 0, 0, 0)
         end
 
-        -- Truncate boss name like MPlusTimer
-        local bossName = cr.criteriaString or ("Boss " .. i)
-        bossName = self:Utf8Sub(bossName, 1, self.BOSS_NAME_MAX)
+        -- Resolve boss name via EJ (localised), fall back to raw criteriaString
+        local dungeonEncounterID = (cr.criteriaType == 165) and cr.assetID or nil
+        local bossName
+        if preview then
+            bossName = self:Utf8Sub(cr.criteriaString or ("Boss " .. i), 1, self.BOSS_NAME_MAX)
+        else
+            bossName = self:FindBossName(cr.criteriaString or ("Boss " .. i), i, dungeonEncounterID)
+        end
         row.name:SetText(bossName)
 
         if cr.completed then
@@ -1201,6 +1321,7 @@ EF:SetScript("OnEvent", function(_, event, ...)
         if C_ChallengeMode.IsChallengeModeActive() then
             if db.hideBlizzard then TMT:SuppressBlizzardUI() end
             TMT:_LoadActiveKey()
+            TMT:RefreshEJNames()
             TMT:RefreshAll(false)
             TMT:ShowFrame()
             TMT:StartTicker()
@@ -1214,8 +1335,11 @@ EF:SetScript("OnEvent", function(_, event, ...)
         TMT.completionTime = nil
         TMT.playerDeaths = {}
         TMT.forcesCompTime = nil
+        TMT._ejByIndex = nil
+        TMT._ejByEncounterID = nil
         if db.hideBlizzard then TMT:SuppressBlizzardUI() end
         TMT:_LoadActiveKey()
+        TMT:RefreshEJNames()
         TMT:RefreshAll(false)
         TMT:ShowFrame()
         TMT:StartTicker()

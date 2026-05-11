@@ -101,13 +101,9 @@ local function UpdateName(frame)
         return
     end
 
-    -- Couleur
-    if UnitIsPlayer(frame.unit) then
-        local r, g, b = TomoMod_Utils.GetClassColor(frame.unit)
-        frame.health.nameText:SetTextColor(r, g, b, 1)
-    else
-        frame.health.nameText:SetTextColor(1, 1, 1, 0.95)
-    end
+    -- Nom toujours en blanc pour rester lisible sur n'importe quelle
+    -- couleur de barre de santé (couleur de classe, dégradé, etc.)
+    frame.health.nameText:SetTextColor(1, 1, 1, 0.95)
 
     -- TWW: name = secret string → troncature via clip C-side (SetWidth)
     local name = UnitName(frame.unit)

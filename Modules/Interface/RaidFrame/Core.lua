@@ -339,6 +339,7 @@ function RF.CreateFrame(unit)
     nameText:SetWordWrap(false)
     nameText:SetNonSpaceWrap(false)
     nameText:SetMaxLines(1)
+    nameText:SetTextColor(1, 1, 1, 0.90)  -- White, like the config preview
     f.nameText = nameText
 
     -- ---- HEALTH TEXT (below name) ----
@@ -638,8 +639,8 @@ function RF.UpdateName(f)
         name = string.sub(name, 1, maxLen) .. "…"
     end
 
-    local r, g, b = GetClassColor(f.unit)
-    f.nameText:SetTextColor(r, g, b, 1)
+    -- White name text: always readable against any class-colored health bar
+    f.nameText:SetTextColor(1, 1, 1, 0.90)
     f.nameText:SetText(name)
 end
 
@@ -1483,6 +1484,13 @@ function RF.ApplySettings()
             else
                 if f.power then f.power:Hide() end
                 if f.powerBG then f.powerBG:Hide() end
+            end
+
+            if f.nameText then
+                f.nameText:SetFont(db.font or ADDON_FONT, db.fontSize or 10, db.fontOutline or "OUTLINE")
+            end
+            if f.healthText then
+                f.healthText:SetFont(db.font or ADDON_FONT, math.max(6, (db.fontSize or 10) - 2), db.fontOutline or "OUTLINE")
             end
 
             if f:IsShown() then
