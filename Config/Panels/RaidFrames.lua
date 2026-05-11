@@ -5,8 +5,10 @@ local W = TomoMod_Widgets
 local L = TomoMod_L
 
 local function ApplyRF()
-    if TomoMod_RaidFrames then TomoMod_RaidFrames.ApplySettings() end
-    if TomoMod_RFPreview  and TomoMod_RFPreview.Refresh  then TomoMod_RFPreview.Refresh()  end
+    C_Timer.After(0, function()
+        if TomoMod_RaidFrames then TomoMod_RaidFrames.ApplySettings() end
+        if TomoMod_RFPreview  and TomoMod_RFPreview.Refresh  then TomoMod_RFPreview.Refresh()  end
+    end)
 end
 
 -- TAB: GENERAL
@@ -56,7 +58,7 @@ local function BuildGeneralTab(parent)
     y = W.FinalizeCard(card3, cy)
 
     local card4, cy = W.CreateCard(c, L["rf_section_font"] or "Font", y)
-    local _, cy = W.CreateSlider(card4.inner, L["rf_opt_font_size"] or "Font size", db.fontSize, 7, 14, 1, cy, function(v) db.fontSize = v end, "%.0f")
+    local _, cy = W.CreateSlider(card4.inner, L["rf_opt_font_size"] or "Font size", db.fontSize, 7, 14, 1, cy, function(v) db.fontSize = v; ApplyRF() end, "%.0f")
     y = W.FinalizeCard(card4, cy)
 
     local card5, cy = W.CreateCard(c, L["rf_section_position"] or "Position", y)

@@ -1,5 +1,44 @@
 ## ####################################
 
+## CHANGELOG 2.9.11 — CooldownManager · CDMProcGlow · BuffSkin Bug Fixes
+
+#### CooldownManager — Unified SetCooldown Hook
+- **Fix** — The two separate `hooksecurefunc(button.Cooldown, "SetCooldown", ...)` calls (one for swipe colors, one for GCD hiding) have been merged into a single combined hook per button; this halves the number of hook callbacks fired on every GCD tick across all visible icons
+- **Fix** — GCD hiding no longer calls `pcall(C_CooldownViewer.GetCooldownViewerCooldownInfo, cdID)`; it now uses `Scanner.GetCachedSpellID` + `C_Spell.GetSpellCooldown` directly, eliminating the taint-unsafe pcall path entirely
+
+#### CDMProcGlow — Race Condition + Ticker Architecture
+- **Fix** — Glow is now applied **synchronously** in the `ShowAlert` hook (`StartGlow` called immediately) instead of being deferred with `C_Timer.After(0, ...)`; the `C_Timer.After` is kept only for the redundant `HideBlizzardGlow` call — this prevents a race condition where a very short proc fires `HideAlert` in the same frame before the deferred `StartGlow` executes
+- **Fix** — Per-frame persistence timers (`persistTimers[frame] = C_Timer.NewTicker(...)`) replaced by a **single global ticker** (`persistTicker`) that scans all active glows at a fixed rate; eliminates O(n) ticker objects and associated GC pressure
+- **Fix** — `RefreshAll` now snapshots only frames with `_cdm_procActive = true` (live proc) instead of all frames in `activeGlows`; the `wipe(activeGlows)` after `StopGlow` has been removed as it was redundant and could race with procs firing during the loop
+- **Fix** — `StopGlow` simplified: per-frame timer cancellation removed (global ticker handles persistence)
+
+#### BuffSkin — Frame Recycling + Toggle Fix
+- **Fix** — `SkinButton` no longer bails on `if not skinnedButtons[button]`; all icon anchor, mask, and overlay operations are now applied unconditionally (idempotent); this ensures correct rendering when Blizzard recycles a frame object (same pointer, new aura) and resets its layout
+- **Fix** — `buffHookDone` / `debuffHookDone` flags replaced by a single `hooksInstalled` guard; hooks are now installed exactly once and survive `SetEnabled(false)` → `SetEnabled(true)` cycles — previously, disabling then re-enabling the module left the hooks uninstalled and updates stopped firing
+- **Fix** — `TemporaryEnchantFrame.Update` is now hooked in `InstallHooks`; weapon buff icons are skinned correctly when enchants appear or change mid-session
+- **Fix** — `InstallHooks` is called immediately in `BS.Initialize` instead of being deferred inside a `C_Timer.After(1, ...)`; the debounce in `ScheduleUpdate` (0.1 s) is sufficient to avoid spam without delaying hook installation
+- **Fix** — Hiding hooks for `BuffFrame` and `DebuffFrame` (previously duplicated inside `ApplyFrameHiding`) consolidated into the single `InstallHooks` path alongside the skin hooks, each frame using one combined hook
+
+## ####################################
+
+## CHANGELOG 2.9.10 — RaidFrames Taint Fix · MythicTracker: EJ Boss Name Lookup
+
+#### RaidFrames — Config Panel Taint Fix
+- **Root cause** — Slider and checkbox callbacks in the Raid Frames config panel were calling `ApplySettings()` directly from WoW's widget event context, which is tainted; this caused `ADDON_ACTION_BLOCKED` errors for `ClearAllPoints`, `SetPoint`, and `SetSize` on every raid frame and the raid anchor whenever a setting was changed
+- **Fix** — Wrapped the `ApplyRF()` helper in `Config/Panels/RaidFrames.lua` with `C_Timer.After(0, ...)`, deferring the `ApplySettings` call to the next game frame tick where the execution context is clean and protected frame operations are allowed
+
+#### MythicTracker — Localised Boss Names via Encounter Journal
+- **New system** — Boss names in the Mythic+ tracker are now resolved through the Encounter Journal (`EJ_GetEncounterInfoByIndex`) instead of using the raw `criteriaString` from the scenario API, giving fully localised, accent-safe names
+- **3-level fallback** — Resolution priority:
+  1. Exact match by `dungeonEncounterID` (via `criteriaType == 165` + `assetID`) — most reliable
+  2. Ordered position in the EJ boss list for the active dungeon
+  3. Filtered `criteriaString` (strips noise words like "Defeated") as last resort
+- **Coverage** — `_mapIDToEJID` hardcoded table covers all M+ dungeons from Cataclysm to The War Within (499–506)
+- **Retry logic** — `RefreshEJNames()` retries up to 5 times with a 2-second delay if the `Blizzard_EncounterJournal` addon isn't loaded yet at challenge start
+- **Triggered on** — `CHALLENGE_MODE_START` (clears cached names first) and `PLAYER_ENTERING_WORLD` when already inside an active key
+
+## ####################################
+
 ## CHANGELOG 2.9.9 — CooldownManager Layout · MerchantTools Fix · CharacterSkin Performance
 
 #### CooldownManager — Buff Icon Horizontal Layout
@@ -52,6 +91,12 @@ Two QOL features merged into a single lightweight module, inspired by ElvUI_Wind
 #### Localization — 2.9.9 Keys
 - New keys added to **all 6 locale files** (enUS, frFR, deDE, esES, itIT, ptBR):
   `tab_qol_merchant_tools`, `section_already_known`, `info_already_known`, `opt_ak_enable`, `opt_ak_mode`, `ak_mode_mono`, `ak_mode_color`, `opt_ak_color`, `section_extend_pages`, `info_extend_pages`, `opt_ep_enable`, `opt_ep_columns`
+
+#### LustSound — False Alert on Sated Flicker & Zone Transitions (Fix)
+- **Root cause** — `OnPollTick` reset `active = false` immediately whenever `HasSatedDebuff()` returned false. During a server aura resync or loading-screen transition the Sated debuff can disappear for one or two poll cycles (0.5 s each), then reappear. The immediate reset caused the sound to fire again on the very next poll that saw Sated come back, producing a spurious alert even though the player never lost the debuff
+- **Fix 1 — Flicker grace period** — Introduced `FLICKER_GRACE = 1.5 s` and `ScheduleRearm()`. When Sated disappears while `active = true`, a one-shot timer is started; if Sated is still absent after 1.5 s it is treated as genuinely gone, otherwise the timer is silently cancelled. Mirrors the same strategy used by BLDetect
+- **Fix 2 — `PLAYER_ENTERING_WORLD` handler** — Bumps a `satedGen` generation counter (invalidating any pending flicker timer), sets a 3 s sound-suppress window, then after a 2 s settle delay snapshots the real aura state: if Sated is present `active` is set silently; if absent the state is reset cleanly. Prevents a false re-trigger every time a player enters an instance while the debuff is still active
+- **New variables** — `satedGen` (generation counter), `flickerTimer` (handle to the pending rearm timer), `FLICKER_GRACE` constant
 
 ## ####################################
 

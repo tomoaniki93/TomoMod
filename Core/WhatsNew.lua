@@ -30,12 +30,28 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "2.9.11",
+        highlights = {
+            L["wn_2911_cdm_hooks"],
+            L["wn_2911_procglow_fixes"],
+            L["wn_2911_buffskin_fixes"],
+        },
+    },
+    {
+        version = "2.9.10",
+        highlights = {
+            L["wn_2910_ej_boss_names"],
+            L["wn_2910_ej_fallback"],
+        },
+    },
+    {
         version = "2.9.9",
         highlights = {
             L["wn_299_merchant_tools"],
             L["wn_299_already_known"],
             L["wn_299_extend_pages"],
             L["wn_299_locales"],
+            L["wn_299_lustsound"],
         },
     },
     {

@@ -2096,6 +2096,7 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_299_already_known"]              = "Already Known: grays out or tints vendor/buyback items you already own (mounts, pets, toys, transmog, recipes).",
     ["wn_299_extend_pages"]               = "Extended Pages: expands the merchant window to show up to 4 columns of 10 items each.",
     ["wn_299_locales"]                    = "Vendor Tools: full locale support in all 6 languages.",
+    ["wn_299_lustsound"]                   = "LustSound: fixed false sound alert triggered by brief Sated flicker during server resync or zone transitions.",
 
     ["tab_qol_merchant_tools"]           = "Vendor Tools",
 
@@ -2111,4 +2112,20 @@ TomoMod_RegisterLocale("enUS", {
     ["info_extend_pages"]                = "Adds extra columns to the merchant window to show more items per page.\nRequires a UI reload after enabling or changing column count.",
     ["opt_ep_enable"]                    = "Enable extended vendor pages",
     ["opt_ep_columns"]                   = "Number of columns",
+
+    -- ═══════════════════════════════════
+    -- MythicTracker EJ Boss Names (2.9.10)
+    -- ═══════════════════════════════════
+    -- ═══════════════════════════════════
+    -- CooldownManager / ProcGlow / BuffSkin Fixes (2.9.11)
+    -- ═══════════════════════════════════
+    ["wn_2911_cdm_hooks"]                = "CooldownManager: swipe colors + GCD hiding merged into a single hook per button; GCD detection now uses Scanner cache instead of pcall(C_CooldownViewer).",
+    ["wn_2911_procglow_fixes"]           = "CDMProcGlow: glow applied synchronously in ShowAlert to prevent race with same-frame HideAlert; per-frame tickers replaced by a single global persistence ticker; RefreshAll now correctly filters live procs.",
+    ["wn_2911_buffskin_fixes"]           = "BuffSkin: SkinButton re-applies icon anchors/masks on Blizzard-recycled frames; hooks installed once via hooksInstalled guard (toggle enable/disable now works); TemporaryEnchantFrame hooked for weapon enchant updates; hooks installed immediately.",
+
+    -- ═══════════════════════════════════
+    -- MythicTracker EJ Boss Names (2.9.10)
+    -- ═══════════════════════════════════
+    ["wn_2910_ej_boss_names"]            = "MythicTracker: boss names resolved via the Encounter Journal — localised, accent-safe, covering all dungeons from Cata to The War Within.",
+    ["wn_2910_ej_fallback"]              = "MythicTracker: 3-level name resolution — dungeonEncounterID > EJ index > filtered criteriaString, with automatic retry (\195\2275) if the EJ isn't loaded yet.",
 })

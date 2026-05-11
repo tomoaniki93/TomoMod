@@ -1952,6 +1952,7 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_299_already_known"]              = "Bereits bekannt: Graut Artikel aus oder färbt sie ein, die du bereits besitzt (Reittiere, Haustiere, Spielzeug, Transmog, Rezepte).",
     ["wn_299_extend_pages"]               = "Erweiterte Seiten: Das Händlerfenster kann bis zu 4 Spalten mit je 10 Artikeln anzeigen.",
     ["wn_299_locales"]                    = "Händler-Tools: vollständige Unterstützung in allen 6 Sprachen.",
+    ["wn_299_lustsound"]                   = "LustSound: Fehler behoben, bei dem der Soundalarm durch kurzes Verschwinden des Sated-Debuffs bei Server-Resync oder Zonenwechsel fälschlicherweise ausgelöst wurde.",
 
     ["tab_qol_merchant_tools"]           = "Händler-Tools",
 
@@ -1967,4 +1968,20 @@ TomoMod_RegisterLocale("deDE", {
     ["info_extend_pages"]                = "Fügt dem Händlerfenster zusätzliche Spalten hinzu.\nNach dem Aktivieren oder Ändern der Spaltenanzahl ist ein UI-Reload erforderlich.",
     ["opt_ep_enable"]                    = "Erweiterte Händlerseiten aktivieren",
     ["opt_ep_columns"]                   = "Anzahl der Spalten",
+
+    -- ═══════════════════════════════════
+    -- MythicTracker EJ-Boss-Namen (2.9.10)
+    -- ═══════════════════════════════════
+    -- ═══════════════════════════════════
+    -- CooldownManager / ProcGlow / BuffSkin Korrekturen (2.9.11)
+    -- ═══════════════════════════════════
+    ["wn_2911_cdm_hooks"]                = "CooldownManager: Swipe-Farben und GCD-Ausblendung in einen einzigen Hook pro Button zusammengefasst; GCD-Erkennung nutzt jetzt den Scanner-Cache statt pcall(C_CooldownViewer).",
+    ["wn_2911_procglow_fixes"]           = "CDMProcGlow: Glow wird synchron in ShowAlert angewandt, um eine Race-Condition mit HideAlert im selben Frame zu vermeiden; Per-Frame-Timer durch einen einzigen globalen Persistence-Ticker ersetzt; RefreshAll filtert jetzt korrekt aktive Procs.",
+    ["wn_2911_buffskin_fixes"]           = "BuffSkin: SkinButton wendet Icon-Anker und Masken jetzt erneut auf recycelten Frames an; Hooks werden einmalig über hooksInstalled installiert (Ein-/Ausschalten funktioniert jetzt korrekt); TemporaryEnchantFrame für Waffen-Verzauberungen eingehangen; Hooks werden sofort statt verzögert installiert.",
+
+    -- ═══════════════════════════════════
+    -- MythicTracker EJ-Boss-Namen (2.9.10)
+    -- ═══════════════════════════════════
+    ["wn_2910_ej_boss_names"]            = "MythicTracker: Boss-Namen werden über das Encounter-Journal aufgelöst — lokalisiert, unicode-sicher, für alle Dungeons von Cata bis The War Within.",
+    ["wn_2910_ej_fallback"]              = "MythicTracker: 3-stufige Namensauflösung — dungeonEncounterID > EJ-Index > gefilterter criteriaString, mit automatischem Retry (×5) falls das EJ noch nicht geladen ist.",
 })

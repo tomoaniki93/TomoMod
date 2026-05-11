@@ -1943,6 +1943,7 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_299_already_known"]              = "Già noto: desatura o colora gli articoli del venditore/riacquisto già posseduti (cavalcature, pet, giocattoli, transmog, ricette).",
     ["wn_299_extend_pages"]               = "Pagine estese: la finestra del venditore può mostrare fino a 4 colonne da 10 articoli.",
     ["wn_299_locales"]                    = "Strumenti venditore: supporto completo in tutte e 6 le lingue.",
+    ["wn_299_lustsound"]                   = "LustSound: corretto falso allarme sonoro causato dalla breve scomparsa del debuff Sazietà durante la risincronizzazione del server o i cambi zona.",
 
     ["tab_qol_merchant_tools"]           = "Strumenti venditore",
 
@@ -1958,4 +1959,20 @@ TomoMod_RegisterLocale("itIT", {
     ["info_extend_pages"]                = "Aggiunge colonne extra alla finestra del venditore.\nRichiede il ricaricamento dell'interfaccia dopo l'attivazione o la modifica del numero di colonne.",
     ["opt_ep_enable"]                    = "Abilita pagine estese",
     ["opt_ep_columns"]                   = "Numero di colonne",
+
+    -- ═══════════════════════════════════
+    -- MythicTracker Nomi EJ (2.9.10)
+    -- ═══════════════════════════════════
+    -- ═══════════════════════════════════
+    -- Correzioni CooldownManager / ProcGlow / BuffSkin (2.9.11)
+    -- ═══════════════════════════════════
+    ["wn_2911_cdm_hooks"]                = "CooldownManager: colori swipe e nascondimento GCD unificati in un singolo hook per bottone; il rilevamento GCD usa ora la cache dello Scanner invece di pcall(C_CooldownViewer).",
+    ["wn_2911_procglow_fixes"]           = "CDMProcGlow: il glow viene applicato in modo sincrono in ShowAlert per evitare una race condition con HideAlert nello stesso frame; timer per frame sostituiti da un unico ticker globale di persistenza; RefreshAll ora filtra correttamente i proc attivi.",
+    ["wn_2911_buffskin_fixes"]           = "BuffSkin: SkinButton riapplica le ancore e le maschere delle icone sui frame riciclati da Blizzard; hooks installati una sola volta tramite hooksInstalled (attivare/disattivare ora funziona correttamente); TemporaryEnchantFrame agganciato per gli aggiornamenti degli incantamenti; hooks installati immediatamente.",
+
+    -- ═══════════════════════════════════
+    -- MythicTracker Nomi EJ (2.9.10)
+    -- ═══════════════════════════════════
+    ["wn_2910_ej_boss_names"]            = "MythicTracker: i nomi dei boss vengono ora risolti tramite il Diario degli incontri — localizzati, compatibili con caratteri speciali, coprendo tutti i dungeon da Cata a The War Within.",
+    ["wn_2910_ej_fallback"]              = "MythicTracker: risoluzione del nome a 3 livelli — dungeonEncounterID > indice EJ > criteriaString filtrato come fallback, con retry automatico (×5) se il EJ non è ancora caricato.",
 })
