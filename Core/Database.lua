@@ -1006,6 +1006,8 @@ TomoMod_Defaults = {
         roleIconSize = 14,
         showRaidMarker = true,
         raidMarkerSize = 16,
+        readyCheckSize = 24,
+        summonSize = 30,
 
         -- Range
         showRange = true,
@@ -1096,6 +1098,7 @@ TomoMod_Defaults = {
         showRaidMarker = true,
         raidMarkerSize = 12,
         readyCheckSize = 20,
+        summonSize = 22,
 
         -- Range
         showRange = true,
@@ -1170,13 +1173,13 @@ TomoMod_Defaults = {
         enabled = true,
 
         -- Sub-modules (each can be toggled independently)
-        decorHover = true,            -- Show name/cost/stock on hovered decor
+        decorHover = false,           -- Show name/cost/stock on hovered decor
         clock      = true,            -- Editor clock + time counter
-        teleport   = true,            -- Enable /tm home + smart teleport
+        teleport   = false,           -- Enable /tm home + smart teleport
         itemAlert  = false,           -- Reserved for Phase 2
 
         -- DecorHover options
-        decorHover_enableDupe    = true,   -- Allow modifier-key duplication
+        decorHover_enableDupe    = false,  -- Allow modifier-key duplication
         decorHover_duplicateKey  = 2,      -- 1 = LCTRL, 2 = LALT
 
         -- Clock options

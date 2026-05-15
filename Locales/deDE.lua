@@ -1632,6 +1632,8 @@ TomoMod_RegisterLocale("deDE", {
     ["pf_opt_show_role"]                 = "Rollensymbol anzeigen",
     ["pf_opt_role_size"]                 = "Rollensymbol-Größe",
     ["pf_opt_show_marker"]               = "Schlachtzugsmarkierung anzeigen",
+    ["pf_opt_readycheck_size"]            = "Bereitschaftsprüfung-Symbolgröße",
+    ["pf_opt_summon_size"]               = "Vorladungsanzeige-Größe",
 
     ["pf_section_font"]                  = "Schrift",
     ["pf_opt_font_size"]                 = "Schriftgröße",
@@ -1711,6 +1713,8 @@ TomoMod_RegisterLocale("deDE", {
     ["rf_opt_health_color"]              = "Gesundheitsfarb-Modus",
     ["rf_opt_show_role"]                 = "Rollensymbol anzeigen",
     ["rf_opt_show_marker"]               = "Schlachtzug-Markierung anzeigen",
+    ["rf_opt_readycheck_size"]            = "Bereitschaftsprüfung-Symbolgröße",
+    ["rf_opt_summon_size"]               = "Vorladungsanzeige-Größe",
     ["rf_section_font"]                  = "Schriftart",
     ["rf_opt_font_size"]                 = "Schriftgröße",
     ["rf_section_position"]              = "Position",
@@ -1972,6 +1976,22 @@ TomoMod_RegisterLocale("deDE", {
     -- ═══════════════════════════════════
     -- MythicTracker EJ-Boss-Namen (2.9.10)
     -- ═══════════════════════════════════
+    -- ═══════════════════════════════════
+    -- PartyFrame-CD-Fix + Performance (2.9.12)
+    -- ═══════════════════════════════════
+    -- ═══════════════════════════════════
+    -- MythicTracker Boss Names Fix (2.9.13)
+    -- ═══════════════════════════════════
+    ["wn_2913_boss_names"]               = "MythicTracker: Boss-Namen werden jetzt korrekt angezeigt statt \"Boss 1\", \"Boss 2\" usw. — in WoW 12.x wurde das Szenario-Kriterium-Feld von criteriaString in description umbenannt; TomoMod liest jetzt description zuerst mit criteriaString als Fallback.",
+    ["wn_2913_boss_checkmark"]           = "MythicTracker: Blizzards führendes Häkchen-Präfix (bei abgeschlossenen Boss-Zielen in 12.x hinzugefügt) wird vor der Anzeige jetzt entfernt.",
+    ["wn_2913_ej_pcall"]                 = "MythicTracker: Der EncounterJournal_OpenJournal-Aufruf in FetchEJBossNames ist jetzt mit pcall umhüllt, um möglichen Taint in 12.x zu verhindern.",
+
+    ["wn_2912_party_cd_fix"]             = "PartyFrame: Interrupt- und Kampfwiederbelebungs-CD-Tracking nutzt jetzt UNIT_SPELLCAST_SUCCEEDED mit taintsicherer SpellID-Auflösung (string.format); COMBAT_LOG_EVENT_UNFILTERED entfernt — die Registrierung aus einem Addon verursacht in 12.x Taint.",
+    ["wn_2912_healer_interrupt"]         = "PartyFrame: Das Interrupt-Tracker-Symbol wird jetzt für Heiler ausgeblendet — seit Patch 12.x haben Heiler keine Interrupt-Fähigkeit mehr.",
+    ["wn_2912_perf_cdm"]                 = "CooldownManager: UpdateButtonState cached GetCooldownTimes, GetCachedCooldownID und GetCooldownViewerCooldownInfo jetzt einmalig pro Button und Tick statt zweimal; ~50 % weniger API-Aufrufe in der Hauptschleife.",
+    ["wn_2912_perf_aura"]                = "AuraTracker: Aktualisierungsrate von 10 fps (0,1 s) auf 5 fps (0,2 s) reduziert; kein sichtbarer Unterschied, Ticker-Overhead halbiert.",
+    ["wn_2912_perf_resbars"]             = "ResourceBars: OnUpdate-Schwellenwert für DK-Runen/Mönch-Stagger von 50 ms auf 100 ms erhöht; Ausführungshäufigkeit halbiert ohne spürbaren Einfluss auf die Anzeige.",
+
     -- ═══════════════════════════════════
     -- CooldownManager / ProcGlow / BuffSkin Korrekturen (2.9.11)
     -- ═══════════════════════════════════

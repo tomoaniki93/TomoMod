@@ -1,6 +1,39 @@
 ## ####################################
 
-## CHANGELOG 2.9.11 — CooldownManager · CDMProcGlow · BuffSkin Bug Fixes
+## CHANGELOG 2.9.13 — M+ Boss Names Fix
+
+#### MythicTracker — Boss Names
+- **Fix** — Boss names in the M+ tracker now show correctly instead of "Boss 1", "Boss 2" etc.; in WoW 12.x (Midnight) `C_ScenarioInfo.GetCriteriaInfo` returns the boss name in the `description` field (renamed from `criteriaString`); TomoMod now reads `description` first and falls back to `criteriaString` for backward compatibility
+- **Fix** — Blizzard's leading checkmark prefix (added to completed objectives in 12.x) is stripped from boss names before display, matching EllesmereUI's approach
+- **Fix** — `EncounterJournal_OpenJournal` call inside `FetchEJBossNames` is now wrapped in `pcall` to prevent potential taint in 12.x; the EJ lookup continues to function as a localisation enhancement when available
+
+## ####################################
+
+## CHANGELOG 2.9.12 — PartyFrame CD Tracking Fix · Healer Interrupt · Performance
+
+#### PartyFrame — Interrupt & Battle-Rez CD Tracking Rewrite
+- **Fix** — Replaced `COMBAT_LOG_EVENT_UNFILTERED` with `UNIT_SPELLCAST_SUCCEEDED`; registering CLEU from addon code causes taint in WoW 12.x, blocking protected-frame API calls
+- **Fix** — Party spellIDs are tainted in 12.x and cannot be used as table indices; added taint-safe `ResolveSpellID()` using `string.format("%.0f", id)` → `tonumber` to launder the value — mirrors `BIT.Taint:ResolveNumber()` from BliZzi_Interrupts
+- **Fix** — When spellID is fully unresolvable (tainted and strip failed), fall back to the class-default interrupt for that unit if it is not already tracked as on cooldown ("WilduTools" approach: trust the known spell rather than requiring a readable runtime ID)
+- **Fix** — Interrupt tracker icon now hidden for healers; since patch 12.x healers no longer have an interrupt ability — `UnitGroupRolesAssigned(unit) ~= "HEALER"` guard added to `CD.UpdateFrame`
+
+#### CooldownManager — UpdateButtonState API Cache
+- **Perf** — `UpdateButtonState` now caches `GetCooldownTimes()`, `Scanner.GetCachedCooldownID()` and `pcall(C_CooldownViewer.GetCooldownViewerCooldownInfo)` once per button per tick; previously each was called twice (once for the pandemic/CD-text block, once for desaturation/range-check) — approximately **50% fewer API calls** in the main 0.25 s update loop
+
+#### AuraTracker — Ticker Rate
+- **Perf** — Timer refresh rate reduced from 10 fps (0.1 s ticker) to 5 fps (0.2 s); visual difference is imperceptible on duration labels, overhead halved
+
+#### ResourceBars — OnUpdate Throttle
+- **Perf** — DK rune / Monk stagger `OnUpdate` processing threshold raised from 50 ms to 100 ms; execution frequency halved with no perceptible impact on the display
+
+## ####################################
+
+## CHANGELOG 2.9.11 — Summon Indicator on Raid & Party Frames · CooldownManager · CDMProcGlow · BuffSkin Bug Fixes
+
+#### Raid Frames & Party Frames — Summon / Teleport Indicator
+- **New visual** — Each unit frame on both the custom Raid Frames and Party Frames now shows an 18×18 icon at the bottom-center of the frame reflecting the unit's incoming summon status
+- **Three states** — `RaidFrame-Icon-SummonPending` (yellow hourglass, awaiting response) · `RaidFrame-Icon-SummonAccepted` (green check, accepted) · `RaidFrame-Icon-SummonDeclined` (red X, declined); icon is hidden when there is no active summon
+- **Implementation** — `RF.UpdateSummon` / `PF.UpdateSummon` query `C_IncomingSummon.IncomingSummonStatus(unit)`; both modules now register and handle the `INCOMING_SUMMON_CHANGED` event so the indicator updates immediately for every group member
 
 #### CooldownManager — Unified SetCooldown Hook
 - **Fix** — The two separate `hooksecurefunc(button.Cooldown, "SetCooldown", ...)` calls (one for swipe colors, one for GCD hiding) have been merged into a single combined hook per button; this halves the number of hook callbacks fired on every GCD tick across all visible icons

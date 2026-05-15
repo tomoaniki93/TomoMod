@@ -60,6 +60,8 @@ local function BuildGeneralTab(parent)
     local _, cy = W.CreateCheckbox(card3.inner, L["pf_opt_show_role"] or "Show role icon", db.showRoleIcon, cy, function(v) db.showRoleIcon = v; ApplyPF() end)
     local _, cy = W.CreateSlider(card3.inner, L["pf_opt_role_size"] or "Role icon size", db.roleIconSize, 8, 24, 1, cy, function(v) db.roleIconSize = v; ApplyPF() end, "%.0f")
     local _, cy = W.CreateCheckbox(card3.inner, L["pf_opt_show_marker"] or "Show raid marker", db.showRaidMarker, cy, function(v) db.showRaidMarker = v; ApplyPF() end)
+    local _, cy = W.CreateSlider(card3.inner, L["pf_opt_readycheck_size"] or "Ready check icon size", db.readyCheckSize or 24, 12, 40, 1, cy, function(v) db.readyCheckSize = v; ApplyPF() end, "%.0f")
+    local _, cy = W.CreateSlider(card3.inner, L["pf_opt_summon_size"] or "Summon indicator size", db.summonSize or 18, 10, 36, 1, cy, function(v) db.summonSize = v; ApplyPF() end, "%.0f")
     y = W.FinalizeCard(card3, cy)
 
     -- Text & Font

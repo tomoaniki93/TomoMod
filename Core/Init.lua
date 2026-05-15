@@ -238,17 +238,6 @@ SlashCmdList["TOMOMOD"] = function(msg)
             end
             print("|cff0cd29fTomoMod Nameplates:|r " .. (TomoModDB.nameplates.enabled and L["msg_np_enabled"] or L["msg_np_disabled"]))
         end
-    elseif msg == "home" then
-        if TomoMod_Housing and TomoMod_Housing.ShowTeleportPrompt then
-            TomoMod_Housing.ShowTeleportPrompt()
-        else
-            print("|cff0cd29fTomoMod|r " .. (L["msg_housing_unavailable"] or "Module Housing indisponible sur ce client."))
-        end
-    elseif msg == "housing" then
-        if TomoMod_Config and TomoMod_Config.Toggle then
-            TomoMod_Config.Toggle()
-            if TomoMod_Config.SwitchCategory then TomoMod_Config.SwitchCategory("housing") end
-        end
     elseif msg == "help" or msg == "?" then
         print("|cff0cd29fTomoMod|r " .. L["msg_help_title"])
         print("  |cff0cd29f/tm install|r — Relancer l'assistant de configuration")
@@ -271,8 +260,6 @@ SlashCmdList["TOMOMOD"] = function(msg)
         print("  |cff0cd29f/tm way clear|r — " .. L["msg_help_way_clear"])
         print("  |cff0cd29f/tm key|r — " .. L["msg_help_key"])
         print("  |cff0cd29f/tm cr|r — " .. L["msg_help_cr"])
-        print("  |cff0cd29f/tm home|r — " .. (L["msg_help_home"] or "Téléporter vers votre maison (ou la quitter)"))
-        print("  |cff0cd29f/tm housing|r — " .. (L["msg_help_housing"] or "Ouvrir le panneau Housing"))
         print("  |cff0cd29f/tm help|r — " .. L["msg_help_help"])
     else
         -- Open config

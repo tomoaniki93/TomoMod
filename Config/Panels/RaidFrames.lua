@@ -55,6 +55,8 @@ local function BuildGeneralTab(parent)
     }, db.healthColor or "class", cy, function(v) db.healthColor = v; ApplyRF() end)
     local _, cy = W.CreateCheckbox(card3.inner, L["rf_opt_show_role"] or "Show role icon", db.showRoleIcon, cy, function(v) db.showRoleIcon = v; ApplyRF() end)
     local _, cy = W.CreateCheckbox(card3.inner, L["rf_opt_show_marker"] or "Show raid marker", db.showRaidMarker, cy, function(v) db.showRaidMarker = v; ApplyRF() end)
+    local _, cy = W.CreateSlider(card3.inner, L["rf_opt_readycheck_size"] or "Ready check icon size", db.readyCheckSize or 20, 12, 40, 1, cy, function(v) db.readyCheckSize = v; ApplyRF() end, "%.0f")
+    local _, cy = W.CreateSlider(card3.inner, L["rf_opt_summon_size"] or "Summon indicator size", db.summonSize or 18, 10, 36, 1, cy, function(v) db.summonSize = v; ApplyRF() end, "%.0f")
     y = W.FinalizeCard(card3, cy)
 
     local card4, cy = W.CreateCard(c, L["rf_section_font"] or "Font", y)

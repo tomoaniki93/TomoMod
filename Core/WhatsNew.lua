@@ -30,6 +30,24 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "2.9.13",
+        highlights = {
+            L["wn_2913_boss_names"],
+            L["wn_2913_boss_checkmark"],
+            L["wn_2913_ej_pcall"],
+        },
+    },
+    {
+        version = "2.9.12",
+        highlights = {
+            L["wn_2912_party_cd_fix"],
+            L["wn_2912_healer_interrupt"],
+            L["wn_2912_perf_cdm"],
+            L["wn_2912_perf_aura"],
+            L["wn_2912_perf_resbars"],
+        },
+    },
+    {
         version = "2.9.11",
         highlights = {
             L["wn_2911_cdm_hooks"],
