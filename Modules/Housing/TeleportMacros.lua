@@ -133,12 +133,13 @@ local function CreateTeleportHomeButton(index)
 end
 
 local ButtonKeys = { "CurrentFaction", "Alliance", "Horde", "Leave" }
-for index, key in ipairs(ButtonKeys) do
-    Buttons[key] = CreateTeleportHomeButton(index)
+if TomoModDB and TomoModDB.housing and TomoModDB.housing.teleport then
+    for index, key in ipairs(ButtonKeys) do
+        Buttons[key] = CreateTeleportHomeButton(index)
+    end
+    -- Leave button always uses "returnhome" action
+    Buttons.Leave:SetAction_ReturnHome()
 end
-
--- Leave button always uses "returnhome" action
-Buttons.Leave:SetAction_ReturnHome()
 
 -- =====================================
 -- MACRO GETTERS (for players who want to drag an action to their bar)
@@ -244,9 +245,8 @@ end
 -- =====================================
 
 local boot = CreateFrame("Frame")
-boot:RegisterEvent("PLAYER_LOGIN")
-boot:RegisterEvent("PLAYER_ENTERING_WORLD")
 boot:SetScript("OnEvent", function(self, event)
+    if not (TomoModDB and TomoModDB.housing and TomoModDB.housing.teleport) then return end
     if event == "PLAYER_LOGIN" then
         C_Timer.After(2, function()
             if H.API and H.API.IsHousingAvailable() and H.API.RequestUpdateHouseInfo then
@@ -259,3 +259,5 @@ boot:SetScript("OnEvent", function(self, event)
         end
     end
 end)
+boot:RegisterEvent("PLAYER_LOGIN")
+boot:RegisterEvent("PLAYER_ENTERING_WORLD")

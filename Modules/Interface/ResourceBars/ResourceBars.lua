@@ -1096,7 +1096,7 @@ end
 local updateTimer = 0
 local function OnUpdate(self, elapsed)
     updateTimer = updateTimer + elapsed
-    if updateTimer >= 0.05 then
+    if updateTimer >= 0.1 then  -- [PERF] 0.1s (10fps) au lieu de 0.05s — suffisant pour "%.1f" runes/stagger
         updateTimer = 0
         -- [PERF] Only update runes/stagger here; other resources are event-driven
         if classPowerFrame and currentResources and currentResources.classPower then

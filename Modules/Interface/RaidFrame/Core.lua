@@ -389,6 +389,19 @@ function RF.CreateFrame(unit)
     rcFrame.texture = rcTex
     f.readyCheck = rcFrame
 
+    -- ---- SUMMON INDICATOR ----
+    local sumFrame = CreateFrame("Frame", nil, content)
+    local sSize = db.summonSize or 18
+    sumFrame:SetSize(sSize, sSize)
+    sumFrame:SetPoint("BOTTOM", f, "BOTTOM", 0, 2)
+    sumFrame:SetFrameLevel(content:GetFrameLevel() + 5)
+    sumFrame:Hide()
+    local sumTex = sumFrame:CreateTexture(nil, "OVERLAY")
+    sumTex:SetAllPoints()
+    sumTex:SetDrawLayer("OVERLAY", 7)
+    sumFrame.texture = sumTex
+    f.summonIndicator = sumFrame
+
     -- ---- DISPEL HIGHLIGHT ----
     if db.showDispel then
         local dispel = CreateFrame("Frame", nil, content, "BackdropTemplate")
@@ -720,6 +733,37 @@ function RF.FinishReadyCheck()
             end
         end
     end)
+end
+
+-- =====================================
+-- UPDATE: SUMMON INDICATOR
+-- =====================================
+function RF.UpdateSummon(f)
+    if not f or not f.summonIndicator then return end
+    if not f.unit or not UnitExists(f.unit) then f.summonIndicator:Hide(); return end
+    if not C_IncomingSummon then f.summonIndicator:Hide(); return end
+
+    local none     = Enum.SummonStatus and Enum.SummonStatus.None     or 0
+    local pending  = Enum.SummonStatus and Enum.SummonStatus.Pending  or 1
+    local accepted = Enum.SummonStatus and Enum.SummonStatus.Accepted or 2
+    local declined = Enum.SummonStatus and Enum.SummonStatus.Declined or 3
+
+    local status = C_IncomingSummon.IncomingSummonStatus(f.unit)
+    if status and status ~= none then
+        if status == pending then
+            f.summonIndicator.texture:SetAtlas("RaidFrame-Icon-SummonPending")
+        elseif status == accepted then
+            f.summonIndicator.texture:SetAtlas("RaidFrame-Icon-SummonAccepted")
+        elseif status == declined then
+            f.summonIndicator.texture:SetAtlas("RaidFrame-Icon-SummonDeclined")
+        else
+            f.summonIndicator:Hide()
+            return
+        end
+        f.summonIndicator:Show()
+    else
+        f.summonIndicator:Hide()
+    end
 end
 
 -- =====================================
@@ -1369,6 +1413,11 @@ local function OnEvent(self, event, arg1, ...)
     elseif event == "READY_CHECK_FINISHED" then
         RF.FinishReadyCheck()
 
+    elseif event == "INCOMING_SUMMON_CHANGED" then
+        for _, f in pairs(RF.frames) do
+            if f then RF.UpdateSummon(f) end
+        end
+
     elseif event == "GROUP_ROSTER_UPDATE" then
         RF.RefreshGroup()
 
@@ -1422,6 +1471,7 @@ function RF.Initialize()
     eventFrame:RegisterEvent("READY_CHECK")
     eventFrame:RegisterEvent("READY_CHECK_CONFIRM")
     eventFrame:RegisterEvent("READY_CHECK_FINISHED")
+    eventFrame:RegisterEvent("INCOMING_SUMMON_CHANGED")
     eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
     eventFrame:RegisterEvent("PLAYER_ROLES_ASSIGNED")
     eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -1492,6 +1542,11 @@ function RF.ApplySettings()
             if f.healthText then
                 f.healthText:SetFont(db.font or ADDON_FONT, math.max(6, (db.fontSize or 10) - 2), db.fontOutline or "OUTLINE")
             end
+
+            local rcSize = db.readyCheckSize or 20
+            if f.readyCheck then f.readyCheck:SetSize(rcSize, rcSize) end
+            local sSize = db.summonSize or 18
+            if f.summonIndicator then f.summonIndicator:SetSize(sSize, sSize) end
 
             if f:IsShown() then
                 RF.UpdateFrame(f)

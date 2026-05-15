@@ -20,6 +20,10 @@ local ADDON_PATH     = "Interface\\AddOns\\TomoMod\\"
 local TEX_CHAT       = ADDON_PATH .. "Assets\\Textures\\Chat\\"
 local ADDON_FONT     = ADDON_PATH .. "Assets\\Fonts\\Poppins-Medium.ttf"
 local ADDON_FONT_BOLD = ADDON_PATH .. "Assets\\Fonts\\Poppins-SemiBold.ttf"
+-- Police utilisée pour le rendu des messages du chat : ARIALN.TTF est intégrée
+-- à WoW et supporte les caractères cyrilliques (joueurs sur realms russes).
+-- Poppins ne contient pas de glyphes cyrilliques et provoque un rendu plus petit.
+local CHAT_FONT = UNIT_NAME_FONT  -- "Fonts\\ARIALN.TTF" — Latin + Cyrillique
 
 local L = TomoMod_L
 
@@ -2303,8 +2307,8 @@ local function styleChatWindow(frame)
     end
 
     if s.fontSize and s.fontSize > 0 then
-        frame:SetFont(ADDON_FONT, s.fontSize, "")
-        editbox:SetFont(ADDON_FONT, s.fontSize, "")
+        frame:SetFont(CHAT_FONT, s.fontSize, "")
+        editbox:SetFont(CHAT_FONT, s.fontSize, "")
         local header = _G[editbox:GetName() .. "Header"]
         if header then header:SetFont(ADDON_FONT_BOLD, s.fontSize, "") end
     end

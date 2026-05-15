@@ -40,6 +40,8 @@ local chatFrames    = {}   -- [anchorName] = frameData
 local sideBarIcons  = {}   -- [iconType]   = widget
 local isInitialized = false
 local isActive      = false
+local _dockAligned  = false
+local AlignDockToTabs  -- forward declaration
 
 -- =====================================
 -- SETTINGS
@@ -558,6 +560,31 @@ local function RepositionFrame(fd)
     end
 
     SetUpTabBar(fd, s.tabBar or { show = true, yOffset = -12 })
+    AlignDockToTabs(fd)
+end
+
+-- =====================================
+-- DOCK MANAGER ALIGNMENT
+-- Anchor GeneralDockManager to our decorative tab texture so that
+-- Blizzard's real chat tabs render on top of the visual tab bar.
+-- =====================================
+
+AlignDockToTabs = function(fd)
+    if not fd or not fd.tabs or not fd.tabs:IsShown() then return end
+    local dock = GENERAL_CHAT_DOCK
+    if not dock then return end
+
+    dock:ClearAllPoints()
+    dock:SetPoint("TOPLEFT",  fd.tabs, "TOPLEFT",  0, 0)
+    dock:SetPoint("TOPRIGHT", fd.tabs, "TOPRIGHT", 0, 0)
+    dock:SetHeight(fd.tabs:GetHeight())
+
+    local scrollFrame = _G.GeneralDockManagerScrollFrame
+    local scrollChild = _G.GeneralDockManagerScrollFrameChild
+    if scrollFrame then scrollFrame:SetHeight(fd.tabs:GetHeight()) end
+    if scrollChild  then scrollChild:SetHeight(fd.tabs:GetHeight())  end
+
+    _dockAligned = true
 end
 
 -- =====================================
@@ -810,6 +837,45 @@ local function LoadChatFrameUI()
     UpdateHighlightGroups()
     C_Timer.After(1, RepositionBNToast)
 
+    -- =============================================
+    -- DOCK TAB OVERRIDE
+    -- Post-hook FCFDock_UpdateTabs: when CFUI is active, re-anchor
+    -- the real Blizzard tabs so they sit inside our decorative tab
+    -- texture instead of at ChatFrameSkin's default offset.
+    -- =============================================
+    hooksecurefunc("FCFDock_UpdateTabs", function()
+        if not isActive or not _dockAligned then return end
+        local dock = GENERAL_CHAT_DOCK
+        if not dock or not dock.DOCKED_CHAT_FRAMES then return end
+        local prev
+        for _, chatFrame in ipairs(dock.DOCKED_CHAT_FRAMES) do
+            local chatTab = _G[chatFrame:GetName() .. "Tab"]
+            if chatTab then
+                chatTab:ClearAllPoints()
+                if prev then
+                    chatTab:SetPoint("LEFT", prev, "RIGHT", 1, 0)
+                else
+                    chatTab:SetPoint("LEFT", dock, "LEFT", 4, 0)
+                end
+                chatTab:SetAlpha(1)
+                local fs = chatTab:GetFontString()
+                if fs then
+                    chatTab:SetWidth(fs:GetStringWidth() + 20)
+                end
+                chatTab:SetHeight(dock:GetHeight())
+                chatTab:SetFrameStrata("MEDIUM")
+                prev = chatTab
+            end
+        end
+    end)
+
+    -- Trigger initial tab repositioning after dock alignment
+    C_Timer.After(0, function()
+        if isActive and GENERAL_CHAT_DOCK and FCFDock_UpdateTabs then
+            FCFDock_UpdateTabs(GENERAL_CHAT_DOCK)
+        end
+    end)
+
     -- Raid frame manager
     if s.raidFrameManager ~= false then
         local isLoaded = C_AddOns and C_AddOns.IsAddOnLoaded and C_AddOns.IsAddOnLoaded("Blizzard_CompactRaidFrames")
@@ -847,6 +913,13 @@ function CFUI.SetEnabled(value)
         isActive = false
         for _, d in pairs(chatFrames) do if d.frame then d.frame:Hide() end end
         HideAllIcons()
+        -- Restore dock to ChatFrameSkin's default position
+        if _dockAligned and GENERAL_CHAT_DOCK and ChatFrame1 then
+            GENERAL_CHAT_DOCK:ClearAllPoints()
+            GENERAL_CHAT_DOCK:SetPoint("BOTTOMLEFT", ChatFrame1, "TOPLEFT", 16, 12)
+            GENERAL_CHAT_DOCK:SetPoint("BOTTOMRIGHT", ChatFrame1, "TOPRIGHT", 0, 12)
+            _dockAligned = false
+        end
         if ChatFrame1 and ChatFrame1.tuiContainer then ChatFrame1.tuiContainer:Show() end
     end
 end

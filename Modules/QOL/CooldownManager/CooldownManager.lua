@@ -421,6 +421,32 @@ end
 local function UpdateButtonState(button, isBuff)
     if not button._cdm_styled then return end
 
+    -- [PERF] Cache settings + all repeated API calls once for the whole function.
+    local settings = GetSettings()
+
+    -- [PERF] GetCooldownTimes called once — reused by pandemic check AND CD text.
+    local cdStart, cdDuration
+    if button.Cooldown then
+        local s, d = button.Cooldown:GetCooldownTimes()
+        if type(s) ~= "nil" and type(d) ~= "nil"
+            and not issecretvalue(s) and not issecretvalue(d) then
+            cdStart, cdDuration = s, d
+        end
+    end
+
+    -- [PERF] GetCachedCooldownID + GetCooldownViewerCooldownInfo called once —
+    -- reused by desaturation AND range check (was called twice each before).
+    local cachedSpellID
+    if not isBuff and settings then
+        local cdID = Scanner.GetCachedCooldownID(button)
+        if cdID then
+            local ok, info = pcall(C_CooldownViewer.GetCooldownViewerCooldownInfo, cdID)
+            if ok and info then
+                cachedSpellID = info.overrideSpellID or info.spellID
+            end
+        end
+    end
+
     -- Active state detection (TWW issecretvalue-safe)
     local isActive = false
     local auraField = button.cooldownUseAuraDisplayTime
@@ -438,20 +464,15 @@ local function UpdateButtonState(button, isBuff)
 
     -- Pandemic detection: show orange border when buff is in the refresh window
     local isPandemic = false
-    local settings = GetSettings()
-    if isBuff and settings and settings.pandemicEnabled and button.Cooldown then
-        local start, duration = button.Cooldown:GetCooldownTimes()
-        if type(start) ~= "nil" and type(duration) ~= "nil"
-            and not issecretvalue(start) and not issecretvalue(duration) then
-            if start > 0 and duration > 0 then
-                local now = GetTime()
-                local startSec = start / 1000
-                local durSec = duration / 1000
-                local remaining = startSec + durSec - now
-                local threshold = settings.pandemicThreshold or PANDEMIC_THRESHOLD_DEFAULT
-                if remaining > 0 and remaining <= (durSec * threshold) then
-                    isPandemic = true
-                end
+    if isBuff and settings and settings.pandemicEnabled and cdStart and cdDuration then
+        if cdStart > 0 and cdDuration > 0 then
+            local now = GetTime()
+            local startSec = cdStart / 1000
+            local durSec = cdDuration / 1000
+            local remaining = startSec + durSec - now
+            local threshold = settings.pandemicThreshold or PANDEMIC_THRESHOLD_DEFAULT
+            if remaining > 0 and remaining <= (durSec * threshold) then
+                isPandemic = true
             end
         end
     end
@@ -483,81 +504,59 @@ local function UpdateButtonState(button, isBuff)
 
     -- Desaturation on cooldown (non-buff icons)
     if not isBuff and settings and settings.desaturateOnCD and button.Icon then
-        local cdID = Scanner.GetCachedCooldownID(button)
-        if cdID then
-            local ok, info = pcall(C_CooldownViewer.GetCooldownViewerCooldownInfo, cdID)
-            if ok and info then
-                local spellID = info.overrideSpellID or info.spellID
-                if spellID and not isActive then
-                    local cd = C_Spell.GetSpellCooldown(spellID)
-                    if cd and not cd.isOnGCD then
-                        local cdDuration = CooldownTracker:GetSpellCD(spellID)
-                        if cdDuration and cdDuration.EvaluateRemainingDuration then
-                            local desat = cdDuration:EvaluateRemainingDuration(desaturationCurve)
-                            button.Icon:SetDesaturation(desat or 0)
-                        else
-                            button.Icon:SetDesaturation(0)
-                        end
-                    else
-                        button.Icon:SetDesaturation(0)
-                    end
+        if cachedSpellID and not isActive then
+            local cd = C_Spell.GetSpellCooldown(cachedSpellID)
+            if cd and not cd.isOnGCD then
+                local cdDurationObj = CooldownTracker:GetSpellCD(cachedSpellID)
+                if cdDurationObj and cdDurationObj.EvaluateRemainingDuration then
+                    button.Icon:SetDesaturation(cdDurationObj:EvaluateRemainingDuration(desaturationCurve) or 0)
                 else
                     button.Icon:SetDesaturation(0)
                 end
+            else
+                button.Icon:SetDesaturation(0)
             end
+        else
+            button.Icon:SetDesaturation(0)
         end
     end
 
     -- Range check: tint icon red if target is out of range (Essential/Utility only)
     if not isBuff and settings and settings.rangeCheckEnabled and button.Icon then
-        local cdID = Scanner.GetCachedCooldownID(button)
-        if cdID then
-            local spellID = nil
-            local ok, info = pcall(C_CooldownViewer.GetCooldownViewerCooldownInfo, cdID)
-            if ok and info then spellID = info.overrideSpellID or info.spellID end
-            if spellID then
-                local inRange = C_Spell.IsSpellInRange(spellID, "target")
-                if inRange == false then
-                    -- Explicitly out of range (target exists, spell has range, OOR)
-                    button.Icon:SetVertexColor(RANGE_OOR_COLOR.r, RANGE_OOR_COLOR.g, RANGE_OOR_COLOR.b)
-                    button._cdm_oorState = true
-                else
-                    -- In range, no target, or spell has no range component
-                    if button._cdm_oorState then
-                        button.Icon:SetVertexColor(RANGE_OK_COLOR.r, RANGE_OK_COLOR.g, RANGE_OK_COLOR.b)
-                        button._cdm_oorState = false
-                    end
+        if cachedSpellID then
+            local inRange = C_Spell.IsSpellInRange(cachedSpellID, "target")
+            if inRange == false then
+                button.Icon:SetVertexColor(RANGE_OOR_COLOR.r, RANGE_OOR_COLOR.g, RANGE_OOR_COLOR.b)
+                button._cdm_oorState = true
+            else
+                if button._cdm_oorState then
+                    button.Icon:SetVertexColor(RANGE_OK_COLOR.r, RANGE_OK_COLOR.g, RANGE_OK_COLOR.b)
+                    button._cdm_oorState = false
                 end
             end
         end
     end
 
     -- Custom CD text
-    if button.Cooldown then
-        local start, duration = button.Cooldown:GetCooldownTimes()
-        if type(start) ~= "nil" and type(duration) ~= "nil"
-            and not issecretvalue(start) and not issecretvalue(duration) then
-            if start > 0 and duration > 0 then
-                local now = GetTime()
-                local startSec = start / 1000
-                local durSec = duration / 1000
-                local remaining = startSec + durSec - now
-                if remaining > 0 then
-                    if isBuff then
-                        button._cdm_cdText:SetText(FormatDuration(remaining))
-                        button._cdm_cdText:SetTextColor(1, 1, 1)
-                    else
-                        button._cdm_cdText:SetText(FormatCooldown(remaining))
-                        if remaining < 3 then
-                            button._cdm_cdText:SetTextColor(1, 0.8, 0)
-                        else
-                            button._cdm_cdText:SetTextColor(1, 1, 1)
-                        end
-                    end
-                    button._cdm_cdText:Show()
-                    return
+    if cdStart and cdDuration and cdStart > 0 and cdDuration > 0 then
+        local now = GetTime()
+        local startSec = cdStart / 1000
+        local durSec = cdDuration / 1000
+        local remaining = startSec + durSec - now
+        if remaining > 0 then
+            if isBuff then
+                button._cdm_cdText:SetText(FormatDuration(remaining))
+                button._cdm_cdText:SetTextColor(1, 1, 1)
+            else
+                button._cdm_cdText:SetText(FormatCooldown(remaining))
+                if remaining < 3 then
+                    button._cdm_cdText:SetTextColor(1, 0.8, 0)
+                else
+                    button._cdm_cdText:SetTextColor(1, 1, 1)
                 end
             end
+            button._cdm_cdText:Show()
+            return
         end
     end
     button._cdm_cdText:Hide()

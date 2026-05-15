@@ -47,7 +47,11 @@ local function TrySkipCinematic()
         
         if HasSeenCinematic(cinematicID) then
             -- Skip la cinématique
-            CinematicFrame_CancelCinematic()
+            if CinematicFrame_CancelCinematic then
+                CinematicFrame_CancelCinematic()
+            else
+                CinematicFrame:Hide()
+            end
             print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_cin_skipped"])
         else
             -- Première fois, marquer comme vue

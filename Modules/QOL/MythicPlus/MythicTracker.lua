@@ -218,7 +218,8 @@ function TMT:FetchEJBossNames()
 
     local wasShown = EncounterJournal and EncounterJournal:IsShown()
     C_AddOns.LoadAddOn("Blizzard_EncounterJournal")
-    EncounterJournal_OpenJournal(8, instanceID)
+    -- EncounterJournal_OpenJournal can taint in 12.x — wrap in pcall
+    pcall(EncounterJournal_OpenJournal, 8, instanceID)
     if not wasShown and EncounterJournal and EncounterJournal:IsShown() then
         HideUIPanel(EncounterJournal)
     end
@@ -928,13 +929,17 @@ function TMT:UpdateBossRows(preview)
             row._bg:SetColorTexture(0, 0, 0, 0)
         end
 
-        -- Resolve boss name via EJ (localised), fall back to raw criteriaString
+        -- Resolve boss name via EJ (localised), fall back to raw criteria description.
+        -- WoW 12.x (Midnight): the field was renamed from criteriaString to description.
+        -- Strip Blizzard's leading checkmark (U+2713, completed state) and dash prefix.
         local dungeonEncounterID = (cr.criteriaType == 165) and cr.assetID or nil
+        local rawDesc = cr.description or cr.criteriaString or ""
+        rawDesc = rawDesc:gsub("^\226\156\147%s*", ""):gsub("^%-%s*", "")
         local bossName
         if preview then
             bossName = self:Utf8Sub(cr.criteriaString or ("Boss " .. i), 1, self.BOSS_NAME_MAX)
         else
-            bossName = self:FindBossName(cr.criteriaString or ("Boss " .. i), i, dungeonEncounterID)
+            bossName = self:FindBossName(rawDesc ~= "" and rawDesc or ("Boss " .. i), i, dungeonEncounterID)
         end
         row.name:SetText(bossName)
 

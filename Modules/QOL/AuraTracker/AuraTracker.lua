@@ -556,7 +556,7 @@ function AT.Start()
     eventFrame:Show()
 
     if AT.ticker then AT.ticker:Cancel() end
-    AT.ticker = C_Timer.NewTicker(0.1, UpdateTimers)
+    AT.ticker = C_Timer.NewTicker(0.2, UpdateTimers)  -- [PERF] 0.2s (5fps) au lieu de 0.1s — suffisant pour "%.1f" affichage
 
     AT.ScanAuras()
 end

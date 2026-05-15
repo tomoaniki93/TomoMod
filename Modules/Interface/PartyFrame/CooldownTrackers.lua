@@ -1,7 +1,7 @@
 -- =====================================
 -- PartyFrame/CooldownTrackers.lua — Interrupt & Battle Rez CD tracking
--- UNIT_SPELLCAST_SUCCEEDED only (no CLEU — causes taint)
--- All spellID checks wrapped in pcall/issecretvalue
+-- UNIT_SPELLCAST_SUCCEEDED only (no CLEU — causes taint in WoW 12.x)
+-- Party spellIDs are tainted: stripped via string.format("%.0f", id) trick
 -- =====================================
 
 TomoMod_PartyCooldowns = TomoMod_PartyCooldowns or {}
@@ -120,85 +120,100 @@ end
 CD.active = {}
 
 -- =====================================
+-- TAINT-SAFE SPELLID RESOLVER
+-- In WoW 12.x, spellIDs from party UNIT_SPELLCAST_SUCCEEDED are tainted and
+-- cannot be used as table indices directly.
+-- Resolution order (mirrors BliZzi_Interrupts BIT.Taint:ResolveNumber):
+--   1. Direct pcall table access — fast path for clean IDs (player is never tainted)
+--   2. string.format("%.0f", raw) → tonumber — strips taint on numeric primitives
+--      in most 12.x builds; the resulting tainted string converts to a clean integer
+--      via tonumber, which CAN be used as a table key safely.
+-- COMBAT_LOG_EVENT_UNFILTERED is intentionally NOT registered: doing so from
+-- addon code causes taint in 12.x, blocking protected-frame API calls.
+-- =====================================
+local function ResolveSpellID(rawID)
+    if rawID == nil then return nil end
+    -- Fast path: attempt to use rawID as a table key via pcall (errors if tainted)
+    local ok = pcall(function()
+        local _ = CD.INTERRUPT_SPELLS[rawID]
+        local __ = CD.BREZ_SPELLS[rawID]
+    end)
+    if ok then return rawID end  -- clean integer, safe to use directly
+    -- Strip taint: string.format works on tainted numeric primitives in 12.x
+    local okF, s = pcall(string.format, "%.0f", rawID)
+    if okF and s then
+        local okN, num = pcall(tonumber, s)
+        if okN and num then return num end
+    end
+    return nil
+end
+
+-- =====================================
 -- EVENT: UNIT_SPELLCAST_SUCCEEDED
+-- Tracks interrupt and battle-rez casts for player + party members.
+-- spellID may be tainted for party units in 12.x — resolved via ResolveSpellID.
+-- Fallback: when spellID is fully unresolvable, attribute to the class-default
+-- interrupt if that slot is not currently on cooldown (BliZzi "WilduTools" approach:
+-- trust the known spell rather than requiring a readable runtime ID).
 -- =====================================
 local eventFrame = CreateFrame("Frame")
 local cdTrackingEnabled = false
 
-local function OnSpellCastSucceeded(self, event, unit, _, spellID)
+local function OnSpellCastSucceeded(unit, spellID)
     if not unit or not spellID then return end
 
-    -- Only track party/player units
-    local validUnit = (unit == "player")
-    if not validUnit then
-        for i = 1, 4 do
-            if unit == "party" .. i then validUnit = true; break end
-        end
-    end
-    if not validUnit then return end
+    local safeID = ResolveSpellID(spellID)
 
-    -- Taint-safe spellID check
-    if issecretvalue and issecretvalue(spellID) then
-        -- Secret spellID: can't use as table index, try pcall lookup
-        for knownID, data in pairs(CD.INTERRUPT_SPELLS) do
-            local ok, match = pcall(function() return spellID == knownID end)
-            if ok and match then
-                if not CD.active[unit] then CD.active[unit] = {} end
-                CD.active[unit].kick = {
-                    spellID   = knownID,
-                    startTime = GetTime(),
-                    duration  = data.cd,
-                    icon      = data.icon,
-                }
-                CD.UpdateAllFrames()
-                return
+    if safeID then
+        local kickData = CD.INTERRUPT_SPELLS[safeID]
+        if kickData then
+            if not CD.active[unit] then CD.active[unit] = {} end
+            CD.active[unit].kick = {
+                spellID   = safeID,
+                startTime = GetTime(),
+                duration  = kickData.cd,
+                icon      = kickData.icon,
+            }
+            CD.UpdateAllFrames()
+            return
+        end
+
+        local brezData = CD.BREZ_SPELLS[safeID]
+        if brezData then
+            if not CD.active[unit] then CD.active[unit] = {} end
+            CD.active[unit].brez = {
+                spellID   = safeID,
+                startTime = GetTime(),
+                duration  = brezData.cd,
+                icon      = brezData.icon,
+            }
+            CD.UpdateAllFrames()
+            return
+        end
+    else
+        -- spellID unresolvable (tainted AND string.format strip failed).
+        -- Fall back to the class-known interrupt if not already on cooldown.
+        -- We skip the brez fallback: too many non-brez spells cast in combat.
+        local _, classFile = UnitClass(unit)
+        if classFile then
+            local classKick = CLASS_INTERRUPT[classFile]
+            if classKick then
+                local now     = GetTime()
+                local unitCDs = CD.active[unit]
+                local kickOnCD = unitCDs and unitCDs.kick
+                    and (unitCDs.kick.startTime + unitCDs.kick.duration) > now
+                if not kickOnCD then
+                    if not CD.active[unit] then CD.active[unit] = {} end
+                    CD.active[unit].kick = {
+                        spellID   = classKick.spellID,
+                        startTime = now,
+                        duration  = classKick.cd,
+                        icon      = nil,
+                    }
+                    CD.UpdateAllFrames()
+                end
             end
         end
-        for knownID, data in pairs(CD.BREZ_SPELLS) do
-            local ok, match = pcall(function() return spellID == knownID end)
-            if ok and match then
-                if not CD.active[unit] then CD.active[unit] = {} end
-                CD.active[unit].brez = {
-                    spellID   = knownID,
-                    startTime = GetTime(),
-                    duration  = data.cd,
-                    icon      = data.icon,
-                }
-                CD.UpdateAllFrames()
-                return
-            end
-        end
-        return
-    end
-
-    local safeID = spellID
-
-    -- Check interrupt
-    local kickData = CD.INTERRUPT_SPELLS[safeID]
-    if kickData then
-        if not CD.active[unit] then CD.active[unit] = {} end
-        CD.active[unit].kick = {
-            spellID   = safeID,
-            startTime = GetTime(),
-            duration  = kickData.cd,
-            icon      = kickData.icon,
-        }
-        CD.UpdateAllFrames()
-        return
-    end
-
-    -- Check brez
-    local brezData = CD.BREZ_SPELLS[safeID]
-    if brezData then
-        if not CD.active[unit] then CD.active[unit] = {} end
-        CD.active[unit].brez = {
-            spellID   = safeID,
-            startTime = GetTime(),
-            duration  = brezData.cd,
-            icon      = brezData.icon,
-        }
-        CD.UpdateAllFrames()
-        return
     end
 end
 
@@ -246,10 +261,11 @@ function CD.UpdateFrame(f)
     local unitCDs = CD.active[f.unit]
     local now = GetTime()
 
-    -- Kick icon
+    -- Kick icon (hidden for healers — since 12.x healers have no interrupt)
     if f.cdContainer.kickIcon and db.showInterruptCD then
+        local role = UnitGroupRolesAssigned(f.unit)
         local classKick = classFile and CLASS_INTERRUPT[classFile]
-        if classKick then
+        if classKick and role ~= "HEALER" then
             local kickData = unitCDs and unitCDs.kick
             if kickData and (kickData.startTime + kickData.duration) > now then
                 local remaining = (kickData.startTime + kickData.duration) - now
@@ -332,14 +348,24 @@ end
 
 -- =====================================
 -- EVENT REGISTRATION (file scope — taint-safe)
--- Only UNIT_SPELLCAST_SUCCEEDED: no COMBAT_LOG_EVENT_UNFILTERED (causes taint).
--- Mirrors BliZzi_Interrupts pattern: register at load time,
--- gate processing behind a runtime flag set by Initialize().
+-- UNIT_SPELLCAST_SUCCEEDED: fires for player + party units.
+--   For the player it is fully reliable; for party members in 12.x the
+--   spellID argument is tainted but ResolveSpellID() handles that.
+-- No COMBAT_LOG_EVENT_UNFILTERED: registering it from addon code causes
+-- taint in WoW 12.x, blocking protected frame / API calls.
 -- =====================================
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-eventFrame:SetScript("OnEvent", function(self, event, ...)
+eventFrame:SetScript("OnEvent", function(self, event, unit, _, spellID)
     if not cdTrackingEnabled then return end
     if event == "UNIT_SPELLCAST_SUCCEEDED" then
-        OnSpellCastSucceeded(self, event, ...)
+        if not unit then return end
+        if unit ~= "player" then
+            local valid = false
+            for i = 1, 4 do
+                if unit == "party" .. i then valid = true; break end
+            end
+            if not valid then return end
+        end
+        OnSpellCastSucceeded(unit, spellID)
     end
 end)
