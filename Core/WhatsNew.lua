@@ -30,6 +30,16 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "2.9.15",
+        highlights = {
+            L["wn_2915_art_module"],
+            L["wn_2915_art_tooltip"],
+            L["wn_2915_art_scrollbar"],
+            L["wn_2915_art_anchor"],
+            L["wn_2915_art_scan_fix"],
+        },
+    },
+    {
         version = "2.9.13",
         highlights = {
             L["wn_2913_boss_names"],

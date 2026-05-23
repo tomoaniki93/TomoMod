@@ -2121,6 +2121,15 @@ TomoMod_RegisterLocale("enUS", {
     -- MythicTracker EJ Boss Names (2.9.10)
     -- ═══════════════════════════════════
     -- ═══════════════════════════════════
+    -- AuctionRecipeTracker (2.9.15)
+    -- ═══════════════════════════════════
+    ["wn_2915_art_module"]              = "New QOL module — AuctionRecipeTracker: a GUI opens automatically at the auctioneer when at least one crafting recipe is tracked; reagent rows show '14x icon Item name price' with click-to-search and a manual full AH scan button.",
+    ["wn_2915_art_tooltip"]             = "TomoHDV tooltip line — after a scan, every item tooltip (bags, bank, chat links, equipment) shows the recorded unit price plus the full stack price when stack > 1, and how long ago the scan was made.",
+    ["wn_2915_art_scrollbar"]           = "Modern TomoMod scrollbar — the default Blizzard scrollbar is replaced by a 4px slim track with an accent-coloured thumb sized proportionally to the content; supports drag, click-on-track to jump, mouse wheel, and auto-hides when content fits.",
+    ["wn_2915_art_anchor"]              = "AuctionRecipeTracker default anchor — the frame attaches to the right edge of the Auction House window (TOPLEFT, AuctionHouseFrame, TOPRIGHT, 8, 0); user-dragged positions remain persisted and override the default.",
+    ["wn_2915_art_scan_fix"]            = "Scan button reliability — OnShow now resets scanInProgress, re-enables the button and restores its label; silent early-returns (scan in progress, AH closed, API missing) now display a red status message instead of doing nothing.",
+
+    -- ═══════════════════════════════════
     -- MythicTracker Boss Names Fix (2.9.13)
     -- ═══════════════════════════════════
     ["wn_2913_boss_names"]               = "MythicTracker: boss names now display correctly instead of \"Boss 1\", \"Boss 2\" etc. — in WoW 12.x the scenario criteria field was renamed from criteriaString to description; TomoMod now reads description first with a criteriaString fallback.",
@@ -2148,4 +2157,27 @@ TomoMod_RegisterLocale("enUS", {
     -- ═══════════════════════════════════
     ["wn_2910_ej_boss_names"]            = "MythicTracker: boss names resolved via the Encounter Journal — localised, accent-safe, covering all dungeons from Cata to The War Within.",
     ["wn_2910_ej_fallback"]              = "MythicTracker: 3-level name resolution — dungeonEncounterID > EJ index > filtered criteriaString, with automatic retry (\195\2275) if the EJ isn't loaded yet.",
+
+    -- =====================
+    -- AuctionRecipeTracker
+    -- =====================
+    ["art_title"]            = "Recipe Tracker",
+    ["art_no_recipes"]       = "No tracked recipes — track a recipe in your profession window.",
+    ["art_status_idle"]      = "Click an ingredient to search the AH.",
+    ["art_scan_btn"]         = "Scan Auction House",
+    ["art_scan_running"]     = "Scanning...",
+    ["art_scan_started"]     = "Scan started — please wait...",
+    ["art_scan_done"]        = "Scan finished: %d items recorded.",
+    ["art_scan_failed"]      = "Scan failed or interrupted.",
+    ["art_scan_cooldown"]    = "Next scan available in %dm %ds.",
+    ["art_scan_tip_title"]   = "Full Auction House scan",
+    ["art_scan_tip_desc"]    = "Records the lowest buyout per item. Limited to once every 15 minutes.",
+    ["art_only_at_ah"]       = "Open the Auction House first.",
+    ["art_scan_already"]     = "A scan is already in progress.",
+    ["art_tt_stack"]         = "Stack",
+    ["art_tt_scanned"]       = "Scanned",
+    ["art_tt_just_now"]      = "just now",
+    ["art_tt_min_ago"]       = "%dm ago",
+    ["art_tt_hour_ago"]      = "%dh ago",
+    ["art_tt_day_ago"]       = "%dd ago",
 })

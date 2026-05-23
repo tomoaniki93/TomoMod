@@ -1980,6 +1980,15 @@ TomoMod_RegisterLocale("deDE", {
     -- PartyFrame-CD-Fix + Performance (2.9.12)
     -- ═══════════════════════════════════
     -- ═══════════════════════════════════
+    -- AuctionRecipeTracker (2.9.15)
+    -- ═══════════════════════════════════
+    ["wn_2915_art_module"]              = "Neues QOL-Modul — AuctionRecipeTracker: Eine GUI öffnet sich automatisch beim Auktionator, wenn mindestens ein Handwerksrezept verfolgt wird; Reagenzien werden als '14x Icon Itemname Preis' angezeigt, mit Klick-zur-Suche und manuellem AH-Scan-Button.",
+    ["wn_2915_art_tooltip"]             = "TomoHDV-Tooltip-Zeile — nach einem Scan zeigt jeder Item-Tooltip (Taschen, Bank, Chat-Links, Ausrüstung) den gespeicherten Stückpreis sowie den gesamten Stapelpreis bei Stapel > 1 und wie lange der Scan zurückliegt.",
+    ["wn_2915_art_scrollbar"]           = "Moderne TomoMod-Scrollbar — ersetzt die Blizzard-Standard-Scrollbar durch eine 4 px schmale Spur mit einem akzentfarbigen Thumb, dessen Größe proportional zum Inhalt ist; unterstützt Drag, Klick auf Spur zum Springen, Mausrad und blendet sich aus, wenn der Inhalt passt.",
+    ["wn_2915_art_anchor"]              = "Standard-Verankerung des AuctionRecipeTracker — das Fenster wird am rechten Rand des Auktionshausfensters verankert (TOPLEFT, AuctionHouseFrame, TOPRIGHT, 8, 0); manuell verschobene Positionen bleiben gespeichert und haben Vorrang.",
+    ["wn_2915_art_scan_fix"]            = "Zuverlässigkeit des Scan-Buttons — OnShow setzt jetzt scanInProgress zurück, reaktiviert den Button und stellt sein Label wieder her; stille frühe Rückkehren (Scan läuft, AH geschlossen, API fehlt) zeigen jetzt eine rote Statusmeldung statt nichts zu tun.",
+
+    -- ═══════════════════════════════════
     -- MythicTracker Boss Names Fix (2.9.13)
     -- ═══════════════════════════════════
     ["wn_2913_boss_names"]               = "MythicTracker: Boss-Namen werden jetzt korrekt angezeigt statt \"Boss 1\", \"Boss 2\" usw. — in WoW 12.x wurde das Szenario-Kriterium-Feld von criteriaString in description umbenannt; TomoMod liest jetzt description zuerst mit criteriaString als Fallback.",

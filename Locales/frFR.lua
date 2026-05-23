@@ -2038,6 +2038,15 @@ TomoMod_RegisterLocale("frFR", {
     -- Correction CD PartyFrame + Performances (2.9.12)
     -- ═══════════════════════════════════
     -- ═══════════════════════════════════
+    -- AuctionRecipeTracker (2.9.15)
+    -- ═══════════════════════════════════
+    ["wn_2915_art_module"]              = "Nouveau module QOL — AuctionRecipeTracker : un GUI s'ouvre automatiquement chez le commissaire-priseur quand au moins une recette d'artisanat est suivie ; les lignes affichent '14x icône Nom de l'objet prix', clic pour rechercher à l'HDV, et un bouton de scan complet manuel.",
+    ["wn_2915_art_tooltip"]             = "Ligne TomoHDV dans les infobulles — après un scan, chaque objet (sacs, banque, liens du chat, équipement) affiche le prix unitaire enregistré, plus le prix total de la pile si stack > 1, et depuis quand le scan a été fait.",
+    ["wn_2915_art_scrollbar"]           = "Scrollbar moderne TomoMod — la scrollbar Blizzard par défaut est remplacée par un track fin de 4 px avec un thumb couleur accent dimensionné proportionnellement au contenu ; supporte le drag, le clic sur le track pour sauter, la molette, et s'auto-masque quand le contenu tient dans la fenêtre.",
+    ["wn_2915_art_anchor"]              = "Ancrage par défaut de l'AuctionRecipeTracker — la fenêtre se colle au bord droit de la fenêtre HDV (TOPLEFT, AuctionHouseFrame, TOPRIGHT, 8, 0) ; les positions personnalisées par drag restent persistantes et prioritaires.",
+    ["wn_2915_art_scan_fix"]            = "Fiabilité du bouton de scan — OnShow réinitialise maintenant scanInProgress, réactive le bouton et restaure son label ; les retours silencieux (scan en cours, HDV fermé, API absente) affichent un message rouge en bas au lieu de ne rien faire.",
+
+    -- ═══════════════════════════════════
     -- MythicTracker Boss Names Fix (2.9.13)
     -- ═══════════════════════════════════
     ["wn_2913_boss_names"]               = "MythicTracker : les noms des boss s'affichent désormais correctement au lieu de \"Boss 1\", \"Boss 2\" etc. — en WoW 12.x le champ des critères de scénario a été renommé de criteriaString en description ; TomoMod lit désormais description en priorité avec criteriaString en repli.",
@@ -2062,4 +2071,27 @@ TomoMod_RegisterLocale("frFR", {
     -- ═══════════════════════════════════
     ["wn_2910_ej_boss_names"]            = "MythicTracker : noms de boss résolus via l'Encounter Journal — localisés, compatibles accents, couvrant tous les donjons de Cata à The War Within.",
     ["wn_2910_ej_fallback"]              = "MythicTracker : résolution en 3 niveaux — dungeonEncounterID > index EJ > criteriaString filtré en dernier recours, avec retry automatique (×5) si l'EJ n'est pas encore chargé.",
+
+    -- =====================
+    -- AuctionRecipeTracker
+    -- =====================
+    ["art_title"]            = "Suivi de recettes",
+    ["art_no_recipes"]       = "Aucune recette suivie — suivez une recette depuis votre fenêtre de métier.",
+    ["art_status_idle"]      = "Cliquez sur un ingrédient pour le chercher à l'HDV.",
+    ["art_scan_btn"]         = "Scanner l'HDV",
+    ["art_scan_running"]     = "Scan en cours...",
+    ["art_scan_started"]     = "Scan démarré — veuillez patienter...",
+    ["art_scan_done"]        = "Scan terminé : %d objets enregistrés.",
+    ["art_scan_failed"]      = "Scan échoué ou interrompu.",
+    ["art_scan_cooldown"]    = "Prochain scan disponible dans %dm %ds.",
+    ["art_scan_tip_title"]   = "Scan complet de l'Hôtel des Ventes",
+    ["art_scan_tip_desc"]    = "Enregistre le prix d'achat immédiat le plus bas par objet. Limité à une fois toutes les 15 minutes.",
+    ["art_only_at_ah"]       = "Ouvrez d'abord l'Hôtel des Ventes.",
+    ["art_scan_already"]     = "Un scan est déjà en cours.",
+    ["art_tt_stack"]         = "Pile",
+    ["art_tt_scanned"]       = "Scanné",
+    ["art_tt_just_now"]      = "à l'instant",
+    ["art_tt_min_ago"]       = "il y a %dm",
+    ["art_tt_hour_ago"]      = "il y a %dh",
+    ["art_tt_day_ago"]       = "il y a %dj",
 })

@@ -2031,6 +2031,15 @@ TomoMod_RegisterLocale("esES", {
     -- Corrección CD PartyFrame + Rendimiento (2.9.12)
     -- ═══════════════════════════════════
     -- ═══════════════════════════════════
+    -- AuctionRecipeTracker (2.9.15)
+    -- ═══════════════════════════════════
+    ["wn_2915_art_module"]              = "Nuevo módulo QOL — AuctionRecipeTracker: una GUI se abre automáticamente en el subastador cuando se sigue al menos una receta de profesión; las filas muestran '14x icono Nombre del objeto precio', clic para buscar en la CS y un botón de escaneo completo manual.",
+    ["wn_2915_art_tooltip"]             = "Línea TomoHDV en las descripciones — tras un escaneo, cada objeto (bolsas, banco, enlaces del chat, equipamiento) muestra el precio unitario registrado, más el precio total de la pila si stack > 1, y hace cuánto se realizó el escaneo.",
+    ["wn_2915_art_scrollbar"]           = "Barra de desplazamiento moderna TomoMod — reemplaza la barra de Blizzard por una pista delgada de 4 px con un pulgar en color de acento dimensionado proporcionalmente al contenido; admite arrastrar, clic en la pista para saltar, rueda del ratón, y se oculta automáticamente cuando el contenido cabe.",
+    ["wn_2915_art_anchor"]              = "Anclaje por defecto del AuctionRecipeTracker — la ventana se adhiere al borde derecho de la ventana de la CS (TOPLEFT, AuctionHouseFrame, TOPRIGHT, 8, 0); las posiciones personalizadas por arrastre se conservan y tienen prioridad.",
+    ["wn_2915_art_scan_fix"]            = "Fiabilidad del botón de escaneo — OnShow ahora restablece scanInProgress, reactiva el botón y restaura su etiqueta; los retornos tempranos silenciosos (escaneo en curso, CS cerrada, API no disponible) ahora muestran un mensaje rojo en lugar de no hacer nada.",
+
+    -- ═══════════════════════════════════
     -- MythicTracker Boss Names Fix (2.9.13)
     -- ═══════════════════════════════════
     ["wn_2913_boss_names"]               = "MythicTracker: los nombres de los jefes ahora se muestran correctamente en lugar de \"Boss 1\", \"Boss 2\" etc. — en WoW 12.x el campo de criterios de escenario se renombró de criteriaString a description; TomoMod ahora lee description primero con criteriaString como fallback.",

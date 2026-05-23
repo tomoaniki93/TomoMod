@@ -1,5 +1,22 @@
 ## ####################################
 
+## CHANGELOG 2.9.14 and 2.9.15 — AuctionRecipeTracker (QOL) · Tooltip Prices · UI Polish
+
+#### QOL — AuctionRecipeTracker (New Module)
+- **New** — Recipe Tracker GUI that appears automatically when speaking to an auctioneer if at least one crafting recipe is being tracked in the profession window; lives in `Modules/QOL/AuctionRecipeTracker/AuctionRecipeTracker.lua` and is wired through `Modules/QOL/QOL.xml`
+- **New** — Reagent rows show, in order, the **required quantity in TomoMod accent (`14x`)**, the reagent icon, the item name, and the per-stack price (when a scan has been recorded); the quantity column is right-aligned on a fixed 30 px width so icons line up regardless of digit count
+- **New** — Click on any reagent row to switch the AH to Buy mode and run `C_AuctionHouse.SendBrowseQuery` for that exact item name (sorted by lowest price); hovering shows the standard Blizzard item tooltip
+- **New** — Manual full Auction House scan via the "Scan AH" button at the bottom of the window — uses `C_AuctionHouse.ReplicateItems()` and respects Blizzard's 15-minute throttle (persisted in `TomoModDB.auctionRecipeTracker.lastScan`); stores the lowest unit price per `itemID`
+- **New** — TomoHDV tooltip injection — after a scan, every tooltip on items in bags, bank, equipment, item links in chat, etc. shows a `|cff0cd29fTomoHDV|r` line with the recorded unit price; if the hovered button has a stack count > 1, a second "Pile (N)" line shows the full stack price; a third grey line tells you how long ago the scan was made (`à l'instant`, `il y a Xm/h/j`)
+- **New** — Modern TomoMod-styled scrollbar — replaces `UIPanelScrollFrameTemplate` with a 4 px slim track (translucent dark grey) and an accent-coloured thumb (`#0CD29F`) sized proportionally to the content; supports drag, click-on-track to jump, and mouse wheel; auto-hides when the content fits the visible area
+- **New** — Default anchor — the frame attaches to `TOPLEFT, AuctionHouseFrame, TOPRIGHT, 8, 0` so it sits glued to the right edge of the AH window; user-dragged positions are persisted in `TomoModDB.auctionRecipeTracker.framePos` and take priority over the default
+- **Fix** — Scan button reliability — `f:OnShow` now force-resets `scanInProgress = false`, re-enables the button and restores its label every time the frame is shown; previously, an AH closed during a scan could leave the button permanently disabled across sessions
+- **Fix** — Silent early-returns in `StartScan` (scan already running, AH closed, API unavailable) now display a red status message instead of doing nothing, so the user always knows why a click had no visible effect
+- **New** — Slash command `/tmrecipe` to manually show/hide the window when the AH is open
+- **New** — Localization — added 18 `art_*` keys in all six locales (enUS, frFR, deDE, esES, itIT, ptBR) covering UI strings, scan states, tooltip relative-time labels (`art_tt_*`), and error messages
+
+## ####################################
+
 ## CHANGELOG 2.9.13 — M+ Boss Names Fix
 
 #### MythicTracker — Boss Names
