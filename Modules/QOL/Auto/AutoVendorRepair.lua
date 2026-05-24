@@ -7,11 +7,16 @@ local addonName = ...
 local f = CreateFrame("Frame")
 
 --------------------------------------------------
--- Settings (simple, hardcoded for now)
+-- Settings (persisted in TomoModDB.autoVendorRepair)
 --------------------------------------------------
-local SELL_GRAYS = true
-local AUTO_REPAIR = true
-local PRINT_SUMMARY = true
+local function GetSettings()
+    local db = TomoModDB and TomoModDB.autoVendorRepair
+    if not db then
+        -- Safety fallback if DB hasn't initialized yet
+        return { sellGrays = true, autoRepair = true, printSummary = true }
+    end
+    return db
+end
 
 --------------------------------------------------
 -- Utils
@@ -27,7 +32,8 @@ end
 -- Sell gray items (one per tick to avoid lag spikes)
 --------------------------------------------------
 local function SellGrayItems()
-    if not SELL_GRAYS then return end
+    local s = GetSettings()
+    if not s.sellGrays then return end
 
     local greyItems = {}
     for bag = 0, NUM_BAG_FRAMES do
@@ -49,7 +55,7 @@ local function SellGrayItems()
         idx = idx + 1
         if idx > #greyItems then
             ticker:Cancel()
-            if PRINT_SUMMARY and total > 0 then
+            if GetSettings().printSummary and total > 0 then
                 print(string.format(TomoMod_L["msg_avr_sold"], FormatGold(total)))
             end
             return
@@ -69,7 +75,7 @@ end
 -- Repair gear
 --------------------------------------------------
 local function RepairItems()
-    if not AUTO_REPAIR then return 0 end
+    if not GetSettings().autoRepair then return 0 end
     if not CanMerchantRepair() then return 0 end
 
     local cost = GetRepairAllCost()
@@ -89,7 +95,7 @@ f:RegisterEvent("MERCHANT_SHOW")
 f:SetScript("OnEvent", function()
     local repairCost = RepairItems()
 
-    if PRINT_SUMMARY and repairCost > 0 then
+    if GetSettings().printSummary and repairCost > 0 then
         print("|cff00ff00" .. TomoMod_L["msg_avr_header"] .. "|r")
         print(string.format(TomoMod_L["msg_avr_repaired"], FormatGold(repairCost)))
     end

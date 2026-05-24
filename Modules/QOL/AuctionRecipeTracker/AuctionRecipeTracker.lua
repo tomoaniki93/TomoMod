@@ -174,10 +174,19 @@ local function CreateHeaderRow(parent)
     local label = row:CreateFontString(nil, "OVERLAY")
     label:SetFont(FONT_B, 11, "")
     label:SetPoint("LEFT", icon, "RIGHT", 6, 0)
-    label:SetPoint("RIGHT", -6, 0)
     label:SetJustifyH("LEFT")
     label:SetTextColor(unpack(ACCENT))
     row.label = label
+
+    -- Total cost of all reagents (right-aligned). Empty when no prices known.
+    local total = row:CreateFontString(nil, "OVERLAY")
+    total:SetFont(FONT_B, 11, "")
+    total:SetPoint("RIGHT", -6, 0)
+    total:SetJustifyH("RIGHT")
+    total:SetTextColor(unpack(ACCENT))
+    row.total = total
+
+    label:SetPoint("RIGHT", total, "LEFT", -6, 0)
 
     return row
 end
@@ -294,6 +303,7 @@ local function RefreshUI()
         row:SetPoint("RIGHT", scrollChild, "RIGHT", -2, 0)
         row.icon:SetTexture(132036) -- generic
         row.label:SetText(L["art_no_recipes"] or "No tracked recipes")
+        if row.total then row.total:SetText("") end
     else
         for _, recipe in ipairs(recipes) do
             local header = AcquireRow("header")
@@ -303,6 +313,13 @@ local function RefreshUI()
             header.icon:SetTexture(recipe.icon or 134400)
             header.label:SetText(recipe.name)
             y = y - HEADER_H - 2
+
+            -- Somme globale des composants : cumulée pendant qu'on dessine les
+            -- lignes, puis affichée dans le header au-dessus. Si au moins un
+            -- prix est connu, on affiche le total ; sinon on laisse vide.
+            local recipeTotal       = 0
+            local hasAnyPrice       = false
+            local missingPriceCount = 0
 
             for _, reagent in ipairs(recipe.reagents) do
                 local name, link, _, _, _, _, _, _, _, icon = C_Item.GetItemInfo(reagent.itemID)
@@ -325,12 +342,26 @@ local function RefreshUI()
                 if unit then
                     local total = unit * reagent.qty
                     row.price:SetText(FormatGold(total))
+                    recipeTotal = recipeTotal + total
+                    hasAnyPrice = true
                 else
                     row.price:SetText("—")
+                    missingPriceCount = missingPriceCount + 1
                 end
 
                 y = y - ROW_H - 1
             end
+
+            if hasAnyPrice then
+                local txt = FormatGold(recipeTotal)
+                if missingPriceCount > 0 then
+                    txt = txt .. " |cff808080(~)|r"
+                end
+                header.total:SetText(txt)
+            else
+                header.total:SetText("")
+            end
+
             y = y - 4
         end
     end

@@ -707,6 +707,16 @@ function M.SetUnlocked(unlock)
 end
 
 function M.Toggle()
+    -- [SAFETY] Lazy-init si PLAYER_LOGIN n'a pas pu initialiser Movers
+    -- (ex: une Initialize() précédente a errored silently sur un fresh install).
+    -- Sans ce filet, le bouton Layout ne ferait rien sans aucun message visible.
+    if not initialized then
+        local ok, err = pcall(M.Initialize)
+        if not ok then
+            print("|cff0cd29fTomoMod Layout:|r |cffff4040Initialization failed:|r " .. tostring(err))
+            return
+        end
+    end
     M.SetUnlocked(not isUnlocked)
 end
 
