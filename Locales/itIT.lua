@@ -429,6 +429,9 @@ TomoMod_RegisterLocale("itIT", {
 
     -- Auto Fill Delete
     ["sublabel_auto_fill_delete"]       = "— Auto compila ELIMINA —",
+    ["sublabel_auto_vendor_repair"]     = "— Auto Vendita / Riparazione —",
+    ["opt_avr_auto_repair"]             = "Riparazione automatica dal mercante",
+    ["opt_avr_sell_grays"]              = "Vendi automaticamente gli oggetti grigi (scarsi)",
     ["opt_focus_ok_button"]             = "Focus su OK dopo compilazione",
 
     -- Mythic+ Keys
@@ -1973,6 +1976,10 @@ TomoMod_RegisterLocale("itIT", {
     -- ═══════════════════════════════════
     -- AuctionRecipeTracker (2.9.15)
     -- ═══════════════════════════════════
+    ["wn_2916_layout_fix"]              = "Errore silenzioso del pulsante Layout corretto — su un'installazione nuova, fare clic su 'Layout' non faceva nulla perché il sistema dei mover non completava l'inizializzazione. Toggle ora si inizializza in modo posticipato tramite pcall e mostra eventuali errori in chat invece di fallire silenziosamente.",
+    ["wn_2916_safe_init"]               = "Rinforzo della catena di init dei moduli — ogni chiamata Initialize() dei moduli TomoMod è ora racchiusa in xpcall tramite un helper safeInit; un modulo difettoso non blocca più i ~45 moduli che si inizializzano dopo di esso, e il modulo colpevole viene segnalato in chat.",
+    ["wn_2916_art_total"]               = "AuctionRecipeTracker — ogni intestazione di ricetta seguita mostra ora il costo totale globale dei suoi reagenti sulla destra; se almeno un reagente non ha un prezzo registrato, un (~) grigio indica che il totale è una stima parziale.",
+    ["wn_2916_avr_gui"]                 = "GUI Auto Vendita / Riparazione — due nuove caselle in Config → QOL → Automazioni permettono di attivare in modo indipendente la riparazione automatica dal mercante e la vendita automatica degli oggetti grigi (scarsi); le impostazioni sono persistite in TomoModDB e si applicano dal vivo senza /reload.",
     ["wn_2915_art_module"]              = "Nuovo modulo QOL — AuctionRecipeTracker: una GUI si apre automaticamente dal banditore quando è seguita almeno una ricetta di professione; le righe mostrano '14x icona Nome oggetto prezzo', clic per cercare alla CdA e un pulsante di scansione completa manuale.",
     ["wn_2915_art_tooltip"]             = "Riga TomoHDV nei tooltip — dopo una scansione, ogni oggetto (zaini, banca, link in chat, equipaggiamento) mostra il prezzo unitario registrato, più il prezzo totale della pila se stack > 1, e da quanto tempo è stata fatta la scansione.",
     ["wn_2915_art_scrollbar"]           = "Barra di scorrimento moderna TomoMod — sostituisce la barra di Blizzard predefinita con una traccia sottile da 4 px e un pollice color accento dimensionato proporzionalmente al contenuto; supporta drag, clic sulla traccia per saltare, rotellina del mouse, e si nasconde automaticamente quando il contenuto entra nella finestra.",

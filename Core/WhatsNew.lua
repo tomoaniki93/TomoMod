@@ -30,6 +30,15 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "2.9.16",
+        highlights = {
+            L["wn_2916_layout_fix"],
+            L["wn_2916_safe_init"],
+            L["wn_2916_art_total"],
+            L["wn_2916_avr_gui"],
+        },
+    },
+    {
         version = "2.9.15",
         highlights = {
             L["wn_2915_art_module"],

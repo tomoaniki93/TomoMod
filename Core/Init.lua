@@ -314,54 +314,68 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
             end)
         end
 
+        -- [SAFETY] Each Initialize() is wrapped so a single failing module
+        -- (typically on a fresh install with missing DB fields) doesn't break
+        -- the rest of the chain — notably TomoMod_Movers, which would leave
+        -- the Layout button silently unresponsive.
+        local function safeInit(name, mod)
+            if not mod or not mod.Initialize then return end
+            local ok, err = xpcall(mod.Initialize, debugstack)
+            if not ok then
+                print("|cff0cd29fTomoMod|r |cffff4040Init failed:|r " .. name .. " — " .. tostring(err))
+                local handler = geterrorhandler and geterrorhandler()
+                if handler then handler("TomoMod " .. name .. " Initialize: " .. tostring(err)) end
+            end
+        end
+
         -- QOL Modules
-        if TomoMod_Minimap then TomoMod_Minimap.Initialize() end
-        if TomoMod_InfoPanel then TomoMod_InfoPanel.Initialize() end
-        if TomoMod_CursorRing then TomoMod_CursorRing.Initialize() end
-        if TomoMod_CinematicSkip then TomoMod_CinematicSkip.Initialize() end
-        if TomoMod_AutoQuest then TomoMod_AutoQuest.Initialize() end
-        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.Initialize() end
-        if TomoMod_SkyRide then TomoMod_SkyRide.Initialize() end
-        if TomoMod_LevelingBar then TomoMod_LevelingBar.Initialize() end
-        if TomoMod_ReputationBar then TomoMod_ReputationBar.Initialize() end
-        if TomoMod_CooldownManager then TomoMod_CooldownManager.Initialize() end
-        if TomoMod_AddonDetect then TomoMod_AddonDetect.Initialize() end
-        if TomoMod_AutoAcceptInvite then TomoMod_AutoAcceptInvite.Initialize() end
-        if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.Initialize() end
-        if TomoMod_TooltipIDs then TomoMod_TooltipIDs.Initialize() end
-        if TomoMod_AutoSummon then TomoMod_AutoSummon.Initialize() end
-        if TomoMod_HideCastBar then TomoMod_HideCastBar.Initialize() end
-        if TomoMod_BagMicroMenu then TomoMod_BagMicroMenu.Initialize() end
-        if TomoMod_AutoFillDelete then TomoMod_AutoFillDelete.Initialize() end
-        if TomoMod_LustSound then TomoMod_LustSound.Initialize() end
-        if TomoMod_ClassReminder then TomoMod_ClassReminder.Initialize() end
-        if TomoMod_AFKDisplay then TomoMod_AFKDisplay.Initialize() end
-        if TomoMod_FrameAnchors then TomoMod_FrameAnchors.Initialize() end
-        if TomoMod_ProfessionHelper then TomoMod_ProfessionHelper.Initialize() end
-        if TomoMod_Waypoint then TomoMod_Waypoint.Initialize() end
-        if TomoMod_Loots then TomoMod_Loots.Initialize() end
-        if TomoMod_WorldQuestTab then TomoMod_WorldQuestTab.Initialize() end
-        if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.Initialize then TomoMod_ActionBarSkin.Initialize() end
-        if TomoMod_AuraTracker then TomoMod_AuraTracker.Initialize() end
-        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.Initialize() end
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.Initialize() end
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.Initialize() end
-        if TomoMod_GameMenuSkin then TomoMod_GameMenuSkin.Initialize() end
-        if TomoMod_TooltipSkin then TomoMod_TooltipSkin.Initialize() end
+        safeInit("Minimap",            TomoMod_Minimap)
+        safeInit("InfoPanel",          TomoMod_InfoPanel)
+        safeInit("CursorRing",         TomoMod_CursorRing)
+        safeInit("CinematicSkip",      TomoMod_CinematicSkip)
+        safeInit("AutoQuest",          TomoMod_AutoQuest)
+        safeInit("ObjectiveTracker",   TomoMod_ObjectiveTracker)
+        safeInit("SkyRide",            TomoMod_SkyRide)
+        safeInit("LevelingBar",        TomoMod_LevelingBar)
+        safeInit("ReputationBar",      TomoMod_ReputationBar)
+        safeInit("CooldownManager",    TomoMod_CooldownManager)
+        safeInit("AddonDetect",        TomoMod_AddonDetect)
+        safeInit("AutoAcceptInvite",   TomoMod_AutoAcceptInvite)
+        safeInit("AutoSkipRole",       TomoMod_AutoSkipRole)
+        safeInit("TooltipIDs",         TomoMod_TooltipIDs)
+        safeInit("AutoSummon",         TomoMod_AutoSummon)
+        safeInit("HideCastBar",        TomoMod_HideCastBar)
+        safeInit("BagMicroMenu",       TomoMod_BagMicroMenu)
+        safeInit("AutoFillDelete",     TomoMod_AutoFillDelete)
+        safeInit("LustSound",          TomoMod_LustSound)
+        safeInit("ClassReminder",      TomoMod_ClassReminder)
+        safeInit("AFKDisplay",         TomoMod_AFKDisplay)
+        safeInit("FrameAnchors",       TomoMod_FrameAnchors)
+        safeInit("ProfessionHelper",   TomoMod_ProfessionHelper)
+        safeInit("Waypoint",           TomoMod_Waypoint)
+        safeInit("Loots",              TomoMod_Loots)
+        safeInit("WorldQuestTab",      TomoMod_WorldQuestTab)
+        safeInit("ActionBarSkin",      TomoMod_ActionBarSkin)
+        safeInit("AuraTracker",        TomoMod_AuraTracker)
+        safeInit("CharacterSkin",      TomoMod_CharacterSkin)
+        safeInit("ChatFrameSkin",      TomoMod_ChatFrameSkin)
+        safeInit("BuffSkin",           TomoMod_BuffSkin)
+        safeInit("GameMenuSkin",       TomoMod_GameMenuSkin)
+        safeInit("TooltipSkin",        TomoMod_TooltipSkin)
 
         -- Interface Modules (new v2)
-        if TomoMod_UnitFrames then TomoMod_UnitFrames.Initialize() end
-        if TomoMod_BossFrames then TomoMod_BossFrames.Initialize() end
-        if TomoMod_Nameplates then TomoMod_Nameplates.Initialize() end
-        if TomoMod_ResourceBars then TomoMod_ResourceBars.Initialize() end
-        if TomoMod_Castbar then TomoMod_Castbar.Initialize() end
-        if TomoMod_PartyFrames then TomoMod_PartyFrames.Initialize() end
-        if TomoMod_PartyCooldowns then TomoMod_PartyCooldowns.Initialize() end
-        if TomoMod_ArenaFrames then TomoMod_ArenaFrames.Initialize() end
-        if TomoMod_RaidFrames then TomoMod_RaidFrames.Initialize() end
+        safeInit("UnitFrames",         TomoMod_UnitFrames)
+        safeInit("BossFrames",         TomoMod_BossFrames)
+        safeInit("Nameplates",         TomoMod_Nameplates)
+        safeInit("ResourceBars",       TomoMod_ResourceBars)
+        safeInit("Castbar",            TomoMod_Castbar)
+        safeInit("PartyFrames",        TomoMod_PartyFrames)
+        safeInit("PartyCooldowns",     TomoMod_PartyCooldowns)
+        safeInit("ArenaFrames",        TomoMod_ArenaFrames)
+        safeInit("RaidFrames",         TomoMod_RaidFrames)
 
         -- Layout Mover System (doit être après tous les autres modules)
-        if TomoMod_Movers then TomoMod_Movers.Initialize() end
+        safeInit("Movers",             TomoMod_Movers)
 
         -- Welcome
         local r, g, b = TomoMod_Utils.GetClassColor()

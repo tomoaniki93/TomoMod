@@ -469,6 +469,11 @@ TomoMod_RegisterLocale("frFR", {
     ["sublabel_auto_fill_delete"]       = "— Auto EFFACER —",
     ["opt_focus_ok_button"]             = "Focus sur OK après remplissage",
 
+    -- Auto Vendor / Repair
+    ["sublabel_auto_vendor_repair"]     = "— Auto Vendeur / Réparation —",
+    ["opt_avr_auto_repair"]             = "Réparation auto chez le marchand",
+    ["opt_avr_sell_grays"]              = "Vente auto des objets gris",
+
     -- Mythic+ Keys
     ["section_mythic_keys"]             = "Clés Mythic+",
     ["opt_keys_enable_tracker"]         = "Activer le tracker",
@@ -2040,6 +2045,10 @@ TomoMod_RegisterLocale("frFR", {
     -- ═══════════════════════════════════
     -- AuctionRecipeTracker (2.9.15)
     -- ═══════════════════════════════════
+    ["wn_2916_layout_fix"]              = "Bouton Layout silencieux corrigé — sur une nouvelle installation, cliquer sur 'Layout' ne faisait rien car le système de movers ne terminait pas son initialisation. Toggle effectue maintenant une initialisation paresseuse via pcall et affiche toute erreur dans le chat au lieu d'échouer silencieusement.",
+    ["wn_2916_safe_init"]               = "Renforcement de la chaîne d'init des modules — chaque appel TomoMod Initialize() est désormais encapsulé dans xpcall via un helper safeInit ; un module défaillant ne casse plus les ~45 modules qui s'initialisent après lui, et le module fautif est signalé dans le chat.",
+    ["wn_2916_art_total"]               = "AuctionRecipeTracker — chaque en-tête de recette suivie affiche maintenant le coût total global de ses composants à droite ; si au moins un composant n'a pas de prix enregistré, un (~) gris indique que le total est une estimation partielle.",
+    ["wn_2916_avr_gui"]                 = "GUI Auto Vendeur / Réparation — deux nouvelles cases à cocher dans Config → QOL → Automatisations permettent d'activer indépendamment la réparation automatique chez le marchand et la vente automatique des objets gris ; les réglages sont persistés dans TomoModDB et s'appliquent en direct sans /reload.",
     ["wn_2915_art_module"]              = "Nouveau module QOL — AuctionRecipeTracker : un GUI s'ouvre automatiquement chez le commissaire-priseur quand au moins une recette d'artisanat est suivie ; les lignes affichent '14x icône Nom de l'objet prix', clic pour rechercher à l'HDV, et un bouton de scan complet manuel.",
     ["wn_2915_art_tooltip"]             = "Ligne TomoHDV dans les infobulles — après un scan, chaque objet (sacs, banque, liens du chat, équipement) affiche le prix unitaire enregistré, plus le prix total de la pile si stack > 1, et depuis quand le scan a été fait.",
     ["wn_2915_art_scrollbar"]           = "Scrollbar moderne TomoMod — la scrollbar Blizzard par défaut est remplacée par un track fin de 4 px avec un thumb couleur accent dimensionné proportionnellement au contenu ; supporte le drag, le clic sur le track pour sauter, la molette, et s'auto-masque quand le contenu tient dans la fenêtre.",

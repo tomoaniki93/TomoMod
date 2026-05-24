@@ -479,6 +479,11 @@ TomoMod_RegisterLocale("enUS", {
     ["sublabel_auto_fill_delete"]       = "— Auto Fill Delete —",
     ["opt_focus_ok_button"]             = "Focus OK button after fill",
 
+    -- Auto Vendor / Repair
+    ["sublabel_auto_vendor_repair"]     = "— Auto Vendor / Repair —",
+    ["opt_avr_auto_repair"]             = "Auto repair on merchant",
+    ["opt_avr_sell_grays"]              = "Auto sell gray (poor) items",
+
     -- Mythic+ Keys
     ["section_mythic_keys"]             = "Mythic+ Keys",
     ["opt_keys_enable_tracker"]         = "Enable tracker",
@@ -2123,6 +2128,10 @@ TomoMod_RegisterLocale("enUS", {
     -- ═══════════════════════════════════
     -- AuctionRecipeTracker (2.9.15)
     -- ═══════════════════════════════════
+    ["wn_2916_layout_fix"]              = "Layout button silent failure fixed — on a fresh install, clicking 'Layout' did nothing because the mover system never completed initialization. Toggle now lazy-initializes via pcall and surfaces any error to chat instead of failing silently.",
+    ["wn_2916_safe_init"]               = "Module init chain hardening — every TomoMod module Initialize() call is now wrapped in xpcall via a safeInit helper; a single failing module no longer breaks the ~45 modules that init after it, and the offending module is reported in chat.",
+    ["wn_2916_art_total"]               = "AuctionRecipeTracker — each tracked recipe header now shows the global total cost of its reagents on the right side; if at least one reagent has no recorded price, a grey (~) suffix indicates the total is a partial estimate.",
+    ["wn_2916_avr_gui"]                 = "Auto Vendor / Repair GUI — two new checkboxes in Config → QOL → Automations let you toggle auto-repair on merchant and auto-sale of gray (poor) items independently; settings are persisted in TomoModDB and apply live without /reload.",
     ["wn_2915_art_module"]              = "New QOL module — AuctionRecipeTracker: a GUI opens automatically at the auctioneer when at least one crafting recipe is tracked; reagent rows show '14x icon Item name price' with click-to-search and a manual full AH scan button.",
     ["wn_2915_art_tooltip"]             = "TomoHDV tooltip line — after a scan, every item tooltip (bags, bank, chat links, equipment) shows the recorded unit price plus the full stack price when stack > 1, and how long ago the scan was made.",
     ["wn_2915_art_scrollbar"]           = "Modern TomoMod scrollbar — the default Blizzard scrollbar is replaced by a 4px slim track with an accent-coloured thumb sized proportionally to the content; supports drag, click-on-track to jump, mouse wheel, and auto-hides when content fits.",

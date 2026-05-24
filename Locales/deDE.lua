@@ -429,6 +429,9 @@ TomoMod_RegisterLocale("deDE", {
 
     -- Auto Fill Delete
     ["sublabel_auto_fill_delete"]       = "— Auto-LÖSCHEN ausfüllen —",
+    ["sublabel_auto_vendor_repair"]     = "— Auto-Verkauf / Reparatur —",
+    ["opt_avr_auto_repair"]             = "Automatische Reparatur beim Händler",
+    ["opt_avr_sell_grays"]              = "Graue (schlechte) Gegenstände automatisch verkaufen",
     ["opt_focus_ok_button"]             = "OK-Button nach Ausfüllen fokussieren",
 
     -- Mythic+ Keys
@@ -1982,6 +1985,10 @@ TomoMod_RegisterLocale("deDE", {
     -- ═══════════════════════════════════
     -- AuctionRecipeTracker (2.9.15)
     -- ═══════════════════════════════════
+    ["wn_2916_layout_fix"]              = "Stiller Fehler des Layout-Buttons behoben — bei einer Neuinstallation tat ein Klick auf 'Layout' nichts, weil das Mover-System seine Initialisierung nie abschloss. Toggle führt jetzt eine verzögerte Initialisierung via pcall durch und meldet Fehler im Chat statt still zu scheitern.",
+    ["wn_2916_safe_init"]               = "Härtung der Modul-Init-Kette — jeder TomoMod-Modul-Initialize()-Aufruf wird nun über einen safeInit-Helper in xpcall eingewickelt; ein fehlerhaftes Modul bricht nicht mehr die ~45 nachfolgenden Module ab, und das verursachende Modul wird im Chat gemeldet.",
+    ["wn_2916_art_total"]               = "AuctionRecipeTracker — jeder Kopf eines verfolgten Rezepts zeigt jetzt die globalen Gesamtkosten seiner Reagenzien auf der rechten Seite; wenn mindestens ein Reagenz keinen erfassten Preis hat, weist ein graues (~)-Suffix darauf hin, dass die Summe eine Teilschätzung ist.",
+    ["wn_2916_avr_gui"]                 = "Auto-Verkauf/Reparatur-GUI — zwei neue Kontrollkästchen in Config → QOL → Automatisierungen erlauben die unabhängige Aktivierung der automatischen Reparatur beim Händler und des automatischen Verkaufs grauer (schlechter) Gegenstände; Einstellungen werden in TomoModDB persistiert und greifen live ohne /reload.",
     ["wn_2915_art_module"]              = "Neues QOL-Modul — AuctionRecipeTracker: Eine GUI öffnet sich automatisch beim Auktionator, wenn mindestens ein Handwerksrezept verfolgt wird; Reagenzien werden als '14x Icon Itemname Preis' angezeigt, mit Klick-zur-Suche und manuellem AH-Scan-Button.",
     ["wn_2915_art_tooltip"]             = "TomoHDV-Tooltip-Zeile — nach einem Scan zeigt jeder Item-Tooltip (Taschen, Bank, Chat-Links, Ausrüstung) den gespeicherten Stückpreis sowie den gesamten Stapelpreis bei Stapel > 1 und wie lange der Scan zurückliegt.",
     ["wn_2915_art_scrollbar"]           = "Moderne TomoMod-Scrollbar — ersetzt die Blizzard-Standard-Scrollbar durch eine 4 px schmale Spur mit einem akzentfarbigen Thumb, dessen Größe proportional zum Inhalt ist; unterstützt Drag, Klick auf Spur zum Springen, Mausrad und blendet sich aus, wenn der Inhalt passt.",

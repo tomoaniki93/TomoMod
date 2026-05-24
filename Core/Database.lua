@@ -191,6 +191,11 @@ TomoMod_Defaults = {
         focusButton = true,
         showMessages = false,
     },
+    autoVendorRepair = {
+        sellGrays    = true,
+        autoRepair   = true,
+        printSummary = true,
+    },
     merchantTools = {
         alreadyKnown = {
             enabled = true,

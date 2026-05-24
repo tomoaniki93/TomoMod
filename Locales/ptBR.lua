@@ -429,6 +429,9 @@ TomoMod_RegisterLocale("ptBR", {
 
     -- Auto Fill Delete
     ["sublabel_auto_fill_delete"]       = "— Auto preencher DELETAR —",
+    ["sublabel_auto_vendor_repair"]     = "— Auto Vendedor / Reparo —",
+    ["opt_avr_auto_repair"]             = "Reparo automático no comerciante",
+    ["opt_avr_sell_grays"]              = "Vender automaticamente itens cinzas (pobres)",
     ["opt_focus_ok_button"]             = "Focar botão OK após preencher",
 
     -- Mythic+ Keys
@@ -1973,6 +1976,10 @@ TomoMod_RegisterLocale("ptBR", {
     -- ═══════════════════════════════════
     -- AuctionRecipeTracker (2.9.15)
     -- ═══════════════════════════════════
+    ["wn_2916_layout_fix"]              = "Falha silenciosa do botão Layout corrigida — em uma instalação nova, clicar em 'Layout' não fazia nada porque o sistema de movers não concluía a inicialização. Toggle agora faz inicialização tardia via pcall e exibe qualquer erro no chat em vez de falhar silenciosamente.",
+    ["wn_2916_safe_init"]               = "Reforço da cadeia de init dos módulos — toda chamada Initialize() dos módulos TomoMod agora é envolvida em xpcall via um helper safeInit; um módulo com falha não quebra mais os ~45 módulos que inicializam depois dele, e o módulo culpado é reportado no chat.",
+    ["wn_2916_art_total"]               = "AuctionRecipeTracker — cada cabeçalho de receita rastreada agora mostra o custo total global de seus reagentes à direita; se ao menos um reagente não tem preço registrado, um (~) cinza indica que o total é uma estimativa parcial.",
+    ["wn_2916_avr_gui"]                 = "GUI Auto Vendedor / Reparo — duas novas caixas em Config → QOL → Automações permitem ativar independentemente o reparo automático no comerciante e a venda automática de itens cinzas (pobres); as configurações são persistidas em TomoModDB e se aplicam ao vivo sem /reload.",
     ["wn_2915_art_module"]              = "Novo módulo QOL — AuctionRecipeTracker: uma GUI abre automaticamente no leiloeiro quando ao menos uma receita de profissão está sendo rastreada; as linhas mostram '14x ícone Nome do item preço', clique para buscar na CL e um botão de escaneamento completo manual.",
     ["wn_2915_art_tooltip"]             = "Linha TomoHDV nas tooltips — após um escaneamento, cada item (mochilas, banco, links no chat, equipamento) mostra o preço unitário registrado, mais o preço total da pilha se stack > 1, e há quanto tempo o escaneamento foi feito.",
     ["wn_2915_art_scrollbar"]           = "Barra de rolagem moderna TomoMod — substitui a barra padrão da Blizzard por uma trilha fina de 4 px com um polegar em cor de destaque dimensionado proporcionalmente ao conteúdo; suporta arrastar, clique na trilha para pular, roda do mouse, e oculta-se automaticamente quando o conteúdo cabe.",

@@ -1,5 +1,22 @@
 ## ####################################
 
+## CHANGELOG 2.9.16 — Layout Button Fix · AuctionRecipeTracker Totals · Auto Vendor/Repair GUI
+
+#### Core — Module Initialization Safety
+- **Fix** — Layout button silent failure on fresh installs: clicking *Layout* did nothing because `M.SetUnlocked` early-returns while `initialized == false`, and an earlier module's `Initialize()` could fail silently due to WoW's default `scriptErrors=0` setting, breaking the rest of the init chain. `M.Toggle` in `Modules/QOL/Movers/Movers.lua` now lazy-initializes via `pcall(M.Initialize)` and reports the error to chat instead of doing nothing
+- **Fix** — `Core/Init.lua` now wraps every module `Initialize()` call (~45 modules) in a `safeInit(name, mod)` helper using `xpcall` with `debugstack`; a failing module no longer prevents subsequent modules from initializing, and a TomoMod-coloured chat line surfaces the offending module name + stack while still routing through `geterrorhandler()`
+
+#### QOL — AuctionRecipeTracker
+- **New** — Each tracked recipe header now displays the **total cost of its reagents** on the right-hand side; computed by summing `(unit price × required quantity)` for every reagent that has a recorded price, then formatted via `FormatGold`
+- **New** — When at least one reagent in a recipe is missing a recorded price, a discreet grey `(~)` suffix is appended to the total to indicate the figure is a partial estimate (`123g 45s |cff808080(~)|r`); the recipe label automatically anchors to the left of the total so long names truncate cleanly
+
+#### QOL — Auto Vendor / Repair (Config GUI)
+- **New** — The hardcoded `SELL_GRAYS` / `AUTO_REPAIR` / `PRINT_SUMMARY` flags in `Modules/QOL/Auto/AutoVendorRepair.lua` are now backed by saved variables under `TomoModDB.autoVendorRepair` (defaults: all on); a `GetSettings()` helper reads the live DB on every `MERCHANT_SHOW`, so toggles take effect immediately without `/reload`
+- **New** — Two checkboxes added to *Config → QOL → Automations*, in a new "Auto Vendor / Repair" section: **Auto repair on merchant** and **Auto sell gray (poor) items**
+- **New** — Localization — added `sublabel_auto_vendor_repair`, `opt_avr_auto_repair`, `opt_avr_sell_grays` in all six locales
+
+## ####################################
+
 ## CHANGELOG 2.9.14 and 2.9.15 — AuctionRecipeTracker (QOL) · Tooltip Prices · UI Polish
 
 #### QOL — AuctionRecipeTracker (New Module)

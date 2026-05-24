@@ -429,6 +429,9 @@ TomoMod_RegisterLocale("esES", {
 
     -- Auto Fill Delete
     ["sublabel_auto_fill_delete"]       = "— Auto rellenar ELIMINAR —",
+    ["sublabel_auto_vendor_repair"]     = "— Auto Vendedor / Reparación —",
+    ["opt_avr_auto_repair"]             = "Reparación automática en el comerciante",
+    ["opt_avr_sell_grays"]              = "Vender automáticamente objetos grises (pobres)",
     ["opt_focus_ok_button"]             = "Enfocar botón OK tras rellenar",
 
     -- Mythic+ Keys
@@ -2033,6 +2036,10 @@ TomoMod_RegisterLocale("esES", {
     -- ═══════════════════════════════════
     -- AuctionRecipeTracker (2.9.15)
     -- ═══════════════════════════════════
+    ["wn_2916_layout_fix"]              = "Fallo silencioso del botón Layout corregido — en una instalación nueva, hacer clic en 'Layout' no hacía nada porque el sistema de movers no completaba la inicialización. Toggle ahora se inicializa de forma diferida vía pcall y muestra cualquier error en el chat en lugar de fallar en silencio.",
+    ["wn_2916_safe_init"]               = "Refuerzo de la cadena de init de módulos — cada llamada Initialize() de los módulos de TomoMod ahora se envuelve en xpcall mediante un helper safeInit; un módulo defectuoso ya no rompe los ~45 módulos que se inician después de él, y el módulo culpable se reporta en el chat.",
+    ["wn_2916_art_total"]               = "AuctionRecipeTracker — cada cabecera de receta seguida muestra ahora el coste total global de sus reactivos a la derecha; si al menos un reactivo no tiene precio registrado, un (~) gris indica que el total es una estimación parcial.",
+    ["wn_2916_avr_gui"]                 = "GUI Auto Vendedor / Reparación — dos nuevas casillas en Config → QOL → Automatizaciones permiten activar de forma independiente la reparación automática en el comerciante y la venta automática de objetos grises (pobres); los ajustes se persisten en TomoModDB y se aplican en vivo sin /reload.",
     ["wn_2915_art_module"]              = "Nuevo módulo QOL — AuctionRecipeTracker: una GUI se abre automáticamente en el subastador cuando se sigue al menos una receta de profesión; las filas muestran '14x icono Nombre del objeto precio', clic para buscar en la CS y un botón de escaneo completo manual.",
     ["wn_2915_art_tooltip"]             = "Línea TomoHDV en las descripciones — tras un escaneo, cada objeto (bolsas, banco, enlaces del chat, equipamiento) muestra el precio unitario registrado, más el precio total de la pila si stack > 1, y hace cuánto se realizó el escaneo.",
     ["wn_2915_art_scrollbar"]           = "Barra de desplazamiento moderna TomoMod — reemplaza la barra de Blizzard por una pista delgada de 4 px con un pulgar en color de acento dimensionado proporcionalmente al contenido; admite arrastrar, clic en la pista para saltar, rueda del ratón, y se oculta automáticamente cuando el contenido cabe.",

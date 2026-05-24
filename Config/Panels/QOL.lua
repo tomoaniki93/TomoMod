@@ -162,6 +162,24 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
+    -- Auto Vendor / Repair
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_auto_vendor_repair"] or "Auto Vendor / Repair", y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_avr_auto_repair"] or "Auto repair on merchant",
+        TomoModDB.autoVendorRepair.autoRepair, y, function(v)
+        TomoModDB.autoVendorRepair.autoRepair = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_avr_sell_grays"] or "Auto sell gray (poor) items",
+        TomoModDB.autoVendorRepair.sellGrays, y, function(v)
+        TomoModDB.autoVendorRepair.sellGrays = v
+    end)
+    y = ny
+
     -- Combat Text
     local _, ny = W.CreateSeparator(c, y)
     y = ny
