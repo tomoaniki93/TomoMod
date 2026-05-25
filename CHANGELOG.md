@@ -1,5 +1,34 @@
 ## ####################################
 
+## CHANGELOG 2.9.17 — Installer Overhaul · Action Bar Master Toggle · Bug Fixes
+
+#### Action Bars — Master System Toggle
+- **New** — Added a master "Enable TomoMod Action Bar system" checkbox in both the Installer (Step 9) and Config Panel (Action Bars → tab 1); disabling it fully bypasses container creation, Blizzard bar hiding, and button reparenting — after a `/reload`, Blizzard's default action bars are fully restored
+- **Fix** — Previously, users could only toggle the visual skin (`actionBarSkin.enabled`), which removed the cosmetic overlay but left TomoMod's bar management active (hidden Blizzard frames, custom containers, paging driver); disabling the skin no longer leaves an invisible system running underneath
+
+#### Installer — Full Module Coverage (17 Steps)
+- **New** — Step 5 "Raid Frames" added: enable/disable, hide Blizzard raid frames, dispel highlight, HoT tracking, debuff icons, defensive CDs, grid/list layout dropdown
+- **New** — Step 9 "Action Bars" now has a "System" section with the master toggle above the existing skin options
+- **New** — Step 11 "Skins" expanded: Objective Tracker skin, Mail skin, Reputation bar toggles added
+- **New** — Step 14 "QOL" expanded: Auto Summon, Auto Fill Delete, Auto Quest, Class Reminder, Leveling Bar, Waypoint, World Quest Tab, Frame Anchors, Profession Helper toggles added
+- **Fix** — Step count updated from 16 to 17 with correct step progression dots
+
+#### Installer — Bug Fixes
+- **Fix** — Chat Skin toggle wrote to orphan key `chatSkin` instead of the actual `chatFrameSkin` key read by `ChatFrameSkin.lua`; toggling the chat skin in the installer had zero effect on the module — now correctly targets `chatFrameSkin`
+- **Fix** — HideTalkingHead module applied unconditionally on every login regardless of the installer checkbox; module now checks `TomoModDB.hideTalkingHead.enabled` before suppressing the TalkingHead frame
+- **Fix** — Action Bar skin style dropdown was missing the 5th style "Minimal" (borderless with inner shadows) despite being implemented in `ActionBarSkin.lua` — all 5 styles now selectable
+- **Fix** — Duplicate `actionBarSkin.enabled` checkbox in the Skins step removed (already present in the Action Bars step)
+- **Fix** — CoTankTracker section removed from Tank Mode step (module not yet loaded in `QOL.xml`)
+
+#### Database — Missing Defaults
+- **New** — `hideTalkingHead = { enabled = false }` added to `TomoMod_Defaults`
+- **New** — `fastLoot = { enabled = true }` added to `TomoMod_Defaults`
+
+#### Localization
+- **New** — 25 new locale keys added across all 6 languages (enUS, frFR, deDE, esES, itIT, ptBR) covering Raid Frames step, expanded Skins, expanded QOL modules, and Action Bar system toggle
+
+## ####################################
+
 ## CHANGELOG 2.9.16 — Layout Button Fix · AuctionRecipeTracker Totals · Auto Vendor/Repair GUI
 
 #### Core — Module Initialization Safety

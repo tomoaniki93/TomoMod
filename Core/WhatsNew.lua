@@ -30,6 +30,17 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "2.9.17",
+        highlights = {
+            L["wn_2917_ab_master_toggle"],
+            L["wn_2917_installer_raid"],
+            L["wn_2917_installer_coverage"],
+            L["wn_2917_chat_skin_fix"],
+            L["wn_2917_talking_head_fix"],
+            L["wn_2917_minimal_style"],
+        },
+    },
+    {
         version = "2.9.16",
         highlights = {
             L["wn_2916_layout_fix"],

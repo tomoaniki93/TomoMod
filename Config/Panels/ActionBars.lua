@@ -55,7 +55,23 @@ local function BuildSkinTab(parent)
     local _, ny = W.CreateSectionHeader(c, L["section_action_bars"] or "Action Bar Skin", y)
     y = ny
 
+    if not TomoModDB.actionBars then TomoModDB.actionBars = {} end
     if not TomoModDB.actionBarSkin then TomoModDB.actionBarSkin = {} end
+
+    -- Master system toggle
+    local _, ny = W.CreateSectionHeader(c, L["section_ab_system"] or "Action Bar System", y)
+    y = ny
+    local _, ny = W.CreateCheckbox(c, L["opt_ab_system_enable"] or "Enable TomoMod Action Bar system (requires reload)",
+        TomoModDB.actionBars.enabled ~= false, y, function(v)
+            TomoModDB.actionBars.enabled = v
+        end)
+    y = ny
+    local _, ny = W.CreateInfoText(c, L["opt_ab_system_reload"] or "Disabling this fully restores Blizzard action bars after /reload.", y)
+    y = ny
+
+    -- Skin toggle
+    local _, ny = W.CreateSectionHeader(c, L["section_ab_skin"] or "Visual Skin", y)
+    y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_abs_enable"] or "Activer le skin", TomoModDB.actionBarSkin.enabled, y, function(v)
         TomoModDB.actionBarSkin.enabled = v

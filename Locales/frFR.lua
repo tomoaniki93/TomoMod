@@ -399,6 +399,10 @@ TomoMod_RegisterLocale("frFR", {
     ["tab_qol_skyride"]                 = "SkyRide",
     ["tab_qol_action_bars"]             = "Barres d'action",
     ["section_action_bars"]             = "Skin barres d'action",
+    ["section_ab_system"]               = "Syst\195\168me de barres d'action",
+    ["opt_ab_system_enable"]            = "Activer le syst\195\168me de barres d'action TomoMod (n\195\169cessite reload)",
+    ["opt_ab_system_reload"]            = "D\195\169sactiver restaure enti\195\168rement les barres Blizzard apr\195\168s /reload.",
+    ["section_ab_skin"]                 = "Skin visuel",
     ["cat_action_bars"]                 = "Barres d'action",
     ["opt_abs_enable"]                  = "Activer le skin des barres d'action",
     ["opt_abs_class_color"]             = "Couleur de classe pour les bordures",
@@ -1205,6 +1209,10 @@ TomoMod_RegisterLocale("frFR", {
     ["ins_np_width"]                 = "Largeur",
 
     ["ins_step6_title"]              = "Barres d'action",
+    ["ins_ab_system_section"]        = "Syst\195\168me de barres d'action",
+    ["ins_ab_system_info"]           = "TomoMod remplace les barres d'action Blizzard par des conteneurs\npersonnalis\195\169s avec positionnement, fondu et conditions d'affichage.\nD\195\169sactivez pour restaurer les barres Blizzard par d\195\169faut.",
+    ["ins_ab_system_enable"]         = "Activer le syst\195\168me de barres d'action TomoMod",
+    ["ins_ab_system_reload_info"]    = "N\195\169cessite un /reload pour prendre effet.",
     ["ins_ab_skin_section"]          = "Skin des boutons",
     ["ins_ab_enable"]                = "Activer le skin sur les boutons d'action",
     ["ins_ab_class_color"]           = "Couleur de bordure = couleur de classe",
@@ -1299,6 +1307,21 @@ TomoMod_RegisterLocale("frFR", {
     ["ins_pf_show_brez"]             = "Afficher le suivi du cooldown de brez de combat",
     ["ins_pf_reload_info"]           = "Un reload est n\195\169cessaire pour appliquer les changements aux party frames.",
 
+    -- Step 5: Raid Frames
+    ["ins_rf_title"]                 = "Cadres de raid",
+    ["ins_rf_info"]                  = "Cadres de raid personnalis\195\169s pour groupes de 6 \195\160 40 joueurs.\nDisposition grille ou liste avec dispel, suivi HoT et ic\195\180nes de debuffs.",
+    ["ins_rf_section"]               = "G\195\169n\195\169ral",
+    ["ins_rf_enable"]                = "Activer les cadres de raid TomoMod",
+    ["ins_rf_hide_blizzard"]         = "Masquer les cadres de raid Blizzard",
+    ["ins_rf_features_section"]      = "Fonctionnalit\195\169s",
+    ["ins_rf_show_dispel"]           = "Surlignage dispel (bordure selon le type de debuff)",
+    ["ins_rf_show_hots"]             = "Suivi HoT (indicateurs de sorts de heal)",
+    ["ins_rf_show_debuffs"]          = "Afficher les ic\195\180nes de debuff sur les membres",
+    ["ins_rf_show_defensives"]       = "Afficher les ic\195\180nes de cooldowns d\195\169fensifs",
+    ["ins_rf_layout_section"]        = "Disposition",
+    ["ins_rf_layout"]                = "Mode de disposition du raid",
+    ["ins_rf_reload_info"]           = "Un reload est n\195\169cessaire pour appliquer les changements aux cadres de raid.",
+
     -- Step NEW: Castbars
     ["ins_cb_title"]                 = "Barres de sort",
     ["ins_cb_info"]                  = "Barres de sort personnalis\195\169es pour joueur, cible, focus et familier\navec animation spark et feedback d'interruption.",
@@ -1323,6 +1346,9 @@ TomoMod_RegisterLocale("frFR", {
     -- Enhanced Skins
     ["ins_skin_bag"]                 = "Skin des sacs",
     ["ins_skin_tooltip"]             = "Skin des tooltips",
+    ["ins_skin_objective"]           = "Skin du suivi d'objectifs (qu\195\170tes color\195\169es par type)",
+    ["ins_skin_mail"]                = "Skin du courrier",
+    ["ins_skin_reputation"]          = "Barre de r\195\169putation",
 
     -- Enhanced QOL
     ["ins_qol_interface_section"]    = "Interface",
@@ -1331,6 +1357,15 @@ TomoMod_RegisterLocale("frFR", {
     ["ins_qol_afk"]                  = "\195\137cran AFK personnalis\195\169 avec mod\195\168le 3D",
     ["ins_qol_diag"]                 = "Diagnostics (capture d'erreurs sans popups)",
     ["ins_qol_aura_tracker"]         = "Aura Tracker (trinkets, buffs, d\195\169fensifs)",
+    ["ins_qol_auto_summon"]          = "Accepter automatiquement les invocations",
+    ["ins_qol_auto_fill_delete"]     = "Remplir automatiquement SUPPRIMER dans les popups",
+    ["ins_qol_auto_quest"]           = "Accepter/rendre les qu\195\170tes auto (Shift pour annuler)",
+    ["ins_qol_class_reminder"]       = "Rappel de buff de classe (Endurance, Intellect, etc.)",
+    ["ins_qol_leveling_bar"]         = "Barre de niveau (XP/heure, repos\195\169 XP)",
+    ["ins_qol_waypoint"]             = "Syst\195\168me de navigation waypoint",
+    ["ins_qol_world_quest_tab"]      = "Navigateur de qu\195\170tes mondiales sur la carte",
+    ["ins_qol_frame_anchors"]        = "Ancres de fen\195\170tres d\195\169pla\195\167ables (Alerte, Butin)",
+    ["ins_qol_profession_helper"]    = "Aide aux m\195\169tiers (d\195\169senchantement en masse)",
 
     -- =========== Config Panels — i18n ===========
     -- ActionBars panel
@@ -2043,6 +2078,16 @@ TomoMod_RegisterLocale("frFR", {
     -- Correction CD PartyFrame + Performances (2.9.12)
     -- ═══════════════════════════════════
     -- ═══════════════════════════════════
+    -- =======================================
+    -- Installer Overhaul & AB Toggle (2.9.17)
+    -- =======================================
+    ["wn_2917_ab_master_toggle"]        = "Toggle master des barres d'action \226\128\148 une nouvelle case \194\171 Activer le syst\195\168me de barres d'action TomoMod \194\187 dans l'installeur et le panneau Config permet de d\195\169sactiver enti\195\168rement la gestion des barres ; apr\195\168s /reload, les barres Blizzard par d\195\169faut sont restaur\195\169es.",
+    ["wn_2917_installer_raid"]          = "\195\137tape 5 de l'installeur \226\128\148 Cadres de raid : activer/d\195\169sactiver, masquer les cadres Blizzard, surlignage dispel, suivi HoT, ic\195\180nes debuff, d\195\169fensifs CD, et choix grille/liste.",
+    ["wn_2917_installer_coverage"]      = "Installeur enrichi \226\128\148 l'\195\169tape Skins inclut d\195\169sormais Objective Tracker, Courrier et Barre de r\195\169putation ; l'\195\169tape QOL ajoute Auto Summon, Auto Qu\195\170tes, Rappel de classe, Barre de niveau, Waypoint, Qu\195\170tes mondiales, Ancres de fen\195\170tres et Aide aux m\195\169tiers.",
+    ["wn_2917_chat_skin_fix"]           = "Fix Chat Skin \226\128\148 l'installeur \195\169crivait dans une cl\195\169 orpheline \194\171 chatSkin \194\187 au lieu de la vraie cl\195\169 \194\171 chatFrameSkin \194\187, rendant le toggle non fonctionnel.",
+    ["wn_2917_talking_head_fix"]        = "Fix HideTalkingHead \226\128\148 le module v\195\169rifie maintenant son toggle DB avant de supprimer le cadre TalkingHead, au lieu de s'appliquer inconditionnellement.",
+    ["wn_2917_minimal_style"]           = "Style \194\171 Minimal \194\187 des barres d'action \226\128\148 le 5e style (sans bordure avec ombres int\195\169rieures) manquait du dropdown de l'installeur malgr\195\169 son impl\195\169mentation ; d\195\169sormais s\195\169lectionnable.",
+
     -- AuctionRecipeTracker (2.9.15)
     -- ═══════════════════════════════════
     ["wn_2916_layout_fix"]              = "Bouton Layout silencieux corrigé — sur une nouvelle installation, cliquer sur 'Layout' ne faisait rien car le système de movers ne terminait pas son initialisation. Toggle effectue maintenant une initialisation paresseuse via pcall et affiche toute erreur dans le chat au lieu d'échouer silencieusement.",

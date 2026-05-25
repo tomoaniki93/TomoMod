@@ -152,6 +152,12 @@ TomoMod_Defaults = {
     hideCastBar = {
         enabled = false,
     },
+    hideTalkingHead = {
+        enabled = false,
+    },
+    fastLoot = {
+        enabled = true,
+    },
     combatText = {
         enabled = false,
         offsetX = 0,

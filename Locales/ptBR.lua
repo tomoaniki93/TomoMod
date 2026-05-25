@@ -361,6 +361,10 @@ TomoMod_RegisterLocale("ptBR", {
     ["tab_qol_skyride"]                 = "SkyRide",
     ["tab_qol_action_bars"]             = "Barras de ação",
     ["section_action_bars"]             = "Skin de barras de ação",
+    ["section_ab_system"]               = "Action Bar System",
+    ["opt_ab_system_enable"]            = "Enable TomoMod Action Bar system (requires reload)",
+    ["opt_ab_system_reload"]            = "Disabling this fully restores Blizzard action bars after /reload.",
+    ["section_ab_skin"]                 = "Visual Skin",
     ["cat_action_bars"]                 = "Barras de ação",
     ["opt_abs_enable"]                  = "Ativar skin de barras de ação",
     ["opt_abs_class_color"]             = "Cor da classe para bordas",
@@ -1135,6 +1139,10 @@ TomoMod_RegisterLocale("ptBR", {
 
     -- Step 6: Action Bars
     ["ins_step6_title"]              = "Barras de a\195\167\195\163o",
+    ["ins_ab_system_section"]        = "Action Bar System",
+    ["ins_ab_system_info"]           = "TomoMod replaces Blizzard's action bars with custom containers,\npositioning, fade system and display conditions.\nDisable this to fully restore the default Blizzard action bars.",
+    ["ins_ab_system_enable"]         = "Enable TomoMod Action Bar system",
+    ["ins_ab_system_reload_info"]    = "Requires a /reload to take effect.",
     ["ins_ab_skin_section"]          = "Skin dos bot\195\181es",
     ["ins_ab_enable"]                = "Ativar skin nos bot\195\181es de a\195\167\195\163o",
     ["ins_ab_class_color"]           = "Cor da borda = cor da classe",
@@ -1235,6 +1243,21 @@ TomoMod_RegisterLocale("ptBR", {
     ["ins_pf_show_brez"]             = "Mostrar rastreador de cooldown de ressurrei\195\167\195\163o de combate",
     ["ins_pf_reload_info"]           = "Um reload \195\169 necess\195\161rio para aplicar altera\195\167\195\181es nos Party Frames.",
 
+    -- Step 5: Raid Frames
+    ["ins_rf_title"]                 = "Raid Frames",
+    ["ins_rf_info"]                  = "Custom raid frames for groups of 6-40 players.\nGrid or list layout with dispel highlights, HoT tracking, and debuff icons.",
+    ["ins_rf_section"]               = "General",
+    ["ins_rf_enable"]                = "Enable TomoMod raid frames",
+    ["ins_rf_hide_blizzard"]         = "Hide Blizzard raid frames",
+    ["ins_rf_features_section"]      = "Features",
+    ["ins_rf_show_dispel"]           = "Dispel highlight (border glow by debuff type)",
+    ["ins_rf_show_hots"]             = "HoT tracking (healer spell indicators)",
+    ["ins_rf_show_debuffs"]          = "Show debuff icons on raid members",
+    ["ins_rf_show_defensives"]       = "Show defensive cooldown icons",
+    ["ins_rf_layout_section"]        = "Layout",
+    ["ins_rf_layout"]                = "Raid layout mode",
+    ["ins_rf_reload_info"]           = "A reload is required to apply changes to raid frames.",
+
     -- Step NEW: Castbars
     ["ins_cb_title"]                 = "Barras de lan\195\167amento",
     ["ins_cb_info"]                  = "Barras de lan\195\167amento personalizadas para jogador, alvo, foco e pet\ncom anima\195\167\195\163o de fa\195\173sca e feedback de interrup\195\167\195\163o.",
@@ -1259,6 +1282,9 @@ TomoMod_RegisterLocale("ptBR", {
     -- Enhanced Skins
     ["ins_skin_bag"]                 = "Skin de bolsas",
     ["ins_skin_tooltip"]             = "Skin de tooltips",
+    ["ins_skin_objective"]           = "Objective Tracker skin (color-coded quest types)",
+    ["ins_skin_mail"]                = "Mail skin",
+    ["ins_skin_reputation"]          = "Reputation bar",
 
     -- Enhanced QOL
     ["ins_qol_interface_section"]    = "Interface",
@@ -1267,6 +1293,15 @@ TomoMod_RegisterLocale("ptBR", {
     ["ins_qol_afk"]                  = "Tela AFK personalizada com modelo 3D",
     ["ins_qol_diag"]                 = "Diagn\195\179sticos (captura de erros sem popups)",
     ["ins_qol_aura_tracker"]         = "Rastreador de auras (trinkets, buffs, defensivos)",
+    ["ins_qol_auto_summon"]          = "Auto-accept summons",
+    ["ins_qol_auto_fill_delete"]     = "Auto-fill DELETE in destroy popups",
+    ["ins_qol_auto_quest"]           = "Auto accept/turn in quests (Shift to override)",
+    ["ins_qol_class_reminder"]       = "Class buff reminder (Fortitude, Intellect, etc.)",
+    ["ins_qol_leveling_bar"]         = "Leveling bar (XP/hour, rested XP overlay)",
+    ["ins_qol_waypoint"]             = "Waypoint navigation system",
+    ["ins_qol_world_quest_tab"]      = "World Quest browser on World Map",
+    ["ins_qol_frame_anchors"]        = "Movable frame anchors (Alert, Loot)",
+    ["ins_qol_profession_helper"]    = "Profession Helper (batch disenchant)",
 
     -- =========== Config Panels — i18n ===========
     -- ActionBars panel
@@ -1974,6 +2009,14 @@ TomoMod_RegisterLocale("ptBR", {
     -- Correção CD PartyFrame + Desempenho (2.9.12)
     -- ═══════════════════════════════════
     -- ═══════════════════════════════════
+    -- Installer Overhaul & AB Toggle (2.9.17)
+    ["wn_2917_ab_master_toggle"]        = "Action Bar master toggle — a new checkbox lets you fully disable bar management; after /reload, Blizzard's default action bars are fully restored.",
+    ["wn_2917_installer_raid"]          = "Installer step 5 — Raid Frames: enable/disable, hide Blizzard frames, dispel highlights, HoT tracking, debuff and defensive icons, grid/list layout.",
+    ["wn_2917_installer_coverage"]      = "Installer expanded — Skins step adds Objective Tracker, Mail, Reputation Bar; QOL step adds Auto Summon, Auto Quest, Class Reminder, Leveling Bar, Waypoint, World Quests, Frame Anchors, Profession Helper.",
+    ["wn_2917_chat_skin_fix"]           = "Chat Skin fix — installer wrote to orphan key instead of the actual chatFrameSkin key.",
+    ["wn_2917_talking_head_fix"]        = "HideTalkingHead fix — module now checks its DB toggle before suppressing the TalkingHead frame.",
+    ["wn_2917_minimal_style"]           = "Action Bar Minimal style — the 5th skin style was missing from the Installer dropdown; now selectable.",
+
     -- AuctionRecipeTracker (2.9.15)
     -- ═══════════════════════════════════
     ["wn_2916_layout_fix"]              = "Falha silenciosa do botão Layout corrigida — em uma instalação nova, clicar em 'Layout' não fazia nada porque o sistema de movers não concluía a inicialização. Toggle agora faz inicialização tardia via pcall e exibe qualquer erro no chat em vez de falhar silenciosamente.",

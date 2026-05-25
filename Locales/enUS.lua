@@ -409,6 +409,10 @@ TomoMod_RegisterLocale("enUS", {
     ["tab_qol_skyride"]                 = "SkyRide",
     ["tab_qol_action_bars"]             = "Action Bars",
     ["section_action_bars"]             = "Action Bar Skin",
+    ["section_ab_system"]               = "Action Bar System",
+    ["opt_ab_system_enable"]            = "Enable TomoMod Action Bar system (requires reload)",
+    ["opt_ab_system_reload"]            = "Disabling this fully restores Blizzard action bars after /reload.",
+    ["section_ab_skin"]                 = "Visual Skin",
     ["cat_action_bars"]                 = "Action Bars",
     ["opt_abs_enable"]                  = "Enable Action Bar Skin",
     ["opt_abs_class_color"]             = "Use class color for borders",
@@ -1276,6 +1280,10 @@ TomoMod_RegisterLocale("enUS", {
 
     -- Step 6: Action Bars
     ["ins_step6_title"]              = "Action Bars",
+    ["ins_ab_system_section"]        = "Action Bar System",
+    ["ins_ab_system_info"]           = "TomoMod replaces Blizzard's action bars with custom containers,\npositioning, fade system and display conditions.\nDisable this to fully restore the default Blizzard action bars.",
+    ["ins_ab_system_enable"]         = "Enable TomoMod Action Bar system",
+    ["ins_ab_system_reload_info"]    = "Requires a /reload to take effect.",
     ["ins_ab_skin_section"]          = "Button Skin",
     ["ins_ab_enable"]                = "Enable skin on action buttons",
     ["ins_ab_class_color"]           = "Border color = class color",
@@ -1376,6 +1384,21 @@ TomoMod_RegisterLocale("enUS", {
     ["ins_pf_show_brez"]             = "Show battle rez cooldown tracker",
     ["ins_pf_reload_info"]           = "A reload is required to apply changes to party frames.",
 
+    -- Step 5: Raid Frames
+    ["ins_rf_title"]                 = "Raid Frames",
+    ["ins_rf_info"]                  = "Custom raid frames for groups of 6-40 players.\nGrid or list layout with dispel highlights, HoT tracking, and debuff icons.",
+    ["ins_rf_section"]               = "General",
+    ["ins_rf_enable"]                = "Enable TomoMod raid frames",
+    ["ins_rf_hide_blizzard"]         = "Hide Blizzard raid frames",
+    ["ins_rf_features_section"]      = "Features",
+    ["ins_rf_show_dispel"]           = "Dispel highlight (border glow by debuff type)",
+    ["ins_rf_show_hots"]             = "HoT tracking (healer spell indicators)",
+    ["ins_rf_show_debuffs"]          = "Show debuff icons on raid members",
+    ["ins_rf_show_defensives"]       = "Show defensive cooldown icons",
+    ["ins_rf_layout_section"]        = "Layout",
+    ["ins_rf_layout"]                = "Raid layout mode",
+    ["ins_rf_reload_info"]           = "A reload is required to apply changes to raid frames.",
+
     -- Step NEW: Castbars
     ["ins_cb_title"]                 = "Castbars",
     ["ins_cb_info"]                  = "Custom castbars for player, target, focus and pet\nwith spark animation and interrupt feedback.",
@@ -1400,6 +1423,9 @@ TomoMod_RegisterLocale("enUS", {
     -- Enhanced Skins
     ["ins_skin_bag"]                 = "Bag skin",
     ["ins_skin_tooltip"]             = "Tooltip skin",
+    ["ins_skin_objective"]           = "Objective Tracker skin (color-coded quest types)",
+    ["ins_skin_mail"]                = "Mail skin",
+    ["ins_skin_reputation"]          = "Reputation bar",
 
     -- Enhanced QOL
     ["ins_qol_interface_section"]    = "Interface",
@@ -1408,6 +1434,15 @@ TomoMod_RegisterLocale("enUS", {
     ["ins_qol_afk"]                  = "Custom AFK screen with 3D model",
     ["ins_qol_diag"]                 = "Diagnostics (error capture without popups)",
     ["ins_qol_aura_tracker"]         = "Aura Tracker (trinkets, buffs, defensives)",
+    ["ins_qol_auto_summon"]          = "Auto-accept summons",
+    ["ins_qol_auto_fill_delete"]     = "Auto-fill DELETE in destroy popups",
+    ["ins_qol_auto_quest"]           = "Auto accept/turn in quests (Shift to override)",
+    ["ins_qol_class_reminder"]       = "Class buff reminder (Fortitude, Intellect, etc.)",
+    ["ins_qol_leveling_bar"]         = "Leveling bar (XP/hour, rested XP overlay)",
+    ["ins_qol_waypoint"]             = "Waypoint navigation system",
+    ["ins_qol_world_quest_tab"]      = "World Quest browser on World Map",
+    ["ins_qol_frame_anchors"]        = "Movable frame anchors (Alert, Loot)",
+    ["ins_qol_profession_helper"]    = "Profession Helper (batch disenchant)",
 
     -- ═══════════ Config Panels — i18n ═══════════
     -- ActionBars panel
@@ -2125,6 +2160,16 @@ TomoMod_RegisterLocale("enUS", {
     -- ═══════════════════════════════════
     -- MythicTracker EJ Boss Names (2.9.10)
     -- ═══════════════════════════════════
+    -- ═══════════════════════════════════
+    -- Installer Overhaul & AB Toggle (2.9.17)
+    -- ═══════════════════════════════════
+    ["wn_2917_ab_master_toggle"]        = "Action Bar master toggle — a new 'Enable TomoMod Action Bar system' checkbox in the Installer and Config Panel lets you fully disable bar management; after /reload, Blizzard's default action bars are fully restored.",
+    ["wn_2917_installer_raid"]          = "Installer step 5 — Raid Frames: enable/disable, hide Blizzard frames, dispel highlights, HoT tracking, debuff icons, defensive CDs, and grid/list layout selection.",
+    ["wn_2917_installer_coverage"]      = "Installer expanded — Skins step now includes Objective Tracker, Mail, and Reputation Bar; QOL step adds Auto Summon, Auto Quest, Class Reminder, Leveling Bar, Waypoint, World Quests, Frame Anchors, and Profession Helper.",
+    ["wn_2917_chat_skin_fix"]           = "Chat Skin fix — the installer was writing to an orphan 'chatSkin' key instead of the actual 'chatFrameSkin' key, making the toggle non-functional.",
+    ["wn_2917_talking_head_fix"]        = "HideTalkingHead fix — the module now checks its DB toggle before suppressing the TalkingHead frame, instead of applying unconditionally.",
+    ["wn_2917_minimal_style"]           = "Action Bar 'Minimal' style — the 5th skin style (borderless with inner shadows) was missing from the Installer dropdown despite being implemented; now selectable.",
+
     -- ═══════════════════════════════════
     -- AuctionRecipeTracker (2.9.15)
     -- ═══════════════════════════════════
