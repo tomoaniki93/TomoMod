@@ -30,6 +30,15 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "2.9.18",
+        highlights = {
+            L["wn_2918_buckets"],
+            L["wn_2918_bucket_toggle"],
+            L["wn_2918_tracker_width"],
+            L["wn_2918_layout_fix"],
+        },
+    },
+    {
         version = "2.9.17",
         highlights = {
             L["wn_2917_ab_master_toggle"],

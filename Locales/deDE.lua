@@ -396,6 +396,7 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_obj_tracker_bg_alpha"]        = "Hintergrund-Deckkraft",
     ["opt_obj_tracker_border"]          = "Rahmen anzeigen",
     ["opt_obj_tracker_hide_empty"]      = "Ausblenden wenn leer",
+    ["opt_obj_tracker_buckets"]         = "Quests in einklappbare Kategorien gruppieren",
     ["opt_obj_tracker_header_size"]     = "Kopfzeilen-Schriftgröße",
     ["opt_obj_tracker_cat_size"]        = "Kategorie-Schriftgröße",
     ["opt_obj_tracker_quest_size"]      = "Quest-Titel-Schriftgröße",
@@ -857,6 +858,7 @@ TomoMod_RegisterLocale("deDE", {
     ["layout_mode_hint"]                = "Elemente ziehen zum Neupositionieren — Sperren klicken wenn fertig",
     ["layout_btn_lock"]                 = "Sperren",
     ["layout_btn_reload"]               = "RL",
+    ["layout_btn_gui"]                  = "GUI",
     ["grid_dimmed"]                    = "Raster",
     ["grid_bright"]                    = "Raster +",
     ["grid_disabled"]                  = "Raster AUS",
@@ -2019,6 +2021,14 @@ TomoMod_RegisterLocale("deDE", {
     -- ═══════════════════════════════════
     -- ═══════════════════════════════════
     -- Installer Overhaul & AB Toggle (2.9.17)
+    -- ═══════════════════════════════════
+    -- Objective Tracker Quest Buckets (2.9.18)
+    -- ═══════════════════════════════════
+    ["wn_2918_buckets"]                 = "Objective Tracker quest buckets — quests, world quests, weeklies, dailies, dungeons, raids, professions and achievements are now grouped into collapsible categories with colored headers and live count badges.",
+    ["wn_2918_bucket_toggle"]           = "New 'Group quests into collapsible categories' checkbox in Config → Skins → Objective Tracker; disabling it instantly restores Blizzard's native module layout, no /reload required.",
+    ["wn_2918_tracker_width"]           = "Tracker panel widened by 10 px so quest item icons no longer clip against the right edge.",
+    ["wn_2918_layout_fix"]              = "Re-parented quest blocks now anchor both TOPLEFT and TOPRIGHT to prevent width collapse, and stale heights after collapse/expand are corrected via multi-pass layout.",
+
     ["wn_2917_ab_master_toggle"]        = "Action Bar master toggle — a new checkbox lets you fully disable bar management; after /reload, Blizzard's default action bars are fully restored.",
     ["wn_2917_installer_raid"]          = "Installer step 5 — Raid Frames: enable/disable, hide Blizzard frames, dispel highlights, HoT tracking, debuff and defensive icons, grid/list layout.",
     ["wn_2917_installer_coverage"]      = "Installer expanded — Skins step adds Objective Tracker, Mail, Reputation Bar; QOL step adds Auto Summon, Auto Quest, Class Reminder, Leveling Bar, Waypoint, World Quests, Frame Anchors, Profession Helper.",

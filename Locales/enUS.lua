@@ -444,6 +444,7 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_obj_tracker_bg_alpha"]        = "Background opacity",
     ["opt_obj_tracker_border"]          = "Show border",
     ["opt_obj_tracker_hide_empty"]      = "Hide when empty",
+    ["opt_obj_tracker_buckets"]         = "Group quests into collapsible categories",
     ["opt_obj_tracker_header_size"]     = "Header font size",
     ["opt_obj_tracker_cat_size"]        = "Category font size",
     ["opt_obj_tracker_quest_size"]      = "Quest title font size",
@@ -453,6 +454,19 @@ TomoMod_RegisterLocale("enUS", {
     ["info_obj_tracker"]                = "Reskins the Blizzard Objective Tracker with a dark panel, custom fonts and colored category headers.",
     ["ot_header_title"]                 = "OBJECTIVES",
     ["ot_header_options"]               = "Options",
+    ["ot_bucket_complete"]              = "Ready to Turn In",
+    ["ot_bucket_campaign"]              = "Campaign",
+    ["ot_bucket_important"]             = "Important",
+    ["ot_bucket_legendary"]             = "Legendary",
+    ["ot_bucket_weekly"]                = "Weekly",
+    ["ot_bucket_daily"]                 = "Daily",
+    ["ot_bucket_world"]                 = "World Quests",
+    ["ot_bucket_dungeon"]               = "Dungeons",
+    ["ot_bucket_raid"]                  = "Raids",
+    ["ot_bucket_profession"]            = "Professions",
+    ["ot_bucket_achievement"]           = "Achievements",
+    ["ot_bucket_quests"]                = "Quests",
+    ["ot_bucket_other"]                 = "Other",
 
     -- Automatisations
     ["section_automations"]             = "Automations",
@@ -908,6 +922,7 @@ TomoMod_RegisterLocale("enUS", {
     ["layout_mode_hint"]                = "Drag elements to reposition — click Lock when done",
     ["layout_btn_lock"]                 = "Lock",
     ["layout_btn_reload"]               = "RL",
+    ["layout_btn_gui"]                  = "GUI",
     ["grid_dimmed"]                    = "Grid",
     ["grid_bright"]                    = "Grid +",
     ["grid_disabled"]                  = "Grid OFF",
@@ -2160,6 +2175,14 @@ TomoMod_RegisterLocale("enUS", {
     -- ═══════════════════════════════════
     -- MythicTracker EJ Boss Names (2.9.10)
     -- ═══════════════════════════════════
+    -- ═══════════════════════════════════
+    -- Objective Tracker Quest Buckets (2.9.18)
+    -- ═══════════════════════════════════
+    ["wn_2918_buckets"]                 = "Objective Tracker quest buckets — quests, world quests, weeklies, dailies, dungeons, raids, professions and achievements are now grouped into collapsible categories with colored headers and live count badges.",
+    ["wn_2918_bucket_toggle"]           = "New 'Group quests into collapsible categories' checkbox in Config → Skins → Objective Tracker; disabling it instantly restores Blizzard's native module layout, no /reload required.",
+    ["wn_2918_tracker_width"]           = "Tracker panel widened by 10 px so quest item icons no longer clip against the right edge.",
+    ["wn_2918_layout_fix"]              = "Re-parented quest blocks now anchor both TOPLEFT and TOPRIGHT to prevent width collapse, and stale heights after collapse/expand are corrected via multi-pass layout.",
+
     -- ═══════════════════════════════════
     -- Installer Overhaul & AB Toggle (2.9.17)
     -- ═══════════════════════════════════

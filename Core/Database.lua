@@ -67,6 +67,8 @@ TomoMod_Defaults = {
         questFontSize = 12,
         objectiveFontSize = 11,
         maxQuestsShown = 0,
+        buckets = true,
+        bucketsCollapsed = {},
     },
     skyRide = {
         enabled = true,

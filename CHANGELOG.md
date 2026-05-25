@@ -1,5 +1,21 @@
 ## ####################################
 
+## CHANGELOG 2.9.18 — Objective Tracker Quest Buckets
+
+#### Objective Tracker — Collapsible Quest Categories
+- **New** — Quests, world quests, campaign quests, weeklies, dailies and achievements are now grouped into **collapsible category buckets** (Campaign, Important, Legendary, Weekly, Daily, World, Dungeon, Raid, Profession, Achievement, Complete, Default, Other); each bucket header shows a colored label, an arrow indicator and a live quest count badge
+- **New** — Click any bucket header to collapse/expand that category; per-category state is persisted in `TomoModDB.objectiveTracker.bucketsCollapsed`
+- **New** — Bucket classification uses `C_QuestInfoSystem.GetQuestClassification` (with smart folding: Calling → Daily, Prey/Delves/Scenario/Adventure → Other) so quests land in the right bucket automatically
+- **New** — Master toggle **"Group quests into collapsible categories"** added in *Config → Skins → Objective Tracker*; disabling it instantly restores Blizzard's native module layout (no `/reload` required) — blocks are re-parented back to their original frames
+- **Fix** — Tracker panel widened by 10 px (anchor pad `-12/+12` → `-17/+17`) so quest item icons no longer clip against the right edge
+- **Fix** — Re-parented Blizzard quest blocks now anchor with both `TOPLEFT` and `TOPRIGHT` to prevent width collapse inside the custom bucket frames
+- **Fix** — Stale block heights after collapse/expand resolved via `pcall(block.Layout, block)` + recursive `GetBottom` fallback measurement and a multi-pass `LayoutBuckets()` re-run on next frame
+
+#### Localization
+- **New** — 14 new locale keys added across all 6 languages (enUS, frFR, deDE, esES, itIT, ptBR) for the bucket toggle and the 13 bucket category labels
+
+## ####################################
+
 ## CHANGELOG 2.9.17 — Installer Overhaul · Action Bar Master Toggle · Bug Fixes
 
 #### Action Bars — Master System Toggle

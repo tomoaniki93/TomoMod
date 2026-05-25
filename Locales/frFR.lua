@@ -434,6 +434,7 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_obj_tracker_bg_alpha"]        = "Opacité du fond",
     ["opt_obj_tracker_border"]          = "Afficher la bordure",
     ["opt_obj_tracker_hide_empty"]      = "Masquer si vide",
+    ["opt_obj_tracker_buckets"]         = "Grouper les quêtes par catégories repliables",
     ["opt_obj_tracker_header_size"]     = "Taille police en-tête",
     ["opt_obj_tracker_cat_size"]        = "Taille police catégorie",
     ["opt_obj_tracker_quest_size"]      = "Taille police titre quête",
@@ -443,6 +444,19 @@ TomoMod_RegisterLocale("frFR", {
     ["info_obj_tracker"]                = "Applique un affichage sombre au Suivi d'Objectifs Blizzard avec un panneau, des polices personnalisées et des catégories colorées.",
     ["ot_header_title"]                 = "OBJECTIFS",
     ["ot_header_options"]               = "Options",
+    ["ot_bucket_complete"]              = "À rendre",
+    ["ot_bucket_campaign"]              = "Campagne",
+    ["ot_bucket_important"]             = "Important",
+    ["ot_bucket_legendary"]             = "Légendaire",
+    ["ot_bucket_weekly"]                = "Hebdomadaire",
+    ["ot_bucket_daily"]                 = "Quotidien",
+    ["ot_bucket_world"]                 = "Quêtes du monde",
+    ["ot_bucket_dungeon"]               = "Donjons",
+    ["ot_bucket_raid"]                  = "Raids",
+    ["ot_bucket_profession"]            = "Métiers",
+    ["ot_bucket_achievement"]           = "Hauts faits",
+    ["ot_bucket_quests"]                = "Quêtes",
+    ["ot_bucket_other"]                 = "Autres",
 
     -- Automatisations
     ["section_automations"]             = "Automatisations",
@@ -898,6 +912,7 @@ TomoMod_RegisterLocale("frFR", {
     ["layout_mode_hint"]                = "Glissez les éléments pour les repositionner — cliquez Verrouiller quand c'est fait",
     ["layout_btn_lock"]                 = "Verrouiller",
     ["layout_btn_reload"]               = "RL",
+    ["layout_btn_gui"]                  = "GUI",
     ["grid_dimmed"]                    = "Grille",
     ["grid_bright"]                    = "Grille +",
     ["grid_disabled"]                  = "Grille OFF",
@@ -2081,6 +2096,14 @@ TomoMod_RegisterLocale("frFR", {
     -- =======================================
     -- Installer Overhaul & AB Toggle (2.9.17)
     -- =======================================
+    -- ═══════════════════════════════════
+    -- Suivi des objectifs — Catégories (2.9.18)
+    -- ═══════════════════════════════════
+    ["wn_2918_buckets"]                 = "Catégories de quêtes dans le suivi — les quêtes, quêtes du monde, hebdomadaires, quotidiennes, donjons, raids, métiers et hauts faits sont désormais regroupés en sections repliables avec en-têtes colorés et compteurs en direct.",
+    ["wn_2918_bucket_toggle"]           = "Nouvelle case « Grouper les quêtes par catégories repliables » dans Config → Apparences → Suivi des objectifs ; la décocher restaure instantanément la disposition Blizzard d'origine, sans /reload.",
+    ["wn_2918_tracker_width"]           = "Panneau de suivi élargi de 10 px afin que les icônes des objets de quête ne soient plus rognées sur le bord droit.",
+    ["wn_2918_layout_fix"]              = "Les blocs de quête re-parentés sont désormais ancrés à la fois TOPLEFT et TOPRIGHT pour éviter l'effondrement de largeur, et les hauteurs périmées après pliage/dépliage sont corrigées via une mise en page multi-passe.",
+
     ["wn_2917_ab_master_toggle"]        = "Toggle master des barres d'action \226\128\148 une nouvelle case \194\171 Activer le syst\195\168me de barres d'action TomoMod \194\187 dans l'installeur et le panneau Config permet de d\195\169sactiver enti\195\168rement la gestion des barres ; apr\195\168s /reload, les barres Blizzard par d\195\169faut sont restaur\195\169es.",
     ["wn_2917_installer_raid"]          = "\195\137tape 5 de l'installeur \226\128\148 Cadres de raid : activer/d\195\169sactiver, masquer les cadres Blizzard, surlignage dispel, suivi HoT, ic\195\180nes debuff, d\195\169fensifs CD, et choix grille/liste.",
     ["wn_2917_installer_coverage"]      = "Installeur enrichi \226\128\148 l'\195\169tape Skins inclut d\195\169sormais Objective Tracker, Courrier et Barre de r\195\169putation ; l'\195\169tape QOL ajoute Auto Summon, Auto Qu\195\170tes, Rappel de classe, Barre de niveau, Waypoint, Qu\195\170tes mondiales, Ancres de fen\195\170tres et Aide aux m\195\169tiers.",

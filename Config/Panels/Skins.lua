@@ -405,6 +405,12 @@ local function BuildObjectiveTrackerTab(parent)
     end)
     y = ny
 
+    local _, ny = W.CreateCheckbox(c, L["opt_obj_tracker_buckets"], TomoModDB.objectiveTracker.buckets, y, function(v)
+        TomoModDB.objectiveTracker.buckets = v
+        if TomoMod_ObjectiveTracker then TomoMod_ObjectiveTracker.ApplySettings() end
+    end)
+    y = ny
+
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 

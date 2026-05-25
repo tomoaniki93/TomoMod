@@ -3,6 +3,12 @@
 -- Tab 1: Profils nommés (créer, renommer, dupliquer, assigner aux specs)
 -- Tab 2: Import / Export — popup modal plein écran (pattern EllesmereUI)
 -- Tab 3: Réinitialisations modules
+--
+-- [PERF v2] Optimisations UI :
+--   - Export asynchrone avec feedback "Exportation..."
+--   - Import asynchrone avec feedback "Importation..."
+--   - PreviewImport débounced (0.3s) pour ne pas décoder à chaque frappe
+--   - Export popup : SetText différé pour éviter le freeze sur longues chaînes
 -- =====================================
 
 local W    = TomoMod_Widgets
@@ -82,7 +88,8 @@ local function MkSmallBtn(parent, label, w, onClickFn, red)
 end
 
 -- =====================================
--- POPUP MODAL EXPORT/IMPORT (pattern EllesmereUI)
+-- POPUP MODAL EXPORT (pattern EllesmereUI)
+-- [PERF v2] SetText différé + async
 -- =====================================
 
 local function ShowExportPopup(exportStr)
@@ -142,8 +149,11 @@ local function ShowExportPopup(exportStr)
     eb:SetTextInsets(8, 8, 6, 6)
     eb:SetAutoFocus(false)
     eb:SetMultiLine(false)
-    eb:SetText(exportStr or "")
+
+    -- [PERF v2] Différer le SetText pour que le popup s'affiche immédiatement
+    eb:SetText("")
     eb._readOnly = exportStr
+
     eb:SetScript("OnChar", function(self)
         if self._readOnly then self:SetText(self._readOnly); self:HighlightText() end
     end)
@@ -179,8 +189,26 @@ local function ShowExportPopup(exportStr)
     end)
 
     dimmer:Show()
-    C_Timer.After(0.05, function() eb:SetFocus(); eb:HighlightText() end)
+
+    -- [PERF v2] Injecter le texte au frame suivant pour que le popup
+    -- apparaisse instantanément, puis populate l'EditBox
+    C_Timer.After(0.01, function()
+        if dimmer:IsShown() then
+            eb:SetText(exportStr or "")
+            C_Timer.After(0.01, function()
+                if dimmer:IsShown() then
+                    eb:SetFocus()
+                    eb:HighlightText()
+                end
+            end)
+        end
+    end)
 end
+
+-- =====================================
+-- POPUP MODAL IMPORT
+-- [PERF v2] Preview débounced (0.3s)
+-- =====================================
 
 local function ShowImportPopup(onImport)
     local dimmer = CreateFrame("Frame", nil, UIParent)
@@ -245,11 +273,42 @@ local function ShowImportPopup(onImport)
     eb:SetAutoFocus(false)
     eb:SetMultiLine(false)
     eb:SetText("")
+
+    -- [PERF v2] Debounce preview : on attend 0.3s après la dernière frappe
+    -- avant de lancer le décodage. Évite de décoder à chaque caractère collé.
+    local _previewTimer = nil
+    local _previewGeneration = 0
+
     eb:SetScript("OnTextChanged", function(self, userInput)
         if not userInput then return end
         local txt = self:GetText()
-        if txt and txt ~= "" then
-            local meta = P.PreviewImport(txt)
+
+        -- Annuler le timer précédent
+        _previewGeneration = _previewGeneration + 1
+
+        if not txt or txt == "" then
+            preview:SetText("")
+            return
+        end
+
+        -- Feedback immédiat : "Analyse..."
+        preview:SetText("|cff888888" .. (L["import_preview_analyzing"] or "Analyse...") .. "|r")
+
+        -- Lancer le preview après un délai
+        local gen = _previewGeneration
+        C_Timer.After(0.3, function()
+            -- Si une frappe plus récente a eu lieu, ignorer
+            if gen ~= _previewGeneration then return end
+            -- Si le popup est fermé, ignorer
+            if not dimmer:IsShown() then return end
+
+            local currentTxt = eb:GetText()
+            if not currentTxt or currentTxt == "" then
+                preview:SetText("")
+                return
+            end
+
+            local meta = P.PreviewImport(currentTxt)
             if meta then
                 preview:SetText(
                     "|cff0cd29f✓|r " ..
@@ -260,9 +319,7 @@ local function ShowImportPopup(onImport)
             else
                 preview:SetText("|cffff4444✗|r " .. (L["import_preview_invalid"] or "Chaîne invalide"))
             end
-        else
-            preview:SetText("")
-        end
+        end)
     end)
 
     -- Nom du profil à créer
@@ -504,7 +561,6 @@ local function BuildProfileTab(parent)
             table.insert(profileOptions, { text = n, value = n })
         end
     end
-    -- Option "Aucun"
     table.insert(profileOptions, 1, { text = L["spec_profile_none"] or "— Aucun —", value = "" })
 
     for _, spec in ipairs(allSpecs) do
@@ -540,7 +596,6 @@ local function BuildProfileTab(parent)
         specNameFS:SetText(txt)
 
         -- ── Dropdown profil inline ────────────────────────────────────────────
-        -- Bouton principal du dropdown
         local DROP_W = 200
         local dropBtn = CreateFrame("Button", nil, row, "BackdropTemplate")
         dropBtn:SetSize(DROP_W, 26)
@@ -549,7 +604,6 @@ local function BuildProfileTab(parent)
         dropBtn:SetBackdropColor(0.06, 0.06, 0.08, 1)
         dropBtn:SetBackdropBorderColor(unpack(BORDER))
 
-        -- Trouver le texte affiché depuis la valeur
         local function GetOptDisplay(val)
             if val == "" then return L["spec_profile_none"] or "— Aucun —" end
             for _, opt in ipairs(profileOptions) do
@@ -629,14 +683,12 @@ local function BuildProfileTab(parent)
                 menu:Hide()
                 b:SetBackdropBorderColor(unpack(BORDER))
             else
-                -- Fermer tous les autres menus ouverts
                 CloseDropDownMenus()
                 menu:Show()
                 b:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.8)
             end
         end)
 
-        -- Fermer si clic ailleurs
         menu:SetScript("OnHide", function()
             dropBtn:SetBackdropBorderColor(unpack(BORDER))
         end)
@@ -653,6 +705,7 @@ end
 
 -- =====================================
 -- TAB 2 : IMPORT / EXPORT — Boutons → Popups modales
+-- [PERF v2] Utilise ExportAsync / ImportAsProfileAsync
 -- =====================================
 
 local function BuildImportExportTab(parent)
@@ -664,14 +717,16 @@ local function BuildImportExportTab(parent)
     local _, ny = W.CreateSectionHeader(c, L["section_export"] or "Exporter", y); y = ny
     local _, ny = W.CreateInfoText(c, L["info_export"] or "Crée une chaîne compressée de vos paramètres actuels. Partagez-la avec d'autres joueurs.", y); y = ny
 
+    local exportBtnRef  -- référence pour désactiver pendant l'export
     local _, ny = W.CreateButton(c, L["btn_export"] or "Exporter le Profil Actif", 240, y, function()
-        P.AutoSaveActiveProfile()
-        local str, err = P.Export()
-        if str then
-            ShowExportPopup(str)
-        else
-            print("|cffff0000TomoMod|r " .. (err or "Export échoué"))
-        end
+        -- [PERF v2] Export asynchrone pour éviter le freeze
+        P.ExportAsync(function(str, err)
+            if str then
+                ShowExportPopup(str)
+            else
+                print("|cffff0000TomoMod|r " .. (err or "Export échoué"))
+            end
+        end)
     end)
     y = ny
 
@@ -683,15 +738,16 @@ local function BuildImportExportTab(parent)
     local _, ny = W.CreateButton(c, L["btn_import"] or "Importer un Profil...", 240, y, function()
         ShowImportPopup(function(str, profName)
             if profName and not profName:match("^%s*$") then
-                -- Importer comme nouveau profil nommé
+                -- [PERF v2] Import asynchrone comme nouveau profil
                 profName = profName:match("^%s*(.-)%s*$")
-                local ok, err = P.ImportAsProfile(str, profName)
-                if ok then
-                    print("|cff0cd29fTomoMod|r " .. string.format(L["msg_import_as_profile"] or "Importé sous '%s'", profName))
-                    StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
-                else
-                    print("|cffff0000TomoMod|r " .. (err or "Import échoué"))
-                end
+                P.ImportAsProfileAsync(str, profName, function(ok, err)
+                    if ok then
+                        print("|cff0cd29fTomoMod|r " .. string.format(L["msg_import_as_profile"] or "Importé sous '%s'", profName))
+                        StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
+                    else
+                        print("|cffff0000TomoMod|r " .. (err or "Import échoué"))
+                    end
+                end)
             else
                 -- Importer et écraser le profil actif
                 StaticPopup_Show("TOMOMOD_IMPORT_CONFIRM", nil, nil, { text = str })
@@ -774,6 +830,7 @@ end
 
 -- =====================================
 -- STATIC POPUPS
+-- [PERF v2] TOMOMOD_IMPORT_CONFIRM utilise ImportAsync
 -- =====================================
 
 StaticPopupDialogs["TOMOMOD_IMPORT_CONFIRM"] = {
@@ -782,13 +839,14 @@ StaticPopupDialogs["TOMOMOD_IMPORT_CONFIRM"] = {
     button2 = L["popup_cancel"] or "Annuler",
     OnAccept = function(self, data)
         if data and data.text then
-            local ok, err = P.Import(data.text)
-            if ok then
-                print("|cff0cd29fTomoMod|r " .. (L["msg_import_success"] or "Import réussi"))
-                ReloadUI()
-            else
-                print("|cffff0000TomoMod|r " .. (err or "Import échoué"))
-            end
+            P.ImportAsync(data.text, function(ok, err)
+                if ok then
+                    print("|cff0cd29fTomoMod|r " .. (L["msg_import_success"] or "Import réussi"))
+                    ReloadUI()
+                else
+                    print("|cffff0000TomoMod|r " .. (err or "Import échoué"))
+                end
+            end)
         end
     end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
