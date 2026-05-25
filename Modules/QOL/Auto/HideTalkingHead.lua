@@ -9,6 +9,7 @@ local applied = false
 local function ApplyHideTalkingHead()
     if applied then return end
     if not TalkingHeadFrame then return end
+    if not TomoModDB or not TomoModDB.hideTalkingHead or not TomoModDB.hideTalkingHead.enabled then return end
     applied = true
 
     TalkingHeadFrame:UnregisterAllEvents()
