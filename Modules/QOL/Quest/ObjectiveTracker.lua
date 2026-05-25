@@ -467,6 +467,7 @@ end
 
 local function ScanAndStyle(frame, depth)
     if not frame or depth > 6 then return end
+    if frame._tmBucket then return end
 
     -- Check if this frame is a module header
     local isHeader, headerText = IsModuleHeader(frame)
@@ -604,10 +605,10 @@ local function CreateOrUpdateBackground()
         skinFrame.borderTextures = borders
     end
 
-    -- Position: wrap actual tracker content
+    -- Position: wrap actual tracker content (+10px wider than the Blizzard tracker)
     skinFrame:ClearAllPoints()
-    skinFrame:SetPoint("TOPLEFT", tracker, "TOPLEFT", -12, 12)
-    skinFrame:SetPoint("TOPRIGHT", tracker, "TOPRIGHT", 12, 0)
+    skinFrame:SetPoint("TOPLEFT", tracker, "TOPLEFT", -17, 12)
+    skinFrame:SetPoint("TOPRIGHT", tracker, "TOPRIGHT", 17, 0)
 
     -- Dynamic height: measure the actual bottom of visible content
     local trackerTop = tracker:GetTop()
@@ -780,6 +781,307 @@ local function IsInMythicPlus()
 end
 
 -- =====================================
+-- BUCKETS (Option A: re-anchor Blizzard quest blocks into collapsible groups)
+-- =====================================
+
+local BUCKET_ORDER = {
+    "COMPLETE", "CAMPAIGN", "IMPORTANT", "LEGENDARY",
+    "WEEKLY", "DAILY", "WORLD", "DUNGEON", "RAID",
+    "PROFESSION", "ACHIEVEMENT", "DEFAULT", "OTHER",
+}
+
+local function BL(key, fallback)
+    local s = L and L[key]
+    if s and s ~= "" and s ~= key then return s end
+    return fallback
+end
+
+local function BucketLabel(key)
+    if key == "COMPLETE"   then return BL("ot_bucket_complete",   "Ready to Turn In") end
+    if key == "CAMPAIGN"   then return BL("ot_bucket_campaign",   "Campaign") end
+    if key == "IMPORTANT"  then return BL("ot_bucket_important",  "Important") end
+    if key == "LEGENDARY"  then return BL("ot_bucket_legendary",  "Legendary") end
+    if key == "WEEKLY"     then return BL("ot_bucket_weekly",     "Weekly") end
+    if key == "DAILY"      then return BL("ot_bucket_daily",      "Daily") end
+    if key == "WORLD"      then return BL("ot_bucket_world",      "World Quests") end
+    if key == "DUNGEON"    then return BL("ot_bucket_dungeon",    "Dungeons") end
+    if key == "RAID"       then return BL("ot_bucket_raid",       "Raids") end
+    if key == "PROFESSION" then return BL("ot_bucket_profession", "Professions") end
+    if key == "ACHIEVEMENT" then return BL("ot_bucket_achievement", "Achievements") end
+    if key == "DEFAULT"    then return BL("ot_bucket_quests",     "Quests") end
+    if key == "OTHER"      then return BL("ot_bucket_other",      "Other") end
+    return key
+end
+
+local bucketFrames = {}      -- [key] = { frame, header, chev, label, count }
+local bucketEnabled = true   -- mirrors S().buckets at update time
+
+local function BucketsCollapsedTable()
+    local db = TomoModDB and TomoModDB.objectiveTracker
+    if not db then return nil end
+    db.bucketsCollapsed = db.bucketsCollapsed or {}
+    return db.bucketsCollapsed
+end
+
+local function IsBucketCollapsed(key)
+    local t = BucketsCollapsedTable()
+    return t and t[key] == true
+end
+
+local LayoutBuckets -- forward
+
+local function ToggleBucket(key)
+    local t = BucketsCollapsedTable(); if not t then return end
+    t[key] = not t[key]
+    LayoutBuckets()
+    -- Heights of just-expanded blocks may be stale for a frame or two
+    C_Timer.After(0,    function() if LayoutBuckets then LayoutBuckets() end end)
+    C_Timer.After(0.05, function() if LayoutBuckets then LayoutBuckets() end end)
+end
+
+local function GetOrCreateBucket(key)
+    if bucketFrames[key] then return bucketFrames[key] end
+    if not skinFrame then return nil end
+
+    local f = CreateFrame("Button", nil, skinFrame)
+    f:SetHeight(20)
+    f:SetFrameStrata("MEDIUM")
+    f:SetFrameLevel(skinFrame:GetFrameLevel() + 20)
+    f._tmBucket = true
+    f:RegisterForClicks("LeftButtonUp")
+    f:SetScript("OnClick", function() ToggleBucket(key) end)
+
+    -- Subtle accent line under header
+    local accent = f:CreateTexture(nil, "ARTWORK")
+    accent:SetColorTexture(1, 1, 1, 0.10)
+    accent:SetHeight(1)
+    accent:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 18, 0)
+    accent:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -4, 0)
+
+    local chev = f:CreateFontString(nil, "OVERLAY")
+    chev:SetFont(ADDON_FONT_BLACK, 13, "OUTLINE")
+    chev:SetPoint("LEFT", f, "LEFT", 6, 0)
+    chev:SetText("-")
+
+    local label = f:CreateFontString(nil, "OVERLAY")
+    label:SetFont(ADDON_FONT_BLACK, 12, "OUTLINE")
+    label:SetPoint("LEFT", chev, "RIGHT", 6, 0)
+
+    local count = f:CreateFontString(nil, "OVERLAY")
+    count:SetFont(ADDON_FONT, 11, "OUTLINE")
+    count:SetPoint("RIGHT", f, "RIGHT", -6, 0)
+    count:SetTextColor(0.65, 0.65, 0.70, 0.95)
+
+    f:SetScript("OnEnter", function() accent:SetColorTexture(1, 1, 1, 0.25) end)
+    f:SetScript("OnLeave", function() accent:SetColorTexture(1, 1, 1, 0.10) end)
+
+    bucketFrames[key] = { frame = f, chev = chev, label = label, count = count, accent = accent }
+    return bucketFrames[key]
+end
+
+local function ClassifyBlock(block)
+    -- Prefer block.id (Blizzard sets it for quest blocks), fall back to questID or parent walk
+    local qid = block.id or block.questID
+    if (not qid) or qid == 0 then
+        qid = GetBlockQuestID(block)
+    end
+    if qid and qid > 0 then
+        local cat = GetQuestCategory(qid)
+        -- Fold rare/unsupported categories into broader buckets
+        if cat == "CALLING" then return "DAILY" end
+        if cat == "PREY" or cat == "DELVES" or cat == "SCENARIO" or cat == "ADVENTURE" then
+            return "OTHER"
+        end
+        return cat or "DEFAULT"
+    end
+    return "OTHER"
+end
+
+LayoutBuckets = function()
+    if not bucketEnabled then
+        -- Re-show any blocks we may have hidden, hide bucket headers
+        for _, bf in pairs(bucketFrames) do bf.frame:Hide() end
+        return
+    end
+    if InCombatLockdown() then return end
+    if not skinFrame or not headerBar then return end
+
+    local tracker = ObjectiveTrackerFrame
+    if not tracker then return end
+
+    -- Collect quest blocks from BOTH the Blizzard tracker AND our skinFrame
+    -- (blocks already re-parented in previous passes live under skinFrame).
+    local function collectAll(root, depth, out, seen)
+        if not root or depth > 6 then return end
+        if root == headerBar then return end
+        -- A frame with non-empty HeaderText is a quest block
+        if root.HeaderText and root.HeaderText.GetText then
+            local txt = root.HeaderText:GetText()
+            if txt and txt ~= "" and not seen[root] then
+                seen[root] = true
+                out[#out + 1] = root
+            end
+        end
+        if root.GetChildren then
+            for _, c in ipairs({ root:GetChildren() }) do
+                if not c._tmBucket then
+                    collectAll(c, depth + 1, out, seen)
+                end
+            end
+        end
+    end
+
+    local blocks, seen = {}, {}
+    collectAll(tracker, 0, blocks, seen)
+    collectAll(skinFrame, 0, blocks, seen)
+
+    if #blocks == 0 then
+        for _, bf in pairs(bucketFrames) do bf.frame:Hide() end
+        return
+    end
+
+    -- Group by bucket key
+    local groups = {}
+    for _, b in ipairs(blocks) do
+        local key = ClassifyBlock(b)
+        groups[key] = groups[key] or {}
+        table.insert(groups[key], b)
+    end
+
+    -- Hide Blizzard module headers (per-zone titles become redundant with buckets)
+    local function HideModuleHeaders(frame, depth)
+        if depth > 6 or not frame then return end
+        if IsModuleHeader(frame) then frame:SetAlpha(0); frame:SetHeight(0.01) end
+        local children = { frame:GetChildren() }
+        for _, c in ipairs(children) do HideModuleHeaders(c, depth + 1) end
+    end
+    HideModuleHeaders(tracker, 0)
+
+    -- Layout: vertical stack inside skinFrame below headerBar
+    local headerBarH = (headerBar:GetHeight() or 28)
+    local PAD_LEFT_HEADER = 4
+    local PAD_LEFT_BLOCK  = 32     -- leave room for the quest icon on the left
+    local PAD_RIGHT       = 6
+    local TOP_GAP         = 6
+    local BLOCK_GAP       = 4
+    local BUCKET_GAP      = 6
+
+    local yOffset = -(headerBarH + TOP_GAP)
+
+    for _, key in ipairs(BUCKET_ORDER) do
+        local group = groups[key]
+        if group and #group > 0 then
+            local bf = GetOrCreateBucket(key)
+            if bf then
+                local color = QUEST_TITLE_COLORS[key] or QUEST_TITLE_COLORS.DEFAULT
+                local collapsed = IsBucketCollapsed(key)
+
+                bf.chev:SetText(collapsed and "+" or "-")
+                bf.chev:SetTextColor(color[1], color[2], color[3], 1)
+                bf.label:SetText(BucketLabel(key))
+                bf.label:SetTextColor(color[1], color[2], color[3], 1)
+                bf.count:SetText(tostring(#group))
+
+                bf.frame:ClearAllPoints()
+                bf.frame:SetPoint("TOPLEFT",  skinFrame, "TOPLEFT",  PAD_LEFT_HEADER,  yOffset)
+                bf.frame:SetPoint("TOPRIGHT", skinFrame, "TOPRIGHT", -PAD_RIGHT,       yOffset)
+                bf.frame:Show()
+                yOffset = yOffset - 22
+
+                if collapsed then
+                    for _, block in ipairs(group) do block:Hide() end
+                else
+                    for _, block in ipairs(group) do
+                        if block:GetParent() ~= skinFrame then
+                            if not block._tmOriginalParent then
+                                block._tmOriginalParent = block:GetParent()
+                            end
+                            block:SetParent(skinFrame)
+                        end
+                        block:SetFrameStrata("MEDIUM")
+                        block:SetFrameLevel(skinFrame:GetFrameLevel() + 5)
+                        block:SetIgnoreParentAlpha(true)
+                        block:SetAlpha(1)
+                        block:ClearAllPoints()
+                        block:SetPoint("TOPLEFT",  skinFrame, "TOPLEFT",  PAD_LEFT_BLOCK, yOffset)
+                        block:SetPoint("TOPRIGHT", skinFrame, "TOPRIGHT", -PAD_RIGHT,    yOffset)
+                        block:Show()
+
+                        -- Restyle this block (its HeaderText + objective lines)
+                        ScanAndStyle(block, 0)
+
+                        -- Force the block to recalculate its height based on visible lines
+                        if block.Layout then pcall(block.Layout, block) end
+
+                        -- Measure actual rendered bottom (handles cases where GetHeight is stale)
+                        local bh = block:GetHeight() or 0
+                        if bh < 10 then
+                            local top = block:GetTop()
+                            local bottom
+                            local function deepestBottom(f, d)
+                                if d > 4 or not f or not f.IsShown or not f:IsShown() then return end
+                                local b = f.GetBottom and f:GetBottom()
+                                if b and (not bottom or b < bottom) then bottom = b end
+                                if f.GetRegions then
+                                    for _, r in ipairs({ f:GetRegions() }) do
+                                        if r.IsShown and r:IsShown() and r.GetBottom then
+                                            local rb = r:GetBottom()
+                                            if rb and (not bottom or rb < bottom) then bottom = rb end
+                                        end
+                                    end
+                                end
+                                if f.GetChildren then
+                                    for _, c in ipairs({ f:GetChildren() }) do deepestBottom(c, d + 1) end
+                                end
+                            end
+                            deepestBottom(block, 0)
+                            if top and bottom then bh = top - bottom end
+                            if bh < 30 then bh = 30 end
+                        end
+
+                        yOffset = yOffset - bh - BLOCK_GAP
+                    end
+                end
+                yOffset = yOffset - BUCKET_GAP
+            end
+        end
+    end
+
+    -- Hide bucket headers that are no longer used
+    for k, bf in pairs(bucketFrames) do
+        if not groups[k] then bf.frame:Hide() end
+    end
+
+    -- Resize skinFrame to fit our layout
+    local totalH = math.abs(yOffset) + 10
+    if totalH < 60 then totalH = 60 end
+    skinFrame:SetHeight(totalH)
+end
+
+local function DisableBuckets()
+    bucketEnabled = false
+    for _, bf in pairs(bucketFrames) do bf.frame:Hide() end
+    -- Restore any re-parented quest blocks to their original parent so Blizzard regains control
+    if InCombatLockdown() then return end
+    local tracker = ObjectiveTrackerFrame
+    if not tracker then return end
+    local blocks = {}
+    CollectQuestBlocks(tracker, 0, blocks)
+    for _, b in ipairs(blocks) do
+        if b._tmOriginalParent then
+            b:SetParent(b._tmOriginalParent)
+            b._tmOriginalParent = nil
+            b:ClearAllPoints()
+        end
+    end
+end
+
+local function RefreshBucketsEnabled()
+    local s = S()
+    bucketEnabled = s and (s.buckets ~= false) or false
+end
+
+-- =====================================
 -- MASTER UPDATE
 -- =====================================
 
@@ -805,7 +1107,13 @@ local function OnTrackerUpdate()
     HideBlizzardHeader()
     ScanAndStyle(tracker, 0)
     UpdateQuestCount()
-    LimitDisplayedQuests()
+    RefreshBucketsEnabled()
+    if bucketEnabled then
+        LayoutBuckets()
+    else
+        DisableBuckets()
+        LimitDisplayedQuests()
+    end
 
     -- Visibility: check if tracker has actual visible content
     if skinFrame then
@@ -912,6 +1220,8 @@ end
 function OT.Disable()
     if skinFrame then skinFrame:Hide() end
     if headerBar then headerBar:Hide() end
+
+    DisableBuckets()
 
     if InCombatLockdown() then return end
 

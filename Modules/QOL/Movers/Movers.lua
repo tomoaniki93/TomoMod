@@ -596,7 +596,14 @@ local function CreateHeaderBar()
 
     headerBar = CreateFrame("Frame", "TomoModLayoutHeader", UIParent, "BackdropTemplate")
     headerBar:SetSize(BAR_W, BAR_H)
-    headerBar:SetPoint("TOP", UIParent, "TOP", 0, -6)
+    -- Position : sauvegardée si l'utilisateur a déjà déplacé la barre, sinon en haut centre.
+    local savedPos = TomoModDB and TomoModDB._layoutHeaderPos
+    if savedPos and savedPos.point then
+        headerBar:SetPoint(savedPos.point, UIParent, savedPos.relativePoint or savedPos.point,
+                           savedPos.x or 0, savedPos.y or 0)
+    else
+        headerBar:SetPoint("TOP", UIParent, "TOP", 0, -6)
+    end
     headerBar:SetFrameStrata("DIALOG")
     headerBar:SetFrameLevel(600)
     headerBar:SetBackdrop({
@@ -607,6 +614,23 @@ local function CreateHeaderBar()
     headerBar:SetBackdropColor(unpack(BG))
     headerBar:SetBackdropBorderColor(unpack(BORDER))
     headerBar:Hide()
+
+    -- Drag : la barre Layout peut être déplacée par l'utilisateur (glisser n'importe
+    -- quelle zone vide). Position persistée dans TomoModDB._layoutHeaderPos.
+    headerBar:SetMovable(true)
+    headerBar:SetClampedToScreen(true)
+    headerBar:EnableMouse(true)
+    headerBar:RegisterForDrag("LeftButton")
+    headerBar:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    headerBar:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        local point, _, relativePoint, x, y = self:GetPoint()
+        if TomoModDB then
+            TomoModDB._layoutHeaderPos = {
+                point = point, relativePoint = relativePoint, x = x, y = y,
+            }
+        end
+    end)
 
     -- Accent line
     local accent = headerBar:CreateTexture(nil, "OVERLAY")
@@ -668,6 +692,20 @@ local function CreateHeaderBar()
     -- Override OnLeave : resync couleurs selon état actif
     gridBtn:SetScript("OnLeave", function()
         SyncGridBtn()
+    end)
+
+    -- GUI (row 1, à gauche de Grid) — toggle TomoModConfigFrame
+    local guiBtn = MakeBtn(headerBar, 84,
+        "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Logo.tga",
+        { ACCENT[1], ACCENT[2], ACCENT[3] }, L["layout_btn_gui"] or "GUI",
+        { 0.04, 0.10, 0.08 }, { ACCENT[1], ACCENT[2], ACCENT[3] }
+    )
+    guiBtn:SetPoint("RIGHT", gridBtn, "LEFT", -6, 0)
+    guiBtn:SetScript("OnClick", function()
+        local cf = _G["TomoModConfigFrame"]
+        if cf then
+            if cf:IsShown() then cf:Hide() else cf:Show() end
+        end
     end)
 end
 

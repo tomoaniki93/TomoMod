@@ -6,8 +6,5 @@
     <Include file="HousingCore.lua"/>
 
     <!-- Submodules -->
-    <Include file="DecorHover.lua"/>
     <Include file="EditorClock.lua"/>
-    <Include file="TeleportMacros.lua"/>
-
 </Ui>

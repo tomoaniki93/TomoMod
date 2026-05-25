@@ -655,6 +655,10 @@ function CB.CreateCastbar(unit)
         self._castEndMS=nil; self._realStartSec=nil; self._realEndSec=nil
         self._realDurationSec=nil; self._channelSpellID=nil; self._timerElapsed=0
         self._lastSpellID = nil
+        -- [TWW] Release the C-side timer started via SetTimerDuration so the next
+        -- cast (or preview / interrupt SetMinMaxValues) gets a clean state.
+        if self._useTimerAPI and self.ResetTimer then self:ResetTimer() end
+        self._useTimerAPI = false
         HideStageMarkers(self); HideTickMarkers(self)
         if self.latencyTex then self.latencyTex:Hide() end
         if self._spark     then SA.HideAll(self._spark) end
@@ -803,8 +807,21 @@ function CB.CreateCastbar(unit)
 
         if self._fadeAG and self._fadeAG:IsPlaying() then
             self._fadeAG:Stop()
-            self:SetAlpha(1)
         end
+        -- Stop the interrupt flash too — if a previous cast was just cancelled
+        -- and we instantly start a new one, the alpha-flash animation would still
+        -- be running and could leave the bar at a low alpha when the new cast is
+        -- shown, making it look "invisible".
+        if self._flashAG and self._flashAG:IsPlaying() then
+            self._flashAG:Stop()
+        end
+        self:SetAlpha(1)
+        -- Release any C-side timer left over from the previous cast BEFORE we start
+        -- a new one.  Calling SetTimerDuration on a bar that still has an active
+        -- timer (or stale internal min/max from a SetMinMaxValues fallback used by
+        -- the interrupt path) can leave the bar empty on the next cast.
+        if self._useTimerAPI and self.ResetTimer then self:ResetTimer() end
+        self._useTimerAPI = false
 
         local duration = (bchannel or bempowered) and UnitChannelDuration(unitID) or UnitCastingDuration(unitID)
         self.duration_obj = duration
@@ -822,7 +839,21 @@ function CB.CreateCastbar(unit)
         self.casting=(not bchannel and not bempowered); self.channeling=bchannel
         self.empowered=bempowered; self.numStages=numStages
         self._channelSpellID=channelSpellID; self.failstart=nil; self._timerElapsed=0
-        self:SetMinMaxValues(info.startTime, info.endTime); self:SetReverseFill(bchannel)
+        -- [TWW FIX] For the player, UnitCastingInfo's startTime/endTime are secret
+        -- (issecretvalue == true). Passing them to SetMinMaxValues silently breaks the
+        -- bar rendering — the frame is Show()n but stays empty. The retail-safe pattern
+        -- (mirroring oUF) is to feed the Duration object directly to the C-side via
+        -- SetTimerDuration, which handles the secret value internally.
+        if self.SetTimerDuration and duration and Enum and Enum.StatusBarTimerDirection then
+            self:SetReverseFill(false)
+            local _dir = bchannel and Enum.StatusBarTimerDirection.RemainingTime
+                                   or Enum.StatusBarTimerDirection.ElapsedTime
+            self:SetTimerDuration(duration, Enum.StatusBarInterpolation.Immediate, _dir)
+            self._useTimerAPI = true
+        else
+            self:SetMinMaxValues(info.startTime, info.endTime); self:SetReverseFill(bchannel)
+            self._useTimerAPI = false
+        end
         ApplyBarColor(self, unitID, info.spellID)
         if self.spellText then self.spellText:SetText(TruncateSpellName(info.name, db.spellNameMaxLen)) end
         if self.targetText then
@@ -862,7 +893,12 @@ function CB.CreateCastbar(unit)
             return
         end
 
-        self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
+        -- [TWW FIX] When SetTimerDuration was used, the C-side animates the bar
+        -- automatically from the Duration object. Calling SetValue here would override
+        -- (and reset) that internal timer every frame, so skip it in that branch.
+        if not self._useTimerAPI then
+            self:SetValue(GetTime() * 1000, Enum.StatusBarInterpolation.ExponentialEaseOut)
+        end
 
         if self._spark and db.showSpark then
             local startSec = self._realStartSec; local endSec = self._realEndSec

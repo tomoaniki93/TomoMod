@@ -123,26 +123,18 @@ function UF_Elements.CreateAuraIcon(container, index, auraSettings)
     icon.border:SetPoint("BOTTOMRIGHT", 1, -1)
     UF_Elements.CreateBorder(icon.border)
 
-    -- Cooldown overlay
+    -- Cooldown overlay (built-in countdown numbers handle TWW secret duration values C-side)
     icon.cooldown = CreateFrame("Cooldown", nil, icon, "CooldownFrameTemplate")
     icon.cooldown:SetAllPoints(icon.texture)
     icon.cooldown:SetDrawEdge(false)
     icon.cooldown:SetReverse(true)
-    icon.cooldown:SetHideCountdownNumbers(true)
+    icon.cooldown:SetHideCountdownNumbers(not auraSettings.showDuration)
 
     -- Stack count
     icon.count = icon:CreateFontString(nil, "OVERLAY")
     icon.count:SetFont(FONT, 9, "OUTLINE")
     icon.count:SetPoint("BOTTOMRIGHT", -1, 1)
     icon.count:SetTextColor(1, 1, 1, 1)
-
-    -- Duration
-    if auraSettings.showDuration then
-        icon.duration = icon:CreateFontString(nil, "OVERLAY")
-        icon.duration:SetFont(FONT, 8, "OUTLINE")
-        icon.duration:SetPoint("TOP", icon, "BOTTOM", 0, -1)
-        icon.duration:SetTextColor(1, 1, 1, 0.9)
-    end
 
     -- Tooltip
     icon:EnableMouse(true)
@@ -253,20 +245,15 @@ function UF_Elements.UpdateAuras(frame)
             iconFrame._auraUnit = aura._unit or unit
             iconFrame._auraInstanceID = aura.auraInstanceID
 
-            if durObj then
-                -- TWW: GetRemainingDuration/GetTotalDuration return secrets too
-                -- Can't compare them, but string.format (C function) accepts them
-                -- Cooldown swipe: can't compute startTime (arithmetic on secrets forbidden)
-                iconFrame.cooldown:Hide()
-
-                -- Duration text: pass directly to string.format (no comparison)
-                if iconFrame.duration then
-                    iconFrame.duration:SetText(string.format("%.0f", durObj:GetRemainingDuration()))
-                    iconFrame.duration:Show()
-                end
+            if durObj and iconFrame.cooldown.SetCooldownFromDurationObject then
+                -- TWW: pass the Duration object directly to the C-side cooldown frame.
+                -- The built-in countdown numbers will render the time without exposing
+                -- the secret value to Lua (which would otherwise format as "0").
+                iconFrame.cooldown:SetCooldownFromDurationObject(durObj)
+                iconFrame.cooldown:Show()
             else
+                iconFrame.cooldown:Clear()
                 iconFrame.cooldown:Hide()
-                if iconFrame.duration then iconFrame.duration:Hide() end
             end
 
             -- Stack count: value may be secret/tainted — never read back or compare
@@ -360,26 +347,18 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
         icon.border:SetPoint("BOTTOMRIGHT", 1, -1)
         UF_Elements.CreateBorder(icon.border)
 
-        -- Cooldown overlay
+        -- Cooldown overlay (built-in countdown numbers handle TWW secret duration values C-side)
         icon.cooldown = CreateFrame("Cooldown", nil, icon, "CooldownFrameTemplate")
         icon.cooldown:SetAllPoints(icon.texture)
         icon.cooldown:SetDrawEdge(false)
         icon.cooldown:SetReverse(true)
-        icon.cooldown:SetHideCountdownNumbers(true)
+        icon.cooldown:SetHideCountdownNumbers(not buffSettings.showDuration)
 
         -- Stack count
         icon.count = icon:CreateFontString(nil, "OVERLAY")
         icon.count:SetFont(FONT, 9, "OUTLINE")
         icon.count:SetPoint("BOTTOMRIGHT", -1, 1)
         icon.count:SetTextColor(1, 1, 1, 1)
-
-        -- Duration
-        if buffSettings.showDuration then
-            icon.duration = icon:CreateFontString(nil, "OVERLAY")
-            icon.duration:SetFont(FONT, 8, "OUTLINE")
-            icon.duration:SetPoint("CENTER", icon, "CENTER", 0, 0)
-            icon.duration:SetTextColor(1, 1, 1, 0.9)
-        end
 
         -- Tooltip — fonctionne pour les buffs amis ET ennemis
         icon:EnableMouse(true)
@@ -522,17 +501,15 @@ function UF_Elements.UpdateEnemyBuffs(frame)
             iconFrame._auraUnit = unit
             iconFrame._auraInstanceID = aura.auraInstanceID
 
-            if durObj then
-                iconFrame.cooldown:Hide()
-                if iconFrame.duration then
-                    -- TWW 11.1: GetRemainingDuration() returns a secret number —
-                    -- pass directly to C-side SetFormattedText (no Lua arithmetic)
-                    iconFrame.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
-                    iconFrame.duration:Show()
-                end
+            if durObj and iconFrame.cooldown.SetCooldownFromDurationObject then
+                -- TWW: pass the Duration object directly to the C-side cooldown frame.
+                -- Built-in countdown numbers render the time without exposing the secret
+                -- value to Lua (which would otherwise format as "0").
+                iconFrame.cooldown:SetCooldownFromDurationObject(durObj)
+                iconFrame.cooldown:Show()
             else
+                iconFrame.cooldown:Clear()
                 iconFrame.cooldown:Hide()
-                if iconFrame.duration then iconFrame.duration:Hide() end
             end
 
             -- Stack count: value may be secret/tainted — never read back or compare
@@ -556,33 +533,7 @@ end
 
 local auraDurationTicker
 function UF_Elements.StartAuraDurationUpdater(frames)
-    if auraDurationTicker then return end
-    -- TWW 11.1: GetRemainingDuration() returns a secret number — pass directly
-    -- to C-side SetFormattedText("%.0f", ...) to avoid Lua arithmetic on it.
-    auraDurationTicker = C_Timer.NewTicker(0.5, function()
-        for _, frame in pairs(frames) do
-            -- Standard aura container (debuffs)
-            if frame.auraContainer and frame.auraContainer:IsVisible() then
-                for _, icon in ipairs(frame.auraContainer.icons) do
-                    if icon:IsShown() and icon.duration and icon._auraUnit and icon._auraInstanceID then
-                        local durObj = C_UnitAuras.GetAuraDuration(icon._auraUnit, icon._auraInstanceID)
-                        if durObj then
-                            icon.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
-                        end
-                    end
-                end
-            end
-            -- Enemy buff container
-            if frame.enemyBuffContainer and frame.enemyBuffContainer:IsVisible() then
-                for _, icon in ipairs(frame.enemyBuffContainer.icons) do
-                    if icon:IsShown() and icon.duration and icon._auraUnit and icon._auraInstanceID then
-                        local durObj = C_UnitAuras.GetAuraDuration(icon._auraUnit, icon._auraInstanceID)
-                        if durObj then
-                            icon.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
-                        end
-                    end
-                end
-            end
-        end
-    end)
+    -- TWW: the Cooldown frame's built-in countdown numbers self-update C-side
+    -- via SetCooldownFromDurationObject, so no Lua ticker is needed anymore.
+    -- Kept as a no-op for backwards compatibility with callers.
 end

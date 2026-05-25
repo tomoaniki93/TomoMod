@@ -32,6 +32,10 @@ LS.soundRegistry = {
         name = "Chipi Chapa",
         file = SOUND_BASE .. "Chipi.ogg",
     },
+    ["BLWOW_Danger"] = {
+        name = "BLWOW Danger",
+        file = SOUND_BASE .. "BLWOW_Danger.ogg",
+    },
 }
 
 LS.channelRegistry = {
