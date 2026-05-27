@@ -4,6 +4,19 @@ local L = TomoMod_L
 
 local function ApplyCB() if TomoMod_Castbar then TomoMod_Castbar.ApplySettings() end end
 
+-- Show / hide a live preview of every castbar so the user can actually see
+-- their tweaks while the panel is open. Without this the castbar is invisible
+-- between actual spell casts and any setting change appears to make the bar
+-- "disappear".
+local function TogglePreview()
+    if not TomoMod_Castbar then return end
+    if TomoMod_Castbar.IsLocked and TomoMod_Castbar.IsLocked() then
+        if TomoMod_Castbar.ToggleLock then TomoMod_Castbar.ToggleLock() end
+    else
+        if TomoMod_Castbar.ToggleLock then TomoMod_Castbar.ToggleLock() end
+    end
+end
+
 -- ══════════════════════════════════════════════
 -- TAB: GENERAL
 -- ══════════════════════════════════════════════
@@ -20,6 +33,8 @@ local function BuildGeneralTab(parent)
         if TomoMod_Castbar then TomoMod_Castbar.SetEnabled(v) end
     end)
     local _, cy = W.CreateInfoText(card.inner, L["info_cb_description"], cy)
+    local _, cy = W.CreateButton(card.inner, L["btn_cb_toggle_preview"] or "Show / Hide Preview", 200, cy, TogglePreview)
+    local _, cy = W.CreateInfoText(card.inner, L["info_cb_preview_hint"] or "Unlocks every castbar and shows a live mock spell so you can see your tweaks instantly.", cy)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_hide_blizzard"], db.hideBlizzardCastbar, cy, function(v) db.hideBlizzardCastbar = v; ApplyCB() end)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_class_color"], db.useClassColor, cy, function(v) db.useClassColor = v; ApplyCB() end)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_show_transitions"], db.showTransitions, cy, function(v) db.showTransitions = v; ApplyCB() end)

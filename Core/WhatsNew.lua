@@ -30,6 +30,24 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "2.9.20",
+        highlights = {
+            L["wn_2920_waypoint_redirect"],
+            L["wn_2920_waypoint_blob"],
+            L["wn_2920_waypoint_label"],
+        },
+    },
+    {
+        version = "2.9.19",
+        highlights = {
+            L["wn_2919_antiflicker"],
+            L["wn_2919_collapsed_persist"],
+            L["wn_2919_header_detection"],
+            L["wn_2919_recipe_height"],
+            L["wn_2919_reward_preview"],
+        },
+    },
+    {
         version = "2.9.18",
         highlights = {
             L["wn_2918_buckets"],

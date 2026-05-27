@@ -69,6 +69,8 @@ TomoMod_Defaults = {
         maxQuestsShown = 0,
         buckets = true,
         bucketsCollapsed = {},
+        scale = 1.0,
+        position = { point = "TOPRIGHT", relativePoint = "TOPRIGHT", x = -110, y = -260 },
     },
     skyRide = {
         enabled = true,

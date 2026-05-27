@@ -1,5 +1,43 @@
 ## ####################################
 
+## CHANGELOG 2.9.20 — Smart Waypoint
+
+#### Waypoint — Cross-Zone Path Redirect
+- **New** — The waypoint now uses `C_SuperTrack.GetNextWaypointForMap(mapID)` to detect the **next navigation step on the current map** (portal to another zone, dungeon entrance) instead of always pointing to the final destination. Registered on the new `SUPER_TRACKING_PATH_UPDATED` event and refreshed on every zone change and tracking change, so the beacon always reflects the reachable intermediate target.
+- **New** — The destination label in the Waypoint beacon is now **dynamic**: priority order is (1) manual waypoint name, (2) redirect step description returned by `GetNextWaypointForMap` (e.g. "Travel to Durotar"), (3) the title of the super-tracked quest. Previously the label was blank for all quest-tracking waypoints.
+
+#### Waypoint — Stuck "0 m" Fix
+- **Fix** — The beacon no longer freezes at 0 m when the player is standing inside or directly above a quest objective area. `C_Minimap.IsInsideQuestBlob(questID)` is checked in `ShouldBeActive()` and returns `false` while the player is inside the blob, hiding the waypoint until they leave the area. Prevents the nav frame from pointing straight down at an underground or blob-anchored objective and locking the displayed distance at zero.
+
+## ####################################
+
+## CHANGELOG 2.9.19 — Objective Tracker Stability & Bucket Refinements
+
+#### Objective Tracker — Anti-Flicker Feedback Loop
+- **Fix** — Eliminated the visible "trembling" of the tracker caused by a feedback loop between TomoMod's bucket layout and Blizzard's native tracker. Each call to `block:Layout()`, `block:SetParent()` and `block:SetPoint()` re-fired Blizzard's `Update / MarkDirty` hooks, which retriggered our `OnTrackerUpdate`, which ran `LayoutBuckets()` again — endlessly oscillating
+- **New** — Re-entry guard `_tmInLayout` blocks recursion into `LayoutBuckets()` while a layout pass is already running
+- **New** — `PumpUpdateSoon()` coalesces all `Update / SetShown / Show / MarkDirty` hook callbacks and quest events into a single deferred `OnTrackerUpdate` per 0.10 s window
+- **New** — Post-layout silence window (`_tmSilenceHook`, 0.20 s) ignores Blizzard's own deferred `OnUpdate` reactions caused by our re-parenting mutations, so they no longer queue a new pump
+
+#### Objective Tracker — Collapsed Bucket Persistence
+- **Fix** — Quest blocks under a collapsed bucket would reappear because Blizzard's next layout pass re-`Show()`ed them. Each block now receives a one-time `hooksecurefunc(block, "Show", …)` that re-hides it automatically when its bucket key is marked collapsed in `TomoModDB.objectiveTracker.bucketsCollapsed`
+
+#### Objective Tracker — Module Header Detection
+- **New** — Accent- and case-insensitive matching in `GetHeaderColor()`. Lua's `string.upper` only folds ASCII bytes (the `é` in "Métier" stays lowercase), so "Métier"/"métier"/"MÉTIER" all map to the same keyword now via dual upper/lower/raw comparison
+- **New** — Added singular and accent-stripped variants `MÉTIER`, `METIERS`, `METIER`, `PROFESSION` to `HEADER_COLORS` so French module headers in the singular form are also caught
+- **Fix** — `IsModuleHeader()` now returns `false` immediately for any frame that has `HeaderText` (quest block) or `Dash` (objective line). Previously, a quest title or objective description containing a header keyword could be mistaken for a module header and hidden by `HideModuleHeaders`, removing the entire quest description from the tracker
+- **Fix** — Module header scan now runs on **both** the Blizzard tracker and our custom `skinFrame` so re-parented Profession recipe blocks (which embed their own "Métiers" header in the block hierarchy) no longer leak the localized header text on top of the recipe title
+
+#### Objective Tracker — Block Height Measurement
+- **Fix** — Profession recipe blocks underestimated their height because `block:GetHeight()` only reflected the header line, not the reagent lines. The deepest-descendant bottom measurement now runs **unconditionally** (instead of only when `bh < 10`) and walks **8 levels deep** (instead of 4) to reach reagent FontStrings nested inside `TrackedRecipe → Lines → Line[i]`
+- **Fix** — Resolves the visible overlap between "Rouleau de soie du feu solaire" (with 3 reagent lines) and the quest "Clé imprégné du sol" that followed
+
+#### Objective Tracker — Reward Preview & Special Module Exclusion
+- **New** — `collectAll()` now skips entire subtrees whose frame name contains `BonusObjective`, `Scenario`, `WorldQuest` or `UIWidget` — these modules render rich reward previews (Delves like "La Sombrevoie", M+ scenarios, world quest reward popups) whose internal anchors break when re-parented
+- **New** — `HasRewardPreview()` detection skips any block that embeds a reward / item preview / dungeon score popup (Delves attached to weekly quests, M+ weekly vault objectives like "Halte de l'Ombre-Garde" showing ilvl + heart count). Detection runs on frame names (`Reward`, `ItemPreview`, `DungeonScore`, `Loot`) **and** on template-set table members (`RewardsFrame`, `ItemPreviewFrame`, `itemPreviewPool`). These blocks stay in Blizzard's native location and no longer overlap our bucketed quests
+
+## ####################################
+
 ## CHANGELOG 2.9.18 — Objective Tracker Quest Buckets
 
 #### Objective Tracker — Collapsible Quest Categories

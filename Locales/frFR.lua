@@ -905,10 +905,10 @@ TomoMod_RegisterLocale("frFR", {
     -- =====================
     -- LAYOUT / MOVERS SYSTEM
     -- =====================
-    ["btn_layout"]                      = "Layout",
-    ["btn_layout_tooltip"]              = "Mode Layout : déverrouille tous les éléments pour les déplacer.",
+    ["btn_layout"]                      = "EditMode",
+    ["btn_layout_tooltip"]              = "EditMode : déverrouille tous les éléments pour les déplacer.",
     ["btn_reload_ui"]                   = "Recharger l'UI",
-    ["layout_mode_title"]               = "TomoMod — Mode Layout",
+    ["layout_mode_title"]               = "TomoMod — EditMode",
     ["layout_mode_hint"]                = "Glissez les éléments pour les repositionner — cliquez Verrouiller quand c'est fait",
     ["layout_btn_lock"]                 = "Verrouiller",
     ["layout_btn_reload"]               = "RL",
@@ -916,9 +916,9 @@ TomoMod_RegisterLocale("frFR", {
     ["grid_dimmed"]                    = "Grille",
     ["grid_bright"]                    = "Grille +",
     ["grid_disabled"]                  = "Grille OFF",
-    ["layout_unlocked"]                 = "Mode Layout ACTIF — glissez les éléments. Cliquez Verrouiller ou /tm layout pour finir.",
-    ["layout_locked"]                   = "Mode Layout DÉSACTIVÉ — positions sauvegardées.",
-    ["msg_help_layout"]                 = "Basculer le Mode Layout (déplacer tous les éléments UI)",
+    ["layout_unlocked"]                 = "EditMode ACTIF — glissez les éléments. Cliquez Verrouiller ou /tm layout pour finir.",
+    ["layout_locked"]                   = "EditMode DÉSACTIVÉ — positions sauvegardées.",
+    ["msg_help_layout"]                 = "Basculer l'EditMode (déplacer tous les éléments UI)",
     ["mover_unitframes"]                = "Unit Frames",
     ["mover_resources"]                 = "Barres de ressources",
     ["mover_skyriding"]                 = "Barre Skyriding",
@@ -929,6 +929,7 @@ TomoMod_RegisterLocale("frFR", {
     ["mover_castbar"]                   = "Barre de cast (joueur)",
     ["mover_mythictracker"]             = "Tracker M+",
     ["mover_minimap"]                   = "Minimap & Panel",
+    ["mover_objectivetracker"]          = "Suivi des quêtes",
     ["mover_chatframe"]                 = "Fenêtre de chat",
     -- =====================
     -- COMBAT TEXT
@@ -1395,8 +1396,8 @@ TomoMod_RegisterLocale("frFR", {
     ["btn_abs_unlock"]               = "D\195\169verrouiller les barres",
     ["info_abs_unlock"]              = "D\195\169verrouillez les barres pour faire appara\195\174tre les poign\195\169es de d\195\169placement.\nClic droit sur une poign\195\169e pour configurer une barre individuellement.",
     ["section_bar_quick"]            = "Param\195\168tres rapides",
-    ["btn_abs_layout"]               = "Mode Layout (/tm layout)",
-    ["info_abs_layout"]              = "Utilisez le mode Layout pour d\195\169placer les barres.\nGlissez les overlays pour repositionner.",
+    ["btn_abs_layout"]               = "EditMode (/tm layout)",
+    ["info_abs_layout"]              = "Utilisez l'EditMode pour d\195\169placer les barres.\nGlissez les overlays pour repositionner.",
     ["tab_abs_skin"]                 = "Skin des boutons",
     ["tab_abs_bars"]                 = "Gestion des barres",
     -- Per-bar config
@@ -1617,6 +1618,8 @@ TomoMod_RegisterLocale("frFR", {
     ["cb_section_general"]               = "Général",
     ["opt_cb_enable"]                    = "Activer les barres d'incantation autonomes",
     ["info_cb_description"]              = "Remplace les barres d'incantation Blizzard par des barres entièrement personnalisables pour Joueur, Cible, Focus, Familier et Boss.",
+    ["btn_cb_toggle_preview"]            = "Afficher / Masquer l'aperçu",
+    ["info_cb_preview_hint"]             = "Déverrouille toutes les barres d'incantation et affiche un sort fictif en direct pour visualiser tes réglages instantanément.",
     ["opt_cb_hide_blizzard"]             = "Masquer les barres d'incantation Blizzard",
     ["opt_cb_class_color"]               = "Utiliser la couleur de classe",
     ["opt_cb_show_transitions"]          = "Animations de début/fin",
@@ -2096,6 +2099,21 @@ TomoMod_RegisterLocale("frFR", {
     -- =======================================
     -- Installer Overhaul & AB Toggle (2.9.17)
     -- =======================================
+    -- ═══════════════════════════════════
+    -- Waypoint intelligent (2.9.20)
+    -- ═══════════════════════════════════
+    ["wn_2920_waypoint_redirect"]       = "Waypoint intelligent — redirection cross-zone : le waypoint suit désormais la prochaine étape du chemin sur la carte actuelle (portail, entrée de donjon) via C_SuperTrack.GetNextWaypointForMap(), mis à jour sur SUPER_TRACKING_PATH_UPDATED et les changements de zone.",
+    ["wn_2920_waypoint_blob"]           = "Waypoint intelligent — correction du point mort à 0 m : la balise se masque automatiquement quand le joueur est dans la zone blob de l'objectif de quête (C_Minimap.IsInsideQuestBlob), empêchant le waypoint de rester figé à 0 m.",
+    ["wn_2920_waypoint_label"]          = "Waypoint intelligent — label dynamique : la destination affiche désormais la description de l'étape de redirection (ex. « Voyage à Durotar ») ou le titre de la quête suivie au lieu d'un champ vide.",
+
+    -- Suivi des objectifs — Stabilité (2.9.19)
+    -- ═══════════════════════════════════
+    ["wn_2919_antiflicker"]             = "Anti-tremblement — élimination du « tremblement » visible du suivi causé par une boucle de rétroaction entre la mise en page de TomoMod et les hooks natifs Update / MarkDirty de Blizzard. Nouveau garde de réentrée, regroupement différé des mises à jour et fenêtre de silence post-layout de 0,20 s qui brisent la récursion.",
+    ["wn_2919_collapsed_persist"]       = "Persistance des catégories repliées — les blocs de quête sous une catégorie repliée ne réapparaissent plus quand Blizzard relance sa mise en page ; chaque bloc reçoit un hook Show unique qui le re-masque automatiquement.",
+    ["wn_2919_header_detection"]        = "Détection des en-têtes — comparaison insensible aux accents et à la casse (Métier / métier / MÉTIER correspondent au même mot-clé) avec variantes singulières ajoutées. Les titres de quête et lignes d'objectif sont désormais explicitement exclus, donc la description de quête n'est plus accidentellement masquée.",
+    ["wn_2919_recipe_height"]           = "Hauteur des blocs de recette — les recettes de métier ne chevauchent plus la quête suivante. La mesure de profondeur s'exécute désormais systématiquement et descend jusqu'à 8 niveaux pour atteindre les FontStrings de réactifs.",
+    ["wn_2919_reward_preview"]          = "Exclusion des aperçus de récompense — les Delves (ex. « La Sombrevoie »), scénarios M+, popups de quêtes monde et blocs du coffre hebdomadaire (ex. « Halte de l'Ombre-Garde » avec aperçu ilvl) sont désormais ignorés par le système de catégories. Ils restent à leur emplacement Blizzard natif et ne chevauchent plus nos quêtes.",
+
     -- ═══════════════════════════════════
     -- Suivi des objectifs — Catégories (2.9.18)
     -- ═══════════════════════════════════

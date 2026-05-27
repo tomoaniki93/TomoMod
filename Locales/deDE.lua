@@ -851,10 +851,10 @@ TomoMod_RegisterLocale("deDE", {
     -- =====================
     -- LAYOUT / MOVERS SYSTEM
     -- =====================
-    ["btn_layout"]                      = "Layout",
-    ["btn_layout_tooltip"]              = "Layout-Modus: alle UI-Elemente zum Verschieben entsperren.",
+    ["btn_layout"]                      = "EditMode",
+    ["btn_layout_tooltip"]              = "EditMode: entsperrt alle Elemente, damit du sie verschieben kannst.",
     ["btn_reload_ui"]                   = "UI neuladen",
-    ["layout_mode_title"]               = "TomoMod — Layout-Modus",
+    ["layout_mode_title"]               = "TomoMod — EditMode",
     ["layout_mode_hint"]                = "Elemente ziehen zum Neupositionieren — Sperren klicken wenn fertig",
     ["layout_btn_lock"]                 = "Sperren",
     ["layout_btn_reload"]               = "RL",
@@ -862,9 +862,9 @@ TomoMod_RegisterLocale("deDE", {
     ["grid_dimmed"]                    = "Raster",
     ["grid_bright"]                    = "Raster +",
     ["grid_disabled"]                  = "Raster AUS",
-    ["layout_unlocked"]                 = "Layout-Modus AN — Elemente ziehen. Sperren klicken oder /tm layout wenn fertig.",
-    ["layout_locked"]                   = "Layout-Modus AUS — Positionen gespeichert.",
-    ["msg_help_layout"]                 = "Layout-Modus umschalten (alle UI-Elemente verschieben)",
+    ["layout_unlocked"]                 = "EditMode AN — Elemente ziehen. Sperren klicken oder /tm layout wenn fertig.",
+    ["layout_locked"]                   = "EditMode AUS — Positionen gespeichert.",
+    ["msg_help_layout"]                 = "EditMode umschalten (alle UI-Elemente verschieben)",
     ["mover_unitframes"]                = "Unit Frames",
     ["mover_resources"]                 = "Ressourcenleisten",
     ["mover_skyriding"]                 = "Skyriding-Leiste",
@@ -1551,6 +1551,8 @@ TomoMod_RegisterLocale("deDE", {
     ["cb_section_general"]               = "Allgemein",
     ["opt_cb_enable"]                    = "Eigenständige Zauberleisten aktivieren",
     ["info_cb_description"]              = "Ersetzt die Blizzard-Zauberleisten durch vollständig anpassbare Leisten für Spieler, Ziel, Fokus, Begleiter und Boss.",
+    ["btn_cb_toggle_preview"]            = "Show / Hide Preview",
+    ["info_cb_preview_hint"]             = "Unlocks every castbar and shows a live mock spell so you can see your tweaks instantly.",
     ["opt_cb_hide_blizzard"]             = "Blizzard-Zauberleisten verstecken",
     ["opt_cb_class_color"]               = "Klassenfarbe verwenden",
     ["opt_cb_show_transitions"]          = "Start-/Endanimationen",
@@ -2021,6 +2023,21 @@ TomoMod_RegisterLocale("deDE", {
     -- ═══════════════════════════════════
     -- ═══════════════════════════════════
     -- Installer Overhaul & AB Toggle (2.9.17)
+    -- ═══════════════════════════════════
+    -- Smart Waypoint (2.9.20)
+    -- ═══════════════════════════════════
+    ["wn_2920_waypoint_redirect"]       = "Smart Waypoint — cross-zone redirect: the waypoint now tracks the next path step on your current map (portal, dungeon entrance) via C_SuperTrack.GetNextWaypointForMap(), updated on SUPER_TRACKING_PATH_UPDATED and zone changes.",
+    ["wn_2920_waypoint_blob"]           = "Smart Waypoint — stuck 0 m fix: the beacon now hides automatically when the player is inside the quest objective area (C_Minimap.IsInsideQuestBlob), preventing the waypoint from freezing at 0 m.",
+    ["wn_2920_waypoint_label"]          = "Smart Waypoint — dynamic label: the destination now shows the redirect step description (e.g. 'Travel to Durotar') or the tracked quest title instead of a blank field.",
+
+    -- Objective Tracker Stability (2.9.19)
+    -- ═══════════════════════════════════
+    ["wn_2919_antiflicker"]             = "Anti-flicker — eliminated the visible 'trembling' of the Objective Tracker caused by a feedback loop between TomoMod's bucket layout and Blizzard's native Update / MarkDirty hooks. New re-entry guard, deferred pump coalescing, and a 0.20 s post-layout silence window break the recursion.",
+    ["wn_2919_collapsed_persist"]       = "Collapsed bucket persistence — quest blocks under a collapsed bucket header no longer reappear when Blizzard re-runs its layout; each block gets a one-time Show hook that re-hides it while its bucket is folded.",
+    ["wn_2919_header_detection"]        = "Module header detection — accent- and case-insensitive matching (Métier / métier / MÉTIER all resolve to the same keyword) and added singular variants. Quest titles and objective lines are now explicitly excluded so the full quest description is never accidentally hidden.",
+    ["wn_2919_recipe_height"]           = "Recipe block height — Profession recipe blocks no longer overlap the next quest. The deepest-descendant measurement now runs unconditionally and walks 8 levels deep to reach reagent FontStrings (TrackedRecipe → Lines → Line[i]).",
+    ["wn_2919_reward_preview"]          = "Reward preview exclusion — Delves (e.g. 'La Sombrevoie'), M+ scenarios, world quest reward popups and weekly vault reward blocks (e.g. 'Halte de l'Ombre-Garde' with ilvl preview) are now skipped from the bucket system. They stay in Blizzard's native location and no longer overlap our quests.",
+
     -- ═══════════════════════════════════
     -- Objective Tracker Quest Buckets (2.9.18)
     -- ═══════════════════════════════════

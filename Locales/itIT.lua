@@ -851,10 +851,10 @@ TomoMod_RegisterLocale("itIT", {
     -- =====================
     -- LAYOUT / MOVERS SYSTEM
     -- =====================
-    ["btn_layout"]                      = "Layout",
-    ["btn_layout_tooltip"]              = "Modalità Layout: sblocca tutti gli elementi per spostarli.",
+    ["btn_layout"]                      = "EditMode",
+    ["btn_layout_tooltip"]              = "EditMode: sblocca tutti gli elementi per spostarli.",
     ["btn_reload_ui"]                   = "Ricarica interfaccia",
-    ["layout_mode_title"]               = "TomoMod — Modalità Layout",
+    ["layout_mode_title"]               = "TomoMod — EditMode",
     ["layout_mode_hint"]                = "Trascina gli elementi per riposizionare — clicca Blocca quando hai finito",
     ["layout_btn_lock"]                 = "Blocca",
     ["layout_btn_reload"]               = "RL",
@@ -862,9 +862,9 @@ TomoMod_RegisterLocale("itIT", {
     ["grid_dimmed"]                    = "Griglia",
     ["grid_bright"]                    = "Griglia +",
     ["grid_disabled"]                  = "Griglia OFF",
-    ["layout_unlocked"]                 = "Modalità Layout ATTIVA — trascina gli elementi. Clicca Blocca o /tm layout quando hai finito.",
-    ["layout_locked"]                   = "Modalità Layout DISATTIVATA — posizioni salvate.",
-    ["msg_help_layout"]                 = "Attiva/disattiva modalità Layout (sposta tutti gli elementi UI)",
+    ["layout_unlocked"]                 = "EditMode ATTIVO — trascina gli elementi. Clicca Blocca o /tm layout quando hai finito.",
+    ["layout_locked"]                   = "EditMode DISATTIVATO — posizioni salvate.",
+    ["msg_help_layout"]                 = "Attiva/disattiva EditMode (sposta tutti gli elementi UI)",
     ["mover_unitframes"]                = "Unit Frames",
     ["mover_resources"]                 = "Barre risorse",
     ["mover_skyriding"]                 = "Barra Skyriding",
@@ -1550,6 +1550,8 @@ TomoMod_RegisterLocale("itIT", {
     ["cb_section_general"]               = "Generale",
     ["opt_cb_enable"]                    = "Attiva barre di lancio autonome",
     ["info_cb_description"]              = "Sostituisce le barre di lancio Blizzard con barre completamente personalizzabili per Giocatore, Bersaglio, Focus, Famiglio e Boss.",
+    ["btn_cb_toggle_preview"]            = "Show / Hide Preview",
+    ["info_cb_preview_hint"]             = "Unlocks every castbar and shows a live mock spell so you can see your tweaks instantly.",
     ["opt_cb_hide_blizzard"]             = "Nascondi barre di lancio Blizzard",
     ["opt_cb_class_color"]               = "Usa colore di classe",
     ["opt_cb_show_transitions"]          = "Animazioni di inizio/fine",
@@ -2015,6 +2017,18 @@ TomoMod_RegisterLocale("itIT", {
     -- ═══════════════════════════════════
     -- Objective Tracker Quest Buckets (2.9.18)
     -- ═══════════════════════════════════
+    -- Smart Waypoint (2.9.20)
+    -- ═══════════════════════════════════
+    ["wn_2920_waypoint_redirect"]       = "Smart Waypoint — cross-zone redirect: the waypoint now tracks the next path step on your current map (portal, dungeon entrance) via C_SuperTrack.GetNextWaypointForMap(), updated on SUPER_TRACKING_PATH_UPDATED and zone changes.",
+    ["wn_2920_waypoint_blob"]           = "Smart Waypoint — stuck 0 m fix: the beacon now hides automatically when the player is inside the quest objective area (C_Minimap.IsInsideQuestBlob), preventing the waypoint from freezing at 0 m.",
+    ["wn_2920_waypoint_label"]          = "Smart Waypoint — dynamic label: the destination now shows the redirect step description (e.g. 'Travel to Durotar') or the tracked quest title instead of a blank field.",
+    -- Objective Tracker Stability (2.9.19)
+    -- ═══════════════════════════════════
+    ["wn_2919_antiflicker"]             = "Anti-flicker — eliminated the visible 'trembling' of the Objective Tracker caused by a feedback loop between TomoMod's bucket layout and Blizzard's native Update / MarkDirty hooks. New re-entry guard, deferred pump coalescing, and a 0.20 s post-layout silence window break the recursion.",
+    ["wn_2919_collapsed_persist"]       = "Collapsed bucket persistence — quest blocks under a collapsed bucket header no longer reappear when Blizzard re-runs its layout; each block gets a one-time Show hook that re-hides it while its bucket is folded.",
+    ["wn_2919_header_detection"]        = "Module header detection — accent- and case-insensitive matching (Métier / métier / MÉTIER all resolve to the same keyword) and added singular variants. Quest titles and objective lines are now explicitly excluded so the full quest description is never accidentally hidden.",
+    ["wn_2919_recipe_height"]           = "Recipe block height — Profession recipe blocks no longer overlap the next quest. The deepest-descendant measurement now runs unconditionally and walks 8 levels deep to reach reagent FontStrings (TrackedRecipe → Lines → Line[i]).",
+    ["wn_2919_reward_preview"]          = "Reward preview exclusion — Delves (e.g. 'La Sombrevoie'), M+ scenarios, world quest reward popups and weekly vault reward blocks (e.g. 'Halte de l'Ombre-Garde' with ilvl preview) are now skipped from the bucket system. They stay in Blizzard's native location and no longer overlap our quests.",
     ["wn_2918_buckets"]                 = "Objective Tracker quest buckets — quests, world quests, weeklies, dailies, dungeons, raids, professions and achievements are now grouped into collapsible categories with colored headers and live count badges.",
     ["wn_2918_bucket_toggle"]           = "New 'Group quests into collapsible categories' checkbox in Config → Skins → Objective Tracker; disabling it instantly restores Blizzard's native module layout, no /reload required.",
     ["wn_2918_tracker_width"]           = "Tracker panel widened by 10 px so quest item icons no longer clip against the right edge.",
