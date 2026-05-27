@@ -1218,6 +1218,17 @@ end
 -- REFRESH ALL
 -- =====================================
 function CB.RefreshAll()
+    -- Remember which castbars were unlocked / showing the preview so that
+    -- changing any config option from the Castbar panel does not visually
+    -- destroy the bar mid-configuration.
+    local previewState = {}
+    for unit, cb in pairs(CB.castbars) do
+        previewState[unit] = {
+            preview = cb._preview and true or false,
+            locked  = cb.IsLocked and cb:IsLocked() or true,
+        }
+    end
+
     for unit, cb in pairs(CB.castbars) do
         if cb.eventFrame then
             if LSM and LSM.UnregisterCallback then LSM.UnregisterCallback(cb, "LibSharedMedia_SetGlobal") end
@@ -1232,6 +1243,15 @@ function CB.RefreshAll()
         CB._gcdBar = nil
     end
     CB.Initialize()
+
+    -- Restore preview / unlocked state on the freshly re-created bars.
+    for unit, state in pairs(previewState) do
+        local cb = CB.castbars[unit]
+        if cb then
+            if not state.locked and cb.SetLocked then cb:SetLocked(false) end
+            if state.preview and cb.ShowPreview then cb:ShowPreview() end
+        end
+    end
 end
 
 -- =====================================

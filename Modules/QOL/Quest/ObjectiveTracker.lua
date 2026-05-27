@@ -50,7 +50,11 @@ local HEADER_COLORS = {
     ["ACHIEVEMENTS"]    = { 0.78, 0.48, 0.22 },   -- Bronze
     ["HAUTS FAITS"]     = { 0.78, 0.48, 0.22 },
     ["PROFESSIONS"]     = { 0.55, 0.75, 0.45 },   -- Sage green
+    ["PROFESSION"]      = { 0.55, 0.75, 0.45 },
     ["MÉTIERS"]         = { 0.55, 0.75, 0.45 },
+    ["MÉTIER"]          = { 0.55, 0.75, 0.45 },
+    ["METIERS"]         = { 0.55, 0.75, 0.45 },   -- accent-stripped fallback
+    ["METIER"]          = { 0.55, 0.75, 0.45 },
     ["MONTHLY"]         = { 0.90, 0.30, 0.70 },
     ["MENSUEL"]         = { 0.90, 0.30, 0.70 },
     ["ADVENTURE"]       = { 0.90, 0.80, 0.50 },   -- Artifact gold
@@ -86,9 +90,17 @@ end
 
 local function GetHeaderColor(text)
     if not text or text == "" then return nil end
+    -- Lua's string.upper / string.lower only fold ASCII bytes, so accented
+    -- characters (é, ê, ç, …) keep their case. We compare both the raw text
+    -- and its naive upper/lower forms against every keyword's forms so that
+    -- "Métier", "MÉTIER", "métier" all match the "MÉTIER" keyword.
     local upper = string.upper(text)
+    local lower = string.lower(text)
     for keyword, color in pairs(HEADER_COLORS) do
-        if string.find(upper, keyword, 1, true) then
+        local kUp, kLo = string.upper(keyword), string.lower(keyword)
+        if string.find(upper, kUp, 1, true)
+            or string.find(lower, kLo, 1, true)
+            or string.find(text,  keyword, 1, true) then
             return color
         end
     end
@@ -100,6 +112,12 @@ end
 -- =====================================
 
 local function IsModuleHeader(frame)
+    -- Quest blocks have HeaderText (the quest title); objective lines have Dash.
+    -- Neither is ever a Blizzard module header — guard against false positives
+    -- now that GetHeaderColor matches case-insensitively and accent-stripped.
+    if frame.HeaderText or frame.Dash then
+        return false, nil
+    end
     if frame.Text and frame.Text.GetText then
         local txt = frame.Text:GetText()
         if txt and GetHeaderColor(txt) then
@@ -830,6 +848,27 @@ end
 
 local LayoutBuckets -- forward
 
+-- Re-entry guard for LayoutBuckets / OnTrackerUpdate.
+-- LayoutBuckets calls block:Layout() / SetParent / SetPoint which re-fire
+-- ObjectiveTrackerFrame:Update + MarkDirty via Blizzard's bookkeeping.
+-- Without these guards our hooksecurefunc chain recurses and produces the
+-- visible "trembling" feedback loop.
+local _tmInLayout    = false   -- true while LayoutBuckets is mutating frames
+local _tmPendingPump = false   -- true while a deferred OnTrackerUpdate is queued
+local _tmSilenceHook = 0       -- > 0 means: ignore hook callbacks (we caused them)
+
+local function PumpUpdateSoon()
+    -- Ignore notifications that we ourselves triggered while laying out.
+    if _tmInLayout or _tmSilenceHook > 0 then return end
+    if _tmPendingPump then return end
+    _tmPendingPump = true
+    C_Timer.After(0, function()
+        _tmPendingPump = false
+        -- forward call without re-entry; OnTrackerUpdate guards itself too
+        if OT and OT._OnTrackerUpdate then OT._OnTrackerUpdate() end
+    end)
+end
+
 local function ToggleBucket(key)
     local t = BucketsCollapsedTable(); if not t then return end
     t[key] = not t[key]
@@ -898,28 +937,77 @@ local function ClassifyBlock(block)
 end
 
 LayoutBuckets = function()
+    if _tmInLayout then return end
+    _tmInLayout = true
     if not bucketEnabled then
         -- Re-show any blocks we may have hidden, hide bucket headers
         for _, bf in pairs(bucketFrames) do bf.frame:Hide() end
+        _tmInLayout = false
         return
     end
-    if InCombatLockdown() then return end
-    if not skinFrame or not headerBar then return end
+    if InCombatLockdown() then _tmInLayout = false; return end
+    if not skinFrame or not headerBar then _tmInLayout = false; return end
 
     local tracker = ObjectiveTrackerFrame
-    if not tracker then return end
+    if not tracker then _tmInLayout = false; return end
 
     -- Collect quest blocks from BOTH the Blizzard tracker AND our skinFrame
     -- (blocks already re-parented in previous passes live under skinFrame).
+    -- We deliberately skip BonusObjective / Scenario / WorldQuest module
+    -- subtrees: they render rich reward previews (Delves, M+ scenarios,
+    -- world quest reward popups) whose internal anchors break when re-parented.
+    local function shouldSkipSubtree(frame)
+        if not frame or not frame.GetName then return false end
+        local n = frame:GetName()
+        if not n then return false end
+        if n:find("BonusObjective", 1, true)
+            or n:find("Scenario", 1, true)
+            or n:find("WorldQuest", 1, true)
+            or n:find("UIWidget", 1, true) then
+            return true
+        end
+        return false
+    end
+
+    -- Detect blocks that embed a reward / dungeon / item preview popup
+    -- (Delves, weekly M+ vault, certain campaign quests). Their internal
+    -- anchors break when re-parented, producing the visible overlap.
+    local function HasRewardPreview(f, depth)
+        if depth > 4 or not f then return false end
+        if f.GetName then
+            local n = f:GetName()
+            if n and (
+                n:find("Reward", 1, true)
+                or n:find("ItemPreview", 1, true)
+                or n:find("DungeonScore", 1, true)
+                or n:find("Loot", 1, true)
+            ) then return true end
+        end
+        -- Field-based detection (template-set table members)
+        if f.RewardsFrame or f.ItemPreviewFrame or f.itemPreviewPool then
+            return true
+        end
+        if f.GetChildren then
+            for _, c in ipairs({ f:GetChildren() }) do
+                if HasRewardPreview(c, depth + 1) then return true end
+            end
+        end
+        return false
+    end
+
     local function collectAll(root, depth, out, seen)
         if not root or depth > 6 then return end
         if root == headerBar then return end
+        if shouldSkipSubtree(root) then return end
         -- A frame with non-empty HeaderText is a quest block
         if root.HeaderText and root.HeaderText.GetText then
             local txt = root.HeaderText:GetText()
             if txt and txt ~= "" and not seen[root] then
-                seen[root] = true
-                out[#out + 1] = root
+                -- Skip blocks with embedded reward popups (Delves etc.)
+                if not HasRewardPreview(root, 0) then
+                    seen[root] = true
+                    out[#out + 1] = root
+                end
             end
         end
         if root.GetChildren then
@@ -937,6 +1025,7 @@ LayoutBuckets = function()
 
     if #blocks == 0 then
         for _, bf in pairs(bucketFrames) do bf.frame:Hide() end
+        _tmInLayout = false
         return
     end
 
@@ -948,14 +1037,23 @@ LayoutBuckets = function()
         table.insert(groups[key], b)
     end
 
-    -- Hide Blizzard module headers (per-zone titles become redundant with buckets)
+    -- Hide Blizzard module headers (per-zone titles become redundant with buckets).
+    -- We scan BOTH the tracker AND skinFrame because a re-parented block can
+    -- carry a child header along with it (notably the Profession recipe tracker
+    -- which embeds the "Métiers" header inside the block hierarchy).
     local function HideModuleHeaders(frame, depth)
         if depth > 6 or not frame then return end
-        if IsModuleHeader(frame) then frame:SetAlpha(0); frame:SetHeight(0.01) end
+        if frame._tmBucket then return end
+        if IsModuleHeader(frame) then
+            frame:SetAlpha(0)
+            frame:SetHeight(0.01)
+            if frame.Hide then frame:Hide() end
+        end
         local children = { frame:GetChildren() }
         for _, c in ipairs(children) do HideModuleHeaders(c, depth + 1) end
     end
     HideModuleHeaders(tracker, 0)
+    HideModuleHeaders(skinFrame, 0)
 
     -- Layout: vertical stack inside skinFrame below headerBar
     local headerBarH = (headerBar:GetHeight() or 28)
@@ -967,6 +1065,83 @@ LayoutBuckets = function()
     local BUCKET_GAP      = 6
 
     local yOffset = -(headerBarH + TOP_GAP)
+
+    -- ── STEP 1: Scenario / Delve / BonusObjective modules FIRST (top) ─────────
+    -- Mirrors Blizzard's default order: active scenario/delve sits above quests.
+    local function reanchorSkippedModule(f, yCursor)
+        if not f or not f.IsShown or not f:IsShown() then return yCursor end
+        if not f.GetName then return yCursor end
+        local n = f:GetName()
+        if not n then return yCursor end
+        if not (n:find("BonusObjective", 1, true)
+             or n:find("Scenario",       1, true)
+             or n:find("WorldQuest",     1, true)
+             or n:find("UIWidget",       1, true)
+             or n:find("Delve",          1, true)) then
+            return yCursor
+        end
+        -- Stash original anchor + parent once so DisableBuckets can restore.
+        if not f._tmOriginalAnchor then
+            local p, parent, rp, x, y = f:GetPoint(1)
+            if p then
+                f._tmOriginalAnchor = { p, parent, rp, x, y }
+            else
+                f._tmOriginalAnchor = false
+            end
+            f._tmOriginalParent2 = f:GetParent()
+        end
+        f:SetParent(skinFrame)
+        f:SetFrameStrata("MEDIUM")
+        f:SetFrameLevel(skinFrame:GetFrameLevel() + 5)
+        f:ClearAllPoints()
+        f:SetPoint("TOPLEFT",  skinFrame, "TOPLEFT",  PAD_LEFT_HEADER, yCursor)
+        f:SetPoint("TOPRIGHT", skinFrame, "TOPRIGHT", -PAD_RIGHT,      yCursor)
+
+        -- Save our anchor Y so the SetPoint hook can re-apply it.
+        f._tmAnchorY   = yCursor
+        f._tmAnchorL   = PAD_LEFT_HEADER
+        f._tmAnchorR   = PAD_RIGHT
+
+        -- Hook SetPoint once on this module frame so that any time Blizzard
+        -- repositions it (e.g. tracker:Update() called by opening the Quest Journal),
+        -- we immediately restore our anchor in the same WoW tick — before the GPU
+        -- renders the frame — eliminating the one-frame flicker entirely.
+        if not f._tmPositionHooked then
+            f._tmPositionHooked = true
+            hooksecurefunc(f, "SetPoint", function(self)
+                if _tmInLayout then return end          -- we caused this call, ignore
+                if not self._tmAnchorY or not skinFrame then return end
+                -- Blizzard tried to reposition us — override immediately.
+                _tmInLayout = true
+                self:ClearAllPoints()
+                self:SetPoint("TOPLEFT",  skinFrame, "TOPLEFT",  self._tmAnchorL or 4,  self._tmAnchorY)
+                self:SetPoint("TOPRIGHT", skinFrame, "TOPRIGHT", -(self._tmAnchorR or 6), self._tmAnchorY)
+                _tmInLayout = false
+            end)
+        end
+
+        ScanAndStyle(f, 0)
+        if f.Layout then pcall(f.Layout, f) end
+        local h = f:GetHeight() or 0
+        if h < 40  then h = 40  end
+        if h > 240 then h = 240 end
+        return yCursor - h - BLOCK_GAP
+    end
+
+    local function walkForSkipped(parent)
+        if not parent or not parent.GetChildren then return end
+        for _, child in ipairs({ parent:GetChildren() }) do
+            yOffset = reanchorSkippedModule(child, yOffset)
+        end
+    end
+    -- Walk both tracker and skinFrame (modules migrate to skinFrame on subsequent passes).
+    walkForSkipped(tracker)
+    walkForSkipped(skinFrame)
+
+    -- ── STEP 2: Quest buckets BELOW the scenario/delve block ──────────────────
+    if yOffset < -(headerBarH + TOP_GAP) then
+        yOffset = yOffset - BUCKET_GAP   -- extra gap between delve and first bucket
+    end
 
     for _, key in ipairs(BUCKET_ORDER) do
         local group = groups[key]
@@ -989,9 +1164,36 @@ LayoutBuckets = function()
                 yOffset = yOffset - 22
 
                 if collapsed then
-                    for _, block in ipairs(group) do block:Hide() end
+                    for _, block in ipairs(group) do
+                        block._tmBucketKey = key
+                        -- Install a one-shot Show hook so Blizzard's own
+                        -- re-Show during its next layout pass can't make the
+                        -- block reappear under a collapsed bucket header.
+                        if not block._tmShowHooked then
+                            block._tmShowHooked = true
+                            hooksecurefunc(block, "Show", function(self)
+                                if not bucketEnabled then return end
+                                local k = self._tmBucketKey
+                                if k and IsBucketCollapsed(k) then
+                                    self:Hide()
+                                end
+                            end)
+                        end
+                        block:Hide()
+                    end
                 else
                     for _, block in ipairs(group) do
+                        block._tmBucketKey = key
+                        if not block._tmShowHooked then
+                            block._tmShowHooked = true
+                            hooksecurefunc(block, "Show", function(self)
+                                if not bucketEnabled then return end
+                                local k = self._tmBucketKey
+                                if k and IsBucketCollapsed(k) then
+                                    self:Hide()
+                                end
+                            end)
+                        end
                         if block:GetParent() ~= skinFrame then
                             if not block._tmOriginalParent then
                                 block._tmOriginalParent = block:GetParent()
@@ -1005,6 +1207,28 @@ LayoutBuckets = function()
                         block:ClearAllPoints()
                         block:SetPoint("TOPLEFT",  skinFrame, "TOPLEFT",  PAD_LEFT_BLOCK, yOffset)
                         block:SetPoint("TOPRIGHT", skinFrame, "TOPRIGHT", -PAD_RIGHT,    yOffset)
+
+                        -- Save anchor so the SetPoint hook can restore it when
+                        -- Blizzard repositions the block (e.g. quest journal open).
+                        block._tmAnchorY = yOffset
+                        block._tmAnchorL = PAD_LEFT_BLOCK
+                        block._tmAnchorR = PAD_RIGHT
+
+                        -- Install once: intercept any external SetPoint call and
+                        -- immediately restore our anchor in the same WoW tick.
+                        if not block._tmPositionHooked then
+                            block._tmPositionHooked = true
+                            hooksecurefunc(block, "SetPoint", function(self)
+                                if _tmInLayout then return end
+                                if not self._tmAnchorY or not skinFrame then return end
+                                _tmInLayout = true
+                                self:ClearAllPoints()
+                                self:SetPoint("TOPLEFT",  skinFrame, "TOPLEFT",  self._tmAnchorL or PAD_LEFT_BLOCK, self._tmAnchorY)
+                                self:SetPoint("TOPRIGHT", skinFrame, "TOPRIGHT", -(self._tmAnchorR or PAD_RIGHT),   self._tmAnchorY)
+                                _tmInLayout = false
+                            end)
+                        end
+
                         block:Show()
 
                         -- Restyle this block (its HeaderText + objective lines)
@@ -1013,31 +1237,34 @@ LayoutBuckets = function()
                         -- Force the block to recalculate its height based on visible lines
                         if block.Layout then pcall(block.Layout, block) end
 
-                        -- Measure actual rendered bottom (handles cases where GetHeight is stale)
+                        -- Always measure the deepest visible descendant bottom — Blizzard's
+                        -- block:GetHeight() is unreliable for profession recipe blocks and
+                        -- other compound blocks that nest reagent lines several levels deep.
                         local bh = block:GetHeight() or 0
-                        if bh < 10 then
-                            local top = block:GetTop()
-                            local bottom
-                            local function deepestBottom(f, d)
-                                if d > 4 or not f or not f.IsShown or not f:IsShown() then return end
-                                local b = f.GetBottom and f:GetBottom()
-                                if b and (not bottom or b < bottom) then bottom = b end
-                                if f.GetRegions then
-                                    for _, r in ipairs({ f:GetRegions() }) do
-                                        if r.IsShown and r:IsShown() and r.GetBottom then
-                                            local rb = r:GetBottom()
-                                            if rb and (not bottom or rb < bottom) then bottom = rb end
-                                        end
+                        local top = block:GetTop()
+                        local bottom
+                        local function deepestBottom(f, d)
+                            if d > 8 or not f or not f.IsShown or not f:IsShown() then return end
+                            local b = f.GetBottom and f:GetBottom()
+                            if b and (not bottom or b < bottom) then bottom = b end
+                            if f.GetRegions then
+                                for _, r in ipairs({ f:GetRegions() }) do
+                                    if r.IsShown and r:IsShown() and r.GetBottom then
+                                        local rb = r:GetBottom()
+                                        if rb and (not bottom or rb < bottom) then bottom = rb end
                                     end
                                 end
-                                if f.GetChildren then
-                                    for _, c in ipairs({ f:GetChildren() }) do deepestBottom(c, d + 1) end
-                                end
                             end
-                            deepestBottom(block, 0)
-                            if top and bottom then bh = top - bottom end
-                            if bh < 30 then bh = 30 end
+                            if f.GetChildren then
+                                for _, c in ipairs({ f:GetChildren() }) do deepestBottom(c, d + 1) end
+                            end
                         end
+                        deepestBottom(block, 0)
+                        if top and bottom then
+                            local measured = top - bottom
+                            if measured > bh then bh = measured end
+                        end
+                        if bh < 30 then bh = 30 end
 
                         yOffset = yOffset - bh - BLOCK_GAP
                     end
@@ -1056,6 +1283,15 @@ LayoutBuckets = function()
     local totalH = math.abs(yOffset) + 10
     if totalH < 60 then totalH = 60 end
     skinFrame:SetHeight(totalH)
+
+    _tmInLayout = false
+    -- Keep the silence window open for a few frames so Blizzard's own deferred
+    -- MarkDirty/OnUpdate reactions (caused by our SetParent/SetPoint/Layout)
+    -- don't immediately requeue another pump.
+    _tmSilenceHook = _tmSilenceHook + 1
+    C_Timer.After(0.20, function()
+        _tmSilenceHook = math.max(0, _tmSilenceHook - 1)
+    end)
 end
 
 local function DisableBuckets()
@@ -1074,6 +1310,29 @@ local function DisableBuckets()
             b:ClearAllPoints()
         end
     end
+    -- Restore the original anchors of any skipped subtree (delves scenario,
+    -- bonus objectives, world quests, UI widgets) we re-anchored under skinFrame.
+    local function restoreSkipped(parent)
+        if not parent or not parent.GetChildren then return end
+        for _, child in ipairs({ parent:GetChildren() }) do
+            if child._tmOriginalAnchor ~= nil then
+                if child._tmOriginalParent2 then
+                    child:SetParent(child._tmOriginalParent2)
+                    child._tmOriginalParent2 = nil
+                end
+                child:ClearAllPoints()
+                if type(child._tmOriginalAnchor) == "table" then
+                    local p, parent2, rp, x, y = unpack(child._tmOriginalAnchor)
+                    if p and parent2 then
+                        child:SetPoint(p, parent2, rp, x, y)
+                    end
+                end
+                child._tmOriginalAnchor = nil
+            end
+        end
+    end
+    restoreSkipped(tracker)
+    restoreSkipped(skinFrame)
 end
 
 local function RefreshBucketsEnabled()
@@ -1087,6 +1346,7 @@ end
 
 local function OnTrackerUpdate()
     if not IsEnabled() then return end
+    if _tmInLayout then return end
 
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
@@ -1158,7 +1418,7 @@ local function InstallHooks()
     for _, method in ipairs({ "Update", "SetShown", "Show", "MarkDirty" }) do
         if tracker[method] then
             hooksecurefunc(tracker, method, function()
-                C_Timer.After(0.08, OnTrackerUpdate)
+                PumpUpdateSoon()
             end)
         end
     end
@@ -1188,8 +1448,145 @@ local function InstallHooks()
         local now = GetTime()
         if now - lastUpdate < 0.25 then return end
         lastUpdate = now
-        C_Timer.After(0.15, OnTrackerUpdate)
+        PumpUpdateSoon()
     end)
+end
+
+-- =====================================
+-- MOVER / EDITMODE INTEGRATION
+-- =====================================
+
+local moverOverlay
+local isMoverLocked = true
+local positionApplied = false
+
+local function ApplyPosition()
+    local tracker = ObjectiveTrackerFrame
+    if not tracker then return end
+    local db = S()
+    -- Mark as user-placed so Blizzard's UIParent_UpdateTopFramesOverObjectiveTracker
+    -- and the Edit Mode manager stop repositioning it.
+    if tracker.SetMovable then tracker:SetMovable(true) end
+    if tracker.SetClampedToScreen then tracker:SetClampedToScreen(true) end
+    tracker.IsUserPlaced = function() return true end
+
+    local pos = db.position
+    if pos and pos.point then
+        tracker:ClearAllPoints()
+        tracker:SetPoint(pos.point, UIParent, pos.relativePoint or pos.point, pos.x or 0, pos.y or 0)
+    end
+    if db.scale and db.scale > 0 then
+        tracker:SetScale(db.scale)
+    end
+    positionApplied = true
+end
+OT.ApplyPosition = ApplyPosition
+
+local function SavePosition()
+    local tracker = ObjectiveTrackerFrame
+    if not tracker then return end
+    local point, _, relPoint, x, y = tracker:GetPoint(1)
+    if not point then return end
+    local db = S()
+    db.position = {
+        point         = point,
+        relativePoint = relPoint or point,
+        x             = x or 0,
+        y             = y or 0,
+    }
+end
+
+local function CreateMoverOverlay()
+    if moverOverlay then return moverOverlay end
+    local tracker = ObjectiveTrackerFrame
+    if not tracker then return end
+
+    moverOverlay = CreateFrame("Frame", "TomoModObjectiveTrackerMover", UIParent, "BackdropTemplate")
+    moverOverlay:SetFrameStrata("HIGH")
+    moverOverlay:SetFrameLevel(200)
+    moverOverlay:SetAllPoints(skinFrame or tracker)
+    moverOverlay:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    moverOverlay:SetBackdropColor(0.05, 0.82, 0.62, 0.12)
+    moverOverlay:SetBackdropBorderColor(0.05, 0.82, 0.62, 1)
+    moverOverlay:EnableMouse(true)
+    moverOverlay:SetMovable(true)
+    moverOverlay:RegisterForDrag("LeftButton")
+    moverOverlay:SetScript("OnDragStart", function()
+        tracker:SetMovable(true)
+        tracker:StartMoving()
+    end)
+    moverOverlay:SetScript("OnDragStop", function()
+        tracker:StopMovingOrSizing()
+        SavePosition()
+        ApplyPosition()
+    end)
+    -- Mouse wheel = scale adjust (90% .. 150%)
+    moverOverlay:EnableMouseWheel(true)
+    moverOverlay:SetScript("OnMouseWheel", function(_, delta)
+        local db = S()
+        local s = (db.scale or 1.0) + (delta > 0 and 0.05 or -0.05)
+        if s < 0.6 then s = 0.6 elseif s > 1.8 then s = 1.8 end
+        db.scale = s
+        ApplyPosition()
+        if moverOverlay._label then
+            moverOverlay._label:SetText(string.format("Objective Tracker  —  drag to move  |  scale %d%%", math.floor(s * 100 + 0.5)))
+        end
+    end)
+
+    local label = moverOverlay:CreateFontString(nil, "OVERLAY")
+    label:SetFont(ADDON_FONT_BOLD, 13, "OUTLINE")
+    label:SetPoint("TOP", moverOverlay, "TOP", 0, -6)
+    label:SetText("Objective Tracker  —  drag to move  |  wheel = scale")
+    label:SetTextColor(1, 1, 1, 1)
+    moverOverlay._label = label
+
+    moverOverlay:Hide()
+    return moverOverlay
+end
+
+function OT.IsLocked()
+    return isMoverLocked
+end
+
+function OT.SetLocked(value)
+    isMoverLocked = value and true or false
+    local tracker = ObjectiveTrackerFrame
+    if not tracker then return end
+    if not positionApplied then ApplyPosition() end
+    if isMoverLocked then
+        if moverOverlay then moverOverlay:Hide() end
+        SavePosition()
+        ApplyPosition()
+    else
+        if not moverOverlay then CreateMoverOverlay() end
+        if moverOverlay then
+            local db = S()
+            if moverOverlay._label then
+                moverOverlay._label:SetText(string.format("Objective Tracker  —  drag to move  |  scale %d%%", math.floor((db.scale or 1.0) * 100 + 0.5)))
+            end
+            moverOverlay:Show()
+        end
+    end
+end
+
+function OT.ToggleLock()
+    OT.SetLocked(not isMoverLocked)
+end
+
+local function RegisterWithMovers()
+    if not TomoMod_Movers or not TomoMod_Movers.RegisterEntry then return end
+    TomoMod_Movers.RegisterEntry({
+        label    = (TomoMod_L and TomoMod_L["mover_objectivetracker"]) or "Objective Tracker",
+        unlock   = function() OT.SetLocked(false) end,
+        lock     = function() OT.SetLocked(true) end,
+        isActive = function()
+            return TomoModDB and TomoModDB.objectiveTracker and TomoModDB.objectiveTracker.enabled
+        end,
+    })
 end
 
 -- =====================================
@@ -1202,8 +1599,12 @@ function OT.ApplySettings()
         OT.Disable()
         return
     end
+    ApplyPosition()
     OnTrackerUpdate()
 end
+
+-- Internal handle used by PumpUpdateSoon to call OnTrackerUpdate without recursion.
+OT._OnTrackerUpdate = OnTrackerUpdate
 
 function OT.Enable()
     local tracker = ObjectiveTrackerFrame
@@ -1213,6 +1614,7 @@ function OT.Enable()
     CreateOrUpdateHeader()
     HideBlizzardHeader()
     InstallHooks()
+    ApplyPosition()
 
     C_Timer.After(0.5, OnTrackerUpdate)
 end
@@ -1263,6 +1665,7 @@ function OT.Initialize()
         if ObjectiveTrackerFrame then
             OT.Enable()
             isInitialized = true
+            RegisterWithMovers()
         elseif attempts < 30 then
             C_Timer.After(0.5, TryInit)
         end

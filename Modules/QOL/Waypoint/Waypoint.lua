@@ -169,6 +169,24 @@ local isActive       = false
 local tickTimer      = 0
 local waypointMapID  = nil   -- mapID of the active waypoint (for zone check)
 
+-- ── Redirect cache (cross-zone / dungeon path step) ───────────────────
+-- Filled by SUPER_TRACKING_PATH_UPDATED + zone changes.
+-- When C_SuperTrack.GetNextWaypointForMap() returns a "redirect" (portal /
+-- dungeon entrance on the current map), .description is non-nil and we show
+-- it as the destination label instead of sessionName.
+local redirectInfo = { x = nil, y = nil, description = nil }
+
+local function UpdateRedirectCache()
+    if not (C_SuperTrack and C_SuperTrack.GetNextWaypointForMap) then return end
+    local mapID = C_Map and C_Map.GetBestMapForUnit and C_Map.GetBestMapForUnit("player")
+    if not mapID then
+        redirectInfo.x, redirectInfo.y, redirectInfo.description = nil, nil, nil
+        return
+    end
+    local rx, ry, rdesc = C_SuperTrack.GetNextWaypointForMap(mapID)
+    redirectInfo.x, redirectInfo.y, redirectInfo.description = rx, ry, rdesc
+end
+
 -- Hide/show Blizzard's navigation frame icon so our custom beacon is visible
 local function HideBlizzardNavFrame()
     if navFrame and not navFrameHidden then
@@ -389,6 +407,22 @@ Ticker:SetScript("OnUpdate", function(_, elapsed)
         AnchorBeacon()
         local scale = GetScaleForDist(dist)
         Beacon:SetScale(scale)
+        -- Dynamic destination label:
+        --   1. Manual waypoint name (sessionName) takes priority.
+        --   2. Cross-zone redirect description from GetNextWaypointForMap.
+        --   3. Tracked quest title as fallback.
+        local displayName = sessionName
+        if not displayName then
+            if redirectInfo.description then
+                displayName = redirectInfo.description
+            elseif C_SuperTrack.GetSuperTrackedQuestID then
+                local qid = C_SuperTrack.GetSuperTrackedQuestID()
+                if qid and C_QuestLog and C_QuestLog.GetTitleForQuestID then
+                    displayName = C_QuestLog.GetTitleForQuestID(qid)
+                end
+            end
+        end
+        NameFS:SetText(displayName or "")
         if dist then
             UpdateArrivalTime(dist)
             local distStr = FormatDist(dist)
@@ -419,6 +453,13 @@ local function ShouldBeActive()
     -- Zone-only restriction
     local db = TomoModDB and TomoModDB.waypoint
     if db and db.zoneOnly and not IsInWaypointZone() then return false end
+    -- Hide when player is already inside the quest objective area (prevents
+    -- a stuck "0 m" beacon that never moves because the nav frame is
+    -- pointing straight down at an underground/blob objective).
+    if C_SuperTrack.GetSuperTrackedQuestID and C_Minimap and C_Minimap.IsInsideQuestBlob then
+        local questID = C_SuperTrack.GetSuperTrackedQuestID()
+        if questID and C_Minimap.IsInsideQuestBlob(questID) then return false end
+    end
     local inInst, instType = IsInInstance()
     -- Active in open world; also allow in outdoor-style instances
     return not inInst or instType == "none"
@@ -453,6 +494,7 @@ end
 -- ── Event frame ───────────────────────────────────────────────────────
 local EL = CreateFrame("Frame")
 EL:RegisterEvent("SUPER_TRACKING_CHANGED")
+EL:RegisterEvent("SUPER_TRACKING_PATH_UPDATED")
 EL:RegisterEvent("USER_WAYPOINT_UPDATED")
 EL:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 EL:RegisterEvent("ZONE_CHANGED")
@@ -470,6 +512,14 @@ EL:SetScript("OnEvent", function(_, event)
         ShowBlizzardNavFrame()
         navFrame = nil
     else
+        -- Refresh the redirect cache whenever tracking or zone changes
+        if event == "SUPER_TRACKING_CHANGED"
+        or event == "SUPER_TRACKING_PATH_UPDATED"
+        or event == "ZONE_CHANGED_NEW_AREA"
+        or event == "ZONE_CHANGED"
+        or event == "PLAYER_ENTERING_WORLD" then
+            UpdateRedirectCache()
+        end
         CheckActive()
     end
 end)
