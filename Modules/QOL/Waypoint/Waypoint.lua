@@ -313,9 +313,11 @@ local function UpdateNavigator()
     if len < 1 then return end
 
     -- Project to orbit circle
+    -- ty is negated so the arrow sits on the opposite side from the target:
+    -- when the goal is ahead (navFrame at top), the arrow appears at the bottom.
     local ratio = ORBIT_DEFAULT / len
     local tx = dx * ratio
-    local ty = dy * ratio
+    local ty = -dy * ratio
 
     -- Smooth interpolation
     navCurrX = navCurrX + (tx - navCurrX) * 0.4

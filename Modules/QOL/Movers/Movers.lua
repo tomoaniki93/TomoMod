@@ -185,6 +185,27 @@ local function BuildEntries()
         end,
     })
     table.insert(moduleEntries, {
+        label    = L["mover_player_auras"],
+        unlock   = function()
+            local container = _G["TomoMod_Auras_player"]
+            if container and container.SetLocked then
+                container:SetLocked(false)
+            end
+        end,
+        lock     = function()
+            local container = _G["TomoMod_Auras_player"]
+            if container and container.SetLocked then
+                container:SetLocked(true)
+            end
+        end,
+        isActive = function()
+            return TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.player
+                and TomoModDB.unitFrames.player.enabled
+                and TomoModDB.unitFrames.player.auras
+                and TomoModDB.unitFrames.player.auras.enabled
+        end,
+    })
+    table.insert(moduleEntries, {
         label    = L["mover_mythictracker"],
         unlock   = function()
             if TomoMod_MythicTracker then

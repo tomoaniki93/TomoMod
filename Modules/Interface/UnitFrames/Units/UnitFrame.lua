@@ -546,8 +546,12 @@ function UF.ToggleLock()
             UnregisterUnitWatch(frame)
             frame:Show()
             if frame.auraContainer then
-                frame.auraContainer:EnableMouse(true)
-                frame.auraContainer:Show()
+                if frame.auraContainer.SetLocked then
+                    frame.auraContainer:SetLocked(false)
+                else
+                    frame.auraContainer:EnableMouse(true)
+                    frame.auraContainer:Show()
+                end
             end
             if frame.enemyBuffContainer then
                 frame.enemyBuffContainer:EnableMouse(true)
@@ -561,7 +565,11 @@ function UF.ToggleLock()
                 RegisterUnitWatch(frame)
             end
             if frame.auraContainer then
-                frame.auraContainer:EnableMouse(false)
+                if frame.auraContainer.SetLocked then
+                    frame.auraContainer:SetLocked(true)
+                else
+                    frame.auraContainer:EnableMouse(false)
+                end
             end
             if frame.enemyBuffContainer then
                 frame.enemyBuffContainer:EnableMouse(false)

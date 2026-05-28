@@ -59,27 +59,93 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings)
         UF_Elements.CreateAuraIcon(container, i, auraSettings)
     end
 
-    -- Draggable support (uses global lock state)
+    -- Draggable support with mover overlay (Edit Mode)
     container:SetMovable(true)
     container:SetClampedToScreen(true)
     container:EnableMouse(false)
-    container:RegisterForDrag("LeftButton")
-    container:SetScript("OnDragStart", function(self)
-        self:StartMoving()
-    end)
-    container:SetScript("OnDragStop", function(self)
-        self:StopMovingOrSizing()
-        -- Convert to parent-relative coordinates
-        local sx, sy = self:GetCenter()
-        local px, py = parent:GetCenter()
-        if sx and sy and px and py then
-            local dx = sx - px
-            local dy = sy - py
-            self:ClearAllPoints()
-            self:SetPoint("CENTER", parent, "CENTER", dx, dy)
-            auraSettings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
+
+    -- Mover overlay (matches SetupDraggable visual style)
+    local ACCENT = { 0.047, 0.824, 0.624 }
+    local BG_COL = { 0.02, 0.07, 0.05, 0.80 }
+    local BD_COL = { 0.047, 0.824, 0.624, 0.60 }
+
+    local overlay = CreateFrame("Frame", nil, container, "BackdropTemplate")
+    overlay:SetAllPoints(container)
+    overlay:SetFrameLevel(container:GetFrameLevel() + 20)
+    overlay:EnableMouse(false)
+    overlay:Hide()
+
+    overlay:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8X8",
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = 1,
+    })
+    overlay:SetBackdropColor(BG_COL[1], BG_COL[2], BG_COL[3], BG_COL[4])
+    overlay:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
+
+    local accentLine = overlay:CreateTexture(nil, "OVERLAY")
+    accentLine:SetHeight(1)
+    accentLine:SetPoint("TOPLEFT",  overlay, "TOPLEFT",  0, 0)
+    accentLine:SetPoint("TOPRIGHT", overlay, "TOPRIGHT", 0, 0)
+    accentLine:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.8)
+
+    local overlayLabel = overlay:CreateFontString(nil, "OVERLAY")
+    overlayLabel:SetFont(FONT, 10, "OUTLINE")
+    overlayLabel:SetPoint("CENTER", overlay, "CENTER")
+    overlayLabel:SetTextColor(1, 1, 1, 0.90)
+    overlayLabel:SetText("Auras " .. unit)
+    container.moverLabel = overlayLabel
+
+    overlay:SetScript("OnMouseDown", function(self, button)
+        if button == "LeftButton" then
+            container:StartMoving()
+            self:SetBackdropBorderColor(1, 1, 1, 1)
         end
     end)
+    overlay:SetScript("OnMouseUp", function(self, button)
+        if button == "LeftButton" then
+            container:StopMovingOrSizing()
+            self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
+            -- Convert to parent-relative coordinates
+            local sx, sy = container:GetCenter()
+            local px, py = parent:GetCenter()
+            if sx and sy and px and py then
+                local dx = sx - px
+                local dy = sy - py
+                container:ClearAllPoints()
+                container:SetPoint("CENTER", parent, "CENTER", dx, dy)
+                auraSettings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
+            end
+        end
+    end)
+    overlay:SetScript("OnEnter", function(self)
+        self:SetBackdropBorderColor(1, 1, 1, 1)
+        overlayLabel:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
+    end)
+    overlay:SetScript("OnLeave", function(self)
+        self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
+        overlayLabel:SetTextColor(1, 1, 1, 0.90)
+    end)
+
+    container.moverOverlay = overlay
+    container._isLocked = true
+
+    container.SetLocked = function(self, locked)
+        self._isLocked = locked
+        if locked then
+            overlay:EnableMouse(false)
+            overlay:Hide()
+            self:EnableMouse(false)
+        else
+            overlay:EnableMouse(true)
+            overlay:Show()
+            self:Show()
+        end
+    end
+
+    container.IsLocked = function(self)
+        return self._isLocked
+    end
 
     return container
 end
