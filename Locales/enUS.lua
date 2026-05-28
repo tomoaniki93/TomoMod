@@ -2276,4 +2276,19 @@ TomoMod_RegisterLocale("enUS", {
     ["art_tt_min_ago"]       = "%dm ago",
     ["art_tt_hour_ago"]      = "%dh ago",
     ["art_tt_day_ago"]       = "%dd ago",
+
+    -- Player Auras Mover (v2.9.5)
+    ["mover_player_auras"]       = "Player Auras",
+    ["opt_auras_spacing"]        = "Icon Spacing",
+    ["btn_reset_aura_position"]  = "Reset Aura Position",
+
+    -- Module Reload Safety (v2.9.21)
+    ["msg_module_reload"]        = "This change requires a UI reload to take effect.\nReload now?",
+    ["info_module_reload"]       = "Requires /reload to take effect.",
+    ["wn_2921_aura_mover"]       = "Player auras now have their own mover in Layout mode (tinted overlay, label, independent drag & drop).",
+    ["wn_2921_aura_gui"]         = "New aura spacing slider and position reset button in the Auras GUI tab.",
+    ["wn_2921_reload_safety"]    = "Enabling/disabling a major module (UnitFrames, Nameplates, Castbars, ActionBars, Party, Raid) now prompts an automatic /reload.",
+
+    -- Waypoint Arrow Reversed (v2.9.22)
+    ["wn_2922_waypoint_arrow"]    = "Off-screen waypoint navigator arrow is now on the opposite side of the orbit: when your goal is ahead, the arrow sits at the bottom and points up toward it.",
 })

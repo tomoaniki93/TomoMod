@@ -2078,4 +2078,19 @@ TomoMod_RegisterLocale("itIT", {
     -- ═══════════════════════════════════
     ["wn_2910_ej_boss_names"]            = "MythicTracker: i nomi dei boss vengono ora risolti tramite il Diario degli incontri — localizzati, compatibili con caratteri speciali, coprendo tutti i dungeon da Cata a The War Within.",
     ["wn_2910_ej_fallback"]              = "MythicTracker: risoluzione del nome a 3 livelli — dungeonEncounterID > indice EJ > criteriaString filtrato come fallback, con retry automatico (×5) se il EJ non è ancora caricato.",
+
+    -- Player Auras Mover (v2.9.5)
+    ["mover_player_auras"]       = "Aure del giocatore",
+    ["opt_auras_spacing"]        = "Spaziatura tra icone",
+    ["btn_reset_aura_position"]  = "Reimposta posizione aure",
+
+    -- Module Reload Safety (v2.9.21)
+    ["msg_module_reload"]        = "Questa modifica richiede un ricaricamento dell'interfaccia.\nRicaricare ora?",
+    ["info_module_reload"]       = "Richiede /reload per avere effetto.",
+    ["wn_2921_aura_mover"]       = "Le aure del giocatore hanno ora un proprio mover nella modalità Layout (overlay colorato, etichetta, drag & drop indipendente).",
+    ["wn_2921_aura_gui"]         = "Nuovo cursore per la spaziatura delle aure e pulsante di reset posizione nella scheda Aure della configurazione.",
+    ["wn_2921_reload_safety"]    = "Attivare/disattivare un modulo principale (UnitFrames, Nameplates, Castbars, ActionBars, Party, Raid) propone ora un /reload automatico.",
+
+    -- Waypoint Arrow Reversed (v2.9.22)
+    ["wn_2922_waypoint_arrow"]    = "La freccia del navigatore fuori schermo del waypoint è ora sul lato opposto dell'orbita: quando l'obiettivo è davanti, la freccia appare in basso e punta verso l'alto.",
 })

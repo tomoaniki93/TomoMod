@@ -30,6 +30,20 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "2.9.22",
+        highlights = {
+            L["wn_2922_waypoint_arrow"],
+        },
+    },
+    {
+        version = "2.9.21",
+        highlights = {
+            L["wn_2921_aura_mover"],
+            L["wn_2921_aura_gui"],
+            L["wn_2921_reload_safety"],
+        },
+    },
+    {
         version = "2.9.20",
         highlights = {
             L["wn_2920_waypoint_redirect"],

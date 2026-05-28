@@ -20,9 +20,11 @@ local function BuildGeneralTab(parent)
     local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_enable"] or "Enable Party Frames", db.enabled, cy, function(v)
         db.enabled = v
         if TomoMod_PartyFrames then TomoMod_PartyFrames.SetEnabled(v) end
+        StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
     end)
+    local _, cy = W.CreateInfoText(card.inner, L["info_module_reload"] or "", cy)
     local _, cy = W.CreateInfoText(card.inner, L["pf_info_description"] or "Custom party frames for M+ and Arena with health, absorb, heal prediction, HoTs, interrupt/brez CD tracking, and dispel highlights.", cy)
-    local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_hide_blizzard"] or "Hide Blizzard party frames", db.hideBlizzardFrames, cy, function(v) db.hideBlizzardFrames = v end)
+    local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_hide_blizzard"] or "Hide Blizzard party frames", db.hideBlizzardFrames, cy, function(v) db.hideBlizzardFrames = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
     local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_sort_role"] or "Sort by role (Tank > Healer > DPS)", db.sortByRole, cy, function(v) db.sortByRole = v; ApplyPF() end)
     y = W.FinalizeCard(card, cy)
 

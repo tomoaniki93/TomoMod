@@ -64,6 +64,7 @@ local function BuildSkinTab(parent)
     local _, ny = W.CreateCheckbox(c, L["opt_ab_system_enable"] or "Enable TomoMod Action Bar system (requires reload)",
         TomoModDB.actionBars.enabled ~= false, y, function(v)
             TomoModDB.actionBars.enabled = v
+            StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
         end)
     y = ny
     local _, ny = W.CreateInfoText(c, L["opt_ab_system_reload"] or "Disabling this fully restores Blizzard action bars after /reload.", y)

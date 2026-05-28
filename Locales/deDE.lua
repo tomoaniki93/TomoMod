@@ -2090,4 +2090,19 @@ TomoMod_RegisterLocale("deDE", {
     -- ═══════════════════════════════════
     ["wn_2910_ej_boss_names"]            = "MythicTracker: Boss-Namen werden über das Encounter-Journal aufgelöst — lokalisiert, unicode-sicher, für alle Dungeons von Cata bis The War Within.",
     ["wn_2910_ej_fallback"]              = "MythicTracker: 3-stufige Namensauflösung — dungeonEncounterID > EJ-Index > gefilterter criteriaString, mit automatischem Retry (×5) falls das EJ noch nicht geladen ist.",
+
+    -- Player Auras Mover (v2.9.5)
+    ["mover_player_auras"]       = "Spieler-Auren",
+    ["opt_auras_spacing"]        = "Symbolabstand",
+    ["btn_reset_aura_position"]  = "Aura-Position zurücksetzen",
+
+    -- Module Reload Safety (v2.9.21)
+    ["msg_module_reload"]        = "Diese Änderung erfordert ein Neuladen der Oberfläche.\nJetzt neu laden?",
+    ["info_module_reload"]       = "Erfordert /reload um wirksam zu werden.",
+    ["wn_2921_aura_mover"]       = "Spieler-Auren haben jetzt einen eigenen Mover im Layout-Modus (getöntes Overlay, Label, unabhängiges Drag & Drop).",
+    ["wn_2921_aura_gui"]         = "Neuer Aura-Abstandsregler und Positionsreset-Button im Auren-Tab der Konfiguration.",
+    ["wn_2921_reload_safety"]    = "Das Aktivieren/Deaktivieren eines Hauptmoduls (UnitFrames, Nameplates, Castbars, ActionBars, Party, Raid) bietet jetzt automatisch /reload an.",
+
+    -- Waypoint Arrow Reversed (v2.9.22)
+    ["wn_2922_waypoint_arrow"]    = "Der Off-Screen-Navigatorpfeil des Wegpunkts befindet sich jetzt auf der gegenüberliegenden Orbits-Seite: Wenn das Ziel vor dir liegt, erscheint der Pfeil unten und zeigt nach oben.",
 })

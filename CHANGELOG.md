@@ -1,5 +1,29 @@
 ## ####################################
 
+## CHANGELOG 2.9.21 — Player Aura Mover & Module Reload Safety & Waypoint Navigator Arrow Reversed
+
+#### Player Aura Mover (Edit Mode)
+- **New** — Player UnitFrame aura container now has a dedicated **mover overlay** in Edit Mode (Layout), matching the visual style of all other movers (teal accent, labeled "Auras player", hover feedback). The aura container was previously draggable but had no visual indicator.
+- **New** — Dedicated **mover entry** `"Auras du joueur"` added to the Movers system (header bar), allowing the player aura container to be unlocked/locked independently of the full UnitFrame mover.
+- **New** — `SetLocked(bool)` / `IsLocked()` API added to the aura container for clean integration with both the UnitFrame ToggleLock and the Movers system.
+- **Refactor** — `UnitFrame.ToggleLock()` now uses `container:SetLocked()` instead of raw `EnableMouse()` calls, with backward-compatible fallback.
+
+#### GUI — Aura Configuration
+- **New** — **Icon Spacing** slider (0–12 px) added to the Auras sub-tab for Player, Target, and Focus units.
+- **New** — **Reset Aura Position** button added to the Auras sub-tab, restoring the aura container to its default position from `TomoMod_Defaults`.
+
+#### Module Reload Safety
+- **New** — Toggling the master enable/disable of any major module (UnitFrames, Nameplates, Castbars, ActionBars, Party Frames, Raid Frames) or their "Hide Blizzard" options now triggers a **reload confirmation popup**. Previously, users could disable a module from the GUI without realizing a `/reload` was needed for Blizzard frames to fully restore (standard WoW addon behavior — permanent hooks from `hooksecurefunc`, `UnregisterAllEvents`, and `SetParent(hiddenParent)` cannot be undone at runtime).
+- **New** — Info text `"Requires /reload to take effect"` displayed under each major module's enable toggle in the Config UI.
+
+#### Waypoint — Navigator Arrow Position
+- **Fix** — The off-screen navigator arrow is now positioned on the **opposite side** of the orbit circle relative to the target. When the goal is directly ahead (navFrame at the top of the screen), the arrow now appears at the **bottom** and points upward toward the goal — which is more intuitive than the previous behavior where the arrow was placed near the target itself.
+
+#### Localization
+- **New** — 8 new locale keys added across all 6 languages (enUS, frFR, deDE, esES, itIT, ptBR): `mover_player_auras`, `opt_auras_spacing`, `btn_reset_aura_position`, `msg_module_reload`, `info_module_reload`, and 3 What's New highlight keys.
+
+## ####################################
+
 ## CHANGELOG 2.9.20 — Smart Waypoint
 
 #### Waypoint — Cross-Zone Path Redirect

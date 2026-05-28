@@ -2189,4 +2189,19 @@ TomoMod_RegisterLocale("frFR", {
     ["art_tt_min_ago"]       = "il y a %dm",
     ["art_tt_hour_ago"]      = "il y a %dh",
     ["art_tt_day_ago"]       = "il y a %dj",
+
+    -- Player Auras Mover (v2.9.5)
+    ["mover_player_auras"]       = "Auras du joueur",
+    ["opt_auras_spacing"]        = "Espacement entre icônes",
+    ["btn_reset_aura_position"]  = "Réinitialiser position auras",
+
+    -- Module Reload Safety (v2.9.21)
+    ["msg_module_reload"]        = "Ce changement nécessite un rechargement de l'interface.\nRecharger maintenant ?",
+    ["info_module_reload"]       = "Nécessite un /reload pour prendre effet.",
+    ["wn_2921_aura_mover"]       = "Les auras du joueur ont désormais leur propre mover dans le mode Layout (overlay teinté, label, drag & drop indépendant).",
+    ["wn_2921_aura_gui"]         = "Nouveau slider d'espacement des auras et bouton de réinitialisation de position dans l'onglet Auras du GUI.",
+    ["wn_2921_reload_safety"]    = "Activer/désactiver un module majeur (UnitFrames, Nameplates, Castbars, ActionBars, Party, Raid) propose désormais un /reload automatique.",
+
+    -- Waypoint Arrow Reversed (v2.9.22)
+    ["wn_2922_waypoint_arrow"]    = "La flèche du navigateur hors-écran du waypoint est maintenant du côté opposé de l'orbite : quand l'objectif est devant vous, la flèche apparaît en bas et pointe vers le haut.",
 })

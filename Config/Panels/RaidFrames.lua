@@ -22,9 +22,11 @@ local function BuildGeneralTab(parent)
     local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_enable"] or "Enable Raid Frames", db.enabled, cy, function(v)
         db.enabled = v
         if TomoMod_RaidFrames then TomoMod_RaidFrames.SetEnabled(v) end
+        StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
     end)
+    local _, cy = W.CreateInfoText(card.inner, L["info_module_reload"] or "", cy)
     local _, cy = W.CreateInfoText(card.inner, L["rf_info_description"] or "Custom raid frames with health, absorb, heal prediction, HoTs, debuffs, dispel highlight, defensive CDs, and range check.", cy)
-    local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_hide_blizzard"] or "Hide Blizzard raid frames", db.hideBlizzardFrames, cy, function(v) db.hideBlizzardFrames = v end)
+    local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_hide_blizzard"] or "Hide Blizzard raid frames", db.hideBlizzardFrames, cy, function(v) db.hideBlizzardFrames = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
     local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_sort_role"] or "Sort by role (Tank > Healer > DPS)", db.sortByRole, cy, function(v) db.sortByRole = v; ApplyRF() end)
     y = W.FinalizeCard(card, cy)
 

@@ -39,6 +39,17 @@ StaticPopupDialogs["TOMOMOD_SPEC_RELOAD"] = {
     preferredIndex = 3,
 }
 
+StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] = {
+    text = "|cff0cd29fTomoMod|r\n" .. (L and L["msg_module_reload"] or "This change requires a UI reload to take effect.\nReload now?"),
+    button1 = OKAY or "OK",
+    button2 = CANCEL or "Cancel",
+    OnAccept = function() ReloadUI() end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
 -- =====================================
 -- SLASH COMMANDS
 -- =====================================

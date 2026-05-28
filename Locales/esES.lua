@@ -2138,4 +2138,19 @@ TomoMod_RegisterLocale("esES", {
     -- ═══════════════════════════════════
     ["wn_2910_ej_boss_names"]            = "MythicTracker: nombres de jefes resueltos mediante el Diario de encuentros — localizados, compatibles con acentos, cubriendo todas las mazmorras desde Cata hasta The War Within.",
     ["wn_2910_ej_fallback"]              = "MythicTracker: resolución de nombres en 3 niveles — dungeonEncounterID > índice EJ > criteriaString filtrado como alternativa, con reintento automático (×5) si el EJ no está cargado aún.",
+
+    -- Player Auras Mover (v2.9.5)
+    ["mover_player_auras"]       = "Auras del jugador",
+    ["opt_auras_spacing"]        = "Espaciado entre iconos",
+    ["btn_reset_aura_position"]  = "Restablecer posición de auras",
+
+    -- Module Reload Safety (v2.9.21)
+    ["msg_module_reload"]        = "Este cambio requiere recargar la interfaz.\n¿Recargar ahora?",
+    ["info_module_reload"]       = "Requiere /reload para aplicarse.",
+    ["wn_2921_aura_mover"]       = "Las auras del jugador ahora tienen su propio mover en el modo Layout (overlay coloreado, etiqueta, arrastre independiente).",
+    ["wn_2921_aura_gui"]         = "Nuevo control de espaciado de auras y botón de reinicio de posición en la pestaña Auras de la configuración.",
+    ["wn_2921_reload_safety"]    = "Activar/desactivar un módulo principal (UnitFrames, Nameplates, Castbars, ActionBars, Party, Raid) ahora ofrece un /reload automático.",
+
+    -- Waypoint Arrow Reversed (v2.9.22)
+    ["wn_2922_waypoint_arrow"]    = "La flecha del navegador fuera de pantalla del waypoint está ahora en el lado opuesto de la órbita: cuando el objetivo está delante, la flecha aparece abajo y apunta hacia arriba.",
 })

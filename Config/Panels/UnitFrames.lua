@@ -282,6 +282,26 @@ local function BuildAurasTab(parent, unitKey)
             db.auras.showOnlyMine = v
         end)
         y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_auras_spacing"], db.auras.spacing or 3, 0, 12, 1, y, function(v)
+            db.auras.spacing = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        -- Reset aura position
+        local _, ny = W.CreateSeparator(c, y)
+        y = ny
+
+        local _, ny = W.CreateButton(c, L["btn_reset_aura_position"], 220, y, function()
+            local defaults = TomoMod_Defaults and TomoMod_Defaults.unitFrames and TomoMod_Defaults.unitFrames[unitKey]
+            if defaults and defaults.auras and defaults.auras.position then
+                db.auras.position = CopyTable(defaults.auras.position)
+                RefreshUnit(unitKey)
+                print("|cff0cd29fTomoMod|r Auras " .. unitKey .. " : position réinitialisée")
+            end
+        end)
+        y = ny
     end
 
     -- Enemy Buffs (target + focus only)
@@ -543,9 +563,16 @@ local function BuildGeneralContent(parent)
         function(v)
             TomoModDB.unitFrames.enabled = v
             print("|cff0cd29fTomoMod|r " .. string.format(L["msg_uf_toggle"], v and L["enabled"] or L["disabled"]))
+            StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
         end,
         L["opt_hide_blizzard"], TomoModDB.unitFrames.hideBlizzardFrames,
-        function(v) TomoModDB.unitFrames.hideBlizzardFrames = v end)
+        function(v)
+            TomoModDB.unitFrames.hideBlizzardFrames = v
+            StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
+        end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_module_reload"], y)
     y = ny
 
     -- Font family dropdown

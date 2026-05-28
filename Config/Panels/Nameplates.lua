@@ -19,7 +19,9 @@ local function BuildGeneralTab(parent)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_np_enable"] or "Activer", db.enabled, cy, function(v)
         db.enabled = v
         if TomoMod_Nameplates then if v then TomoMod_Nameplates.Enable() else TomoMod_Nameplates.Disable() end end
+        StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
     end)
+    local _, cy = W.CreateInfoText(card.inner, L["info_module_reload"] or "", cy)
     local _, cy = W.CreateInfoText(card.inner, L["info_np_description"] or "", cy)
     y = W.FinalizeCard(card, cy)
 
