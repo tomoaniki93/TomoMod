@@ -17,6 +17,21 @@
 -- enUS (base)
 -- =====================
 TomoMod_RegisterLocale("enUS", {
+    -- [3.0.1] ButtonBag : ancrage horloge
+    ["opt_buttonbag_anchor"] = "Button position",
+    ["buttonbag_anchor_corner"] = "On the minimap (corner)",
+    ["buttonbag_anchor_clockl"] = "Left of the clock",
+    ["buttonbag_anchor_clockr"] = "Right of the clock",
+    -- [3.0.1] Clés ajoutées (movers anti-combat + libellés de panels manquants)
+    ["layout_combat_blocked"] = "You can't move the interface while in combat.",
+    ["btn_housing_leave"] = "Leave house",
+    ["import_preview_analyzing"] = "Analyzing...",
+    ["info_rb_primary_centered"] = "Moves the player frame's mana/energy/rage bar to the center of the screen.",
+    ["mover_actionbars"] = "Action Bars",
+    ["opt_rb_primary_centered"] = "Show primary resource centered",
+    ["opt_rb_primary_power_height"] = "Primary bar height",
+    ["section_cdm_alpha"] = "Opacity",
+    ["wn_2921_waypoint_arrow"] = "Smart Waypoint - direction arrow: an on-screen arrow now points toward the tracked waypoint, with live distance, so you always know which way to go.",
     -- Presets
     ["preset_complet_name"]  = "Recommended",
     ["preset_complet_tag"]   = "The full TomoMod experience",
@@ -102,7 +117,7 @@ TomoMod_RegisterLocale("enUS", {
     ["info_skyride_ground_speed"] = "Shows your movement speed even on the ground (flight gauges stay hidden when not flying).",
     ["opt_auras_spacing"] = "Spacing",
     ["opt_auras_max_width"] = "Max width (wrap)",
-    ["popup_ab_uniformize"] = "Copy the appearance of bar "%s" to all other bars?",
+    ["popup_ab_uniformize"] = "Copy the appearance of bar \"%s\" to all other bars?",
     ["dash_welcome"]             = "Quick overview of TomoMod. Toggle modules, apply a setup, switch profile, or relaunch the setup assistant.",
     ["dash_modules_section"]     = "Modules",
     ["dash_quickcfg_section"]    = "Quick configuration",
@@ -139,6 +154,21 @@ TomoMod_RegisterLocale("enUS", {
 -- frFR
 -- =====================
 TomoMod_RegisterLocale("frFR", {
+    -- [3.0.1] ButtonBag : ancrage horloge
+    ["opt_buttonbag_anchor"] = "Position du bouton",
+    ["buttonbag_anchor_corner"] = "Sur la minimap (coin)",
+    ["buttonbag_anchor_clockl"] = "Gauche de l'horloge",
+    ["buttonbag_anchor_clockr"] = "Droite de l'horloge",
+    -- [3.0.1] Clés ajoutées (movers anti-combat + libellés de panels manquants)
+    ["layout_combat_blocked"] = "Impossible de déplacer l'interface en combat.",
+    ["btn_housing_leave"] = "Quitter la maison",
+    ["import_preview_analyzing"] = "Analyse...",
+    ["info_rb_primary_centered"] = "Déplace la barre de mana/énergie/rage de la frame joueur vers le centre de l'écran.",
+    ["mover_actionbars"] = "Barres d'action",
+    ["opt_rb_primary_centered"] = "Afficher la ressource principale au centre",
+    ["opt_rb_primary_power_height"] = "Hauteur barre principale",
+    ["section_cdm_alpha"] = "Opacité",
+    ["wn_2921_waypoint_arrow"] = "Waypoint intelligent - flèche directionnelle : une flèche à l'écran pointe désormais vers le waypoint suivi, avec la distance en temps réel, pour toujours savoir où aller.",
     ["preset_complet_name"]  = "Recommandé",
     ["preset_complet_tag"]   = "L'expérience TomoMod complète",
     ["preset_complet_desc"]  = "Active tous les modules principaux avec des réglages cohérents : unit frames, cadres de groupe et de raid, nameplates, barres d'incantation, ressources, skin des barres d'action, tous les skins visuels, les outils Mythic+ et les fonctions de confort les plus utiles. Le meilleur point de départ pour la plupart des joueurs.",
@@ -257,6 +287,21 @@ TomoMod_RegisterLocale("frFR", {
 -- deDE
 -- =====================
 TomoMod_RegisterLocale("deDE", {
+    -- [3.0.1] ButtonBag : ancrage horloge
+    ["opt_buttonbag_anchor"] = "Position der Schaltfläche",
+    ["buttonbag_anchor_corner"] = "Auf der Minimap (Ecke)",
+    ["buttonbag_anchor_clockl"] = "Links neben der Uhr",
+    ["buttonbag_anchor_clockr"] = "Rechts neben der Uhr",
+    -- [3.0.1] Clés ajoutées (movers anti-combat + libellés de panels manquants)
+    ["layout_combat_blocked"] = "Die Benutzeroberfläche kann im Kampf nicht verschoben werden.",
+    ["btn_housing_leave"] = "Haus verlassen",
+    ["import_preview_analyzing"] = "Analysiere...",
+    ["info_rb_primary_centered"] = "Verschiebt die Mana-/Energie-/Wutleiste des Spielerrahmens in die Bildschirmmitte.",
+    ["mover_actionbars"] = "Aktionsleisten",
+    ["opt_rb_primary_centered"] = "Primäre Ressource zentriert anzeigen",
+    ["opt_rb_primary_power_height"] = "Höhe der Hauptleiste",
+    ["section_cdm_alpha"] = "Deckkraft",
+    ["wn_2921_waypoint_arrow"] = "Intelligenter Wegpunkt - Richtungspfeil: Ein Pfeil auf dem Bildschirm zeigt nun zum verfolgten Wegpunkt, mit Live-Entfernung, damit du immer weißt, wohin du musst.",
     ["preset_complet_name"]  = "Empfohlen",
     ["preset_complet_tag"]   = "Das komplette TomoMod-Erlebnis",
     ["preset_complet_desc"]  = "Aktiviert alle Kernmodule mit sinnvollen Standardwerten: UnitFrames, Gruppen- und Schlachtzugsrahmen, Nameplates, Zauberleisten, Ressourcen, Aktionsleisten-Skin, alle visuellen Skins, Mythic+-Werkzeuge und die nützlichsten Komfortfunktionen. Der beste Startpunkt für die meisten Spieler.",
@@ -375,6 +420,21 @@ TomoMod_RegisterLocale("deDE", {
 -- esES
 -- =====================
 TomoMod_RegisterLocale("esES", {
+    -- [3.0.1] ButtonBag : ancrage horloge
+    ["opt_buttonbag_anchor"] = "Posición del botón",
+    ["buttonbag_anchor_corner"] = "En el minimapa (esquina)",
+    ["buttonbag_anchor_clockl"] = "A la izquierda del reloj",
+    ["buttonbag_anchor_clockr"] = "A la derecha del reloj",
+    -- [3.0.1] Clés ajoutées (movers anti-combat + libellés de panels manquants)
+    ["layout_combat_blocked"] = "No puedes mover la interfaz en combate.",
+    ["btn_housing_leave"] = "Salir de la casa",
+    ["import_preview_analyzing"] = "Analizando...",
+    ["info_rb_primary_centered"] = "Mueve la barra de maná/energía/ira del marco del jugador al centro de la pantalla.",
+    ["mover_actionbars"] = "Barras de acción",
+    ["opt_rb_primary_centered"] = "Mostrar el recurso principal centrado",
+    ["opt_rb_primary_power_height"] = "Altura de la barra principal",
+    ["section_cdm_alpha"] = "Opacidad",
+    ["wn_2921_waypoint_arrow"] = "Waypoint inteligente - flecha de dirección: una flecha en pantalla apunta ahora hacia el waypoint seguido, con distancia en tiempo real, para que siempre sepas hacia dónde ir.",
     ["preset_complet_name"]  = "Recomendado",
     ["preset_complet_tag"]   = "La experiencia TomoMod completa",
     ["preset_complet_desc"]  = "Activa todos los módulos principales con valores predeterminados sensatos: UnitFrames, marcos de grupo y banda, Nameplates, barras de lanzamiento, recursos, skin de barras de acción, todos los skins visuales, herramientas Mythic+ y las funciones de comodidad más útiles. El mejor punto de partida para la mayoría.",
@@ -493,6 +553,21 @@ TomoMod_RegisterLocale("esES", {
 -- itIT
 -- =====================
 TomoMod_RegisterLocale("itIT", {
+    -- [3.0.1] ButtonBag : ancrage horloge
+    ["opt_buttonbag_anchor"] = "Posizione del pulsante",
+    ["buttonbag_anchor_corner"] = "Sulla minimappa (angolo)",
+    ["buttonbag_anchor_clockl"] = "A sinistra dell'orologio",
+    ["buttonbag_anchor_clockr"] = "A destra dell'orologio",
+    -- [3.0.1] Clés ajoutées (movers anti-combat + libellés de panels manquants)
+    ["layout_combat_blocked"] = "Non puoi spostare l'interfaccia durante il combattimento.",
+    ["btn_housing_leave"] = "Esci dalla casa",
+    ["import_preview_analyzing"] = "Analisi...",
+    ["info_rb_primary_centered"] = "Sposta la barra di mana/energia/ira del riquadro del giocatore al centro dello schermo.",
+    ["mover_actionbars"] = "Barre delle azioni",
+    ["opt_rb_primary_centered"] = "Mostra la risorsa principale al centro",
+    ["opt_rb_primary_power_height"] = "Altezza barra principale",
+    ["section_cdm_alpha"] = "Opacità",
+    ["wn_2921_waypoint_arrow"] = "Waypoint intelligente - freccia direzionale: una freccia sullo schermo punta ora verso il waypoint seguito, con distanza in tempo reale, così sai sempre dove andare.",
     ["preset_complet_name"]  = "Consigliato",
     ["preset_complet_tag"]   = "L'esperienza TomoMod completa",
     ["preset_complet_desc"]  = "Attiva tutti i moduli principali con impostazioni sensate: UnitFrames, riquadri gruppo e incursione, Nameplates, barre di lancio, risorse, skin delle barre delle azioni, tutti gli skin visivi, strumenti Mythic+ e le funzioni di comodità più utili. Il miglior punto di partenza per la maggior parte dei giocatori.",
@@ -611,6 +686,21 @@ TomoMod_RegisterLocale("itIT", {
 -- ptBR
 -- =====================
 TomoMod_RegisterLocale("ptBR", {
+    -- [3.0.1] ButtonBag : ancrage horloge
+    ["opt_buttonbag_anchor"] = "Posição do botão",
+    ["buttonbag_anchor_corner"] = "No minimapa (canto)",
+    ["buttonbag_anchor_clockl"] = "À esquerda do relógio",
+    ["buttonbag_anchor_clockr"] = "À direita do relógio",
+    -- [3.0.1] Clés ajoutées (movers anti-combat + libellés de panels manquants)
+    ["layout_combat_blocked"] = "Não é possível mover a interface em combate.",
+    ["btn_housing_leave"] = "Sair da casa",
+    ["import_preview_analyzing"] = "Analisando...",
+    ["info_rb_primary_centered"] = "Move a barra de mana/energia/fúria do quadro do jogador para o centro da tela.",
+    ["mover_actionbars"] = "Barras de ação",
+    ["opt_rb_primary_centered"] = "Mostrar o recurso principal centralizado",
+    ["opt_rb_primary_power_height"] = "Altura da barra principal",
+    ["section_cdm_alpha"] = "Opacidade",
+    ["wn_2921_waypoint_arrow"] = "Waypoint inteligente - seta de direção: uma seta na tela agora aponta para o waypoint rastreado, com distância em tempo real, para você sempre saber para onde ir.",
     ["preset_complet_name"]  = "Recomendado",
     ["preset_complet_tag"]   = "A experiência TomoMod completa",
     ["preset_complet_desc"]  = "Ativa todos os módulos principais com padrões sensatos: UnitFrames, quadros de grupo e raide, Nameplates, barras de lançamento, recursos, skin das barras de ação, todos os skins visuais, ferramentas Mythic+ e os recursos de conforto mais úteis. O melhor ponto de partida para a maioria dos jogadores.",
@@ -693,7 +783,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["info_skyride_ground_speed"] = "Mostra sua velocidade de movimento mesmo no solo (os medidores de voo continuam ocultos fora do voo).",
     ["opt_auras_spacing"] = "Espaçamento",
     ["opt_auras_max_width"] = "Largura máx. (quebra de linha)",
-    ["popup_ab_uniformize"] = "Copiar a aparência da barra "%s" para todas as outras barras?",
+    ["popup_ab_uniformize"] = "Copiar a aparência da barra \"%s\" para todas as outras barras?",
     ["dash_welcome"]             = "Visão rápida do TomoMod. Alterne módulos, aplique uma configuração, troque de perfil ou relance o assistente.",
     ["dash_modules_section"]     = "Módulos",
     ["dash_quickcfg_section"]    = "Configuração rápida",

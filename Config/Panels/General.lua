@@ -206,6 +206,16 @@ function TomoMod_ConfigPanel_General(parent)
 
     local bagDB = EnsureBag()
 
+    -- [3.0.1] Position du collecteur : sur la minimap (coin) ou collé à l'horloge
+    local _, cby = W.CreateDropdown(cardB.inner, L["opt_buttonbag_anchor"] or "Position du bouton", {
+        { text = L["buttonbag_anchor_corner"] or "Sur la minimap (coin)", value = "corner"      },
+        { text = L["buttonbag_anchor_clockl"] or "Gauche de l'horloge",   value = "clock-left"  },
+        { text = L["buttonbag_anchor_clockr"] or "Droite de l'horloge",   value = "clock-right" },
+    }, bagDB.anchor or "corner", cby, function(v)
+        EnsureBag().anchor = v
+        ApplyBag()
+    end)
+
     local _, cby = W.CreateTwoColumnRow(cardB.inner, cby,
         function(col)
             local f, ny = W.CreateDropdown(col, L["opt_corner"] or "Coin", {

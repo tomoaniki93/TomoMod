@@ -25,6 +25,8 @@ TomoMod_Defaults = {
         showCraftingOrder = true,
         buttonBag = {
             enabled = true,
+            anchor = "corner",   -- "corner" | "clock-left" | "clock-right"
+            clockGap = 2,         -- écart en px par rapport à l'horloge
             corner = "BOTTOMLEFT",
             scale = 1.0,
             x = 2,
@@ -103,7 +105,7 @@ TomoMod_Defaults = {
         fontSize = 12,
         fontOutline = "OUTLINE",
         barColor = { r = 1, g = 1, b = 0 },
-        showGroundSpeed = false,
+        showGroundSpeed = true,
         position = {
             point = "BOTTOM",
             relativePoint = "CENTER",
