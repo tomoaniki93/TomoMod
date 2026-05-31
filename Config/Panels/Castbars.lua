@@ -10,10 +10,10 @@ local function ApplyCB() if TomoMod_Castbar then TomoMod_Castbar.ApplySettings()
 -- "disappear".
 local function TogglePreview()
     if not TomoMod_Castbar then return end
-    if TomoMod_Castbar.IsLocked and TomoMod_Castbar.IsLocked() then
-        if TomoMod_Castbar.ToggleLock then TomoMod_Castbar.ToggleLock() end
-    else
-        if TomoMod_Castbar.ToggleLock then TomoMod_Castbar.ToggleLock() end
+    if TomoMod_Castbar.TogglePreview then
+        TomoMod_Castbar.TogglePreview()
+    elseif TomoMod_Castbar.ToggleLock then
+        TomoMod_Castbar.ToggleLock()  -- repli pour anciennes versions
     end
 end
 
@@ -31,13 +31,11 @@ local function BuildGeneralTab(parent)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_enable"], db.enabled, cy, function(v)
         db.enabled = v
         if TomoMod_Castbar then TomoMod_Castbar.SetEnabled(v) end
-        StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
     end)
-    local _, cy = W.CreateInfoText(card.inner, L["info_module_reload"], cy)
     local _, cy = W.CreateInfoText(card.inner, L["info_cb_description"], cy)
     local _, cy = W.CreateButton(card.inner, L["btn_cb_toggle_preview"] or "Show / Hide Preview", 200, cy, TogglePreview)
     local _, cy = W.CreateInfoText(card.inner, L["info_cb_preview_hint"] or "Unlocks every castbar and shows a live mock spell so you can see your tweaks instantly.", cy)
-    local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_hide_blizzard"], db.hideBlizzardCastbar, cy, function(v) db.hideBlizzardCastbar = v; ApplyCB(); StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
+    local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_hide_blizzard"], db.hideBlizzardCastbar, cy, function(v) db.hideBlizzardCastbar = v; ApplyCB() end)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_class_color"], db.useClassColor, cy, function(v) db.useClassColor = v; ApplyCB() end)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_show_transitions"], db.showTransitions, cy, function(v) db.showTransitions = v; ApplyCB() end)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_show_channel_ticks"], db.showChannelTicks, cy, function(v) db.showChannelTicks = v; ApplyCB() end)
@@ -127,6 +125,20 @@ local function BuildUnitTab(parent, unitKey, unitLabel)
 
     local card, cy = W.CreateCard(c, string.format(L["cb_section_unit"], unitLabel), y)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_unit_enable"], udb.enabled, cy, function(v) udb.enabled = v; ApplyCB() end)
+
+    -- Aperçu accessible depuis CHAQUE onglet (sinon on règle à l'aveugle entre deux sorts)
+    local _, cy = W.CreateButton(card.inner, L["btn_cb_toggle_preview"] or "Afficher / masquer l'aperçu", 220, cy, TogglePreview)
+    if unitKey == "player" then
+        local _, cy2 = W.CreateInfoText(card.inner, L["info_cb_preview_hint"]
+            or "Déverrouille les castbars et affiche un sort fictif pour voir tes réglages en direct.", cy)
+        cy = cy2
+    else
+        -- Réponse fréquente : ces castbars suivent leur unit frame (pas de position libre)
+        local _, cy2 = W.CreateInfoText(card.inner, L["info_cb_anchor_uf"]
+            or "Cette castbar s'ancre sur le cadre d'unité correspondant (elle apparaît donc sur la frame de la cible / du focus / du familier / du boss).", cy)
+        cy = cy2
+    end
+
     local _, cy = W.CreateSlider(card.inner, L["opt_cb_unit_width"], udb.width or 260, 100, 500, 5, cy, function(v) udb.width = v; ApplyCB() end, "%.0f")
     local _, cy = W.CreateSlider(card.inner, L["opt_cb_unit_height"], udb.height or 22, 8, 40, 1, cy, function(v) udb.height = v; ApplyCB() end, "%.0f")
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_unit_show_icon"], udb.showIcon, cy, function(v) udb.showIcon = v; ApplyCB() end)

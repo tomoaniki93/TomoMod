@@ -268,6 +268,16 @@ local function BuildSkyRideTab(parent)
     end)
     y = ny
 
+    -- Affichage de la vitesse au sol (utile avec un buff de déplacement)
+    local _, ny = W.CreateCheckbox(c, L["opt_skyride_ground_speed"] or "Afficher la vitesse au sol", TomoModDB.skyRide.showGroundSpeed or false, y, function(v)
+        TomoModDB.skyRide.showGroundSpeed = v; SR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_skyride_ground_speed"]
+        or "Affiche ta vitesse de déplacement même au sol (les jauges de vol restent masquées hors vol).", y)
+    y = ny
+
     -- ── Dimensions ──────────────────────────────────────────────
     local _, ny = W.CreateSectionHeader(c, L["section_skyride_dims"], y)
     y = ny
@@ -832,6 +842,14 @@ local function BuildClassReminderTab(parent)
     end)
     y = ny
 
+    -- Bouton d'aperçu : montre un message d'exemple à l'emplacement configuré
+    local _, ny = W.CreateButton(c, L["btn_class_reminder_preview"] or "Aperçu", 200, y, function()
+        if TomoMod_ClassReminder and TomoMod_ClassReminder.ShowPreview then
+            TomoMod_ClassReminder.ShowPreview()
+        end
+    end)
+    y = ny
+
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
@@ -863,6 +881,21 @@ local function BuildClassReminderTab(parent)
         TomoModDB.classReminder.offsetY = v; CR_Apply()
     end)
     y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- Liste des classes couvertes et de leurs buffs/formes suivis
+    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_coverage"] or "Classes prises en charge", y)
+    y = ny
+
+    if TomoMod_ClassReminder and TomoMod_ClassReminder.GetCoverage then
+        for _, entry in ipairs(TomoMod_ClassReminder.GetCoverage()) do
+            local line = entry.className .. " : " .. table.concat(entry.items, ", ")
+            local _, ny2 = W.CreateInfoText(c, line, y)
+            y = ny2
+        end
+    end
 
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end

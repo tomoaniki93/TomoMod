@@ -17,6 +17,45 @@ function TomoMod_ConfigPanel_General(parent)
         if v and TomoMod_Minimap then TomoMod_Minimap.ApplySettings() end
     end)
 
+    local _, cy = W.CreateCheckbox(card.inner, L["opt_minimap_tracking"] or "Bouton de pistage", TomoModDB.minimap.showTracking ~= false, cy, function(v)
+        TomoModDB.minimap.showTracking = v
+        if TomoMod_Minimap and TomoMod_Minimap.CreateTrackingButton then
+            TomoMod_Minimap.CreateTrackingButton()
+        end
+    end)
+
+    local _, cy = W.CreateTwoColumnRow(card.inner, cy,
+        function(col)
+            local _, ny = W.CreateCheckbox(col, L["opt_minimap_mail"] or "Courrier", TomoModDB.minimap.showMail ~= false, 0, function(v)
+                TomoModDB.minimap.showMail = v
+                if TomoMod_Minimap and TomoMod_Minimap.ApplyNativeIndicators then TomoMod_Minimap.ApplyNativeIndicators() end
+            end)
+            return ny
+        end,
+        function(col)
+            local _, ny = W.CreateCheckbox(col, L["opt_minimap_difficulty"] or "Difficulté", TomoModDB.minimap.showDifficulty ~= false, 0, function(v)
+                TomoModDB.minimap.showDifficulty = v
+                if TomoMod_Minimap and TomoMod_Minimap.ApplyNativeIndicators then TomoMod_Minimap.ApplyNativeIndicators() end
+            end)
+            return ny
+        end)
+
+    local _, cy = W.CreateTwoColumnRow(card.inner, cy,
+        function(col)
+            local _, ny = W.CreateCheckbox(col, L["opt_minimap_expansion"] or "Bouton d'extension", TomoModDB.minimap.showExpansion ~= false, 0, function(v)
+                TomoModDB.minimap.showExpansion = v
+                if TomoMod_Minimap and TomoMod_Minimap.ApplyNativeIndicators then TomoMod_Minimap.ApplyNativeIndicators() end
+            end)
+            return ny
+        end,
+        function(col)
+            local _, ny = W.CreateCheckbox(col, L["opt_minimap_crafting"] or "Commandes de craft", TomoModDB.minimap.showCraftingOrder ~= false, 0, function(v)
+                TomoModDB.minimap.showCraftingOrder = v
+                if TomoMod_Minimap and TomoMod_Minimap.ApplyNativeIndicators then TomoMod_Minimap.ApplyNativeIndicators() end
+            end)
+            return ny
+        end)
+
     local _, cy = W.CreateTwoColumnRow(card.inner, cy,
         function(col)
             local _, ny = W.CreateSlider(col, L["opt_size"] or "Taille", TomoModDB.minimap.size, 150, 300, 10, 0, function(v)
@@ -42,6 +81,162 @@ function TomoMod_ConfigPanel_General(parent)
     end)
 
     y = W.FinalizeCard(card, cy)
+
+    -- ═══════════════════════════════════════════════
+    -- INDICATEURS DE LA MINIMAP (position / taille)
+    -- ═══════════════════════════════════════════════
+    local cardI, ciy = W.CreateCard(c, L["section_minimap_indicators"] or "Indicateurs de la minimap", y)
+
+    -- État courant : quel indicateur on configure
+    local INDS = {
+        { key = "tracking",   label = L["opt_minimap_tracking"]   or "Pistage" },
+        { key = "mail",       label = L["opt_minimap_mail"]       or "Courrier" },
+        { key = "difficulty", label = L["opt_minimap_difficulty"] or "Difficulté" },
+        { key = "expansion",  label = L["opt_minimap_expansion"]  or "Extension" },
+        { key = "crafting",   label = L["opt_minimap_crafting"]   or "Commandes de craft" },
+    }
+    local selKey = "tracking"
+
+    local function EnsureCfg(key)
+        TomoModDB.minimap.indicators = TomoModDB.minimap.indicators or {}
+        TomoModDB.minimap.indicators[key] = TomoModDB.minimap.indicators[key] or {}
+        return TomoModDB.minimap.indicators[key]
+    end
+
+    -- Ré-applique l'indicateur courant en jeu (live)
+    local function ApplyOne(key)
+        if not TomoMod_Minimap then return end
+        if key == "tracking" then
+            if TomoMod_Minimap.CreateTrackingButton then TomoMod_Minimap.CreateTrackingButton() end
+        else
+            if TomoMod_Minimap.ApplyNativeIndicators then TomoMod_Minimap.ApplyNativeIndicators() end
+        end
+    end
+
+    local _, ciy = W.CreateInfoText(cardI.inner, L["info_minimap_indicators"]
+        or "Choisis un indicateur, puis règle son coin, sa taille et son décalage. Appliqué en direct.", ciy)
+
+    -- Contrôles (déclarés avant le sélecteur pour pouvoir être mis à jour)
+    local cornerDD, scaleSL, offXSL, offYSL
+
+    -- Sélecteur d'indicateur
+    local indOpts = {}
+    for _, e in ipairs(INDS) do indOpts[#indOpts+1] = { text = e.label, value = e.key } end
+    local _, ciy = W.CreateDropdown(cardI.inner, L["opt_indicator"] or "Indicateur", indOpts, selKey, ciy, function(v)
+        selKey = v
+        local cfg = EnsureCfg(selKey)
+        local dC, dS, dX, dY = TomoMod_Minimap.GetIndicatorCfg(selKey)
+        -- Met à jour les widgets pour refléter l'indicateur choisi
+        if cornerDD then cornerDD:SetValue(cfg.corner or dC) end
+        if scaleSL  then scaleSL:SetValue(cfg.scale or dS) end
+        if offXSL   then offXSL:SetValue(cfg.x or dX) end
+        if offYSL   then offYSL:SetValue(cfg.y or dY) end
+    end)
+
+    -- Valeurs initiales (indicateur "tracking")
+    local iC, iS, iX, iY = TomoMod_Minimap and TomoMod_Minimap.GetIndicatorCfg(selKey)
+    iC = iC or "TOPLEFT"; iS = iS or 1.0; iX = iX or 0; iY = iY or 0
+
+    -- Coin + Échelle
+    local _, ciy = W.CreateTwoColumnRow(cardI.inner, ciy,
+        function(col)
+            local f, ny = W.CreateDropdown(col, L["opt_corner"] or "Coin", {
+                { text = L["corner_topleft"]     or "Haut gauche",  value = "TOPLEFT"     },
+                { text = L["corner_topright"]    or "Haut droite",  value = "TOPRIGHT"    },
+                { text = L["corner_bottomleft"]  or "Bas gauche",   value = "BOTTOMLEFT"  },
+                { text = L["corner_bottomright"] or "Bas droite",   value = "BOTTOMRIGHT" },
+            }, iC, 0, function(v)
+                EnsureCfg(selKey).corner = v
+                ApplyOne(selKey)
+            end)
+            cornerDD = f
+            return ny
+        end,
+        function(col)
+            local f, ny = W.CreateSlider(col, L["opt_size"] or "Taille", iS, 0.5, 2.0, 0.05, 0, function(v)
+                EnsureCfg(selKey).scale = v
+                ApplyOne(selKey)
+            end, "%.2f")
+            scaleSL = f
+            return ny
+        end)
+
+    -- Décalage X + Y
+    local _, ciy = W.CreateTwoColumnRow(cardI.inner, ciy,
+        function(col)
+            local f, ny = W.CreateSlider(col, L["opt_offset_x"] or "Décalage X", iX, -60, 60, 1, 0, function(v)
+                EnsureCfg(selKey).x = v
+                ApplyOne(selKey)
+            end, "%d")
+            offXSL = f
+            return ny
+        end,
+        function(col)
+            local f, ny = W.CreateSlider(col, L["opt_offset_y"] or "Décalage Y", iY, -60, 60, 1, 0, function(v)
+                EnsureCfg(selKey).y = v
+                ApplyOne(selKey)
+            end, "%d")
+            offYSL = f
+            return ny
+        end)
+
+    y = W.FinalizeCard(cardI, ciy)
+
+    -- ═══════════════════════════════════════════════
+    -- BOUTONS D'ADDON (collecteur)
+    -- ═══════════════════════════════════════════════
+    local cardB, cby = W.CreateCard(c, L["section_buttonbag"] or "Boutons d'addon", y)
+
+    local function EnsureBag()
+        TomoModDB.minimap.buttonBag = TomoModDB.minimap.buttonBag or {}
+        return TomoModDB.minimap.buttonBag
+    end
+    local function ApplyBag()
+        if TomoMod_Minimap and TomoMod_Minimap.CreateButtonBag then TomoMod_Minimap.CreateButtonBag() end
+        if TomoMod_Minimap and TomoMod_Minimap.RefreshButtonBag then TomoMod_Minimap.RefreshButtonBag() end
+    end
+
+    local _, cby = W.CreateInfoText(cardB.inner, L["info_buttonbag"]
+        or "Regroupe les boutons d'addon de la minimap dans une boîte. Clique le bouton sur la minimap pour l'ouvrir.", cby)
+
+    local _, cby = W.CreateCheckbox(cardB.inner, L["opt_buttonbag_enable"] or "Activer le collecteur", EnsureBag().enabled ~= false, cby, function(v)
+        EnsureBag().enabled = v
+        ApplyBag()
+    end)
+
+    local bagDB = EnsureBag()
+
+    local _, cby = W.CreateTwoColumnRow(cardB.inner, cby,
+        function(col)
+            local f, ny = W.CreateDropdown(col, L["opt_corner"] or "Coin", {
+                { text = L["corner_topleft"]     or "Haut gauche",  value = "TOPLEFT"     },
+                { text = L["corner_topright"]    or "Haut droite",  value = "TOPRIGHT"    },
+                { text = L["corner_bottomleft"]  or "Bas gauche",   value = "BOTTOMLEFT"  },
+                { text = L["corner_bottomright"] or "Bas droite",   value = "BOTTOMRIGHT" },
+            }, bagDB.corner or "BOTTOMLEFT", 0, function(v)
+                EnsureBag().corner = v
+                ApplyBag()
+            end)
+            return ny
+        end,
+        function(col)
+            local f, ny = W.CreateSlider(col, L["opt_buttonbag_columns"] or "Colonnes", bagDB.columns or 5, 1, 10, 1, 0, function(v)
+                EnsureBag().columns = v
+                ApplyBag()
+            end, "%d")
+            return ny
+        end)
+
+    local _, cby = W.CreateSlider(cardB.inner, L["opt_buttonbag_iconsize"] or "Taille des icônes", bagDB.iconSize or 28, 16, 40, 1, cby, function(v)
+        EnsureBag().iconSize = v
+        ApplyBag()
+    end, "%d")
+
+    local _, cby = W.CreateButton(cardB.inner, L["btn_buttonbag_rescan"] or "Rescanner les boutons", 220, cby, function()
+        if TomoMod_Minimap and TomoMod_Minimap.RefreshButtonBag then TomoMod_Minimap.RefreshButtonBag() end
+    end)
+
+    y = W.FinalizeCard(cardB, cby)
 
     -- ═══════════════════════════════════════════════
     -- INFO PANEL

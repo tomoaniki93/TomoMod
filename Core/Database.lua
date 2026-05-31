@@ -18,7 +18,28 @@ TomoMod_Defaults = {
         scale = 1.0,
         borderColor = "class",
         size = 200,
+        showTracking = true,
+        showMail = true,
+        showDifficulty = true,
+        showExpansion = true,
+        showCraftingOrder = true,
+        buttonBag = {
+            enabled = true,
+            corner = "BOTTOMLEFT",
+            scale = 1.0,
+            x = 2,
+            y = 26,
+            columns = 5,
+            iconSize = 28,
+        },
         position = { anchor = "TOPRIGHT", relTo = "TOPRIGHT", x = -20, y = -20 },
+        indicators = {
+            tracking   = { corner = "TOPLEFT",     scale = 1.0, x = 2,  y = -2 },
+            mail       = { corner = "BOTTOMRIGHT", scale = 1.0, x = -2, y = 2  },
+            crafting   = { corner = "BOTTOMRIGHT", scale = 1.0, x = -2, y = 26 },
+            difficulty = { corner = "TOPRIGHT",    scale = 1.0, x = -2, y = -2 },
+            expansion  = { corner = "BOTTOMLEFT",  scale = 1.0, x = 2,  y = 2  },
+        },
     },
     infoPanel = {
         enabled = true,
@@ -33,6 +54,7 @@ TomoMod_Defaults = {
         scale = 1.0,
         useClassColor = false,
         anchorTooltip = false,
+        shape = "ring",
     },
     lastSeenVersion = "",
     installer = {
@@ -81,6 +103,7 @@ TomoMod_Defaults = {
         fontSize = 12,
         fontOutline = "OUTLINE",
         barColor = { r = 1, g = 1, b = 0 },
+        showGroundSpeed = false,
         position = {
             point = "BOTTOM",
             relativePoint = "CENTER",
@@ -225,6 +248,8 @@ TomoMod_Defaults = {
         showGems = true,
         midnightEnchants = false,
         scale = 1.0,
+        movable = false,
+        position = nil,  -- { x, y } en coordonnées écran (BOTTOMLEFT) une fois déplacé
     },
     chatFrameSkin = {
         enabled = true,

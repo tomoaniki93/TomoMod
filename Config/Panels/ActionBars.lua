@@ -64,7 +64,6 @@ local function BuildSkinTab(parent)
     local _, ny = W.CreateCheckbox(c, L["opt_ab_system_enable"] or "Enable TomoMod Action Bar system (requires reload)",
         TomoModDB.actionBars.enabled ~= false, y, function(v)
             TomoModDB.actionBars.enabled = v
-            StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
         end)
     y = ny
     local _, ny = W.CreateInfoText(c, L["opt_ab_system_reload"] or "Disabling this fully restores Blizzard action bars after /reload.", y)
@@ -130,6 +129,21 @@ local function SetBarVal(id, key, val)
     local AB = TomoMod_ActionBars
     if AB and AB.RefreshBar then AB.RefreshBar(id) end
 end
+
+-- Popup de confirmation pour "uniformiser" (action destructive : écrase
+-- l'apparence de toutes les autres barres).
+StaticPopupDialogs["TOMOMOD_AB_UNIFORMIZE"] = {
+    text = L["popup_ab_uniformize"] or "Copier l'apparence de la barre « %s » vers toutes les autres barres ?",
+    button1 = L["popup_confirm"] or "Confirmer",
+    button2 = L["popup_cancel"] or "Annuler",
+    OnAccept = function(self, data)
+        local AB = TomoMod_ActionBars
+        if AB and AB.CopyBarToAll and data and data.id then
+            AB.CopyBarToAll(data.id)
+        end
+    end,
+    timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
+}
 
 -- Accent color helper
 local ACCENT_R, ACCENT_G, ACCENT_B = 0.047, 0.824, 0.624
@@ -253,6 +267,23 @@ local function BuildBarContent(contentFrame, id, barDB)
     local _, cny = W.CreateCheckbox(contentFrame, L["opt_bar_show_hotkey"], barDB.showHotkeyText ~= false, cy, function(v)
         SetBarVal(id, "showHotkeyText", v)
     end)
+    cy = cny
+
+    -- Hotkey font size
+    local _, cny = W.CreateSlider(contentFrame, L["opt_bar_hotkey_size"] or "Taille police raccourcis",
+        barDB.hotkeyFontSize or 14, 8, 24, 1, cy, function(v)
+            SetBarVal(id, "hotkeyFontSize", v)
+        end, "%d")
+    cy = cny
+
+    -- Uniformiser : copier les réglages de CETTE barre vers toutes les autres
+    local _, cny = W.CreateButton(contentFrame, L["btn_bar_uniformize"] or "Uniformiser toutes les barres sur celle-ci", 320, cy, function()
+        StaticPopup_Show("TOMOMOD_AB_UNIFORMIZE", GetBarDisplayName(id), nil, { id = id })
+    end)
+    cy = cny
+
+    local _, cny = W.CreateInfoText(contentFrame, L["info_bar_uniformize"]
+        or "Copie l'apparence (taille, espacement, colonnes, alpha, échelle, fondu, textes…) vers toutes les autres barres. La position et l'activation de chaque barre sont conservées.", cy)
     cy = cny
 
     return math.abs(cy) + 10

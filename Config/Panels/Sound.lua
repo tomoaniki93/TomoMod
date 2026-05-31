@@ -47,6 +47,13 @@ function TomoMod_ConfigPanel_Sound(parent)
 
     local _, cy = W.CreateDropdown(card2.inner, L["opt_sound_file"] or "Fichier audio", GetSoundOptions(), db.sound, cy, function(v)
         db.sound = v
+        -- Sélectionner un son le joue aussitôt, pour l'entendre sans chercher.
+        if TomoMod_LustSound and TomoMod_LustSound.PlayPreview then TomoMod_LustSound.PlayPreview() end
+    end)
+
+    -- Bouton d'écoute juste sous le sélecteur (découvrable immédiatement)
+    local _, cy = W.CreateButton(card2.inner, L["btn_sound_test"] or "▶ Écouter ce son", 200, cy, function()
+        if TomoMod_LustSound and TomoMod_LustSound.PlayPreview then TomoMod_LustSound.PlayPreview() end
     end)
 
     local _, cy = W.CreateDropdown(card2.inner, L["opt_sound_channel"] or "Canal audio", CHANNEL_OPTIONS, db.channel, cy, function(v)

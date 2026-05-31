@@ -1,5 +1,64 @@
 ## ####################################
 
+## CHANGELOG 3.0.0 — UI & Installer Overhaul
+
+#### Installer — Presets-First Rewrite
+- **New** — The setup assistant now opens on a **preset picker**: choose Recommended, Tank, Healer, DPS, Minimal or Custom. Picking a preset applies a complete, coherent configuration and jumps straight to a recap + reload — setup takes seconds.
+- **New** — The **Custom** path keeps the full guided walkthrough (Frames → Bars & Skins → Mythic+ & Comfort → recap). The flow is dynamic: detailed steps are added or removed depending on whether a preset was chosen, with the dot navigation sized to the active flow.
+- **Change** — Rebuilt panel chrome (820×600). All writes are DB-only and applied on the final reload, so nothing runs during combat and no taint is introduced.
+
+#### Preset Engine — `TomoMod_Presets`
+- **New** — Six setup presets. Each applies a recommended baseline, then a role-tuned delta: Tank → threat-colored, wider nameplates + target threat; Healer → larger raid/party frames with mana, HoTs, dispel and defensives; DPS → emphasized resource bar + enemy defensive tracking; Minimal → essentials only (no cosmetic skins/nameplates/extras); Custom → marker only. Idempotent and reusable at any time.
+- **New** — Dev slash command `/tmpreset <complet|tank|healer|dps|minimal>` to apply a preset directly.
+
+#### Config Panel — Home Dashboard
+- **New** — `/tm` now opens on a **Home dashboard**: 12 quick module toggles, relaunch the assistant, apply a preset, switch profile, and reset — all in one place, with confirmation popups and a one-click reload.
+
+#### Config Panel — Searchable Sidebar
+- **New** — A **search box** filters the category sidebar by name, key and keywords (type `heal`, `cd`, `bag`…). The nav list is now scrollable to comfortably hold every category.
+
+#### Minimap — Native Indicators
+- **New** — Restored a **tracking button** on the square minimap (mailbox, battle pets, mining, herbs…). It delegates to the modern native tracking menu (`MinimapCluster.Tracking.Button`, 11.0+), so Townsfolk and Hunter tracking work out of the box, with a `MenuUtil` fallback that handles both the structured 11.0+ and the legacy `GetTrackingInfo` signatures.
+- **New** — The **mail indicator** is re-anchored onto the square minimap and shows automatically when you have pending mail.
+- **New** — The **instance difficulty indicator** (Normal/Heroic/Mythic, raid sizes) is re-anchored and appears while you are inside an instance.
+- **New** — The **expansion/landing-page button** (Garrison, Order Hall, Covenant sanctum and later expansion features) is re-anchored, with `SetSize` / `UpdateIconForGarrison` / `SetLandingPageIconOffset` hooks that keep Blizzard from snapping it back out of place.
+- **New** — The **crafting orders indicator** is re-anchored next to the mail icon.
+- **New** — Each indicator has its own toggle under `/tm → General → Minimap`, and the tracking button is tinted with your class color (following the minimap border).
+- **New** — A **"Minimap indicators"** panel lets you set each indicator's **corner, size and X/Y offset** from the GUI (selector + live preview), so you can lay them out exactly how you want on the square minimap.
+- **New** — An **addon button collector** adds a button on the minimap that opens a box gathering all your minimap addon buttons (DBM, Details!, WeakAuras…), de-cluttering the minimap. It auto-detects LibDBIcon and raw buttons while skipping Blizzard frames and map overlays (HandyNotes, GatherMate2, TomTom…), with GUI controls for corner, columns, icon size and a rescan button.
+- **Fixed** — Addon buttons that stayed on the minimap used to anchor to the old round Blizzard ring instead of the square edge. TomoMod now declares `GetMinimapShape() = "SQUARE"`, so LibDBIcon-based buttons position correctly along the square border; existing buttons are refreshed to the new shape (those moved into the collector box are left untouched).
+
+#### Action Bars — Empty Buttons, Hotkey Font & Uniformize
+- **Fixed** — Empty button slots reappeared after a `/reload` even with **"show empty buttons"** unchecked. The masking path was gated on a runtime flag that was lost on reload, so Blizzard's default (empty slots visible) took over at login. Masking is now applied unconditionally, so hidden empty slots stay hidden across reloads.
+- **New** — **Hotkey font size** is now adjustable per bar (8–24), applied while preserving the original font face and outline.
+- **New** — A **"Match all bars to this one"** button copies a bar's appearance (columns, spacing, button size, orientation, grow direction, alpha, scale, fade, click-through, count/hotkey text and hotkey font size) to every other bar. Each bar keeps its own position and enabled state; a confirmation popup guards the action.
+
+#### Previews — Sound, Cast Bars, Class Reminder, Cooldowns & Resources
+- **New** — **Sound test**: selecting a sound now plays it immediately, and a **"▶ Play this sound"** button sits right under the sound dropdown — no more configuring blind.
+- **New** — **Cast bar preview on every unit tab**: the show/hide preview button is now available on the Player, Target, Focus, Pet and Boss tabs (previously only on the General tab).
+- **Fixed** — Cast bar preview could show nothing for a unit you had just enabled: the preview state was only restored on already-existing bars. An explicit preview mode now re-shows the preview on **every** recreated bar, so a freshly enabled unit appears right away.
+- **New** — Each non-player cast bar tab notes that the bar **anchors to its unit frame** (target/focus/pet/boss), clarifying why only the player bar moves freely.
+- **New** — **Class reminder**: a **Preview** button shows a sample message at the configured position/scale/color for a few seconds, plus a **coverage list** of supported classes and the buffs/forms tracked for each.
+- **New** — **Cooldowns & resources**: a **Preview** card with an **"Open Edit Mode"** button on both the Cooldown Manager and Resource Bars tabs. This uses Blizzard's native Edit Mode (which shows these bars with sample icons) to position them safely — no fake cooldowns, no taint on the protected cooldown viewers.
+
+#### Character Skin — Movable Window
+- **New** — The **Character frame can now be moved** (in addition to scaling). Enable **"Movable window"**, then drag the frame; its position is remembered and re-applied after Blizzard's UIPanel system repositions it (with a reentrancy guard to avoid loops). A **"Reset position"** button hands control back to Blizzard.
+
+#### Skyriding — Ground Speed
+- **New** — A **"Show ground speed"** option keeps the speed bar visible on the ground (useful with movement-speed buffs). The flight gauges (Vigor / Second Wind) stay hidden when not flying, so only the speed bar is shown. The grounded performance optimization is preserved when the option is off.
+
+#### Waypoint — Arrow Direction Fix
+- **Fixed** — The off-screen navigator arrow pointed the wrong way on the **front/back axis**: a quest directly behind you showed the arrow pointing up. The arrow texture actually rests pointing down, which made the rotation formula invert the vertical axis. The rotation is corrected so the arrow points at the quest in all directions (left/right were already correct and are unchanged).
+
+#### Unit Frame Auras — Wrapping & Consistent Layout
+- **New** — Aura icons on unit frames now **wrap to a new line** when they exceed a configurable max width, instead of running off in a single endless row. New **"Max width (wrap)"** and **"Spacing"** sliders are available per unit (spacing had no GUI control before).
+- **Fixed** — Player and Target auras could look slightly different (size/spacing) despite identical settings. Two different layout paths existed — one at creation, another in `RefreshUnit` (an older horizontal-chaining layout with a hardcoded width). Both now use the same grid layout, so identical settings produce an identical result.
+
+#### Localization — 6 Languages
+- **New** — Every new 3.0 string (presets, installer, dashboard, search, What's New) is fully localized across the **6 supported languages**.
+
+## ####################################
+
 ## CHANGELOG 2.9.21 — Player Aura Mover & Module Reload Safety & Waypoint Navigator Arrow Reversed
 
 #### Player Aura Mover (Edit Mode)

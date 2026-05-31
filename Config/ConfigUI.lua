@@ -6,6 +6,18 @@
 
 local L = TomoMod_L
 
+-- Locales additionnelles utilisées par ce panneau (FR + EN, autonome)
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["cat_accueil"]           = "Home",
+        ["ui_search_placeholder"] = "Search modules...",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["cat_accueil"]           = "Accueil",
+        ["ui_search_placeholder"] = "Rechercher un module...",
+    })
+end
+
 TomoMod_Config = TomoMod_Config or {}
 local C = TomoMod_Config
 local W = TomoMod_Widgets
@@ -30,21 +42,22 @@ local FOOTER_H  = 36
 local ICON_PATH = ADDON_PATH .. "Assets\\Textures\\icons\\"
 
 local categories = {
-    { key = "general",    label = L["cat_general"],     icon = ICON_PATH .. "icon_general.tga"     },
-    { key = "unitframes", label = L["cat_unitframes"],  icon = ICON_PATH .. "icon_unitframes.tga"  },
-    { key = "nameplates", label = L["cat_nameplates"],  icon = ICON_PATH .. "icon_nameplates.tga"  },
-    { key = "castbars",   label = L["cat_castbars"],    icon = ICON_PATH .. "icon_castbars.tga"   },
-    { key = "partyframes", label = L["cat_partyframes"],icon = ICON_PATH .. "icon_partyframes.tga" },
-    { key = "raidframes",  label = L["cat_raidframes"],  icon = ICON_PATH .. "icon_raidframes.tga"  },
-    { key = "resources",  label = L["cat_cd_resource"], icon = ICON_PATH .. "icon_resources.tga"   },
-    { key = "actionbars", label = L["cat_action_bars"], icon = ICON_PATH .. "icon_actionbars.tga"  },
-    { key = "sound",      label = L["cat_sound"],       icon = ICON_PATH .. "icon_sound.tga"       },
-    { key = "skins",      label = L["cat_skins"],       icon = ICON_PATH .. "icon_skins.tga"       },
-    { key = "qol",        label = L["cat_qol"],         icon = ICON_PATH .. "icon_qol.tga"         },
-    { key = "mythicplus", label = L["cat_mythicplus"],  icon = ICON_PATH .. "icon_mythicplus.tga"  },
-    { key = "housing",    label = L["cat_housing"], icon = ICON_PATH .. "icon_housing.tga" },
-    { key = "profiles",   label = L["cat_profiles"],    icon = ICON_PATH .. "icon_profiles.tga"    },
-    { key = "diagnostics", label = L["cat_diagnostics"], icon = ICON_PATH .. "icon_diagnostics.tga" },
+    { key = "accueil",    label = L["cat_accueil"],     icon = ICON_PATH .. "ico_gui.tga",          kw = "accueil home dashboard tableau bord vue" },
+    { key = "general",    label = L["cat_general"],     icon = ICON_PATH .. "icon_general.tga",      kw = "general minimap info panel curseur ring" },
+    { key = "unitframes", label = L["cat_unitframes"],  icon = ICON_PATH .. "icon_unitframes.tga",   kw = "unit frames cadres joueur cible player target focus pet" },
+    { key = "nameplates", label = L["cat_nameplates"],  icon = ICON_PATH .. "icon_nameplates.tga",   kw = "nameplates plaques plates ennemi enemy tank menace threat" },
+    { key = "castbars",   label = L["cat_castbars"],    icon = ICON_PATH .. "icon_castbars.tga",      kw = "castbar incantation cast sort spell barre" },
+    { key = "partyframes", label = L["cat_partyframes"],icon = ICON_PATH .. "icon_partyframes.tga",   kw = "party groupe arene arena interrupt brez" },
+    { key = "raidframes",  label = L["cat_raidframes"],  icon = ICON_PATH .. "icon_raidframes.tga",   kw = "raid soin heal soigneur healer hots dispel debuff" },
+    { key = "resources",  label = L["cat_cd_resource"], icon = ICON_PATH .. "icon_resources.tga",     kw = "ressource resource cd cooldown manager mana energie combo runes" },
+    { key = "actionbars", label = L["cat_action_bars"], icon = ICON_PATH .. "icon_actionbars.tga",    kw = "action bars barres sorts boutons keybind" },
+    { key = "sound",      label = L["cat_sound"],       icon = ICON_PATH .. "icon_sound.tga",         kw = "son sound audio lust heroism" },
+    { key = "skins",      label = L["cat_skins"],       icon = ICON_PATH .. "icon_skins.tga",         kw = "skin skins chat sacs bag infobulle tooltip courrier mail reputation buff" },
+    { key = "qol",        label = L["cat_qol"],         icon = ICON_PATH .. "icon_qol.tga",           kw = "confort quality vie quete quest reparation repair fast loot afk" },
+    { key = "mythicplus", label = L["cat_mythicplus"],  icon = ICON_PATH .. "icon_mythicplus.tga",    kw = "mythic+ donjon dungeon cle key score timer keystone" },
+    { key = "housing",    label = L["cat_housing"], icon = ICON_PATH .. "icon_housing.tga",           kw = "housing logement maison decor" },
+    { key = "profiles",   label = L["cat_profiles"],    icon = ICON_PATH .. "icon_profiles.tga",      kw = "profil profile spec specialisation import export" },
+    { key = "diagnostics", label = L["cat_diagnostics"], icon = ICON_PATH .. "icon_diagnostics.tga",  kw = "diagnostic debug erreur error log" },
 }
 
 -- State
@@ -362,13 +375,129 @@ local function CreateConfigFrame()
     navSep:SetPoint("BOTTOMLEFT", NAV_W, FOOTER_H)
     navSep:SetColorTexture(0.14, 0.14, 0.17, 1)
 
-    -- Nav buttons
-    local yOff = -8
-    for _, cat in ipairs(categories) do
-        local btn = CreateNavButton(sidebar, cat, yOff)
-        categoryButtons[cat.key] = btn
-        yOff = yOff - NAV_BTN_H
+    -- ── Barre de recherche ─────────────────────────────────────
+    local WHITE8 = "Interface\\Buttons\\WHITE8x8"
+    local aR, aG, aB = GetAccent()
+    local SEARCH_H = 28
+
+    local searchWrap = CreateFrame("Frame", nil, sidebar, "BackdropTemplate")
+    searchWrap:SetPoint("TOPLEFT",  8, -8)
+    searchWrap:SetPoint("TOPRIGHT", -8, -8)
+    searchWrap:SetHeight(SEARCH_H)
+    searchWrap:SetBackdrop({ bgFile = WHITE8, edgeFile = WHITE8, edgeSize = 1 })
+    searchWrap:SetBackdropColor(0.09, 0.09, 0.115, 1)
+    searchWrap:SetBackdropBorderColor(0.18, 0.18, 0.22, 1)
+
+    local mag = searchWrap:CreateTexture(nil, "OVERLAY")
+    mag:SetSize(14, 14); mag:SetPoint("LEFT", 7, 0)
+    mag:SetTexture("Interface\\Common\\UI-Searchbox-Icon")
+    mag:SetVertexColor(0.50, 0.50, 0.56, 1)
+
+    local searchBox = CreateFrame("EditBox", nil, searchWrap)
+    searchBox:SetPoint("LEFT", mag, "RIGHT", 4, 0)
+    searchBox:SetPoint("RIGHT", -22, 0)
+    searchBox:SetPoint("TOP", 0, 0)
+    searchBox:SetPoint("BOTTOM", 0, 0)
+    searchBox:SetFont(FONT, 12, "")
+    searchBox:SetTextColor(0.88, 0.90, 0.89, 1)
+    searchBox:SetAutoFocus(false)
+    searchBox:SetTextInsets(0, 0, 0, 0)
+
+    local placeholder = searchBox:CreateFontString(nil, "OVERLAY")
+    placeholder:SetFont(FONT, 12, ""); placeholder:SetPoint("LEFT", 1, 0)
+    placeholder:SetTextColor(0.34, 0.34, 0.40, 1)
+    placeholder:SetText(L["ui_search_placeholder"] or "Rechercher...")
+
+    local clearBtn = CreateFrame("Button", nil, searchWrap)
+    clearBtn:SetSize(18, 18); clearBtn:SetPoint("RIGHT", -3, 0); clearBtn:Hide()
+    local clearTxt = clearBtn:CreateFontString(nil, "OVERLAY")
+    clearTxt:SetFont(FONT_BOLD, 14, ""); clearTxt:SetPoint("CENTER", 0, 1); clearTxt:SetText("×")
+    clearTxt:SetTextColor(0.45, 0.45, 0.50, 1)
+    clearBtn:SetScript("OnEnter", function() clearTxt:SetTextColor(0.90, 0.30, 0.30, 1) end)
+    clearBtn:SetScript("OnLeave", function() clearTxt:SetTextColor(0.45, 0.45, 0.50, 1) end)
+
+    -- ── Zone de navigation défilante ───────────────────────────
+    local NAV_TOP    = 8 + SEARCH_H + 8
+    local NAV_BOTTOM = 26
+    local navScroll = CreateFrame("ScrollFrame", nil, sidebar)
+    navScroll:SetPoint("TOPLEFT", 0, -NAV_TOP)
+    navScroll:SetPoint("BOTTOMRIGHT", 0, NAV_BOTTOM)
+
+    local navChild = CreateFrame("Frame", nil, navScroll)
+    navChild:SetWidth(NAV_W); navChild:SetHeight(1)
+    navScroll:SetScrollChild(navChild)
+
+    local navThumb = navScroll:CreateTexture(nil, "OVERLAY")
+    navThumb:SetWidth(3); navThumb:SetColorTexture(aR, aG, aB, 0.5); navThumb:Hide()
+
+    local function UpdateNavThumb()
+        local sh = navScroll:GetHeight() or 0
+        local ch = navChild:GetHeight() or 0
+        local maxS = ch - sh
+        if maxS <= 1 then navThumb:Hide(); return end
+        navThumb:Show()
+        local ratio = sh / ch
+        local th    = math.max(20, math.floor(sh * ratio))
+        local cur   = navScroll:GetVerticalScroll()
+        local ty    = (cur / maxS) * (sh - th)
+        navThumb:ClearAllPoints()
+        navThumb:SetHeight(th)
+        navThumb:SetPoint("TOPRIGHT", navScroll, "TOPRIGHT", -2, -ty)
     end
+
+    navScroll:EnableMouseWheel(true)
+    navScroll:SetScript("OnMouseWheel", function(self, delta)
+        local cur = self:GetVerticalScroll()
+        local max = self:GetVerticalScrollRange()
+        self:SetVerticalScroll(math.max(0, math.min(cur - delta * 40, max)))
+        UpdateNavThumb()
+    end)
+    navScroll:SetScript("OnShow", function() C_Timer.After(0, UpdateNavThumb) end)
+
+    -- Boutons de nav (dans le child défilant)
+    for _, cat in ipairs(categories) do
+        local btn = CreateNavButton(navChild, cat, 0)
+        categoryButtons[cat.key] = btn
+        btn._cat = cat
+    end
+
+    -- Relayout + filtre de recherche (label + clé + mots-clés)
+    local function RelayoutNav(filter)
+        filter = (filter or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
+        local yy, count = -4, 0
+        for _, cat in ipairs(categories) do
+            local btn = categoryButtons[cat.key]
+            local hay = ((cat.label or "") .. " " .. (cat.key or "") .. " " .. (cat.kw or "")):lower()
+            local match = (filter == "") or (hay:find(filter, 1, true) ~= nil)
+            if match then
+                btn:ClearAllPoints()
+                btn:SetPoint("TOPLEFT", navChild, "TOPLEFT", 0, yy)
+                btn:Show()
+                yy = yy - NAV_BTN_H
+                count = count + 1
+            else
+                btn:Hide()
+            end
+        end
+        navChild:SetHeight(math.max(count * NAV_BTN_H + 8, 1))
+        navScroll:SetVerticalScroll(0)
+        UpdateNavThumb()
+    end
+    C.RelayoutNav = RelayoutNav
+
+    searchBox:SetScript("OnTextChanged", function(self)
+        local txt = self:GetText() or ""
+        placeholder:SetShown(txt == "")
+        clearBtn:SetShown(txt ~= "")
+        RelayoutNav(txt)
+    end)
+    searchBox:SetScript("OnEscapePressed", function(self) self:SetText(""); self:ClearFocus() end)
+    searchBox:SetScript("OnEnterPressed",  function(self) self:ClearFocus() end)
+    searchBox:SetScript("OnEditFocusGained", function() searchWrap:SetBackdropBorderColor(aR, aG, aB, 0.70) end)
+    searchBox:SetScript("OnEditFocusLost",   function() searchWrap:SetBackdropBorderColor(0.18, 0.18, 0.22, 1) end)
+    clearBtn:SetScript("OnClick", function() searchBox:SetText(""); searchBox:ClearFocus() end)
+
+    RelayoutNav("")
 
     -- Branding at bottom of sidebar
     local brandTxt = sidebar:CreateFontString(nil, "OVERLAY")
@@ -429,6 +558,7 @@ function C.SwitchCategory(key)
 
     if not categoryPanels[key] then
         local builderMap = {
+            accueil    = "TomoMod_ConfigPanel_Accueil",
             general    = "TomoMod_ConfigPanel_General",
             unitframes = "TomoMod_ConfigPanel_UnitFrames",
             nameplates = "TomoMod_ConfigPanel_Nameplates",
@@ -472,7 +602,7 @@ function C.Toggle()
         configFrame:Hide()
     else
         configFrame:Show()
-        if not currentCategory then C.SwitchCategory("general") end
+        if not currentCategory then C.SwitchCategory("accueil") end
     end
 end
 
@@ -480,7 +610,7 @@ function C.Show()
     if not configFrame then C.Toggle()
     elseif not configFrame:IsShown() then
         configFrame:Show()
-        if not currentCategory then C.SwitchCategory("general") end
+        if not currentCategory then C.SwitchCategory("accueil") end
     end
 end
 

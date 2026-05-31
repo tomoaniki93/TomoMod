@@ -5,6 +5,22 @@ local L = TomoMod_L
 local function ApplyRB()  if TomoMod_ResourceBars    then TomoMod_ResourceBars.ApplySettings()    end end
 local function ApplyCDM() if TomoMod_CooldownManager then TomoMod_CooldownManager.ApplySettings() end end
 
+-- Aperçu CD & ressources : on s'appuie sur l'Edit Mode natif de Blizzard, qui
+-- affiche ces barres avec des icônes d'exemple et permet de les déplacer.
+-- C'est la voie sûre (pas de faux cooldowns, pas de taint sur les viewers).
+-- ShowUIPanel déclenché par un clic utilisateur est sans risque.
+local function OpenEditMode()
+    if InCombatLockdown() then
+        if TomoMod_L and TomoMod_L["info_editmode_combat"] then
+            print("|cff0cd29fTomoMod:|r " .. TomoMod_L["info_editmode_combat"])
+        end
+        return
+    end
+    if EditModeManagerFrame and ShowUIPanel then
+        ShowUIPanel(EditModeManagerFrame)
+    end
+end
+
 local FONT_LIST = {
     { text = "Poppins Medium",    value = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"   },
     { text = "Poppins SemiBold",  value = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf" },
@@ -35,6 +51,13 @@ local function BuildCooldownManagerTab(parent)
         L["opt_cdm_show_hotkeys"] or "Afficher les raccourcis", cdm.showHotKey, cy, function(v) cdm.showHotKey  = v; ApplyCDM() end,
         L["opt_cdm_combat_alpha"] or "Alpha en combat", cdm.combatAlpha,           function(v) cdm.combatAlpha = v; ApplyCDM() end)
     y = W.FinalizeCard(card, cy)
+
+    -- Aperçu (Edit Mode)
+    local cardPrev, cy = W.CreateCard(c, L["section_cdm_preview"] or "Aperçu", y)
+    local _, cy = W.CreateInfoText(cardPrev.inner, L["info_cdm_preview"]
+        or "Les barres de cooldown n'affichent des icônes que lorsque des sorts sont réellement en recharge. Pour les voir et les positionner avec des exemples, ouvre l'Edit Mode de Blizzard.", cy)
+    local _, cy = W.CreateButton(cardPrev.inner, L["btn_open_editmode"] or "Ouvrir l'Edit Mode", 220, cy, OpenEditMode)
+    y = W.FinalizeCard(cardPrev, cy)
 
     -- Opacité
     local card2, cy = W.CreateCard(c, L["section_cdm_alpha"] or "Opacité", y)
@@ -150,6 +173,13 @@ local function BuildResourceBarsTab(parent)
     }, db.displayMode or "icons", cy, function(v) db.displayMode = v; ApplyRB() end)
     local _, cy = W.CreateInfoText(card.inner, L["info_rb_description"] or "", cy)
     y = W.FinalizeCard(card, cy)
+
+    -- Aperçu (Edit Mode)
+    local cardPrev, cy = W.CreateCard(c, L["section_rb_preview"] or "Aperçu", y)
+    local _, cy = W.CreateInfoText(cardPrev.inner, L["info_rb_preview"]
+        or "Les barres de ressources affichent ta ressource réelle (mana, énergie, combo…). Pour les positionner avec un aperçu, ouvre l'Edit Mode de Blizzard ou déverrouille-les depuis l'onglet Texte.", cy)
+    local _, cy = W.CreateButton(cardPrev.inner, L["btn_open_editmode"] or "Ouvrir l'Edit Mode", 220, cy, OpenEditMode)
+    y = W.FinalizeCard(cardPrev, cy)
 
     -- Visibilité
     local card2, cy = W.CreateCard(c, L["section_visibility"] or "Visibilité", y)

@@ -522,6 +522,24 @@ local function BuildCharacterSkinTab(parent)
     end, "%.0f%%")
     y = ny
 
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- Fenetre Personnage deplacable
+    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_movable"] or "Fenetre deplacable", TomoModDB.characterSkin.movable or false, y, function(v)
+        TomoModDB.characterSkin.movable = v
+        if TomoMod_CharacterSkin and TomoMod_CharacterSkin.SetMovable then TomoMod_CharacterSkin.SetMovable(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_char_skin_movable"] or "Une fois active, glisse la fenetre Personnage pour la deplacer. Sa position est memorisee.", y)
+    y = ny
+
+    local _, ny = W.CreateButton(c, L["btn_char_skin_reset_pos"] or "Reinitialiser la position", 220, y, function()
+        if TomoMod_CharacterSkin and TomoMod_CharacterSkin.ResetCharacterPosition then TomoMod_CharacterSkin.ResetCharacterPosition() end
+    end)
+    y = ny
+
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll

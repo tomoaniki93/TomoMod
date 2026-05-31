@@ -1,19 +1,72 @@
 -- ============================================================
--- Installer.lua — Assistant de première installation
--- 17 étapes guidées : profil, UF, party, raid, castbars,
--- nameplates, tank, action bars, resources, skins, lustsound,
--- mythic+, qol, cvars, skyriding, fin.
--- Ouverture : auto au premier démarrage ou /tm install
+-- Installer.lua — Assistant d'installation « presets d'abord »
+-- ------------------------------------------------------------
+-- TomoMod 3.0
+--
+-- Flow :
+--   1. Bienvenue
+--   2. Choix d'archétype (cartes) -> applique un preset
+--   3a. Si preset : Récap / Reload          (~3 écrans, 30 s)
+--   3b. Si "Personnalisé" : 3 pages groupées (Cadres / Barres &
+--       Skins / Mythic+ & Confort) -> Récap / Reload
+--
+-- S'appuie sur TomoMod_Presets (Config/Presets.lua) pour écrire
+-- une configuration cohérente. La navigation opère sur une liste
+-- `flow` reconstruite selon le chemin choisi (preset vs custom).
+--
+-- API publique conservée : INS.Show / INS.Hide / INS.Toggle
+-- (référencées par Init.lua et Panels/General.lua).
 -- ============================================================
 
 TomoMod_Installer = TomoMod_Installer or {}
 local INS = TomoMod_Installer
-local L   = TomoMod_L
+local P   = TomoMod_Presets
 
 local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local LOGO_TEX  = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Logo.tga"
 local ICON_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\"
+local WHITE     = "Interface\\Buttons\\WHITE8x8"
+
+-- ------------------------------------------------------------
+-- LOCALES (nouvelles chaînes du flow v3 — FR + EN, autonome)
+-- ------------------------------------------------------------
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["ins_v3_welcome_desc"]      = "Welcome! This quick setup gets you a clean, complete interface in seconds.\n\nPick a setup that matches how you play — you can fine-tune everything afterwards from |cff0cd29f/tm|r. Prefer to choose every option yourself? Pick |cffc89530Custom|r.",
+        ["ins_pick_title"]           = "Choose your setup",
+        ["ins_pick_subtitle"]        = "Select a play style below. Everything stays adjustable later via /tm.",
+        ["ins_pick_recommended"]     = "Recommended",
+        ["ins_custom_frames_title"]  = "Frames",
+        ["ins_custom_barsskins_title"] = "Bars & Skins",
+        ["ins_custom_mythicqol_title"] = "Mythic+ & Comfort",
+        ["ins_custom_frames_intro"]  = "Enable the frames you want. Sensible options are pre-selected.",
+        ["ins_custom_barsskins_intro"] = "Action bar skin and the visual skins for chat, bags, tooltips and more.",
+        ["ins_custom_mythicqol_intro"] = "Mythic+ tools, interface extras, automations and sound.",
+        ["ins_recap_title"]          = "All set",
+        ["ins_recap_preset"]         = "Setup applied: |cff0cd29f%s|r",
+        ["ins_recap_custom"]         = "Your custom setup is ready",
+        ["ins_recap_desc"]           = "Reload your interface to apply everything. You can reopen this assistant anytime with |cff0cd29f/tm install|r, and open the full configuration panel with |cff0cd29f/tm|r.",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["ins_v3_welcome_desc"]      = "Bienvenue ! Cet assistant rapide te prépare une interface propre et complète en quelques secondes.\n\nChoisis une configuration qui correspond à ta façon de jouer — tu pourras tout ajuster ensuite via |cff0cd29f/tm|r. Tu préfères choisir chaque option toi-même ? Prends |cffc89530Personnalisé|r.",
+        ["ins_pick_title"]           = "Choisis ta configuration",
+        ["ins_pick_subtitle"]        = "Sélectionne un style de jeu ci-dessous. Tout reste ajustable ensuite via /tm.",
+        ["ins_pick_recommended"]     = "Recommandé",
+        ["ins_custom_frames_title"]  = "Cadres",
+        ["ins_custom_barsskins_title"] = "Barres & Skins",
+        ["ins_custom_mythicqol_title"] = "Mythic+ & Confort",
+        ["ins_custom_frames_intro"]  = "Active les cadres que tu veux. Les options conseillées sont pré-cochées.",
+        ["ins_custom_barsskins_intro"] = "Skin des barres d'action et skins visuels : chat, sacs, infobulles et plus.",
+        ["ins_custom_mythicqol_intro"] = "Outils Mythic+, options d'interface, automatisations et son.",
+        ["ins_recap_title"]          = "Tout est prêt",
+        ["ins_recap_preset"]         = "Configuration appliquée : |cff0cd29f%s|r",
+        ["ins_recap_custom"]         = "Ta configuration personnalisée est prête",
+        ["ins_recap_desc"]           = "Recharge ton interface pour tout appliquer. Tu peux rouvrir cet assistant à tout moment avec |cff0cd29f/tm install|r, et ouvrir le panneau de configuration complet avec |cff0cd29f/tm|r.",
+    })
+end
+
+local L = TomoMod_L
 
 -- Palette
 local A  = { 0.047, 0.824, 0.624 }   -- teal accent
@@ -24,20 +77,37 @@ local BD = { 0.18,  0.18,  0.22,  1    }
 local TX = { 0.88,  0.90,  0.89,  1    }
 local DM = { 0.48,  0.48,  0.54,  1    }
 
-local PANEL_W = 760
-local PANEL_H = 560
-local TOTAL_STEPS = 17
+-- Dimensions & chrome
+local PANEL_W   = 820
+local PANEL_H   = 600
+local HEADER_H  = 50
+local DOTS_H    = 22
+local TITLE_H   = 40
+local NAV_H     = 56
+local SF_INSET  = 16
+local CONTENT_W = PANEL_W - SF_INSET
 
 -- State
 local frame, dimmer
-local stepPanels    = {}
-local stepDots      = {}
-local currentStep   = 1
-local prevBtn, nextBtn, stepLabel
-local contentHost   -- zone de contenu, les panels s'y ancrent
+local contentHost
+local pagePanels    = {}     -- pagePanels[key] = frame (cached)
+local stepDots      = {}     -- pool of MAX_DOTS dot textures
+local prevBtn, nextBtn, skipBtn, stepLabel
+local MAX_DOTS      = 6
+
+local selectedPreset = "complet"
+local currentIndex   = 1
+
+local FLOW_PRESET = { "welcome", "picker", "recap" }
+local FLOW_CUSTOM = { "welcome", "picker", "custom_frames", "custom_barsskins", "custom_mythicqol", "recap" }
+local flow = FLOW_PRESET
+
+local function RebuildFlow()
+    if selectedPreset == "custom" then flow = FLOW_CUSTOM else flow = FLOW_PRESET end
+end
 
 -- ============================================================
--- WIDGET HELPERS  (locaux, simples, sans dépendance à W)
+-- WIDGET HELPERS (légers, propres au look installeur)
 -- ============================================================
 local function Sec(parent, text, y)
     local strip = parent:CreateTexture(nil, "BACKGROUND")
@@ -63,6 +133,7 @@ local function Info(parent, text, y)
     lbl:SetPoint("TOPLEFT",  12, y)
     lbl:SetPoint("TOPRIGHT", -12, y)
     lbl:SetJustifyH("LEFT")
+    lbl:SetSpacing(2)
     lbl:SetTextColor(DM[1], DM[2], DM[3], 1)
     lbl:SetText(text)
     local rawH = lbl:GetStringHeight()
@@ -72,10 +143,10 @@ end
 
 local function Cb(parent, text, val, y, cb)
     local f = CreateFrame("Button", nil, parent)
-    f:SetSize(700, 24); f:SetPoint("TOPLEFT", 12, y)
+    f:SetSize(CONTENT_W - 28, 24); f:SetPoint("TOPLEFT", 14, y)
     local box = CreateFrame("Frame", nil, f, "BackdropTemplate")
     box:SetSize(14, 14); box:SetPoint("LEFT")
-    box:SetBackdrop({ bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1 })
+    box:SetBackdrop({ bgFile=WHITE, edgeFile=WHITE, edgeSize=1 })
     box:SetBackdropColor(BG2[1], BG2[2], BG2[3], 1)
     box:SetBackdropBorderColor(BD[1], BD[2], BD[3], 1)
     local tick = box:CreateTexture(nil, "OVERLAY")
@@ -97,1124 +168,722 @@ local function Cb(parent, text, val, y, cb)
         end
     end
     Upd()
+    f:SetScript("OnEnter", function() lbl:SetTextColor(1, 1, 1, 1) end)
+    f:SetScript("OnLeave", function() lbl:SetTextColor(TX[1], TX[2], TX[3], 1) end)
     f:SetScript("OnClick", function()
         state = not state; Upd()
         if cb then cb(state) end
     end)
-    f.SetChecked = function(_, v) state = v; Upd() end
-    f.GetChecked = function() return state end
-    return f, y - 28
+    return f, y - 27
 end
 
-local function Sldr(parent, text, val, mn, mx, step, y, cb, fmt)
-    fmt = fmt or "%.0f"
-    local lbl = parent:CreateFontString(nil, "OVERLAY")
-    lbl:SetFont(FONT, 11, ""); lbl:SetPoint("TOPLEFT", 12, y)
-    lbl:SetTextColor(TX[1], TX[2], TX[3], 1); lbl:SetText(text)
-    local vbx = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    vbx:SetSize(52, 17); vbx:SetPoint("TOPRIGHT", -12, y)
-    vbx:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    vbx:SetBackdropColor(A[1]*0.09,A[2]*0.09,A[3]*0.09,1)
-    vbx:SetBackdropBorderColor(A[1]*0.5,A[2]*0.5,A[3]*0.5,1)
-    local vtxt = vbx:CreateFontString(nil, "OVERLAY")
-    vtxt:SetFont(FONT_BOLD, 10, ""); vtxt:SetPoint("CENTER")
-    vtxt:SetTextColor(A[1],A[2],A[3],1); vtxt:SetText(string.format(fmt, val))
-    local slName = "TomoInstSlider_"..tostring(math.random(1e6))
-    local sl = CreateFrame("Slider", slName, parent, "BackdropTemplate")
-    sl:SetOrientation("HORIZONTAL"); sl:SetHeight(14)
-    sl:SetPoint("TOPLEFT", 12, y-18); sl:SetPoint("TOPRIGHT", -12, y-18)
-    sl:SetMinMaxValues(mn, mx); sl:SetValueStep(step); sl:SetObeyStepOnDrag(true); sl:SetValue(val)
-    local trk = sl:CreateTexture(nil,"BACKGROUND"); trk:SetAllPoints()
-    trk:SetColorTexture(0.12,0.12,0.15,1)
-    local fill = sl:CreateTexture(nil,"ARTWORK"); fill:SetHeight(14)
-    fill:SetPoint("LEFT",trk,"LEFT"); fill:SetColorTexture(AD[1],AD[2],AD[3],1)
-    sl:SetThumbTexture("Interface\\Buttons\\WHITE8x8")
-    local th = sl:GetThumbTexture(); th:SetSize(9,15); th:SetVertexColor(A[1],A[2],A[3],1)
-    sl:SetScript("OnValueChanged", function(_, v)
-        v = math.floor(v/step+0.5)*step
-        vtxt:SetText(string.format(fmt, v))
-        local pct = (v-mn)/(mx-mn)
-        local w = trk:GetWidth()
-        if w and w > 0 then fill:SetWidth(math.max(0, pct*w)) end
-        if cb then cb(v) end
-    end)
-    sl:SetScript("OnSizeChanged", function()
-        local v = sl:GetValue(); local pct=(v-mn)/(mx-mn)
-        local w=trk:GetWidth(); if w and w>0 then fill:SetWidth(math.max(0,pct*w)) end
-    end)
-    local f = {}; f.SetValue=function(_,v) sl:SetValue(v) end
-    f.GetValue=function() return sl:GetValue() end
-    return f, y-44
-end
-
-local function Dd(parent, text, opts, sel, y, cb)
-    local lbl = parent:CreateFontString(nil, "OVERLAY")
-    lbl:SetFont(FONT, 11, ""); lbl:SetPoint("TOPLEFT", 12, y)
-    lbl:SetTextColor(TX[1], TX[2], TX[3], 1); lbl:SetText(text)
+local function BigBtn(parent, text, y, clickCb, accent, width)
     local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    btn:SetSize(220, 22); btn:SetPoint("TOPLEFT", 12, y-16)
-    btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    btn:SetBackdropColor(BG2[1],BG2[2],BG2[3],1)
-    btn:SetBackdropBorderColor(BD[1],BD[2],BD[3],1)
-    local btxt = btn:CreateFontString(nil,"OVERLAY")
-    btxt:SetFont(FONT,11,""); btxt:SetPoint("LEFT",8,0); btxt:SetTextColor(TX[1],TX[2],TX[3],1)
-    local function GetDisp(v) for _,o in ipairs(opts) do if o.value==v then return o.text end end return tostring(v) end
-    btxt:SetText(GetDisp(sel))
-    local menu = CreateFrame("Frame",nil,btn,"BackdropTemplate")
-    menu:SetPoint("TOPLEFT",btn,"BOTTOMLEFT",0,-2)
-    menu:SetSize(220,#opts*22+4)
-    menu:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    menu:SetBackdropColor(0.09,0.09,0.12,1); menu:SetBackdropBorderColor(BD[1],BD[2],BD[3],1)
-    menu:SetFrameStrata("DIALOG"); menu:Hide()
-    for i,opt in ipairs(opts) do
-        local item = CreateFrame("Button",nil,menu)
-        item:SetHeight(22); item:SetPoint("TOPLEFT",3,-(i-1)*22-3); item:SetPoint("TOPRIGHT",-3,-(i-1)*22-3)
-        local ibg=item:CreateTexture(nil,"BACKGROUND"); ibg:SetAllPoints(); ibg:SetColorTexture(0,0,0,0)
-        local itxt=item:CreateFontString(nil,"OVERLAY"); itxt:SetFont(FONT,11,"")
-        itxt:SetPoint("LEFT",8,0); itxt:SetTextColor(TX[1],TX[2],TX[3],1); itxt:SetText(opt.text)
-        item:SetScript("OnEnter",function() ibg:SetColorTexture(A[1],A[2],A[3],0.15) end)
-        item:SetScript("OnLeave",function() ibg:SetColorTexture(0,0,0,0) end)
-        item:SetScript("OnClick",function()
-            sel=opt.value; btxt:SetText(opt.text); menu:Hide()
-            btn:SetBackdropBorderColor(BD[1],BD[2],BD[3],1)
-            if cb then cb(opt.value) end
-        end)
-    end
-    btn:SetScript("OnClick",function()
-        if menu:IsShown() then menu:Hide(); btn:SetBackdropBorderColor(BD[1],BD[2],BD[3],1)
-        else menu:Show(); menu:SetFrameLevel(btn:GetFrameLevel()+50); btn:SetBackdropBorderColor(A[1],A[2],A[3],0.7) end
-    end)
-    return nil, y-48
-end
-
-local function BigBtn(parent, text, y, clickCb, accent)
-    local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
-    btn:SetSize(260, 36); btn:SetPoint("TOPLEFT", 12, y)
+    btn:SetSize(width or 260, 38); btn:SetPoint("TOP", 0, y)
+    btn:SetBackdrop({ bgFile=WHITE, edgeFile=WHITE, edgeSize=1 })
     if accent then
-        btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        btn:SetBackdropColor(AD[1],AD[2],AD[3],0.9); btn:SetBackdropBorderColor(A[1],A[2],A[3],0.75)
+        btn:SetBackdropColor(AD[1], AD[2], AD[3], 0.9); btn:SetBackdropBorderColor(A[1], A[2], A[3], 0.75)
     else
-        btn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        btn:SetBackdropColor(BG2[1],BG2[2],BG2[3],1); btn:SetBackdropBorderColor(BD[1],BD[2],BD[3],1)
+        btn:SetBackdropColor(BG2[1], BG2[2], BG2[3], 1); btn:SetBackdropBorderColor(BD[1], BD[2], BD[3], 1)
     end
-    local lbl = btn:CreateFontString(nil,"OVERLAY")
-    lbl:SetFont(FONT_BOLD,12,""); lbl:SetPoint("CENTER"); lbl:SetText(text)
+    local lbl = btn:CreateFontString(nil, "OVERLAY")
+    lbl:SetFont(FONT_BOLD, 13, ""); lbl:SetPoint("CENTER"); lbl:SetText(text)
     lbl:SetTextColor(accent and 1 or TX[1], accent and 1 or TX[2], accent and 1 or TX[3], 1)
-    btn:SetScript("OnEnter",function()
-        btn:SetBackdropColor(A[1],A[2],A[3],1); lbl:SetTextColor(0.06,0.06,0.08,1)
+    btn:SetScript("OnEnter", function()
+        btn:SetBackdropColor(A[1], A[2], A[3], 1); lbl:SetTextColor(0.05, 0.05, 0.07, 1)
     end)
-    btn:SetScript("OnLeave",function()
-        if accent then btn:SetBackdropColor(AD[1],AD[2],AD[3],0.9); lbl:SetTextColor(1,1,1,1)
-        else btn:SetBackdropColor(BG2[1],BG2[2],BG2[3],1); lbl:SetTextColor(TX[1],TX[2],TX[3],1) end
+    btn:SetScript("OnLeave", function()
+        if accent then btn:SetBackdropColor(AD[1], AD[2], AD[3], 0.9); lbl:SetTextColor(1, 1, 1, 1)
+        else btn:SetBackdropColor(BG2[1], BG2[2], BG2[3], 1); lbl:SetTextColor(TX[1], TX[2], TX[3], 1) end
     end)
     btn:SetScript("OnClick", function() if clickCb then clickCb() end end)
-    return btn, y-50
+    return btn
 end
 
 -- ============================================================
--- STEP DEFINITIONS
+-- DB helpers pour les pages personnalisées (path -> get/set)
 -- ============================================================
-local steps = {}
+local function dbGet(path, default)
+    local node = TomoModDB
+    for seg in string.gmatch(path, "[^.]+") do
+        if type(node) ~= "table" then return default end
+        node = node[seg]
+    end
+    if node == nil then return default end
+    return node
+end
 
--- ── STEP 1: Bienvenue ──────────────────────────────────────
-steps[1] = {
-    title = L["ins_step1_title"],
-    icon  = ICON_PATH.."icon_general.tga",
+local function dbSet(path, value)
+    if P and P.SetPath then P.SetPath(TomoModDB, path, value) end
+end
+
+-- Checkbox liée à un seul chemin DB booléen
+local function CbPath(parent, label, path, default, y)
+    local f, ny = Cb(parent, label, dbGet(path, default) ~= false, y, function(v)
+        dbSet(path, v)
+    end)
+    return f, ny
+end
+
+-- ============================================================
+-- PAGE DEFINITIONS
+-- pages[key] = { title, icon, build = function(c, p) ... return finalY end, onNext }
+-- ============================================================
+local pages = {}
+
+-- ── Bienvenue ──────────────────────────────────────────────
+pages.welcome = {
+    title = L["ins_pick_title"],
+    icon  = ICON_PATH .. "icon_general.tga",
+    showStepTitle = false,
     build = function(c)
-        -- Logo centré
-        local logo = c:CreateTexture(nil,"OVERLAY")
-        logo:SetSize(64,64); logo:SetPoint("TOP",0,-20)
-        logo:SetTexture(LOGO_TEX); logo:SetVertexColor(A[1],A[2],A[3],1)
-        local title = c:CreateFontString(nil,"OVERLAY")
-        title:SetFont(FONT_BOLD,20,""); title:SetPoint("TOP",0,-95)
+        local logo = c:CreateTexture(nil, "OVERLAY")
+        logo:SetSize(60, 60); logo:SetPoint("TOP", 0, -18)
+        logo:SetTexture(LOGO_TEX); logo:SetVertexColor(A[1], A[2], A[3], 1)
+
+        local title = c:CreateFontString(nil, "OVERLAY")
+        title:SetFont(FONT_BOLD, 20, ""); title:SetPoint("TOP", 0, -88)
         title:SetText("|cff0cd29fTomo|r|cffe8e8e8Mod|r  v" .. (C_AddOns.GetAddOnMetadata("TomoMod", "Version") or "?"))
-        title:SetTextColor(1,1,1,1)
-        local sub = c:CreateFontString(nil,"OVERLAY")
-        sub:SetFont(FONT,12,""); sub:SetPoint("TOP",0,-125)
-        sub:SetTextColor(DM[1],DM[2],DM[3],1)
+
+        local sub = c:CreateFontString(nil, "OVERLAY")
+        sub:SetFont(FONT, 12, ""); sub:SetPoint("TOP", 0, -116)
+        sub:SetTextColor(DM[1], DM[2], DM[3], 1)
         sub:SetText(L["ins_subtitle"])
-        -- Description
-        local desc = c:CreateFontString(nil,"OVERLAY")
-        desc:SetFont(FONT,11,""); desc:SetPoint("TOPLEFT",40,-170); desc:SetPoint("TOPRIGHT",-40,-170)
-        desc:SetJustifyH("LEFT"); desc:SetSpacing(3); desc:SetWordWrap(true)
-        desc:SetTextColor(TX[1],TX[2],TX[3],0.85)
-        desc:SetText(L["ins_welcome_desc"])
-        return -300
+
+        local desc = c:CreateFontString(nil, "OVERLAY")
+        desc:SetFont(FONT, 12, ""); desc:SetPoint("TOPLEFT", 50, -160); desc:SetPoint("TOPRIGHT", -50, -160)
+        desc:SetJustifyH("LEFT"); desc:SetSpacing(4); desc:SetWordWrap(true)
+        desc:SetTextColor(TX[1], TX[2], TX[3], 0.88)
+        desc:SetText(L["ins_v3_welcome_desc"])
+
+        return -320
     end,
 }
 
--- ── STEP 2: Profil ─────────────────────────────────────────
-steps[2] = {
-    title = L["ins_step2_title"],
-    icon  = ICON_PATH.."icon_profiles.tga",
-    build = function(c)
-        local y = -10
-        y = Info(c, L["ins_profile_info"], y)
-        y = Sec(c, L["ins_profile_section"], y)
-        -- EditBox pour le nom
-        local ebF = CreateFrame("Frame",nil,c,"BackdropTemplate")
-        ebF:SetSize(300,26); ebF:SetPoint("TOPLEFT",12,y)
-        ebF:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        ebF:SetBackdropColor(BG2[1],BG2[2],BG2[3],1); ebF:SetBackdropBorderColor(BD[1],BD[2],BD[3],1)
-        local eb = CreateFrame("EditBox",nil,ebF)
-        eb:SetAllPoints(); eb:SetFont(FONT,11,""); eb:SetTextColor(TX[1],TX[2],TX[3],1)
-        eb:SetAutoFocus(false); eb:SetTextInsets(8,8,4,4); eb:SetMaxLetters(32)
-        -- Placeholder
-        local ph = eb:CreateFontString(nil,"OVERLAY")
-        ph:SetFont(FONT,11,""); ph:SetPoint("LEFT",8,0); ph:SetTextColor(DM[1],DM[2],DM[3],1); ph:SetText(L["ins_profile_placeholder"])
-        eb:SetScript("OnTextChanged",function(self,u) if u then if #self:GetText()>0 then ph:Hide() else ph:Show() end end end)
-        eb:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
-        eb:SetScript("OnEditFocusGained",function() ebF:SetBackdropBorderColor(A[1],A[2],A[3],0.7) end)
-        eb:SetScript("OnEditFocusLost",function() ebF:SetBackdropBorderColor(BD[1],BD[2],BD[3],1) end)
-        y = y - 36
+-- ── Choix d'archétype (cartes) ─────────────────────────────
+pages.picker = {
+    title = L["ins_pick_title"],
+    icon  = ICON_PATH .. "icon_general.tga",
+    build = function(c, p)
+        -- Sous-titre
+        local sub = c:CreateFontString(nil, "OVERLAY")
+        sub:SetFont(FONT, 11, ""); sub:SetPoint("TOPLEFT", 14, -6); sub:SetPoint("TOPRIGHT", -14, -6)
+        sub:SetJustifyH("LEFT"); sub:SetTextColor(DM[1], DM[2], DM[3], 1)
+        sub:SetText(L["ins_pick_subtitle"])
 
-        local _, ny = BigBtn(c, L["ins_profile_create"], y, function()
-            if TomoMod_Profiles then
-                local name = eb:GetText()
-                if name == "" then name = L["ins_profile_placeholder"] end
-                TomoMod_Profiles.CreateNamedProfile(name)
-                TomoMod_Profiles.LoadNamedProfile(name)
-                print("|cff0cd29fTomoMod|r " .. L["ins_profile_created"] .. name)
+        -- Grille de cartes (2 colonnes)
+        local list   = P and P.GetList() or {}
+        local COLS   = 2
+        local MARGIN = 14
+        local GAP    = 12
+        local CARD_W = math.floor((CONTENT_W - MARGIN*2 - GAP*(COLS-1)) / COLS)
+        local CARD_H = 80
+        local ROW_GAP= 10
+        local startY = -32
+
+        local cards = {}
+
+        local rows    = math.ceil(#list / COLS)
+        local gridH   = rows * CARD_H + (rows - 1) * ROW_GAP
+        local descTop = startY - gridH - 14
+
+        -- Boîte de description (sous la grille)
+        local descBox = CreateFrame("Frame", nil, c, "BackdropTemplate")
+        descBox:SetPoint("TOPLEFT", MARGIN, descTop)
+        descBox:SetPoint("TOPRIGHT", -MARGIN, descTop)
+        descBox:SetHeight(96)
+        descBox:SetBackdrop({ bgFile=WHITE, edgeFile=WHITE, edgeSize=1 })
+        descBox:SetBackdropColor(0.055, 0.055, 0.07, 1)
+        descBox:SetBackdropBorderColor(BD[1], BD[2], BD[3], 1)
+
+        local descTitle = descBox:CreateFontString(nil, "OVERLAY")
+        descTitle:SetFont(FONT_BOLD, 12, ""); descTitle:SetPoint("TOPLEFT", 12, -10)
+        descTitle:SetTextColor(A[1], A[2], A[3], 1)
+
+        local descBody = descBox:CreateFontString(nil, "OVERLAY")
+        descBody:SetFont(FONT, 11, "")
+        descBody:SetPoint("TOPLEFT", 12, -30); descBody:SetPoint("BOTTOMRIGHT", -12, 8)
+        descBody:SetJustifyH("LEFT"); descBody:SetJustifyV("TOP"); descBody:SetSpacing(3)
+        descBody:SetWordWrap(true); descBody:SetTextColor(TX[1], TX[2], TX[3], 0.85)
+
+        -- Sélection (visuel + état + flow + dots)
+        local function Select(key)
+            selectedPreset = key
+            for _, card in ipairs(cards) do
+                card:SetSelected(card.presetKey == key)
             end
-        end, false)
-        y = ny
+            for _, def in ipairs(list) do
+                if def.key == key then
+                    descTitle:SetText(def.name)
+                    descTitle:SetTextColor(def.color[1], def.color[2], def.color[3], 1)
+                    descBody:SetText(def.desc)
+                    break
+                end
+            end
+            RebuildFlow()
+            if INS._LayoutDots then INS._LayoutDots() end
+        end
+        p.Select = Select
 
-        y = Sec(c, L["ins_spec_section"], y)
-        y = Info(c, L["ins_spec_info"], y)
-        return y
+        -- Fabrique une carte
+        local function MakeCard(def, idx)
+            local col = (idx - 1) % COLS
+            local row = math.floor((idx - 1) / COLS)
+            local x = MARGIN + col * (CARD_W + GAP)
+            local y = startY - row * (CARD_H + ROW_GAP)
+
+            local btn = CreateFrame("Button", nil, c, "BackdropTemplate")
+            btn:SetSize(CARD_W, CARD_H); btn:SetPoint("TOPLEFT", x, y)
+            btn:SetBackdrop({ bgFile=WHITE, edgeFile=WHITE, edgeSize=1 })
+            btn.presetKey = def.key
+
+            local accent = btn:CreateTexture(nil, "ARTWORK")
+            accent:SetWidth(3); accent:SetPoint("TOPLEFT"); accent:SetPoint("BOTTOMLEFT")
+            accent:SetColorTexture(def.color[1], def.color[2], def.color[3], 1)
+
+            local ico = btn:CreateTexture(nil, "OVERLAY")
+            ico:SetSize(38, 38); ico:SetPoint("LEFT", 16, 0)
+            ico:SetTexture(def.icon)
+
+            local name = btn:CreateFontString(nil, "OVERLAY")
+            name:SetFont(FONT_BOLD, 14, ""); name:SetPoint("TOPLEFT", ico, "TOPRIGHT", 12, -2)
+            name:SetText(def.name)
+
+            local tag = btn:CreateFontString(nil, "OVERLAY")
+            tag:SetFont(FONT, 10, ""); tag:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -4)
+            tag:SetPoint("RIGHT", btn, "RIGHT", -10, 0)
+            tag:SetJustifyH("LEFT"); tag:SetTextColor(DM[1], DM[2], DM[3], 1)
+            tag:SetText(def.tagline)
+
+            -- Badge "Recommandé"
+            if def.recommended then
+                local badge = CreateFrame("Frame", nil, btn, "BackdropTemplate")
+                badge:SetSize(86, 16); badge:SetPoint("TOPRIGHT", -8, -8)
+                badge:SetBackdrop({ bgFile=WHITE, edgeFile=WHITE, edgeSize=1 })
+                badge:SetBackdropColor(A[1]*0.18, A[2]*0.18, A[3]*0.18, 1)
+                badge:SetBackdropBorderColor(A[1], A[2], A[3], 0.6)
+                local bt = badge:CreateFontString(nil, "OVERLAY")
+                bt:SetFont(FONT_BOLD, 9, ""); bt:SetPoint("CENTER")
+                bt:SetTextColor(A[1], A[2], A[3], 1); bt:SetText(L["ins_pick_recommended"])
+            end
+
+            local function SetSelected(sel)
+                btn._selected = sel
+                if sel then
+                    btn:SetBackdropColor(def.color[1]*0.16, def.color[2]*0.16, def.color[3]*0.16, 1)
+                    btn:SetBackdropBorderColor(def.color[1], def.color[2], def.color[3], 0.9)
+                    name:SetTextColor(1, 1, 1, 1)
+                    ico:SetVertexColor(1, 1, 1, 1)
+                else
+                    btn:SetBackdropColor(0.085, 0.085, 0.105, 1)
+                    btn:SetBackdropBorderColor(BD[1], BD[2], BD[3], 1)
+                    name:SetTextColor(0.86, 0.88, 0.87, 1)
+                    ico:SetVertexColor(0.78, 0.78, 0.82, 1)
+                end
+            end
+            btn.SetSelected = SetSelected
+
+            btn:SetScript("OnEnter", function()
+                if not btn._selected then
+                    btn:SetBackdropBorderColor(def.color[1]*0.7, def.color[2]*0.7, def.color[3]*0.7, 0.8)
+                end
+            end)
+            btn:SetScript("OnLeave", function() SetSelected(btn._selected) end)
+            btn:SetScript("OnClick", function() Select(def.key) end)
+            btn:SetScript("OnDoubleClick", function() Select(def.key); INS.Next() end)
+
+            SetSelected(false)
+            return btn
+        end
+
+        for i, def in ipairs(list) do
+            cards[i] = MakeCard(def, i)
+        end
+
+        Select(selectedPreset or "complet")
+
+        return descTop - 96 - 12
+    end,
+    onNext = function()
+        if selectedPreset ~= "custom" and P and P.Apply then
+            P.Apply(selectedPreset)
+        end
     end,
 }
 
--- ── STEP 3: Unit Frames ───────────────────────────────────
-steps[3] = {
-    title = L["ins_uf_title"],
-    icon  = ICON_PATH.."icon_unitframes.tga",
+-- ── Personnalisé : Cadres ──────────────────────────────────
+pages.custom_frames = {
+    title = L["ins_custom_frames_title"],
+    icon  = ICON_PATH .. "icon_unitframes.tga",
     build = function(c)
-        local y = -10
-        local ufDB = TomoModDB.unitFrames or {}
-        y = Info(c, L["ins_uf_info"], y)
+        local y = -8
+        y = Info(c, L["ins_custom_frames_intro"], y)
+
         y = Sec(c, L["ins_uf_section"], y)
-        local _, ny = Cb(c, L["ins_uf_enable"], ufDB.enabled ~= false, y, function(v)
-            TomoModDB.unitFrames = TomoModDB.unitFrames or {}
-            TomoModDB.unitFrames.enabled = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_uf_hide_blizzard"], ufDB.hideBlizzardFrames ~= false, y, function(v)
-            TomoModDB.unitFrames = TomoModDB.unitFrames or {}
-            TomoModDB.unitFrames.hideBlizzardFrames = v
-        end); y = ny
-        y = Info(c, L["ins_uf_reload_info"], y)
-        return y
-    end,
-}
+        local _, ny = CbPath(c, L["ins_uf_enable"],        "unitFrames.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_uf_hide_blizzard"], "unitFrames.hideBlizzardFrames", true, y); y = ny
 
--- ── STEP 4: Party Frames ──────────────────────────────────
-steps[4] = {
-    title = L["ins_pf_title"],
-    icon  = ICON_PATH.."icon_unitframes.tga",
-    build = function(c)
-        local y = -10
-        local pfDB = TomoModDB.partyFrames or {}
-        y = Info(c, L["ins_pf_info"], y)
         y = Sec(c, L["ins_pf_section"], y)
-        local _, ny = Cb(c, L["ins_pf_enable"], pfDB.enabled ~= false, y, function(v)
-            TomoModDB.partyFrames = TomoModDB.partyFrames or {}
-            TomoModDB.partyFrames.enabled = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_pf_hide_blizzard"], pfDB.hideBlizzardFrames ~= false, y, function(v)
-            TomoModDB.partyFrames = TomoModDB.partyFrames or {}
-            TomoModDB.partyFrames.hideBlizzardFrames = v
-        end); y = ny
+        local _, ny = CbPath(c, L["ins_pf_enable"],         "partyFrames.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_pf_show_interrupt"], "partyFrames.showInterruptCD", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_pf_show_brez"],      "partyFrames.showBrezCD", true, y); y = ny
 
-        y = Sec(c, L["ins_pf_cd_section"], y)
-        y = Info(c, L["ins_pf_cd_info"], y)
-        local _, ny = Cb(c, L["ins_pf_show_interrupt"], pfDB.showInterruptCD ~= false, y, function(v)
-            TomoModDB.partyFrames = TomoModDB.partyFrames or {}
-            TomoModDB.partyFrames.showInterruptCD = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_pf_show_brez"], pfDB.showBrezCD ~= false, y, function(v)
-            TomoModDB.partyFrames = TomoModDB.partyFrames or {}
-            TomoModDB.partyFrames.showBrezCD = v
-        end); y = ny
-        y = Info(c, L["ins_pf_reload_info"], y)
-        return y
-    end,
-}
-
--- ── STEP 5: Raid Frames ──────────────────────────────────
-steps[5] = {
-    title = L["ins_rf_title"],
-    icon  = ICON_PATH.."icon_unitframes.tga",
-    build = function(c)
-        local y = -10
-        local rfDB = TomoModDB.raidFrames or {}
-        y = Info(c, L["ins_rf_info"], y)
         y = Sec(c, L["ins_rf_section"], y)
-        local _, ny = Cb(c, L["ins_rf_enable"], rfDB.enabled ~= false, y, function(v)
-            TomoModDB.raidFrames = TomoModDB.raidFrames or {}
-            TomoModDB.raidFrames.enabled = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_rf_hide_blizzard"], rfDB.hideBlizzardFrames ~= false, y, function(v)
-            TomoModDB.raidFrames = TomoModDB.raidFrames or {}
-            TomoModDB.raidFrames.hideBlizzardFrames = v
-        end); y = ny
+        local _, ny = CbPath(c, L["ins_rf_enable"],          "raidFrames.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_rf_show_dispel"],     "raidFrames.showDispel", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_rf_show_hots"],       "raidFrames.showHoTs", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_rf_show_defensives"], "raidFrames.showDefensives", true, y); y = ny
 
-        y = Sec(c, L["ins_rf_features_section"], y)
-        local _, ny = Cb(c, L["ins_rf_show_dispel"], rfDB.showDispel ~= false, y, function(v)
-            TomoModDB.raidFrames = TomoModDB.raidFrames or {}
-            TomoModDB.raidFrames.showDispel = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_rf_show_hots"], rfDB.showHoTs ~= false, y, function(v)
-            TomoModDB.raidFrames = TomoModDB.raidFrames or {}
-            TomoModDB.raidFrames.showHoTs = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_rf_show_debuffs"], rfDB.showDebuffs ~= false, y, function(v)
-            TomoModDB.raidFrames = TomoModDB.raidFrames or {}
-            TomoModDB.raidFrames.showDebuffs = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_rf_show_defensives"], rfDB.showDefensives ~= false, y, function(v)
-            TomoModDB.raidFrames = TomoModDB.raidFrames or {}
-            TomoModDB.raidFrames.showDefensives = v
-        end); y = ny
-
-        y = Sec(c, L["ins_rf_layout_section"], y)
-        local _, ny = Dd(c, L["ins_rf_layout"], {
-            {value="grid", text="Grid"},
-            {value="list", text="List"},
-        }, rfDB.layout or "grid", y, function(v)
-            TomoModDB.raidFrames = TomoModDB.raidFrames or {}
-            TomoModDB.raidFrames.layout = v
-        end); y = ny
-        y = Info(c, L["ins_rf_reload_info"], y)
-        return y
-    end,
-}
-
--- ── STEP 6: Castbars ──────────────────────────────────────
-steps[6] = {
-    title = L["ins_cb_title"],
-    icon  = ICON_PATH.."icon_unitframes.tga",
-    build = function(c)
-        local y = -10
-        local cbDB = TomoModDB.castbars or {}
-        y = Info(c, L["ins_cb_info"], y)
         y = Sec(c, L["ins_cb_section"], y)
-        local _, ny = Cb(c, L["ins_cb_enable"], cbDB.enabled ~= false, y, function(v)
-            TomoModDB.castbars = TomoModDB.castbars or {}
-            TomoModDB.castbars.enabled = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_cb_hide_blizzard"], cbDB.hideBlizzardCastbar ~= false, y, function(v)
-            TomoModDB.castbars = TomoModDB.castbars or {}
-            TomoModDB.castbars.hideBlizzardCastbar = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_cb_class_color"], cbDB.useClassColor ~= false, y, function(v)
-            TomoModDB.castbars = TomoModDB.castbars or {}
-            TomoModDB.castbars.useClassColor = v
-        end); y = ny
-        y = Info(c, L["ins_cb_reload_info"], y)
-        return y
-    end,
-}
+        local _, ny = CbPath(c, L["ins_cb_enable"],      "castbars.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_cb_class_color"], "castbars.useClassColor", true, y); y = ny
 
--- ── STEP 7: Nameplates ────────────────────────────────────
-steps[7] = {
-    title = L["ins_step5_title"],
-    icon  = ICON_PATH.."icon_nameplates.tga",
-    build = function(c)
-        local y = -10
-        local npDB = TomoModDB.nameplates or {}
         y = Sec(c, L["ins_np_general"], y)
-        local _, ny = Cb(c,L["ins_np_enable"], npDB.enabled, y, function(v)
-            TomoModDB.nameplates.enabled = v
-            if TomoMod_Nameplates then
-                if v then TomoMod_Nameplates.Enable() else TomoMod_Nameplates.Disable() end
-            end
-        end); y = ny
-        y = Info(c, L["ins_np_reload_info"], y)
-
-        y = Sec(c, L["ins_np_display"], y)
-        local _, ny = Cb(c,L["ins_np_class_colors"],     npDB.useClassColors,           y,function(v) TomoModDB.nameplates.useClassColors=v end); y=ny
-        local _, ny = Cb(c,L["ins_np_castbar"], npDB.showCastbar,  y,function(v) TomoModDB.nameplates.showCastbar=v end); y=ny
-        local _, ny = Cb(c,L["ins_np_health_text"], npDB.showHealthText, y,function(v) TomoModDB.nameplates.showHealthText=v end); y=ny
-        local _, ny = Cb(c,L["ins_np_auras"], npDB.showAuras,           y,function(v) TomoModDB.nameplates.showAuras=v end); y=ny
-        local _, ny = Cb(c,L["ins_np_role_icons"], npDB.friendlyRoleIcons~=false, y, function(v)
-            TomoModDB.nameplates.friendlyRoleIcons=v
-        end); y=ny
-
-        y = Sec(c, L["ins_np_dimensions"], y)
-        local _, ny = Sldr(c,L["ins_np_width"], npDB.width or 170, 60, 300, 5, y, function(v)
-            TomoModDB.nameplates.width = v
-            if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
-        end); y = ny
-        return y
-    end,
-}
-
--- ── STEP 8: Mode Tank ─────────────────────────────────────
-steps[8] = {
-    title = L["ins_step4_title"],
-    icon  = ICON_PATH.."icon_unitframes.tga",
-    build = function(c)
-        local y = -10
-        y = Info(c,L["ins_tank_info"], y)
-        y = Sec(c,L["ins_tank_np_section"], y)
-        local _, ny = Cb(c, L["ins_tank_enable_np"],
-            TomoModDB.nameplates and TomoModDB.nameplates.tankMode, y, function(v)
-                TomoModDB.nameplates = TomoModDB.nameplates or {}
-                TomoModDB.nameplates.tankMode = v
-                if TomoMod_Nameplates then TomoMod_Nameplates.ApplySettings() end
-            end); y = ny
-        y = Info(c, L["ins_tank_colors_info"], y)
-
-        y = Sec(c, L["ins_tank_uf_section"], y)
-        local _, ny = Cb(c, L["ins_tank_threat_indicator"],
-            TomoModDB.unitFrames and TomoModDB.unitFrames.target and TomoModDB.unitFrames.target.showThreat, y, function(v)
-                if TomoModDB.unitFrames and TomoModDB.unitFrames.target then
-                    TomoModDB.unitFrames.target.showThreat = v
-                    if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshUnit then
-                        TomoMod_UnitFrames.RefreshUnit("target")
-                    end
-                end
-            end); y = ny
-
-        local _, ny = Cb(c, L["ins_tank_threat_text"],
-            TomoModDB.unitFrames and TomoModDB.unitFrames.target and
-            TomoModDB.unitFrames.target.threatText and TomoModDB.unitFrames.target.threatText.enabled, y, function(v)
-                if TomoModDB.unitFrames and TomoModDB.unitFrames.target then
-                    TomoModDB.unitFrames.target.threatText = TomoModDB.unitFrames.target.threatText or {}
-                    TomoModDB.unitFrames.target.threatText.enabled = v
-                end
-            end); y = ny
-        return y
-    end,
-}
-
--- ── STEP 9: Barres d'action ───────────────────────────────
-steps[9] = {
-    title = L["ins_step6_title"],
-    icon  = ICON_PATH.."icon_actionbars.tga",
-    build = function(c)
-        local y = -10
-        local abDB = TomoModDB.actionBarSkin or {}
-        local absDB = TomoModDB.actionBars or {}
-
-        y = Sec(c,L["ins_ab_system_section"], y)
-        y = Info(c,L["ins_ab_system_info"], y)
-        local _, ny = Cb(c,L["ins_ab_system_enable"], absDB.enabled ~= false, y, function(v)
-            TomoModDB.actionBars = TomoModDB.actionBars or {}
-            TomoModDB.actionBars.enabled = v
-        end); y=ny
-        y = Info(c,L["ins_ab_system_reload_info"], y)
-
-        y = Sec(c,L["ins_ab_skin_section"], y)
-        local _, ny = Cb(c,L["ins_ab_enable"], abDB.enabled, y, function(v)
-            TomoModDB.actionBarSkin.enabled=v
-            if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.SetEnabled(v) end
-        end); y=ny
-        local _, ny = Cb(c,L["ins_ab_class_color"], abDB.useClassColor, y, function(v)
-            TomoModDB.actionBarSkin.useClassColor=v
-            if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.UpdateColors() end
-        end); y=ny
-        local _, ny = Cb(c,L["ins_ab_shift_reveal"], abDB.shiftReveal, y, function(v)
-            TomoModDB.actionBarSkin.shiftReveal=v
-            if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.SetShiftReveal(v) end
-        end); y=ny
-
-        y = Sec(c,L["ins_ab_opacity_section"], y)
-        local _, ny = Sldr(c,L["ins_ab_opacity"], 85, 0, 100, 5, y, function(v)
-            TomoModDB.actionBarSkin.barOpacity = TomoModDB.actionBarSkin.barOpacity or {}
-            local bars = {"ActionButton","MultiBarBottomLeft","MultiBarBottomRight",
-                          "MultiBarRight","MultiBarLeft","MultiBar5","MultiBar6","MultiBar7"}
-            for _,bk in ipairs(bars) do
-                TomoModDB.actionBarSkin.barOpacity[bk] = v
-                if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.ApplyBarOpacity(bk, v) end
-            end
-        end, "%d%%"); y=ny
-
-        y = Sec(c,L["ins_ab_manage_section"], y)
-        y = Info(c,L["ins_ab_manage_info"], y)
-        return y
-    end,
-}
-
--- ── STEP 10: Ressources & Cooldowns ────────────────────────
-steps[10] = {
-    title = L["ins_res_title"],
-    icon  = ICON_PATH.."icon_resources.tga",
-    build = function(c)
-        local y = -10
-        local resDB = TomoModDB.resourceBars or {}
-        local cdmDB = TomoModDB.cooldownManager or {}
+        local _, ny = CbPath(c, L["ins_np_enable"],       "nameplates.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_np_class_colors"], "nameplates.useClassColors", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_np_castbar"],      "nameplates.showCastbar", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_np_auras"],        "nameplates.showAuras", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_tank_enable_np"],  "nameplates.tankMode", false, y); y = ny
 
         y = Sec(c, L["ins_res_section"], y)
-        y = Info(c, L["ins_res_info"], y)
-        local _, ny = Cb(c, L["ins_res_enable"], resDB.enabled ~= false, y, function(v)
-            TomoModDB.resourceBars = TomoModDB.resourceBars or {}
-            TomoModDB.resourceBars.enabled = v
-        end); y = ny
-        local _, ny = Dd(c, L["ins_res_display"], {
-            {value="icons", text="Icons"},
-            {value="bar",   text="Bar"},
-        }, resDB.displayMode or "icons", y, function(v)
-            TomoModDB.resourceBars = TomoModDB.resourceBars or {}
-            TomoModDB.resourceBars.displayMode = v
-        end); y = ny
+        local _, ny = CbPath(c, L["ins_res_enable"], "resourceBars.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_cdm_enable"], "cooldownManager.enabled", true, y); y = ny
 
-        y = Sec(c, L["ins_cdm_section"], y)
-        y = Info(c, L["ins_cdm_info"], y)
-        local _, ny = Cb(c, L["ins_cdm_enable"], cdmDB.enabled ~= false, y, function(v)
-            TomoModDB.cooldownManager = TomoModDB.cooldownManager or {}
-            TomoModDB.cooldownManager.enabled = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_cdm_hide_gcd"], cdmDB.hideGCD or false, y, function(v)
-            TomoModDB.cooldownManager = TomoModDB.cooldownManager or {}
-            TomoModDB.cooldownManager.hideGCD = v
-        end); y = ny
-        local _, ny = Cb(c, L["ins_cdm_desat"], cdmDB.desaturateOnCD or false, y, function(v)
-            TomoModDB.cooldownManager = TomoModDB.cooldownManager or {}
-            TomoModDB.cooldownManager.desaturateOnCD = v
-        end); y = ny
         return y
     end,
 }
 
--- ── STEP 11: Skins visuels ─────────────────────────────────
-steps[11] = {
-    title = L["ins_step3_title"],
-    icon  = ICON_PATH.."icon_qol.tga",
+-- ── Personnalisé : Barres & Skins ──────────────────────────
+pages.custom_barsskins = {
+    title = L["ins_custom_barsskins_title"],
+    icon  = ICON_PATH .. "icon_skins.tga",
     build = function(c)
-        local y = -10
-        y = Info(c,L["ins_skins_info"], y)
+        local y = -8
+        y = Info(c, L["ins_custom_barsskins_intro"], y)
+
+        y = Sec(c, L["ins_ab_skin_section"], y)
+        local _, ny = CbPath(c, L["ins_ab_system_enable"], "actionBars.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_ab_enable"],        "actionBarSkin.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_ab_class_color"],   "actionBarSkin.useClassColor", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_ab_shift_reveal"],  "actionBarSkin.shiftReveal", false, y); y = ny
+
         y = Sec(c, L["ins_skins_section"], y)
-        local _, ny = Cb(c,L["ins_skin_gamemenu"],    TomoModDB.gameMenuSkin and TomoModDB.gameMenuSkin.enabled, y, function(v)
-            TomoModDB.gameMenuSkin = TomoModDB.gameMenuSkin or {}
-            TomoModDB.gameMenuSkin.enabled = v
-            if TomoMod_GameMenuSkin then TomoMod_GameMenuSkin.SetEnabled(v) end
-        end); y = ny
+        local _, ny = CbPath(c, L["ins_skin_chat"],       "chatFrameSkin.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_skin_bag"],        "bagSkin.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_skin_buffs"],      "buffSkin.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_skin_tooltip"],    "tooltipSkin.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_skin_gamemenu"],   "gameMenuSkin.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_skin_character"],  "characterSkin.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_skin_objective"],  "objectiveTracker.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_skin_mail"],       "mailSkin.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_skin_reputation"], "reputationBar.enabled", true, y); y = ny
 
-        local _, ny = Cb(c,L["ins_skin_buffs"],           TomoModDB.buffSkin and TomoModDB.buffSkin.enabled, y, function(v)
-            TomoModDB.buffSkin = TomoModDB.buffSkin or {}
-            TomoModDB.buffSkin.enabled = v
-            if TomoMod_BuffSkin then TomoMod_BuffSkin.SetEnabled(v) end
-        end); y = ny
-
-        local _, ny = Cb(c,L["ins_skin_chat"],                       TomoModDB.chatFrameSkin and TomoModDB.chatFrameSkin.enabled, y, function(v)
-            TomoModDB.chatFrameSkin = TomoModDB.chatFrameSkin or {}
-            TomoModDB.chatFrameSkin.enabled = v
-            if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.SetEnabled(v) end
-        end); y = ny
-
-        local _, ny = Cb(c,L["ins_skin_character"],     TomoModDB.characterSkin and TomoModDB.characterSkin.enabled, y, function(v)
-            TomoModDB.characterSkin = TomoModDB.characterSkin or {}
-            TomoModDB.characterSkin.enabled = v
-        end); y = ny
-
-        local _, ny = Cb(c,L["ins_skin_bag"],     TomoModDB.bagSkin and TomoModDB.bagSkin.enabled, y, function(v)
-            TomoModDB.bagSkin = TomoModDB.bagSkin or {}
-            TomoModDB.bagSkin.enabled = v
-        end); y = ny
-
-        local _, ny = Cb(c,L["ins_skin_tooltip"],     TomoModDB.tooltipSkin and TomoModDB.tooltipSkin.enabled, y, function(v)
-            TomoModDB.tooltipSkin = TomoModDB.tooltipSkin or {}
-            TomoModDB.tooltipSkin.enabled = v
-        end); y = ny
-
-        local _, ny = Cb(c,L["ins_skin_objective"],  TomoModDB.objectiveTracker and TomoModDB.objectiveTracker.enabled, y, function(v)
-            TomoModDB.objectiveTracker = TomoModDB.objectiveTracker or {}
-            TomoModDB.objectiveTracker.enabled = v
-        end); y = ny
-
-        local _, ny = Cb(c,L["ins_skin_mail"],       TomoModDB.mailSkin and TomoModDB.mailSkin.enabled, y, function(v)
-            TomoModDB.mailSkin = TomoModDB.mailSkin or {}
-            TomoModDB.mailSkin.enabled = v
-        end); y = ny
-
-        local _, ny = Cb(c,L["ins_skin_reputation"], TomoModDB.reputationBar and TomoModDB.reputationBar.enabled, y, function(v)
-            TomoModDB.reputationBar = TomoModDB.reputationBar or {}
-            TomoModDB.reputationBar.enabled = v
-        end); y = ny
-
-        y = Sec(c, L["ins_skin_style_section"], y)
-        local _, ny = Dd(c, L["ins_skin_style"], {
-            {value="classic",  text="Classic (9-slice)"},
-            {value="flat",     text="Flat"},
-            {value="outlined", text="Outlined"},
-            {value="glass",    text="Glass"},
-            {value="minimal",  text="Minimal"},
-        }, (TomoModDB.actionBarSkin and TomoModDB.actionBarSkin.skinStyle) or "classic", y, function(v)
-            TomoModDB.actionBarSkin = TomoModDB.actionBarSkin or {}
-            TomoModDB.actionBarSkin.skinStyle = v
-            if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.Reskin then TomoMod_ActionBarSkin.Reskin() end
-        end); y = ny
         return y
     end,
 }
 
--- ── STEP 12: LustSound ────────────────────────────────────
-steps[12] = {
-    title = L["ins_step7_title"],
-    icon  = ICON_PATH.."icon_sound.tga",
+-- ── Personnalisé : Mythic+ & Confort ───────────────────────
+pages.custom_mythicqol = {
+    title = L["ins_custom_mythicqol_title"],
+    icon  = ICON_PATH .. "icon_mythicplus.tga",
     build = function(c)
-        local y = -10
-        local lsDB = TomoModDB.lustSound or {}
-        y = Info(c,L["ins_sound_info"], y)
-        y = Sec(c,L["ins_sound_activation"], y)
-        local _, ny = Cb(c,L["ins_sound_enable"], lsDB.enabled, y, function(v)
-            TomoModDB.lustSound = TomoModDB.lustSound or {}
-            TomoModDB.lustSound.enabled = v
-            if TomoMod_LustSound and TomoMod_LustSound.SetEnabled then TomoMod_LustSound.SetEnabled(v) end
-        end); y=ny
+        local y = -8
+        y = Info(c, L["ins_custom_mythicqol_intro"], y)
 
-        y = Sec(c,L["ins_sound_choice"], y)
-        local soundOpts = {}
-        if TomoMod_LustSound and TomoMod_LustSound.soundRegistry then
-            for key, entry in pairs(TomoMod_LustSound.soundRegistry) do
-                soundOpts[#soundOpts+1] = { value = key, text = entry.name }
-            end
-            table.sort(soundOpts, function(a,b) return a.text < b.text end)
-        else
-            soundOpts = {{value="default", text=L["ins_sound_default"]}}
-        end
-        local _, ny = Dd(c,L["ins_sound_sound"], soundOpts, lsDB.sound or "default", y, function(v)
-            TomoModDB.lustSound = TomoModDB.lustSound or {}
-            TomoModDB.lustSound.sound = v
-        end); y=ny
+        y = Sec(c, L["ins_mplus_tracker_section"], y)
+        local _, ny = CbPath(c, L["ins_mplus_tracker_enable"], "MythicTracker.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_mplus_score_enable"],   "TomoScore.enabled", true, y); y = ny
 
-        local _, ny = Dd(c,L["ins_sound_channel"], {
-            {value="Master",   text="Master"},
-            {value="SFX",      text="SFX"},
-            {value="Music",    text="Music"},
-        }, lsDB.channel or "SFX", y, function(v)
-            TomoModDB.lustSound = TomoModDB.lustSound or {}
-            TomoModDB.lustSound.channel = v
-        end); y=ny
+        y = Sec(c, L["ins_qol_interface_section"], y)
+        local _, ny = CbPath(c, L["ins_qol_minimap"],          "minimap.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_qol_class_reminder"],   "classReminder.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_qol_waypoint"],         "waypoint.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_qol_afk"],              "afkDisplay.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_skyride_enable"],       "skyRide.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_qol_frame_anchors"],    "frameAnchors.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_qol_profession_helper"],"professionHelper.enabled", true, y); y = ny
 
-        y = Sec(c,L["ins_sound_preview_section"], y)
-        local _, ny = BigBtn(c,L["ins_sound_preview_btn"], y, function()
-            if TomoMod_LustSound then TomoMod_LustSound.PlayPreview() end
-        end, false); y=ny
+        y = Sec(c, L["ins_qol_auto_section"], y)
+        local _, ny = CbPath(c, L["ins_qol_fast_loot"],        "fastLoot.enabled", true, y); y = ny
+        -- autoVendorRepair : 2 clés liées (vendre gris + réparer)
+        local _, ny = Cb(c, L["ins_qol_auto_repair"],
+            (dbGet("autoVendorRepair.sellGrays", true) ~= false) or (dbGet("autoVendorRepair.autoRepair", true) ~= false),
+            y, function(v)
+                dbSet("autoVendorRepair.sellGrays", v)
+                dbSet("autoVendorRepair.autoRepair", v)
+            end); y = ny
+        local _, ny = CbPath(c, L["ins_qol_skip_cinematics"],   "cinematicSkip.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_qol_hide_talking_head"], "hideTalkingHead.enabled", false, y); y = ny
+        local _, ny = CbPath(c, L["ins_qol_auto_accept"],       "autoAcceptInvite.enabled", false, y); y = ny
+        local _, ny = CbPath(c, L["ins_qol_auto_summon"],       "autoSummon.enabled", false, y); y = ny
+        local _, ny = CbPath(c, L["ins_qol_auto_fill_delete"],  "autoFillDelete.enabled", true, y); y = ny
+        -- autoQuest : 2 clés liées (accept + turn-in)
+        local _, ny = Cb(c, L["ins_qol_auto_quest"],
+            (dbGet("autoQuest.autoAccept", false) ~= false),
+            y, function(v)
+                dbSet("autoQuest.autoAccept", v)
+                dbSet("autoQuest.autoTurnIn", v)
+            end); y = ny
+
+        y = Sec(c, L["ins_sound_activation"], y)
+        local _, ny = CbPath(c, L["ins_sound_enable"], "lustSound.enabled", true, y); y = ny
+
         return y
     end,
 }
 
--- ── STEP 13: Mythic+ ──────────────────────────────────────
-steps[13] = {
-    title = L["ins_step8_title"],
-    icon  = ICON_PATH.."icon_mythicplus.tga",
-    build = function(c)
-        local y = -10
-        local mtDB = TomoModDB.MythicTracker or {}
-        local tsDB = TomoModDB.TomoScore or {}
-        y = Sec(c,L["ins_mplus_tracker_section"], y)
-        y = Info(c,L["ins_mplus_tracker_info"], y)
-        local _, ny = Cb(c,L["ins_mplus_tracker_enable"], mtDB.enabled, y, function(v)
-            TomoModDB.MythicTracker = TomoModDB.MythicTracker or {}
-            TomoModDB.MythicTracker.enabled = v
-        end); y=ny
-        local _, ny = Cb(c,L["ins_mplus_show_timer"], mtDB.showTimer, y, function(v)
-            TomoModDB.MythicTracker.showTimer = v
-        end); y=ny
-        local _, ny = Cb(c,L["ins_mplus_show_forces"], mtDB.showForces, y, function(v)
-            TomoModDB.MythicTracker.showForces = v
-        end); y=ny
-        local _, ny = Cb(c,L["ins_mplus_hide_blizzard"], mtDB.hideBlizzard, y, function(v)
-            TomoModDB.MythicTracker.hideBlizzard = v
-        end); y=ny
+-- ── Récap / Reload ─────────────────────────────────────────
+pages.recap = {
+    title = L["ins_recap_title"],
+    icon  = ICON_PATH .. "icon_general.tga",
+    build = function(c, p)
+        local logo = c:CreateTexture(nil, "OVERLAY")
+        logo:SetSize(52, 52); logo:SetPoint("TOP", 0, -22)
+        logo:SetTexture(LOGO_TEX); logo:SetVertexColor(A[1], A[2], A[3], 1)
 
-        y = Sec(c,L["ins_mplus_score_section"], y)
-        y = Info(c,L["ins_mplus_score_info"], y)
-        local _, ny = Cb(c,L["ins_mplus_score_enable"], tsDB.enabled, y, function(v)
-            TomoModDB.TomoScore = TomoModDB.TomoScore or {}
-            TomoModDB.TomoScore.enabled = v
-        end); y=ny
-        local _, ny = Cb(c,L["ins_mplus_score_auto"], tsDB.autoShowMPlus, y, function(v)
-            TomoModDB.TomoScore.autoShowMPlus = v
-        end); y=ny
-        return y
-    end,
-}
+        local check = c:CreateFontString(nil, "OVERLAY")
+        check:SetFont(FONT_BOLD, 22, ""); check:SetPoint("TOP", 0, -86)
+        check:SetTextColor(A[1], A[2], A[3], 1); check:SetText(L["ins_done_check"])
 
--- ── STEP 14: QOL ──────────────────────────────────────────
-steps[14] = {
-    title = L["ins_step10_title"],
-    icon  = ICON_PATH.."icon_qol.tga",
-    build = function(c)
-        local y = -10
-        y = Info(c,L["ins_qol_info"], y)
-        y = Sec(c,L["ins_qol_auto_section"], y)
-        local function qol(lbl, get, set, onTrue, ny)
-            local _, nny = Cb(c, lbl, get(), ny, function(v)
-                set(v); if v and onTrue then onTrue() end
-            end)
-            return nny
-        end
-        y = qol(L["ins_qol_auto_repair"],
-            function() return TomoModDB.autoVendorRepair and TomoModDB.autoVendorRepair.enabled end,
-            function(v)
-                TomoModDB.autoVendorRepair = TomoModDB.autoVendorRepair or {}
-                TomoModDB.autoVendorRepair.enabled = v
-            end, nil, y)
-        y = qol(L["ins_qol_fast_loot"],
-            function() return TomoModDB.fastLoot and TomoModDB.fastLoot.enabled end,
-            function(v) TomoModDB.fastLoot = TomoModDB.fastLoot or {}; TomoModDB.fastLoot.enabled = v end, nil, y)
-        y = qol(L["ins_qol_skip_cinematics"],
-            function() return TomoModDB.cinematicSkip and TomoModDB.cinematicSkip.enabled end,
-            function(v) TomoModDB.cinematicSkip = TomoModDB.cinematicSkip or {}; TomoModDB.cinematicSkip.enabled = v end, nil, y)
-        y = qol(L["ins_qol_hide_talking_head"],
-            function() return TomoModDB.hideTalkingHead and TomoModDB.hideTalkingHead.enabled end,
-            function(v) TomoModDB.hideTalkingHead = TomoModDB.hideTalkingHead or {}; TomoModDB.hideTalkingHead.enabled = v end, nil, y)
-        y = qol(L["ins_qol_auto_accept"],
-            function() return TomoModDB.autoAcceptInvite and TomoModDB.autoAcceptInvite.enabled end,
-            function(v) TomoModDB.autoAcceptInvite = TomoModDB.autoAcceptInvite or {}; TomoModDB.autoAcceptInvite.enabled = v end, nil, y)
-        y = qol(L["ins_qol_auto_summon"],
-            function() return TomoModDB.autoSummon and TomoModDB.autoSummon.enabled end,
-            function(v) TomoModDB.autoSummon = TomoModDB.autoSummon or {}; TomoModDB.autoSummon.enabled = v end, nil, y)
-        y = qol(L["ins_qol_auto_fill_delete"],
-            function() return TomoModDB.autoFillDelete and TomoModDB.autoFillDelete.enabled end,
-            function(v) TomoModDB.autoFillDelete = TomoModDB.autoFillDelete or {}; TomoModDB.autoFillDelete.enabled = v end, nil, y)
-        y = qol(L["ins_qol_auto_quest"],
-            function() return TomoModDB.autoQuest and TomoModDB.autoQuest.autoAccept end,
-            function(v) TomoModDB.autoQuest = TomoModDB.autoQuest or {}; TomoModDB.autoQuest.autoAccept = v; TomoModDB.autoQuest.autoTurnIn = v end, nil, y)
-        y = qol(L["ins_qol_tooltip_ids"],
-            function() return TomoModDB.tooltipIDs and TomoModDB.tooltipIDs.enabled end,
-            function(v) TomoModDB.tooltipIDs = TomoModDB.tooltipIDs or {}; TomoModDB.tooltipIDs.enabled = v end, nil, y)
+        local presetLbl = c:CreateFontString(nil, "OVERLAY")
+        presetLbl:SetFont(FONT, 13, ""); presetLbl:SetPoint("TOP", 0, -120)
+        presetLbl:SetTextColor(TX[1], TX[2], TX[3], 1)
 
-        y = Sec(c,L["ins_qol_combat_section"], y)
-        y = qol(L["ins_qol_combat_text"],
-            function() return TomoModDB.combatText and TomoModDB.combatText.enabled end,
-            function(v) TomoModDB.combatText = TomoModDB.combatText or {}; TomoModDB.combatText.enabled = v end, nil, y)
-        y = qol(L["ins_qol_hide_castbar"],
-            function() return TomoModDB.hideCastBar and TomoModDB.hideCastBar.enabled end,
-            function(v) TomoModDB.hideCastBar = TomoModDB.hideCastBar or {}; TomoModDB.hideCastBar.enabled = v end, nil, y)
+        local desc = c:CreateFontString(nil, "OVERLAY")
+        desc:SetFont(FONT, 11, ""); desc:SetPoint("TOPLEFT", 50, -152); desc:SetPoint("TOPRIGHT", -50, -152)
+        desc:SetJustifyH("LEFT"); desc:SetSpacing(4); desc:SetWordWrap(true)
+        desc:SetTextColor(TX[1], TX[2], TX[3], 0.82)
+        desc:SetText(L["ins_recap_desc"])
 
-        y = Sec(c,L["ins_qol_interface_section"], y)
-        y = qol(L["ins_qol_minimap"],
-            function() return TomoModDB.minimap and TomoModDB.minimap.enabled end,
-            function(v) TomoModDB.minimap = TomoModDB.minimap or {}; TomoModDB.minimap.enabled = v end, nil, y)
-        y = qol(L["ins_qol_cursor"],
-            function() return TomoModDB.cursorRing and TomoModDB.cursorRing.enabled end,
-            function(v) TomoModDB.cursorRing = TomoModDB.cursorRing or {}; TomoModDB.cursorRing.enabled = v end, nil, y)
-        y = qol(L["ins_qol_afk"],
-            function() return TomoModDB.afkDisplay and TomoModDB.afkDisplay.enabled end,
-            function(v) TomoModDB.afkDisplay = TomoModDB.afkDisplay or {}; TomoModDB.afkDisplay.enabled = v end, nil, y)
-        y = qol(L["ins_qol_aura_tracker"],
-            function() return TomoModDB.auraTracker and TomoModDB.auraTracker.enabled end,
-            function(v) TomoModDB.auraTracker = TomoModDB.auraTracker or {}; TomoModDB.auraTracker.enabled = v end, nil, y)
-        y = qol(L["ins_qol_class_reminder"],
-            function() return TomoModDB.classReminder and TomoModDB.classReminder.enabled end,
-            function(v) TomoModDB.classReminder = TomoModDB.classReminder or {}; TomoModDB.classReminder.enabled = v end, nil, y)
-        y = qol(L["ins_qol_leveling_bar"],
-            function() return TomoModDB.levelingBar and TomoModDB.levelingBar.enabled end,
-            function(v) TomoModDB.levelingBar = TomoModDB.levelingBar or {}; TomoModDB.levelingBar.enabled = v end, nil, y)
-        y = qol(L["ins_qol_waypoint"],
-            function() return TomoModDB.waypoint and TomoModDB.waypoint.enabled end,
-            function(v) TomoModDB.waypoint = TomoModDB.waypoint or {}; TomoModDB.waypoint.enabled = v end, nil, y)
-        y = qol(L["ins_qol_world_quest_tab"],
-            function() return TomoModDB.worldQuestTab and TomoModDB.worldQuestTab.enabled end,
-            function(v) TomoModDB.worldQuestTab = TomoModDB.worldQuestTab or {}; TomoModDB.worldQuestTab.enabled = v end, nil, y)
-        y = qol(L["ins_qol_frame_anchors"],
-            function() return TomoModDB.frameAnchors and TomoModDB.frameAnchors.enabled end,
-            function(v) TomoModDB.frameAnchors = TomoModDB.frameAnchors or {}; TomoModDB.frameAnchors.enabled = v end, nil, y)
-        y = qol(L["ins_qol_profession_helper"],
-            function() return TomoModDB.professionHelper and TomoModDB.professionHelper.enabled end,
-            function(v) TomoModDB.professionHelper = TomoModDB.professionHelper or {}; TomoModDB.professionHelper.enabled = v end, nil, y)
-        y = qol(L["ins_qol_diag"],
-            function() return TomoModDB.diagnostics and TomoModDB.diagnostics.enabled end,
-            function(v) TomoModDB.diagnostics = TomoModDB.diagnostics or {}; TomoModDB.diagnostics.enabled = v end, nil, y)
-        return y
-    end,
-}
-
--- ── STEP 15: CVars ────────────────────────────────────────
-steps[15] = {
-    title = L["ins_step9_title"],
-    icon  = ICON_PATH.."icon_qol.tga",
-    build = function(c)
-        local y = -10
-        y = Info(c,L["ins_cvar_info"], y)
-        y = Sec(c,L["ins_cvar_section"], y)
-        local opts = {
-            L["ins_cvar_opt1"],
-            L["ins_cvar_opt2"],
-            L["ins_cvar_opt3"],
-            L["ins_cvar_opt4"],
-            L["ins_cvar_opt5"],
-            L["ins_cvar_opt6"],
-        }
-        for _, o in ipairs(opts) do
-            local dot = c:CreateFontString(nil,"OVERLAY")
-            dot:SetFont(FONT,11,""); dot:SetPoint("TOPLEFT",18,y)
-            dot:SetTextColor(A[1],A[2],A[3],0.8); dot:SetText("•  "..o)
-            y = y - 20
-        end
-        y = y - 6
-        local applied = false
-        local statusLbl = c:CreateFontString(nil,"OVERLAY")
-        statusLbl:SetFont(FONT_BOLD,11,""); statusLbl:SetPoint("TOPLEFT",12,y-44)
-        statusLbl:SetTextColor(A[1],A[2],A[3],0)
-        statusLbl:SetText(L["ins_cvar_success"])
-        local _, ny = BigBtn(c,L["ins_cvar_apply_btn"], y, function()
-            if TomoMod_CVarOptimizer and TomoMod_CVarOptimizer.ApplyAll then
-                TomoMod_CVarOptimizer.ApplyAll()
-                applied = true
-                statusLbl:SetTextColor(A[1],A[2],A[3],1)
-                print("|cff0cd29fTomoMod|r " .. L["ins_cvar_applied"])
-            end
-        end, true); y=ny
-        y = y - 44  -- room for status label
-        return y
-    end,
-}
-
--- ── STEP 16: SkyRide ──────────────────────────────────────
-steps[16] = {
-    title = L["ins_step11_title"],
-    icon  = ICON_PATH.."icon_resources.tga",
-    build = function(c)
-        local y = -10
-        local srDB = TomoModDB.skyRide or {}
-        y = Info(c,L["ins_skyride_info"], y)
-        y = Sec(c,L["ins_skyride_activation"], y)
-        local _, ny = Cb(c,L["ins_skyride_enable"], srDB.enabled, y, function(v)
-            TomoModDB.skyRide = TomoModDB.skyRide or {}
-            TomoModDB.skyRide.enabled = v
-            if TomoMod_SkyRide then TomoMod_SkyRide.SetEnabled(v) end
-        end); y=ny
-        y = Info(c,L["ins_skyride_auto_info"], y)
-
-        y = Sec(c,L["ins_skyride_dimensions"], y)
-        local _, ny = Sldr(c,L["ins_skyride_width"], srDB.width or 340, 150, 600, 10, y, function(v)
-            TomoModDB.skyRide.width = v
-            if TomoMod_SkyRide then TomoMod_SkyRide.ApplySettings() end
-        end); y=ny
-        local _, ny = Sldr(c,L["ins_skyride_height"], srDB.height or 20, 8, 40, 1, y, function(v)
-            TomoModDB.skyRide.height = v
-            if TomoMod_SkyRide then TomoMod_SkyRide.ApplySettings() end
-        end); y=ny
-
-        y = Sec(c,L["ins_skyride_reset_section"], y)
-        local _, ny = BigBtn(c,L["ins_skyride_reset_btn"], y, function()
-            if TomoMod_SkyRide then TomoMod_SkyRide.ResetPosition() end
-        end, false); y=ny
-        return y
-    end,
-}
-
--- ── STEP 17: Fin ──────────────────────────────────────────
-steps[17] = {
-    title = L["ins_step12_title"],
-    icon  = ICON_PATH.."icon_general.tga",
-    build = function(c)
-        local logo = c:CreateTexture(nil,"OVERLAY")
-        logo:SetSize(52,52); logo:SetPoint("TOP",0,-18)
-        logo:SetTexture(LOGO_TEX); logo:SetVertexColor(A[1],A[2],A[3],1)
-
-        local check = c:CreateFontString(nil,"OVERLAY")
-        check:SetFont(FONT_BOLD,22,""); check:SetPoint("TOP",0,-78)
-        check:SetTextColor(A[1],A[2],A[3],1); check:SetText(L["ins_done_check"])
-
-        local recap = c:CreateFontString(nil,"OVERLAY")
-        recap:SetFont(FONT,11,""); recap:SetPoint("TOPLEFT",40,-120); recap:SetPoint("TOPRIGHT",-40,-120)
-        recap:SetJustifyH("LEFT"); recap:SetSpacing(3); recap:SetWordWrap(true)
-        recap:SetTextColor(TX[1],TX[2],TX[3],0.85)
-        recap:SetText(L["ins_done_recap"])
-
-        local rlBtn = CreateFrame("Button", nil, c, "BackdropTemplate")
-        rlBtn:SetSize(280, 42); rlBtn:SetPoint("TOP", recap, "BOTTOM", 0, -30)
-        rlBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-        rlBtn:SetBackdropColor(AD[1],AD[2],AD[3],0.9)
-        rlBtn:SetBackdropBorderColor(A[1],A[2],A[3],0.8)
-        local rlTxt = rlBtn:CreateFontString(nil,"OVERLAY")
-        rlTxt:SetFont(FONT_BOLD,14,""); rlTxt:SetPoint("CENTER"); rlTxt:SetText(L["ins_done_reload"])
-        rlTxt:SetTextColor(1,1,1,1)
-        rlBtn:SetScript("OnEnter",function()
-            rlBtn:SetBackdropColor(A[1],A[2],A[3],1); rlTxt:SetTextColor(0.05,0.05,0.07,1)
-        end)
-        rlBtn:SetScript("OnLeave",function()
-            rlBtn:SetBackdropColor(AD[1],AD[2],AD[3],0.9); rlTxt:SetTextColor(1,1,1,1)
-        end)
-        rlBtn:SetScript("OnClick",function()
-            TomoModDB.installer.completed = true
+        BigBtn(c, L["ins_done_reload"], -240, function()
+            if TomoModDB and TomoModDB.installer then TomoModDB.installer.completed = true end
             ReloadUI()
-        end)
+        end, true, 280)
+
+        -- Rafraîchit le libellé de preset à l'entrée
+        p.Refresh = function()
+            if selectedPreset == "custom" then
+                presetLbl:SetText(L["ins_recap_custom"])
+            else
+                local def  = P and P.Get and P.Get(selectedPreset)
+                local name = def and L["preset_" .. def.key .. "_name"] or selectedPreset
+                presetLbl:SetText(string.format(L["ins_recap_preset"], name))
+            end
+        end
+
         return -300
     end,
 }
 
 -- ============================================================
--- FRAME CONSTRUCTION
+-- PAGE PANEL FACTORY (conteneur scrollable + build)
 -- ============================================================
-local function BuildFrame()
-    -- Dimmer
-    dimmer = CreateFrame("Frame", nil, UIParent)
-    dimmer:SetFrameStrata("DIALOG")
-    dimmer:SetAllPoints(UIParent)
-    dimmer:EnableMouse(true)
-    local dimTex = dimmer:CreateTexture(nil,"BACKGROUND")
-    dimTex:SetAllPoints(); dimTex:SetColorTexture(0,0,0,0.60)
-    dimmer:Hide()
+local function GetOrBuildPage(key)
+    if pagePanels[key] then return pagePanels[key] end
 
-    -- Main panel
-    frame = CreateFrame("Frame", "TomoModInstallerFrame", UIParent, "BackdropTemplate")
-    frame:SetSize(PANEL_W, PANEL_H)
-    frame:SetPoint("CENTER")
-    frame:SetFrameStrata("DIALOG")
-    frame:SetFrameLevel(150)
-    frame:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 2,
-    })
-    frame:SetBackdropColor(BG[1],BG[2],BG[3],BG[4])
-    frame:SetBackdropBorderColor(A[1],A[2],A[3],0.40)
-    frame:SetMovable(true); frame:EnableMouse(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart",frame.StartMoving)
-    frame:SetScript("OnDragStop",frame.StopMovingOrSizing)
-    frame:Hide()
-    tinsert(UISpecialFrames, "TomoModInstallerFrame")
+    local SCROLL_W, SCROLL_PAD = 5, 8
+    local p = CreateFrame("Frame", nil, contentHost)
+    p:Hide()
+    p:SetAllPoints(contentHost)
 
-    -- ── HEADER ─────────────────────────────────────────────
-    local hBar = CreateFrame("Frame",nil,frame)
-    hBar:SetPoint("TOPLEFT"); hBar:SetPoint("TOPRIGHT"); hBar:SetHeight(52)
-    local hBg = hBar:CreateTexture(nil,"BACKGROUND")
-    hBg:SetAllPoints(); hBg:SetColorTexture(0.05,0.05,0.065,1)
-    local hLine = frame:CreateTexture(nil,"ARTWORK")
-    hLine:SetHeight(1); hLine:SetPoint("TOPLEFT",0,-52); hLine:SetPoint("TOPRIGHT",0,-52)
-    hLine:SetColorTexture(A[1],A[2],A[3],0.22)
+    local track = p:CreateTexture(nil, "BACKGROUND")
+    track:SetWidth(SCROLL_W)
+    track:SetPoint("TOPRIGHT",    -SCROLL_PAD, -SCROLL_PAD)
+    track:SetPoint("BOTTOMRIGHT", -SCROLL_PAD,  SCROLL_PAD)
+    track:SetColorTexture(0.12, 0.12, 0.16, 0.70)
+    track:Hide()
 
-    -- Logo mini
-    local hLogo = hBar:CreateTexture(nil,"OVERLAY")
-    hLogo:SetSize(24,24); hLogo:SetPoint("LEFT",14,0)
-    hLogo:SetTexture(LOGO_TEX); hLogo:SetVertexColor(A[1],A[2],A[3],1)
-    local hTitle = hBar:CreateFontString(nil,"OVERLAY")
-    hTitle:SetFont(FONT_BOLD,14,""); hTitle:SetPoint("LEFT",hLogo,"RIGHT",8,1)
-    hTitle:SetText(L["ins_header_title"])
+    local thumbF = CreateFrame("Frame", nil, p)
+    thumbF:SetWidth(SCROLL_W)
+    local thumbTex = thumbF:CreateTexture(nil, "OVERLAY")
+    thumbTex:SetAllPoints(); thumbTex:SetColorTexture(A[1], A[2], A[3], 0.75)
+    thumbF:Hide()
 
-    -- Step counter
-    stepLabel = hBar:CreateFontString(nil,"OVERLAY")
-    stepLabel:SetFont(FONT,10,""); stepLabel:SetPoint("RIGHT",-14,0)
-    stepLabel:SetTextColor(DM[1],DM[2],DM[3],1)
+    local sf = CreateFrame("ScrollFrame", nil, p)
+    sf:SetPoint("TOPLEFT", 0, 0)
+    sf:SetPoint("BOTTOMRIGHT", -SF_INSET, 0)
+    p._sf = sf
 
-    -- ── STEP DOTS ──────────────────────────────────────────
-    local dotHost = CreateFrame("Frame",nil,frame)
-    dotHost:SetPoint("TOPLEFT",0,-52); dotHost:SetPoint("TOPRIGHT",0,-52); dotHost:SetHeight(28)
-    local dotBg = dotHost:CreateTexture(nil,"BACKGROUND")
-    dotBg:SetAllPoints(); dotBg:SetColorTexture(0.07,0.07,0.09,1)
+    local c = CreateFrame("Frame", nil, sf)
+    c:SetWidth(CONTENT_W); c:SetHeight(1)
+    sf:SetScrollChild(c)
 
-    local DOT_SIZE = 10
-    local DOT_GAP  = 8
-    local totalDotW = TOTAL_STEPS * DOT_SIZE + (TOTAL_STEPS - 1) * DOT_GAP
-    local dotStartX = (PANEL_W - totalDotW) / 2
+    local finalY = pages[key] and pages[key].build and pages[key].build(c, p) or -10
+    c:SetHeight(math.max(math.abs(finalY) + 20, 100))
 
-    for i = 1, TOTAL_STEPS do
-        local dot = dotHost:CreateTexture(nil,"OVERLAY")
-        dot:SetSize(DOT_SIZE, DOT_SIZE)
-        dot:SetPoint("LEFT", dotHost, "LEFT", dotStartX + (i-1)*(DOT_SIZE+DOT_GAP), 0)
-        dot:SetColorTexture(BD[1],BD[2],BD[3],1)
-        stepDots[i] = dot
+    local function Upd()
+        local sfH  = sf:GetHeight() or 0
+        local cH   = c:GetHeight()  or 0
+        local maxS = cH - sfH
+        if maxS <= 0 then track:Hide(); thumbF:Hide(); return end
+        track:Show(); thumbF:Show()
+        local trkH  = sfH - 2 * SCROLL_PAD
+        local ratio = sfH / cH
+        local thH   = math.max(20, math.floor(trkH * ratio))
+        thumbF:SetHeight(thH)
+        local cur = sf:GetVerticalScroll()
+        local thY = (maxS > 0) and (cur / maxS) * (trkH - thH) or 0
+        thumbF:ClearAllPoints()
+        thumbF:SetPoint("TOPRIGHT", p, "TOPRIGHT", -SCROLL_PAD, -(SCROLL_PAD + thY))
     end
-    local dotLine = frame:CreateTexture(nil,"ARTWORK")
-    dotLine:SetHeight(1); dotLine:SetPoint("TOPLEFT",0,-80); dotLine:SetPoint("TOPRIGHT",0,-80)
-    dotLine:SetColorTexture(BD[1],BD[2],BD[3],1)
+    p._upd = Upd
 
-    -- ── STEP TITLE ─────────────────────────────────────────
-    local stepTitleFrame = CreateFrame("Frame",nil,frame)
-    stepTitleFrame:SetPoint("TOPLEFT",0,-80); stepTitleFrame:SetPoint("TOPRIGHT",0,-80)
-    stepTitleFrame:SetHeight(42)
-    local stBg = stepTitleFrame:CreateTexture(nil,"BACKGROUND")
-    stBg:SetAllPoints(); stBg:SetColorTexture(0.052,0.052,0.066,1)
-
-    local stepIcon = stepTitleFrame:CreateTexture(nil,"OVERLAY")
-    stepIcon:SetSize(22,22); stepIcon:SetPoint("LEFT",16,0)
-    frame._stepIcon = stepIcon
-
-    local stepTitleLbl = stepTitleFrame:CreateFontString(nil,"OVERLAY")
-    stepTitleLbl:SetFont(FONT_BOLD,13,""); stepTitleLbl:SetPoint("LEFT",stepIcon,"RIGHT",10,0)
-    stepTitleLbl:SetTextColor(0.90,0.92,0.91,1)
-    frame._stepTitle = stepTitleLbl
-
-    local stLine = frame:CreateTexture(nil,"ARTWORK")
-    stLine:SetHeight(1); stLine:SetPoint("TOPLEFT",0,-122); stLine:SetPoint("TOPRIGHT",0,-122)
-    stLine:SetColorTexture(A[1],A[2],A[3],0.15)
-
-    -- ── CONTENT HOST ───────────────────────────────────────
-    contentHost = CreateFrame("Frame",nil,frame)
-    contentHost:SetPoint("TOPLEFT",0,-123); contentHost:SetPoint("BOTTOMRIGHT",0,60)
-    contentHost:SetClipsChildren(true)
-
-    -- ── NAV BUTTONS ────────────────────────────────────────
-    local navBar = CreateFrame("Frame",nil,frame)
-    navBar:SetPoint("BOTTOMLEFT"); navBar:SetPoint("BOTTOMRIGHT"); navBar:SetHeight(60)
-    local navBg = navBar:CreateTexture(nil,"BACKGROUND")
-    navBg:SetAllPoints(); navBg:SetColorTexture(0.05,0.05,0.065,1)
-    local navLine = navBar:CreateTexture(nil,"ARTWORK")
-    navLine:SetHeight(1); navLine:SetPoint("TOPLEFT"); navLine:SetPoint("TOPRIGHT")
-    navLine:SetColorTexture(BD[1],BD[2],BD[3],1)
-
-    -- Previous button
-    prevBtn = CreateFrame("Button",nil,navBar,"BackdropTemplate")
-    prevBtn:SetSize(140,32); prevBtn:SetPoint("LEFT",16,0)
-    prevBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    prevBtn:SetBackdropColor(BG2[1],BG2[2],BG2[3],1); prevBtn:SetBackdropBorderColor(BD[1],BD[2],BD[3],1)
-    local prevTxt = prevBtn:CreateFontString(nil,"OVERLAY")
-    prevTxt:SetFont(FONT,12,""); prevTxt:SetPoint("CENTER"); prevTxt:SetText(L["ins_btn_prev"])
-    prevTxt:SetTextColor(TX[1],TX[2],TX[3],1)
-    prevBtn:SetScript("OnEnter",function() prevBtn:SetBackdropBorderColor(A[1],A[2],A[3],0.6); prevTxt:SetTextColor(A[1],A[2],A[3],1) end)
-    prevBtn:SetScript("OnLeave",function() prevBtn:SetBackdropBorderColor(BD[1],BD[2],BD[3],1); prevTxt:SetTextColor(TX[1],TX[2],TX[3],1) end)
-    prevBtn:SetScript("OnClick",function() INS.GoToStep(currentStep - 1) end)
-
-    -- Next button
-    nextBtn = CreateFrame("Button",nil,navBar,"BackdropTemplate")
-    nextBtn:SetSize(160,32); nextBtn:SetPoint("RIGHT",-16,0)
-    nextBtn:SetBackdrop({bgFile="Interface\\Buttons\\WHITE8x8",edgeFile="Interface\\Buttons\\WHITE8x8",edgeSize=1})
-    nextBtn:SetBackdropColor(AD[1],AD[2],AD[3],0.85); nextBtn:SetBackdropBorderColor(A[1],A[2],A[3],0.7)
-    local nextTxt = nextBtn:CreateFontString(nil,"OVERLAY")
-    nextTxt:SetFont(FONT_BOLD,12,""); nextTxt:SetPoint("CENTER"); nextTxt:SetText(L["ins_btn_next"])
-    nextTxt:SetTextColor(1,1,1,1)
-    nextBtn:SetScript("OnEnter",function() nextBtn:SetBackdropColor(A[1],A[2],A[3],1); nextTxt:SetTextColor(0.05,0.05,0.07,1) end)
-    nextBtn:SetScript("OnLeave",function() nextBtn:SetBackdropColor(AD[1],AD[2],AD[3],0.85); nextTxt:SetTextColor(1,1,1,1) end)
-    nextBtn:SetScript("OnClick",function() INS.GoToStep(currentStep + 1) end)
-
-    -- Skip link
-    local skipBtn = CreateFrame("Button",nil,navBar)
-    skipBtn:SetSize(120,20); skipBtn:SetPoint("CENTER")
-    local skipTxt = skipBtn:CreateFontString(nil,"OVERLAY")
-    skipTxt:SetFont(FONT,10,""); skipTxt:SetPoint("CENTER")
-    skipTxt:SetTextColor(DM[1],DM[2],DM[3],1); skipTxt:SetText(L["ins_btn_skip"])
-    skipBtn:SetScript("OnEnter",function() skipTxt:SetTextColor(TX[1],TX[2],TX[3],1) end)
-    skipBtn:SetScript("OnLeave",function() skipTxt:SetTextColor(DM[1],DM[2],DM[3],1) end)
-    skipBtn:SetScript("OnClick",function()
-        TomoModDB.installer.completed = true
-        INS.Hide()
+    sf:EnableMouseWheel(true)
+    sf:SetScript("OnMouseWheel", function(self, delta)
+        local cur = self:GetVerticalScroll()
+        self:SetVerticalScroll(math.max(0, math.min(cur - delta * 36, self:GetVerticalScrollRange())))
+        Upd()
     end)
+    sf:SetScript("OnShow",        function(self) C_Timer.After(0, Upd) end)
+    sf:SetScript("OnSizeChanged", function(self, w) if w and w > 10 then c:SetWidth(w) end; Upd() end)
+
+    pagePanels[key] = p
+    return p
+end
+
+-- ============================================================
+-- CHROME UPDATE (dots, counter, step title, nav buttons)
+-- ============================================================
+function INS._LayoutDots()
+    local n = #flow
+    local DOT_SIZE, DOT_GAP = 9, 8
+    local totalW = n * DOT_SIZE + (n - 1) * DOT_GAP
+    local startX = (PANEL_W - totalW) / 2
+    for i = 1, MAX_DOTS do
+        local dot = stepDots[i]
+        if not dot then break end
+        if i <= n then
+            dot:Show()
+            dot:ClearAllPoints()
+            dot:SetPoint("LEFT", dot:GetParent(), "LEFT", startX + (i-1)*(DOT_SIZE+DOT_GAP), 0)
+            if i == currentIndex then
+                dot:SetColorTexture(A[1], A[2], A[3], 1); dot:SetSize(11, 11)
+            elseif i < currentIndex then
+                dot:SetColorTexture(AD[1], AD[2], AD[3], 0.85); dot:SetSize(9, 9)
+            else
+                dot:SetColorTexture(BD[1], BD[2], BD[3], 1); dot:SetSize(9, 9)
+            end
+        else
+            dot:Hide()
+        end
+    end
+end
+
+local function UpdateChrome()
+    local key  = flow[currentIndex]
+    local page = pages[key]
+
+    INS._LayoutDots()
+
+    if stepLabel then
+        stepLabel:SetText(string.format(L["ins_step_counter"], currentIndex, #flow))
+    end
+    if frame._stepTitle then
+        if page and page.showStepTitle == false then
+            frame._stepTitle:SetText("")
+            if frame._stepIcon then frame._stepIcon:Hide() end
+        else
+            frame._stepTitle:SetText(page and page.title or "")
+            if frame._stepIcon then
+                frame._stepIcon:Show()
+                frame._stepIcon:SetTexture(page and page.icon)
+                frame._stepIcon:SetVertexColor(A[1], A[2], A[3], 1)
+            end
+        end
+    end
+
+    prevBtn:SetShown(currentIndex > 1)
+
+    local isRecap = (key == "recap")
+    nextBtn:SetShown(not isRecap)
+    skipBtn:SetShown(not isRecap)
+    if not isRecap then
+        local nextTxt = nextBtn:GetFontString()
+        if nextTxt then
+            local nextKey = flow[currentIndex + 1]
+            nextTxt:SetText(nextKey == "recap" and L["ins_btn_finish"] or L["ins_btn_next"])
+        end
+    end
 end
 
 -- ============================================================
 -- NAVIGATION
 -- ============================================================
-function INS.GoToStep(n)
+function INS.GoTo(index)
     if not frame then return end
-    n = math.max(1, math.min(TOTAL_STEPS, n))
+    index = math.max(1, math.min(#flow, index))
+    local key = flow[index]
 
-    -- Hide all panels, reset scroll position
-    for _, p in pairs(stepPanels) do
+    for _, p in pairs(pagePanels) do
         p:Hide()
         if p._sf then p._sf:SetVerticalScroll(0) end
     end
 
-    -- Build panel if not done yet
-    if not stepPanels[n] then
-        local SCROLL_W   = 5
-        local SCROLL_PAD = 8
-        local SF_INSET   = 16  -- right inset reserved for scrollbar
+    local panel = GetOrBuildPage(key)
+    panel:Show()
+    currentIndex = index
 
-        local p = CreateFrame("Frame", nil, contentHost)
-        p:Hide()  -- hide before building to prevent overlap flash
-        p:SetAllPoints(contentHost)
+    if key == "picker" and panel.Select  then panel.Select(selectedPreset) end
+    if key == "recap"  and panel.Refresh then panel.Refresh() end
 
-        -- Scrollbar track
-        local track = p:CreateTexture(nil, "BACKGROUND")
-        track:SetWidth(SCROLL_W)
-        track:SetPoint("TOPRIGHT",    -SCROLL_PAD, -SCROLL_PAD)
-        track:SetPoint("BOTTOMRIGHT", -SCROLL_PAD,  SCROLL_PAD)
-        track:SetColorTexture(0.12, 0.12, 0.16, 0.70)
-        track:Hide()
+    if panel._upd then C_Timer.After(0, panel._upd) end
+    UpdateChrome()
+end
 
-        -- Scrollbar thumb
-        local thumbF = CreateFrame("Frame", nil, p)
-        thumbF:SetWidth(SCROLL_W)
-        local thumbTex = thumbF:CreateTexture(nil, "OVERLAY")
-        thumbTex:SetAllPoints()
-        thumbTex:SetColorTexture(A[1], A[2], A[3], 0.75)
-        thumbF:Hide()
+function INS.Next()
+    local key  = flow[currentIndex]
+    local page = pages[key]
+    if page and page.onNext then page.onNext() end
+    RebuildFlow()  -- onNext (picker) peut avoir changé selectedPreset
+    INS.GoTo(currentIndex + 1)
+end
 
-        -- ScrollFrame (inset on right for scrollbar)
-        local sf = CreateFrame("ScrollFrame", nil, p)
-        sf:SetPoint("TOPLEFT",     0, 0)
-        sf:SetPoint("BOTTOMRIGHT", -SF_INSET, 0)
-        p._sf = sf
+function INS.Prev()
+    INS.GoTo(currentIndex - 1)
+end
 
-        -- Content child
-        local c = CreateFrame("Frame", nil, sf)
-        c:SetWidth(PANEL_W - SF_INSET)
-        c:SetHeight(1)
-        sf:SetScrollChild(c)
+-- ============================================================
+-- FRAME CONSTRUCTION
+-- ============================================================
+local function BuildFrame()
+    dimmer = CreateFrame("Frame", nil, UIParent)
+    dimmer:SetFrameStrata("DIALOG")
+    dimmer:SetAllPoints(UIParent)
+    dimmer:EnableMouse(true)
+    local dimTex = dimmer:CreateTexture(nil, "BACKGROUND")
+    dimTex:SetAllPoints(); dimTex:SetColorTexture(0, 0, 0, 0.60)
+    dimmer:Hide()
 
-        -- Build content, capture final y for height
-        local finalY = steps[n] and steps[n].build and steps[n].build(c) or -10
-        c:SetHeight(math.max(math.abs(finalY) + 20, 100))
+    frame = CreateFrame("Frame", "TomoModInstallerFrame", UIParent, "BackdropTemplate")
+    frame:SetSize(PANEL_W, PANEL_H)
+    frame:SetPoint("CENTER")
+    frame:SetFrameStrata("DIALOG")
+    frame:SetFrameLevel(150)
+    frame:SetBackdrop({ bgFile=WHITE, edgeFile=WHITE, edgeSize=2 })
+    frame:SetBackdropColor(BG[1], BG[2], BG[3], BG[4])
+    frame:SetBackdropBorderColor(A[1], A[2], A[3], 0.40)
+    frame:SetMovable(true); frame:EnableMouse(true)
+    frame:RegisterForDrag("LeftButton")
+    frame:SetScript("OnDragStart", frame.StartMoving)
+    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+    frame:Hide()
+    tinsert(UISpecialFrames, "TomoModInstallerFrame")
 
-        -- Scrollbar update
-        local function Upd()
-            local sfH  = sf:GetHeight() or 0
-            local cH   = c:GetHeight()  or 0
-            local maxS = cH - sfH
-            if maxS <= 0 then track:Hide(); thumbF:Hide(); return end
-            track:Show(); thumbF:Show()
-            local trkH  = sfH - 2 * SCROLL_PAD
-            local ratio = sfH / cH
-            local thH   = math.max(20, math.floor(trkH * ratio))
-            thumbF:SetHeight(thH)
-            local cur = sf:GetVerticalScroll()
-            local thY = (cur / maxS) * (trkH - thH)
-            thumbF:ClearAllPoints()
-            thumbF:SetPoint("TOPRIGHT", p, "TOPRIGHT", -SCROLL_PAD, -(SCROLL_PAD + thY))
-        end
+    -- ── HEADER ─────────────────────────────────────────────
+    local hBar = CreateFrame("Frame", nil, frame)
+    hBar:SetPoint("TOPLEFT"); hBar:SetPoint("TOPRIGHT"); hBar:SetHeight(HEADER_H)
+    local hBg = hBar:CreateTexture(nil, "BACKGROUND")
+    hBg:SetAllPoints(); hBg:SetColorTexture(0.05, 0.05, 0.065, 1)
+    local hLine = frame:CreateTexture(nil, "ARTWORK")
+    hLine:SetHeight(1); hLine:SetPoint("TOPLEFT", 0, -HEADER_H); hLine:SetPoint("TOPRIGHT", 0, -HEADER_H)
+    hLine:SetColorTexture(A[1], A[2], A[3], 0.22)
 
-        sf:EnableMouseWheel(true)
-        sf:SetScript("OnMouseWheel", function(self, delta)
-            local cur = self:GetVerticalScroll()
-            self:SetVerticalScroll(math.max(0, math.min(cur - delta * 36, self:GetVerticalScrollRange())))
-            Upd()
-        end)
-        sf:SetScript("OnShow",        function(self) local w = self:GetWidth(); if w and w > 0 then c:SetWidth(w) end; C_Timer.After(0, Upd) end)
-        sf:SetScript("OnSizeChanged", function(self, w) if w and w > 10 then c:SetWidth(w) end; Upd() end)
+    local hLogo = hBar:CreateTexture(nil, "OVERLAY")
+    hLogo:SetSize(24, 24); hLogo:SetPoint("LEFT", 14, 0)
+    hLogo:SetTexture(LOGO_TEX); hLogo:SetVertexColor(A[1], A[2], A[3], 1)
+    local hTitle = hBar:CreateFontString(nil, "OVERLAY")
+    hTitle:SetFont(FONT_BOLD, 14, ""); hTitle:SetPoint("LEFT", hLogo, "RIGHT", 8, 1)
+    hTitle:SetText(L["ins_header_title"])
 
-        p._upd = Upd
-        stepPanels[n] = p
+    stepLabel = hBar:CreateFontString(nil, "OVERLAY")
+    stepLabel:SetFont(FONT, 10, ""); stepLabel:SetPoint("RIGHT", -42, 0)
+    stepLabel:SetTextColor(DM[1], DM[2], DM[3], 1)
+
+    -- Bouton fermer (= skip)
+    local closeBtn = CreateFrame("Button", nil, hBar)
+    closeBtn:SetSize(28, 28); closeBtn:SetPoint("RIGHT", -8, 0)
+    local closeTxt = closeBtn:CreateFontString(nil, "OVERLAY")
+    closeTxt:SetFont(FONT_BOLD, 20, ""); closeTxt:SetPoint("CENTER", 0, 1); closeTxt:SetText("×")
+    closeTxt:SetTextColor(0.36, 0.36, 0.40, 1)
+    closeBtn:SetScript("OnEnter", function() closeTxt:SetTextColor(0.90, 0.28, 0.28, 1) end)
+    closeBtn:SetScript("OnLeave", function() closeTxt:SetTextColor(0.36, 0.36, 0.40, 1) end)
+    closeBtn:SetScript("OnClick", function()
+        if TomoModDB and TomoModDB.installer then TomoModDB.installer.completed = true end
+        INS.Hide()
+    end)
+
+    -- ── DOTS ───────────────────────────────────────────────
+    local dotHost = CreateFrame("Frame", nil, frame)
+    dotHost:SetPoint("TOPLEFT", 0, -HEADER_H); dotHost:SetPoint("TOPRIGHT", 0, -HEADER_H); dotHost:SetHeight(DOTS_H)
+    local dotBg = dotHost:CreateTexture(nil, "BACKGROUND")
+    dotBg:SetAllPoints(); dotBg:SetColorTexture(0.07, 0.07, 0.09, 1)
+    for i = 1, MAX_DOTS do
+        local dot = dotHost:CreateTexture(nil, "OVERLAY")
+        dot:SetSize(9, 9)
+        dot:SetPoint("LEFT", dotHost, "LEFT", 0, 0)
+        dot:SetColorTexture(BD[1], BD[2], BD[3], 1)
+        dot:Hide()
+        stepDots[i] = dot
     end
 
-    stepPanels[n]:Show()
-    C_Timer.After(0, stepPanels[n]._upd)
+    -- ── STEP TITLE ─────────────────────────────────────────
+    local stFrame = CreateFrame("Frame", nil, frame)
+    stFrame:SetPoint("TOPLEFT", 0, -(HEADER_H + DOTS_H)); stFrame:SetPoint("TOPRIGHT", 0, -(HEADER_H + DOTS_H))
+    stFrame:SetHeight(TITLE_H)
+    local stBg = stFrame:CreateTexture(nil, "BACKGROUND")
+    stBg:SetAllPoints(); stBg:SetColorTexture(0.052, 0.052, 0.066, 1)
 
-    currentStep = n
-    TomoModDB.installer.step = n
+    local stepIcon = stFrame:CreateTexture(nil, "OVERLAY")
+    stepIcon:SetSize(22, 22); stepIcon:SetPoint("LEFT", 16, 0)
+    frame._stepIcon = stepIcon
+    local stepTitleLbl = stFrame:CreateFontString(nil, "OVERLAY")
+    stepTitleLbl:SetFont(FONT_BOLD, 13, ""); stepTitleLbl:SetPoint("LEFT", stepIcon, "RIGHT", 10, 0)
+    stepTitleLbl:SetTextColor(0.90, 0.92, 0.91, 1)
+    frame._stepTitle = stepTitleLbl
 
-    -- Update dots
-    for i, dot in ipairs(stepDots) do
-        if i == n then
-            dot:SetColorTexture(A[1],A[2],A[3],1)
-            dot:SetSize(12,12)
-        elseif i < n then
-            dot:SetColorTexture(AD[1],AD[2],AD[3],0.8)
-            dot:SetSize(10,10)
-        else
-            dot:SetColorTexture(BD[1],BD[2],BD[3],1)
-            dot:SetSize(10,10)
-        end
-    end
+    local stLine = frame:CreateTexture(nil, "ARTWORK")
+    stLine:SetHeight(1)
+    stLine:SetPoint("TOPLEFT", 0, -(HEADER_H + DOTS_H + TITLE_H)); stLine:SetPoint("TOPRIGHT", 0, -(HEADER_H + DOTS_H + TITLE_H))
+    stLine:SetColorTexture(A[1], A[2], A[3], 0.15)
 
-    -- Update header
-    stepLabel:SetText(string.format(L["ins_step_counter"], n, TOTAL_STEPS))
-    if steps[n] then
-        if frame._stepTitle then frame._stepTitle:SetText(steps[n].title) end
-        if frame._stepIcon  then
-            frame._stepIcon:SetTexture(steps[n].icon)
-            frame._stepIcon:SetVertexColor(A[1],A[2],A[3],1)
-        end
-    end
+    -- ── CONTENT HOST ───────────────────────────────────────
+    contentHost = CreateFrame("Frame", nil, frame)
+    contentHost:SetPoint("TOPLEFT", 0, -(HEADER_H + DOTS_H + TITLE_H + 1))
+    contentHost:SetPoint("BOTTOMRIGHT", 0, NAV_H)
+    contentHost:SetClipsChildren(true)
 
-    -- Update nav buttons
-    prevBtn:SetShown(n > 1)
-    if n == TOTAL_STEPS then
-        nextBtn:Hide()
-    else
-        nextBtn:Show()
-        local nextTxt = nextBtn:GetFontString()
-        if nextTxt then
-            nextTxt:SetText(n == TOTAL_STEPS - 1 and L["ins_btn_finish"] or L["ins_btn_next"])
-        end
-    end
+    -- ── NAV BAR ────────────────────────────────────────────
+    local navBar = CreateFrame("Frame", nil, frame)
+    navBar:SetPoint("BOTTOMLEFT"); navBar:SetPoint("BOTTOMRIGHT"); navBar:SetHeight(NAV_H)
+    local navBg = navBar:CreateTexture(nil, "BACKGROUND")
+    navBg:SetAllPoints(); navBg:SetColorTexture(0.05, 0.05, 0.065, 1)
+    local navLine = navBar:CreateTexture(nil, "ARTWORK")
+    navLine:SetHeight(1); navLine:SetPoint("TOPLEFT"); navLine:SetPoint("TOPRIGHT")
+    navLine:SetColorTexture(BD[1], BD[2], BD[3], 1)
+
+    prevBtn = CreateFrame("Button", nil, navBar, "BackdropTemplate")
+    prevBtn:SetSize(140, 32); prevBtn:SetPoint("LEFT", 16, 0)
+    prevBtn:SetBackdrop({ bgFile=WHITE, edgeFile=WHITE, edgeSize=1 })
+    prevBtn:SetBackdropColor(BG2[1], BG2[2], BG2[3], 1); prevBtn:SetBackdropBorderColor(BD[1], BD[2], BD[3], 1)
+    local prevTxt = prevBtn:CreateFontString(nil, "OVERLAY")
+    prevTxt:SetFont(FONT, 12, ""); prevTxt:SetPoint("CENTER"); prevTxt:SetText(L["ins_btn_prev"])
+    prevTxt:SetTextColor(TX[1], TX[2], TX[3], 1)
+    prevBtn:SetScript("OnEnter", function() prevBtn:SetBackdropBorderColor(A[1], A[2], A[3], 0.6); prevTxt:SetTextColor(A[1], A[2], A[3], 1) end)
+    prevBtn:SetScript("OnLeave", function() prevBtn:SetBackdropBorderColor(BD[1], BD[2], BD[3], 1); prevTxt:SetTextColor(TX[1], TX[2], TX[3], 1) end)
+    prevBtn:SetScript("OnClick", function() INS.Prev() end)
+
+    nextBtn = CreateFrame("Button", nil, navBar, "BackdropTemplate")
+    nextBtn:SetSize(160, 32); nextBtn:SetPoint("RIGHT", -16, 0)
+    nextBtn:SetBackdrop({ bgFile=WHITE, edgeFile=WHITE, edgeSize=1 })
+    nextBtn:SetBackdropColor(AD[1], AD[2], AD[3], 0.85); nextBtn:SetBackdropBorderColor(A[1], A[2], A[3], 0.7)
+    local nextTxt = nextBtn:CreateFontString(nil, "OVERLAY")
+    nextTxt:SetFont(FONT_BOLD, 12, ""); nextTxt:SetPoint("CENTER"); nextTxt:SetText(L["ins_btn_next"])
+    nextTxt:SetTextColor(1, 1, 1, 1)
+    nextBtn:SetScript("OnEnter", function() nextBtn:SetBackdropColor(A[1], A[2], A[3], 1); nextTxt:SetTextColor(0.05, 0.05, 0.07, 1) end)
+    nextBtn:SetScript("OnLeave", function() nextBtn:SetBackdropColor(AD[1], AD[2], AD[3], 0.85); nextTxt:SetTextColor(1, 1, 1, 1) end)
+    nextBtn:SetScript("OnClick", function() INS.Next() end)
+
+    skipBtn = CreateFrame("Button", nil, navBar)
+    skipBtn:SetSize(120, 20); skipBtn:SetPoint("CENTER")
+    local skipTxt = skipBtn:CreateFontString(nil, "OVERLAY")
+    skipTxt:SetFont(FONT, 10, ""); skipTxt:SetPoint("CENTER")
+    skipTxt:SetTextColor(DM[1], DM[2], DM[3], 1); skipTxt:SetText(L["ins_btn_skip"])
+    skipBtn:SetScript("OnEnter", function() skipTxt:SetTextColor(TX[1], TX[2], TX[3], 1) end)
+    skipBtn:SetScript("OnLeave", function() skipTxt:SetTextColor(DM[1], DM[2], DM[3], 1) end)
+    skipBtn:SetScript("OnClick", function()
+        if TomoModDB and TomoModDB.installer then TomoModDB.installer.completed = true end
+        INS.Hide()
+    end)
 end
 
 -- ============================================================
@@ -1222,10 +891,15 @@ end
 -- ============================================================
 function INS.Show()
     if not frame then BuildFrame() end
+    -- Repart d'un état neuf : on reconstruit les pages depuis la DB
+    -- actuelle (évite des cases en cache divergeant de la DB).
+    for _, p in pairs(pagePanels) do p:Hide() end
+    pagePanels = {}
+    selectedPreset = "complet"
+    RebuildFlow()
     dimmer:Show()
     frame:Show()
-    local step = (TomoModDB and TomoModDB.installer and TomoModDB.installer.step) or 1
-    INS.GoToStep(step)
+    INS.GoTo(1)
 end
 
 function INS.Hide()

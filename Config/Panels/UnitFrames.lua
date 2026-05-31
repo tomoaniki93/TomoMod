@@ -261,6 +261,18 @@ local function BuildAurasTab(parent, unitKey)
         end)
         y = ny
 
+        local _, ny = W.CreateSlider(c, L["opt_auras_spacing"] or "Espacement", db.auras.spacing or 3, 0, 16, 1, y, function(v)
+            db.auras.spacing = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_auras_max_width"] or "Largeur max (retour à la ligne)", db.auras.maxWidth or 300, 60, 600, 10, y, function(v)
+            db.auras.maxWidth = v
+            RefreshUnit(unitKey)
+        end, "%d")
+        y = ny
+
         local _, ny = W.CreateDropdown(c, L["opt_auras_type"], {
             { text = L["aura_harmful"], value = "HARMFUL" },
             { text = L["aura_helpful"], value = "HELPFUL" },
@@ -280,26 +292,6 @@ local function BuildAurasTab(parent, unitKey)
 
         local _, ny = W.CreateCheckbox(c, L["opt_auras_only_mine"], db.auras.showOnlyMine, y, function(v)
             db.auras.showOnlyMine = v
-        end)
-        y = ny
-
-        local _, ny = W.CreateSlider(c, L["opt_auras_spacing"], db.auras.spacing or 3, 0, 12, 1, y, function(v)
-            db.auras.spacing = v
-            RefreshUnit(unitKey)
-        end)
-        y = ny
-
-        -- Reset aura position
-        local _, ny = W.CreateSeparator(c, y)
-        y = ny
-
-        local _, ny = W.CreateButton(c, L["btn_reset_aura_position"], 220, y, function()
-            local defaults = TomoMod_Defaults and TomoMod_Defaults.unitFrames and TomoMod_Defaults.unitFrames[unitKey]
-            if defaults and defaults.auras and defaults.auras.position then
-                db.auras.position = CopyTable(defaults.auras.position)
-                RefreshUnit(unitKey)
-                print("|cff0cd29fTomoMod|r Auras " .. unitKey .. " : position réinitialisée")
-            end
         end)
         y = ny
     end
@@ -563,16 +555,9 @@ local function BuildGeneralContent(parent)
         function(v)
             TomoModDB.unitFrames.enabled = v
             print("|cff0cd29fTomoMod|r " .. string.format(L["msg_uf_toggle"], v and L["enabled"] or L["disabled"]))
-            StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
         end,
         L["opt_hide_blizzard"], TomoModDB.unitFrames.hideBlizzardFrames,
-        function(v)
-            TomoModDB.unitFrames.hideBlizzardFrames = v
-            StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
-        end)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_module_reload"], y)
+        function(v) TomoModDB.unitFrames.hideBlizzardFrames = v end)
     y = ny
 
     -- Font family dropdown
