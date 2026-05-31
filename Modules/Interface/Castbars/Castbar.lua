@@ -1177,6 +1177,20 @@ function CB.ToggleLock()
     end
 end
 
+-- Mode aperçu EXPLICITE (déterministe, contrairement à ToggleLock).
+-- Mémorisé dans CB._previewMode pour que RefreshAll réaffiche l'aperçu sur
+-- TOUTES les barres recréées — y compris une unité qu'on vient d'activer.
+CB._previewMode = false
+function CB.IsPreview() return CB._previewMode == true end
+function CB.SetPreview(on)
+    CB._previewMode = on and true or false
+    for _, cb in pairs(CB.castbars) do
+        cb:SetLocked(not CB._previewMode)
+        if CB._previewMode then cb:ShowPreview() else cb:HidePreview() end
+    end
+end
+function CB.TogglePreview() CB.SetPreview(not CB._previewMode) end
+
 -- =====================================
 -- RE-ANCHOR TO UF FRAMES
 -- Called after UF resize/refresh so castbars stay in sync.
@@ -1245,11 +1259,20 @@ function CB.RefreshAll()
     CB.Initialize()
 
     -- Restore preview / unlocked state on the freshly re-created bars.
-    for unit, state in pairs(previewState) do
-        local cb = CB.castbars[unit]
-        if cb then
-            if not state.locked and cb.SetLocked then cb:SetLocked(false) end
-            if state.preview and cb.ShowPreview then cb:ShowPreview() end
+    -- Si le mode aperçu global est actif, on l'applique à TOUTES les barres
+    -- recréées (y compris une unité qu'on vient d'activer dans le panneau).
+    if CB._previewMode then
+        for _, cb in pairs(CB.castbars) do
+            if cb.SetLocked then cb:SetLocked(false) end
+            if cb.ShowPreview then cb:ShowPreview() end
+        end
+    else
+        for unit, state in pairs(previewState) do
+            local cb = CB.castbars[unit]
+            if cb then
+                if not state.locked and cb.SetLocked then cb:SetLocked(false) end
+                if state.preview and cb.ShowPreview then cb:ShowPreview() end
+            end
         end
     end
 end
