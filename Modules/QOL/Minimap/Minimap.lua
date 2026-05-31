@@ -540,15 +540,32 @@ function TomoMod_Minimap.CreateButtonBag()
         bagFrame:Hide()
     end
 
-    -- Position du déclencheur (réutilise le système d'indicateurs si dispo)
-    local corner, scale, x, y = "BOTTOMLEFT", db.scale or 1.0, db.x or 2, db.y or 26
+    -- Position du déclencheur
+    local scale = db.scale or 1.0
+    local anchorMode = db.anchor or "corner"
+    local clock = _G.TimeManagerClockButton
     bagToggle:ClearAllPoints()
-    bagToggle:SetPoint(db.corner or corner, Minimap, db.corner or corner, x, y)
-    bagToggle:SetScale(scale)
-
-    -- La boîte s'ancre au-dessus du déclencheur
     bagFrame:ClearAllPoints()
-    bagFrame:SetPoint("BOTTOMLEFT", bagToggle, "TOPLEFT", 0, 4)
+
+    if (anchorMode == "clock-left" or anchorMode == "clock-right") and clock and clock:IsShown() then
+        -- [3.0.1] Ancrage à l'horloge : le collecteur flanque l'heure et ne
+        -- recouvre plus la face de la minimap. Repli automatique sur le coin
+        -- si l'horloge est masquée ou non chargée.
+        local gap = db.clockGap or 2
+        if anchorMode == "clock-left" then
+            bagToggle:SetPoint("RIGHT", clock, "LEFT", -gap, 0)
+            bagFrame:SetPoint("BOTTOMRIGHT", bagToggle, "TOPRIGHT", 0, 4)
+        else
+            bagToggle:SetPoint("LEFT", clock, "RIGHT", gap, 0)
+            bagFrame:SetPoint("BOTTOMLEFT", bagToggle, "TOPLEFT", 0, 4)
+        end
+    else
+        -- Mode minimap (coin) — comportement par défaut
+        local corner = db.corner or "BOTTOMLEFT"
+        bagToggle:SetPoint(corner, Minimap, corner, db.x or 2, db.y or 26)
+        bagFrame:SetPoint("BOTTOMLEFT", bagToggle, "TOPLEFT", 0, 4)
+    end
+    bagToggle:SetScale(scale)
 
     -- Teinte
     local r, g, b = 0.9, 0.9, 0.9

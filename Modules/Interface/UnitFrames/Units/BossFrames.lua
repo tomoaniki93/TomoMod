@@ -431,6 +431,11 @@ function BF.IsLocked()
 end
 
 function BF.ToggleLock()
+    -- [TWW] Frames boss protégées : pas de (dé)verrouillage en combat.
+    -- Silencieux : appelé en sync depuis UF.ToggleLock (qui affiche déjà le message)
+    -- ou depuis Movers (qui garde déjà l'entrée).
+    if InCombatLockdown() then return end
+
     isLocked = not isLocked
 
     for i = 1, MAX_BOSSES do

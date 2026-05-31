@@ -102,10 +102,16 @@ local function GetButtonSpellID(button)
     local spellID = Scanner.GetCachedSpellID(button)
     if spellID then return spellID end
 
-    -- Fallback: try GetSpellID method
+    -- Fallback: try GetSpellID method.
+    -- [TWW] Sous taint, button:GetSpellID() peut renvoyer une *secret value* :
+    -- le pcall n'enveloppe que l'appel, donc on garde avec issecretvalue AVANT
+    -- toute comparaison (sid > 0), sinon "attempt to compare a secret number value".
     if button.GetSpellID and type(button.GetSpellID) == "function" then
         local ok, sid = pcall(button.GetSpellID, button)
-        if ok and sid and type(sid) == "number" and sid > 0 then return sid end
+        if ok and sid and not (issecretvalue and issecretvalue(sid))
+           and type(sid) == "number" and sid > 0 then
+            return sid
+        end
     end
 
     return nil

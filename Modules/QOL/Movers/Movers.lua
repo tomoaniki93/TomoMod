@@ -22,11 +22,13 @@ local math_max  = math.max
 -- STATE
 -- =====================================
 
-local isUnlocked  = false
-local headerBar   = nil
-local lockBtn     = nil
-local gridBtn     = nil
-local initialized = false
+local isUnlocked   = false
+local headerBar    = nil
+local lockBtn      = nil
+local gridBtn      = nil
+local initialized  = false
+local pendingRelock = false  -- [TWW] relock différé si le combat démarre en mode placement
+local combatFrame  = nil     -- [TWW] frame d'écoute PLAYER_REGEN_*
 local moduleEntries = {}
 
 -- =====================================
@@ -736,6 +738,16 @@ end
 
 function M.SetUnlocked(unlock)
     if not initialized then return end
+
+    -- [TWW] Les cadres sécurisés (UnitWatch / Show / SetPoint) ne peuvent pas
+    -- être modifiés en combat. On refuse l'entrée/sortie du mode placement ;
+    -- si le combat démarre alors qu'on est déjà déverrouillé, combatFrame
+    -- programme un relock automatique à la sortie du combat.
+    if InCombatLockdown() then
+        print("|cff0cd29fTomoMod Layout:|r " .. (L and L["layout_combat_blocked"] or "Impossible de déplacer l'interface en combat."))
+        return
+    end
+
     isUnlocked = unlock
 
     PatchIsLocked()
@@ -792,6 +804,30 @@ function M.Initialize()
     CreateGridOverlay()   -- pré-alloue le frame (pas visible)
     CreateHeaderBar()
     BuildEntries()
+
+    -- [TWW] Sécurité combat : si le combat démarre en mode placement, on masque
+    -- l'overlay non-sécurisé (autorisé en combat) et on programme un relock propre
+    -- à la sortie du combat — on ne touche jamais aux cadres sécurisés en combat.
+    if not combatFrame then
+        combatFrame = CreateFrame("Frame")
+        combatFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
+        combatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+        combatFrame:SetScript("OnEvent", function(_, event)
+            if event == "PLAYER_REGEN_DISABLED" then
+                if isUnlocked then
+                    pendingRelock = true
+                    if headerBar then headerBar:Hide() end
+                    if gridFrame then gridFrame:Hide() end
+                end
+            else -- PLAYER_REGEN_ENABLED
+                if pendingRelock then
+                    pendingRelock = false
+                    M.SetUnlocked(false)
+                end
+            end
+        end)
+    end
+
     initialized = true
     isUnlocked  = false
 end

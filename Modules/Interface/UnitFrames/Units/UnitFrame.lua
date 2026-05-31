@@ -537,6 +537,14 @@ function UF.IsLocked()
 end
 
 function UF.ToggleLock()
+    -- [TWW] Cadres d'unité protégés : Show / UnitWatch / SetPoint sont bloqués
+    -- en combat. On refuse tout (dé)verrouillage tant que le combat est actif
+    -- (le mode placement passe normalement par Movers, qui garde déjà l'entrée).
+    if InCombatLockdown() then
+        print("|cff0cd29fTomoMod UF:|r " .. (TomoMod_L["layout_combat_blocked"] or "Impossible de déplacer les cadres en combat."))
+        return
+    end
+
     isLocked = not isLocked
 
     for unit, frame in pairs(frames) do
