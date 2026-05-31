@@ -546,12 +546,8 @@ function UF.ToggleLock()
             UnregisterUnitWatch(frame)
             frame:Show()
             if frame.auraContainer then
-                if frame.auraContainer.SetLocked then
-                    frame.auraContainer:SetLocked(false)
-                else
-                    frame.auraContainer:EnableMouse(true)
-                    frame.auraContainer:Show()
-                end
+                frame.auraContainer:EnableMouse(true)
+                frame.auraContainer:Show()
             end
             if frame.enemyBuffContainer then
                 frame.enemyBuffContainer:EnableMouse(true)
@@ -565,11 +561,7 @@ function UF.ToggleLock()
                 RegisterUnitWatch(frame)
             end
             if frame.auraContainer then
-                if frame.auraContainer.SetLocked then
-                    frame.auraContainer:SetLocked(true)
-                else
-                    frame.auraContainer:EnableMouse(false)
-                end
+                frame.auraContainer:EnableMouse(false)
             end
             if frame.enemyBuffContainer then
                 frame.enemyBuffContainer:EnableMouse(false)
@@ -710,20 +702,16 @@ function UF.RefreshUnit(unitKey)
         frame.threatText = E.CreateThreatText(frame.health, settings)
     end
 
-    -- Redimensionner les icônes d'aura
+    -- Redimensionner les icônes d'aura puis ré-appliquer la grille (même layout
+    -- qu'à la création — évite toute incohérence de taille/espacement entre unités).
     if frame.auraContainer and frame.auraContainer.icons and settings.auras then
         local auraSize = settings.auras.size or 30
-        local spacing  = settings.auras.spacing or 3
-        frame.auraContainer:SetSize(300, auraSize + 4)
-        for idx, icon in ipairs(frame.auraContainer.icons) do
+        for _, icon in ipairs(frame.auraContainer.icons) do
             icon:SetSize(auraSize, auraSize)
             if icon.texture then icon.texture:SetAllPoints(icon) end
-            icon:ClearAllPoints()
-            if idx == 1 then
-                icon:SetPoint("LEFT", 0, 0)
-            else
-                icon:SetPoint("LEFT", frame.auraContainer.icons[idx - 1], "RIGHT", spacing, 0)
-            end
+        end
+        if E and E.LayoutAuraGrid then
+            E.LayoutAuraGrid(frame.auraContainer, settings.auras)
         end
     end
 

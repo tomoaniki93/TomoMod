@@ -1873,6 +1873,101 @@ local function SkinInspectFrame()
 end
 
 -- =====================================
+-- DÉPLACEMENT DE LA FENÊTRE PERSONNAGE
+-- =====================================
+-- CharacterFrame est une fenêtre du système UIPanel : Blizzard la repositionne
+-- à chaque ouverture. Pour permettre un placement libre sans la retirer du
+-- système (ce qui casserait son comportement), on réapplique la position
+-- sauvegardée après coup, via un hook sur SetPoint (réentrance gardée) + OnShow.
+-- Convention TomoMod : on capture la position avec GetLeft()/GetBottom().
+local charMovableHooked = false
+local applyingCharPos = false
+
+local function ApplySavedCharPosition()
+    if not CharacterFrame then return end
+    local s = GetSettings()
+    if not s.movable then return end
+    local pos = s.position
+    if not pos or not pos.x or not pos.y then return end
+    applyingCharPos = true
+    CharacterFrame:ClearAllPoints()
+    CharacterFrame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", pos.x, pos.y)
+    applyingCharPos = false
+end
+
+function CS.MakeCharacterMovable()
+    if not CharacterFrame then return end
+    local s = GetSettings()
+
+    CharacterFrame:SetMovable(true)
+    CharacterFrame:SetClampedToScreen(true)
+    if CharacterFrame.SetDontSavePosition then
+        -- empêche le layout Blizzard d'écraser notre position
+        CharacterFrame:SetDontSavePosition(true)
+    end
+
+    if not charMovableHooked then
+        charMovableHooked = true
+
+        -- Drag depuis la barre de titre si dispo, sinon depuis le cadre entier.
+        local dragHandle = _G.CharacterFrameTitleBg or _G.CharacterFrame
+        CharacterFrame:EnableMouse(true)
+        CharacterFrame:RegisterForDrag("LeftButton")
+        CharacterFrame:SetScript("OnDragStart", function(self)
+            if GetSettings().movable then self:StartMoving() end
+        end)
+        CharacterFrame:SetScript("OnDragStop", function(self)
+            self:StopMovingOrSizing()
+            -- Capture position via GetLeft()/GetBottom() (convention TomoMod)
+            local left, bottom = self:GetLeft(), self:GetBottom()
+            if left and bottom then
+                local st = GetSettings()
+                st.position = st.position or {}
+                st.position.x = left
+                st.position.y = bottom
+            end
+        end)
+
+        -- Réapplique notre position après chaque repositionnement Blizzard.
+        hooksecurefunc(CharacterFrame, "SetPoint", function()
+            if applyingCharPos then return end
+            if not GetSettings().movable then return end
+            -- différé pour laisser Blizzard finir son placement
+            C_Timer.After(0, ApplySavedCharPosition)
+        end)
+        CharacterFrame:HookScript("OnShow", function()
+            if GetSettings().movable then C_Timer.After(0, ApplySavedCharPosition) end
+        end)
+    end
+
+    ApplySavedCharPosition()
+end
+
+-- Active/désactive le déplacement à chaud (depuis le GUI).
+function CS.SetMovable(on)
+    local s = GetSettings()
+    s.movable = on and true or false
+    if s.movable then
+        CS.MakeCharacterMovable()
+    else
+        -- on relâche : Blizzard reprend la main sur le placement au prochain affichage
+        if CharacterFrame and CharacterFrame.SetDontSavePosition then
+            CharacterFrame:SetDontSavePosition(false)
+        end
+    end
+end
+
+-- Réinitialise la position (Blizzard reprend la main).
+function CS.ResetCharacterPosition()
+    local s = GetSettings()
+    s.position = nil
+    if CharacterFrame then
+        if CharacterFrame.SetDontSavePosition then CharacterFrame:SetDontSavePosition(false) end
+        -- Blizzard replacera la fenêtre à sa position par défaut au prochain affichage
+    end
+end
+
+-- =====================================
 -- INITIALIZE
 -- =====================================
 
@@ -1886,6 +1981,11 @@ function CS.Initialize()
         SkinCharacterFrame()
         SkinReputationFrame()
         SkinCurrencyFrame()
+    end
+
+    -- Fenêtre Personnage déplaçable (si activé)
+    if s.movable then
+        CS.MakeCharacterMovable()
     end
 
     if s.skinInspect then

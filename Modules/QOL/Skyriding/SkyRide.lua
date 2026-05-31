@@ -79,7 +79,13 @@ local function UpdateVisibility()
     local s = GetSettings()
     if not s or not s.enabled then frame:Hide(); return end
     if not isLocked then frame:Show(); return end
-    if IsFlying("player") then frame:Show() else frame:Hide() end
+    if IsFlying("player") then
+        frame:Show()
+    elseif s.showGroundSpeed then
+        frame:Show()  -- au sol : on garde le cadre pour la vitesse de déplacement
+    else
+        frame:Hide()
+    end
 end
 
 -- =====================================
@@ -396,11 +402,43 @@ local function UpdateSpeed()
 
     if not IsFlying("player") then
         if not isLocked then
+            -- Mode déverrouillé (placement) : aperçu
             speedBar:SetMinMaxValues(0, SPEED_MAX)
             speedBar:SetValue(PREVIEW_SPEED)
             if speedBar.speedText and s.showSpeedText then
                 speedBar.speedText:SetText(PREVIEW_SPEED .. "%")
                 speedBar.speedText:Show()
+            end
+        elseif s.showGroundSpeed then
+            -- Au sol : afficher la vitesse de déplacement réelle (utile avec un
+            -- buff de vitesse). On masque les segments Vigor / Second souffle,
+            -- sans objet hors vol, pour ne montrer que la barre de vitesse.
+            frame:Show()
+            for i = 1, VIGOR_MAX_SEGMENTS do
+                if vigorSegments[i] then vigorSegments[i]:Hide() end
+            end
+            for i = 1, WIND_MAX_SEGMENTS do
+                if windSegments[i] then windSegments[i]:Hide() end
+            end
+            if frame.vigorLabel then frame.vigorLabel:Hide() end
+            if frame.windLabel  then frame.windLabel:Hide()  end
+
+            local speed = GetUnitSpeed("player")
+            local moveSpeed = math.floor(speed / 7 * 100 + 0.5)
+            moveSpeed = math.max(0, math.min(moveSpeed, SPEED_MAX))
+            speedBar:SetMinMaxValues(0, SPEED_MAX)
+            speedBar:SetValue(moveSpeed, Enum.StatusBarInterpolation.ExponentialEaseOut)
+            if speedBar.speedText then
+                if s.showSpeedText then
+                    if moveSpeed ~= speedBar._lastSpeed then
+                        speedBar._lastSpeed = moveSpeed
+                        speedBar.speedText:SetText(moveSpeed .. "%")
+                    end
+                    speedBar.speedText:Show()
+                else
+                    speedBar._lastSpeed = nil
+                    speedBar.speedText:Hide()
+                end
             end
         else
             frame:Hide()
@@ -449,9 +487,17 @@ local _srWasFlying = false
 local function OnTick()
     local flying = IsFlying("player")
     local inPreview = not isLocked and not flying
-    -- [PERF] Skip all heavy work when grounded + locked (single API call per tick)
-    -- Hide the frame once on the flying→grounded transition
+    local s = GetSettings()
+    local groundSpeed = s and s.showGroundSpeed
+    -- [PERF] Skip all heavy work when grounded + locked (single API call per tick),
+    -- SAUF si l'affichage de la vitesse au sol est activé : on met alors à jour
+    -- uniquement la barre de vitesse (les segments restent masqués hors vol).
     if not flying and isLocked then
+        if groundSpeed then
+            _srWasFlying = false
+            UpdateSpeed()  -- gère l'affichage au sol + masque vigor/vent
+            return
+        end
         if _srWasFlying then
             _srWasFlying = false
             frame:Hide()

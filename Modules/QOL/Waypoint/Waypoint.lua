@@ -313,11 +313,9 @@ local function UpdateNavigator()
     if len < 1 then return end
 
     -- Project to orbit circle
-    -- ty is negated so the arrow sits on the opposite side from the target:
-    -- when the goal is ahead (navFrame at top), the arrow appears at the bottom.
     local ratio = ORBIT_DEFAULT / len
     local tx = dx * ratio
-    local ty = -dy * ratio
+    local ty = dy * ratio
 
     -- Smooth interpolation
     navCurrX = navCurrX + (tx - navCurrX) * 0.4
@@ -332,8 +330,11 @@ local function UpdateNavigator()
         _prevNavX, _prevNavY = navCurrX, navCurrY
     end
 
-    -- Rotation: arrow_right points east (0°), we want it to point toward target
-    -- atan2(dy,dx) gives angle from east; we subtract pi/2 because texture is east-pointing
+    -- Rotation : la texture de la flèche pointe vers le BAS au repos.
+    -- L'angle voulu vers la cible est atan2(dy,dx) + pi/2. Comme navCurrAngle
+    -- est lissé autour de targetAngle = atan2(dy,dx) - pi/2, l'angle final à
+    -- appliquer est navCurrAngle + pi (demi-tour). (Auparavant : -navCurrAngle,
+    -- ce qui inversait l'axe avant/arrière — la quête derrière pointait en haut.)
     local targetAngle = atan2(dy, dx) - pi * 0.5
     local diff = targetAngle - navCurrAngle
     -- [PERF] Modulo-based normalization instead of while loops
@@ -342,7 +343,7 @@ local function UpdateNavigator()
 
     -- [PERF] Only call SetRotation if angle changed significantly
     if navCurrAngle ~= _prevNavAngle then
-        NavArrow:SetRotation(-navCurrAngle)
+        NavArrow:SetRotation(navCurrAngle + pi)
         _prevNavAngle = navCurrAngle
     end
 end

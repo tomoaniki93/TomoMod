@@ -33,6 +33,58 @@ local function UF_CaptureSlots(dest, ...)
 end
 
 -- =====================================
+-- LAYOUT EN GRILLE (avec retour à la ligne)
+-- =====================================
+-- Place les icônes de gauche à droite (ou droite à gauche) et passe à la ligne
+-- quand la largeur prédéfinie est dépassée. Redimensionne le conteneur à la
+-- hauteur du nombre de rangées obtenu.
+function UF_Elements.LayoutAuraGrid(container, auraSettings)
+    if not container or not container.icons then return end
+    local size    = auraSettings.size or 30
+    local spacing = auraSettings.spacing or 3
+    local grow    = auraSettings.growDirection or "RIGHT"
+    local maxAuras = auraSettings.maxAuras or 8
+
+    -- Largeur max : réglage explicite, sinon largeur du conteneur, sinon repli.
+    local maxWidth = auraSettings.maxWidth
+    if not maxWidth or maxWidth <= 0 then
+        maxWidth = (container:GetWidth() and container:GetWidth() > 0) and container:GetWidth() or 300
+    end
+
+    -- Nombre d'icônes par rangée (au moins 1).
+    local step = size + spacing
+    local perRow = math.floor((maxWidth + spacing) / step)
+    if perRow < 1 then perRow = 1 end
+    if perRow > maxAuras then perRow = maxAuras end
+
+    local rows = 0
+    for i = 1, maxAuras do
+        local icon = container.icons[i]
+        if icon then
+            local col = (i - 1) % perRow
+            local row = math.floor((i - 1) / perRow)
+            if row + 1 > rows then rows = row + 1 end
+            icon:ClearAllPoints()
+            local x = col * step
+            local y = -row * step
+            if grow == "RIGHT" then
+                icon:SetPoint("TOPLEFT", container, "TOPLEFT", x, y)
+            else
+                icon:SetPoint("TOPRIGHT", container, "TOPRIGHT", -x, y)
+            end
+        end
+    end
+
+    -- Dimensionne le conteneur (largeur = perRow icônes, hauteur = rangées).
+    if rows < 1 then rows = 1 end
+    local usedCols = math.min(perRow, maxAuras)
+    local w = usedCols * size + (usedCols - 1) * spacing
+    local h = rows * size + (rows - 1) * spacing
+    container:SetSize(math.max(w, 1), math.max(h, 1))
+    container._perRow = perRow
+end
+
+-- =====================================
 -- CREATE AURA CONTAINER
 -- =====================================
 
@@ -41,7 +93,9 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings)
 
     local auraSettings = settings.auras
     local container = CreateFrame("Frame", "TomoMod_Auras_" .. unit, parent)
-    container:SetSize(300, auraSettings.size + 4)
+    -- Largeur de référence pour le calcul de la grille (réglage explicite sinon 300).
+    local refWidth = (auraSettings.maxWidth and auraSettings.maxWidth > 0) and auraSettings.maxWidth or 300
+    container:SetSize(refWidth, auraSettings.size + 4)
     container.unit = unit
     container.parentFrame = parent
     container.icons = {}
@@ -59,93 +113,30 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings)
         UF_Elements.CreateAuraIcon(container, i, auraSettings)
     end
 
-    -- Draggable support with mover overlay (Edit Mode)
+    -- Place les icônes en grille (avec retour à la ligne) et dimensionne.
+    UF_Elements.LayoutAuraGrid(container, auraSettings)
+
+    -- Draggable support (uses global lock state)
     container:SetMovable(true)
     container:SetClampedToScreen(true)
     container:EnableMouse(false)
-
-    -- Mover overlay (matches SetupDraggable visual style)
-    local ACCENT = { 0.047, 0.824, 0.624 }
-    local BG_COL = { 0.02, 0.07, 0.05, 0.80 }
-    local BD_COL = { 0.047, 0.824, 0.624, 0.60 }
-
-    local overlay = CreateFrame("Frame", nil, container, "BackdropTemplate")
-    overlay:SetAllPoints(container)
-    overlay:SetFrameLevel(container:GetFrameLevel() + 20)
-    overlay:EnableMouse(false)
-    overlay:Hide()
-
-    overlay:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8X8",
-        edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = 1,
-    })
-    overlay:SetBackdropColor(BG_COL[1], BG_COL[2], BG_COL[3], BG_COL[4])
-    overlay:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
-
-    local accentLine = overlay:CreateTexture(nil, "OVERLAY")
-    accentLine:SetHeight(1)
-    accentLine:SetPoint("TOPLEFT",  overlay, "TOPLEFT",  0, 0)
-    accentLine:SetPoint("TOPRIGHT", overlay, "TOPRIGHT", 0, 0)
-    accentLine:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.8)
-
-    local overlayLabel = overlay:CreateFontString(nil, "OVERLAY")
-    overlayLabel:SetFont(FONT, 10, "OUTLINE")
-    overlayLabel:SetPoint("CENTER", overlay, "CENTER")
-    overlayLabel:SetTextColor(1, 1, 1, 0.90)
-    overlayLabel:SetText("Auras " .. unit)
-    container.moverLabel = overlayLabel
-
-    overlay:SetScript("OnMouseDown", function(self, button)
-        if button == "LeftButton" then
-            container:StartMoving()
-            self:SetBackdropBorderColor(1, 1, 1, 1)
+    container:RegisterForDrag("LeftButton")
+    container:SetScript("OnDragStart", function(self)
+        self:StartMoving()
+    end)
+    container:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        -- Convert to parent-relative coordinates
+        local sx, sy = self:GetCenter()
+        local px, py = parent:GetCenter()
+        if sx and sy and px and py then
+            local dx = sx - px
+            local dy = sy - py
+            self:ClearAllPoints()
+            self:SetPoint("CENTER", parent, "CENTER", dx, dy)
+            auraSettings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
         end
     end)
-    overlay:SetScript("OnMouseUp", function(self, button)
-        if button == "LeftButton" then
-            container:StopMovingOrSizing()
-            self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
-            -- Convert to parent-relative coordinates
-            local sx, sy = container:GetCenter()
-            local px, py = parent:GetCenter()
-            if sx and sy and px and py then
-                local dx = sx - px
-                local dy = sy - py
-                container:ClearAllPoints()
-                container:SetPoint("CENTER", parent, "CENTER", dx, dy)
-                auraSettings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
-            end
-        end
-    end)
-    overlay:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(1, 1, 1, 1)
-        overlayLabel:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
-    end)
-    overlay:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
-        overlayLabel:SetTextColor(1, 1, 1, 0.90)
-    end)
-
-    container.moverOverlay = overlay
-    container._isLocked = true
-
-    container.SetLocked = function(self, locked)
-        self._isLocked = locked
-        if locked then
-            overlay:EnableMouse(false)
-            overlay:Hide()
-            self:EnableMouse(false)
-        else
-            overlay:EnableMouse(true)
-            overlay:Show()
-            self:Show()
-        end
-    end
-
-    container.IsLocked = function(self)
-        return self._isLocked
-    end
 
     return container
 end
@@ -156,27 +147,11 @@ end
 
 function UF_Elements.CreateAuraIcon(container, index, auraSettings)
     local size = auraSettings.size or 30
-    local spacing = auraSettings.spacing or 3
-    local grow = auraSettings.growDirection or "RIGHT"
 
     local icon = CreateFrame("Frame", nil, container)
     icon:SetSize(size, size)
-
-    -- Position
-    if index == 1 then
-        if grow == "RIGHT" then
-            icon:SetPoint("LEFT", container, "LEFT", 0, 0)
-        else
-            icon:SetPoint("RIGHT", container, "RIGHT", 0, 0)
-        end
-    else
-        local prev = container.icons[index - 1]
-        if grow == "RIGHT" then
-            icon:SetPoint("LEFT", prev, "RIGHT", spacing, 0)
-        else
-            icon:SetPoint("RIGHT", prev, "LEFT", -spacing, 0)
-        end
-    end
+    -- Le positionnement est géré par UF_Elements.LayoutAuraGrid (grille avec
+    -- retour à la ligne). On ne chaîne plus les icônes ici.
 
     -- Texture
     icon.texture = icon:CreateTexture(nil, "ARTWORK")

@@ -92,6 +92,7 @@ reminderText:SetTextColor(1, 1, 1, 1)
 local playerClass
 local currentSpecID
 local missingList = {}
+local crPreview = false   -- aperçu actif : empêche le ticker d'écraser l'affichage
 
 -- ── Core Logic ───────────────────────────────────────────────
 
@@ -150,6 +151,7 @@ local function CheckMissing()
 end
 
 local function UpdateDisplay()
+    if crPreview then return end  -- ne pas écraser l'aperçu en cours
     local db = GetDB()
     if not db or not db.enabled then
         reminderFrame:Hide()
@@ -212,6 +214,53 @@ end)
 local _crTicker = nil
 
 -- ── Public API ───────────────────────────────────────────────
+
+-- Liste des classes couvertes et de leurs buffs/formes suivis (pour le panneau).
+function CR.GetCoverage()
+    local out = {}
+    for classToken, data in pairs(CLASS_DATA) do
+        local items = {}
+        if data.buffs then for _, b in ipairs(data.buffs) do items[#items + 1] = L[b.nameKey] end end
+        if data.forms then for _, f in ipairs(data.forms) do items[#items + 1] = L[f.nameKey] end end
+        local className = (LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE[classToken]) or classToken
+        out[#out + 1] = { class = classToken, className = className, items = items }
+    end
+    table.sort(out, function(a, b) return a.className < b.className end)
+    return out
+end
+
+-- Affiche un message d'exemple à l'emplacement configuré pendant quelques
+-- secondes, pour visualiser l'apparence/position sans attendre un buff manquant.
+function CR.ShowPreview(seconds)
+    local db = GetDB()
+    -- Texte d'exemple : buffs/formes de la classe du joueur, sinon générique.
+    local sample
+    local data = playerClass and CLASS_DATA[playerClass]
+    if data then
+        local items = {}
+        if data.buffs then for _, b in ipairs(data.buffs) do items[#items + 1] = L[b.nameKey] end end
+        if data.forms then for _, f in ipairs(data.forms) do items[#items + 1] = L[f.nameKey] end end
+        if #items > 0 then sample = table.concat(items, "  |  ") end
+    end
+    sample = sample or (L["cr_preview_sample"] or "Exemple : buff de classe manquant")
+
+    crPreview = true
+    reminderText:SetText(sample)
+    local scale = (db and db.scale) or 1.0
+    reminderFrame:SetScale(scale)
+    local color = (db and db.textColor) or { r = 1, g = 1, b = 1 }
+    reminderText:SetTextColor(color.r, color.g, color.b, 1)
+    local offX = (db and db.offsetX) or 0
+    local offY = (db and db.offsetY) or 0
+    reminderFrame:ClearAllPoints()
+    reminderFrame:SetPoint("CENTER", UIParent, "CENTER", offX, offY)
+    reminderFrame:Show()
+
+    C_Timer.After(seconds or 4, function()
+        crPreview = false
+        UpdateDisplay()  -- revient à l'état réel (masque si rien ne manque)
+    end)
+end
 
 function CR.SetEnabled(v)
     local db = GetDB()

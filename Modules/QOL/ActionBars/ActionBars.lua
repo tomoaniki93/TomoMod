@@ -56,6 +56,7 @@ local BAR_DEFAULTS = {
     showEmptyButtons = false,
     showCountText    = true,
     showHotkeyText   = true,
+    hotkeyFontSize   = 14,
 }
 
 -- Override defaults for specific bars
@@ -473,7 +474,14 @@ local function LayoutBar(id)
             btn:SetPoint(anchor, container, anchor, x, y)
 
             local hotkey = btn.HotKey or _G[def.prefix .. i .. "HotKey"]
-            if hotkey then hotkey:SetShown(barDB.showHotkeyText ~= false) end
+            if hotkey then
+                hotkey:SetShown(barDB.showHotkeyText ~= false)
+                -- Taille de police des raccourcis : on garde la police et les
+                -- contours d'origine, on ne change que la taille.
+                local fsize = barDB.hotkeyFontSize or 14
+                local face, _, fl = hotkey:GetFont()
+                if face then hotkey:SetFont(face, fsize, fl) end
+            end
             local count = btn.Count or _G[def.prefix .. i .. "Count"]
             if count then count:SetShown(barDB.showCountText ~= false) end
         end
@@ -671,21 +679,20 @@ local function UpdateEmptyButtons(id)
     end
     for _, btn in ipairs(buttons) do
         if barDB.showEmptyButtons then
-            if not btn._tomoGrid then
-                btn._tomoGrid = true
-                btn:SetAttribute("showgrid", SHOWGRID_ALWAYS)
-                btn:Show()
-                btn:SetAlpha(1)
-            end
+            btn._tomoGrid = true
+            btn:SetAttribute("showgrid", SHOWGRID_ALWAYS)
+            btn:Show()
+            btn:SetAlpha(1)
         else
-            if btn._tomoGrid then
-                btn._tomoGrid = nil
-                btn:SetAttribute("showgrid", 0)
-                -- Let Blizzard decide visibility based on HasAction
-                local action = btn.action or btn:GetAttribute("action") or 0
-                if not HasAction(action) then
-                    btn:Hide()
-                end
+            -- [FIX] Le masquage doit être ACTIF à chaque application : après un
+            -- /reload le flag runtime _tomoGrid est nil, donc l'ancien garde
+            -- "if btn._tomoGrid" sautait le masquage et laissait le défaut
+            -- Blizzard (emplacements vides visibles). On force désormais.
+            btn._tomoGrid = nil
+            btn:SetAttribute("showgrid", 0)
+            local action = btn.action or btn:GetAttribute("action") or 0
+            if not HasAction(action) then
+                btn:Hide()
             end
         end
     end
@@ -906,6 +913,38 @@ function AB.RefreshBar(id)
     AB.ApplyBar(id)
     if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.ReskinBar then
         TomoMod_ActionBarSkin.ReskinBar(id)
+    end
+end
+
+-- Champs d'apparence/disposition copiés par "uniformiser" (PAS la position
+-- ni l'état activé ni la condition d'affichage, qui restent propres à chaque barre).
+local UNIFORM_FIELDS = {
+    "columns", "spacing", "buttonSize", "orientation", "growDirection",
+    "alpha", "scale",
+    "fadeEnabled", "fadeInDelay", "fadeInDuration", "fadeOutDelay", "fadeOutDuration", "fadeOutAlpha",
+    "clickThrough", "showEmptyButtons", "showCountText", "showHotkeyText", "hotkeyFontSize",
+}
+
+-- Copie les réglages d'apparence de la barre source vers toutes les autres.
+function AB.CopyBarToAll(sourceId)
+    if not TomoModDB.actionBars then return end
+    if not TomoModDB.actionBars.bars then TomoModDB.actionBars.bars = {} end
+    local src = TomoModDB.actionBars.bars[sourceId]
+    local srcDef = GetBarDB(sourceId)  -- défauts fusionnés si la table est vide
+    if not srcDef then return end
+
+    for _, def in ipairs(AB.BAR_DEFS) do
+        if def.id ~= sourceId then
+            local dst = TomoModDB.actionBars.bars[def.id]
+            if not dst then dst = {}; TomoModDB.actionBars.bars[def.id] = dst end
+            for _, key in ipairs(UNIFORM_FIELDS) do
+                -- valeur effective de la source (DB explicite sinon défaut fusionné)
+                local v = src and src[key]
+                if v == nil then v = srcDef[key] end
+                dst[key] = v
+            end
+            AB.RefreshBar(def.id)
+        end
     end
 end
 
