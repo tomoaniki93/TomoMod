@@ -18,7 +18,7 @@ Built from the ground up for **Midnight 12.x** with native handling of Blizzard'
 1. Download the latest release from CurseForge
 2. Extract the `TomoMod` folder into `World of Warcraft/_retail_/Interface/AddOns/`
 3. Restart WoW or type `/reload`
-4. **First launch:** a 12-step setup wizard walks you through every module — pick your skins, enable your features, and you're done
+4. **First launch:** a 6-step setup wizard walks you through every module — pick your skins, enable your features, and you're done
 5. Type `/tm` anytime to open the full configuration panel
 
 ---
