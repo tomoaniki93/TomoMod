@@ -189,11 +189,11 @@ local function CreateUI()
     subZoneText:SetText("")
 
     -- =========================================
-    -- OVERLAY: Coords (top-right on minimap)
+    -- OVERLAY: Coords (bottom-center on minimap)
     -- =========================================
     coordsText = minimap:CreateFontString(nil, "OVERLAY")
     coordsText:SetFont(FONT, 11, "OUTLINE")
-    coordsText:SetPoint("TOPRIGHT", minimap, "TOPRIGHT", -6, -6)
+    coordsText:SetPoint("BOTTOM", minimap, "BOTTOM", 0, 6)
     coordsText:SetTextColor(0.85, 0.85, 0.85, 1)
     coordsText:SetText("")
 

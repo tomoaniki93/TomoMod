@@ -85,15 +85,23 @@ local function SkinTooltipBackground(tooltip)
     if not tooltip then return end
     local s = S()
 
-    -- NineSlice background
-    if tooltip.NineSlice then
-        -- Darken background
+    -- Approche SetBackdrop (API standard, correctement bornée au frame du tooltip).
+    -- N'utilise PAS NineSlice.Center:SetAlpha() qui peut affecter une zone plus large
+    -- que le tooltip en TWW 12.x et créer un rectangle noir sur l'écran.
+    if tooltip.SetBackdrop then
+        tooltip:SetBackdrop({
+            bgFile   = "Interface\\Buttons\\WHITE8x8",
+            edgeFile = "Interface\\Buttons\\WHITE8x8",
+            edgeSize = 1,
+            insets   = { left = 2, right = 2, top = 2, bottom = 2 },
+        })
+        tooltip:SetBackdropColor(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], s.bgAlpha or 0.92)
+        tooltip:SetBackdropBorderColor(BORDER_CLR[1], BORDER_CLR[2], BORDER_CLR[3], s.borderAlpha or 0.8)
+    elseif tooltip.NineSlice then
+        -- Fallback NineSlice : utilise SetVertexColor(r,g,b,a) sans SetAlpha() séparé
         if tooltip.NineSlice.Center then
-            tooltip.NineSlice.Center:SetVertexColor(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3])
-            tooltip.NineSlice.Center:SetAlpha(s.bgAlpha or 0.92)
+            tooltip.NineSlice.Center:SetVertexColor(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], s.bgAlpha or 0.92)
         end
-
-        -- Darken border pieces
         local borderPieces = {
             "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "BottomRightCorner",
             "TopEdge", "BottomEdge", "LeftEdge", "RightEdge",
@@ -101,17 +109,16 @@ local function SkinTooltipBackground(tooltip)
         for _, pieceName in ipairs(borderPieces) do
             local piece = tooltip.NineSlice[pieceName]
             if piece then
-                piece:SetVertexColor(BORDER_CLR[1], BORDER_CLR[2], BORDER_CLR[3])
-                piece:SetAlpha(s.borderAlpha or 0.8)
+                piece:SetVertexColor(BORDER_CLR[1], BORDER_CLR[2], BORDER_CLR[3], s.borderAlpha or 0.8)
             end
         end
     end
 
-    -- Accent line at top
+    -- Ligne d'accent teal en haut du tooltip
     if not tooltip._tomoAccent then
         local accent = tooltip:CreateTexture(nil, "OVERLAY")
         accent:SetHeight(1)
-        accent:SetPoint("TOPLEFT", tooltip, "TOPLEFT", 4, -3)
+        accent:SetPoint("TOPLEFT",  tooltip, "TOPLEFT",  4, -3)
         accent:SetPoint("TOPRIGHT", tooltip, "TOPRIGHT", -4, -3)
         accent:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.5)
         tooltip._tomoAccent = accent

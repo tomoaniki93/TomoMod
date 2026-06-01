@@ -172,11 +172,183 @@ local function OpenFallbackTrackingMenu(anchor)
     return true
 end
 
+-- =====================================
+-- PANNEAU DE PISTAGE CUSTOM (style TomoMod)
+-- =====================================
+local trackingPanel   = nil
+local trackingRowPool = {}
+local TM_PANEL_FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local TM_PANEL_FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
+
+-- Applique le toggle de pistage selon l'API disponible (filterID TWW ou index legacy).
+local function TM_SetTracking(idx, active)
+    local _, _, _, _, filterID = ReadTrackingInfo(idx)
+    if filterID ~= nil then
+        pcall(C_Minimap.SetTracking, filterID, active)
+    else
+        pcall(C_Minimap.SetTracking, idx, active)
+    end
+end
+
+local function OpenTrackingPanel()
+    local count = (C_Minimap and C_Minimap.GetNumTrackingTypes) and C_Minimap.GetNumTrackingTypes() or 0
+    local entries = {}
+    for i = 1, count do
+        local name, tex, _, nested = ReadTrackingInfo(i)
+        if name and (nested == nil or nested < 0) then
+            entries[#entries + 1] = { idx = i, name = name, tex = tex }
+        end
+    end
+
+    local PAD     = 8
+    local ROW_H   = 24
+    local PW      = 244
+    local TITLE_H = 28
+    local MAX_H   = 380
+    local contH   = math.max(#entries * ROW_H, 1)
+    local scrollH = math.min(contH, MAX_H)
+    local panelH  = TITLE_H + 1 + PAD + scrollH + PAD
+
+    -- Créer le panel une seule fois
+    if not trackingPanel then
+        trackingPanel = CreateFrame("Frame", "TomoModTrackingPanel", UIParent, "BackdropTemplate")
+        trackingPanel:SetFrameStrata("DIALOG")
+        trackingPanel:SetFrameLevel(100)
+        trackingPanel:SetClampedToScreen(true)
+        trackingPanel:Hide()
+
+        -- Titre (teal accent)
+        local t = trackingPanel:CreateFontString(nil, "OVERLAY")
+        t:SetFont(TM_PANEL_FONT_BOLD, 11, "")
+        t:SetPoint("TOPLEFT", PAD, -PAD)
+        t:SetText(MINIMAP_TRACKING_TITLE or TRACKING or "Pistage")
+        t:SetTextColor(0.05, 0.82, 0.62, 1)
+
+        -- Séparateur horizontal
+        local sep = trackingPanel:CreateTexture(nil, "ARTWORK")
+        sep:SetHeight(1)
+        sep:SetPoint("TOPLEFT",  PAD,  -TITLE_H)
+        sep:SetPoint("TOPRIGHT", -PAD, -TITLE_H)
+        sep:SetColorTexture(0.2, 0.2, 0.25, 0.8)
+
+        -- ScrollFrame (défilement à la molette si liste longue)
+        local sf = CreateFrame("ScrollFrame", nil, trackingPanel)
+        sf:SetPoint("TOPLEFT",     PAD,  -(TITLE_H + 1 + PAD))
+        sf:SetPoint("BOTTOMRIGHT", -PAD, PAD)
+        sf:EnableMouseWheel(true)
+        sf:SetScript("OnMouseWheel", function(self, d)
+            local cur = self:GetVerticalScroll()
+            self:SetVerticalScroll(math.max(0, math.min(self:GetVerticalScrollRange(), cur - d * ROW_H)))
+        end)
+        trackingPanel._sf = sf
+
+        local sc = CreateFrame("Frame", nil, sf)
+        sc:SetWidth(PW - PAD * 2)
+        sf:SetScrollChild(sc)
+        trackingPanel._sc = sc
+    end
+
+    -- Style (couleur de bordure peut avoir changé)
+    local r, g, b = 0.2, 0.2, 0.25
+    if TomoModDB.minimap.borderColor == "class" then r, g, b = TomoMod_Utils.GetClassColor() end
+    trackingPanel:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    trackingPanel:SetBackdropColor(0.06, 0.06, 0.08, 0.95)
+    trackingPanel:SetBackdropBorderColor(r, g, b, 1)
+    trackingPanel:SetSize(PW, panelH)
+    trackingPanel._sc:SetSize(PW - PAD * 2, contH)
+
+    -- Masquer les lignes excédentaires du pool
+    for n = #entries + 1, #trackingRowPool do
+        if trackingRowPool[n] then trackingRowPool[n]:Hide() end
+    end
+
+    -- Créer / mettre à jour les lignes
+    for i, entry in ipairs(entries) do
+        if not trackingRowPool[i] then
+            local row = CreateFrame("Button", nil, trackingPanel._sc)
+            row:SetHeight(ROW_H)
+
+            local hl = row:CreateTexture(nil, "BACKGROUND")
+            hl:SetAllPoints(); hl:SetColorTexture(0, 0, 0, 0)
+            row.hl = hl
+
+            local ico = row:CreateTexture(nil, "ARTWORK")
+            ico:SetSize(16, 16); ico:SetPoint("LEFT", 0, 0)
+            ico:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+            row.ico = ico
+
+            local chk = row:CreateTexture(nil, "OVERLAY")
+            chk:SetSize(10, 10); chk:SetPoint("RIGHT", 0, 0)
+            row.chk = chk
+
+            local lbl = row:CreateFontString(nil, "OVERLAY")
+            lbl:SetFont(TM_PANEL_FONT, 10, "")
+            lbl:SetPoint("LEFT", 22, 0); lbl:SetPoint("RIGHT", -18, 0)
+            lbl:SetJustifyH("LEFT"); lbl:SetTextColor(0.9, 0.9, 0.9, 1)
+            row.lbl = lbl
+
+            row:SetScript("OnEnter", function(self)
+                self.hl:SetColorTexture(0.05, 0.82, 0.62, 0.12)
+                self.lbl:SetTextColor(1, 1, 1, 1)
+            end)
+            row:SetScript("OnLeave", function(self)
+                self.hl:SetColorTexture(0, 0, 0, 0)
+                self.lbl:SetTextColor(0.9, 0.9, 0.9, 1)
+            end)
+            trackingRowPool[i] = row
+        end
+
+        local row = trackingRowPool[i]
+        row:SetParent(trackingPanel._sc)
+        row:ClearAllPoints()
+        row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_H)
+        row:SetWidth(PW - PAD * 2)
+        row.lbl:SetText(entry.name)
+        if entry.tex then row.ico:SetTexture(entry.tex); row.ico:Show() else row.ico:Hide() end
+
+        -- État de la checkbox
+        local idx = entry.idx
+        local function Refresh()
+            local _, _, active = ReadTrackingInfo(idx)
+            if active then
+                row.chk:SetColorTexture(0.05, 0.82, 0.62, 1)
+            else
+                row.chk:SetColorTexture(0.3, 0.3, 0.35, 0.8)
+            end
+        end
+        Refresh()
+        row:SetScript("OnClick", function()
+            local _, _, active = ReadTrackingInfo(idx)
+            TM_SetTracking(idx, not active)
+            C_Timer.After(0.05, Refresh)
+        end)
+        row:Show()
+    end
+
+    -- Ancrage : panel à gauche de la minimap, centré verticalement
+    trackingPanel:ClearAllPoints()
+    trackingPanel:SetPoint("RIGHT", Minimap, "LEFT", -4, 0)
+    trackingPanel:Show()
+end
+
+local function ToggleTrackingPanel()
+    if trackingPanel and trackingPanel:IsShown() then
+        trackingPanel:Hide()
+    else
+        OpenTrackingPanel()
+    end
+end
+
 function TomoMod_Minimap.CreateTrackingButton()
     -- Respecte le toggle ET le style choisi (TomoMod vs Blizzard natif)
     if TomoModDB.minimap.showTracking == false
        or (TomoModDB.minimap.trackingStyle or "tomomod") ~= "tomomod" then
         if trackingButton then trackingButton:Hide() end
+        if trackingPanel then trackingPanel:Hide() end
         if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
         return
     end
@@ -192,17 +364,18 @@ function TomoMod_Minimap.CreateTrackingButton()
         bg:SetColorTexture(0, 0, 0, 0.45)
         trackingButton.bg = bg
 
-        -- Icône de pistage (œil/loupe Blizzard)
+        -- Icône de pistage (compas TomoMod)
         local ico = trackingButton:CreateTexture(nil, "ARTWORK")
         ico:SetPoint("CENTER")
         ico:SetSize(16, 16)
-        ico:SetTexture("Interface\\Minimap\\Tracking\\None")
+        ico:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\ico_minimap_tracking.tga")
         trackingButton.ico = ico
 
         -- Bordure fine
         local border = CreateFrame("Frame", nil, trackingButton, "BackdropTemplate")
         border:SetAllPoints()
         border:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
+        border:SetBackdropBorderColor(0, 0, 0, 0)
         trackingButton.border = border
 
         trackingButton:SetScript("OnEnter", function(self)
@@ -216,9 +389,7 @@ function TomoMod_Minimap.CreateTrackingButton()
             GameTooltip:Hide()
         end)
         trackingButton:SetScript("OnMouseDown", function(self)
-            if not OpenNativeTrackingMenu() then
-                OpenFallbackTrackingMenu(self)
-            end
+            ToggleTrackingPanel()
         end)
     end
 
@@ -233,7 +404,7 @@ function TomoMod_Minimap.CreateTrackingButton()
     if TomoModDB.minimap.borderColor == "class" then
         r, g, b = TomoMod_Utils.GetClassColor()
     end
-    trackingButton.border:SetBackdropBorderColor(r, g, b, 1)
+    trackingButton.border:SetBackdropBorderColor(0, 0, 0, 0)
     trackingButton.ico:SetVertexColor(r, g, b, 1)
 
     trackingButton:Show()
@@ -359,6 +530,7 @@ end
 -- ni les overlays de carte (GatherMate2, HandyNotes…).
 
 local bagFrame, bagToggle
+local bagUserOpened = false   -- true si l'utilisateur a ouvert le panneau de lui-même
 local collectedButtons = {}      -- [frame] = true (déjà ramassé)
 local collectedOrder = {}        -- liste ordonnée pour le layout
 local savedButtonState = {}      -- [frame] = état d'origine (pour restauration)
@@ -574,7 +746,7 @@ end
 -- =====================================
 local function LayoutBag()
     local db = TomoModDB.minimap.buttonBag or {}
-    local cols = math.max(1, db.columns or 5)
+    local cols = math.max(1, db.columns or 1)
     local size = db.iconSize or 28
     local pad  = 4
     local count = #collectedOrder
@@ -621,7 +793,7 @@ local function LayoutBag()
     local contentH = rows * size + (rows - 1) * pad
     if count == 0 then contentW, contentH = 120, 28 end
     bagFrame.content:SetSize(contentW, contentH)
-    bagFrame:SetSize(contentW + 16, contentH + 16)
+    bagFrame:SetSize(contentW + 16, contentH + 45)   -- +45 = titre(28)+sep(1)+pad(8)+pad bas(8)
     if bagFrame.empty then bagFrame.empty:SetShown(count == 0) end
 end
 
@@ -636,6 +808,19 @@ function TomoMod_Minimap.RefreshButtonBag()
     ScanParent(MinimapBackdrop)
     ScanParent(MinimapCluster)
     LayoutBag()
+    -- Auto-show au login/reload : affiche brièvement le panneau pour que les
+    -- boutons s'y logent, puis le referme après 0.5 s — sauf si l'utilisateur
+    -- l'a déjà ouvert manuellement (bagUserOpened).
+    if #collectedOrder > 0 then
+        bagFrame:Show()
+        if not bagUserOpened then
+            C_Timer.After(0.5, function()
+                if not bagUserOpened and bagFrame then
+                    bagFrame:Hide()
+                end
+            end)
+        end
+    end
 end
 
 -- Relâche tous les boutons capturés et les rend à la minimap (mode Blizzard / désactivation).
@@ -650,16 +835,51 @@ function TomoMod_Minimap.ReleaseCollectedButtons()
     end
 end
 
+-- Ré-applique uniquement le layout (taille/colonnes) sans rescanner les parents.
+-- À utiliser quand seuls des paramètres visuels changent (iconSize, columns) :
+-- les boutons sont déjà sous bagFrame.content et un rescan ne les retrouverait pas.
+function TomoMod_Minimap.RelayoutBag()
+    if not (bagFrame and bagFrame.content) then return end
+    local db = TomoModDB.minimap
+    if db.buttonBag and db.buttonBag.enabled == false then return end
+    if (db.collectorStyle or "tomomod") ~= "tomomod" then return end
+    if #collectedOrder == 0 then return end
+    LayoutBag()
+end
+
 -- =====================================
 -- MASQUAGE DES ÉLÉMENTS NATIFS (pistage + collecteur Blizzard)
 -- =====================================
 local _nativeHooked = {}
+local _alphaGuard    = {}   -- anti-récursion pour les hooks SetAlpha
+
 local function ApplyNativeVisibility(frame, hide)
     if not frame then return end
     frame:SetAlpha(hide and 0 or 1)            -- SetAlpha autorisé même en combat
     if not InCombatLockdown() then
         frame:EnableMouse(not hide)
     end
+end
+
+-- Pose un hook Show + SetAlpha sur une frame native pour empêcher Blizzard
+-- de la rendre visible après notre masquage (zone change, PLAYER_ENTERING_WORLD…).
+-- getHide() doit renvoyer true quand la frame doit rester masquée.
+local function HookNativeFrame(frame, getHide)
+    if not frame or _nativeHooked[frame] then return end
+    _nativeHooked[frame] = true
+    hooksecurefunc(frame, "Show", function(self)
+        if getHide() then self:SetAlpha(0) end
+    end)
+    -- SetAlpha est hookable : Blizzard peut appeler SetAlpha(1) sans passer par Show.
+    -- On remet à 0 immédiatement, avec un garde anti-récursion.
+    hooksecurefunc(frame, "SetAlpha", function(self, alpha)
+        if _alphaGuard[self] or alpha == 0 then return end
+        if getHide() then
+            _alphaGuard[self] = true
+            self:SetAlpha(0)
+            _alphaGuard[self] = nil
+        end
+    end)
 end
 
 function TomoMod_Minimap.HideNativeClutter()
@@ -669,32 +889,25 @@ function TomoMod_Minimap.HideNativeClutter()
     local hideCollector = (db.collectorStyle or "tomomod") == "tomomod" and (not db.buttonBag or db.buttonBag.enabled ~= false)
 
     local trackBliz = MinimapCluster and MinimapCluster.Tracking
+    local trackBtn  = trackBliz and trackBliz.Button   -- bouton enfant (TWW 12.x)
     local compart   = _G.AddonCompartmentFrame
 
     ApplyNativeVisibility(trackBliz, hideTracking)
-    ApplyNativeVisibility(compart, hideCollector)
+    ApplyNativeVisibility(trackBtn,  hideTracking)
+    ApplyNativeVisibility(compart,   hideCollector)
 
-    -- Anti-réaffichage : hook posé une fois, relit le réglage à chaque Show.
-    -- Ne fait QUE SetAlpha (jamais Hide()) → pas de blocage protégé en combat.
-    if trackBliz and not _nativeHooked[trackBliz] then
-        hooksecurefunc(trackBliz, "Show", function(self)
-            if InCombatLockdown() then return end
-            local d = TomoModDB.minimap
-            if (d.trackingStyle or "tomomod") == "tomomod" and d.showTracking ~= false then
-                self:SetAlpha(0)
-            end
-        end)
-        _nativeHooked[trackBliz] = true
+    local function trackHide()
+        local d = TomoModDB.minimap
+        return (d.trackingStyle or "tomomod") == "tomomod" and d.showTracking ~= false
     end
-    if compart and not _nativeHooked[compart] then
-        hooksecurefunc(compart, "Show", function(self)
-            if InCombatLockdown() then return end
-            local d = TomoModDB.minimap
-            local hc = (d.collectorStyle or "tomomod") == "tomomod" and (not d.buttonBag or d.buttonBag.enabled ~= false)
-            if hc then self:SetAlpha(0) end
-        end)
-        _nativeHooked[compart] = true
+    local function collectHide()
+        local d = TomoModDB.minimap
+        return (d.collectorStyle or "tomomod") == "tomomod" and (not d.buttonBag or d.buttonBag.enabled ~= false)
     end
+
+    HookNativeFrame(trackBliz, trackHide)
+    HookNativeFrame(trackBtn,  trackHide)
+    HookNativeFrame(compart,   collectHide)
 end
 
 function TomoMod_Minimap.CreateButtonBag()
@@ -724,13 +937,14 @@ function TomoMod_Minimap.CreateButtonBag()
         local ico = bagToggle:CreateTexture(nil, "ARTWORK")
         ico:SetPoint("CENTER")
         ico:SetSize(14, 14)
-        -- icône « grille / sacs »
-        ico:SetTexture("Interface\\Buttons\\UI-GuildButton-PublicNote-Up")
+        -- icône collecteur TomoMod
+        ico:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\ico_minimap_collector.tga")
         bagToggle.ico = ico
 
         local border = CreateFrame("Frame", nil, bagToggle, "BackdropTemplate")
         border:SetAllPoints()
         border:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
+        border:SetBackdropBorderColor(0, 0, 0, 0)
         bagToggle.border = border
 
         bagToggle:SetScript("OnEnter", function(self)
@@ -746,9 +960,19 @@ function TomoMod_Minimap.CreateButtonBag()
         end)
         bagToggle:SetScript("OnMouseDown", function()
             if bagFrame:IsShown() then
+                bagUserOpened = false
                 bagFrame:Hide()
             else
-                TomoMod_Minimap.RefreshButtonBag()
+                bagUserOpened = true
+                -- Si les boutons sont déjà collectés (reparentés sous bagFrame.content),
+                -- un nouveau scan ne les retrouve pas → on relayout sans rescan.
+                -- On rescanne uniquement si la liste est vide (première ouverture ou
+                -- après un ReleaseCollectedButtons).
+                if #collectedOrder == 0 then
+                    TomoMod_Minimap.RefreshButtonBag()
+                else
+                    TomoMod_Minimap.RelayoutBag()
+                end
                 bagFrame:Show()
             end
         end)
@@ -758,6 +982,8 @@ function TomoMod_Minimap.CreateButtonBag()
     if not bagFrame then
         bagFrame = CreateFrame("Frame", "TomoModMinimapButtonBagFrame", UIParent, "BackdropTemplate")
         bagFrame:SetFrameStrata("DIALOG")
+        bagFrame:SetFrameLevel(100)
+        bagFrame:SetClampedToScreen(true)
         bagFrame:SetBackdrop({
             bgFile   = "Interface\\Buttons\\WHITE8x8",
             edgeFile = "Interface\\Buttons\\WHITE8x8",
@@ -768,14 +994,30 @@ function TomoMod_Minimap.CreateButtonBag()
         if TomoModDB.minimap.borderColor == "class" then aR, aG, aB = TomoMod_Utils.GetClassColor() end
         bagFrame:SetBackdropBorderColor(aR, aG, aB, 1)
 
+        -- Titre (teal, Poppins SemiBold)
+        local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
+        local title = bagFrame:CreateFontString(nil, "OVERLAY")
+        title:SetFont(FONT_BOLD, 11, "")
+        title:SetPoint("TOPLEFT", 8, -8)
+        title:SetText(TomoMod_L["minimap_buttonbag"] or "Boutons d'addon")
+        title:SetTextColor(0.05, 0.82, 0.62, 1)
+
+        -- Séparateur horizontal
+        local sep = bagFrame:CreateTexture(nil, "ARTWORK")
+        sep:SetHeight(1)
+        sep:SetPoint("TOPLEFT",  8, -28)
+        sep:SetPoint("TOPRIGHT", -8, -28)
+        sep:SetColorTexture(0.2, 0.2, 0.25, 0.8)
+
+        -- Zone de contenu (sous le titre + séparateur + padding)
         local content = CreateFrame("Frame", nil, bagFrame)
-        content:SetPoint("TOPLEFT", 8, -8)
+        content:SetPoint("TOPLEFT", 8, -37)   -- 28 titre + 1 sep + 8 pad
         bagFrame.content = content
 
         local empty = bagFrame:CreateFontString(nil, "OVERLAY")
         empty:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11, "")
-        empty:SetPoint("CENTER")
-        empty:SetText(TomoMod_L["minimap_buttonbag_empty"] or "Aucun bouton détecté")
+        empty:SetPoint("CENTER", 0, -15)
+        --empty:SetText(TomoMod_L["minimap_buttonbag_empty"] or "Aucun bouton détecté")
         empty:SetTextColor(0.6, 0.6, 0.65, 1)
         empty:Hide()
         bagFrame.empty = empty
@@ -797,23 +1039,22 @@ function TomoMod_Minimap.CreateButtonBag()
         local gap = db.clockGap or 2
         if anchorMode == "clock-left" then
             bagToggle:SetPoint("RIGHT", clock, "LEFT", -gap, 0)
-            bagFrame:SetPoint("BOTTOMRIGHT", bagToggle, "TOPRIGHT", 0, 4)
         else
             bagToggle:SetPoint("LEFT", clock, "RIGHT", gap, 0)
-            bagFrame:SetPoint("BOTTOMLEFT", bagToggle, "TOPLEFT", 0, 4)
         end
     else
         -- Mode minimap (coin) — comportement par défaut
         local corner = db.corner or "BOTTOMLEFT"
         bagToggle:SetPoint(corner, Minimap, corner, db.x or 2, db.y or 26)
-        bagFrame:SetPoint("BOTTOMLEFT", bagToggle, "TOPLEFT", 0, 4)
     end
+    -- Le panneau s'ouvre toujours à gauche de la minimap (cohérent avec le panel de pistage)
+    bagFrame:SetPoint("RIGHT", Minimap, "LEFT", -4, 0)
     bagToggle:SetScale(scale)
 
     -- Teinte
     local r, g, b = 0.9, 0.9, 0.9
     if TomoModDB.minimap.borderColor == "class" then r, g, b = TomoMod_Utils.GetClassColor() end
-    bagToggle.border:SetBackdropBorderColor(r, g, b, 1)
+    bagToggle.border:SetBackdropBorderColor(0, 0, 0, 0)
     bagToggle.ico:SetVertexColor(r, g, b, 1)
 
     bagToggle:Show()
@@ -925,15 +1166,42 @@ end
 
 -- Initialisation du module
 function TomoMod_Minimap.Initialize()
+    -- (1) Pré-masquage immédiat des boutons d'addon natifs AVANT que bagFrame
+    --     existe : on parcourt les parents de la minimap et on cache tout ce
+    --     qui serait collecté, pour éviter le flash de 0.5 s.
+    local function PreHideAddonButtons(parent)
+        if not parent or not parent.GetNumChildren then return end
+        for i = 1, parent:GetNumChildren() do
+            local child = select(i, parent:GetChildren())
+            if child and not collectedButtons[child] then
+                local name = child:GetName() or ""
+                if name:sub(1, 7) ~= "TomoMod" and not BLIZZ_MINIMAP_FRAMES[name] then
+                    local w = child:GetWidth() or 0
+                    if w >= 18 and w <= 48 then
+                        child:SetAlpha(0)
+                    end
+                end
+            end
+        end
+    end
+    PreHideAddonButtons(Minimap)
+    PreHideAddonButtons(MinimapBackdrop)
+    PreHideAddonButtons(MinimapCluster)
+
+    -- (2) ApplySettings à t+0.5 s (laisse la DB s'initialiser)
     C_Timer.After(0.5, function()
         TomoMod_Minimap.ApplySettings()
+        -- Scan immédiat juste après la création du bagFrame
+        if TomoMod_Minimap.RefreshButtonBag then TomoMod_Minimap.RefreshButtonBag() end
     end)
-    -- Scan différé : laisse aux autres addons le temps de créer leurs boutons.
-    C_Timer.After(5, function()
+
+    -- (3) Scan différé pour les addons qui enregistrent leur bouton plus tard.
+    C_Timer.After(3, function()
         if TomoMod_Minimap.RefreshAddonButtonShapes then TomoMod_Minimap.RefreshAddonButtonShapes() end
         if TomoMod_Minimap.RefreshButtonBag then TomoMod_Minimap.RefreshButtonBag() end
         if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
     end)
+
     -- (4) Polling des addons chargés tard : re-scanne après chaque ADDON_LOADED
     -- (les boutons d'addon n'apparaissent pas tous au même moment). Débounce 0.2s.
     if not TomoMod_Minimap._poll then
