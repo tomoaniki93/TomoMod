@@ -173,9 +173,11 @@ local function OpenFallbackTrackingMenu(anchor)
 end
 
 function TomoMod_Minimap.CreateTrackingButton()
-    -- Respecte le toggle
-    if TomoModDB.minimap.showTracking == false then
+    -- Respecte le toggle ET le style choisi (TomoMod vs Blizzard natif)
+    if TomoModDB.minimap.showTracking == false
+       or (TomoModDB.minimap.trackingStyle or "tomomod") ~= "tomomod" then
         if trackingButton then trackingButton:Hide() end
+        if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
         return
     end
 
@@ -235,6 +237,7 @@ function TomoMod_Minimap.CreateTrackingButton()
     trackingButton.ico:SetVertexColor(r, g, b, 1)
 
     trackingButton:Show()
+    if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
 end
 
 -- =====================================
@@ -358,49 +361,77 @@ end
 local bagFrame, bagToggle
 local collectedButtons = {}      -- [frame] = true (déjà ramassé)
 local collectedOrder = {}        -- liste ordonnée pour le layout
+local savedButtonState = {}      -- [frame] = état d'origine (pour restauration)
 
 -- Le collecteur a-t-il capturé ce bouton ? (utilisé par RefreshAddonButtonShapes)
 function TomoMod_Minimap.IsButtonCollected(frame)
     return collectedButtons[frame] == true
 end
 
--- Préfixes de noms à exclure (frames Blizzard + nos frames)
-local EXCLUDE_PREFIXES = {
-    "MiniMap", "Minimap", "GameTime", "ExpansionLandingPage", "GarrisonLanding",
-    "QueueStatus", "AddonCompartment", "TimeManager", "HybridMinimap",
-    "TomoMod", "MinimapCompass", "MinimapZone", "MinimapNorth", "MinimapCluster",
+-- =====================================
+-- DÉTECTION DES BOUTONS D'ADDON
+-- =====================================
+-- Blacklist de NOMS EXACTS de frames Blizzard qui vivent sur la minimap mais ne
+-- sont PAS des boutons d'addon. Remplace l'ancien matching par préfixe trop
+-- large ("Minimap"/"MiniMap") qui excluait à tort les boutons d'addon nommés
+-- "<Addon>MinimapButton".
+local BLIZZ_MINIMAP_FRAMES = {
+    ["MinimapZoomIn"] = true, ["MinimapZoomOut"] = true,
+    ["MinimapNorthTag"] = true, ["MinimapCompassTexture"] = true,
+    ["MiniMapWorldMapButton"] = true, ["MinimapZoneTextButton"] = true,
+    ["MiniMapTracking"] = true, ["MiniMapTrackingButton"] = true, ["MiniMapTrackingFrame"] = true,
+    ["MiniMapMailFrame"] = true, ["MiniMapMailIcon"] = true,
+    ["GameTimeFrame"] = true, ["TimeManagerClockButton"] = true,
+    ["MiniMapInstanceDifficulty"] = true, ["GuildInstanceDifficulty"] = true,
+    ["MiniMapChallengeMode"] = true, ["MiniMapBattlefieldFrame"] = true,
+    ["MiniMapLFGFrame"] = true, ["MiniMapVoiceChatFrame"] = true,
+    ["QueueStatusButton"] = true, ["QueueStatusMinimapButton"] = true,
+    ["AddonCompartmentFrame"] = true,
+    ["ExpansionLandingPageMinimapButton"] = true,
+    ["GarrisonLandingPageMinimapButton"] = true,
+    ["Minimap"] = true, ["MinimapBackdrop"] = true, ["MinimapCluster"] = true,
 }
 
--- Noms exacts d'overlays connus (calques de carte, pas des boutons)
+-- Overlays / pins de carte connus (jamais des boutons)
 local EXCLUDE_OVERLAYS = {
     ["GatherMatePin"] = true, ["HandyNotesPin"] = true, ["TomTomCrazyArrow"] = true,
     ["RoutesPin"] = true, ["GatherMate2Pin"] = true, ["Spy_MapNoteList_mini"] = true,
     ["TomTom"] = true, ["QuestPointerPOI"] = true, ["poiMinimap"] = true,
 }
-
-local function ShouldExcludeByName(name)
-    if not name or name == "" then return true end  -- pas de nom = on ignore (heuristique sûre)
+local PIN_PATTERNS = { "Pin$", "POI", "CrazyArrow", "BlobRing" }
+local function IsPinFrame(name)
     if EXCLUDE_OVERLAYS[name] then return true end
-    for _, prefix in ipairs(EXCLUDE_PREFIXES) do
-        if name:sub(1, #prefix) == prefix then return true end
+    for _, pat in ipairs(PIN_PATTERNS) do
+        if name:find(pat) then return true end
     end
     return false
 end
 
--- Une frame ressemble-t-elle à un bouton d'addon de minimap ?
+local function IsBlacklisted(name)
+    if not name or name == "" then return true end  -- frame anonyme = on ignore
+    if BLIZZ_MINIMAP_FRAMES[name] then return true end
+    if name:sub(1, 7) == "TomoMod" then return true end  -- nos propres frames
+    if IsPinFrame(name) then return true end
+    return false
+end
+
+-- Une frame est-elle un bouton d'addon de minimap à collecter ?
 local function IsAddonButton(frame)
     if not frame or collectedButtons[frame] then return false end
     if frame == bagToggle or frame == bagFrame then return false end
+    local name = frame:GetName()
+    if IsBlacklisted(name) then return false end
+    -- (3) Boutons d'addon standard (LibDBIcon & co.) : capture explicite,
+    -- même s'ils sont des Frame non-Button ou cachés au moment du scan.
+    if name:sub(1, 12) == "LibDBIcon10_" or name:find("MinimapButton") or name:find("Minimap_Button") then
+        return true
+    end
     local ftype = frame:GetObjectType()
     if ftype ~= "Button" and ftype ~= "Frame" then return false end
-    local name = frame:GetName()
-    if ShouldExcludeByName(name) then return false end
-    -- Doit être visible et de taille « bouton »
+    if name:match("%d+$") then return false end       -- frame poolée/anonyme
     if not frame:IsShown() then return false end
-    local w, h = frame:GetWidth(), frame:GetHeight()
-    if not w or not h then return false end
-    if w < 18 or w > 48 or h < 18 or h > 48 then return false end
-    -- Doit être cliquable OU avoir un script clic (les vrais boutons d'addon le sont)
+    local w = frame:GetWidth() or 0
+    if w < 18 or w > 48 then return false end
     if ftype == "Frame" and not (frame:HasScript("OnMouseDown") or frame:HasScript("OnClick")) then
         return false
     end
@@ -420,23 +451,169 @@ local function ScanParent(parent)
     end
 end
 
--- (Re)positionne les boutons ramassés dans la boîte en grille.
+-- =====================================
+-- (1) STRIP DÉCORATIONS + NORMALISATION ICÔNE
+-- =====================================
+-- IDs de textures décoratives (bordures/fonds génériques des boutons d'addon).
+local JUNK_TEX_ID = {
+    [136467] = true,  -- UI-Minimap-Background
+    [136430] = true,  -- MiniMap-TrackingBorder
+    [136477] = true,  -- UI-Minimap-ZoomButton-Highlight
+}
+local JUNK_TEX_PATH = {
+    ["Interface\\Minimap\\MiniMap%-TrackingBorder"] = true,
+    ["Interface\\Minimap\\UI%-Minimap%-Background"] = true,
+    ["Interface\\Minimap\\UI%-Minimap%-ZoomButton%-Highlight"] = true,
+}
+local function IsJunkTexture(region)
+    if not region or not region.IsObjectType or not region:IsObjectType("Texture") then return false end
+    local id = region.GetTextureFileID and region:GetTextureFileID()
+    if id and JUNK_TEX_ID[id] then return true end
+    local path = region:GetTexture()
+    if type(path) == "string" then
+        for pat in pairs(JUNK_TEX_PATH) do
+            if path:match(pat) then return true end
+        end
+    end
+    return false
+end
+
+local function StripButtonDecorations(btn)
+    local saved = savedButtonState[btn]
+    if not saved then return end
+    if not saved.junk then
+        saved.junk = {}
+        for _, region in ipairs({ btn:GetRegions() }) do
+            if IsJunkTexture(region) then
+                saved.junk[#saved.junk + 1] = { region = region, alpha = region:GetAlpha(), shown = region:IsShown() }
+            end
+        end
+        local hl = btn.GetHighlightTexture and btn:GetHighlightTexture()
+        if hl and IsJunkTexture(hl) then
+            saved.junk[#saved.junk + 1] = { region = hl, alpha = hl:GetAlpha(), shown = hl:IsShown() }
+        end
+        -- snapshot de l'icône (points + texcoord) pour restauration
+        local icon = btn.icon or btn.Icon
+        if not icon then
+            for _, region in ipairs({ btn:GetRegions() }) do
+                if region:IsObjectType("Texture") and region:IsShown()
+                   and region:GetAlpha() > 0 and not IsJunkTexture(region) then
+                    icon = region; break
+                end
+            end
+        end
+        if icon then
+            local pts = {}
+            for i = 1, icon:GetNumPoints() do pts[i] = { icon:GetPoint(i) } end
+            saved.icon = icon
+            saved.iconPts = pts
+            saved.iconTC = { icon:GetTexCoord() }
+        end
+    end
+    -- masque les décorations (à chaque appel)
+    for _, info in ipairs(saved.junk) do
+        info.region:SetAlpha(0); info.region:Hide()
+    end
+    -- normalise l'icône pour remplir la case proprement
+    if saved.icon then
+        saved.icon:ClearAllPoints()
+        saved.icon:SetPoint("TOPLEFT", btn, "TOPLEFT", 2, -2)
+        saved.icon:SetPoint("BOTTOMRIGHT", btn, "BOTTOMRIGHT", -2, 2)
+        pcall(saved.icon.SetTexCoord, saved.icon, 0.07, 0.93, 0.07, 0.93)
+    end
+end
+
+-- Anneau fin (look uniforme TomoMod), créé une seule fois par bouton.
+local function EnsureBagRing(btn)
+    if not btn._tmBagRing then
+        local ring = CreateFrame("Frame", nil, btn, "BackdropTemplate")
+        ring:SetAllPoints(btn)
+        ring:SetFrameLevel(btn:GetFrameLevel() + 1)
+        ring:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
+        btn._tmBagRing = ring
+    end
+    local r, g, b = 0.35, 0.35, 0.4
+    if TomoModDB.minimap.borderColor == "class" then r, g, b = TomoMod_Utils.GetClassColor() end
+    btn._tmBagRing:SetBackdropBorderColor(r, g, b, 0.55)
+    btn._tmBagRing:Show()
+end
+
+local function RestoreButtonDecorations(btn)
+    local saved = savedButtonState[btn]
+    if not saved then return end
+    if saved.junk then
+        for _, info in ipairs(saved.junk) do
+            info.region:SetAlpha(info.alpha)
+            if info.shown then info.region:Show() end
+        end
+    end
+    if saved.icon and saved.iconPts then
+        saved.icon:ClearAllPoints()
+        for _, pt in ipairs(saved.iconPts) do saved.icon:SetPoint(unpack(pt)) end
+        if saved.iconTC and #saved.iconTC >= 8 then saved.icon:SetTexCoord(unpack(saved.iconTC)) end
+    end
+    if btn._tmBagRing then btn._tmBagRing:Hide() end
+    -- restaure parent / strata / level / taille / ancrage
+    if btn.SetFixedFrameStrata then btn:SetFixedFrameStrata(false) end
+    if btn.SetFixedFrameLevel then btn:SetFixedFrameLevel(false) end
+    if saved.parent then btn:SetParent(saved.parent) end
+    if saved.strata then btn:SetFrameStrata(saved.strata) end
+    if saved.level then btn:SetFrameLevel(saved.level) end
+    if saved.w and saved.h then btn:SetSize(saved.w, saved.h) end
+    if saved.point then
+        btn:ClearAllPoints()
+        pcall(btn.SetPoint, btn, saved.point, saved.relTo, saved.relPoint, saved.x, saved.y)
+    end
+    if btn.SetFixedFrameStrata then btn:SetFixedFrameStrata(true) end
+    if btn.SetFixedFrameLevel then btn:SetFixedFrameLevel(true) end
+    savedButtonState[btn] = nil
+end
+
+-- =====================================
+-- (2) LAYOUT : reparent + déverrouillage strata/level LibDBIcon
+-- =====================================
 local function LayoutBag()
     local db = TomoModDB.minimap.buttonBag or {}
     local cols = math.max(1, db.columns or 5)
     local size = db.iconSize or 28
     local pad  = 4
     local count = #collectedOrder
+    local baseLvl = bagFrame.content:GetFrameLevel()
 
     for i, btn in ipairs(collectedOrder) do
+        -- snapshot de l'état d'origine (une seule fois)
+        if not savedButtonState[btn] then
+            local p, rel, rp, ox, oy = btn:GetPoint(1)
+            savedButtonState[btn] = {
+                parent = btn:GetParent(), strata = btn:GetFrameStrata(), level = btn:GetFrameLevel(),
+                w = btn:GetWidth(), h = btn:GetHeight(),
+                point = p, relTo = rel, relPoint = rp, x = ox, y = oy,
+            }
+        end
+
         local col = (i - 1) % cols
         local row = math.floor((i - 1) / cols)
+
         btn:SetParent(bagFrame.content)
+        -- (2) LibDBIcon verrouille strata/level : on déverrouille avant de réancrer
+        if btn.SetFixedFrameStrata then btn:SetFixedFrameStrata(false) end
+        if btn.SetFixedFrameLevel then btn:SetFixedFrameLevel(false) end
+        btn:SetFrameStrata("DIALOG")
+        btn:SetFrameLevel(baseLvl + 5)
         btn:ClearAllPoints()
         btn:SetPoint("TOPLEFT", bagFrame.content, "TOPLEFT", col * (size + pad), -row * (size + pad))
-        -- certains boutons forcent leur taille : on tente de normaliser
         if btn.SetSize then btn:SetSize(size, size) end
+        btn:SetAlpha(1)
         btn:Show()
+        -- aligne les enfants sur le même calque
+        for _, child in ipairs({ btn:GetChildren() }) do
+            if child ~= btn._tmBagRing then
+                child:SetFrameStrata("DIALOG")
+                child:SetFrameLevel(baseLvl + 6)
+            end
+        end
+        StripButtonDecorations(btn)
+        EnsureBagRing(btn)
     end
 
     local rows = math.max(1, math.ceil(count / cols))
@@ -449,21 +626,87 @@ local function LayoutBag()
 end
 
 function TomoMod_Minimap.RefreshButtonBag()
-    -- (re)scan : on repart de zéro
     wipe(collectedButtons)
     wipe(collectedOrder)
     if not (bagFrame and bagFrame.content) then return end
+    local db = TomoModDB.minimap
+    if db.buttonBag and db.buttonBag.enabled == false then return end
+    if (db.collectorStyle or "tomomod") ~= "tomomod" then return end  -- mode Blizzard : pas de collecte
     ScanParent(Minimap)
     ScanParent(MinimapBackdrop)
+    ScanParent(MinimapCluster)
     LayoutBag()
+end
+
+-- Relâche tous les boutons capturés et les rend à la minimap (mode Blizzard / désactivation).
+function TomoMod_Minimap.ReleaseCollectedButtons()
+    for btn in pairs(savedButtonState) do
+        RestoreButtonDecorations(btn)
+    end
+    wipe(collectedButtons)
+    wipe(collectedOrder)
+    if TomoMod_Minimap.RefreshAddonButtonShapes then
+        TomoMod_Minimap.RefreshAddonButtonShapes()
+    end
+end
+
+-- =====================================
+-- MASQUAGE DES ÉLÉMENTS NATIFS (pistage + collecteur Blizzard)
+-- =====================================
+local _nativeHooked = {}
+local function ApplyNativeVisibility(frame, hide)
+    if not frame then return end
+    frame:SetAlpha(hide and 0 or 1)            -- SetAlpha autorisé même en combat
+    if not InCombatLockdown() then
+        frame:EnableMouse(not hide)
+    end
+end
+
+function TomoMod_Minimap.HideNativeClutter()
+    local db = TomoModDB.minimap
+    if not db then return end
+    local hideTracking  = (db.trackingStyle  or "tomomod") == "tomomod" and db.showTracking ~= false
+    local hideCollector = (db.collectorStyle or "tomomod") == "tomomod" and (not db.buttonBag or db.buttonBag.enabled ~= false)
+
+    local trackBliz = MinimapCluster and MinimapCluster.Tracking
+    local compart   = _G.AddonCompartmentFrame
+
+    ApplyNativeVisibility(trackBliz, hideTracking)
+    ApplyNativeVisibility(compart, hideCollector)
+
+    -- Anti-réaffichage : hook posé une fois, relit le réglage à chaque Show.
+    -- Ne fait QUE SetAlpha (jamais Hide()) → pas de blocage protégé en combat.
+    if trackBliz and not _nativeHooked[trackBliz] then
+        hooksecurefunc(trackBliz, "Show", function(self)
+            if InCombatLockdown() then return end
+            local d = TomoModDB.minimap
+            if (d.trackingStyle or "tomomod") == "tomomod" and d.showTracking ~= false then
+                self:SetAlpha(0)
+            end
+        end)
+        _nativeHooked[trackBliz] = true
+    end
+    if compart and not _nativeHooked[compart] then
+        hooksecurefunc(compart, "Show", function(self)
+            if InCombatLockdown() then return end
+            local d = TomoModDB.minimap
+            local hc = (d.collectorStyle or "tomomod") == "tomomod" and (not d.buttonBag or d.buttonBag.enabled ~= false)
+            if hc then self:SetAlpha(0) end
+        end)
+        _nativeHooked[compart] = true
+    end
 end
 
 function TomoMod_Minimap.CreateButtonBag()
     local db = TomoModDB.minimap.buttonBag or {}
+    local collectorStyle = TomoModDB.minimap.collectorStyle or "tomomod"
 
-    if db.enabled == false then
+    if db.enabled == false or collectorStyle ~= "tomomod" then
         if bagToggle then bagToggle:Hide() end
         if bagFrame then bagFrame:Hide() end
+        -- rend les boutons capturés à la minimap (mode Blizzard / désactivation)
+        if TomoMod_Minimap.ReleaseCollectedButtons then TomoMod_Minimap.ReleaseCollectedButtons() end
+        if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
         return
     end
 
@@ -574,6 +817,7 @@ function TomoMod_Minimap.CreateButtonBag()
     bagToggle.ico:SetVertexColor(r, g, b, 1)
 
     bagToggle:Show()
+    if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
 end
 
 -- Rendre compatible avec Edit Mode
@@ -673,6 +917,7 @@ function TomoMod_Minimap.ApplySettings()
     TomoMod_Minimap.CreateTrackingButton()
     TomoMod_Minimap.ApplyNativeIndicators()
     TomoMod_Minimap.CreateButtonBag()
+    TomoMod_Minimap.HideNativeClutter()
     TomoMod_Minimap.RefreshAddonButtonShapes()
     TomoMod_Minimap.SetupEditMode()
     RestorePosition()
@@ -687,5 +932,24 @@ function TomoMod_Minimap.Initialize()
     C_Timer.After(5, function()
         if TomoMod_Minimap.RefreshAddonButtonShapes then TomoMod_Minimap.RefreshAddonButtonShapes() end
         if TomoMod_Minimap.RefreshButtonBag then TomoMod_Minimap.RefreshButtonBag() end
+        if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
     end)
+    -- (4) Polling des addons chargés tard : re-scanne après chaque ADDON_LOADED
+    -- (les boutons d'addon n'apparaissent pas tous au même moment). Débounce 0.2s.
+    if not TomoMod_Minimap._poll then
+        local poll = CreateFrame("Frame")
+        poll:RegisterEvent("ADDON_LOADED")
+        local pending = false
+        poll:SetScript("OnEvent", function()
+            if pending then return end
+            pending = true
+            C_Timer.After(0.2, function()
+                pending = false
+                if not (TomoModDB and TomoModDB.minimap and TomoModDB.minimap.enabled) then return end
+                if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
+                if TomoMod_Minimap.RefreshButtonBag then TomoMod_Minimap.RefreshButtonBag() end
+            end)
+        end)
+        TomoMod_Minimap._poll = poll
+    end
 end

@@ -65,8 +65,8 @@ local function TrySkipCinematic()
         
         if HasSeenCinematic(cinematicID) then
             -- Skip la vidéo
-            MovieFrame_PlayMovie(MovieFrame, 0) -- Force l'arrêt
-            GameMovieFinished()
+            MovieFrame:StopMovie()
+            if GameMovieFinished then GameMovieFinished() end
             print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_vid_skipped"])
         else
             -- Première fois, marquer comme vue
@@ -105,7 +105,7 @@ local function HookCinematicEvents()
                 C_Timer.After(0.1, function()
                     if MovieFrame and MovieFrame:IsShown() then
                         MovieFrame:StopMovie()
-                        GameMovieFinished()
+                        if GameMovieFinished then GameMovieFinished() end
                         print("|cff00ff00TomoMod:|r " .. string.format(TomoMod_L["msg_vid_id_skipped"], movieID))
                     end
                 end)

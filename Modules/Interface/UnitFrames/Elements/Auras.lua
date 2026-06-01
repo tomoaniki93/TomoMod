@@ -138,6 +138,28 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings)
         end
     end)
 
+    -- SetLocked(bool) — appelé par le système Movers pour activer/désactiver le drag
+    function container:SetLocked(locked)
+        self:EnableMouse(not locked)
+        self:SetMovable(not locked)
+        -- Overlay visuel teal quand déverrouillé (comme les autres movers)
+        if not self._moverOverlay then
+            local ov = CreateFrame("Frame", nil, self)
+            ov:SetAllPoints()
+            ov:SetFrameLevel(self:GetFrameLevel() + 5)
+            local t = ov:CreateTexture(nil, "OVERLAY")
+            t:SetAllPoints()
+            t:SetColorTexture(0.05, 0.82, 0.62, 0.20)
+            local lbl = ov:CreateFontString(nil, "OVERLAY")
+            lbl:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 9, "OUTLINE")
+            lbl:SetTextColor(0.05, 0.82, 0.62, 1)
+            lbl:SetPoint("CENTER")
+            lbl:SetText("Auras")
+            self._moverOverlay = ov
+        end
+        if locked then self._moverOverlay:Hide() else self._moverOverlay:Show() end
+    end
+
     return container
 end
 

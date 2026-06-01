@@ -32,6 +32,13 @@ local KIND_DEBUG     = "Debug"
 -- Gameplay UI error messages to exclude (these are normal game feedback, not bugs)
 -- Built from WoW GlobalStrings at runtime to support all locales.
 -- Exact matches stored in EXCLUDED_UI_ERRORS, pattern matches in EXCLUDED_UI_PATTERNS.
+--
+-- HOW TO ADD A NEW EXCLUSION:
+--   When a UIError appears in a Diagnostics report and it is normal game feedback
+--   (not a real bug), find its GlobalString key with:
+--       /run for k,v in pairs(_G) do if type(v)=="string" and v:find("your message") then print(k,v) end end
+--   Then add the key to EXCLUDED_GLOBAL_KEYS below (in the appropriate category).
+--   The string will be resolved at runtime for all locales automatically.
 local EXCLUDED_UI_ERRORS = {}
 local EXCLUDED_UI_PATTERNS = {}
 local EXCLUDED_GLOBAL_KEYS = {
@@ -58,7 +65,7 @@ local EXCLUDED_GLOBAL_KEYS = {
     "ERR_NOT_IN_COMBAT", "ERR_AFFECTING_COMBAT",
     -- Inventory
     "ERR_ITEM_COOLDOWN", "ERR_BAG_FULL", "ERR_INV_FULL",
-    "ERR_LOOT_GONE",
+    "ERR_LOOT_GONE", "ERR_LOOT_NOTHING",
     -- Misc common combat messages
     "SPELL_FAILED_NOT_BEHIND", "SPELL_FAILED_NOT_INFRONT",
     "SPELL_FAILED_UNIT_NOT_INFRONT", "SPELL_FAILED_UNIT_NOT_BEHIND",
