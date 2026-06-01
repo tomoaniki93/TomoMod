@@ -1,5 +1,44 @@
 ## ####################################
 
+## CHANGELOG 3.0.2 — Minimap Collector Reliability & Bug Fixes
+
+#### Minimap — Button Collector Overhaul
+- **Fixed** — The addon button collector now captures buttons it previously missed, including ones that floated on the minimap ring or vanished when dragged. Detection is significantly more reliable across all addon types.
+- **New** — Collected buttons get a **clean, uniform look**: decorative borders are stripped, icons normalized, and LibDBIcon's locked layering is unlocked so every button renders correctly inside the box.
+- **New** — Buttons from addons that **load late** are detected automatically via a polling pass — no manual rescan needed.
+- **New** — Blizzard's native **tracking button** and **addon compartment** are now hidden by default when the collector is active. A new GUI option lets you choose, per element, between the TomoMod version and Blizzard's own.
+- **Fixed** — The collector can now be placed to the **left or right of the clock** so it no longer overlaps the minimap.
+
+#### Player Auras — Layout Mode (Mover)
+- **Fixed** — Player aura icons were not appearing in Layout Mode (the `/tm layout` mover). The aura container was registered in the Movers system but the `SetLocked()` method was never implemented, so the unlock/lock calls were silently ignored. `SetLocked(bool)` is now implemented on the container: it enables drag (`EnableMouse` + `SetMovable`) and shows a teal overlay label while unlocked, matching all other mover elements.
+
+#### Cinematic Skip — TWW API Fix
+- **Fixed** — A Lua error (`attempt to call a nil value`) occurred when a cinematic triggered the `MovieFrame` skip path. `MovieFrame_PlayMovie()` and `GameMovieFinished()` were removed from the WoW API in TWW. Both calls are replaced with `MovieFrame:StopMovie()` and a guarded `if GameMovieFinished then` check, fixing the crash without breaking the skip logic.
+
+#### Diagnostics — Exclusion List
+- **Fixed** — The "There is nothing to loot" (`ERR_LOOT_NOTHING`) message was being logged as a UIError in the Diagnostics panel. It is standard game feedback, not a bug. It is now excluded at runtime (resolved via GlobalString for all locales). A developer comment has been added to the exclusion table explaining how to find and add GlobalString keys for future messages of this type.
+
+## ####################################
+
+## CHANGELOG 3.0.1 — Locale Fix, Combat Safety & Minimap Refinements
+
+#### Localization — Startup Crash Fix
+- **Fixed** — A startup crash in the localization file left many config panels showing raw locale keys (Minimap, ButtonBag, Skins, Resource Bars…). All labels are now correctly translated in all 6 supported languages.
+
+#### Layout Mode — Combat Safety
+- **Fixed** — Toggling Layout Mode in combat triggered blocked-action errors. It is now safely refused while in combat. If combat starts while the interface is already unlocked, all frames re-lock automatically when combat ends (via `PLAYER_REGEN_ENABLED`).
+
+#### Cooldown Manager — Proc Glow Taint Fix
+- **Fixed** — A taint error occurred on Cooldown Manager proc glows caused by a Lua comparison against a protected (secret) spell ID value in TWW. The comparison is now done entirely on the C side.
+
+#### Skyriding — Ground Speed Default
+- **Changed** — Ground movement speed is now shown **by default** on the SkyRide bar. The option can be toggled off from the SkyRide tab.
+
+#### Minimap — Collector Clock Positioning
+- **Fixed** — The minimap button collector could overlap the clock. It can now be positioned to the left or right of the clock.
+
+## ####################################
+
 ## CHANGELOG 3.0.0 — UI & Installer Overhaul
 
 #### Installer — Presets-First Rewrite
@@ -2036,4 +2075,6 @@ Two QOL features merged into a single lightweight module, inspired by ElvUI_Wind
 - Add Auras buffs purgeable/spellstealable, on Target and NamesPlates
 - fix bug Position ToT and Pet.
 
+## ####################################
+Note Dev : /run for k,v in pairs(_G) do if type(v)=="string" and v:find("texte du message") then print(k,v) end end
 ## ####################################

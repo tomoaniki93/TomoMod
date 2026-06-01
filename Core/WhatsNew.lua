@@ -30,6 +30,25 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.0.2",
+        highlights = {
+            L["wn_302_collector_capture"],
+            L["wn_302_collector_clean"],
+            L["wn_302_collector_poll"],
+            L["wn_302_native_choice"],
+        },
+    },
+    {
+        version = "3.0.1",
+        highlights = {
+            L["wn_301_locale_fix"],
+            L["wn_301_combat_movers"],
+            L["wn_301_procglow_taint"],
+            L["wn_301_ground_speed"],
+            L["wn_301_buttonbag_clock"],
+        },
+    },
+    {
         version = "3.0.0",
         highlights = {
             L["wn_300_installer"],

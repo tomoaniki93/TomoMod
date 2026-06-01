@@ -17,6 +17,24 @@
 -- enUS (base)
 -- =====================
 TomoMod_RegisterLocale("enUS", {
+    -- [3.0.2] Changelog (What is New)
+    ["wn_302_collector_capture"] = "Minimap button collector is much more reliable: it now captures addon buttons it previously missed - including ones that floated on the minimap ring or vanished when dragged.",
+    ["wn_302_collector_clean"] = "Collected buttons get a clean, uniform look: decorative borders are stripped, icons normalized, and LibDBIcon's locked layering is unlocked so every button renders correctly.",
+    ["wn_302_collector_poll"] = "Buttons from addons that load late are now detected automatically (no manual rescan needed).",
+    ["wn_302_native_choice"] = "Blizzard's native tracking button and addon compartment are now hidden by default. A new GUI option lets you choose, for each, between the TomoMod version and Blizzard's.",
+    -- [3.0.2] Minimap : style pistage + collecteur
+    ["opt_tracking_style"] = "Tracking button style",
+    ["opt_collector_style"] = "Collector style",
+    ["minimap_style_tomo"] = "TomoMod",
+    ["minimap_style_bliz"] = "Blizzard",
+    ["collector_style_tomo"] = "TomoMod (box)",
+    ["collector_style_bliz"] = "Blizzard (native)",
+    -- [3.0.1] Changelog (What is New)
+    ["wn_301_locale_fix"] = "Fixed a startup crash in the localization file that left many config panels showing raw keys (Minimap, ButtonBag, Skins, Resource Bars...) - all labels are now correctly translated.",
+    ["wn_301_combat_movers"] = "Layout mode no longer triggers blocked-action errors when toggled in combat: it is safely refused, and if combat starts while unlocked, frames re-lock automatically once combat ends.",
+    ["wn_301_procglow_taint"] = "Fixed a taint error on Cooldown Manager proc glows caused by comparing a protected spell ID value.",
+    ["wn_301_ground_speed"] = "Ground movement speed is now shown by default on the SkyRide bar (toggle in the SkyRide tab).",
+    ["wn_301_buttonbag_clock"] = "The minimap button collector can now be placed to the left or right of the clock so it no longer covers the map.",
     -- [3.0.1] ButtonBag : ancrage horloge
     ["opt_buttonbag_anchor"] = "Button position",
     ["buttonbag_anchor_corner"] = "On the minimap (corner)",
@@ -154,6 +172,24 @@ TomoMod_RegisterLocale("enUS", {
 -- frFR
 -- =====================
 TomoMod_RegisterLocale("frFR", {
+    -- [3.0.2] Changelog (What is New)
+    ["wn_302_collector_capture"] = "Le collecteur de boutons de la minimap est bien plus fiable : il capture désormais des boutons d'addon qu'il manquait avant - y compris ceux qui flottaient sur l'anneau de la minimap ou disparaissaient quand on les déplaçait.",
+    ["wn_302_collector_clean"] = "Les boutons collectés ont un rendu propre et uniforme : bordures décoratives retirées, icônes normalisées, et le calque verrouillé de LibDBIcon est déverrouillé pour que chaque bouton s'affiche correctement.",
+    ["wn_302_collector_poll"] = "Les boutons des addons chargés tardivement sont désormais détectés automatiquement (plus besoin de rescanner à la main).",
+    ["wn_302_native_choice"] = "Le bouton de pistage natif de Blizzard et le compartiment d'addons sont désormais masqués par défaut. Une nouvelle option du GUI permet de choisir, pour chacun, entre la version TomoMod et celle de Blizzard.",
+    -- [3.0.2] Minimap : style pistage + collecteur
+    ["opt_tracking_style"] = "Style du bouton de pistage",
+    ["opt_collector_style"] = "Style du collecteur",
+    ["minimap_style_tomo"] = "TomoMod",
+    ["minimap_style_bliz"] = "Blizzard",
+    ["collector_style_tomo"] = "TomoMod (boite)",
+    ["collector_style_bliz"] = "Blizzard (natif)",
+    -- [3.0.1] Changelog (What is New)
+    ["wn_301_locale_fix"] = "Correction d'un crash au chargement du fichier de localisation qui laissait de nombreux panneaux de config en clés brutes (Minimap, ButtonBag, Skins, Barres de ressources...) - tous les libellés sont désormais correctement traduits.",
+    ["wn_301_combat_movers"] = "Le mode placement ne provoque plus d'erreurs de blocage en combat : il est refusé proprement, et si le combat démarre alors que l'interface est déverrouillée, les cadres se re-verrouillent automatiquement à la fin du combat.",
+    ["wn_301_procglow_taint"] = "Correction d'une erreur de taint sur les effets de proc du Cooldown Manager, causée par la comparaison d'une valeur d'ID de sort protégée.",
+    ["wn_301_ground_speed"] = "La vitesse de déplacement au sol est désormais affichée par défaut sur la barre SkyRide (option dans l'onglet SkyRide).",
+    ["wn_301_buttonbag_clock"] = "Le collecteur de boutons de la minimap peut désormais se placer à gauche ou à droite de l'horloge pour ne plus recouvrir la carte.",
     -- [3.0.1] ButtonBag : ancrage horloge
     ["opt_buttonbag_anchor"] = "Position du bouton",
     ["buttonbag_anchor_corner"] = "Sur la minimap (coin)",
@@ -287,6 +323,24 @@ TomoMod_RegisterLocale("frFR", {
 -- deDE
 -- =====================
 TomoMod_RegisterLocale("deDE", {
+    -- [3.0.2] Changelog (What is New)
+    ["wn_302_collector_capture"] = "Der Minimap-Button-Sammler ist deutlich zuverlässiger: Er erfasst nun Addon-Schaltflächen, die er zuvor übersehen hat - auch solche, die am Minimap-Ring schwebten oder beim Ziehen verschwanden.",
+    ["wn_302_collector_clean"] = "Gesammelte Schaltflächen erhalten ein sauberes, einheitliches Aussehen: dekorative Ränder werden entfernt, Symbole normalisiert und die feste Ebenen-Sperre von LibDBIcon aufgehoben, damit jede Schaltfläche korrekt dargestellt wird.",
+    ["wn_302_collector_poll"] = "Schaltflächen von spät ladenden Addons werden jetzt automatisch erkannt (kein manuelles Neuscannen nötig).",
+    ["wn_302_native_choice"] = "Blizzards native Verfolgungsschaltfläche und das Addon-Fach sind nun standardmäßig ausgeblendet. Eine neue GUI-Option erlaubt dir, für beide zwischen der TomoMod- und der Blizzard-Version zu wählen.",
+    -- [3.0.2] Minimap : style pistage + collecteur
+    ["opt_tracking_style"] = "Stil der Verfolgungsschaltfläche",
+    ["opt_collector_style"] = "Sammler-Stil",
+    ["minimap_style_tomo"] = "TomoMod",
+    ["minimap_style_bliz"] = "Blizzard",
+    ["collector_style_tomo"] = "TomoMod (Box)",
+    ["collector_style_bliz"] = "Blizzard (nativ)",
+    -- [3.0.1] Changelog (What is New)
+    ["wn_301_locale_fix"] = "Behebt einen Absturz beim Laden der Lokalisierungsdatei, durch den viele Konfigurationsfenster Roh-Schlüssel anzeigten (Minimap, ButtonBag, Skins, Ressourcenleisten...) - alle Beschriftungen sind nun korrekt übersetzt.",
+    ["wn_301_combat_movers"] = "Der Platzierungsmodus löst keine blockierten Aktionen mehr aus, wenn er im Kampf umgeschaltet wird: Er wird sauber abgelehnt, und falls der Kampf bei entsperrter Oberfläche beginnt, werden die Rahmen nach Kampfende automatisch wieder gesperrt.",
+    ["wn_301_procglow_taint"] = "Behebt einen Taint-Fehler bei den Proc-Effekten des Cooldown-Managers, der durch den Vergleich eines geschützten Zauber-ID-Werts verursacht wurde.",
+    ["wn_301_ground_speed"] = "Die Bodenbewegungsgeschwindigkeit wird jetzt standardmäßig auf der SkyRide-Leiste angezeigt (umschaltbar im SkyRide-Tab).",
+    ["wn_301_buttonbag_clock"] = "Der Minimap-Button-Sammler kann nun links oder rechts neben der Uhr platziert werden, sodass er die Karte nicht mehr verdeckt.",
     -- [3.0.1] ButtonBag : ancrage horloge
     ["opt_buttonbag_anchor"] = "Position der Schaltfläche",
     ["buttonbag_anchor_corner"] = "Auf der Minimap (Ecke)",
@@ -420,6 +474,24 @@ TomoMod_RegisterLocale("deDE", {
 -- esES
 -- =====================
 TomoMod_RegisterLocale("esES", {
+    -- [3.0.2] Changelog (What is New)
+    ["wn_302_collector_capture"] = "El recopilador de botones del minimapa es mucho más fiable: ahora captura botones de addons que antes se le escapaban, incluidos los que flotaban en el anillo del minimapa o desaparecían al arrastrarlos.",
+    ["wn_302_collector_clean"] = "Los botones recopilados tienen un aspecto limpio y uniforme: se eliminan los bordes decorativos, se normalizan los iconos y se desbloquea el nivel fijo de LibDBIcon para que cada botón se muestre correctamente.",
+    ["wn_302_collector_poll"] = "Los botones de addons que cargan tarde ahora se detectan automáticamente (sin necesidad de reescanear manualmente).",
+    ["wn_302_native_choice"] = "El botón de rastreo nativo de Blizzard y el compartimento de addons ahora están ocultos por defecto. Una nueva opción del GUI permite elegir, para cada uno, entre la versión de TomoMod y la de Blizzard.",
+    -- [3.0.2] Minimap : style pistage + collecteur
+    ["opt_tracking_style"] = "Estilo del botón de rastreo",
+    ["opt_collector_style"] = "Estilo del recopilador",
+    ["minimap_style_tomo"] = "TomoMod",
+    ["minimap_style_bliz"] = "Blizzard",
+    ["collector_style_tomo"] = "TomoMod (caja)",
+    ["collector_style_bliz"] = "Blizzard (nativo)",
+    -- [3.0.1] Changelog (What is New)
+    ["wn_301_locale_fix"] = "Corregido un fallo al cargar el archivo de localización que dejaba muchos paneles de configuración mostrando claves sin traducir (Minimapa, ButtonBag, Skins, Barras de recursos...) - todas las etiquetas ahora se traducen correctamente.",
+    ["wn_301_combat_movers"] = "El modo de colocación ya no provoca errores de acción bloqueada al activarlo en combate: se rechaza de forma segura, y si el combate empieza con la interfaz desbloqueada, los marcos se vuelven a bloquear automáticamente al terminar el combate.",
+    ["wn_301_procglow_taint"] = "Corregido un error de taint en los destellos de proc del Gestor de reutilizaciones, causado por comparar un valor de ID de hechizo protegido.",
+    ["wn_301_ground_speed"] = "La velocidad de movimiento en tierra ahora se muestra por defecto en la barra de SkyRide (se puede activar en la pestaña SkyRide).",
+    ["wn_301_buttonbag_clock"] = "El recopilador de botones del minimapa ahora puede colocarse a la izquierda o a la derecha del reloj para no tapar el mapa.",
     -- [3.0.1] ButtonBag : ancrage horloge
     ["opt_buttonbag_anchor"] = "Posición del botón",
     ["buttonbag_anchor_corner"] = "En el minimapa (esquina)",
@@ -553,6 +625,24 @@ TomoMod_RegisterLocale("esES", {
 -- itIT
 -- =====================
 TomoMod_RegisterLocale("itIT", {
+    -- [3.0.2] Changelog (What is New)
+    ["wn_302_collector_capture"] = "Il raccoglitore di pulsanti della minimappa è molto più affidabile: ora cattura pulsanti di addon che prima gli sfuggivano, compresi quelli che fluttuavano sull'anello della minimappa o sparivano quando li si trascinava.",
+    ["wn_302_collector_clean"] = "I pulsanti raccolti hanno un aspetto pulito e uniforme: i bordi decorativi vengono rimossi, le icone normalizzate e il livello bloccato di LibDBIcon viene sbloccato perché ogni pulsante venga visualizzato correttamente.",
+    ["wn_302_collector_poll"] = "I pulsanti degli addon che si caricano in ritardo ora vengono rilevati automaticamente (nessuna riscansione manuale necessaria).",
+    ["wn_302_native_choice"] = "Il pulsante di tracciamento nativo di Blizzard e il vano addon ora sono nascosti per impostazione predefinita. Una nuova opzione del GUI permette di scegliere, per ciascuno, tra la versione TomoMod e quella di Blizzard.",
+    -- [3.0.2] Minimap : style pistage + collecteur
+    ["opt_tracking_style"] = "Stile del pulsante di tracciamento",
+    ["opt_collector_style"] = "Stile del raccoglitore",
+    ["minimap_style_tomo"] = "TomoMod",
+    ["minimap_style_bliz"] = "Blizzard",
+    ["collector_style_tomo"] = "TomoMod (riquadro)",
+    ["collector_style_bliz"] = "Blizzard (nativo)",
+    -- [3.0.1] Changelog (What is New)
+    ["wn_301_locale_fix"] = "Corretto un crash al caricamento del file di localizzazione che lasciava molti pannelli di configurazione con chiavi grezze (Minimappa, ButtonBag, Skin, Barre delle risorse...) - tutte le etichette sono ora tradotte correttamente.",
+    ["wn_301_combat_movers"] = "La modalità posizionamento non causa più errori di azione bloccata quando viene attivata in combattimento: viene rifiutata in modo sicuro e, se il combattimento inizia con l'interfaccia sbloccata, i riquadri si ribloccano automaticamente al termine del combattimento.",
+    ["wn_301_procglow_taint"] = "Corretto un errore di taint sugli effetti proc del Gestore ricariche, causato dal confronto di un valore di ID incantesimo protetto.",
+    ["wn_301_ground_speed"] = "La velocità di movimento a terra è ora mostrata per impostazione predefinita sulla barra SkyRide (attivabile nella scheda SkyRide).",
+    ["wn_301_buttonbag_clock"] = "Il raccoglitore di pulsanti della minimappa ora può essere posizionato a sinistra o a destra dell'orologio per non coprire più la mappa.",
     -- [3.0.1] ButtonBag : ancrage horloge
     ["opt_buttonbag_anchor"] = "Posizione del pulsante",
     ["buttonbag_anchor_corner"] = "Sulla minimappa (angolo)",
@@ -686,6 +776,24 @@ TomoMod_RegisterLocale("itIT", {
 -- ptBR
 -- =====================
 TomoMod_RegisterLocale("ptBR", {
+    -- [3.0.2] Changelog (What is New)
+    ["wn_302_collector_capture"] = "O coletor de botões do minimapa é muito mais confiável: agora captura botões de addons que antes ele perdia, incluindo os que flutuavam no anel do minimapa ou sumiam ao serem arrastados.",
+    ["wn_302_collector_clean"] = "Os botões coletados ganham um visual limpo e uniforme: bordas decorativas são removidas, ícones normalizados e a camada travada do LibDBIcon é destravada para que cada botão seja exibido corretamente.",
+    ["wn_302_collector_poll"] = "Botões de addons que carregam tarde agora são detectados automaticamente (sem necessidade de reescanear manualmente).",
+    ["wn_302_native_choice"] = "O botão de rastreamento nativo da Blizzard e o compartimento de addons agora ficam ocultos por padrão. Uma nova opção no GUI permite escolher, para cada um, entre a versão do TomoMod e a da Blizzard.",
+    -- [3.0.2] Minimap : style pistage + collecteur
+    ["opt_tracking_style"] = "Estilo do botão de rastreamento",
+    ["opt_collector_style"] = "Estilo do coletor",
+    ["minimap_style_tomo"] = "TomoMod",
+    ["minimap_style_bliz"] = "Blizzard",
+    ["collector_style_tomo"] = "TomoMod (caixa)",
+    ["collector_style_bliz"] = "Blizzard (nativo)",
+    -- [3.0.1] Changelog (What is New)
+    ["wn_301_locale_fix"] = "Corrigida uma falha no carregamento do arquivo de localização que deixava vários painéis de configuração exibindo chaves brutas (Minimapa, ButtonBag, Skins, Barras de recursos...) - todos os rótulos agora são traduzidos corretamente.",
+    ["wn_301_combat_movers"] = "O modo de posicionamento não causa mais erros de ação bloqueada ao ser alternado em combate: ele é recusado com segurança e, se o combate começar com a interface desbloqueada, os quadros são re-travados automaticamente ao fim do combate.",
+    ["wn_301_procglow_taint"] = "Corrigido um erro de taint nos efeitos de proc do Gerenciador de recargas, causado pela comparação de um valor de ID de magia protegido.",
+    ["wn_301_ground_speed"] = "A velocidade de movimento no solo agora é exibida por padrão na barra SkyRide (ativável na aba SkyRide).",
+    ["wn_301_buttonbag_clock"] = "O coletor de botões do minimapa agora pode ser posicionado à esquerda ou à direita do relógio para não cobrir mais o mapa.",
     -- [3.0.1] ButtonBag : ancrage horloge
     ["opt_buttonbag_anchor"] = "Posição do botão",
     ["buttonbag_anchor_corner"] = "No minimapa (canto)",

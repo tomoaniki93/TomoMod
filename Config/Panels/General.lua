@@ -24,6 +24,18 @@ function TomoMod_ConfigPanel_General(parent)
         end
     end)
 
+    -- [3.0.2] Style du bouton de pistage : TomoMod ou natif Blizzard
+    local _, cy = W.CreateDropdown(card.inner, L["opt_tracking_style"] or "Style du bouton de pistage", {
+        { text = L["minimap_style_tomo"] or "TomoMod",  value = "tomomod"  },
+        { text = L["minimap_style_bliz"] or "Blizzard",  value = "blizzard" },
+    }, TomoModDB.minimap.trackingStyle or "tomomod", cy, function(v)
+        TomoModDB.minimap.trackingStyle = v
+        if TomoMod_Minimap then
+            if TomoMod_Minimap.CreateTrackingButton then TomoMod_Minimap.CreateTrackingButton() end
+            if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
+        end
+    end)
+
     local _, cy = W.CreateTwoColumnRow(card.inner, cy,
         function(col)
             local _, ny = W.CreateCheckbox(col, L["opt_minimap_mail"] or "Courrier", TomoModDB.minimap.showMail ~= false, 0, function(v)
@@ -202,6 +214,17 @@ function TomoMod_ConfigPanel_General(parent)
     local _, cby = W.CreateCheckbox(cardB.inner, L["opt_buttonbag_enable"] or "Activer le collecteur", EnsureBag().enabled ~= false, cby, function(v)
         EnsureBag().enabled = v
         ApplyBag()
+        if TomoMod_Minimap and TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
+    end)
+
+    -- [3.0.2] Style du collecteur : boîte TomoMod ou compartiment natif Blizzard
+    local _, cby = W.CreateDropdown(cardB.inner, L["opt_collector_style"] or "Style du collecteur", {
+        { text = L["collector_style_tomo"] or "TomoMod (boîte)",   value = "tomomod"  },
+        { text = L["collector_style_bliz"] or "Blizzard (natif)",  value = "blizzard" },
+    }, TomoModDB.minimap.collectorStyle or "tomomod", cby, function(v)
+        TomoModDB.minimap.collectorStyle = v
+        ApplyBag()
+        if TomoMod_Minimap and TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
     end)
 
     local bagDB = EnsureBag()
