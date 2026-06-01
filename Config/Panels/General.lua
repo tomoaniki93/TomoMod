@@ -255,14 +255,18 @@ function TomoMod_ConfigPanel_General(parent)
         function(col)
             local f, ny = W.CreateSlider(col, L["opt_buttonbag_columns"] or "Colonnes", bagDB.columns or 5, 1, 10, 1, 0, function(v)
                 EnsureBag().columns = v
-                ApplyBag()
+                -- RelayoutBag : les boutons sont déjà dans bagFrame.content,
+                -- un rescan (ApplyBag) ne les retrouverait plus.
+                if TomoMod_Minimap and TomoMod_Minimap.RelayoutBag then TomoMod_Minimap.RelayoutBag() end
             end, "%d")
             return ny
         end)
 
     local _, cby = W.CreateSlider(cardB.inner, L["opt_buttonbag_iconsize"] or "Taille des icônes", bagDB.iconSize or 28, 16, 40, 1, cby, function(v)
         EnsureBag().iconSize = v
-        ApplyBag()
+        -- RelayoutBag : les boutons sont déjà dans bagFrame.content,
+        -- un rescan (ApplyBag) ne les retrouverait plus.
+        if TomoMod_Minimap and TomoMod_Minimap.RelayoutBag then TomoMod_Minimap.RelayoutBag() end
     end, "%d")
 
     local _, cby = W.CreateButton(cardB.inner, L["btn_buttonbag_rescan"] or "Rescanner les boutons", 220, cby, function()

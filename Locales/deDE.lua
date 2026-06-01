@@ -2166,6 +2166,13 @@ TomoMod_RegisterLocale("deDE", {
     -- Waypoint Arrow Reversed (v2.9.22)
     ["wn_2922_waypoint_arrow"]    = "Der Off-Screen-Navigatorpfeil des Wegpunkts befindet sich jetzt auf der gegenüberliegenden Orbits-Seite: Wenn das Ziel vor dir liegt, erscheint der Pfeil unten und zeigt nach oben.",
 
+    -- 3.0.3
+    ["wn_303_tracking_panel"]    = "Benutzerdefiniertes Verfolgungsfenster — ein Klick auf den Verfolgungsknopf öffnet jetzt ein TomoMod-gestaltetes Fenster links neben der Minikarte statt des nativen Blizzard-Dropdowns.",
+    ["wn_303_collector_panel"]   = "Collector-Fenster überarbeitet — Addon-Knöpfe werden in einem TomoMod-Fenster (dunkler Hintergrund, türkisener Titel, Klassenfarbrahmen) links neben der Minikarte zusammengefasst.",
+    ["wn_303_collector_autoclose"] = "Der Collector schließt sich 0,5 s nach dem Login/Neuladen automatisch, sobald die Knöpfe erfasst wurden — beim Klick öffnet er sich normal.",
+    ["wn_303_tooltip_fix"]       = "Tooltip-Skin-Fix — das große schwarze Rechteck beim Überfahren von Einheiten oder Zaubern wurde behoben.",
+    ["wn_303_coords_pos"]        = "Minikarten-Koordinaten zur besseren Lesbarkeit nach unten mittig verschoben.",
+
     -- 3.0.0
     ["wn_300_installer"]  = "Brandneuer Einrichtungsassistent — Voreinstellungen zuerst: wähle Empfohlen, Tank, Heiler, DPS, Minimal oder Benutzerdefiniert und du bist in Sekunden eingerichtet.",
     ["wn_300_presets"]    = "Konfigurations-Voreinstellungen — ein Klick wendet eine stimmige, rollenangepasste Konfiguration auf alle Module an; jederzeit über /tm wiederverwendbar.",

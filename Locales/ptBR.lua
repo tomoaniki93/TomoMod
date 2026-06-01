@@ -2154,6 +2154,13 @@ TomoMod_RegisterLocale("ptBR", {
     -- Waypoint Arrow Reversed (v2.9.22)
     ["wn_2922_waypoint_arrow"]    = "A seta do navegador fora da tela do waypoint agora fica no lado oposto da órbita: quando o objetivo está à frente, a seta aparece na parte inferior e aponta para cima.",
 
+    -- 3.0.3
+    ["wn_303_tracking_panel"]    = "Painel de rastreamento personalizado — clicar no botão de rastreamento agora abre um painel no estilo TomoMod à esquerda do minimapa em vez do menu suspenso nativo do Blizzard.",
+    ["wn_303_collector_panel"]   = "Redesign do painel coletor — os botões de addon são agrupados em um painel TomoMod (fundo escuro, título em verde-azulado, borda na cor da classe) ancorado à esquerda do minimapa.",
+    ["wn_303_collector_autoclose"] = "O coletor fecha automaticamente 0,5 s após o login/recarregamento assim que os botões são capturados — abre normalmente ao clicar.",
+    ["wn_303_tooltip_fix"]       = "Correção do skin de tooltip — resolvido o grande retângulo preto que aparecia ao passar o mouse sobre unidades ou magias.",
+    ["wn_303_coords_pos"]        = "As coordenadas do minimapa foram movidas para o centro inferior para melhor legibilidade.",
+
     -- 3.0.0
     ["wn_300_installer"]  = "Assistente de configuração totalmente novo — presets primeiro: escolha Recomendado, Tank, Curandeiro, DPS, Mínimo ou Personalizado e fique pronto em segundos.",
     ["wn_300_presets"]    = "Presets de configuração — um clique aplica uma configuração coerente e ajustada ao papel em todos os módulos; reutilizável quando quiser pelo /tm.",

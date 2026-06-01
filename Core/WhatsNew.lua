@@ -30,6 +30,16 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.0.3",
+        highlights = {
+            L["wn_303_tracking_panel"],
+            L["wn_303_collector_panel"],
+            L["wn_303_collector_autoclose"],
+            L["wn_303_tooltip_fix"],
+            L["wn_303_coords_pos"],
+        },
+    },
+    {
         version = "3.0.2",
         highlights = {
             L["wn_302_collector_capture"],

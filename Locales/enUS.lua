@@ -2355,6 +2355,13 @@ TomoMod_RegisterLocale("enUS", {
     -- Waypoint Arrow Reversed (v2.9.22)
     ["wn_2922_waypoint_arrow"]    = "Off-screen waypoint navigator arrow is now on the opposite side of the orbit: when your goal is ahead, the arrow sits at the bottom and points up toward it.",
 
+    -- What's New 3.0.3
+    ["wn_303_tracking_panel"]    = "Custom tracking panel — clicking the tracking button now opens a TomoMod-styled panel to the left of the minimap instead of the native Blizzard dropdown.",
+    ["wn_303_collector_panel"]   = "Collector panel redesign — addon buttons are now grouped in a proper TomoMod panel (dark bg, teal title, class-color border) anchored left of the minimap.",
+    ["wn_303_collector_autoclose"] = "Collector auto-closes 0.5 s after login/reload once buttons are captured — the panel stays clean on entry and reopens normally on click.",
+    ["wn_303_tooltip_fix"]       = "Tooltip skin fix — the large black rectangle that appeared when hovering units or spells has been resolved.",
+    ["wn_303_coords_pos"]        = "Minimap coordinates moved to bottom-center for better readability.",
+
     -- What's New 3.0
     ["wn_300_installer"]  = "Brand-new setup assistant — presets-first: pick Recommended, Tank, Healer, DPS, Minimal or Custom and you're set up in seconds.",
     ["wn_300_presets"]    = "Setup presets — one click applies a coherent, role-tuned configuration across every module; reusable anytime from /tm.",

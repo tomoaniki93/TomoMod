@@ -1,5 +1,29 @@
 ## ####################################
 
+## CHANGELOG 3.0.3 — Minimap Custom Panels & UI Polish
+
+#### Minimap — Custom Tracking Panel
+- **New** — Clicking the tracking button now opens a **TomoMod-styled panel** anchored to the left of the minimap instead of the native Blizzard dropdown. Dark background, Poppins font, teal title, teal/grey checkbox squares. Supports mouse-wheel scroll for long tracking lists.
+- **New** — Three custom TGA icons (32×32) created for the sidebar home button (`ico_gui.tga`), the tracking button (`ico_minimap_tracking.tga`) and the collector button (`ico_minimap_collector.tga`).
+
+#### Minimap — Button Collector Panel
+- **New** — The addon button collector now opens as a **TomoMod-styled panel** (matching the tracking panel): dark background, teal title "Boutons d'addon", separator line, class-color border. Anchored to the left of the minimap.
+- **New** — Buttons are laid out **vertically** by default (1 column). The columns slider in the GUI still allows horizontal layouts.
+- **New** — The collector panel **auto-closes 0.5 s after login/reload** once buttons are captured, keeping the UI clean on entry. If the user manually opened the panel, it stays open.
+- **Fixed** — On the second open, the panel was showing "No buttons detected" because `RefreshButtonBag` was rescanning parents where buttons no longer live (already reparented). Now uses `RelayoutBag()` for subsequent opens — rescan only happens when the list is empty.
+- **Fixed** — Buttons were briefly visible on the minimap on login/reload before being collected. A pre-hide pass at `t=0` now masks candidate buttons immediately, eliminating the flash.
+
+#### Minimap — Button Border Fix
+- **Fixed** — The tracking and collector toggle buttons had a **white square border** visible around them. The backdrop border is now fully transparent (`alpha 0`) on both buttons at creation and on every live update pass.
+
+#### Tooltip — Black Rectangle Bug Fix
+- **Fixed** — With the TomoMod tooltip skin enabled, hovering a unit or spell could produce a **large black rectangle** extending beyond the tooltip frame. Root cause: `NineSlice.Center:SetAlpha()` in TWW 12.x affects a larger area than expected. Replaced with `SetBackdrop` + `SetBackdropColor` + `SetBackdropBorderColor`, which is strictly bounded to the frame. NineSlice fallback also updated to use `SetVertexColor(r,g,b,a)` in one call instead of separate `SetAlpha`.
+
+#### Minimap — Coordinates Position
+- **Changed** — Player coordinates moved from **top-right** to **bottom-center** of the minimap overlay (6 px above the bottom edge), for better readability and less overlap with other indicators.
+
+## ####################################
+
 ## CHANGELOG 3.0.2 — Minimap Collector Reliability & Bug Fixes
 
 #### Minimap — Button Collector Overhaul
