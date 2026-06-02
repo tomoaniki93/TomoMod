@@ -47,6 +47,11 @@ TomoMod_RegisterLocale("frFR", {
     ["section_cursor_ring"]             = "Anneau du curseur",
     ["opt_class_color"]                 = "Couleur de classe",
     ["opt_anchor_tooltip_ring"]         = "Ancrer l'infobulle au curseur",
+    ["opt_cursor_ring_texture"]         = "Texture",
+    ["cursor_tex_ring"]                 = "Anneau",
+    ["cursor_tex_glow"]                 = "Lueur",
+    ["cursor_tex_cygle"]                = "Cygle",
+    ["cursor_tex_heart"]                = "Cœur",
 
     -- =====================
     -- CONFIG: UnitFrames Panel
@@ -2076,6 +2081,24 @@ TomoMod_RegisterLocale("frFR", {
 
     ["tab_qol_merchant_tools"]           = "Outils vendeur",
 
+    -- Consumable Bar (3.0.4)
+    ["tab_qol_consumable_bar"]           = "Consommables",
+    ["section_consumable_bar"]           = "Barre de consommables",
+    ["info_cb_desc"]                     = "Affiche une icône + timer pour chaque consommable actif\u00a0: flacon (1h), bien nourri (1h) et huile sur arme (2h). Le slot huile main secondaire n'apparaît que si une arme est équipée en main secondaire.",
+    ["opt_cb_enable"]                    = "Activer la barre de consommables",
+    ["opt_cb_show_missing"]              = "Afficher les buffs manquants (fantôme)",
+    ["opt_cb_icon_size"]                 = "Taille des icônes",
+    ["opt_cb_gap"]                       = "Écart entre les icônes",
+    ["opt_cb_orientation"]               = "Orientation",
+    ["cb_orient_horizontal"]             = "Horizontale",
+    ["cb_orient_vertical"]               = "Verticale",
+    ["opt_cb_timer_pos"]                 = "Position du timer",
+    ["cb_timerpos_below"]                = "Dessous (horizontal)",
+    ["cb_timerpos_above"]                = "Dessus (horizontal)",
+    ["cb_timerpos_right"]                = "Droite (vertical)",
+    ["cb_timerpos_left"]                 = "Gauche (vertical)",
+    ["mover_consumable_bar"]             = "Barre de consommables",
+
     ["section_already_known"]            = "Déjà connu",
     ["info_already_known"]               = "Désature ou teinte les objets déjà possédés (montures, mascottes, jouets, transmogrification, recettes) dans les fenêtres du marchand et des rachats.",
     ["opt_ak_enable"]                    = "Activer Déjà connu",
@@ -2264,6 +2287,11 @@ TomoMod_RegisterLocale("frFR", {
 
     -- Waypoint Arrow Reversed (v2.9.22)
     ["wn_2922_waypoint_arrow"]    = "La flèche du navigateur hors-écran du waypoint est maintenant du côté opposé de l'orbite : quand l'objectif est devant vous, la flèche apparaît en bas et pointe vers le haut.",
+
+    -- 3.0.4
+    ["wn_304_consumable_bar"]    = "ConsumableBar — nouveau module QOL affichant les icônes Flacon et Bien Nourri avec minuterie. Entièrement configurable (taille, écart, orientation, position du timer) et déplaçable en mode Layout.",
+    ["wn_304_cursor_textures"]   = "Anneau de curseur — deux nouvelles textures ajoutées (Cygle et Cœur). Sélecteur de texture disponible dans Général → Anneau de curseur.",
+    ["wn_304_mythichub_tp"]      = "Téléportation MythicHub corrigée — plus de taint (ADDON_ACTION_FORBIDDEN) ni d'erreur d'ancrage en cliquant sur les donjons. Les SpellID de Cavernes de Maisara et de la Flèche Sylvevente sont également corrigés.",
 
     -- 3.0.3
     ["wn_303_tracking_panel"]    = "Panneau de pistage custom — cliquer sur le bouton de pistage ouvre désormais un panneau style TomoMod à gauche de la minimap au lieu du menu Blizzard natif.",

@@ -121,6 +121,15 @@ TomoMod_Defaults = {
         height = 28,
         position = nil,
     },
+    consumableBar = {
+        enabled     = false,
+        iconSize    = 36,
+        gap         = 4,
+        showMissing = false,        -- afficher les slots manquants en fantôme
+        orientation = "horizontal", -- "horizontal" | "vertical"
+        timerPos    = "below",      -- "below" | "above" (H) | "right" | "left" (V)
+        position    = nil,          -- { point, relativePoint, x, y }
+    },
     cvarOptimizer = {
         backup           = nil,
         individualBackup = nil,

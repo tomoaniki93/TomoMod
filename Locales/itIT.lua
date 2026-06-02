@@ -2155,6 +2155,12 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_2922_waypoint_arrow"]    = "La freccia del navigatore fuori schermo del waypoint è ora sul lato opposto dell'orbita: quando l'obiettivo è davanti, la freccia appare in basso e punta verso l'alto.",
 
     -- 3.0.3
+    -- 3.0.4
+    ["wn_304_consumable_bar"]    = "ConsumableBar — nuovo modulo QOL che mostra le icone del Fiasco e Ben Nutrito con timer a conto alla rovescia. Completamente configurabile (dimensione, spazio, orientamento, posizione timer) e spostabile in Modalità Layout.",
+    ["wn_304_cursor_textures"]   = "Anello del cursore — due nuove texture aggiunte (Cygle e Cuore). Selettore texture disponibile in Generale → Anello del cursore.",
+    ["wn_304_mythichub_tp"]      = "Teletrasporto MythicHub corretto — nessun taint (ADDON_ACTION_FORBIDDEN) o errore di ancoraggio quando si clicca sulle righe dungeon. ID degli incantesimi per Maisara Caverns e Windrunner Spire corretti.",
+
+    -- 3.0.3
     ["wn_303_tracking_panel"]    = "Pannello di tracciamento personalizzato — cliccare il pulsante di tracciamento apre ora un pannello in stile TomoMod a sinistra della minimappa al posto del menu a tendina nativo di Blizzard.",
     ["wn_303_collector_panel"]   = "Redesign del pannello raccoglitore — i pulsanti degli addon vengono raggruppati in un pannello TomoMod (sfondo scuro, titolo verde acqua, bordo del colore della classe) ancorato a sinistra della minimappa.",
     ["wn_303_collector_autoclose"] = "Il raccoglitore si chiude automaticamente dopo 0,5 s dal login/ricaricamento una volta catturati i pulsanti — si riapre normalmente al clic.",

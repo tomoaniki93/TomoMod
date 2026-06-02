@@ -47,6 +47,11 @@ TomoMod_RegisterLocale("enUS", {
     ["section_cursor_ring"]             = "Cursor Ring",
     ["opt_class_color"]                 = "Class color",
     ["opt_anchor_tooltip_ring"]         = "Anchor Tooltip to cursor",
+    ["opt_cursor_ring_texture"]         = "Texture",
+    ["cursor_tex_ring"]                 = "Ring",
+    ["cursor_tex_glow"]                 = "Glow",
+    ["cursor_tex_cygle"]                = "Cygle",
+    ["cursor_tex_heart"]                = "Heart",
 
     -- =====================
     -- CONFIG: UnitFrames Panel
@@ -2162,6 +2167,24 @@ TomoMod_RegisterLocale("enUS", {
 
     ["tab_qol_merchant_tools"]           = "Vendor Tools",
 
+    -- Consumable Bar (3.0.4)
+    ["tab_qol_consumable_bar"]           = "Consumables",
+    ["section_consumable_bar"]           = "Consumable Bar",
+    ["info_cb_desc"]                     = "Shows an icon + timer for each active consumable: flask (1h), well fed (1h), and weapon oil (2h). The off-hand oil slot is shown only when a weapon is equipped in the off-hand.",
+    ["opt_cb_enable"]                    = "Enable consumable bar",
+    ["opt_cb_show_missing"]              = "Show missing buffs (dimmed ghost)",
+    ["opt_cb_icon_size"]                 = "Icon size",
+    ["opt_cb_gap"]                       = "Gap between icons",
+    ["opt_cb_orientation"]               = "Orientation",
+    ["cb_orient_horizontal"]             = "Horizontal",
+    ["cb_orient_vertical"]               = "Vertical",
+    ["opt_cb_timer_pos"]                 = "Timer position",
+    ["cb_timerpos_below"]                = "Below (horizontal)",
+    ["cb_timerpos_above"]                = "Above (horizontal)",
+    ["cb_timerpos_right"]                = "Right (vertical)",
+    ["cb_timerpos_left"]                 = "Left (vertical)",
+    ["mover_consumable_bar"]             = "Consumable Bar",
+
     ["section_already_known"]            = "Already Known",
     ["info_already_known"]               = "Desaturates or tints vendor/buyback items you already own (mounts, pets, toys, transmog sets, recipes).",
     ["opt_ak_enable"]                    = "Enable Already Known",
@@ -2354,6 +2377,11 @@ TomoMod_RegisterLocale("enUS", {
 
     -- Waypoint Arrow Reversed (v2.9.22)
     ["wn_2922_waypoint_arrow"]    = "Off-screen waypoint navigator arrow is now on the opposite side of the orbit: when your goal is ahead, the arrow sits at the bottom and points up toward it.",
+
+    -- What's New 3.0.4
+    ["wn_304_consumable_bar"]    = "ConsumableBar — new QOL module showing Flask and Well Fed buff icons with countdown timers. Fully configurable (size, gap, orientation, timer position) and draggable in Layout Mode.",
+    ["wn_304_cursor_textures"]   = "Cursor Ring — two new textures added (Cygle and Heart). Texture selector available in General → Cursor Ring.",
+    ["wn_304_mythichub_tp"]      = "MythicHub teleport fixed — no more taint (ADDON_ACTION_FORBIDDEN) or anchor errors when clicking dungeon rows. Spell IDs for Maisara Caverns and Windrunner Spire also corrected.",
 
     -- What's New 3.0.3
     ["wn_303_tracking_panel"]    = "Custom tracking panel — clicking the tracking button now opens a TomoMod-styled panel to the left of the minimap instead of the native Blizzard dropdown.",

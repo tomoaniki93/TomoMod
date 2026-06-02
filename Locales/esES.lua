@@ -2215,6 +2215,12 @@ TomoMod_RegisterLocale("esES", {
     ["wn_2922_waypoint_arrow"]    = "La flecha del navegador fuera de pantalla del waypoint está ahora en el lado opuesto de la órbita: cuando el objetivo está delante, la flecha aparece abajo y apunta hacia arriba.",
 
     -- 3.0.3
+    -- 3.0.4
+    ["wn_304_consumable_bar"]    = "ConsumableBar — nuevo módulo QOL que muestra los iconos del Frasco y Bien Alimentado con temporizador de cuenta atrás. Totalmente configurable (tamaño, separación, orientación, posición del temporizador) y movible en el Modo de Diseño.",
+    ["wn_304_cursor_textures"]   = "Anillo del cursor — dos nuevas texturas añadidas (Cygle y Corazón). Selector de textura disponible en General → Anillo del cursor.",
+    ["wn_304_mythichub_tp"]      = "Teleportación de MythicHub corregida — sin más taint (ADDON_ACTION_FORBIDDEN) ni errores de anclaje al hacer clic en las filas de mazmorra. IDs de hechizo para Maisara Caverns y Windrunner Spire también corregidos.",
+
+    -- 3.0.3
     ["wn_303_tracking_panel"]    = "Panel de seguimiento personalizado — hacer clic en el botón de seguimiento ahora abre un panel estilo TomoMod a la izquierda del minimapa en lugar del desplegable nativo de Blizzard.",
     ["wn_303_collector_panel"]   = "Rediseño del panel colector — los botones de addon se agrupan en un panel TomoMod (fondo oscuro, título en verde azulado, borde del color de clase) anclado a la izquierda del minimapa.",
     ["wn_303_collector_autoclose"] = "El colector se cierra automáticamente 0,5 s tras el login/recarga una vez capturados los botones — se abre normalmente al hacer clic.",

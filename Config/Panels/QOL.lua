@@ -1056,6 +1056,119 @@ local function BuildAuraTrackerTab(parent)
 end
 
 -- =====================================
+-- TAB: CONSUMABLE BAR (Flask / Nourriture / Huiles)
+-- =====================================
+
+local function BuildConsumableBarTab(parent)
+    local CB     = TomoMod_ConsumableBar
+    local scroll = W.CreateScrollPanel(parent)
+    local c      = scroll.child
+    local y      = -10
+
+    local function Apply()
+        if CB then CB.ApplySettings() end
+    end
+
+    local _, ny = W.CreateSectionHeader(c, L["section_consumable_bar"] or "Barre de consommables", y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_cb_desc"]
+        or "Affiche une barre avec l'icône et le timer de chaque consommable actif : flacon, bien nourri, et huile(s) sur arme.", y)
+    y = ny
+
+    local cbDB = TomoModDB.consumableBar or {}
+
+    local _, ny = W.CreateCheckbox(c, L["opt_cb_enable"] or "Activer la barre de consommables",
+        cbDB.enabled ~= false, y, function(v)
+            if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
+            TomoModDB.consumableBar.enabled = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_cb_show_missing"] or "Afficher les buffs manquants (fantôme)",
+        cbDB.showMissing ~= false, y, function(v)
+            if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
+            TomoModDB.consumableBar.showMissing = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_cb_icon_size"] or "Taille des icônes",
+        cbDB.iconSize or 36, 24, 56, 2, y, function(v)
+            if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
+            TomoModDB.consumableBar.iconSize = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_cb_gap"] or "Écart entre les icônes",
+        cbDB.gap or 4, 0, 12, 1, y, function(v)
+            if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
+            TomoModDB.consumableBar.gap = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateDropdown(c,
+        L["opt_cb_orientation"] or "Orientation",
+        {
+            { text = L["cb_orient_horizontal"] or "Horizontale", value = "horizontal" },
+            { text = L["cb_orient_vertical"]   or "Verticale",   value = "vertical"   },
+        },
+        cbDB.orientation or "horizontal",
+        y,
+        function(v)
+            if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
+            TomoModDB.consumableBar.orientation = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateDropdown(c,
+        L["opt_cb_timer_pos"] or "Position du timer",
+        {
+            { text = L["cb_timerpos_below"] or "Dessous (horizontal)", value = "below" },
+            { text = L["cb_timerpos_above"] or "Dessus (horizontal)",  value = "above" },
+            { text = L["cb_timerpos_right"] or "Droite (vertical)",    value = "right" },
+            { text = L["cb_timerpos_left"]  or "Gauche (vertical)",    value = "left"  },
+        },
+        cbDB.timerPos or "below",
+        y,
+        function(v)
+            if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
+            TomoModDB.consumableBar.timerPos = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateButton(c, L["btn_reset_position"] or "Réinitialiser la position", 200, y, function()
+        if TomoModDB.consumableBar then TomoModDB.consumableBar.position = nil end
+        if CB then CB.ApplySettings() end
+        -- Remet la position par défaut
+        local f = _G["TomoMod_ConsumableBar"]
+        if f then
+            f:ClearAllPoints()
+            f:SetPoint("CENTER", UIParent, "CENTER", 0, -200)
+        end
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- TAB: MERCHANT TOOLS (AlreadyKnown + ExtendPages)
 -- =====================================
 
@@ -1153,6 +1266,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "waypoint",    label = L["tab_qol_waypoint"],       builder = function(p) return BuildWaypointTab(p) end },
         { key = "auratracker", label = L["tab_qol_aura_tracker"],  builder = function(p) return BuildAuraTrackerTab(p) end },
         { key = "merchant",    label = L["tab_qol_merchant_tools"], builder = function(p) return BuildMerchantToolsTab(p) end },
+        { key = "consumable",  label = L["tab_qol_consumable_bar"] or "Consommables", builder = function(p) return BuildConsumableBarTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

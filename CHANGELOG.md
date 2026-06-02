@@ -1,5 +1,27 @@
 ## ####################################
 
+## CHANGELOG 3.0.4 — ConsumableBar, Cursor Ring Textures & MythicHub Teleport Fix
+
+#### QOL — ConsumableBar (New Module)
+- **New** — New QOL bar displaying **Flask** and **Well Fed** buff status with icon and countdown timer.
+- **New** — Heuristic food detection (buff duration 3000–3720 s) covers all current Well Fed food buffs without requiring a hardcoded list.
+- **New** — Configurable via GUI: enable/disable, icon size (24–56), gap, **orientation** (horizontal / vertical), **timer position** (below / above / right / left), show-when-missing toggle.
+- **New** — Draggable in Layout Mode (mover system). Position saved to profile.
+
+#### Cursor Ring — New Textures
+- **New** — Two new cursor ring textures: **Cygle** and **Heart**, replacing the previous Sparkle and Star entries.
+- **New** — Texture selector dropdown in the General → Cursor Ring tab (Ring, Glow, Cygle, Heart).
+
+#### MythicHub — Teleport Fix
+- **Fixed** — Clicking a dungeon row to teleport triggered `ADDON_ACTION_FORBIDDEN` taint (`CastSpellByID` called from an unsecured click handler). Rows are now plain Buttons; each row has a paired `SecureActionButtonTemplate` button parented to the main frame and positioned absolutely, matching the TomoScore pattern.
+- **Fixed** — After the initial taint fix, a second crash appeared: `Cannot anchor protected frames to regions` because the new secure buttons were anchoring to `sep2` (a Texture). Secure buttons are now anchored absolutely to `F` (the main frame) using pre-computed Y offsets, never to a Texture or non-secure frame.
+- **Fixed** — Secure buttons were being intercepted by the row buttons below them (same FrameLevel). Secure buttons now have `FrameLevel = row FrameLevel + 10` so they correctly capture clicks and forward OnEnter/OnLeave to the underlying row for tooltip display.
+
+#### DataKeys — Spell ID Corrections
+- **Fixed** — Corrected teleport spell IDs for **Maisara Caverns** and **Windrunner Spire** (Midnight season).
+
+## ####################################
+
 ## CHANGELOG 3.0.3 — Minimap Custom Panels & UI Polish
 
 #### Minimap — Custom Tracking Panel

@@ -354,6 +354,21 @@ function TomoMod_ConfigPanel_General(parent)
         if TomoMod_CursorRing then TomoMod_CursorRing.ApplyScale() end
     end, "%.1f")
 
+    local _, cy = W.CreateDropdown(card3.inner,
+        L["opt_cursor_ring_texture"] or "Texture",
+        {
+            { text = L["cursor_tex_ring"]  or "Ring",  value = "ring"  },
+            { text = L["cursor_tex_glow"]  or "Glow",  value = "glow"  },
+            { text = L["cursor_tex_cygle"] or "Cygle", value = "cygle" },
+            { text = L["cursor_tex_heart"] or "Heart", value = "heart" },
+        },
+        TomoModDB.cursorRing.shape or "ring",
+        cy,
+        function(v)
+            TomoModDB.cursorRing.shape = v
+            if TomoMod_CursorRing then TomoMod_CursorRing.ApplyTexture() end
+        end)
+
     y = W.FinalizeCard(card3, cy)
 
     -- ═══════════════════════════════════════════════

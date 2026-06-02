@@ -30,6 +30,14 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.0.4",
+        highlights = {
+            L["wn_304_consumable_bar"],
+            L["wn_304_cursor_textures"],
+            L["wn_304_mythichub_tp"],
+        },
+    },
+    {
         version = "3.0.3",
         highlights = {
             L["wn_303_tracking_panel"],
