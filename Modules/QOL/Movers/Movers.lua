@@ -253,6 +253,22 @@ local function BuildEntries()
             return TomoModDB and TomoModDB.minimap and TomoModDB.minimap.enabled
         end,
     })
+    table.insert(moduleEntries, {
+        label    = L["mover_consumable_bar"] or "Consommables",
+        unlock   = function()
+            if TomoMod_ConsumableBar and TomoMod_ConsumableBar.IsLocked and TomoMod_ConsumableBar.IsLocked() then
+                TomoMod_ConsumableBar.SetLocked(false)
+            end
+        end,
+        lock     = function()
+            if TomoMod_ConsumableBar and TomoMod_ConsumableBar.IsLocked and not TomoMod_ConsumableBar.IsLocked() then
+                TomoMod_ConsumableBar.SetLocked(true)
+            end
+        end,
+        isActive = function()
+            return TomoModDB and TomoModDB.consumableBar and TomoModDB.consumableBar.enabled
+        end,
+    })
 end
 
 -- =====================================

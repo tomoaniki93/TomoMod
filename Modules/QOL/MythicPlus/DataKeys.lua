@@ -129,10 +129,10 @@ local DB = {
     -- =================================
     -- Midnight (12.x)
     -- =================================
-    [557] = { "Windrunner Spire",                       "WIND",   1254840 },
+    [557] = { "Windrunner Spire",                       "WIND",   1254400 },
     [558] = { "Magisters' Terrace",                     "MAGI",   1254572 },
     [559] = { "Nexus-Point Xenas",                      "XENAS",  1254563 },
-    [560] = { "Maisara Caverns",                        "CAVNS",  1255247 },
+    [560] = { "Maisara Caverns",                        "CAVNS",  1254559 },
 }
 
 -- =====================================

@@ -408,12 +408,10 @@ function HUB:Build()
         row._spellID = nil
         row._hasTeleport = false
 
-        -- Click handler: teleport
-        row:SetScript("OnClick", function(self)
+        -- Click handler: feedback uniquement (le cast est géré par _secureBtn)
+        row:HookScript("OnClick", function(self)
             if self._hasTeleport and self._spellID then
-                if IsSpellKnown(self._spellID) then
-                    CastSpellByID(self._spellID)
-                else
+                if not IsSpellKnown(self._spellID) then
                     print(L["mhub_tp_not_learned"])
                 end
             end
@@ -437,6 +435,36 @@ function HUB:Build()
 
         F._rows[idx] = row
         prevAnchor = row
+    end
+
+    -- Secure teleport buttons : parentés à F, jamais ancrés aux rows (frames protégées
+    -- ne peuvent pas s'ancrer à des frames non-protégées ou des Textures).
+    -- Positionnement absolu identique au pattern de TomoScoreUI.
+    do
+        local BASE_Y = HEADER_H + 2 + COL_HEADER_H + 1   -- 91 px depuis le haut de F
+        for idx = 1, numDungeons do
+            local row = F._rows[idx]
+            local sb = CreateFrame("Button", nil, F, "SecureActionButtonTemplate")
+            sb:SetSize(FRAME_W, ROW_H)
+            sb:SetPoint("TOPLEFT", F, "TOPLEFT", 0, -(BASE_Y + (idx - 1) * ROW_H))
+            sb:SetAttribute("type", "spell")
+            sb:RegisterForClicks("AnyUp", "AnyDown")
+            sb:SetAlpha(0)
+            sb:EnableMouse(false)   -- activé seulement si TP connu
+            -- FrameLevel plus haut que le row pour capturer les clics en priorité
+            sb:SetFrameLevel(row:GetFrameLevel() + 10)
+            -- Forwarde tooltip vers le row sous-jacent
+            sb._row = row
+            sb:SetScript("OnEnter", function(self)
+                local fn = self._row:GetScript("OnEnter")
+                if fn then fn(self._row) end
+            end)
+            sb:SetScript("OnLeave", function(self)
+                local fn = self._row:GetScript("OnLeave")
+                if fn then fn(self._row) end
+            end)
+            F._rows[idx]._secureBtn = sb
+        end
     end
 
     -- ── VAULT SEPARATOR ─────────────────────────────────────────────
@@ -710,6 +738,17 @@ function HUB:Refresh()
         local spellID = DK.GetTeleportSpellID(mapID)
         row._spellID = spellID
         row._hasTeleport = (spellID ~= nil)
+
+        -- Bouton sécurisé : activé seulement si le sort est connu
+        if row._secureBtn then
+            if spellID and IsSpellKnown(spellID) then
+                row._secureBtn:SetAttribute("spell", spellID)
+                row._secureBtn:EnableMouse(true)
+            else
+                row._secureBtn:SetAttribute("spell", nil)
+                row._secureBtn:EnableMouse(false)
+            end
+        end
 
         if spellID and IsSpellKnown(spellID) then
             row._nameFS:SetTextColor(unpack(C.TEXT_WHITE))

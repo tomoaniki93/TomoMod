@@ -47,6 +47,21 @@ function TomoMod_CursorRing.Create()
     return cursorFrame
 end
 
+-- Appliquer la texture
+function TomoMod_CursorRing.ApplyTexture()
+    if not ringTexture then return end
+    local shape = (TomoModDB.cursorRing and TomoModDB.cursorRing.shape) or "ring"
+    -- Table de correspondance value → nom de fichier exact
+    local FILE = {
+        ring  = "Ring",
+        glow  = "Glow",
+        cygle = "cygle",
+        heart = "heart",
+    }
+    local file = FILE[shape] or "Ring"
+    ringTexture:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\Cursor\\" .. file)
+end
+
 -- Appliquer la couleur
 function TomoMod_CursorRing.ApplyColor()
     if not ringTexture then return end
@@ -117,6 +132,7 @@ function TomoMod_CursorRing.ApplySettings()
     end
     
     TomoMod_CursorRing.Create()
+    TomoMod_CursorRing.ApplyTexture()
     TomoMod_CursorRing.ApplyColor()
     TomoMod_CursorRing.ApplyScale()
     TomoMod_CursorRing.SetupTooltipAnchor()

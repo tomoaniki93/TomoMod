@@ -111,6 +111,9 @@
     <!-- Modules: Diagnostics (Error Capture & Report — /tmdiag) -->
     <Include file="Diagnostics\Diagnostics.lua" />
 
+    <!-- Modules: ConsumableBar (Flask / Nourriture / Huiles) -->
+    <Include file="Consumables\ConsumableBar.lua" />
+
     <!-- Modules: Movers (Layout System — doit être en dernier) -->
     <Include file="Movers\Movers.lua" />
 

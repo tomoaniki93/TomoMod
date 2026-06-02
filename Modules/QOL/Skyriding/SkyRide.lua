@@ -410,18 +410,17 @@ local function UpdateSpeed()
                 speedBar.speedText:Show()
             end
         elseif s.showGroundSpeed then
-            -- Au sol : afficher la vitesse de déplacement réelle (utile avec un
-            -- buff de vitesse). On masque les segments Vigor / Second souffle,
-            -- sans objet hors vol, pour ne montrer que la barre de vitesse.
+            -- Au sol : afficher la vitesse de déplacement réelle.
+            -- Les segments Vigor / Second Souffle restent visibles (utilisables hors vol).
             frame:Show()
             for i = 1, VIGOR_MAX_SEGMENTS do
-                if vigorSegments[i] then vigorSegments[i]:Hide() end
+                if vigorSegments[i] then vigorSegments[i]:Show() end
             end
             for i = 1, WIND_MAX_SEGMENTS do
-                if windSegments[i] then windSegments[i]:Hide() end
+                if windSegments[i] then windSegments[i]:Show() end
             end
-            if frame.vigorLabel then frame.vigorLabel:Hide() end
-            if frame.windLabel  then frame.windLabel:Hide()  end
+            if frame.vigorLabel then frame.vigorLabel:Show() end
+            if frame.windLabel  then frame.windLabel:Show()  end
 
             local speed = GetUnitSpeed("player")
             local moveSpeed = math.floor(speed / 7 * 100 + 0.5)
@@ -495,7 +494,9 @@ local function OnTick()
     if not flying and isLocked then
         if groundSpeed then
             _srWasFlying = false
-            UpdateSpeed()  -- gère l'affichage au sol + masque vigor/vent
+            UpdateSpeed()
+            UpdateVigorSegments(false)
+            UpdateWindSegments(false)
             return
         end
         if _srWasFlying then
