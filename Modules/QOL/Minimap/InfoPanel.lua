@@ -239,6 +239,12 @@ local function CreateUI()
     clockLabel:SetPoint("LEFT", clockText, "RIGHT", 4, -2)
     clockLabel:SetTextColor(0.45, 0.45, 0.50, 1)
 
+    -- [3.0.5] Exposé pour ancrage externe : le collecteur de la minimap peut se
+    -- placer « à gauche/droite de l'horloge » en s'ancrant au TEXTE de l'heure
+    -- (centré dans cette barre pleine largeur) plutôt qu'au bord de la barre.
+    clockBar.timeText  = clockText
+    clockBar.timeLabel = clockLabel
+
     -- =========================================
     -- CLOCK INTERACTIONS
     -- =========================================

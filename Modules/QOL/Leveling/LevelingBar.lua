@@ -382,7 +382,10 @@ function LB.SetPosition()
             db.position.y
         )
     else
-        barFrame:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 40)
+        -- [3.0.5] Pas de position sauvegardée : on place la barre au CENTRE de
+        -- l'écran (au lieu du bas, souvent caché derrière les barres d'action)
+        -- pour que le joueur la trouve immédiatement, puis la déplace.
+        barFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     end
 end
 

@@ -329,7 +329,10 @@ local function UpdateAllSlots(isPreview)
         else
             frame:SetSize(visibleCount * slotW + (visibleCount - 1) * gap, slotH)
         end
-        frame:Show()
+        -- Ne pas afficher si le module est désactivé
+        if db.enabled then
+            frame:Show()
+        end
     else
         if isLocked then
             frame:Hide()

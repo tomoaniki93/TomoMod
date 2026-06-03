@@ -910,6 +910,59 @@ function TomoMod_Minimap.HideNativeClutter()
     HookNativeFrame(compart,   collectHide)
 end
 
+-- [3.0.5] Positionne le déclencheur du collecteur. Extrait de CreateButtonBag
+-- pour être ré-appelable : l'horloge visible est celle de l'InfoPanel
+-- (TomoMod_ClockBar), créée au login — souvent APRÈS ce premier positionnement.
+-- La native TimeManagerClockButton est masquée par l'InfoPanel, donc on cible
+-- d'abord la barre TomoMod, puis la native (InfoPanel désactivé), sinon le coin.
+function TomoMod_Minimap.PositionBagToggle()
+    if not bagToggle then return end
+    local db = TomoModDB.minimap.buttonBag or {}
+    local anchorMode = db.anchor or "corner"
+    local clock = _G.TomoMod_ClockBar or _G.TimeManagerClockButton
+    local clockShown = clock and clock:IsShown()
+    bagToggle:ClearAllPoints()
+
+    if (anchorMode == "clock-left" or anchorMode == "clock-right") and clockShown then
+        local gap = db.clockGap or 2
+        local isBar = (clock == _G.TomoMod_ClockBar)  -- barre pleine largeur sous la minimap
+        if isBar then
+            -- L'heure est CENTRÉE dans une barre pleine largeur : on se place juste
+            -- à gauche/droite du TEXTE de l'heure (pas au bord de la barre), et on
+            -- relève le bouton au-dessus de la barre pour qu'il reste visible/cliquable.
+            bagToggle:SetFrameStrata(clock:GetFrameStrata())
+            bagToggle:SetFrameLevel((clock:GetFrameLevel() or 0) + 2)
+            local timeText  = clock.timeText
+            local timeLabel = clock.timeLabel or timeText
+            if anchorMode == "clock-left" then
+                if timeText then
+                    bagToggle:SetPoint("RIGHT", timeText, "LEFT", -gap, 0)
+                else
+                    bagToggle:SetPoint("LEFT", clock, "LEFT", gap, 0)        -- repli : bord gauche
+                end
+            else
+                if timeLabel then
+                    bagToggle:SetPoint("LEFT", timeLabel, "RIGHT", gap, 0)
+                else
+                    bagToggle:SetPoint("RIGHT", clock, "RIGHT", -gap, 0)     -- repli : bord droit
+                end
+            end
+        else
+            -- Petite horloge native (InfoPanel désactivé) : on la flanque directement.
+            if anchorMode == "clock-left" then
+                bagToggle:SetPoint("RIGHT", clock, "LEFT", -gap, 0)
+            else
+                bagToggle:SetPoint("LEFT", clock, "RIGHT", gap, 0)
+            end
+        end
+    else
+        -- Mode minimap (coin) — comportement par défaut / repli
+        local corner = db.corner or "BOTTOMLEFT"
+        bagToggle:SetPoint(corner, Minimap, corner, db.x or 2, db.y or 26)
+    end
+    bagToggle:SetScale(db.scale or 1.0)
+end
+
 function TomoMod_Minimap.CreateButtonBag()
     local db = TomoModDB.minimap.buttonBag or {}
     local collectorStyle = TomoModDB.minimap.collectorStyle or "tomomod"
@@ -1025,31 +1078,12 @@ function TomoMod_Minimap.CreateButtonBag()
         bagFrame:Hide()
     end
 
-    -- Position du déclencheur
-    local scale = db.scale or 1.0
-    local anchorMode = db.anchor or "corner"
-    local clock = _G.TimeManagerClockButton
-    bagToggle:ClearAllPoints()
-    bagFrame:ClearAllPoints()
-
-    if (anchorMode == "clock-left" or anchorMode == "clock-right") and clock and clock:IsShown() then
-        -- [3.0.1] Ancrage à l'horloge : le collecteur flanque l'heure et ne
-        -- recouvre plus la face de la minimap. Repli automatique sur le coin
-        -- si l'horloge est masquée ou non chargée.
-        local gap = db.clockGap or 2
-        if anchorMode == "clock-left" then
-            bagToggle:SetPoint("RIGHT", clock, "LEFT", -gap, 0)
-        else
-            bagToggle:SetPoint("LEFT", clock, "RIGHT", gap, 0)
-        end
-    else
-        -- Mode minimap (coin) — comportement par défaut
-        local corner = db.corner or "BOTTOMLEFT"
-        bagToggle:SetPoint(corner, Minimap, corner, db.x or 2, db.y or 26)
-    end
+    -- Position du déclencheur (extraite : ré-appelable après création tardive
+    -- de l'horloge de l'InfoPanel — voir PositionBagToggle).
+    TomoMod_Minimap.PositionBagToggle()
     -- Le panneau s'ouvre toujours à gauche de la minimap (cohérent avec le panel de pistage)
+    bagFrame:ClearAllPoints()
     bagFrame:SetPoint("RIGHT", Minimap, "LEFT", -4, 0)
-    bagToggle:SetScale(scale)
 
     -- Teinte
     local r, g, b = 0.9, 0.9, 0.9
@@ -1193,6 +1227,8 @@ function TomoMod_Minimap.Initialize()
         TomoMod_Minimap.ApplySettings()
         -- Scan immédiat juste après la création du bagFrame
         if TomoMod_Minimap.RefreshButtonBag then TomoMod_Minimap.RefreshButtonBag() end
+        -- Re-ancre le déclencheur : l'horloge de l'InfoPanel existe maintenant
+        if TomoMod_Minimap.PositionBagToggle then TomoMod_Minimap.PositionBagToggle() end
     end)
 
     -- (3) Scan différé pour les addons qui enregistrent leur bouton plus tard.
@@ -1200,6 +1236,7 @@ function TomoMod_Minimap.Initialize()
         if TomoMod_Minimap.RefreshAddonButtonShapes then TomoMod_Minimap.RefreshAddonButtonShapes() end
         if TomoMod_Minimap.RefreshButtonBag then TomoMod_Minimap.RefreshButtonBag() end
         if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
+        if TomoMod_Minimap.PositionBagToggle then TomoMod_Minimap.PositionBagToggle() end
     end)
 
     -- (4) Polling des addons chargés tard : re-scanne après chaque ADDON_LOADED
@@ -1216,6 +1253,7 @@ function TomoMod_Minimap.Initialize()
                 if not (TomoModDB and TomoModDB.minimap and TomoModDB.minimap.enabled) then return end
                 if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
                 if TomoMod_Minimap.RefreshButtonBag then TomoMod_Minimap.RefreshButtonBag() end
+                if TomoMod_Minimap.PositionBagToggle then TomoMod_Minimap.PositionBagToggle() end
             end)
         end)
         TomoMod_Minimap._poll = poll

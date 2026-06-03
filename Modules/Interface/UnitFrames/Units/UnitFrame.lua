@@ -670,14 +670,18 @@ function UF.RefreshUnit(unitKey)
             frame.power:ClearAllPoints()
             frame.power:SetPoint("TOP", frame.health, "BOTTOM", offsets.power.x, offsets.power.y)
         end
+        -- [3.0.5] La position des auras vient UNIQUEMENT du drag (auras.position),
+        -- source de vérité unique, identique au restore de CreateAuraContainer.
+        -- On NE cumule PLUS elementOffsets.auras ici : ce double-comptage faisait
+        -- dériver les buffs/debuffs du cadre de joueur à chaque /reload.
         if frame.auraContainer and offsets.auras then
             local auraPos = settings.auras and settings.auras.position
             if auraPos then
                 frame.auraContainer:ClearAllPoints()
                 frame.auraContainer:SetPoint(
-                    auraPos.point or "BOTTOMLEFT", frame, auraPos.relativePoint or "TOPLEFT",
-                    (auraPos.x or 0) + offsets.auras.x,
-                    (auraPos.y or 6) + offsets.auras.y
+                    auraPos.point or "BOTTOMRIGHT", frame, auraPos.relativePoint or "TOPRIGHT",
+                    auraPos.x or 0,
+                    auraPos.y or 6
                 )
             end
         end
