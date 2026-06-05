@@ -114,6 +114,9 @@
     <!-- Modules: ConsumableBar (Flask / Nourriture / Huiles) -->
     <Include file="Consumables\ConsumableBar.lua" />
 
+    <!-- Modules: RareAlert (Alerte de proximité des rares — vignettes) -->
+    <Include file="RareAlert\RareAlert.lua" />
+
     <!-- Modules: Movers (Layout System — doit être en dernier) -->
     <Include file="Movers\Movers.lua" />
 

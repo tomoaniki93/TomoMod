@@ -130,10 +130,10 @@ local function ScanBuffs()
         if not ok or not aura then break end
 
         local spellID = aura and aura.spellId
-        if not spellID then break end
-
+        if not spellID then
+            -- pas de spellID : passer à l'aura suivante (ne pas arrêter le scan)
         -- Ignorer les valeurs secrètes (taint TWW)
-        if issecretvalue and issecretvalue(spellID) then
+        elseif issecretvalue and issecretvalue(spellID) then
             -- skip
 
         elseif FLASK_IDS[spellID] then
@@ -146,10 +146,12 @@ local function ScanBuffs()
             end
 
         else
-            -- Détection nourriture : durée ~1h, pas flask
+            -- Détection nourriture : durée ~1h, source = joueur (exclut buffs de zone/NPC)
             if not buffData.food then
                 local dur = aura.duration or 0
-                if dur >= FOOD_DUR_MIN and dur <= FOOD_DUR_MAX then
+                local src = aura.sourceUnit
+                local selfApplied = (src == nil) or (src == "player") or (src == "")
+                if dur >= FOOD_DUR_MIN and dur <= FOOD_DUR_MAX and selfApplied then
                     buffData.food = {
                         icon           = aura.icon,
                         expirationTime = aura.expirationTime or 0,
@@ -413,6 +415,7 @@ local function CreateBar()
     frame:SetClampedToScreen(true)
     frame:SetMovable(true)
     frame:EnableMouse(false)    -- activé uniquement en mode placement
+    frame:Hide()                -- masqué par défaut ; UpdateVisibility/UpdateAllSlots gère l'affichage
 
     frame:SetBackdrop({
         bgFile   = "Interface\\BUTTONS\\WHITE8X8",
@@ -581,11 +584,12 @@ function CB.Initialize()
     eventFrame:RegisterEvent("PLAYER_LOGIN")
     eventFrame:SetScript("OnEvent", OnEvent)
 
-    -- Ticker 1 s pour actualiser les timers
+    -- Ticker 1 s pour actualiser les timers et rescanner les buffs
     updateTicker = C_Timer.NewTicker(1, function()
         if not frame or not frame:IsShown() then return end
         if isLocked then
-            UpdateAllSlots(false)   -- re-scan intégré si nécessaire
+            ScanBuffs()             -- re-scan pour valeurs fraîches
+            UpdateAllSlots(false)
         else
             UpdateAllSlots(true)
         end
