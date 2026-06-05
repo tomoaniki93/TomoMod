@@ -2307,4 +2307,21 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_300_search"]     = "Sidebar avec recherche — filtre les catégories par nom ou mot-clé (tape 'soin', 'cd', 'sacs'…).",
     ["wn_300_minimap"]    = "La minimap carrée retrouve ses boutons natifs — pistage, alertes courrier et craft, difficulté d'instance, et le bouton d'extension — chacun activable et librement positionné/redimensionné depuis le GUI.",
     ["wn_300_buttonbag"] = "Collecteur de boutons d'addon — un bouton de minimap ouvre une boîte regroupant tous tes boutons d'addon (DBM, Details!, WeakAuras…), pour garder la minimap propre.",
+
+    -- =====================
+    -- QOL: Rare Alert (RareAlert.lua)
+    -- =====================
+    ["tab_qol_rare_alert"]       = "Alerte Rare",
+    ["section_rare_alert"]       = "Alerte Rare",
+    ["opt_rare_alert_enable"]    = "Activer les alertes de rare à proximité",
+    ["opt_rare_alert_sound"]     = "Jouer un son d'alerte",
+    ["opt_rare_alert_duration"]  = "Durée d'affichage de la bannière (s)",
+    ["btn_reset_rare_alert_pos"] = "Réinitialiser la position de la bannière",
+    ["rare_alert_info"]          = "Vous avertit quand un PNJ rare est à proximité. Cliquez la bannière pour le cibler, poser la Tête de mort et créer un point de route. Clic droit pour fermer. Utilisez /tm layout pour déplacer la bannière.",
+    ["rare_alert_tooltip"]       = "Clic gauche : cibler + Tête de mort + point de route. Clic droit : fermer.",
+
+    -- 3.0.5
+    ["wn_305_rare_alert"]        = "RareAlert — nouveau module QoL : un son et une bannière cliquable quand un PNJ rare est proche (via les vignettes). Monde ouvert uniquement — jamais en donjon ni en raid.",
+    ["wn_305_rare_alert_marker"] = "Cliquez la bannière du rare pour le cibler, poser la Tête de mort et créer un point de route. Son et durée configurables ; déplaçable en mode Layout.",
+    ["wn_305_tm_fix"]            = "Corrigé — cliquer une alerte de rare de RareScanner n'ouvre plus la config de TomoMod (collision de la commande /tm résolue).",
 })

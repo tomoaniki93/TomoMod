@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- deDE.lua — Deutsch
 -- =====================================
 
@@ -2185,4 +2185,10 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_300_dashboard"]  = "Neues Start-Dashboard in /tm — schnelle Modul-Schalter, Assistent neu starten, Voreinstellung anwenden, Profil wechseln und zurücksetzen, alles an einem Ort.",
     ["wn_300_search"]     = "Durchsuchbare Seitenleiste — filtere Konfigurationskategorien nach Name oder Stichwort (tippe 'heal', 'cd', 'bag'…).",
     ["wn_300_locales"]    = "Vollständige Lokalisierung aller neuen 3.0-Texte in den 6 unterstützten Sprachen.",
+
+    -- 3.0.5
+    ["wn_305_rare_alert"]           = "Seltener-Alarm — neues QOL-Modul: spielt einen Sound und zeigt ein Banner, wenn ein seltener NPC in die Minimapreichweite eintritt. Linksklick: anvisieren + Totenkopf-Marker + Wegpunkt. Rechtsklick: schliessen.",
+    ["wn_305_consumable_fix"]       = "ConsumableBar — Fehler behoben, bei dem die Leiste als schwarzes Rechteck angezeigt wurde, obwohl das Modul deaktiviert war.",
+    ["wn_305_tm_marker"]            = "/tm 0-8 — Blizzards nativen Raid-Marker-Kurzbefehl wiederhergestellt: /tm <0-8> setzt jetzt den Marker auf das Ziel statt die Konfiguration zu oeffnen.",
+    ["wn_305_minimap_clock_anchor"] = "Minimap — der Collector-Schalter verankert sich jetzt praezise am Uhrzeittext der vollen InfoPanel-Leiste (Modi clock-left / clock-right).",
 })

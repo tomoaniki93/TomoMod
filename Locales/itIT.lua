@@ -2173,4 +2173,10 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_300_dashboard"]  = "Nuovo pannello Home in /tm — interruttori rapidi dei moduli, rilancio dell'assistente, applicazione di un preset, cambio profilo e ripristino, tutto in un unico posto.",
     ["wn_300_search"]     = "Barra laterale con ricerca — filtra le categorie per nome o parola chiave (digita 'heal', 'cd', 'bag'…).",
     ["wn_300_locales"]    = "Localizzazione completa di tutti i nuovi testi 3.0 nelle 6 lingue supportate.",
+
+    -- 3.0.5
+    ["wn_305_rare_alert"]           = "Allarme Raro — nuovo modulo QOL: riproduce un suono e mostra un banner quando un PNG raro entra nel raggio della minimappa. Clic sinistro: prendere di mira + marcatore teschio + waypoint. Clic destro: chiudere.",
+    ["wn_305_consumable_fix"]       = "ConsumableBar — corretto un bug per cui la barra veniva visualizzata come un rettangolo nero anche quando il modulo era disattivato.",
+    ["wn_305_tm_marker"]            = "/tm 0-8 — ripristinata la scorciatoia nativa Blizzard per i marcatori: /tm <0-8> ora posiziona il marcatore sul bersaglio invece di aprire la config.",
+    ["wn_305_minimap_clock_anchor"] = "Minimappa — il pulsante del raccoglitore si ancora ora con precisione al testo dell'orologio nella barra completa dell'InfoPanel (modalità clock-left / clock-right).",
 })

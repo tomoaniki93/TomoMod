@@ -130,6 +130,13 @@ TomoMod_Defaults = {
         timerPos    = "below",      -- "below" | "above" (H) | "right" | "left" (V)
         position    = nil,          -- { point, relativePoint, x, y }
     },
+    rareAlert = {
+        enabled  = false,
+        sound    = true,
+        duration = 20,              -- secondes d'affichage de la bannière
+        position = nil,             -- { point, relativePoint, x, y } une fois déplacée
+        scale    = 1.0,
+    },
     cvarOptimizer = {
         backup           = nil,
         individualBackup = nil,

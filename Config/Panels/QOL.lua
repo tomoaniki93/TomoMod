@@ -1247,6 +1247,53 @@ local function BuildMerchantToolsTab(parent)
 end
 
 -- =====================================
+-- TAB: RARE ALERT
+-- =====================================
+local function BuildRareAlertTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["section_rare_alert"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_rare_alert_enable"],
+        TomoModDB.rareAlert and TomoModDB.rareAlert.enabled or false, y, function(v)
+        if not TomoModDB.rareAlert then TomoModDB.rareAlert = {} end
+        TomoModDB.rareAlert.enabled = v
+        if TomoMod_RareAlert then TomoMod_RareAlert.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_rare_alert_sound"],
+        TomoModDB.rareAlert and TomoModDB.rareAlert.sound ~= false, y, function(v)
+        if not TomoModDB.rareAlert then TomoModDB.rareAlert = {} end
+        TomoModDB.rareAlert.sound = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_rare_alert_duration"],
+        TomoModDB.rareAlert and TomoModDB.rareAlert.duration or 20, 5, 60, 1, y, function(v)
+        if not TomoModDB.rareAlert then TomoModDB.rareAlert = {} end
+        TomoModDB.rareAlert.duration = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateButton(c, L["btn_reset_rare_alert_pos"], 220, y, function()
+        if TomoModDB.rareAlert then TomoModDB.rareAlert.position = nil end
+        if TomoMod_RareAlert then TomoMod_RareAlert.PositionBanner() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["rare_alert_info"], y)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 20)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -1267,6 +1314,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "auratracker", label = L["tab_qol_aura_tracker"],  builder = function(p) return BuildAuraTrackerTab(p) end },
         { key = "merchant",    label = L["tab_qol_merchant_tools"], builder = function(p) return BuildMerchantToolsTab(p) end },
         { key = "consumable",  label = L["tab_qol_consumable_bar"] or "Consommables", builder = function(p) return BuildConsumableBarTab(p) end },
+        { key = "rarealert",   label = L["tab_qol_rare_alert"],     builder = function(p) return BuildRareAlertTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

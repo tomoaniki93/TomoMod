@@ -30,6 +30,14 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.0.5",
+        highlights = {
+            L["wn_305_rare_alert"],
+            L["wn_305_rare_alert_marker"],
+            L["wn_305_tm_fix"],
+        },
+    },
+    {
         version = "3.0.4",
         highlights = {
             L["wn_304_consumable_bar"],

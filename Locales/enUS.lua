@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- enUS.lua — English (default fallback)
 -- =====================================
 
@@ -2397,4 +2397,21 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_300_search"]     = "Searchable sidebar — filter config categories by name or keyword (type 'heal', 'cd', 'bag'…).",
     ["wn_300_minimap"]    = "Minimap button — quick access to TomoMod features and settings.",
     ["wn_300_buttonbag"]  = "Button Bag — consolidate and manage your action buttons efficiently.",
+
+    -- =====================
+    -- QOL: Rare Alert (RareAlert.lua)
+    -- =====================
+    ["tab_qol_rare_alert"]       = "Rare Alert",
+    ["section_rare_alert"]       = "Rare Alert",
+    ["opt_rare_alert_enable"]    = "Enable rare proximity alerts",
+    ["opt_rare_alert_sound"]     = "Play alert sound",
+    ["opt_rare_alert_duration"]  = "Banner display duration (s)",
+    ["btn_reset_rare_alert_pos"] = "Reset banner position",
+    ["rare_alert_info"]          = "Alerts you when a rare NPC is nearby. Click the banner to target it, place the skull marker and set a waypoint. Right-click to dismiss. Use /tm layout to move the banner.",
+    ["rare_alert_tooltip"]       = "Left-click: target + place skull + waypoint. Right-click: dismiss.",
+
+    -- 3.0.5
+    ["wn_305_rare_alert"]        = "RareAlert — new QOL module: a sound and a clickable banner when a rare NPC is nearby (vignette-based). Open-world only — never in dungeons or raids.",
+    ["wn_305_rare_alert_marker"] = "Click the rare banner to target it, place the Skull marker and set a waypoint. Configurable sound and duration; draggable in Layout Mode.",
+    ["wn_305_tm_fix"]            = "Fixed — clicking a RareScanner rare alert no longer opens the TomoMod config (the /tm slash-command collision is resolved).",
 })

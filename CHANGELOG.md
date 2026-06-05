@@ -1,5 +1,28 @@
 ## ####################################
 
+## CHANGELOG 3.0.5 — RareAlert (New Module) & /tm RareScanner Fix
+
+#### QOL — RareAlert (New Module)
+- **New** — New QOL module that alerts you (sound + clickable banner) when a rare NPC enters minimap range, using Blizzard's vignette API — no NPC database required.
+- **New** — Left-clicking the banner targets the rare (`/targetexact`), places the **Skull** raid marker and drops a waypoint. The marker is set via the native `/targetmarker` command run inside the button's secure context (right-click dismisses).
+- **New** — Configurable in **QOL → Rare Alert**: enable, alert sound, banner display duration (5–60 s). The banner is draggable in Layout Mode with a reset-position button.
+- **New** — Alerts are suppressed automatically in **dungeons and raids** (open-world / scenarios / delves only). The banner is dismissed as soon as the rare dies or leaves minimap range.
+- **Note** — Like RareScanner, targeting cannot be re-armed during combat: the sound still fires and, if the rare is still present, the banner appears once combat ends. All show/hide is deferred out of combat (the banner is a protected secure button).
+
+#### Slash Commands — /tm
+- **Fixed** — Clicking a RareScanner rare alert opened the TomoMod config panel. RareScanner's "marker on target" macro appends `/tm <1-8>`, which collided with TomoMod's `/tm` handler. Numeric `/tm` arguments are now ignored. To mark a target manually, use the native `/targetmarker <0-8>` command (`SetRaidTarget` is protected and cannot be called from addon code).
+
+#### UnitFrames — Player Auras
+- **Fixed** — The player frame's buffs/debuffs could drift from the position you dragged them to after a `/reload` — the saved drag position was being combined a second time with the per-element offset. The dragged position is now the single source of truth.
+
+#### Minimap — Collector Clock Anchor
+- **Fixed** — The "left/right of the clock" anchor for the addon-button collector targeted the hidden native clock and silently fell back to the corner. It now anchors to the **InfoPanel** clock (`TomoMod_ClockBar`), positioned next to the time text, with deferred re-positioning since the clock is created late at login.
+
+#### Leveling Bar — Visibility
+- **Fixed** — Enabling the XP bar placed it at the bottom of the screen, hidden behind the action bars. With no saved position it now appears centered on screen so it can be found and dragged into place.
+
+## ####################################
+
 ## CHANGELOG 3.0.4 — ConsumableBar, Cursor Ring Textures & MythicHub Teleport Fix
 
 #### QOL — ConsumableBar (New Module)

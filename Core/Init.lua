@@ -273,7 +273,19 @@ SlashCmdList["TOMOMOD"] = function(msg)
         print("  |cff0cd29f/tm cr|r — " .. L["msg_help_cr"])
         print("  |cff0cd29f/tm help|r — " .. L["msg_help_help"])
     else
-        -- Open config
+        -- Argument purement numérique : soit une macro tierce (ex : RareScanner
+        -- « marqueur sur la cible » → « /tm <1-8> »), soit une tentative d'utiliser
+        -- la commande native « /tm <0-8> » (marqueur de raid) que TomoMod masque en
+        -- possédant « /tm ».
+        -- IMPORTANT : on ne peut PAS poser le marqueur ici — SetRaidTarget() est une
+        -- fonction protégée et lève ADDON_ACTION_FORBIDDEN (taint) depuis du code
+        -- addon. On ignore donc l'argument pour ne pas ouvrir la config par erreur.
+        -- Pour poser un marqueur : commande native « /targetmarker <0-8> » (non
+        -- interceptée par TomoMod).
+        if msg:match("^%s*%d+%s*$") then
+            return
+        end
+        -- Open config (/tm seul, ou argument inconnu non numérique)
         if TomoMod_Config and TomoMod_Config.Toggle then
             TomoMod_Config.Toggle()
         end
@@ -349,6 +361,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         safeInit("SkyRide",            TomoMod_SkyRide)
         safeInit("LevelingBar",        TomoMod_LevelingBar)
         safeInit("ConsumableBar",      TomoMod_ConsumableBar)
+        safeInit("RareAlert",          TomoMod_RareAlert)
         safeInit("ReputationBar",      TomoMod_ReputationBar)
         safeInit("CooldownManager",    TomoMod_CooldownManager)
         safeInit("AddonDetect",        TomoMod_AddonDetect)
