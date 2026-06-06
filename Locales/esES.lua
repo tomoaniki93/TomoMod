@@ -2239,4 +2239,19 @@ TomoMod_RegisterLocale("esES", {
     ["wn_305_consumable_fix"]       = "ConsumableBar — corregido un error por el que la barra se mostraba como un rectángulo negro aunque el módulo estuviera desactivado.",
     ["wn_305_tm_marker"]            = "/tm 0-8 — restaurado el atajo nativo de Blizzard para marcadores de banda: /tm <0-8> ahora coloca el marcador en tu objetivo en lugar de abrir la config.",
     ["wn_305_minimap_clock_anchor"] = "Minimapa — el botón del colector ahora se ancla con precisión al texto del reloj en la barra completa del InfoPanel (modos clock-left / clock-right).",
+
+    -- =====================
+    -- Extra Action Button (v3.0.6)
+    -- =====================
+    ["mover_ab_extra"] = "Acción extra",
+    ["section_extra_button"] = "Botón de acción extra",
+    ["opt_extra_enabled"] = "Gestionar el botón de acción extra (recarga para liberar)",
+    ["opt_extra_scale"] = "Escala del botón extra",
+    ["btn_extra_reset_pos"] = "Restablecer posición",
+    ["info_extra_button"] = "Coloca el botón de acción extra en el modo Diseño. Aparece durante misiones y encuentros. Al desactivarlo se devuelve a Blizzard tras un /reload.",
+    ["wn_306_extra_button"] = "Nuevo — el botón de acción extra ahora forma parte del sistema de barras de acción de TomoMod.",
+    ["wn_306_extra_mover"] = "Nuevo — reposiciona el botón de acción extra (y el botón de habilidad de zona) en el modo Diseño, como cualquier otra barra. La posición y la escala se guardan en tu perfil.",
+    ["wn_306_extra_scale"] = "Nuevo — opciones del botón de acción extra en Barras de acción, pestaña Gestión de barras: activar, escala y restablecer posición.",
+    ["wn_306_compass"] = "Corrección — Brújula: corregido un error de Lua frecuente (x417) en la conversión de coordenadas mundo (C_Map.GetWorldPosFromMapPos devuelve continentID + worldPosition; el continentID ahora se descarta correctamente).",
+    ["wn_306_bagskin"] = "BagSkin — los slots ahora usan ContainerFrameItemButtonTemplate de Blizzard: clic, uso, recoger y dividir son gestionados por código seguro nativo (sin más PreClick con riesgo de taint). Los slots diferidos en combate se repiten automáticamente al salir del combate.",
 })

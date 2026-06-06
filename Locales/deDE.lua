@@ -2191,4 +2191,19 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_305_consumable_fix"]       = "ConsumableBar — Fehler behoben, bei dem die Leiste als schwarzes Rechteck angezeigt wurde, obwohl das Modul deaktiviert war.",
     ["wn_305_tm_marker"]            = "/tm 0-8 — Blizzards nativen Raid-Marker-Kurzbefehl wiederhergestellt: /tm <0-8> setzt jetzt den Marker auf das Ziel statt die Konfiguration zu oeffnen.",
     ["wn_305_minimap_clock_anchor"] = "Minimap — der Collector-Schalter verankert sich jetzt praezise am Uhrzeittext der vollen InfoPanel-Leiste (Modi clock-left / clock-right).",
+
+    -- =====================
+    -- Extra Action Button (v3.0.6)
+    -- =====================
+    ["mover_ab_extra"] = "Extra-Aktion",
+    ["section_extra_button"] = "Extra-Aktionsschaltflaeche",
+    ["opt_extra_enabled"] = "Extra-Aktionsschaltflaeche verwalten (/reload zum Freigeben)",
+    ["opt_extra_scale"] = "Skalierung der Extra-Schaltflaeche",
+    ["btn_extra_reset_pos"] = "Position zuruecksetzen",
+    ["info_extra_button"] = "Positioniere die Extra-Aktionsschaltflaeche im Layout-Modus. Sie erscheint bei Quests und Kaempfen. Beim Deaktivieren wird sie nach einem /reload an Blizzard zurueckgegeben.",
+    ["wn_306_extra_button"] = "Neu — die Extra-Aktionsschaltflaeche ist jetzt Teil des TomoMod-Aktionsleistensystems.",
+    ["wn_306_extra_mover"] = "Neu — verschiebe die Extra-Aktionsschaltflaeche (und die Zonenfaehigkeit-Schaltflaeche) im Layout-Modus wie jede andere Leiste. Position und Skalierung werden im Profil gespeichert.",
+    ["wn_306_extra_scale"] = "Neu — Optionen der Extra-Aktionsschaltflaeche unter Aktionsleisten, Reiter Leistenverwaltung: aktivieren, Skalierung und Position zuruecksetzen.",
+    ["wn_306_compass"] = "Korrektur — Kompass: haeufiger Lua-Fehler (x417) in der Weltkoordinatenkonvertierung behoben (C_Map.GetWorldPosFromMapPos gibt continentID + worldPosition zurueck; continentID wird nun korrekt verworfen).",
+    ["wn_306_bagskin"] = "BagSkin — Slots verwenden jetzt Blizzards ContainerFrameItemButtonTemplate: Klick, Benutzen, Aufheben und Teilen werden durch nativen gesicherten Code behandelt (kein PreClick mehr mit Taint-Risiko). Waehrend des Kampfes aufgeschobene Slots werden nach dem Kampf automatisch neu gezeichnet.",
 })

@@ -309,6 +309,43 @@ local function BuildManagementTab(parent)
     local _, ny = W.CreateInfoText(c, L["info_abs_layout"], y)
     y = ny
 
+    -- Extra Action Button (single secure frame, managed apart from BAR_DEFS)
+    do
+        if not TomoModDB.actionBars then TomoModDB.actionBars = {} end
+        if not TomoModDB.actionBars.bars then TomoModDB.actionBars.bars = {} end
+        if not TomoModDB.actionBars.bars.extra then TomoModDB.actionBars.bars.extra = {} end
+        local exDB = (AB and AB.GetBarDB) and AB.GetBarDB("extra") or TomoModDB.actionBars.bars.extra
+
+        local function SetExtra(key, val)
+            TomoModDB.actionBars.bars.extra[key] = val
+            if AB and AB.ApplyExtra then AB.ApplyExtra() end
+        end
+
+        local _, ny = W.CreateSectionHeader(c, L["section_extra_button"] or "Extra Action Button", y)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_extra_enabled"] or "Manage the Extra Action Button",
+            exDB.enabled ~= false, y, function(v)
+                SetExtra("enabled", v)
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_extra_scale"] or "Extra button scale",
+            (exDB.scale or 1) * 100, 50, 200, 5, y, function(v)
+                SetExtra("scale", v / 100)
+            end, "%.0f%%")
+        y = ny
+
+        local _, ny = W.CreateButton(c, L["btn_extra_reset_pos"] or "Reset position", 220, y, function()
+            if AB and AB.ResetExtraPosition then AB.ResetExtraPosition() end
+        end)
+        y = ny
+
+        local _, ny = W.CreateInfoText(c, L["info_extra_button"]
+            or "Position the extra action button in Layout Mode. Disabling releases it back to Blizzard after a /reload.", y)
+        y = ny
+    end
+
     local defs = (AB and AB.BAR_DEFS) or {}
     if not TomoModDB.actionBars then TomoModDB.actionBars = {} end
     if not TomoModDB.actionBars.bars then TomoModDB.actionBars.bars = {} end

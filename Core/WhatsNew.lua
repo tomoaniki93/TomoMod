@@ -30,9 +30,18 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.0.6",
+        highlights = {
+            L["wn_306_extra_button"],
+            L["wn_306_extra_mover"],
+            L["wn_306_extra_scale"],
+            L["wn_306_compass"],
+            L["wn_306_bagskin"],
+        },
+    },
+    {
         version = "3.0.5",
         highlights = {
-            L["wn_305_compass"],
             L["wn_305_rare_alert"],
             L["wn_305_rare_alert_marker"],
             L["wn_305_tm_fix"],

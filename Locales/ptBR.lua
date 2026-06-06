@@ -2179,4 +2179,19 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_305_consumable_fix"]       = "ConsumableBar — corrigido um bug em que a barra era exibida como um retângulo preto mesmo com o módulo desativado.",
     ["wn_305_tm_marker"]            = "/tm 0-8 — restaurado o atalho nativo da Blizzard para marcadores de grupo: /tm <0-8> agora coloca o marcador no alvo em vez de abrir a config.",
     ["wn_305_minimap_clock_anchor"] = "Minimapa — o botão do coletor agora se ancora precisamente no texto do relógio na barra completa do InfoPanel (modos clock-left / clock-right).",
+
+    -- =====================
+    -- Extra Action Button (v3.0.6)
+    -- =====================
+    ["mover_ab_extra"] = "Ação extra",
+    ["section_extra_button"] = "Botão de ação extra",
+    ["opt_extra_enabled"] = "Gerenciar o botão de ação extra (recarregar para liberar)",
+    ["opt_extra_scale"] = "Escala do botão extra",
+    ["btn_extra_reset_pos"] = "Redefinir posição",
+    ["info_extra_button"] = "Posicione o botão de ação extra no Modo de Layout. Ele aparece durante missões e encontros. Ao desativar, ele volta para a Blizzard após um /reload.",
+    ["wn_306_extra_button"] = "Novo — o botão de ação extra agora faz parte do sistema de barras de ação do TomoMod.",
+    ["wn_306_extra_mover"] = "Novo — reposicione o botão de ação extra (e o botão de habilidade de zona) no Modo de Layout, como qualquer outra barra. Posição e escala são salvas no seu perfil.",
+    ["wn_306_extra_scale"] = "Novo — opções do botão de ação extra em Barras de ação, aba Gerenciamento de barras: ativar, escala e redefinir posição.",
+    ["wn_306_compass"] = "Correção — BúSSola: corrigido um erro de Lua frequente (x417) na conversão de coordenadas mundo (C_Map.GetWorldPosFromMapPos retorna continentID + worldPosition; o continentID é agora descartado corretamente).",
+    ["wn_306_bagskin"] = "BagSkin — os slots agora usam ContainerFrameItemButtonTemplate da Blizzard: clique, uso, pegar e dividir são gerenciados por código seguro nativo (sem mais PreClick propenso a taint). Slots adiados durante o combate são reproduzidos automaticamente após o combate.",
 })

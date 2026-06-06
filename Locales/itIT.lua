@@ -2179,4 +2179,19 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_305_consumable_fix"]       = "ConsumableBar — corretto un bug per cui la barra veniva visualizzata come un rettangolo nero anche quando il modulo era disattivato.",
     ["wn_305_tm_marker"]            = "/tm 0-8 — ripristinata la scorciatoia nativa Blizzard per i marcatori: /tm <0-8> ora posiziona il marcatore sul bersaglio invece di aprire la config.",
     ["wn_305_minimap_clock_anchor"] = "Minimappa — il pulsante del raccoglitore si ancora ora con precisione al testo dell'orologio nella barra completa dell'InfoPanel (modalità clock-left / clock-right).",
+
+    -- =====================
+    -- Extra Action Button (v3.0.6)
+    -- =====================
+    ["mover_ab_extra"] = "Azione extra",
+    ["section_extra_button"] = "Pulsante azione extra",
+    ["opt_extra_enabled"] = "Gestisci il pulsante azione extra (ricarica per rilasciare)",
+    ["opt_extra_scale"] = "Scala del pulsante extra",
+    ["btn_extra_reset_pos"] = "Reimposta posizione",
+    ["info_extra_button"] = "Posiziona il pulsante azione extra in modalità Layout. Appare durante missioni e scontri. Disattivandolo viene restituito a Blizzard dopo un /reload.",
+    ["wn_306_extra_button"] = "Nuovo — il pulsante azione extra ora fa parte del sistema di barre delle azioni di TomoMod.",
+    ["wn_306_extra_mover"] = "Nuovo — riposiziona il pulsante azione extra (e il pulsante abilità di zona) in modalità Layout, come qualsiasi altra barra. Posizione e scala vengono salvate nel profilo.",
+    ["wn_306_extra_scale"] = "Nuovo — opzioni del pulsante azione extra in Barre delle azioni, scheda Gestione barre: attiva, scala e reimposta posizione.",
+    ["wn_306_compass"] = "Correzione — Bussola: corretto un errore Lua frequente (x417) nella conversione delle coordinate mondo (C_Map.GetWorldPosFromMapPos restituisce continentID + worldPosition; il continentID viene ora correttamente scartato).",
+    ["wn_306_bagskin"] = "BagSkin — gli slot ora usano ContainerFrameItemButtonTemplate di Blizzard: clic, uso, raccolta e divisione sono gestiti da codice sicuro nativo (nessun PreClick soggetto a taint). Gli slot rimandati in combattimento vengono riprodotti automaticamente alla fine del combattimento.",
 })

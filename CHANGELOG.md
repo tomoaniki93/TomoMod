@@ -1,5 +1,41 @@
 ## ####################################
 
+## CHANGELOG 3.0.6 — Extra Action Button, Compass & BagSkin Slot Factory
+
+#### ActionBars — Extra Action Button
+- **New** — The Extra Action Button (the special button that appears for certain quests, items and boss encounters) is now managed by the TomoMod action bar system.
+- **New** — It can be repositioned in **Layout Mode** like any other bar, with a live preview while unlocked; its position is saved to your profile.
+- **New** — The **Zone Ability** button (the current zone's special action) moves together with the extra button so the pair stays grouped.
+- **New** — Configurable in **Action Bars → Bar Management**: enable/disable, **scale** (50–200%) and a **reset-position** button.
+- **Change** — Taint-safe by design: instead of reparenting the protected button, TomoMod relocates the Edit Mode container (`ExtraAbilityContainer`). The container's internal layout still positions the button relative to itself, so it appears at your chosen spot even when it first shows up mid-combat. The anchor is re-asserted after leaving Edit Mode, and all repositioning is deferred out of combat.
+- **Note** — Disabling the option releases the button back to Blizzard's default placement after a `/reload` (consistent with the rest of the action bar system).
+
+#### QOL — Compass (New Module)
+- **New** — New on-screen **heading bar** that scrolls through the cardinal directions (N / E / S / W) as the camera turns, driven by `GetPlayerFacing()`. A center pointer marks the direction the player is currently looking.
+- **New** — **Quest marker** (amber): an azimuth marker points toward the super-tracked quest — the same objective as the Waypoint beam — read from `C_SuperTrack.GetNextWaypointForMap` so cross-zone redirects are handled by Blizzard.
+- **New** — **Waypoint marker** (teal): a second marker points toward the user map waypoint (`C_Map.GetUserWaypoint`) when one is placed, so a tracked quest and a manual waypoint can be shown at the same time. Markers stick to the bar edge when their target is outside the visible field.
+- **New** — Optional **heading readout** below the bar (16-point abbreviation, e.g. `245° SW`).
+- **New** — Azimuth uses world coordinates (`C_Map.GetWorldPosFromMapPos`) for correct bearings on non-square maps; distance shown in yards/km matching the Waypoint module.
+- **New** — Configurable via GUI (Quality of Life → Compass): enable, bar width (240–520), height (18–44), scale (0.6–1.8), **field of view** (Narrow ±45° / Standard ±60° / Wide ±90°), and per-marker toggles (quest / waypoint / distance / heading).
+- **New** — Draggable in Layout Mode (mover system) with a live preview while unlocked; position saved to profile. New slash commands `/tm compass` (toggle) and `/tm compass debug` (print internal state).
+- **Change** — 100% read-only: no protected functions are called, so the module cannot introduce taint. Updates run on a throttled `OnUpdate` (~33 fps) only while the bar is shown, and cardinal ticks are repositioned only when the heading actually changes.
+- **Fix** — `C_Map.GetWorldPosFromMapPos` returns `(continentID, worldPosition)` — the `pcall` wrapper now correctly discards `continentID` and unpacks `worldPosition`, fixing a high-frequency Lua error (`attempt to index local 'world' (a number value)`, x417 per session).
+
+#### Bags — BagSkin Slot Factory (Rewrite)
+- **Rework** — Slot buttons now use `ContainerFrameItemButtonTemplate` (`ItemButton`) instead of the bare `SecureActionButtonTemplate`. All click/use/pickup/split/right-click handling is delegated to Blizzard's native secure handlers — the old `PreClick`, `OnDragStart` and `OnReceiveDrag` overrides that could introduce taint are removed.
+- **Fix** — Template sub-frames (IconBorder, overlays, quest texture, junk icon, upgrade icon, glow animations, etc.) are now explicitly hidden via `NeutralizeTemplate` so Blizzard code that references them by name never encounters nil.
+- **Fix** — The icon and cooldown frames are reused from the template rather than creating duplicate textures on top, keeping the frame hierarchy clean.
+- **Fix** — Slot buttons are no longer created inside `InCombatLockdown()`. If the bag is opened during combat when new pool entries are needed, layout is deferred and replayed automatically on `PLAYER_REGEN_ENABLED`.
+- **Fix** — Tooltip reads bag and slot live from `GetParent():GetID()` / `GetID()` instead of a stored `btn.bag` field that could be stale after pool recycling.
+- **Change** — Removed the `SetAttribute("type2", "macro")` right-click pattern; right-click use is handled natively by the template.
+
+#### Localization
+- **New** — Added Compass strings (incl. localized cardinal letters: FR/ES/IT N·E·S·O, DE N·O·S·W, PT N·L·S·O) across all 6 locales (enUS / frFR / deDE / esES / itIT / ptBR), with equal key counts per language.
+- **New** — Added Extra Action Button strings across all 6 locales.
+- **New** — Added Compass fix and BagSkin What's New strings across all 6 locales.
+
+## ####################################
+
 ## CHANGELOG 3.0.5 — RareAlert (New Module) & /tm RareScanner Fix - Compass Bar (Waypoint 2.0)
 
 #### QOL — RareAlert (New Module)
@@ -20,19 +56,6 @@
 
 #### Leveling Bar — Visibility
 - **Fixed** — Enabling the XP bar placed it at the bottom of the screen, hidden behind the action bars. With no saved position it now appears centered on screen so it can be found and dragged into place.
-
-#### QOL — Compass (New Module)
-- **New** — New on-screen **heading bar** that scrolls through the cardinal directions (N / E / S / W) as the camera turns, driven by `GetPlayerFacing()`. A center pointer marks the direction the player is currently looking.
-- **New** — **Quest marker** (amber): an azimuth marker points toward the super-tracked quest — the same objective as the Waypoint beam — read from `C_SuperTrack.GetNextWaypointForMap` so cross-zone redirects are handled by Blizzard.
-- **New** — **Waypoint marker** (teal): a second marker points toward the user map waypoint (`C_Map.GetUserWaypoint`) when one is placed, so a tracked quest and a manual waypoint can be shown at the same time. Markers stick to the bar edge when their target is outside the visible field.
-- **New** — Optional **heading readout** below the bar (16-point abbreviation, e.g. `245° SW`).
-- **New** — Azimuth uses world coordinates (`C_Map.GetWorldPosFromMapPos`) for correct bearings on non-square maps; distance shown in yards/km matching the Waypoint module.
-- **New** — Configurable via GUI (Quality of Life → Compass): enable, bar width (240–520), height (18–44), scale (0.6–1.8), **field of view** (Narrow ±45° / Standard ±60° / Wide ±90°), and per-marker toggles (quest / waypoint / distance / heading).
-- **New** — Draggable in Layout Mode (mover system) with a live preview while unlocked; position saved to profile. New slash commands `/tm compass` (toggle) and `/tm compass debug` (print internal state).
-- **Change** — 100% read-only: no protected functions are called, so the module cannot introduce taint. Updates run on a throttled `OnUpdate` (~33 fps) only while the bar is shown, and cardinal ticks are repositioned only when the heading actually changes.
-
-#### Localization
-- **New** — Added Compass strings (incl. localized cardinal letters: FR/ES/IT N·E·S·O, DE N·O·S·W, PT N·L·S·O) across all 6 locales (enUS / frFR / deDE / esES / itIT / ptBR), with equal key counts per language.
 
 ## ####################################
 

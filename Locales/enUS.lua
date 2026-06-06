@@ -2414,4 +2414,19 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_305_rare_alert"]        = "RareAlert — new QOL module: a sound and a clickable banner when a rare NPC is nearby (vignette-based). Open-world only — never in dungeons or raids.",
     ["wn_305_rare_alert_marker"] = "Click the rare banner to target it, place the Skull marker and set a waypoint. Configurable sound and duration; draggable in Layout Mode.",
     ["wn_305_tm_fix"]            = "Fixed — clicking a RareScanner rare alert no longer opens the TomoMod config (the /tm slash-command collision is resolved).",
+
+    -- =====================
+    -- Extra Action Button (v3.0.6)
+    -- =====================
+    ["mover_ab_extra"] = "Extra Action",
+    ["section_extra_button"] = "Extra Action Button",
+    ["opt_extra_enabled"] = "Manage the Extra Action Button (reload to release)",
+    ["opt_extra_scale"] = "Extra button scale",
+    ["btn_extra_reset_pos"] = "Reset position",
+    ["info_extra_button"] = "Position the extra action button in Layout Mode. It appears during quests and encounters. Disabling releases it back to Blizzard after a /reload.",
+    ["wn_306_extra_button"] = "New — the Extra Action Button is now part of the TomoMod action bar system.",
+    ["wn_306_extra_mover"] = "New — reposition the extra action button (and the zone-ability button) in Layout Mode, just like any other bar. Position and scale are saved to your profile.",
+    ["wn_306_extra_scale"] = "New — Extra Action Button options under Action Bars, Bar Management tab: enable, scale and reset position.",
+    ["wn_306_compass"] = "Fix — Compass: corrected a high-frequency Lua error (x417) in the world-coordinate conversion (C_Map.GetWorldPosFromMapPos returns continentID + worldPosition; the continentID is now correctly discarded).",
+    ["wn_306_bagskin"] = "BagSkin — slot buttons now use Blizzard's native ContainerFrameItemButtonTemplate: click, use, pickup and split are handled by secure native code (no more taint-prone PreClick). Slots deferred during combat are replayed automatically when combat ends.",
 })

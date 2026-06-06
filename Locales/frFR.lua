@@ -2324,4 +2324,19 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_305_rare_alert"]        = "RareAlert — nouveau module QoL : un son et une bannière cliquable quand un PNJ rare est proche (via les vignettes). Monde ouvert uniquement — jamais en donjon ni en raid.",
     ["wn_305_rare_alert_marker"] = "Cliquez la bannière du rare pour le cibler, poser la Tête de mort et créer un point de route. Son et durée configurables ; déplaçable en mode Layout.",
     ["wn_305_tm_fix"]            = "Corrigé — cliquer une alerte de rare de RareScanner n'ouvre plus la config de TomoMod (collision de la commande /tm résolue).",
+
+    -- =====================
+    -- Extra Action Button (v3.0.6)
+    -- =====================
+    ["mover_ab_extra"] = "Bouton extra",
+    ["section_extra_button"] = "Bouton d'action supplémentaire",
+    ["opt_extra_enabled"] = "Gérer le bouton d'action supplémentaire (recharge pour libérer)",
+    ["opt_extra_scale"] = "Échelle du bouton supplémentaire",
+    ["btn_extra_reset_pos"] = "Réinitialiser la position",
+    ["info_extra_button"] = "Positionnez le bouton d'action supplémentaire en mode Layout. Il apparaît pendant les quêtes et les combats de boss. Le désactiver le rend à Blizzard après un /reload.",
+    ["wn_306_extra_button"] = "Nouveau — le bouton d'action supplémentaire fait désormais partie du système de barres d'action de TomoMod.",
+    ["wn_306_extra_mover"] = "Nouveau — déplacez le bouton d'action supplémentaire (et le bouton de capacité de zone) en mode Layout, comme n'importe quelle barre. Position et échelle enregistrées dans votre profil.",
+    ["wn_306_extra_scale"] = "Nouveau — options du bouton d'action supplémentaire dans Barres d'action, onglet Gestion des barres : activer, échelle et réinitialiser la position.",
+    ["wn_306_compass"] = "Correction — Boussole : corrigé une erreur Lua fréquente (x417) dans la conversion de coordonnées monde (C_Map.GetWorldPosFromMapPos renvoie continentID + worldPosition ; le continentID est désormais correctement ignoré).",
+    ["wn_306_bagskin"] = "BagSkin — les slots utilisent maintenant ContainerFrameItemButtonTemplate de Blizzard : clic, utilisation, ramassage et division sont gérés par du code sécurisé natif (plus de PreClick potentiellement tainté). Les slots différés en combat sont rejoués automatiquement à la fin du combat.",
 })
