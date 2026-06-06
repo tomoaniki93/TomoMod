@@ -137,6 +137,19 @@ TomoMod_Defaults = {
         position = nil,             -- { point, relativePoint, x, y } une fois déplacée
         scale    = 1.0,
     },
+    compass = {
+        enabled      = false,       -- opt-in (comme la barre de consommables)
+        width        = 340,         -- largeur de la barre (px)
+        height       = 28,          -- hauteur de la bande (px)
+        fov          = 60,          -- demi-champ visible (degrés) : 45 / 60 / 90
+        scale        = 1.0,
+        bgAlpha      = 0.9,
+        showQuest    = true,        -- marqueur ambre vers la quête super-suivie
+        showWaypoint = true,        -- marqueur teal vers le point de route
+        showDistance = true,        -- distance sous les marqueurs
+        showHeading  = true,        -- readout de cap (ex. « 245° SO »)
+        position     = nil,         -- { point, relativePoint, x, y }
+    },
     cvarOptimizer = {
         backup           = nil,
         individualBackup = nil,

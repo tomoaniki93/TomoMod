@@ -98,6 +98,10 @@ SlashCmdList["TOMOMOD"] = function(msg)
             local args = msg:sub(5)  -- strip "way" + space
             TomoMod_Waypoint.HandleSlashCommand(args)
         end
+    elseif msg == "compass" then
+        if TomoMod_Compass then TomoMod_Compass.Toggle() end
+    elseif msg == "compass debug" then
+        if TomoMod_Compass and TomoMod_Compass.Debug then TomoMod_Compass.Debug() end
     elseif msg == "mhub" or msg == "mythichub" then
         if TomoMod_MythicHub then
             TomoMod_MythicHub:Toggle()
@@ -269,6 +273,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         print("  |cff0cd29f/tm way|r — " .. L["msg_help_way"])
         print("  |cff0cd29f/tm way x y [name]|r — " .. L["msg_help_way_coords"])
         print("  |cff0cd29f/tm way clear|r — " .. L["msg_help_way_clear"])
+        print("  |cff0cd29f/tm compass|r — " .. (L["msg_help_compass"] or "Toggle the heading compass bar"))
         print("  |cff0cd29f/tm key|r — " .. L["msg_help_key"])
         print("  |cff0cd29f/tm cr|r — " .. L["msg_help_cr"])
         print("  |cff0cd29f/tm help|r — " .. L["msg_help_help"])
@@ -362,6 +367,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         safeInit("LevelingBar",        TomoMod_LevelingBar)
         safeInit("ConsumableBar",      TomoMod_ConsumableBar)
         safeInit("RareAlert",          TomoMod_RareAlert)
+        safeInit("Compass",            TomoMod_Compass)
         safeInit("ReputationBar",      TomoMod_ReputationBar)
         safeInit("CooldownManager",    TomoMod_CooldownManager)
         safeInit("AddonDetect",        TomoMod_AddonDetect)

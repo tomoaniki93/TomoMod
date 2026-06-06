@@ -1169,6 +1169,139 @@ local function BuildConsumableBarTab(parent)
 end
 
 -- =====================================
+-- TAB: COMPASS (Waypoint 2.0 — heading bar)
+-- =====================================
+
+local function BuildCompassTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c      = scroll.child
+    local y      = -10
+
+    local function Apply()
+        if TomoMod_Compass and TomoMod_Compass.ApplySettings then
+            TomoMod_Compass.ApplySettings()
+        end
+    end
+
+    local _, ny = W.CreateSectionHeader(c, L["section_compass"] or "Compass Bar", y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_compass_desc"]
+        or "A heading bar at the top of the screen showing N/E/S/W as you turn, with a marker pointing toward your tracked quest or map waypoint. Read-only - no taint.", y)
+    y = ny
+
+    local db = TomoModDB.compass or {}
+
+    local _, ny = W.CreateCheckbox(c, L["opt_compass_enable"] or "Enable compass bar",
+        db.enabled == true, y, function(v)
+            if not TomoModDB.compass then TomoModDB.compass = {} end
+            TomoModDB.compass.enabled = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_compass_layout"]
+        or "Tip: use Layout mode (/tm layout) to drag the bar where you want it.", y)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- Dimensions
+    local _, ny = W.CreateSlider(c, L["opt_compass_width"] or "Bar width",
+        db.width or 340, 240, 520, 10, y, function(v)
+            if not TomoModDB.compass then TomoModDB.compass = {} end
+            TomoModDB.compass.width = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_compass_height"] or "Bar height",
+        db.height or 28, 18, 44, 1, y, function(v)
+            if not TomoModDB.compass then TomoModDB.compass = {} end
+            TomoModDB.compass.height = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_compass_scale"] or "Scale",
+        db.scale or 1.0, 0.6, 1.8, 0.05, y, function(v)
+            if not TomoModDB.compass then TomoModDB.compass = {} end
+            TomoModDB.compass.scale = v
+            Apply()
+        end, "%.2f")
+    y = ny
+
+    -- Field of view
+    local _, ny = W.CreateDropdown(c, L["opt_compass_fov"] or "Field of view",
+        {
+            { value = 45, text = L["compass_fov_narrow"]   or "Narrow (\xC2\xB145\xC2\xB0)" },
+            { value = 60, text = L["compass_fov_standard"] or "Standard (\xC2\xB160\xC2\xB0)" },
+            { value = 90, text = L["compass_fov_wide"]     or "Wide (\xC2\xB190\xC2\xB0)" },
+        },
+        db.fov or 60, y, function(v)
+            if not TomoModDB.compass then TomoModDB.compass = {} end
+            TomoModDB.compass.fov = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- Markers
+    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_quest"] or "Show tracked-quest marker",
+        db.showQuest ~= false, y, function(v)
+            if not TomoModDB.compass then TomoModDB.compass = {} end
+            TomoModDB.compass.showQuest = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_waypoint"] or "Show map-waypoint marker",
+        db.showWaypoint ~= false, y, function(v)
+            if not TomoModDB.compass then TomoModDB.compass = {} end
+            TomoModDB.compass.showWaypoint = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_distance"] or "Show distance on markers",
+        db.showDistance ~= false, y, function(v)
+            if not TomoModDB.compass then TomoModDB.compass = {} end
+            TomoModDB.compass.showDistance = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_heading"] or "Show heading readout (e.g. 245\xC2\xB0 SW)",
+        db.showHeading ~= false, y, function(v)
+            if not TomoModDB.compass then TomoModDB.compass = {} end
+            TomoModDB.compass.showHeading = v
+            Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateButton(c, L["btn_reset_position"] or "Reset Position", 200, y, function()
+        if TomoModDB.compass then TomoModDB.compass.position = nil end
+        local f = _G["TomoMod_Compass"]
+        if f then
+            f:ClearAllPoints()
+            f:SetPoint("TOP", UIParent, "TOP", 0, -12)
+        end
+        Apply()
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- TAB: MERCHANT TOOLS (AlreadyKnown + ExtendPages)
 -- =====================================
 
@@ -1315,6 +1448,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "merchant",    label = L["tab_qol_merchant_tools"], builder = function(p) return BuildMerchantToolsTab(p) end },
         { key = "consumable",  label = L["tab_qol_consumable_bar"] or "Consommables", builder = function(p) return BuildConsumableBarTab(p) end },
         { key = "rarealert",   label = L["tab_qol_rare_alert"],     builder = function(p) return BuildRareAlertTab(p) end },
+        { key = "compass",     label = L["tab_qol_compass"] or "Compass", builder = function(p) return BuildCompassTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

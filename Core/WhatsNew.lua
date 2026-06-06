@@ -32,6 +32,7 @@ local CHANGELOG = {
     {
         version = "3.0.5",
         highlights = {
+            L["wn_305_compass"],
             L["wn_305_rare_alert"],
             L["wn_305_rare_alert_marker"],
             L["wn_305_tm_fix"],
