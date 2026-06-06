@@ -114,6 +114,9 @@
     <!-- Modules: ConsumableBar (Flask / Nourriture / Huiles) -->
     <Include file="Consumables\ConsumableBar.lua" />
 
+    <!-- Modules: Compass (Waypoint 2.0 — barre de cap N/E/S/O) -->
+    <Include file="Compass\Compass.lua" />
+
     <!-- Modules: RareAlert (Alerte de proximité des rares — vignettes) -->
     <Include file="RareAlert\RareAlert.lua" />
 

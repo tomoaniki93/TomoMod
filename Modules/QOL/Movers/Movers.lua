@@ -269,6 +269,22 @@ local function BuildEntries()
             return TomoModDB and TomoModDB.consumableBar and TomoModDB.consumableBar.enabled
         end,
     })
+    table.insert(moduleEntries, {
+        label    = L["mover_compass"] or "Compass",
+        unlock   = function()
+            if TomoMod_Compass and TomoMod_Compass.IsLocked and TomoMod_Compass.IsLocked() then
+                TomoMod_Compass.SetLocked(false)
+            end
+        end,
+        lock     = function()
+            if TomoMod_Compass and TomoMod_Compass.IsLocked and not TomoMod_Compass.IsLocked() then
+                TomoMod_Compass.SetLocked(true)
+            end
+        end,
+        isActive = function()
+            return TomoModDB and TomoModDB.compass and TomoModDB.compass.enabled
+        end,
+    })
 end
 
 -- =====================================
