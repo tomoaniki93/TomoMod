@@ -108,9 +108,11 @@ end
 -- Renvoie wx, wy ou nil. +wx = Nord, +wy = Ouest (convention WoW).
 local function MapToWorld(mapID, x, y)
     if not (mapID and C_Map and C_Map.GetWorldPosFromMapPos) then return nil end
-    local ok, world = pcall(C_Map.GetWorldPosFromMapPos, mapID, CreateVector2D(x, y))
-    if ok and world and world.GetXY then
-        local wx, wy = world:GetXY()
+    -- C_Map.GetWorldPosFromMapPos returns (continentID, worldPosition).
+    -- pcall therefore returns (ok, continentID, worldPosition).
+    local ok, _, worldPos = pcall(C_Map.GetWorldPosFromMapPos, mapID, CreateVector2D(x, y))
+    if ok and worldPos and worldPos.GetXY then
+        local wx, wy = worldPos:GetXY()
         if wx and wy then return wx, wy end
     end
     return nil

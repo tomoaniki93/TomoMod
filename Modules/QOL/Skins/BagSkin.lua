@@ -290,6 +290,31 @@ end
 -- SLOT BUTTON POOL
 -- =====================================
 
+-- Hide / neutralize the template's own decorations (methods only, never by
+-- writing custom keys during a secure path).
+local function NeutralizeTemplate(btn, name)
+    if btn.IconBorder then btn.IconBorder:Hide() end
+    if btn.IconOverlay then btn.IconOverlay:Hide() end
+    if btn.IconOverlay2 then btn.IconOverlay2:Hide() end
+    if btn.NewItemTexture then btn.NewItemTexture:Hide() end
+    if btn.BattlepayItemTexture then btn.BattlepayItemTexture:Hide() end
+    if btn.IconQuestTexture then btn.IconQuestTexture:Hide() end
+    if btn.JunkIcon then btn.JunkIcon:Hide() end
+    if btn.UpgradeIcon then btn.UpgradeIcon:Hide() end
+    if btn.ItemContextOverlay then btn.ItemContextOverlay:Hide() end
+    local nt = btn.GetNormalTexture and btn:GetNormalTexture()
+    if nt then nt:SetTexture(nil) end
+    if btn.SetNormalTexture then btn:SetNormalTexture(nil) end
+    local pushed = btn.GetPushedTexture and btn:GetPushedTexture()
+    if pushed then pushed:SetTexture(nil) end
+    local count = btn.Count or (name and _G[name .. "Count"])
+    if count then count:Hide() end          -- we draw our own quantity text
+    local flash = name and _G[name .. "Flash"]
+    if flash then flash:Hide() end
+    if btn.flashAnim and btn.flashAnim.Stop then btn.flashAnim:Stop() end
+    if btn.newitemglowAnim and btn.newitemglowAnim.Stop then btn.newitemglowAnim:Stop() end
+end
+
 local function CreateSlotButton(parent, size)
     tomoButtonCount = tomoButtonCount + 1
     local btnName = "TomoModBagBtn" .. tomoButtonCount
@@ -298,10 +323,14 @@ local function CreateSlotButton(parent, size)
     wrapper:SetSize(size, size)
     wrapper:EnableMouse(true)
 
-    local btn = CreateFrame("Button", btnName, wrapper, "SecureActionButtonTemplate")
+    -- ContainerFrameItemButtonTemplate routes click/use/pickup/split/right-click
+    -- use through Blizzard's secure code (taint-safe). The wrapper carries the
+    -- bagID (its frame ID); the button carries the slot (its ID).
+    local btn = CreateFrame("ItemButton", btnName, wrapper, "ContainerFrameItemButtonTemplate")
     btn:SetAllPoints(wrapper)
     wrapper.btn = btn
     btn:EnableMouseWheel(false)
+    NeutralizeTemplate(btn, btnName)
 
     -- Backdrop
     local bg = btn:CreateTexture(nil, "BACKGROUND", nil, 2)
@@ -309,21 +338,25 @@ local function CreateSlotButton(parent, size)
     bg:SetColorTexture(SLOT_BG[1], SLOT_BG[2], SLOT_BG[3], 1)
     btn._bg = bg
 
-    -- Icon
-    local icon = btn:CreateTexture(nil, "ARTWORK", nil, 1)
-    icon:SetPoint("TOPLEFT", 1, -1)
-    icon:SetPoint("BOTTOMRIGHT", -1, 1)
-    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-    icon:Hide()
+    -- Icon (reuse the template's icon texture, restyled)
+    local icon = btn.icon or _G[btnName .. "IconTexture"]
+    if icon then
+        icon:ClearAllPoints()
+        icon:SetPoint("TOPLEFT", 1, -1)
+        icon:SetPoint("BOTTOMRIGHT", -1, 1)
+        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    end
     btn._icon = icon
-    btn.icon  = icon
 
     -- Quality border
     btn._qualBorders = CreateBorders(btn, SLOT_BORDER[1], SLOT_BORDER[2], SLOT_BORDER[3], 0.6, "OVERLAY")
 
-    -- Cooldown
-    local cd = CreateFrame("Cooldown", nil, btn, "CooldownFrameTemplate")
-    cd:SetAllPoints(icon)
+    -- Cooldown (reuse the template's cooldown frame if present)
+    local cd = btn.Cooldown or _G[btnName .. "Cooldown"]
+    if not cd then
+        cd = CreateFrame("Cooldown", nil, btn, "CooldownFrameTemplate")
+        cd:SetAllPoints(icon or btn)
+    end
     cd:SetDrawEdge(false)
     cd:SetHideCountdownNumbers(false)
     cd:EnableMouse(false)
@@ -364,74 +397,29 @@ local function CreateSlotButton(parent, size)
     high:SetColorTexture(1, 1, 1, 0.12)
     high:SetBlendMode("ADD")
 
-    btn:RegisterForClicks("AnyUp", "AnyDown")
-    btn:RegisterForDrag("LeftButton")
-
-    -- Tooltip (like GW2_UI — native SetBagItem)
+    -- Tooltip: read live from the container by bag/slot (no stored state).
     btn:SetScript("OnEnter", function(self)
-        if self.bag and self:GetID() > 0 then
+        local b = self:GetParent() and self:GetParent():GetID()
+        local sl = self:GetID()
+        if b and sl and sl > 0 then
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetBagItem(self.bag, self:GetID())
+            GameTooltip:SetBagItem(b, sl)
             GameTooltip:Show()
         end
     end)
     btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
-    -- Click handling: PreClick intercepts special cases, otherwise secure macro handles it
-    btn:SetScript("PreClick", function(self, button, down)
-        if not self.bag or self:GetID() == 0 then return end
-        if down then return end
-        local bagID, slotID = self.bag, self:GetID()
-        if button == "LeftButton" then
-            local cursorType = GetCursorInfo()
-            -- If cursor already holds an item, place/swap it here
-            if cursorType == "item" then
-                C_Container.PickupContainerItem(bagID, slotID)
-                self:SetAttribute("type1", nil)
-                return
-            end
-            if IsModifiedClick("CHATLINK") then
-                local link = C_Container.GetContainerItemLink(bagID, slotID)
-                if link then ChatEdit_InsertLink(link) end
-                self:SetAttribute("type1", nil)
-            elseif IsModifiedClick("SPLITSTACK") then
-                local info = C_Container.GetContainerItemInfo(bagID, slotID)
-                if info and (info.stackCount or 0) > 1 then
-                    self.SplitStack = function(_, amount)
-                        C_Container.SplitContainerItem(bagID, slotID, amount)
-                    end
-                    OpenStackSplitFrame(info.stackCount, self, "BOTTOMLEFT", "TOPLEFT")
-                end
-                self:SetAttribute("type1", nil)
-            elseif SpellIsTargeting() then
-                -- Spell on cursor (Disenchant, Milling, Prospecting) → secure /use
-                self:SetAttribute("type1", "macro")
-                self:SetAttribute("macrotext1", "/use " .. bagID .. " " .. slotID)
-            else
-                -- Normal click → pick up item for moving
-                C_Container.PickupContainerItem(bagID, slotID)
-                self:SetAttribute("type1", nil)
-            end
-        end
-    end)
-
-    btn:SetScript("OnDragStart", function(self)
-        if self.bag and self:GetID() > 0 then
-            C_Container.PickupContainerItem(self.bag, self:GetID())
-        end
-    end)
-
-    btn:SetScript("OnReceiveDrag", function(self)
-        if self.bag and self:GetID() > 0 then
-            C_Container.PickupContainerItem(self.bag, self:GetID())
-        end
-    end)
+    -- Click / use / pickup / split / right-click-use are handled natively by the
+    -- ContainerFrameItemButtonTemplate secure handlers. We intentionally do NOT
+    -- override OnClick / OnDragStart / OnReceiveDrag (that was the old
+    -- taint-prone macro approach).
 
     return wrapper
 end
 
 -- Slot pool management
 local slotPoolIdx = 0
+local _deferredLayout = false   -- a slot was skipped in combat; replay on regen
 
 local function AcquireSlot(parent, size)
     slotPoolIdx = slotPoolIdx + 1
@@ -442,6 +430,12 @@ local function AcquireSlot(parent, size)
         w:Show()
         w.btn._qtyText:SetTextColor(1, 1, 1, 1)
         return w
+    end
+    -- Never create secure item buttons in combat: defer and replay on regen.
+    if InCombatLockdown() then
+        slotPoolIdx = slotPoolIdx - 1
+        _deferredLayout = true
+        return nil
     end
     local w = CreateSlotButton(parent, size)
     slotButtons[#slotButtons+1] = w
@@ -484,13 +478,6 @@ local function UpdateSlot(wrapper, item)
     btn:Show()
     wrapper:SetID(item.bagID)
     btn:SetID(item.slotIndex)
-    btn.bag = item.bagID
-
-    -- Secure right-click use (like GW2_UI macro approach)
-    if not InCombatLockdown() then
-        btn:SetAttribute("type2", "macro")
-        btn:SetAttribute("macrotext2", "/use " .. item.bagID .. " " .. item.slotIndex)
-    end
 
     if item.hasItem and item.icon then
         btn._icon:SetTexture(item.icon)
@@ -852,9 +839,11 @@ local function LayoutGrid()
         local col = 0
         for _, item in ipairs(display) do
             local w = AcquireSlot(content, slotSize)
-            w:ClearAllPoints()
-            w:SetPoint("TOPLEFT", content, "TOPLEFT", gx, gy)
-            UpdateSlot(w, item)
+            if w then
+                w:ClearAllPoints()
+                w:SetPoint("TOPLEFT", content, "TOPLEFT", gx, gy)
+                UpdateSlot(w, item)
+            end
             col = col + 1
             if col >= columns then
                 col = 0; gx = SIDE_PAD; gy = gy - slotSize - spacingY
@@ -926,9 +915,11 @@ local function LayoutGrid()
                         local col = 0
                         for _, item in ipairs(displayItems) do
                             local w = AcquireSlot(section._grid, slotSize)
-                            w:ClearAllPoints()
-                            w:SetPoint("TOPLEFT", section._grid, "TOPLEFT", gx, gy)
-                            UpdateSlot(w, item)
+                            if w then
+                                w:ClearAllPoints()
+                                w:SetPoint("TOPLEFT", section._grid, "TOPLEFT", gx, gy)
+                                UpdateSlot(w, item)
+                            end
                             col = col + 1
                             if col >= columns then
                                 col = 0; gx = SIDE_PAD; gy = gy - slotSize - spacingY
@@ -1044,9 +1035,11 @@ local function LayoutGrid()
                 local c = 0
                 for _, item in ipairs(displayItems) do
                     local w = AcquireSlot(section._grid, slotSize)
-                    w:ClearAllPoints()
-                    w:SetPoint("TOPLEFT", section._grid, "TOPLEFT", gx, gy)
-                    UpdateSlot(w, item)
+                    if w then
+                        w:ClearAllPoints()
+                        w:SetPoint("TOPLEFT", section._grid, "TOPLEFT", gx, gy)
+                        UpdateSlot(w, item)
+                    end
                     c = c + 1
                     if c >= columns then
                         c = 0; gx = SIDE_PAD; gy = gy - slotSize - spacingY
@@ -1676,8 +1669,18 @@ local function InstallHooks()
     events:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
     events:RegisterEvent("BAG_NEW_ITEMS_UPDATED")
     events:RegisterEvent("CVAR_UPDATE")
+    events:RegisterEvent("PLAYER_REGEN_ENABLED")
     events:SetScript("OnEvent", function(_, event, ...)
         if not IsEnabled() then return end
+
+        if event == "PLAYER_REGEN_ENABLED" then
+            if _deferredLayout and bagFrame and bagFrame:IsShown() then
+                _deferredLayout = false
+                LayoutGrid()
+                UpdateBagBar(bagFrame)
+            end
+            return
+        end
 
         if event == "CVAR_UPDATE" then
             local name, val = ...

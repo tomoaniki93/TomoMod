@@ -89,6 +89,7 @@ local DEFAULT_POSITIONS = {
     bar8   = { "BOTTOM", "UIParent", "BOTTOM",   0,   248 },
     pet    = { "BOTTOM", "UIParent", "BOTTOM", 250,    38 },
     stance = { "BOTTOM", "UIParent", "BOTTOM",-250,    38 },
+    extra  = { "BOTTOM", "UIParent", "BOTTOM",   0,   160 },
 }
 
 -- =====================================================================
@@ -769,6 +770,138 @@ local function CreateDragOverlay(id)
 end
 
 -- =====================================================================
+-- EXTRA ACTION BUTTON  (ExtraActionBarFrame + ZoneAbilityFrame)
+-- =====================================================================
+-- The extra action button is a single secure frame and is NOT part of
+-- BAR_DEFS (no paging / columns / grid).  Rather than reparent the
+-- protected button — which would break its decorative art and its secure
+-- in-combat show/hide — we relocate the Edit Mode container
+-- ExtraAbilityContainer itself.  Its own UIParent anchor is only reset by
+-- Edit Mode, while its internal Layout() positions the button (and the
+-- zone-ability frame) RELATIVE to the container, so the button still pops
+-- up at the chosen spot even when it first appears mid-combat.
+--
+-- A plain holder frame (TomoMod_AB_extra) is the drag anchor and is added
+-- to `containers` so the existing mover loop picks it up for free.  We
+-- re-assert the container -> holder anchor after Edit Mode exits (same
+-- proven pattern as CDMLayout), out of combat only.
+-- =====================================================================
+
+local EXTRA_ID            = "extra"
+local extraHolder         = nil
+local extraEditModeHooked = false
+
+local ApplyExtraAnchor  -- forward decl (self-referenced via QueueProtectedOp)
+
+local function GetExtraContainer()
+    -- TWW/Midnight groups the extra button and the zone-ability button under
+    -- ExtraAbilityContainer.  Fall back to ExtraActionBarFrame on edge builds.
+    return _G["ExtraAbilityContainer"] or _G["ExtraActionBarFrame"]
+end
+
+local function IsExtraEnabled()
+    if not IsEnabled() then return false end           -- AB system master off
+    local barDB = GetBarDB(EXTRA_ID)
+    return barDB.enabled ~= false
+end
+
+local function EnsureExtraHolder()
+    if extraHolder then return extraHolder end
+    extraHolder = CreateFrame("Frame", "TomoMod_AB_extra", UIParent)
+    -- Size the holder to the real button so the mover overlay is a sensible
+    -- grab handle even when no extra action is currently active.
+    local w, h = 52, 52
+    local btn = _G["ExtraActionButton1"]
+    if btn then
+        local bw, bh = btn:GetSize()
+        if bw and bw >= 30 then w = bw end
+        if bh and bh >= 30 then h = bh end
+    end
+    extraHolder:SetSize(w, h)
+    extraHolder:SetClampedToScreen(true)
+    extraHolder:Show()
+    containers[EXTRA_ID] = extraHolder   -- picked up by RegisterWithMovers loop
+    return extraHolder
+end
+
+ApplyExtraAnchor = function()
+    if not extraHolder then return end
+    if not IsExtraEnabled() then return end
+    local c = GetExtraContainer()
+    if not c then return end
+    if InCombatLockdown() then
+        QueueProtectedOp("extra_anchor", ApplyExtraAnchor)
+        return
+    end
+    -- Never fight an active Blizzard Edit Mode session (taint safety).
+    if EditModeManagerFrame and EditModeManagerFrame.IsEditModeActive
+        and EditModeManagerFrame:IsEditModeActive() then
+        return
+    end
+    local scale = GetBarDB(EXTRA_ID).scale or 1.0
+    c:SetScale(scale)
+    c:ClearAllPoints()
+    c:SetPoint("CENTER", extraHolder, "CENTER", 0, 0)
+end
+
+local function HookExtraEditMode()
+    if extraEditModeHooked then return end
+    if not EditModeManagerFrame then return end
+    extraEditModeHooked = true
+    -- After the player leaves Edit Mode, Blizzard has re-anchored the
+    -- container to its own layout; re-apply ours on the next frame.
+    hooksecurefunc(EditModeManagerFrame, "ExitEditMode", function()
+        C_Timer.After(0, function()
+            if InCombatLockdown() then
+                QueueProtectedOp("extra_anchor", ApplyExtraAnchor)
+            else
+                ApplyExtraAnchor()
+            end
+        end)
+    end)
+end
+
+local function ApplyExtra()
+    if not IsExtraEnabled() then return end
+    EnsureExtraHolder()
+    RestorePosition(EXTRA_ID)
+    HookExtraEditMode()
+    ApplyExtraAnchor()
+end
+
+local function ResetExtraPosition()
+    local db = GetDB()
+    if db and db.positions then db.positions[EXTRA_ID] = nil end
+    if extraHolder then
+        RestorePosition(EXTRA_ID)
+        ApplyExtraAnchor()
+    end
+end
+
+-- Re-assert on world entry (covers managed-layout reflows) and whenever the
+-- extra action / zone ability changes.
+local extraFrame = CreateFrame("Frame")
+extraFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+extraFrame:RegisterEvent("UPDATE_EXTRA_ACTIONBAR")
+extraFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+extraFrame:SetScript("OnEvent", function(_, event)
+    if not IsExtraEnabled() then return end
+    if event == "PLAYER_ENTERING_WORLD" then
+        ApplyExtra()
+    elseif InCombatLockdown() then
+        QueueProtectedOp("extra_anchor", ApplyExtraAnchor)
+    else
+        ApplyExtraAnchor()
+    end
+end)
+
+-- Public API for the config panel.
+AB.ApplyExtra         = ApplyExtra
+AB.ApplyExtraAnchor   = ApplyExtraAnchor
+AB.ResetExtraPosition = ResetExtraPosition
+function AB.RefreshExtra() ApplyExtra() end
+
+-- =====================================================================
 -- APPLY SETTINGS
 -- =====================================================================
 
@@ -886,6 +1019,7 @@ function AB.Initialize()
     end
 
     RegisterWithMovers()
+    ApplyExtra()
 
     C_Timer.After(0.3, function()
         AB.ApplyAll()
@@ -896,6 +1030,7 @@ end
 
 function AB.ApplyAll()
     for _, def in ipairs(AB.BAR_DEFS) do AB.ApplyBar(def.id) end
+    ApplyExtra()
 end
 
 function AB.GetBar(id) return containers[id] end
