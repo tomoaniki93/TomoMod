@@ -183,7 +183,7 @@ local CLASS_RESOURCES = {
             classPower = { display = "points", powerType = POWER_COMBO_POINTS, label = "Combo Points", maxPoints = 5 },
             druidMana = true,
         },
-        [3] = { druidMana = true }, -- Guardian: Rage in UF info bar
+        [3] = { druidMana = true, primaryPower = true }, -- Guardian: Rage centered, mana secondary
         -- [4] Restoration: Mana in UF info bar
     },
     EVOKER = {
@@ -307,7 +307,7 @@ end
 local function CreateBarDisplay(parent, width, height)
     local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
 
-    local bar = CreateFrame("StatusBar", "TomoMod_RB_AuraBar", parent)
+    local bar = CreateFrame("StatusBar", nil, parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(tex)
     bar:GetStatusBarTexture():SetHorizTile(false)
@@ -342,7 +342,7 @@ end
 -- Supports both icon textures and flat color bars
 -- =====================================
 local function CreatePointDisplay(parent, maxPoints, width, height, colorKey, texType)
-    local frame = CreateFrame("Frame", "TomoMod_RB_Points", parent)
+    local frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(width, height)
 
     local useTex = UseTextures() and texType and ICON_TEXCOORDS[texType]
@@ -410,7 +410,7 @@ end
 -- CREATE: BAND DISPLAY (Chi, Holy Power, Arcane — row-based spritesheet)
 -- =====================================
 local function CreateBandDisplay(parent, width, height, texType)
-    local frame = CreateFrame("Frame", "TomoMod_RB_Band", parent)
+    local frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(width, height)
     frame.texType = texType
     frame.isBand = true
@@ -440,7 +440,7 @@ end
 -- CREATE: RUNE DISPLAY (DK: 6 runes with cooldown)
 -- =====================================
 local function CreateRuneDisplay(parent, width, height)
-    local frame = CreateFrame("Frame", "TomoMod_RB_Runes", parent)
+    local frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(width, height)
 
     local useTex = UseTextures()
@@ -520,7 +520,7 @@ local function CreateStaggerBar(parent, width, height)
     local barTex = (staggerTex and staggerTex.low) or (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
     local bgTex  = (staggerTex and staggerTex.bg)  or barTex
 
-    local bar = CreateFrame("StatusBar", "TomoMod_RB_Stagger", parent)
+    local bar = CreateFrame("StatusBar", nil, parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(barTex)
     bar:GetStatusBarTexture():SetHorizTile(false)
@@ -546,7 +546,7 @@ end
 -- =====================================
 local function CreateDruidManaBar(parent, width, height)
     local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
-    local bar = CreateFrame("StatusBar", "TomoMod_RB_DruidMana", parent)
+    local bar = CreateFrame("StatusBar", nil, parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(tex)
     bar:GetStatusBarTexture():SetHorizTile(false)
@@ -574,7 +574,7 @@ end
 -- =====================================
 local function CreatePrimaryPowerBar(parent, width, height)
     local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
-    local bar = CreateFrame("StatusBar", "TomoMod_RB_PrimaryPower", parent)
+    local bar = CreateFrame("StatusBar", nil, parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(tex)
     bar:GetStatusBarTexture():SetHorizTile(false)
@@ -944,6 +944,23 @@ local function BuildResourceDisplay()
         end
     end
 
+    local ppH = s.primaryPowerBarHeight or 14
+    local specNeedsPrimary = resources and resources.primaryPower
+
+    -- === PRIMARY POWER BAR (spec default — e.g. Guardian Druid Rage, shown first) ===
+    if specNeedsPrimary then
+        primaryPowerBar = CreatePrimaryPowerBar(container, width, ppH)
+        primaryPowerBar:ClearAllPoints()
+        primaryPowerBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
+        nextY = nextY + ppH + gap
+        totalH = totalH + ppH + gap
+        hasContent = true
+        UpdatePrimaryPower()
+        if TomoMod_ResourceBars then
+            TomoMod_ResourceBars._primaryPowerCentered = true
+        end
+    end
+
     -- === DRUID MANA BAR ===
     if resources and resources.druidMana then
         druidManaBar = CreateDruidManaBar(container, width, dmH)
@@ -954,9 +971,8 @@ local function BuildResourceDisplay()
         hasContent = true
     end
 
-    -- === PRIMARY POWER BAR (centered, replaces UF power bar) ===
-    if s.primaryPowerCentered then
-        local ppH = s.primaryPowerBarHeight or 14
+    -- === PRIMARY POWER BAR (user setting, for specs without a spec-default primary power) ===
+    if s.primaryPowerCentered and not specNeedsPrimary then
         primaryPowerBar = CreatePrimaryPowerBar(container, width, ppH)
         primaryPowerBar:ClearAllPoints()
         primaryPowerBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
@@ -969,7 +985,7 @@ local function BuildResourceDisplay()
         if TomoMod_ResourceBars then
             TomoMod_ResourceBars._primaryPowerCentered = true
         end
-    else
+    elseif not specNeedsPrimary then
         if TomoMod_ResourceBars then
             TomoMod_ResourceBars._primaryPowerCentered = false
         end

@@ -856,6 +856,8 @@ local LayoutBuckets -- forward
 local _tmInLayout    = false   -- true while LayoutBuckets is mutating frames
 local _tmPendingPump = false   -- true while a deferred OnTrackerUpdate is queued
 local _tmSilenceHook = 0       -- > 0 means: ignore hook callbacks (we caused them)
+local _tmHiddenModules = {}    -- WQ module frames we've alpha=0'd (not reparented)
+local _strayBars = {}          -- StatusBar frames hidden by layout; restored by DisableBuckets
 
 local function PumpUpdateSoon()
     -- Ignore notifications that we ourselves triggered while laying out.
@@ -939,6 +941,8 @@ end
 LayoutBuckets = function()
     if _tmInLayout then return end
     _tmInLayout = true
+    _tmHiddenModules = {}   -- reset each pass
+    _strayBars = {}
     if not bucketEnabled then
         -- Re-show any blocks we may have hidden, hide bucket headers
         for _, bf in pairs(bucketFrames) do bf.frame:Hide() end
@@ -953,16 +957,17 @@ LayoutBuckets = function()
 
     -- Collect quest blocks from BOTH the Blizzard tracker AND our skinFrame
     -- (blocks already re-parented in previous passes live under skinFrame).
-    -- We deliberately skip BonusObjective / Scenario / WorldQuest module
-    -- subtrees: they render rich reward previews (Delves, M+ scenarios,
-    -- world quest reward popups) whose internal anchors break when re-parented.
+    -- We deliberately skip BonusObjective / Scenario module subtrees: they
+    -- render rich reward previews (Delves, M+ scenarios) whose internal anchors
+    -- break when re-parented.  WorldQuest is intentionally NOT skipped here so
+    -- individual WQ quest blocks are collected and placed in the WORLD bucket.
+    -- The now-empty WQ module frame is hidden separately by HideWorldQuestModules.
     local function shouldSkipSubtree(frame)
         if not frame or not frame.GetName then return false end
         local n = frame:GetName()
         if not n then return false end
         if n:find("BonusObjective", 1, true)
             or n:find("Scenario", 1, true)
-            or n:find("WorldQuest", 1, true)
             or n:find("UIWidget", 1, true) then
             return true
         end
@@ -1075,7 +1080,6 @@ LayoutBuckets = function()
         if not n then return yCursor end
         if not (n:find("BonusObjective", 1, true)
              or n:find("Scenario",       1, true)
-             or n:find("WorldQuest",     1, true)
              or n:find("UIWidget",       1, true)
              or n:find("Delve",          1, true)) then
             return yCursor
@@ -1131,7 +1135,17 @@ LayoutBuckets = function()
     local function walkForSkipped(parent)
         if not parent or not parent.GetChildren then return end
         for _, child in ipairs({ parent:GetChildren() }) do
-            yOffset = reanchorSkippedModule(child, yOffset)
+            -- WorldQuest module frames: WQ blocks are now collected individually
+            -- into the WORLD bucket; just suppress the now-empty module container.
+            local cn = child.GetName and child:GetName()
+            if cn and cn:find("WorldQuest", 1, true) then
+                if child:IsShown() then
+                    child:SetAlpha(0)
+                    _tmHiddenModules[#_tmHiddenModules + 1] = child
+                end
+            else
+                yOffset = reanchorSkippedModule(child, yOffset)
+            end
         end
     end
     -- Walk both tracker and skinFrame (modules migrate to skinFrame on subsequent passes).
@@ -1279,6 +1293,51 @@ LayoutBuckets = function()
         if not groups[k] then bf.frame:Hide() end
     end
 
+    -- ── STEP 3: Suppress WorldQuest module containers (now empty after re-parenting) ──
+    -- WQ module frames are nested inside BlocksFrame (not direct children of tracker),
+    -- so walkForSkipped can't reach them. We walk the tracker tree here to find them.
+    local function HideWorldQuestModules(frame, depth)
+        if not frame or depth > 5 then return end
+        if frame._tmBucket then return end
+        local fn = frame.GetName and frame:GetName()
+        if fn and fn:find("WorldQuest", 1, true) then
+            -- Only hide if Blizzard still has it shown at its original position
+            -- (i.e. it wasn't already reparented by us).
+            if frame:GetParent() ~= skinFrame then
+                frame:SetAlpha(0)
+                _tmHiddenModules[#_tmHiddenModules + 1] = frame
+            end
+            return  -- don't recurse into it
+        end
+        if frame.GetChildren then
+            for _, c in ipairs({ frame:GetChildren() }) do
+                HideWorldQuestModules(c, depth + 1)
+            end
+        end
+    end
+    HideWorldQuestModules(tracker, 0)
+
+    -- ── STEP 4: Hide orphan StatusBars left in the original tracker tree ────────
+    -- Module-level progress bars (WQ weekly progress, enemy forces, etc.) are
+    -- sometimes parented to BlocksFrame rather than to a specific quest block, so
+    -- block:Hide() doesn't reach them.  SetIgnoreParentAlpha on them also bypasses
+    -- the WQ module SetAlpha(0) guard, leaving a floating "0%" bar.
+    -- All active blocks are now under skinFrame; any StatusBar still in the
+    -- original tracker subtree is orphaned and should be hidden.
+    local function HideStrayBars(f, d)
+        if not f or d > 8 then return end
+        if f == skinFrame or f._tmBucket then return end
+        if f:IsObjectType("StatusBar") and f:IsShown() then
+            f:Hide()
+            _strayBars[#_strayBars + 1] = f
+            return  -- no need to recurse into a hidden bar
+        end
+        if f.GetChildren then
+            for _, c in ipairs({ f:GetChildren() }) do HideStrayBars(c, d + 1) end
+        end
+    end
+    HideStrayBars(tracker, 0)
+
     -- Resize skinFrame to fit our layout
     local totalH = math.abs(yOffset) + 10
     if totalH < 60 then totalH = 60 end
@@ -1310,8 +1369,20 @@ local function DisableBuckets()
             b:ClearAllPoints()
         end
     end
+    -- Restore any WorldQuest module frames we hid (alpha=0) this session.
+    for _, f in ipairs(_tmHiddenModules) do
+        f:SetAlpha(1)
+    end
+    _tmHiddenModules = {}
+
+    -- Restore orphan status bars hidden by HideStrayBars.
+    for _, bar in ipairs(_strayBars) do
+        bar:Show()
+    end
+    _strayBars = {}
+
     -- Restore the original anchors of any skipped subtree (delves scenario,
-    -- bonus objectives, world quests, UI widgets) we re-anchored under skinFrame.
+    -- bonus objectives, UI widgets) we re-anchored under skinFrame.
     local function restoreSkipped(parent)
         if not parent or not parent.GetChildren then return end
         for _, child in ipairs({ parent:GetChildren() }) do

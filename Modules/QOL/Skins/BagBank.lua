@@ -242,10 +242,10 @@ local function NeutralizeTemplate(btn, name)
     if btn.UpgradeIcon then btn.UpgradeIcon:Hide() end
     if btn.ItemContextOverlay then btn.ItemContextOverlay:Hide() end
     local nt = btn.GetNormalTexture and btn:GetNormalTexture()
-    if nt then nt:SetTexture(nil) end
-    if btn.SetNormalTexture then btn:SetNormalTexture(nil) end
+    if nt then nt:SetTexture("") ; nt:Hide() end
+    if btn.SetNormalTexture then btn:SetNormalTexture("") end
     local pushed = btn.GetPushedTexture and btn:GetPushedTexture()
-    if pushed then pushed:SetTexture(nil) end
+    if pushed then pushed:SetTexture("") ; pushed:Hide() end
     local count = btn.Count or (name and _G[name .. "Count"])
     if count then count:Hide() end           -- we draw our own quantity text
     local flash = name and _G[name .. "Flash"]

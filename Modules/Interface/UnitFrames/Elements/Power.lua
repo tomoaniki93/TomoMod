@@ -11,8 +11,10 @@ function UF_Elements.CreatePower(parent, unit, settings)
     if (settings.powerHeight or 0) <= 0 then return nil end
 
     -- If primary power is centered on screen, skip creating UF power bar for player
-    if unit == "player" and TomoModDB and TomoModDB.resourceBars
-       and TomoModDB.resourceBars.primaryPowerCentered then
+    if unit == "player" and (
+        (TomoModDB and TomoModDB.resourceBars and TomoModDB.resourceBars.primaryPowerCentered) or
+        (TomoMod_ResourceBars and TomoMod_ResourceBars._primaryPowerCentered)
+    ) then
         return nil
     end
 

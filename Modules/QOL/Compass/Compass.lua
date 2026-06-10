@@ -111,8 +111,12 @@ local function MapToWorld(mapID, x, y)
     -- C_Map.GetWorldPosFromMapPos returns (continentID, worldPosition).
     -- pcall therefore returns (ok, continentID, worldPosition).
     local ok, _, worldPos = pcall(C_Map.GetWorldPosFromMapPos, mapID, CreateVector2D(x, y))
-    if ok and worldPos and worldPos.GetXY then
-        local wx, wy = worldPos:GetXY()
+    if ok and worldPos then
+        -- GetWorldPosFromMapPos renvoie une table simple { x, y } (PAS un
+        -- Vector2DMixin, contrairement a GetPlayerMapPosition) : on lit les
+        -- champs directement, tout en restant compatible avec un mixin.
+        local wx, wy
+        if worldPos.GetXY then wx, wy = worldPos:GetXY() else wx, wy = worldPos.x, worldPos.y end
         if wx and wy then return wx, wy end
     end
     return nil
@@ -530,7 +534,10 @@ function C._OnUpdate(self, e)
         local uwp = C_Map.GetUserWaypoint and C_Map.GetUserWaypoint()
         if uwp and uwp.position and uwp.uiMapID == mapID then
             -- Point de route posé sur la carte courante → direction directe
-            local ux, uy = uwp.position:GetXY()
+            -- uwp.position est aussi une table simple { x, y } : lecture defensive.
+            local p = uwp.position
+            local ux, uy
+            if p.GetXY then ux, uy = p:GetXY() else ux, uy = p.x, p.y end
             if ux then
                 local angleCCW, dist = WorldAngleTo(mapID, ux, uy, pwx, pwy)
                 if angleCCW then
