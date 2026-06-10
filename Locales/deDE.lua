@@ -2206,4 +2206,8 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_306_extra_scale"] = "Neu — Optionen der Extra-Aktionsschaltflaeche unter Aktionsleisten, Reiter Leistenverwaltung: aktivieren, Skalierung und Position zuruecksetzen.",
     ["wn_306_compass"] = "Korrektur — Kompass: haeufiger Lua-Fehler (x417) in der Weltkoordinatenkonvertierung behoben (C_Map.GetWorldPosFromMapPos gibt continentID + worldPosition zurueck; continentID wird nun korrekt verworfen).",
     ["wn_306_bagskin"] = "BagSkin — Slots verwenden jetzt Blizzards ContainerFrameItemButtonTemplate: Klick, Benutzen, Aufheben und Teilen werden durch nativen gesicherten Code behandelt (kein PreClick mehr mit Taint-Risiko). Waehrend des Kampfes aufgeschobene Slots werden nach dem Kampf automatisch neu gezeichnet.",
+    -- 3.0.7
+    ["wn_307_objective_tracker"] = "Questtracker — Weltquest-Bloecke werden jetzt korrekt dem Weltquests-Bucket zugeordnet statt ueber dem Tracker zu schweben. Fortschrittsbalken (Feindliche Staerken, Wochen-%) werden versteckt wenn ihr Bucket eingeklappt ist.",
+    ["wn_307_guardian_rage"]     = "Ressourcenleisten — Hueter-Druiden sehen jetzt standardmaessig ihre Wut-Leiste zentriert auf dem Bildschirm. Mana bleibt als sekundaere Leiste darunter. Die Machtleiste im Einheitenrahmen wird automatisch ausgeblendet.",
+    ["wn_307_resource_bars"]     = "Ressourcenleisten — Behoben: Hoehenschieberegler fuer Klassenmacht und Druiden-Mana funktionieren jetzt korrekt (globaler Frame-Name-Konflikt behoben). Neuer Schieberegler fuer die zentrierte Hauptleisten-Hoehe. Neue Checkbox in Einheitenrahmen › Spieler › Abmessungen.",
 })

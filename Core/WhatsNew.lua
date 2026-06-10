@@ -30,6 +30,14 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.0.7",
+        highlights = {
+            L["wn_307_objective_tracker"],
+            L["wn_307_guardian_rage"],
+            L["wn_307_resource_bars"],
+        },
+    },
+    {
         version = "3.0.6",
         highlights = {
             L["wn_306_extra_button"],

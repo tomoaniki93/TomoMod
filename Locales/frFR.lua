@@ -2339,4 +2339,8 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_306_extra_scale"] = "Nouveau — options du bouton d'action supplémentaire dans Barres d'action, onglet Gestion des barres : activer, échelle et réinitialiser la position.",
     ["wn_306_compass"] = "Correction — Boussole : corrigé une erreur Lua fréquente (x417) dans la conversion de coordonnées monde (C_Map.GetWorldPosFromMapPos renvoie continentID + worldPosition ; le continentID est désormais correctement ignoré).",
     ["wn_306_bagskin"] = "BagSkin — les slots utilisent maintenant ContainerFrameItemButtonTemplate de Blizzard : clic, utilisation, ramassage et division sont gérés par du code sécurisé natif (plus de PreClick potentiellement tainté). Les slots différés en combat sont rejoués automatiquement à la fin du combat.",
+    -- 3.0.7
+    ["wn_307_objective_tracker"] = "Suivi des objectifs — Les blocs de quêtes mondiales sont maintenant triés dans le bucket Quêtes Mondiales au lieu de flotter au-dessus du tracker. Les barres de progression (forces ennemies, % hebdomadaire) sont masquées lorsque leur bucket est réduit.",
+    ["wn_307_guardian_rage"]     = "Barres de ressources — Les Druides Gardiens voient désormais leur barre de Rage centrée à l'écran par défaut. Le Mana reste en barre secondaire en dessous. La barre de puissance de l'UnitFrame est masquée automatiquement.",
+    ["wn_307_resource_bars"]     = "Barres de ressources — Corrigé : les sliders de hauteur de pouvoir de classe et de mana druide s'appliquent désormais correctement (conflit de nom global résolu). Nouveau slider pour la hauteur de la barre centrale. Nouvelle checkbox dans UnitFrames › Joueur › Dimensions pour déplacer la barre de puissance au centre.",
 })

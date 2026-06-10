@@ -202,6 +202,7 @@ local function BuildResourceBarsTab(parent)
     local _, cy = W.CreateTwoColumnRow(card3.inner, cy,
         function(col) local _, ny = W.CreateSlider(col, L["opt_rb_classpower_height"]  or "Haut. pouvoir de classe",  db.primaryHeight   or 16, 6, 40, 1, 0, function(v) db.primaryHeight   = v; ApplyRB() end) return ny end,
         function(col) local _, ny = W.CreateSlider(col, L["opt_rb_druidmana_height"] or "Haut. mana druide", db.secondaryHeight or 12, 6, 30, 1, 0, function(v) db.secondaryHeight = v; ApplyRB() end) return ny end)
+    local _, cy = W.CreateSlider(card3.inner, L["opt_rb_primary_power_height"] or "Haut. barre ressource centrale (rage/mana/énergie)", db.primaryPowerBarHeight or 14, 6, 40, 1, cy, function(v) db.primaryPowerBarHeight = v; ApplyRB() end)
     y = W.FinalizeCard(card3, cy)
 
     -- Sync & position

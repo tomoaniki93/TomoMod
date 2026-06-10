@@ -90,6 +90,17 @@ local function BuildDimensionsTab(parent, unitKey, displayName)
         y = ny
     end
 
+    -- Player only: option to hide UF power bar and show it centered with ResourceBars
+    if unitKey == "player" then
+        local rbDB = TomoModDB and TomoModDB.resourceBars
+        local _, ny = W.CreateCheckbox(c, L["opt_rb_primary_centered"] or "Masquer et afficher dans CD & Ressources", rbDB and rbDB.primaryPowerCentered or false, y, function(v)
+            if rbDB then rbDB.primaryPowerCentered = v end
+            RefreshUnit(unitKey)
+            if TomoMod_ResourceBars then TomoMod_ResourceBars.ApplySettings() end
+        end)
+        y = ny
+    end
+
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll

@@ -1,5 +1,24 @@
 ## ####################################
 
+## CHANGELOG 3.0.7 — Objective Tracker Fixes & ResourceBars Improvements
+
+#### QOL — Objective Tracker
+- **Fix** — World Quest blocks are now correctly collected and sorted into the **World Quests** bucket. Previously the WorldQuest module subtree was excluded from block scanning, causing WQ entries to remain at their original Blizzard position and visually displace the entire tracker.
+- **Fix** — The WorldQuest module container frame (now empty after its blocks are re-parented into the bucket) is suppressed via `SetAlpha(0)` after each layout pass so it no longer overlaps the skin.
+- **Fix** — Progress bars (enemy forces, weekly %, etc.) that are parented to the module frame rather than to individual quest blocks are now hidden when their bucket is collapsed. A `HideStrayBars` pass walks the tracker tree after layout and stores bars for restoration when buckets are disabled.
+
+#### ResourceBars — Guardian Druid
+- **New** — Guardian Druid Rage is now shown as the **centered primary resource** by default (spec flag `primaryPower = true` added to `CLASS_RESOURCES.DRUID[3]`). Mana remains as the secondary bar below. The UnitFrame power bar is suppressed automatically when any primary power bar is active.
+
+#### ResourceBars — Height Sliders Fixed
+- **Fix** — The class power height and druid mana height sliders had no effect after the first load. All seven resource bar child frames were created with shared global names (`TomoMod_RB_Points`, `TomoMod_RB_DruidMana`, etc.). WoW silently ignores a second `CreateFrame` call for an already-registered name, so `BuildResourceDisplay` reused the old frames at their original dimensions. All global names replaced with `nil`.
+- **New** — Added a **primary power bar height** slider (CD & Resources → Resource Bars → Dimensions) controlling the height of the centered rage/mana/energy bar.
+
+#### UnitFrames — Player Power Bar Option
+- **New** — New checkbox in **UnitFrames → Player → Dimensions**: *"Show primary resource centered"*. When enabled, the UnitFrame power bar is hidden and the resource is displayed in the centered ResourceBars container instead. Mirrors the existing option in CD & Resources without requiring the user to navigate away from the UnitFrames panel.
+
+## ####################################
+
 ## CHANGELOG 3.0.6 — Extra Action Button, Compass & BagSkin Slot Factory
 
 #### ActionBars — Extra Action Button
@@ -22,12 +41,10 @@
 - **Fix** — `C_Map.GetWorldPosFromMapPos` returns `(continentID, worldPosition)` — the `pcall` wrapper now correctly discards `continentID` and unpacks `worldPosition`, fixing a high-frequency Lua error (`attempt to index local 'world' (a number value)`, x417 per session).
 
 #### Bags — BagSkin Slot Factory (Rewrite)
-- **Rework** — Slot buttons now use `ContainerFrameItemButtonTemplate` (`ItemButton`) instead of the bare `SecureActionButtonTemplate`. All click/use/pickup/split/right-click handling is delegated to Blizzard's native secure handlers — the old `PreClick`, `OnDragStart` and `OnReceiveDrag` overrides that could introduce taint are removed.
 - **Fix** — Template sub-frames (IconBorder, overlays, quest texture, junk icon, upgrade icon, glow animations, etc.) are now explicitly hidden via `NeutralizeTemplate` so Blizzard code that references them by name never encounters nil.
 - **Fix** — The icon and cooldown frames are reused from the template rather than creating duplicate textures on top, keeping the frame hierarchy clean.
 - **Fix** — Slot buttons are no longer created inside `InCombatLockdown()`. If the bag is opened during combat when new pool entries are needed, layout is deferred and replayed automatically on `PLAYER_REGEN_ENABLED`.
 - **Fix** — Tooltip reads bag and slot live from `GetParent():GetID()` / `GetID()` instead of a stored `btn.bag` field that could be stale after pool recycling.
-- **Change** — Removed the `SetAttribute("type2", "macro")` right-click pattern; right-click use is handled natively by the template.
 
 #### Localization
 - **New** — Added Compass strings (incl. localized cardinal letters: FR/ES/IT N·E·S·O, DE N·O·S·W, PT N·L·S·O) across all 6 locales (enUS / frFR / deDE / esES / itIT / ptBR), with equal key counts per language.

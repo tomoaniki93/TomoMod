@@ -2194,4 +2194,8 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_306_extra_scale"] = "Nuovo — opzioni del pulsante azione extra in Barre delle azioni, scheda Gestione barre: attiva, scala e reimposta posizione.",
     ["wn_306_compass"] = "Correzione — Bussola: corretto un errore Lua frequente (x417) nella conversione delle coordinate mondo (C_Map.GetWorldPosFromMapPos restituisce continentID + worldPosition; il continentID viene ora correttamente scartato).",
     ["wn_306_bagskin"] = "BagSkin — gli slot ora usano ContainerFrameItemButtonTemplate di Blizzard: clic, uso, raccolta e divisione sono gestiti da codice sicuro nativo (nessun PreClick soggetto a taint). Gli slot rimandati in combattimento vengono riprodotti automaticamente alla fine del combattimento.",
+    -- 3.0.7
+    ["wn_307_objective_tracker"] = "Tracker obiettivi — I blocchi delle missioni mondo vengono ora inseriti nel bucket Missioni Mondo invece di fluttuare sopra il tracker. Le barre di avanzamento (forze nemiche, % settimanale) sono nascoste quando il bucket è compresso.",
+    ["wn_307_guardian_rage"]     = "Barre risorse — I Druidi Guardiano vedono ora la barra Rabbia centrata sullo schermo per impostazione predefinita. Il Mana rimane come barra secondaria. La barra potere nel riquadro unità viene nascosta automaticamente.",
+    ["wn_307_resource_bars"]     = "Barre risorse — Corretto: i cursori altezza per potere di classe e mana druido ora si applicano correttamente (conflitto di nome frame globale risolto). Nuovo cursore per l'altezza della barra centrale. Nuova casella in Riquadri unità › Giocatore › Dimensioni.",
 })

@@ -2429,4 +2429,8 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_306_extra_scale"] = "New — Extra Action Button options under Action Bars, Bar Management tab: enable, scale and reset position.",
     ["wn_306_compass"] = "Fix — Compass: corrected a high-frequency Lua error (x417) in the world-coordinate conversion (C_Map.GetWorldPosFromMapPos returns continentID + worldPosition; the continentID is now correctly discarded).",
     ["wn_306_bagskin"] = "BagSkin — slot buttons now use Blizzard's native ContainerFrameItemButtonTemplate: click, use, pickup and split are handled by secure native code (no more taint-prone PreClick). Slots deferred during combat are replayed automatically when combat ends.",
+    -- 3.0.7
+    ["wn_307_objective_tracker"] = "Objective Tracker — World Quest blocks are now sorted into the World Quests bucket instead of floating above the tracker. Progress bars (enemy forces, weekly %) are hidden when their bucket is collapsed.",
+    ["wn_307_guardian_rage"]     = "ResourceBars — Guardian Druids now see their Rage bar centered on screen by default. Mana stays as the secondary bar. The UnitFrame power bar is hidden automatically.",
+    ["wn_307_resource_bars"]     = "ResourceBars — Fixed: class power and druid mana height sliders now apply correctly (global frame name conflict resolved). New slider for centered primary power bar height. New checkbox in UnitFrames › Player › Dimensions to route the power bar to the center.",
 })
