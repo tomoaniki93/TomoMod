@@ -86,6 +86,9 @@ end
 local function OnTooltipSetItem(tooltip, data)
     local settings = GetSettings()
     if not settings or not settings.enabled or not settings.showItemID then return end
+    -- 12.x: never inject on compare/EncounterJournal tooltips — adding a line
+    -- (and the deferred Show) taints Blizzard's secret-money arithmetic.
+    if TomoMod_IsCompareOrMoneyTooltip and TomoMod_IsCompareOrMoneyTooltip(tooltip) then return end
 
     if data and data.id then
         AddLine(tooltip, LABEL_ITEM, data.id)

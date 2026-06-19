@@ -8,6 +8,7 @@
 
 TomoMod_ResourceBars = TomoMod_ResourceBars or {}
 local RB = TomoMod_ResourceBars
+local LCG = LibStub and LibStub("LibCustomGlow-1.0", true)  -- optional full-state glow
 
 local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
@@ -196,7 +197,10 @@ local CLASS_RESOURCES = {
         [1] = { -- Arcane
             classPower = { display = "points", powerType = POWER_ARCANE_CHARGES, label = "Arcane Charges", maxPoints = 4 },
         },
-        -- [2] Fire, [3] Frost: Mana in UF info bar
+        -- [2] Fire: Mana in UF info bar
+        [3] = { -- Frost
+            classPower = { display = "aura", spellID = 205473, label = "Icicles", maxStacks = 5, glowOnMax = true },
+        },
     },
     MONK = {
         [1] = { -- Brewmaster
@@ -680,6 +684,27 @@ local function UpdatePoints(pointFrame, resDef)
             end
         end
     end
+
+    -- Full-state highlight: e.g. 5 Icicles -> Glacial Spike ready (opt-in via glowOnMax)
+    if resDef.glowOnMax then
+        local full = (displayMax > 0 and current >= displayMax)
+        if LCG and LCG.PixelGlow_Start then
+            if full and not pointFrame._glowing then
+                pointFrame._glowing = true
+                LCG.PixelGlow_Start(pointFrame, { r, g, b, 1 }, 8, 0.20, nil, 2, 1, 1, false, "TomoMod_RB_FullGlow")
+            elseif (not full) and pointFrame._glowing then
+                pointFrame._glowing = false
+                LCG.PixelGlow_Stop(pointFrame, "TomoMod_RB_FullGlow")
+            end
+        elseif full and not useTex then
+            -- Fallback when LibCustomGlow is unavailable: brighten the filled segments.
+            local br, bgc, bb = math.min(r + 0.30, 1), math.min(g + 0.30, 1), math.min(b + 0.30, 1)
+            for i = 1, displayMax do
+                local pt = pointFrame.points[i]
+                if pt and pt.fill then pt.fill:SetColorTexture(br, bgc, bb) end
+            end
+        end
+    end
 end
 
 -- =====================================
@@ -853,6 +878,7 @@ local function GetAuraColorKey(label)
     if label == "Soul Fragments" then return "soulFragments" end
     if label == "Tip of the Spear" then return "tipOfTheSpear" end
     if label == "Maelstrom Weapon" then return "maelstromWeapon" end
+    if label == "Icicles" then return "icicles" end
     return "comboPoints"
 end
 

@@ -917,12 +917,77 @@ function RF.StopRangeChecker()
 end
 
 -- =====================================
+-- RAID-SIZE BRACKET + LAYOUT VALUES (raidSizeOverrides)
+-- Picks per-size presets (10 / 25 / 40) so a 5-man, a 20-man and a 40-man can
+-- each get their own width/height/spacing without manual reconfiguration.
+-- Override fields apply on top of the base values only when enabled and present,
+-- so a partially-filled bracket still inherits the remaining base values.
+-- =====================================
+function RF.GetSizeBracket()
+    local n = GetNumGroupMembers() or 0
+    if n <= 10 then
+        return "10"
+    elseif n <= 25 then
+        return "25"
+    end
+    return "40"
+end
+
+function RF.GetLayoutValues()
+    local db = (TomoModDB and TomoModDB.raidFrames) or {}
+    local v = {
+        layout       = db.layout or "grid",
+        width        = db.width or 72,
+        height       = db.height or 36,
+        spacing      = db.spacing or 2,
+        groupSpacing = db.groupSpacing or 6,
+    }
+    local ov = db.raidSizeOverrides
+    if ov and ov.enabled then
+        local b = ov[RF.GetSizeBracket()]
+        if b then
+            if b.layout       ~= nil then v.layout       = b.layout       end
+            if b.width        ~= nil then v.width        = b.width        end
+            if b.height       ~= nil then v.height       = b.height       end
+            if b.spacing      ~= nil then v.spacing      = b.spacing      end
+            if b.groupSpacing ~= nil then v.groupSpacing = b.groupSpacing end
+        end
+    end
+    return v
+end
+
+-- Resize one frame's outer size AND its inner health/power split, mirroring
+-- ApplySettings so a bracket change actually rescales the bars (not just moves).
+function RF.ApplyFrameSize(f, w, h)
+    if not f then return end
+    local db = TomoModDB and TomoModDB.raidFrames
+    if not db then return end
+    f:SetSize(w, h)
+    local powerH  = db.showPower and db.powerHeight or 0
+    local healthH = h - powerH
+    if healthH < 1 then healthH = 1 end
+    if f.health then f.health:SetHeight(healthH) end
+    if db.showPower and powerH > 0 then
+        if f.power then
+            f.power:SetHeight(powerH)
+            f.power:Show()
+            if f.powerBG then f.powerBG:Show() end
+        end
+    else
+        if f.power then f.power:Hide() end
+        if f.powerBG then f.powerBG:Hide() end
+    end
+end
+
+-- =====================================
 -- LAYOUT: Arrange frames in grid or list
 -- =====================================
 function RF.LayoutFrames()
     local db = TomoModDB and TomoModDB.raidFrames
     if not db then return end
     if not RF.anchor then return end
+    -- SetPoint/SetSize on the secure unit buttons is blocked in combat; defer.
+    if InCombatLockdown() then RF._pendingLayout = true; return end
 
     -- Gather visible units sorted by group then role
     local units = {}
@@ -951,11 +1016,12 @@ function RF.LayoutFrames()
         end)
     end
 
-    local layout = db.layout or "grid"
-    local spacing = db.spacing or 2
-    local groupSpacing = db.groupSpacing or 6
-    local w = db.width
-    local h = db.height
+    local lv = RF.GetLayoutValues()
+    local layout = lv.layout
+    local spacing = lv.spacing
+    local groupSpacing = lv.groupSpacing
+    local w = lv.width
+    local h = lv.height
 
     if layout == "grid" then
         -- Grid: groups as columns, members as rows
@@ -979,7 +1045,7 @@ function RF.LayoutFrames()
             for row, data in ipairs(members) do
                 data.frame:ClearAllPoints()
                 data.frame:SetPoint("TOPLEFT", RF.anchor, "TOPLEFT", colOffset, -((row - 1) * (h + spacing)))
-                data.frame:SetSize(w, h)
+                RF.ApplyFrameSize(data.frame, w, h)
                 if row > maxRows then maxRows = row end
             end
             colOffset = colOffset + w + groupSpacing
@@ -996,7 +1062,7 @@ function RF.LayoutFrames()
         for i, data in ipairs(units) do
             data.frame:ClearAllPoints()
             data.frame:SetPoint("TOPLEFT", RF.anchor, "TOPLEFT", 0, -((i - 1) * (h + spacing)))
-            data.frame:SetSize(w, h)
+            RF.ApplyFrameSize(data.frame, w, h)
         end
 
         local totalH = #units * h + (#units - 1) * spacing
@@ -1516,25 +1582,8 @@ function RF.ApplySettings()
 
     for _, f in pairs(RF.frames) do
         if f then
-            f:SetSize(db.width, db.height)
-
-            local powerH = db.showPower and db.powerHeight or 0
-            local healthH = db.height - powerH
-
-            if f.health then
-                f.health:SetHeight(healthH)
-            end
-
-            if db.showPower and powerH > 0 then
-                if f.power then
-                    f.power:SetHeight(powerH)
-                    f.power:Show()
-                    if f.powerBG then f.powerBG:Show() end
-                end
-            else
-                if f.power then f.power:Hide() end
-                if f.powerBG then f.powerBG:Hide() end
-            end
+            local lv = RF.GetLayoutValues()
+            RF.ApplyFrameSize(f, lv.width, lv.height)
 
             if f.nameText then
                 f.nameText:SetFont(db.font or ADDON_FONT, db.fontSize or 10, db.fontOutline or "OUTLINE")

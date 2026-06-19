@@ -3,5 +3,6 @@
 
     <Script file="Core.lua" />
     <Script file="Auras.lua" />
+    <Script file="ResurrectTracker.lua" />
 
 </Ui>

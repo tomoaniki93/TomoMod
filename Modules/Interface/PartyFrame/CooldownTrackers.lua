@@ -1,7 +1,11 @@
 -- =====================================
 -- PartyFrame/CooldownTrackers.lua — Interrupt & Battle Rez CD tracking
--- UNIT_SPELLCAST_SUCCEEDED only (no CLEU — causes taint in WoW 12.x)
--- Party spellIDs are tainted: stripped via string.format("%.0f", id) trick
+-- Interrupts: UNIT_SPELLCAST_SUCCEEDED (no CLEU — causes taint in WoW 12.x).
+--   Party spellIDs are secret values in 12.x; resolved via ResolveSpellID with
+--   a class-default fallback when a cast cannot be attributed to a known spell.
+-- Battle rez: POOL-DRIVEN via C_Spell.GetSpellCharges(20484). In instanced
+--   content every brez spell shares ONE charge pool, readable from any class,
+--   so per-cast detection (impossible for party members) is not needed.
 -- =====================================
 
 TomoMod_PartyCooldowns = TomoMod_PartyCooldowns or {}
@@ -100,6 +104,34 @@ local CLASS_BREZ = {
     WARLOCK     = { spellID = 20707,  cd = 600 },
 }
 
+-- =====================================
+-- BATTLE-REZ CHARGE POOL READER
+-- C_Spell.GetSpellCharges(20484) returns the SHARED combat-resurrection pool
+-- and is readable from any class while inside instanced content (nil elsewhere).
+-- Prefers the central TomoMod_ResurrectTracker reader when present, so the
+-- party frames and the standalone counter HUD agree on a single source.
+-- Secret-value guarded: if any field is secret we report "no pool" rather than
+-- performing arithmetic on a secret value (12.x taint rule).
+-- =====================================
+local REBIRTH_SPELLID = 20484
+local function GetBrezCharges()
+    local RT = TomoMod_ResurrectTracker
+    if RT and RT.GetBrezCharges then
+        local ok, cur, maxC, start, dur = pcall(RT.GetBrezCharges)
+        if ok then return cur, maxC, start, dur end
+    end
+    if not (C_Spell and C_Spell.GetSpellCharges) then return nil end
+    local info = C_Spell.GetSpellCharges(REBIRTH_SPELLID)
+    if type(info) ~= "table" then return nil end
+    local cur, maxC  = info.currentCharges, info.maxCharges
+    local start, dur = info.cooldownStartTime, info.cooldownDuration
+    if issecretvalue and (issecretvalue(cur) or issecretvalue(maxC)
+        or issecretvalue(start) or issecretvalue(dur)) then
+        return nil
+    end
+    return cur, maxC, start, dur
+end
+
 -- Resolve spell icon texture from spellID (cached)
 local iconCache = {}
 local function GetSpellIcon(spellID)
@@ -178,22 +210,10 @@ local function OnSpellCastSucceeded(unit, spellID)
             return
         end
 
-        local brezData = CD.BREZ_SPELLS[safeID]
-        if brezData then
-            if not CD.active[unit] then CD.active[unit] = {} end
-            CD.active[unit].brez = {
-                spellID   = safeID,
-                startTime = GetTime(),
-                duration  = brezData.cd,
-                icon      = brezData.icon,
-            }
-            CD.UpdateAllFrames()
-            return
-        end
     else
-        -- spellID unresolvable (tainted AND string.format strip failed).
+        -- spellID unresolvable (secret value AND string.format strip failed).
         -- Fall back to the class-known interrupt if not already on cooldown.
-        -- We skip the brez fallback: too many non-brez spells cast in combat.
+        -- Brez needs no fallback here: it is pool-driven in CD.UpdateFrame.
         local _, classFile = UnitClass(unit)
         if classFile then
             local classKick = CLASS_INTERRUPT[classFile]
@@ -280,16 +300,19 @@ function CD.UpdateFrame(f)
         end
     end
 
-    -- Brez icon
+    -- Brez icon — POOL-DRIVEN (shared combat-resurrection pool).
+    -- Every brez-capable member reflects the same shared pool: greyed + swiping
+    -- while no charge is available, ready otherwise. This is why the party brez
+    -- icon now correctly enters cooldown when ANY brez is used in the instance.
     if f.cdContainer.brezIcon and db.showBrezCD then
         local classBrez = classFile and CLASS_BREZ[classFile]
         if classBrez then
-            local brezData = unitCDs and unitCDs.brez
-            if brezData and (brezData.startTime + brezData.duration) > now then
-                local remaining = (brezData.startTime + brezData.duration) - now
-                SetIconOnCD(f.cdContainer.brezIcon, brezData, classBrez, remaining, brezData.startTime, brezData.duration)
+            local cur, _maxC, start, dur = GetBrezCharges()
+            if cur ~= nil and cur <= 0 and start and dur and start > 0 and dur > 0 then
+                local remaining = (start + dur) - now
+                if remaining < 0 then remaining = 0 end
+                SetIconOnCD(f.cdContainer.brezIcon, classBrez, classBrez, remaining, start, dur)
             else
-                if unitCDs and unitCDs.brez then unitCDs.brez = nil end
                 SetIconReady(f.cdContainer.brezIcon, classBrez)
             end
         else

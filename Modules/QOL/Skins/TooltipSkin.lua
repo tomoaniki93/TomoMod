@@ -293,6 +293,10 @@ end
 local function OnTooltipShow(tooltip)
     if not IsEnabled() then return end
     if tooltip.IsForbidden and tooltip:IsForbidden() then return end
+    -- 12.x: don't restyle compare/EncounterJournal tooltips — the synchronous
+    -- SetFont/SetBackdrop pass mints "secret numbers" and taints the secret
+    -- sell-price MoneyFrame arithmetic Blizzard runs on those tooltips.
+    if TomoMod_IsCompareOrMoneyTooltip and TomoMod_IsCompareOrMoneyTooltip(tooltip) then return end
 
     SkinTooltipBackground(tooltip)
     SkinHealthBar(tooltip)

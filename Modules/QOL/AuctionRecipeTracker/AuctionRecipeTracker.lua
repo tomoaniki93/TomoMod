@@ -62,7 +62,7 @@ local function FormatGold(copper)
     end
 end
 
-local function SearchAH(searchString)
+local function SearchAH(searchString, qty)
     if not AuctionHouseFrame or not AuctionHouseFrame:IsShown() then return end
     if not searchString or searchString == "" then return end
 
@@ -75,16 +75,28 @@ local function SearchAH(searchString)
         AuctionHouseFrame.SearchBar:SetText(searchString)
     end
 
-    local query = {
-        searchString = searchString,
-        sorts = { { sortOrder = Enum.AuctionHouseSortOrder.Price, reverseSort = false } },
-        minLevel = 0,
-        maxLevel = 0,
-        filters = {},
-        itemClassFilters = {},
-    }
+    -- Browse by name: this is the only path that reliably drives the AH UI to
+    -- display results. An exact item-key search (C_AuctionHouse.SendSearchQuery)
+    -- loads the data but does not navigate the UI, so nothing appears on screen.
     if C_AuctionHouse and C_AuctionHouse.SendBrowseQuery then
-        C_AuctionHouse.SendBrowseQuery(query)
+        C_AuctionHouse.SendBrowseQuery({
+            searchString = searchString,
+            sorts = { { sortOrder = Enum.AuctionHouseSortOrder.Price, reverseSort = false } },
+            minLevel = 0,
+            maxLevel = 0,
+            filters = {},
+            itemClassFilters = {},
+        })
+    end
+    if mainFrame and mainFrame.statusText then
+        if qty and qty > 0 then
+            mainFrame.statusText:SetText(string.format(
+                L["art_searching_qty"] or "Recherche : %s \xc3\x97 %d",
+                searchString, qty))
+        else
+            mainFrame.statusText:SetText(string.format(
+                L["art_searching"] or "Recherche : %s", searchString))
+        end
     end
 end
 
@@ -220,7 +232,7 @@ local function CreateReagentRow(parent)
     end)
     row:SetScript("OnClick", function(self)
         if self.itemName then
-            SearchAH(self.itemName)
+            SearchAH(self.itemName, self.reagentQty)
         end
     end)
 
@@ -333,6 +345,7 @@ local function RefreshUI()
                 row:SetPoint("RIGHT", scrollChild, "RIGHT", -2, 0)
                 row.itemID = reagent.itemID
                 row.itemName = name
+                row.reagentQty = reagent.qty
                 row.itemLink = link
                 row.icon:SetTexture(icon or 134400)
                 row.qty:SetText(reagent.qty > 0 and (reagent.qty .. "x") or "")
@@ -839,6 +852,9 @@ if TooltipDataProcessor and Enum and Enum.TooltipDataType then
             and tooltip ~= ShoppingTooltip1 and tooltip ~= ShoppingTooltip2 then
             return
         end
+        -- 12.x: skip compare/EncounterJournal tooltips — injecting a price line
+        -- there taints Blizzard's secret-money (sell price) arithmetic.
+        if TomoMod_IsCompareOrMoneyTooltip and TomoMod_IsCompareOrMoneyTooltip(tooltip) then return end
         local itemID = data.id
         local stack
         local _, link = TooltipUtil and TooltipUtil.GetDisplayedItem
@@ -858,9 +874,11 @@ if TooltipDataProcessor and Enum and Enum.TooltipDataType then
 else
     -- Legacy fallback
     GameTooltip:HookScript("OnTooltipSetItem", function(self)
+        if TomoMod_IsCompareOrMoneyTooltip and TomoMod_IsCompareOrMoneyTooltip(self) then return end
         local _, link = self:GetItem()
         if not link then return end
         local itemID = tonumber(link:match("item:(%d+)"))
         AddPriceLines(self, itemID, nil)
     end)
 end
+
