@@ -404,6 +404,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         safeInit("PartyCooldowns",     TomoMod_PartyCooldowns)
         safeInit("ArenaFrames",        TomoMod_ArenaFrames)
         safeInit("RaidFrames",         TomoMod_RaidFrames)
+        safeInit("ResurrectTracker",   TomoMod_ResurrectTracker)
 
         -- Layout Mover System (doit être après tous les autres modules)
         safeInit("Movers",             TomoMod_Movers)

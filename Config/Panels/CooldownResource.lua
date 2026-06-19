@@ -285,6 +285,7 @@ local function BuildColorsTab(parent)
         { key = "stagger", label = L["res_stagger"] or "Stagger" }, { key = "mana", label = L["res_mana"] or "Mana (Druid)" },
         { key = "soulFragments", label = L["res_soul_fragments"] or "Soul Fragments" }, { key = "tipOfTheSpear", label = L["res_tip_of_spear"] or "Tip of the Spear" },
         { key = "maelstromWeapon", label = L["res_maelstrom_weapon"] or "Maelstrom Weapon" },
+        { key = "icicles", label = L["res_icicles"] or "Icicles" },
     }
 
     local i = 1

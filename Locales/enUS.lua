@@ -293,6 +293,7 @@ TomoMod_RegisterLocale("enUS", {
     ["res_soul_fragments"]              = "Soul Fragments",
     ["res_tip_of_spear"]                = "Tip of the Spear",
     ["res_maelstrom_weapon"]            = "Maelstrom Weapon",
+    ["res_icicles"]                      = "Icicles",
 
     -- Cooldown Manager
     -- CD & Resource tabs
@@ -2433,4 +2434,15 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_307_objective_tracker"] = "Objective Tracker — World Quest blocks are now sorted into the World Quests bucket instead of floating above the tracker. Progress bars (enemy forces, weekly %) are hidden when their bucket is collapsed.",
     ["wn_307_guardian_rage"]     = "ResourceBars — Guardian Druids now see their Rage bar centered on screen by default. Mana stays as the secondary bar. The UnitFrame power bar is hidden automatically.",
     ["wn_307_resource_bars"]     = "ResourceBars — Fixed: class power and druid mana height sliders now apply correctly (global frame name conflict resolved). New slider for centered primary power bar height. New checkbox in UnitFrames › Player › Dimensions to route the power bar to the center.",
+    ["wn_310_brez_counter"]       = "Battle Rez Counter — New movable HUD showing how many combat resurrections are available and the time to the next charge. Reads the shared pool, works on any class. Configure in Raid Frames → Features.",
+    ["wn_310_resurrect"]          = "Resurrection Indicator — A rez icon now appears on a party or raid member while a resurrection is being cast on them.",
+    ["wn_310_raid_sizes"]         = "Raid Frames — New optional per-size layouts (10 / 25 / 40): frame width and height adapt automatically to the current group size. Configure in Raid Frames → Features.",
+    ["wn_310_brez_fix"]           = "Party Frames — Fixed the battle rez cooldown tracker: the icon now correctly greys out and shows the recharge timer whenever a brez is consumed by anyone in the instance.",
+
+    -- 3.1.1
+    ["art_searching"]        = "Searching: %s",
+    ["art_searching_qty"]    = "Searching: %s × %d",
+    ["wn_311_icicles"]        = "Frost Mage: new Icicles tracker in the Resource Bar (5 segments + Glacial Spike glow when full). Custom color available in CD & Resource → Colors.",
+    ["wn_311_taint_money"]   = "Fixed a Midnight taint error: hovering items in the Encounter Journal no longer throws a 'secret number' error on the gold value — TomoMod no longer taints item-comparison tooltips.",
+    ["wn_311_art_qty"]       = "AuctionRecipeTracker: clicking a reagent searches the Auction House and shows the required quantity in the status bar (e.g. Searching: Awakened Fire × 14).",
 })

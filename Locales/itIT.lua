@@ -1470,6 +1470,7 @@ TomoMod_RegisterLocale("itIT", {
     ["res_soul_fragments"]              = "Frammenti d'anima",
     ["res_tip_of_spear"]                = "Punta della lancia",
     ["res_maelstrom_weapon"]            = "Arma del Maelstrom",
+    ["res_icicles"]                      = "Ghiaccioli",
 
     -- =====================
     -- Resource Bars display mode
@@ -2198,4 +2199,15 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_307_objective_tracker"] = "Tracker obiettivi — I blocchi delle missioni mondo vengono ora inseriti nel bucket Missioni Mondo invece di fluttuare sopra il tracker. Le barre di avanzamento (forze nemiche, % settimanale) sono nascoste quando il bucket è compresso.",
     ["wn_307_guardian_rage"]     = "Barre risorse — I Druidi Guardiano vedono ora la barra Rabbia centrata sullo schermo per impostazione predefinita. Il Mana rimane come barra secondaria. La barra potere nel riquadro unità viene nascosta automaticamente.",
     ["wn_307_resource_bars"]     = "Barre risorse — Corretto: i cursori altezza per potere di classe e mana druido ora si applicano correttamente (conflitto di nome frame globale risolto). Nuovo cursore per l'altezza della barra centrale. Nuova casella in Riquadri unità › Giocatore › Dimensioni.",
+    ["wn_310_brez_counter"]       = "Contatore Battle Rez — Nuovo HUD spostabile che mostra quante resurrezioni da combattimento sono disponibili e il tempo alla prossima carica. Legge il pool condiviso, funziona su qualsiasi classe. Configurabile in Riquadri raid → Funzionalità.",
+    ["wn_310_resurrect"]          = "Indicatore di resurrezione — Un'icona rez appare ora su un membro del gruppo o del raid mentre una resurrezione viene lanciata su di lui.",
+    ["wn_310_raid_sizes"]         = "Riquadri raid — Nuovi layout opzionali per dimensione (10 / 25 / 40): larghezza e altezza dei riquadri si adattano automaticamente alle dimensioni del gruppo attuale. Configurabile in Riquadri raid → Funzionalità.",
+    ["wn_310_brez_fix"]           = "Riquadri gruppo — Corretto: il tracker cooldown resurrezione da combattimento mostra ora correttamente l'icona desaturata e il timer di ricarica quando un brez viene consumato da qualcuno nell'istanza.",
+
+    -- 3.1.1
+    ["art_searching"]        = "Ricerca: %s",
+    ["art_searching_qty"]    = "Ricerca: %s × %d",
+    ["wn_311_icicles"]        = "Mago del Ghiaccio: nuovo tracker Ghiaccioli nella barra delle risorse (5 segmenti + bagliore Picco Glaciale al massimo). Colore personalizzabile in CD & Risorse → Colori.",
+    ["wn_311_taint_money"]   = "Corretto un errore di taint (Midnight): passare il mouse sugli oggetti nel Diario delle spedizioni non genera più l'errore 'secret number' sul valore in oro — TomoMod non contamina più i tooltip di confronto.",
+    ["wn_311_art_qty"]       = "AuctionRecipeTracker: cliccare su un reagente cerca l'oggetto nella Casa d'aste e mostra la quantità richiesta nella barra di stato (es. Ricerca: Fuoco Risvegliato × 14).",
 })

@@ -254,6 +254,46 @@ function U.SetupDraggable(frame, savePositionCallback, labelText)
 end
 
 -- =====================================
+-- TOOLTIP TAINT GUARD (Midnight 12.x secret-money safety)
+-- =====================================
+-- In 12.x an item's sell price is a *secret* number. Blizzard's
+-- MoneyFrame_Update does arithmetic on it, which is only legal while the
+-- execution is untainted. Item-comparison tooltips (EncounterJournal,
+-- ShoppingTooltip1/2, ...) render that secret money frame, so any TomoMod
+-- injection or restyle that runs on them taints the arithmetic and throws
+-- ("attempt to perform arithmetic on a secret number value … tainted by
+-- 'TomoMod'"). Tooltip modules call this to skip those tooltips while
+-- keeping their features on normal item tooltips. Single extension point:
+-- add other compare/money sources here if they surface.
+function TomoMod_IsCompareOrMoneyTooltip(tt)
+    if not tt then return false end
+
+    -- Dedicated item-comparison (shopping) tooltips
+    if tt == _G.ShoppingTooltip1 or tt == _G.ShoppingTooltip2 then
+        return true
+    end
+
+    -- Owner inside the Encounter Journal (compare tooltip w/ secret sell price)
+    local ok, owner = pcall(tt.GetOwner, tt)
+    if ok and owner then
+        local frame = owner
+        for _ = 1, 6 do
+            if not frame then break end
+            local okn, name = pcall(frame.GetName, frame)
+            if okn and type(name) == "string"
+                and name:find("EncounterJournal", 1, true) then
+                return true
+            end
+            local okp, parent = pcall(frame.GetParent, frame)
+            if not okp then break end
+            frame = parent
+        end
+    end
+
+    return false
+end
+
+-- =====================================
 -- BACKWARD COMPAT: CreateSlider / CreateCheckbox
 -- (used by old Config.lua and some QOL modules)
 -- =====================================

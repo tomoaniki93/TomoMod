@@ -5,6 +5,13 @@ local W = TomoMod_Widgets
 local L = TomoMod_L
 
 local function ApplyPF() if TomoMod_PartyFrames then TomoMod_PartyFrames.ApplySettings() end end
+local function ApplyRT()
+    C_Timer.After(0, function()
+        if TomoMod_ResurrectTracker and TomoMod_ResurrectTracker.ApplySettings then
+            TomoMod_ResurrectTracker.ApplySettings()
+        end
+    end)
+end
 
 -- ══════════════════════════════════════════════
 -- TAB: GENERAL
@@ -147,8 +154,14 @@ local function BuildCooldownsTab(parent)
         { text = L["pf_cd_vertical"]   or "Vertical (on frame)",  value = "vertical" },
         { text = L["pf_cd_horizontal"] or "Horizontal (below)",   value = "horizontal" },
     }, db.cdLayout or "vertical", cy, function(v) db.cdLayout = v end)
-    local _, cy = W.CreateInfoText(card.inner, L["pf_info_cooldowns"] or "Tracks interrupt and battle rez cooldowns for each party member. Detected via UNIT_SPELLCAST_SUCCEEDED (no COMBAT_LOG_EVENT_UNFILTERED).", cy)
+    local _, cy = W.CreateInfoText(card.inner, L["pf_info_cooldowns"] or "Interrupts are detected via UNIT_SPELLCAST_SUCCEEDED. Battle rez reads the shared combat-res charge pool, so the icon greys out for everyone whenever a brez is used in the instance (no COMBAT_LOG_EVENT_UNFILTERED).", cy)
     y = W.FinalizeCard(card, cy)
+
+    local cardRez, cy = W.CreateCard(c, L["pf_section_resurrect"] or "Resurrection Indicator", y)
+    local _, cy = W.CreateCheckbox(cardRez.inner, L["pf_opt_show_resurrect"] or "Show incoming-resurrect icon", db.showResurrectIndicator, cy, function(v) db.showResurrectIndicator = v; ApplyRT() end)
+    local _, cy = W.CreateSlider(cardRez.inner, L["pf_opt_resurrect_size"] or "Resurrect icon size", db.resurrectIconSize or 26, 12, 44, 1, cy, function(v) db.resurrectIconSize = v; ApplyRT() end, "%.0f")
+    local _, cy = W.CreateInfoText(cardRez.inner, L["pf_info_resurrect"] or "Shows a rez icon on a member while a resurrection is being cast on them.", cy)
+    y = W.FinalizeCard(cardRez, cy)
 
     c:SetHeight(math.abs(y) + 20)
     if scroll.UpdateScroll then scroll.UpdateScroll() end

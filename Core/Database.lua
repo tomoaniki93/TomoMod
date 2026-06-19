@@ -632,6 +632,7 @@ TomoMod_Defaults = {
             soulFragments   = { r = 0.80, g = 0.20, b = 1.00 },
             tipOfTheSpear   = { r = 0.20, g = 0.80, b = 0.20 },
             maelstromWeapon = { r = 0.00, g = 0.50, b = 1.00 },
+            icicles         = { r = 0.55, g = 0.85, b = 1.00 },
         },
     },
 
@@ -1100,6 +1101,10 @@ TomoMod_Defaults = {
         cdIconSize = 18,
         cdLayout = "vertical",  -- "vertical" (on health bar), "horizontal" (below frame)
 
+        -- Resurrection indicator (incoming res cast on this member)
+        showResurrectIndicator = true,
+        resurrectIconSize = 26,
+
         -- Sort
         sortByRole = true,  -- Tank > Healer > DPS
 
@@ -1143,6 +1148,16 @@ TomoMod_Defaults = {
         spacing = 2,
         groupSpacing = 6,
 
+        -- Per-size layout overrides (10 / 25 / 40). When enabled, the matching
+        -- bracket's non-nil fields override the base width/height/spacing above
+        -- according to the current group size; nil fields inherit the base.
+        raidSizeOverrides = {
+            enabled = false,
+            ["10"] = { width = 72, height = 40, spacing = 2, groupSpacing = 6 },
+            ["25"] = { width = 72, height = 32, spacing = 2, groupSpacing = 5 },
+            ["40"] = { width = 64, height = 28, spacing = 1, groupSpacing = 4 },
+        },
+
         -- Health
         texture = ADDON_TEXTURE,
         healthColor = "class",
@@ -1172,6 +1187,10 @@ TomoMod_Defaults = {
         raidMarkerSize = 12,
         readyCheckSize = 20,
         summonSize = 22,
+
+        -- Resurrection indicator (incoming res cast on this member)
+        showResurrectIndicator = true,
+        resurrectIconSize = 22,
 
         -- Range
         showRange = true,
@@ -1204,6 +1223,21 @@ TomoMod_Defaults = {
             x = 20,
             y = -200,
         },
+    },
+
+    -- =====================
+    -- BATTLE-REZ COUNTER (standalone HUD)
+    -- Reads the shared combat-resurrection charge pool (C_Spell.GetSpellCharges
+    -- on Rebirth / 20484) so any class can see how many brez are available and
+    -- the time to the next charge. The pool only exists in instanced content.
+    -- =====================
+    battleRez = {
+        enabled = true,
+        onlyInstance = true,   -- hide outside dungeons/raids (no shared pool there)
+        size = 44,
+        fontSize = 18,
+        showSwipe = true,
+        position = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 200 },
     },
 
     -- =====================

@@ -1470,6 +1470,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["res_soul_fragments"]              = "Fragmentos de Alma",
     ["res_tip_of_spear"]                = "Ponta da Lança",
     ["res_maelstrom_weapon"]            = "Arma de Maelstrom",
+    ["res_icicles"]                      = "Icicles",
 
     -- =====================
     -- Resource Bars display mode
@@ -2198,4 +2199,15 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_307_objective_tracker"] = "Rastreador de objetivos — Os blocos de missões mundiais agora são classificados no grupo Missões Mundiais em vez de flutuar acima do rastreador. As barras de progresso (forças inimigas, % semanal) são ocultadas quando o grupo está recolhido.",
     ["wn_307_guardian_rage"]     = "Barras de recursos — Druidas Guardiões agora veem sua barra de Fúria centralizada na tela por padrão. O Mana permanece como barra secundária. A barra de poder no painel de unidade é ocultada automaticamente.",
     ["wn_307_resource_bars"]     = "Barras de recursos — Corrigido: os controles de altura para poder de classe e mana de druida agora se aplicam corretamente (conflito de nome de frame global resolvido). Novo controle para a altura da barra central. Nova caixa de seleção em Painéis de unidade › Jogador › Dimensões.",
+    ["wn_310_brez_counter"]       = "Contador de Ressurreição de Combate — Novo HUD móvel mostrando quantas ressurreições de combate estão disponíveis e o tempo até a próxima carga. Lê o pool compartilhado, funciona em qualquer classe. Configure em Frames de Raid → Funcionalidades.",
+    ["wn_310_resurrect"]          = "Indicador de ressurreição — Um ícone de rez agora aparece em um membro do grupo ou raid enquanto uma ressurreição está sendo lançada nele.",
+    ["wn_310_raid_sizes"]         = "Frames de Raid — Novos layouts opcionais por tamanho (10 / 25 / 40): largura e altura dos frames se adaptam automaticamente ao tamanho atual do grupo. Configure em Frames de Raid → Funcionalidades.",
+    ["wn_310_brez_fix"]           = "Frames de Grupo — Corrigido: o rastreador de cooldown de ressurreição de combate agora exibe corretamente o ícone acinzentado e o cronômetro de recarga quando um brez é consumido por alguém na instância.",
+
+    -- 3.1.1
+    ["art_searching"]        = "Pesquisando: %s",
+    ["art_searching_qty"]    = "Pesquisando: %s × %d",
+    ["wn_311_icicles"]        = "Mago do Gelo: novo rastreador de Icicles na barra de recursos (5 segmentos + brilho de Pico Glacial ao máximo). Cor personalizável em CD & Recursos → Cores.",
+    ["wn_311_taint_money"]   = "Corrigido um erro de taint (Midnight): passar o mouse sobre itens no Compêndio de Masmorras não causa mais o erro de 'número secreto' no valor em ouro — o TomoMod não contamina mais as dicas de comparação.",
+    ["wn_311_art_qty"]       = "AuctionRecipeTracker: clicar em um reagente pesquisa o item na Casa de Leilões e exibe a quantidade necessária na barra de status (ex. Pesquisando: Fogo Desperto × 14).",
 })

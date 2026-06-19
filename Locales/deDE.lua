@@ -1470,6 +1470,7 @@ TomoMod_RegisterLocale("deDE", {
     ["res_soul_fragments"]              = "Seelenfragmente",
     ["res_tip_of_spear"]                = "Spitze des Speers",
     ["res_maelstrom_weapon"]            = "Mahlstromwaffe",
+    ["res_icicles"]                      = "Eiszapfen",
 
     -- =====================
     -- Resource Bars display mode
@@ -2210,4 +2211,15 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_307_objective_tracker"] = "Questtracker — Weltquest-Bloecke werden jetzt korrekt dem Weltquests-Bucket zugeordnet statt ueber dem Tracker zu schweben. Fortschrittsbalken (Feindliche Staerken, Wochen-%) werden versteckt wenn ihr Bucket eingeklappt ist.",
     ["wn_307_guardian_rage"]     = "Ressourcenleisten — Hueter-Druiden sehen jetzt standardmaessig ihre Wut-Leiste zentriert auf dem Bildschirm. Mana bleibt als sekundaere Leiste darunter. Die Machtleiste im Einheitenrahmen wird automatisch ausgeblendet.",
     ["wn_307_resource_bars"]     = "Ressourcenleisten — Behoben: Hoehenschieberegler fuer Klassenmacht und Druiden-Mana funktionieren jetzt korrekt (globaler Frame-Name-Konflikt behoben). Neuer Schieberegler fuer die zentrierte Hauptleisten-Hoehe. Neue Checkbox in Einheitenrahmen › Spieler › Abmessungen.",
+    ["wn_310_brez_counter"]       = "Kampfauferstehungs-Zaehler — Neues verschiebbares HUD das zeigt wie viele Kampfauferstehungen verfuegbar sind und die Zeit bis zur naechsten Aufladung. Liest den gemeinsamen Pool, funktioniert fuer jede Klasse. Einstellbar unter Schlachtzugsrahmen → Funktionen.",
+    ["wn_310_resurrect"]          = "Auferstehungsanzeige — Ein Rez-Symbol erscheint jetzt auf einem Gruppe- oder Schlachtzugsmitglied waehrend eine Auferstehung auf ihn gewirkt wird.",
+    ["wn_310_raid_sizes"]         = "Schlachtzugsrahmen — Neue optionale Layouts pro Groesse (10 / 25 / 40): Breite und Hoehe der Rahmen passen sich automatisch an die aktuelle Gruppengroesse an. Einstellbar unter Schlachtzugsrahmen → Funktionen.",
+    ["wn_310_brez_fix"]           = "Gruppenrahmen — Behoben: Der Kampfauferstehungs-CD-Tracker zeigt jetzt korrekt das ausgegrautete Symbol und den Auflade-Timer wenn ein Brez von jemandem in der Instanz verbraucht wird.",
+
+    -- 3.1.1
+    ["art_searching"]        = "Suche: %s",
+    ["art_searching_qty"]    = "Suche: %s × %d",
+    ["wn_311_icicles"]        = "Frost-Magier: Neuer Eiszapfen-Tracker in der Ressourcenleiste (5 Segmente + Glacialer Einschlag-Leuchten bei Maximum). Farbe anpassbar unter CD & Ressource → Farben.",
+    ["wn_311_taint_money"]   = "Midnight-Taint-Fehler behoben: Das Betrachten von Gegenständen im Schlachtzugskompendium löst keinen 'secret number'-Fehler mehr beim Goldwert aus — TomoMod verfälscht Vergleichs-Tooltips nicht mehr.",
+    ["wn_311_art_qty"]       = "AuctionRecipeTracker: Ein Klick auf einen Bestandteil sucht den Gegenstand im Auktionshaus und zeigt die benötigte Anzahl in der Statusleiste an (z.B. Suche: Erwachtes Feuer × 14).",
 })

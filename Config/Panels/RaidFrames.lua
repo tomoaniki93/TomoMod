@@ -11,6 +11,14 @@ local function ApplyRF()
     end)
 end
 
+local function ApplyRT()
+    C_Timer.After(0, function()
+        if TomoMod_ResurrectTracker and TomoMod_ResurrectTracker.ApplySettings then
+            TomoMod_ResurrectTracker.ApplySettings()
+        end
+    end)
+end
+
 -- TAB: GENERAL
 local function BuildGeneralTab(parent)
     local scroll = W.CreateScrollPanel(parent)
@@ -122,6 +130,44 @@ local function BuildFeaturesTab(parent)
     local _, cy = W.CreateSlider(card6.inner, L["rf_opt_defensive_size"] or "Defensive icon size", db.defensiveIconSize, 10, 22, 1, cy, function(v) db.defensiveIconSize = v end, "%.0f")
     local _, cy = W.CreateInfoText(card6.inner, L["rf_info_defensives"] or "Displays active defensive cooldowns (e.g. Pain Suppression, Ironbark, Divine Shield) on each raid member.", cy)
     y = W.FinalizeCard(card6, cy)
+
+    -- Resurrection indicator
+    local cardRez, cy = W.CreateCard(c, L["rf_section_resurrect"] or "Resurrection Indicator", y)
+    local _, cy = W.CreateCheckbox(cardRez.inner, L["rf_opt_show_resurrect"] or "Show incoming-resurrect icon", db.showResurrectIndicator, cy, function(v) db.showResurrectIndicator = v; ApplyRT() end)
+    local _, cy = W.CreateSlider(cardRez.inner, L["rf_opt_resurrect_size"] or "Resurrect icon size", db.resurrectIconSize or 22, 12, 40, 1, cy, function(v) db.resurrectIconSize = v; ApplyRT() end, "%.0f")
+    local _, cy = W.CreateInfoText(cardRez.inner, L["rf_info_resurrect"] or "Shows a rez icon on a member while a resurrection is being cast on them (combat-res or normal).", cy)
+    y = W.FinalizeCard(cardRez, cy)
+
+    -- Battle Rez counter (shared combat-res pool)
+    local brdb = TomoModDB.battleRez
+    if brdb then
+        local cardBR, cy = W.CreateCard(c, L["rf_section_battlerez"] or "Battle Rez Counter", y)
+        local _, cy = W.CreateCheckbox(cardBR.inner, L["rf_opt_br_enable"] or "Show battle-rez counter", brdb.enabled, cy, function(v) brdb.enabled = v; ApplyRT() end)
+        local _, cy = W.CreateCheckbox(cardBR.inner, L["rf_opt_br_only_instance"] or "Only inside dungeons/raids", brdb.onlyInstance, cy, function(v) brdb.onlyInstance = v; ApplyRT() end)
+        local _, cy = W.CreateSlider(cardBR.inner, L["rf_opt_br_size"] or "Counter size", brdb.size or 44, 24, 96, 1, cy, function(v) brdb.size = v; ApplyRT() end, "%.0f")
+        local _, cy = W.CreateSlider(cardBR.inner, L["rf_opt_br_font"] or "Counter font size", brdb.fontSize or 18, 10, 32, 1, cy, function(v) brdb.fontSize = v; ApplyRT() end, "%.0f")
+        local _, cy = W.CreateInfoText(cardBR.inner, L["rf_info_battlerez"] or "A movable counter showing how many battle resurrections are available and the time to the next charge. Reads the shared combat-res pool, so it works on any class. Use /tm layout to move it.", cy)
+        y = W.FinalizeCard(cardBR, cy)
+    end
+
+    -- Per-size layout overrides (10 / 25 / 40)
+    local ov = db.raidSizeOverrides
+    if ov then
+        ov["10"] = ov["10"] or {}; ov["25"] = ov["25"] or {}; ov["40"] = ov["40"] or {}
+        local cardOv, cy = W.CreateCard(c, L["rf_section_size_overrides"] or "Per-Size Layout (10/25/40)", y)
+        local _, cy = W.CreateCheckbox(cardOv.inner, L["rf_opt_overrides_enable"] or "Enable per-size overrides", ov.enabled, cy, function(v) ov.enabled = v; ApplyRF() end)
+        local _, cy = W.CreateInfoText(cardOv.inner, L["rf_info_size_overrides"] or "When enabled, frame size adapts to the current group size (spacing auto-adjusts per bracket).", cy)
+        local _, cy = W.CreateInfoText(cardOv.inner, L["rf_ov_small"] or "Small  (up to 10)", cy)
+        local _, cy = W.CreateSlider(cardOv.inner, L["rf_ov_width"] or "Width", ov["10"].width or db.width, 40, 200, 2, cy, function(v) ov["10"].width = v; ApplyRF() end, "%.0f")
+        local _, cy = W.CreateSlider(cardOv.inner, L["rf_ov_height"] or "Height", ov["10"].height or db.height, 20, 80, 1, cy, function(v) ov["10"].height = v; ApplyRF() end, "%.0f")
+        local _, cy = W.CreateInfoText(cardOv.inner, L["rf_ov_medium"] or "Medium  (up to 25)", cy)
+        local _, cy = W.CreateSlider(cardOv.inner, L["rf_ov_width"] or "Width", ov["25"].width or db.width, 40, 200, 2, cy, function(v) ov["25"].width = v; ApplyRF() end, "%.0f")
+        local _, cy = W.CreateSlider(cardOv.inner, L["rf_ov_height"] or "Height", ov["25"].height or db.height, 20, 80, 1, cy, function(v) ov["25"].height = v; ApplyRF() end, "%.0f")
+        local _, cy = W.CreateInfoText(cardOv.inner, L["rf_ov_large"] or "Large  (26-40)", cy)
+        local _, cy = W.CreateSlider(cardOv.inner, L["rf_ov_width"] or "Width", ov["40"].width or db.width, 40, 200, 2, cy, function(v) ov["40"].width = v; ApplyRF() end, "%.0f")
+        local _, cy = W.CreateSlider(cardOv.inner, L["rf_ov_height"] or "Height", ov["40"].height or db.height, 20, 80, 1, cy, function(v) ov["40"].height = v; ApplyRF() end, "%.0f")
+        y = W.FinalizeCard(cardOv, cy)
+    end
 
     c:SetHeight(math.abs(y) + 20)
     if scroll.UpdateScroll then scroll.UpdateScroll() end

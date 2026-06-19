@@ -1470,6 +1470,7 @@ TomoMod_RegisterLocale("esES", {
     ["res_soul_fragments"]              = "Fragmentos de alma",
     ["res_tip_of_spear"]                = "Punta de la lanza",
     ["res_maelstrom_weapon"]            = "Arma de Maelström",
+    ["res_icicles"]                      = "Carámbanos",
 
     -- =====================
     -- Resource Bars display mode
@@ -2258,4 +2259,15 @@ TomoMod_RegisterLocale("esES", {
     ["wn_307_objective_tracker"] = "Seguimiento de objetivos — Los bloques de misiones mundiales ahora se clasifican en el grupo Misiones Mundiales en lugar de flotar sobre el rastreador. Las barras de progreso (fuerzas enemigas, % semanal) se ocultan cuando su grupo está contraído.",
     ["wn_307_guardian_rage"]     = "Barras de recursos — Los druidas Guardianes ven ahora su barra de Rabia centrada en pantalla por defecto. El maná permanece como barra secundaria. La barra de poder del marco de unidad se oculta automáticamente.",
     ["wn_307_resource_bars"]     = "Barras de recursos — Corregido: los controles de altura para poder de clase y maná de druida ahora se aplican correctamente (conflicto de nombre de frame global resuelto). Nuevo control para la altura de la barra central. Nueva casilla en Marcos de unidad › Jugador › Dimensiones.",
+    ["wn_310_brez_counter"]       = "Contador de resurrección de combate — Nuevo HUD móvil que muestra cuántas resurrecciones de combate están disponibles y el tiempo hasta la próxima carga. Lee el pool compartido, funciona en cualquier clase. Configurable en Marcos de raid → Características.",
+    ["wn_310_resurrect"]          = "Indicador de resurrección — Ahora aparece un icono de rez en un miembro del grupo o raid mientras se está lanzando una resurrección sobre él.",
+    ["wn_310_raid_sizes"]         = "Marcos de raid — Nuevas disposiciones opcionales por tamaño (10 / 25 / 40): el ancho y alto de los marcos se adaptan automáticamente al tamaño del grupo actual. Configurable en Marcos de raid → Características.",
+    ["wn_310_brez_fix"]           = "Marcos de grupo — Corregido: el rastreador de enfriamiento de resurrección de combate ahora muestra correctamente el icono en gris y el temporizador de recarga cuando se consume un brez por cualquiera en la instancia.",
+
+    -- 3.1.1
+    ["art_searching"]        = "Buscando: %s",
+    ["art_searching_qty"]    = "Buscando: %s × %d",
+    ["wn_311_icicles"]        = "Mago Escarcha: nuevo rastreador de Carámbanos en la barra de recursos (5 segmentos + brillo de Pico Glacial al máximo). Color personalizable en CD & Recursos → Colores.",
+    ["wn_311_taint_money"]   = "Corregido un error de taint (Midnight): pasar el ratón sobre objetos en el Compendio de bandas ya no provoca el error de 'número secreto' en el valor de oro — TomoMod ya no contamina las descripciones de comparación.",
+    ["wn_311_art_qty"]       = "AuctionRecipeTracker: al hacer clic en un reactivo se busca el objeto en la Casa de subastas y se muestra la cantidad requerida en la barra de estado (ej. Buscando: Fuego Despertado × 14).",
 })

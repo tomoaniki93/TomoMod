@@ -1613,6 +1613,7 @@ TomoMod_RegisterLocale("frFR", {
     ["res_soul_fragments"]              = "Fragments d'âme",
     ["res_tip_of_spear"]                = "Pointe de la lance",
     ["res_maelstrom_weapon"]            = "Arme du Maelström",
+    ["res_icicles"]                      = "Glaçons",
     ["msg_avr_header"]                  = "[AutoVendeurRépa]",
 
     -- =====================
@@ -2343,4 +2344,15 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_307_objective_tracker"] = "Suivi des objectifs — Les blocs de quêtes mondiales sont maintenant triés dans le bucket Quêtes Mondiales au lieu de flotter au-dessus du tracker. Les barres de progression (forces ennemies, % hebdomadaire) sont masquées lorsque leur bucket est réduit.",
     ["wn_307_guardian_rage"]     = "Barres de ressources — Les Druides Gardiens voient désormais leur barre de Rage centrée à l'écran par défaut. Le Mana reste en barre secondaire en dessous. La barre de puissance de l'UnitFrame est masquée automatiquement.",
     ["wn_307_resource_bars"]     = "Barres de ressources — Corrigé : les sliders de hauteur de pouvoir de classe et de mana druide s'appliquent désormais correctement (conflit de nom global résolu). Nouveau slider pour la hauteur de la barre centrale. Nouvelle checkbox dans UnitFrames › Joueur › Dimensions pour déplacer la barre de puissance au centre.",
+    ["wn_310_brez_counter"]       = "Compteur Battle Rez — Nouveau HUD déplaçable affichant le nombre de résurrections de combat disponibles et le délai avant la prochaine charge. Lit le pool partagé, fonctionne sur toutes les classes. À configurer dans Raid Frames → Fonctionnalités.",
+    ["wn_310_resurrect"]          = "Indicateur de résurrection — Une icône de rez apparaît désormais sur un membre du groupe ou du raid pendant qu'une résurrection est en cours de lancement sur lui.",
+    ["wn_310_raid_sizes"]         = "Raid Frames — Nouvelles dispositions par taille optionnelles (10 / 25 / 40) : la largeur et la hauteur des frames s'adaptent automatiquement à la taille du groupe actuel. À configurer dans Raid Frames → Fonctionnalités.",
+    ["wn_310_brez_fix"]           = "Frames de groupe — Corrigé : le suivi du cooldown de résurrection de combat affiche désormais correctement l'icône grisée et le minuteur de rechargement dès qu'un brez est consommé dans l'instance.",
+
+    -- 3.1.1
+    ["art_searching"]        = "Recherche : %s",
+    ["art_searching_qty"]    = "Recherche : %s × %d",
+    ["wn_311_icicles"]        = "Mage Givre : nouveau suivi des Glaçons dans la barre de ressources (5 segments + lueur Glacial Spike au maximum). Couleur personnalisable dans CD & Ressources → Couleurs.",
+    ["wn_311_taint_money"]   = "Correction d'une erreur de taint (Midnight) : survoler un objet dans le Journal des donjons ne déclenche plus l'erreur « secret number » sur la valeur en or — TomoMod ne contamine plus les infobulles de comparaison.",
+    ["wn_311_art_qty"]       = "AuctionRecipeTracker : cliquer sur un composant recherche l'objet à l'Hôtel des ventes et affiche la quantité requise dans la barre de statut (ex. Recherche : Awakened Fire × 14).",
 })

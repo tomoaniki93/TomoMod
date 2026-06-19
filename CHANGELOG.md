@@ -1,5 +1,56 @@
 ## ####################################
 
+## CHANGELOG 3.1.1
+
+#### ResourceBars — Frost Mage Icicles (New)
+- **New** — Frost Mage (spec 3) now displays an **Icicles tracker** in the Resource Bar: 5 dot-segments track the `Icicles` aura (spell 205473), giving a visual indication of when Glacial Spike is ready.
+- **New** — When all 5 Icicles are stacked the bar pulses with a **PixelGlow** effect (via LibCustomGlow-1.0); a brightness fallback is used when the library is unavailable.
+- **New** — Custom color for Icicles (`icicles`) added to the **CD & Resource → Colors** panel (default: light icy blue).
+- **New** — `GetAuraColorKey` updated so the Icicles bar respects the user-chosen color.
+
+#### Tooltips — Midnight Secret-Money Taint Fix (EncounterJournal)
+- **Root cause** — In 12.x an item's sell price is a *secret* number; Blizzard's `MoneyFrame_Update` does arithmetic on it, legal only while execution is untainted. TomoMod injected/restyled on item-comparison tooltips (EncounterJournal, ShoppingTooltip1/2), tainting that arithmetic → `attempt to perform arithmetic on a secret number value (… tainted by 'TomoMod')`.
+- **Fix** — New shared guard `TomoMod_IsCompareOrMoneyTooltip()` (Core/Utils.lua). TooltipIDs (item ID line), AuctionRecipeTracker (TomoHDV price line) and TooltipSkin (font/backdrop restyle) now skip compare/EncounterJournal tooltips.
+- **Trade-off** — Normal tooltips (bags, bank, equipped, chat links) keep all features; only compare/EncounterJournal tooltips lose the injected lines and the dark skin.
+
+#### AuctionRecipeTracker — Quantity Reminder on Reagent Search
+- Clicking a reagent searches the Auction House (by name) and shows the required quantity in the status bar (e.g. "× 14"), so you know how many to buy while browsing results.
+- Note: the quantity is a reminder only — the AH browse API has no quantity filter and `SendSearchQuery` can't drive the UI, so the buy amount can't be pre-filled and quality-tiered reagents still group by name.
+
+## ####################################
+
+## CHANGELOG 3.1.0 — Battle Rez Counter, Resurrection Indicator & Per-Size Raid Layouts
+
+#### Raid & Party — Battle Rez Counter (New)
+- **New** — A movable on-screen **Battle Rez counter** showing how many combat resurrections are currently available and the time remaining until the next charge.
+- **New** — Reads the **shared combat-res charge pool** (`C_Spell.GetSpellCharges`), so it is correct for the whole group and works on any class — it does not depend on who can cast a brez, and a per-cast spell ID is a protected value in 12.x anyway.
+- **New** — Cooldown swipe + live MM:SS timer; the count turns green when at least one rez is ready and red (desaturated icon) when the pool is empty.
+- **New** — Draggable in **Layout Mode** with a representative preview while unlocked; position saved to profile.
+- **New** — Configurable in **Raid Frames → Features → Battle Rez Counter**: enable, "only inside dungeons/raids", counter size and font size. Outside instances the pool query returns nothing, so the counter naturally stays hidden.
+- **Note** — Taint-safe by design: a plain (non-secure) HUD frame, no protected calls, and no Lua arithmetic on secret values — charge fields are read through a value-type / `issecretvalue` guard.
+
+#### Raid & Party — Resurrection Indicator (New)
+- **New** — A **rez icon** now appears on a party or raid member while a resurrection is being cast on them (combat-res or a normal out-of-combat rez), driven by `UnitHasIncomingResurrection` and `INCOMING_RESURRECT_CHANGED`.
+- **New** — Per-frame, lazily created overlay icon; size is configurable independently for party and raid frames.
+- **New** — Configurable in **Party Frames → Cooldowns** and **Raid Frames → Features**: enable + icon size.
+- **Note** — Non-secure overlay child, updated on events, so it is safe to show/hide during combat.
+
+#### Raid Frames — Per-Size Layouts (10 / 25 / 40)
+- **New** — Optional **per-size layout overrides**: frame width and height adapt automatically to the current group size, across three brackets — Small (up to 10), Medium (up to 25) and Large (26–40).
+- **New** — Spacing and group-spacing presets are applied per bracket too, so a 40-player raid packs together more tightly than a 10-player group.
+- **New** — Configurable in **Raid Frames → Features → Per-Size Layout (10/25/40)**: master enable + width/height sliders per bracket. When disabled, the single base layout is used exactly as before.
+- **Change** — Layout recalculation is **combat-gated**: bracket changes that land mid-combat are deferred and replayed on `PLAYER_REGEN_ENABLED`, so resizing never taints protected frames.
+
+#### Party Frames — Battle Rez Cooldown (Fix)
+- **Fix** — The party-frame battle-rez tracker never visually entered cooldown: capable classes always showed the icon as "ready", so you could not tell how many resurrections were left or when the next one would be up.
+- **Change** — The brez tracker is now **pool-driven** — it reads the shared combat-res charge pool, so the icon correctly greys out and shows the recharge timer for everyone in the instance the moment a brez is used, independent of which member cast it. (Per-cast detection is no longer possible in 12.x because the cast's spell ID is a protected value.)
+- **Note** — The interrupt tracker is unchanged and still uses `UNIT_SPELLCAST_SUCCEEDED`.
+
+#### Localization
+- **Note** — New strings (Battle Rez counter, resurrection indicator, per-size layout) ship with inline English fallbacks; localized keys for the 6 locales (enUS / frFR / deDE / esES / itIT / ptBR) can be filled in next.
+
+## ####################################
+
 ## CHANGELOG 3.0.7 — Objective Tracker Fixes & ResourceBars Improvements
 
 #### QOL — Objective Tracker
