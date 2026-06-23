@@ -1,0 +1,27 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*~
+*.swp
+*.swo
+.idea/
+.vscode/
+*.code-workspace
+
+# Packaging output (BigWigsMods packager writes here)
+/.release/
+*.zip
+
+# Backups / temp (the .bak files that used to be tracked)
+*.bak
+*.old
+*.orig
+*.tmp
+
+# Lua bytecode
+*.luac
+luac.out
+
+# Logs
+*.log
