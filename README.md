@@ -1,432 +1,253 @@
-# ![TomoMod](https://img.shields.io/badge/TomoMod-v3.1.1-0cd29f?style=for-the-badge) ![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge)  ![Interface](https://img.shields.io/badge/Interface-120007-orange?style=for-the-badge)
-
-# **TomoMod — Complete UI Replacement for WoW**
-
-> **One addon. Zero bloat. Your entire interface — reimagined.**
-
-Tired of juggling 15 addons to get a clean UI? **TomoMod** replaces Blizzard's default interface with a dark, modern, teal-accented design — **UnitFrames, Nameplates, Action Bars, Bags, Chat, Tooltips, Objective Tracker**, and **25+ quality-of-life modules**, all configurable from a single panel.
+# ![TomoMod](https://img.shields.io/badge/TomoMod-v3.1.2-0cd29f?style=for-the-badge) ![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120007-orange?style=for-the-badge)
 
-Built from the ground up for **Midnight 12.x** with native handling of Blizzard's secret values. Lightweight, taint-free, and optimized for high-end raiding and Mythic+.
+<div><h1><span style="color:#2dc26b">TomoMod — Your Whole Interface, Reimagined</span></h1></div>
 
-**Author:** TomoAniki  
-**CurseForge Project ID:** 1446255
+> <span style="color:#2dc26b"><strong><em>One addon instead of fifteen. A clean, dark, teal-accented UI that just works.</em></strong></span>
 
----
-
-## 📥 Getting Started
-
-1. Download the latest release from CurseForge
-2. Extract the `TomoMod` folder into `World of Warcraft/_retail_/Interface/AddOns/`
-3. Restart WoW or type `/reload`
-4. **First launch:** a 6-step setup wizard walks you through every module — pick your skins, enable your features, and you're done
-5. Type `/tm` anytime to open the full configuration panel
+Stop bolting together a dozen addons just to get a tidy interface. **<span style="color:#2dc26b">TomoMod</span>** replaces Blizzard's default UI with one cohesive, modern look — **unit frames, party & raid frames, nameplates, castbars, action bars, bags, chat, tooltips, the objective tracker**, a full **Mythic+ toolkit**, and **40+ quality-of-life features** — all from a single settings panel.
 
----
+Built specifically for **Midnight (12.x)**: lightweight, taint-free, and tuned for serious raiding and Mythic+. Nothing to script, nothing to import — install it, pick a preset, and play.
 
-## 🖼️ What You Get Out of the Box
-
-| Category | Modules |
-|----------|---------|
-| **Frames** | UnitFrames (oUF), Party Frames, Raid Frames, Nameplates, Resource Bars, Aura Tracker, Cooldown Manager |
-| **Castbars** | Standalone castbars for all units — spark animations, channel ticks, empowered casts, GCD spark |
-| **Action Bars** | 4 skin styles, per-bar fade, display conditions, click-through |
-| **Skins** | Chat, Bags, Tooltips, Buffs/Debuffs, Game Menu, Character Frame, Objective Tracker |
-| **Mythic+** | M+ Tracker, Dungeon Scoreboard, MythicHub, Group Keys, Teleportation |
-| **Navigation** | Waypoint system, World Quest browser, Loot Browser |
-| **QOL** | 25+ automation & utility modules |
-| **Profiles** | Named profiles, per-spec assignment, import/export |
-
----
-
-## ✨ Core Modules
-
-### 🎯 UnitFrames — *Powered by oUF*
-
-Full replacement for Blizzard's unit frames with a clean, minimal aesthetic built on the battle-tested **oUF** library.
-
-- **Supported units:** Player, Target, Target-of-Target, Pet, Focus, Boss 1–5
-- **Health bars** with class colors, faction colors, absorb shields overlay, and centered percentage text
-- **Info bar** below the health bar — power value (left) + total HP (right) with a thin 2px power accent bar
-- **Power bars** with accurate power type coloring
-- **Non-interruptible indicator** — secret-safe grey overlay
-- **Auras** (buffs/debuffs) with duration timers, stack counts, and configurable grow direction
-- **Threat glow** on target frame
-- **Raid icons** and **Leader/Assistant icons** with configurable offsets
-- **Tooltip on hover** — standard GameTooltip on player and target frames
-- **Health text formats:** current, percent, current+percent, current/max, deficit
-- **Drag-to-move** via Layout Mode — unlock all frames, reposition freely, lock again
-- **Per-unit configuration** — enable/disable, dimensions, offsets for each element
-
-### 👥 Party Frames
+<span style="color:#fff"><strong>Author:</strong></span> **_<span style="color:#2dc26b">TomoAniki</span>_** &nbsp;•&nbsp; <span style="color:#fff"><strong>Project ID:</strong></span> <span style="color:#2dc26b"><strong>1446255</strong></span>
 
-Secure party frames for up to 4 members with full M+ integration.
+***
 
-- **SecureUnitButtonTemplate** — proper left-click target, right-click toggle menu
-- **Health bar** with class color, green, or gradient modes — absorb overlay and heal prediction
-- **Power bar** — healer-only visibility, configurable height with live-refresh slider
-- **Name text** — centered, truncatable with configurable max letters (0 = no limit, ellipsis when truncated)
-- **Role icon** (Tank/Healer/DPS) with configurable size
-- **Dispel highlight** — border glows by debuff type (Magic, Curse, Disease, Poison)
-- **HoT tracking** — class-colored icon indicators for healer HoTs (Priest, Druid, Paladin, Shaman, Monk, Evoker)
-- **Interrupt CD tracker** — always-visible icon per party member showing their kick spell; teal border when ready, desaturated + red border + swipe when on cooldown
-- **Battle Rez CD tracker** — same always-visible pattern for brez classes (DK, Druid, Paladin, Warlock)
-- **Range check** — out-of-range members fade to configurable opacity
-- **Role sorting** — optional Tank > Healer > DPS sort order
-- **Growth direction** — Down, Up, Right, Left layout with auto-adapting mover
-- **Arena enemy frames** (1–3) with PvP trinket cooldown and spec icon tracking
-- **4-tab config** — General, Features, Cooldowns, Arena
+<div><h2><span style="color:#2dc26b">🚀 Get Started in 60 Seconds</span></h2></div>
 
-### 🎯 Standalone Castbars
+1.  Install and log in — TomoMod opens a quick **presets-first setup**.
+2.  Pick the profile that matches how you play: **Recommended**, **Tank**, **Healer**, **DPS**, **Minimal**, or **Custom**.
+3.  That's it — you're playing. Everything stays adjustable later.
 
-Full castbar system for all units — Player, Target, Focus, Pet, Boss 1–5.
+Type **`/tm`** any time to open the full settings panel, or **`/tm install`** to run the setup again. Prefer to choose every option yourself? Pick **Custom** and walk through each category.
 
-- **4 spark animation styles:** Comet, Pulse, Helix, Glitch with configurable colors
-- **Class color casting** — optional class-colored bars
-- **Channel tick markers** — automatic ticks for channeled spells
-- **Empowered cast support** — stage markers and progressive overlays for Evoker
-- **Interrupt feedback** — on-screen text when you successfully interrupt
-- **Latency indicator** — network delay overlay on the player castbar
-- **GCD spark** — optional thin progress bar below the player castbar
-- **Cast transitions** — smooth fade-out and flash on completion/interruption
-- **UnitFrame anchoring** — Target, Focus, Pet, Boss castbars auto-anchor below their UnitFrame
-- **Player castbar** freely movable via `/tm layout`
+***
 
-### 🔵 Resource Bars
+<div><h2><span style="color:#2dc26b">🖼️ What You Get Out of the Box</span></h2></div>
 
-Comprehensive class resource display system — all 13 classes with spec-specific logic.
+| Category    | What's inside                                                                                          |
+| ----------- | ----------------------------------------------------------------------------------------------------- |
+| <strong><span style="color:#2dc26b">Frames</span></strong> | Unit Frames (oUF), Party Frames, **Raid Frames**, Nameplates, Resource Bars, Aura Tracker, Cooldown Manager |
+| <strong><span style="color:#2dc26b">Castbars</span></strong> | Standalone castbars for every unit — spark animations, channel ticks, empowered casts, GCD spark      |
+| <strong><span style="color:#2dc26b">Action Bars</span></strong> | 5 skin styles, per-bar fade & opacity, display conditions, click-through, extra action button         |
+| <strong><span style="color:#2dc26b">Skins</span></strong> | Chat, Bags, Tooltips, Buffs/Debuffs, Game Menu, Character, Objective Tracker, Reputation               |
+| <strong><span style="color:#2dc26b">Mythic+</span></strong> | M+ Tracker, end-of-run Scoreboard, M+ overview panel, group keystones, dungeon teleports               |
+| <strong><span style="color:#2dc26b">Navigation</span></strong> | Waypoint system, on-screen Compass, World Quest browser, Loot browser                                  |
+| <strong><span style="color:#2dc26b">Housing</span></strong> | Decor info on hover, editor clock, one-key teleport home <em>(Midnight)</em>                            |
+| <strong><span style="color:#2dc26b">Quality of Life</span></strong> | 40+ automation & convenience features                                                                  |
+| <strong><span style="color:#2dc26b">Profiles</span></strong> | Named profiles, per-spec assignment, import/export                                                     |
+| &nbsp;      | &nbsp;                                                                                                 |
 
-- **Segmented point displays** for Combo Points, Holy Power, Chi, Arcane Charges, Soul Shards (partial fill), Essence, DK Runes (per-rune cooldowns)
-- **Aura-tracked resources:** Soul Fragments, Tip of the Spear, Maelstrom Weapon stacks
-- **Brewmaster Stagger** with adaptive color (green → yellow → red)
-- **Druid form-adaptive:** auto-switches between Mana, Energy, Rage, and Astral Power depending on shapeshift form
-- **Visibility modes:** Always, Combat only, Target only, Hidden
-- **Fully configurable:** width, height, scale, text alignment, font, font size, all resource colors editable
+***
 
-### � Aura Tracker
+<div><h2><span style="color:#2dc26b">✨ Frames</span></h2></div>
 
-Configurable aura watch panel anchored to the player UnitFrame.
+<div><h3>🎯 Unit Frames <em>(powered by oUF)</em></h3></div>
 
-- **5 categories:** Buff, Debuff, Cooldown, Totem, Enchant — each with its own grow direction
-- **Spell database** — pre-populated for every class/spec in Midnight Season 1
-- **Cooldown sweep** — animated radial countdown directly on each icon
-- **Stacks & timer text** — readable countdown + stack count
-- **Custom icon list** — add or remove tracked spells per category
-- **Growth directions:** Left, Right, Up, Down — per-category setting
-- **Size & spacing** — icon size, gap, and max icons configurable
-- **Mover overlay** — unlock via `/tm layout` to reposition independently
+A clean, minimal replacement for your player, target, focus and pet frames.
 
-### �🔲 Nameplates
+*   **Player, Target, Target-of-Target, Pet, Focus, and Boss 1–5**
+*   Health bars with class/faction colors, absorb shields, and centered percentage text
+*   A slim **info bar** under each health bar — power on the left, total HP on the right
+*   Buffs & debuffs with timers, stacks, and a grow direction you choose
+*   Non-interruptible cast shading, threat glow on your target, raid & leader icons
+*   Health text your way: current, percent, current+percent, current/max, or deficit
+*   **Drag anything anywhere** in Layout Mode, then lock it back down
 
-Custom nameplate system with performance-optimized frame pooling.
+<div><h3>👥 Party Frames</h3></div>
 
-- **Health bars** with class colors for players, reaction colors for NPCs
-- **Classification colors:** Boss (red), Elite (purple), Rare (cyan), Normal (brown), Trivial (grey)
-- **Castbars** integrated per-nameplate with interrupt indicator
-- **Auras** with configurable max count, size, "only mine" filter
-- **Tank mode** — threat-based coloring (red = no threat, yellow = losing, green = tanking)
-- **Friendly name-only mode** — friendly players/NPCs show only a colored name, no health bar or overlays
-- **Friendly role icons** in dungeons/delves — Tank/Healer/DPS icons above player names, class-colored
-- **Raid marker** positioning — configurable anchor point, offset, and size
-- **Optimized UNIT_AURA handling** — split dirty levels for CPU reduction in raids
+Group frames built for Mythic+ and Arena.
 
-### ⚡ Cooldown Manager
+*   Health with class-color / green / gradient modes, absorbs, and heal prediction
+*   Healer-only power bars, role icons, raid markers, and ready-check icons
+*   **Dispel highlighting** — the frame border glows by debuff type (Magic, Curse, Disease, Poison)
+*   **HoT tracking** with class-colored icons for every healer
+*   **Always-visible interrupt & battle-rez cooldown trackers** per teammate — ready, or greyed out with a recharge swipe
+*   Out-of-range fading, role sorting, hover tooltips, and a movable layout
+*   **Arena enemy frames** with PvP trinket cooldowns and spec icons
 
-Reskins Blizzard's cooldown icons (Essential, Utility, Buffs) with a clean, unified look.
+<div><h3>🛡️ Raid Frames</h3></div>
 
-- **1-pixel black borders** — clean edge styling
-- **Class-colored overlay** when an ability is active (buff/proc)
-- **Custom cooldown text** — Poppins-SemiBold font, intelligent formatting: `3m` / `28` / `1.2` (yellow under 3s)
-- **Center-outward buff positioning** — icons alternate left/right from center
-- **Custom overlay & swipe colors** with opacity control
-- **3-level alpha system:** in combat / with target / no target — all configurable
+Scales cleanly from a 5-player key to a 40-player raid.
 
-### 🎨 Action Bars — *Dominos-Inspired*
+*   **Grid or list** layout — health, absorbs, heal prediction
+*   HoT tracking, debuff icons, **dispel highlighting**, and active **defensive cooldown** icons
+*   Range fading, role icons, raid markers, ready-check
+*   **Per-size layouts (10 / 25 / 40)** — frame width and height adapt automatically as your group grows
+*   A movable **Battle Rez counter** (how many combat reses are left and when the next one is up — works on any class) and **incoming-resurrection icons** that appear while someone is being rezzed
 
-Complete action bar management system with 4 visual styles and per-bar controls.
+<div><h3>🎯 Standalone Castbars</h3></div>
 
-- **4 skin styles:** Classic (rounded 9-slice), Flat, Outlined, Glass, and Minimal (borderless with inner shadows)
-- **Per-bar opacity** slider (0–100%) for all 10 bars
-- **Fade system** — configurable fade-in/out delays and durations on mouse hover
-- **Display conditions** — macro-conditional visibility: Combat only, Shift/Ctrl/Alt held, In group, Hostile target, or custom macro strings
-- **Click-through** toggle per bar — pass clicks to the world
-- **Shift Reveal** — hold Shift to temporarily show all hidden bars at full opacity
-- **Out-of-range coloring** — red (out-of-range), blue (no mana), grey (unusable)
-- **Bar Editor popup** — per-bar config with live preview
+Full castbars for Player, Target, Focus, Pet and Boss 1–5.
 
-**Supported bars:** Action Bar 1–8, Pet Bar, Stance Bar
+*   Four spark styles (Comet, Pulse, Helix, Glitch) with custom colors
+*   Channel tick marks, **empowered cast** stages for Evoker, and class-colored bars
+*   **Interrupt feedback** text when you land a kick, a latency indicator, and an optional **GCD spark**
+*   Target/Focus/Pet/Boss bars anchor under their frame; the player bar moves freely with `/tm layout`
 
----
+<div><h3>🔵 Resource Bars</h3></div>
 
-## 🎨 Skins — Unified Visual Overhaul
+Class resources for all 13 classes, with spec-aware logic.
 
-### 💬 Chat System
+*   Segmented points for Combo Points, Holy Power, Chi, Arcane Charges, Soul Shards, Essence, and DK Runes
+*   Aura-tracked resources: Soul Fragments, Tip of the Spear, Maelstrom Weapon — plus **Frost Mage Icicles** (with a glow when Glacial Spike is ready) and Brewmaster Stagger
+*   **Druid form-aware** — switches between Mana, Energy, Rage, and Astral Power as you shift
+*   Visibility modes (Always / Combat / Target / Hidden) and fully editable size, font, and colors
 
-Complete chat replacement inspired by TUI_Core's visual style.
+<div><h3>📋 Aura Tracker</h3></div>
 
-- **Sidebar + Window layout** — vertical sidebar with adjacent window, custom tab bar, scroll bar theming
-- **5 sidebar shortcuts:** Professions, Shortcuts, Copy Chat, Emotes, Player Status
-- **Tab notification flash** for unread messages
-- **Message formatting:** configurable timestamps, short channel names (`[G]`, `[P]`, `[R]`), class-colored mentions, keyword highlighting, clickable URL detection, LFG role icons
-- **Edit box** with chat-type coloring, character counter, and message history navigation
-- **Copy chat frame** — scrollable window with the last 128 messages
-- **Chat history persistence** — saves whisper, guild, party, raid messages across sessions
-- **Spam throttle** — suppresses duplicate messages within 10 seconds
-- **Inline emoji replacement** — text emoticons converted to display glyphs
+A tidy watch panel for the buffs you actually care about — trinket and weapon-enchant procs, personal and defensive cooldowns — with cooldown sweeps, stack counts, timers, glow on new procs, and a fully editable spell list.
 
-### 🎒 Bag System — *TUI-Inspired*
+<div><h3>🔲 Nameplates</h3></div>
 
-Full inventory replacement with a modern, resizable grid.
+*   Class colors for players, reaction & **classification colors** for NPCs (Boss, Elite, Rare, Normal, Trivial)
+*   Integrated castbars with interrupt indicators, and auras with an "only mine" filter
+*   **Tank mode** threat coloring, **friendly name-only** mode, and **role icons** above players in dungeons/delves
+*   Performance-tuned with frame pooling and optimized aura updates for big pulls
 
-- **3 layout modes:** Combined Grid, Categories (collapsible sections), Separate Bags
-- **5 sort modes:** Manual (preserves drag-and-drop), Quality, Name, Type, Item Level
-- **Bag bar sidebar** with per-bag free slot count
-- **Settings context menu** via cogwheel — change layout/sort in-game without config panel
-- **Item level badges**, junk coin icons, crafting quality tiers
-- **Quality borders** with per-quality color coding
-- **Search bar** with real-time filtering — non-matching items desaturated and dimmed
-- **Gold + tracked currencies** in footer bar
-- **Resizable frame** with live column recalculation
+<div><h3>⚡ Cooldown Manager</h3></div>
 
-### 🗨️ Tooltip Skin
+Reskins Blizzard's cooldown icons with clean borders, a class-colored overlay when an ability is active, smart cooldown text, center-outward buff placement, and a 3-level combat/target/idle opacity system.
 
-Dark, semi-transparent tooltips with a modern look.
+***
 
-- **Class-colored unit names** and **guild name** in teal
-- **Poppins font** across all tooltip text
-- **Optional:** hide health bar, hide server name, hide player title
-- Hooks on GameTooltip, ShoppingTooltips, and ItemRefTooltip
+<div><h2><span style="color:#2dc26b">🎨 Action Bars & Skins</span></h2></div>
 
-### 🧿 Buff/Debuff Skin
+<div><h3>🎮 Action Bars</h3></div>
 
-- Rounded borders matching the TomoMod aesthetic (9-slice style)
-- Optional glow effect — red for debuffs, teal for buffs
-- Dark background, cropped icon edges, Poppins font for duration/stacks
+*   **5 visual styles:** Classic, Flat, Outlined, Glass, and Minimal
+*   Per-bar **opacity**, **fade-on-hover**, and **display conditions** (combat only, modifier held, in group, hostile target, or your own macro)
+*   Click-through, adjustable spacing, "show empty buttons," **Shift-to-reveal** hidden bars, and out-of-range coloring
+*   The **extra action button** and zone ability button are part of the system too — reposition and scale them in Layout Mode
+*   Covers Action Bars 1–8, Pet Bar, and Stance Bar
 
-### 🎮 Game Menu Skin
+<div><h3>💬 Chat, Bags & More</h3></div>
 
-- Dark background with teal accent strip
-- All buttons restyled: flat dark bg, teal hover highlight, Poppins font
-- Dynamically skins buttons injected by other addons
+| Skin              | Highlights                                                                                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------- |
+| <strong><span style="color:#2dc26b">Chat</span></strong> | Sidebar + window layout, unread flash, timestamps, short channel names, class-colored names, clickable URLs, copy-per-message, history that survives reloads |
+| <strong><span style="color:#2dc26b">Bags</span></strong> | Combined / categories / separate layouts, 5 sort modes, quality borders, item-level badges, junk icons, live search, gold & tracked currencies, resizable |
+| <strong><span style="color:#2dc26b">Tooltips</span></strong> | Dark, semi-transparent, class-colored names, optional hiding of health bar / server / title                  |
+| <strong><span style="color:#2dc26b">Buffs/Debuffs</span></strong> | Rounded borders, optional glow, dark backgrounds, clean duration & stack text                                 |
+| <strong><span style="color:#2dc26b">Game Menu</span></strong> | Dark theme with teal accents — even skins buttons other addons add                                            |
+| <strong><span style="color:#2dc26b">Character</span></strong> | Dark character sheet, inspect window, item level & gems on slots                                              |
+| <strong><span style="color:#2dc26b">Objective Tracker</span></strong> | Quests color-coded by type for instant recognition — campaign, dungeon, raid, world, weekly, delves, and more |
+| &nbsp;            | &nbsp;                                                                                                         |
 
-### 📋 Objective Tracker — *17 Quest Type Colors*
+***
 
-Quest titles and objectives are color-coded by quest type for instant visual recognition.
+<div><h2><span style="color:#2dc26b">⚔️ Mythic+ Toolkit</span></h2></div>
 
-- Green (complete), Gold (campaign), Pink (important), Orange (legendary), Blue (calling), Purple (dungeon), Red (raid), Violet (world quests), Cyan (weekly/daily), Crimson (Prey — Midnight), Teal (Delves), Deep blue (scenarios), and more
-- Objective lines tinted by quest category — dimmed version of the title color
-- Full FR+EN bilingual keyword support
+*   **M+ Tracker** — in-dungeon HUD with a 3-chest timer (+3/+2/+1), an enemy-forces gradient, per-boss split times, and a death breakdown on hover.
+*   **TomoScore** — an end-of-run scoreboard showing damage, healing, interrupts, rating and key level for the whole group; click a dungeon name to teleport.
+*   **MythicHub** — an overview panel on your character sheet with season ratings, best times, and a Great Vault preview.
+*   **Mythic Keys** — see everyone's keystone at a glance (reads the common key addons) plus a teleport tab for the current season's dungeons.
 
----
+***
 
-## ⚔️ Mythic+ Toolkit
+<div><h2><span style="color:#2dc26b">🧭 Navigation & Exploration</span></h2></div>
 
-### 📊 Mythic+ Tracker
+*   **Waypoint System** — an on-screen beacon and an off-screen arrow with live distance and arrival time. `/tm way x y` to drop one, `/tm way clear` to remove it.
+*   **Compass** — a heading bar with cardinal directions and markers that point toward your tracked quest or waypoint (localized for all six languages).
+*   **World Quest Tab** — a sortable side panel on the map listing every world quest with reward, zone, faction and time left; click to navigate.
+*   **Loot Browser** — a searchable loot table for M+ dungeons and raid bosses with correct item levels per difficulty and a favorites list.
 
-In-dungeon HUD for timer, forces, bosses, and deaths.
+***
 
-- **3-tier chest countdown** (+3/+2/+1) with tick marks at 60%, 80%, 100% thresholds
-- **5-stage forces color gradient** (< 20% → < 100%) with completion time display
-- **Split times** per boss — time elapsed since the previous kill
-- **Death tracking** — hover the skull icon for a per-player death breakdown with class colors
-- **Completion banner** with keystone upgrade level (+1, +2, +3)
+<div><h2><span style="color:#2dc26b">🏠 Housing <em>(Midnight)</em></h2></div>
 
-### 🏆 TomoScore — Dungeon Scoreboard
+Quality-of-life tools for the new Housing system:
 
-End-of-dungeon scoreboard for the entire group.
+*   **Decor info on hover** — in Basic Decor mode, see a decor's name, placement cost and remaining stock, with a one-key shortcut to duplicate it.
+*   **Editor clock** — an analog/digital clock that also tracks how long you've spent decorating, this session and in total.
+*   **Teleport home** — `/tm home` sends you straight to your house, or out of it if you're visiting someone else's.
 
-- Damage, healing, interrupts, M+ rating, keystone level, and dungeon name per player
-- Click a dungeon name to teleport directly (if spell known)
-- Role-sorted rows (Tank → Healer → DPS), proportional stat bars
-- Auto-shows after Mythic+ completion
-- Saves last run for recall after logout
+***
 
-### 🔑 MythicHub — M+ Overview Panel
+<div><h2><span style="color:#2dc26b">🧩 Quality of Life — 40+ Features</span></h2></div>
 
-Custom panel replacing the Great Vault shortcut on CharacterFrame.
+A grab-bag of things that quietly make the game nicer. Enable only what you want.
 
-- Overall M+ rating with tier-based coloring
-- Season dungeon table: icon, name, key level, rating, best time
-- Fortified/Tyrannical best scores per dungeon
-- Great Vault section with 9 reward slots (Dungeons, Raids, World)
-- Click dungeon icons to cast teleport spells
+| Feature              | What it does                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| <strong><span style="color:#2dc26b">Consumable Bar</span></strong> | At-a-glance flask, well-fed and weapon-oil icons with live timers — never get caught unbuffed         |
+| <strong><span style="color:#2dc26b">Rare Alert</span></strong> | A sound and a clickable banner when a rare NPC is near (open world only) — click to target, mark & ping |
+| <strong><span style="color:#2dc26b">Merchant Tools</span></strong> | Already-owned mounts/pets/toys/transmog/recipes are dimmed at vendors, plus extended merchant pages   |
+| <strong><span style="color:#2dc26b">CVar Optimizer</span></strong> | One click applies recommended performance settings — fully revertible                                 |
+| <strong><span style="color:#2dc26b">Recipe Tracker</span></strong> | Track crafting recipes and see reagent prices & total cost at the Auction House                       |
+| <strong><span style="color:#2dc26b">Combat Text</span></strong> | Lightweight scrolling damage & healing, incoming and outgoing                                         |
+| <strong><span style="color:#2dc26b">Class Reminder</span></strong> | A pulsing alert when you're missing your class buff, form, stance or aura                              |
+| <strong><span style="color:#2dc26b">CoTank Tracker</span></strong> | Keep an eye on your co-tank's health, debuffs and defensives in raids                                 |
+| <strong><span style="color:#2dc26b">LustSound</span></strong> | A custom sound when Bloodlust/Heroism goes out — plays even if the game is muted                       |
+| <strong><span style="color:#2dc26b">Profession Helper</span></strong> | Batch-disenchant your bags with quality filters                                                       |
+| <strong><span style="color:#2dc26b">Skyriding Bar</span></strong> | Vigor charges, speed %, and surge/ascent indicators while dragonriding                                 |
+| <strong><span style="color:#2dc26b">Leveling Bar</span></strong> | Session XP, XP/hour, and rested XP at a glance                                                         |
+| <strong><span style="color:#2dc26b">Minimap & Info Panel</span></strong> | Square class-colored minimap, plus durability, clock and FPS in a movable bar                          |
+| <strong><span style="color:#2dc26b">AFK Screen</span></strong> | A cinematic AFK screen with your 3D character, a timer, and whisper/guild counters                     |
+| <strong><span style="color:#2dc26b">Cursor Ring</span></strong> | An animated ring around your cursor so you never lose it                                               |
+| <strong><span style="color:#2dc26b">Diagnostics</span></strong> | Quiet background error capture with a clean export — open with <code>/tmdiag</code>                     |
+| <strong><span style="color:#2dc26b">Tooltip IDs</span></strong> | Spell, item, NPC and quest IDs in tooltips — Midnight-safe                                             |
+| &nbsp;               | &nbsp;                                                                                                |
 
-### 🗝️ Mythic Keys
+<div><h3>⚙️ Automations</h3></div>
 
-Compact display of all group members' keystones.
+Set-and-forget helpers: auto-accept invites from friends & guild, auto-accept summons, auto-fill "DELETE" prompts, auto-sell greys & repair, fast loot, hide the default castbar, hide the Talking Head, and auto-accept/turn-in quests (hold Shift to override).
 
-- Multi-protocol detection: TMKeyTracker, AstralKeys, AngryKeystones, chat link parsing
-- Database of 80+ dungeons (WotLK → Midnight) for name resolution
-- Teleportation tab for the current M+ season's 8 dungeons
+<div><h3>🗺️ Layout Mode</h3></div>
 
----
+One toggle (`/tm layout`) unlocks **everything movable at once** — unit, party and raid frames, castbars, the aura tracker, resource bars, the minimap, the M+ tracker and more — with an optional alignment grid and a cursor "flashlight" for pixel-perfect placement.
 
-## 🧭 Navigation & Exploration
+***
 
-### 📍 Waypoint System
+<div><h2><span style="color:#2dc26b">🧷 Profiles</span></h2></div>
 
-In-world navigation system with beacon and arrow modes.
+*   **Named profiles** — create, rename, duplicate, delete
+*   **Per-spec assignment** — switch spec and your assigned profile loads automatically
+*   **Import / export** — share a compressed string, or import one as a new profile without overwriting yours
+*   Auto-saves before every switch, so you never lose your tweaks
 
-- **Beacon mode** (on-screen): teal circle icon + vertical beam, scales with distance
-- **Navigator mode** (off-screen): rotating arrow on an elliptical orbit around screen center
-- **Distance & ETA** display — live distance (yards/km) with arrival time estimate
-- **Zone restriction** — optional auto-hide when outside the waypoint's zone
-- **Configurable:** beacon size, shape (ring/arrow), color picker
-- `/tm way x y [name]` — place waypoint at coordinates
-- `/tm way clear` — remove active waypoint
+***
 
-### 📦 Loot Browser
+<div><h2><span style="color:#2dc26b">📋 Handy Commands</span></h2></div>
 
-Visual loot table for all M+ dungeons and raid bosses.
+| Command                       | Action                            |
+| ----------------------------- | --------------------------------- |
+| <code>/tm</code>              | Open the settings panel           |
+| <code>/tm install</code>      | Run the setup wizard again        |
+| <code>/tm layout</code>       | Toggle Layout Mode                |
+| <code>/tm home</code>         | Teleport to (or out of) your house |
+| <code>/tm way x y</code>      | Drop a waypoint                   |
+| <code>/tm key</code>          | Show group keystones              |
+| <code>/tm loot</code>         | Open the Loot Browser             |
+| <code>/tm prof</code>         | Open the Profession Helper        |
+| <code>/tmdiag</code>          | Open the Diagnostics console      |
+| <code>/tm reset</code>        | Reset everything + reload         |
+| <code>/rl</code>              | Reload the UI                     |
+| &nbsp;                        | &nbsp;                            |
 
-- **Global filter bar** — class, specialization, and difficulty filters applied across all tabs
-- **Correct item level display** by difficulty (LFR/Normal/Heroic/Mythic)
-- **Favorites tab** — pin items grouped by source (dungeon or raid), persisted across sessions
-- **Class/spec filtering** — 347-entry database for accurate loot matching (no more glaives on your Evoker)
-- Shift+click to link items in chat
+***
 
-### 🌍 World Quest Tab
+<div><h2><span style="color:#2dc26b">🌐 Languages</span></h2></div>
 
-Side panel on the World Map with a sortable list of all available World Quests.
+Full support for **English, French, German, Spanish, Italian, and Portuguese (Brazil)**.
 
-- Sortable columns: Name, Zone, Reward, Time remaining
-- Detailed reward classification: Gold, Gear (with ilvl), Reputation, Currency, Pet
-- Color-coded quality (Common/Rare/Epic) with elite quest markers
-- Click to navigate, Shift+click to super-track
+***
 
----
+<div><h2><span style="color:#2dc26b">🛡️ Built for Midnight</span></h2></div>
 
-## 🧩 Quality of Life — 25+ Modules
+TomoMod is written from scratch for Midnight's new rules. It handles Blizzard's protected "secret" values natively, avoids the taint pitfalls that break other UIs, and pools its frames and reuses memory so it stays smooth even in a packed 40-player raid or a high key. In short: it's designed to be **fast, stable, and Edit-Mode friendly**, so it stays out of your way when it matters most.
 
-### 😴 AFK Display Screen
+***
 
-Stylized cinematic AFK screen with a 3D player model.
+<div><h2><span style="color:#2dc26b">📦 Built On</span></h2></div>
 
-- Race/gender-aware model with falling animation and idle emotes
-- Elapsed AFK timer, character info overlay (name, realm, level, spec)
-- Whisper and guild message counters while AFK
-- Optional camera rotation
-- Auto-exits on combat, Auction House, or cinematic playback
+oUF · LibStub · LibDeflate · LibSerialize · LibSharedMedia-3.0 · LibOpenRaid · LibDispel
 
-### 🗺️ Layout Mode & Alignment Grid
+***
 
-- **Single toggle** unlocks every movable element at once — UnitFrames, Party Frames, Castbars, Aura Tracker, Minimap & Panel, Mythic+ Tracker
-- **Alignment Grid** with 3 modes: Grid (dimmed), Grid+ (bright), OFF
-- **Cursor flashlight** — grid lines near the cursor glow for pixel-perfect alignment
-- Activate with `/tm layout` or the Layout button in the config panel
+<div><h2><span style="color:#2dc26b">💬 Feedback & Bug Reports</span></h2></div>
 
-### Other QOL Modules
+Found a bug or have an idea? Drop a comment on the project page. When reporting an issue, it helps to include:
 
-| Module | Description |
-|--------|-------------|
-| **Minimap** | Square minimap with class-colored border, configurable size/scale, movable via Layout Mode with position persistence |
-| **Info Panel** | Durability, Time (12h/24h), FPS in a draggable bar |
-| **Cursor Ring** | Animated ring following your cursor, optional class color |
-| **Cinematic Skip** | Auto-skips previously-seen cinematics (Shift to watch again) |
-| **Skyriding Bar** | Vigor tracking, speed %, surge/ascent indicators |
-| **LevelingBar** | Session XP tracking, XP/hour, rested XP overlay |
-| **Class Reminder** | Pulsing display for missing class buffs (Fortitude, Intellect, etc.) |
-| **CoTank Tracker** | Monitors co-tank health, debuffs, and defensive CDs in raids |
-| **LustSound** | 9 sound choices for Bloodlust alerts — plays even if game is muted |
-| **Profession Helper** | Batch disenchant tool with quality filters |
-| **Frame Anchors** | Movable anchors for AlertFrame and LootFrame |
-| **TooltipIDs** | SpellID, ItemID, NPC ID, QuestID in tooltips — TWW safe |
-
-### Automations
-
-| Module | Description |
-|--------|-------------|
-| **AutoAcceptInvite** | Auto-accepts group invites from friends and guild |
-| **AutoSummon** | Auto-accepts summons with configurable delay |
-| **AutoFillDelete** | Auto-fills "DELETE" in item destruction popups |
-| **AutoVendorRepair** | Sells grey items and auto-repairs at vendors |
-| **FastLoot** | Instant auto-loot with modifier key support |
-| **HideCastBar** | Hides the default player castbar |
-| **HideTalkingHead** | Removes the TalkingHead popup |
-| **AutoQuest** | Auto-accept / auto-turn-in quests (Shift to override) |
-
----
-
-## 🧷 Profile System
-
-Named profiles with per-specialization assignment and full import/export.
-
-- **Named profiles** — create, rename, duplicate, delete
-- **Spec assignment** — each specialization maps to a profile; changing spec automatically loads the assigned profile
-- **Auto-save** — active profile saved before every switch and on Config panel close
-- **Import / Export** — compressed string via LibSerialize + LibDeflate; import as a new profile without overwriting
-- **Boot-time sync** — orphaned profiles reconciled automatically on login
-
----
-
-## ⚙️ Configuration
-
-Open the config panel with `/tm` — a custom **1020×720** dark-themed interface with icon-box sidebar navigation, gradient header, and live performance footer.
-
-| Category | Contents |
-|----------|----------|
-| **General** | About, Minimap, Info Panel, Cursor Ring, Cinematic Skip, Frame Anchors, Waypoint |
-| **UnitFrames** | Per-unit tabs with dimensions, elements, castbar, auras, info bar |
-| **Party Frames** | General (size, growth, power), Features (dispel, HoTs, range), Cooldowns (CD tracker, icon size), Arena |
-| **Castbars** | Per-unit castbar config, spark style, channel ticks, empowered, latency, GCD spark |
-| **Nameplates** | Dimensions, colors, classification, tank mode, friendly mode, role icons, auras |
-| **CD & Resource** | Cooldown Manager, Resource Bars (visibility, dimensions, colors, text), Aura Tracker |
-| **Action Bars** | Skin style, per-bar opacity/fade/display conditions, bar editor |
-| **Mythic+** | M+ Tracker, TomoScore, MythicHub |
-| **QOL / Auto** | SkyRide, Waypoint, Mythic Keys, all automations |
-| **Sound** | LustSound configuration with preview |
-| **Skins** | Chat, Bags, Tooltip, Buffs, Game Menu, Objective Tracker, Character |
-| **Profiles** | Named profiles, per-spec assignment, import/export |
-
----
-
-## 📋 Slash Commands
-
-| Command | Action |
-|---------|--------|
-| `/tm` | Open config panel |
-| `/tm help` | Show all commands |
-| `/tm install` | Relaunch the 12-step setup wizard |
-| `/tm layout` / `/tm l` | Toggle Layout Mode |
-| `/tm way x y [name]` | Place a waypoint |
-| `/tm way clear` | Remove active waypoint |
-| `/tm key` | Show/hide group keystones |
-| `/tm score` | Preview dungeon scoreboard |
-| `/tm loot` | Open the Loot Browser |
-| `/tm prof` | Open Profession Helper |
-| `/tm reset` | Reset ALL settings + reload UI |
-| `/rl` | Reload UI (shortcut) |
-
----
-
-## 📦 Libraries
-
-- [oUF](https://github.com/oUF-wow/oUF) — UnitFrame engine
-- [LibStub](https://www.curseforge.com/wow/addons/libstub) — Library versioning
-- [LibDeflate](https://github.com/SafeteeWoW/LibDeflate) — Compression for profile export
-- [LibSerialize](https://github.com/rossnichols/LibSerialize) — Serialization for profile export
-- [LibSharedMedia-3.0](https://www.curseforge.com/wow/addons/libsharedmedia-3-0) — Shared media (fonts, textures, statusbars)
-- [LibOpenRaid](https://github.com/Tercioo/Open-Raid-Library) — Group inspection and keystone data
-- [LibDispel](https://github.com/ablackright/LibDispel) — Dispel detection
-
----
-
-## 🌐 Localization
-
-| Language | Status |
-|----------|--------|
-| **English (enUS)** | Full support (default) |
-| **French (frFR)** | Full support |
-| **German (deDE)** | Full support |
-| **Spanish (esES)** | Full support |
-| **Italian (itIT)** | Full support |
-| **Portuguese (ptBR)** | Full support |
-
----
-
-## 💬 Feedback & Issues
-
-Use the CurseForge project page to report bugs or suggest features.  
-When reporting issues, please include:
-- Your class and specialization
-- Steps to reproduce the problem
-- Any error messages from BugSack / BugGrabber if available
+*   Your class and specialization
+*   What you did right before it happened
+*   A diagnostics export (`/tmdiag export`) — it bundles your environment, loaded addons, and any captured errors
