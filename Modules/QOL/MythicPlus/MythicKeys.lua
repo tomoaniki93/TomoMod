@@ -1,4 +1,4 @@
--- =====================================================================
+﻿-- =====================================================================
 -- MythicKeys.lua  Party Key Viewer + Roulette (LibOpenRaid)
 -- Replaces the old multi-protocol key viewer with LibOpenRaid.
 -- /tm key  -> list party keystones in group chat
@@ -8,7 +8,7 @@
 local L = TomoMod_L
 local openRaidLib = LibStub and LibStub:GetLibrary("LibOpenRaid-1.0", true)
 
-local PREFIX = "|cff0cd29fTomo|r|cFF3377CCMod|r"
+local PREFIX = "|cff2ed884Tomo|r|cFF3377CCMod|r"
 
 -- Keep a namespaced global + local alias for backward compatibility (/tm key)
 TomoMod_MythicKeys = TomoMod_MythicKeys or {}
@@ -217,7 +217,7 @@ local function EnsureRouletteFrame()
 
     F.title = MakeFS(F, 13, "OUTLINE")
     F.title:SetPoint("LEFT", F, "TOPLEFT", 10, -HEADER_H / 2)
-    F.title:SetText("|cff0cd29fTomo|r|cFF3377CCMod|r  |cFFAAAAAAKeystone Roulette|r")
+    F.title:SetText("|cff2ed884Tomo|r|cFF3377CCMod|r  |cFFAAAAAAKeystone Roulette|r")
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, F)

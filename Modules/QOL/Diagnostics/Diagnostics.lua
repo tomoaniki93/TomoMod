@@ -1,4 +1,4 @@
--- =====================================================================
+﻿-- =====================================================================
 -- Diagnostics.lua v1.0.0 — Error Capture & Report System
 -- Background Lua error capture with zero combat popups.
 -- Export clean reports for tracker-tomomod.onkoz.fr
@@ -13,7 +13,7 @@ local D = TomoMod_Diagnostics
 -- =====================================================================
 
 local ADDON_NAME    = "TomoMod"
-local ADDON_PREFIX  = "|cff0cd29fTomo|rMod"
+local ADDON_PREFIX  = "|cff2ed884Tomo|rMod"
 local FONT          = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local FONT_MEDIUM   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_MONO     = "Fonts\\FRIZQT__.TTF"  -- monospace-ish for stack traces
@@ -1023,7 +1023,7 @@ function D.RefreshConsole()
         local countStr = (entry.count and entry.count > 1) and string.format(" |cff888888(x%d)|r", entry.count) or ""
         local timeStr = entry.timestamp or ""
         local combatStr = entry.inCombat and " |cffff4444[COMBAT]|r" or ""
-        local tomoStr = entry.isTomoMod and " |cff0cd29f[TM]|r" or ""
+        local tomoStr = entry.isTomoMod and " |cff2ed884[TM]|r" or ""
         header:SetText(badge .. " " .. timeStr .. countStr .. combatStr .. tomoStr)
 
         -- Message
@@ -1455,7 +1455,7 @@ SlashCmdList["TOMODIAG"] = function(msg)
         if db then db.enabled = true end
         InstallErrorHandler()
         if db and db.suppressPopups then SuppressScriptErrors() end
-        print(ADDON_PREFIX .. " |cff0cd29fDiagnostics enabled.|r")
+        print(ADDON_PREFIX .. " |cff2ed884Diagnostics enabled.|r")
     elseif msg == "off" then
         if db then db.enabled = false end
         RestoreScriptErrors()

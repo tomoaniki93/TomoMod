@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- QOL/LustSound/LustSound.lua — Bloodlust Sound Alert
 -- Dual detection:
 --   1. Instant via UNIT_SPELLCAST_SUCCEEDED (spell ID list)
@@ -204,16 +204,16 @@ local function OnLustDetected(source)
     active = true
 
     if db.showChat then
-        print("|cff0cd29fTomoMod|r |cffff4400\226\153\170 Bloodlust d\195\169tect\195\169 !|r")
+        print("|cff2ed884TomoMod|r |cffff4400\226\153\170 Bloodlust d\195\169tect\195\169 !|r")
     end
 
     if GetTime() < suppressUntil then
         if db.debug then
-            print("|cff0cd29fLustSound|r Trigger suppressed (login settle)")
+            print("|cff2ed884LustSound|r Trigger suppressed (login settle)")
         end
     else
         if db.debug then
-            print("|cff0cd29fLustSound|r Trigger: " .. (source or "unknown"))
+            print("|cff2ed884LustSound|r Trigger: " .. (source or "unknown"))
         end
         DoPlaySound()
     end
@@ -227,7 +227,7 @@ local function OnLustEnded()
     DoStopSound()
 
     if db and db.showChat then
-        print("|cff0cd29fTomoMod|r |cff888888Bloodlust termin\195\169.|r")
+        print("|cff2ed884TomoMod|r |cff888888Bloodlust termin\195\169.|r")
     end
 end
 

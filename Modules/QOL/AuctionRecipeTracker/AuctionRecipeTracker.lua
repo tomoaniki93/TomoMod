@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- AuctionRecipeTracker.lua
 -- QOL: when at an auctioneer (AH open), show tracked crafting recipes
 -- with their reagents. Each reagent is clickable for a quick AH search.
@@ -558,7 +558,7 @@ local function BuildFrame()
     local title = f:CreateFontString(nil, "OVERLAY")
     title:SetFont(FONT_B, 13, "")
     title:SetPoint("TOPLEFT", 10, -10)
-    title:SetText("|cff0cd29fTomo|rMod — " .. (L["art_title"] or "Recipe Tracker"))
+    title:SetText("|cff2ed884Tomo|rMod — " .. (L["art_title"] or "Recipe Tracker"))
     title:SetTextColor(unpack(TEXT))
 
     -- Close button
@@ -782,7 +782,7 @@ end)
 SLASH_TOMOMODARTRACKER1 = "/tmrecipe"
 SlashCmdList["TOMOMODARTRACKER"] = function()
     if not (AuctionHouseFrame and AuctionHouseFrame:IsShown()) then
-        print("|cff0cd29fTomoMod|r: " .. (L["art_only_at_ah"] or "Open the Auction House first."))
+        print("|cff2ed884TomoMod|r: " .. (L["art_only_at_ah"] or "Open the Auction House first."))
         return
     end
     local f = BuildFrame()
@@ -822,7 +822,7 @@ local function AddPriceLines(tooltip, itemID, stackCount)
     local unit = db.prices[itemID]
     if not unit then return end
 
-    local label = "|cff0cd29fTomoHDV|r"
+    local label = "|cff2ed884TomoHDV|r"
     -- Per-unit price (always shown)
     tooltip:AddDoubleLine(label, FormatGold(unit))
 

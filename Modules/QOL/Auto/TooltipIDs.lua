@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- TooltipIDs.lua
 -- Affiche les IDs de sorts, items, buffs/debuffs,
 -- enchantements, montures, talents, etc. dans les tooltips
@@ -285,9 +285,9 @@ function TID.SetEnabled(enabled)
     end
 
     if enabled then
-        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_tid_enabled"])
+        print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_tid_enabled"])
     else
-        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_tid_disabled"])
+        print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_tid_disabled"])
     end
 end
 

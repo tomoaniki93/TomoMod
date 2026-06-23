@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- InfoPanel.lua — Integrated Minimap Info
 -- Zone header, subzone + coords overlay, clock
 -- =====================================
@@ -260,11 +260,11 @@ local function CreateUI()
             if IsShiftKeyDown() then
                 db.use24Hour = not db.use24Hour
                 local fmt = db.use24Hour and "24h" or "12h"
-                print("|cff0cd29fTomoMod|r " .. string.format(L["time_format_msg"], fmt))
+                print("|cff2ed884TomoMod|r " .. string.format(L["time_format_msg"], fmt))
             else
                 db.useServerTime = not db.useServerTime
                 local mode = db.useServerTime and L["time_server"] or L["time_local"]
-                print("|cff0cd29fTomoMod|r " .. string.format(L["time_mode_msg"], mode))
+                print("|cff2ed884TomoMod|r " .. string.format(L["time_mode_msg"], mode))
             end
             IP.Update()
         end

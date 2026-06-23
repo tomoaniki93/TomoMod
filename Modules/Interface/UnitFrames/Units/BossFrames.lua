@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Units/BossFrames.lua — Boss Unit Frames (boss1–boss5)
 -- All 5 frames move together via boss1 drag handle.
 -- Display: Name, Raid Marker (left), Health % only.
@@ -555,7 +555,7 @@ function BF.Initialize()
     -- Aussi masquer après PLAYER_ENTERING_WORLD (rechargement en instance)
     C_Timer.After(0.5, HideBlizzBossFrames)
 
-    print("|cff0cd29fTomoMod Boss:|r " .. TomoMod_L["msg_boss_initialized"])
+    print("|cff2ed884TomoMod Boss:|r " .. TomoMod_L["msg_boss_initialized"])
 end
 
 -- =====================================

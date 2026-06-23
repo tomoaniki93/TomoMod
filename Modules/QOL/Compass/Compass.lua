@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Compass.lua — Boussole de cap (« Waypoint 2.0 »)
 -- =====================================
 -- Une barre horizontale en haut de l'écran qui fait défiler les points
@@ -632,13 +632,13 @@ function C.Toggle()
     if not TomoModDB.compass then TomoModDB.compass = {} end
     TomoModDB.compass.enabled = not TomoModDB.compass.enabled
     UpdateVisibility()
-    print("|cff0cd29fTomoMod Compass:|r " ..
+    print("|cff2ed884TomoMod Compass:|r " ..
         (TomoModDB.compass.enabled and "|cff00ff00ON|r" or "|cffff4040OFF|r"))
 end
 
 function C.Debug()
     local db = DB()
-    print("|cff0cd29f=== TomoMod Compass debug ===|r")
+    print("|cff2ed884=== TomoMod Compass debug ===|r")
     print("  enabled: " .. tostring(db and db.enabled))
     local f = GetPlayerFacing()
     print("  GetPlayerFacing(): " .. tostring(f))

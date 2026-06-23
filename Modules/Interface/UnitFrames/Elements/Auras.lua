@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Elements/Auras.lua — Aura Icons for UnitFrames
 -- =====================================
 
@@ -540,7 +540,7 @@ function UF_Elements.UpdateEnemyBuffs(frame)
     local auras = CollectEnemyBuffData(unit, maxAuras)
 
     if dbg then
-        print("|cff0cd29f[TB]|r " .. unit .. ": " .. #auras .. " target buffs (HELPFUL)")
+        print("|cff2ed884[TB]|r " .. unit .. ": " .. #auras .. " target buffs (HELPFUL)")
     end
 
     -- No buffs → hide container entirely

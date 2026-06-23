@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- ResourceBars.lua — Class Power Display System
 -- Displays class-specific resources: combo points, holy power,
 -- soul shards, chi, essence, arcane charges, runes, stagger, etc.
@@ -1165,7 +1165,7 @@ local function SyncWithEssentialCooldowns()
         if w and w > 0 then
             s.width = w
             BuildResourceDisplay()
-            print("|cff0cd29fTomoMod ResourceBars:|r " .. string.format(TomoMod_L["msg_rb_width_synced"], math.floor(w)))
+            print("|cff2ed884TomoMod ResourceBars:|r " .. string.format(TomoMod_L["msg_rb_width_synced"], math.floor(w)))
         end
     end
 end
@@ -1244,9 +1244,9 @@ function RB.ToggleLock()
         local locked = container:IsLocked()
         container:SetLocked(not locked)
         if not locked then
-            print("|cff0cd29fTomoMod ResourceBars:|r " .. TomoMod_L["msg_rb_locked"])
+            print("|cff2ed884TomoMod ResourceBars:|r " .. TomoMod_L["msg_rb_locked"])
         else
-            print("|cff0cd29fTomoMod ResourceBars:|r " .. TomoMod_L["msg_rb_unlocked"])
+            print("|cff2ed884TomoMod ResourceBars:|r " .. TomoMod_L["msg_rb_unlocked"])
         end
     end
 end

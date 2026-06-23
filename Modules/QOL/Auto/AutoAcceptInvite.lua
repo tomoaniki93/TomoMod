@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- AutoAcceptInvite.lua
 -- Auto-accept les invitations de groupe
 -- de la part d'amis et membres de guilde
@@ -104,7 +104,7 @@ local function OnEvent(self, event, ...)
             AcceptGroup()
 
             if settings.showMessages then
-                print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_aai_accepted"]
+                print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_aai_accepted"]
                     .. inviterName .. " (" .. source .. ")")
             end
 
@@ -114,7 +114,7 @@ local function OnEvent(self, event, ...)
             end)
         else
             if settings.showMessages then
-                print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_aai_ignored"]
+                print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_aai_ignored"]
                     .. inviterName .. " (non fiable)")
             end
         end
@@ -151,13 +151,13 @@ function AAI.SetEnabled(enabled)
             mainFrame:RegisterEvent("PARTY_INVITE_REQUEST")
             mainFrame:SetScript("OnEvent", OnEvent)
         end
-        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_aai_enabled"])
+        print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_aai_enabled"])
     else
         if mainFrame then
             mainFrame:UnregisterAllEvents()
             mainFrame:SetScript("OnEvent", nil)
         end
-        print("|cff0cd29fTomoMod:|r " .. TomoMod_L["msg_aai_disabled"])
+        print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_aai_disabled"])
     end
 end
 

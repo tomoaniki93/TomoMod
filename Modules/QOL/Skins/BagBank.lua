@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- BagBank.lua
 -- Bank window for the TomoMod bag rework (The War Within / Midnight).
 --
@@ -32,7 +32,7 @@ local ADDON_PATH      = "Interface\\AddOns\\TomoMod\\"
 local ADDON_FONT      = ADDON_PATH .. "Assets\\Fonts\\Poppins-Medium.ttf"
 local ADDON_FONT_BOLD = ADDON_PATH .. "Assets\\Fonts\\Poppins-SemiBold.ttf"
 
-local ACCENT          = { 0.047, 0.824, 0.624 }   -- #0CD29F
+local ACCENT          = { 0.047, 0.824, 0.624 }   -- #2ed884
 local BG_COLOR        = { 0.045, 0.045, 0.060 }
 local HEADER_BG       = { 0.065, 0.065, 0.082 }
 local BORDER_COLOR    = { 0.18,  0.18,  0.22 }
@@ -964,7 +964,7 @@ local function CreateBankFrame()
     local title = header:CreateFontString(nil, "OVERLAY")
     title:SetFont(ADDON_FONT_BOLD, 13, "")
     title:SetPoint("LEFT", 10, 0)
-    title:SetText("|cff0cd29f" .. CN("bank_title", "Bank") .. "|r")
+    title:SetText("|cff2ed884" .. CN("bank_title", "Bank") .. "|r")
 
     local closeBtn = MakeHeaderButton(header, "×", 22)
     closeBtn._txt:SetFont(ADDON_FONT_BOLD, 18, "")

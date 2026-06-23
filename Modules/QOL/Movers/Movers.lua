@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Movers.lua — Unified Layout Manager
 -- Remplace tous les /tm uf, /tm sr, /tm rb, etc.
 -- Un seul toggle pour déplacer tous les éléments de l'interface.
@@ -776,7 +776,7 @@ function M.SetUnlocked(unlock)
     -- si le combat démarre alors qu'on est déjà déverrouillé, combatFrame
     -- programme un relock automatique à la sortie du combat.
     if InCombatLockdown() then
-        print("|cff0cd29fTomoMod Layout:|r " .. (L and L["layout_combat_blocked"] or "Impossible de déplacer l'interface en combat."))
+        print("|cff2ed884TomoMod Layout:|r " .. (L and L["layout_combat_blocked"] or "Impossible de déplacer l'interface en combat."))
         return
     end
 
@@ -803,9 +803,9 @@ function M.SetUnlocked(unlock)
     end
 
     if unlock then
-        print("|cff0cd29fTomoMod Layout:|r " .. L["layout_unlocked"])
+        print("|cff2ed884TomoMod Layout:|r " .. L["layout_unlocked"])
     else
-        print("|cff0cd29fTomoMod Layout:|r " .. L["layout_locked"])
+        print("|cff2ed884TomoMod Layout:|r " .. L["layout_locked"])
     end
 end
 
@@ -816,7 +816,7 @@ function M.Toggle()
     if not initialized then
         local ok, err = pcall(M.Initialize)
         if not ok then
-            print("|cff0cd29fTomoMod Layout:|r |cffff4040Initialization failed:|r " .. tostring(err))
+            print("|cff2ed884TomoMod Layout:|r |cffff4040Initialization failed:|r " .. tostring(err))
             return
         end
     end

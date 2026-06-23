@@ -1,4 +1,4 @@
--- =====================================================================
+﻿-- =====================================================================
 -- MythicTracker.lua — Mythic+ Dungeon Tracker (integrated from TomoMythic)
 -- Replaces Blizzard's M+ objective tracker with a custom dark panel:
 --   header (dungeon name, key level, affixes, deaths),
@@ -1415,7 +1415,7 @@ function TMT:BuildConfigPanel()
 
     local titleFS = self:MakeFS(P, 14, "OUTLINE")
     titleFS:SetPoint("LEFT", P, "TOPLEFT", 10, -15)
-    titleFS:SetText("|cff0cd29fTomo|r|cFF3377CC" .. L["tmt_cfg_title"] .. "|r"
+    titleFS:SetText("|cff2ed884Tomo|r|cFF3377CC" .. L["tmt_cfg_title"] .. "|r"
         .. "  |cFF445566M+ Tracker|r")
 
     local closeBtn = CreateFrame("Button", nil, P)

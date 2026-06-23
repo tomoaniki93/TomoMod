@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- CharacterSkin.lua
 -- Skins Character Sheet (PaperDoll, Reputation, Currency)
 -- + Inspect frame — Inspired by ElvUI, adapted to TomoMod style
@@ -2020,6 +2020,6 @@ function CS.ApplySettings()
         if next(itemInfoFrames) then
             UpdateAllItemInfoOverlays()
         end
-        print("|cff0cd29fTomoMod|r " .. (L["msg_char_skin_reload"] or "Character Skin: /reload to apply changes."))
+        print("|cff2ed884TomoMod|r " .. (L["msg_char_skin_reload"] or "Character Skin: /reload to apply changes."))
     end
 end

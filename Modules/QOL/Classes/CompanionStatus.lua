@@ -186,7 +186,7 @@ local function ApplyPosition()
     CompanionStatus:SetPoint(DB.point[1], UIParent, DB.point[2], DB.point[3], DB.point[4])
 end
 
-function UpdateIcon()
+local function UpdateIcon()
     if ShouldShowIcon() then
         icon:Show()
     else

@@ -1,4 +1,4 @@
--- =====================================================================
+﻿-- =====================================================================
 -- Waypoint.lua — In-world waypoint system  (QOL Module)
 -- Modules > QOL > Waypoint  |  /tm way [x y] | /tm way clear
 --
@@ -537,16 +537,16 @@ end)
 ]]
 function WP.NewWaypoint(name, mapID, x, y)
     if not mapID or not x or not y then
-        print("|cff0cd29fTomoMod Waypoint:|r " .. L["way_usage"])
+        print("|cff2ed884TomoMod Waypoint:|r " .. L["way_usage"])
         return false
     end
     -- Clamp to valid range
     if x < 0 or x > 100 or y < 0 or y > 100 then
-        print("|cff0cd29fTomoMod Waypoint:|r " .. L["way_bad_coords"])
+        print("|cff2ed884TomoMod Waypoint:|r " .. L["way_bad_coords"])
         return false
     end
     if not C_Map.CanSetUserWaypointOnMap(mapID) then
-        print("|cff0cd29fTomoMod Waypoint:|r " .. L["way_bad_map"])
+        print("|cff2ed884TomoMod Waypoint:|r " .. L["way_bad_map"])
         return false
     end
     local pos = CreateVector2D(x / 100, y / 100)
@@ -575,7 +575,7 @@ function WP.ClearWaypoint()
     waypointMapID = nil
     SetActive(false)
     WP.SetMode("HIDDEN")
-    print("|cff0cd29fTomoMod Waypoint:|r " .. L["way_cleared"])
+    print("|cff2ed884TomoMod Waypoint:|r " .. L["way_cleared"])
 end
 
 --[[
@@ -585,12 +585,12 @@ end
 function WP.NewWaypointHere(name)
     local mapID = C_Map.GetBestMapForUnit("player")
     if not mapID then
-        print("|cff0cd29fTomoMod Waypoint:|r " .. L["way_no_map"])
+        print("|cff2ed884TomoMod Waypoint:|r " .. L["way_no_map"])
         return false
     end
     local pos = C_Map.GetPlayerMapPosition(mapID, "player")
     if not pos then
-        print("|cff0cd29fTomoMod Waypoint:|r " .. L["way_no_pos"])
+        print("|cff2ed884TomoMod Waypoint:|r " .. L["way_no_pos"])
         return false
     end
     return WP.NewWaypoint(name or "", mapID, pos.x * 100, pos.y * 100)
@@ -615,7 +615,7 @@ function WP.HandleSlashCommand(args)
         -- No args: place here
         local ok = WP.NewWaypointHere()
         if ok then
-            print("|cff0cd29fTomoMod Waypoint:|r " .. L["way_here"])
+            print("|cff2ed884TomoMod Waypoint:|r " .. L["way_here"])
         end
         return
     end
@@ -639,7 +639,7 @@ function WP.HandleSlashCommand(args)
         mapID = C_Map.GetBestMapForUnit("player")
         x, y, nameStart = n1, n2, 3
     else
-        print("|cff0cd29fTomoMod Waypoint:|r " .. L["way_usage"])
+        print("|cff2ed884TomoMod Waypoint:|r " .. L["way_usage"])
         return
     end
 
@@ -652,7 +652,7 @@ function WP.HandleSlashCommand(args)
         local coords = string.format("%.1f, %.1f", x, y)
         -- |T...|t arrow escape instead of Unicode em-dash (Poppins compatibility)
         local sep = name and (" |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t " .. name) or ""
-        print(string.format("|cff0cd29fTomoMod Waypoint:|r " .. L["way_set"], coords, sep))
+        print(string.format("|cff2ed884TomoMod Waypoint:|r " .. L["way_set"], coords, sep))
     end
 end
 

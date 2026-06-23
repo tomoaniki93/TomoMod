@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Units/UnitFrame.lua — Moteur UnitFrame basé sur oUF
 -- TomoMod v2.6.0 — Remplace le moteur hardcodé par oUF
 -- Supports: player, target, targettarget, pet, focus
@@ -541,7 +541,7 @@ function UF.ToggleLock()
     -- en combat. On refuse tout (dé)verrouillage tant que le combat est actif
     -- (le mode placement passe normalement par Movers, qui garde déjà l'entrée).
     if InCombatLockdown() then
-        print("|cff0cd29fTomoMod UF:|r " .. (TomoMod_L["layout_combat_blocked"] or "Impossible de déplacer les cadres en combat."))
+        print("|cff2ed884TomoMod UF:|r " .. (TomoMod_L["layout_combat_blocked"] or "Impossible de déplacer les cadres en combat."))
         return
     end
 
@@ -612,9 +612,9 @@ function UF.ToggleLock()
     end
 
     if isLocked then
-        print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_locked"])
+        print("|cff2ed884TomoMod UF:|r " .. TomoMod_L["msg_uf_locked"])
     else
-        print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_unlocked"])
+        print("|cff2ed884TomoMod UF:|r " .. TomoMod_L["msg_uf_unlocked"])
     end
 
     -- Sync BossFrames
@@ -883,7 +883,7 @@ function UF.Initialize()
         -- ── Appliquer tailles, polices et offsets ───────────────────
         UF.RefreshAllUnits()
 
-        print("|cff0cd29fTomoMod UF:|r " .. TomoMod_L["msg_uf_initialized"])
+        print("|cff2ed884TomoMod UF:|r " .. TomoMod_L["msg_uf_initialized"])
     end)
 end
 

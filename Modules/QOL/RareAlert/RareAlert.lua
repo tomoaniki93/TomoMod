@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- RareAlert.lua — Alerte de proximité des rares
 -- =====================================
 -- Avertit le joueur (son + bannière) quand un PNJ rare entre dans la portée de
@@ -101,7 +101,7 @@ local function CreateBanner()
         edgeSize = 2,
     })
     banner:SetBackdropColor(0.06, 0.06, 0.08, 0.95)
-    banner:SetBackdropBorderColor(0.047, 0.824, 0.624, 1)  -- teal #0CD29F
+    banner:SetBackdropBorderColor(0.047, 0.824, 0.624, 1)  -- teal #2ed884
 
     -- Icône Tête de mort à gauche
     local icon = banner:CreateTexture(nil, "ARTWORK")

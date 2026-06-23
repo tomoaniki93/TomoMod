@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- TomoMod_AutoFillDelete.lua
 -- Auto-remplit "DELETE/SUPPRIMER" dans les popups de destruction d'objets
 -- Compatible TWW (The War Within) — Interface 12.x
@@ -68,7 +68,7 @@ local function TryAutoFill(dialog)
     end
 
     if settings.showMessages then
-        print("|cff0cd29fTomoMod:|r " .. L["msg_afd_filled"])
+        print("|cff2ed884TomoMod:|r " .. L["msg_afd_filled"])
     end
 end
 
@@ -149,9 +149,9 @@ function AFD.SetEnabled(enabled)
     end
 
     if enabled then
-        print("|cff0cd29fTomoMod:|r " .. L["msg_afd_enabled"])
+        print("|cff2ed884TomoMod:|r " .. L["msg_afd_enabled"])
     else
-        print("|cff0cd29fTomoMod:|r " .. L["msg_afd_disabled"])
+        print("|cff2ed884TomoMod:|r " .. L["msg_afd_disabled"])
     end
 end
 

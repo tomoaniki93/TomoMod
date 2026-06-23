@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- GameMenuSkin.lua
 -- Skins the Blizzard Escape / Game Menu
 -- Dark/teal themed UI consistent with TomoMod aesthetic
@@ -541,7 +541,7 @@ local function EnsureTomoModButton()
 
     -- MainMenuFrameButtonTemplate = template des boutons natifs du GameMenu en TWW
     gmButton = CreateFrame("Button", "GameMenuButtonTomoMod", GameMenuFrame, "MainMenuFrameButtonTemplate")
-    gmButton:SetText("|cff0cd29fTomo|r|cffFFFFFFMod|r")
+    gmButton:SetText("|cff2ed884Tomo|r|cffFFFFFFMod|r")
     gmButton:SetScript("OnClick", function()
         CloseGameMenu()
         C_Timer.After(0.05, function()

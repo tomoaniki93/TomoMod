@@ -1,4 +1,4 @@
--- Panels/CooldownResource.lua v2.7.0 — Cards layout
+﻿-- Panels/CooldownResource.lua v2.7.0 — Cards layout
 local W = TomoMod_Widgets
 local L = TomoMod_L
 
@@ -187,7 +187,7 @@ local function BuildResourceBarsTab(parent)
         function(col)
             local _, ny = W.CreateButton(col, L["btn_reset_position"] or "Réinitialiser pos.", 180, 0, function()
                 db.position = nil; ApplyRB()
-                print("|cff0cd29fTomoMod|r " .. (L["msg_rb_position_reset"] or "Position réinitialisée."))
+                print("|cff2ed884TomoMod|r " .. (L["msg_rb_position_reset"] or "Position réinitialisée."))
             end)
             return ny
         end)

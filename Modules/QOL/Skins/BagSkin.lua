@@ -1323,7 +1323,7 @@ local function CreateBagFrame()
     local title = header:CreateFontString(nil, "OVERLAY")
     title:SetFont(ADDON_FONT_BOLD, 13, "")
     title:SetPoint("LEFT", 10, 0)
-    title:SetText("|cff0cd29fBags|r")
+    title:SetText("|cff2ed884Bags|r")
 
     -- Space string
     local spaceStr = header:CreateFontString(nil, "OVERLAY")

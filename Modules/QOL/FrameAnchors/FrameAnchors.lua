@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- FrameAnchors.lua — Movable anchors for AlertFrame & LootFrame
 -- Invisible in normal play, blue border when unlocked via /tm sr
 -- =====================================
@@ -150,9 +150,9 @@ end
 function FA.ToggleLock()
     SetLocked(not isLocked)
     if isLocked then
-        print("|cff0cd29fTomoMod Anchors:|r " .. L["msg_anchors_locked"])
+        print("|cff2ed884TomoMod Anchors:|r " .. L["msg_anchors_locked"])
     else
-        print("|cff0cd29fTomoMod Anchors:|r " .. L["msg_anchors_unlocked"])
+        print("|cff2ed884TomoMod Anchors:|r " .. L["msg_anchors_unlocked"])
     end
 end
 
