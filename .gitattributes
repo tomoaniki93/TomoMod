@@ -1,0 +1,41 @@
+# .gitattributes — TomoMod
+#
+# Goal: end the CRLF/LF drift in this repo. All text is stored and checked out
+# with LF, so diffs stay clean and patches apply reliably on every platform.
+# WoW reads LF and CRLF identically, so this has no in-game effect.
+#
+# After adding this file, normalise the working tree once:
+#     git add --renormalize .
+#     git commit -m "Normalise line endings to LF"
+
+# Default: detect text vs binary automatically, force LF for text.
+* text=auto eol=lf
+
+# Source & data files: explicitly text, LF.
+*.lua    text eol=lf
+*.xml    text eol=lf
+*.toc    text eol=lf
+*.md     text eol=lf
+*.txt    text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.json   text eol=lf
+
+# Binary assets: never touch line endings, never diff as text.
+*.ttf    binary
+*.TTF    binary
+*.otf    binary
+*.tga    binary
+*.blp    binary
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ogg    binary
+*.mp3    binary
+*.wav    binary
+*.flac   binary
+*.zip    binary
+
+# Keep bundled third-party libraries out of GitHub's language statistics.
+Libs/** linguist-vendored
