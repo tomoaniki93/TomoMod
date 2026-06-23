@@ -1711,7 +1711,13 @@ TomoMod_RegisterLocale("deDE", {
     ["pf_opt_cd_layout"]                 = "CD-Symbol-Layout",
     ["pf_cd_vertical"]                   = "Vertikal (auf Rahmen)",
     ["pf_cd_horizontal"]                 = "Horizontal (darunter)",
-    ["pf_info_cooldowns"]                = "Verfolgt Unterbrechungs- und Kampf-Rez-Abklingzeiten für jedes Gruppenmitglied.",
+    ["pf_info_cooldowns"]                = "Unterbrechungen werden über UNIT_SPELLCAST_SUCCEEDED erkannt. Der Kampf-Rez liest den gemeinsamen Ladepool, daher graut das Symbol für alle aus, sobald ein Rez in der Instanz genutzt wird.",
+
+    -- Auferstehungs-Anzeige (Gruppe)
+    ["pf_section_resurrect"]             = "Auferstehungs-Anzeige",
+    ["pf_opt_show_resurrect"]            = "Eingehende Auferstehung anzeigen",
+    ["pf_opt_resurrect_size"]            = "Auferstehungs-Symbolgröße",
+    ["pf_info_resurrect"]                = "Zeigt ein Rez-Symbol auf einem Mitglied, während eine Auferstehung auf es gewirkt wird.",
 
     ["pf_section_arena"]                 = "Arena-Gegnerrahmen",
     ["pf_opt_arena_enable"]              = "Arena-Rahmen aktivieren",
@@ -1792,11 +1798,36 @@ TomoMod_RegisterLocale("deDE", {
     ["rf_opt_defensive_size"]            = "Defensive Symbolgröße",
     ["rf_info_defensives"]               = "Zeigt aktive defensive CDs (z.B. Schmerzunterdrückung, Eisenborke, Gottesschild) bei jedem Schlachtzug-Mitglied an.",
 
+    -- Auferstehungs-Anzeige (Schlachtzug)
+    ["rf_section_resurrect"]             = "Auferstehungs-Anzeige",
+    ["rf_opt_show_resurrect"]            = "Eingehende Auferstehung anzeigen",
+    ["rf_opt_resurrect_size"]            = "Auferstehungs-Symbolgröße",
+    ["rf_info_resurrect"]                = "Zeigt ein Rez-Symbol auf einem Mitglied, während eine Auferstehung auf es gewirkt wird (Kampf-Rez oder normal).",
+
+    -- Kampf-Rez-Zähler
+    ["rf_section_battlerez"]             = "Kampf-Rez-Zähler",
+    ["rf_opt_br_enable"]                 = "Kampf-Rez-Zähler anzeigen",
+    ["rf_opt_br_only_instance"]          = "Nur in Dungeons/Schlachtzügen",
+    ["rf_opt_br_size"]                   = "Zählergröße",
+    ["rf_opt_br_font"]                   = "Schriftgröße des Zählers",
+    ["rf_info_battlerez"]                = "Ein verschiebbarer Zähler, der zeigt, wie viele Kampf-Rezs verfügbar sind und wann die nächste Aufladung kommt. Liest den gemeinsamen Pool, funktioniert auf jeder Klasse. Mit /tm layout verschieben.",
+
+    -- Größenabhängiges Layout
+    ["rf_section_size_overrides"]        = "Größenabhängiges Layout (10/25/40)",
+    ["rf_opt_overrides_enable"]          = "Größenabhängige Layouts aktivieren",
+    ["rf_info_size_overrides"]           = "Wenn aktiviert, passt die Rahmengröße sich automatisch an die Gruppengröße an (Abstand wird pro Stufe angepasst).",
+    ["rf_ov_small"]                      = "Klein  (bis 10)",
+    ["rf_ov_medium"]                     = "Mittel  (bis 25)",
+    ["rf_ov_large"]                      = "Groß  (26-40)",
+    ["rf_ov_width"]                      = "Breite",
+    ["rf_ov_height"]                     = "Höhe",
+
     -- ═══════════════════════════════════
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["tab_qol_aura_tracker"]             = "Aura-Tracker",
     ["mover_auratracker"]                = "Aura-Tracker",
+    ["mover_battlerez"]                  = "Kampf-Rez",
 
     ["at_section_general"]               = "Allgemein",
     ["at_opt_enable"]                    = "Aura-Tracker aktivieren",

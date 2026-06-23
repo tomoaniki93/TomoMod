@@ -1,5 +1,37 @@
 ## ####################################
 
+## CHANGELOG 3.1.2 — Battle Rez Counter, Resurrection Indicator & Per-Size Raid Layouts
+
+#### Raid & Party — Battle Rez Counter (New)
+- **New** — A movable on-screen **Battle Rez counter** showing how many combat resurrections are currently available and the time remaining until the next charge.
+- **New** — Reads the **shared combat-res charge pool** (`C_Spell.GetSpellCharges`), so it is correct for the whole group and works on any class — it does not depend on who can cast a brez, and a per-cast spell ID is a protected value in 12.x anyway.
+- **New** — Cooldown swipe + live MM:SS timer; the count turns green when at least one rez is ready and red (desaturated icon) when the pool is empty.
+- **New** — Draggable in **Layout Mode** with a representative preview while unlocked; position saved to profile.
+- **New** — Configurable in **Raid Frames → Features → Battle Rez Counter**: enable, "only inside dungeons/raids", counter size and font size. Outside instances the pool query returns nothing, so the counter naturally stays hidden.
+- **Note** — Taint-safe by design: a plain (non-secure) HUD frame, no protected calls, and no Lua arithmetic on secret values — charge fields are read through a value-type / `issecretvalue` guard.
+
+#### Raid & Party — Resurrection Indicator (New)
+- **New** — A **rez icon** now appears on a party or raid member while a resurrection is being cast on them (combat-res or a normal out-of-combat rez), driven by `UnitHasIncomingResurrection` and `INCOMING_RESURRECT_CHANGED`.
+- **New** — Per-frame, lazily created overlay icon; size is configurable independently for party and raid frames.
+- **New** — Configurable in **Party Frames → Cooldowns** and **Raid Frames → Features**: enable + icon size.
+- **Note** — Non-secure overlay child, updated on events, so it is safe to show/hide during combat.
+
+#### Raid Frames — Per-Size Layouts (10 / 25 / 40)
+- **New** — Optional **per-size layout overrides**: frame width and height adapt automatically to the current group size, across three brackets — Small (up to 10), Medium (up to 25) and Large (26–40).
+- **New** — Spacing and group-spacing presets are applied per bracket too, so a 40-player raid packs together more tightly than a 10-player group.
+- **New** — Configurable in **Raid Frames → Features → Per-Size Layout (10/25/40)**: master enable + width/height sliders per bracket. When disabled, the single base layout is used exactly as before.
+- **Change** — Layout recalculation is **combat-gated**: bracket changes that land mid-combat are deferred and replayed on `PLAYER_REGEN_ENABLED`, so resizing never taints protected frames.
+
+#### Party Frames — Battle Rez Cooldown (Fix)
+- **Fix** — The party-frame battle-rez tracker never visually entered cooldown: capable classes always showed the icon as "ready", so you could not tell how many resurrections were left or when the next one would be up.
+- **Change** — The brez tracker is now **pool-driven** — it reads the shared combat-res charge pool, so the icon correctly greys out and shows the recharge timer for everyone in the instance the moment a brez is used, independent of which member cast it. (Per-cast detection is no longer possible in 12.x because the cast's spell ID is a protected value.)
+- **Note** — The interrupt tracker is unchanged and still uses `UNIT_SPELLCAST_SUCCEEDED`.
+
+#### Localization
+- **Note** — New strings (Battle Rez counter, resurrection indicator, per-size layout) ship with inline English fallbacks; localized keys for the 6 locales (enUS / frFR / deDE / esES / itIT / ptBR) can be filled in next.
+
+## ####################################
+
 ## CHANGELOG 3.1.1
 
 #### ResourceBars — Frost Mage Icicles (New)

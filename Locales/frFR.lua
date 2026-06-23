@@ -1776,7 +1776,13 @@ TomoMod_RegisterLocale("frFR", {
     ["pf_opt_cd_layout"]                 = "Disposition des icônes CD",
     ["pf_cd_vertical"]                   = "Vertical (sur le cadre)",
     ["pf_cd_horizontal"]                 = "Horizontal (en dessous)",
-    ["pf_info_cooldowns"]                = "Suit les temps de recharge d'interruption et de rez de combat pour chaque membre du groupe.",
+    ["pf_info_cooldowns"]                = "Les interruptions sont détectées via UNIT_SPELLCAST_SUCCEEDED. Le rez de combat lit le pool de charges partagé, donc l'icône se grise pour tous dès qu'un rez est utilisé dans l'instance.",
+
+    -- Indicateur de résurrection (groupe)
+    ["pf_section_resurrect"]             = "Indicateur de résurrection",
+    ["pf_opt_show_resurrect"]            = "Afficher l'icône de résurrection entrante",
+    ["pf_opt_resurrect_size"]            = "Taille de l'icône de résurrection",
+    ["pf_info_resurrect"]                = "Affiche une icône de rez sur un membre pendant qu'une résurrection est lancée sur lui.",
 
     ["pf_section_arena"]                 = "Cadres ennemis d'arène",
     ["pf_opt_arena_enable"]              = "Activer les cadres d'arène",
@@ -1869,11 +1875,36 @@ TomoMod_RegisterLocale("frFR", {
     ["rf_opt_defensive_size"]            = "Taille de l'icône défensive",
     ["rf_info_defensives"]               = "Affiche les CDs défensifs actifs (ex: Suppression de la douleur, Écorce de fer, Bouclier divin) sur chaque membre du raid.",
 
+    -- Indicateur de résurrection (raid)
+    ["rf_section_resurrect"]             = "Indicateur de résurrection",
+    ["rf_opt_show_resurrect"]            = "Afficher l'icône de résurrection entrante",
+    ["rf_opt_resurrect_size"]            = "Taille de l'icône de résurrection",
+    ["rf_info_resurrect"]                = "Affiche une icône de rez sur un membre pendant qu'une résurrection est lancée sur lui (rez de combat ou normal).",
+
+    -- Compteur de rez de combat
+    ["rf_section_battlerez"]             = "Compteur de rez de combat",
+    ["rf_opt_br_enable"]                 = "Afficher le compteur de rez de combat",
+    ["rf_opt_br_only_instance"]          = "Uniquement dans les donjons/raids",
+    ["rf_opt_br_size"]                   = "Taille du compteur",
+    ["rf_opt_br_font"]                   = "Taille de police du compteur",
+    ["rf_info_battlerez"]                = "Un compteur déplaçable indiquant combien de rez de combat sont disponibles et le temps avant la prochaine charge. Lit le pool partagé, compatible avec toutes les classes. Déplacez-le avec /tm layout.",
+
+    -- Disposition par taille
+    ["rf_section_size_overrides"]        = "Disposition par taille (10/25/40)",
+    ["rf_opt_overrides_enable"]          = "Activer les dispositions par taille",
+    ["rf_info_size_overrides"]           = "Si activé, la taille des cadres s'adapte automatiquement à la taille du groupe (espacement auto par palier).",
+    ["rf_ov_small"]                      = "Petit  (jusqu'à 10)",
+    ["rf_ov_medium"]                     = "Moyen  (jusqu'à 25)",
+    ["rf_ov_large"]                      = "Grand  (26-40)",
+    ["rf_ov_width"]                      = "Largeur",
+    ["rf_ov_height"]                     = "Hauteur",
+
     -- ═══════════════════════════════════
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["tab_qol_aura_tracker"]             = "Suivi d'auras",
     ["mover_auratracker"]                = "Suivi d'auras",
+    ["mover_battlerez"]                  = "Compteur de rez",
 
     ["at_section_general"]               = "Général",
     ["at_opt_enable"]                    = "Activer le suivi d'auras",

@@ -1850,7 +1850,13 @@ TomoMod_RegisterLocale("enUS", {
     ["pf_opt_cd_layout"]                 = "CD icon layout",
     ["pf_cd_vertical"]                   = "Vertical (on frame)",
     ["pf_cd_horizontal"]                 = "Horizontal (below)",
-    ["pf_info_cooldowns"]                = "Tracks interrupt and battle rez cooldowns for each party member. Detected via UNIT_SPELLCAST_SUCCEEDED (no COMBAT_LOG_EVENT_UNFILTERED).",
+    ["pf_info_cooldowns"]                = "Interrupts are detected via UNIT_SPELLCAST_SUCCEEDED. Battle rez reads the shared combat-res charge pool, so the icon greys out for everyone whenever a brez is used in the instance (no COMBAT_LOG_EVENT_UNFILTERED).",
+
+    -- Resurrection indicator (party)
+    ["pf_section_resurrect"]             = "Resurrection Indicator",
+    ["pf_opt_show_resurrect"]            = "Show incoming-resurrect icon",
+    ["pf_opt_resurrect_size"]            = "Resurrect icon size",
+    ["pf_info_resurrect"]                = "Shows a rez icon on a member while a resurrection is being cast on them.",
 
     -- Arena tab
     ["pf_section_arena"]                 = "Arena Enemy Frames",
@@ -1956,11 +1962,36 @@ TomoMod_RegisterLocale("enUS", {
     ["rf_opt_defensive_size"]            = "Defensive icon size",
     ["rf_info_defensives"]               = "Displays active defensive cooldowns (e.g. Pain Suppression, Ironbark, Divine Shield) on each raid member.",
 
+    -- Resurrection indicator (raid)
+    ["rf_section_resurrect"]             = "Resurrection Indicator",
+    ["rf_opt_show_resurrect"]            = "Show incoming-resurrect icon",
+    ["rf_opt_resurrect_size"]            = "Resurrect icon size",
+    ["rf_info_resurrect"]                = "Shows a rez icon on a member while a resurrection is being cast on them (combat-res or normal).",
+
+    -- Battle Rez counter
+    ["rf_section_battlerez"]             = "Battle Rez Counter",
+    ["rf_opt_br_enable"]                 = "Show battle-rez counter",
+    ["rf_opt_br_only_instance"]          = "Only inside dungeons/raids",
+    ["rf_opt_br_size"]                   = "Counter size",
+    ["rf_opt_br_font"]                   = "Counter font size",
+    ["rf_info_battlerez"]                = "A movable counter showing how many battle resurrections are available and the time to the next charge. Reads the shared combat-res pool, so it works on any class. Use /tm layout to move it.",
+
+    -- Per-size layout overrides
+    ["rf_section_size_overrides"]        = "Per-Size Layout (10/25/40)",
+    ["rf_opt_overrides_enable"]          = "Enable per-size overrides",
+    ["rf_info_size_overrides"]           = "When enabled, frame size adapts to the current group size (spacing auto-adjusts per bracket).",
+    ["rf_ov_small"]                      = "Small  (up to 10)",
+    ["rf_ov_medium"]                     = "Medium  (up to 25)",
+    ["rf_ov_large"]                      = "Large  (26-40)",
+    ["rf_ov_width"]                      = "Width",
+    ["rf_ov_height"]                     = "Height",
+
     -- ═══════════════════════════════════
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["tab_qol_aura_tracker"]             = "Aura Tracker",
     ["mover_auratracker"]                = "Aura Tracker",
+    ["mover_battlerez"]                  = "Battle Rez",
 
     ["at_section_general"]               = "General",
     ["at_opt_enable"]                    = "Enable Aura Tracker",
