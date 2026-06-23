@@ -1,0 +1,30 @@
+# .pkgmeta — BigWigsMods/packager configuration
+#
+# Only takes effect when releasing through the packager (e.g. a GitHub release
+# workflow). Bundled libraries are committed in-tree, so nothing is pulled here.
+
+package-as: TomoMod
+
+# We ship libraries embedded, so no separate -nolib zip is produced.
+enable-nolib-creation: no
+
+# Files and folders that must NOT ship inside the released addon zip
+# (development tooling, repo metadata, CI).
+ignore:
+  - .git
+  - .github
+  - .gitattributes
+  - .gitignore
+  - .luacheckrc
+  - .pkgmeta
+  - README.md
+  - "**/*.bak"
+  - "**/.DS_Store"
+
+# NOTE — Externalising the embedded libraries (oUF, LibDeflate, LibOpenRaid,
+# LibSharedMedia-3.0, LibCustomGlow-1.0, LibSerialize, LibDispel, LibStub) is a
+# possible follow-up so the packager keeps them up to date automatically. It is
+# deliberately left OFF here: this addon ships a *customised* oUF (the embed is
+# renamed via "## X-oUF: TomoMod_oUF"), so a vanilla external pull would not
+# match. Each library's upstream URL and any local patches must be verified
+# before enabling an `externals:` block.
