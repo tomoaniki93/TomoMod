@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Panels/UnitFrames.lua — UnitFrames Config (Tabbed + Sub-Tabs)
 -- =====================================
 
@@ -56,7 +56,7 @@ local function BuildDimensionsTab(parent, unitKey, displayName)
     -- Enable
     local _, ny = W.CreateCheckbox(c, L["opt_enable"], db.enabled, y, function(v)
         db.enabled = v
-        print("|cff0cd29fTomoMod|r " .. displayName .. ": " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
+        print("|cff2ed884TomoMod|r " .. displayName .. ": " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
     end)
     y = ny
 
@@ -428,7 +428,7 @@ local function BuildPositionTab(parent, unitKey, displayName)
         if TomoMod_Defaults.unitFrames[unitKey] and TomoMod_Defaults.unitFrames[unitKey].position then
             db.position = CopyTable(TomoMod_Defaults.unitFrames[unitKey].position)
             RefreshUnit(unitKey)
-            print("|cff0cd29fTomoMod|r " .. displayName .. " " .. L["msg_uf_position_reset"])
+            print("|cff2ed884TomoMod|r " .. displayName .. " " .. L["msg_uf_position_reset"])
         end
     end)
     y = ny
@@ -468,7 +468,7 @@ local function BuildSimpleUnitContent(parent, unitKey, displayName)
     -- Enable
     local _, ny = W.CreateCheckbox(c, L["opt_enable"], db.enabled, y, function(v)
         db.enabled = v
-        print("|cff0cd29fTomoMod|r " .. displayName .. ": " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
+        print("|cff2ed884TomoMod|r " .. displayName .. ": " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
     end)
     y = ny
 
@@ -539,7 +539,7 @@ local function BuildSimpleUnitContent(parent, unitKey, displayName)
         if TomoMod_Defaults.unitFrames[unitKey] and TomoMod_Defaults.unitFrames[unitKey].position then
             db.position = CopyTable(TomoMod_Defaults.unitFrames[unitKey].position)
             RefreshUnit(unitKey)
-            print("|cff0cd29fTomoMod|r " .. displayName .. " " .. L["msg_uf_position_reset"])
+            print("|cff2ed884TomoMod|r " .. displayName .. " " .. L["msg_uf_position_reset"])
         end
     end)
     y = ny
@@ -565,7 +565,7 @@ local function BuildGeneralContent(parent)
         L["opt_uf_enable"],    TomoModDB.unitFrames.enabled,             y,
         function(v)
             TomoModDB.unitFrames.enabled = v
-            print("|cff0cd29fTomoMod|r " .. string.format(L["msg_uf_toggle"], v and L["enabled"] or L["disabled"]))
+            print("|cff2ed884TomoMod|r " .. string.format(L["msg_uf_toggle"], v and L["enabled"] or L["disabled"]))
         end,
         L["opt_hide_blizzard"], TomoModDB.unitFrames.hideBlizzardFrames,
         function(v) TomoModDB.unitFrames.hideBlizzardFrames = v end)
@@ -630,7 +630,7 @@ local function BuildBossContent(parent)
     -- Enable
     local _, ny = W.CreateCheckbox(c, L["opt_boss_enable"], db.enabled, y, function(v)
         db.enabled = v
-        print("|cff0cd29fTomoMod|r Boss: " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
+        print("|cff2ed884TomoMod|r Boss: " .. (v and L["msg_uf_enabled"] or L["msg_uf_disabled"]))
     end)
     y = ny
 
@@ -681,7 +681,7 @@ local function BuildBossContent(parent)
             if TomoMod_BossFrames and TomoMod_BossFrames.RefreshAll then
                 TomoMod_BossFrames.RefreshAll()
             end
-            print("|cff0cd29fTomoMod|r Boss " .. L["msg_uf_position_reset"])
+            print("|cff2ed884TomoMod|r Boss " .. L["msg_uf_position_reset"])
         end
     end)
     y = ny

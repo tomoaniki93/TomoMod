@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- ConfigUI.lua — Dark Config Panel v2.7.1
 -- Icônes .tga originales redimensionnées, sidebar sobre
 -- Fixed size 1020 × 720
@@ -270,7 +270,7 @@ local function CreateConfigFrame()
     local titleText = titleBar:CreateFontString(nil, "OVERLAY")
     titleText:SetFont(FONT_BOLD, 16, "")
     titleText:SetPoint("LEFT", logo, "RIGHT", 8, 1)
-    titleText:SetText("|cff0cd29fTomo|r|cffe4e4e4Mod|r")
+    titleText:SetText("|cff2ed884Tomo|r|cffe4e4e4Mod|r")
 
     local versionText = titleBar:CreateFontString(nil, "OVERLAY")
     versionText:SetFont(FONT, 10, "")

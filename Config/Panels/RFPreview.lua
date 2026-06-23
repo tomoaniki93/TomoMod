@@ -318,9 +318,9 @@ local LABEL_GAP    = 3    -- gap between group label bottom and member top
 -- ============================================================
 function RFP.Create(parent)
     local T  = TomoMod_Widgets and TomoMod_Widgets.Theme
-    local aR = T and T.accent[1] or 0.047
-    local aG = T and T.accent[2] or 0.824
-    local aB = T and T.accent[3] or 0.624
+    local aR = T and T.accent[1] or TomoMod_Utils.BRAND[1]
+    local aG = T and T.accent[2] or TomoMod_Utils.BRAND[2]
+    local aB = T and T.accent[3] or TomoMod_Utils.BRAND[3]
 
     local strip = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     strip:SetPoint("TOPLEFT",  parent, "TOPLEFT",  0, 0)

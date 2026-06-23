@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Widgets.lua — Config UI Widgets v2.7.0
 -- Redesigned visual style to match new GUI:
 --   • SectionHeader  : bg strip + left accent bar + bold title
@@ -22,15 +22,15 @@ W.Theme = {
     bgLight      = { 0.11,  0.11,  0.14,  1    },
     bgMid        = { 0.09,  0.09,  0.115, 1    },
     bgDark       = { 0.045, 0.045, 0.060, 1    },
-    accent       = { 0.047, 0.824, 0.624, 1    },  -- #0cd29f
-    accentDark   = { 0.030, 0.560, 0.420, 1    },
-    accentHover  = { 0.080, 0.920, 0.710, 1    },
-    accentBg     = { 0.047, 0.824, 0.624, 0.12 },  -- very transparent teal bg
+    accent       = { TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3], 1    },  -- #2ed884
+    accentDark   = { TomoMod_Utils.BRAND_DARK[1], TomoMod_Utils.BRAND_DARK[2], TomoMod_Utils.BRAND_DARK[3], 1    },
+    accentHover  = { TomoMod_Utils.BRAND_HOVER[1], TomoMod_Utils.BRAND_HOVER[2], TomoMod_Utils.BRAND_HOVER[3], 1 },
+    accentBg     = { TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3], 0.12 },  -- very transparent teal bg
     border       = { 0.18,  0.18,  0.22,  1    },
     borderLight  = { 0.28,  0.28,  0.34,  1    },
     text         = { 0.88,  0.90,  0.89,  1    },
     textDim      = { 0.48,  0.48,  0.54,  1    },
-    textHeader   = { 0.047, 0.824, 0.624, 1    },
+    textHeader   = { TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3], 1    },
     red          = { 0.88,  0.22,  0.22,  1    },
     yellow       = { 0.96,  0.80,  0.10,  1    },
     white        = { 1,     1,     1,     1    },

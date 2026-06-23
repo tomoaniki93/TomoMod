@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Init.lua — Addon Initialization & Module System
 -- =====================================
 
@@ -29,7 +29,7 @@ local L = TomoMod_L
 -- STATIC POPUPS
 -- =====================================
 StaticPopupDialogs["TOMOMOD_SPEC_RELOAD"] = {
-    text = "|cff0cd29fTomoMod|r\n" .. (L and L["msg_spec_changed_reload"] or "Spec changed. Reload UI to apply profile?"),
+    text = "|cff2ed884TomoMod|r\n" .. (L and L["msg_spec_changed_reload"] or "Spec changed. Reload UI to apply profile?"),
     button1 = OKAY or "OK",
     button2 = CANCEL or "Cancel",
     OnAccept = function() ReloadUI() end,
@@ -40,7 +40,7 @@ StaticPopupDialogs["TOMOMOD_SPEC_RELOAD"] = {
 }
 
 StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] = {
-    text = "|cff0cd29fTomoMod|r\n" .. (L and L["msg_module_reload"] or "This change requires a UI reload to take effect.\nReload now?"),
+    text = "|cff2ed884TomoMod|r\n" .. (L and L["msg_module_reload"] or "This change requires a UI reload to take effect.\nReload now?"),
     button1 = OKAY or "OK",
     button2 = CANCEL or "Cancel",
     OnAccept = function() ReloadUI() end,
@@ -139,7 +139,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
     elseif msg == "cdm" or msg == "ci" then
         if TomoMod_CooldownManager then
             local enabled = TomoModDB and TomoModDB.cooldownManager and TomoModDB.cooldownManager.enabled
-            print("|cff0cd29fTomoMod CDM:|r " .. (enabled and L["msg_cdm_status"] or L["msg_cdm_disabled"]))
+            print("|cff2ed884TomoMod CDM:|r " .. (enabled and L["msg_cdm_status"] or L["msg_cdm_disabled"]))
         end
     elseif msg == "uf" or msg == "unitframes" then
         -- Rétrocompat: redirige vers le Layout Mode unifié
@@ -171,13 +171,13 @@ SlashCmdList["TOMOMOD"] = function(msg)
     elseif msg == "debugbuffs" then
         if UF_Elements then
             UF_Elements._debugEnemyBuffs = not UF_Elements._debugEnemyBuffs
-            print("|cff0cd29fTomoMod|r Enemy buff debug: " .. (UF_Elements._debugEnemyBuffs and "|cff00ff00ON|r" or "|cffff0000OFF|r"))
+            print("|cff2ed884TomoMod|r Enemy buff debug: " .. (UF_Elements._debugEnemyBuffs and "|cff00ff00ON|r" or "|cffff0000OFF|r"))
             if UF_Elements._debugEnemyBuffs then
-                print("|cff0cd29fTomoMod|r Target an enemy with a buff, output will appear in chat.")
+                print("|cff2ed884TomoMod|r Target an enemy with a buff, output will appear in chat.")
             end
         end
     elseif msg == "testbuff" then
-        print("|cff0cd29f=== TomoMod Enemy Buff Diagnostic ===|r")
+        print("|cff2ed884=== TomoMod Enemy Buff Diagnostic ===|r")
 
         -- Step 0: FORCE reset position to top-right
         local s = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.target
@@ -240,7 +240,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         UF_Elements._debugEnemyBuffs = true
         print("  [6] Debug ON — target a hostile mob, check chat. /tm debugbuffs to disable")
 
-        print("|cff0cd29f=== End Diagnostic ===|r")
+        print("|cff2ed884=== End Diagnostic ===|r")
     elseif msg == "np" or msg == "nameplates" then
         if TomoModDB and TomoModDB.nameplates then
             TomoModDB.nameplates.enabled = not TomoModDB.nameplates.enabled
@@ -251,32 +251,32 @@ SlashCmdList["TOMOMOD"] = function(msg)
                     TomoMod_Nameplates.Disable()
                 end
             end
-            print("|cff0cd29fTomoMod Nameplates:|r " .. (TomoModDB.nameplates.enabled and L["msg_np_enabled"] or L["msg_np_disabled"]))
+            print("|cff2ed884TomoMod Nameplates:|r " .. (TomoModDB.nameplates.enabled and L["msg_np_enabled"] or L["msg_np_disabled"]))
         end
     elseif msg == "help" or msg == "?" then
-        print("|cff0cd29fTomoMod|r " .. L["msg_help_title"])
-        print("  |cff0cd29f/tm install|r — Relancer l'assistant de configuration")
-        print("  |cff0cd29f/tm layout|r — " .. L["msg_help_layout"])
-        print("  |cff0cd29f/tm|r — " .. L["msg_help_open"])
-        print("  |cff0cd29f/tm reset|r — " .. L["msg_help_reset"])
-        print("  |cff0cd29f/tm uf|r — " .. L["msg_help_uf"])
-        print("  |cff0cd29f/tm uf reset|r — " .. L["msg_help_uf_reset"])
-        print("  |cff0cd29f/tm rb|r — " .. L["msg_help_rb"])
-        print("  |cff0cd29f/tm rb sync|r — " .. L["msg_help_rb_sync"])
-        print("  |cff0cd29f/tm np|r — " .. L["msg_help_np"])
-        print("  |cff0cd29f/tm minimap|r — " .. L["msg_help_minimap"])
-        print("  |cff0cd29f/tm panel|r — " .. L["msg_help_panel"])
-        print("  |cff0cd29f/tm cursor|r — " .. L["msg_help_cursor"])
-        print("  |cff0cd29f/tm clearcinema|r — " .. L["msg_help_clearcinema"])
-        print("  |cff0cd29f/tm sr|r — " .. L["msg_help_sr"])
-        print("  |cff0cd29f/tm loot|r — Ouvrir le navigateur de loots (donjons & raids)")
-        print("  |cff0cd29f/tm way|r — " .. L["msg_help_way"])
-        print("  |cff0cd29f/tm way x y [name]|r — " .. L["msg_help_way_coords"])
-        print("  |cff0cd29f/tm way clear|r — " .. L["msg_help_way_clear"])
-        print("  |cff0cd29f/tm compass|r — " .. (L["msg_help_compass"] or "Toggle the heading compass bar"))
-        print("  |cff0cd29f/tm key|r — " .. L["msg_help_key"])
-        print("  |cff0cd29f/tm cr|r — " .. L["msg_help_cr"])
-        print("  |cff0cd29f/tm help|r — " .. L["msg_help_help"])
+        print("|cff2ed884TomoMod|r " .. L["msg_help_title"])
+        print("  |cff2ed884/tm install|r — Relancer l'assistant de configuration")
+        print("  |cff2ed884/tm layout|r — " .. L["msg_help_layout"])
+        print("  |cff2ed884/tm|r — " .. L["msg_help_open"])
+        print("  |cff2ed884/tm reset|r — " .. L["msg_help_reset"])
+        print("  |cff2ed884/tm uf|r — " .. L["msg_help_uf"])
+        print("  |cff2ed884/tm uf reset|r — " .. L["msg_help_uf_reset"])
+        print("  |cff2ed884/tm rb|r — " .. L["msg_help_rb"])
+        print("  |cff2ed884/tm rb sync|r — " .. L["msg_help_rb_sync"])
+        print("  |cff2ed884/tm np|r — " .. L["msg_help_np"])
+        print("  |cff2ed884/tm minimap|r — " .. L["msg_help_minimap"])
+        print("  |cff2ed884/tm panel|r — " .. L["msg_help_panel"])
+        print("  |cff2ed884/tm cursor|r — " .. L["msg_help_cursor"])
+        print("  |cff2ed884/tm clearcinema|r — " .. L["msg_help_clearcinema"])
+        print("  |cff2ed884/tm sr|r — " .. L["msg_help_sr"])
+        print("  |cff2ed884/tm loot|r — Ouvrir le navigateur de loots (donjons & raids)")
+        print("  |cff2ed884/tm way|r — " .. L["msg_help_way"])
+        print("  |cff2ed884/tm way x y [name]|r — " .. L["msg_help_way_coords"])
+        print("  |cff2ed884/tm way clear|r — " .. L["msg_help_way_clear"])
+        print("  |cff2ed884/tm compass|r — " .. (L["msg_help_compass"] or "Toggle the heading compass bar"))
+        print("  |cff2ed884/tm key|r — " .. L["msg_help_key"])
+        print("  |cff2ed884/tm cr|r — " .. L["msg_help_cr"])
+        print("  |cff2ed884/tm help|r — " .. L["msg_help_help"])
     else
         -- Argument purement numérique : soit une macro tierce (ex : RareScanner
         -- « marqueur sur la cible » → « /tm <1-8> »), soit une tentative d'utiliser
@@ -350,7 +350,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
             if not mod or not mod.Initialize then return end
             local ok, err = xpcall(mod.Initialize, debugstack)
             if not ok then
-                print("|cff0cd29fTomoMod|r |cffff4040Init failed:|r " .. name .. " — " .. tostring(err))
+                print("|cff2ed884TomoMod|r |cffff4040Init failed:|r " .. name .. " — " .. tostring(err))
                 local handler = geterrorhandler and geterrorhandler()
                 if handler then handler("TomoMod " .. name .. " Initialize: " .. tostring(err)) end
             end
@@ -411,8 +411,8 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
 
         -- Welcome
         local r, g, b = TomoMod_Utils.GetClassColor()
-        print("|cff0cd29fTomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
-        print("|cff0cd29fTomoMod|r |cffff3333" .. L["msg_report_issue"] .. "|r")
+        print("|cff2ed884TomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
+        print("|cff2ed884TomoMod|r |cffff3333" .. L["msg_report_issue"] .. "|r")
 
         -- What's New popup (after update)
         if TomoMod_WhatsNew then

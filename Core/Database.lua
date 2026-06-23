@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Database.lua — Defaults & DB Management
 -- =====================================
 
@@ -266,7 +266,7 @@ TomoMod_Defaults = {
         alreadyKnown = {
             enabled = true,
             mode    = "MONOCHROME",  -- "MONOCHROME" ou "COLOR"
-            color   = { r = 0.047, g = 0.824, b = 0.624 },
+            color   = { r = 0.180, g = 0.847, b = 0.518 },
         },
         extendPages = {
             enabled       = false,
@@ -450,7 +450,7 @@ TomoMod_Defaults = {
         hidePlayerServer = false,
         hidePlayerTitle = false,
         useGuildNameColor = true,
-        guildNameColor = { r = 0.047, g = 0.824, b = 0.624 },
+        guildNameColor = { r = 0.180, g = 0.847, b = 0.518 },
     },
     mailSkin = {
         enabled = true,
@@ -488,7 +488,7 @@ TomoMod_Defaults = {
         zoneOnly     = true,  -- hide waypoint when not in the same zone
         beaconSize   = 32,    -- icon diameter (px)
         shape        = "ring", -- "ring" or "arrow"
-        color        = { r = 0.047, g = 0.824, b = 0.624 }, -- accent teal
+        color        = { r = 0.180, g = 0.847, b = 0.518 }, -- accent teal
     },
 
     professionHelper = {
@@ -1014,7 +1014,7 @@ TomoMod_Defaults = {
             neutral       = { r = 0.81, g = 0.72, b = 0.19 },
             friendly      = { r = 0.11, g = 0.82, b = 0.11 },
             tapped        = { r = 0.50, g = 0.50, b = 0.50 },
-            focus         = { r = 0.05, g = 0.82, b = 0.62 },
+            focus         = { r = 0.180, g = 0.847, b = 0.518 },
             -- NPC type colors (Ellesmere-style)
             caster        = { r = 0.23, g = 0.51, b = 0.97 },  -- BLUE (caster mobs)
             miniboss      = { r = 0.52, g = 0.24, b = 0.98 },  -- PURPLE (elite + higher level)
@@ -1034,7 +1034,7 @@ TomoMod_Defaults = {
         tankColors = {
             noThreat      = { r = 1.00, g = 0.22, b = 0.17 },
             lowThreat     = { r = 0.81, g = 0.72, b = 0.19 },
-            hasThreat     = { r = 0.05, g = 0.82, b = 0.62 },
+            hasThreat     = { r = 0.180, g = 0.847, b = 0.518 },
             dpsHasAggro   = { r = 1.00, g = 0.50, b = 0.00 },  -- ORANGE (DPS has aggro)
             dpsNearAggro  = { r = 0.81, g = 0.72, b = 0.19 },  -- YELLOW (DPS near aggro)
         },
@@ -1308,12 +1308,12 @@ end
 
 function TomoMod_ResetDatabase()
     TomoModDB = CopyTable(TomoMod_Defaults)
-    print("|cff0cd29fTomoMod|r " .. TomoMod_L["msg_db_reset"])
+    print("|cff2ed884TomoMod|r " .. TomoMod_L["msg_db_reset"])
 end
 
 function TomoMod_ResetModule(moduleName)
     if TomoMod_Defaults[moduleName] then
         TomoModDB[moduleName] = CopyTable(TomoMod_Defaults[moduleName])
-        print("|cff0cd29fTomoMod|r " .. string.format(TomoMod_L["msg_module_reset"], moduleName))
+        print("|cff2ed884TomoMod|r " .. string.format(TomoMod_L["msg_module_reset"], moduleName))
     end
 end

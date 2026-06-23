@@ -403,7 +403,7 @@ local function BuildCVarOptimizerTab(parent)
     local c = scroll.child
 
     -- Palette locale (reprend T.accent du thème)
-    local TEAL   = { 0.047, 0.824, 0.624 }
+    local TEAL   = { TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3] }
     local ORANGE = { 1.0,   0.65,  0.10  }
     local RED    = { 0.9,   0.25,  0.25  }
     local DIM    = { 0.55,  0.55,  0.60  }
@@ -509,13 +509,13 @@ local function BuildCVarOptimizerTab(parent)
         appBtn:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8",
                               edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
         appBtn:SetBackdropColor(0.035, 0.60, 0.45, 1)
-        appBtn:SetBackdropBorderColor(0.047, 0.824, 0.624, 1)
+        appBtn:SetBackdropBorderColor(TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3], 1)
         local appLabel = appBtn:CreateFontString(nil, "OVERLAY")
         appLabel:SetFont(FONT, 10, "")
         appLabel:SetPoint("CENTER")
         appLabel:SetText(L["btn_cvar_apply"])
         appLabel:SetTextColor(1, 1, 1, 1)
-        appBtn:SetScript("OnEnter", function() appBtn:SetBackdropColor(0.047, 0.824, 0.624, 1); appLabel:SetTextColor(0.05, 0.05, 0.08, 1) end)
+        appBtn:SetScript("OnEnter", function() appBtn:SetBackdropColor(TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3], 1); appLabel:SetTextColor(0.05, 0.05, 0.08, 1) end)
         appBtn:SetScript("OnLeave", function() appBtn:SetBackdropColor(0.035, 0.60, 0.45, 1); appLabel:SetTextColor(1, 1, 1, 1) end)
 
         -- Bouton Revert
@@ -541,7 +541,7 @@ local function BuildCVarOptimizerTab(parent)
             GameTooltip:SetText(entry.cvar, 1, 0.8, 0.2, 1, true)
             local raw = OPT.GetRaw(entry.cvar)
             GameTooltip:AddLine("Actuel : " .. tostring(raw or "?"), 0.8, 0.8, 0.8)
-            GameTooltip:AddLine("Optimal : " .. entry.optimal, 0.047, 0.824, 0.624)
+            GameTooltip:AddLine("Optimal : " .. entry.optimal, TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3])
             GameTooltip:Show()
         end)
         row:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -963,7 +963,7 @@ local function BuildWaypointTab(parent)
     -- Color picker
     if not TomoModDB.waypoint then TomoModDB.waypoint = {} end
     if not TomoModDB.waypoint.color then
-        TomoModDB.waypoint.color = { r = 0.047, g = 0.824, b = 0.624 }
+        TomoModDB.waypoint.color = { r = 0.180, g = 0.847, b = 0.518 }
     end
     local _, ny = W.CreateColorPicker(c, L["opt_way_color"], TomoModDB.waypoint.color, y, function(r, g, b)
         if not TomoModDB.waypoint then TomoModDB.waypoint = {} end
@@ -1340,7 +1340,7 @@ local function BuildMerchantToolsTab(parent)
     y = ny
 
     local col = (TomoModDB.merchantTools and TomoModDB.merchantTools.alreadyKnown.color)
-             or { r = 0.047, g = 0.824, b = 0.624 }
+             or { r = 0.180, g = 0.847, b = 0.518 }
     local _, ny = W.CreateColorPicker(c, L["opt_ak_color"], col, y, function(r, g, b)
         if MT then MT.SetColor(r, g, b) end
     end)

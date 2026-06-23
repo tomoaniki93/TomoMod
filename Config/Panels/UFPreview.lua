@@ -55,7 +55,7 @@ local function GetPreviewColor(unitKey, useClassColor)
     end
     local c = classToken and CLASS_COLOR[classToken]
     if c then return c[1], c[2], c[3] end
-    return 0.047, 0.824, 0.624  -- teal fallback
+    return TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3]  -- teal fallback
 end
 
 -- ============================================================
@@ -281,9 +281,9 @@ local SIDE_PAD     = 16   -- left/right padding
 
 function UFP.Create(parent)
     local T  = TomoMod_Widgets and TomoMod_Widgets.Theme
-    local aR = T and T.accent[1] or 0.047
-    local aG = T and T.accent[2] or 0.824
-    local aB = T and T.accent[3] or 0.624
+    local aR = T and T.accent[1] or TomoMod_Utils.BRAND[1]
+    local aG = T and T.accent[2] or TomoMod_Utils.BRAND[2]
+    local aB = T and T.accent[3] or TomoMod_Utils.BRAND[3]
 
     local strip = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     strip:SetPoint("TOPLEFT",  parent, "TOPLEFT",  0, 0)

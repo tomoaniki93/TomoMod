@@ -1,4 +1,4 @@
--- Panels/Nameplates.lua v2.7.0 — Cards + 2-col layout
+﻿-- Panels/Nameplates.lua v2.7.0 — Cards + 2-col layout
 local W = TomoMod_Widgets
 local L = TomoMod_L
 
@@ -188,7 +188,7 @@ local function BuildAdvancedTab(parent)
     local card6, cy = W.CreateCard(c, "", y)
     local _, cy = W.CreateButton(card6.inner, L["btn_reset_nameplates"] or "Réinitialiser les nameplates", 280, cy, function()
         if TomoMod_ResetModule then TomoMod_ResetModule("nameplates") end
-        print("|cff0cd29fTomoMod|r " .. (L["msg_np_reset"] or "Nameplates réinitialisées."))
+        print("|cff2ed884TomoMod|r " .. (L["msg_np_reset"] or "Nameplates réinitialisées."))
     end)
     y = W.FinalizeCard(card6, cy)
 

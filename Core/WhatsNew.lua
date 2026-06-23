@@ -1,4 +1,4 @@
--- ============================================================
+﻿-- ============================================================
 -- WhatsNew.lua — "What's New" popup after addon updates
 -- Compares TomoModDB.lastSeenVersion with current version.
 -- Shown once per version on PLAYER_LOGIN via C_Timer.After.
@@ -13,7 +13,7 @@ local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.t
 local LOGO_TEX  = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Logo.tga"
 
 -- Palette (matches Installer)
-local A  = { 0.047, 0.824, 0.624 }
+local A  = { TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3] }
 local BG = { 0.07,  0.07,  0.09,  0.98 }
 local BD = { 0.18,  0.18,  0.22,  1    }
 local TX = { 0.88,  0.90,  0.89,  1    }
@@ -32,10 +32,9 @@ local CHANGELOG = {
     {
         version = "3.1.2",
         highlights = {
-            L["wn_310_brez_counter"] or "New movable Battle Rez counter: shows how many combat resurrections are left and the time until the next charge (reads the shared pool, so it works on any class).",
-            L["wn_310_resurrect"]    or "New resurrection indicator on party and raid frames: a rez icon appears on a member while a resurrection is being cast on them.",
-            L["wn_310_raid_sizes"]   or "Raid frames can now use per-size layouts (10 / 25 / 40): frame width and height adapt automatically to the current group size.",
-            L["wn_310_brez_fix"]     or "Fixed the party-frame battle rez cooldown: the icon now greys out and shows the recharge timer correctly whenever a brez is consumed.",
+            L["wn_312_brand"]         or "Brand color updated from #0cd29f to #2ed884 (mint green) across the entire UI — title bar, panels, chat messages, popups and default color values.",
+            L["wn_312_brand_api"]     or "New TomoMod_Utils.BRAND / BRAND_DARK / BRAND_HOVER constants centralise the accent color: Config panels and the Widget theme now read from a single source of truth.",
+            L["wn_312_companion_fix"] or "CompanionStatus: fixed a global variable leak (UpdateIcon was declared without 'local').",
         },
     },
     {
@@ -569,7 +568,7 @@ local function PopulateContent(entry)
         bullet:SetJustifyH("LEFT")
         bullet:SetWordWrap(true)
         bullet:SetSpacing(3)
-        bullet:SetText("|cff0cd29f•|r  " .. text)
+        bullet:SetText("|cff2ed884•|r  " .. text)
         bullet:SetTextColor(TX[1], TX[2], TX[3])
         local textH = bullet:GetStringHeight() or 16
         y = y - textH - 10

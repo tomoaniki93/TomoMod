@@ -14,6 +14,17 @@ TomoMod_Utils = TomoMod_Utils or {}
 local U = TomoMod_Utils
 
 -- =====================================
+-- BRAND COLOR  (single source of truth)
+-- =====================================
+-- TomoMod brand accent. To recolor the whole UI, change these three values.
+-- BRAND_HEX feeds the |cff color codes; BRAND / BRAND_DARK feed all float
+-- (r, g, b) accents across the suite.
+U.BRAND_HEX   = "2ed884"                    -- #2ED884
+U.BRAND       = { 0.180, 0.847, 0.518 }     -- #2ED884  (mint accent)
+U.BRAND_HOVER = { 0.322, 0.941, 0.651 }     -- lighter shade for hover states
+U.BRAND_DARK  = { 0.110, 0.541, 0.333 }     -- darker shade for pressed states
+
+-- =====================================
 -- TABLE UTILITIES
 -- =====================================
 
@@ -167,9 +178,9 @@ end
 -- =====================================
 
 -- [PERF] Constant color tables — shared by all draggable frames
-local DRAG_ACCENT = { 0.047, 0.824, 0.624 }
+local DRAG_ACCENT = { U.BRAND[1], U.BRAND[2], U.BRAND[3] }
 local DRAG_BG_COL = { 0.02, 0.07, 0.05, 0.80 }
-local DRAG_BD_COL = { 0.047, 0.824, 0.624, 0.60 }
+local DRAG_BD_COL = { U.BRAND[1], U.BRAND[2], U.BRAND[3], 0.60 }
 
 function U.SetupDraggable(frame, savePositionCallback, labelText)
     if not frame then return end

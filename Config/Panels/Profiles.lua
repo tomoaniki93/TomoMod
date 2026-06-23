@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Panels/Profiles.lua — Gestion de profils (3 onglets)
 -- Tab 1: Profils nommés (créer, renommer, dupliquer, assigner aux specs)
 -- Tab 2: Import / Export — popup modal plein écran (pattern EllesmereUI)
@@ -311,7 +311,7 @@ local function ShowImportPopup(onImport)
             local meta = P.PreviewImport(currentTxt)
             if meta then
                 preview:SetText(
-                    "|cff0cd29f✓|r " ..
+                    "|cff2ed884✓|r " ..
                     (L["import_preview"] and string.format(L["import_preview"],
                         meta.class or "?", tostring(meta.moduleCount or 0), meta.date or "?")
                     or ("Classe : " .. (meta.class or "?") .. " · " .. tostring(meta.moduleCount or 0) .. " modules · " .. (meta.date or "?")))
@@ -415,7 +415,7 @@ local function BuildProfileTab(parent)
     activeDisp:SetFont(FONT, 11, "")
     activeDisp:SetPoint("TOPLEFT", 16, y)
     activeDisp:SetTextColor(1, 1, 1)
-    activeDisp:SetText((L["profile_active_label"] or "Profil actif") .. " : |cff0cd29f" .. activeName .. "|r")
+    activeDisp:SetText((L["profile_active_label"] or "Profil actif") .. " : |cff2ed884" .. activeName .. "|r")
     y = y - 22
 
     -- ── Liste des profils ────────────────────────────────────────────────────
@@ -494,7 +494,7 @@ local function BuildProfileTab(parent)
                 local loadBtn = MkSmallBtn(row, L["btn_load_profile"] or "Charger", 70, function()
                     local ok = P.LoadNamedProfile(name)
                     if ok then
-                        print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_loaded"] or "Profil '%s' chargé", name))
+                        print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_loaded"] or "Profil '%s' chargé", name))
                         StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
                     end
                 end)
@@ -519,7 +519,7 @@ local function BuildProfileTab(parent)
         end
         local ok, err = P.CreateNamedProfile(name)
         if ok then
-            print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_created"] or "Profil '%s' créé", name))
+            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_created"] or "Profil '%s' créé", name))
             nameBox.editBox:SetText("")
             nameBox.editBox:ClearFocus()
         else
@@ -533,7 +533,7 @@ local function BuildProfileTab(parent)
         if name and not name:match("^%s*$") then
             local ok = P.CreateNamedProfile(name)
             if ok then
-                print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_created"] or "Profil '%s' créé", name))
+                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_created"] or "Profil '%s' créé", name))
                 self:SetText("")
             end
         end
@@ -544,7 +544,7 @@ local function BuildProfileTab(parent)
     local _, ny = W.CreateSeparator(c, y); y = ny
     local _, ny = W.CreateButton(c, L["btn_save_profile"] or "Sauvegarder le Profil Actif", 240, y, function()
         P.AutoSaveActiveProfile()
-        print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_saved"] or "Sauvegardé dans '%s'", activeName))
+        print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_saved"] or "Sauvegardé dans '%s'", activeName))
     end)
     y = ny
     local _, ny = W.CreateInfoText(c, L["info_save_profile"] or "Sauvegarde automatique à la fermeture du panneau.", y); y = ny
@@ -742,7 +742,7 @@ local function BuildImportExportTab(parent)
                 profName = profName:match("^%s*(.-)%s*$")
                 P.ImportAsProfileAsync(str, profName, function(ok, err)
                     if ok then
-                        print("|cff0cd29fTomoMod|r " .. string.format(L["msg_import_as_profile"] or "Importé sous '%s'", profName))
+                        print("|cff2ed884TomoMod|r " .. string.format(L["msg_import_as_profile"] or "Importé sous '%s'", profName))
                         StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
                     else
                         print("|cffff0000TomoMod|r " .. (err or "Import échoué"))
@@ -797,7 +797,7 @@ local function BuildResetsTab(parent)
     for _, mod in ipairs(modules) do
         local _, ny = W.CreateButton(c, (L["btn_reset_prefix"] or "Réinitialiser ") .. mod.label, 260, y, function()
             TomoMod_ResetModule(mod.key)
-            print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_reset"] or "%s réinitialisé", mod.label))
+            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_reset"] or "%s réinitialisé", mod.label))
         end)
         y = ny
     end
@@ -834,14 +834,14 @@ end
 -- =====================================
 
 StaticPopupDialogs["TOMOMOD_IMPORT_CONFIRM"] = {
-    text = L["popup_import_text"] or "|cff0cd29fTomoMod|r\n\nImporter ce profil ?\nVos paramètres actuels seront remplacés.",
+    text = L["popup_import_text"] or "|cff2ed884TomoMod|r\n\nImporter ce profil ?\nVos paramètres actuels seront remplacés.",
     button1 = L["popup_confirm"] or "Importer",
     button2 = L["popup_cancel"] or "Annuler",
     OnAccept = function(self, data)
         if data and data.text then
             P.ImportAsync(data.text, function(ok, err)
                 if ok then
-                    print("|cff0cd29fTomoMod|r " .. (L["msg_import_success"] or "Import réussi"))
+                    print("|cff2ed884TomoMod|r " .. (L["msg_import_success"] or "Import réussi"))
                     ReloadUI()
                 else
                     print("|cffff0000TomoMod|r " .. (err or "Import échoué"))
@@ -853,7 +853,7 @@ StaticPopupDialogs["TOMOMOD_IMPORT_CONFIRM"] = {
 }
 
 StaticPopupDialogs["TOMOMOD_PROFILE_RELOAD"] = {
-    text = L["popup_profile_reload"] or "|cff0cd29fTomoMod|r\n\nProfil modifié.\nRecharger l'UI pour appliquer ?",
+    text = L["popup_profile_reload"] or "|cff2ed884TomoMod|r\n\nProfil modifié.\nRecharger l'UI pour appliquer ?",
     button1 = L["popup_confirm"] or "Recharger",
     button2 = L["popup_cancel"] or "Annuler",
     OnAccept = function() ReloadUI() end,
@@ -861,20 +861,20 @@ StaticPopupDialogs["TOMOMOD_PROFILE_RELOAD"] = {
 }
 
 StaticPopupDialogs["TOMOMOD_DELETE_PROFILE"] = {
-    text = L["popup_delete_profile"] or "|cff0cd29fTomoMod|r\n\nSupprimer le profil '%s' ?\nCette action est irréversible.",
+    text = L["popup_delete_profile"] or "|cff2ed884TomoMod|r\n\nSupprimer le profil '%s' ?\nCette action est irréversible.",
     button1 = L["popup_confirm"] or "Supprimer",
     button2 = L["popup_cancel"] or "Annuler",
     OnAccept = function(self, data)
         if data and data.name then
             P.DeleteNamedProfile(data.name)
-            print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_name_deleted"] or "Profil '%s' supprimé", data.name))
+            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_name_deleted"] or "Profil '%s' supprimé", data.name))
         end
     end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }
 
 StaticPopupDialogs["TOMOMOD_RENAME_PROFILE"] = {
-    text = L["popup_rename_profile"] or "|cff0cd29fTomoMod|r\n\nNouveau nom pour '%s' :",
+    text = L["popup_rename_profile"] or "|cff2ed884TomoMod|r\n\nNouveau nom pour '%s' :",
     button1 = L["popup_confirm"] or "Renommer",
     button2 = L["popup_cancel"] or "Annuler",
     hasEditBox = true,
@@ -883,7 +883,7 @@ StaticPopupDialogs["TOMOMOD_RENAME_PROFILE"] = {
             local newName = self.editBox:GetText()
             local ok, err = P.RenameProfile(data.name, newName)
             if ok then
-                print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_renamed"] or "'%s' renommé en '%s'", data.name, newName))
+                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_renamed"] or "'%s' renommé en '%s'", data.name, newName))
             else
                 print("|cffff0000TomoMod|r " .. (err or "Erreur renommage"))
             end
@@ -893,7 +893,7 @@ StaticPopupDialogs["TOMOMOD_RENAME_PROFILE"] = {
 }
 
 StaticPopupDialogs["TOMOMOD_DUPLICATE_PROFILE"] = {
-    text = L["popup_duplicate_profile"] or "|cff0cd29fTomoMod|r\n\nDupliquer '%s' sous le nom :",
+    text = L["popup_duplicate_profile"] or "|cff2ed884TomoMod|r\n\nDupliquer '%s' sous le nom :",
     button1 = L["popup_confirm"] or "Dupliquer",
     button2 = L["popup_cancel"] or "Annuler",
     hasEditBox = true,
@@ -902,7 +902,7 @@ StaticPopupDialogs["TOMOMOD_DUPLICATE_PROFILE"] = {
             local toName = self.editBox:GetText()
             local ok, err = P.DuplicateProfile(data.name, toName)
             if ok then
-                print("|cff0cd29fTomoMod|r " .. string.format(L["msg_profile_duplicated"] or "'%s' dupliqué en '%s'", data.name, toName))
+                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_duplicated"] or "'%s' dupliqué en '%s'", data.name, toName))
             else
                 print("|cffff0000TomoMod|r " .. (err or "Erreur duplication"))
             end

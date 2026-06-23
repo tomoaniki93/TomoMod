@@ -146,7 +146,7 @@ StaticPopupDialogs["TOMOMOD_AB_UNIFORMIZE"] = {
 }
 
 -- Accent color helper
-local ACCENT_R, ACCENT_G, ACCENT_B = 0.047, 0.824, 0.624
+local ACCENT_R, ACCENT_G, ACCENT_B = TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3]
 local HEADER_H = 30
 local HEADER_GAP = 2
 

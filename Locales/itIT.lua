@@ -21,7 +21,7 @@ TomoMod_RegisterLocale("itIT", {
     -- CONFIG: General Panel
     -- =====================
     ["section_about"]                   = "Informazioni",
-    ["about_text"]                      = "|cff0cd29fTomoMod|r %s di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
+    ["about_text"]                      = "|cff2ed884TomoMod|r %s di TomoAniki\nInterfaccia leggera con QOL, UnitFrames e Nameplates.\nDigita /tm help per la lista dei comandi.",
     ["section_general"]                 = "Generale",
     ["btn_reset_all"]                   = "Ripristina tutto",
     ["info_reset_all"]                  = "Questo ripristinerà TUTTE le impostazioni e ricaricherà l'interfaccia.",
@@ -743,8 +743,8 @@ TomoMod_RegisterLocale("itIT", {
     ["section_spec_assign"]             = "Profili per specializzazione",
     ["info_spec_assign"]                = "Assegna ogni specializzazione a un profilo con nome. TomoMod cambierà automaticamente profilo quando cambi specializzazione.",
     ["spec_profile_none"]               = "— Nessuno —",
-    ["popup_rename_profile"]            = "|cff0cd29fTomoMod|r\n\nNuovo nome per '%s':",
-    ["popup_duplicate_profile"]         = "|cff0cd29fTomoMod|r\n\nDuplica '%s' come:",
+    ["popup_rename_profile"]            = "|cff2ed884TomoMod|r\n\nNuovo nome per '%s':",
+    ["popup_duplicate_profile"]         = "|cff2ed884TomoMod|r\n\nDuplica '%s' come:",
     ["msg_profile_renamed"]             = "Profilo '%s' rinominato in '%s'",
     ["msg_profile_duplicated"]          = "Profilo '%s' duplicato come '%s'",
     ["msg_import_as_profile"]           = "Profilo importato come '%s'",
@@ -769,9 +769,9 @@ TomoMod_RegisterLocale("itIT", {
     ["time_server"]                     = "Server",
     ["time_local"]                      = "Locale",
     ["time_tooltip_title"]              = "Orario (%s - %s)",
-    ["time_tooltip_left_click"]         = "|cff0cd29fClic sinistro:|r Calendario",
-    ["time_tooltip_right_click"]        = "|cff0cd29fClic destro:|r Server / Locale",
-    ["time_tooltip_shift_right"]        = "|cff0cd29fShift + Clic destro:|r 12h / 24h",
+    ["time_tooltip_left_click"]         = "|cff2ed884Clic sinistro:|r Calendario",
+    ["time_tooltip_right_click"]        = "|cff2ed884Clic destro:|r Server / Locale",
+    ["time_tooltip_shift_right"]        = "|cff2ed884Shift + Clic destro:|r 12h / 24h",
     ["time_format_msg"]                 = "Formato: %s",
     ["time_mode_msg"]                   = "Orario: %s",
 
@@ -782,12 +782,12 @@ TomoMod_RegisterLocale("itIT", {
     ["disabled"]                        = "Disattivato",
 
     -- Static Popups
-    ["popup_reset_text"]                = "|cff0cd29fTomoMod|r\n\nRipristinare TUTTE le impostazioni?\nQuesto ricaricherà l'interfaccia.",
+    ["popup_reset_text"]                = "|cff2ed884TomoMod|r\n\nRipristinare TUTTE le impostazioni?\nQuesto ricaricherà l'interfaccia.",
     ["popup_confirm"]                   = "Conferma",
     ["popup_cancel"]                    = "Annulla",
-    ["popup_import_text"]               = "|cff0cd29fTomoMod|r\n\nImportare le impostazioni?\nQuesto SOVRASCRIVERÀ tutte le impostazioni attuali e ricaricherà l'interfaccia.",
-    ["popup_profile_reload"]            = "|cff0cd29fTomoMod|r\n\nModalità profilo cambiata.\nRicaricare l'interfaccia per applicare?",
-    ["popup_delete_profile"]            = "|cff0cd29fTomoMod|r\n\nEliminare il profilo '%s'?\nQuesta azione non può essere annullata.",
+    ["popup_import_text"]               = "|cff2ed884TomoMod|r\n\nImportare le impostazioni?\nQuesto SOVRASCRIVERÀ tutte le impostazioni attuali e ricaricherà l'interfaccia.",
+    ["popup_profile_reload"]            = "|cff2ed884TomoMod|r\n\nModalità profilo cambiata.\nRicaricare l'interfaccia per applicare?",
+    ["popup_delete_profile"]            = "|cff2ed884TomoMod|r\n\nEliminare il profilo '%s'?\nQuesta azione non può essere annullata.",
 
     -- FPS element
     ["label_fps"]                       = "FPS",
@@ -1023,10 +1023,10 @@ TomoMod_RegisterLocale("itIT", {
     -- MYTHIC TRACKER (TomoMythic integration)
     -- =====================
     ["tmt_cmd_usage"]               = "|cFF55B400/tmt|r : configurazione  |  |cFF55B400unlock|r : sposta  |  |cFF55B400lock|r : blocca  |  |cFF55B400preview|r : anteprima  |  |cFF55B400key|r : chiavi del gruppo  |  |cFF55B400kr|r : roulette",
-    ["tmt_unlock_msg"]              = "|cff0cd29fTomoMod|r M+ Tracker: Riquadro sbloccato \226\128\148 trascina per riposizionare.",
-    ["tmt_lock_msg"]                = "|cff0cd29fTomoMod|r M+ Tracker: Riquadro bloccato.",
-    ["tmt_reset_msg"]               = "|cff0cd29fTomoMod|r M+ Tracker: Posizione reimpostata.",
-    ["tmt_unknown_cmd"]             = "|cff0cd29fTomoMod|r M+ Tracker: Comando sconosciuto.",
+    ["tmt_unlock_msg"]              = "|cff2ed884TomoMod|r M+ Tracker: Riquadro sbloccato \226\128\148 trascina per riposizionare.",
+    ["tmt_lock_msg"]                = "|cff2ed884TomoMod|r M+ Tracker: Riquadro bloccato.",
+    ["tmt_reset_msg"]               = "|cff2ed884TomoMod|r M+ Tracker: Posizione reimpostata.",
+    ["tmt_unknown_cmd"]             = "|cff2ed884TomoMod|r M+ Tracker: Comando sconosciuto.",
     ["tmt_key_level"]               = "+%d",
     ["tmt_dungeon_unknown"]         = "Mitico+",
     ["tmt_overtime"]                = "TEMPO SCADUTO",
@@ -1054,7 +1054,7 @@ TomoMod_RegisterLocale("itIT", {
     ["tmt_key_not_in_group"]        = "Non sei in un gruppo.",
     ["tmt_key_none_found"]          = "Nessuna chiave trovata.",
     ["tmt_kr_spin"]                 = "|TInterface\\Icons\\INV_Misc_Dice_02:14|t  Gira!",
-    ["tmt_preview_active"]          = "|cff0cd29fTomoMod|r M+ Tracker: Anteprima attiva \226\128\148 |cFF55B400/tmt lock|r per bloccare.",
+    ["tmt_preview_active"]          = "|cff2ed884TomoMod|r M+ Tracker: Anteprima attiva \226\128\148 |cFF55B400/tmt lock|r per bloccare.",
 
     -- MythicHub
     ["mhub_title"]                  = "Punteggio Mitica+",
@@ -1064,7 +1064,7 @@ TomoMod_RegisterLocale("itIT", {
     ["mhub_col_best"]               = "Migliore",
     ["mhub_tp_click"]               = "Clicca per teletrasportarti",
     ["mhub_tp_not_available"]        = "Teletrasporto non appreso",
-    ["mhub_tp_not_learned"]          = "|cff0cd29fTomoMod|r: Incantesimo di teletrasporto non appreso.",
+    ["mhub_tp_not_learned"]          = "|cff2ed884TomoMod|r: Incantesimo di teletrasporto non appreso.",
     ["mhub_vault_title"]            = "Grande Camera Blindata",
     ["mhub_vault_dungeons"]         = "Spedizioni",
     ["mhub_vault_raids"]            = "Incursioni",
@@ -1078,7 +1078,7 @@ TomoMod_RegisterLocale("itIT", {
     -- ══════════════════════════════════════════════════════════
 
     -- Navigation
-    ["ins_header_title"]             = "|cff0cd29fTomo|r|cffe4e4e4Mod|r  \226\128\148  Assistente di configurazione",
+    ["ins_header_title"]             = "|cff2ed884Tomo|r|cffe4e4e4Mod|r  \226\128\148  Assistente di configurazione",
     ["ins_step_counter"]             = "Passaggio %d / %d",
     ["ins_btn_prev"]                 = "|TInterface\\BUTTONS\\UI-SpellbookIcon-PrevPage:0|t Precedente",
     ["ins_btn_next"]                 = "Avanti |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t",
@@ -1088,7 +1088,7 @@ TomoMod_RegisterLocale("itIT", {
     -- Step 1: Welcome
     ["ins_step1_title"]              = "Benvenuto in TomoMod",
     ["ins_subtitle"]                 = "Suite di interfaccia e QOL per The War Within",
-    ["ins_welcome_desc"]             = "Questo assistente ti guider\195\160 in |cff0cd29f16 passaggi|r per configurare TomoMod\nsecondo le tue preferenze: unit frame, party frame, barre di lancio, nameplate, barre azione,\nrisorse, skin, suoni, Mythic+, QOL, ottimizzazioni e SkyRide.\n\nTutte queste opzioni possono essere modificate in qualsiasi momento con |cff0cd29f/tm|r.",
+    ["ins_welcome_desc"]             = "Questo assistente ti guider\195\160 in |cff2ed88416 passaggi|r per configurare TomoMod\nsecondo le tue preferenze: unit frame, party frame, barre di lancio, nameplate, barre azione,\nrisorse, skin, suoni, Mythic+, QOL, ottimizzazioni e SkyRide.\n\nTutte queste opzioni possono essere modificate in qualsiasi momento con |cff2ed884/tm|r.",
 
     -- Step 2: Profile
     ["ins_step2_title"]              = "Profilo di gioco",
@@ -1222,7 +1222,7 @@ TomoMod_RegisterLocale("itIT", {
     -- Step 12: Done
     ["ins_step12_title"]             = "Configurazione completata!",
     ["ins_done_check"]               = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:0|t  Tutto pronto!",
-    ["ins_done_recap"]               = "La tua configurazione TomoMod \195\168 salvata. Ecco alcuni promemoria:\n\n|cff0cd29f/tm|r              |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Apri il pannello di configurazione\n|cff0cd29f/tm sr|r           |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Sblocca e sposta gli elementi\n|cff0cd29f/tm install|r      |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Rilancia questo installatore\n\nTutte le opzioni configurate qui possono essere modificate in qualsiasi momento\ndai pannelli corrispondenti nella GUI di TomoMod.\n\nUn |cff0cd29freload della UI|r \195\168 necessario per applicare alcune modifiche\n(nameplate, skin, UnitFrame).",
+    ["ins_done_recap"]               = "La tua configurazione TomoMod \195\168 salvata. Ecco alcuni promemoria:\n\n|cff2ed884/tm|r              |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Apri il pannello di configurazione\n|cff2ed884/tm sr|r           |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Sblocca e sposta gli elementi\n|cff2ed884/tm install|r      |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t  Rilancia questo installatore\n\nTutte le opzioni configurate qui possono essere modificate in qualsiasi momento\ndai pannelli corrispondenti nella GUI di TomoMod.\n\nUn |cff2ed884reload della UI|r \195\168 necessario per applicare alcune modifiche\n(nameplate, skin, UnitFrame).",
     ["ins_done_reload"]              = "|TInterface\\BUTTONS\\UI-RefreshButton:0|t  Ricarica UI",
 
     -- Step NEW: Unit Frames
@@ -1381,7 +1381,7 @@ TomoMod_RegisterLocale("itIT", {
     ["opt_skin_bags_enable"]             = "Attiva skin delle borse",
     -- Borse — Disincanto
     ["bagskin_de_badge"]                 = "DI",
-    ["bagskin_de_tooltip"]               = "|cff0cd29f[Clic destro]|r Disincantare",
+    ["bagskin_de_tooltip"]               = "|cff2ed884[Clic destro]|r Disincantare",
     ["bagskin_currencies_none"]          = "Nessuna valuta monitorata (clic destro su una valuta \226\134\146 Mostra nello zaino)",
     ["opt_skin_bags_stack_merge"]        = "Unisci pile identiche",
     ["opt_skin_bags_show_empty"]         = "Mostra sezione slot liberi",
@@ -1526,8 +1526,8 @@ TomoMod_RegisterLocale("itIT", {
     ["ts_cfg_preview"]              = "Anteprima",
     ["ts_cfg_last_run"]             = "Mostra ultima partita",
     ["ts_cfg_reset_pos"]            = "Ripristina posizione",
-    ["ts_reset_msg"]                = "|cff0cd29fTomoMod|r Tabellone: Posizione ripristinata.",
-    ["ts_no_data"]                  = "|cff0cd29fTomoMod|r Tabellone: Nessun dato dungeon disponibile.",
+    ["ts_reset_msg"]                = "|cff2ed884TomoMod|r Tabellone: Posizione ripristinata.",
+    ["ts_no_data"]                  = "|cff2ed884TomoMod|r Tabellone: Nessun dato dungeon disponibile.",
     ["ts_mythic_zero"]              = "Mitico",
     ["ts_key_level"]                = "+%d",
     ["ts_completed"]                = "COMPLETATO",
@@ -1901,7 +1901,7 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_version"]                       = "Versione %s",
     ["wn_subtitle"]                      = "Ecco cosa \195\168 cambiato dal tuo ultimo aggiornamento:",
     ["wn_btn_ok"]                        = "Capito!",
-    ["wn_footer"]                        = "Tutte le impostazioni possono essere modificate in qualsiasi momento tramite |cff0cd29f/tm|r.",
+    ["wn_footer"]                        = "Tutte le impostazioni possono essere modificate in qualsiasi momento tramite |cff2ed884/tm|r.",
 
     -- 2.9.8
     ["wn_298_housing"]                   = "Nuovo modulo Housing: hover decorazione, orologio editor e teletrasporto /tm home (Midnight+).",
@@ -2059,7 +2059,7 @@ TomoMod_RegisterLocale("itIT", {
     ["preset_applied"]       = "Preset applicato: %s — digita /reload per vedere il risultato.",
     ["preset_unknown"]       = "Preset sconosciuto « %s ». Disponibili: complet, tank, healer, dps, minimal.",
     ["preset_usage"]         = "Uso: /tmpreset <complet|tank|healer|dps|minimal>",
-    ["ins_v3_welcome_desc"]      = "Benvenuto! Questo assistente rapido ti prepara un'interfaccia pulita e completa in pochi secondi.\n\nScegli una configurazione adatta al tuo modo di giocare — potrai regolare tutto in seguito da |cff0cd29f/tm|r. Preferisci scegliere ogni opzione da solo? Scegli |cffc89530Personalizzato|r.",
+    ["ins_v3_welcome_desc"]      = "Benvenuto! Questo assistente rapido ti prepara un'interfaccia pulita e completa in pochi secondi.\n\nScegli una configurazione adatta al tuo modo di giocare — potrai regolare tutto in seguito da |cff2ed884/tm|r. Preferisci scegliere ogni opzione da solo? Scegli |cffc89530Personalizzato|r.",
     ["ins_pick_title"]           = "Scegli la tua configurazione",
     ["ins_pick_subtitle"]        = "Seleziona uno stile di gioco qui sotto. Tutto resta regolabile in seguito tramite /tm.",
     ["ins_pick_recommended"]     = "Consigliato",
@@ -2070,9 +2070,9 @@ TomoMod_RegisterLocale("itIT", {
     ["ins_custom_barsskins_intro"] = "Skin delle barre delle azioni e skin visivi per chat, borse, tooltip e altro.",
     ["ins_custom_mythicqol_intro"] = "Strumenti Mythic+, extra dell'interfaccia, automazioni e suono.",
     ["ins_recap_title"]          = "Tutto pronto",
-    ["ins_recap_preset"]         = "Configurazione applicata: |cff0cd29f%s|r",
+    ["ins_recap_preset"]         = "Configurazione applicata: |cff2ed884%s|r",
     ["ins_recap_custom"]         = "La tua configurazione personalizzata è pronta",
-    ["ins_recap_desc"]           = "Ricarica l'interfaccia per applicare tutto. Puoi riaprire questo assistente in qualsiasi momento con |cff0cd29f/tm install|r e aprire il pannello di configurazione completo con |cff0cd29f/tm|r.",
+    ["ins_recap_desc"]           = "Ricarica l'interfaccia per applicare tutto. Puoi riaprire questo assistente in qualsiasi momento con |cff2ed884/tm install|r e aprire il pannello di configurazione completo con |cff2ed884/tm|r.",
     ["cat_accueil"]              = "Home",
     ["ui_search_placeholder"]    = "Cerca modulo...",
     ["dash_welcome"]             = "Panoramica rapida di TomoMod. Attiva moduli, applica una configurazione, cambia profilo o rilancia l'assistente.",
@@ -2241,4 +2241,9 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_311_icicles"]        = "Mago del Ghiaccio: nuovo tracker Ghiaccioli nella barra delle risorse (5 segmenti + bagliore Picco Glaciale al massimo). Colore personalizzabile in CD & Risorse → Colori.",
     ["wn_311_taint_money"]   = "Corretto un errore di taint (Midnight): passare il mouse sugli oggetti nel Diario delle spedizioni non genera più l'errore 'secret number' sul valore in oro — TomoMod non contamina più i tooltip di confronto.",
     ["wn_311_art_qty"]       = "AuctionRecipeTracker: cliccare su un reagente cerca l'oggetto nella Casa d'aste e mostra la quantità richiesta nella barra di stato (es. Ricerca: Fuoco Risvegliato × 14).",
+
+    -- 3.1.2
+    ["wn_312_brand"]         = "Colore accento aggiornato da #0cd29f a #2ed884 (verde menta) in tutta l'interfaccia — barra del titolo, pannelli, messaggi chat, popup e valori colore predefiniti.",
+    ["wn_312_brand_api"]     = "Nuove costanti TomoMod_Utils.BRAND / BRAND_DARK / BRAND_HOVER centralizzano il colore accento: i pannelli di configurazione e il tema Widget leggono ora da un'unica fonte.",
+    ["wn_312_companion_fix"] = "CompanionStatus: corretta una perdita di variabile globale (UpdateIcon era dichiarata senza 'local').",
 })
