@@ -2663,9 +2663,11 @@ local function LoadChat()
             if frame then FCF_SetLocked(frame, 1) end
         end
     end
-    -- Prevent Blizzard from making chat frames draggable via their default handler
+    -- Prevent Blizzard from making chat frames draggable via their default handler.
+    -- Only stub StartDragging: stubbing StopDragging too leaves a dragged tab glued
+    -- to the cursor (StartMoving never paired with StopMovingOrSizing), which locks
+    -- out all mouse input. Frames are already locked above via FCF_SetLocked.
     if FCF_StartDragging then FCF_StartDragging = NoOp end
-    if FCF_StopDragging then FCF_StopDragging = NoOp end
 
     -- Restore saved position
     RestoreChatPosition()

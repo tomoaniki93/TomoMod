@@ -85,6 +85,11 @@ local function SkinTooltipBackground(tooltip)
     if not tooltip then return end
     local s = S()
 
+    -- Couleurs configurables (fallback sur les constantes par défaut)
+    local bgC, bdC = s.bgColor or {}, s.borderColor or {}
+    local bgR, bgG, bgB = bgC.r or BG_COLOR[1], bgC.g or BG_COLOR[2], bgC.b or BG_COLOR[3]
+    local bdR, bdG, bdB = bdC.r or BORDER_CLR[1], bdC.g or BORDER_CLR[2], bdC.b or BORDER_CLR[3]
+
     -- Approche SetBackdrop (API standard, correctement bornée au frame du tooltip).
     -- N'utilise PAS NineSlice.Center:SetAlpha() qui peut affecter une zone plus large
     -- que le tooltip en TWW 12.x et créer un rectangle noir sur l'écran.
@@ -95,12 +100,12 @@ local function SkinTooltipBackground(tooltip)
             edgeSize = 1,
             insets   = { left = 2, right = 2, top = 2, bottom = 2 },
         })
-        tooltip:SetBackdropColor(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], s.bgAlpha or 0.92)
-        tooltip:SetBackdropBorderColor(BORDER_CLR[1], BORDER_CLR[2], BORDER_CLR[3], s.borderAlpha or 0.8)
+        tooltip:SetBackdropColor(bgR, bgG, bgB, s.bgAlpha or 0.92)
+        tooltip:SetBackdropBorderColor(bdR, bdG, bdB, s.borderAlpha or 0.8)
     elseif tooltip.NineSlice then
         -- Fallback NineSlice : utilise SetVertexColor(r,g,b,a) sans SetAlpha() séparé
         if tooltip.NineSlice.Center then
-            tooltip.NineSlice.Center:SetVertexColor(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], s.bgAlpha or 0.92)
+            tooltip.NineSlice.Center:SetVertexColor(bgR, bgG, bgB, s.bgAlpha or 0.92)
         end
         local borderPieces = {
             "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "BottomRightCorner",
@@ -109,7 +114,7 @@ local function SkinTooltipBackground(tooltip)
         for _, pieceName in ipairs(borderPieces) do
             local piece = tooltip.NineSlice[pieceName]
             if piece then
-                piece:SetVertexColor(BORDER_CLR[1], BORDER_CLR[2], BORDER_CLR[3], s.borderAlpha or 0.8)
+                piece:SetVertexColor(bdR, bdG, bdB, s.borderAlpha or 0.8)
             end
         end
     end
@@ -316,6 +321,80 @@ local function OnTooltipSetUnit(tooltip)
 end
 
 -- =====================================
+-- POSITIONNEMENT DE L'INFOBULLE
+-- modes : default | cursor | corner | custom
+-- (le suivi souris reste gere par CursorRing:OnUpdate ; ici on ne gere
+--  que les ancrages statiques coin / personnalise)
+-- =====================================
+local TT_PAD = 16
+
+local function EnsureTooltipMover()
+    if TomoMod_TooltipMover then return TomoMod_TooltipMover end
+    local m = CreateFrame("Frame", "TomoMod_TooltipMover", UIParent, "BackdropTemplate")
+    m:SetSize(210, 38)
+    m:SetFrameStrata("DIALOG")
+    m:SetClampedToScreen(true)
+    m:SetMovable(true)
+    m:EnableMouse(true)
+    m:RegisterForDrag("LeftButton")
+    m:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
+    m:SetBackdropColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.18)
+    m:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.9)
+    local fs = m:CreateFontString(nil, "OVERLAY")
+    fs:SetFont(ADDON_FONT_BOLD, 12, "OUTLINE")
+    fs:SetPoint("CENTER")
+    fs:SetText("Infobulle - glisser pour placer")
+    fs:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
+    m:SetScript("OnDragStart", m.StartMoving)
+    m:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        local s = S()
+        -- GetLeft/GetBottom (jamais GetPoint) apres un deplacement
+        local l, b = self:GetLeft(), self:GetBottom()
+        if l and b then s.moverX, s.moverY = math.floor(l + 0.5), math.floor(b + 0.5) end
+    end)
+    local s = S()
+    m:ClearAllPoints()
+    if s.moverX and s.moverY then
+        m:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", s.moverX, s.moverY)
+    else
+        m:SetPoint("CENTER", UIParent, "CENTER", 0, -150)
+    end
+    m:Hide()
+    return m
+end
+
+-- Affiche/masque le cadre deplacable selon le mode
+function TS.RefreshAnchor()
+    local s = S()
+    if (s.anchor or "default") == "custom" then
+        EnsureTooltipMover():Show()
+    elseif TomoMod_TooltipMover then
+        TomoMod_TooltipMover:Hide()
+    end
+end
+
+-- Ancrage statique (coin / custom). Souris & defaut : non geres ici.
+local function ApplyTooltipAnchor(tooltip, parent)
+    if not tooltip or not IsEnabled() then return end
+    local s = S()
+    local mode = s.anchor or "default"
+    if mode == "corner" then
+        local corner = s.anchorCorner or "BOTTOMRIGHT"
+        local ox = corner:find("RIGHT") and -TT_PAD or TT_PAD
+        local oy = corner:find("BOTTOM") and TT_PAD or -TT_PAD
+        tooltip:SetOwner(parent or UIParent, "ANCHOR_NONE")
+        tooltip:ClearAllPoints()
+        tooltip:SetPoint(corner, UIParent, corner, ox, oy)
+    elseif mode == "custom" then
+        local m = EnsureTooltipMover()
+        tooltip:SetOwner(parent or UIParent, "ANCHOR_NONE")
+        tooltip:ClearAllPoints()
+        tooltip:SetPoint("BOTTOMLEFT", m, "TOPLEFT", 0, 4)
+    end
+end
+
+-- =====================================
 -- PUBLIC API
 -- =====================================
 
@@ -335,6 +414,10 @@ function TS.Initialize()
     if not isHooked then
         isHooked = true
 
+        hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip, parent)
+            ApplyTooltipAnchor(tooltip, parent)
+        end)
+
         -- Hook GameTooltip
         hooksecurefunc(GameTooltip, "Show", function() OnTooltipShow(GameTooltip) end)
         hooksecurefunc(GameTooltip, "SetUnit", function() OnTooltipSetUnit(GameTooltip) end)
@@ -353,5 +436,6 @@ function TS.Initialize()
         end
     end
 
+    TS.RefreshAnchor()
     isInitialized = true
 end

@@ -802,8 +802,17 @@ function TomoMod_Minimap.RefreshButtonBag()
     wipe(collectedOrder)
     if not (bagFrame and bagFrame.content) then return end
     local db = TomoModDB.minimap
-    if db.buttonBag and db.buttonBag.enabled == false then return end
-    if (db.collectorStyle or "tomomod") ~= "tomomod" then return end  -- mode Blizzard : pas de collecte
+    if db.buttonBag and db.buttonBag.enabled == false then
+        -- Collecteur désactivé : rendre les boutons déjà capturés à la minimap.
+        -- Sans ça ils restaient orphelins dans la boîte masquée et ne revenaient
+        -- jamais se coller à la minimap (« ça ne reste pas »).
+        TomoMod_Minimap.ReleaseCollectedButtons()
+        return
+    end
+    if (db.collectorStyle or "tomomod") ~= "tomomod" then  -- mode Blizzard : pas de collecte
+        TomoMod_Minimap.ReleaseCollectedButtons()
+        return
+    end
     ScanParent(Minimap)
     ScanParent(MinimapBackdrop)
     ScanParent(MinimapCluster)

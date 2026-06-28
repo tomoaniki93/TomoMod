@@ -91,7 +91,11 @@ function TomoMod_CursorRing.SetupTooltipAnchor()
         local ttLastPX, ttLastPY = 0, 0
         local ttElapsed = 0
         GameTooltip:HookScript("OnUpdate", function(self, elapsed)
-            if not TomoModDB.cursorRing.anchorTooltip then return end
+            local ttMode = (TomoModDB.tooltipSkin and TomoModDB.tooltipSkin.anchor) or "default"
+            -- En mode coin/perso, l'infobulle est ancree statiquement par TooltipSkin : ne pas la suivre.
+            if ttMode == "corner" or ttMode == "custom" then return end
+            -- Suivi souris : mode "cursor" explicite, ou ancien reglage anchorTooltip (mode defaut).
+            if ttMode ~= "cursor" and not TomoModDB.cursorRing.anchorTooltip then return end
             if not self:IsShown() then return end
             ttElapsed = ttElapsed + elapsed
             if ttElapsed < 0.05 then return end  -- throttle to ~20fps
