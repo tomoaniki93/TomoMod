@@ -2246,4 +2246,21 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_312_brand"]         = "Cor de destaque atualizada de #0cd29f para #2ed884 (verde menta) em toda a interface — barra de título, painéis, mensagens do chat, popups e valores de cor padrão.",
     ["wn_312_brand_api"]     = "Novas constantes TomoMod_Utils.BRAND / BRAND_DARK / BRAND_HOVER centralizam a cor de destaque: os painéis de configuração e o tema de Widgets agora leem de uma única fonte.",
     ["wn_312_companion_fix"] = "CompanionStatus: corrigido um vazamento de variável global (UpdateIcon era declarada sem 'local').",
+
+    -- 3.1.3
+    ["wn_313_nav"]        = "Interface de configuração redesenhada: 16 painéis consolidados em 6 categorias agrupadas (Interface, Unidades, Combate, Conforto, Ferramentas), cada uma com cor de destaque e cabeçalho próprios.",
+    ["wn_313_accent"]     = "Os widgets agora adotam automaticamente a cor de destaque do painel hospedeiro — cartões, cabeçalhos, separadores, caixas de seleção, botões e abas reagem ao contexto de categoria ativo.",
+    ["wn_313_segmented"]  = "Novo widget SegmentedControl substitui menus suspensos curtos (Barra de bolsas, Menu Micro, Estilo de chat, Layout de bolsas, Classificação, Canal de áudio).",
+    ["wn_313_dashboard"]  = "Painel Accueil completamente refeito: banner hero com status de diagnóstico ao vivo, atalhos rápidos (Forja, Perfis, Diagnósticos, Recarregar) e botões de módulo redesenhados.",
+    ["wn_313_np_preview"] = "Nameplates: novo painel de pré-visualização ao vivo no topo da configuração — mostra aliado, hostil e chefe, atualiza em tempo real ao ajustar largura, altura, barra de conjuro e tamanho da fonte.",
+    ["wn_313_loot_filter"] = "Correção do filtro de classe de saque: itens ausentes do IDB (ex. drops de novos raids) agora usam o tipo de armadura como alternativa em vez de serem exibidos para todas as classes.",
+    ["wn_313_sporefall"]   = "Dados de saque: raid Sporefall (ejEncounterID 2711) adicionado com 15 itens do dataset KeystoneLoot build 12.0.7.",
+    ["wn_313_diag"]       = "Diagnósticos: 7 novas palavras-chave de exclusão UIError (comerciante, montaria, inventário, excluir, aprimoramento, aparência, duelo) + o console agora sempre aparece acima do menu de configuração.",
+
+    -- Nameplates preview
+    ["np_preview_title"]   = "Pré-visualização de placas",
+    ["np_preview_hint"]    = "Legibilidade rápida: cor, conjuro, auras e ameaça em um só lugar.",
+    ["preview_np_friendly"] = "Aliado",
+    ["preview_np_target"]  = "Alvo hostil",
+    ["preview_np_boss"]    = "Chefe marcado",
 })

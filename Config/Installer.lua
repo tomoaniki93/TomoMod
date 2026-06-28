@@ -24,7 +24,7 @@ local P   = TomoMod_Presets
 
 local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
-local LOGO_TEX  = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Logo.tga"
+local LOGO_TEX  = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Logo2.tga"
 local ICON_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\"
 local WHITE     = "Interface\\Buttons\\WHITE8x8"
 

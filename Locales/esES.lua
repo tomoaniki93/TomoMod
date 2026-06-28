@@ -2306,4 +2306,21 @@ TomoMod_RegisterLocale("esES", {
     ["wn_312_brand"]         = "Color de acento actualizado de #0cd29f a #2ed884 (verde menta) en toda la interfaz — barra de título, paneles, mensajes de chat, ventanas emergentes y valores de color predeterminados.",
     ["wn_312_brand_api"]     = "Nuevas constantes TomoMod_Utils.BRAND / BRAND_DARK / BRAND_HOVER centralizan el color de acento: los paneles de configuración y el tema de Widgets ahora leen desde una única fuente.",
     ["wn_312_companion_fix"] = "CompanionStatus: corregida una fuga de variable global (UpdateIcon se declaraba sin 'local').",
+
+    -- 3.1.3
+    ["wn_313_nav"]        = "Interfaz de configuración rediseñada: 16 paneles consolidados en 6 categorías agrupadas (Interfaz, Unidades, Combate, Confort, Herramientas), cada una con su propio color de acento y encabezado.",
+    ["wn_313_accent"]     = "Los widgets ahora adoptan automáticamente el color de acento de su panel anfitrión — tarjetas, encabezados, separadores, casillas, botones y pestañas reaccionan al contexto de categoría activo.",
+    ["wn_313_segmented"]  = "Nuevo widget SegmentedControl reemplaza los desplegables cortos (Barra de bolsas, Menú Micro, Estilo de chat, Diseño de bolsas, Ordenación, Canal de audio).",
+    ["wn_313_dashboard"]  = "Panel de inicio completamente rediseñado: banner hero con estado de diagnóstico en vivo, accesos directos (Forja, Perfiles, Diagnósticos, Recargar) y controles de módulos renovados.",
+    ["wn_313_np_preview"] = "Placas de nombre: nuevo panel de vista previa en tiempo real al inicio de la configuración — muestra aliado, hostil y jefe, se actualiza al cambiar anchura, altura, barra de conjuro y tamaño de fuente.",
+    ["wn_313_loot_filter"] = "Corrección del filtro de clase de botín: los objetos sin entrada en el IDB (p. ej. drops de nuevos raids) ahora usan el tipo de armadura como alternativa en lugar de mostrarse a todas las clases.",
+    ["wn_313_sporefall"]   = "Datos de botín: raid Sporefall (ejEncounterID 2711) añadido con 15 objetos desde KeystoneLoot build 12.0.7.",
+    ["wn_313_diag"]       = "Diagnósticos: 7 nuevas palabras clave de exclusión UIError (comerciante, montura, inventario, eliminar, mejora, apariencia, duelo) + la consola ahora siempre aparece encima del menú de configuración.",
+
+    -- Nameplates preview
+    ["np_preview_title"]   = "Vista previa de placas",
+    ["np_preview_hint"]    = "Legibilidad rápida: color, conjuro, auras y amenaza en un solo lugar.",
+    ["preview_np_friendly"] = "Aliado",
+    ["preview_np_target"]  = "Objetivo hostil",
+    ["preview_np_boss"]    = "Jefe marcado",
 })

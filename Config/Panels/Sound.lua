@@ -56,9 +56,9 @@ function TomoMod_ConfigPanel_Sound(parent)
         if TomoMod_LustSound and TomoMod_LustSound.PlayPreview then TomoMod_LustSound.PlayPreview() end
     end)
 
-    local _, cy = W.CreateDropdown(card2.inner, L["opt_sound_channel"] or "Canal audio", CHANNEL_OPTIONS, db.channel, cy, function(v)
+    local _, cy = W.CreateSegmentedControl(card2.inner, L["opt_sound_channel"] or "Canal audio", CHANNEL_OPTIONS, db.channel, cy, function(v)
         db.channel = v
-    end)
+    end, 3)
 
     local _, cy = W.CreateCheckbox(card2.inner, L["opt_sound_force"] or "Forcer le son même si musique désactivée", db.forceSound, cy, function(v)
         db.forceSound = v

@@ -2391,4 +2391,21 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_312_brand"]         = "Couleur accent mise à jour de #0cd29f vers #2ed884 (vert menthe) sur toute l'interface — barre de titre, panneaux, messages, popups et valeurs de couleur par défaut.",
     ["wn_312_brand_api"]     = "Nouvelles constantes TomoMod_Utils.BRAND / BRAND_DARK / BRAND_HOVER : tous les panneaux de configuration et le thème des Widgets lisent désormais la couleur accent depuis une source unique.",
     ["wn_312_companion_fix"] = "CompanionStatus : correction d'une fuite de variable globale (UpdateIcon n'était pas déclaré local).",
+
+    -- 3.1.3
+    ["wn_313_nav"]        = "Interface de configuration repensée : 16 panneaux regroupés en 6 catégories (Interface, Unités, Combat, Confort, Outils), chacune avec sa propre couleur accent et un en-tête de page.",
+    ["wn_313_accent"]     = "Les widgets adoptent désormais automatiquement la couleur accent de leur panneau parent — cartes, en-têtes, séparateurs, cases à cocher, boutons et onglets s'adaptent au contexte actif.",
+    ["wn_313_segmented"]  = "Nouveau widget SegmentedControl remplaçant les menus déroulants courts (Barre de sacs, Menu Micro, Style chat, Layout sacs, Tri, Canal audio).",
+    ["wn_313_dashboard"]  = "Tableau de bord Accueil refondu : bandeau héro avec statut diagnostics en direct, raccourcis rapides (Forge, Profils, Diagnostics, Recharger) et toggles modules redesignés.",
+    ["wn_313_np_preview"] = "Nameplates : nouvel aperçu en direct en haut du panneau de configuration — affiche allié, hostile et boss, se met à jour en temps réel lors des ajustements de taille, barre de cast et police.",
+    ["wn_313_loot_filter"] = "Correction du filtre de classe sur le butin : les objets absents de l'IDB (ex. nouveaux raids) utilisent désormais le type d'armure comme repli au lieu d'être affichés pour toutes les classes.",
+    ["wn_313_sporefall"]   = "Données de butin : raid Sporefall (ejEncounterID 2711) ajouté avec 15 objets depuis KeystoneLoot build 12.0.7.",
+    ["wn_313_diag"]       = "Diagnostics : 7 nouveaux mots-clés d'exclusion UIError (marchand, monture, inventaire, suppression, mise à niveau, apparence, duel) + la console s'affiche toujours au-dessus du menu de configuration.",
+
+    -- Nameplates preview
+    ["np_preview_title"]   = "Aperçu des plaques",
+    ["np_preview_hint"]    = "Lisibilité rapide : couleur, cast, auras et menace au même endroit.",
+    ["preview_np_friendly"] = "Allié",
+    ["preview_np_target"]  = "Cible hostile",
+    ["preview_np_boss"]    = "Boss marqué",
 })

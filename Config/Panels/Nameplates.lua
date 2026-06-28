@@ -2,8 +2,197 @@
 local W = TomoMod_Widgets
 local L = TomoMod_L
 
-local function RefreshNP() if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end end
-local function ApplyNP()   if TomoMod_Nameplates then TomoMod_Nameplates.ApplySettings() end end
+local function T(key, fallback)
+    local value = L and L[key]
+    if value and value ~= key then return value end
+    return fallback or key
+end
+
+local function RefreshPreview()
+    if TomoMod_NameplatesPreviewRefresh then
+        TomoMod_NameplatesPreviewRefresh()
+    end
+end
+
+local function RefreshNP()
+    if TomoMod_Nameplates then TomoMod_Nameplates.RefreshAll() end
+    RefreshPreview()
+end
+
+local function ApplyNP()
+    if TomoMod_Nameplates then TomoMod_Nameplates.ApplySettings() end
+    RefreshPreview()
+end
+local WHITE = "Interface\\Buttons\\WHITE8x8"
+
+local function CreateNameplatePreview(parent, y, db)
+    local card, cy = W.CreateCard(parent, T("np_preview_title", "Aperçu des plaques"), y)
+
+    local stage = CreateFrame("Frame", nil, card.inner, "BackdropTemplate")
+    stage:SetPoint("TOPLEFT", 16, cy)
+    stage:SetPoint("TOPRIGHT", -16, cy)
+    stage:SetHeight(166)
+    stage:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
+    stage:SetBackdropColor(0.030, 0.034, 0.044, 0.98)
+    stage:SetBackdropBorderColor(0.38, 0.88, 0.72, 0.28)
+    -- Hard guard: clip every preview element to the stage so a large bar
+    -- size can never spill outside the card.
+    if stage.SetClipsChildren then stage:SetClipsChildren(true) end
+
+    local wash = stage:CreateTexture(nil, "BACKGROUND", nil, -1)
+    wash:SetAllPoints()
+    if wash.SetGradientAlpha then
+        wash:SetGradientAlpha("HORIZONTAL", 0.04, 0.55, 0.42, 0.18, 0.08, 0.02, 0.18, 0.05)
+    else
+        wash:SetColorTexture(0.04, 0.55, 0.42, 0.10)
+    end
+
+    local function GetPreviewSize()
+        return math.max(120, math.min(300, db.width or 170)),
+               math.max(8, math.min(24, db.height or 12))
+    end
+
+    local previewW, previewH = GetPreviewSize()
+    local previewPlates = {}
+
+    local function CreatePlate(label, value, x, yOff, w, h, r, g, b, hostile)
+        local plate = CreateFrame("Frame", nil, stage, "BackdropTemplate")
+        plate:SetPoint("TOPLEFT", x, yOff)
+        plate:SetSize(w, h + 20)
+        plate:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
+        plate:SetBackdropColor(0.020, 0.022, 0.030, 0.88)
+        plate:SetBackdropBorderColor(r, g, b, hostile and 0.70 or 0.45)
+
+        local name = plate:CreateFontString(nil, "OVERLAY")
+        name:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf", 9, "OUTLINE")
+        name:SetPoint("BOTTOMLEFT", plate, "TOPLEFT", 1, 2)
+        name:SetText(label)
+        name:SetTextColor(r, g, b, 1)
+
+        local hp = CreateFrame("StatusBar", nil, plate)
+        hp:SetPoint("TOPLEFT", 3, -4)
+        hp:SetPoint("TOPRIGHT", -3, -4)
+        hp:SetHeight(h)
+        hp:SetStatusBarTexture(WHITE)
+        hp:SetMinMaxValues(0, 100)
+        hp:SetValue(value)
+        hp:SetStatusBarColor(r, g, b, 0.95)
+        plate._hp = hp
+
+        local hpBg = hp:CreateTexture(nil, "BACKGROUND")
+        hpBg:SetAllPoints()
+        hpBg:SetColorTexture(r * 0.12, g * 0.12, b * 0.12, 1)
+
+        local pct = hp:CreateFontString(nil, "OVERLAY")
+        pct:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 8, "OUTLINE")
+        pct:SetPoint("RIGHT", -4, 0)
+        pct:SetText(value .. "%")
+        pct:SetTextColor(1, 1, 1, 0.82)
+        plate._pct = pct
+
+        local cast = CreateFrame("StatusBar", nil, plate)
+        cast:SetPoint("TOPLEFT", hp, "BOTTOMLEFT", 0, -3)
+        cast:SetPoint("TOPRIGHT", hp, "BOTTOMRIGHT", 0, -3)
+        cast:SetHeight(5)
+        cast:SetStatusBarTexture(WHITE)
+        cast:SetMinMaxValues(0, 100)
+        cast:SetValue(hostile and 68 or 0)
+        cast:SetStatusBarColor(0.95, 0.58, 0.20, hostile and 0.90 or 0)
+
+        local castBg = cast:CreateTexture(nil, "BACKGROUND")
+        castBg:SetAllPoints()
+        castBg:SetColorTexture(0.16, 0.10, 0.04, hostile and 0.80 or 0.25)
+        plate._cast = cast
+        plate._name = name
+        plate._previewAddW = w - previewW
+        plate._previewAddH = h - previewH
+        plate._previewValue = value
+        plate._previewSlot = #previewPlates + 1
+        plate._previewY = yOff
+        previewPlates[#previewPlates + 1] = plate
+
+        for i = 1, hostile and 4 or 2 do
+            local dot = plate:CreateTexture(nil, "OVERLAY")
+            dot:SetSize(7, 7)
+            dot:SetPoint("TOPLEFT", plate, "BOTTOMLEFT", 4 + (i - 1) * 9, -4)
+            if i == 1 then dot:SetColorTexture(0.82, 0.18, 0.22, 0.92)
+            elseif i == 2 then dot:SetColorTexture(0.55, 0.24, 0.90, 0.92)
+            elseif i == 3 then dot:SetColorTexture(0.22, 0.56, 0.95, 0.92)
+            else dot:SetColorTexture(0.25, 0.78, 0.34, 0.92) end
+        end
+    end
+
+    CreatePlate(T("preview_np_friendly", "Allié"), 92, 22, -34, previewW, previewH, 0.38, 0.88, 0.72, false)
+    CreatePlate(T("preview_np_target", "Cible hostile"), 48, 290, -30, previewW + 28, previewH + 2, 0.95, 0.35, 0.28, true)
+    CreatePlate(T("preview_np_boss", "Boss marqué"), 71, 560, -34, previewW + 18, previewH, 0.96, 0.70, 0.26, true)
+
+    local hint = stage:CreateFontString(nil, "OVERLAY")
+    hint:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 9, "")
+    hint:SetPoint("TOPLEFT", 18, -8)
+    hint:SetText(T("np_preview_hint", "Lisibilité rapide : couleur, cast, auras et menace au même endroit."))
+    hint:SetTextColor(0.56, 0.58, 0.65, 1)
+
+    TomoMod_NameplatesPreviewRefresh = function()
+        if not stage or not stage:IsShown() then return end
+        local stageW = stage:GetWidth() or 0
+        if stageW < 120 then
+            -- Width not computed yet: derive it from the card (stage is inset
+            -- 16px on each side) rather than guessing, so we never lay out
+            -- against a width wider than the actual card.
+            local innerW = card.inner and card.inner:GetWidth() or 0
+            stageW = innerW > 52 and (innerW - 32) or 0
+        end
+        if stageW < 120 then return end  -- still unknown; OnSizeChanged will re-run
+        local margin = 20
+        local gap = 18
+        local colW = math.max(120, math.floor((stageW - margin * 2 - gap) / 2))
+        local fullW = math.max(120, stageW - margin * 2)
+        local w, h = GetPreviewSize()
+        local castH = math.max(3, math.min(14, db.castbarHeight or 5))
+        for _, plate in ipairs(previewPlates) do
+            local slot = plate._previewSlot or 1
+            local maxW = slot == 3 and fullW or colW
+            local plateW = math.min(w + (plate._previewAddW or 0), maxW)
+            local plateH = h + (plate._previewAddH or 0)
+            local x
+            local y = -48
+            if slot == 1 then
+                x = margin
+            elseif slot == 2 then
+                x = margin + colW + gap
+            else
+                x = margin + math.max(0, math.floor((fullW - plateW) / 2))
+                y = -108
+            end
+            -- Final safety: never let a plate cross the right edge of the stage,
+            -- whatever the slot math or bar size produced.
+            local maxRight = stageW - margin
+            if x + plateW > maxRight then
+                plateW = math.max(40, maxRight - x)
+            end
+            plate:ClearAllPoints()
+            plate:SetPoint("TOPLEFT", stage, "TOPLEFT", x, y)
+            plate:SetSize(plateW, plateH + 20)
+            if plate._hp then plate._hp:SetHeight(plateH) end
+            if plate._cast then
+                plate._cast:SetHeight(castH)
+                plate._cast:SetShown(db.showCastbar ~= false)
+            end
+            if plate._name then
+                plate._name:SetShown(db.showName ~= false)
+                plate._name:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf", db.nameFontSize or 9, "OUTLINE")
+            end
+            if plate._pct then plate._pct:SetText((plate._previewValue or 0) .. "%") end
+        end
+    end
+    stage:SetScript("OnSizeChanged", function()
+        if TomoMod_NameplatesPreviewRefresh then TomoMod_NameplatesPreviewRefresh() end
+    end)
+    TomoMod_NameplatesPreviewRefresh()
+
+    cy = cy - 178
+    return W.FinalizeCard(card, cy)
+end
 
 -- ══════════════════════════════════════════════
 -- TAB 1 : GÉNÉRAL
@@ -14,8 +203,10 @@ local function BuildGeneralTab(parent)
     local db = TomoModDB.nameplates
     local y = -12
 
+    y = CreateNameplatePreview(c, y, db)
+
     -- Activation
-    local card, cy = W.CreateCard(c, L["section_np_general"] or "Nameplates", y)
+    local card, cy = W.CreateCard(c, L["section_np_general"] or "Activation", y)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_np_enable"] or "Activer", db.enabled, cy, function(v)
         db.enabled = v
         if TomoMod_Nameplates then if v then TomoMod_Nameplates.Enable() else TomoMod_Nameplates.Disable() end end

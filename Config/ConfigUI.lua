@@ -6,6 +6,17 @@
 
 local L = TomoMod_L
 
+StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] = StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] or {
+    text     = "Recharger l'interface pour appliquer ce changement ?",
+    button1  = "Recharger",
+    button2  = "Plus tard",
+    OnAccept = function() ReloadUI() end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
 -- Locales additionnelles utilisées par ce panneau (FR + EN, autonome)
 if TomoMod_RegisterLocale then
     TomoMod_RegisterLocale("enUS", {
@@ -27,6 +38,12 @@ local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local ADDON_PATH = "Interface\\AddOns\\TomoMod\\"
 
+local function LT(key, fallback)
+    local value = L and L[key]
+    if value and value ~= key then return value end
+    return fallback or key
+end
+
 -- =====================================================================
 -- LAYOUT CONSTANTS
 -- =====================================================================
@@ -35,6 +52,7 @@ local PANEL_H   = 720
 local NAV_W     = 190   -- réduit vs 210 : pas besoin d'espace pour l'icon-box
 local TITLE_H   = 52
 local FOOTER_H  = 36
+local PAGE_HEAD_H = 92
 
 -- =====================================================================
 -- CATEGORIES
@@ -42,22 +60,34 @@ local FOOTER_H  = 36
 local ICON_PATH = ADDON_PATH .. "Assets\\Textures\\icons\\"
 
 local categories = {
-    { key = "accueil",    label = L["cat_accueil"],     icon = ICON_PATH .. "ico_gui.tga",          kw = "accueil home dashboard tableau bord vue" },
-    { key = "general",    label = L["cat_general"],     icon = ICON_PATH .. "icon_general.tga",      kw = "general minimap info panel curseur ring" },
-    { key = "unitframes", label = L["cat_unitframes"],  icon = ICON_PATH .. "icon_unitframes.tga",   kw = "unit frames cadres joueur cible player target focus pet" },
-    { key = "nameplates", label = L["cat_nameplates"],  icon = ICON_PATH .. "icon_nameplates.tga",   kw = "nameplates plaques plates ennemi enemy tank menace threat" },
-    { key = "castbars",   label = L["cat_castbars"],    icon = ICON_PATH .. "icon_castbars.tga",      kw = "castbar incantation cast sort spell barre" },
-    { key = "partyframes", label = L["cat_partyframes"],icon = ICON_PATH .. "icon_partyframes.tga",   kw = "party groupe arene arena interrupt brez" },
-    { key = "raidframes",  label = L["cat_raidframes"],  icon = ICON_PATH .. "icon_raidframes.tga",   kw = "raid soin heal soigneur healer hots dispel debuff" },
-    { key = "resources",  label = L["cat_cd_resource"], icon = ICON_PATH .. "icon_resources.tga",     kw = "ressource resource cd cooldown manager mana energie combo runes" },
-    { key = "actionbars", label = L["cat_action_bars"], icon = ICON_PATH .. "icon_actionbars.tga",    kw = "action bars barres sorts boutons keybind" },
-    { key = "sound",      label = L["cat_sound"],       icon = ICON_PATH .. "icon_sound.tga",         kw = "son sound audio lust heroism" },
-    { key = "skins",      label = L["cat_skins"],       icon = ICON_PATH .. "icon_skins.tga",         kw = "skin skins chat sacs bag infobulle tooltip courrier mail reputation buff" },
-    { key = "qol",        label = L["cat_qol"],         icon = ICON_PATH .. "icon_qol.tga",           kw = "confort quality vie quete quest reparation repair fast loot afk" },
-    { key = "mythicplus", label = L["cat_mythicplus"],  icon = ICON_PATH .. "icon_mythicplus.tga",    kw = "mythic+ donjon dungeon cle key score timer keystone" },
-    { key = "housing",    label = L["cat_housing"], icon = ICON_PATH .. "icon_housing.tga",           kw = "housing logement maison decor" },
-    { key = "profiles",   label = L["cat_profiles"],    icon = ICON_PATH .. "icon_profiles.tga",      kw = "profil profile spec specialisation import export" },
-    { key = "diagnostics", label = L["cat_diagnostics"], icon = ICON_PATH .. "icon_diagnostics.tga",  kw = "diagnostic debug erreur error log" },
+    { key = "accueil",   label = LT("cat_accueil", "Accueil"), icon = ICON_PATH .. "ico_gui.tga",          accent = { 0.180, 0.847, 0.518 }, desc = "Vue d'ensemble, presets et actions rapides.", kw = "accueil home dashboard tableau bord vue" },
+    { key = "interface", label = "Interface",                   icon = ICON_PATH .. "icon_general.tga",    accent = { 0.49, 0.91, 1.00 }, desc = "Apparence globale, barres, sons et fenetres Blizzard.", kw = "general minimap actionbar skins son audio chat sacs tooltip" },
+    { key = "units",     label = "Unités",                      icon = ICON_PATH .. "icon_unitframes.tga", accent = { 0.46, 0.72, 1.00 }, desc = "Joueur, plaques, groupe et raid au meme endroit.", kw = "unit frames nameplates party raid groupe cible plaques" },
+    { key = "combat",    label = "Combat",                      icon = ICON_PATH .. "icon_castbars.tga",   accent = { 0.96, 0.70, 0.26 }, desc = "Incantations, ressources, cooldowns et Mythic+.", kw = "castbar ressources cooldown mythic mplus combat" },
+    { key = "comfort",   label = "Confort",                     icon = ICON_PATH .. "icon_qol.tga",        accent = { 0.38, 0.86, 0.56 }, desc = "Automatisations, quetes, AFK, logement et confort.", kw = "qol confort quete afk housing logement automatisation" },
+    { key = "tools",     label = "Outils",                      icon = ICON_PATH .. "icon_profiles.tga",   accent = { 0.67, 0.52, 1.00 }, desc = "Profils, sauvegardes, diagnostics et maintenance.", kw = "profil diagnostics debug erreurs import export outils" },
+}
+
+local categoryAliases = {
+    general     = { key = "interface", tab = "general" },
+    actionbars  = { key = "interface", tab = "actionbars" },
+    skins       = { key = "interface", tab = "skins" },
+    sound       = { key = "interface", tab = "sound" },
+
+    unitframes  = { key = "units", tab = "unitframes" },
+    nameplates  = { key = "units", tab = "nameplates" },
+    partyframes = { key = "units", tab = "partyframes" },
+    raidframes  = { key = "units", tab = "raidframes" },
+
+    castbars    = { key = "combat", tab = "castbars" },
+    resources   = { key = "combat", tab = "resources" },
+    mythicplus  = { key = "combat", tab = "mythicplus" },
+
+    qol         = { key = "comfort", tab = "qol" },
+    housing     = { key = "comfort", tab = "housing" },
+
+    profiles    = { key = "tools", tab = "profiles" },
+    diagnostics = { key = "tools", tab = "diagnostics" },
 }
 
 -- State
@@ -65,11 +95,61 @@ local configFrame
 local currentCategory = nil
 local categoryPanels  = {}
 local categoryButtons = {}
+local activeCategoryPanel = nil
+local hiddenPanelBin = nil
 
 -- =====================================================================
 -- HELPERS
 -- =====================================================================
 local function GetAccent() return T.accent[1], T.accent[2], T.accent[3] end
+
+local function CategoryAccent(cat)
+    local c = cat and cat.accent or T.accent
+    return c[1] or T.accent[1], c[2] or T.accent[2], c[3] or T.accent[3]
+end
+
+local function GetCategory(key)
+    for _, cat in ipairs(categories) do
+        if cat.key == key then return cat end
+    end
+    return nil
+end
+
+local function GetHiddenPanelBin()
+    if hiddenPanelBin then return hiddenPanelBin end
+    hiddenPanelBin = CreateFrame("Frame", nil, UIParent)
+    hiddenPanelBin:SetSize(1, 1)
+    hiddenPanelBin:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", -10000, -10000)
+    hiddenPanelBin:Hide()
+    return hiddenPanelBin
+end
+
+local function ParkPanel(panel)
+    if not panel then return end
+    if panel.Hide then pcall(panel.Hide, panel) end
+    if panel.SetScript then pcall(panel.SetScript, panel, "OnUpdate", nil) end
+    if panel.GetChildren then
+        local children = { panel:GetChildren() }
+        for _, child in ipairs(children) do
+            ParkPanel(child)
+        end
+    end
+    if panel.IsProtected and panel:IsProtected() then return end
+    if panel.ClearAllPoints then pcall(panel.ClearAllPoints, panel) end
+    if panel.SetParent then pcall(panel.SetParent, panel, GetHiddenPanelBin()) end
+end
+
+local function ClearContentArea()
+    if not configFrame or not configFrame.content or not configFrame.content.GetChildren then return end
+
+    local children = { configFrame.content:GetChildren() }
+    for _, child in ipairs(children) do
+        ParkPanel(child)
+    end
+
+    activeCategoryPanel = nil
+    categoryPanels = {}
+end
 
 -- Performance ticker
 local perfTicker
@@ -108,7 +188,7 @@ end
 local NAV_BTN_H = 40   -- légèrement plus grand que les 36px de l'ancien GUI
 
 local function CreateNavButton(parent, cat, yOffset)
-    local aR, aG, aB = GetAccent()
+    local aR, aG, aB = CategoryAccent(cat)
 
     local btn = CreateFrame("Button", nil, parent)
     btn:SetSize(NAV_W, NAV_BTN_H)
@@ -187,6 +267,134 @@ local function CreateNavButton(parent, cat, yOffset)
     return btn
 end
 
+local function CreatePageShell(parent, cat)
+    if not cat or cat.key == "accueil" then
+        return parent, nil
+    end
+
+    local r, g, b = CategoryAccent(cat)
+    local shell = CreateFrame("Frame", nil, parent)
+    shell:SetAllPoints()
+    shell._muiDesign = cat
+
+    local header = CreateFrame("Frame", nil, shell, "BackdropTemplate")
+    header:SetPoint("TOPLEFT", 8, -10)
+    header:SetPoint("TOPRIGHT", -18, -10)
+    header:SetHeight(PAGE_HEAD_H - 18)
+    header:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    header:SetBackdropColor(0.040, 0.038, 0.058, 0.98)
+    header:SetBackdropBorderColor(r, g, b, 0.34)
+
+    local wash = header:CreateTexture(nil, "BACKGROUND", nil, -1)
+    wash:SetPoint("TOPLEFT", 1, -1)
+    wash:SetPoint("BOTTOMRIGHT", -1, 1)
+    if wash.SetGradientAlpha then
+        wash:SetGradientAlpha("HORIZONTAL", r, g, b, 0.16, 0, 0, 0, 0)
+    else
+        wash:SetColorTexture(r, g, b, 0.08)
+    end
+
+    local bar = header:CreateTexture(nil, "ARTWORK")
+    bar:SetWidth(4)
+    bar:SetPoint("TOPLEFT", 0, 0)
+    bar:SetPoint("BOTTOMLEFT", 0, 0)
+    bar:SetColorTexture(r, g, b, 1)
+
+    local icon = header:CreateTexture(nil, "OVERLAY")
+    icon:SetSize(34, 34)
+    icon:SetPoint("LEFT", 18, 0)
+    icon:SetTexture(cat.icon)
+    icon:SetVertexColor(r, g, b, 1)
+
+    local title = header:CreateFontString(nil, "OVERLAY")
+    title:SetFont(FONT_BOLD, 20, "")
+    title:SetPoint("TOPLEFT", icon, "TOPRIGHT", 14, -5)
+    title:SetText(cat.label or "")
+    title:SetTextColor(1, 1, 1, 1)
+
+    local desc = header:CreateFontString(nil, "OVERLAY")
+    desc:SetFont(FONT, 11, "")
+    desc:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
+    desc:SetPoint("RIGHT", -24, 0)
+    desc:SetJustifyH("LEFT")
+    desc:SetText(cat.desc or "")
+    desc:SetTextColor(0.54, 0.54, 0.62, 1)
+
+    local body = CreateFrame("Frame", nil, shell)
+    body:SetPoint("TOPLEFT", 0, -PAGE_HEAD_H)
+    body:SetPoint("BOTTOMRIGHT", 0, 0)
+    body._muiDesign = cat
+
+    return body, shell
+end
+
+local function BuildPanelByName(parent, globalName)
+    local builder = globalName and _G[globalName]
+    if builder then return builder(parent) end
+    return nil
+end
+
+local function BuildGroupedPanel(parent, tabs, defaultKey)
+    local selected = C._pendingGroupTab or defaultKey or (tabs[1] and tabs[1].key)
+    C._pendingGroupTab = nil
+
+    local exists = false
+    for _, tab in ipairs(tabs) do
+        if tab.key == selected then exists = true; break end
+    end
+    if not exists then selected = tabs[1] and tabs[1].key end
+
+    local panel = W.CreateTabPanel(parent, tabs)
+    if panel and selected and panel.SwitchTab then
+        panel.SwitchTab(selected)
+    end
+    return panel
+end
+
+local function BuildInterfacePanel(parent)
+    return BuildGroupedPanel(parent, {
+        { key = "general",    label = "Général",          builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_General") end },
+        { key = "actionbars", label = "Barres d'action",  builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_ActionBars") end },
+        { key = "skins",      label = "Skins",            builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Skins") end },
+        { key = "sound",      label = "Son",              builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Sound") end },
+    }, "general")
+end
+
+local function BuildUnitsPanel(parent)
+    return BuildGroupedPanel(parent, {
+        { key = "unitframes",  label = "UnitFrames", builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_UnitFrames") end },
+        { key = "nameplates",  label = "Nameplates", builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Nameplates") end },
+        { key = "partyframes", label = "Groupe",     builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_PartyFrames") end },
+        { key = "raidframes",  label = "Raid",       builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_RaidFrames") end },
+    }, "unitframes")
+end
+
+local function BuildCombatPanel(parent)
+    return BuildGroupedPanel(parent, {
+        { key = "castbars",   label = "Incantations",  builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Castbars") end },
+        { key = "resources",  label = "CD & Ressource", builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_CooldownResource") end },
+        { key = "mythicplus", label = "Mythic+",       builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_MythicPlus") end },
+    }, "castbars")
+end
+
+local function BuildComfortPanel(parent)
+    return BuildGroupedPanel(parent, {
+        { key = "qol",     label = "Qualité de vie", builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_QOL") end },
+        { key = "housing", label = "Housing",        builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Housing") end },
+    }, "qol")
+end
+
+local function BuildToolsPanel(parent)
+    return BuildGroupedPanel(parent, {
+        { key = "profiles",    label = "Profils",     builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Profiles") end },
+        { key = "diagnostics", label = "Diagnostics", builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Diagnostics") end },
+    }, "profiles")
+end
+
 -- =====================================================================
 -- CREATE MAIN FRAME
 -- =====================================================================
@@ -196,13 +404,14 @@ local function CreateConfigFrame()
     configFrame = CreateFrame("Frame", "TomoModConfigFrame", UIParent, "BackdropTemplate")
     configFrame:SetSize(PANEL_W, PANEL_H)
     configFrame:SetPoint("CENTER")
-    configFrame:SetFrameStrata("HIGH")
+    configFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+    configFrame:SetFrameLevel(500)
     configFrame:SetBackdrop({
         bgFile   = "Interface\\Buttons\\WHITE8x8",
         edgeFile = "Interface\\Buttons\\WHITE8x8",
         edgeSize = 2,
     })
-    configFrame:SetBackdropColor(0.07, 0.07, 0.09, 0.98)
+    configFrame:SetBackdropColor(0.035, 0.035, 0.052, 1)
     configFrame:SetBackdropBorderColor(0.14, 0.14, 0.17, 1)
     configFrame:SetMovable(true)
     configFrame:SetClampedToScreen(true)
@@ -215,16 +424,22 @@ local function CreateConfigFrame()
 
     configFrame:SetScript("OnShow", function(self)
         C.isOpen = true
+        self:SetFrameStrata("FULLSCREEN_DIALOG")
+        self:SetFrameLevel(500)
         StartPerfTicker(self._perfLabel)
-        if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
+        if currentCategory == "units" and TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
             TomoMod_UnitFrames.RefreshThreatPreview(true)
         end
     end)
     configFrame:SetScript("OnHide", function(self)
         C.isOpen = false
         StopPerfTicker()
+        if GameTooltip then GameTooltip:Hide() end
         if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
             TomoMod_UnitFrames.RefreshThreatPreview(false)
+        end
+        if TomoMod_Castbar and TomoMod_Castbar.SetPreview then
+            TomoMod_Castbar.SetPreview(false)
         end
     end)
 
@@ -246,6 +461,7 @@ local function CreateConfigFrame()
     titleLine:SetPoint("TOPLEFT",  0, -TITLE_H)
     titleLine:SetPoint("TOPRIGHT", 0, -TITLE_H)
     titleLine:SetColorTexture(T.accent[1], T.accent[2], T.accent[3], 0.20)
+    configFrame._titleLine = titleLine
 
     -- Gradient wash in header area of content side
     local headerGlow = configFrame:CreateTexture(nil, "BACKGROUND", nil, -2)
@@ -259,13 +475,14 @@ local function CreateConfigFrame()
     else
         headerGlow:SetColorTexture(T.accent[1] * 0.12, T.accent[2] * 0.12, T.accent[3] * 0.12, 0.25)
     end
+    configFrame._headerGlow = headerGlow
 
     -- Logo
     local logo = titleBar:CreateTexture(nil, "OVERLAY")
-    logo:SetSize(28, 28)
-    logo:SetPoint("LEFT", 16, 0)
+    logo:SetSize(32, 32)
+    logo:SetPoint("LEFT", 14, 0)
     logo:SetTexture(ADDON_PATH .. "Assets\\Textures\\Logo.tga")
-    logo:SetVertexColor(T.accent[1], T.accent[2], T.accent[3], 1)
+    logo:SetVertexColor(1, 1, 1, 1)
 
     local titleText = titleBar:CreateFontString(nil, "OVERLAY")
     titleText:SetFont(FONT_BOLD, 16, "")
@@ -277,6 +494,22 @@ local function CreateConfigFrame()
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -2)
     versionText:SetTextColor(0.30, 0.30, 0.35, 1)
     versionText:SetText("v" .. (C_AddOns.GetAddOnMetadata("TomoMod", "Version") or "?"))
+
+    local contextTitle = titleBar:CreateFontString(nil, "OVERLAY")
+    contextTitle:SetFont(FONT_BOLD, 12, "")
+    contextTitle:SetPoint("LEFT", titleText, "RIGHT", 96, 8)
+    contextTitle:SetPoint("RIGHT", -190, 0)
+    contextTitle:SetJustifyH("LEFT")
+    contextTitle:SetTextColor(T.accent[1], T.accent[2], T.accent[3], 1)
+    configFrame._contextTitle = contextTitle
+
+    local contextDesc = titleBar:CreateFontString(nil, "OVERLAY")
+    contextDesc:SetFont(FONT, 10, "")
+    contextDesc:SetPoint("TOPLEFT", contextTitle, "BOTTOMLEFT", 0, -3)
+    contextDesc:SetPoint("RIGHT", -190, 0)
+    contextDesc:SetJustifyH("LEFT")
+    contextDesc:SetTextColor(0.46, 0.46, 0.54, 1)
+    configFrame._contextDesc = contextDesc
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, titleBar)
@@ -291,36 +524,10 @@ local function CreateConfigFrame()
     closeBtn:SetScript("OnLeave", function() closeTxt:SetTextColor(0.36, 0.36, 0.40, 1) end)
     closeBtn:SetScript("OnClick", function() configFrame:Hide() end)
 
-    -- Reload button
-    local rlBtn = CreateFrame("Button", nil, titleBar, "BackdropTemplate")
-    rlBtn:SetSize(50, 26)
-    rlBtn:SetPoint("RIGHT", closeBtn, "LEFT", -6, 0)
-    rlBtn:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
-    rlBtn:SetBackdropColor(0.10, 0.08, 0.04, 0.8)
-    rlBtn:SetBackdropBorderColor(0.45, 0.32, 0.06, 0.6)
-    local rlTxt = rlBtn:CreateFontString(nil, "OVERLAY")
-    rlTxt:SetFont(FONT, 11, "")
-    rlTxt:SetPoint("CENTER")
-    rlTxt:SetText("RL")
-    rlTxt:SetTextColor(0.78, 0.58, 0.16, 1)
-    rlBtn:SetScript("OnEnter", function()
-        rlBtn:SetBackdropBorderColor(1, 0.78, 0.24, 1)
-        rlTxt:SetTextColor(1, 0.86, 0.32, 1)
-        GameTooltip:SetOwner(rlBtn, "ANCHOR_BOTTOM")
-        GameTooltip:SetText(L["btn_reload_ui"] or "Reload UI", 1, 1, 1)
-        GameTooltip:Show()
-    end)
-    rlBtn:SetScript("OnLeave", function()
-        rlBtn:SetBackdropBorderColor(0.45, 0.32, 0.06, 0.6)
-        rlTxt:SetTextColor(0.78, 0.58, 0.16, 1)
-        GameTooltip:Hide()
-    end)
-    rlBtn:SetScript("OnClick", function() ReloadUI() end)
-
     -- Layout button
     local layoutBtn = CreateFrame("Button", nil, titleBar, "BackdropTemplate")
     layoutBtn:SetSize(84, 26)
-    layoutBtn:SetPoint("RIGHT", rlBtn, "LEFT", -6, 0)
+    layoutBtn:SetPoint("RIGHT", closeBtn, "LEFT", -6, 0)
     layoutBtn:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
 
     local function UpdateLayoutStyle()
@@ -514,6 +721,10 @@ local function CreateConfigFrame()
     content:SetPoint("BOTTOMRIGHT", 0,          FOOTER_H)
     configFrame.content = content
 
+    local contentShield = content:CreateTexture(nil, "BACKGROUND", nil, -8)
+    contentShield:SetAllPoints()
+    contentShield:SetColorTexture(0.032, 0.032, 0.048, 0.985)
+
     -- ==============================================================
     -- FOOTER
     -- ==============================================================
@@ -536,7 +747,7 @@ local function CreateConfigFrame()
     hintTxt:SetFont(FONT, 9, "")
     hintTxt:SetPoint("LEFT", NAV_W + 14, 0)
     hintTxt:SetTextColor(0.24, 0.24, 0.28, 1)
-    hintTxt:SetText(L["ui_footer_hint"] or "/tm  ·  /tm sr pour déplacer les éléments")
+    hintTxt:SetText(L["ui_footer_hint"] or "/mui  ·  /mui sr pour déplacer les éléments")
 
     local perfLabel = footer:CreateFontString(nil, "OVERLAY")
     perfLabel:SetFont(FONT, 9, "")
@@ -549,43 +760,74 @@ end
 -- SWITCH CATEGORY
 -- =====================================================================
 function C.SwitchCategory(key)
-    if currentCategory == key then return end
-    for _, panel in pairs(categoryPanels) do panel:Hide() end
+    if W and W.CloseDropdowns then W.CloseDropdowns() end
+
+    local alias = categoryAliases[key]
+    if alias then
+        C._pendingGroupTab = alias.tab
+        key = alias.key
+    end
+
+    local catMeta = GetCategory(key)
+    if W and W.SetPanelContext then W.SetPanelContext(catMeta) end
+    local cr, cg, cb = CategoryAccent(catMeta)
+
+    if currentCategory == "units" and key ~= "units"
+        and TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
+        TomoMod_UnitFrames.RefreshThreatPreview(false)
+    end
+
+    if configFrame then
+        if configFrame._contextTitle then
+            configFrame._contextTitle:SetText(catMeta and catMeta.label or "")
+            configFrame._contextTitle:SetTextColor(cr, cg, cb, 1)
+        end
+        if configFrame._contextDesc then
+            configFrame._contextDesc:SetText(catMeta and catMeta.desc or "")
+        end
+        if configFrame._titleLine then
+            configFrame._titleLine:SetColorTexture(cr, cg, cb, 0.35)
+        end
+        if configFrame._headerGlow then
+            if configFrame._headerGlow.SetGradientAlpha then
+                configFrame._headerGlow:SetGradientAlpha("VERTICAL", cr * 0.12, cg * 0.12, cb * 0.12, 0.40, 0, 0, 0, 0)
+            else
+                configFrame._headerGlow:SetColorTexture(cr * 0.12, cg * 0.12, cb * 0.12, 0.25)
+            end
+        end
+    end
+
+    ClearContentArea()
 
     for catKey, btn in pairs(categoryButtons) do
         btn.SetActive(catKey == key)
     end
 
-    if not categoryPanels[key] then
-        local builderMap = {
-            accueil    = "TomoMod_ConfigPanel_Accueil",
-            general    = "TomoMod_ConfigPanel_General",
-            unitframes = "TomoMod_ConfigPanel_UnitFrames",
-            nameplates = "TomoMod_ConfigPanel_Nameplates",
-            castbars   = "TomoMod_ConfigPanel_Castbars",
-            partyframes = "TomoMod_ConfigPanel_PartyFrames",
-            raidframes  = "TomoMod_ConfigPanel_RaidFrames",
-            resources  = "TomoMod_ConfigPanel_CooldownResource",
-            actionbars = "TomoMod_ConfigPanel_ActionBars",
-            sound      = "TomoMod_ConfigPanel_Sound",
-            qol        = "TomoMod_ConfigPanel_QOL",
-            skins      = "TomoMod_ConfigPanel_Skins",
-            mythicplus = "TomoMod_ConfigPanel_MythicPlus",
-            housing    = "TomoMod_ConfigPanel_Housing",
-            profiles   = "TomoMod_ConfigPanel_Profiles",
-            diagnostics = "TomoMod_ConfigPanel_Diagnostics",
-        }
-        local builder = builderMap[key] and _G[builderMap[key]]
-        if builder then
-            local panel = builder(configFrame.content)
-            if panel then
-                panel:SetAllPoints(configFrame.content)
-                categoryPanels[key] = panel
-            end
+    local builderMap = {
+        accueil   = "TomoMod_ConfigPanel_Accueil",
+        interface = BuildInterfacePanel,
+        units     = BuildUnitsPanel,
+        combat    = BuildCombatPanel,
+        comfort   = BuildComfortPanel,
+        tools     = BuildToolsPanel,
+    }
+    local builder = builderMap[key]
+    if type(builder) == "string" then builder = _G[builder] end
+    if builder then
+        local bodyParent, shell = CreatePageShell(configFrame.content, catMeta)
+        local panel = builder(bodyParent)
+        if panel then
+            if W and W.ApplyPanelContext then W.ApplyPanelContext(panel, catMeta) end
+            panel:SetAllPoints(bodyParent)
+            activeCategoryPanel = shell or panel
+            categoryPanels[key] = activeCategoryPanel
         end
     end
 
-    if categoryPanels[key] then categoryPanels[key]:Show() end
+    if activeCategoryPanel then activeCategoryPanel:Show() end
+    if key == "units" and TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
+        TomoMod_UnitFrames.RefreshThreatPreview(true)
+    end
     currentCategory = key
 end
 

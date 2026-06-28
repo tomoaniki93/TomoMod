@@ -2481,4 +2481,21 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_312_brand"]         = "Brand color updated from #0cd29f to #2ed884 (mint green) across the entire UI — title bar, panels, chat messages, popups and default color values.",
     ["wn_312_brand_api"]     = "New TomoMod_Utils.BRAND / BRAND_DARK / BRAND_HOVER constants centralise the accent color: Config panels and the Widget theme now read from a single source of truth.",
     ["wn_312_companion_fix"] = "CompanionStatus: fixed a global variable leak (UpdateIcon was declared without 'local').",
+
+    -- 3.1.3
+    ["wn_313_nav"]        = "Config UI redesigned: 16 panels consolidated into 6 grouped categories (Interface, Units, Combat, Comfort, Tools), each with its own accent color and a page header.",
+    ["wn_313_accent"]     = "Widgets now auto-adopt the accent color of their host panel — cards, headers, separators, checkboxes, buttons and tabs all react to the active category context.",
+    ["wn_313_segmented"]  = "New SegmentedControl widget replaces short dropdowns (Bag Bar, Micro Menu, Chat Skin, Bag Layout, Sort, Audio Channel).",
+    ["wn_313_dashboard"]  = "Accueil dashboard rewritten: hero banner with live diagnostics status, quick-action shortcuts (Forge, Profiles, Diagnostics, Reload) and redesigned module toggles.",
+    ["wn_313_np_preview"] = "Nameplates: new live preview panel at the top of the config — shows ally, hostile and boss plates, updates in real-time as you adjust width, height, cast bar and font size.",
+    ["wn_313_loot_filter"] = "Loot class filter fix: items missing from the IDB (e.g. new raid drops) now fall back to armor-type matching instead of being shown for all classes.",
+    ["wn_313_sporefall"]   = "Loot data: Sporefall raid (ejEncounterID 2711) added with 15 items from KeystoneLoot build 12.0.7.",
+    ["wn_313_diag"]       = "Diagnostics: 7 new UIError exclusion keywords (merchant, mount, inventory, delete, upgrade, appearance, duel) + console now always appears above the config menu.",
+
+    -- Nameplates preview
+    ["np_preview_title"]   = "Nameplate Preview",
+    ["np_preview_hint"]    = "Quick readability: color, cast bar, auras and threat all in one place.",
+    ["preview_np_friendly"] = "Ally",
+    ["preview_np_target"]  = "Hostile target",
+    ["preview_np_boss"]    = "Marked boss",
 })

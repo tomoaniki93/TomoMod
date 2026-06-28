@@ -52,6 +52,40 @@ local function SC(tex, colorTable)
     end
 end
 
+function W.CloseDropdowns()
+    if W._openDropdown then
+        W._openDropdown:Hide()
+        W._openDropdown = nil
+    end
+end
+
+function W.SetPanelContext(context)
+    W._panelContext = context
+end
+
+function W.ApplyPanelContext(frame, context)
+    if frame and context then frame._muiDesign = context end
+end
+
+local function FindDesign(parent)
+    local f = parent
+    while f do
+        if f._muiDesign then return f._muiDesign end
+        f = f.GetParent and f:GetParent() or nil
+    end
+    return W._panelContext or {}
+end
+
+local function Accent(parent)
+    local design = FindDesign(parent)
+    local c = design.accent or T.accent
+    return c[1] or T.accent[1], c[2] or T.accent[2], c[3] or T.accent[3]
+end
+
+local function SoftColor(r, g, b, factor, alpha)
+    return { r * factor, g * factor, b * factor, alpha or 1 }
+end
+
 -- =====================================================================
 -- SCROLL PANEL
 -- =====================================================================
@@ -63,6 +97,7 @@ function W.CreateScrollPanel(parent)
 
     local container = CreateFrame("Frame", nil, parent)
     container:SetAllPoints()
+    container._muiDesign = FindDesign(parent)
 
     local track = container:CreateTexture(nil, "BACKGROUND")
     track:SetWidth(SCROLLBAR_W)
@@ -84,6 +119,7 @@ function W.CreateScrollPanel(parent)
     local child = CreateFrame("Frame", nil, scroll)
     child:SetWidth(scroll:GetWidth() or 760)
     child:SetHeight(1)
+    child._muiDesign = FindDesign(parent)
     scroll:SetScrollChild(child)
 
     local function UpdateThumb()
@@ -155,23 +191,30 @@ end
 -- =====================================================================
 function W.CreateSectionHeader(parent, text, yOffset)
     local STRIP_H = 28
+    local r, g, b = Accent(parent)
 
     local strip = parent:CreateTexture(nil, "BACKGROUND")
     strip:SetHeight(STRIP_H)
     strip:SetPoint("TOPLEFT",  8,  yOffset)
     strip:SetPoint("TOPRIGHT", -8, yOffset)
-    strip:SetColorTexture(T.accent[1] * 0.10, T.accent[2] * 0.10, T.accent[3] * 0.10, 1)
+    strip:SetColorTexture(0.045 + r * 0.035, 0.045 + g * 0.030, 0.060 + b * 0.035, 1)
 
     local bar = parent:CreateTexture(nil, "ARTWORK")
     bar:SetWidth(3)
     bar:SetHeight(STRIP_H)
     bar:SetPoint("TOPLEFT", 8, yOffset)
-    SC(bar, T.accent)
+    bar:SetColorTexture(r, g, b, 1)
+
+    local topLine = parent:CreateTexture(nil, "ARTWORK")
+    topLine:SetHeight(1)
+    topLine:SetPoint("TOPLEFT", 8, yOffset)
+    topLine:SetPoint("TOPRIGHT", -8, yOffset)
+    topLine:SetColorTexture(r, g, b, 0.52)
 
     local lbl = parent:CreateFontString(nil, "OVERLAY")
     lbl:SetFont(FONT_BOLD, 12, "")
     lbl:SetPoint("LEFT", bar, "RIGHT", 7, 0)
-    SC(lbl, T.textHeader)
+    lbl:SetTextColor(r, g, b, 1)
     lbl:SetText(text)
 
     return lbl, yOffset - STRIP_H - 8
@@ -185,6 +228,7 @@ end
 --        W.FinalizeCard(card, cy)
 -- =====================================================================
 function W.CreateCard(parent, title, yOffset)
+    local r, g, b = Accent(parent)
     local card = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     card:SetPoint("TOPLEFT",  8,  yOffset)
     card:SetPoint("TOPRIGHT", -8, yOffset)
@@ -194,15 +238,25 @@ function W.CreateCard(parent, title, yOffset)
         edgeFile = "Interface\\Buttons\\WHITE8x8",
         edgeSize = 1,
     })
-    card:SetBackdropColor(T.cardBg[1], T.cardBg[2], T.cardBg[3], T.cardBg[4])
-    card:SetBackdropBorderColor(T.cardBorder[1], T.cardBorder[2], T.cardBorder[3], T.cardBorder[4])
+    card._muiDesign = FindDesign(parent)
+    card:SetBackdropColor(0.052, 0.050, 0.070, 0.98)
+    card:SetBackdropBorderColor(r, g, b, 0.28)
 
     -- Left accent thin stripe
     local accentBar = card:CreateTexture(nil, "ARTWORK")
-    accentBar:SetWidth(2)
+    accentBar:SetWidth(3)
     accentBar:SetPoint("TOPLEFT",    0, -1)
     accentBar:SetPoint("BOTTOMLEFT", 0,  1)
-    SC(accentBar, T.accentDark)
+    accentBar:SetColorTexture(r, g, b, 0.92)
+
+    local glow = card:CreateTexture(nil, "BACKGROUND", nil, -1)
+    glow:SetPoint("TOPLEFT", 1, -1)
+    glow:SetPoint("BOTTOMRIGHT", -1, 1)
+    if glow.SetGradientAlpha then
+        glow:SetGradientAlpha("HORIZONTAL", r, g, b, 0.12, 0, 0, 0, 0)
+    else
+        glow:SetColorTexture(r, g, b, 0.06)
+    end
 
     local titleLbl
     local innerStartY
@@ -212,19 +266,20 @@ function W.CreateCard(parent, title, yOffset)
         titleBg:SetHeight(24)
         titleBg:SetPoint("TOPLEFT",  1, -1)
         titleBg:SetPoint("TOPRIGHT", -1, -1)
-        titleBg:SetColorTexture(T.accent[1] * 0.08, T.accent[2] * 0.08, T.accent[3] * 0.08, 1)
+        titleBg:SetColorTexture(0.040 + r * 0.035, 0.038 + g * 0.030, 0.055 + b * 0.035, 1)
 
         titleLbl = card:CreateFontString(nil, "OVERLAY")
         titleLbl:SetFont(FONT_BOLD, 11, "")
         titleLbl:SetPoint("TOPLEFT", 10, -6)
         titleLbl:SetText(title)
-        SC(titleLbl, T.textHeader)
+        titleLbl:SetTextColor(r, g, b, 1)
+        card.title = titleLbl
 
         local titleSep = card:CreateTexture(nil, "ARTWORK")
         titleSep:SetHeight(1)
         titleSep:SetPoint("TOPLEFT",  1, -24)
         titleSep:SetPoint("TOPRIGHT", -1, -24)
-        titleSep:SetColorTexture(T.border[1], T.border[2], T.border[3], 0.5)
+        titleSep:SetColorTexture(r, g, b, 0.24)
 
         innerStartY = -30
     else
@@ -268,11 +323,12 @@ end
 -- SEPARATOR
 -- =====================================================================
 function W.CreateSeparator(parent, yOffset)
+    local r, g, b = Accent(parent)
     local sep = parent:CreateTexture(nil, "ARTWORK")
     sep:SetHeight(1)
     sep:SetPoint("TOPLEFT",  16, yOffset - 4)
     sep:SetPoint("TOPRIGHT", -16, yOffset - 4)
-    SC(sep, T.separator)
+    sep:SetColorTexture(r, g, b, 0.18)
     return sep, yOffset - 14
 end
 
@@ -280,6 +336,7 @@ end
 -- INFO TEXT  — with subtle ℹ badge
 -- =====================================================================
 function W.CreateInfoText(parent, text, yOffset)
+    local r, g, b = Accent(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetPoint("TOPLEFT",  16, yOffset)
     frame:SetPoint("TOPRIGHT", -16, yOffset)
@@ -287,7 +344,7 @@ function W.CreateInfoText(parent, text, yOffset)
     local dot = frame:CreateTexture(nil, "ARTWORK")
     dot:SetSize(4, 4)
     dot:SetPoint("TOPLEFT", 0, -5)
-    SC(dot, T.accentDark)
+    dot:SetColorTexture(r, g, b, 0.82)
 
     local lbl = frame:CreateFontString(nil, "OVERLAY")
     lbl:SetFont(FONT, 10, "")
@@ -309,6 +366,7 @@ end
 -- CHECKBOX  — pill box with tick
 -- =====================================================================
 function W.CreateCheckbox(parent, text, checked, yOffset, callback)
+    local r, g, b = Accent(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetHeight(26)
     frame:SetPoint("TOPLEFT",  16, yOffset)
@@ -331,7 +389,7 @@ function W.CreateCheckbox(parent, text, checked, yOffset, callback)
     local tick = box:CreateTexture(nil, "OVERLAY")
     tick:SetPoint("TOPLEFT",     2, -2)
     tick:SetPoint("BOTTOMRIGHT", -2,  2)
-    SC(tick, T.accent)
+    tick:SetColorTexture(r, g, b, 1)
 
     -- Label
     local lbl = frame:CreateFontString(nil, "OVERLAY")
@@ -345,8 +403,8 @@ function W.CreateCheckbox(parent, text, checked, yOffset, callback)
     local function UpdateVisual()
         if isChecked then
             tick:Show()
-            box:SetBackdropColor(T.accentBg[1], T.accentBg[2], T.accentBg[3], T.accentBg[4])
-            box:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 0.80)
+            box:SetBackdropColor(r * 0.12, g * 0.12, b * 0.12, 0.24)
+            box:SetBackdropBorderColor(r, g, b, 0.80)
         else
             tick:Hide()
             box:SetBackdropColor(T.bgLight[1], T.bgLight[2], T.bgLight[3], 1)
@@ -372,7 +430,7 @@ function W.CreateCheckbox(parent, text, checked, yOffset, callback)
     end)
     box:SetScript("OnLeave", function()
         if isChecked then
-            box:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 0.80)
+            box:SetBackdropBorderColor(r, g, b, 0.80)
         else
             box:SetBackdropBorderColor(T.border[1], T.border[2], T.border[3], 1)
         end
@@ -492,6 +550,7 @@ end
 -- DROPDOWN  — cleaner arrow + item highlight
 -- =====================================================================
 function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
+    local r, g, b = Accent(parent)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetHeight(46)
     frame:SetPoint("TOPLEFT",  16, yOffset)
@@ -513,7 +572,7 @@ function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
         edgeSize = 1,
     })
     btn:SetBackdropColor(T.bgLight[1], T.bgLight[2], T.bgLight[3], 1)
-    btn:SetBackdropBorderColor(T.border[1], T.border[2], T.border[3], 1)
+    btn:SetBackdropBorderColor(r, g, b, 0.34)
 
     local btnTxt = btn:CreateFontString(nil, "OVERLAY")
     btnTxt:SetFont(FONT, 11, "")
@@ -536,8 +595,9 @@ function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
     end
     btnTxt:SetText(GetDisplayText(selected))
 
-    -- Menu frame
-    local menu = CreateFrame("Frame", nil, btn, "BackdropTemplate")
+    -- Menu frame: parented to UIParent so scroll panels/cards cannot clip it.
+    local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    menu:EnableMouse(true)
     menu:SetPoint("TOPLEFT",  btn, "BOTTOMLEFT",  0, -2)
     menu:SetPoint("TOPRIGHT", btn, "BOTTOMRIGHT", 0, -2)
     menu:SetHeight(#options * 22 + 6)
@@ -547,8 +607,11 @@ function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
         edgeSize = 1,
     })
     menu:SetBackdropColor(T.bgMid[1], T.bgMid[2], T.bgMid[3], 1)
-    menu:SetBackdropBorderColor(T.border[1], T.border[2], T.border[3], 1)
-    menu:SetFrameStrata("DIALOG")
+    menu:SetBackdropBorderColor(r, g, b, 0.45)
+    menu:SetFrameStrata("TOOLTIP")
+    menu:SetFrameLevel(9000)
+    menu:SetToplevel(true)
+    if menu.SetClampedToScreen then menu:SetClampedToScreen(true) end
     menu:Hide()
 
     for i, opt in ipairs(options) do
@@ -567,13 +630,14 @@ function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
         SC(itemTxt, T.text)
         itemTxt:SetText(opt.text)
 
-        item:SetScript("OnEnter", function() itemBg:SetColorTexture(T.accent[1], T.accent[2], T.accent[3], 0.16) end)
+        item:SetScript("OnEnter", function() itemBg:SetColorTexture(r, g, b, 0.16) end)
         item:SetScript("OnLeave", function() itemBg:SetColorTexture(0, 0, 0, 0) end)
         item:SetScript("OnClick", function()
             selected = opt.value
             btnTxt:SetText(opt.text)
             menu:Hide()
-            btn:SetBackdropBorderColor(T.border[1], T.border[2], T.border[3], 1)
+            if W._openDropdown == menu then W._openDropdown = nil end
+            btn:SetBackdropBorderColor(r, g, b, 0.34)
             if callback then callback(opt.value) end
         end)
     end
@@ -581,11 +645,18 @@ function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
     btn:SetScript("OnClick", function()
         if menu:IsShown() then
             menu:Hide()
-            btn:SetBackdropBorderColor(T.border[1], T.border[2], T.border[3], 1)
+            if W._openDropdown == menu then W._openDropdown = nil end
+            btn:SetBackdropBorderColor(r, g, b, 0.34)
         else
+            W.CloseDropdowns()
+            W._openDropdown = menu
+            menu:ClearAllPoints()
+            menu:SetPoint("TOPLEFT",  btn, "BOTTOMLEFT",  0, -2)
+            menu:SetPoint("TOPRIGHT", btn, "BOTTOMRIGHT", 0, -2)
+            menu:SetFrameStrata("TOOLTIP")
+            menu:SetFrameLevel(9000)
             menu:Show()
-            menu:SetFrameLevel(btn:GetFrameLevel() + 50)
-            btn:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 0.70)
+            btn:SetBackdropBorderColor(r, g, b, 0.70)
         end
     end)
     btn:SetScript("OnEnter", function()
@@ -593,20 +664,127 @@ function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
     end)
     btn:SetScript("OnLeave", function()
         if not menu:IsShown() then
-            btn:SetBackdropBorderColor(T.border[1], T.border[2], T.border[3], 1)
+            btn:SetBackdropBorderColor(r, g, b, 0.34)
         end
     end)
 
     frame.SetValue = function(_, val)
         selected = val; btnTxt:SetText(GetDisplayText(val))
     end
+    frame:SetScript("OnHide", function()
+        menu:Hide()
+        if W._openDropdown == menu then W._openDropdown = nil end
+    end)
     return frame, yOffset - 48
+end
+
+-- =====================================================================
+-- SEGMENTED CONTROL — direct choice buttons, no floating menu
+-- =====================================================================
+function W.CreateSegmentedControl(parent, text, options, selected, yOffset, callback, columns)
+    local r, g, b = Accent(parent)
+    local cols = math.max(1, columns or math.min(#options, 3))
+    local gap = 8
+    local rowH = 30
+    local labelH = text and text ~= "" and 18 or 0
+    local rows = math.max(1, math.ceil(#options / cols))
+    local frameH = labelH + rows * rowH + (rows - 1) * gap + 4
+
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetHeight(frameH)
+    frame:SetPoint("TOPLEFT", 16, yOffset)
+    frame:SetPoint("TOPRIGHT", -16, yOffset)
+
+    if text and text ~= "" then
+        local lbl = frame:CreateFontString(nil, "OVERLAY")
+        lbl:SetFont(FONT, 11, "")
+        lbl:SetPoint("TOPLEFT", 0, 0)
+        SC(lbl, T.text)
+        lbl:SetText(text)
+    end
+
+    local buttons = {}
+    local function LayoutButtons()
+        local width = frame:GetWidth() or 0
+        if width < 120 then width = 640 end
+        local cellW = math.floor((width - gap * (cols - 1)) / cols)
+        for _, data in ipairs(buttons) do
+            local x = data.col * (cellW + gap)
+            local y = -(labelH + data.row * (rowH + gap))
+            data.btn:ClearAllPoints()
+            data.btn:SetPoint("TOPLEFT", frame, "TOPLEFT", x, y)
+            data.btn:SetSize(cellW, rowH)
+        end
+    end
+
+    local function Refresh()
+        for _, data in ipairs(buttons) do
+            local active = data.value == selected
+            if active then
+                data.btn:SetBackdropColor(r * 0.18, g * 0.18, b * 0.18, 0.96)
+                data.btn:SetBackdropBorderColor(r, g, b, 0.92)
+                data.line:SetColorTexture(r, g, b, 1)
+                data.label:SetTextColor(1, 1, 1, 1)
+            else
+                data.btn:SetBackdropColor(T.bgLight[1], T.bgLight[2], T.bgLight[3], 0.86)
+                data.btn:SetBackdropBorderColor(r, g, b, 0.28)
+                data.line:SetColorTexture(r, g, b, 0.25)
+                data.label:SetTextColor(T.textDim[1], T.textDim[2], T.textDim[3], 1)
+            end
+        end
+    end
+
+    for i, opt in ipairs(options) do
+        local row = math.floor((i - 1) / cols)
+        local col = (i - 1) % cols
+        local btn = CreateFrame("Button", nil, frame, "BackdropTemplate")
+        btn:SetHeight(rowH)
+        btn:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
+
+        local line = btn:CreateTexture(nil, "ARTWORK")
+        line:SetHeight(2)
+        line:SetPoint("TOPLEFT", 1, -1)
+        line:SetPoint("TOPRIGHT", -1, -1)
+
+        local label = btn:CreateFontString(nil, "OVERLAY")
+        label:SetFont(FONT_BOLD, 10, "")
+        label:SetPoint("LEFT", 8, 0)
+        label:SetPoint("RIGHT", -8, 0)
+        label:SetJustifyH("CENTER")
+        label:SetText(opt.text or tostring(opt.value or ""))
+
+        local data = { btn = btn, line = line, label = label, value = opt.value, row = row, col = col }
+        buttons[#buttons + 1] = data
+
+        btn:SetScript("OnEnter", function()
+            if selected ~= opt.value then
+                btn:SetBackdropBorderColor(r, g, b, 0.60)
+                label:SetTextColor(T.text[1], T.text[2], T.text[3], 1)
+            end
+        end)
+        btn:SetScript("OnLeave", Refresh)
+        btn:SetScript("OnClick", function()
+            selected = opt.value
+            Refresh()
+            if callback then callback(opt.value) end
+        end)
+    end
+
+    Refresh()
+    LayoutButtons()
+    frame:SetScript("OnSizeChanged", LayoutButtons)
+    frame.SetValue = function(_, val)
+        selected = val
+        Refresh()
+    end
+    return frame, yOffset - frameH - 6
 end
 
 -- =====================================================================
 -- BUTTON  — accent fill, invert on hover
 -- =====================================================================
 function W.CreateButton(parent, text, width, yOffset, callback)
+    local r, g, b = Accent(parent)
     local btn = CreateFrame("Button", nil, parent, "BackdropTemplate")
     btn:SetSize(width or 160, 28)
     btn:SetPoint("TOPLEFT", 16, yOffset)
@@ -615,8 +793,14 @@ function W.CreateButton(parent, text, width, yOffset, callback)
         edgeFile = "Interface\\Buttons\\WHITE8x8",
         edgeSize = 1,
     })
-    btn:SetBackdropColor(T.accentDark[1], T.accentDark[2], T.accentDark[3], 0.9)
-    btn:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 0.60)
+    btn:SetBackdropColor(r * 0.20, g * 0.16, b * 0.22, 0.90)
+    btn:SetBackdropBorderColor(r, g, b, 0.60)
+
+    local line = btn:CreateTexture(nil, "ARTWORK")
+    line:SetHeight(2)
+    line:SetPoint("TOPLEFT", 1, -1)
+    line:SetPoint("TOPRIGHT", -1, -1)
+    line:SetColorTexture(r, g, b, 0.85)
 
     local lbl = btn:CreateFontString(nil, "OVERLAY")
     lbl:SetFont(FONT_BOLD, 11, "")
@@ -625,13 +809,13 @@ function W.CreateButton(parent, text, width, yOffset, callback)
     lbl:SetTextColor(1, 1, 1, 1)
 
     btn:SetScript("OnEnter", function()
-        btn:SetBackdropColor(T.accent[1], T.accent[2], T.accent[3], 1)
-        btn:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 1)
+        btn:SetBackdropColor(r, g, b, 1)
+        btn:SetBackdropBorderColor(r, g, b, 1)
         lbl:SetTextColor(0.06, 0.06, 0.08, 1)
     end)
     btn:SetScript("OnLeave", function()
-        btn:SetBackdropColor(T.accentDark[1], T.accentDark[2], T.accentDark[3], 0.9)
-        btn:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 0.60)
+        btn:SetBackdropColor(r * 0.20, g * 0.16, b * 0.22, 0.90)
+        btn:SetBackdropBorderColor(r, g, b, 0.60)
         lbl:SetTextColor(1, 1, 1, 1)
     end)
     btn:SetScript("OnClick", function() if callback then callback() end end)
@@ -755,8 +939,10 @@ end
 -- TAB PANEL
 -- =====================================================================
 function W.CreateTabPanel(parent, tabs)
+    local r, g, b = Accent(parent)
     local wrapper = CreateFrame("Frame", nil, parent)
     wrapper:SetAllPoints()
+    wrapper._muiDesign = FindDesign(parent)
 
     local TABS_PER_ROW = 6
     local totalTabs    = #tabs
@@ -777,26 +963,52 @@ function W.CreateTabPanel(parent, tabs)
     tabBarBtm:SetHeight(1)
     tabBarBtm:SetPoint("BOTTOMLEFT")
     tabBarBtm:SetPoint("BOTTOMRIGHT")
-    tabBarBtm:SetColorTexture(0.14, 0.14, 0.17, 1)
+    tabBarBtm:SetColorTexture(r, g, b, 0.28)
 
     -- Content
     local content = CreateFrame("Frame", nil, wrapper)
     content:SetPoint("TOPLEFT",     0, -(TAB_H * numRows))
     content:SetPoint("BOTTOMRIGHT", 0, 0)
+    content._muiDesign = FindDesign(parent)
 
     local tabButtons = {}
     local tabPanels  = {}
     local currentTab = nil
+    local hiddenBin = CreateFrame("Frame", nil, UIParent)
+    hiddenBin:Hide()
+
+    local function GetPanelWidth()
+        local w = parent:GetWidth() or wrapper:GetWidth() or 810
+        if not w or w < 60 then w = 810 end
+        return w
+    end
+
+    local function ClearContent()
+        if W.CloseDropdowns then W.CloseDropdowns() end
+
+        for _, p in pairs(tabPanels) do
+            if p.Hide then pcall(p.Hide, p) end
+            if p.ClearAllPoints then pcall(p.ClearAllPoints, p) end
+            if p.SetParent then pcall(p.SetParent, p, hiddenBin) end
+        end
+
+        for _, child in ipairs({ content:GetChildren() }) do
+            if child.Hide then pcall(child.Hide, child) end
+            if child.ClearAllPoints then pcall(child.ClearAllPoints, child) end
+            if child.SetParent then pcall(child.SetParent, child, hiddenBin) end
+        end
+
+        tabPanels = {}
+    end
 
     local function SwitchTab(key)
-        if currentTab == key then return end
-        for _, p in pairs(tabPanels) do p:Hide() end
+        ClearContent()
 
         for k, btn in pairs(tabButtons) do
             if k == key then
                 btn.indicator:Show()
-                btn.bg:SetColorTexture(T.accentBg[1], T.accentBg[2], T.accentBg[3], T.accentBg[4])
-                SC(btn.lbl, T.accent)
+                btn.bg:SetColorTexture(r, g, b, 0.13)
+                btn.lbl:SetTextColor(r, g, b, 1)
             else
                 btn.indicator:Hide()
                 btn.bg:SetColorTexture(0, 0, 0, 0)
@@ -804,13 +1016,15 @@ function W.CreateTabPanel(parent, tabs)
             end
         end
 
-        if not tabPanels[key] then
-            for _, tab in ipairs(tabs) do
-                if tab.key == key and tab.builder then
-                    local p = tab.builder(content)
-                    if p then p:SetAllPoints(content); tabPanels[key] = p end
-                    break
+        for _, tab in ipairs(tabs) do
+            if tab.key == key and tab.builder then
+                local p = tab.builder(content)
+                if p then
+                    if p:GetParent() ~= content then p:SetParent(content) end
+                    p:SetAllPoints(content)
+                    tabPanels[key] = p
                 end
+                break
             end
         end
 
@@ -823,7 +1037,7 @@ function W.CreateTabPanel(parent, tabs)
         local row  = math.floor((i - 1) / TABS_PER_ROW)
         local col  = (i - 1) % TABS_PER_ROW
         local tpR  = math.min(TABS_PER_ROW, totalTabs - row * TABS_PER_ROW)
-        local tW   = math.floor((parent:GetWidth() or 810) / tpR)
+        local tW   = math.floor(GetPanelWidth() / tpR)
 
         local btn = CreateFrame("Button", nil, tabBar)
         btn:SetSize(tW, TAB_H)
@@ -838,7 +1052,7 @@ function W.CreateTabPanel(parent, tabs)
         ind:SetHeight(2)
         ind:SetPoint("BOTTOMLEFT",  3, 0)
         ind:SetPoint("BOTTOMRIGHT", -3, 0)
-        SC(ind, T.accent)
+        ind:SetColorTexture(r, g, b, 1)
         ind:Hide()
         btn.indicator = ind
 
@@ -851,7 +1065,7 @@ function W.CreateTabPanel(parent, tabs)
 
         btn:SetScript("OnEnter", function()
             if currentTab ~= tab.key then
-                bg:SetColorTexture(T.accent[1], T.accent[2], T.accent[3], 0.06)
+                bg:SetColorTexture(r, g, b, 0.08)
                 SC(lbl, T.text)
             end
         end)
@@ -868,6 +1082,16 @@ function W.CreateTabPanel(parent, tabs)
     if #tabs > 0 then SwitchTab(tabs[1].key) end
     wrapper.SwitchTab = SwitchTab
     wrapper.content   = content
+    wrapper:SetScript("OnHide", function()
+        ClearContent()
+    end)
+    wrapper:SetScript("OnShow", function()
+        if currentTab then
+            SwitchTab(currentTab)
+        elseif #tabs > 0 then
+            SwitchTab(tabs[1].key)
+        end
+    end)
     return wrapper
 end
 
@@ -977,6 +1201,7 @@ end
 -- buttons = { { text, width, cb }, ... }
 -- =====================================================================
 function W.CreateButtonRow(parent, buttons, yOffset)
+    local r, g, blue = Accent(parent)
     local GAP   = 10
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetHeight(32)
@@ -984,36 +1209,35 @@ function W.CreateButtonRow(parent, buttons, yOffset)
     frame:SetPoint("TOPRIGHT", -16, yOffset)
 
     local totalW = 0
-    for _, b in ipairs(buttons) do totalW = totalW + (b.width or 140) + GAP end
+    for _, def in ipairs(buttons) do totalW = totalW + (def.width or 140) + GAP end
     totalW = totalW - GAP
 
     local x = 0
-    for _, b in ipairs(buttons) do
-        local w = b.width or 140
+    for _, def in ipairs(buttons) do
+        local w = def.width or 140
         local btn = CreateFrame("Button", nil, frame, "BackdropTemplate")
         btn:SetSize(w, 28)
         btn:SetPoint("LEFT", x, 0)
         btn:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
 
-        local T2 = W.Theme
-        btn:SetBackdropColor(T2.accentDark[1], T2.accentDark[2], T2.accentDark[3], 0.9)
-        btn:SetBackdropBorderColor(T2.accent[1], T2.accent[2], T2.accent[3], 0.60)
+        btn:SetBackdropColor(r * 0.20, g * 0.16, blue * 0.22, 0.9)
+        btn:SetBackdropBorderColor(r, g, blue, 0.60)
 
         local lbl = btn:CreateFontString(nil, "OVERLAY")
         lbl:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf", 11, "")
         lbl:SetPoint("CENTER")
-        lbl:SetText(b.text)
+        lbl:SetText(def.text)
         lbl:SetTextColor(1, 1, 1, 1)
 
         btn:SetScript("OnEnter", function()
-            btn:SetBackdropColor(T2.accent[1], T2.accent[2], T2.accent[3], 1)
+            btn:SetBackdropColor(r, g, blue, 1)
             lbl:SetTextColor(0.06, 0.06, 0.08, 1)
         end)
         btn:SetScript("OnLeave", function()
-            btn:SetBackdropColor(T2.accentDark[1], T2.accentDark[2], T2.accentDark[3], 0.9)
+            btn:SetBackdropColor(r * 0.20, g * 0.16, blue * 0.22, 0.9)
             lbl:SetTextColor(1, 1, 1, 1)
         end)
-        btn:SetScript("OnClick", function() if b.cb then b.cb() end end)
+        btn:SetScript("OnClick", function() if def.cb then def.cb() end end)
 
         x = x + w + GAP
     end

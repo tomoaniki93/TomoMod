@@ -29,7 +29,7 @@ local function BuildChatFrameTab(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateDropdown(c, L["opt_chat_skin_style"], {
+    local _, ny = W.CreateSegmentedControl(c, L["opt_chat_skin_style"], {
         { text = L["opt_chat_skin_style_tui"],     value = "tui" },
         { text = L["opt_chat_skin_style_classic"],  value = "classic" },
         { text = L["opt_chat_skin_style_glass"],    value = "glass" },
@@ -37,7 +37,7 @@ local function BuildChatFrameTab(parent)
     }, TomoModDB.chatFrameSkin.skinStyle or "tui", y, function(v)
         TomoModDB.chatFrameSkin.skinStyle = v
         if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
-    end)
+    end, 2)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_chat_skin_bg_alpha"], (TomoModDB.chatFrameSkin.bgAlpha or 0.70) * 100, 0, 100, 5, y, function(v)
@@ -212,18 +212,18 @@ local function BuildBagsTab(parent)
     y = ny
 
     -- Layout mode (GW2_UI-inspired: combined / categories / separate bags)
-    local _, ny = W.CreateDropdown(c, (L and L["opt_skin_bags_layout_mode"]) or "Layout Mode", {
+    local _, ny = W.CreateSegmentedControl(c, (L and L["opt_skin_bags_layout_mode"]) or "Layout Mode", {
         { text = (L and L["opt_skin_bags_layout_combined"])   or "Combined Grid",  value = "combined" },
         { text = (L and L["opt_skin_bags_layout_categories"]) or "Categories",     value = "categories" },
         { text = (L and L["opt_skin_bags_layout_separate"])   or "Separate Bags",  value = "separateBags" },
     }, db.layoutMode or "combined", y, function(v)
         db.layoutMode = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
+    end, 3)
     y = ny
 
     -- Sort mode
-    local _, ny = W.CreateDropdown(c, L["opt_skin_bags_sort_mode"], {
+    local _, ny = W.CreateSegmentedControl(c, L["opt_skin_bags_sort_mode"], {
         { text = L["opt_skin_bags_sort_none"],    value = "none" },
         { text = L["opt_skin_bags_sort_quality"], value = "quality" },
         { text = L["opt_skin_bags_sort_name"],    value = "name" },
@@ -233,7 +233,7 @@ local function BuildBagsTab(parent)
     }, db.sortMode or "quality", y, function(v)
         db.sortMode = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
+    end, 3)
     y = ny
 
     local _, ny = W.CreateSeparator(c, y)

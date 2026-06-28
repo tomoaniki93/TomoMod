@@ -2258,4 +2258,21 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_312_brand"]         = "Akzentfarbe von #0cd29f auf #2ed884 (Mintgrün) in der gesamten Benutzeroberfläche aktualisiert — Titelleiste, Panels, Chat-Nachrichten, Popups und Standard-Farbwerte.",
     ["wn_312_brand_api"]     = "Neue TomoMod_Utils.BRAND / BRAND_DARK / BRAND_HOVER-Konstanten zentralisieren die Akzentfarbe: Konfigurationspanels und das Widget-Theme lesen jetzt aus einer einzigen Quelle.",
     ["wn_312_companion_fix"] = "CompanionStatus: Globale Variable behoben (UpdateIcon wurde ohne 'local' deklariert).",
+
+    -- 3.1.3
+    ["wn_313_nav"]        = "Konfigurations-UI überarbeitet: 16 Panels in 6 Gruppen zusammengefasst (Interface, Einheiten, Kampf, Komfort, Werkzeuge), jede mit eigener Akzentfarbe und Seitenkopf.",
+    ["wn_313_accent"]     = "Widgets übernehmen jetzt automatisch die Akzentfarbe ihres übergeordneten Panels — Karten, Überschriften, Trennlinien, Checkboxen, Buttons und Tabs reagieren auf den aktiven Kategoriekontext.",
+    ["wn_313_segmented"]  = "Neues SegmentedControl-Widget ersetzt kurze Dropdowns (Taschenleiste, Micro-Menü, Chat-Skin, Taschen-Layout, Sortierung, Audiokanal).",
+    ["wn_313_dashboard"]  = "Startseite komplett neu gestaltet: Hero-Banner mit Live-Diagnosestatus, Schnellzugriff-Buttons (Schmiede, Profile, Diagnose, Neu laden) und überarbeitete Modul-Schalter.",
+    ["wn_313_np_preview"] = "Nameplatten: Neue Live-Vorschau oben im Konfigurationspanel — zeigt Verbündete, feindliches Ziel und Boss, aktualisiert sich beim Ändern von Breite, Höhe, Cast-Leiste und Schriftgröße.",
+    ["wn_313_loot_filter"] = "Beute-Klassenfilter behoben: Gegenstände ohne IDB-Eintrag (z. B. neue Raid-Drops) nutzen jetzt Rüstungstyp-Abgleich statt für alle Klassen sichtbar zu sein.",
+    ["wn_313_sporefall"]   = "Beutedaten: Sporefall-Schlachtzug (ejEncounterID 2711) mit 15 Gegenständen aus KeystoneLoot Build 12.0.7 hinzugefügt.",
+    ["wn_313_diag"]       = "Diagnose: 7 neue UIError-Ausschluss-Schlüsselwörter (Händler, Reittier, Inventar, Löschen, Aufwertung, Aussehen, Duell) + Konsole erscheint jetzt immer über dem Konfigurationsmenü.",
+
+    -- Nameplates preview
+    ["np_preview_title"]   = "Nameplates-Vorschau",
+    ["np_preview_hint"]    = "Schnelle Lesbarkeit: Farbe, Cast-Leiste, Auren und Bedrohung auf einen Blick.",
+    ["preview_np_friendly"] = "Verbündeter",
+    ["preview_np_target"]  = "Feindliches Ziel",
+    ["preview_np_boss"]    = "Markierter Boss",
 })

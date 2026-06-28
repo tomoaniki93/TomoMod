@@ -1,5 +1,62 @@
 ## ####################################
 
+## CHANGELOG 3.1.3 — Grouped Navigation, Accent Context & SegmentedControl
+
+#### Config UI — Grouped Navigation (6 Categories)
+- **Change** — The 16 individual nav buttons have been consolidated into 6 top-level groups: **Accueil**, **Interface** (General, Action Bars, Skins, Sound), **Units** (UnitFrames, Nameplates, Party, Raid), **Combat** (Castbars, CD & Resource, Mythic+), **Comfort** (QOL, Housing) and **Tools** (Profiles, Diagnostics). Each group opens a tabbed sub-panel.
+- **New** — Each category carries its own accent color. The title bar accent line, header glow and context label all update to match the active category.
+- **New** — `CreatePageShell` injects a header above each grouped panel: icon, title and description rendered in the category accent color.
+- **New** — `categoryAliases` map: calling `SwitchCategory` with a legacy key (e.g. `"general"`, `"raidframes"`) automatically redirects to the correct group and pre-selects the right tab — full backward compatibility.
+
+#### Widgets — Per-Panel Accent Context
+- **New** — `W.SetPanelContext` / `W.ApplyPanelContext` / `FindDesign(parent)` — widgets walk up the parent chain to find the nearest `_muiDesign` context. Cards, section headers, separators, checkboxes, dropdowns, buttons and tab panels all automatically adopt the accent color of their host panel with no extra parameters.
+- **Change** — All widget draw calls (`CreateCard`, `CreateSectionHeader`, `CreateSeparator`, `CreateInfoText`, `CreateCheckbox`, `CreateDropdown`, `CreateButton`, `CreateButtonRow`, `CreateTabPanel`) derive their accent RGB from context rather than the global `T.accent`.
+
+#### Widgets — New SegmentedControl
+- **New** — `W.CreateSegmentedControl(parent, text, options, selected, yOffset, callback, columns)` — a compact row of toggle buttons replacing short dropdowns (2–3 options). Supports multi-row layouts, adapts to parent width on resize, and uses the panel accent color for the active segment.
+
+#### Widgets — Dropdown Improvements
+- **Fix** — Dropdown menus are now parented to `UIParent` at strata `TOOLTIP` / level 9000, preventing them from being clipped inside scroll panels or cards.
+- **New** — `W.CloseDropdowns()` closes any open dropdown when switching panels or hiding a frame. Dropdowns also self-close on `OnHide`.
+
+#### Widgets — Tab Panel Rebuild
+- **Change** — Tab content is fully destroyed and rebuilt on every tab switch (`ClearContent`), preventing stale panels from lingering in the frame hierarchy. `OnHide`/`OnShow` hooks ensure content is properly recycled when the wrapper is hidden.
+
+#### QOL / Skins / Sound — SegmentedControl Replacements
+- **Change** — Bag Bar mode, Micro Menu mode → `SegmentedControl` (2 columns) in the **QOL** panel.
+- **Change** — Chat skin style, Bag layout mode, Bag sort mode → `SegmentedControl` (2–3 columns) in the **Skins** panel.
+- **Change** — Audio channel selector → `SegmentedControl` (3 columns) in the **Sound** panel.
+
+#### Diagnostics — UIError Exclusion Keywords
+- **New** — 7 new UIError keyword groups added to the exclusion filter (from session report #605): merchant not interested, on a mount, can't carry more items, can't delete item, item can't be upgraded, already have that appearance, target engaged in a duel. Each entry covers FR / EN / DE / ES variants.
+
+#### Diagnostics — Console Always on Top
+- **Fix** — The diagnostic console strata raised from `DIALOG` (level 200) to `FULLSCREEN_DIALOG` (level 600, `SetToplevel(true)`), so it always renders above the config menu when both are open.
+
+#### Accueil — Dashboard Rewrite
+- **Change** — The Accueil panel has been completely rewritten as a mission-control dashboard.
+- **New** — **Hero banner**: TomoMod logo, active module count and a live diagnostics status badge (`Ready` / `Check` / `External`) driven by `TomoMod_Diagnostics`. Hovering the badge shows a tooltip with the issue count.
+- **New** — **Quick action row**: four shortcut buttons — Astral Forge, Profiles, Diagnostics, Reload — for the most common tasks without leaving the dashboard.
+- **Change** — Module toggles redesigned as compact on/off rows; preset and profile sections retained with updated copy.
+- **Fix** — `StaticPopupDialogs` key renamed from `MYSTICALUI_MODULE_RELOAD` to `TOMOMOD_MODULE_RELOAD` to avoid naming conflicts with other addons.
+
+#### Loot — Class Filter Fix (Armor Type Fallback)
+- **Fix** — Items absent from `TomoMod_ItemClasses` (e.g. new raid drops like Sporefall) were treated as class-universal and shown for all classes, causing plate/mail/leather/cloth pieces to appear for incompatible classes.
+- **New** — `ArmorTypeMatches(itemID, classID)` helper refactored as a dedicated function: correctly handles **shields** (Warrior / Paladin / Shaman only via `SHIELD_CLASSES`), **cloaks** (always visible despite Cloth sub-type) and generic armor (ring, neck, trinket — always visible).
+- **Change** — When an item has no entry in the IDB, the fallback now applies `ArmorTypeMatches` instead of assuming universal.
+- **Change** — Both code paths (IDB loaded / IDB absent) now share the same `ArmorTypeMatches` logic, removing the duplicated inline fallback.
+
+#### Loot Data — Sporefall Raid
+- **New** — Sporefall raid (`journalInstanceId` 1305, `ejEncounterID` 2711) added to `TLD.raidBosses` with 15 item IDs from the KeystoneLoot dataset (build 12.0.7, 2026-06-17).
+
+#### Nameplates — Live Preview Panel
+- **New** — A **live preview** is injected at the top of the Nameplates config panel, showing three representative plates: a friendly ally, a hostile target (with cast bar) and a marked boss.
+- **New** — The preview reacts in real-time to bar width, bar height, cast bar height, cast bar visibility and name font size changes — no reload required to see the effect.
+- **New** — Preview is clip-guarded (`SetClipsChildren`) so oversized bar values can never overflow the card boundary.
+- **New** — `TomoMod_NameplatesPreviewRefresh()` global hook called automatically after any nameplate setting change.
+
+## ####################################
+
 ## CHANGELOG 3.1.2 — Brand Color Refresh & Code Fixes
 
 #### UI — Brand Color Updated (#0cd29f → #2ed884)

@@ -626,28 +626,24 @@ local function BuildBagMicroMenuTab(parent)
     -- Bag Bar
     local _, ny = W.CreateSeparator(c, y)
     y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_bag_bar"], y)
-    y = ny
 
     local bagModeOptions = {
         { value = "show",  text = L["mode_show"] },
         { value = "hover", text = L["mode_hover"] },
     }
 
-    local _, ny = W.CreateDropdown(c, L["opt_bag_bar_mode"],
+    local _, ny = W.CreateSegmentedControl(c, L["opt_bag_bar_mode"],
         bagModeOptions,
         TomoModDB.bagMicroMenu and TomoModDB.bagMicroMenu.bagBarMode or "show",
         y, function(v)
         if not TomoModDB.bagMicroMenu then TomoModDB.bagMicroMenu = {} end
         TomoModDB.bagMicroMenu.bagBarMode = v
         if TomoMod_BagMicroMenu then TomoMod_BagMicroMenu.SetBagBarMode(v) end
-    end)
+    end, 2)
     y = ny
 
     -- Micro Menu
     local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_micro_menu"], y)
     y = ny
 
     local microModeOptions = {
@@ -655,14 +651,14 @@ local function BuildBagMicroMenuTab(parent)
         { value = "hover", text = L["mode_hover"] },
     }
 
-    local _, ny = W.CreateDropdown(c, L["opt_micro_menu_mode"],
+    local _, ny = W.CreateSegmentedControl(c, L["opt_micro_menu_mode"],
         microModeOptions,
         TomoModDB.bagMicroMenu and TomoModDB.bagMicroMenu.microMenuMode or "show",
         y, function(v)
         if not TomoModDB.bagMicroMenu then TomoModDB.bagMicroMenu = {} end
         TomoModDB.bagMicroMenu.microMenuMode = v
         if TomoMod_BagMicroMenu then TomoMod_BagMicroMenu.SetMicroMenuMode(v) end
-    end)
+    end, 2)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
