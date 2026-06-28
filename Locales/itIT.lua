@@ -1488,7 +1488,9 @@ TomoMod_RegisterLocale("itIT", {
     ["info_tooltip_skin_reload"]         = "Alcune modifiche richiedono di passare il cursore su un nuovo bersaglio.",
     ["opt_tooltip_bg_alpha"]             = "Opacità sfondo",
     ["opt_tooltip_border_alpha"]         = "Opacità bordo",
-    ["opt_tooltip_font_size"]            = "Dimensione font",
+    ["opt_tooltip_bg_color"]              = "Colore sfondo",
+    ["opt_tooltip_border_color"]          = "Colore bordo",
+    ["opt_tooltip_font_size"]             = "Dimensione font",
     ["opt_tooltip_hide_healthbar"]       = "Nascondi barra vita",
     ["opt_tooltip_class_color"]          = "Nomi giocatore con colore di classe",
     ["opt_tooltip_hide_server"]          = "Nascondi server nei nomi giocatore",
@@ -2251,11 +2253,25 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_313_nav"]        = "Interfaccia di configurazione riprogettata: 16 pannelli raggruppati in 6 categorie (Interfaccia, Unità, Combattimento, Comfort, Strumenti), ciascuna con colore accento e intestazione dedicati.",
     ["wn_313_accent"]     = "I widget ora adottano automaticamente il colore accento del pannello ospitante — schede, intestazioni, separatori, caselle di controllo, pulsanti e tab si adattano al contesto di categoria attivo.",
     ["wn_313_segmented"]  = "Nuovo widget SegmentedControl sostituisce i menu a tendina brevi (Barra zaini, Micro Menu, Stile chat, Layout zaini, Ordinamento, Canale audio).",
-    ["wn_313_dashboard"]  = "Dashboard Accueil completamente rinnovata: banner hero con stato diagnostica in tempo reale, scorciatoie rapide (Forgia, Profili, Diagnostica, Ricarica) e toggle moduli ridisegnati.",
+    ["wn_313_dashboard"]  = "Dashboard Accueil completamente rinnovata: banner hero con stato diagnostica in tempo reale, scorciatoie rapide (Programma di installazione, Profili, Diagnostica, Ricarica) e toggle moduli ridisegnati.",
     ["wn_313_np_preview"] = "Nameplate: nuovo pannello di anteprima live in cima alla configurazione — mostra alleato, ostile e boss, si aggiorna in tempo reale al variare di larghezza, altezza, barra di cast e dimensione font.",
     ["wn_313_loot_filter"] = "Correzione filtro classe bottino: gli oggetti assenti dall'IDB (es. drop di nuovi raid) ora usano il tipo d'armatura come fallback invece di essere mostrati a tutte le classi.",
     ["wn_313_sporefall"]   = "Dati bottino: raid Sporefall (ejEncounterID 2711) aggiunto con 15 oggetti dal dataset KeystoneLoot build 12.0.7.",
     ["wn_313_diag"]       = "Diagnostica: 7 nuove parole chiave di esclusione UIError (commerciante, cavalcatura, inventario, eliminazione, potenziamento, aspetto, duello) + la console ora appare sempre sopra il menu di configurazione.",
+    ["wn_313_tooltip_anchor"] = "Posizione del tooltip: nuovo sistema di ancoraggio a 4 modalità — Predefinito, Cursore (segue il mouse), Angolo (fisso su un angolo dello schermo) e Personalizzato (cornice trascinabile).",
+
+    -- Ancoraggio tooltip
+    ["opt_tooltip_anchor"]        = "Posizione del tooltip",
+    ["tooltip_anchor_default"]    = "Predefinito",
+    ["tooltip_anchor_cursor"]     = "Cursore",
+    ["tooltip_anchor_corner"]     = "Angolo dello schermo",
+    ["tooltip_anchor_custom"]     = "Personalizzato",
+    ["opt_tooltip_anchor_corner"] = "Angolo (modalità Angolo)",
+    ["corner_br"]                 = "In basso a destra",
+    ["corner_bl"]                 = "In basso a sinistra",
+    ["corner_tr"]                 = "In alto a destra",
+    ["corner_tl"]                 = "In alto a sinistra",
+    ["info_tooltip_anchor"]       = "Personalizzato: seleziona questa modalità e trascina la cornice teal nella posizione desiderata.",
 
     -- Nameplates preview
     ["np_preview_title"]   = "Anteprima nameplate",
@@ -2263,4 +2279,8 @@ TomoMod_RegisterLocale("itIT", {
     ["preview_np_friendly"] = "Alleato",
     ["preview_np_target"]  = "Bersaglio ostile",
     ["preview_np_boss"]    = "Boss segnalato",
+
+    -- 3.1.4
+    ["wn_314_tooltip_anchor"] = "Posizione del tooltip: nuovo sistema a 4 modalità — Predefinito, Cursore (segue il mouse), Angolo (angolo dello schermo) e Personalizzato (cornice trascinabile). Configurabile in Skins → Tooltip.",
+    ["wn_314_locale_fix"]     = "Corrette le etichette di colore del tooltip mancanti: i selettori di colore sfondo e bordo in Skins → Tooltip ora vengono visualizzati correttamente.",
 })

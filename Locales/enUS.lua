@@ -1641,7 +1641,9 @@ TomoMod_RegisterLocale("enUS", {
     ["info_tooltip_skin_reload"]         = "Some changes require hovering a new target.",
     ["opt_tooltip_bg_alpha"]             = "Background opacity",
     ["opt_tooltip_border_alpha"]         = "Border opacity",
-    ["opt_tooltip_font_size"]            = "Font size",
+    ["opt_tooltip_bg_color"]              = "Background color",
+    ["opt_tooltip_border_color"]          = "Border color",
+    ["opt_tooltip_font_size"]             = "Font size",
     ["opt_tooltip_hide_healthbar"]       = "Hide health bar",
     ["opt_tooltip_class_color"]          = "Class-colored player names",
     ["opt_tooltip_hide_server"]          = "Hide server in player names",
@@ -2486,11 +2488,25 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_313_nav"]        = "Config UI redesigned: 16 panels consolidated into 6 grouped categories (Interface, Units, Combat, Comfort, Tools), each with its own accent color and a page header.",
     ["wn_313_accent"]     = "Widgets now auto-adopt the accent color of their host panel — cards, headers, separators, checkboxes, buttons and tabs all react to the active category context.",
     ["wn_313_segmented"]  = "New SegmentedControl widget replaces short dropdowns (Bag Bar, Micro Menu, Chat Skin, Bag Layout, Sort, Audio Channel).",
-    ["wn_313_dashboard"]  = "Accueil dashboard rewritten: hero banner with live diagnostics status, quick-action shortcuts (Forge, Profiles, Diagnostics, Reload) and redesigned module toggles.",
+    ["wn_313_dashboard"]  = "Accueil dashboard rewritten: hero banner with live diagnostics status, quick-action shortcuts (Installer, Profiles, Diagnostics, Reload) and redesigned module toggles.",
     ["wn_313_np_preview"] = "Nameplates: new live preview panel at the top of the config — shows ally, hostile and boss plates, updates in real-time as you adjust width, height, cast bar and font size.",
     ["wn_313_loot_filter"] = "Loot class filter fix: items missing from the IDB (e.g. new raid drops) now fall back to armor-type matching instead of being shown for all classes.",
     ["wn_313_sporefall"]   = "Loot data: Sporefall raid (ejEncounterID 2711) added with 15 items from KeystoneLoot build 12.0.7.",
     ["wn_313_diag"]       = "Diagnostics: 7 new UIError exclusion keywords (merchant, mount, inventory, delete, upgrade, appearance, duel) + console now always appears above the config menu.",
+    ["wn_313_tooltip_anchor"] = "Tooltip position: new 4-mode anchor system — Default, Cursor (follows mouse), Corner (pinned to a screen corner) and Custom (drag-to-place frame).",
+
+    -- Tooltip anchor
+    ["opt_tooltip_anchor"]        = "Tooltip position",
+    ["tooltip_anchor_default"]    = "Default",
+    ["tooltip_anchor_cursor"]     = "Cursor",
+    ["tooltip_anchor_corner"]     = "Screen corner",
+    ["tooltip_anchor_custom"]     = "Custom",
+    ["opt_tooltip_anchor_corner"] = "Corner (corner mode)",
+    ["corner_br"]                 = "Bottom right",
+    ["corner_bl"]                 = "Bottom left",
+    ["corner_tr"]                 = "Top right",
+    ["corner_tl"]                 = "Top left",
+    ["info_tooltip_anchor"]       = "Custom: select this mode then drag the teal frame to the desired position.",
 
     -- Nameplates preview
     ["np_preview_title"]   = "Nameplate Preview",
@@ -2498,4 +2514,8 @@ TomoMod_RegisterLocale("enUS", {
     ["preview_np_friendly"] = "Ally",
     ["preview_np_target"]  = "Hostile target",
     ["preview_np_boss"]    = "Marked boss",
+
+    -- 3.1.4
+    ["wn_314_tooltip_anchor"] = "Tooltip position: new 4-mode anchor — Default, Cursor (follows mouse), Corner (screen corner) and Custom (drag-to-place frame). Configure in Skins → Tooltip.",
+    ["wn_314_locale_fix"]     = "Fixed missing tooltip color labels: background and border color pickers in Skins → Tooltip now display correctly in all languages.",
 })

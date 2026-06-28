@@ -686,6 +686,51 @@ local function BuildTooltipSkinTab(parent)
     end, "%.0f%%")
     y = ny
 
+    -- Couleur du fond / de la bordure (configurable pour éviter que le fond se fonde dans le décor)
+    if not TomoModDB.tooltipSkin.bgColor then TomoModDB.tooltipSkin.bgColor = { r = 0.06, g = 0.06, b = 0.08 } end
+    local _, ny = W.CreateColorPicker(c, L["opt_tooltip_bg_color"] or "Couleur du fond", TomoModDB.tooltipSkin.bgColor, y, function(r, g, b)
+        TomoModDB.tooltipSkin.bgColor.r = r
+        TomoModDB.tooltipSkin.bgColor.g = g
+        TomoModDB.tooltipSkin.bgColor.b = b
+    end)
+    y = ny
+
+    if not TomoModDB.tooltipSkin.borderColor then TomoModDB.tooltipSkin.borderColor = { r = 0.20, g = 0.20, b = 0.24 } end
+    local _, ny = W.CreateColorPicker(c, L["opt_tooltip_border_color"] or "Couleur de la bordure", TomoModDB.tooltipSkin.borderColor, y, function(r, g, b)
+        TomoModDB.tooltipSkin.borderColor.r = r
+        TomoModDB.tooltipSkin.borderColor.g = g
+        TomoModDB.tooltipSkin.borderColor.b = b
+    end)
+    y = ny
+
+    -- Position de l'infobulle (defaut / souris / coin / personnalise)
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateDropdown(c, L["opt_tooltip_anchor"] or "Position de l'infobulle", {
+        { text = L["tooltip_anchor_default"] or "Defaut",          value = "default" },
+        { text = L["tooltip_anchor_cursor"]  or "Souris",          value = "cursor"  },
+        { text = L["tooltip_anchor_corner"]  or "Coin de l'ecran", value = "corner"  },
+        { text = L["tooltip_anchor_custom"]  or "Personnalise",    value = "custom"  },
+    }, TomoModDB.tooltipSkin.anchor or "default", y, function(v)
+        TomoModDB.tooltipSkin.anchor = v
+        if TomoMod_TooltipSkin and TomoMod_TooltipSkin.RefreshAnchor then TomoMod_TooltipSkin.RefreshAnchor() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateDropdown(c, L["opt_tooltip_anchor_corner"] or "Coin (mode Coin)", {
+        { text = L["corner_br"] or "Bas droite",  value = "BOTTOMRIGHT" },
+        { text = L["corner_bl"] or "Bas gauche",  value = "BOTTOMLEFT"  },
+        { text = L["corner_tr"] or "Haut droite", value = "TOPRIGHT"    },
+        { text = L["corner_tl"] or "Haut gauche", value = "TOPLEFT"     },
+    }, TomoModDB.tooltipSkin.anchorCorner or "BOTTOMRIGHT", y, function(v)
+        TomoModDB.tooltipSkin.anchorCorner = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_tooltip_anchor"]
+        or "Personnalise : choisis ce mode puis glisse le cadre teal a l'endroit voulu.", y)
+    y = ny
+
     -- Font size
     local _, ny = W.CreateSlider(c, L["opt_tooltip_font_size"], TomoModDB.tooltipSkin.fontSize or 12, 9, 18, 1, y, function(v)
         TomoModDB.tooltipSkin.fontSize = v

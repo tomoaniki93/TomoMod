@@ -444,6 +444,10 @@ TomoMod_Defaults = {
         enabled = true,
         bgAlpha = 0.92,
         borderAlpha = 0.8,
+        bgColor = { r = 0.06, g = 0.06, b = 0.08 },
+        borderColor = { r = 0.20, g = 0.20, b = 0.24 },
+        anchor = "default",        -- default | cursor | corner | custom
+        anchorCorner = "BOTTOMRIGHT",
         fontSize = 12,
         hideHealthBar = false,
         useClassColorNames = true,

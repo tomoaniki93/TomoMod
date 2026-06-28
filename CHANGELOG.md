@@ -1,5 +1,31 @@
 ## ####################################
 
+## CHANGELOG 3.1.4 — Tooltip Position System & Locale Fixes
+
+#### Tooltip — Position Mode
+- **New** — Four positioning modes for the game tooltip: **Default** (Blizzard’s native behaviour), **Cursor** (explicit mouse-follow via the CursorRing anchor), **Corner** (pinned to any screen corner — Bottom Right / Left, Top Right / Left — with configurable padding) and **Custom** (drag-to-place: a movable teal anchor frame sets the exact position).
+- **New** — `TS.RefreshAnchor()` shows or hides the movable anchor frame whenever the active mode changes.
+- **New** — `EnsureTooltipMover()` lazily creates the `TomoMod_TooltipMover` drag frame; the chosen position is persisted in `tooltipSkin.moverX / moverY`.
+- **Change** — CursorRing mouse-follow logic now reads `tooltipSkin.anchor`: in Corner and Custom modes the tooltip is anchored statically by `TooltipSkin` and is no longer chased by the cursor-ring `OnUpdate` hook.
+- **New** — Two new dropdowns in **Skins → Tooltip**: anchor mode selector and corner selector (active only in Corner mode), plus an info text for Custom mode.
+- **New** — Database defaults: `tooltipSkin.anchor = "default"`, `tooltipSkin.anchorCorner = "BOTTOMRIGHT"`.
+
+#### Locales — Tooltip Color Keys Fix
+- **Fix** — `opt_tooltip_bg_color` and `opt_tooltip_border_color` keys added to all 6 locale files. These keys were referenced in the Skins → Tooltip config panel (introduced in 3.1.3 with the color picker controls) but missing from the locale tables, causing raw key names to appear in the UI instead of the translated labels.
+
+#### Chat Frame Skin — Cursor Drag Lockup Fix
+- **Fix** — `FCF_StopDragging = NoOp` override removed from `ChatFrameSkin.lua`. This line was preventing the game engine from restoring the cursor after dragging a chat frame, leaving the cursor locked in drag mode for the remainder of the session until the next `/reload`.
+
+#### Minimap — Collected Buttons Release Fix
+- **Fix** — `TomoMod_Minimap.ReleaseCollectedButtons()` is now called whenever the collector is disabled or when Blizzard mode is active. Previously, buttons that had been captured into the collector box were left hidden with no way for the game to reclaim them until a reload.
+
+#### Tooltip — Configurable Background & Border Colors
+- **New** — Two color pickers added to **Skins → Tooltip**: **Background color** and **Border color**. The previous hardcoded dark values are now editable at runtime via the config panel.
+- **New** — `TooltipSkin` reads `s.bgColor` / `s.borderColor` from the saved database with fallback to the built-in constants (`BG_COLOR` / `BORDER_CLR`), so existing installs without saved values remain visually unchanged.
+- **New** — Database defaults: `tooltipSkin.bgColor = { r=0.06, g=0.06, b=0.08 }`, `tooltipSkin.borderColor = { r=0.20, g=0.20, b=0.24 }`.
+
+## ####################################
+
 ## CHANGELOG 3.1.3 — Grouped Navigation, Accent Context & SegmentedControl
 
 #### Config UI — Grouped Navigation (6 Categories)
@@ -36,7 +62,7 @@
 #### Accueil — Dashboard Rewrite
 - **Change** — The Accueil panel has been completely rewritten as a mission-control dashboard.
 - **New** — **Hero banner**: TomoMod logo, active module count and a live diagnostics status badge (`Ready` / `Check` / `External`) driven by `TomoMod_Diagnostics`. Hovering the badge shows a tooltip with the issue count.
-- **New** — **Quick action row**: four shortcut buttons — Astral Forge, Profiles, Diagnostics, Reload — for the most common tasks without leaving the dashboard.
+- **New** — **Quick action row**: four shortcut buttons — Installer, Profiles, Diagnostics, Reload — for the most common tasks without leaving the dashboard.
 - **Change** — Module toggles redesigned as compact on/off rows; preset and profile sections retained with updated copy.
 - **Fix** — `StaticPopupDialogs` key renamed from `MYSTICALUI_MODULE_RELOAD` to `TOMOMOD_MODULE_RELOAD` to avoid naming conflicts with other addons.
 

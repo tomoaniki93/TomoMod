@@ -19,7 +19,7 @@ if TomoMod_RegisterLocale then
     TomoMod_RegisterLocale("enUS", {
         ["dash_welcome"]             = "Mission control for TomoMod.",
         ["dash_hero_title"]          = "TomoMod Control",
-        ["dash_hero_subtitle"]       = "Profiles, modules, presets and Astral Forge in one place.",
+        ["dash_hero_subtitle"]       = "Profiles, modules, presets and Installer in one place.",
         ["dash_actions_section"]     = "Quick actions",
         ["dash_modules_section"]     = "Essential modules",
         ["dash_quickcfg_section"]    = "Quick configuration",
@@ -33,7 +33,7 @@ if TomoMod_RegisterLocale then
         ["dash_status_attention_tip"] = "TomoMod diagnostics have captured %d issue(s). Open Diagnostics for details.",
         ["dash_status_external_tip"] = "%d issue(s) are captured, but not attributed to TomoMod.",
         ["dash_reload_hint"]         = "Module toggles are saved instantly. Reload to fully apply module startup changes.",
-        ["dash_action_forge"]        = "Astral Forge",
+        ["dash_action_forge"]        = "Installer",
         ["dash_action_profiles"]     = "Profiles",
         ["dash_action_diagnostics"]  = "Diagnostics",
         ["dash_action_reload"]       = "Reload",
@@ -71,7 +71,7 @@ if TomoMod_RegisterLocale then
         ["dash_status_attention_tip"] = "Les diagnostics TomoMod ont capturé %d souci(s). Ouvre Diagnostics pour le détail.",
         ["dash_status_external_tip"] = "%d souci(s) sont capturés, mais pas attribués à TomoMod.",
         ["dash_reload_hint"]         = "Les modules sont enregistrés immédiatement. Recharge pour appliquer proprement les changements de démarrage.",
-        ["dash_action_forge"]        = "Forge astrale",
+        ["dash_action_forge"]        = "Installeur",
         ["dash_action_profiles"]     = "Profils",
         ["dash_action_diagnostics"]  = "Diagnostics",
         ["dash_action_reload"]       = "Recharger",
@@ -322,7 +322,7 @@ end
 
 local function CreateQuickActions(parent, y)
     local panel, nextY = CreatePanel(parent, Localize("dash_actions_section", "Actions rapides"), y, 90, CY[1], CY[2], CY[3])
-    CreateActionButton(panel, Localize("dash_action_forge", "Forge astrale"), 18, -38, 160, A[1], A[2], A[3], function()
+    CreateActionButton(panel, Localize("dash_action_forge", "Installeur"), 18, -38, 160, A[1], A[2], A[3], function()
         if TomoMod_Installer then
             TomoMod_Installer.Show()
             if TomoMod_Config and TomoMod_Config.Hide then TomoMod_Config.Hide() end

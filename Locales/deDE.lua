@@ -1488,7 +1488,9 @@ TomoMod_RegisterLocale("deDE", {
     ["info_tooltip_skin_reload"]         = "Einige Änderungen erfordern das Überfahren eines neuen Ziels.",
     ["opt_tooltip_bg_alpha"]             = "Hintergrund-Deckkraft",
     ["opt_tooltip_border_alpha"]         = "Rahmen-Deckkraft",
-    ["opt_tooltip_font_size"]            = "Schriftgröße",
+    ["opt_tooltip_bg_color"]              = "Hintergrundfarbe",
+    ["opt_tooltip_border_color"]          = "Rahmenfarbe",
+    ["opt_tooltip_font_size"]             = "Schriftgröße",
     ["opt_tooltip_hide_healthbar"]       = "Lebensleiste ausblenden",
     ["opt_tooltip_class_color"]          = "Klassenfarbige Spielernamen",
     ["opt_tooltip_hide_server"]          = "Server in Spielernamen ausblenden",
@@ -2263,11 +2265,25 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_313_nav"]        = "Konfigurations-UI überarbeitet: 16 Panels in 6 Gruppen zusammengefasst (Interface, Einheiten, Kampf, Komfort, Werkzeuge), jede mit eigener Akzentfarbe und Seitenkopf.",
     ["wn_313_accent"]     = "Widgets übernehmen jetzt automatisch die Akzentfarbe ihres übergeordneten Panels — Karten, Überschriften, Trennlinien, Checkboxen, Buttons und Tabs reagieren auf den aktiven Kategoriekontext.",
     ["wn_313_segmented"]  = "Neues SegmentedControl-Widget ersetzt kurze Dropdowns (Taschenleiste, Micro-Menü, Chat-Skin, Taschen-Layout, Sortierung, Audiokanal).",
-    ["wn_313_dashboard"]  = "Startseite komplett neu gestaltet: Hero-Banner mit Live-Diagnosestatus, Schnellzugriff-Buttons (Schmiede, Profile, Diagnose, Neu laden) und überarbeitete Modul-Schalter.",
+    ["wn_313_dashboard"]  = "Startseite komplett neu gestaltet: Hero-Banner mit Live-Diagnosestatus, Schnellzugriff-Buttons (Installationsassistent, Profile, Diagnose, Neu laden) und überarbeitete Modul-Schalter.",
     ["wn_313_np_preview"] = "Nameplatten: Neue Live-Vorschau oben im Konfigurationspanel — zeigt Verbündete, feindliches Ziel und Boss, aktualisiert sich beim Ändern von Breite, Höhe, Cast-Leiste und Schriftgröße.",
     ["wn_313_loot_filter"] = "Beute-Klassenfilter behoben: Gegenstände ohne IDB-Eintrag (z. B. neue Raid-Drops) nutzen jetzt Rüstungstyp-Abgleich statt für alle Klassen sichtbar zu sein.",
     ["wn_313_sporefall"]   = "Beutedaten: Sporefall-Schlachtzug (ejEncounterID 2711) mit 15 Gegenständen aus KeystoneLoot Build 12.0.7 hinzugefügt.",
     ["wn_313_diag"]       = "Diagnose: 7 neue UIError-Ausschluss-Schlüsselwörter (Händler, Reittier, Inventar, Löschen, Aufwertung, Aussehen, Duell) + Konsole erscheint jetzt immer über dem Konfigurationsmenü.",
+    ["wn_313_tooltip_anchor"] = "Tooltip-Position: neues 4-Modus-Ankersystem — Standard, Maus (folgt dem Cursor), Ecke (an Bildschirmecke fixiert) und Benutzerdefiniert (per Drag verschiebbarer Rahmen).",
+
+    -- Tooltip-Verankerung
+    ["opt_tooltip_anchor"]        = "Tooltip-Position",
+    ["tooltip_anchor_default"]    = "Standard",
+    ["tooltip_anchor_cursor"]     = "Maus",
+    ["tooltip_anchor_corner"]     = "Bildschirmecke",
+    ["tooltip_anchor_custom"]     = "Benutzerdefiniert",
+    ["opt_tooltip_anchor_corner"] = "Ecke (Ecken-Modus)",
+    ["corner_br"]                 = "Unten rechts",
+    ["corner_bl"]                 = "Unten links",
+    ["corner_tr"]                 = "Oben rechts",
+    ["corner_tl"]                 = "Oben links",
+    ["info_tooltip_anchor"]       = "Benutzerdefiniert: Diesen Modus wählen, dann den türkisfarbenen Rahmen an die gewünschte Position ziehen.",
 
     -- Nameplates preview
     ["np_preview_title"]   = "Nameplates-Vorschau",
@@ -2275,4 +2291,8 @@ TomoMod_RegisterLocale("deDE", {
     ["preview_np_friendly"] = "Verbündeter",
     ["preview_np_target"]  = "Feindliches Ziel",
     ["preview_np_boss"]    = "Markierter Boss",
+
+    -- 3.1.4
+    ["wn_314_tooltip_anchor"] = "Tooltip-Position: neues 4-Modus-System — Standard, Maus (folgt dem Cursor), Ecke (Bildschirmecke) und Benutzerdefiniert (verschiebbarer Rahmen). Konfigurierbar unter Skins → Tooltip.",
+    ["wn_314_locale_fix"]     = "Fehlende Tooltip-Farbbeschriftungen behoben: Hintergrund- und Rahmenfarb-Auswähler in Skins → Tooltip werden jetzt korrekt angezeigt.",
 })

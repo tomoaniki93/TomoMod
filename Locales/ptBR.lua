@@ -1488,7 +1488,9 @@ TomoMod_RegisterLocale("ptBR", {
     ["info_tooltip_skin_reload"]         = "Algumas mudanças exigem passar o cursor sobre um novo alvo.",
     ["opt_tooltip_bg_alpha"]             = "Opacidade do fundo",
     ["opt_tooltip_border_alpha"]         = "Opacidade da borda",
-    ["opt_tooltip_font_size"]            = "Tamanho de fonte",
+    ["opt_tooltip_bg_color"]              = "Cor do fundo",
+    ["opt_tooltip_border_color"]          = "Cor da borda",
+    ["opt_tooltip_font_size"]             = "Tamanho de fonte",
     ["opt_tooltip_hide_healthbar"]       = "Ocultar barra de vida",
     ["opt_tooltip_class_color"]          = "Nomes de jogador com cor da classe",
     ["opt_tooltip_hide_server"]          = "Ocultar servidor nos nomes de jogador",
@@ -2251,11 +2253,25 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_313_nav"]        = "Interface de configuração redesenhada: 16 painéis consolidados em 6 categorias agrupadas (Interface, Unidades, Combate, Conforto, Ferramentas), cada uma com cor de destaque e cabeçalho próprios.",
     ["wn_313_accent"]     = "Os widgets agora adotam automaticamente a cor de destaque do painel hospedeiro — cartões, cabeçalhos, separadores, caixas de seleção, botões e abas reagem ao contexto de categoria ativo.",
     ["wn_313_segmented"]  = "Novo widget SegmentedControl substitui menus suspensos curtos (Barra de bolsas, Menu Micro, Estilo de chat, Layout de bolsas, Classificação, Canal de áudio).",
-    ["wn_313_dashboard"]  = "Painel Accueil completamente refeito: banner hero com status de diagnóstico ao vivo, atalhos rápidos (Forja, Perfis, Diagnósticos, Recarregar) e botões de módulo redesenhados.",
+    ["wn_313_dashboard"]  = "Painel Accueil completamente refeito: banner hero com status de diagnóstico ao vivo, atalhos rápidos (Instalador, Perfis, Diagnósticos, Recarregar) e botões de módulo redesenhados.",
     ["wn_313_np_preview"] = "Nameplates: novo painel de pré-visualização ao vivo no topo da configuração — mostra aliado, hostil e chefe, atualiza em tempo real ao ajustar largura, altura, barra de conjuro e tamanho da fonte.",
     ["wn_313_loot_filter"] = "Correção do filtro de classe de saque: itens ausentes do IDB (ex. drops de novos raids) agora usam o tipo de armadura como alternativa em vez de serem exibidos para todas as classes.",
     ["wn_313_sporefall"]   = "Dados de saque: raid Sporefall (ejEncounterID 2711) adicionado com 15 itens do dataset KeystoneLoot build 12.0.7.",
     ["wn_313_diag"]       = "Diagnósticos: 7 novas palavras-chave de exclusão UIError (comerciante, montaria, inventário, excluir, aprimoramento, aparência, duelo) + o console agora sempre aparece acima do menu de configuração.",
+    ["wn_313_tooltip_anchor"] = "Posição do tooltip: novo sistema de ancoragem com 4 modos — Padrão, Cursor (segue o mouse), Canto (fixado em um canto da tela) e Personalizado (quadro arrastável).",
+
+    -- Ancoragem do tooltip
+    ["opt_tooltip_anchor"]        = "Posição do tooltip",
+    ["tooltip_anchor_default"]    = "Padrão",
+    ["tooltip_anchor_cursor"]     = "Cursor",
+    ["tooltip_anchor_corner"]     = "Canto da tela",
+    ["tooltip_anchor_custom"]     = "Personalizado",
+    ["opt_tooltip_anchor_corner"] = "Canto (modo Canto)",
+    ["corner_br"]                 = "Inferior direito",
+    ["corner_bl"]                 = "Inferior esquerdo",
+    ["corner_tr"]                 = "Superior direito",
+    ["corner_tl"]                 = "Superior esquerdo",
+    ["info_tooltip_anchor"]       = "Personalizado: selecione este modo e arraste o quadro teal para a posição desejada.",
 
     -- Nameplates preview
     ["np_preview_title"]   = "Pré-visualização de placas",
@@ -2263,4 +2279,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["preview_np_friendly"] = "Aliado",
     ["preview_np_target"]  = "Alvo hostil",
     ["preview_np_boss"]    = "Chefe marcado",
+
+    -- 3.1.4
+    ["wn_314_tooltip_anchor"] = "Posição do tooltip: novo sistema de 4 modos — Padrão, Cursor (segue o mouse), Canto (canto da tela) e Personalizado (quadro arrastável). Configurável em Skins → Tooltip.",
+    ["wn_314_locale_fix"]     = "Corrigidas as etiquetas de cor do tooltip ausentes: os seletores de cor de fundo e borda em Skins → Tooltip agora são exibidos corretamente.",
 })
