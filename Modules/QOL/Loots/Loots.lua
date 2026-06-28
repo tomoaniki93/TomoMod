@@ -60,6 +60,9 @@ local CLASS_ARMOR_ID = {
     [5]=1, [8]=1,  [9]=1,           -- Cloth  : Priest, Mage, Warlock
 }
 
+-- Shields (armor subclass 6) are only usable by Warrior, Paladin, Shaman.
+local SHIELD_CLASSES = { [1]=true, [2]=true, [7]=true }
+
 -- Difficulty selector data: { id, label }
 local DIFF_LIST = {
     { id=17, label="Raid Find" },
@@ -253,9 +256,29 @@ local function GetBossItems(ejEncounterID, diff)
     return ItemsFromIDs(ids, DIFF_BONUS_ID[diffID] or DIFF_BONUS_ID[15])
 end
 
+-- Heuristique de repli (item absent de TomoMod_ItemClasses) : déduit
+-- l'utilisabilité depuis le type d'armure renvoyé par GetItemInfoInstant.
+-- Renvoie true quand on ne peut PAS restreindre (arme, bijou, cape, données absentes).
+local function ArmorTypeMatches(itemID, classID)
+    local _, _, _, equipLoc, _, itemClassID, itemSubClassID = GetItemInfoInstant(itemID)
+    if not itemClassID then return true end          -- données indisponibles → on n'exclut pas
+    if itemClassID ~= 4 then return true end          -- pas une armure (arme, etc.) → visible partout
+    if itemSubClassID == 0 then return true end        -- armure générique (anneau, collier, bijou)
+    if equipLoc == "INVTYPE_CLOAK" then return true end -- les capes sont Tissu mais portables par tous
+    if itemSubClassID == 6 then                         -- bouclier
+        return SHIELD_CLASSES[classID] == true
+    end
+    if itemSubClassID >= 1 and itemSubClassID <= 4 then  -- Tissu/Cuir/Mailles/Plaques
+        local wanted = CLASS_ARMOR_ID[classID]
+        if not wanted then return true end
+        return itemSubClassID == wanted
+    end
+    return true                                         -- cosmétique, relique, etc. → visible
+end
+
 -- Returns true if itemID est utilisable par la classe (et éventuellement la spec) indiquées.
 -- Priorité 1 : données ItemClasses (TomoMod_ItemClasses) — filtre exact par spec
--- Priorité 2 : fallback GetItemInfoInstant pour les armor type si données manquantes
+-- Priorité 2 : repli ArmorTypeMatches (type d'armure) si l'item n'a pas d'entrée
 local function ItemMatchesClass(itemID, classID, specID)
     if not classID then return true end
 
@@ -275,18 +298,14 @@ local function ItemMatchesClass(itemID, classID, specID)
             end
             return true
         end
-        -- Entrée absente dans IDB = item universel (ring, neck, trinket…)
-        return true
+        -- Entrée absente dans IDB : on ne suppose plus « universel » — un objet
+        -- d'un nouveau raid (Sporefall, etc.) doit quand même être filtré par
+        -- type d'armure, sinon plaques/mailles/cuir/tissu s'affichent pour tous.
+        return ArmorTypeMatches(itemID, classID)
     end
 
-    -- Fallback (IDB non chargé) : vérification armor type seulement
-    local _, _, _, _, _, itemClassID, itemSubClassID = GetItemInfoInstant(itemID)
-    if not itemClassID then return true end
-    if itemClassID ~= 4 then return true end
-    if itemSubClassID == 0 then return true end
-    local wanted = CLASS_ARMOR_ID[classID]
-    if not wanted then return true end
-    return itemSubClassID == wanted
+    -- IDB non chargé : repli type d'armure
+    return ArmorTypeMatches(itemID, classID)
 end
 
 -- ══ Favoris ═══════════════════════════════════════════════════════════

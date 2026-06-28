@@ -1,6 +1,7 @@
 -- Modules/QOL/Loots/Data.lua
 -- Season 16 (WoW 12.0.1 — Midnight S1)
 -- Source: KeystoneLoot dataset (2026-03-20)
+--         + Sporefall raid (journalInstanceId 1305) from KeystoneLoot 2026-06-17 (build 12.0.7)
 --
 -- Dungeons  : [MapChallengeModeID]   = { itemID, ... }
 --             keys match C_ChallengeMode.GetMapTable() + DataKeys.lua
@@ -60,6 +61,10 @@ TLD.dungeons = {
 -- [ejEncounterID] = { [difficultyID] = { itemID, ... } }
 -- Bosses where all difficulties share the same loot use same().
 TLD.raidBosses = {
+    -- ── Sporefall (journalInstanceId 1305) ───────────────────────────────
+    [2711] = same({ 247235, 264313, 264367, 268280, 268282, 268283, 268284, 268285,
+                    268286, 268287, 268288, 268289, 268290, 268291, 268292 }),
+
     -- ── Raid 1 (journalInstanceId 1307) ──────────────────────────────────
     [2733] = same({ 249275, 249279, 249293, 249306, 249310, 249313, 249319, 249320,
                     249323, 249326, 249334, 249335, 249344, 264497 }),

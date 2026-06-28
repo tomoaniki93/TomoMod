@@ -239,6 +239,42 @@ local function BuildExclusionSet()
         "requiere ",                         -- ES
         "richiede ",                         -- IT
         "requer ",                           -- PT
+        -- Merchant not interested (report #605: sessions 2026-06-22, 2026-06-27)
+        "marchand n'est pas int",            -- FR "Le marchand n'est pas intéressé par cet objet."
+        "merchant is not interested",        -- EN equivalent
+        "h\195\164ndler ist nicht interessiert", -- DE
+        "comerciante no est\195\161 interesado", -- ES
+        -- On a mount (report #605: session 2026-06-24)
+        "sur une monture",                   -- FR "Vous êtes sur une monture."
+        "you are mounted", "while mounted",  -- EN equivalents
+        "auf einem reittier",                -- DE
+        "montado",                           -- ES/PT
+        -- Can't carry more of these items (report #605: session 2026-06-24)
+        "emporter plus de ces",              -- FR "Vous ne pouvez pas emporter plus de ces objets."
+        "can't carry any more of those",     -- EN equivalent
+        "carry any more of those",           -- EN variant
+        "kannst nicht mehr davon tragen",    -- DE
+        "no puedes llevar m\195\161s de esos", -- ES
+        -- Can't be deleted (report #605: session 2026-06-24)
+        "impossible de supprimer",           -- FR "Impossible de supprimer ça."
+        "can't be destroyed", "cannot be destroyed", -- EN equivalents
+        "kann nicht zerst\195\182rt werden", -- DE
+        "no se puede destruir",              -- ES
+        -- Item can't be upgraded (report #605: session 2026-06-27)
+        "mis \195\160 niveau",               -- FR "Cet objet ne peut pas être mis à niveau."
+        "cannot be upgraded", "can't be upgraded", -- EN equivalents
+        "kann nicht aufgewertet werden",     -- DE
+        "no se puede mejorar",               -- ES
+        -- Already have that appearance (report #605: session 2026-06-27)
+        "d\195\169j\195\160 cette apparence", -- FR "Vous avez déjà cette apparence"
+        "already have that appearance", "already know that appearance", -- EN equivalents
+        "aussehen bereits", "dieses aussehen bereits", -- DE
+        "ya tienes esa apariencia",          -- ES
+        -- Target engaged in a duel (report #605: session 2026-06-27)
+        "engag\195\169e dans un duel",       -- FR "La cible est engagée dans un duel"
+        "target is engaged in a duel",       -- EN equivalent
+        "target ist in einem duell",         -- DE
+        "objetivo est\195\161 en un duelo",  -- ES
     }
     for _, kw in ipairs(keywords) do
         EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = kw
@@ -663,8 +699,9 @@ local function CreateConsole()
     local f = CreateFrame("Frame", "TomoMod_DiagConsole", UIParent, "BackdropTemplate")
     f:SetSize(700, 500)
     f:SetPoint("CENTER")
-    f:SetFrameStrata("DIALOG")
-    f:SetFrameLevel(200)
+    f:SetFrameStrata("FULLSCREEN_DIALOG")
+    f:SetFrameLevel(600)
+    f:SetToplevel(true)
     f:SetMovable(true)
     f:SetClampedToScreen(true)
     f:EnableMouse(true)
@@ -1398,7 +1435,10 @@ end
 
 function D.ShowConsole()
     if not consoleFrame then CreateConsole() end
+    consoleFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+    consoleFrame:SetFrameLevel(600)
     consoleFrame:Show()
+    consoleFrame:Raise()
     D.RefreshConsole()
 end
 
