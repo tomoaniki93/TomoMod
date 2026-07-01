@@ -1194,6 +1194,36 @@ LayoutBuckets = function()
                             end)
                         end
                         block:Hide()
+
+                        -- Le bouton d'objet de quete (block.itemButton) est ancre au
+                        -- bloc mais parente au tracker : block:Hide() ne le masque pas.
+                        -- On le masque explicitement, avec un garde anti-reapparition
+                        -- comme pour le bloc (LayoutBuckets ne tourne qu'hors combat,
+                        -- donc ce Hide est sur ; le garde verifie quand meme le combat
+                        -- car Blizzard peut re-Show le bouton pendant un Update en combat).
+                        local ib = block.itemButton
+                        if ib then
+                            if not ib._tmShowHooked then
+                                ib._tmShowHooked = true
+                                hooksecurefunc(ib, "Show", function(self)
+                                    if not bucketEnabled then return end
+                                    if InCombatLockdown() then return end
+                                    local b = self._tmBucketBlock
+                                    local k = b and b._tmBucketKey
+                                    if k and IsBucketCollapsed(k) then
+                                        self:Hide()
+                                    end
+                                end)
+                            end
+                            ib._tmBucketBlock = block
+                            -- Ne marquer/masquer que s'il est reellement visible : le bouton
+                            -- est mis en pool par Blizzard et peut persister masque quand la
+                            -- quete n'a plus d'objet (sinon on le re-afficherait a tort).
+                            if ib:IsShown() then
+                                ib._tmHiddenByBucket = true
+                                ib:Hide()
+                            end
+                        end
                     end
                 else
                     for _, block in ipairs(group) do
@@ -1244,6 +1274,15 @@ LayoutBuckets = function()
                         end
 
                         block:Show()
+
+                        -- Re-affiche le bouton d'objet qu'on avait masque a la reduction
+                        -- (seulement celui qu'on a masque nous-memes ; Blizzard corrige
+                        -- ensuite si l'objet n'est plus utilisable, lors de son Update).
+                        local ib = block.itemButton
+                        if ib and ib._tmHiddenByBucket then
+                            ib._tmHiddenByBucket = false
+                            ib:Show()
+                        end
 
                         -- Restyle this block (its HeaderText + objective lines)
                         ScanAndStyle(block, 0)
@@ -1324,10 +1363,33 @@ LayoutBuckets = function()
     -- the WQ module SetAlpha(0) guard, leaving a floating "0%" bar.
     -- All active blocks are now under skinFrame; any StatusBar still in the
     -- original tracker subtree is orphaned and should be hidden.
+    -- True if `f` (or an ancestor) sits under our skinFrame — i.e. it belongs to a
+    -- quest block or a scenario/delve module we reparented.
+    local function IsUnderSkinFrame(f)
+        local guard = 0
+        while f and guard < 12 do
+            if f == skinFrame then return true end
+            if not f.GetParent then return false end
+            f = f:GetParent()
+            guard = guard + 1
+        end
+        return false
+    end
+
     local function HideStrayBars(f, d)
         if not f or d > 8 then return end
         if f == skinFrame or f._tmBucket then return end
         if f:IsObjectType("StatusBar") and f:IsShown() then
+            -- A progress bar can stay parented to BlocksFrame while only being
+            -- *anchored* to its block.  If that anchor target is one of our
+            -- reparented (and currently visible) frames, the bar belongs to a
+            -- tracked, expanded quest/scenario and must stay visible.  Everything
+            -- else (empty WQ module progress, floating "0%" bars, bars whose block
+            -- is collapsed/hidden) is hidden as before.
+            local _, relTo = f:GetPoint(1)
+            if relTo and IsUnderSkinFrame(relTo) and relTo:IsVisible() then
+                return
+            end
             f:Hide()
             _strayBars[#_strayBars + 1] = f
             return  -- no need to recurse into a hidden bar
