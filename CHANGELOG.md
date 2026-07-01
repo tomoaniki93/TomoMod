@@ -1,5 +1,22 @@
 ## ####################################
 
+## CHANGELOG 3.1.5 — Objective Tracker Fixes & Talking Head GUI Toggle
+
+#### QOL — Talking Head — GUI Toggle Restored
+- **Fix** — The **Hide Talking Head** checkbox is back in the config GUI (**Comfort → QOL → Automations**), next to *Hide Blizzard cast bar*. The `hideTalkingHead.enabled` setting and its module already existed, but the toggle was only reachable from the Installer — the option had disappeared from the main config panel.
+- **Change** — `HideTalkingHead.lua` now reacts at runtime like `HideCastBar`: new `TomoMod_HideTalkingHead.SetEnabled()` / `Toggle()` API. The `OnShow` hook re-reads the DB toggle on every show, so checking/unchecking the box takes effect **immediately without a `/reload`** and is **reversible** — unchecking restores the scrolling dialogue frames (the previous `UnregisterAllEvents` approach was one-way).
+- **Change** — Load-on-demand handling: the module now hooks the frame via `ADDON_LOADED` for `Blizzard_TalkingHeadUI`, so it works even though the TalkingHead frame is created on first use.
+- **New** — `opt_hide_talking_head` locale key added to all 6 locale files (EN / FR / DE / ES / PT-BR / IT).
+
+#### QOL — Objective Tracker — Quest Item Button Collapse Fix
+- **Fix** — Quest item buttons (`block.itemButton`, e.g. "Use: Kilnmaster's Orders") are now correctly hidden when their bucket is collapsed. The button is parented to the native tracker rather than to the quest block, so `block:Hide()` had no effect on it — the button floated visibly above collapsed buckets. It is now explicitly hidden on collapse (with a `hooksecurefunc("Show")` guard to prevent Blizzard's `Update` calls from re-showing it while the bucket is collapsed, with a `InCombatLockdown()` safety check) and restored on expand (only if TomoMod hid it, so Blizzard's own visibility logic remains in control afterwards).
+
+#### QOL — Objective Tracker — Progress Bar Anchor Fix
+- **Fix** — Quest/scenario progress bars (`StatusBar`) that stay parented to `BlocksFrame` while only being *anchored* to their block were wrongly hidden by the `STEP 4` stray-bar sweep, blanking the progress bar of tracked, expanded objectives (e.g. enemy forces, weekly/WQ progress). The sweep now reads each bar's anchor target via `f:GetPoint(1)` and keeps the bar visible when that target is one of TomoMod's reparented, currently-visible frames under `skinFrame`.
+- **New** — `IsUnderSkinFrame(f)` helper — walks up to 12 ancestors from a frame to determine whether it sits under `skinFrame` (i.e. belongs to a reparented quest block or scenario/delve module). Used by `HideStrayBars` to distinguish genuinely orphaned bars (floating "0%" WQ module bars, collapsed/hidden blocks) from anchored-but-active ones.
+
+## ####################################
+
 ## CHANGELOG 3.1.4 — Tooltip Position System & Locale Fixes
 
 #### Tooltip — Position Mode

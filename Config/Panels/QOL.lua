@@ -90,6 +90,12 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
+    -- Hide Talking Head
+    local _, ny = W.CreateCheckbox(c, L["opt_hide_talking_head"], TomoModDB.hideTalkingHead.enabled, y, function(v)
+        if TomoMod_HideTalkingHead then TomoMod_HideTalkingHead.SetEnabled(v) end
+    end)
+    y = ny
+
     -- Auto Accept Invite
     local _, ny = W.CreateSeparator(c, y)
     y = ny

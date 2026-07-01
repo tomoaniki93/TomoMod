@@ -410,6 +410,7 @@ TomoMod_RegisterLocale("deDE", {
     -- Automations
     ["section_automations"]             = "Automatisierungen",
     ["opt_hide_blizzard_castbar"]       = "Blizzard-Zauberleiste ausblenden",
+    ["opt_hide_talking_head"]           = "Talking Head ausblenden (Scrolldialoge)",
 
     -- Auto Accept Invite
     ["sublabel_auto_accept_invite"]     = "— Auto-Einladungsannahme —",
@@ -2295,4 +2296,8 @@ TomoMod_RegisterLocale("deDE", {
     -- 3.1.4
     ["wn_314_tooltip_anchor"] = "Tooltip-Position: neues 4-Modus-System — Standard, Maus (folgt dem Cursor), Ecke (Bildschirmecke) und Benutzerdefiniert (verschiebbarer Rahmen). Konfigurierbar unter Skins → Tooltip.",
     ["wn_314_locale_fix"]     = "Fehlende Tooltip-Farbbeschriftungen behoben: Hintergrund- und Rahmenfarb-Auswähler in Skins → Tooltip werden jetzt korrekt angezeigt.",
+
+    -- 3.1.5
+    ["wn_315_ot_itembutton"] = "Aufgaben-Tracker: Quest-Gegenstandsknöpfe werden jetzt korrekt ausgeblendet, wenn ihr Bucket eingeklappt wird (der Knopf ist dem nativen Tracker zugeordnet, nicht dem Block — er blieb bisher sichtbar über eingeklappten Buckets).",
+    ["wn_315_talkinghead"] = "QOL: Die Option „Talking Head ausblenden“ ist wieder im Konfigurations-GUI (QOL → Automatisierungen). Sie wirkt jetzt sofort ohne /reload und ist umkehrbar — beim Abwählen werden die Scroll-Dialoge wiederhergestellt.",
 })

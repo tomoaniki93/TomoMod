@@ -410,6 +410,7 @@ TomoMod_RegisterLocale("itIT", {
     -- Automations
     ["section_automations"]             = "Automazioni",
     ["opt_hide_blizzard_castbar"]       = "Nascondi barra di lancio di Blizzard",
+    ["opt_hide_talking_head"]           = "Nascondi Talking Head (dialoghi a scorrimento)",
 
     -- Auto Accept Invite
     ["sublabel_auto_accept_invite"]     = "— Accetta invito automaticamente —",
@@ -2283,4 +2284,8 @@ TomoMod_RegisterLocale("itIT", {
     -- 3.1.4
     ["wn_314_tooltip_anchor"] = "Posizione del tooltip: nuovo sistema a 4 modalità — Predefinito, Cursore (segue il mouse), Angolo (angolo dello schermo) e Personalizzato (cornice trascinabile). Configurabile in Skins → Tooltip.",
     ["wn_314_locale_fix"]     = "Corrette le etichette di colore del tooltip mancanti: i selettori di colore sfondo e bordo in Skins → Tooltip ora vengono visualizzati correttamente.",
+
+    -- 3.1.5
+    ["wn_315_ot_itembutton"] = "Tracker Obiettivi: i pulsanti degli oggetti delle missioni ora si nascondono correttamente quando il loro bucket viene compresso (il pulsante è figlio del tracker nativo, non del blocco — in precedenza rimaneva visibile sopra i bucket compressi).",
+    ["wn_315_talkinghead"] = "QOL: l'opzione «Nascondi Talking Head» è tornata nella GUI di configurazione (QOL → Automazioni). Ora si applica immediatamente senza /reload ed è reversibile — deselezionandola si ripristinano i dialoghi a scorrimento.",
 })

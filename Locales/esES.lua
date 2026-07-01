@@ -410,6 +410,7 @@ TomoMod_RegisterLocale("esES", {
     -- Automations
     ["section_automations"]             = "Automatizaciones",
     ["opt_hide_blizzard_castbar"]       = "Ocultar barra de lanzamiento de Blizzard",
+    ["opt_hide_talking_head"]           = "Ocultar Talking Head (di\195\161logos de desplazamiento)",
 
     -- Auto Accept Invite
     ["sublabel_auto_accept_invite"]     = "— Aceptar invitación automáticamente —",
@@ -2343,4 +2344,8 @@ TomoMod_RegisterLocale("esES", {
     -- 3.1.4
     ["wn_314_tooltip_anchor"] = "Posición del tooltip: nuevo sistema de 4 modos — Predeterminado, Cursor (sigue el ratón), Esquina (esquina de pantalla) y Personalizado (marco arrastrable). Configurable en Skins → Tooltip.",
     ["wn_314_locale_fix"]     = "Corregidas las etiquetas de color del tooltip que faltaban: los selectores de color de fondo y borde en Skins → Tooltip ahora se muestran correctamente.",
+
+    -- 3.1.5
+    ["wn_315_ot_itembutton"] = "Rastreador de objetivos: los botones de objeto de misión ahora se ocultan correctamente al contraer su categoría (el botón está vinculado al rastreador nativo, no al bloque — antes permanecía visible sobre las categorías contraídas).",
+    ["wn_315_talkinghead"] = "QOL: la opción «Ocultar Talking Head» vuelve al GUI de configuración (QOL → Automatizaciones). Ahora se aplica al instante sin /reload y es reversible — al desmarcarla se restauran los diálogos de desplazamiento.",
 })

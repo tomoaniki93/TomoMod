@@ -466,6 +466,7 @@ TomoMod_RegisterLocale("frFR", {
     -- Automatisations
     ["section_automations"]             = "Automatisations",
     ["opt_hide_blizzard_castbar"]       = "Cacher la barre de cast Blizzard",
+    ["opt_hide_talking_head"]           = "Masquer le Talking Head (dialogues de d\195\169filement)",
 
     -- Auto Accept Invite
     ["sublabel_auto_accept_invite"]     = "— Auto Accept Invite —",
@@ -2428,4 +2429,8 @@ TomoMod_RegisterLocale("frFR", {
     -- 3.1.4
     ["wn_314_tooltip_anchor"] = "Position de l'infobulle : nouveau système à 4 modes — Défaut, Souris (suit le curseur), Coin (coin de l'écran) et Personnalisé (cadre déplaçable). Réglable dans Skins → Tooltip.",
     ["wn_314_locale_fix"]     = "Correction des libellés manquants : les sélecteurs de couleur de fond et de bordure dans Skins → Tooltip s'affichent désormais correctement.",
+
+    -- 3.1.5
+    ["wn_315_ot_itembutton"] = "Traqueur d'objectifs : les boutons d'objet de quête se masquent désormais correctement lors de la réduction d'un bucket (le bouton est parenté au traqueur natif, pas au bloc — il restait visible au-dessus des buckets réduits).",
+    ["wn_315_talkinghead"] = "QOL : l'option « Masquer le Talking Head » est de retour dans le GUI de configuration (QOL → Automatisations). Elle s'applique désormais instantanément sans /reload et est réversible — la décocher réaffiche les dialogues à défilement.",
 })

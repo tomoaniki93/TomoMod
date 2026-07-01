@@ -30,6 +30,13 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.1.5",
+        highlights = {
+            L["wn_315_ot_itembutton"] or "Objective Tracker: quest item buttons now correctly hide when their bucket is collapsed (the button is parented to the native tracker, not the block — previously it stayed visible above collapsed buckets).",
+            L["wn_315_talkinghead"] or "QOL: the 'Hide Talking Head' toggle is back in the config GUI (QOL → Automations). It now applies instantly without /reload and is reversible — unchecking restores the scrolling dialogue frames.",
+        },
+    },
+    {
         version = "3.1.4",
         highlights = {
             L["wn_314_tooltip_anchor"] or "Tooltip position: new 4-mode anchor — Default, Cursor (follows mouse), Corner (screen corner) and Custom (drag-to-place frame). Configure in Skins → Tooltip.",
