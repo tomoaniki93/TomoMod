@@ -5,6 +5,8 @@
 TomoMod_Minimap = TomoMod_Minimap or {}
 local minimapBorder
 local trackingButton
+local _tmTrackingWantShown = false -- guards CreateTrackingButton's Hide/SetAlpha reassertion hooks
+local _tmAlphaGuardTracking
 local isLocked = true
 local moverOverlay
 
@@ -347,6 +349,7 @@ function TomoMod_Minimap.CreateTrackingButton()
     -- Respecte le toggle ET le style choisi (TomoMod vs Blizzard natif)
     if TomoModDB.minimap.showTracking == false
        or (TomoModDB.minimap.trackingStyle or "tomomod") ~= "tomomod" then
+        _tmTrackingWantShown = false
         if trackingButton then trackingButton:Hide() end
         if trackingPanel then trackingPanel:Hide() end
         if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
@@ -391,6 +394,26 @@ function TomoMod_Minimap.CreateTrackingButton()
         trackingButton:SetScript("OnMouseDown", function(self)
             ToggleTrackingPanel()
         end)
+
+        -- [FIX] Defends against anything else (another addon walking minimap
+        -- children, Blizzard's own square-minimap/skin code, Edit Mode, etc.)
+        -- silently calling Hide()/SetAlpha(0) on OUR OWN button — a plain
+        -- Hide() throws no Lua error, so this kind of interference would never
+        -- show up in Diagnostics even though the button visibly disappears.
+        -- Reassert visibility immediately whenever we still want it shown.
+        trackingButton:HookScript("OnHide", function(self)
+            if _tmTrackingWantShown and not InCombatLockdown() then
+                self:Show()
+            end
+        end)
+        hooksecurefunc(trackingButton, "SetAlpha", function(self, alpha)
+            if _tmAlphaGuardTracking then return end
+            if _tmTrackingWantShown and alpha == 0 then
+                _tmAlphaGuardTracking = true
+                self:SetAlpha(1)
+                _tmAlphaGuardTracking = nil
+            end
+        end)
     end
 
     -- Position + échelle depuis la config (ré-appliquées à chaque appel pour le live)
@@ -407,6 +430,8 @@ function TomoMod_Minimap.CreateTrackingButton()
     trackingButton.border:SetBackdropBorderColor(0, 0, 0, 0)
     trackingButton.ico:SetVertexColor(r, g, b, 1)
 
+    _tmTrackingWantShown = true
+    trackingButton:SetAlpha(1)
     trackingButton:Show()
     if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end
 end
@@ -873,6 +898,8 @@ end
 -- Pose un hook Show + SetAlpha sur une frame native pour empêcher Blizzard
 -- de la rendre visible après notre masquage (zone change, PLAYER_ENTERING_WORLD…).
 -- getHide() doit renvoyer true quand la frame doit rester masquée.
+local _mouseGuard = {}   -- anti-récursion pour le hook EnableMouse
+
 local function HookNativeFrame(frame, getHide)
     if not frame or _nativeHooked[frame] then return end
     _nativeHooked[frame] = true
@@ -889,6 +916,24 @@ local function HookNativeFrame(frame, getHide)
             _alphaGuard[self] = nil
         end
     end)
+    -- [FIX] EnableMouse n'était appliqué qu'une seule fois (dans ApplyNativeVisibility),
+    -- jamais réappliqué ensuite. Si Blizzard rappelle EnableMouse(false) de son côté
+    -- après ça (survol, fermeture de menu, Edit Mode…), le bouton restait cliqué-mort
+    -- même après avoir désactivé le style TomoMod pour le "révéler" — on le voyait
+    -- réapparaître (alpha 1) mais impossible de cliquer dessus. On réaffirme désormais
+    -- l'état voulu en continu, comme pour Show/SetAlpha ci-dessus.
+    if frame.EnableMouse then
+        hooksecurefunc(frame, "EnableMouse", function(self, enabled)
+            if _mouseGuard[self] then return end
+            if InCombatLockdown() then return end
+            local wantEnabled = not getHide()
+            if enabled ~= wantEnabled then
+                _mouseGuard[self] = true
+                self:EnableMouse(wantEnabled)
+                _mouseGuard[self] = nil
+            end
+        end)
+    end
 end
 
 function TomoMod_Minimap.HideNativeClutter()
@@ -917,6 +962,12 @@ function TomoMod_Minimap.HideNativeClutter()
     HookNativeFrame(trackBliz, trackHide)
     HookNativeFrame(trackBtn,  trackHide)
     HookNativeFrame(compart,   collectHide)
+
+    -- [FIX] Réapplique explicitement l'état mouse voulu à chaque appel (pas seulement
+    -- à la création du hook) : si Blizzard avait désactivé la souris entre-temps, un
+    -- simple hook ne suffit pas tant qu'aucune méthode hookée n'est rappelée derrière.
+    if trackBtn and not InCombatLockdown() then trackBtn:EnableMouse(not hideTracking) end
+    if trackBliz and not InCombatLockdown() then trackBliz:EnableMouse(not hideTracking) end
 end
 
 -- [3.0.5] Positionne le déclencheur du collecteur. Extrait de CreateButtonBag
@@ -1117,6 +1168,9 @@ end
 -- POSITION SAVE / RESTORE
 -- =====================================
 
+local _tmApplyingMinimapPos = false -- guards RestorePosition's own SetPoint from re-triggering the hook below
+local _tmMinimapPosHooked    = false
+
 local function SavePosition()
     local db = TomoModDB and TomoModDB.minimap
     if not db then return end
@@ -1133,8 +1187,45 @@ local function RestorePosition()
     local db = TomoModDB and TomoModDB.minimap
     if not db or not db.position then return end
     local p = db.position
+    _tmApplyingMinimapPos = true
     Minimap:ClearAllPoints()
     Minimap:SetPoint(p.anchor, UIParent, p.relTo, p.x, p.y)
+    _tmApplyingMinimapPos = false
+end
+
+-- [FIX] "La minimap se déplace toute seule après un reload" — SetupEditMode()
+-- marks the Minimap as movable/user-placed for Blizzard's Edit Mode (Minimap is
+-- one of its managed systems), but Edit Mode can still call SetPoint on it at
+-- any later point (PLAYER_ENTERING_WORLD, resizing other Edit Mode systems,
+-- etc.), silently overriding our restored position — same root cause already
+-- fixed for the Objective Tracker mover. Re-assert our saved anchor whenever
+-- anything else calls SetPoint on the Minimap AND the result actually drifted
+-- from our saved position.
+-- [FIX 2] The naive "always reassert" version fought even Blizzard's own
+-- harmless internal SetPoint calls (e.g. MinimapCluster adjusting layout when
+-- the zone-name bar's text/width changes) — clearing/re-anchoring Minimap on
+-- every single one of those caused a visible one-frame misalignment between
+-- Minimap and its sibling MinimapCluster chrome (zone text, native icons)
+-- overlapping our tracking button. Only correct the position when it has
+-- actually drifted (beyond a small pixel tolerance) from what we saved, so
+-- harmless in-place SetPoint calls are left alone.
+local function InstallMinimapPositionHook()
+    if _tmMinimapPosHooked then return end
+    _tmMinimapPosHooked = true
+    hooksecurefunc(Minimap, "SetPoint", function()
+        if _tmApplyingMinimapPos then return end
+        local db = TomoModDB and TomoModDB.minimap
+        if not db or not db.position then return end
+        local p = db.position
+        local left, bottom = Minimap:GetLeft(), Minimap:GetBottom()
+        if not left or not bottom then return end
+        local scale = Minimap:GetEffectiveScale() / UIParent:GetEffectiveScale()
+        local curX, curY = left * scale, bottom * scale
+        if math.abs(curX - (p.x or 0)) < 1 and math.abs(curY - (p.y or 0)) < 1 then
+            return -- already where it should be — don't fight a harmless internal SetPoint
+        end
+        RestorePosition()
+    end)
 end
 
 -- =====================================
@@ -1208,14 +1299,42 @@ function TomoMod_Minimap.ApplySettings()
     TomoMod_Minimap.RefreshAddonButtonShapes()
     TomoMod_Minimap.SetupEditMode()
     RestorePosition()
+    InstallMinimapPositionHook()
 end
+
+-- [FIX] Backstop in addition to the SetPoint hook above: Edit Mode can apply
+-- its own saved Minimap layout on events well after our initial ApplySettings()
+-- pass (loading screens, zoning, or simply firing later than expected), and it
+-- isn't guaranteed to always go through a plain :SetPoint() call the hook can
+-- intercept. Re-assert our saved position once more, with a short delay, on
+-- every PLAYER_ENTERING_WORLD and whenever Edit Mode reports updated layouts.
+local minimapPosBackstop = CreateFrame("Frame")
+minimapPosBackstop:RegisterEvent("PLAYER_ENTERING_WORLD")
+minimapPosBackstop:RegisterEvent("EDIT_MODE_LAYOUTS_UPDATED")
+minimapPosBackstop:SetScript("OnEvent", function()
+    if not (TomoModDB and TomoModDB.minimap and TomoModDB.minimap.enabled) then return end
+    C_Timer.After(1, RestorePosition)
+end)
 
 -- Initialisation du module
 function TomoMod_Minimap.Initialize()
     -- (1) Pré-masquage immédiat des boutons d'addon natifs AVANT que bagFrame
     --     existe : on parcourt les parents de la minimap et on cache tout ce
     --     qui serait collecté, pour éviter le flash de 0.5 s.
+    -- [FIX] Ne rien masquer si le collecteur TomoMod est désactivé (buttonBag.enabled
+    -- = false ou collectorStyle = "blizzard") : sinon les boutons des autres addons
+    -- étaient rendus invisibles (alpha 0) à chaque reload sans jamais être restaurés
+    -- (CreateButtonBag() retourne tôt et ReleaseCollectedButtons() ne connaît que les
+    -- boutons capturés via LayoutBag, pas ceux masqués ici) — le collecteur semblait
+    -- se "réactiver" tout seul après un reload alors qu'il était désactivé.
+    local function CollectorIsEnabled()
+        local db = TomoModDB and TomoModDB.minimap
+        if not db then return true end
+        return (db.collectorStyle or "tomomod") == "tomomod"
+            and (not db.buttonBag or db.buttonBag.enabled ~= false)
+    end
     local function PreHideAddonButtons(parent)
+        if not CollectorIsEnabled() then return end
         if not parent or not parent.GetNumChildren then return end
         for i = 1, parent:GetNumChildren() do
             local child = select(i, parent:GetChildren())

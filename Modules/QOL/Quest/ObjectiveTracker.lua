@@ -25,6 +25,7 @@ local headerDash
 local headerOptions
 local isInitialized = false
 local isHooked      = false
+local _tmApplyingPosition = false -- guard so our own re-anchor doesn't recurse
 
 -- Dedup tables to avoid re-styling frames each pass
 local styledFonts = setmetatable({}, { __mode = "k" })
@@ -1513,8 +1514,11 @@ local function OnTrackerUpdate()
         LayoutBuckets()
     else
         DisableBuckets()
-        LimitDisplayedQuests()
     end
+    -- [FIX] maxQuestsShown must apply regardless of layout mode — previously it
+    -- was only enforced when buckets were disabled, so the slider had no effect
+    -- at all in the (default) bucketed layout.
+    LimitDisplayedQuests()
 
     -- Visibility: check if tracker has actual visible content
     if skinFrame then
@@ -1569,6 +1573,23 @@ local function InstallHooks()
         if skinFrame then skinFrame:Hide() end
         if headerBar then headerBar:Hide() end
     end)
+
+    -- [MOVER FIX] Blizzard's Edit Mode manager (and other UI code, e.g. opening
+    -- the Quest Journal or resizing action bars) can call SetPoint on the tracker
+    -- at any time and silently override the position saved via our own mover,
+    -- even though IsUserPlaced() is overridden to return true. Re-assert our
+    -- saved anchor immediately (same tick) any time anyone else calls SetPoint
+    -- on the tracker — matching the pattern already used for module/block frames.
+    if not tracker._tmPositionHooked then
+        tracker._tmPositionHooked = true
+        hooksecurefunc(tracker, "SetPoint", function()
+            if _tmApplyingPosition then return end
+            if not OT.ApplyPosition then return end
+            _tmApplyingPosition = true
+            OT.ApplyPosition()
+            _tmApplyingPosition = false
+        end)
+    end
 
     -- Event-driven updates
     local evFrame = CreateFrame("Frame")

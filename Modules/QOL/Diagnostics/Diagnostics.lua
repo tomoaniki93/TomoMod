@@ -1148,7 +1148,15 @@ function D.ShowExportFrame(mode)
         local ef = CreateFrame("Frame", "TomoMod_DiagExport", UIParent, "BackdropTemplate")
         ef:SetSize(600, 450)
         ef:SetPoint("CENTER")
+        -- [FIX] The console frame uses FrameLevel 600 + SetToplevel(true) in the
+        -- same FULLSCREEN_DIALOG strata (so it stays above the config menu) —
+        -- without a higher level here, this export popup opened invisibly behind
+        -- the still-open console, making "Copy Report" appear to do nothing.
+        -- Level is computed relative to the console (below) instead of hardcoded,
+        -- so it stays correct even if the console's own level changes later.
         ef:SetFrameStrata("FULLSCREEN_DIALOG")
+        ef:SetFrameLevel((consoleFrame and consoleFrame:GetFrameLevel() or 600) + 100)
+        ef:SetToplevel(true)
         ef:SetMovable(true)
         ef:EnableMouse(true)
         ef:RegisterForDrag("LeftButton")
@@ -1288,7 +1296,9 @@ function D.ShowExportFrame(mode)
 
     exportFrame._editBox:SetText(text)
     exportFrame._editBox:SetWidth(exportFrame._scrollFrame:GetWidth() or 540)
+    exportFrame:SetFrameLevel((consoleFrame and consoleFrame:GetFrameLevel() or 600) + 100)
     exportFrame:Show()
+    exportFrame:Raise()
     exportFrame._editBox:HighlightText()
     exportFrame._editBox:SetFocus()
     if exportFrame._updateThumb then

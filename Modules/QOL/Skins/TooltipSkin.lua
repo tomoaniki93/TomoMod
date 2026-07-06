@@ -19,6 +19,7 @@ local ADDON_TEXTURE   = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki
 
 local isInitialized = false
 local isHooked      = false
+local isAnchorLocked = true -- hides the draggable "custom" anchor swatch outside Layout mode
 
 -- Palette
 local ACCENT     = { 0.047, 0.824, 0.624 }
@@ -100,12 +101,12 @@ local function SkinTooltipBackground(tooltip)
             edgeSize = 1,
             insets   = { left = 2, right = 2, top = 2, bottom = 2 },
         })
-        tooltip:SetBackdropColor(bgR, bgG, bgB, s.bgAlpha or 0.92)
+        tooltip:SetBackdropColor(bgR, bgG, bgB, s.bgAlpha or 0.97)
         tooltip:SetBackdropBorderColor(bdR, bdG, bdB, s.borderAlpha or 0.8)
     elseif tooltip.NineSlice then
         -- Fallback NineSlice : utilise SetVertexColor(r,g,b,a) sans SetAlpha() séparé
         if tooltip.NineSlice.Center then
-            tooltip.NineSlice.Center:SetVertexColor(bgR, bgG, bgB, s.bgAlpha or 0.92)
+            tooltip.NineSlice.Center:SetVertexColor(bgR, bgG, bgB, s.bgAlpha or 0.97)
         end
         local borderPieces = {
             "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "BottomRightCorner",
@@ -364,14 +365,36 @@ local function EnsureTooltipMover()
     return m
 end
 
--- Affiche/masque le cadre deplacable selon le mode
+-- Affiche/masque le cadre deplacable selon le mode ET l'etat verrouille.
+-- [FIX] Auparavant affiche en permanence des que le mode "custom" etait choisi,
+-- meme en dehors de tout mode d'edition/placement — un joueur a signale que le
+-- repere teal restait visible en jeu en permanence. Il ne s'affiche desormais
+-- que lorsque le mode Layout est actif pour cet ancrage (voir SetLocked/API
+-- Movers), exactement comme les autres reperes deplacables de l'addon.
 function TS.RefreshAnchor()
     local s = S()
-    if (s.anchor or "default") == "custom" then
-        EnsureTooltipMover():Show()
-    elseif TomoMod_TooltipMover then
-        TomoMod_TooltipMover:Hide()
+    if (s.anchor or "default") ~= "custom" then
+        if TomoMod_TooltipMover then TomoMod_TooltipMover:Hide() end
+        return
     end
+    if isAnchorLocked then
+        if TomoMod_TooltipMover then TomoMod_TooltipMover:Hide() end
+    else
+        EnsureTooltipMover():Show()
+    end
+end
+
+function TS.IsLocked()
+    return isAnchorLocked
+end
+
+function TS.SetLocked(locked)
+    isAnchorLocked = locked and true or false
+    TS.RefreshAnchor()
+end
+
+function TS.ToggleLock()
+    TS.SetLocked(not isAnchorLocked)
 end
 
 -- Ancrage statique (coin / custom). Souris & defaut : non geres ici.
@@ -407,6 +430,23 @@ function TS.ApplySettings()
     -- Settings take effect on next tooltip show (no refresh needed)
 end
 
+-- Registers the custom-anchor swatch with the addon's unified Layout Mode
+-- toggle (TomoMod_Movers), so pressing "Layout" reveals it like every other
+-- movable element, and it hides again automatically when Layout mode ends.
+local function RegisterWithMovers()
+    if not TomoMod_Movers or not TomoMod_Movers.RegisterEntry then return end
+    TomoMod_Movers.RegisterEntry({
+        label    = (TomoMod_L and TomoMod_L["mover_tooltip_anchor"]) or "Tooltip Anchor",
+        unlock   = function() TS.SetLocked(false) end,
+        lock     = function() TS.SetLocked(true) end,
+        isActive = function()
+            local s = S()
+            return TomoModDB and TomoModDB.tooltipSkin and TomoModDB.tooltipSkin.enabled
+                and (s.anchor or "default") == "custom"
+        end,
+    })
+end
+
 function TS.Initialize()
     if isInitialized then return end
     if not IsEnabled() then return end
@@ -437,5 +477,6 @@ function TS.Initialize()
     end
 
     TS.RefreshAnchor()
+    RegisterWithMovers()
     isInitialized = true
 end

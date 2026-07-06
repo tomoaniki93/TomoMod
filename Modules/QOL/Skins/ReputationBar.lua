@@ -74,24 +74,48 @@ local function SuppressBlizzRepBar()
     local function tryHide(f)
         if not f or f._tmRepHidden then return end
         f._tmRepHidden = true
+        -- Some pooled status-tracking bar children use SetIgnoreParentAlpha(true)
+        -- (Blizzard's edit-mode/system bars do this so they stay visible regardless
+        -- of their container's alpha) — clear that first or our SetAlpha(0) below
+        -- would be silently ignored and the bar would keep showing through.
+        if f.SetIgnoreParentAlpha then f:SetIgnoreParentAlpha(false) end
         f:SetAlpha(0)
         if f.EnableMouse then f:EnableMouse(false) end
         _tmHiddenRepFrames[#_tmHiddenRepFrames + 1] = f
         if f.Show then
             hooksecurefunc(f, "Show", function(self)
-                if self._tmRepHidden then self:SetAlpha(0) end
+                if self._tmRepHidden then
+                    if self.SetIgnoreParentAlpha then self:SetIgnoreParentAlpha(false) end
+                    self:SetAlpha(0)
+                end
             end)
         end
     end
 
-    tryHide(_G["ReputationWatchBar"])
-    tryHide(_G["MainStatusTrackingBarContainer"])
-    tryHide(_G["MainStatusTrackingBarContainer2"])
+    -- Recursively hide a container's current + future child bars too (bounded
+    -- depth): the actual visible reputation/honor/artifact bar is often a pooled
+    -- child frame rather than the container itself.
+    local function tryHideTree(f, depth)
+        if not f or (depth or 0) > 2 then return end
+        tryHide(f)
+        if f.GetChildren then
+            for _, child in ipairs({ f:GetChildren() }) do
+                tryHideTree(child, (depth or 0) + 1)
+            end
+        end
+    end
+
+    tryHideTree(_G["ReputationWatchBar"])
+    tryHideTree(_G["MainStatusTrackingBarContainer"])
+    tryHideTree(_G["MainStatusTrackingBarContainer2"])
 
     if StatusTrackingBarManager and StatusTrackingBarManager.UpdateBarsShown then
         hooksecurefunc(StatusTrackingBarManager, "UpdateBarsShown", function()
-            local f = _G["ReputationWatchBar"]
-            if f and f._tmRepHidden then f:SetAlpha(0) end
+            -- Re-hide the containers' whole child tree: bars are pooled/recreated
+            -- by Blizzard, so new bar frames can appear after this point.
+            tryHideTree(_G["ReputationWatchBar"])
+            tryHideTree(_G["MainStatusTrackingBarContainer"])
+            tryHideTree(_G["MainStatusTrackingBarContainer2"])
         end)
     end
 end
