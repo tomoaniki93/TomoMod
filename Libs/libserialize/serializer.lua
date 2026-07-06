@@ -1,4 +1,4 @@
-local MAJOR,MINOR = "LibSerialize", 1;
+local MAJOR,MINOR = "TomoSerialize-1.0", 1;
 local LibSerialize, oldminor = LibStub:NewLibrary(MAJOR, MINOR);
 
 --[[
