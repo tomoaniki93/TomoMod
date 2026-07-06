@@ -2566,6 +2566,8 @@ TomoMod_RegisterLocale("enUS", {
     ["corner_tr"]                 = "Top right",
     ["corner_tl"]                 = "Top left",
     ["info_tooltip_anchor"]       = "Custom: select this mode then drag the teal frame to the desired position.",
+    ["btn_tooltip_toggle_anchor"] = "Show/Hide anchor",
+    ["mover_tooltip_anchor"]      = "Tooltip Anchor",
 
     -- Nameplates preview
     ["np_preview_title"]   = "Nameplate Preview",
@@ -2602,4 +2604,20 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_317_raidmanager_fix"] = "Raid Frames: fixed the default Blizzard group leader panel (ready check, raid target markers, convert to raid, ping limit, leave group) being hidden along with the raid frames when 'Hide Blizzard raid frames' is enabled — only the member-frame container is suppressed now, the leader toolbar stays available.",
     ["wn_317_groupmanager_skin"] = "Raid Frames: the 'Skin the group leader panel' option now fully reskins the Blizzard toolbar in the TomoMod dark/mint theme — mode & ping dropdowns, role/group filters, toolbar icons (edit mode, settings, ready check, role poll, countdown), raid marker buttons with their Unit/Ground tabs, and red-styled Leave Group buttons — all while keeping every Blizzard icon intact and toggling live without a reload.",
     ["wn_317_groupmanager_collapsetab"] = "Raid Frames: fixed the group leader panel's collapsed toggle leaving a stray strip on the screen edge, and gave it a proper mint pull-tab look instead of a plain reskinned button.",
+
+    -- 3.1.8
+    ["wn_318_bagskin_itemclass_enum"] = "Bag Skin: category matching now uses Blizzard's Enum.ItemClass constants (with numeric fallbacks) instead of hardcoded item class numbers, keeping categorization accurate across clients.",
+    ["wn_318_bagskin_cat_order"] = "Bag Skin: default category order updated — Quest Items is now grouped right after Equipment, ahead of Consumables and Trade Goods.",
+    ["wn_318_bagskin_cat_foundation"] = "Bag Skin: added the internal groundwork for a future hide/reorder categories option — Miscellaneous and Free Slots always stay visible so no item can ever disappear.",
+
+    -- 3.1.9
+    ["wn_319_ot_mover_fix"] = "Objective Tracker: fixed the mover position sometimes resetting itself (Blizzard's Edit Mode could silently override it) — dragging it now sticks reliably.",
+    ["wn_319_ot_quest_limit"] = "Objective Tracker: fixed the 'Max quests shown' slider having no effect at all in the default Categories layout.",
+    ["wn_319_minimap_drift"] = "Minimap: fixed the minimap sometimes moving itself to a different spot after a /reload.",
+    ["wn_319_minimap_collector"] = "Minimap: fixed the button collector still hiding other addons' minimap buttons after a reload even when disabled.",
+    ["wn_319_minimap_tracking"] = "Minimap: fixed the tracking button sometimes disappearing, and Blizzard's native tracking button staying unclickable after being revealed.",
+    ["wn_319_repbar_hide"] = "Reputation Bar: fixed Blizzard's own reputation/honor bar still showing through in some cases when 'Hide Blizzard reputation bar' is enabled.",
+    ["wn_319_tooltip_bg"] = "Tooltip: less transparent default background (92% -> 97% opacity) — still fully adjustable via the Background opacity slider.",
+    ["wn_319_tooltip_anchor"] = "Tooltip: the 'Custom' position anchor no longer stays visible on screen outside of Layout mode, and a new 'Show/Hide anchor' button was added in Skins -> Tooltip.",
+    ["wn_319_diag_copy"] = "Diagnostics: fixed the 'Copy Report' button appearing to do nothing — the export popup could open hidden behind the console window.",
 })

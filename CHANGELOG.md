@@ -1,5 +1,54 @@
 ## ####################################
 
+## CHANGELOG 3.1.9 — Movable-Frame Position Fixes, Native Bar Suppression & Diagnostics Popup Stacking
+
+#### Objective Tracker — Mover Position No Longer Resets
+- **Fix** — Dragging the Objective Tracker via its mover could stop "sticking": Blizzard's Edit Mode (or other UI code re-anchoring the tracker, e.g. opening the Quest Journal) could call `SetPoint` on `ObjectiveTrackerFrame` at any time and silently override the saved position, even though `IsUserPlaced()` was overridden to return true. The tracker now hooks its own `SetPoint` and re-applies the saved anchor the same tick anyone else moves it, exactly like the existing module/block-frame anchor guards in this file.
+
+#### Objective Tracker — Quest Limit Slider Now Works in the Default Layout
+- **Fix** — The "Max quests shown" slider had no effect at all in the default **Categories** (bucketed) layout: `LimitDisplayedQuests()` was only ever invoked from the "buckets disabled" branch of the update loop. It is now applied unconditionally after layout, regardless of whether bucketed categories are enabled.
+
+#### Minimap — Position No Longer Drifts After a Reload
+- **Fix** — The minimap could silently move itself back to a different spot after `/reload`: `SetupEditMode()` marks the Minimap as an Edit Mode system, but Edit Mode can still reposition it afterward (e.g. on `PLAYER_ENTERING_WORLD`), overriding the restored saved position. The Minimap now hooks its own `SetPoint` and immediately re-asserts the saved position anchor whenever anything else moves it — the same fix pattern applied to the Objective Tracker above.
+
+#### Minimap — Button Collector No Longer Re-Hides Other Addons' Buttons When Disabled
+- **Fix** — Disabling the TomoMod button collector and reloading previously still hid every other addon's minimap button (alpha 0) at login, with nothing to ever restore them, since the pre-hide pass ran unconditionally before the enabled/collector-style check. It now skips pre-hiding entirely when the collector is disabled or set to "Blizzard (native)" style, matching the setting immediately after every reload.
+
+#### Minimap — Tracking Button Visibility & Native Button Clickability
+- **Fix** — Added a defensive `Hide`/`SetAlpha` safeguard on TomoMod's own tracking button so it re-shows itself immediately if anything else (another addon walking the minimap's children, Blizzard's own square-minimap code, Edit Mode) silently hides it — a plain `Hide()` call throws no Lua error, so this kind of interference never showed up in Diagnostics even though the button visibly vanished.
+- **Fix** — Fixed Blizzard's native tracking button staying permanently unclickable after being "revealed" (by switching the tracking style to Blizzard, or disabling TomoMod's custom button): `EnableMouse()` was only ever applied once per settings change, unlike `Show`/`SetAlpha` which were continuously re-enforced. It's now kept in sync the same way, so the native button is guaranteed clickable whenever it's shown.
+
+#### Reputation Bar — Blizzard's Bar Fully Suppressed
+- **Fix** — The default Blizzard reputation/honor/artifact tracking bar could still show through even with "Hide Blizzard reputation bar" enabled: some of its pooled child bar frames call `SetIgnoreParentAlpha(true)`, so setting the *container's* alpha to 0 didn't actually hide them. Suppression now recurses into the container's child tree, clears `SetIgnoreParentAlpha` before zeroing alpha on each one, and re-applies on every `StatusTrackingBarManager` bar update (bars are pooled/recreated by Blizzard).
+
+#### Tooltip — Less Transparent Default Background
+- **Change** — Default tooltip background opacity raised from 92% to 97% for better readability out of the box. The existing **Background opacity** slider (Skins → Tooltip, 0–100%) still allows full customization.
+
+#### Tooltip — Custom Anchor No Longer Shown Outside Layout Mode
+- **Fix** — The draggable "Custom" position anchor swatch used to stay visible on screen permanently once that anchor mode was selected, even during normal play far outside any placement/edit mode — unlike every other movable element in the addon. It's now hidden by default and only appears while actively placing it.
+- **New** — The tooltip anchor is now registered with the addon's unified **Layout Mode** toggle, so pressing "Layout" reveals it like any other movable element and hides it again automatically afterward.
+- **New** — A dedicated **"Show/Hide anchor"** button was added directly in Skins → Tooltip for quick access without opening the full Layout panel.
+
+#### Diagnostics — "Copy Report" Popup No Longer Hidden Behind the Console
+- **Fix** — Clicking **Copy Report** appeared to do nothing: the diagnostics console was previously raised to `FrameLevel 600` + `SetToplevel(true)` (to always render above the config menu), but the separate export popup opened by that button was never given a level above it, so it opened invisibly behind the still-open console. The export popup's level is now computed relative to the console's current level (always above it) instead of being hardcoded, so it stays correctly on top even if the console's level changes again later.
+
+## ####################################
+
+## CHANGELOG 3.1.8 — Bag Skin Category Rework (Enum.ItemClass & Extensible Ordering)
+
+#### Bag Skin — Locale-Independent Category Matching
+- **Change** — Category matching in the **Categories** layout no longer compares raw numeric `classID` literals (e.g. `2`, `4`, `12`). It now resolves the proper `Enum.ItemClass` constants (`Armor`, `Weapon`, `Consumable`, `Questitem`, `Tradegoods`, `Reagent`, `Gem`, `ItemEnhancement`, `Recipe`, `Miscellaneous`, `Battlepet`) at load time, each with a numeric fallback so categorization stays correct even if a constant name is ever unavailable on a given client.
+
+#### Bag Skin — Reordered Default Categories
+- **Change** — Default category order updated to an EUI-inspired priority: **Quest Items** is now checked (and displayed) right after **Equipment**, ahead of **Consumables** and **Trade Goods**, instead of appearing after them.
+
+#### Bag Skin — Extensible Category Order/Visibility (Foundation)
+- **New** — `GetActiveCategories()` builds the active, ordered category list from two new saved-variable fields: `bagCategoryState` (per-category `hidden` flag) and an optional `bagCategoryOrder` (custom key order). **Miscellaneous** and **Free Slots** are always forced active and always sorted last, so an item can never disappear from the bag entirely. No config UI is exposed for this yet — this patch only lays the groundwork for an upcoming hide/reorder settings panel.
+- **Change** — `Categorize()` now accepts an explicit category list to bucket items against (defaulting to all categories), so it can be reused with the new active/filtered category set from `GetActiveCategories()`.
+- **New** — Database defaults: `bagSkin.bagCategoryState = {}` added (existing profiles get it merged in automatically); `bagCategoryOrder` remains unset by default (nil = default EUI-style order).
+
+## ####################################
+
 ## CHANGELOG 3.1.7 — Save/Export Namespace Fix, Reliable Frame Drag & Drop & Objective Tracker Combat Fix
 
 #### Profiles — LibSerialize Namespace Fix

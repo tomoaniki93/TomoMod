@@ -2331,6 +2331,8 @@ TomoMod_RegisterLocale("itIT", {
     ["corner_tr"]                 = "In alto a destra",
     ["corner_tl"]                 = "In alto a sinistra",
     ["info_tooltip_anchor"]       = "Personalizzato: seleziona questa modalità e trascina la cornice teal nella posizione desiderata.",
+    ["btn_tooltip_toggle_anchor"] = "Mostra/Nascondi l'ancoraggio",
+    ["mover_tooltip_anchor"]      = "Ancoraggio tooltip",
 
     -- Nameplates preview
     ["np_preview_title"]   = "Anteprima nameplate",
@@ -2367,4 +2369,20 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_317_raidmanager_fix"] = "Riquadri incursione: risolto un problema per cui il pannello predefinito del capogruppo di Blizzard (ready check, indicatori bersaglio incursione, converti in incursione, limite ping, abbandona gruppo) veniva nascosto insieme ai riquadri incursione quando è attiva l'opzione «Nascondi riquadri incursione di Blizzard» — ora viene soppresso solo il contenitore dei riquadri dei membri, la barra degli strumenti del capogruppo resta disponibile.",
     ["wn_317_groupmanager_skin"] = "Riquadri incursione: l'opzione «Personalizza il pannello del capogruppo» ora applica un restyling completo alla barra degli strumenti di Blizzard con il tema scuro/verde menta di TomoMod — menu a tendina di modalità e limite ping, filtri ruolo/gruppo, pulsanti della barra degli strumenti (modalità modifica, impostazioni, ready check, sondaggio ruolo, conto alla rovescia), pulsanti dei marcatori di incursione con le relative schede Unità/Terra, e pulsanti abbandona gruppo in stile rosso — il tutto senza alterare alcuna icona di Blizzard, con attivazione/disattivazione live senza ricaricare l'interfaccia.",
     ["wn_317_groupmanager_collapsetab"] = "Riquadri incursione: risolto un problema per cui il pulsante di riduzione del pannello del capogruppo lasciava una striscia residua sul bordo dello schermo, sostituito ora da un'apposita linguetta verde menta invece di un semplice pulsante personalizzato.",
+
+    -- 3.1.8
+    ["wn_318_bagskin_itemclass_enum"] = "Bag Skin: la corrispondenza delle categorie ora usa le costanti Enum.ItemClass di Blizzard (con fallback numerico) invece di numeri di classe oggetto codificati, mantenendo la categorizzazione corretta su ogni client.",
+    ["wn_318_bagskin_cat_order"] = "Bag Skin: ordine predefinito delle categorie aggiornato — gli Oggetti missione ora sono raggruppati subito dopo l'Equipaggiamento, prima di Consumabili e Materiali.",
+    ["wn_318_bagskin_cat_foundation"] = "Bag Skin: aggiunte le basi interne per una futura opzione di nascondere/riordinare le categorie — Varie e Slot liberi restano sempre visibili così nessun oggetto può mai sparire.",
+
+    -- 3.1.9
+    ["wn_319_ot_mover_fix"] = "Tracker Obiettivi: risolto un problema per cui la posizione dell'ancoraggio si reimpostava da sola (la Modalità Modifica di Blizzard poteva sovrascriverla silenziosamente) — trascinarlo ora rimane affidabile.",
+    ["wn_319_ot_quest_limit"] = "Tracker Obiettivi: risolto il cursore «Numero massimo di missioni mostrate» che non aveva alcun effetto nel layout predefinito a Categorie.",
+    ["wn_319_minimap_drift"] = "Minimappa: risolto un problema per cui la minimappa a volte si spostava da sola dopo un /reload.",
+    ["wn_319_minimap_collector"] = "Minimappa: risolto il raccoglitore di pulsanti che continuava a nascondere i pulsanti degli altri addon dopo un reload anche se disattivato.",
+    ["wn_319_minimap_tracking"] = "Minimappa: risolto il pulsante di tracciamento che a volte scompariva, e il pulsante di tracciamento nativo di Blizzard che restava non cliccabile dopo essere stato mostrato di nuovo.",
+    ["wn_319_repbar_hide"] = "Barra reputazione: risolta la barra di reputazione/onore di Blizzard che a volte restava visibile nonostante l'opzione «Nascondi barra reputazione Blizzard» fosse attiva.",
+    ["wn_319_tooltip_bg"] = "Tooltip: sfondo predefinito meno trasparente (opacità 92% → 97%) — ancora regolabile tramite il cursore di opacità dello sfondo.",
+    ["wn_319_tooltip_anchor"] = "Tooltip: l'ancoraggio di posizione «Personalizzato» non resta più visibile sullo schermo al di fuori della modalità Layout, ed è stato aggiunto un nuovo pulsante «Mostra/Nascondi l'ancoraggio» in Skins → Tooltip.",
+    ["wn_319_diag_copy"] = "Diagnostica: risolto il pulsante «Copy Report» che sembrava non fare nulla — la finestra di esportazione poteva aprirsi nascosta dietro la console.",
 })

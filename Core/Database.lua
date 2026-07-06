@@ -427,6 +427,8 @@ TomoMod_Defaults = {
         showRecentItems = true,
         showBagBar = true,
         collapsedSections = {},
+        bagCategoryState  = {},   -- { [catKey] = { hidden = bool } }; reorder/hide UI comes later
+        -- bagCategoryOrder = { ... }  -- optional saved order of category keys; nil = EUI-style default
         position = { anchor = "BOTTOMRIGHT", relTo = "BOTTOMRIGHT", x = -20, y = 60 },
     },
     buffSkin = {
@@ -445,7 +447,7 @@ TomoMod_Defaults = {
     },
     tooltipSkin = {
         enabled = true,
-        bgAlpha = 0.92,
+        bgAlpha = 0.97,
         borderAlpha = 0.8,
         bgColor = { r = 0.06, g = 0.06, b = 0.08 },
         borderColor = { r = 0.20, g = 0.20, b = 0.24 },

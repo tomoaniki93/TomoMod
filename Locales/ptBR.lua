@@ -2331,6 +2331,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["corner_tr"]                 = "Superior direito",
     ["corner_tl"]                 = "Superior esquerdo",
     ["info_tooltip_anchor"]       = "Personalizado: selecione este modo e arraste o quadro teal para a posição desejada.",
+    ["btn_tooltip_toggle_anchor"] = "Mostrar/Ocultar a âncora",
+    ["mover_tooltip_anchor"]      = "Âncora da dica de ferramenta",
 
     -- Nameplates preview
     ["np_preview_title"]   = "Pré-visualização de placas",
@@ -2367,4 +2369,20 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_317_raidmanager_fix"] = "Quadros de raide: corrigido o painel padrão do líder de grupo da Blizzard (ready check, marcadores de alvo de raide, converter em raide, limite de pings, sair do grupo) que era ocultado junto com os quadros de raide ao ativar «Ocultar quadros de raide da Blizzard» — agora apenas o contêiner dos quadros de membros é suprimido, a barra de ferramentas do líder continua disponível.",
     ["wn_317_groupmanager_skin"] = "Quadros de raide: a opção «Personalizar o painel do líder de grupo» agora aplica uma reformulação completa à barra de ferramentas da Blizzard com o tema escuro/verde-menta do TomoMod — menus suspensos de modo e limite de pings, filtros de função/grupo, botões da barra de ferramentas (modo de edição, configurações, ready check, votação de função, contagem regressiva), botões de marcadores de raide com suas abas Unidade/Chão, e botões de sair do grupo com estilo vermelho — tudo isso sem alterar nenhum ícone da Blizzard, com alternância ao vivo sem precisar recarregar a interface.",
     ["wn_317_groupmanager_collapsetab"] = "Quadros de raide: corrigido o botão de recolher do painel do líder de grupo que deixava uma faixa residual na borda da tela, agora substituído por uma verdadeira aba verde-menta em vez de um simples botão personalizado.",
+
+    -- 3.1.8
+    ["wn_318_bagskin_itemclass_enum"] = "Bag Skin: a correspondência de categorias agora usa as constantes Enum.ItemClass da Blizzard (com fallback numérico) em vez de números de classe de item fixos no código, mantendo a categorização correta em todos os clientes.",
+    ["wn_318_bagskin_cat_order"] = "Bag Skin: ordem padrão das categorias atualizada — Itens de missão agora são agrupados logo após Equipamento, antes de Consumíveis e Materiais.",
+    ["wn_318_bagskin_cat_foundation"] = "Bag Skin: adicionada a base interna para uma futura opção de ocultar/reordenar categorias — Diversos e Espaços livres sempre permanecem visíveis para que nenhum item possa desaparecer.",
+
+    -- 3.1.9
+    ["wn_319_ot_mover_fix"] = "Rastreador de Objetivos: corrigido o posicionamento da âncora que às vezes se resetava sozinho (o Modo de Edição da Blizzard podia sobrescrevê-lo silenciosamente) — arrastar agora permanece confiável.",
+    ["wn_319_ot_quest_limit"] = "Rastreador de Objetivos: corrigido o controle «Máx. de missões exibidas» que não tinha nenhum efeito no layout padrão por Categorias.",
+    ["wn_319_minimap_drift"] = "Minimapa: corrigido o minimapa que às vezes se movia sozinho para outra posição após um /reload.",
+    ["wn_319_minimap_collector"] = "Minimapa: corrigido o coletor de botões que continuava ocultando os botões de outros addons após um reload mesmo estando desativado.",
+    ["wn_319_minimap_tracking"] = "Minimapa: corrigido o botão de rastreamento que às vezes desaparecia, e o botão de rastreamento nativo da Blizzard que ficava impossível de clicar após ser revelado novamente.",
+    ["wn_319_repbar_hide"] = "Barra de Reputação: corrigida a barra de reputação/honra própria da Blizzard que às vezes continuava aparecendo mesmo com a opção «Ocultar barra de reputação da Blizzard» ativada.",
+    ["wn_319_tooltip_bg"] = "Dica de ferramenta: fundo padrão menos transparente (opacidade 92% → 97%) — ainda totalmente ajustável pelo controle de opacidade do fundo.",
+    ["wn_319_tooltip_anchor"] = "Dica de ferramenta: a âncora de posição «Personalizado» não fica mais visível na tela fora do modo Layout, e um novo botão «Mostrar/Ocultar a âncora» foi adicionado em Skins → Tooltip.",
+    ["wn_319_diag_copy"] = "Diagnóstico: corrigido o botão «Copy Report» que parecia não fazer nada — a janela de exportação podia abrir escondida atrás do console.",
 })

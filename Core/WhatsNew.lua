@@ -30,6 +30,28 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.1.9",
+        highlights = {
+            L["wn_319_ot_mover_fix"] or "Objective Tracker: fixed the mover position sometimes resetting itself (Blizzard's Edit Mode could silently override it) — dragging it now sticks reliably.",
+            L["wn_319_ot_quest_limit"] or "Objective Tracker: fixed the 'Max quests shown' slider having no effect at all in the default Categories layout.",
+            L["wn_319_minimap_drift"] or "Minimap: fixed the minimap sometimes moving itself to a different spot after a /reload.",
+            L["wn_319_minimap_collector"] or "Minimap: fixed the button collector still hiding other addons' minimap buttons after a reload even when disabled.",
+            L["wn_319_minimap_tracking"] or "Minimap: fixed the tracking button sometimes disappearing, and Blizzard's native tracking button staying unclickable after being revealed.",
+            L["wn_319_repbar_hide"] or "Reputation Bar: fixed Blizzard's own reputation/honor bar still showing through in some cases when 'Hide Blizzard reputation bar' is enabled.",
+            L["wn_319_tooltip_bg"] or "Tooltip: less transparent default background (92% -> 97% opacity) — still fully adjustable via the Background opacity slider.",
+            L["wn_319_tooltip_anchor"] or "Tooltip: the 'Custom' position anchor no longer stays visible on screen outside of Layout mode, and a new 'Show/Hide anchor' button was added in Skins -> Tooltip.",
+            L["wn_319_diag_copy"] or "Diagnostics: fixed the 'Copy Report' button appearing to do nothing — the export popup could open hidden behind the console window.",
+        },
+    },
+    {
+        version = "3.1.8",
+        highlights = {
+            L["wn_318_bagskin_itemclass_enum"] or "Bag Skin: category matching now uses Blizzard's Enum.ItemClass constants (with numeric fallbacks) instead of hardcoded item class numbers, keeping categorization accurate across clients.",
+            L["wn_318_bagskin_cat_order"] or "Bag Skin: default category order updated \u2014 Quest Items is now grouped right after Equipment, ahead of Consumables and Trade Goods.",
+            L["wn_318_bagskin_cat_foundation"] or "Bag Skin: added the internal groundwork for a future hide/reorder categories option \u2014 Miscellaneous and Free Slots always stay visible so no item can ever disappear.",
+        },
+    },
+    {
         version = "3.1.7",
         highlights = {
             L["wn_317_libserialize_namespace"] or "Profiles: the embedded LibSerialize library now uses a private namespace ('TomoSerialize-1.0') instead of the shared 'LibSerialize' name, preventing export/import conflicts with other addons that also embed LibSerialize.",

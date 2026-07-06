@@ -2343,6 +2343,8 @@ TomoMod_RegisterLocale("deDE", {
     ["corner_tr"]                 = "Oben rechts",
     ["corner_tl"]                 = "Oben links",
     ["info_tooltip_anchor"]       = "Benutzerdefiniert: Diesen Modus wählen, dann den türkisfarbenen Rahmen an die gewünschte Position ziehen.",
+    ["btn_tooltip_toggle_anchor"] = "Anker anzeigen/ausblenden",
+    ["mover_tooltip_anchor"]      = "Tooltip-Anker",
 
     -- Nameplates preview
     ["np_preview_title"]   = "Nameplates-Vorschau",
@@ -2379,4 +2381,20 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_317_raidmanager_fix"] = "Schlachtzugsrahmen: behoben, dass das standardmäßige Blizzard-Gruppenleiter-Panel (Bereitschaftscheck, Raid-Zielmarkierungen, in Schlachtzug umwandeln, Ping-Limit, Gruppe verlassen) zusammen mit den Schlachtzugsrahmen ausgeblendet wurde, wenn „Blizzard Schlachtzug-Rahmen ausblenden“ aktiviert ist — jetzt wird nur noch der Container der Mitgliederrahmen unterdrückt, die Leiter-Symbolleiste bleibt verfügbar.",
     ["wn_317_groupmanager_skin"] = "Schlachtzugsrahmen: die Option „Gruppenleiter-Panel im TomoMod-Stil gestalten“ gestaltet nun die komplette Blizzard-Symbolleiste im dunklen/minzgrünen TomoMod-Design um — Modus- und Ping-Limit-Dropdowns, Rollen-/Gruppenfilter, Symbolleisten-Schaltflächen (Bearbeitungsmodus, Einstellungen, Bereitschaftscheck, Rollenumfrage, Countdown), Raid-Markierungsschaltflächen mit ihren Einheit/Boden-Tabs sowie rot gestaltete Schaltflächen zum Verlassen der Gruppe — alle Blizzard-Symbole bleiben dabei unverändert, und die Option lässt sich live ohne Neuladen umschalten.",
     ["wn_317_groupmanager_collapsetab"] = "Schlachtzugsrahmen: behoben, dass die eingeklappte Umschaltfläche des Gruppenleiter-Panels einen Reststreifen am Bildschirmrand hinterließ, und dafür ein richtiges minzfarbenes Auszieh-Tab anstelle einer einfach umgestalteten Schaltfläche eingeführt.",
+
+    -- 3.1.8
+    ["wn_318_bagskin_itemclass_enum"] = "Bag Skin: der Kategorieabgleich verwendet jetzt Blizzards Enum.ItemClass-Konstanten (mit numerischem Fallback) statt fest codierter Itemklassen-Zahlen, was die Kategorisierung auf allen Clients korrekt hält.",
+    ["wn_318_bagskin_cat_order"] = "Bag Skin: Standard-Kategorienreihenfolge aktualisiert — Questgegenstände werden jetzt direkt nach Ausrüstung eingeordnet, vor Verbrauchsgütern und Handelswaren.",
+    ["wn_318_bagskin_cat_foundation"] = "Bag Skin: interne Grundlage für eine zukünftige Option zum Ausblenden/Neuordnen von Kategorien hinzugefügt — Verschiedenes und Freie Plätze bleiben immer sichtbar, damit kein Gegenstand jemals verschwinden kann.",
+
+    -- 3.1.9
+    ["wn_319_ot_mover_fix"] = "Aufgaben-Tracker: behoben, dass die Position des Ankers sich gelegentlich selbst zurücksetzte (Blizzards Edit-Modus konnte sie stillschweigend überschreiben) — das Ziehen bleibt jetzt zuverlässig erhalten.",
+    ["wn_319_ot_quest_limit"] = "Aufgaben-Tracker: behoben, dass der Regler „Max. angezeigte Quests“ im Standard-Kategorien-Layout überhaupt keine Wirkung hatte.",
+    ["wn_319_minimap_drift"] = "Minimap: behoben, dass sich die Minimap nach einem /reload gelegentlich selbst an eine andere Position verschob.",
+    ["wn_319_minimap_collector"] = "Minimap: behoben, dass der Button-Sammler weiterhin die Minimap-Buttons anderer Addons nach einem Reload ausblendete, obwohl er deaktiviert war.",
+    ["wn_319_minimap_tracking"] = "Minimap: behoben, dass der Pistage-Button gelegentlich verschwand und der native Blizzard-Pistage-Button nach dem Wiederanzeigen nicht anklickbar blieb.",
+    ["wn_319_repbar_hide"] = "Ruf-Leiste: behoben, dass Blizzards eigene Ruf-/Ehre-Leiste in manchen Fällen trotz aktivierter Option „Blizzard-Ruf-Leiste ausblenden“ noch sichtbar war.",
+    ["wn_319_tooltip_bg"] = "Tooltip: weniger transparenter Standard-Hintergrund (Deckkraft 92 % → 97 %) — weiterhin voll über den Regler für Hintergrund-Deckkraft anpassbar.",
+    ["wn_319_tooltip_anchor"] = "Tooltip: der „Benutzerdefiniert“-Positionsanker bleibt nicht mehr außerhalb des Layout-Modus dauerhaft sichtbar, und eine neue Schaltfläche „Anker anzeigen/ausblenden“ wurde unter Skins → Tooltip hinzugefügt.",
+    ["wn_319_diag_copy"] = "Diagnose: behoben, dass die Schaltfläche „Copy Report“ scheinbar nichts tat — das Export-Fenster konnte sich versteckt hinter der Konsole öffnen.",
 })

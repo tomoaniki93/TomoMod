@@ -731,6 +731,18 @@ local function BuildTooltipSkinTab(parent)
         or "Personnalise : choisis ce mode puis glisse le cadre teal a l'endroit voulu.", y)
     y = ny
 
+    -- [FIX] Le repere teal restait affiche en permanence des que le mode
+    -- "Personnalise" etait choisi, meme en dehors de tout mode d'edition.
+    -- Il est desormais cache par defaut (comme les autres reperes de l'addon,
+    -- geres par le bouton Layout) ; ce bouton permet de l'afficher/masquer a
+    -- la demande sans avoir a ouvrir le panneau Layout complet.
+    local _, ny = W.CreateButton(c, L["btn_tooltip_toggle_anchor"] or "Afficher/Masquer le repere", 220, y, function()
+        if TomoMod_TooltipSkin and TomoMod_TooltipSkin.ToggleLock then
+            TomoMod_TooltipSkin.ToggleLock()
+        end
+    end)
+    y = ny
+
     -- Font size
     local _, ny = W.CreateSlider(c, L["opt_tooltip_font_size"], TomoModDB.tooltipSkin.fontSize or 12, 9, 18, 1, y, function(v)
         TomoModDB.tooltipSkin.fontSize = v

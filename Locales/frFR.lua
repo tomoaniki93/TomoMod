@@ -2476,6 +2476,8 @@ TomoMod_RegisterLocale("frFR", {
     ["corner_tr"]                 = "Haut droite",
     ["corner_tl"]                 = "Haut gauche",
     ["info_tooltip_anchor"]       = "Personnalisé : choisis ce mode puis glisse le cadre teal à l'endroit voulu.",
+    ["btn_tooltip_toggle_anchor"] = "Afficher/Masquer le repère",
+    ["mover_tooltip_anchor"]      = "Ancre de l'infobulle",
 
     -- Nameplates preview
     ["np_preview_title"]   = "Aperçu des plaques",
@@ -2512,6 +2514,22 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_317_raidmanager_fix"] = "Cadres de raid : correction du panneau du leader de groupe Blizzard par défaut (vérification de disponibilité, marqueurs de raid, conversion en raid, limite de pings, quitter le groupe) qui était masqué en même temps que les cadres de raid lorsque « Masquer les cadres de raid Blizzard » est activé — seul le conteneur des cadres de membres est désormais supprimé, la barre d'outils du leader reste disponible.",
     ["wn_317_groupmanager_skin"] = "Cadres de raid : l'option « Reskin le panneau du leader de groupe » habille désormais entièrement la barre d'outils Blizzard dans le thème sombre/menthe de TomoMod — menus déroulants de mode et de limite de pings, filtres rôle/groupe, icônes de la barre d'outils (mode édition, paramètres, ready check, sondage de rôle, compte à rebours), boutons de marqueurs de raid avec leurs onglets Unité/Sol, et boutons Quitter le groupe en rouge — tout en conservant intactes les icônes Blizzard, avec bascule en direct sans /reload.",
     ["wn_317_groupmanager_collapsetab"] = "Cadres de raid : correction du bouton de repli du panneau du leader de groupe qui laissait une bande résiduelle sur le bord de l'écran, et remplacement par une véritable languette menthe au lieu d'un simple bouton reskinné.",
+
+    -- 3.1.8
+    ["wn_318_bagskin_itemclass_enum"] = "Bag Skin : la correspondance des catégories utilise désormais les constantes Enum.ItemClass de Blizzard (avec repli numérique) au lieu de nombres de classe d'objet codés en dur, garantissant une catégorisation fiable sur tous les clients.",
+    ["wn_318_bagskin_cat_order"] = "Bag Skin : ordre des catégories par défaut mis à jour — les Objets de quête sont désormais regroupés juste après l'Équipement, avant les Consommables et les Matériaux.",
+    ["wn_318_bagskin_cat_foundation"] = "Bag Skin : ajout des bases internes pour une future option de masquage/réorganisation des catégories — Divers et Emplacements libres restent toujours visibles pour qu'aucun objet ne puisse jamais disparaître.",
+
+    -- 3.1.9
+    ["wn_319_ot_mover_fix"] = "Suivi des quêtes : correction du repère qui réinitialisait parfois sa position (le Mode Édition de Blizzard pouvait le contourner silencieusement) — le glisser-déplacer reste désormais fiable.",
+    ["wn_319_ot_quest_limit"] = "Suivi des quêtes : correction du curseur « Nombre max. de quêtes affichées » qui n'avait aucun effet dans la disposition par Catégories par défaut.",
+    ["wn_319_minimap_drift"] = "Minimap : correction de la minimap qui se déplaçait parfois toute seule après un /reload.",
+    ["wn_319_minimap_collector"] = "Minimap : correction du collecteur de boutons qui masquait encore les boutons des autres addons après un reload même désactivé.",
+    ["wn_319_minimap_tracking"] = "Minimap : correction du bouton de pistage qui disparaissait parfois, et du bouton de pistage natif Blizzard qui restait non cliquable après avoir été révélé.",
+    ["wn_319_repbar_hide"] = "Barre de réputation : correction de la barre de réputation/honneur Blizzard qui restait parfois visible malgré l'option « Masquer la barre de réputation Blizzard ».",
+    ["wn_319_tooltip_bg"] = "Infobulle : fond par défaut moins transparent (opacité 92 % → 97 %) — toujours réglable via le curseur d'opacité du fond.",
+    ["wn_319_tooltip_anchor"] = "Infobulle : le repère de position « Personnalisé » ne reste plus affiché en dehors du mode Layout, et un nouveau bouton « Afficher/Masquer le repère » a été ajouté dans Skins → Infobulle.",
+    ["wn_319_diag_copy"] = "Diagnostics : correction du bouton « Copy Report » qui semblait ne rien faire — la fenêtre d'export pouvait s'ouvrir cachée derrière la console.",
 
     -- ChatFrameUI (panneau de config — libellés affichés dans Skins)
     ["sublabel_chatframeui"]        = "— UI de fenêtre de chat multi-positions —",

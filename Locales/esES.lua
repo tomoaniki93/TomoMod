@@ -2391,6 +2391,8 @@ TomoMod_RegisterLocale("esES", {
     ["corner_tr"]                 = "Superior derecha",
     ["corner_tl"]                 = "Superior izquierda",
     ["info_tooltip_anchor"]       = "Personalizado: selecciona este modo y arrastra el marco teal a la posición deseada.",
+    ["btn_tooltip_toggle_anchor"] = "Mostrar/Ocultar el ancla",
+    ["mover_tooltip_anchor"]      = "Ancla del tooltip",
 
     -- Nameplates preview
     ["np_preview_title"]   = "Vista previa de placas",
@@ -2427,4 +2429,20 @@ TomoMod_RegisterLocale("esES", {
     ["wn_317_raidmanager_fix"] = "Marcos de banda: corregido que el panel de líder de grupo predeterminado de Blizzard (comprobación de preparación, marcadores de objetivo de banda, convertir en banda, límite de pings, abandonar grupo) se ocultara junto con los marcos de banda al activar «Ocultar marcos de banda de Blizzard» — ahora solo se suprime el contenedor de marcos de miembros, la barra de herramientas del líder permanece disponible.",
     ["wn_317_groupmanager_skin"] = "Marcos de banda: la opción «Reskinear el panel de líder de grupo» ahora aplica un reskin completo a la barra de herramientas de Blizzard con el tema oscuro/verde menta de TomoMod — menús desplegables de modo y límite de pings, filtros de rol/grupo, botones de la barra de herramientas (modo edición, ajustes, comprobación de preparación, encuesta de rol, cuenta atrás), botones de marcadores de banda con sus pestañas Unidad/Suelo, y botones de abandonar grupo con estilo rojo — todo ello sin alterar ningún icono de Blizzard, y con cambio en vivo sin necesidad de recargar.",
     ["wn_317_groupmanager_collapsetab"] = "Marcos de banda: corregido que el interruptor de colapso del panel de líder de grupo dejaba una franja residual en el borde de la pantalla, ahora con una auténtica pestaña verde menta en lugar de un simple botón reskinneado.",
+
+    -- 3.1.8
+    ["wn_318_bagskin_itemclass_enum"] = "Bag Skin: la coincidencia de categorías ahora usa las constantes Enum.ItemClass de Blizzard (con reserva numérica) en lugar de números de clase de objeto codificados, manteniendo la categorización correcta en todos los clientes.",
+    ["wn_318_bagskin_cat_order"] = "Bag Skin: orden de categorías predeterminado actualizado — los Objetos de misión ahora se agrupan justo después del Equipo, antes de los Consumibles y los Materiales.",
+    ["wn_318_bagskin_cat_foundation"] = "Bag Skin: se añadió la base interna para una futura opción de ocultar/reordenar categorías — Miscelánea y Espacios libres siempre permanecen visibles para que ningún objeto pueda desaparecer nunca.",
+
+    -- 3.1.9
+    ["wn_319_ot_mover_fix"] = "Rastreador de objetivos: corregido que la posición del ancla a veces se reiniciaba sola (el Modo Edición de Blizzard podía sobrescribirla silenciosamente) — ahora arrastrarlo se mantiene de forma fiable.",
+    ["wn_319_ot_quest_limit"] = "Rastreador de objetivos: corregido que el control «Máx. misiones mostradas» no tenía ningún efecto en el diseño por Categorías predeterminado.",
+    ["wn_319_minimap_drift"] = "Minimapa: corregido que el minimapa a veces se movía solo a otra posición tras un /reload.",
+    ["wn_319_minimap_collector"] = "Minimapa: corregido que el recolector de botones seguía ocultando los botones de otros addons tras un reload incluso estando desactivado.",
+    ["wn_319_minimap_tracking"] = "Minimapa: corregido que el botón de rastreo a veces desaparecía, y que el botón de rastreo nativo de Blizzard quedaba sin poder pulsarse tras revelarse.",
+    ["wn_319_repbar_hide"] = "Barra de reputación: corregida la barra de reputación/honor propia de Blizzard que a veces seguía mostrándose con la opción «Ocultar barra de reputación de Blizzard» activada.",
+    ["wn_319_tooltip_bg"] = "Tooltip: fondo predeterminado menos transparente (opacidad 92% → 97%) — sigue siendo totalmente ajustable mediante el control de opacidad del fondo.",
+    ["wn_319_tooltip_anchor"] = "Tooltip: el ancla de posición «Personalizado» ya no permanece visible en pantalla fuera del modo Layout, y se añadió un nuevo botón «Mostrar/Ocultar el ancla» en Skins → Tooltip.",
+    ["wn_319_diag_copy"] = "Diagnóstico: corregido que el botón «Copy Report» parecía no hacer nada — la ventana de exportación podía abrirse oculta detrás de la consola.",
 })
