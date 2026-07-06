@@ -28,6 +28,7 @@ local GetReadyCheckStatus = GetReadyCheckStatus
 local IsInRaid            = IsInRaid
 local IsInGroup           = IsInGroup
 local GetNumGroupMembers  = GetNumGroupMembers
+local RegisterStateDriver = RegisterStateDriver
 local UnitIsUnit          = UnitIsUnit
 local InCombatLockdown    = InCombatLockdown
 local pairs, ipairs, wipe, pcall = pairs, ipairs, wipe, pcall
@@ -232,6 +233,20 @@ function RF.CreateFrame(unit)
     f:SetAttribute("type1", "target")
     f:SetAttribute("type2", "togglemenu")
     f:RegisterForClicks("AnyUp")
+
+    -- [COMBAT] Secure visibility driver: raidN units only exist while in
+    -- a raid, so unit existence alone drives show/hide — including members
+    -- joining or leaving while we are in combat, which insecure
+    -- Show()/Hide() calls could never handle on a protected button.
+    -- Departures also stop leaving a frozen "ghost" frame behind.
+    RegisterStateDriver(f, "visibility", "[@" .. unit .. ",exists] show; hide")
+
+    -- Repaint as soon as the secure driver reveals the frame (mid-combat
+    -- join): child regions are not protected, so a full element refresh
+    -- is combat-safe.
+    f:HookScript("OnShow", function(self)
+        RF.UpdateFrame(self)
+    end)
 
     -- ClickCast support
     if ClickCastFrames then
@@ -1094,8 +1109,13 @@ local blizzardHidden = false
 -- SetAlpha(0)+SetScale(0.001) suppresses Blizzard frames without tainting them.
 -- SetParent(), Hide(), and .Show=function() overrides all propagate taint into
 -- CompactRaidFrameManager's call chain → CompactPartyFrame:SetShown() blocked.
-local _rfManagerHookInstalled = false
-
+--
+-- NOTE: CompactRaidFrameManager itself (the "Groupe" toolbar docked to the
+-- left edge — ready check, raid target markers, convert to raid, ping limit,
+-- leave group/instance) is intentionally left untouched. It only hosts the
+-- leader/utility controls, which TomoMod does not reimplement, and does not
+-- need to be hidden to suppress the default member frames — only
+-- CompactRaidFrameContainer (the actual raid member rows) does.
 function RF.HideBlizzardFrames()
     if blizzardHidden then return end
 
@@ -1111,72 +1131,67 @@ function RF.HideBlizzardFrames()
         end)
     end
 
-    if CompactRaidFrameManager then
-        pcall(function()
-            CompactRaidFrameManager:SetAlpha(0)
-            CompactRaidFrameManager:EnableMouse(false)
-        end)
-        -- One-time post-hook: re-apply alpha after Blizzard tries to re-show.
-        -- Calls SetAlpha, NOT Hide(), to avoid taint propagation.
-        if not _rfManagerHookInstalled then
-            _rfManagerHookInstalled = true
-            hooksecurefunc(CompactRaidFrameManager, "Show", function(self)
-                if blizzardHidden then
-                    pcall(function() self:SetAlpha(0) end)
-                end
-            end)
-        end
-    end
-
     blizzardHidden = true
 end
 
 -- =====================================
--- REFRESH GROUP
+-- ENSURE FRAMES: pre-create the full raid1..raid40 set (out of combat).
+-- Members who join while we are already in combat then have a
+-- driver-managed frame ready to be revealed by the secure side.
+-- One-time cost on first raid entry; hidden frames are inert (every
+-- updater early-returns on UnitExists, loops skip non-shown frames).
+-- =====================================
+function RF.EnsureFrames()
+    for i = 1, 40 do
+        local unit = "raid" .. i
+        if not RF.frames[unit] then
+            RF.CreateFrame(unit)
+        end
+    end
+end
+
+-- =====================================
+-- UPDATE ALL VISIBLE FRAMES (combat-safe: non-protected children only)
+-- =====================================
+function RF.UpdateAllFrames()
+    for _, f in pairs(RF.frames) do
+        if f and f:IsShown() then
+            RF.UpdateFrame(f)
+        end
+    end
+end
+
+-- =====================================
+-- REFRESH GROUP: create frames + repaint + layout.
+-- Visibility itself is owned by the secure state drivers set in
+-- RF.CreateFrame, so it needs no work here — in or out of combat.
 -- =====================================
 function RF.RefreshGroup()
     local db = TomoModDB and TomoModDB.raidFrames
     if not db or not db.enabled then return end
 
+    -- [COMBAT] Only frame creation (SetAttribute on secure buttons) and
+    -- layout (SetPoint/SetSize on protected frames) must wait for regen.
+    -- Repainting already-shown frames is safe: their elements are
+    -- non-protected children, and a roster shift can put a different
+    -- player behind an existing token.
     if InCombatLockdown() then
         RF._pendingRefresh = true
+        RF.UpdateAllFrames()
         return
     end
 
     if not IsInRaid() then
-        -- Hide all real raid frames when not in raid
-        for unit, f in pairs(RF.frames) do
-            f:Hide()
-        end
+        -- The drivers hide the real frames on their own once raidN
+        -- units disappear; nothing protected left to do here.
         return
     end
 
     -- In a real raid: hide any preview
     RF.HidePreview()
 
-    local numMembers = GetNumGroupMembers()
-
-    -- Create/show frames for existing raid members
-    local activeUnits = {}
-    for i = 1, numMembers do
-        local unit = "raid" .. i
-        if UnitExists(unit) then
-            activeUnits[unit] = true
-            if not RF.frames[unit] then
-                RF.CreateFrame(unit)
-            end
-            RF.frames[unit]:Show()
-            RF.UpdateFrame(RF.frames[unit])
-        end
-    end
-
-    -- Hide frames for members no longer in raid
-    for unit, f in pairs(RF.frames) do
-        if not activeUnits[unit] then
-            f:Hide()
-        end
-    end
-
+    RF.EnsureFrames()
+    RF.UpdateAllFrames()
     RF.LayoutFrames()
 end
 
@@ -1364,8 +1379,13 @@ function RF.ToggleLock()
             RF.HidePreview()
             local db = TomoModDB and TomoModDB.raidFrames
             if db and RF.anchor then
-                local p, _, rp, x, y = RF.anchor:GetPoint()
-                db.position = { point = p, relativePoint = rp, x = x, y = y }
+                -- [DRAG] screen-absolute coords instead of GetPoint
+                local left, bottom = RF.anchor:GetLeft(), RF.anchor:GetBottom()
+                if left and bottom then
+                    local scale = RF.anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                    db.position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT",
+                                    x = left * scale, y = bottom * scale }
+                end
             end
         end
     end
@@ -1410,9 +1430,12 @@ function RF.CreateAnchor()
     mover:SetScript("OnDragStart", function() anchor:StartMoving() end)
     mover:SetScript("OnDragStop", function()
         anchor:StopMovingOrSizing()
-        local p, _, rp, x, y = anchor:GetPoint()
-        if db then
-            db.position = { point = p, relativePoint = rp, x = x, y = y }
+        -- [DRAG] screen-absolute coords instead of GetPoint
+        local left, bottom = anchor:GetLeft(), anchor:GetBottom()
+        if db and left and bottom then
+            local scale = anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
+            db.position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT",
+                            x = left * scale, y = bottom * scale }
         end
     end)
     local label = mover:CreateFontString(nil, "OVERLAY")
@@ -1455,8 +1478,12 @@ local function OnEvent(self, event, arg1, ...)
         if f then RF.UpdatePower(f) end
 
     elseif event == "UNIT_NAME_UPDATE" then
+        -- A roster shift can move a different player onto this token
+        -- (raid20 leaves -> old raid21 becomes raid20): repaint the whole
+        -- frame, not just the name, so class color/absorbs/dispel match
+        -- the new occupant even while in combat.
         local f = GetFrameForUnit(arg1)
-        if f then RF.UpdateName(f) end
+        if f then RF.UpdateFrame(f) end
 
     elseif event == "UNIT_AURA" then
         local f = GetFrameForUnit(arg1)

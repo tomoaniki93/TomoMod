@@ -775,8 +775,12 @@ end
 
 function LOOTS:SavePosition()
     if not self.Frame or not TomoModDB then return end
-    local p, _, rp, x, y = self.Frame:GetPoint()
-    TomoModDB.loots.position = { point = p, relPoint = rp, x = x, y = y }
+    -- [DRAG] screen-absolute coords instead of GetPoint
+    local left, bottom = self.Frame:GetLeft(), self.Frame:GetBottom()
+    if not left or not bottom then return end
+    local scale = self.Frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    TomoModDB.loots.position = { point = "BOTTOMLEFT", relPoint = "BOTTOMLEFT",
+                                 x = left * scale, y = bottom * scale }
 end
 
 function LOOTS:_RestorePosition()

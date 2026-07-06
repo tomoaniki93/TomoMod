@@ -525,8 +525,13 @@ local function BuildFrame()
     f:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
         local db = GetDB()
-        local point, _, relPoint, x, y = self:GetPoint()
-        db.framePos = { point = point, relPoint = relPoint, x = x, y = y }
+        -- [DRAG] screen-absolute coords instead of GetPoint
+        local left, bottom = self:GetLeft(), self:GetBottom()
+        if left and bottom then
+            local scale = self:GetEffectiveScale() / UIParent:GetEffectiveScale()
+            db.framePos = { point = "BOTTOMLEFT", relPoint = "BOTTOMLEFT",
+                            x = left * scale, y = bottom * scale }
+        end
     end)
     f:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8x8",

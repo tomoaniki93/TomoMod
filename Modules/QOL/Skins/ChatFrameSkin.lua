@@ -947,9 +947,15 @@ end
 local function FCFManager_GetChatTarget(chatGroup, playerTarget, channelTarget)
     local chatTarget
     if chatGroup == "CHANNEL" then
-        chatTarget = tostring(channelTarget)
+        if channelTarget ~= nil and not (issecretvalue and issecretvalue(channelTarget)) then
+            chatTarget = tostring(channelTarget)
+        end
     elseif chatGroup == "WHISPER" or chatGroup == "BN_WHISPER" then
-        chatTarget = playerTarget and strupper(playerTarget) or playerTarget
+        if playerTarget and not (issecretvalue and issecretvalue(playerTarget)) then
+            chatTarget = strupper(playerTarget)
+        else
+            chatTarget = playerTarget
+        end
     end
     return chatTarget
 end

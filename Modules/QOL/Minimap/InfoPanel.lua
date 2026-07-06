@@ -30,6 +30,21 @@ local function DB()
 end
 
 -- =====================================
+-- DURABILITY POSITION (configurable — [12.0.7] the new expansion
+-- minimap button can overlap the durability text corner)
+-- =====================================
+
+function IP.ApplyDurabilityPosition()
+    if not durabilityText or not Minimap then return end
+    local db = DB()
+    local anchor = (db and db.durabilityAnchor) or "BOTTOMLEFT"
+    local x = (db and db.durabilityX) or 6
+    local y = (db and db.durabilityY) or 6
+    durabilityText:ClearAllPoints()
+    durabilityText:SetPoint(anchor, Minimap, anchor, x, y)
+end
+
+-- =====================================
 -- HIDE BLIZZARD ELEMENTS
 -- =====================================
 
@@ -198,12 +213,12 @@ local function CreateUI()
     coordsText:SetText("")
 
     -- =========================================
-    -- OVERLAY: Durability (bottom-left on minimap)
+    -- OVERLAY: Durability (position configurable — voir IP.ApplyDurabilityPosition)
     -- =========================================
     durabilityText = minimap:CreateFontString(nil, "OVERLAY")
     durabilityText:SetFont(FONT_BOLD, 11, "OUTLINE")
-    durabilityText:SetPoint("BOTTOMLEFT", minimap, "BOTTOMLEFT", 6, 6)
     durabilityText:SetText("")
+    IP.ApplyDurabilityPosition()
 
     -- =========================================
     -- CLOCK BAR (below minimap)

@@ -679,10 +679,13 @@ local function CreateHeaderBar()
     headerBar:SetScript("OnDragStart", function(self) self:StartMoving() end)
     headerBar:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
-        local point, _, relativePoint, x, y = self:GetPoint()
-        if TomoModDB then
+        -- [DRAG] screen-absolute coords, immune to StartMoving anchor drift
+        local left, bottom = self:GetLeft(), self:GetBottom()
+        if TomoModDB and left and bottom then
+            local scale = self:GetEffectiveScale() / UIParent:GetEffectiveScale()
             TomoModDB._layoutHeaderPos = {
-                point = point, relativePoint = relativePoint, x = x, y = y,
+                point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT",
+                x = left * scale, y = bottom * scale,
             }
         end
     end)

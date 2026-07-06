@@ -38,6 +38,8 @@ local C = {
 
 local BAR_TEXTURE = "Interface\\Buttons\\WHITE8X8"
 
+local issecretvalue = issecretvalue
+
 -- =====================================
 -- VARIABLES MODULE
 -- =====================================
@@ -63,8 +65,11 @@ end
 
 local function SavePosition()
     local s = GetSettings(); if not s then return end
-    local point, _, rp, x, y = frame:GetPoint()
-    s.position = { point = point or "BOTTOM", relativePoint = rp or "CENTER", x = x or 0, y = y or -180 }
+    -- [DRAG] screen-absolute coords instead of GetPoint
+    local left, bottom = frame:GetLeft(), frame:GetBottom()
+    if not left or not bottom then return end
+    local scale = frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    s.position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT", x = left * scale, y = bottom * scale }
     print("|cff00ff00TomoMod:|r " .. TomoMod_L["msg_sr_pos_saved"])
 end
 
@@ -423,6 +428,7 @@ local function UpdateSpeed()
             if frame.windLabel  then frame.windLabel:Show()  end
 
             local speed = GetUnitSpeed("player")
+            if issecretvalue and issecretvalue(speed) then speed = 0 end
             local moveSpeed = math.floor(speed / 7 * 100 + 0.5)
             moveSpeed = math.max(0, math.min(moveSpeed, SPEED_MAX))
             speedBar:SetMinMaxValues(0, SPEED_MAX)
@@ -448,11 +454,13 @@ local function UpdateSpeed()
     frame:Show()
 
     local isGliding, _, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
+    if issecretvalue and forwardSpeed ~= nil and issecretvalue(forwardSpeed) then forwardSpeed = 0 end
     local moveSpeed = 0
     if isGliding and forwardSpeed and forwardSpeed > 0 then
         moveSpeed = math.floor(forwardSpeed * SPEED_MULTIPLIER + 0.5)
     else
         local speed = GetUnitSpeed("player")
+        if issecretvalue and issecretvalue(speed) then speed = 0 end
         moveSpeed   = math.floor(speed / 7 * 100 + 0.5)
     end
     moveSpeed = math.max(0, math.min(moveSpeed, SPEED_MAX))

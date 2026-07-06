@@ -359,9 +359,12 @@ function AF.CreateAnchor()
     mover:SetScript("OnDragStart", function() anchor:StartMoving() end)
     mover:SetScript("OnDragStop", function()
         anchor:StopMovingOrSizing()
-        local p, _, rp, x, y = anchor:GetPoint()
-        if db then
-            db.position = { point = p, relativePoint = rp, x = x, y = y }
+        -- [DRAG] screen-absolute coords instead of GetPoint
+        local left, bottom = anchor:GetLeft(), anchor:GetBottom()
+        if db and left and bottom then
+            local scale = anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
+            db.position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT",
+                            x = left * scale, y = bottom * scale }
         end
     end)
 
@@ -390,8 +393,13 @@ function AF.ToggleLock()
             AF.anchor.moverOverlay:Hide()
             local db = TomoModDB and TomoModDB.partyFrames and TomoModDB.partyFrames.arena
             if db and AF.anchor then
-                local p, _, rp, x, y = AF.anchor:GetPoint()
-                db.position = { point = p, relativePoint = rp, x = x, y = y }
+                -- [DRAG] screen-absolute coords instead of GetPoint
+                local left, bottom = AF.anchor:GetLeft(), AF.anchor:GetBottom()
+                if left and bottom then
+                    local scale = AF.anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                    db.position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT",
+                                    x = left * scale, y = bottom * scale }
+                end
             end
         end
     end

@@ -225,13 +225,18 @@ local function CreateBar()
         self:StopMovingOrSizing()
         local db = DB()
         if db then
-            local point, _, relativePoint, x, y = self:GetPoint()
-            db.position = {
-                point = point,
-                relativePoint = relativePoint,
-                x = x,
-                y = y,
-            }
+            -- [DRAG] GetLeft/GetBottom (screen-absolute) instead of GetPoint,
+            -- whose relative anchor can be corrupted by StartMoving.
+            local left, bottom = self:GetLeft(), self:GetBottom()
+            if left and bottom then
+                local scale = self:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                db.position = {
+                    point = "BOTTOMLEFT",
+                    relativePoint = "BOTTOMLEFT",
+                    x = left * scale,
+                    y = bottom * scale,
+                }
+            end
         end
     end)
 

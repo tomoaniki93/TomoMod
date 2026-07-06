@@ -1536,8 +1536,13 @@ local function CreateBagFrame()
         f:StopMovingOrSizing()
         local db = TomoModDB and TomoModDB.bagSkin
         if db then
-            local pt, _, rel, x, y = f:GetPoint(1)
-            db.position = { anchor = pt, relTo = rel, x = x, y = y }
+            -- [DRAG] screen-absolute coords instead of GetPoint
+            local left, bottom = f:GetLeft(), f:GetBottom()
+            if left and bottom then
+                local scale = f:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                db.position = { anchor = "BOTTOMLEFT", relTo = "BOTTOMLEFT",
+                                x = left * scale, y = bottom * scale }
+            end
         end
     end)
 
@@ -1724,8 +1729,13 @@ local function RegisterWithMovers()
             if bagFrame then
                 local db = TomoModDB and TomoModDB.bagSkin
                 if db then
-                    local pt, _, rel, x, y = bagFrame:GetPoint(1)
-                    db.position = { anchor = pt, relTo = rel, x = x, y = y }
+                    -- [DRAG] screen-absolute coords instead of GetPoint
+                    local left, bottom = bagFrame:GetLeft(), bagFrame:GetBottom()
+                    if left and bottom then
+                        local scale = bagFrame:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                        db.position = { anchor = "BOTTOMLEFT", relTo = "BOTTOMLEFT",
+                                        x = left * scale, y = bottom * scale }
+                    end
                 end
             end
         end,

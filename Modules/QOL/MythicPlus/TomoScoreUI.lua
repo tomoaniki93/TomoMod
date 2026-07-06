@@ -32,13 +32,15 @@ function TS:BuildScoreboard()
     F:SetScript("OnDragStart", function(s) s:StartMoving() end)
     F:SetScript("OnDragStop",  function(s)
         s:StopMovingOrSizing()
-        local a, _, ra, x, y = s:GetPoint()
+        -- [DRAG] screen-absolute coords instead of GetPoint
+        local left, bottom = s:GetLeft(), s:GetBottom()
         local db = TS:GetDB()
-        if db then
-            db.position.anchor = a
-            db.position.relTo  = ra
-            db.position.x      = math.floor(x + 0.5)
-            db.position.y      = math.floor(y + 0.5)
+        if db and left and bottom then
+            local scale = s:GetEffectiveScale() / UIParent:GetEffectiveScale()
+            db.position.anchor = "BOTTOMLEFT"
+            db.position.relTo  = "BOTTOMLEFT"
+            db.position.x      = math.floor(left * scale + 0.5)
+            db.position.y      = math.floor(bottom * scale + 0.5)
         end
     end)
     F:Hide()

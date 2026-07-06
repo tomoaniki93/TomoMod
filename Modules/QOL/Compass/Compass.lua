@@ -155,12 +155,15 @@ end
 local function SavePosition()
     local db = DB()
     if not db or not frame then return end
-    local point, _, rp, x, y = frame:GetPoint()
+    -- [DRAG] screen-absolute coords instead of GetPoint
+    local left, bottom = frame:GetLeft(), frame:GetBottom()
+    if not left or not bottom then return end
+    local scale = frame:GetEffectiveScale() / UIParent:GetEffectiveScale()
     db.position = {
-        point         = point or "TOP",
-        relativePoint = rp    or "TOP",
-        x             = x     or 0,
-        y             = y     or -12,
+        point         = "BOTTOMLEFT",
+        relativePoint = "BOTTOMLEFT",
+        x             = left * scale,
+        y             = bottom * scale,
     }
 end
 

@@ -1120,9 +1120,12 @@ end
 local function SavePosition()
     local db = TomoModDB and TomoModDB.minimap
     if not db then return end
-    local point, _, relPoint, x, y = Minimap:GetPoint(1)
-    if point then
-        db.position = { anchor = point, relTo = relPoint, x = x, y = y }
+    -- [DRAG] screen-absolute coords instead of GetPoint
+    local left, bottom = Minimap:GetLeft(), Minimap:GetBottom()
+    if left and bottom then
+        local scale = Minimap:GetEffectiveScale() / UIParent:GetEffectiveScale()
+        db.position = { anchor = "BOTTOMLEFT", relTo = "BOTTOMLEFT",
+                        x = left * scale, y = bottom * scale }
     end
 end
 

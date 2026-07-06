@@ -7,6 +7,7 @@
 
     <!-- CDM -->
     <Include file="CooldownManager\CDMScanner.lua" />
+    <Include file="CooldownManager\CDMHolders.lua" />
     <Include file="CooldownManager\CDMLayout.lua" />
     <Include file="CooldownManager\CDMKeybinds.lua" />
     <Include file="CooldownManager\CDMProcGlow.lua" />
@@ -90,14 +91,11 @@
     <Include file="Skins\CharacterSkin.lua" />
     <Include file="Skins\ReputationBar.lua" />
     <Include file="Skins\ChatFrameSkin.lua" />
-    <!-- <Include file="Skins\ChatButtonHandlers.lua" /> -->
-    <!-- <Include file="Skins\ChatFrameUI.lua" /> -->
-    <!-- <Include file="Skins\BagCategories.lua" /> -->
     <Include file="Skins\BagSkin.lua" />
-    <!-- <Include file="Skins\BagBank.lua" /> -->
     <Include file="Skins\BuffSkin.lua" />
     <Include file="Skins\GameMenuSkin.lua" />
     <Include file="Skins\TooltipSkin.lua" />
+    <Include file="Skins\GroupManagerSkin.lua" />
     <!-- Modules: Waypoint (In-world navigation — /tm way) -->
     <Include file="Waypoint\Waypoint.lua" />
 

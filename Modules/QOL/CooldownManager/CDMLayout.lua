@@ -1,57 +1,55 @@
 -- =====================================
--- CDMLayout.lua — Phase 2: Own Layout Engine
--- Replaces inline LayoutEngine + LayoutViewer from CooldownManager.lua
+-- CDMLayout.lua — v3.2.0 (Phase 2 layout engine + Phase 4 holders)
 --
--- Features:
---   • Unified direction system: CENTERED, LEFT, RIGHT, UP, DOWN
---   • Secondary direction for row wrapping
---   • Weak tables for viewer state (zero taint on secure frames)
---   • Viewer container resize (Edit Mode compatible)
---   • Per-viewer configurable: direction, spacing, iconSize, rowLimit
---   • Pixel snapping for crisp borders
---   • Dirty-check positioning (skip unchanged)
---   • BuffBar stable-slot vertical stack
+-- Moteur de layout TomoMod pour les 4 viewers Blizzard CDM.
 --
--- Usage:
---   CDMLayout.LayoutViewer(viewer, isBuff)
---   CDMLayout.RefreshAll(viewers)
+-- v3.2 — architecture "holders" :
+--   * Les icônes Blizzard sont ancrées sur les HOLDERS TomoMod
+--     (TomoMod_CDMHolders) au lieu du viewer Blizzard.
+--     → position libre, indépendante de l'Edit Mode Blizzard.
+--   * On ne redimensionne PLUS le viewer Blizzard (zéro interférence
+--     Edit Mode). La taille de contenu est reportée sur le holder.
+--   * Réglages par viewer via TomoModDB.cooldownManager.viewerLayout[key]
+--     (clés canoniques : "essential", "utility", "buffIcon", "buffBar").
+--   * _cdm_stableSlot déplacé dans une weak table (hygiène anti-taint,
+--     cohérent Phase 1 : aucun write custom sur frames Blizzard).
+--
+-- Règles taint conservées :
+--   * SetPoint/ClearAllPoints uniquement sur les enfants (jamais SetParent,
+--     jamais Show/Hide, jamais de clé custom sur les frames Blizzard).
+--   * Skip pendant l'Edit Mode Blizzard actif.
 -- =====================================
 
 TomoMod_CDMLayout = TomoMod_CDMLayout or {}
 local Layout = TomoMod_CDMLayout
 
-local ceil  = math.ceil
-local floor = math.floor
-local abs   = math.abs
-local min   = math.min
-local max   = math.max
-local wipe  = wipe
+local floor, ceil, max, min, abs = math.floor, math.ceil, math.max, math.min, math.abs
 
 -- =====================================
 -- CONSTANTS
 -- =====================================
 local DEFAULT_SPACING   = 1
-local DEFAULT_ROW_LIMIT = 0    -- 0 = unlimited (single row)
 local SNAP_TOLERANCE    = 1    -- pixels — skip repositioning if delta < this
+
+-- Clé canonique par nom de frame Blizzard
+local KEY_BY_FRAMENAME = {
+    EssentialCooldownViewer = "essential",
+    UtilityCooldownViewer   = "utility",
+    BuffIconCooldownViewer  = "buffIcon",
+    BuffBarCooldownViewer   = "buffBar",
+}
 
 -- =====================================
 -- VIEWER STATE (weak tables — zero taint on secure frames)
 -- =====================================
--- Instead of writing viewer._cdm_foo = bar (which taints EditMode frames),
--- all per-viewer state lives in this weak-keyed table.
 local viewerState = setmetatable({}, { __mode = "k" })
 
 local function VS(viewer)
     local s = viewerState[viewer]
     if not s then
         s = {
-            origWidth      = nil,   -- Blizzard's original width (for Edit Mode restore)
-            origHeight     = nil,
             lastDirKey     = nil,   -- for change detection
             lastIconCount  = nil,
-            anchorShiftX   = 0,
-            anchorShiftY   = 0,
-            skipNextAdjust = false,
             -- Pre-allocated tables per viewer (no shared wipe)
             visibleIcons   = {},
             rowMeta        = {},
@@ -61,9 +59,33 @@ local function VS(viewer)
     return s
 end
 
+-- v3.2 : slots stables des buff bars — weak table au lieu d'un write
+-- direct sur les frames Blizzard (item._cdm_stableSlot supprimé).
+local stableSlots = setmetatable({}, { __mode = "k" })
+
 -- Export for other modules
 Layout._viewerState = viewerState
 Layout.GetViewerState = VS
+
+-- =====================================
+-- HOLDERS ACCESS (lazy — module chargé juste avant)
+-- =====================================
+local function Holders()
+    return TomoMod_CDMHolders
+end
+
+--- Conteneur d'ancrage : le holder TomoMod si dispo, sinon le viewer
+--- (fallback de sécurité si Holders pas encore initialisé).
+local function GetContainer(viewer)
+    local Hd = Holders()
+    local holder = Hd and Hd.GetContainer and Hd.GetContainer(viewer)
+    return holder or viewer
+end
+
+local function GetViewerKey(viewer)
+    local name = viewer.GetName and viewer:GetName()
+    return name and KEY_BY_FRAMENAME[name] or nil
+end
 
 -- =====================================
 -- PIXEL SNAPPING
@@ -109,9 +131,6 @@ local SECONDARY_FOR = {
 }
 
 --- Resolve primary + secondary direction from settings + viewer defaults.
---- @param settings table|nil — per-viewer layout settings from DB
---- @param viewer table — Blizzard CooldownViewer frame
---- @return string primary, string|nil secondary, number rowLimit
 local function ResolveDirections(settings, viewer)
     local primary, secondary, rowLimit
 
@@ -159,19 +178,31 @@ end
 -- SETTINGS ACCESSOR
 -- =====================================
 
---- Get per-viewer layout settings from DB, with sensible defaults.
---- @param viewerName string
+--- Réglages par viewer. Lit la clé canonique ("essential"...) et,
+--- pour compat, l'ancienne clé par nom de frame si elle existait.
 --- @return table settings (never nil)
-local function GetViewerSettings(viewerName)
+local function GetViewerSettings(viewer)
     local db = TomoModDB and TomoModDB.cooldownManager
     if not db or not db.viewerLayout then return {} end
-    return db.viewerLayout[viewerName] or {}
+
+    local key = GetViewerKey(viewer)
+    local byKey = key and db.viewerLayout[key]
+
+    -- Legacy : entrées indexées par nom de frame (anciennes installs)
+    local name = viewer.GetName and viewer:GetName()
+    local legacy = name and db.viewerLayout[name]
+
+    if byKey and legacy then
+        -- byKey prioritaire, legacy comble les trous
+        for k, v in pairs(legacy) do
+            if byKey[k] == nil then byKey[k] = v end
+        end
+        return byKey
+    end
+    return byKey or legacy or {}
 end
 
 --- Get icon dimensions, applying per-viewer iconSize override.
---- @param settings table
---- @param viewer table
---- @return number width, number height
 local function GetIconDimensions(settings, viewer, children)
     local size = settings.iconSize
     if size and size > 0 then
@@ -189,9 +220,6 @@ local function GetIconDimensions(settings, viewer, children)
 end
 
 --- Get spacing from settings or viewer properties.
---- @param settings table
---- @param viewer table
---- @return number
 local function GetSpacing(settings, viewer)
     if settings.spacing and settings.spacing >= 0 then
         return Snap(settings.spacing)
@@ -208,10 +236,6 @@ local SortByLayoutIndex = function(a, b)
 end
 
 --- Collect visible, sorted children of a viewer into a pre-allocated table.
---- @param viewer table
---- @param vs table — viewer state (for the pre-allocated table)
---- @param filterBuff boolean — if true, filter to aura-type icons only
---- @return table icons, number count
 local function CollectVisible(viewer, vs, filterBuff)
     local icons = vs.visibleIcons
     wipe(icons)
@@ -235,18 +259,22 @@ local function CollectVisible(viewer, vs, filterBuff)
 end
 
 -- =====================================
+-- POSITION APPLY (dirty-check incluant le frame relatif — v3.2)
+-- =====================================
+local function ApplyPoint(icon, container, x, y)
+    local pt, rel, rp, ox, oy = icon:GetPoint()
+    if pt == "CENTER" and rp == "CENTER" and rel == container and ox and oy then
+        if abs(x - ox) < SNAP_TOLERANCE and abs(y - oy) < SNAP_TOLERANCE then
+            return
+        end
+    end
+    icon:ClearAllPoints()
+    icon:SetPoint("CENTER", container, "CENTER", x, y)
+end
+
+-- =====================================
 -- HORIZONTAL LAYOUT (CENTERED / LEFT / RIGHT + secondary UP/DOWN)
 -- =====================================
-
---- Position icons in horizontal rows.
---- @param icons table — sorted visible icons
---- @param container table — the viewer frame to anchor to
---- @param primary string — "CENTERED", "LEFT", or "RIGHT"
---- @param secondary string|nil — "UP" or "DOWN"
---- @param iconW number
---- @param iconH number
---- @param spacing number
---- @param rowLimit number — 0 = single row
 local function LayoutHorizontal(icons, container, primary, secondary, iconW, iconH, spacing, rowLimit)
     local count = #icons
     if count == 0 then return 0, 0 end
@@ -271,7 +299,6 @@ local function LayoutHorizontal(icons, container, primary, secondary, iconW, ico
     local currentY = startY
 
     for row = 1, numRows do
-        local rowStart = iconIdx
         local rowCount = min(iconsPerRow, count - iconIdx + 1)
         local rowWidth = rowCount * iconW + (rowCount - 1) * spacing
         maxRowWidth = max(maxRowWidth, rowWidth)
@@ -281,7 +308,6 @@ local function LayoutHorizontal(icons, container, primary, secondary, iconW, ico
         if primary == "CENTERED" then
             baseX = -rowWidth / 2 + iconW / 2
         elseif primary == "LEFT" then
-            -- Left-aligned from viewer left edge → anchor is CENTER, so shift
             local totalMaxWidth = min(count, iconsPerRow) * iconW + (min(count, iconsPerRow) - 1) * spacing
             baseX = -totalMaxWidth / 2 + iconW / 2
         elseif primary == "RIGHT" then
@@ -302,20 +328,7 @@ local function LayoutHorizontal(icons, container, primary, secondary, iconW, ico
                 x = baseX + i * (iconW + spacing)
             end
 
-            -- Apply position (skip if unchanged — dirty check)
-            local needSet = true
-            local pt, _, rp, ox, oy = icon:GetPoint()
-            if pt == "CENTER" and rp == "CENTER" and ox and oy then
-                if abs(x - ox) < SNAP_TOLERANCE and abs(currentY - oy) < SNAP_TOLERANCE then
-                    needSet = false
-                end
-            end
-
-            if needSet then
-                icon:ClearAllPoints()
-                icon:SetPoint("CENTER", container, "CENTER", x, currentY)
-            end
-
+            ApplyPoint(icon, container, x, currentY)
             iconIdx = iconIdx + 1
         end
 
@@ -328,7 +341,6 @@ end
 -- =====================================
 -- VERTICAL LAYOUT (UP / DOWN + secondary LEFT/RIGHT)
 -- =====================================
-
 local function LayoutVertical(icons, container, primary, secondary, iconW, iconH, spacing, rowLimit)
     local count = #icons
     if count == 0 then return 0, 0 end
@@ -369,20 +381,7 @@ local function LayoutVertical(icons, container, primary, secondary, iconW, iconH
             if not icon then break end
 
             local y = currentY + i * (iconH + spacing) * vertDir
-
-            local needSet = true
-            local pt, _, rp, ox, oy = icon:GetPoint()
-            if pt == "CENTER" and rp == "CENTER" and ox and oy then
-                if abs(currentX - ox) < SNAP_TOLERANCE and abs(y - oy) < SNAP_TOLERANCE then
-                    needSet = false
-                end
-            end
-
-            if needSet then
-                icon:ClearAllPoints()
-                icon:SetPoint("CENTER", container, "CENTER", currentX, y)
-            end
-
+            ApplyPoint(icon, container, currentX, y)
             iconIdx = iconIdx + 1
         end
 
@@ -394,14 +393,16 @@ end
 
 -- =====================================
 -- BUFF BAR LAYOUT (stable-slot stack — vertical or horizontal)
--- Direction read from TomoModDB.cooldownManager.buffBarDirection
+-- v3.2 : ancrage sur le holder + slots stables en weak table
+--        + overrides par viewer (viewerLayout.buffBar)
 -- =====================================
 local SortByStableSlot = function(a, b)
-    return (a._cdm_stableSlot or 0) < (b._cdm_stableSlot or 0)
+    return (stableSlots[a] or 0) < (stableSlots[b] or 0)
 end
 
 local function LayoutBuffBar(viewer)
     local vs = VS(viewer)
+    local container = GetContainer(viewer)
     local icons = vs.visibleIcons
     wipe(icons)
 
@@ -414,110 +415,62 @@ local function LayoutBuffBar(viewer)
 
     if #icons == 0 then
         vs._nextSlot = nil
-        for _, child in ipairs(children) do child._cdm_stableSlot = nil end
+        for _, child in ipairs(children) do stableSlots[child] = nil end
         return
     end
 
-    -- Assign stable slots for consistent ordering
+    -- Assign stable slots for consistent ordering (weak table — no Blizzard write)
     for _, item in ipairs(icons) do
-        if not item._cdm_stableSlot then
+        if not stableSlots[item] then
             vs._nextSlot = (vs._nextSlot or 0) + 1
-            item._cdm_stableSlot = vs._nextSlot
+            stableSlots[item] = vs._nextSlot
         end
     end
 
     table.sort(icons, SortByStableSlot)
 
-    -- Read direction directly from cooldownManager settings (top-level, not viewerLayout)
+    -- Réglages : par-viewer d'abord, fallback top-level (compat v3.1)
     local db = TomoModDB and TomoModDB.cooldownManager
-    local direction = db and db.buffBarDirection or "VERTICAL"
-    local BAR_GAP = (db and db.buffBarSpacing) or 2
+    local s  = GetViewerSettings(viewer)
+    local direction = s.direction or (db and db.buffBarDirection) or "VERTICAL"
+    local BAR_GAP   = s.spacing or (db and db.buffBarSpacing) or 2
+    local barWidth  = s.barWidth or (db and db.buffBarWidth) or 120
+
+    local contentW, contentH = 0, 0
 
     if direction == "HORIZONTAL" then
         -- Horizontal: bars side by side, left to right
-        -- Each item needs an explicit width since we only anchor LEFT edges
-        local barWidth = (db and db.buffBarWidth) or 120
         local xOff = 0
+        local barH = icons[1]:GetHeight() or 14
         for _, item in ipairs(icons) do
             item:ClearAllPoints()
             item:SetWidth(barWidth)
-            item:SetPoint("TOPLEFT", viewer, "TOPLEFT", xOff, 0)
-            item:SetPoint("BOTTOMLEFT", viewer, "BOTTOMLEFT", xOff, 0)
+            item:SetPoint("TOPLEFT", container, "TOPLEFT", xOff, 0)
+            item:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", xOff, 0)
             xOff = xOff + barWidth + BAR_GAP
         end
+        contentW = xOff - BAR_GAP
+        contentH = barH
     else
         -- Vertical (default): bars stacked top to bottom
         local yOff = 0
         for _, item in ipairs(icons) do
             local h = item:GetHeight()
             item:ClearAllPoints()
-            item:SetPoint("TOPLEFT", viewer, "TOPLEFT", 0, -yOff)
-            item:SetPoint("TOPRIGHT", viewer, "TOPRIGHT", 0, -yOff)
+            item:SetWidth(barWidth)
+            item:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -yOff)
             yOff = yOff + h + BAR_GAP
         end
+        contentW = barWidth
+        contentH = yOff - BAR_GAP
+    end
+
+    -- Report content size on the holder (never resize the Blizzard viewer)
+    local Hd = Holders()
+    if Hd and Hd.SetContentSize and contentW > 0 and contentH > 0 then
+        Hd.SetContentSize(viewer, contentW, contentH)
     end
 end
-
--- =====================================
--- VIEWER CONTAINER RESIZE + EDIT MODE
--- =====================================
-
-local function SaveOrigSize(viewer, vs)
-    if vs.origWidth then return end -- already saved
-    local ok, w, h = pcall(viewer.GetSize, viewer)
-    if ok and w and h and w > 0 and h > 0 then
-        vs.origWidth  = w
-        vs.origHeight = h
-    end
-end
-
-local function ResizeViewer(viewer, vs, contentW, contentH)
-    if InCombatLockdown() then return end
-    SaveOrigSize(viewer, vs)
-    viewer:SetSize(contentW, contentH)
-end
-
--- =====================================
--- EDIT MODE INTEGRATION
--- =====================================
-local editModeHooked = false
-
-local function HookEditMode()
-    if editModeHooked then return end
-    if not EditModeManagerFrame then return end
-    editModeHooked = true
-
-    -- Enter Edit Mode: restore Blizzard's original viewer size
-    hooksecurefunc(EditModeManagerFrame, "EnterEditMode", function()
-        if InCombatLockdown() then return end
-        for viewer, vs in pairs(viewerState) do
-            if viewer and viewer.GetName and vs.origWidth and vs.origHeight then
-                pcall(viewer.SetSize, viewer, vs.origWidth, vs.origHeight)
-            end
-        end
-    end)
-
-    -- Exit Edit Mode: re-apply our layout
-    hooksecurefunc(EditModeManagerFrame, "ExitEditMode", function()
-        for viewer, vs in pairs(viewerState) do
-            if viewer and viewer.GetName then
-                vs.skipNextAdjust = true
-                -- Schedule re-layout on next frame
-                C_Timer.After(0, function()
-                    Layout.LayoutViewer(viewer, (viewer == BuffIconCooldownViewer))
-                end)
-            end
-        end
-    end)
-end
-
--- Try to hook immediately, retry if not ready
-C_Timer.After(0.5, HookEditMode)
-local hookFrame = CreateFrame("Frame")
-hookFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-hookFrame:SetScript("OnEvent", function()
-    HookEditMode()
-end)
 
 -- =====================================
 -- RUNTIME CHECK (inspired by CooldownManagerCentered)
@@ -528,7 +481,7 @@ local function IsReady(viewer)
     if not viewer.IsInitialized or not EditModeManagerFrame then return false end
     if EditModeManagerFrame.layoutApplyInProgress then return false end
     if not viewer:IsInitialized() then return false end
-    -- Skip during active Edit Mode
+    -- Skip during active Blizzard Edit Mode (on ne se bat pas avec lui)
     if EditModeManagerFrame:IsEditModeActive() then return false end
     return true
 end
@@ -558,19 +511,19 @@ function Layout.LayoutViewer(viewer, isBuff, force)
         return
     end
 
+    local container = GetContainer(viewer)
+
     -- Collect visible, sorted children
     local icons, count = CollectVisible(viewer, vs, isBuff)
     if count == 0 then return end
 
     -- Resolve per-viewer settings
-    local viewerName = viewer:GetName() or ""
-    local settings = GetViewerSettings(viewerName)
+    local settings = GetViewerSettings(viewer)
 
-    -- Top-level DB override for buff icon direction (same pattern as buffBarDirection)
+    -- Top-level DB override for buff icon direction (compat v3.1)
     if isBuff then
         local db = TomoModDB and TomoModDB.cooldownManager
         if db and db.buffIconDirection then
-            settings = settings or {}
             if not settings.direction then
                 settings.direction = db.buffIconDirection
             end
@@ -587,35 +540,30 @@ function Layout.LayoutViewer(viewer, isBuff, force)
     local iconW, iconH = GetIconDimensions(settings, viewer, icons)
     local spacing = GetSpacing(settings, viewer)
 
-    -- Change detection: skip layout if nothing changed
+    -- Change detection bookkeeping (positions re-verified anyway — Blizzard
+    -- peut avoir repositionné les icônes via son propre Layout()).
     local dirKey = primary .. "_" .. (secondary or "X") .. "_" .. rowLimit .. "_" .. count
-    if dirKey == vs.lastDirKey and count == vs.lastIconCount then
-        -- Count unchanged, direction unchanged — still need to verify positions
-        -- (icons may have been repositioned by Blizzard's Layout())
-        -- Fall through to re-apply
-    end
     vs.lastDirKey    = dirKey
     vs.lastIconCount = count
 
-    -- Apply layout
+    -- Apply layout (v3.2 : sur le holder, plus sur le viewer)
     local contentW, contentH
     if DIR_HORIZONTAL[primary] then
-        contentW, contentH = LayoutHorizontal(icons, viewer, primary, secondary, iconW, iconH, spacing, rowLimit)
+        contentW, contentH = LayoutHorizontal(icons, container, primary, secondary, iconW, iconH, spacing, rowLimit)
     elseif DIR_VERTICAL[primary] then
-        contentW, contentH = LayoutVertical(icons, viewer, primary, secondary, iconW, iconH, spacing, rowLimit)
+        contentW, contentH = LayoutVertical(icons, container, primary, secondary, iconW, iconH, spacing, rowLimit)
     else
-        -- Fallback to centered horizontal
-        contentW, contentH = LayoutHorizontal(icons, viewer, "CENTERED", secondary, iconW, iconH, spacing, rowLimit)
+        contentW, contentH = LayoutHorizontal(icons, container, "CENTERED", secondary, iconW, iconH, spacing, rowLimit)
     end
 
-    -- Resize viewer container to match content
-    if contentW and contentH and contentW > 0 and contentH > 0 then
-        ResizeViewer(viewer, vs, contentW, contentH)
+    -- Report content size on the holder (never resize the Blizzard viewer)
+    local Hd = Holders()
+    if Hd and Hd.SetContentSize and contentW and contentH and contentW > 0 and contentH > 0 then
+        Hd.SetContentSize(viewer, contentW, contentH)
     end
 end
 
 --- Refresh layout on all tracked viewers.
---- @param viewers table — array of viewer frames
 function Layout.RefreshAll(viewers)
     for _, viewer in ipairs(viewers) do
         if viewer then
@@ -626,7 +574,6 @@ function Layout.RefreshAll(viewers)
 end
 
 --- Invalidate cached state for a viewer (force re-layout next time).
---- @param viewer table
 function Layout.Invalidate(viewer)
     local vs = viewerState[viewer]
     if vs then

@@ -25,9 +25,7 @@ local UnitGetTotalAbsorbs    = UnitGetTotalAbsorbs
 local UnitIsVisible    = UnitIsVisible
 local GetRaidTargetIndex = GetRaidTargetIndex
 local GetReadyCheckStatus = GetReadyCheckStatus
-local IsInGroup        = IsInGroup
-local IsInRaid         = IsInRaid
-local GetNumGroupMembers = GetNumGroupMembers
+local RegisterStateDriver = RegisterStateDriver
 local pairs, ipairs, wipe, pcall = pairs, ipairs, wipe, pcall
 local issecretvalue    = issecretvalue
 
@@ -170,7 +168,27 @@ function PF.CreateFrame(index, unit)
     f:SetAttribute("type1", "target")       -- Left-click: target
     f:SetAttribute("type2", "togglemenu")   -- Right-click: menu
     f:RegisterForClicks("AnyUp")
-    RegisterUnitWatch(f)
+
+    -- [COMBAT] Secure visibility driver instead of RegisterUnitWatch.
+    -- The driver lives on Blizzard's secure side, so joins, leaves,
+    -- solo<->group and party<->raid transitions show/hide the frame
+    -- correctly even while in combat. RegisterUnitWatch alone cannot
+    -- express the "hide in raid" rule, which previously forced a
+    -- deferred watch re-registration on every roster change.
+    local visibility
+    if index == 0 then
+        visibility = "[group:raid] hide; [group] show; hide"
+    else
+        visibility = "[group:raid] hide; [@" .. unit .. ",exists] show; hide"
+    end
+    RegisterStateDriver(f, "visibility", visibility)
+
+    -- Repaint as soon as the secure driver reveals the frame (mid-combat
+    -- join): child regions are not protected, so a full element refresh
+    -- is combat-safe.
+    f:HookScript("OnShow", function(self)
+        PF.UpdateFrame(self)
+    end)
 
     -- Tooltip on hover
     f:SetScript("OnEnter", function(self)
@@ -499,7 +517,7 @@ function PF.CreateFrame(index, unit)
     end
 
     f:SetFrameLevel(10)
-    f:Hide()  -- RegisterUnitWatch handles visibility
+    f:Hide()  -- the secure visibility driver takes over from here
 
     PF.frames[index] = f
     return f
@@ -1064,8 +1082,12 @@ local function OnEvent(self, event, arg1, ...)
         if f then PF.UpdatePower(f) end
 
     elseif event == "UNIT_NAME_UPDATE" then
+        -- A roster shift can move a different player onto this token
+        -- (party2 leaves -> old party3 becomes party2): repaint the whole
+        -- frame, not just the name, so class color/absorbs/dispel match
+        -- the new occupant even while in combat.
         local f = GetFrameForUnit(arg1)
-        if f then PF.UpdateName(f) end
+        if f then PF.UpdateFrame(f) end
 
     elseif event == "UNIT_AURA" then
         local f = GetFrameForUnit(arg1)
@@ -1126,65 +1148,47 @@ local function OnEvent(self, event, arg1, ...)
 end
 
 -- =====================================
--- REFRESH GROUP: create/show/hide frames based on group
+-- UPDATE ALL VISIBLE FRAMES (combat-safe: non-protected children only)
 -- =====================================
-function PF.RefreshGroup()
-    local db = TomoModDB and TomoModDB.partyFrames
-    if not db or not db.enabled then return end
-
-    -- RegisterUnitWatch calls SetAttribute (protected) — defer if in combat
-    if InCombatLockdown() then
-        PF._pendingRefresh = true
-        return
-    end
-
-    -- In a raid, hide party frames (Blizzard raid frames handle raids)
-    if IsInRaid() then
-        for _, f in pairs(PF.frames) do
-            if f then
-                UnregisterUnitWatch(f)
-                f:Hide()
-            end
-        end
-        return
-    end
-
-    -- Solo or in party
-    local inGroup = IsInGroup()
-    local numMembers = inGroup and GetNumGroupMembers() or 0
-
-    -- Player frame (index 0)
-    if not PF.frames[0] then
-        PF.CreateFrame(0, "player")
-    end
-    if inGroup then
-        RegisterUnitWatch(PF.frames[0])
-    else
-        UnregisterUnitWatch(PF.frames[0])
-        PF.frames[0]:Hide()
-    end
-
-    -- Party1..4
-    for i = 1, 4 do
-        local unit = "party" .. i
-        if not PF.frames[i] then
-            PF.CreateFrame(i, unit)
-        end
-        if inGroup and i < numMembers then
-            RegisterUnitWatch(PF.frames[i])
-        else
-            UnregisterUnitWatch(PF.frames[i])
-            PF.frames[i]:Hide()
-        end
-    end
-
-    -- Full update all visible
+function PF.UpdateAllFrames()
     for _, f in pairs(PF.frames) do
         if f and f:IsShown() then
             PF.UpdateFrame(f)
         end
     end
+end
 
+-- =====================================
+-- REFRESH GROUP: create frames + repaint + layout.
+-- Visibility itself is owned by the secure state drivers set in
+-- PF.CreateFrame, so it needs no work here — in or out of combat.
+-- =====================================
+function PF.RefreshGroup()
+    local db = TomoModDB and TomoModDB.partyFrames
+    if not db or not db.enabled then return end
+
+    -- [COMBAT] Only frame creation (SetAttribute on secure buttons) and
+    -- layout (SetPoint/SetSize on protected frames) must wait for regen.
+    -- Repainting already-shown frames is safe: their elements are
+    -- non-protected children, and a roster shift can put a different
+    -- player behind an existing token.
+    if InCombatLockdown() then
+        PF._pendingRefresh = true
+        PF.UpdateAllFrames()
+        return
+    end
+
+    -- Lazy creation (out of combat only)
+    if not PF.frames[0] then
+        PF.CreateFrame(0, "player")
+    end
+    for i = 1, 4 do
+        if not PF.frames[i] then
+            PF.CreateFrame(i, "party" .. i)
+        end
+    end
+
+    PF.UpdateAllFrames()
     PF.LayoutFrames()
 end
 
@@ -1203,8 +1207,13 @@ function PF.ToggleLock()
             -- Save position
             local db = TomoModDB and TomoModDB.partyFrames
             if db and PF.anchor then
-                local p, _, rp, x, y = PF.anchor:GetPoint()
-                db.position = { point = p, relativePoint = rp, x = x, y = y }
+                -- [DRAG] screen-absolute coords instead of GetPoint
+                local left, bottom = PF.anchor:GetLeft(), PF.anchor:GetBottom()
+                if left and bottom then
+                    local scale = PF.anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                    db.position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT",
+                                    x = left * scale, y = bottom * scale }
+                end
             end
         end
     end
@@ -1257,9 +1266,12 @@ function PF.CreateAnchor()
     mover:SetScript("OnDragStart", function() anchor:StartMoving() end)
     mover:SetScript("OnDragStop", function()
         anchor:StopMovingOrSizing()
-        local p, _, rp, x, y = anchor:GetPoint()
-        if db then
-            db.position = { point = p, relativePoint = rp, x = x, y = y }
+        -- [DRAG] screen-absolute coords instead of GetPoint
+        local left, bottom = anchor:GetLeft(), anchor:GetBottom()
+        if db and left and bottom then
+            local scale = anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
+            db.position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT",
+                            x = left * scale, y = bottom * scale }
         end
     end)
     local label = mover:CreateFontString(nil, "OVERLAY")

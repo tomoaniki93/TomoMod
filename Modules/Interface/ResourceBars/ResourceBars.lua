@@ -1,9 +1,17 @@
-﻿-- =====================================
--- ResourceBars.lua — Class Power Display System
+-- =====================================
+-- ResourceBars.lua v2.8 — Class Power Display System
 -- Displays class-specific resources: combo points, holy power,
 -- soul shards, chi, essence, arcane charges, runes, stagger, etc.
 -- Primary power (mana/rage/energy/etc.) is shown in UnitFrame info bar.
 -- Inspired by GW2_UI classpower architecture.
+-- v2.8 :
+--   * Barre de vie HUD optionnelle (class color, texte valeur/%, seuil de
+--     couleur) — pattern Midnight-safe : UnitHealthPercent + ColorCurve
+--     évaluées côté C, jamais d'arithmétique Lua sur les secretvalues.
+--   * Animations fluides (lerp) sur les barres — valeurs non secrètes
+--     uniquement, sinon SetValue direct.
+--   * Ticks (marques) sur la barre de puissance centrée, en % du max.
+--   * Seuil de couleur « ressource basse » sur la barre de puissance.
 -- =====================================
 
 TomoMod_ResourceBars = TomoMod_ResourceBars or {}
@@ -247,9 +255,15 @@ local container
 local classPowerFrame
 local druidManaBar
 local primaryPowerBar
+local healthBar
 local currentResources
 local currentSpec = 0
 local isInitialized = false
+
+-- v2.8 : smoothing (barres enregistrées pour l'animation lerp)
+local smoothFrames = {}
+local BAR_SMOOTH_SPEED = 12
+local issecret = issecretvalue or function() return false end
 
 -- =====================================
 -- HELPERS
@@ -286,6 +300,125 @@ end
 local function UseTextures()
     local s = GetSettings()
     return s and s.displayMode == "icons"
+end
+
+-- =====================================
+-- v2.8 : SMOOTHING (lerp — valeurs non secrètes uniquement)
+-- =====================================
+local function SetBarValueSmooth(bar, value)
+    local s = GetSettings()
+    if not (s and s.smoothBars) or issecret(value) then
+        bar._smoothCur, bar._smoothTarget = nil, nil
+        smoothFrames[bar] = nil
+        bar:SetValue(value)
+        return
+    end
+    bar._smoothTarget = value
+    if bar._smoothCur == nil then
+        bar._smoothCur = value
+        bar:SetValue(value)
+        return
+    end
+    smoothFrames[bar] = true
+end
+
+local function SmoothStep(elapsed)
+    local k = math.min(elapsed * BAR_SMOOTH_SPEED, 1)
+    for bar in pairs(smoothFrames) do
+        local tgt = bar._smoothTarget
+        if not tgt or not bar:IsShown() then
+            smoothFrames[bar] = nil
+        else
+            local cur = bar._smoothCur or tgt
+            local diff = tgt - cur
+            if diff > -0.5 and diff < 0.5 then
+                bar._smoothCur = tgt
+                bar:SetValue(tgt)
+                smoothFrames[bar] = nil
+            else
+                cur = cur + diff * k
+                bar._smoothCur = cur
+                bar:SetValue(cur)
+            end
+        end
+    end
+end
+
+-- =====================================
+-- v2.8 : COLOR CURVE DE SEUIL
+-- =====================================
+local _thresholdCurve, _thresholdCurveHash
+local function GetThresholdColorCurve(baseR, baseG, baseB, threshR, threshG, threshB, threshPct)
+    if not C_CurveUtil or not C_CurveUtil.CreateColorCurve then return nil end
+
+    local hash = string.format("%.3f,%.3f,%.3f|%.3f,%.3f,%.3f|%.1f",
+        baseR, baseG, baseB, threshR, threshG, threshB, threshPct)
+    if _thresholdCurveHash == hash then return _thresholdCurve end
+
+    local curve = C_CurveUtil.CreateColorCurve()
+    local t = math.max(0, math.min(1, threshPct / 100))
+    local EPSILON = 0.0001
+
+    -- Sous le seuil → couleur d'alerte ; au-dessus → couleur de base
+    curve:AddPoint(0.0, CreateColor(threshR, threshG, threshB, 1))
+    if t > EPSILON then
+        curve:AddPoint(t, CreateColor(threshR, threshG, threshB, 1))
+    end
+    if t < 1.0 then
+        curve:AddPoint(math.min(1.0, t + EPSILON), CreateColor(baseR, baseG, baseB, 1))
+    end
+    curve:AddPoint(1.0, CreateColor(baseR, baseG, baseB, 1))
+
+    _thresholdCurve = curve
+    _thresholdCurveHash = hash
+    return curve
+end
+
+-- =====================================
+-- v2.8 : TICKS (marques verticales sur une barre, positions en % du max
+-- → aucune dépendance à la valeur max, zéro souci secretvalue)
+-- =====================================
+local function ParseTickPercents(str)
+    if not str or str == "" then return nil end
+    local vals = {}
+    for token in string.gmatch(str, "[%d%.]+") do
+        local n = tonumber(token)
+        if n and n > 0 and n < 100 then vals[#vals + 1] = n end
+    end
+    if #vals == 0 then return nil end
+    return vals
+end
+
+local function ApplyBarTicks(bar, tickStr)
+    if not bar then return end
+    -- Cache : UNIT_POWER_FREQUENT spamme (énergie) — ne re-layout que si
+    -- la config ou la largeur de barre a changé.
+    local w = bar:GetWidth()
+    if bar._tickStr == tickStr and bar._tickW == w then return end
+    bar._tickStr, bar._tickW = tickStr, w
+
+    bar._ticks = bar._ticks or {}
+    for i = 1, #bar._ticks do bar._ticks[i]:Hide() end
+
+    local vals = ParseTickPercents(tickStr)
+    if not vals then return end
+
+    while #bar._ticks < #vals do
+        local t = bar:CreateTexture(nil, "OVERLAY", nil, 6)
+        t:SetColorTexture(1, 1, 1, 0.75)
+        bar._ticks[#bar._ticks + 1] = t
+    end
+
+    local barW = bar:GetWidth()
+    local barH = bar:GetHeight()
+    if not barW or barW <= 0 then return end
+    for i, pct in ipairs(vals) do
+        local t = bar._ticks[i]
+        t:ClearAllPoints()
+        t:SetSize(1, barH)
+        t:SetPoint("LEFT", bar, "LEFT", barW * (pct / 100), 0)
+        t:Show()
+    end
 end
 
 -- =====================================
@@ -607,7 +740,7 @@ local function UpdatePrimaryPower()
     local max = UnitPowerMax("player", powerType)
 
     primaryPowerBar:SetMinMaxValues(0, max)
-    primaryPowerBar:SetValue(current)
+    SetBarValueSmooth(primaryPowerBar, current)
 
     -- Color by power type (reuse TomoMod_Utils if available, fallback to PowerBarColor)
     local r, g, b
@@ -618,14 +751,130 @@ local function UpdatePrimaryPower()
         if info then r, g, b = info.r, info.g, info.b
         else r, g, b = 0.00, 0.00, 1.00 end
     end
+
+    -- v2.8 : seuil « ressource basse » — player power non secret en pratique,
+    -- garde issecretvalue par sécurité (skip la couleur d'alerte si secret)
+    local s = GetSettings()
+    if s and s.powerThresholdEnabled
+       and not issecret(current) and not issecret(max) and max and max > 0 then
+        local pct = current / max * 100
+        if pct <= (s.powerThresholdPct or 25) then
+            local c = (s.colors and s.colors.powerLow) or { r = 1, g = 0.25, b = 0.25 }
+            r, g, b = c.r, c.g, c.b
+        end
+    end
     primaryPowerBar:SetStatusBarColor(r, g, b, 1)
 
+    -- v2.8 : ticks (positions en % — indépendantes du max)
+    ApplyBarTicks(primaryPowerBar, s and s.powerTicks)
+
     -- Text (AbbreviateLargeNumbers is C-side, accepts secret numbers)
-    local s = GetSettings()
     if s and s.showText and primaryPowerBar.text then
         primaryPowerBar.text:SetFormattedText("%s", AbbreviateLargeNumbers(current))
     elseif primaryPowerBar.text then
         primaryPowerBar.text:SetText("")
+    end
+end
+
+-- =====================================
+-- v2.8 : HEALTH BAR (HUD)
+-- Valeurs → SetMinMaxValues/SetValue directs (C-side accepte les secrets).
+-- Texte % → UnitHealthPercent(..., ScaleTo100), passé UNIQUEMENT à format().
+-- Couleur seuil → ColorCurve évaluée par UnitHealthPercent côté C.
+-- =====================================
+local function CreateHealthBar(parent, width, height)
+    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local bar = CreateFrame("StatusBar", nil, parent)
+    bar:SetSize(width, height)
+    bar:SetStatusBarTexture(tex)
+    bar:GetStatusBarTexture():SetHorizTile(false)
+    bar:SetMinMaxValues(0, 100); bar:SetValue(100)
+
+    local bg = bar:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints(); bg:SetTexture(tex)
+    bg:SetVertexColor(0.06, 0.06, 0.08, 0.8)
+    bar.bg = bg
+    CreateBorder(bar)
+
+    local text = bar:CreateFontString(nil, "OVERLAY")
+    text:SetFont(GetFont(), math.max(GetFontSize() - 1, 7), "OUTLINE")
+    text:SetPoint("CENTER"); text:SetTextColor(1, 1, 1, 0.9)
+    bar.text = text
+
+    return bar
+end
+
+local function GetHealthBaseColor(s)
+    if s and s.healthClassColored ~= false then
+        local cc = RAID_CLASS_COLORS[playerClass]
+        if cc then return cc.r, cc.g, cc.b end
+    end
+    local c = (s and s.colors and s.colors.health) or { r = 0.15, g = 0.75, b = 0.30 }
+    return c.r, c.g, c.b
+end
+
+local function UpdateHealthBar()
+    if not healthBar then return end
+    if not UnitExists("player") then return end
+    local s = GetSettings()
+
+    local cur = UnitHealth("player")
+    local mx  = UnitHealthMax("player")
+    if not cur or not mx then return end
+
+    healthBar:SetMinMaxValues(0, mx)
+    SetBarValueSmooth(healthBar, cur)
+
+    local baseR, baseG, baseB = GetHealthBaseColor(s)
+
+    -- Couleur : seuil via ColorCurve (C-side) si dispo, sinon fallback
+    -- arithmétique classique uniquement quand les valeurs ne sont pas secrètes.
+    local colored = false
+    if s and s.healthThresholdEnabled then
+        local c = (s.colors and s.colors.healthLow) or { r = 1, g = 0.2, b = 0.2 }
+        if UnitHealthPercent then
+            local curve = GetThresholdColorCurve(baseR, baseG, baseB, c.r, c.g, c.b, s.healthThresholdPct or 30)
+            if curve then
+                local ok, colorResult = pcall(UnitHealthPercent, "player", false, curve)
+                if ok and colorResult and colorResult.GetRGBA then
+                    healthBar:SetStatusBarColor(colorResult:GetRGBA())
+                    colored = true
+                end
+            end
+        elseif not issecret(cur) and not issecret(mx) and mx > 0 then
+            if (cur / mx * 100) <= (s.healthThresholdPct or 30) then
+                healthBar:SetStatusBarColor(c.r, c.g, c.b, 1)
+                colored = true
+            end
+        end
+    end
+    if not colored then
+        healthBar:SetStatusBarColor(baseR, baseG, baseB, 1)
+    end
+
+    -- Texte : % via UnitHealthPercent (résultat potentiellement secret →
+    -- passé uniquement à format/SetFormattedText, jamais d'arithmétique Lua)
+    local fmt = (s and s.healthTextFormat) or "both"
+    if fmt == "none" or not healthBar.text then
+        if healthBar.text then healthBar.text:SetText("") end
+        return
+    end
+
+    local pctRaw
+    if UnitHealthPercent then
+        pctRaw = UnitHealthPercent("player", true, CurveConstants and CurveConstants.ScaleTo100)
+    elseif not issecret(cur) and not issecret(mx) and mx > 0 then
+        pctRaw = cur / mx * 100
+    end
+
+    if fmt == "value" then
+        healthBar.text:SetFormattedText("%s", AbbreviateLargeNumbers(cur))
+    elseif fmt == "percent" then
+        if pctRaw then healthBar.text:SetFormattedText("%d%%", pctRaw)
+        else healthBar.text:SetFormattedText("%s", AbbreviateLargeNumbers(cur)) end
+    else -- both
+        if pctRaw then healthBar.text:SetFormattedText("%s | %d%%", AbbreviateLargeNumbers(cur), pctRaw)
+        else healthBar.text:SetFormattedText("%s", AbbreviateLargeNumbers(cur)) end
     end
 end
 
@@ -855,7 +1104,7 @@ local function UpdateDruidMana()
     local max = UnitPowerMax("player", POWER_MANA)
     if max == 0 then max = 1 end
     druidManaBar:SetMinMaxValues(0, max)
-    druidManaBar:SetValue(current)
+    SetBarValueSmooth(druidManaBar, current)
     local r, g, b = GetColor("mana")
     druidManaBar:SetStatusBarColor(r, g, b, 1)
 
@@ -908,18 +1157,24 @@ local function BuildResourceDisplay()
     if classPowerFrame then classPowerFrame:Hide(); classPowerFrame = nil end
     if druidManaBar then druidManaBar:Hide(); druidManaBar = nil end
     if primaryPowerBar then primaryPowerBar:Hide(); primaryPowerBar = nil end
+    if healthBar then healthBar:Hide(); healthBar = nil end
+    wipe(smoothFrames)
 
     -- Container
     if not container then
         container = CreateFrame("Frame", "TomoMod_ResourceBars_Container", UIParent)
         container:SetClampedToScreen(true)
         TomoMod_Utils.SetupDraggable(container, function()
-            local point, _, relativePoint, x, y = container:GetPoint()
-            s.position = s.position or {}
-            s.position.point = point
-            s.position.relativePoint = relativePoint
-            s.position.x = x
-            s.position.y = y
+            -- [DRAG] screen-absolute coords instead of GetPoint
+            local left, bottom = container:GetLeft(), container:GetBottom()
+            if left and bottom then
+                local scale = container:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                s.position = s.position or {}
+                s.position.point = "BOTTOMLEFT"
+                s.position.relativePoint = "BOTTOMLEFT"
+                s.position.x = left * scale
+                s.position.y = bottom * scale
+            end
         end)
     end
 
@@ -937,6 +1192,18 @@ local function BuildResourceDisplay()
 
     local totalH, nextY = 0, 0
     local hasContent = false
+
+    -- === v2.8 : HEALTH BAR (HUD, optionnelle — toujours en haut) ===
+    if s.healthBarEnabled then
+        local hbH = s.healthBarHeight or 14
+        healthBar = CreateHealthBar(container, width, hbH)
+        healthBar:ClearAllPoints()
+        healthBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
+        nextY = nextY + hbH + gap
+        totalH = totalH + hbH + gap
+        hasContent = true
+        UpdateHealthBar()
+    end
 
     -- === CLASS POWER ===
     if resources and resources.classPower then
@@ -1045,7 +1312,7 @@ local function UpdateAll()
         elseif cpDef.display == "aura_bar" then
             local cur, max = GetAuraBarValues(cpDef)
             classPowerFrame:SetMinMaxValues(0, max)
-            classPowerFrame:SetValue(cur)
+            SetBarValueSmooth(classPowerFrame, cur)
             local ck = cpDef.colorKey or "soulFragments"
             local r, g, b = GetColor(ck)
             classPowerFrame:SetStatusBarColor(r, g, b, 1)
@@ -1064,6 +1331,9 @@ local function UpdateAll()
 
     -- Druid Mana
     if druidManaBar then UpdateDruidMana() end
+
+    -- v2.8 : Health bar
+    if healthBar then UpdateHealthBar() end
 
     -- Primary Power (centered bar)
     if primaryPowerBar then UpdatePrimaryPower() end
@@ -1126,10 +1396,13 @@ local function OnEvent(self, event, arg1)
     elseif event == "PLAYER_REGEN_DISABLED" or event == "PLAYER_REGEN_ENABLED"
         or event == "PLAYER_TARGET_CHANGED" then
         UpdateAlpha()
-    elseif event == "UNIT_HEALTH" then
-        if arg1 == "player" and classPowerFrame and currentResources
-           and currentResources.classPower and currentResources.classPower.display == "stagger" then
-            UpdateStagger(classPowerFrame)
+    elseif event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
+        if arg1 == "player" then
+            if healthBar then UpdateHealthBar() end
+            if classPowerFrame and currentResources
+               and currentResources.classPower and currentResources.classPower.display == "stagger" then
+                UpdateStagger(classPowerFrame)
+            end
         end
     end
 end
@@ -1137,6 +1410,9 @@ end
 -- OnUpdate only needed for smooth rune CDs (DK) — all other resources use events
 local updateTimer = 0
 local function OnUpdate(self, elapsed)
+    -- v2.8 : pas de smoothing à chaque frame (1-3 barres max, lerp trivial)
+    if next(smoothFrames) then SmoothStep(elapsed) end
+
     updateTimer = updateTimer + elapsed
     if updateTimer >= 0.1 then  -- [PERF] 0.1s (10fps) au lieu de 0.05s — suffisant pour "%.1f" runes/stagger
         updateTimer = 0
@@ -1195,6 +1471,7 @@ function RB.Initialize()
     mainFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
     mainFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
     mainFrame:RegisterUnitEvent("UNIT_HEALTH", "player")
+    mainFrame:RegisterUnitEvent("UNIT_MAXHEALTH", "player")
     mainFrame:SetScript("OnEvent", OnEvent)
 
     -- [PERF] Only attach OnUpdate for specs that need frame-level updates (runes, stagger)
@@ -1205,6 +1482,12 @@ function RB.Initialize()
                 mainFrame:SetScript("OnUpdate", OnUpdate)
                 return
             end
+        end
+        -- v2.8 : le smoothing a besoin d'un OnUpdate même sans runes/stagger
+        local s = GetSettings()
+        if s and s.smoothBars then
+            mainFrame:SetScript("OnUpdate", OnUpdate)
+            return
         end
         mainFrame:SetScript("OnUpdate", nil)
     end
@@ -1218,6 +1501,7 @@ function RB.ApplySettings()
     if not isInitialized then return end
     BuildResourceDisplay()
     UpdateAlpha()
+    if RB._refreshOnUpdate then RB._refreshOnUpdate() end
 end
 
 function RB.SetEnabled(enabled)

@@ -356,12 +356,16 @@ function CB.CreateCastbar(unit)
     dragFrame:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
             castbar:StopMovingOrSizing()
-            local point, _, relativePoint, x, y = castbar:GetPoint()
-            unitSettings.position = unitSettings.position or {}
-            unitSettings.position.point = point
-            unitSettings.position.relativePoint = relativePoint
-            unitSettings.position.x = x
-            unitSettings.position.y = y
+            -- [DRAG] screen-absolute coords instead of GetPoint
+            local left, bottom = castbar:GetLeft(), castbar:GetBottom()
+            if left and bottom then
+                local scale = castbar:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                unitSettings.position = unitSettings.position or {}
+                unitSettings.position.point = "BOTTOMLEFT"
+                unitSettings.position.relativePoint = "BOTTOMLEFT"
+                unitSettings.position.x = left * scale
+                unitSettings.position.y = bottom * scale
+            end
         end
     end)
 

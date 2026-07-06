@@ -1187,6 +1187,10 @@ LayoutBuckets = function()
                             block._tmShowHooked = true
                             hooksecurefunc(block, "Show", function(self)
                                 if not bucketEnabled then return end
+                                -- [COMBAT] Blizzard can re-Show this block during an
+                                -- in-combat quest update; self:Hide() on a protected
+                                -- tracker block would taint. Match the itemButton hook.
+                                if InCombatLockdown() then return end
                                 local k = self._tmBucketKey
                                 if k and IsBucketCollapsed(k) then
                                     self:Hide()
@@ -1232,6 +1236,10 @@ LayoutBuckets = function()
                             block._tmShowHooked = true
                             hooksecurefunc(block, "Show", function(self)
                                 if not bucketEnabled then return end
+                                -- [COMBAT] Blizzard can re-Show this block during an
+                                -- in-combat quest update; self:Hide() on a protected
+                                -- tracker block would taint. Match the itemButton hook.
+                                if InCombatLockdown() then return end
                                 local k = self._tmBucketKey
                                 if k and IsBucketCollapsed(k) then
                                     self:Hide()
@@ -1618,14 +1626,16 @@ OT.ApplyPosition = ApplyPosition
 local function SavePosition()
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
-    local point, _, relPoint, x, y = tracker:GetPoint(1)
-    if not point then return end
+    -- [DRAG] screen-absolute coords instead of GetPoint
+    local left, bottom = tracker:GetLeft(), tracker:GetBottom()
+    if not left or not bottom then return end
+    local scale = tracker:GetEffectiveScale() / UIParent:GetEffectiveScale()
     local db = S()
     db.position = {
-        point         = point,
-        relativePoint = relPoint or point,
-        x             = x or 0,
-        y             = y or 0,
+        point         = "BOTTOMLEFT",
+        relativePoint = "BOTTOMLEFT",
+        x             = left * scale,
+        y             = bottom * scale,
     }
 end
 

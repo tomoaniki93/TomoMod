@@ -1,5 +1,5 @@
 -- =====================================
--- CooldownManager V3 — Phase 1+2+3 (CDMScanner + CDMLayout + ProcGlow + Keybinds)
+-- CooldownManager V3.2 — Phase 1+2+3+4 (CDMScanner + CDMHolders + CDMLayout + ProcGlow + Keybinds)
 -- Clean & modern reskin of Blizzard CooldownManager
 -- Inspired by CooldownManagerCentered + DDingUI architecture
 -- 9-slice rounded borders, class overlay on active auras,
@@ -11,7 +11,9 @@
 -- Phase 1: All frame.cooldownID accesses via CDMScanner weak tables.
 -- Phase 2: All positioning via CDMLayout own layout engine.
 -- Phase 3: ProcGlow + Keybinds extracted into own modules.
---   Requires CDMScanner, CDMLayout, CDMKeybinds, CDMProcGlow
+-- Phase 4: CDMHolders — conteneurs TomoMod déplaçables,
+--   placement libre hors Edit Mode Blizzard + aperçu live (placeholders).
+--   Requires CDMScanner, CDMHolders, CDMLayout, CDMKeybinds, CDMProcGlow
 --   loaded before this file.
 -- =====================================
 
@@ -39,6 +41,11 @@ local CDMKeybinds = TomoMod_CDMKeybinds
 -- CDMProcGlow reference (Phase 3 proc glow effects)
 -- =====================================
 local CDMProcGlow = TomoMod_CDMProcGlow
+
+-- =====================================
+-- CDMHolders reference (Phase 4 — conteneurs déplaçables + aperçu live)
+-- =====================================
+local Holders = TomoMod_CDMHolders
 
 -- =====================================
 -- CONSTANTS
@@ -838,6 +845,17 @@ local function UpdateAlpha()
     local settings = GetSettings()
     if not settings then return end
 
+    -- Phase 4 : en mode placement / aperçu live, tout reste visible
+    if Holders and Holders.IsPreviewActive and Holders.IsPreviewActive() then
+        for _, viewer in ipairs(viewers) do
+            if viewer then
+                viewer:SetAlpha(1)
+                Holders.MirrorAlpha(viewer, 1)
+            end
+        end
+        return
+    end
+
     local visRules = settings.visibilityRules
     if visRules and next(visRules) then
         -- Advanced visibility rules
@@ -883,7 +901,9 @@ local function UpdateAlpha()
                     end
                 end
 
-                viewer:SetAlpha(shouldHide and 0 or viewerAlpha)
+                local applied = shouldHide and 0 or viewerAlpha
+                viewer:SetAlpha(applied)
+                if Holders then Holders.MirrorAlpha(viewer, applied) end
             end
         end
     elseif settings.combatAlpha then
@@ -897,7 +917,10 @@ local function UpdateAlpha()
             alpha = settings.alphaOutOfCombat or 0.5
         end
         for _, viewer in ipairs(viewers) do
-            if viewer then viewer:SetAlpha(alpha) end
+            if viewer then
+                viewer:SetAlpha(alpha)
+                if Holders then Holders.MirrorAlpha(viewer, alpha) end
+            end
         end
     end
 end
@@ -932,6 +955,16 @@ local function InitViewers()
         EssentialCooldownViewer,
         UtilityCooldownViewer,
     }
+
+    -- Phase 4 : crée les holders TomoMod et lie chaque viewer à son conteneur
+    -- (CDMLayout ancrera les icônes sur ces holders au lieu des viewers).
+    if Holders then
+        Holders.Initialize()
+        Holders.BindViewer("EssentialCooldownViewer")
+        Holders.BindViewer("UtilityCooldownViewer")
+        Holders.BindViewer("BuffIconCooldownViewer")
+        Holders.BindViewer("BuffBarCooldownViewer")
+    end
 
     -- Hook Layout on each viewer
     for _, viewer in ipairs(viewers) do
@@ -1144,8 +1177,16 @@ function CDM.ApplySettings()
         UpdateAlpha()
     else
         for _, viewer in ipairs(viewers) do
-            if viewer then viewer:SetAlpha(1) end
+            if viewer then
+                viewer:SetAlpha(1)
+                if Holders then Holders.MirrorAlpha(viewer, 1) end
+            end
         end
+    end
+
+    -- Phase 4 : ré-applique les positions des holders (sliders GUI live)
+    if Holders then
+        Holders.ApplyAllPositions()
     end
 
     -- Invalidate caches and re-layout all viewers (Phase 2: via SkinAndLayout → CDMLayout)
@@ -1158,6 +1199,11 @@ function CDM.ApplySettings()
         end
     end
 
+    -- Phase 4 : re-génère les placeholders si l'aperçu live est actif
+    if Holders and Holders.IsPreviewActive and Holders.IsPreviewActive() then
+        Holders.RefreshPreview()
+    end
+
     -- Phase 3: Refresh proc glows after settings change
     CDMProcGlow.RefreshAll()
 end
@@ -1168,6 +1214,15 @@ function CDM.SetEnabled(enabled)
         settings.enabled = enabled
         if enabled and not isInitialized then
             InitViewers()
+        end
+        -- Phase 4 : verrouille + coupe l'aperçu si on désactive le module
+        if not enabled and Holders then
+            if Holders.IsPreviewActive and Holders.IsPreviewActive() then
+                Holders.SetPreview(false)
+            end
+            if Holders.IsLocked and not Holders.IsLocked() then
+                Holders.SetLocked(true)
+            end
         end
     end
 end
@@ -1236,7 +1291,19 @@ SlashCmdList["TOMOCDMDEBUG"] = function(msg)
             end
         end
 
+    elseif msg == "unlock" then
+        if Holders then
+            Holders.ToggleLock()
+            print("|cff00ccffTomoMod CDM:|r Mode placement " .. (Holders.IsLocked() and "OFF" or "ON"))
+        end
+
+    elseif msg == "preview" then
+        if Holders then
+            Holders.SetPreview(not Holders.IsPreviewActive())
+            print("|cff00ccffTomoMod CDM:|r Aperçu live " .. (Holders.IsPreviewActive() and "ON" or "OFF"))
+        end
+
     else
-        print("|cff00ccffTomoMod CDM:|r Commands: debug, force")
+        print("|cff00ccffTomoMod CDM:|r Commands: debug, force, unlock, preview")
     end
 end

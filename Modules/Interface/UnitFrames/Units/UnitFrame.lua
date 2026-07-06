@@ -418,12 +418,16 @@ local function StyleTomoMod(self, unit)
                 settings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
             end
         else
-            local point, _, relativePoint, x, y = self:GetPoint()
-            settings.position               = settings.position or {}
-            settings.position.point         = point
-            settings.position.relativePoint = relativePoint
-            settings.position.x             = x
-            settings.position.y             = y
+            -- [DRAG] screen-absolute coords instead of GetPoint
+            local left, bottom = self:GetLeft(), self:GetBottom()
+            if left and bottom then
+                local scale = self:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                settings.position               = settings.position or {}
+                settings.position.point         = "BOTTOMLEFT"
+                settings.position.relativePoint = "BOTTOMLEFT"
+                settings.position.x             = left * scale
+                settings.position.y             = bottom * scale
+            end
         end
     end)
 end

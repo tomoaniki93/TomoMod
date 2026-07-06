@@ -91,8 +91,12 @@ local function CreateAnchor(def)
         -- Save position
         local db = DB()
         if db and db[def.key] then
-            local point, _, relPoint, x, y = self:GetPoint()
-            db[def.key].position = { point, relPoint, x, y }
+            -- [DRAG] screen-absolute coords instead of GetPoint
+            local left, bottom = self:GetLeft(), self:GetBottom()
+            if left and bottom then
+                local scale = self:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                db[def.key].position = { "BOTTOMLEFT", "BOTTOMLEFT", left * scale, bottom * scale }
+            end
         end
         -- Re-anchor the target frame
         FA.ApplyAnchor(def)

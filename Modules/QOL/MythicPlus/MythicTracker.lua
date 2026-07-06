@@ -311,10 +311,14 @@ function TMT:BuildFrame()
     F:SetScript("OnDragStart", function(s) s:StartMoving() end)
     F:SetScript("OnDragStop",  function(s)
         s:StopMovingOrSizing()
-        local a, _, ra, x, y = s:GetPoint()
-        x = math.floor(x * 10 + 0.5) / 10
-        y = math.floor(y * 10 + 0.5) / 10
-        self:SetPos(a, ra, x, y)
+        -- [DRAG] screen-absolute coords instead of GetPoint
+        local left, bottom = s:GetLeft(), s:GetBottom()
+        if left and bottom then
+            local scale = s:GetEffectiveScale() / UIParent:GetEffectiveScale()
+            local x = math.floor(left * scale * 10 + 0.5) / 10
+            local y = math.floor(bottom * scale * 10 + 0.5) / 10
+            self:SetPos("BOTTOMLEFT", "BOTTOMLEFT", x, y)
+        end
     end)
 
     -- ── HEADER ────────────────────────────────────────────────────────
