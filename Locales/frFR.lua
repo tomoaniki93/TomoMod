@@ -38,6 +38,8 @@ TomoMod_RegisterLocale("frFR", {
     ["section_info_panel"]              = "Panneau d'information",
     ["opt_enable"]                      = "Activer",
     ["opt_durability"]                  = "Durabilité (Équipement)",
+    ["info_durability_position"]        = "Position du texte de durabilité — utile si un bouton (ex. extension) chevauche le coin par défaut.",
+    ["opt_durability_corner"]           = "Coin (durabilité)",
     ["opt_time"]                        = "Heure",
     ["opt_24h_format"]                  = "Format 24h",
     ["opt_show_coords"]                 = "Afficher les coordonnées",
@@ -287,6 +289,7 @@ TomoMod_RegisterLocale("frFR", {
     -- Cooldown Manager
     -- CD & Resource tabs
     ["tab_cdm"]                         = "Cooldowns",
+    ["tab_cdm_bars"]                    = "Barres",
     ["tab_resource_bars"]               = "Barres de Ressource",
     ["tab_text_position"]               = "Texte & Position",
     ["tab_rb_colors"]                   = "Couleurs",
@@ -353,6 +356,33 @@ TomoMod_RegisterLocale("frFR", {
     ["dir_up"]                            = "Haut",
     ["dir_down"]                          = "Bas",
 
+    -- CDM V3.2: Placement & cartes viewer (Phase 4)
+    ["section_cdm_placement"]            = "Placement & aperçu live",
+    ["info_cdm_placement"]               = "Les barres CDM sont désormais positionnées par TomoMod (plus besoin de l'Edit Mode Blizzard). Le mode placement affiche des icônes factices et permet de glisser chaque barre.",
+    ["btn_cdm_unlock"]                   = "Mode placement (live)",
+    ["opt_cdm_preview"]                  = "Aperçu (icônes factices)",
+    ["info_cdm_preview_live"]            = "Réglages par barre dans l'onglet « Barres » — tout s'applique en direct.",
+    ["info_cdm_bars"]                    = "Chaque barre a sa position et sa disposition propres. Active l'aperçu pour voir les changements en direct, ou le mode placement pour glisser les barres à la souris.",
+    ["btn_cdm_reset_pos"]                = "Réinitialiser positions",
+    ["msg_cdm_pos_reset"]                = "Positions CDM réinitialisées.",
+    ["section_cdm_essential"]            = "Essential (sorts principaux)",
+    ["section_cdm_utility_bar"]          = "Utility (sorts utilitaires)",
+    ["section_cdm_bufficons"]            = "Buff Icons (auras — icônes)",
+    ["section_cdm_buffbars"]             = "Buff Bars (auras — barres)",
+    ["opt_cdm_pos_x"]                    = "Position X",
+    ["opt_cdm_pos_y"]                    = "Position Y",
+    ["opt_cdm_icon_size"]                = "Taille des icônes (0 = auto)",
+    ["opt_cdm_spacing"]                  = "Espacement",
+    ["opt_cdm_row_limit"]                = "Par ligne (0 = illimité)",
+    ["opt_cdm_direction"]                = "Direction",
+    ["opt_cdm_secondary_direction"]      = "Direction secondaire",
+    ["opt_cdm_buffbar_spacing"]          = "Espacement",
+    ["secdir_auto"]                      = "Auto",
+    ["secdir_down"]                      = "Lignes vers le bas",
+    ["secdir_up"]                        = "Lignes vers le haut",
+    ["secdir_right"]                     = "Colonnes vers droite",
+    ["secdir_left"]                      = "Colonnes vers gauche",
+
     -- Resource Bars
     ["section_resource_bars"]           = "Barres de Ressources",
     ["opt_rb_enable"]                   = "Activer les barres de ressources",
@@ -372,6 +402,33 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_rb_classpower_height"]        = "Hauteur pouvoir de classe",
     ["opt_rb_druidmana_height"]         = "Hauteur mana druide",
     ["opt_rb_global_scale"]             = "Échelle globale",
+
+    -- v2.9: Barre de vie (HUD)
+    ["section_rb_healthbar"]            = "Barre de vie (HUD)",
+    ["opt_rb_hb_enable"]                = "Afficher la barre de vie",
+    ["info_rb_healthbar"]               = "Barre de vie centrée au-dessus des ressources. Texte et couleur de seuil gérés côté client (compatibles Midnight).",
+    ["opt_rb_hb_height"]                = "Hauteur",
+    ["opt_rb_hb_text"]                  = "Texte",
+    ["hb_text_none"]                    = "Aucun",
+    ["hb_text_value"]                   = "Valeur",
+    ["hb_text_percent"]                 = "Pourcentage",
+    ["hb_text_both"]                    = "Valeur | %",
+    ["opt_rb_hb_classcolor"]            = "Couleur de classe",
+    ["opt_rb_hb_color"]                 = "Couleur personnalisée (si classe désactivée)",
+    ["opt_rb_hb_threshold"]             = "Seuil vie basse (change la couleur)",
+    ["opt_rb_hb_threshold_pct"]         = "Seuil (%)",
+    ["opt_rb_hb_threshold_color"]       = "Couleur vie basse",
+
+    -- v2.9: Animations & barre de puissance
+    ["section_rb_anim"]                 = "Animations & Barre de puissance",
+    ["opt_rb_smooth"]                   = "Animations fluides des barres",
+    ["opt_rb_power_ticks"]              = "Ticks sur la barre de puissance (% du max)",
+    ["ticks_none"]                      = "Aucun",
+    ["opt_rb_power_threshold"]          = "Seuil ressource basse (barre de puissance)",
+    ["opt_rb_power_threshold_pct"]      = "Seuil (%)",
+    ["opt_rb_power_threshold_color"]    = "Couleur ressource basse",
+    ["info_rb_anim"]                    = "Ticks et seuil s'appliquent à la barre de puissance centrée. Le smoothing s'applique aussi à la barre de vie, au mana druide et aux barres d'auras.",
+
     ["opt_rb_sync_width"]               = "Synchroniser la largeur avec Essential Cooldowns",
     ["btn_sync_now"]                    = "Sync maintenant",
     ["info_rb_sync"]                    = "Aligne la largeur avec le EssentialCooldownViewer du Cooldown Manager Blizzard.",
@@ -1815,6 +1872,7 @@ TomoMod_RegisterLocale("frFR", {
     ["rf_opt_enable"]                    = "Activer les cadres de raid",
     ["rf_info_description"]              = "Cadres de raid personnalisés avec santé, absorption, prédiction de soins, HoTs, debuffs, surbrillance de dissipation, CDs défensifs et vérification de portée.",
     ["rf_opt_hide_blizzard"]             = "Masquer les cadres de raid Blizzard",
+    ["rf_opt_skin_group_manager"]       = "Reskin le panneau du leader de groupe (ready check, marqueurs, quitter le groupe)",
     ["rf_opt_sort_role"]                 = "Trier par rôle (Tank > Healer > DPS)",
 
     ["rf_section_layout"]                = "Disposition",
@@ -2433,4 +2491,38 @@ TomoMod_RegisterLocale("frFR", {
     -- 3.1.5
     ["wn_315_ot_itembutton"] = "Traqueur d'objectifs : les boutons d'objet de quête se masquent désormais correctement lors de la réduction d'un bucket (le bouton est parenté au traqueur natif, pas au bloc — il restait visible au-dessus des buckets réduits).",
     ["wn_315_talkinghead"] = "QOL : l'option « Masquer le Talking Head » est de retour dans le GUI de configuration (QOL → Automatisations). Elle s'applique désormais instantanément sans /reload et est réversible — la décocher réaffiche les dialogues à défilement.",
+
+    -- 3.1.6
+    ["wn_316_party_combat"] = "Frames de groupe : correction des bugs de visibilité lorsqu'un membre rejoint, quitte, ou que le groupe se transforme en raid en plein combat — les frames s'affichent/se masquent désormais de façon fiable dans toutes les situations.",
+    ["wn_316_raid_combat"] = "Frames de raid : correction des frames qui restaient bloquées visibles ou masquées lorsque des membres rejoignaient ou quittaient le raid en combat — la visibilité est désormais gérée par un système sécurisé, compatible combat.",
+    ["wn_316_roster_repaint"] = "Frames de groupe & raid : correction d'informations obsolètes (couleur de classe, absorptions, surbrillance dissipation) affichant brièvement le mauvais joueur après un changement de composition, même en combat.",
+    ["wn_317_cdm_holders"] = "Cooldown Manager : nouveau système de « Holders » — déplacez et verrouillez librement chaque visualiseur de cooldown (Essentiel, Utilitaire, Icônes de buff, Barres de buff) indépendamment de la grille du Mode Édition de Blizzard, avec aperçu en direct des icônes/barres quand ils sont vides.",
+    ["wn_317_resourcebars_health"] = "Barres de ressources : nouvelle barre de vie optionnelle — hauteur configurable, format (%, valeur ou les deux), couleur de classe, animation fluide et seuil de couleur pour vie basse.",
+    ["wn_317_config_cards"] = "Interface de configuration : le panneau Cooldown & Ressources a désormais une disposition en cartes et un nouvel onglet Barres regroupant tous les réglages de la barre de vie.",
+    ["wn_316_locale_cdm"] = "Correction de l'onglet Barres, des cartes de placement/aperçu live et de la section barre de vie & animations qui affichaient des clés brutes au lieu du texte traduit — traduit dans les 6 langues.",
+    ["wn_316_taint_chat"] = "Correction d'une erreur de taint (« secret string value ») dans le skin du chat lors de la réception de messages de canal.",
+    ["wn_316_taint_skyride"] = "Correction d'une erreur de taint (« secret number value ») dans la barre de vitesse Skyriding, causée par les valeurs de vitesse de vol/planage protégées par le jeu.",
+    ["wn_316_durability_pos"] = "Minimap : la position du texte de durabilité est désormais configurable (coin + décalage X/Y) dans Interface → Général → Info Panel — utile pour éviter le chevauchement avec le nouveau bouton d'extension du patch 12.0.7.",
+
+    -- 3.1.7
+    ["wn_317_libserialize_namespace"] = "Profils : la bibliothèque LibSerialize embarquée utilise désormais un espace de noms privé (« TomoSerialize-1.0 ») au lieu du nom partagé « LibSerialize », ce qui évite les conflits d'export/import avec d'autres addons qui embarquent aussi LibSerialize.",
+    ["wn_317_drag_absolute_coords"] = "Frames déplaçables : correction des positions enregistrées qui dérivaient ou s'inversaient après un glisser sur la Barre de niveau, Movers, AuctionRecipeTracker, le Traqueur Mythique+, TomoScore, Frame Anchors, Bag Skin, les barres de cast, les ancres de frames de groupe/raid, la Boussole, la Barre de consommables, le Butin, la Minimap, le Traqueur d'objectifs, la barre Skyriding, les barres de ressources et les UnitFrames — les positions sont désormais enregistrées en coordonnées absolues à l'écran, stables.",
+    ["wn_317_ot_combat_taint"] = "Traqueur d'objectifs : correction d'une possible erreur de taint lorsque Blizzard réaffiche un bloc de bucket de quête réduit pendant une mise à jour de quête en plein combat.",
+    ["wn_317_deadcode_cleanup"] = "Nettoyage interne : suppression de plusieurs modules inutilisés/désactivés afin de réduire la taille de l'addon — aucune fonctionnalité visible par l'utilisateur n'a été affectée.",
+    ["wn_317_raidmanager_fix"] = "Cadres de raid : correction du panneau du leader de groupe Blizzard par défaut (vérification de disponibilité, marqueurs de raid, conversion en raid, limite de pings, quitter le groupe) qui était masqué en même temps que les cadres de raid lorsque « Masquer les cadres de raid Blizzard » est activé — seul le conteneur des cadres de membres est désormais supprimé, la barre d'outils du leader reste disponible.",
+    ["wn_317_groupmanager_skin"] = "Cadres de raid : l'option « Reskin le panneau du leader de groupe » habille désormais entièrement la barre d'outils Blizzard dans le thème sombre/menthe de TomoMod — menus déroulants de mode et de limite de pings, filtres rôle/groupe, icônes de la barre d'outils (mode édition, paramètres, ready check, sondage de rôle, compte à rebours), boutons de marqueurs de raid avec leurs onglets Unité/Sol, et boutons Quitter le groupe en rouge — tout en conservant intactes les icônes Blizzard, avec bascule en direct sans /reload.",
+    ["wn_317_groupmanager_collapsetab"] = "Cadres de raid : correction du bouton de repli du panneau du leader de groupe qui laissait une bande résiduelle sur le bord de l'écran, et remplacement par une véritable languette menthe au lieu d'un simple bouton reskinné.",
+
+    -- ChatFrameUI (panneau de config — libellés affichés dans Skins)
+    ["sublabel_chatframeui"]        = "— UI de fenêtre de chat multi-positions —",
+    ["opt_cfui_enable"]             = "Activer l'UI de fenêtre de chat",
+    ["opt_cfui_editbox_height"]     = "Hauteur du champ de saisie",
+    ["opt_cfui_editbox_position"]   = "Position du champ de saisie",
+    ["opt_cfui_frame_topleft"]      = "Fenêtre en haut à gauche",
+    ["opt_cfui_frame_topright"]     = "Fenêtre en haut à droite",
+    ["opt_cfui_frame_bottomleft"]   = "Fenêtre en bas à gauche",
+    ["opt_cfui_frame_bottomright"]  = "Fenêtre en bas à droite",
+    ["opt_cfui_icons_anchor"]       = "Ancrage des icônes latérales",
+    ["opt_cfui_raid_frame_mgr"]     = "Reskin du gestionnaire de cadres de raid",
+    ["opt_cfui_swap_in_combat"]     = "Autoriser le changement de boutons en combat",
 })

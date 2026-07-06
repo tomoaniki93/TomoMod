@@ -39,6 +39,8 @@ TomoMod_RegisterLocale("deDE", {
     ["section_info_panel"]              = "Infopanel",
     ["opt_enable"]                      = "Aktivieren",
     ["opt_durability"]                  = "Haltbarkeit (Ausrüstung)",
+    ["info_durability_position"]        = "Position des Haltbarkeitstextes — nützlich, wenn ein Button (z. B. Erweiterung) die Standardecke überlappt.",
+    ["opt_durability_corner"]           = "Ecke (Haltbarkeit)",
     ["opt_time"]                        = "Uhrzeit",
     ["opt_24h_format"]                  = "24h-Format",
     ["opt_show_coords"]                 = "Koordinaten anzeigen",
@@ -281,6 +283,7 @@ TomoMod_RegisterLocale("deDE", {
 
     -- Cooldown Manager
     ["tab_cdm"]                         = "Abklingzeiten",
+    ["tab_cdm_bars"]                    = "Leisten",
     ["tab_resource_bars"]               = "Ressourcenleisten",
     ["tab_text_position"]               = "Text & Position",
     ["tab_rb_colors"]                   = "Farben",
@@ -315,6 +318,33 @@ TomoMod_RegisterLocale("deDE", {
     ["dir_down"]                          = "Nach unten",
     ["info_cdm_editmode"]               = "Die Platzierung erfolgt über den Blizzard Edit Mode (Esc |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Edit Mode).",
 
+    -- CDM V3.2: Platzierung & Viewer-Karten (Phase 4)
+    ["section_cdm_placement"]            = "Platzierung & Live-Vorschau",
+    ["info_cdm_placement"]               = "CDM-Leisten werden jetzt von TomoMod positioniert (der Blizzard Edit Mode wird nicht mehr benötigt). Der Platzierungsmodus zeigt Platzhaltersymbole und erlaubt es, jede Leiste zu verschieben.",
+    ["btn_cdm_unlock"]                   = "Platzierungsmodus (live)",
+    ["opt_cdm_preview"]                  = "Vorschau (Platzhaltersymbole)",
+    ["info_cdm_preview_live"]            = "Einstellungen pro Leiste im Tab „Leisten“ — alles wird live angewendet.",
+    ["info_cdm_bars"]                    = "Jede Leiste hat ihre eigene Position und ihr eigenes Layout. Aktiviere die Vorschau, um Änderungen live zu sehen, oder den Platzierungsmodus, um Leisten mit der Maus zu verschieben.",
+    ["btn_cdm_reset_pos"]                = "Positionen zurücksetzen",
+    ["msg_cdm_pos_reset"]                = "CDM-Positionen zurückgesetzt.",
+    ["section_cdm_essential"]            = "Essential (Hauptzauber)",
+    ["section_cdm_utility_bar"]          = "Utility (Hilfszauber)",
+    ["section_cdm_bufficons"]            = "Buff-Symbole (Auren — Symbole)",
+    ["section_cdm_buffbars"]             = "Buff-Leisten (Auren — Leisten)",
+    ["opt_cdm_pos_x"]                    = "Position X",
+    ["opt_cdm_pos_y"]                    = "Position Y",
+    ["opt_cdm_icon_size"]                = "Symbolgröße (0 = automatisch)",
+    ["opt_cdm_spacing"]                  = "Abstand",
+    ["opt_cdm_row_limit"]                = "Pro Zeile (0 = unbegrenzt)",
+    ["opt_cdm_direction"]                = "Richtung",
+    ["opt_cdm_secondary_direction"]      = "Sekundäre Richtung",
+    ["opt_cdm_buffbar_spacing"]          = "Abstand",
+    ["secdir_auto"]                      = "Automatisch",
+    ["secdir_down"]                      = "Zeilen nach unten",
+    ["secdir_up"]                        = "Zeilen nach oben",
+    ["secdir_right"]                     = "Spalten nach rechts",
+    ["secdir_left"]                      = "Spalten nach links",
+
     -- Resource Bars
     ["section_resource_bars"]           = "Ressourcenleisten",
     ["opt_rb_enable"]                   = "Ressourcenleisten aktivieren",
@@ -331,6 +361,33 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_rb_classpower_height"]        = "Klassenkrafthöhe",
     ["opt_rb_druidmana_height"]         = "Druiden-Manahöhe",
     ["opt_rb_global_scale"]             = "Globale Skalierung",
+
+    -- v2.9: Lebensbalken (HUD)
+    ["section_rb_healthbar"]            = "Lebensbalken (HUD)",
+    ["opt_rb_hb_enable"]                = "Lebensbalken anzeigen",
+    ["info_rb_healthbar"]               = "Lebensbalken zentriert über den Ressourcen. Text und Schwellenfarbe werden clientseitig verwaltet (Midnight-kompatibel).",
+    ["opt_rb_hb_height"]                = "Höhe",
+    ["opt_rb_hb_text"]                  = "Text",
+    ["hb_text_none"]                    = "Kein",
+    ["hb_text_value"]                   = "Wert",
+    ["hb_text_percent"]                 = "Prozent",
+    ["hb_text_both"]                    = "Wert | %",
+    ["opt_rb_hb_classcolor"]            = "Klassenfarbe",
+    ["opt_rb_hb_color"]                 = "Benutzerdefinierte Farbe (wenn Klassenfarbe deaktiviert)",
+    ["opt_rb_hb_threshold"]             = "Schwelle niedrige Lebenspunkte (ändert Farbe)",
+    ["opt_rb_hb_threshold_pct"]         = "Schwelle (%)",
+    ["opt_rb_hb_threshold_color"]       = "Farbe niedrige Lebenspunkte",
+
+    -- v2.9: Animationen & Kraftbalken
+    ["section_rb_anim"]                 = "Animationen & Kraftbalken",
+    ["opt_rb_smooth"]                   = "Flüssige Balkenanimationen",
+    ["opt_rb_power_ticks"]              = "Markierungen auf dem Kraftbalken (% des Max)",
+    ["ticks_none"]                      = "Kein",
+    ["opt_rb_power_threshold"]          = "Schwelle niedrige Ressource (Kraftbalken)",
+    ["opt_rb_power_threshold_pct"]      = "Schwelle (%)",
+    ["opt_rb_power_threshold_color"]    = "Farbe niedrige Ressource",
+    ["info_rb_anim"]                    = "Markierungen und Schwelle gelten für den zentrierten Kraftbalken. Die Glättung gilt auch für den Lebensbalken, das Druiden-Mana und die Auren-Balken.",
+
     ["opt_rb_sync_width"]               = "Breite mit Essential Cooldowns synchronisieren",
     ["btn_sync_now"]                    = "Jetzt synchronisieren",
     ["info_rb_sync"]                    = "Gleicht die Breite mit dem EssentialCooldownViewer des Blizzard-CooldownManagers ab.",
@@ -1748,6 +1805,7 @@ TomoMod_RegisterLocale("deDE", {
     ["rf_opt_enable"]                    = "Schlachtzug-Rahmen aktivieren",
     ["rf_info_description"]              = "Benutzerdefinierte Schlachtzug-Rahmen mit Gesundheit, Absorption, Heilvorhersage, HoTs, Debuffs, Entfluch-Highlight, defensive CDs und Reichweiten-Check.",
     ["rf_opt_hide_blizzard"]             = "Blizzard Schlachtzug-Rahmen ausblenden",
+    ["rf_opt_skin_group_manager"]       = "Gruppenleiter-Panel im TomoMod-Stil gestalten (Bereitschaftscheck, Markierungen, Gruppe verlassen)",
     ["rf_opt_sort_role"]                 = "Nach Rolle sortieren (Tank > Heiler > DPS)",
     ["rf_section_layout"]                = "Layout",
     ["rf_opt_layout_mode"]               = "Layout-Modus",
@@ -2300,4 +2358,25 @@ TomoMod_RegisterLocale("deDE", {
     -- 3.1.5
     ["wn_315_ot_itembutton"] = "Aufgaben-Tracker: Quest-Gegenstandsknöpfe werden jetzt korrekt ausgeblendet, wenn ihr Bucket eingeklappt wird (der Knopf ist dem nativen Tracker zugeordnet, nicht dem Block — er blieb bisher sichtbar über eingeklappten Buckets).",
     ["wn_315_talkinghead"] = "QOL: Die Option „Talking Head ausblenden“ ist wieder im Konfigurations-GUI (QOL → Automatisierungen). Sie wirkt jetzt sofort ohne /reload und ist umkehrbar — beim Abwählen werden die Scroll-Dialoge wiederhergestellt.",
+
+    -- 3.1.6
+    ["wn_316_party_combat"] = "Gruppenrahmen: Sichtbarkeitsfehler behoben, wenn Mitglieder beitreten, die Gruppe verlassen oder sich die Gruppe mitten im Kampf in eine Schlachtzugsgruppe umwandelt — die Rahmen werden nun in jeder Situation zuverlässig ein-/ausgeblendet.",
+    ["wn_316_raid_combat"] = "Schlachtzugsrahmen: behoben, dass Rahmen sichtbar oder ausgeblendet hängen blieben, wenn Mitglieder während eines Kampfes beitraten oder gingen — die Sichtbarkeit wird jetzt von einem sicheren, kampftauglichen System gesteuert.",
+    ["wn_316_roster_repaint"] = "Gruppen- & Schlachtzugsrahmen: behoben, dass veraltete Informationen (Klassenfarbe, Absorptionsschilde, Dispel-Hervorhebung) nach einem Wechsel in der Zusammensetzung kurzzeitig den falschen Spieler anzeigten — auch im Kampf.",
+    ["wn_317_cdm_holders"] = "Cooldown Manager: neues 'Holders'-System — jeder Cooldown-Viewer (Essenziell, Nützlich, Buff-Symbole, Buff-Leisten) lässt sich unabhängig vom Edit-Mode-Raster von Blizzard frei verschieben und sperren, mit Live-Vorschau von Symbolen/Leisten, solange sie leer sind.",
+    ["wn_317_resourcebars_health"] = "Ressourcenleisten: neue optionale Lebensleiste — einstellbare Höhe, Format (%, Wert oder beides), klassenfarbige Füllung, sanfte Animation und eine Farbschwelle für niedrige Lebenspunkte.",
+    ["wn_317_config_cards"] = "Konfigurationsoberfläche: das Panel Cooldown & Ressourcen hat jetzt ein Karten-Layout sowie einen eigenen Reiter Leisten für alle Einstellungen der Lebensleiste.",
+    ["wn_316_locale_cdm"] = "Behoben: der Reiter Leisten, die Platzierungs-/Live-Vorschaukarten und der Bereich Lebensleiste & Animationen zeigten rohe Schlüssel statt übersetztem Text an — jetzt in allen 6 Sprachen übersetzt.",
+    ["wn_316_taint_chat"] = "Ein Taint-Fehler ('secret string value') im Chat-Skin beim Empfang von Kanalnachrichten wurde behoben.",
+    ["wn_316_taint_skyride"] = "Ein Taint-Fehler ('secret number value') in der Skyriding-Geschwindigkeitsleiste wurde behoben, verursacht durch die geschützten Flug-/Gleitgeschwindigkeitswerte des Spiels.",
+    ["wn_316_durability_pos"] = "Minimap: Die Position des Haltbarkeitstextes ist jetzt konfigurierbar (Ecke + X/Y-Versatz) unter Interface → Allgemein → Info Panel — nützlich, um Überlappungen mit dem neuen Erweiterungs-Button aus Patch 12.0.7 zu vermeiden.",
+
+    -- 3.1.7
+    ["wn_317_libserialize_namespace"] = "Profile: Die eingebettete LibSerialize-Bibliothek verwendet jetzt einen privaten Namensraum ('TomoSerialize-1.0') statt des gemeinsamen Namens 'LibSerialize', wodurch Export-/Import-Konflikte mit anderen Addons vermieden werden, die ebenfalls LibSerialize einbetten.",
+    ["wn_317_drag_absolute_coords"] = "Verschiebbare Rahmen: behoben, dass gespeicherte Positionen nach dem Ziehen bei Leveling Bar, Movers, AuctionRecipeTracker, Mythic+ Tracker, TomoScore, Frame Anchors, Bag Skin, Zauberleisten, Gruppen-/Schlachtzugsrahmen-Ankern, Kompass, Verbrauchsgüterleiste, Beutebrowser, Minimap, Aufgaben-Tracker, Skyriding-Leiste, Ressourcenleisten und UnitFrames verrutschten oder sich umkehrten — Positionen werden jetzt als stabile, bildschirmabsolute Koordinaten gespeichert.",
+    ["wn_317_ot_combat_taint"] = "Aufgaben-Tracker: ein möglicher Taint-Fehler wurde behoben, wenn Blizzard einen eingeklappten Quest-Bucket-Block während einer Quest-Aktualisierung im Kampf erneut anzeigt.",
+    ["wn_317_deadcode_cleanup"] = "Interne Bereinigung: mehrere ungenutzte/deaktivierte Module wurden entfernt, um die Addon-Größe zu reduzieren — keine für den Nutzer sichtbaren Funktionen waren betroffen.",
+    ["wn_317_raidmanager_fix"] = "Schlachtzugsrahmen: behoben, dass das standardmäßige Blizzard-Gruppenleiter-Panel (Bereitschaftscheck, Raid-Zielmarkierungen, in Schlachtzug umwandeln, Ping-Limit, Gruppe verlassen) zusammen mit den Schlachtzugsrahmen ausgeblendet wurde, wenn „Blizzard Schlachtzug-Rahmen ausblenden“ aktiviert ist — jetzt wird nur noch der Container der Mitgliederrahmen unterdrückt, die Leiter-Symbolleiste bleibt verfügbar.",
+    ["wn_317_groupmanager_skin"] = "Schlachtzugsrahmen: die Option „Gruppenleiter-Panel im TomoMod-Stil gestalten“ gestaltet nun die komplette Blizzard-Symbolleiste im dunklen/minzgrünen TomoMod-Design um — Modus- und Ping-Limit-Dropdowns, Rollen-/Gruppenfilter, Symbolleisten-Schaltflächen (Bearbeitungsmodus, Einstellungen, Bereitschaftscheck, Rollenumfrage, Countdown), Raid-Markierungsschaltflächen mit ihren Einheit/Boden-Tabs sowie rot gestaltete Schaltflächen zum Verlassen der Gruppe — alle Blizzard-Symbole bleiben dabei unverändert, und die Option lässt sich live ohne Neuladen umschalten.",
+    ["wn_317_groupmanager_collapsetab"] = "Schlachtzugsrahmen: behoben, dass die eingeklappte Umschaltfläche des Gruppenleiter-Panels einen Reststreifen am Bildschirmrand hinterließ, und dafür ein richtiges minzfarbenes Auszieh-Tab anstelle einer einfach umgestalteten Schaltfläche eingeführt.",
 })

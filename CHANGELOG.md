@@ -1,5 +1,87 @@
 ## ####################################
 
+## CHANGELOG 3.1.7 — Save/Export Namespace Fix, Reliable Frame Drag & Drop & Objective Tracker Combat Fix
+
+#### Profiles — LibSerialize Namespace Fix
+- **Change** — The embedded `LibSerialize` library is now registered under a private namespace, `TomoSerialize-1.0`, instead of the shared `LibSerialize` name. `Core/Profiles.lua`'s Export/Import/Preview functions were updated to look it up via the new `LibStub` name.
+- **Fix** — Prevents profile export/import breaking (or silently sharing state) when another installed addon also embeds `LibSerialize` under the same `LibStub` registration — each addon now gets its own private copy.
+- **Fix** — `libs.xml` load order corrected: `LibStub.lua` is now loaded before `LibDispel` and `oUF`, both of which expect `LibStub` to already exist when they run.
+
+#### Frame Dragging — Screen-Absolute Position Saving
+- **Fix** — Saved positions for draggable frames could drift or flip after a drag, because `GetPoint()` returns whichever anchor/relativePoint pair is currently in effect — a pair that `StartMoving()`/`StopMovingOrSizing()` can silently change (e.g. a corner anchor becoming `CENTER`-relative). All drag-to-save call sites now read `GetLeft()`/`GetBottom()` (converted to `UIParent`-relative coordinates via `GetEffectiveScale()`) and always store a stable `BOTTOMLEFT`/`BOTTOMLEFT` anchor pair, regardless of how the frame was last moved.
+- **Change** — Affected modules: Leveling Bar, Movers header bar, AuctionRecipeTracker, Mythic+ Tracker, TomoScore UI, Frame Anchors, Bag Skin (both drag handlers), Castbars, Party Frame anchor, Arena Frames anchor, Raid Frame anchor, Compass, Consumable Bar, Loot Browser, Minimap, Objective Tracker, Skyriding speed bar, Resource Bars container, and Unit Frame drag-to-move.
+
+#### Objective Tracker — Combat Taint Fix
+- **Fix** — Fixed a possible taint error when Blizzard re-shows a collapsed quest bucket block during an in-combat quest update: the block's `Show` hook now bails out early with `InCombatLockdown()`, matching the guard already used on the quest item button hook, instead of calling `self:Hide()` on a protected tracker block mid-combat.
+
+#### Internal Cleanup — Dead Code Removal
+- **Removed** — Several unused/disabled modules were deleted to reduce addon size: `Modules/Housing/DecorHover.lua`, `Modules/Housing/TeleportMacros.lua`, `Modules/Interface/UnitFrames/Elements/Castbar.lua`, `Modules/QOL/Combat/CoTankTracker.lua`, `Modules/QOL/CooldownManager/CooldownResource.lua`, `Modules/QOL/Skins/BagBank.lua`, `Modules/QOL/Skins/BagCategories.lua`, `Modules/QOL/Skins/ChatButtonHandlers.lua`, `Modules/QOL/Skins/ChatFrameSkinV2.lua`, `Modules/QOL/Skins/ChatFrameUI.lua`, `Modules/QOL/Skins/DamageMeterSkin.lua` — none were referenced by any `.xml`/`.toc` load list, so there is no user-facing change.
+- **Change** — `Modules/QOL/QOL.xml` cleaned up: removed the leftover commented-out `<Include>` lines for the deleted Skins modules.
+
+#### Localization — Missing French ChatFrameUI Strings
+- **New** — Added the 12 missing French translations for the (currently disabled) ChatFrameUI config block: `sublabel_chatframeui`, `opt_cfui_enable`, `opt_cfui_editbox_height`, `opt_cfui_editbox_position`, the 4 frame-corner labels, `opt_cfui_icons_anchor`, `opt_cfui_raid_frame_mgr` and `opt_cfui_swap_in_combat`.
+
+#### Raid Frames — Group Leader Panel No Longer Hidden
+- **Fix** — `RF.HideBlizzardFrames()` (in `Modules/Interface/RaidFrame/Core.lua`) was suppressing both `CompactRaidFrameContainer` (the default member-frame rows, replaced by TomoMod's own raid frames — intended) and `CompactRaidFrameManager` (the "Groupe" leader toolbar docked to the left edge — ready check, raid target markers, convert to raid, ping limit, leave group/instance). The latter hosts leader/utility controls TomoMod does not reimplement, so hiding it removed useful functionality with no TomoMod equivalent.
+- **Change** — `CompactRaidFrameManager` is no longer touched by `RF.HideBlizzardFrames()`; only `CompactRaidFrameContainer` is suppressed (via the existing taint-safe `SetAlpha(0)` + `SetScale(0.001)`). The default group leader toolbar is now visible again while TomoMod's custom raid frames remain in place.
+
+#### Raid Frames — New Group Leader Panel Skin
+- **New** — `Modules/QOL/Skins/GroupManagerSkin.lua`: full ElvUI-style reskin of the Blizzard `CompactRaidFrameManager` leader toolbar in the TomoMod dark/mint theme — outer card with accent border and top accent strip, and every control repainted with flat dark slots + 1px borders: the mode dropdown and ping-restriction dropdown, the role/group filter buttons, the toolbar icon buttons (edit mode, settings, hide toggle, everyone-assist, difficulty, ready check, role poll, countdown), the raid target marker buttons and their "Unit"/"Ground" tabs (with an accent underline on the active tab), and the "Leave Group" / "Leave Instance Group" buttons (dedicated red "danger" styling). Poppins font is applied to every label, and the pooled row/column dividers are hidden for a cleaner flat look.
+- **Change** — All interactive states (hover, pressed, selected, applied, disabled, active tab) are reproduced on TomoMod's own slots by shadowing the exact texture/atlas Blizzard drives internally, so the reskin reacts correctly to ready checks, marker selection, filter toggles, etc. without fighting Blizzard's own updates.
+- **Change** — Icon/glyph textures themselves (toolbar icons, raid marker glyphs, dropdown arrows) are never destroyed — only their surrounding chrome (backgrounds, borders, plates) is replaced — so nothing ever disappears, and colors are pulled from the shared `TomoMod_Utils.BRAND` / `BRAND_HOVER` / `BRAND_DARK` palette instead of hardcoded values.
+- **New** — The skin is now fully reversible live: toggling the option off immediately restores every original Blizzard texture/divider without needing `/reload`.
+- **New** — New "Skin the group leader panel" checkbox in Config → Raid Frames (enabled by default, database key `raidFrames.skinGroupManager`), translated in all 6 languages.
+- **Fix** — The outer card frame is now parented to `CompactRaidFrameManager.displayFrame` instead of the manager itself: the manager stays fully sized (just moved off-screen) when the panel is collapsed, so the old card was left poking out as a stray full-height strip on the left edge. Parenting to `displayFrame` (which Blizzard actually hides on collapse) makes the card disappear automatically with zero extra hooks.
+- **New** — Collapsed state gets a dedicated pull-tab look (`SkinCollapseTab`) instead of being reskinned like a normal toolbar button: a compact dark tab flush to the screen edge with a mint accent stripe on the open edge and a mint-tinted arrow, with its own hover feedback — replacing the plain expand/collapse handle.
+
+## ####################################
+
+## CHANGELOG 3.1.6 — Combat-Safe Party & Raid Roster Updates & Cooldown Manager Holders & Resource Bars Health Bar
+
+#### Party Frames — Secure Visibility Driver
+- **Change** — Party frame visibility (player + party1-4) is now driven by `RegisterStateDriver` macro conditionals (`[group:raid] hide; [group] show; hide` for the player frame, `[group:raid] hide; [@partyN,exists] show; hide` for party members) instead of `RegisterUnitWatch`. This moves show/hide logic to Blizzard's secure state-driver side, so joining/leaving a group and switching between party and raid are handled correctly even while in combat.
+- **Fix** — `RegisterUnitWatch` alone could not express the "hide in raid" rule, which previously forced a deferred watch re-registration on every roster change — a call that silently failed while `InCombatLockdown()` was true, leaving frames stuck visible or hidden mid-fight.
+- **Change** — `PF.RefreshGroup()` no longer fully bails out during combat: frame creation and layout are still deferred, but already-shown frames are repainted immediately through the new `PF.UpdateAllFrames()` helper, since refreshing non-protected child regions is combat-safe.
+- **Fix** — `UNIT_NAME_UPDATE` now triggers a full `PF.UpdateFrame()` repaint instead of only `PF.UpdateName()`, so a roster shift that moves a different player onto the same unit token (e.g. party2 leaves and former party3 becomes party2) refreshes class color, absorbs and dispel highlighting along with the name — including in combat.
+- **New** — Frames hook `OnShow` to trigger a full repaint the instant the secure driver reveals them, covering mid-combat joins.
+
+#### Raid Frames — Secure Visibility Driver
+- **Change** — Raid frame visibility (raid1..40) is now driven by a `RegisterStateDriver` `[@raidN,exists] show; hide` conditional, replacing the previous manual `Show()`/`Hide()` loop over `GetNumGroupMembers()`. Members joining or leaving mid-combat are now shown/hidden correctly, and no "ghost" frames are left behind when a member disconnects or leaves during a fight.
+- **New** — `RF.EnsureFrames()` pre-creates the full raid1..raid40 frame set once, out of combat, so late joiners during a fight already have a driver-managed frame ready to be revealed without any protected `SetAttribute` calls mid-combat.
+- **New** — `RF.UpdateAllFrames()` repaints every currently shown frame; used by `RF.RefreshGroup()` and as the combat-safe fallback when a full refresh is requested mid-fight.
+- **Fix** — `UNIT_NAME_UPDATE` now triggers a full `RF.UpdateFrame()` repaint instead of only `RF.UpdateName()`, so a roster shift (e.g. raid20 leaves and former raid21 becomes raid20) refreshes class color, absorbs and dispel state along with the name.
+
+#### Cooldown Manager — Phase 4: Holders Architecture
+- **New** — `CDMHolders.lua`: four movable anchor frames (Essential, Utility, Buff Icons, Buff Bars) that Blizzard's secure Cooldown Viewer icons attach to. Each position is saved per-viewer in `cooldownManager.viewerLayout` and can be dragged into place without touching Blizzard's Edit Mode grid.
+- **Change** — `CDMLayout.lua` (v3.2.0) no longer resizes or repositions the Blizzard viewer frames directly (no `SetParent`/`Show`/`Hide`/`SetScale` on secure frames); icons are now anchored to the new holder containers instead, removing a class of Edit-Mode/taint conflicts.
+- **Change** — `CooldownManager.lua` rewritten (V3.2, "Phase 1+2+3+4"): coordinates `CDMScanner`, the new `CDMHolders`, `CDMLayout`, `CDMProcGlow` and `CDMKeybinds` behind a single coherent module.
+- **New** — Lock/unlock toggle and live preview icons/bars for each holder, so empty viewers can still be positioned before any cooldown is active.
+- **Change** — Internal per-viewer state (stable slot tracking, viewer settings lookup) moved to weak tables keyed by canonical viewer key instead of writing custom fields onto Blizzard's protected frames.
+
+#### Resource Bars — v2.8: Health Bar
+- **New** — Optional health bar for the Resource Bars module: configurable height, text format (percentage / value / both), class-colored fill, smooth bar animation, and a low-health color threshold (custom color + percentage trigger).
+- **New** — Database defaults added: `healthBarEnabled`, `healthBarHeight`, `healthTextFormat`, `healthClassColored`, `healthThresholdEnabled`, `healthThresholdPct`, `smoothBars`, `powerTicks`, `powerThresholdEnabled`, `powerThresholdPct`, plus `health` / `healthLow` / `powerLow` colors.
+
+#### Config UI — CD & Resource Panel v2.9.0
+- **New** — Cards layout for the Cooldown Manager section, and a new **Bars** tab grouping all Resource Bars / health bar settings.
+- **New** — Holder placement controls exposed in the config panel to drag/reset each of the 4 holder positions directly from the UI.
+
+#### Localization — CD & Resource Panel Missing Strings
+- **Fix** — The **Bars** tab (`tab_cdm_bars`), the placement/live-preview cards (position sliders, icon size, spacing, row limit, direction & secondary direction dropdowns, unlock/reset buttons) and the Resource Bars **health bar** & **animations** sections were displaying raw locale keys (e.g. `opt_cdm_pos_x`, `section_rb_healthbar`) instead of translated text — these keys had never been added to any of the 6 locale files. All ~45 missing keys are now translated in EN / FR / DE / ES / IT / PT-BR.
+- **Fix** — The direction dropdowns for cooldown icon layout and the BuffBar direction dropdown were using hardcoded French text instead of `TomoMod_L` lookups; they now reuse the existing localized `dir_*` / `buffbar_*` keys so they display correctly in every language.
+
+#### Chat — Taint Fix (Secret Values)
+- **Fix** — Fixed a taint error (`attempt to perform string conversion on a secret string value`) thrown from `ChatFrameSkin.lua` whenever a channel or whisper message was processed. `FCFManager_GetChatTarget` called `tostring()` on the channel/player target without the `issecretvalue()` guard used everywhere else in the file — it now checks for secret values before converting, matching the rest of the module.
+
+#### Skyriding — Taint Fix (Secret Values)
+- **Fix** — Fixed a taint error (`attempt to perform arithmetic on local 'speed' (a secret number value)`) in `SkyRide.lua`'s speed bar update. `GetUnitSpeed("player")` (and `C_PlayerInfo.GetGlidingInfo()`'s `forwardSpeed`) can now return a protected "secret" number; dividing/multiplying it directly tainted execution. Both call sites now guard with `issecretvalue()` and fall back to `0` when the value is secret, matching the pattern already used elsewhere in the addon.
+
+#### Minimap — Configurable Durability Position
+- **New** — The gear durability text position is now configurable from **Interface → General → Info Panel**: a corner dropdown (Top Left / Top Right / Bottom Left / Bottom Right) plus X/Y offset sliders. Useful since the new patch 12.0.7 expansion landing-page button can appear on the minimap and overlap the default bottom-left corner.
+- **New** — `IP.ApplyDurabilityPosition()` repositions the durability text live as the settings change; new database defaults `durabilityAnchor`, `durabilityX`, `durabilityY` (default to the previous fixed Bottom Left / 6 / 6 position, so existing setups are unaffected).
+
+## ####################################
+
 ## CHANGELOG 3.1.5 — Objective Tracker Fixes & Talking Head GUI Toggle
 
 #### QOL — Talking Head — GUI Toggle Restored

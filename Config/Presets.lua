@@ -124,6 +124,7 @@ local BASE = {
 
     ["raidFrames.enabled"]              = true,
     ["raidFrames.hideBlizzardFrames"]   = true,
+    ["raidFrames.skinGroupManager"]     = true,
     ["raidFrames.showDispel"]           = true,
     ["raidFrames.showHoTs"]             = true,
     ["raidFrames.showDebuffs"]          = true,

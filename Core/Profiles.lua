@@ -396,7 +396,7 @@ end
 
 --- Export synchrone (rapide maintenant grâce à level 1)
 function P.Export()
-    local LibSerialize = LibStub and LibStub("LibSerialize", true)
+    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
     local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
     if not LibSerialize or not LibDeflate then
         return nil, "Librairies manquantes (LibSerialize / LibDeflate)"
@@ -433,7 +433,7 @@ end
 --- Export asynchrone via coroutine — appelle callback(encoded, err) à la fin
 --- Utilise C_Timer.After(0) entre les étapes pour répartir le travail
 function P.ExportAsync(callback)
-    local LibSerialize = LibStub and LibStub("LibSerialize", true)
+    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
     local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
     if not LibSerialize or not LibDeflate then
         callback(nil, "Librairies manquantes (LibSerialize / LibDeflate)")
@@ -486,7 +486,7 @@ end
 
 --- Import synchrone (optimisé)
 function P.Import(str)
-    local LibSerialize = LibStub and LibStub("LibSerialize", true)
+    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
     local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
     if not LibSerialize or not LibDeflate then
         return false, "Librairies manquantes (LibSerialize / LibDeflate)"
@@ -538,7 +538,7 @@ end
 
 --- Import asynchrone — callback(ok, err) à la fin
 function P.ImportAsync(str, callback)
-    local LibSerialize = LibStub and LibStub("LibSerialize", true)
+    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
     local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
     if not LibSerialize or not LibDeflate then
         callback(false, "Librairies manquantes (LibSerialize / LibDeflate)")
@@ -633,7 +633,7 @@ end
 local _previewCache = { str = nil, result = nil }
 
 function P.PreviewImport(str)
-    local LibSerialize = LibStub and LibStub("LibSerialize", true)
+    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
     local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
     if not LibSerialize or not LibDeflate or not str or str == "" then return nil end
 

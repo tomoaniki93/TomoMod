@@ -52,6 +52,9 @@ TomoMod_Defaults = {
         showDurability = true,
         use24Hour = true,
         useServerTime = true,
+        durabilityAnchor = "BOTTOMLEFT",
+        durabilityX = 6,
+        durabilityY = 6,
     },
     cursorRing = {
         enabled = false,
@@ -594,6 +597,18 @@ TomoMod_Defaults = {
             autoScale = 1.0,
             buttonFrequency = 0.25,
         },
+        -- Phase 4 : réglages par viewer (CDMHolders)
+        -- Clés : iconSize (nil = auto), spacing, rowLimit (nil/0 = illimité),
+        -- direction, secondaryDirection, position {x, y} (rel. CENTER UIParent),
+        -- barWidth/barHeight/spacing pour buffBar.
+        -- position volontairement absente des défauts : capturée depuis la
+        -- position Edit Mode Blizzard actuelle au premier lancement (migration douce).
+        viewerLayout = {
+            essential = {},
+            utility   = {},
+            buffIcon  = {},
+            buffBar   = {},
+        },
     },
 
     -- =====================
@@ -616,6 +631,17 @@ TomoMod_Defaults = {
         font = ADDON_FONT,
         fontSize = 11,
         syncWidthWithCooldowns = false,
+        -- v2.8 : Barre de vie HUD + animations + ticks + seuils
+        healthBarEnabled = false,
+        healthBarHeight = 14,
+        healthTextFormat = "both",       -- none / value / percent / both
+        healthClassColored = true,
+        healthThresholdEnabled = true,
+        healthThresholdPct = 30,
+        smoothBars = true,
+        powerTicks = "",                 -- % du max, ex : "25 50 75"
+        powerThresholdEnabled = false,
+        powerThresholdPct = 25,
         position = {
             point = "BOTTOM",
             relativePoint = "CENTER",
@@ -637,6 +663,10 @@ TomoMod_Defaults = {
             tipOfTheSpear   = { r = 0.20, g = 0.80, b = 0.20 },
             maelstromWeapon = { r = 0.00, g = 0.50, b = 1.00 },
             icicles         = { r = 0.55, g = 0.85, b = 1.00 },
+            -- v2.8
+            health          = { r = 0.15, g = 0.75, b = 0.30 },
+            healthLow       = { r = 1.00, g = 0.20, b = 0.20 },
+            powerLow        = { r = 1.00, g = 0.25, b = 0.25 },
         },
     },
 
@@ -1144,6 +1174,7 @@ TomoMod_Defaults = {
     raidFrames = {
         enabled = true,
         hideBlizzardFrames = true,
+        skinGroupManager = true,
 
         -- Layout
         layout = "grid",          -- "grid" or "list"

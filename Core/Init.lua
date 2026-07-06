@@ -393,6 +393,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         safeInit("BuffSkin",           TomoMod_BuffSkin)
         safeInit("GameMenuSkin",       TomoMod_GameMenuSkin)
         safeInit("TooltipSkin",        TomoMod_TooltipSkin)
+        safeInit("GroupManagerSkin",   TomoMod_GroupManagerSkin)
 
         -- Interface Modules (new v2)
         safeInit("UnitFrames",         TomoMod_UnitFrames)

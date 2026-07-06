@@ -38,6 +38,8 @@ TomoMod_RegisterLocale("enUS", {
     ["section_info_panel"]              = "Info Panel",
     ["opt_enable"]                      = "Enable",
     ["opt_durability"]                  = "Durability (Gear)",
+    ["info_durability_position"]        = "Durability text position — useful if a button (e.g. expansion) overlaps the default corner.",
+    ["opt_durability_corner"]           = "Corner (durability)",
     ["opt_time"]                        = "Time",
     ["opt_24h_format"]                  = "24h format",
     ["opt_show_coords"]                 = "Show coordinates",
@@ -298,6 +300,7 @@ TomoMod_RegisterLocale("enUS", {
     -- Cooldown Manager
     -- CD & Resource tabs
     ["tab_cdm"]                         = "Cooldowns",
+    ["tab_cdm_bars"]                    = "Bars",
     ["tab_resource_bars"]               = "Resource Bars",
     ["tab_text_position"]               = "Text & Position",
     ["tab_rb_colors"]                   = "Colors",
@@ -364,6 +367,33 @@ TomoMod_RegisterLocale("enUS", {
     ["dir_up"]                            = "Up",
     ["dir_down"]                          = "Down",
 
+    -- CDM V3.2: Placement & viewer cards (Phase 4)
+    ["section_cdm_placement"]            = "Placement & Live Preview",
+    ["info_cdm_placement"]               = "CDM bars are now positioned by TomoMod (no more need for Blizzard's Edit Mode). Placement mode shows dummy icons and lets you drag each bar.",
+    ["btn_cdm_unlock"]                   = "Placement mode (live)",
+    ["opt_cdm_preview"]                  = "Preview (dummy icons)",
+    ["info_cdm_preview_live"]            = "Per-bar settings are in the 'Bars' tab — everything applies live.",
+    ["info_cdm_bars"]                    = "Each bar has its own position and layout. Enable preview to see live changes, or placement mode to drag bars with the mouse.",
+    ["btn_cdm_reset_pos"]                = "Reset positions",
+    ["msg_cdm_pos_reset"]                = "CDM positions reset.",
+    ["section_cdm_essential"]            = "Essential (main spells)",
+    ["section_cdm_utility_bar"]          = "Utility (utility spells)",
+    ["section_cdm_bufficons"]            = "Buff Icons (auras — icons)",
+    ["section_cdm_buffbars"]             = "Buff Bars (auras — bars)",
+    ["opt_cdm_pos_x"]                    = "Position X",
+    ["opt_cdm_pos_y"]                    = "Position Y",
+    ["opt_cdm_icon_size"]                = "Icon size (0 = auto)",
+    ["opt_cdm_spacing"]                  = "Spacing",
+    ["opt_cdm_row_limit"]                = "Per row (0 = unlimited)",
+    ["opt_cdm_direction"]                = "Direction",
+    ["opt_cdm_secondary_direction"]      = "Secondary direction",
+    ["opt_cdm_buffbar_spacing"]          = "Spacing",
+    ["secdir_auto"]                      = "Auto",
+    ["secdir_down"]                      = "Rows downward",
+    ["secdir_up"]                        = "Rows upward",
+    ["secdir_right"]                     = "Columns rightward",
+    ["secdir_left"]                      = "Columns leftward",
+
     -- Resource Bars
     ["section_resource_bars"]           = "Class Powers",
     ["opt_rb_enable"]                   = "Enable class power display",
@@ -383,6 +413,33 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_rb_classpower_height"]        = "Class power height",
     ["opt_rb_druidmana_height"]         = "Druid mana height",
     ["opt_rb_global_scale"]             = "Global scale",
+
+    -- v2.9: Health bar (HUD)
+    ["section_rb_healthbar"]            = "Health Bar (HUD)",
+    ["opt_rb_hb_enable"]                = "Show health bar",
+    ["info_rb_healthbar"]               = "Health bar centered above resources. Text and threshold color are handled client-side (Midnight compatible).",
+    ["opt_rb_hb_height"]                = "Height",
+    ["opt_rb_hb_text"]                  = "Text",
+    ["hb_text_none"]                    = "None",
+    ["hb_text_value"]                   = "Value",
+    ["hb_text_percent"]                 = "Percent",
+    ["hb_text_both"]                    = "Value | %",
+    ["opt_rb_hb_classcolor"]            = "Class color",
+    ["opt_rb_hb_color"]                 = "Custom color (if class color disabled)",
+    ["opt_rb_hb_threshold"]             = "Low health threshold (changes color)",
+    ["opt_rb_hb_threshold_pct"]         = "Threshold (%)",
+    ["opt_rb_hb_threshold_color"]       = "Low health color",
+
+    -- v2.9: Animations & power bar
+    ["section_rb_anim"]                 = "Animations & Power Bar",
+    ["opt_rb_smooth"]                   = "Smooth bar animations",
+    ["opt_rb_power_ticks"]              = "Ticks on power bar (% of max)",
+    ["ticks_none"]                      = "None",
+    ["opt_rb_power_threshold"]          = "Low resource threshold (power bar)",
+    ["opt_rb_power_threshold_pct"]      = "Threshold (%)",
+    ["opt_rb_power_threshold_color"]    = "Low resource color",
+    ["info_rb_anim"]                    = "Ticks and threshold apply to the centered power bar. Smoothing also applies to the health bar, druid mana, and aura bars.",
+
     ["opt_rb_sync_width"]               = "Sync width with Essential Cooldowns",
     ["btn_sync_now"]                    = "Sync now",
     ["info_rb_sync"]                    = "Aligns width with Blizzard CooldownManager's EssentialCooldownViewer.",
@@ -1892,6 +1949,7 @@ TomoMod_RegisterLocale("enUS", {
     ["rf_opt_enable"]                    = "Enable Raid Frames",
     ["rf_info_description"]              = "Custom raid frames with health, absorb, heal prediction, HoTs, debuffs, dispel highlight, defensive CDs, and range check.",
     ["rf_opt_hide_blizzard"]             = "Hide Blizzard raid frames",
+    ["rf_opt_skin_group_manager"]       = "Skin the group leader panel (ready check, markers, leave group)",
     ["rf_opt_sort_role"]                 = "Sort by role (Tank > Healer > DPS)",
 
     -- Layout
@@ -2523,4 +2581,25 @@ TomoMod_RegisterLocale("enUS", {
     -- 3.1.5
     ["wn_315_ot_itembutton"] = "Objective Tracker: quest item buttons now correctly hide when their bucket is collapsed (the button is parented to the native tracker, not the block — previously it stayed visible above collapsed buckets).",
     ["wn_315_talkinghead"] = "QOL: the 'Hide Talking Head' toggle is back in the config GUI (QOL → Automations). It now applies instantly without /reload and is reversible — unchecking restores the scrolling dialogue frames.",
+
+    -- 3.1.6
+    ["wn_316_party_combat"] = "Party frames: fixed visibility bugs when members join, leave, or the party converts to a raid mid-combat — frames now show/hide reliably in every situation.",
+    ["wn_316_raid_combat"] = "Raid frames: fixed frames getting stuck visible or hidden when raid members join or leave during combat — visibility is now handled by a secure, combat-safe system.",
+    ["wn_316_roster_repaint"] = "Party & Raid frames: fixed stale info (class color, absorbs, dispel highlight) briefly showing the wrong player after a roster shift, even mid-combat.",
+    ["wn_317_cdm_holders"] = "Cooldown Manager: new 'Holders' system — freely move and lock each cooldown viewer (Essential, Utility, Buff Icons, Buff Bars) independently of Blizzard's Edit Mode grid, with live preview icons/bars while empty.",
+    ["wn_317_resourcebars_health"] = "Resource Bars: new optional health bar — configurable height, format (%, value or both), class-colored fill, smooth animation and a low-health color threshold.",
+    ["wn_317_config_cards"] = "Config UI: the Cooldown & Resource panel got a new Cards layout plus a dedicated Bars tab for all health bar settings.",
+    ["wn_316_locale_cdm"] = "Fixed the CD & Resource panel showing raw keys instead of translated text for the Bars tab, placement/live preview cards and the health bar & animations section — translated in all 6 languages.",
+    ["wn_316_taint_chat"] = "Fixed a taint error ('secret string value') in the chat frame skin when receiving channel messages.",
+    ["wn_316_taint_skyride"] = "Fixed a taint error ('secret number value') in the Skyriding speed bar caused by the game's protected flight/gliding speed values.",
+    ["wn_316_durability_pos"] = "Minimap: the gear durability text position is now configurable (corner + X/Y offset) in Interface → General → Info Panel — useful to avoid overlap with the new 12.0.7 expansion button.",
+
+    -- 3.1.7
+    ["wn_317_libserialize_namespace"] = "Profiles: the embedded LibSerialize library now uses a private namespace ('TomoSerialize-1.0') instead of the shared 'LibSerialize' name, preventing export/import conflicts with other addons that also embed LibSerialize.",
+    ["wn_317_drag_absolute_coords"] = "Movable frames: fixed saved positions drifting or flipping after a drag on Leveling Bar, Movers, AuctionRecipeTracker, Mythic+ Tracker, TomoScore, Frame Anchors, Bag Skin, Castbars, Party/Raid Frame anchors, Compass, Consumable Bar, Loot Browser, Minimap, Objective Tracker, Skyriding bar, Resource Bars and Unit Frames — positions are now saved as stable screen-absolute coordinates.",
+    ["wn_317_ot_combat_taint"] = "Objective Tracker: fixed a possible taint error when Blizzard re-shows a collapsed quest bucket block during an in-combat quest update.",
+    ["wn_317_deadcode_cleanup"] = "Internal cleanup: removed several unused/disabled modules to reduce addon size — no user-facing features were affected.",
+    ["wn_317_raidmanager_fix"] = "Raid Frames: fixed the default Blizzard group leader panel (ready check, raid target markers, convert to raid, ping limit, leave group) being hidden along with the raid frames when 'Hide Blizzard raid frames' is enabled — only the member-frame container is suppressed now, the leader toolbar stays available.",
+    ["wn_317_groupmanager_skin"] = "Raid Frames: the 'Skin the group leader panel' option now fully reskins the Blizzard toolbar in the TomoMod dark/mint theme — mode & ping dropdowns, role/group filters, toolbar icons (edit mode, settings, ready check, role poll, countdown), raid marker buttons with their Unit/Ground tabs, and red-styled Leave Group buttons — all while keeping every Blizzard icon intact and toggling live without a reload.",
+    ["wn_317_groupmanager_collapsetab"] = "Raid Frames: fixed the group leader panel's collapsed toggle leaving a stray strip on the screen edge, and gave it a proper mint pull-tab look instead of a plain reskinned button.",
 })

@@ -35,6 +35,10 @@ local function BuildGeneralTab(parent)
     local _, cy = W.CreateInfoText(card.inner, L["info_module_reload"] or "", cy)
     local _, cy = W.CreateInfoText(card.inner, L["rf_info_description"] or "Custom raid frames with health, absorb, heal prediction, HoTs, debuffs, dispel highlight, defensive CDs, and range check.", cy)
     local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_hide_blizzard"] or "Hide Blizzard raid frames", db.hideBlizzardFrames, cy, function(v) db.hideBlizzardFrames = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
+    local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_skin_group_manager"] or "Skin the group leader panel (ready check, markers, leave group)", db.skinGroupManager, cy, function(v)
+        db.skinGroupManager = v
+        if TomoMod_GroupManagerSkin then TomoMod_GroupManagerSkin.ApplySettings() end
+    end)
     local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_sort_role"] or "Sort by role (Tank > Healer > DPS)", db.sortByRole, cy, function(v) db.sortByRole = v; ApplyRF() end)
     y = W.FinalizeCard(card, cy)
 

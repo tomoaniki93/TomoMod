@@ -30,6 +30,33 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.1.7",
+        highlights = {
+            L["wn_317_libserialize_namespace"] or "Profiles: the embedded LibSerialize library now uses a private namespace ('TomoSerialize-1.0') instead of the shared 'LibSerialize' name, preventing export/import conflicts with other addons that also embed LibSerialize.",
+            L["wn_317_drag_absolute_coords"] or "Movable frames: fixed saved positions drifting or flipping after a drag on Leveling Bar, Movers, AuctionRecipeTracker, Mythic+ Tracker, TomoScore, Frame Anchors, Bag Skin, Castbars, Party/Raid Frame anchors, Compass, Consumable Bar, Loot Browser, Minimap, Objective Tracker, Skyriding bar, Resource Bars and Unit Frames — positions are now saved as stable screen-absolute coordinates.",
+            L["wn_317_ot_combat_taint"] or "Objective Tracker: fixed a possible taint error when Blizzard re-shows a collapsed quest bucket block during an in-combat quest update.",
+            L["wn_317_deadcode_cleanup"] or "Internal cleanup: removed several unused/disabled modules to reduce addon size — no user-facing features were affected.",
+            L["wn_317_raidmanager_fix"] or "Raid Frames: fixed the default Blizzard group leader panel (ready check, raid target markers, convert to raid, ping limit, leave group) being hidden along with the raid frames when 'Hide Blizzard raid frames' is enabled — only the member-frame container is suppressed now, the leader toolbar stays available.",
+            L["wn_317_groupmanager_skin"] or "Raid Frames: the 'Skin the group leader panel' option now fully reskins the Blizzard toolbar in the TomoMod dark/mint theme — mode & ping dropdowns, role/group filters, toolbar icons (edit mode, settings, ready check, role poll, countdown), raid marker buttons with their Unit/Ground tabs, and red-styled Leave Group buttons — all while keeping every Blizzard icon intact and toggling live without a reload.",
+            L["wn_317_groupmanager_collapsetab"] or "Raid Frames: fixed the group leader panel's collapsed toggle leaving a stray strip on the screen edge, and gave it a proper mint pull-tab look instead of a plain reskinned button.",
+        },
+    },
+    {
+        version = "3.1.6",
+        highlights = {
+            L["wn_316_party_combat"] or "Party frames: fixed visibility bugs when members join, leave, or the party converts to a raid mid-combat — frames now show/hide reliably in every situation.",
+            L["wn_316_raid_combat"] or "Raid frames: fixed frames getting stuck visible or hidden when raid members join or leave during combat — visibility is now handled by a secure, combat-safe system.",
+            L["wn_316_roster_repaint"] or "Party & Raid frames: fixed stale info (class color, absorbs, dispel highlight) briefly showing the wrong player after a roster shift, even mid-combat.",
+            L["wn_317_cdm_holders"] or "Cooldown Manager: new 'Holders' system — freely move and lock each cooldown viewer (Essential, Utility, Buff Icons, Buff Bars) independently of Blizzard's Edit Mode grid, with live preview icons/bars while empty.",
+            L["wn_317_resourcebars_health"] or "Resource Bars: new optional health bar — configurable height, format (%, value or both), class-colored fill, smooth animation and a low-health color threshold.",
+            L["wn_317_config_cards"] or "Config UI: the Cooldown & Resource panel got a new Cards layout plus a dedicated Bars tab for all health bar settings.",
+            L["wn_316_locale_cdm"] or "Fixed the CD & Resource panel showing raw keys instead of translated text for the Bars tab, placement/live preview cards and the health bar & animations section — translated in all 6 languages.",
+            L["wn_316_taint_chat"] or "Fixed a taint error ('secret string value') in the chat frame skin when receiving channel messages.",
+            L["wn_316_taint_skyride"] or "Fixed a taint error ('secret number value') in the Skyriding speed bar caused by the game's protected flight/gliding speed values.",
+            L["wn_316_durability_pos"] or "Minimap: the gear durability text position is now configurable (corner + X/Y offset) in Interface → General → Info Panel — useful to avoid overlap with the new 12.0.7 expansion button.",
+        },
+    },
+    {
         version = "3.1.5",
         highlights = {
             L["wn_315_ot_itembutton"] or "Objective Tracker: quest item buttons now correctly hide when their bucket is collapsed (the button is parented to the native tracker, not the block — previously it stayed visible above collapsed buckets).",

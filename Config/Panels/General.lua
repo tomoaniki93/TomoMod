@@ -321,6 +321,35 @@ function TomoMod_ConfigPanel_General(parent)
             return ny
         end)
 
+    -- [3.1.7] Position de la durabilité (configurable) — le bouton d'extension
+    -- apparu en 12.0.7 sur la minimap peut chevaucher le coin par défaut.
+    local _, cy = W.CreateInfoText(card2.inner, L["info_durability_position"]
+        or "Position du texte de durabilité — utile si un bouton (ex. extension) chevauche le coin par défaut.", cy)
+    local _, cy = W.CreateDropdown(card2.inner, L["opt_durability_corner"] or "Coin (durabilité)", {
+        { text = L["corner_topleft"]     or "Haut gauche",  value = "TOPLEFT"     },
+        { text = L["corner_topright"]    or "Haut droite",  value = "TOPRIGHT"    },
+        { text = L["corner_bottomleft"]  or "Bas gauche",   value = "BOTTOMLEFT"  },
+        { text = L["corner_bottomright"] or "Bas droite",   value = "BOTTOMRIGHT" },
+    }, TomoModDB.infoPanel.durabilityAnchor or "BOTTOMLEFT", cy, function(v)
+        TomoModDB.infoPanel.durabilityAnchor = v
+        if TomoMod_InfoPanel and TomoMod_InfoPanel.ApplyDurabilityPosition then TomoMod_InfoPanel.ApplyDurabilityPosition() end
+    end)
+    local _, cy = W.CreateTwoColumnRow(card2.inner, cy,
+        function(col)
+            local _, ny = W.CreateSlider(col, L["opt_offset_x"] or "Décalage X", TomoModDB.infoPanel.durabilityX or 6, -100, 100, 1, 0, function(v)
+                TomoModDB.infoPanel.durabilityX = v
+                if TomoMod_InfoPanel and TomoMod_InfoPanel.ApplyDurabilityPosition then TomoMod_InfoPanel.ApplyDurabilityPosition() end
+            end, "%d")
+            return ny
+        end,
+        function(col)
+            local _, ny = W.CreateSlider(col, L["opt_offset_y"] or "Décalage Y", TomoModDB.infoPanel.durabilityY or 6, -100, 100, 1, 0, function(v)
+                TomoModDB.infoPanel.durabilityY = v
+                if TomoMod_InfoPanel and TomoMod_InfoPanel.ApplyDurabilityPosition then TomoMod_InfoPanel.ApplyDurabilityPosition() end
+            end, "%d")
+            return ny
+        end)
+
     y = W.FinalizeCard(card2, cy)
 
     -- ═══════════════════════════════════════════════

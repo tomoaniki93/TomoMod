@@ -39,6 +39,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["section_info_panel"]              = "Painel de informações",
     ["opt_enable"]                      = "Ativar",
     ["opt_durability"]                  = "Durabilidade (Equipamento)",
+    ["info_durability_position"]        = "Posição do texto de durabilidade — útil se um botão (ex. expansão) sobrepõe o canto padrão.",
+    ["opt_durability_corner"]           = "Canto (durabilidade)",
     ["opt_time"]                        = "Hora",
     ["opt_24h_format"]                  = "Formato 24h",
     ["opt_show_coords"]                 = "Mostrar coordenadas",
@@ -281,6 +283,7 @@ TomoMod_RegisterLocale("ptBR", {
 
     -- Cooldown Manager
     ["tab_cdm"]                         = "Recargas",
+    ["tab_cdm_bars"]                    = "Barras",
     ["tab_resource_bars"]               = "Barras de recursos",
     ["tab_text_position"]               = "Texto e posição",
     ["tab_rb_colors"]                   = "Cores",
@@ -315,6 +318,33 @@ TomoMod_RegisterLocale("ptBR", {
     ["dir_down"]                          = "Baixo",
     ["info_cdm_editmode"]               = "O posicionamento é feito pelo Edit Mode da Blizzard (Esc |TInterface\\BUTTONS\\UI-SpellbookIcon-NextPage:0|t Edit Mode).",
 
+    -- CDM V3.2: Posicionamento e cards de viewer (Phase 4)
+    ["section_cdm_placement"]            = "Posicionamento e pré-visualização ao vivo",
+    ["info_cdm_placement"]               = "As barras do CDM agora são posicionadas pelo TomoMod (não é mais necessário o Edit Mode da Blizzard). O modo de posicionamento mostra ícones fictícios e permite arrastar cada barra.",
+    ["btn_cdm_unlock"]                   = "Modo de posicionamento (ao vivo)",
+    ["opt_cdm_preview"]                  = "Pré-visualização (ícones fictícios)",
+    ["info_cdm_preview_live"]            = "Ajustes por barra na aba «Barras» — tudo é aplicado ao vivo.",
+    ["info_cdm_bars"]                    = "Cada barra tem sua própria posição e disposição. Ative a pré-visualização para ver as mudanças ao vivo, ou o modo de posicionamento para arrastar as barras com o mouse.",
+    ["btn_cdm_reset_pos"]                = "Redefinir posições",
+    ["msg_cdm_pos_reset"]                = "Posições do CDM redefinidas.",
+    ["section_cdm_essential"]            = "Essential (feitiços principais)",
+    ["section_cdm_utility_bar"]          = "Utility (feitiços utilitários)",
+    ["section_cdm_bufficons"]            = "Ícones de buff (auras — ícones)",
+    ["section_cdm_buffbars"]             = "Barras de buff (auras — barras)",
+    ["opt_cdm_pos_x"]                    = "Posição X",
+    ["opt_cdm_pos_y"]                    = "Posição Y",
+    ["opt_cdm_icon_size"]                = "Tamanho do ícone (0 = automático)",
+    ["opt_cdm_spacing"]                  = "Espaçamento",
+    ["opt_cdm_row_limit"]                = "Por linha (0 = ilimitado)",
+    ["opt_cdm_direction"]                = "Direção",
+    ["opt_cdm_secondary_direction"]      = "Direção secundária",
+    ["opt_cdm_buffbar_spacing"]          = "Espaçamento",
+    ["secdir_auto"]                      = "Automático",
+    ["secdir_down"]                      = "Linhas para baixo",
+    ["secdir_up"]                        = "Linhas para cima",
+    ["secdir_right"]                     = "Colunas para a direita",
+    ["secdir_left"]                      = "Colunas para a esquerda",
+
     -- Resource Bars
     ["section_resource_bars"]           = "Barras de recursos",
     ["opt_rb_enable"]                   = "Ativar barras de recursos",
@@ -331,6 +361,33 @@ TomoMod_RegisterLocale("ptBR", {
     ["opt_rb_classpower_height"]        = "Altura do poder de classe",
     ["opt_rb_druidmana_height"]         = "Altura de mana do druida",
     ["opt_rb_global_scale"]             = "Escala global",
+
+    -- v2.9: Barra de vida (HUD)
+    ["section_rb_healthbar"]            = "Barra de vida (HUD)",
+    ["opt_rb_hb_enable"]                = "Mostrar barra de vida",
+    ["info_rb_healthbar"]               = "Barra de vida centralizada acima dos recursos. Texto e cor de limite gerenciados no cliente (compatível com Midnight).",
+    ["opt_rb_hb_height"]                = "Altura",
+    ["opt_rb_hb_text"]                  = "Texto",
+    ["hb_text_none"]                    = "Nenhum",
+    ["hb_text_value"]                   = "Valor",
+    ["hb_text_percent"]                 = "Porcentagem",
+    ["hb_text_both"]                    = "Valor | %",
+    ["opt_rb_hb_classcolor"]            = "Cor de classe",
+    ["opt_rb_hb_color"]                 = "Cor personalizada (se cor de classe desativada)",
+    ["opt_rb_hb_threshold"]             = "Limite de vida baixa (muda a cor)",
+    ["opt_rb_hb_threshold_pct"]         = "Limite (%)",
+    ["opt_rb_hb_threshold_color"]       = "Cor de vida baixa",
+
+    -- v2.9: Animações e barra de poder
+    ["section_rb_anim"]                 = "Animações e barra de poder",
+    ["opt_rb_smooth"]                   = "Animações suaves das barras",
+    ["opt_rb_power_ticks"]              = "Marcas na barra de poder (% do máx.)",
+    ["ticks_none"]                      = "Nenhum",
+    ["opt_rb_power_threshold"]          = "Limite de recurso baixo (barra de poder)",
+    ["opt_rb_power_threshold_pct"]      = "Limite (%)",
+    ["opt_rb_power_threshold_color"]    = "Cor de recurso baixo",
+    ["info_rb_anim"]                    = "Marcas e limite se aplicam à barra de poder centralizada. O suavização também se aplica à barra de vida, ao mana do druida e às barras de auras.",
+
     ["opt_rb_sync_width"]               = "Sincronizar largura com Essential Cooldowns",
     ["btn_sync_now"]                    = "Sincronizar agora",
     ["info_rb_sync"]                    = "Alinha a largura com o EssentialCooldownViewer do CooldownManager da Blizzard.",
@@ -1739,6 +1796,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["rf_opt_enable"]                    = "Ativar quadros de raide",
     ["rf_info_description"]              = "Quadros de raide personalizados com vida, absorção, previsão de cura, HoTs, debuffs, destaque de dissipação, CDs defensivos e verificação de alcance.",
     ["rf_opt_hide_blizzard"]             = "Ocultar quadros de raide da Blizzard",
+    ["rf_opt_skin_group_manager"]       = "Personalizar o painel do líder de grupo (ready check, marcadores, sair do grupo)",
     ["rf_opt_sort_role"]                 = "Ordenar por função (Tanque > Curandeiro > DPS)",
     ["rf_section_layout"]                = "Layout",
     ["rf_opt_layout_mode"]               = "Modo de layout",
@@ -2288,4 +2346,25 @@ TomoMod_RegisterLocale("ptBR", {
     -- 3.1.5
     ["wn_315_ot_itembutton"] = "Rastreador de Objetivos: os botões de item de missão agora se ocultam corretamente quando seu bucket é recolhido (o botão é filho do tracker nativo, não do bloco — antes permanecia visível acima dos buckets recolhidos).",
     ["wn_315_talkinghead"] = "QOL: a opção «Ocultar Talking Head» voltou à GUI de configuração (QOL → Automações). Agora é aplicada instantaneamente sem /reload e é reversível — desmarcá-la restaura os diálogos de rolagem.",
+
+    -- 3.1.6
+    ["wn_316_party_combat"] = "Quadros de grupo: corrigidos bugs de visibilidade quando um membro entra, sai, ou o grupo se transforma em raide em pleno combate — os quadros agora aparecem/desaparecem de forma confiável em qualquer situação.",
+    ["wn_316_raid_combat"] = "Quadros de raide: corrigido o problema de quadros ficarem presos visíveis ou ocultos quando membros do raide entravam ou saíam durante o combate — a visibilidade agora é controlada por um sistema seguro e compatível com combate.",
+    ["wn_316_roster_repaint"] = "Quadros de grupo e raide: corrigidas informações desatualizadas (cor de classe, absorções, destaque de dispersão) que mostravam brevemente o jogador errado após uma mudança na composição, mesmo em combate.",
+    ["wn_317_cdm_holders"] = "Cooldown Manager: novo sistema de 'Holders' — mova e trave livremente cada visualizador de cooldown (Essencial, Utilidade, Ícones de buff, Barras de buff) independentemente da grade do Modo de Edição da Blizzard, com pré-visualização ao vivo de ícones/barras enquanto vazios.",
+    ["wn_317_resourcebars_health"] = "Barras de recursos: nova barra de vida opcional — altura configurável, formato (%, valor ou ambos), preenchimento colorido por classe, animação suave e um limite de cor para vida baixa.",
+    ["wn_317_config_cards"] = "Interface de configuração: o painel Cooldown & Recursos agora tem um layout em cartões e uma nova aba Barras agrupando todas as configurações da barra de vida.",
+    ["wn_316_locale_cdm"] = "Corrigido: a aba Barras, os cartões de posicionamento/pré-visualização ao vivo e a seção de barra de vida & animações exibiam chaves brutas em vez de texto traduzido — traduzido nos 6 idiomas.",
+    ["wn_316_taint_chat"] = "Corrigido um erro de taint ('secret string value') no skin do chat ao receber mensagens de canal.",
+    ["wn_316_taint_skyride"] = "Corrigido um erro de taint ('secret number value') na barra de velocidade do Skyriding, causado pelos valores protegidos de velocidade de voo/planeio do jogo.",
+    ["wn_316_durability_pos"] = "Minimapa: a posição do texto de durabilidade agora é configurável (canto + deslocamento X/Y) em Interface → Geral → Info Panel — útil para evitar sobreposição com o novo botão de expansão do patch 12.0.7.",
+
+    -- 3.1.7
+    ["wn_317_libserialize_namespace"] = "Perfis: a biblioteca LibSerialize incorporada agora usa um namespace privado ('TomoSerialize-1.0') em vez do nome compartilhado 'LibSerialize', evitando conflitos de exportação/importação com outros addons que também incorporam LibSerialize.",
+    ["wn_317_drag_absolute_coords"] = "Quadros móveis: corrigido o desvio ou inversão das posições salvas após arrastar na Barra de nível, Movers, AuctionRecipeTracker, Mythic+ Tracker, TomoScore, Frame Anchors, Bag Skin, barras de conjuração, âncoras de quadros de grupo/raide, Bússola, Barra de consumíveis, Navegador de Loot, Minimapa, Rastreador de Objetivos, barra de Skyriding, Barras de recursos e UnitFrames — as posições agora são salvas como coordenadas absolutas de tela, estáveis.",
+    ["wn_317_ot_combat_taint"] = "Rastreador de Objetivos: corrigido um possível erro de taint quando a Blizzard reexibe um bloco de bucket de missão recolhido durante uma atualização de missão em combate.",
+    ["wn_317_deadcode_cleanup"] = "Limpeza interna: vários módulos não utilizados/desativados foram removidos para reduzir o tamanho do addon — nenhuma funcionalidade visível ao usuário foi afetada.",
+    ["wn_317_raidmanager_fix"] = "Quadros de raide: corrigido o painel padrão do líder de grupo da Blizzard (ready check, marcadores de alvo de raide, converter em raide, limite de pings, sair do grupo) que era ocultado junto com os quadros de raide ao ativar «Ocultar quadros de raide da Blizzard» — agora apenas o contêiner dos quadros de membros é suprimido, a barra de ferramentas do líder continua disponível.",
+    ["wn_317_groupmanager_skin"] = "Quadros de raide: a opção «Personalizar o painel do líder de grupo» agora aplica uma reformulação completa à barra de ferramentas da Blizzard com o tema escuro/verde-menta do TomoMod — menus suspensos de modo e limite de pings, filtros de função/grupo, botões da barra de ferramentas (modo de edição, configurações, ready check, votação de função, contagem regressiva), botões de marcadores de raide com suas abas Unidade/Chão, e botões de sair do grupo com estilo vermelho — tudo isso sem alterar nenhum ícone da Blizzard, com alternância ao vivo sem precisar recarregar a interface.",
+    ["wn_317_groupmanager_collapsetab"] = "Quadros de raide: corrigido o botão de recolher do painel do líder de grupo que deixava uma faixa residual na borda da tela, agora substituído por uma verdadeira aba verde-menta em vez de um simples botão personalizado.",
 })
