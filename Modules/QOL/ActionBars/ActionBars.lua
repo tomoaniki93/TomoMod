@@ -700,6 +700,58 @@ local function UpdateEmptyButtons(id)
 end
 
 -- =====================================================================
+-- EMPTY-SLOT GRID DURING DRAG
+-- =====================================================================
+
+-- [FIX] With showEmptyButtons = false the empty buttons are :Hide()n at rest
+-- (UpdateEmptyButtons), which keeps the bar area click-through but also made
+-- them un-droppable: picking up a spell to move it had nowhere to land, because
+-- our explicit :Hide() defeats Blizzard's native grid reveal. Players had to
+-- open the Spellbook/Talents (which forces the grid on) just to move a spell.
+-- We now mirror Blizzard's native behaviour: reveal the hidden empty slots on
+-- ACTIONBAR_SHOWGRID (cursor picked up a placeable) and hide them again on
+-- ACTIONBAR_HIDEGRID (cursor released). Only bars with showEmptyButtons = false
+-- are touched, and the reveal uses the same showgrid/Show/alpha the working
+-- "show empty" branch already relies on.
+local function SetEmptyGridRevealed(revealed)
+    if InCombatLockdown() then return end  -- bars can't be rearranged in combat anyway
+    for _, def in ipairs(AB.BAR_DEFS) do
+        local id = def.id
+        local barDB = GetBarDB(id)
+        if barDB and not barDB.showEmptyButtons then
+            if revealed then
+                local buttons = barButtons[id]
+                if buttons then
+                    for _, btn in ipairs(buttons) do
+                        local action = btn.action or btn:GetAttribute("action") or 0
+                        if not HasAction(action) then
+                            btn:SetAttribute("showgrid", SHOWGRID_ALWAYS)
+                            btn:Show()
+                            btn:SetAlpha(1)
+                        end
+                    end
+                end
+            else
+                UpdateEmptyButtons(id)  -- re-hide empties (idempotent + combat-safe)
+            end
+        end
+    end
+end
+
+local emptyGridFrame = CreateFrame("Frame")
+emptyGridFrame:RegisterEvent("ACTIONBAR_SHOWGRID")
+emptyGridFrame:RegisterEvent("ACTIONBAR_HIDEGRID")
+emptyGridFrame:SetScript("OnEvent", function(_, event)
+    if event == "ACTIONBAR_SHOWGRID" then
+        SetEmptyGridRevealed(true)
+    else
+        -- Nested SHOWGRID/HIDEGRID: only hide once the cursor is actually clear.
+        if GetCursorInfo() then return end
+        SetEmptyGridRevealed(false)
+    end
+end)
+
+-- =====================================================================
 -- CLICK-THROUGH
 -- =====================================================================
 

@@ -1174,12 +1174,18 @@ local _tmMinimapPosHooked    = false
 local function SavePosition()
     local db = TomoModDB and TomoModDB.minimap
     if not db then return end
-    -- [DRAG] screen-absolute coords instead of GetPoint
+    -- [DRAG] Store the raw GetLeft()/GetBottom() edges (no scale factor).
+    -- The Minimap lives under MinimapCluster and carries its own
+    -- SetScale(db.scale), so Minimap:GetEffectiveScale() differs from
+    -- UIParent's. SetPoint offsets are already interpreted in the Minimap's
+    -- own scale, so re-applying these raw edges in RestorePosition round-trips
+    -- exactly for any cluster/minimap scale. The former
+    -- GetEffectiveScale()/UIParent ratio double-scaled the offset and pushed
+    -- the minimap into a screen corner on every reload/reconnect.
     local left, bottom = Minimap:GetLeft(), Minimap:GetBottom()
     if left and bottom then
-        local scale = Minimap:GetEffectiveScale() / UIParent:GetEffectiveScale()
         db.position = { anchor = "BOTTOMLEFT", relTo = "BOTTOMLEFT",
-                        x = left * scale, y = bottom * scale }
+                        x = left, y = bottom }
     end
 end
 
@@ -1219,8 +1225,8 @@ local function InstallMinimapPositionHook()
         local p = db.position
         local left, bottom = Minimap:GetLeft(), Minimap:GetBottom()
         if not left or not bottom then return end
-        local scale = Minimap:GetEffectiveScale() / UIParent:GetEffectiveScale()
-        local curX, curY = left * scale, bottom * scale
+        -- Same convention as SavePosition: raw frame-space edges, no scale.
+        local curX, curY = left, bottom
         if math.abs(curX - (p.x or 0)) < 1 and math.abs(curY - (p.y or 0)) < 1 then
             return -- already where it should be — don't fight a harmless internal SetPoint
         end
