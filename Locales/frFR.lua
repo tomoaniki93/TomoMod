@@ -2521,9 +2521,10 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_318_bagskin_cat_foundation"] = "Bag Skin : ajout des bases internes pour une future option de masquage/réorganisation des catégories — Divers et Emplacements libres restent toujours visibles pour qu'aucun objet ne puisse jamais disparaître.",
 
     -- 3.1.9
+    ["wn_319_actionbar_dragfix"] = "Barres d'action : correction de sorts impossibles à glisser sur un emplacement vide (avec l'option « Afficher les emplacements vides » désactivée) sauf si le Grimoire/les Talents étaient ouverts — les emplacements vides se révèlent désormais pendant tout glisser-déposer.",
     ["wn_319_ot_mover_fix"] = "Suivi des quêtes : correction du repère qui réinitialisait parfois sa position (le Mode Édition de Blizzard pouvait le contourner silencieusement) — le glisser-déplacer reste désormais fiable.",
     ["wn_319_ot_quest_limit"] = "Suivi des quêtes : correction du curseur « Nombre max. de quêtes affichées » qui n'avait aucun effet dans la disposition par Catégories par défaut.",
-    ["wn_319_minimap_drift"] = "Minimap : correction de la minimap qui se déplaçait parfois toute seule après un /reload.",
+    ["wn_319_minimap_drift"] = "Minimap : correction de la minimap qui se déplaçait toute seule après un /reload (un bug de calcul d'échelle appliquait deux fois le facteur d'échelle à la position enregistrée).",
     ["wn_319_minimap_collector"] = "Minimap : correction du collecteur de boutons qui masquait encore les boutons des autres addons après un reload même désactivé.",
     ["wn_319_minimap_tracking"] = "Minimap : correction du bouton de pistage qui disparaissait parfois, et du bouton de pistage natif Blizzard qui restait non cliquable après avoir été révélé.",
     ["wn_319_repbar_hide"] = "Barre de réputation : correction de la barre de réputation/honneur Blizzard qui restait parfois visible malgré l'option « Masquer la barre de réputation Blizzard ».",

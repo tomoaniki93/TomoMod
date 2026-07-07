@@ -2388,9 +2388,10 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_318_bagskin_cat_foundation"] = "Bag Skin: interne Grundlage für eine zukünftige Option zum Ausblenden/Neuordnen von Kategorien hinzugefügt — Verschiedenes und Freie Plätze bleiben immer sichtbar, damit kein Gegenstand jemals verschwinden kann.",
 
     -- 3.1.9
+    ["wn_319_actionbar_dragfix"] = "Aktionsleisten: behoben, dass Zauber nicht auf einen leeren Slot gezogen werden konnten (bei deaktivierter Option „Leere Slots anzeigen“), außer wenn das Zauberbuch/die Talente geöffnet waren — leere Slots werden jetzt während jeder Aufnahme automatisch sichtbar.",
     ["wn_319_ot_mover_fix"] = "Aufgaben-Tracker: behoben, dass die Position des Ankers sich gelegentlich selbst zurücksetzte (Blizzards Edit-Modus konnte sie stillschweigend überschreiben) — das Ziehen bleibt jetzt zuverlässig erhalten.",
     ["wn_319_ot_quest_limit"] = "Aufgaben-Tracker: behoben, dass der Regler „Max. angezeigte Quests“ im Standard-Kategorien-Layout überhaupt keine Wirkung hatte.",
-    ["wn_319_minimap_drift"] = "Minimap: behoben, dass sich die Minimap nach einem /reload gelegentlich selbst an eine andere Position verschob.",
+    ["wn_319_minimap_drift"] = "Minimap: behoben, dass sich die Minimap nach einem /reload selbst an eine andere Position verschob (ein Skalierungsfehler wendete den Skalierungsfaktor doppelt auf die gespeicherte Position an).",
     ["wn_319_minimap_collector"] = "Minimap: behoben, dass der Button-Sammler weiterhin die Minimap-Buttons anderer Addons nach einem Reload ausblendete, obwohl er deaktiviert war.",
     ["wn_319_minimap_tracking"] = "Minimap: behoben, dass der Pistage-Button gelegentlich verschwand und der native Blizzard-Pistage-Button nach dem Wiederanzeigen nicht anklickbar blieb.",
     ["wn_319_repbar_hide"] = "Ruf-Leiste: behoben, dass Blizzards eigene Ruf-/Ehre-Leiste in manchen Fällen trotz aktivierter Option „Blizzard-Ruf-Leiste ausblenden“ noch sichtbar war.",

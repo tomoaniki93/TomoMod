@@ -2376,9 +2376,10 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_318_bagskin_cat_foundation"] = "Bag Skin: adicionada a base interna para uma futura opção de ocultar/reordenar categorias — Diversos e Espaços livres sempre permanecem visíveis para que nenhum item possa desaparecer.",
 
     -- 3.1.9
+    ["wn_319_actionbar_dragfix"] = "Barras de ação: corrigido não ser possível arrastar uma magia para um espaço vazio (com «Mostrar espaços vazios» desativado) a menos que o Livro de magias/Talentos estivesse aberto — os espaços vazios agora se revelam durante qualquer arraste.",
     ["wn_319_ot_mover_fix"] = "Rastreador de Objetivos: corrigido o posicionamento da âncora que às vezes se resetava sozinho (o Modo de Edição da Blizzard podia sobrescrevê-lo silenciosamente) — arrastar agora permanece confiável.",
     ["wn_319_ot_quest_limit"] = "Rastreador de Objetivos: corrigido o controle «Máx. de missões exibidas» que não tinha nenhum efeito no layout padrão por Categorias.",
-    ["wn_319_minimap_drift"] = "Minimapa: corrigido o minimapa que às vezes se movia sozinho para outra posição após um /reload.",
+    ["wn_319_minimap_drift"] = "Minimapa: corrigido o minimapa que se movia sozinho para outra posição após um /reload (um erro de cálculo de escala aplicava o fator de escala duas vezes à posição salva).",
     ["wn_319_minimap_collector"] = "Minimapa: corrigido o coletor de botões que continuava ocultando os botões de outros addons após um reload mesmo estando desativado.",
     ["wn_319_minimap_tracking"] = "Minimapa: corrigido o botão de rastreamento que às vezes desaparecia, e o botão de rastreamento nativo da Blizzard que ficava impossível de clicar após ser revelado novamente.",
     ["wn_319_repbar_hide"] = "Barra de Reputação: corrigida a barra de reputação/honra própria da Blizzard que às vezes continuava aparecendo mesmo com a opção «Ocultar barra de reputação da Blizzard» ativada.",

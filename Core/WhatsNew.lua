@@ -32,9 +32,10 @@ local CHANGELOG = {
     {
         version = "3.1.9",
         highlights = {
+            L["wn_319_actionbar_dragfix"] or "Action Bars: fixed spells being impossible to drag onto an empty slot (with 'Show empty button slots' off) unless the Spellbook/Talents window was open — empty slots now reveal themselves during any pickup.",
             L["wn_319_ot_mover_fix"] or "Objective Tracker: fixed the mover position sometimes resetting itself (Blizzard's Edit Mode could silently override it) — dragging it now sticks reliably.",
             L["wn_319_ot_quest_limit"] or "Objective Tracker: fixed the 'Max quests shown' slider having no effect at all in the default Categories layout.",
-            L["wn_319_minimap_drift"] or "Minimap: fixed the minimap sometimes moving itself to a different spot after a /reload.",
+            L["wn_319_minimap_drift"] or "Minimap: fixed the minimap moving itself to a different spot after a /reload (a scale calculation bug was double-scaling the saved position).",
             L["wn_319_minimap_collector"] or "Minimap: fixed the button collector still hiding other addons' minimap buttons after a reload even when disabled.",
             L["wn_319_minimap_tracking"] or "Minimap: fixed the tracking button sometimes disappearing, and Blizzard's native tracking button staying unclickable after being revealed.",
             L["wn_319_repbar_hide"] or "Reputation Bar: fixed Blizzard's own reputation/honor bar still showing through in some cases when 'Hide Blizzard reputation bar' is enabled.",

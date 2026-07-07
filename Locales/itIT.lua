@@ -2376,9 +2376,10 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_318_bagskin_cat_foundation"] = "Bag Skin: aggiunte le basi interne per una futura opzione di nascondere/riordinare le categorie — Varie e Slot liberi restano sempre visibili così nessun oggetto può mai sparire.",
 
     -- 3.1.9
+    ["wn_319_actionbar_dragfix"] = "Barre azione: risolto un problema per cui non era possibile trascinare un incantesimo su uno slot vuoto (con «Mostra slot vuoti» disattivato) a meno che il Libro degli incantesimi/Talenti non fosse aperto — gli slot vuoti ora si rivelano durante qualsiasi trascinamento.",
     ["wn_319_ot_mover_fix"] = "Tracker Obiettivi: risolto un problema per cui la posizione dell'ancoraggio si reimpostava da sola (la Modalità Modifica di Blizzard poteva sovrascriverla silenziosamente) — trascinarlo ora rimane affidabile.",
     ["wn_319_ot_quest_limit"] = "Tracker Obiettivi: risolto il cursore «Numero massimo di missioni mostrate» che non aveva alcun effetto nel layout predefinito a Categorie.",
-    ["wn_319_minimap_drift"] = "Minimappa: risolto un problema per cui la minimappa a volte si spostava da sola dopo un /reload.",
+    ["wn_319_minimap_drift"] = "Minimappa: risolto un problema per cui la minimappa si spostava da sola dopo un /reload (un errore di calcolo della scala applicava due volte il fattore di scala alla posizione salvata).",
     ["wn_319_minimap_collector"] = "Minimappa: risolto il raccoglitore di pulsanti che continuava a nascondere i pulsanti degli altri addon dopo un reload anche se disattivato.",
     ["wn_319_minimap_tracking"] = "Minimappa: risolto il pulsante di tracciamento che a volte scompariva, e il pulsante di tracciamento nativo di Blizzard che restava non cliccabile dopo essere stato mostrato di nuovo.",
     ["wn_319_repbar_hide"] = "Barra reputazione: risolta la barra di reputazione/onore di Blizzard che a volte restava visibile nonostante l'opzione «Nascondi barra reputazione Blizzard» fosse attiva.",

@@ -2611,9 +2611,10 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_318_bagskin_cat_foundation"] = "Bag Skin: added the internal groundwork for a future hide/reorder categories option — Miscellaneous and Free Slots always stay visible so no item can ever disappear.",
 
     -- 3.1.9
+    ["wn_319_actionbar_dragfix"] = "Action Bars: fixed spells being impossible to drag onto an empty slot (with 'Show empty button slots' off) unless the Spellbook/Talents window was open — empty slots now reveal themselves during any pickup.",
     ["wn_319_ot_mover_fix"] = "Objective Tracker: fixed the mover position sometimes resetting itself (Blizzard's Edit Mode could silently override it) — dragging it now sticks reliably.",
     ["wn_319_ot_quest_limit"] = "Objective Tracker: fixed the 'Max quests shown' slider having no effect at all in the default Categories layout.",
-    ["wn_319_minimap_drift"] = "Minimap: fixed the minimap sometimes moving itself to a different spot after a /reload.",
+    ["wn_319_minimap_drift"] = "Minimap: fixed the minimap moving itself to a different spot after a /reload (a scale calculation bug was double-scaling the saved position).",
     ["wn_319_minimap_collector"] = "Minimap: fixed the button collector still hiding other addons' minimap buttons after a reload even when disabled.",
     ["wn_319_minimap_tracking"] = "Minimap: fixed the tracking button sometimes disappearing, and Blizzard's native tracking button staying unclickable after being revealed.",
     ["wn_319_repbar_hide"] = "Reputation Bar: fixed Blizzard's own reputation/honor bar still showing through in some cases when 'Hide Blizzard reputation bar' is enabled.",
