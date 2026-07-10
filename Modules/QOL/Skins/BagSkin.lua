@@ -97,7 +97,7 @@ local IC_QUEST       = IC.Questitem       or IC.QuestItem  or 12
 local IC_MISC        = IC.Miscellaneous   or 15
 local IC_BATTLEPET   = IC.Battlepet       or IC.BattlePet  or 17
 
--- Category definitions in EUI-inspired default order. Each item is assigned to
+-- Category definitions in default order. Each item is assigned to
 -- the FIRST matching *active* category (see GetActiveCategories), so order also
 -- defines match priority. "miscellaneous" is the catch-all and, with
 -- "freeSlots", always stays active and last so items can never disappear.

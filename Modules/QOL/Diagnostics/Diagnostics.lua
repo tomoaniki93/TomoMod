@@ -275,6 +275,20 @@ local function BuildExclusionSet()
         "target is engaged in a duel",       -- EN equivalent
         "target ist in einem duell",         -- DE
         "objetivo est\195\161 en un duelo",  -- ES
+        -- Merchant doesn't buy items (report #676: session 2026-07-07)
+        "vendre d'objets \195\160 ce marchand", -- FR "Vous ne pouvez pas vendre d'objets à ce marchand"
+        "cannot sell items to this merchant", "can't sell items to this merchant", -- EN equivalents
+        "keine gegenst\195\164nde an diesen h\195\164ndler verkaufen", -- DE
+        "no puedes vender objetos a este comerciante",                -- ES
+        "non puoi vendere oggetti a questo mercante",                 -- IT
+        "n\195\163o pode vender itens a este mercador",                -- PT
+        -- Can't loot while Challenge Mode is active (report #676: session 2026-07-07)
+        "ramasser de butin tant que le mode d\195\169fi est actif", -- FR
+        "cannot loot while challenge mode is active", "can't loot while challenge mode is active", -- EN equivalents
+        "kannst nicht pl\195\188ndern, w\195\164hrend der herausforderungsmodus aktiv ist", -- DE
+        "no puedes recoger bot\195\173n mientras el modo desaf\195\173o est\195\169 activo", -- ES
+        "non puoi raccogliere bottino mentre la modalit\195\160 sfida \195\168 attiva",       -- IT
+        "n\195\163o pode saquear enquanto o modo desafio estiver ativo",                       -- PT
     }
     for _, kw in ipairs(keywords) do
         EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = kw

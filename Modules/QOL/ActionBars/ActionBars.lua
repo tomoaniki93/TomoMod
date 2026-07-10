@@ -2,7 +2,6 @@
 -- ActionBars.lua v4.0.0 — Complete ActionBar System
 -- Container-based bar management with grid layout, mover integration,
 -- position persistence, and SecureHandler vehicle/override support.
--- Inspired by QUI, EllesUI, MidnightUI, GW2_UI.
 -- =====================================================================
 
 TomoMod_ActionBars = TomoMod_ActionBars or {}
@@ -738,13 +737,33 @@ local function SetEmptyGridRevealed(revealed)
     end
 end
 
+-- Cursor types that can be dropped into an action slot.  ACTIONBAR_SHOWGRID
+-- fires reliably for items and when the Spellbook/Talents force the grid, but
+-- Blizzard does NOT fire it when picking up a spell/macro/mount already sitting
+-- on a bar to move it to another slot.  CURSOR_CHANGED + GetCursorInfo() is the
+-- reliable trigger for those bar-to-bar drags (same approach EllesUI uses).
+local GRID_DRAG_TYPES = {
+    spell = true, macro = true, mount = true,
+    petaction = true, companion = true, flyout = true,
+}
+
 local emptyGridFrame = CreateFrame("Frame")
 emptyGridFrame:RegisterEvent("ACTIONBAR_SHOWGRID")
 emptyGridFrame:RegisterEvent("ACTIONBAR_HIDEGRID")
+emptyGridFrame:RegisterEvent("CURSOR_CHANGED")
 emptyGridFrame:SetScript("OnEvent", function(_, event)
     if event == "ACTIONBAR_SHOWGRID" then
         SetEmptyGridRevealed(true)
-    else
+    elseif event == "CURSOR_CHANGED" then
+        -- Bar-to-bar spell/macro/mount drags don't fire ACTIONBAR_SHOWGRID;
+        -- GetCursorInfo() on CURSOR_CHANGED is the reliable trigger for them.
+        local cursorType = GetCursorInfo()
+        if cursorType and GRID_DRAG_TYPES[cursorType] then
+            SetEmptyGridRevealed(true)
+        elseif not cursorType then
+            SetEmptyGridRevealed(false)  -- cursor cleared (dropped or cancelled)
+        end
+    else  -- ACTIONBAR_HIDEGRID
         -- Nested SHOWGRID/HIDEGRID: only hide once the cursor is actually clear.
         if GetCursorInfo() then return end
         SetEmptyGridRevealed(false)

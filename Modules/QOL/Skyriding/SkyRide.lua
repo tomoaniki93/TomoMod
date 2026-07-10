@@ -399,6 +399,27 @@ local function UpdateWindSegments(preview)
 end
 
 -- =====================================
+-- HELPER — Vitesse au sol (secret-value safe)
+-- =====================================
+-- GetUnitSpeed() can return a Midnight "secret" number in some protected
+-- contexts (arenas/instances). issecretvalue() alone should catch it, but
+-- as a defense-in-depth (matches Castbar.lua's FormatTimer pattern), the
+-- whole read + arithmetic is also pcall-wrapped so a missed edge case can
+-- never throw "attempt to perform arithmetic on a secret number value"
+-- from this module again.
+local function SafeGroundSpeedPercent()
+    local ok, speed = pcall(GetUnitSpeed, "player")
+    if not ok or not speed or (issecretvalue and issecretvalue(speed)) then
+        return 0
+    end
+    local ok2, result = pcall(function() return math.floor(speed / 7 * 100 + 0.5) end)
+    if not ok2 or not result or (issecretvalue and issecretvalue(result)) then
+        return 0
+    end
+    return result
+end
+
+-- =====================================
 -- UPDATE VITESSE
 -- =====================================
 local function UpdateSpeed()
@@ -427,9 +448,7 @@ local function UpdateSpeed()
             if frame.vigorLabel then frame.vigorLabel:Show() end
             if frame.windLabel  then frame.windLabel:Show()  end
 
-            local speed = GetUnitSpeed("player")
-            if issecretvalue and issecretvalue(speed) then speed = 0 end
-            local moveSpeed = math.floor(speed / 7 * 100 + 0.5)
+            local moveSpeed = SafeGroundSpeedPercent()
             moveSpeed = math.max(0, math.min(moveSpeed, SPEED_MAX))
             speedBar:SetMinMaxValues(0, SPEED_MAX)
             speedBar:SetValue(moveSpeed, Enum.StatusBarInterpolation.ExponentialEaseOut)
@@ -453,15 +472,15 @@ local function UpdateSpeed()
 
     frame:Show()
 
-    local isGliding, _, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
+    local okGlide, isGliding, _, forwardSpeed = pcall(C_PlayerInfo.GetGlidingInfo)
+    if not okGlide then isGliding, forwardSpeed = false, nil end
     if issecretvalue and forwardSpeed ~= nil and issecretvalue(forwardSpeed) then forwardSpeed = 0 end
     local moveSpeed = 0
     if isGliding and forwardSpeed and forwardSpeed > 0 then
-        moveSpeed = math.floor(forwardSpeed * SPEED_MULTIPLIER + 0.5)
+        local okMul, mulResult = pcall(function() return math.floor(forwardSpeed * SPEED_MULTIPLIER + 0.5) end)
+        moveSpeed = (okMul and mulResult) or 0
     else
-        local speed = GetUnitSpeed("player")
-        if issecretvalue and issecretvalue(speed) then speed = 0 end
-        moveSpeed   = math.floor(speed / 7 * 100 + 0.5)
+        moveSpeed = SafeGroundSpeedPercent()
     end
     moveSpeed = math.max(0, math.min(moveSpeed, SPEED_MAX))
 

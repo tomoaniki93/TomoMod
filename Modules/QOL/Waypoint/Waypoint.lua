@@ -2,7 +2,6 @@
 -- Waypoint.lua — In-world waypoint system  (QOL Module)
 -- Modules > QOL > Waypoint  |  /tm way [x y] | /tm way clear
 --
--- Ported from WaypointUI (AdaptiveX) — MIT-compatible adaptation:
 --   • MapPin   : C_Map / C_SuperTrack waypoint management
 --   • Beacon   : teal circle + beam anchored to C_Navigation.GetFrame()
 --   • Navigator: rotating edge-arrow when target is off-screen

@@ -701,7 +701,7 @@ local function CreateOrUpdateHeader()
         headerTitle:SetText(L["ot_header_title"])
 
         -- Options button
-        headerOptions = CreateFrame("Button", nil, headerBar)
+        --[[headerOptions = CreateFrame("Button", nil, headerBar)
         headerOptions:SetHeight(28)
         headerOptions.text = headerOptions:CreateFontString(nil, "OVERLAY")
         headerOptions.text:SetFont(ADDON_FONT, 11, "OUTLINE")
@@ -720,7 +720,7 @@ local function CreateOrUpdateHeader()
             if TomoMod_Config and TomoMod_Config.Toggle then
                 TomoMod_Config.Toggle()
             end
-        end)
+        end)]]--
 
         -- Dash
         headerDash = headerBar:CreateFontString(nil, "OVERLAY")
