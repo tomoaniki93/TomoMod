@@ -1,5 +1,19 @@
 ## ####################################
 
+## CHANGELOG 3.1.10 — Action Bar Spell-Drag Fix (Empty Slots) & Skyriding Taint Hardening
+
+#### Action Bars — Moving a Spell/Macro/Mount Already on a Bar Onto an Empty Slot Now Works
+- **Fix** — The 3.1.9 empty-slot drag fix only listened for `ACTIONBAR_SHOWGRID` / `ACTIONBAR_HIDEGRID`, which Blizzard fires reliably for items and when the Spellbook/Talents force the grid, but **not** when picking up a spell/macro/mount that is already sitting on a bar to move it to another slot. So with "Show empty button slots" disabled the empty slots stayed hidden during those bar-to-bar drags and there was nowhere to drop — reproducing the exact original bug for spells (opening the Spellbook/Talents was still the only workaround). The empty-slot reveal now also listens for `CURSOR_CHANGED` and reads `GetCursorInfo()`: for the drag cursor types that don't fire `ACTIONBAR_SHOWGRID` (`spell`, `macro`, `mount`, `petaction`, `companion`, `flyout`) it reveals the empty slots on pickup and re-hides them once the cursor is cleared. Items keep using the existing `ACTIONBAR_SHOWGRID` path (which fires reliably for them), so empty slots don't flash during bag sorts or vendor operations.
+
+#### Skyriding — Recurring Secret-Value Taint on Ground Speed (Hardened Fix)
+- **Fix** — Diagnostics reports showed `SkyRide.lua:426: attempt to perform arithmetic on local 'speed' (a secret number value...)` still firing hundreds of times per session despite the existing `issecretvalue()` guard added around `GetUnitSpeed("player")`. The read-and-check-and-zero sequence is now wrapped in a dedicated `SafeGroundSpeedPercent()` helper that `pcall`-wraps both the `GetUnitSpeed` call **and** the subsequent division/multiplication arithmetic (matching the existing `Castbar.lua` `FormatTimer` pattern), so any case the plain `issecretvalue()` check doesn't catch can no longer throw an uncaught error — it silently falls back to `0` instead.
+- **Fix** — The flying/gliding branch (`C_PlayerInfo.GetGlidingInfo()` + `forwardSpeed * SPEED_MULTIPLIER`) received the same treatment: the API call is now `pcall`-wrapped and the multiplication that derives the displayed speed is also `pcall`-wrapped, closing the same class of taint error on the airborne speed-bar path.
+
+#### Diagnostics — Two New UIError Exclusion Keywords
+- **New** — 2 new UIError keyword groups added to the exclusion filter (from session report #676): the merchant refusing to buy an item ("Vous ne pouvez pas vendre d'objets à ce marchand") and looting being blocked while Challenge Mode is active ("Vous ne pouvez pas ramasser de butin tant que le mode Défi est actif."). Each entry covers FR / EN / DE / ES / IT / PT variants, so these normal gameplay-feedback messages are no longer captured as bugs in the diagnostics console.
+
+## ####################################
+
 ## CHANGELOG 3.1.9 — Movable-Frame Position Fixes, Action Bar Drag Fix, Native Bar Suppression & Diagnostics Popup Stacking
 
 #### Action Bars — Empty Slots Now Droppable While Dragging a Spell
@@ -44,12 +58,12 @@
 - **Change** — Category matching in the **Categories** layout no longer compares raw numeric `classID` literals (e.g. `2`, `4`, `12`). It now resolves the proper `Enum.ItemClass` constants (`Armor`, `Weapon`, `Consumable`, `Questitem`, `Tradegoods`, `Reagent`, `Gem`, `ItemEnhancement`, `Recipe`, `Miscellaneous`, `Battlepet`) at load time, each with a numeric fallback so categorization stays correct even if a constant name is ever unavailable on a given client.
 
 #### Bag Skin — Reordered Default Categories
-- **Change** — Default category order updated to an EUI-inspired priority: **Quest Items** is now checked (and displayed) right after **Equipment**, ahead of **Consumables** and **Trade Goods**, instead of appearing after them.
+- **Change** — Default category order updated to an priority: **Quest Items** is now checked (and displayed) right after **Equipment**, ahead of **Consumables** and **Trade Goods**, instead of appearing after them.
 
 #### Bag Skin — Extensible Category Order/Visibility (Foundation)
 - **New** — `GetActiveCategories()` builds the active, ordered category list from two new saved-variable fields: `bagCategoryState` (per-category `hidden` flag) and an optional `bagCategoryOrder` (custom key order). **Miscellaneous** and **Free Slots** are always forced active and always sorted last, so an item can never disappear from the bag entirely. No config UI is exposed for this yet — this patch only lays the groundwork for an upcoming hide/reorder settings panel.
 - **Change** — `Categorize()` now accepts an explicit category list to bucket items against (defaulting to all categories), so it can be reused with the new active/filtered category set from `GetActiveCategories()`.
-- **New** — Database defaults: `bagSkin.bagCategoryState = {}` added (existing profiles get it merged in automatically); `bagCategoryOrder` remains unset by default (nil = default EUI-style order).
+- **New** — Database defaults: `bagSkin.bagCategoryState = {}` added (existing profiles get it merged in automatically); `bagCategoryOrder` remains unset by default (nil = default order).
 
 ## ####################################
 
@@ -672,7 +686,7 @@
 
 #### MythicTracker — Boss Names
 - **Fix** — Boss names in the M+ tracker now show correctly instead of "Boss 1", "Boss 2" etc.; in WoW 12.x (Midnight) `C_ScenarioInfo.GetCriteriaInfo` returns the boss name in the `description` field (renamed from `criteriaString`); TomoMod now reads `description` first and falls back to `criteriaString` for backward compatibility
-- **Fix** — Blizzard's leading checkmark prefix (added to completed objectives in 12.x) is stripped from boss names before display, matching EllesmereUI's approach
+- **Fix** — Blizzard's leading checkmark prefix (added to completed objectives in 12.x) is stripped from boss names before display
 - **Fix** — `EncounterJournal_OpenJournal` call inside `FetchEJBossNames` is now wrapped in `pcall` to prevent potential taint in 12.x; the EJ lookup continues to function as a localisation enhancement when available
 
 ## ####################################

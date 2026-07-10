@@ -10,7 +10,7 @@
 --     specProfiles   = { [specID] = "nomProfil" },  -- spec → nom profil
 --   }
 --
--- Inspiré d'EllesmereUI_Profiles.lua :
+-- Profiles.lua :
 --   - specs mappés vers des profils nommés (pas des snapshots indépendants)
 --   - auto-save du profil courant avant tout switch
 --   - rename, duplicate

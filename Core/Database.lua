@@ -428,7 +428,7 @@ TomoMod_Defaults = {
         showBagBar = true,
         collapsedSections = {},
         bagCategoryState  = {},   -- { [catKey] = { hidden = bool } }; reorder/hide UI comes later
-        -- bagCategoryOrder = { ... }  -- optional saved order of category keys; nil = EUI-style default
+        -- bagCategoryOrder = { ... }  -- optional saved order of category keys;
         position = { anchor = "BOTTOMRIGHT", relTo = "BOTTOMRIGHT", x = -20, y = 60 },
     },
     buffSkin = {

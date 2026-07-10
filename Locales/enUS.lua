@@ -2611,6 +2611,9 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_318_bagskin_cat_foundation"] = "Bag Skin: added the internal groundwork for a future hide/reorder categories option — Miscellaneous and Free Slots always stay visible so no item can ever disappear.",
 
     -- 3.1.9
+    ["wn_3110_actionbar_spelldrag"] = "Action Bars: the 3.1.9 empty-slot drag fix still didn't work for a spell, macro or mount already on a bar (with 'Show empty button slots' off) — moving one onto an empty slot now works during any pickup, without opening the Spellbook/Talents.",
+    ["wn_3110_skyride_taint"] = "Skyriding: fixed a recurring taint error on the ground-speed display that could still fire hundreds of times per session despite an earlier fix — the speed calculation is now hardened with an extra safety net so it can no longer throw an error.",
+    ["wn_3110_diag_exclusions"] = "Diagnostics: added two new exclusion keywords (merchant refusing to buy an item, looting blocked while Challenge Mode is active) so these normal gameplay messages are no longer logged as bugs.",
     ["wn_319_actionbar_dragfix"] = "Action Bars: fixed spells being impossible to drag onto an empty slot (with 'Show empty button slots' off) unless the Spellbook/Talents window was open — empty slots now reveal themselves during any pickup.",
     ["wn_319_ot_mover_fix"] = "Objective Tracker: fixed the mover position sometimes resetting itself (Blizzard's Edit Mode could silently override it) — dragging it now sticks reliably.",
     ["wn_319_ot_quest_limit"] = "Objective Tracker: fixed the 'Max quests shown' slider having no effect at all in the default Categories layout.",

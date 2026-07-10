@@ -1,7 +1,7 @@
 ﻿-- =====================================
 -- Panels/Profiles.lua — Gestion de profils (3 onglets)
 -- Tab 1: Profils nommés (créer, renommer, dupliquer, assigner aux specs)
--- Tab 2: Import / Export — popup modal plein écran (pattern EllesmereUI)
+-- Tab 2: Import / Export — popup modal plein écran
 -- Tab 3: Réinitialisations modules
 --
 -- [PERF v2] Optimisations UI :
@@ -88,7 +88,7 @@ local function MkSmallBtn(parent, label, w, onClickFn, red)
 end
 
 -- =====================================
--- POPUP MODAL EXPORT (pattern EllesmereUI)
+-- POPUP MODAL EXPORT
 -- [PERF v2] SetText différé + async
 -- =====================================
 

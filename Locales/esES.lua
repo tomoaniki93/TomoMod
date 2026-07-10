@@ -2436,6 +2436,9 @@ TomoMod_RegisterLocale("esES", {
     ["wn_318_bagskin_cat_foundation"] = "Bag Skin: se añadió la base interna para una futura opción de ocultar/reordenar categorías — Miscelánea y Espacios libres siempre permanecen visibles para que ningún objeto pueda desaparecer nunca.",
 
     -- 3.1.9
+    ["wn_3110_actionbar_spelldrag"] = "Barras de acción: el arreglo de espacios vacíos de la 3.1.9 seguía sin funcionar para un hechizo, macro o montura que ya estaba en una barra (con «Mostrar espacios vacíos» desactivado) — moverlo a un espacio vacío ahora funciona durante cualquier arrastre, sin abrir el Libro de hechizos/Talentos.",
+    ["wn_3110_skyride_taint"] = "Cabalgar en el cielo: se corrigió un error de corrupción recurrente en la visualización de la velocidad en tierra, que aún podía aparecer cientos de veces por sesión pese a una corrección anterior — el cálculo de velocidad ahora cuenta con una protección adicional para que ya no pueda generar un error.",
+    ["wn_3110_diag_exclusions"] = "Diagnóstico: se añadieron dos nuevas palabras clave de exclusión (comerciante que se niega a comprar un objeto, saqueo bloqueado mientras el modo Desafío está activo) para que estos mensajes normales del juego ya no se registren como errores.",
     ["wn_319_actionbar_dragfix"] = "Barras de acción: corregido que era imposible arrastrar un hechizo a un espacio vacío (con «Mostrar espacios vacíos» desactivado) a menos que el Libro de hechizos/Talentos estuviera abierto — los espacios vacíos ahora se revelan durante cualquier arrastre.",
     ["wn_319_ot_mover_fix"] = "Rastreador de objetivos: corregido que la posición del ancla a veces se reiniciaba sola (el Modo Edición de Blizzard podía sobrescribirla silenciosamente) — ahora arrastrarlo se mantiene de forma fiable.",
     ["wn_319_ot_quest_limit"] = "Rastreador de objetivos: corregido que el control «Máx. misiones mostradas» no tenía ningún efecto en el diseño por Categorías predeterminado.",

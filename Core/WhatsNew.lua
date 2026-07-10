@@ -30,6 +30,14 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.1.10",
+        highlights = {
+            L["wn_3110_actionbar_spelldrag"] or "Action Bars: the 3.1.9 empty-slot drag fix still didn't work for a spell, macro or mount already on a bar (with 'Show empty button slots' off) — moving one onto an empty slot now works during any pickup, without opening the Spellbook/Talents.",
+            L["wn_3110_skyride_taint"] or "Skyriding: fixed a recurring taint error on the ground-speed display that could still fire hundreds of times per session despite an earlier fix — the speed calculation is now hardened with an extra safety net so it can no longer throw an error.",
+            L["wn_3110_diag_exclusions"] or "Diagnostics: added two new exclusion keywords (merchant refusing to buy an item, looting blocked while Challenge Mode is active) so these normal gameplay messages are no longer logged as bugs.",
+        },
+    },
+    {
         version = "3.1.9",
         highlights = {
             L["wn_319_actionbar_dragfix"] or "Action Bars: fixed spells being impossible to drag onto an empty slot (with 'Show empty button slots' off) unless the Spellbook/Talents window was open — empty slots now reveal themselves during any pickup.",

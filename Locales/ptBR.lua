@@ -2376,6 +2376,9 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_318_bagskin_cat_foundation"] = "Bag Skin: adicionada a base interna para uma futura opção de ocultar/reordenar categorias — Diversos e Espaços livres sempre permanecem visíveis para que nenhum item possa desaparecer.",
 
     -- 3.1.9
+    ["wn_3110_actionbar_spelldrag"] = "Barras de ação: a correção de espaços vazios da 3.1.9 ainda não funcionava para uma magia, macro ou montaria já presente em uma barra (com «Mostrar espaços vazios» desativado) — movê-la para um espaço vazio agora funciona durante qualquer arraste, sem abrir o Livro de magias/Talentos.",
+    ["wn_3110_skyride_taint"] = "Voo com planador: corrigido um erro de corrupção recorrente na exibição da velocidade em solo, que ainda podia ocorrer centenas de vezes por sessão apesar de uma correção anterior — o cálculo de velocidade agora conta com uma proteção extra para que não possa mais gerar um erro.",
+    ["wn_3110_diag_exclusions"] = "Diagnóstico: adicionadas duas novas palavras-chave de exclusão (comerciante recusando comprar um item, saque bloqueado enquanto o modo Desafio está ativo) para que essas mensagens normais do jogo não sejam mais registradas como bugs.",
     ["wn_319_actionbar_dragfix"] = "Barras de ação: corrigido não ser possível arrastar uma magia para um espaço vazio (com «Mostrar espaços vazios» desativado) a menos que o Livro de magias/Talentos estivesse aberto — os espaços vazios agora se revelam durante qualquer arraste.",
     ["wn_319_ot_mover_fix"] = "Rastreador de Objetivos: corrigido o posicionamento da âncora que às vezes se resetava sozinho (o Modo de Edição da Blizzard podia sobrescrevê-lo silenciosamente) — arrastar agora permanece confiável.",
     ["wn_319_ot_quest_limit"] = "Rastreador de Objetivos: corrigido o controle «Máx. de missões exibidas» que não tinha nenhum efeito no layout padrão por Categorias.",
