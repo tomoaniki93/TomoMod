@@ -2401,4 +2401,9 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_319_tooltip_bg"] = "Tooltip: weniger transparenter Standard-Hintergrund (Deckkraft 92 % → 97 %) — weiterhin voll über den Regler für Hintergrund-Deckkraft anpassbar.",
     ["wn_319_tooltip_anchor"] = "Tooltip: der „Benutzerdefiniert“-Positionsanker bleibt nicht mehr außerhalb des Layout-Modus dauerhaft sichtbar, und eine neue Schaltfläche „Anker anzeigen/ausblenden“ wurde unter Skins → Tooltip hinzugefügt.",
     ["wn_319_diag_copy"] = "Diagnose: behoben, dass die Schaltfläche „Copy Report“ scheinbar nichts tat — das Export-Fenster konnte sich versteckt hinter der Konsole öffnen.",
+
+    -- 3.1.11
+    ["wn_3111_castbar_deathstuck"] = "Zauberleiste: behoben, dass die Zauberleiste für Ziel, Fokus, Boss und andere Nicht-Spieler-Einheiten sichtbar hängen blieb, wenn die Einheit starb oder verschwand, ohne dass ein passendes Stopp-Ereignis ausgelöst wurde.",
+    ["wn_3111_castbar_targetreset"] = "Zauberleiste: ein Wechsel von Ziel oder Fokus setzt die Zauberleiste jetzt vollständig zurück, statt nur den Fehlschlag-Timer zu löschen — ein Restzauber der vorherigen Einheit kann so nicht mehr auf der neu ausgewählten weiter angezeigt werden.",
+    ["wn_3111_ot_lfgbutton"] = "Aufgaben-Tracker: das Einklappen einer Questkategorie blendet jetzt auch deren Schaltfläche „Gruppe suchen“ aus, nicht nur die Gegenstands-Schaltfläche — beide werden beim erneuten Ausklappen korrekt wiederhergestellt.",
 })

@@ -1,5 +1,16 @@
 ## ####################################
 
+## CHANGELOG 3.1.11 — Castbar Stale-State Fix & Objective Tracker "Find Group" Button Hiding
+
+#### Castbars — No Longer Get Stuck When the Casting Unit Dies or Changes
+- **Fix** — Castbars for non-player units (target, focus, boss, party/raid members, etc.) could stay visible and frozen on screen if the unit died, disappeared, or otherwise became invalid without WoW ever firing a matching `UNIT_SPELLCAST_STOP`-family event (e.g. a target that dies mid-cast while still selected, or a boss dying during an empowered cast). The castbar's `OnUpdate` now checks `UnitExists`/`UnitIsDeadOrGhost` every frame for non-player units and immediately resets and hides the bar the moment the unit is gone or dead.
+- **Fix** — Switching target or focus (`PLAYER_TARGET_CHANGED`/`PLAYER_FOCUS_CHANGED`) now fully resets the castbar's internal state before checking the newly selected unit's cast, instead of only clearing the fail-state timer. Previously, if the previous unit had been mid-cast, its leftover `casting`/`channeling`/`empowered` flags could keep the bar shown even though the newly selected unit wasn't casting anything.
+
+#### Objective Tracker — "Find Group" Button Now Hidden With Collapsed Quest Categories
+- **Fix** — Collapsing a quest category bucket only hid the quest's item button, leaving its "Looking For Group" / "Find Group" button (when present) still visible floating in the tracker — it's anchored to the block but parented directly to the tracker's pooled content frame, so `block:Hide()` never covered it. Collapsing/expanding a bucket now hides and restores every right-edge button belonging to the block (item button and "Find Group" button alike), not just the item button.
+
+## ####################################
+
 ## CHANGELOG 3.1.10 — Action Bar Spell-Drag Fix (Empty Slots) & Skyriding Taint Hardening
 
 #### Action Bars — Moving a Spell/Macro/Mount Already on a Bar Onto an Empty Slot Now Works

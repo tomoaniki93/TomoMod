@@ -30,6 +30,14 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.1.11",
+        highlights = {
+            L["wn_3111_castbar_deathstuck"] or "Castbars: fixed castbars for target, focus, boss and other non-player units getting stuck visible on screen if the unit died or disappeared without WoW ever firing a matching stop event.",
+            L["wn_3111_castbar_targetreset"] or "Castbars: switching target or focus now fully resets the castbar instead of only clearing its fail-state timer, so a leftover cast from the previous unit can no longer stay shown on the newly selected one.",
+            L["wn_3111_ot_lfgbutton"] or "Objective Tracker: collapsing a quest category now also hides its 'Find Group' button, not just the item button — both are correctly restored when the category is expanded again.",
+        },
+    },
+    {
         version = "3.1.10",
         highlights = {
             L["wn_3110_actionbar_spelldrag"] or "Action Bars: the 3.1.9 empty-slot drag fix still didn't work for a spell, macro or mount already on a bar (with 'Show empty button slots' off) — moving one onto an empty slot now works during any pickup, without opening the Spellbook/Talents.",

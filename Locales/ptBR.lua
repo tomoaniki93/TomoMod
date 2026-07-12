@@ -2389,4 +2389,9 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_319_tooltip_bg"] = "Dica de ferramenta: fundo padrão menos transparente (opacidade 92% → 97%) — ainda totalmente ajustável pelo controle de opacidade do fundo.",
     ["wn_319_tooltip_anchor"] = "Dica de ferramenta: a âncora de posição «Personalizado» não fica mais visível na tela fora do modo Layout, e um novo botão «Mostrar/Ocultar a âncora» foi adicionado em Skins → Tooltip.",
     ["wn_319_diag_copy"] = "Diagnóstico: corrigido o botão «Copy Report» que parecia não fazer nada — a janela de exportação podia abrir escondida atrás do console.",
+
+    -- 3.1.11
+    ["wn_3111_castbar_deathstuck"] = "Barra de lançamento: corrigido o problema em que a barra de lançamento de alvo, foco, chefe e outras unidades que não o jogador ficava travada visível na tela se a unidade morresse ou desaparecesse sem que nenhum evento de término correspondente fosse disparado.",
+    ["wn_3111_castbar_targetreset"] = "Barra de lançamento: trocar de alvo ou foco agora redefine completamente a barra de lançamento em vez de apenas limpar seu temporizador de falha, evitando que um lançamento residual da unidade anterior continue sendo exibido na unidade recém-selecionada.",
+    ["wn_3111_ot_lfgbutton"] = "Rastreador de Objetivos: recolher uma categoria de missões agora também oculta seu botão «Procurar grupo», não apenas o botão de item — ambos são restaurados corretamente ao expandir a categoria novamente.",
 })

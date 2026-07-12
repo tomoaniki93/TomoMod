@@ -2389,4 +2389,9 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_319_tooltip_bg"] = "Tooltip: sfondo predefinito meno trasparente (opacità 92% → 97%) — ancora regolabile tramite il cursore di opacità dello sfondo.",
     ["wn_319_tooltip_anchor"] = "Tooltip: l'ancoraggio di posizione «Personalizzato» non resta più visibile sullo schermo al di fuori della modalità Layout, ed è stato aggiunto un nuovo pulsante «Mostra/Nascondi l'ancoraggio» in Skins → Tooltip.",
     ["wn_319_diag_copy"] = "Diagnostica: risolto il pulsante «Copy Report» che sembrava non fare nulla — la finestra di esportazione poteva aprirsi nascosta dietro la console.",
+
+    -- 3.1.11
+    ["wn_3111_castbar_deathstuck"] = "Barra di lancio: risolto un problema per cui la barra di lancio di bersaglio, focus, boss e altre unità non giocatore restava visibile bloccata sullo schermo se l'unità moriva o scompariva senza che venisse mai generato un evento di fine lancio corrispondente.",
+    ["wn_3111_castbar_targetreset"] = "Barra di lancio: cambiare bersaglio o focus ora reimposta completamente la barra di lancio invece di cancellare solo il timer di fallimento, impedendo che un lancio residuo dell'unità precedente resti visualizzato su quella appena selezionata.",
+    ["wn_3111_ot_lfgbutton"] = "Tracker Obiettivi: comprimere una categoria di missioni ora nasconde anche il suo pulsante «Cerca gruppo», non solo il pulsante oggetto — entrambi vengono ripristinati correttamente quando la categoria viene espansa di nuovo.",
 })

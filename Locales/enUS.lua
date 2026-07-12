@@ -2624,4 +2624,9 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_319_tooltip_bg"] = "Tooltip: less transparent default background (92% -> 97% opacity) — still fully adjustable via the Background opacity slider.",
     ["wn_319_tooltip_anchor"] = "Tooltip: the 'Custom' position anchor no longer stays visible on screen outside of Layout mode, and a new 'Show/Hide anchor' button was added in Skins -> Tooltip.",
     ["wn_319_diag_copy"] = "Diagnostics: fixed the 'Copy Report' button appearing to do nothing — the export popup could open hidden behind the console window.",
+
+    -- 3.1.11
+    ["wn_3111_castbar_deathstuck"] = "Castbars: fixed castbars for target, focus, boss and other non-player units getting stuck visible on screen if the unit died or disappeared without WoW ever firing a matching stop event.",
+    ["wn_3111_castbar_targetreset"] = "Castbars: switching target or focus now fully resets the castbar instead of only clearing its fail-state timer, so a leftover cast from the previous unit can no longer stay shown on the newly selected one.",
+    ["wn_3111_ot_lfgbutton"] = "Objective Tracker: collapsing a quest category now also hides its 'Find Group' button, not just the item button — both are correctly restored when the category is expanded again.",
 })

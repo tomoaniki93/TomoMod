@@ -2535,6 +2535,11 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_319_tooltip_anchor"] = "Infobulle : le repère de position « Personnalisé » ne reste plus affiché en dehors du mode Layout, et un nouveau bouton « Afficher/Masquer le repère » a été ajouté dans Skins → Infobulle.",
     ["wn_319_diag_copy"] = "Diagnostics : correction du bouton « Copy Report » qui semblait ne rien faire — la fenêtre d'export pouvait s'ouvrir cachée derrière la console.",
 
+    -- 3.1.11
+    ["wn_3111_castbar_deathstuck"] = "Barres de sort : correction des barres de sort de cible, pisteur, boss et autres unités non-joueur qui pouvaient rester bloquées à l'écran si l'unité mourait ou disparaissait sans qu'aucun événement de fin de sort ne soit émis.",
+    ["wn_3111_castbar_targetreset"] = "Barres de sort : changer de cible ou de pisteur réinitialise désormais complètement la barre de sort au lieu de simplement effacer son minuteur d'échec, empêchant un sort résiduel de l'ancienne unité de rester affiché sur la nouvelle.",
+    ["wn_3111_ot_lfgbutton"] = "Suivi des quêtes : réduire une catégorie de quêtes masque désormais aussi son bouton « Recherche de groupe », pas seulement le bouton d'objet — les deux sont correctement restaurés lorsque la catégorie est de nouveau développée.",
+
     -- ChatFrameUI (panneau de config — libellés affichés dans Skins)
     ["sublabel_chatframeui"]        = "— UI de fenêtre de chat multi-positions —",
     ["opt_cfui_enable"]             = "Activer l'UI de fenêtre de chat",
