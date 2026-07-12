@@ -883,6 +883,22 @@ function CB.CreateCastbar(unit)
     -- =====================
     castbar:SetScript("OnUpdate", function(self, elapsed)
         if self._preview then return end
+        -- Le porteur du cast (cible/focus/boss/pet) peut mourir ou disparaitre
+        -- sans qu'aucun UNIT_SPELLCAST_STOP ne soit emis (cible morte encore
+        -- selectionnee, mort d'un boss, wipe). Sans ce garde la barre reste figee.
+        -- On ne teste jamais "player" (toujours present, gere par ses events).
+        if self.unit ~= "player" then
+            local u = self.unit
+            if not UnitExists(u) or UnitIsDeadOrGhost(u) then
+                self.failstart = nil
+                ResetState(self)
+                if self._fadeAG  and self._fadeAG:IsPlaying()  then self._fadeAG:Stop()  end
+                if self._flashAG and self._flashAG:IsPlaying() then self._flashAG:Stop() end
+                self:SetAlpha(1)
+                self:Hide()
+                return
+            end
+        end
         if self.failstart then
             if GetTime() - self.failstart > 1 then self.failstart = nil; FadeOut(self) end
             return
@@ -980,7 +996,17 @@ function CB.CreateCastbar(unit)
     events:SetScript("OnEvent", function(self, event, eventUnit, _, _, interrupterGUID)
         if castbar._preview then return end
         if event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_FOCUS_CHANGED" or event == "PLAYER_ENTERING_WORLD" then
-            castbar.failstart = nil; CheckCast(castbar, false); return
+            -- La cible/focus a change : tout cast en cours appartenait a l'ANCIENNE
+            -- unite. On purge l'etat AVANT CheckCast, sinon le garde "self.casting"
+            -- dans CheckCast laisse la barre affichee quand la nouvelle unite ne cast
+            -- pas. Si elle cast, CheckCast repeuple et re-affiche normalement.
+            castbar.failstart = nil
+            ResetState(castbar)
+            if castbar._fadeAG  and castbar._fadeAG:IsPlaying()  then castbar._fadeAG:Stop()  end
+            if castbar._flashAG and castbar._flashAG:IsPlaying() then castbar._flashAG:Stop() end
+            castbar:Hide()
+            CheckCast(castbar, false)
+            return
         end
         if eventUnit ~= unit then return end
         if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" or event == "UNIT_SPELLCAST_EMPOWER_START" then

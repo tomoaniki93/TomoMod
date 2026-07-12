@@ -847,6 +847,79 @@ local function IsBucketCollapsed(key)
     return t and t[key] == true
 end
 
+-- =====================================================================
+-- RIGHT-EDGE BUTTONS (item + "recherche de groupe") d'un bloc de quete
+-- ---------------------------------------------------------------------
+-- Ces boutons sont ancres au bloc mais PARENTES au ContentsFrame du
+-- module (pool Blizzard) : block:Hide() ne les masque donc pas. On les
+-- enumere par l'intersection block.addedRegions et block.parentModule.
+-- usedRightEdgeFrames -> uniquement les boutons de CE bloc (jamais les
+-- timer/progress bars, jamais les boutons d'un autre bloc). Fallback sur
+-- le champ nomme block.itemButton si ces tables internes manquent.
+-- =====================================================================
+local function ForEachBlockRightEdgeButton(block, fn)
+    if not block then return end
+    local handled
+    local mod   = block.parentModule
+    local used  = mod and mod.usedRightEdgeFrames
+    local added = block.addedRegions
+    if used and added then
+        for _, frame in pairs(used) do
+            if frame and added[frame] ~= nil then
+                handled = handled or {}
+                handled[frame] = true
+                fn(frame)
+            end
+        end
+    end
+    -- Fallback : bouton d'objet nomme (comportement historique).
+    local ib = block.itemButton
+    if ib and not (handled and handled[ib]) then
+        fn(ib)
+    end
+end
+
+-- Masque a la reduction tous les right-edge buttons du bloc, avec le meme
+-- garde anti-reapparition que le bloc (hook Show + garde combat ; Layout-
+-- Buckets ne tourne qu'hors combat mais Blizzard peut re-Show pendant un
+-- Update en combat).
+local function HideBlockButtons(block)
+    ForEachBlockRightEdgeButton(block, function(btn)
+        if not btn._tmShowHooked then
+            btn._tmShowHooked = true
+            hooksecurefunc(btn, "Show", function(self)
+                if not bucketEnabled then return end
+                if InCombatLockdown() then return end
+                local b = self._tmBucketBlock
+                local k = b and b._tmBucketKey
+                if k and IsBucketCollapsed(k) then
+                    self:Hide()
+                end
+            end)
+        end
+        btn._tmBucketBlock = block
+        -- Ne marquer/masquer que s'il est reellement visible : le bouton est
+        -- mis en pool par Blizzard et peut persister masque (quete sans objet
+        -- utilisable) -> sinon on le re-afficherait a tort a l'expansion.
+        if btn:IsShown() then
+            btn._tmHiddenByBucket = true
+            btn:Hide()
+        end
+    end)
+end
+
+-- Re-affiche a l'expansion uniquement les boutons qu'on avait masques soi-
+-- meme (Blizzard corrige ensuite si l'objet n'est plus utilisable, lors de
+-- son Update).
+local function ShowBlockButtons(block)
+    ForEachBlockRightEdgeButton(block, function(btn)
+        if btn._tmHiddenByBucket then
+            btn._tmHiddenByBucket = false
+            btn:Show()
+        end
+    end)
+end
+
 local LayoutBuckets -- forward
 
 -- Re-entry guard for LayoutBuckets / OnTrackerUpdate.
@@ -1200,35 +1273,10 @@ LayoutBuckets = function()
                         end
                         block:Hide()
 
-                        -- Le bouton d'objet de quete (block.itemButton) est ancre au
-                        -- bloc mais parente au tracker : block:Hide() ne le masque pas.
-                        -- On le masque explicitement, avec un garde anti-reapparition
-                        -- comme pour le bloc (LayoutBuckets ne tourne qu'hors combat,
-                        -- donc ce Hide est sur ; le garde verifie quand meme le combat
-                        -- car Blizzard peut re-Show le bouton pendant un Update en combat).
-                        local ib = block.itemButton
-                        if ib then
-                            if not ib._tmShowHooked then
-                                ib._tmShowHooked = true
-                                hooksecurefunc(ib, "Show", function(self)
-                                    if not bucketEnabled then return end
-                                    if InCombatLockdown() then return end
-                                    local b = self._tmBucketBlock
-                                    local k = b and b._tmBucketKey
-                                    if k and IsBucketCollapsed(k) then
-                                        self:Hide()
-                                    end
-                                end)
-                            end
-                            ib._tmBucketBlock = block
-                            -- Ne marquer/masquer que s'il est reellement visible : le bouton
-                            -- est mis en pool par Blizzard et peut persister masque quand la
-                            -- quete n'a plus d'objet (sinon on le re-afficherait a tort).
-                            if ib:IsShown() then
-                                ib._tmHiddenByBucket = true
-                                ib:Hide()
-                            end
-                        end
+                        -- Masque item button + bouton "recherche de groupe" (right-edge
+                        -- frames pooles, parentes au ContentsFrame : block:Hide() ne les
+                        -- couvre pas). Voir HideBlockButtons pour le detail du garde.
+                        HideBlockButtons(block)
                     end
                 else
                     for _, block in ipairs(group) do
@@ -1284,14 +1332,9 @@ LayoutBuckets = function()
 
                         block:Show()
 
-                        -- Re-affiche le bouton d'objet qu'on avait masque a la reduction
-                        -- (seulement celui qu'on a masque nous-memes ; Blizzard corrige
-                        -- ensuite si l'objet n'est plus utilisable, lors de son Update).
-                        local ib = block.itemButton
-                        if ib and ib._tmHiddenByBucket then
-                            ib._tmHiddenByBucket = false
-                            ib:Show()
-                        end
+                        -- Re-affiche item button + bouton "recherche de groupe" qu'on avait
+                        -- masques a la reduction (uniquement les notres ; cf. ShowBlockButtons).
+                        ShowBlockButtons(block)
 
                         -- Restyle this block (its HeaderText + objective lines)
                         ScanAndStyle(block, 0)
