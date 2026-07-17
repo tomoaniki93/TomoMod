@@ -551,6 +551,7 @@ EF:RegisterEvent("PLAYER_LOGIN")
 EF:RegisterEvent("PLAYER_ENTERING_WORLD")
 EF:RegisterEvent("CHALLENGE_MODE_START")
 EF:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+EF:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 EF:SetScript("OnEvent", function(_, event, ...) TS:OnScoreEvent(event, ...) end)
 
@@ -586,7 +587,26 @@ function TS:OnScoreEvent(event, ...)
             self:_TriggerScoreboard()
         end)
 
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        if self._pendingScoreboardData then
+            local data = self._pendingScoreboardData
+            self._pendingScoreboardData = nil
+            self:ShowScoreboard(data)
+        end
+
     end
+end
+
+-- Combat-safe entry point: PopulateScoreboard touches a SecureActionButtonTemplate
+-- button's SetAttribute, which taints the whole call chain (including the plain
+-- TomoScoreFrame SetPoint/Show/SetSize calls in ShowScoreboard) if we're still in
+-- combat lockdown, causing ADDON_ACTION_BLOCKED. Defer until combat ends instead.
+function TS:SafeShowScoreboard(data)
+    if InCombatLockdown() then
+        self._pendingScoreboardData = data
+        return
+    end
+    self:ShowScoreboard(data)
 end
 
 function TS:_TriggerScoreboard()
@@ -596,11 +616,11 @@ function TS:_TriggerScoreboard()
             local data2 = self:CollectRunData()
             if data2 and #data2.players > 0 then
                 self:SaveRunData(data2)
-                self:ShowScoreboard(data2)
+                self:SafeShowScoreboard(data2)
             end
         end)
         return
     end
     self:SaveRunData(data)
-    self:ShowScoreboard(data)
+    self:SafeShowScoreboard(data)
 end

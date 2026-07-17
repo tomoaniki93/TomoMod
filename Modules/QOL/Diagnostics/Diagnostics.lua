@@ -289,6 +289,23 @@ local function BuildExclusionSet()
         "no puedes recoger bot\195\173n mientras el modo desaf\195\173o est\195\169 activo", -- ES
         "non puoi raccogliere bottino mentre la modalit\195\160 sfida \195\168 attiva",       -- IT
         "n\195\163o pode saquear enquanto o modo desafio estiver ativo",                       -- PT
+        -- Object cannot be modified (report #716: session 2026-07-16)
+        "peut pas \195\170tre modifi",       -- FR "Cet objet ne peut pas être modifié."
+        "cannot be modified", "can't be modified", -- EN equivalents
+        "kann nicht ver\195\164ndert werden",  -- DE
+        "no se puede modificar",              -- ES
+        "non pu\195\178 essere modificat",     -- IT
+        "n\195\163o pode ser modificad",       -- PT
+        -- Vantacite / manacite conduit requirement (report #716: session 2026-07-17)
+        "vantacite",                          -- FR "Utilisez des conduits à vantacite et à manacite pour débloquer ceci." (proper nouns, locale-stable)
+        "manacite",
+        -- Spell not learned (report #716: session 2026-07-17)
+        "sort non appris", "non appris",      -- FR "Sort non appris"
+        "spell not learned", "not learned",   -- EN equivalents
+        "nicht erlernt",                      -- DE
+        "no has aprendido", "no aprendid",    -- ES
+        "non hai imparato", "non \195\168 stato appreso", -- IT
+        "n\195\163o aprendeu", "n\195\163o aprendid",     -- PT
     }
     for _, kw in ipairs(keywords) do
         EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = kw
