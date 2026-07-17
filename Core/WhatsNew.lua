@@ -30,6 +30,13 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.2.2",
+        highlights = {
+            L["wn_322_studio_intro"] or "New: Cooldown Studio — a dedicated full-screen editor for CooldownForge bars, with per-bar Layout/Style/Spells/Visibility/Sharing tabs, opened from the Cooldowns tab.",
+            L["wn_322_studio_fix"] or "Cooldown Studio: fixed the window not always displaying above other frames, and its widgets not always inheriting the correct accent color.",
+        },
+    },
+    {
         version = "3.2.1",
         highlights = {
             L["wn_321_cdf_intro"] or "New: CooldownForge — build custom cooldown bars per class, tracking spells, items, presets (potions, healthstone...), trinkets or your racial ability, from the new Cooldowns tab (Combat category).",

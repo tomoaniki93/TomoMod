@@ -2679,4 +2679,8 @@ TomoMod_RegisterLocale("frFR", {
     -- 3.2.1
     ["wn_321_cdf_intro"] = "Nouveau — CooldownForge : crée des barres de cooldown personnalisées par classe, suivant sorts, objets, presets (potions, pierre de soins...), bijoux ou ta capacité raciale, depuis le nouvel onglet Cooldowns (catégorie Combat).",
     ["wn_321_cdf_movers_io"] = "Les barres CooldownForge peuvent désormais être déplacées via le gestionnaire de déplacement unifié, et partagées entre personnages via une chaîne d'import/export par classe.",
+
+    -- 3.2.2
+    ["wn_322_studio_intro"] = "Nouveau — Cooldown Studio : un éditeur plein écran dédié aux barres CooldownForge, avec des onglets par barre Disposition/Style/Sorts/Visibilité/Partage, accessible depuis l'onglet Cooldowns.",
+    ["wn_322_studio_fix"] = "Cooldown Studio : correction de la fenêtre qui ne s'affichait pas toujours au-dessus des autres fenêtres, et de ses widgets qui n'héritaient pas toujours de la bonne couleur d'accentuation.",
 })

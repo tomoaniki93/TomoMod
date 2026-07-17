@@ -46,7 +46,7 @@ local function colorProxy(arr) return { r = arr[1] or 1, g = arr[2] or 1, b = ar
 local function writeColor(arr, r, g, b) arr[1] = r; arr[2] = g; arr[3] = b end
 
 -- Push schema changes to the live bars (Render provides RefreshAll).
-local function Apply() if CDF.RefreshAll then Apply() end end
+local function Apply() if CDF.RefreshAll then CDF.RefreshAll() end end
 
 local function SpecOptions(class)
     local opts = { { text = "Toutes spes", value = 0 } }
@@ -92,6 +92,26 @@ local function BuildContent(c)
 
     local y = -12
     local card, cy
+
+    -- STUDIO LAUNCHER [S1] ----------------------------------------------
+    card, cy = W.CreateCard(c, "Cooldown Studio", y)
+    _, cy = W.CreateInfoText(card.inner,
+        "Editeur dedie plein ecran : barres, sorts, styles, partage et mode edition.", cy)
+    _, cy = W.CreateButton(card.inner, "Ouvrir le Cooldown Studio", 240, cy, function()
+        if not C_AddOns.IsAddOnLoaded("TomoMod_CDStudio") then
+            local ok, reason = C_AddOns.LoadAddOn("TomoMod_CDStudio")
+            if not ok then
+                print("|cff2ed884TomoMod|r : Cooldown Studio introuvable ("
+                    .. tostring(reason or "?") .. "). Sous-addon TomoMod_CDStudio non installe ?")
+                return
+            end
+        end
+        if TomoMod_CDStudio and TomoMod_CDStudio.Open then
+            if TomoMod_Config and TomoMod_Config.Hide then TomoMod_Config.Hide() end
+            TomoMod_CDStudio.Open()
+        end
+    end)
+    y = W.FinalizeCard(card, cy)
 
     -- CLASS ------------------------------------------------------------
     card, cy = W.CreateCard(c, "Classe editee", y)
@@ -144,6 +164,21 @@ local function BuildContent(c)
     if bar then
         -- SETTINGS -----------------------------------------------------
         card, cy = W.CreateCard(c, "Reglages -- " .. (bar.name or ""), y)
+        _, cy = W.CreateDropdown(card.inner, "Style visuel",
+            { { text = "Tomo (carte)", value = "tomo" },
+              { text = "Net (pixel)", value = "net" },
+              { text = "Verre (moderne)", value = "verre" } },
+            (bar.style and bar.style.preset) or "tomo", cy, function(v)
+                bar.style = bar.style or {}
+                bar.style.preset = v
+                Apply()
+            end)
+        _, cy = W.CreateCheckbox(card.inner, "Griser pendant le cooldown",
+            (bar.style and bar.style.desatOnCooldown) == true, cy, function(v)
+                bar.style = bar.style or {}
+                bar.style.desatOnCooldown = v
+                Apply()
+            end)
         _, cy = W.CreateSegmentedControl(card.inner, "Orientation",
             { { text = "Horizontale", value = "horizontal" }, { text = "Verticale", value = "vertical" } },
             bar.orientation, cy, function(v) bar.orientation = v; Apply() end, 2)

@@ -1,0 +1,9 @@
+## Interface: 120100, 120007
+## Title: |cff0cd29fTomo|rMod |cff2ed884Cooldown Studio|r
+## Notes: Dedicated full-screen editor for TomoMod CooldownForge bars.
+## Author: TomoAniki
+## Version: 1.0.0
+## LoadOnDemand: 1
+## Dependencies: TomoMod
+
+CDStudio.lua

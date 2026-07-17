@@ -2521,4 +2521,8 @@ TomoMod_RegisterLocale("itIT", {
     -- 3.2.1
     ["wn_321_cdf_intro"] = "Nuovo — CooldownForge: crea barre di cooldown personalizzate per classe, tracciando incantesimi, oggetti, preset (pozioni, pietra di guarigione...), monili o la tua abilità razziale, dalla nuova scheda Cooldowns (categoria Combattimento).",
     ["wn_321_cdf_movers_io"] = "Le barre CooldownForge ora possono essere trascinate tramite il gestore di spostamento unificato, e condivise tra personaggi con una stringa di importazione/esportazione per classe.",
+
+    -- 3.2.2
+    ["wn_322_studio_intro"] = "Nuovo — Cooldown Studio: un editor a schermo intero dedicato alle barre di CooldownForge, con schede per barra Layout/Stile/Incantesimi/Visibilità/Condivisione, accessibile dalla scheda Cooldowns.",
+    ["wn_322_studio_fix"] = "Cooldown Studio: risolto il problema per cui la finestra non veniva sempre visualizzata sopra le altre finestre, e i suoi widget non ereditavano sempre il colore di accento corretto.",
 })

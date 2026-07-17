@@ -2533,4 +2533,8 @@ TomoMod_RegisterLocale("deDE", {
     -- 3.2.1
     ["wn_321_cdf_intro"] = "Neu — CooldownForge: Erstelle individuelle Cooldown-Leisten pro Klasse, die Zauber, Gegenstände, Presets (Tränke, Heilstein …), Schmuckstücke oder deine Rassenfähigkeit verfolgen, im neuen Reiter „Cooldowns“ (Kategorie Kampf).",
     ["wn_321_cdf_movers_io"] = "CooldownForge-Leisten lassen sich jetzt über den einheitlichen Movers-Manager verschieben und über einen klassenbezogenen Import/Export-String zwischen Charakteren teilen.",
+
+    -- 3.2.2
+    ["wn_322_studio_intro"] = "Neu — Cooldown Studio: ein eigener Vollbild-Editor für CooldownForge-Leisten mit Reitern pro Leiste für Layout/Stil/Zauber/Sichtbarkeit/Teilen, aufrufbar über den Reiter Cooldowns.",
+    ["wn_322_studio_fix"] = "Cooldown Studio: behoben, dass sich das Fenster nicht immer über anderen Fenstern anzeigte und seine Widgets nicht immer die richtige Akzentfarbe übernahmen.",
 })

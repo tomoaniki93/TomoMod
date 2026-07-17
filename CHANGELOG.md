@@ -1,5 +1,15 @@
 ## ####################################
 
+## CHANGELOG 3.2.2 — Cooldown Studio: Dedicated Full-Screen Bar Editor
+
+#### New Companion Addon — Cooldown Studio
+- **New** — Added TomoMod Cooldown Studio, a dedicated full-screen editor for CooldownForge bars, loaded on demand from the Cooldowns tab. It lists every bar of the selected class in a sidebar with full create/rename/delete controls, and organizes each bar's settings into Layout, Style, Spells, Visibility and Sharing tabs, reusing the same widget kit as the main config window for a consistent look. Its edit-mode toggle is wired directly to the Movers manager, and its Sharing tab uses the same Import/Export tools as the Cooldowns config panel.
+- **Fix** — The Studio window now uses the `FULLSCREEN_DIALOG` strata instead of `DIALOG`, so it reliably displays above other windows instead of potentially being covered by them.
+- **Fix** — Widgets built inside the Studio now correctly inherit its accent color instead of falling back to the default amber, since the window's panel context is now properly registered.
+- **Change** — Minor layout adjustment to the class-selector dropdown's vertical position for tighter alignment with the header.
+
+## ####################################
+
 ## CHANGELOG 3.2.1 — CooldownForge: Custom Per-Class Cooldown Bars
 
 #### New Module — CooldownForge

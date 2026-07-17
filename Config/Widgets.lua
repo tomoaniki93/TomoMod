@@ -613,12 +613,20 @@ function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
     btnTxt:SetPoint("RIGHT", -22, 0)
     SC(btnTxt, T.text)
 
-    -- Arrow icon
-    local arrow = btn:CreateTexture(nil, "OVERLAY")
-    arrow:SetSize(10, 6)
-    arrow:SetPoint("RIGHT", -8, 0)
-    arrow:SetTexture("Interface\\Buttons\\Arrow-Down-Down")
-    SC(arrow, T.textDim)
+    -- Arrow: drawn chevron (two rotated strokes) -- texture-independent,
+    -- the old Interface\\Buttons\\Arrow-Down-Down renders as a grey box in 12.x
+    local arrowL = btn:CreateTexture(nil, "OVERLAY")
+    arrowL:SetSize(8, 2)
+    arrowL:SetPoint("RIGHT", -13, 0)
+    arrowL:SetRotation(-0.6)
+    local arrowR = btn:CreateTexture(nil, "OVERLAY")
+    arrowR:SetSize(8, 2)
+    arrowR:SetPoint("RIGHT", -7, 0)
+    arrowR:SetRotation(0.6)
+    arrowL:SetColorTexture(1, 1, 1, 1)
+    arrowR:SetColorTexture(1, 1, 1, 1)
+    SC(arrowL, T.textDim)
+    SC(arrowR, T.textDim)
 
     local function GetDisplayText(val)
         for _, opt in ipairs(options) do
@@ -1166,11 +1174,20 @@ function W.CreateReorderDropdown(parent, text, items, yOffset, callback)
     btnTxt:SetWordWrap(false)
     SC(btnTxt, T.text)
 
-    local arrow = btn:CreateTexture(nil, "OVERLAY")
-    arrow:SetSize(10, 6)
-    arrow:SetPoint("RIGHT", -8, 0)
-    arrow:SetTexture("Interface\\Buttons\\Arrow-Down-Down")
-    SC(arrow, T.textDim)
+    -- Arrow: drawn chevron (two rotated strokes) -- texture-independent,
+    -- the old Interface\\Buttons\\Arrow-Down-Down renders as a grey box in 12.x
+    local arrowL = btn:CreateTexture(nil, "OVERLAY")
+    arrowL:SetSize(8, 2)
+    arrowL:SetPoint("RIGHT", -13, 0)
+    arrowL:SetRotation(-0.6)
+    local arrowR = btn:CreateTexture(nil, "OVERLAY")
+    arrowR:SetSize(8, 2)
+    arrowR:SetPoint("RIGHT", -7, 0)
+    arrowR:SetRotation(0.6)
+    arrowL:SetColorTexture(1, 1, 1, 1)
+    arrowR:SetColorTexture(1, 1, 1, 1)
+    SC(arrowL, T.textDim)
+    SC(arrowR, T.textDim)
 
     local function Summary()
         local on, names = 0, {}

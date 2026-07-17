@@ -2756,4 +2756,8 @@ TomoMod_RegisterLocale("enUS", {
     -- 3.2.1
     ["wn_321_cdf_intro"] = "New: CooldownForge — build custom cooldown bars per class, tracking spells, items, presets (potions, healthstone...), trinkets or your racial ability, from the new Cooldowns tab (Combat category).",
     ["wn_321_cdf_movers_io"] = "CooldownForge bars can now be dragged into place via the unified Movers manager, and shared between characters with a per-class Import/Export string.",
+
+    -- 3.2.2
+    ["wn_322_studio_intro"] = "New: Cooldown Studio — a dedicated full-screen editor for CooldownForge bars, with per-bar Layout/Style/Spells/Visibility/Sharing tabs, opened from the Cooldowns tab.",
+    ["wn_322_studio_fix"] = "Cooldown Studio: fixed the window not always displaying above other frames, and its widgets not always inheriting the correct accent color.",
 })
