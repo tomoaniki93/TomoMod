@@ -44,8 +44,11 @@ CDF.RACIALS = {
 -- The resolver degrades gracefully when the list is empty or none present.
 CDF.PRESETS = {
     healthstone = { name = "Healthstone",        itemIDs = { 224464, 5512 } },
-    healthpot   = { name = "Health Potion",       itemIDs = {} },  -- TODO: fill 12.x IDs
-    manapot     = { name = "Mana Potion",         itemIDs = {} },  -- TODO: fill 12.x IDs
+    -- [S5] 12.x IDs (verified): Silvermoon Health Potion 241305 (crafted
+    -- standard), Potent Healing Potion 258138 (looted fallback),
+    -- Lightfused Mana Potion 241300 (vendor). Extend per patch as needed.
+    healthpot   = { name = "Health Potion",       itemIDs = { 241305, 258138 } },
+    manapot     = { name = "Mana Potion",         itemIDs = { 241300 } },
     invis       = { name = "Invisibility Potion", itemIDs = { 9172 } },
 }
 
@@ -86,4 +89,97 @@ function CDF.ResolvePresetItemID(presetKey)
         end
     end
     return p.itemIDs[1], false
+end
+
+-- =====================================================================
+-- [S4] Spellbook library scanner (player's class only). Returns groups
+-- { name, offSpecID, spells = { { spellID, name, icon } } }. Passives
+-- are skipped, duplicates deduped by spellID (first line wins). No
+-- cooldown-based filtering: comparing durations would mean arithmetic
+-- on 12.x secret values. Cached per session; the cache is dropped on
+-- SPELLS_CHANGED / PLAYER_SPECIALIZATION_CHANGED.
+-- =====================================================================
+function CDF.ScanSpellbook()
+    if CDF._libCache then return CDF._libCache end
+    local out = {}
+    CDF._libCache = out
+    if not (C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines
+            and C_SpellBook.GetSpellBookSkillLineInfo and C_SpellBook.GetSpellBookItemInfo) then
+        return out
+    end
+    local bank = (Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player) or 0
+    local wantType = Enum and Enum.SpellBookItemType and Enum.SpellBookItemType.Spell
+    local seen = {}
+    for li = 1, (C_SpellBook.GetNumSpellBookSkillLines() or 0) do
+        local line = C_SpellBook.GetSpellBookSkillLineInfo(li)
+        if line and not line.isGuild then
+            local group = { name = line.name or ("Ligne " .. li), offSpecID = line.offSpecID, spells = {} }
+            local off = line.itemIndexOffset or 0
+            local num = line.numSpellBookItems or 0
+            for j = off + 1, off + num do
+                local ok, info = pcall(C_SpellBook.GetSpellBookItemInfo, j, bank)
+                if ok and type(info) == "table" and info.spellID
+                    and not info.isPassive and not seen[info.spellID]
+                    and (wantType == nil or info.itemType == wantType) then
+                    seen[info.spellID] = true
+                    group.spells[#group.spells + 1] = {
+                        spellID = info.spellID,
+                        name    = info.name
+                            or (C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(info.spellID))
+                            or ("Sort " .. info.spellID),
+                        icon    = info.iconID,
+                    }
+                end
+            end
+            if #group.spells > 0 then out[#out + 1] = group end
+        end
+    end
+    return out
+end
+
+local libEv = CreateFrame("Frame")
+libEv:RegisterEvent("SPELLS_CHANGED")
+libEv:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+libEv:SetScript("OnEvent", function() CDF._libCache = nil end)
+CDF._libEvFrame = libEv
+
+-- =====================================================================
+-- [S5] Bar blueprints: complete, ready-to-use bars created in one click
+-- from the studio sidebar. Pure data + a small factory over the existing
+-- CRUD; entries go through NewEntrySchema/SanitizeBar like everything.
+-- =====================================================================
+CDF.BAR_BLUEPRINTS = {
+    conso = {
+        name = "Consommables",
+        iconSize = 34,
+        entries = {
+            { kind = "itemPreset", preset = "healthstone" },
+            { kind = "itemPreset", preset = "healthpot" },
+            { kind = "itemPreset", preset = "manapot" },
+            { kind = "itemPreset", preset = "invis" },
+        },
+    },
+    utils = {
+        name = "Utilitaires",
+        iconSize = 36,
+        entries = {
+            { kind = "equippedTrinket", slot = 13 },
+            { kind = "equippedTrinket", slot = 14 },
+            { kind = "racial" },
+        },
+    },
+}
+
+-- Creates the blueprint as a new bar for `class`; returns the new bar id.
+function CDF.CreateBarFromBlueprint(class, key)
+    local bp = CDF.BAR_BLUEPRINTS[key]
+    if not bp then return nil end
+    local bar, id = CDF.CreateBar(class, bp.name)
+    if not bar then return nil end
+    if bp.iconSize then bar.iconSize = bp.iconSize end
+    for _, e in ipairs(bp.entries) do
+        bar.entries[#bar.entries + 1] = CDF.NewEntrySchema(e)
+    end
+    CDF.SanitizeBar(bar)
+    return id
 end

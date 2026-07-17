@@ -95,14 +95,41 @@ end
 -- Icon pool
 -- ---------------------------------------------------------------------
 local function makeIcon(container)
-    local icon = CreateFrame("Frame", nil, container)
+    local icon = CreateFrame("Frame", nil, container, "BackdropTemplate")
+
+    -- [S0] optional soft shadow behind the icon (style "verre")
+    icon.shadowTex = icon:CreateTexture(nil, "BACKGROUND", nil, -8)
+    icon.shadowTex:SetTexture(CDF.SKIN_TEX and CDF.SKIN_TEX.shadow_soft)
+    icon.shadowTex:SetPoint("TOPLEFT", icon, "TOPLEFT", -7, 7)
+    icon.shadowTex:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 7, -7)
+    icon.shadowTex:Hide()
+
     icon.tex = icon:CreateTexture(nil, "ARTWORK")
     icon.tex:SetAllPoints(icon)
     icon.tex:SetTexCoord(0.07, 0.93, 0.07, 0.93)
 
+    -- [S0] corner mask (attached on demand by styleIcon)
+    icon.mask = icon:CreateMaskTexture()
+    icon.mask:SetAllPoints(icon.tex)
+
     icon.cd = CreateFrame("Cooldown", nil, icon, "CooldownFrameTemplate")
     icon.cd:SetAllPoints(icon.tex)
     icon.cd:SetDrawBling(false)
+
+    -- [S0] duration badge strip (style "tomo"); above the cooldown so the
+    -- relocated countdown FontString stays visible over its backdrop.
+    icon.badge = CreateFrame("Frame", nil, icon, "BackdropTemplate")
+    icon.badge:SetHeight(13)
+    icon.badge:SetPoint("BOTTOMLEFT", 0, 0)
+    icon.badge:SetPoint("BOTTOMRIGHT", 0, 0)
+    icon.badge:SetFrameLevel(icon.cd:GetFrameLevel() + 1)
+    icon.badge:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    icon.badge:SetBackdropColor(0.03, 0.04, 0.06, 0.82)
+    icon.badge:Hide()
 
     icon.count = icon:CreateFontString(nil, "OVERLAY")
     icon.count:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -1, 1)
@@ -113,19 +140,122 @@ local function makeIcon(container)
     return icon
 end
 
+-- [S0] Locate (once) the Cooldown widget's native countdown FontString so
+-- the skin can restyle and reposition it without any per-icon OnUpdate.
+local function cdTimerFS(icon)
+    if icon._cdfs ~= nil then
+        return icon._cdfs or nil
+    end
+    local fs
+    for _, r in ipairs({ icon.cd:GetRegions() }) do
+        if r.GetObjectType and r:GetObjectType() == "FontString" then
+            fs = r
+            break
+        end
+    end
+    icon._cdfs = fs or false
+    return fs
+end
+
 local function styleIcon(icon, bar)
     icon:SetSize(bar.iconSize, bar.iconSize)
+    local st = CDF.ResolveStyle and CDF.ResolveStyle(bar) or {}
     local sw = bar.swipe or {}
-    local col = sw.color or { 0, 0, 0, 0.6 }
-    icon.cd:SetSwipeColor(col[1] or 0, col[2] or 0, col[3] or 0, col[4] or 0.6)
+
+    -- [S0] border (backdrop on the icon frame; class color resolved live)
+    local bd = st.border
+    if bd and bd.mode then
+        local px = CDF.Px and CDF.Px(bd.thickness or 1) or (bd.thickness or 1)
+        local br, bg, bb, ba = CDF.ResolveTint(bd.mode, bd.color, 0, 0, 0)
+        icon:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = px })
+        icon:SetBackdropBorderColor(br, bg, bb, ba or (bd.mode == "class" and 0.9 or 1))
+    elseif icon.SetBackdrop then
+        icon:SetBackdrop(nil)
+    end
+
+    -- [S0] corners: mask on the art + matching swipe texture so the swipe
+    -- follows the rounded shape natively (fallback = sharp, no mask).
+    local maskPath = (st.corners == "soft"  and CDF.SKIN_TEX.mask_soft)
+                  or (st.corners == "round" and CDF.SKIN_TEX.mask_round)
+                  or nil
+    if maskPath then
+        icon.mask:SetTexture(maskPath, "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        if not icon._masked then
+            icon.tex:AddMaskTexture(icon.mask)
+            icon._masked = true
+        end
+        if icon.cd.SetSwipeTexture then icon.cd:SetSwipeTexture(maskPath) end
+    else
+        if icon._masked then
+            icon.tex:RemoveMaskTexture(icon.mask)
+            icon._masked = nil
+        end
+        if icon.cd.SetSwipeTexture then icon.cd:SetSwipeTexture("") end
+    end
+
+    -- [S0] swipe color: style first, legacy bar.swipe.color as fallback
+    local smode = st.swipe and st.swipe.mode
+    if smode == "class" or smode == "bar" then
+        local r, g, b = CDF.ResolveTint(smode, st.swipe.color)
+        icon.cd:SetSwipeColor(r * 0.55, g * 0.55, b * 0.55, 0.85)
+    elseif smode == "verre" then
+        icon.cd:SetSwipeColor(0.04, 0.05, 0.08, 0.62)
+    elseif smode == "dark" then
+        icon.cd:SetSwipeColor(0, 0, 0, 0.75)
+    else
+        local col = sw.color or { 0, 0, 0, 0.6 }
+        icon.cd:SetSwipeColor(col[1] or 0, col[2] or 0, col[3] or 0, col[4] or 0.6)
+    end
     icon.cd:SetDrawSwipe(sw.draw ~= false)
     if icon.cd.SetReverse then icon.cd:SetReverse(sw.reverse == true) end
+
+    -- [S0] timer: native countdown FontString restyled / repositioned
     local text = bar.text or {}
-    icon.cd:SetHideCountdownNumbers(text.mode ~= "timer")
+    local tpos = (st.timer and st.timer.pos) or "center"
+    local wantTimer = (text.mode == "timer") and tpos ~= "hidden"
+    icon.cd:SetHideCountdownNumbers(not wantTimer)
+    if wantTimer then
+        local tfs = cdTimerFS(icon)
+        if tfs then
+            local tsize = max(8, (st.timer and st.timer.size) or 13)
+            tfs:SetFont(FONT, tsize, "OUTLINE")
+            tfs:ClearAllPoints()
+            if tpos == "badge" and st.badge then
+                tfs:SetParent(icon.badge)
+                tfs:SetDrawLayer("OVERLAY")
+                tfs:SetPoint("CENTER", icon.badge, "CENTER", 0, 0)
+            else
+                tfs:SetParent(icon.cd)
+                tfs:SetPoint("CENTER", icon.cd, "CENTER", 0, 0)
+            end
+        end
+    end
+
+    -- [S0] badge strip (border tinted like the icon border)
+    if st.badge then
+        local br, bg, bb = CDF.ResolveTint((bd and bd.mode) or "class", bd and bd.color)
+        icon.badge:SetBackdropBorderColor(br, bg, bb, 0.35)
+        icon.badge:Show()
+    else
+        icon.badge:Hide()
+    end
+
+    -- [S0] shadow
+    icon.shadowTex:SetShown(st.shadow == true)
+
+    -- [S0] stacks anchor + fonts
     local fs = max(9, text.size or 13)
     icon.count:SetFont(FONT, fs, "OUTLINE")
+    icon.count:ClearAllPoints()
+    if st.stackPos == "TOPRIGHT" then
+        icon.count:SetPoint("TOPRIGHT", icon, "TOPRIGHT", -1, -1)
+    else
+        icon.count:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -1, 1)
+    end
     icon.name:SetFont(FONT, fs, "OUTLINE")
     icon.name:SetWidth(bar.iconSize + 18)
+
+    icon._cdfStyle = st
 end
 
 -- Feed cooldown, decide ready state, then style glow/stacks/name.
@@ -145,17 +275,61 @@ local function applyEntry(icon, resolved, state, bar)
         ready = true
     end
 
-    -- Glow (when ready / off cooldown)
-    if bar.glow and bar.glow.enabled and ready then
-        startGlow(icon, bar.glow)
+    -- [S2] per-entry override (nil field = inherit from bar/style)
+    local ov = resolved and resolved.override or nil
+
+    -- [S0] desaturate while on cooldown, short color-return flash on ready
+    local st = icon._cdfStyle or (CDF.ResolveStyle and CDF.ResolveStyle(bar)) or {}
+    local wantDesat = st.desatOnCooldown
+    if ov and ov.desat ~= nil then wantDesat = ov.desat end
+    if wantDesat then
+        icon.tex:SetDesaturated(not ready)
+        if ready and icon._cdfWasReady == false then
+            if not icon._cdfReadyAnim then
+                local ag = icon.tex:CreateAnimationGroup()
+                local a  = ag:CreateAnimation("Alpha")
+                a:SetFromAlpha(0.35)
+                a:SetToAlpha(1)
+                a:SetDuration(0.22)
+                icon._cdfReadyAnim = ag
+            end
+            icon._cdfReadyAnim:Stop()
+            icon._cdfReadyAnim:Play()
+        end
+        icon._cdfWasReady = ready
+    else
+        icon.tex:SetDesaturated(false)
+        icon._cdfWasReady = nil
+    end
+
+    -- Glow (when ready / off cooldown) -- [S2] per-entry enable + color,
+    -- via a per-icon cached cfg table to avoid per-update allocations.
+    local glowOn = bar.glow and bar.glow.enabled
+    if ov and ov.glow ~= nil then glowOn = ov.glow end
+    local gcfg = bar.glow
+    if ov and ov.glowColor then
+        local t = icon._cdfGlowCfg or {}
+        icon._cdfGlowCfg = t
+        t.type  = (bar.glow and bar.glow.type) or "Pixel"
+        t.color = ov.glowColor
+        gcfg = t
+    end
+    if glowOn and ready and gcfg then
+        startGlow(icon, gcfg)
     else
         stopGlow(icon)
     end
 
-    -- Stacks
+    -- [S2] per-entry swipe / timer (bar defaults were set by styleIcon)
+    if ov and ov.swipe ~= nil then icon.cd:SetDrawSwipe(ov.swipe) end
+    if ov and ov.timer == false then icon.cd:SetHideCountdownNumbers(true) end
+
+    -- Stacks -- [S2] per-entry tri-state
     local text = bar.text or {}
+    local stacksOn = text.stacks
+    if ov and ov.stacks ~= nil then stacksOn = ov.stacks end
     local shown = false
-    if text.stacks and state then
+    if stacksOn and state then
         if state.isSpell and state.maxCharges and state.maxCharges > 1 and state.chargeInfo then
             icon.count:SetText(state.chargeInfo.currentCharges) -- SetText is a safe sink
             shown = true
@@ -205,6 +379,7 @@ local function layoutBar(container, bar)
         if CDF.IsEntryVisible(e) then
             local r = CDF.ResolveEntry(e)
             if r and not r.empty then
+                r.override = e.override   -- [S2] per-entry FX travels with it
                 visible[#visible + 1] = r
             end
         end
@@ -225,7 +400,21 @@ local function layoutBar(container, bar)
         styleIcon(icon, bar)
         local corner, ox, oy = CDF.__layoutOffset(bar, i)
         icon:ClearAllPoints()
-        icon:SetPoint(corner, container, corner, ox, oy)
+        -- [S2] emphasis: scale the icon around its CELL center so the grid
+        -- stays aligned. SetPoint offsets live in the scaled frame's local
+        -- space, hence the division by the scale.
+        local ov = visible[i].override
+        local s = (ov and tonumber(ov.emphasis)) or 1
+        if s < 1 then s = 1 elseif s > 1.3 then s = 1.3 end
+        icon:SetScale(s)
+        if s > 1.001 then
+            local half = bar.iconSize / 2
+            local cx = ox + ((corner == "TOPLEFT" or corner == "BOTTOMLEFT") and half or -half)
+            local cy = oy + ((corner == "TOPLEFT" or corner == "TOPRIGHT") and -half or half)
+            icon:SetPoint("CENTER", container, corner, cx / s, cy / s)
+        else
+            icon:SetPoint(corner, container, corner, ox, oy)
+        end
         icon:Show()
         applyEntry(icon, visible[i], CDF.GetCooldownState(visible[i]), bar)
     end

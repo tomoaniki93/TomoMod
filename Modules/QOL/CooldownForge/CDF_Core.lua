@@ -13,11 +13,28 @@
 TomoMod_CooldownForge = TomoMod_CooldownForge or {}
 local CDF = TomoMod_CooldownForge
 
-CDF.CURRENT_SCHEMA = 1
+CDF.CURRENT_SCHEMA = 2
 
 -- Stepwise migrations. [v] transforms the db IN PLACE from v-1 to v.
 CDF.MIGRATIONS = {
-    -- [2] = function(db) ... end,
+    -- [S2] v2: per-entry overrides (e.override) become a first-class,
+    -- sanitized field. Pure normalization pass; the auto-backup taken by
+    -- RunMigrations covers any pre-existing garbage in the reserved slot.
+    [2] = function(db)
+        for _, bars in pairs(db.bars or {}) do
+            if type(bars) == "table" then
+                for _, bar in ipairs(bars) do
+                    if type(bar) == "table" then
+                        for _, e in ipairs(bar.entries or {}) do
+                            if type(e) == "table" then
+                                e.override = CDF.SanitizeOverride(e.override)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end,
 }
 
 -- ---------------------------------------------------------------------
@@ -53,6 +70,35 @@ local function clamp(v, lo, hi)
     return v
 end
 CDF.clamp = clamp
+
+-- [S2] Per-entry override sanitizer. Tri-states are nil (inherit) / true
+-- / false; emphasis is clamped to [1.0, 1.3] and dropped when neutral;
+-- glowColor must be a valid {r,g,b[,a]} array. Returns nil when nothing
+-- meaningful remains, keeping the stored schema lean.
+CDF.OVERRIDE_TRIS = { "glow", "desat", "swipe", "timer", "stacks" }
+
+function CDF.SanitizeOverride(o)
+    if type(o) ~= "table" then return nil end
+    local out = {}
+    for _, k in ipairs(CDF.OVERRIDE_TRIS) do
+        local v = o[k]
+        if type(v) == "boolean" then out[k] = v end
+    end
+    local em = tonumber(o.emphasis)
+    if em and em > 1.001 then
+        if em > 1.3 then em = 1.3 end
+        out.emphasis = em
+    end
+    local gc = o.glowColor
+    if type(gc) == "table" and tonumber(gc[1]) and tonumber(gc[2]) and tonumber(gc[3]) then
+        out.glowColor = {
+            clamp(gc[1], 0, 1), clamp(gc[2], 0, 1), clamp(gc[3], 0, 1),
+            gc[4] and clamp(gc[4], 0, 1) or 1,
+        }
+    end
+    if next(out) == nil then return nil end
+    return out
+end
 
 -- Player's class token, e.g. "MAGE".
 function CDF.PlayerClass()
@@ -94,6 +140,7 @@ function CDF.NewBarSchema(name)
         glow  = { enabled = true, type = "Pixel", color = { 0.18, 0.85, 0.52, 1 } },
         swipe = { draw = true, color = { 0, 0, 0, 0.6 }, reverse = false },
         text  = { mode = "timer", font = "Poppins-Medium", size = 13, stacks = true },
+        style = { preset = "tomo" },
         position = { point = "CENTER", relPoint = "CENTER", x = 0, y = 0 },
         entries = {},
     }
@@ -108,7 +155,7 @@ function CDF.NewEntrySchema(data)
         preset   = data.preset,
         slot     = data.slot,
         spec     = tonumber(data.spec) or 0,
-        override = data.override,   -- nil by default (reserved; editor-hidden in J1)
+        override = CDF.SanitizeOverride(data.override),   -- [S2] per-entry FX
     }
 end
 
@@ -131,7 +178,13 @@ function CDF.SanitizeBar(bar)
     bar.swipe = bar.swipe or { draw = true, color = { 0, 0, 0, 0.6 }, reverse = false }
     bar.text  = bar.text  or { mode = "timer", font = "Poppins-Medium", size = 13, stacks = true }
     if not CDF.TEXT_MODES[bar.text.mode] then bar.text.mode = "timer" end
+    if CDF.NormalizeStyle then CDF.NormalizeStyle(bar) end
     bar.entries = bar.entries or {}
+    for _, e in ipairs(bar.entries) do
+        if type(e) == "table" then
+            e.override = CDF.SanitizeOverride(e.override)
+        end
+    end
     return bar
 end
 

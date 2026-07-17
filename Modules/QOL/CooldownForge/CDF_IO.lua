@@ -51,8 +51,40 @@ function CDF.Export(class)
 end
 
 -- ---------------------------------------------------------------------
+-- [S2] Export a single bar as a shareable asset. Same envelope as the
+-- class export (header/version unchanged: older clients fail gracefully
+-- with "Donnees manquantes" instead of a version error).
+-- ---------------------------------------------------------------------
+function CDF.ExportBar(class, id)
+    local ser, def = libs()
+    if not ser or not def then return nil, "Librairies manquantes (LibSerialize / LibDeflate)" end
+    class = class or CDF.PlayerClass()
+    local bar = class and id and CDF.GetBar(class, id)
+    if not bar then return nil, "Barre introuvable" end
+
+    local b = CopyTable(bar)
+    b.position = nil              -- personal; stripped on export
+    local payload = {
+        _header  = CDF.EXPORT_HEADER,
+        _version = CDF.EXPORT_VERSION,
+        class    = class,
+        bar      = b,
+    }
+
+    local ok, serialized = pcall(ser.Serialize, ser, payload)
+    if not ok or not serialized then return nil, "Serialisation echouee" end
+    local compressed = def:CompressDeflate(serialized, { level = 1 })
+    if not compressed then return nil, "Compression echouee" end
+    local encoded = def:EncodeForPrint(compressed)
+    if not encoded then return nil, "Encodage echoue" end
+    return encoded
+end
+
+-- ---------------------------------------------------------------------
 -- Import: merges into payload.class by bar id. Returns true, { class, count }
 -- on success, or false + reason. Never overwrites other classes.
+-- [S2] Also accepts single-bar payloads (payload.bar): the bar is always
+-- APPENDED under a fresh id so a shared asset never clobbers local bars.
 -- ---------------------------------------------------------------------
 function CDF.Import(str)
     local ser, def = libs()
@@ -71,13 +103,29 @@ function CDF.Import(str)
     if type(payload._version) ~= "number" or payload._version > CDF.EXPORT_VERSION then
         return false, "Version incompatible (v" .. tostring(payload._version) .. ")"
     end
-    if type(payload.class) ~= "string" or type(payload.bars) ~= "table" then
+    if type(payload.class) ~= "string"
+        or (type(payload.bars) ~= "table" and type(payload.bar) ~= "table") then
         return false, "Donnees manquantes"
     end
 
     local class = payload.class
     local arr = CDF.GetClassBars(class)
     if not arr then return false, "Classe cible invalide" end
+
+    -- [S2] single-bar payload: sanitize, revalidate entries, fresh id, append
+    if type(payload.bar) == "table" then
+        local ib = payload.bar
+        CDF.SanitizeBar(ib)
+        local clean = {}
+        for _, e in ipairs(ib.entries or {}) do
+            if CDF.ValidateEntry(e) then clean[#clean + 1] = CDF.NewEntrySchema(e) end
+        end
+        ib.entries = clean
+        ib.position = { point = "CENTER", relPoint = "CENTER", x = 0, y = 0 }
+        ib.id = CDF.genBarId(arr)
+        arr[#arr + 1] = ib
+        return true, { class = class, count = 1, barId = ib.id }
+    end
 
     -- Index existing bars by id for merge-by-id.
     local byId = {}

@@ -18,6 +18,7 @@
     <Include file="CooldownForge\CDF_API.lua" />
     <Include file="CooldownForge\CDF_Catalog.lua" />
     <Include file="CooldownForge\CDF_Watch.lua" />
+    <Include file="CooldownForge\CDF_Skin.lua" />
     <Include file="CooldownForge\CDF_Render.lua" />
     <Include file="CooldownForge\CDF_Movers.lua" />
     <Include file="CooldownForge\CDF_IO.lua" />
