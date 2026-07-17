@@ -30,10 +30,10 @@ function TomoMod_ConfigPanel_Sound(parent)
     -- ═══════════════════════════════════════════════
     -- ACTIVATION
     -- ═══════════════════════════════════════════════
-    local card, cy = W.CreateCard(c, L["section_sound_general"] or "LustSound", y)
+    local card, cy = W.CreateCard(c, L["section_sound_general"], y)
 
-    local _, cy = W.CreateInfoText(card.inner, L["info_sound_desc"] or "Joue un son personnalisé lors du Bloodlust / Héroïsme.", cy)
-    local _, cy = W.CreateCheckbox(card.inner, L["opt_sound_enable"] or "Activer LustSound", db.enabled, cy, function(v)
+    local _, cy = W.CreateInfoText(card.inner, L["info_sound_desc"], cy)
+    local _, cy = W.CreateCheckbox(card.inner, L["opt_sound_enable"], db.enabled, cy, function(v)
         db.enabled = v
         if TomoMod_LustSound and TomoMod_LustSound.SetEnabled then TomoMod_LustSound.SetEnabled(v) end
     end)
@@ -43,24 +43,24 @@ function TomoMod_ConfigPanel_Sound(parent)
     -- ═══════════════════════════════════════════════
     -- CHOIX DU SON
     -- ═══════════════════════════════════════════════
-    local card2, cy = W.CreateCard(c, L["sublabel_sound_choice"] or "Son & canal", y)
+    local card2, cy = W.CreateCard(c, L["sublabel_sound_choice"], y)
 
-    local _, cy = W.CreateDropdown(card2.inner, L["opt_sound_file"] or "Fichier audio", GetSoundOptions(), db.sound, cy, function(v)
+    local _, cy = W.CreateDropdown(card2.inner, L["opt_sound_file"], GetSoundOptions(), db.sound, cy, function(v)
         db.sound = v
         -- Sélectionner un son le joue aussitôt, pour l'entendre sans chercher.
         if TomoMod_LustSound and TomoMod_LustSound.PlayPreview then TomoMod_LustSound.PlayPreview() end
     end)
 
     -- Bouton d'écoute juste sous le sélecteur (découvrable immédiatement)
-    local _, cy = W.CreateButton(card2.inner, L["btn_sound_test"] or "▶ Écouter ce son", 200, cy, function()
+    local _, cy = W.CreateButton(card2.inner, L["btn_sound_test"], 200, cy, function()
         if TomoMod_LustSound and TomoMod_LustSound.PlayPreview then TomoMod_LustSound.PlayPreview() end
     end)
 
-    local _, cy = W.CreateSegmentedControl(card2.inner, L["opt_sound_channel"] or "Canal audio", CHANNEL_OPTIONS, db.channel, cy, function(v)
+    local _, cy = W.CreateSegmentedControl(card2.inner, L["opt_sound_channel"], CHANNEL_OPTIONS, db.channel, cy, function(v)
         db.channel = v
     end, 3)
 
-    local _, cy = W.CreateCheckbox(card2.inner, L["opt_sound_force"] or "Forcer le son même si musique désactivée", db.forceSound, cy, function(v)
+    local _, cy = W.CreateCheckbox(card2.inner, L["opt_sound_force"], db.forceSound, cy, function(v)
         db.forceSound = v
     end)
 
@@ -69,17 +69,17 @@ function TomoMod_ConfigPanel_Sound(parent)
     -- ═══════════════════════════════════════════════
     -- PRÉVISUALISATION + OPTIONS
     -- ═══════════════════════════════════════════════
-    local card3, cy = W.CreateCard(c, L["section_sound_preview"] or "Prévisualisation & options", y)
+    local card3, cy = W.CreateCard(c, L["section_sound_preview"], y)
 
     local _, cy = W.CreateTwoColumnRow(card3.inner, cy,
         function(col)
-            local _, ny = W.CreateButton(col, L["btn_sound_preview"] or "▶ Prévisualiser", 180, 0, function()
+            local _, ny = W.CreateButton(col, L["btn_sound_preview"], 180, 0, function()
                 if TomoMod_LustSound then TomoMod_LustSound.PlayPreview() end
             end)
             return ny
         end,
         function(col)
-            local _, ny = W.CreateButton(col, L["btn_sound_stop"] or "■ Arrêter", 180, 0, function()
+            local _, ny = W.CreateButton(col, L["btn_sound_stop"], 180, 0, function()
                 if TomoMod_LustSound then TomoMod_LustSound.StopPreview() end
             end)
             return ny
@@ -87,13 +87,13 @@ function TomoMod_ConfigPanel_Sound(parent)
 
     local _, cy = W.CreateTwoColumnRow(card3.inner, cy,
         function(col)
-            local _, ny = W.CreateCheckbox(col, L["opt_sound_chat"] or "Message dans le chat", db.showChat, 0, function(v)
+            local _, ny = W.CreateCheckbox(col, L["opt_sound_chat"], db.showChat, 0, function(v)
                 db.showChat = v
             end)
             return ny
         end,
         function(col)
-            local _, ny = W.CreateCheckbox(col, L["opt_sound_debug"] or "Debug", db.debug, 0, function(v)
+            local _, ny = W.CreateCheckbox(col, L["opt_sound_debug"], db.debug, 0, function(v)
                 db.debug = v
             end)
             return ny

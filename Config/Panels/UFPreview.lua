@@ -196,11 +196,11 @@ local function ApplyPreviewUnit(pu, unitKey, db, globalDB)
     pu.name:SetShown(db.showName ~= false)
     local fs = math.max(7, math.floor((globalDB.fontSize or 12) * SCALE + 0.5))
     pu.name:SetFont(FONT, fs, "OUTLINE")
-    local displayName = (unitKey == "player" and (UnitName and UnitName("player") or (L["preview_player"] or "Joueur")))
-        or (unitKey == "target" and (L["preview_target_name"] or "Taurache"))
-        or (unitKey == "focus"  and (L["preview_focus_name"] or "Pr\195\170trelle"))
-        or (unitKey == "pet"    and (L["preview_pet_name"] or "Loup d'eau"))
-        or (L["preview_tot_name"] or "Cible-de-cible")
+    local displayName = (unitKey == "player" and (UnitName and UnitName("player") or (L["preview_player"])))
+        or (unitKey == "target" and (L["preview_target_name"]))
+        or (unitKey == "focus"  and (L["preview_focus_name"]))
+        or (unitKey == "pet"    and (L["preview_pet_name"]))
+        or (L["preview_tot_name"])
     if db.nameTruncate and (db.nameTruncateLength or 20) < #displayName then
         displayName = displayName:sub(1, db.nameTruncateLength or 20) .. "…"
     end
@@ -243,7 +243,7 @@ local function ApplyPreviewUnit(pu, unitKey, db, globalDB)
         pu.castbar:SetValue(60)
         local castFS = math.max(6, fs - 1)
         pu.castText:SetFont(FONT, castFS, "OUTLINE")
-        pu.castText:SetText(unitKey == "player" and (L["preview_cast_player"] or "Éclair de givre") or (L["preview_cast_target"] or "Boule de feu"))
+        pu.castText:SetText(unitKey == "player" and (L["preview_cast_player"]) or (L["preview_cast_target"]))
     end
 
     -- Aura dots
@@ -302,7 +302,7 @@ function UFP.Create(parent)
     header:SetFont(FONT_BOLD, 9, "OUTLINE")
     header:SetPoint("TOPLEFT", 12, -8)
     header:SetTextColor(aR, aG, aB, 0.55)
-    header:SetText(L["preview_header"] or "APERÇU EN DIRECT")
+    header:SetText(L["preview_header"])
 
     -- Pulsing dot
     local dot = strip:CreateTexture(nil, "OVERLAY")
@@ -344,8 +344,8 @@ function UFP.Create(parent)
 
     -- Unit header labels (above each unit)
     local UNIT_LABELS = {
-        player = L["preview_lbl_player"] or "JOUEUR", target = L["preview_lbl_target"] or "CIBLE",
-        focus  = L["preview_lbl_focus"] or "FOCUS",  pet    = L["preview_lbl_pet"] or "PET", targettarget = L["preview_lbl_tot"] or "TOT",
+        player = L["preview_lbl_player"], target = L["preview_lbl_target"],
+        focus  = L["preview_lbl_focus"],  pet    = L["preview_lbl_pet"], targettarget = L["preview_lbl_tot"],
     }
     for k, pu in pairs(units) do
         local lbl = strip:CreateFontString(nil, "OVERLAY")
@@ -374,7 +374,7 @@ function UFP.Create(parent)
     showAllText:SetFont(FONT_BOLD, 8, "OUTLINE")
     showAllText:SetPoint("CENTER")
     showAllText:SetTextColor(aR, aG, aB, 0.85)
-    showAllText:SetText(L["preview_show_all"] or "Tout afficher")
+    showAllText:SetText(L["preview_show_all"])
     showAllBtn:SetScript("OnEnter", function(self) self:SetBackdropBorderColor(aR, aG, aB, 0.90) end)
     showAllBtn:SetScript("OnLeave", function(self) self:SetBackdropBorderColor(aR, aG, aB, 0.45) end)
     showAllBtn:SetScript("OnClick", function()
@@ -404,8 +404,8 @@ function UFP.Create(parent)
             if GameTooltip then
                 GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
                 local hint = selectedUnit == key
-                    and (L["preview_click_show_all"] or "cliquer pour tout afficher")
-                    or  (L["preview_click_isolate"] or "cliquer pour isoler")
+                    and (L["preview_click_show_all"])
+                    or  (L["preview_click_isolate"])
                 GameTooltip:SetText((UNIT_LABELS[key] or key) .. " - " .. hint, aR, aG, aB)
                 GameTooltip:Show()
             end

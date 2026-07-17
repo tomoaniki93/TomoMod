@@ -11,11 +11,11 @@ function TomoMod_ConfigPanel_Diagnostics(parent)
     local y = -10
 
     -- Section header
-    local _, ny = W.CreateSectionHeader(c, L["section_diagnostics"] or "Diagnostics", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_diagnostics"], y)
     y = ny
 
     -- Description
-    local _, ny = W.CreateInfoText(c, L["info_diag_desc"] or "Captures Lua errors in the background with zero combat popups. Use /tmdiag to toggle the console.", y)
+    local _, ny = W.CreateInfoText(c, L["info_diag_desc"], y)
     y = ny
 
     -- Session info (dynamic)
@@ -28,14 +28,14 @@ function TomoMod_ConfigPanel_Diagnostics(parent)
         local sessionID = TomoModDB and TomoModDB.diagnostics and TomoModDB.diagnostics.sessionCount or 0
         local total = D and D.GetErrorCount and D.GetErrorCount() or 0
         local tomo = D and D.GetTomoModErrorCount and D.GetTomoModErrorCount() or 0
-        local fmt = L["info_diag_session"] or "Session: #%d — %d errors captured (%d TomoMod)"
+        local fmt = L["info_diag_session"]
         sessionLabel:SetText(string.format(fmt, sessionID, total, tomo))
     end
     UpdateSessionInfo()
     y = y - 20
 
     -- Enable toggle
-    local _, ny = W.CreateCheckbox(c, L["opt_diag_enabled"] or "Enable Error Capture", TomoModDB.diagnostics.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_diag_enabled"], TomoModDB.diagnostics.enabled, y, function(v)
         TomoModDB.diagnostics.enabled = v
         if v then
             -- Re-init capture if turning on mid-session
@@ -48,22 +48,22 @@ function TomoMod_ConfigPanel_Diagnostics(parent)
     y = ny
 
     -- Capture all toggle
-    local _, ny = W.CreateCheckbox(c, L["opt_diag_capture_all"] or "Capture All Addons", TomoModDB.diagnostics.captureAll, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_diag_capture_all"], TomoModDB.diagnostics.captureAll, y, function(v)
         TomoModDB.diagnostics.captureAll = v
     end)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, L["info_diag_capture_all_desc"] or "When disabled, only TomoMod errors are captured. Enable to capture all addon errors.", y)
+    local _, ny = W.CreateInfoText(c, L["info_diag_capture_all_desc"], y)
     y = ny
 
     -- Suppress popups toggle
-    local _, ny = W.CreateCheckbox(c, L["opt_diag_suppress_popups"] or "Suppress Error Popups", TomoModDB.diagnostics.suppressPopups, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_diag_suppress_popups"], TomoModDB.diagnostics.suppressPopups, y, function(v)
         TomoModDB.diagnostics.suppressPopups = v
     end)
     y = ny
 
     -- Auto-open toggle
-    local _, ny = W.CreateCheckbox(c, L["opt_diag_auto_open"] or "Auto-Open on TomoMod Error", TomoModDB.diagnostics.autoOpenOnError, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_diag_auto_open"], TomoModDB.diagnostics.autoOpenOnError, y, function(v)
         TomoModDB.diagnostics.autoOpenOnError = v
     end)
     y = ny
@@ -71,25 +71,25 @@ function TomoMod_ConfigPanel_Diagnostics(parent)
     y = y - 10
 
     -- Buttons row
-    local _, ny = W.CreateButton(c, L["btn_diag_open_console"] or "Open Console", 160, y, function()
+    local _, ny = W.CreateButton(c, L["btn_diag_open_console"], 160, y, function()
         local D = TomoMod_Diagnostics
         if D and D.ShowConsole then D.ShowConsole() end
     end)
     y = ny
 
-    local _, ny = W.CreateButton(c, L["btn_diag_clear"] or "Clear Errors", 160, y, function()
+    local _, ny = W.CreateButton(c, L["btn_diag_clear"], 160, y, function()
         SlashCmdList["TOMODIAG"]("clear")
         UpdateSessionInfo()
     end)
     y = ny
 
-    local _, ny = W.CreateButton(c, L["btn_diag_export"] or "Copy Report", 160, y, function()
+    local _, ny = W.CreateButton(c, L["btn_diag_export"], 160, y, function()
         local D = TomoMod_Diagnostics
         if D and D.ShowExportFrame then D.ShowExportFrame() end
     end)
     y = ny
 
-    local _, ny = W.CreateButton(c, L["btn_diag_export_tracker"] or "Export for Tracker", 180, y, function()
+    local _, ny = W.CreateButton(c, L["btn_diag_export_tracker"], 180, y, function()
         local D = TomoMod_Diagnostics
         if D and D.ShowExportFrame then D.ShowExportFrame("tracker") end
     end)

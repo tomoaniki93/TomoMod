@@ -52,41 +52,41 @@ local function BuildSkinTab(parent)
     local c = scroll.child
     local y = -10
 
-    local _, ny = W.CreateSectionHeader(c, L["section_action_bars"] or "Action Bar Skin", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_action_bars"], y)
     y = ny
 
     if not TomoModDB.actionBars then TomoModDB.actionBars = {} end
     if not TomoModDB.actionBarSkin then TomoModDB.actionBarSkin = {} end
 
     -- Master system toggle
-    local _, ny = W.CreateSectionHeader(c, L["section_ab_system"] or "Action Bar System", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_ab_system"], y)
     y = ny
-    local _, ny = W.CreateCheckbox(c, L["opt_ab_system_enable"] or "Enable TomoMod Action Bar system (requires reload)",
+    local _, ny = W.CreateCheckbox(c, L["opt_ab_system_enable"],
         TomoModDB.actionBars.enabled ~= false, y, function(v)
             TomoModDB.actionBars.enabled = v
         end)
     y = ny
-    local _, ny = W.CreateInfoText(c, L["opt_ab_system_reload"] or "Disabling this fully restores Blizzard action bars after /reload.", y)
+    local _, ny = W.CreateInfoText(c, L["opt_ab_system_reload"], y)
     y = ny
 
     -- Skin toggle
-    local _, ny = W.CreateSectionHeader(c, L["section_ab_skin"] or "Visual Skin", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_ab_skin"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_abs_enable"] or "Activer le skin", TomoModDB.actionBarSkin.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_abs_enable"], TomoModDB.actionBarSkin.enabled, y, function(v)
         TomoModDB.actionBarSkin.enabled = v
         if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.SetEnabled(v) end
     end)
     y = ny
 
-    local _, ny = W.CreateDropdown(c, L["opt_abs_style"] or "Style visuel", SKIN_STYLES_LIST,
+    local _, ny = W.CreateDropdown(c, L["opt_abs_style"], SKIN_STYLES_LIST,
         TomoModDB.actionBarSkin.skinStyle or "classic", y, function(v)
             TomoModDB.actionBarSkin.skinStyle = v
             if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.Reskin() end
         end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_abs_class_color"] or "Couleur de bordure = couleur de classe",
+    local _, ny = W.CreateCheckbox(c, L["opt_abs_class_color"],
         TomoModDB.actionBarSkin.useClassColor, y, function(v)
             TomoModDB.actionBarSkin.useClassColor = v
             if TomoMod_ActionBarSkin then TomoMod_ActionBarSkin.UpdateColors() end
@@ -95,7 +95,7 @@ local function BuildSkinTab(parent)
 
     -- Shift reveal (now on actionBars)
     if not TomoModDB.actionBars then TomoModDB.actionBars = {} end
-    local _, ny = W.CreateCheckbox(c, L["opt_abs_shift_reveal"] or "Maintenir Shift pour voir les barres cachees",
+    local _, ny = W.CreateCheckbox(c, L["opt_abs_shift_reveal"],
         TomoModDB.actionBars.shiftReveal or false, y, function(v)
             TomoModDB.actionBars.shiftReveal = v
             local AB = TomoMod_ActionBars
@@ -133,9 +133,9 @@ end
 -- Popup de confirmation pour "uniformiser" (action destructive : écrase
 -- l'apparence de toutes les autres barres).
 StaticPopupDialogs["TOMOMOD_AB_UNIFORMIZE"] = {
-    text = L["popup_ab_uniformize"] or "Copier l'apparence de la barre « %s » vers toutes les autres barres ?",
-    button1 = L["popup_confirm"] or "Confirmer",
-    button2 = L["popup_cancel"] or "Annuler",
+    text = L["popup_ab_uniformize"],
+    button1 = L["popup_confirm"],
+    button2 = L["popup_cancel"],
     OnAccept = function(self, data)
         local AB = TomoMod_ActionBars
         if AB and AB.CopyBarToAll and data and data.id then
@@ -270,20 +270,19 @@ local function BuildBarContent(contentFrame, id, barDB)
     cy = cny
 
     -- Hotkey font size
-    local _, cny = W.CreateSlider(contentFrame, L["opt_bar_hotkey_size"] or "Taille police raccourcis",
+    local _, cny = W.CreateSlider(contentFrame, L["opt_bar_hotkey_size"],
         barDB.hotkeyFontSize or 14, 8, 24, 1, cy, function(v)
             SetBarVal(id, "hotkeyFontSize", v)
         end, "%d")
     cy = cny
 
     -- Uniformiser : copier les réglages de CETTE barre vers toutes les autres
-    local _, cny = W.CreateButton(contentFrame, L["btn_bar_uniformize"] or "Uniformiser toutes les barres sur celle-ci", 320, cy, function()
+    local _, cny = W.CreateButton(contentFrame, L["btn_bar_uniformize"], 320, cy, function()
         StaticPopup_Show("TOMOMOD_AB_UNIFORMIZE", GetBarDisplayName(id), nil, { id = id })
     end)
     cy = cny
 
-    local _, cny = W.CreateInfoText(contentFrame, L["info_bar_uniformize"]
-        or "Copie l'apparence (taille, espacement, colonnes, alpha, échelle, fondu, textes…) vers toutes les autres barres. La position et l'activation de chaque barre sont conservées.", cy)
+    local _, cny = W.CreateInfoText(contentFrame, L["info_bar_uniformize"], cy)
     cy = cny
 
     return math.abs(cy) + 10
@@ -321,28 +320,27 @@ local function BuildManagementTab(parent)
             if AB and AB.ApplyExtra then AB.ApplyExtra() end
         end
 
-        local _, ny = W.CreateSectionHeader(c, L["section_extra_button"] or "Extra Action Button", y)
+        local _, ny = W.CreateSectionHeader(c, L["section_extra_button"], y)
         y = ny
 
-        local _, ny = W.CreateCheckbox(c, L["opt_extra_enabled"] or "Manage the Extra Action Button",
+        local _, ny = W.CreateCheckbox(c, L["opt_extra_enabled"],
             exDB.enabled ~= false, y, function(v)
                 SetExtra("enabled", v)
             end)
         y = ny
 
-        local _, ny = W.CreateSlider(c, L["opt_extra_scale"] or "Extra button scale",
+        local _, ny = W.CreateSlider(c, L["opt_extra_scale"],
             (exDB.scale or 1) * 100, 50, 200, 5, y, function(v)
                 SetExtra("scale", v / 100)
             end, "%.0f%%")
         y = ny
 
-        local _, ny = W.CreateButton(c, L["btn_extra_reset_pos"] or "Reset position", 220, y, function()
+        local _, ny = W.CreateButton(c, L["btn_extra_reset_pos"], 220, y, function()
             if AB and AB.ResetExtraPosition then AB.ResetExtraPosition() end
         end)
         y = ny
 
-        local _, ny = W.CreateInfoText(c, L["info_extra_button"]
-            or "Position the extra action button in Layout Mode. Disabling releases it back to Blizzard after a /reload.", y)
+        local _, ny = W.CreateInfoText(c, L["info_extra_button"], y)
         y = ny
     end
 
@@ -491,7 +489,7 @@ end
 -- =====================================================================
 function TomoMod_ConfigPanel_ActionBars(parent)
     return W.CreateTabPanel(parent, {
-        { key = "skin",  label = L["tab_abs_skin"] or "Skin des boutons", builder = BuildSkinTab },
-        { key = "bars",  label = L["tab_abs_bars"] or "Gestion des barres", builder = BuildManagementTab },
+        { key = "skin",  label = L["tab_abs_skin"], builder = BuildSkinTab },
+        { key = "bars",  label = L["tab_abs_bars"], builder = BuildManagementTab },
     })
 end

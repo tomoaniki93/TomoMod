@@ -526,16 +526,16 @@ local function BuildCharacterSkinTab(parent)
     y = ny
 
     -- Fenetre Personnage deplacable
-    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_movable"] or "Fenetre deplacable", TomoModDB.characterSkin.movable or false, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_movable"], TomoModDB.characterSkin.movable or false, y, function(v)
         TomoModDB.characterSkin.movable = v
         if TomoMod_CharacterSkin and TomoMod_CharacterSkin.SetMovable then TomoMod_CharacterSkin.SetMovable(v) end
     end)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, L["info_char_skin_movable"] or "Une fois active, glisse la fenetre Personnage pour la deplacer. Sa position est memorisee.", y)
+    local _, ny = W.CreateInfoText(c, L["info_char_skin_movable"], y)
     y = ny
 
-    local _, ny = W.CreateButton(c, L["btn_char_skin_reset_pos"] or "Reinitialiser la position", 220, y, function()
+    local _, ny = W.CreateButton(c, L["btn_char_skin_reset_pos"], 220, y, function()
         if TomoMod_CharacterSkin and TomoMod_CharacterSkin.ResetCharacterPosition then TomoMod_CharacterSkin.ResetCharacterPosition() end
     end)
     y = ny
@@ -688,7 +688,7 @@ local function BuildTooltipSkinTab(parent)
 
     -- Couleur du fond / de la bordure (configurable pour éviter que le fond se fonde dans le décor)
     if not TomoModDB.tooltipSkin.bgColor then TomoModDB.tooltipSkin.bgColor = { r = 0.06, g = 0.06, b = 0.08 } end
-    local _, ny = W.CreateColorPicker(c, L["opt_tooltip_bg_color"] or "Couleur du fond", TomoModDB.tooltipSkin.bgColor, y, function(r, g, b)
+    local _, ny = W.CreateColorPicker(c, L["opt_tooltip_bg_color"], TomoModDB.tooltipSkin.bgColor, y, function(r, g, b)
         TomoModDB.tooltipSkin.bgColor.r = r
         TomoModDB.tooltipSkin.bgColor.g = g
         TomoModDB.tooltipSkin.bgColor.b = b
@@ -696,7 +696,7 @@ local function BuildTooltipSkinTab(parent)
     y = ny
 
     if not TomoModDB.tooltipSkin.borderColor then TomoModDB.tooltipSkin.borderColor = { r = 0.20, g = 0.20, b = 0.24 } end
-    local _, ny = W.CreateColorPicker(c, L["opt_tooltip_border_color"] or "Couleur de la bordure", TomoModDB.tooltipSkin.borderColor, y, function(r, g, b)
+    local _, ny = W.CreateColorPicker(c, L["opt_tooltip_border_color"], TomoModDB.tooltipSkin.borderColor, y, function(r, g, b)
         TomoModDB.tooltipSkin.borderColor.r = r
         TomoModDB.tooltipSkin.borderColor.g = g
         TomoModDB.tooltipSkin.borderColor.b = b
@@ -706,29 +706,28 @@ local function BuildTooltipSkinTab(parent)
     -- Position de l'infobulle (defaut / souris / coin / personnalise)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
-    local _, ny = W.CreateDropdown(c, L["opt_tooltip_anchor"] or "Position de l'infobulle", {
-        { text = L["tooltip_anchor_default"] or "Defaut",          value = "default" },
-        { text = L["tooltip_anchor_cursor"]  or "Souris",          value = "cursor"  },
-        { text = L["tooltip_anchor_corner"]  or "Coin de l'ecran", value = "corner"  },
-        { text = L["tooltip_anchor_custom"]  or "Personnalise",    value = "custom"  },
+    local _, ny = W.CreateDropdown(c, L["opt_tooltip_anchor"], {
+        { text = L["tooltip_anchor_default"],          value = "default" },
+        { text = L["tooltip_anchor_cursor"],          value = "cursor"  },
+        { text = L["tooltip_anchor_corner"], value = "corner"  },
+        { text = L["tooltip_anchor_custom"],    value = "custom"  },
     }, TomoModDB.tooltipSkin.anchor or "default", y, function(v)
         TomoModDB.tooltipSkin.anchor = v
         if TomoMod_TooltipSkin and TomoMod_TooltipSkin.RefreshAnchor then TomoMod_TooltipSkin.RefreshAnchor() end
     end)
     y = ny
 
-    local _, ny = W.CreateDropdown(c, L["opt_tooltip_anchor_corner"] or "Coin (mode Coin)", {
-        { text = L["corner_br"] or "Bas droite",  value = "BOTTOMRIGHT" },
-        { text = L["corner_bl"] or "Bas gauche",  value = "BOTTOMLEFT"  },
-        { text = L["corner_tr"] or "Haut droite", value = "TOPRIGHT"    },
-        { text = L["corner_tl"] or "Haut gauche", value = "TOPLEFT"     },
+    local _, ny = W.CreateDropdown(c, L["opt_tooltip_anchor_corner"], {
+        { text = L["corner_br"],  value = "BOTTOMRIGHT" },
+        { text = L["corner_bl"],  value = "BOTTOMLEFT"  },
+        { text = L["corner_tr"], value = "TOPRIGHT"    },
+        { text = L["corner_tl"], value = "TOPLEFT"     },
     }, TomoModDB.tooltipSkin.anchorCorner or "BOTTOMRIGHT", y, function(v)
         TomoModDB.tooltipSkin.anchorCorner = v
     end)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, L["info_tooltip_anchor"]
-        or "Personnalise : choisis ce mode puis glisse le cadre teal a l'endroit voulu.", y)
+    local _, ny = W.CreateInfoText(c, L["info_tooltip_anchor"], y)
     y = ny
 
     -- [FIX] Le repere teal restait affiche en permanence des que le mode
@@ -736,7 +735,7 @@ local function BuildTooltipSkinTab(parent)
     -- Il est desormais cache par defaut (comme les autres reperes de l'addon,
     -- geres par le bouton Layout) ; ce bouton permet de l'afficher/masquer a
     -- la demande sans avoir a ouvrir le panneau Layout complet.
-    local _, ny = W.CreateButton(c, L["btn_tooltip_toggle_anchor"] or "Afficher/Masquer le repere", 220, y, function()
+    local _, ny = W.CreateButton(c, L["btn_tooltip_toggle_anchor"], 220, y, function()
         if TomoMod_TooltipSkin and TomoMod_TooltipSkin.ToggleLock then
             TomoMod_TooltipSkin.ToggleLock()
         end

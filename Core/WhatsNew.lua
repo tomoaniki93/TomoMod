@@ -30,6 +30,28 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.2.1",
+        highlights = {
+            L["wn_321_cdf_intro"] or "New: CooldownForge — build custom cooldown bars per class, tracking spells, items, presets (potions, healthstone...), trinkets or your racial ability, from the new Cooldowns tab (Combat category).",
+            L["wn_321_cdf_movers_io"] or "CooldownForge bars can now be dragged into place via the unified Movers manager, and shared between characters with a per-class Import/Export string.",
+        },
+    },
+    {
+        version = "3.2.0",
+        highlights = {
+            L["wn_320_gsearch"] or "Config window: the sidebar search is now global — it finds matching options across every category and tab, not just the visible page, and clicking a result jumps straight to it with a highlight flash.",
+            L["wn_320_panelcache"] or "Config window: switching between category tabs is now instant after the first visit — panels are cached instead of being rebuilt every time.",
+            L["wn_320_configlocale"] or "Config window: every remaining hardcoded French label across the settings panels is now fully translatable.",
+        },
+    },
+    {
+        version = "3.1.12",
+        highlights = {
+            L["wn_3112_score_taint"] or "Mythic+ Scoreboard: fixed a burst of taint errors that could block the end-of-dungeon scoreboard from displaying/positioning itself correctly if the player was still in combat right as the dungeon completed.",
+            L["wn_3112_config_resize"] or "Config window: the /tm window can now be resized by dragging its bottom-right corner and scaled with a new 70-130% slider in General — default size increased to 1240x820, with a one-click button to reset both.",
+        },
+    },
+    {
         version = "3.1.11",
         highlights = {
             L["wn_3111_castbar_deathstuck"] or "Castbars: fixed castbars for target, focus, boss and other non-player units getting stuck visible on screen if the unit died or disappeared without WoW ever firing a matching stop event.",

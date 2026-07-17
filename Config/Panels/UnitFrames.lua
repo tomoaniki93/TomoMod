@@ -93,7 +93,7 @@ local function BuildDimensionsTab(parent, unitKey, displayName)
     -- Player only: option to hide UF power bar and show it centered with ResourceBars
     if unitKey == "player" then
         local rbDB = TomoModDB and TomoModDB.resourceBars
-        local _, ny = W.CreateCheckbox(c, L["opt_rb_primary_centered"] or "Masquer et afficher dans CD & Ressources", rbDB and rbDB.primaryPowerCentered or false, y, function(v)
+        local _, ny = W.CreateCheckbox(c, L["opt_rb_primary_centered"], rbDB and rbDB.primaryPowerCentered or false, y, function(v)
             if rbDB then rbDB.primaryPowerCentered = v end
             RefreshUnit(unitKey)
             if TomoMod_ResourceBars then TomoMod_ResourceBars.ApplySettings() end
@@ -272,13 +272,13 @@ local function BuildAurasTab(parent, unitKey)
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(c, L["opt_auras_spacing"] or "Espacement", db.auras.spacing or 3, 0, 16, 1, y, function(v)
+        local _, ny = W.CreateSlider(c, L["opt_auras_spacing"], db.auras.spacing or 3, 0, 16, 1, y, function(v)
             db.auras.spacing = v
             RefreshUnit(unitKey)
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(c, L["opt_auras_max_width"] or "Largeur max (retour à la ligne)", db.auras.maxWidth or 300, 60, 600, 10, y, function(v)
+        local _, ny = W.CreateSlider(c, L["opt_auras_max_width"], db.auras.maxWidth or 300, 60, 600, 10, y, function(v)
             db.auras.maxWidth = v
             RefreshUnit(unitKey)
         end, "%d")

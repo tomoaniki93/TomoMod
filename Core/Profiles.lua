@@ -73,6 +73,11 @@ local function ApplySnapshot(snap)
         if not EXCLUDED_KEYS[k] then TomoModDB[k] = DeepCopy(v) end
     end
     TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
+
+    -- [Lot C] Config pages are cached; a profile swap rewrites the DB
+    if TomoMod_Config and TomoMod_Config.InvalidatePanels then
+        TomoMod_Config.InvalidatePanels()
+    end
 end
 
 -- [PERF] Apply sans DeepCopy — utilisé quand on sait que snap ne sera plus référencé
@@ -85,6 +90,11 @@ local function ApplySnapshotNoCopy(snap)
         if not EXCLUDED_KEYS[k] then TomoModDB[k] = v end
     end
     TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
+
+    -- [Lot C] Config pages are cached; a profile swap rewrites the DB
+    if TomoMod_Config and TomoMod_Config.InvalidatePanels then
+        TomoMod_Config.InvalidatePanels()
+    end
 end
 
 -- =====================================

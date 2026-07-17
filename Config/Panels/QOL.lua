@@ -171,16 +171,16 @@ local function BuildAutomationsTab(parent)
     -- Auto Vendor / Repair
     local _, ny = W.CreateSeparator(c, y)
     y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_auto_vendor_repair"] or "Auto Vendor / Repair", y)
+    local _, ny = W.CreateSubLabel(c, L["sublabel_auto_vendor_repair"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_avr_auto_repair"] or "Auto repair on merchant",
+    local _, ny = W.CreateCheckbox(c, L["opt_avr_auto_repair"],
         TomoModDB.autoVendorRepair.autoRepair, y, function(v)
         TomoModDB.autoVendorRepair.autoRepair = v
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_avr_sell_grays"] or "Auto sell gray (poor) items",
+    local _, ny = W.CreateCheckbox(c, L["opt_avr_sell_grays"],
         TomoModDB.autoVendorRepair.sellGrays, y, function(v)
         TomoModDB.autoVendorRepair.sellGrays = v
     end)
@@ -275,13 +275,12 @@ local function BuildSkyRideTab(parent)
     y = ny
 
     -- Affichage de la vitesse au sol (utile avec un buff de déplacement)
-    local _, ny = W.CreateCheckbox(c, L["opt_skyride_ground_speed"] or "Afficher la vitesse au sol", TomoModDB.skyRide.showGroundSpeed or false, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_skyride_ground_speed"], TomoModDB.skyRide.showGroundSpeed or false, y, function(v)
         TomoModDB.skyRide.showGroundSpeed = v; SR_Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, L["info_skyride_ground_speed"]
-        or "Affiche ta vitesse de déplacement même au sol (les jauges de vol restent masquées hors vol).", y)
+    local _, ny = W.CreateInfoText(c, L["info_skyride_ground_speed"], y)
     y = ny
 
     -- ── Dimensions ──────────────────────────────────────────────
@@ -845,7 +844,7 @@ local function BuildClassReminderTab(parent)
     y = ny
 
     -- Bouton d'aperçu : montre un message d'exemple à l'emplacement configuré
-    local _, ny = W.CreateButton(c, L["btn_class_reminder_preview"] or "Aperçu", 200, y, function()
+    local _, ny = W.CreateButton(c, L["btn_class_reminder_preview"], 200, y, function()
         if TomoMod_ClassReminder and TomoMod_ClassReminder.ShowPreview then
             TomoMod_ClassReminder.ShowPreview()
         end
@@ -888,7 +887,7 @@ local function BuildClassReminderTab(parent)
     y = ny
 
     -- Liste des classes couvertes et de leurs buffs/formes suivis
-    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_coverage"] or "Classes prises en charge", y)
+    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_coverage"], y)
     y = ny
 
     if TomoMod_ClassReminder and TomoMod_ClassReminder.GetCoverage then
@@ -999,51 +998,51 @@ local function BuildAuraTrackerTab(parent)
     end
 
     -- Enable
-    local card, cy = W.CreateCard(c, L["at_section_general"] or "General", y)
-    local _, cy = W.CreateCheckbox(card.inner, L["at_opt_enable"] or "Enable Aura Tracker", db.enabled, cy, function(v)
+    local card, cy = W.CreateCard(c, L["at_section_general"], y)
+    local _, cy = W.CreateCheckbox(card.inner, L["at_opt_enable"], db.enabled, cy, function(v)
         db.enabled = v
         if TomoMod_AuraTracker then TomoMod_AuraTracker.SetEnabled(v) end
     end)
-    local _, cy = W.CreateInfoText(card.inner, L["at_info_description"] or "Tracks important buffs: trinket procs, weapon enchant procs, self-buffs, and defensives in a simple icon overlay.", cy)
+    local _, cy = W.CreateInfoText(card.inner, L["at_info_description"], cy)
     y = W.FinalizeCard(card, cy)
 
     -- Appearance
-    local card2, cy = W.CreateCard(c, L["at_section_appearance"] or "Appearance", y)
-    local _, cy = W.CreateSlider(card2.inner, L["at_opt_icon_size"] or "Icon size", db.iconSize, 20, 64, 2, cy, function(v) db.iconSize = v end, "%.0f")
-    local _, cy = W.CreateSlider(card2.inner, L["at_opt_spacing"] or "Spacing", db.spacing, 0, 12, 1, cy, function(v) db.spacing = v end, "%.0f")
-    local _, cy = W.CreateSlider(card2.inner, L["at_opt_max_icons"] or "Max icons", db.maxIcons, 1, 16, 1, cy, function(v) db.maxIcons = v end, "%.0f")
-    local _, cy = W.CreateDropdown(card2.inner, L["at_opt_grow_direction"] or "Growth direction", {
-        { text = L["pf_dir_right"] or "Right", value = "RIGHT" },
-        { text = L["pf_dir_left"]  or "Left",  value = "LEFT" },
-        { text = L["pf_dir_up"]    or "Up",    value = "UP" },
-        { text = L["pf_dir_down"]  or "Down",  value = "DOWN" },
+    local card2, cy = W.CreateCard(c, L["at_section_appearance"], y)
+    local _, cy = W.CreateSlider(card2.inner, L["at_opt_icon_size"], db.iconSize, 20, 64, 2, cy, function(v) db.iconSize = v end, "%.0f")
+    local _, cy = W.CreateSlider(card2.inner, L["at_opt_spacing"], db.spacing, 0, 12, 1, cy, function(v) db.spacing = v end, "%.0f")
+    local _, cy = W.CreateSlider(card2.inner, L["at_opt_max_icons"], db.maxIcons, 1, 16, 1, cy, function(v) db.maxIcons = v end, "%.0f")
+    local _, cy = W.CreateDropdown(card2.inner, L["at_opt_grow_direction"], {
+        { text = L["pf_dir_right"], value = "RIGHT" },
+        { text = L["pf_dir_left"],  value = "LEFT" },
+        { text = L["pf_dir_up"],    value = "UP" },
+        { text = L["pf_dir_down"],  value = "DOWN" },
     }, db.growDirection or "RIGHT", cy, function(v) db.growDirection = v end)
-    local _, cy = W.CreateSlider(card2.inner, L["at_opt_font_size"] or "Font size", db.fontSize, 8, 16, 1, cy, function(v) db.fontSize = v end, "%.0f")
+    local _, cy = W.CreateSlider(card2.inner, L["at_opt_font_size"], db.fontSize, 8, 16, 1, cy, function(v) db.fontSize = v end, "%.0f")
     y = W.FinalizeCard(card2, cy)
 
     -- Display
-    local card3, cy = W.CreateCard(c, L["at_section_display"] or "Display", y)
-    local _, cy = W.CreateCheckbox(card3.inner, L["at_opt_show_timer"] or "Show timer", db.showTimer, cy, function(v) db.showTimer = v end)
-    local _, cy = W.CreateCheckbox(card3.inner, L["at_opt_show_stacks"] or "Show stack count", db.showStacks, cy, function(v) db.showStacks = v end)
-    local _, cy = W.CreateCheckbox(card3.inner, L["at_opt_show_glow"] or "Glow on new proc", db.showGlow, cy, function(v) db.showGlow = v end)
-    local _, cy = W.CreateSlider(card3.inner, L["at_opt_timer_threshold"] or "Timer flash threshold (sec)", db.timerThreshold, 0, 15, 1, cy, function(v) db.timerThreshold = v end, "%.0f")
+    local card3, cy = W.CreateCard(c, L["at_section_display"], y)
+    local _, cy = W.CreateCheckbox(card3.inner, L["at_opt_show_timer"], db.showTimer, cy, function(v) db.showTimer = v end)
+    local _, cy = W.CreateCheckbox(card3.inner, L["at_opt_show_stacks"], db.showStacks, cy, function(v) db.showStacks = v end)
+    local _, cy = W.CreateCheckbox(card3.inner, L["at_opt_show_glow"], db.showGlow, cy, function(v) db.showGlow = v end)
+    local _, cy = W.CreateSlider(card3.inner, L["at_opt_timer_threshold"], db.timerThreshold, 0, 15, 1, cy, function(v) db.timerThreshold = v end, "%.0f")
     y = W.FinalizeCard(card3, cy)
 
     -- Categories
     local cats = db.categories
-    local card4, cy = W.CreateCard(c, L["at_section_categories"] or "Categories", y)
-    local _, cy = W.CreateInfoText(card4.inner, L["at_info_categories"] or "Choose which aura categories to track.", cy)
-    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_trinkets"] or "Trinket procs", cats.trinkets, cy, function(v) cats.trinkets = v end)
-    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_enchants"] or "Weapon enchant procs", cats.enchants, cy, function(v) cats.enchants = v end)
-    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_selfbuffs"] or "Self-buffs (cooldowns)", cats.selfBuffs, cy, function(v) cats.selfBuffs = v end)
-    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_raidbuffs"] or "Raid buffs", cats.raidBuffs, cy, function(v) cats.raidBuffs = v end)
-    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_defensives"] or "Defensives (external + personal)", cats.defensives, cy, function(v) cats.defensives = v end)
+    local card4, cy = W.CreateCard(c, L["at_section_categories"], y)
+    local _, cy = W.CreateInfoText(card4.inner, L["at_info_categories"], cy)
+    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_trinkets"], cats.trinkets, cy, function(v) cats.trinkets = v end)
+    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_enchants"], cats.enchants, cy, function(v) cats.enchants = v end)
+    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_selfbuffs"], cats.selfBuffs, cy, function(v) cats.selfBuffs = v end)
+    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_raidbuffs"], cats.raidBuffs, cy, function(v) cats.raidBuffs = v end)
+    local _, cy = W.CreateCheckbox(card4.inner, L["at_cat_defensives"], cats.defensives, cy, function(v) cats.defensives = v end)
     y = W.FinalizeCard(card4, cy)
 
     -- Position
-    local card5, cy = W.CreateCard(c, L["at_section_position"] or "Position", y)
-    local _, cy = W.CreateInfoText(card5.inner, L["at_info_position"] or "Use /tm layout to unlock and drag the aura tracker.", cy)
-    local _, cy = W.CreateButton(card5.inner, L["at_btn_reset_position"] or "Reset Position", 180, cy, function()
+    local card5, cy = W.CreateCard(c, L["at_section_position"], y)
+    local _, cy = W.CreateInfoText(card5.inner, L["at_info_position"], cy)
+    local _, cy = W.CreateButton(card5.inner, L["at_btn_reset_position"], 180, cy, function()
         local defaults = TomoMod_Defaults.auraTracker
         if defaults and defaults.position then
             db.position = CopyTable(defaults.position)
@@ -1071,16 +1070,15 @@ local function BuildConsumableBarTab(parent)
         if CB then CB.ApplySettings() end
     end
 
-    local _, ny = W.CreateSectionHeader(c, L["section_consumable_bar"] or "Barre de consommables", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_consumable_bar"], y)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, L["info_cb_desc"]
-        or "Affiche une barre avec l'icône et le timer de chaque consommable actif : flacon, bien nourri, et huile(s) sur arme.", y)
+    local _, ny = W.CreateInfoText(c, L["info_cb_desc"], y)
     y = ny
 
     local cbDB = TomoModDB.consumableBar or {}
 
-    local _, ny = W.CreateCheckbox(c, L["opt_cb_enable"] or "Activer la barre de consommables",
+    local _, ny = W.CreateCheckbox(c, L["opt_cb_enable"],
         cbDB.enabled ~= false, y, function(v)
             if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
             TomoModDB.consumableBar.enabled = v
@@ -1088,7 +1086,7 @@ local function BuildConsumableBarTab(parent)
         end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_cb_show_missing"] or "Afficher les buffs manquants (fantôme)",
+    local _, ny = W.CreateCheckbox(c, L["opt_cb_show_missing"],
         cbDB.showMissing ~= false, y, function(v)
             if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
             TomoModDB.consumableBar.showMissing = v
@@ -1099,7 +1097,7 @@ local function BuildConsumableBarTab(parent)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_cb_icon_size"] or "Taille des icônes",
+    local _, ny = W.CreateSlider(c, L["opt_cb_icon_size"],
         cbDB.iconSize or 36, 24, 56, 2, y, function(v)
             if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
             TomoModDB.consumableBar.iconSize = v
@@ -1107,7 +1105,7 @@ local function BuildConsumableBarTab(parent)
         end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_cb_gap"] or "Écart entre les icônes",
+    local _, ny = W.CreateSlider(c, L["opt_cb_gap"],
         cbDB.gap or 4, 0, 12, 1, y, function(v)
             if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
             TomoModDB.consumableBar.gap = v
@@ -1119,10 +1117,10 @@ local function BuildConsumableBarTab(parent)
     y = ny
 
     local _, ny = W.CreateDropdown(c,
-        L["opt_cb_orientation"] or "Orientation",
+        L["opt_cb_orientation"],
         {
-            { text = L["cb_orient_horizontal"] or "Horizontale", value = "horizontal" },
-            { text = L["cb_orient_vertical"]   or "Verticale",   value = "vertical"   },
+            { text = L["cb_orient_horizontal"], value = "horizontal" },
+            { text = L["cb_orient_vertical"],   value = "vertical"   },
         },
         cbDB.orientation or "horizontal",
         y,
@@ -1134,12 +1132,12 @@ local function BuildConsumableBarTab(parent)
     y = ny
 
     local _, ny = W.CreateDropdown(c,
-        L["opt_cb_timer_pos"] or "Position du timer",
+        L["opt_cb_timer_pos"],
         {
-            { text = L["cb_timerpos_below"] or "Dessous (horizontal)", value = "below" },
-            { text = L["cb_timerpos_above"] or "Dessus (horizontal)",  value = "above" },
-            { text = L["cb_timerpos_right"] or "Droite (vertical)",    value = "right" },
-            { text = L["cb_timerpos_left"]  or "Gauche (vertical)",    value = "left"  },
+            { text = L["cb_timerpos_below"], value = "below" },
+            { text = L["cb_timerpos_above"],  value = "above" },
+            { text = L["cb_timerpos_right"],    value = "right" },
+            { text = L["cb_timerpos_left"],    value = "left"  },
         },
         cbDB.timerPos or "below",
         y,
@@ -1153,7 +1151,7 @@ local function BuildConsumableBarTab(parent)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local _, ny = W.CreateButton(c, L["btn_reset_position"] or "Réinitialiser la position", 200, y, function()
+    local _, ny = W.CreateButton(c, L["btn_reset_position"], 200, y, function()
         if TomoModDB.consumableBar then TomoModDB.consumableBar.position = nil end
         if CB then CB.ApplySettings() end
         -- Remet la position par défaut
@@ -1185,16 +1183,15 @@ local function BuildCompassTab(parent)
         end
     end
 
-    local _, ny = W.CreateSectionHeader(c, L["section_compass"] or "Compass Bar", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_compass"], y)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, L["info_compass_desc"]
-        or "A heading bar at the top of the screen showing N/E/S/W as you turn, with a marker pointing toward your tracked quest or map waypoint. Read-only - no taint.", y)
+    local _, ny = W.CreateInfoText(c, L["info_compass_desc"], y)
     y = ny
 
     local db = TomoModDB.compass or {}
 
-    local _, ny = W.CreateCheckbox(c, L["opt_compass_enable"] or "Enable compass bar",
+    local _, ny = W.CreateCheckbox(c, L["opt_compass_enable"],
         db.enabled == true, y, function(v)
             if not TomoModDB.compass then TomoModDB.compass = {} end
             TomoModDB.compass.enabled = v
@@ -1202,15 +1199,14 @@ local function BuildCompassTab(parent)
         end)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, L["info_compass_layout"]
-        or "Tip: use Layout mode (/tm layout) to drag the bar where you want it.", y)
+    local _, ny = W.CreateInfoText(c, L["info_compass_layout"], y)
     y = ny
 
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
     -- Dimensions
-    local _, ny = W.CreateSlider(c, L["opt_compass_width"] or "Bar width",
+    local _, ny = W.CreateSlider(c, L["opt_compass_width"],
         db.width or 340, 240, 520, 10, y, function(v)
             if not TomoModDB.compass then TomoModDB.compass = {} end
             TomoModDB.compass.width = v
@@ -1218,7 +1214,7 @@ local function BuildCompassTab(parent)
         end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_compass_height"] or "Bar height",
+    local _, ny = W.CreateSlider(c, L["opt_compass_height"],
         db.height or 28, 18, 44, 1, y, function(v)
             if not TomoModDB.compass then TomoModDB.compass = {} end
             TomoModDB.compass.height = v
@@ -1226,7 +1222,7 @@ local function BuildCompassTab(parent)
         end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_compass_scale"] or "Scale",
+    local _, ny = W.CreateSlider(c, L["opt_compass_scale"],
         db.scale or 1.0, 0.6, 1.8, 0.05, y, function(v)
             if not TomoModDB.compass then TomoModDB.compass = {} end
             TomoModDB.compass.scale = v
@@ -1235,11 +1231,11 @@ local function BuildCompassTab(parent)
     y = ny
 
     -- Field of view
-    local _, ny = W.CreateDropdown(c, L["opt_compass_fov"] or "Field of view",
+    local _, ny = W.CreateDropdown(c, L["opt_compass_fov"],
         {
-            { value = 45, text = L["compass_fov_narrow"]   or "Narrow (\xC2\xB145\xC2\xB0)" },
-            { value = 60, text = L["compass_fov_standard"] or "Standard (\xC2\xB160\xC2\xB0)" },
-            { value = 90, text = L["compass_fov_wide"]     or "Wide (\xC2\xB190\xC2\xB0)" },
+            { value = 45, text = L["compass_fov_narrow"] },
+            { value = 60, text = L["compass_fov_standard"] },
+            { value = 90, text = L["compass_fov_wide"] },
         },
         db.fov or 60, y, function(v)
             if not TomoModDB.compass then TomoModDB.compass = {} end
@@ -1252,7 +1248,7 @@ local function BuildCompassTab(parent)
     y = ny
 
     -- Markers
-    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_quest"] or "Show tracked-quest marker",
+    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_quest"],
         db.showQuest ~= false, y, function(v)
             if not TomoModDB.compass then TomoModDB.compass = {} end
             TomoModDB.compass.showQuest = v
@@ -1260,7 +1256,7 @@ local function BuildCompassTab(parent)
         end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_waypoint"] or "Show map-waypoint marker",
+    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_waypoint"],
         db.showWaypoint ~= false, y, function(v)
             if not TomoModDB.compass then TomoModDB.compass = {} end
             TomoModDB.compass.showWaypoint = v
@@ -1268,7 +1264,7 @@ local function BuildCompassTab(parent)
         end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_distance"] or "Show distance on markers",
+    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_distance"],
         db.showDistance ~= false, y, function(v)
             if not TomoModDB.compass then TomoModDB.compass = {} end
             TomoModDB.compass.showDistance = v
@@ -1276,7 +1272,7 @@ local function BuildCompassTab(parent)
         end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_heading"] or "Show heading readout (e.g. 245\xC2\xB0 SW)",
+    local _, ny = W.CreateCheckbox(c, L["opt_compass_show_heading"],
         db.showHeading ~= false, y, function(v)
             if not TomoModDB.compass then TomoModDB.compass = {} end
             TomoModDB.compass.showHeading = v
@@ -1287,7 +1283,7 @@ local function BuildCompassTab(parent)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local _, ny = W.CreateButton(c, L["btn_reset_position"] or "Reset Position", 200, y, function()
+    local _, ny = W.CreateButton(c, L["btn_reset_position"], 200, y, function()
         if TomoModDB.compass then TomoModDB.compass.position = nil end
         local f = _G["TomoMod_Compass"]
         if f then
@@ -1448,9 +1444,9 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "waypoint",    label = L["tab_qol_waypoint"],       builder = function(p) return BuildWaypointTab(p) end },
         { key = "auratracker", label = L["tab_qol_aura_tracker"],  builder = function(p) return BuildAuraTrackerTab(p) end },
         { key = "merchant",    label = L["tab_qol_merchant_tools"], builder = function(p) return BuildMerchantToolsTab(p) end },
-        { key = "consumable",  label = L["tab_qol_consumable_bar"] or "Consommables", builder = function(p) return BuildConsumableBarTab(p) end },
+        { key = "consumable",  label = L["tab_qol_consumable_bar"], builder = function(p) return BuildConsumableBarTab(p) end },
         { key = "rarealert",   label = L["tab_qol_rare_alert"],     builder = function(p) return BuildRareAlertTab(p) end },
-        { key = "compass",     label = L["tab_qol_compass"] or "Compass", builder = function(p) return BuildCompassTab(p) end },
+        { key = "compass",     label = L["tab_qol_compass"], builder = function(p) return BuildCompassTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

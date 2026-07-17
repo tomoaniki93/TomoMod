@@ -1,15 +1,15 @@
 ﻿-- =====================================
 -- ConfigUI.lua — Dark Config Panel v2.7.1
 -- Icônes .tga originales redimensionnées, sidebar sobre
--- Fixed size 1020 × 720
+-- Default size 1240 × 820 — resizable (bottom-right grip) + user scale
 -- =====================================
 
 local L = TomoMod_L
 
 StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] = StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] or {
-    text     = "Recharger l'interface pour appliquer ce changement ?",
-    button1  = "Recharger",
-    button2  = "Plus tard",
+    text     = L["cfg_reload_text"],
+    button1  = L["cfg_reload_confirm"],
+    button2  = L["cfg_reload_later"],
     OnAccept = function() ReloadUI() end,
     timeout = 0,
     whileDead = true,
@@ -22,10 +22,18 @@ if TomoMod_RegisterLocale then
     TomoMod_RegisterLocale("enUS", {
         ["cat_accueil"]           = "Home",
         ["ui_search_placeholder"] = "Search modules...",
+        ["opt_gui_scale"]         = "Config window scale",
+        ["info_gui_scale"]        = "Scale of the /tm window — you can also resize it by dragging its bottom-right corner.",
+        ["btn_gui_reset_size"]    = "Reset window size & scale",
+        ["gs_no_results"]         = "No matching option",
     })
     TomoMod_RegisterLocale("frFR", {
         ["cat_accueil"]           = "Accueil",
         ["ui_search_placeholder"] = "Rechercher un module...",
+        ["opt_gui_scale"]         = "Échelle de la fenêtre de configuration",
+        ["info_gui_scale"]        = "Échelle de la fenêtre /tm — elle est aussi redimensionnable en tirant son coin inférieur droit.",
+        ["btn_gui_reset_size"]    = "Réinitialiser taille et échelle",
+        ["gs_no_results"]         = "Aucune option correspondante",
     })
 end
 
@@ -47,9 +55,11 @@ end
 -- =====================================================================
 -- LAYOUT CONSTANTS
 -- =====================================================================
-local PANEL_W   = 1020
-local PANEL_H   = 720
-local NAV_W     = 190   -- réduit vs 210 : pas besoin d'espace pour l'icon-box
+local PANEL_W   = 1240
+local PANEL_H   = 820
+local NAV_W     = 210
+local PANEL_MIN_W, PANEL_MIN_H = 1020, 720
+local PANEL_MAX_W, PANEL_MAX_H = 1680, 1080
 local TITLE_H   = 52
 local FOOTER_H  = 36
 local PAGE_HEAD_H = 92
@@ -60,13 +70,16 @@ local PAGE_HEAD_H = 92
 local ICON_PATH = ADDON_PATH .. "Assets\\Textures\\icons\\"
 
 local categories = {
-    { key = "accueil",   label = LT("cat_accueil", "Accueil"), icon = ICON_PATH .. "ico_gui.tga",          accent = { 0.180, 0.847, 0.518 }, desc = "Vue d'ensemble, presets et actions rapides.", kw = "accueil home dashboard tableau bord vue" },
-    { key = "interface", label = "Interface",                   icon = ICON_PATH .. "icon_general.tga",    accent = { 0.49, 0.91, 1.00 }, desc = "Apparence globale, barres, sons et fenetres Blizzard.", kw = "general minimap actionbar skins son audio chat sacs tooltip" },
-    { key = "units",     label = "Unités",                      icon = ICON_PATH .. "icon_unitframes.tga", accent = { 0.46, 0.72, 1.00 }, desc = "Joueur, plaques, groupe et raid au meme endroit.", kw = "unit frames nameplates party raid groupe cible plaques" },
-    { key = "combat",    label = "Combat",                      icon = ICON_PATH .. "icon_castbars.tga",   accent = { 0.96, 0.70, 0.26 }, desc = "Incantations, ressources, cooldowns et Mythic+.", kw = "castbar ressources cooldown mythic mplus combat" },
-    { key = "comfort",   label = "Confort",                     icon = ICON_PATH .. "icon_qol.tga",        accent = { 0.38, 0.86, 0.56 }, desc = "Automatisations, quetes, AFK, logement et confort.", kw = "qol confort quete afk housing logement automatisation" },
-    { key = "tools",     label = "Outils",                      icon = ICON_PATH .. "icon_profiles.tga",   accent = { 0.67, 0.52, 1.00 }, desc = "Profils, sauvegardes, diagnostics et maintenance.", kw = "profil diagnostics debug erreurs import export outils" },
+    { key = "accueil",   label = LT("cat_accueil", "Accueil"), icon = ICON_PATH .. "ico_gui.tga",          accent = { 0.180, 0.847, 0.518 }, desc = L["cat_accueil_desc"], kw = "accueil home dashboard tableau bord vue" },
+    { key = "interface", label = L["cat_interface"],                   icon = ICON_PATH .. "icon_general.tga",    accent = { 0.49, 0.91, 1.00 }, desc = L["cat_interface_desc"], kw = "general minimap actionbar skins son audio chat sacs tooltip" },
+    { key = "units",     label = L["cat_units"],                      icon = ICON_PATH .. "icon_unitframes.tga", accent = { 0.46, 0.72, 1.00 }, desc = L["cat_units_desc"], kw = "unit frames nameplates party raid groupe cible plaques" },
+    { key = "combat",    label = L["cat_combat"],                      icon = ICON_PATH .. "icon_castbars.tga",   accent = { 0.96, 0.70, 0.26 }, desc = L["cat_combat_desc"], kw = "castbar ressources cooldown mythic mplus combat" },
+    { key = "comfort",   label = L["cat_comfort"],                     icon = ICON_PATH .. "icon_qol.tga",        accent = { 0.38, 0.86, 0.56 }, desc = L["cat_comfort_desc"], kw = "qol confort quete afk housing logement automatisation" },
+    { key = "tools",     label = L["cat_tools"],                      icon = ICON_PATH .. "icon_profiles.tga",   accent = { 0.67, 0.52, 1.00 }, desc = L["cat_tools_desc"], kw = "profil diagnostics debug erreurs import export outils" },
 }
+
+-- Exposed for Config/GlobalSearch.lua (ghost indexing needs the labels)
+C.Categories = categories
 
 local categoryAliases = {
     general     = { key = "interface", tab = "general" },
@@ -98,10 +111,21 @@ local categoryButtons = {}
 local activeCategoryPanel = nil
 local hiddenPanelBin = nil
 
+-- [Lot C] Categories re-shown from cache on revisit. Accueil (dashboard,
+-- preset tiles) and Tools (profile list, live diagnostics) always rebuild
+-- so their dynamic content stays fresh.
+local NO_CACHE = { accueil = true, tools = true }
+
 -- =====================================================================
 -- HELPERS
 -- =====================================================================
 local function GetAccent() return T.accent[1], T.accent[2], T.accent[3] end
+
+local function GuiDB()
+    if not TomoModDB then return {} end
+    TomoModDB.configGUI = TomoModDB.configGUI or {}
+    return TomoModDB.configGUI
+end
 
 local function CategoryAccent(cat)
     local c = cat and cat.accent or T.accent
@@ -175,7 +199,7 @@ local function StartPerfTicker(label)
         else
             memStr = string.format("%d KB", math.floor(mem + 0.5))
         end
-        label:SetText(string.format("FPS: %d  |  Mém: %s", fps, memStr))
+        label:SetText(string.format(L["cfg_footer_perf"], fps, memStr))
     end
     Sample()
     perfTicker = C_Timer.NewTicker(2, Sample)
@@ -355,44 +379,48 @@ local function BuildGroupedPanel(parent, tabs, defaultKey)
     return panel
 end
 
-local function BuildInterfacePanel(parent)
-    return BuildGroupedPanel(parent, {
-        { key = "general",    label = "Général",          builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_General") end },
-        { key = "actionbars", label = "Barres d'action",  builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_ActionBars") end },
-        { key = "skins",      label = "Skins",            builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Skins") end },
-        { key = "sound",      label = "Son",              builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Sound") end },
-    }, "general")
-end
+-- Category → tabs tree, shared by SwitchCategory and by
+-- Config/GlobalSearch.lua (ghost indexing needs the full mapping as data).
+local CATEGORY_TREE = {
+    interface = {
+        { key = "general",    label = L["cfg_tab_general"],          global = "TomoMod_ConfigPanel_General" },
+        { key = "actionbars", label = L["cfg_tab_actionbars"],  global = "TomoMod_ConfigPanel_ActionBars" },
+        { key = "skins",      label = L["cfg_tab_skins"],            global = "TomoMod_ConfigPanel_Skins" },
+        { key = "sound",      label = L["cfg_tab_sound"],              global = "TomoMod_ConfigPanel_Sound" },
+    },
+    units = {
+        { key = "unitframes",  label = L["cfg_tab_unitframes"], global = "TomoMod_ConfigPanel_UnitFrames" },
+        { key = "nameplates",  label = L["cfg_tab_nameplates"], global = "TomoMod_ConfigPanel_Nameplates" },
+        { key = "partyframes", label = L["cfg_tab_partyframes"],     global = "TomoMod_ConfigPanel_PartyFrames" },
+        { key = "raidframes",  label = L["cfg_tab_raidframes"],       global = "TomoMod_ConfigPanel_RaidFrames" },
+    },
+    combat = {
+        { key = "castbars",   label = L["cfg_tab_castbars"],   global = "TomoMod_ConfigPanel_Castbars" },
+        { key = "resources",  label = L["cfg_tab_resources"], global = "TomoMod_ConfigPanel_CooldownResource" },
+        { key = "cdforge",    label = L["cfg_tab_cdforge"],   global = "TomoMod_ConfigPanel_CooldownForge" },
+        { key = "mythicplus", label = L["cfg_tab_mythicplus"],        global = "TomoMod_ConfigPanel_MythicPlus" },
+    },
+    comfort = {
+        { key = "qol",     label = L["cfg_tab_qol"], global = "TomoMod_ConfigPanel_QOL" },
+        { key = "housing", label = L["cfg_tab_housing"],        global = "TomoMod_ConfigPanel_Housing" },
+    },
+    tools = {
+        { key = "profiles",    label = L["cfg_tab_profiles"],     global = "TomoMod_ConfigPanel_Profiles" },
+        { key = "diagnostics", label = L["cfg_tab_diagnostics"], global = "TomoMod_ConfigPanel_Diagnostics" },
+    },
+}
+C.CategoryTree = CATEGORY_TREE
 
-local function BuildUnitsPanel(parent)
-    return BuildGroupedPanel(parent, {
-        { key = "unitframes",  label = "UnitFrames", builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_UnitFrames") end },
-        { key = "nameplates",  label = "Nameplates", builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Nameplates") end },
-        { key = "partyframes", label = "Groupe",     builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_PartyFrames") end },
-        { key = "raidframes",  label = "Raid",       builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_RaidFrames") end },
-    }, "unitframes")
-end
-
-local function BuildCombatPanel(parent)
-    return BuildGroupedPanel(parent, {
-        { key = "castbars",   label = "Incantations",  builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Castbars") end },
-        { key = "resources",  label = "CD & Ressource", builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_CooldownResource") end },
-        { key = "mythicplus", label = "Mythic+",       builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_MythicPlus") end },
-    }, "castbars")
-end
-
-local function BuildComfortPanel(parent)
-    return BuildGroupedPanel(parent, {
-        { key = "qol",     label = "Qualité de vie", builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_QOL") end },
-        { key = "housing", label = "Housing",        builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Housing") end },
-    }, "qol")
-end
-
-local function BuildToolsPanel(parent)
-    return BuildGroupedPanel(parent, {
-        { key = "profiles",    label = "Profils",     builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Profiles") end },
-        { key = "diagnostics", label = "Diagnostics", builder = function(p) return BuildPanelByName(p, "TomoMod_ConfigPanel_Diagnostics") end },
-    }, "profiles")
+local function BuildGroupedFromTree(parent, catKey)
+    local tabs = {}
+    for i, t in ipairs(CATEGORY_TREE[catKey] or {}) do
+        local globalName = t.global
+        tabs[i] = {
+            key = t.key, label = t.label,
+            builder = function(p) return BuildPanelByName(p, globalName) end,
+        }
+    end
+    return BuildGroupedPanel(parent, tabs, tabs[1] and tabs[1].key)
 end
 
 -- =====================================================================
@@ -421,6 +449,22 @@ local function CreateConfigFrame()
     configFrame:SetScript("OnDragStop",  configFrame.StopMovingOrSizing)
     configFrame:Hide()
     tinsert(UISpecialFrames, "TomoModConfigFrame")
+
+    -- Restore saved size / scale, enable resizing (bounds clamp saved values)
+    local gdb = GuiDB()
+    if gdb.width and gdb.height then
+        configFrame:SetSize(
+            math.max(PANEL_MIN_W, math.min(gdb.width,  PANEL_MAX_W)),
+            math.max(PANEL_MIN_H, math.min(gdb.height, PANEL_MAX_H)))
+    end
+    configFrame:SetScale(gdb.scale or 1)
+    configFrame:SetResizable(true)
+    if configFrame.SetResizeBounds then
+        configFrame:SetResizeBounds(PANEL_MIN_W, PANEL_MIN_H, PANEL_MAX_W, PANEL_MAX_H)
+    elseif configFrame.SetMinResize then
+        configFrame:SetMinResize(PANEL_MIN_W, PANEL_MIN_H)
+        configFrame:SetMaxResize(PANEL_MAX_W, PANEL_MAX_H)
+    end
 
     configFrame:SetScript("OnShow", function(self)
         C.isOpen = true
@@ -623,6 +667,10 @@ local function CreateConfigFrame()
     clearBtn:SetScript("OnEnter", function() clearTxt:SetTextColor(0.90, 0.30, 0.30, 1) end)
     clearBtn:SetScript("OnLeave", function() clearTxt:SetTextColor(0.45, 0.45, 0.50, 1) end)
 
+    -- Exposed for Config/GlobalSearch.lua (results popup anchor + input)
+    configFrame._searchWrap = searchWrap
+    configFrame._searchBox  = searchBox
+
     -- ── Zone de navigation défilante ───────────────────────────
     local NAV_TOP    = 8 + SEARCH_H + 8
     local NAV_BOTTOM = 26
@@ -697,9 +745,13 @@ local function CreateConfigFrame()
         placeholder:SetShown(txt == "")
         clearBtn:SetShown(txt ~= "")
         RelayoutNav(txt)
+        if C.NotifySearchText then C.NotifySearchText(txt) end
     end)
     searchBox:SetScript("OnEscapePressed", function(self) self:SetText(""); self:ClearFocus() end)
-    searchBox:SetScript("OnEnterPressed",  function(self) self:ClearFocus() end)
+    searchBox:SetScript("OnEnterPressed",  function(self)
+        if C.SubmitSearch and C.SubmitSearch() then return end
+        self:ClearFocus()
+    end)
     searchBox:SetScript("OnEditFocusGained", function() searchWrap:SetBackdropBorderColor(aR, aG, aB, 0.70) end)
     searchBox:SetScript("OnEditFocusLost",   function() searchWrap:SetBackdropBorderColor(0.18, 0.18, 0.22, 1) end)
     clearBtn:SetScript("OnClick", function() searchBox:SetText(""); searchBox:ClearFocus() end)
@@ -747,13 +799,35 @@ local function CreateConfigFrame()
     hintTxt:SetFont(FONT, 9, "")
     hintTxt:SetPoint("LEFT", NAV_W + 14, 0)
     hintTxt:SetTextColor(0.24, 0.24, 0.28, 1)
-    hintTxt:SetText(L["ui_footer_hint"] or "/mui  ·  /mui sr pour déplacer les éléments")
+    hintTxt:SetText(L["ui_footer_hint"])
 
     local perfLabel = footer:CreateFontString(nil, "OVERLAY")
     perfLabel:SetFont(FONT, 9, "")
-    perfLabel:SetPoint("RIGHT", -14, 0)
+    perfLabel:SetPoint("RIGHT", -26, 0)
     perfLabel:SetTextColor(0.24, 0.24, 0.28, 1)
     configFrame._perfLabel = perfLabel
+
+    -- ==============================================================
+    -- RESIZE GRIP (bottom-right)
+    -- ==============================================================
+    local grip = CreateFrame("Button", nil, configFrame)
+    grip:SetSize(16, 16)
+    grip:SetPoint("BOTTOMRIGHT", -3, 3)
+    grip:SetFrameLevel(configFrame:GetFrameLevel() + 20)
+    grip:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+    grip:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+    grip:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+    local gripTex = grip:GetNormalTexture()
+    if gripTex then gripTex:SetVertexColor(0.45, 0.45, 0.52, 1) end
+    grip:SetScript("OnMouseDown", function(_, btn)
+        if btn == "LeftButton" then configFrame:StartSizing("BOTTOMRIGHT") end
+    end)
+    grip:SetScript("OnMouseUp", function()
+        configFrame:StopMovingOrSizing()
+        local db = GuiDB()
+        db.width  = math.floor((configFrame:GetWidth()  or PANEL_W) + 0.5)
+        db.height = math.floor((configFrame:GetHeight() or PANEL_H) + 0.5)
+    end)
 end
 
 -- =====================================================================
@@ -770,6 +844,7 @@ function C.SwitchCategory(key)
 
     local catMeta = GetCategory(key)
     if W and W.SetPanelContext then W.SetPanelContext(catMeta) end
+    if W and W.SetBuildContext then W.SetBuildContext(key, catMeta and catMeta.label or key) end
     local cr, cg, cb = CategoryAccent(catMeta)
 
     if currentCategory == "units" and key ~= "units"
@@ -797,30 +872,49 @@ function C.SwitchCategory(key)
         end
     end
 
-    ClearContentArea()
+    -- [Lot C] Hide the current page instead of destroying it. Cached
+    -- pages are re-shown as-is; NO_CACHE ones are parked and rebuilt.
+    if activeCategoryPanel and activeCategoryPanel.Hide then
+        activeCategoryPanel:Hide()
+    end
+    activeCategoryPanel = nil
 
     for catKey, btn in pairs(categoryButtons) do
         btn.SetActive(catKey == key)
     end
 
-    local builderMap = {
-        accueil   = "TomoMod_ConfigPanel_Accueil",
-        interface = BuildInterfacePanel,
-        units     = BuildUnitsPanel,
-        combat    = BuildCombatPanel,
-        comfort   = BuildComfortPanel,
-        tools     = BuildToolsPanel,
-    }
-    local builder = builderMap[key]
-    if type(builder) == "string" then builder = _G[builder] end
-    if builder then
-        local bodyParent, shell = CreatePageShell(configFrame.content, catMeta)
-        local panel = builder(bodyParent)
-        if panel then
-            if W and W.ApplyPanelContext then W.ApplyPanelContext(panel, catMeta) end
-            panel:SetAllPoints(bodyParent)
-            activeCategoryPanel = shell or panel
-            categoryPanels[key] = activeCategoryPanel
+    local cached = (not NO_CACHE[key]) and categoryPanels[key] or nil
+    if cached and cached.root then
+        activeCategoryPanel = cached.root
+        if C._pendingGroupTab and cached.tabPanel and cached.tabPanel.SwitchTab then
+            cached.tabPanel.SwitchTab(C._pendingGroupTab)
+        end
+        C._pendingGroupTab = nil
+    else
+        if categoryPanels[key] and categoryPanels[key].root then
+            ParkPanel(categoryPanels[key].root)
+            categoryPanels[key] = nil
+        end
+
+        local builderMap = {
+            accueil   = "TomoMod_ConfigPanel_Accueil",
+            interface = function(p) return BuildGroupedFromTree(p, "interface") end,
+            units     = function(p) return BuildGroupedFromTree(p, "units") end,
+            combat    = function(p) return BuildGroupedFromTree(p, "combat") end,
+            comfort   = function(p) return BuildGroupedFromTree(p, "comfort") end,
+            tools     = function(p) return BuildGroupedFromTree(p, "tools") end,
+        }
+        local builder = builderMap[key]
+        if type(builder) == "string" then builder = _G[builder] end
+        if builder then
+            local bodyParent, shell = CreatePageShell(configFrame.content, catMeta)
+            local panel = builder(bodyParent)
+            if panel then
+                if W and W.ApplyPanelContext then W.ApplyPanelContext(panel, catMeta) end
+                panel:SetAllPoints(bodyParent)
+                activeCategoryPanel = shell or panel
+                categoryPanels[key] = { root = activeCategoryPanel, tabPanel = panel }
+            end
         end
     end
 
@@ -863,4 +957,36 @@ end
 function C.OpenCategory(key)
     C.Show()
     if key then C.SwitchCategory(key) end
+end
+
+function C.ApplyGUIScale()
+    if not configFrame then return end
+    configFrame:SetScale(GuiDB().scale or 1)
+end
+
+function C.ResetGUISize()
+    local db = GuiDB()
+    db.width, db.height, db.scale = nil, nil, nil
+    if configFrame then
+        configFrame:SetSize(PANEL_W, PANEL_H)
+        configFrame:SetScale(1)
+        configFrame:ClearAllPoints()
+        configFrame:SetPoint("CENTER")
+    end
+end
+
+-- [Lot C] Drops every cached page (presets / profile swaps rewrite the DB
+-- outside the panels, so cached widget values would be stale). The rebuild
+-- of the open page is deferred one frame so any running click handler of
+-- the old page finishes safely first.
+function C.InvalidatePanels()
+    ClearContentArea()
+    if configFrame and configFrame:IsShown() and currentCategory then
+        local key = currentCategory
+        C_Timer.After(0, function()
+            if configFrame and configFrame:IsShown() and currentCategory == key then
+                C.SwitchCategory(key)
+            end
+        end)
+    end
 end

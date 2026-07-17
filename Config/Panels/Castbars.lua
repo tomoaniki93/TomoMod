@@ -33,8 +33,8 @@ local function BuildGeneralTab(parent)
         if TomoMod_Castbar then TomoMod_Castbar.SetEnabled(v) end
     end)
     local _, cy = W.CreateInfoText(card.inner, L["info_cb_description"], cy)
-    local _, cy = W.CreateButton(card.inner, L["btn_cb_toggle_preview"] or "Show / Hide Preview", 200, cy, TogglePreview)
-    local _, cy = W.CreateInfoText(card.inner, L["info_cb_preview_hint"] or "Unlocks every castbar and shows a live mock spell so you can see your tweaks instantly.", cy)
+    local _, cy = W.CreateButton(card.inner, L["btn_cb_toggle_preview"], 200, cy, TogglePreview)
+    local _, cy = W.CreateInfoText(card.inner, L["info_cb_preview_hint"], cy)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_hide_blizzard"], db.hideBlizzardCastbar, cy, function(v) db.hideBlizzardCastbar = v; ApplyCB() end)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_class_color"], db.useClassColor, cy, function(v) db.useClassColor = v; ApplyCB() end)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_show_transitions"], db.showTransitions, cy, function(v) db.showTransitions = v; ApplyCB() end)
@@ -127,15 +127,13 @@ local function BuildUnitTab(parent, unitKey, unitLabel)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_cb_unit_enable"], udb.enabled, cy, function(v) udb.enabled = v; ApplyCB() end)
 
     -- Aperçu accessible depuis CHAQUE onglet (sinon on règle à l'aveugle entre deux sorts)
-    local _, cy = W.CreateButton(card.inner, L["btn_cb_toggle_preview"] or "Afficher / masquer l'aperçu", 220, cy, TogglePreview)
+    local _, cy = W.CreateButton(card.inner, L["btn_cb_toggle_preview"], 220, cy, TogglePreview)
     if unitKey == "player" then
-        local _, cy2 = W.CreateInfoText(card.inner, L["info_cb_preview_hint"]
-            or "Déverrouille les castbars et affiche un sort fictif pour voir tes réglages en direct.", cy)
+        local _, cy2 = W.CreateInfoText(card.inner, L["info_cb_preview_hint"], cy)
         cy = cy2
     else
         -- Réponse fréquente : ces castbars suivent leur unit frame (pas de position libre)
-        local _, cy2 = W.CreateInfoText(card.inner, L["info_cb_anchor_uf"]
-            or "Cette castbar s'ancre sur le cadre d'unité correspondant (elle apparaît donc sur la frame de la cible / du focus / du familier / du boss).", cy)
+        local _, cy2 = W.CreateInfoText(card.inner, L["info_cb_anchor_uf"], cy)
         cy = cy2
     end
 
@@ -174,19 +172,19 @@ end
 -- ══════════════════════════════════════════════
 function TomoMod_ConfigPanel_Castbars(contentArea)
     local unitLabels = {
-        player = L["unit_player"] or "Player",
-        target = L["unit_target"] or "Target",
-        focus  = L["unit_focus"]  or "Focus",
-        pet    = L["unit_pet"]    or "Pet",
-        boss   = L["tab_boss"]    or "Boss",
+        player = L["unit_player"],
+        target = L["unit_target"],
+        focus  = L["unit_focus"],
+        pet    = L["unit_pet"],
+        boss   = L["tab_boss"],
     }
 
     return W.CreateTabPanel(contentArea, {
-        { key = "general", label = L["cb_tab_general"] or "General", builder = BuildGeneralTab },
-        { key = "player",  label = L["cb_tab_player"]  or "Player",  builder = function(p) return BuildUnitTab(p, "player", unitLabels.player) end },
-        { key = "target",  label = L["cb_tab_target"]  or "Target",  builder = function(p) return BuildUnitTab(p, "target", unitLabels.target) end },
-        { key = "focus",   label = L["cb_tab_focus"]   or "Focus",   builder = function(p) return BuildUnitTab(p, "focus",  unitLabels.focus)  end },
-        { key = "pet",     label = L["cb_tab_pet"]     or "Pet",     builder = function(p) return BuildUnitTab(p, "pet",    unitLabels.pet)    end },
-        { key = "boss",    label = L["cb_tab_boss"]    or "Boss",    builder = function(p) return BuildUnitTab(p, "boss",   unitLabels.boss)   end },
+        { key = "general", label = L["cb_tab_general"], builder = BuildGeneralTab },
+        { key = "player",  label = L["cb_tab_player"],  builder = function(p) return BuildUnitTab(p, "player", unitLabels.player) end },
+        { key = "target",  label = L["cb_tab_target"],  builder = function(p) return BuildUnitTab(p, "target", unitLabels.target) end },
+        { key = "focus",   label = L["cb_tab_focus"],   builder = function(p) return BuildUnitTab(p, "focus",  unitLabels.focus)  end },
+        { key = "pet",     label = L["cb_tab_pet"],     builder = function(p) return BuildUnitTab(p, "pet",    unitLabels.pet)    end },
+        { key = "boss",    label = L["cb_tab_boss"],    builder = function(p) return BuildUnitTab(p, "boss",   unitLabels.boss)   end },
     })
 end

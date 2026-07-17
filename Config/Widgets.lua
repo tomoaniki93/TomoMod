@@ -67,6 +67,30 @@ function W.ApplyPanelContext(frame, context)
     if frame and context then frame._muiDesign = context end
 end
 
+-- =====================================================================
+-- BUILD CONTEXT (Global Search)  [Lot B]
+-- Tracks which category / tab / section is being built so that widgets
+-- can self-register into the search index (Config/GlobalSearch.lua).
+-- Every hook is optional: without GlobalSearch.lua nothing changes.
+-- =====================================================================
+W._buildCtx = { cat = nil, catLabel = nil, tab = nil, tabLabel = nil, section = nil }
+
+function W.SetBuildContext(catKey, catLabel)
+    local ctx = W._buildCtx
+    ctx.cat, ctx.catLabel = catKey, catLabel
+    ctx.tab, ctx.tabLabel, ctx.section = nil, nil, nil
+end
+
+function W._SetBuildTab(tabKey, tabLabel)
+    local ctx = W._buildCtx
+    ctx.tab, ctx.tabLabel = tabKey, tabLabel
+    ctx.section = nil
+end
+
+function W._SetBuildSection(title)
+    W._buildCtx.section = title
+end
+
 local function FindDesign(parent)
     local f = parent
     while f do
@@ -117,7 +141,7 @@ function W.CreateScrollPanel(parent)
     scroll:SetPoint("BOTTOMRIGHT", -SCROLLBAR_PAD, 0)
 
     local child = CreateFrame("Frame", nil, scroll)
-    child:SetWidth(scroll:GetWidth() or 760)
+    child:SetWidth(scroll:GetWidth() or 1000)
     child:SetHeight(1)
     child._muiDesign = FindDesign(parent)
     scroll:SetScrollChild(child)
@@ -217,6 +241,9 @@ function W.CreateSectionHeader(parent, text, yOffset)
     lbl:SetTextColor(r, g, b, 1)
     lbl:SetText(text)
 
+    if W._SetBuildSection then W._SetBuildSection(text) end
+    if W._RegisterSearchEntry then W._RegisterSearchEntry(text, lbl, "section") end
+
     return lbl, yOffset - STRIP_H - 8
 end
 
@@ -233,6 +260,8 @@ function W.CreateCard(parent, title, yOffset)
     card:SetPoint("TOPLEFT",  8,  yOffset)
     card:SetPoint("TOPRIGHT", -8, yOffset)
     card:SetHeight(40) -- will be adjusted by FinalizeCard
+    if W._SetBuildSection then W._SetBuildSection(title) end
+    if W._RegisterSearchEntry then W._RegisterSearchEntry(title, card, "section") end
     card:SetBackdrop({
         bgFile   = "Interface\\Buttons\\WHITE8x8",
         edgeFile = "Interface\\Buttons\\WHITE8x8",
@@ -439,6 +468,8 @@ function W.CreateCheckbox(parent, text, checked, yOffset, callback)
     frame.SetChecked = function(_, val) isChecked = val; UpdateVisual() end
     frame.GetChecked = function() return isChecked end
 
+    if W._RegisterSearchEntry then W._RegisterSearchEntry(text, frame, "option") end
+
     return frame, yOffset - 28
 end
 
@@ -542,6 +573,8 @@ function W.CreateSlider(parent, text, value, minVal, maxVal, step, yOffset, call
     frame.slider   = slider
     frame.SetValue = function(_, v) slider:SetValue(v); UpdateVal(v) end
     frame.GetValue = function() return slider:GetValue() end
+
+    if W._RegisterSearchEntry then W._RegisterSearchEntry(text, frame, "option") end
 
     return frame, yOffset - 52
 end
@@ -675,6 +708,8 @@ function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
         menu:Hide()
         if W._openDropdown == menu then W._openDropdown = nil end
     end)
+    if W._RegisterSearchEntry then W._RegisterSearchEntry(text, frame, "option") end
+
     return frame, yOffset - 48
 end
 
@@ -777,6 +812,8 @@ function W.CreateSegmentedControl(parent, text, options, selected, yOffset, call
         selected = val
         Refresh()
     end
+    if W._RegisterSearchEntry then W._RegisterSearchEntry(text, frame, "option") end
+
     return frame, yOffset - frameH - 6
 end
 
@@ -822,6 +859,8 @@ function W.CreateButton(parent, text, width, yOffset, callback)
 
     btn.label = lbl
     btn.SetText = function(self, t) lbl:SetText(t) end
+
+    if W._RegisterSearchEntry then W._RegisterSearchEntry(text, btn, "option") end
 
     return btn, yOffset - 36
 end
@@ -899,6 +938,8 @@ function W.CreateColorPicker(parent, text, color, yOffset, callback)
     frame.UpdateColor = function(_, r, g, b)
         color.r, color.g, color.b = r, g, b; UpdateDisplay(r, g, b)
     end
+    if W._RegisterSearchEntry then W._RegisterSearchEntry(text, frame, "option") end
+
     return frame, yOffset - 32
 end
 
@@ -933,6 +974,384 @@ function W.CreateTwoColumnRow(parent, yOffset, builderLeft, builderRight)
     leftCol:SetHeight(usedH)
     rightCol:SetHeight(usedH)
     return frame, yOffset - usedH - 4
+end
+
+-- =====================================================================
+-- COMPOSITE ROWS  [Lot W1]
+-- Generic N-column row + sugar built on top of the base widgets.
+-- Columns are laid out by ratio via OnSizeChanged, so rows follow the
+-- resizable window live.
+-- =====================================================================
+
+-- builders: array of function(col) -> usedY (same contract as
+-- CreateTwoColumnRow). splits: optional array of relative widths
+-- (defaults to equal columns). Never pass nil holes in builders; use
+-- function() return 0 end for an empty cell.
+function W.CreateColumnRow(parent, yOffset, builders, splits)
+    local ROW_H = 36
+    local GAP   = 8
+    local n = #builders
+
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetHeight(ROW_H)
+    frame:SetPoint("TOPLEFT",  16, yOffset)
+    frame:SetPoint("TOPRIGHT", -16, yOffset)
+
+    local total = 0
+    for i = 1, n do
+        total = total + ((splits and splits[i]) or 1)
+    end
+
+    local cols = {}
+    for i = 1, n do
+        cols[i] = CreateFrame("Frame", nil, frame)
+        cols[i]:SetHeight(ROW_H)
+    end
+
+    local function Relayout()
+        local fw = frame:GetWidth()
+        if not fw or fw <= 0 then return end
+        local x = 0
+        for i = 1, n do
+            local ratio = ((splits and splits[i]) or 1) / total
+            local w     = fw * ratio
+            local padL  = (i > 1) and (GAP / 2) or 0
+            local padR  = (i < n) and (GAP / 2) or 0
+            local col   = cols[i]
+            col:ClearAllPoints()
+            col:SetPoint("TOPLEFT", frame, "TOPLEFT", x + padL, 0)
+            col:SetWidth(math.max(1, w - padL - padR))
+            x = x + w
+        end
+    end
+    Relayout()
+    frame:SetScript("OnSizeChanged", Relayout)
+
+    local used = ROW_H
+    for i = 1, n do
+        local ny = builders[i] and builders[i](cols[i]) or 0
+        used = math.max(used, math.abs(ny or 0))
+    end
+    frame:SetHeight(used)
+    for i = 1, n do cols[i]:SetHeight(used) end
+    frame.cols = cols
+    return frame, yOffset - used - 4
+end
+
+function W.CreateThreeColumnRow(parent, yOffset, builderA, builderB, builderC, splits)
+    return W.CreateColumnRow(parent, yOffset, { builderA, builderB, builderC }, splits)
+end
+
+-- defs a/b/c: { text=, value=, min=, max=, step=, callback=, fmt= }
+-- A nil def leaves its cell empty (grid alignment kept).
+function W.CreateTripleSlider(parent, yOffset, a, b, c)
+    local defs, frames, builders = { a, b, c }, {}, {}
+    for i = 1, 3 do
+        local def = defs[i]
+        builders[i] = function(col)
+            if not def then return 0 end
+            local f, ny = W.CreateSlider(col, def.text, def.value, def.min, def.max,
+                def.step or 1, 0, def.callback, def.fmt)
+            frames[i] = f
+            return ny
+        end
+    end
+    local row, ny = W.CreateColumnRow(parent, yOffset, builders)
+    row.sliders = frames
+    return row, ny
+end
+
+-- defs a/b/c: { text=, options=, selected=, callback= }
+function W.CreateTripleDropdown(parent, yOffset, a, b, c)
+    local defs, frames, builders = { a, b, c }, {}, {}
+    for i = 1, 3 do
+        local def = defs[i]
+        builders[i] = function(col)
+            if not def then return 0 end
+            local f, ny = W.CreateDropdown(col, def.text, def.options, def.selected, 0, def.callback)
+            frames[i] = f
+            return ny
+        end
+    end
+    local row, ny = W.CreateColumnRow(parent, yOffset, builders)
+    row.dropdowns = frames
+    return row, ny
+end
+
+-- Dropdown + sliders X/Y sur une seule rangee.
+-- dd: { text=, options=, selected=, callback= }
+-- offX/offY: { text=, value=, min=, max=, step=, callback=, fmt= } (nil = cellule vide)
+function W.CreateDropdownWithOffsets(parent, yOffset, dd, offX, offY)
+    local ddFrame, xFrame, yFrame
+    local row, ny = W.CreateColumnRow(parent, yOffset, {
+        function(col)
+            local f, n = W.CreateDropdown(col, dd.text, dd.options, dd.selected, 0, dd.callback)
+            ddFrame = f
+            return n
+        end,
+        function(col)
+            if not offX then return 0 end
+            local f, n = W.CreateSlider(col, offX.text, offX.value, offX.min, offX.max,
+                offX.step or 1, 0, offX.callback, offX.fmt)
+            xFrame = f
+            return n
+        end,
+        function(col)
+            if not offY then return 0 end
+            local f, n = W.CreateSlider(col, offY.text, offY.value, offY.min, offY.max,
+                offY.step or 1, 0, offY.callback, offY.fmt)
+            yFrame = f
+            return n
+        end,
+    }, { 1.2, 1, 1 })
+    row.dropdown, row.sliderX, row.sliderY = ddFrame, xFrame, yFrame
+    return row, ny
+end
+
+-- swatches: array de { text=, color= (table {r,g,b} mutee en place), callback= }
+function W.CreateMultiSwatchRow(parent, yOffset, swatches)
+    local frames, builders = {}, {}
+    for i = 1, #swatches do
+        local def = swatches[i]
+        builders[i] = function(col)
+            local f, ny = W.CreateColorPicker(col, def.text, def.color, 0, def.callback)
+            frames[i] = f
+            return ny
+        end
+    end
+    local row, ny = W.CreateColumnRow(parent, yOffset, builders)
+    row.pickers = frames
+    return row, ny
+end
+
+-- =====================================================================
+-- REORDER DROPDOWN  [Lot W2]
+-- Menu persistant : checkbox + fleches pour activer et reordonner des
+-- elements d'affichage. items = tableau ORDONNE de { key=, text=,
+-- checked= } ; il est mute en place et callback(items) est appele
+-- apres chaque changement (coche ou ordre).
+-- =====================================================================
+function W.CreateReorderDropdown(parent, text, items, yOffset, callback)
+    local r, g, b = Accent(parent)
+    local ITEM_H = 24
+
+    local frame = CreateFrame("Frame", nil, parent)
+    frame:SetHeight(46)
+    frame:SetPoint("TOPLEFT",  16, yOffset)
+    frame:SetPoint("TOPRIGHT", -16, yOffset)
+
+    local lbl = frame:CreateFontString(nil, "OVERLAY")
+    lbl:SetFont(FONT, 11, "")
+    lbl:SetPoint("TOPLEFT", 0, 0)
+    SC(lbl, T.text)
+    lbl:SetText(text)
+
+    local btn = CreateFrame("Button", nil, frame, "BackdropTemplate")
+    btn:SetHeight(24)
+    btn:SetPoint("TOPLEFT",  0, -18)
+    btn:SetPoint("TOPRIGHT", 0, -18)
+    btn:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    btn:SetBackdropColor(T.bgLight[1], T.bgLight[2], T.bgLight[3], 1)
+    btn:SetBackdropBorderColor(r, g, b, 0.34)
+
+    local btnTxt = btn:CreateFontString(nil, "OVERLAY")
+    btnTxt:SetFont(FONT, 11, "")
+    btnTxt:SetPoint("LEFT", 8, 0)
+    btnTxt:SetPoint("RIGHT", -22, 0)
+    btnTxt:SetJustifyH("LEFT")
+    btnTxt:SetWordWrap(false)
+    SC(btnTxt, T.text)
+
+    local arrow = btn:CreateTexture(nil, "OVERLAY")
+    arrow:SetSize(10, 6)
+    arrow:SetPoint("RIGHT", -8, 0)
+    arrow:SetTexture("Interface\\Buttons\\Arrow-Down-Down")
+    SC(arrow, T.textDim)
+
+    local function Summary()
+        local on, names = 0, {}
+        for _, it in ipairs(items) do
+            if it.checked then
+                on = on + 1
+                if #names < 3 then names[#names + 1] = it.text end
+            end
+        end
+        if on == 0 then return "\226\128\148" end
+        local s = table.concat(names, ", ")
+        if on > #names then s = s .. "  +" .. (on - #names) end
+        return s
+    end
+    btnTxt:SetText(Summary())
+
+    local menu = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
+    menu:EnableMouse(true)
+    menu:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    menu:SetBackdropColor(T.bgMid[1], T.bgMid[2], T.bgMid[3], 1)
+    menu:SetBackdropBorderColor(r, g, b, 0.45)
+    menu:SetFrameStrata("TOOLTIP")
+    menu:SetFrameLevel(9000)
+    menu:SetToplevel(true)
+    if menu.SetClampedToScreen then menu:SetClampedToScreen(true) end
+    menu:Hide()
+
+    local rows = {}
+    local Rebuild
+
+    local function IndexOf(it)
+        for i, v in ipairs(items) do
+            if v == it then return i end
+        end
+    end
+
+    local function Notify()
+        if callback then callback(items) end
+    end
+
+    Rebuild = function()
+        menu:SetHeight(#items * ITEM_H + 6)
+        for i, it in ipairs(items) do
+            local row = rows[i]
+            if not row then
+                row = CreateFrame("Frame", nil, menu)
+                row:SetHeight(ITEM_H)
+
+                row.hl = row:CreateTexture(nil, "BACKGROUND")
+                row.hl:SetAllPoints()
+                row.hl:SetColorTexture(1, 1, 1, 0)
+
+                row.check = CreateFrame("Button", nil, row, "BackdropTemplate")
+                row.check:SetSize(14, 14)
+                row.check:SetPoint("LEFT", 6, 0)
+                row.check:SetBackdrop({
+                    bgFile   = "Interface\\Buttons\\WHITE8x8",
+                    edgeFile = "Interface\\Buttons\\WHITE8x8",
+                    edgeSize = 1,
+                })
+                row.check:SetScript("OnClick", function(self)
+                    local it2 = self:GetParent().item
+                    if not it2 then return end
+                    it2.checked = not it2.checked
+                    Rebuild()
+                    Notify()
+                end)
+
+                row.label = row:CreateFontString(nil, "OVERLAY")
+                row.label:SetFont(FONT, 11, "")
+                row.label:SetPoint("LEFT", row.check, "RIGHT", 7, 0)
+                row.label:SetPoint("RIGHT", -42, 0)
+                row.label:SetJustifyH("LEFT")
+                row.label:SetWordWrap(false)
+
+                local function MakeArrow(txt, dx)
+                    local a = CreateFrame("Button", nil, row)
+                    a:SetSize(16, 16)
+                    a:SetPoint("RIGHT", dx, 0)
+                    a.t = a:CreateFontString(nil, "OVERLAY")
+                    a.t:SetFont(FONT_BOLD, 9, "")
+                    a.t:SetPoint("CENTER", 0, 0)
+                    a.t:SetText(txt)
+                    SC(a.t, T.textDim)
+                    a:SetScript("OnEnter", function(self) SC(self.t, T.accent) end)
+                    a:SetScript("OnLeave", function(self) SC(self.t, T.textDim) end)
+                    return a
+                end
+                row.up   = MakeArrow("\226\150\178", -22)
+                row.down = MakeArrow("\226\150\188", -5)
+                row.up:SetScript("OnClick", function(self)
+                    local it2 = self:GetParent().item
+                    local idx = it2 and IndexOf(it2)
+                    if idx and idx > 1 then
+                        items[idx], items[idx - 1] = items[idx - 1], items[idx]
+                        Rebuild()
+                        Notify()
+                    end
+                end)
+                row.down:SetScript("OnClick", function(self)
+                    local it2 = self:GetParent().item
+                    local idx = it2 and IndexOf(it2)
+                    if idx and idx < #items then
+                        items[idx], items[idx + 1] = items[idx + 1], items[idx]
+                        Rebuild()
+                        Notify()
+                    end
+                end)
+
+                row:SetScript("OnEnter", function(self) self.hl:SetColorTexture(1, 1, 1, 0.05) end)
+                row:SetScript("OnLeave", function(self) self.hl:SetColorTexture(1, 1, 1, 0) end)
+                rows[i] = row
+            end
+            row.item = it
+            row:ClearAllPoints()
+            row:SetPoint("TOPLEFT",  3, -(i - 1) * ITEM_H - 3)
+            row:SetPoint("TOPRIGHT", -3, -(i - 1) * ITEM_H - 3)
+            row.label:SetText(it.text or tostring(it.key))
+            if it.checked then
+                row.check:SetBackdropColor(T.accent[1], T.accent[2], T.accent[3], 0.85)
+                row.check:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 1)
+                SC(row.label, T.text)
+            else
+                row.check:SetBackdropColor(T.bgLight[1], T.bgLight[2], T.bgLight[3], 1)
+                row.check:SetBackdropBorderColor(T.border[1], T.border[2], T.border[3], 1)
+                SC(row.label, T.textDim)
+            end
+            row.up:SetShown(i > 1)
+            row.down:SetShown(i < #items)
+            row:Show()
+        end
+        for i = #items + 1, #rows do
+            rows[i]:Hide()
+            rows[i].item = nil
+        end
+        btnTxt:SetText(Summary())
+    end
+
+    btn:SetScript("OnClick", function()
+        if menu:IsShown() then
+            menu:Hide()
+            if W._openDropdown == menu then W._openDropdown = nil end
+            btn:SetBackdropBorderColor(r, g, b, 0.34)
+        else
+            W.CloseDropdowns()
+            W._openDropdown = menu
+            Rebuild()
+            menu:ClearAllPoints()
+            menu:SetPoint("TOPLEFT",  btn, "BOTTOMLEFT",  0, -2)
+            menu:SetPoint("TOPRIGHT", btn, "BOTTOMRIGHT", 0, -2)
+            menu:SetFrameStrata("TOOLTIP")
+            menu:SetFrameLevel(9000)
+            menu:Show()
+            btn:SetBackdropBorderColor(r, g, b, 0.70)
+        end
+    end)
+    btn:SetScript("OnEnter", function()
+        btn:SetBackdropBorderColor(T.borderLight[1], T.borderLight[2], T.borderLight[3], 1)
+    end)
+    btn:SetScript("OnLeave", function()
+        if not menu:IsShown() then
+            btn:SetBackdropBorderColor(r, g, b, 0.34)
+        end
+    end)
+
+    frame.SetItems = function(_, newItems)
+        items = newItems or {}
+        Rebuild()
+    end
+    frame.GetItems = function() return items end
+    frame:SetScript("OnHide", function()
+        menu:Hide()
+        if W._openDropdown == menu then W._openDropdown = nil end
+    end)
+    if W._RegisterSearchEntry then W._RegisterSearchEntry(text, frame, "option") end
+
+    return frame, yOffset - 48
 end
 
 -- =====================================================================
@@ -972,37 +1391,26 @@ function W.CreateTabPanel(parent, tabs)
     content._muiDesign = FindDesign(parent)
 
     local tabButtons = {}
+    local tabButtonList = {}
     local tabPanels  = {}
     local currentTab = nil
-    local hiddenBin = CreateFrame("Frame", nil, UIParent)
-    hiddenBin:Hide()
 
     local function GetPanelWidth()
-        local w = parent:GetWidth() or wrapper:GetWidth() or 810
-        if not w or w < 60 then w = 810 end
+        local w = parent:GetWidth() or wrapper:GetWidth() or 1030
+        if not w or w < 60 then w = 1030 end
         return w
     end
 
-    local function ClearContent()
+    -- [Lot C] Tabs are cached: switching hides the current panel instead
+    -- of destroying it; revisiting re-shows the cached panel as-is.
+    local function HideCurrent()
         if W.CloseDropdowns then W.CloseDropdowns() end
-
-        for _, p in pairs(tabPanels) do
-            if p.Hide then pcall(p.Hide, p) end
-            if p.ClearAllPoints then pcall(p.ClearAllPoints, p) end
-            if p.SetParent then pcall(p.SetParent, p, hiddenBin) end
-        end
-
-        for _, child in ipairs({ content:GetChildren() }) do
-            if child.Hide then pcall(child.Hide, child) end
-            if child.ClearAllPoints then pcall(child.ClearAllPoints, child) end
-            if child.SetParent then pcall(child.SetParent, child, hiddenBin) end
-        end
-
-        tabPanels = {}
+        local cur = currentTab and tabPanels[currentTab]
+        if cur and cur.Hide then pcall(cur.Hide, cur) end
     end
 
     local function SwitchTab(key)
-        ClearContent()
+        HideCurrent()
 
         for k, btn in pairs(tabButtons) do
             if k == key then
@@ -1016,15 +1424,18 @@ function W.CreateTabPanel(parent, tabs)
             end
         end
 
-        for _, tab in ipairs(tabs) do
-            if tab.key == key and tab.builder then
-                local p = tab.builder(content)
-                if p then
-                    if p:GetParent() ~= content then p:SetParent(content) end
-                    p:SetAllPoints(content)
-                    tabPanels[key] = p
+        if not tabPanels[key] then
+            for _, tab in ipairs(tabs) do
+                if tab.key == key and tab.builder then
+                    if W._SetBuildTab then W._SetBuildTab(tab.key, tab.label) end
+                    local p = tab.builder(content)
+                    if p then
+                        if p:GetParent() ~= content then p:SetParent(content) end
+                        p:SetAllPoints(content)
+                        tabPanels[key] = p
+                    end
+                    break
                 end
-                break
             end
         end
 
@@ -1077,13 +1488,27 @@ function W.CreateTabPanel(parent, tabs)
         end)
         btn:SetScript("OnClick", function() SwitchTab(tab.key) end)
         tabButtons[tab.key] = btn
+        tabButtonList[#tabButtonList + 1] = btn
     end
+
+    local function RelayoutTabs()
+        for i, btn in ipairs(tabButtonList) do
+            local row = math.floor((i - 1) / TABS_PER_ROW)
+            local col = (i - 1) % TABS_PER_ROW
+            local tpR = math.min(TABS_PER_ROW, totalTabs - row * TABS_PER_ROW)
+            local tW  = math.floor(GetPanelWidth() / tpR)
+            btn:SetSize(tW, TAB_H)
+            btn:ClearAllPoints()
+            btn:SetPoint("TOPLEFT", col * tW, -(row * TAB_H))
+        end
+    end
+    tabBar:SetScript("OnSizeChanged", RelayoutTabs)
 
     if #tabs > 0 then SwitchTab(tabs[1].key) end
     wrapper.SwitchTab = SwitchTab
     wrapper.content   = content
     wrapper:SetScript("OnHide", function()
-        ClearContent()
+        if W.CloseDropdowns then W.CloseDropdowns() end
     end)
     wrapper:SetScript("OnShow", function()
         if currentTab then

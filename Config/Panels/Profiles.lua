@@ -126,13 +126,13 @@ local function ShowExportPopup(exportStr)
     title:SetFont(FONT_BOLD, 15, "")
     title:SetPoint("TOPLEFT", 20, -18)
     title:SetTextColor(1, 1, 1)
-    title:SetText(L["popup_export_title"] or "Exporter le Profil")
+    title:SetText(L["popup_export_title"])
 
     local sub = pop:CreateFontString(nil, "OVERLAY")
     sub:SetFont(FONT, 10, "")
     sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
     sub:SetTextColor(unpack(TEXT_DIM))
-    sub:SetText(L["popup_export_hint"] or "Sélectionnez tout (Ctrl+A) et copiez (Ctrl+C)")
+    sub:SetText(L["popup_export_hint"])
 
     -- EditBox scrollable
     local scrollBg = CreateFrame("Frame", nil, pop, "BackdropTemplate")
@@ -173,7 +173,7 @@ local function ShowExportPopup(exportStr)
     closeBtn:SetBackdropBorderColor(unpack(BORDER))
     local closeLbl = closeBtn:CreateFontString(nil, "OVERLAY")
     closeLbl:SetFont(FONT_BOLD, 11, ""); closeLbl:SetPoint("CENTER")
-    closeLbl:SetTextColor(unpack(TEXT)); closeLbl:SetText(L["btn_close"] or "Fermer")
+    closeLbl:SetTextColor(unpack(TEXT)); closeLbl:SetText(L["btn_close"])
     closeBtn:SetScript("OnEnter", function(b) b:SetBackdropBorderColor(unpack(ACCENT)) end)
     closeBtn:SetScript("OnLeave", function(b) b:SetBackdropBorderColor(unpack(BORDER)) end)
     closeBtn:SetScript("OnClick", function() dimmer:Hide() end)
@@ -240,13 +240,13 @@ local function ShowImportPopup(onImport)
     title:SetFont(FONT_BOLD, 15, "")
     title:SetPoint("TOPLEFT", 20, -18)
     title:SetTextColor(1, 1, 1)
-    title:SetText(L["popup_import_title"] or "Importer un Profil")
+    title:SetText(L["popup_import_title"])
 
     local sub = pop:CreateFontString(nil, "OVERLAY")
     sub:SetFont(FONT, 10, "")
     sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
     sub:SetTextColor(unpack(TEXT_DIM))
-    sub:SetText(L["popup_import_hint"] or "Collez une chaîne d'export TomoMod, puis cliquez sur Importer")
+    sub:SetText(L["popup_import_hint"])
 
     -- Preview
     local preview = pop:CreateFontString(nil, "OVERLAY")
@@ -292,7 +292,7 @@ local function ShowImportPopup(onImport)
         end
 
         -- Feedback immédiat : "Analyse..."
-        preview:SetText("|cff888888" .. (L["import_preview_analyzing"] or "Analyse...") .. "|r")
+        preview:SetText("|cff888888" .. (L["import_preview_analyzing"]) .. "|r")
 
         -- Lancer le preview après un délai
         local gen = _previewGeneration
@@ -317,13 +317,13 @@ local function ShowImportPopup(onImport)
                     or ("Classe : " .. (meta.class or "?") .. " · " .. tostring(meta.moduleCount or 0) .. " modules · " .. (meta.date or "?")))
                 )
             else
-                preview:SetText("|cffff4444✗|r " .. (L["import_preview_invalid"] or "Chaîne invalide"))
+                preview:SetText("|cffff4444✗|r " .. (L["import_preview_invalid"]))
             end
         end)
     end)
 
     -- Nom du profil à créer
-    local nameBox, _ = MkEditBox(pop, L["placeholder_import_profile_name"] or "Nom du profil...", 260, -230)
+    local nameBox, _ = MkEditBox(pop, L["placeholder_import_profile_name"], 260, -230)
     nameBox:SetPoint("BOTTOMLEFT", pop, "BOTTOMLEFT", 16, 58)
     nameBox:ClearAllPoints()
     nameBox:SetPoint("BOTTOMLEFT", pop, "BOTTOMLEFT", 16, 58)
@@ -332,7 +332,7 @@ local function ShowImportPopup(onImport)
     nameLbl:SetFont(FONT, 10, "")
     nameLbl:SetPoint("BOTTOMLEFT", nameBox, "TOPLEFT", 0, 2)
     nameLbl:SetTextColor(unpack(TEXT_DIM))
-    nameLbl:SetText(L["label_import_profile_name"] or "Sauvegarder sous le nom :")
+    nameLbl:SetText(L["label_import_profile_name"])
 
     -- Boutons
     local cancelBtn = CreateFrame("Button", nil, pop, "BackdropTemplate")
@@ -343,7 +343,7 @@ local function ShowImportPopup(onImport)
     cancelBtn:SetBackdropBorderColor(unpack(BORDER))
     local cancelLbl = cancelBtn:CreateFontString(nil, "OVERLAY")
     cancelLbl:SetFont(FONT_BOLD, 11, ""); cancelLbl:SetPoint("CENTER")
-    cancelLbl:SetTextColor(unpack(TEXT)); cancelLbl:SetText(L["btn_cancel"] or "Annuler")
+    cancelLbl:SetTextColor(unpack(TEXT)); cancelLbl:SetText(L["btn_cancel"])
     cancelBtn:SetScript("OnEnter", function(b) b:SetBackdropBorderColor(unpack(T.red)) end)
     cancelBtn:SetScript("OnLeave", function(b) b:SetBackdropBorderColor(unpack(BORDER)) end)
     cancelBtn:SetScript("OnClick", function() dimmer:Hide() end)
@@ -356,7 +356,7 @@ local function ShowImportPopup(onImport)
     importBtn:SetBackdropBorderColor(unpack(ACCENT))
     local importLbl = importBtn:CreateFontString(nil, "OVERLAY")
     importLbl:SetFont(FONT_BOLD, 11, ""); importLbl:SetPoint("CENTER")
-    importLbl:SetTextColor(unpack(ACCENT)); importLbl:SetText(L["btn_import"] or "Importer")
+    importLbl:SetTextColor(unpack(ACCENT)); importLbl:SetText(L["btn_import"])
     importBtn:SetScript("OnEnter", function(b)
         b:SetBackdropColor(ACCENT[1] * 0.4, ACCENT[2] * 0.4, ACCENT[3] * 0.4, 0.9)
         importLbl:SetTextColor(1, 1, 1)
@@ -368,7 +368,7 @@ local function ShowImportPopup(onImport)
     importBtn:SetScript("OnClick", function()
         local str = eb:GetText()
         if not str or str == "" then
-            preview:SetText("|cffff4444✗|r " .. (L["msg_import_empty"] or "Chaîne vide"))
+            preview:SetText("|cffff4444✗|r " .. (L["msg_import_empty"]))
             return
         end
         local profName = nameBox.editBox:GetText()
@@ -408,14 +408,14 @@ local function BuildProfileTab(parent)
     local activeName   = P.GetActiveProfileName()
 
     -- ── Profil actif ────────────────────────────────────────────────────────
-    local _, ny = W.CreateSectionHeader(c, L["section_named_profiles"] or "Profils", y)
+    local _, ny = W.CreateSectionHeader(c, L["section_named_profiles"], y)
     y = ny
 
     local activeDisp = c:CreateFontString(nil, "OVERLAY")
     activeDisp:SetFont(FONT, 11, "")
     activeDisp:SetPoint("TOPLEFT", 16, y)
     activeDisp:SetTextColor(1, 1, 1)
-    activeDisp:SetText((L["profile_active_label"] or "Profil actif") .. " : |cff2ed884" .. activeName .. "|r")
+    activeDisp:SetText((L["profile_active_label"]) .. " : |cff2ed884" .. activeName .. "|r")
     y = y - 22
 
     -- ── Liste des profils ────────────────────────────────────────────────────
@@ -471,30 +471,30 @@ local function BuildProfileTab(parent)
             local btnX = -4
             if name ~= "Default" then
                 -- Supprimer
-                local delBtn = MkSmallBtn(row, L["btn_delete_profile"] or "Suppr.", 70, function()
+                local delBtn = MkSmallBtn(row, L["btn_delete_profile"], 70, function()
                     StaticPopup_Show("TOMOMOD_DELETE_PROFILE", name, nil, { name = name })
                 end, true)
                 delBtn:SetPoint("RIGHT", btnX, 0); btnX = btnX - 76
 
                 -- Renommer
-                local renBtn = MkSmallBtn(row, L["btn_rename_profile"] or "Renommer", 80, function()
+                local renBtn = MkSmallBtn(row, L["btn_rename_profile"], 80, function()
                     StaticPopup_Show("TOMOMOD_RENAME_PROFILE", name, nil, { name = name })
                 end)
                 renBtn:SetPoint("RIGHT", btnX, 0); btnX = btnX - 86
             end
 
             -- Dupliquer
-            local dupBtn = MkSmallBtn(row, L["btn_duplicate_profile"] or "Dupliquer", 80, function()
+            local dupBtn = MkSmallBtn(row, L["btn_duplicate_profile"], 80, function()
                 StaticPopup_Show("TOMOMOD_DUPLICATE_PROFILE", name, nil, { name = name })
             end)
             dupBtn:SetPoint("RIGHT", btnX, 0); btnX = btnX - 86
 
             -- Charger (si pas actif)
             if name ~= activeName then
-                local loadBtn = MkSmallBtn(row, L["btn_load_profile"] or "Charger", 70, function()
+                local loadBtn = MkSmallBtn(row, L["btn_load_profile"], 70, function()
                     local ok = P.LoadNamedProfile(name)
                     if ok then
-                        print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_loaded"] or "Profil '%s' chargé", name))
+                        print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_loaded"], name))
                         StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
                     end
                 end)
@@ -507,23 +507,23 @@ local function BuildProfileTab(parent)
 
     -- ── Créer un nouveau profil ──────────────────────────────────────────────
     local _, ny = W.CreateSeparator(c, y); y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_create_profile"] or "— Créer un Nouveau Profil —", y); y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_create_profile"], y); y = ny
 
-    local nameBox, ny = MkEditBox(c, L["placeholder_profile_name"] or "Nom du profil...", 260, y); y = ny
+    local nameBox, ny = MkEditBox(c, L["placeholder_profile_name"], 260, y); y = ny
 
-    local _, ny = W.CreateButton(c, L["btn_create_profile"] or "Créer le Profil", 180, y, function()
+    local _, ny = W.CreateButton(c, L["btn_create_profile"], 180, y, function()
         local name = nameBox.editBox:GetText()
         if not name or name:match("^%s*$") then
-            print("|cffff0000TomoMod|r " .. (L["msg_profile_name_empty"] or "Nom vide"))
+            print("|cffff0000TomoMod|r " .. (L["msg_profile_name_empty"]))
             return
         end
         local ok, err = P.CreateNamedProfile(name)
         if ok then
-            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_created"] or "Profil '%s' créé", name))
+            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_created"], name))
             nameBox.editBox:SetText("")
             nameBox.editBox:ClearFocus()
         else
-            print("|cffff0000TomoMod|r " .. (err or "Erreur"))
+            print("|cffff0000TomoMod|r " .. (err or L["profiles_error"]))
         end
     end)
     y = ny
@@ -533,7 +533,7 @@ local function BuildProfileTab(parent)
         if name and not name:match("^%s*$") then
             local ok = P.CreateNamedProfile(name)
             if ok then
-                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_created"] or "Profil '%s' créé", name))
+                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_created"], name))
                 self:SetText("")
             end
         end
@@ -542,17 +542,17 @@ local function BuildProfileTab(parent)
 
     -- Save courant
     local _, ny = W.CreateSeparator(c, y); y = ny
-    local _, ny = W.CreateButton(c, L["btn_save_profile"] or "Sauvegarder le Profil Actif", 240, y, function()
+    local _, ny = W.CreateButton(c, L["btn_save_profile"], 240, y, function()
         P.AutoSaveActiveProfile()
-        print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_saved"] or "Sauvegardé dans '%s'", activeName))
+        print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_saved"], activeName))
     end)
     y = ny
-    local _, ny = W.CreateInfoText(c, L["info_save_profile"] or "Sauvegarde automatique à la fermeture du panneau.", y); y = ny
+    local _, ny = W.CreateInfoText(c, L["info_save_profile"], y); y = ny
 
     -- ── Assignation Spec → Profil ────────────────────────────────────────────
     local _, ny = W.CreateSeparator(c, y); y = ny
-    local _, ny = W.CreateSectionHeader(c, L["section_spec_assign"] or "Profils par Spécialisation", y); y = ny
-    local _, ny = W.CreateInfoText(c, L["info_spec_assign"] or "Associez chaque spécialisation à un profil nommé. TomoMod chargera le profil correspondant automatiquement.", y); y = ny
+    local _, ny = W.CreateSectionHeader(c, L["section_spec_assign"], y); y = ny
+    local _, ny = W.CreateInfoText(c, L["info_spec_assign"], y); y = ny
 
     local allSpecs = P.GetAllSpecs()
     local profileOptions = {}
@@ -561,7 +561,7 @@ local function BuildProfileTab(parent)
             table.insert(profileOptions, { text = n, value = n })
         end
     end
-    table.insert(profileOptions, 1, { text = L["spec_profile_none"] or "— Aucun —", value = "" })
+    table.insert(profileOptions, 1, { text = L["spec_profile_none"], value = "" })
 
     for _, spec in ipairs(allSpecs) do
         local assigned = P.GetSpecAssignedProfile(spec.id) or ""
@@ -605,7 +605,7 @@ local function BuildProfileTab(parent)
         dropBtn:SetBackdropBorderColor(unpack(BORDER))
 
         local function GetOptDisplay(val)
-            if val == "" then return L["spec_profile_none"] or "— Aucun —" end
+            if val == "" then return L["spec_profile_none"] end
             for _, opt in ipairs(profileOptions) do
                 if opt.value == val then return opt.text end
             end
@@ -696,7 +696,7 @@ local function BuildProfileTab(parent)
         y = y - 42
     end
 
-    local _, ny = W.CreateInfoText(c, L["info_spec_reload"] or "Le changement de spec recharge automatiquement le profil associé.", y); y = ny
+    local _, ny = W.CreateInfoText(c, L["info_spec_reload"], y); y = ny
 
     c:SetHeight(math.abs(y) + 20)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
@@ -714,17 +714,17 @@ local function BuildImportExportTab(parent)
     local y = -10
 
     -- Export
-    local _, ny = W.CreateSectionHeader(c, L["section_export"] or "Exporter", y); y = ny
-    local _, ny = W.CreateInfoText(c, L["info_export"] or "Crée une chaîne compressée de vos paramètres actuels. Partagez-la avec d'autres joueurs.", y); y = ny
+    local _, ny = W.CreateSectionHeader(c, L["section_export"], y); y = ny
+    local _, ny = W.CreateInfoText(c, L["info_export"], y); y = ny
 
     local exportBtnRef  -- référence pour désactiver pendant l'export
-    local _, ny = W.CreateButton(c, L["btn_export"] or "Exporter le Profil Actif", 240, y, function()
+    local _, ny = W.CreateButton(c, L["btn_export"], 240, y, function()
         -- [PERF v2] Export asynchrone pour éviter le freeze
         P.ExportAsync(function(str, err)
             if str then
                 ShowExportPopup(str)
             else
-                print("|cffff0000TomoMod|r " .. (err or "Export échoué"))
+                print("|cffff0000TomoMod|r " .. (err or L["profiles_export_failed"]))
             end
         end)
     end)
@@ -732,20 +732,20 @@ local function BuildImportExportTab(parent)
 
     -- Import
     local _, ny = W.CreateSeparator(c, y); y = ny
-    local _, ny = W.CreateSectionHeader(c, L["section_import"] or "Importer", y); y = ny
-    local _, ny = W.CreateInfoText(c, L["info_import"] or "Collez une chaîne d'export TomoMod. Vous pouvez la sauvegarder sous un nouveau nom de profil.", y); y = ny
+    local _, ny = W.CreateSectionHeader(c, L["section_import"], y); y = ny
+    local _, ny = W.CreateInfoText(c, L["info_import"], y); y = ny
 
-    local _, ny = W.CreateButton(c, L["btn_import"] or "Importer un Profil...", 240, y, function()
+    local _, ny = W.CreateButton(c, L["btn_import"], 240, y, function()
         ShowImportPopup(function(str, profName)
             if profName and not profName:match("^%s*$") then
                 -- [PERF v2] Import asynchrone comme nouveau profil
                 profName = profName:match("^%s*(.-)%s*$")
                 P.ImportAsProfileAsync(str, profName, function(ok, err)
                     if ok then
-                        print("|cff2ed884TomoMod|r " .. string.format(L["msg_import_as_profile"] or "Importé sous '%s'", profName))
+                        print("|cff2ed884TomoMod|r " .. string.format(L["msg_import_as_profile"], profName))
                         StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
                     else
-                        print("|cffff0000TomoMod|r " .. (err or "Import échoué"))
+                        print("|cffff0000TomoMod|r " .. (err or L["profiles_import_failed"]))
                     end
                 end)
             else
@@ -756,7 +756,7 @@ local function BuildImportExportTab(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, "|cffff8800(!)|r " .. (L["info_import_warning"] or "L'import sans nom de profil remplace vos paramètres actuels."), y); y = ny
+    local _, ny = W.CreateInfoText(c, "|cffff8800(!)|r " .. (L["info_import_warning"]), y); y = ny
 
     c:SetHeight(math.abs(y) + 20)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
@@ -772,8 +772,8 @@ local function BuildResetsTab(parent)
     local c = scroll.child
     local y = -10
 
-    local _, ny = W.CreateSectionHeader(c, L["section_reset_module"] or "Réinitialiser un Module", y); y = ny
-    local _, ny = W.CreateInfoText(c, L["info_resets"] or "Réinitialise les paramètres d'un module aux valeurs par défaut.", y); y = ny
+    local _, ny = W.CreateSectionHeader(c, L["section_reset_module"], y); y = ny
+    local _, ny = W.CreateInfoText(c, L["info_resets"], y); y = ny
 
     local modules = {
         { key = "unitFrames",       label = "UnitFrames" },
@@ -795,17 +795,17 @@ local function BuildResetsTab(parent)
     }
 
     for _, mod in ipairs(modules) do
-        local _, ny = W.CreateButton(c, (L["btn_reset_prefix"] or "Réinitialiser ") .. mod.label, 260, y, function()
+        local _, ny = W.CreateButton(c, (L["btn_reset_prefix"]) .. mod.label, 260, y, function()
             TomoMod_ResetModule(mod.key)
-            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_reset"] or "%s réinitialisé", mod.label))
+            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_reset"], mod.label))
         end)
         y = ny
     end
 
     local _, ny = W.CreateSeparator(c, y); y = ny
-    local _, ny = W.CreateSectionHeader(c, L["section_reset_all"] or "Réinitialisation Complète", y); y = ny
-    local _, ny = W.CreateInfoText(c, L["info_reset_all_warning"] or "Réinitialise TOUS les paramètres. Cette action est irréversible.", y); y = ny
-    local _, ny = W.CreateButton(c, L["btn_reset_all_reload"] or "Tout Réinitialiser et Recharger", 280, y, function()
+    local _, ny = W.CreateSectionHeader(c, L["section_reset_all"], y); y = ny
+    local _, ny = W.CreateInfoText(c, L["info_reset_all_warning"], y); y = ny
+    local _, ny = W.CreateButton(c, L["btn_reset_all_reload"], 280, y, function()
         StaticPopup_Show("TOMOMOD_RESET_ALL")
     end)
     y = ny - 20
@@ -821,9 +821,9 @@ end
 
 function TomoMod_ConfigPanel_Profiles(parent)
     local tabs = {
-        { key = "profiles",     label = L["tab_profiles"]      or "Profils",    builder = BuildProfileTab },
-        { key = "importexport", label = L["tab_import_export"] or "Import/Export", builder = BuildImportExportTab },
-        { key = "resets",       label = L["tab_resets"]        or "Reset",      builder = BuildResetsTab },
+        { key = "profiles",     label = L["tab_profiles"],    builder = BuildProfileTab },
+        { key = "importexport", label = L["tab_import_export"], builder = BuildImportExportTab },
+        { key = "resets",       label = L["tab_resets"],      builder = BuildResetsTab },
     }
     return W.CreateTabPanel(parent, tabs)
 end
@@ -834,17 +834,17 @@ end
 -- =====================================
 
 StaticPopupDialogs["TOMOMOD_IMPORT_CONFIRM"] = {
-    text = L["popup_import_text"] or "|cff2ed884TomoMod|r\n\nImporter ce profil ?\nVos paramètres actuels seront remplacés.",
-    button1 = L["popup_confirm"] or "Importer",
-    button2 = L["popup_cancel"] or "Annuler",
+    text = L["popup_import_text"],
+    button1 = L["popup_confirm"],
+    button2 = L["popup_cancel"],
     OnAccept = function(self, data)
         if data and data.text then
             P.ImportAsync(data.text, function(ok, err)
                 if ok then
-                    print("|cff2ed884TomoMod|r " .. (L["msg_import_success"] or "Import réussi"))
+                    print("|cff2ed884TomoMod|r " .. (L["msg_import_success"]))
                     ReloadUI()
                 else
-                    print("|cffff0000TomoMod|r " .. (err or "Import échoué"))
+                    print("|cffff0000TomoMod|r " .. (err or L["profiles_import_failed"]))
                 end
             end)
         end
@@ -853,39 +853,39 @@ StaticPopupDialogs["TOMOMOD_IMPORT_CONFIRM"] = {
 }
 
 StaticPopupDialogs["TOMOMOD_PROFILE_RELOAD"] = {
-    text = L["popup_profile_reload"] or "|cff2ed884TomoMod|r\n\nProfil modifié.\nRecharger l'UI pour appliquer ?",
-    button1 = L["popup_confirm"] or "Recharger",
-    button2 = L["popup_cancel"] or "Annuler",
+    text = L["popup_profile_reload"],
+    button1 = L["popup_confirm"],
+    button2 = L["popup_cancel"],
     OnAccept = function() ReloadUI() end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }
 
 StaticPopupDialogs["TOMOMOD_DELETE_PROFILE"] = {
-    text = L["popup_delete_profile"] or "|cff2ed884TomoMod|r\n\nSupprimer le profil '%s' ?\nCette action est irréversible.",
-    button1 = L["popup_confirm"] or "Supprimer",
-    button2 = L["popup_cancel"] or "Annuler",
+    text = L["popup_delete_profile"],
+    button1 = L["popup_confirm"],
+    button2 = L["popup_cancel"],
     OnAccept = function(self, data)
         if data and data.name then
             P.DeleteNamedProfile(data.name)
-            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_name_deleted"] or "Profil '%s' supprimé", data.name))
+            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_name_deleted"], data.name))
         end
     end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }
 
 StaticPopupDialogs["TOMOMOD_RENAME_PROFILE"] = {
-    text = L["popup_rename_profile"] or "|cff2ed884TomoMod|r\n\nNouveau nom pour '%s' :",
-    button1 = L["popup_confirm"] or "Renommer",
-    button2 = L["popup_cancel"] or "Annuler",
+    text = L["popup_rename_profile"],
+    button1 = L["popup_confirm"],
+    button2 = L["popup_cancel"],
     hasEditBox = true,
     OnAccept = function(self, data)
         if data and data.name then
             local newName = self.editBox:GetText()
             local ok, err = P.RenameProfile(data.name, newName)
             if ok then
-                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_renamed"] or "'%s' renommé en '%s'", data.name, newName))
+                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_renamed"], data.name, newName))
             else
-                print("|cffff0000TomoMod|r " .. (err or "Erreur renommage"))
+                print("|cffff0000TomoMod|r " .. (err or L["profiles_rename_failed"]))
             end
         end
     end,
@@ -893,16 +893,16 @@ StaticPopupDialogs["TOMOMOD_RENAME_PROFILE"] = {
 }
 
 StaticPopupDialogs["TOMOMOD_DUPLICATE_PROFILE"] = {
-    text = L["popup_duplicate_profile"] or "|cff2ed884TomoMod|r\n\nDupliquer '%s' sous le nom :",
-    button1 = L["popup_confirm"] or "Dupliquer",
-    button2 = L["popup_cancel"] or "Annuler",
+    text = L["popup_duplicate_profile"],
+    button1 = L["popup_confirm"],
+    button2 = L["popup_cancel"],
     hasEditBox = true,
     OnAccept = function(self, data)
         if data and data.name then
             local toName = self.editBox:GetText()
             local ok, err = P.DuplicateProfile(data.name, toName)
             if ok then
-                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_duplicated"] or "'%s' dupliqué en '%s'", data.name, toName))
+                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_duplicated"], data.name, toName))
             else
                 print("|cffff0000TomoMod|r " .. (err or "Erreur duplication"))
             end

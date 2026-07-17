@@ -1,5 +1,47 @@
 ## ####################################
 
+## CHANGELOG 3.2.1 — CooldownForge: Custom Per-Class Cooldown Bars
+
+#### New Module — CooldownForge
+- **New** — Introduced CooldownForge, a fully custom, display-only cooldown tracking system, independent from the Blizzard Cooldown Manager reskin. Create any number of bars per class, each tracking spells, items, item presets (Healthstone, Health/Mana/Invisibility Potion...), an equipped trinket or your racial ability, with its own icon size, spacing, growth direction, orientation, wrap, glow style (Pixel/Autocast/Button) and text mode (timer/name/none).
+- **New** — A dedicated **Cooldowns** tab (Config window, Combat category) lets you pick a class, create/rename/delete bars, add or remove tracked entries (with optional per-spec filtering) and tweak every bar setting with live preview.
+- **New** — Every CooldownForge bar can be dragged independently into place through the unified Movers manager (new "Cooldown Bars" entry), with its position saved per bar and restored the same scale-agnostic, center-anchored way as other TomoMod frames.
+- **New** — Import/Export: share a class's full cooldown bar setup as a compact string, using the same Serialize + Deflate pipeline as profile import/export. Importing merges bars by id into the target class only — other classes' bars and personal bar positions are never touched or overwritten.
+- **Internal** — Event-driven, secret-value-safe engine: no polling, spells feed duration objects straight into the native Cooldown widget, items/trinkets use plain non-secret numbers, and "ready" state is always detected via `IsShown()` rather than reading a secret cooldown value directly. Racial abilities are pre-mapped for every playable race.
+
+## ####################################
+
+## CHANGELOG 3.2.0 — Global Config Search, Instant Panel Switching & Full Config Localization
+
+#### Config Window — Global Search Across Every Option
+- **New** — The sidebar search box in the `/tm` config window is now a true global search: typing 2+ characters shows a results popup listing every matching option across **all** categories and tabs, not just the visible page. Selecting a result (click or Enter) deep-links straight to the right category/tab, scrolls the panel to the exact option and briefly flashes it so it's easy to spot.
+- **New** — Pages you haven't opened yet are indexed automatically the first time you search (built once, off-screen), so the search always covers the entire GUI regardless of which tabs you've actually visited this session.
+- **New** — Added a "No matching option" message shown when a search finds nothing.
+
+#### Config Window — Instant Category/Tab Switching
+- **Change** — Switching between category tabs in the config window no longer destroys and rebuilds the panel every time — panels are now cached and simply shown/hidden, making tab switching effectively instant after the first visit. The Accueil (dashboard/presets) and Tools (profile list, live diagnostics) tabs still always rebuild so their dynamic content stays current.
+- **Fix** — Applying a preset or switching profiles now correctly invalidates the cached panels so every widget reflects the newly loaded values instead of showing stale state from before the switch.
+
+#### Config UI — Full Localization Pass
+- **Change** — Every remaining hardcoded French string in the configuration panels (category and tab names, descriptions, the reload-confirmation dialog, the FPS/memory footer, and the ActionBars, Castbars, CooldownResource, Diagnostics, General, MythicPlus, Nameplates, PartyFrames, Profiles, QOL, RaidFrames, RFPreview, Skins, Sound, UFPreview and UnitFrames panels) is now routed through the locale system. Non-French clients now see a fully translated settings UI instead of French labels bleeding through everywhere.
+
+#### Internal — Composite Widget Helpers
+- **New** — Added a set of reusable multi-column widget builders (2/3-column rows, triple sliders, triple dropdowns, dropdown-with-offset-sliders, multi-swatch color rows) and a persistent reorder dropdown (checkbox + up/down arrows to enable and reorder list entries) used to build more consistent config panel layouts going forward.
+
+## ####################################
+
+## CHANGELOG 3.1.12 — Mythic+ Scoreboard Taint Fix & Config Window Resize/Scale
+
+#### Mythic+ Scoreboard — No Longer Blocked by Combat Taint on Dungeon Completion
+- **Fix** — Diagnostics reports showed a burst of `ADDON_ACTION_BLOCKED` errors (`Button:SetAttribute()`, `Button:EnableMouse()`, `Button:ClearAllPoints()`, `Button:SetPoint()`, `Button:Show()`, plus the same on `TomoScoreFrame` itself) firing when the end-of-dungeon scoreboard tried to display after `CHALLENGE_MODE_COMPLETED`. Root cause: `PopulateScoreboard` sets a `SetAttribute` on each row's secure teleport button (a `SecureActionButtonTemplate`, used for the keystone-dungeon teleport spell), which taints the rest of that function call — including the otherwise-ordinary `SetPoint`/`Show`/`SetSize` calls on the plain `TomoScoreFrame` further down the same call chain — if the player is still in combat lockdown at that moment (e.g. lingering adds right after the final boss dies). The scoreboard display path now checks `InCombatLockdown()` before populating/showing and, if still in combat, defers itself until `PLAYER_REGEN_ENABLED` fires instead of running immediately.
+
+#### Config Window — Resizable & Scalable
+- **New** — The `/tm` configuration window can now be resized by dragging a new grip added to its bottom-right corner (clamped between 1020×720 and 1680×1080), and a **Config window scale** slider (70–130%, General panel) lets you shrink or enlarge the whole panel independently of its size. Both the saved size and scale are restored automatically the next time the window opens.
+- **Change** — Default window size increased from 1020×720 to 1240×820, and the sidebar from 190px to 210px, giving every panel more room out of the box. A new **Reset window size & scale** button next to the slider (General panel) instantly restores both to their defaults.
+- **Change** — Tab bars and scrollable content areas inside category panels now recompute their layout (tab widths, child width) whenever the window is resized instead of assuming a fixed width, so tabs and scroll content reflow correctly at any window size.
+
+## ####################################
+
 ## CHANGELOG 3.1.11 — Castbar Stale-State Fix & Objective Tracker "Find Group" Button Hiding
 
 #### Castbars — No Longer Get Stuck When the Casting Unit Dies or Changes

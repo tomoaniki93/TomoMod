@@ -339,7 +339,7 @@ function RFP.Create(parent)
     header:SetFont(FONT_BOLD, 9, "OUTLINE")
     header:SetPoint("TOPLEFT", 12, -8)
     header:SetTextColor(aR, aG, aB, 0.55)
-    header:SetText(L["preview_header"] or "APERÇU EN DIRECT")
+    header:SetText(L["preview_header"])
 
     -- Pulsing live dot
     local dot = strip:CreateTexture(nil, "OVERLAY")
@@ -390,8 +390,8 @@ function RFP.Create(parent)
         return btn
     end
 
-    local btnRaid = CreateModeBtn(L["rf_mode_raid"] or "Raid", "raid", "TOPRIGHT", strip, "TOPRIGHT", -68, -6)
-    local btnSolo = CreateModeBtn(L["rf_mode_solo"] or "Solo", "solo", "LEFT", btnRaid, "RIGHT", 2, 0)
+    local btnRaid = CreateModeBtn(L["rf_mode_raid"], "raid", "TOPRIGHT", strip, "TOPRIGHT", -68, -6)
+    local btnSolo = CreateModeBtn(L["rf_mode_solo"], "solo", "LEFT", btnRaid, "RIGHT", 2, 0)
 
     local function UpdateModeButtons()
         btnRaid:UpdateStyle()
@@ -427,7 +427,7 @@ function RFP.Create(parent)
         local lbl = strip:CreateFontString(nil, "OVERLAY")
         lbl:SetFont(FONT_BOLD, 7, "OUTLINE")
         lbl:SetTextColor(aR * 0.7, aG * 0.7, aB * 0.7, 0.55)
-        lbl:SetText((L["rf_preview_group"] or "G") .. g)
+        lbl:SetText((L["rf_preview_group"]) .. g)
         groupLabels[g] = lbl
     end
 

@@ -1330,6 +1330,17 @@ TomoMod_Defaults = {
         clock_analog     = false,     -- true = analog dial, false = digital readout
         clock_totalTime  = 0,         -- Persisted total seconds spent in editor
     },
+
+    -- =====================
+    -- COOLDOWN FORGE (AstralForge Cooldown) -- schema V1
+    -- Bars stored per class token; empty by default. Defensive merge
+    -- fills only missing keys, so player bars are never clobbered on update.
+    -- =====================
+    cooldownForge = {
+        schemaVersion = 1,
+        enabled       = true,
+        bars          = {},   -- [classToken] = { <BarSchema>, ... }
+    },
 }
 
 -- =====================================

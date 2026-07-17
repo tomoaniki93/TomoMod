@@ -62,21 +62,21 @@ function TomoMod_ConfigPanel_MythicPlus(parent)
             return ny
         end)
 
-    local _, cy = W.CreateCheckbox(card.inner, L["tmt_cfg_lock"] or "Verrouillé", TomoModDB.MythicTracker.locked, cy, function(v)
+    local _, cy = W.CreateCheckbox(card.inner, L["tmt_cfg_lock"], TomoModDB.MythicTracker.locked, cy, function(v)
         TomoModDB.MythicTracker.locked = v
         if TomoMod_MythicTracker then
             TomoMod_MythicTracker:SetMovable(not v)
         end
     end)
 
-    local _, cy = W.CreateSlider(card.inner, L["tmt_cfg_scale"] or "Échelle", TomoModDB.MythicTracker.scale, 0.5, 2.0, 0.05, cy, function(v)
+    local _, cy = W.CreateSlider(card.inner, L["tmt_cfg_scale"], TomoModDB.MythicTracker.scale, 0.5, 2.0, 0.05, cy, function(v)
         TomoModDB.MythicTracker.scale = v
         if TomoMod_MythicTracker and TomoMod_MythicTracker.Frame then
             TomoMod_MythicTracker.Frame:SetScale(v)
         end
     end, "%.2f")
 
-    local _, cy = W.CreateSlider(card.inner, L["tmt_cfg_alpha"] or "Opacité", TomoModDB.MythicTracker.alpha, 0.2, 1.0, 0.05, cy, function(v)
+    local _, cy = W.CreateSlider(card.inner, L["tmt_cfg_alpha"], TomoModDB.MythicTracker.alpha, 0.2, 1.0, 0.05, cy, function(v)
         TomoModDB.MythicTracker.alpha = v
         if TomoMod_MythicTracker and TomoMod_MythicTracker.Frame then
             TomoMod_MythicTracker.Frame:SetAlpha(v)
@@ -85,16 +85,16 @@ function TomoMod_ConfigPanel_MythicPlus(parent)
 
     local _, cy = W.CreateTwoColumnRow(card.inner, cy,
         function(col)
-            local _, ny = W.CreateButton(col, L["tmt_cfg_preview"] or "Prévisualiser", 160, 0, function()
+            local _, ny = W.CreateButton(col, L["tmt_cfg_preview"], 160, 0, function()
                 if TomoMod_MythicTracker then TomoMod_MythicTracker:Preview() end
             end)
             return ny
         end,
         function(col)
-            local _, ny = W.CreateButton(col, L["tmt_cfg_reset_pos"] or "Réinitialiser pos.", 160, 0, function()
+            local _, ny = W.CreateButton(col, L["tmt_cfg_reset_pos"], 160, 0, function()
                 if TomoMod_MythicTracker then
                     TomoMod_MythicTracker:ResetPosition()
-                    print(L["tmt_reset_msg"] or "Position réinitialisée.")
+                    print(L["tmt_reset_msg"])
                 end
             end)
             return ny
@@ -105,24 +105,24 @@ function TomoMod_ConfigPanel_MythicPlus(parent)
     -- ═══════════════════════════════════════════════
     -- TOMO SCORE
     -- ═══════════════════════════════════════════════
-    local card2, cy = W.CreateCard(c, L["ts_cfg_title"] or "TomoScore", y)
+    local card2, cy = W.CreateCard(c, L["ts_cfg_title"], y)
 
-    local _, cy = W.CreateCheckbox(card2.inner, L["ts_cfg_enable"] or "Activer TomoScore", TomoModDB.TomoScore.enabled, cy, function(v)
+    local _, cy = W.CreateCheckbox(card2.inner, L["ts_cfg_enable"], TomoModDB.TomoScore.enabled, cy, function(v)
         TomoModDB.TomoScore.enabled = v
     end)
 
-    local _, cy = W.CreateCheckbox(card2.inner, L["ts_cfg_auto_show_mplus"] or "Afficher automatiquement en M+", TomoModDB.TomoScore.autoShowMPlus, cy, function(v)
+    local _, cy = W.CreateCheckbox(card2.inner, L["ts_cfg_auto_show_mplus"], TomoModDB.TomoScore.autoShowMPlus, cy, function(v)
         TomoModDB.TomoScore.autoShowMPlus = v
     end)
 
-    local _, cy = W.CreateSlider(card2.inner, L["ts_cfg_scale"] or "Échelle", TomoModDB.TomoScore.scale, 0.5, 2.0, 0.05, cy, function(v)
+    local _, cy = W.CreateSlider(card2.inner, L["ts_cfg_scale"], TomoModDB.TomoScore.scale, 0.5, 2.0, 0.05, cy, function(v)
         TomoModDB.TomoScore.scale = v
         if TomoMod_TomoScore and TomoMod_TomoScore.SB then
             TomoMod_TomoScore.SB:SetScale(v)
         end
     end, "%.2f")
 
-    local _, cy = W.CreateSlider(card2.inner, L["ts_cfg_alpha"] or "Opacité", TomoModDB.TomoScore.alpha, 0.2, 1.0, 0.05, cy, function(v)
+    local _, cy = W.CreateSlider(card2.inner, L["ts_cfg_alpha"], TomoModDB.TomoScore.alpha, 0.2, 1.0, 0.05, cy, function(v)
         TomoModDB.TomoScore.alpha = v
         if TomoMod_TomoScore and TomoMod_TomoScore.SB then
             TomoMod_TomoScore.SB:SetAlpha(v)
@@ -131,16 +131,16 @@ function TomoMod_ConfigPanel_MythicPlus(parent)
 
     local _, cy = W.CreateTwoColumnRow(card2.inner, cy,
         function(col)
-            local _, ny = W.CreateButton(col, L["ts_cfg_preview"] or "Prévisualiser", 160, 0, function()
+            local _, ny = W.CreateButton(col, L["ts_cfg_preview"], 160, 0, function()
                 if TomoMod_TomoScore then TomoMod_TomoScore:ShowPreview() end
             end)
             return ny
         end,
         function(col)
-            local _, ny = W.CreateButton(col, L["ts_cfg_reset_pos"] or "Réinitialiser pos.", 160, 0, function()
+            local _, ny = W.CreateButton(col, L["ts_cfg_reset_pos"], 160, 0, function()
                 if TomoMod_TomoScore then
                     TomoMod_TomoScore:ResetPosition()
-                    print(L["ts_reset_msg"] or "Position réinitialisée.")
+                    print(L["ts_reset_msg"])
                 end
             end)
             return ny

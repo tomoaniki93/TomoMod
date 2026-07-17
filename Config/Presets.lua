@@ -373,6 +373,11 @@ function P.Apply(key)
     end
 
     TomoModDB._lastPreset = key
+
+    -- [Lot C] Config pages are cached; a preset rewrites the DB globally
+    if TomoMod_Config and TomoMod_Config.InvalidatePanels then
+        TomoMod_Config.InvalidatePanels()
+    end
     return true
 end
 
