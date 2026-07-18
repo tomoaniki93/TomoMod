@@ -99,17 +99,15 @@ end
 -- on 12.x secret values. Cached per session; the cache is dropped on
 -- SPELLS_CHANGED / PLAYER_SPECIALIZATION_CHANGED.
 -- =====================================================================
-function CDF.ScanSpellbook()
-    if CDF._libCache then return CDF._libCache end
-    local out = {}
-    CDF._libCache = out
+-- [S8] Grimoire scan (spellbook lines). `seen` is shared with the talent
+-- scan so a talent already granted through the spellbook isn't listed twice.
+local function scanSpellbookInto(out, seen)
     if not (C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines
             and C_SpellBook.GetSpellBookSkillLineInfo and C_SpellBook.GetSpellBookItemInfo) then
-        return out
+        return
     end
     local bank = (Enum and Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player) or 0
     local wantType = Enum and Enum.SpellBookItemType and Enum.SpellBookItemType.Spell
-    local seen = {}
     for li = 1, (C_SpellBook.GetNumSpellBookSkillLines() or 0) do
         local line = C_SpellBook.GetSpellBookSkillLineInfo(li)
         if line and not line.isGuild then
@@ -134,12 +132,106 @@ function CDF.ScanSpellbook()
             if #group.spells > 0 then out[#out + 1] = group end
         end
     end
+end
+
+-- [S8] Talent + hero-talent scan (C_Traits). Only COMMITTED, ACTIVE
+-- (non-passive) talents are listed; every call is pcall-guarded, and
+-- spellIDs already in `seen` (grimoire) are skipped. Hero-talent nodes
+-- (identified by their subTreeID) go into a separate group.
+local function scanTalentsInto(out, seen)
+    if not (C_ClassTalents and C_ClassTalents.GetActiveConfigID
+            and C_Traits and C_Traits.GetConfigInfo and C_Traits.GetTreeNodes
+            and C_Traits.GetNodeInfo and C_Traits.GetEntryInfo and C_Traits.GetDefinitionInfo) then
+        return
+    end
+    local okC, configID = pcall(C_ClassTalents.GetActiveConfigID)
+    if not okC or not configID then return end
+    local okI, configInfo = pcall(C_Traits.GetConfigInfo, configID)
+    if not okI or type(configInfo) ~= "table" or type(configInfo.treeIDs) ~= "table" then return end
+
+    local heroSpecID
+    if C_ClassTalents.GetActiveHeroTalentSpec then
+        local okH, h = pcall(C_ClassTalents.GetActiveHeroTalentSpec)
+        if okH then heroSpecID = h end
+    end
+
+    local talents = { name = "Talents", spells = {} }
+    local hero    = { name = "Talents heroiques", spells = {} }
+
+    local function addSpell(group, spellID)
+        if not spellID or seen[spellID] then return end
+        -- skip passives (no cooldown to track)
+        if C_Spell and C_Spell.IsSpellPassive then
+            local okP, passive = pcall(C_Spell.IsSpellPassive, spellID)
+            if okP and passive then return end
+        end
+        seen[spellID] = true
+        local name
+        if C_Spell and C_Spell.GetSpellName then
+            local okN, n = pcall(C_Spell.GetSpellName, spellID)
+            if okN then name = n end
+        end
+        local icon
+        if C_Spell and C_Spell.GetSpellTexture then
+            local okT, t = pcall(C_Spell.GetSpellTexture, spellID)
+            if okT then icon = t end
+        end
+        group.spells[#group.spells + 1] = {
+            spellID = spellID,
+            name    = name or ("Sort " .. spellID),
+            icon    = icon,
+        }
+    end
+
+    for _, treeID in ipairs(configInfo.treeIDs) do
+        local okN, nodes = pcall(C_Traits.GetTreeNodes, treeID)
+        if okN and type(nodes) == "table" then
+            for _, nodeID in ipairs(nodes) do
+                local okNI, nodeInfo = pcall(C_Traits.GetNodeInfo, configID, nodeID)
+                if okNI and type(nodeInfo) == "table" then
+                    local isHero = heroSpecID and nodeInfo.subTreeID
+                        and nodeInfo.subTreeID == heroSpecID
+                    local entries = nodeInfo.entryIDsWithCommittedRanks
+                    if type(entries) == "table" then
+                        for _, entryID in ipairs(entries) do
+                            local okE, entryInfo = pcall(C_Traits.GetEntryInfo, configID, entryID)
+                            if okE and type(entryInfo) == "table" and entryInfo.definitionID then
+                                local okD, def = pcall(C_Traits.GetDefinitionInfo, entryInfo.definitionID)
+                                if okD and type(def) == "table" and def.spellID then
+                                    addSpell(isHero and hero or talents, def.spellID)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    if #talents.spells > 0 then out[#out + 1] = talents end
+    if #hero.spells   > 0 then out[#out + 1] = hero end
+end
+
+function CDF.ScanSpellbook()
+    if CDF._libCache then return CDF._libCache end
+    local out = {}
+    CDF._libCache = out
+    local seen = {}
+    scanSpellbookInto(out, seen)
+    scanTalentsInto(out, seen)
     return out
 end
 
 local libEv = CreateFrame("Frame")
 libEv:RegisterEvent("SPELLS_CHANGED")
 libEv:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+-- [S8] talent changes invalidate the library cache too. Guard optional
+-- events: registering an unknown event errors in WoW.
+local function tryReg(ev)
+    if C_EventUtils and C_EventUtils.IsEventValid and not C_EventUtils.IsEventValid(ev) then return end
+    pcall(libEv.RegisterEvent, libEv, ev)
+end
+tryReg("TRAIT_CONFIG_UPDATED")
 libEv:SetScript("OnEvent", function() CDF._libCache = nil end)
 CDF._libEvFrame = libEv
 
