@@ -1,0 +1,136 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
+
+    <!-- Modules: Minimap + InfoPanel -->
+    <Include file="Minimap\Minimap.lua" />
+    <Include file="Minimap\InfoPanel.lua"/>
+
+    <!-- CDM -->
+    <Include file="CooldownManager\CDMScanner.lua" />
+    <Include file="CooldownManager\CDMHolders.lua" />
+    <Include file="CooldownManager\CDMLayout.lua" />
+    <Include file="CooldownManager\CDMKeybinds.lua" />
+    <Include file="CooldownManager\CDMProcGlow.lua" />
+    <Include file="CooldownManager\CooldownManager.lua" />
+
+    <!-- CooldownForge (AstralForge Cooldown) -->
+    <Include file="CooldownForge\CDF_Core.lua" />
+    <Include file="CooldownForge\CDF_API.lua" />
+    <Include file="CooldownForge\CDF_Catalog.lua" />
+    <Include file="CooldownForge\CDF_Watch.lua" />
+    <Include file="CooldownForge\CDF_Skin.lua" />
+    <Include file="CooldownForge\CDF_Render.lua" />
+    <Include file="CooldownForge\CDF_Movers.lua" />
+    <Include file="CooldownForge\CDF_IO.lua" />
+
+    <!-- Modules: Auto -->
+    <Include file="Auto\AddonDetect.lua" />
+    <Include file="Auto\AutoVendorRepair.lua" />
+    <Include file="Auto\Fastloot.lua"/>
+    <Include file="Auto\HideTalkingHead.lua"/>
+    <Include file="Auto\HideCastBar.lua"/>
+    <Include file="Auto\CinematicSkip.lua"/>
+    <Include file="Auto\AutoAcceptInvite.lua"/>
+    <Include file="Auto\AutoSummon.lua"/>
+    <Include file="Auto\AutoFillDelete.lua"/>
+    <Include file="Auto\AutoSkipRole.lua"/>
+    <Include file="Auto\TooltipIDs.lua"/>
+    <Include file="Auto\BagMicroMenu.lua"/>
+    <Include file="Auto\MerchantTools.lua"/>
+
+    <!-- Modules: AFK Display -->
+    <Include file="AFK\AFKDisplay.lua" />
+
+    <!-- Modules: Classes -->
+    <Include file="Classes\CompanionStatus.lua" />
+    <Include file="Classes\ClassReminder.lua" />
+
+    <!-- Modules: Cursor -->
+    <Include file="Cursor\CursorRing.lua" />
+
+    <!-- Modules: MythicPlus -->
+    <Include file="MythicPlus\DataKeys.lua" />
+    <Include file="MythicPlus\Keystone.lua" />
+    <Include file="MythicPlus\MythicKeys.lua"/>
+    <Include file="MythicPlus\MythicTracker.lua"/>
+
+    <!-- Modules: TomoScore (Dungeon Scoreboard) -->
+    <Include file="MythicPlus\TomoScoreCore.lua" />
+    <Include file="MythicPlus\TomoScoreData.lua" />
+    <Include file="MythicPlus\TomoScoreUI.lua" />
+
+    <!-- Modules: MythicHub (M+ Overview Panel) -->
+    <Include file="MythicPlus\MythicHub.lua" />
+
+    <!-- Modules: Quest -->
+    <Include file="Quest\AutoQuest.lua" />
+    <Include file="Quest\ObjectiveTracker.lua" />
+
+    <!-- Modules: World Quest Tab -->
+    <Include file="WorldQuests\WorldQuestTab.lua" />
+
+    <!-- Modules: Skyriding -->
+    <Include file="Skyriding\SkyRide.lua" />
+
+    <!-- Modules: CVar Optimizer -->
+    <Include file="Optimizations\CVarOptimizer.lua" />
+
+    <!-- Modules: Leveling -->
+    <Include file="Leveling\LevelingBar.lua" />
+
+    <!-- Modules: FrameAnchors -->
+    <Include file="FrameAnchors\FrameAnchors.lua" />
+
+    <!-- Modules: ActionBars -->
+    <Include file="ActionBars\ActionBars.lua" />
+    <Include file="ActionBars\ActionBarSkin.lua" />
+
+    <!-- Modules: LustSound -->
+    <Include file="LustSound\LustSound.lua" />
+
+    <!-- Modules: ProfessionHelper -->
+    <Include file="ProfessionHelper\ProfessionHelper.lua" />
+
+    <!-- Modules: AuctionRecipeTracker (Recipe tracker GUI at the Auction House) -->
+    <Include file="AuctionRecipeTracker\AuctionRecipeTracker.lua" />
+
+    <!-- Modules: Combat -->
+    <Include file="Combat\CombatText.lua" />
+
+    <!-- Modules: Skins -->
+    <Include file="Skins\CharacterSkin.lua" />
+    <Include file="Skins\ReputationBar.lua" />
+    <Include file="Skins\ChatFrameSkin.lua" />
+    <Include file="Skins\BagSkin.lua" />
+    <Include file="Skins\BuffSkin.lua" />
+    <Include file="Skins\GameMenuSkin.lua" />
+    <Include file="Skins\TooltipSkin.lua" />
+    <Include file="Skins\GroupManagerSkin.lua" />
+    <!-- Modules: Waypoint (In-world navigation — /tm way) -->
+    <Include file="Waypoint\Waypoint.lua" />
+
+    <!-- Modules: Loots (Loot Browser — /tm loot) -->
+    <Include file="Loots\Data.lua" />
+    <Include file="Loots\ItemClasses.lua" />
+    <Include file="Loots\Loots.lua" />
+
+    <!-- Modules: AuraTracker (WeakAura-lite buff/debuff overlay) -->
+    <Include file="AuraTracker\SpellDB.lua" />
+    <Include file="AuraTracker\AuraTracker.lua" />
+
+    <!-- Modules: Diagnostics (Error Capture & Report — /tmdiag) -->
+    <Include file="Diagnostics\Diagnostics.lua" />
+
+    <!-- Modules: ConsumableBar (Flask / Nourriture / Huiles) -->
+    <Include file="Consumables\ConsumableBar.lua" />
+
+    <!-- Modules: Compass (Waypoint 2.0 — barre de cap N/E/S/O) -->
+    <Include file="Compass\Compass.lua" />
+
+    <!-- Modules: RareAlert (Alerte de proximité des rares — vignettes) -->
+    <Include file="RareAlert\RareAlert.lua" />
+
+    <!-- Modules: Movers (Layout System — doit être en dernier) -->
+    <Include file="Movers\Movers.lua" />
+
+</Ui>

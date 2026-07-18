@@ -1,0 +1,602 @@
+﻿-- =====================================
+-- Elements/Auras.lua — Aura Icons for UnitFrames
+-- =====================================
+
+local UF_Elements = UF_Elements or {}
+
+local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+
+-- [PERF] Pre-allocated tables for UpdateAuras (avoids alloc per UNIT_AURA event)
+local _uf_auraCollect = {}
+
+-- [PERF] Pre-computed filter string sets (avoid table allocation per UNIT_AURA)
+local AURA_FILTERS = {
+    HARMFUL           = { "HARMFUL" },
+    HELPFUL           = { "HELPFUL" },
+    ALL               = { "HARMFUL", "HELPFUL" },
+    ["HARMFUL|PLAYER"]= { "HARMFUL|PLAYER" },
+    ["HELPFUL|PLAYER"]= { "HELPFUL|PLAYER" },
+    ["ALL|PLAYER"]    = { "HARMFUL|PLAYER", "HELPFUL|PLAYER" },
+}
+
+-- [PERF] Pre-allocated table for CollectEnemyBuffData
+local _uf_enemyBuffCollect = {}
+
+-- [PERF] Reusable table for GetAuraSlots vararg capture
+local _uf_slotResults = {}
+local function UF_CaptureSlots(dest, ...)
+    wipe(dest)
+    for i = 1, select("#", ...) do
+        dest[i] = select(i, ...)
+    end
+    return dest
+end
+
+-- =====================================
+-- LAYOUT EN GRILLE (avec retour à la ligne)
+-- =====================================
+-- Place les icônes de gauche à droite (ou droite à gauche) et passe à la ligne
+-- quand la largeur prédéfinie est dépassée. Redimensionne le conteneur à la
+-- hauteur du nombre de rangées obtenu.
+function UF_Elements.LayoutAuraGrid(container, auraSettings)
+    if not container or not container.icons then return end
+    local size    = auraSettings.size or 30
+    local spacing = auraSettings.spacing or 3
+    local grow    = auraSettings.growDirection or "RIGHT"
+    local maxAuras = auraSettings.maxAuras or 8
+
+    -- Largeur max : réglage explicite, sinon largeur du conteneur, sinon repli.
+    local maxWidth = auraSettings.maxWidth
+    if not maxWidth or maxWidth <= 0 then
+        maxWidth = (container:GetWidth() and container:GetWidth() > 0) and container:GetWidth() or 300
+    end
+
+    -- Nombre d'icônes par rangée (au moins 1).
+    local step = size + spacing
+    local perRow = math.floor((maxWidth + spacing) / step)
+    if perRow < 1 then perRow = 1 end
+    if perRow > maxAuras then perRow = maxAuras end
+
+    local rows = 0
+    for i = 1, maxAuras do
+        local icon = container.icons[i]
+        if icon then
+            local col = (i - 1) % perRow
+            local row = math.floor((i - 1) / perRow)
+            if row + 1 > rows then rows = row + 1 end
+            icon:ClearAllPoints()
+            local x = col * step
+            local y = -row * step
+            if grow == "RIGHT" then
+                icon:SetPoint("TOPLEFT", container, "TOPLEFT", x, y)
+            else
+                icon:SetPoint("TOPRIGHT", container, "TOPRIGHT", -x, y)
+            end
+        end
+    end
+
+    -- Dimensionne le conteneur (largeur = perRow icônes, hauteur = rangées).
+    if rows < 1 then rows = 1 end
+    local usedCols = math.min(perRow, maxAuras)
+    local w = usedCols * size + (usedCols - 1) * spacing
+    local h = rows * size + (rows - 1) * spacing
+    container:SetSize(math.max(w, 1), math.max(h, 1))
+    container._perRow = perRow
+end
+
+-- =====================================
+-- CREATE AURA CONTAINER
+-- =====================================
+
+function UF_Elements.CreateAuraContainer(parent, unit, settings)
+    if not settings or not settings.auras or not settings.auras.enabled then return nil end
+
+    local auraSettings = settings.auras
+    local container = CreateFrame("Frame", "TomoMod_Auras_" .. unit, parent)
+    -- Largeur de référence pour le calcul de la grille (réglage explicite sinon 300).
+    local refWidth = (auraSettings.maxWidth and auraSettings.maxWidth > 0) and auraSettings.maxWidth or 300
+    container:SetSize(refWidth, auraSettings.size + 4)
+    container.unit = unit
+    container.parentFrame = parent
+    container.icons = {}
+
+    -- Position
+    local pos = auraSettings.position
+    if pos then
+        container:SetPoint(pos.point, parent, pos.relativePoint, pos.x, pos.y)
+    else
+        container:SetPoint("BOTTOMLEFT", parent, "TOPLEFT", 0, 6)
+    end
+
+    -- Create icons
+    for i = 1, auraSettings.maxAuras do
+        UF_Elements.CreateAuraIcon(container, i, auraSettings)
+    end
+
+    -- Place les icônes en grille (avec retour à la ligne) et dimensionne.
+    UF_Elements.LayoutAuraGrid(container, auraSettings)
+
+    -- Draggable support (uses global lock state)
+    container:SetMovable(true)
+    container:SetClampedToScreen(true)
+    container:EnableMouse(false)
+    container:RegisterForDrag("LeftButton")
+    container:SetScript("OnDragStart", function(self)
+        self:StartMoving()
+    end)
+    container:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        -- Convert to parent-relative coordinates
+        local sx, sy = self:GetCenter()
+        local px, py = parent:GetCenter()
+        if sx and sy and px and py then
+            local dx = sx - px
+            local dy = sy - py
+            self:ClearAllPoints()
+            self:SetPoint("CENTER", parent, "CENTER", dx, dy)
+            auraSettings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
+        end
+    end)
+
+    -- SetLocked(bool) — appelé par le système Movers pour activer/désactiver le drag
+    function container:SetLocked(locked)
+        self:EnableMouse(not locked)
+        self:SetMovable(not locked)
+        -- Overlay visuel teal quand déverrouillé (comme les autres movers)
+        if not self._moverOverlay then
+            local ov = CreateFrame("Frame", nil, self)
+            ov:SetAllPoints()
+            ov:SetFrameLevel(self:GetFrameLevel() + 5)
+            local t = ov:CreateTexture(nil, "OVERLAY")
+            t:SetAllPoints()
+            t:SetColorTexture(0.05, 0.82, 0.62, 0.20)
+            local lbl = ov:CreateFontString(nil, "OVERLAY")
+            lbl:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 9, "OUTLINE")
+            lbl:SetTextColor(0.05, 0.82, 0.62, 1)
+            lbl:SetPoint("CENTER")
+            lbl:SetText("Auras")
+            self._moverOverlay = ov
+        end
+        if locked then self._moverOverlay:Hide() else self._moverOverlay:Show() end
+    end
+
+    return container
+end
+
+-- =====================================
+-- CREATE SINGLE AURA ICON
+-- =====================================
+
+function UF_Elements.CreateAuraIcon(container, index, auraSettings)
+    local size = auraSettings.size or 30
+
+    local icon = CreateFrame("Frame", nil, container)
+    icon:SetSize(size, size)
+    -- Le positionnement est géré par UF_Elements.LayoutAuraGrid (grille avec
+    -- retour à la ligne). On ne chaîne plus les icônes ici.
+
+    -- Texture
+    icon.texture = icon:CreateTexture(nil, "ARTWORK")
+    icon.texture:SetAllPoints()
+    icon.texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+    -- Border (colored by debuff type)
+    icon.border = CreateFrame("Frame", nil, icon)
+    icon.border:SetPoint("TOPLEFT", -1, 1)
+    icon.border:SetPoint("BOTTOMRIGHT", 1, -1)
+    UF_Elements.CreateBorder(icon.border)
+
+    -- Cooldown overlay (built-in countdown numbers handle TWW secret duration values C-side)
+    icon.cooldown = CreateFrame("Cooldown", nil, icon, "CooldownFrameTemplate")
+    icon.cooldown:SetAllPoints(icon.texture)
+    icon.cooldown:SetDrawEdge(false)
+    icon.cooldown:SetReverse(true)
+    icon.cooldown:SetHideCountdownNumbers(not auraSettings.showDuration)
+
+    -- Stack count
+    icon.count = icon:CreateFontString(nil, "OVERLAY")
+    icon.count:SetFont(FONT, 9, "OUTLINE")
+    icon.count:SetPoint("BOTTOMRIGHT", -1, 1)
+    icon.count:SetTextColor(1, 1, 1, 1)
+
+    -- Tooltip
+    icon:EnableMouse(true)
+    icon:SetScript("OnEnter", function(self)
+        if self.auraInstanceID and UnitExists(container.unit) then
+            GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
+            -- SetUnitBuffByAuraInstanceID / SetUnitDebuffByAuraInstanceID are C-side
+            -- and accept secret auraInstanceID values
+            if self.auraIsHarmful then
+                GameTooltip:SetUnitDebuffByAuraInstanceID(container.unit, self.auraInstanceID)
+            else
+                GameTooltip:SetUnitBuffByAuraInstanceID(container.unit, self.auraInstanceID)
+            end
+            GameTooltip:Show()
+        end
+    end)
+    icon:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+
+    icon:Hide()
+    container.icons[index] = icon
+end
+
+-- =====================================
+-- UPDATE AURAS
+-- =====================================
+
+function UF_Elements.UpdateAuras(frame)
+    if not frame or not frame.auraContainer then return end
+
+    local unit = frame.unit
+    local container = frame.auraContainer
+    local settings = TomoModDB.unitFrames[unit]
+
+    if not settings or not settings.auras or not settings.auras.enabled then
+        container:Hide()
+        return
+    end
+
+    if not UnitExists(unit) then
+        container:Hide()
+        return
+    end
+
+    container:Show()
+
+    local auraSettings = settings.auras
+    local maxAuras = auraSettings.maxAuras or 8
+    local showOnlyMine = auraSettings.showOnlyMine
+    local auraType = auraSettings.type or "HARMFUL"
+
+    -- Collect auras
+    -- In TWW, ALL aura data fields are secret — cannot do ANY Lua operations on them.
+    -- Use |PLAYER filter string so C-side handles "only mine" filtering.
+    -- [PERF] Use pre-computed filter tables instead of allocating new ones per call
+    wipe(_uf_auraCollect)
+    local auras = _uf_auraCollect
+
+    local filterKey
+    if auraType == "ALL" then
+        filterKey = showOnlyMine and "ALL|PLAYER" or "ALL"
+    else
+        filterKey = showOnlyMine and (auraType .. "|PLAYER") or auraType
+    end
+    local filters = AURA_FILTERS[filterKey] or AURA_FILTERS.HARMFUL
+
+    for _, filter in ipairs(filters) do
+        -- GetAuraSlots returns: continuationToken, slot1, slot2, ... (varargs, NOT a table)
+        -- [PERF] Reuse module-level table instead of {varargs}
+        UF_CaptureSlots(_uf_slotResults, C_UnitAuras.GetAuraSlots(unit, filter))
+        -- _uf_slotResults[1] = continuationToken (may be nil!), [2..n] = slot indices
+        local idx = 2
+        while _uf_slotResults[idx] do
+            if #auras >= maxAuras then break end
+            local data = C_UnitAuras.GetAuraDataBySlot(unit, _uf_slotResults[idx])
+            if data then
+                -- Store only non-secret metadata we set ourselves
+                data._filter = filter
+                data._slotIndex = _uf_slotResults[idx]
+                data._unit = unit
+                auras[#auras + 1] = data
+            end
+            idx = idx + 1
+        end
+    end
+
+    -- Update icons
+    -- TWW: Aura data fields are SECRET values — can't do Lua operations on them.
+    -- BUT: C_UnitAuras.GetAuraDuration() returns a Duration object with non-secret methods.
+    -- AND: C_UnitAuras.GetAuraApplicationDisplayCount() returns a non-secret stack string.
+    for i = 1, maxAuras do
+        local iconFrame = container.icons[i]
+        local aura = auras[i]
+
+        if aura and iconFrame then
+            -- Icon texture (SetTexture is C-side, accepts secrets)
+            iconFrame.texture:SetTexture(aura.icon)
+
+            -- Store secret auraInstanceID for tooltip (C-side methods accept it)
+            iconFrame.auraInstanceID = aura.auraInstanceID
+            -- _filter is non-secret (we set it), check if harmful
+            iconFrame.auraIsHarmful = (aura._filter == "HARMFUL" or aura._filter == "HARMFUL|PLAYER")
+
+            -- Duration object (non-secret GetRemainingDuration/GetTotalDuration)
+            local durObj = C_UnitAuras.GetAuraDuration(aura._unit or unit, aura.auraInstanceID)
+            iconFrame._durObj = durObj
+            iconFrame._auraUnit = aura._unit or unit
+            iconFrame._auraInstanceID = aura.auraInstanceID
+
+            if durObj and iconFrame.cooldown.SetCooldownFromDurationObject then
+                -- TWW: pass the Duration object directly to the C-side cooldown frame.
+                -- The built-in countdown numbers will render the time without exposing
+                -- the secret value to Lua (which would otherwise format as "0").
+                iconFrame.cooldown:SetCooldownFromDurationObject(durObj)
+                iconFrame.cooldown:Show()
+            else
+                iconFrame.cooldown:Clear()
+                iconFrame.cooldown:Hide()
+            end
+
+            -- Stack count: value may be secret/tainted — never read back or compare
+            -- Just SetText and always Show; empty text renders as nothing visually
+            local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(aura._unit or unit, aura.auraInstanceID, 2, 1000)
+            if stackStr then
+                iconFrame.count:SetText(stackStr)
+                iconFrame.count:Show()
+            else
+                iconFrame.count:SetText("")
+                iconFrame.count:Hide()
+            end
+
+            iconFrame:Show()
+        elseif iconFrame then
+            iconFrame._durObj = nil
+            iconFrame._auraUnit = nil
+            iconFrame._auraInstanceID = nil
+            iconFrame:Hide()
+        end
+    end
+end
+
+-- =====================================
+-- ENEMY BUFF CONTAINER (shows HELPFUL auras on enemy units)
+-- =====================================
+
+function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
+    if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled then return nil end
+
+    local buffSettings = settings.enemyBuffs
+    local size = buffSettings.size or 24
+    local spacing = buffSettings.spacing or 2
+    local maxAuras = buffSettings.maxAuras or 4
+
+    -- Grille : 3 icônes par ligne, remplissage droite → gauche, lignes vers le haut
+    --   Ligne 0 (bas) :  icône 1 (droite)  icône 2 (milieu)  icône 3 (gauche)
+    --   Ligne 1       :  icône 4 (droite)  …
+    local ICONS_PER_ROW = 3
+    local numRows = math.ceil(maxAuras / ICONS_PER_ROW)
+
+    -- Largeur  = 3 icônes + 2 espacements
+    -- Hauteur  = nb lignes × (icône + espacement)
+    local containerW = ICONS_PER_ROW * size + (ICONS_PER_ROW - 1) * spacing
+    local containerH = numRows * size + (numRows - 1) * spacing
+
+    local container = CreateFrame("Frame", "TomoMod_EnemyBuffs_" .. unit, parent)
+    container:SetSize(containerW, containerH)
+    container:SetFrameLevel(parent:GetFrameLevel() + 10)
+    container.unit = unit
+    container.parentFrame = parent
+    container.icons = {}
+    -- Stocker les paramètres courants pour détecter les changements dans RefreshUnit
+    container._tomoSize     = size
+    container._tomoMaxAuras = maxAuras
+
+    -- Position (default: top-right of health bar)
+    local pos = buffSettings.position
+    if pos then
+        container:SetPoint(pos.point, parent, pos.relativePoint, pos.x, pos.y)
+    else
+        container:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", 0, 6)
+    end
+
+    -- Création des icônes en grille  (droite → gauche, bas → haut)
+    --   col 0 = droite, col 1 = milieu, col 2 = gauche
+    --   row 0 = ligne du bas, row 1 = ligne au-dessus, …
+    local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+    for i = 1, maxAuras do
+        local icon = CreateFrame("Frame", nil, container)
+        icon:SetSize(size, size)
+
+        local col = (i - 1) % ICONS_PER_ROW          -- 0 = droite … 2 = gauche
+        local row = math.floor((i - 1) / ICONS_PER_ROW) -- 0 = bas, 1 = au-dessus…
+
+        icon:SetPoint(
+            "BOTTOMRIGHT",
+            container,
+            "BOTTOMRIGHT",
+            -col * (size + spacing),   -- décalage vers la gauche
+            row  * (size + spacing)    -- décalage vers le haut
+        )
+
+        icon.texture = icon:CreateTexture(nil, "ARTWORK")
+        icon.texture:SetAllPoints()
+        icon.texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+
+        -- Border
+        icon.border = CreateFrame("Frame", nil, icon)
+        icon.border:SetPoint("TOPLEFT", -1, 1)
+        icon.border:SetPoint("BOTTOMRIGHT", 1, -1)
+        UF_Elements.CreateBorder(icon.border)
+
+        -- Cooldown overlay (built-in countdown numbers handle TWW secret duration values C-side)
+        icon.cooldown = CreateFrame("Cooldown", nil, icon, "CooldownFrameTemplate")
+        icon.cooldown:SetAllPoints(icon.texture)
+        icon.cooldown:SetDrawEdge(false)
+        icon.cooldown:SetReverse(true)
+        icon.cooldown:SetHideCountdownNumbers(not buffSettings.showDuration)
+
+        -- Stack count
+        icon.count = icon:CreateFontString(nil, "OVERLAY")
+        icon.count:SetFont(FONT, 9, "OUTLINE")
+        icon.count:SetPoint("BOTTOMRIGHT", -1, 1)
+        icon.count:SetTextColor(1, 1, 1, 1)
+
+        -- Tooltip — fonctionne pour les buffs amis ET ennemis
+        icon:EnableMouse(true)
+        icon:SetScript("OnEnter", function(self)
+            if self.auraInstanceID and UnitExists(container.unit) then
+                GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                -- SetUnitBuffByAuraInstanceID accepte les valeurs secrètes côté C
+                GameTooltip:SetUnitBuffByAuraInstanceID(container.unit, self.auraInstanceID)
+                GameTooltip:Show()
+            end
+        end)
+        icon:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+        icon:Hide()
+        container.icons[i] = icon
+    end
+
+    -- Draggable
+    container:SetMovable(true)
+    container:SetClampedToScreen(true)
+    container:EnableMouse(false)
+    container:RegisterForDrag("LeftButton")
+    container:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    container:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+        -- Convert to parent-relative coordinates
+        local sx, sy = self:GetCenter()
+        local px, py = parent:GetCenter()
+        if sx and sy and px and py then
+            local dx = sx - px
+            local dy = sy - py
+            self:ClearAllPoints()
+            self:SetPoint("CENTER", parent, "CENTER", dx, dy)
+            buffSettings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
+        end
+    end)
+
+    return container
+end
+
+-- =====================================
+-- UPDATE TARGET BUFFS (HELPFUL auras on target/focus)
+-- Uses GetAuraSlots + select() to safely iterate varargs.
+-- AuraUtil.ForEachAura CANNOT be used — it calls UnpackAuraData
+-- which crashes on secret values in TWW.
+-- Shows all HELPFUL auras on ANY target (enemy, friendly, neutral).
+-- =====================================
+
+-- Collect HELPFUL aura slots safely via UF_CaptureSlots (no closure per call).
+-- [PERF] Reuses module-level table to avoid alloc per call
+local function CollectEnemyBuffData(unit, maxAuras)
+    wipe(_uf_enemyBuffCollect)
+    local auras = _uf_enemyBuffCollect
+    UF_CaptureSlots(_uf_slotResults, C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
+    local idx = 2
+    while _uf_slotResults[idx] do
+        if #auras >= maxAuras then break end
+        local data = C_UnitAuras.GetAuraDataBySlot(unit, _uf_slotResults[idx])
+        if data then
+            data._unit = unit
+            auras[#auras + 1] = data
+        end
+        idx = idx + 1
+    end
+    return auras
+end
+
+-- Debug: toggle with /tm debugbuffs
+UF_Elements._debugEnemyBuffs = false
+
+function UF_Elements.UpdateEnemyBuffs(frame)
+    if not frame then return end
+
+    local unit = frame.unit
+
+    -- Only process target and focus (no point for player/pet/targettarget)
+    if unit ~= "target" and unit ~= "focus" then return end
+
+    local settings = TomoModDB.unitFrames[unit]
+    local dbg = UF_Elements._debugEnemyBuffs
+
+    if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled then
+        if frame.enemyBuffContainer then frame.enemyBuffContainer:Hide() end
+        return
+    end
+
+    if not UnitExists(unit) then
+        if frame.enemyBuffContainer then frame.enemyBuffContainer:Hide() end
+        return
+    end
+
+    -- Montrer les buffs sur TOUS les types de cibles : ennemis, neutres et amis.
+    -- (Suppression de l'ancien guard UnitCanAttack qui excluait les cibles amies.)
+
+    -- Create container dynamically if missing
+    if not frame.enemyBuffContainer then
+        frame.enemyBuffContainer = UF_Elements.CreateEnemyBuffContainer(frame, unit, settings)
+        if not frame.enemyBuffContainer then return end
+    end
+
+    local container = frame.enemyBuffContainer
+    container.unit = unit
+    container:Show()
+
+    local maxAuras = math.min(settings.enemyBuffs.maxAuras or 4, #container.icons)
+
+    -- IMPORTANT: Hide ALL icons FIRST to prevent stale display when switching targets
+    for i = 1, #container.icons do
+        container.icons[i]:Hide()
+        container.icons[i]._durObj = nil
+        container.icons[i]._auraUnit = nil
+        container.icons[i]._auraInstanceID = nil
+    end
+
+    -- Collect stealable auras via safe select() iteration
+    local auras = CollectEnemyBuffData(unit, maxAuras)
+
+    if dbg then
+        print("|cff2ed884[TB]|r " .. unit .. ": " .. #auras .. " target buffs (HELPFUL)")
+    end
+
+    -- No buffs → hide container entirely
+    if #auras == 0 then
+        container:Hide()
+        return
+    end
+
+    -- Update icons
+    for i = 1, #auras do
+        local iconFrame = container.icons[i]
+        local aura = auras[i]
+
+        if iconFrame then
+            iconFrame.texture:SetTexture(aura.icon)
+            iconFrame.auraInstanceID = aura.auraInstanceID
+            iconFrame.auraIsHarmful = false
+
+            local durObj = C_UnitAuras.GetAuraDuration(unit, aura.auraInstanceID)
+            iconFrame._durObj = durObj
+            iconFrame._auraUnit = unit
+            iconFrame._auraInstanceID = aura.auraInstanceID
+
+            if durObj and iconFrame.cooldown.SetCooldownFromDurationObject then
+                -- TWW: pass the Duration object directly to the C-side cooldown frame.
+                -- Built-in countdown numbers render the time without exposing the secret
+                -- value to Lua (which would otherwise format as "0").
+                iconFrame.cooldown:SetCooldownFromDurationObject(durObj)
+                iconFrame.cooldown:Show()
+            else
+                iconFrame.cooldown:Clear()
+                iconFrame.cooldown:Hide()
+            end
+
+            -- Stack count: value may be secret/tainted — never read back or compare
+            local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(unit, aura.auraInstanceID, 2, 1000)
+            if stackStr then
+                iconFrame.count:SetText(stackStr)
+                iconFrame.count:Show()
+            else
+                iconFrame.count:SetText("")
+                iconFrame.count:Hide()
+            end
+
+            iconFrame:Show()
+        end
+    end
+end
+
+-- =====================================
+-- DURATION UPDATER TICKER
+-- =====================================
+
+local auraDurationTicker
+function UF_Elements.StartAuraDurationUpdater(frames)
+    -- TWW: the Cooldown frame's built-in countdown numbers self-update C-side
+    -- via SetCooldownFromDurationObject, so no Lua ticker is needed anymore.
+    -- Kept as a no-op for backwards compatibility with callers.
+end
