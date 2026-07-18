@@ -814,13 +814,14 @@ local function BuildWindow()
     contentHost = shell.contentHost
 
     local crudHost = shell.crudHost
+    local BW = 104   -- fits two buttons inside the sidebar width
     local _, cy2 = W.CreateButtonRow(crudHost, {
-        { text = "+ Nouvelle", callback = function()
+        { text = "+ Nouvelle", width = BW, callback = function()
             local _, id = CDF.CreateBar(S.state.class, "Nouvelle barre")
             if id then S.state.barId = id end
             Apply(); S.RebuildSidebar(); S.RebuildContent()
         end },
-        { text = "Dupliquer", callback = function()
+        { text = "Dupliquer", width = BW, callback = function()
             if not S.state.barId then return end
             local _, id = CDF.DuplicateBar(S.state.class, S.state.barId)
             if id then S.state.barId = id end
@@ -828,10 +829,10 @@ local function BuildWindow()
         end },
     }, -2)
     local _, cy3 = W.CreateButtonRow(crudHost, {
-        { text = "Renommer", callback = function()
+        { text = "Renommer", width = BW, callback = function()
             if S.state.barId then StaticPopup_Show("TOMOMOD_CDS_RENAME") end
         end },
-        { text = "Supprimer", callback = function()
+        { text = "Supprimer", width = BW, callback = function()
             if not S.state.barId then return end
             CDF.DeleteBar(S.state.class, S.state.barId)
             S.state.barId = nil
@@ -845,8 +846,8 @@ local function BuildWindow()
         Apply(); S.RebuildSidebar(); S.RebuildContent()
     end
     W.CreateButtonRow(crudHost, {
-        { text = "Modele : Conso",  callback = function() fromBlueprint("conso") end },
-        { text = "Modele : Utils",  callback = function() fromBlueprint("utils") end },
+        { text = "Modele : Conso", width = BW, callback = function() fromBlueprint("conso") end },
+        { text = "Modele : Utils", width = BW, callback = function() fromBlueprint("utils") end },
     }, cy3)
 end
 

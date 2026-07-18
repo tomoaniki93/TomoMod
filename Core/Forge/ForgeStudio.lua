@@ -127,14 +127,19 @@ function Forge.Studio.CreateShell(opts)
     sidebarList:SetPoint("BOTTOMRIGHT", 0, crudH + 6)
 
     local crudHost = CreateFrame("Frame", nil, side)
-    crudHost:SetPoint("BOTTOMLEFT", -6, 4)
-    crudHost:SetPoint("BOTTOMRIGHT", 6, 4)
+    crudHost:SetPoint("BOTTOMLEFT", 0, 4)
+    crudHost:SetPoint("BOTTOMRIGHT", 0, 4)
     crudHost:SetHeight(crudH)
 
     -- Content host
     local contentHost = CreateFrame("Frame", nil, frame)
     contentHost:SetPoint("TOPLEFT", SIDE_W + 1, -TITLE_H - 1)
     contentHost:SetPoint("BOTTOMRIGHT", 0, FOOT_H)
+    -- [fix] contentHost is created after the sidebar, so at equal frame
+    -- level it would sit ON TOP of the sidebar CRUD buttons and swallow
+    -- their clicks. Keep content below the sidebar so its buttons get input.
+    contentHost:SetFrameLevel(frame:GetFrameLevel() + 1)
+    side:SetFrameLevel(frame:GetFrameLevel() + 5)
 
     -- Footer
     local fsep = sep()
