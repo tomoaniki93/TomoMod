@@ -162,6 +162,10 @@ local function styleIcon(icon, bar)
     local st = CDF.ResolveStyle and CDF.ResolveStyle(bar) or {}
     local sw = bar.swipe or {}
 
+    -- [S7] per-bar opacity
+    local op = tonumber(st.opacity)
+    icon:SetAlpha((op ~= nil) and op or 1)
+
     -- [S0] border (backdrop on the icon frame; class color resolved live)
     local bd = st.border
     if bd and bd.mode then
@@ -227,6 +231,14 @@ local function styleIcon(icon, bar)
             else
                 tfs:SetParent(icon.cd)
                 tfs:SetPoint("CENTER", icon.cd, "CENTER", 0, 0)
+            end
+            -- [S7] timer color: explicit override, else class/accent tint
+            local tc = st.timerColor
+            if type(tc) == "table" and tc[1] then
+                tfs:SetTextColor(tc[1], tc[2] or 1, tc[3] or 1)
+            else
+                local cr, cg, cb = CDF.ClassColor()
+                tfs:SetTextColor(cr, cg, cb)
             end
         end
     end
@@ -451,7 +463,7 @@ function CDF.RefreshAll()
             present[bar.id] = true
             local f = getBarFrame(bar)
             positionContainer(f, bar)
-            if bar.enabled == false then
+            if not CDF.IsBarVisible(bar) then
                 f:Hide()
             else
                 layoutBar(f, bar)

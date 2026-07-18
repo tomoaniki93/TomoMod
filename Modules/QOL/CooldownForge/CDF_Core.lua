@@ -13,7 +13,7 @@
 TomoMod_CooldownForge = TomoMod_CooldownForge or {}
 local CDF = TomoMod_CooldownForge
 
-CDF.CURRENT_SCHEMA = 2
+CDF.CURRENT_SCHEMA = 3
 
 -- Stepwise migrations. [v] transforms the db IN PLACE from v-1 to v.
 CDF.MIGRATIONS = {
@@ -30,6 +30,19 @@ CDF.MIGRATIONS = {
                                 e.override = CDF.SanitizeOverride(e.override)
                             end
                         end
+                    end
+                end
+            end
+        end
+    end,
+    -- [S6] v3: per-bar conditional visibility (bar.visibility). Pure
+    -- normalization; older bars get the "always show" default.
+    [3] = function(db)
+        for _, bars in pairs(db.bars or {}) do
+            if type(bars) == "table" then
+                for _, bar in ipairs(bars) do
+                    if type(bar) == "table" then
+                        bar.visibility = CDF.SanitizeVisibility(bar.visibility)
                     end
                 end
             end
@@ -127,6 +140,20 @@ end
 -- ---------------------------------------------------------------------
 -- Schema factories
 -- ---------------------------------------------------------------------
+-- [S6] Conditional visibility, all tri-state (nil = don't care, true =
+-- require, false = require NOT). Non-secret, event-driven signals only.
+CDF.VIS_CONDS = { "inCombat", "inInstance", "inGroup", "inRaid" }
+
+function CDF.SanitizeVisibility(v)
+    if type(v) ~= "table" then return nil end
+    local out = {}
+    for _, k in ipairs(CDF.VIS_CONDS) do
+        if type(v[k]) == "boolean" then out[k] = v[k] end
+    end
+    if next(out) == nil then return nil end
+    return out
+end
+
 function CDF.NewBarSchema(name)
     return {
         id          = nil,   -- assigned by CreateBar
@@ -141,6 +168,7 @@ function CDF.NewBarSchema(name)
         swipe = { draw = true, color = { 0, 0, 0, 0.6 }, reverse = false },
         text  = { mode = "timer", font = "Poppins-Medium", size = 13, stacks = true },
         style = { preset = "tomo" },
+        visibility = nil,   -- [S6] nil = always shown
         position = { point = "CENTER", relPoint = "CENTER", x = 0, y = 0 },
         entries = {},
     }
@@ -179,6 +207,7 @@ function CDF.SanitizeBar(bar)
     bar.text  = bar.text  or { mode = "timer", font = "Poppins-Medium", size = 13, stacks = true }
     if not CDF.TEXT_MODES[bar.text.mode] then bar.text.mode = "timer" end
     if CDF.NormalizeStyle then CDF.NormalizeStyle(bar) end
+    bar.visibility = CDF.SanitizeVisibility(bar.visibility)
     bar.entries = bar.entries or {}
     for _, e in ipairs(bar.entries) do
         if type(e) == "table" then
@@ -191,43 +220,35 @@ end
 -- ---------------------------------------------------------------------
 -- Migration + auto-backup
 -- ---------------------------------------------------------------------
+-- [L2] Delegated to the shared Forge.Schema machinery (same semantics:
+-- stepwise pcall, pre-migration backup, failure keeps `from`).
+local function schemaOpts(db)
+    return {
+        root       = db,
+        target     = CDF.CURRENT_SCHEMA,
+        migrations = CDF.MIGRATIONS,
+        dataKeys   = { "bars" },
+    }
+end
+
 function CDF.RunMigrations()
     local db = CDF.DB()
     if not db then return end
-    local from = tonumber(db.schemaVersion) or 1
-    if from >= CDF.CURRENT_SCHEMA then
-        db.schemaVersion = CDF.CURRENT_SCHEMA
-        return
+    local F = TomoMod_Forge
+    if F and F.Schema then
+        F.Schema.Migrate(schemaOpts(db))
     end
-    -- Auto-backup BEFORE migrating (retention = 1; overwrites previous).
-    db._backup = {
-        schemaVersion = from,
-        date          = date("%Y-%m-%d %H:%M"),
-        bars          = CopyTable(db.bars or {}),
-    }
-    for v = from + 1, CDF.CURRENT_SCHEMA do
-        local m = CDF.MIGRATIONS[v]
-        if type(m) == "function" then
-            local ok, err = pcall(m, db)
-            if not ok then
-                -- Migration failed: keep the backup, leave version at `from`.
-                db.schemaVersion = from
-                if geterrorhandler then geterrorhandler()(err) end
-                return
-            end
-        end
-    end
-    db.schemaVersion = CDF.CURRENT_SCHEMA
 end
 
 -- Manual restore from _backup (never automatic). Returns true on success.
 function CDF.RestoreBackup()
     local db = CDF.DB()
-    if not db or not db._backup then return false end
-    db.bars = CopyTable(db._backup.bars or {})
-    db.schemaVersion = tonumber(db._backup.schemaVersion) or CDF.CURRENT_SCHEMA
-    CDF.RunMigrations()   -- bring restored (older) data back up to CURRENT
-    return true
+    if not db then return false end
+    local F = TomoMod_Forge
+    if F and F.Schema then
+        return F.Schema.Restore(schemaOpts(db))
+    end
+    return false
 end
 
 -- ---------------------------------------------------------------------

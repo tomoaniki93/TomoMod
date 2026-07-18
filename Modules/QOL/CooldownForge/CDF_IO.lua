@@ -12,18 +12,22 @@ local CDF = TomoMod_CooldownForge
 CDF.EXPORT_HEADER  = "TOMOCDF"
 CDF.EXPORT_VERSION = 1
 
-local function libs()
-    local ser = LibStub and LibStub("TomoSerialize-1.0", true)
-    local def = LibStub and LibStub("LibDeflate", true)
-    return ser, def
+-- [L1] The encode/decode pipeline moved to Core/Forge/ForgeIO.lua and is
+-- shared by every share string in the addon. Same libs, same error texts.
+local codec
+
+local function getCodec()
+    if not codec and TomoMod_Forge and TomoMod_Forge.IO then
+        codec = TomoMod_Forge.IO.MakeCodec(CDF.EXPORT_HEADER, CDF.EXPORT_VERSION, "CooldownForge")
+    end
+    return codec
 end
 
 -- ---------------------------------------------------------------------
 -- Export: returns encoded string, or nil + reason.
 -- ---------------------------------------------------------------------
 function CDF.Export(class)
-    local ser, def = libs()
-    if not ser or not def then return nil, "Librairies manquantes (LibSerialize / LibDeflate)" end
+    if not getCodec() then return nil, "Librairies manquantes (LibSerialize / LibDeflate)" end
     class = class or CDF.PlayerClass()
     local bars = class and CDF.GetClassBars(class)
     if not bars then return nil, "Classe invalide" end
@@ -41,13 +45,7 @@ function CDF.Export(class)
         bars     = out,
     }
 
-    local ok, serialized = pcall(ser.Serialize, ser, payload)
-    if not ok or not serialized then return nil, "Serialisation echouee" end
-    local compressed = def:CompressDeflate(serialized, { level = 1 })
-    if not compressed then return nil, "Compression echouee" end
-    local encoded = def:EncodeForPrint(compressed)
-    if not encoded then return nil, "Encodage echoue" end
-    return encoded
+    return getCodec().Encode(payload)
 end
 
 -- ---------------------------------------------------------------------
@@ -56,8 +54,7 @@ end
 -- with "Donnees manquantes" instead of a version error).
 -- ---------------------------------------------------------------------
 function CDF.ExportBar(class, id)
-    local ser, def = libs()
-    if not ser or not def then return nil, "Librairies manquantes (LibSerialize / LibDeflate)" end
+    if not getCodec() then return nil, "Librairies manquantes (LibSerialize / LibDeflate)" end
     class = class or CDF.PlayerClass()
     local bar = class and id and CDF.GetBar(class, id)
     if not bar then return nil, "Barre introuvable" end
@@ -71,13 +68,7 @@ function CDF.ExportBar(class, id)
         bar      = b,
     }
 
-    local ok, serialized = pcall(ser.Serialize, ser, payload)
-    if not ok or not serialized then return nil, "Serialisation echouee" end
-    local compressed = def:CompressDeflate(serialized, { level = 1 })
-    if not compressed then return nil, "Compression echouee" end
-    local encoded = def:EncodeForPrint(compressed)
-    if not encoded then return nil, "Encodage echoue" end
-    return encoded
+    return getCodec().Encode(payload)
 end
 
 -- ---------------------------------------------------------------------
@@ -87,22 +78,9 @@ end
 -- APPENDED under a fresh id so a shared asset never clobbers local bars.
 -- ---------------------------------------------------------------------
 function CDF.Import(str)
-    local ser, def = libs()
-    if not ser or not def then return false, "Librairies manquantes (LibSerialize / LibDeflate)" end
-    if not str or str == "" then return false, "Chaine vide" end
-    str = str:match("^%s*(.-)%s*$") or str
-
-    local decoded = def:DecodeForPrint(str)
-    if not decoded then return false, "Decodage echoue" end
-    local decompressed = def:DecompressDeflate(decoded)
-    if not decompressed then return false, "Decompression echouee" end
-
-    local ok, payload = pcall(function() return ser:DeSerialize(decompressed) end)
-    if not ok or type(payload) ~= "table" then return false, "Deserialisation echouee" end
-    if payload._header ~= CDF.EXPORT_HEADER then return false, "Pas une chaine CooldownForge" end
-    if type(payload._version) ~= "number" or payload._version > CDF.EXPORT_VERSION then
-        return false, "Version incompatible (v" .. tostring(payload._version) .. ")"
-    end
+    if not getCodec() then return false, "Librairies manquantes (LibSerialize / LibDeflate)" end
+    local payload, reason = getCodec().Decode(str)
+    if not payload then return false, reason end
     if type(payload.class) ~= "string"
         or (type(payload.bars) ~= "table" and type(payload.bar) ~= "table") then
         return false, "Donnees manquantes"

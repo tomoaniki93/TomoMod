@@ -21,10 +21,14 @@ CDF.SKIN_TEX = {
 CDF.SKIN_AXES = {
     "border", "corners", "swipe", "timer",
     "badge", "desatOnCooldown", "shadow", "stackPos",
+    -- [S7] fine axes (default nil in presets -> resolved defaults below)
+    "opacity", "timerColor",
 }
 
 CDF.SKIN_PRESETS = {
     net = {
+        opacity = 1,
+        timerColor = { 1, 1, 1 },
         border  = { mode = "flat", color = { 0, 0, 0 }, thickness = 1 },
         corners = "sharp",
         swipe   = { mode = "dark" },
@@ -35,6 +39,8 @@ CDF.SKIN_PRESETS = {
         stackPos = "BOTTOMRIGHT",
     },
     tomo = {
+        opacity = 1,
+        timerColor = nil,   -- nil = accent/class-driven default in render
         border  = { mode = "class", thickness = 1 },
         corners = "soft",
         swipe   = { mode = "class" },
@@ -45,6 +51,8 @@ CDF.SKIN_PRESETS = {
         stackPos = "TOPRIGHT",
     },
     verre = {
+        opacity = 1,
+        timerColor = { 1, 1, 1 },
         border  = { mode = "flat", color = { 1, 1, 1, 0.10 }, thickness = 1 },
         corners = "round",
         swipe   = { mode = "verre" },
@@ -59,10 +67,11 @@ CDF.SKIN_PRESETS = {
 -- ---------------------------------------------------------------------
 -- Color resolution
 -- ---------------------------------------------------------------------
+-- [L1] delegated to Forge.Util (brand fallback keeps the headless
+-- self-test standalone).
 function CDF.ClassColor()
-    local _, class = UnitClass("player")
-    local c = class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
-    if c then return c.r, c.g, c.b end
+    local F = TomoMod_Forge
+    if F and F.Util then return F.Util.ClassColor() end
     return BRAND[1], BRAND[2], BRAND[3]
 end
 
@@ -111,14 +120,11 @@ end
 -- Pixel-perfect helper: n physical pixels expressed in UI units for a
 -- frame living under UIParent (PanelPP idea, scoped to CDF).
 -- ---------------------------------------------------------------------
+-- [L1] delegated to Forge.Util.
 function CDF.Px(n)
-    local _, ph = GetPhysicalScreenSize()
-    if not ph or ph == 0 then return n or 1 end
-    local scale = UIParent and UIParent:GetEffectiveScale() or 1
-    if scale <= 0 then scale = 1 end
-    local v = (n or 1) * (768 / ph) / scale
-    if v < 0.5 then v = 0.5 end
-    return v
+    local F = TomoMod_Forge
+    if F and F.Util then return F.Util.Px(n) end
+    return n or 1
 end
 
 -- ---------------------------------------------------------------------

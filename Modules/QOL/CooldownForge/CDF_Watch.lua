@@ -91,6 +91,35 @@ function CDF.IsEntryVisible(entry)
 end
 
 -- ---------------------------------------------------------------------
+-- [S6] Bar-level conditional visibility. Tri-state conditions evaluated
+-- against non-secret, event-driven signals. nil visibility = always show.
+-- ---------------------------------------------------------------------
+function CDF.IsBarVisible(bar)
+    if type(bar) ~= "table" then return false end
+    if bar.enabled == false then return false end
+    local v = bar.visibility
+    if type(v) ~= "table" then return true end
+
+    if v.inCombat ~= nil then
+        local inCombat = (InCombatLockdown() or UnitAffectingCombat("player")) and true or false
+        if inCombat ~= v.inCombat then return false end
+    end
+    if v.inInstance ~= nil then
+        local inInst = IsInInstance() and true or false
+        if inInst ~= v.inInstance then return false end
+    end
+    if v.inRaid ~= nil then
+        local inRaid = IsInRaid() and true or false
+        if inRaid ~= v.inRaid then return false end
+    end
+    if v.inGroup ~= nil then
+        local inGroup = IsInGroup() and true or false
+        if inGroup ~= v.inGroup then return false end
+    end
+    return true
+end
+
+-- ---------------------------------------------------------------------
 -- Cooldown state (secret-safe). The renderer (Lot 3) branches on isSpell:
 --   isSpell -> feed durObj/chargeDurObj to Cooldown:SetCooldownFromDurationObject
 --   else    -> Cooldown:SetCooldown(start, duration)  (non-secret numbers)
@@ -153,9 +182,19 @@ w:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
 w:RegisterEvent("SPELLS_CHANGED")
 w:RegisterEvent("BAG_UPDATE_DELAYED")
 w:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
+-- [S6] visibility-condition triggers (event-driven, no polling; note we
+-- never touch COMBAT_LOG_EVENT_UNFILTERED, which is protected in TWW).
+w:RegisterEvent("PLAYER_REGEN_ENABLED")
+w:RegisterEvent("PLAYER_REGEN_DISABLED")
+w:RegisterEvent("GROUP_ROSTER_UPDATE")
+w:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+w:RegisterEvent("PLAYER_ENTERING_WORLD")
 w:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_SPECIALIZATION_CHANGED" or event == "SPELLS_CHANGED"
-       or event == "BAG_UPDATE_DELAYED" or event == "PLAYER_EQUIPMENT_CHANGED" then
+       or event == "BAG_UPDATE_DELAYED" or event == "PLAYER_EQUIPMENT_CHANGED"
+       or event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED"
+       or event == "GROUP_ROSTER_UPDATE" or event == "ZONE_CHANGED_NEW_AREA"
+       or event == "PLAYER_ENTERING_WORLD" then
         fireUpdate("layout")
     else
         fireUpdate("cooldown")
