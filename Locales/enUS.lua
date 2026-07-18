@@ -2763,4 +2763,5 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_322_studio_visibility"] = "Cooldown Studio: added conditional bar visibility — show or hide a bar based on combat, instance, group or raid status, via simple Indifferent/Yes/No dropdowns in the Visibility tab.",
     ["wn_322_studio_finestyle"] = "Cooldown Studio: added fine-tuning style controls in the Style tab — opacity, border color/thickness, a custom timer color and a drop shadow toggle.",
     ["wn_322_forge_internal"] = "Internal: extracted the shared machinery behind CooldownForge and Cooldown Studio into a new internal Forge library, laying the groundwork for future deep-editing modules — no user-facing changes.",
+    ["wn_322_studio_fixes2"] = "Cooldown Studio: fixed sidebar buttons (New/Duplicate/Rename/Delete/blueprints) sometimes not responding to clicks and overflowing their row, fixed Escape closing the window causing a taint error, and fixed the selected tab resetting instead of being remembered when switching bars.",
 })

@@ -2588,4 +2588,5 @@ TomoMod_RegisterLocale("esES", {
     ["wn_322_studio_visibility"] = "Cooldown Studio: añadida visibilidad condicional por barra — muestra u oculta una barra según el combate, la instancia, el grupo o la banda, mediante sencillos menús Indiferente/Sí/No en la pestaña Visibilidad.",
     ["wn_322_studio_finestyle"] = "Cooldown Studio: añadidos ajustes de estilo finos en la pestaña Estilo — opacidad, color/grosor del borde, un color de temporizador personalizado y un interruptor de sombra proyectada.",
     ["wn_322_forge_internal"] = "Interno: se extrajo la maquinaria compartida de CooldownForge y Cooldown Studio a una nueva biblioteca interna Forge, sentando las bases para futuros módulos de edición profunda — sin cambios visibles para el usuario.",
+    ["wn_322_studio_fixes2"] = "Cooldown Studio: corregido que los botones de la barra lateral (Nueva/Duplicar/Renombrar/Eliminar/plantillas) a veces no respondieran a los clics y desbordaran su fila, corregido que Escape cerrara la ventana provocando un error de corrupción (taint), y corregido que la pestaña seleccionada se reiniciara en lugar de recordarse al cambiar de barra.",
 })

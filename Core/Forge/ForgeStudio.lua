@@ -55,9 +55,20 @@ function Forge.Studio.CreateShell(opts)
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop",  frame.StopMovingOrSizing)
     frame:SetClampedToScreen(true)
-    if opts.name then
-        tinsert(UISpecialFrames, opts.name)
-    end
+    -- [fix] Close on Escape WITHOUT UISpecialFrames. Going through
+    -- UISpecialFrames routes Escape via ToggleGameMenu, which calls the
+    -- protected ClearTarget() and taints (ADDON_ACTION_FORBIDDEN). We
+    -- capture Escape on the frame itself, consume it, and propagate every
+    -- other key so game shortcuts keep working.
+    frame:EnableKeyboard(true)
+    frame:SetScript("OnKeyDown", function(self, key)
+        if key == "ESCAPE" then
+            self:SetPropagateKeyboardInput(false)
+            self:Hide()
+        else
+            self:SetPropagateKeyboardInput(true)
+        end
+    end)
 
     -- Widgets built inside inherit the studio accent (FindDesign walks up
     -- to _muiDesign; without this they fall back to the default accent).

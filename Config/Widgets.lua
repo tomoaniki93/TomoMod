@@ -1374,7 +1374,7 @@ end
 -- =====================================================================
 -- TAB PANEL
 -- =====================================================================
-function W.CreateTabPanel(parent, tabs)
+function W.CreateTabPanel(parent, tabs, initialTab)
     local r, g, b = Accent(parent)
     local wrapper = CreateFrame("Frame", nil, parent)
     wrapper:SetAllPoints()
@@ -1521,7 +1521,15 @@ function W.CreateTabPanel(parent, tabs)
     end
     tabBar:SetScript("OnSizeChanged", RelayoutTabs)
 
-    if #tabs > 0 then SwitchTab(tabs[1].key) end
+    -- [fix] honor the requested initial tab (tab persistence); fall back
+    -- to the first tab when absent or unknown.
+    local startKey = tabs[1] and tabs[1].key
+    if initialTab then
+        for _, tab in ipairs(tabs) do
+            if tab.key == initialTab then startKey = initialTab break end
+        end
+    end
+    if startKey then SwitchTab(startKey) end
     wrapper.SwitchTab = SwitchTab
     wrapper.content   = content
     wrapper:SetScript("OnHide", function()

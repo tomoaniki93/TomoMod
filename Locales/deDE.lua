@@ -2540,4 +2540,5 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_322_studio_visibility"] = "Cooldown Studio: bedingte Sichtbarkeit pro Leiste hinzugefügt — eine Leiste je nach Kampf-, Instanz-, Gruppen- oder Schlachtzugsstatus über einfache Indifferent/Ja/Nein-Menüs im Reiter Sichtbarkeit ein- oder ausblenden.",
     ["wn_322_studio_finestyle"] = "Cooldown Studio: Feinabstimmungs-Stiloptionen im Reiter Stil hinzugefügt — Deckkraft, Rahmenfarbe/-stärke, eine benutzerdefinierte Timer-Farbe und ein Schlagschatten-Schalter.",
     ["wn_322_forge_internal"] = "Intern: Die gemeinsamen Mechanismen von CooldownForge und Cooldown Studio wurden in eine neue interne Forge-Bibliothek ausgelagert und legen damit den Grundstein für zukünftige Tiefenbearbeitungsmodule — keine für den Nutzer sichtbaren Änderungen.",
+    ["wn_322_studio_fixes2"] = "Cooldown Studio: behoben, dass die Seitenleisten-Schaltflächen (Neu/Duplizieren/Umbenennen/Löschen/Vorlagen) manchmal nicht auf Klicks reagierten und ihre Zeile überliefen, dass Escape das Fenster mit einem Taint-Fehler schloss, und dass der ausgewählte Reiter beim Wechseln der Leiste zurückgesetzt statt gemerkt wurde.",
 })
