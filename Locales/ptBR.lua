@@ -2525,4 +2525,7 @@ TomoMod_RegisterLocale("ptBR", {
     -- 3.2.2
     ["wn_322_studio_intro"] = "Novo — Cooldown Studio: um editor em tela cheia dedicado às barras do CooldownForge, com abas por barra de Layout/Estilo/Feitiços/Visibilidade/Compartilhamento, acessível pela aba Cooldowns.",
     ["wn_322_studio_fix"] = "Cooldown Studio: corrigido o problema em que a janela nem sempre era exibida acima de outras janelas, e seus widgets nem sempre herdavam a cor de destaque correta.",
+    ["wn_322_studio_visibility"] = "Cooldown Studio: adicionada visibilidade condicional por barra — mostrar ou ocultar uma barra conforme o estado de combate, instância, grupo ou raide, com menus simples Indiferente/Sim/Não na aba Visibilidade.",
+    ["wn_322_studio_finestyle"] = "Cooldown Studio: adicionados ajustes finos de estilo na aba Estilo — opacidade, cor/espessura da borda, uma cor personalizada do temporizador e um alternador de sombra projetada.",
+    ["wn_322_forge_internal"] = "Interno: a lógica compartilhada do CooldownForge e do Cooldown Studio foi extraída para uma nova biblioteca interna Forge, preparando o terreno para futuros módulos de edição profunda — nenhuma mudança visível ao usuário.",
 })

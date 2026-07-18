@@ -8,6 +8,14 @@
 - **Fix** — Widgets built inside the Studio now correctly inherit its accent color instead of falling back to the default amber, since the window's panel context is now properly registered.
 - **Change** — Minor layout adjustment to the class-selector dropdown's vertical position for tighter alignment with the header.
 
+#### Cooldown Studio — Conditional Bar Visibility & Fine Style Controls
+- **New** — The Visibility tab now supports per-bar conditional visibility: require (or forbid) being in combat, in an instance (dungeon/raid), in a group, or in a raid, via simple "Indifferent / Yes / No" dropdowns for each condition. A bar with every condition left on "Indifferent" behaves exactly as before (always shown whenever its entries would otherwise display). Conditions are evaluated live and purely from non-secret, event-driven signals (combat lockdown state, group/raid roster, zone changes) — no combat log parsing, no polling.
+- **New** — The Style tab gained a "Fine-tuning" section: a per-bar opacity slider, a border color mode (class color / neutral / fully custom with its own color picker), a border thickness slider, an optional custom timer text color override, and a drop shadow toggle. Adjusting any of these automatically switches the bar's style preset to "Custom" so it no longer follows the base preset.
+- **Internal** — CooldownForge's saved-variable schema bumped to v3 with an automatic, one-time migration that normalizes every existing bar's visibility data — no user action required and existing bars keep displaying exactly as before until conditions are explicitly set.
+
+#### Internal — Shared "Forge" Library for Deep-Editing Modules
+- **Internal** — Extracted the machinery shared by CooldownForge and Cooldown Studio into a new internal `Core/Forge` library: pixel-perfect scaling, class-color resolution and accent folding (`Forge.Util`), the versioned share-string import/export codec (`Forge.IO`), the addon-wide edit-mode session with its grid/snap/movable overlays (`Forge.Edit`), stepwise schema migration with pre-migration auto-backup (`Forge.Schema`), and the studio window-chrome factory (`Forge.Studio`). CooldownForge, Cooldown Studio and the config window's global search now consume these shared helpers instead of duplicating the logic, laying the groundwork for future deep-editing modules (e.g. an upcoming UnitFrames studio) to reuse the same building blocks. No user-facing behavior changes.
+
 ## ####################################
 
 ## CHANGELOG 3.2.1 — CooldownForge: Custom Per-Class Cooldown Bars

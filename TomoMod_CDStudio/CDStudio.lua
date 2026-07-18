@@ -99,19 +99,11 @@ end
 -- ---------------------------------------------------------------------
 local addState = { kind = "spell", id = "", spec = 0 }
 
--- [S4] accent folding for the library name filter
-local FOLD = {
-    ["\195\160"] = "a", ["\195\162"] = "a", ["\195\169"] = "e", ["\195\168"] = "e",
-    ["\195\170"] = "e", ["\195\171"] = "e", ["\195\174"] = "i", ["\195\175"] = "i",
-    ["\195\180"] = "o", ["\195\185"] = "u", ["\195\187"] = "u", ["\195\167"] = "c",
-    ["\195\128"] = "a", ["\195\130"] = "a", ["\195\137"] = "e", ["\195\136"] = "e",
-    ["\195\138"] = "e", ["\195\142"] = "i", ["\195\148"] = "o", ["\195\153"] = "u",
-    ["\195\135"] = "c",
-}
+-- [S4/L1] accent folding, delegated to the shared Forge.Util.
 local function Fold(s)
-    s = tostring(s or ""):lower()
-    for k, v in pairs(FOLD) do s = s:gsub(k, v) end
-    return s
+    local F = TomoMod_Forge
+    if F and F.Util then return F.Util.Fold(s) end
+    return tostring(s or ""):lower()
 end
 
 -- [S2] tri-state helpers for per-entry overrides
@@ -171,9 +163,70 @@ local function TabStyle(parent)
         { { text = "Tomo (carte)", value = "tomo" },
           { text = "Net (pixel)", value = "net" },
           { text = "Verre (moderne)", value = "verre" } },
-        bar.style.preset or "tomo", cy, function(v) bar.style.preset = v; Apply() end)
+        bar.style.preset or "tomo", cy, function(v) bar.style.preset = v; Apply(); S.RebuildContent() end)
     _, cy = W.CreateCheckbox(card.inner, "Griser pendant le cooldown", bar.style.desatOnCooldown == true, cy,
         function(v) bar.style.desatOnCooldown = v; Apply() end)
+    y = W.FinalizeCard(card, cy)
+
+    -- [S7] fine style axes. Editing any of these marks the style custom.
+    local eff = (CDF.ResolveStyle and CDF.ResolveStyle(bar)) or {}
+    local function markCustom() bar.style.preset = "custom" end
+    card, cy = W.CreateCard(c, "Reglages fins", y)
+    _, cy = W.CreateSlider(card.inner, "Opacite", math.floor(((eff.opacity or 1) * 100) + 0.5), 20, 100, 5, cy,
+        function(v) markCustom(); bar.style.opacity = v / 100; Apply() end, "%d %%")
+
+    local bd = eff.border or {}
+    _, cy = W.CreateDropdown(card.inner, "Couleur de bordure",
+        { { text = "Couleur de classe", value = "class" },
+          { text = "Neutre", value = "flat" },
+          { text = "Personnalisee", value = "bar" } },
+        bd.mode or "class", cy, function(v)
+            markCustom()
+            bar.style.border = bar.style.border or {}
+            bar.style.border.mode = v
+            if v == "bar" and not bar.style.border.color then
+                local r, g, b = CDF.ClassColor()
+                bar.style.border.color = { r, g, b }
+            end
+            Apply(); S.RebuildContent()
+        end)
+    if (bar.style.border and bar.style.border.mode or bd.mode) == "bar" then
+        local col = (bar.style.border and bar.style.border.color) or { 1, 1, 1 }
+        _, cy = W.CreateColorPicker(card.inner, "Couleur de bordure (perso)", colorProxy(col), cy,
+            function(r, g, b)
+                markCustom()
+                bar.style.border = bar.style.border or {}
+                bar.style.border.color = { r, g, b }
+                Apply()
+            end)
+    end
+    _, cy = W.CreateSlider(card.inner, "Epaisseur de bordure", math.floor((bd.thickness or 1) + 0.5), 1, 4, 1, cy,
+        function(v)
+            markCustom()
+            bar.style.border = bar.style.border or {}
+            bar.style.border.thickness = v
+            Apply()
+        end)
+
+    local hasTimerColor = (bar.style.timerColor ~= nil)
+    _, cy = W.CreateCheckbox(card.inner, "Couleur de timer personnalisee", hasTimerColor, cy, function(v)
+        markCustom()
+        if v then
+            bar.style.timerColor = bar.style.timerColor or { 1, 1, 1 }
+        else
+            bar.style.timerColor = nil
+        end
+        Apply(); S.RebuildContent()
+    end)
+    if hasTimerColor then
+        _, cy = W.CreateColorPicker(card.inner, "Couleur du timer", colorProxy(bar.style.timerColor), cy,
+            function(r, g, b) markCustom(); writeColor(bar.style.timerColor, r, g, b); Apply() end)
+    end
+    _, cy = W.CreateCheckbox(card.inner, "Ombre portee", eff.shadow == true, cy, function(v)
+        markCustom(); bar.style.shadow = v; Apply()
+    end)
+    _, cy = W.CreateInfoText(card.inner,
+        "Modifier un reglage fin bascule le style en \"Personnalise\".", cy)
     y = W.FinalizeCard(card, cy)
 
     card, cy = W.CreateCard(c, "Glow (quand pret)", y)
@@ -498,15 +551,57 @@ local function TabBibliotheque(parent)
     return scroll
 end
 
+-- [S6] tri-state condition helper (Indifferent / Oui / Non)
+local VIS_OPTS = {
+    { text = "Indifferent", value = "any" },
+    { text = "Oui",         value = "yes" },
+    { text = "Non",         value = "no" },
+}
+local function visVal(v)
+    if v == nil then return "any" end
+    return v and "yes" or "no"
+end
+local function visSet(t, k, v)
+    if v == "any" then t[k] = nil else t[k] = (v == "yes") end
+end
+
 local function TabVisibilite(parent)
     S.state.tab = "vis"
     local scroll = W.CreateScrollPanel(parent)
     local c, y = scroll.child, -12
+    local bar = SelectedBar()
+    if not bar then
+        local card, cy = W.CreateCard(c, "Visibilite", y)
+        _, cy = W.CreateInfoText(card.inner, "Selectionne (ou cree) une barre.", cy)
+        W.FinalizeCard(card, cy)
+        if scroll.UpdateScroll then scroll.UpdateScroll() end
+        return scroll
+    end
     local card, cy
-    card, cy = W.CreateCard(c, "Visibilite", y)
+
+    card, cy = W.CreateCard(c, "Conditions d'affichage", y)
     _, cy = W.CreateInfoText(card.inner,
-        "Conditions de visibilite (combat, groupe, instance...) : a venir dans un prochain lot. "
-        .. "La visibilite par specialisation se regle des maintenant, entree par entree, dans l'onglet Sorts.", cy)
+        "La barre ne s'affiche que si toutes les conditions ci-dessous sont remplies. "
+        .. "Indifferent = la condition est ignoree.", cy)
+    local v = bar.visibility or {}
+    local function cond(label, key)
+        _, cy = W.CreateDropdown(card.inner, label, VIS_OPTS, visVal(v[key]), cy, function(val)
+            bar.visibility = bar.visibility or {}
+            visSet(bar.visibility, key, val)
+            if next(bar.visibility) == nil then bar.visibility = nil end
+            v = bar.visibility or {}
+            Apply()
+        end)
+    end
+    cond("En combat", "inCombat")
+    cond("En instance (donjon/raid)", "inInstance")
+    cond("En groupe", "inGroup")
+    cond("En raid", "inRaid")
+    y = W.FinalizeCard(card, cy)
+
+    card, cy = W.CreateCard(c, "Visibilite par sort", y)
+    _, cy = W.CreateInfoText(card.inner,
+        "La visibilite par specialisation se regle entree par entree dans l'onglet Sorts.", cy)
     W.FinalizeCard(card, cy)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
@@ -682,91 +777,43 @@ end
 -- ---------------------------------------------------------------------
 -- Window
 -- ---------------------------------------------------------------------
+-- [L2] Window chrome now comes from the shared Forge.Studio shell
+-- factory; this file keeps only the CDF wiring (CRUD rows, tabs, edit
+-- mode) so the future UnitFrames studio gets the same chrome for free.
 local function BuildWindow()
-    frame = CreateFrame("Frame", "TomoModCDStudioFrame", UIParent, "BackdropTemplate")
-    frame:SetSize(PANEL_W, PANEL_H)
-    frame:SetPoint("CENTER")
-    frame:SetFrameStrata("FULLSCREEN_DIALOG")
-    frame:SetFrameLevel(100)
-    frame:SetToplevel(true)
-    frame:SetBackdrop({ bgFile = WHITE8, edgeFile = WHITE8, edgeSize = 1 })
-    frame:SetBackdropColor(0.043, 0.047, 0.061, 1)
-    frame:SetBackdropBorderColor(0.16, 0.18, 0.22, 1)
-    frame:SetMovable(true)
-    frame:EnableMouse(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", frame.StartMoving)
-    frame:SetScript("OnDragStop",  frame.StopMovingOrSizing)
-    frame:SetClampedToScreen(true)
-    tinsert(UISpecialFrames, "TomoModCDStudioFrame")
+    local shell = TomoMod_Forge.Studio.CreateShell({
+        name         = "TomoModCDStudioFrame",
+        title        = "|cff2ed884Cooldown|r Studio",
+        width        = PANEL_W,
+        height       = PANEL_H,
+        sideWidth    = SIDE_W,
+        titleH       = TITLE_H,
+        footerH      = FOOTER_H,
+        crudHeight   = 150,
+        accent       = BRAND,
+        sidebarTitle = "BARRES",
+        selector = {
+            label   = "Classe editee",
+            options = CLASS_LIST,
+            get     = function() return S.state.class end,
+            set     = function(v)
+                S.state.class = v
+                S.state.barId = nil
+                S.state.fxIdx = nil
+                S.RebuildSidebar()
+                S.RebuildContent()
+            end,
+        },
+        footerButtons = {
+            { text = "Mode edition (deplacer les barres)", width = 210, callback = StartEditMode },
+        },
+        hint = "Echap pour fermer  -  les reglages s'appliquent en direct",
+    })
+    frame       = shell.frame
+    sidebarList = shell.sidebarList
+    contentHost = shell.contentHost
 
-    -- Widgets built inside the studio inherit its accent (FindDesign walks
-    -- up to _muiDesign; without this they fall back to the default amber).
-    if W.ApplyPanelContext then
-        W.ApplyPanelContext(frame, { key = "cdstudio", label = "Cooldown Studio", accent = BRAND })
-    end
-
-    -- Header
-    local title = frame:CreateFontString(nil, "OVERLAY")
-    title:SetFont(FONT_BOLD, 15, "")
-    title:SetPoint("TOPLEFT", 18, -17)
-    title:SetText("|cff2ed884Cooldown|r Studio")
-
-    local classHost = CreateFrame("Frame", nil, frame)
-    classHost:SetSize(300, 48)
-    classHost:SetPoint("TOPLEFT", 200, -6)
-    W.CreateDropdown(classHost, "Classe editee", CLASS_LIST, S.state.class, 0, function(v)
-        S.state.class = v
-        S.state.barId = nil
-        S.state.fxIdx = nil
-        S.RebuildSidebar()
-        S.RebuildContent()
-    end)
-
-    local closeBtn = CreateFrame("Button", nil, frame)
-    closeBtn:SetSize(26, 26)
-    closeBtn:SetPoint("TOPRIGHT", -10, -10)
-    local ct = closeBtn:CreateFontString(nil, "OVERLAY")
-    ct:SetFont(FONT_BOLD, 15, "")
-    ct:SetPoint("CENTER", 0, 0)
-    ct:SetText("X")
-    ct:SetTextColor(0.5, 0.5, 0.55, 1)
-    closeBtn:SetScript("OnEnter", function() ct:SetTextColor(1, 0.4, 0.4, 1) end)
-    closeBtn:SetScript("OnLeave", function() ct:SetTextColor(0.5, 0.5, 0.55, 1) end)
-    closeBtn:SetScript("OnClick", function() frame:Hide() end)
-
-    local hsep = frame:CreateTexture(nil, "ARTWORK")
-    hsep:SetColorTexture(0.14, 0.15, 0.19, 1)
-    hsep:SetPoint("TOPLEFT", 0, -TITLE_H)
-    hsep:SetPoint("TOPRIGHT", 0, -TITLE_H)
-    hsep:SetHeight(1)
-
-    -- Sidebar
-    local side = CreateFrame("Frame", nil, frame)
-    side:SetPoint("TOPLEFT", 0, -TITLE_H - 1)
-    side:SetPoint("BOTTOMLEFT", 0, FOOTER_H)
-    side:SetWidth(SIDE_W)
-
-    local vsep = frame:CreateTexture(nil, "ARTWORK")
-    vsep:SetColorTexture(0.14, 0.15, 0.19, 1)
-    vsep:SetPoint("TOPLEFT", SIDE_W, -TITLE_H)
-    vsep:SetPoint("BOTTOMLEFT", SIDE_W, FOOTER_H)
-    vsep:SetWidth(1)
-
-    local sideTitle = side:CreateFontString(nil, "OVERLAY")
-    sideTitle:SetFont(FONT, 10, "")
-    sideTitle:SetPoint("TOPLEFT", 12, -10)
-    sideTitle:SetTextColor(0.42, 0.44, 0.5, 1)
-    sideTitle:SetText("BARRES")
-
-    sidebarList = CreateFrame("Frame", nil, side)
-    sidebarList:SetPoint("TOPLEFT", 0, -26)
-    sidebarList:SetPoint("BOTTOMRIGHT", 0, 156)
-
-    local crudHost = CreateFrame("Frame", nil, side)
-    crudHost:SetPoint("BOTTOMLEFT", -6, 4)
-    crudHost:SetPoint("BOTTOMRIGHT", 6, 4)
-    crudHost:SetHeight(150)
+    local crudHost = shell.crudHost
     local _, cy2 = W.CreateButtonRow(crudHost, {
         { text = "+ Nouvelle", callback = function()
             local _, id = CDF.CreateBar(S.state.class, "Nouvelle barre")
@@ -801,37 +848,6 @@ local function BuildWindow()
         { text = "Modele : Conso",  callback = function() fromBlueprint("conso") end },
         { text = "Modele : Utils",  callback = function() fromBlueprint("utils") end },
     }, cy3)
-
-    -- Content host
-    contentHost = CreateFrame("Frame", nil, frame)
-    contentHost:SetPoint("TOPLEFT", SIDE_W + 1, -TITLE_H - 1)
-    contentHost:SetPoint("BOTTOMRIGHT", 0, FOOTER_H)
-
-    -- Footer
-    local fsep = frame:CreateTexture(nil, "ARTWORK")
-    fsep:SetColorTexture(0.14, 0.15, 0.19, 1)
-    fsep:SetPoint("BOTTOMLEFT", 0, FOOTER_H)
-    fsep:SetPoint("BOTTOMRIGHT", 0, FOOTER_H)
-    fsep:SetHeight(1)
-
-    local editBtn = CreateFrame("Button", nil, frame, "BackdropTemplate")
-    editBtn:SetSize(210, 28)
-    editBtn:SetPoint("BOTTOMLEFT", 14, 8)
-    editBtn:SetBackdrop({ bgFile = WHITE8, edgeFile = WHITE8, edgeSize = 1 })
-    editBtn:SetBackdropColor(0.07, 0.11, 0.09, 1)
-    editBtn:SetBackdropBorderColor(BRAND[1], BRAND[2], BRAND[3], 0.5)
-    editBtnTxt = editBtn:CreateFontString(nil, "OVERLAY")
-    editBtnTxt:SetFont(FONT_BOLD, 11, "")
-    editBtnTxt:SetPoint("CENTER")
-    editBtnTxt:SetTextColor(0.92, 0.95, 0.93, 1)
-    editBtnTxt:SetText("Mode edition (deplacer les barres)")
-    editBtn:SetScript("OnClick", StartEditMode)
-
-    local hint = frame:CreateFontString(nil, "OVERLAY")
-    hint:SetFont(FONT, 9, "")
-    hint:SetPoint("BOTTOMRIGHT", -16, 16)
-    hint:SetTextColor(0.36, 0.38, 0.44, 1)
-    hint:SetText("Echap pour fermer  -  les reglages s'appliquent en direct")
 end
 
 StaticPopupDialogs = StaticPopupDialogs or {}

@@ -2537,4 +2537,7 @@ TomoMod_RegisterLocale("deDE", {
     -- 3.2.2
     ["wn_322_studio_intro"] = "Neu — Cooldown Studio: ein eigener Vollbild-Editor für CooldownForge-Leisten mit Reitern pro Leiste für Layout/Stil/Zauber/Sichtbarkeit/Teilen, aufrufbar über den Reiter Cooldowns.",
     ["wn_322_studio_fix"] = "Cooldown Studio: behoben, dass sich das Fenster nicht immer über anderen Fenstern anzeigte und seine Widgets nicht immer die richtige Akzentfarbe übernahmen.",
+    ["wn_322_studio_visibility"] = "Cooldown Studio: bedingte Sichtbarkeit pro Leiste hinzugefügt — eine Leiste je nach Kampf-, Instanz-, Gruppen- oder Schlachtzugsstatus über einfache Indifferent/Ja/Nein-Menüs im Reiter Sichtbarkeit ein- oder ausblenden.",
+    ["wn_322_studio_finestyle"] = "Cooldown Studio: Feinabstimmungs-Stiloptionen im Reiter Stil hinzugefügt — Deckkraft, Rahmenfarbe/-stärke, eine benutzerdefinierte Timer-Farbe und ein Schlagschatten-Schalter.",
+    ["wn_322_forge_internal"] = "Intern: Die gemeinsamen Mechanismen von CooldownForge und Cooldown Studio wurden in eine neue interne Forge-Bibliothek ausgelagert und legen damit den Grundstein für zukünftige Tiefenbearbeitungsmodule — keine für den Nutzer sichtbaren Änderungen.",
 })

@@ -38,23 +38,12 @@ TomoMod_GlobalSearch = GS
 -- ---------------------------------------------------------------------
 -- Accent folding (French UI: "echelle" must match "Échelle")
 -- ---------------------------------------------------------------------
-local FOLD = {
-    ["à"] = "a", ["â"] = "a", ["ä"] = "a", ["é"] = "e", ["è"] = "e",
-    ["ê"] = "e", ["ë"] = "e", ["î"] = "i", ["ï"] = "i", ["ô"] = "o",
-    ["ö"] = "o", ["ù"] = "u", ["û"] = "u", ["ü"] = "u", ["ç"] = "c",
-    ["œ"] = "oe",
-    ["À"] = "a", ["Â"] = "a", ["Ä"] = "a", ["É"] = "e", ["È"] = "e",
-    ["Ê"] = "e", ["Ë"] = "e", ["Î"] = "i", ["Ï"] = "i", ["Ô"] = "o",
-    ["Ö"] = "o", ["Ù"] = "u", ["Û"] = "u", ["Ü"] = "u", ["Ç"] = "c",
-    ["Œ"] = "oe",
-}
-
+-- [L1] accent folding now lives in Forge.Util (shared with the studio
+-- and every future filter).
 local function Fold(s)
-    s = s:lower()
-    for k, v in pairs(FOLD) do
-        s = s:gsub(k, v)
-    end
-    return s
+    local F = TomoMod_Forge
+    if F and F.Util then return F.Util.Fold(s) end
+    return tostring(s or ""):lower()
 end
 
 -- ---------------------------------------------------------------------
