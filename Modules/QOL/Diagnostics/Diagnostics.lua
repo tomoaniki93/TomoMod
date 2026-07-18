@@ -639,6 +639,8 @@ end
 -- EVENT HANDLERS
 -- =====================================================================
 
+local taintOwnershipTaken = false
+
 local function OnTaintEvent(event, addon, action)
     -- Always capture TomoMod taint, even if diagnostics are disabled
     local addonStr = SafeToString(addon)
@@ -716,6 +718,30 @@ local function InstallErrorHandler()
     -- Save the current error handler
     prevErrorHandler = geterrorhandler()
     seterrorhandler(OnLuaError)
+
+    -- [taint-fix] Take EXCLUSIVE ownership of the taint events, the way
+    -- BugGrabber does. Leaving ADDON_ACTION_FORBIDDEN/BLOCKED registered on
+    -- UIParent (and GameEvent in 12.1+) lets Blizzard's own handling re-enter
+    -- and RE-PROPAGATE the taint we're only trying to observe -- which is what
+    -- produced phantom ADDON_ACTION_FORBIDDEN reports (UseToy, SetNote, ...)
+    -- attributed to whichever addon happened to be active. We unregister those
+    -- default listeners so our frame is the sole observer.
+    if not taintOwnershipTaken then
+        taintOwnershipTaken = true
+        if UIParent then
+            pcall(UIParent.UnregisterEvent, UIParent, "ADDON_ACTION_FORBIDDEN")
+            pcall(UIParent.UnregisterEvent, UIParent, "ADDON_ACTION_BLOCKED")
+        end
+        -- WoW 12.1: these events moved to GameEvent internal events.
+        if GameEvent and GameEvent.UnregisterInternalEvent then
+            pcall(GameEvent.UnregisterInternalEvent, "ADDON_ACTION_FORBIDDEN")
+            pcall(GameEvent.UnregisterInternalEvent, "ADDON_ACTION_BLOCKED")
+        end
+        -- Avoid duplicate LUA_WARNING capture from Blizzard's error frame.
+        if ScriptErrorsFrame and ScriptErrorsFrame.UnregisterEvent then
+            pcall(ScriptErrorsFrame.UnregisterEvent, ScriptErrorsFrame, "LUA_WARNING")
+        end
+    end
 end
 
 -- =====================================================================
