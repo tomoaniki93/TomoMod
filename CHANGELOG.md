@@ -26,6 +26,9 @@
 #### Internal — Shared "Forge" Library for Deep-Editing Modules
 - **Internal** — Extracted the machinery shared by CooldownForge and Cooldown Studio into a new internal `Core/Forge` library: pixel-perfect scaling, class-color resolution and accent folding (`Forge.Util`), the versioned share-string import/export codec (`Forge.IO`), the addon-wide edit-mode session with its grid/snap/movable overlays (`Forge.Edit`), stepwise schema migration with pre-migration auto-backup (`Forge.Schema`), and the studio window-chrome factory (`Forge.Studio`). CooldownForge, Cooldown Studio and the config window's global search now consume these shared helpers instead of duplicating the logic, laying the groundwork for future deep-editing modules (e.g. an upcoming UnitFrames studio) to reuse the same building blocks. No user-facing behavior changes.
 
+#### Diagnostics — Exclusive Ownership of Taint Events (Fewer Phantom Reports)
+- **Fix** — Diagnostics now takes exclusive ownership of the taint-related events instead of sharing them with Blizzard's own handling. Leaving `ADDON_ACTION_FORBIDDEN`/`ADDON_ACTION_BLOCKED` registered on `UIParent` (and `LUA_WARNING` on the default script-error frame) let Blizzard's own handling re-enter and re-propagate the taint TomoMod was only trying to observe, producing phantom `ADDON_ACTION_FORBIDDEN` reports (e.g. `UseToy`, `SetNote`) misattributed to whichever addon happened to be active at that moment. Diagnostics now unregisters those default listeners — the same approach used by BugGrabber — so its own frame is the sole observer of these events, on every client version including 12.1+'s `GameEvent`-based internal events.
+
 ## ####################################
 
 ## CHANGELOG 3.2.1 — CooldownForge: Custom Per-Class Cooldown Bars
