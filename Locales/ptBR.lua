@@ -2529,4 +2529,5 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_322_studio_finestyle"] = "Cooldown Studio: adicionados ajustes finos de estilo na aba Estilo — opacidade, cor/espessura da borda, uma cor personalizada do temporizador e um alternador de sombra projetada.",
     ["wn_322_forge_internal"] = "Interno: a lógica compartilhada do CooldownForge e do Cooldown Studio foi extraída para uma nova biblioteca interna Forge, preparando o terreno para futuros módulos de edição profunda — nenhuma mudança visível ao usuário.",
     ["wn_322_studio_fixes2"] = "Cooldown Studio: corrigido o problema em que os botões da barra lateral (Nova/Duplicar/Renomear/Excluir/modelos) às vezes não respondiam a cliques e transbordavam da linha, corrigido o Escape que fechava a janela causando um erro de corrupção (taint), e corrigida a aba selecionada que era reiniciada em vez de lembrada ao trocar de barra.",
+    ["wn_322_studio_talents"] = "Cooldown Studio: a biblioteca de feitiços agora também inclui seus talentos ativos e talentos heróicos, não apenas feitiços do grimório, para que você possa rastreá-los também nas barras de cooldown.",
 })

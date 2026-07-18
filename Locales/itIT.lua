@@ -2529,4 +2529,5 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_322_studio_finestyle"] = "Cooldown Studio: aggiunti controlli di stile fini nella scheda Stile — opacità, colore/spessore del bordo, un colore del timer personalizzato e un interruttore per l'ombra proiettata.",
     ["wn_322_forge_internal"] = "Interno: la logica condivisa di CooldownForge e Cooldown Studio è stata estratta in una nuova libreria interna Forge, gettando le basi per i futuri moduli di editing avanzato — nessuna modifica visibile all'utente.",
     ["wn_322_studio_fixes2"] = "Cooldown Studio: risolto il problema per cui i pulsanti della barra laterale (Nuova/Duplica/Rinomina/Elimina/modelli) a volte non rispondevano ai clic e traboccavano dalla loro riga, risolto il problema per cui Esc chiudeva la finestra causando un errore di corruzione (taint), e risolto il problema per cui la scheda selezionata si reimpostava invece di essere ricordata cambiando barra.",
+    ["wn_322_studio_talents"] = "Cooldown Studio: la libreria degli incantesimi ora include anche i tuoi talenti attivi e i talenti eroici, non solo gli incantesimi del grimorio, così puoi tracciarli anche sulle barre dei cooldown.",
 })

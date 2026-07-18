@@ -17,7 +17,7 @@ Forge.Studio = Forge.Studio or {}
 local WHITE8 = "Interface\\Buttons\\WHITE8x8"
 
 -- opts:
---   name          : global frame name (registered in UISpecialFrames)
+--   name          : global frame name (used for the frame handle)
 --   title         : header title text (can contain color codes)
 --   width, height : window size (default 1280x840)
 --   sideWidth     : sidebar width (default 250)
