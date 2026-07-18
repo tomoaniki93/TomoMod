@@ -1679,7 +1679,10 @@ function W.CreateButtonRow(parent, buttons, yOffset)
             btn:SetBackdropColor(r * 0.20, g * 0.16, blue * 0.22, 0.9)
             lbl:SetTextColor(1, 1, 1, 1)
         end)
-        btn:SetScript("OnClick", function() if def.cb then def.cb() end end)
+        btn:SetScript("OnClick", function()
+            local fn = def.cb or def.callback
+            if fn then fn() end
+        end)
 
         x = x + w + GAP
     end
