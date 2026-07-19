@@ -376,6 +376,36 @@ local function getBarFrame(bar)
 end
 CDF.GetBarFrame = getBarFrame
 
+-- [preview] Expose the exact icon builder + styler used by real bars, so the
+-- studio preview renders identically (no divergent reimplementation). The
+-- preview passes its own container; makeIcon/styleIcon don't care where the
+-- icon lives. Extensible to fake-active states later via icon.cd:SetCooldown
+-- with plain numbers (safe on our own Cooldown frame, not a secret value).
+function CDF.MakePreviewIcon(container)
+    return makeIcon(container)
+end
+-- opts (optional): { cooldown = seconds, elapsed = seconds }
+--   Starts a fake cooldown on OUR OWN Cooldown frame with plain numbers
+--   (never a secret value -- same technique EllesmereUI uses for its
+--   fake-active preview). Desaturation follows desatOnCooldown.
+function CDF.StylePreviewIcon(icon, bar, texture, opts)
+    icon.tex:SetTexture(texture or 134400)
+    styleIcon(icon, bar)
+    icon:Show()
+    icon.tex:Show()
+
+    local st = (CDF.ResolveStyle and CDF.ResolveStyle(bar)) or {}
+    opts = opts or {}
+    local cd = tonumber(opts.cooldown) or 0
+    if cd > 0 then
+        icon.cd:SetCooldown(GetTime() - (tonumber(opts.elapsed) or 0), cd)
+        if st.desatOnCooldown then icon.tex:SetDesaturated(true) end
+    else
+        icon.cd:SetCooldown(0, 0)
+        icon.tex:SetDesaturated(false)
+    end
+end
+
 local function positionContainer(f, bar)
     local pos = bar.position or {}
     local point = pos.point or "CENTER"

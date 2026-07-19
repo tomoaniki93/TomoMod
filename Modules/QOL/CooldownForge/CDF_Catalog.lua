@@ -188,18 +188,29 @@ local function scanTalentsInto(out, seen)
         if okN and type(nodes) == "table" then
             for _, nodeID in ipairs(nodes) do
                 local okNI, nodeInfo = pcall(C_Traits.GetNodeInfo, configID, nodeID)
-                if okNI and type(nodeInfo) == "table" then
+                -- [fix] Only nodes actually taken (currentRank > 0), and read
+                -- the SELECTED entry via activeEntry.entryID. The previous field,
+                -- entryIDsWithCommittedRanks, is not reliably populated outside a
+                -- preview/loadout context, so in-game the scan found nothing.
+                -- Fall back to that list only if activeEntry is missing.
+                if okNI and type(nodeInfo) == "table"
+                   and nodeInfo.currentRank and nodeInfo.currentRank > 0 then
                     local isHero = heroSpecID and nodeInfo.subTreeID
                         and nodeInfo.subTreeID == heroSpecID
-                    local entries = nodeInfo.entryIDsWithCommittedRanks
-                    if type(entries) == "table" then
-                        for _, entryID in ipairs(entries) do
-                            local okE, entryInfo = pcall(C_Traits.GetEntryInfo, configID, entryID)
-                            if okE and type(entryInfo) == "table" and entryInfo.definitionID then
-                                local okD, def = pcall(C_Traits.GetDefinitionInfo, entryInfo.definitionID)
-                                if okD and type(def) == "table" and def.spellID then
-                                    addSpell(isHero and hero or talents, def.spellID)
-                                end
+
+                    local entryIDs = {}
+                    if nodeInfo.activeEntry and nodeInfo.activeEntry.entryID then
+                        entryIDs[1] = nodeInfo.activeEntry.entryID
+                    elseif type(nodeInfo.entryIDsWithCommittedRanks) == "table" then
+                        entryIDs = nodeInfo.entryIDsWithCommittedRanks
+                    end
+
+                    for _, entryID in ipairs(entryIDs) do
+                        local okE, entryInfo = pcall(C_Traits.GetEntryInfo, configID, entryID)
+                        if okE and type(entryInfo) == "table" and entryInfo.definitionID then
+                            local okD, def = pcall(C_Traits.GetDefinitionInfo, entryInfo.definitionID)
+                            if okD and type(def) == "table" and def.spellID then
+                                addSpell(isHero and hero or talents, def.spellID)
                             end
                         end
                     end

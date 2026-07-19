@@ -1025,6 +1025,17 @@ local function RegisterWithMovers()
                 local barDB = GetBarDB(id)
                 if barDB.enabled ~= false then
                     if not dragOverlays[id] then CreateDragOverlay(id) end
+                    -- [pet/stance] These bars are hidden at rest when the player
+                    -- has no pet / no stances, so their overlay would be
+                    -- invisible and unplaceable. Force the (our own, unprotected)
+                    -- container visible during edit so it can be positioned; the
+                    -- state driver restores the real visibility on lock.
+                    local cont = containers[id]
+                    if cont and (id == "pet" or id == "stance")
+                       and not cont:IsShown() and not InCombatLockdown() then
+                        cont._tmForcedEditShow = true
+                        cont:Show()
+                    end
                     dragOverlays[id]:Show()
                 end
             end
@@ -1034,6 +1045,17 @@ local function RegisterWithMovers()
             for id, overlay in pairs(dragOverlays) do
                 overlay:Hide()
                 SavePosition(id)
+            end
+            -- Restore forced pet/stance containers to their driver-controlled
+            -- visibility (re-apply the state driver by re-hiding if empty).
+            for id, cont in pairs(containers) do
+                if cont._tmForcedEditShow then
+                    cont._tmForcedEditShow = nil
+                    if not InCombatLockdown()
+                       and not cont:GetAttribute("tomo-user-shown") then
+                        cont:Hide()
+                    end
+                end
             end
         end,
         isActive = function() return IsEnabled() end,

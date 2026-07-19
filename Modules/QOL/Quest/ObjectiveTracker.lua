@@ -1628,6 +1628,15 @@ local function InstallHooks()
         hooksecurefunc(tracker, "SetPoint", function()
             if _tmApplyingPosition then return end
             if not OT.ApplyPosition then return end
+            -- Never fight an active Blizzard Edit Mode session: while the user
+            -- drags the tracker in native Edit Mode, Blizzard calls SetPoint to
+            -- follow the cursor. Re-asserting our saved anchor here would cancel
+            -- every move and freeze the tracker in place (reported bug). Let Edit
+            -- Mode own the position; SavePosition picks it up when the user exits.
+            if EditModeManagerFrame and EditModeManagerFrame.IsEditModeActive
+                and EditModeManagerFrame:IsEditModeActive() then
+                return
+            end
             _tmApplyingPosition = true
             OT.ApplyPosition()
             _tmApplyingPosition = false

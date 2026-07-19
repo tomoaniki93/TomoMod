@@ -51,6 +51,21 @@ function CDF.RenameBar(class, id, newName)
     return true
 end
 
+-- [copy] Copy ONLY the visual style (bar.style) from one bar to another.
+-- id, name, position, layout, visibility and spells of the destination are
+-- left untouched. Deep copy so the two bars never share table references.
+function CDF.CopyStyle(class, srcId, dstId)
+    if srcId == dstId then return false end
+    local src = CDF.GetBar(class, srcId)
+    local dst = CDF.GetBar(class, dstId)
+    if not src or not dst then return false end
+    local copy = TomoMod_Forge and TomoMod_Forge.Util and TomoMod_Forge.Util.CopyDeep
+    if not copy then return false end
+    dst.style = copy(src.style or {})
+    if CDF.SanitizeBar then CDF.SanitizeBar(dst) end
+    return true
+end
+
 function CDF.DeleteBar(class, id)
     local arr = CDF.GetClassBars(class)
     if not arr then return false end
