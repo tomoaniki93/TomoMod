@@ -1460,7 +1460,7 @@ TomoMod_RegisterLocale("frFR", {
     ["info_abs_unlock"]              = "D\195\169verrouillez les barres pour faire appara\195\174tre les poign\195\169es de d\195\169placement.\nClic droit sur une poign\195\169e pour configurer une barre individuellement.",
     ["section_bar_quick"]            = "Param\195\168tres rapides",
     ["btn_abs_layout"]               = "EditMode (/tm layout)",
-    ["info_abs_layout"]              = "Utilisez l'EditMode pour d\195\169placer les barres.\nGlissez les overlays pour repositionner.",
+    ["info_abs_layout"]              = "Utilisez l'EditMode pour d\195\169placer les barres, ou glissez les overlays pour repositionner.\nD\195\169pliez une barre ci-dessous pour r\195\169gler la taille des boutons et l'\195\169chelle.",
     ["tab_abs_skin"]                 = "Skin des boutons",
     ["tab_abs_bars"]                 = "Gestion des barres",
     -- Per-bar config
@@ -2689,4 +2689,5 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_322_studio_fixes2"] = "Cooldown Studio : correction des boutons de la barre latérale (Nouvelle/Dupliquer/Renommer/Supprimer/modeles) qui ne répondaient parfois pas aux clics et débordaient de leur ligne, correction d'Echap qui fermait la fenêtre en provoquant une erreur de corruption (taint), et correction de l'onglet sélectionné qui se réinitialisait au lieu d'être mémorisé lors du changement de barre.",
     ["wn_322_studio_talents"] = "Cooldown Studio : la bibliothèque de sorts inclut désormais aussi tes talents et talents héroïques actifs, pas seulement les sorts du grimoire, pour pouvoir aussi les suivre sur une barre de cooldown.",
     ["wn_322_diag_taintown"] = "Diagnostics : correction de faux rapports ADDON_ACTION_FORBIDDEN (UseToy, SetNote...) attribués à des addons au hasard — Diagnostics prend désormais possession exclusive des événements de taint au lieu de laisser la gestion native de Blizzard les repropager.",
+    ["wn_322_actionbars_discover"] = "Barres d'action : le texte d'info de l'onglet Gestion des barres mentionne désormais aussi que déplier une barre révèle ses réglages de taille et d'échelle des boutons, rendant cette option plus facile à trouver.",
 })

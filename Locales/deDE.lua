@@ -1378,6 +1378,7 @@ TomoMod_RegisterLocale("deDE", {
     ["section_bar_quick"]            = "Schnelleinstellungen",
     ["tab_abs_skin"]                 = "Button-Skin",
     ["tab_abs_bars"]                 = "Leisten-Verwaltung",
+    ["info_abs_layout"]              = "Nutze den EditMode zum Verschieben der Leisten oder ziehe die Overlays.\nKlappe unten eine Leiste auf, um Buttongr\195\182\195\159e und Skalierung zu \195\164ndern.",
     -- General panel
     ["opt_gui_scale"]                = "Skalierung des Konfigurationsfensters",
     ["info_gui_scale"]               = "Skalierung des /tm-Fensters \226\128\148 es l\195\164sst sich auch durch Ziehen der unteren rechten Ecke in der Gr\195\182\195\159e \195\164ndern.",
@@ -2543,4 +2544,5 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_322_studio_fixes2"] = "Cooldown Studio: behoben, dass die Seitenleisten-Schaltflächen (Neu/Duplizieren/Umbenennen/Löschen/Vorlagen) manchmal nicht auf Klicks reagierten und ihre Zeile überliefen, dass Escape das Fenster mit einem Taint-Fehler schloss, und dass der ausgewählte Reiter beim Wechseln der Leiste zurückgesetzt statt gemerkt wurde.",
     ["wn_322_studio_talents"] = "Cooldown Studio: Die Zauberbibliothek enthält jetzt auch deine aktiven Talente und Heldentalente, nicht nur Grimoire-Zauber, sodass du sie ebenfalls auf Cooldown-Leisten verfolgen kannst.",
     ["wn_322_diag_taintown"] = "Diagnose: behoben, dass fantomhafte ADDON_ACTION_FORBIDDEN-Meldungen (UseToy, SetNote ...) zufälligen Addons zugeschrieben wurden — Diagnose übernimmt jetzt die exklusive Kontrolle über die Taint-Ereignisse, statt sie von Blizzards eigener Verarbeitung erneut weiterleiten zu lassen.",
+    ["wn_322_actionbars_discover"] = "Aktionsleisten: Der Infotext im Reiter Leisten-Verwaltung weist jetzt auch darauf hin, dass das Aufklappen einer Leiste ihre Buttongröße- und Skalierungsregler anzeigt, wodurch diese Option leichter zu finden ist.",
 })

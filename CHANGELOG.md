@@ -29,6 +29,9 @@
 #### Diagnostics — Exclusive Ownership of Taint Events (Fewer Phantom Reports)
 - **Fix** — Diagnostics now takes exclusive ownership of the taint-related events instead of sharing them with Blizzard's own handling. Leaving `ADDON_ACTION_FORBIDDEN`/`ADDON_ACTION_BLOCKED` registered on `UIParent` (and `LUA_WARNING` on the default script-error frame) let Blizzard's own handling re-enter and re-propagate the taint TomoMod was only trying to observe, producing phantom `ADDON_ACTION_FORBIDDEN` reports (e.g. `UseToy`, `SetNote`) misattributed to whichever addon happened to be active at that moment. Diagnostics now unregisters those default listeners — the same approach used by BugGrabber — so its own frame is the sole observer of these events, on every client version including 12.1+'s `GameEvent`-based internal events.
 
+#### Action Bars — Bar Management Info Text Clarified
+- **Change** — The Bar management tab's info text now also mentions that expanding a bar below reveals its per-bar button size and scale sliders, so that existing option is easier to discover instead of being hidden without any hint.
+
 ## ####################################
 
 ## CHANGELOG 3.2.1 — CooldownForge: Custom Per-Class Cooldown Bars

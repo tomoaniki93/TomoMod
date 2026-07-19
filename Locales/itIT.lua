@@ -1378,6 +1378,7 @@ TomoMod_RegisterLocale("itIT", {
     ["section_bar_quick"]            = "Impostazioni rapide",
     ["tab_abs_skin"]                 = "Skin pulsanti",
     ["tab_abs_bars"]                 = "Gestione barre",
+    ["info_abs_layout"]              = "Usa l'EditMode per spostare le barre o trascina gli overlay.\nEspandi una barra qui sotto per regolare dimensione dei pulsanti e scala.",
     -- General panel
     ["opt_gui_scale"]                = "Scala della finestra di configurazione",
     ["info_gui_scale"]               = "Scala della finestra /tm \226\128\148 pu\195\178 anche essere ridimensionata trascinando l'angolo in basso a destra.",
@@ -2531,4 +2532,5 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_322_studio_fixes2"] = "Cooldown Studio: risolto il problema per cui i pulsanti della barra laterale (Nuova/Duplica/Rinomina/Elimina/modelli) a volte non rispondevano ai clic e traboccavano dalla loro riga, risolto il problema per cui Esc chiudeva la finestra causando un errore di corruzione (taint), e risolto il problema per cui la scheda selezionata si reimpostava invece di essere ricordata cambiando barra.",
     ["wn_322_studio_talents"] = "Cooldown Studio: la libreria degli incantesimi ora include anche i tuoi talenti attivi e i talenti eroici, non solo gli incantesimi del grimorio, così puoi tracciarli anche sulle barre dei cooldown.",
     ["wn_322_diag_taintown"] = "Diagnostica: corretti i rapporti fantasma di ADDON_ACTION_FORBIDDEN (UseToy, SetNote...) attribuiti ad addon casuali — la Diagnostica ora assume la proprietà esclusiva degli eventi di corruzione (taint) invece di lasciare che la gestione nativa di Blizzard li ripropaghi.",
+    ["wn_322_actionbars_discover"] = "Barre d'azione: il testo informativo della scheda Gestione barre ora menziona anche che espandere una barra rivela i controlli di dimensione dei pulsanti e scala, rendendo quell'opzione più facile da trovare.",
 })

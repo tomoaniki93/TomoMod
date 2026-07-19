@@ -1378,6 +1378,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["section_bar_quick"]            = "Configura\195\167\195\181es r\195\161pidas",
     ["tab_abs_skin"]                 = "Skin de bot\195\181es",
     ["tab_abs_bars"]                 = "Gerenciamento de barras",
+    ["info_abs_layout"]              = "Use o EditMode para mover as barras ou arraste as sobreposi\195\167\195\181es.\nExpanda uma barra abaixo para ajustar o tamanho dos bot\195\181es e a escala.",
     -- General panel
     ["opt_gui_scale"]                = "Escala da janela de configura\195\167\195\163o",
     ["info_gui_scale"]               = "Escala da janela /tm \226\128\148 tamb\195\169m \195\169 poss\195\173vel redimension\195\161-la arrastando o canto inferior direito.",
@@ -2531,4 +2532,5 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_322_studio_fixes2"] = "Cooldown Studio: corrigido o problema em que os botões da barra lateral (Nova/Duplicar/Renomear/Excluir/modelos) às vezes não respondiam a cliques e transbordavam da linha, corrigido o Escape que fechava a janela causando um erro de corrupção (taint), e corrigida a aba selecionada que era reiniciada em vez de lembrada ao trocar de barra.",
     ["wn_322_studio_talents"] = "Cooldown Studio: a biblioteca de feitiços agora também inclui seus talentos ativos e talentos heróicos, não apenas feitiços do grimório, para que você possa rastreá-los também nas barras de cooldown.",
     ["wn_322_diag_taintown"] = "Diagnóstico: corrigidos relatórios fantasmas de ADDON_ACTION_FORBIDDEN (UseToy, SetNote...) atribuídos a addons aleatórios — o Diagnóstico agora assume posse exclusiva dos eventos de corrupção (taint) em vez de deixar o próprio tratamento da Blizzard repropagá-los.",
+    ["wn_322_actionbars_discover"] = "Barras de ação: o texto informativo da aba Gerenciamento de barras agora também menciona que expandir uma barra revela seus controles de tamanho de botão e escala, tornando essa opção mais fácil de encontrar.",
 })
