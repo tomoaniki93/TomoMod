@@ -28,3 +28,9 @@ ignore:
 # renamed via "## X-oUF: TomoMod_oUF"), so a vanilla external pull would not
 # match. Each library's upstream URL and any local patches must be verified
 # before enabling an `externals:` block.
+
+# Sub-addons shipped from this repository: the packager moves them out of
+# the main TomoMod folder so they install as sibling addons.
+move-folders:
+  TomoMod/TomoMod_CDStudio: TomoMod_CDStudio
+
