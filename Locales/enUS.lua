@@ -2765,6 +2765,13 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_322_forge_internal"] = "Internal: extracted the shared machinery behind CooldownForge and Cooldown Studio into a new internal Forge library, laying the groundwork for future deep-editing modules — no user-facing changes.",
     ["wn_322_studio_fixes2"] = "Cooldown Studio: fixed sidebar buttons (New/Duplicate/Rename/Delete/blueprints) sometimes not responding to clicks and overflowing their row, fixed Escape closing the window causing a taint error, and fixed the selected tab resetting instead of being remembered when switching bars.",
     ["wn_322_studio_talents"] = "Cooldown Studio: the spell library now also includes your active talents and hero talents, not just spellbook spells, so you can track them on cooldown bars too.",
+    ["wn_322_talent_scan_fix"] = "Cooldown Studio: fixed the talent/hero-talent library scan finding nothing in-game — only actually-taken talents are now considered, using the correct API field to read your selected choice.",
     ["wn_322_diag_taintown"] = "Diagnostics: fixed phantom ADDON_ACTION_FORBIDDEN reports (UseToy, SetNote...) getting misattributed to random addons — Diagnostics now takes exclusive ownership of the taint events instead of letting Blizzard's own handling re-propagate them.",
     ["wn_322_actionbars_discover"] = "Action Bars: the Bar management info text now also mentions that expanding a bar reveals its button size and scale controls, making that option easier to find.",
+    ["wn_322_tracker_editmode"] = "Objective Tracker: fixed the tracker freezing in place when dragging it while Blizzard's native Edit Mode was active.",
+    ["wn_323_studio_preview"] = "Cooldown Studio: the Style tab now shows a live icon preview (same rendering as real bars) cycling through ready/on-cooldown states, so you can see style changes instantly.",
+    ["wn_323_studio_copystyle"] = "Cooldown Studio: added a 'Copy style from...' button in the Style tab to copy just the visual style from another bar without touching spells, position or layout.",
+    ["wn_323_studio_create"] = "Cooldown Studio: '+ New' now asks for the bar's name up front instead of creating a placeholder you then have to rename, and the rename/create popups now show reliably above the window with the name field auto-focused.",
+    ["wn_323_slider_entry"] = "Config sliders: right-click a value to type an exact number, Ctrl+click to reset to default, with a tooltip reminder for both.",
+    ["wn_323_petbar_editmode"] = "Action Bars: the Pet and Stance bars can now be selected and dragged in Edit Mode even when hidden at rest (no pet/no stances).",
 })

@@ -149,6 +149,83 @@ local function TabDisposition(parent)
     return scroll
 end
 
+-- [copy] Home-made chooser (dimmer + panel, FULLSCREEN_DIALOG) listing the
+-- other bars of the class; picking one copies its style onto the current bar.
+local FONT_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+function ShowCopyStylePopup()
+    local dstId = S.state.barId
+    if not dstId then return end
+    local sources = {}
+    for _, bar in ipairs(Bars()) do
+        if bar.id ~= dstId then sources[#sources + 1] = bar end
+    end
+    if #sources == 0 then return end
+
+    local dimmer = CreateFrame("Frame", nil, UIParent)
+    dimmer:SetFrameStrata("FULLSCREEN_DIALOG")
+    dimmer:SetAllPoints(UIParent)
+    dimmer:EnableMouse(true)
+    dimmer:SetFrameLevel(200)
+    local dimTex = dimmer:CreateTexture(nil, "BACKGROUND")
+    dimTex:SetAllPoints()
+    dimTex:SetColorTexture(0, 0, 0, 0.55)
+
+    local pop = CreateFrame("Frame", nil, dimmer, "BackdropTemplate")
+    pop:SetSize(300, 80 + #sources * 30)
+    pop:SetPoint("CENTER", UIParent, "CENTER", 0, 40)
+    pop:SetFrameStrata("FULLSCREEN_DIALOG")
+    pop:SetFrameLevel(dimmer:GetFrameLevel() + 10)
+    pop:EnableMouse(true)
+    pop:SetBackdrop({ bgFile = WHITE8, edgeFile = WHITE8, edgeSize = 1 })
+    pop:SetBackdropColor(0.05, 0.06, 0.08, 1)
+    pop:SetBackdropBorderColor(BRAND[1], BRAND[2], BRAND[3], 1)
+
+    local acc = pop:CreateTexture(nil, "OVERLAY")
+    acc:SetHeight(2)
+    acc:SetPoint("TOPLEFT"); acc:SetPoint("TOPRIGHT")
+    acc:SetColorTexture(BRAND[1], BRAND[2], BRAND[3], 1)
+
+    local title = pop:CreateFontString(nil, "OVERLAY")
+    title:SetFont(FONT_PATH, 13, "")
+    title:SetPoint("TOPLEFT", 16, -14)
+    title:SetTextColor(1, 1, 1)
+    title:SetText("Copier le style depuis...")
+
+    local function close() dimmer:Hide(); dimmer:SetParent(nil) end
+    dimmer:SetScript("OnMouseDown", close)
+    dimmer:EnableKeyboard(true)
+    dimmer:SetScript("OnKeyDown", function(self, key)
+        if key == "ESCAPE" then self:SetPropagateKeyboardInput(false); close()
+        else self:SetPropagateKeyboardInput(true) end
+    end)
+
+    local yy = -44
+    for _, bar in ipairs(sources) do
+        local b = CreateFrame("Button", nil, pop, "BackdropTemplate")
+        b:SetSize(268, 24)
+        b:SetPoint("TOP", pop, "TOP", 0, yy)
+        b:SetBackdrop({ bgFile = WHITE8, edgeFile = WHITE8, edgeSize = 1 })
+        b:SetBackdropColor(0.09, 0.11, 0.14, 1)
+        b:SetBackdropBorderColor(BRAND[1], BRAND[2], BRAND[3], 0.35)
+        local t = b:CreateFontString(nil, "OVERLAY")
+        t:SetFont(FONT_PATH, 11, "")
+        t:SetPoint("CENTER")
+        t:SetTextColor(0.92, 0.95, 0.93, 1)
+        t:SetText(bar.name or "Barre")
+        b:SetScript("OnEnter", function() b:SetBackdropColor(0.13, 0.17, 0.15, 1) end)
+        b:SetScript("OnLeave", function() b:SetBackdropColor(0.09, 0.11, 0.14, 1) end)
+        local srcId = bar.id
+        b:SetScript("OnClick", function()
+            if CDF and CDF.CopyStyle then
+                CDF.CopyStyle(S.state.class, srcId, dstId)
+                Apply(); S.RebuildContent()
+            end
+            close()
+        end)
+        yy = yy - 30
+    end
+end
+
 local function TabStyle(parent)
     S.state.tab = "style"
     local scroll = W.CreateScrollPanel(parent)
@@ -156,6 +233,49 @@ local function TabStyle(parent)
     local bar = SelectedBar()
     if not bar then return scroll end
     local card, cy
+
+    -- [preview] Live style preview: sample icons rendered with the SAME
+    -- makeIcon/styleIcon path as real bars, refreshed on every RebuildContent
+    -- (i.e. every style change). Demo textures only -- not the real spells.
+    do
+        local pcard, pcy = W.CreateCard(c, "Apercu", y)
+        local host = CreateFrame("Frame", nil, pcard.inner)
+        host:SetPoint("TOPLEFT", 0, pcy)
+        host:SetSize(300, (bar.iconSize or 36) + 12)
+        host:SetHeight((bar.iconSize or 36) + 12)
+        local DEMO_TEX = { 135939, 132242, 136048 }
+        local PREVIEW_CD = 8
+        host._icons = host._icons or {}
+        local sz = bar.iconSize or 36
+        local sp = bar.spacing or 4
+        local x = 6
+        for i = 1, 3 do
+            local ic = host._icons[i]
+            if not ic then ic = CDF.MakePreviewIcon(host); host._icons[i] = ic end
+            ic:ClearAllPoints()
+            ic:SetPoint("LEFT", host, "LEFT", x, 0)
+            x = x + sz + sp
+        end
+        -- Style ONCE (heavy: backdrop, mask, swipe...). Icon 1 ready; 2 & 3 on
+        -- a looping fake cooldown to show the swipe + duration behavior. The
+        -- OnUpdate only re-arms SetCooldown (cheap) -- no re-styling per frame.
+        CDF.StylePreviewIcon(host._icons[1], bar, DEMO_TEX[1], { cooldown = 0 })
+        CDF.StylePreviewIcon(host._icons[2], bar, DEMO_TEX[2], { cooldown = PREVIEW_CD, elapsed = 0 })
+        CDF.StylePreviewIcon(host._icons[3], bar, DEMO_TEX[3], { cooldown = PREVIEW_CD, elapsed = PREVIEW_CD / 2 })
+        host:SetScript("OnUpdate", function(self)
+            local now = GetTime()
+            if (self._t2 or 0) <= now then
+                host._icons[2].cd:SetCooldown(now, PREVIEW_CD)
+                self._t2 = now + PREVIEW_CD
+            end
+            if (self._t3 or 0) <= now then
+                host._icons[3].cd:SetCooldown(now - PREVIEW_CD / 2, PREVIEW_CD)
+                self._t3 = now + PREVIEW_CD / 2
+            end
+        end)
+        pcy = pcy - (sz + 14)
+        y = W.FinalizeCard(pcard, pcy)
+    end
 
     card, cy = W.CreateCard(c, "Style visuel", y)
     bar.style = bar.style or { preset = "tomo" }
@@ -228,6 +348,17 @@ local function TabStyle(parent)
     _, cy = W.CreateInfoText(card.inner,
         "Modifier un reglage fin bascule le style en \"Personnalise\".", cy)
     y = W.FinalizeCard(card, cy)
+
+    if #Bars() > 1 then
+        card, cy = W.CreateCard(c, "Copier le style", y)
+        _, cy = W.CreateInfoText(card.inner,
+            "Copie l'apparence (preset + reglages fins) d'une autre barre vers celle-ci. "
+            .. "Les sorts, la position et la disposition ne sont pas modifies.", cy)
+        _, cy = W.CreateButtonRow(card.inner, {
+            { text = "Coller le style depuis...", width = 200, callback = ShowCopyStylePopup },
+        }, cy)
+        y = W.FinalizeCard(card, cy)
+    end
 
     card, cy = W.CreateCard(c, "Glow (quand pret)", y)
     _, cy = W.CreateCheckbox(card.inner, "Activer le glow", bar.glow.enabled, cy,
@@ -817,9 +948,7 @@ local function BuildWindow()
     local BW = 104   -- fits two buttons inside the sidebar width
     local _, cy2 = W.CreateButtonRow(crudHost, {
         { text = "+ Nouvelle", width = BW, callback = function()
-            local _, id = CDF.CreateBar(S.state.class, "Nouvelle barre")
-            if id then S.state.barId = id end
-            Apply(); S.RebuildSidebar(); S.RebuildContent()
+            StaticPopup_Show("TOMOMOD_CDS_CREATE")
         end },
         { text = "Dupliquer", width = BW, callback = function()
             if not S.state.barId then return end
@@ -861,8 +990,22 @@ StaticPopupDialogs["TOMOMOD_CDS_RENAME"] = {
     whileDead = true,
     hideOnEscape = true,
     OnShow = function(self)
+        -- Lift above the studio window (FULLSCREEN_DIALOG toplevel); otherwise
+        -- this DIALOG-strata popup renders behind it and can't be seen/typed.
+        self:SetFrameStrata("FULLSCREEN_DIALOG")
+        self:SetToplevel(true)
+        self:Raise()
         local bar = SelectedBar()
-        if bar and self.editBox then self.editBox:SetText(bar.name or "") end
+        if bar and self.editBox then
+            self.editBox:SetText(bar.name or "")
+            self.editBox:HighlightText()
+            self.editBox:SetFocus()
+        end
+    end,
+    EditBoxOnEnterPressed = function(self)
+        local parent = self:GetParent()
+        if parent and parent.OnAccept then parent.OnAccept(parent) end
+        parent:Hide()
     end,
     OnAccept = function(self)
         local txt = self.editBox and self.editBox:GetText()
@@ -870,6 +1013,43 @@ StaticPopupDialogs["TOMOMOD_CDS_RENAME"] = {
             CDF.RenameBar(S.state.class, S.state.barId, txt)
             Apply(); S.RebuildSidebar(); S.RebuildContent()
         end
+    end,
+}
+
+-- [create] Name the bar up front instead of creating "Nouvelle barre" then
+-- renaming. Empty/Escape still creates one with the default name (never
+-- blocking). Shares the z-order fix so the popup shows above the studio.
+StaticPopupDialogs["TOMOMOD_CDS_CREATE"] = {
+    text = "|cff2ed884Cooldown Studio|r\n\nNom de la nouvelle barre :",
+    button1 = "Creer",
+    button2 = "Annuler",
+    hasEditBox = true,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    OnShow = function(self)
+        self:SetFrameStrata("FULLSCREEN_DIALOG")
+        self:SetToplevel(true)
+        self:Raise()
+        if self.editBox then
+            self.editBox:SetText("Nouvelle barre")
+            self.editBox:HighlightText()
+            self.editBox:SetFocus()
+        end
+    end,
+    OnAccept = function(self)
+        local txt = self.editBox and self.editBox:GetText()
+        if not txt or txt == "" then txt = "Nouvelle barre" end
+        if CDF and CDF.CreateBar then
+            local _, id = CDF.CreateBar(S.state.class, txt)
+            if id then S.state.barId = id end
+            Apply(); S.RebuildSidebar(); S.RebuildContent()
+        end
+    end,
+    EditBoxOnEnterPressed = function(self)
+        local parent = self:GetParent()
+        if parent and parent.OnAccept then parent.OnAccept(parent) end
+        parent:Hide()
     end,
 }
 

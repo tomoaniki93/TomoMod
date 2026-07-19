@@ -1,5 +1,29 @@
 ## ####################################
 
+## CHANGELOG 3.2.3 — Cooldown Studio Polish: Style Preview, Copy Style & Quicker Bar Creation
+
+#### Cooldown Studio — Style Tab Live Icon Preview
+- **New** — The Style tab now shows a live icon preview using the exact same rendering path as real bars (border, corners, swipe, timer color, glow desaturation...), so style changes are visible immediately without leaving the tab.
+- **New** — The preview cycles through ready / on-cooldown / mid-cooldown icon states on a loop, so you can see how the swipe animation and the "desaturate on cooldown" setting actually look before committing.
+
+#### Cooldown Studio — Copy Style Between Bars
+- **New** — The Style tab gained a "Coller le style depuis..." button (shown once the class has more than one bar) opening a picker listing every other bar; selecting one copies only its visual style (preset + fine-tuning) onto the current bar — spells, position, layout and visibility are left untouched.
+- **Internal** — New `CDF.CopyStyle(class, srcId, dstId)` API, deep-copying the style table so the two bars never share references.
+
+#### Cooldown Studio — Quicker Bar Creation & More Reliable Popups
+- **New** — Clicking "+ Nouvelle" now asks for the bar's name up front instead of creating a "Nouvelle barre" placeholder that then needs renaming; leaving it empty or pressing Escape still creates a bar with the default name.
+- **Fix** — The rename and create popups are now raised above the Studio's fullscreen window instead of potentially appearing behind it, and the name field is automatically focused and highlighted so you can start typing immediately; pressing Enter confirms either popup without needing to click the button.
+
+#### Config Sliders — Direct Value Entry & Quick Reset
+- **New** — Right-clicking a slider's value badge now lets you type an exact number directly instead of dragging the thumb; pressing Enter (or clicking away) applies it, clamped and snapped to the slider's normal range/step.
+- **New** — Ctrl+click on a slider's value badge resets it to its default (or initial) value.
+- **New** — A tooltip on the value badge now hints at both shortcuts ("Right-click: type a value | Ctrl+click: reset").
+
+#### Action Bars — Pet & Stance Bars Now Placeable in Edit Mode
+- **Fix** — The Pet and Stance action bars are hidden at rest when you have no pet or no stances, which made them impossible to select and drag into position in Edit Mode. They're now temporarily force-shown while Edit Mode is active so they can be positioned like any other bar, and return to their normal driver-controlled visibility as soon as Edit Mode is closed.
+
+## ####################################
+
 ## CHANGELOG 3.2.2 — Cooldown Studio: Dedicated Full-Screen Bar Editor
 
 #### New Companion Addon — Cooldown Studio
@@ -22,6 +46,7 @@
 #### Cooldown Studio — Library Now Includes Talents & Hero Talents
 - **New** — The Bibliotheque (spell library) tab now also lists your currently committed talents and hero talents, alongside spellbook spells, so they can be added to a cooldown bar just like any other spell. Passive talents are skipped (there's no cooldown to time), and a talent already granted through the spellbook is never listed twice.
 - **Internal** — The library cache now also refreshes automatically when your talent loadout changes (`TRAIT_CONFIG_UPDATED`), in addition to the existing specialization/spellbook triggers. Every talent API call is `pcall`-guarded, matching the addon's secret-value-safe conventions.
+- **Fix** — The talent scan initially found nothing in-game: `entryIDsWithCommittedRanks` is not reliably populated outside a preview/loadout context. Only nodes actually taken (`currentRank > 0`) are now considered, and the selected choice is read via `activeEntry.entryID`, falling back to the previous field only when that's unavailable.
 
 #### Internal — Shared "Forge" Library for Deep-Editing Modules
 - **Internal** — Extracted the machinery shared by CooldownForge and Cooldown Studio into a new internal `Core/Forge` library: pixel-perfect scaling, class-color resolution and accent folding (`Forge.Util`), the versioned share-string import/export codec (`Forge.IO`), the addon-wide edit-mode session with its grid/snap/movable overlays (`Forge.Edit`), stepwise schema migration with pre-migration auto-backup (`Forge.Schema`), and the studio window-chrome factory (`Forge.Studio`). CooldownForge, Cooldown Studio and the config window's global search now consume these shared helpers instead of duplicating the logic, laying the groundwork for future deep-editing modules (e.g. an upcoming UnitFrames studio) to reuse the same building blocks. No user-facing behavior changes.
@@ -31,6 +56,9 @@
 
 #### Action Bars — Bar Management Info Text Clarified
 - **Change** — The Bar management tab's info text now also mentions that expanding a bar below reveals its per-bar button size and scale sliders, so that existing option is easier to discover instead of being hidden without any hint.
+
+#### Objective Tracker — No Longer Fights Blizzard's Edit Mode
+- **Fix** — Dragging the Objective Tracker while Blizzard's native Edit Mode was active could freeze the tracker mid-drag: TomoMod's `SetPoint` hook re-asserted the saved anchor every time Edit Mode called `SetPoint` to follow the cursor, canceling the move. The hook now yields entirely while `EditModeManagerFrame:IsEditModeActive()` is true, letting the tracker follow the drag normally — the saved position is picked back up the next time anything else moves the tracker after Edit Mode ends.
 
 ## ####################################
 

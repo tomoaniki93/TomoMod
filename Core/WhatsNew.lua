@@ -30,6 +30,16 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.2.3",
+        highlights = {
+            L["wn_323_studio_preview"] or "Cooldown Studio: the Style tab now shows a live icon preview (same rendering as real bars) cycling through ready/on-cooldown states, so you can see style changes instantly.",
+            L["wn_323_studio_copystyle"] or "Cooldown Studio: added a 'Copy style from...' button in the Style tab to copy just the visual style from another bar without touching spells, position or layout.",
+            L["wn_323_studio_create"] or "Cooldown Studio: '+ New' now asks for the bar's name up front instead of creating a placeholder you then have to rename, and the rename/create popups now show reliably above the window with the name field auto-focused.",
+            L["wn_323_slider_entry"] or "Config sliders: right-click a value to type an exact number, Ctrl+click to reset to default, with a tooltip reminder for both.",
+            L["wn_323_petbar_editmode"] or "Action Bars: the Pet and Stance bars can now be selected and dragged in Edit Mode even when hidden at rest (no pet/no stances).",
+        },
+    },
+    {
         version = "3.2.2",
         highlights = {
             L["wn_322_studio_intro"] or "New: Cooldown Studio — a dedicated full-screen editor for CooldownForge bars, with per-bar Layout/Style/Spells/Visibility/Sharing tabs, opened from the Cooldowns tab.",
@@ -39,8 +49,10 @@ local CHANGELOG = {
             L["wn_322_forge_internal"] or "Internal: extracted the shared machinery behind CooldownForge and Cooldown Studio into a new internal Forge library, laying the groundwork for future deep-editing modules — no user-facing changes.",
             L["wn_322_studio_fixes2"] or "Cooldown Studio: fixed sidebar buttons (New/Duplicate/Rename/Delete/blueprints) sometimes not responding to clicks and overflowing their row, fixed Escape closing the window causing a taint error, and fixed the selected tab resetting instead of being remembered when switching bars.",
             L["wn_322_studio_talents"] or "Cooldown Studio: the spell library now also includes your active talents and hero talents, not just spellbook spells, so you can track them on cooldown bars too.",
+            L["wn_322_talent_scan_fix"] or "Cooldown Studio: fixed the talent/hero-talent library scan finding nothing in-game — only actually-taken talents are now considered, using the correct API field to read your selected choice.",
             L["wn_322_diag_taintown"] or "Diagnostics: fixed phantom ADDON_ACTION_FORBIDDEN reports (UseToy, SetNote...) getting misattributed to random addons — Diagnostics now takes exclusive ownership of the taint events instead of letting Blizzard's own handling re-propagate them.",
             L["wn_322_actionbars_discover"] or "Action Bars: the Bar management info text now also mentions that expanding a bar reveals its button size and scale controls, making that option easier to find.",
+            L["wn_322_tracker_editmode"] or "Objective Tracker: fixed the tracker freezing in place when dragging it while Blizzard's native Edit Mode was active.",
         },
     },
     {

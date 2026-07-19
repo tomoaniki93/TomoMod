@@ -476,8 +476,9 @@ end
 -- =====================================================================
 -- SLIDER  — filled track + value badge
 -- =====================================================================
-function W.CreateSlider(parent, text, value, minVal, maxVal, step, yOffset, callback, formatStr)
+function W.CreateSlider(parent, text, value, minVal, maxVal, step, yOffset, callback, formatStr, defaultVal)
     formatStr = formatStr or "%.0f"
+    local resetVal = (defaultVal ~= nil) and defaultVal or value
     local TRACK_H = 6
     local THUMB_W = 11
     local THUMB_H = 18
@@ -569,6 +570,56 @@ function W.CreateSlider(parent, text, value, minVal, maxVal, step, yOffset, call
     slider:SetScript("OnEnter", function() SC(thumb, T.accentHover) end)
     slider:SetScript("OnLeave", function() SC(thumb, T.accent) end)
     slider:SetScript("OnSizeChanged", function() UpdateFill(slider:GetValue()) end)
+
+    frame.slider   = slider
+    frame.SetValue = function(_, v) slider:SetValue(v); UpdateVal(v) end
+    frame.GetValue = function() return slider:GetValue() end
+
+    -- Direct value entry: right-click the value badge to type an exact number.
+    -- Enter (or focus loss) applies it through the slider, which clamps to
+    -- [minVal, maxVal], snaps to step, and fires the normal callback.
+    local editBox = CreateFrame("EditBox", nil, valBox)
+    editBox:SetAllPoints(valBox)
+    editBox:SetFont(FONT_BOLD, 10, "")
+    editBox:SetJustifyH("CENTER")
+    editBox:SetAutoFocus(false)
+    editBox:SetNumeric(false)   -- allow decimals/%, we sanitize below
+    SC(editBox, T.accent)
+    editBox:Hide()
+
+    local function CommitEdit()
+        local raw = editBox:GetText() or ""
+        local num = tonumber(raw:match("[%-%d%.]+"))   -- strip any suffix (%, px)
+        editBox:Hide()
+        editBox:ClearFocus()
+        if num then
+            slider:SetValue(num)   -- clamps + snaps + fires OnValueChanged
+        end
+    end
+
+    editBox:SetScript("OnEnterPressed", CommitEdit)
+    editBox:SetScript("OnEscapePressed", function() editBox:Hide(); editBox:ClearFocus() end)
+    editBox:SetScript("OnEditFocusLost", function() editBox:Hide() end)
+
+    valBox:EnableMouse(true)
+    valBox:SetScript("OnMouseUp", function(_, button)
+        if button == "RightButton" then
+            editBox:SetText(tostring(math.floor(slider:GetValue() / step + 0.5) * step))
+            editBox:Show()
+            editBox:HighlightText()
+            editBox:SetFocus()
+        elseif button == "LeftButton" and IsControlKeyDown() then
+            -- Ctrl+click resets to the default (or the initial) value.
+            slider:SetValue(resetVal)
+        end
+    end)
+    valBox:SetScript("OnEnter", function(self)
+        if editBox:IsShown() then return end
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:AddLine("Clic droit : saisir  |  Ctrl+clic : reinitialiser", 0.8, 0.85, 0.9)
+        GameTooltip:Show()
+    end)
+    valBox:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
     frame.slider   = slider
     frame.SetValue = function(_, v) slider:SetValue(v); UpdateVal(v) end
