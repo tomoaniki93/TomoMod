@@ -2552,4 +2552,7 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_323_studio_create"] = "Cooldown Studio: „+ Neu“ fragt jetzt zuerst nach dem Namen der Leiste, anstatt einen Platzhalter zu erstellen, der danach umbenannt werden muss, und die Umbenennen-/Erstellen-Popups werden jetzt zuverlässig über dem Fenster angezeigt, wobei das Namensfeld automatisch fokussiert wird.",
     ["wn_323_slider_entry"] = "Konfigurations-Regler: Rechtsklick auf einen Wert, um eine genaue Zahl einzugeben, Strg+Klick zum Zurücksetzen auf den Standardwert, mit einem Tooltip-Hinweis für beides.",
     ["wn_323_petbar_editmode"] = "Aktionsleisten: Die Begleiter- und Formen-Leisten können jetzt im Bearbeitungsmodus ausgewählt und verschoben werden, auch wenn sie im Ruhezustand ausgeblendet sind (kein Begleiter/keine Formen).",
+    ["wn_324_studio_real_icons"] = "Cooldown Studio: Die Vorschau im Reiter Stil verwendet jetzt echte Symbole — zuerst die Zauber der Leiste, dann Zauberbuch und Talente deiner Klasse — statt drei fest hinterlegter Demo-Symbole aus fremden Klassen.",
+    ["wn_324_chat_contacts"] = "Chat: Die Chat-Seitenleiste hat jetzt einen Kontakte-Button, der Blizzards Freundesliste mit einem Klick öffnet — und damit einen Zugang wiederherstellt, den das Ausblenden des nativen Sozial-Buttons durch den Skin entfernt hatte.",
+    ["wn_324_editbox_scrollbar"] = "Konfiguration: Mehrzeilige Textfelder (Import/Export, Notizen...) zeigen nicht mehr Blizzards goldene Pfeil-Bildlaufleiste — sie nutzen jetzt die schmale Akzent-Bildlaufleiste des Addons und unterstützen das Mausrad.",
 })

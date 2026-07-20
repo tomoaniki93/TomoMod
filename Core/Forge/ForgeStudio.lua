@@ -62,6 +62,12 @@ function Forge.Studio.CreateShell(opts)
     -- other key so game shortcuts keep working.
     frame:EnableKeyboard(true)
     frame:SetScript("OnKeyDown", function(self, key)
+        -- SetPropagateKeyboardInput is a PROTECTED action: calling it during
+        -- combat throws ADDON_ACTION_BLOCKED (fired on every keypress while the
+        -- studio is open in combat). Guard it. In combat we simply let all keys
+        -- propagate normally -- Escape won't close the studio then, which is
+        -- fine: you shouldn't be reconfiguring cooldown bars mid-fight.
+        if InCombatLockdown() then return end
         if key == "ESCAPE" then
             self:SetPropagateKeyboardInput(false)
             self:Hide()

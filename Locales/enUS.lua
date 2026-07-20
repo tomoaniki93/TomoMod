@@ -2774,4 +2774,7 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_323_studio_create"] = "Cooldown Studio: '+ New' now asks for the bar's name up front instead of creating a placeholder you then have to rename, and the rename/create popups now show reliably above the window with the name field auto-focused.",
     ["wn_323_slider_entry"] = "Config sliders: right-click a value to type an exact number, Ctrl+click to reset to default, with a tooltip reminder for both.",
     ["wn_323_petbar_editmode"] = "Action Bars: the Pet and Stance bars can now be selected and dragged in Edit Mode even when hidden at rest (no pet/no stances).",
+    ["wn_324_studio_real_icons"] = "Cooldown Studio: the Style tab preview now uses real icons — the bar's own spells first, then your class's spellbook and talents — instead of three hardcoded demo icons from unrelated classes.",
+    ["wn_324_chat_contacts"] = "Chat: the chat sidebar gained a Contacts button that opens Blizzard's friends list in one click, restoring an entry point the skin's hidden native social button had removed.",
+    ["wn_324_editbox_scrollbar"] = "Config: multi-line text boxes (import/export, notes...) no longer show Blizzard's gold arrow scrollbar — they now use the addon's own thin accent scrollbar and support the mouse wheel.",
 })

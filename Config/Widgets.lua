@@ -1626,9 +1626,12 @@ function W.CreateMultiLineEditBox(parent, labelText, height, yOffset, opts)
     bd:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
     bd:SetBackdropBorderColor(T.border[1], T.border[2], T.border[3], 1)
 
-    local scrollFrame = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
+    -- Plain ScrollFrame (no UIPanelScrollFrameTemplate) so we don't inherit the
+    -- default gold arrows / Blizzard scrollbar. We draw our own thin scrollbar
+    -- to match CreateScrollPanel.
+    local scrollFrame = CreateFrame("ScrollFrame", nil, container)
     scrollFrame:SetPoint("TOPLEFT",  0, -22)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -24, 2)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -12, 2)
 
     local editBox = CreateFrame("EditBox", nil, scrollFrame)
     editBox:SetMultiLine(true)
@@ -1656,6 +1659,47 @@ function W.CreateMultiLineEditBox(parent, labelText, height, yOffset, opts)
         end)
     end
     editBox:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+
+    -- [style] Home-made thin scrollbar matching CreateScrollPanel (thumb in the
+    -- accent color) instead of the Blizzard gold arrows.
+    local SBW = 5
+    local track = container:CreateTexture(nil, "BACKGROUND")
+    track:SetWidth(SBW)
+    track:SetPoint("TOPRIGHT",    -2, -24)
+    track:SetPoint("BOTTOMRIGHT", -2,  3)
+    track:SetColorTexture(0.12, 0.12, 0.16, 0.8)
+    local thumbFrame = CreateFrame("Frame", nil, container)
+    thumbFrame:SetWidth(SBW)
+    thumbFrame:SetPoint("TOPRIGHT", -2, -24)
+    local thumb = thumbFrame:CreateTexture(nil, "OVERLAY")
+    thumb:SetAllPoints()
+    SC(thumb, T.accent)
+
+    local function UpdateSB()
+        local range = scrollFrame:GetVerticalScrollRange() or 0
+        local viewH = scrollFrame:GetHeight() or 1
+        if range <= 0 then thumbFrame:Hide(); track:Hide(); return end
+        track:Show(); thumbFrame:Show()
+        local trackH = viewH - 3
+        local ratio  = viewH / (viewH + range)
+        local thumbH = math.max(math.floor(trackH * ratio), 20)
+        thumbFrame:SetHeight(thumbH)
+        local cur = scrollFrame:GetVerticalScroll() or 0
+        local y   = (cur / range) * (trackH - thumbH)
+        thumbFrame:SetPoint("TOPRIGHT", -2, -(24 + y))
+    end
+    scrollFrame:EnableMouseWheel(true)
+    scrollFrame:SetScript("OnMouseWheel", function(self, delta)
+        local range = self:GetVerticalScrollRange() or 0
+        local cur   = self:GetVerticalScroll() or 0
+        local step  = 20
+        local newv  = cur - delta * step
+        if newv < 0 then newv = 0 elseif newv > range then newv = range end
+        self:SetVerticalScroll(newv)
+    end)
+    scrollFrame:SetScript("OnScrollRangeChanged", UpdateSB)
+    scrollFrame:SetScript("OnVerticalScroll", UpdateSB)
+    scrollFrame:HookScript("OnSizeChanged", UpdateSB)
 
     container.editBox    = editBox
     container.scrollFrame = scrollFrame

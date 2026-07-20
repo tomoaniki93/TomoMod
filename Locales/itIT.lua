@@ -2540,4 +2540,7 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_323_studio_create"] = "Cooldown Studio: \"+ Nuova\" ora chiede subito il nome della barra invece di creare un segnaposto da rinominare in seguito, e i popup di rinomina/creazione ora vengono mostrati in modo affidabile sopra la finestra con il campo nome messo automaticamente a fuoco.",
     ["wn_323_slider_entry"] = "Cursori di configurazione: clic destro su un valore per digitare un numero esatto, Ctrl+clic per ripristinare il valore predefinito, con un promemoria nel tooltip per entrambi.",
     ["wn_323_petbar_editmode"] = "Barre d'azione: le barre Animale domestico e Forme ora possono essere selezionate e trascinate in Modalità Modifica anche quando sono nascoste a riposo (nessun animale domestico/nessuna forma).",
+    ["wn_324_studio_real_icons"] = "Cooldown Studio: l'anteprima della scheda Stile ora usa icone reali — prima gli incantesimi della barra stessa, poi il libro degli incantesimi e i talenti della tua classe — invece di tre icone dimostrative fisse di classi estranee.",
+    ["wn_324_chat_contacts"] = "Chat: la barra laterale della chat guadagna un pulsante Contatti che apre la lista amici di Blizzard con un solo clic, ripristinando un accesso che era sparito perché lo skin nasconde il pulsante social nativo.",
+    ["wn_324_editbox_scrollbar"] = "Configurazione: le caselle di testo multilinea (importa/esporta, note...) non mostrano più la barra di scorrimento dorata di Blizzard — ora usano la sottile barra con il colore d'accento dell'addon e supportano la rotellina del mouse.",
 })

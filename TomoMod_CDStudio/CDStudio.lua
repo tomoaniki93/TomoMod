@@ -236,14 +236,44 @@ local function TabStyle(parent)
 
     -- [preview] Live style preview: sample icons rendered with the SAME
     -- makeIcon/styleIcon path as real bars, refreshed on every RebuildContent
-    -- (i.e. every style change). Demo textures only -- not the real spells.
+    -- (i.e. every style change), using real icons (see previewTextures below).
     do
         local pcard, pcy = W.CreateCard(c, "Apercu", y)
         local host = CreateFrame("Frame", nil, pcard.inner)
         host:SetPoint("TOPLEFT", 0, pcy)
         host:SetSize(300, (bar.iconSize or 36) + 12)
         host:SetHeight((bar.iconSize or 36) + 12)
-        local DEMO_TEX = { 135939, 132242, 136048 }
+        -- Preview textures: use REAL icons relevant to the player. Priority:
+        -- (1) the bar's own spells, (2) the edited class's spellbook/talents,
+        -- (3) a neutral question-mark fallback. Never random off-class spells.
+        local function previewTextures(barRef)
+            local out = {}
+            -- (1) bar entries
+            if CDF.ResolveEntry then
+                for _, e in ipairs(barRef.entries or {}) do
+                    local r = CDF.ResolveEntry(e)
+                    if r and r.icon then
+                        out[#out + 1] = r.icon
+                        if #out >= 3 then return out end
+                    end
+                end
+            end
+            -- (2) edited class catalog (real class/spec spells)
+            if #out < 3 and CDF.ScanSpellbook then
+                for _, group in ipairs(CDF.ScanSpellbook()) do
+                    for _, sp in ipairs(group.spells or {}) do
+                        if sp.icon then
+                            out[#out + 1] = sp.icon
+                            if #out >= 3 then return out end
+                        end
+                    end
+                end
+            end
+            -- (3) neutral fallback (question mark) for any remaining slot
+            while #out < 3 do out[#out + 1] = 134400 end
+            return out
+        end
+        local DEMO_TEX = previewTextures(bar)
         local PREVIEW_CD = 8
         host._icons = host._icons or {}
         local sz = bar.iconSize or 36

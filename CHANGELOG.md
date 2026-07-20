@@ -1,5 +1,19 @@
 ## ####################################
 
+## CHANGELOG 3.2.4 — Real Preview Icons, Chat Contacts Button & Scrollbar Consistency
+
+#### Cooldown Studio — Preview Now Uses Real Icons
+- **Change** — The Style tab's live preview no longer renders three hardcoded demo textures picked from unrelated classes. It now uses real icons, in priority order: the bar's own tracked spells first, then the edited class's spellbook and talents, then a neutral question-mark icon for any remaining slot. Previewing a Warrior bar no longer shows Mage spells.
+
+#### Chat — Contacts Button In The Sidebar
+- **New** — The chat sidebar gained a Contacts icon that opens Blizzard's friends list in one click. The skin suppresses the native social/quick-join button, which left no direct way back to the friends panel from the chat frame; this restores that entry point. It sits in the sidebar's middle icon group, between the player status and copy-chat icons.
+
+#### Config — Multi-Line Text Boxes Match The Addon's Scrollbar Style
+- **Fix** — Multi-line text boxes (Import/Export fields, notes areas...) inherited Blizzard's `UIPanelScrollFrameTemplate` and rendered the default gold arrow scrollbar, clashing with the addon's own styling everywhere else. They now use a plain scroll frame with the same thin accent-colored scrollbar as the rest of the config window, and the freed horizontal space is given back to the text area.
+- **New** — Those text boxes now also scroll with the mouse wheel, and their scrollbar auto-hides when the content fits.
+
+## ####################################
+
 ## CHANGELOG 3.2.3 — Cooldown Studio Polish: Style Preview, Copy Style & Quicker Bar Creation
 
 #### Cooldown Studio — Style Tab Live Icon Preview
