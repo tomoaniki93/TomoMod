@@ -1546,6 +1546,68 @@ local function CreateSideBarIcon_CopyChat(parent)
     return btn
 end
 
+-- Contacts / Social: the native QuickJoinToastButton is killed by our skin, so
+-- we surface an equivalent entry point that reopens Blizzard's friends panel.
+--
+-- Unlike its sidebar neighbours it has no bundled .tga, so it borrows a Blizzard
+-- graphic. Friends-list atlas names have shifted between retail builds and a
+-- missing atlas fails *silently* (the button stays clickable but draws nothing),
+-- so probe for one that actually exists before falling back to a plain texture
+-- path that has shipped since forever.
+local CONTACTS_ATLASES = {
+    "friendslist-invitebutton-default-friends",
+    "socialqueuing-icon-friend",
+    "communities-icon-addgroupplus",
+}
+local CONTACTS_TEXTURE = "Interface\\FriendsFrame\\UI-Toast-FriendOnlineIcon"
+
+local function ApplyContactsIcon(btn)
+    local getAtlasInfo = C_Texture and C_Texture.GetAtlasInfo
+    if getAtlasInfo then
+        for _, atlas in ipairs(CONTACTS_ATLASES) do
+            if getAtlasInfo(atlas) then
+                btn:SetNormalAtlas(atlas)
+                return
+            end
+        end
+    end
+    btn:SetNormalTexture(CONTACTS_TEXTURE)
+end
+
+local function CreateSideBarIcon_Contacts(parent)
+    local btn = CreateFrame("Button", "TomoMod_SideIcon_Contacts", parent)
+    ApplyContactsIcon(btn)
+
+    -- Match the gold tint of the sibling icons (copyIcon, speechIcon...).
+    -- The borrowed Blizzard art has no internal padding, so filling the 24x24
+    -- button makes it read much larger than its neighbours: draw it at half
+    -- size, centered, and leave the button itself 24x24 so the sidebar's
+    -- spacing maths are untouched.
+    local normal = btn:GetNormalTexture()
+    if normal then
+        normal:SetVertexColor(0.9, 0.8, 0.0)
+        normal:ClearAllPoints()
+        normal:SetPoint("CENTER", btn, "CENTER", 0, 0)
+        normal:SetSize(12, 12)
+    end
+
+    btn:SetHighlightAtlas("chatframe-button-highlight")
+
+    btn:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Contacts")
+        GameTooltip:Show()
+    end)
+    btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    btn:SetScript("OnClick", function()
+        PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or 856)
+        if ToggleFriendsFrame then ToggleFriendsFrame(1) end
+    end)
+
+    return btn
+end
+
 local function CreateSideBarIcon_Emotes(parent)
     local T = TEX_CHAT:gsub("\\", "/")
     local btn = CreateFrame("Button", "TomoMod_SideIcon_Emotes", parent)
@@ -1694,6 +1756,7 @@ local function SetupSideBarIcons(container, sidebarTexture)
     }
     local midIcons = {
         CreateSideBarIcon_PlayerStatus(container),
+        CreateSideBarIcon_Contacts(container),
         CreateSideBarIcon_CopyChat(container),
     }
 
