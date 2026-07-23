@@ -2425,6 +2425,8 @@ TomoMod_RegisterLocale("frFR", {
     -- Extra Action Button (v3.0.6)
     -- =====================
     ["mover_ab_extra"] = "Bouton extra",
+    ["mover_ab_pet"] = "Barre du familier",
+    ["mover_ab_stance"] = "Barre de posture",
     ["section_extra_button"] = "Bouton d'action supplémentaire",
     ["opt_extra_enabled"] = "Gérer le bouton d'action supplémentaire (recharge pour libérer)",
     ["opt_extra_scale"] = "Échelle du bouton supplémentaire",

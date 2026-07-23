@@ -2293,6 +2293,8 @@ TomoMod_RegisterLocale("deDE", {
     -- Extra Action Button (v3.0.6)
     -- =====================
     ["mover_ab_extra"] = "Extra-Aktion",
+    ["mover_ab_pet"] = "Begleiterleiste",
+    ["mover_ab_stance"] = "Haltungsleiste",
     ["section_extra_button"] = "Extra-Aktionsschaltflaeche",
     ["opt_extra_enabled"] = "Extra-Aktionsschaltflaeche verwalten (/reload zum Freigeben)",
     ["opt_extra_scale"] = "Skalierung der Extra-Schaltflaeche",

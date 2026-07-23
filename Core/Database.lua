@@ -276,6 +276,10 @@ TomoMod_Defaults = {
             numberOfPages = 2,
         },
     },
+    friendsSkin = {
+        enabled = false,
+        scale = 1.0,
+    },
     characterSkin = {
         enabled = true,
         skinCharacter = true,
@@ -501,14 +505,14 @@ TomoMod_Defaults = {
     },
 
     professionHelper = {
-        enabled = true,
+        enabled = false,
         filterGreen = true,
         filterBlue = true,
         filterEpic = false,
     },
 
     classReminder = {
-        enabled = true,
+        enabled = false,
         scale = 1.0,
         textColor = { r = 1, g = 1, b = 1 },
         offsetX = 0,
@@ -523,7 +527,7 @@ TomoMod_Defaults = {
     },
 
     lustSound = {
-        enabled = true,
+        enabled = false,
         sound = "TALUANI",
         channel = "Master",
         forceSound = true,

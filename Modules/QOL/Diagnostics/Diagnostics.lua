@@ -66,6 +66,8 @@ local EXCLUDED_GLOBAL_KEYS = {
     -- Inventory
     "ERR_ITEM_COOLDOWN", "ERR_BAG_FULL", "ERR_INV_FULL",
     "ERR_LOOT_GONE", "ERR_LOOT_NOTHING",
+    "ERR_MUST_EQUIP_ITEM", "SPELL_FAILED_EQUIPPED_ITEM",
+    "SPELL_FAILED_EQUIPPED_ITEM_CLASS", "ERR_GENERIC_EQUIPPED_ITEM_CLASS",
     -- Misc common combat messages
     "SPELL_FAILED_NOT_BEHIND", "SPELL_FAILED_NOT_INFRONT",
     "SPELL_FAILED_UNIT_NOT_INFRONT", "SPELL_FAILED_UNIT_NOT_BEHIND",
@@ -306,6 +308,34 @@ local function BuildExclusionSet()
         "no has aprendido", "no aprendid",    -- ES
         "non hai imparato", "non \195\168 stato appreso", -- IT
         "n\195\163o aprendeu", "n\195\163o aprendid",     -- PT
+        -- Can't be used on the ground (report #766: session 2026-07-20)
+        "utiliser au sol",                    -- FR "Impossible à utiliser au sol"
+        "used on the ground", "while on the ground", -- EN equivalents
+        "am boden",                           -- DE
+        "en el suelo",                        -- ES
+        "usato a terra",                      -- IT
+        "no ch\195\163o",                     -- PT
+        -- Must be standing (report #766: session 2026-07-21)
+        "debout pour",                        -- FR "Vous devez être debout pour faire ça"
+        "must be standing", "be standing to", -- EN equivalents
+        "m\195\188sst ihr stehen", "stehen, um",  -- DE
+        "estar de pie",                       -- ES
+        "essere in piedi",                    -- IT
+        "estar de p\195\169",                 -- PT
+        -- Nothing to loot (report #768: session 2026-07-22)
+        "rien \195\160 ramasser",             -- FR "Il n'y a rien à ramasser."
+        "nothing to loot",                    -- EN equivalent
+        "nichts zu pl\195\188ndern",          -- DE
+        "nada que recoger", "nada que saquear", -- ES
+        "niente da saccheggiare",             -- IT
+        "nada para saquear",                  -- PT
+        -- Must have a specific weapon/item equipped (report #768: session 2026-07-22)
+        "doit avoir \195\169quip",            -- FR "Doit avoir équipé : Hache"
+        "must have equipped", "must be equipped", -- EN equivalents
+        "muss ausger\195\188stet",            -- DE
+        "debe tener equipado",                -- ES
+        "deve avere equipaggiat",             -- IT
+        "deve ter equipado",                  -- PT
     }
     for _, kw in ipairs(keywords) do
         EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = kw

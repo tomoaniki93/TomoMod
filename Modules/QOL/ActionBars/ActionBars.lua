@@ -823,7 +823,9 @@ local function CreateDragOverlay(id)
     label:SetPoint("CENTER")
     label:SetTextColor(1, 1, 1, 0.9)
     local displayId = id:upper()
-    if L then displayId = L["mover_ab_" .. id] or displayId end
+    -- L's metatable returns the key itself for missing entries, so rawget is
+    -- required here — otherwise the label reads "mover_ab_pet" instead of "PET".
+    if L then displayId = rawget(L, "mover_ab_" .. id) or displayId end
     label:SetText(displayId)
 
     overlay:SetScript("OnDragStart", function()

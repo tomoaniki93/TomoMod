@@ -2515,6 +2515,8 @@ TomoMod_RegisterLocale("enUS", {
     -- Extra Action Button (v3.0.6)
     -- =====================
     ["mover_ab_extra"] = "Extra Action",
+    ["mover_ab_pet"] = "Pet Bar",
+    ["mover_ab_stance"] = "Stance Bar",
     ["section_extra_button"] = "Extra Action Button",
     ["opt_extra_enabled"] = "Manage the Extra Action Button (reload to release)",
     ["opt_extra_scale"] = "Extra button scale",

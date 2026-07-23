@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint & syntax
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lua 5.1, luacheck, xmllint
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lua5.1 liblua5.1-0-dev luarocks build-essential libxml2-utils
+          sudo luarocks --lua-version=5.1 install luacheck
+
+      # Hard gate: every non-library Lua file must compile under Lua 5.1
+      # (this is the "WoW will load it" check). UTF-8 BOM is stripped first
+      # because the standalone luac5.1 rejects it, while WoW handles it natively.
+      - name: luac5.1 syntax check
+        run: |
+          fail=0
+          while IFS= read -r f; do
+            tmp="$(mktemp)"
+            sed '1s/^\xEF\xBB\xBF//' "$f" > "$tmp"
+            if ! luac5.1 -p "$tmp"; then
+              echo "::error file=$f::luac5.1 syntax error"
+              fail=1
+            fi
+            rm -f "$tmp"
+          done < <(git ls-files '*.lua' | grep -v '^Libs/')
+          exit $fail
+
+      # Hard gate: every non-library XML file must be well-formed.
+      - name: XML well-formedness
+        run: |
+          fail=0
+          while IFS= read -r f; do
+            if ! xmllint --noout "$f"; then
+              echo "::error file=$f::malformed XML"
+              fail=1
+            fi
+          done < <(git ls-files '*.xml' | grep -v '^Libs/')
+          exit $fail
+
+      # Advisory for now: surfaces the static-analysis backlog without failing
+      # the build. Flip `continue-on-error` to false once the backlog is cleared
+      # to make luacheck a hard gate too.
+      - name: luacheck
+        continue-on-error: true
+        run: luacheck .
