@@ -152,6 +152,63 @@ function CDF.GetCooldownState(resolved)
 end
 
 -- ---------------------------------------------------------------------
+-- [S8] Aura presence on the player.
+-- Detect-don't-test: we only ever check that the aura EXISTS. Its duration
+-- and expiration are never read, compared or used in arithmetic, so no
+-- secret value is touched (see sec.6).
+-- ---------------------------------------------------------------------
+function CDF.IsAuraActive(spellID)
+    spellID = tonumber(spellID)
+    if not spellID then return false end
+    local get = C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID
+    if not get then return false end
+    return get(spellID) ~= nil
+end
+
+-- ---------------------------------------------------------------------
+-- [S8] Ready test usable OUTSIDE the render pass.
+-- Spell cooldowns are secret in 12.x, so the only legal way to know
+-- whether one is running is to feed the duration object to a Cooldown
+-- widget and read back IsShown() -- the same detect-don't-test trick the
+-- renderer already uses on real icons (CDF_Render, applyEntry). Here it
+-- runs against one shared scratch widget so the ready state can be known
+-- BEFORE deciding which icons to lay out.
+--
+-- The host is parked off-screen at alpha 0 rather than hidden, so the
+-- Cooldown widget keeps updating its own shown flag normally.
+-- ---------------------------------------------------------------------
+local probe
+local function getProbe()
+    if not probe then
+        local host = CreateFrame("Frame", nil, UIParent)
+        host:SetSize(1, 1)
+        host:SetPoint("TOPLEFT", UIParent, "TOPLEFT", -500, 500)
+        host:SetAlpha(0)
+        probe = CreateFrame("Cooldown", nil, host, "CooldownFrameTemplate")
+        probe:SetAllPoints(host)
+        probe:SetDrawBling(false)
+        probe:SetDrawSwipe(false)
+        probe:SetHideCountdownNumbers(true)
+    end
+    return probe
+end
+
+function CDF.IsReady(resolved, state)
+    if not state then return true end
+    if state.isSpell then
+        local durObj = (state.maxCharges and state.maxCharges > 1 and state.chargeDurObj)
+                       or state.durObj
+        if not durObj then return true end
+        local p = getProbe()
+        p:SetCooldownFromDurationObject(durObj)
+        return not p:IsShown()
+    end
+    -- items / trinkets: plain non-secret numbers, safe to compare
+    local d = state.duration
+    return (not d) or d == 0
+end
+
+-- ---------------------------------------------------------------------
 -- Update dispatcher (event-driven; zero idle CPU). Subscribers (the
 -- renderer, Lot 3) register a callback and receive a coarse reason:
 --   "cooldown" -> a cooldown/charge changed (redraw swipes)
@@ -201,3 +258,18 @@ w:SetScript("OnEvent", function(_, event)
     end
 end)
 CDF._watchFrame = w
+
+-- [S8] UNIT_AURA fires very often in combat, so it is only registered
+-- while at least one bar actually needs aura state (glow condition
+-- "aura"). The renderer recomputes this on every layout refresh, which
+-- keeps the dispatcher at its usual zero idle cost otherwise.
+function CDF.SetAuraWatch(on)
+    on = on and true or false
+    if CDF._auraWatch == on then return end
+    CDF._auraWatch = on
+    if on then
+        w:RegisterUnitEvent("UNIT_AURA", "player")
+    else
+        w:UnregisterEvent("UNIT_AURA")
+    end
+end

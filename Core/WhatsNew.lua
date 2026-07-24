@@ -30,6 +30,19 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.2.5",
+        highlights = {
+            L["wn_325_friends_window"] or "Contacts: the friends window is now fully themed instead of being a half-done pass — flat dark body, accent border drawn above the list, restyled title and a plain accent close button.",
+            L["wn_325_friends_tabs"] or "Contacts: the bottom tabs and the Friends / Recent Allies / Recruit A Friend sub-tabs lost their gold plates, and now show an accent underline and label on the selected one.",
+            L["wn_325_friends_buttons"] or "Contacts: every button in the window (Add Friend, Send Message, the Who tab buttons, Convert to Raid, Raid Info, Join Queue) now shares one flat accent style that brightens on hover, and the two contact buttons split the bottom row evenly.",
+            L["wn_325_friends_toggle"] or "Contacts: turning the skin off in the settings now restores Blizzard's look immediately instead of needing a reload.",
+            L["wn_325_cdf_radial"] or "CooldownForge: cooldown bars can now arrange their icons on a circle instead of a line — set the radius, start angle, arc amplitude and direction from the new Layout mode.",
+            L["wn_325_cdf_spacing"] or "CooldownForge: icon spacing is now two separate values — along the row and between wrapped rows — and the maximum was raised from 16 to 64 px.",
+            L["wn_325_cdf_glow"] or "CooldownForge: glow can now trigger on a chosen condition — when the spell is ready, while a buff is active on you (with an optional buff ID for trinkets/talents), or always — set per bar or per spell.",
+            L["wn_325_cdf_hidecd"] or "CooldownForge: a bar can now hide each icon while it is on cooldown, with the remaining icons closing the gap; it reflows only when the set of ready spells changes.",
+        },
+    },
+    {
         version = "3.2.4",
         highlights = {
             L["wn_324_studio_real_icons"] or "Cooldown Studio: the Style tab preview now uses real icons — the bar's own spells first, then your class's spellbook and talents — instead of three hardcoded demo icons from unrelated classes.",

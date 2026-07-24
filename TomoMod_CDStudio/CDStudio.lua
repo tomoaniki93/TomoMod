@@ -120,6 +120,25 @@ local function triSet(o, k, v)
     if v == "inherit" then o[k] = nil else o[k] = (v == "on") end
 end
 
+-- [S8] glow trigger conditions (bar level, then per-entry with inherit)
+local GLOW_COND_OPTS = {
+    { text = "Quand le sort est pret", value = "ready" },
+    { text = "Quand le buff est actif", value = "aura" },
+    { text = "Toujours",               value = "always" },
+}
+local GLOW_COND_OPTS_ENTRY = {
+    { text = "Heriter de la barre",    value = "inherit" },
+    { text = "Quand le sort est pret", value = "ready" },
+    { text = "Quand le buff est actif", value = "aura" },
+    { text = "Toujours",               value = "always" },
+}
+-- Reads back an optional positive integer typed into an edit box.
+local function readSpellID(t)
+    local n = tonumber(t)
+    if n and n > 0 then return math.floor(n) end
+    return nil
+end
+
 local function TabDisposition(parent)
     S.state.tab = "layout"
     local scroll = W.CreateScrollPanel(parent)
@@ -129,21 +148,54 @@ local function TabDisposition(parent)
     local card, cy
 
     card, cy = W.CreateCard(c, "Disposition", y)
-    _, cy = W.CreateSegmentedControl(card.inner, "Orientation",
-        { { text = "Horizontale", value = "horizontal" }, { text = "Verticale", value = "vertical" } },
-        bar.orientation, cy, function(v) bar.orientation = v; Apply() end, 2)
-    _, cy = W.CreateDropdown(card.inner, "Direction de croissance",
-        { { text = "Droite", value = "RIGHT" }, { text = "Gauche", value = "LEFT" },
-          { text = "Bas", value = "DOWN" }, { text = "Haut", value = "UP" } },
-        bar.growth, cy, function(v) bar.growth = v; Apply() end)
-    _, cy = W.CreateTripleSlider(card.inner, cy,
-        { text = "Taille icones", value = bar.iconSize, min = 24, max = 64, step = 1,
-          callback = function(v) bar.iconSize = v; Apply() end },
-        { text = "Espacement", value = bar.spacing, min = 0, max = 16, step = 1,
-          callback = function(v) bar.spacing = v; Apply() end },
-        { text = "Retour (icones/ligne)", value = bar.wrap, min = 0, max = 12, step = 1,
-          callback = function(v) bar.wrap = v; Apply() end })
-    _, cy = W.CreateInfoText(card.inner, "Retour a 0 = une seule ligne. La position se regle via le mode edition (footer).", cy)
+    local mode = bar.layout or "line"
+    _, cy = W.CreateSegmentedControl(card.inner, "Mode",
+        { { text = "En ligne", value = "line" }, { text = "En cercle", value = "radial" } },
+        mode, cy, function(v)
+            bar.layout = v
+            Apply(); S.RebuildContent()
+        end, 2)
+
+    if mode == "radial" then
+        bar.radial = bar.radial or { radius = 90, startAngle = 90, arc = 360, clockwise = true }
+        local r = bar.radial
+        _, cy = W.CreateSlider(card.inner, "Rayon", r.radius or 90, 20, 400, 5, cy,
+            function(v) r.radius = v; Apply() end, "%.0f px")
+        _, cy = W.CreateSlider(card.inner, "Angle de depart", r.startAngle or 90, 0, 359, 5, cy,
+            function(v) r.startAngle = v; Apply() end, "%.0f deg")
+        _, cy = W.CreateSlider(card.inner, "Amplitude de l'arc", r.arc or 360, 30, 360, 5, cy,
+            function(v) r.arc = v; Apply() end, "%.0f deg")
+        _, cy = W.CreateCheckbox(card.inner, "Sens horaire", r.clockwise ~= false, cy,
+            function(v) r.clockwise = v; Apply() end)
+        _, cy = W.CreateSlider(card.inner, "Taille icones", bar.iconSize, 24, 64, 1, cy,
+            function(v) bar.iconSize = v; Apply() end, "%.0f px")
+        _, cy = W.CreateInfoText(card.inner,
+            "0 deg = a droite, 90 deg = en haut. Une amplitude de 360 repartit les icones "
+            .. "sur un cercle complet. Le jeu ne permet pas de suivre le personnage a l'ecran : "
+            .. "place le cercle une fois via le mode edition (footer), il restera fixe.", cy)
+    else
+        _, cy = W.CreateSegmentedControl(card.inner, "Orientation",
+            { { text = "Horizontale", value = "horizontal" }, { text = "Verticale", value = "vertical" } },
+            bar.orientation, cy, function(v) bar.orientation = v; Apply() end, 2)
+        _, cy = W.CreateDropdown(card.inner, "Direction de croissance",
+            { { text = "Droite", value = "RIGHT" }, { text = "Gauche", value = "LEFT" },
+              { text = "Bas", value = "DOWN" }, { text = "Haut", value = "UP" } },
+            bar.growth, cy, function(v) bar.growth = v; Apply() end)
+        _, cy = W.CreateTripleSlider(card.inner, cy,
+            { text = "Taille icones", value = bar.iconSize, min = 24, max = 64, step = 1,
+              callback = function(v) bar.iconSize = v; Apply() end },
+            { text = "Espacement (dans la ligne)", value = bar.spacing, min = 0, max = 64, step = 1,
+              callback = function(v) bar.spacing = v; Apply() end },
+            { text = "Retour (icones/ligne)", value = bar.wrap, min = 0, max = 12, step = 1,
+              callback = function(v) bar.wrap = v; Apply() end })
+        _, cy = W.CreateSlider(card.inner, "Espacement (entre les lignes)",
+            bar.spacingCross or bar.spacing or 4, 0, 64, 1, cy,
+            function(v) bar.spacingCross = v; Apply() end, "%.0f px")
+        _, cy = W.CreateInfoText(card.inner,
+            "Retour a 0 = une seule ligne, l'espacement entre lignes n'a alors aucun effet. "
+            .. "Tant qu'il n'est pas touche, il suit l'espacement dans la ligne. "
+            .. "La position se regle via le mode edition (footer).", cy)
+    end
     W.FinalizeCard(card, cy)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
@@ -390,9 +442,30 @@ local function TabStyle(parent)
         y = W.FinalizeCard(card, cy)
     end
 
-    card, cy = W.CreateCard(c, "Glow (quand pret)", y)
+    card, cy = W.CreateCard(c, "Glow", y)
     _, cy = W.CreateCheckbox(card.inner, "Activer le glow", bar.glow.enabled, cy,
         function(v) bar.glow.enabled = v; Apply() end)
+    local gcond = bar.glow.condition or "ready"
+    _, cy = W.CreateDropdown(card.inner, "Condition d'affichage", GLOW_COND_OPTS,
+        gcond, cy, function(v)
+            bar.glow.condition = v
+            Apply(); S.RebuildContent()
+        end)
+    if gcond == "aura" then
+        local auraBox
+        auraBox, cy = W.CreateMultiLineEditBox(card.inner, "ID du buff (vide = ID du sort)", 24, cy, {
+            onTextChanged = function(t)
+                bar.glow.auraSpellID = readSpellID(t)
+                Apply()
+            end,
+        })
+        if auraBox and auraBox.editBox and bar.glow.auraSpellID then
+            auraBox.editBox:SetText(tostring(bar.glow.auraSpellID))
+        end
+        _, cy = W.CreateInfoText(card.inner,
+            "Le buff surveille est par defaut celui qui porte l'ID du sort suivi. "
+            .. "Renseigne un ID ici quand le buff differe du sort (bijoux, certains talents).", cy)
+    end
     _, cy = W.CreateDropdown(card.inner, "Type de glow",
         { { text = "Pixel", value = "Pixel" }, { text = "Autocast", value = "Autocast" }, { text = "Button", value = "Button" } },
         bar.glow.type, cy, function(v) bar.glow.type = v; Apply() end)
@@ -459,7 +532,24 @@ local function TabSorts(parent)
                 Apply()
             end)
         end
-        tri("Glow quand pret", "glow")
+        tri("Glow", "glow")
+        _, cy = W.CreateDropdown(card.inner, "Condition du glow", GLOW_COND_OPTS_ENTRY,
+            o.glowCondition or "inherit", cy, function(v)
+                o.glowCondition = (v ~= "inherit") and v or nil
+                Apply(); S.RebuildContent()
+            end)
+        if o.glowCondition == "aura" then
+            local eAuraBox
+            eAuraBox, cy = W.CreateMultiLineEditBox(card.inner, "ID du buff (vide = ID du sort)", 24, cy, {
+                onTextChanged = function(t)
+                    o.auraSpellID = readSpellID(t)
+                    Apply()
+                end,
+            })
+            if eAuraBox and eAuraBox.editBox and o.auraSpellID then
+                eAuraBox.editBox:SetText(tostring(o.auraSpellID))
+            end
+        end
         local hasColor = o.glowColor ~= nil
         _, cy = W.CreateCheckbox(card.inner, "Couleur de glow personnalisee", hasColor, cy, function(v)
             if v then
@@ -758,6 +848,17 @@ local function TabVisibilite(parent)
     cond("En instance (donjon/raid)", "inInstance")
     cond("En groupe", "inGroup")
     cond("En raid", "inRaid")
+    y = W.FinalizeCard(card, cy)
+
+    card, cy = W.CreateCard(c, "Icones en cooldown", y)
+    _, cy = W.CreateCheckbox(card.inner, "Masquer une icone pendant son cooldown",
+        bar.hideOnCooldown == true, cy, function(v)
+            bar.hideOnCooldown = v
+            Apply()
+        end)
+    _, cy = W.CreateInfoText(card.inner,
+        "Les icones restantes se resserrent pour combler le trou. La barre se reorganise "
+        .. "a chaque fois que la liste des sorts prets change, pas a chaque tick.", cy)
     y = W.FinalizeCard(card, cy)
 
     card, cy = W.CreateCard(c, "Visibilite par sort", y)

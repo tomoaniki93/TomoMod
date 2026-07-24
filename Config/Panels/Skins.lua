@@ -842,21 +842,21 @@ local function BuildFriendsSkinTab(parent)
     local c = scroll.child
     local y = -10
 
-    TomoModDB.friendsSkin = TomoModDB.friendsSkin or { enabled = true, scale = 1.0 }
+    TomoModDB.friendsSkin = TomoModDB.friendsSkin or { enabled = false, scale = 1.0 }
     local s = TomoModDB.friendsSkin
 
     local _, ny = W.CreateSectionHeader(c, L["sublabel_friends_skin"] or "Fenetre de contacts", y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_friends_skin_enable"] or "Habiller la fenetre de contacts", s.enabled ~= false, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_friends_skin_enable"] or "Habiller la fenetre de contacts", s.enabled == true, y, function(v)
         s.enabled = v
-        if TomoMod_FriendsSkin and v then TomoMod_FriendsSkin.ApplySkin() end
+        if TomoMod_FriendsSkin then TomoMod_FriendsSkin.ApplySettings() end
     end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_friends_skin_scale"] or "Echelle", (s.scale or 1.0) * 100, 50, 200, 5, y, function(v)
         s.scale = v / 100
-        if TomoMod_FriendsSkin then TomoMod_FriendsSkin.ApplySkin() end
+        if TomoMod_FriendsSkin then TomoMod_FriendsSkin.ApplyScale() end
     end, "%.0f%%", 100)
     y = ny
 

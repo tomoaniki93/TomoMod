@@ -2779,4 +2779,12 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_324_studio_real_icons"] = "Cooldown Studio: the Style tab preview now uses real icons — the bar's own spells first, then your class's spellbook and talents — instead of three hardcoded demo icons from unrelated classes.",
     ["wn_324_chat_contacts"] = "Chat: the chat sidebar gained a Contacts button that opens Blizzard's friends list in one click, restoring an entry point the skin's hidden native social button had removed.",
     ["wn_324_editbox_scrollbar"] = "Config: multi-line text boxes (import/export, notes...) no longer show Blizzard's gold arrow scrollbar — they now use the addon's own thin accent scrollbar and support the mouse wheel.",
+    ["wn_325_friends_window"] = "Contacts: the friends window is now fully themed instead of being a half-done pass — flat dark body, accent border drawn above the list, restyled title and a plain accent close button.",
+    ["wn_325_friends_tabs"] = "Contacts: the bottom tabs and the Friends / Recent Allies / Recruit A Friend sub-tabs lost their gold plates, and now show an accent underline and label on the selected one.",
+    ["wn_325_friends_buttons"] = "Contacts: every button in the window (Add Friend, Send Message, the Who tab buttons, Convert to Raid, Raid Info, Join Queue) now shares one flat accent style that brightens on hover, and the two contact buttons split the bottom row evenly.",
+    ["wn_325_friends_toggle"] = "Contacts: turning the skin off in the settings now restores Blizzard's look immediately instead of needing a reload.",
+    ["wn_325_cdf_radial"] = "CooldownForge: cooldown bars can now arrange their icons on a circle instead of a line — set the radius, start angle, arc amplitude and direction from the new Layout mode.",
+    ["wn_325_cdf_spacing"] = "CooldownForge: icon spacing is now two separate values — along the row and between wrapped rows — and the maximum was raised from 16 to 64 px.",
+    ["wn_325_cdf_glow"] = "CooldownForge: glow can now trigger on a chosen condition — when the spell is ready, while a buff is active on you (with an optional buff ID for trinkets/talents), or always — set per bar or per spell.",
+    ["wn_325_cdf_hidecd"] = "CooldownForge: a bar can now hide each icon while it is on cooldown, with the remaining icons closing the gap; it reflows only when the set of ready spells changes.",
 })

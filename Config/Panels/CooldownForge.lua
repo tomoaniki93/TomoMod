@@ -179,26 +179,55 @@ local function BuildContent(c)
                 bar.style.desatOnCooldown = v
                 Apply()
             end)
-        _, cy = W.CreateSegmentedControl(card.inner, "Orientation",
-            { { text = "Horizontale", value = "horizontal" }, { text = "Verticale", value = "vertical" } },
-            bar.orientation, cy, function(v) bar.orientation = v; Apply() end, 2)
-        _, cy = W.CreateDropdown(card.inner, "Direction",
-            { { text = "Droite", value = "RIGHT" }, { text = "Gauche", value = "LEFT" },
-              { text = "Bas", value = "DOWN" }, { text = "Haut", value = "UP" } },
-            bar.growth, cy, function(v) bar.growth = v; Apply() end)
+        local mode = bar.layout or "line"
+        _, cy = W.CreateSegmentedControl(card.inner, "Disposition",
+            { { text = "En ligne", value = "line" }, { text = "En cercle", value = "radial" } },
+            mode, cy, function(v) bar.layout = v; Apply(); Refresh() end, 2)
         _, cy = W.CreateSlider(card.inner, "Taille des icones", bar.iconSize, 24, 64, 1, cy,
             function(v) bar.iconSize = v; Apply() end, "%.0f px")
-        _, cy = W.CreateSlider(card.inner, "Espacement", bar.spacing, 0, 16, 1, cy,
-            function(v) bar.spacing = v; Apply() end, "%.0f px")
-        _, cy = W.CreateSlider(card.inner, "Retour ligne apres (0 = off)", bar.wrap, 0, 12, 1, cy,
-            function(v) bar.wrap = v; Apply() end, "%.0f")
+        if mode == "radial" then
+            bar.radial = bar.radial or { radius = 90, startAngle = 90, arc = 360, clockwise = true }
+            local rad = bar.radial
+            _, cy = W.CreateSlider(card.inner, "Rayon", rad.radius or 90, 20, 400, 5, cy,
+                function(v) rad.radius = v; Apply() end, "%.0f px")
+            _, cy = W.CreateSlider(card.inner, "Angle de depart", rad.startAngle or 90, 0, 359, 5, cy,
+                function(v) rad.startAngle = v; Apply() end, "%.0f deg")
+            _, cy = W.CreateSlider(card.inner, "Amplitude de l'arc", rad.arc or 360, 30, 360, 5, cy,
+                function(v) rad.arc = v; Apply() end, "%.0f deg")
+            _, cy = W.CreateCheckbox(card.inner, "Sens horaire", rad.clockwise ~= false, cy,
+                function(v) rad.clockwise = v; Apply() end)
+        else
+            _, cy = W.CreateSegmentedControl(card.inner, "Orientation",
+                { { text = "Horizontale", value = "horizontal" }, { text = "Verticale", value = "vertical" } },
+                bar.orientation, cy, function(v) bar.orientation = v; Apply() end, 2)
+            _, cy = W.CreateDropdown(card.inner, "Direction",
+                { { text = "Droite", value = "RIGHT" }, { text = "Gauche", value = "LEFT" },
+                  { text = "Bas", value = "DOWN" }, { text = "Haut", value = "UP" } },
+                bar.growth, cy, function(v) bar.growth = v; Apply() end)
+            _, cy = W.CreateSlider(card.inner, "Espacement (dans la ligne)", bar.spacing, 0, 64, 1, cy,
+                function(v) bar.spacing = v; Apply() end, "%.0f px")
+            _, cy = W.CreateSlider(card.inner, "Espacement (entre les lignes)",
+                bar.spacingCross or bar.spacing or 4, 0, 64, 1, cy,
+                function(v) bar.spacingCross = v; Apply() end, "%.0f px")
+            _, cy = W.CreateSlider(card.inner, "Retour ligne apres (0 = off)", bar.wrap, 0, 12, 1, cy,
+                function(v) bar.wrap = v; Apply() end, "%.0f")
+        end
+        _, cy = W.CreateCheckbox(card.inner, "Masquer une icone pendant son cooldown",
+            bar.hideOnCooldown == true, cy, function(v) bar.hideOnCooldown = v; Apply() end)
         _, cy = W.CreateDropdown(card.inner, "Texte",
             { { text = "Minuteur", value = "timer" }, { text = "Nom", value = "name" }, { text = "Aucun", value = "none" } },
             bar.text.mode, cy, function(v) bar.text.mode = v; Apply() end)
         _, cy = W.CreateCheckbox(card.inner, "Afficher les charges (stacks)", bar.text.stacks, cy,
             function(v) bar.text.stacks = v; Apply() end)
-        _, cy = W.CreateCheckbox(card.inner, "Glow (quand pret)", bar.glow.enabled, cy,
+        _, cy = W.CreateCheckbox(card.inner, "Glow", bar.glow.enabled, cy,
             function(v) bar.glow.enabled = v; Apply() end)
+        _, cy = W.CreateDropdown(card.inner, "Condition du glow",
+            { { text = "Quand le sort est pret", value = "ready" },
+              { text = "Quand le buff est actif", value = "aura" },
+              { text = "Toujours", value = "always" } },
+            bar.glow.condition or "ready", cy, function(v)
+                bar.glow.condition = v; Apply()
+            end)
         _, cy = W.CreateDropdown(card.inner, "Type de glow",
             { { text = "Pixel", value = "Pixel" }, { text = "Autocast", value = "Autocast" }, { text = "Button", value = "Button" } },
             bar.glow.type, cy, function(v) bar.glow.type = v; Apply() end)

@@ -336,6 +336,20 @@ local function BuildExclusionSet()
         "debe tener equipado",                -- ES
         "deve avere equipaggiat",             -- IT
         "deve ter equipado",                  -- PT
+        -- Message recipient not found (report #771: session 2026-07-24)
+        "destinataire du message",            -- FR "Impossible de trouver le destinataire du message."
+        "recipient of the message", "message recipient", -- EN equivalents
+        "empf\195\164nger der nachricht",     -- DE
+        "destinatario del mensaje",           -- ES
+        "destinatario del messaggio",         -- IT
+        "destinat\195\161rio da mensagem",    -- PT
+        -- Cannot target players (report #772: session 2026-07-24)
+        "cibler les joueurs",                 -- FR "Impossible de cibler les joueurs"
+        "target players", "targeting players", -- EN equivalents
+        "spieler anvisieren", "spieler ins ziel", -- DE
+        "seleccionar a los jugadores", "seleccionar jugadores", -- ES
+        "bersaglio i giocatori", "mirare i giocatori", -- IT
+        "mirar em jogadores", "selecionar jogadores", -- PT
     }
     for _, kw in ipairs(keywords) do
         EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = kw

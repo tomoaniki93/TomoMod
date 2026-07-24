@@ -1,5 +1,40 @@
 ## ####################################
 
+## CHANGELOG 3.2.5 — Contacts Window Reskin & CooldownForge: Radial Layout, Glow Conditions
+
+#### Contacts Window — Reskinned Frame, Tabs & Buttons
+- **Change** — The Contacts window skin was a partial pass: it darkened the frame body but left every control untouched, so Blizzard's gold buttons and tabs sat on top of a dark panel. The whole window is now themed as one piece — flat dark body, 1px accent border drawn above the content so the list can no longer overdraw it, restyled title with a hairline divider beneath it, and a plain accent close button.
+- **New** — The four bottom tabs and the Friends / Recent Allies / Recruit A Friend sub-tabs lost their parchment plates. They now use a flat inactive fill, a subtle hover tint and an accent underline plus accent label on the selected one.
+- **New** — Every button in the window shares a single treatment: flat slot, accent border, and an accent label that brightens on hover. This covers Add Friend, Send Message, the Who tab's Who / Add Friend / Group Invite buttons, Convert to Raid, Raid Info and Quick Join's Join Queue button.
+- **New** — The Who tab's column headers are now flat with a hover tint and 1px separators, and its search box gained the same flat field styling as the rest of the addon.
+- **Change** — The Add Friend and Send Message buttons now split the bottom row evenly instead of sitting at unequal widths. Their original vertical placement is preserved, and the window's own size and list layout are left exactly as Blizzard builds them.
+- **Fix** — The skin no longer targets three scroll frames removed in 11.x, which meant the list panes were never actually being themed. It now themes the real inset panes used by the current client.
+- **Fix** — Turning the skin off in the settings restores Blizzard's own look immediately instead of requiring a reload. Hidden artwork is now dimmed and remembered rather than destroyed, so it can be brought back live. Fonts are the one exception and still need a reload to revert.
+- **Fix** — The ignore list, raid info popup and friend tooltips could be covered by the window's own border layer; they are now raised above it.
+- **Internal** — Hover and selected states are driven by HIGHLIGHT draw-layer textures and font objects rather than OnEnter/OnLeave scripts, so the skin runs none of its own code inside a Blizzard interaction path — which matters on the Raid tab, whose buttons reach protected group APIs.
+
+#### CooldownForge — Radial (Circular) Layout
+- **New** — Cooldown bars gained a Layout mode: keep the classic line, or arrange the icons on a circle. Radial bars expose a radius, a start angle (0° = right, 90° = up), an arc amplitude (360° spreads the icons over a full circle, anything smaller lays them along that arc inclusive of both ends) and a clockwise toggle. Available in both the Cooldowns config tab and Cooldown Studio.
+- **Note** — The circle is fixed on screen: the game does not let an addon anchor a frame to the character, so you position the ring once via Edit Mode and it stays put.
+
+#### CooldownForge — Independent Row & Column Spacing
+- **Change** — Icon spacing is now two separate values: one along the growth axis (within a row/column) and one between wrapped rows. Left untouched, the cross-axis spacing simply follows the along-axis value, so existing bars are unchanged.
+- **Change** — The along-axis spacing maximum was raised from 16 px to 64 px for more generous layouts.
+
+#### CooldownForge — Glow Conditions
+- **New** — Glow can now trigger on one of three conditions instead of only "when ready": when the spell is off cooldown (the previous, hardcoded behaviour and still the default), while a matching buff is active on you, or always while the icon is shown. Set per bar, and overridable per spell (with an inherit option).
+- **New** — For the "buff active" condition, the aura watched defaults to the tracked spell's own ID; an optional buff-ID field lets you point it elsewhere for trinkets and talents whose buff differs from the spell.
+
+#### CooldownForge — Hide Icons On Cooldown
+- **New** — A bar can now drop each icon while it is on cooldown, with the remaining icons reflowing to close the gap. The bar re-lays out only when the set of ready spells actually changes, not on every cooldown tick, and it keeps polling while fully hidden so it can reappear on its own.
+
+#### CooldownForge — Internal
+- **Internal** — Saved-variable schema migrated 3 → 4. The migration is pure normalization: an untouched bar keeps its exact previous look, since "line" and the "ready" glow condition are the historic defaults.
+- **Internal** — `UNIT_AURA` is registered only while at least one on-screen bar actually needs aura state (a glow set to "buff active"), keeping the watcher at zero idle cost otherwise.
+- **Internal** — Because spell cooldowns are secret values in 12.x, the "hide on cooldown" filter reads readiness through a shared off-screen Cooldown probe widget (detect-don't-test) rather than reading any cooldown duration.
+
+## ####################################
+
 ## CHANGELOG 3.2.4 — Real Preview Icons, Chat Contacts Button & Scrollbar Consistency
 
 #### Cooldown Studio — Preview Now Uses Real Icons

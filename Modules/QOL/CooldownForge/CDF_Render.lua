@@ -18,6 +18,7 @@ local GLOW_KEY = "TomoCDF"
 local QUESTION = 134400 -- fallback icon
 
 local floor, ceil, min, max = math.floor, math.ceil, math.min, math.max
+local cos, sin, rad = math.cos, math.sin, math.rad
 
 -- ---------------------------------------------------------------------
 -- Glow (LibCustomGlow). Cached active type per frame to avoid flicker.
@@ -52,8 +53,34 @@ CDF._stopGlow = stopGlow
 -- Layout math (pure; exposed for tests)
 -- ---------------------------------------------------------------------
 -- Returns anchor corner + (x, y) offset for icon `i` (1-based) in `bar`.
-function CDF.__layoutOffset(bar, i)
-    local step = bar.iconSize + bar.spacing
+-- `n` (total icon count) is only needed by the radial layout, which must
+-- know how many icons share the arc before it can place any of them.
+function CDF.__layoutOffset(bar, i, n)
+    -- [S8] radial: icons sit on a circle centred on the container.
+    if bar.layout == "radial" then
+        local r = bar.radial or CDF.RADIAL_DEFAULT
+        local count = max(1, tonumber(n) or 1)
+        local arc = r.arc or 360
+        local step
+        if arc >= 360 then
+            step = 360 / count           -- full circle: first and last never collide
+        elseif count > 1 then
+            step = arc / (count - 1)     -- open arc: both ends included
+        else
+            step = 0
+        end
+        local dir = (r.clockwise ~= false) and -1 or 1
+        local ang = rad((r.startAngle or 90) + dir * step * (i - 1))
+        local radius = r.radius or 90
+        return "CENTER", radius * cos(ang), radius * sin(ang)
+    end
+
+    -- [S8] `spacing` runs along the growth axis, `spacingCross` between
+    -- wrapped lines. nil keeps the historic single-value behaviour.
+    local along = bar.spacing or 0
+    local cross = bar.spacingCross or along
+    local stepA = bar.iconSize + along
+    local stepC = bar.iconSize + cross
     local p = i - 1
     local pos, line
     if bar.wrap and bar.wrap > 0 then
@@ -63,21 +90,29 @@ function CDF.__layoutOffset(bar, i)
     end
     if bar.orientation == "vertical" then
         if bar.growth == "UP" then
-            return "BOTTOMLEFT", line * step, pos * step
+            return "BOTTOMLEFT", line * stepC, pos * stepA
         else -- DOWN
-            return "TOPLEFT", line * step, -pos * step
+            return "TOPLEFT", line * stepC, -pos * stepA
         end
     else
         if bar.growth == "LEFT" then
-            return "TOPRIGHT", -pos * step, -line * step
+            return "TOPRIGHT", -pos * stepA, -line * stepC
         else -- RIGHT
-            return "TOPLEFT", pos * step, -line * step
+            return "TOPLEFT", pos * stepA, -line * stepC
         end
     end
 end
 
 -- Returns container (width, height) for `n` icons.
 function CDF.__barSize(bar, n)
+    -- [S8] radial: square box covering the circle plus one icon width.
+    if bar.layout == "radial" then
+        local r = bar.radial or CDF.RADIAL_DEFAULT
+        local side = 2 * ((r.radius or 90) + bar.iconSize / 2)
+        return side, side
+    end
+    local along = bar.spacing or 0
+    local cross = bar.spacingCross or along
     local perLine, lines
     if bar.wrap and bar.wrap > 0 then
         perLine = min(bar.wrap, n); lines = ceil(n / bar.wrap)
@@ -86,9 +121,9 @@ function CDF.__barSize(bar, n)
     end
     if perLine < 1 then perLine = 1 end
     if lines < 1 then lines = 1 end
-    local along = perLine * bar.iconSize + (perLine - 1) * bar.spacing
-    local cross = lines * bar.iconSize + (lines - 1) * bar.spacing
-    if bar.orientation == "vertical" then return cross, along else return along, cross end
+    local sizeA = perLine * bar.iconSize + (perLine - 1) * along
+    local sizeC = lines * bar.iconSize + (lines - 1) * cross
+    if bar.orientation == "vertical" then return sizeC, sizeA else return sizeA, sizeC end
 end
 
 -- ---------------------------------------------------------------------
@@ -314,10 +349,30 @@ local function applyEntry(icon, resolved, state, bar)
         icon._cdfWasReady = nil
     end
 
-    -- Glow (when ready / off cooldown) -- [S2] per-entry enable + color,
-    -- via a per-icon cached cfg table to avoid per-update allocations.
+    -- Glow -- [S2] per-entry enable + color, via a per-icon cached cfg
+    -- table to avoid per-update allocations.
     local glowOn = bar.glow and bar.glow.enabled
     if ov and ov.glow ~= nil then glowOn = ov.glow end
+
+    -- [S8] Trigger condition. "ready" is the historic hardcoded behaviour
+    -- and stays the default; "aura" glows while a buff is up on the player;
+    -- "always" glows whenever the icon is shown. The buff watched defaults
+    -- to the entry's own spellID, which is wrong for trinkets and a few
+    -- talents, hence the explicit auraSpellID escape hatch.
+    local cond = (bar.glow and bar.glow.condition) or "ready"
+    if ov and ov.glowCondition then cond = ov.glowCondition end
+    local condMet
+    if cond == "always" then
+        condMet = true
+    elseif cond == "aura" then
+        local auraID = (ov and ov.auraSpellID)
+                       or (bar.glow and bar.glow.auraSpellID)
+                       or resolved.spellID
+        condMet = CDF.IsAuraActive and CDF.IsAuraActive(auraID) or false
+    else
+        condMet = ready
+    end
+
     local gcfg = bar.glow
     if ov and ov.glowColor then
         local t = icon._cdfGlowCfg or {}
@@ -326,7 +381,7 @@ local function applyEntry(icon, resolved, state, bar)
         t.color = ov.glowColor
         gcfg = t
     end
-    if glowOn and ready and gcfg then
+    if glowOn and condMet and gcfg then
         startGlow(icon, gcfg)
     else
         stopGlow(icon)
@@ -413,19 +468,61 @@ local function positionContainer(f, bar)
     f:SetPoint(point, UIParent, pos.relPoint or point, pos.x or 0, pos.y or 0)
 end
 
-local function layoutBar(container, bar)
-    local arr = bar.entries or {}
-    local visible = {}
+-- [S8] Compact picture of every entry's state, used to decide whether a
+-- hideOnCooldown bar has to be laid out again. Marks must stay in sync
+-- with the ones layoutBar writes below, or the comparison never matches.
+--   "-" filtered out   "x" unresolvable   "1" ready   "0" on cooldown
+local function readySignature(bar)
+    local arr, parts = bar.entries or {}, {}
     for i = 1, #arr do
         local e = arr[i]
+        local mark = "-"
         if CDF.IsEntryVisible(e) then
             local r = CDF.ResolveEntry(e)
             if r and not r.empty then
-                r.override = e.override   -- [S2] per-entry FX travels with it
-                visible[#visible + 1] = r
+                mark = CDF.IsReady(r, CDF.GetCooldownState(r)) and "1" or "0"
+            else
+                mark = "x"
             end
         end
+        parts[i] = mark
     end
+    return table.concat(parts)
+end
+
+local function layoutBar(container, bar)
+    local arr = bar.entries or {}
+    local visible = {}
+    -- [S8] "ready only" filter. The probe in CDF_Watch lets us know
+    -- the ready state BEFORE laying out, so this stays a single pass --
+    -- the alternative (reading it back off the real icons) would only be
+    -- knowable after applyEntry, i.e. one frame too late.
+    local hideCD = bar.hideOnCooldown == true
+    local sig = hideCD and {} or nil
+    for i = 1, #arr do
+        local e = arr[i]
+        local mark = "-"
+        if CDF.IsEntryVisible(e) then
+            local r = CDF.ResolveEntry(e)
+            if r and not r.empty then
+                local ready = true
+                if hideCD then
+                    local st = CDF.GetCooldownState(r)
+                    ready = CDF.IsReady(r, st)
+                    r._cdState = st        -- reuse below, avoids a second read
+                end
+                mark = ready and "1" or "0"
+                if ready then
+                    r.override = e.override   -- [S2] per-entry FX travels with it
+                    visible[#visible + 1] = r
+                end
+            else
+                mark = "x"
+            end
+        end
+        if sig then sig[i] = mark end
+    end
+    container._readySig = sig and table.concat(sig) or nil
 
     container._icons = container._icons or {}
     container._bar = bar
@@ -440,7 +537,7 @@ local function layoutBar(container, bar)
         local icon = container._icons[i]
         if not icon then icon = makeIcon(container); container._icons[i] = icon end
         styleIcon(icon, bar)
-        local corner, ox, oy = CDF.__layoutOffset(bar, i)
+        local corner, ox, oy = CDF.__layoutOffset(bar, i, n)
         icon:ClearAllPoints()
         -- [S2] emphasis: scale the icon around its CELL center so the grid
         -- stays aligned. SetPoint offsets live in the scaled frame's local
@@ -450,15 +547,22 @@ local function layoutBar(container, bar)
         if s < 1 then s = 1 elseif s > 1.3 then s = 1.3 end
         icon:SetScale(s)
         if s > 1.001 then
-            local half = bar.iconSize / 2
-            local cx = ox + ((corner == "TOPLEFT" or corner == "BOTTOMLEFT") and half or -half)
-            local cy = oy + ((corner == "TOPLEFT" or corner == "TOPRIGHT") and -half or half)
+            local cx, cy
+            if corner == "CENTER" then
+                -- [S8] radial: the offset already targets the cell centre
+                cx, cy = ox, oy
+            else
+                local half = bar.iconSize / 2
+                cx = ox + ((corner == "TOPLEFT" or corner == "BOTTOMLEFT") and half or -half)
+                cy = oy + ((corner == "TOPLEFT" or corner == "TOPRIGHT") and -half or half)
+            end
             icon:SetPoint("CENTER", container, corner, cx / s, cy / s)
         else
             icon:SetPoint(corner, container, corner, ox, oy)
         end
         icon:Show()
-        applyEntry(icon, visible[i], CDF.GetCooldownState(visible[i]), bar)
+        applyEntry(icon, visible[i],
+                   visible[i]._cdState or CDF.GetCooldownState(visible[i]), bar)
     end
     for i = n + 1, #container._icons do
         container._icons[i]:Hide()
@@ -469,6 +573,15 @@ end
 
 -- Light refresh: re-read cooldowns on already-shown icons (no re-layout).
 local function updateBar(container, bar)
+    -- [S8] With the ready-only filter on, a cooldown tick can change WHICH
+    -- icons belong on the bar, not just their swipe. Re-layout only when
+    -- the set actually changed, so the common case stays a light refresh.
+    if bar.hideOnCooldown then
+        if readySignature(bar) ~= container._readySig then
+            layoutBar(container, bar)
+            return
+        end
+    end
     local icons = container._icons
     if not icons then return end
     for i = 1, (container._count or 0) do
@@ -482,11 +595,33 @@ end
 -- ---------------------------------------------------------------------
 -- Public refresh entry points
 -- ---------------------------------------------------------------------
+-- [S8] Does anything on screen actually need aura state? Checked on every
+-- layout refresh so UNIT_AURA is only ever registered when it earns its
+-- keep (see CDF.SetAuraWatch).
+local function needsAuraWatch(arr)
+    for i = 1, #arr do
+        local bar = arr[i]
+        if bar.enabled ~= false then
+            if bar.glow and bar.glow.enabled and bar.glow.condition == "aura" then
+                return true
+            end
+            for _, e in ipairs(bar.entries or {}) do
+                local o = e.override
+                if o and o.glowCondition == "aura" and o.glow ~= false then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
 -- Full rebuild for the current class (visibility + layout).
 function CDF.RefreshAll()
     if not CDF.DB() then return end
     local present = {}
     local arr = CDF.GetClassBars()
+    if CDF.SetAuraWatch then CDF.SetAuraWatch(needsAuraWatch(arr or {})) end
     if arr then
         for i = 1, #arr do
             local bar = arr[i]
@@ -511,7 +646,15 @@ end
 function CDF.UpdateAll()
     if not CDF._barFrames then return end
     for _, f in pairs(CDF._barFrames) do
-        if f:IsShown() and f._bar then updateBar(f, f._bar) end
+        local bar = f._bar
+        -- [S8] A hideOnCooldown bar hides itself once every icon is on
+        -- cooldown, so it must keep being polled while hidden or nothing
+        -- would ever bring it back. Bars hidden by a visibility condition
+        -- are deliberately left alone.
+        if bar and (f:IsShown()
+                    or (bar.hideOnCooldown and CDF.IsBarVisible(bar))) then
+            updateBar(f, bar)
+        end
     end
 end
 

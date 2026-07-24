@@ -16,7 +16,9 @@ local ACCENT_R, ACCENT_G, ACCENT_B = 0.047, 0.824, 0.624  -- TomoMod teal
 -- =====================================
 local C_Timer = C_Timer
 local InCombatLockdown = InCombatLockdown
-local UnitIsAFK = UnitIsAFK
+-- NOTE: UnitIsAFK is intentionally NOT used. In 12.x it returns a secret
+-- boolean that cannot be boolean-tested in tainted code; AFK state is derived
+-- from the localized CHAT_MSG_SYSTEM messages instead (see AFK STATE below).
 local UnitSex = UnitSex
 local UnitRace = UnitRace
 local UnitClass = UnitClass
@@ -442,14 +444,63 @@ local function SetAFKDisplayShown(show)
 end
 
 -- =====================================
+-- AFK STATE (12.x safe)
+-- UnitIsAFK now returns a secret boolean that cannot be tested in tainted
+-- code, so we track AFK ourselves from the localized system messages the
+-- game prints on going/returning AFK. Patterns are built from GlobalStrings,
+-- so they resolve correctly in every locale.
+-- =====================================
+local function ToMessagePattern(s)
+    if type(s) ~= "string" then return nil end
+    -- Escape every Lua pattern magic char (including %), then turn the
+    -- escaped "%s" placeholder into a wildcard for the optional AFK message.
+    s = s:gsub("[%%%^%$%(%)%.%[%]%*%+%-%?]", "%%%0")
+    s = s:gsub("%%%%s", ".-")
+    return "^" .. s
+end
+
+local AFK_SET_PATTERNS = {}
+local AFK_CLEAR_PATTERNS = {}
+do
+    for _, key in ipairs({ "MARKED_AFK", "MARKED_AFK_MESSAGE" }) do
+        local p = ToMessagePattern(_G[key])
+        if p then AFK_SET_PATTERNS[#AFK_SET_PATTERNS + 1] = p end
+    end
+    local p = ToMessagePattern(_G.CLEARED_AFK)
+    if p then AFK_CLEAR_PATTERNS[#AFK_CLEAR_PATTERNS + 1] = p end
+end
+
+-- Classify a system message as AFK-set / AFK-clear. In 12.x the AFK system
+-- messages arrive as SECRET strings: string.match indexes them and throws a
+-- taint error, so the call site runs this under pcall and treats any failure
+-- (i.e. a secret message we are not allowed to read) as "unknown".
+local function ClassifyAFKMessage(msg)
+    for i = 1, #AFK_CLEAR_PATTERNS do
+        if msg:match(AFK_CLEAR_PATTERNS[i]) then return "clear" end
+    end
+    for i = 1, #AFK_SET_PATTERNS do
+        if msg:match(AFK_SET_PATTERNS[i]) then return "set" end
+    end
+    return nil
+end
+
+-- =====================================
 -- EVENT HANDLING
 -- =====================================
 local function OnEvent(self, event, arg1, ...)
-    if event == "PLAYER_FLAGS_CHANGED" then
-        if arg1 ~= "player" then return end
+    if event == "CHAT_MSG_SYSTEM" then
         local settings = GetSettings()
         if not settings or not settings.enabled then return end
-        SetAFKDisplayShown(UnitIsAFK("player"))
+        -- Guarded: a secret message raises inside ClassifyAFKMessage; pcall
+        -- absorbs it so the handler never taints. `kind` is then a plain
+        -- string, so the test in SetAFKDisplayShown stays secret-free.
+        local ok, kind = pcall(ClassifyAFKMessage, arg1)
+        if not ok then return end
+        if kind == "clear" then
+            SetAFKDisplayShown(false)
+        elseif kind == "set" then
+            SetAFKDisplayShown(true)
+        end
 
     elseif event == "PLAYER_REGEN_DISABLED" then
         -- Entering combat — always hide
@@ -472,7 +523,7 @@ function AFK.Initialize()
     if eventFrame then return end -- already initialized
 
     eventFrame = CreateFrame("Frame")
-    eventFrame:RegisterEvent("PLAYER_FLAGS_CHANGED")
+    eventFrame:RegisterEvent("CHAT_MSG_SYSTEM")
     eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
     eventFrame:RegisterEvent("CHAT_MSG_WHISPER")
     eventFrame:RegisterEvent("CHAT_MSG_BN_WHISPER")
