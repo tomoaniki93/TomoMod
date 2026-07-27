@@ -1,4 +1,4 @@
-﻿-- =====================================
+-- =====================================
 -- deDE.lua — Deutsch
 -- =====================================
 
@@ -647,9 +647,9 @@ TomoMod_RegisterLocale("deDE", {
     ["msg_db_reset"]                    = "Datenbank zurückgesetzt",
     ["msg_module_reset"]                = "Modul '%s' zurückgesetzt",
     ["msg_db_not_init"]                 = "Datenbank nicht initialisiert",
-    ["msg_loaded"]                      = "v2.0 geladen — %s für Konfiguration",
+    ["msg_loaded"]                      = "geladen — %s für Konfiguration",
     ["msg_report_issue"]                = "Falls ein Problem auftritt, hinterlasst bitte einen Kommentar auf CurseForge.",
-    ["msg_help_title"]                  = "v2.0 — Befehle:",
+    ["msg_help_title"]                  = "Befehle:",
     ["msg_help_open"]                   = "Konfiguration öffnen",
     ["msg_help_reset"]                  = "Alles zurücksetzen + Neuladen",
     ["msg_help_uf"]                     = "UnitFrames + Ressourcen sperren/entsperren",
@@ -1544,6 +1544,13 @@ TomoMod_RegisterLocale("deDE", {
     -- =====================
     -- Tooltip Skin
     -- =====================
+    -- Skins > Kontakte
+    ["tab_skin_friends"]                 = "Kontakte",
+    ["sublabel_friends_skin"]            = "Kontaktfenster",
+    ["opt_friends_skin_enable"]          = "Kontaktfenster gestalten",
+    ["opt_friends_skin_scale"]           = "Skalierung",
+    ["info_friends_skin_reload"]         = "Einige Änderungen greifen erst beim nächsten Öffnen des Fensters.",
+
     ["tab_skin_tooltip"]                 = "Tooltip",
     ["section_tooltip_skin"]             = "Tooltip-Skin",
     ["opt_tooltip_skin_enable"]          = "Tooltip-Skin aktivieren",
@@ -2565,4 +2572,16 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_325_cdf_spacing"] = "CooldownForge: Der Symbolabstand besteht jetzt aus zwei getrennten Werten — entlang der Reihe und zwischen umgebrochenen Reihen — und das Maximum wurde von 16 auf 64 px erhöht.",
     ["wn_325_cdf_glow"] = "CooldownForge: Das Leuchten kann nun nach einer wählbaren Bedingung ausgelöst werden — wenn der Zauber bereit ist, während ein Buff auf dir aktiv ist (mit optionaler Buff-ID für Schmuckstücke/Talente) oder immer — pro Leiste oder pro Zauber einstellbar.",
     ["wn_325_cdf_hidecd"] = "CooldownForge: Eine Leiste kann jedes Symbol während seines Cooldowns ausblenden, wobei die verbleibenden Symbole die Lücke schließen; sie ordnet sich nur neu an, wenn sich die Menge der bereiten Zauber ändert.",
+    ["wn_326_whatsnew_stuck"] = "Was ist neu: Dieses Fenster mit Escape zu schließen ließ den Bildschirm abgedunkelt und die Maus tot zurück, und die Version blieb ungemerkt — beim nächsten Login kam sie wieder. Jeder Schließweg (X, Button, Escape) läuft nun über eine einzige Stelle, die die Abdunklung entfernt und die Version merkt.",
+    ["wn_326_whatsnew_escape"] = "Was ist neu: Escape wird jetzt vom Fenster selbst verarbeitet statt über Blizzards UISpecialFrames, was einen Taint-Pfad über das Spielmenü beseitigt; alle anderen Tasten werden weiterhin durchgereicht.",
+    ["wn_326_whatsnew_gates"] = "Was ist neu: Das Fenster wartet nun auf einen freien Moment — nie über einer Zwischensequenz, einem Video oder einem Kampf — und überspringt den allerersten Login eines Charakters komplett, damit es dich nicht mitten in der Intro-Sequenz begrüßt.",
+    ["wn_326_tracker_empty"] = "Zielverfolgung: Wird nichts verfolgt, bleibt kein dunkles Panel mehr zurück, das fast den ganzen Bildschirm bedeckte — es schrumpft jetzt auf seine Kopfzeile, und „Bei Leere ausblenden“ ist standardmäßig aktiv (bestehende Profile werden einmalig angepasst; wer es wieder abschaltet, behält das).",
+    ["wn_326_tracker_drag"] = "Zielverfolgung: Das Panel lässt sich wieder nach unten ziehen — die Bildschirmbegrenzung galt für Blizzards überdimensioniertes Verfolgungsfenster, dessen Unterkante bereits außerhalb des Bildschirms lag, weshalb jede Bewegung nach unten abgelehnt wurde.",
+    ["wn_326_repbar_drag"] = "Rufleiste: Behoben, dass die Leiste im Layout-Modus zwar ihren Entsperr-Rahmen zeigte, sich aber nicht greifen ließ — die Maus war dort nie aktiviert, das Ziehen konnte also gar nicht starten.",
+    -- Cooldown-Manager-Halter (Movers / Layout-Modus)
+    ["mover_cdm"]                        = "Cooldown Manager",
+    ["cdm_drag_hint"]                    = "Zum Verschieben ziehen",
+    ["cdm_preview_aura"]                 = "Aura",
+
+    ["wn_326_suite_card"] = "Konfiguration: Das Dashboard hat eine Karte „Tomo-Suite“ erhalten, die TomoBoss vorstellt (Boss-Timer mit gesprochenen Ansagen) — eine Verknüpfung zu seinen Optionen, wenn es installiert ist, sonst eine kopierbare Adresse und ein dauerhaftes „Nicht mehr anzeigen“.",
 })

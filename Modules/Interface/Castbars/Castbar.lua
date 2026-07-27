@@ -47,6 +47,13 @@ local ADDON_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Castbars\\"
 -- LSM
 -- =====================================
 local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+-- [fix] LibStub registers a library table BEFORE the file that defines it has
+-- finished running, so a library that errors partway through leaves behind a
+-- registered but EMPTY table. It is still truthy, so every `if LSM then` guard
+-- passes and the first method call dies with "attempt to call a nil value".
+-- That is exactly what happened when CallbackHandler-1.0 was not shipped.
+-- Treat a library missing its core method as absent rather than trusting it.
+if LSM and not LSM.Fetch then LSM = nil end
 
 function CB.ResolveBarTexture(db)
     if LSM and db.barTextureLSM and db.barTextureLSM ~= "" then
@@ -985,7 +992,8 @@ function CB.CreateCastbar(unit)
     elseif unit == "focus" then events:RegisterEvent("PLAYER_FOCUS_CHANGED") end
     events:RegisterEvent("PLAYER_ENTERING_WORLD")
 
-    if LSM then
+    -- Guarded the same way RefreshAll already guards UnregisterCallback.
+    if LSM and LSM.RegisterCallback then
         LSM.RegisterCallback(castbar, "LibSharedMedia_SetGlobal", function(_, mediaType)
             if mediaType == "statusbar" then
                 castbar:SetStatusBarTexture(CB.ResolveBarTexture(db))

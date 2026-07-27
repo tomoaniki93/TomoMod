@@ -2,6 +2,34 @@
 -- WhatsNew.lua — "What's New" popup after addon updates
 -- Compares TomoModDB.lastSeenVersion with current version.
 -- Shown once per version on PLAYER_LOGIN via C_Timer.After.
+--
+-- [fix] The dimmer used to be orphaned on close. It is a SEPARATE
+-- full-screen mouse-blocking frame (the panel is its child), and only
+-- WN.Hide() ever hid it -- but the panel was registered in
+-- UISpecialFrames, so Escape made Blizzard call
+-- TomoModWhatsNewFrame:Hide() directly, bypassing WN.Hide(). The panel
+-- vanished, the dimmer stayed: dark screen, mouse dead, nothing to
+-- click. MarkSeen() lived in the same bypassed function, so the popup
+-- came back on the next login instead of staying closed.
+--
+-- Brand-new characters hit this every time: the popup is created while
+-- the intro cinematic is playing (UIParent hidden, so it is invisible
+-- but shown), and the first thing the player does is press Escape to
+-- skip the cinematic -- closing a window they never saw.
+--
+-- Three changes make that state unreachable:
+--   1. dimmer and panel are created HIDDEN and only shown once the
+--      content is built, so a failure mid-construction leaves nothing
+--      on screen (same pattern as Config/Installer.lua).
+--   2. an OnHide script on the panel is now the single authority: it
+--      hides the dimmer and calls MarkSeen(), so every close path
+--      (X, "Compris !", Escape, any external Hide) behaves the same.
+--   3. Escape is handled on the frame itself instead of through
+--      UISpecialFrames -- which also drops the ToggleGameMenu ->
+--      ClearTarget() taint path documented in Core/Forge/ForgeStudio.
+--
+-- The popup is additionally held back while a cinematic or movie is
+-- playing, while in combat, and until a character's SECOND login.
 -- ============================================================
 
 TomoMod_WhatsNew = TomoMod_WhatsNew or {}
@@ -29,6 +57,18 @@ local PANEL_H = 480
 -- ============================================================
 
 local CHANGELOG = {
+    {
+        version = "3.2.6",
+        highlights = {
+            L["wn_326_whatsnew_stuck"] or "What's New: closing this popup with Escape used to leave the screen dimmed and the mouse dead, and the version unmarked so it came back next login. Every close path — X, button, Escape — now goes through one place that clears the dimmer and remembers the version.",
+            L["wn_326_whatsnew_escape"] or "What's New: Escape is now captured by the window itself instead of Blizzard's UISpecialFrames, removing a taint path through the game menu; every other key still passes through.",
+            L["wn_326_whatsnew_gates"] or "What's New: the popup now waits for a clear moment — never over a cinematic, a movie or a fight — and skips a character's very first login entirely, so it no longer greets you mid intro sequence.",
+            L["wn_326_tracker_empty"] or "Objective Tracker: with nothing tracked, the tracker no longer leaves a dark panel covering most of the screen — it now collapses to its header, and 'Hide when empty' is on by default (existing profiles are updated once; turning it back off sticks).",
+            L["wn_326_tracker_drag"] or "Objective Tracker: the panel can be dragged downwards again — screen clamping was applied to Blizzard's oversized tracker frame, whose bottom edge already sat off-screen, so every downward move was refused.",
+            L["wn_326_repbar_drag"] or "Reputation bar: fixed the bar showing its unlock border in Layout mode but refusing to be grabbed — it never had mouse input enabled, so dragging could not start.",
+            L["wn_326_suite_card"] or "Config: the dashboard gained a 'Tomo suite' card presenting TomoBoss (boss timers with spoken callouts) — a shortcut to its options if it is installed, a copyable address and a permanent 'Don't show again' otherwise.",
+        },
+    },
     {
         version = "3.2.5",
         highlights = {
@@ -496,6 +536,37 @@ local function MarkSeen()
 end
 
 -- ============================================================
+-- GATES
+-- ============================================================
+
+-- Per-character login counter. TomoModCharDB is declared as
+-- SavedVariablesPerCharacter in the TOC, so it starts empty on every
+-- freshly created character. A /reload counts as a login, which is
+-- fine: past the first one, the player is out of the intro sequence.
+local function BumpLoginCount()
+    if type(_G.TomoModCharDB) ~= "table" then _G.TomoModCharDB = {} end
+    local db = _G.TomoModCharDB
+    db.loginCount = (tonumber(db.loginCount) or 0) + 1
+    return db.loginCount
+end
+
+-- A brand-new character should not be greeted by a changelog while it
+-- is still in the intro sequence, so the popup waits for login #2.
+function WN.IsReturningCharacter()
+    local db = _G.TomoModCharDB
+    return (tonumber(db and db.loginCount) or 0) >= 2
+end
+
+-- Never put a full-screen modal in front of a cinematic or a fight.
+local function IsBlocked()
+    if _G.CinematicFrame and _G.CinematicFrame:IsShown() then return true end
+    if _G.MovieFrame and _G.MovieFrame:IsShown() then return true end
+    if type(_G.InCinematic) == "function" and InCinematic() then return true end
+    if InCombatLockdown() or UnitAffectingCombat("player") then return true end
+    return false
+end
+
+-- ============================================================
 -- FIND ENTRY FOR CURRENT VERSION
 -- ============================================================
 
@@ -534,6 +605,11 @@ local function CreateFrame_WN()
     dimTex:SetAllPoints()
     dimTex:SetColorTexture(0, 0, 0, 0.50)
     dimmer:EnableMouse(true)
+    -- [fix] Created hidden, exactly like Config/Installer.lua's dimmer.
+    -- CreateFrame() returns a SHOWN frame, so the old code put a
+    -- full-screen mouse blocker on screen the instant this function ran;
+    -- any error later in construction left it there with no way out.
+    dimmer:Hide()
 
     -- Main panel
     frame = CreateFrame("Frame", "TomoModWhatsNewFrame", dimmer, "BackdropTemplate")
@@ -549,8 +625,39 @@ local function CreateFrame_WN()
     frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+    frame:Hide()
 
     frame._dimmer = dimmer
+
+    -- [fix] Single authority for closing. Whatever hides the panel --
+    -- the X, the OK button, Escape, or any external Hide() -- lands
+    -- here, so the dimmer can no longer outlive it and the version is
+    -- always marked as seen.
+    frame:SetScript("OnHide", function(self)
+        -- An ancestor hiding us (UIParent during a cinematic) also fires
+        -- OnHide, but leaves our own shown flag set. That is not a close:
+        -- swallowing it would mark the version seen without the player
+        -- ever having read it.
+        if self:IsShown() then return end
+        dimmer:Hide()
+        MarkSeen()
+    end)
+
+    -- [fix] Escape handled here instead of via UISpecialFrames, which
+    -- routes through ToggleGameMenu -> ClearTarget() (protected) and
+    -- taints. Same pattern as Core/Forge/ForgeStudio.lua, including the
+    -- combat guard: SetPropagateKeyboardInput is itself protected and
+    -- throws ADDON_ACTION_BLOCKED on every keypress in combat.
+    frame:EnableKeyboard(true)
+    frame:SetScript("OnKeyDown", function(self, key)
+        if InCombatLockdown() then return end
+        if key == "ESCAPE" then
+            self:SetPropagateKeyboardInput(false)
+            WN.Hide()
+        else
+            self:SetPropagateKeyboardInput(true)
+        end
+    end)
 
     -- Header bar
     local header = CreateFrame("Frame", nil, frame)
@@ -668,8 +775,6 @@ local function CreateFrame_WN()
     end)
     okBtn:SetScript("OnClick", function() WN.Hide() end)
 
-    tinsert(UISpecialFrames, "TomoModWhatsNewFrame")
-
     return frame
 end
 
@@ -769,35 +874,76 @@ end
 -- SHOW / HIDE
 -- ============================================================
 
+-- Bypasses every gate on purpose: this is the manual/debug entry point.
+-- The automatic path is WN.TryShow().
 function WN.Show()
     local entry = GetCurrentEntry()
     if not entry then
         MarkSeen()
         return
     end
+    -- Content is built BEFORE anything becomes visible: both frames are
+    -- created hidden, so an error in PopulateContent leaves a clean
+    -- screen instead of a dimmer with no dialog behind it.
     PopulateContent(entry)
-    frame:Show()
     frame._dimmer:Show()
+    frame:Show()
 end
 
 function WN.Hide()
+    -- The OnHide script hides the dimmer and calls MarkSeen().
     if frame then
         frame:Hide()
-        frame._dimmer:Hide()
+    else
+        MarkSeen()
     end
-    MarkSeen()
 end
 
 -- ============================================================
 -- AUTO TRIGGER (called from Init.lua)
 -- ============================================================
 
-function WN.TryShow()
+-- Retry cadence while a cinematic or a fight is in the way. The ceiling
+-- is generous (~5 min) but finite: past it we give up WITHOUT marking
+-- the version seen, so the changelog simply shows up next session.
+local RETRY_DELAY  = 2
+local MAX_ATTEMPTS = 150
+
+function WN.TryShow(attempt)
+    attempt = tonumber(attempt) or 1
     if not ShouldShow() then return end
+
     -- Skip if installer is about to show (first run)
     if TomoModDB and TomoModDB.installer and not TomoModDB.installer.completed then
         MarkSeen()
         return
     end
+
+    -- [fix] A character's very first login is the intro sequence:
+    -- cinematic, first steps, and a player who has not asked for a
+    -- changelog yet. Deliberately no MarkSeen() here -- the popup is
+    -- postponed, not consumed.
+    if not WN.IsReturningCharacter() then return end
+
+    if IsBlocked() then
+        if attempt < MAX_ATTEMPTS then
+            C_Timer.After(RETRY_DELAY, function() WN.TryShow(attempt + 1) end)
+        end
+        return
+    end
+
     WN.Show()
 end
+
+-- ============================================================
+-- PER-CHARACTER LOGIN COUNTER
+-- ============================================================
+-- PLAYER_LOGIN fires once per session and well before Init.lua's
+-- 3-second TryShow timer, so the counter is always up to date by the
+-- time the gate reads it.
+local loginWatcher = CreateFrame("Frame")
+loginWatcher:RegisterEvent("PLAYER_LOGIN")
+loginWatcher:SetScript("OnEvent", function(self)
+    self:UnregisterAllEvents()
+    BumpLoginCount()
+end)

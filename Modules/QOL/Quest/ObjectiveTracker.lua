@@ -928,6 +928,14 @@ local LayoutBuckets -- forward
 -- Without these guards our hooksecurefunc chain recurses and produces the
 -- visible "trembling" feedback loop.
 local _tmInLayout    = false   -- true while LayoutBuckets is mutating frames
+-- [fix] Authoritative "is anything actually tracked" flag, written by the
+-- layout passes which are the only code that really knows. Visibility used
+-- to be decided by scanning ObjectiveTrackerFrame's children, which is
+-- wrong in both directions: several Blizzard module containers stay shown
+-- (and full height) with nothing tracked, so it read true on an empty
+-- tracker; and in bucket mode our own blocks are re-parented to skinFrame,
+-- so they are not tracker children at all.
+local _tmHasContent  = false
 local _tmPendingPump = false   -- true while a deferred OnTrackerUpdate is queued
 local _tmSilenceHook = 0       -- > 0 means: ignore hook callbacks (we caused them)
 local _tmHiddenModules = {}    -- WQ module frames we've alpha=0'd (not reparented)
@@ -1102,8 +1110,19 @@ LayoutBuckets = function()
     collectAll(tracker, 0, blocks, seen)
     collectAll(skinFrame, 0, blocks, seen)
 
+    _tmHasContent = (#blocks > 0)
+
     if #blocks == 0 then
         for _, bf in pairs(bucketFrames) do bf.frame:Hide() end
+        -- [fix] This early return used to leave the height computed by
+        -- CreateOrUpdateBackground in place. That measurement walks
+        -- Blizzard's own children and keeps the lowest visible bottom --
+        -- and some of those containers stay shown at nearly full height
+        -- with nothing tracked, which is why an empty tracker showed a
+        -- panel spanning most of the screen. Collapse to the header.
+        if skinFrame and headerBar then
+            skinFrame:SetHeight((headerBar:GetHeight() or 28) + 16)
+        end
         _tmInLayout = false
         return
     end
@@ -1476,6 +1495,9 @@ local function DisableBuckets()
     if not tracker then return end
     local blocks = {}
     CollectQuestBlocks(tracker, 0, blocks)
+    -- Non-bucket mode: blocks go back to their Blizzard parent, so the
+    -- tracker really is where they live and this count is meaningful.
+    _tmHasContent = (#blocks > 0)
     for _, b in ipairs(blocks) do
         if b._tmOriginalParent then
             b:SetParent(b._tmOriginalParent)
@@ -1563,23 +1585,11 @@ local function OnTrackerUpdate()
     -- at all in the (default) bucketed layout.
     LimitDisplayedQuests()
 
-    -- Visibility: check if tracker has actual visible content
+    -- Visibility, driven by the layout passes rather than by guessing from
+    -- Blizzard's frame tree (see _tmHasContent).
     if skinFrame then
         local s = S()
-        local trackerShown = tracker:IsShown()
-        local trackerTop = tracker:GetTop()
-        local hasContent = false
-
-        if trackerShown and trackerTop then
-            local children = { tracker:GetChildren() }
-            for _, child in ipairs(children) do
-                if child:IsShown() and child ~= skinFrame and child ~= headerBar
-                   and child:GetBottom() then
-                    hasContent = true
-                    break
-                end
-            end
-        end
+        local hasContent = _tmHasContent and tracker:IsShown()
 
         if hasContent then
             skinFrame:Show()
@@ -1681,7 +1691,13 @@ local function ApplyPosition()
     -- Mark as user-placed so Blizzard's UIParent_UpdateTopFramesOverObjectiveTracker
     -- and the Edit Mode manager stop repositioning it.
     if tracker.SetMovable then tracker:SetMovable(true) end
-    if tracker.SetClampedToScreen then tracker:SetClampedToScreen(true) end
+    -- [fix] Clamping was set on ObjectiveTrackerFrame, whose height is
+    -- Blizzard's and far exceeds the visible content. Its bottom edge sits
+    -- at or past the bottom of the screen, so the engine refused every
+    -- downward drag while still allowing up/left/right. Off by default;
+    -- "Reset position" in the settings remains the way back if the panel
+    -- is dragged somewhere unreachable.
+    if tracker.SetClampedToScreen then tracker:SetClampedToScreen(false) end
     tracker.IsUserPlaced = function() return true end
 
     local pos = db.position

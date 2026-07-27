@@ -5,10 +5,11 @@
 ## Category: |cff0cd29fHUD|r
 ## 
 ## SavedVariables: TomoModDB, CompanionStatusDB
+## SavedVariablesPerCharacter: TomoModCharDB
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 3.2.5
+## Version: 3.2.6
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================

@@ -1,5 +1,39 @@
 ## ####################################
 
+## CHANGELOG 3.2.6 — What's New Popup Fixed, Objective Tracker Cleanup & Draggable Reputation Bar
+
+#### What's New Popup — The Dark Screen Lock Is Fixed
+- **Fix** — Closing the "What's New" popup with Escape left the screen dimmed and the mouse dead, with nothing left to click. The dimmer is a separate full-screen mouse-blocking frame with the panel as its child, and only `WN.Hide()` ever hid it — but the panel was registered in `UISpecialFrames`, so Escape made Blizzard hide the panel directly and the dimmer stayed behind. An `OnHide` script on the panel is now the single close authority: whatever hides it — the X, the OK button, Escape, or any external call — hides the dimmer too.
+- **Fix** — The version was not marked as seen on that same Escape path, so a popup you had already closed came back on the next login. Marking the version as seen now lives in the same `OnHide` script, so every close path behaves identically.
+- **Fix** — Escape is now captured by the window itself instead of going through `UISpecialFrames`, which routes via `ToggleGameMenu` and its protected `ClearTarget()` call — the same taint path already removed from Cooldown Studio in 3.2.2. Every other key still passes through untouched, and the handler stands down in combat since `SetPropagateKeyboardInput` is itself protected.
+- **Fix** — The dimmer and the panel are now created hidden and only shown once the content is fully built, matching the installer's pattern. An error during construction can no longer leave a full-screen mouse blocker on screen with no dialog behind it.
+
+#### What's New Popup — When It Shows Up
+- **Change** — The popup is now held back while a cinematic or an in-game movie is playing, and while you are in combat. It retries every 2 seconds for up to about 5 minutes; if it never gets a clear window it gives up *without* marking the version as seen, so the changelog simply shows up next session.
+- **Change** — A character's very first login no longer gets the popup — it waits for the second one. Brand-new characters were hit hardest by the bug above: the popup was built while the intro cinematic was playing (invisible behind a hidden UIParent), and the first Escape used to skip the cinematic closed a window the player never saw. A per-character login counter (new `TomoModCharDB` saved variable) gates this; the popup is postponed, not consumed.
+
+#### Objective Tracker — No More Giant Empty Panel
+- **Fix** — With nothing tracked, the tracker left a dark panel on screen spanning most of the height. Two causes, both fixed. Its "has content" test scanned `ObjectiveTrackerFrame`'s children, but several Blizzard module containers stay shown at nearly full height with nothing tracked — so the tracker read as full when it was empty, and in the default bucketed layout our own blocks are re-parented to the skin frame and were not tracker children at all. Content is now reported by the layout passes themselves, which are the only code that actually knows.
+- **Fix** — The empty case also returned early while keeping the height computed from Blizzard's always-shown containers. The panel now collapses to its header instead.
+- **Change** — "Hide when empty" is now on by default. Existing profiles are brought along once by a one-time migration; turning it back off sticks, and is never re-applied.
+
+#### Objective Tracker — Draggable Downwards Again
+- **Fix** — The tracker could be dragged up, left and right, but never down. Screen clamping was applied to `ObjectiveTrackerFrame`, whose height is Blizzard's and far exceeds the visible content: its bottom edge already sat at or past the bottom of the screen, so the engine refused every downward move. Clamping is now off; "Reset position" in the settings remains the way back if the panel ends up somewhere unreachable.
+
+#### Reputation Bar — Now Actually Draggable
+- **Fix** — In Layout mode the reputation bar showed its unlock border but could not be grabbed. The frame never had mouse input enabled — `StatusBar` frames start with the mouse disabled — so `RegisterForDrag` was inert and `OnDragStart` never fired. It now follows the same SetMovable / EnableMouse / RegisterForDrag order as the leveling bar.
+
+#### Internal — One-Time Data Migrations
+- **Internal** — Added a migration step to database init. Merging defaults only fills in *missing* keys, so changing a default has never reached an existing database; corrections that must apply to profiles already in the wild now live in `TomoMod_RunMigrations()`, each behind its own flag so it runs exactly once regardless of the version the player is coming from.
+- **Internal** — The `_migrations` bookkeeping table is excluded from profile snapshots. Restoring a profile saved before a migration would otherwise bring back an empty flag table and let that migration fire a second time, re-applying a change the player may have deliberately reverted.
+
+#### Config — Tomo Suite Card
+- **New** — The dashboard gained a "Tomo suite" card presenting TomoBoss (boss timers with spoken callouts, French and English voice packs included). If TomoBoss is loaded, the card reduces itself to a shortcut that opens its options; if it is not installed, it shows a selectable address field and a "Don't show again" button that hides the card everywhere, permanently. No login message, no popup, nothing repeated.
+- **Fix** — The card now reads three states instead of two: loaded, present but disabled for this character, and absent. Testing presence alone was wrong — addons live in a single `Interface/AddOns` folder shared by the whole installation while *enabling* them is per character, so on a character where TomoBoss was disabled the card still announced "installed, type /tmb" for a command that did not exist. That case now shows its own line telling you to enable the addon and reload, with neither the options button nor a download address, both of which would be pointless there.
+- **Internal** — The card lives in a single shared implementation (`Config/Panels/_Suite.lua`) rather than being duplicated per panel, so its behavior cannot drift between the pages that display it.
+
+## ####################################
+
 ## CHANGELOG 3.2.5 — Contacts Window Reskin & CooldownForge: Radial Layout, Glow Conditions
 
 #### Contacts Window — Reskinned Frame, Tabs & Buttons

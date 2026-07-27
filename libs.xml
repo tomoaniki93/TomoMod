@@ -1,6 +1,12 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
     <!-- oUF — bibliothèque UnitFrame, exposée en global via X-oUF: TomoMod_oUF dans le TOC -->
     <Script file="Libs\LibStub\LibStub.lua"/>
+    <!-- CallbackHandler-1.0 : dependance declaree de LibSharedMedia-3.0.
+         Sans elle, LibSharedMedia s'interrompt sur un LibStub:GetLibrary
+         non-silencieux APRES s'etre enregistree, laissant une table vide
+         mais truthy -> "attempt to call a nil value" chez ses appelants.
+         Doit rester chargee avant LibSharedMedia. -->
+    <Script file="Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua"/>
     <Script file='Libs\LibDispel\LibDispel.lua'/> <!-- keep over oUF -->
     <Include file="Libs\oUF\oUF_Mainline.xml"/>
     <Script file="Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua"/>

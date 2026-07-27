@@ -1,4 +1,4 @@
-﻿-- =====================================
+-- =====================================
 -- itIT.lua — Italiano
 -- =====================================
 
@@ -647,9 +647,9 @@ TomoMod_RegisterLocale("itIT", {
     ["msg_db_reset"]                    = "Database ripristinato",
     ["msg_module_reset"]                = "Modulo '%s' ripristinato",
     ["msg_db_not_init"]                 = "Database non inizializzato",
-    ["msg_loaded"]                      = "v2.0 caricato — %s per configurazione",
+    ["msg_loaded"]                      = "caricato — %s per configurazione",
     ["msg_report_issue"]                = "Se riscontri un problema, lascia un commento su CurseForge.",
-    ["msg_help_title"]                  = "v2.0 — Comandi:",
+    ["msg_help_title"]                  = "Comandi:",
     ["msg_help_open"]                   = "Apri configurazione",
     ["msg_help_reset"]                  = "Ripristina tutto + ricarica",
     ["msg_help_uf"]                     = "Blocca/Sblocca UnitFrames + Risorse",
@@ -1544,6 +1544,13 @@ TomoMod_RegisterLocale("itIT", {
     -- =====================
     -- Tooltip Skin
     -- =====================
+    -- Skins > Contatti
+    ["tab_skin_friends"]                 = "Contatti",
+    ["sublabel_friends_skin"]            = "Finestra dei contatti",
+    ["opt_friends_skin_enable"]          = "Applica lo skin alla finestra dei contatti",
+    ["opt_friends_skin_scale"]           = "Scala",
+    ["info_friends_skin_reload"]         = "Alcune modifiche si applicano alla prossima apertura della finestra.",
+
     ["tab_skin_tooltip"]                 = "Tooltip",
     ["section_tooltip_skin"]             = "Skin Tooltip",
     ["opt_tooltip_skin_enable"]          = "Attiva skin tooltip",
@@ -2553,4 +2560,16 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_325_cdf_spacing"] = "CooldownForge: la spaziatura delle icone è ora composta da due valori distinti — lungo la riga e tra le righe a capo — e il massimo è stato aumentato da 16 a 64 px.",
     ["wn_325_cdf_glow"] = "CooldownForge: il bagliore può ora attivarsi secondo una condizione a scelta — quando l'incantesimo è pronto, mentre un aura è attiva su di te (con un ID aura opzionale per monili/talenti), o sempre — configurabile per barra o per incantesimo.",
     ["wn_325_cdf_hidecd"] = "CooldownForge: una barra può ora nascondere ogni icona mentre è in recupero, con le icone rimanenti che colmano il vuoto; si riorganizza solo quando cambia l'insieme degli incantesimi pronti.",
+    ["wn_326_whatsnew_stuck"] = "Novità: chiudere questa finestra con Esc lasciava lo schermo oscurato e il mouse inerte, e la versione non contrassegnata, così tornava al login successivo. Ogni modo di chiuderla (X, pulsante, Esc) passa ora da un unico punto che rimuove l'oscuramento e memorizza la versione.",
+    ["wn_326_whatsnew_escape"] = "Novità: Esc è ora gestito dalla finestra stessa invece che tramite UISpecialFrames di Blizzard, eliminando una via di taint attraverso il menu di gioco; tutti gli altri tasti continuano a passare.",
+    ["wn_326_whatsnew_gates"] = "Novità: la finestra attende ora un momento libero — mai sopra un filmato, un video o un combattimento — e salta completamente il primissimo login di un personaggio, per non accoglierti in piena sequenza introduttiva.",
+    ["wn_326_tracker_empty"] = "Tracciatore obiettivi: quando non c'è nulla da tracciare non resta più un pannello scuro che copriva quasi tutto lo schermo — ora si riduce alla sua intestazione, e «Nascondi se vuoto» è attivo per impostazione predefinita (i profili esistenti vengono aggiornati una volta; se lo riporti su off, resta off).",
+    ["wn_326_tracker_drag"] = "Tracciatore obiettivi: il pannello può di nuovo essere trascinato verso il basso — il vincolo allo schermo era applicato al riquadro sovradimensionato di Blizzard, il cui bordo inferiore era già fuori schermo, perciò ogni spostamento verso il basso veniva rifiutato.",
+    ["wn_326_repbar_drag"] = "Barra della reputazione: corretto il caso in cui la barra mostrava il bordo di sblocco in modalità Disposizione ma non si lasciava afferrare — il mouse non era mai stato abilitato, quindi il trascinamento non poteva iniziare.",
+    -- Supporti del Cooldown Manager (Movers / modalità disposizione)
+    ["mover_cdm"]                        = "Cooldown Manager",
+    ["cdm_drag_hint"]                    = "Trascina per spostare",
+    ["cdm_preview_aura"]                 = "Aura",
+
+    ["wn_326_suite_card"] = "Config: la dashboard guadagna una scheda «Suite Tomo» che presenta TomoBoss (timer dei boss con annunci vocali) — una scorciatoia alle sue opzioni se è installato, altrimenti un indirizzo copiabile e un «Non mostrare più» definitivo.",
 })

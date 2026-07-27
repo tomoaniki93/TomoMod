@@ -1,4 +1,4 @@
-﻿-- =====================================
+-- =====================================
 -- enUS.lua — English (default fallback)
 -- =====================================
 
@@ -717,9 +717,9 @@ TomoMod_RegisterLocale("enUS", {
     ["msg_db_reset"]                    = "Database reset",
     ["msg_module_reset"]                = "Module '%s' reset",
     ["msg_db_not_init"]                 = "Database not initialized",
-    ["msg_loaded"]                      = "v2.0 loaded — %s for config",
+    ["msg_loaded"]                      = "loaded — %s for config",
     ["msg_report_issue"]                = "If you encounter any issue, please leave a comment on CurseForge.",
-    ["msg_help_title"]                  = "v2.0 — Commands:",
+    ["msg_help_title"]                  = "Commands:",
     ["msg_help_open"]                   = "Open config",
     ["msg_help_reset"]                  = "Reset all + reload",
     ["msg_help_uf"]                     = "Toggle Lock/Unlock UnitFrames + Resources",
@@ -1694,6 +1694,13 @@ TomoMod_RegisterLocale("enUS", {
 
     -- Skins > Game Menu tab
     ["tab_skin_gamemenu"]                = "Game Menu",
+
+    -- Skins > Friends tab
+    ["tab_skin_friends"]                 = "Contacts",
+    ["sublabel_friends_skin"]            = "Contacts Window",
+    ["opt_friends_skin_enable"]          = "Skin the contacts window",
+    ["opt_friends_skin_scale"]           = "Scale",
+    ["info_friends_skin_reload"]         = "Some changes apply the next time the window is opened.",
 
     -- Skins > Tooltip tab
     ["tab_skin_tooltip"]                 = "Tooltip",
@@ -2787,4 +2794,16 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_325_cdf_spacing"] = "CooldownForge: icon spacing is now two separate values — along the row and between wrapped rows — and the maximum was raised from 16 to 64 px.",
     ["wn_325_cdf_glow"] = "CooldownForge: glow can now trigger on a chosen condition — when the spell is ready, while a buff is active on you (with an optional buff ID for trinkets/talents), or always — set per bar or per spell.",
     ["wn_325_cdf_hidecd"] = "CooldownForge: a bar can now hide each icon while it is on cooldown, with the remaining icons closing the gap; it reflows only when the set of ready spells changes.",
+    ["wn_326_whatsnew_stuck"] = "What's New: closing this popup with Escape used to leave the screen dimmed and the mouse dead, and the version unmarked so it came back next login. Every close path — X, button, Escape — now goes through one place that clears the dimmer and remembers the version.",
+    ["wn_326_whatsnew_escape"] = "What's New: Escape is now captured by the window itself instead of Blizzard's UISpecialFrames, removing a taint path through the game menu; every other key still passes through.",
+    ["wn_326_whatsnew_gates"] = "What's New: the popup now waits for a clear moment — never over a cinematic, a movie or a fight — and skips a character's very first login entirely, so it no longer greets you mid intro sequence.",
+    ["wn_326_tracker_empty"] = "Objective Tracker: with nothing tracked, the tracker no longer leaves a dark panel covering most of the screen — it now collapses to its header, and 'Hide when empty' is on by default (existing profiles are updated once; turning it back off sticks).",
+    ["wn_326_tracker_drag"] = "Objective Tracker: the panel can be dragged downwards again — screen clamping was applied to Blizzard's oversized tracker frame, whose bottom edge already sat off-screen, so every downward move was refused.",
+    ["wn_326_repbar_drag"] = "Reputation bar: fixed the bar showing its unlock border in Layout mode but refusing to be grabbed — it never had mouse input enabled, so dragging could not start.",
+    -- Cooldown Manager holders (Movers / layout mode)
+    ["mover_cdm"]                        = "Cooldown Manager",
+    ["cdm_drag_hint"]                    = "Drag to move",
+    ["cdm_preview_aura"]                 = "Aura",
+
+    ["wn_326_suite_card"] = "Config: the dashboard gained a 'Tomo suite' card presenting TomoBoss (boss timers with spoken callouts) — a shortcut to its options if it is installed, a copyable address and a permanent 'Don't show again' otherwise.",
 })

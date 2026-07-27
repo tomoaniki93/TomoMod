@@ -30,7 +30,11 @@ local P = TomoMod_Profiles
 local EXPORT_VERSION = 1
 local EXPORT_HEADER  = "TMOD"
 
-local EXCLUDED_KEYS = { ["_profiles"] = true }
+-- Keys that must never travel inside a profile snapshot. "_migrations" is
+-- bookkeeping, not configuration: a profile saved before a migration would
+-- otherwise restore an empty flag table and let that migration run a second
+-- time, re-applying a change the player may have deliberately reverted.
+local EXCLUDED_KEYS = { ["_profiles"] = true, ["_migrations"] = true }
 
 -- =====================================
 -- DEEP COPY / DEEP MERGE

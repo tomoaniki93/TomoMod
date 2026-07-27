@@ -348,7 +348,16 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         -- the Layout button silently unresponsive.
         local function safeInit(name, mod)
             if not mod or not mod.Initialize then return end
-            local ok, err = xpcall(mod.Initialize, debugstack)
+            -- [fix] The handler used to be `debugstack` itself. Its first
+            -- argument is a numeric START INDEX, not an error message, so the
+            -- message xpcall handed it was silently discarded: "Init failed"
+            -- reported a bare stack trace that said WHERE the xpcall was but
+            -- never WHAT went wrong, which made these reports undiagnosable.
+            -- Keep both, message first so it survives chat scrollback.
+            local ok, err = xpcall(mod.Initialize, function(msg)
+                -- level 2 = the error site (level 1 is this handler)
+                return tostring(msg) .. "\n" .. debugstack(2)
+            end)
             if not ok then
                 print("|cff2ed884TomoMod|r |cffff4040Init failed:|r " .. name .. " — " .. tostring(err))
                 local handler = geterrorhandler and geterrorhandler()
@@ -365,7 +374,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         safeInit("ObjectiveTracker",   TomoMod_ObjectiveTracker)
         safeInit("SkyRide",            TomoMod_SkyRide)
         safeInit("LevelingBar",        TomoMod_LevelingBar)
-        safeInit("ConsumableBar",      TomoMod_ConsumableBar)
+        --safeInit("ConsumableBar",      TomoMod_ConsumableBar)
         safeInit("RareAlert",          TomoMod_RareAlert)
         safeInit("Compass",            TomoMod_Compass)
         safeInit("ReputationBar",      TomoMod_ReputationBar)

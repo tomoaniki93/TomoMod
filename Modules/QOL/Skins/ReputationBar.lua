@@ -327,6 +327,13 @@ local function CreateReputationBar()
 
     -- Draggable (Layout Mode)
     repBar:SetMovable(true)
+    -- [fix] Without this the bar took no mouse input at all, so
+    -- RegisterForDrag was inert and OnDragStart never fired: in Layout mode
+    -- the unlock border appeared (it is just a texture toggled by
+    -- ToggleLock) but the bar could not be grabbed. StatusBar frames have
+    -- the mouse disabled by default -- see LevelingBar.lua, which does
+    -- SetMovable / EnableMouse / RegisterForDrag in that order.
+    repBar:EnableMouse(true)
     repBar:SetClampedToScreen(true)
     repBar:RegisterForDrag("LeftButton")
     repBar:SetScript("OnDragStart", function(self)

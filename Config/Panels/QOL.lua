@@ -1060,7 +1060,7 @@ end
 -- TAB: CONSUMABLE BAR (Flask / Nourriture / Huiles)
 -- =====================================
 
-local function BuildConsumableBarTab(parent)
+--[[local function BuildConsumableBarTab(parent)
     local CB     = TomoMod_ConsumableBar
     local scroll = W.CreateScrollPanel(parent)
     local c      = scroll.child
@@ -1166,7 +1166,7 @@ local function BuildConsumableBarTab(parent)
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
-end
+end--]]
 
 -- =====================================
 -- TAB: COMPASS (Waypoint 2.0 — heading bar)
@@ -1444,7 +1444,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "waypoint",    label = L["tab_qol_waypoint"],       builder = function(p) return BuildWaypointTab(p) end },
         { key = "auratracker", label = L["tab_qol_aura_tracker"],  builder = function(p) return BuildAuraTrackerTab(p) end },
         { key = "merchant",    label = L["tab_qol_merchant_tools"], builder = function(p) return BuildMerchantToolsTab(p) end },
-        { key = "consumable",  label = L["tab_qol_consumable_bar"], builder = function(p) return BuildConsumableBarTab(p) end },
+        --{ key = "consumable",  label = L["tab_qol_consumable_bar"], builder = function(p) return BuildConsumableBarTab(p) end },
         { key = "rarealert",   label = L["tab_qol_rare_alert"],     builder = function(p) return BuildRareAlertTab(p) end },
         { key = "compass",     label = L["tab_qol_compass"], builder = function(p) return BuildCompassTab(p) end },
     }

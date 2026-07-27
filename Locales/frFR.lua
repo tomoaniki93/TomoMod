@@ -1,4 +1,4 @@
-﻿-- =====================================
+-- =====================================
 -- frFR.lua — Français
 -- =====================================
 
@@ -707,20 +707,20 @@ TomoMod_RegisterLocale("frFR", {
     ["msg_db_reset"]                    = "Base de données réinitialisée",
     ["msg_module_reset"]                = "Module '%s' réinitialisé",
     ["msg_db_not_init"]                 = "Base de données non initialisée",
-    ["msg_loaded"]                      = "v2.0 chargé — %s pour config",
+    ["msg_loaded"]                      = "chargé — %s pour config",
     ["msg_report_issue"]                = "Si vous rencontrez un problème, merci de laisser un commentaire sur CurseForge.",
-    ["msg_help_title"]                  = "v2.0 — Commandes:",
+    ["msg_help_title"]                  = "Commandes:",
     ["msg_help_open"]                   = "Ouvrir la configuration",
     ["msg_help_reset"]                  = "Réinitialiser tout + reload",
-    ["msg_help_uf"]                     = "Toggle Lock/Unlock UnitFrames + Resources",
+    ["msg_help_uf"]                     = "Verrouiller/Déverrouiller UnitFrames + Ressources",
     ["msg_help_uf_reset"]               = "Réinitialiser UnitFrames",
-    ["msg_help_rb"]                     = "Toggle Lock/Unlock Resource Bars",
+    ["msg_help_rb"]                     = "Verrouiller/Déverrouiller les barres de ressources",
     ["msg_help_rb_sync"]                = "Sync largeur avec Essential Cooldowns",
-    ["msg_help_np"]                     = "Toggle Nameplates on/off",
-    ["msg_help_minimap"]                = "Reset minimap",
-    ["msg_help_panel"]                  = "Reset info panel",
-    ["msg_help_cursor"]                 = "Reset cursor ring",
-    ["msg_help_clearcinema"]            = "Clear cinematic history",
+    ["msg_help_np"]                     = "Activer/Désactiver les Nameplates",
+    ["msg_help_minimap"]                = "Réinitialiser la mini-carte",
+    ["msg_help_panel"]                  = "Réinitialiser le panneau d'information",
+    ["msg_help_cursor"]                 = "Réinitialiser l'anneau du curseur",
+    ["msg_help_clearcinema"]            = "Effacer l'historique des cinématiques",
     ["msg_help_sr"]                     = "Toggle SkyRide + Anchors lock",
     ["msg_help_key"]                    = "Open Mythic+ Keys",
     ["msg_help_help"]                   = "Cette aide",
@@ -1618,6 +1618,13 @@ TomoMod_RegisterLocale("frFR", {
     ["tab_skin_gamemenu"]                = "Menu de jeu",
 
     -- Skins > Tooltip tab
+    -- Skins > Contacts
+    ["tab_skin_friends"]                 = "Contacts",
+    ["sublabel_friends_skin"]            = "Fenêtre de contacts",
+    ["opt_friends_skin_enable"]          = "Habiller la fenêtre de contacts",
+    ["opt_friends_skin_scale"]           = "Échelle",
+    ["info_friends_skin_reload"]         = "Certains changements s'appliquent à la prochaine ouverture de la fenêtre.",
+
     ["tab_skin_tooltip"]                 = "Tooltip",
     ["section_tooltip_skin"]             = "Skin Tooltip",
     ["opt_tooltip_skin_enable"]          = "Activer le skin tooltip",
@@ -2710,4 +2717,16 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_325_cdf_spacing"] = "CooldownForge : l'espacement des icônes se règle désormais en deux valeurs — le long de la rangée et entre les lignes de retour — et le maximum passe de 16 à 64 px.",
     ["wn_325_cdf_glow"] = "CooldownForge : le glow peut désormais se déclencher selon une condition au choix — quand le sort est prêt, tant qu'un buff est actif sur toi (avec un ID de buff optionnel pour les bijoux/talents), ou toujours — réglable par barre ou par sort.",
     ["wn_325_cdf_hidecd"] = "CooldownForge : une barre peut désormais masquer chaque icône pendant son cooldown, les icônes restantes se resserrant pour combler le trou ; elle se réorganise uniquement quand la liste des sorts prêts change.",
+    ["wn_326_whatsnew_stuck"] = "Quoi de neuf : fermer cette fenêtre avec Échap laissait l'écran assombri et la souris inerte, et la version non marquée — elle revenait donc à la connexion suivante. Toutes les façons de fermer (croix, bouton, Échap) passent désormais par un seul endroit qui retire l'assombrissement et retient la version.",
+    ["wn_326_whatsnew_escape"] = "Quoi de neuf : Échap est désormais capté par la fenêtre elle-même au lieu de passer par UISpecialFrames de Blizzard, ce qui supprime une source de taint via le menu du jeu ; toutes les autres touches continuent de passer.",
+    ["wn_326_whatsnew_gates"] = "Quoi de neuf : la fenêtre attend maintenant un moment libre — jamais par-dessus une cinématique, une vidéo ou un combat — et saute entièrement la toute première connexion d'un personnage, pour ne plus t'accueillir en pleine séquence d'intro.",
+    ["wn_326_tracker_empty"] = "Suivi d'objectifs : quand rien n'est suivi, le panneau sombre qui couvrait la majeure partie de l'écran a disparu — il se réduit désormais à son en-tête, et « Masquer si vide » est activé par défaut (les profils existants sont mis à jour une fois ; le désactiver à nouveau est définitif).",
+    ["wn_326_tracker_drag"] = "Suivi d'objectifs : le panneau peut de nouveau être déplacé vers le bas — le maintien à l'écran s'appliquait au cadre de suivi surdimensionné de Blizzard, dont le bord inférieur était déjà hors écran, ce qui bloquait tout déplacement vers le bas.",
+    ["wn_326_repbar_drag"] = "Barre de réputation : corrigé la barre qui affichait sa bordure de déverrouillage en mode Disposition mais refusait d'être attrapée — la souris n'y était jamais activée, le déplacement ne pouvait donc pas démarrer.",
+    -- Supports du Cooldown Manager (Movers / mode disposition)
+    ["mover_cdm"]                        = "Cooldown Manager",
+    ["cdm_drag_hint"]                    = "Glisser pour déplacer",
+    ["cdm_preview_aura"]                 = "Aura",
+
+    ["wn_326_suite_card"] = "Config : le tableau de bord gagne une carte « Suite Tomo » présentant TomoBoss (minuteurs de boss avec annonces vocales) — un raccourci vers ses options s'il est installé, une adresse copiable et un « Ne plus afficher » définitif sinon.",
 })

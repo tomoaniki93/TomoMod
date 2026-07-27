@@ -90,7 +90,7 @@ TomoMod_Defaults = {
         enabled = true,
         bgAlpha = 0.65,
         showBorder = true,
-        hideWhenEmpty = false,
+        hideWhenEmpty = true,
         headerFontSize = 13,
         categoryFontSize = 11,
         questFontSize = 12,
@@ -622,14 +622,14 @@ TomoMod_Defaults = {
     -- =====================
     resourceBars = {
         enabled = true,
-        displayMode = "icons",       -- "icons" (GW2 textures) or "bars" (flat colors)
+        displayMode = "bars",       -- "icons" (GW2 textures) or "bars" (flat colors)
         visibilityMode = "always",   -- always, combat, target, hidden
         combatAlpha = 1.0,
         oocAlpha = 0.6,
         width = 260,
         primaryHeight = 16,          -- class power display height
         secondaryHeight = 12,        -- druid mana bar height
-        primaryPowerCentered = false, -- show primary power (mana/energy/rage) centered on screen
+        primaryPowerCentered = true, -- show primary power (mana/energy/rage) centered on screen
         primaryPowerBarHeight = 14,   -- height of centered primary power bar
         scale = 1.0,
         showText = true,
@@ -1351,11 +1351,42 @@ TomoMod_Defaults = {
 -- DB FUNCTIONS
 -- =====================================
 
+-- =====================================
+-- ONE-TIME DATA MIGRATIONS
+-- =====================================
+-- MergeTables only fills in MISSING keys, so changing a default never
+-- reaches an existing database. Anything that has to be corrected on
+-- profiles already in the wild goes here, each step behind its own flag
+-- so it runs exactly once whatever version the player is coming from.
+--
+-- The bookkeeping table is excluded from profile snapshots in
+-- Core/Profiles.lua: otherwise restoring a profile saved before a
+-- migration would clear the flag and let that migration fire again,
+-- undoing a setting the player had deliberately changed back.
+local function TomoMod_RunMigrations()
+    if type(TomoModDB._migrations) ~= "table" then TomoModDB._migrations = {} end
+    local done = TomoModDB._migrations
+
+    -- With no quest tracked, the objective tracker used to leave an empty
+    -- panel on screen -- and, because its height was measured from
+    -- Blizzard's always-shown containers, a panel covering most of the
+    -- screen. hideWhenEmpty now defaults to true; bring existing profiles
+    -- along once. A player who prefers the old behaviour can turn it back
+    -- off and it will stick.
+    if not done.otHideWhenEmpty then
+        done.otHideWhenEmpty = true
+        if type(TomoModDB.objectiveTracker) == "table" then
+            TomoModDB.objectiveTracker.hideWhenEmpty = true
+        end
+    end
+end
+
 function TomoMod_InitDatabase()
     if not TomoModDB then
         TomoModDB = {}
     end
     TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
+    TomoMod_RunMigrations()
 end
 
 function TomoMod_ResetDatabase()
