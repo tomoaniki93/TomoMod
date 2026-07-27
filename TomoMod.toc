@@ -47,6 +47,7 @@ Core\Init.lua
 ## =====================
 Config\Widgets.lua
 Config\Presets.lua
+Config\Panels\_Suite.lua
 Config\Panels\General.lua
 Config\Panels\UFPreview.lua
 Config\Panels\UnitFrames.lua

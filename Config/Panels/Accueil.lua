@@ -484,6 +484,10 @@ function TomoMod_ConfigPanel_Accueil(parent)
     y = CreateHero(c, y)
     y = CreateQuickActions(c, y)
     y = CreateModules(c, y)
+    -- Carte partagée (Config/Panels/_Suite.lua), en version compacte : le
+    -- tableau de bord est une vue de synthèse. Placée AVANT Maintenance, qui
+    -- contient la réinitialisation totale et doit rester la dernière chose lue.
+    y = TomoMod_Suite.CreateCard(c, y, true)
     y = CreateQuickConfig(c, y)
 
     local card3, py = W.CreateCard(c, Localize("dash_profile_section", "Profil"), y)
