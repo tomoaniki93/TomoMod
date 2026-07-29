@@ -2580,6 +2580,8 @@ TomoMod_RegisterLocale("frFR", {
     ["cat_combat_desc"]       = "Incantations, ressources, cooldowns et Mythic+.",
     ["cat_comfort_desc"]      = "Automatisations, quêtes, AFK, logement et confort.",
     ["cat_tools_desc"]        = "Profils, sauvegardes, diagnostics et maintenance.",
+    ["cat_profiles_desc"]     = "Profils, spécialisations, import / export et réinitialisations.",
+    ["cat_diagnostics_desc"]  = "État en direct, erreurs Lua et relevés de performance.",
     ["cfg_tab_general"]       = "Général",
     ["cfg_tab_actionbars"]    = "Barres d'action",
     ["cfg_tab_skins"]         = "Skins",
@@ -2729,4 +2731,15 @@ TomoMod_RegisterLocale("frFR", {
     ["cdm_preview_aura"]                 = "Aura",
 
     ["wn_326_suite_card"] = "Config : le tableau de bord gagne une carte « Suite Tomo » présentant TomoBoss (minuteurs de boss avec annonces vocales) — un raccourci vers ses options s'il est installé, une adresse copiable et un « Ne plus afficher » définitif sinon.",
+
+    ["wn_327_tracker_progressbars"] = "Suivi d'objectifs : les barres de progression des quêtes (compteurs de mobs, forces ennemies, critères de scénario et d'expédition) sont de retour — une barre n'est plus balayée comme orpheline quand son bloc n'est atteignable que par une ancre, elle survit à la fermeture puis réouverture de son groupe, et celles qui restent adoptent enfin le thème du reste du suivi.",
+    ["wn_327_tracker_position"] = "Suivi d'objectifs : un suivi déplacé via l'Edit Mode natif de Blizzard revenait à son ancienne place au reload suivant — cette position n'était jamais écrite dans la base de l'addon. Elle est désormais sauvegardée à la fin de la session Edit Mode, et un suivi mis à une échelle autre que 100 % ne dérive plus un peu plus à chaque rechargement.",
+    ["wn_327_minimap_indicators"] = "Minimap : le drapeau de difficulté d'instance restait affiché hors instance, car le ré-ancrage des indicateurs natifs les forçait aussi à être visibles et écrasait la règle de Blizzard. Ils suivent de nouveau la visibilité de Blizzard — et le bouton d'extension ne reste plus invisible définitivement une fois désactivé puis réactivé.",
+    ["wn_327_resourcebar_frozen"] ="Barres de ressource : la barre de puissance centrée restait bloquée sur la valeur qu'elle avait à sa construction — 0 rage, 0 énergie — pour toutes les specs dont la seule ressource est la principale (Guerrier, Prêtre, Mage Feu, Tisse-brume, Dévastation...), alors que l'unitframe affichait la vraie valeur juste à côté. Elle se rafraîchit de nouveau comme les autres barres.",
+    ["wn_327_profile_rename"] ="Profils : renommer ou dupliquer un profil ne faisait absolument rien — la refonte des popups en 11.2 a supprimé le champ dans lequel le gestionnaire lisait le nom saisi. Les deux fonctionnent à nouveau, et Entrée valide désormais comme le bouton de confirmation.",
+    ["wn_327_cds_rename"] = "Cooldown Studio : même correctif pour les popups « Renommer la barre » et « + Nouvelle » — le nom saisi était ignoré, donc renommer ne faisait rien et chaque nouvelle barre s'appelait « Nouvelle barre ».",
+    ["wn_327_popup_layer"] = "Popups : l'invite de rechargement, les fenêtres d'import / export et toutes les confirmations de profil s'affichaient derrière la fenêtre de config et Cooldown Studio, donnant l'impression qu'il ne se passait rien. Elles passent désormais au-dessus de la fenêtre TomoMod ouverte.",
+    ["wn_327_profile_refresh"] = "Profils : créer, supprimer, renommer ou dupliquer un profil rafraîchit maintenant la liste à l'écran au lieu de laisser afficher l'ancienne, servie par le cache des pages.",
+    ["wn_327_import_perf"] = "Profils : l'import est nettement plus rapide — la chaîne décodée pour l'aperçu est réutilisée à la validation au lieu d'être décodée une seconde fois, ce qui constituait l'essentiel du gel au clic sur Importer.",
+    ["wn_327_gui_split"] = "Config : Profils et Diagnostics redeviennent deux catégories distinctes dans la barre latérale au lieu d'être regroupées sous Outils, chacune avec son icône et sa description ; les anciens liens vers Outils fonctionnent toujours.",
 })

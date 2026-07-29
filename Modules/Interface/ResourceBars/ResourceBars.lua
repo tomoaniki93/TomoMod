@@ -1298,12 +1298,17 @@ end
 -- =====================================
 local function UpdateAll()
     if not container or not container:IsShown() then return end
-    if not currentResources then return end
 
+    -- No early return on a nil currentResources. Specs with no class power at
+    -- all (Warrior, Priest, Fire Mage, Mistweaver, Havoc, BM/MM Hunter,
+    -- Ele/Resto Shaman, Resto Druid) have no CLASS_RESOURCES entry, so bailing
+    -- here skipped the centered power bar and the health bar too -- both of
+    -- which are spec-agnostic. They kept whatever value BuildResourceDisplay
+    -- gave them, which on a fresh login is 0 rage / 0 energy.
     local resources = currentResources
 
     -- Class Power
-    if classPowerFrame and resources.classPower then
+    if classPowerFrame and resources and resources.classPower then
         local cpDef = resources.classPower
         if classPowerFrame.isBand then
             UpdateBandDisplay(classPowerFrame, cpDef)

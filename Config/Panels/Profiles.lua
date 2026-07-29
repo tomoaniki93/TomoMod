@@ -15,6 +15,7 @@ local W    = TomoMod_Widgets
 local L    = TomoMod_L
 local T    = W.Theme
 local P    = TomoMod_Profiles
+local U    = TomoMod_Utils
 local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local ACCENT    = T.accent       -- { r, g, b, a }
@@ -95,7 +96,9 @@ end
 local function ShowExportPopup(exportStr)
     -- Dimmer plein écran
     local dimmer = CreateFrame("Frame", nil, UIParent)
-    dimmer:SetFrameStrata("FULLSCREEN_DIALOG")
+    -- The config window also lives at FULLSCREEN_DIALOG but with frame
+    -- level 500, so the default layer put this whole popup behind it.
+    U.RaiseAboveTomoUI(dimmer)
     dimmer:SetAllPoints(UIParent)
     dimmer:EnableMouse(true)
     dimmer:EnableMouseWheel(true)
@@ -212,7 +215,7 @@ end
 
 local function ShowImportPopup(onImport)
     local dimmer = CreateFrame("Frame", nil, UIParent)
-    dimmer:SetFrameStrata("FULLSCREEN_DIALOG")
+    U.RaiseAboveTomoUI(dimmer)
     dimmer:SetAllPoints(UIParent)
     dimmer:EnableMouse(true)
     dimmer:EnableMouseWheel(true)
@@ -834,6 +837,8 @@ end
 -- =====================================
 
 StaticPopupDialogs["TOMOMOD_IMPORT_CONFIRM"] = {
+    OnShow = function(self) U.RaiseAboveTomoUI(self) end,
+    OnHide = function(self) U.RestoreTomoUILayer(self) end,
     text = L["popup_import_text"],
     button1 = L["popup_confirm"],
     button2 = L["popup_cancel"],
@@ -853,6 +858,8 @@ StaticPopupDialogs["TOMOMOD_IMPORT_CONFIRM"] = {
 }
 
 StaticPopupDialogs["TOMOMOD_PROFILE_RELOAD"] = {
+    OnShow = function(self) U.RaiseAboveTomoUI(self) end,
+    OnHide = function(self) U.RestoreTomoUILayer(self) end,
     text = L["popup_profile_reload"],
     button1 = L["popup_confirm"],
     button2 = L["popup_cancel"],
@@ -861,6 +868,8 @@ StaticPopupDialogs["TOMOMOD_PROFILE_RELOAD"] = {
 }
 
 StaticPopupDialogs["TOMOMOD_DELETE_PROFILE"] = {
+    OnShow = function(self) U.RaiseAboveTomoUI(self) end,
+    OnHide = function(self) U.RestoreTomoUILayer(self) end,
     text = L["popup_delete_profile"],
     button1 = L["popup_confirm"],
     button2 = L["popup_cancel"],
@@ -878,9 +887,24 @@ StaticPopupDialogs["TOMOMOD_RENAME_PROFILE"] = {
     button1 = L["popup_confirm"],
     button2 = L["popup_cancel"],
     hasEditBox = true,
+    OnShow = function(self, data)
+        U.RaiseAboveTomoUI(self)
+        data = data or self.data
+        local box = U.PopupEditBox(self)
+        if box then
+            box:SetText((data and data.name) or "")
+            box:HighlightText()
+            box:SetFocus()
+        end
+    end,
+    OnHide = function(self) U.RestoreTomoUILayer(self) end,
     OnAccept = function(self, data)
+        data = data or self.data
         if data and data.name then
-            local newName = self.editBox:GetText()
+            -- [11.2] dialog.editBox is gone; U.PopupEditBox resolves the
+            -- accessor form. Reading the old field returned nil, so the
+            -- rename silently did nothing.
+            local newName = U.PopupText(self)
             local ok, err = P.RenameProfile(data.name, newName)
             if ok then
                 print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_renamed"], data.name, newName))
@@ -888,6 +912,9 @@ StaticPopupDialogs["TOMOMOD_RENAME_PROFILE"] = {
                 print("|cffff0000TomoMod|r " .. (err or L["profiles_rename_failed"]))
             end
         end
+    end,
+    EditBoxOnEnterPressed = function(editBox)
+        U.PopupAccept("TOMOMOD_RENAME_PROFILE", U.PopupDialogOf(editBox))
     end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }
@@ -897,9 +924,16 @@ StaticPopupDialogs["TOMOMOD_DUPLICATE_PROFILE"] = {
     button1 = L["popup_confirm"],
     button2 = L["popup_cancel"],
     hasEditBox = true,
+    OnShow = function(self)
+        U.RaiseAboveTomoUI(self)
+        local box = U.PopupEditBox(self)
+        if box then box:SetText(""); box:SetFocus() end
+    end,
+    OnHide = function(self) U.RestoreTomoUILayer(self) end,
     OnAccept = function(self, data)
+        data = data or self.data
         if data and data.name then
-            local toName = self.editBox:GetText()
+            local toName = U.PopupText(self)
             local ok, err = P.DuplicateProfile(data.name, toName)
             if ok then
                 print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_duplicated"], data.name, toName))
@@ -907,6 +941,9 @@ StaticPopupDialogs["TOMOMOD_DUPLICATE_PROFILE"] = {
                 print("|cffff0000TomoMod|r " .. (err or "Erreur duplication"))
             end
         end
+    end,
+    EditBoxOnEnterPressed = function(editBox)
+        U.PopupAccept("TOMOMOD_DUPLICATE_PROFILE", U.PopupDialogOf(editBox))
     end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }

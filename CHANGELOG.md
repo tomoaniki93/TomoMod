@@ -1,5 +1,54 @@
 ## ####################################
 
+## CHANGELOG 3.2.7 — Quest Progress Bars Restored, Popups Fixed For 11.2 & Profiles / Diagnostics Split
+
+#### Objective Tracker — Quest Progress Bars Are Back
+- **Fix** — Progress bars (kill counts displayed as a bar, enemy forces, scenario and delve criteria) had vanished from the tracker, leaving the mob tooltip as the only way to follow progress. The sweep that hides floating "0%" bars decided ownership by reading a bar's own anchor and checking whether the target sat under the skin frame — a test that could never pass. `ObjectiveTrackerProgressBarTemplate` is a *container* frame holding the real `StatusBar` as its `Bar` child; that child is anchored to the container, and the container is parented to the module's `ContentsFrame` while being only *anchored* to the block. The anchor read therefore landed on the container, which never sits under the skin frame, so every bar was swept away. Ownership is now resolved by walking parents and anchor targets together, which reaches the owning block whatever the nesting.
+- **Change** — Bars that are kept are now styled by the sweep itself. They are not children of their block, so the per-block styling pass never reached them; without this they came back with Blizzard's default look on a tracker where everything else is themed.
+- **Fix** — A progress bar also survives a collapse / expand round trip on its bucket. The sweep only ever looked at bars that were currently shown, which made hiding a one-way trip: collapsing a bucket hid its progress bar, and expanding it again re-ran the sweep, which skipped that bar precisely because it was no longer shown. Nothing brought it back short of turning the bucketed layout off entirely. Bars hidden by the sweep are now reconsidered on every pass and restored once their block is visible again — tracked with a marker so a bar Blizzard is legitimately keeping hidden stays none of our business.
+- **Internal** — That marker also completes the teardown path. The hidden-bar list is rebuilt from scratch on every layout pass, so disabling the bucketed layout only ever restored the bars hidden by the *last* pass; a still-hidden bar is now re-registered each time, and the list is complete when it matters.
+
+#### Objective Tracker — The Position Sticks
+- **Fix** — A tracker moved with Blizzard's own Edit Mode went back to its previous spot on the next reload or relog. Our `SetPoint` guard deliberately stands down while an Edit Mode session is running, so the panel follows the cursor there instead of being yanked back on every drag — but nothing ever wrote that new position into the addon's database, so the next login simply re-applied the last anchor the TomoMod mover had saved. The position is now captured when the Edit Mode session ends, one frame later, once Blizzard has settled its layout.
+- **Fix** — A tracker scaled to anything other than 100% crept a little further across the screen on every reload. Positions are stored as UIParent-space coordinates but were fed straight back into `SetPoint`, whose offsets are read in the tracker's own coordinate space, so each save/apply round trip multiplied the position by the scale factor. The apply pass now converts back through that same ratio.
+- **Fix** — The scale was applied *after* the anchor, which silently shifted a frame that had just been placed. Scale now comes first.
+
+#### Minimap — Indicators Follow Blizzard's Own Visibility Again
+- **Fix** — The instance difficulty flag stayed on the minimap outside instances. Re-anchoring the native indicators to the square minimap also forced their alpha to 1 on every pass, which overrode Blizzard's own rule that the flag shows only inside a dungeon or a raid. The addon now only ever undoes a hide it performed itself — restoring exactly the alpha it had overwritten — and leaves Blizzard's show and hide decisions alone.
+- **Note** — This is also the answer to the follow-up report that unchecking the option removed the flag while re-checking never brought it back. Re-checking did restore the alpha, once; Blizzard's next update then correctly hid it again because the player was not in an instance. Outside an instance the flag now stays hidden by design, and reappears on entering one.
+- **Fix** — Turning an indicator off is now held in place. Blizzard re-reveals these on its own schedule — entering an instance, mail arriving — which a single alpha assignment could not survive. The guard hooks `Show` and `SetAlpha` only: the mouse state and the shown flag stay Blizzard's, since confiscating those is exactly what caused the original bug.
+- **Fix** — The expansion / landing page button carried the same defect in a worse form. Its disable path set the alpha to 0 and nothing anywhere restored it, so turning that button off and back on left it invisible for good.
+
+#### Resource Bars — The Centered Power Bar Updates Again
+- **Fix** — On any spec whose only resource is the primary one, the standalone power bar sat frozen on the value it was built with — 0 rage, 0 energy — no matter what happened afterwards, while the unit frame's info bar showed the real amount right next to it. The master update returned early whenever the current spec had no entry in the class-resource table, and that table deliberately only lists specs with a *class-specific* resource (combo points, chi, runes, soul shards…). The call that refreshes the centered bar was therefore never reached, so the bar kept whatever the build pass gave it about a second after login. The early return is gone; only the class-power section is guarded now, which is the part that actually needs it.
+- **Note** — Affected every spec absent from that table: all three Warrior specs, all three Priest specs, Elemental and Restoration Shaman, Beast Mastery and Marksmanship Hunter, Havoc Demon Hunter, Restoration Druid, Fire Mage and Mistweaver Monk. Specs with a class resource were never affected, which is why this went unnoticed.
+- **Internal** — The optional HUD health bar sat in the same blind spot and only kept working by chance, because `UNIT_HEALTH` has its own branch in the event handler that refreshes it directly. It now goes through the normal update path too.
+
+#### Profiles — Rename And Duplicate Actually Do Something
+- **Fix** — Renaming or duplicating a profile did nothing at all. Blizzard rebuilt `StaticPopup` on a mixin in 11.2: the dialog's direct `.editBox` field was replaced by a `:GetEditBox()` accessor, so the `OnAccept` handlers read `nil` and bailed out before ever calling the rename. Same cause and same fix in Cooldown Studio, where the Rename bar popup ignored the typed name and every bar created through "+ New" came out called "Nouvelle barre".
+- **New** — Pressing Enter in any of those name fields now confirms exactly like clicking the accept button.
+- **Fix** — The rename popup pre-fills and selects the current name, and the duplicate popup clears and focuses its field, instead of opening on whatever the previous popup left in the shared dialog.
+- **Internal** — Added shared popup helpers to `TomoMod_Utils` (`PopupEditBox`, `PopupText`, `PopupDialogOf`, `PopupAccept`). They resolve the edit box across the old field, the new accessor and the global-name fallback, so the rest of the addon no longer has to care which client shape it is running against.
+
+#### Popups — No Longer Hidden Behind The Config Window
+- **Fix** — The config window and Cooldown Studio both live at `FULLSCREEN_DIALOG` with a high frame level, so any popup using the default layer rendered *behind* them and looked like nothing had happened. The reload prompt, the import and export dialogs and every profile confirmation (import, delete, rename, duplicate, reload) are now lifted above whichever TomoMod window is currently open.
+- **Fix** — `StaticPopup1..4` are recycled frames shared with Blizzard, so the lift is undone on hide. A popup borrowed afterwards by another addon can no longer inherit our strata and level.
+
+#### Profiles — The List Refreshes After Every Change
+- **Fix** — Creating, deleting, renaming or duplicating a profile left the panel showing the previous list, which reads as "nothing happened". Config pages are cached, and until now only a profile *swap* dropped that cache; every operation that rewrites the profile list does so too.
+
+#### Profiles — Faster Import
+- **Change** — The import popup already decodes the string to build its preview, and accepting it decoded the very same string a second time. That duplicate decode + decompress + deserialize was most of the freeze players saw when clicking Import; the payload from the preview is now reused. It is handed over once, and only for a string that still matches, since applying it moves the settings out of it.
+- **Change** — Importing *as a new profile* now yields a frame between applying the settings and snapshotting them, instead of stacking a full deep copy of the settings tree onto the same frame.
+
+#### Config — Profiles And Diagnostics Are Separate Categories Again
+- **Change** — The grouped "Tools" category was split back into two standalone sidebar entries, each with its own icon, accent color, description and search keywords. Both rebuild on every visit so the profile list and the live diagnostics readings are never served stale from the panel cache.
+- **Fix** — Deep links from the global search into a single-page category now apply their target tab, which previously only happened for grouped categories. Unknown tab keys are ignored instead of switching to a tab that does not exist, which used to leave the page blank.
+- **Change** — Old `tools` deep links still resolve, and the global search's ghost indexing now walks every single-page category instead of only the dashboard, so options on those pages are findable without opening them first.
+- **Change** — The two new category descriptions are translated in all six supported languages.
+
+## ####################################
+
 ## CHANGELOG 3.2.6 — What's New Popup Fixed, Objective Tracker Cleanup & Draggable Reputation Bar
 
 #### What's New Popup — The Dark Screen Lock Is Fixed

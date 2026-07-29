@@ -2435,6 +2435,8 @@ TomoMod_RegisterLocale("deDE", {
     ["cat_combat_desc"]       = "Zauber, Ressourcen, Cooldowns und Mythic+.",
     ["cat_comfort_desc"]      = "Automatisierungen, Quests, AFK, Housing und Komfort.",
     ["cat_tools_desc"]        = "Profile, Backups, Diagnose und Wartung.",
+    ["cat_profiles_desc"]     = "Profile, Spezialisierungen, Import / Export und Zurücksetzen.",
+    ["cat_diagnostics_desc"]  = "Live-Status, Lua-Fehler und Leistungswerte.",
     ["cfg_tab_general"]       = "Allgemein",
     ["cfg_tab_actionbars"]    = "Aktionsleisten",
     ["cfg_tab_skins"]         = "Skins",
@@ -2584,4 +2586,15 @@ TomoMod_RegisterLocale("deDE", {
     ["cdm_preview_aura"]                 = "Aura",
 
     ["wn_326_suite_card"] = "Konfiguration: Das Dashboard hat eine Karte „Tomo-Suite“ erhalten, die TomoBoss vorstellt (Boss-Timer mit gesprochenen Ansagen) — eine Verknüpfung zu seinen Optionen, wenn es installiert ist, sonst eine kopierbare Adresse und ein dauerhaftes „Nicht mehr anzeigen“.",
+
+    ["wn_327_tracker_progressbars"] = "Zielverfolgung: Die Fortschrittsleisten der Quests (Tötungszähler, feindliche Streitkräfte, Szenario- und Tiefenkriterien) sind zurück — eine Leiste wird nicht mehr als verwaist entfernt, wenn ihr Block nur über einen Anker erreichbar ist, sie übersteht das Ein- und wieder Ausklappen ihrer Gruppe, und die verbleibenden Leisten übernehmen endlich das Design der übrigen Verfolgung.",
+    ["wn_327_tracker_position"] = "Zielverfolgung: Eine per Blizzards eigenem Bearbeitungsmodus verschobene Verfolgung sprang beim nächsten Neuladen an ihre alte Stelle zurück — diese Position wurde nie in die Datenbank des Addons geschrieben. Sie wird jetzt am Ende der Bearbeitungssitzung gespeichert, und eine Verfolgung mit einer anderen Skalierung als 100 % wandert nicht mehr bei jedem Neuladen ein Stück weiter.",
+    ["wn_327_minimap_indicators"] = "Minikarte: Die Schwierigkeitsanzeige blieb außerhalb von Instanzen sichtbar, weil das Neuverankern der nativen Anzeigen sie zugleich sichtbar erzwang und Blizzards eigene Regel überschrieb. Sie folgen wieder Blizzards Sichtbarkeit — und der Erweiterungsknopf bleibt nicht mehr dauerhaft unsichtbar, wenn man ihn aus- und wieder einschaltet.",
+    ["wn_327_resourcebar_frozen"] ="Ressourcenleisten: Die zentrierte Energieleiste blieb auf dem Wert stehen, den sie beim Erstellen hatte — 0 Wut, 0 Energie — bei allen Spezialisierungen, deren einzige Ressource die primäre ist (Krieger, Priester, Feuermagier, Nebelwirker, Verwüstung...), während das Einheitenfenster direkt daneben den echten Wert anzeigte. Sie aktualisiert sich wieder wie jede andere Leiste.",
+    ["wn_327_profile_rename"] ="Profile: Umbenennen oder Duplizieren eines Profils bewirkte überhaupt nichts — Blizzards Popup-Umbau in 11.2 entfernte das Feld, aus dem der eingegebene Name gelesen wurde. Beides funktioniert wieder, und Enter bestätigt nun wie die Bestätigungsschaltfläche.",
+    ["wn_327_cds_rename"] = "Cooldown Studio: derselbe Fehler bei den Popups „Leiste umbenennen“ und „+ Neu“ — der eingegebene Name wurde ignoriert, das Umbenennen tat also nichts und jede neue Leiste hieß „Nouvelle barre“.",
+    ["wn_327_popup_layer"] = "Popups: Die Neuladen-Abfrage, die Import-/Export-Fenster und alle Profilbestätigungen wurden hinter dem Konfigurationsfenster und dem Cooldown Studio gezeichnet, sodass scheinbar nichts passierte. Sie erscheinen jetzt über dem gerade geöffneten TomoMod-Fenster.",
+    ["wn_327_profile_refresh"] = "Profile: Anlegen, Löschen, Umbenennen oder Duplizieren eines Profils aktualisiert jetzt die angezeigte Liste, statt die alte aus dem Seiten-Cache stehen zu lassen.",
+    ["wn_327_import_perf"] = "Profile: Der Import ist deutlich schneller — die für die Vorschau dekodierte Zeichenkette wird beim Bestätigen wiederverwendet statt ein zweites Mal dekodiert zu werden, was den Großteil des Einfrierens beim Klick auf Importieren ausmachte.",
+    ["wn_327_gui_split"] = "Konfiguration: Profile und Diagnose sind in der Seitenleiste wieder eigenständige Kategorien statt unter Werkzeuge zusammengefasst, jede mit eigenem Symbol und eigener Beschreibung; alte Links auf Werkzeuge funktionieren weiterhin.",
 })

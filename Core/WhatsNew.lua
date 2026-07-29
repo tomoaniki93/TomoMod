@@ -58,6 +58,21 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.2.7",
+        highlights = {
+            L["wn_327_tracker_progressbars"] or "Objective Tracker: quest progress bars (kill counts, enemy forces, scenario and delve criteria) are back — a bar is no longer swept away as orphaned when its block is only reachable through an anchor, it survives collapsing and re-expanding its bucket, and the bars that stay are now themed like the rest of the tracker.",
+            L["wn_327_tracker_position"] or "Objective Tracker: a tracker moved with Blizzard's own Edit Mode snapped back to its old spot on the next reload — that position was never written to the addon's database. It is saved when the Edit Mode session ends now, and a tracker scaled above or below 100% no longer creeps across the screen a little more on every reload.",
+            L["wn_327_minimap_indicators"] or "Minimap: the instance difficulty flag stayed visible outside instances, because re-anchoring the native indicators also forced them visible and overrode Blizzard's own rule. They follow Blizzard's visibility again — and the expansion button no longer stays invisible for good once turned off and back on.",
+            L["wn_327_resourcebar_frozen"] or "Resource Bars: the centered power bar stayed stuck on the value it was built with — 0 rage, 0 energy — for every spec whose only resource is the primary one (Warrior, Priest, Fire Mage, Mistweaver, Havoc...), while the unit frame showed the real amount. It refreshes like every other bar again.",
+            L["wn_327_profile_rename"] or "Profiles: renaming or duplicating a profile did nothing at all — Blizzard's 11.2 popup rewrite removed the field the accept handler read the typed name from. Both work again, and Enter now confirms like the accept button.",
+            L["wn_327_cds_rename"] or "Cooldown Studio: same fix for the Rename bar and '+ New' popups — the name you typed was ignored, so renaming did nothing and every new bar came out called 'Nouvelle barre'.",
+            L["wn_327_popup_layer"] or "Popups: the reload prompt, the import / export dialogs and every profile confirmation used to render behind the config window and Cooldown Studio, looking like nothing had happened. They are now raised above whichever TomoMod window is open.",
+            L["wn_327_profile_refresh"] or "Profiles: creating, deleting, renaming or duplicating a profile now refreshes the list on screen instead of leaving the previous one displayed from the panel cache.",
+            L["wn_327_import_perf"] or "Profiles: importing is noticeably faster — the string decoded for the preview is reused on accept instead of being decoded a second time, which was most of the freeze when clicking Import.",
+            L["wn_327_gui_split"] or "Config: Profiles and Diagnostics are separate sidebar categories again instead of being grouped under Tools, each with its own icon and description; old links to Tools still work.",
+        },
+    },
+    {
         version = "3.2.6",
         highlights = {
             L["wn_326_whatsnew_stuck"] or "What's New: closing this popup with Escape used to leave the screen dimmed and the mouse dead, and the version unmarked so it came back next login. Every close path — X, button, Escape — now goes through one place that clears the dimmer and remembers the version.",

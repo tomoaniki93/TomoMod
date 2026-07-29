@@ -1582,6 +1582,7 @@ function W.CreateTabPanel(parent, tabs, initialTab)
     end
     if startKey then SwitchTab(startKey) end
     wrapper.SwitchTab = SwitchTab
+    wrapper.HasTab    = function(key) return key ~= nil and tabButtons[key] ~= nil end
     wrapper.content   = content
     wrapper:SetScript("OnHide", function()
         if W.CloseDropdowns then W.CloseDropdowns() end

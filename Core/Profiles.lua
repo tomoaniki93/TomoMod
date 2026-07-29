@@ -69,6 +69,15 @@ local function SnapshotSettings()
     return snap
 end
 
+-- [Lot C] Config pages are cached, so anything that rewrites the DB or
+-- the profile list has to drop them. Without this the panel kept showing
+-- the old list after a rename / delete, which reads as "nothing happened".
+local function RefreshConfigPanels()
+    if TomoMod_Config and TomoMod_Config.InvalidatePanels then
+        TomoMod_Config.InvalidatePanels()
+    end
+end
+
 local function ApplySnapshot(snap)
     for k in pairs(TomoModDB) do
         if not EXCLUDED_KEYS[k] then TomoModDB[k] = nil end
@@ -77,11 +86,7 @@ local function ApplySnapshot(snap)
         if not EXCLUDED_KEYS[k] then TomoModDB[k] = DeepCopy(v) end
     end
     TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
-
-    -- [Lot C] Config pages are cached; a profile swap rewrites the DB
-    if TomoMod_Config and TomoMod_Config.InvalidatePanels then
-        TomoMod_Config.InvalidatePanels()
-    end
+    RefreshConfigPanels()
 end
 
 -- [PERF] Apply sans DeepCopy — utilisé quand on sait que snap ne sera plus référencé
@@ -94,11 +99,7 @@ local function ApplySnapshotNoCopy(snap)
         if not EXCLUDED_KEYS[k] then TomoModDB[k] = v end
     end
     TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
-
-    -- [Lot C] Config pages are cached; a profile swap rewrites the DB
-    if TomoMod_Config and TomoMod_Config.InvalidatePanels then
-        TomoMod_Config.InvalidatePanels()
-    end
+    RefreshConfigPanels()
 end
 
 -- =====================================
@@ -238,6 +239,7 @@ function P.CreateNamedProfile(name)
         table.insert(db.profileOrder, 2, name)
     end
     db.activeProfile = name
+    RefreshConfigPanels()
     return true
 end
 
@@ -271,6 +273,7 @@ function P.DeleteNamedProfile(name)
     if db.activeProfile == name then
         db.activeProfile = "Default"
     end
+    RefreshConfigPanels()
     return true
 end
 
@@ -293,6 +296,7 @@ function P.RenameProfile(oldName, newName)
         if pName == oldName then db.specProfiles[specID] = newName end
     end
     if db.activeProfile == oldName then db.activeProfile = newName end
+    RefreshConfigPanels()
     return true
 end
 
@@ -320,6 +324,7 @@ function P.DuplicateProfile(fromName, toName)
         end
         if not found then table.insert(db.profileOrder, toName) end
     end
+    RefreshConfigPanels()
     return true
 end
 
@@ -550,6 +555,31 @@ function P.Import(str)
     return true
 end
 
+-- Validation + sanitize + apply, shared by the decode path and by the
+-- fast path that reuses the payload already decoded for the preview.
+local function FinishImport(payload, callback)
+    if payload._header ~= EXPORT_HEADER then
+        callback(false, "Pas une chaine TomoMod"); return
+    end
+    if type(payload._version) ~= "number" or payload._version > EXPORT_VERSION then
+        callback(false, "Version incompatible (v" .. tostring(payload._version) .. ")"); return
+    end
+    if type(payload.settings) ~= "table" then
+        callback(false, "Donnees manquantes"); return
+    end
+
+    local sanitized = {}
+    for k in pairs(TomoMod_Defaults) do
+        if payload.settings[k] ~= nil then
+            sanitized[k] = payload.settings[k]
+        end
+    end
+    payload.settings = nil
+
+    ApplySnapshotNoCopy(sanitized)
+    callback(true, nil)
+end
+
 --- Import asynchrone — callback(ok, err) à la fin
 function P.ImportAsync(str, callback)
     local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
@@ -561,6 +591,16 @@ function P.ImportAsync(str, callback)
     if not str or str == "" then callback(false, "Chaîne vide"); return end
 
     str = str:match("^%s*(.-)%s*$") or str
+
+    -- [PERF] The import popup already decoded this exact string to build
+    -- its preview. Reusing that payload removes a full second
+    -- decode + decompress + deserialize on accept, which was most of the
+    -- freeze players saw when clicking Import.
+    local reused = P.TakeDecodedPayload(str)
+    if reused then
+        C_Timer.After(0, function() FinishImport(reused, callback) end)
+        return
+    end
 
     -- Étape 1 : décodage
     C_Timer.After(0, function()
@@ -580,26 +620,7 @@ function P.ImportAsync(str, callback)
                 if not pcallOk or type(payload) ~= "table" then
                     callback(false, "Désérialisation échouée"); return
                 end
-                if payload._header ~= EXPORT_HEADER then
-                    callback(false, "Pas une chaîne TomoMod"); return
-                end
-                if type(payload._version) ~= "number" or payload._version > EXPORT_VERSION then
-                    callback(false, "Version incompatible (v" .. tostring(payload._version) .. ")"); return
-                end
-                if type(payload.settings) ~= "table" then
-                    callback(false, "Données manquantes"); return
-                end
-
-                local sanitized = {}
-                for k in pairs(TomoMod_Defaults) do
-                    if payload.settings[k] ~= nil then
-                        sanitized[k] = payload.settings[k]
-                    end
-                end
-                payload.settings = nil
-
-                ApplySnapshotNoCopy(sanitized)
-                callback(true, nil)
+                FinishImport(payload, callback)
             end)
         end)
     end)
@@ -629,22 +650,27 @@ function P.ImportAsProfileAsync(str, profileName, callback)
     P.ImportAsync(str, function(ok, err)
         if not ok then callback(false, err); return end
 
-        P.EnsureProfilesDB()
-        local db = TomoModDB._profiles
-        db.named[profileName] = SnapshotSettings()
-        local found = false
-        for _, n in ipairs(db.profileOrder) do
-            if n == profileName then found = true; break end
-        end
-        if not found then table.insert(db.profileOrder, 2, profileName) end
-        db.activeProfile = profileName
-        callback(true, nil)
+        -- [PERF] SnapshotSettings deep-copies the whole settings tree.
+        -- Yield one frame first so the client can draw the applied import
+        -- instead of stacking both costs into the same frame.
+        C_Timer.After(0, function()
+            P.EnsureProfilesDB()
+            local db = TomoModDB._profiles
+            db.named[profileName] = SnapshotSettings()
+            local found = false
+            for _, n in ipairs(db.profileOrder) do
+                if n == profileName then found = true; break end
+            end
+            if not found then table.insert(db.profileOrder, 2, profileName) end
+            db.activeProfile = profileName
+            callback(true, nil)
+        end)
     end)
 end
 
 --- Prévisualisation sans appliquer (retourne les métadonnées)
 --- [PERF] Cache interne pour éviter de re-décoder la même chaîne
-local _previewCache = { str = nil, result = nil }
+local _previewCache = { str = nil, result = nil, payload = nil }
 
 function P.PreviewImport(str)
     local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
@@ -654,6 +680,9 @@ function P.PreviewImport(str)
     -- [PERF] Cache : si la chaîne n'a pas changé, retourner le résultat précédent
     str = str:match("^%s*(.-)%s*$") or str
     if _previewCache.str == str then return _previewCache.result end
+
+    -- Cache miss: the payload kept for the accept-time fast path is stale.
+    _previewCache.payload = nil
 
     local decoded = LibDeflate:DecodeForPrint(str)
     if not decoded then
@@ -695,5 +724,19 @@ function P.PreviewImport(str)
 
     _previewCache.str = str
     _previewCache.result = result
+    _previewCache.payload = payload
     return result
+end
+
+--- Hands over the payload decoded by the last PreviewImport for `str`,
+--- or nil. Single use: FinishImport moves `settings` out of it, so the
+--- payload must never be served twice.
+function P.TakeDecodedPayload(str)
+    if type(str) ~= "string" then return nil end
+    str = str:match("^%s*(.-)%s*$") or str
+    if _previewCache.str ~= str then return nil end
+    local payload = _previewCache.payload
+    _previewCache.payload = nil
+    if type(payload) ~= "table" or type(payload.settings) ~= "table" then return nil end
+    return payload
 end

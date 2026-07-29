@@ -2657,6 +2657,8 @@ TomoMod_RegisterLocale("enUS", {
     ["cat_combat_desc"]       = "Casts, resources, cooldowns and Mythic+.",
     ["cat_comfort_desc"]      = "Automations, quests, AFK, housing and comfort.",
     ["cat_tools_desc"]        = "Profiles, backups, diagnostics and maintenance.",
+    ["cat_profiles_desc"]     = "Profiles, specs, import / export and resets.",
+    ["cat_diagnostics_desc"]  = "Live status, Lua errors and performance readings.",
     ["cfg_tab_general"]       = "General",
     ["cfg_tab_actionbars"]    = "Action Bars",
     ["cfg_tab_skins"]         = "Skins",
@@ -2806,4 +2808,15 @@ TomoMod_RegisterLocale("enUS", {
     ["cdm_preview_aura"]                 = "Aura",
 
     ["wn_326_suite_card"] = "Config: the dashboard gained a 'Tomo suite' card presenting TomoBoss (boss timers with spoken callouts) — a shortcut to its options if it is installed, a copyable address and a permanent 'Don't show again' otherwise.",
+
+    ["wn_327_tracker_progressbars"] = "Objective Tracker: quest progress bars (kill counts, enemy forces, scenario and delve criteria) are back — a bar is no longer swept away as orphaned when its block is only reachable through an anchor, it survives collapsing and re-expanding its bucket, and the bars that stay are now themed like the rest of the tracker.",
+    ["wn_327_tracker_position"] = "Objective Tracker: a tracker moved with Blizzard's own Edit Mode snapped back to its old spot on the next reload — that position was never written to the addon's database. It is saved when the Edit Mode session ends now, and a tracker scaled above or below 100% no longer creeps across the screen a little more on every reload.",
+    ["wn_327_minimap_indicators"] = "Minimap: the instance difficulty flag stayed visible outside instances, because re-anchoring the native indicators also forced them visible and overrode Blizzard's own rule. They follow Blizzard's visibility again — and the expansion button no longer stays invisible for good once turned off and back on.",
+    ["wn_327_resourcebar_frozen"] ="Resource Bars: the centered power bar stayed stuck on the value it was built with — 0 rage, 0 energy — for every spec whose only resource is the primary one (Warrior, Priest, Fire Mage, Mistweaver, Havoc...), while the unit frame showed the real amount. It refreshes like every other bar again.",
+    ["wn_327_profile_rename"] ="Profiles: renaming or duplicating a profile did nothing at all — Blizzard's 11.2 popup rewrite removed the field the accept handler read the typed name from. Both work again, and Enter now confirms like the accept button.",
+    ["wn_327_cds_rename"] = "Cooldown Studio: same fix for the Rename bar and '+ New' popups — the name you typed was ignored, so renaming did nothing and every new bar came out called 'Nouvelle barre'.",
+    ["wn_327_popup_layer"] = "Popups: the reload prompt, the import / export dialogs and every profile confirmation used to render behind the config window and Cooldown Studio, looking like nothing had happened. They are now raised above whichever TomoMod window is open.",
+    ["wn_327_profile_refresh"] = "Profiles: creating, deleting, renaming or duplicating a profile now refreshes the list on screen instead of leaving the previous one displayed from the panel cache.",
+    ["wn_327_import_perf"] = "Profiles: importing is noticeably faster — the string decoded for the preview is reused on accept instead of being decoded a second time, which was most of the freeze when clicking Import.",
+    ["wn_327_gui_split"] = "Config: Profiles and Diagnostics are separate sidebar categories again instead of being grouped under Tools, each with its own icon and description; old links to Tools still work.",
 })

@@ -1434,36 +1434,87 @@ LayoutBuckets = function()
     -- the WQ module SetAlpha(0) guard, leaving a floating "0%" bar.
     -- All active blocks are now under skinFrame; any StatusBar still in the
     -- original tracker subtree is orphaned and should be hidden.
-    -- True if `f` (or an ancestor) sits under our skinFrame — i.e. it belongs to a
-    -- quest block or a scenario/delve module we reparented.
-    local function IsUnderSkinFrame(f)
-        local guard = 0
-        while f and guard < 12 do
-            if f == skinFrame then return true end
-            if not f.GetParent then return false end
-            f = f:GetParent()
-            guard = guard + 1
+    --
+    -- Returns the reparented frame a bar ultimately belongs to, or nil when
+    -- the bar is genuinely orphaned.
+    --
+    -- A bar sits several steps away from its block. ObjectiveTrackerProgressBar-
+    -- Template is a *container* Frame holding the real StatusBar as its `Bar`
+    -- child, and that child is anchored to the container, not to the block.
+    -- The container itself is parented to the module's own ContentsFrame
+    -- (ObjectiveTrackerModuleMixin:AcquireFrame does SetParent(self.ContentsFrame))
+    -- and is only *anchored* to the block. So reading the bar's own anchor
+    -- landed on the container -- which never sits under skinFrame -- and every
+    -- quest progress bar was swept away, leaving the mob tooltip as the only
+    -- way to follow progress.
+    --
+    -- Walking parents and anchor targets together reaches the block whatever
+    -- the nesting: parent hop to the container, anchor hop to the block.
+    local function LiveHostOf(bar)
+        local seen, queue, count, i = {}, { bar }, 1, 1
+        while i <= count and i <= 32 do
+            local cur = queue[i]
+            i = i + 1
+            if cur and not seen[cur] then
+                seen[cur] = true
+                -- Nearest host first: a tagged block, then any frame we
+                -- reparented directly under skinFrame (scenario / delve
+                -- modules carry no bucket key), then skinFrame itself.
+                -- Returning skinFrame too early would gate visibility on the
+                -- whole panel instead of on the block that owns the bar.
+                if cur._tmBucketKey then return cur end
+                if cur.GetParent and cur:GetParent() == skinFrame then return cur end
+                if cur == skinFrame then return cur end
+                -- Reaching the untouched tracker tree means this branch is
+                -- orphaned; don't expand through it.
+                if cur ~= tracker then
+                    if cur.GetParent then
+                        local parent = cur:GetParent()
+                        if parent then count = count + 1; queue[count] = parent end
+                    end
+                    local numPoints = cur.GetNumPoints and cur:GetNumPoints() or 0
+                    for pi = 1, numPoints do
+                        local _, relTo = cur:GetPoint(pi)
+                        if relTo then count = count + 1; queue[count] = relTo end
+                    end
+                end
+            end
         end
-        return false
+        return nil
     end
 
     local function HideStrayBars(f, d)
         if not f or d > 8 then return end
         if f == skinFrame or f._tmBucket then return end
-        if f:IsObjectType("StatusBar") and f:IsShown() then
-            -- A progress bar can stay parented to BlocksFrame while only being
-            -- *anchored* to its block.  If that anchor target is one of our
-            -- reparented (and currently visible) frames, the bar belongs to a
-            -- tracked, expanded quest/scenario and must stay visible.  Everything
-            -- else (empty WQ module progress, floating "0%" bars, bars whose block
-            -- is collapsed/hidden) is hidden as before.
-            local _, relTo = f:GetPoint(1)
-            if relTo and IsUnderSkinFrame(relTo) and relTo:IsVisible() then
-                return
+        if f:IsObjectType("StatusBar") then
+            -- A bar hidden by an earlier pass has to be reconsidered here too.
+            -- Looking only at bars that are currently shown made this a
+            -- one-way trip: collapsing a bucket hid its progress bar, and
+            -- expanding it again re-ran this sweep, which skipped the bar
+            -- because it was no longer shown. Nothing ever brought it back.
+            -- `_tmStrayHidden` marks the bars WE hid, so a bar Blizzard is
+            -- legitimately keeping hidden is still none of our business.
+            if f:IsShown() or f._tmStrayHidden then
+                -- Keep bars owned by a tracked, expanded block; hide everything
+                -- else (empty WQ module progress, floating "0%" bars, bars whose
+                -- block is collapsed or hidden) exactly as before.
+                local host = LiveHostOf(f)
+                if host and host:IsVisible() then
+                    if f._tmStrayHidden then
+                        f._tmStrayHidden = nil
+                        f:Show()
+                    end
+                    -- These bars are not children of the block, so the per-block
+                    -- ScanAndStyle pass never reaches them. Style them here so a
+                    -- progress bar matches the rest of the tracker.
+                    StyleStatusBar(f)
+                else
+                    if f:IsShown() then f:Hide() end
+                    f._tmStrayHidden = true
+                    _strayBars[#_strayBars + 1] = f
+                end
+                return  -- no need to recurse into a progress bar
             end
-            f:Hide()
-            _strayBars[#_strayBars + 1] = f
-            return  -- no need to recurse into a hidden bar
         end
         if f.GetChildren then
             for _, c in ipairs({ f:GetChildren() }) do HideStrayBars(c, d + 1) end
@@ -1513,6 +1564,7 @@ local function DisableBuckets()
 
     -- Restore orphan status bars hidden by HideStrayBars.
     for _, bar in ipairs(_strayBars) do
+        bar._tmStrayHidden = nil
         bar:Show()
     end
     _strayBars = {}
@@ -1653,6 +1705,28 @@ local function InstallHooks()
         end)
     end
 
+    -- [MOVER FIX] The hook above deliberately stands down while Blizzard's own
+    -- Edit Mode is running, so the tracker can be dragged there -- but nothing
+    -- ever wrote that new position back to our database. The comment above
+    -- promised SavePosition would pick it up on exit; it never did. So a
+    -- tracker moved through native Edit Mode looked fine until the next
+    -- reload, where ApplyPosition snapped it back to the last anchor our own
+    -- mover had saved. Capture it when the session ends, one frame later, once
+    -- Blizzard has finished settling its layout.
+    if EditModeManagerFrame and type(EditModeManagerFrame.ExitEditMode) == "function"
+        and not tracker._tmEditModeHooked then
+        tracker._tmEditModeHooked = true
+        hooksecurefunc(EditModeManagerFrame, "ExitEditMode", function()
+            C_Timer.After(0, function()
+                if not (OT.SavePosition and OT.ApplyPosition) then return end
+                OT.SavePosition()
+                _tmApplyingPosition = true
+                OT.ApplyPosition()
+                _tmApplyingPosition = false
+            end)
+        end)
+    end
+
     -- Event-driven updates
     local evFrame = CreateFrame("Frame")
     evFrame:RegisterEvent("QUEST_LOG_UPDATE")
@@ -1700,13 +1774,26 @@ local function ApplyPosition()
     if tracker.SetClampedToScreen then tracker:SetClampedToScreen(false) end
     tracker.IsUserPlaced = function() return true end
 
-    local pos = db.position
-    if pos and pos.point then
-        tracker:ClearAllPoints()
-        tracker:SetPoint(pos.point, UIParent, pos.relativePoint or pos.point, pos.x or 0, pos.y or 0)
-    end
+    -- Scale BEFORE the anchor: SetPoint offsets are read in the frame's own
+    -- coordinate space, so scaling afterwards silently shifts a frame that was
+    -- just placed. Anchoring first and scaling second moved the tracker a
+    -- little further away on every apply pass.
     if db.scale and db.scale > 0 then
         tracker:SetScale(db.scale)
+    end
+
+    local pos = db.position
+    if pos and pos.point then
+        -- SavePosition stores UIParent-space coordinates (it multiplies by the
+        -- tracker/UIParent scale ratio); SetPoint wants offsets in the
+        -- tracker's own space. Without dividing by that same ratio here, the
+        -- round trip multiplied the position by the tracker scale every time,
+        -- so any tracker not at 100% crept across the screen on each reload.
+        local ratio = tracker:GetEffectiveScale() / UIParent:GetEffectiveScale()
+        if not (ratio and ratio > 0) then ratio = 1 end
+        tracker:ClearAllPoints()
+        tracker:SetPoint(pos.point, UIParent, pos.relativePoint or pos.point,
+                         (pos.x or 0) / ratio, (pos.y or 0) / ratio)
     end
     positionApplied = true
 end
@@ -1727,6 +1814,7 @@ local function SavePosition()
         y             = bottom * scale,
     }
 end
+OT.SavePosition = SavePosition
 
 local function CreateMoverOverlay()
     if moverOverlay then return moverOverlay end

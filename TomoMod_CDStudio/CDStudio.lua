@@ -11,6 +11,7 @@
 
 local W = TomoMod_Widgets
 if not W then return end
+local U = TomoMod_Utils
 
 local S = { state = { class = nil, barId = nil } }
 TomoMod_CDStudio = S
@@ -1123,24 +1124,24 @@ StaticPopupDialogs["TOMOMOD_CDS_RENAME"] = {
     OnShow = function(self)
         -- Lift above the studio window (FULLSCREEN_DIALOG toplevel); otherwise
         -- this DIALOG-strata popup renders behind it and can't be seen/typed.
-        self:SetFrameStrata("FULLSCREEN_DIALOG")
-        self:SetToplevel(true)
-        self:Raise()
+        U.RaiseAboveTomoUI(self)
         local bar = SelectedBar()
-        if bar and self.editBox then
-            self.editBox:SetText(bar.name or "")
-            self.editBox:HighlightText()
-            self.editBox:SetFocus()
+        local box = U.PopupEditBox(self)
+        if bar and box then
+            box:SetText(bar.name or "")
+            box:HighlightText()
+            box:SetFocus()
         end
     end,
-    EditBoxOnEnterPressed = function(self)
-        local parent = self:GetParent()
-        if parent and parent.OnAccept then parent.OnAccept(parent) end
-        parent:Hide()
+    OnHide = function(self) U.RestoreTomoUILayer(self) end,
+    EditBoxOnEnterPressed = function(editBox)
+        U.PopupAccept("TOMOMOD_CDS_RENAME", U.PopupDialogOf(editBox))
     end,
     OnAccept = function(self)
-        local txt = self.editBox and self.editBox:GetText()
-        if txt and txt ~= "" and CDF and CDF.RenameBar then
+        -- [11.2] dialog.editBox no longer exists: the old read returned
+        -- nil, the guard below swallowed it and the bar kept its name.
+        local txt = U.PopupText(self)
+        if txt ~= "" and CDF and CDF.RenameBar then
             CDF.RenameBar(S.state.class, S.state.barId, txt)
             Apply(); S.RebuildSidebar(); S.RebuildContent()
         end
@@ -1159,28 +1160,28 @@ StaticPopupDialogs["TOMOMOD_CDS_CREATE"] = {
     whileDead = true,
     hideOnEscape = true,
     OnShow = function(self)
-        self:SetFrameStrata("FULLSCREEN_DIALOG")
-        self:SetToplevel(true)
-        self:Raise()
-        if self.editBox then
-            self.editBox:SetText("Nouvelle barre")
-            self.editBox:HighlightText()
-            self.editBox:SetFocus()
+        U.RaiseAboveTomoUI(self)
+        local box = U.PopupEditBox(self)
+        if box then
+            box:SetText("Nouvelle barre")
+            box:HighlightText()
+            box:SetFocus()
         end
     end,
+    OnHide = function(self) U.RestoreTomoUILayer(self) end,
     OnAccept = function(self)
-        local txt = self.editBox and self.editBox:GetText()
-        if not txt or txt == "" then txt = "Nouvelle barre" end
+        -- [11.2] same fix as the rename popup: without it the typed name
+        -- was never read and every bar came out as "Nouvelle barre".
+        local txt = U.PopupText(self)
+        if txt == "" then txt = "Nouvelle barre" end
         if CDF and CDF.CreateBar then
             local _, id = CDF.CreateBar(S.state.class, txt)
             if id then S.state.barId = id end
             Apply(); S.RebuildSidebar(); S.RebuildContent()
         end
     end,
-    EditBoxOnEnterPressed = function(self)
-        local parent = self:GetParent()
-        if parent and parent.OnAccept then parent.OnAccept(parent) end
-        parent:Hide()
+    EditBoxOnEnterPressed = function(editBox)
+        U.PopupAccept("TOMOMOD_CDS_CREATE", U.PopupDialogOf(editBox))
     end,
 }
 

@@ -7,6 +7,16 @@
 local L = TomoMod_L
 
 StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] = StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] or {
+    -- Raised above the config window, which sits at FULLSCREEN_DIALOG
+    -- level 500 and would otherwise hide this prompt entirely.
+    OnShow   = function(self)
+        local U = TomoMod_Utils
+        if U and U.RaiseAboveTomoUI then U.RaiseAboveTomoUI(self) end
+    end,
+    OnHide   = function(self)
+        local U = TomoMod_Utils
+        if U and U.RestoreTomoUILayer then U.RestoreTomoUILayer(self) end
+    end,
     text     = L["cfg_reload_text"],
     button1  = L["cfg_reload_confirm"],
     button2  = L["cfg_reload_later"],
@@ -75,7 +85,8 @@ local categories = {
     { key = "units",     label = L["cat_units"],                      icon = ICON_PATH .. "icon_unitframes.tga", accent = { 0.46, 0.72, 1.00 }, desc = L["cat_units_desc"], kw = "unit frames nameplates party raid groupe cible plaques" },
     { key = "combat",    label = L["cat_combat"],                      icon = ICON_PATH .. "icon_castbars.tga",   accent = { 0.96, 0.70, 0.26 }, desc = L["cat_combat_desc"], kw = "castbar ressources cooldown mythic mplus combat" },
     { key = "comfort",   label = L["cat_comfort"],                     icon = ICON_PATH .. "icon_qol.tga",        accent = { 0.38, 0.86, 0.56 }, desc = L["cat_comfort_desc"], kw = "qol confort quete afk housing logement automatisation" },
-    { key = "tools",     label = L["cat_tools"],                      icon = ICON_PATH .. "icon_profiles.tga",   accent = { 0.67, 0.52, 1.00 }, desc = L["cat_tools_desc"], kw = "profil diagnostics debug erreurs import export outils" },
+    { key = "profiles",    label = L["cat_profiles"],                  icon = ICON_PATH .. "icon_profiles.tga",    accent = { 0.67, 0.52, 1.00 }, desc = L["cat_profiles_desc"], kw = "profil profils specialisation spec import export sauvegarde backup reinitialiser reset" },
+    { key = "diagnostics", label = L["cat_diagnostics"],               icon = ICON_PATH .. "icon_diagnostics.tga", accent = { 0.94, 0.48, 0.48 }, desc = L["cat_diagnostics_desc"], kw = "diagnostics diagnostic debug erreurs lua performance memoire etat modules" },
 }
 
 -- Exposed for Config/GlobalSearch.lua (ghost indexing needs the labels)
@@ -99,8 +110,9 @@ local categoryAliases = {
     qol         = { key = "comfort", tab = "qol" },
     housing     = { key = "comfort", tab = "housing" },
 
-    profiles    = { key = "tools", tab = "profiles" },
-    diagnostics = { key = "tools", tab = "diagnostics" },
+    -- Legacy: the old grouped "Tools" category was split back into two
+    -- standalone entries. Kept so any stale deep-link still resolves.
+    tools       = { key = "profiles" },
 }
 
 -- State
@@ -112,9 +124,9 @@ local activeCategoryPanel = nil
 local hiddenPanelBin = nil
 
 -- [Lot C] Categories re-shown from cache on revisit. Accueil (dashboard,
--- preset tiles) and Tools (profile list, live diagnostics) always rebuild
--- so their dynamic content stays fresh.
-local NO_CACHE = { accueil = true, tools = true }
+-- preset tiles), Profiles (profile list) and Diagnostics (live readings)
+-- always rebuild so their dynamic content stays fresh.
+local NO_CACHE = { accueil = true, profiles = true, diagnostics = true }
 
 -- =====================================================================
 -- HELPERS
@@ -362,6 +374,17 @@ local function BuildPanelByName(parent, globalName)
     return nil
 end
 
+-- Applies (and always consumes) a pending deep-link tab on a panel that
+-- owns a tab bar. Unknown keys are ignored: CreateTabPanel.SwitchTab has
+-- no guard of its own and would leave the page blank.
+local function SwitchPendingTab(panel)
+    local key = C._pendingGroupTab
+    C._pendingGroupTab = nil
+    if not (key and panel and panel.SwitchTab) then return end
+    if panel.HasTab and not panel.HasTab(key) then return end
+    panel.SwitchTab(key)
+end
+
 local function BuildGroupedPanel(parent, tabs, defaultKey)
     local selected = C._pendingGroupTab or defaultKey or (tabs[1] and tabs[1].key)
     C._pendingGroupTab = nil
@@ -404,12 +427,18 @@ local CATEGORY_TREE = {
         { key = "qol",     label = L["cfg_tab_qol"], global = "TomoMod_ConfigPanel_QOL" },
         { key = "housing", label = L["cfg_tab_housing"],        global = "TomoMod_ConfigPanel_Housing" },
     },
-    tools = {
-        { key = "profiles",    label = L["cfg_tab_profiles"],     global = "TomoMod_ConfigPanel_Profiles" },
-        { key = "diagnostics", label = L["cfg_tab_diagnostics"], global = "TomoMod_ConfigPanel_Diagnostics" },
-    },
 }
 C.CategoryTree = CATEGORY_TREE
+
+-- Categories that are a single page (no tab bar of their own at this
+-- level). Shared with Config/GlobalSearch.lua so ghost indexing covers
+-- them exactly like the grouped ones.
+local SINGLE_PAGES = {
+    accueil     = "TomoMod_ConfigPanel_Accueil",
+    profiles    = "TomoMod_ConfigPanel_Profiles",
+    diagnostics = "TomoMod_ConfigPanel_Diagnostics",
+}
+C.SinglePages = SINGLE_PAGES
 
 local function BuildGroupedFromTree(parent, catKey)
     local tabs = {}
@@ -886,10 +915,7 @@ function C.SwitchCategory(key)
     local cached = (not NO_CACHE[key]) and categoryPanels[key] or nil
     if cached and cached.root then
         activeCategoryPanel = cached.root
-        if C._pendingGroupTab and cached.tabPanel and cached.tabPanel.SwitchTab then
-            cached.tabPanel.SwitchTab(C._pendingGroupTab)
-        end
-        C._pendingGroupTab = nil
+        SwitchPendingTab(cached.tabPanel)
     else
         if categoryPanels[key] and categoryPanels[key].root then
             ParkPanel(categoryPanels[key].root)
@@ -897,14 +923,12 @@ function C.SwitchCategory(key)
         end
 
         local builderMap = {
-            accueil   = "TomoMod_ConfigPanel_Accueil",
             interface = function(p) return BuildGroupedFromTree(p, "interface") end,
             units     = function(p) return BuildGroupedFromTree(p, "units") end,
             combat    = function(p) return BuildGroupedFromTree(p, "combat") end,
             comfort   = function(p) return BuildGroupedFromTree(p, "comfort") end,
-            tools     = function(p) return BuildGroupedFromTree(p, "tools") end,
         }
-        local builder = builderMap[key]
+        local builder = builderMap[key] or SINGLE_PAGES[key]
         if type(builder) == "string" then builder = _G[builder] end
         if builder then
             local bodyParent, shell = CreatePageShell(configFrame.content, catMeta)
@@ -915,6 +939,10 @@ function C.SwitchCategory(key)
                 activeCategoryPanel = shell or panel
                 categoryPanels[key] = { root = activeCategoryPanel, tabPanel = panel }
             end
+            -- Single pages do not go through BuildGroupedPanel, so the
+            -- pending deep-link tab is honoured (and cleared) here: some
+            -- of them own an inner tab bar (Profiles), others none.
+            SwitchPendingTab(panel)
         end
     end
 

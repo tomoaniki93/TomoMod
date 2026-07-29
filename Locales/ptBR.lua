@@ -2423,6 +2423,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["cat_combat_desc"]       = "Lançamentos, recursos, cooldowns e Mythic+.",
     ["cat_comfort_desc"]      = "Automações, missões, AFK, housing e conforto.",
     ["cat_tools_desc"]        = "Perfis, backups, diagnósticos e manutenção.",
+    ["cat_profiles_desc"]     = "Perfis, especializações, importar / exportar e redefinições.",
+    ["cat_diagnostics_desc"]  = "Estado ao vivo, erros de Lua e medidas de desempenho.",
     ["cfg_tab_general"]       = "Geral",
     ["cfg_tab_actionbars"]    = "Barras de ação",
     ["cfg_tab_skins"]         = "Skins",
@@ -2572,4 +2574,15 @@ TomoMod_RegisterLocale("ptBR", {
     ["cdm_preview_aura"]                 = "Aura",
 
     ["wn_326_suite_card"] = "Config: o painel inicial ganhou um cartão «Suíte Tomo» apresentando o TomoBoss (temporizadores de chefes com avisos falados) — um atalho para as opções dele se estiver instalado, ou um endereço copiável e um «Não mostrar novamente» definitivo caso contrário.",
+
+    ["wn_327_tracker_progressbars"] = "Rastreador de objetivos: as barras de progresso das missões (contagens de abates, forças inimigas, critérios de cenário e de expedição) voltaram — uma barra não é mais descartada como órfã quando seu bloco só é alcançável por uma âncora, ela sobrevive a recolher e reabrir seu grupo, e as que permanecem finalmente adotam o tema do resto do rastreador.",
+    ["wn_327_tracker_position"] = "Rastreador de objetivos: um rastreador movido pelo Modo de Edição da própria Blizzard voltava ao lugar anterior no recarregamento seguinte — essa posição nunca era gravada no banco de dados do addon. Agora ela é salva ao encerrar a sessão do Modo de Edição, e um rastreador com escala diferente de 100% não desliza mais um pouco a cada recarregamento.",
+    ["wn_327_minimap_indicators"] = "Minimapa: o indicador de dificuldade de instância continuava visível fora das instâncias, porque reancorar os indicadores nativos também os forçava a ficar visíveis e anulava a regra da Blizzard. Eles voltam a seguir a visibilidade da Blizzard — e o botão de expansão não fica mais invisível para sempre depois de ser desativado e reativado.",
+    ["wn_327_resourcebar_frozen"] ="Barras de recursos: a barra de poder centralizada ficava travada no valor que tinha ao ser construída — 0 de fúria, 0 de energia — em todas as especializações cujo único recurso é o principal (Guerreiro, Sacerdote, Mago de Fogo, Tecelão de Névoa, Havoc...), enquanto o quadro de unidade mostrava o valor real bem ao lado. Ela volta a se atualizar como qualquer outra barra.",
+    ["wn_327_profile_rename"] ="Perfis: renomear ou duplicar um perfil não fazia absolutamente nada — a reescrita das janelas pop-up na 11.2 removeu o campo de onde o nome digitado era lido. Ambos voltam a funcionar, e Enter agora confirma como o botão de aceitar.",
+    ["wn_327_cds_rename"] = "Cooldown Studio: a mesma correção para as janelas «Renomear barra» e «+ Nova» — o nome digitado era ignorado, então renomear não fazia nada e toda barra nova saía chamada «Nouvelle barre».",
+    ["wn_327_popup_layer"] = "Pop-ups: o aviso de recarregamento, as janelas de importar / exportar e todas as confirmações de perfil eram desenhados atrás da janela de configuração e do Cooldown Studio, parecendo que nada acontecia. Agora eles sobem acima da janela do TomoMod que estiver aberta.",
+    ["wn_327_profile_refresh"] = "Perfis: criar, excluir, renomear ou duplicar um perfil agora atualiza a lista na tela em vez de deixar a anterior servida pelo cache das páginas.",
+    ["wn_327_import_perf"] = "Perfis: importar está bem mais rápido — a string decodificada para a pré-visualização é reaproveitada na confirmação em vez de ser decodificada uma segunda vez, o que era a maior parte do travamento ao clicar em Importar.",
+    ["wn_327_gui_split"] = "Config: Perfis e Diagnósticos voltam a ser categorias separadas na barra lateral em vez de agrupadas sob Ferramentas, cada uma com seu ícone e sua descrição; links antigos para Ferramentas continuam funcionando.",
 })

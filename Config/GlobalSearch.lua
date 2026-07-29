@@ -186,7 +186,9 @@ local function GhostIndexAll()
             BuildOne(catKey, t.key, t.label, t.global)
         end
     end
-    BuildOne("accueil", nil, nil, "TomoMod_ConfigPanel_Accueil")
+    for catKey, globalName in pairs(C.SinglePages or { accueil = "TomoMod_ConfigPanel_Accueil" }) do
+        BuildOne(catKey, nil, nil, globalName)
+    end
 
     -- Neutralize the build context: the open page re-registers under its
     -- real location on its next rebuild (SwitchCategory resets it anyway)

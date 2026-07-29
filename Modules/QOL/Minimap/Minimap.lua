@@ -475,18 +475,61 @@ function TomoMod_Minimap.GetIndicatorCfg(key)
     return cfg.corner or def.corner, cfg.scale or def.scale, cfg.x or def.x, cfg.y or def.y
 end
 
+-- Frames dont NOUS avons forcé l'alpha à 0. Blizzard pilote la visibilité
+-- réelle de ces indicateurs (le drapeau de difficulté ne s'affiche qu'en
+-- instance, l'icône de courrier qu'avec du courrier non lu) : un SetAlpha(1)
+-- inconditionnel à chaque passe écrasait cette logique. C'est ce qui laissait
+-- la difficulté affichée hors instance, et ce qui faisait passer l'option pour
+-- cassée — une fois décochée puis recochée, notre unique SetAlpha(1) était
+-- aussitôt défait par la mise à jour de Blizzard et l'icône ne revenait pas.
+-- On ne défait donc plus que notre propre masquage, en restaurant exactement
+-- l'alpha qu'on avait écrasé.
+local _forcedHidden = {}
+
+-- Maintient à 0 l'alpha d'un indicateur que le joueur a désactivé : Blizzard le
+-- réaffiche de son côté (entrée en instance, courrier reçu) et un alpha posé une
+-- seule fois ne tiendrait pas. On ne touche QUE l'alpha — ni la souris ni l'état
+-- Shown, qui restent à Blizzard : c'est précisément le fait de lui confisquer
+-- ces états qui produisait le bug d'origine.
+local _holdHooked   = {}
+local _holdAlphaFix = {}
+
+local function HoldHidden(frame)
+    if _holdHooked[frame] then return end
+    _holdHooked[frame] = true
+    hooksecurefunc(frame, "Show", function(self)
+        if _forcedHidden[self] then self:SetAlpha(0) end
+    end)
+    hooksecurefunc(frame, "SetAlpha", function(self, alpha)
+        if _holdAlphaFix[self] or alpha == 0 then return end
+        if _forcedHidden[self] then
+            _holdAlphaFix[self] = true
+            self:SetAlpha(0)
+            _holdAlphaFix[self] = nil
+        end
+    end)
+end
+
 -- Ré-ancre une frame Blizzard selon la config DB d'un indicateur (ou la masque).
 local function AnchorBlizzFrame(frame, show, key)
     if not frame then return end
     if show == false then
         frame:SetParent(TomoModMinimapBorder or Minimap)
         frame:ClearAllPoints()
+        if not _forcedHidden[frame] then
+            _forcedHidden[frame] = { prevAlpha = frame:GetAlpha() }
+        end
         frame:SetAlpha(0)
+        HoldHidden(frame)
         return
     end
     local corner, scale, x, y = TomoMod_Minimap.GetIndicatorCfg(key)
     frame:SetParent(Minimap)
-    frame:SetAlpha(1)
+    local hidden = _forcedHidden[frame]
+    if hidden then
+        _forcedHidden[frame] = nil
+        frame:SetAlpha(hidden.prevAlpha or 1)
+    end
     frame:ClearAllPoints()
     frame:SetPoint(corner, Minimap, corner, x, y)
     if frame.SetScale then frame:SetScale(scale) end
@@ -515,6 +558,15 @@ function TomoMod_Minimap.ApplyNativeIndicators()
     local expansion = ResolveFrame("ExpansionLandingPageMinimapButton")
     if expansion then
         if db.showExpansion ~= false then
+            -- Même défaut que ci-dessus, en pire : la branche « masquer »
+            -- posait un alpha 0 que rien ne restaurait ici, donc désactiver
+            -- puis réactiver le bouton d'extension le laissait invisible
+            -- définitivement.
+            local hidden = _forcedHidden[expansion]
+            if hidden then
+                _forcedHidden[expansion] = nil
+                expansion:SetAlpha(hidden.prevAlpha or 1)
+            end
             local function Pin()
                 local corner, scale, x, y = TomoMod_Minimap.GetIndicatorCfg("expansion")
                 expansion:SetParent(Minimap)
@@ -540,7 +592,11 @@ function TomoMod_Minimap.ApplyNativeIndicators()
         else
             expansion:SetParent(TomoModMinimapBorder or Minimap)
             expansion:ClearAllPoints()
+            if not _forcedHidden[expansion] then
+                _forcedHidden[expansion] = { prevAlpha = expansion:GetAlpha() }
+            end
             expansion:SetAlpha(0)
+            HoldHidden(expansion)
         end
     end
 end

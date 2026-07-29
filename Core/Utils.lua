@@ -25,6 +25,98 @@ U.BRAND_HOVER = { 0.322, 0.941, 0.651 }     -- lighter shade for hover states
 U.BRAND_DARK  = { 0.110, 0.541, 0.333 }     -- darker shade for pressed states
 
 -- =====================================
+-- STATIC POPUP COMPAT  (11.2 rewrite)
+-- =====================================
+-- Blizzard rebuilt StaticPopup on a mixin in 11.2: the dialog's direct
+-- fields (.editBox, .button1, ...) were replaced by accessors
+-- (:GetEditBox(), :GetButton1()). Reading `dialog.editBox` now returns
+-- nil, so every OnAccept that fetched the typed text silently did
+-- nothing (or threw). These helpers resolve the edit box on both the old
+-- and the new shape, plus the global-name fallback that still works.
+
+--- Returns the edit box of a StaticPopup dialog, or nil.
+function U.PopupEditBox(dialog)
+    if not dialog then return nil end
+    if dialog.GetEditBox then
+        local ok, box = pcall(dialog.GetEditBox, dialog)
+        if ok and box then return box end
+    end
+    if dialog.editBox then return dialog.editBox end
+    local name = dialog.GetName and dialog:GetName()
+    if name then return _G[name .. "EditBox"] end
+    return nil
+end
+
+--- Text currently typed in a StaticPopup edit box ("" when unavailable).
+function U.PopupText(dialog)
+    local box = U.PopupEditBox(dialog)
+    if not (box and box.GetText) then return "" end
+    local ok, txt = pcall(box.GetText, box)
+    if not ok or type(txt) ~= "string" then return "" end
+    return txt
+end
+
+--- Dialog owning an edit box. Since 11.2 the edit box carries
+--- `owningDialog`; the parent chain is no longer a reliable route.
+function U.PopupDialogOf(editBox)
+    if not editBox then return nil end
+    if editBox.owningDialog then return editBox.owningDialog end
+    if editBox.GetParent then return editBox:GetParent() end
+    return nil
+end
+
+--- Runs the OnAccept of `which` against `dialog`, then closes it. Used by
+--- EditBoxOnEnterPressed so Enter behaves exactly like the accept button.
+function U.PopupAccept(which, dialog)
+    if not dialog then return end
+    local info = StaticPopupDialogs and StaticPopupDialogs[which]
+    if info and info.OnAccept then
+        info.OnAccept(dialog, dialog.data, dialog.data2)
+    end
+    if dialog.Hide then dialog:Hide() end
+end
+
+-- =====================================
+-- WINDOW LAYERING
+-- =====================================
+-- The config GUI and the Cooldown Studio both sit at FULLSCREEN_DIALOG
+-- with a high frame level, so anything using the default popup layer
+-- renders *behind* them and looks like nothing happened. Lifts `frame`
+-- above whichever TomoMod window is currently open.
+local RAISE_ABOVE = { "TomoModConfigFrame", "TomoModCDStudioFrame" }
+
+function U.RaiseAboveTomoUI(frame)
+    if not (frame and frame.SetFrameStrata and frame.SetFrameLevel) then return end
+    if frame._tomomodPrevStrata == nil then
+        frame._tomomodPrevStrata   = frame:GetFrameStrata()
+        frame._tomomodPrevLevel    = frame:GetFrameLevel()
+        frame._tomomodPrevToplevel = frame.IsToplevel and frame:IsToplevel() or false
+    end
+    local level = 0
+    for i = 1, #RAISE_ABOVE do
+        local f = _G[RAISE_ABOVE[i]]
+        if f and f.IsShown and f:IsShown() and f.GetFrameLevel then
+            local l = f:GetFrameLevel() or 0
+            if l > level then level = l end
+        end
+    end
+    frame:SetFrameStrata("FULLSCREEN_DIALOG")
+    frame:SetFrameLevel(level + 40)
+    if frame.SetToplevel then frame:SetToplevel(true) end
+    if frame.Raise then frame:Raise() end
+end
+
+--- Puts a recycled frame (StaticPopup1..4 are shared with Blizzard) back
+--- on the layer it had before U.RaiseAboveTomoUI touched it.
+function U.RestoreTomoUILayer(frame)
+    if not (frame and frame._tomomodPrevStrata) then return end
+    frame:SetFrameStrata(frame._tomomodPrevStrata)
+    frame:SetFrameLevel(frame._tomomodPrevLevel or 1)
+    if frame.SetToplevel then frame:SetToplevel(frame._tomomodPrevToplevel and true or false) end
+    frame._tomomodPrevStrata, frame._tomomodPrevLevel, frame._tomomodPrevToplevel = nil, nil, nil
+end
+
+-- =====================================
 -- TABLE UTILITIES
 -- =====================================
 

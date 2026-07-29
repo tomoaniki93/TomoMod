@@ -2483,6 +2483,8 @@ TomoMod_RegisterLocale("esES", {
     ["cat_combat_desc"]       = "Lanzamientos, recursos, cooldowns y Mythic+.",
     ["cat_comfort_desc"]      = "Automatizaciones, misiones, AFK, housing y comodidad.",
     ["cat_tools_desc"]        = "Perfiles, copias de seguridad, diagnósticos y mantenimiento.",
+    ["cat_profiles_desc"]     = "Perfiles, especializaciones, importar / exportar y reinicios.",
+    ["cat_diagnostics_desc"]  = "Estado en vivo, errores de Lua y medidas de rendimiento.",
     ["cfg_tab_general"]       = "General",
     ["cfg_tab_actionbars"]    = "Barras de acción",
     ["cfg_tab_skins"]         = "Skins",
@@ -2632,4 +2634,15 @@ TomoMod_RegisterLocale("esES", {
     ["cdm_preview_aura"]                 = "Aura",
 
     ["wn_326_suite_card"] = "Config: el panel de inicio incorpora una tarjeta «Suite Tomo» que presenta TomoBoss (temporizadores de jefes con avisos hablados) — un acceso directo a sus opciones si está instalado, y si no una dirección copiable y un «No volver a mostrar» definitivo.",
+
+    ["wn_327_tracker_progressbars"] = "Rastreador de objetivos: las barras de progreso de misión (recuentos de muertes, fuerzas enemigas, criterios de escenario y de expedición) han vuelto — una barra ya no se descarta como huérfana cuando su bloque solo es accesible a través de un anclaje, sobrevive a plegar y volver a desplegar su grupo, y las que se conservan adoptan por fin el estilo del resto del rastreador.",
+    ["wn_327_tracker_position"] = "Rastreador de objetivos: un rastreador movido con el Modo Edición propio de Blizzard volvía a su sitio anterior en la siguiente recarga — esa posición nunca se escribía en la base de datos del addon. Ahora se guarda al terminar la sesión de Modo Edición, y un rastreador con una escala distinta del 100 % ya no se desplaza un poco más en cada recarga.",
+    ["wn_327_minimap_indicators"] = "Minimapa: el indicador de dificultad de instancia seguía visible fuera de las instancias, porque volver a anclar los indicadores nativos también los forzaba a ser visibles y anulaba la regla de Blizzard. Vuelven a seguir la visibilidad de Blizzard — y el botón de expansión ya no se queda invisible para siempre al desactivarlo y volver a activarlo.",
+    ["wn_327_resourcebar_frozen"] ="Barras de recursos: la barra de poder centrada se quedaba clavada en el valor que tenía al construirse — 0 de ira, 0 de energía — en todas las especializaciones cuyo único recurso es el principal (Guerrero, Sacerdote, Mago de Fuego, Tejedor de niebla, Havoc...), mientras la ventana de unidad mostraba el valor real justo al lado. Vuelve a actualizarse como cualquier otra barra.",
+    ["wn_327_profile_rename"] ="Perfiles: renombrar o duplicar un perfil no hacía absolutamente nada — la reescritura de las ventanas emergentes en 11.2 eliminó el campo del que se leía el nombre escrito. Ambas acciones vuelven a funcionar, y ahora Intro confirma igual que el botón de aceptar.",
+    ["wn_327_cds_rename"] = "Cooldown Studio: la misma corrección para las ventanas «Renombrar barra» y «+ Nueva» — el nombre escrito se ignoraba, así que renombrar no hacía nada y toda barra nueva salía llamada «Nouvelle barre».",
+    ["wn_327_popup_layer"] = "Ventanas emergentes: el aviso de recarga, los diálogos de importar / exportar y todas las confirmaciones de perfil se dibujaban detrás de la ventana de configuración y de Cooldown Studio, dando la impresión de que no pasaba nada. Ahora se elevan por encima de la ventana de TomoMod que esté abierta.",
+    ["wn_327_profile_refresh"] = "Perfiles: crear, borrar, renombrar o duplicar un perfil ahora refresca la lista en pantalla en vez de dejar la anterior servida desde la caché de páginas.",
+    ["wn_327_import_perf"] = "Perfiles: importar es notablemente más rápido — la cadena decodificada para la vista previa se reutiliza al aceptar en lugar de decodificarse una segunda vez, que era la mayor parte del tirón al pulsar Importar.",
+    ["wn_327_gui_split"] = "Config: Perfiles y Diagnósticos vuelven a ser categorías independientes en la barra lateral en lugar de estar agrupadas bajo Herramientas, cada una con su icono y su descripción; los enlaces antiguos a Herramientas siguen funcionando.",
 })

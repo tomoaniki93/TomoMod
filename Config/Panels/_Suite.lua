@@ -98,15 +98,44 @@ end
 
 -- État RÉEL de l'addon, en trois valeurs.
 --
--- Tester la seule présence via GetAddOnInfo était faux : les addons vivent dans
--- Interface/AddOns, partagé par toute l'installation, alors que l'activation
--- est PAR PERSONNAGE. Sur un personnage où TomoBoss est désactivé, il reste
--- donc présent sur le disque et GetAddOnInfo répond « connu » — la carte
--- annonçait « installé, tapez /tmb » alors que la commande n'existe pas.
+-- Deux pièges successifs, corrigés ici :
+--
+--  1. Les addons vivent dans Interface/AddOns, partagé par toute
+--     l'installation, alors que l'ACTIVATION est par personnage. Tester la
+--     présence ne dit donc pas si l'addon est utilisable maintenant.
+--
+--  2. `C_AddOns.GetAddOnInfo("Inconnu")` ne renvoie PAS nil : il renvoie le
+--     nom qu'on lui a passé, accompagné de reason = "MISSING". Un test
+--     `retour ~= nil` est donc toujours vrai, même pour un addon absent du
+--     disque — la carte annonçait « installé mais désactivé » alors que le
+--     dossier avait été supprimé.
+--
+-- On n'interroge donc plus l'API sur un nom : on ÉNUMÈRE les addons par
+-- index. Un index ne rend que ce qui existe réellement, sans dépendre de la
+-- sémantique de retour pour un nom inconnu.
 --
 --   "loaded"   chargé, utilisable tout de suite
---   "disabled" présent mais non chargé pour ce personnage
+--   "disabled" présent sur le disque mais non chargé pour ce personnage
 --   "absent"   pas installé
+--
+-- En cas de doute (API indisponible), on répond "absent" : annoncer à tort
+-- qu'un addon est installé rend la carte inutile et trompeuse, tandis que
+-- proposer l'adresse à quelqu'un qui l'a déjà est bénin.
+local function isPresent(name)
+    local C = C_AddOns
+    if not (C and C.GetNumAddOns and C.GetAddOnInfo) then return false end
+    local ok, count = pcall(C.GetNumAddOns)
+    if not ok or not count then return false end
+    local target = name:lower()
+    for i = 1, count do
+        local ok2, folder = pcall(C.GetAddOnInfo, i)
+        if ok2 and type(folder) == "string" and folder:lower() == target then
+            return true
+        end
+    end
+    return false
+end
+
 function S.State(name)
     local C = C_AddOns
     if not C then return "absent" end
@@ -115,10 +144,7 @@ function S.State(name)
         local ok, loaded = pcall(C.IsAddOnLoaded, name)
         if ok and loaded then return "loaded" end
     end
-    if C.GetAddOnInfo then
-        local ok, found = pcall(C.GetAddOnInfo, name)
-        if ok and found ~= nil then return "disabled" end
-    end
+    if isPresent(name) then return "disabled" end
     return "absent"
 end
 

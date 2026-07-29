@@ -2423,6 +2423,8 @@ TomoMod_RegisterLocale("itIT", {
     ["cat_combat_desc"]       = "Lanci, risorse, cooldown e Mythic+.",
     ["cat_comfort_desc"]      = "Automazioni, missioni, AFK, housing e comodità.",
     ["cat_tools_desc"]        = "Profili, backup, diagnostica e manutenzione.",
+    ["cat_profiles_desc"]     = "Profili, specializzazioni, importa / esporta e ripristini.",
+    ["cat_diagnostics_desc"]  = "Stato in tempo reale, errori Lua e misure di prestazione.",
     ["cfg_tab_general"]       = "Generale",
     ["cfg_tab_actionbars"]    = "Barre d'azione",
     ["cfg_tab_skins"]         = "Skins",
@@ -2572,4 +2574,15 @@ TomoMod_RegisterLocale("itIT", {
     ["cdm_preview_aura"]                 = "Aura",
 
     ["wn_326_suite_card"] = "Config: la dashboard guadagna una scheda «Suite Tomo» che presenta TomoBoss (timer dei boss con annunci vocali) — una scorciatoia alle sue opzioni se è installato, altrimenti un indirizzo copiabile e un «Non mostrare più» definitivo.",
+
+    ["wn_327_tracker_progressbars"] = "Tracciatore obiettivi: le barre di avanzamento delle missioni (conteggi di uccisioni, forze nemiche, criteri di scenario e di spedizione) sono tornate — una barra non viene più scartata come orfana quando il suo blocco è raggiungibile solo tramite un ancoraggio, sopravvive alla chiusura e riapertura del suo gruppo, e quelle che restano adottano finalmente lo stile del resto del tracciatore.",
+    ["wn_327_tracker_position"] = "Tracciatore obiettivi: un tracciatore spostato con la Modalità Modifica di Blizzard tornava al punto precedente al ricaricamento successivo — quella posizione non veniva mai scritta nel database dell'addon. Ora viene salvata alla fine della sessione di Modalità Modifica, e un tracciatore con una scala diversa dal 100% non scivola più un po' più in là a ogni ricaricamento.",
+    ["wn_327_minimap_indicators"] = "Minimappa: l'indicatore di difficoltà dell'istanza restava visibile fuori dalle istanze, perché riancorare gli indicatori nativi li forzava anche a essere visibili, scavalcando la regola di Blizzard. Ora seguono di nuovo la visibilità di Blizzard — e il pulsante dell'espansione non resta più invisibile per sempre dopo essere stato disattivato e riattivato.",
+    ["wn_327_resourcebar_frozen"] ="Barre delle risorse: la barra dell'energia centrata restava bloccata sul valore che aveva alla costruzione — 0 ira, 0 energia — per tutte le specializzazioni la cui unica risorsa è quella primaria (Guerriero, Sacerdote, Mago del Fuoco, Tessitore di nebbie, Havoc...), mentre il riquadro unità mostrava il valore reale lì accanto. Ora si aggiorna di nuovo come tutte le altre barre.",
+    ["wn_327_profile_rename"] ="Profili: rinominare o duplicare un profilo non faceva assolutamente nulla — la riscrittura dei popup in 11.2 ha rimosso il campo da cui veniva letto il nome digitato. Entrambe le azioni funzionano di nuovo, e Invio ora conferma come il pulsante di conferma.",
+    ["wn_327_cds_rename"] = "Cooldown Studio: stessa correzione per i popup «Rinomina barra» e «+ Nuova» — il nome digitato veniva ignorato, quindi rinominare non faceva nulla e ogni nuova barra usciva chiamata «Nouvelle barre».",
+    ["wn_327_popup_layer"] = "Popup: la richiesta di ricaricamento, le finestre di importazione / esportazione e tutte le conferme di profilo venivano disegnate dietro la finestra di configurazione e Cooldown Studio, dando l'impressione che non succedesse nulla. Ora vengono portate sopra la finestra TomoMod aperta.",
+    ["wn_327_profile_refresh"] = "Profili: creare, eliminare, rinominare o duplicare un profilo ora aggiorna l'elenco a schermo invece di lasciare quello precedente servito dalla cache delle pagine.",
+    ["wn_327_import_perf"] = "Profili: l'importazione è nettamente più rapida — la stringa decodificata per l'anteprima viene riutilizzata alla conferma invece di essere decodificata una seconda volta, il che costituiva la maggior parte del blocco al clic su Importa.",
+    ["wn_327_gui_split"] = "Config: Profili e Diagnostica tornano a essere categorie distinte nella barra laterale invece di essere raggruppate sotto Strumenti, ciascuna con la propria icona e descrizione; i vecchi collegamenti a Strumenti continuano a funzionare.",
 })
