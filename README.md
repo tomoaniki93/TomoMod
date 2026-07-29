@@ -1,4 +1,4 @@
-# ![TomoMod](https://img.shields.io/badge/TomoMod-v3.2.6-0cd29f?style=for-the-badge) ![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120007-orange?style=for-the-badge)
+# ![TomoMod](https://img.shields.io/badge/TomoMod-v3.2.7-0cd29f?style=for-the-badge) ![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120007-orange?style=for-the-badge)
 
 <div><h1><span style="color:#2dc26b">TomoMod — Your Whole Interface, Reimagined</span></h1></div>
 
