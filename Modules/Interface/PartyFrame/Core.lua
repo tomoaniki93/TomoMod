@@ -316,6 +316,23 @@ function PF.CreateFrame(index, unit)
         f.roleIcon = roleIcon
     end
 
+    -- ---- LEADER ICON ----
+    -- Above the frame, top-left corner. Nothing else lives there: the role
+    -- icon sits INSIDE content at TOPLEFT and the raid marker is centred
+    -- above, so the crown collides with neither.
+    -- Created unconditionally, unlike the role icon: PF.ApplySettings updates
+    -- existing frames in place and never rebuilds them, so gating creation on
+    -- the option would make the checkbox need a /reload. UpdateLeader reads
+    -- the option instead, and the size follows the slider live.
+    local leaderIcon = content:CreateTexture(nil, "OVERLAY")
+    local lSize = db.leaderIconSize or 14
+    leaderIcon:SetSize(lSize, lSize)
+    leaderIcon:SetPoint("BOTTOMLEFT", f, "TOPLEFT", 0, 1)
+    leaderIcon:SetTexture("Interface\\GroupFrame\\UI-Group-LeaderIcon")
+    leaderIcon:SetDrawLayer("OVERLAY", 6)
+    leaderIcon:Hide()
+    f.leaderIcon = leaderIcon
+
     -- ---- RAID MARKER ----
     if db.showRaidMarker then
         local markerFrame = CreateFrame("Frame", nil, content)
@@ -701,6 +718,26 @@ function PF.UpdateRole(f)
 end
 
 -- =====================================
+-- UPDATE: LEADER ICON
+-- =====================================
+-- Party frames include the player at index 0, so this covers "I am the
+-- leader" as well without a special case. Assistants are deliberately not
+-- handled: they only exist in raids, and these are party frames.
+function PF.UpdateLeader(f)
+    if not f or not f.leaderIcon then return end
+    local db = TomoModDB and TomoModDB.partyFrames
+    if not db or db.showLeaderIcon == false then f.leaderIcon:Hide(); return end
+    if not f.unit or not UnitExists(f.unit) then f.leaderIcon:Hide(); return end
+
+    local ok, isLeader = pcall(UnitIsGroupLeader, f.unit)
+    if ok and isLeader == true then
+        f.leaderIcon:Show()
+    else
+        f.leaderIcon:Hide()
+    end
+end
+
+-- =====================================
 -- UPDATE: RAID MARKER
 -- =====================================
 function PF.UpdateRaidMarker(f)
@@ -862,6 +899,7 @@ function PF.UpdateFrame(f)
     PF.UpdatePower(f)
     PF.UpdateName(f)
     PF.UpdateRole(f)
+    PF.UpdateLeader(f)
     PF.UpdateRaidMarker(f)
     PF.UpdateDispel(f)
     PF.UpdateGroupBuff(f)
@@ -1119,6 +1157,11 @@ local function OnEvent(self, event, arg1, ...)
         or event == "PARTY_MEMBER_DISABLE" then
         PF.RefreshGroup()
 
+    elseif event == "PARTY_LEADER_CHANGED" then
+        for _, f in pairs(PF.frames) do
+            if f then PF.UpdateLeader(f) end
+        end
+
     elseif event == "PLAYER_ROLES_ASSIGNED" then
         for _, f in pairs(PF.frames) do
             if f then PF.UpdateRole(f) end
@@ -1313,6 +1356,7 @@ function PF.Initialize()
     eventFrame:RegisterEvent("PARTY_MEMBER_ENABLE")
     eventFrame:RegisterEvent("PARTY_MEMBER_DISABLE")
     eventFrame:RegisterEvent("PLAYER_ROLES_ASSIGNED")
+    eventFrame:RegisterEvent("PARTY_LEADER_CHANGED")
     eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
     eventFrame:SetScript("OnEvent", OnEvent)
@@ -1396,6 +1440,8 @@ function PF.ApplySettings()
                 end
             end
 
+            local lSize = db.leaderIconSize or 14
+            if f.leaderIcon then f.leaderIcon:SetSize(lSize, lSize) end
             local rcSize = db.readyCheckSize or 24
             if f.readyCheck then f.readyCheck:SetSize(rcSize, rcSize) end
             local sSize = db.summonSize or 18

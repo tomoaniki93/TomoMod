@@ -27,6 +27,8 @@ local xpHourText       -- "XP/h: 12,500"
 local questPctText     -- "Quest: +0.5%"
 local restedText       -- "Rested: 100.5%"
 
+local infoPanel        -- hover overlay (built lazily)
+
 local isInitialized = false
 local isLocked      = true
 
@@ -116,6 +118,146 @@ local function CanGainXP()
     local level = UnitLevel("player") or 0
     if xp == 0 and level >= 80 then return false end
     return true
+end
+
+-- =====================================
+-- HOVER INFO OVERLAY
+-- =====================================
+-- A styled panel rather than a GameTooltip: it is ours to lay out (aligned
+-- value column, brand accents) and cannot be pre-empted by whatever else owns
+-- the tooltip at that moment.
+--
+-- Rows are generic slots filled top-down with whatever data is actually
+-- available, so a hidden row (no rested XP, no XP/h yet) leaves no gap.
+
+local MAX_INFO_ROWS = 9
+local ROW_H, PAD    = 14, 9
+
+local function FormatDuration(hours)
+    if hours <= 0 then return "-" end
+    if hours < 1 then
+        return string.format("%dm", math.max(1, math.floor(hours * 60 + 0.5)))
+    end
+    local h = math.floor(hours)
+    local m = math.floor((hours - h) * 60 + 0.5)
+    if m >= 60 then h, m = h + 1, 0 end
+    if m == 0 then return string.format("%dh", h) end
+    return string.format("%dh%02dm", h, m)
+end
+
+-- Several existing locale strings carry a trailing colon ("Progress:") and
+-- several do not. The panel supplies its own alignment, so normalise.
+local function Label(key, fallback)
+    local t = (L and L[key]) or fallback
+    if type(t) ~= "string" or t == key then t = fallback end
+    return (t:gsub(":%s*$", ""))
+end
+
+local function BuildInfoPanel()
+    if infoPanel then return end
+
+    infoPanel = CreateFrame("Frame", "TomoMod_LevelingBarInfo", UIParent, "BackdropTemplate")
+    infoPanel:SetFrameStrata("TOOLTIP")
+    infoPanel:SetSize(250, 40)
+    infoPanel:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    infoPanel:SetBackdropColor(0.04, 0.04, 0.06, 0.96)
+    infoPanel:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.7)
+    infoPanel:Hide()
+
+    local title = infoPanel:CreateFontString(nil, "OVERLAY")
+    title:SetFont(FONT_BOLD, 12, "OUTLINE")
+    title:SetPoint("TOPLEFT", infoPanel, "TOPLEFT", 10, -PAD)
+    title:SetTextColor(0.047, 0.824, 0.624)
+    title:SetText("TomoMod " .. Label("leveling_bar_title", "Leveling Bar"))
+
+    infoPanel.rows = {}
+    for i = 1, MAX_INFO_ROWS do
+        local row = {}
+        row.label = infoPanel:CreateFontString(nil, "OVERLAY")
+        row.label:SetFont(FONT, 11, "OUTLINE")
+        row.label:SetPoint("TOPLEFT", infoPanel, "TOPLEFT",
+                           10, -(PAD + 16 + 6 + (i - 1) * ROW_H))
+        row.label:SetTextColor(0.72, 0.72, 0.76)
+        row.label:SetJustifyH("LEFT")
+
+        row.value = infoPanel:CreateFontString(nil, "OVERLAY")
+        row.value:SetFont(FONT_BOLD, 11, "OUTLINE")
+        row.value:SetPoint("RIGHT", infoPanel, "RIGHT", -10, 0)
+        row.value:SetPoint("TOP", row.label, "TOP", 0, 0)
+        row.value:SetJustifyH("RIGHT")
+
+        infoPanel.rows[i] = row
+    end
+
+    infoPanel.hint = infoPanel:CreateFontString(nil, "OVERLAY")
+    infoPanel.hint:SetFont(FONT, 10, "OUTLINE")
+    infoPanel.hint:SetPoint("TOPLEFT", infoPanel, "TOPLEFT", 10, 0)
+    infoPanel.hint:SetTextColor(0.45, 0.45, 0.50)
+    infoPanel.hint:SetText(Label("leveling_drag_hint", "/tm sr to unlock & drag"))
+end
+
+local function UpdateInfoPanel()
+    if not infoPanel then return end
+
+    local cur, max = GetXPValues()
+    local data = {}
+    local function add(label, value, r, g, b)
+        data[#data + 1] = { label, value, r or 1, g or 1, b or 1 }
+    end
+
+    add(Label("leveling_level", "Level"), tostring(UnitLevel("player") or 0))
+    add("XP", FormatNumberFull(cur) .. " / " .. FormatNumberFull(max))
+    add(Label("leveling_remaining", "Remaining"), FormatNumberFull(math.max(0, max - cur)))
+    add(Label("leveling_progress", "Progress"),
+        string.format("%.1f%%", (cur / max) * 100), 0.047, 0.824, 0.624)
+
+    local rested = GetRestedXP()
+    if rested > 0 then
+        add(Label("leveling_rested", "Rested"),
+            string.format("%s (%.0f%%)", FormatNumber(rested), (rested / max) * 100),
+            0.30, 0.60, 1.0)
+    end
+
+    local xph = GetXPPerHour()
+    if xph > 0 then
+        add("XP/h", FormatNumberFull(xph))
+        add(Label("leveling_ttl", "Time to level"),
+            FormatDuration((max - cur) / xph), 0.95, 0.80, 0.10)
+    end
+
+    -- sessionStartXP is reset on level-up, so this is XP gained since the last
+    -- ding rather than since login -- the number that matters while levelling.
+    local gained = cur - sessionStartXP
+    if gained > 0 then
+        add(Label("leveling_session", "This level"), "+" .. FormatNumberFull(gained))
+    end
+
+    if lastQuestPct > 0 then
+        add(Label("leveling_last_quest", "Last quest"),
+            string.format("+%.1f%%", lastQuestPct), 0.95, 0.80, 0.10)
+    end
+
+    local shown = math.min(#data, MAX_INFO_ROWS)
+    for i = 1, MAX_INFO_ROWS do
+        local row = infoPanel.rows[i]
+        local d = data[i]
+        if d and i <= shown then
+            row.label:SetText(d[1])
+            row.value:SetText(d[2])
+            row.value:SetTextColor(d[3], d[4], d[5])
+            row.label:Show(); row.value:Show()
+        else
+            row.label:Hide(); row.value:Hide()
+        end
+    end
+
+    local hintY = PAD + 16 + 6 + shown * ROW_H + 4
+    infoPanel.hint:SetPoint("TOPLEFT", infoPanel, "TOPLEFT", 10, -hintY)
+    infoPanel:SetHeight(hintY + 14 + PAD)
 end
 
 -- =====================================
@@ -241,50 +383,26 @@ local function CreateBar()
     end)
 
     -- =========================================
-    -- TOOLTIP ON HOVER
+    -- HOVER OVERLAY
     -- =========================================
     barFrame:SetScript("OnEnter", function(self)
-        GameTooltip:SetOwner(self, "ANCHOR_TOP", 0, 4)
-        GameTooltip:ClearLines()
-        GameTooltip:AddLine("TomoMod " .. (L["leveling_bar_title"] or "Leveling Bar"), 0.047, 0.824, 0.624)
-        GameTooltip:AddLine(" ")
-
-        local cur, max = GetXPValues()
-        local pct = (cur / max) * 100
-        GameTooltip:AddDoubleLine("XP:", FormatNumberFull(cur) .. " / " .. FormatNumberFull(max), 0.8, 0.8, 0.8, 1, 1, 1)
-        GameTooltip:AddDoubleLine(L["leveling_progress"] or "Progress:", string.format("%.1f%%", pct), 0.8, 0.8, 0.8, 0.047, 0.824, 0.624)
-
-        local xph = GetXPPerHour()
-        if xph > 0 then
-            GameTooltip:AddDoubleLine("XP/h:", FormatNumberFull(xph), 0.8, 0.8, 0.8, 1, 1, 1)
-
-            -- Time to level estimate
-            local remaining = max - cur
-            local hoursLeft = remaining / xph
-            if hoursLeft < 1 then
-                GameTooltip:AddDoubleLine(L["leveling_ttl"] or "Time to level:", string.format("%dm", hoursLeft * 60), 0.8, 0.8, 0.8, 0.95, 0.80, 0.10)
-            else
-                GameTooltip:AddDoubleLine(L["leveling_ttl"] or "Time to level:", string.format("%.1fh", hoursLeft), 0.8, 0.8, 0.8, 0.95, 0.80, 0.10)
-            end
+        BuildInfoPanel()
+        UpdateInfoPanel()
+        infoPanel:ClearAllPoints()
+        -- Flip below the bar when there is no room above, so the panel stays
+        -- readable wherever the player has dragged the bar.
+        local top = self:GetTop() or 0
+        local screenH = UIParent:GetHeight() or 768
+        if top + infoPanel:GetHeight() + 8 > screenH then
+            infoPanel:SetPoint("TOP", self, "BOTTOM", 0, -6)
+        else
+            infoPanel:SetPoint("BOTTOM", self, "TOP", 0, 6)
         end
-
-        local rested = GetRestedXP()
-        if rested > 0 then
-            local restedPct = (rested / max) * 100
-            GameTooltip:AddDoubleLine(L["leveling_rested"] or "Rested:", string.format("%.1f%%", restedPct), 0.8, 0.8, 0.8, 0.30, 0.60, 1.0)
-        end
-
-        if lastQuestPct > 0 then
-            GameTooltip:AddDoubleLine(L["leveling_last_quest"] or "Last quest:", string.format("+%.1f%%", lastQuestPct), 0.8, 0.8, 0.8, 0.95, 0.80, 0.10)
-        end
-
-        GameTooltip:AddLine(" ")
-        GameTooltip:AddLine(L["leveling_drag_hint"] or "/tm sr to unlock & drag", 0.5, 0.5, 0.5)
-        GameTooltip:Show()
+        infoPanel:Show()
     end)
 
     barFrame:SetScript("OnLeave", function()
-        GameTooltip:Hide()
+        if infoPanel then infoPanel:Hide() end
     end)
 end
 

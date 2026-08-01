@@ -91,6 +91,18 @@ local function SkinTooltipBackground(tooltip)
     local bgR, bgG, bgB = bgC.r or BG_COLOR[1], bgC.g or BG_COLOR[2], bgC.b or BG_COLOR[3]
     local bdR, bdG, bdB = bdC.r or BORDER_CLR[1], bdC.g or BORDER_CLR[2], bdC.b or BORDER_CLR[3]
 
+    -- Border tinted by the unit's reaction (class colour for players). This
+    -- block runs on EVERY Show and always assigns a colour, which is what
+    -- keeps it from going "sticky": moving the mouse from a hostile unit onto
+    -- an item falls back to the configured border on the very next Show.
+    if s.reactionBorder and TomoMod_TooltipInfo and TomoMod_TooltipInfo.ReactionColor then
+        local unit = GetTooltipUnit(tooltip)
+        if unit then
+            local rr, rg, rb = TomoMod_TooltipInfo.ReactionColor(unit)
+            if rr then bdR, bdG, bdB = rr, rg, rb end
+        end
+    end
+
     -- Approche SetBackdrop (API standard, correctement bornée au frame du tooltip).
     -- N'utilise PAS NineSlice.Center:SetAlpha() qui peut affecter une zone plus large
     -- que le tooltip en TWW 12.x et créer un rectangle noir sur l'écran.
@@ -427,6 +439,9 @@ function TS.SetEnabled(value)
 end
 
 function TS.ApplySettings()
+    if TomoMod_TooltipInfo and TomoMod_TooltipInfo.ApplySettings then
+        TomoMod_TooltipInfo.ApplySettings()
+    end
     -- Settings take effect on next tooltip show (no refresh needed)
 end
 
@@ -478,5 +493,12 @@ function TS.Initialize()
 
     TS.RefreshAnchor()
     RegisterWithMovers()
+
+    -- The information layer rides on TooltipDataProcessor, not on our Show
+    -- hook, but it shares this module's settings table and lifecycle.
+    if TomoMod_TooltipInfo and TomoMod_TooltipInfo.Initialize then
+        TomoMod_TooltipInfo.Initialize()
+    end
+
     isInitialized = true
 end

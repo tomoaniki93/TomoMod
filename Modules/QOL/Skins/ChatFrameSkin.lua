@@ -843,11 +843,6 @@ local function AddMessageEdits(frame, msg, alwaysAddTimestamp, isHistory, histor
         end)
     end
 
-    if s.copyChatLines then
-        local T = TEX_CHAT:gsub("\\", "/")
-        msg = format("|Hcpl:%s|h%s|h %s", frame:GetID(), format("|T%sarrow:14|t", T), msg)
-    end
-
     -- ChatFrameUI text highlighting (MayronUI-style word groups with color + sound)
     if TomoMod_ChatFrameUI and TomoMod_ChatFrameUI.IsActive() and TomoMod_ChatFrameUI.HighlightText then
         msg = TomoMod_ChatFrameUI.HighlightText(msg)

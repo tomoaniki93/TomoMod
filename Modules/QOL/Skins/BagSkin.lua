@@ -76,104 +76,11 @@ local SORT_FUNCS = {
 }
 
 -- =====================================
--- CATEGORY DEFINITIONS (layout = "categories")
+-- REAGENT BAG
 -- =====================================
-
+-- Kept out of the removed category block: BAG_IDS and the bag-slot lookups
+-- further down still need it.
 local REAGENT_BAG_ID = Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag
-
--- Enum.ItemClass IDs (locale-independent). Numeric fallbacks guarantee
--- correctness even if a constant name is unavailable on a given client.
-local IC             = (Enum and Enum.ItemClass) or {}
-local IC_CONSUMABLE  = IC.Consumable      or 0
-local IC_CONTAINER   = IC.Container       or 1
-local IC_WEAPON      = IC.Weapon          or 2
-local IC_GEM         = IC.Gem             or 3
-local IC_ARMOR       = IC.Armor           or 4
-local IC_REAGENT     = IC.Reagent         or 5
-local IC_TRADEGOODS  = IC.Tradegoods      or IC.TradeGoods or 7
-local IC_ENHANCEMENT = IC.ItemEnhancement or 8
-local IC_RECIPE      = IC.Recipe          or 9
-local IC_QUEST       = IC.Questitem       or IC.QuestItem  or 12
-local IC_MISC        = IC.Miscellaneous   or 15
-local IC_BATTLEPET   = IC.Battlepet       or IC.BattlePet  or 17
-
--- Category definitions in default order. Each item is assigned to
--- the FIRST matching *active* category (see GetActiveCategories), so order also
--- defines match priority. "miscellaneous" is the catch-all and, with
--- "freeSlots", always stays active and last so items can never disappear.
-local CATEGORIES = {
-    { key="recentItems",  nameKey="bagskin_cat_recent",     fallback="Recent Items",        color={0.30,0.85,1.00},
-      match=function(i) return i.hasItem and C_NewItems and C_NewItems.IsNewItem(i.bagID,i.slotIndex) end },
-    { key="equipment",    nameKey="bagskin_cat_equipment",   fallback="Equipment",           color={0.90,0.70,0.30}, defaultSort="ilvl",
-      match=function(i) return i.hasItem and (i.classID==IC_ARMOR or i.classID==IC_WEAPON) end },
-    { key="questItems",   nameKey="bagskin_cat_quest",       fallback="Quest Items",         color={1.00,0.80,0.20},
-      match=function(i) return i.hasItem and i.classID==IC_QUEST end },
-    { key="consumables",  nameKey="bagskin_cat_consumables", fallback="Consumables",         color={0.40,0.90,0.40},
-      match=function(i) return i.hasItem and i.classID==IC_CONSUMABLE end },
-    { key="tradeGoods",   nameKey="bagskin_cat_tradegoods",  fallback="Trade Goods",         color={0.70,0.55,0.35},
-      match=function(i) return i.hasItem and i.classID==IC_TRADEGOODS end },
-    { key="reagents",     nameKey="bagskin_cat_reagents",    fallback="Reagents",            color={0.55,0.75,0.90},
-      match=function(i) if not i.hasItem then return false end; if REAGENT_BAG_ID and i.bagID==REAGENT_BAG_ID then return true end; return i.classID==IC_REAGENT end },
-    { key="gemsEnchants", nameKey="bagskin_cat_gems",        fallback="Gems & Enhancements", color={0.80,0.40,0.90},
-      match=function(i) return i.hasItem and (i.classID==IC_GEM or i.classID==IC_ENHANCEMENT) end },
-    { key="recipes",      nameKey="bagskin_cat_recipes",     fallback="Recipes",             color={0.85,0.65,0.35},
-      match=function(i) return i.hasItem and i.classID==IC_RECIPE end },
-    { key="battlePets",   nameKey="bagskin_cat_pets",        fallback="Battle Pets",         color={0.50,0.80,0.95},
-      match=function(i) return i.hasItem and i.classID==IC_BATTLEPET end },
-    { key="junk",         nameKey="bagskin_cat_junk",        fallback="Junk",                color={0.62,0.62,0.62},
-      match=function(i) return i.hasItem and (i.quality or 0)==0 end },
-    { key="miscellaneous",nameKey="bagskin_cat_misc",        fallback="Miscellaneous",       color={0.60,0.60,0.70},
-      match=function(i) return i.hasItem end },
-    { key="freeSlots",    nameKey="bagskin_cat_free",        fallback="Free Slots",          color={0.35,0.35,0.42},
-      match=function(i) return not i.hasItem end },
-}
-
--- Derived lookup + default order (mirrors the array order above).
-local CAT_BY_KEY    = {}
-local DEFAULT_ORDER = {}
-for _, c in ipairs(CATEGORIES) do
-    CAT_BY_KEY[c.key] = c
-    DEFAULT_ORDER[#DEFAULT_ORDER+1] = c.key
-end
-
--- Never-hidden, always-last categories (so no item can vanish).
-local FORCED_ACTIVE = { miscellaneous = true, freeSlots = true }
-
--- Build the ordered list of *active* category defs from the saved user order
--- (bagCategoryOrder) and hidden state (bagCategoryState[key].hidden). Non-forced
--- categories come first in the chosen order, then any new defaults missing from
--- a saved order, then the forced catch-all/free last.
-local function GetActiveCategories(s)
-    local order = (s.bagCategoryOrder and #s.bagCategoryOrder > 0) and s.bagCategoryOrder or DEFAULT_ORDER
-    local state = s.bagCategoryState or {}
-    local active, seen = {}, {}
-
-    local function isHidden(key) return state[key] and state[key].hidden end
-
-    for _, key in ipairs(order) do
-        local def = CAT_BY_KEY[key]
-        if def and not seen[key] and not FORCED_ACTIVE[key] then
-            seen[key] = true
-            if not isHidden(key) then active[#active+1] = def end
-        end
-    end
-    if order ~= DEFAULT_ORDER then
-        for _, key in ipairs(DEFAULT_ORDER) do
-            local def = CAT_BY_KEY[key]
-            if def and not seen[key] and not FORCED_ACTIVE[key] then
-                seen[key] = true
-                if not isHidden(key) then active[#active+1] = def end
-            end
-        end
-    end
-    for _, key in ipairs(DEFAULT_ORDER) do
-        if FORCED_ACTIVE[key] and CAT_BY_KEY[key] and not seen[key] then
-            seen[key] = true
-            active[#active+1] = CAT_BY_KEY[key]
-        end
-    end
-    return active
-end
 -- =====================================
 -- STATE
 -- =====================================
@@ -305,26 +212,6 @@ local function CollectItems()
 end
 
 -- =====================================
--- CATEGORIZE ITEMS
--- =====================================
-
-local function Categorize(items, cats)
-    cats = cats or CATEGORIES
-    local out = {}
-    for _, cat in ipairs(cats) do out[cat.key] = {} end
-
-    for _, item in ipairs(items) do
-        for _, cat in ipairs(cats) do
-            if cat.match(item) then
-                out[cat.key][#out[cat.key]+1] = item
-                break
-            end
-        end
-    end
-    return out
-end
-
--- =====================================
 -- STACK MERGING (optional)
 -- =====================================
 
@@ -431,7 +318,15 @@ local function CreateSlotButton(parent, size)
     high:SetColorTexture(1, 1, 1, 0.12)
     high:SetBlendMode("ADD")
 
-    btn:RegisterForClicks("AnyUp", "AnyDown")
+    -- [FIX] Up only. With "AnyDown" registered the secure handler also ran on
+    -- the press, where PreClick returns early and leaves type1 at its previous
+    -- value -- that empty click consumed the targeting cursor, so by the time
+    -- the release fired SpellIsTargeting() was already false and the item got
+    -- picked up instead of disenchanted/milled/prospected. Hence "twice".
+    -- Setting the attribute on the press instead would be worse: /use would
+    -- fire on press AND the release would then pick the item up mid-cast.
+    -- Dragging is unaffected, it goes through RegisterForDrag below.
+    btn:RegisterForClicks("AnyUp")
     btn:RegisterForDrag("LeftButton")
 
     -- Tooltip (like GW2_UI — native SetBagItem)
@@ -932,89 +827,6 @@ local function LayoutGrid()
         if col > 0 then gy = gy - slotSize - spacingY end
         content:SetHeight(math.abs(gy) + SIDE_PAD)
 
-    -- ===== LAYOUT: CATEGORIES =====
-    elseif layoutMode == "categories" then
-        local activeCats = GetActiveCategories(s)
-        local cats = Categorize(allItems, activeCats)
-        local collapsedDB = s.collapsedSections or {}
-        local y = 0
-
-        for _, catDef in ipairs(activeCats) do
-            local items = cats[catDef.key]
-            if not items or #items == 0 then
-                if sectionFrames[catDef.key] then sectionFrames[catDef.key]:Hide() end
-            elseif catDef.key == "recentItems" and not showRecent then
-                if sectionFrames[catDef.key] then sectionFrames[catDef.key]:Hide() end
-            elseif catDef.key == "freeSlots" and not showEmpty then
-                if sectionFrames[catDef.key] then sectionFrames[catDef.key]:Hide() end
-            else
-                local section = GetSection(content, catDef.key, catDef.color, catDef.fallback)
-                section:SetWidth(contentW)
-                local collapsed = collapsedDB[catDef.key] or false
-                local catName = (L and L[catDef.nameKey]) or catDef.fallback
-
-                section._arrow:SetText(collapsed and ">" or "v")
-                section._title:SetText(catName)
-                section._countBadge:SetText("(" .. #items .. ")")
-
-                if y > 0 then y = y + SECTION_GAP end
-                section:ClearAllPoints()
-                section:SetPoint("TOPLEFT", content, "TOPLEFT", 0, -y)
-
-                if collapsed then
-                    section._grid:Hide()
-                    section:SetHeight(SECTION_HDR_H)
-                    y = y + SECTION_HDR_H
-                else
-                    section._grid:Show()
-                    local displayItems = doMerge and MergeStacks(items) or items
-                    local sSort = catDef.defaultSort or sortMode
-                    local fn = SORT_FUNCS[sSort]
-                    if fn and catDef.key ~= "freeSlots" then table.sort(displayItems, fn) end
-
-                    -- Filter
-                    local skipSection = false
-                    if currentFilter ~= "" and catDef.key ~= "freeSlots" then
-                        local f = {}
-                        for _, item in ipairs(displayItems) do
-                            if item.hasItem and (item.name or ""):lower():find(currentFilter, 1, true) then
-                                f[#f+1] = item
-                            end
-                        end
-                        if #f == 0 then
-                            section:Hide()
-                            skipSection = true
-                        else
-                            displayItems = f
-                        end
-                    end
-
-                    if not skipSection then
-                        local gx, gy = SIDE_PAD, -SECTION_PAD
-                        local col = 0
-                        for _, item in ipairs(displayItems) do
-                            local w = AcquireSlot(section._grid, slotSize)
-                            w:ClearAllPoints()
-                            w:SetPoint("TOPLEFT", section._grid, "TOPLEFT", gx, gy)
-                            UpdateSlot(w, item)
-                            col = col + 1
-                            if col >= columns then
-                                col = 0; gx = SIDE_PAD; gy = gy - slotSize - spacingY
-                            else gx = gx + slotSize + spacingX end
-                        end
-                        if col > 0 then gy = gy - slotSize - spacingY end
-
-                        local gridH = math.abs(gy) + SECTION_PAD
-                        section._grid:SetHeight(gridH)
-                        section:SetHeight(SECTION_HDR_H + gridH)
-                        y = y + SECTION_HDR_H + gridH
-                        section:Show()
-                    end
-                end
-            end
-        end
-        content:SetHeight(math.max(y + SIDE_PAD, 10))
-
     -- ===== LAYOUT: SEPARATE BAGS (GW2_UI-style) =====
     elseif layoutMode == "separateBags" then
         local collapsedDB = s.collapsedSections or {}
@@ -1278,7 +1090,6 @@ local function ShowSettingsMenu(anchor)
         local lmSub = root:CreateButton((L and L["opt_skin_bags_layout_mode"]) or "Layout Mode")
         for _, opt in ipairs({
             { "combined",      (L and L["opt_skin_bags_layout_combined"])   or "Combined Grid" },
-            { "categories",    (L and L["opt_skin_bags_layout_categories"]) or "Categories" },
             { "separateBags",  (L and L["opt_skin_bags_layout_separate"])   or "Separate Bags" },
         }) do
             lmSub:CreateRadio(opt[2],

@@ -105,6 +105,8 @@
     <Include file="Skins\BuffSkin.lua" />
     <Include file="Skins\GameMenuSkin.lua" />
     <Include file="Skins\TooltipSkin.lua" />
+    <Include file="Skins\TooltipInspect.lua" />
+    <Include file="Skins\TooltipInfo.lua" />
     <Include file="Skins\GroupManagerSkin.lua" />
     <Include file="Skins\FriendsSkin.lua" />
     <!-- Modules: Waypoint (In-world navigation — /tm way) -->

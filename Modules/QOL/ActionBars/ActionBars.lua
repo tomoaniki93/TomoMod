@@ -26,8 +26,11 @@ AB.BAR_DEFS = {
     { id = "bar6",   blizzFrame = "MultiBar5",           prefix = "MultiBar5Button",           count = 12 },
     { id = "bar7",   blizzFrame = "MultiBar6",           prefix = "MultiBar6Button",           count = 12 },
     { id = "bar8",   blizzFrame = "MultiBar7",           prefix = "MultiBar7Button",           count = 12 },
-    { id = "pet",    blizzFrame = "PetActionBar",        prefix = "PetActionButton",           count = 10 },
-    { id = "stance", blizzFrame = "StanceBar",           prefix = "StanceButton",              count = 10 },
+    -- noAction: the buttons on these bars are not action slots. They have no
+    -- .action field and no "action" attribute, so HasAction() is meaningless
+    -- on them and the empty-slot logic must skip them entirely.
+    { id = "pet",    blizzFrame = "PetActionBar",        prefix = "PetActionButton",           count = 10, noAction = true },
+    { id = "stance", blizzFrame = "StanceBar",           prefix = "StanceButton",              count = 10, noAction = true },
 }
 
 -- Lookup by id
@@ -385,7 +388,13 @@ local function ReparentButtons(def, container)
         local btn = _G[def.prefix .. i]
         if btn then
             btn:SetParent(container)
-            btn:Show()   -- Ensure visible (Blizzard OnHide may have hidden them)
+            -- Action buttons are ours to show. Pet/stance buttons are driven by
+            -- how many pet abilities or shapeshift forms the character actually
+            -- has, so forcing them visible put ten empty squares on screen for
+            -- classes with no forms at all.
+            if not def.noAction then
+                btn:Show()   -- Ensure visible (Blizzard OnHide may have hidden them)
+            end
             if def.paging then
                 btn:SetAttribute("index", i)
                 btn:SetAttribute("action", i)
@@ -673,6 +682,12 @@ local function UpdateEmptyButtons(id)
     local barDB = GetBarDB(id)
     local buttons = barButtons[id]
     if not buttons then return end
+    -- [FIX] This used to run on every bar. On pet/stance buttons the lookup
+    -- `btn.action or btn:GetAttribute("action") or 0` fell through to 0,
+    -- HasAction(0) is false, and all ten buttons were hidden -- so unchecking
+    -- "show empty buttons" made the whole stance bar vanish.
+    local def = DEF_BY_ID[id]
+    if def and def.noAction then return end
     if InCombatLockdown() then
         QueueProtectedOp("emptybtns_" .. id, function() UpdateEmptyButtons(id) end)
         return
@@ -968,6 +983,66 @@ extraFrame:SetScript("OnEvent", function(_, event)
     end
 end)
 
+-- =====================================================================
+-- STANCE BAR VISIBILITY
+-- =====================================================================
+
+-- Only classes/specs that actually have shapeshift forms should get a stance
+-- bar. GetNumShapeshiftForms() is the right gate rather than a hardcoded
+-- class list: it follows specs and talents on its own (a Priest who takes
+-- Shadowform, a Warrior whose stances depend on spec) and it cannot rot when
+-- Blizzard reshuffles who has forms.
+--
+-- Button art and cooldowns are left to Blizzard's own per-button handlers --
+-- the pet bar is suppressed the same way and updates correctly, so the
+-- buttons clearly register their own events rather than relying on the parent
+-- bar frame we unregister in HideBlizzardBar.
+local function UpdateStanceVisibility()
+    local container = containers["stance"]
+    if not container then return end
+    local buttons = barButtons["stance"]
+    if not buttons then return end
+
+    if InCombatLockdown() then
+        QueueProtectedOp("stance_vis", UpdateStanceVisibility)
+        return
+    end
+
+    local n = 0
+    if GetNumShapeshiftForms then
+        local ok, v = pcall(GetNumShapeshiftForms)
+        if ok and type(v) == "number" then n = v end
+    end
+
+    for i, btn in ipairs(buttons) do
+        if i <= n then btn:Show() else btn:Hide() end
+    end
+
+    -- tomo-user-shown is the attribute the secure override driver reads, so
+    -- setting it keeps our state and the vehicle/petbattle gate in agreement
+    -- instead of fighting each other.
+    if n > 0 then
+        container:SetAttribute("tomo-user-shown", true)
+        local barDB = GetBarDB("stance")
+        if barDB.enabled ~= false then container:Show() end
+    else
+        container:SetAttribute("tomo-user-shown", false)
+        container:Hide()
+    end
+end
+
+AB.UpdateStanceVisibility = UpdateStanceVisibility
+
+local stanceFrame = CreateFrame("Frame")
+stanceFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+stanceFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
+stanceFrame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+stanceFrame:RegisterEvent("PLAYER_SPECIALIZATION_CHANGED")
+stanceFrame:SetScript("OnEvent", function()
+    if not IsEnabled() then return end
+    UpdateStanceVisibility()
+end)
+
 -- Public API for the config panel.
 AB.ApplyExtra         = ApplyExtra
 AB.ApplyExtraAnchor   = ApplyExtraAnchor
@@ -1010,6 +1085,12 @@ function AB.ApplyBar(id)
             container:SetAttribute("tomo-user-shown", true)
             if not InCombatLockdown() then container:Show() end
         end
+    end
+
+    -- Must run last: the block above unconditionally re-shows an enabled bar,
+    -- so gating the stance bar any earlier would immediately be undone.
+    if id == "stance" and AB.UpdateStanceVisibility then
+        AB.UpdateStanceVisibility()
     end
 end
 

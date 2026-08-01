@@ -1,6 +1,47 @@
 ## ####################################
 
-## CHANGELOG 3.3.0 — Delves Visible Again, CooldownForge Reads Your Resources, Supercharged Combo Points & Color Picker Fixes
+## CHANGELOG 3.3.0 — Tooltips That Tell You Who You Are Looking At, Delves Visible Again, CooldownForge Reads Your Resources & Supercharged Combo Points
+
+#### Tooltip — A Real Unit Information Layer
+- **New** — Unit tooltips now carry the information that used to require a dedicated addon: guild rank, the unit's current target, Mythic+ score, the mount being ridden, movement speed and location. Every line has its own toggle in Skins → Tooltip, under a master "Show unit information" switch, so the tooltip stays exactly as busy as you want it.
+- **New** — Icons ride on the name line — raid marker, role, and optionally the class icon — at a configurable size. They are inline texture escapes rather than anchored textures, so the tooltip keeps sizing itself correctly around them instead of having its layout measured by hand.
+- **New** — The border can take the unit's color: class color for a player, hostile / neutral / friendly for an NPC, grey for a corpse. It is reassigned on every show, so moving the mouse from a hostile unit onto an item falls straight back to the configured border instead of keeping the red one.
+- **New** — The level line is recolored by difficulty, red for a boss or a "??" unit. The line Blizzard already built is recolored rather than rewritten: reconstructing "Level 80 Blood Elf Paladin" from parts is exactly where a secret value or a localized classification produces a mangled line.
+- **New** — Target and speed refresh in place while the tooltip stays open, four times a second, and only while one of those two lines is actually on screen. Nothing polls when nothing needs it.
+- **Change** — The tooltip health bar is now hidden by default — the information layer replaces it. A one-time migration brings existing profiles along; unticking the option puts the bar back and it sticks.
+- **Note** — Location is deliberately limited to yourself and your party members. `C_Map.GetBestMapForUnit` returns nothing for an arbitrary target, so the line would be absent half the time rather than sometimes silently wrong. It is opt-in, and off by default.
+- **Note** — The feature set is modelled on what TipTac Reborn shows, but nothing here derives from its code: TipTac is GPL-3.0 and TomoMod is not, so everything is written against Blizzard's public API only.
+- **Internal** — Every unit read goes through a guarded helper that rejects a secret value and a wrong type alike. Branching on a secret value raises in 12.x, so a doubtful read means the line is skipped — never a guess, never a partial string.
+- **Internal** — The layer rides on `TooltipDataProcessor`'s unit post-call rather than a `Show` hook: each appended line resizes the tooltip and re-fires `Show`, which that hook could not survive.
+
+#### Tooltip — Item Level And Specialization
+- **New** — Hovering a player now shows their equipped item level and their specialization, with the spec icon. Both require an actual inspect, so they only appear when the player is in range and connected. Out of range the lines are simply left out, rather than filling every open-world tooltip with an "unavailable" placeholder.
+- **Change** — Item level is colored by the gap to your own rather than by season thresholds. Those rot at every patch, and the gap is the comparison a player actually makes when inspecting someone.
+- **New** — A "..." placeholder holds the line while the server answers, and the value is written into that same line when it lands, so the tooltip does not jump under the cursor a second after it appeared. The placeholder can be turned off.
+- **Internal** — Inspection lives in its own module that knows nothing about tooltips. It answers one question — "what do we know about this unit's gear and spec right now?" — with ready / pending / unavailable, and the display side owns everything visual.
+- **Internal** — The inspect channel is shared and fragile, so requests are paced 1.5 s apart, only one is ever in flight, a silent request is abandoned after 3 s instead of blocking the queue forever, and results are cached per GUID for 5 minutes — a tooltip can be re-shown many times a second while the mouse sits still on a unit.
+- **Internal** — While Blizzard's own inspect window is open the module stands down entirely rather than race it for the same channel, and it releases the channel after every reply so that window keeps working.
+
+#### Party Frames — The Leader Is Marked
+- **New** — The group leader now gets a crown above the top-left corner of their frame, with its own toggle and size slider. Party frames include you at index 0, so "I am the leader" is covered without a special case. Assistants are deliberately left out: they only exist in raids, and these are party frames.
+- **Internal** — The icon is created on every frame regardless of the option, and the option is read when it updates. `ApplySettings` updates existing frames in place and never rebuilds them, so gating creation on the checkbox would have made it need a /reload.
+
+#### Action Bars — The Stance Bar Stops Showing Ten Empty Squares
+- **Fix** — Classes with no shapeshift forms got a stance bar with ten empty buttons on it. Re-parenting a bar's buttons force-showed every one of them — right for action slots, wrong for pet and stance buttons, which are driven by how many abilities or forms the character actually has. The bar now appears only when `GetNumShapeshiftForms` reports forms, and only that many buttons are shown.
+- **Fix** — Unchecking "show empty button slots" made the whole stance bar vanish. That pass reads each button's action slot; pet and stance buttons have none, the lookup fell through to slot 0, `HasAction(0)` is false, and all ten were hidden. Both bars are skipped by that pass now.
+- **Internal** — The gate is `GetNumShapeshiftForms` rather than a hardcoded class list: it follows specs and talents by itself and cannot rot when Blizzard reshuffles who has forms. The visibility pass also runs last in the bar apply, since the step above it unconditionally re-shows an enabled bar.
+
+#### Leveling Bar — A Hover Panel Instead Of A Tooltip
+- **Change** — Hovering the leveling bar now opens a styled panel instead of a GameTooltip: aligned value column, brand accents, and it cannot be pre-empted by whatever else owns the tooltip at that moment.
+- **New** — It shows more than the tooltip did — level, raw XP, XP remaining, progress, rested, XP/h, time to level, XP gained since the last ding, and the last quest's contribution. Rows are generic slots filled top-down with whatever is actually available, so a value that does not apply leaves no gap.
+- **Change** — The panel flips below the bar when there is no room above it, so it stays readable wherever the bar has been dragged.
+
+#### Bags — Right-Click Actions Work On The First Try
+- **Fix** — Disenchanting, milling or prospecting from the bag skin took two attempts. Slots were registered for both press and release, so the press ran the secure handler with a stale click type, and that empty click consumed the targeting cursor; by the time the release fired there was nothing left to apply the spell to and the item was picked up instead. Slots are release-only now. Setting the attribute on the press instead would have been worse — the spell would fire on press and the release would then pick the item up mid-cast. Dragging is unaffected, it goes through its own drag registration.
+- **Change** — The "Categories" bag layout has been removed, leaving Combined Grid and Separate Bags. A profile still set to it is moved onto the combined grid once, rather than falling through every layout branch and rendering an empty bag.
+
+#### Chat — The Per-Line Copy Icon Is Gone
+- **Fix** — The per-message copy icon put a placeholder glyph in front of every chat line, because its texture never resolved. The option is removed rather than repaired, and it is cleared once for anyone who had it on — otherwise the glyphs would have stayed with no switch left to turn them off.
 
 #### Objective Tracker — A Delve Is Not An Empty Tracker
 - **Fix** — Inside a Delve the tracker showed nothing at all: no stage, no criteria, no progress. "Hide when empty" — on by default since 3.2.6 — decides emptiness by counting quest blocks, and a Delve tracks its progress in the scenario module, whose subtree is deliberately excluded from that collection because its internal anchors come apart when re-parented. A run with no quest tracked alongside it therefore read as an empty tracker, and the whole panel was hidden. Emptiness is now decided after the scenario / delve module has been placed, and counts that module's own content.

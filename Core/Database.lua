@@ -303,7 +303,6 @@ TomoMod_Defaults = {
         findURL = true,
         emoji = true,
         classColorMentions = true,
-        copyChatLines = false,
         chatHistory = true,
         keywords = "%MYNAME%",
         showHistory = {
@@ -423,7 +422,7 @@ TomoMod_Defaults = {
         showSearchBar = true,
         showGold = true,
         showCurrencies = false,
-        layoutMode = "combined",     -- "combined", "categories", "separateBags"
+        layoutMode = "combined",     -- "combined", "separateBags"
         sortMode = "quality",
         reverseBagOrder = false,
         stackMerge = false,
@@ -431,8 +430,6 @@ TomoMod_Defaults = {
         showRecentItems = true,
         showBagBar = true,
         collapsedSections = {},
-        bagCategoryState  = {},   -- { [catKey] = { hidden = bool } }; reorder/hide UI comes later
-        -- bagCategoryOrder = { ... }  -- optional saved order of category keys;
         position = { anchor = "BOTTOMRIGHT", relTo = "BOTTOMRIGHT", x = -20, y = 60 },
     },
     buffSkin = {
@@ -458,12 +455,36 @@ TomoMod_Defaults = {
         anchor = "default",        -- default | cursor | corner | custom
         anchorCorner = "BOTTOMRIGHT",
         fontSize = 12,
-        hideHealthBar = false,
+        -- Bars are out by design: the information layer replaces them.
+        hideHealthBar = true,
         useClassColorNames = true,
         hidePlayerServer = false,
         hidePlayerTitle = false,
         useGuildNameColor = true,
         guildNameColor = { r = 0.180, g = 0.847, b = 0.518 },
+
+        -- ---- Unit information layer (TooltipInfo.lua) ----
+        showUnitInfo              = true,   -- master switch for the lines below
+        infoIconSize              = 14,
+        reactionBorder            = true,   -- border tinted by reaction/class
+        colorTooltipLevel         = true,   -- level line by difficulty colour
+        showTooltipRaidMarker     = true,
+        showTooltipRoleIcon       = true,
+        showTooltipClassIcon      = false,  -- redundant with the coloured name
+        showTooltipGuildRank      = true,
+        showTooltipGuildRankIndex = false,
+        showTooltipGuildRealm     = true,
+        showTooltipTarget         = true,
+        showTooltipMythicScore    = true,
+        showTooltipMount          = true,
+        showTooltipSpeed          = false,  -- drives the refresh loop; opt-in
+        showTooltipLocation       = false,  -- player/party only, see TooltipInfo
+
+        -- ---- Inspection (TooltipInspect.lua) ----
+        showTooltipItemLevel      = true,
+        showTooltipSpec           = true,
+        showTooltipSpecIcon       = true,
+        inspectPendingText        = true,   -- show "..." while the reply lands
     },
     mailSkin = {
         enabled = true,
@@ -1119,6 +1140,8 @@ TomoMod_Defaults = {
         nameMaxLength = 0,  -- 0 = no limit
         showRoleIcon = true,
         roleIconSize = 14,
+        showLeaderIcon = true,
+        leaderIconSize = 14,
         showRaidMarker = true,
         raidMarkerSize = 16,
         readyCheckSize = 24,
@@ -1374,10 +1397,43 @@ local function TomoMod_RunMigrations()
     -- screen. hideWhenEmpty now defaults to true; bring existing profiles
     -- along once. A player who prefers the old behaviour can turn it back
     -- off and it will stick.
+    -- The tooltip now ships an information layer instead of bars, so bring
+    -- existing profiles onto hideHealthBar = true once. A player who wants the
+    -- bar back can untick it and it will stick.
+    if not done.ttHideHealthBar then
+        done.ttHideHealthBar = true
+        if type(TomoModDB.tooltipSkin) == "table" then
+            TomoModDB.tooltipSkin.hideHealthBar = true
+        end
+    end
+
     if not done.otHideWhenEmpty then
         done.otHideWhenEmpty = true
         if type(TomoModDB.objectiveTracker) == "table" then
             TomoModDB.objectiveTracker.hideWhenEmpty = true
+        end
+    end
+
+    -- The bag "categories" layout is gone. A profile still set to it would
+    -- fall through every branch of LayoutGrid and render an empty bag, so
+    -- move those players onto the combined grid once.
+    if not done.bagDropCategories then
+        done.bagDropCategories = true
+        local bs = TomoModDB.bagSkin
+        if type(bs) == "table" then
+            if bs.layoutMode == "categories" then bs.layoutMode = "combined" end
+            bs.bagCategoryState, bs.bagCategoryOrder = nil, nil
+        end
+    end
+
+    -- The per-message chat copy icon is gone: its texture failed to resolve
+    -- and left a placeholder glyph in front of every line. The option is no
+    -- longer in the GUI, so clear it for anyone who had it on -- otherwise
+    -- they would keep the glyphs with no way to switch them off.
+    if not done.chatDropCopyLines then
+        done.chatDropCopyLines = true
+        if type(TomoModDB.chatFrameSkin) == "table" then
+            TomoModDB.chatFrameSkin.copyChatLines = nil
         end
     end
 end

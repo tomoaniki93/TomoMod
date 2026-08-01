@@ -98,12 +98,6 @@ local function BuildChatFrameTab(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_copy_lines"], TomoModDB.chatFrameSkin.copyChatLines, y, function(v)
-        TomoModDB.chatFrameSkin.copyChatLines = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
-    end)
-    y = ny
-
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
@@ -214,12 +208,11 @@ local function BuildBagsTab(parent)
     -- Layout mode (GW2_UI-inspired: combined / categories / separate bags)
     local _, ny = W.CreateSegmentedControl(c, (L and L["opt_skin_bags_layout_mode"]) or "Layout Mode", {
         { text = (L and L["opt_skin_bags_layout_combined"])   or "Combined Grid",  value = "combined" },
-        { text = (L and L["opt_skin_bags_layout_categories"]) or "Categories",     value = "categories" },
         { text = (L and L["opt_skin_bags_layout_separate"])   or "Separate Bags",  value = "separateBags" },
     }, db.layoutMode or "combined", y, function(v)
         db.layoutMode = v
         if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end, 3)
+    end, 2)
     y = ny
 
     -- Sort mode
@@ -787,6 +780,121 @@ local function BuildTooltipSkinTab(parent)
         TomoModDB.tooltipSkin.guildNameColor.g = g
         TomoModDB.tooltipSkin.guildNameColor.b = b
     end)
+    y = ny
+
+    -- ─────────────────────────────────────────────
+    -- Unit information (TooltipInfo)
+    -- ─────────────────────────────────────────────
+    local _, ny = W.CreateSeparator(c, y); y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_tooltip_info"], y); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_unit_info"], TomoModDB.tooltipSkin.showUnitInfo ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showUnitInfo = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_tooltip_unit_info"], y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_reaction_border"], TomoModDB.tooltipSkin.reactionBorder ~= false, y, function(v)
+        TomoModDB.tooltipSkin.reactionBorder = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_color_level"], TomoModDB.tooltipSkin.colorTooltipLevel ~= false, y, function(v)
+        TomoModDB.tooltipSkin.colorTooltipLevel = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_raid_marker"], TomoModDB.tooltipSkin.showTooltipRaidMarker ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipRaidMarker = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_role_icon"], TomoModDB.tooltipSkin.showTooltipRoleIcon ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipRoleIcon = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_class_icon"], TomoModDB.tooltipSkin.showTooltipClassIcon, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipClassIcon = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_tooltip_icon_size"], TomoModDB.tooltipSkin.infoIconSize or 14, 8, 24, 1, y, function(v)
+        TomoModDB.tooltipSkin.infoIconSize = v
+    end, "%.0f")
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_guild_rank"], TomoModDB.tooltipSkin.showTooltipGuildRank ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipGuildRank = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_guild_rank_index"], TomoModDB.tooltipSkin.showTooltipGuildRankIndex, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipGuildRankIndex = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_guild_realm"], TomoModDB.tooltipSkin.showTooltipGuildRealm ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipGuildRealm = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_show_target"], TomoModDB.tooltipSkin.showTooltipTarget ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipTarget = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_mythic_score"], TomoModDB.tooltipSkin.showTooltipMythicScore ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipMythicScore = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_mount"], TomoModDB.tooltipSkin.showTooltipMount ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipMount = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_speed"], TomoModDB.tooltipSkin.showTooltipSpeed, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipSpeed = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_location"], TomoModDB.tooltipSkin.showTooltipLocation, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipLocation = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_tooltip_location"], y)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y); y = ny
+    local _, ny = W.CreateSubLabel(c, L["sublabel_tooltip_inspect"], y); y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_item_level"], TomoModDB.tooltipSkin.showTooltipItemLevel ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipItemLevel = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_spec"], TomoModDB.tooltipSkin.showTooltipSpec ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipSpec = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_spec_icon"], TomoModDB.tooltipSkin.showTooltipSpecIcon ~= false, y, function(v)
+        TomoModDB.tooltipSkin.showTooltipSpecIcon = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_tooltip_pending_text"], TomoModDB.tooltipSkin.inspectPendingText ~= false, y, function(v)
+        TomoModDB.tooltipSkin.inspectPendingText = v
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_tooltip_inspect"], y)
     y = ny
 
     -- ─────────────────────────────────────────────
