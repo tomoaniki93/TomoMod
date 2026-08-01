@@ -77,21 +77,48 @@ local function SafeCall(fn, ...)
     return a, b, c, d
 end
 
+-- ORDER MATTERS IN EVERY HELPER BELOW: issecretvalue() is tested BEFORE any
+-- comparison touches the value. Comparing a secret raises outright, so a test
+-- like `v == ""` placed first crashes on exactly the values these guards were
+-- written to catch. Never move a comparison above the IsSecret line.
+
+-- Opaque passthrough: the value is only ever handed back to the game (as an
+-- API argument, or concatenated) and never inspected, so a secret one is
+-- perfectly usable. Unit tokens are the main case -- rejecting them would
+-- disable the whole layer, since 12.x hands out secret unit tokens.
+local function Opaque(v)
+    if type(v) ~= "string" then return nil end
+    return v
+end
+
+-- For values this file will inspect: compare, pattern-match, or format.
 local function SafeStr(v)
-    if type(v) ~= "string" or v == "" then return nil end
     if IsSecret(v) then return nil end
+    if type(v) ~= "string" then return nil end
+    if v == "" then return nil end
     return v
 end
 
 local function SafeNum(v)
-    if type(v) ~= "number" then return nil end
     if IsSecret(v) then return nil end
+    if type(v) ~= "number" then return nil end
+    return v
+end
+
+-- Booleans need the same care. `UnitIsPlayer(unit) == true` reads as harmless
+-- but is a comparison, and it raises the moment the game returns a secret
+-- boolean -- the same defect as above, one type over.
+local function SafeBool(v)
+    if IsSecret(v) then return nil end
+    if type(v) ~= "boolean" then return nil end
     return v
 end
 
 local function ClassColor(unit)
     local _, token = SafeCall(UnitClass, unit)
-    if type(token) ~= "string" then return nil end
+    -- Also a table key below, so a secret token has to be rejected here.
+    token = SafeStr(token)
+    if not token then return nil end
     local c = (CUSTOM_CLASS_COLORS and CUSTOM_CLASS_COLORS[token])
               or (RAID_CLASS_COLORS and RAID_CLASS_COLORS[token])
     if not c then return nil end
@@ -103,13 +130,13 @@ end
 -- triple rather than Blizzard's full reaction table, which is finer-grained
 -- than a border can usefully express.
 local function ReactionColor(unit)
-    local isPlayer = SafeCall(UnitIsPlayer, unit)
+    local isPlayer = SafeBool(SafeCall(UnitIsPlayer, unit))
     if isPlayer == true then
         local r, g, b = ClassColor(unit)
         if r then return r, g, b end
     end
 
-    if SafeCall(UnitIsDeadOrGhost, unit) == true then
+    if SafeBool(SafeCall(UnitIsDeadOrGhost, unit)) == true then
         return 0.55, 0.55, 0.55
     end
 
@@ -142,7 +169,7 @@ local function BuildNameIcons(unit, s)
         end
     end
 
-    local isPlayer = SafeCall(UnitIsPlayer, unit)
+    local isPlayer = SafeBool(SafeCall(UnitIsPlayer, unit))
 
     if s.showTooltipRoleIcon ~= false and isPlayer == true then
         local role = SafeStr(SafeCall(UnitGroupRolesAssigned, unit))
@@ -152,9 +179,8 @@ local function BuildNameIcons(unit, s)
     end
 
     if s.showTooltipClassIcon and isPlayer == true then
-        local _, token = SafeCall(UnitClass, unit)
-        local coords = type(token) == "string"
-                       and CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[token]
+        local token = SafeStr(select(2, SafeCall(UnitClass, unit)))
+        local coords = token and CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[token]
         if coords then
             -- CLASS_ICON_TCOORDS is 0-1; the texture escape wants pixels on a
             -- 256x256 sheet.
@@ -213,7 +239,7 @@ end
 
 local function AddGuildRank(tooltip, unit, s)
     if not s.showTooltipGuildRank then return end
-    if SafeCall(UnitIsPlayer, unit) ~= true then return end
+    if SafeBool(SafeCall(UnitIsPlayer, unit)) ~= true then return end
 
     local guild, rank, rankIndex, realm = SafeCall(GetGuildInfo, unit)
     guild = SafeStr(guild)
@@ -233,33 +259,37 @@ local function AddGuildRank(tooltip, unit, s)
     tooltip:AddDoubleLine(L["tt_guild_rank"], label, 0.65, 0.65, 0.70, 0.047, 0.824, 0.624)
 end
 
--- Returns the display string for the unit's target, or nil.
+-- Returns text, r, g, b for the unit's target -- colour separated from text on
+-- purpose. A player name is routinely secret in 12.x, and wrapping one in a
+-- |cff....|r escape means formatting it, which is an inspection. Handing the
+-- name straight to the tooltip and colouring through the colour arguments
+-- keeps the name a value the game passes to itself and never one we read.
 local function TargetText(unit)
     local tUnit = unit .. "target"
-    if SafeCall(UnitExists, tUnit) ~= true then return nil end
+    if SafeBool(SafeCall(UnitExists, tUnit)) ~= true then return nil end
 
-    local name = SafeStr(SafeCall(UnitName, tUnit))
+    local name = Opaque(SafeCall(UnitName, tUnit))
     if not name then return nil end
 
-    if SafeCall(UnitIsUnit, tUnit, "player") == true then
-        return "|cffff4040" .. L["tt_target_you"] .. "|r"
+    if SafeBool(SafeCall(UnitIsUnit, tUnit, "player")) == true then
+        return L["tt_target_you"], 1.00, 0.25, 0.25
     end
 
     local r, g, b = ReactionColor(tUnit)
-    if not r then return name end
-    return string.format("|cff%02x%02x%02x%s|r", r * 255, g * 255, b * 255, name)
+    if not r then return name, 1, 1, 1 end
+    return name, r, g, b
 end
 
 local function AddTarget(tooltip, unit, s)
     if s.showTooltipTarget == false then return end
-    local text = TargetText(unit)
+    local text, r, g, b = TargetText(unit)
     if not text then return end
-    tooltip:AddDoubleLine(L["tt_target"], text, 0.65, 0.65, 0.70, 1, 1, 1)
+    tooltip:AddDoubleLine(L["tt_target"], text, 0.65, 0.65, 0.70, r, g, b)
     dynamicIdx.target = tooltip:NumLines()
 end
 
 local function MythicScoreText(unit)
-    if SafeCall(UnitIsPlayer, unit) ~= true then return nil end
+    if SafeBool(SafeCall(UnitIsPlayer, unit)) ~= true then return nil end
     if not (C_PlayerInfo and C_PlayerInfo.GetPlayerMythicPlusRatingSummary) then
         return nil
     end
@@ -308,7 +338,7 @@ end
 -- or maintained here.
 local function AddMount(tooltip, unit, s)
     if s.showTooltipMount == false then return end
-    if SafeCall(UnitIsPlayer, unit) ~= true then return end
+    if SafeBool(SafeCall(UnitIsPlayer, unit)) ~= true then return end
     if not (C_MountJournal and C_MountJournal.GetMountFromSpell) then return end
     if not (C_UnitAuras and C_UnitAuras.GetBuffDataByIndex) then return end
 
@@ -345,8 +375,8 @@ local function AddLocation(tooltip, unit, s)
     if not s.showTooltipLocation then return end
     if not C_Map or not C_Map.GetBestMapForUnit then return end
 
-    local isPlayer = SafeCall(UnitIsUnit, unit, "player") == true
-    local inParty  = SafeCall(UnitPlayerOrPetInParty, unit) == true
+    local isPlayer = SafeBool(SafeCall(UnitIsUnit, unit, "player")) == true
+    local inParty  = SafeBool(SafeCall(UnitPlayerOrPetInParty, unit)) == true
     if not (isPlayer or inParty) then return end
 
     local mapID = SafeNum(SafeCall(C_Map.GetBestMapForUnit, unit))
@@ -410,7 +440,7 @@ local function AddInspectLines(tooltip, unit, s)
     local wantIlvl = s.showTooltipItemLevel ~= false
     local wantSpec = s.showTooltipSpec ~= false
     if not (wantIlvl or wantSpec) then return end
-    if SafeCall(UnitIsPlayer, unit) ~= true then return end
+    if SafeBool(SafeCall(UnitIsPlayer, unit)) ~= true then return end
     if not (TomoMod_TooltipInspect and TomoMod_TooltipInspect.Query) then return end
 
     local data, status = TomoMod_TooltipInspect.Query(unit)
@@ -493,7 +523,7 @@ local function EnsureRefresher()
             StopRefresher()
             return
         end
-        if SafeCall(UnitExists, currentUnit) ~= true then
+        if SafeBool(SafeCall(UnitExists, currentUnit)) ~= true then
             StopRefresher()
             return
         end
@@ -503,7 +533,11 @@ local function EnsureRefresher()
 
         if dynamicIdx.target then
             local line = _G[name .. "TextRight" .. dynamicIdx.target]
-            if line then line:SetText(TargetText(currentUnit) or "") end
+            if line then
+                local text, tr, tg, tb = TargetText(currentUnit)
+                line:SetText(text or "")
+                if text then line:SetTextColor(tr or 1, tg or 1, tb or 1) end
+            end
         end
         if dynamicIdx.speed then
             local line = _G[name .. "TextRight" .. dynamicIdx.speed]
@@ -526,10 +560,13 @@ local function OnUnitTooltip(tooltip)
     dynamicIdx.ilvl, dynamicIdx.spec = nil, nil
     currentUnit, currentGUID = nil, nil
 
+    -- Opaque, NOT SafeStr: 12.x hands out secret unit tokens, and a token is
+    -- only ever passed back to the game, never read. Filtering it here is what
+    -- silently disabled the entire layer.
     local _, unit = SafeCall(tooltip.GetUnit, tooltip)
-    unit = SafeStr(unit)
+    unit = Opaque(unit)
     if not unit then return end
-    if SafeCall(UnitExists, unit) ~= true then return end
+    if SafeBool(SafeCall(UnitExists, unit)) ~= true then return end
 
     local s = S()
 
@@ -539,7 +576,9 @@ local function OnUnitTooltip(tooltip)
     local icons = BuildNameIcons(unit, s)
     if icons ~= "" then
         local nameLine = _G[tooltip:GetName() .. "TextLeft1"]
-        local text = nameLine and SafeStr(nameLine:GetText())
+        -- Opaque again: the name is prefixed and handed straight back, never
+        -- examined, so a secret name still gets its icons.
+        local text = nameLine and Opaque(nameLine:GetText())
         if text then nameLine:SetText(icons .. text) end
     end
 

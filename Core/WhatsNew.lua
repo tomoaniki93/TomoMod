@@ -58,6 +58,16 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.3.1",
+        highlights = {
+            L["wn_331_tooltip_secret"] or "Tooltip: the whole unit information layer added in 3.3.0 never appeared in Midnight — no guild rank, target, Mythic+ score, mount, speed, location, item level, specialization or name-line icons. The layer reads the unit token back from the tooltip, the game now hands that token out as a protected value, and the guard rejected it, so nothing was ever written.",
+            L["wn_331_tooltip_border"] or "Tooltip: the unit-colored border was off for the same reason — it read the token through its own guard and gave up, so every unit fell back to the configured border color, which looked exactly like the option doing nothing.",
+            L["wn_331_tooltip_target"] or "Tooltip: the target line was dropped for any player whose name comes back protected, which is most of them. The name is no longer wrapped in a color escape — building that string counts as reading the name — and the color goes through the tooltip's own color arguments instead. Identical on screen, and it works now.",
+            L["wn_331_tooltip_guards"] or "Tooltip: the safety guards could themselves raise an error. One compared the value to an empty string before checking whether it was protected, so it crashed on exactly the values it existed to catch, and around twenty true/false tests (does the unit exist, is it a player, can it be inspected…) were compared raw. All of them are checked in the right order now.",
+            L["wn_331_inspect"] or "Tooltip: item level and specialization are back with the rest of it — the inspect engine ran the same unguarded comparisons on every eligibility test, and stood down on a protected value before ever sending a request.",
+        },
+    },
+    {
         version = "3.3.0",
         highlights = {
             L["wn_330_tooltip_info"] or "Tooltip: unit tooltips now carry a real information layer — guild rank, the unit's current target, Mythic+ score, mount, movement speed and location, plus raid marker, role and class icons on the name line. Every line has its own toggle in Skins → Tooltip.",

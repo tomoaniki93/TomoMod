@@ -72,7 +72,10 @@ local function GetTooltipUnit(tooltip)
     if not tooltip or not tooltip.GetUnit then return nil end
     local ok, _, unit = pcall(tooltip.GetUnit, tooltip)
     if not ok or type(unit) ~= "string" then return nil end
-    if IsSecretValue(unit) then return nil end
+    -- A secret unit token is NOT rejected here. The token is only ever handed
+    -- back to the game as an API argument and never read, so a secret one is
+    -- perfectly usable -- and 12.x hands out secret tokens routinely, so
+    -- filtering them silently disabled the reaction border for every unit.
     return unit
 end
 

@@ -58,13 +58,27 @@ local function SafeCall(fn, ...)
     return a, b, c, d, e, f
 end
 
+-- ORDER MATTERS: issecretvalue() is tested BEFORE any comparison touches the
+-- value. `v == ""` evaluated first raises on precisely the secret values these
+-- guards exist to catch. Never move a comparison above the IsSecret line.
 local function SafeNum(v)
-    if type(v) ~= "number" or IsSecret(v) then return nil end
+    if IsSecret(v) then return nil end
+    if type(v) ~= "number" then return nil end
     return v
 end
 
 local function SafeStr(v)
-    if type(v) ~= "string" or v == "" or IsSecret(v) then return nil end
+    if IsSecret(v) then return nil end
+    if type(v) ~= "string" then return nil end
+    if v == "" then return nil end
+    return v
+end
+
+-- `UnitIsPlayer(unit) == true` is a comparison too, and raises on a secret
+-- boolean exactly like a string would.
+local function SafeBool(v)
+    if IsSecret(v) then return nil end
+    if type(v) ~= "boolean" then return nil end
     return v
 end
 
@@ -138,17 +152,20 @@ end
 -- is open, our request would overwrite the data it is displaying (and vice
 -- versa), so we stand down completely rather than race it.
 local function BlizzardInspectOpen()
-    return InspectFrame ~= nil and InspectFrame:IsShown() == true
+    if InspectFrame == nil then return false end
+    return SafeBool(SafeCall(InspectFrame.IsShown, InspectFrame)) == true
 end
 
 local function CanQuery(unit)
-    if SafeCall(UnitExists, unit) ~= true then return false end
-    if SafeCall(UnitIsPlayer, unit) ~= true then return false end
-    if SafeCall(UnitIsConnected, unit) ~= true then return false end
-    if SafeCall(CanInspect, unit, false) ~= true then return false end
+    if SafeBool(SafeCall(UnitExists, unit)) ~= true then return false end
+    if SafeBool(SafeCall(UnitIsPlayer, unit)) ~= true then return false end
+    if SafeBool(SafeCall(UnitIsConnected, unit)) ~= true then return false end
+    if SafeBool(SafeCall(CanInspect, unit, false)) ~= true then return false end
     -- CanInspect does not test range; without this the request is simply
     -- swallowed and we would retry forever.
-    if SafeCall(CheckInteractDistance, unit, INSPECT_RANGE) ~= true then return false end
+    if SafeBool(SafeCall(CheckInteractDistance, unit, INSPECT_RANGE)) ~= true then
+        return false
+    end
     return true
 end
 
@@ -195,7 +212,7 @@ end
 function TQ.Query(unit)
     if type(unit) ~= "string" then return nil, "unavailable" end
 
-    if SafeCall(UnitIsUnit, unit, "player") == true then
+    if SafeBool(SafeCall(UnitIsUnit, unit, "player")) == true then
         local data = SelfData()
         return data, data and "ready" or "unavailable"
     end

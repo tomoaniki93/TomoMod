@@ -1,5 +1,22 @@
 ## ####################################
 
+## CHANGELOG 3.3.1 — The Tooltip Information Layer Actually Shows Up In Midnight
+
+#### Tooltip — Everything 3.3.0 Added Was Silently Switched Off
+- **Fix** — The entire unit information layer never appeared in 12.x. Not one line: no guild rank, no target, no Mythic+ score, no mount, no speed, no location, no item level, no specialization, no name-line icons. The layer's first act is to read the unit token back from the tooltip, and Midnight hands that token out as a *secret* value routinely — which the guard rejected, so the post-call returned before writing anything at all. The feature was complete and untestable at the same time.
+- **Fix** — Same cause, separate code path, for the reaction-colored border: it read the token through its own guard, got a secret one, and gave up. Every unit fell back to the configured border color, which reads exactly like the option doing nothing.
+- **Fix** — The target line was lost twice over. Even reached, it ran the target's name through the same rejecting guard, so the line was dropped for any player whose name came back secret — which, in a group or in the open world, is most of them.
+- **Change** — The target's name is no longer wrapped in a `|cff……|r` escape. Building that string means *formatting* the name, and formatting is reading; the name is now handed to the tooltip untouched and the color goes through `AddDoubleLine`'s own color arguments instead. Identical on screen, and it works on a name the client refuses to let an addon look at.
+- **Note** — A secret value is not a value to be avoided, it is a value not to be *inspected*. A unit token, or a name that is only ever concatenated and handed straight back, is perfectly usable while secret; only a value this addon compares, pattern-matches or formats has to be refused. 3.3.0 drew that line in the wrong place and refused both.
+
+#### Tooltip — The Guards Themselves Could Raise
+- **Fix** — `SafeStr` tested `v == ""` *before* asking whether the value was secret. Comparing a secret value raises outright, so the guard crashed on precisely the values it existed to catch — and it was reached on every tooltip. Every helper now tests secrecy first and compares afterwards, in all three tooltip files.
+- **Fix** — Boolean returns were compared raw: `UnitIsPlayer(unit) == true` reads as harmless but is still a comparison, and raises the moment the game returns a secret boolean. Every such test — `UnitExists`, `UnitIsPlayer`, `UnitIsUnit`, `UnitIsConnected`, `UnitIsDeadOrGhost`, `UnitPlayerOrPetInParty`, `CanInspect`, `CheckInteractDistance` — now goes through a boolean guard. That is roughly twenty comparisons across the tooltip and inspect modules, including the one that decided whether Blizzard's inspect window was open.
+- **Fix** — The class token from `UnitClass` was type-checked but not secrecy-checked, then used as a table key against `RAID_CLASS_COLORS` and `CLASS_ICON_TCOORDS`. It is now rejected when secret, in both the border color and the class icon.
+- **Internal** — A comment on every one of these helpers states the ordering rule explicitly, because the failure mode is invisible on inspection: the wrong order reads perfectly and only breaks on the values nobody has in a test client.
+
+## ####################################
+
 ## CHANGELOG 3.3.0 — Tooltips That Tell You Who You Are Looking At, Delves Visible Again, CooldownForge Reads Your Resources & Supercharged Combo Points
 
 #### Tooltip — A Real Unit Information Layer
