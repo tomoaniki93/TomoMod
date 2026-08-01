@@ -63,6 +63,7 @@ local EXCLUDED_GLOBAL_KEYS = {
     "ERR_AUTOFOLLOW_TOO_FAR", "SPELL_FAILED_MOVING",
     "ERR_NOT_WHILE_MOVING", "ERR_CANT_DO_THAT_IN_COMBAT",
     "ERR_NOT_IN_COMBAT", "ERR_AFFECTING_COMBAT",
+    "ERR_ROOTED", "SPELL_FAILED_ROOTED",
     -- Inventory
     "ERR_ITEM_COOLDOWN", "ERR_BAG_FULL", "ERR_INV_FULL",
     "ERR_LOOT_GONE", "ERR_LOOT_NOTHING",
@@ -89,7 +90,7 @@ local EXCLUDED_GLOBAL_KEYS = {
     -- Immune / absorb
     "SPELL_FAILED_IMMUNE", "SPELL_FAILED_DAMAGE_IMMUNE",
     -- Mail
-    "ERR_MAIL_DATABASE_ERROR",
+    "ERR_MAIL_DATABASE_ERROR", "ERR_MAIL_BOUND_ITEM",
     -- Currency / loot cap
     "ERR_CURRENCY_LIMIT_REACHED_S",
     "ERR_LOOT_CURRENCY_S_QUANTITY_OVERFLOW",
@@ -350,6 +351,19 @@ local function BuildExclusionSet()
         "seleccionar a los jugadores", "seleccionar jugadores", -- ES
         "bersaglio i giocatori", "mirare i giocatori", -- IT
         "mirar em jogadores", "selecionar jogadores", -- PT
+        -- Rooted in place (report #838: session 2026-07-31)
+        "clou\195\169",                       -- FR "Vous êtes cloué(e) sur place" (covers the (e) inflection)
+        "rooted in place", "are rooted",      -- EN equivalents
+        "festgesetzt", "festgewurzelt",       -- DE
+        "enraizad", "inmovilizad",            -- ES (also covers PT enraizado)
+        "radicat", "immobilizzat",            -- IT
+        -- Can't mail soulbound items (report #838: session 2026-07-31)
+        "objets li\195\169s",                 -- FR "Vous ne pouvez pas envoyer des objets liés."
+        "send bound items", "bound items",    -- EN equivalents
+        "gebundene gegenst\195\164nde",       -- DE
+        "objetos vinculados",                 -- ES
+        "oggetti legati",                     -- IT
+        "itens vinculados",                   -- PT
     }
     for _, kw in ipairs(keywords) do
         EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = kw

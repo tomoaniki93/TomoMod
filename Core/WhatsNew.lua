@@ -58,6 +58,20 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.3.0",
+        highlights = {
+            L["wn_330_tracker_delve"] or "Objective Tracker: inside a Delve the tracker showed nothing at all — no stage, no criteria, no progress. 'Hide when empty' only counted quest blocks, while a Delve tracks its progress in the scenario module, which that count deliberately leaves out, so the whole panel was hidden. Delves, scenarios and bonus objectives now count as content, and the panel sizes itself to them when they are alone on screen.",
+            L["wn_330_tracker_delve_place"] or "Objective Tracker: with 'Hide when empty' turned off, the panel stayed but the delve block was never positioned inside it — the empty case returned before the pass that places it. Scenario and delve modules are now placed first, whatever else is tracked.",
+            L["wn_330_cdf_unusable"] or "CooldownForge: an icon can now tint itself when the spell is off cooldown but cannot be cast right now — no rage, wrong form, missing reagent. Choose no effect (the default), grey out, or grey out plus a blue tint when the missing resource is the blocker, per bar and per spell.",
+            L["wn_330_cdf_glow_usable"] or "CooldownForge: glow gained a 'when the spell is usable' condition — ready plus castability, so a resource-starved spell stops glowing while it waits instead of inviting a press that would fail.",
+            L["wn_330_cdf_hide_unusable"] or "CooldownForge: a bar can also drop an icon entirely while you cannot afford it, next to the existing 'hide while on cooldown' filter. The two are independent and stack, and the remaining icons close the gap.",
+            L["wn_330_cp_charged"] or "Resource Bars: supercharged combo points are now shown as such — the charged slot is marked whether it is filled or not, so you can see where the charge sits before spending it. The color is yours to pick in CD & Resource → Colors, red by default.",
+            L["wn_330_colorpicker"] or "Config: the color picker kept opening behind the settings window and Cooldown Studio, which looked like the swatch did nothing. It now opens above them, right next to the swatch you clicked instead of at the centre of the screen.",
+            L["wn_330_locale_escapes"] or "Localization: the Compass options printed raw escape codes where accents belonged — \"dxC3xA9filer\", \"xC3x89chelle\", \"Large (xC2xB190xC2xB0)\". Those strings used an escape syntax the game's Lua does not understand and printed literally; they are plain text again, in all six languages.",
+            L["wn_330_diag_filters"] or "Diagnostics: being rooted in place and trying to mail a soulbound item were logged as errors in the report. Both are normal game feedback, and are now filtered out like the rest of it.",
+        },
+    },
+    {
         version = "3.2.7",
         highlights = {
             L["wn_327_tracker_progressbars"] or "Objective Tracker: quest progress bars (kill counts, enemy forces, scenario and delve criteria) are back — a bar is no longer swept away as orphaned when its block is only reachable through an anchor, it survives collapsing and re-expanding its bucket, and the bars that stay are now themed like the rest of the tracker.",

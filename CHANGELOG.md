@@ -1,5 +1,51 @@
 ## ####################################
 
+## CHANGELOG 3.3.0 — Delves Visible Again, CooldownForge Reads Your Resources, Supercharged Combo Points & Color Picker Fixes
+
+#### Objective Tracker — A Delve Is Not An Empty Tracker
+- **Fix** — Inside a Delve the tracker showed nothing at all: no stage, no criteria, no progress. "Hide when empty" — on by default since 3.2.6 — decides emptiness by counting quest blocks, and a Delve tracks its progress in the scenario module, whose subtree is deliberately excluded from that collection because its internal anchors come apart when re-parented. A run with no quest tracked alongside it therefore read as an empty tracker, and the whole panel was hidden. Emptiness is now decided after the scenario / delve module has been placed, and counts that module's own content.
+- **Fix** — The same empty case also returned *before* the pass that positions that module inside the panel, so turning "Hide when empty" off did not help either: the panel stayed, but the delve block was never placed in it. That pass now runs first, and the panel sizes itself to the module when it is the only thing on screen.
+- **Fix** — Same root cause in the non-bucketed layout, where the visibility test counted quest blocks only. It now recognises a scenario, delve or bonus-objective module as content too, whether that module currently sits in Blizzard's frame tree or has already been moved into ours.
+- **Change** — A module only counts as content, and is only given room, when something is actually rendered inside it — a non-empty label or a status bar. Blizzard keeps several of these containers shown and empty at all times, and treating "shown" as "has content" is precisely what produced the giant empty panel that 3.2.6 removed. The test reads shown state rather than on-screen visibility, since the panel may itself be hidden at the moment it runs — asking for visibility there would keep it hidden for good.
+- **Internal** — The module walk now looks a couple of levels below the tracker instead of assuming these modules are direct children of it, and never descends into a quest block, so a widget belonging to a block stays with that block.
+- **Internal** — The orphan status-bar sweep moved above the layout branches so the delve-only path can run it too. A delve's criteria bars travel with their module and are untouched; only the bars left behind in Blizzard's tree are swept.
+
+#### CooldownForge — Icons Show What You Cannot Afford
+- **New** — An icon can now tint itself when the spell is off cooldown but cannot actually be cast right now — no rage for Ironfur, wrong form, a missing reagent. Three modes per bar: no effect (the default, so no existing bar changes appearance), grey out, or grey out plus a blue tint when the missing resource is specifically what blocks it — the same reading the action bars give. Set in the Cooldowns config tab and in Cooldown Studio, and overridable per spell with an inherit option.
+- **Note** — The tint is independent of the "grey out on cooldown" option. Vertex color and desaturation multiply, so a spell that is both running and unaffordable shows both states instead of one cancelling the other.
+- **New** — Glow gained a fourth trigger condition: *when the spell is usable*. It is the historic "ready" plus castability, so a rage-starved defensive stops glowing while it waits for resources instead of inviting a press that would fail. Available per bar and per spell.
+- **New** — A bar can also drop an icon entirely while you cannot afford it, alongside the existing "hide while on cooldown" filter. The two are independent and stack, and the remaining icons close the gap exactly as before.
+- **Change** — Both hide filters now go through a single decision point. The signature that decides whether a bar has to be laid out again used to be a second copy of the same rule, which is precisely the kind of pair that drifts apart; a bar can no longer disagree with itself about which icons belong on it.
+
+#### CooldownForge — Internal
+- **Internal** — Castability is read through `C_Spell.IsSpellUsable` / `C_Item.IsUsableItem` behind a `pcall`, with both returned values type-checked. Should either become a secret value in 12.x, branching on it would raise; on any doubt the answer is "usable", which is the previous behaviour, so an API change degrades instead of breaking.
+- **Internal** — `SPELL_UPDATE_USABLE` fires on every resource threshold crossing, so it follows the same pay-for-what-you-use rule as `UNIT_AURA`: it is registered only while a bar actually consumes castability — a tint mode, a "usable" glow, or the hide filter — and unregistered as soon as none does. It routes to a light refresh; a filtered bar notices the set change through its signature and re-lays out by itself.
+- **Internal** — Preview icons reset their vertex color, so an icon pooled back from a live bar cannot leak a grey or blue state into the settings preview.
+- **Internal** — Existing bars need no migration: the new castability axis defaults to "off" on all three presets and resolves from the preset when the bar has no explicit value, and the new filter normalizes to `false` on load.
+
+#### Resource Bars — Supercharged Combo Points
+
+- **New** — Combo points flagged as supercharged are now shown as such. Blizzard marks individual points, not a global state: spending a supercharged point makes a finisher behave as if it had spent two more, so which slot carries the charge decides when the finisher is worth pressing. The bar reads that set through `GetUnitChargedPowerPoints` and follows `UNIT_POWER_POINT_CHARGE`, so it stays in step with the class HUD.
+- **New** — The charged color is configurable, next to the regular combo point color in CD & Resource → Colors. It defaults to red, which reads against the standard yellow at a glance. Translated in all six supported languages.
+- **Change** — A charged slot is marked whether it is filled or empty, which is the whole point of the mechanic: the player has to see where the charge sits *before* getting there. In icon mode the slot switches to the spiked diamond sprite of the combo point atlas and takes the charged tint (dimmed on an empty slot, full on a filled one); in flat color mode the empty slot gets a darkened charged background instead of the neutral one.
+- **Fix** — That spiked diamond sprite existed in the texture coordinate table but was never wired to anything, and its V axis was inverted relative to its neighbours — `empty` and `filled` are both declared flipped, this one was not — so it would have rendered upside down. Corrected along the way.
+- **Internal** — The charged set is cached and refreshed on its own event rather than read inside the point update. That update runs on `UNIT_POWER_FREQUENT`, which fires continuously for energy, and the API returns a fresh table on every call — reading it there would have allocated a table per tick for a value that only moves on its own event.
+- **Internal** — Gated on the power type rather than on the class: the point display is shared with soul shards, essence, arcane charges and the aura-driven displays, none of which have a charged state, while the API already returns nothing for a class without the mechanic. If Blizzard ever widens supercharging beyond Rogues, this follows on its own.
+- **Internal** — Every branch also restores the normal artwork when a slot stops being charged. Point textures are built once and reused, so a charged state that is only ever applied would stick to a slot for the rest of the session.
+
+#### Config — The Color Picker Opens Where You Clicked
+- **Fix** — Blizzard's color picker regularly opened *behind* the config window or Cooldown Studio, which reads as the swatch doing nothing. The picker is a toplevel frame, but every TomoMod window lives in `FULLSCREEN_DIALOG` with an explicit frame level, so it lost. It is now raised above them while shown — and put back at its own strata and level on hide, so no other addon borrowing the picker afterwards inherits our z-order.
+- **Change** — It also opens next to the swatch that spawned it instead of at the centre of the screen, where on a small resolution it landed under the panel. It flips to the other side of the swatch when there is no room and clamps to the screen as a last resort. The anchor is absolute rather than attached to the swatch, so scrolling the panel behind it no longer drags the picker along.
+
+#### Localization — Accented Text In The Compass Options
+- **Fix** — The Compass page printed raw escape codes where accents belonged: "dxC3xA9filer", "quxC3xAAte", "xC3x89chelle", "Large (xC2xB190xC2xB0)". The 3.0 string file wrote those characters as `\xHH` escapes, a syntax that only exists from Lua 5.2 onwards — the game runs 5.1, where the backslash is simply dropped and the escape is printed as literal text. Every affected string is now stored as plain UTF-8, which is what the rest of the addon has always used.
+- **Note** — All six languages were affected, not just French: the Spanish "Brújula", the Portuguese "Bússola", the German "durchläuft" and the ±45° / ±60° / ±90° field-of-view labels shared the same defect. The Recipe Tracker's "%s × %d" search line was the last one outside that file.
+
+#### Diagnostics — Two More Gameplay Messages Filtered Out
+- **Change** — Being rooted in place, and trying to mail a soulbound item, were collected as errors in the diagnostics report. Both are ordinary game feedback rather than addon faults, so they now join the existing exclusion list: through their GlobalStrings (`ERR_ROOTED`, `SPELL_FAILED_ROOTED`, `ERR_MAIL_BOUND_ITEM`), which resolve to whatever locale the client runs in, plus the usual keyword fallbacks in all six languages for the gender-inflected forms the GlobalString lookup cannot cover.
+
+## ####################################
+
 ## CHANGELOG 3.2.7 — Quest Progress Bars Restored, Popups Fixed For 11.2 & Profiles / Diagnostics Split
 
 #### Objective Tracker — Quest Progress Bars Are Back

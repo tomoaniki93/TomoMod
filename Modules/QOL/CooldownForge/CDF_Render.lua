@@ -349,6 +349,27 @@ local function applyEntry(icon, resolved, state, bar)
         icon._cdfWasReady = nil
     end
 
+    -- [S9] castability tint. Orthogonal to the cooldown desaturation above:
+    -- an off-cooldown spell the player cannot afford (Ironfur with no rage)
+    -- now reads the same way it does on the action bars. Vertex color and
+    -- desaturation multiply, so the two states compose instead of fighting.
+    local um = st.unusableMode or "off"
+    if ov and ov.unusableMode then um = ov.unusableMode end
+    local usable = true
+    if um ~= "off" then
+        local noPower
+        usable, noPower = CDF.GetUsable(resolved)
+        if noPower and um == "resource" then
+            icon.tex:SetVertexColor(0.35, 0.35, 0.85)
+        elseif not usable then
+            icon.tex:SetVertexColor(0.40, 0.40, 0.40)
+        else
+            icon.tex:SetVertexColor(1, 1, 1)
+        end
+    else
+        icon.tex:SetVertexColor(1, 1, 1)
+    end
+
     -- Glow -- [S2] per-entry enable + color, via a per-icon cached cfg
     -- table to avoid per-update allocations.
     local glowOn = bar.glow and bar.glow.enabled
@@ -356,7 +377,9 @@ local function applyEntry(icon, resolved, state, bar)
 
     -- [S8] Trigger condition. "ready" is the historic hardcoded behaviour
     -- and stays the default; "aura" glows while a buff is up on the player;
-    -- "always" glows whenever the icon is shown. The buff watched defaults
+    -- "always" glows whenever the icon is shown. [S9] "usable" is "ready"
+    -- plus castability, so a rage-starved Ironfur stops glowing. The buff
+    -- watched defaults
     -- to the entry's own spellID, which is wrong for trinkets and a few
     -- talents, hence the explicit auraSpellID escape hatch.
     local cond = (bar.glow and bar.glow.condition) or "ready"
@@ -369,6 +392,11 @@ local function applyEntry(icon, resolved, state, bar)
                        or (bar.glow and bar.glow.auraSpellID)
                        or resolved.spellID
         condMet = CDF.IsAuraActive and CDF.IsAuraActive(auraID) or false
+    elseif cond == "usable" then
+        -- [S9] off cooldown AND actually castable. `usable` above was only
+        -- computed when a tint mode is active, so ask again when it wasn't.
+        local u = (um ~= "off") and usable or (CDF.GetUsable(resolved))
+        condMet = (ready == true) and (u == true)
     else
         condMet = ready
     end
@@ -445,6 +473,9 @@ end
 --   fake-active preview). Desaturation follows desatOnCooldown.
 function CDF.StylePreviewIcon(icon, bar, texture, opts)
     icon.tex:SetTexture(texture or 134400)
+    -- [S9] the preview has no real castability; keep the art untinted so a
+    -- pooled icon reused from a live bar cannot leak a grey/blue state.
+    icon.tex:SetVertexColor(1, 1, 1)
     styleIcon(icon, bar)
     icon:Show()
     icon.tex:Show()
@@ -468,10 +499,29 @@ local function positionContainer(f, bar)
     f:SetPoint(point, UIParent, pos.relPoint or point, pos.x or 0, pos.y or 0)
 end
 
+-- [S8] Does this entry survive the bar's hide filters?
+-- [S9] Two independent filters now: hideOnCooldown drops what is running,
+-- hideOnUnusable drops what the player cannot currently afford. Kept in one
+-- place so readySignature and layoutBar can never drift apart.
+local function entryShown(bar, r, state)
+    if bar.hideOnCooldown and not CDF.IsReady(r, state) then return false end
+    if bar.hideOnUnusable and CDF.GetUsable then
+        local usable = CDF.GetUsable(r)
+        if usable == false then return false end
+    end
+    return true
+end
+
+-- [S9] True when the bar filters its icons at all, i.e. when the layout
+-- depends on live state and a signature has to be tracked.
+local function hasHideFilter(bar)
+    return bar.hideOnCooldown == true or bar.hideOnUnusable == true
+end
+
 -- [S8] Compact picture of every entry's state, used to decide whether a
--- hideOnCooldown bar has to be laid out again. Marks must stay in sync
--- with the ones layoutBar writes below, or the comparison never matches.
---   "-" filtered out   "x" unresolvable   "1" ready   "0" on cooldown
+-- filtered bar has to be laid out again. Marks must stay in sync with the
+-- ones layoutBar writes below, or the comparison never matches.
+--   "-" filtered out   "x" unresolvable   "1" shown   "0" hidden
 local function readySignature(bar)
     local arr, parts = bar.entries or {}, {}
     for i = 1, #arr do
@@ -480,7 +530,7 @@ local function readySignature(bar)
         if CDF.IsEntryVisible(e) then
             local r = CDF.ResolveEntry(e)
             if r and not r.empty then
-                mark = CDF.IsReady(r, CDF.GetCooldownState(r)) and "1" or "0"
+                mark = entryShown(bar, r, CDF.GetCooldownState(r)) and "1" or "0"
             else
                 mark = "x"
             end
@@ -497,22 +547,22 @@ local function layoutBar(container, bar)
     -- the ready state BEFORE laying out, so this stays a single pass --
     -- the alternative (reading it back off the real icons) would only be
     -- knowable after applyEntry, i.e. one frame too late.
-    local hideCD = bar.hideOnCooldown == true
-    local sig = hideCD and {} or nil
+    local filtered = hasHideFilter(bar)
+    local sig = filtered and {} or nil
     for i = 1, #arr do
         local e = arr[i]
         local mark = "-"
         if CDF.IsEntryVisible(e) then
             local r = CDF.ResolveEntry(e)
             if r and not r.empty then
-                local ready = true
-                if hideCD then
+                local keep = true
+                if filtered then
                     local st = CDF.GetCooldownState(r)
-                    ready = CDF.IsReady(r, st)
+                    keep = entryShown(bar, r, st)
                     r._cdState = st        -- reuse below, avoids a second read
                 end
-                mark = ready and "1" or "0"
-                if ready then
+                mark = keep and "1" or "0"
+                if keep then
                     r.override = e.override   -- [S2] per-entry FX travels with it
                     visible[#visible + 1] = r
                 end
@@ -573,10 +623,11 @@ end
 
 -- Light refresh: re-read cooldowns on already-shown icons (no re-layout).
 local function updateBar(container, bar)
-    -- [S8] With the ready-only filter on, a cooldown tick can change WHICH
-    -- icons belong on the bar, not just their swipe. Re-layout only when
-    -- the set actually changed, so the common case stays a light refresh.
-    if bar.hideOnCooldown then
+    -- [S8] With a hide filter on, a cooldown tick -- [S9] or a resource
+    -- crossing -- can change WHICH icons belong on the bar, not just their
+    -- swipe. Re-layout only when the set actually changed, so the common
+    -- case stays a light refresh.
+    if hasHideFilter(bar) then
         if readySignature(bar) ~= container._readySig then
             layoutBar(container, bar)
             return
@@ -616,12 +667,38 @@ local function needsAuraWatch(arr)
     return false
 end
 
+-- [S9] Same pay-for-what-you-use rule for SPELL_UPDATE_USABLE: only worth
+-- listening to when a bar consumes castability somewhere -- a tint mode, a
+-- "usable" glow condition, or the hideOnUnusable filter.
+local function needsUsableWatch(arr)
+    for i = 1, #arr do
+        local bar = arr[i]
+        if bar.enabled ~= false then
+            if bar.hideOnUnusable then return true end
+            local st = (CDF.ResolveStyle and CDF.ResolveStyle(bar)) or {}
+            if st.unusableMode and st.unusableMode ~= "off" then return true end
+            if bar.glow and bar.glow.enabled and bar.glow.condition == "usable" then
+                return true
+            end
+            for _, e in ipairs(bar.entries or {}) do
+                local o = e.override
+                if o then
+                    if o.unusableMode and o.unusableMode ~= "off" then return true end
+                    if o.glowCondition == "usable" and o.glow ~= false then return true end
+                end
+            end
+        end
+    end
+    return false
+end
+
 -- Full rebuild for the current class (visibility + layout).
 function CDF.RefreshAll()
     if not CDF.DB() then return end
     local present = {}
     local arr = CDF.GetClassBars()
     if CDF.SetAuraWatch then CDF.SetAuraWatch(needsAuraWatch(arr or {})) end
+    if CDF.SetUsableWatch then CDF.SetUsableWatch(needsUsableWatch(arr or {})) end
     if arr then
         for i = 1, #arr do
             local bar = arr[i]
@@ -647,12 +724,12 @@ function CDF.UpdateAll()
     if not CDF._barFrames then return end
     for _, f in pairs(CDF._barFrames) do
         local bar = f._bar
-        -- [S8] A hideOnCooldown bar hides itself once every icon is on
-        -- cooldown, so it must keep being polled while hidden or nothing
-        -- would ever bring it back. Bars hidden by a visibility condition
-        -- are deliberately left alone.
+        -- [S8] A filtered bar hides itself once every icon is filtered out,
+        -- so it must keep being polled while hidden or nothing would ever
+        -- bring it back. Bars hidden by a visibility condition are
+        -- deliberately left alone.
         if bar and (f:IsShown()
-                    or (bar.hideOnCooldown and CDF.IsBarVisible(bar))) then
+                    or (hasHideFilter(bar) and CDF.IsBarVisible(bar))) then
             updateBar(f, bar)
         end
     end

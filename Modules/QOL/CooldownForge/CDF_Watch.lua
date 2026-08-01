@@ -166,6 +166,53 @@ function CDF.IsAuraActive(spellID)
 end
 
 -- ---------------------------------------------------------------------
+-- [S9] Castability (resource, form, reactive requirements).
+--
+-- Cooldown state alone is not the whole story: an off-cooldown spell can
+-- still be uncastable because the player cannot pay for it -- Ironfur with
+-- no rage is the canonical case. Blizzard exposes that as two plain
+-- booleans, the same pair the action bars use to grey their buttons.
+--
+-- 12.x safety: should either return ever become a secret value, branching
+-- on it would raise, so the call is wrapped in pcall and both results are
+-- type checked. On any doubt we answer "usable", i.e. the pre-S9
+-- behaviour, so a future API change degrades instead of breaking.
+--
+-- Returns: usable (boolean), noPower (boolean)
+-- ---------------------------------------------------------------------
+local function asBool(v, default)
+    if type(v) == "boolean" then return v end
+    return default
+end
+
+function CDF.GetUsable(resolved)
+    if type(resolved) ~= "table" then return true, false end
+
+    local sid = resolved.spellID
+    if sid then
+        local fn = (C_Spell and C_Spell.IsSpellUsable) or IsUsableSpell
+        if not fn then return true, false end
+        local ok, usable, noPower = pcall(fn, sid)
+        if not ok then return true, false end
+        return asBool(usable, true), asBool(noPower, false)
+    end
+
+    local iid = resolved.itemID
+    if not iid and resolved.slot then
+        iid = GetInventoryItemID("player", resolved.slot)
+    end
+    if iid then
+        local fn = (C_Item and C_Item.IsUsableItem) or IsUsableItem
+        if not fn then return true, false end
+        local ok, usable, noPower = pcall(fn, iid)
+        if not ok then return true, false end
+        return asBool(usable, true), asBool(noPower, false)
+    end
+
+    return true, false
+end
+
+-- ---------------------------------------------------------------------
 -- [S8] Ready test usable OUTSIDE the render pass.
 -- Spell cooldowns are secret in 12.x, so the only legal way to know
 -- whether one is running is to feed the duration object to a Cooldown
@@ -271,5 +318,22 @@ function CDF.SetAuraWatch(on)
         w:RegisterUnitEvent("UNIT_AURA", "player")
     else
         w:UnregisterEvent("UNIT_AURA")
+    end
+end
+
+-- [S9] SPELL_UPDATE_USABLE fires on every resource threshold crossing, so
+-- it follows the same pay-for-what-you-use rule as UNIT_AURA above: the
+-- renderer turns it on only while a bar actually consumes castability
+-- (tint mode, "usable" glow condition, or hideOnUnusable). It is routed to
+-- the "cooldown" reason, i.e. a light refresh; bars using hideOnUnusable
+-- detect the set change through their ready signature and re-lay out.
+function CDF.SetUsableWatch(on)
+    on = on and true or false
+    if CDF._usableWatch == on then return end
+    CDF._usableWatch = on
+    if on then
+        w:RegisterEvent("SPELL_UPDATE_USABLE")
+    else
+        w:UnregisterEvent("SPELL_UPDATE_USABLE")
     end
 end

@@ -289,6 +289,7 @@ TomoMod_RegisterLocale("enUS", {
     ["res_holy_power"]                  = "Holy Power",
     ["res_chi"]                         = "Chi",
     ["res_combo_points"]                = "Combo Points",
+    ["res_charged_combo_points"]        = "Charged Combo Points",
     ["res_arcane_charges"]              = "Arcane Charges",
     ["res_essence"]                     = "Essence",
     ["res_stagger"]                     = "Stagger",
@@ -2809,6 +2810,15 @@ TomoMod_RegisterLocale("enUS", {
 
     ["wn_326_suite_card"] = "Config: the dashboard gained a 'Tomo suite' card presenting TomoBoss (boss timers with spoken callouts) — a shortcut to its options if it is installed, a copyable address and a permanent 'Don't show again' otherwise.",
 
+    ["wn_330_tracker_delve"] = "Objective Tracker: inside a Delve the tracker showed nothing at all — no stage, no criteria, no progress. 'Hide when empty' only counted quest blocks, while a Delve tracks its progress in the scenario module, which that count deliberately leaves out, so the whole panel was hidden. Delves, scenarios and bonus objectives now count as content, and the panel sizes itself to them when they are alone on screen.",
+    ["wn_330_tracker_delve_place"] = "Objective Tracker: with 'Hide when empty' turned off, the panel stayed but the delve block was never positioned inside it — the empty case returned before the pass that places it. Scenario and delve modules are now placed first, whatever else is tracked.",
+    ["wn_330_cdf_unusable"] = "CooldownForge: an icon can now tint itself when the spell is off cooldown but cannot be cast right now — no rage, wrong form, missing reagent. Choose no effect (the default), grey out, or grey out plus a blue tint when the missing resource is the blocker, per bar and per spell.",
+    ["wn_330_cdf_glow_usable"] = "CooldownForge: glow gained a 'when the spell is usable' condition — ready plus castability, so a resource-starved spell stops glowing while it waits instead of inviting a press that would fail.",
+    ["wn_330_cdf_hide_unusable"] = "CooldownForge: a bar can also drop an icon entirely while you cannot afford it, next to the existing 'hide while on cooldown' filter. The two are independent and stack, and the remaining icons close the gap.",
+    ["wn_330_cp_charged"] = "Resource Bars: supercharged combo points are now shown as such — the charged slot is marked whether it is filled or not, so you can see where the charge sits before spending it. The color is yours to pick in CD & Resource → Colors, red by default.",
+    ["wn_330_colorpicker"] = "Config: the color picker kept opening behind the settings window and Cooldown Studio, which looked like the swatch did nothing. It now opens above them, right next to the swatch you clicked instead of at the centre of the screen.",
+    ["wn_330_locale_escapes"] = "Localization: the Compass options printed raw escape codes where accents belonged — \"dxC3xA9filer\", \"xC3x89chelle\", \"Large (xC2xB190xC2xB0)\". Those strings used an escape syntax the game's Lua does not understand and printed literally; they are plain text again, in all six languages.",
+    ["wn_330_diag_filters"] = "Diagnostics: being rooted in place and trying to mail a soulbound item were logged as errors in the report. Both are normal game feedback, and are now filtered out like the rest of it.",
     ["wn_327_tracker_progressbars"] = "Objective Tracker: quest progress bars (kill counts, enemy forces, scenario and delve criteria) are back — a bar is no longer swept away as orphaned when its block is only reachable through an anchor, it survives collapsing and re-expanding its bucket, and the bars that stay are now themed like the rest of the tracker.",
     ["wn_327_tracker_position"] = "Objective Tracker: a tracker moved with Blizzard's own Edit Mode snapped back to its old spot on the next reload — that position was never written to the addon's database. It is saved when the Edit Mode session ends now, and a tracker scaled above or below 100% no longer creeps across the screen a little more on every reload.",
     ["wn_327_minimap_indicators"] = "Minimap: the instance difficulty flag stayed visible outside instances, because re-anchoring the native indicators also forced them visible and overrode Blizzard's own rule. They follow Blizzard's visibility again — and the expansion button no longer stays invisible for good once turned off and back on.",

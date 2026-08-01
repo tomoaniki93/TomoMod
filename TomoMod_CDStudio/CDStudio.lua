@@ -124,14 +124,29 @@ end
 -- [S8] glow trigger conditions (bar level, then per-entry with inherit)
 local GLOW_COND_OPTS = {
     { text = "Quand le sort est pret", value = "ready" },
+    { text = "Quand le sort est utilisable", value = "usable" },
     { text = "Quand le buff est actif", value = "aura" },
     { text = "Toujours",               value = "always" },
 }
 local GLOW_COND_OPTS_ENTRY = {
     { text = "Heriter de la barre",    value = "inherit" },
     { text = "Quand le sort est pret", value = "ready" },
+    { text = "Quand le sort est utilisable", value = "usable" },
     { text = "Quand le buff est actif", value = "aura" },
     { text = "Toujours",               value = "always" },
+}
+
+-- [S9] castability tint, bar level then per-entry with inherit
+local UNUSABLE_OPTS = {
+    { text = "Aucun effet",                     value = "off" },
+    { text = "Griser",                          value = "dim" },
+    { text = "Griser + teinte bleue (ressource)", value = "resource" },
+}
+local UNUSABLE_OPTS_ENTRY = {
+    { text = "Heriter de la barre",             value = "inherit" },
+    { text = "Aucun effet",                     value = "off" },
+    { text = "Griser",                          value = "dim" },
+    { text = "Griser + teinte bleue (ressource)", value = "resource" },
 }
 -- Reads back an optional positive integer typed into an edit box.
 local function readSpellID(t)
@@ -369,6 +384,12 @@ local function TabStyle(parent)
         bar.style.preset or "tomo", cy, function(v) bar.style.preset = v; Apply(); S.RebuildContent() end)
     _, cy = W.CreateCheckbox(card.inner, "Griser pendant le cooldown", bar.style.desatOnCooldown == true, cy,
         function(v) bar.style.desatOnCooldown = v; Apply() end)
+    _, cy = W.CreateDropdown(card.inner, "Ressource insuffisante",
+        UNUSABLE_OPTS, bar.style.unusableMode or "off", cy,
+        function(v) bar.style.unusableMode = (v ~= "off") and v or nil; Apply() end)
+    _, cy = W.CreateInfoText(card.inner,
+        "Teinte l'icone quand le sort est hors cooldown mais impossible a lancer "
+        .. "(rage, mana, forme...), comme sur les barres d'action.", cy)
     y = W.FinalizeCard(card, cy)
 
     -- [S7] fine style axes. Editing any of these marks the style custom.
@@ -565,6 +586,11 @@ local function TabSorts(parent)
                 function(r, g, b) writeColor(o.glowColor, r, g, b); Apply() end)
         end
         tri("Griser pendant le cooldown", "desat")
+        _, cy = W.CreateDropdown(card.inner, "Ressource insuffisante", UNUSABLE_OPTS_ENTRY,
+            o.unusableMode or "inherit", cy, function(v)
+                o.unusableMode = (v ~= "inherit") and v or nil
+                Apply()
+            end)
         tri("Swipe", "swipe")
         tri("Timer", "timer")
         tri("Stacks / charges", "stacks")
@@ -857,9 +883,15 @@ local function TabVisibilite(parent)
             bar.hideOnCooldown = v
             Apply()
         end)
+    _, cy = W.CreateCheckbox(card.inner, "Masquer une icone quand la ressource manque",
+        bar.hideOnUnusable == true, cy, function(v)
+            bar.hideOnUnusable = v
+            Apply()
+        end)
     _, cy = W.CreateInfoText(card.inner,
         "Les icones restantes se resserrent pour combler le trou. La barre se reorganise "
-        .. "a chaque fois que la liste des sorts prets change, pas a chaque tick.", cy)
+        .. "a chaque fois que la liste des sorts affiches change, pas a chaque tick. "
+        .. "Les deux filtres sont independants et cumulables.", cy)
     y = W.FinalizeCard(card, cy)
 
     card, cy = W.CreateCard(c, "Visibilite par sort", y)

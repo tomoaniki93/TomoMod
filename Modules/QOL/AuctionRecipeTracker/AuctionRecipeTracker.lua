@@ -1,4 +1,4 @@
-﻿-- =====================================
+-- =====================================
 -- AuctionRecipeTracker.lua
 -- QOL: when at an auctioneer (AH open), show tracked crafting recipes
 -- with their reagents. Each reagent is clickable for a quick AH search.
@@ -91,7 +91,7 @@ local function SearchAH(searchString, qty)
     if mainFrame and mainFrame.statusText then
         if qty and qty > 0 then
             mainFrame.statusText:SetText(string.format(
-                L["art_searching_qty"] or "Recherche : %s \xc3\x97 %d",
+                L["art_searching_qty"] or "Recherche : %s × %d",
                 searchString, qty))
         else
             mainFrame.statusText:SetText(string.format(

@@ -61,7 +61,12 @@ local ICON_TEXCOORDS = {
     comboPoints = {
         empty   = {0, 0.5, 0.5, 0},
         filled  = {0.5, 1, 0.5, 0},
-        charged = {0, 0.5, 0.5, 1},
+        -- Bottom-left sprite of the atlas: the spiked diamond used for
+        -- supercharged points. Written but never wired until now, and the V
+        -- axis was the wrong way round -- empty/filled are both flipped
+        -- (ULy > LRy) and this one was not, so the sprite came out upside
+        -- down relative to its neighbours.
+        charged = {0, 0.5, 1, 0.5},
     },
     soulShards = {
         empty  = {0.5, 1, 1, 0},
@@ -478,6 +483,10 @@ end
 -- CREATE: POINT DISPLAY (Combo, Soul Shards, Essence, auras)
 -- Supports both icon textures and flat color bars
 -- =====================================
+-- Flat-mode empty slot fill. Shared with UpdatePoints, which has to restore
+-- it when a point stops being supercharged.
+local EMPTY_POINT_BG = { 0.06, 0.06, 0.08, 0.8 }
+
 local function CreatePointDisplay(parent, maxPoints, width, height, colorKey, texType)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetSize(width, height)
@@ -507,7 +516,7 @@ local function CreatePointDisplay(parent, maxPoints, width, height, colorKey, te
             bg:SetTexture(texPath)
             bg:SetTexCoord(unpack(tc.empty))
         else
-            bg:SetColorTexture(0.06, 0.06, 0.08, 0.8)
+            bg:SetColorTexture(unpack(EMPTY_POINT_BG))
         end
         pt.bg = bg
 
@@ -881,6 +890,31 @@ end
 -- =====================================
 -- UPDATE: POINTS / AURA DISPLAY
 -- =====================================
+-- =====================================
+-- SUPERCHARGED COMBO POINTS (Rogue "Supercharger")
+-- =====================================
+-- Blizzard flags individual combo points as supercharged: a finisher that
+-- spends one behaves as if it had spent 2 more, so the player needs to see
+-- WHICH slot is charged, filled or not. The charged indices come from
+-- GetUnitChargedPowerPoints("player") and UNIT_POWER_POINT_CHARGE fires
+-- whenever the set changes.
+--
+-- The list is cached instead of being read inside UpdatePoints: that runs on
+-- UNIT_POWER_FREQUENT, which spams for energy, and allocating a table every
+-- tick for a value that only moves on its own event would be pure garbage.
+local chargedPoints = {}
+
+local function RefreshChargedPoints()
+    wipe(chargedPoints)
+    if type(GetUnitChargedPowerPoints) ~= "function" then return end
+    local ok, list = pcall(GetUnitChargedPowerPoints, "player")
+    if not ok or type(list) ~= "table" then return end
+    for _, idx in ipairs(list) do
+        idx = tonumber(idx)
+        if idx then chargedPoints[idx] = true end
+    end
+end
+
 local function UpdatePoints(pointFrame, resDef)
     if not pointFrame or not pointFrame.points then return end
 
@@ -913,14 +947,51 @@ local function UpdatePoints(pointFrame, resDef)
     local r, g, b = GetColor(colorKey)
     local displayMax = math.min(max, #pointFrame.points)
 
+    -- Gated on the power type: UpdatePoints is shared with soul shards,
+    -- essence, arcane charges and the aura-driven displays, none of which
+    -- have a charged state. No class gate on top -- the API already returns
+    -- nothing for a Druid, so if Blizzard ever widens the mechanic this
+    -- follows on its own.
+    local chargeable = (resDef.display == "points")
+                       and (resDef.powerType == POWER_COMBO_POINTS)
+    local cpTC = ICON_TEXCOORDS.comboPoints
+    local cr, cg, cb = GetColor("chargedComboPoints")
+
     for i = 1, #pointFrame.points do
         local pt = pointFrame.points[i]
         if i > displayMax then
             pt:Hide()
         else
             pt:Show()
+
+            local charged = chargeable and chargedPoints[i] or false
+            local fr, fg, fb = r, g, b
+            if charged then fr, fg, fb = cr, cg, cb end
+
+            -- Empty slots matter here: a charged slot has to read as charged
+            -- BEFORE it is filled, that is the whole point of showing it.
+            -- Textures are built once and reused, so every branch must also
+            -- restore the normal art when a slot stops being charged.
+            if chargeable then
+                if useTex then
+                    pt.bg:SetTexCoord(unpack(charged and cpTC.charged or cpTC.empty))
+                    pt.fill:SetTexCoord(unpack(charged and cpTC.charged or cpTC.filled))
+                    if charged then
+                        pt.bg:SetVertexColor(cr, cg, cb, 0.45)
+                        pt.fill:SetVertexColor(cr, cg, cb, 1)
+                    else
+                        pt.bg:SetVertexColor(1, 1, 1, 1)
+                        pt.fill:SetVertexColor(1, 1, 1, 1)
+                    end
+                elseif charged then
+                    pt.bg:SetColorTexture(cr * 0.35, cg * 0.35, cb * 0.35, 0.85)
+                else
+                    pt.bg:SetColorTexture(unpack(EMPTY_POINT_BG))
+                end
+            end
+
             if i <= current then
-                if not useTex then pt.fill:SetColorTexture(r, g, b) end
+                if not useTex then pt.fill:SetColorTexture(fr, fg, fb) end
                 pt.fill:Show()
                 pt.partial:Hide()
             elseif i == current + 1 and partialFrac > 0 then
@@ -1143,6 +1214,8 @@ local function BuildResourceDisplay()
 
     local classData = CLASS_RESOURCES[playerClass]
     local resources = classData and classData[specIndex]
+
+    RefreshChargedPoints()
 
     -- Specs with no class power at all (e.g. Warrior, Hunter BM/MM, Priest, etc.)
     currentResources = resources
@@ -1389,6 +1462,14 @@ local function OnEvent(self, event, arg1)
         end)
     elseif event == "UNIT_POWER_FREQUENT" or event == "UNIT_POWER_UPDATE" or event == "UNIT_MAXPOWER" then
         if arg1 == "player" then UpdateAll() end
+    elseif event == "UNIT_POWER_POINT_CHARGE" then
+        -- The unit payload can come through as nil, and RegisterUnitEvent
+        -- would swallow those fires outright, so this one is registered
+        -- broadly and filtered here instead.
+        if arg1 == nil or arg1 == "player" then
+            RefreshChargedPoints()
+            UpdateAll()
+        end
     elseif event == "RUNE_POWER_UPDATE" then
         if classPowerFrame and currentResources and currentResources.classPower
            and currentResources.classPower.display == "runes" then
@@ -1470,6 +1551,7 @@ function RB.Initialize()
     mainFrame:RegisterUnitEvent("UNIT_POWER_UPDATE", "player")
     mainFrame:RegisterUnitEvent("UNIT_MAXPOWER", "player")
     mainFrame:RegisterEvent("RUNE_POWER_UPDATE")
+    mainFrame:RegisterEvent("UNIT_POWER_POINT_CHARGE")
     mainFrame:RegisterUnitEvent("UNIT_AURA", "player")
     mainFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
     mainFrame:RegisterEvent("PLAYER_REGEN_DISABLED")

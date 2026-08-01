@@ -179,6 +179,16 @@ local function BuildContent(c)
                 bar.style.desatOnCooldown = v
                 Apply()
             end)
+        -- [S9] castability tint (hors cooldown mais pas lancable)
+        _, cy = W.CreateDropdown(card.inner, "Ressource insuffisante",
+            { { text = "Aucun effet", value = "off" },
+              { text = "Griser", value = "dim" },
+              { text = "Griser + teinte bleue (ressource)", value = "resource" } },
+            (bar.style and bar.style.unusableMode) or "off", cy, function(v)
+                bar.style = bar.style or {}
+                bar.style.unusableMode = (v ~= "off") and v or nil
+                Apply()
+            end)
         local mode = bar.layout or "line"
         _, cy = W.CreateSegmentedControl(card.inner, "Disposition",
             { { text = "En ligne", value = "line" }, { text = "En cercle", value = "radial" } },
@@ -214,6 +224,8 @@ local function BuildContent(c)
         end
         _, cy = W.CreateCheckbox(card.inner, "Masquer une icone pendant son cooldown",
             bar.hideOnCooldown == true, cy, function(v) bar.hideOnCooldown = v; Apply() end)
+        _, cy = W.CreateCheckbox(card.inner, "Masquer une icone quand la ressource manque",
+            bar.hideOnUnusable == true, cy, function(v) bar.hideOnUnusable = v; Apply() end)
         _, cy = W.CreateDropdown(card.inner, "Texte",
             { { text = "Minuteur", value = "timer" }, { text = "Nom", value = "name" }, { text = "Aucun", value = "none" } },
             bar.text.mode, cy, function(v) bar.text.mode = v; Apply() end)
@@ -223,6 +235,7 @@ local function BuildContent(c)
             function(v) bar.glow.enabled = v; Apply() end)
         _, cy = W.CreateDropdown(card.inner, "Condition du glow",
             { { text = "Quand le sort est pret", value = "ready" },
+              { text = "Quand le sort est utilisable", value = "usable" },
               { text = "Quand le buff est actif", value = "aura" },
               { text = "Toujours", value = "always" } },
             bar.glow.condition or "ready", cy, function(v)

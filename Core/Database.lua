@@ -657,6 +657,7 @@ TomoMod_Defaults = {
         colors = {
             mana            = { r = 0.00, g = 0.00, b = 1.00 },
             comboPoints     = { r = 1.00, g = 0.96, b = 0.41 },
+            chargedComboPoints = { r = 0.95, g = 0.20, b = 0.20 },
             runes           = { r = 0.50, g = 0.50, b = 0.50 },
             runesReady      = { r = 0.75, g = 0.22, b = 0.22 },
             soulShards      = { r = 0.58, g = 0.51, b = 0.79 },

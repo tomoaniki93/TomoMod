@@ -1020,6 +1020,70 @@ local function ClassifyBlock(block)
     return "OTHER"
 end
 
+-- =====================================
+-- SPECIAL MODULES (scenario / delve / bonus objectives / widgets)
+-- =====================================
+
+-- Module containers we never break into buckets: their internals are anchored
+-- to each other and come apart when re-parented, so they move as one block.
+local function IsSpecialModule(f)
+    if not f or not f.GetName then return false end
+    local n = f:GetName()
+    if not n then return false end
+    return (n:find("BonusObjective", 1, true)
+         or n:find("Scenario",       1, true)
+         or n:find("UIWidget",       1, true)
+         or n:find("Delve",          1, true)) ~= nil
+end
+
+-- "Is shown" is not a content test: Blizzard keeps several module containers
+-- alive and shown with nothing inside them. Look for something actually
+-- rendered -- a non-empty FontString or a status bar -- inside the subtree.
+-- IsShown, never IsVisible: the panel itself may currently be hidden by
+-- "hide when empty", and IsVisible would then report every module as empty,
+-- which would keep the panel hidden forever.
+local function ModuleHasVisibleContent(f, depth)
+    depth = depth or 0
+    if not f or depth > 5 then return false end
+    if f.IsShown and not f:IsShown() then return false end
+    if f.IsObjectType and f:IsObjectType("StatusBar") then return true end
+    if f.GetRegions then
+        for _, r in ipairs({ f:GetRegions() }) do
+            if r.IsObjectType and r:IsObjectType("FontString") and r:IsShown() then
+                local txt = r:GetText()
+                if txt and txt ~= "" then return true end
+            end
+        end
+    end
+    if f.GetChildren then
+        for _, c in ipairs({ f:GetChildren() }) do
+            if ModuleHasVisibleContent(c, depth + 1) then return true end
+        end
+    end
+    return false
+end
+
+-- True when a scenario / delve / bonus-objective module is on screen with real
+-- content in it. That content lives outside the quest-block collection (those
+-- subtrees are deliberately skipped), so counting blocks alone reads a delve
+-- run -- criteria tracked, often no quest at all -- as an empty tracker.
+-- Depth mirrors the layout walk (walkForSkipped): Blizzard does not always
+-- hang these modules straight off the tracker.
+local function HasSpecialModuleContent(parent, depth)
+    depth = depth or 0
+    if not parent or not parent.GetChildren or depth > 2 then return false end
+    for _, child in ipairs({ parent:GetChildren() }) do
+        if IsSpecialModule(child) then
+            if child:IsShown() and ModuleHasVisibleContent(child, 0) then
+                return true
+            end
+        elseif not child.HeaderText and HasSpecialModuleContent(child, depth + 1) then
+            return true
+        end
+    end
+    return false
+end
+
 LayoutBuckets = function()
     if _tmInLayout then return end
     _tmInLayout = true
@@ -1110,22 +1174,9 @@ LayoutBuckets = function()
     collectAll(tracker, 0, blocks, seen)
     collectAll(skinFrame, 0, blocks, seen)
 
-    _tmHasContent = (#blocks > 0)
-
-    if #blocks == 0 then
-        for _, bf in pairs(bucketFrames) do bf.frame:Hide() end
-        -- [fix] This early return used to leave the height computed by
-        -- CreateOrUpdateBackground in place. That measurement walks
-        -- Blizzard's own children and keeps the lowest visible bottom --
-        -- and some of those containers stay shown at nearly full height
-        -- with nothing tracked, which is why an empty tracker showed a
-        -- panel spanning most of the screen. Collapse to the header.
-        if skinFrame and headerBar then
-            skinFrame:SetHeight((headerBar:GetHeight() or 28) + 16)
-        end
-        _tmInLayout = false
-        return
-    end
+    -- Emptiness is decided further down, once the scenario / delve modules
+    -- have been placed: they carry content of their own that never shows up
+    -- in `blocks`, so a delve with no tracked quest is not an empty tracker.
 
     -- Group by bucket key
     local groups = {}
@@ -1162,21 +1213,19 @@ LayoutBuckets = function()
     local BLOCK_GAP       = 4
     local BUCKET_GAP      = 6
 
-    local yOffset = -(headerBarH + TOP_GAP)
+    local yStart  = -(headerBarH + TOP_GAP)
+    local yOffset = yStart
 
     -- ── STEP 1: Scenario / Delve / BonusObjective modules FIRST (top) ─────────
     -- Mirrors Blizzard's default order: active scenario/delve sits above quests.
     local function reanchorSkippedModule(f, yCursor)
         if not f or not f.IsShown or not f:IsShown() then return yCursor end
-        if not f.GetName then return yCursor end
-        local n = f:GetName()
-        if not n then return yCursor end
-        if not (n:find("BonusObjective", 1, true)
-             or n:find("Scenario",       1, true)
-             or n:find("UIWidget",       1, true)
-             or n:find("Delve",          1, true)) then
-            return yCursor
-        end
+        if not IsSpecialModule(f) then return yCursor end
+        -- A shown module is not necessarily a filled one. Placing an empty
+        -- container would reserve the 40px minimum below for nothing, and --
+        -- worse -- would make the panel read as "has content" and stay on
+        -- screen forever, which is the giant empty panel all over again.
+        if not ModuleHasVisibleContent(f, 0) then return yCursor end
         -- Stash original anchor + parent once so DisableBuckets can restore.
         if not f._tmOriginalAnchor then
             local p, parent, rp, x, y = f:GetPoint(1)
@@ -1225,8 +1274,9 @@ LayoutBuckets = function()
         return yCursor - h - BLOCK_GAP
     end
 
-    local function walkForSkipped(parent)
-        if not parent or not parent.GetChildren then return end
+    local function walkForSkipped(parent, depth)
+        depth = depth or 0
+        if not parent or not parent.GetChildren or depth > 2 then return end
         for _, child in ipairs({ parent:GetChildren() }) do
             -- WorldQuest module frames: WQ blocks are now collected individually
             -- into the WORLD bucket; just suppress the now-empty module container.
@@ -1236,8 +1286,15 @@ LayoutBuckets = function()
                     child:SetAlpha(0)
                     _tmHiddenModules[#_tmHiddenModules + 1] = child
                 end
-            else
+            elseif IsSpecialModule(child) then
                 yOffset = reanchorSkippedModule(child, yOffset)
+            elseif child ~= headerBar and not child._tmBucket and not child.HeaderText then
+                -- Blizzard does not always hang its module frames straight off
+                -- the tracker, so look a couple of levels down instead of
+                -- assuming they are direct children. Quest blocks (HeaderText)
+                -- and our own bucket frames are never descended into: a widget
+                -- living inside a block belongs to that block, not to us.
+                walkForSkipped(child, depth + 1)
             end
         end
     end
@@ -1245,8 +1302,136 @@ LayoutBuckets = function()
     walkForSkipped(tracker)
     walkForSkipped(skinFrame)
 
+    -- ── Orphan StatusBar sweep (used by STEP 4, and by the delve-only exit) ───
+    -- Module-level progress bars (WQ weekly progress, enemy forces, etc.) are
+    -- sometimes parented to BlocksFrame rather than to a specific quest block, so
+    -- block:Hide() doesn't reach them.  SetIgnoreParentAlpha on them also bypasses
+    -- the WQ module SetAlpha(0) guard, leaving a floating "0%" bar.
+    -- All active blocks are now under skinFrame; any StatusBar still in the
+    -- original tracker subtree is orphaned and should be hidden.
+    --
+    -- Returns the reparented frame a bar ultimately belongs to, or nil when
+    -- the bar is genuinely orphaned.
+    --
+    -- A bar sits several steps away from its block. ObjectiveTrackerProgressBar-
+    -- Template is a *container* Frame holding the real StatusBar as its `Bar`
+    -- child, and that child is anchored to the container, not to the block.
+    -- The container itself is parented to the module's own ContentsFrame
+    -- (ObjectiveTrackerModuleMixin:AcquireFrame does SetParent(self.ContentsFrame))
+    -- and is only *anchored* to the block. So reading the bar's own anchor
+    -- landed on the container -- which never sits under skinFrame -- and every
+    -- quest progress bar was swept away, leaving the mob tooltip as the only
+    -- way to follow progress.
+    --
+    -- Walking parents and anchor targets together reaches the block whatever
+    -- the nesting: parent hop to the container, anchor hop to the block.
+    local function LiveHostOf(bar)
+        local seen, queue, count, i = {}, { bar }, 1, 1
+        while i <= count and i <= 32 do
+            local cur = queue[i]
+            i = i + 1
+            if cur and not seen[cur] then
+                seen[cur] = true
+                -- Nearest host first: a tagged block, then any frame we
+                -- reparented directly under skinFrame (scenario / delve
+                -- modules carry no bucket key), then skinFrame itself.
+                -- Returning skinFrame too early would gate visibility on the
+                -- whole panel instead of on the block that owns the bar.
+                if cur._tmBucketKey then return cur end
+                if cur.GetParent and cur:GetParent() == skinFrame then return cur end
+                if cur == skinFrame then return cur end
+                -- Reaching the untouched tracker tree means this branch is
+                -- orphaned; don't expand through it.
+                if cur ~= tracker then
+                    if cur.GetParent then
+                        local parent = cur:GetParent()
+                        if parent then count = count + 1; queue[count] = parent end
+                    end
+                    local numPoints = cur.GetNumPoints and cur:GetNumPoints() or 0
+                    for pi = 1, numPoints do
+                        local _, relTo = cur:GetPoint(pi)
+                        if relTo then count = count + 1; queue[count] = relTo end
+                    end
+                end
+            end
+        end
+        return nil
+    end
+
+    local function HideStrayBars(f, d)
+        if not f or d > 8 then return end
+        if f == skinFrame or f._tmBucket then return end
+        if f:IsObjectType("StatusBar") then
+            -- A bar hidden by an earlier pass has to be reconsidered here too.
+            -- Looking only at bars that are currently shown made this a
+            -- one-way trip: collapsing a bucket hid its progress bar, and
+            -- expanding it again re-ran this sweep, which skipped the bar
+            -- because it was no longer shown. Nothing ever brought it back.
+            -- `_tmStrayHidden` marks the bars WE hid, so a bar Blizzard is
+            -- legitimately keeping hidden is still none of our business.
+            if f:IsShown() or f._tmStrayHidden then
+                -- Keep bars owned by a tracked, expanded block; hide everything
+                -- else (empty WQ module progress, floating "0%" bars, bars whose
+                -- block is collapsed or hidden) exactly as before.
+                local host = LiveHostOf(f)
+                if host and host:IsVisible() then
+                    if f._tmStrayHidden then
+                        f._tmStrayHidden = nil
+                        f:Show()
+                    end
+                    -- These bars are not children of the block, so the per-block
+                    -- ScanAndStyle pass never reaches them. Style them here so a
+                    -- progress bar matches the rest of the tracker.
+                    StyleStatusBar(f)
+                else
+                    if f:IsShown() then f:Hide() end
+                    f._tmStrayHidden = true
+                    _strayBars[#_strayBars + 1] = f
+                end
+                return  -- no need to recurse into a progress bar
+            end
+        end
+        if f.GetChildren then
+            for _, c in ipairs({ f:GetChildren() }) do HideStrayBars(c, d + 1) end
+        end
+    end
+
+    -- ── Emptiness verdict ─────────────────────────────────────────────────────
+    -- yOffset only moves when a scenario / delve / bonus module was actually
+    -- placed, which is exactly the "content Blizzard owns" case.
+    local hasSpecial = (yOffset < yStart)
+    _tmHasContent = (#blocks > 0) or hasSpecial
+
+    if #blocks == 0 then
+        for _, bf in pairs(bucketFrames) do bf.frame:Hide() end
+        if hasSpecial then
+            -- A delve or a scenario with no quest tracked alongside it: the
+            -- panel keeps only what STEP 1 placed. Sweeping stray bars here
+            -- too, since the criteria bars now live under skinFrame and the
+            -- ones left behind in Blizzard's tree are the floating "0%" kind.
+            HideStrayBars(tracker, 0)
+            local totalH = math.abs(yOffset) + 10
+            if totalH < 60 then totalH = 60 end
+            skinFrame:SetHeight(totalH)
+        elseif skinFrame and headerBar then
+            -- [fix] This early return used to leave the height computed by
+            -- CreateOrUpdateBackground in place. That measurement walks
+            -- Blizzard's own children and keeps the lowest visible bottom --
+            -- and some of those containers stay shown at nearly full height
+            -- with nothing tracked, which is why an empty tracker showed a
+            -- panel spanning most of the screen. Collapse to the header.
+            skinFrame:SetHeight((headerBar:GetHeight() or 28) + 16)
+        end
+        _tmInLayout = false
+        _tmSilenceHook = _tmSilenceHook + 1
+        C_Timer.After(0.20, function()
+            _tmSilenceHook = math.max(0, _tmSilenceHook - 1)
+        end)
+        return
+    end
+
     -- ── STEP 2: Quest buckets BELOW the scenario/delve block ──────────────────
-    if yOffset < -(headerBarH + TOP_GAP) then
+    if yOffset < yStart then
         yOffset = yOffset - BUCKET_GAP   -- extra gap between delve and first bucket
     end
 
@@ -1428,98 +1613,8 @@ LayoutBuckets = function()
     HideWorldQuestModules(tracker, 0)
 
     -- ── STEP 4: Hide orphan StatusBars left in the original tracker tree ────────
-    -- Module-level progress bars (WQ weekly progress, enemy forces, etc.) are
-    -- sometimes parented to BlocksFrame rather than to a specific quest block, so
-    -- block:Hide() doesn't reach them.  SetIgnoreParentAlpha on them also bypasses
-    -- the WQ module SetAlpha(0) guard, leaving a floating "0%" bar.
-    -- All active blocks are now under skinFrame; any StatusBar still in the
-    -- original tracker subtree is orphaned and should be hidden.
-    --
-    -- Returns the reparented frame a bar ultimately belongs to, or nil when
-    -- the bar is genuinely orphaned.
-    --
-    -- A bar sits several steps away from its block. ObjectiveTrackerProgressBar-
-    -- Template is a *container* Frame holding the real StatusBar as its `Bar`
-    -- child, and that child is anchored to the container, not to the block.
-    -- The container itself is parented to the module's own ContentsFrame
-    -- (ObjectiveTrackerModuleMixin:AcquireFrame does SetParent(self.ContentsFrame))
-    -- and is only *anchored* to the block. So reading the bar's own anchor
-    -- landed on the container -- which never sits under skinFrame -- and every
-    -- quest progress bar was swept away, leaving the mob tooltip as the only
-    -- way to follow progress.
-    --
-    -- Walking parents and anchor targets together reaches the block whatever
-    -- the nesting: parent hop to the container, anchor hop to the block.
-    local function LiveHostOf(bar)
-        local seen, queue, count, i = {}, { bar }, 1, 1
-        while i <= count and i <= 32 do
-            local cur = queue[i]
-            i = i + 1
-            if cur and not seen[cur] then
-                seen[cur] = true
-                -- Nearest host first: a tagged block, then any frame we
-                -- reparented directly under skinFrame (scenario / delve
-                -- modules carry no bucket key), then skinFrame itself.
-                -- Returning skinFrame too early would gate visibility on the
-                -- whole panel instead of on the block that owns the bar.
-                if cur._tmBucketKey then return cur end
-                if cur.GetParent and cur:GetParent() == skinFrame then return cur end
-                if cur == skinFrame then return cur end
-                -- Reaching the untouched tracker tree means this branch is
-                -- orphaned; don't expand through it.
-                if cur ~= tracker then
-                    if cur.GetParent then
-                        local parent = cur:GetParent()
-                        if parent then count = count + 1; queue[count] = parent end
-                    end
-                    local numPoints = cur.GetNumPoints and cur:GetNumPoints() or 0
-                    for pi = 1, numPoints do
-                        local _, relTo = cur:GetPoint(pi)
-                        if relTo then count = count + 1; queue[count] = relTo end
-                    end
-                end
-            end
-        end
-        return nil
-    end
-
-    local function HideStrayBars(f, d)
-        if not f or d > 8 then return end
-        if f == skinFrame or f._tmBucket then return end
-        if f:IsObjectType("StatusBar") then
-            -- A bar hidden by an earlier pass has to be reconsidered here too.
-            -- Looking only at bars that are currently shown made this a
-            -- one-way trip: collapsing a bucket hid its progress bar, and
-            -- expanding it again re-ran this sweep, which skipped the bar
-            -- because it was no longer shown. Nothing ever brought it back.
-            -- `_tmStrayHidden` marks the bars WE hid, so a bar Blizzard is
-            -- legitimately keeping hidden is still none of our business.
-            if f:IsShown() or f._tmStrayHidden then
-                -- Keep bars owned by a tracked, expanded block; hide everything
-                -- else (empty WQ module progress, floating "0%" bars, bars whose
-                -- block is collapsed or hidden) exactly as before.
-                local host = LiveHostOf(f)
-                if host and host:IsVisible() then
-                    if f._tmStrayHidden then
-                        f._tmStrayHidden = nil
-                        f:Show()
-                    end
-                    -- These bars are not children of the block, so the per-block
-                    -- ScanAndStyle pass never reaches them. Style them here so a
-                    -- progress bar matches the rest of the tracker.
-                    StyleStatusBar(f)
-                else
-                    if f:IsShown() then f:Hide() end
-                    f._tmStrayHidden = true
-                    _strayBars[#_strayBars + 1] = f
-                end
-                return  -- no need to recurse into a progress bar
-            end
-        end
-        if f.GetChildren then
-            for _, c in ipairs({ f:GetChildren() }) do HideStrayBars(c, d + 1) end
-        end
-    end
+    -- (HideStrayBars is defined above STEP 2 because the delve-only branch of
+    -- the emptiness verdict runs this same sweep and returns before this point.)
     HideStrayBars(tracker, 0)
 
     -- Resize skinFrame to fit our layout
@@ -1548,7 +1643,14 @@ local function DisableBuckets()
     CollectQuestBlocks(tracker, 0, blocks)
     -- Non-bucket mode: blocks go back to their Blizzard parent, so the
     -- tracker really is where they live and this count is meaningful.
+    -- Quest blocks are not the whole story though: a delve or a scenario
+    -- tracks its criteria in its own module, with no quest block anywhere,
+    -- and hiding the panel there takes the delve progress off screen.
+    -- Both parents: a module re-parented by a previous bucketed pass is still
+    -- under skinFrame until restoreSkipped puts it back at the end of this call.
     _tmHasContent = (#blocks > 0)
+        or HasSpecialModuleContent(tracker)
+        or HasSpecialModuleContent(skinFrame)
     for _, b in ipairs(blocks) do
         if b._tmOriginalParent then
             b:SetParent(b._tmOriginalParent)

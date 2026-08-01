@@ -482,7 +482,9 @@ local function BuildColorsTab(parent)
     local _, cy = W.CreateInfoText(card.inner, L["info_rb_colors_custom"], cy)
 
     local entries = {
-        { key = "comboPoints", label = L["res_combo_points"] }, { key = "holyPower", label = L["res_holy_power"] },
+        { key = "comboPoints", label = L["res_combo_points"] },
+        { key = "chargedComboPoints", label = L["res_charged_combo_points"] },
+        { key = "holyPower", label = L["res_holy_power"] },
         { key = "soulShards", label = L["res_soul_shards"] }, { key = "chi", label = L["res_chi"] },
         { key = "essence", label = L["res_essence"] }, { key = "arcaneCharges", label = L["res_arcane_charges"] },
         { key = "runes", label = L["res_runes_cd"] }, { key = "runesReady", label = L["res_runes_ready"] },

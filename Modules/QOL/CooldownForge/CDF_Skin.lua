@@ -23,6 +23,9 @@ CDF.SKIN_AXES = {
     "badge", "desatOnCooldown", "shadow", "stackPos",
     -- [S7] fine axes (default nil in presets -> resolved defaults below)
     "opacity", "timerColor",
+    -- [S9] castability tint; see CDF.UNUSABLE_MODES. "off" on every preset
+    -- so no existing bar changes appearance.
+    "unusableMode",
 }
 
 CDF.SKIN_PRESETS = {
@@ -37,6 +40,7 @@ CDF.SKIN_PRESETS = {
         desatOnCooldown = false,
         shadow  = false,
         stackPos = "BOTTOMRIGHT",
+        unusableMode = "off",
     },
     tomo = {
         opacity = 1,
@@ -49,6 +53,7 @@ CDF.SKIN_PRESETS = {
         desatOnCooldown = false,
         shadow  = false,
         stackPos = "TOPRIGHT",
+        unusableMode = "off",
     },
     verre = {
         opacity = 1,
@@ -61,6 +66,7 @@ CDF.SKIN_PRESETS = {
         desatOnCooldown = true,
         shadow  = true,
         stackPos = "BOTTOMRIGHT",
+        unusableMode = "off",
     },
 }
 
@@ -98,6 +104,11 @@ function CDF.NormalizeStyle(bar)
     local st = bar.style
     if st.preset ~= "custom" and not CDF.SKIN_PRESETS[st.preset] then
         st.preset = "tomo"
+    end
+    -- [S9] drop an unknown castability mode rather than storing it; nil
+    -- falls back to the preset value in ResolveStyle.
+    if st.unusableMode ~= nil and not (CDF.UNUSABLE_MODES or {})[st.unusableMode] then
+        st.unusableMode = nil
     end
     return bar.style
 end

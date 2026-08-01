@@ -927,6 +927,73 @@ end
 -- =====================================================================
 -- COLOR PICKER
 -- =====================================================================
+-- ColorPickerFrame is toplevel, but every TomoMod window lives in
+-- FULLSCREEN_DIALOG with an explicit frame level (ConfigUI 500, the Forge
+-- studio shell 100 + SetToplevel), so the picker regularly opens BEHIND the
+-- window that spawned it -- very visible on small screens, where the panel
+-- covers the middle of the display. We raise it while it is shown and put
+-- its own strata/level back on hide, so no other addon inherits our z-order.
+local function RaiseColorPicker()
+    local cp = ColorPickerFrame
+    if not cp then return end
+
+    if not cp._tmZFix then
+        cp._tmZFix = true
+        cp:HookScript("OnHide", function(self)
+            if self._tmPrevStrata then
+                self:SetFrameStrata(self._tmPrevStrata)
+                self:SetFrameLevel(self._tmPrevLevel or 1)
+                self._tmPrevStrata, self._tmPrevLevel = nil, nil
+            end
+        end)
+    end
+    if not cp._tmPrevStrata then
+        cp._tmPrevStrata = cp:GetFrameStrata()
+        cp._tmPrevLevel  = cp:GetFrameLevel()
+    end
+    cp:SetFrameStrata("TOOLTIP")   -- above the widget-kit dropdowns (9000)
+    cp:SetFrameLevel(9500)
+    cp:SetToplevel(true)
+    cp:SetClampedToScreen(true)
+end
+
+-- Park the picker next to the swatch that opened it instead of the screen
+-- centre, which on a small resolution lands under (or half off) the panel.
+-- Anchored to UIParent in absolute coordinates, NOT to the swatch: the
+-- swatch lives in a scroll frame and the picker must not follow it if the
+-- panel behind is scrolled. Called after Show() so the rect is valid.
+local function PlaceColorPicker(swatch)
+    local cp = ColorPickerFrame
+    if not (cp and swatch and swatch.GetLeft) then return end
+    local left, bottom = swatch:GetLeft(), swatch:GetBottom()
+    if not (left and bottom) then return end
+
+    local cs = cp:GetEffectiveScale()
+    local ss = swatch:GetEffectiveScale()
+    local ps = UIParent:GetEffectiveScale()
+    if not (cs and ss and ps) or cs <= 0 then return end
+
+    -- swatch rect -> screen pixels -> picker units
+    local x  = (left   * ss) / cs
+    local y  = (bottom * ss) / cs
+    local sw = (UIParent:GetWidth()  * ps) / cs
+    local sh = (UIParent:GetHeight() * ps) / cs
+    local w  = cp:GetWidth()  or 350
+    local h  = cp:GetHeight() or 400
+
+    -- prefer the right of the swatch, flip to its left when that overflows,
+    -- and clamp to the screen as a last resort (very small resolutions).
+    local px = x + ((swatch:GetWidth() or 26) * ss) / cs + 12
+    if px + w > sw - 4 then px = x - w - 12 end
+    if px < 4 then px = math.max(4, (sw - w) / 2) end
+    local py = y - (h / 2)
+    if py + h > sh - 4 then py = sh - h - 4 end
+    if py < 4 then py = 4 end
+
+    cp:ClearAllPoints()
+    cp:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", px, py)
+end
+
 function W.CreateColorPicker(parent, text, color, yOffset, callback)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetHeight(30)
@@ -986,6 +1053,9 @@ function W.CreateColorPicker(parent, text, color, yOffset, callback)
             ColorPickerFrame.cancelFunc = OnCancel
             ColorPickerFrame:Hide(); ColorPickerFrame:Show()
         end
+        -- after Show(), so the frame has a real size to place and clamp
+        RaiseColorPicker()
+        PlaceColorPicker(swatch)
     end)
     swatch:SetScript("OnEnter", function()
         swatch:SetBackdropBorderColor(T.borderLight[1], T.borderLight[2], T.borderLight[3], 1)

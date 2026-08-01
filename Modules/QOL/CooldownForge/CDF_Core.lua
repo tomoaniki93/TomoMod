@@ -94,8 +94,15 @@ CDF.GLOW_TYPES    = { Pixel = true, Autocast = true, Button = true }
 --   ready  -> off cooldown (historic, hardcoded behaviour)
 --   aura   -> a buff is currently up on the player
 --   always -> glow whenever the icon is shown
+--   usable -> off cooldown AND currently castable (resource available)
 CDF.LAYOUTS       = { line = true, radial = true }
-CDF.GLOW_CONDS    = { ready = true, aura = true, always = true }
+CDF.GLOW_CONDS    = { ready = true, aura = true, always = true, usable = true }
+-- [S9] Castability tint modes applied to the icon art:
+--   off      -> never tint (pre-S9 behaviour; default on every preset)
+--   dim      -> grey out whenever the spell/item cannot be used right now
+--   resource -> grey when unusable, blue-dark when the missing resource is
+--               the blocker (same treatment as ActionBarSkin on the bars)
+CDF.UNUSABLE_MODES = { off = true, dim = true, resource = true }
 CDF.ENTRY_KINDS   = { spell = true, item = true, itemPreset = true, equippedTrinket = true, racial = true }
 CDF.TRINKET_SLOTS = { [13] = true, [14] = true }
 
@@ -135,6 +142,10 @@ function CDF.SanitizeOverride(o)
     end
     local aid = tonumber(o.auraSpellID)
     if aid and aid > 0 then out.auraSpellID = math.floor(aid) end
+    -- [S9] per-entry castability tint (nil = inherit from the bar style)
+    if type(o.unusableMode) == "string" and CDF.UNUSABLE_MODES[o.unusableMode] then
+        out.unusableMode = o.unusableMode
+    end
     local gc = o.glowColor
     if type(gc) == "table" and tonumber(gc[1]) and tonumber(gc[2]) and tonumber(gc[3]) then
         out.glowColor = {
@@ -217,6 +228,7 @@ function CDF.NewBarSchema(name)
         wrap        = 0,
         radial      = { radius = 90, startAngle = 90, arc = 360, clockwise = true },
         hideOnCooldown = false,        -- [S8] drop icons while they are on cooldown
+        hideOnUnusable = false,        -- [S9] drop icons the player cannot afford
         glow  = { enabled = true, type = "Pixel", color = { 0.18, 0.85, 0.52, 1 },
                   condition = "ready", auraSpellID = nil },
         swipe = { draw = true, color = { 0, 0, 0, 0.6 }, reverse = false },
@@ -259,6 +271,9 @@ function CDF.SanitizeBar(bar)
     bar.wrap     = clamp(bar.wrap, 0, 12)
     bar.radial   = CDF.SanitizeRadial(bar.radial)
     bar.hideOnCooldown = bar.hideOnCooldown == true
+    -- [S9] independent of hideOnCooldown: hides an icon that is off cooldown
+    -- but currently uncastable (not enough rage, wrong form, ...).
+    bar.hideOnUnusable = bar.hideOnUnusable == true
     bar.glow  = bar.glow  or { enabled = true, type = "Pixel", color = { 0.18, 0.85, 0.52, 1 } }
     if not CDF.GLOW_TYPES[bar.glow.type] then bar.glow.type = "Pixel" end
     if not CDF.GLOW_CONDS[bar.glow.condition] then bar.glow.condition = "ready" end
