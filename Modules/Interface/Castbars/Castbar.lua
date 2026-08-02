@@ -250,16 +250,24 @@ do
     local latFrame = CreateFrame("Frame")
     local lastCastChangeTime = nil
     latFrame:RegisterEvent("CURRENT_SPELL_CAST_CHANGED")
-    latFrame:RegisterEvent("UNIT_SPELLCAST_SENT")
-    latFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-    latFrame:RegisterEvent("UNIT_SPELLCAST_INTERRUPTED")
-    latFrame:RegisterEvent("UNIT_SPELLCAST_FAILED")
-    latFrame:SetScript("OnEvent", function(_, event, unit)
+    -- [PERF] RegisterUnitEvent, not RegisterEvent: this frame only ever cares
+    -- about the player's own casts, and UNIT_SPELLCAST_SUCCEEDED unfiltered
+    -- fires for every cast of every visible unit -- each raid member plus every
+    -- nameplate mob in a pull. Filtering at registration means the client never
+    -- wakes this handler for anyone else, and it keeps our insecure code out of
+    -- the dispatch chain Blizzard uses for those units.
+    latFrame:RegisterUnitEvent("UNIT_SPELLCAST_SENT", "player")
+    latFrame:RegisterUnitEvent("UNIT_SPELLCAST_SUCCEEDED", "player")
+    latFrame:RegisterUnitEvent("UNIT_SPELLCAST_INTERRUPTED", "player")
+    latFrame:RegisterUnitEvent("UNIT_SPELLCAST_FAILED", "player")
+    latFrame:SetScript("OnEvent", function(_, event)
+        -- No `unit == "player"` test left: registration already guarantees it,
+        -- and 12.x can hand out secret unit tokens that raise when compared.
         if event == "CURRENT_SPELL_CAST_CHANGED" then
             lastCastChangeTime = GetTime()
-        elseif event == "UNIT_SPELLCAST_SENT" and unit == "player" then
+        elseif event == "UNIT_SPELLCAST_SENT" then
             _playerLatency.sendTime = lastCastChangeTime; lastCastChangeTime = nil
-        elseif unit == "player" then
+        else
             _playerLatency.sendTime = nil
         end
     end)

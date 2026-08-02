@@ -376,12 +376,16 @@ function BS.Initialize()
     if not hooksInstalled then
         hooksInstalled = true
 
+        -- [PERF] RegisterUnitEvent, not RegisterEvent: the handler only ever
+        -- acted on "player", but an unfiltered UNIT_AURA wakes this frame for
+        -- every unit whose auras change -- 20+ raid members plus every visible
+        -- nameplate. Filtering at registration drops those dispatches entirely
+        -- and keeps our insecure code out of Blizzard's BuffFrame/arena
+        -- dispatch chain for the other units.
         local eventFrame = CreateFrame("Frame")
-        eventFrame:RegisterEvent("UNIT_AURA")
-        eventFrame:SetScript("OnEvent", function(_, event, unit)
-            if event == "UNIT_AURA" and unit == "player" then
-                ScheduleUpdate()
-            end
+        eventFrame:RegisterUnitEvent("UNIT_AURA", "player")
+        eventFrame:SetScript("OnEvent", function()
+            ScheduleUpdate()
         end)
 
         -- [FIX] Install hooks immediately — they just call ScheduleUpdate which

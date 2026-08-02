@@ -545,6 +545,21 @@ local function CreateUI()
     local s = GetSettings()
     if not s then return end
 
+    -- Build once. /tm skyride resets the module's saved variables and calls
+    -- Initialize() again, which lands here: without this guard every invocation
+    -- built a fresh widget tree (4 frames, 4 textures, 6 font strings) and
+    -- rebound the global TomoModSkyRideFrame to it. The previous tree stayed
+    -- parented to UIParent -- WoW never collects a frame -- so it kept
+    -- rendering, unreachable and impossible to hide. Re-apply the (possibly
+    -- reset) settings to the existing tree instead, which is what the command
+    -- actually wants.
+    if frame then
+        RelayoutUI()
+        ApplyPosition()
+        UpdateVisibility()
+        return
+    end
+
     frame = CreateFrame("Frame", "TomoModSkyRideFrame", UIParent)
     frame:SetFrameLevel(9600)
     frame:SetMovable(true)
@@ -717,8 +732,19 @@ function SR.Initialize()
 
     CreateUI()
 
+    -- Same shape as SR.SetEnabled. The old code assigned a new ticker
+    -- unconditionally: on a second Initialize() the previous handle was
+    -- overwritten, so nothing could ever cancel it and OnTick kept firing at
+    -- 4 Hz forever, once more per invocation. The else branch matters too --
+    -- the module's default is enabled = false, so after /tm skyride a ticker
+    -- started earlier would otherwise keep polling a hidden bar.
     if db.enabled then
-        updateTicker = C_Timer.NewTicker(0.25, OnTick)
+        if not updateTicker then
+            updateTicker = C_Timer.NewTicker(0.25, OnTick)
+        end
+    elseif updateTicker then
+        updateTicker:Cancel()
+        updateTicker = nil
     end
 
     print("|cff00ff00TomoMod SkyRide:|r " .. TomoMod_L["msg_sr_initialized"])

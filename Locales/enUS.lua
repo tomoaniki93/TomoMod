@@ -483,7 +483,6 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_abs_shift_reveal"]            = "Hold Shift to reveal hidden bars",
     ["sublabel_bar_opacity"]            = "— Per-Bar Opacity —",
     ["opt_abs_select_bar"]              = "Select Action Bar",
-    ["opt_abs_opacity"]                 = "Opacity",
     ["btn_abs_apply_all_opacity"]       = "Apply to all bars",
     ["msg_abs_all_opacity"]             = "Opacity set to %d%% on all bars",
     ["sublabel_bar_combat"]             = "— Combat Visibility —",
@@ -1226,7 +1225,6 @@ TomoMod_RegisterLocale("enUS", {
     ["tmt_forces_done"]             = "COMPLETE",
     ["tmt_forces_pct"]              = "%.1f%%",
     ["tmt_forces_count"]            = "%d / %d",
-    ["tmt_preview_active"]          = "|cff2ed884TomoMod|r M+ Tracker: Preview mode active.",
     ["tmt_cfg_title"]               = "Mythic",
     ["tmt_cfg_panel_enable"]         = "Enable M+ Tracker",
     ["tmt_cfg_show_timer"]          = "Show Timer Bar",
@@ -1637,8 +1635,6 @@ TomoMod_RegisterLocale("enUS", {
     ["info_skin_bags_desc"]              = "Combined/category/per-bag layouts with quality borders, search, item-level badges, junk icons, bag bar, and resizable frame.",
     ["opt_skin_bags_enable"]             = "Enable Bag Skin",
     -- Bag skin — extra features
-    ["bagskin_de_badge"]                 = "DE",
-    ["bagskin_de_tooltip"]               = "|cff2ed884[Right-click]|r Disenchant",
     ["bagskin_currencies_none"]          = "No tracked currencies (right-click a currency → Show in Backpack)",
     ["opt_skin_bags_stack_merge"]        = "Merge identical item stacks",
     ["opt_skin_bags_show_empty"]         = "Show free slots section",
@@ -1673,18 +1669,6 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_skin_bags_show_gold"]          = "Show gold (footer)",
     ["opt_skin_bags_show_currencies"]    = "Show tracked currencies (footer)",
     -- Bag skin — category names
-    ["bagskin_cat_recent"]               = "Recent Items",
-    ["bagskin_cat_equipment"]            = "Equipment",
-    ["bagskin_cat_consumables"]          = "Consumables",
-    ["bagskin_cat_quest"]                = "Quest Items",
-    ["bagskin_cat_tradegoods"]           = "Trade Goods",
-    ["bagskin_cat_reagents"]             = "Reagents",
-    ["bagskin_cat_gems"]                 = "Gems & Enhancements",
-    ["bagskin_cat_recipes"]              = "Recipes",
-    ["bagskin_cat_pets"]                 = "Battle Pets",
-    ["bagskin_cat_junk"]                 = "Junk",
-    ["bagskin_cat_misc"]                 = "Miscellaneous",
-    ["bagskin_cat_free"]                 = "Free Slots",
 
     -- Skins > Objective Tracker tab
     ["tab_skin_objtracker"]              = "Obj. Tracker",
@@ -2313,7 +2297,7 @@ TomoMod_RegisterLocale("enUS", {
     ["tab_qol_consumable_bar"]           = "Consumables",
     ["section_consumable_bar"]           = "Consumable Bar",
     ["info_cb_desc"]                     = "Shows an icon + timer for each active consumable: flask (1h), well fed (1h), and weapon oil (2h). The off-hand oil slot is shown only when a weapon is equipped in the off-hand.",
-    ["opt_cb_enable"]                    = "Enable consumable bar",
+    ["opt_consumable_enable"]            = "Enable consumable bar",
     ["opt_cb_show_missing"]              = "Show missing buffs (dimmed ghost)",
     ["opt_cb_icon_size"]                 = "Icon size",
     ["opt_cb_gap"]                       = "Gap between icons",
@@ -2883,4 +2867,18 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_327_profile_refresh"] = "Profiles: creating, deleting, renaming or duplicating a profile now refreshes the list on screen instead of leaving the previous one displayed from the panel cache.",
     ["wn_327_import_perf"] = "Profiles: importing is noticeably faster — the string decoded for the preview is reused on accept instead of being decoded a second time, which was most of the freeze when clicking Import.",
     ["wn_327_gui_split"] = "Config: Profiles and Diagnostics are separate sidebar categories again instead of being grouped under Tools, each with its own icon and description; old links to Tools still work.",
+
+    -- =====================
+    -- 3.3.2 — What's New
+    -- =====================
+    ["wn_332_perf_auras"] = "Performance: the Aura Tracker and the Buff Skin now only listen to your own aura changes. They only ever acted on you, but they were being woken for every unit whose auras changed — twenty-plus raid members plus every visible nameplate, continuously — just to check the unit and drop it. The game filters those out before any of our code runs now.",
+    ["wn_332_perf_castbar"] = "Performance: same for the castbar's latency tracking, which was being woken by every cast of every visible unit — an entire trash pull's worth of abilities — where only your own casts ever mattered.",
+    ["wn_332_perf_gc"] = "Performance: the Aura Tracker was the biggest source of memory churn on the overlay. Its scan and layout ran several times a second in combat and threw away a pile of temporary tables on every pass; they now reuse the same working tables. Nothing on screen changed.",
+    ["wn_332_aura_order"] = "Aura Tracker: two auras applied on the same cast with the same duration could visibly swap places between refreshes, because nothing decided their order. It is stable now.",
+    ["wn_332_skyride_leak"] = "Skyriding: /tm skyride built a second copy of the bar every time it was used. The old one stayed on screen, no longer connected to anything and impossible to hide, because the game never reclaims a frame. The bar is built once now and the command just re-applies your settings to it.",
+    ["wn_332_skyride_ticker"] = "Skyriding: the same command also left a permanent 4-per-second update running behind it each time, with no way left to stop it. They are no longer duplicated, and the update stops when the module is turned off instead of polling a hidden bar.",
+    ["wn_332_locale_castbar"] = "Config: the Castbars panel's main checkbox was labelled 'Enable consumable bar' in every language — two different options had been given the same translation key, and the consumable one won. Each has its own now.",
+    ["wn_332_locale_translations"] = "Localization: 173 strings per language translated into German, Spanish, Italian and Portuguese — Cooldown Manager advanced/visibility settings, objective tracker quest categories, the chat frame UI, movers and cursor textures — plus the 49 chat frame UI strings in French. They were quietly falling back to English rather than showing an error, so nobody reported them.",
+    ["wn_332_locale_search"] = "Config: the search box showed the raw text 'gs_no_results' instead of 'No matching option' when nothing matched. The message is defined in all six languages now.",
+    ["wn_332_package"] = "Packaging: the download no longer includes the bundled libraries' test suites, examples, generated documentation and readme files. None of it was ever loaded by the addon.",
 })

@@ -288,7 +288,11 @@ local function EnsurePopup()
     popup.empty:SetFont(FONT, 11, "")
     popup.empty:SetPoint("CENTER")
     popup.empty:SetTextColor(0.40, 0.40, 0.46, 1)
-    popup.empty:SetText(L["gs_no_results"] or "Aucune option correspondante")
+    -- No `or "..."` fallback here: TomoMod_L's __index returns the key itself
+    -- for an undefined key, so the right-hand side of an `or` is unreachable
+    -- and the raw key would have been what showed on screen. The key is defined
+    -- in all six locales (Locale_300.lua) instead.
+    popup.empty:SetText(L["gs_no_results"])
 
     popup.rows = {}
     for i = 1, MAX_RESULTS do

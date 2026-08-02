@@ -1078,7 +1078,7 @@ end
 
     local cbDB = TomoModDB.consumableBar or {}
 
-    local _, ny = W.CreateCheckbox(c, L["opt_cb_enable"],
+    local _, ny = W.CreateCheckbox(c, L["opt_consumable_enable"],
         cbDB.enabled ~= false, y, function(v)
             if not TomoModDB.consumableBar then TomoModDB.consumableBar = {} end
             TomoModDB.consumableBar.enabled = v

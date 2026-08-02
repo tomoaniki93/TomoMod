@@ -1,5 +1,44 @@
 ## ####################################
 
+## CHANGELOG 3.3.2 — The Client Stops Waking Us For Twenty Other People, Skyriding Stops Building A Second Bar, And Six Languages Finally Say The Same Thing
+
+#### Auras & Castbars — Events Filtered At Registration Instead Of At The Handler
+
+- **Change** — `UNIT_AURA` is now registered player-only in the Aura Tracker and in the Buff Skin. Both handlers only ever acted on `"player"`, but an unfiltered registration wakes the frame for *every* unit whose auras change — twenty-plus raid members plus every visible nameplate, continuously, for the entire pull — and each of those wake-ups existed purely to compare a unit token and throw it away. The client drops them now, before any Lua runs.
+- **Change** — Same treatment for the castbar's latency frame: `UNIT_SPELLCAST_SENT`, `SUCCEEDED`, `INTERRUPTED` and `FAILED` are registered against `"player"`. `UNIT_SPELLCAST_SUCCEEDED` unfiltered is the loud one — it fires for every cast of every visible unit, so a pull of trash was dispatching into this addon on every mob's every ability.
+- **Note** — This is also a taint measure, not only a performance one. Filtering at registration keeps insecure code out of the dispatch chain the game runs for those other units, and it deletes the `unit == "player"` comparisons themselves — which is the kind of comparison 12.x can hand a protected value to.
+
+#### Aura Tracker — It Was The Overlay's Main Source Of Garbage
+
+- **Change** — The aura scan runs on every player `UNIT_AURA`, several times a second in combat, and the icon layout runs with it. Between them they used to allocate a working table per call, one table per aura, one wrapper table per icon, and a fresh comparator function per layout — all of it thrown away microseconds later. Those tables are now module-scope scratch, wiped and refilled, the comparator is defined once, and the sort works on bare spell IDs. Nothing about the display changed; the churn did.
+- **Fix** — Two auras applied in the same frame with the same duration share an expiration time to the millisecond, and with nothing to break the tie their relative order came from hash iteration order — so the two icons could visibly swap places between one refresh and the next. Ties are broken by spell ID now, which is stable.
+- **Fix** — Every field read back from the game — name, stack count, duration, expiration — is sanitised at the single boundary where the game hands it over, so no consumer downstream (the sort comparator, the cooldown sweep, the timer text, the stack count) can be handed a protected value to compare or do arithmetic on.
+- **Internal** — The guards test for a protected value *before* any comparison touches it, and say so in a comment at each one. The reverse order reads perfectly and raises on exactly the values the guard was written to catch — the same ordering bug 3.3.1 fixed across the tooltip files.
+- **Internal** — Trimming the icon list down to the configured maximum iterates downwards instead of calling `table.remove` in a loop that re-measures the array on every pass.
+
+#### Skyriding — `/tm skyride` Was Building A Second Bar Every Time
+
+- **Fix** — `/tm skyride` resets the module's saved variables and re-runs its initialisation, which landed straight in the UI constructor with no guard. Every invocation built a fresh widget tree — four frames, four textures, six font strings — and pointed the global `TomoModSkyRideFrame` at the new one. WoW never collects a frame, so the previous tree stayed parented to UIParent: still rendering, no longer reachable from anywhere, and impossible to hide. The tree is built once now, and the command re-applies the (possibly reset) settings to it, which is what it was always meant to do.
+- **Fix** — The same path assigned a new 4 Hz ticker on every run without cancelling the previous one — whose handle had just been overwritten, so nothing could ever stop it. A session accumulated one more permanently-running poll per invocation. The ticker is only started when there is not one already, and it is now cancelled when the module is disabled: the module's own default is off, so a ticker started earlier otherwise kept polling a bar nobody could see.
+
+#### Localization — One Key Was Doing Two Jobs
+
+- **Fix** — `opt_cb_enable` was defined twice in the same table: once as "Enable Standalone Castbars" for the Castbars panel, and again, further down, as "Enable consumable bar" for the Consumables tab. A Lua table constructor keeps the last value, so the key only ever held one of them and the Castbars panel's master checkbox was labelled "Enable consumable bar" — in all six languages. The consumable bar has its own key now.
+- **New** — 173 strings per language translated into German, Spanish, Italian and Portuguese: the Cooldown Manager's advanced, visibility and extras sections, the objective tracker's quest buckets, the chat frame UI, the movers list and the cursor textures. They were not missing — they were silently falling back to English, which looks like a half-finished translation rather than a bug, and so had gone unreported.
+- **New** — The 49 chat frame UI strings were doing the same thing in French, and are translated too.
+- **Change** — A batch of French strings reworded for consistency: the compass and castbar-anchoring descriptions, the resource bar labels, and several places that left "player frame" untranslated or switched between addressing the player informally and formally mid-panel.
+- **Fix** — The global search's "no matching option" line showed the raw key `gs_no_results` instead of the message. It was written as `L[key] or "fallback"`, which cannot work here: the locale table returns the key itself for anything undefined, and a key is a truthy string, so the fallback after `or` is unreachable and the key is what reaches the screen. The string is defined in all six languages instead.
+- **Fix** — Two What's New lines from 3.1.8 printed `—` where an em dash belonged. That is JSON escape syntax; the game's Lua does not know it and printed it verbatim — the same failure the compass strings had in 3.3.0, from a different escape notation.
+- **Internal** — 788 dead keys removed from `Locale_300.lua`, plus around 140 duplicate definitions across the six language files. The duplicates in `Locale_300.lua` were worse than dead weight: that file loads last, and because the base English table keeps the *first* definition while the active language keeps the *last*, an English client and a French client could resolve the same key from two different files and get two differently-worded strings. There is one definition per key per language now.
+
+#### Packaging & Internal
+
+- **Change** — The published package no longer carries the vendored libraries' own baggage: LibStub's test suites, LibDeflate's examples, generated docs and rockspec, and the README / changelog files scattered through `Libs/`. None of it is referenced by any `.xml`, it exists upstream for those libraries' CI, and it was pure download weight.
+- **Fix** — The `.toc` referenced `Modules\Interface\CastBars\CastBars.xml` where the folder on disk is `Castbars`. Windows does not care and the game does not either; a packaging step on a case-sensitive filesystem does, and would have shipped a build with the castbars missing entirely.
+- **Internal** — `ShowCopyStylePopup` in Cooldown Studio was declared as a global. It is used once, as a callback fifty lines below where it is defined, and an unprefixed global with a name that generic is an open invitation for another addon to collide with it. It is local now.
+
+## ####################################
+
 ## CHANGELOG 3.3.1 — The Tooltip Information Layer Actually Shows Up In Midnight
 
 #### Tooltip — Everything 3.3.0 Added Was Silently Switched Off

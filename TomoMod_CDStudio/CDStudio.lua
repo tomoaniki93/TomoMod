@@ -220,7 +220,10 @@ end
 -- [copy] Home-made chooser (dimmer + panel, FULLSCREEN_DIALOG) listing the
 -- other bars of the class; picking one copies its style onto the current bar.
 local FONT_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
-function ShowCopyStylePopup()
+-- Local, not a global: this is only ever used as the callback on line ~462
+-- below, and an unprefixed global named this generically is an invitation for
+-- another addon to collide with it.
+local function ShowCopyStylePopup()
     local dstId = S.state.barId
     if not dstId then return end
     local sources = {}

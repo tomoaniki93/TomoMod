@@ -20,6 +20,20 @@ ignore:
   - README.md
   - "**/*.bak"
   - "**/.DS_Store"
+  # Vendored-library baggage: test suites, examples and generated docs that no
+  # lib.xml or embeds.xml ever loads. They exist upstream for the library's own
+  # CI and only add weight to what players download.
+  - Libs/LibStub/tests
+  - Libs/LibCustomGlow-1.0/LibStub/tests
+  - Libs/LibDeflate/LibStub/tests
+  - Libs/libserialize/libs/LibStub/tests
+  - Libs/LibDeflate/examples
+  - Libs/LibDeflate/docs
+  - Libs/LibDeflate/libdeflate-1.0.2-1.rockspec
+  - "Libs/**/README.md"
+  - "Libs/**/changelog.md"
+  - "Libs/**/CHANGES.txt"
+  - "Libs/**/Changelog-*.txt"
 
 # NOTE — Externalising the embedded libraries (oUF, LibDeflate, LibOpenRaid,
 # LibSharedMedia-3.0, LibCustomGlow-1.0, LibSerialize, LibDispel, LibStub) is a

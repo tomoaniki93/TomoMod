@@ -58,6 +58,21 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.3.2",
+        highlights = {
+            L["wn_332_perf_auras"] or "Performance: the Aura Tracker and the Buff Skin now only listen to your own aura changes. They only ever acted on you, but they were being woken for every unit whose auras changed — twenty-plus raid members plus every visible nameplate, continuously — just to check the unit and drop it. The game filters those out before any of our code runs now.",
+            L["wn_332_perf_castbar"] or "Performance: same for the castbar's latency tracking, which was being woken by every cast of every visible unit — an entire trash pull's worth of abilities — where only your own casts ever mattered.",
+            L["wn_332_perf_gc"] or "Performance: the Aura Tracker was the biggest source of memory churn on the overlay. Its scan and layout ran several times a second in combat and threw away a pile of temporary tables on every pass; they now reuse the same working tables. Nothing on screen changed.",
+            L["wn_332_aura_order"] or "Aura Tracker: two auras applied on the same cast with the same duration could visibly swap places between refreshes, because nothing decided their order. It is stable now.",
+            L["wn_332_skyride_leak"] or "Skyriding: /tm skyride built a second copy of the bar every time it was used. The old one stayed on screen, no longer connected to anything and impossible to hide, because the game never reclaims a frame. The bar is built once now and the command just re-applies your settings to it.",
+            L["wn_332_skyride_ticker"] or "Skyriding: the same command also left a permanent 4-per-second update running behind it each time, with no way left to stop it. They are no longer duplicated, and the update stops when the module is turned off instead of polling a hidden bar.",
+            L["wn_332_locale_castbar"] or "Config: the Castbars panel's main checkbox was labelled 'Enable consumable bar' in every language — two different options had been given the same translation key, and the consumable one won. Each has its own now.",
+            L["wn_332_locale_translations"] or "Localization: 173 strings per language translated into German, Spanish, Italian and Portuguese — Cooldown Manager advanced/visibility settings, objective tracker quest categories, the chat frame UI, movers and cursor textures — plus the 49 chat frame UI strings in French. They were quietly falling back to English rather than showing an error, so nobody reported them.",
+            L["wn_332_locale_search"] or "Config: the search box showed the raw text 'gs_no_results' instead of 'No matching option' when nothing matched. The message is defined in all six languages now.",
+            L["wn_332_package"] or "Packaging: the download no longer includes the bundled libraries' test suites, examples, generated documentation and readme files. None of it was ever loaded by the addon.",
+        },
+    },
+    {
         version = "3.3.1",
         highlights = {
             L["wn_331_tooltip_secret"] or "Tooltip: the whole unit information layer added in 3.3.0 never appeared in Midnight — no guild rank, target, Mythic+ score, mount, speed, location, item level, specialization or name-line icons. The layer reads the unit token back from the tooltip, the game now hands that token out as a protected value, and the guard rejected it, so nothing was ever written.",
@@ -222,8 +237,8 @@ local CHANGELOG = {
         version = "3.1.8",
         highlights = {
             L["wn_318_bagskin_itemclass_enum"] or "Bag Skin: category matching now uses Blizzard's Enum.ItemClass constants (with numeric fallbacks) instead of hardcoded item class numbers, keeping categorization accurate across clients.",
-            L["wn_318_bagskin_cat_order"] or "Bag Skin: default category order updated \u2014 Quest Items is now grouped right after Equipment, ahead of Consumables and Trade Goods.",
-            L["wn_318_bagskin_cat_foundation"] or "Bag Skin: added the internal groundwork for a future hide/reorder categories option \u2014 Miscellaneous and Free Slots always stay visible so no item can ever disappear.",
+            L["wn_318_bagskin_cat_order"] or "Bag Skin: default category order updated — Quest Items is now grouped right after Equipment, ahead of Consumables and Trade Goods.",
+            L["wn_318_bagskin_cat_foundation"] or "Bag Skin: added the internal groundwork for a future hide/reorder categories option — Miscellaneous and Free Slots always stay visible so no item can ever disappear.",
         },
     },
     {

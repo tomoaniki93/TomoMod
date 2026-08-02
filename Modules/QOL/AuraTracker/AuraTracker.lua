@@ -18,10 +18,48 @@ local DARK_BG = { 0.04, 0.04, 0.06, 0.85 }
 
 -- State
 AT.icons = {}          -- pooled icon frames
-AT.activeAuras = {}    -- { [spellID] = { icon, name, expirationTime, stacks, texture } }
+AT.activeAuras = {}    -- { [spellID] = { data = {...}, frame = <icon> } }
 AT.anchor = nil
 AT.isLocked = true
 AT.ticker = nil
+
+-- [PERF] Module-scope scratch tables. ScanAuras runs on every player UNIT_AURA
+-- -- several times per second in combat -- and LayoutIcons runs with it. Both
+-- used to allocate their working tables per call, plus one table per aura, which
+-- made this module the overlay's main GC source. They are wiped and refilled.
+local scanFound    = {}   -- [spellID] = true, auras seen in the current scan
+local scanNewProcs = {}   -- [spellID] = true, auras that appeared this scan
+local sortBuf      = {}   -- [1..n] = spellID, sort working array
+local sortExpiry   = {}   -- [spellID] = expirationTime, read by the comparator
+
+-- =====================================
+-- SECRET-VALUE HELPERS (Midnight)
+-- =====================================
+
+-- Midnight can hand back "secret" values for aura fields. Branching on one
+-- raises, so every field read goes through here once, at the single boundary
+-- where the game hands it over.
+local function IsSecret(v)
+    return (type(issecretvalue) == "function" and issecretvalue(v))
+        or (type(issecurevalue) == "function" and issecurevalue(v))
+        or false
+end
+
+-- ORDER MATTERS: issecretvalue() is tested BEFORE any comparison touches the
+-- value. Comparing a secret raises outright, so a test like `v > 0` placed
+-- first crashes on exactly the values these guards were written to catch.
+-- Never move a comparison above the IsSecret line.
+local function SafeNum(v)
+    if IsSecret(v) then return nil end
+    if type(v) ~= "number" then return nil end
+    return v
+end
+
+local function SafeStr(v)
+    if IsSecret(v) then return nil end
+    if type(v) ~= "string" then return nil end
+    return v
+end
 
 -- =====================================
 -- HELPERS
@@ -195,60 +233,78 @@ function AT.ScanAuras()
     local db = GetDB()
     if not db or not db.enabled then return end
 
-    local found = {}
-    local now = GetTime()
+    wipe(scanFound)
+    wipe(scanNewProcs)
 
     -- Scan all player buffs via C_UnitAuras
     for i = 1, 40 do
-        local ok, aura = pcall(C_UnitAuras.GetBuffDataByIndex, "player", i)
+        local ok, aura = pcall(UnitBuff, "player", i)
         if not ok or not aura then break end
-        if aura.spellId and not (issecretvalue and issecretvalue(aura.spellId)) then
-            local spellID = aura.spellId
-            if IsTracked(spellID) then
-                found[spellID] = {
-                    name = aura.name,
-                    icon = aura.icon,
-                    stacks = aura.applications or 0,
-                    duration = aura.duration or 0,
-                    expirationTime = aura.expirationTime or 0,
-                }
-            end
-        end
-    end
+        local spellID = SafeNum(aura.spellId)
+        if spellID and IsTracked(spellID) then
+            scanFound[spellID] = true
 
-    -- Detect new procs (for glow)
-    local newProcs = {}
-    for spellID, data in pairs(found) do
-        if not AT.activeAuras[spellID] then
-            newProcs[spellID] = true
+            local entry = AT.activeAuras[spellID]
+            if not entry then
+                -- Absent from activeAuras means it just appeared: that is the
+                -- proc the glow is for. Detected here rather than in a second
+                -- pass, since activeAuras is only mutated below this point.
+                scanNewProcs[spellID] = true
+                entry = { data = {} }
+                AT.activeAuras[spellID] = entry
+            end
+
+            -- [PERF] Fields are written into the entry's existing data table
+            -- instead of building a fresh one per aura per scan.
+            -- Every field is sanitised HERE, at the one boundary where the game
+            -- hands it over, so no downstream consumer -- sort comparator,
+            -- cooldown sweep, timer text, stack count -- ever compares or does
+            -- arithmetic on a secret value.
+            local data = entry.data
+            data.name           = SafeStr(aura.name)
+            data.stacks         = SafeNum(aura.applications) or 0
+            data.duration       = SafeNum(aura.duration) or 0
+            data.expirationTime = SafeNum(aura.expirationTime) or 0
+            -- Opaque passthrough: the icon is only ever handed back to the game
+            -- via SetTexture and never inspected, so a secret one is usable.
+            data.icon           = aura.icon
         end
     end
 
     -- Remove expired
-    for spellID, iconFrame in pairs(AT.activeAuras) do
-        if not found[spellID] then
-            if iconFrame.frame then
-                ReleaseIcon(iconFrame.frame)
+    for spellID, entry in pairs(AT.activeAuras) do
+        if not scanFound[spellID] then
+            if entry.frame then
+                ReleaseIcon(entry.frame)
             end
             AT.activeAuras[spellID] = nil
         end
     end
 
-    -- Update / create icons
-    for spellID, data in pairs(found) do
-        if not AT.activeAuras[spellID] then
-            AT.activeAuras[spellID] = { data = data }
-        else
-            AT.activeAuras[spellID].data = data
-        end
-    end
-
-    AT.LayoutIcons(newProcs)
+    AT.LayoutIcons(scanNewProcs)
 end
 
 -- =====================================
 -- LAYOUT ICONS
 -- =====================================
+
+-- Hoisted out of LayoutIcons: defining it inline meant one garbage function
+-- object per aura refresh. Reads expiry from sortExpiry so it can sort bare
+-- spellIDs. Every value it touches was sanitised by ScanAuras, so none of these
+-- comparisons can raise on a secret.
+local function SortByExpiry(a, b)
+    local ea, eb = sortExpiry[a], sortExpiry[b]
+    -- 0 means permanent -- those go last, whatever the other side is.
+    if ea == 0 and eb == 0 then return a < b end
+    if ea == 0 then return false end
+    if eb == 0 then return true end
+    -- spellID tiebreak: two auras applied in the same frame with the same
+    -- duration share an expirationTime, and without this their relative order
+    -- came from pairs() hash order and could flip between refreshes, visibly
+    -- swapping the two icons.
+    if ea == eb then return a < b end
+    return ea < eb
+end
 
 function AT.LayoutIcons(newProcs)
     local db = GetDB()
@@ -265,32 +321,35 @@ function AT.LayoutIcons(newProcs)
     local fontSize = db.fontSize or 11
     local now = GetTime()
 
-    -- Sort by expiration (soonest first, 0 = permanent last)
-    local sorted = {}
+    -- Sort by expiration (soonest first, 0 = permanent last).
+    -- [PERF] sortBuf holds bare spellIDs and the comparator reads expiry from
+    -- sortExpiry, so the sort costs no wrapper table per icon and no comparator
+    -- closure per call.
+    wipe(sortBuf)
+    wipe(sortExpiry)
+    local count = 0
     for spellID, entry in pairs(AT.activeAuras) do
-        table.insert(sorted, { spellID = spellID, entry = entry })
+        count = count + 1
+        sortBuf[count] = spellID
+        sortExpiry[spellID] = entry.data.expirationTime or 0
     end
-    table.sort(sorted, function(a, b)
-        local ea = a.entry.data.expirationTime
-        local eb = b.entry.data.expirationTime
-        if ea == 0 and eb == 0 then return a.spellID < b.spellID end
-        if ea == 0 then return false end
-        if eb == 0 then return true end
-        return ea < eb
-    end)
+    table.sort(sortBuf, SortByExpiry)
 
-    -- Trim to max
-    while #sorted > maxIcons do
-        local removed = table.remove(sorted)
-        if AT.activeAuras[removed.spellID] and AT.activeAuras[removed.spellID].frame then
-            ReleaseIcon(AT.activeAuras[removed.spellID].frame)
-            AT.activeAuras[removed.spellID].frame = nil
+    -- Trim to max. Iterating downwards releases the same icons the old
+    -- table.remove loop did, without re-measuring the array each pass.
+    for i = count, maxIcons + 1, -1 do
+        local entry = AT.activeAuras[sortBuf[i]]
+        if entry and entry.frame then
+            ReleaseIcon(entry.frame)
+            entry.frame = nil
         end
+        sortBuf[i] = nil
+        count = count - 1
     end
 
     -- Position each icon
-    for i, item in ipairs(sorted) do
-        local spellID = item.spellID
+    for i = 1, count do
+        local spellID = sortBuf[i]
         local entry = AT.activeAuras[spellID]
         local data = entry.data
 
@@ -398,17 +457,11 @@ end
 local eventFrame = CreateFrame("Frame")
 eventFrame:Hide()
 
-eventFrame:SetScript("OnEvent", function(self, event, ...)
-    if event == "UNIT_AURA" then
-        local unit = ...
-        if unit == "player" then
-            AT.ScanAuras()
-        end
-    elseif event == "PLAYER_ENTERING_WORLD" then
-        AT.ScanAuras()
-    elseif event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED" then
-        AT.ScanAuras()
-    end
+-- Every event this frame listens to leads to the same scan, and UNIT_AURA is
+-- registered player-only (see AT.Start), so there is no unit token left to test
+-- -- which also removes a comparison 12.x could hand a secret token to.
+eventFrame:SetScript("OnEvent", function()
+    AT.ScanAuras()
 end)
 
 -- =====================================
@@ -549,7 +602,13 @@ end
 
 function AT.Start()
     if not AT.anchor then CreateAnchor() end
-    eventFrame:RegisterEvent("UNIT_AURA")
+    -- [PERF] RegisterUnitEvent, not RegisterEvent: the handler only ever acted
+    -- on "player", but an unfiltered UNIT_AURA wakes this frame for every unit
+    -- whose auras change -- 20+ raid members plus every visible nameplate --
+    -- and each wake used to run a full 40-slot scan's worth of setup. Filtering
+    -- at registration drops those dispatches at the client level, and keeps our
+    -- insecure code out of Blizzard's dispatch chain for the other units.
+    eventFrame:RegisterUnitEvent("UNIT_AURA", "player")
     eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
     eventFrame:RegisterEvent("PLAYER_REGEN_DISABLED")
