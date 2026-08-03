@@ -13,6 +13,9 @@
 --     so it times out;
 --   * Blizzard's own inspect window uses the same channel, so we stay off it
 --     entirely while InspectFrame is open rather than fight over it;
+--   * the exact 28y inspect range cannot be tested at all (see CanQuery), so
+--     requests the server will silently drop do get sent, and a per-GUID
+--     backoff is what stops them from repeating;
 --   * results are cached per GUID, because a tooltip can be re-shown many
 --     times a second while the mouse sits on a unit.
 --
@@ -29,13 +32,14 @@ local TQ = TomoMod_TooltipInspect
 local CACHE_TTL    = 300    -- seconds a result stays good (gear does change)
 local MIN_INTERVAL = 1.5    -- seconds between two NotifyInspect calls
 local TIMEOUT      = 3      -- seconds before a silent request is abandoned
-local INSPECT_RANGE = 1     -- CheckInteractDistance index for inspect (~28y)
+local FAIL_BACKOFF = 20     -- seconds a GUID is parked after a silent request
 
 -- =====================================
 -- STATE
 -- =====================================
 
 local cache      = {}       -- [guid] = { data = {...}, time = t }
+local failed     = {}       -- [guid] = time the last request timed out
 local inFlight   = nil      -- { guid, unit, sentAt }
 local lastSent   = 0
 local callbacks  = {}
@@ -156,16 +160,26 @@ local function BlizzardInspectOpen()
     return SafeBool(SafeCall(InspectFrame.IsShown, InspectFrame)) == true
 end
 
+-- CheckInteractDistance is deliberately NOT used here, despite being the only
+-- API that measures the real 28y inspect range.
+--
+-- It is nocombat-restricted: insecure code calling it during combat fires
+-- ADDON_ACTION_BLOCKED and gets nothing back. pcall does not catch that -- a
+-- taint block is not a Lua error. The blocked call returned nil, CanQuery
+-- returned false, and Query answered "unavailable", so item level and
+-- specialization silently vanished from every tooltip for the whole duration
+-- of every fight, while the taint log filled up.
+--
+-- UnitIsVisible is unrestricted and stands in for it. It is coarser (client
+-- visibility, roughly 100y, against 28y), so requests the server will never
+-- answer do get through. FAIL_BACKOFF is what bounds them: one wasted slot
+-- per unit per backoff window instead of one per tooltip pass.
 local function CanQuery(unit)
     if SafeBool(SafeCall(UnitExists, unit)) ~= true then return false end
     if SafeBool(SafeCall(UnitIsPlayer, unit)) ~= true then return false end
     if SafeBool(SafeCall(UnitIsConnected, unit)) ~= true then return false end
+    if SafeBool(SafeCall(UnitIsVisible, unit)) ~= true then return false end
     if SafeBool(SafeCall(CanInspect, unit, false)) ~= true then return false end
-    -- CanInspect does not test range; without this the request is simply
-    -- swallowed and we would retry forever.
-    if SafeBool(SafeCall(CheckInteractDistance, unit, INSPECT_RANGE)) ~= true then
-        return false
-    end
     return true
 end
 
@@ -177,13 +191,24 @@ local function ClearInFlight()
     inFlight = nil
 end
 
-local function Send(unit, guid)
+-- A request that never answered must not block the queue forever, and must
+-- not leave the caller on "pending" forever either -- the tooltip would show
+-- its loading placeholder until the mouse moved away. Both the query and the
+-- send path go through here, because a unit whose own request is in flight
+-- never reaches Send at all.
+local function PruneInFlight()
+    if not inFlight then return end
     local now = GetTime()
-    if inFlight then
-        -- A request that never answered must not block the queue forever.
-        if (now - inFlight.sentAt) < TIMEOUT then return false end
-        ClearInFlight()
-    end
+    if (now - inFlight.sentAt) < TIMEOUT then return end
+    failed[inFlight.guid] = now
+    ClearInFlight()
+end
+
+local function Send(unit, guid)
+    PruneInFlight()
+
+    local now = GetTime()
+    if inFlight then return false end
     if (now - lastSent) < MIN_INTERVAL then return false end
     if BlizzardInspectOpen() then return false end
 
@@ -196,6 +221,7 @@ end
 local function Store(guid, data)
     if not guid or not data then return end
     cache[guid] = { data = data, time = GetTime() }
+    failed[guid] = nil
     for _, fn in ipairs(callbacks) do
         pcall(fn, guid, data)
     end
@@ -220,10 +246,21 @@ function TQ.Query(unit)
     local guid = SafeStr(SafeCall(UnitGUID, unit))
     if not guid then return nil, "unavailable" end
 
+    local now = GetTime()
+
     local hit = cache[guid]
-    if hit and (GetTime() - hit.time) < CACHE_TTL then
+    if hit and (now - hit.time) < CACHE_TTL then
         return hit.data, "ready"
     end
+
+    PruneInFlight()
+
+    -- A GUID the server has already ignored once is parked. Without this,
+    -- every unit past inspect range but still on screen would burn the single
+    -- in-flight slot again on every tooltip pass, starving the units that
+    -- actually are close enough to answer.
+    local fail = failed[guid]
+    if fail and (now - fail) < FAIL_BACKOFF then return nil, "unavailable" end
 
     if not CanQuery(unit) then return nil, "unavailable" end
     if inFlight and inFlight.guid == guid then return nil, "pending" end
@@ -240,7 +277,13 @@ function TQ.RegisterCallback(fn)
 end
 
 function TQ.Purge(guid)
-    if guid then cache[guid] = nil else cache = {} end
+    if guid then
+        cache[guid] = nil
+        failed[guid] = nil
+    else
+        cache = {}
+        failed = {}
+    end
 end
 
 function TQ.Initialize()
@@ -259,6 +302,13 @@ function TQ.Initialize()
         -- own inspect window from working until the next request.
         SafeCall(ClearInspectPlayer)
 
-        if data then Store(guid, data) end
+        -- Store clears the backoff. An answer that carried nothing readable
+        -- is parked instead: asking again on the next tooltip pass would be
+        -- just as empty.
+        if data then
+            Store(guid, data)
+        else
+            failed[guid] = GetTime()
+        end
     end)
 end

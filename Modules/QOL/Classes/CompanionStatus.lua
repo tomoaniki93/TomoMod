@@ -19,9 +19,11 @@ local DEFAULTS = {
     size = 36,
     point = { "CENTER", "CENTER", 0, 0 },
     displayMode = "both", -- icon | text | both
+    hideWhileMounted = true,
 }
 
 local DB
+local L
 
 local function ApplyDefaults(dst, src)
     for k, v in pairs(src) do
@@ -38,6 +40,14 @@ local function Debug(msg)
     if DB and DB.debug then
         print("|cff00ffff[CompanionStatus]|r", msg)
     end
+end
+
+-- L is captured at ADDON_LOADED, not at file scope: the locale tables are
+-- registered earlier in the TOC, but the fallback keeps a missing L from
+-- turning the reminder into a blank frame.
+local function T(key, fallback)
+    if L then return L[key] end
+    return fallback
 end
 
 local function PlayerClass()
@@ -139,9 +149,26 @@ local function GetPetIcon()
     end
 end
 
-local function ShouldShowIcon()
-    if IsFlying() then return false end
-    return true
+--------------------------------------------------
+-- Travel states
+--------------------------------------------------
+-- IsFlying() is polled state: the client announces nothing when you leave the
+-- ground. Evaluating it only from pet and talent events meant the reminder was
+-- decided while still standing on the mount -- so it showed -- and then stayed
+-- on screen for the whole flight, at scale 4.0, with no event left to hide it.
+--
+-- Suppressing on IsMounted() as well is what makes this event-driven again:
+-- every entry into and exit from a travel state passes through
+-- PLAYER_MOUNT_DISPLAY_CHANGED, PLAYER_CONTROL_LOST/GAINED (taxi) or
+-- UNIT_ENTERED/EXITED_VEHICLE. Nothing needs to be polled. It is also the
+-- honest behaviour: mounted, you cannot summon a companion anyway, so the
+-- reminder has nothing to remind you of.
+local function IsTravelling()
+    if IsFlying() then return true end
+    if UnitOnTaxi("player") then return true end
+    if UnitInVehicle("player") then return true end
+    if DB and DB.hideWhileMounted and IsMounted() then return true end
+    return false
 end
 
 --------------------------------------------------
@@ -186,14 +213,6 @@ local function ApplyPosition()
     CompanionStatus:SetPoint(DB.point[1], UIParent, DB.point[2], DB.point[3], DB.point[4])
 end
 
-local function UpdateIcon()
-    if ShouldShowIcon() then
-        icon:Show()
-    else
-        icon:Hide()
-    end
-end
-
 --------------------------------------------------
 -- Core logic (SAFE)
 --------------------------------------------------
@@ -203,8 +222,8 @@ local function UpdateState()
         return
     end
 
-    -- Hide while flying
-    if IsFlying() then
+    -- Hide while flying, mounted, on a taxi or in a vehicle
+    if IsTravelling() then
         CompanionStatus:Hide()
         return
     end
@@ -231,7 +250,7 @@ local function UpdateState()
 
     if not UnitExists("pet") then
         icon:SetTexture(GetPetIcon())
-        text:SetText("Pet missing")
+        text:SetText(T("companion_pet_missing", "Pet missing"))
         ApplyDisplay()
         CompanionStatus:Show()
         Debug("Pet missing")
@@ -240,7 +259,7 @@ local function UpdateState()
 
     if UnitIsDeadOrGhost("pet") then
         icon:SetTexture(GetPetIcon())
-        text:SetText("Pet dead")
+        text:SetText(T("companion_pet_dead", "Pet dead"))
         ApplyDisplay()
         CompanionStatus:Show()
         Debug("Pet dead")
@@ -261,11 +280,28 @@ CompanionStatus:RegisterUnitEvent("UNIT_PET", "player")
 CompanionStatus:RegisterUnitEvent("UNIT_HEALTH", "pet")
 CompanionStatus:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
 CompanionStatus:RegisterUnitEvent("UNIT_FLAGS", "pet")
+-- Taxi flights take control away rather than firing a mount event, and
+-- vehicles do neither.
+CompanionStatus:RegisterEvent("PLAYER_CONTROL_LOST")
+CompanionStatus:RegisterEvent("PLAYER_CONTROL_GAINED")
+CompanionStatus:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
+CompanionStatus:RegisterUnitEvent("UNIT_EXITED_VEHICLE", "player")
+
+-- Mount, taxi and vehicle state is not always settled on the frame its own
+-- event fires, so these get a second look on the next one.
+local DEFERRED_RECHECK = {
+    PLAYER_MOUNT_DISPLAY_CHANGED = true,
+    PLAYER_CONTROL_LOST          = true,
+    PLAYER_CONTROL_GAINED        = true,
+    UNIT_ENTERED_VEHICLE         = true,
+    UNIT_EXITED_VEHICLE          = true,
+}
 
 CompanionStatus:SetScript("OnEvent", function(self, event, arg1)
     if event == "ADDON_LOADED" and arg1 == ADDON_NAME then
         ApplyDefaults(CompanionStatusDB, DEFAULTS)
         DB = CompanionStatusDB
+        L = TomoMod_L
 
         self:SetScale(DB.scale)
         self:SetSize(DB.size, DB.size)
@@ -273,7 +309,6 @@ CompanionStatus:SetScript("OnEvent", function(self, event, arg1)
         ApplyPosition()
         ApplyDisplay()
         UpdateState()
-        UpdateIcon()
         return
     end
 
@@ -281,7 +316,49 @@ CompanionStatus:SetScript("OnEvent", function(self, event, arg1)
     if event == "UNIT_PET" and arg1 ~= "player" then return end
 
     UpdateState()
+
+    if DEFERRED_RECHECK[event] then
+        C_Timer.After(0, UpdateState)
+    end
 end)
+
+--------------------------------------------------
+-- Public API (consumed by Config/Panels/QOL.lua)
+--------------------------------------------------
+-- Settings still live in their own CompanionStatusDB SavedVariable rather
+-- than in TomoModDB. Folding them in would be tidier but would have to
+-- migrate every existing profile for a five-option module, so the panel
+-- reaches in through here instead.
+TomoMod_CompanionStatus = TomoMod_CompanionStatus or {}
+local API = TomoMod_CompanionStatus
+
+function API.GetSettings()
+    if not DB then
+        CompanionStatusDB = CompanionStatusDB or {}
+        ApplyDefaults(CompanionStatusDB, DEFAULTS)
+        DB = CompanionStatusDB
+    end
+    return DB
+end
+
+function API.SetEnabled(v)
+    API.GetSettings().enabled = v and true or false
+    UpdateState()
+end
+
+function API.ApplySettings()
+    local db = API.GetSettings()
+    CompanionStatus:SetScale(db.scale)
+    CompanionStatus:SetSize(db.size, db.size)
+    ApplyPosition()
+    ApplyDisplay()
+    UpdateState()
+end
+
+function API.ResetPosition()
+    API.GetSettings().point = { unpack(DEFAULTS.point) }
+    ApplyPosition()
+end
 
 --------------------------------------------------
 -- Slash commands
@@ -308,6 +385,14 @@ SlashCmdList.COMPANIONSTATUS = function(msg)
         return
     end
 
+    if msg == "mounted" then
+        DB.hideWhileMounted = not DB.hideWhileMounted
+        print("CompanionStatus hide while mounted:", DB.hideWhileMounted and "ON" or "OFF")
+        UpdateState()
+        return
+    end
+
     print("|cff00ff00/cs debug|r - toggle debug")
     print("|cff00ff00/cs on|r / |cff00ff00off|r")
+    print("|cff00ff00/cs mounted|r - toggle hiding while mounted on the ground")
 end

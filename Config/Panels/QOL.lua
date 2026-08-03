@@ -1425,6 +1425,109 @@ local function BuildRareAlertTab(parent)
 end
 
 -- =====================================
+-- TAB: COMPANION STATUS (pet reminder)
+-- =====================================
+
+local function BuildCompanionStatusTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local CS = TomoMod_CompanionStatus
+    local db = CS and CS.GetSettings and CS.GetSettings() or nil
+
+    local function CS_Apply()
+        if CS and CS.ApplySettings then CS.ApplySettings() end
+    end
+
+    local _, ny = W.CreateSectionHeader(c, L["section_companion"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_companion_desc"], y)
+    y = ny
+
+    if not db then
+        local _, ny2 = W.CreateInfoText(c, L["info_companion_unavailable"], y)
+        y = ny2
+        c:SetHeight(math.abs(y) + 40)
+        if scroll.UpdateScroll then scroll.UpdateScroll() end
+        return scroll
+    end
+
+    local _, ny = W.CreateCheckbox(c, L["opt_companion_enable"], db.enabled, y, function(v)
+        if CS and CS.SetEnabled then CS.SetEnabled(v) end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_companion_hide_mounted"], db.hideWhileMounted, y, function(v)
+        db.hideWhileMounted = v
+        CS_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_companion_travel"], y)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSegmentedControl(c, L["opt_companion_display_mode"], {
+        { value = "icon", text = L["companion_mode_icon"] },
+        { value = "text", text = L["companion_mode_text"] },
+        { value = "both", text = L["companion_mode_both"] },
+    }, db.displayMode or "both", y, function(v)
+        db.displayMode = v
+        CS_Apply()
+    end, 3)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_companion_scale"], db.scale, 0.5, 6.0, 0.1, y, function(v)
+        db.scale = v; CS_Apply()
+    end, "%.1f", 4.0)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_companion_size"], db.size, 16, 96, 1, y, function(v)
+        db.size = v; CS_Apply()
+    end, "%.0f", 36)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateSubLabel(c, L["sublabel_companion_pos"], y)
+    y = ny
+
+    -- point is { anchorPoint, relativePoint, offsetX, offsetY }; only the
+    -- offsets are exposed, the anchor stays CENTER.
+    local _, ny = W.CreateSlider(c, L["opt_companion_x"], db.point and db.point[3] or 0, -800, 800, 1, y, function(v)
+        if db.point then db.point[3] = v end
+        CS_Apply()
+    end, "%.0f", 0)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_companion_y"], db.point and db.point[4] or 0, -800, 800, 1, y, function(v)
+        if db.point then db.point[4] = v end
+        CS_Apply()
+    end, "%.0f", 0)
+    y = ny
+
+    local _, ny = W.CreateButton(c, L["btn_companion_reset_pos"], 200, y, function()
+        if CS and CS.ResetPosition then CS.ResetPosition() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_companion_slash"], y)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -1447,6 +1550,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         --{ key = "consumable",  label = L["tab_qol_consumable_bar"], builder = function(p) return BuildConsumableBarTab(p) end },
         { key = "rarealert",   label = L["tab_qol_rare_alert"],     builder = function(p) return BuildRareAlertTab(p) end },
         { key = "compass",     label = L["tab_qol_compass"], builder = function(p) return BuildCompassTab(p) end },
+        { key = "companion",   label = L["tab_qol_companion"], builder = function(p) return BuildCompanionStatusTab(p) end },
     }
 
     return W.CreateTabPanel(parent, tabs)

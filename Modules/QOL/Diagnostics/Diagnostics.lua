@@ -61,6 +61,7 @@ local EXCLUDED_GLOBAL_KEYS = {
     "SPELL_FAILED_OUT_OF_RANGE", "SPELL_FAILED_LINE_OF_SIGHT",
     -- Movement / state
     "ERR_AUTOFOLLOW_TOO_FAR", "SPELL_FAILED_MOVING",
+    "SPELL_FAILED_NOPATH",
     "ERR_NOT_WHILE_MOVING", "ERR_CANT_DO_THAT_IN_COMBAT",
     "ERR_NOT_IN_COMBAT", "ERR_AFFECTING_COMBAT",
     "ERR_ROOTED", "SPELL_FAILED_ROOTED",
@@ -160,6 +161,10 @@ local function BuildExclusionSet()
         -- Too far away / out of range
         "too far", "trop loin", "zu weit", "demasiado lejos", "troppo lontano", "muito longe",
         "out of range", "hors de port\195\169e",
+        -- No path available (Charge, Heroic Leap, pet move orders...)
+        "no path available", "aucun chemin",
+        "kein weg", "no hay camino", "sin camino",
+        "nessun percorso", "nenhum caminho",
         -- Mount restrictions (ground mounts not allowed, flying not allowed, etc.)
         "montures terrestres",                -- FR: "Les montures terrestres ne sont pas autorisées ici"
         "ground mounts are not allowed",      -- EN equivalent

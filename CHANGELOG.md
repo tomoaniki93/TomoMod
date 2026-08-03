@@ -1,6 +1,23 @@
 ## ####################################
 
-## CHANGELOG 3.3.2 — The Client Stops Waking Us For Twenty Other People, Skyriding Stops Building A Second Bar, And Six Languages Finally Say The Same Thing
+## CHANGELOG 3.3.2 — The Client Stops Waking Us For Twenty Other People, Skyriding Stops Building A Second Bar, Tooltips Keep Their Item Level In Combat, The Pet Reminder Stops Coming Along For The Flight, And Six Languages Finally Say The Same Thing
+
+#### Companion Status — The Pet Reminder Has Settings
+
+- **New** — QOL → Pet Reminder. The module shipped with three slash commands and no panel at all: enabling it, its scale, its icon size, its display mode and its position were reachable only by editing the saved variables file by hand. All of them are now on a tab — enable, hide while mounted, icon / text / both, scale, icon size, horizontal and vertical offset with a reset button — and every change applies to the reminder as you make it, with no reload.
+- **New** — The panel states which specializations the reminder ever appears for — Beast Mastery and Survival hunters, all warlocks, Unholy death knights — and that Lone Wolf and Grimoire of Sacrifice turn it off by themselves. That gating has always been there; nothing anywhere said so, which made a silent reminder indistinguishable from a broken one.
+- **New** — `/cs mounted` toggles the ground-mount suppression from chat, alongside the existing `/cs on`, `/cs off` and `/cs debug`. The command list printed by a bare `/cs` lists it.
+- **Fix** — "Pet missing" and "Pet dead" were hardcoded English inside the module, so the only two strings the reminder actually puts on screen were the two that ignored the client's language. They are localized in all six now, along with the twenty strings the new panel needs.
+- **Internal** — The position sliders move the offsets only; the anchor stays CENTER on both sides. Exposing the anchor points as well would let a profile end up anchored off-screen with no obvious way back, and the reset button exists precisely so that is never a state anyone has to recover from by hand.
+- **Internal** — The settings stay in the module's own `CompanionStatusDB` saved variable rather than moving into `TomoModDB`. Folding them in would be tidier and would mean migrating every existing profile for a five-option module, so the panel reaches in through a small API on the module instead of touching its frame directly.
+
+#### Companion Status — It Was Staying On Screen For The Whole Flight
+
+- **Fix** — The reminder is drawn at scale 4.0 in the middle of the screen, and it could sit there for an entire flight. Its only travel test was `IsFlying()`, which is polled state — the client announces nothing when you leave the ground — and it was evaluated from pet, spec and talent events, all of which happen while you are still standing on it. So the answer was decided as "not flying" a moment before takeoff, the reminder was shown, and there was no event left that could ever hide it again.
+- **Change** — Being mounted, on a taxi and in a vehicle now suppress it too, and that is what makes the module event-driven rather than quietly dependent on a poll it never had: every entry into and exit from a travel state passes through `PLAYER_MOUNT_DISPLAY_CHANGED`, `PLAYER_CONTROL_LOST` / `GAINED` or `UNIT_ENTERED` / `EXITED_VEHICLE`. Taxi flights take control away rather than firing a mount event and vehicles fire neither, so both were previously invisible to it; all four are registered now, and nothing is put on a timer.
+- **Note** — Suppressing on a ground mount is also the honest behaviour: mounted, you cannot summon a companion anyway, so the reminder has nothing left to remind you of. It is the one of the four states that can be switched back off, for anyone who wants the reminder waiting for them when they dismount. Flying, taxi and vehicle are unconditional.
+- **Internal** — Mount, taxi and vehicle state is not always settled on the frame its own event fires, so those five events take a second look on the next one rather than trusting the first read.
+- **Internal** — `ShouldShowIcon` and `UpdateIcon` are gone. They hid the icon texture on the flying test inside a frame that was already being hidden on the same test, and they ran exactly once, at load — dead weight that read like a second, independent visibility rule.
 
 #### Auras & Castbars — Events Filtered At Registration Instead Of At The Handler
 
@@ -20,6 +37,19 @@
 
 - **Fix** — `/tm skyride` resets the module's saved variables and re-runs its initialisation, which landed straight in the UI constructor with no guard. Every invocation built a fresh widget tree — four frames, four textures, six font strings — and pointed the global `TomoModSkyRideFrame` at the new one. WoW never collects a frame, so the previous tree stayed parented to UIParent: still rendering, no longer reachable from anywhere, and impossible to hide. The tree is built once now, and the command re-applies the (possibly reset) settings to it, which is what it was always meant to do.
 - **Fix** — The same path assigned a new 4 Hz ticker on every run without cancelling the previous one — whose handle had just been overwritten, so nothing could ever stop it. A session accumulated one more permanently-running poll per invocation. The ticker is only started when there is not one already, and it is now cancelled when the module is disabled: the module's own default is off, so a ticker started earlier otherwise kept polling a bar nobody could see.
+
+#### Tooltip — Item Level And Specialization Were Off For The Whole Fight
+
+- **Fix** — Both vanished from every tooltip the moment combat started, and came back when it ended. The inspect engine's eligibility test ended on `CheckInteractDistance`, the only API that measures the real 28y inspect range. That function is nocombat-restricted: insecure code calling it during combat is refused and gets nothing back. So the test failed for every unit, on every tooltip, for the entire duration of every pull — while the taint log filled up with one `ADDON_ACTION_BLOCKED` per hover.
+- **Note** — `pcall` did not help and could not have: a taint block is not a Lua error. The call returns `nil` and execution carries on normally, which is why this read as a feature quietly not working rather than as something broken. 3.3.1 had already routed this call through a boolean guard, which made it *safe* — it never made it *answer*.
+- **Change** — `UnitIsVisible` stands in for it. It is unrestricted, so it works in combat, but it is coarser: client visibility is roughly 100y against the 28y the server actually requires. Requests that will never be answered therefore do get sent, where before they were correctly filtered out.
+- **Change** — A per-GUID backoff is what pays for that. A unit whose request goes unanswered — out of inspect range, or answered with nothing readable — is parked for 20 seconds instead of being retried on the next tooltip pass. Only one inspect can be in flight at a time, and without this, a single out-of-range player under the cursor would take that slot over and over and starve the units close enough to actually reply.
+- **Fix** — A request that timed out left the caller on "pending" indefinitely, so the tooltip kept showing its loading placeholder until the mouse moved away. The timeout was only ever evaluated on the send path, which a unit whose own request was already in flight never reached. Both paths go through the same prune step now.
+- **Internal** — The comment above the eligibility test explains at length why the accurate API is *not* used, because the obvious future edit is to put it back.
+
+#### Diagnostics — "No Path Available" Is Not A Bug
+
+- **Fix** — Charging a target across a gap, Heroic Leaping onto a ledge, or ordering a pet somewhere it cannot walk logged a `UIError` entry in the diagnostics report. It is ordinary game feedback, like being out of range or facing the wrong way, and it is filtered now: `SPELL_FAILED_NOPATH` is resolved from the game's own strings, with substring fallbacks in all six languages for the locales where the key is missing or gender-inflected.
 
 #### Localization — One Key Was Doing Two Jobs
 
