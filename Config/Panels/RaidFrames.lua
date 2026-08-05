@@ -114,6 +114,7 @@ local function BuildFeaturesTab(parent)
 
     local card3, cy = W.CreateCard(c, L["rf_section_dispel"], y)
     local _, cy = W.CreateCheckbox(card3.inner, L["rf_opt_show_dispel"], db.showDispel, cy, function(v) db.showDispel = v; ApplyRF() end)
+    local _, cy = W.CreateSlider(card3.inner, L["rf_opt_dispel_border"], db.dispelBorderSize or 2, 1, 6, 1, cy, function(v) db.dispelBorderSize = v; ApplyRF() end, "%.0f")
     local _, cy = W.CreateInfoText(card3.inner, L["pf_info_dispel"], cy)
     y = W.FinalizeCard(card3, cy)
 
@@ -131,7 +132,11 @@ local function BuildFeaturesTab(parent)
 
     local card6, cy = W.CreateCard(c, L["rf_section_defensives"], y)
     local _, cy = W.CreateCheckbox(card6.inner, L["rf_opt_show_defensives"], db.showDefensives, cy, function(v) db.showDefensives = v; ApplyRF() end)
-    local _, cy = W.CreateSlider(card6.inner, L["rf_opt_defensive_size"], db.defensiveIconSize, 10, 22, 1, cy, function(v) db.defensiveIconSize = v end, "%.0f")
+    local _, cy = W.CreateSlider(card6.inner, L["rf_opt_defensive_size"], db.defensiveIconSize, 10, 22, 1, cy, function(v) db.defensiveIconSize = v; ApplyRF() end, "%.0f")
+    local _, cy = W.CreateSlider(card6.inner, L["rf_opt_max_defensives"], db.maxDefensives or 2, 1, 4, 1, cy, function(v) db.maxDefensives = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
+    local _, cy = W.CreateCheckbox(card6.inner, L["rf_opt_def_externals"], db.defensiveShowExternals ~= false, cy, function(v) db.defensiveShowExternals = v; ApplyRF() end)
+    local _, cy = W.CreateCheckbox(card6.inner, L["rf_opt_def_raidwide"], db.defensiveShowRaidWide == true, cy, function(v) db.defensiveShowRaidWide = v; ApplyRF() end)
+    local _, cy = W.CreateCheckbox(card6.inner, L["rf_opt_def_personals"], db.defensiveShowPersonals == true, cy, function(v) db.defensiveShowPersonals = v; ApplyRF() end)
     local _, cy = W.CreateInfoText(card6.inner, L["rf_info_defensives"], cy)
     y = W.FinalizeCard(card6, cy)
 

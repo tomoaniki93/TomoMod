@@ -1791,6 +1791,7 @@ TomoMod_RegisterLocale("deDE", {
 
     ["pf_section_dispel"]                = "Enthexungs-Hervorhebung",
     ["pf_opt_show_dispel"]               = "Enthexbare Debuffs hervorheben",
+    ["pf_opt_dispel_border"]             = "Randstärke der Entzauberung",
     ["pf_info_dispel"]                   = "Rahmenleuchten nach Debuff-Typ: Magie (blau), Fluch (lila), Krankheit (braun), Gift (grün).",
 
     ["pf_section_hots"]                  = "HoT-Anzeige",
@@ -1798,6 +1799,14 @@ TomoMod_RegisterLocale("deDE", {
     ["pf_opt_hot_size"]                  = "HoT-Symbolgröße",
     ["pf_opt_max_hots"]                  = "Max. angezeigte HoTs",
     ["pf_info_hots"]                     = "Zeigt Heilung-über-Zeit-Effekte mit klassenfarbierten Rändern an. Unterstützt Priester, Druide, Paladin, Schamane, Mönch und Rufer.",
+    ["pf_section_defensives"]            = "Verteidigungs-Cooldowns",
+    ["pf_opt_show_defensives"]           = "Verteidigungs-Cooldowns anzeigen",
+    ["pf_opt_defensive_size"]            = "Größe der Verteidigungssymbole",
+    ["pf_opt_max_defensives"]            = "Max. angezeigte Verteidigungen",
+    ["pf_opt_def_externals"]             = "Externe Cooldowns (auf diesen Spieler gewirkt)",
+    ["pf_opt_def_raidwide"]              = "Schlachtzugsweite Cooldowns",
+    ["pf_opt_def_personals"]             = "Persönliche Cooldowns",
+    ["pf_info_defensives"]               = "Die Rahmenfarbe zeigt die Kategorie: Gold für externe (Eisenrinde, Lebenskokon, Schmerzunterdrückung), Cyan für schlachtzugsweite, Rot für persönliche. Schlachtzugsweite und persönliche Cooldowns sind standardmäßig aus, da sie alle Rahmen gleichzeitig aufleuchten lassen.",
 
     ["pf_section_cooldowns"]             = "Abklingzeit-Tracker",
     ["pf_opt_show_kick"]                 = "Unterbrechungs-CD anzeigen",
@@ -1881,6 +1890,7 @@ TomoMod_RegisterLocale("deDE", {
     ["rf_opt_oor_alpha"]                 = "Außer-Reichweite-Transparenz",
     ["rf_section_dispel"]                = "Entfluch-Highlight",
     ["rf_opt_show_dispel"]               = "Entfluchbare Debuffs hervorheben",
+    ["rf_opt_dispel_border"]             = "Randstärke der Entzauberung",
     ["rf_section_hots"]                  = "HoT-Verfolgung",
     ["rf_opt_show_hots"]                 = "HoT-Indikatoren anzeigen",
     ["rf_opt_hot_size"]                  = "HoT-Symbolgröße",
@@ -1892,6 +1902,10 @@ TomoMod_RegisterLocale("deDE", {
     ["rf_section_defensives"]            = "Defensive Abklingzeiten",
     ["rf_opt_show_defensives"]           = "Aktive defensive Buffs anzeigen",
     ["rf_opt_defensive_size"]            = "Defensive Symbolgröße",
+    ["rf_opt_max_defensives"]            = "Max. angezeigte Verteidigungen",
+    ["rf_opt_def_externals"]             = "Externe Cooldowns (auf diesen Spieler gewirkt)",
+    ["rf_opt_def_raidwide"]              = "Schlachtzugsweite Cooldowns",
+    ["rf_opt_def_personals"]             = "Persönliche Cooldowns",
     ["rf_info_defensives"]               = "Zeigt aktive defensive CDs (z.B. Schmerzunterdrückung, Eisenborke, Gottesschild) bei jedem Schlachtzug-Mitglied an.",
 
     -- Auferstehungs-Anzeige (Schlachtzug)
@@ -2840,6 +2854,22 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_332_companion_panel"] = "Begleiter-Hinweis: Das Modul, das dich warnt, wenn dein Begleiter fehlt oder tot ist, hat endlich ein Einstellungsfenster unter QOL. Aktivierung, Größe, Skalierung, die Anzeige von Symbol, Text oder beidem und die Position auf dem Bildschirm ließen sich bisher nur durch händisches Bearbeiten einer Datei ändern.",
     ["wn_332_companion_travel"] = "Begleiter-Hinweis: Er konnte in vierfacher Größe während eines ganzen Fluges auf dem Bildschirm bleiben. Ob du fliegst, wurde nur in Momenten geprüft, in denen du noch am Boden standest, und danach konnte ihn nichts mehr ausblenden. Er wird jetzt im Flug, auf Flugrouten und in Fahrzeugen ausgeblendet — und auch auf einem Bodenreittier, was sich wieder abschalten lässt.",
     ["wn_332_companion_locale"] = "Begleiter-Hinweis: „Begleiter fehlt“ und „Begleiter tot“ erschienen unabhängig von der Client-Sprache auf Englisch. Beide sind jetzt übersetzt, ebenso das gesamte neue Fenster.",
+
+    -- =====================
+    -- 3.3.3 — Was ist neu
+    -- =====================
+    ["wn_333_summon_stuck"] = "Gruppen- und Schlachtzugsfenster: Das Beschwörungssymbol blieb bis zum Neuladen der Oberfläche stehen. Nach dem Annehmen oder Ablehnen meldet das Spiel weiterhin den letzten Zustand der Beschwörung, statt ihn zu löschen — das Symbol beschrieb also etwas, das seit Minuten nicht mehr existierte. Es wird jetzt geprüft, ob überhaupt noch eine Beschwörung offen ist, bevor etwas angezeigt wird.",
+    ["wn_333_summon_roster"] = "Gruppen- und Schlachtzugsfenster: Bei einer Änderung der Gruppenzusammensetzung konnte ein Beschwörungssymbol auf einem Fenster stehen bleiben, das inzwischen einem anderen Spieler gehörte. Der Zustand wird bei jeder Gruppenänderung und nach jedem Zonenwechsel neu gelesen und zusammen mit dem restlichen Fenster aktualisiert, statt nur dann, wenn das Spiel eine Änderung meldet.",
+    ["wn_333_defensives_party"] = "Gruppenfenster: Aktive Verteidigungs-Cooldowns werden jetzt bei jedem Mitglied angezeigt. Bisher gab es das nur bei den Schlachtzugsfenstern, und dort war es ein einzelnes Symbol ohne Dauer und ohne Hinweis darauf, worum es sich handelte.",
+    ["wn_333_defensives_categories"] = "Gruppen- und Schlachtzugsfenster: Verteidigungen werden in externe (auf diesen Spieler gewirkt — Eisenrinde, Lebenskokon, Schmerzunterdrückung), schlachtzugsweite (Sammelschrei, Dunkelheit, Antimagiezone) und persönliche (Gottesschild, Eisblock, Baumrinde) unterteilt, jede mit eigener Option. Fünfzig Zauber, so sortiert, dass externe zuerst kommen, mit Restdauer und einem nach Kategorie gefärbten Rahmen.",
+    ["wn_333_defensives_defaults"] = "Gruppen- und Schlachtzugsfenster: Standardmäßig werden nur externe angezeigt. Ein schlachtzugsweiter Cooldown lässt alle Fenster gleichzeitig aufleuchten — genau dann, wenn sie am schlechtesten lesbar sind — und persönliche laufen ständig. Beide lassen sich einschalten.",
+    ["wn_333_defensives_size"] = "Schlachtzugsfenster: Der Regler für die Größe der Verteidigungssymbole wirkte erst nach einem Neuladen. Er greift jetzt schon beim Ziehen.",
+    ["wn_333_hots_drift"] = "Gruppen- und Schlachtzugsfenster: Die beiden Fenstersätze waren sich nicht einig, welche Heilung-über-Zeit-Effekte anzuzeigen sind. Segen des Sommers, Wolkenbruchtotem und Einhüllender Atem erschienen in den Gruppenfenstern, aber nicht in den Schlachtzugsfenstern — derselbe Buff, beim selben Spieler, auf der einen Seite sichtbar und auf der anderen nicht. Es gibt jetzt nur noch eine Liste, die alle sechs Heilerklassen abdeckt.",
+    ["wn_333_dispel_border"] = "Gruppen- und Schlachtzugsfenster: Die Randstärke der Entzauberungs-Hervorhebung ist jetzt einstellbar, von 1 bis 6. Der Rand wächst nach außen, ein dickerer Rand schneidet also nie in die Lebensleiste hinein, und der Standardwert sieht genauso aus wie bisher.",
+    ["wn_333_diag_display"] = "Diagnose: Berichte enthalten jetzt Auflösung, Anzeigemodus und Oberflächenskalierung — und weisen darauf hin, wenn die Skalierung von etwas anderem als den Spieloptionen gesetzt wurde. Oberhalb von 1200 Pixeln Höhe verkleinert der Client die Oberfläche nicht mehr weit genug, weshalb hochauflösende Systeme von Hand oder durch ein anderes Addon skaliert werden — und das war in einem Bericht bisher unsichtbar.",
+    ["wn_333_diag_scalechange"] = "Diagnose: Eine Änderung der Skalierung oder der Auflösung während der Sitzung wird mit Vorher- und Nachher-Werten protokolliert, sodass eine Neuskalierung direkt neben den Fehlern auftaucht, die sie verursacht haben könnte. Diese Neuskalierung wird nach jedem Ladebildschirm erneut angewendet, und genau dann geht etwas kaputt.",
+    ["wn_333_diag_perf"] = "Diagnose: Berichte enthalten jetzt die Bildrate (aktuell sowie Minimum, Durchschnitt und Maximum der Sitzung) und die Latenz, und jeder erfasste Fehler hält die Bildrate zum Zeitpunkt seines Auftretens fest. Ein Fehler, der nur auf einem stockenden Client erscheint, ist ein Timing-Problem und keine kaputte Funktion — und nichts in einem Bericht konnte beides bisher unterscheiden.",
+    ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
 
     -- =====================
     -- QOL: Companion Status (Begleiter-Erinnerung)

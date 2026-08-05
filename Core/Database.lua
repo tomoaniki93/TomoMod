@@ -1153,11 +1153,23 @@ TomoMod_Defaults = {
 
         -- Dispel highlight
         showDispel = true,
+        dispelBorderSize = 2,
 
         -- HoT tracking
         showHoTs = true,
         hotSize = 12,
         maxHoTs = 3,
+
+        -- Defensive cooldowns (active buffs on the member)
+        -- Externals are what a healer needs mid-pull; raid-wide buffs light up
+        -- every frame at once and personals are informative but noisy, so both
+        -- start off.
+        showDefensives = true,
+        defensiveIconSize = 16,
+        maxDefensives = 2,
+        defensiveShowExternals = true,
+        defensiveShowRaidWide = false,
+        defensiveShowPersonals = false,
 
         -- Cooldown trackers (M+)
         showInterruptCD = true,
@@ -1263,6 +1275,7 @@ TomoMod_Defaults = {
 
         -- Dispel highlight
         showDispel = true,
+        dispelBorderSize = 2,
 
         -- HoT tracking
         showHoTs = true,
@@ -1274,9 +1287,13 @@ TomoMod_Defaults = {
         debuffSize = 14,
         maxDebuffs = 3,
 
-        -- Defensive CDs
+        -- Defensive cooldowns (active buffs on the member)
         showDefensives = true,
         defensiveIconSize = 14,
+        maxDefensives = 2,
+        defensiveShowExternals = true,
+        defensiveShowRaidWide = false,
+        defensiveShowPersonals = false,
 
         -- Sort
         sortByRole = true,

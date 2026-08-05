@@ -579,6 +579,10 @@ local function CaptureEntry(kind, message, stack, locals, meta)
     captureCount = captureCount + 1
 
     -- Dedup
+    -- Framerate at capture time. Errors that only ever fire on a stuttering
+    -- client point at an ordering race rather than a logic bug.
+    local fpsAtCapture = GetFramerate and GetFramerate() or nil
+
     local normalized = NormalizeMessage(message or "")
     local dedupKey = kind .. "::" .. normalized
     local existingIdx = dedupMap[dedupKey]
@@ -612,6 +616,7 @@ local function CaptureEntry(kind, message, stack, locals, meta)
         meta       = meta,
         isTomoMod  = IsTomoModError(message, stack),
         inCombat   = InCombatLockdown() or false,
+        fps        = fpsAtCapture,
     }
 
     -- Prune if at limit
@@ -1427,10 +1432,178 @@ function D.ShowExportFrame(mode)
 end
 
 -- =====================================================================
+-- DISPLAY / SCALE SNAPSHOT
+--
+-- Above 1200 vertical pixels the uiScale CVar is ignored by the client
+-- (it will not go below 0.64), so high-resolution players have to rescale
+-- UIParent themselves or through a third-party addon — and that rescale is
+-- reapplied after every loading screen. Anything positioned before it lands
+-- keeps coordinates computed under the previous scale.
+--
+-- Capturing the scale is not enough: what matters is whether it CHANGED
+-- during the session, and when. Every change is logged as its own entry so a
+-- report shows the rescale sitting next to the errors it may have caused.
+-- =====================================================================
+
+local displaySnapshot = {}
+local displayCaptured = false
+
+-- Some display CVars have been renamed across expansions; GetCVar returns nil
+-- for an unknown name, so probe rather than assume.
+local function FirstCVar(...)
+    if not GetCVar then return nil end
+    for i = 1, select("#", ...) do
+        local name = select(i, ...)
+        local ok, value = pcall(GetCVar, name)
+        if ok and value ~= nil and value ~= "" then return value end
+    end
+    return nil
+end
+
+local function DescribeDisplayMode()
+    local windowed = FirstCVar("gxWindow")
+    local maximize = FirstCVar("gxMaximize")
+    if windowed == "0" then return "fullscreen" end
+    if windowed == "1" and maximize == "1" then return "windowed fullscreen" end
+    if windowed == "1" then return "windowed" end
+    return "?"
+end
+
+local function ReadDisplayState()
+    local pw, ph = 0, 0
+    if GetPhysicalScreenSize then
+        local ok, w, h = pcall(GetPhysicalScreenSize)
+        if ok then pw, ph = w or 0, h or 0 end
+    end
+
+    local uiScaleCVar = tonumber(FirstCVar("uiScale"))
+    local useUiScale  = FirstCVar("useUiScale")
+    local parentScale, parentEffective = 1, 1
+    if UIParent then
+        parentScale = UIParent:GetScale() or 1
+        parentEffective = UIParent:GetEffectiveScale() or 1
+    end
+
+    -- The scale that would make one UI unit equal one physical pixel. Below
+    -- 0.64 the client refuses it, which is exactly the high-resolution case.
+    local pixelPerfect = (ph and ph > 0) and (768 / ph) or nil
+
+    -- UIParent no longer matching the CVar means something set the scale
+    -- directly: a macro, a rescaling addon, or one of our own modules.
+    local overridden = false
+    if uiScaleCVar then
+        overridden = math.abs(parentScale - uiScaleCVar) > 0.001
+    end
+
+    return {
+        physicalWidth  = pw,
+        physicalHeight = ph,
+        uiWidth        = GetScreenWidth and GetScreenWidth() or 0,
+        uiHeight       = GetScreenHeight and GetScreenHeight() or 0,
+        parentScale    = parentScale,
+        parentEffScale = parentEffective,
+        cvarUiScale    = uiScaleCVar,
+        cvarUseUiScale = useUiScale,
+        pixelPerfect   = pixelPerfect,
+        scaleOverridden = overridden,
+        scaleBelowFloor = (pixelPerfect ~= nil) and (pixelPerfect < 0.64) or false,
+        displayMode    = DescribeDisplayMode(),
+        renderScale    = FirstCVar("RenderScale", "graphicsRenderScale", "renderScale"),
+    }
+end
+
+local function FormatScale(v)
+    if type(v) ~= "number" then return "?" end
+    return string.format("%.4f", v)
+end
+
+-- reason: "login", "UI_SCALE_CHANGED", "DISPLAY_SIZE_CHANGED", "report"
+local function CaptureDisplay(reason)
+    local previous = displaySnapshot
+    local current = ReadDisplayState()
+    displaySnapshot = current
+
+    if not displayCaptured then
+        displayCaptured = true
+        return
+    end
+
+    -- Only log an entry when something actually moved.
+    local scaleMoved = math.abs((current.parentScale or 1) - (previous.parentScale or 1)) > 0.0001
+    local resMoved = (current.physicalWidth ~= previous.physicalWidth)
+                  or (current.physicalHeight ~= previous.physicalHeight)
+    if not scaleMoved and not resMoved then return end
+
+    local parts = { "[Display] ", reason or "?" }
+    if scaleMoved then
+        parts[#parts + 1] = string.format(" — UIParent scale %s -> %s",
+            FormatScale(previous.parentScale), FormatScale(current.parentScale))
+    end
+    if resMoved then
+        parts[#parts + 1] = string.format(" — resolution %sx%s -> %sx%s",
+            SafeToString(previous.physicalWidth), SafeToString(previous.physicalHeight),
+            SafeToString(current.physicalWidth), SafeToString(current.physicalHeight))
+    end
+    if current.scaleOverridden then
+        parts[#parts + 1] = string.format(" (CVar uiScale is %s: set outside the options panel)",
+            FormatScale(current.cvarUiScale))
+    end
+
+    CaptureEntry(KIND_DEBUG, table.concat(parts))
+end
+
+-- =====================================================================
+-- PERFORMANCE SAMPLING
+--
+-- 8K and other GPU-bound setups run long, irregular frames, which reorders
+-- deferred work and surfaces timing bugs that never appear at 120 fps. A
+-- coarse framerate profile is enough to tell that story.
+-- =====================================================================
+
+local perfStats = { samples = 0, sum = 0, min = nil, max = nil }
+local perfTicker = nil
+local PERF_INTERVAL = 5
+
+-- Named module-scope function: never allocate a closure inside a ticker.
+local function SamplePerformance()
+    if not IsEnabled() then return end
+    local fps = GetFramerate and GetFramerate() or nil
+    if type(fps) ~= "number" or fps <= 0 then return end
+
+    perfStats.samples = perfStats.samples + 1
+    perfStats.sum = perfStats.sum + fps
+    if not perfStats.min or fps < perfStats.min then perfStats.min = fps end
+    if not perfStats.max or fps > perfStats.max then perfStats.max = fps end
+end
+
+local function StartPerfSampling()
+    if perfTicker then return end
+    if not C_Timer or not C_Timer.NewTicker then return end
+    perfTicker = C_Timer.NewTicker(PERF_INTERVAL, SamplePerformance)
+end
+
+local function CurrentFPS()
+    local fps = GetFramerate and GetFramerate() or nil
+    if type(fps) ~= "number" then return nil end
+    return fps
+end
+
+local function ReadNetStats()
+    if not GetNetStats then return nil, nil end
+    local ok, _, _, home, world = pcall(GetNetStats)
+    if not ok then return nil, nil end
+    return home, world
+end
+
+-- =====================================================================
 -- REPORT BUILDERS
 -- =====================================================================
 
 function D.BuildReadableReport()
+    -- Re-read the display state so the report shows what is true now, not
+    -- what was true at login.
+    CaptureDisplay("report")
+
     local lines = {}
     lines[#lines + 1] = "============================================"
     lines[#lines + 1] = "TomoMod Diagnostics Report"
@@ -1449,6 +1622,37 @@ function D.BuildReadableReport()
     lines[#lines + 1] = "Level: " .. SafeToString(envSnapshot.playerLevel)
     lines[#lines + 1] = "Locale: " .. (envSnapshot.locale or "?")
     lines[#lines + 1] = "Resolution: " .. SafeToString(envSnapshot.screenWidth) .. "x" .. SafeToString(envSnapshot.screenHeight)
+    lines[#lines + 1] = ""
+
+    -- Display / scale
+    local d = displaySnapshot
+    lines[#lines + 1] = "--- Display ---"
+    lines[#lines + 1] = "Physical: " .. SafeToString(d.physicalWidth) .. "x" .. SafeToString(d.physicalHeight)
+    lines[#lines + 1] = "UI units: " .. string.format("%.0fx%.0f", d.uiWidth or 0, d.uiHeight or 0)
+    lines[#lines + 1] = "Display mode: " .. SafeToString(d.displayMode)
+    if d.renderScale then
+        lines[#lines + 1] = "Render scale: " .. SafeToString(d.renderScale)
+    end
+    lines[#lines + 1] = "UIParent scale: " .. FormatScale(d.parentScale)
+        .. " (effective " .. FormatScale(d.parentEffScale) .. ")"
+    lines[#lines + 1] = "CVar uiScale: " .. FormatScale(d.cvarUiScale)
+        .. " (useUiScale=" .. SafeToString(d.cvarUseUiScale) .. ")"
+    lines[#lines + 1] = "Pixel-perfect scale: " .. FormatScale(d.pixelPerfect)
+        .. (d.scaleBelowFloor and "  [below the 0.64 client floor]" or "")
+    if d.scaleOverridden then
+        lines[#lines + 1] = "!! UIParent scale does not match the CVar — set by a macro or another addon"
+    end
+    lines[#lines + 1] = ""
+
+    -- Performance
+    lines[#lines + 1] = "--- Performance ---"
+    lines[#lines + 1] = "FPS now: " .. FormatScale(CurrentFPS())
+    if perfStats.samples > 0 then
+        lines[#lines + 1] = string.format("FPS session: min %.1f / avg %.1f / max %.1f over %d samples",
+            perfStats.min or 0, perfStats.sum / perfStats.samples, perfStats.max or 0, perfStats.samples)
+    end
+    local home, world = ReadNetStats()
+    lines[#lines + 1] = "Latency: home " .. SafeToString(home) .. "ms / world " .. SafeToString(world) .. "ms"
     lines[#lines + 1] = ""
 
     -- Errors
@@ -1492,6 +1696,8 @@ function D.BuildReadableReport()
 end
 
 function D.BuildTrackerReport()
+    CaptureDisplay("report")
+
     -- Structured format for tracker-tomomod.onkoz.fr
     -- Delimited blocks for easy parsing
     local lines = {}
@@ -1513,6 +1719,36 @@ function D.BuildTrackerReport()
     lines[#lines + 1] = "resolution=" .. SafeToString(envSnapshot.screenWidth) .. "x" .. SafeToString(envSnapshot.screenHeight)
     lines[#lines + 1] = ""
 
+    -- Display block
+    local d = displaySnapshot
+    lines[#lines + 1] = "[display]"
+    lines[#lines + 1] = "physical=" .. SafeToString(d.physicalWidth) .. "x" .. SafeToString(d.physicalHeight)
+    lines[#lines + 1] = string.format("ui_units=%.0fx%.0f", d.uiWidth or 0, d.uiHeight or 0)
+    lines[#lines + 1] = "display_mode=" .. SafeToString(d.displayMode)
+    lines[#lines + 1] = "render_scale=" .. SafeToString(d.renderScale)
+    lines[#lines + 1] = "uiparent_scale=" .. FormatScale(d.parentScale)
+    lines[#lines + 1] = "uiparent_effective_scale=" .. FormatScale(d.parentEffScale)
+    lines[#lines + 1] = "cvar_uiscale=" .. FormatScale(d.cvarUiScale)
+    lines[#lines + 1] = "cvar_useuiscale=" .. SafeToString(d.cvarUseUiScale)
+    lines[#lines + 1] = "pixel_perfect_scale=" .. FormatScale(d.pixelPerfect)
+    lines[#lines + 1] = "scale_below_floor=" .. SafeToString(d.scaleBelowFloor)
+    lines[#lines + 1] = "scale_overridden=" .. SafeToString(d.scaleOverridden)
+    lines[#lines + 1] = ""
+
+    -- Performance block
+    lines[#lines + 1] = "[perf]"
+    lines[#lines + 1] = "fps_now=" .. FormatScale(CurrentFPS())
+    if perfStats.samples > 0 then
+        lines[#lines + 1] = string.format("fps_min=%.1f", perfStats.min or 0)
+        lines[#lines + 1] = string.format("fps_avg=%.1f", perfStats.sum / perfStats.samples)
+        lines[#lines + 1] = string.format("fps_max=%.1f", perfStats.max or 0)
+        lines[#lines + 1] = "fps_samples=" .. SafeToString(perfStats.samples)
+    end
+    local home, world = ReadNetStats()
+    lines[#lines + 1] = "latency_home=" .. SafeToString(home)
+    lines[#lines + 1] = "latency_world=" .. SafeToString(world)
+    lines[#lines + 1] = ""
+
     -- Addons block
     lines[#lines + 1] = "[addons]"
     if envSnapshot.addons then
@@ -1531,6 +1767,9 @@ function D.BuildTrackerReport()
         lines[#lines + 1] = "count=" .. SafeToString(entry.count or 1)
         lines[#lines + 1] = "is_tomomod=" .. SafeToString(entry.isTomoMod)
         lines[#lines + 1] = "in_combat=" .. SafeToString(entry.inCombat)
+        if type(entry.fps) == "number" then
+            lines[#lines + 1] = string.format("fps=%.1f", entry.fps)
+        end
 
         if entry.meta then
             local metaParts = {}
@@ -1645,6 +1884,14 @@ eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("ADDON_ACTION_FORBIDDEN")
 eventFrame:RegisterEvent("ADDON_ACTION_BLOCKED")
 
+-- A rescale landing mid-session is the single most useful thing a report from
+-- a high-resolution player can contain.
+for _, ev in ipairs({ "UI_SCALE_CHANGED", "DISPLAY_SIZE_CHANGED" }) do
+    if not C_EventUtils or not C_EventUtils.IsEventValid or C_EventUtils.IsEventValid(ev) then
+        pcall(eventFrame.RegisterEvent, eventFrame, ev)
+    end
+end
+
 -- LUA_WARNING may not exist on all clients
 if C_EventUtils and C_EventUtils.IsEventValid and C_EventUtils.IsEventValid("LUA_WARNING") then
     eventFrame:RegisterEvent("LUA_WARNING")
@@ -1665,6 +1912,8 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
         if not IsEnabled() then return end
         BuildExclusionSet()
         CaptureEnvironment()
+        CaptureDisplay("login")
+        StartPerfSampling()
         InstallErrorHandler()
         if db.suppressPopups then
             SuppressScriptErrors()
@@ -1680,5 +1929,8 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
 
     elseif event == "UI_ERROR_MESSAGE" then
         OnUiError(event, ...)
+
+    elseif event == "UI_SCALE_CHANGED" or event == "DISPLAY_SIZE_CHANGED" then
+        if IsEnabled() then CaptureDisplay(event) end
     end
 end)

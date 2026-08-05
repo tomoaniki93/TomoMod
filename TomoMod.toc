@@ -9,7 +9,7 @@
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 3.3.2
+## Version: 3.3.3
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -80,6 +80,7 @@ Modules\QOL\QOL.xml
 ## =====================
 ## Interface Modules
 ## =====================
+Modules\Interface\Shared\Shared.xml
 Modules\Interface\UnitFrames\UnitFrames.xml
 Modules\Interface\Castbars\CastBars.xml
 Modules\Interface\ResourceBars\ResourceBars.xml

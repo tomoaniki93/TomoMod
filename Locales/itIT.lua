@@ -1782,6 +1782,7 @@ TomoMod_RegisterLocale("itIT", {
 
     ["pf_section_dispel"]                = "Evidenziazione dissolvi",
     ["pf_opt_show_dispel"]               = "Evidenzia debuff dissolvibili",
+    ["pf_opt_dispel_border"]             = "Spessore del bordo di dissoluzione",
     ["pf_info_dispel"]                   = "Bagliore bordo per tipo di debuff: Magia (blu), Maledizione (viola), Malattia (marrone), Veleno (verde).",
 
     ["pf_section_hots"]                  = "Tracciamento HoT",
@@ -1789,6 +1790,14 @@ TomoMod_RegisterLocale("itIT", {
     ["pf_opt_hot_size"]                  = "Dimensione icona HoT",
     ["pf_opt_max_hots"]                  = "Max. HoT mostrati",
     ["pf_info_hots"]                     = "Mostra effetti di cura nel tempo con bordi colorati per classe. Supporta Sacerdote, Druido, Paladino, Sciamano, Monaco ed Evocatore.",
+    ["pf_section_defensives"]            = "Recuperi difensivi",
+    ["pf_opt_show_defensives"]           = "Mostra i recuperi difensivi",
+    ["pf_opt_defensive_size"]            = "Dimensione icone difensive",
+    ["pf_opt_max_defensives"]            = "Max. difensivi mostrati",
+    ["pf_opt_def_externals"]             = "Recuperi esterni (lanciati su questo giocatore)",
+    ["pf_opt_def_raidwide"]              = "Recuperi di incursione",
+    ["pf_opt_def_personals"]             = "Recuperi personali",
+    ["pf_info_defensives"]               = "Il colore del bordo indica la categoria: oro per gli esterni (Scorza di Ferro, Bozzolo Vitale, Soppressione del Dolore), ciano per quelli di incursione, rosso per i personali. Quelli di incursione e personali sono disattivati di default perché si accendono su tutti i riquadri insieme.",
 
     ["pf_section_cooldowns"]             = "Tracciamento ricarica",
     ["pf_opt_show_kick"]                 = "Mostra CD interruzione",
@@ -1872,6 +1881,7 @@ TomoMod_RegisterLocale("itIT", {
     ["rf_opt_oor_alpha"]                 = "Opacità fuori portata",
     ["rf_section_dispel"]                = "Evidenziazione dissolvi",
     ["rf_opt_show_dispel"]               = "Evidenzia debuff dissolubili",
+    ["rf_opt_dispel_border"]             = "Spessore del bordo di dissoluzione",
     ["rf_section_hots"]                  = "Tracciamento HoT",
     ["rf_opt_show_hots"]                 = "Mostra indicatori HoT",
     ["rf_opt_hot_size"]                  = "Dimensione icona HoT",
@@ -1883,6 +1893,10 @@ TomoMod_RegisterLocale("itIT", {
     ["rf_section_defensives"]            = "CD difensivi",
     ["rf_opt_show_defensives"]           = "Mostra buff difensivi attivi",
     ["rf_opt_defensive_size"]            = "Dimensione icona difensiva",
+    ["rf_opt_max_defensives"]            = "Max. difensivi mostrati",
+    ["rf_opt_def_externals"]             = "Recuperi esterni (lanciati su questo giocatore)",
+    ["rf_opt_def_raidwide"]              = "Recuperi di incursione",
+    ["rf_opt_def_personals"]             = "Recuperi personali",
     ["rf_info_defensives"]               = "Mostra i CD difensivi attivi (es: Soppressione del Dolore, Corteccia di Ferro, Scudo Divino) su ogni membro dell'incursione.",
 
     -- Indicatore resurrezione (incursione)
@@ -2828,6 +2842,22 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_332_companion_panel"] = "Promemoria famiglio: il modulo che ti avvisa quando il tuo famiglio manca o è morto ha finalmente un pannello di impostazioni, in QOL. L'attivazione, la dimensione, la scala, la visualizzazione di icona, testo o entrambi e la posizione sullo schermo si potevano cambiare solo modificando un file a mano.",
     ["wn_332_companion_travel"] = "Promemoria famiglio: poteva restare sullo schermo, a quattro volte la sua dimensione, per un intero volo. Controllava se stavi volando solo nei momenti in cui eri ancora a terra, e dopo nulla poteva più nasconderlo. Ora è nascosto in volo, sui voli di linea e nei veicoli — e anche su cavalcatura terrestre, cosa che puoi disattivare.",
     ["wn_332_companion_locale"] = "Promemoria famiglio: «Famiglio assente» e «Famiglio morto» apparivano in inglese qualunque fosse la lingua del client. Entrambi sono tradotti, così come tutto il nuovo pannello.",
+
+    -- =====================
+    -- 3.3.3 — Novità
+    -- =====================
+    ["wn_333_summon_stuck"] = "Riquadri di gruppo e incursione: l'icona di evocazione restava sul riquadro fino al ricaricamento dell'interfaccia. Una volta accettata o rifiutata, il gioco continua a restituire l'ultimo stato dell'evocazione invece di cancellarlo, quindi l'icona descriveva qualcosa che aveva smesso di esistere da minuti. Ora verifica che ci sia davvero un'evocazione in corso prima di mostrare qualsiasi cosa.",
+    ["wn_333_summon_roster"] = "Riquadri di gruppo e incursione: al cambiare della composizione, un'icona di evocazione poteva restare su un riquadro che ormai apparteneva a un altro giocatore. Lo stato viene riletto a ogni cambio di composizione e dopo ogni cambio di zona, e viene aggiornato insieme al resto del riquadro anziché solo quando il gioco segnala un cambiamento.",
+    ["wn_333_defensives_party"] = "Riquadri di gruppo: i tempi di recupero difensivi attivi su ogni membro sono ora mostrati. Esistevano solo sui riquadri d'incursione, e lì erano una sola icona, senza durata e senza alcuna indicazione di cosa fosse.",
+    ["wn_333_defensives_categories"] = "Riquadri di gruppo e incursione: le difensive sono divise in esterne (lanciate su questo giocatore — Scorza di Ferro, Bozzolo Vitale, Soppressione del Dolore), di incursione (Grido d'Incitamento, Oscurità, Zona Antimagia) e personali (Scudo Divino, Blocco di Ghiaccio, Corteccia), ognuna con la propria opzione. Cinquanta incantesimi, ordinati in modo che le esterne vengano per prime, con il tempo rimanente e un bordo colorato per categoria.",
+    ["wn_333_defensives_defaults"] = "Riquadri di gruppo e incursione: per impostazione predefinita vengono mostrate solo le esterne. Una difensiva di incursione accende tutti i riquadri insieme — esattamente quando sono meno leggibili — e le personali sono costanti. Entrambe possono essere attivate.",
+    ["wn_333_defensives_size"] = "Riquadri d'incursione: il cursore della dimensione delle icone difensive aveva effetto solo dopo un ricaricamento. Ora si applica mentre lo trascini.",
+    ["wn_333_hots_drift"] = "Riquadri di gruppo e incursione: i due insiemi di riquadri non concordavano su quali cure nel tempo mostrare. Benedizione dell'Estate, Totem Nembifero e Soffio Avvolgente comparivano sui riquadri di gruppo ma non su quelli d'incursione — lo stesso beneficio, sullo stesso giocatore, visibile da una parte e non dall'altra. Ora c'è un solo elenco, che copre tutte e sei le classi curatrici.",
+    ["wn_333_dispel_border"] = "Riquadri di gruppo e incursione: lo spessore del bordo dell'evidenziazione di dissoluzione è ora regolabile, da 1 a 6. Cresce verso l'esterno, quindi un bordo più spesso non invade mai la barra della salute, e il valore predefinito appare esattamente come prima.",
+    ["wn_333_diag_display"] = "Diagnostica: i rapporti includono ora la risoluzione, la modalità di visualizzazione e la scala dell'interfaccia — e segnalano il caso in cui la scala sia stata impostata da qualcosa di diverso dalle opzioni del gioco. Oltre i 1200 pixel di altezza il client non riduce abbastanza la scala da solo, perciò le configurazioni ad alta risoluzione finiscono ridimensionate a mano o da un altro componente aggiuntivo, e questo era invisibile in un rapporto.",
+    ["wn_333_diag_scalechange"] = "Diagnostica: un cambio di scala o di risoluzione durante la sessione viene registrato con i valori precedenti e successivi, così un ridimensionamento compare accanto agli errori che potrebbe aver causato. Quel ridimensionamento viene riapplicato dopo ogni schermata di caricamento, ed è proprio allora che rompe qualcosa.",
+    ["wn_333_diag_perf"] = "Diagnostica: i rapporti riportano ora la frequenza dei fotogrammi (attuale, oltre a minimo, media e massimo della sessione) e la latenza, e ogni errore catturato registra la frequenza dei fotogrammi nel momento in cui si è verificato. Un errore che compare solo su un client che scatta è un problema di tempistica e non una funzione rotta, e nulla in un rapporto permetteva di distinguerli.",
+    ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
 
     -- =====================
     -- QOL: Companion Status (promemoria del famiglio)

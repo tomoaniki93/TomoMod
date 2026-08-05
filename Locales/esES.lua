@@ -1781,6 +1781,7 @@ TomoMod_RegisterLocale("esES", {
 
     ["pf_section_dispel"]                = "Resaltado de disipación",
     ["pf_opt_show_dispel"]               = "Resaltar debuffs disipables",
+    ["pf_opt_dispel_border"]             = "Grosor del borde de disipación",
     ["pf_info_dispel"]                   = "Brillo del borde por tipo de debuff: Magia (azul), Maldición (morado), Enfermedad (marrón), Veneno (verde).",
 
     ["pf_section_hots"]                  = "Rastreo de HoTs",
@@ -1788,6 +1789,14 @@ TomoMod_RegisterLocale("esES", {
     ["pf_opt_hot_size"]                  = "Tamaño de icono HoT",
     ["pf_opt_max_hots"]                  = "Max. HoTs mostrados",
     ["pf_info_hots"]                     = "Muestra efectos de curación con el tiempo con bordes de color de clase. Compatible con Sacerdote, Druida, Paladín, Chamán, Monje y Evocador.",
+    ["pf_section_defensives"]            = "Reutilizaciones defensivas",
+    ["pf_opt_show_defensives"]           = "Mostrar reutilizaciones defensivas",
+    ["pf_opt_defensive_size"]            = "Tamaño de los iconos defensivos",
+    ["pf_opt_max_defensives"]            = "Máx. defensivas mostradas",
+    ["pf_opt_def_externals"]             = "Reutilizaciones externas (lanzadas sobre este jugador)",
+    ["pf_opt_def_raidwide"]              = "Reutilizaciones de banda",
+    ["pf_opt_def_personals"]             = "Reutilizaciones personales",
+    ["pf_info_defensives"]               = "El color del borde indica la categoría: dorado para las externas (Corteza de hierro, Crisálida de vida, Supresión del dolor), cian para las de banda, rojo para las personales. Las de banda y personales están desactivadas por defecto porque se encienden en todos los marcos a la vez.",
 
     ["pf_section_cooldowns"]             = "Rastreador de enfriamiento",
     ["pf_opt_show_kick"]                 = "Mostrar CD de interrupción",
@@ -1871,6 +1880,7 @@ TomoMod_RegisterLocale("esES", {
     ["rf_opt_oor_alpha"]                 = "Opacidad fuera de rango",
     ["rf_section_dispel"]                = "Resaltado de disipación",
     ["rf_opt_show_dispel"]               = "Resaltar debuffs disipables",
+    ["rf_opt_dispel_border"]             = "Grosor del borde de disipación",
     ["rf_section_hots"]                  = "Rastreo de HoTs",
     ["rf_opt_show_hots"]                 = "Mostrar indicadores HoT",
     ["rf_opt_hot_size"]                  = "Tamaño de icono HoT",
@@ -1882,6 +1892,10 @@ TomoMod_RegisterLocale("esES", {
     ["rf_section_defensives"]            = "CDs defensivos",
     ["rf_opt_show_defensives"]           = "Mostrar buffs defensivos activos",
     ["rf_opt_defensive_size"]            = "Tamaño de icono defensivo",
+    ["rf_opt_max_defensives"]            = "Máx. defensivas mostradas",
+    ["rf_opt_def_externals"]             = "Reutilizaciones externas (lanzadas sobre este jugador)",
+    ["rf_opt_def_raidwide"]              = "Reutilizaciones de banda",
+    ["rf_opt_def_personals"]             = "Reutilizaciones personales",
     ["rf_info_defensives"]               = "Muestra CDs defensivos activos (ej: Supresión del dolor, Piel de hierro, Escudo divino) en cada miembro de la banda.",
 
     -- Indicador de resurrección (banda)
@@ -2841,6 +2855,22 @@ TomoMod_RegisterLocale("esES", {
     ["wn_332_companion_panel"] = "Aviso de mascota: el módulo que te avisa cuando tu mascota falta o está muerta por fin tiene un panel de ajustes, en QOL. Su activación, su tamaño, su escala, si muestra el icono, el texto o ambos, y su posición en pantalla solo podían cambiarse editando un archivo a mano.",
     ["wn_332_companion_travel"] = "Aviso de mascota: podía quedarse en pantalla, a cuatro veces su tamaño, durante todo un vuelo. Solo comprobaba si estabas volando en momentos en los que aún estabas en el suelo, y después nada podía ocultarlo. Ahora se oculta al volar, en vuelo de taxi y en vehículos — y también en montura terrestre, lo que puedes desactivar.",
     ["wn_332_companion_locale"] = "Aviso de mascota: «Falta la mascota» y «Mascota muerta» aparecían en inglés fuera cual fuera el idioma del cliente. Ambos están traducidos, igual que todo el nuevo panel.",
+
+    -- =====================
+    -- 3.3.3 — Novedades
+    -- =====================
+    ["wn_333_summon_stuck"] = "Marcos de grupo y de banda: el icono de invocación se quedaba en el marco hasta recargar la interfaz. Una vez que aceptas o rechazas, el juego sigue devolviendo el último estado de la invocación en lugar de borrarlo, así que el icono describía algo que había dejado de existir hacía minutos. Ahora comprueba si realmente hay una invocación en curso antes de mostrar nada.",
+    ["wn_333_summon_roster"] = "Marcos de grupo y de banda: al cambiar la composición, un icono de invocación podía quedarse en un marco que ya pertenecía a otro jugador. El estado se vuelve a leer en cada cambio de composición y tras cada cambio de zona, y se actualiza junto con el resto del marco en lugar de hacerlo solo cuando el juego anuncia un cambio.",
+    ["wn_333_defensives_party"] = "Marcos de grupo: ahora se muestran los tiempos de reutilización defensivos activos en cada miembro. Esto solo existía en los marcos de banda, y allí era un único icono, sin duración y sin indicar de qué se trataba.",
+    ["wn_333_defensives_categories"] = "Marcos de grupo y de banda: los defensivos se dividen en externos (lanzados sobre este jugador — Corteza de hierro, Capullo de vida, Supresión del dolor), de banda (Grito de reunión, Oscuridad, Zona antimagia) y personales (Escudo divino, Bloque de hielo, Piel de corteza), cada uno con su propia opción. Cincuenta hechizos, ordenados para que los externos vayan primero, con el tiempo restante y un borde coloreado por categoría.",
+    ["wn_333_defensives_defaults"] = "Marcos de grupo y de banda: por defecto solo se muestran los externos. Un defensivo de banda enciende todos los marcos a la vez — justo cuando menos se pueden leer — y los personales son constantes. Ambos se pueden activar.",
+    ["wn_333_defensives_size"] = "Marcos de banda: el deslizador de tamaño de los iconos defensivos solo surtía efecto tras recargar. Ahora se aplica mientras lo arrastras.",
+    ["wn_333_hots_drift"] = "Marcos de grupo y de banda: los dos conjuntos de marcos no coincidían sobre qué sanaciones periódicas mostrar. Bendición del verano, Tótem de chaparrón y Aliento envolvente aparecían en los marcos de grupo pero no en los de banda — el mismo beneficio, en el mismo jugador, visible en unos y no en otros. Ahora hay una sola lista, que cubre las seis clases sanadoras.",
+    ["wn_333_dispel_border"] = "Marcos de grupo y de banda: el grosor del borde del resaltado de disipación ahora es ajustable, de 1 a 6. Crece hacia fuera, así que un borde más grueso nunca invade la barra de vida, y el valor por defecto se ve exactamente como antes.",
+    ["wn_333_diag_display"] = "Diagnóstico: los informes incluyen ahora tu resolución, modo de pantalla y escala de la interfaz — y señalan el caso en que la escala ha sido fijada por algo distinto de las opciones del juego. Por encima de 1200 píxeles de alto el cliente no reduce la escala lo suficiente por sí solo, de modo que las configuraciones de alta resolución acaban reescaladas a mano o por otro accesorio, y eso era invisible en un informe.",
+    ["wn_333_diag_scalechange"] = "Diagnóstico: un cambio de escala o de resolución durante la sesión se registra con sus valores anterior y posterior, para que un reescalado aparezca junto a los errores que pueda haber causado. Ese reescalado se vuelve a aplicar tras cada pantalla de carga, que es justo cuando rompe cosas.",
+    ["wn_333_diag_perf"] = "Diagnóstico: los informes recogen ahora la tasa de fotogramas (actual, además del mínimo, la media y el máximo de la sesión) y la latencia, y cada error capturado registra la tasa de fotogramas en el momento en que se produjo. Un error que solo aparece en un cliente con tirones es un problema de sincronización y no una función rota, y nada en un informe permitía distinguirlos.",
+    ["wn_333_shared"] = "Interno: los marcos de grupo y de banda mantenían dos copias de las mismas 250 líneas — la lógica de invocación, la lista de sanaciones periódicas, el seguimiento de defensivos. Los tres fallos anteriores vienen de ahí: una corrección aplicada a una copia y no a la otra. Ahora comparten una única implementación.",
 
     -- =====================
     -- QOL: Companion Status (recordatorio de mascota)

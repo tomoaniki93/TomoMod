@@ -1,5 +1,48 @@
 ## ####################################
 
+## CHANGELOG 3.3.3 — Party And Raid Stop Keeping Two Copies Of The Same Code, The Summon Icon Stops Waiting For A Reload, Defensive Cooldowns Arrive On Party Frames With Categories You Can Filter, And A Diagnostics Report Finally Says What Resolution And Scale It Was Written At
+
+#### Group Frames — The Summon Icon Was Staying Up Until `/reload`
+
+- **Fix** — Accepting or declining a summon left the icon on the frame for the rest of the session. `C_IncomingSummon.IncomingSummonStatus` does not reset to `None` once a summon is resolved server-side — it keeps returning the *last* status, `Accepted` or `Declined`, because the record is flagged inactive rather than cleared. Reading it on its own therefore describes a summon that stopped existing minutes ago, and only a reload rebuilt the client-side cache. `HasIncomingSummon()` is the authoritative gate and is checked first now, which is what Blizzard's own `CompactUnitFrame` does.
+- **Fix** — A roster change moves a different player onto the same unit token, and nothing re-read the summon state when it happened: the previous occupant's icon stayed on a frame that now belonged to someone else. `GROUP_ROSTER_UPDATE` and zoning both refresh every frame now.
+- **Fix** — The indicator was never refreshed by the frames' own update pass. It was only ever touched by `INCOMING_SUMMON_CHANGED`, so a frame rebuilt for any other reason — a resize, a settings change, a group re-sort — came back with whatever the indicator happened to be showing before. It is part of `UpdateFrame` now, in both modules.
+- **Change** — A resolved summon is additionally dropped after six seconds, on a one-shot timer armed at the moment of resolution. `HasIncomingSummon` is the real fix; this exists so that a realm or a future build where that gate misbehaves degrades into a stale icon for six seconds instead of one for the session.
+- **Internal** — All of it lives in one shared module now instead of two byte-identical copies, one in the party frames and one in the raid frames. That duplication is the actual reason this bug lasted: there was no way to fix it once.
+
+#### Party & Raid Frames — Defensive Cooldowns, With Categories
+
+- **New** — Party frames show defensive cooldowns active on each member. This existed on raid frames only, and there it was a single icon with no duration and no indication of what kind of cooldown it was.
+- **New** — Defensives are split into three categories, and each has its own toggle on both panels. *External* — cast by someone else on this player: Ironbark, Life Cocoon, Pain Suppression, Guardian Spirit. *Raid-wide* — one cast landing on the whole group: Rallying Cry, Darkness, Anti-Magic Zone. *Personal* — the player pressing their own button: Divine Shield, Ice Block, Barkskin. Fifty spells in total.
+- **Change** — Externals are on by default and the other two are off. A raid-wide cooldown lights up every frame at once, which is exactly when a healer is least able to read them, and personals are informative but constant. Externals answer the question the display exists for: does this target already have something on it.
+- **Change** — Icons are sorted so externals come first whatever else is up, they show remaining time, and the border is coloured by category — gold for external, cyan for raid-wide, red for personal. Up to four per frame, configurable, at a configurable size.
+- **Fix** — On raid frames the defensive icon size slider wrote the value and stopped there; nothing reapplied it, so the icons only took the new size after a reload. It applies live now, like every other slider on that panel.
+
+#### Party & Raid Frames — The HoT List Had Already Drifted
+
+- **Fix** — The party frames and the raid frames each carried their own copy of the healer HoT database, and they no longer agreed: the party copy knew about Blessing of Summer, Cloudburst Totem and Enveloping Breath and the raid copy did not, so the same buff on the same player showed on one set of frames and not the other. There is one list now, the union of both, at 35 spells across Priest, Druid, Paladin, Shaman, Monk and Evoker.
+- **Internal** — Every duration and expiration time read back from the game passes through one guard before any arithmetic touches it. On group members in 12.x those fields can be handed over as protected values, and subtracting a timestamp from one is the cardinal taint mistake — the same class of bug 3.3.1 fixed across the tooltip files and 3.3.2 fixed in the aura tracker.
+- **Internal** — The aura scan sorts by insertion rather than through `table.sort`. At two or three entries it is faster, and it allocates nothing — `table.sort` would need a comparator upvalue on a path that runs on every `UNIT_AURA`.
+
+#### Party & Raid Frames — Dispel Border Thickness
+
+- **New** — The dispel highlight's border thickness is now a slider, 1 to 6, on both panels. At the default of 2 the geometry is identical to what shipped before.
+- **Change** — The border grows outwards from the frame edge instead of inwards, so a thicker one never eats into the health bar. It is applied live and on every settings pass, not only at frame creation.
+
+#### Diagnostics — A Report From An 8K Client Now Says So
+
+- **New** — Reports carry a Display block: physical resolution, UI units, display mode, render scale, `UIParent`'s scale and effective scale, the `uiScale` CVar, and the pixel-perfect scale for that resolution. Above 1200 vertical pixels the client refuses to take `uiScale` below 0.64, so high-resolution players rescale `UIParent` themselves or through another addon — and that rescale is reapplied after every loading screen, leaving anything positioned before it lands holding coordinates computed under the previous scale.
+- **New** — A scale or resolution change during the session is logged as its own entry, with the before and after values, so a rescale appears in the report next to the errors it may have caused. Capturing the scale once at login would not have shown that, and *when* it moved is the whole point.
+- **New** — The report flags a `UIParent` scale that does not match the CVar. That mismatch means something set the scale directly — a macro, a rescaling addon, or one of our own modules — which is worth knowing before reading anything else in the report as a positioning bug.
+- **New** — A Performance block: current framerate, session minimum / average / maximum sampled every five seconds, and home and world latency. Every captured error also records the framerate at the moment it fired. An error that only ever appears on a stuttering client is an ordering race, not a logic bug, and nothing in a report used to distinguish the two.
+- **Internal** — Display CVars have been renamed across expansions and `GetCVar` returns nil for a name the client does not know, so each one is probed through a list of candidates rather than assumed. `UI_SCALE_CHANGED` and `DISPLAY_SIZE_CHANGED` are registered through `C_EventUtils.IsEventValid` for the same reason.
+
+#### Internal
+
+- **Change** — New `Modules\Interface\Shared\` folder, loaded before the party and raid modules: the summon state, the aura database and the defensive cooldown track live there. It replaces a little over 250 lines that existed twice, and the three bugs above were all consequences of that — a fix applied to one copy and not the other, or a list edited on one side only.
+
+## ####################################
+
 ## CHANGELOG 3.3.2 — The Client Stops Waking Us For Twenty Other People, Skyriding Stops Building A Second Bar, Tooltips Keep Their Item Level In Combat, The Pet Reminder Stops Coming Along For The Flight, And Six Languages Finally Say The Same Thing
 
 #### Companion Status — The Pet Reminder Has Settings

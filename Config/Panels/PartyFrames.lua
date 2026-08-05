@@ -123,6 +123,7 @@ local function BuildFeaturesTab(parent)
     -- Dispel
     local card3, cy = W.CreateCard(c, L["pf_section_dispel"], y)
     local _, cy = W.CreateCheckbox(card3.inner, L["pf_opt_show_dispel"], db.showDispel, cy, function(v) db.showDispel = v; ApplyPF() end)
+    local _, cy = W.CreateSlider(card3.inner, L["pf_opt_dispel_border"], db.dispelBorderSize or 2, 1, 6, 1, cy, function(v) db.dispelBorderSize = v; ApplyPF() end, "%.0f")
     local _, cy = W.CreateInfoText(card3.inner, L["pf_info_dispel"], cy)
     y = W.FinalizeCard(card3, cy)
 
@@ -133,6 +134,17 @@ local function BuildFeaturesTab(parent)
     local _, cy = W.CreateSlider(card4.inner, L["pf_opt_max_hots"], db.maxHoTs, 1, 6, 1, cy, function(v) db.maxHoTs = v end, "%.0f")
     local _, cy = W.CreateInfoText(card4.inner, L["pf_info_hots"], cy)
     y = W.FinalizeCard(card4, cy)
+
+    -- Defensive cooldowns
+    local card5, cy = W.CreateCard(c, L["pf_section_defensives"], y)
+    local _, cy = W.CreateCheckbox(card5.inner, L["pf_opt_show_defensives"], db.showDefensives, cy, function(v) db.showDefensives = v; ApplyPF() end)
+    local _, cy = W.CreateSlider(card5.inner, L["pf_opt_defensive_size"], db.defensiveIconSize or 16, 10, 24, 1, cy, function(v) db.defensiveIconSize = v; ApplyPF() end, "%.0f")
+    local _, cy = W.CreateSlider(card5.inner, L["pf_opt_max_defensives"], db.maxDefensives or 2, 1, 4, 1, cy, function(v) db.maxDefensives = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
+    local _, cy = W.CreateCheckbox(card5.inner, L["pf_opt_def_externals"], db.defensiveShowExternals ~= false, cy, function(v) db.defensiveShowExternals = v; ApplyPF() end)
+    local _, cy = W.CreateCheckbox(card5.inner, L["pf_opt_def_raidwide"], db.defensiveShowRaidWide == true, cy, function(v) db.defensiveShowRaidWide = v; ApplyPF() end)
+    local _, cy = W.CreateCheckbox(card5.inner, L["pf_opt_def_personals"], db.defensiveShowPersonals == true, cy, function(v) db.defensiveShowPersonals = v; ApplyPF() end)
+    local _, cy = W.CreateInfoText(card5.inner, L["pf_info_defensives"], cy)
+    y = W.FinalizeCard(card5, cy)
 
     c:SetHeight(math.abs(y) + 20)
     if scroll.UpdateScroll then scroll.UpdateScroll() end

@@ -58,6 +58,23 @@ local PANEL_H = 480
 
 local CHANGELOG = {
     {
+        version = "3.3.3",
+        highlights = {
+            L["wn_333_summon_stuck"] or "Party & raid frames: the incoming summon icon stayed on the frame until you reloaded. Once you accept or decline, the game keeps reporting the summon's last state instead of clearing it, so the icon was describing something that had stopped existing minutes earlier. It now checks whether a summon is actually still open before showing anything.",
+            L["wn_333_summon_roster"] or "Party & raid frames: when the group changed, a summon icon could stay on a frame that now belonged to a different player. The summon state is re-read on every roster change and after zoning, and it is refreshed with the rest of the frame instead of only when the game announces a change.",
+            L["wn_333_defensives_party"] or "Party frames: defensive cooldowns active on each member are now shown, which previously only existed on raid frames — and there it was a single icon with no duration and no indication of what it was.",
+            L["wn_333_defensives_categories"] or "Party & raid frames: defensives are split into externals (cast on this player — Ironbark, Life Cocoon, Pain Suppression), raid-wide (Rallying Cry, Darkness, Anti-Magic Zone) and personals (Divine Shield, Ice Block, Barkskin), each with its own toggle. Fifty spells, sorted so externals come first, with remaining time and a border colored by category.",
+            L["wn_333_defensives_defaults"] or "Party & raid frames: only externals are shown by default. A raid-wide cooldown lights up every frame at once — exactly when you are least able to read them — and personals are constant. Both can be turned on.",
+            L["wn_333_defensives_size"] or "Raid frames: the defensive icon size slider only took effect after a reload. It applies as you drag it now.",
+            L["wn_333_hots_drift"] or "Party & raid frames: the two sets of frames disagreed about which heal-over-time effects to show. Blessing of Summer, Cloudburst Totem and Enveloping Breath appeared on party frames and not on raid frames — the same buff, on the same player, visible on one and not the other. There is one list now, covering all six healing classes.",
+            L["wn_333_dispel_border"] or "Party & raid frames: the dispel highlight's border thickness is now a slider, 1 to 6. It grows outwards from the frame edge, so a thicker border never eats into the health bar, and the default looks exactly like before.",
+            L["wn_333_diag_display"] or "Diagnostics: reports now include your resolution, display mode and UI scale — and flag the case where the scale has been set by something other than the game's own options. Above 1200 pixels tall the client will not scale the interface down far enough on its own, so high-resolution setups end up rescaled by hand or by another addon, and that was invisible in a report.",
+            L["wn_333_diag_scalechange"] or "Diagnostics: a scale or resolution change during your session is logged with its before and after values, so a rescale shows up next to the errors it may have caused. That rescale is reapplied after every loading screen, which is when it tends to break things.",
+            L["wn_333_diag_perf"] or "Diagnostics: reports now carry framerate (current, and the session's minimum, average and maximum) and latency, and every captured error records the framerate at the moment it fired. An error that only appears on a stuttering client is a timing problem rather than a broken feature, and nothing in a report used to tell them apart.",
+            L["wn_333_shared"] or "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
+        },
+    },
+    {
         version = "3.3.2",
         highlights = {
             L["wn_332_companion_panel"] or "Pet Reminder: the module that warns you when your pet is missing or dead finally has a settings panel, under QOL. Enabling it, its size, its scale, whether it shows the icon, the text or both, and where it sits on screen were previously only reachable by editing a file by hand.",

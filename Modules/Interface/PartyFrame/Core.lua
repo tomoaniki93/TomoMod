@@ -377,17 +377,11 @@ function PF.CreateFrame(index, unit)
     -- ---- DISPEL HIGHLIGHT ----
     if db.showDispel then
         local dispel = CreateFrame("Frame", nil, content, "BackdropTemplate")
-        dispel:SetPoint("TOPLEFT", -1, 1)
-        dispel:SetPoint("BOTTOMRIGHT", 1, -1)
-        dispel:SetBackdrop({
-            edgeFile = "Interface\\Buttons\\WHITE8X8",
-            edgeSize = 2,
-        })
-        dispel:SetBackdropBorderColor(0, 0, 0, 0)
         dispel:SetFrameLevel(content:GetFrameLevel() + 5)
         dispel:EnableMouse(false)
         dispel:Hide()
         f.dispelHighlight = dispel
+        PF.ApplyDispelBorderSize(f)
     end
 
     -- ---- GROUP BUFF ICON ----
@@ -404,6 +398,20 @@ function PF.CreateFrame(index, unit)
     gbIcon.texture = gbTex
     gbIcon:Hide()
     f.groupBuff = gbIcon
+
+    -- ---- DEFENSIVE CD CONTAINER ----
+    if db.showDefensives then
+        f.defensiveContainer = TomoMod_DefensiveTrack and TomoMod_DefensiveTrack.Create(content, {
+            size     = db.defensiveIconSize or 16,
+            count    = db.maxDefensives or 2,
+            point    = "BOTTOMRIGHT",
+            relPoint = "BOTTOMRIGHT",
+            x        = -2,
+            y        = 2,
+            grow     = "LEFT",
+            font     = db.font or ADDON_FONT,
+        })
+    end
 
     -- ---- HOT CONTAINER ----
     if db.showHoTs then
@@ -795,33 +803,73 @@ end
 
 -- =====================================
 -- UPDATE: SUMMON INDICATOR
+-- All state handling lives in Interface/Shared/GroupSummon.lua so party and
+-- raid can no longer drift apart. Notably it gates on HasIncomingSummon(),
+-- without which IncomingSummonStatus keeps reporting Accepted / Declined for
+-- a summon the server has already closed — the icon then stayed up until the
+-- player reloaded.
 -- =====================================
+function PF.RefreshSummonAll()
+    for _, f in pairs(PF.frames) do
+        if f then PF.UpdateSummon(f) end
+    end
+end
+
 function PF.UpdateSummon(f)
     if not f or not f.summonIndicator then return end
-    if not f.unit or not UnitExists(f.unit) then f.summonIndicator:Hide(); return end
-    if not C_IncomingSummon then f.summonIndicator:Hide(); return end
 
-    local none     = Enum.SummonStatus and Enum.SummonStatus.None     or 0
-    local pending  = Enum.SummonStatus and Enum.SummonStatus.Pending  or 1
-    local accepted = Enum.SummonStatus and Enum.SummonStatus.Accepted or 2
-    local declined = Enum.SummonStatus and Enum.SummonStatus.Declined or 3
+    local GS = TomoMod_GroupSummon
+    if not GS then f.summonIndicator:Hide(); return end
 
-    local status = C_IncomingSummon.IncomingSummonStatus(f.unit)
-    if status and status ~= none then
-        if status == pending then
-            f.summonIndicator.texture:SetAtlas("RaidFrame-Icon-SummonPending")
-        elseif status == accepted then
-            f.summonIndicator.texture:SetAtlas("RaidFrame-Icon-SummonAccepted")
-        elseif status == declined then
-            f.summonIndicator.texture:SetAtlas("RaidFrame-Icon-SummonDeclined")
-        else
-            f.summonIndicator:Hide()
-            return
-        end
-        f.summonIndicator:Show()
-    else
-        f.summonIndicator:Hide()
-    end
+    GS.Apply(f.summonIndicator, f.unit, PF.RefreshSummonAll)
+end
+
+-- =====================================
+-- UPDATE: DEFENSIVE CDs
+-- Module-scope tables: rebuilt in place, never reallocated per update.
+-- =====================================
+local PF_DEF_WANT = { external = true, raidwide = false, personal = false }
+local PF_DEF_RESULTS = {}
+
+function PF.UpdateDefensive(f)
+    if not f or not f.defensiveContainer then return end
+
+    local db = TomoModDB and TomoModDB.partyFrames
+    local DT = TomoMod_DefensiveTrack
+    if not DT then return end
+
+    if not db or not db.showDefensives then DT.Clear(f.defensiveContainer); return end
+    if not f.unit or not UnitExists(f.unit) then DT.Clear(f.defensiveContainer); return end
+
+    PF_DEF_WANT.external = db.defensiveShowExternals ~= false
+    PF_DEF_WANT.raidwide = db.defensiveShowRaidWide == true
+    PF_DEF_WANT.personal = db.defensiveShowPersonals == true
+
+    DT.Update(f.defensiveContainer, f.unit, PF_DEF_WANT, db.maxDefensives or 2, PF_DEF_RESULTS)
+end
+
+-- =====================================
+-- DISPEL HIGHLIGHT BORDER SIZE
+-- The border grows outwards from the frame edge, so a thicker cadre never
+-- eats into the health bar. At the default of 2 the geometry is identical to
+-- what shipped before.
+-- =====================================
+function PF.ApplyDispelBorderSize(f)
+    if not f or not f.dispelHighlight then return end
+
+    local db = TomoModDB and TomoModDB.partyFrames
+    local size = (db and db.dispelBorderSize) or 2
+    if size < 1 then size = 1 end
+
+    local inset = size - 1
+    f.dispelHighlight:ClearAllPoints()
+    f.dispelHighlight:SetPoint("TOPLEFT", -inset, inset)
+    f.dispelHighlight:SetPoint("BOTTOMRIGHT", inset, -inset)
+    f.dispelHighlight:SetBackdrop({
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = size,
+    })
+    f.dispelHighlight:SetBackdropBorderColor(0, 0, 0, 0)
 end
 
 -- =====================================
@@ -903,6 +951,8 @@ function PF.UpdateFrame(f)
     PF.UpdateRaidMarker(f)
     PF.UpdateDispel(f)
     PF.UpdateGroupBuff(f)
+    PF.UpdateSummon(f)
+    PF.UpdateDefensive(f)
     -- HoTs and CDs are updated by their own modules
     if TomoMod_PartyHoTs then TomoMod_PartyHoTs.UpdateUnit(f) end
     if TomoMod_PartyCooldowns then TomoMod_PartyCooldowns.UpdateFrame(f) end
@@ -1132,6 +1182,7 @@ local function OnEvent(self, event, arg1, ...)
         if f then
             PF.UpdateDispel(f)
             PF.UpdateGroupBuff(f)
+            PF.UpdateDefensive(f)
             if TomoMod_PartyHoTs then TomoMod_PartyHoTs.UpdateUnit(f) end
         end
 
@@ -1149,13 +1200,14 @@ local function OnEvent(self, event, arg1, ...)
         PF.FinishReadyCheck()
 
     elseif event == "INCOMING_SUMMON_CHANGED" then
-        for _, f in pairs(PF.frames) do
-            if f then PF.UpdateSummon(f) end
-        end
+        PF.RefreshSummonAll()
 
     elseif event == "GROUP_ROSTER_UPDATE" or event == "PARTY_MEMBER_ENABLE"
         or event == "PARTY_MEMBER_DISABLE" then
         PF.RefreshGroup()
+        -- A roster shift moves a different player onto a token: re-read the
+        -- summon state instead of leaving the previous occupant's icon up.
+        PF.RefreshSummonAll()
 
     elseif event == "PARTY_LEADER_CHANGED" then
         for _, f in pairs(PF.frames) do
@@ -1176,6 +1228,7 @@ local function OnEvent(self, event, arg1, ...)
         C_Timer.After(0.5, function()
             PF.RefreshGroup()
             PF.HideBlizzardFrames()
+            PF.RefreshSummonAll()
         end)
 
     elseif event == "PLAYER_REGEN_ENABLED" then
@@ -1446,6 +1499,10 @@ function PF.ApplySettings()
             if f.readyCheck then f.readyCheck:SetSize(rcSize, rcSize) end
             local sSize = db.summonSize or 18
             if f.summonIndicator then f.summonIndicator:SetSize(sSize, sSize) end
+            PF.ApplyDispelBorderSize(f)
+            if f.defensiveContainer and TomoMod_DefensiveTrack then
+                TomoMod_DefensiveTrack.Resize(f.defensiveContainer, db.defensiveIconSize or 16, "LEFT")
+            end
 
             if f:IsShown() then
                 PF.UpdateFrame(f)

@@ -11,80 +11,17 @@ local pcall, ipairs = pcall, ipairs
 local issecretvalue = issecretvalue
 
 -- =====================================
--- HEALER HOT SPELL DATABASE (shared with PartyFrame HoTs)
+-- SHARED SPELL DATA
+-- The HoT database, class colours and debuff-type colours live in
+-- Interface/Shared/AuraData.lua so party and raid can no longer drift apart.
+-- RA.HEALER_HOTS is kept as an alias for anything reading it from outside.
 -- =====================================
-RA.HEALER_HOTS = {
-    PRIEST = {
-        [139]    = true,  -- Renew
-        [17]     = true,  -- Power Word: Shield
-        [194384] = true,  -- Atonement
-        [41635]  = true,  -- Prayer of Mending
-        [77489]  = true,  -- Echo of Light
-    },
-    DRUID = {
-        [774]    = true,  -- Rejuvenation
-        [8936]   = true,  -- Regrowth (HoT)
-        [33763]  = true,  -- Lifebloom
-        [48438]  = true,  -- Wild Growth
-        [102342] = true,  -- Ironbark
-        [155777] = true,  -- Germination
-        [207386] = true,  -- Spring Blossoms
-        [200389] = true,  -- Cultivation
-        [391891] = true,  -- Adaptive Swarm
-    },
-    PALADIN = {
-        [53563]  = true,  -- Beacon of Light
-        [156910] = true,  -- Beacon of Faith
-        [223306] = true,  -- Bestow Faith
-        [287280] = true,  -- Glimmer of Light
-    },
-    SHAMAN = {
-        [61295]  = true,  -- Riptide
-        [382024] = true,  -- Earthliving Weapon
-    },
-    MONK = {
-        [119611] = true,  -- Renewing Mist
-        [116849] = true,  -- Life Cocoon
-        [124682] = true,  -- Enveloping Mist
-        [191840] = true,  -- Essence Font
-    },
-    EVOKER = {
-        [355941] = true,  -- Dream Breath
-        [366155] = true,  -- Reversion
-        [376788] = true,  -- Echo
-        [378001] = true,  -- Dream Breath (HoT)
-    },
-}
+local AD = TomoMod_AuraData
 
--- =====================================
--- CLASS COLORS (for HoT border)
--- =====================================
-local CLASS_HOT_COLORS = {
-    PRIEST  = { r = 1.00, g = 1.00, b = 1.00 },
-    DRUID   = { r = 1.00, g = 0.49, b = 0.04 },
-    PALADIN = { r = 0.96, g = 0.55, b = 0.73 },
-    SHAMAN  = { r = 0.00, g = 0.44, b = 0.87 },
-    MONK    = { r = 0.00, g = 1.00, b = 0.60 },
-    EVOKER  = { r = 0.20, g = 0.58, b = 0.50 },
-}
-
--- Build reverse lookup: spellID -> class
-local SPELL_TO_CLASS = {}
-for cls, spells in pairs(RA.HEALER_HOTS) do
-    for spellID in pairs(spells) do
-        SPELL_TO_CLASS[spellID] = cls
-    end
-end
-
--- =====================================
--- DEBUFF TYPE COLORS
--- =====================================
-local DEBUFF_TYPE_COLORS = {
-    Magic   = { r = 0.20, g = 0.60, b = 1.00 },
-    Curse   = { r = 0.60, g = 0.00, b = 1.00 },
-    Disease = { r = 0.60, g = 0.40, b = 0.00 },
-    Poison  = { r = 0.00, g = 0.60, b = 0.00 },
-}
+RA.HEALER_HOTS       = AD and AD.HEALER_HOTS or {}
+local SPELL_TO_CLASS = AD and AD.HOT_SPELL_TO_CLASS or {}
+local CLASS_HOT_COLORS = AD and AD.CLASS_HOT_COLORS or {}
+local DEBUFF_TYPE_COLORS = AD and AD.DEBUFF_TYPE_COLORS or {}
 
 -- =====================================
 -- UPDATE DEBUFFS FOR A UNIT FRAME
@@ -142,13 +79,11 @@ function RA.UpdateDebuffs(f)
                 icon:SetBackdropBorderColor(0.8, 0, 0, 1)
             end
             -- Duration text
-            if data.expTime and data.duration and data.duration > 0 then
-                local remaining = data.expTime - GetTime()
-                if remaining > 0 then
-                    icon.duration:SetText(string.format("%.0f", remaining))
-                else
-                    icon.duration:SetText("")
-                end
+            -- duration / expirationTime can be secret values on group
+            -- members in 12.x: the arithmetic goes through the shared guard.
+            local remaining = AD and AD.RemainingTime(data.duration, data.expTime)
+            if remaining then
+                icon.duration:SetText(string.format("%.0f", remaining))
             else
                 icon.duration:SetText("")
             end
@@ -220,13 +155,11 @@ function RA.UpdateHoTs(f)
             else
                 icon:SetBackdropBorderColor(0, 0, 0, 1)
             end
-            if data.expTime and data.duration and data.duration > 0 then
-                local remaining = data.expTime - GetTime()
-                if remaining > 0 then
-                    icon.duration:SetText(string.format("%.0f", remaining))
-                else
-                    icon.duration:SetText("")
-                end
+            -- duration / expirationTime can be secret values on group
+            -- members in 12.x: the arithmetic goes through the shared guard.
+            local remaining = AD and AD.RemainingTime(data.duration, data.expTime)
+            if remaining then
+                icon.duration:SetText(string.format("%.0f", remaining))
             else
                 icon.duration:SetText("")
             end

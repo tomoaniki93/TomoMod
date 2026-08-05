@@ -1927,6 +1927,7 @@ TomoMod_RegisterLocale("enUS", {
 
     ["pf_section_dispel"]                = "Dispel Highlight",
     ["pf_opt_show_dispel"]               = "Highlight dispellable debuffs",
+    ["pf_opt_dispel_border"]             = "Dispel border thickness",
     ["pf_info_dispel"]                   = "Border glows by debuff type: Magic (blue), Curse (purple), Disease (brown), Poison (green).",
 
     ["pf_section_hots"]                  = "HoT Tracking",
@@ -1934,6 +1935,14 @@ TomoMod_RegisterLocale("enUS", {
     ["pf_opt_hot_size"]                  = "HoT icon size",
     ["pf_opt_max_hots"]                  = "Max HoTs shown",
     ["pf_info_hots"]                     = "Displays healing-over-time effects with class-colored borders. Supports Priest, Druid, Paladin, Shaman, Monk, and Evoker HoTs.",
+    ["pf_section_defensives"]            = "Defensive Cooldowns",
+    ["pf_opt_show_defensives"]           = "Show defensive cooldowns",
+    ["pf_opt_defensive_size"]            = "Defensive icon size",
+    ["pf_opt_max_defensives"]            = "Max defensives shown",
+    ["pf_opt_def_externals"]             = "External cooldowns (cast on this player)",
+    ["pf_opt_def_raidwide"]              = "Raid-wide cooldowns",
+    ["pf_opt_def_personals"]             = "Personal cooldowns",
+    ["pf_info_defensives"]               = "Border colour shows the category: gold for externals (Ironbark, Life Cocoon, Pain Suppression), cyan for raid-wide, red for personals. Raid-wide and personal cooldowns are off by default because they light up every frame at once.",
 
     -- Cooldowns tab
     ["pf_section_cooldowns"]             = "Cooldown Trackers",
@@ -2037,6 +2046,7 @@ TomoMod_RegisterLocale("enUS", {
     -- Features: Dispel
     ["rf_section_dispel"]                = "Dispel Highlight",
     ["rf_opt_show_dispel"]               = "Highlight dispellable debuffs",
+    ["rf_opt_dispel_border"]             = "Dispel border thickness",
 
     -- Features: HoTs
     ["rf_section_hots"]                  = "HoT Tracking",
@@ -2054,6 +2064,10 @@ TomoMod_RegisterLocale("enUS", {
     ["rf_section_defensives"]            = "Defensive Cooldowns",
     ["rf_opt_show_defensives"]           = "Show active defensive buffs",
     ["rf_opt_defensive_size"]            = "Defensive icon size",
+    ["rf_opt_max_defensives"]            = "Max defensives shown",
+    ["rf_opt_def_externals"]             = "External cooldowns (cast on this player)",
+    ["rf_opt_def_raidwide"]              = "Raid-wide cooldowns",
+    ["rf_opt_def_personals"]             = "Personal cooldowns",
     ["rf_info_defensives"]               = "Displays active defensive cooldowns (e.g. Pain Suppression, Ironbark, Divine Shield) on each raid member.",
 
     -- Resurrection indicator (raid)
@@ -2887,6 +2901,22 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_332_companion_panel"] = "Pet Reminder: the module that warns you when your pet is missing or dead finally has a settings panel, under QOL. Enabling it, its size, its scale, whether it shows the icon, the text or both, and where it sits on screen were previously only reachable by editing a file by hand.",
     ["wn_332_companion_travel"] = "Pet Reminder: it could stay on screen, at four times its size, for an entire flight. It only ever checked whether you were flying at moments when you were still standing on the ground, and nothing could hide it afterwards. It is now hidden while flying, on a flight path and in a vehicle — and on a ground mount too, which you can turn back off.",
     ["wn_332_companion_locale"] = "Pet Reminder: 'Pet missing' and 'Pet dead' were English whatever your client's language was. Both are translated now, along with everything in the new panel.",
+
+    -- =====================
+    -- 3.3.3 — What's New
+    -- =====================
+    ["wn_333_summon_stuck"] = "Party & raid frames: the incoming summon icon stayed on the frame until you reloaded. Once you accept or decline, the game keeps reporting the summon's last state instead of clearing it, so the icon was describing something that had stopped existing minutes earlier. It now checks whether a summon is actually still open before showing anything.",
+    ["wn_333_summon_roster"] = "Party & raid frames: when the group changed, a summon icon could stay on a frame that now belonged to a different player. The summon state is re-read on every roster change and after zoning, and it is refreshed with the rest of the frame instead of only when the game announces a change.",
+    ["wn_333_defensives_party"] = "Party frames: defensive cooldowns active on each member are now shown, which previously only existed on raid frames — and there it was a single icon with no duration and no indication of what it was.",
+    ["wn_333_defensives_categories"] = "Party & raid frames: defensives are split into externals (cast on this player — Ironbark, Life Cocoon, Pain Suppression), raid-wide (Rallying Cry, Darkness, Anti-Magic Zone) and personals (Divine Shield, Ice Block, Barkskin), each with its own toggle. Fifty spells, sorted so externals come first, with remaining time and a border colored by category.",
+    ["wn_333_defensives_defaults"] = "Party & raid frames: only externals are shown by default. A raid-wide cooldown lights up every frame at once — exactly when you are least able to read them — and personals are constant. Both can be turned on.",
+    ["wn_333_defensives_size"] = "Raid frames: the defensive icon size slider only took effect after a reload. It applies as you drag it now.",
+    ["wn_333_hots_drift"] = "Party & raid frames: the two sets of frames disagreed about which heal-over-time effects to show. Blessing of Summer, Cloudburst Totem and Enveloping Breath appeared on party frames and not on raid frames — the same buff, on the same player, visible on one and not the other. There is one list now, covering all six healing classes.",
+    ["wn_333_dispel_border"] = "Party & raid frames: the dispel highlight's border thickness is now a slider, 1 to 6. It grows outwards from the frame edge, so a thicker border never eats into the health bar, and the default looks exactly like before.",
+    ["wn_333_diag_display"] = "Diagnostics: reports now include your resolution, display mode and UI scale — and flag the case where the scale has been set by something other than the game's own options. Above 1200 pixels tall the client will not scale the interface down far enough on its own, so high-resolution setups end up rescaled by hand or by another addon, and that was invisible in a report.",
+    ["wn_333_diag_scalechange"] = "Diagnostics: a scale or resolution change during your session is logged with its before and after values, so a rescale shows up next to the errors it may have caused. That rescale is reapplied after every loading screen, which is when it tends to break things.",
+    ["wn_333_diag_perf"] = "Diagnostics: reports now carry framerate (current, and the session's minimum, average and maximum) and latency, and every captured error records the framerate at the moment it fired. An error that only appears on a stuttering client is a timing problem rather than a broken feature, and nothing in a report used to tell them apart.",
+    ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
 
     -- =====================
     -- QOL: Companion Status (pet reminder)

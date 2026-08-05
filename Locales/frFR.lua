@@ -1855,6 +1855,7 @@ TomoMod_RegisterLocale("frFR", {
 
     ["pf_section_dispel"]                = "Mise en évidence de dissipation",
     ["pf_opt_show_dispel"]               = "Mettre en évidence les debuffs dissipables",
+    ["pf_opt_dispel_border"]             = "Épaisseur du cadre de dissipation",
     ["pf_info_dispel"]                   = "Lueur du cadre par type de debuff : Magie (bleu), Malédiction (violet), Maladie (marron), Poison (vert).",
 
     ["pf_section_hots"]                  = "Suivi des HoTs",
@@ -1862,6 +1863,14 @@ TomoMod_RegisterLocale("frFR", {
     ["pf_opt_hot_size"]                  = "Taille d'icône HoT",
     ["pf_opt_max_hots"]                  = "Max. HoTs affichés",
     ["pf_info_hots"]                     = "Affiche les effets de soin dans le temps avec des bordures colorées par classe. Compatible Prêtre, Druide, Paladin, Chaman, Moine et Évocateur.",
+    ["pf_section_defensives"]            = "Temps de recharge défensifs",
+    ["pf_opt_show_defensives"]           = "Afficher les CD défensifs",
+    ["pf_opt_defensive_size"]            = "Taille des icônes défensives",
+    ["pf_opt_max_defensives"]            = "Max. défensifs affichés",
+    ["pf_opt_def_externals"]             = "CD externes (lancés sur ce joueur)",
+    ["pf_opt_def_raidwide"]              = "CD de raid",
+    ["pf_opt_def_personals"]             = "CD personnels",
+    ["pf_info_defensives"]               = "La couleur de bordure indique la catégorie : or pour les externes (Écorce de fer, Cocon de vie, Suppression de la douleur), cyan pour les CD de raid, rouge pour les personnels. Les CD de raid et personnels sont désactivés par défaut car ils s'allument sur tous les cadres en même temps.",
 
     ["pf_section_cooldowns"]             = "Suivi des temps de recharge",
     ["pf_opt_show_kick"]                 = "Afficher le CD d'interruption",
@@ -1954,6 +1963,7 @@ TomoMod_RegisterLocale("frFR", {
 
     ["rf_section_dispel"]                = "Surbrillance de dissipation",
     ["rf_opt_show_dispel"]               = "Surbrillance des debuffs dissipables",
+    ["rf_opt_dispel_border"]             = "Épaisseur du cadre de dissipation",
 
     ["rf_section_hots"]                  = "Suivi des HoTs",
     ["rf_opt_show_hots"]                 = "Afficher les indicateurs HoT",
@@ -1968,6 +1978,10 @@ TomoMod_RegisterLocale("frFR", {
     ["rf_section_defensives"]            = "CDs défensifs",
     ["rf_opt_show_defensives"]           = "Afficher les buffs défensifs actifs",
     ["rf_opt_defensive_size"]            = "Taille de l'icône défensive",
+    ["rf_opt_max_defensives"]            = "Max. défensifs affichés",
+    ["rf_opt_def_externals"]             = "CD externes (lancés sur ce joueur)",
+    ["rf_opt_def_raidwide"]              = "CD de raid",
+    ["rf_opt_def_personals"]             = "CD personnels",
     ["rf_info_defensives"]               = "Affiche les CDs défensifs actifs (ex: Suppression de la douleur, Écorce de fer, Bouclier divin) sur chaque membre du raid.",
 
     -- Indicateur de résurrection (raid)
@@ -2856,6 +2870,22 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_332_companion_panel"] = "Rappel de familier : le module qui vous prévient quand votre familier est absent ou mort dispose enfin d'un panneau de réglages, dans QOL. Son activation, sa taille, son échelle, l'affichage de l'icône, du texte ou des deux, et sa position à l'écran n'étaient jusqu'ici modifiables qu'en éditant un fichier à la main.",
     ["wn_332_companion_travel"] = "Rappel de familier : il pouvait rester à l'écran, à quatre fois sa taille, pendant tout un vol. Il ne vérifiait si vous voliez qu'à des moments où vous étiez encore au sol, et plus rien ne pouvait le masquer ensuite. Il est désormais masqué en vol, en trajet de vol et en véhicule — ainsi qu'en monture au sol, ce que vous pouvez désactiver.",
     ["wn_332_companion_locale"] = "Rappel de familier : « Familier absent » et « Familier mort » s'affichaient en anglais quelle que soit la langue du client. Les deux sont traduits, comme tout le nouveau panneau.",
+
+    -- =====================
+    -- 3.3.3 — Quoi de neuf
+    -- =====================
+    ["wn_333_summon_stuck"] = "Cadres de groupe et de raid : l'icône d'invocation restait affichée jusqu'au rechargement de l'interface. Une fois que vous acceptez ou refusez, le jeu continue de renvoyer le dernier état de l'invocation au lieu de l'effacer — l'icône décrivait donc quelque chose qui n'existait plus depuis plusieurs minutes. Elle vérifie maintenant qu'une invocation est réellement en cours avant d'afficher quoi que ce soit.",
+    ["wn_333_summon_roster"] = "Cadres de groupe et de raid : lors d'un changement de composition, une icône d'invocation pouvait rester sur un cadre appartenant désormais à un autre joueur. L'état est relu à chaque changement de composition et après chaque changement de zone, et il est rafraîchi avec le reste du cadre au lieu de l'être uniquement quand le jeu signale un changement.",
+    ["wn_333_defensives_party"] = "Cadres de groupe : les temps de recharge défensifs actifs sur chaque membre sont désormais affichés. Ils n'existaient que sur les cadres de raid, et il s'agissait d'une seule icône, sans durée et sans indication de sa nature.",
+    ["wn_333_defensives_categories"] = "Cadres de groupe et de raid : les défensifs sont répartis en externes (lancés sur ce joueur — Écorce de fer, Cocon de vie, Suppression de la douleur), collectifs (Cri de ralliement, Ténèbres, Zone antimagie) et personnels (Bouclier divin, Bloc de glace, Peau d'écorce), chacun avec sa propre option. Cinquante sorts, triés pour que les externes passent en premier, avec le temps restant et un cadre coloré par catégorie.",
+    ["wn_333_defensives_defaults"] = "Cadres de groupe et de raid : seuls les externes sont affichés par défaut. Un défensif collectif allume tous les cadres en même temps — exactement au moment où ils sont le moins lisibles — et les personnels sont permanents. Les deux peuvent être activés.",
+    ["wn_333_defensives_size"] = "Cadres de raid : le curseur de taille des icônes défensives ne prenait effet qu'après un rechargement. Il s'applique désormais pendant que vous le déplacez.",
+    ["wn_333_hots_drift"] = "Cadres de groupe et de raid : les deux jeux de cadres n'étaient pas d'accord sur les soins sur la durée à afficher. Bénédiction de l'été, Totem de salve de nuages et Souffle enveloppant apparaissaient sur les cadres de groupe mais pas sur ceux de raid — le même buff, sur le même joueur, visible d'un côté et pas de l'autre. Il n'y a plus qu'une seule liste, couvrant les six classes de soigneur.",
+    ["wn_333_dispel_border"] = "Cadres de groupe et de raid : l'épaisseur du cadre de dissipation est désormais réglable, de 1 à 6. Il s'étend vers l'extérieur, donc un cadre plus épais n'empiète jamais sur la barre de vie, et la valeur par défaut est identique à l'affichage précédent.",
+    ["wn_333_diag_display"] = "Diagnostics : les rapports contiennent maintenant votre résolution, votre mode d'affichage et votre échelle d'interface — et signalent le cas où l'échelle a été réglée par autre chose que les options du jeu. Au-delà de 1200 pixels de hauteur, le client refuse de réduire suffisamment l'échelle, donc les configurations haute résolution finissent redimensionnées à la main ou par un autre addon, ce qui était invisible dans un rapport.",
+    ["wn_333_diag_scalechange"] = "Diagnostics : un changement d'échelle ou de résolution en cours de session est consigné avec ses valeurs avant et après, pour qu'un redimensionnement apparaisse à côté des erreurs qu'il a pu provoquer. Ce redimensionnement est réappliqué après chaque écran de chargement, et c'est précisément là qu'il casse des choses.",
+    ["wn_333_diag_perf"] = "Diagnostics : les rapports indiquent désormais le nombre d'images par seconde (actuel, ainsi que le minimum, la moyenne et le maximum de la session) et la latence, et chaque erreur capturée enregistre le nombre d'images par seconde au moment où elle s'est produite. Une erreur qui n'apparaît que sur un client qui saccade est un problème de synchronisation et non une fonctionnalité cassée, et rien dans un rapport ne permettait de les distinguer.",
+    ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
 
     -- =====================
     -- QOL : Companion Status (rappel de familier)

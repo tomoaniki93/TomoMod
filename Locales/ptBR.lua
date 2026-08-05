@@ -1782,6 +1782,7 @@ TomoMod_RegisterLocale("ptBR", {
 
     ["pf_section_dispel"]                = "Destaque de dissipação",
     ["pf_opt_show_dispel"]               = "Destacar debuffs dissipiáveis",
+    ["pf_opt_dispel_border"]             = "Espessura da borda de dissipação",
     ["pf_info_dispel"]                   = "Brilho da borda por tipo de debuff: Magia (azul), Maldição (roxo), Doença (marrom), Veneno (verde).",
 
     ["pf_section_hots"]                  = "Rastreamento de HoTs",
@@ -1789,6 +1790,14 @@ TomoMod_RegisterLocale("ptBR", {
     ["pf_opt_hot_size"]                  = "Tamanho do ícone HoT",
     ["pf_opt_max_hots"]                  = "Máx. HoTs mostrados",
     ["pf_info_hots"]                     = "Exibe efeitos de cura ao longo do tempo com bordas coloridas por classe. Suporta Sacerdote, Druida, Paladino, Xamã, Monge e Evocador.",
+    ["pf_section_defensives"]            = "Recargas defensivas",
+    ["pf_opt_show_defensives"]           = "Exibir recargas defensivas",
+    ["pf_opt_defensive_size"]            = "Tamanho dos ícones defensivos",
+    ["pf_opt_max_defensives"]            = "Máx. de defensivas exibidas",
+    ["pf_opt_def_externals"]             = "Recargas externas (conjuradas neste jogador)",
+    ["pf_opt_def_raidwide"]              = "Recargas de raide",
+    ["pf_opt_def_personals"]             = "Recargas pessoais",
+    ["pf_info_defensives"]               = "A cor da borda indica a categoria: dourado para as externas (Casca de Ferro, Casulo Vital, Supressão da Dor), ciano para as de raide, vermelho para as pessoais. As de raide e pessoais vêm desativadas porque acendem em todos os quadros ao mesmo tempo.",
 
     ["pf_section_cooldowns"]             = "Rastreador de recarga",
     ["pf_opt_show_kick"]                 = "Mostrar CD de interrupção",
@@ -1872,6 +1881,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["rf_opt_oor_alpha"]                 = "Opacidade fora de alcance",
     ["rf_section_dispel"]                = "Destaque de dissipação",
     ["rf_opt_show_dispel"]               = "Destacar debuffs dissipaveis",
+    ["rf_opt_dispel_border"]             = "Espessura da borda de dissipação",
     ["rf_section_hots"]                  = "Rastreamento de HoTs",
     ["rf_opt_show_hots"]                 = "Mostrar indicadores HoT",
     ["rf_opt_hot_size"]                  = "Tamanho do ícone HoT",
@@ -1883,6 +1893,10 @@ TomoMod_RegisterLocale("ptBR", {
     ["rf_section_defensives"]            = "CDs defensivos",
     ["rf_opt_show_defensives"]           = "Mostrar buffs defensivos ativos",
     ["rf_opt_defensive_size"]            = "Tamanho do ícone defensivo",
+    ["rf_opt_max_defensives"]            = "Máx. de defensivas exibidas",
+    ["rf_opt_def_externals"]             = "Recargas externas (conjuradas neste jogador)",
+    ["rf_opt_def_raidwide"]              = "Recargas de raide",
+    ["rf_opt_def_personals"]             = "Recargas pessoais",
     ["rf_info_defensives"]               = "Exibe CDs defensivos ativos (ex: Supressão de Dor, Casca de Ferro, Escudo Divino) em cada membro da raide.",
 
     -- Indicador de ressurreição (raide)
@@ -2828,6 +2842,22 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_332_companion_panel"] = "Lembrete de mascote: o módulo que avisa quando seu mascote está ausente ou morto finalmente tem um painel de configurações, em QOL. A ativação, o tamanho, a escala, a exibição de ícone, texto ou ambos e a posição na tela só podiam ser alterados editando um arquivo à mão.",
     ["wn_332_companion_travel"] = "Lembrete de mascote: ele podia ficar na tela, com quatro vezes o tamanho, durante um voo inteiro. Só verificava se você estava voando em momentos em que ainda estava no chão, e depois nada conseguia ocultá-lo. Agora fica oculto durante voo, em rotas de voo e em veículos — e também em montaria terrestre, o que você pode desativar.",
     ["wn_332_companion_locale"] = "Lembrete de mascote: «Mascote ausente» e «Mascote morto» apareciam em inglês qualquer que fosse o idioma do cliente. Ambos estão traduzidos, assim como todo o novo painel.",
+
+    -- =====================
+    -- 3.3.3 — Novidades
+    -- =====================
+    ["wn_333_summon_stuck"] = "Quadros de grupo e de raide: o ícone de invocação ficava no quadro até recarregar a interface. Depois de aceitar ou recusar, o jogo continua devolvendo o último estado da invocação em vez de limpá-lo, então o ícone descrevia algo que tinha deixado de existir minutos antes. Agora ele verifica se realmente há uma invocação em aberto antes de mostrar qualquer coisa.",
+    ["wn_333_summon_roster"] = "Quadros de grupo e de raide: ao mudar a composição, um ícone de invocação podia ficar em um quadro que já pertencia a outro jogador. O estado é relido a cada mudança de composição e após cada troca de zona, e é atualizado junto com o resto do quadro em vez de apenas quando o jogo anuncia uma mudança.",
+    ["wn_333_defensives_party"] = "Quadros de grupo: as recargas defensivas ativas em cada membro agora são exibidas. Isso só existia nos quadros de raide, e lá era um único ícone, sem duração e sem indicar do que se tratava.",
+    ["wn_333_defensives_categories"] = "Quadros de grupo e de raide: as defensivas são divididas em externas (conjuradas neste jogador — Casca de Ferro, Casulo Vital, Supressão da Dor), de raide (Grito de Reunião, Escuridão, Zona Antimagia) e pessoais (Escudo Divino, Bloco de Gelo, Pele de Árvore), cada uma com sua própria opção. Cinquenta magias, ordenadas para que as externas venham primeiro, com o tempo restante e uma borda colorida por categoria.",
+    ["wn_333_defensives_defaults"] = "Quadros de grupo e de raide: por padrão apenas as externas são exibidas. Uma defensiva de raide acende todos os quadros ao mesmo tempo — justamente quando estão menos legíveis — e as pessoais são constantes. Ambas podem ser ativadas.",
+    ["wn_333_defensives_size"] = "Quadros de raide: o controle deslizante do tamanho dos ícones defensivos só tinha efeito após recarregar. Agora se aplica enquanto você o arrasta.",
+    ["wn_333_hots_drift"] = "Quadros de grupo e de raide: os dois conjuntos de quadros discordavam sobre quais curas ao longo do tempo mostrar. Bênção do Verão, Totem de Aguaceiro e Sopro Envolvente apareciam nos quadros de grupo mas não nos de raide — o mesmo bônus, no mesmo jogador, visível em um e não no outro. Agora há uma única lista, cobrindo as seis classes curandeiras.",
+    ["wn_333_dispel_border"] = "Quadros de grupo e de raide: a espessura da borda do destaque de dissipação agora é ajustável, de 1 a 6. Ela cresce para fora, então uma borda mais grossa nunca invade a barra de vida, e o valor padrão aparece exatamente como antes.",
+    ["wn_333_diag_display"] = "Diagnóstico: os relatórios agora incluem sua resolução, modo de exibição e escala da interface — e sinalizam o caso em que a escala foi definida por algo que não as opções do jogo. Acima de 1200 pixels de altura o cliente não reduz a escala o suficiente sozinho, de modo que configurações de alta resolução acabam redimensionadas à mão ou por outro complemento, e isso era invisível em um relatório.",
+    ["wn_333_diag_scalechange"] = "Diagnóstico: uma mudança de escala ou de resolução durante a sessão é registrada com seus valores antes e depois, para que um redimensionamento apareça ao lado dos erros que ele pode ter causado. Esse redimensionamento é reaplicado após cada tela de carregamento, que é justamente quando ele quebra coisas.",
+    ["wn_333_diag_perf"] = "Diagnóstico: os relatórios agora trazem a taxa de quadros (atual, além do mínimo, da média e do máximo da sessão) e a latência, e cada erro capturado registra a taxa de quadros no momento em que ocorreu. Um erro que só aparece em um cliente travando é um problema de sincronia e não um recurso quebrado, e nada em um relatório permitia distinguir os dois.",
+    ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
 
     -- =====================
     -- QOL: Companion Status (lembrete de mascote)

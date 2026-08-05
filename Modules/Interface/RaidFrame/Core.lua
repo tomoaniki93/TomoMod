@@ -165,58 +165,6 @@ local function FormatHealth(cur, max, fmt)
 end
 
 -- =====================================
--- DEFENSIVE CD SPELLS (tracked on raid frames)
--- =====================================
-local DEFENSIVE_SPELLS = {
-    -- Death Knight
-    [48707]  = true,  -- Anti-Magic Shell
-    [48792]  = true,  -- Icebound Fortitude
-    [49028]  = true,  -- Dancing Rune Weapon
-    -- Demon Hunter
-    [187827] = true,  -- Metamorphosis (Vengeance)
-    [196555] = true,  -- Netherwalk
-    -- Druid
-    [22812]  = true,  -- Barkskin
-    [61336]  = true,  -- Survival Instincts
-    [102342] = true,  -- Ironbark
-    -- Evoker
-    [363916] = true,  -- Obsidian Scales
-    [374348] = true,  -- Renewing Blaze
-    -- Hunter
-    [186265] = true,  -- Aspect of the Turtle
-    -- Mage
-    [45438]  = true,  -- Ice Block
-    -- Monk
-    [115176] = true,  -- Zen Meditation
-    [116849] = true,  -- Life Cocoon
-    [122278] = true,  -- Dampen Harm
-    -- Paladin
-    [498]    = true,  -- Divine Protection
-    [642]    = true,  -- Divine Shield
-    [1022]   = true,  -- Blessing of Protection
-    [6940]   = true,  -- Blessing of Sacrifice
-    [31850]  = true,  -- Ardent Defender
-    [86659]  = true,  -- Guardian of Ancient Kings
-    -- Priest
-    [47585]  = true,  -- Dispersion
-    [33206]  = true,  -- Pain Suppression
-    [47788]  = true,  -- Guardian Spirit
-    -- Rogue
-    [5277]   = true,  -- Evasion
-    [31224]  = true,  -- Cloak of Shadows
-    -- Shaman
-    [108271] = true,  -- Astral Shift
-    [325174] = true,  -- Spirit Link Totem (buff)
-    -- Warlock
-    [104773] = true,  -- Unending Resolve
-    -- Warrior
-    [12975]  = true,  -- Last Stand
-    [871]    = true,  -- Shield Wall
-    [184364] = true,  -- Enraged Regeneration
-    [97462]  = true,  -- Rallying Cry
-}
-
--- =====================================
 -- CREATE A SINGLE RAID FRAME
 -- =====================================
 function RF.CreateFrame(unit)
@@ -420,34 +368,25 @@ function RF.CreateFrame(unit)
     -- ---- DISPEL HIGHLIGHT ----
     if db.showDispel then
         local dispel = CreateFrame("Frame", nil, content, "BackdropTemplate")
-        dispel:SetPoint("TOPLEFT", -1, 1)
-        dispel:SetPoint("BOTTOMRIGHT", 1, -1)
-        dispel:SetBackdrop({
-            edgeFile = "Interface\\Buttons\\WHITE8X8",
-            edgeSize = 2,
-        })
-        dispel:SetBackdropBorderColor(0, 0, 0, 0)
         dispel:SetFrameLevel(content:GetFrameLevel() + 5)
         dispel:EnableMouse(false)
         dispel:Hide()
         f.dispelHighlight = dispel
+        RF.ApplyDispelBorderSize(f)
     end
 
-    -- ---- DEFENSIVE BUFF ICON ----
+    -- ---- DEFENSIVE CD CONTAINER ----
     if db.showDefensives then
-        local defIcon = CreateFrame("Frame", nil, content, "BackdropTemplate")
-        local dSize = db.defensiveIconSize or 14
-        defIcon:SetSize(dSize, dSize)
-        defIcon:SetPoint("TOPRIGHT", content, "TOPRIGHT", -1, -1)
-        defIcon:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
-        defIcon:SetBackdropBorderColor(0.1, 0.8, 0.1, 1)
-        local defTex = defIcon:CreateTexture(nil, "ARTWORK")
-        defTex:SetPoint("TOPLEFT", 1, -1)
-        defTex:SetPoint("BOTTOMRIGHT", -1, 1)
-        defTex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        defIcon.texture = defTex
-        defIcon:Hide()
-        f.defensiveIcon = defIcon
+        f.defensiveContainer = TomoMod_DefensiveTrack and TomoMod_DefensiveTrack.Create(content, {
+            size     = db.defensiveIconSize or 14,
+            count    = db.maxDefensives or 2,
+            point    = "TOPRIGHT",
+            relPoint = "TOPRIGHT",
+            x        = -1,
+            y        = -1,
+            grow     = "LEFT",
+            font     = db.font or ADDON_FONT,
+        })
     end
 
     -- ---- AURA CONTAINER (debuffs) ----
@@ -752,33 +691,49 @@ end
 
 -- =====================================
 -- UPDATE: SUMMON INDICATOR
+-- All state handling lives in Interface/Shared/GroupSummon.lua so party and
+-- raid can no longer drift apart. Notably it gates on HasIncomingSummon(),
+-- without which IncomingSummonStatus keeps reporting Accepted / Declined for
+-- a summon the server has already closed — the icon then stayed up until the
+-- player reloaded.
 -- =====================================
+function RF.RefreshSummonAll()
+    for _, f in pairs(RF.frames) do
+        if f then RF.UpdateSummon(f) end
+    end
+end
+
 function RF.UpdateSummon(f)
     if not f or not f.summonIndicator then return end
-    if not f.unit or not UnitExists(f.unit) then f.summonIndicator:Hide(); return end
-    if not C_IncomingSummon then f.summonIndicator:Hide(); return end
 
-    local none     = Enum.SummonStatus and Enum.SummonStatus.None     or 0
-    local pending  = Enum.SummonStatus and Enum.SummonStatus.Pending  or 1
-    local accepted = Enum.SummonStatus and Enum.SummonStatus.Accepted or 2
-    local declined = Enum.SummonStatus and Enum.SummonStatus.Declined or 3
+    local GS = TomoMod_GroupSummon
+    if not GS then f.summonIndicator:Hide(); return end
 
-    local status = C_IncomingSummon.IncomingSummonStatus(f.unit)
-    if status and status ~= none then
-        if status == pending then
-            f.summonIndicator.texture:SetAtlas("RaidFrame-Icon-SummonPending")
-        elseif status == accepted then
-            f.summonIndicator.texture:SetAtlas("RaidFrame-Icon-SummonAccepted")
-        elseif status == declined then
-            f.summonIndicator.texture:SetAtlas("RaidFrame-Icon-SummonDeclined")
-        else
-            f.summonIndicator:Hide()
-            return
-        end
-        f.summonIndicator:Show()
-    else
-        f.summonIndicator:Hide()
-    end
+    GS.Apply(f.summonIndicator, f.unit, RF.RefreshSummonAll)
+end
+
+-- =====================================
+-- DISPEL HIGHLIGHT BORDER SIZE
+-- The border grows outwards from the frame edge, so a thicker cadre never
+-- eats into the health bar. At the default of 2 the geometry is identical to
+-- what shipped before.
+-- =====================================
+function RF.ApplyDispelBorderSize(f)
+    if not f or not f.dispelHighlight then return end
+
+    local db = TomoModDB and TomoModDB.raidFrames
+    local size = (db and db.dispelBorderSize) or 2
+    if size < 1 then size = 1 end
+
+    local inset = size - 1
+    f.dispelHighlight:ClearAllPoints()
+    f.dispelHighlight:SetPoint("TOPLEFT", -inset, inset)
+    f.dispelHighlight:SetPoint("BOTTOMRIGHT", inset, -inset)
+    f.dispelHighlight:SetBackdrop({
+        edgeFile = "Interface\\Buttons\\WHITE8X8",
+        edgeSize = size,
+    })
+    f.dispelHighlight:SetBackdropBorderColor(0, 0, 0, 0)
 end
 
 -- =====================================
@@ -823,29 +778,25 @@ end
 -- =====================================
 -- UPDATE: DEFENSIVE BUFF ICON
 -- =====================================
+-- Module-scope tables: rebuilt in place, never reallocated per update.
+local RF_DEF_WANT = { external = true, raidwide = false, personal = false }
+local RF_DEF_RESULTS = {}
+
 function RF.UpdateDefensive(f)
-    if not f or not f.defensiveIcon then return end
+    if not f or not f.defensiveContainer then return end
 
     local db = TomoModDB and TomoModDB.raidFrames
-    if not db or not db.showDefensives then f.defensiveIcon:Hide(); return end
-    if not UnitExists(f.unit) then f.defensiveIcon:Hide(); return end
+    local DT = TomoMod_DefensiveTrack
+    if not DT then return end
 
-    if C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
-        local idx = 1
-        while idx <= 40 do
-            local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, f.unit, idx, "HELPFUL")
-            if not ok or not aura then break end
-            local sid = aura.spellId
-            if sid and not issecretvalue(sid) and DEFENSIVE_SPELLS[sid] then
-                f.defensiveIcon.texture:SetTexture(aura.icon)
-                f.defensiveIcon:Show()
-                return
-            end
-            idx = idx + 1
-        end
-    end
+    if not db or not db.showDefensives then DT.Clear(f.defensiveContainer); return end
+    if not f.unit or not UnitExists(f.unit) then DT.Clear(f.defensiveContainer); return end
 
-    f.defensiveIcon:Hide()
+    RF_DEF_WANT.external = db.defensiveShowExternals ~= false
+    RF_DEF_WANT.raidwide = db.defensiveShowRaidWide == true
+    RF_DEF_WANT.personal = db.defensiveShowPersonals == true
+
+    DT.Update(f.defensiveContainer, f.unit, RF_DEF_WANT, db.maxDefensives or 2, RF_DEF_RESULTS)
 end
 
 -- =====================================
@@ -862,6 +813,7 @@ function RF.UpdateFrame(f)
     RF.UpdateRaidMarker(f)
     RF.UpdateDispel(f)
     RF.UpdateDefensive(f)
+    RF.UpdateSummon(f)
     if TomoMod_RaidAuras then TomoMod_RaidAuras.UpdateUnit(f) end
 end
 
@@ -1507,12 +1459,13 @@ local function OnEvent(self, event, arg1, ...)
         RF.FinishReadyCheck()
 
     elseif event == "INCOMING_SUMMON_CHANGED" then
-        for _, f in pairs(RF.frames) do
-            if f then RF.UpdateSummon(f) end
-        end
+        RF.RefreshSummonAll()
 
     elseif event == "GROUP_ROSTER_UPDATE" then
         RF.RefreshGroup()
+        -- A roster shift moves a different player onto a token: re-read the
+        -- summon state instead of leaving the previous occupant's icon up.
+        RF.RefreshSummonAll()
 
     elseif event == "PLAYER_ROLES_ASSIGNED" then
         for _, f in pairs(RF.frames) do
@@ -1527,6 +1480,7 @@ local function OnEvent(self, event, arg1, ...)
     elseif event == "PLAYER_ENTERING_WORLD" then
         C_Timer.After(0.5, function()
             RF.RefreshGroup()
+            RF.RefreshSummonAll()
             RF.HideBlizzardFrames()
         end)
 
@@ -1623,6 +1577,10 @@ function RF.ApplySettings()
             if f.readyCheck then f.readyCheck:SetSize(rcSize, rcSize) end
             local sSize = db.summonSize or 18
             if f.summonIndicator then f.summonIndicator:SetSize(sSize, sSize) end
+            RF.ApplyDispelBorderSize(f)
+            if f.defensiveContainer and TomoMod_DefensiveTrack then
+                TomoMod_DefensiveTrack.Resize(f.defensiveContainer, db.defensiveIconSize or 14, "LEFT")
+            end
 
             if f:IsShown() then
                 RF.UpdateFrame(f)
