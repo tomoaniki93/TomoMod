@@ -1,6 +1,6 @@
 ## ####################################
 
-## CHANGELOG 3.3.3 — Party And Raid Stop Keeping Two Copies Of The Same Code, The Summon Icon Stops Waiting For A Reload, Defensive Cooldowns Arrive On Party Frames With Categories You Can Filter, And A Diagnostics Report Finally Says What Resolution And Scale It Was Written At
+## CHANGELOG 3.3.3 — Party And Raid Stop Keeping Two Copies Of The Same Code, The Summon Icon Stops Waiting For A Reload, Defensive Cooldowns Arrive On Party Frames With Categories You Can Filter, A Diagnostics Report Finally Says What Resolution And Scale It Was Written At, And The Stance Bar Stops Putting Ten Empty Squares On Screen
 
 #### Group Frames — The Summon Icon Was Staying Up Until `/reload`
 
@@ -29,6 +29,11 @@
 - **New** — The dispel highlight's border thickness is now a slider, 1 to 6, on both panels. At the default of 2 the geometry is identical to what shipped before.
 - **Change** — The border grows outwards from the frame edge instead of inwards, so a thicker one never eats into the health bar. It is applied live and on every settings pass, not only at frame creation.
 
+#### Action Bars — The Stance Bar Was Showing Ten Empty Squares
+
+- **Fix** — With "show empty button slots" off, the stance bar could still put all ten of its buttons on screen. The pass that reveals empty slots while a spell sits on the cursor ran over every bar, including pet and stance — whose buttons are not action slots at all. It looked up their action id, found none, fell through to `0`, and `HasAction(0)` is false, so all ten were judged empty and shown. The guard the "show empty buttons" pass already carried for those two bars now applies to the reveal as well.
+- **Fix** — The return path was the worse half: re-hiding the slots delegates to that same guarded pass, which skips pet and stance, so nothing ever put them back. They stayed on screen until the next stance change, at which point Blizzard's own per-button update hid the ones without a form — which is why the bar looked like it fixed itself the moment you switched stance, and only then. Both bars are excluded from the reveal outright now: a stance button has no slot to drop a spell into, and the pet bar has Blizzard's own `PET_BAR_SHOWGRID` handling on the buttons themselves.
+
 #### Diagnostics — A Report From An 8K Client Now Says So
 
 - **New** — Reports carry a Display block: physical resolution, UI units, display mode, render scale, `UIParent`'s scale and effective scale, the `uiScale` CVar, and the pixel-perfect scale for that resolution. Above 1200 vertical pixels the client refuses to take `uiScale` below 0.64, so high-resolution players rescale `UIParent` themselves or through another addon — and that rescale is reapplied after every loading screen, leaving anything positioned before it lands holding coordinates computed under the previous scale.
@@ -36,6 +41,10 @@
 - **New** — The report flags a `UIParent` scale that does not match the CVar. That mismatch means something set the scale directly — a macro, a rescaling addon, or one of our own modules — which is worth knowing before reading anything else in the report as a positioning bug.
 - **New** — A Performance block: current framerate, session minimum / average / maximum sampled every five seconds, and home and world latency. Every captured error also records the framerate at the moment it fired. An error that only ever appears on a stuttering client is an ordering race, not a logic bug, and nothing in a report used to distinguish the two.
 - **Internal** — Display CVars have been renamed across expansions and `GetCVar` returns nil for a name the client does not know, so each one is probed through a list of candidates rather than assumed. `UI_SCALE_CHANGED` and `DISPLAY_SIZE_CHANGED` are registered through `C_EventUtils.IsEventValid` for the same reason.
+- **Fix** — The "`UIParent` scale does not match the CVar" warning fired on virtually every normal setup. With `useUiScale` off the CVar is inactive and the client falls back to the resolution's own default, floored at 0.64, so comparing `UIParent` against a value nothing is reading reported an override that did not exist. The report now derives what the scale *should* be for the current configuration, prints it as its own line, and flags only a genuine divergence from it.
+- **Fix** — The client applies its own scale during login, and that was landing in every report as a mid-session rescale. Display capture stays silent for the first four seconds now and then takes a single reading; if the settled scale is not where the client would have put it, that one entry is the one worth correlating against the errors around it.
+- **Change** — A display mode that cannot be interpreted is printed alongside the raw probe: every `gx*` CVar the client actually answered. Those names move between expansions, so a report that says `?` and nothing else costs a round trip to diagnose, and guessing a second name blind is worse than reporting what was asked. `gxWindowedMode` is accepted as an alternative to `gxWindow`, and a maximized window with no windowed flag is named rather than falling through to `?`.
+- **Fix** — The loaded-addon list read `vv1.2.3` for any addon whose TOC version already begins with a `v`, and an addon with no version at all would have raised while the list was being built.
 
 #### Internal
 

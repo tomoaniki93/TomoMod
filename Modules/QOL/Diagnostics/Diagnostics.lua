@@ -1447,6 +1447,8 @@ end
 
 local displaySnapshot = {}
 local displayCaptured = false
+local displaySettled = false
+local DISPLAY_SETTLE_DELAY = 4
 
 -- Some display CVars have been renamed across expansions; GetCVar returns nil
 -- for an unknown name, so probe rather than assume.
@@ -1460,13 +1462,30 @@ local function FirstCVar(...)
     return nil
 end
 
+local DISPLAY_MODE_CVARS = {
+    "gxWindow", "gxMaximize", "gxWindowedMode", "gxFullscreenMode",
+    "gxDisplayMode", "gxWindowedResolution", "gxFullscreenResolution",
+}
+
+-- Returns the interpreted mode plus a raw probe string. The probe is what
+-- makes the next report self-diagnosing when the interpretation fails: CVar
+-- names move between expansions and guessing twice is worse than reporting
+-- what the client actually answered.
 local function DescribeDisplayMode()
-    local windowed = FirstCVar("gxWindow")
+    local seen = {}
+    for _, name in ipairs(DISPLAY_MODE_CVARS) do
+        local value = FirstCVar(name)
+        if value ~= nil then seen[#seen + 1] = name .. "=" .. value end
+    end
+    local probe = (#seen > 0) and table.concat(seen, " ") or "none resolved"
+
+    local windowed = FirstCVar("gxWindow", "gxWindowedMode")
     local maximize = FirstCVar("gxMaximize")
-    if windowed == "0" then return "fullscreen" end
-    if windowed == "1" and maximize == "1" then return "windowed fullscreen" end
-    if windowed == "1" then return "windowed" end
-    return "?"
+    if windowed == "0" then return "fullscreen", probe end
+    if windowed == "1" and maximize == "1" then return "windowed fullscreen", probe end
+    if windowed == "1" then return "windowed", probe end
+    if maximize == "1" then return "maximized (windowed flag unavailable)", probe end
+    return "?", probe
 end
 
 local function ReadDisplayState()
@@ -1488,12 +1507,26 @@ local function ReadDisplayState()
     -- 0.64 the client refuses it, which is exactly the high-resolution case.
     local pixelPerfect = (ph and ph > 0) and (768 / ph) or nil
 
-    -- UIParent no longer matching the CVar means something set the scale
-    -- directly: a macro, a rescaling addon, or one of our own modules.
-    local overridden = false
-    if uiScaleCVar then
-        overridden = math.abs(parentScale - uiScaleCVar) > 0.001
+    -- What UIParent should be sitting at with no outside interference.
+    -- When useUiScale is off the CVar is inactive and the client falls back to
+    -- the resolution default, floored at 0.64 -- comparing against the CVar in
+    -- that state flagged an override on every normal setup.
+    local expected
+    if useUiScale == "1" and uiScaleCVar then
+        expected = uiScaleCVar
+    elseif pixelPerfect then
+        expected = pixelPerfect
     end
+    if expected and expected < 0.64 then expected = 0.64 end
+
+    -- A divergence here means the scale was set directly: a macro, a rescaling
+    -- addon, or one of our own modules.
+    local overridden = false
+    if expected then
+        overridden = math.abs(parentScale - expected) > 0.001
+    end
+
+    local mode, modeProbe = DescribeDisplayMode()
 
     return {
         physicalWidth  = pw,
@@ -1507,7 +1540,9 @@ local function ReadDisplayState()
         pixelPerfect   = pixelPerfect,
         scaleOverridden = overridden,
         scaleBelowFloor = (pixelPerfect ~= nil) and (pixelPerfect < 0.64) or false,
-        displayMode    = DescribeDisplayMode(),
+        displayMode    = mode,
+        displayModeProbe = modeProbe,
+        expectedScale  = expected,
         renderScale    = FirstCVar("RenderScale", "graphicsRenderScale", "renderScale"),
     }
 end
@@ -1527,6 +1562,11 @@ local function CaptureDisplay(reason)
         displayCaptured = true
         return
     end
+
+    -- Still inside the post-login settling window: keep the snapshot current
+    -- but stay silent. The client's own initial scale application is not a
+    -- rescale worth reporting.
+    if not displaySettled then return end
 
     -- Only log an entry when something actually moved.
     local scaleMoved = math.abs((current.parentScale or 1) - (previous.parentScale or 1)) > 0.0001
@@ -1550,6 +1590,23 @@ local function CaptureDisplay(reason)
     end
 
     CaptureEntry(KIND_DEBUG, table.concat(parts))
+end
+
+-- Once the client has settled, report the scale only if it ended up somewhere
+-- the client would not have put it on its own. That is the signal worth
+-- correlating against errors; everything else is noise.
+local function MarkDisplaySettled()
+    displaySettled = true
+    displaySnapshot = ReadDisplayState()
+
+    local d = displaySnapshot
+    if not d.scaleOverridden then return end
+
+    CaptureEntry(KIND_DEBUG, string.format(
+        "[Display] UIParent scale settled at %s, expected %s for this configuration "
+        .. "(uiScale=%s useUiScale=%s) — set by a macro or another addon",
+        FormatScale(d.parentScale), FormatScale(d.expectedScale),
+        FormatScale(d.cvarUiScale), SafeToString(d.cvarUseUiScale)))
 end
 
 -- =====================================================================
@@ -1630,6 +1687,9 @@ function D.BuildReadableReport()
     lines[#lines + 1] = "Physical: " .. SafeToString(d.physicalWidth) .. "x" .. SafeToString(d.physicalHeight)
     lines[#lines + 1] = "UI units: " .. string.format("%.0fx%.0f", d.uiWidth or 0, d.uiHeight or 0)
     lines[#lines + 1] = "Display mode: " .. SafeToString(d.displayMode)
+    if d.displayMode == "?" then
+        lines[#lines + 1] = "Display mode probe: " .. SafeToString(d.displayModeProbe)
+    end
     if d.renderScale then
         lines[#lines + 1] = "Render scale: " .. SafeToString(d.renderScale)
     end
@@ -1639,8 +1699,10 @@ function D.BuildReadableReport()
         .. " (useUiScale=" .. SafeToString(d.cvarUseUiScale) .. ")"
     lines[#lines + 1] = "Pixel-perfect scale: " .. FormatScale(d.pixelPerfect)
         .. (d.scaleBelowFloor and "  [below the 0.64 client floor]" or "")
+    lines[#lines + 1] = "Expected scale: " .. FormatScale(d.expectedScale)
     if d.scaleOverridden then
-        lines[#lines + 1] = "!! UIParent scale does not match the CVar — set by a macro or another addon"
+        lines[#lines + 1] = "!! UIParent scale differs from the expected " .. FormatScale(d.expectedScale)
+            .. " — set by a macro or another addon"
     end
     lines[#lines + 1] = ""
 
@@ -1688,7 +1750,8 @@ function D.BuildReadableReport()
     if envSnapshot.addons then
         lines[#lines + 1] = "--- Loaded Addons ---"
         for _, a in ipairs(envSnapshot.addons) do
-            lines[#lines + 1] = "  " .. a.name .. " v" .. a.version
+            local ver = tostring(a.version or "?"):gsub("^[vV]", "")
+            lines[#lines + 1] = "  " .. a.name .. " v" .. ver
         end
     end
 
@@ -1725,12 +1788,14 @@ function D.BuildTrackerReport()
     lines[#lines + 1] = "physical=" .. SafeToString(d.physicalWidth) .. "x" .. SafeToString(d.physicalHeight)
     lines[#lines + 1] = string.format("ui_units=%.0fx%.0f", d.uiWidth or 0, d.uiHeight or 0)
     lines[#lines + 1] = "display_mode=" .. SafeToString(d.displayMode)
+    lines[#lines + 1] = "display_mode_probe=" .. SafeToString(d.displayModeProbe)
     lines[#lines + 1] = "render_scale=" .. SafeToString(d.renderScale)
     lines[#lines + 1] = "uiparent_scale=" .. FormatScale(d.parentScale)
     lines[#lines + 1] = "uiparent_effective_scale=" .. FormatScale(d.parentEffScale)
     lines[#lines + 1] = "cvar_uiscale=" .. FormatScale(d.cvarUiScale)
     lines[#lines + 1] = "cvar_useuiscale=" .. SafeToString(d.cvarUseUiScale)
     lines[#lines + 1] = "pixel_perfect_scale=" .. FormatScale(d.pixelPerfect)
+    lines[#lines + 1] = "expected_scale=" .. FormatScale(d.expectedScale)
     lines[#lines + 1] = "scale_below_floor=" .. SafeToString(d.scaleBelowFloor)
     lines[#lines + 1] = "scale_overridden=" .. SafeToString(d.scaleOverridden)
     lines[#lines + 1] = ""
@@ -1913,6 +1978,11 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
         BuildExclusionSet()
         CaptureEnvironment()
         CaptureDisplay("login")
+        if C_Timer and C_Timer.After then
+            C_Timer.After(DISPLAY_SETTLE_DELAY, MarkDisplaySettled)
+        else
+            MarkDisplaySettled()
+        end
         StartPerfSampling()
         InstallErrorHandler()
         if db.suppressPopups then

@@ -732,7 +732,14 @@ local function SetEmptyGridRevealed(revealed)
     for _, def in ipairs(AB.BAR_DEFS) do
         local id = def.id
         local barDB = GetBarDB(id)
-        if barDB and not barDB.showEmptyButtons then
+        -- [FIX] Même raison qu'en haut de UpdateEmptyButtons : sur pet/stance le
+        -- fallback `... or 0` rend HasAction(0) toujours faux, donc la révélation
+        -- affichait les 10 boutons. Pire, le retour passe par UpdateEmptyButtons
+        -- qui sort aussitôt sur noAction : plus rien ne les remasquait, et ils
+        -- restaient à l'écran jusqu'au prochain UPDATE_SHAPESHIFT_FORM. Ces barres
+        -- n'ont de toute façon pas de slot où déposer un sort, et Blizzard gère
+        -- leur propre grille via PET_BAR_SHOWGRID sur les boutons eux-mêmes.
+        if barDB and not barDB.showEmptyButtons and not def.noAction then
             if revealed then
                 local buttons = barButtons[id]
                 if buttons then
