@@ -73,18 +73,60 @@ end
 -- can self-register into the search index (Config/GlobalSearch.lua).
 -- Every hook is optional: without GlobalSearch.lua nothing changes.
 -- =====================================================================
-W._buildCtx = { cat = nil, catLabel = nil, tab = nil, tabLabel = nil, section = nil }
+-- `tabPath` is the ordered list of { key, label } from the outermost tab
+-- bar down to the innermost. Nested tab bars (UnitFrames, PartyFrames,
+-- CooldownResource, ...) mean a widget's "tab" is a path, not one key:
+-- ctx.tab alone only ever holds the INNERMOST one, which is not enough to
+-- navigate back to it.
+W._buildCtx = { cat = nil, catLabel = nil, tab = nil, tabLabel = nil, section = nil, tabPath = {} }
+
+local function ClearFrom(list, from)
+    for i = #list, from, -1 do list[i] = nil end
+end
 
 function W.SetBuildContext(catKey, catLabel)
     local ctx = W._buildCtx
     ctx.cat, ctx.catLabel = catKey, catLabel
     ctx.tab, ctx.tabLabel, ctx.section = nil, nil, nil
+    ctx.tabPath = ctx.tabPath or {}
+    ClearFrom(ctx.tabPath, 1)
 end
 
-function W._SetBuildTab(tabKey, tabLabel)
-    local ctx = W._buildCtx
+-- Writes one level of the path and drops everything below it.
+function W._SetBuildTabAt(level, tabKey, tabLabel)
+    local ctx  = W._buildCtx
+    local path = ctx.tabPath
+    ClearFrom(path, level)
+    path[level] = { key = tabKey, label = tabLabel }
     ctx.tab, ctx.tabLabel = tabKey, tabLabel
     ctx.section = nil
+end
+
+-- Back-compat entry point (ghost indexer and any external caller): the
+-- caller is always describing the outermost level.
+function W._SetBuildTab(tabKey, tabLabel)
+    W._SetBuildTabAt(1, tabKey, tabLabel)
+end
+
+-- Snapshot of the current path as { key, ... }, for storing on an entry.
+function W.GetBuildTabPath()
+    local path, out = W._buildCtx.tabPath, {}
+    for i = 1, #path do out[i] = path[i].key end
+    return out
+end
+
+-- Snapshot/restore of the raw path, used by CreateTabPanel to re-establish
+-- its ancestors before building a tab that is opened long after the page.
+function W._CaptureTabPath()
+    local path, out = W._buildCtx.tabPath, {}
+    for i = 1, #path do out[i] = path[i] end
+    return out
+end
+
+function W._RestoreTabPath(prefix)
+    local path = W._buildCtx.tabPath
+    ClearFrom(path, 1)
+    for i = 1, #prefix do path[i] = prefix[i] end
 end
 
 function W._SetBuildSection(title)
@@ -108,6 +150,229 @@ end
 
 local function SoftColor(r, g, b, factor, alpha)
     return { r * factor, g * factor, b * factor, alpha or 1 }
+end
+
+-- =====================================================================
+-- ROLE TAGGING  [Lot A]
+-- Sections can declare which roles they matter to with a compact spec
+-- string: "T" tank, "H" healer, "D" damage — combinable ("TD", "THD").
+--
+-- Two visible effects:
+--   1. small role icons in the section/card header (always shown),
+--   2. an optional sidebar filter that DIMS sections belonging to other
+--      roles. Nothing is ever hidden, and untagged sections always stay
+--      at full opacity — so partial tagging is safe and a player never
+--      loses track of a setting.
+-- =====================================================================
+local ROLE_TEX = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Roles\\"
+
+-- Colours match the archetype cards in Config/Presets.lua on purpose.
+W.ROLE_ORDER = { "TANK", "HEALER", "DAMAGER" }
+W.ROLE_INFO  = {
+    TANK    = { letter = "T", icon = ROLE_TEX .. "TANK.tga",    color = { 0.28, 0.52, 0.92 }, lk = "role_tank"   },
+    HEALER  = { letter = "H", icon = ROLE_TEX .. "HEALER.tga",  color = { 0.36, 0.82, 0.42 }, lk = "role_healer" },
+    DAMAGER = { letter = "D", icon = ROLE_TEX .. "DAMAGER.tga", color = { 0.85, 0.32, 0.32 }, lk = "role_dps"    },
+}
+
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["role_tank"]              = "Tank",
+        ["role_healer"]            = "Healer",
+        ["role_dps"]               = "DPS",
+        ["role_badge_title"]       = "Useful for",
+        ["role_badge_hint"]        = "Use the role filter in the sidebar to bring these settings forward.",
+        ["cfg_rolefilter_all"]     = "All",
+        ["cfg_rolefilter_label"]   = "Role focus",
+        ["cfg_rolefilter_tip"]     = "Keep only the settings that matter to a %s at full brightness. Nothing is hidden — everything else is simply dimmed.",
+        ["cfg_rolefilter_tip_all"] = "Show every setting, with no role emphasis.",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["role_tank"]              = "Tank",
+        ["role_healer"]            = "Soigneur",
+        ["role_dps"]               = "DPS",
+        ["role_badge_title"]       = "Utile pour",
+        ["role_badge_hint"]        = "Utilise le filtre de rôle dans la barre latérale pour mettre ces réglages en avant.",
+        ["cfg_rolefilter_all"]     = "Tous",
+        ["cfg_rolefilter_label"]   = "Focus rôle",
+        ["cfg_rolefilter_tip"]     = "Ne garder en pleine lumière que les réglages utiles à un %s. Rien n'est masqué : le reste est simplement estompé.",
+        ["cfg_rolefilter_tip_all"] = "Afficher tous les réglages, sans mise en avant de rôle.",
+    })
+    TomoMod_RegisterLocale("deDE", {
+        ["role_tank"]              = "Tank",
+        ["role_healer"]            = "Heiler",
+        ["role_dps"]               = "DPS",
+        ["role_badge_title"]       = "Nützlich für",
+        ["role_badge_hint"]        = "Nutze den Rollenfilter in der Seitenleiste, um diese Einstellungen hervorzuheben.",
+        ["cfg_rolefilter_all"]     = "Alle",
+        ["cfg_rolefilter_label"]   = "Rollenfokus",
+        ["cfg_rolefilter_tip"]     = "Nur die für %s relevanten Einstellungen voll sichtbar lassen. Nichts wird ausgeblendet — der Rest wird lediglich abgedunkelt.",
+        ["cfg_rolefilter_tip_all"] = "Alle Einstellungen anzeigen, ohne Rollenhervorhebung.",
+    })
+    TomoMod_RegisterLocale("esES", {
+        ["role_tank"]              = "Tanque",
+        ["role_healer"]            = "Sanador",
+        ["role_dps"]               = "DPS",
+        ["role_badge_title"]       = "Útil para",
+        ["role_badge_hint"]        = "Usa el filtro de rol en la barra lateral para destacar estos ajustes.",
+        ["cfg_rolefilter_all"]     = "Todos",
+        ["cfg_rolefilter_label"]   = "Enfoque de rol",
+        ["cfg_rolefilter_tip"]     = "Mantener a plena luz solo los ajustes que importan a un %s. No se oculta nada: el resto simplemente se atenúa.",
+        ["cfg_rolefilter_tip_all"] = "Mostrar todos los ajustes, sin énfasis de rol.",
+    })
+    TomoMod_RegisterLocale("itIT", {
+        ["role_tank"]              = "Difensore",
+        ["role_healer"]            = "Guaritore",
+        ["role_dps"]               = "DPS",
+        ["role_badge_title"]       = "Utile per",
+        ["role_badge_hint"]        = "Usa il filtro dei ruoli nella barra laterale per mettere in evidenza queste impostazioni.",
+        ["cfg_rolefilter_all"]     = "Tutti",
+        ["cfg_rolefilter_label"]   = "Focus ruolo",
+        ["cfg_rolefilter_tip"]     = "Tenere in piena luce solo le impostazioni utili a un %s. Nulla viene nascosto: il resto è semplicemente attenuato.",
+        ["cfg_rolefilter_tip_all"] = "Mostrare tutte le impostazioni, senza enfasi sul ruolo.",
+    })
+    TomoMod_RegisterLocale("ptBR", {
+        ["role_tank"]              = "Tanque",
+        ["role_healer"]            = "Curandeiro",
+        ["role_dps"]               = "DPS",
+        ["role_badge_title"]       = "Útil para",
+        ["role_badge_hint"]        = "Use o filtro de função na barra lateral para destacar estes ajustes.",
+        ["cfg_rolefilter_all"]     = "Todos",
+        ["cfg_rolefilter_label"]   = "Foco de função",
+        ["cfg_rolefilter_tip"]     = "Manter em destaque apenas os ajustes que importam a um %s. Nada é ocultado: o resto é apenas esmaecido.",
+        ["cfg_rolefilter_tip_all"] = "Mostrar todos os ajustes, sem ênfase de função.",
+    })
+end
+
+-- The locale metatable returns the raw key for unknown keys, so it is
+-- not a usable nil-check: compare against the key itself.
+local function Loc(key, fallback)
+    local v = TomoMod_L and TomoMod_L[key]
+    if v and v ~= key then return v end
+    return fallback or key
+end
+W.Loc = Loc
+
+local LETTER_TO_ROLE = { T = "TANK", H = "HEALER", D = "DAMAGER" }
+
+-- "TD" -> { "TANK", "DAMAGER" }; nil / "" / garbage -> nil (untagged)
+local function ParseRoles(spec)
+    if type(spec) ~= "string" or spec == "" then return nil end
+    local out = {}
+    for i = 1, #spec do
+        local role = LETTER_TO_ROLE[string.upper(string.sub(spec, i, i))]
+        if role then
+            local seen = false
+            for j = 1, #out do
+                if out[j] == role then seen = true; break end
+            end
+            if not seen then out[#out + 1] = role end
+        end
+    end
+    if #out == 0 then return nil end
+    return out
+end
+W.ParseRoles = ParseRoles
+
+-- Registry of tagged sections. Only tagged sections land here, and each
+-- frame is registered once, so this stays small (tens of entries) even
+-- with GlobalSearch ghost-indexing every page.
+W._roleSections = {}
+W._roleFilter   = nil     -- nil = no filtering
+
+local ROLE_DIM_ALPHA = 0.28
+
+local function RegisterRoleSection(roles, frame, regions)
+    if not frame or frame._roleRegistered then return end
+    frame._roleRegistered = true
+    W._roleSections[#W._roleSections + 1] = { roles = roles, frame = frame, regions = regions }
+end
+
+local function RoleEntryMatches(entry, active)
+    if not active then return true end
+    if not entry.roles then return true end   -- untagged is always relevant
+    for i = 1, #entry.roles do
+        if entry.roles[i] == active then return true end
+    end
+    return false
+end
+
+-- Re-applies the current filter to every registered section. Called
+-- after a category or tab is built (panels are lazy) and on change.
+function W.ApplyRoleFilter()
+    local active = W._roleFilter
+    local list   = W._roleSections
+    for i = 1, #list do
+        local e = list[i]
+        local a = RoleEntryMatches(e, active) and 1 or ROLE_DIM_ALPHA
+        if e.frame and e.frame.SetAlpha then e.frame:SetAlpha(a) end
+        local regions = e.regions
+        if regions then
+            for j = 1, #regions do
+                local rg = regions[j]
+                if rg and rg.SetAlpha then rg:SetAlpha(a) end
+            end
+        end
+    end
+end
+
+function W.SetRoleFilter(role)
+    if role == "ALL" then role = nil end
+    if role ~= nil and not W.ROLE_INFO[role] then role = nil end
+    W._roleFilter = role
+    W.ApplyRoleFilter()
+end
+
+function W.GetRoleFilter()
+    return W._roleFilter
+end
+
+-- Hoisted: one closure for every badge instead of one per badge.
+local function OnRoleBadgeEnter(self)
+    if not GameTooltip then return end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(Loc("role_badge_title", "Utile pour"), 1, 1, 1)
+    local roles = self._roles
+    for i = 1, #roles do
+        local info = W.ROLE_INFO[roles[i]]
+        if info then
+            GameTooltip:AddLine(Loc(info.lk, roles[i]), info.color[1], info.color[2], info.color[3])
+        end
+    end
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddLine(Loc("role_badge_hint", ""), 0.55, 0.55, 0.62, true)
+    GameTooltip:Show()
+end
+
+local function OnRoleBadgeLeave()
+    if GameTooltip then GameTooltip:Hide() end
+end
+
+local ROLE_BADGE_SIZE = 13
+local ROLE_BADGE_GAP  = 3
+
+-- Builds the icon strip and anchors it TOPRIGHT of `anchor`.
+local function CreateRoleBadges(parent, roles, anchor, xOff, yOff)
+    local n = #roles
+    local holder = CreateFrame("Frame", nil, parent)
+    holder:SetSize(n * (ROLE_BADGE_SIZE + ROLE_BADGE_GAP) - ROLE_BADGE_GAP, ROLE_BADGE_SIZE)
+    holder:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", xOff, yOff)
+    holder:EnableMouse(true)
+    holder._roles = roles
+
+    for i = 1, n do
+        local info = W.ROLE_INFO[roles[i]]
+        if info then
+            local tex = holder:CreateTexture(nil, "OVERLAY")
+            tex:SetSize(ROLE_BADGE_SIZE, ROLE_BADGE_SIZE)
+            tex:SetPoint("LEFT", (i - 1) * (ROLE_BADGE_SIZE + ROLE_BADGE_GAP), 0)
+            tex:SetTexture(info.icon)
+            tex:SetVertexColor(info.color[1], info.color[2], info.color[3], 0.95)
+        end
+    end
+
+    holder:SetScript("OnEnter", OnRoleBadgeEnter)
+    holder:SetScript("OnLeave", OnRoleBadgeLeave)
+    return holder
 end
 
 -- =====================================================================
@@ -213,7 +478,7 @@ end
 -- =====================================================================
 -- SECTION HEADER  — bg strip + left accent bar + bold title
 -- =====================================================================
-function W.CreateSectionHeader(parent, text, yOffset)
+function W.CreateSectionHeader(parent, text, yOffset, roles)
     local STRIP_H = 28
     local r, g, b = Accent(parent)
 
@@ -241,6 +506,14 @@ function W.CreateSectionHeader(parent, text, yOffset)
     lbl:SetTextColor(r, g, b, 1)
     lbl:SetText(text)
 
+    -- [Lot A] Role tagging: the header regions are siblings on `parent`,
+    -- not children of a container, so they are dimmed as an explicit list.
+    local parsedRoles = ParseRoles(roles)
+    if parsedRoles then
+        local badges = CreateRoleBadges(parent, parsedRoles, strip, -6, -7)
+        RegisterRoleSection(parsedRoles, badges, { strip, bar, topLine, lbl })
+    end
+
     if W._SetBuildSection then W._SetBuildSection(text) end
     if W._RegisterSearchEntry then W._RegisterSearchEntry(text, lbl, "section") end
 
@@ -254,7 +527,7 @@ end
 --        W.CreateCheckbox(card.inner, ..., cy, ...)
 --        W.FinalizeCard(card, cy)
 -- =====================================================================
-function W.CreateCard(parent, title, yOffset)
+function W.CreateCard(parent, title, yOffset, roles)
     local r, g, b = Accent(parent)
     local card = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     card:SetPoint("TOPLEFT",  8,  yOffset)
@@ -323,6 +596,16 @@ function W.CreateCard(parent, title, yOffset)
     card.inner        = inner
     card.innerStartY  = innerStartY
     card._startOffset = yOffset
+
+    -- [Lot A] Role tagging. The card is a real frame, so dimming it
+    -- carries every option inside it — that is the whole point of
+    -- preferring cards over bare section headers for role-bound blocks.
+    local parsedRoles = ParseRoles(roles)
+    if parsedRoles then
+        card._roles = parsedRoles
+        CreateRoleBadges(card, parsedRoles, card, -8, titleLbl and -6 or -8)
+        RegisterRoleSection(parsedRoles, card, nil)
+    end
 
     return card, -4  -- -4 = first child y inside inner
 end
@@ -1496,6 +1779,12 @@ end
 -- TAB PANEL
 -- =====================================================================
 function W.CreateTabPanel(parent, tabs, initialTab)
+    -- A nested tab panel is always created from inside its parent's builder,
+    -- so at this exact moment the parent's key is already on the path: the
+    -- length of the path IS this panel's depth.
+    local ownerPath = W._CaptureTabPath()
+    local level     = #ownerPath + 1
+
     local r, g, b = Accent(parent)
     local wrapper = CreateFrame("Frame", nil, parent)
     wrapper:SetAllPoints()
@@ -1565,7 +1854,11 @@ function W.CreateTabPanel(parent, tabs, initialTab)
         if not tabPanels[key] then
             for _, tab in ipairs(tabs) do
                 if tab.key == key and tab.builder then
-                    if W._SetBuildTab then W._SetBuildTab(tab.key, tab.label) end
+                    -- Re-establish ancestors: this tab may be opened long
+                    -- after the page was built, when the live path has
+                    -- moved on to some other category.
+                    if W._RestoreTabPath then W._RestoreTabPath(ownerPath) end
+                    if W._SetBuildTabAt then W._SetBuildTabAt(level, tab.key, tab.label) end
                     local p = tab.builder(content)
                     if p then
                         if p:GetParent() ~= content then p:SetParent(content) end
@@ -1579,6 +1872,10 @@ function W.CreateTabPanel(parent, tabs, initialTab)
 
         if tabPanels[key] then tabPanels[key]:Show() end
         currentTab = key
+
+        -- [Lot A] Tab panels are built lazily, so sections tagged inside
+        -- this tab only enter the registry now.
+        if W.ApplyRoleFilter then W.ApplyRoleFilter() end
     end
 
     local tabsInRow1 = math.min(totalTabs, TABS_PER_ROW)
@@ -1644,6 +1941,16 @@ function W.CreateTabPanel(parent, tabs, initialTab)
 
     -- [fix] honor the requested initial tab (tab persistence); fall back
     -- to the first tab when absent or unknown.
+    -- A pending deep-link path wins: it names one tab per level, and this
+    -- panel only ever reads its own.
+    local pending = TomoMod_Config and TomoMod_Config._pendingTabPath
+    local wanted  = pending and pending[level]
+    if wanted then
+        for _, tab in ipairs(tabs) do
+            if tab.key == wanted then initialTab = wanted break end
+        end
+    end
+
     local startKey = tabs[1] and tabs[1].key
     if initialTab then
         for _, tab in ipairs(tabs) do

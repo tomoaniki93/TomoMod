@@ -2,7 +2,9 @@
 ## Title: |cff0cd29fTomo|rMod |cff2ed884Cooldown Studio|r
 ## Notes: Dedicated full-screen editor for TomoMod CooldownForge bars.
 ## Author: TomoAniki
-## Version: 1.0.0
+## Category: |cff0cd29fHUD|r
+## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
+## Version: 3.3.4
 ## LoadOnDemand: 1
 ## Dependencies: TomoMod
 

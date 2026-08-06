@@ -304,6 +304,11 @@ TomoMod_Defaults = {
         emoji = true,
         classColorMentions = true,
         chatHistory = true,
+        historyMaxLines = 128,       -- hard cap on stored lines (10-500)
+        historyMaxAge = 21600,       -- seconds; 0 = no age limit (6h default)
+        historySeparator = true,     -- print a session marker after the replay
+        historyDelay = 2,            -- seconds after login before replaying;
+                                     -- keeps addon load errors readable
         keywords = "%MYNAME%",
         showHistory = {
             WHISPER = true,
@@ -711,6 +716,10 @@ TomoMod_Defaults = {
         fontOutline = "OUTLINE",
         borderSize = 1,
         borderColor = { r = 0, g = 0, b = 0, a = 1 },
+
+        -- Aperçu du panneau de configuration : alimente les cadres d'aperçu
+        -- avec les vraies données quand l'unité existe (sinon, simulation).
+        previewLiveData = true,
 
         -- Per-unit settings
         player = {

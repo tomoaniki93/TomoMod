@@ -10,7 +10,13 @@
 -- =====================================================================
 
 local W = TomoMod_Widgets
-if not W then return end
+if not W then
+    -- Nothing can be built without the widget kit. Publish a marker global so
+    -- the config-panel launcher can report *why* the window never opened,
+    -- instead of a click that silently does nothing.
+    TomoMod_CDStudio = { loadError = "TomoMod_Widgets indisponible" }
+    return
+end
 local U = TomoMod_Utils
 
 local S = { state = { class = nil, barId = nil } }

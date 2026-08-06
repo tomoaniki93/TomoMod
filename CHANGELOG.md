@@ -1,5 +1,110 @@
 ## ####################################
 
+## CHANGELOG 3.3.4 — The Role Presets Stop Being The Same Configuration Under Three Names, Switching Preset Stops Leaving The Last One Behind, The Dashboard Says Which Preset You Are Actually Running, Every Setting Says Which Role It Is For, Three Role Guides Put Every Setting One Click Away, A Search Result Inside A Nested Tab Stops Landing On The Wrong Page, The Unit Frame Preview Stops Being A Mock-Up Of The Real Thing, Changing The Bar Texture Stops Needing A Reload, The Chat History Stops Being One Switch With Six Settings Nobody Could Reach, The Restored History Stops Burying Every Addon Load Message, Unticking The Chat History Actually Deletes It, The Cooldown Studio Button Says Why It Did Not Open Instead Of Doing Nothing, A Studio Left Unchecked In The Addon List Repairs Itself On The Click, The Release Zip Refuses To Ship A Sub-Addon Nowhere Anyone Can See It, And The Diagnostics Export Stops Fighting Itself Over One Clipboard
+
+#### Presets — Three Role Archetypes That Were The Same Configuration Under Three Names
+
+- **Change** — The Tank, Healer and DPS presets wrote three, four and three settings respectively. Everything else came from the shared base, so picking a role changed a nameplate width and a couple of toggles and left the rest of the interface identical — three archetypes that were one configuration wearing different names. Each now writes a coherent, role-specific setup across party and raid frames, nameplates, target auras, resources, cooldowns and castbars.
+- **New** — *Tank*: wider threat-coloured plates, unselected plates kept bright so the whole pull stays readable, bigger enemy buffs for enrages and shields, a thicker plate castbar for interrupt windows, numeric threat on the target, party interrupt and battle-res cooldowns, personal defensives on the frames, and a personal health bar warning at 40%. HoT tracking is dropped — a tank reading HoTs is a tank not reading the pull.
+- **New** — *Healer*: distinctly larger and more clickable party and raid frames, more and bigger HoT icons, a thicker dispel border, defensive and absorb tracking, heal prediction, health shown as a deficit rather than a percentage, stronger out-of-range fading, and a mana warning at 30%. Nameplates are dimmed and thinned out so they stop competing with the frames for the same attention.
+- **New** — *DPS*: taller resource bars with a low-resource threshold, proc glow with range checking, target and nameplate auras filtered down to your own casts so DoT tracking stays readable, enemy defensive buffs tracked, the GCD spark on, and raid frames compacted with HoTs off.
+- **Fix** — Switching from one archetype to another left the previous one's settings behind. A preset only ever wrote its own overrides, and any key it did not restate kept whatever the last preset put there — so tank → healer left you healing with tank-mode nameplates and 190px plates. The base is now the explicit reset floor: it carries a value for every key any archetype can touch, it is written first every time, and the archetype's overrides land on top of it. Applying a preset produces the same result regardless of what was applied before it, which is what "deterministic and idempotent" claimed to mean already.
+- **Change** — *Minimal* also switches off the per-frame trackers — HoTs, defensives, debuffs, heal prediction, target enemy buffs. Those are the expensive part of the group frames, and a preset that advertises a lighter footprint while leaving all of them running was not delivering one.
+- **Internal** — The invariant is written down at the top of `Config/Presets.lua` and holds for every delta: no path may appear in an archetype that does not also appear in BASE. It is the only thing standing between the preset engine and the residue bug above.
+
+#### Dashboard — Presets As Cards Instead Of Four Coloured Buttons
+
+- **Change** — "Configuration rapide" was a row of buttons carrying nothing but a name, in colours taken from a rotating list of four that had no relationship to the preset they landed on. Choosing between five configurations required knowing beforehand what each one did. They are cards now: role icon, the archetype's own colour, its tagline, and three bullet points of what it actually changes, with the full description on hover.
+- **New** — The card of the preset currently applied is marked *Active* and lit in its own colour; *Recommended* is marked as such while it is not the active one. Nothing on that panel used to say which preset — if any — was running.
+- **New** — Three localized highlights per archetype in all six languages, alongside rewritten descriptions that describe the configuration each preset now actually writes rather than the three-setting version it used to.
+- **Fix** — With the preset engine unavailable the panel used to fabricate a single "Complet" tile pointing at it anyway. It states that no preset could be loaded instead. The grid also re-lays itself out when the config window is resized, which the fixed four-column button row never did.
+
+#### Config — Every Setting Says Which Role It Is For
+
+- **New** — Settings sections can carry role badges — tank, healer, damage — drawn as small coloured icons in the section or card header, with a tooltip naming the roles. Tagged so far: HoTs, dispels, absorbs, heal prediction and resurrection on both party and raid frames; defensive cooldowns; interrupt and battle-res cooldowns; tank mode; nameplate castbars, auras and enemy buffs; the GCD spark; interrupt feedback; the personal health bar; and target threat text.
+- **New** — A role focus bar at the top of the sidebar — All / Tank / Healer / DPS. Choosing one keeps the settings that matter to that role at full brightness and dims the rest to 28%.
+- **Change** — It dims rather than hides, deliberately, and an untagged section always stays at full brightness. A filter that removes options teaches you that the settings window is lying about what exists; one that fades them lets you still find something whose location you already know, whatever focus is active. It also means the tagging can stay partial without ever hiding anything.
+- **New** — The chosen focus is saved with the rest of the window state and restored on reopen, and re-applied whenever a category or a tab is built for the first time — config pages are built on demand, so a section only enters the registry once you have visited it.
+- **Internal** — Role tags are a compact spec string on the existing constructors (`"T"`, `"H"`, `"D"`, combinable as `"TD"`), so tagging a section is a fourth argument on the `CreateCard` / `CreateSectionHeader` call and nothing else. Cards dim as one frame, which carries every option inside them; a bare section header dims its regions as an explicit list, because those are siblings on the page rather than children of a container.
+
+#### Roles — Three Guide Pages, With Every Setting One Click Away
+
+- **New** — A Roles category, carrying a guide page for tanking, healing and damage. Each page states what actually matters for that role and where it lives, rather than leaving a player to infer it from a settings tree organised by module.
+- **New** — Every point on a page carries a button that opens the panel holding that setting and highlights the section — not a description of where to look, the actual navigation. The page header also applies the role's preset and switches the sidebar's role focus, so the three lots that shipped this version meet on one page.
+- **Internal** — The guide pages resolve their targets against the live search index by localized section text, rather than rebuilding a category/tab/section key on their own side. A section registers under the tab path that actually produced it, and with nested tab bars the caller has no way to know that path.
+- **Internal** — `Config/Panels/Roles.lua` loads immediately before `ConfigUI.lua` and registers its own strings in all six languages, because `ConfigUI` reads `cat_roles` and the tab labels at load time, into a file-scope table.
+
+#### Config Search — A Result Inside A Nested Tab Landed On The Wrong Page
+
+- **Fix** — Searching for something that lives behind a panel's own second row of tabs — raid frame HoTs, resource bar colours, castbar unit tabs — opened the right category and then landed on its first tab. The index stored one tab key per entry, and that key was the *innermost* tab, which the category's outer tab bar could never match, so it fell through to the default.
+- **Change** — The build context now carries an ordered `tabPath`, one entry per nesting level. `CreateTabPanel` derives its own depth from the length of the path at the moment it is created, and re-establishes its ancestors before building a tab that is opened long after the page was — by then the live path has moved on to another category entirely.
+- **Fix** — A cached page is re-shown without being rebuilt, so no tab bar is created and a pending path would never be read. Deep-links drop the target category from the cache first, through a new `C.InvalidateCategory`, rather than the blanket `InvalidatePanels`.
+- **New** — `GS.JumpToSection(cat, sectionLabel)` as a public entry point, ghost-indexing first so it works on pages the player has never opened, and falling back to opening the category when the section cannot be resolved instead of silently doing nothing.
+
+#### Unit Frames — The Settings Preview Was A Mock-Up Of The Real Thing
+
+- **Change** — The preview drew its own fake bars. Same numbers out of the database, entirely separate code — which is a guarantee of divergence, not of accuracy, and it had diverged. The frame construction is now split out of the oUF style function into `UF.BuildVisuals` (widget tree) and `UF.ApplyVisuals` (geometry, textures, fonts), and the preview calls exactly those.
+- **Change** — What that buys: bar texture, fonts, borders, the info bar, element offsets, the aura grid, enemy buffs, the threat glow and the threat text in the preview are now produced by the same factories as your real frames. There is no second implementation left to drift.
+- **Internal** — Scale is applied with `SetScale` on a container, never by multiplying the database values, so the proportions on screen are the ones you configured.
+- **Internal** — The preview's aura containers take a name override and are suffixed. Without it, building real containers in the preview would register them as `TomoMod_Auras_player` and overwrite the frame the Movers module uses — including on the late creation path inside `UpdateEnemyBuffs`, which now carries the suffix on the frame.
+
+#### Unit Frames — The Preview Shows Your Actual Units
+
+- **New** — When the unit exists — your target, your focus, your pet — the preview frames are fed real data and tagged LIVE. When it does not, they fall back to simulated values tagged SIM, and the tag flips as the unit appears and disappears. Toggleable, and on by default.
+- **New** — A Fit / 1:1 switch, so the frames can be checked at their true pixel size rather than in the scaled-down strip.
+- **Internal** — The preview never calls a unit API that can return a Midnight secret value. It tests `UnitExists` and delegates everything else to the engine, where the values are already handled on the C side through `SetValue` / `SetFormattedText` / `SetTexture`.
+- **Internal** — The live refresh only runs while the panel is on screen: ticker and events are created on show and torn down on hide. `UNIT_AURA` marks the unit dirty and the ticker absorbs the burst, so a raid-wide aura storm costs one table index per event rather than an aura scan.
+
+#### Unit Frames — Bar Texture And Aura Timers Needed A Reload
+
+- **Fix** — The status bar texture was only read when a frame was first built, so changing it did nothing at all until the next `/reload` — on real frames, not just in the preview. It is reapplied live now, through a helper that puts the tint back: `SetStatusBarTexture` resets the vertex colour to opaque white.
+- **Fix** — Same for `showDuration` on aura and enemy buff icons: the countdown numbers were configured at icon creation and never revisited.
+
+#### Chat History — One Switch, And Six Settings Nobody Could Reach
+
+- **New** — The chat history had exactly one control: on or off. It has a section of its own now — how long messages are kept (1 hour, 6 hours, 24 hours, 3 days, or no limit), how many lines are stored (10 to 500), the delay before the replay, a session marker, the per-channel filter, and a button to clear everything.
+- **Fix** — The stored line limit was `while #data >= 128`, which trims until the table is at 127. It never kept the 128 lines it claimed to. The cap is `>` against the configured value now.
+- **Change** — Both limits are enforced on replay as well as on write, so lowering one takes effect at the next login rather than only governing messages recorded from that point on. Age pruning stops at the first entry that is still fresh — entries are appended chronologically, so the stale ones are always at the front — and an entry with no usable timestamp is treated as stale rather than being left to stall the loop.
+- **New** — A session marker is printed after the restored lines, so everything below it is unambiguously from the current session. Nothing used to separate the two, and a conversation replayed from yesterday reads exactly like a live one.
+
+#### Chat History — The Replay Was Burying Every Addon Load Message
+
+- **Fix** — The replay ran inline inside the chat skin's own load, which is precisely when addon load messages and Lua errors reach the chat. Up to a full page of restored lines landed on top of them, every login. The replay is deferred now — two seconds by default, adjustable from 0 to 10.
+- **Note** — The reason is stated on the panel next to the slider, because zero looks like the obviously correct value right up until the login where an error you needed to read scrolls past under a hundred lines of yesterday's guild chat.
+
+#### Chat History — Channels, And Deleting What Is Stored
+
+- **New** — The per-channel filter — whispers, guild, officer, party, raid, instance, channels, say, yell, emotes — has been in the database since the feature shipped and had never appeared anywhere in the interface. It is on the panel, as five pairs of checkboxes.
+- **Note** — An unchecked channel is not recorded at all rather than merely left out of the replay: the filter is applied on write as well. Re-ticking one does not recover what went past while it was off.
+- **New** — A "Clear chat history now" button, behind a confirmation, which reports how many messages it dropped.
+- **Change** — Turning the feature off now clears what is already stored. It used to stop recording and leave every saved line in the saved variables indefinitely — a toggle that looked like it had done nothing, on data the player had every reason to believe they had just deleted. The panel states this above the checkbox, along with the fact that the history is stored account-wide and is therefore shared by every character.
+- **Internal** — `GetChatHistoryCount`, `ClearChatHistory` and `ApplyHistorySettings` deliberately do not gate on the chat module having initialised. They only touch the saved table, and the config panel has to stay able to clear or re-bound the history while the chat skin itself is switched off.
+
+#### Cooldown Studio — The Button Now Says What Went Wrong
+
+- **Fix** — "Ouvrir le Cooldown Studio" could do nothing at all. `TomoMod_CDStudio` is a LoadOnDemand sibling addon, and every way that load can fail was collapsed into one message that named only the least likely cause: *not installed*. A player whose Studio folder was sitting right there, merely left unchecked in the addon list, was told to go and install something they already had.
+- **New** — Each failure token `C_AddOns.LoadAddOn` returns now gets its own explanation and its own fix: `MISSING` says the folder must sit *next to* TomoMod in `Interface/AddOns` and never inside it, `DISABLED` names the entry to tick, `INTERFACE_VERSION` points at "Load out of date AddOns", and the dependency, corruption and security tokens each say which of those they are. The client's own localized wording for the reason is kept and the remediation is appended to it — the game says *what*, we say *what to do*.
+- **New** — The common case repairs itself. On `DISABLED` the addon is enabled and the load retried immediately; where the client will not honour that within the same session, the enable still sticks and the message asks for a single `/reload` rather than sending the player to the addon list.
+- **New** — The Cooldowns panel states the blocking reason on the card itself, before the click, whenever the Studio cannot currently be loaded. The button deliberately stays enabled: for `DISABLED`, clicking it is exactly what fixes the situation.
+- **Fix** — A Studio that loaded but never initialized swallowed the click in silence. `CDStudio.lua` returns early when `TomoMod_Widgets` is unavailable, which left `LoadAddOn` reporting success and nothing on screen. It now publishes `TomoMod_CDStudio.loadError` on the way out, and the launcher reports that instead of pretending the click never happened.
+- **Change** — `TomoMod_CDStudio.toc` carries a category, the TomoMod icon, and the same version number as the main addon. It was still declaring `1.0.0` and showing up unbranded in the addon list, which made it look like a foreign addon that happened to share a name — and made "is it even installed" harder to answer than it needed to be.
+
+#### Packaging — A Zip That Cannot Hide The Studio Any More
+
+- **New** — `Tools/build_release.py`, a standard-library-only release builder. It reads `.pkgmeta`, drops everything under `ignore:`, applies `move-folders:` so the sub-addons land as siblings, and writes `.release/TomoMod-<version>.zip`. `--check` validates the layout and writes nothing.
+- **New** — The layout gate is the point of it. `TomoMod_CDStudio` lives inside the repo for convenience, but WoW only scans the top level of `Interface/AddOns` — a zip that ships it nested is a zip in which nobody can see the Studio in their addon list at all, which is precisely the state the launcher work above spent its time diagnosing. Every top-level folder must own a matching `.toc`, no addon folder may be nested inside another (bundled libraries excepted), and the build refuses to write the zip otherwise.
+- **Change** — `Tools` is excluded from the released zip via `.pkgmeta`, and Python bytecode is ignored by git. The TOC never loaded any of it and players have no use for it.
+
+#### Diagnostics — The Export Window Was Fighting Itself Over One Clipboard
+
+- **Change** — The export window asked the player to copy the report, and named the tracker address in its own title — an address only reachable by copying it, which would have thrown away the report they had just taken. The window now switches between two views, *Report* and *Link*, and says which one is loaded, instead of quietly leaving them to compete for the same clipboard.
+- **New** — The tracker address is printed on the window in plain, readable text as well. Reading eight words off the screen beats a round trip through the clipboard for anyone who is going to type it into a browser anyway.
+- **New** — A line under the hint states that the report is saved and can be reopened with `/tmdiag tracker`. Entries live in SavedVariables, so copying the link first costs nothing — but nothing said so, and the safe-looking move was to not touch anything.
+- **New** — Closing the window prints the tracker address in chat, once per session, so a player who closes too fast still leaves with somewhere to send the report.
+- **Change** — The console's button reads "Copy for tracker" rather than "Export Tracker". It copies to the clipboard; it never exported anything anywhere.
+
+## ####################################
+
 ## CHANGELOG 3.3.3 — Party And Raid Stop Keeping Two Copies Of The Same Code, The Summon Icon Stops Waiting For A Reload, Defensive Cooldowns Arrive On Party Frames With Categories You Can Filter, A Diagnostics Report Finally Says What Resolution And Scale It Was Written At, And The Stance Bar Stops Putting Ten Empty Squares On Screen
 
 #### Group Frames — The Summon Icon Was Staying Up Until `/reload`

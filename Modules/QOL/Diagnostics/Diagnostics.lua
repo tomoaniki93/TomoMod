@@ -17,6 +17,8 @@ local ADDON_PREFIX  = "|cff2ed884Tomo|rMod"
 local FONT          = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local FONT_MEDIUM   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_MONO     = "Fonts\\FRIZQT__.TTF"  -- monospace-ish for stack traces
+local TRACKER_HOST  = "tracker-tomomod.onkoz.fr"
+local TRACKER_URL   = "https://tracker-tomomod.onkoz.fr"
 local MAX_ERRORS    = 500        -- max stored entries (FIFO)
 local FLOOD_LIMIT   = 30         -- max captures per second
 local DEDUP_WINDOW  = 2          -- seconds before same error is re-logged
@@ -392,6 +394,7 @@ local sessionID       = 0        -- incremented each login
 local suppressActive  = false     -- whether ScriptErrorsFrame is suppressed
 local consoleFrame    = nil       -- the UI frame (lazy-created)
 local consoleDirty    = false     -- deferred-refresh pending
+local trackerReminderShown = false -- chat reminder is once per session
 local L               = nil       -- locale table
 
 -- Environment snapshot (captured once at login)
@@ -1086,7 +1089,7 @@ local function CreateConsole()
     local trackerTxt = trackerBtn:CreateFontString(nil, "OVERLAY")
     trackerTxt:SetFont(FONT_MEDIUM, 10, "")
     trackerTxt:SetPoint("CENTER")
-    trackerTxt:SetText("Export Tracker")
+    trackerTxt:SetText("Copy for tracker")
     trackerTxt:SetTextColor(0.5, 0.6, 1, 1)
     trackerBtn:SetScript("OnClick", function()
         D.ShowExportFrame("tracker")
@@ -1266,12 +1269,76 @@ end
 
 local exportFrame = nil
 
+-- =====================================================================
+-- EXPORT VIEW
+-- The clipboard holds one thing at a time, so the report and the tracker
+-- address cannot both be copied at once. Rather than pick an order for the
+-- player, the window switches between them and says which one is loaded.
+-- Nothing is lost either way: entries live in SavedVariables, so the report
+-- can be regenerated after the browser trip.
+-- =====================================================================
+
+local VIEW_ACTIVE_BG   = { 0.047, 0.824, 0.624, 0.18 }
+local VIEW_ACTIVE_EDGE = { 0.047, 0.824, 0.624, 0.9 }
+local VIEW_IDLE_BG     = { 0.10, 0.10, 0.13, 0.9 }
+local VIEW_IDLE_EDGE   = { 0.25, 0.25, 0.30, 0.9 }
+
+local function StyleViewButton(btn, active)
+    if not btn then return end
+    local bg = active and VIEW_ACTIVE_BG or VIEW_IDLE_BG
+    local edge = active and VIEW_ACTIVE_EDGE or VIEW_IDLE_EDGE
+    btn:SetBackdropColor(bg[1], bg[2], bg[3], bg[4])
+    btn:SetBackdropBorderColor(edge[1], edge[2], edge[3], edge[4])
+    if btn._text then
+        if active then
+            btn._text:SetTextColor(0.047, 0.824, 0.624, 1)
+        else
+            btn._text:SetTextColor(0.6, 0.6, 0.66, 1)
+        end
+    end
+end
+
+function D.SetExportView(view)
+    local ef = exportFrame
+    if not ef then return end
+
+    view = (view == "link") and "link" or "report"
+    ef._view = view
+
+    local text
+    if view == "link" then
+        ef._title:SetText("Tracker address")
+        text = TRACKER_URL
+        ef._hint:SetText("Ctrl+C to copy the link — this replaces the report in your clipboard")
+    elseif ef._mode == "tracker" then
+        ef._title:SetText("Report for " .. TRACKER_HOST)
+        text = D.BuildTrackerReport()
+        ef._hint:SetText("Ctrl+A then Ctrl+C to copy the report")
+    else
+        ef._title:SetText("Diagnostics Report")
+        text = D.BuildReadableReport()
+        ef._hint:SetText("Ctrl+A then Ctrl+C to copy the report")
+    end
+
+    StyleViewButton(ef._btnReport, view == "report")
+    StyleViewButton(ef._btnLink, view == "link")
+
+    ef._editBox:SetText(text)
+    ef._editBox:SetWidth(ef._scrollFrame:GetWidth() or 540)
+    ef._editBox:HighlightText()
+    ef._editBox:SetFocus()
+    ef._scrollFrame:SetVerticalScroll(0)
+    if ef._updateThumb then
+        C_Timer.After(0.01, ef._updateThumb)
+    end
+end
+
 function D.ShowExportFrame(mode)
     mode = mode or "readable"
 
     if not exportFrame then
         local ef = CreateFrame("Frame", "TomoMod_DiagExport", UIParent, "BackdropTemplate")
-        ef:SetSize(600, 450)
+        ef:SetSize(600, 486)
         ef:SetPoint("CENTER")
         -- [FIX] The console frame uses FrameLevel 600 + SetToplevel(true) in the
         -- same FULLSCREEN_DIALOG strata (so it stays above the config menu) —
@@ -1312,16 +1379,54 @@ function D.ShowExportFrame(mode)
         closeTxt:SetTextColor(0.5, 0.5, 0.55, 1)
         closeBtn:SetScript("OnClick", function() ef:Hide() end)
 
-        -- Hint
+        -- Tracker address, always readable so it never needs the clipboard
+        local url = ef:CreateFontString(nil, "OVERLAY")
+        url:SetFont(FONT, 11, "")
+        url:SetPoint("TOP", 0, -30)
+        url:SetTextColor(0.047, 0.824, 0.624, 1)
+        url:SetText(TRACKER_HOST)
+
+        -- Hint. Rewritten per view: the clipboard holds one thing at a time,
+        -- so the player has to be told which one they are about to take.
         local hint = ef:CreateFontString(nil, "OVERLAY")
-        hint:SetFont(FONT_MEDIUM, 9, "")
-        hint:SetPoint("TOP", 0, -28)
-        hint:SetTextColor(0.5, 0.5, 0.55, 1)
-        hint:SetText("Ctrl+A then Ctrl+C to copy")
+        hint:SetFont(FONT_MEDIUM, 10, "")
+        hint:SetPoint("TOP", 0, -48)
+        hint:SetTextColor(0.72, 0.72, 0.78, 1)
+        ef._hint = hint
+
+        -- Reassurance: nothing is lost by copying the link first and coming
+        -- back for the report afterwards.
+        local persist = ef:CreateFontString(nil, "OVERLAY")
+        persist:SetFont(FONT_MEDIUM, 9, "")
+        persist:SetPoint("TOP", 0, -64)
+        persist:SetTextColor(0.5, 0.5, 0.55, 1)
+        persist:SetText("Your report is saved — reopen it any time with /tmdiag tracker")
+
+        -- View switch
+        local function MakeViewButton(label, view, anchorX)
+            local btn = CreateFrame("Button", nil, ef, "BackdropTemplate")
+            btn:SetSize(84, 18)
+            btn:SetPoint("TOP", ef, "TOP", anchorX, -80)
+            btn:SetBackdrop({
+                bgFile = "Interface\\Buttons\\WHITE8x8",
+                edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1,
+            })
+            local txt = btn:CreateFontString(nil, "OVERLAY")
+            txt:SetFont(FONT_MEDIUM, 10, "")
+            txt:SetPoint("CENTER")
+            txt:SetText(label)
+            btn._text = txt
+            btn._view = view
+            btn:SetScript("OnClick", function() D.SetExportView(view) end)
+            return btn
+        end
+
+        ef._btnReport = MakeViewButton("Report", "report", -44)
+        ef._btnLink   = MakeViewButton("Link", "link", 44)
 
         -- EditBox in a custom slim scroll
         local scrollFrame = CreateFrame("ScrollFrame", "TomoMod_DiagExportScroll", ef)
-        scrollFrame:SetPoint("TOPLEFT", 10, -46)
+        scrollFrame:SetPoint("TOPLEFT", 10, -106)
         scrollFrame:SetPoint("BOTTOMRIGHT", -14, 10)
 
         local editBox = CreateFrame("EditBox", "TomoMod_DiagExportEdit", scrollFrame)
@@ -1406,29 +1511,27 @@ function D.ShowExportFrame(mode)
         ef._scrollFrame = scrollFrame
         ef._updateThumb = UpdateExportThumb
         ef:Hide()
+
+        -- A player who closes too fast still leaves with the address.
+        -- Registered AFTER the construction-time Hide(): CreateFrame hands back
+        -- a shown frame, so hooking earlier would fire the reminder before the
+        -- window has ever been opened.
+        ef:SetScript("OnHide", function()
+            if trackerReminderShown then return end
+            trackerReminderShown = true
+            print(ADDON_PREFIX .. " |cffaaaaaaPaste your report at|r |cff2ed884"
+                .. TRACKER_URL .. "|r |cffaaaaaa— reopen it with|r |cffffffff/tmdiag tracker|r")
+        end)
+
         exportFrame = ef
     end
 
-    -- Generate report
-    local text
-    if mode == "tracker" then
-        exportFrame._title:SetText("Export for tracker-tomomod.onkoz.fr")
-        text = D.BuildTrackerReport()
-    else
-        exportFrame._title:SetText("Diagnostics Report")
-        text = D.BuildReadableReport()
-    end
+    exportFrame._mode = mode
+    D.SetExportView("report")
 
-    exportFrame._editBox:SetText(text)
-    exportFrame._editBox:SetWidth(exportFrame._scrollFrame:GetWidth() or 540)
     exportFrame:SetFrameLevel((consoleFrame and consoleFrame:GetFrameLevel() or 600) + 100)
     exportFrame:Show()
     exportFrame:Raise()
-    exportFrame._editBox:HighlightText()
-    exportFrame._editBox:SetFocus()
-    if exportFrame._updateThumb then
-        C_Timer.After(0.01, exportFrame._updateThumb)
-    end
 end
 
 -- =====================================================================

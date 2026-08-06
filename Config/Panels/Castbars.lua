@@ -92,7 +92,7 @@ local function BuildGeneralTab(parent)
     y = W.FinalizeCard(card4, cy)
 
     -- GCD
-    local card5, cy = W.CreateCard(c, L["cb_section_gcd"], y)
+    local card5, cy = W.CreateCard(c, L["cb_section_gcd"], y, "D")
     local _, cy = W.CreateCheckbox(card5.inner, L["opt_cb_show_gcd"], db.showGCDSpark, cy, function(v) db.showGCDSpark = v; ApplyCB() end)
     local _, cy = W.CreateSlider(card5.inner, L["opt_cb_gcd_height"], db.gcdHeight or 4, 2, 12, 1, cy, function(v) db.gcdHeight = v; ApplyCB() end, "%.0f")
     local gcdCol = db.gcdColor or { r = 1, g = 1, b = 1 }
@@ -100,7 +100,7 @@ local function BuildGeneralTab(parent)
     y = W.FinalizeCard(card5, cy)
 
     -- Interrupt feedback
-    local card6, cy = W.CreateCard(c, L["cb_section_interrupt"], y)
+    local card6, cy = W.CreateCard(c, L["cb_section_interrupt"], y, "TD")
     local _, cy = W.CreateCheckbox(card6.inner, L["opt_cb_show_interrupt_feedback"], db.showInterruptFeedback, cy, function(v) db.showInterruptFeedback = v end)
     local fbCol = db.interruptFeedbackColor or { r = 0.1, g = 0.8, b = 0.1 }
     local _, cy = W.CreateColorPicker(card6.inner, L["opt_cb_interrupt_fb_color"], fbCol, cy, function(r,g,b) db.interruptFeedbackColor = { r=r, g=g, b=b } end)

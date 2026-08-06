@@ -358,7 +358,7 @@ local function BuildResourceBarsTab(parent)
     db.colors.healthLow = db.colors.healthLow or { r = 1.00, g = 0.20, b = 0.20 }
     db.colors.powerLow  = db.colors.powerLow  or { r = 1.00, g = 0.25, b = 0.25 }
 
-    local cardHB, cy = W.CreateCard(c, L["section_rb_healthbar"], y)
+    local cardHB, cy = W.CreateCard(c, L["section_rb_healthbar"], y, "T")
     local _, cy = W.CreateCheckbox(cardHB.inner, L["opt_rb_hb_enable"], db.healthBarEnabled or false, cy, function(v)
         db.healthBarEnabled = v; ApplyRB()
     end)

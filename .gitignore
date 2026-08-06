@@ -19,6 +19,10 @@ desktop.ini
 *.orig
 *.tmp
 
+# Python bytecode (Tools/build_release.py)
+__pycache__/
+*.pyc
+
 # Lua bytecode
 *.luac
 luac.out

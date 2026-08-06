@@ -2481,6 +2481,71 @@ end
 -- SAVE / DISPLAY CHAT HISTORY
 -- =====================================
 
+local HISTORY_MIN_LINES, HISTORY_MAX_LINES = 10, 500
+local HISTORY_STAMP = 51   -- index of time() inside a stored entry
+
+local function HistoryTable()
+    local db = TomoModDB and TomoModDB.chatFrameSkin
+    if not db then return nil end
+    if type(db.history) ~= "table" then db.history = {} end
+    return db.history
+end
+
+local function HistoryLineCap()
+    local n = tonumber(S().historyMaxLines) or 128
+    if n < HISTORY_MIN_LINES then n = HISTORY_MIN_LINES end
+    if n > HISTORY_MAX_LINES then n = HISTORY_MAX_LINES end
+    return n
+end
+
+-- Drops entries older than historyMaxAge, then trims the head down to
+-- historyMaxLines. Entries are appended chronologically, so stale ones are
+-- always at the front and the age scan can stop at the first fresh entry.
+-- An entry with no usable timestamp is treated as stale: it is unusable
+-- data, and keeping it would make the loop non-terminating.
+-- Returns how many entries were removed.
+local function PruneChatHistory()
+    local data = HistoryTable()
+    if not data then return 0 end
+
+    local removed = 0
+    local maxAge = tonumber(S().historyMaxAge) or 0
+    if maxAge > 0 then
+        local now = time()
+        while data[1] do
+            local entry = data[1]
+            local stamp = (type(entry) == "table") and tonumber(entry[HISTORY_STAMP]) or nil
+            if stamp and difftime(now, stamp) <= maxAge then break end
+            tremove(data, 1)
+            removed = removed + 1
+        end
+    end
+
+    local cap = HistoryLineCap()
+    while #data > cap do
+        tremove(data, 1)
+        removed = removed + 1
+    end
+    return removed
+end
+
+-- Marks the boundary between the replayed history and the live session, so
+-- anything printed afterwards (addon load errors included) is obviously new.
+local function ShowSessionSeparator()
+    if not S().historySeparator then return end
+    local label = L["chat_history_separator_text"]
+    if not label or label == "chat_history_separator_text" then
+        label = "Session"
+    end
+    local line = format("|cff2ed884---------------- %s ----------------|r", label)
+    for _, chatName in ipairs(CHAT_FRAMES) do
+        local frame = _G[chatName]
+        if frame and frame.AddMessage then
+            frame:AddMessage(line, 0.18, 0.85, 0.52)
+        end
+    end
+end
+
 local function SaveChatHistory(event, ...)
     local historyType = historyTypes[event]
     if historyType then
@@ -2506,7 +2571,9 @@ local function SaveChatHistory(event, ...)
         tempHistory[52] = coloredName or ChatFunctions:GetColoredName(event, ...)
 
         tinsert(data, tempHistory)
-        while #data >= 128 do
+        -- Was `while #data >= 128`, which actually capped at 127.
+        local cap = HistoryLineCap()
+        while #data > cap do
             tremove(data, 1)
         end
     end
@@ -2522,6 +2589,12 @@ local function DisplayChatHistory()
         C_Timer.After(0.1, DisplayChatHistory)
         return
     end
+
+    -- Limits are enforced here as well as on write, so lowering them
+    -- between sessions takes effect on the next login instead of only
+    -- applying to messages recorded afterwards.
+    PruneChatHistory()
+    if not next(data) then return end
 
     SoundTimer = true
     for _, chat in ipairs(CHAT_FRAMES) do
@@ -2543,6 +2616,8 @@ local function DisplayChatHistory()
         end
     end
     SoundTimer = nil
+
+    ShowSessionSeparator()
 end
 
 -- =====================================
@@ -2780,8 +2855,20 @@ local function LoadChat()
         end
     end
 
-    -- Chat history
-    if s.chatHistory then DisplayChatHistory() end
+    -- Chat history. The replay used to run inline here, i.e. exactly when
+    -- addon load messages and Lua errors reach the chat, burying them under
+    -- up to a full page of restored lines. Deferring it puts the history
+    -- after those messages instead.
+    if s.chatHistory then
+        local delay = tonumber(s.historyDelay)
+        if delay == nil then delay = 2 end
+        if delay < 0 then delay = 0 elseif delay > 30 then delay = 30 end
+        if delay > 0 then
+            C_Timer.After(delay, DisplayChatHistory)
+        else
+            DisplayChatHistory()
+        end
+    end
 
     -- Disable double-click on tabs
     for _, frameName in pairs(CHAT_FRAMES) do
@@ -2871,6 +2958,38 @@ function CFS.SetEnabled(value)
         isInitialized = true
         LoadChat()
     end
+end
+
+-- =====================================
+-- CHAT HISTORY — public API
+-- =====================================
+-- These three deliberately do NOT gate on chatModuleInit: they only touch
+-- the saved table, and the config panel must stay able to clear or re-bound
+-- the history even when the chat skin itself is switched off.
+
+function CFS.GetChatHistoryCount()
+    local data = HistoryTable()
+    return data and #data or 0
+end
+
+-- Returns how many entries were dropped.
+function CFS.ClearChatHistory()
+    local data = HistoryTable()
+    if not data then return 0 end
+    local n = #data
+    wipe(data)
+    return n
+end
+
+-- Called by the config panel whenever a history setting changes. Turning
+-- the toggle off must also drop what is already stored: otherwise the
+-- checkbox looks like a no-op until the next /reload and the lines stay in
+-- SavedVariables indefinitely.
+function CFS.ApplyHistorySettings()
+    if not S().chatHistory then
+        return CFS.ClearChatHistory()
+    end
+    return PruneChatHistory()
 end
 
 -- Public helper for ChatFrameUI's copy-chat sidebar icon

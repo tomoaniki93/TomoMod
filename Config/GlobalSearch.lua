@@ -134,6 +134,7 @@ function W._RegisterSearchEntry(label, region, kind)
             catLabel = ctx.catLabel or ctx.cat,
             tab      = ctx.tab,
             tabLabel = ctx.tabLabel,
+            tabPath  = W.GetBuildTabPath and W.GetBuildTabPath() or nil,
             section  = section,
         }
         e.labelFold = Fold(label)
@@ -244,8 +245,28 @@ local popup
 local function JumpTo(entry)
     GS.pendingKey   = entry.key
     GS.pendingUntil = GetTime() + 3
-    if entry.tab then C._pendingGroupTab = entry.tab end
+
+    -- entry.tab is the INNERMOST tab key. Handing that to the category's
+    -- outer tab bar never matched, so a result inside a nested panel
+    -- (raid frame HoTs, resource bars, ...) used to land on the first tab
+    -- of the category instead. The stored path names one tab per level.
+    if entry.tabPath and #entry.tabPath > 0 then
+        C._pendingTabPath = entry.tabPath
+        C._pendingGroupTab = nil
+        -- A cached page is re-shown without rebuilding, so no tab bar is
+        -- created and the path would be ignored: force the rebuild.
+        if C.InvalidateCategory then C.InvalidateCategory(entry.cat) end
+    elseif entry.tab then
+        C._pendingGroupTab = entry.tab
+    end
+
     C.SwitchCategory(entry.cat)
+
+    -- SwitchCategory builds the page synchronously, so every tab bar has
+    -- read its level by now. Clearing here rather than inside SwitchCategory
+    -- keeps this lot off a hunk other lots also touch, and a stale path
+    -- would otherwise hijack the next category build.
+    C._pendingTabPath = nil
     -- [Lot C] Cached pages re-show without rebuilding, so no registration
     -- fires to consume the pending key: fall back to the last live region.
     if GS.pendingKey == entry.key then
@@ -264,6 +285,35 @@ local function JumpTo(entry)
         cf._searchBox:SetText("")
         cf._searchBox:ClearFocus()
     end
+end
+
+-- ---------------------------------------------------------------------
+-- Public deep-link: jump to a section by its localized header text
+-- ---------------------------------------------------------------------
+-- Used by the Roles guide pages. It resolves against the live index rather
+-- than rebuilding a composite key on the caller's side, because a section
+-- registers under the tab path that actually produced it — and with nested
+-- tab bars the caller has no way to know that path.
+--
+-- Returns true when the section was found and targeted, false when it only
+-- managed to open the right category.
+function GS.JumpToSection(cat, sectionLabel)
+    if not (cat and sectionLabel and sectionLabel ~= "") then return false end
+
+    -- Guarantees the index covers pages the player has never opened.
+    GhostIndexAll()
+
+    for _, e in ipairs(GS.entries) do
+        if e.kind == "section" and e.cat == cat and e.label == sectionLabel then
+            JumpTo(e)
+            return true
+        end
+    end
+
+    -- Index miss (renamed section, panel failed to build): still put the
+    -- player on the right category rather than silently doing nothing.
+    C.SwitchCategory(cat)
+    return false
 end
 
 -- ---------------------------------------------------------------------

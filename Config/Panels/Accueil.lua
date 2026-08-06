@@ -414,19 +414,190 @@ local function CreateModules(parent, y)
     return nextY
 end
 
-local function CreatePresetOptions()
-    local presetOpts = {}
-    if TomoMod_Presets and TomoMod_Presets.GetList then
-        for _, def in ipairs(TomoMod_Presets.GetList()) do
-            if not def.custom then
-                presetOpts[#presetOpts + 1] = { text = def.name, value = def.key }
-            end
+-- =====================================================================
+-- PRESET CARDS
+-- All the display data (icon, role colour, name, tagline, highlights,
+-- description) comes from Config/Presets.lua — this only renders it.
+-- Handlers are hoisted to module scope: OnSizeChanged fires on every
+-- config window resize, so no closure is allocated per event.
+-- =====================================================================
+local PRESET_COLS   = 3
+local PRESET_GAP    = 10
+local PRESET_CARD_H = 136
+
+local function LayoutPresetGrid(grid)
+    local cards = grid._cards
+    if not cards or #cards == 0 then return end
+    local total = grid:GetWidth() or 0
+    if total < 1 then return end        -- not sized yet; OnSizeChanged retries
+    local cardW = math.floor((total - PRESET_GAP * (PRESET_COLS - 1)) / PRESET_COLS)
+    if cardW < 100 then cardW = 100 end
+    for i = 1, #cards do
+        local card = cards[i]
+        local col  = (i - 1) % PRESET_COLS
+        local row  = math.floor((i - 1) / PRESET_COLS)
+        card:ClearAllPoints()
+        card:SetPoint("TOPLEFT", grid, "TOPLEFT",
+            col * (cardW + PRESET_GAP),
+            -row * (PRESET_CARD_H + PRESET_GAP))
+        card:SetWidth(cardW)
+    end
+end
+
+local function OnPresetGridResize(self)
+    LayoutPresetGrid(self)
+end
+
+local function SetPresetCardState(card, active)
+    local c = card._color
+    card._active = active
+    if active then
+        card:SetBackdropColor(c[1] * 0.16, c[2] * 0.16, c[3] * 0.16, 0.95)
+        card:SetBackdropBorderColor(c[1], c[2], c[3], 0.95)
+        card._bar:SetAlpha(1)
+        card._badge:SetText(Localize("preset_badge_active", "Actif"))
+        card._badge:SetTextColor(c[1], c[2], c[3], 1)
+        card._badge:Show()
+    else
+        card:SetBackdropColor(0.045, 0.042, 0.065, 0.88)
+        card:SetBackdropBorderColor(c[1], c[2], c[3], 0.34)
+        card._bar:SetAlpha(0.55)
+        if card._recommended then
+            card._badge:SetText(Localize("preset_badge_recommended", "Recommandé"))
+            card._badge:SetTextColor(DM[1], DM[2], DM[3], 1)
+            card._badge:Show()
+        else
+            card._badge:Hide()
         end
     end
-    if #presetOpts == 0 then
-        presetOpts[1] = { text = "Complet", value = "complet" }
+end
+
+local function RefreshPresetGrid(grid)
+    if not (grid and grid._cards) then return end
+    local active = TomoMod_Presets and TomoMod_Presets.GetActive
+        and TomoMod_Presets.GetActive() or nil
+    for i = 1, #grid._cards do
+        local card = grid._cards[i]
+        SetPresetCardState(card, card._presetKey == active)
     end
-    return presetOpts
+end
+
+local function OnPresetCardEnter(self)
+    local c = self._color
+    self:SetBackdropBorderColor(c[1], c[2], c[3], 1)
+    if not self._active then
+        self:SetBackdropColor(c[1] * 0.10, c[2] * 0.10, c[3] * 0.10, 0.95)
+    end
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:SetText(self._presetName, c[1], c[2], c[3])
+    if self._presetDesc then
+        GameTooltip:AddLine(self._presetDesc, 0.80, 0.80, 0.86, true)
+    end
+    GameTooltip:AddLine(" ")
+    GameTooltip:AddLine(Localize("dash_apply_preset_btn", "Appliquer ce preset"), A[1], A[2], A[3])
+    GameTooltip:Show()
+end
+
+local function OnPresetCardLeave(self)
+    SetPresetCardState(self, self._active)
+    GameTooltip:Hide()
+end
+
+local function OnPresetCardClick(self)
+    if not (TomoMod_Presets and TomoMod_Presets.Apply) then return end
+    if not TomoMod_Presets.Apply(self._presetKey) then return end
+    RefreshPresetGrid(self:GetParent())
+    StaticPopup_Show("TOMOMOD_DASH_RELOAD")
+end
+
+local function CreatePresetCard(grid, def)
+    local c = def.color or { A[1], A[2], A[3] }
+
+    local card = CreateFrame("Button", nil, grid, "BackdropTemplate")
+    card:SetSize(200, PRESET_CARD_H)
+    card:SetBackdrop({
+        bgFile   = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    card._presetKey   = def.key
+    card._presetName  = def.name
+    card._presetDesc  = def.desc
+    card._recommended = def.recommended
+    card._color       = c
+
+    local bar = card:CreateTexture(nil, "ARTWORK")
+    bar:SetWidth(3)
+    bar:SetPoint("TOPLEFT", 1, -1)
+    bar:SetPoint("BOTTOMLEFT", 1, 1)
+    bar:SetColorTexture(c[1], c[2], c[3], 1)
+    card._bar = bar
+
+    local wash = card:CreateTexture(nil, "BACKGROUND", nil, -1)
+    wash:SetPoint("TOPLEFT", 1, -1)
+    wash:SetPoint("BOTTOMRIGHT", -1, 1)
+    if wash.SetGradientAlpha then
+        wash:SetGradientAlpha("HORIZONTAL", c[1], c[2], c[3], 0.12, 0, 0, 0, 0)
+    else
+        wash:SetColorTexture(c[1], c[2], c[3], 0.07)
+    end
+
+    local icon = card:CreateTexture(nil, "OVERLAY")
+    icon:SetSize(30, 30)
+    icon:SetPoint("TOPLEFT", 14, -12)
+    icon:SetTexture(def.icon)
+    icon:SetVertexColor(c[1], c[2], c[3], 1)
+
+    local name = card:CreateFontString(nil, "OVERLAY")
+    name:SetFont(FONT_BOLD, 13, "")
+    name:SetPoint("LEFT", icon, "RIGHT", 10, 0)
+    name:SetText(def.name)
+    name:SetTextColor(c[1], c[2], c[3], 1)
+
+    local badge = card:CreateFontString(nil, "OVERLAY")
+    badge:SetFont(FONT_BOLD, 8, "")
+    badge:SetPoint("TOPRIGHT", -10, -12)
+    badge:Hide()
+    card._badge = badge
+
+    local tag = card:CreateFontString(nil, "OVERLAY")
+    tag:SetFont(FONT, 9, "")
+    tag:SetPoint("TOPLEFT", 14, -48)
+    tag:SetPoint("RIGHT", card, "RIGHT", -10, 0)
+    tag:SetJustifyH("LEFT")
+    tag:SetWordWrap(false)
+    tag:SetText(def.tagline or "")
+    tag:SetTextColor(DM[1], DM[2], DM[3], 1)
+
+    local hl = def.highlights
+    if hl then
+        local hy = -64
+        for i = 1, #hl do
+            local dot = card:CreateTexture(nil, "ARTWORK")
+            dot:SetSize(3, 3)
+            dot:SetPoint("TOPLEFT", 16, hy - 5)
+            dot:SetColorTexture(c[1], c[2], c[3], 0.85)
+
+            local txt = card:CreateFontString(nil, "OVERLAY")
+            txt:SetFont(FONT, 9, "")
+            txt:SetPoint("TOPLEFT", 25, hy)
+            txt:SetPoint("RIGHT", card, "RIGHT", -10, 0)
+            txt:SetJustifyH("LEFT")
+            txt:SetJustifyV("TOP")
+            txt:SetHeight(20)
+            txt:SetSpacing(1)
+            txt:SetText(hl[i])
+            txt:SetTextColor(TX[1], TX[2], TX[3], 0.72)
+
+            hy = hy - 22
+        end
+    end
+
+    card:SetScript("OnEnter", OnPresetCardEnter)
+    card:SetScript("OnLeave", OnPresetCardLeave)
+    card:SetScript("OnClick", OnPresetCardClick)
+
+    return card
 end
 
 local function CreateProfileOptions()
@@ -442,35 +613,60 @@ local function CreateProfileOptions()
 end
 
 local function CreateQuickConfig(parent, y)
-    local presetOpts = CreatePresetOptions()
-    local rows = math.max(1, math.ceil(#presetOpts / 4))
-    local panel, nextY = CreatePanel(parent, Localize("dash_quickcfg_section", "Configuration rapide"), y, 68 + rows * 44, A[1], A[2], A[3])
-
-    for i, opt in ipairs(presetOpts) do
-        local col = (i - 1) % 4
-        local row = math.floor((i - 1) / 4)
-        local colors = {
-            { A[1],  A[2],  A[3]  },
-            { CY[1], CY[2], CY[3] },
-            { GD[1], GD[2], GD[3] },
-            { 0.38, 0.86, 0.56 },
-        }
-        local c = colors[(col % #colors) + 1]
-
-        CreateActionButton(panel, opt.text, 18 + col * 166, -38 - row * 44, 154, c[1], c[2], c[3], function()
-            if TomoMod_Presets and TomoMod_Presets.Apply and opt.value then
-                TomoMod_Presets.Apply(opt.value)
-                StaticPopup_Show("TOMOMOD_DASH_RELOAD")
-            end
-        end)
+    local list = {}
+    if TomoMod_Presets and TomoMod_Presets.GetList then
+        for _, def in ipairs(TomoMod_Presets.GetList()) do
+            -- "custom" writes nothing: it only makes sense inside the
+            -- installer flow, not as a one-click dashboard tile.
+            if not def.custom then list[#list + 1] = def end
+        end
     end
+
+    local hintText = Localize("dash_apply_preset_info",
+        "Appliquer un preset propose ensuite un rechargement.")
+
+    if #list == 0 then
+        -- Presets.lua failed to load: say so rather than fake a tile.
+        local panel, nextY = CreatePanel(parent,
+            Localize("dash_quickcfg_section", "Configuration rapide"),
+            y, 76, A[1], A[2], A[3])
+        local hint = panel:CreateFontString(nil, "OVERLAY")
+        hint:SetFont(FONT, 10, "")
+        hint:SetPoint("TOPLEFT", 18, -40)
+        hint:SetPoint("RIGHT", -18, 0)
+        hint:SetJustifyH("LEFT")
+        hint:SetText(hintText)
+        hint:SetTextColor(DM[1], DM[2], DM[3], 1)
+        return nextY
+    end
+
+    local rows   = math.ceil(#list / PRESET_COLS)
+    local gridH  = rows * PRESET_CARD_H + (rows - 1) * PRESET_GAP
+    local panel, nextY = CreatePanel(parent,
+        Localize("dash_quickcfg_section", "Configuration rapide"),
+        y, 36 + gridH + 30, A[1], A[2], A[3])
+
+    local grid = CreateFrame("Frame", nil, panel)
+    grid:SetPoint("TOPLEFT",  16, -34)
+    grid:SetPoint("TOPRIGHT", -16, -34)
+    grid:SetHeight(gridH)
+
+    local cards = {}
+    for i = 1, #list do
+        cards[i] = CreatePresetCard(grid, list[i])
+    end
+    grid._cards = cards
+
+    grid:SetScript("OnSizeChanged", OnPresetGridResize)
+    LayoutPresetGrid(grid)
+    RefreshPresetGrid(grid)
 
     local hint = panel:CreateFontString(nil, "OVERLAY")
     hint:SetFont(FONT, 10, "")
-    hint:SetPoint("BOTTOMLEFT", 18, 12)
+    hint:SetPoint("BOTTOMLEFT", 18, 10)
     hint:SetPoint("RIGHT", -18, 0)
     hint:SetJustifyH("LEFT")
-    hint:SetText(Localize("dash_apply_preset_info", "Appliquer un preset propose ensuite un rechargement."))
+    hint:SetText(hintText)
     hint:SetTextColor(DM[1], DM[2], DM[3], 1)
 
     return nextY

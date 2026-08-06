@@ -278,6 +278,46 @@ local function UpdateLeaderIcon(frame)
 end
 
 -- =====================================
+-- CHAÎNE DE MISE À JOUR DES DONNÉES (API publique)
+-- =====================================
+-- Exportée pour que l'aperçu du panneau de configuration puisse alimenter ses
+-- cadres avec les VRAIES données de l'unité (lot B). L'aperçu n'appelle jamais
+-- lui-même une API d'unité : tout passe par ici, où les valeurs secrètes TWW
+-- sont déjà traitées côté C (SetValue / SetFormattedText / SetTexture).
+--
+-- Prérequis : frame.unit renseigné ET UnitExists(frame.unit) vrai. Les
+-- fonctions sortent proprement sinon, mais laissent l'affichage inchangé —
+-- l'appelant doit donc tester l'existence de l'unité avant d'appeler.
+
+-- Chaîne légère : valeurs, textes, icônes. Sûre à cadence élevée.
+function UF.UpdateUnitData(frame)
+    if not frame or not frame.unit then return end
+    UpdateHealth(frame)
+    UpdateAbsorb(frame)
+    if frame.power then E.UpdatePower(frame) end
+    E.UpdateInfoBar(frame)
+    UpdateName(frame)
+    UpdateLevel(frame)
+    UpdateThreat(frame)
+    UpdateThreatText(frame)
+    UpdateRaidIcon(frame)
+    UpdateLeaderIcon(frame)
+end
+
+-- Chaîne lourde : parcours des auras. À piloter par événement (UNIT_AURA),
+-- pas par ticker.
+function UF.UpdateUnitAuras(frame)
+    if not frame or not frame.unit then return end
+    E.UpdateAuras(frame)
+    E.UpdateEnemyBuffs(frame)
+end
+
+function UF.UpdateAllData(frame)
+    UF.UpdateUnitData(frame)
+    UF.UpdateUnitAuras(frame)
+end
+
+-- =====================================
 -- HIDE BLIZZARD EXTRA
 -- oUF:DisableBlizzard(unit) est appelé AUTOMATIQUEMENT par oUF:Spawn
 -- et gère: PlayerFrame, TargetFrame, FocusFrame, PetFrame.
@@ -312,6 +352,129 @@ local function HideBlizzardExtra()
 end
 
 -- =====================================
+-- HELPERS PARTAGÉS
+-- =====================================
+
+-- Réapplique la texture de barre sans perdre la teinte courante :
+-- SetStatusBarTexture remet le vertex color à blanc opaque.
+local function ApplyBarTexture(bar, texture)
+    if not bar or not bar.SetStatusBarTexture then return end
+    local r, g, b, a = bar:GetStatusBarColor()
+    bar:SetStatusBarTexture(texture)
+    local t = bar:GetStatusBarTexture()
+    if t then t:SetHorizTile(false) end
+    if r then bar:SetStatusBarColor(r, g, b, a) end
+    if bar.bg then bar.bg:SetTexture(texture) end
+end
+
+-- Publique : l'aperçu doit pouvoir re-neutraliser un conteneur créé
+-- tardivement par E.UpdateEnemyBuffs. Idempotent.
+function UF.NeutralizeContainer(container)
+    if not container then return end
+    container:SetMovable(false)
+    container:EnableMouse(false)
+    container:RegisterForDrag()
+    container:SetScript("OnDragStart", nil)
+    container:SetScript("OnDragStop", nil)
+    if container.icons then
+        for i = 1, #container.icons do
+            local icon = container.icons[i]
+            if icon then
+                icon:EnableMouse(false)
+                icon:SetScript("OnEnter", nil)
+                icon:SetScript("OnLeave", nil)
+            end
+        end
+    end
+end
+
+-- =====================================
+-- BUILD VISUALS — construction partagée de l'arbre visuel
+-- =====================================
+-- Utilisée par StyleTomoMod (frame oUF sécurisée) ET par l'aperçu du panneau
+-- de configuration (frame nue, non sécurisée). Ne touche à AUCUN attribut
+-- sécurisé, à aucun script de souris et à aucune donnée d'unité : uniquement
+-- la construction des widgets à partir de `settings`.
+--
+-- Conséquence : ce que l'aperçu affiche est produit par les mêmes fabriques
+-- que les cadres de jeu — plus de divergence possible entre les deux.
+--
+-- opts.nameSuffix : suffixe ajouté aux noms globaux des conteneurs d'auras.
+--                   Sans lui, l'aperçu écraserait _G["TomoMod_Auras_player"].
+-- opts.preview    : neutralise le drag et les tooltips des conteneurs d'auras.
+--
+-- Renseigne : self.health / self.power / self.infoBar / self.absorb /
+--             self.threat / self.threatText / self.auraContainer /
+--             self.enemyBuffContainer
+-- =====================================
+
+function UF.BuildVisuals(self, unit, settings, opts)
+    if not self or not settings then return end
+
+    local suffix    = opts and opts.nameSuffix
+    local isPreview = opts and opts.preview
+
+    self:SetSize(settings.width, settings.healthHeight + (settings.powerHeight or 0) + (settings.infoBarHeight or 0))
+
+    -- ── Health ───────────────────────────────────────────────────
+    local health = E.CreateHealth(self, unit, settings)
+    self.health = health
+
+    -- ── Power ────────────────────────────────────────────────────
+    if settings.powerHeight and settings.powerHeight > 0 then
+        local power = E.CreatePower(self, unit, settings)
+        if power then
+            power:SetPoint("TOP", health, "BOTTOM", 0, 0)
+            self.power = power
+        end
+    end
+
+    -- ── Info Bar (bandeau sombre : valeur de ressource + PV totaux) ─
+    if settings.infoBarHeight and settings.infoBarHeight > 0 then
+        local infoBar = E.CreateInfoBar(self, unit, settings)
+        infoBar:SetPoint("TOP", self.power or health, "BOTTOM", 0, 0)
+        self.infoBar = infoBar
+    end
+
+    -- ── Absorb ───────────────────────────────────────────────────
+    if settings.showAbsorb then
+        self.absorb = E.CreateAbsorb(self, health, settings)
+    end
+
+    -- ── Indicateur de menace glow ────────────────────────────────
+    if settings.showThreat then
+        self.threat = E.CreateThreatIndicator(health)
+    end
+
+    -- ── Texte de menace % ────────────────────────────────────────
+    if settings.threatText and settings.threatText.enabled then
+        self.threatText = E.CreateThreatText(health, settings)
+    end
+
+    -- ── Auras ────────────────────────────────────────────────────
+    if settings.auras and settings.auras.enabled then
+        self.auraContainer = E.CreateAuraContainer(self, unit, settings,
+            suffix and ("TomoMod_Auras_" .. unit .. suffix) or nil)
+    end
+
+    -- ── Buffs ennemis ────────────────────────────────────────────
+    if settings.enemyBuffs and settings.enemyBuffs.enabled then
+        self.enemyBuffContainer = E.CreateEnemyBuffContainer(self, unit, settings,
+            suffix and ("TomoMod_EnemyBuffs_" .. unit .. suffix) or nil)
+    end
+
+    if isPreview then
+        -- Mémorisé sur le cadre : E.UpdateEnemyBuffs peut créer son conteneur
+        -- tardivement et doit alors reprendre le même suffixe de nom global.
+        self._tomoNameSuffix = suffix
+        UF.NeutralizeContainer(self.auraContainer)
+        UF.NeutralizeContainer(self.enemyBuffContainer)
+    end
+
+    return self
+end
+
+-- =====================================
 -- oUF STYLE FUNCTION
 -- Appelée par oUF:Spawn pour chaque frame créée.
 -- self = frame oUF (SecureUnitButtonTemplate)
@@ -323,7 +486,6 @@ local function StyleTomoMod(self, unit)
     local settings = db.unitFrames[unit]
     if not settings then return end
 
-    self:SetSize(settings.width, settings.healthHeight + (settings.powerHeight or 0) + (settings.infoBarHeight or 0))
     self:SetAttribute("type1", "target")
     self:SetAttribute("type2", "togglemenu")
     self:RegisterForClicks("AnyDown", "AnyUp")
@@ -338,11 +500,12 @@ local function StyleTomoMod(self, unit)
         GameTooltip:FadeOut()
     end)
 
-    -- ── Health (élément oUF géré) ────────────────────────────────
-    local health = E.CreateHealth(self, unit, settings)
-    -- oUF canonique + alias TomoMod (garde toutes les fonctions Update* intactes)
-    self.Health = health
-    self.health = health
+    -- ── Arbre visuel (partagé avec l'aperçu de configuration) ────
+    UF.BuildVisuals(self, unit, settings, nil)
+
+    -- ── Enregistrement oUF ───────────────────────────────────────
+    -- Alias canoniques oUF au-dessus des alias TomoMod posés par BuildVisuals.
+    self.Health = self.health
 
     -- Override oUF : remplace le handler par défaut de l'élément Health.
     -- Signature : (parentFrame, event, unit) — self ici = parent frame.
@@ -356,51 +519,12 @@ local function StyleTomoMod(self, unit)
         E.UpdateInfoBar(oufFrame)
     end
 
-    -- ── Power (élément oUF géré) ─────────────────────────────────
-    if settings.powerHeight and settings.powerHeight > 0 then
-        local power = E.CreatePower(self, unit, settings)
-        if power then
-            power:SetPoint("TOP", health, "BOTTOM", 0, 0)
-            self.Power = power
-            self.power = power  -- alias TomoMod
-            self.Power.Override = function(oufFrame, event, u)
-                E.UpdatePower(oufFrame)
-                E.UpdateInfoBar(oufFrame)
-            end
+    if self.power then
+        self.Power = self.power
+        self.Power.Override = function(oufFrame, event, u)
+            E.UpdatePower(oufFrame)
+            E.UpdateInfoBar(oufFrame)
         end
-    end
-
-    -- ── Info Bar (dark strip: power value + total HP) ────────────
-    if settings.infoBarHeight and settings.infoBarHeight > 0 then
-        local infoBar = E.CreateInfoBar(self, unit, settings)
-        local anchorTo = self.power or health
-        infoBar:SetPoint("TOP", anchorTo, "BOTTOM", 0, 0)
-        self.infoBar = infoBar
-    end
-
-    -- ── Absorb (custom — pas un élément oUF) ────────────────────
-    if settings.showAbsorb then
-        self.absorb = E.CreateAbsorb(self, health, settings)
-    end
-
-    -- ── Indicateur de menace glow (custom) ──────────────────────
-    if settings.showThreat then
-        self.threat = E.CreateThreatIndicator(health)
-    end
-
-    -- ── Texte de menace % (custom) ───────────────────────────────
-    if settings.threatText and settings.threatText.enabled then
-        self.threatText = E.CreateThreatText(health, settings)
-    end
-
-    -- ── Auras (custom) ───────────────────────────────────────────
-    if settings.auras and settings.auras.enabled then
-        self.auraContainer = E.CreateAuraContainer(self, unit, settings)
-    end
-
-    -- ── Buffs ennemis (custom) ───────────────────────────────────
-    if settings.enemyBuffs and settings.enemyBuffs.enabled then
-        self.enemyBuffContainer = E.CreateEnemyBuffContainer(self, unit, settings)
     end
 
     -- ── Drag ─────────────────────────────────────────────────────
@@ -598,18 +722,7 @@ function UF.ToggleLock()
                 if frame.UpdateAllElements then
                     frame:UpdateAllElements("ToggleLock")
                 else
-                    UpdateHealth(frame)
-                    UpdateAbsorb(frame)
-                    if frame.power then E.UpdatePower(frame) end
-                    E.UpdateInfoBar(frame)
-                    UpdateName(frame)
-                    UpdateLevel(frame)
-                    UpdateThreat(frame)
-                    UpdateThreatText(frame)
-                    UpdateRaidIcon(frame)
-                    UpdateLeaderIcon(frame)
-                    E.UpdateAuras(frame)
-                    E.UpdateEnemyBuffs(frame)
+                    UF.UpdateAllData(frame)
                 end
             end
         end
@@ -627,9 +740,17 @@ function UF.ToggleLock()
     end
 end
 
-function UF.RefreshUnit(unitKey)
-    local frame    = frames[unitKey]
-    local settings = TomoModDB.unitFrames[unitKey]
+-- =====================================
+-- APPLY VISUALS — mise en forme partagée (géométrie / textures / polices)
+-- =====================================
+-- Deuxième moitié du moteur partagé : tout ce qui peut être réappliqué à
+-- chaud sur un arbre déjà construit, sans lire la moindre donnée d'unité.
+-- Appelée par UF.RefreshUnit (cadres de jeu) ET par l'aperçu du panneau.
+-- Les changements STRUCTURELS (activer/désactiver une barre, un conteneur
+-- d'auras) restent du ressort de BuildVisuals — /reload en jeu, reconstruction
+-- immédiate côté aperçu.
+-- =====================================
+function UF.ApplyVisuals(frame, unitKey, settings)
     if not frame or not settings then return end
 
     local globalDB    = TomoModDB.unitFrames
@@ -653,6 +774,17 @@ function UF.RefreshUnit(unitKey)
         frame.infoBar:SetSize(settings.width, settings.infoBarHeight)
         if frame.infoBar.powerText then frame.infoBar.powerText:SetFont(font, fontSize - 1, fontOutline) end
         if frame.infoBar.hpText    then frame.infoBar.hpText:SetFont(font, fontSize - 1, fontOutline) end
+    end
+
+    -- Texture des barres — n'était lue qu'à la création (CreateHealth /
+    -- CreatePower), donc changer de texture demandait un /reload. Réappliquée
+    -- à chaud ici. La couleur est reposée juste après par UpdateHealth /
+    -- UpdatePower (SetStatusBarTexture remet la teinte à blanc).
+    local barTex = globalDB.texture
+    if barTex then
+        ApplyBarTexture(frame.health,  barTex)
+        ApplyBarTexture(frame.power,   barTex)
+        ApplyBarTexture(frame.absorb,  barTex)
     end
 
     -- Offsets d'éléments
@@ -721,15 +853,38 @@ function UF.RefreshUnit(unitKey)
     -- Redimensionner les icônes d'aura puis ré-appliquer la grille (même layout
     -- qu'à la création — évite toute incohérence de taille/espacement entre unités).
     if frame.auraContainer and frame.auraContainer.icons and settings.auras then
-        local auraSize = settings.auras.size or 30
+        local auraSize     = settings.auras.size or 30
+        local hideCountdown = not settings.auras.showDuration
         for _, icon in ipairs(frame.auraContainer.icons) do
             icon:SetSize(auraSize, auraSize)
             if icon.texture then icon.texture:SetAllPoints(icon) end
+            -- showDuration n'était appliqué qu'à la création : un /reload était
+            -- nécessaire pour voir le changement. Réappliqué à chaud ici.
+            if icon.cooldown then icon.cooldown:SetHideCountdownNumbers(hideCountdown) end
         end
         if E and E.LayoutAuraGrid then
             E.LayoutAuraGrid(frame.auraContainer, settings.auras)
         end
     end
+
+    -- Icônes de buffs ennemis : idem pour le décompte.
+    if frame.enemyBuffContainer and frame.enemyBuffContainer.icons and settings.enemyBuffs then
+        local hideCountdown = not settings.enemyBuffs.showDuration
+        for _, icon in ipairs(frame.enemyBuffContainer.icons) do
+            if icon.cooldown then icon.cooldown:SetHideCountdownNumbers(hideCountdown) end
+        end
+    end
+end
+
+-- =====================================
+-- REFRESH UNIT — ApplyVisuals + rafraîchissement des données réelles
+-- =====================================
+function UF.RefreshUnit(unitKey)
+    local frame    = frames[unitKey]
+    local settings = TomoModDB.unitFrames[unitKey]
+    if not frame or not settings then return end
+
+    UF.ApplyVisuals(frame, unitKey, settings)
 
     -- Enemy Buff Container
     if settings.enemyBuffs then
@@ -757,18 +912,7 @@ function UF.RefreshUnit(unitKey)
     if frame.UpdateAllElements then
         frame:UpdateAllElements("RefreshUnit")
     else
-        UpdateHealth(frame)
-        UpdateAbsorb(frame)
-        if frame.power then E.UpdatePower(frame) end
-        E.UpdateInfoBar(frame)
-        UpdateName(frame)
-        UpdateLevel(frame)
-        UpdateThreat(frame)
-        UpdateThreatText(frame)
-        UpdateRaidIcon(frame)
-        UpdateLeaderIcon(frame)
-        E.UpdateAuras(frame)
-        E.UpdateEnemyBuffs(frame)
+        UF.UpdateAllData(frame)
     end
 
     -- Re-anchor standalone castbar to this UF frame (if applicable)

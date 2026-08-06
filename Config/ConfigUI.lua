@@ -81,6 +81,7 @@ local ICON_PATH = ADDON_PATH .. "Assets\\Textures\\icons\\"
 
 local categories = {
     { key = "accueil",   label = LT("cat_accueil", "Accueil"), icon = ICON_PATH .. "ico_gui.tga",          accent = { 0.180, 0.847, 0.518 }, desc = L["cat_accueil_desc"], kw = "accueil home dashboard tableau bord vue" },
+    { key = "roles",     label = L["cat_roles"],                      icon = ICON_PATH .. "icon_partyframes.tga", accent = { 0.94, 0.74, 0.35 }, desc = L["cat_roles_desc"], kw = "role roles tank tanking heal healer soigneur dps damage degats guide" },
     { key = "interface", label = L["cat_interface"],                   icon = ICON_PATH .. "icon_general.tga",    accent = { 0.49, 0.91, 1.00 }, desc = L["cat_interface_desc"], kw = "general minimap actionbar skins son audio chat sacs tooltip" },
     { key = "units",     label = L["cat_units"],                      icon = ICON_PATH .. "icon_unitframes.tga", accent = { 0.46, 0.72, 1.00 }, desc = L["cat_units_desc"], kw = "unit frames nameplates party raid groupe cible plaques" },
     { key = "combat",    label = L["cat_combat"],                      icon = ICON_PATH .. "icon_castbars.tga",   accent = { 0.96, 0.70, 0.26 }, desc = L["cat_combat_desc"], kw = "castbar ressources cooldown mythic mplus combat" },
@@ -386,7 +387,11 @@ local function SwitchPendingTab(panel)
 end
 
 local function BuildGroupedPanel(parent, tabs, defaultKey)
-    local selected = C._pendingGroupTab or defaultKey or (tabs[1] and tabs[1].key)
+    -- A pending deep-link path names the outermost tab at index 1 and takes
+    -- precedence over the legacy single-key hint. The path itself is NOT
+    -- consumed here: nested tab bars further down still need to read it.
+    local path = C._pendingTabPath
+    local selected = (path and path[1]) or C._pendingGroupTab or defaultKey or (tabs[1] and tabs[1].key)
     C._pendingGroupTab = nil
 
     local exists = false
@@ -410,6 +415,11 @@ local CATEGORY_TREE = {
         { key = "actionbars", label = L["cfg_tab_actionbars"],  global = "TomoMod_ConfigPanel_ActionBars" },
         { key = "skins",      label = L["cfg_tab_skins"],            global = "TomoMod_ConfigPanel_Skins" },
         { key = "sound",      label = L["cfg_tab_sound"],              global = "TomoMod_ConfigPanel_Sound" },
+    },
+    roles = {
+        { key = "tank",   label = L["cfg_tab_role_tank"],   global = "TomoMod_ConfigPanel_RoleTank" },
+        { key = "healer", label = L["cfg_tab_role_healer"], global = "TomoMod_ConfigPanel_RoleHealer" },
+        { key = "dps",    label = L["cfg_tab_role_dps"],    global = "TomoMod_ConfigPanel_RoleDps" },
     },
     units = {
         { key = "unitframes",  label = L["cfg_tab_unitframes"], global = "TomoMod_ConfigPanel_UnitFrames" },
@@ -700,8 +710,106 @@ local function CreateConfigFrame()
     configFrame._searchWrap = searchWrap
     configFrame._searchBox  = searchBox
 
+    -- ── Filtre par rôle ────────────────────────────────────────
+    -- Dims settings that belong to other roles instead of hiding them,
+    -- so a player never loses track of an option they already know.
+    local ROLEBAR_H  = 24
+    local ROLEBAR_Y  = 8 + SEARCH_H + 6
+
+    local roleBar = CreateFrame("Frame", nil, sidebar)
+    roleBar:SetPoint("TOPLEFT",  8, -ROLEBAR_Y)
+    roleBar:SetPoint("TOPRIGHT", -8, -ROLEBAR_Y)
+    roleBar:SetHeight(ROLEBAR_H)
+
+    local ROLE_SLOTS = {
+        { key = "ALL" },
+        { key = "TANK" },
+        { key = "HEALER" },
+        { key = "DAMAGER" },
+    }
+    local RB_GAP = 2
+    local RB_W   = math.floor((NAV_W - 16 - RB_GAP * (#ROLE_SLOTS - 1)) / #ROLE_SLOTS)
+
+    local roleButtons = {}
+
+    local function SetRoleButtonVisual(btn, active)
+        local c = btn._roleColor
+        if active then
+            btn:SetBackdropColor(c[1] * 0.30, c[2] * 0.30, c[3] * 0.30, 0.95)
+            btn:SetBackdropBorderColor(c[1], c[2], c[3], 0.95)
+            if btn._icon then btn._icon:SetVertexColor(c[1], c[2], c[3], 1) end
+            if btn._lbl  then btn._lbl:SetTextColor(c[1], c[2], c[3], 1) end
+        else
+            btn:SetBackdropColor(0.075, 0.075, 0.095, 1)
+            btn:SetBackdropBorderColor(0.18, 0.18, 0.22, 1)
+            if btn._icon then btn._icon:SetVertexColor(0.42, 0.42, 0.48, 1) end
+            if btn._lbl  then btn._lbl:SetTextColor(0.46, 0.46, 0.52, 1) end
+        end
+    end
+
+    local function RefreshRoleButtons()
+        local active = (W and W.GetRoleFilter and W.GetRoleFilter()) or "ALL"
+        for _, btn in ipairs(roleButtons) do
+            SetRoleButtonVisual(btn, btn._roleKey == active)
+        end
+    end
+    C.RefreshRoleButtons = RefreshRoleButtons
+
+    for i, slot in ipairs(ROLE_SLOTS) do
+        local info = (slot.key ~= "ALL") and W.ROLE_INFO and W.ROLE_INFO[slot.key] or nil
+
+        local btn = CreateFrame("Button", nil, roleBar, "BackdropTemplate")
+        btn:SetSize(RB_W, ROLEBAR_H)
+        btn:SetPoint("TOPLEFT", (i - 1) * (RB_W + RB_GAP), 0)
+        btn:SetBackdrop({ bgFile = WHITE8, edgeFile = WHITE8, edgeSize = 1 })
+        btn._roleKey   = slot.key
+        btn._roleColor = info and info.color or { aR, aG, aB }
+
+        if info then
+            local ico = btn:CreateTexture(nil, "OVERLAY")
+            ico:SetSize(14, 14)
+            ico:SetPoint("CENTER")
+            ico:SetTexture(info.icon)
+            btn._icon = ico
+            btn._roleName = (W.Loc and W.Loc(info.lk, slot.key)) or slot.key
+        else
+            local lbl = btn:CreateFontString(nil, "OVERLAY")
+            lbl:SetFont(FONT, 10, "")
+            lbl:SetPoint("CENTER")
+            lbl:SetText((W.Loc and W.Loc("cfg_rolefilter_all", "Tous")) or "Tous")
+            btn._lbl = lbl
+        end
+
+        btn:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText((W.Loc and W.Loc("cfg_rolefilter_label", "Focus rôle")) or "Focus rôle", 1, 1, 1)
+            if self._roleName then
+                GameTooltip:AddLine(
+                    string.format((W.Loc and W.Loc("cfg_rolefilter_tip", "%s")) or "%s", self._roleName),
+                    0.72, 0.72, 0.78, true)
+            else
+                GameTooltip:AddLine(
+                    (W.Loc and W.Loc("cfg_rolefilter_tip_all", "")) or "", 0.72, 0.72, 0.78, true)
+            end
+            GameTooltip:Show()
+        end)
+        btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        btn:SetScript("OnClick", function(self)
+            if W and W.SetRoleFilter then W.SetRoleFilter(self._roleKey) end
+            local gdb = GuiDB()
+            gdb.roleFilter = (self._roleKey ~= "ALL") and self._roleKey or nil
+            RefreshRoleButtons()
+        end)
+
+        roleButtons[#roleButtons + 1] = btn
+    end
+
+    -- Restore the saved focus before any page is built.
+    if W and W.SetRoleFilter then W.SetRoleFilter(GuiDB().roleFilter or "ALL") end
+    RefreshRoleButtons()
+
     -- ── Zone de navigation défilante ───────────────────────────
-    local NAV_TOP    = 8 + SEARCH_H + 8
+    local NAV_TOP    = ROLEBAR_Y + ROLEBAR_H + 8
     local NAV_BOTTOM = 26
     local navScroll = CreateFrame("ScrollFrame", nil, sidebar)
     navScroll:SetPoint("TOPLEFT", 0, -NAV_TOP)
@@ -924,6 +1032,7 @@ function C.SwitchCategory(key)
 
         local builderMap = {
             interface = function(p) return BuildGroupedFromTree(p, "interface") end,
+            roles     = function(p) return BuildGroupedFromTree(p, "roles") end,
             units     = function(p) return BuildGroupedFromTree(p, "units") end,
             combat    = function(p) return BuildGroupedFromTree(p, "combat") end,
             comfort   = function(p) return BuildGroupedFromTree(p, "comfort") end,
@@ -950,6 +1059,11 @@ function C.SwitchCategory(key)
     if key == "units" and TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
         TomoMod_UnitFrames.RefreshThreatPreview(true)
     end
+
+    -- [Lot A] Pages are built lazily and cached: a freshly built page has
+    -- just registered its tagged sections, so the filter is re-applied here.
+    if W and W.ApplyRoleFilter then W.ApplyRoleFilter() end
+
     currentCategory = key
 end
 
@@ -1007,6 +1121,19 @@ end
 -- outside the panels, so cached widget values would be stale). The rebuild
 -- of the open page is deferred one frame so any running click handler of
 -- the old page finishes safely first.
+-- Drops one cached page so the next SwitchCategory rebuilds it. Deep-links
+-- need this: a cached page is re-shown without rebuilding, so no tab bar is
+-- created and a pending tab path would never be read.
+function C.InvalidateCategory(key)
+    local cached = key and categoryPanels[key]
+    if not cached then return end
+    if cached.root then
+        if activeCategoryPanel == cached.root then activeCategoryPanel = nil end
+        ParkPanel(cached.root)
+    end
+    categoryPanels[key] = nil
+end
+
 function C.InvalidatePanels()
     ClearContentArea()
     if configFrame and configFrame:IsShown() and currentCategory then

@@ -88,11 +88,14 @@ end
 -- CREATE AURA CONTAINER
 -- =====================================
 
-function UF_Elements.CreateAuraContainer(parent, unit, settings)
+-- nameOverride : nom global alternatif. L'aperçu de configuration construit
+-- de vrais conteneurs d'auras ; sans ce paramètre il écraserait
+-- _G["TomoMod_Auras_player"], que le module Movers utilise.
+function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
     if not settings or not settings.auras or not settings.auras.enabled then return nil end
 
     local auraSettings = settings.auras
-    local container = CreateFrame("Frame", "TomoMod_Auras_" .. unit, parent)
+    local container = CreateFrame("Frame", nameOverride or ("TomoMod_Auras_" .. unit), parent)
     -- Largeur de référence pour le calcul de la grille (réglage explicite sinon 300).
     local refWidth = (auraSettings.maxWidth and auraSettings.maxWidth > 0) and auraSettings.maxWidth or 300
     container:SetSize(refWidth, auraSettings.size + 4)
@@ -344,7 +347,8 @@ end
 -- ENEMY BUFF CONTAINER (shows HELPFUL auras on enemy units)
 -- =====================================
 
-function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
+-- nameOverride : voir CreateAuraContainer.
+function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings, nameOverride)
     if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled then return nil end
 
     local buffSettings = settings.enemyBuffs
@@ -363,7 +367,7 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings)
     local containerW = ICONS_PER_ROW * size + (ICONS_PER_ROW - 1) * spacing
     local containerH = numRows * size + (numRows - 1) * spacing
 
-    local container = CreateFrame("Frame", "TomoMod_EnemyBuffs_" .. unit, parent)
+    local container = CreateFrame("Frame", nameOverride or ("TomoMod_EnemyBuffs_" .. unit), parent)
     container:SetSize(containerW, containerH)
     container:SetFrameLevel(parent:GetFrameLevel() + 10)
     container.unit = unit
@@ -516,9 +520,14 @@ function UF_Elements.UpdateEnemyBuffs(frame)
     -- Montrer les buffs sur TOUS les types de cibles : ennemis, neutres et amis.
     -- (Suppression de l'ancien guard UnitCanAttack qui excluait les cibles amies.)
 
-    -- Create container dynamically if missing
+    -- Create container dynamically if missing.
+    -- frame._tomoNameSuffix : posé par UF.BuildVisuals en mode aperçu. Sans lui,
+    -- cette création tardive enregistrerait le conteneur de l'aperçu sous le nom
+    -- global du cadre de jeu et écraserait _G["TomoMod_EnemyBuffs_<unit>"].
     if not frame.enemyBuffContainer then
-        frame.enemyBuffContainer = UF_Elements.CreateEnemyBuffContainer(frame, unit, settings)
+        local suffix = frame._tomoNameSuffix
+        frame.enemyBuffContainer = UF_Elements.CreateEnemyBuffContainer(frame, unit, settings,
+            suffix and ("TomoMod_EnemyBuffs_" .. unit .. suffix) or nil)
         if not frame.enemyBuffContainer then return end
     end
 

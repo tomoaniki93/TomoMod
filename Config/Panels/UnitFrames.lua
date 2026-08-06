@@ -198,7 +198,7 @@ local function BuildDisplayTab(parent, unitKey)
 
     -- Threat text (% de menace — target uniquement)
     if db.threatText ~= nil then
-        local _, ny = W.CreateSectionHeader(c, L["section_threat_text"], y)
+        local _, ny = W.CreateSectionHeader(c, L["section_threat_text"], y, "T")
         y = ny
 
         local _, ny = W.CreateCheckbox(c, L["opt_threat_text_enable"], db.threatText.enabled, y, function(v)
@@ -719,8 +719,10 @@ function TomoMod_ConfigPanel_UnitFrames(parent)
     tabHost:SetPoint("TOPLEFT",     wrapper, "TOPLEFT",     0, -PREVIEW_H_INITIAL)
     tabHost:SetPoint("BOTTOMRIGHT", wrapper, "BOTTOMRIGHT", 0, 0)
 
-    -- Ré-ancrage automatique quand le strip change de hauteur
-    preview:SetScript("OnSizeChanged", function(self)
+    -- Ré-ancrage automatique quand le strip change de hauteur.
+    -- HookScript et non SetScript : l'aperçu pose déjà son propre handler
+    -- OnSizeChanged pour recalculer son échelle, un SetScript l'effacerait.
+    preview:HookScript("OnSizeChanged", function(self)
         local h = math.floor(self:GetHeight() + 0.5)
         tabHost:ClearAllPoints()
         tabHost:SetPoint("TOPLEFT",     wrapper, "TOPLEFT",     0, -h)

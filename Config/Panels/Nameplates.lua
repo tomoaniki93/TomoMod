@@ -264,7 +264,7 @@ local function BuildGeneralTab(parent)
     y = W.FinalizeCard(card5, cy)
 
     -- Castbar
-    local card6, cy = W.CreateCard(c, L["section_castbar"], y)
+    local card6, cy = W.CreateCard(c, L["section_castbar"], y, "TD")
     local _, cy = W.CreateCheckbox(card6.inner, L["opt_np_show_castbar"], db.showCastbar, cy, function(v) db.showCastbar = v; RefreshNP() end)
     local _, cy = W.CreateSlider(card6.inner, L["opt_np_castbar_height"], db.castbarHeight, 4, 20, 1, cy, function(v) db.castbarHeight = v; RefreshNP() end)
     local _, cy = W.CreateColorPickerPair(card6.inner, L["color_castbar"], db.castbarColor, L["color_castbar_uninterruptible"], db.castbarUninterruptible, cy,
@@ -286,7 +286,7 @@ local function BuildAurasTab(parent)
     local db = TomoModDB.nameplates
     local y = -12
 
-    local card, cy = W.CreateCard(c, L["section_auras"], y)
+    local card, cy = W.CreateCard(c, L["section_auras"], y, "D")
     local _, cy = W.CreateCheckbox(card.inner, L["opt_np_show_auras"], db.showAuras, cy, function(v) db.showAuras = v; RefreshNP() end)
     local _, cy = W.CreateCheckbox(card.inner, L["opt_np_only_my_debuffs"], db.showOnlyMyAuras, cy, function(v) db.showOnlyMyAuras = v; RefreshNP() end)
     local _, cy = W.CreateTwoColumnRow(card.inner, cy,
@@ -294,7 +294,7 @@ local function BuildAurasTab(parent)
         function(col) local _, ny = W.CreateSlider(col, L["opt_np_max_auras"], db.maxAuras, 1, 10, 1, 0, function(v) db.maxAuras = v; RefreshNP() end) return ny end)
     y = W.FinalizeCard(card, cy)
 
-    local card2, cy = W.CreateCard(c, L["section_enemy_buffs"], y)
+    local card2, cy = W.CreateCard(c, L["section_enemy_buffs"], y, "TD")
     local _, cy = W.CreateCheckbox(card2.inner, L["opt_np_show_enemy_buffs"], db.showEnemyBuffs, cy, function(v) db.showEnemyBuffs = v; RefreshNP() end)
     local _, cy = W.CreateTwoColumnRow(card2.inner, cy,
         function(col) local _, ny = W.CreateSlider(col, L["opt_np_enemy_buff_size"], db.enemyBuffSize or 18, 12, 36, 1, 0, function(v) db.enemyBuffSize = v; RefreshNP() end) return ny end,
@@ -362,7 +362,7 @@ local function BuildAdvancedTab(parent)
     y = W.FinalizeCard(card4, cy)
 
     -- Mode tank
-    local card5, cy = W.CreateCard(c, L["section_tank_mode"], y)
+    local card5, cy = W.CreateCard(c, L["section_tank_mode"], y, "T")
     local _, cy = W.CreateCheckbox(card5.inner, L["opt_np_tank_mode"], db.tankMode, cy, function(v) db.tankMode = v; RefreshNP() end)
     local _, cy = W.CreateColorPickerPair(card5.inner, L["color_no_threat"], db.tankColors.noThreat, L["color_low_threat"], db.tankColors.lowThreat, cy,
         function(r,g,b) db.tankColors.noThreat = {r=r,g=g,b=b} end,

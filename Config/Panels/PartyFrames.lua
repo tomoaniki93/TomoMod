@@ -107,7 +107,7 @@ local function BuildFeaturesTab(parent)
     local y = -12
 
     -- Absorb & Heal Prediction
-    local card, cy = W.CreateCard(c, L["pf_section_health_extras"], y)
+    local card, cy = W.CreateCard(c, L["pf_section_health_extras"], y, "H")
     local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_show_absorb"], db.showAbsorb, cy, function(v) db.showAbsorb = v; ApplyPF() end)
     local ac = db.absorbColor or { r = 0.5, g = 0.5, b = 1.0 }
     local _, cy = W.CreateColorPicker(card.inner, L["pf_opt_absorb_color"], ac, cy, function(r,g,b) db.absorbColor = { r=r, g=g, b=b, a=0.5 }; ApplyPF() end)
@@ -115,20 +115,20 @@ local function BuildFeaturesTab(parent)
     y = W.FinalizeCard(card, cy)
 
     -- Range
-    local card2, cy = W.CreateCard(c, L["pf_section_range"], y)
+    local card2, cy = W.CreateCard(c, L["pf_section_range"], y, "H")
     local _, cy = W.CreateCheckbox(card2.inner, L["pf_opt_show_range"], db.showRange, cy, function(v) db.showRange = v end)
     local _, cy = W.CreateSlider(card2.inner, L["pf_opt_oor_alpha"], db.oorAlpha, 0.10, 0.80, 0.05, cy, function(v) db.oorAlpha = v end, "%.2f")
     y = W.FinalizeCard(card2, cy)
 
     -- Dispel
-    local card3, cy = W.CreateCard(c, L["pf_section_dispel"], y)
+    local card3, cy = W.CreateCard(c, L["pf_section_dispel"], y, "H")
     local _, cy = W.CreateCheckbox(card3.inner, L["pf_opt_show_dispel"], db.showDispel, cy, function(v) db.showDispel = v; ApplyPF() end)
     local _, cy = W.CreateSlider(card3.inner, L["pf_opt_dispel_border"], db.dispelBorderSize or 2, 1, 6, 1, cy, function(v) db.dispelBorderSize = v; ApplyPF() end, "%.0f")
     local _, cy = W.CreateInfoText(card3.inner, L["pf_info_dispel"], cy)
     y = W.FinalizeCard(card3, cy)
 
     -- HoTs
-    local card4, cy = W.CreateCard(c, L["pf_section_hots"], y)
+    local card4, cy = W.CreateCard(c, L["pf_section_hots"], y, "H")
     local _, cy = W.CreateCheckbox(card4.inner, L["pf_opt_show_hots"], db.showHoTs, cy, function(v) db.showHoTs = v; ApplyPF() end)
     local _, cy = W.CreateSlider(card4.inner, L["pf_opt_hot_size"], db.hotSize, 8, 20, 1, cy, function(v) db.hotSize = v end, "%.0f")
     local _, cy = W.CreateSlider(card4.inner, L["pf_opt_max_hots"], db.maxHoTs, 1, 6, 1, cy, function(v) db.maxHoTs = v end, "%.0f")
@@ -136,7 +136,7 @@ local function BuildFeaturesTab(parent)
     y = W.FinalizeCard(card4, cy)
 
     -- Defensive cooldowns
-    local card5, cy = W.CreateCard(c, L["pf_section_defensives"], y)
+    local card5, cy = W.CreateCard(c, L["pf_section_defensives"], y, "TH")
     local _, cy = W.CreateCheckbox(card5.inner, L["pf_opt_show_defensives"], db.showDefensives, cy, function(v) db.showDefensives = v; ApplyPF() end)
     local _, cy = W.CreateSlider(card5.inner, L["pf_opt_defensive_size"], db.defensiveIconSize or 16, 10, 24, 1, cy, function(v) db.defensiveIconSize = v; ApplyPF() end, "%.0f")
     local _, cy = W.CreateSlider(card5.inner, L["pf_opt_max_defensives"], db.maxDefensives or 2, 1, 4, 1, cy, function(v) db.maxDefensives = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
@@ -160,7 +160,7 @@ local function BuildCooldownsTab(parent)
     local db = TomoModDB.partyFrames
     local y = -12
 
-    local card, cy = W.CreateCard(c, L["pf_section_cooldowns"], y)
+    local card, cy = W.CreateCard(c, L["pf_section_cooldowns"], y, "TD")
     local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_show_kick"], db.showInterruptCD, cy, function(v) db.showInterruptCD = v end)
     local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_show_brez"], db.showBrezCD, cy, function(v) db.showBrezCD = v end)
     local _, cy = W.CreateSlider(card.inner, L["pf_opt_cd_size"], db.cdIconSize, 12, 28, 1, cy, function(v) db.cdIconSize = v; ApplyPF() end, "%.0f")
@@ -171,7 +171,7 @@ local function BuildCooldownsTab(parent)
     local _, cy = W.CreateInfoText(card.inner, L["pf_info_cooldowns"], cy)
     y = W.FinalizeCard(card, cy)
 
-    local cardRez, cy = W.CreateCard(c, L["pf_section_resurrect"], y)
+    local cardRez, cy = W.CreateCard(c, L["pf_section_resurrect"], y, "H")
     local _, cy = W.CreateCheckbox(cardRez.inner, L["pf_opt_show_resurrect"], db.showResurrectIndicator, cy, function(v) db.showResurrectIndicator = v; ApplyRT() end)
     local _, cy = W.CreateSlider(cardRez.inner, L["pf_opt_resurrect_size"], db.resurrectIconSize or 26, 12, 44, 1, cy, function(v) db.resurrectIconSize = v; ApplyRT() end, "%.0f")
     local _, cy = W.CreateInfoText(cardRez.inner, L["pf_info_resurrect"], cy)

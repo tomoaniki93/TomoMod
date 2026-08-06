@@ -79,6 +79,96 @@ local function Refresh() -- forward decl
 end
 
 -- ---------------------------------------------------------------------
+-- Cooldown Studio launcher
+--
+-- The Studio ships as a sibling LoadOnDemand addon (TomoMod_CDStudio), so
+-- every load failure the client can report has to be turned into something
+-- the player can act on. LoadAddOn hands back a locale-independent token:
+-- "DISABLED" means the folder is installed but left unchecked in the addon
+-- list, "MISSING" means it is genuinely absent -- two very different fixes
+-- that the old single catch-all message conflated.
+-- ---------------------------------------------------------------------
+local STUDIO = "TomoMod_CDStudio"
+local PREFIX = "|cff2ed884TomoMod|r : "
+
+-- Per-token remediation advice. The client already localises the reason
+-- itself through _G["ADDON_"..token]; what it never says is what to do.
+local STUDIO_HINT = {
+    MISSING               = "le dossier TomoMod_CDStudio est absent de Interface/AddOns. Il s'installe a cote de TomoMod, jamais dedans.",
+    DISABLED              = "le sous-addon est decoche dans la liste des addons. Coche \"TomoMod Cooldown Studio\", puis recharge l'interface.",
+    DEP_DISABLED          = "une dependance du Studio est decochee dans la liste des addons.",
+    DEP_MISSING           = "une dependance du Studio est absente.",
+    INTERFACE_VERSION     = "le Studio est marque obsolete pour cette version du jeu. Coche \"Charger les AddOns obsoletes\" a l'ecran de selection de personnage.",
+    DEP_INTERFACE_VERSION = "une dependance du Studio est marquee obsolete pour cette version du jeu.",
+    CORRUPT               = "les fichiers du Studio sont endommages. Reinstalle TomoMod.",
+    DEP_CORRUPT           = "une dependance du Studio est endommagee.",
+    BANNED                = "le Studio est bloque par le client.",
+    NOT_DEMAND_LOADED     = "le Studio n'est pas marque LoadOnDemand.",
+    DEMAND_LOADED         = "le Studio n'est pas marque LoadOnDemand.",
+    INSECURE              = "le Studio a ete refuse par le client.",
+}
+
+local function StudioReasonText(reason)
+    if not reason then return nil end
+    local hint  = STUDIO_HINT[reason]
+    local label = _G["ADDON_" .. reason] -- client wording, already localised
+    if hint then
+        return (label and (label .. " - ") or "") .. hint
+    end
+    return label or reason
+end
+
+-- Pre-flight state used to decorate the card. Never let a bad addon name
+-- bubble an error up through the panel build.
+local function StudioLoadReason()
+    if C_AddOns.IsAddOnLoaded(STUDIO) then return nil end
+    local ok, _, _, _, _, reason = pcall(C_AddOns.GetAddOnInfo, STUDIO)
+    if not ok then return nil end
+    return reason
+end
+
+-- Hoisted to module scope: BuildContent runs on every structural change, so
+-- keeping this out of the button closure avoids re-allocating it per rebuild.
+local function OpenStudio()
+    if not C_AddOns.IsAddOnLoaded(STUDIO) then
+        local ok, reason = C_AddOns.LoadAddOn(STUDIO)
+
+        -- Self-heal the overwhelmingly common case: installed but unchecked.
+        -- Enabling flips the client flag; the LoD load then succeeds straight
+        -- away on most clients, and where it does not the enable still sticks
+        -- so a single reload finishes the job.
+        if not ok and reason == "DISABLED" and C_AddOns.EnableAddOn then
+            pcall(C_AddOns.EnableAddOn, STUDIO)
+            ok, reason = C_AddOns.LoadAddOn(STUDIO)
+            if not ok then
+                print(PREFIX .. "Cooldown Studio active. Recharge l'interface (/reload) pour l'ouvrir.")
+                return
+            end
+        end
+
+        if not ok then
+            print(PREFIX .. "Cooldown Studio indisponible : "
+                .. (StudioReasonText(reason) or "raison inconnue") .. ".")
+            return
+        end
+    end
+
+    -- LoadAddOn reported success but the entry point is missing: the sub-addon
+    -- bailed out during its own load (it returns early when TomoMod_Widgets is
+    -- unavailable) and publishes loadError to say why. Report it rather than
+    -- swallowing the click.
+    if not (TomoMod_CDStudio and TomoMod_CDStudio.Open) then
+        local why = type(TomoMod_CDStudio) == "table" and TomoMod_CDStudio.loadError or nil
+        print(PREFIX .. "Cooldown Studio charge mais non initialise"
+            .. (why and (" (" .. why .. ")") or "") .. ". Recharge l'interface (/reload).")
+        return
+    end
+
+    if TomoMod_Config and TomoMod_Config.Hide then TomoMod_Config.Hide() end
+    TomoMod_CDStudio.Open()
+end
+
+-- ---------------------------------------------------------------------
 -- Content builder
 -- ---------------------------------------------------------------------
 local function BuildContent(c)
@@ -97,20 +187,14 @@ local function BuildContent(c)
     card, cy = W.CreateCard(c, "Cooldown Studio", y)
     _, cy = W.CreateInfoText(card.inner,
         "Editeur dedie plein ecran : barres, sorts, styles, partage et mode edition.", cy)
-    _, cy = W.CreateButton(card.inner, "Ouvrir le Cooldown Studio", 240, cy, function()
-        if not C_AddOns.IsAddOnLoaded("TomoMod_CDStudio") then
-            local ok, reason = C_AddOns.LoadAddOn("TomoMod_CDStudio")
-            if not ok then
-                print("|cff2ed884TomoMod|r : Cooldown Studio introuvable ("
-                    .. tostring(reason or "?") .. "). Sous-addon TomoMod_CDStudio non installe ?")
-                return
-            end
-        end
-        if TomoMod_CDStudio and TomoMod_CDStudio.Open then
-            if TomoMod_Config and TomoMod_Config.Hide then TomoMod_Config.Hide() end
-            TomoMod_CDStudio.Open()
-        end
-    end)
+    _, cy = W.CreateButton(card.inner, "Ouvrir le Cooldown Studio", 240, cy, OpenStudio)
+    -- Surface a blocking reason before the click. The button deliberately stays
+    -- enabled: for DISABLED, clicking it is exactly what repairs the situation.
+    local blocked = StudioLoadReason()
+    if blocked then
+        _, cy = W.CreateInfoText(card.inner,
+            "Studio indisponible : " .. (StudioReasonText(blocked) or blocked), cy)
+    end
     y = W.FinalizeCard(card, cy)
 
     -- CLASS ------------------------------------------------------------

@@ -100,37 +100,37 @@ local function BuildFeaturesTab(parent)
     local db = TomoModDB.raidFrames
     local y = -12
 
-    local card, cy = W.CreateCard(c, L["rf_section_health_extras"], y)
+    local card, cy = W.CreateCard(c, L["rf_section_health_extras"], y, "H")
     local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_show_power"], db.showPower, cy, function(v) db.showPower = v; ApplyRF() end)
     local _, cy = W.CreateSlider(card.inner, L["rf_opt_power_height"], db.powerHeight, 1, 8, 1, cy, function(v) db.powerHeight = v; ApplyRF() end, "%.0f")
     local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_show_absorb"], db.showAbsorb, cy, function(v) db.showAbsorb = v; ApplyRF() end)
     local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_show_heal_pred"], db.showHealPrediction, cy, function(v) db.showHealPrediction = v; ApplyRF() end)
     y = W.FinalizeCard(card, cy)
 
-    local card2, cy = W.CreateCard(c, L["rf_section_range"], y)
+    local card2, cy = W.CreateCard(c, L["rf_section_range"], y, "H")
     local _, cy = W.CreateCheckbox(card2.inner, L["rf_opt_show_range"], db.showRange, cy, function(v) db.showRange = v end)
     local _, cy = W.CreateSlider(card2.inner, L["rf_opt_oor_alpha"], db.oorAlpha, 0.10, 0.80, 0.05, cy, function(v) db.oorAlpha = v end, "%.2f")
     y = W.FinalizeCard(card2, cy)
 
-    local card3, cy = W.CreateCard(c, L["rf_section_dispel"], y)
+    local card3, cy = W.CreateCard(c, L["rf_section_dispel"], y, "H")
     local _, cy = W.CreateCheckbox(card3.inner, L["rf_opt_show_dispel"], db.showDispel, cy, function(v) db.showDispel = v; ApplyRF() end)
     local _, cy = W.CreateSlider(card3.inner, L["rf_opt_dispel_border"], db.dispelBorderSize or 2, 1, 6, 1, cy, function(v) db.dispelBorderSize = v; ApplyRF() end, "%.0f")
     local _, cy = W.CreateInfoText(card3.inner, L["pf_info_dispel"], cy)
     y = W.FinalizeCard(card3, cy)
 
-    local card4, cy = W.CreateCard(c, L["rf_section_hots"], y)
+    local card4, cy = W.CreateCard(c, L["rf_section_hots"], y, "H")
     local _, cy = W.CreateCheckbox(card4.inner, L["rf_opt_show_hots"], db.showHoTs, cy, function(v) db.showHoTs = v; ApplyRF() end)
     local _, cy = W.CreateSlider(card4.inner, L["rf_opt_hot_size"], db.hotSize, 6, 16, 1, cy, function(v) db.hotSize = v end, "%.0f")
     local _, cy = W.CreateSlider(card4.inner, L["rf_opt_max_hots"], db.maxHoTs, 1, 4, 1, cy, function(v) db.maxHoTs = v end, "%.0f")
     y = W.FinalizeCard(card4, cy)
 
-    local card5, cy = W.CreateCard(c, L["rf_section_debuffs"], y)
+    local card5, cy = W.CreateCard(c, L["rf_section_debuffs"], y, "H")
     local _, cy = W.CreateCheckbox(card5.inner, L["rf_opt_show_debuffs"], db.showDebuffs, cy, function(v) db.showDebuffs = v; ApplyRF() end)
     local _, cy = W.CreateSlider(card5.inner, L["rf_opt_debuff_size"], db.debuffSize, 8, 20, 1, cy, function(v) db.debuffSize = v end, "%.0f")
     local _, cy = W.CreateSlider(card5.inner, L["rf_opt_max_debuffs"], db.maxDebuffs, 1, 5, 1, cy, function(v) db.maxDebuffs = v end, "%.0f")
     y = W.FinalizeCard(card5, cy)
 
-    local card6, cy = W.CreateCard(c, L["rf_section_defensives"], y)
+    local card6, cy = W.CreateCard(c, L["rf_section_defensives"], y, "TH")
     local _, cy = W.CreateCheckbox(card6.inner, L["rf_opt_show_defensives"], db.showDefensives, cy, function(v) db.showDefensives = v; ApplyRF() end)
     local _, cy = W.CreateSlider(card6.inner, L["rf_opt_defensive_size"], db.defensiveIconSize, 10, 22, 1, cy, function(v) db.defensiveIconSize = v; ApplyRF() end, "%.0f")
     local _, cy = W.CreateSlider(card6.inner, L["rf_opt_max_defensives"], db.maxDefensives or 2, 1, 4, 1, cy, function(v) db.maxDefensives = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
@@ -141,7 +141,7 @@ local function BuildFeaturesTab(parent)
     y = W.FinalizeCard(card6, cy)
 
     -- Resurrection indicator
-    local cardRez, cy = W.CreateCard(c, L["rf_section_resurrect"], y)
+    local cardRez, cy = W.CreateCard(c, L["rf_section_resurrect"], y, "H")
     local _, cy = W.CreateCheckbox(cardRez.inner, L["rf_opt_show_resurrect"], db.showResurrectIndicator, cy, function(v) db.showResurrectIndicator = v; ApplyRT() end)
     local _, cy = W.CreateSlider(cardRez.inner, L["rf_opt_resurrect_size"], db.resurrectIconSize or 22, 12, 40, 1, cy, function(v) db.resurrectIconSize = v; ApplyRT() end, "%.0f")
     local _, cy = W.CreateInfoText(cardRez.inner, L["rf_info_resurrect"], cy)
@@ -150,7 +150,7 @@ local function BuildFeaturesTab(parent)
     -- Battle Rez counter (shared combat-res pool)
     local brdb = TomoModDB.battleRez
     if brdb then
-        local cardBR, cy = W.CreateCard(c, L["rf_section_battlerez"], y)
+        local cardBR, cy = W.CreateCard(c, L["rf_section_battlerez"], y, "H")
         local _, cy = W.CreateCheckbox(cardBR.inner, L["rf_opt_br_enable"], brdb.enabled, cy, function(v) brdb.enabled = v; ApplyRT() end)
         local _, cy = W.CreateCheckbox(cardBR.inner, L["rf_opt_br_only_instance"], brdb.onlyInstance, cy, function(v) brdb.onlyInstance = v; ApplyRT() end)
         local _, cy = W.CreateSlider(cardBR.inner, L["rf_opt_br_size"], brdb.size or 44, 24, 96, 1, cy, function(v) brdb.size = v; ApplyRT() end, "%.0f")

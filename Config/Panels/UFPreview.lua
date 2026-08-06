@@ -1,13 +1,25 @@
 -- ============================================================
--- UFPreview.lua — Live UnitFrame preview strip v2.7.0
--- Renders scaled fake StatusBars that mirror TomoModDB settings.
--- Exposed via TomoMod_UFPreview.Refresh() for external calls.
+-- UFPreview.lua — Aperçu UnitFrame (moteur de rendu réel) v3.4.0
 --
--- Architecture (inspired by KullThranUI KUI_UnitFrames_Options):
---   CreatePreviewUnit(parent)       → builds one fake frame table
---   ApplyPreviewUnit(pu, key, db)   → reads DB, updates sizes/colors/text
---   UFP.Create(parent)              → builds the strip, returns it
---   UFP.Refresh()                   → public, calls ApplyPreviewUnit on all units
+-- L'aperçu n'est plus une maquette. Il construit ses cadres avec EXACTEMENT
+-- les mêmes fabriques que les cadres de jeu :
+--     TomoMod_UnitFrames.BuildVisuals()   → arbre de widgets
+--     TomoMod_UnitFrames.ApplyVisuals()   → géométrie / textures / polices
+-- Texture de barre, police, bordures, InfoBar, offsets d'éléments, grille
+-- d'auras, buffs ennemis, indicateur et texte de menace : tout provient du
+-- moteur réel.
+--
+-- Données (lot B) : quand l'unité existe, les cadres sont alimentés par les
+-- VRAIES données via TomoMod_UnitFrames.UpdateUnitData / UpdateUnitAuras.
+-- Sinon (pas de cible, pas de familier…), repli sur des valeurs simulées.
+--
+-- Ce fichier n'appelle JAMAIS d'API d'unité renvoyant une valeur secrète TWW :
+-- il se contente de UnitExists() et délègue tout le reste au moteur, où le
+-- traitement côté C est déjà en place. Un test d'analyse statique verrouille
+-- cette propriété.
+--
+-- L'échelle est appliquée par SetScale() sur un conteneur, JAMAIS en
+-- multipliant les valeurs de la DB — les proportions restent exactes.
 -- ============================================================
 
 TomoMod_UFPreview = {}
@@ -17,273 +29,506 @@ local L   = TomoMod_L
 local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 
--- Preview scale: all DB pixel values multiplied by this factor
-local SCALE = 0.76
+-- Suffixe des noms globaux des conteneurs d'auras de l'aperçu.
+-- Sans lui, CreateAuraContainer écraserait _G["TomoMod_Auras_player"],
+-- que le module Movers utilise.
+local PREVIEW_SUFFIX = "_TomoUFPreview"
 
--- Mock HP / power values shown in the preview
+local UNIT_ORDER = { "player", "target", "focus", "pet", "targettarget" }
+local LEFT_COL   = { "player", "pet", "focus" }
+local RIGHT_COL  = { "target", "targettarget" }
+
+-- ── Mise en page (unités = pixels de la DB, avant SetScale) ──
+local COL_GAP    = 26
+local ROW_GAP    = 14
+local LABEL_H    = 13
+
+-- ── Mise en page (pixels écran du strip, hors échelle) ──
+local HEADER_H     = 26
+local SIDE_PAD     = 14
+local BOTTOM_PAD   = 10
+local STRIP_H_MIN  = 150
+local FIT_BUDGET_H = 200   -- hauteur de contenu visée en mode « ajusté »
+local SOLO_BUDGET_H = 250
+local STRIP_H_MAX  = 330   -- plafond dur (mode 1:1 qui déborde)
+local MIN_SCALE    = 0.34
+
+-- Cadence de rafraîchissement des données réelles pendant que le panneau est
+-- ouvert. Seule la chaîne légère tourne ici ; les auras sont pilotées par
+-- UNIT_AURA, jamais par le ticker.
+local LIVE_INTERVAL = 0.2
+
+-- ============================================================
+-- DONNÉES SIMULÉES
+-- ============================================================
+-- Choix des archétypes, pour couvrir les deux branches de coloration de
+-- E.GetHealthColor :
+--   player / targettarget → joueurs   (useClassColor)
+--   target                → PNJ hostile (useNameplateColors / useFactionColor)
+--   focus                 → joueur ennemi (useClassColor)
+--   pet                   → familier    (couleur de classe du joueur)
 local MOCK = {
-    player       = { hp = 78,  power = 55, pwColor = {0.00, 0.44, 1.00} },  -- mana
-    target       = { hp = 45,  power = 30, pwColor = {0.22, 0.45, 0.95} },  -- mana
-    focus        = { hp = 100, power = 80, pwColor = {0.80, 0.80, 0.80} },  -- energy
-    pet          = { hp = 62,  power = 0,  pwColor = nil               },
-    targettarget = { hp = 90,  power = 0,  pwColor = nil               },
+    player = {
+        hpCur = 4820000, hpMax = 6250000, absorb = 410000,
+        powerCur = 62000, powerMax = 100000,
+        level = 80, isPlayer = true, isLeader = true, raidIcon = nil,
+    },
+    target = {
+        hpCur = 18400000, hpMax = 41000000, absorb = 0,
+        powerCur = 88000, powerMax = 100000,
+        level = 82, isPlayer = false, isLeader = false, raidIcon = 8,
+    },
+    focus = {
+        hpCur = 3100000, hpMax = 5200000, absorb = 0,
+        powerCur = 41000, powerMax = 100000,
+        level = 80, isPlayer = true, isLeader = false, raidIcon = 6,
+    },
+    pet = {
+        hpCur = 980000, hpMax = 1500000, absorb = 0,
+        powerCur = 74, powerMax = 100,
+        level = 80, isPlayer = false, isLeader = false, raidIcon = nil,
+    },
+    targettarget = {
+        hpCur = 5900000, hpMax = 6100000, absorb = 0,
+        powerCur = 55000, powerMax = 100000,
+        level = 80, isPlayer = true, isLeader = false, raidIcon = nil,
+    },
 }
 
--- Hardcoded class colors (avoids RAID_CLASS_COLORS taint)
-local CLASS_COLOR = {
-    WARRIOR     = {0.78, 0.61, 0.43},  PALADIN    = {0.96, 0.55, 0.73},
-    HUNTER      = {0.67, 0.83, 0.45},  ROGUE      = {1.00, 0.96, 0.41},
-    PRIEST      = {0.90, 0.90, 0.90},  DEATHKNIGHT= {0.77, 0.12, 0.23},
-    SHAMAN      = {0.00, 0.44, 0.87},  MAGE       = {0.41, 0.80, 0.94},
-    WARLOCK     = {0.58, 0.51, 0.79},  MONK       = {0.00, 1.00, 0.59},
-    DRUID       = {1.00, 0.49, 0.04},  DEMONHUNTER= {0.64, 0.19, 0.79},
-    EVOKER      = {0.20, 0.58, 0.50},
-}
--- Mock class per unit key (except player which uses the real class)
-local UNIT_CLASS = {
-    target = "MAGE", focus = "PRIEST", targettarget = "DRUID", pet = "HUNTER",
-}
+local MOCK_CLASS = { target = "MAGE", focus = "PRIEST", targettarget = "DRUID" }
 
-local function GetPreviewColor(unitKey, useClassColor)
-    if not useClassColor then return 0.10, 0.60, 0.20 end
-    local classToken
+-- Icônes toujours présentes dans le client, quelle que soit l'extension.
+local MOCK_AURA_ICONS = {
+    "Interface\\Icons\\Spell_Shadow_UnholyFrenzy",
+    "Interface\\Icons\\Spell_Fire_Immolation",
+    "Interface\\Icons\\Spell_Frost_FrostArmor02",
+    "Interface\\Icons\\Ability_Rogue_Eviscerate",
+    "Interface\\Icons\\Spell_Nature_Lightning",
+    "Interface\\Icons\\Spell_Shadow_ShadowWordPain",
+    "Interface\\Icons\\Spell_Fire_Fireball02",
+    "Interface\\Icons\\Ability_Backstab",
+}
+local MOCK_BUFF_ICONS = {
+    "Interface\\Icons\\Spell_Holy_PowerWordShield",
+    "Interface\\Icons\\Spell_Nature_Rejuvenation",
+    "Interface\\Icons\\Ability_Warrior_BattleShout",
+    "Interface\\Icons\\Spell_Holy_DivineSpirit",
+}
+local MOCK_AURA_CD    = { 18, 6, 42, 12, 3, 26, 9, 55 }
+local MOCK_AURA_STACK = { nil, "3", nil, nil, "12", nil, "2", nil }
+
+-- ============================================================
+-- HELPERS
+-- ============================================================
+
+local function UFEngine()
+    local UF = TomoMod_UnitFrames
+    if UF and UF.BuildVisuals and UF.ApplyVisuals then return UF end
+    return nil
+end
+
+-- Reproduit la cascade de E.GetHealthColor sans token d'unité réel.
+local function GetMockHealthColor(unitKey, settings)
+    local mock = MOCK[unitKey]
+    local isPlayerUnit = mock and mock.isPlayer
+
+    if settings.useClassColor and isPlayerUnit then
+        if unitKey == "player" then
+            return TomoMod_Utils.GetClassColor("player")
+        end
+        local c = RAID_CLASS_COLORS and RAID_CLASS_COLORS[MOCK_CLASS[unitKey] or ""]
+        if c then return c.r, c.g, c.b end
+    end
+
+    if settings.useNameplateColors and not isPlayerUnit then
+        local np = TomoModDB.nameplates and TomoModDB.nameplates.colors
+        local c  = np and (np.enemyInCombat or np.normal or np.hostile)
+        if c then return c.r, c.g, c.b end
+    end
+
+    if settings.useFactionColor and not isPlayerUnit then
+        return 0.78, 0.25, 0.25   -- rouge hostile
+    end
+
+    if unitKey == "player" or unitKey == "pet" then
+        return TomoMod_Utils.GetClassColor("player")
+    end
+    return 0.5, 0.5, 0.5
+end
+
+-- Miroir exact des formats de E.SetHealthText, avec des nombres ordinaires.
+local function SetMockHealthText(fs, cur, max, format)
+    if not fs then return end
+    local pct = 0
+    if max and max > 0 then pct = math.floor((cur / max) * 100 + 0.5) end
+
+    if format == "percent" then
+        fs:SetFormattedText("%d%%", pct)
+    elseif format == "current" then
+        fs:SetFormattedText("%s", AbbreviateLargeNumbers(cur))
+    elseif format == "current_percent" then
+        fs:SetFormattedText("%s  |cffcccccc%d%%|r", AbbreviateLargeNumbers(cur), pct)
+    elseif format == "current_max" then
+        fs:SetFormattedText("%s / %s", AbbreviateLargeNumbers(cur), AbbreviateLargeNumbers(max))
+    elseif format == "deficit" then
+        fs:SetFormattedText("-%s", AbbreviateLargeNumbers(max - cur))
+    else
+        fs:SetFormattedText("%s  |cffcccccc%d%%|r", AbbreviateLargeNumbers(cur), pct)
+    end
+end
+
+local function MockName(unitKey)
     if unitKey == "player" then
-        local _, c = UnitClass("player")
-        classToken = c
-    else
-        classToken = UNIT_CLASS[unitKey]
+        return (UnitName and UnitName("player")) or L["preview_player"]
+    elseif unitKey == "target" then return L["preview_target_name"]
+    elseif unitKey == "focus"  then return L["preview_focus_name"]
+    elseif unitKey == "pet"    then return L["preview_pet_name"]
     end
-    local c = classToken and CLASS_COLOR[classToken]
-    if c then return c[1], c[2], c[3] end
-    return TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3]  -- teal fallback
+    return L["preview_tot_name"]
+end
+
+-- Signature des réglages STRUCTURELS : tout ce que BuildVisuals décide une
+-- fois pour toutes. Un changement force une reconstruction de l'aperçu.
+local function StructSig(settings)
+    local a, eb, tt = settings.auras, settings.enemyBuffs, settings.threatText
+    local centered = (TomoModDB.resourceBars and TomoModDB.resourceBars.primaryPowerCentered) and 1 or 0
+    return table.concat({
+        settings.enabled                     and 1 or 0,
+        (settings.powerHeight   or 0) > 0    and 1 or 0,
+        (settings.infoBarHeight or 0) > 0    and 1 or 0,
+        settings.showAbsorb                  and 1 or 0,
+        settings.showThreat                  and 1 or 0,
+        (tt and tt.enabled)                  and 1 or 0,
+        (a  and a.enabled)                   and 1 or 0,
+        tostring(a  and a.maxAuras  or 0),
+        (eb and eb.enabled)                  and 1 or 0,
+        tostring(eb and eb.maxAuras or 0),
+        tostring(eb and eb.size     or 0),
+        centered,
+    }, ":")
+end
+
+-- ── Débordement des conteneurs d'auras hors du cadre ────────
+-- Fractions du point d'ancrage nommé, relatives au coin BOTTOMLEFT.
+local ANCHOR_FX = {
+    LEFT = 0, RIGHT = 1, CENTER = 0.5, TOP = 0.5, BOTTOM = 0.5,
+    TOPLEFT = 0, TOPRIGHT = 1, BOTTOMLEFT = 0, BOTTOMRIGHT = 1,
+}
+local ANCHOR_FY = {
+    LEFT = 0.5, RIGHT = 0.5, CENTER = 0.5, TOP = 1, BOTTOM = 0,
+    TOPLEFT = 1, TOPRIGHT = 1, BOTTOMLEFT = 0, BOTTOMRIGHT = 0,
+}
+
+-- Rect du conteneur exprimé dans le repère du cadre parent (origine =
+-- BOTTOMLEFT du cadre). Calcul analytique : pas de dépendance à GetTop(),
+-- qui peut renvoyer nil tant que la chaîne d'ancrage n'est pas résolue.
+local function ContainerOverflow(container, pos, defPoint, defRel, defX, defY, fw, fh)
+    if not container or not container:IsShown() then return 0, 0, 0, 0 end
+    local cw, ch = container:GetWidth() or 0, container:GetHeight() or 0
+    if cw <= 0 or ch <= 0 then return 0, 0, 0, 0 end
+
+    local point = (pos and pos.point)         or defPoint
+    local rel   = (pos and pos.relativePoint) or defRel
+    local ox    = (pos and pos.x)             or defX
+    local oy    = (pos and pos.y)             or defY
+
+    local pfx, pfy = ANCHOR_FX[point] or 0.5, ANCHOR_FY[point] or 0.5
+    local rfx, rfy = ANCHOR_FX[rel]   or 0.5, ANCHOR_FY[rel]   or 0.5
+
+    local left   = rfx * fw + ox - pfx * cw
+    local bottom = rfy * fh + oy - pfy * ch
+
+    return math.max(0, -left),                 -- gauche
+           math.max(0, (left + cw) - fw),      -- droite
+           math.max(0, (bottom + ch) - fh),    -- haut
+           math.max(0, -bottom)                -- bas
+end
+
+local function UnitOverflow(pu, settings)
+    local fw = pu.frame:GetWidth()  or 0
+    local fh = pu.frame:GetHeight() or 0
+    local l, r, t, b = 0, 0, 0, 0
+
+    local al, ar, at, ab = ContainerOverflow(
+        pu.frame.auraContainer, settings.auras and settings.auras.position,
+        "BOTTOMLEFT", "TOPLEFT", 0, 6, fw, fh)
+    l, r, t, b = math.max(l, al), math.max(r, ar), math.max(t, at), math.max(b, ab)
+
+    local el, er, et, eb2 = ContainerOverflow(
+        pu.frame.enemyBuffContainer, settings.enemyBuffs and settings.enemyBuffs.position,
+        "BOTTOMRIGHT", "TOPRIGHT", 0, 6, fw, fh)
+    l, r, t, b = math.max(l, el), math.max(r, er), math.max(t, et), math.max(b, eb2)
+
+    return l, r, t, b
 end
 
 -- ============================================================
--- Build one fake unit frame
--- Returns a table with .frame, .health, .power, .castbar, etc.
+-- CONSTRUCTION / REMPLISSAGE D'UN CADRE D'APERÇU
 -- ============================================================
-local function CreatePreviewUnit(parent)
-    local pu = {}
 
-    pu.frame = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-    pu.frame:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    pu.frame:SetBackdropColor(0.07, 0.07, 0.09, 1)
-    pu.frame:SetBackdropBorderColor(0.20, 0.20, 0.24, 1)
+local function BuildUnitFrame(pu, unitKey, settings, stage, trashBin, accent)
+    local UF = UFEngine()
+    if not UF then return false end
 
-    -- Health bar
-    pu.health = CreateFrame("StatusBar", nil, pu.frame)
-    pu.health:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
-    pu.healthBg = pu.health:CreateTexture(nil, "BACKGROUND")
-    pu.healthBg:SetAllPoints()
-
-    -- Absorb overlay (thin bright right edge)
-    pu.absorb = pu.health:CreateTexture(nil, "OVERLAY")
-    pu.absorb:SetWidth(4)
-    pu.absorb:SetPoint("TOPRIGHT",    pu.health, "TOPRIGHT",    0, 0)
-    pu.absorb:SetPoint("BOTTOMRIGHT", pu.health, "BOTTOMRIGHT", 0, 0)
-    pu.absorb:SetColorTexture(0.85, 0.85, 1.00, 0.55)
-    pu.absorb:Hide()
-
-    -- Name text
-    pu.name = pu.health:CreateFontString(nil, "OVERLAY")
-    pu.name:SetPoint("LEFT", 4, 0)
-    pu.name:SetJustifyH("LEFT")
-    pu.name:SetTextColor(1, 1, 1, 1)
-
-    -- Health value text
-    pu.value = pu.health:CreateFontString(nil, "OVERLAY")
-    pu.value:SetPoint("RIGHT", -4, 0)
-    pu.value:SetJustifyH("RIGHT")
-    pu.value:SetTextColor(1, 1, 1, 0.80)
-
-    -- Power bar
-    pu.power = CreateFrame("StatusBar", nil, pu.frame)
-    pu.power:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
-    pu.powerBg = pu.power:CreateTexture(nil, "BACKGROUND")
-    pu.powerBg:SetAllPoints()
-    pu.powerBg:SetColorTexture(0.04, 0.04, 0.06, 1)
-
-    -- Castbar
-    pu.castbar = CreateFrame("StatusBar", nil, pu.frame)
-    pu.castbar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
-    pu.castbar:SetStatusBarColor(0.80, 0.28, 0.28, 1)
-    pu.castbarBg = pu.castbar:CreateTexture(nil, "BACKGROUND")
-    pu.castbarBg:SetAllPoints()
-    pu.castbarBg:SetColorTexture(0.06, 0.04, 0.04, 1)
-
-    pu.castText = pu.castbar:CreateFontString(nil, "OVERLAY")
-    pu.castText:SetPoint("LEFT", 3, 0)
-    pu.castText:SetJustifyH("LEFT")
-    pu.castText:SetTextColor(1, 0.85, 0.85, 1)
-
-    pu.castbarBorder = CreateFrame("Frame", nil, pu.castbar, "BackdropTemplate")
-    pu.castbarBorder:SetAllPoints()
-    pu.castbarBorder:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
-    pu.castbarBorder:SetBackdropBorderColor(0.35, 0.18, 0.18, 1)
-
-    -- Aura dots (up to 5)
-    pu.auras = {}
-    for i = 1, 5 do
-        local dot = pu.frame:CreateTexture(nil, "OVERLAY")
-        dot:SetSize(9, 9)
-        dot:Hide()
-        pu.auras[i] = dot
+    -- Les frames WoW ne se détruisent pas : l'ancienne est reparentée dans un
+    -- bac caché. Une reconstruction n'a lieu que sur un changement structurel
+    -- (cases à cocher), jamais pendant un glissement de curseur.
+    if pu.frame then
+        pu.frame:Hide()
+        pu.frame:ClearAllPoints()
+        pu.frame:SetParent(trashBin)
     end
 
-    -- Threat indicator (left bar)
-    pu.threat = pu.frame:CreateTexture(nil, "OVERLAY")
-    pu.threat:SetWidth(2)
-    pu.threat:SetPoint("TOPLEFT",    pu.health, "TOPLEFT",    0, 0)
-    pu.threat:SetPoint("BOTTOMLEFT", pu.health, "BOTTOMLEFT", 0, 0)
-    pu.threat:SetColorTexture(1, 0.15, 0.15, 0.85)
-    pu.threat:Hide()
+    local f = CreateFrame("Frame", nil, stage)
+    UF.BuildVisuals(f, unitKey, settings, { preview = true, nameSuffix = PREVIEW_SUFFIX })
+    pu.frame = f
+    pu.sig   = StructSig(settings)
 
-    return pu
+    -- Surbrillance au survol (au-dessus de tout l'arbre réel)
+    local hl = CreateFrame("Frame", nil, f, "BackdropTemplate")
+    hl:SetPoint("TOPLEFT", -2, 2)
+    hl:SetPoint("BOTTOMRIGHT", 2, -2)
+    hl:SetFrameLevel(f:GetFrameLevel() + 20)
+    hl:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
+    hl:SetBackdropBorderColor(accent[1], accent[2], accent[3], 0.85)
+    hl:EnableMouse(false)
+    hl:Hide()
+    f.tomoHighlight = hl
+
+    return true
 end
 
--- ============================================================
--- Apply DB settings to one fake unit frame
--- ============================================================
-local GAP = 2  -- pixels between health / power / castbar
+local function FillUnitFrame(pu, unitKey, settings)
+    local f = pu.frame
+    if not f then return end
+    local mock = MOCK[unitKey]
+    if not mock then return end
 
-local function ApplyPreviewUnit(pu, unitKey, db, globalDB)
-    if not (pu and db) then return end
-    local mock = MOCK[unitKey] or { hp = 100, power = 0, pwColor = nil }
+    local globalDB = TomoModDB.unitFrames
 
-    -- Scaled dimensions
-    local healthH = math.max(6,  math.floor((db.healthHeight or 38) * SCALE + 0.5))
-    local powerH  = math.max(0,  math.floor((db.powerHeight  or  8) * SCALE + 0.5))
-    local frameW  = math.max(40, math.floor((db.width        or 220) * SCALE + 0.5))
+    -- ── Health ───────────────────────────────────────────────
+    local health = f.health
+    if health then
+        health:SetMinMaxValues(0, mock.hpMax)
+        health:SetValue(mock.hpCur)
+        local r, g, b = GetMockHealthColor(unitKey, settings)
+        health:SetStatusBarColor(r, g, b, 1)
 
-    -- Castbar
-    local cbDB   = db.castbar
-    local showCB = cbDB and cbDB.enabled and (unitKey == "player" or unitKey == "target")
-    local cbH    = showCB and math.max(4, math.floor((cbDB.height or 14) * SCALE + 0.5)) or 0
-    local cbW    = showCB and math.max(20, math.floor((cbDB.width  or db.width or 220) * SCALE + 0.5)) or 0
+        -- Texte de santé (miroir de UpdateHealth)
+        if health.text then
+            if settings.showHealthText then
+                SetMockHealthText(health.text, mock.hpCur, mock.hpMax, settings.healthTextFormat)
+            else
+                health.text:SetText("")
+            end
+        end
 
-    -- Power only for frames that normally have it
-    local hasPower = mock.pwColor ~= nil and powerH > 0
+        -- Nom / niveau (miroir de UpdateName + UpdateLevel)
+        if health.nameText then
+            if settings.showName then
+                health.nameText:SetTextColor(1, 1, 1, 0.95)
+                if settings.nameTruncate and settings.nameTruncateLength then
+                    health.nameText:SetWidth(settings.nameTruncateLength * (globalDB.fontSize or 12) * 0.55)
+                else
+                    health.nameText:SetWidth(settings.width - 12)
+                end
+                health.nameText:SetWordWrap(false)
+                health.nameText:SetNonSpaceWrap(false)
+                if settings.showLevel then
+                    health.nameText:SetFormattedText("%d - %s", mock.level, MockName(unitKey))
+                else
+                    health.nameText:SetFormattedText("%s", MockName(unitKey))
+                end
+            else
+                health.nameText:SetText("")
+            end
+        end
 
-    local totalH = healthH
-        + (hasPower and (GAP + powerH) or 0)
-        + (cbH > 0  and (GAP + cbH)   or 0)
+        if health.levelText then
+            if settings.showLevel and not settings.showName then
+                health.levelText:SetTextColor(1, 0.82, 0, 0.9)
+                health.levelText:SetFormattedText("%d", mock.level)
+            else
+                health.levelText:SetText("")
+            end
+        end
 
-    pu.frame:SetSize(frameW, totalH)
+        -- Icône de raid (miroir de UpdateRaidIcon)
+        if health.raidIcon then
+            if settings.showRaidIcon and mock.raidIcon then
+                SetRaidTargetIconTexture(health.raidIcon, mock.raidIcon)
+                health.raidIcon:Show()
+            else
+                health.raidIcon:Hide()
+            end
+        end
 
-    -- Health
-    pu.health:ClearAllPoints()
-    pu.health:SetPoint("TOPLEFT", pu.frame, "TOPLEFT", 0, 0)
-    pu.health:SetSize(frameW, healthH)
-    pu.health:SetMinMaxValues(0, 100)
-    pu.health:SetValue(mock.hp)
-
-    local r, g, b = GetPreviewColor(unitKey, db.useClassColor ~= false)
-    pu.health:SetStatusBarColor(r, g, b, 1)
-    pu.healthBg:SetColorTexture(r * 0.14, g * 0.14, b * 0.14, 1)
-    pu.frame:SetBackdropBorderColor(r * 0.40 + 0.10, g * 0.40 + 0.10, b * 0.40 + 0.10, 0.70)
-
-    -- Absorb bar
-    pu.absorb:SetShown(db.showAbsorb == true)
-
-    -- Threat indicator
-    pu.threat:SetShown(db.showThreat == true and unitKey == "target")
-
-    -- Name
-    pu.name:SetShown(db.showName ~= false)
-    local fs = math.max(7, math.floor((globalDB.fontSize or 12) * SCALE + 0.5))
-    pu.name:SetFont(FONT, fs, "OUTLINE")
-    local displayName = (unitKey == "player" and (UnitName and UnitName("player") or (L["preview_player"])))
-        or (unitKey == "target" and (L["preview_target_name"]))
-        or (unitKey == "focus"  and (L["preview_focus_name"]))
-        or (unitKey == "pet"    and (L["preview_pet_name"]))
-        or (L["preview_tot_name"])
-    if db.nameTruncate and (db.nameTruncateLength or 20) < #displayName then
-        displayName = displayName:sub(1, db.nameTruncateLength or 20) .. "…"
-    end
-    pu.name:SetText(displayName)
-
-    -- Value text
-    pu.value:SetShown(db.showHealthText ~= false)
-    pu.value:SetFont(FONT, fs, "OUTLINE")
-    local fmt = db.healthTextFormat or "percent"
-    if fmt == "percent" then
-        pu.value:SetText(mock.hp .. "%")
-    elseif fmt == "current" then
-        pu.value:SetText("300K")
-    elseif fmt == "current_percent" then
-        pu.value:SetText("300K · " .. mock.hp .. "%")
-    else
-        pu.value:SetText("300K / 387K")
+        -- Icône de chef de groupe
+        if health.leaderIcon then
+            health.leaderIcon:SetShown(settings.showLeaderIcon and mock.isLeader and true or false)
+        end
     end
 
-    -- Power
-    pu.power:SetShown(hasPower)
-    if hasPower then
-        pu.power:ClearAllPoints()
-        pu.power:SetPoint("TOPLEFT", pu.health, "BOTTOMLEFT", 0, -GAP)
-        pu.power:SetSize(frameW, powerH)
-        pu.power:SetMinMaxValues(0, 100)
-        pu.power:SetValue(mock.power)
-        local pc = mock.pwColor
-        pu.power:SetStatusBarColor(pc[1], pc[2], pc[3], 1)
+    -- ── Absorb ───────────────────────────────────────────────
+    if f.absorb then
+        f.absorb:SetMinMaxValues(0, mock.hpMax)
+        f.absorb:SetValue(mock.absorb)
+        f.absorb:Show()
     end
 
-    -- Castbar
-    pu.castbar:SetShown(cbH > 0)
-    if cbH > 0 then
-        local anchor = hasPower and pu.power or pu.health
-        pu.castbar:ClearAllPoints()
-        pu.castbar:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -GAP)
-        pu.castbar:SetSize(cbW, cbH)
-        pu.castbar:SetMinMaxValues(0, 100)
-        pu.castbar:SetValue(60)
-        local castFS = math.max(6, fs - 1)
-        pu.castText:SetFont(FONT, castFS, "OUTLINE")
-        pu.castText:SetText(unitKey == "player" and (L["preview_cast_player"]) or (L["preview_cast_target"]))
+    -- ── Power (miroir de E.UpdatePower) ──────────────────────
+    if f.power then
+        local powerType = 0
+        if unitKey == "player" and UnitPowerType then
+            -- Type de ressource du joueur : entier ordinaire, jamais secret.
+            powerType = UnitPowerType("player") or 0
+        end
+        f.power:SetMinMaxValues(0, mock.powerMax)
+        f.power:SetValue(mock.powerCur)
+        local pr, pg, pb = TomoMod_Utils.GetPowerColor(powerType)
+        f.power:SetStatusBarColor(pr, pg, pb, 1)
+        if f.power.text then
+            if settings.showPowerText and not settings.infoBarHeight then
+                f.power.text:SetFormattedText("%s", AbbreviateLargeNumbers(mock.powerCur))
+            else
+                f.power.text:SetText("")
+            end
+        end
     end
 
-    -- Aura dots
-    local showAuras  = db.auras and db.auras.enabled
-    local maxAuras   = showAuras and math.min(5, db.auras.maxAuras or 4) or 0
-    local auraColors = {
-        {0.80, 0.20, 0.20}, {0.65, 0.20, 0.80},
-        {0.20, 0.45, 0.85}, {0.80, 0.65, 0.10}, {0.25, 0.75, 0.30},
-    }
-    local dotW = math.max(7, math.floor(healthH * 0.30 + 0.5))
-    for i = 1, 5 do
-        local dot = pu.auras[i]
-        if i <= maxAuras then
-            dot:SetSize(dotW, dotW)
-            dot:ClearAllPoints()
-            dot:SetPoint("TOPLEFT", pu.frame, "BOTTOMLEFT", (i - 1) * (dotW + 2), -3)
-            local ac = auraColors[i]
-            dot:SetColorTexture(ac[1], ac[2], ac[3], 0.88)
-            dot:Show()
+    -- ── Info Bar (miroir de E.UpdateInfoBar) ─────────────────
+    if f.infoBar then
+        if f.infoBar.powerText then
+            f.infoBar.powerText:SetFormattedText("%s", AbbreviateLargeNumbers(mock.powerCur))
+        end
+        if f.infoBar.hpText then
+            f.infoBar.hpText:SetFormattedText("%s", AbbreviateLargeNumbers(mock.hpCur))
+        end
+    end
+
+    -- ── Menace ───────────────────────────────────────────────
+    if f.threat then
+        if unitKey == "target" then
+            local tr, tg, tb = GetThreatStatusColor(3)
+            f.threat:SetThreatColor(tr, tg, tb)
+            f.threat:Show()
         else
-            dot:Hide()
+            f.threat:Hide()
+        end
+    end
+    if f.threatText then
+        local tr, tg, tb = GetThreatStatusColor(3)
+        f.threatText:SetTextColor(tr, tg, tb, 1)
+        f.threatText:SetFormattedText("%d%%", 112)
+        f.threatText:Show()
+    end
+
+    -- ── Auras ────────────────────────────────────────────────
+    if f.auraContainer and f.auraContainer.icons then
+        local aset = settings.auras or {}
+        local n    = aset.maxAuras or 8
+        f.auraContainer:Show()
+        for i = 1, #f.auraContainer.icons do
+            local icon = f.auraContainer.icons[i]
+            if icon then
+                if i <= n then
+                    icon.texture:SetTexture(MOCK_AURA_ICONS[((i - 1) % #MOCK_AURA_ICONS) + 1])
+                    if icon.cooldown then
+                        -- Nombres ordinaires : SetCooldown n'est banni qu'avec
+                        -- des valeurs secrètes.
+                        local dur = MOCK_AURA_CD[((i - 1) % #MOCK_AURA_CD) + 1]
+                        icon.cooldown:SetCooldown(GetTime() - dur * 0.35, dur)
+                        icon.cooldown:Show()
+                    end
+                    local stack = MOCK_AURA_STACK[((i - 1) % #MOCK_AURA_STACK) + 1]
+                    icon.count:SetText(stack or "")
+                    icon.count:SetShown(stack and true or false)
+                    icon:Show()
+                else
+                    icon:Hide()
+                end
+            end
+        end
+    end
+
+    -- ── Buffs ennemis ────────────────────────────────────────
+    if f.enemyBuffContainer and f.enemyBuffContainer.icons then
+        local bset = settings.enemyBuffs or {}
+        local n    = bset.maxAuras or 4
+        f.enemyBuffContainer:Show()
+        for i = 1, #f.enemyBuffContainer.icons do
+            local icon = f.enemyBuffContainer.icons[i]
+            if icon then
+                if i <= n then
+                    icon.texture:SetTexture(MOCK_BUFF_ICONS[((i - 1) % #MOCK_BUFF_ICONS) + 1])
+                    if icon.cooldown then
+                        local dur = 8 + i * 5
+                        icon.cooldown:SetCooldown(GetTime() - dur * 0.4, dur)
+                        icon.cooldown:Show()
+                    end
+                    icon.count:SetText("")
+                    icon:Show()
+                else
+                    icon:Hide()
+                end
+            end
         end
     end
 end
 
 -- ============================================================
--- Create the preview strip
--- Returns the strip frame — caller positions it.
+-- DONNÉES RÉELLES (LOT B)
 -- ============================================================
-local STRIP_H_MIN  = 150
-local HEADER_H     = 24   -- space for "APERÇU EN DIRECT" label
-local UNIT_PAD_TOP = 30   -- top offset for first unit row
-local UNIT_GAP     = 10   -- gap between rows
-local SIDE_PAD     = 16   -- left/right padding
+
+-- Le mode « données réelles » est actif par défaut ; nil vaut donc true.
+local function LiveEnabled()
+    return TomoModDB.unitFrames.previewLiveData ~= false
+end
+
+-- Une unité est pilotable en direct si l'option est active ET si le token
+-- existe réellement. UnitExists est la seule API d'unité appelée ici : elle
+-- renvoie un booléen ordinaire, jamais une valeur secrète.
+local function IsLive(unitKey)
+    return LiveEnabled() and UnitExists(unitKey) and true or false
+end
+
+-- Bascule un cadre d'aperçu entre données réelles et simulation.
+-- En mode réel, frame.unit est renseigné et le moteur écrit dans les mêmes
+-- widgets ; en simulation il est effacé pour qu'aucun appel résiduel du
+-- moteur ne puisse lire une unité.
+local function ApplyDataMode(pu, unitKey, settings, live)
+    local f = pu.frame
+    if not f then return end
+    local UF = UFEngine()
+
+    if live and UF and UF.UpdateUnitData then
+        f.unit = unitKey
+        UF.UpdateUnitData(f)
+        UF.UpdateUnitAuras(f)
+        -- E.UpdateEnemyBuffs peut créer son conteneur à cet instant : on le
+        -- repasse en lecture seule (idempotent).
+        if UF.NeutralizeContainer then
+            UF.NeutralizeContainer(f.enemyBuffContainer)
+        end
+    else
+        f.unit = nil
+        FillUnitFrame(pu, unitKey, settings)
+    end
+    pu.live = live and true or false
+end
+
+-- ============================================================
+-- CRÉATION DU STRIP
+-- ============================================================
 
 function UFP.Create(parent)
     local T  = TomoMod_Widgets and TomoMod_Widgets.Theme
-    local aR = T and T.accent[1] or TomoMod_Utils.BRAND[1]
-    local aG = T and T.accent[2] or TomoMod_Utils.BRAND[2]
-    local aB = T and T.accent[3] or TomoMod_Utils.BRAND[3]
+    local accent = {
+        (T and T.accent[1]) or TomoMod_Utils.BRAND[1],
+        (T and T.accent[2]) or TomoMod_Utils.BRAND[2],
+        (T and T.accent[3]) or TomoMod_Utils.BRAND[3],
+    }
+    local aR, aG, aB = accent[1], accent[2], accent[3]
 
     local strip = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     strip:SetPoint("TOPLEFT",  parent, "TOPLEFT",  0, 0)
@@ -296,87 +541,132 @@ function UFP.Create(parent)
     })
     strip:SetBackdropColor(0.048, 0.048, 0.062, 1)
     strip:SetBackdropBorderColor(aR, aG, aB, 0.16)
+    if strip.SetClipsChildren then strip:SetClipsChildren(true) end
 
-    -- "APERÇU EN DIRECT" label
+    -- Bac à cadres retirés (les frames WoW ne se détruisent pas)
+    local trashBin = CreateFrame("Frame", nil, strip)
+    trashBin:SetSize(1, 1)
+    trashBin:Hide()
+
+    -- Scène : porte l'échelle. Toutes les coordonnées internes sont en
+    -- pixels de la DB, non mis à l'échelle.
+    local stage = CreateFrame("Frame", nil, strip)
+    stage:SetPoint("TOPLEFT", strip, "TOPLEFT", SIDE_PAD, -HEADER_H)
+    stage:SetSize(1, 1)
+
+    -- ── En-tête ───────────────────────────────────────────────
     local header = strip:CreateFontString(nil, "OVERLAY")
     header:SetFont(FONT_BOLD, 9, "OUTLINE")
-    header:SetPoint("TOPLEFT", 12, -8)
+    header:SetPoint("TOPLEFT", 12, -9)
     header:SetTextColor(aR, aG, aB, 0.55)
     header:SetText(L["preview_header"])
 
-    -- Pulsing dot
     local dot = strip:CreateTexture(nil, "OVERLAY")
     dot:SetSize(5, 5)
     dot:SetPoint("LEFT", header, "RIGHT", 6, 0)
     dot:SetColorTexture(aR, aG, aB, 1)
-    local dotVis = true
-    local dotTicker = C_Timer.NewTicker(1.2, function()
-        dotVis = not dotVis
-        dot:SetAlpha(dotVis and 0.9 or 0.20)
-    end)
-    strip:SetScript("OnHide", function()
-        if dotTicker then dotTicker:Cancel(); dotTicker = nil end
-    end)
+    -- Le ticker du point pulsant est démarré / arrêté par StartLive / StopLive :
+    -- il ne doit pas survivre à la fermeture du panneau, ni rester mort après
+    -- une première fermeture.
+    local dotVis    = true
+    local dotTicker = nil
+    -- Le démontage complet (ticker de données + événements) est posé plus bas,
+    -- une fois StopLive défini.
 
-    -- Separator at bottom
     local sep = strip:CreateTexture(nil, "ARTWORK")
     sep:SetHeight(1)
     sep:SetPoint("BOTTOMLEFT",  strip, "BOTTOMLEFT",  0, 0)
     sep:SetPoint("BOTTOMRIGHT", strip, "BOTTOMRIGHT", 0, 0)
     sep:SetColorTexture(aR * 0.6, aG * 0.6, aB * 0.6, 0.25)
 
-    -- Gradient overlay at bottom
-    local grad = strip:CreateTexture(nil, "BACKGROUND", nil, -1)
-    grad:SetHeight(24)
-    grad:SetPoint("BOTTOMLEFT",  strip, "BOTTOMLEFT",  0, 1)
-    grad:SetPoint("BOTTOMRIGHT", strip, "BOTTOMRIGHT", 0, 1)
-    if grad.SetGradientAlpha then
-        grad:SetGradientAlpha("VERTICAL", 0, 0, 0, 0, 0, 0, 0, 0.35)
-    end
+    -- ── État ─────────────────────────────────────────────────
+    local selectedUnit = nil     -- nil = tout afficher
+    local zoomMode     = "fit"   -- "fit" | "one"
+    local Refresh                -- forward declaration
 
-    -- Create fake unit frames
-    local units = {}
-    local UNIT_ORDER = { "player", "target", "focus", "pet", "targettarget" }
+    local units  = {}
+    local labels = {}
     for _, k in ipairs(UNIT_ORDER) do
-        units[k] = CreatePreviewUnit(strip)
-    end
-    strip.units = units
-
-    -- Unit header labels (above each unit)
-    local UNIT_LABELS = {
-        player = L["preview_lbl_player"], target = L["preview_lbl_target"],
-        focus  = L["preview_lbl_focus"],  pet    = L["preview_lbl_pet"], targettarget = L["preview_lbl_tot"],
-    }
-    for k, pu in pairs(units) do
+        units[k] = {}
         local lbl = strip:CreateFontString(nil, "OVERLAY")
         lbl:SetFont(FONT, 8, "OUTLINE")
         lbl:SetTextColor(aR * 0.7, aG * 0.7, aB * 0.7, 0.70)
-        lbl:SetText(UNIT_LABELS[k] or k:upper())
-        pu.label = lbl
+        lbl:SetJustifyH("LEFT")
+        lbl:Hide()
+        labels[k] = lbl
     end
 
-    -- ── Selected-unit filter state ─────────────────────────
-    local selectedUnit = nil   -- nil = show all, "player"/"target"/… = solo
-    local Refresh  -- forward declaration (defined below)
+    local BRAND_HEX = (TomoMod_Utils and TomoMod_Utils.BRAND_HEX) or "2ed884"
 
-    -- "Show All" button — hidden by default, shown when a unit is selected
-    local showAllBtn = CreateFrame("Button", nil, strip, "BackdropTemplate")
-    showAllBtn:SetSize(100, 18)
-    showAllBtn:SetPoint("TOPRIGHT", strip, "TOPRIGHT", -12, -6)
-    showAllBtn:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    showAllBtn:SetBackdropColor(aR * 0.18, aG * 0.18, aB * 0.18, 0.90)
-    showAllBtn:SetBackdropBorderColor(aR, aG, aB, 0.45)
-    local showAllText = showAllBtn:CreateFontString(nil, "OVERLAY")
-    showAllText:SetFont(FONT_BOLD, 8, "OUTLINE")
-    showAllText:SetPoint("CENTER")
-    showAllText:SetTextColor(aR, aG, aB, 0.85)
-    showAllText:SetText(L["preview_show_all"])
-    showAllBtn:SetScript("OnEnter", function(self) self:SetBackdropBorderColor(aR, aG, aB, 0.90) end)
-    showAllBtn:SetScript("OnLeave", function(self) self:SetBackdropBorderColor(aR, aG, aB, 0.45) end)
+    local function BaseLabel(k)
+        return L["preview_lbl_" .. (k == "targettarget" and "tot" or k)] or k:upper()
+    end
+
+    -- Pastille indiquant si la ligne montre des données réelles ou simulées :
+    -- sans elle, impossible de savoir ce qu'on regarde quand on n'a pas de cible.
+    local function SetUnitLabel(k)
+        local pu = units[k]
+        if pu and pu.live then
+            labels[k]:SetText(BaseLabel(k) .. "  |cff" .. BRAND_HEX .. L["preview_tag_live"] .. "|r")
+        else
+            labels[k]:SetText(BaseLabel(k) .. "  |cff808080" .. L["preview_tag_sim"] .. "|r")
+        end
+    end
+
+    -- ── Petit bouton générique ───────────────────────────────
+    local function MakeButton(w, text)
+        local b = CreateFrame("Button", nil, strip, "BackdropTemplate")
+        b:SetSize(w, 18)
+        b:SetBackdrop({
+            bgFile   = "Interface\\Buttons\\WHITE8x8",
+            edgeFile = "Interface\\Buttons\\WHITE8x8",
+            edgeSize = 1,
+        })
+        b:SetBackdropColor(aR * 0.18, aG * 0.18, aB * 0.18, 0.90)
+        b:SetBackdropBorderColor(aR, aG, aB, 0.45)
+        local t = b:CreateFontString(nil, "OVERLAY")
+        t:SetFont(FONT_BOLD, 8, "OUTLINE")
+        t:SetPoint("CENTER")
+        t:SetTextColor(aR, aG, aB, 0.85)
+        t:SetText(text)
+        b.text = t
+        b:SetScript("OnEnter", function(self) self:SetBackdropBorderColor(aR, aG, aB, 0.90) end)
+        b:SetScript("OnLeave", function(self) self:SetBackdropBorderColor(aR, aG, aB, 0.45) end)
+        return b
+    end
+
+    local zoomBtn = MakeButton(56, L["preview_zoom_fit"])
+    zoomBtn:SetPoint("TOPRIGHT", strip, "TOPRIGHT", -12, -6)
+    zoomBtn:SetScript("OnClick", function()
+        zoomMode = (zoomMode == "fit") and "one" or "fit"
+        zoomBtn.text:SetText(zoomMode == "fit" and L["preview_zoom_fit"] or L["preview_zoom_11"])
+        Refresh()
+    end)
+    zoomBtn:HookScript("OnEnter", function(self)
+        if not GameTooltip then return end
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:SetText(L["preview_zoom_tip"], aR, aG, aB, 1, true)
+        GameTooltip:Show()
+    end)
+    zoomBtn:HookScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+
+    local dataBtn = MakeButton(96, L["preview_data_live"])
+    dataBtn:SetPoint("TOPRIGHT", zoomBtn, "TOPLEFT", -6, 0)
+    dataBtn:SetScript("OnClick", function()
+        TomoModDB.unitFrames.previewLiveData = not LiveEnabled()
+        dataBtn.text:SetText(LiveEnabled() and L["preview_data_live"] or L["preview_data_mock"])
+        Refresh()
+    end)
+    dataBtn:HookScript("OnEnter", function(self)
+        if not GameTooltip then return end
+        GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        GameTooltip:SetText(L["preview_data_tip"], aR, aG, aB, 1, true)
+        GameTooltip:Show()
+    end)
+    dataBtn:HookScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+
+    local showAllBtn = MakeButton(100, L["preview_show_all"])
+    showAllBtn:SetPoint("TOPRIGHT", dataBtn, "TOPLEFT", -6, 0)
     showAllBtn:SetScript("OnClick", function()
         selectedUnit = nil
         showAllBtn:Hide()
@@ -384,167 +674,285 @@ function UFP.Create(parent)
     end)
     showAllBtn:Hide()
 
-    -- Expose for external read
+    -- Message affiché si le moteur UnitFrames n'est pas chargé
+    local warn = strip:CreateFontString(nil, "OVERLAY")
+    warn:SetFont(FONT, 10, "OUTLINE")
+    warn:SetPoint("CENTER", strip, "CENTER", 0, -6)
+    warn:SetTextColor(0.85, 0.55, 0.35, 0.95)
+    warn:Hide()
+
     strip.GetSelectedUnit = function() return selectedUnit end
-    strip.ClearSelection  = function()
+    strip.ClearSelection   = function()
         selectedUnit = nil
         showAllBtn:Hide()
         Refresh()
     end
+    strip.onUnitClick = {}
 
-    -- Hover effect + click = switch to unit's tab (populated by UnitFrames.lua)
-    strip.onUnitClick = {}  -- [unitKey] = function()
-
-    for _, k in ipairs(UNIT_ORDER) do
-        local pu  = units[k]
-        local key = k
-        pu.frame:EnableMouse(true)
-        pu.frame:SetScript("OnEnter", function(self)
-            self:SetBackdropBorderColor(aR, aG, aB, 0.80)
+    -- ── Scripts de souris posés sur un cadre reconstruit ─────
+    local function WireMouse(pu, unitKey)
+        local f = pu.frame
+        f:EnableMouse(true)
+        f:SetScript("OnEnter", function(self)
+            if self.tomoHighlight then self.tomoHighlight:Show() end
             if GameTooltip then
                 GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-                local hint = selectedUnit == key
-                    and (L["preview_click_show_all"])
-                    or  (L["preview_click_isolate"])
-                GameTooltip:SetText((UNIT_LABELS[key] or key) .. " - " .. hint, aR, aG, aB)
+                local hint = (selectedUnit == unitKey)
+                    and L["preview_click_show_all"]
+                    or  L["preview_click_isolate"]
+                local lbl = L["preview_lbl_" .. (unitKey == "targettarget" and "tot" or unitKey)] or unitKey
+                GameTooltip:SetText(lbl .. " - " .. hint, aR, aG, aB)
                 GameTooltip:Show()
             end
         end)
-        pu.frame:SetScript("OnLeave", function(self)
-            -- re-apply border from Refresh
-            if TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames[key] then
-                local db = TomoModDB.unitFrames[key]
-                local r, g, b = GetPreviewColor(key, db.useClassColor ~= false)
-                self:SetBackdropBorderColor(r * 0.40 + 0.10, g * 0.40 + 0.10, b * 0.40 + 0.10, 0.70)
-            end
+        f:SetScript("OnLeave", function(self)
+            if self.tomoHighlight then self.tomoHighlight:Hide() end
             if GameTooltip then GameTooltip:Hide() end
         end)
-        pu.frame:SetScript("OnMouseUp", function()
-            -- Toggle selection: click same = deselect, click different = select
-            if selectedUnit == key then
+        f:SetScript("OnMouseUp", function()
+            if selectedUnit == unitKey then
                 selectedUnit = nil
                 showAllBtn:Hide()
             else
-                selectedUnit = key
+                selectedUnit = unitKey
                 showAllBtn:Show()
             end
             Refresh()
-            -- Also switch to the unit's config tab
-            local fn = strip.onUnitClick[key]
+            local fn = strip.onUnitClick[unitKey]
             if fn then fn() end
         end)
     end
 
-    -- ============================================================
-    -- Refresh: reads DB and repositions all units
-    -- ============================================================
+    -- ── Rendu ────────────────────────────────────────────────
     Refresh = function()
         if not TomoModDB or not TomoModDB.unitFrames then return end
-        local ufdb    = TomoModDB.unitFrames
-        local globalDB = ufdb
-
-        -- ── Solo mode (one unit selected) ────────────────────────
-        if selectedUnit then
-            local SOLO_SCALE = 1.0  -- full size when isolated
-            local origScale = SCALE
-            SCALE = SOLO_SCALE
-
+        local UF = UFEngine()
+        if not UF then
             for _, k in ipairs(UNIT_ORDER) do
-                if k == selectedUnit then
-                    local db = ufdb[k]
-                    if db then
-                        ApplyPreviewUnit(units[k], k, db, globalDB)
-                    end
-                    units[k].frame:Show()
-                    units[k].label:Show()
-                else
-                    units[k].frame:Hide()
-                    units[k].label:Hide()
-                end
+                if units[k].frame then units[k].frame:Hide() end
+                labels[k]:Hide()
             end
+            warn:SetText(L["preview_engine_missing"])
+            warn:Show()
+            strip:SetHeight(STRIP_H_MIN)
+            return
+        end
+        warn:Hide()
 
-            SCALE = origScale  -- restore for future all-mode refreshes
+        local ufdb = TomoModDB.unitFrames
 
-            -- Center the solo unit
-            local pu = units[selectedUnit]
-            local frameH = pu.frame:GetHeight() or 40
-            local frameW = pu.frame:GetWidth() or 160
+        -- 1) Construire / mettre à jour chaque unité active
+        local active = {}
+        for _, k in ipairs(UNIT_ORDER) do
+            local settings = ufdb[k]
+            local pu       = units[k]
+            if settings and settings.enabled then
+                local sig = StructSig(settings)
+                if not pu.frame or pu.sig ~= sig then
+                    if BuildUnitFrame(pu, k, settings, stage, trashBin, accent) then
+                        WireMouse(pu, k)
+                    end
+                end
+                if pu.frame then
+                    UF.ApplyVisuals(pu.frame, k, settings)
+                    ApplyDataMode(pu, k, settings, IsLive(k))
+                    active[k] = settings
+                end
+            elseif pu.frame then
+                pu.frame:Hide()
+            end
+        end
 
-            pu.frame:ClearAllPoints()
-            pu.frame:SetPoint("CENTER", strip, "CENTER", 0, -4)
-            pu.label:ClearAllPoints()
-            pu.label:SetPoint("BOTTOM", pu.frame, "TOP", 0, 4)
+        for _, k in ipairs(UNIT_ORDER) do
+            local shown = active[k] and (not selectedUnit or selectedUnit == k)
+            if units[k].frame then units[k].frame:SetShown(shown and true or false) end
+            SetUnitLabel(k)
+            labels[k]:SetShown(shown and true or false)
+        end
 
-            -- Adjust strip height for the solo frame
-            local soloH = UNIT_PAD_TOP + frameH + 30
-            if soloH < STRIP_H_MIN then soloH = STRIP_H_MIN end
-            strip:SetHeight(soloH)
+        if not next(active) then
+            warn:SetText(L["preview_all_disabled"])
+            warn:Show()
+            strip:SetHeight(STRIP_H_MIN)
             return
         end
 
-        -- ── All-units mode (original layout) ─────────────────────
-        -- Apply each unit
-        for _, k in ipairs(UNIT_ORDER) do
-            local db = ufdb[k]
-            if db then
-                ApplyPreviewUnit(units[k], k, db, globalDB)
+        -- 2) Mesurer (coordonnées DB, hors échelle)
+        local ext = {}
+        for k, settings in pairs(active) do
+            local l, r, t, b = UnitOverflow(units[k], settings)
+            ext[k] = {
+                l = l, r = r, t = t, b = b,
+                w = (units[k].frame:GetWidth()  or 0) + l + r,
+                h = (units[k].frame:GetHeight() or 0) + t + b + LABEL_H,
+            }
+        end
+
+        local stripW = strip:GetWidth()
+        if not stripW or stripW < 50 then stripW = (parent:GetWidth() or 900) end
+        local availW = math.max(120, stripW - SIDE_PAD * 2)
+
+        local place = {}   -- [unitKey] = { x, y }  (TOPLEFT du cadre, coords scène)
+        local contentW, contentH = 0, 0
+
+        if selectedUnit then
+            -- ── Mode solo ────────────────────────────────────
+            local e = ext[selectedUnit]
+            contentW, contentH = e.w, e.h
+            place[selectedUnit] = { x = e.l, y = -e.t }
+        else
+            -- ── Deux colonnes ────────────────────────────────
+            local function ColumnWidth(list)
+                local w = 0
+                for _, k in ipairs(list) do
+                    if ext[k] and ext[k].w > w then w = ext[k].w end
+                end
+                return w
             end
-            units[k].frame:Show()
-            units[k].label:Show()
+            local leftW  = ColumnWidth(LEFT_COL)
+            local rightW = ColumnWidth(RIGHT_COL)
+            local gap    = (leftW > 0 and rightW > 0) and COL_GAP or 0
+            contentW = leftW + gap + rightW
+
+            local function LayColumn(list, x0)
+                local y = 0
+                for _, k in ipairs(list) do
+                    local e = ext[k]
+                    if e then
+                        place[k] = { x = x0 + e.l, y = -(y + e.t) }
+                        y = y + e.h + ROW_GAP
+                    end
+                end
+                if y > 0 then y = y - ROW_GAP end
+                return y
+            end
+            local leftH  = LayColumn(LEFT_COL,  0)
+            local rightH = LayColumn(RIGHT_COL, leftW + gap)
+            contentH = math.max(leftH, rightH)
         end
 
-        -- ── Layout ──────────────────────────────────────────────
-        -- Left column:  Player → Pet → Focus
-        -- Right column: Target → ToT
-        local function PlaceLabel(pu, x, y)
-            pu.label:ClearAllPoints()
-            pu.label:SetPoint("TOPLEFT", strip, "TOPLEFT", x, y)
+        -- 3) Échelle
+        local scale = 1
+        if zoomMode == "fit" then
+            local budgetH = selectedUnit and SOLO_BUDGET_H or FIT_BUDGET_H
+            local sw = (contentW > 0) and (availW  / contentW) or 1
+            local sh = (contentH > 0) and (budgetH / contentH) or 1
+            scale = math.min(1, sw, sh)
+            if scale < MIN_SCALE then scale = MIN_SCALE end
+        end
+        stage:SetScale(scale)
+        stage:SetSize(math.max(contentW, 1), math.max(contentH, 1))
+
+        -- 4) Placer cadres et étiquettes
+        for k, p in pairs(place) do
+            local pu = units[k]
+            pu.frame:ClearAllPoints()
+            pu.frame:SetPoint("TOPLEFT", stage, "TOPLEFT", p.x, p.y)
+
+            -- Les étiquettes sont parentées au strip (hors échelle) pour rester
+            -- lisibles : leur position est projetée depuis les coords scène.
+            local fh  = pu.frame:GetHeight() or 0
+            local lbl = labels[k]
+            lbl:ClearAllPoints()
+            lbl:SetPoint("TOPLEFT", strip, "TOPLEFT",
+                SIDE_PAD + p.x * scale,
+                -HEADER_H + (p.y - fh) * scale - 2)
         end
 
-        -- Player — top left
-        local pX = SIDE_PAD
-        local pY = -UNIT_PAD_TOP
-        units.player.frame:ClearAllPoints()
-        units.player.frame:SetPoint("TOPLEFT", strip, "TOPLEFT", pX, pY)
-        PlaceLabel(units.player, pX, pY + 12)
-
-        -- Target — top right (anchor from TOPRIGHT so width changes don't clip)
-        units.target.frame:ClearAllPoints()
-        units.target.frame:SetPoint("TOPRIGHT", strip, "TOPRIGHT", -SIDE_PAD, pY)
-        units.target.label:ClearAllPoints()
-        units.target.label:SetPoint("BOTTOMLEFT", units.target.frame, "TOPLEFT", 0, 2)
-
-        -- Pet — below player
-        local petY = pY - (units.player.frame:GetHeight() or 0) - UNIT_GAP - 12
-        units.pet.frame:ClearAllPoints()
-        units.pet.frame:SetPoint("TOPLEFT", strip, "TOPLEFT", pX, petY)
-        PlaceLabel(units.pet, pX, petY + 12)
-
-        -- ToT — below target
-        local totY = pY - (units.target.frame:GetHeight() or 0) - UNIT_GAP - 12
-        units.targettarget.frame:ClearAllPoints()
-        units.targettarget.frame:SetPoint("TOPRIGHT", strip, "TOPRIGHT", -SIDE_PAD, totY)
-        units.targettarget.label:ClearAllPoints()
-        units.targettarget.label:SetPoint("BOTTOMLEFT", units.targettarget.frame, "TOPLEFT", 0, 2)
-
-        -- Focus — below pet
-        local focY = petY - (units.pet.frame:GetHeight() or 0) - UNIT_GAP - 12
-        units.focus.frame:ClearAllPoints()
-        units.focus.frame:SetPoint("TOPLEFT", strip, "TOPLEFT", pX, focY)
-        PlaceLabel(units.focus, pX, focY + 12)
-
-        -- Adjust strip height
-        local leftH  = math.abs(focY) + (units.focus.frame:GetHeight() or 0) + 16
-        local rightH = math.abs(totY) + (units.targettarget.frame:GetHeight() or 0) + 16
-        local auraExtra = 14  -- room for aura dots
-        strip:SetHeight(math.max(STRIP_H_MIN, leftH, rightH) + auraExtra)
+        -- 5) Hauteur du strip
+        local h = HEADER_H + contentH * scale + BOTTOM_PAD
+        if h < STRIP_H_MIN then h = STRIP_H_MIN end
+        if h > STRIP_H_MAX then h = STRIP_H_MAX end
+        strip:SetHeight(math.floor(h + 0.5))
     end
 
-    strip.Refresh      = Refresh
-    UFP.Refresh        = function() if strip and strip:IsShown() then Refresh() end end
-    UFP.ForceRefresh   = Refresh  -- bypasses IsShown check (called on panel open)
+    -- ── Cycle de vie des données réelles ─────────────────────
+    -- Tout ne tourne QUE pendant que le panneau est affiché : ticker et
+    -- événements sont créés à l'affichage et démontés à la fermeture.
+    local liveTicker
+    local evtFrame = CreateFrame("Frame")
+    evtFrame:SetScript("OnEvent", function(_, event, unit)
+        -- On ne rafraîchit pas les auras ici : on marque l'unité et le ticker
+        -- absorbe la rafale (UNIT_AURA part en salve en raid).
+        local pu = units[unit]
+        if pu then pu.aurasDirty = true end
+    end)
 
-    strip:SetScript("OnShow", Refresh)
+    local function TickLive()
+        if not strip:IsShown() then return end
+        local UF = UFEngine()
+        if not UF then return end
+        local ufdb = TomoModDB.unitFrames
+        if not ufdb then return end
+
+        for _, k in ipairs(UNIT_ORDER) do
+            local pu       = units[k]
+            local settings = ufdb[k]
+            if settings and pu.frame and pu.frame:IsShown() then
+                local live = IsLive(k)
+                if live ~= pu.live then
+                    -- Apparition ou disparition de l'unité : bascule complète.
+                    ApplyDataMode(pu, k, settings, live)
+                    pu.aurasDirty = false
+                    SetUnitLabel(k)
+                elseif live then
+                    UF.UpdateUnitData(pu.frame)
+                    if pu.aurasDirty then
+                        pu.aurasDirty = false
+                        UF.UpdateUnitAuras(pu.frame)
+                    end
+                end
+            end
+        end
+    end
+
+    local function StartLive()
+        if not liveTicker then
+            liveTicker = C_Timer.NewTicker(LIVE_INTERVAL, TickLive)
+        end
+        if not dotTicker then
+            dotTicker = C_Timer.NewTicker(1.2, function()
+                dotVis = not dotVis
+                dot:SetAlpha(dotVis and 0.9 or 0.20)
+            end)
+        end
+        evtFrame:RegisterEvent("UNIT_AURA")
+    end
+
+    local function StopLive()
+        if liveTicker then liveTicker:Cancel(); liveTicker = nil end
+        if dotTicker  then dotTicker:Cancel();  dotTicker  = nil end
+        evtFrame:UnregisterAllEvents()
+        for _, k in ipairs(UNIT_ORDER) do
+            units[k].aurasDirty = false
+        end
+    end
+
+    strip.Refresh    = Refresh
+    UFP.Refresh      = function() if strip and strip:IsShown() then Refresh() end end
+    UFP.ForceRefresh = Refresh
+
+    strip:SetScript("OnShow", function()
+        StartLive()
+        Refresh()
+    end)
+    -- Recalcule l'échelle quand la LARGEUR du panneau change. On ignore les
+    -- changements de hauteur : Refresh appelle SetHeight, ce qui rappellerait
+    -- ce handler en boucle.
+    strip:SetScript("OnSizeChanged", function(self, w)
+        local ww = math.floor((w or self:GetWidth() or 0) + 0.5)
+        if ww == self._lastW then return end
+        self._lastW = ww
+        if self._reflowPending then return end
+        self._reflowPending = true
+        C_Timer.After(0, function()
+            self._reflowPending = nil
+            if self:IsShown() then Refresh() end
+        end)
+    end)
+    strip:SetScript("OnHide", StopLive)
+
+    StartLive()
     C_Timer.After(0, Refresh)
 
     return strip
