@@ -1,6 +1,6 @@
 ## ####################################
 
-## CHANGELOG 3.3.4 — The Role Presets Stop Being The Same Configuration Under Three Names, Switching Preset Stops Leaving The Last One Behind, The Dashboard Says Which Preset You Are Actually Running, Every Setting Says Which Role It Is For, Three Role Guides Put Every Setting One Click Away, A Search Result Inside A Nested Tab Stops Landing On The Wrong Page, The Unit Frame Preview Stops Being A Mock-Up Of The Real Thing, Changing The Bar Texture Stops Needing A Reload, The Chat History Stops Being One Switch With Six Settings Nobody Could Reach, The Restored History Stops Burying Every Addon Load Message, Unticking The Chat History Actually Deletes It, The Cooldown Studio Button Says Why It Did Not Open Instead Of Doing Nothing, A Studio Left Unchecked In The Addon List Repairs Itself On The Click, The Release Zip Refuses To Ship A Sub-Addon Nowhere Anyone Can See It, And The Diagnostics Export Stops Fighting Itself Over One Clipboard
+## CHANGELOG 3.3.4 — The Role Presets Stop Being The Same Configuration Under Three Names, Switching Preset Stops Leaving The Last One Behind, The Dashboard Says Which Preset You Are Actually Running, Every Setting Says Which Role It Is For, Three Role Guides Put Every Setting One Click Away, A Search Result Inside A Nested Tab Stops Landing On The Wrong Page, The Search Index Stops Missing Two Thirds Of The Interface, The Guide Buttons Stop Dropping You On The Last Tab You Used, The Class Reminder Stops Reading The Stance Bar By Position And Becomes A Row You Can Click To Cast, It Learns Weapon Imbues, Rites And Poisons And Stops Talking While You Are Dead Or In A City, The Mythic+ Panel Stops Claiming You Never Learned Teleports You Own, The Group's Keystones Get A Board You Can Open Before The Pull Instead Of After It, The Unit Frame Preview Stops Being A Mock-Up Of The Real Thing, Changing The Bar Texture Stops Needing A Reload, The Chat History Stops Being One Switch With Six Settings Nobody Could Reach, The Restored History Stops Burying Every Addon Load Message, Unticking The Chat History Actually Deletes It, The Cooldown Studio Button Says Why It Did Not Open Instead Of Doing Nothing, A Studio Left Unchecked In The Addon List Repairs Itself On The Click, The Release Zip Refuses To Ship A Sub-Addon Nowhere Anyone Can See It, The Diagnostics Export Stops Fighting Itself Over One Clipboard, And The Contacts Window Skin Is Retired Before Blizzard Rebuilds The Frame Under It
 
 #### Presets — Three Role Archetypes That Were The Same Configuration Under Three Names
 
@@ -31,7 +31,7 @@
 
 - **New** — A Roles category, carrying a guide page for tanking, healing and damage. Each page states what actually matters for that role and where it lives, rather than leaving a player to infer it from a settings tree organised by module.
 - **New** — Every point on a page carries a button that opens the panel holding that setting and highlights the section — not a description of where to look, the actual navigation. The page header also applies the role's preset and switches the sidebar's role focus, so the three lots that shipped this version meet on one page.
-- **Internal** — The guide pages resolve their targets against the live search index by localized section text, rather than rebuilding a category/tab/section key on their own side. A section registers under the tab path that actually produced it, and with nested tab bars the caller has no way to know that path.
+- **Internal** — The guide pages declare the full route to each target — category, then one tab key per nesting level, then the section's locale key — and hand it to `GS.JumpToPath`. Resolving against the live index by localized section text was tried first and does not hold: a section only registers once the tab holding it has been built, and most of these live in tabs that are not built until you open them.
 - **Internal** — `Config/Panels/Roles.lua` loads immediately before `ConfigUI.lua` and registers its own strings in all six languages, because `ConfigUI` reads `cat_roles` and the tab labels at load time, into a file-scope table.
 
 #### Config Search — A Result Inside A Nested Tab Landed On The Wrong Page
@@ -40,6 +40,86 @@
 - **Change** — The build context now carries an ordered `tabPath`, one entry per nesting level. `CreateTabPanel` derives its own depth from the length of the path at the moment it is created, and re-establishes its ancestors before building a tab that is opened long after the page was — by then the live path has moved on to another category entirely.
 - **Fix** — A cached page is re-shown without being rebuilt, so no tab bar is created and a pending path would never be read. Deep-links drop the target category from the cache first, through a new `C.InvalidateCategory`, rather than the blanket `InvalidatePanels`.
 - **New** — `GS.JumpToSection(cat, sectionLabel)` as a public entry point, ghost-indexing first so it works on pages the player has never opened, and falling back to opening the category when the section cannot be resolved instead of silently doing nothing.
+
+#### Config Search — Two Thirds Of The Interface Was Never In The Index
+
+- **Fix** — Ghost indexing walked the category tree and called each page builder once, which indexes exactly one tab per page: `CreateTabPanel` builds its first tab eagerly and leaves the rest lazy. Everything behind a second or third sub-tab — which is the bulk of the settings — had therefore never registered a single entry, and could not be found by searching for it at all. The indexer now collects every tab panel a build produces and walks the remaining tabs itself.
+- **Change** — Walking every tab means building several times as many panels, so the run is no longer synchronous. Jobs are queued and drained on a 6 ms budget every 50 ms, instead of freezing the client for the length of a full GUI build on the first two characters typed into the search box. A result list already on screen re-runs its query when the queue empties, so a search made against a half-filled index does not sit there stale.
+- **Fix** — Panels that reuse one builder across sibling tabs — every castbar unit, every unit frame — collapsed into a single entry. The key was `cat + innermost tab + section + label`, and the target castbar and the focus castbar produce the same innermost tab key and the same section text, so each one overwrote the last and every copy but the first vanished. Entries are keyed on the full tab path now.
+- **Fix** — A ghost build is offscreen and permanently hidden, and it was overwriting `regionByKey` — the live region the cached-page fallback highlights. Registration from inside a ghost job no longer replaces a live region, and no longer consumes a pending deep-link either: the run is asynchronous now, so it can overlap a jump the player just made.
+- **New** — `GS.JumpToPath(cat, path, sectionLabel)`, where the caller names the exact route rather than looking one up. It reconstructs the composite key from the same tab path registration uses, so it lands on a cold client and is unaffected by how far indexing has got.
+
+#### Roles — The Guide Buttons Now Name Their Own Route
+
+- **Fix** — The buttons on the three guide pages opened the right category and then left the player on whatever tab they had last used. They resolved their target against the search index, and the sections they point at — raid frame HoTs, party defensives, nameplate tank mode — were all sitting in non-first sub-tabs, which is precisely what the index did not cover. The lookup missed, and the fallback path is "open the category and stop".
+- **Change** — Every one of the eighteen cards now declares its own `path`, one tab key per nesting level, next to the section it targets. Declared rather than derived: only the first tab of a panel is built eagerly, so there is no reliable moment at which the guide page could have discovered the route on its own.
+- **Change** — Deep-links drop the target category from the panel cache before switching to it. A cached page is re-shown without being rebuilt, no tab bar is created, and the requested path is never read — which is what made these links land on the last tab used rather than the right one.
+
+#### Class Reminder — It Was Reading The Stance Bar By Position
+
+- **Fix** — Forms and stances were matched by their index on the stance bar: Cat was 2, Bear was 1, Moonkin was 4. That index is a function of which talents are picked, so on any build where it shifted, the reminder was comparing the player's actual form against an unrelated slot — reporting a missing form while standing in it, or staying silent while out of it. Every form is matched by spell ID through `GetShapeshiftFormInfo` now.
+- **Fix** — A form absent from the stance bar was reported as missing. It is not missing, it is not learned, and no amount of pressing anything would clear it. Entries whose form is not on the bar are suppressed, and the spell is checked against the player's spellbook before any verdict is formed.
+- **Fix** — Warriors had one generic "Stance" entry covering bar slots 1 to 3, on every specialisation, whether or not the character had taken a stance talent at all. There are three entries now — Battle, Berserker, Defensive — each gated to the specialisation that uses it and keyed on its own talent spell.
+- **Fix** — Paladin auras were declared as shapeshift forms, spanning seven bar slots. They are player buffs and were never going to be found there. They are looked up as auras now — out of combat only, and never inside an arena or battleground, because the aura data is contextually secret in Midnight and a verdict drawn from it during a fight would be a guess.
+
+#### Class Reminder — Reminders That Could Never Be Satisfied
+
+- **Fix** — Evoker tracked exactly one Blessing of the Bronze buff ID. The spell applies a different ID per receiving class, so twelve classes out of thirteen carried the buff and were told they were missing it, permanently, for as long as the module was on. All thirteen IDs are tracked.
+- **Fix** — Same shape for the talent variants: Mark of the Wild and Arcane Intellect each have a second aura ID on some builds, and Moonkin Form and Shadowform each have a second form ID. Only the base ID was listed, so a player on the variant was reminded about a buff they were already running.
+- **Change** — Aura reads are gated on a whitelist of IDs that stay readable through combat lockdown. Anything outside it is not evaluated in combat rather than judged on unreadable data — a silent reminder is better than a wrong one, and a wrong one is what the alternative produces.
+- **Change** — Every label now comes from the client's own name for the spell, with the locale table kept only as a fallback for the moment before the spell cache is warm. Six translations of "Bear Form" that could drift from the game's own wording were six chances to disagree with the tooltip.
+
+#### Class Reminder — From A Line Of Text To A Row Of Icons
+
+- **Change** — The reminder was a pulsing line of text in the middle of the screen naming what was missing. It is a row of icons now, one per missing buff, form, stance or aura, with the spell's own art and an optional label underneath.
+- **New** — Out of combat each icon is a secure action button: left-click casts the missing spell directly, rather than reading its name and going to find it on a bar. Middle-click dismisses that one reminder until the next loading screen, for the buff you have decided you are not taking today.
+- **Change** — Nothing is clickable in combat, deliberately. Secure buttons cannot be shown, hidden or reconfigured under lockdown, so combat is served by a parallel pool of plain frames while the secure row is faded out; a row that stayed visible and armed would be lying about what pressing it does. The swap uses the same skin on both pools, so it is invisible.
+- **Internal** — The anchor frame is shown once and never hidden again. It parents protected buttons, and hiding the parent of a protected frame during combat is exactly the call that propagates taint; visibility is carried by the icons and the anchor's alpha, neither of which is protected.
+- **New** — Icon size, spacing, row scale, opacity, the label and its size, and a glow (none, pixel, autocast shine, action button, proc) with its own colour.
+- **Change** — The two position sliders are gone. The row is placed with the mover like every other movable element, and it registers its own entry in the Movers panel; an existing offset is carried over once as a real anchor point and the dead keys are dropped.
+- **Change** — Placement mode and the preview both draw the plain pool, never the secure one: a preview you can click into a cast is not a preview.
+
+#### Class Reminder — The Panel Shows The Row It Configures
+
+- **New** — The options panel opens on a live preview of the row, drawn by the module itself from the current settings, so every slider moves the thing you are actually looking at. It owns its own pool of plain frames — the options window must never host a secure action button, or hovering a config widget would arm a real cast.
+- **New** — The preview is a navigation surface. Clicking an icon jumps to that reminder's toggle, clicking its label jumps to the label options, clicking the empty space around it jumps to the sizing sliders. The travel is animated and the destination outlined: an instant jump reads as the panel having been rebuilt.
+- **New** — The list of supported classes was a paragraph of text per class. It is a four-column grid now, one cell per tracked buff or form, coloured by class, and each cell is a toggle — untick anything you do not want to be reminded about. A missing key means enabled, so a profile that predates the grid tracks everything exactly as before.
+- **Internal** — `W.SmoothScrollTo`, `W.FlashHighlight`, `W.ScrollToFrame` and `W.CreateCheckboxGrid` are general widgets rather than panel-local helpers. Grid columns are measured on `OnSizeChanged`: a tab built while its panel is hidden reports a width of zero, which would collapse every column onto the left edge.
+
+#### Class Reminder — Weapon Imbues, Rites And Poisons Enter The List
+
+- **New** — Shaman weapon imbues are tracked: Flametongue, Windfury, Earthliving, Tidecaller's Guard and Thunderstrike Ward, one entry each because Enhancement runs two at once. The "do I know this?" gate keeps the others silent on the specs that cannot cast them, so no per-spec list has to be maintained.
+- **New** — The Lightsmith rites — Rite of Adjuration and Rite of Sanctification — share a single reminder, since they are mutually exclusive and having either satisfies it. The icon points at whichever one the paladin has actually taken.
+- **New** — Rogue poisons, one reminder per category rather than per poison: Lethal and Non-Lethal. What matters is whether the slots are filled, so the check counts how many of the category's poisons are active against how many the player can apply — one, or two with Dragon-Tempered Blades. That survives any talent build without listing builds.
+- **Internal** — Imbues and rites are temporary weapon enchants, not auras, so `UNIT_AURA` never fires for them and the reminder would only have cleared on the next unrelated refresh. `WEAPON_ENCHANT_CHANGED` and `UNIT_INVENTORY_CHANGED` are registered for exactly this.
+- **Internal** — Enchants are read through `C_PaperDollInfo.GetTemporaryEnchantmentInfo` where it exists. `GetWeaponEnchantInfo` is a deprecation shim behind a CVar in 12.1; it stays as the fallback rather than the primary.
+- **Change** — Every one of these is evaluated out of combat only. None of them can be applied mid-fight, so a reminder during one is an icon you cannot act on.
+
+#### Class Reminder — Shaman Shields, And What Elemental Orbit Does To Them
+
+- **New** — Lightning, Water and Earth Shield are tracked, and Elemental Orbit changes the answer rather than being ignored. With the talent the shaman carries Earth Shield on themselves *and* one of the other two, so that is two entries; without it any one shield satisfies a single entry. The talent gate decides which pair of entries is live.
+- **Change** — The shield entry names the category — "Lightning / Water Shield" — and its icon and click resolve to the right spell for the current specialisation, Water for Restoration and Lightning otherwise. A reminder that names one specific shield is wrong for half the specs that see it.
+- **Internal** — Earth Shield's self component is added to the combat-readable whitelist, because it can be cast and read during a fight. The other two are not, and stay out-of-combat only.
+
+#### Class Reminder — Where The Row Is Allowed To Appear
+
+- **New** — A *Show reminders* setting: everywhere, in dungeons and raids only, or in a group only. The reminder is worth having before a pull and mostly noise while questing, and that balance is per-player rather than something to be assumed.
+- **New** — Hidden in cities and inns by default. The rested state is exactly where you are about to reapply everything anyway.
+- **Change** — The row is also silenced while dead or a ghost, in a vehicle, and while flying on a mount. Each of those is a state where nothing on the row can be pressed, so showing it only asks the player to read it and do nothing.
+- **Internal** — All of it is event-driven — resting, death, vehicle, mount display, zone — so none of these conditions costs a poll.
+
+#### Class Reminder — It Can Watch The Group Too
+
+- **New** — *Also remind when a group member is missing a buff*, off by default. With it on, a group buff you are carrying still raises its reminder when someone in range does not have it — which is the case the reminder always missed, since a buff on yourself says nothing about the rest of the party.
+- **Change** — Only members who actually want the stat are counted. Intellect and attack power each carry a class list, and a class is listed when any of its specs wants it: that over-counts a Retribution Paladin for Intellect and never under-counts anyone who needs the buff. The class gate runs before the aura read, so non-beneficiaries cost nothing.
+- **Change** — Out of combat only. Another player's auras are secret values during a fight, and a nil answer there reads as "missing" — which would put a permanent reminder on screen for the whole pull. Only whitelisted IDs are consulted even out of combat.
+- **Internal** — Range mirrors the raid frames' own path: `UnitInRange` when it answers in plain Lua, `UnitIsVisible` when it comes back secret. Visible is coarser than cast range but still excludes what matters — another wing, another zone, another phase.
+- **Internal** — Broad `UNIT_AURA` fires for every member of a raid, dozens of times a second. It is registered only while the setting is on, the player's class actually has a group buff, and there is a group; otherwise the module keeps its player-only registration. Events that do get through are coalesced into one deferred pass.
+
+#### Class Reminder — The One-Second Ticker Is Gone
+
+- **Change** — The module ran a `C_Timer` ticker at 1 Hz for as long as it was enabled, re-scanning auras and the stance bar whether or not anything had changed. `UNIT_AURA` already fires on gain, loss and expiry and the stance bar has its own events, so the polling was pure overhead. It is event-driven now, with a 0.2 s coalescing window so a burst of events costs one scan.
+- **New** — It also listens for talent and spellbook changes. The set of available forms moves when a build changes, and an entry that was "not learned" a moment ago becomes trackable without anything else waking the module up.
 
 #### Unit Frames — The Settings Preview Was A Mock-Up Of The Real Thing
 
@@ -59,6 +139,37 @@
 
 - **Fix** — The status bar texture was only read when a frame was first built, so changing it did nothing at all until the next `/reload` — on real frames, not just in the preview. It is reapplied live now, through a helper that puts the tint back: `SetStatusBarTexture` resets the vertex colour to opaque white.
 - **Fix** — Same for `showDuration` on aura and enemy buff icons: the countdown numbers were configured at icon creation and never revisited.
+
+#### Mythic+ — Dungeon Teleports You Own Were Reported As Not Learned
+
+- **Fix** — The M+ hub and the scoreboard tested teleports with `IsSpellKnown`, which only reports spells granted through the class or pet spellbook mechanism. Dungeon and raid teleports are granted by achievements, so it answers false for every one of them — including ones sitting in the player's own spellbook. Reported for Skyreach (159898), and it applied to the whole list.
+- **Change** — What that looked like: the dungeon name greyed out, the tooltip reading "teleport not available", and clicking the row printing "not learned" while the secure button stayed disabled, so nothing was cast. A teleport you had earned was a teleport the panel refused to use.
+- **New** — `TomoMod_DataKeys.IsTeleportKnown` is now the single test, next to the teleport data it guards: `IsPlayerSpell` first, which covers achievement-granted spells, then `IsSpellKnownOrOverridesKnown` for a teleport replaced by a newer rank, then `IsSpellKnown` as the last resort. ProfessionHelper and the CooldownForge catalog already combined the first two; this is the same rule rather than a fourth variation of it.
+- **Change** — All seven call sites across the hub and the scoreboard go through it — click handler, tooltip, secure button attribute and the name colouring — so the row's appearance and what pressing it actually does can no longer disagree.
+
+#### Mythic+ Scoreboard — The Group's Keystones, On Demand
+
+- **New** — `/tm keys` opens the scoreboard on the live group: every member with their name, class, Mythic+ score and the keystone they are holding. The board only ever appeared on its own at the end of a run, and the one command that opened it manually — `/tm score` — showed sample data laid out to position the frame, not anyone real. Deciding which key to run was the moment the board was least reachable.
+- **Change** — It works outside an instance, which is where it is wanted. The run-data collector was already safe there: the Mythic+ block is gated on the challenge difficulty, the unit list falls back to the player when solo, and the damage totals simply come back at zero.
+- **Note** — `/tm score` is unchanged and still opens the sample board for positioning; `/tm keys` is the real one.
+
+#### Mythic+ Scoreboard — Roles At A Glance, And A Stable Order
+
+- **New** — Each row now carries a role icon next to the specialisation icon, tinted with the colours the archetype cards and the config role badges already use. The spec says what the player brought, the role says what they are doing with it, and a keystone board read before pulling wants both. The frame widened from 340 to 360 to fit them.
+- **Fix** — Your own specialisation was missing from your row. `GetInspectSpecialization` returns zero for the player themselves and only answers for units whose inspect data is cached — which everyone's is by the end of a run, and nobody's is when the board is opened from town. Your spec is read directly now, with the inspect path kept for everyone else.
+- **Fix** — Players in the same role were left in whatever order `pairs` produced. After a run damage separated them, but outside one it is zero for everybody, so the same group came out in a different order on each opening of the same board. Ties now fall through to keystone level, then score, then name.
+
+#### Delete Confirmation — Reading A Field Blizzard Had Already Removed
+
+- **Fix** — The auto-fill that types the confirmation word into the delete popup looked for the edit box on `dialog.editBox` first. That field was removed in 11.2, so the lookup only ever succeeded through its second choice, a guess at the frame's global name — a fallback that holds until the popup stops being a globally named frame, at which point the box silently stops being filled.
+- **Change** — It goes through `TomoMod_Utils.PopupEditBox` now, which asks the supported `:GetEditBox()` accessor first and keeps the removed field and the global name only as fallbacks. The helper already existed and was already used by the Cooldown Studio popups; this was the last place still resolving the edit box by hand.
+
+#### Contacts — The Friends Window Skin Is Retired
+
+- **Removed** — The Contacts skin shipped in 3.2.5 and is gone: the module, its tab under Skins, its two settings, and its strings in all six languages. Blizzard rebuilds `FriendsFrame` in 12.1, and the skin worked by reaching for several dozen of that window's regions by name — `NineSlice`, the eight inset border pieces, the bottom tab plates, the Who column headers, `FriendsFrameAddFriendButton` and the rest. Every one of those names is one the rebuild is free to move, rename or drop. A skin written against them does not degrade gently on patch day; it leaves a half-stripped window, and it does so first for the people running it rather than for anyone in a position to fix it.
+- **Change** — For anyone who had the skin switched off — the default it shipped with — nothing about the friends window changes. For anyone who had it on, the window returns to Blizzard's own appearance. The skin only ever dimmed Blizzard's artwork with `SetAlpha(0)` and never destroyed a texture, so there is nothing left behind to restore.
+- **Note** — The Contacts button added to the chat sidebar in 3.2.4 stays. It opens the friends window and was never part of the skin.
+- **Internal** — `TomoModDB.friendsSkin` is dropped by a one-time migration rather than left in every saved profile as a table nothing reads. The module file and its `QOL.xml` include are removed together: an `<Include>` pointing at a deleted file is a load error, not a smaller addon.
 
 #### Chat History — One Switch, And Six Settings Nobody Could Reach
 

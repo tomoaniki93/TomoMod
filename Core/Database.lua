@@ -276,10 +276,6 @@ TomoMod_Defaults = {
             numberOfPages = 2,
         },
     },
-    friendsSkin = {
-        enabled = false,
-        scale = 1.0,
-    },
     characterSkin = {
         enabled = true,
         skinCharacter = true,
@@ -541,8 +537,27 @@ TomoMod_Defaults = {
         enabled = false,
         scale = 1.0,
         textColor = { r = 1, g = 1, b = 1 },
-        offsetX = 0,
-        offsetY = 0,
+        -- Icon row
+        iconSize = 40,
+        iconSpacing = 8,
+        showText = true,
+        textSize = 12,
+        opacity = 1.0,
+        glowType = "Pixel Glow",
+        glowColor = { r = 1.0, g = 0.78, b = 0.14 },
+        -- Context: where the row is allowed to appear, and the states that
+        -- silence it regardless.
+        showIn = "always",          -- always | instances | group
+        hideWhenResting = true,
+        -- Also remind when an in-range group member is missing a group buff.
+        -- Off by default: it costs a broad UNIT_AURA registration.
+        showOthersMissing = false,
+        -- Per-entry opt-out from the coverage grid, keyed by locale name key.
+        -- A missing key means enabled, so nothing has to be seeded here.
+        entries = {},
+        -- Placement is owned by the mover; offsetX/offsetY were migrated into
+        -- this and removed (see crIconRework).
+        position = nil,
     },
 
     afkDisplay = {
@@ -1452,6 +1467,20 @@ local function TomoMod_RunMigrations()
         end
     end
 
+    -- CoTankTracker stored posX/posY captured through GetPoint() right after
+    -- StartMoving(), so they were offsets against an engine-chosen anchor, not
+    -- the CENTER/CENTER the restore code applied them to. The new key holds
+    -- screen coordinates against BOTTOMLEFT; the old pair cannot be converted
+    -- (its origin was never recorded), so it is dropped and the frame falls
+    -- back to its default spot once.
+    if not done.coTankPositionV2 then
+        done.coTankPositionV2 = true
+        local ct = TomoModDB.coTankTracker
+        if type(ct) == "table" then
+            ct.posX, ct.posY = nil, nil
+        end
+    end
+
     -- The per-message chat copy icon is gone: its texture failed to resolve
     -- and left a placeholder glyph in front of every line. The option is no
     -- longer in the GUI, so clear it for anyone who had it on -- otherwise
@@ -1460,6 +1489,36 @@ local function TomoMod_RunMigrations()
         done.chatDropCopyLines = true
         if type(TomoModDB.chatFrameSkin) == "table" then
             TomoModDB.chatFrameSkin.copyChatLines = nil
+        end
+    end
+
+    -- The contacts window skin is gone: Blizzard rebuilds that frame in 12.1,
+    -- so skinning it would break on patch day. Drop the orphaned table rather
+    -- than leave it sitting in every saved profile.
+    if not done.dropFriendsSkin then
+        done.dropFriendsSkin = true
+        TomoModDB.friendsSkin = nil
+    end
+
+    -- The class reminder is an icon row now, not a line of text. Its two
+    -- offset sliders are gone -- the row is placed with the mover like every
+    -- other movable element -- so carry an existing offset over as a real
+    -- anchor point once, then drop the dead keys. Profiles that never touched
+    -- the sliders keep the default centre position.
+    if not done.crIconRework then
+        done.crIconRework = true
+        local cr = TomoModDB.classReminder
+        if type(cr) == "table" then
+            if cr.position == nil
+               and ((tonumber(cr.offsetX) or 0) ~= 0 or (tonumber(cr.offsetY) or 0) ~= 0) then
+                cr.position = {
+                    point         = "CENTER",
+                    relativePoint = "CENTER",
+                    x             = tonumber(cr.offsetX) or 0,
+                    y             = tonumber(cr.offsetY) or 0,
+                }
+            end
+            cr.offsetX, cr.offsetY = nil, nil
         end
     end
 end

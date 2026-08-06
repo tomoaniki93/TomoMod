@@ -67,7 +67,19 @@ function TS:CollectRunData()
                 local _, classFile = UnitClass(unit)
                 local role = UnitGroupRolesAssigned(unit)
 
-                local specID = GetInspectSpecialization(unit)
+                -- GetInspectSpecialization only answers for units whose
+                -- inspect data is cached, and it returns 0 for the player
+                -- themselves. At the end of a run everyone has been inspected;
+                -- opening the board from town (/tm keys) is the case where that
+                -- is not true, so read the player's own spec directly.
+                local specID
+                if UnitIsUnit(unit, "player") then
+                    local idx = GetSpecialization and GetSpecialization()
+                    if idx then specID = GetSpecializationInfo(idx) end
+                end
+                if not specID or specID == 0 then
+                    specID = GetInspectSpecialization(unit)
+                end
                 local specIcon
                 if specID and specID > 0 then
                     _, _, _, specIcon = GetSpecializationInfoByID(specID)
@@ -174,7 +186,16 @@ function TS:CollectRunData()
         local ra = roleOrder[a.role] or 4
         local rb = roleOrder[b.role] or 4
         if ra ~= rb then return ra < rb end
-        return (a.damage or 0) > (b.damage or 0)
+        -- Damage decides after a run. Outside one it is zero for everyone, and
+        -- sorting on it alone left same-role players in `pairs` order, which
+        -- reshuffles between two openings of the same board.
+        local da, db = a.damage or 0, b.damage or 0
+        if da ~= db then return da > db end
+        local ka, kb = a.keyLevel or 0, b.keyLevel or 0
+        if ka ~= kb then return ka > kb end
+        local ga, gb = a.rating or 0, b.rating or 0
+        if ga ~= gb then return ga > gb end
+        return (a.fullName or "") < (b.fullName or "")
     end)
 
     data.players = sorted

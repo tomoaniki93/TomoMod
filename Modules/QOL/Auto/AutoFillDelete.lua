@@ -43,14 +43,10 @@ local function TryAutoFill(dialog)
         return
     end
 
-    -- Get the editbox — try dialog.editBox first, then named fallback
-    local editBox = dialog.editBox
-    if not editBox and dialog.GetName then
-        local name = dialog:GetName()
-        if name then
-            editBox = _G[name .. "EditBox"]
-        end
-    end
+    -- [11.2] The accessor is the current form; the legacy field and the global
+    -- name are only fallbacks. This used to try them in the opposite order, so
+    -- it relied on a field Blizzard had already removed.
+    local editBox = TomoMod_Utils.PopupEditBox(dialog)
 
     if not editBox or not editBox.SetText then return end
 

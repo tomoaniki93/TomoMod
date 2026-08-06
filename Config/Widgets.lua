@@ -476,6 +476,255 @@ function W.CreateScrollPanel(parent)
 end
 
 -- =====================================================================
+-- SCROLL NAVIGATION  — smooth scroll + attention flash
+--
+-- Used by panels that let the user click a preview element to jump to the
+-- option that controls it. Jumping instantly is disorienting: the eye loses
+-- the target and the user cannot tell whether the panel moved or was rebuilt,
+-- so the travel is animated and the destination is briefly outlined.
+-- =====================================================================
+
+local SCROLL_DURATION = 0.28
+
+-- One driver frame per scroll panel, created lazily and parked when idle.
+function W.SmoothScrollTo(panel, target, onArrive)
+    local scroll = panel and (panel.scroll or panel)
+    if not (scroll and scroll.SetVerticalScroll) then return end
+
+    local maxScroll = scroll:GetVerticalScrollRange() or 0
+    target = math.max(0, math.min(target or 0, maxScroll))
+
+    local driver = panel._tmScrollDriver
+    if not driver then
+        driver = CreateFrame("Frame")
+        panel._tmScrollDriver = driver
+    end
+
+    local from    = scroll:GetVerticalScroll() or 0
+    local elapsed = 0
+    driver:SetScript("OnUpdate", function(self, dt)
+        elapsed = elapsed + dt
+        local t = elapsed / SCROLL_DURATION
+        if t >= 1 then
+            scroll:SetVerticalScroll(target)
+            if panel.UpdateScroll then panel.UpdateScroll() end
+            self:SetScript("OnUpdate", nil)
+            if onArrive then onArrive() end
+            return
+        end
+        -- ease-out: fast departure, gentle arrival
+        local e = 1 - (1 - t) * (1 - t)
+        scroll:SetVerticalScroll(from + (target - from) * e)
+        if panel.UpdateScroll then panel.UpdateScroll() end
+    end)
+    driver:Show()
+end
+
+-- Accent outline that pulses twice and fades. The overlay is cached on the
+-- target so repeated clicks reuse one frame instead of stacking outlines.
+function W.FlashHighlight(frame)
+    if not (frame and frame.CreateTexture) then return end
+    local r, g, b = Accent(frame)
+
+    local glow = frame._tmFlash
+    if not glow then
+        glow = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+        glow:SetPoint("TOPLEFT", -2, 2)
+        glow:SetPoint("BOTTOMRIGHT", 2, -2)
+        glow:SetBackdrop({
+            edgeFile = "Interface\\Buttons\\WHITE8x8",
+            edgeSize = 1,
+        })
+        frame._tmFlash = glow
+    end
+    glow:SetFrameLevel((frame:GetFrameLevel() or 0) + 8)
+    glow:SetBackdropBorderColor(r, g, b, 1)
+    glow:SetAlpha(1)
+    glow:Show()
+
+    local elapsed = 0
+    glow:SetScript("OnUpdate", function(self, dt)
+        elapsed = elapsed + dt
+        if elapsed >= 1.1 then
+            self:SetScript("OnUpdate", nil)
+            self:Hide()
+            return
+        end
+        if elapsed < 0.7 then
+            -- two pulses, then a clean fade so the outline never lingers
+            self:SetAlpha(0.55 + 0.45 * math.cos(elapsed * 18))
+        else
+            self:SetAlpha(math.max(0, 1 - (elapsed - 0.7) / 0.4))
+        end
+    end)
+end
+
+-- Scroll `panel` until `frame` sits `padding` px below the top, then flash it.
+-- Offsets are measured from the scroll child rather than read back from
+-- GetPoint, so a widget anchored to any parent still resolves correctly.
+function W.ScrollToFrame(panel, frame, padding)
+    if not (panel and frame and frame.GetTop) then return end
+    local child = panel.child or (panel.scroll and panel.scroll.child)
+    if not (child and child.GetTop) then return end
+
+    local frameTop, childTop = frame:GetTop(), child:GetTop()
+    if not (frameTop and childTop) then return end
+
+    W.SmoothScrollTo(panel, math.max(0, childTop - frameTop - (padding or 24)), function()
+        W.FlashHighlight(frame)
+    end)
+end
+
+-- =====================================================================
+-- CHECKBOX GRID  — multi-column toggle grid with class-coloured labels
+--
+-- items: { { key=, label=, classToken=, get=fn()->bool, set=fn(bool) }, ... }
+-- Returns grid, newY, cells  where cells[key] is that item's frame, so a
+-- caller can scroll to and flash an individual toggle.
+--
+-- Column widths are recomputed on OnSizeChanged rather than at build time:
+-- a tab built while its panel is hidden reports a width of zero, which would
+-- otherwise collapse every column onto the left edge.
+-- =====================================================================
+
+local GRID_ROW_H   = 44
+local GRID_BOX     = 16
+local GRID_SIDE    = 12
+
+function W.CreateCheckboxGrid(parent, yOffset, items, columns)
+    local r, g, b = Accent(parent)
+    local cols  = math.max(1, columns or 4)
+    local rows  = math.max(1, math.ceil(#items / cols))
+    local cells = {}
+
+    local grid = CreateFrame("Frame", nil, parent)
+    grid:SetPoint("TOPLEFT",  16, yOffset)
+    grid:SetPoint("TOPRIGHT", -16, yOffset)
+    grid:SetHeight(rows * GRID_ROW_H)
+
+    local rowFrames, dividers = {}, {}
+
+    for row = 1, rows do
+        local rf = CreateFrame("Frame", nil, grid)
+        rf:SetPoint("TOPLEFT",  0, -(row - 1) * GRID_ROW_H)
+        rf:SetPoint("TOPRIGHT", 0, -(row - 1) * GRID_ROW_H)
+        rf:SetHeight(GRID_ROW_H)
+
+        local bg = rf:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bg:SetColorTexture(0, 0, 0, (row % 2 == 0) and 0.22 or 0.10)
+
+        rowFrames[row] = rf
+        dividers[row]  = {}
+
+        for d = 1, cols - 1 do
+            local div = rf:CreateTexture(nil, "ARTWORK")
+            div:SetWidth(1)
+            div:SetPoint("TOP",    rf, "TOPLEFT",    0, 0)
+            div:SetPoint("BOTTOM", rf, "BOTTOMLEFT", 0, 0)
+            div:SetColorTexture(1, 1, 1, 0.06)
+            dividers[row][d] = div
+        end
+
+        for col = 1, cols do
+            local idx  = (row - 1) * cols + col
+            local item = items[idx]
+            if item then
+                local cell = CreateFrame("Button", nil, rf)
+                cell:SetPoint("TOPLEFT", rf, "TOPLEFT", 0, 0)
+                cell:SetHeight(GRID_ROW_H)
+                cell._col = col
+
+                local cr, cg, cb = T.text[1], T.text[2], T.text[3]
+                local cc = item.classToken and RAID_CLASS_COLORS
+                    and RAID_CLASS_COLORS[item.classToken]
+                if cc then cr, cg, cb = cc.r, cc.g, cc.b end
+
+                local lbl = cell:CreateFontString(nil, "OVERLAY")
+                lbl:SetFont(FONT, 11, "")
+                lbl:SetPoint("LEFT", cell, "LEFT", GRID_SIDE, 0)
+                lbl:SetPoint("RIGHT", cell, "RIGHT", -(GRID_SIDE + GRID_BOX + 6), 0)
+                lbl:SetJustifyH("LEFT")
+                lbl:SetWordWrap(false)
+                lbl:SetTextColor(cr, cg, cb, 1)
+                lbl:SetText(item.label or item.key)
+
+                local box = CreateFrame("Frame", nil, cell, "BackdropTemplate")
+                box:SetSize(GRID_BOX, GRID_BOX)
+                box:SetPoint("RIGHT", cell, "RIGHT", -GRID_SIDE, 0)
+                box:SetBackdrop({
+                    bgFile   = "Interface\\Buttons\\WHITE8x8",
+                    edgeFile = "Interface\\Buttons\\WHITE8x8",
+                    edgeSize = 1,
+                })
+                box:SetBackdropColor(T.bgDark[1], T.bgDark[2], T.bgDark[3], 1)
+
+                local tick = box:CreateTexture(nil, "OVERLAY")
+                tick:SetPoint("TOPLEFT", 3, -3)
+                tick:SetPoint("BOTTOMRIGHT", -3, 3)
+                tick:SetColorTexture(r, g, b, 1)
+
+                local function Apply()
+                    local on = item.get and item.get() or false
+                    if on then
+                        tick:Show()
+                        lbl:SetTextColor(cr, cg, cb, 1)
+                        box:SetBackdropBorderColor(r, g, b, 0.5)
+                    else
+                        tick:Hide()
+                        lbl:SetTextColor(cr, cg, cb, 0.45)
+                        box:SetBackdropBorderColor(T.border[1], T.border[2], T.border[3], 1)
+                    end
+                end
+                Apply()
+
+                cell:SetScript("OnClick", function()
+                    if item.set then item.set(not (item.get and item.get())) end
+                    Apply()
+                end)
+                cell:SetScript("OnEnter", function()
+                    if not (item.get and item.get()) then lbl:SetTextColor(cr, cg, cb, 0.8) end
+                end)
+                cell:SetScript("OnLeave", Apply)
+
+                cell.Refresh = Apply
+                cells[item.key] = cell
+            end
+        end
+    end
+
+    local function Relayout()
+        local w = grid:GetWidth() or 0
+        if w <= 0 then return end
+        local colW = w / cols
+        for row = 1, rows do
+            for d = 1, cols - 1 do
+                local div = dividers[row][d]
+                div:SetPoint("TOP",    rowFrames[row], "TOPLEFT",    d * colW, 0)
+                div:SetPoint("BOTTOM", rowFrames[row], "BOTTOMLEFT", d * colW, 0)
+            end
+        end
+        for _, cell in pairs(cells) do
+            cell:SetWidth(colW)
+            cell:SetPoint("TOPLEFT", cell:GetParent(), "TOPLEFT", (cell._col - 1) * colW, 0)
+        end
+    end
+    grid:SetScript("OnSizeChanged", Relayout)
+    grid:SetScript("OnShow", Relayout)
+    Relayout()
+
+    grid.Relayout = Relayout
+    grid.cells    = cells
+    grid.Refresh  = function()
+        for _, cell in pairs(cells) do
+            if cell.Refresh then cell.Refresh() end
+        end
+    end
+
+    return grid, yOffset - (rows * GRID_ROW_H + 10), cells
+end
+
+-- =====================================================================
 -- SECTION HEADER  — bg strip + left accent bar + bold title
 -- =====================================================================
 function W.CreateSectionHeader(parent, text, yOffset, roles)
@@ -1784,6 +2033,7 @@ function W.CreateTabPanel(parent, tabs, initialTab)
     -- length of the path IS this panel's depth.
     local ownerPath = W._CaptureTabPath()
     local level     = #ownerPath + 1
+    local tabKeyList = {}
 
     local r, g, b = Accent(parent)
     local wrapper = CreateFrame("Frame", nil, parent)
@@ -1924,6 +2174,7 @@ function W.CreateTabPanel(parent, tabs, initialTab)
         btn:SetScript("OnClick", function() SwitchTab(tab.key) end)
         tabButtons[tab.key] = btn
         tabButtonList[#tabButtonList + 1] = btn
+        tabKeyList[#tabKeyList + 1] = tab.key
     end
 
     local function RelayoutTabs()
@@ -1961,6 +2212,16 @@ function W.CreateTabPanel(parent, tabs, initialTab)
     wrapper.SwitchTab = SwitchTab
     wrapper.HasTab    = function(key) return key ~= nil and tabButtons[key] ~= nil end
     wrapper.content   = content
+    wrapper.tabKeys   = tabKeyList
+    wrapper.tabLevel  = level
+
+    -- [Lot F] Only the FIRST tab of a panel is built eagerly; the rest are
+    -- lazy. The ghost indexer therefore never reached them, leaving most of
+    -- the GUI out of the search index. It now collects every tab panel it
+    -- creates through this sink so it can walk the remaining tabs itself.
+    -- The sink is only ever set around a ghost job, so live panels built by
+    -- the player's own navigation are never captured.
+    if W._ghostSink then W._ghostSink[#W._ghostSink + 1] = wrapper end
     wrapper:SetScript("OnHide", function()
         if W.CloseDropdowns then W.CloseDropdowns() end
     end)

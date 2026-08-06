@@ -394,6 +394,12 @@ end
 -- Guide data
 -- ---------------------------------------------------------------------
 -- cat      : nav category the setting lives in
+-- path     : one tab key per nesting level, outermost first. Declared
+--            explicitly rather than looked up: only the first tab of a tab
+--            panel is built eagerly, so a section in any other sub-tab was
+--            absent from the search index and the link fell back to merely
+--            opening the category — which re-showed the cached page on
+--            whatever tab the player had last used.
 -- section  : LOCALE KEY of the section header to land on. Resolved at
 --            display time so it follows the active language; the search
 --            index stores the resolved string.
@@ -404,12 +410,12 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "TANK.tga",
         color  = { 0.28, 0.52, 0.92 },
         cards  = {
-            { key = "np_tankmode", cat = "units",  section = "section_tank_mode" },
-            { key = "np_buffs",    cat = "units",  section = "section_enemy_buffs" },
-            { key = "np_cast",     cat = "units",  section = "section_castbar" },
-            { key = "uf_threat",   cat = "units",  section = "section_threat_text" },
-            { key = "pf_cd",       cat = "units",  section = "pf_section_cooldowns" },
-            { key = "rb_health",   cat = "combat", section = "section_rb_healthbar" },
+            { key = "np_tankmode",  cat = "units",     path = { "nameplates", "advanced" }, section = "section_tank_mode" },
+            { key = "np_buffs",    cat = "units",     path = { "nameplates", "auras" }, section = "section_enemy_buffs" },
+            { key = "np_cast",     cat = "units",     path = { "nameplates", "general" }, section = "section_castbar" },
+            { key = "uf_threat",   cat = "units",     path = { "unitframes", "target", "display" }, section = "section_threat_text" },
+            { key = "pf_cd",       cat = "units",     path = { "partyframes", "cooldowns" }, section = "pf_section_cooldowns" },
+            { key = "rb_health",   cat = "combat",    path = { "resources", "resource" }, section = "section_rb_healthbar" },
         },
     },
     healer = {
@@ -418,12 +424,12 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "HEALER.tga",
         color  = { 0.36, 0.82, 0.42 },
         cards  = {
-            { key = "pf_hots",     cat = "units", section = "pf_section_hots" },
-            { key = "pf_dispel",   cat = "units", section = "pf_section_dispel" },
-            { key = "rf_extras",   cat = "units", section = "rf_section_health_extras" },
-            { key = "rf_debuffs",  cat = "units", section = "rf_section_debuffs" },
-            { key = "rf_range",    cat = "units", section = "rf_section_range" },
-            { key = "rf_defs",     cat = "units", section = "rf_section_defensives" },
+            { key = "pf_hots",     cat = "units",     path = { "partyframes", "features" }, section = "pf_section_hots" },
+            { key = "pf_dispel",   cat = "units",     path = { "partyframes", "features" }, section = "pf_section_dispel" },
+            { key = "rf_extras",   cat = "units",     path = { "raidframes", "features" }, section = "rf_section_health_extras" },
+            { key = "rf_debuffs",  cat = "units",     path = { "raidframes", "features" }, section = "rf_section_debuffs" },
+            { key = "rf_range",    cat = "units",     path = { "raidframes", "features" }, section = "rf_section_range" },
+            { key = "rf_defs",     cat = "units",     path = { "raidframes", "features" }, section = "rf_section_defensives" },
         },
     },
     dps = {
@@ -432,12 +438,12 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "DAMAGER.tga",
         color  = { 0.85, 0.32, 0.32 },
         cards  = {
-            { key = "rb_bars",     cat = "combat", section = "section_resource_bars" },
-            { key = "cdm",         cat = "combat", section = "section_cdm" },
-            { key = "np_auras",    cat = "units",  section = "section_auras" },
-            { key = "np_buffs",    cat = "units",  section = "section_enemy_buffs" },
-            { key = "cb_gcd",      cat = "combat", section = "cb_section_gcd" },
-            { key = "cb_kick",     cat = "combat", section = "cb_section_interrupt" },
+            { key = "rb_bars",     cat = "combat",    path = { "resources", "resource" }, section = "section_dimensions" },
+            { key = "cdm",         cat = "combat",    path = { "resources", "cdm" }, section = "section_cdm_extras" },
+            { key = "np_auras",    cat = "units",     path = { "nameplates", "auras" }, section = "section_auras" },
+            { key = "np_buffs",    cat = "units",     path = { "nameplates", "auras" }, section = "section_enemy_buffs" },
+            { key = "cb_gcd",      cat = "combat",    path = { "castbars", "general" }, section = "cb_section_gcd" },
+            { key = "cb_kick",     cat = "combat",    path = { "castbars", "general" }, section = "cb_section_interrupt" },
         },
     },
 }
@@ -448,6 +454,14 @@ local ROLE_DEFS = {
 -- Hoisted: one closure for every link button rather than one per button.
 local function OnGotoClick(self)
     local GS = TomoMod_GlobalSearch
+    -- The declared route wins: it names the exact tab at every level, so it
+    -- lands on a page that has never been built and never depends on how far
+    -- ghost indexing has got. JumpToSection stays as the fallback for a card
+    -- with no path, and for a section the route no longer resolves to.
+    if GS and GS.JumpToPath and self._path
+       and GS.JumpToPath(self._cat, self._path, self._sectionText) then
+        return
+    end
     if GS and GS.JumpToSection then
         GS.JumpToSection(self._cat, self._sectionText)
         return
@@ -489,6 +503,7 @@ local function CreateGotoButton(parent, def, color, sectionText, yOffset)
     lbl:SetTextColor(color[1], color[2], color[3], 1)
 
     btn._cat         = def.cat
+    btn._path        = def.path
     btn._sectionText = sectionText
     btn._color       = color
     btn._lbl         = lbl

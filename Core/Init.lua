@@ -85,6 +85,12 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if TomoMod_TomoScore then
             TomoMod_TomoScore:ShowPreview()
         end
+    elseif msg == "keys" or msg == "key list" then
+        -- Live group board: names, M+ score and everyone's keystone. Distinct
+        -- from "score", which opens the sample data used to lay out the frame.
+        if TomoMod_TomoScore then
+            TomoMod_TomoScore:ShowGroup()
+        end
     elseif msg == "score last" then
         if TomoMod_TomoScore then
             TomoMod_TomoScore:ShowLastRun()

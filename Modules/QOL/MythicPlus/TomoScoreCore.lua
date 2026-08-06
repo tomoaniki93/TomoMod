@@ -48,7 +48,7 @@ TS.CLASS_COLORS = {
 }
 
 -- ── Layout constants ──────────────────────────────────────────────────────────
-TS.FRAME_W      = 340
+TS.FRAME_W      = 360
 TS.HEADER_H     = 44
 TS.COL_HEADER_H = 20
 TS.ROW_H        = 36
@@ -56,8 +56,12 @@ TS.GAP          = 2
 TS.EDGE         = 1
 TS.MAX_PLAYERS  = 40
 
+-- ICON holds the role icon and the spec icon side by side: the spec says what
+-- the player brought, the role says what they are doing with it, and a keystone
+-- board read before pulling wants both.
+TS.ROLE_ICON = 16
 TS.COL = {
-    ICON       = 28,
+    ICON       = 48,
     NAME       = 120,
     RATING     = 52,
     KEY_LEVEL  = 36,

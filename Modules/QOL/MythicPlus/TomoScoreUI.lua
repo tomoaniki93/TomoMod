@@ -229,9 +229,15 @@ function TS:CreatePlayerRow(parent, index)
     row._bg:SetAllPoints(row)
     row._bg:SetColorTexture(0, 0, 0, 0)
 
+    -- Role icon, tinted with the same colours as the archetype cards and the
+    -- config role badges so the whole suite reads consistently.
+    row.roleIcon = row:CreateTexture(nil, "ARTWORK")
+    row.roleIcon:SetSize(self.ROLE_ICON, self.ROLE_ICON)
+    row.roleIcon:SetPoint("LEFT", row, "LEFT", 4, 0)
+
     row.specIcon = row:CreateTexture(nil, "ARTWORK")
     row.specIcon:SetSize(24, 24)
-    row.specIcon:SetPoint("LEFT", row, "LEFT", 6, 0)
+    row.specIcon:SetPoint("LEFT", row, "LEFT", 4 + self.ROLE_ICON + 4, 0)
     row.specIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
     local colX = COL.ICON + 4
@@ -273,14 +279,14 @@ function TS:CreatePlayerRow(parent, index)
 
     row.keyNameBtn:HookScript("OnClick", function(btn)
         if not btn._spellID then return end
-        if not IsSpellKnown(btn._spellID) then
+        if not TomoMod_DataKeys.IsTeleportKnown(btn._spellID) then
             print(L["mhub_tp_not_learned"])
         end
     end)
     row.keyNameBtn:SetScript("OnEnter", function(btn)
         if not btn._spellID then return end
         GameTooltip:SetOwner(btn, "ANCHOR_RIGHT")
-        if IsSpellKnown(btn._spellID) then
+        if TomoMod_DataKeys.IsTeleportKnown(btn._spellID) then
             GameTooltip:AddLine(L["mhub_tp_click"], 0.10, 0.82, 0.62)
         else
             GameTooltip:AddLine(L["mhub_tp_not_available"], 0.55, 0.55, 0.55)
@@ -402,6 +408,15 @@ function TS:PopulateScoreboard(data)
         local p   = data.players[i]
         local row = self:GetRow(i)
 
+        local roleInfo = self.ROLE_ART[p.role or ""]
+        if roleInfo then
+            row.roleIcon:SetTexture(roleInfo.icon)
+            row.roleIcon:SetVertexColor(roleInfo.r, roleInfo.g, roleInfo.b, 1)
+            row.roleIcon:Show()
+        else
+            row.roleIcon:Hide()
+        end
+
         if p.specIcon then
             row.specIcon:SetTexture(p.specIcon)
             row.specIcon:Show()
@@ -468,7 +483,7 @@ function TS:PopulateScoreboard(data)
         if keyName and keyName ~= "" then
             row.keyNameFS:SetText(keyName)
             row.keyNameBtn._spellID = keySpell
-            if keySpell and IsSpellKnown(keySpell) then
+            if keySpell and TomoMod_DataKeys.IsTeleportKnown(keySpell) then
                 row.keyNameFS:SetTextColor(unpack(C.TEXT_TEAL))
                 row.keyNameBtn:SetAttribute("spell", keySpell)
             else
@@ -518,8 +533,24 @@ function TS:ShowScoreboard(data)
     F:Show()
 end
 
+-- Colours match Config/Presets.lua and the Widgets role badges.
+local ROLE_TEX = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Roles\\"
+TS.ROLE_ART = {
+    TANK    = { icon = ROLE_TEX .. "TANK.tga",    r = 0.28, g = 0.52, b = 0.92 },
+    HEALER  = { icon = ROLE_TEX .. "HEALER.tga",  r = 0.36, g = 0.82, b = 0.42 },
+    DAMAGER = { icon = ROLE_TEX .. "DAMAGER.tga", r = 0.85, g = 0.32, b = 0.32 },
+}
+
+-- Sample data, for laying out the frame. NOT the group.
 function TS:ShowPreview()
     self:ShowScoreboard(self:GetPreviewData())
+end
+
+-- The live group, on demand (/tm keys). CollectRunData is safe outside an
+-- instance: the M+ block is gated on difficultyID 8, the unit list falls back
+-- to "player" when solo, and the damage-meter totals simply come back at zero.
+function TS:ShowGroup()
+    self:ShowScoreboard(self:CollectRunData())
 end
 
 function TS:HideScoreboard()

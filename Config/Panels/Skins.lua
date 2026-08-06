@@ -1021,37 +1021,6 @@ end
 -- MAIN PANEL ENTRY POINT
 -- =====================================================================
 
-local function BuildFriendsSkinTab(parent)
-    local scroll = W.CreateScrollPanel(parent)
-    local c = scroll.child
-    local y = -10
-
-    TomoModDB.friendsSkin = TomoModDB.friendsSkin or { enabled = false, scale = 1.0 }
-    local s = TomoModDB.friendsSkin
-
-    local _, ny = W.CreateSectionHeader(c, L["sublabel_friends_skin"] or "Fenetre de contacts", y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_friends_skin_enable"] or "Habiller la fenetre de contacts", s.enabled == true, y, function(v)
-        s.enabled = v
-        if TomoMod_FriendsSkin then TomoMod_FriendsSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_friends_skin_scale"] or "Echelle", (s.scale or 1.0) * 100, 50, 200, 5, y, function(v)
-        s.scale = v / 100
-        if TomoMod_FriendsSkin then TomoMod_FriendsSkin.ApplyScale() end
-    end, "%.0f%%", 100)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_friends_skin_reload"] or "Certains changements s'appliquent a la prochaine ouverture de la fenetre.", y)
-    y = ny
-
-    c:SetHeight(math.abs(y) + 40)
-    if scroll.UpdateScroll then scroll.UpdateScroll() end
-    return scroll
-end
-
 function TomoMod_ConfigPanel_Skins(parent)
     local tabs = {
         { key = "chatframe",  label = L["tab_skin_chatframe"],  builder = function(p) return BuildChatFrameTab(p) end },
@@ -1060,7 +1029,6 @@ function TomoMod_ConfigPanel_Skins(parent)
         { key = "character",  label = L["tab_skin_character"],  builder = function(p) return BuildCharacterSkinTab(p) end },
         { key = "buffs",      label = L["tab_skin_buffs"],      builder = function(p) return BuildBuffsSkinTab(p) end },
         { key = "gamemenu",   label = L["tab_skin_gamemenu"],   builder = function(p) return BuildGameMenuSkinTab(p) end },
-        { key = "friends",    label = L["tab_skin_friends"] or "Contacts", builder = function(p) return BuildFriendsSkinTab(p) end },
         { key = "tooltip",    label = L["tab_skin_tooltip"],    builder = function(p) return BuildTooltipSkinTab(p) end },
         --{ key = "mail",       label = L["tab_skin_mail"],       builder = function(p) return BuildMailSkinTab(p) end },
     }

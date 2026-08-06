@@ -108,7 +108,6 @@
     <Include file="Skins\TooltipInspect.lua" />
     <Include file="Skins\TooltipInfo.lua" />
     <Include file="Skins\GroupManagerSkin.lua" />
-    <Include file="Skins\FriendsSkin.lua" />
     <!-- Modules: Waypoint (In-world navigation — /tm way) -->
     <Include file="Waypoint\Waypoint.lua" />
 

@@ -411,7 +411,7 @@ function HUB:Build()
         -- Click handler: feedback uniquement (le cast est géré par _secureBtn)
         row:HookScript("OnClick", function(self)
             if self._hasTeleport and self._spellID then
-                if not IsSpellKnown(self._spellID) then
+                if not DK.IsTeleportKnown(self._spellID) then
                     print(L["mhub_tp_not_learned"])
                 end
             end
@@ -423,7 +423,7 @@ function HUB:Build()
             local name = self._nameFS:GetText() or "?"
             GameTooltip:SetText(name, unpack(C.TEXT_WHITE))
             if self._hasTeleport and self._spellID then
-                if IsSpellKnown(self._spellID) then
+                if DK.IsTeleportKnown(self._spellID) then
                     GameTooltip:AddLine(L["mhub_tp_click"], C.ACCENT[1], C.ACCENT[2], C.ACCENT[3])
                 else
                     GameTooltip:AddLine(L["mhub_tp_not_available"], C.TEXT_GREY[1], C.TEXT_GREY[2], C.TEXT_GREY[3])
@@ -741,7 +741,7 @@ function HUB:Refresh()
 
         -- Bouton sécurisé : activé seulement si le sort est connu
         if row._secureBtn then
-            if spellID and IsSpellKnown(spellID) then
+            if spellID and DK.IsTeleportKnown(spellID) then
                 row._secureBtn:SetAttribute("spell", spellID)
                 row._secureBtn:EnableMouse(true)
             else
@@ -750,7 +750,7 @@ function HUB:Refresh()
             end
         end
 
-        if spellID and IsSpellKnown(spellID) then
+        if spellID and DK.IsTeleportKnown(spellID) then
             row._nameFS:SetTextColor(unpack(C.TEXT_WHITE))
         elseif spellID then
             -- Has TP spell but not learned yet

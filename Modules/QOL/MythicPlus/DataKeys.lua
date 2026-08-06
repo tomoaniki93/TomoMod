@@ -355,6 +355,24 @@ local HARDCODED_SEASON = {
     392,  -- Tazavesh: So'leah's Gambit
 }
 
+--- Is a dungeon teleport spell actually owned by this character?
+--- IsSpellKnown() alone is the wrong test here: it only reports spells the
+--- spellbook grants through the class/pet mechanism. Dungeon and raid
+--- teleports come from achievements, so it returns false for every one of
+--- them even when the spell sits in the player's spellbook (reported for
+--- Skyreach / 159898). IsPlayerSpell covers those, and
+--- IsSpellKnownOrOverridesKnown catches teleports replaced by a newer rank.
+--- ProfessionHelper and CDF_Catalog already combine the first two; this is
+--- the same rule, centralised next to the teleport data it guards.
+function TomoMod_DataKeys.IsTeleportKnown(spellID)
+    spellID = tonumber(spellID)
+    if not spellID then return false end
+    if IsPlayerSpell and IsPlayerSpell(spellID) then return true end
+    if IsSpellKnownOrOverridesKnown and IsSpellKnownOrOverridesKnown(spellID) then return true end
+    if IsSpellKnown and IsSpellKnown(spellID) then return true end
+    return false
+end
+
 --- Get the current season dungeon ID list
 --- Uses API data when available, falls back to hardcoded
 function TomoMod_DataKeys.GetCurrentSeasonIDs()

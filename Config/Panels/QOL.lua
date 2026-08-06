@@ -825,44 +825,156 @@ local function BuildClassReminderTab(parent)
     local c = scroll.child
     local y = -10
 
+    local CR = TomoMod_ClassReminder
+
+    local function CR_DB()
+        if not TomoModDB.classReminder then TomoModDB.classReminder = {} end
+        return TomoModDB.classReminder
+    end
+
+    -- Anchors for click-to-navigate, filled in as the sections are built.
+    local nav = {}
+    local preview, grid, gridCells
+
     local function CR_Apply()
-        if TomoMod_ClassReminder and TomoMod_ClassReminder.ApplySettings then
-            TomoMod_ClassReminder.ApplySettings()
-        end
+        if CR and CR.ApplySettings then CR.ApplySettings() end
+        if preview then preview:Refresh() end
+    end
+
+    local function GoTo(frame)
+        if frame then W.ScrollToFrame(scroll, frame) end
     end
 
     local _, ny = W.CreateSectionHeader(c, L["section_class_reminder"], y)
     y = ny
 
+    -- =====================================
+    -- Aperçu vivant
+    -- =====================================
+    -- The row is drawn by the module itself with the live settings, so the
+    -- panel shows exactly what the screen will show. Clicking an icon jumps to
+    -- that reminder's toggle; clicking its label jumps to the label options.
+
+    if CR and CR.CreatePreviewRow then
+        local box = CreateFrame("Frame", nil, c, "BackdropTemplate")
+        box:SetPoint("TOPLEFT",  16, y)
+        box:SetPoint("TOPRIGHT", -16, y)
+        box:SetBackdrop({
+            bgFile   = "Interface\\Buttons\\WHITE8x8",
+            edgeFile = "Interface\\Buttons\\WHITE8x8",
+            edgeSize = 1,
+        })
+        box:SetBackdropColor(0, 0, 0, 0.30)
+        box:SetBackdropBorderColor(0.20, 0.20, 0.26, 1)
+
+        preview = CR.CreatePreviewRow(box)
+        preview:SetPoint("TOP", box, "TOP", 0, -14)
+        preview:SetPoint("LEFT", box, "LEFT", 0, 0)
+        preview:SetPoint("RIGHT", box, "RIGHT", 0, 0)
+
+        local hint = box:CreateFontString(nil, "OVERLAY")
+        hint:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 10, "")
+        hint:SetPoint("BOTTOM", box, "BOTTOM", 0, 8)
+        hint:SetTextColor(0.48, 0.48, 0.54, 1)
+        hint:SetText(L["info_class_reminder_preview_hint"])
+
+        -- Empty space around the row is a click target too: it leads to the
+        -- sizing options, which is what someone poking at the preview usually
+        -- wants. It sits below the icons so it never steals their clicks.
+        local bgHit = CreateFrame("Button", nil, box)
+        bgHit:SetAllPoints()
+        bgHit:SetFrameLevel(box:GetFrameLevel())
+        bgHit:SetScript("OnClick", function() GoTo(nav.icons) end)
+
+        preview.OnIconClick = function(nameKey)
+            GoTo((gridCells and gridCells[nameKey]) or nav.coverage)
+        end
+        preview.OnLabelClick = function()
+            GoTo(nav.text)
+        end
+
+        local function SizeBox()
+            box:SetHeight((preview:GetHeight() or 40) + 46)
+        end
+        SizeBox()
+        hooksecurefunc(preview, "Refresh", SizeBox)
+
+        y = y - (preview:GetHeight() + 56)
+    end
+
     local _, ny = W.CreateInfoText(c, L["info_class_reminder"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_class_reminder_enable"], TomoModDB.classReminder.enabled, y, function(v)
-        TomoModDB.classReminder.enabled = v
-        if TomoMod_ClassReminder then TomoMod_ClassReminder.SetEnabled(v) end
+    local _, ny = W.CreateCheckbox(c, L["opt_class_reminder_enable"], CR_DB().enabled, y, function(v)
+        CR_DB().enabled = v
+        if CR then CR.SetEnabled(v) end
     end)
     y = ny
 
-    -- Bouton d'aperçu : montre un message d'exemple à l'emplacement configuré
+    local _, ny = W.CreateInfoText(c, L["info_class_reminder_clicks"], y)
+    y = ny
+
     local _, ny = W.CreateButton(c, L["btn_class_reminder_preview"], 200, y, function()
-        if TomoMod_ClassReminder and TomoMod_ClassReminder.ShowPreview then
-            TomoMod_ClassReminder.ShowPreview()
-        end
+        if CR and CR.ShowPreview then CR.ShowPreview() end
     end)
     y = ny
 
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_class_reminder_scale"], TomoModDB.classReminder.scale, 0.5, 3.0, 0.1, y, function(v)
-        TomoModDB.classReminder.scale = v; CR_Apply()
+    -- =====================================
+    -- Icônes
+    -- =====================================
+
+    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_icons"], y)
+    y = ny
+
+    local iconFrame, ny = W.CreateSlider(c, L["opt_class_reminder_icon_size"], CR_DB().iconSize or 40, 20, 80, 1, y, function(v)
+        CR_DB().iconSize = v; CR_Apply()
+    end)
+    nav.icons = iconFrame
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_class_reminder_spacing"], CR_DB().iconSpacing or 8, 0, 40, 1, y, function(v)
+        CR_DB().iconSpacing = v; CR_Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateColorPicker(c, L["opt_class_reminder_color"], TomoModDB.classReminder.textColor, y, function(r, g, b)
-        TomoModDB.classReminder.textColor.r = r
-        TomoModDB.classReminder.textColor.g = g
-        TomoModDB.classReminder.textColor.b = b
+    local _, ny = W.CreateSlider(c, L["opt_class_reminder_scale"], CR_DB().scale or 1.0, 0.5, 3.0, 0.1, y, function(v)
+        CR_DB().scale = v; CR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_class_reminder_opacity"], CR_DB().opacity or 1.0, 0.1, 1.0, 0.05, y, function(v)
+        CR_DB().opacity = v; CR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- =====================================
+    -- Texte
+    -- =====================================
+
+    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_text"], y)
+    y = ny
+
+    local textFrame, ny = W.CreateCheckbox(c, L["opt_class_reminder_show_text"], CR_DB().showText ~= false, y, function(v)
+        CR_DB().showText = v; CR_Apply()
+    end)
+    nav.text = textFrame
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_class_reminder_text_size"], CR_DB().textSize or 12, 6, 24, 1, y, function(v)
+        CR_DB().textSize = v; CR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateColorPicker(c, L["opt_class_reminder_color"], CR_DB().textColor, y, function(r, g, b)
+        local col = CR_DB().textColor
+        if not col then col = {}; CR_DB().textColor = col end
+        col.r, col.g, col.b = r, g, b
         CR_Apply()
     end)
     y = ny
@@ -870,32 +982,126 @@ local function BuildClassReminderTab(parent)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_pos"], y)
+    -- =====================================
+    -- Effet lumineux
+    -- =====================================
+
+    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_glow"], y)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_class_reminder_x"], TomoModDB.classReminder.offsetX, -250, 250, 1, y, function(v)
-        TomoModDB.classReminder.offsetX = v; CR_Apply()
-    end)
+    -- Les valeurs sont les identifiants stockés en base ; seul le libellé est
+    -- traduit, pour qu'un profil reste lisible et portable entre locales.
+    local glowOptions = {
+        { text = L["cr_glow_none"],     value = "None" },
+        { text = L["cr_glow_pixel"],    value = "Pixel Glow" },
+        { text = L["cr_glow_autocast"], value = "Autocast Shine" },
+        { text = L["cr_glow_button"],   value = "Action Button Glow" },
+        { text = L["cr_glow_proc"],     value = "Proc Glow" },
+    }
+
+    local _, ny = W.CreateDropdown(c, L["opt_class_reminder_glow"], glowOptions,
+        CR_DB().glowType or "Pixel Glow", y, function(v)
+            CR_DB().glowType = v; CR_Apply()
+        end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_class_reminder_y"], TomoModDB.classReminder.offsetY, -250, 250, 1, y, function(v)
-        TomoModDB.classReminder.offsetY = v; CR_Apply()
+    local _, ny = W.CreateColorPicker(c, L["opt_class_reminder_glow_color"], CR_DB().glowColor, y, function(r, g, b)
+        local col = CR_DB().glowColor
+        if not col then col = {}; CR_DB().glowColor = col end
+        col.r, col.g, col.b = r, g, b
+        CR_Apply()
     end)
     y = ny
 
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    -- Liste des classes couvertes et de leurs buffs/formes suivis
-    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_coverage"], y)
+    -- =====================================
+    -- Contexte
+    -- =====================================
+
+    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_context"], y)
     y = ny
 
-    if TomoMod_ClassReminder and TomoMod_ClassReminder.GetCoverage then
-        for _, entry in ipairs(TomoMod_ClassReminder.GetCoverage()) do
-            local line = entry.className .. " : " .. table.concat(entry.items, ", ")
-            local _, ny2 = W.CreateInfoText(c, line, y)
-            y = ny2
+    local showInOptions = {
+        { text = L["cr_show_always"],    value = "always" },
+        { text = L["cr_show_instances"], value = "instances" },
+        { text = L["cr_show_group"],     value = "group" },
+    }
+
+    local _, ny = W.CreateDropdown(c, L["opt_class_reminder_show_in"], showInOptions,
+        CR_DB().showIn or "always", y, function(v)
+            CR_DB().showIn = v; CR_Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_class_reminder_hide_resting"],
+        CR_DB().hideWhenResting ~= false, y, function(v)
+            CR_DB().hideWhenResting = v; CR_Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_class_reminder_others_missing"],
+        CR_DB().showOthersMissing == true, y, function(v)
+            CR_DB().showOthersMissing = v; CR_Apply()
+        end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_class_reminder_others"], y)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- =====================================
+    -- Position (gérée par le déplaceur)
+    -- =====================================
+
+    local _, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_pos"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_class_reminder_mover"], y)
+    y = ny
+
+    local _, ny = W.CreateButton(c, L["btn_reset_position"], 200, y, function()
+        if CR and CR.ResetPosition then CR.ResetPosition() end
+        CR_Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- =====================================
+    -- Couverture : une case par buff/forme suivi, colorée par classe
+    -- =====================================
+
+    local coverLabel, ny = W.CreateSubLabel(c, L["sublabel_class_reminder_coverage"], y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_class_reminder_coverage"], y)
+    y = ny
+
+    if CR and CR.GetCoverageItems then
+        local items = {}
+        for _, item in ipairs(CR.GetCoverageItems()) do
+            local key = item.key
+            items[#items + 1] = {
+                key        = key,
+                label      = item.label,
+                classToken = item.classToken,
+                get        = function() return CR.IsEntryEnabled(key) end,
+                set        = function(v)
+                    CR.SetEntryEnabled(key, v)
+                    if preview then preview:Refresh() end
+                end,
+            }
         end
+        grid, ny, gridCells = W.CreateCheckboxGrid(c, y, items, 4)
+        nav.coverage = grid
+        y = ny
+    else
+        nav.coverage = coverLabel
     end
 
     c:SetHeight(math.abs(y) + 40)
