@@ -188,6 +188,29 @@ local function BuildContent(c)
     _, cy = W.CreateInfoText(card.inner,
         "Editeur dedie plein ecran : barres, sorts, styles, partage et mode edition.", cy)
     _, cy = W.CreateButton(card.inner, "Ouvrir le Cooldown Studio", 240, cy, OpenStudio)
+
+    -- Shortcut to the Cooldown Manager switch, placed here because this is
+    -- where the question comes up: once your bars live in the Studio, the CDM
+    -- reskin is redundant. Checked = module off, hence the inversion.
+    do
+        local cdm = TomoModDB and TomoModDB.cooldownManager
+        if cdm then
+            _, cy = W.CreateCheckbox(card.inner,
+                "Masquer les barres du Cooldown Manager", cdm.enabled == false, cy,
+                function(v)
+                    cdm.enabled = not v
+                    if TomoMod_CooldownManager and TomoMod_CooldownManager.SetEnabled then
+                        TomoMod_CooldownManager.SetEnabled(cdm.enabled)
+                    end
+                    Refresh()
+                end)
+            _, cy = W.CreateInfoText(card.inner,
+                "Retire les 4 reperes CDM (Essential, Utility, Buff Icons, Buff Bars) "
+                .. "du mode edition TomoMod et desactive leur habillage. Les viewers de "
+                .. "Blizzard eux-memes se coupent dans le mode edition de Blizzard : "
+                .. "TomoMod ne les masque pas a sa place, il ne fait que les habiller.", cy)
+        end
+    end
     -- Surface a blocking reason before the click. The button deliberately stays
     -- enabled: for DISABLED, clicking it is exactly what repairs the situation.
     local blocked = StudioLoadReason()
@@ -351,6 +374,13 @@ local function BuildContent(c)
         for i = 1, #es do
             local idx = i
             _, cy = W.CreateInfoText(card.inner, i .. ". " .. EntryDesc(es[i]), cy)
+            -- Same fix as the studio: the spec could only be chosen when the
+            -- entry was created.
+            _, cy = W.CreateDropdown(card.inner, "Visibilite (spec)",
+                SpecOptions(state.class), es[i].spec or 0, cy, function(v)
+                    CDF.SetEntrySpec(state.class, state.barId, idx, v)
+                    Apply(); Refresh()
+                end)
             _, cy = W.CreateButton(card.inner, "Retirer", 110, cy, function()
                 CDF.RemoveEntry(state.class, state.barId, idx)
                 Apply(); Refresh()

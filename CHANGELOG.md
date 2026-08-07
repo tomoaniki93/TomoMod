@@ -1,6 +1,6 @@
 ## ####################################
 
-## CHANGELOG 3.3.5 — The Border Slider Stops Erasing The Border It Was Meant To Thicken, Cooldown Bars Learn Whether You Have A Target And Can Fade Instead Of Vanishing, Icons Stop Being Forced Square, An Icon Can Track A Proc Instead Of A Cooldown, And The Studio Lets You Reorder Entries Instead Of Deleting And Re-Adding Them
+## CHANGELOG 3.3.5 — The Border Slider Stops Erasing The Border It Was Meant To Thicken, The Border It Does Draw Stops Being Painted Over By The Icon It Surrounds, Cooldown Bars Learn Whether You Have A Target And Can Fade Instead Of Vanishing, Icons Stop Being Forced Square, An Icon Can Track A Proc Instead Of A Cooldown, The Studio Lets You Reorder Entries Instead Of Deleting And Re-Adding Them, An Entry's Specialisation Can Be Changed After It Has Been Added Instead Of Never, Fine-Tuning A Style Stops Silently Rebasing The Bar Onto Tomo, The Border Slider Goes Past 4, A Tracked Buff Resolves From The Ability That Grants It Instead Of Requiring You To Hunt Down The Buff's Own ID, And The Studio Stops Throwing You Onto Another Tab After Every Single Edit
 
 #### CooldownForge — Changing One Style Field Wiped The Others
 
@@ -8,6 +8,26 @@
 - **Fix** — Same defect on the two neighbouring axes. Picking a border colour dropped the mode and the thickness with it; picking a mode silently reset the thickness to 1. `swipe` and `timer` are tables too and were losing fields the same way.
 - **Change** — Those three axes are now merged field by field: the preset supplies every field, the bar's own values land on top, and untouched fields keep the preset's answer. `CDF.SKIN_TABLE_AXES` names them, so the merge stays opt-in rather than being applied to axes that really are single values.
 - **Note** — No bar changes appearance from this on its own. A bar whose border looks wrong today was configured through the defect, and setting the field again now produces what was asked for the first time.
+
+#### CooldownForge — Touching Any Fine Setting Silently Rebased The Bar Onto Tomo
+
+- **Fix** — Picking a border colour on a Net or Verre bar quietly turned the whole icon into a Tomo one. The style carried a single field naming the preset, and every fine control overwrote it with the sentinel `"custom"` the moment it was touched. There is no `"custom"` entry in the preset table, so the resolver fell through to its Tomo fallback — and the base the fine settings were supposed to sit on top of was gone. The preset dropdown then had nothing valid to show either.
+- **Change** — Which preset a bar uses and whether it has fine settings are two different questions, and they are now two different fields: `preset` always names a real base, `customized` is a flag. Changing the preset keeps your fine settings and re-bases them; touching a fine setting no longer moves the base.
+- **Change** — The Studio's Style tab says so. The line under the fine settings read "editing a fine setting switches the style to Custom", which described the defect; it now states that fine settings layer over the preset without replacing it. A bar carrying fine settings says so under its preset dropdown, so switching preset is not a blind move.
+- **Note** — Bars saved as `"custom"` are migrated to `preset = "tomo"` with the flag set, which is exactly what they were already being drawn as. Nothing changes appearance. The migration runs from the bar sanitizer, so it happens once, on load, for every bar.
+
+#### CooldownForge — The Border Slider Stopped At 4
+
+- **Change** — The border thickness range is now 1 to 10, up from 1 to 4. Four was a reasonable ceiling while the border was invisible; now that it is actually drawn, it is not.
+- **Internal** — The bounds live on `CDF.BORDER_THICKNESS_MIN` / `MAX` rather than being written into the slider call, and the engine clamps the stored value to the same pair when it normalises a style — so a hand-edited profile or an import cannot hold a thickness the interface would refuse to offer.
+- **Note** — Worth knowing alongside the inset fix below: the icon art now stops short of the border, so thickness comes out of the picture. At 10 px on a small icon there is not much picture left. The range is wider because the setting works, not because the top of it is advisable.
+
+#### CooldownForge — The Border That Did Survive Was Painted Over By The Icon
+
+- **Fix** — With the defect above worked around, the border was still barely there, and 1 px looked the same as 4 px. The outline is a backdrop edge, which the game draws *on* the frame's border — inside its bounds. The icon art was anchored to the whole frame, in the ARTWORK layer, which sits above a backdrop. So the outline was drawn and then covered by the icon on every side, and widening it only moved the covered part further in.
+- **Change** — The art is now inset by the edge width, leaving the border the room it needs to be seen. Two things follow from that and are worth knowing before you look at your bars: an icon with a border on now shows its picture slightly smaller — by the border thickness on each side, which is what a border costs — and a thickness slider that appeared to do nothing now visibly does something, so a bar left on 4 px while it looked like 1 px will read as considerably heavier until the value is set to what was actually wanted.
+- **Internal** — The rounded-corner mask and the cooldown swipe are anchored to the art rather than to the frame, so both follow the inset without being touched. The art's `SetTexCoord` crop is unchanged: the icon is re-anchored, not re-cropped, so the same part of the picture is shown, just in a smaller box.
+- **Note** — A bar with no border is anchored exactly as before. Only the bordered case moves.
 
 #### CooldownForge — A Bar Can Depend On Whether You Have A Target
 
@@ -32,14 +52,50 @@
 
 - **New** — Any entry can be switched to *tracked buff*: the icon then stays off screen while the aura is absent and appears with its remaining time and stack count while it is up. That is the behaviour Blizzard's "Tracked Buffs" viewer has and a cooldown entry never did, and it is set per entry — so a proc can sit on the same bar as the cooldown that grants it.
 - **New** — An optional buff ID, for the procs granted by one spell and applied as another. Left empty, the entry watches its own spell.
+- **Fix** — A tracked buff does not have to be a spell you can cast, and until now it effectively did. Every entry passes a presence gate before anything looks at its state, and for a spell entry that gate asked the spellbook — reasonable for a cooldown, wrong for an aura. Proc buffs are granted by a talent or applied by another spell, so `IsSpellKnown` and `IsPlayerSpell` both answer no for them; the entry was rejected before the code that checks whether the buff is up ever ran, and the icon never appeared at all. Which is the main thing tracked buffs are for. An aura entry is now decided by the aura itself.
 - **Change** — Under restricted content a buff's duration and stacks can come back as protected values, which cannot be fed to a cooldown swipe or compared. Existence can always be read, and existence alone drives showing and hiding — so in a Mythic+ the icon still appears and disappears correctly, it simply shows no timer. Each number is checked individually rather than the whole aura being discarded.
 - **Internal** — A tracked-buff entry makes its bar "filtered", which is what already re-packs a bar whose icon set changes without a layout event; the icons close the gap when a proc drops exactly as they do for the hide-on-cooldown filter. `UNIT_AURA` registration, which is otherwise paid for only when a glow condition needs it, now also counts these entries — a tracked buff cannot appear at all without it.
+- **Internal** — That "filtered" rule is also what makes the gate above safe to open. The presence gate now returns yes for every aura entry unconditionally, so the aura test has to run on every pass or an absent proc would sit on screen forever; a bar holding an aura entry is always filtered, which is precisely the condition under which that test is reached.
+
+#### CooldownForge — An Ability And The Buff It Grants Are Two Different Spell IDs
+
+- **Fix** — Tracking a proc meant knowing the buff's own spell ID, which is almost never the ID of the ability you took. Entering the ability — the obvious thing to do, and what the entry already holds — watched an aura nobody ever has, so the icon stayed off screen and looked like the feature was broken. The optional buff ID field existed precisely to work around this, and it required going and looking the number up somewhere else.
+- **Change** — An entry now resolves through the link the client already knows about. Blizzard's Cooldown Manager has to solve the same problem for its own Tracked Buffs viewer, and publishes the answer as `overrideSpellID` and `linkedSpellIDs` on each cooldown entry. The ID you typed is tried first, then whatever the client links to it, and the first aura actually present wins.
+- **Change** — Nothing about this is a hardcoded table of spells. The map is built from the running client, so it follows a patch that re-points a proc, and a talent that swaps one, without an addon update. It is rebuilt on a specialisation change and on a talent change, since both re-point overrides.
+- **Note** — The explicit buff ID field is unchanged and still wins. It stays useful for the cases the client does not link, and any entry already using it keeps working exactly as before.
+- **Internal** — The map is built lazily on first use and cached, and `CDF.AuraCandidates` memoises its per-spell answer — it sits behind `GetAuraState`, which runs per icon on every render pass, and this is the hot path the 3.3.2 aura work cleared of allocation churn. The returned list is shared, so callers iterate it and do not modify it.
+- **Internal** — Every call into the Cooldown Viewer API is guarded and wrapped, so a client that does not answer degrades to the old behaviour — the typed ID alone — rather than failing. That is quiet enough to be mistaken for "this spell has no linked buff", so `CDF.AuraLinkStatus` reports whether the map was actually built and how many entries it holds, and `/tm forge` prints it. The two failures look identical without it.
 
 #### Cooldown Studio — Reordering Entries
 
 - **New** — Each entry in a bar now carries a pair of up/down buttons. Changing the order of icons previously meant removing an entry and adding it back at the end, and rebuilding everything after it.
 - **Change** — The options editor follows the entry it was opened on rather than staying on the index. Without that, moving an entry while its options were open left the panel editing whichever entry had taken its place — the same screen, quietly pointed at something else.
 - **Note** — The buttons at either end of the list do nothing, deliberately: the underlying move already refuses to run off the end, so there is nothing to disable and nothing to warn about.
+
+#### CooldownForge — An Entry's Specialisation Could Only Be Chosen Once, When It Was Created
+
+- **Fix** — Every entry carries a *visibility (spec)* condition, and the only place it could be set was the "add" form. Once the entry existed, nothing anywhere read it back or offered to change it: an entry added on the wrong spec, or added before you decided it should be spec-restricted, could not be corrected — only deleted and re-added, which until this version also meant losing its position in the bar.
+- **New** — The dropdown now sits on the entry itself, in the Studio's Spells tab options panel and on the Cooldowns config page, alongside the entry's other settings.
+- **Internal** — `CDF.SetEntrySpec` was already written for this, with the right signature and the right clamping, and had no caller anywhere in the addon. Nothing new was needed on the data side; the setting simply had no way in.
+- **Note** — The Studio's dropdown carries a line stating what "All specs" means and that the listed specialisations are those of the class being edited — the game only reports specialisation names for your own class, so a bar built for another class lists its specs by ID rather than by name.
+
+#### Cooldown Studio — Every Edit Threw You Onto Whichever Tab You Had Opened Last
+
+- **Fix** — Changing almost anything in the Studio jumped you to a different tab. Editing an icon's style landed you on Sharing; ticking a visibility condition landed you on Layout. The editor rebuilds its content after nearly every change — twenty-six places do it — and each rebuild reopened the tab recorded in the state. That state was written from inside the tab builders, and a builder runs only the *first* time its tab is opened. So the recorded tab was whichever one you had visited last for the first time, frozen there for the rest of the session; going back to a tab you had already opened never updated it.
+- **Change** — The active tab is now recorded on the switch itself rather than during construction, so it is right on the first visit, on every return visit, and on the initial one. The rebuild reopens the tab you are actually looking at.
+- **Internal** — `W.CreateTabPanel` gained an optional `onSwitch(key)` callback, fired on every switch including the initial one. It is opt-in and no existing caller passes it, so no other tab panel in the addon changes behaviour. The reason it exists rather than callers reading a field is written above the function: lazy building makes "track it in the builder" look correct and fail silently as soon as a tab is revisited.
+
+#### Cooldowns — The Cooldown Manager Switch, Where The Question Actually Comes Up
+
+- **New** — The Cooldowns panel carries a *Hide the Cooldown Manager bars* tick beside the Studio button. Once your cooldowns live on your own bars, TomoMod's reskin of Blizzard's four viewers is redundant — and the switch for it was in a different category, which is not where you are standing when you reach that conclusion.
+- **Note** — It is the same setting as the one in CD & Resources, phrased the other way round: ticked here means the module is off. It also states what it does and does not do — it removes the four CDM holders from TomoMod's layout mode and stops the reskin, but Blizzard's own viewers are switched off in Blizzard's Edit Mode. TomoMod dresses them; it does not hide them on Blizzard's behalf.
+- **Known limitation** — The two ticks do not refresh each other. Config pages are cached once visited, so toggling this one leaves the tick in CD & Resources showing the old value until that page is rebuilt. The setting itself is correct in both places and takes effect immediately; only the second checkbox is stale on screen.
+
+#### Internal
+
+- **Internal** — `/tm forge` prints what the engine sees for each of your class's bars: the state of the aura link map, then per bar its visibility verdict and whether it is filtered, then per entry its kind, mode, watched aura ID, the candidate IDs tried, which one matched, the presence verdict and the live aura state. Written for the tracked-buff work — each of those is a step at which an icon can silently fail to appear, and reading them is faster than guessing. It is a diagnostic aid, not a feature, and it is not listed in the help.
+- **Internal** — The watcher registered `PLAYER_SPECIALIZATION_CHANGED` twice and tested it twice in the same condition. Harmless — `RegisterEvent` is idempotent and the second test is unreachable past the first — but it read as though spec changes had just been wired up, when the only genuinely new event is `TRAIT_CONFIG_UPDATED`. Both duplicates are gone and the remaining registration says why it is there.
+- **Internal** — Two comments in the skin resolver still described `"custom"` as a live preset value after it became a migrated-away sentinel, and one of them had been separated from the function it documents by a constant inserted above it, so it read as documentation for the border thickness bounds. Both corrected.
 
 ## ####################################
 

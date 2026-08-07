@@ -210,13 +210,28 @@ local function styleIcon(icon, bar)
 
     -- [S0] border (backdrop on the icon frame; class color resolved live)
     local bd = st.border
+    local edge = 0
     if bd and bd.mode then
         local px = CDF.Px and CDF.Px(bd.thickness or 1) or (bd.thickness or 1)
         local br, bg, bb, ba = CDF.ResolveTint(bd.mode, bd.color, 0, 0, 0)
         icon:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = px })
         icon:SetBackdropBorderColor(br, bg, bb, ba or (bd.mode == "class" and 0.9 or 1))
+        edge = px
     elseif icon.SetBackdrop then
         icon:SetBackdrop(nil)
+    end
+
+    -- The backdrop edge is drawn ON the frame border, while the icon art spans
+    -- the WHOLE frame in the ARTWORK layer -- so the outline was painted over
+    -- and looked identical at 1px and 4px. Inset the art by the edge width so
+    -- the border actually has room to show. The mask and the cooldown swipe
+    -- are anchored to the art, so they follow it.
+    icon.tex:ClearAllPoints()
+    if edge > 0 then
+        icon.tex:SetPoint("TOPLEFT",     icon, "TOPLEFT",      edge, -edge)
+        icon.tex:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -edge,  edge)
+    else
+        icon.tex:SetAllPoints(icon)
     end
 
     -- [S0] corners: mask on the art + matching swipe texture so the swipe
@@ -749,6 +764,46 @@ local function needsUsableWatch(arr)
         end
     end
     return false
+end
+
+CDF.__hasHideFilter = hasHideFilter
+CDF.__entryShown    = entryShown
+
+-- Prints what the engine actually sees for each bar of `class`. Written for
+-- the tracked-buff work: every step below is a place an icon can silently
+-- vanish, and reading them one by one is faster than guessing.
+function CDF.DumpAura(class)
+    local P = "|cff2ed884TomoMod|r "
+    class = class or CDF.PlayerClass()
+    local bars = class and CDF.GetClassBars(class)
+    if not bars or #bars == 0 then print(P .. "aucune barre pour " .. tostring(class)); return end
+    print(P .. "--- CooldownForge / " .. tostring(class) .. " ---")
+    -- api=false means the Cooldown Viewer category API did not answer, so NO
+    -- ability resolves to its buff and every "candidats" below is a lone id.
+    -- That is a different failure from a spell that genuinely has no link.
+    if CDF.AuraLinkStatus then
+        local api, n = CDF.AuraLinkStatus()
+        print(("%sliens aura: api=%s entrees=%d"):format(P, tostring(api), n or 0))
+    end
+    for _, bar in ipairs(bars) do
+        local vis = CDF.GetBarVisibility and CDF.GetBarVisibility(bar) or "?"
+        print(("%s[%s] %s  visibilite=%s  filtre=%s"):format(
+            P, tostring(bar.id), tostring(bar.name), tostring(vis),
+            tostring(hasHideFilter(bar))))
+        for i, e in ipairs(bar.entries or {}) do
+            local r  = CDF.ResolveEntry(e)
+            local id = CDF.EntryAuraID and CDF.EntryAuraID(e, r)
+            local a  = id and CDF.GetAuraState and CDF.GetAuraState(id)
+            local cand = id and CDF.AuraCandidates and CDF.AuraCandidates(id)
+            print(("%s  %d. %s id=%s mode=%s auraSurveillee=%s candidats=%s trouve=%s visible=%s active=%s minuteur=%s cumuls=%s"):format(
+                P, i, tostring(e.kind), tostring(e.id), tostring(e.mode or "cooldown"),
+                tostring(id), cand and table.concat(cand, "/") or "-",
+                tostring(a and a.matchedID),
+                tostring(CDF.IsEntryVisible(e)),
+                tostring(a and a.active), tostring(a and a.timed),
+                tostring(a and a.applications)))
+        end
+    end
 end
 
 -- Full rebuild for the current class (visibility + layout).

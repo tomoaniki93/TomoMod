@@ -2027,7 +2027,12 @@ end
 -- =====================================================================
 -- TAB PANEL
 -- =====================================================================
-function W.CreateTabPanel(parent, tabs, initialTab)
+-- `onSwitch(key)` fires on EVERY switch, including the initial one and
+-- switches back to an already-built tab. Callers that remember the active
+-- tab must use it: a builder only ever runs once per panel, so tracking the
+-- tab from inside a builder silently stops updating as soon as the player
+-- revisits a tab.
+function W.CreateTabPanel(parent, tabs, initialTab, onSwitch)
     -- A nested tab panel is always created from inside its parent's builder,
     -- so at this exact moment the parent's key is already on the path: the
     -- length of the path IS this panel's depth.
@@ -2122,6 +2127,7 @@ function W.CreateTabPanel(parent, tabs, initialTab)
 
         if tabPanels[key] then tabPanels[key]:Show() end
         currentTab = key
+        if onSwitch then onSwitch(key) end
 
         -- [Lot A] Tab panels are built lazily, so sections tagged inside
         -- this tab only enter the registry now.

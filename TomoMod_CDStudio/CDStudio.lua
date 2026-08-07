@@ -165,7 +165,6 @@ local function readSpellID(t)
 end
 
 local function TabDisposition(parent)
-    S.state.tab = "layout"
     local scroll = W.CreateScrollPanel(parent)
     local c, y = scroll.child, -12
     local bar = SelectedBar()
@@ -313,7 +312,6 @@ local function ShowCopyStylePopup()
 end
 
 local function TabStyle(parent)
-    S.state.tab = "style"
     local scroll = W.CreateScrollPanel(parent)
     local c, y = scroll.child, -12
     local bar = SelectedBar()
@@ -401,6 +399,11 @@ local function TabStyle(parent)
           { text = "Net (pixel)", value = "net" },
           { text = "Verre (moderne)", value = "verre" } },
         bar.style.preset or "tomo", cy, function(v) bar.style.preset = v; Apply(); S.RebuildContent() end)
+    if bar.style.customized then
+        _, cy = W.CreateInfoText(card.inner,
+            "Cette barre a des reglages fins par-dessus le preset ci-dessus. "
+            .. "Changer de preset garde ces reglages.", cy)
+    end
     _, cy = W.CreateCheckbox(card.inner, "Griser pendant le cooldown", bar.style.desatOnCooldown == true, cy,
         function(v) bar.style.desatOnCooldown = v; Apply() end)
     _, cy = W.CreateDropdown(card.inner, "Ressource insuffisante",
@@ -413,7 +416,9 @@ local function TabStyle(parent)
 
     -- [S7] fine style axes. Editing any of these marks the style custom.
     local eff = (CDF.ResolveStyle and CDF.ResolveStyle(bar)) or {}
-    local function markCustom() bar.style.preset = "custom" end
+    -- Flags the bar as having fine settings WITHOUT changing which preset
+    -- they sit on: overwriting the preset here rebased the bar to Tomo.
+    local function markCustom() bar.style.customized = true end
     card, cy = W.CreateCard(c, "Reglages fins", y)
     _, cy = W.CreateSlider(card.inner, "Opacite", math.floor(((eff.opacity or 1) * 100) + 0.5), 20, 100, 5, cy,
         function(v) markCustom(); bar.style.opacity = v / 100; Apply() end, "%d %%")
@@ -443,7 +448,8 @@ local function TabStyle(parent)
                 Apply()
             end)
     end
-    _, cy = W.CreateSlider(card.inner, "Epaisseur de bordure", math.floor((bd.thickness or 1) + 0.5), 1, 4, 1, cy,
+    _, cy = W.CreateSlider(card.inner, "Epaisseur de bordure", math.floor((bd.thickness or 1) + 0.5),
+        CDF.BORDER_THICKNESS_MIN, CDF.BORDER_THICKNESS_MAX, 1, cy,
         function(v)
             markCustom()
             bar.style.border = bar.style.border or {}
@@ -469,7 +475,7 @@ local function TabStyle(parent)
         markCustom(); bar.style.shadow = v; Apply()
     end)
     _, cy = W.CreateInfoText(card.inner,
-        "Modifier un reglage fin bascule le style en \"Personnalise\".", cy)
+        "Les reglages fins se superposent au preset choisi plus haut, sans le remplacer.", cy)
     y = W.FinalizeCard(card, cy)
 
     if #Bars() > 1 then
@@ -532,7 +538,6 @@ local function TabStyle(parent)
 end
 
 local function TabSorts(parent)
-    S.state.tab = "spells"
     local scroll = W.CreateScrollPanel(parent)
     local c, y = scroll.child, -12
     local bar = SelectedBar()
@@ -582,6 +587,19 @@ local function TabSorts(parent)
         card, cy = W.CreateCard(c, "Options -- " .. S.state.fxIdx .. ". " .. EntryDesc(fxE), y)
         fxE.override = fxE.override or {}
         local o = fxE.override
+
+        -- Spec visibility was only settable on the "add" form, so an entry
+        -- added without one could never be corrected afterwards. CDF.SetEntrySpec
+        -- already existed for exactly this and had no caller.
+        _, cy = W.CreateDropdown(card.inner, "Visibilite (spec)",
+            SpecOptions(S.state.class), fxE.spec or 0, cy, function(v)
+                CDF.SetEntrySpec(S.state.class, S.state.barId, S.state.fxIdx, v)
+                Apply(); S.RebuildContent()
+            end)
+        _, cy = W.CreateInfoText(card.inner,
+            "\"Toutes spes\" affiche l'icone quelle que soit la specialisation. "
+            .. "Les specialisations listees sont celles de la classe editee, et ne "
+            .. "sont connues que pour ta propre classe.", cy)
         local function tri(label, key)
             _, cy = W.CreateDropdown(card.inner, label, TRI_OPTS, triVal(o[key]), cy, function(v)
                 triSet(o, key, v)
@@ -710,7 +728,6 @@ end
 -- out once for the full list; filtering repositions the visible rows and
 -- hides the rest (the card keeps its full-list height -- cheap and jank-free).
 local function TabBibliotheque(parent)
-    S.state.tab = "library"
     local scroll = W.CreateScrollPanel(parent)
     local c, y = scroll.child, -12
     local bar = SelectedBar()
@@ -905,7 +922,6 @@ local function visSet(t, k, v)
 end
 
 local function TabVisibilite(parent)
-    S.state.tab = "vis"
     local scroll = W.CreateScrollPanel(parent)
     local c, y = scroll.child, -12
     local bar = SelectedBar()
@@ -998,7 +1014,6 @@ local function TabVisibilite(parent)
 end
 
 local function TabPartage(parent)
-    S.state.tab = "share"
     local scroll = W.CreateScrollPanel(parent)
     local c, y = scroll.child, -12
     local card, cy
@@ -1124,7 +1139,13 @@ function S.RebuildContent()
         { key = "library", label = "Bibliotheque", builder = TabBibliotheque },
         { key = "vis",     label = "Visibilite",   builder = TabVisibilite },
         { key = "share",   label = "Partage",      builder = TabPartage },
-    }, S.state.tab or "layout")
+    }, S.state.tab or "layout", function(key)
+        -- Track the active tab HERE, not inside the builders: a builder runs
+        -- only the first time its tab is opened, so returning to an already
+        -- built tab never updated the state and the next RebuildContent
+        -- jumped back to whichever tab was built last.
+        S.state.tab = key
+    end)
     activePanel:SetAllPoints(contentHost)
     activePanel:Show()
 end

@@ -75,6 +75,13 @@ function CDF.IsEntryVisible(entry)
 
     local kind = entry.kind
     if kind == "spell" then
+        -- [G4] A tracked buff is usually NOT a castable spell: proc auras are
+        -- granted by a talent or by another spell, so IsSpellKnown and
+        -- IsPlayerSpell both answer false for them. Gating an aura entry on
+        -- the spellbook rejected it here, before entryShown ever got to look
+        -- at whether the buff was up -- the icon simply never appeared.
+        -- Presence of an aura entry is decided by the aura itself.
+        if entry.mode == "aura" then return true end
         return CDF.isSpellKnown(entry.id)
     elseif kind == "racial" then
         local sid = CDF.ResolveRacialSpell()
@@ -318,12 +325,19 @@ w:RegisterEvent("GROUP_ROSTER_UPDATE")
 w:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 w:RegisterEvent("PLAYER_ENTERING_WORLD")
 w:RegisterEvent("PLAYER_TARGET_CHANGED")
+-- [G5] Talent changes re-point the ability -> buff overrides the aura link map
+-- is built from. PLAYER_SPECIALIZATION_CHANGED is already registered above.
+w:RegisterEvent("TRAIT_CONFIG_UPDATED")
 w:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_SPECIALIZATION_CHANGED" or event == "SPELLS_CHANGED"
        or event == "BAG_UPDATE_DELAYED" or event == "PLAYER_EQUIPMENT_CHANGED"
        or event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED"
        or event == "GROUP_ROSTER_UPDATE" or event == "ZONE_CHANGED_NEW_AREA"
-       or event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TARGET_CHANGED" then
+       or event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TARGET_CHANGED"
+       or event == "TRAIT_CONFIG_UPDATED" then
+        if event == "PLAYER_SPECIALIZATION_CHANGED" or event == "TRAIT_CONFIG_UPDATED" then
+            CDF.InvalidateAuraLinks()
+        end
         fireUpdate("layout")
     else
         fireUpdate("cooldown")
@@ -351,12 +365,117 @@ local function readableNumber(v)
     return v
 end
 
+-- An ability and the buff it grants are two different spell IDs. Blizzard's
+-- Cooldown Manager knows the link -- that is how its "Tracked Buffs" viewer
+-- shows an aura for an ability -- and exposes it as overrideSpellID and
+-- linkedSpellIDs on each cooldown entry. Reading THAT is why nothing here is
+-- hardcoded: the map is rebuilt from the client, so it follows every patch
+-- and every talent change on its own.
+local auraLinks, auraLinksBuilt, auraCandidates
+-- [G5] Why these two are tracked: if the client ever renames the category API,
+-- every guard below fails softly and the map comes out empty -- which looks
+-- exactly like "this ability simply has no linked buff". Counting what was
+-- built is what tells the two apart, and /tm forge prints it.
+local auraLinkAPI, auraLinkCount = false, 0
+
+local function BuildAuraLinks()
+    auraLinksBuilt = true
+    auraLinks, auraCandidates = {}, {}
+    auraLinkAPI, auraLinkCount = false, 0
+    local CV = C_CooldownViewer
+    if not (CV and CV.GetCooldownViewerCategorySet and CV.GetCooldownViewerCooldownInfo) then
+        return
+    end
+    local cats = Enum and Enum.CooldownViewerCategory
+    if type(cats) ~= "table" then return end
+    auraLinkAPI = true
+    for _, cat in pairs(cats) do
+        local ok, ids = pcall(CV.GetCooldownViewerCategorySet, cat)
+        if ok and type(ids) == "table" then
+            for _, cdID in ipairs(ids) do
+                local ok2, info = pcall(CV.GetCooldownViewerCooldownInfo, cdID)
+                if ok2 and type(info) == "table" then
+                    local list = {}
+                    local function add(v)
+                        v = tonumber(v)
+                        if not v then return end
+                        for i = 1, #list do if list[i] == v then return end end
+                        list[#list + 1] = v
+                    end
+                    add(info.overrideSpellID)
+                    if type(info.linkedSpellIDs) == "table" then
+                        for _, s in ipairs(info.linkedSpellIDs) do add(s) end
+                    end
+                    if #list > 0 then
+                        -- Index by every id the player could plausibly type in,
+                        -- so either the ability or its override resolves.
+                        local base = tonumber(info.spellID)
+                        if base and not auraLinks[base] then
+                            auraLinks[base] = list
+                            auraLinkCount = auraLinkCount + 1
+                        end
+                        local ov = tonumber(info.overrideSpellID)
+                        if ov and not auraLinks[ov] then
+                            auraLinks[ov] = list
+                            auraLinkCount = auraLinkCount + 1
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+-- Talent and spec changes re-point overrides, so the map is dropped rather
+-- than patched.
+function CDF.InvalidateAuraLinks()
+    auraLinksBuilt, auraLinks, auraCandidates = nil, nil, nil
+    auraLinkAPI, auraLinkCount = false, 0
+end
+
+-- Was the link map actually built, and how much did it find? An empty map is
+-- indistinguishable from "no ability here has a linked buff" without this.
+function CDF.AuraLinkStatus()
+    if not auraLinksBuilt then BuildAuraLinks() end
+    return auraLinkAPI, auraLinkCount
+end
+
+-- Every id worth testing for an entry: the one typed in, then whatever
+-- Blizzard links to it.
+--
+-- Memoised, and deliberately so: this sits behind GetAuraState, which runs per
+-- icon on every render pass, and rebuilding a throwaway table there is the
+-- kind of churn the 3.3.2 aura work existed to remove. The returned table is
+-- SHARED -- callers iterate it, they must not modify it.
+function CDF.AuraCandidates(spellID)
+    spellID = tonumber(spellID)
+    if not spellID then return nil end
+    if not auraLinksBuilt then BuildAuraLinks() end
+    local cached = auraCandidates and auraCandidates[spellID]
+    if cached then return cached end
+
+    local out = { spellID }
+    local linked = auraLinks and auraLinks[spellID]
+    if linked then
+        for i = 1, #linked do
+            if linked[i] ~= spellID then out[#out + 1] = linked[i] end
+        end
+    end
+    if auraCandidates then auraCandidates[spellID] = out end
+    return out
+end
+
 function CDF.GetAuraState(spellID)
     spellID = tonumber(spellID)
     if not spellID then return nil end
     local get = C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID
     if not get then return nil end
-    local aura = get(spellID)
+
+    local aura, matched
+    for _, id in ipairs(CDF.AuraCandidates(spellID) or { spellID }) do
+        local ok, res = pcall(get, id)
+        if ok and res then aura, matched = res, id; break end
+    end
     if not aura then return { active = false } end
 
     local dur  = readableNumber(aura.duration)
@@ -364,6 +483,7 @@ function CDF.GetAuraState(spellID)
     local apps = readableNumber(aura.applications)
     return {
         active         = true,
+        matchedID      = matched,
         duration       = dur,
         expirationTime = exp,
         applications   = apps,

@@ -97,13 +97,37 @@ end
 -- ---------------------------------------------------------------------
 -- Style normalization / resolution
 -- ---------------------------------------------------------------------
--- Ensure bar.style exists and points at a known preset (or "custom").
+-- Bounds for the border thickness slider, exported so an editor can never
+-- offer a value the engine would rewrite underneath it.
+CDF.BORDER_THICKNESS_MIN, CDF.BORDER_THICKNESS_MAX = 1, 10
+
+-- Ensure bar.style exists and that `preset` names a real preset. Note that
+-- "custom" is NOT one: it is a legacy sentinel, migrated away below.
 function CDF.NormalizeStyle(bar)
     if type(bar) ~= "table" then return end
     bar.style = bar.style or {}
     local st = bar.style
-    if st.preset ~= "custom" and not CDF.SKIN_PRESETS[st.preset] then
+
+    -- `preset` names the BASE the fine settings sit on top of. It used to be
+    -- overwritten with the sentinel "custom" the moment any fine setting was
+    -- touched, and since there is no "custom" entry in SKIN_PRESETS,
+    -- ResolveStyle fell back to tomo -- so picking a border colour on a Net or
+    -- Verre bar silently rebased the whole icon to Tomo. The customisation is
+    -- now a separate flag and the base is preserved.
+    if st.preset == "custom" then
+        st.preset = "tomo"          -- what "custom" actually resolved to
+        st.customized = true
+    end
+    if not CDF.SKIN_PRESETS[st.preset] then
         st.preset = "tomo"
+    end
+    st.customized = st.customized and true or nil
+
+    if st.border and st.border.thickness ~= nil then
+        local t = tonumber(st.border.thickness) or 1
+        if t < CDF.BORDER_THICKNESS_MIN then t = CDF.BORDER_THICKNESS_MIN end
+        if t > CDF.BORDER_THICKNESS_MAX then t = CDF.BORDER_THICKNESS_MAX end
+        st.border.thickness = t
     end
     -- [S9] drop an unknown castability mode rather than storing it; nil
     -- falls back to the preset value in ResolveStyle.
@@ -118,7 +142,9 @@ end
 CDF.SKIN_TABLE_AXES = { border = true, swipe = true, timer = true }
 
 -- Effective style: preset defaults overlaid with the bar's explicit
--- per-axis overrides. "custom" resolves over the tomo base.
+-- per-axis overrides. `st.preset` always names a real preset by the time this
+-- runs (NormalizeStyle guarantees it), so the fallback below is a guard, not
+-- the path a customised bar takes -- that was the "custom" sentinel bug.
 --
 -- Table axes are merged FIELD BY FIELD. Replacing them wholesale was a real
 -- defect: the studio writes one field at a time (`bar.style.border.thickness
