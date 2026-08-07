@@ -230,6 +230,52 @@ TomoMod_Defaults = {
         bagBarMode = "show",
         microMenuMode = "show",
     },
+    -- =====================
+    -- MICRO BAR
+    -- Standalone bar of click-forwarders replacing the native micro menu.
+    -- `order` is an array, and MergeTables fills arrays index by index, so a
+    -- reordered list survives updates while a def appended in a later version
+    -- still lands in the player's order.
+    -- =====================
+    microBar = {
+        enabled       = false,
+        hideNative    = true,          -- mute the Blizzard micro menu
+        iconSize      = 26,
+        spacing       = 4,
+        scale         = 1.0,
+        alpha         = 1.0,
+        orientation   = "horizontal",  -- "horizontal" | "vertical"
+        perLine       = 0,             -- 0 = single row / column
+        colorMode     = "class",       -- "class" | "custom" | "native"
+        color         = { r = 1, g = 1, b = 1 },
+        desaturate    = true,
+        hoverZoom     = true,
+        memoryTooltip = true,
+        fadeMode      = "always",      -- "always" | "hover" | "hovercombat"
+        fadeAlpha     = 0,
+        fadeIn        = 0.15,
+        fadeOut       = 0.25,
+        -- State parity with the native buttons: alert pulses, disabled state,
+        -- keybind hints. alertStyle shares ClassReminder's vocabulary.
+        alertStyle    = "Pixel Glow",   -- "None" | "Pixel Glow" | "Autocast Shine" | "Action Button Glow" | "Proc Glow"
+        alertColor    = { r = 1.0, g = 0.82, b = 0.20 },
+        dimDisabled   = true,
+        disabledAlpha = 0.35,
+        showKeybind   = false,
+        keybindSize   = 10,
+        -- `position` is written on first drag; absent means "use the default anchor".
+        buttons = {
+            character = true, spells = true, profession = true, achievement = true,
+            quest = true, guild = true, lfd = true, collections = true,
+            ej = true, housing = true, social = true, store = false,
+            bags = true, mainmenu = true,
+        },
+        order = {
+            "character", "spells", "profession", "achievement", "quest",
+            "guild", "lfd", "collections", "ej", "housing",
+            "social", "store", "bags", "mainmenu",
+        },
+    },
     MythicKeys = {
         enabled = true,
         miniFrame = true,

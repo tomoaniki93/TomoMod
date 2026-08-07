@@ -118,6 +118,14 @@ local function ApplyMicroMenu()
     local settings = TomoModDB and TomoModDB.bagMicroMenu
     if not settings then return end
 
+    -- MicroBar replaces the native menu with its own bar and keeps the original
+    -- muted. Two modules writing alpha on the same frame would flicker, so the
+    -- one that owns it wins and this one stands down.
+    if TomoMod_MicroBar and TomoMod_MicroBar.OwnsNativeMenu
+        and TomoMod_MicroBar.OwnsNativeMenu() then
+        return
+    end
+
     local microMenu = GetMicroMenuFrame()
     if not microMenu then return end
 

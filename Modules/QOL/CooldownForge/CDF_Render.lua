@@ -339,7 +339,11 @@ local function applyEntry(icon, resolved, state, bar)
     local auraID = CDF.EntryAuraID and CDF.EntryAuraID(resolved and resolved._entry, resolved)
     if auraID then
         local a = CDF.GetAuraState and CDF.GetAuraState(auraID)
-        if a and a.active and a.timed then
+        if a and a.active and a.durationObject and icon.cd.SetCooldownFromDurationObject then
+            -- Preferred: no arithmetic on values that may be secret.
+            local okD = pcall(icon.cd.SetCooldownFromDurationObject, icon.cd, a.durationObject)
+            if not okD then icon.cd:Clear() end
+        elseif a and a.active and a.timed then
             icon.cd:SetCooldown(a.expirationTime - a.duration, a.duration)
         else
             icon.cd:Clear()
@@ -884,6 +888,14 @@ function CDF.DumpAuraLog()
     print(P .. ("derniere evaluation il y a %.1fs  /  derniere aura trouvee il y a %s")
         :format(now - (st.lastCall or now),
                 (st.lastFound and st.lastFound > 0) and ("%.1fs"):format(now - st.lastFound) or "jamais"))
+    local sc = CDF.__scanStats
+    if sc then
+        print(P .. ("scan: %d balayages, %d auras vues, %d avec spellID lisible")
+            :format(sc.calls or 0, sc.seen or 0, sc.keyed or 0))
+        print(P .. ("     en combat: %d balayages, %d vues, %d lisibles  /  dernier: %d vues, %d lisibles (combat=%s)")
+            :format(sc.callsCombat or 0, sc.seenCombat or 0, sc.keyedCombat or 0,
+                    sc.lastSeen or 0, sc.lastKeyed or 0, tostring(sc.lastCombat)))
+    end
     print(P .. ("--- %d transitions d'aura (la plus recente en dernier) ---"):format(#log))
     for i = 1, #log do
         local e = log[i]

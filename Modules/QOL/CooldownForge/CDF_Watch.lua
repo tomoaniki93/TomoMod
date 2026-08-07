@@ -328,7 +328,10 @@ w:RegisterEvent("PLAYER_TARGET_CHANGED")
 -- [G5] Talent changes re-point the ability -> buff overrides the aura link map
 -- is built from. PLAYER_SPECIALIZATION_CHANGED is already registered above.
 w:RegisterEvent("TRAIT_CONFIG_UPDATED")
-w:SetScript("OnEvent", function(_, event)
+w:SetScript("OnEvent", function(_, event, unit, updateInfo)
+    if event == "UNIT_AURA" then
+        CDF.OnUnitAura(updateInfo)
+    end
     if event == "PLAYER_SPECIALIZATION_CHANGED" or event == "SPELLS_CHANGED"
        or event == "BAG_UPDATE_DELAYED" or event == "PLAYER_EQUIPMENT_CHANGED"
        or event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED"
@@ -500,20 +503,107 @@ end
 -- the table and the other six read it.
 local auraSnapTime, auraSnap = -1, {}
 
+-- [MIDNIGHT] aura.spellId goes SECRET in combat: measured 100% readable out
+-- of combat against 6.5% in combat, which is why keying the snapshot by
+-- spellId emptied it the moment a fight started. The enumeration itself was
+-- never the problem.
+--
+-- The payload of UNIT_AURA carries the spellId at APPLICATION time, together
+-- with an auraInstanceID. Learning the pair once and then tracking the
+-- INSTANCE survives the field going secret afterwards -- this is what the
+-- reference cooldown addons do, and the event handler here was discarding the
+-- payload entirely.
+local activeBySpell, spellByInstance = {}, {}
+
+local function AuraAdded(aura)
+    if type(aura) ~= "table" then return end
+    local sid = readableNumber(aura.spellId)
+    local iid = readableNumber(aura.auraInstanceID)
+    if not (sid and iid) then return end
+    spellByInstance[iid] = sid
+    activeBySpell[sid] = iid
+end
+
+local function AuraRemoved(iid)
+    iid = readableNumber(iid)
+    if not iid then return end
+    local sid = spellByInstance[iid]
+    spellByInstance[iid] = nil
+    if sid and activeBySpell[sid] == iid then activeBySpell[sid] = nil end
+end
+
+local function AuraFullUpdate()
+    for k in pairs(activeBySpell) do activeBySpell[k] = nil end
+    for k in pairs(spellByInstance) do spellByInstance[k] = nil end
+    if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return end
+    for i = 1, 40 do
+        local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
+        if not ok or not aura then break end
+        AuraAdded(aura)
+    end
+end
+
+-- Called from the event handler with the UNIT_AURA payload.
+function CDF.OnUnitAura(updateInfo)
+    if type(updateInfo) ~= "table" or updateInfo.isFullUpdate then
+        AuraFullUpdate()
+        return
+    end
+    if updateInfo.addedAuras then
+        for _, a in ipairs(updateInfo.addedAuras) do AuraAdded(a) end
+    end
+    if updateInfo.removedAuraInstanceIDs then
+        for _, iid in ipairs(updateInfo.removedAuraInstanceIDs) do AuraRemoved(iid) end
+    end
+end
+
+-- Is the instance we recorded for this spell still on the player? Asking by
+-- INSTANCE keeps the query C-side, so nothing depends on reading spellId now.
+local function LiveInstance(spellID)
+    local iid = activeBySpell[spellID]
+    if not iid then return nil end
+    local get = C_UnitAuras and C_UnitAuras.GetAuraDataByAuraInstanceID
+    if not get then return iid end
+    local ok, aura = pcall(get, "player", iid)
+    if ok and aura then return iid, aura end
+    AuraRemoved(iid)
+    return nil
+end
+
 local function PlayerAuraSnapshot()
     local now = GetTime()
     if now == auraSnapTime then return auraSnap end
     auraSnapTime = now
     for k in pairs(auraSnap) do auraSnap[k] = nil end
     if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return auraSnap end
+    local seen, keyed = 0, 0
     for i = 1, 40 do
         local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
         if not ok or not aura then break end
         -- spellId can come back as a secret value in restricted content; the
         -- guard keeps it out of the table instead of poisoning a comparison.
+        seen = seen + 1
         local sid = readableNumber(aura.spellId)
-        if sid and auraSnap[sid] == nil then auraSnap[sid] = aura end
+        if sid then
+            keyed = keyed + 1
+            if auraSnap[sid] == nil then auraSnap[sid] = aura end
+        end
     end
+    -- [DIAG] `seen` counts what the scan enumerated, `keyed` how many of those
+    -- carried a spellId we could read. A large gap means the enumeration is
+    -- fine and the guard above is what empties the table -- i.e. the aura data
+    -- goes secret and keying by spellId is the wrong model to begin with.
+    CDF.__scanStats = CDF.__scanStats or { calls = 0, seen = 0, keyed = 0,
+                                           callsCombat = 0, seenCombat = 0, keyedCombat = 0 }
+    local st = CDF.__scanStats
+    local inCombat = (InCombatLockdown() or UnitAffectingCombat("player")) and true or false
+    st.calls, st.seen, st.keyed = st.calls + 1, st.seen + seen, st.keyed + keyed
+    if inCombat then
+        st.callsCombat = st.callsCombat + 1
+        st.seenCombat  = st.seenCombat + seen
+        st.keyedCombat = st.keyedCombat + keyed
+    end
+    st.lastSeen, st.lastKeyed, st.lastCombat = seen, keyed, inCombat
     return auraSnap
 end
 
@@ -526,14 +616,28 @@ function CDF.GetAuraState(spellID)
     local cands = CDF.AuraCandidates(spellID) or { spellID }
     local aura, matched
 
-    -- 1. the per-frame scan: the source that keeps answering in combat.
-    local snap = PlayerAuraSnapshot()
+    -- 1. the instance registry: the only source that survives spellId going
+    --    secret, because the lookup is done by instance id.
     for _, id in ipairs(cands) do
-        local res = snap[id]
-        if res then aura, matched = res, id; break end
+        local iid, res = LiveInstance(id)
+        if iid then
+            aura, matched = res, id
+            if not aura then aura = { auraInstanceID = iid } end
+            aura.auraInstanceID = aura.auraInstanceID or iid
+            break
+        end
     end
 
-    -- 2. direct lookup, for anything the HELPFUL scan does not enumerate.
+    -- 2. the per-frame scan.
+    if not aura then
+        local snap = PlayerAuraSnapshot()
+        for _, id in ipairs(cands) do
+            local res = snap[id]
+            if res then aura, matched = res, id; break end
+        end
+    end
+
+    -- 3. direct lookup, for anything the HELPFUL scan does not enumerate.
     if not aura then
         for _, id in ipairs(cands) do
             local ok, res = pcall(get, id)
@@ -557,9 +661,26 @@ function CDF.GetAuraState(spellID)
     local dur  = readableNumber(aura.duration)
     local exp  = readableNumber(aura.expirationTime)
     local apps = readableNumber(aura.applications)
+
+    -- The instance-scoped accessors return display-safe values where the raw
+    -- fields are secret, which is what brings the timer and the stack count
+    -- back inside restricted content.
+    local iid = readableNumber(aura.auraInstanceID)
+    local durObj
+    if iid and C_UnitAuras then
+        if C_UnitAuras.GetAuraDuration then
+            local ok, d = pcall(C_UnitAuras.GetAuraDuration, "player", iid)
+            if ok then durObj = d end
+        end
+        if apps == nil and C_UnitAuras.GetAuraApplicationDisplayCount then
+            local ok, n = pcall(C_UnitAuras.GetAuraApplicationDisplayCount, "player", iid)
+            if ok then apps = readableNumber(n) end
+        end
+    end
     return {
         active         = true,
         matchedID      = matched,
+        durationObject = durObj,
         duration       = dur,
         expirationTime = exp,
         applications   = apps,
