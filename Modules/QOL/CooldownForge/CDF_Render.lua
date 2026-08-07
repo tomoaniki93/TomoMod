@@ -551,6 +551,48 @@ end
 -- [S9] Two independent filters now: hideOnCooldown drops what is running,
 -- hideOnUnusable drops what the player cannot currently afford. Kept in one
 -- place so readySignature and layoutBar can never drift apart.
+-- [DIAG] Transition log. A single /tm forge is a snapshot, and a proc that is
+-- consumed and reapplied several times a second is almost impossible to catch
+-- that way. This records every active/inactive flip the engine actually SEES,
+-- with the combat state at that moment, so "the engine never saw it go active
+-- in combat" and "it saw it but did not draw it" stop looking alike.
+CDF.__auraLog = CDF.__auraLog or {}
+local AURA_LOG_MAX = 40
+local auraSeen = setmetatable({}, { __mode = "k" })
+
+-- [DIAG] The transition log only records CHANGES, so a silent stretch is
+-- ambiguous: either the entries stopped being evaluated, or they were
+-- evaluated and the aura was simply never found. These counters separate the
+-- two, which is the whole remaining question.
+CDF.__auraStats = CDF.__auraStats or { calls = 0, found = 0, lastCall = 0, lastFound = 0,
+                                       callsCombat = 0, foundCombat = 0 }
+
+local function CountAuraEval(active)
+    local st = CDF.__auraStats
+    local inCombat = (InCombatLockdown() or UnitAffectingCombat("player")) and true or false
+    st.calls = st.calls + 1
+    st.lastCall = GetTime()
+    if inCombat then st.callsCombat = st.callsCombat + 1 end
+    if active then
+        st.found = st.found + 1
+        st.lastFound = GetTime()
+        if inCombat then st.foundCombat = st.foundCombat + 1 end
+    end
+end
+
+local function LogAuraFlip(entry, auraID, active)
+    if auraSeen[entry] == active then return end
+    auraSeen[entry] = active
+    local log = CDF.__auraLog
+    log[#log + 1] = {
+        t      = GetTime(),
+        id     = auraID,
+        active = active,
+        combat = (InCombatLockdown() or UnitAffectingCombat("player")) and true or false,
+    }
+    while #log > AURA_LOG_MAX do table.remove(log, 1) end
+end
+
 local function entryShown(bar, r, state, entry)
     -- [G4] A tracked-buff entry only exists on screen while its aura is up.
     -- This runs before the cooldown filters: an absent proc is not "ready",
@@ -558,7 +600,10 @@ local function entryShown(bar, r, state, entry)
     local auraID = CDF.EntryAuraID and CDF.EntryAuraID(entry, r)
     if auraID then
         local a = CDF.GetAuraState and CDF.GetAuraState(auraID)
-        if not (a and a.active) then return false end
+        local active = (a and a.active) and true or false
+        CountAuraEval(active)
+        LogAuraFlip(entry, auraID, active)
+        if not active then return false end
         return true
     end
     if bar.hideOnCooldown and not CDF.IsReady(r, state) then return false end
@@ -787,9 +832,26 @@ function CDF.DumpAura(class)
     end
     for _, bar in ipairs(bars) do
         local vis = CDF.GetBarVisibility and CDF.GetBarVisibility(bar) or "?"
-        print(("%s[%s] %s  visibilite=%s  filtre=%s"):format(
+        -- The verdict alone is read at the moment the command runs, which is
+        -- necessarily out of combat: print the CONDITIONS too, so a bar that is
+        -- configured to disappear in combat is distinguishable from one that is
+        -- shown but ends up with no icon.
+        local conds = {}
+        local v = bar.visibility
+        if type(v) == "table" then
+            for _, k in ipairs(CDF.VIS_CONDS or {}) do
+                if v[k] ~= nil then conds[#conds + 1] = k .. "=" .. tostring(v[k]) end
+            end
+            if v.unmet then conds[#conds + 1] = "sinon=" .. tostring(v.unmet) end
+        end
+        local f = CDF._barFrames and CDF._barFrames[bar.id]
+        print(("%s[%s] %s  visibilite=%s  conditions=%s  filtre=%s  cadre=%s  icones=%s"):format(
             P, tostring(bar.id), tostring(bar.name), tostring(vis),
-            tostring(hasHideFilter(bar))))
+            (#conds > 0) and table.concat(conds, ",") or "aucune",
+            tostring(hasHideFilter(bar)),
+            f and (f:IsShown() and ("visible/alpha=" .. string.format("%.2f", f:GetAlpha() or 1))
+                                or "masque") or "absent",
+            f and tostring(f._count or 0) or "-"))
         for i, e in ipairs(bar.entries or {}) do
             local r  = CDF.ResolveEntry(e)
             local id = CDF.EntryAuraID and CDF.EntryAuraID(e, r)
@@ -803,6 +865,31 @@ function CDF.DumpAura(class)
                 tostring(a and a.active), tostring(a and a.timed),
                 tostring(a and a.applications)))
         end
+    end
+end
+
+-- Prints the recorded transitions. `combat=true` on an `actif` line proves the
+-- engine saw the buff land during combat.
+function CDF.DumpAuraLog()
+    local P = "|cff2ed884TomoMod|r "
+    local log = CDF.__auraLog or {}
+    if #log == 0 then
+        print(P .. "aucune transition enregistree (joue quelques secondes puis relance)")
+        return
+    end
+    local now = GetTime()
+    local st = CDF.__auraStats or {}
+    print(P .. ("evaluations=%d (dont %d en combat)  trouvees=%d (dont %d en combat)")
+        :format(st.calls or 0, st.callsCombat or 0, st.found or 0, st.foundCombat or 0))
+    print(P .. ("derniere evaluation il y a %.1fs  /  derniere aura trouvee il y a %s")
+        :format(now - (st.lastCall or now),
+                (st.lastFound and st.lastFound > 0) and ("%.1fs"):format(now - st.lastFound) or "jamais"))
+    print(P .. ("--- %d transitions d'aura (la plus recente en dernier) ---"):format(#log))
+    for i = 1, #log do
+        local e = log[i]
+        print(("%s  -%.1fs  aura=%s  %s  combat=%s"):format(
+            P, now - e.t, tostring(e.id),
+            e.active and "ACTIF" or "inactif", tostring(e.combat)))
     end
 end
 

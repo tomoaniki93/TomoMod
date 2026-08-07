@@ -666,17 +666,48 @@ end
 -- SHOW EMPTY BUTTONS
 -- =====================================================================
 
--- EllesUI / QUI pattern:
--- Blizzard's ShowGrid/HideGrid uses a counter stored in the "showgrid"
--- attribute.  ACTIONBAR_SHOWGRID increments (+1), ACTIONBAR_HIDEGRID
--- decrements (-1).  When the counter reaches 0, the button hides.
+-- [TAINT] This used to force Blizzard's "showgrid" counter attribute to 32.
+-- ActionBar:UpdateShownButtons() READS that attribute, so it read a value
+-- written by addon code and its own button:SetShown() was then refused --
+-- the ADDON_ACTION_BLOCKED burst on MultiBarBottomLeftButton1..12, credited
+-- to whichever addon happened to be running at the time.
 --
--- Setting the attribute to a high base value (32) means Blizzard's
--- +1/-1 cycles (33→32) never reach 0.  The button stays visible.
--- When the user disables the option, we reset to 0 and let Blizzard's
--- normal HasAction visibility take over.
+-- "Show empty slots" is exactly what the alwaysShowActionBars CVar does, and a
+-- CVar is read by Blizzard without taint. The CVar is global while the option
+-- is per bar, so it goes on as soon as ONE bar wants its empty slots, and bars
+-- that do not are blanked individually with alpha and mouse input -- neither
+-- of which is protected. Blizzard keeps full ownership of Show/Hide.
+local function SyncEmptyGridCVar()
+    if InCombatLockdown() then return end
+    local want = false
+    for _, def in ipairs(AB.BAR_DEFS) do
+        if not def.noAction then
+            local barDB = GetBarDB(def.id)
+            if barDB and barDB.showEmptyButtons then want = true break end
+        end
+    end
+    local target = want and "1" or "0"
+    if GetCVar("alwaysShowActionBars") ~= target then
+        SetCVar("alwaysShowActionBars", target)
+    end
+end
+AB.SyncEmptyGridCVar = SyncEmptyGridCVar
 
-local SHOWGRID_ALWAYS = 32
+-- [TAINT] Action buttons are SECURE frames. Calling :Hide() / :Show() on one
+-- from addon code taints it permanently, and Blizzard's own
+-- ActionBar:UpdateShownButtons() -> button:SetShown() is then refused with
+-- ADDON_ACTION_BLOCKED. That is where the MultiBarBottomLeftButton1..12
+-- reports came from -- blamed on whichever addon happened to be running, which
+-- made them look like a Cooldown Studio problem.
+--
+-- Alpha and mouse input are NOT protected, so they express the same thing
+-- without touching the frame's shown state: Blizzard keeps full ownership of
+-- Show/Hide, we only decide whether the empty slot is visible and droppable.
+-- Callers already guard on InCombatLockdown.
+local function SetButtonVisual(btn, visible)
+    btn:SetAlpha(visible and 1 or 0)
+    btn:EnableMouse(visible and true or false)
+end
 
 local function UpdateEmptyButtons(id)
     local barDB = GetBarDB(id)
@@ -692,23 +723,21 @@ local function UpdateEmptyButtons(id)
         QueueProtectedOp("emptybtns_" .. id, function() UpdateEmptyButtons(id) end)
         return
     end
+    SyncEmptyGridCVar()
     for _, btn in ipairs(buttons) do
         if barDB.showEmptyButtons then
             btn._tomoGrid = true
-            btn:SetAttribute("showgrid", SHOWGRID_ALWAYS)
-            btn:Show()
-            btn:SetAlpha(1)
+            SetButtonVisual(btn, true)
         else
             -- [FIX] Le masquage doit être ACTIF à chaque application : après un
             -- /reload le flag runtime _tomoGrid est nil, donc l'ancien garde
             -- "if btn._tomoGrid" sautait le masquage et laissait le défaut
             -- Blizzard (emplacements vides visibles). On force désormais.
             btn._tomoGrid = nil
-            btn:SetAttribute("showgrid", 0)
             local action = btn.action or btn:GetAttribute("action") or 0
-            if not HasAction(action) then
-                btn:Hide()
-            end
+            -- A slot holding an action stays fully visible; only genuinely
+            -- empty ones are blanked.
+            SetButtonVisual(btn, HasAction(action) and true or false)
         end
     end
 end
@@ -746,9 +775,10 @@ local function SetEmptyGridRevealed(revealed)
                     for _, btn in ipairs(buttons) do
                         local action = btn.action or btn:GetAttribute("action") or 0
                         if not HasAction(action) then
-                            btn:SetAttribute("showgrid", SHOWGRID_ALWAYS)
-                            btn:Show()
-                            btn:SetAlpha(1)
+                            -- Blizzard already reveals the grid on
+                            -- ACTIONBAR_SHOWGRID; we only undo our own blanking
+                            -- so the slot can be dropped onto.
+                            SetButtonVisual(btn, true)
                         end
                     end
                 end

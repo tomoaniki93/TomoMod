@@ -451,18 +451,70 @@ function CDF.AuraCandidates(spellID)
     spellID = tonumber(spellID)
     if not spellID then return nil end
     if not auraLinksBuilt then BuildAuraLinks() end
-    local cached = auraCandidates and auraCandidates[spellID]
-    if cached then return cached end
 
-    local out = { spellID }
+    local out, seen = {}, {}
+    local function add(v)
+        v = tonumber(v)
+        if not v or seen[v] then return end
+        seen[v] = true
+        out[#out + 1] = v
+    end
+    local function addOverride(v)
+        if not (C_SpellBook and C_SpellBook.FindSpellOverrideByID and v) then return end
+        local ok, ov = pcall(C_SpellBook.FindSpellOverrideByID, v)
+        if ok then add(ov) end
+    end
+
+    -- 1. the id typed in.
+    add(spellID)
+    -- 2. its LIVE override, resolved on every call and never cached. A talent
+    --    or a proc can swap the live spell mid-fight and the aura then lands
+    --    under the override id. The cooldown-viewer map below is a snapshot
+    --    taken at spec/talent change, so it cannot see that: the measured hit
+    --    rate was 18% out of combat against 0.1% in combat, the same auras
+    --    flipping to "not found" in the very frame combat started.
+    addOverride(spellID)
+    -- 3. whatever the cooldown viewer links to it, and their overrides in turn.
     local linked = auraLinks and auraLinks[spellID]
     if linked then
-        for i = 1, #linked do
-            if linked[i] ~= spellID then out[#out + 1] = linked[i] end
+        for k = 1, #linked do
+            add(linked[k])
+            addOverride(linked[k])
         end
     end
-    if auraCandidates then auraCandidates[spellID] = out end
     return out
+end
+
+-- Player buff snapshot, rebuilt at most once per frame.
+--
+-- GetPlayerAuraBySpellID is the obvious lookup and it is what this used to
+-- rely on, but measurement says it stops answering once combat starts: 232
+-- hits out of combat against 4 across 8029 in-combat evaluations, with every
+-- tracked aura flipping to "not found" in the very frame combat began. The
+-- index scan is what AuraData.lua uses to drive HoT tracking on the party and
+-- raid frames -- code that demonstrably runs all through a fight -- so the
+-- scan becomes the primary source here and the direct lookup only a fallback.
+--
+-- Cost is paid once per frame for the whole bar rather than once per entry:
+-- GetTime() is constant within a frame, so the first entry evaluated builds
+-- the table and the other six read it.
+local auraSnapTime, auraSnap = -1, {}
+
+local function PlayerAuraSnapshot()
+    local now = GetTime()
+    if now == auraSnapTime then return auraSnap end
+    auraSnapTime = now
+    for k in pairs(auraSnap) do auraSnap[k] = nil end
+    if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return auraSnap end
+    for i = 1, 40 do
+        local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
+        if not ok or not aura then break end
+        -- spellId can come back as a secret value in restricted content; the
+        -- guard keeps it out of the table instead of poisoning a comparison.
+        local sid = readableNumber(aura.spellId)
+        if sid and auraSnap[sid] == nil then auraSnap[sid] = aura end
+    end
+    return auraSnap
 end
 
 function CDF.GetAuraState(spellID)
@@ -471,11 +523,35 @@ function CDF.GetAuraState(spellID)
     local get = C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID
     if not get then return nil end
 
+    local cands = CDF.AuraCandidates(spellID) or { spellID }
     local aura, matched
-    for _, id in ipairs(CDF.AuraCandidates(spellID) or { spellID }) do
-        local ok, res = pcall(get, id)
-        if ok and res then aura, matched = res, id; break end
+
+    -- 1. the per-frame scan: the source that keeps answering in combat.
+    local snap = PlayerAuraSnapshot()
+    for _, id in ipairs(cands) do
+        local res = snap[id]
+        if res then aura, matched = res, id; break end
     end
+
+    -- 2. direct lookup, for anything the HELPFUL scan does not enumerate.
+    if not aura then
+        for _, id in ipairs(cands) do
+            local ok, res = pcall(get, id)
+            if ok and res then aura, matched = res, id; break end
+        end
+    end
+    -- Last resort: match by name. Some auras carry an id that appears in no
+    -- link and under no override -- the name is then the only thing still
+    -- tying the ability to the buff it puts on you.
+    if not aura and C_UnitAuras.GetAuraDataBySpellName
+       and C_Spell and C_Spell.GetSpellName then
+        local okN, name = pcall(C_Spell.GetSpellName, spellID)
+        if okN and type(name) == "string" and name ~= "" then
+            local okA, res = pcall(C_UnitAuras.GetAuraDataBySpellName, "player", name, "HELPFUL")
+            if okA and res then aura, matched = res, spellID end
+        end
+    end
+
     if not aura then return { active = false } end
 
     local dur  = readableNumber(aura.duration)

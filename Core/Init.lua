@@ -85,6 +85,10 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if TomoMod_TomoScore then
             TomoMod_TomoScore:ShowPreview()
         end
+    elseif msg == "forge log" or msg == "cdf log" then
+        if TomoMod_CooldownForge and TomoMod_CooldownForge.DumpAuraLog then
+            TomoMod_CooldownForge.DumpAuraLog()
+        end
     elseif msg == "forge" or msg == "cdf" then
         if TomoMod_CooldownForge and TomoMod_CooldownForge.DumpAura then
             TomoMod_CooldownForge.DumpAura()
