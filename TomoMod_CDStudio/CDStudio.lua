@@ -87,7 +87,10 @@ local function EntryDesc(e)
     elseif k == "racial" then who = "Racial"
     end
     local spec = (not e.spec or e.spec == 0) and "toutes spes" or ("spe " .. tostring(e.spec))
-    return who .. "  -  " .. spec
+    -- [G4] Make the mode visible in the list: an aura entry behaves nothing
+    -- like a cooldown entry and the row is the only place it shows.
+    local mode = (e.mode == "aura") and "  -  buff suivi" or ""
+    return who .. "  -  " .. spec .. mode
 end
 
 local function SpecOptions(class)
@@ -189,8 +192,10 @@ local function TabDisposition(parent)
             function(v) r.arc = v; Apply() end, "%.0f deg")
         _, cy = W.CreateCheckbox(card.inner, "Sens horaire", r.clockwise ~= false, cy,
             function(v) r.clockwise = v; Apply() end)
-        _, cy = W.CreateSlider(card.inner, "Taille icones", bar.iconSize, 24, 64, 1, cy,
-            function(v) bar.iconSize = v; Apply() end, "%.0f px")
+        _, cy = W.CreateSlider(card.inner, "Largeur icones", select(1, CDF.IconDims(bar)), 8, 128, 1, cy,
+            function(v) bar.iconWidth = v; Apply() end, "%.0f px")
+        _, cy = W.CreateSlider(card.inner, "Hauteur icones", select(2, CDF.IconDims(bar)), 8, 128, 1, cy,
+            function(v) bar.iconHeight = v; Apply() end, "%.0f px")
         _, cy = W.CreateInfoText(card.inner,
             "0 deg = a droite, 90 deg = en haut. Une amplitude de 360 repartit les icones "
             .. "sur un cercle complet. Le jeu ne permet pas de suivre le personnage a l'ecran : "
@@ -204,12 +209,16 @@ local function TabDisposition(parent)
               { text = "Bas", value = "DOWN" }, { text = "Haut", value = "UP" } },
             bar.growth, cy, function(v) bar.growth = v; Apply() end)
         _, cy = W.CreateTripleSlider(card.inner, cy,
-            { text = "Taille icones", value = bar.iconSize, min = 24, max = 64, step = 1,
-              callback = function(v) bar.iconSize = v; Apply() end },
+            { text = "Largeur icones", value = select(1, CDF.IconDims(bar)), min = 8, max = 128, step = 1,
+              callback = function(v) bar.iconWidth = v; Apply() end },
+            { text = "Hauteur icones", value = select(2, CDF.IconDims(bar)), min = 8, max = 128, step = 1,
+              callback = function(v) bar.iconHeight = v; Apply() end },
             { text = "Espacement (dans la ligne)", value = bar.spacing, min = 0, max = 64, step = 1,
-              callback = function(v) bar.spacing = v; Apply() end },
-            { text = "Retour (icones/ligne)", value = bar.wrap, min = 0, max = 12, step = 1,
-              callback = function(v) bar.wrap = v; Apply() end })
+              callback = function(v) bar.spacing = v; Apply() end })
+        -- Splitting the icon size into width+height filled the three-slider row,
+        -- so the wrap slider gets its own line rather than being dropped.
+        _, cy = W.CreateSlider(card.inner, "Retour (icones/ligne)", bar.wrap, 0, 12, 1, cy,
+            function(v) bar.wrap = v; Apply() end, "%.0f")
         _, cy = W.CreateSlider(card.inner, "Espacement (entre les lignes)",
             bar.spacingCross or bar.spacing or 4, 0, 64, 1, cy,
             function(v) bar.spacingCross = v; Apply() end, "%.0f px")
@@ -318,8 +327,9 @@ local function TabStyle(parent)
         local pcard, pcy = W.CreateCard(c, "Apercu", y)
         local host = CreateFrame("Frame", nil, pcard.inner)
         host:SetPoint("TOPLEFT", 0, pcy)
-        host:SetSize(300, (bar.iconSize or 36) + 12)
-        host:SetHeight((bar.iconSize or 36) + 12)
+        local _pw, _ph = CDF.IconDims(bar)
+        host:SetSize(300, _ph + 12)
+        host:SetHeight(_ph + 12)
         -- Preview textures: use REAL icons relevant to the player. Priority:
         -- (1) the bar's own spells, (2) the edited class's spellbook/talents,
         -- (3) a neutral question-mark fallback. Never random off-class spells.
@@ -353,7 +363,7 @@ local function TabStyle(parent)
         local DEMO_TEX = previewTextures(bar)
         local PREVIEW_CD = 8
         host._icons = host._icons or {}
-        local sz = bar.iconSize or 36
+        local szW, szH = CDF.IconDims(bar)
         local sp = bar.spacing or 4
         local x = 6
         for i = 1, 3 do
@@ -361,7 +371,7 @@ local function TabStyle(parent)
             if not ic then ic = CDF.MakePreviewIcon(host); host._icons[i] = ic end
             ic:ClearAllPoints()
             ic:SetPoint("LEFT", host, "LEFT", x, 0)
-            x = x + sz + sp
+            x = x + szW + sp
         end
         -- Style ONCE (heavy: backdrop, mask, swipe...). Icon 1 ready; 2 & 3 on
         -- a looping fake cooldown to show the swipe + duration behavior. The
@@ -380,7 +390,7 @@ local function TabStyle(parent)
                 self._t3 = now + PREVIEW_CD / 2
             end
         end)
-        pcy = pcy - (sz + 14)
+        pcy = pcy - (szH + 14)
         y = W.FinalizeCard(pcard, pcy)
     end
 
@@ -537,7 +547,22 @@ local function TabSorts(parent)
     for i = 1, #es do
         local idx = i
         _, cy = W.CreateInfoText(card.inner, i .. ". " .. EntryDesc(es[i]), cy)
+        -- Reorder: CDF.MoveEntry already swaps in place and refuses to move
+        -- past either end, so the edge buttons simply do nothing.
+        local function move(delta)
+            if not CDF.MoveEntry(S.state.class, S.state.barId, idx, delta) then return end
+            -- The options editor is keyed by index: follow the entry it was
+            -- opened on instead of jumping to whichever entry took its place.
+            if S.state.fxIdx == idx then
+                S.state.fxIdx = idx + delta
+            elseif S.state.fxIdx == idx + delta then
+                S.state.fxIdx = idx
+            end
+            Apply(); S.RebuildContent()
+        end
         _, cy = W.CreateButtonRow(card.inner, {
+            { text = "^", width = 34, callback = function() move(-1) end },
+            { text = "v", width = 34, callback = function() move(1) end },
             { text = (S.state.fxIdx == idx) and "Fermer les options" or "Options", width = 150, callback = function()
                 S.state.fxIdx = (S.state.fxIdx ~= idx) and idx or nil
                 S.RebuildContent()
@@ -563,6 +588,33 @@ local function TabSorts(parent)
                 Apply()
             end)
         end
+
+        -- [G4] Tracked buff ("Bonus suivi" side of Blizzard's Cooldown
+        -- Manager). Offered per entry so a proc can sit next to the cooldown
+        -- that grants it on the same bar.
+        _, cy = W.CreateCheckbox(card.inner, "Suivre un buff (proc) au lieu du cooldown",
+            fxE.mode == "aura", cy, function(v)
+                fxE.mode = v and "aura" or nil
+                if not v then fxE.auraID = nil end
+                Apply(); S.RebuildContent()
+            end)
+        if fxE.mode == "aura" then
+            _, cy = W.CreateInfoText(card.inner,
+                "L'icone disparait quand le buff est absent et reapparait avec sa duree "
+                .. "restante et ses cumuls. En contenu restreint (Mythique+) la duree peut "
+                .. "etre indisponible : l'icone apparait alors sans minuteur.", cy)
+            local aBox
+            aBox, cy = W.CreateMultiLineEditBox(card.inner, "ID du buff (vide = ID du sort)", 24, cy, {
+                onTextChanged = function(t)
+                    fxE.auraID = readSpellID(t)
+                    Apply()
+                end,
+            })
+            if aBox and aBox.editBox and fxE.auraID then
+                aBox.editBox:SetText(tostring(fxE.auraID))
+            end
+        end
+
         tri("Glow", "glow")
         _, cy = W.CreateDropdown(card.inner, "Condition du glow", GLOW_COND_OPTS_ENTRY,
             o.glowCondition or "inherit", cy, function(v)
@@ -881,9 +933,43 @@ local function TabVisibilite(parent)
         end)
     end
     cond("En combat", "inCombat")
+    cond("Une cible selectionnee", "hasTarget")
     cond("En instance (donjon/raid)", "inInstance")
     cond("En groupe", "inGroup")
     cond("En raid", "inRaid")
+
+    -- [G3] What an unmet condition does. "Masquer" is the original behaviour
+    -- and stays the default.
+    local unmetDim = (v.unmet == "dim")
+    _, cy = W.CreateDropdown(card.inner, "Si une condition n'est pas remplie",
+        { { text = "Masquer la barre", value = "hide" },
+          { text = "Reduire l'opacite", value = "dim" } },
+        unmetDim and "dim" or "hide", cy, function(val)
+            bar.visibility = bar.visibility or {}
+            if val == "dim" then
+                bar.visibility.unmet = "dim"
+                bar.visibility.dimAlpha = bar.visibility.dimAlpha or 0.5
+            else
+                bar.visibility.unmet = nil
+                bar.visibility.dimAlpha = nil
+            end
+            if next(bar.visibility) == nil then bar.visibility = nil end
+            v = bar.visibility or {}
+            Apply(); S.RebuildContent()
+        end)
+    if unmetDim then
+        _, cy = W.CreateSlider(card.inner, "Opacite reduite",
+            math.floor(((v.dimAlpha or 0.5) * 100) + 0.5), 5, 95, 5, cy,
+            function(val)
+                bar.visibility = bar.visibility or {}
+                bar.visibility.dimAlpha = val / 100
+                Apply()
+            end, "%d %%")
+        _, cy = W.CreateInfoText(card.inner,
+            "La barre reste affichee et continue de suivre les cooldowns, "
+            .. "simplement attenuee. Exemple : \"En combat = Oui\" avec cette "
+            .. "option laisse la barre visible a 50 % hors combat.", cy)
+    end
     y = W.FinalizeCard(card, cy)
 
     card, cy = W.CreateCard(c, "Icones en cooldown", y)

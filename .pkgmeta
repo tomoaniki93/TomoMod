@@ -17,6 +17,7 @@ ignore:
   - .gitignore
   - .luacheckrc
   - .pkgmeta
+  - .vscode
   - README.md
   # Developer tooling: the release builder and the headless test harnesses.
   # Nothing in the TOC loads them, and players have no use for them.

@@ -94,29 +94,53 @@ end
 -- [S6] Bar-level conditional visibility. Tri-state conditions evaluated
 -- against non-secret, event-driven signals. nil visibility = always show.
 -- ---------------------------------------------------------------------
-function CDF.IsBarVisible(bar)
-    if type(bar) ~= "table" then return false end
-    if bar.enabled == false then return false end
+-- [G3] Three-state verdict: "show", "dim" (conditions unmet but the bar stays
+-- on screen at reduced opacity) or "hide". IsBarVisible below keeps the old
+-- boolean contract for existing callers, treating "dim" as visible — a dimmed
+-- bar must keep being laid out and polled.
+function CDF.GetBarVisibility(bar)
+    if type(bar) ~= "table" then return "hide" end
+    if bar.enabled == false then return "hide" end
     local v = bar.visibility
-    if type(v) ~= "table" then return true end
+    if type(v) ~= "table" then return "show" end
+    local unmet = (v.unmet == "dim") and "dim" or "hide"
 
     if v.inCombat ~= nil then
         local inCombat = (InCombatLockdown() or UnitAffectingCombat("player")) and true or false
-        if inCombat ~= v.inCombat then return false end
+        if inCombat ~= v.inCombat then return unmet end
+    end
+    if v.hasTarget ~= nil then
+        -- UnitExists is a plain boolean and stays readable in restricted
+        -- content; nothing here inspects the target itself.
+        local hasTarget = UnitExists("target") and true or false
+        if hasTarget ~= v.hasTarget then return unmet end
     end
     if v.inInstance ~= nil then
-        local inInst = IsInInstance() and true or false
-        if inInst ~= v.inInstance then return false end
+        if (IsInInstance() and true or false) ~= v.inInstance then return unmet end
     end
     if v.inRaid ~= nil then
-        local inRaid = IsInRaid() and true or false
-        if inRaid ~= v.inRaid then return false end
+        if (IsInRaid() and true or false) ~= v.inRaid then return unmet end
     end
     if v.inGroup ~= nil then
-        local inGroup = IsInGroup() and true or false
-        if inGroup ~= v.inGroup then return false end
+        if (IsInGroup() and true or false) ~= v.inGroup then return unmet end
     end
-    return true
+    return "show"
+end
+
+-- Opacity to apply while a bar is in the "dim" state.
+function CDF.GetBarDimAlpha(bar)
+    local v = bar and bar.visibility
+    local a = v and tonumber(v.dimAlpha) or nil
+    if not a then return CDF.VIS_DIM_DEFAULT or 0.5 end
+    local lo = CDF.VIS_DIM_MIN or 0.05
+    local hi = CDF.VIS_DIM_MAX or 0.95
+    if a < lo then return lo end
+    if a > hi then return hi end
+    return a
+end
+
+function CDF.IsBarVisible(bar)
+    return CDF.GetBarVisibility(bar) ~= "hide"
 end
 
 -- ---------------------------------------------------------------------
@@ -293,12 +317,13 @@ w:RegisterEvent("PLAYER_REGEN_DISABLED")
 w:RegisterEvent("GROUP_ROSTER_UPDATE")
 w:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 w:RegisterEvent("PLAYER_ENTERING_WORLD")
+w:RegisterEvent("PLAYER_TARGET_CHANGED")
 w:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_SPECIALIZATION_CHANGED" or event == "SPELLS_CHANGED"
        or event == "BAG_UPDATE_DELAYED" or event == "PLAYER_EQUIPMENT_CHANGED"
        or event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED"
        or event == "GROUP_ROSTER_UPDATE" or event == "ZONE_CHANGED_NEW_AREA"
-       or event == "PLAYER_ENTERING_WORLD" then
+       or event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TARGET_CHANGED" then
         fireUpdate("layout")
     else
         fireUpdate("cooldown")
@@ -310,6 +335,43 @@ CDF._watchFrame = w
 -- while at least one bar actually needs aura state (glow condition
 -- "aura"). The renderer recomputes this on every layout refresh, which
 -- keeps the dispatcher at its usual zero idle cost otherwise.
+-- [G4] Aura state for a tracked-buff entry.
+--
+-- Existence is the only thing that is always safe to read, and it alone
+-- drives show/hide. Duration and stacks are a bonus: in restricted content
+-- (Mythic+) those fields can be SECRET values, and feeding a secret to
+-- Cooldown:SetCooldown or comparing it is exactly what the taint rules
+-- forbid. So each numeric is gated on issecretvalue() and simply omitted
+-- when unreadable — the icon still appears and disappears correctly, it just
+-- shows no timer there.
+local function readableNumber(v)
+    if v == nil then return nil end
+    if issecretvalue and issecretvalue(v) then return nil end
+    if type(v) ~= "number" then return nil end
+    return v
+end
+
+function CDF.GetAuraState(spellID)
+    spellID = tonumber(spellID)
+    if not spellID then return nil end
+    local get = C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID
+    if not get then return nil end
+    local aura = get(spellID)
+    if not aura then return { active = false } end
+
+    local dur  = readableNumber(aura.duration)
+    local exp  = readableNumber(aura.expirationTime)
+    local apps = readableNumber(aura.applications)
+    return {
+        active         = true,
+        duration       = dur,
+        expirationTime = exp,
+        applications   = apps,
+        -- Only a pair of readable, finite numbers can drive the swipe.
+        timed          = (dur ~= nil and exp ~= nil and dur > 0) or false,
+    }
+end
+
 function CDF.SetAuraWatch(on)
     on = on and true or false
     if CDF._auraWatch == on then return end

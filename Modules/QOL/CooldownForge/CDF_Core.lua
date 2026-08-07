@@ -202,7 +202,15 @@ end
 -- ---------------------------------------------------------------------
 -- [S6] Conditional visibility, all tri-state (nil = don't care, true =
 -- require, false = require NOT). Non-secret, event-driven signals only.
-CDF.VIS_CONDS = { "inCombat", "inInstance", "inGroup", "inRaid" }
+CDF.VIS_CONDS = { "inCombat", "hasTarget", "inInstance", "inGroup", "inRaid" }
+
+-- [G3] What happens when a condition is NOT met: hide the bar (the original
+-- and still the default) or keep it on screen at reduced opacity. Dimming is
+-- a display-only effect on the bar container; the icons keep updating, so a
+-- dimmed bar shows live cooldowns instead of freezing.
+CDF.VIS_UNMET = { hide = true, dim = true }
+CDF.VIS_DIM_DEFAULT = 0.5
+CDF.VIS_DIM_MIN, CDF.VIS_DIM_MAX = 0.05, 0.95
 
 function CDF.SanitizeVisibility(v)
     if type(v) ~= "table" then return nil end
@@ -210,7 +218,22 @@ function CDF.SanitizeVisibility(v)
     for _, k in ipairs(CDF.VIS_CONDS) do
         if type(v[k]) == "boolean" then out[k] = v[k] end
     end
-    if next(out) == nil then return nil end
+    local hasCond = next(out) ~= nil
+
+    if CDF.VIS_UNMET[v.unmet] and v.unmet ~= "hide" then
+        out.unmet = v.unmet
+        local a = tonumber(v.dimAlpha)
+        if a then
+            if a < CDF.VIS_DIM_MIN then a = CDF.VIS_DIM_MIN end
+            if a > CDF.VIS_DIM_MAX then a = CDF.VIS_DIM_MAX end
+            out.dimAlpha = a
+        end
+    end
+
+    -- Keep the table when the player has chosen dimming even with no condition
+    -- set yet: dropping it would silently discard that choice the moment they
+    -- set it before picking a condition.
+    if not hasCond and out.unmet == nil then return nil end
     return out
 end
 
@@ -222,7 +245,9 @@ function CDF.NewBarSchema(name)
         layout      = "line",          -- [S8] "line" | "radial"
         orientation = "horizontal",
         growth      = "RIGHT",
-        iconSize    = 40,
+        iconSize    = 40,             -- legacy square size; still the fallback
+        iconWidth   = nil,            -- [G2] nil = follow iconSize
+        iconHeight  = nil,            -- [G2] nil = follow iconSize
         spacing     = 4,               -- along the growth axis
         spacingCross = nil,            -- [S8] between wrapped lines; nil = follow `spacing`
         wrap        = 0,
@@ -240,6 +265,35 @@ function CDF.NewBarSchema(name)
     }
 end
 
+-- [G4] Which aura an entry watches: its explicit override, else its own
+-- spell. Returns nil for entries that cannot resolve to a spell (items,
+-- trinkets), which is why aura mode is only offered on spell entries.
+function CDF.EntryAuraID(entry, resolved)
+    if type(entry) ~= "table" or entry.mode ~= "aura" then return nil end
+    local id = tonumber(entry.auraID)
+    if id then return id end
+    if resolved and resolved.spellID then return tonumber(resolved.spellID) end
+    return tonumber(entry.id)
+end
+
+-- [G2] Effective icon dimensions. Width and height are independent
+-- overrides on top of the historic square `iconSize`, so a bar that has
+-- never been touched keeps rendering exactly as before and no migration is
+-- needed. Both fall back to iconSize, then to the schema default.
+function CDF.IconDims(bar)
+    local base = (bar and tonumber(bar.iconSize)) or 40
+    local w = (bar and tonumber(bar.iconWidth))  or base
+    local h = (bar and tonumber(bar.iconHeight)) or base
+    return w, h
+end
+
+-- Extents along and across the growth axis, for the layout maths.
+function CDF.IconExtents(bar)
+    local w, h = CDF.IconDims(bar)
+    if bar and bar.orientation == "vertical" then return h, w end
+    return w, h
+end
+
 function CDF.NewEntrySchema(data)
     data = data or {}
     return {
@@ -249,6 +303,14 @@ function CDF.NewEntrySchema(data)
         preset   = data.preset,
         slot     = data.slot,
         spec     = tonumber(data.spec) or 0,
+        -- [G4] "aura": the icon tracks a BUFF instead of a cooldown. It is
+        -- hidden while the aura is absent and appears with its remaining
+        -- time and stacks while it is up — the behaviour Blizzard's "Tracked
+        -- Buffs" viewer has and a plain cooldown entry does not.
+        mode     = (data.mode == "aura") and "aura" or nil,
+        -- Optional: watch a different aura than the entry's own spell. Some
+        -- procs are granted by one spell and applied as another.
+        auraID   = tonumber(data.auraID) or nil,
         override = CDF.SanitizeOverride(data.override),   -- [S2] per-entry FX
     }
 end
@@ -266,6 +328,10 @@ function CDF.SanitizeBar(bar)
     if not CDF.ORIENTATIONS[bar.orientation] then bar.orientation = "horizontal" end
     if not CDF.GROWTHS[bar.growth] then bar.growth = "RIGHT" end
     bar.iconSize = clamp(bar.iconSize, 24, 64)
+    -- [G2] nil stays nil so an untouched bar keeps following iconSize and
+    -- exports stay portable; only an explicit override is clamped.
+    if bar.iconWidth  ~= nil then bar.iconWidth  = clamp(bar.iconWidth,  8, 128) end
+    if bar.iconHeight ~= nil then bar.iconHeight = clamp(bar.iconHeight, 8, 128) end
     bar.spacing  = clamp(bar.spacing, 0, 64)
     if bar.spacingCross ~= nil then bar.spacingCross = clamp(bar.spacingCross, 0, 64) end
     bar.wrap     = clamp(bar.wrap, 0, 12)
@@ -290,6 +356,10 @@ function CDF.SanitizeBar(bar)
     for _, e in ipairs(bar.entries) do
         if type(e) == "table" then
             e.override = CDF.SanitizeOverride(e.override)
+            -- [G4] only "aura" is stored; anything else falls back to the
+            -- historic cooldown behaviour rather than being persisted.
+            if e.mode ~= "aura" then e.mode = nil end
+            e.auraID = tonumber(e.auraID) or nil
         end
     end
     return bar

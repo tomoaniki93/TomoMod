@@ -1,5 +1,48 @@
 ## ####################################
 
+## CHANGELOG 3.3.5 — The Border Slider Stops Erasing The Border It Was Meant To Thicken, Cooldown Bars Learn Whether You Have A Target And Can Fade Instead Of Vanishing, Icons Stop Being Forced Square, An Icon Can Track A Proc Instead Of A Cooldown, And The Studio Lets You Reorder Entries Instead Of Deleting And Re-Adding Them
+
+#### CooldownForge — Changing One Style Field Wiped The Others
+
+- **Fix** — Dragging the border thickness slider made the border disappear. The style resolver overlaid the bar's overrides onto the preset one axis at a time, replacing whole values — but `border` is a table of independent fields, and the studio writes one field at a time. Moving the slider left `border = { thickness = 3 }` with no `mode`, the renderer's `if bd and bd.mode` test then failed, and it called `SetBackdrop(nil)`: the outline was removed instead of thickened.
+- **Fix** — Same defect on the two neighbouring axes. Picking a border colour dropped the mode and the thickness with it; picking a mode silently reset the thickness to 1. `swipe` and `timer` are tables too and were losing fields the same way.
+- **Change** — Those three axes are now merged field by field: the preset supplies every field, the bar's own values land on top, and untouched fields keep the preset's answer. `CDF.SKIN_TABLE_AXES` names them, so the merge stays opt-in rather than being applied to axes that really are single values.
+- **Note** — No bar changes appearance from this on its own. A bar whose border looks wrong today was configured through the defect, and setting the field again now produces what was asked for the first time.
+
+#### CooldownForge — A Bar Can Depend On Whether You Have A Target
+
+- **New** — *A target selected* joins combat, instance, group and raid in the visibility conditions, on the same tri-state as the rest: don't care, require, or require NOT. It covers the bar you only want up while you are actually on something, and the out-of-combat utility bar that should get out of the way the moment you pick a target.
+- **Internal** — Evaluated with `UnitExists("target")`, which is a plain boolean and stays readable in restricted content; nothing here inspects the target itself, so the condition keeps working where reading the unit would not. `PLAYER_TARGET_CHANGED` drives the refresh, so it stays event-driven like every other condition — no polling was added.
+
+#### CooldownForge — An Unmet Condition Can Dim The Bar Instead Of Hiding It
+
+- **New** — Each bar now chooses what an unmet visibility condition does: hide it, which is what it always did and remains the default, or keep it on screen at reduced opacity. The opacity is a slider, 5% to 95%, and only appears once dimming is selected.
+- **Change** — A dimmed bar is not a frozen one. It stays laid out and keeps being polled, so its cooldowns run and are readable while it is faded — "in combat = yes" with dimming leaves a working, half-visible bar out of combat rather than one that reappears already out of date.
+- **Internal** — `CDF.IsBarVisible` becomes a thin wrapper over a new three-state `CDF.GetBarVisibility` returning `show`, `dim` or `hide`. The boolean contract every existing caller relies on is unchanged, and `dim` counts as visible — which is what keeps the polling loop, whose own comment says filtered bars must keep being updated while hidden, doing the right thing without being touched.
+- **Internal** — The alpha is applied to the bar container rather than to each icon, so it multiplies with the per-icon style opacity instead of overwriting it. The stored value is clamped on the way into the database as well as on the way out, so a hand-edited profile cannot produce an invisible bar with no way back.
+- **Note** — The visibility table is now kept when dimming has been chosen but no condition has been set yet. It used to be discarded as empty, which would have thrown that choice away for anyone who picked the mode before picking a condition.
+
+#### CooldownForge — Icons Are No Longer Forced Square
+
+- **New** — Width and height are separate sliders, 8 to 128 px each, replacing the single 24-to-64 square size. Wide, short icons for a row of procs along the top of the screen; tall, narrow ones for a column beside the unit frames.
+- **Change** — Nothing moves on an existing bar. The two new values default to *unset*, and unset means "follow the old square size", so a bar nobody has touched renders exactly as before and no migration runs over the database. Only an explicit override is clamped; an untouched bar exports as it always did.
+- **Internal** — The layout maths asked `iconSize` in five places and each assumed a square. They now go through `CDF.IconDims` (width, height) or `CDF.IconExtents` (along and across the growth axis, swapped for a vertical bar), so wrapped rows step by the right dimension on each axis, the anchor re-centres on its own half-extent per axis, and a radial bar sizes its box from the larger of the two so a wide icon at the edge of the circle is not clipped.
+
+#### CooldownForge — An Icon Can Track A Buff Instead Of A Cooldown
+
+- **New** — Any entry can be switched to *tracked buff*: the icon then stays off screen while the aura is absent and appears with its remaining time and stack count while it is up. That is the behaviour Blizzard's "Tracked Buffs" viewer has and a cooldown entry never did, and it is set per entry — so a proc can sit on the same bar as the cooldown that grants it.
+- **New** — An optional buff ID, for the procs granted by one spell and applied as another. Left empty, the entry watches its own spell.
+- **Change** — Under restricted content a buff's duration and stacks can come back as protected values, which cannot be fed to a cooldown swipe or compared. Existence can always be read, and existence alone drives showing and hiding — so in a Mythic+ the icon still appears and disappears correctly, it simply shows no timer. Each number is checked individually rather than the whole aura being discarded.
+- **Internal** — A tracked-buff entry makes its bar "filtered", which is what already re-packs a bar whose icon set changes without a layout event; the icons close the gap when a proc drops exactly as they do for the hide-on-cooldown filter. `UNIT_AURA` registration, which is otherwise paid for only when a glow condition needs it, now also counts these entries — a tracked buff cannot appear at all without it.
+
+#### Cooldown Studio — Reordering Entries
+
+- **New** — Each entry in a bar now carries a pair of up/down buttons. Changing the order of icons previously meant removing an entry and adding it back at the end, and rebuilding everything after it.
+- **Change** — The options editor follows the entry it was opened on rather than staying on the index. Without that, moving an entry while its options were open left the panel editing whichever entry had taken its place — the same screen, quietly pointed at something else.
+- **Note** — The buttons at either end of the list do nothing, deliberately: the underlying move already refuses to run off the end, so there is nothing to disable and nothing to warn about.
+
+## ####################################
+
 ## CHANGELOG 3.3.4 — The Role Presets Stop Being The Same Configuration Under Three Names, Switching Preset Stops Leaving The Last One Behind, The Dashboard Says Which Preset You Are Actually Running, Every Setting Says Which Role It Is For, Three Role Guides Put Every Setting One Click Away, A Search Result Inside A Nested Tab Stops Landing On The Wrong Page, The Search Index Stops Missing Two Thirds Of The Interface, The Guide Buttons Stop Dropping You On The Last Tab You Used, The Class Reminder Stops Reading The Stance Bar By Position And Becomes A Row You Can Click To Cast, It Learns Weapon Imbues, Rites And Poisons And Stops Talking While You Are Dead Or In A City, The Mythic+ Panel Stops Claiming You Never Learned Teleports You Own, The Group's Keystones Get A Board You Can Open Before The Pull Instead Of After It, The Unit Frame Preview Stops Being A Mock-Up Of The Real Thing, Changing The Bar Texture Stops Needing A Reload, The Chat History Stops Being One Switch With Six Settings Nobody Could Reach, The Restored History Stops Burying Every Addon Load Message, Unticking The Chat History Actually Deletes It, The Cooldown Studio Button Says Why It Did Not Open Instead Of Doing Nothing, A Studio Left Unchecked In The Addon List Repairs Itself On The Click, The Release Zip Refuses To Ship A Sub-Addon Nowhere Anyone Can See It, The Diagnostics Export Stops Fighting Itself Over One Clipboard, And The Contacts Window Skin Is Retired Before Blizzard Rebuilds The Frame Under It
 
 #### Presets — Three Role Archetypes That Were The Same Configuration Under Three Names

@@ -79,8 +79,11 @@ function CDF.__layoutOffset(bar, i, n)
     -- wrapped lines. nil keeps the historic single-value behaviour.
     local along = bar.spacing or 0
     local cross = bar.spacingCross or along
-    local stepA = bar.iconSize + along
-    local stepC = bar.iconSize + cross
+    -- [G2] the step along the growth axis uses that axis' extent, the step
+    -- between wrapped lines the other one.
+    local extA, extC = CDF.IconExtents(bar)
+    local stepA = extA + along
+    local stepC = extC + cross
     local p = i - 1
     local pos, line
     if bar.wrap and bar.wrap > 0 then
@@ -108,7 +111,10 @@ function CDF.__barSize(bar, n)
     -- [S8] radial: square box covering the circle plus one icon width.
     if bar.layout == "radial" then
         local r = bar.radial or CDF.RADIAL_DEFAULT
-        local side = 2 * ((r.radius or 90) + bar.iconSize / 2)
+        -- [G2] the larger dimension decides the box, so a wide icon at the
+        -- edge of the circle is never clipped.
+        local iw, ih = CDF.IconDims(bar)
+        local side = 2 * ((r.radius or 90) + math.max(iw, ih) / 2)
         return side, side
     end
     local along = bar.spacing or 0
@@ -121,8 +127,9 @@ function CDF.__barSize(bar, n)
     end
     if perLine < 1 then perLine = 1 end
     if lines < 1 then lines = 1 end
-    local sizeA = perLine * bar.iconSize + (perLine - 1) * along
-    local sizeC = lines * bar.iconSize + (lines - 1) * cross
+    local extA, extC = CDF.IconExtents(bar)
+    local sizeA = perLine * extA + (perLine - 1) * along
+    local sizeC = lines * extC + (lines - 1) * cross
     if bar.orientation == "vertical" then return sizeC, sizeA else return sizeA, sizeC end
 end
 
@@ -193,7 +200,7 @@ local function cdTimerFS(icon)
 end
 
 local function styleIcon(icon, bar)
-    icon:SetSize(bar.iconSize, bar.iconSize)
+    icon:SetSize(CDF.IconDims(bar))
     local st = CDF.ResolveStyle and CDF.ResolveStyle(bar) or {}
     local sw = bar.swipe or {}
 
@@ -300,7 +307,7 @@ local function styleIcon(icon, bar)
         icon.count:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -1, 1)
     end
     icon.name:SetFont(FONT, fs, "OUTLINE")
-    icon.name:SetWidth(bar.iconSize + 18)
+    icon.name:SetWidth((select(1, CDF.IconDims(bar))) + 18)
 
     icon._cdfStyle = st
 end
@@ -310,8 +317,27 @@ local function applyEntry(icon, resolved, state, bar)
     icon.tex:SetTexture(resolved.icon or QUESTION)
     icon._resolved = resolved
 
+    -- [G4] Tracked buff: the swipe shows the aura running out, not a
+    -- cooldown filling up. Duration and stacks are only applied when they
+    -- came back readable (see CDF.GetAuraState); under restricted content
+    -- the icon still appears and disappears, just without a timer.
+    local auraID = CDF.EntryAuraID and CDF.EntryAuraID(resolved and resolved._entry, resolved)
+    if auraID then
+        local a = CDF.GetAuraState and CDF.GetAuraState(auraID)
+        if a and a.active and a.timed then
+            icon.cd:SetCooldown(a.expirationTime - a.duration, a.duration)
+        else
+            icon.cd:Clear()
+        end
+        icon._auraState = a
+    end
+
     local ready
-    if state and state.isSpell then
+    if auraID then
+        -- An active buff is the "on" state: never desaturated, never treated
+        -- as a spell on cooldown.
+        ready = true
+    elseif state and state.isSpell then
         local durObj = (state.maxCharges and state.maxCharges > 1 and state.chargeDurObj) or state.durObj
         if durObj then icon.cd:SetCooldownFromDurationObject(durObj) end
         ready = not icon.cd:IsShown()
@@ -424,7 +450,14 @@ local function applyEntry(icon, resolved, state, bar)
     local stacksOn = text.stacks
     if ov and ov.stacks ~= nil then stacksOn = ov.stacks end
     local shown = false
-    if stacksOn and state then
+    -- [G4] A tracked buff carries its own stack count. SetText is a safe sink
+    -- for a secret value, but GetAuraState already dropped unreadable ones, so
+    -- this is a plain number or nothing.
+    if stacksOn and auraID then
+        local a = icon._auraState
+        local n = a and a.applications
+        if n and n > 1 then icon.count:SetText(n); shown = true end
+    elseif stacksOn and state then
         if state.isSpell and state.maxCharges and state.maxCharges > 1 and state.chargeInfo then
             icon.count:SetText(state.chargeInfo.currentCharges) -- SetText is a safe sink
             shown = true
@@ -503,7 +536,16 @@ end
 -- [S9] Two independent filters now: hideOnCooldown drops what is running,
 -- hideOnUnusable drops what the player cannot currently afford. Kept in one
 -- place so readySignature and layoutBar can never drift apart.
-local function entryShown(bar, r, state)
+local function entryShown(bar, r, state, entry)
+    -- [G4] A tracked-buff entry only exists on screen while its aura is up.
+    -- This runs before the cooldown filters: an absent proc is not "ready",
+    -- it is simply not there.
+    local auraID = CDF.EntryAuraID and CDF.EntryAuraID(entry, r)
+    if auraID then
+        local a = CDF.GetAuraState and CDF.GetAuraState(auraID)
+        if not (a and a.active) then return false end
+        return true
+    end
     if bar.hideOnCooldown and not CDF.IsReady(r, state) then return false end
     if bar.hideOnUnusable and CDF.GetUsable then
         local usable = CDF.GetUsable(r)
@@ -514,8 +556,19 @@ end
 
 -- [S9] True when the bar filters its icons at all, i.e. when the layout
 -- depends on live state and a signature has to be tracked.
+-- True when the set of icons on screen can change without a layout event.
+-- Aura entries count: their icons come and go with the buff, and the
+-- signature check in updateBar is what re-packs the bar when they do.
+local function hasAuraEntry(bar)
+    for _, e in ipairs(bar.entries or {}) do
+        if type(e) == "table" and e.mode == "aura" then return true end
+    end
+    return false
+end
+
 local function hasHideFilter(bar)
     return bar.hideOnCooldown == true or bar.hideOnUnusable == true
+           or hasAuraEntry(bar)
 end
 
 -- [S8] Compact picture of every entry's state, used to decide whether a
@@ -530,7 +583,7 @@ local function readySignature(bar)
         if CDF.IsEntryVisible(e) then
             local r = CDF.ResolveEntry(e)
             if r and not r.empty then
-                mark = entryShown(bar, r, CDF.GetCooldownState(r)) and "1" or "0"
+                mark = entryShown(bar, r, CDF.GetCooldownState(r), e) and "1" or "0"
             else
                 mark = "x"
             end
@@ -558,12 +611,13 @@ local function layoutBar(container, bar)
                 local keep = true
                 if filtered then
                     local st = CDF.GetCooldownState(r)
-                    keep = entryShown(bar, r, st)
+                    keep = entryShown(bar, r, st, e)
                     r._cdState = st        -- reuse below, avoids a second read
                 end
                 mark = keep and "1" or "0"
                 if keep then
                     r.override = e.override   -- [S2] per-entry FX travels with it
+                    r._entry   = e            -- [G4] aura mode is read from it
                     visible[#visible + 1] = r
                 end
             else
@@ -602,9 +656,11 @@ local function layoutBar(container, bar)
                 -- [S8] radial: the offset already targets the cell centre
                 cx, cy = ox, oy
             else
-                local half = bar.iconSize / 2
-                cx = ox + ((corner == "TOPLEFT" or corner == "BOTTOMLEFT") and half or -half)
-                cy = oy + ((corner == "TOPLEFT" or corner == "TOPRIGHT") and -half or half)
+                -- [G2] each axis re-centres on its own half-extent
+                local iw, ih = CDF.IconDims(bar)
+                local halfW, halfH = iw / 2, ih / 2
+                cx = ox + ((corner == "TOPLEFT" or corner == "BOTTOMLEFT") and halfW or -halfW)
+                cy = oy + ((corner == "TOPLEFT" or corner == "TOPRIGHT") and -halfH or halfH)
             end
             icon:SetPoint("CENTER", container, corner, cx / s, cy / s)
         else
@@ -657,6 +713,9 @@ local function needsAuraWatch(arr)
                 return true
             end
             for _, e in ipairs(bar.entries or {}) do
+                -- [G4] a tracked-buff entry needs UNIT_AURA to appear and
+                -- disappear at all
+                if e.mode == "aura" then return true end
                 local o = e.override
                 if o and o.glowCondition == "aura" and o.glow ~= false then
                     return true
@@ -705,9 +764,15 @@ function CDF.RefreshAll()
             present[bar.id] = true
             local f = getBarFrame(bar)
             positionContainer(f, bar)
-            if not CDF.IsBarVisible(bar) then
+            -- [G3] "dim" keeps the bar laid out and polled, only faded. The
+            -- alpha rides on the container so it multiplies with each icon's
+            -- own style opacity instead of overwriting it.
+            local vis = CDF.GetBarVisibility and CDF.GetBarVisibility(bar)
+                        or (CDF.IsBarVisible(bar) and "show" or "hide")
+            if vis == "hide" then
                 f:Hide()
             else
+                f:SetAlpha(vis == "dim" and CDF.GetBarDimAlpha(bar) or 1)
                 layoutBar(f, bar)
             end
         end

@@ -113,15 +113,35 @@ function CDF.NormalizeStyle(bar)
     return bar.style
 end
 
+-- Axes whose preset value is a table of independent fields. An override on
+-- one field must not discard the others.
+CDF.SKIN_TABLE_AXES = { border = true, swipe = true, timer = true }
+
 -- Effective style: preset defaults overlaid with the bar's explicit
 -- per-axis overrides. "custom" resolves over the tomo base.
+--
+-- Table axes are merged FIELD BY FIELD. Replacing them wholesale was a real
+-- defect: the studio writes one field at a time (`bar.style.border.thickness
+-- = v`), so moving the thickness slider left border = { thickness = 3 } with
+-- no `mode`, and the renderer's `if bd and bd.mode` branch then took its
+-- else path and called SetBackdrop(nil) — the outline vanished instead of
+-- getting thicker. Changing only the colour did the same, and changing only
+-- the mode silently reset the thickness to 1.
 function CDF.ResolveStyle(bar)
     local st = (bar and bar.style) or {}
     local base = CDF.SKIN_PRESETS[st.preset] or CDF.SKIN_PRESETS.tomo
     local eff = {}
     for _, axis in ipairs(CDF.SKIN_AXES) do
         local v = st[axis]
-        if v == nil then v = base[axis] end
+        local b = base[axis]
+        if CDF.SKIN_TABLE_AXES[axis] and type(v) == "table" and type(b) == "table" then
+            local merged = {}
+            for k, bv in pairs(b) do merged[k] = bv end
+            for k, ov in pairs(v) do merged[k] = ov end
+            v = merged
+        elseif v == nil then
+            v = b
+        end
         eff[axis] = v
     end
     return eff

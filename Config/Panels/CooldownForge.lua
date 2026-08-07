@@ -277,8 +277,12 @@ local function BuildContent(c)
         _, cy = W.CreateSegmentedControl(card.inner, "Disposition",
             { { text = "En ligne", value = "line" }, { text = "En cercle", value = "radial" } },
             mode, cy, function(v) bar.layout = v; Apply(); Refresh() end, 2)
-        _, cy = W.CreateSlider(card.inner, "Taille des icones", bar.iconSize, 24, 64, 1, cy,
-            function(v) bar.iconSize = v; Apply() end, "%.0f px")
+        _, cy = W.CreateSlider(card.inner, "Largeur des icones",
+            select(1, CDF.IconDims(bar)), 8, 128, 1, cy,
+            function(v) bar.iconWidth = v; Apply() end, "%.0f px")
+        _, cy = W.CreateSlider(card.inner, "Hauteur des icones",
+            select(2, CDF.IconDims(bar)), 8, 128, 1, cy,
+            function(v) bar.iconHeight = v; Apply() end, "%.0f px")
         if mode == "radial" then
             bar.radial = bar.radial or { radius = 90, startAngle = 90, arc = 360, clockwise = true }
             local rad = bar.radial
