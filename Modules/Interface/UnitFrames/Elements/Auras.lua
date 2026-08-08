@@ -43,6 +43,10 @@ function UF_Elements.LayoutAuraGrid(container, auraSettings)
     local size    = auraSettings.size or 30
     local spacing = auraSettings.spacing or 3
     local grow    = auraSettings.growDirection or "RIGHT"
+    -- Les rangées descendaient toujours. `growVertical` ajoute l'autre sens
+    -- sans toucher à growDirection, donc tous les profils existants gardent
+    -- leur disposition : nil se lit comme DOWN.
+    local growUp  = (auraSettings.growVertical == "UP")
     local maxAuras = auraSettings.maxAuras or 8
 
     -- Largeur max : réglage explicite, sinon largeur du conteneur, sinon repli.
@@ -66,11 +70,15 @@ function UF_Elements.LayoutAuraGrid(container, auraSettings)
             if row + 1 > rows then rows = row + 1 end
             icon:ClearAllPoints()
             local x = col * step
-            local y = -row * step
+            -- Vers le haut : on ancre depuis le bas et on parcourt les rangées
+            -- dans l'autre sens ; le conteneur garde son propre ancrage, donc
+            -- le cadre auquel il appartient ne bouge pas.
+            local y = growUp and (row * step) or (-row * step)
+            local vAnchor = growUp and "BOTTOM" or "TOP"
             if grow == "RIGHT" then
-                icon:SetPoint("TOPLEFT", container, "TOPLEFT", x, y)
+                icon:SetPoint(vAnchor .. "LEFT", container, vAnchor .. "LEFT", x, y)
             else
-                icon:SetPoint("TOPRIGHT", container, "TOPRIGHT", -x, y)
+                icon:SetPoint(vAnchor .. "RIGHT", container, vAnchor .. "RIGHT", -x, y)
             end
         end
     end

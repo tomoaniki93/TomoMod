@@ -81,7 +81,7 @@ function TS:BuildScoreboard()
 
     -- Outer teal glow
     do
-        local gr, gg, gb, ga = unpack(C.BORDER_TEAL)
+        local gr, gg, gb, ga = unpack(C.BORDER_ACCENT)
         local glowTop = F:CreateTexture(nil, "BACKGROUND", nil, -7)
         glowTop:SetColorTexture(gr, gg, gb, ga)
         glowTop:SetPoint("TOPLEFT", F, "TOPLEFT", 3, 1)
@@ -124,7 +124,7 @@ function TS:BuildScoreboard()
 
     HDR.keyLevel = self:MakeFS(HDR, 14, "OUTLINE")
     HDR.keyLevel:SetPoint("LEFT", HDR.dungeonName, "RIGHT", 6, 0)
-    HDR.keyLevel:SetTextColor(unpack(C.TEXT_TEAL))
+    HDR.keyLevel:SetTextColor(unpack(C.TEXT_ACCENT))
 
     HDR.status = self:MakeFS(HDR, 12, "OUTLINE")
     HDR.status:SetPoint("RIGHT", HDR, "RIGHT", -28, 6)
@@ -194,14 +194,14 @@ function TS:BuildScoreboard()
 
     FTR.label = self:MakeFS(FTR, 10, "OUTLINE")
     FTR.label:SetPoint("LEFT", FTR, "LEFT", 12, 0)
-    FTR.label:SetTextColor(unpack(C.TEXT_TEAL))
+    FTR.label:SetTextColor(unpack(C.TEXT_ACCENT))
 
     colX = COL.ICON + 4 + COL.NAME
     FTR.avgRating = self:MakeFS(FTR, 10, "OUTLINE")
     FTR.avgRating:SetPoint("LEFT", FTR, "LEFT", colX, 0)
     FTR.avgRating:SetWidth(COL.RATING)
     FTR.avgRating:SetJustifyH("CENTER")
-    FTR.avgRating:SetTextColor(unpack(C.TEXT_TEAL))
+    FTR.avgRating:SetTextColor(unpack(C.TEXT_ACCENT))
 
     return F
 end
@@ -371,7 +371,7 @@ function TS:PopulateScoreboard(data)
 
     if data.isMPlus and data.keyLevel and data.keyLevel > 0 then
         F.Header.keyLevel:SetText(string.format(L["ts_key_level"], data.keyLevel))
-        F.Header.keyLevel:SetTextColor(unpack(C.TEXT_TEAL))
+        F.Header.keyLevel:SetTextColor(unpack(C.TEXT_ACCENT))
         F.Header.keyLevel:Show()
     elseif data.keyLevel == 0 then
         F.Header.keyLevel:SetText(L["ts_mythic_zero"])
@@ -484,7 +484,7 @@ function TS:PopulateScoreboard(data)
             row.keyNameFS:SetText(keyName)
             row.keyNameBtn._spellID = keySpell
             if keySpell and TomoMod_DataKeys.IsTeleportKnown(keySpell) then
-                row.keyNameFS:SetTextColor(unpack(C.TEXT_TEAL))
+                row.keyNameFS:SetTextColor(unpack(C.TEXT_ACCENT))
                 row.keyNameBtn:SetAttribute("spell", keySpell)
             else
                 row.keyNameFS:SetTextColor(unpack(C.TEXT_GREY))

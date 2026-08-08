@@ -301,6 +301,14 @@ local function BuildAurasTab(parent, unitKey)
         end)
         y = ny
 
+        local _, ny = W.CreateDropdown(c, L["opt_auras_direction_v"], {
+            { text = L["aura_dir_down"], value = "DOWN" },
+            { text = L["aura_dir_up"],   value = "UP" },
+        }, db.auras.growVertical or "DOWN", y, function(v)
+            db.auras.growVertical = (v == "UP") and "UP" or nil
+        end)
+        y = ny
+
         local _, ny = W.CreateCheckbox(c, L["opt_auras_only_mine"], db.auras.showOnlyMine, y, function(v)
             db.auras.showOnlyMine = v
         end)

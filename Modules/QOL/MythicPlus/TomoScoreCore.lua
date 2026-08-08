@@ -8,26 +8,44 @@ local L = TomoMod_L
 TomoMod_TomoScore = TomoMod_TomoScore or {}
 local TS = TomoMod_TomoScore
 
--- ── Color palette (dark/teal theme) ───────────────────────────────────────
+-- ── Color palette ─────────────────────────────────────────────────────────
+-- Derived from the shared TomoMod theme instead of the standalone dark/teal
+-- set this file used to carry. The scoreboard was the only surface in the
+-- addon with its own palette -- a cyan accent against the suite's green, and a
+-- blue-tinted background against a neutral one -- so it read as a different
+-- product. Config\Widgets.lua loads at TOC line 49 and QOL.xml at 79, so the
+-- theme is always available here; the literals remain as a fallback rather
+-- than a second source of truth.
+local T = (TomoMod_Widgets and TomoMod_Widgets.Theme) or {}
+
+local function tint(themeColor, fallback, alpha)
+    local c = themeColor or fallback
+    return { c[1], c[2], c[3], alpha or c[4] or 1 }
+end
+
 TS.C = {
-    BG            = { 0.00, 0.00, 0.00, 0.88 },
-    BG_HEADER     = { 0.04, 0.08, 0.16, 1.00 },
-    BG_ROW_ODD    = { 0.06, 0.06, 0.08, 0.60 },
-    BG_ROW_EVEN   = { 0.03, 0.03, 0.05, 0.60 },
-    ACCENT        = { 0.10, 0.68, 0.72, 1.00 },
-    ACCENT_DIM    = { 0.08, 0.45, 0.50, 0.60 },
-    BORDER        = { 0.25, 0.25, 0.30, 0.70 },
-    BORDER_TEAL   = { 0.12, 0.55, 0.60, 0.80 },
-    BAR_TEAL      = { 0.10, 0.58, 0.62, 0.80 },
-    BAR_TRACK     = { 0.04, 0.08, 0.14, 1.00 },
+    BG            = tint(T.bg,          { 0.07,  0.07,  0.09  }, 0.94),
+    BG_HEADER     = tint(T.bgMid,       { 0.09,  0.09,  0.115 }, 1.00),
+    BG_ROW_ODD    = tint(T.bgLight,     { 0.11,  0.11,  0.14  }, 0.55),
+    BG_ROW_EVEN   = tint(T.bgDark,      { 0.045, 0.045, 0.060 }, 0.55),
+    ACCENT        = tint(T.accent,      { 0.18,  0.85,  0.52  }, 1.00),
+    ACCENT_DIM    = tint(T.accentDark,  { 0.11,  0.54,  0.33  }, 0.60),
+    BORDER        = tint(T.border,      { 0.18,  0.18,  0.22  }, 0.85),
+    -- Historic names said TEAL; the colour is the brand accent now, so the
+    -- names follow rather than lying about it.
+    BORDER_ACCENT = tint(T.accent,      { 0.18,  0.85,  0.52  }, 0.80),
+    BAR_ACCENT    = tint(T.accent,      { 0.18,  0.85,  0.52  }, 0.80),
+    BAR_TRACK     = tint(T.bgDark,      { 0.045, 0.045, 0.060 }, 1.00),
+    -- Kept distinct from the accent: on a green-accented panel, "on time"
+    -- must not be the same green as every border and header.
     BAR_GREEN     = { 0.33, 0.70, 0.00, 0.90 },
-    BAR_RED       = { 0.85, 0.15, 0.10, 0.90 },
-    TEXT_WHITE    = { 1.00, 1.00, 1.00, 1.00 },
-    TEXT_GREY     = { 0.55, 0.55, 0.55, 1.00 },
-    TEXT_TEAL     = { 0.30, 0.85, 0.90, 1.00 },
+    BAR_RED       = tint(T.red,         { 0.88,  0.22,  0.22  }, 0.90),
+    TEXT_WHITE    = tint(T.text,        { 0.88,  0.90,  0.89  }, 1.00),
+    TEXT_GREY     = tint(T.textDim,     { 0.48,  0.48,  0.54  }, 1.00),
+    TEXT_ACCENT   = tint(T.textHeader,  { 0.18,  0.85,  0.52  }, 1.00),
     TEXT_GREEN    = { 0.55, 0.90, 0.20, 1.00 },
-    TEXT_RED      = { 1.00, 0.30, 0.20, 1.00 },
-    TEXT_YELLOW   = { 1.00, 0.82, 0.10, 1.00 },
+    TEXT_RED      = tint(T.red,         { 0.88,  0.22,  0.22  }, 1.00),
+    TEXT_YELLOW   = tint(T.yellow,      { 0.96,  0.80,  0.10  }, 1.00),
 }
 
 -- WoW class colors (fallback)
