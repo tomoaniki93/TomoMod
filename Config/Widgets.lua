@@ -394,9 +394,21 @@ function W.CreateScrollPanel(parent)
     track:SetPoint("BOTTOMRIGHT", -4,  TRACK_PAD_V)
     track:SetColorTexture(0.12, 0.12, 0.16, 0.8)
 
+    -- [a11y] The bar is 5px wide by design, which is fine to look at and
+    -- impossible to grab. A click surface sits over it, wider than the visual
+    -- and invisible, so the panel stays usable without a working mouse wheel.
+    local trackHit = CreateFrame("Frame", nil, container)
+    trackHit:SetWidth(SCROLLBAR_W)
+    trackHit:SetPoint("TOPRIGHT",    -4, -TRACK_PAD_V)
+    trackHit:SetPoint("BOTTOMRIGHT", -4,  TRACK_PAD_V)
+    trackHit:SetHitRectInsets(-7, -4, 0, 0)
+    trackHit:EnableMouse(true)
+
     local thumbFrame = CreateFrame("Frame", nil, container)
     thumbFrame:SetWidth(SCROLLBAR_W)
     thumbFrame:SetPoint("TOPRIGHT", -4, -TRACK_PAD_V)
+    thumbFrame:SetFrameLevel((trackHit:GetFrameLevel() or 1) + 1)
+    thumbFrame:SetHitRectInsets(-7, -4, -3, -3)
     local thumb = thumbFrame:CreateTexture(nil, "OVERLAY")
     thumb:SetAllPoints()
     SC(thumb, T.accent)
@@ -416,8 +428,10 @@ function W.CreateScrollPanel(parent)
         local childH  = child:GetHeight()  or 0
         local trackH  = scrollH - 2 * TRACK_PAD_V
         local maxS    = childH - scrollH
-        if maxS <= 0 then thumbFrame:Hide(); track:Hide(); return end
-        track:Show(); thumbFrame:Show()
+        if maxS <= 0 then
+            thumbFrame:Hide(); track:Hide(); trackHit:Hide(); return
+        end
+        track:Show(); thumbFrame:Show(); trackHit:Show()
         local ratio  = math.min(scrollH / childH, 1)
         local thumbH = math.max(math.floor(trackH * ratio), THUMB_MIN_H)
         thumbFrame:SetHeight(thumbH)
@@ -431,6 +445,28 @@ function W.CreateScrollPanel(parent)
         local cur = self:GetVerticalScroll()
         local max = self:GetVerticalScrollRange()
         self:SetVerticalScroll(math.max(0, math.min(cur - delta * 36, max)))
+        UpdateThumb()
+    end)
+
+    -- Clicking the track pages by one viewport, the way a modern scrollbar
+    -- behaves: with a failing wheel this is the fastest way down a long tab.
+    trackHit:SetScript("OnMouseDown", function(self)
+        local scrollH = scroll:GetHeight() or 0
+        local maxS    = scroll:GetVerticalScrollRange() or 0
+        if maxS <= 0 then return end
+        local _, cursorY = GetCursorPosition()
+        cursorY = cursorY / UIParent:GetEffectiveScale()
+        local thumbTop    = thumbFrame:GetTop()    or 0
+        local thumbBottom = thumbFrame:GetBottom() or 0
+        local cur  = scroll:GetVerticalScroll()
+        local step = scrollH * 0.9
+        local dest = cur
+        if cursorY > thumbTop then
+            dest = cur - step
+        elseif cursorY < thumbBottom then
+            dest = cur + step
+        end
+        scroll:SetVerticalScroll(math.max(0, math.min(dest, maxS)))
         UpdateThumb()
     end)
 

@@ -658,7 +658,45 @@ local function ViewerAuraState(cands)
     -- `timed` is always present, never nil: every other producer of an aura
     -- state sets it explicitly and callers test it directly.
     local st = { active = true, matchedID = sid, viewer = true, timed = false }
-    local cd = frame.Cooldown or (frame.Icon and frame.Icon.Cooldown)
+
+    -- The item frame carries the aura's instance id IN CLEAR -- a diagnostics
+    -- dump showed auraInstanceID=281 sitting next to auraSpellID=<secret
+    -- number>. The instance-scoped accessors are display-safe by design, so
+    -- this is the route to duration and stacks that never reads a secret.
+    local iid = readableNumber(frame.auraInstanceID)
+    if iid then
+        st.auraInstanceID = iid
+        if C_UnitAuras and C_UnitAuras.GetAuraApplicationDisplayCount then
+            local okN, n = pcall(C_UnitAuras.GetAuraApplicationDisplayCount, "player", iid)
+            n = okN and readableNumber(n) or nil
+            if n and n > 1 then st.applications = n end
+        end
+        if C_UnitAuras and C_UnitAuras.GetAuraDataByAuraInstanceID then
+            local okA, ad = pcall(C_UnitAuras.GetAuraDataByAuraInstanceID, "player", iid)
+            if okA and type(ad) == "table" then
+                local d = readableNumber(ad.duration)
+                local e = readableNumber(ad.expirationTime)
+                if d and e and d > 0 then
+                    st.duration, st.expirationTime, st.timed = d, e, true
+                end
+                if st.applications == nil then
+                    local n = readableNumber(ad.applications)
+                    if n and n > 1 then st.applications = n end
+                end
+            end
+        end
+        if not st.timed and C_UnitAuras and C_UnitAuras.GetAuraDuration then
+            local okD, o = pcall(C_UnitAuras.GetAuraDuration, "player", iid)
+            if okD and o then st.durationObject = o end
+        end
+        -- Feed the registry while the pair is readable: the viewer names the
+        -- spell here even when the enumeration APIs will not.
+        local ssid = readableNumber(frame.auraSpellID)
+        if ssid then AuraAdded({ spellId = ssid, auraInstanceID = iid }) end
+    end
+
+    local cd = (not st.timed)
+           and (frame.Cooldown or (frame.Icon and frame.Icon.Cooldown)) or nil
     if cd and cd.GetCooldownTimes then
         local okT, startMs, durMs = pcall(cd.GetCooldownTimes, cd)
         local sMs, dMs = readableNumber(startMs), readableNumber(durMs)
