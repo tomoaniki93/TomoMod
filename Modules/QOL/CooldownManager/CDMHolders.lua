@@ -186,6 +186,8 @@ local alphaHooked = {}
 local function HookViewerAlpha(def)
     local viewer = _G[def.frameName]
     if not viewer or alphaHooked[def.frameName] then return end
+    -- Deliberately independent of `holders`: with the module off they are
+    -- never created, and hiding still has to work.
     if not viewer.SetAlpha then return end
     alphaHooked[def.frameName] = true
     hooksecurefunc(viewer, "SetAlpha", function(self, a)
@@ -194,6 +196,33 @@ local function HookViewerAlpha(def)
             applyingAlpha = true
             self:SetAlpha(0)
             applyingAlpha = false
+        end
+    end)
+end
+
+--- Standalone watcher for per-viewer hiding.
+---
+--- CDM.Initialize() returns immediately when the module is disabled, so it
+--- registers no events and nothing ever applies the hidden state -- which is
+--- precisely the player who wants these bars gone. Hiding must therefore not
+--- depend on the module running at all, and it does not need it: it only sets
+--- alpha and mouse input on frames it does not own.
+local visWatcher
+
+function H.StartVisibilityWatcher()
+    if visWatcher then return end
+    visWatcher = CreateFrame("Frame")
+    visWatcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+    visWatcher:RegisterEvent("ADDON_LOADED")
+    visWatcher:RegisterEvent("PLAYER_REGEN_DISABLED")
+    visWatcher:RegisterEvent("PLAYER_REGEN_ENABLED")
+    visWatcher:SetScript("OnEvent", function(_, event, arg1)
+        if event == "ADDON_LOADED" and arg1 ~= "Blizzard_CooldownManager" then return end
+        -- The viewers are load-on-demand and Blizzard restores their alpha when
+        -- they become active, so the state is re-asserted a moment later too.
+        H.ApplyViewerVisibility()
+        if C_Timer and C_Timer.After then
+            C_Timer.After(0.5, function() H.ApplyViewerVisibility() end)
         end
     end)
 end
@@ -754,3 +783,8 @@ end
 
 -- Export
 _G.TomoMod_CDMHolders = H
+
+-- Started at file scope, NOT from CDM.Initialize(): that function bails out
+-- when the module is disabled, and per-viewer hiding has to work in exactly
+-- that case.
+H.StartVisibilityWatcher()

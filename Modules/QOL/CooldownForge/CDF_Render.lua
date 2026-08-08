@@ -838,6 +838,25 @@ function CDF.DumpAura(class)
     local bars = class and CDF.GetClassBars(class)
     if not bars or #bars == 0 then print(P .. "aucune barre pour " .. tostring(class)); return end
     print(P .. "--- CooldownForge / " .. tostring(class) .. " ---")
+
+    -- Viewer hiding state. Three independent things can go wrong here -- the
+    -- setting, the frame existing, the alpha actually applied -- and they are
+    -- indistinguishable from outside.
+    local Hd = TomoMod_CDMHolders
+    if Hd and Hd.IsViewerHidden then
+        local parts = {}
+        for _, n in ipairs({ "essential", "utility", "buffIcon", "buffBar" }) do
+            local names = { essential = "EssentialCooldownViewer",
+                            utility   = "UtilityCooldownViewer",
+                            buffIcon  = "BuffIconCooldownViewer",
+                            buffBar   = "BuffBarCooldownViewer" }
+            local v = _G[names[n]]
+            parts[#parts + 1] = ("%s:%s/%s"):format(
+                n, Hd.IsViewerHidden(n) and "masque" or "visible",
+                v and ("alpha=" .. string.format("%.2f", v:GetAlpha() or 1)) or "absent")
+        end
+        print(P .. "viewers CDM: " .. table.concat(parts, "  "))
+    end
     -- api=false means the Cooldown Viewer category API did not answer, so NO
     -- ability resolves to its buff and every "candidats" below is a lone id.
     -- That is a different failure from a spell that genuinely has no link.
