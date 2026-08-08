@@ -379,10 +379,12 @@ end
 -- SCROLL PANEL
 -- =====================================================================
 function W.CreateScrollPanel(parent)
-    local SCROLLBAR_W   = 5
-    local SCROLLBAR_PAD = 18
+    -- [a11y] 5px of dark grey on a dark panel is invisible even when shown.
+    -- Wider and lighter, so the control can be found without a mouse wheel.
+    local SCROLLBAR_W   = 9
+    local SCROLLBAR_PAD = 20
     local TRACK_PAD_V   = 8
-    local THUMB_MIN_H   = 20
+    local THUMB_MIN_H   = 24
 
     local container = CreateFrame("Frame", nil, parent)
     container:SetAllPoints()
@@ -392,7 +394,15 @@ function W.CreateScrollPanel(parent)
     track:SetWidth(SCROLLBAR_W)
     track:SetPoint("TOPRIGHT",    -4, -TRACK_PAD_V)
     track:SetPoint("BOTTOMRIGHT", -4,  TRACK_PAD_V)
-    track:SetColorTexture(0.12, 0.12, 0.16, 0.8)
+    track:SetColorTexture(0.24, 0.24, 0.30, 0.95)
+
+    -- A hairline on the inner edge is what actually makes the track readable
+    -- against a dark panel.
+    local trackEdge = container:CreateTexture(nil, "BACKGROUND")
+    trackEdge:SetWidth(1)
+    trackEdge:SetPoint("TOPRIGHT",    -4 - SCROLLBAR_W, -TRACK_PAD_V)
+    trackEdge:SetPoint("BOTTOMRIGHT", -4 - SCROLLBAR_W,  TRACK_PAD_V)
+    trackEdge:SetColorTexture(0, 0, 0, 0.6)
 
     -- [a11y] The bar is 5px wide by design, which is fine to look at and
     -- impossible to grab. A click surface sits over it, wider than the visual
@@ -429,9 +439,9 @@ function W.CreateScrollPanel(parent)
         local trackH  = scrollH - 2 * TRACK_PAD_V
         local maxS    = childH - scrollH
         if maxS <= 0 then
-            thumbFrame:Hide(); track:Hide(); trackHit:Hide(); return
+            thumbFrame:Hide(); track:Hide(); trackEdge:Hide(); trackHit:Hide(); return
         end
-        track:Show(); thumbFrame:Show(); trackHit:Show()
+        track:Show(); trackEdge:Show(); thumbFrame:Show(); trackHit:Show()
         local ratio  = math.min(scrollH / childH, 1)
         local thumbH = math.max(math.floor(trackH * ratio), THUMB_MIN_H)
         thumbFrame:SetHeight(thumbH)
@@ -2343,15 +2353,16 @@ function W.CreateMultiLineEditBox(parent, labelText, height, yOffset, opts)
 
     -- [style] Home-made thin scrollbar matching CreateScrollPanel (thumb in the
     -- accent color) instead of the Blizzard gold arrows.
-    local SBW = 5
+    local SBW = 9
     local track = container:CreateTexture(nil, "BACKGROUND")
     track:SetWidth(SBW)
     track:SetPoint("TOPRIGHT",    -2, -24)
     track:SetPoint("BOTTOMRIGHT", -2,  3)
-    track:SetColorTexture(0.12, 0.12, 0.16, 0.8)
+    track:SetColorTexture(0.24, 0.24, 0.30, 0.95)
     local thumbFrame = CreateFrame("Frame", nil, container)
     thumbFrame:SetWidth(SBW)
     thumbFrame:SetPoint("TOPRIGHT", -2, -24)
+    thumbFrame:SetHitRectInsets(-7, -2, -3, -3)
     local thumb = thumbFrame:CreateTexture(nil, "OVERLAY")
     thumb:SetAllPoints()
     SC(thumb, T.accent)
