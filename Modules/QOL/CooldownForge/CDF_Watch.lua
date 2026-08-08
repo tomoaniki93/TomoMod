@@ -363,6 +363,20 @@ CDF._watchFrame = w
 -- forbid. So each numeric is gated on issecretvalue() and simply omitted
 -- when unreadable — the icon still appears and disappears correctly, it just
 -- shows no timer there.
+-- Strings need the same gate as numbers, and for the same reason. Reading a
+-- FontString off a Blizzard frame can hand back a SECRET string, and
+-- comparing one -- even against "" -- raises. That is what happened: the
+-- countdown mirror tested `txt ~= ""` before checking secrecy and threw on
+-- every frame, over a thousand times a fight.
+local function readableString(v)
+    if v == nil then return nil end
+    if issecretvalue and issecretvalue(v) then return nil end
+    if type(v) ~= "string" then return nil end
+    -- Safe from here: v is known non-secret, so comparing it is allowed.
+    if v == "" then return nil end
+    return v
+end
+
 local function readableNumber(v)
     if v == nil then return nil end
     if issecretvalue and issecretvalue(v) then return nil end
@@ -666,8 +680,9 @@ local function ViewerAuraState(cands)
                 if r.GetObjectType and r:GetObjectType() == "FontString"
                    and r.IsShown and r:IsShown() then
                     local okX, txt = pcall(r.GetText, r)
-                    if okX and type(txt) == "string" and txt ~= "" then
-                        st.timerText = txt
+                    local safe = okX and readableString(txt) or nil
+                    if safe then
+                        st.timerText = safe
                         break
                     end
                 end
@@ -684,7 +699,8 @@ local function ViewerAuraState(cands)
               or frame.Count
     if apps and apps.GetText then
         local okA, txt = pcall(apps.GetText, apps)
-        local n = okA and tonumber(txt) or nil
+        -- tonumber on a secret string is just as unsafe as comparing one.
+        local n = readableNumber(tonumber(readableString(okA and txt or nil) or ""))
         if n and n > 0 then st.applications = n end
     end
     return st
@@ -735,7 +751,8 @@ function CDF.GetAuraState(spellID)
     if not aura and C_UnitAuras and C_UnitAuras.GetAuraDataBySpellName
        and C_Spell and C_Spell.GetSpellName then
         local okN, name = pcall(C_Spell.GetSpellName, spellID)
-        if okN and type(name) == "string" and name ~= "" then
+        name = okN and readableString(name) or nil
+        if name then
             local okA, res = pcall(C_UnitAuras.GetAuraDataBySpellName, "player", name, "HELPFUL")
             if okA and res then aura, matched = res, spellID end
         end

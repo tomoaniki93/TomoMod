@@ -849,8 +849,11 @@ local function UpdateAlpha()
     if Holders and Holders.IsPreviewActive and Holders.IsPreviewActive() then
         for _, viewer in ipairs(viewers) do
             if viewer then
-                viewer:SetAlpha(1)
-                Holders.MirrorAlpha(viewer, 1)
+                -- Even in preview, a viewer the player has hidden stays hidden.
+                local a = 1
+                if Holders.EffectiveAlpha then a = Holders.EffectiveAlpha(viewer, a) end
+                viewer:SetAlpha(a)
+                Holders.MirrorAlpha(viewer, a)
             end
         end
         return
@@ -1185,10 +1188,18 @@ function CDM.ApplySettings()
     if (visRules and next(visRules)) or settings.combatAlpha then
         UpdateAlpha()
     else
+        -- No visibility rule and no combat alpha: everything goes back to full
+        -- opacity. Without the filter this branch resurrected a viewer the
+        -- player had hidden, on every refresh -- which is most of them, since
+        -- it is the default configuration.
         for _, viewer in ipairs(viewers) do
             if viewer then
-                viewer:SetAlpha(1)
-                if Holders then Holders.MirrorAlpha(viewer, 1) end
+                local a = 1
+                if Holders and Holders.EffectiveAlpha then
+                    a = Holders.EffectiveAlpha(viewer, a)
+                end
+                viewer:SetAlpha(a)
+                if Holders then Holders.MirrorAlpha(viewer, a) end
             end
         end
     end

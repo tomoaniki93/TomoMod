@@ -173,12 +173,40 @@ end
 --- Applique l'état masqué/visible des quatre viewers. Idempotent : appelé à
 --- chaque rafraîchissement du module, car Blizzard réinitialise l'alpha de ses
 --- cadres après un rechargement d'Edit Mode.
+-- Blizzard's viewer restores its own alpha when it becomes active -- which is
+-- precisely what happens on entering combat -- so a one-shot SetAlpha(0) does
+-- not hold. The hook re-asserts it.
+--
+-- SetAlpha is NOT a protected method (unlike Show/Hide/SetParent, which this
+-- module never calls on a Blizzard frame), so hooking it is safe. The
+-- re-entrancy flag keeps our own call from re-triggering the hook.
+local applyingAlpha = false
+local alphaHooked = {}
+
+local function HookViewerAlpha(def)
+    local viewer = _G[def.frameName]
+    if not viewer or alphaHooked[def.frameName] then return end
+    if not viewer.SetAlpha then return end
+    alphaHooked[def.frameName] = true
+    hooksecurefunc(viewer, "SetAlpha", function(self, a)
+        if applyingAlpha then return end
+        if H.IsViewerHidden(def.key) and a ~= 0 then
+            applyingAlpha = true
+            self:SetAlpha(0)
+            applyingAlpha = false
+        end
+    end)
+end
+
 function H.ApplyViewerVisibility()
     for _, def in ipairs(VIEWER_DEFS) do
         local hidden = H.IsViewerHidden(def.key)
         local viewer = _G[def.frameName]
         if viewer then
+            HookViewerAlpha(def)
+            applyingAlpha = true
             viewer:SetAlpha(hidden and 0 or 1)
+            applyingAlpha = false
             if viewer.EnableMouse then viewer:EnableMouse(not hidden) end
         end
         -- Un viewer masqué n'a plus de repère à déplacer : on retire aussi son
@@ -701,6 +729,12 @@ function H.BindViewer(frameName)
             holderByFrame[viewer] = holders[def.key]
         end
     end
+    -- Blizzard_CooldownManager is load-on-demand, so Initialize() usually runs
+    -- while these frames do not exist yet: the visibility pass found nothing to
+    -- apply and no frame to hook. This is the moment the viewer actually
+    -- appears, so the hidden state has to be re-asserted here or the setting is
+    -- stored, shown ticked in the options, and never applied to anything.
+    H.ApplyViewerVisibility()
 end
 
 -- Export
