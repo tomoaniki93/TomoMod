@@ -896,6 +896,37 @@ function CDF.DumpAuraLog()
             :format(sc.callsCombat or 0, sc.seenCombat or 0, sc.keyedCombat or 0,
                     sc.lastSeen or 0, sc.lastKeyed or 0, tostring(sc.lastCombat)))
     end
+    local ad = CDF.__addStats
+    if ad then
+        print(P .. ("payload UNIT_AURA: %d auras recues, %d avec spellID lisible")
+            :format(ad.total or 0, ad.readable or 0))
+        print(P .. ("     EN COMBAT: %d recues, %d lisibles  <-- le test de liste blanche")
+            :format(ad.totalCombat or 0, ad.readableCombat or 0))
+        local list, n = {}, 0
+        for id, c in pairs(ad.ids or {}) do n = n + 1; list[n] = id .. "x" .. c end
+        table.sort(list)
+        if n > 0 then
+            print(P .. ("     IDs nommes en combat (%d) : %s"):format(n, table.concat(list, " ")))
+        else
+            print(P .. "     aucun ID nomme en combat")
+        end
+    end
+    local sr = CDF.__srcStats
+    if sr then
+        print(P .. "source            essais / succes       en combat")
+        for _, k in ipairs({ "registre", "scan", "direct", "nom" }) do
+            local e = sr[k]
+            if e then
+                print(P .. ("  %-12s %7d / %-7d %7d / %d")
+                    :format(k, e.try, e.hit, e.tryC, e.hitC))
+            end
+        end
+        local d = sr.directDetail
+        if d then
+            print(P .. ("  direct en detail: erreurs=%d nil=%d valeur=%d  (combat: %d / %d / %d)")
+                :format(d.err, d.nilRet, d.value, d.errC, d.nilC, d.valueC))
+        end
+    end
     print(P .. ("--- %d transitions d'aura (la plus recente en dernier) ---"):format(#log))
     for i = 1, #log do
         local e = log[i]
