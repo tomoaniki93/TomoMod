@@ -26,7 +26,15 @@ CDF.SKIN_AXES = {
     -- [S9] castability tint; see CDF.UNUSABLE_MODES. "off" on every preset
     -- so no existing bar changes appearance.
     "unusableMode",
+    -- [H1] Active-state visuals. Now that tracked buffs render, "the buff is
+    -- up" and "the spell is recharging" both showed as a plain icon: these two
+    -- axes are what tells them apart. "off" on every preset, so nothing
+    -- existing changes look.
+    "activeSwipe", "activeBorder",
 }
+
+-- Both axes accept the same modes: off, the class colour, or a custom one.
+CDF.ACTIVE_MODES = { off = true, class = true, custom = true }
 
 CDF.SKIN_PRESETS = {
     net = {
@@ -123,6 +131,16 @@ function CDF.NormalizeStyle(bar)
     end
     st.customized = st.customized and true or nil
 
+    for _, axis in ipairs({ "activeSwipe", "activeBorder" }) do
+        local a = st[axis]
+        if type(a) == "table" then
+            if not CDF.ACTIVE_MODES[a.mode] then a.mode = nil end
+            if a.mode == nil or a.mode == "off" then st[axis] = nil end
+        elseif a ~= nil then
+            st[axis] = nil
+        end
+    end
+
     if st.border and st.border.thickness ~= nil then
         local t = tonumber(st.border.thickness) or 1
         if t < CDF.BORDER_THICKNESS_MIN then t = CDF.BORDER_THICKNESS_MIN end
@@ -139,7 +157,8 @@ end
 
 -- Axes whose preset value is a table of independent fields. An override on
 -- one field must not discard the others.
-CDF.SKIN_TABLE_AXES = { border = true, swipe = true, timer = true }
+CDF.SKIN_TABLE_AXES = { border = true, swipe = true, timer = true,
+                        activeSwipe = true, activeBorder = true }
 
 -- Effective style: preset defaults overlaid with the bar's explicit
 -- per-axis overrides. `st.preset` always names a real preset by the time this

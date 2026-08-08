@@ -90,7 +90,14 @@ local function EntryDesc(e)
     -- [G4] Make the mode visible in the list: an aura entry behaves nothing
     -- like a cooldown entry and the row is the only place it shows.
     local mode = (e.mode == "aura") and "  -  buff suivi" or ""
-    return who .. "  -  " .. spec .. mode
+    -- [H5] A talent condition changes when an icon exists at all: it belongs
+    -- in the row, next to the spec.
+    local tal = ""
+    if e.talentID and e.talentID > 0 then
+        tal = (e.talentMode == "unknown") and "  -  sans talent " or "  -  talent "
+        tal = tal .. tostring(e.talentID)
+    end
+    return who .. "  -  " .. spec .. mode .. tal
 end
 
 local function SpecOptions(class)
@@ -135,6 +142,8 @@ local GLOW_COND_OPTS = {
     { text = "Quand le sort est pret", value = "ready" },
     { text = "Quand le sort est utilisable", value = "usable" },
     { text = "Quand le buff est actif", value = "aura" },
+    { text = "Quand toutes les charges sont revenues", value = "maxCharges" },
+    { text = "Quand le buff atteint N cumuls", value = "stacks" },
     { text = "Toujours",               value = "always" },
 }
 local GLOW_COND_OPTS_ENTRY = {
@@ -142,6 +151,8 @@ local GLOW_COND_OPTS_ENTRY = {
     { text = "Quand le sort est pret", value = "ready" },
     { text = "Quand le sort est utilisable", value = "usable" },
     { text = "Quand le buff est actif", value = "aura" },
+    { text = "Quand toutes les charges sont revenues", value = "maxCharges" },
+    { text = "Quand le buff atteint N cumuls", value = "stacks" },
     { text = "Toujours",               value = "always" },
 }
 
@@ -474,6 +485,64 @@ local function TabStyle(parent)
     _, cy = W.CreateCheckbox(card.inner, "Ombre portee", eff.shadow == true, cy, function(v)
         markCustom(); bar.style.shadow = v; Apply()
     end)
+    -- [H1] Active-state visuals.
+    local ACTIVE_OPTS = {
+        { text = "Aucun",           value = "off" },
+        { text = "Couleur de classe", value = "class" },
+        { text = "Personnalisee",   value = "custom" },
+    }
+    local function activeAxis(label, axis, defColor)
+        local cur = bar.style[axis]
+        local mode = (cur and cur.mode) or "off"
+        _, cy = W.CreateDropdown(card.inner, label, ACTIVE_OPTS, mode, cy, function(v)
+            markCustom()
+            if v == "off" then
+                bar.style[axis] = nil
+            else
+                bar.style[axis] = bar.style[axis] or {}
+                bar.style[axis].mode = v
+                if v == "custom" then
+                    bar.style[axis].color = bar.style[axis].color or defColor
+                end
+            end
+            Apply(); S.RebuildContent()
+        end)
+        if mode == "custom" then
+            local col = (cur and cur.color) or defColor
+            _, cy = W.CreateColorPicker(card.inner, label .. " (couleur)", colorProxy(col), cy,
+                function(r, g, b)
+                    markCustom()
+                    bar.style[axis] = bar.style[axis] or { mode = "custom" }
+                    bar.style[axis].color = { r, g, b }
+                    Apply()
+                end)
+        end
+    end
+    activeAxis("Swipe quand le buff est actif",   "activeSwipe",  { 1, 0.82, 0.25 })
+    activeAxis("Bordure quand le buff est actif", "activeBorder", { 1, 0.82, 0.25 })
+
+    -- [H2] Threshold on the countdown.
+    local thr = math.floor((bar.text and bar.text.threshold or 0) + 0.5)
+    _, cy = W.CreateSlider(card.inner, "Seuil du minuteur", thr, 0, 60, 1, cy,
+        function(v)
+            bar.text = bar.text or {}
+            bar.text.threshold = v
+            Apply(); S.RebuildContent()
+        end, "%d s")
+    if thr > 0 then
+        local tc = (bar.text and bar.text.thresholdColor) or { 1, 0.35, 0.25 }
+        _, cy = W.CreateColorPicker(card.inner, "Couleur sous le seuil", colorProxy(tc), cy,
+            function(r, g, b)
+                bar.text = bar.text or {}
+                bar.text.thresholdColor = { r, g, b }
+                Apply()
+            end)
+        _, cy = W.CreateInfoText(card.inner,
+            "Le minuteur change de couleur sous ce seuil. Indisponible quand le "
+            .. "client ne communique pas le temps restant : le minuteur garde alors "
+            .. "sa couleur normale. 0 desactive.", cy)
+    end
+
     _, cy = W.CreateInfoText(card.inner,
         "Les reglages fins se superposent au preset choisi plus haut, sans le remplacer.", cy)
     y = W.FinalizeCard(card, cy)
@@ -498,6 +567,15 @@ local function TabStyle(parent)
             bar.glow.condition = v
             Apply(); S.RebuildContent()
         end)
+    if gcond == "stacks" then
+        _, cy = W.CreateSlider(card.inner, "Cumuls requis",
+            tonumber(bar.glow.stacks) or 2, 2, 20, 1, cy,
+            function(v) bar.glow.stacks = v; Apply() end)
+        _, cy = W.CreateInfoText(card.inner,
+            "Le glow se declenche a partir de ce nombre de cumuls. Le client "
+            .. "n'annonce pas le maximum d'une aura, c'est donc a toi de le "
+            .. "donner. Sans cumul lisible, le glow reste eteint.", cy)
+    end
     if gcond == "aura" then
         local auraBox
         auraBox, cy = W.CreateMultiLineEditBox(card.inner, "ID du buff (vide = ID du sort)", 24, cy, {
@@ -528,8 +606,50 @@ local function TabStyle(parent)
     _, cy = W.CreateDropdown(card.inner, "Texte",
         { { text = "Timer", value = "timer" }, { text = "Nom du sort", value = "name" }, { text = "Aucun", value = "none" } },
         bar.text.mode, cy, function(v) bar.text.mode = v; Apply() end)
-    _, cy = W.CreateSlider(card.inner, "Taille du texte", bar.text.size or 13, 9, 20, 1, cy,
+    -- [H3] Font, outline and a timer size independent of the rest of the text.
+    local FONT_OPTS = { { text = "Poppins (defaut TomoMod)", value = "" } }
+    do
+        local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+        if LSM and LSM.List then
+            local ok, list = pcall(LSM.List, LSM, "font")
+            if ok and type(list) == "table" then
+                for _, name in ipairs(list) do
+                    FONT_OPTS[#FONT_OPTS + 1] = { text = name, value = name }
+                end
+            end
+        end
+    end
+    _, cy = W.CreateDropdown(card.inner, "Police", FONT_OPTS, bar.text.font or "", cy,
+        function(v)
+            bar.text.font = (v ~= "") and v or nil
+            Apply()
+        end)
+    if #FONT_OPTS == 1 then
+        _, cy = W.CreateInfoText(card.inner,
+            "Aucune police partagee detectee : installe un addon fournissant "
+            .. "LibSharedMedia pour en ajouter.", cy)
+    end
+
+    _, cy = W.CreateDropdown(card.inner, "Contour du texte",
+        { { text = "Fin",   value = "OUTLINE" },
+          { text = "Epais", value = "THICKOUTLINE" },
+          { text = "Aucun", value = "none" } },
+        bar.text.outline or "OUTLINE", cy,
+        function(v) bar.text.outline = v; Apply() end)
+
+    _, cy = W.CreateSlider(card.inner, "Taille du texte", bar.text.size or 13, 8, 28, 1, cy,
         function(v) bar.text.size = v; Apply() end)
+
+    local sameAsText = (bar.text.timerSize == nil)
+    _, cy = W.CreateCheckbox(card.inner, "Taille du minuteur : suivre le preset",
+        sameAsText, cy, function(v)
+            bar.text.timerSize = v and nil or (bar.text.size or 13)
+            Apply(); S.RebuildContent()
+        end)
+    if not sameAsText then
+        _, cy = W.CreateSlider(card.inner, "Taille du minuteur", bar.text.timerSize or 13,
+            8, 28, 1, cy, function(v) bar.text.timerSize = v; Apply() end)
+    end
     _, cy = W.CreateCheckbox(card.inner, "Afficher les stacks/charges", bar.text.stacks ~= false, cy,
         function(v) bar.text.stacks = v; Apply() end)
     W.FinalizeCard(card, cy)
@@ -636,12 +756,50 @@ local function TabSorts(parent)
             end
         end
 
+        -- [H5] Talent condition, expressed as the spell the talent grants.
+        _, cy = W.CreateDropdown(card.inner, "Condition de talent",
+            { { text = "Aucune",                       value = "off" },
+              { text = "Seulement si le talent est pris", value = "known" },
+              { text = "Seulement si le talent N'EST PAS pris", value = "unknown" } },
+            fxE.talentID and (fxE.talentMode == "unknown" and "unknown" or "known") or "off",
+            cy, function(v)
+                if v == "off" then
+                    fxE.talentID, fxE.talentMode = nil, nil
+                else
+                    fxE.talentMode = (v == "unknown") and "unknown" or nil
+                    fxE.talentID = fxE.talentID or 0
+                end
+                Apply(); S.RebuildContent()
+            end)
+        if fxE.talentID ~= nil then
+            local tBox
+            tBox, cy = W.CreateMultiLineEditBox(card.inner,
+                "ID du sort accorde par le talent", 24, cy, {
+                onTextChanged = function(t)
+                    fxE.talentID = readSpellID(t)
+                    Apply()
+                end,
+            })
+            if tBox and tBox.editBox and fxE.talentID and fxE.talentID > 0 then
+                tBox.editBox:SetText(tostring(fxE.talentID))
+            end
+            _, cy = W.CreateInfoText(card.inner,
+                "Indique le sort que le talent te donne, pas un numero de noeud : "
+                .. "les noeuds sont renumerotes a chaque refonte, pas les sorts. "
+                .. "L'icone suit automatiquement tes changements de build.", cy)
+        end
+
         tri("Glow", "glow")
         _, cy = W.CreateDropdown(card.inner, "Condition du glow", GLOW_COND_OPTS_ENTRY,
             o.glowCondition or "inherit", cy, function(v)
                 o.glowCondition = (v ~= "inherit") and v or nil
                 Apply(); S.RebuildContent()
             end)
+        if o.glowCondition == "stacks" then
+            _, cy = W.CreateSlider(card.inner, "Cumuls requis (entree)",
+                tonumber(o.glowStacks) or tonumber(bar.glow.stacks) or 2, 2, 20, 1, cy,
+                function(v) o.glowStacks = v; Apply() end)
+        end
         if o.glowCondition == "aura" then
             local eAuraBox
             eAuraBox, cy = W.CreateMultiLineEditBox(card.inner, "ID du buff (vide = ID du sort)", 24, cy, {

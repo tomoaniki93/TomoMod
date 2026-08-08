@@ -96,7 +96,13 @@ CDF.GLOW_TYPES    = { Pixel = true, Autocast = true, Button = true }
 --   always -> glow whenever the icon is shown
 --   usable -> off cooldown AND currently castable (resource available)
 CDF.LAYOUTS       = { line = true, radial = true }
-CDF.GLOW_CONDS    = { ready = true, aura = true, always = true, usable = true }
+-- [H4] `maxCharges`: every charge is back, detected from the CHARGE duration
+-- object rather than by comparing counts -- chargeInfo.currentCharges is a
+-- secret value and must never meet a comparison operator.
+-- `stacks`: the tracked buff reached a count the player names, because the
+-- client does not expose a maximum for an aura.
+CDF.GLOW_CONDS    = { ready = true, aura = true, always = true, usable = true,
+                      maxCharges = true, stacks = true }
 -- [S9] Castability tint modes applied to the icon art:
 --   off      -> never tint (pre-S9 behaviour; default on every preset)
 --   dim      -> grey out whenever the spell/item cannot be used right now
@@ -142,6 +148,9 @@ function CDF.SanitizeOverride(o)
     end
     local aid = tonumber(o.auraSpellID)
     if aid and aid > 0 then out.auraSpellID = math.floor(aid) end
+    -- [H4] threshold for the `stacks` condition, per entry.
+    local gs = tonumber(o.glowStacks)
+    if gs and gs > 1 then out.glowStacks = math.min(math.floor(gs), 99) end
     -- [S9] per-entry castability tint (nil = inherit from the bar style)
     if type(o.unusableMode) == "string" and CDF.UNUSABLE_MODES[o.unusableMode] then
         out.unusableMode = o.unusableMode
@@ -255,9 +264,15 @@ function CDF.NewBarSchema(name)
         hideOnCooldown = false,        -- [S8] drop icons while they are on cooldown
         hideOnUnusable = false,        -- [S9] drop icons the player cannot afford
         glow  = { enabled = true, type = "Pixel", color = { 0.18, 0.85, 0.52, 1 },
-                  condition = "ready", auraSpellID = nil },
+                  condition = "ready", auraSpellID = nil, stacks = 2 },
         swipe = { draw = true, color = { 0, 0, 0, 0.6 }, reverse = false },
-        text  = { mode = "timer", font = "Poppins-Medium", size = 13, stacks = true },
+        -- [H2] threshold: 0 disables. Below it the countdown switches colour,
+        -- which is the cheapest way to read "about to come up" mid-fight.
+        -- [H3] `font` is an LSM name; nil or unknown falls back to the bundled
+        -- Poppins. `timerSize` nil means "follow the style preset".
+        text  = { mode = "timer", font = nil, outline = "OUTLINE",
+                  size = 13, timerSize = nil, stacks = true,
+                  threshold = 0, thresholdColor = { 1, 0.35, 0.25 } },
         style = { preset = "tomo" },
         visibility = nil,   -- [S6] nil = always shown
         position = { point = "CENTER", relPoint = "CENTER", x = 0, y = 0 },
@@ -311,6 +326,11 @@ function CDF.NewEntrySchema(data)
         -- Optional: watch a different aura than the entry's own spell. Some
         -- procs are granted by one spell and applied as another.
         auraID   = tonumber(data.auraID) or nil,
+        -- [H5] Show this entry only when a talent is taken (or only when it is
+        -- not). Expressed as the spell the talent grants: node ids get
+        -- renumbered at every rework, spell ids do not.
+        talentID   = tonumber(data.talentID) or nil,
+        talentMode = (data.talentMode == "unknown") and "unknown" or nil,
         override = CDF.SanitizeOverride(data.override),   -- [S2] per-entry FX
     }
 end
@@ -350,6 +370,21 @@ function CDF.SanitizeBar(bar)
     bar.swipe = bar.swipe or { draw = true, color = { 0, 0, 0, 0.6 }, reverse = false }
     bar.text  = bar.text  or { mode = "timer", font = "Poppins-Medium", size = 13, stacks = true }
     if not CDF.TEXT_MODES[bar.text.mode] then bar.text.mode = "timer" end
+    bar.glow = bar.glow or {}
+    bar.glow.stacks = clamp(tonumber(bar.glow.stacks) or 2, 2, 20)
+    bar.text.threshold = clamp(tonumber(bar.text.threshold) or 0, 0, 60)
+    if type(bar.text.font) ~= "string" or bar.text.font == "" then bar.text.font = nil end
+    if bar.text.outline ~= "none" and bar.text.outline ~= "THICKOUTLINE" then
+        bar.text.outline = "OUTLINE"
+    end
+    bar.text.size = clamp(tonumber(bar.text.size) or 13, 8, 28)
+    if bar.text.timerSize ~= nil then
+        bar.text.timerSize = clamp(tonumber(bar.text.timerSize) or 13, 8, 28)
+    end
+    local tcol = bar.text.thresholdColor
+    if type(tcol) ~= "table" or not tonumber(tcol[1]) then
+        bar.text.thresholdColor = { 1, 0.35, 0.25 }
+    end
     if CDF.NormalizeStyle then CDF.NormalizeStyle(bar) end
     bar.visibility = CDF.SanitizeVisibility(bar.visibility)
     bar.entries = bar.entries or {}
@@ -360,6 +395,8 @@ function CDF.SanitizeBar(bar)
             -- historic cooldown behaviour rather than being persisted.
             if e.mode ~= "aura" then e.mode = nil end
             e.auraID = tonumber(e.auraID) or nil
+            e.talentID = tonumber(e.talentID) or nil
+            if e.talentID == nil or e.talentMode ~= "unknown" then e.talentMode = nil end
         end
     end
     return bar

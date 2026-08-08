@@ -14,6 +14,30 @@ local U   = TomoMod_Utils
 local LCG = LibStub and LibStub("LibCustomGlow-1.0", true)
 
 local FONT     = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+
+-- [H3] bar.text.font has been in the schema from the start and was read by
+-- nothing: every FontString here was hardcoded to Poppins. Same LSM pattern as
+-- Castbar.lua, guard included -- LibStub registers a library table before the
+-- file defining it finishes, so a library that errored leaves a truthy but
+-- empty table behind and `if LSM then` passes right up to the first call.
+local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+if LSM and not LSM.Fetch then LSM = nil end
+
+local function ResolveFont(bar)
+    local name = ((bar and bar.text) or {}).font
+    if LSM and type(name) == "string" and name ~= "" then
+        local ok, path = pcall(LSM.Fetch, LSM, "font", name)
+        if ok and path then return path end
+    end
+    return FONT
+end
+
+-- Outline is a per-bar choice: a thin font on a busy background needs one,
+-- a heavy font with one looks muddy.
+local OUTLINES = { none = "", OUTLINE = "OUTLINE", THICKOUTLINE = "THICKOUTLINE" }
+local function ResolveOutline(bar)
+    return OUTLINES[((bar and bar.text) or {}).outline] or "OUTLINE"
+end
 local GLOW_KEY = "TomoCDF"
 local QUESTION = 134400 -- fallback icon
 
@@ -204,12 +228,22 @@ end
 -- the mirror below it that stands in when the client will not give us the
 -- values behind it. A bar that hides its timer, or puts it on the badge in a
 -- chosen size and colour, has to get the same answer whichever one draws.
-local function timerCfg(st, bar)
+local function timerCfg(st, bar, remaining)
     local text = bar.text or {}
     local tpos = (st.timer and st.timer.pos) or "center"
     local want = (text.mode == "timer") and tpos ~= "hidden"
-    local size = max(8, (st.timer and st.timer.size) or 13)
+    -- The preset supplies a size; a bar stating its own timerSize wins, so a
+    -- font swap does not force abandoning the preset.
+    local size = max(8, tonumber(text.timerSize) or (st.timer and st.timer.size) or 13)
     local tc   = st.timerColor
+    -- [H2] Under the threshold the countdown switches colour. `remaining` is
+    -- only ever passed when it was computed from READABLE values, so no
+    -- comparison here can meet a secret.
+    local thr = tonumber(text.threshold) or 0
+    if thr > 0 and remaining and remaining <= thr then
+        local c = text.thresholdColor or { 1, 0.35, 0.25 }
+        return want, tpos, size, c[1] or 1, c[2] or 0.35, c[3] or 0.25
+    end
     local r, g, b
     if type(tc) == "table" and tc[1] then
         r, g, b = tc[1], tc[2] or 1, tc[3] or 1
@@ -312,7 +346,7 @@ local function styleIcon(icon, bar)
     if wantTimer then
         local tfs = cdTimerFS(icon)
         if tfs then
-            tfs:SetFont(FONT, tsize, "OUTLINE")
+            tfs:SetFont(ResolveFont(bar), tsize, ResolveOutline(bar))
             placeTimerFS(tfs, icon, st, tpos)
             -- [S7] timer color: explicit override, else class/accent tint
             tfs:SetTextColor(tr, tg, tb)
@@ -333,14 +367,14 @@ local function styleIcon(icon, bar)
 
     -- [S0] stacks anchor + fonts
     local fs = max(9, text.size or 13)
-    icon.count:SetFont(FONT, fs, "OUTLINE")
+    icon.count:SetFont(ResolveFont(bar), fs, ResolveOutline(bar))
     icon.count:ClearAllPoints()
     if st.stackPos == "TOPRIGHT" then
         icon.count:SetPoint("TOPRIGHT", icon, "TOPRIGHT", -1, -1)
     else
         icon.count:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -1, 1)
     end
-    icon.name:SetFont(FONT, fs, "OUTLINE")
+    icon.name:SetFont(ResolveFont(bar), fs, ResolveOutline(bar))
     icon.name:SetWidth((select(1, CDF.IconDims(bar))) + 18)
 
     icon._cdfStyle = st
@@ -354,6 +388,18 @@ local function applyEntry(icon, resolved, state, bar)
     -- styleIcon ran on this icon immediately before us, so _cdfStyle is the
     -- style this bar resolved to on this pass.
     local mStyle = icon._cdfStyle or {}
+
+    -- [H2] Seconds left, but ONLY from values that came back readable. When
+    -- they did not, `remaining` stays nil and the threshold simply never
+    -- fires -- no comparison is ever attempted against a secret.
+    local remaining
+    local function noteRemaining(startT, dur)
+        startT, dur = tonumber(startT), tonumber(dur)
+        if not (startT and dur) or dur <= 0 then return end
+        local left = (startT + dur) - GetTime()
+        if left > 0 then remaining = left end
+    end
+
     local wantMirror, mPos, mSize, mr, mg, mb = timerCfg(mStyle, bar)
     local mirrored = false
 
@@ -361,6 +407,34 @@ local function applyEntry(icon, resolved, state, bar)
     -- cooldown filling up. Duration and stacks are only applied when they
     -- came back readable (see CDF.GetAuraState); under restricted content
     -- the icon still appears and disappears, just without a timer.
+    -- [H1] Active state: a tracked buff that is currently up. The style axes
+    -- below only fire here, so a plain cooldown icon is untouched.
+    local st = mStyle
+    local function applyActiveVisuals(isActive)
+        local asw = st.activeSwipe
+        if asw and asw.mode and asw.mode ~= "off" then
+            if isActive then
+                local r, g, b = CDF.ResolveTint(asw.mode == "class" and "class" or "bar",
+                                                asw.color, 1, 0.82, 0.25)
+                icon.cd:SetSwipeColor(r * 0.6, g * 0.6, b * 0.6, 0.85)
+            end
+        end
+        local abd = st.activeBorder
+        if abd and abd.mode and abd.mode ~= "off" and icon.SetBackdropBorderColor then
+            if isActive then
+                local r, g, b = CDF.ResolveTint(abd.mode == "class" and "class" or "bar",
+                                                abd.color, 1, 0.82, 0.25)
+                icon:SetBackdropBorderColor(r, g, b, 1)
+                icon._activeBorderOn = true
+            elseif icon._activeBorderOn then
+                -- Hand the border back to styleIcon rather than guessing its
+                -- resting colour here.
+                icon._activeBorderOn = nil
+                styleIcon(icon, bar)
+            end
+        end
+    end
+
     local auraID = CDF.EntryAuraID and CDF.EntryAuraID(resolved and resolved._entry, resolved)
     if auraID then
         local a = CDF.GetAuraState and CDF.GetAuraState(auraID)
@@ -383,7 +457,7 @@ local function applyEntry(icon, resolved, state, bar)
             if not icon.mirrorTimer then
                 icon.mirrorTimer = icon:CreateFontString(nil, "OVERLAY")
             end
-            icon.mirrorTimer:SetFont(FONT, mSize, "OUTLINE")
+            icon.mirrorTimer:SetFont(ResolveFont(bar), mSize, ResolveOutline(bar))
             icon.mirrorTimer:SetTextColor(mr, mg, mb)
             placeTimerFS(icon.mirrorTimer, icon, mStyle, mPos)
             icon.mirrorTimer:SetText(a.timerText)
@@ -395,6 +469,10 @@ local function applyEntry(icon, resolved, state, bar)
         else
             icon.cd:Clear()
         end
+        if a and a.active and a.timed then
+            noteRemaining(a.expirationTime - a.duration, a.duration)
+        end
+        applyActiveVisuals(a and a.active and true or false)
         icon._auraState = a
     end
 
@@ -493,6 +571,20 @@ local function applyEntry(icon, resolved, state, bar)
                        or (bar.glow and bar.glow.auraSpellID)
                        or resolved.spellID
         condMet = CDF.IsAuraActive and CDF.IsAuraActive(auraID) or false
+    elseif cond == "maxCharges" then
+        -- [H4] Every charge back. Answered from the charge cooldown, never by
+        -- comparing the (secret) current count.
+        condMet = CDF.IsAtMaxCharges and CDF.IsAtMaxCharges(state) or false
+    elseif cond == "stacks" then
+        -- [H4] The tracked buff reached the count the player named. Only the
+        -- display-safe application count feeds this; when it is unreadable the
+        -- glow simply stays off rather than firing on a guess.
+        local want = (ov and ov.glowStacks)
+                     or (bar.glow and tonumber(bar.glow.stacks))
+                     or 2
+        local a = icon._auraState
+        local have = a and a.active and tonumber(a.applications) or nil
+        condMet = (have ~= nil) and (have >= want) or false
     elseif cond == "usable" then
         -- [S9] off cooldown AND actually castable. `usable` above was only
         -- computed when a tint mode is active, so ask again when it wasn't.
@@ -542,6 +634,19 @@ local function applyEntry(icon, resolved, state, bar)
         end
     end
     if shown then icon.count:Show() else icon.count:SetText(""); icon.count:Hide() end
+
+    -- [H2] Recolour the live countdown. styleIcon set the resting colour on
+    -- this pass; only the threshold can change it from here.
+    if (bar.text or {}).threshold and (tonumber(bar.text.threshold) or 0) > 0 then
+        if remaining == nil and CDF.RemainingSeconds then
+            remaining = CDF.RemainingSeconds(state)
+        end
+        local tfs = cdTimerFS(icon)
+        if tfs then
+            local _, _, _, rr, gg, bb = timerCfg(mStyle, bar, remaining)
+            tfs:SetTextColor(rr, gg, bb)
+        end
+    end
 
     -- Name
     if text.mode == "name" then
@@ -792,7 +897,10 @@ local function needsAuraWatch(arr)
                 -- disappear at all
                 if e.mode == "aura" then return true end
                 local o = e.override
-                if o and o.glowCondition == "aura" and o.glow ~= false then
+                -- [H4] `stacks` reads the aura's application count, so it needs
+                -- UNIT_AURA just as much as the `aura` condition does.
+                local c = (o and o.glowCondition) or (bar.glow and bar.glow.condition)
+                if (c == "aura" or c == "stacks") and (not o or o.glow ~= false) then
                     return true
                 end
             end

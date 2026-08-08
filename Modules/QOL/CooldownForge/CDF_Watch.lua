@@ -68,10 +68,61 @@ end
 -- ---------------------------------------------------------------------
 -- Visibility: spec gate + known/present. Non-secret signals only.
 -- ---------------------------------------------------------------------
+--- [H5] Is a talent taken?
+---
+--- Asked through the spell it grants rather than through trait nodes: node ids
+--- are renumbered at every talent rework, and a hardcoded table of them is the
+--- kind of data this project refuses to carry. A talent-granted spell is in
+--- the spellbook exactly while the talent is picked, which is the same signal
+--- with none of the maintenance.
+---
+--- C_SpellBook.IsSpellKnownOrInSpellBook is the current test; the globals
+--- below are the legacy path, and the live override covers a talent that
+--- replaces the spell with another.
+function CDF.IsSpellTaken(spellID)
+    spellID = tonumber(spellID)
+    if not spellID then return false end
+
+    local ids = { spellID }
+    if C_SpellBook and C_SpellBook.FindSpellOverrideByID then
+        local ok, ov = pcall(C_SpellBook.FindSpellOverrideByID, spellID)
+        ov = ok and tonumber(ov) or nil
+        if ov and ov ~= spellID then ids[#ids + 1] = ov end
+    end
+
+    for _, id in ipairs(ids) do
+        if C_SpellBook then
+            for _, fn in ipairs({ "IsSpellKnownOrInSpellBook", "IsSpellInSpellBook", "IsSpellKnown" }) do
+                if C_SpellBook[fn] then
+                    local ok, r = pcall(C_SpellBook[fn], id)
+                    if ok and r then return true end
+                end
+            end
+        end
+        if IsPlayerSpell and IsPlayerSpell(id) then return true end
+        if IsSpellKnown and IsSpellKnown(id) then return true end
+    end
+    return false
+end
+
+--- Does the entry's talent condition hold? No condition means yes.
+function CDF.TalentConditionMet(entry)
+    if type(entry) ~= "table" then return true end
+    local tid = tonumber(entry.talentID)
+    if not tid then return true end
+    local taken = CDF.IsSpellTaken(tid)
+    if entry.talentMode == "unknown" then return not taken end
+    return taken
+end
+
 function CDF.IsEntryVisible(entry)
     if type(entry) ~= "table" or entry.enabled == false then return false end
     local spec = tonumber(entry.spec) or 0
     if spec ~= 0 and spec ~= CDF.CurrentSpecID() then return false end
+    -- [H5] Checked before the kind-specific tests, like the spec filter: a
+    -- talent condition is about whether the entry belongs in this build at
+    -- all, not about what it points to.
+    if not CDF.TalentConditionMet(entry) then return false end
 
     local kind = entry.kind
     if kind == "spell" then
@@ -273,6 +324,26 @@ local function getProbe()
     return probe
 end
 
+--- [H4] Are all charges back?
+---
+--- The obvious test -- currentCharges == maxCharges -- is exactly the one that
+--- is forbidden: chargeInfo.currentCharges is a secret value. The charge
+--- cooldown itself answers the question without any comparison: it runs while
+--- a charge is missing and stops once they are all back.
+function CDF.IsAtMaxCharges(state)
+    if type(state) ~= "table" or not state.isSpell then return false end
+    local maxC = tonumber(state.maxCharges) or 1
+    if maxC <= 1 then
+        -- No charge system: "all charges back" is just "off cooldown".
+        return CDF.IsReady(nil, state)
+    end
+    if not state.chargeDurObj then return false end
+    local p = getProbe()
+    local ok = pcall(p.SetCooldownFromDurationObject, p, state.chargeDurObj)
+    if not ok then return false end
+    return not p:IsShown()
+end
+
 function CDF.IsReady(resolved, state)
     if not state then return true end
     if state.isSpell then
@@ -330,6 +401,11 @@ w:RegisterEvent("PLAYER_TARGET_CHANGED")
 -- [G5] Talent changes re-point the ability -> buff overrides the aura link map
 -- is built from. PLAYER_SPECIALIZATION_CHANGED is already registered above.
 w:RegisterEvent("TRAIT_CONFIG_UPDATED")
+-- [H5] Swapping loadouts fires this and not TRAIT_CONFIG_UPDATED, so without
+-- it a talent condition would keep the previous build's answer until something
+-- else forced a layout.
+w:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
+w:RegisterEvent("TRAIT_CONFIG_LIST_UPDATED")
 w:SetScript("OnEvent", function(_, event, unit, updateInfo)
     if event == "UNIT_AURA" then
         CDF.OnUnitAura(updateInfo)
@@ -339,8 +415,10 @@ w:SetScript("OnEvent", function(_, event, unit, updateInfo)
        or event == "PLAYER_REGEN_ENABLED" or event == "PLAYER_REGEN_DISABLED"
        or event == "GROUP_ROSTER_UPDATE" or event == "ZONE_CHANGED_NEW_AREA"
        or event == "PLAYER_ENTERING_WORLD" or event == "PLAYER_TARGET_CHANGED"
-       or event == "TRAIT_CONFIG_UPDATED" then
-        if event == "PLAYER_SPECIALIZATION_CHANGED" or event == "TRAIT_CONFIG_UPDATED" then
+       or event == "TRAIT_CONFIG_UPDATED" or event == "ACTIVE_TALENT_GROUP_CHANGED"
+       or event == "TRAIT_CONFIG_LIST_UPDATED" then
+        if event == "PLAYER_SPECIALIZATION_CHANGED" or event == "TRAIT_CONFIG_UPDATED"
+           or event == "ACTIVE_TALENT_GROUP_CHANGED" or event == "TRAIT_CONFIG_LIST_UPDATED" then
             CDF.InvalidateAuraLinks()
         end
         fireUpdate("layout")
@@ -742,6 +820,37 @@ local function ViewerAuraState(cands)
         if n and n > 0 then st.applications = n end
     end
     return st
+end
+
+--- Seconds left, or nil when the client will not say.
+---
+--- Items and trinkets hand back plain numbers. Spells only expose a duration
+--- object: feeding it to the probe and reading the times back is worth a try,
+--- but those values are often secret, and the guard turns that into nil rather
+--- than into a comparison. Callers must treat nil as "no threshold", never as
+--- zero -- a spell whose remaining time is unreadable must not look ready.
+function CDF.RemainingSeconds(state)
+    if type(state) ~= "table" then return nil end
+
+    if not state.isSpell then
+        local d = readableNumber(state.duration)
+        local st = readableNumber(state.start)
+        if not (d and st) or d <= 0 then return nil end
+        local left = (st + d) - GetTime()
+        return (left > 0) and left or nil
+    end
+
+    local durObj = (state.maxCharges and state.maxCharges > 1 and state.chargeDurObj)
+                   or state.durObj
+    if not durObj then return nil end
+    local p = getProbe()
+    local ok = pcall(p.SetCooldownFromDurationObject, p, durObj)
+    if not ok or not p.GetCooldownTimes then return nil end
+    local okT, startMs, durMs = pcall(p.GetCooldownTimes, p)
+    local sMs, dMs = readableNumber(startMs), readableNumber(durMs)
+    if not (okT and sMs and dMs) or dMs <= 0 then return nil end
+    local left = ((sMs + dMs) / 1000) - GetTime()
+    return (left > 0) and left or nil
 end
 
 function CDF.GetAuraState(spellID)
