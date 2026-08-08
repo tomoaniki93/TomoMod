@@ -654,11 +654,38 @@ local function ViewerAuraState(cands)
             st.timed          = true
         end
     end
-    local apps = frame.Applications or frame.Count
+    -- Measured in combat: GetCooldownTimes yields nothing usable, yet the
+    -- client still DRAWS the countdown. A rendered string is a display sink
+    -- and stays readable, so mirroring it shows the player the very number
+    -- Blizzard settled on -- no swipe is possible without the underlying
+    -- values, but the figure is exact.
+    if not st.timed and cd and cd.GetRegions then
+        local okR, regions = pcall(function() return { cd:GetRegions() } end)
+        if okR then
+            for _, r in ipairs(regions) do
+                if r.GetObjectType and r:GetObjectType() == "FontString"
+                   and r.IsShown and r:IsShown() then
+                    local okX, txt = pcall(r.GetText, r)
+                    if okX and type(txt) == "string" and txt ~= "" then
+                        st.timerText = txt
+                        break
+                    end
+                end
+            end
+        end
+    end
+
+    -- Stacks live on the CHILD icon, not on the item frame -- reading
+    -- frame.Applications returned nil for every entry. The bar variant nests
+    -- them one level deeper again.
+    local apps = (frame.Icon and frame.Icon.Applications)
+              or (frame.Applications and frame.Applications.Applications)
+              or frame.Applications
+              or frame.Count
     if apps and apps.GetText then
         local okA, txt = pcall(apps.GetText, apps)
         local n = okA and tonumber(txt) or nil
-        if n then st.applications = n end
+        if n and n > 0 then st.applications = n end
     end
     return st
 end
@@ -681,7 +708,7 @@ function CDF.GetAuraState(spellID)
     --    accurate source available -- and the only one that reports duration
     --    and stacks for a proc applied mid-fight.
     local vst = ViewerAuraState(cands)
-    if vst and vst.active and (vst.timed or vst.applications) then
+    if vst and vst.active and (vst.timed or vst.timerText or vst.applications) then
         return vst
     end
 

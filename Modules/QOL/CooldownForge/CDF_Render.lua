@@ -199,6 +199,41 @@ local function cdTimerFS(icon)
     return fs
 end
 
+-- [S0] The timer settings a bar asks for, in one place because two different
+-- FontStrings now draw that number: the Cooldown widget's own countdown, and
+-- the mirror below it that stands in when the client will not give us the
+-- values behind it. A bar that hides its timer, or puts it on the badge in a
+-- chosen size and colour, has to get the same answer whichever one draws.
+local function timerCfg(st, bar)
+    local text = bar.text or {}
+    local tpos = (st.timer and st.timer.pos) or "center"
+    local want = (text.mode == "timer") and tpos ~= "hidden"
+    local size = max(8, (st.timer and st.timer.size) or 13)
+    local tc   = st.timerColor
+    local r, g, b
+    if type(tc) == "table" and tc[1] then
+        r, g, b = tc[1], tc[2] or 1, tc[3] or 1
+    else
+        r, g, b = CDF.ClassColor()
+    end
+    return want, tpos, size, r, g, b
+end
+
+-- Place a countdown FontString the way the bar asks: over the badge strip, or
+-- centred on the swipe. Shared so the mirror lands where the real one would.
+local function placeTimerFS(fs, icon, st, tpos)
+    fs:ClearAllPoints()
+    if tpos == "badge" and st.badge then
+        fs:SetParent(icon.badge)
+        fs:SetDrawLayer("OVERLAY")
+        fs:SetPoint("CENTER", icon.badge, "CENTER", 0, 0)
+    else
+        fs:SetParent(icon.cd)
+        fs:SetDrawLayer("OVERLAY")
+        fs:SetPoint("CENTER", icon.cd, "CENTER", 0, 0)
+    end
+end
+
 local function styleIcon(icon, bar)
     icon:SetSize(CDF.IconDims(bar))
     local st = CDF.ResolveStyle and CDF.ResolveStyle(bar) or {}
@@ -272,31 +307,15 @@ local function styleIcon(icon, bar)
 
     -- [S0] timer: native countdown FontString restyled / repositioned
     local text = bar.text or {}
-    local tpos = (st.timer and st.timer.pos) or "center"
-    local wantTimer = (text.mode == "timer") and tpos ~= "hidden"
+    local wantTimer, tpos, tsize, tr, tg, tb = timerCfg(st, bar)
     icon.cd:SetHideCountdownNumbers(not wantTimer)
     if wantTimer then
         local tfs = cdTimerFS(icon)
         if tfs then
-            local tsize = max(8, (st.timer and st.timer.size) or 13)
             tfs:SetFont(FONT, tsize, "OUTLINE")
-            tfs:ClearAllPoints()
-            if tpos == "badge" and st.badge then
-                tfs:SetParent(icon.badge)
-                tfs:SetDrawLayer("OVERLAY")
-                tfs:SetPoint("CENTER", icon.badge, "CENTER", 0, 0)
-            else
-                tfs:SetParent(icon.cd)
-                tfs:SetPoint("CENTER", icon.cd, "CENTER", 0, 0)
-            end
+            placeTimerFS(tfs, icon, st, tpos)
             -- [S7] timer color: explicit override, else class/accent tint
-            local tc = st.timerColor
-            if type(tc) == "table" and tc[1] then
-                tfs:SetTextColor(tc[1], tc[2] or 1, tc[3] or 1)
-            else
-                local cr, cg, cb = CDF.ClassColor()
-                tfs:SetTextColor(cr, cg, cb)
-            end
+            tfs:SetTextColor(tr, tg, tb)
         end
     end
 
@@ -332,6 +351,12 @@ local function applyEntry(icon, resolved, state, bar)
     icon.tex:SetTexture(resolved.icon or QUESTION)
     icon._resolved = resolved
 
+    -- styleIcon ran on this icon immediately before us, so _cdfStyle is the
+    -- style this bar resolved to on this pass.
+    local mStyle = icon._cdfStyle or {}
+    local wantMirror, mPos, mSize, mr, mg, mb = timerCfg(mStyle, bar)
+    local mirrored = false
+
     -- [G4] Tracked buff: the swipe shows the aura running out, not a
     -- cooldown filling up. Duration and stacks are only applied when they
     -- came back readable (see CDF.GetAuraState); under restricted content
@@ -348,6 +373,22 @@ local function applyEntry(icon, resolved, state, bar)
         -- secret and there is nothing else to try.
         if a and a.active and a.timed then
             icon.cd:SetCooldown(a.expirationTime - a.duration, a.duration)
+        elseif a and a.active and a.timerText and wantMirror then
+            -- Mirror of the client's own countdown: no swipe without the
+            -- numbers behind it, but the figure is the one already on screen.
+            -- It obeys the bar's timer settings exactly as the native
+            -- countdown does -- a bar asking for no timer must not grow one
+            -- just because the number arrived by a different route.
+            icon.cd:Clear()
+            if not icon.mirrorTimer then
+                icon.mirrorTimer = icon:CreateFontString(nil, "OVERLAY")
+            end
+            icon.mirrorTimer:SetFont(FONT, mSize, "OUTLINE")
+            icon.mirrorTimer:SetTextColor(mr, mg, mb)
+            placeTimerFS(icon.mirrorTimer, icon, mStyle, mPos)
+            icon.mirrorTimer:SetText(a.timerText)
+            icon.mirrorTimer:Show()
+            mirrored = true
         elseif a and a.active and a.durationObject and icon.cd.SetCooldownFromDurationObject then
             local okD = pcall(icon.cd.SetCooldownFromDurationObject, icon.cd, a.durationObject)
             if not okD then icon.cd:Clear() end
@@ -355,6 +396,15 @@ local function applyEntry(icon, resolved, state, bar)
             icon.cd:Clear()
         end
         icon._auraState = a
+    end
+
+    -- Drop the mirror as soon as a real countdown exists, or two numbers would
+    -- share the icon. Outside the aura branch on purpose: icons are pooled by
+    -- slot, so slot i can come back holding a plain cooldown entry, and the
+    -- branch above would never run to clear the figure left on it.
+    if icon.mirrorTimer and not mirrored then
+        icon.mirrorTimer:SetText("")
+        icon.mirrorTimer:Hide()
     end
 
     local ready
