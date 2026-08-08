@@ -822,10 +822,11 @@ function CDF.DumpAura(class)
             local id = CDF.EntryAuraID and CDF.EntryAuraID(e, r)
             local a  = id and CDF.GetAuraState and CDF.GetAuraState(id)
             local cand = id and CDF.AuraCandidates and CDF.AuraCandidates(id)
-            print(("%s  %d. %s id=%s mode=%s auraSurveillee=%s candidats=%s trouve=%s visible=%s active=%s minuteur=%s cumuls=%s"):format(
+            print(("%s  %d. %s id=%s mode=%s auraSurveillee=%s candidats=%s trouve=%s source=%s visible=%s active=%s minuteur=%s cumuls=%s"):format(
                 P, i, tostring(e.kind), tostring(e.id), tostring(e.mode or "cooldown"),
                 tostring(id), cand and table.concat(cand, "/") or "-",
                 tostring(a and a.matchedID),
+                (a and a.viewer) and "viewer" or ((a and a.active) and "aura" or "-"),
                 tostring(CDF.IsEntryVisible(e)),
                 tostring(a and a.active), tostring(a and a.timed),
                 tostring(a and a.applications)))

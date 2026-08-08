@@ -624,6 +624,9 @@ TomoMod_Defaults = {
 
     cooldownManager = {
         enabled = true,
+        -- Masquage individuel des quatre viewers Blizzard (essential, utility,
+        -- buffIcon, buffBar). Seules les clés à true sont stockées.
+        hiddenViewers = {},
         showHotKey = false,
         combatAlpha = true,
         alphaInCombat = 1.0,
@@ -1452,6 +1455,9 @@ TomoMod_Defaults = {
     -- fills only missing keys, so player bars are never clobbered on update.
     -- =====================
     cooldownForge = {
+        -- Aura ids the client has been observed naming. Learned at runtime,
+        -- never authored, so it cannot go stale at a patch.
+        readableAuraIDs = {},
         schemaVersion = 1,
         enabled       = true,
         bars          = {},   -- [classToken] = { <BarSchema>, ... }

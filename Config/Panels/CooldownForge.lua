@@ -189,26 +189,32 @@ local function BuildContent(c)
         "Editeur dedie plein ecran : barres, sorts, styles, partage et mode edition.", cy)
     _, cy = W.CreateButton(card.inner, "Ouvrir le Cooldown Studio", 240, cy, OpenStudio)
 
-    -- Shortcut to the Cooldown Manager switch, placed here because this is
-    -- where the question comes up: once your bars live in the Studio, the CDM
-    -- reskin is redundant. Checked = module off, hence the inversion.
+    -- Per-viewer switches for Blizzard's Cooldown Manager. The icons are
+    -- ANCHORED to our holders, never reparented, so hiding a holder would not
+    -- hide anything: the viewer itself is dimmed instead, with alpha and mouse
+    -- input, neither of which is protected.
     do
-        local cdm = TomoModDB and TomoModDB.cooldownManager
-        if cdm then
-            _, cy = W.CreateCheckbox(card.inner,
-                "Masquer les barres du Cooldown Manager", cdm.enabled == false, cy,
-                function(v)
-                    cdm.enabled = not v
-                    if TomoMod_CooldownManager and TomoMod_CooldownManager.SetEnabled then
-                        TomoMod_CooldownManager.SetEnabled(cdm.enabled)
-                    end
-                    Refresh()
-                end)
+        local Hd = TomoMod_CDMHolders
+        if Hd and Hd.SetViewerHidden then
+            _, cy = W.CreateSubLabel(card.inner, "Masquer les barres du Cooldown Manager", cy)
+            local VIEWERS = {
+                { key = "essential", text = "CDM Essential (cooldowns essentiels)" },
+                { key = "utility",   text = "CDM Utility (utilitaires)" },
+                { key = "buffIcon",  text = "CDM Bonus suivi (icones)" },
+                { key = "buffBar",   text = "CDM Bonus suivi (barres)" },
+            }
+            for _, v in ipairs(VIEWERS) do
+                local key = v.key
+                _, cy = W.CreateCheckbox(card.inner, v.text, Hd.IsViewerHidden(key), cy,
+                    function(val)
+                        Hd.SetViewerHidden(key, val)
+                        Refresh()
+                    end)
+            end
             _, cy = W.CreateInfoText(card.inner,
-                "Retire les 4 reperes CDM (Essential, Utility, Buff Icons, Buff Bars) "
-                .. "du mode edition TomoMod et desactive leur habillage. Les viewers de "
-                .. "Blizzard eux-memes se coupent dans le mode edition de Blizzard : "
-                .. "TomoMod ne les masque pas a sa place, il ne fait que les habiller.", cy)
+                "Chaque barre masquee disparait de l'ecran et du mode edition TomoMod. "
+                .. "Les viewers restent ceux de Blizzard : TomoMod les rend invisibles "
+                .. "et non cliquables, il ne les supprime pas.", cy)
         end
     end
     -- Surface a blocking reason before the click. The button deliberately stays

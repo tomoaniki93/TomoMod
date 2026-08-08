@@ -502,11 +502,33 @@ end
 -- payload entirely.
 local activeBySpell, spellByInstance = {}, {}
 
+-- Ids the client has actually been willing to name while we watched. Learned,
+-- never authored: a hand-written table of "non-secret" ids is exactly the kind
+-- of data that rots at every patch, and this one maintains itself. Persisted
+-- so the knowledge survives a session.
+local function LearnReadable(sid)
+    if not sid then return end
+    local db = TomoModDB and TomoModDB.cooldownForge
+    if not db then return end
+    db.readableAuraIDs = db.readableAuraIDs or {}
+    if db.readableAuraIDs[sid] == nil then db.readableAuraIDs[sid] = true end
+end
+
+--- Has this id ever been readable? Used to tell "the client hides this one"
+--- from "this buff is simply not up", which is the difference between a bug
+--- and a limit when a tracked buff refuses to appear.
+function CDF.IsAuraIDReadable(sid)
+    local db = TomoModDB and TomoModDB.cooldownForge
+    local t = db and db.readableAuraIDs
+    return (t and t[tonumber(sid) or -1]) and true or false
+end
+
 local function AuraAdded(aura)
     if type(aura) ~= "table" then return end
     local sid = readableNumber(aura.spellId)
     local iid = readableNumber(aura.auraInstanceID)
 
+    LearnReadable(sid)
     if not (sid and iid) then return end
     spellByInstance[iid] = sid
     activeBySpell[sid] = iid
@@ -571,6 +593,76 @@ local function LiveInstance(spellID)
     return nil
 end
 
+-- ---------------------------------------------------------------------
+-- Source 0: Blizzard's own Tracked Buffs viewer
+-- ---------------------------------------------------------------------
+-- The client draws these procs correctly mid-fight because its own viewer is
+-- not subject to the aura restrictions we are. Rather than fight for the aura
+-- data, read the verdict Blizzard already reached: an item frame of
+-- BuffIconCooldownViewer is shown exactly while its buff is up, and its
+-- Cooldown widget and Applications text already hold the numbers on screen.
+--
+-- Nothing here is hardcoded: the spellID -> frame mapping comes from
+-- CDMScanner, which caches it out of combat to avoid touching the protected
+-- cooldownID property during a fight.
+local VIEWER_NAMES = { "BuffIconCooldownViewer", "BuffBarCooldownViewer" }
+
+local function ViewerFrameFor(cands)
+    local Scanner = TomoMod_CDMScanner
+    if not (Scanner and Scanner.GetCachedSpellID) then return nil end
+    local want = {}
+    for _, id in ipairs(cands) do want[id] = true end
+    for _, name in ipairs(VIEWER_NAMES) do
+        local viewer = _G[name]
+        if viewer and viewer.GetChildren then
+            local ok, children = pcall(function() return { viewer:GetChildren() } end)
+            if ok then
+                for _, frame in ipairs(children) do
+                    local sid = Scanner.GetCachedSpellID(frame)
+                    if sid and want[sid] then return frame, sid end
+                    local info = Scanner.GetCachedInfo and Scanner.GetCachedInfo(frame)
+                    local ov = info and info.overrideSpellID
+                    if ov and want[ov] then return frame, ov end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+-- Blizzard shows the frame exactly while the buff is up. Its Cooldown widget
+-- and Applications text are display sinks, so reading them costs nothing in
+-- taint terms and gives the same numbers the player already sees.
+local function ViewerAuraState(cands)
+    local frame, sid = ViewerFrameFor(cands)
+    if not frame then return nil end
+    local okShown, shown = pcall(frame.IsShown, frame)
+    if not okShown or not shown then
+        return { active = false, matchedID = sid, viewer = true, timed = false }
+    end
+
+    -- `timed` is always present, never nil: every other producer of an aura
+    -- state sets it explicitly and callers test it directly.
+    local st = { active = true, matchedID = sid, viewer = true, timed = false }
+    local cd = frame.Cooldown or (frame.Icon and frame.Icon.Cooldown)
+    if cd and cd.GetCooldownTimes then
+        local okT, startMs, durMs = pcall(cd.GetCooldownTimes, cd)
+        local sMs, dMs = readableNumber(startMs), readableNumber(durMs)
+        if okT and sMs and dMs and dMs > 0 then
+            st.duration       = dMs / 1000
+            st.expirationTime = (sMs + dMs) / 1000
+            st.timed          = true
+        end
+    end
+    local apps = frame.Applications or frame.Count
+    if apps and apps.GetText then
+        local okA, txt = pcall(apps.GetText, apps)
+        local n = okA and tonumber(txt) or nil
+        if n then st.applications = n end
+    end
+    return st
+end
+
 function CDF.GetAuraState(spellID)
     spellID = tonumber(spellID)
     if not spellID then return nil end
@@ -578,14 +670,23 @@ function CDF.GetAuraState(spellID)
     local cands = CDF.AuraCandidates(spellID) or { spellID }
     local aura, matched
 
-    -- Two sources, measured over ~12 700 evaluations each. The instance
-    -- registry scored 583 hits, ALL of them in combat; the name match 323,
-    -- all but two out of combat. They are complementary, and each is useless
-    -- where the other works. The HELPFUL index scan (5 hits) and
-    -- GetPlayerAuraBySpellID (2 hits) were dropped: the direct call never
-    -- errors, it simply returned nil 19 143 times in combat.
+    -- Sources in order of accuracy. Measured over ~12 700 evaluations each:
+    -- the instance registry scored 583 hits, ALL in combat; the name match
+    -- 323, all but two out of combat. The HELPFUL index scan (5) and
+    -- GetPlayerAuraBySpellID (2) were dropped -- the direct call never errors,
+    -- it simply returned nil 19 143 times in combat.
 
-    -- 1. instance registry: the source that works during a fight.
+    -- 0. Blizzard's own Tracked Buffs viewer. It is not subject to the aura
+    --    restrictions we are, so when it carries the spell it is the most
+    --    accurate source available -- and the only one that reports duration
+    --    and stacks for a proc applied mid-fight.
+    local vst = ViewerAuraState(cands)
+    if vst and vst.active and (vst.timed or vst.applications) then
+        return vst
+    end
+
+    -- 1. instance registry: works during a fight for auras learned while the
+    --    client was still willing to name them.
     for _, id in ipairs(cands) do
         local iid, res = LiveInstance(id)
         if iid then
@@ -594,6 +695,12 @@ function CDF.GetAuraState(spellID)
             aura.auraInstanceID = aura.auraInstanceID or iid
             break
         end
+    end
+
+    -- 1b. the viewer said the buff is up but gave no numbers: that verdict is
+    --     still better than nothing, so keep it rather than reporting absent.
+    if not aura and vst and vst.active then
+        return vst
     end
 
     -- 2. name match: carries the out-of-combat case, where the client still

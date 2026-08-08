@@ -262,6 +262,40 @@ function TomoMod_DataKeys.GetDungeonName(mapID)
 end
 
 --- Get short dungeon abbreviation
+-- The static table is indexed by challengeMapID, and Blizzard issues a NEW id
+-- when a dungeon returns in a later season: Midnight's Skyreach came back
+-- under an id this table still described as Bloodmaul Slag Mines, so the
+-- scoreboard printed "BSM" and offered a teleport the player does not own.
+--
+-- The client's name is authoritative. When it disagrees with the row, the row
+-- is stale for that id and the real one is found by name.
+local byName
+
+local function NormalizeName(name)
+    if type(name) ~= "string" then return nil end
+    return (name:lower():gsub("[^%w]", ""))
+end
+
+local function BuildNameIndex()
+    byName = {}
+    for _, entry in pairs(DB) do
+        local key = NormalizeName(entry[1])
+        if key and byName[key] == nil then byName[key] = entry end
+    end
+end
+
+--- The row that actually describes this map, id drift included.
+local function ResolveEntry(mapID)
+    local entry = DB[mapID]
+    local live  = TomoMod_DataKeys.GetDungeonName(mapID)
+    if not live then return entry end
+    if entry and entry[1] == live then return entry end
+    if not byName then BuildNameIndex() end
+    return byName[NormalizeName(live)] or entry
+end
+
+TomoMod_DataKeys.ResolveEntry = ResolveEntry
+
 function TomoMod_DataKeys.GetShortName(mapID)
     if not mapID then return nil end
     mapID = tonumber(mapID)
@@ -273,8 +307,7 @@ function TomoMod_DataKeys.GetShortName(mapID)
         return cached.short
     end
 
-    -- Check hardcoded DB
-    local entry = DB[mapID]
+    local entry = ResolveEntry(mapID)
     return entry and entry[2] or nil
 end
 
@@ -290,7 +323,7 @@ function TomoMod_DataKeys.GetTeleportSpellID(mapID)
     if not mapID then return nil end
     mapID = tonumber(mapID)
     if not mapID then return nil end
-    local entry = DB[mapID]
+    local entry = ResolveEntry(mapID)
     return entry and entry[3] or nil
 end
 
@@ -367,9 +400,39 @@ local HARDCODED_SEASON = {
 function TomoMod_DataKeys.IsTeleportKnown(spellID)
     spellID = tonumber(spellID)
     if not spellID then return false end
-    if IsPlayerSpell and IsPlayerSpell(spellID) then return true end
-    if IsSpellKnownOrOverridesKnown and IsSpellKnownOrOverridesKnown(spellID) then return true end
-    if IsSpellKnown and IsSpellKnown(spellID) then return true end
+
+    -- Every id worth testing: the one in the table, and its live override.
+    -- Blizzard re-issues a dungeon teleport under a new spell when the dungeon
+    -- returns -- Midnight's Skyreach teleport is cast as "Voie des cieux", not
+    -- the Warlords spell this table still lists.
+    local ids = { spellID }
+    if C_SpellBook and C_SpellBook.FindSpellOverrideByID then
+        local ok, ov = pcall(C_SpellBook.FindSpellOverrideByID, spellID)
+        if ok and tonumber(ov) and ov ~= spellID then ids[#ids + 1] = tonumber(ov) end
+    end
+
+    for _, id in ipairs(ids) do
+        -- C_SpellBook.IsSpellKnownOrInSpellBook is the current test and the
+        -- one that answers for achievement-granted teleports. The globals
+        -- below are the legacy path, kept for older clients.
+        if C_SpellBook then
+            if C_SpellBook.IsSpellKnownOrInSpellBook then
+                local ok, r = pcall(C_SpellBook.IsSpellKnownOrInSpellBook, id)
+                if ok and r then return true end
+            end
+            if C_SpellBook.IsSpellInSpellBook then
+                local ok, r = pcall(C_SpellBook.IsSpellInSpellBook, id)
+                if ok and r then return true end
+            end
+            if C_SpellBook.IsSpellKnown then
+                local ok, r = pcall(C_SpellBook.IsSpellKnown, id)
+                if ok and r then return true end
+            end
+        end
+        if IsPlayerSpell and IsPlayerSpell(id) then return true end
+        if IsSpellKnownOrOverridesKnown and IsSpellKnownOrOverridesKnown(id) then return true end
+        if IsSpellKnown and IsSpellKnown(id) then return true end
+    end
     return false
 end
 

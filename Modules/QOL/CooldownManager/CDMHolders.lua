@@ -151,6 +151,47 @@ function H.SetPosition(key, x, y)
     H.ApplyPosition(key)
 end
 
+--- Masquage individuel d'un viewer.
+--- Les icônes sont ancrées au holder, jamais reparentées (voir l'en-tête) :
+--- masquer le holder ne les cacherait donc pas. On agit sur le viewer Blizzard
+--- lui-même, mais uniquement via l'alpha et la souris -- ni l'un ni l'autre
+--- n'est protégé, contrairement à Show/Hide/SetParent que ce module s'interdit.
+function H.IsViewerHidden(key)
+    local db = GetCDMDB()
+    local t = db and db.hiddenViewers
+    return (t and t[key]) and true or false
+end
+
+function H.SetViewerHidden(key, hidden)
+    local db = GetCDMDB()
+    if not db then return end
+    db.hiddenViewers = db.hiddenViewers or {}
+    db.hiddenViewers[key] = hidden and true or nil
+    H.ApplyViewerVisibility()
+end
+
+--- Applique l'état masqué/visible des quatre viewers. Idempotent : appelé à
+--- chaque rafraîchissement du module, car Blizzard réinitialise l'alpha de ses
+--- cadres après un rechargement d'Edit Mode.
+function H.ApplyViewerVisibility()
+    for _, def in ipairs(VIEWER_DEFS) do
+        local hidden = H.IsViewerHidden(def.key)
+        local viewer = _G[def.frameName]
+        if viewer then
+            viewer:SetAlpha(hidden and 0 or 1)
+            if viewer.EnableMouse then viewer:EnableMouse(not hidden) end
+        end
+        -- Un viewer masqué n'a plus de repère à déplacer : on retire aussi son
+        -- holder du mode placement, sinon il resterait dans l'Edit Mode
+        -- TomoMod sans rien piloter.
+        local holder = holders[def.key]
+        if holder and hidden then
+            local o = holder._tm_overlay
+            if o then o:Hide() end
+        end
+    end
+end
+
 function H.ApplyPosition(key)
     local holder = holders[key]
     if not holder then return end
@@ -208,6 +249,7 @@ local function EnsureOverlay(holder)
     label:SetTextColor(1, 1, 1)
     label:SetText(holder._tm_label or "CDM")
     o._label = label
+    holder._tm_overlay = o
 
     local hint = o:CreateFontString(nil, "OVERLAY")
     hint:SetFont(FONT, 9, "OUTLINE")
@@ -516,7 +558,7 @@ function H.SetLocked(locked)
 
     for key, holder in pairs(holders) do
         local o = EnsureOverlay(holder)
-        if isLocked then
+        if isLocked or H.IsViewerHidden(key) then
             o:Hide()
         else
             -- Taille mini pour rester attrapable même vide
@@ -576,9 +618,22 @@ end
 
 --- Miroir d'alpha : quand CooldownManager fade les viewers, on fade aussi
 --- nos holders (placeholders inclus) — sauf en preview (toujours visibles).
+--- Alpha effectif d'un viewer : 0 s'il est masqué individuellement, quelle que
+--- soit la valeur demandée par l'atténuation de combat.
+function H.EffectiveAlpha(viewer, alpha)
+    local holder = holderByFrame[viewer]
+    local key = holder and holder._tm_key
+    if key and H.IsViewerHidden(key) then return 0 end
+    return alpha
+end
+
 function H.MirrorAlpha(viewer, alpha)
     local holder = holderByFrame[viewer]
     if not holder then return end
+    if holder._tm_key and H.IsViewerHidden(holder._tm_key) then
+        holder:SetAlpha(0)
+        return
+    end
     if previewActive then
         holder:SetAlpha(1)
     else
@@ -633,6 +688,7 @@ function H.Initialize()
     end
 
     initialized = true
+    H.ApplyViewerVisibility()
     RegisterWithMovers()
 end
 

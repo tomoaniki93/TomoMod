@@ -902,6 +902,11 @@ local function UpdateAlpha()
                 end
 
                 local applied = shouldHide and 0 or viewerAlpha
+                -- Un viewer masqué individuellement le reste : sans ce filtre,
+                -- la passe d'alpha de combat le ferait réapparaître.
+                if Holders and Holders.EffectiveAlpha then
+                    applied = Holders.EffectiveAlpha(viewer, applied)
+                end
                 viewer:SetAlpha(applied)
                 if Holders then Holders.MirrorAlpha(viewer, applied) end
             end
@@ -918,8 +923,12 @@ local function UpdateAlpha()
         end
         for _, viewer in ipairs(viewers) do
             if viewer then
-                viewer:SetAlpha(alpha)
-                if Holders then Holders.MirrorAlpha(viewer, alpha) end
+                local applied = alpha
+                if Holders and Holders.EffectiveAlpha then
+                    applied = Holders.EffectiveAlpha(viewer, applied)
+                end
+                viewer:SetAlpha(applied)
+                if Holders then Holders.MirrorAlpha(viewer, applied) end
             end
         end
     end
