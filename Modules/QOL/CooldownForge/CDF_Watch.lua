@@ -191,9 +191,11 @@ end
 function CDF.IsAuraActive(spellID)
     spellID = tonumber(spellID)
     if not spellID then return false end
-    local get = C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID
-    if not get then return false end
-    return get(spellID) ~= nil
+    -- Routed through the same registry the tracked-buff entries use:
+    -- GetPlayerAuraBySpellID returns nil for most auras once combat starts, so
+    -- glow-on-aura carried the same blind spot, silently.
+    local st = CDF.GetAuraState and CDF.GetAuraState(spellID)
+    return (st and st.active) and true or false
 end
 
 -- ---------------------------------------------------------------------
@@ -488,21 +490,6 @@ function CDF.AuraCandidates(spellID)
     return out
 end
 
--- Player buff snapshot, rebuilt at most once per frame.
---
--- GetPlayerAuraBySpellID is the obvious lookup and it is what this used to
--- rely on, but measurement says it stops answering once combat starts: 232
--- hits out of combat against 4 across 8029 in-combat evaluations, with every
--- tracked aura flipping to "not found" in the very frame combat began. The
--- index scan is what AuraData.lua uses to drive HoT tracking on the party and
--- raid frames -- code that demonstrably runs all through a fight -- so the
--- scan becomes the primary source here and the direct lookup only a fallback.
---
--- Cost is paid once per frame for the whole bar rather than once per entry:
--- GetTime() is constant within a frame, so the first entry evaluated builds
--- the table and the other six read it.
-local auraSnapTime, auraSnap = -1, {}
-
 -- [MIDNIGHT] aura.spellId goes SECRET in combat: measured 100% readable out
 -- of combat against 6.5% in combat, which is why keying the snapshot by
 -- spellId emptied it the moment a fight started. The enumeration itself was
@@ -515,32 +502,10 @@ local auraSnapTime, auraSnap = -1, {}
 -- payload entirely.
 local activeBySpell, spellByInstance = {}, {}
 
--- [DIAG] The whitelist test. Every aura the payload hands us is counted, and
--- separately whether its spellId came back readable. If in combat the client
--- delivers plenty of auras but almost none with a readable id, the ceiling is
--- Blizzard's and no amount of extra lookup paths will move it.
-CDF.__srcStats = CDF.__srcStats or {}
-CDF.__addStats = CDF.__addStats or { total = 0, readable = 0,
-                                     totalCombat = 0, readableCombat = 0, ids = {} }
-
 local function AuraAdded(aura)
     if type(aura) ~= "table" then return end
     local sid = readableNumber(aura.spellId)
     local iid = readableNumber(aura.auraInstanceID)
-
-    local st = CDF.__addStats
-    local inCombat = (InCombatLockdown() or UnitAffectingCombat("player")) and true or false
-    st.total = st.total + 1
-    if inCombat then st.totalCombat = st.totalCombat + 1 end
-    if sid then
-        st.readable = st.readable + 1
-        if inCombat then
-            st.readableCombat = st.readableCombat + 1
-            -- Which ids the client is willing to name mid-fight: that IS the
-            -- whitelist, observed rather than assumed.
-            st.ids[sid] = (st.ids[sid] or 0) + 1
-        end
-    end
 
     if not (sid and iid) then return end
     spellByInstance[iid] = sid
@@ -575,6 +540,19 @@ function CDF.OnUnitAura(updateInfo)
     if updateInfo.addedAuras then
         for _, a in ipairs(updateInfo.addedAuras) do AuraAdded(a) end
     end
+    if updateInfo.updatedAuraInstanceIDs then
+        -- A buff that merely gains a stack is reported here, never in
+        -- addedAuras: without this, an instance first seen mid-fight was
+        -- never learned at all.
+        local get = C_UnitAuras and C_UnitAuras.GetAuraDataByAuraInstanceID
+        for _, iid in ipairs(updateInfo.updatedAuraInstanceIDs) do
+            local n = readableNumber(iid)
+            if n and spellByInstance[n] == nil and get then
+                local ok, a = pcall(get, "player", n)
+                if ok and a then AuraAdded(a) end
+            end
+        end
+    end
     if updateInfo.removedAuraInstanceIDs then
         for _, iid in ipairs(updateInfo.removedAuraInstanceIDs) do AuraRemoved(iid) end
     end
@@ -593,71 +571,21 @@ local function LiveInstance(spellID)
     return nil
 end
 
-local function PlayerAuraSnapshot()
-    local now = GetTime()
-    if now == auraSnapTime then return auraSnap end
-    auraSnapTime = now
-    for k in pairs(auraSnap) do auraSnap[k] = nil end
-    if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return auraSnap end
-    local seen, keyed = 0, 0
-    for i = 1, 40 do
-        local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
-        if not ok or not aura then break end
-        -- spellId can come back as a secret value in restricted content; the
-        -- guard keeps it out of the table instead of poisoning a comparison.
-        seen = seen + 1
-        local sid = readableNumber(aura.spellId)
-        if sid then
-            keyed = keyed + 1
-            if auraSnap[sid] == nil then auraSnap[sid] = aura end
-        end
-    end
-    -- [DIAG] `seen` counts what the scan enumerated, `keyed` how many of those
-    -- carried a spellId we could read. A large gap means the enumeration is
-    -- fine and the guard above is what empties the table -- i.e. the aura data
-    -- goes secret and keying by spellId is the wrong model to begin with.
-    CDF.__scanStats = CDF.__scanStats or { calls = 0, seen = 0, keyed = 0,
-                                           callsCombat = 0, seenCombat = 0, keyedCombat = 0 }
-    local st = CDF.__scanStats
-    local inCombat = (InCombatLockdown() or UnitAffectingCombat("player")) and true or false
-    st.calls, st.seen, st.keyed = st.calls + 1, st.seen + seen, st.keyed + keyed
-    if inCombat then
-        st.callsCombat = st.callsCombat + 1
-        st.seenCombat  = st.seenCombat + seen
-        st.keyedCombat = st.keyedCombat + keyed
-    end
-    st.lastSeen, st.lastKeyed, st.lastCombat = seen, keyed, inCombat
-    return auraSnap
-end
-
 function CDF.GetAuraState(spellID)
     spellID = tonumber(spellID)
     if not spellID then return nil end
-    local get = C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID
-    if not get then return nil end
 
     local cands = CDF.AuraCandidates(spellID) or { spellID }
     local aura, matched
 
-    -- [DIAG] Which of the four sources actually answers. `try` counts the
-    -- times a source was REACHED, `hit` the times it produced an aura. The
-    -- open question is whether the direct lookup works when it gets its turn:
-    -- it runs third, so anything the first two consume never reaches it, and
-    -- "never succeeds" and "never asked" look identical from the outside.
-    local inCombat = (InCombatLockdown() or UnitAffectingCombat("player")) and true or false
-    local function note(src, hit)
-        local S = CDF.__srcStats
-        local e = S[src]; if not e then e = { try=0, hit=0, tryC=0, hitC=0 }; S[src] = e end
-        e.try = e.try + 1
-        if inCombat then e.tryC = e.tryC + 1 end
-        if hit then
-            e.hit = e.hit + 1
-            if inCombat then e.hitC = e.hitC + 1 end
-        end
-    end
+    -- Two sources, measured over ~12 700 evaluations each. The instance
+    -- registry scored 583 hits, ALL of them in combat; the name match 323,
+    -- all but two out of combat. They are complementary, and each is useless
+    -- where the other works. The HELPFUL index scan (5 hits) and
+    -- GetPlayerAuraBySpellID (2 hits) were dropped: the direct call never
+    -- errors, it simply returned nil 19 143 times in combat.
 
-    -- 1. the instance registry: the only source that survives spellId going
-    --    secret, because the lookup is done by instance id.
+    -- 1. instance registry: the source that works during a fight.
     for _, id in ipairs(cands) do
         local iid, res = LiveInstance(id)
         if iid then
@@ -667,50 +595,16 @@ function CDF.GetAuraState(spellID)
             break
         end
     end
-    note("registre", aura ~= nil)
 
-    -- 2. the per-frame scan.
-    if not aura then
-        local snap = PlayerAuraSnapshot()
-        for _, id in ipairs(cands) do
-            local res = snap[id]
-            if res then aura, matched = res, id; break end
-        end
-        note("scan", aura ~= nil)
-    end
-
-    -- 3. direct lookup, for anything the HELPFUL scan does not enumerate.
-    if not aura then
-        -- Counted apart: an error, a nil return, and a value we accept look
-        -- identical in a plain hit/miss tally but mean three different things.
-        local S = CDF.__srcStats
-        S.directDetail = S.directDetail or { err=0, nilRet=0, value=0, errC=0, nilC=0, valueC=0 }
-        local d = S.directDetail
-        for _, id in ipairs(cands) do
-            local ok, res = pcall(get, id)
-            if not ok then
-                d.err = d.err + 1; if inCombat then d.errC = d.errC + 1 end
-            elseif res == nil then
-                d.nilRet = d.nilRet + 1; if inCombat then d.nilC = d.nilC + 1 end
-            else
-                d.value = d.value + 1; if inCombat then d.valueC = d.valueC + 1 end
-                aura, matched = res, id
-                break
-            end
-        end
-        note("direct", aura ~= nil)
-    end
-    -- Last resort: match by name. Some auras carry an id that appears in no
-    -- link and under no override -- the name is then the only thing still
-    -- tying the ability to the buff it puts on you.
-    if not aura and C_UnitAuras.GetAuraDataBySpellName
+    -- 2. name match: carries the out-of-combat case, where the client still
+    --    names auras freely.
+    if not aura and C_UnitAuras and C_UnitAuras.GetAuraDataBySpellName
        and C_Spell and C_Spell.GetSpellName then
         local okN, name = pcall(C_Spell.GetSpellName, spellID)
         if okN and type(name) == "string" and name ~= "" then
             local okA, res = pcall(C_UnitAuras.GetAuraDataBySpellName, "player", name, "HELPFUL")
             if okA and res then aura, matched = res, spellID end
         end
-        note("nom", aura ~= nil)
     end
 
     if not aura then return { active = false } end

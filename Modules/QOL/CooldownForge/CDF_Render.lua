@@ -339,12 +339,18 @@ local function applyEntry(icon, resolved, state, bar)
     local auraID = CDF.EntryAuraID and CDF.EntryAuraID(resolved and resolved._entry, resolved)
     if auraID then
         local a = CDF.GetAuraState and CDF.GetAuraState(auraID)
-        if a and a.active and a.durationObject and icon.cd.SetCooldownFromDurationObject then
-            -- Preferred: no arithmetic on values that may be secret.
+        -- Numbers first when they are readable. The duration object handed
+        -- back by C_UnitAuras.GetAuraDuration is not the same shape as the one
+        -- Cooldown:SetCooldownFromDurationObject consumes, so passing it
+        -- succeeded silently and drew nothing -- an entry reporting readable
+        -- duration and expiration still showed no swipe and no countdown.
+        -- The object is now only the fallback, for when the raw fields are
+        -- secret and there is nothing else to try.
+        if a and a.active and a.timed then
+            icon.cd:SetCooldown(a.expirationTime - a.duration, a.duration)
+        elseif a and a.active and a.durationObject and icon.cd.SetCooldownFromDurationObject then
             local okD = pcall(icon.cd.SetCooldownFromDurationObject, icon.cd, a.durationObject)
             if not okD then icon.cd:Clear() end
-        elseif a and a.active and a.timed then
-            icon.cd:SetCooldown(a.expirationTime - a.duration, a.duration)
         else
             icon.cd:Clear()
         end
@@ -555,48 +561,6 @@ end
 -- [S9] Two independent filters now: hideOnCooldown drops what is running,
 -- hideOnUnusable drops what the player cannot currently afford. Kept in one
 -- place so readySignature and layoutBar can never drift apart.
--- [DIAG] Transition log. A single /tm forge is a snapshot, and a proc that is
--- consumed and reapplied several times a second is almost impossible to catch
--- that way. This records every active/inactive flip the engine actually SEES,
--- with the combat state at that moment, so "the engine never saw it go active
--- in combat" and "it saw it but did not draw it" stop looking alike.
-CDF.__auraLog = CDF.__auraLog or {}
-local AURA_LOG_MAX = 40
-local auraSeen = setmetatable({}, { __mode = "k" })
-
--- [DIAG] The transition log only records CHANGES, so a silent stretch is
--- ambiguous: either the entries stopped being evaluated, or they were
--- evaluated and the aura was simply never found. These counters separate the
--- two, which is the whole remaining question.
-CDF.__auraStats = CDF.__auraStats or { calls = 0, found = 0, lastCall = 0, lastFound = 0,
-                                       callsCombat = 0, foundCombat = 0 }
-
-local function CountAuraEval(active)
-    local st = CDF.__auraStats
-    local inCombat = (InCombatLockdown() or UnitAffectingCombat("player")) and true or false
-    st.calls = st.calls + 1
-    st.lastCall = GetTime()
-    if inCombat then st.callsCombat = st.callsCombat + 1 end
-    if active then
-        st.found = st.found + 1
-        st.lastFound = GetTime()
-        if inCombat then st.foundCombat = st.foundCombat + 1 end
-    end
-end
-
-local function LogAuraFlip(entry, auraID, active)
-    if auraSeen[entry] == active then return end
-    auraSeen[entry] = active
-    local log = CDF.__auraLog
-    log[#log + 1] = {
-        t      = GetTime(),
-        id     = auraID,
-        active = active,
-        combat = (InCombatLockdown() or UnitAffectingCombat("player")) and true or false,
-    }
-    while #log > AURA_LOG_MAX do table.remove(log, 1) end
-end
-
 local function entryShown(bar, r, state, entry)
     -- [G4] A tracked-buff entry only exists on screen while its aura is up.
     -- This runs before the cooldown filters: an absent proc is not "ready",
@@ -604,10 +568,7 @@ local function entryShown(bar, r, state, entry)
     local auraID = CDF.EntryAuraID and CDF.EntryAuraID(entry, r)
     if auraID then
         local a = CDF.GetAuraState and CDF.GetAuraState(auraID)
-        local active = (a and a.active) and true or false
-        CountAuraEval(active)
-        LogAuraFlip(entry, auraID, active)
-        if not active then return false end
+        if not (a and a.active) then return false end
         return true
     end
     if bar.hideOnCooldown and not CDF.IsReady(r, state) then return false end
@@ -869,70 +830,6 @@ function CDF.DumpAura(class)
                 tostring(a and a.active), tostring(a and a.timed),
                 tostring(a and a.applications)))
         end
-    end
-end
-
--- Prints the recorded transitions. `combat=true` on an `actif` line proves the
--- engine saw the buff land during combat.
-function CDF.DumpAuraLog()
-    local P = "|cff2ed884TomoMod|r "
-    local log = CDF.__auraLog or {}
-    if #log == 0 then
-        print(P .. "aucune transition enregistree (joue quelques secondes puis relance)")
-        return
-    end
-    local now = GetTime()
-    local st = CDF.__auraStats or {}
-    print(P .. ("evaluations=%d (dont %d en combat)  trouvees=%d (dont %d en combat)")
-        :format(st.calls or 0, st.callsCombat or 0, st.found or 0, st.foundCombat or 0))
-    print(P .. ("derniere evaluation il y a %.1fs  /  derniere aura trouvee il y a %s")
-        :format(now - (st.lastCall or now),
-                (st.lastFound and st.lastFound > 0) and ("%.1fs"):format(now - st.lastFound) or "jamais"))
-    local sc = CDF.__scanStats
-    if sc then
-        print(P .. ("scan: %d balayages, %d auras vues, %d avec spellID lisible")
-            :format(sc.calls or 0, sc.seen or 0, sc.keyed or 0))
-        print(P .. ("     en combat: %d balayages, %d vues, %d lisibles  /  dernier: %d vues, %d lisibles (combat=%s)")
-            :format(sc.callsCombat or 0, sc.seenCombat or 0, sc.keyedCombat or 0,
-                    sc.lastSeen or 0, sc.lastKeyed or 0, tostring(sc.lastCombat)))
-    end
-    local ad = CDF.__addStats
-    if ad then
-        print(P .. ("payload UNIT_AURA: %d auras recues, %d avec spellID lisible")
-            :format(ad.total or 0, ad.readable or 0))
-        print(P .. ("     EN COMBAT: %d recues, %d lisibles  <-- le test de liste blanche")
-            :format(ad.totalCombat or 0, ad.readableCombat or 0))
-        local list, n = {}, 0
-        for id, c in pairs(ad.ids or {}) do n = n + 1; list[n] = id .. "x" .. c end
-        table.sort(list)
-        if n > 0 then
-            print(P .. ("     IDs nommes en combat (%d) : %s"):format(n, table.concat(list, " ")))
-        else
-            print(P .. "     aucun ID nomme en combat")
-        end
-    end
-    local sr = CDF.__srcStats
-    if sr then
-        print(P .. "source            essais / succes       en combat")
-        for _, k in ipairs({ "registre", "scan", "direct", "nom" }) do
-            local e = sr[k]
-            if e then
-                print(P .. ("  %-12s %7d / %-7d %7d / %d")
-                    :format(k, e.try, e.hit, e.tryC, e.hitC))
-            end
-        end
-        local d = sr.directDetail
-        if d then
-            print(P .. ("  direct en detail: erreurs=%d nil=%d valeur=%d  (combat: %d / %d / %d)")
-                :format(d.err, d.nilRet, d.value, d.errC, d.nilC, d.valueC))
-        end
-    end
-    print(P .. ("--- %d transitions d'aura (la plus recente en dernier) ---"):format(#log))
-    for i = 1, #log do
-        local e = log[i]
-        print(("%s  -%.1fs  aura=%s  %s  combat=%s"):format(
-            P, now - e.t, tostring(e.id),
-            e.active and "ACTIF" or "inactif", tostring(e.combat)))
     end
 end
 

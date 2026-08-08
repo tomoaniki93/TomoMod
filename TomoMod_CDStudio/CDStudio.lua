@@ -619,8 +619,11 @@ local function TabSorts(parent)
         if fxE.mode == "aura" then
             _, cy = W.CreateInfoText(card.inner,
                 "L'icone disparait quand le buff est absent et reapparait avec sa duree "
-                .. "restante et ses cumuls. En contenu restreint (Mythique+) la duree peut "
-                .. "etre indisponible : l'icone apparait alors sans minuteur.", cy)
+                .. "restante et ses cumuls.\n\n"
+                .. "Limite du client (Midnight) : en combat, le jeu ne nomme qu'une partie "
+                .. "des auras. Un buff deja actif a l'entree en combat est suivi normalement ; "
+                .. "un proc applique en plein combat n'est parfois pas identifiable et son "
+                .. "icone reste masquee. Ce n'est pas un reglage a chercher.", cy)
             local aBox
             aBox, cy = W.CreateMultiLineEditBox(card.inner, "ID du buff (vide = ID du sort)", 24, cy, {
                 onTextChanged = function(t)
