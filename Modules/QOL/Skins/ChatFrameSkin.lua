@@ -2391,7 +2391,11 @@ end
 
 local function BuildCopyChatFrame()
     local frame = CreateFrame("Frame", "TomoModCopyChatFrame", UIParent, "BackdropTemplate")
-    tinsert(UISpecialFrames, "TomoModCopyChatFrame")
+    -- [fix] Escape captured by the window itself. Going through
+    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
+    -- ClearTarget/SpellStopCasting calls are then refused once anything
+    -- has tainted the path -- and the player can no longer quit.
+    TomoMod_Utils.CloseOnEscape(_G["TomoModCopyChatFrame"])
 
     frame:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8X8",

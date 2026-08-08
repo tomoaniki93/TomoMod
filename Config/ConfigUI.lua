@@ -487,7 +487,11 @@ local function CreateConfigFrame()
     configFrame:SetScript("OnDragStart", configFrame.StartMoving)
     configFrame:SetScript("OnDragStop",  configFrame.StopMovingOrSizing)
     configFrame:Hide()
-    tinsert(UISpecialFrames, "TomoModConfigFrame")
+    -- [fix] Escape captured by the window itself. Going through
+    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
+    -- ClearTarget/SpellStopCasting calls are then refused once anything
+    -- has tainted the path -- and the player can no longer quit.
+    TomoMod_Utils.CloseOnEscape(_G["TomoModConfigFrame"])
 
     -- Restore saved size / scale, enable resizing (bounds clamp saved values)
     local gdb = GuiDB()

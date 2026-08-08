@@ -1,6 +1,6 @@
 ## ####################################
 
-## CHANGELOG 3.3.6 — A Buff That Is Up Stops Looking Exactly Like A Spell That Is Recharging, The Countdown Changes Colour Before The Spell Comes Back, The Icon Text Stops Being Locked To One Font, One Outline And One Size, Glow Learns To Wait For Every Charge Or For A Stack Count You Name, And An Entry Can Belong To A Talent Instead Of To A Class
+## CHANGELOG 3.3.6 — A Buff That Is Up Stops Looking Exactly Like A Spell That Is Recharging, The Countdown Changes Colour Before The Spell Comes Back, The Icon Text Stops Being Locked To One Font, One Outline And One Size, Glow Learns To Wait For Every Charge Or For A Stack Count You Name, An Entry Can Belong To A Talent Instead Of To A Class, Unit Frame Auras Can Grow Upwards Instead Of Only Downwards, The Mythic+ Scoreboard Stops Being The One Screen In The Addon With A Colour Scheme Of Its Own, Escape Stops Being Able To Lock You Out Of The Game Menu, Edit Mode's Second Status Bar Finally Gets A Switch, And A Spell Dropped Onto A Bar Actually Appears On It
 
 #### CooldownForge — A Buff That Is Up Looked Exactly Like A Spell That Is Recharging
 
@@ -40,6 +40,44 @@
 - **Internal** — The check runs in `CDF.IsEntryVisible`, beside the specialisation filter and before the kind-specific tests. A talent condition is about whether the entry belongs in this build at all, not about what it points to, so it belongs at the same level as the spec gate.
 - **Fix** — Swapping loadouts fires `ACTIVE_TALENT_GROUP_CHANGED`, not `TRAIT_CONFIG_UPDATED`, and only the latter was registered. Without the first, a talent condition — and the aura link map rebuilt on the same signal since 3.3.5 — would keep answering with the previous build until something unrelated forced a layout. Both it and `TRAIT_CONFIG_LIST_UPDATED` now invalidate and refresh.
 - **Note** — Entries with no talent condition are untouched, which is all of them until you set one. The condition is stored per entry and travels with a bar's import/export string.
+
+#### Unit Frames — Auras Only Ever Grew Downwards
+
+- **New** — A *vertical direction* setting sits beside the existing growth direction on every unit's Auras tab: rows fall downwards, as they always have, or stack upwards. The horizontal choice already covered left and right; the vertical one was a constant, so a frame sitting low on the screen had a second row of debuffs walking off the bottom of it with no setting anywhere to stop that.
+- **Change** — Downwards stays the default, and it is stored as nothing at all rather than as an explicit value. Every profile you already have therefore keeps its exact layout without a migration pass, and a profile that never touches the setting stays as small as it was.
+- **Internal** — Growing up anchors the icons from the container's bottom edge instead of its top and walks the rows the other way. The container's own anchor is not touched, so the frame it belongs to does not move — the aura block grows away from the frame in the direction you asked for rather than dragging anything with it.
+- **Internal** — The anchor point is composed from the two axes rather than enumerated. `TOP`/`BOTTOM` comes from the new setting and `LEFT`/`RIGHT` from the old one, so the four combinations exist because the pair exists, not because four branches were written out — and adding a third axis later does not double the branch count again.
+
+#### Mythic+ — The Scoreboard Was The One Screen With Colours Of Its Own
+
+- **Change** — The end-of-run scoreboard takes its colours from the shared TomoMod theme. It was carrying a standalone palette from before it was folded into the addon: a cyan accent where the rest of the suite is green, and a blue-tinted background where the rest is neutral. It was the only surface in TomoMod that did not match the others, so it read as a different product wearing the same name.
+- **Change** — Three palette entries were named after the colour they used to be — `BORDER_TEAL`, `BAR_TEAL`, `TEXT_TEAL`. They are `BORDER_ACCENT`, `BAR_ACCENT` and `TEXT_ACCENT` now. A name that describes a specific colour is a name that starts lying the first time the colour is changed, which is exactly what happened here.
+- **Internal** — The theme is read from `TomoMod_Widgets.Theme`, which the TOC loads at line 49 against the scoreboard's line 79, so it is always present. The old literals are kept as per-entry fallbacks rather than as a second palette: they answer only if the theme table is missing entirely, and they hold the theme's values, not the previous cyan ones — a fallback that renders something different from the real thing is a fallback that hides the fault it exists to survive.
+- **Note** — Two colours are deliberately not derived from the accent. The "in time" bar and its text stay their own green: on a panel whose borders, headers and highlights are all brand green, an "in time" indicator painted the same green stops being an indicator.
+- **Note** — The Mythic+ run tracker, the panel on screen during a key, still carries its own cyan set and is unchanged by this. The two are visible in the same run, so they will not match until it gets the same treatment.
+
+#### Windows — Escape Could Stop Opening The Game Menu Entirely
+
+- **Fix** — Eight windows closed on Escape by registering themselves in Blizzard's `UISpecialFrames`. That list is walked by `ToggleGameMenu`, which then calls the protected `SpellStopCasting()`, `SpellStopTargeting()` and `ClearTarget()`. Once anything in the session has tainted that execution path, all three are refused with `ADDON_ACTION_FORBIDDEN` and the game menu never opens — so Escape stops working and the player cannot quit without alt-F4. The windows now capture Escape themselves and never touch `ToggleGameMenu`.
+- **Change** — The affected windows are the settings panel, the installer, the loot window, the Mythic+ hub, the end-of-run scoreboard, the profession helper, the bag skin and the chat copy window.
+- **Internal** — This was already solved once, in Cooldown Studio in 3.2.2, and again in the What's New popup in 3.2.6, each with its own copy of the handler. The logic is now `TomoMod_Utils.CloseOnEscape(frame, onEscape)` and the eight windows share it. Escape is consumed, every other key propagates so game shortcuts keep working.
+- **Note** — `SetPropagateKeyboardInput` is itself a protected call, so the handler stands down in combat: on these eight windows Escape no longer closes them mid-fight, and every key propagates normally instead. That is the deliberate trade — a keypress that throws `ADDON_ACTION_BLOCKED` on every press is worse than a window you close with its own button.
+- **Note** — Four hand-written copies of the same handler remain, in Cooldown Studio, the What's New popup and the two profile dialogs. They work; they simply have not been moved onto the shared helper yet.
+
+#### Status Bars — Edit Mode's Second Status Bar Could Not Be Hidden
+
+- **New** — *Hide Blizzard Status Bar 2*, in QOL → Automations. Edit Mode's second status bar is a sibling of the main container rather than a child of it, so the existing suppression — which walks the main container's tree — never reached it and there was no setting anywhere that did.
+- **Change** — The suppression machinery no longer names its targets in the code. A single function returns the list of containers to blank from the settings that govern them, and both the reputation bar and the new option feed it, so the second bar reuses the taint-safe path rather than getting its own copy of it.
+- **Fix** — The `StatusTrackingBarManager.UpdateBarsShown` hook was installed on every call to the suppression pass rather than once. It is now guarded by a flag, and it re-reads the target list on each run so a setting can take effect without a reload.
+- **Internal** — Blanking is done with `SetAlpha(0)` and `EnableMouse(false)`, never `Hide()`. The container is touched by Blizzard's secure code, and forcing its shown state is what propagates taint — the frame stays logically shown and simply cannot be seen or clicked.
+- **Note** — Blizzard still owns the bar, so it remains visible and movable in Edit Mode. Unticking the option does not bring it back until a reload.
+
+#### Action Bars — A Spell Dragged Onto A Bar Stayed Invisible
+
+- **Fix** — With *show empty button slots* off, dropping a spell into an empty slot left the button blank. The spell was there and cast when clicked, but nothing was drawn on it until a reload. Dropping onto a bar also blanked the slots that had just been revealed for the drag, so the rest of the row went invisible on the way out.
+- **Internal** — The cause is the ownership handover made when empty slots stopped being `Hide()`n and started being blanked with alpha, in the taint fix of 3.3.5. Blizzard's own `SetShown()` used to undo our `Hide()` the moment an action appeared, so nothing in this module ever had to notice a slot changing. Alpha is ours, Blizzard does not reset it, and the duty that came with taking it was not picked up.
+- **Change** — The empty pass is re-run on `ACTIONBAR_SLOT_CHANGED`, on `ACTIONBAR_PAGE_CHANGED` and `UPDATE_BONUS_ACTIONBAR` — paging and stance bars change what a button points at without any slot changing — on `PLAYER_ENTERING_WORLD`, and once more after a drag ends.
+- **Internal** — Costs nothing in combat: the pass already queues itself behind `PLAYER_REGEN_ENABLED` when locked down, and the queue is keyed per bar, so a burst of slot changes mid-fight collapses to one refresh per bar when the fight ends.
 
 ## ####################################
 

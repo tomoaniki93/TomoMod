@@ -207,7 +207,11 @@ function HUB:Build()
     F:SetScript("OnDragStop",  function(s) s:StopMovingOrSizing() end)
     F:Hide()
 
-    tinsert(UISpecialFrames, "TomoMod_MythicHubFrame")
+    -- [fix] Escape captured by the window itself. Going through
+    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
+    -- ClearTarget/SpellStopCasting calls are then refused once anything
+    -- has tainted the path -- and the player can no longer quit.
+    TomoMod_Utils.CloseOnEscape(_G["TomoMod_MythicHubFrame"])
 
     -- Background
     local bg = F:CreateTexture(nil, "BACKGROUND")

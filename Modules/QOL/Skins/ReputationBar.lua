@@ -66,10 +66,32 @@ end
 -- logically (no state mismatch for Blizzard), but is visually invisible.
 -- EnableMouse(false) prevents it from eating clicks.
 local _tmHiddenRepFrames = {}
+-- The manager hook must be installed once, not once per call.
+local _tmBarsHooked = false
+
+-- Which containers to suppress, and the setting that governs each. The
+-- machinery below is entirely target-agnostic, so the second status bar reuses
+-- it rather than getting its own copy of the taint-safe dance.
+local function suppressTargets()
+    local out = {}
+    local db  = TomoModDB and TomoModDB.reputationBar
+    if db and db.hideBlizzRepBar then
+        out[#out + 1] = "ReputationWatchBar"
+        out[#out + 1] = "MainStatusTrackingBarContainer"
+        out[#out + 1] = "MainStatusTrackingBarContainer2"
+    end
+    -- Edit Mode calls this one "Status Bar 2"; it is a sibling of the main
+    -- container, not a child, so hiding the main one never touched it.
+    local sb2 = TomoModDB and TomoModDB.hideStatusBar2
+    if sb2 and sb2.enabled then
+        out[#out + 1] = "SecondaryStatusTrackingBarContainer"
+    end
+    return out
+end
 
 local function SuppressBlizzRepBar()
-    local db = TomoModDB and TomoModDB.reputationBar
-    if not db or not db.hideBlizzRepBar then return end
+    local targets = suppressTargets()
+    if #targets == 0 then return end
 
     local function tryHide(f)
         if not f or f._tmRepHidden then return end
@@ -105,19 +127,25 @@ local function SuppressBlizzRepBar()
         end
     end
 
-    tryHideTree(_G["ReputationWatchBar"])
-    tryHideTree(_G["MainStatusTrackingBarContainer"])
-    tryHideTree(_G["MainStatusTrackingBarContainer2"])
+    for _, name in ipairs(targets) do tryHideTree(_G[name]) end
 
-    if StatusTrackingBarManager and StatusTrackingBarManager.UpdateBarsShown then
+    if StatusTrackingBarManager and StatusTrackingBarManager.UpdateBarsShown
+       and not _tmBarsHooked then
+        _tmBarsHooked = true
         hooksecurefunc(StatusTrackingBarManager, "UpdateBarsShown", function()
-            -- Re-hide the containers' whole child tree: bars are pooled/recreated
-            -- by Blizzard, so new bar frames can appear after this point.
-            tryHideTree(_G["ReputationWatchBar"])
-            tryHideTree(_G["MainStatusTrackingBarContainer"])
-            tryHideTree(_G["MainStatusTrackingBarContainer2"])
+            -- Re-hide the whole child tree: bars are pooled and recreated by
+            -- Blizzard, so new frames can appear after this point. The target
+            -- list is read again here so toggling a setting takes effect
+            -- without a reload.
+            for _, name in ipairs(suppressTargets()) do tryHideTree(_G[name]) end
         end)
     end
+end
+
+--- Re-apply the suppression. Called by the options so a checkbox takes effect
+--- at once; frames already hidden are skipped by their own guard.
+function TomoMod_ReputationBar_ApplySuppression()
+    SuppressBlizzRepBar()
 end
 
 -- =====================================

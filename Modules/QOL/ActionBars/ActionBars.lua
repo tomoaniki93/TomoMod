@@ -799,11 +799,38 @@ local GRID_DRAG_TYPES = {
     petaction = true, companion = true, flyout = true,
 }
 
+-- [FIX] A slot's contents changing must re-run the empty pass.
+--
+-- This module used to call btn:Hide() on an empty slot, and Blizzard undid it
+-- through its own SetShown() as soon as an action appeared -- so nothing here
+-- had to listen. Blanking with alpha took that ownership away from Blizzard
+-- without taking on the duty that came with it: a spell dragged into a bar
+-- landed on a button still at alpha 0 and stayed invisible until a reload,
+-- and dropping onto a bar blanked the empty slots for good.
+local function RefreshAllEmptyButtons()
+    for _, def in ipairs(AB.BAR_DEFS) do
+        if not def.noAction then UpdateEmptyButtons(def.id) end
+    end
+end
+
 local emptyGridFrame = CreateFrame("Frame")
 emptyGridFrame:RegisterEvent("ACTIONBAR_SHOWGRID")
 emptyGridFrame:RegisterEvent("ACTIONBAR_HIDEGRID")
 emptyGridFrame:RegisterEvent("CURSOR_CHANGED")
+-- A slot gained or lost an action.
+emptyGridFrame:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+-- Paging and stance/bonus bars swap which action each button points at, so a
+-- button can go from filled to empty without any slot changing.
+emptyGridFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
+emptyGridFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+emptyGridFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 emptyGridFrame:SetScript("OnEvent", function(_, event)
+    if event == "ACTIONBAR_SLOT_CHANGED" or event == "ACTIONBAR_PAGE_CHANGED"
+       or event == "UPDATE_BONUS_ACTIONBAR" or event == "PLAYER_ENTERING_WORLD" then
+        -- UpdateEmptyButtons queues itself when locked down, so combat is safe.
+        RefreshAllEmptyButtons()
+        return
+    end
     if event == "ACTIONBAR_SHOWGRID" then
         SetEmptyGridRevealed(true)
     elseif event == "CURSOR_CHANGED" then
@@ -819,6 +846,9 @@ emptyGridFrame:SetScript("OnEvent", function(_, event)
         -- Nested SHOWGRID/HIDEGRID: only hide once the cursor is actually clear.
         if GetCursorInfo() then return end
         SetEmptyGridRevealed(false)
+        -- The drop may have filled a slot; re-evaluate rather than leaving
+        -- every revealed button blanked.
+        RefreshAllEmptyButtons()
     end
 end)
 

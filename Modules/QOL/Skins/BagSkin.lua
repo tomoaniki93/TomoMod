@@ -1425,8 +1425,11 @@ local function CreateBagFrame()
         end
     end)
 
-    -- Register as special frame for Escape close
-    tinsert(UISpecialFrames, "TomoMod_BagSkin_Main")
+    -- [fix] Escape captured by the window itself. Going through
+    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
+    -- ClearTarget/SpellStopCasting calls are then refused once anything
+    -- has tainted the path -- and the player can no longer quit.
+    TomoMod_Utils.CloseOnEscape(_G["TomoMod_BagSkin_Main"])
 
     f:Hide()
     bagFrame = f

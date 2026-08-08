@@ -34,6 +34,34 @@ U.BRAND_DARK  = { 0.110, 0.541, 0.333 }     -- darker shade for pressed states
 -- nothing (or threw). These helpers resolve the edit box on both the old
 -- and the new shape, plus the global-name fallback that still works.
 
+--- Close a window on Escape WITHOUT UISpecialFrames.
+---
+--- Registering a frame in UISpecialFrames routes Escape through Blizzard's
+--- ToggleGameMenu, which then calls the protected SpellStopCasting(),
+--- SpellStopTargeting() and ClearTarget(). If any addon has tainted the
+--- execution by then, all three are refused with ADDON_ACTION_FORBIDDEN and
+--- the game menu never opens -- the player simply cannot quit with Escape.
+---
+--- ForgeStudio.lua already solved this; this is the same fix, factored out so
+--- every window shares one implementation instead of nine copies.
+---
+--- Escape is consumed, every other key propagates so game shortcuts keep
+--- working. SetPropagateKeyboardInput is itself protected, hence the combat
+--- guard: in combat all keys propagate and the window stays open.
+function U.CloseOnEscape(frame, onEscape)
+    if type(frame) ~= "table" or not frame.EnableKeyboard then return end
+    frame:EnableKeyboard(true)
+    frame:SetScript("OnKeyDown", function(self, key)
+        if InCombatLockdown() then return end
+        if key == "ESCAPE" then
+            self:SetPropagateKeyboardInput(false)
+            if onEscape then onEscape(self) else self:Hide() end
+        else
+            self:SetPropagateKeyboardInput(true)
+        end
+    end)
+end
+
 --- Returns the edit box of a StaticPopup dialog, or nil.
 function U.PopupEditBox(dialog)
     if not dialog then return nil end

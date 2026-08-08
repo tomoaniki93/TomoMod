@@ -218,6 +218,12 @@ TomoMod_Defaults = {
     hideTalkingHead = {
         enabled = false,
     },
+    -- Edit Mode's "Status Bar 2". Suppressed by alpha, never Hide(): the
+    -- container is touched by Blizzard's secure code and forcing its shown
+    -- state propagates taint.
+    hideStatusBar2 = {
+        enabled = false,
+    },
     fastLoot = {
         enabled = true,
     },

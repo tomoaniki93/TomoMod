@@ -767,7 +767,11 @@ local function BuildFrame()
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
     frame:Hide()
-    tinsert(UISpecialFrames, "TomoModInstallerFrame")
+    -- [fix] Escape captured by the window itself. Going through
+    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
+    -- ClearTarget/SpellStopCasting calls are then refused once anything
+    -- has tainted the path -- and the player can no longer quit.
+    TomoMod_Utils.CloseOnEscape(_G["TomoModInstallerFrame"])
 
     -- ── HEADER ─────────────────────────────────────────────
     local hBar = CreateFrame("Frame", nil, frame)

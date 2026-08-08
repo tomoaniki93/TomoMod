@@ -96,6 +96,18 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
+    -- Hide Blizzard Status Bar 2
+    local _, ny = W.CreateCheckbox(c, L["opt_hide_status_bar2"],
+        TomoModDB.hideStatusBar2.enabled, y, function(v)
+            TomoModDB.hideStatusBar2.enabled = v
+            if v and TomoMod_ReputationBar_ApplySuppression then
+                TomoMod_ReputationBar_ApplySuppression()
+            end
+        end)
+    y = ny
+    local _, ny = W.CreateInfoText(c, L["opt_hide_status_bar2_desc"], y)
+    y = ny
+
     -- Auto Accept Invite
     local _, ny = W.CreateSeparator(c, y)
     y = ny

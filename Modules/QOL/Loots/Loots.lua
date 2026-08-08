@@ -427,7 +427,11 @@ function LOOTS:Build()
     end)
     F:SetPoint("CENTER")
     F:Hide()
-    tinsert(UISpecialFrames, "TomoMod_LootsFrame")
+    -- [fix] Escape captured by the window itself. Going through
+    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
+    -- ClearTarget/SpellStopCasting calls are then refused once anything
+    -- has tainted the path -- and the player can no longer quit.
+    TomoMod_Utils.CloseOnEscape(_G["TomoMod_LootsFrame"])
 
     Bg(F, unpack(C.BG))
     Borders(F, C.BORDER[1], C.BORDER[2], C.BORDER[3], C.BORDER[4])

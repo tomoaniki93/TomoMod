@@ -781,8 +781,11 @@ local function BuildMainFrame()
     statusText:SetText(L["ph_status_idle"])
     f.statusText = statusText
 
-    -- ESC to close
-    tinsert(UISpecialFrames, f:GetName())
+    -- [fix] Escape captured by the window itself. Going through
+    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
+    -- ClearTarget/SpellStopCasting calls are then refused once anything
+    -- has tainted the path -- and the player can no longer quit.
+    TomoMod_Utils.CloseOnEscape(f)
 
     -- Register events for auto-refresh
     -- [PERF] Debounce flag prevents multiple timers from accumulating on rapid BAG_UPDATE bursts
