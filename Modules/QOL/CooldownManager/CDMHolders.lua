@@ -648,9 +648,24 @@ end
 --- nos holders (placeholders inclus) — sauf en preview (toujours visibles).
 --- Alpha effectif d'un viewer : 0 s'il est masqué individuellement, quelle que
 --- soit la valeur demandée par l'atténuation de combat.
-function H.EffectiveAlpha(viewer, alpha)
+--- Which of the four viewers this frame is, resolved from the global names
+--- rather than from holderByFrame. That mapping is filled by Initialize and
+--- BindViewer, and Blizzard_CooldownManager is load-on-demand: when its
+--- ADDON_LOADED arrives before our holders exist, the mapping stays empty and
+--- every alpha filter silently passes -- which is exactly how a hidden viewer
+--- came back. Identity against _G is true from the moment the frame exists.
+local function ViewerKeyFor(viewer)
+    if not viewer then return nil end
     local holder = holderByFrame[viewer]
-    local key = holder and holder._tm_key
+    if holder and holder._tm_key then return holder._tm_key end
+    for _, def in ipairs(VIEWER_DEFS) do
+        if _G[def.frameName] == viewer then return def.key end
+    end
+    return nil
+end
+
+function H.EffectiveAlpha(viewer, alpha)
+    local key = ViewerKeyFor(viewer)
     if key and H.IsViewerHidden(key) then return 0 end
     return alpha
 end
@@ -658,7 +673,7 @@ end
 function H.MirrorAlpha(viewer, alpha)
     local holder = holderByFrame[viewer]
     if not holder then return end
-    if holder._tm_key and H.IsViewerHidden(holder._tm_key) then
+    if H.IsViewerHidden(ViewerKeyFor(viewer) or "") then
         holder:SetAlpha(0)
         return
     end

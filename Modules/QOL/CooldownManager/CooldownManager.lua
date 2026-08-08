@@ -1183,6 +1183,13 @@ function CDM.ApplySettings()
 
     RefreshHotkeyVisibility()
 
+    -- Re-assert per-viewer hiding on every refresh. Entering combat, changing
+    -- talents and the lazy load of Blizzard_CooldownManager all land here, and
+    -- any of them can be the first moment the frames actually exist.
+    if Holders and Holders.ApplyViewerVisibility then
+        Holders.ApplyViewerVisibility()
+    end
+
     -- Update visibility/alpha
     local visRules = settings.visibilityRules
     if (visRules and next(visRules)) or settings.combatAlpha then
