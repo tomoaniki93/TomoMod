@@ -13,50 +13,169 @@ local TMT = {}
 TomoMod_MythicTracker = TMT
 
 -- ═══════════════════════════════════════════════════════════════════════
---  COLOR PALETTE (matches TomoMod dark UI)
+--  COLOR PALETTE — derived from the TomoMod brand tokens
+--  Built lazily rather than at parse time: Config/Widgets.lua does load
+--  before this module, but a parse-time dependency on it would be a trap
+--  for anyone reordering the TOC. Falls back to U.BRAND, then to the
+--  literal mint, so the tracker always renders.
 -- ═══════════════════════════════════════════════════════════════════════
-TMT.C = {
-    BG          = { 0.00, 0.00, 0.00, 0.80 },
-    BG_HEADER   = { 0.04, 0.08, 0.16, 1.00 },
-    BG_ROW_ALT  = { 0.05, 0.09, 0.16, 0.50 },
-    ACCENT      = { 0.33, 0.70, 0.00, 1.00 },
-    BORDER      = { 0.25, 0.25, 0.30, 0.70 },
-    BORDER_BLUE = { 0.15, 0.32, 0.60, 0.90 },
-    SEP         = { 0.18, 0.38, 0.18, 0.80 },
-    BAR_GREEN   = { 0.33, 0.70, 0.00, 0.90 },
-    BAR_YELLOW  = { 0.95, 0.78, 0.00, 0.90 },
-    BAR_RED     = { 0.85, 0.15, 0.10, 0.90 },
-    BAR_BLUE    = { 0.15, 0.38, 0.72, 0.85 },
-    BAR_TEAL    = { 0.10, 0.68, 0.72, 0.85 },
-    BAR_TRACK   = { 0.04, 0.08, 0.14, 1.00 },
-    -- 5-stage forces gradient (inspired by MPlusTimer)
-    FORCES_1    = { 1.00, 0.46, 0.50, 1.00 },  -- < 20%
-    FORCES_2    = { 1.00, 0.51, 0.28, 1.00 },  -- < 40%
-    FORCES_3    = { 1.00, 0.77, 0.40, 1.00 },  -- < 60%
-    FORCES_4    = { 1.00, 0.98, 0.59, 1.00 },  -- < 80%
-    FORCES_5    = { 0.41, 0.80, 1.00, 1.00 },  -- < 100%
-    FORCES_DONE = { 0.80, 1.00, 0.65, 1.00 },  -- 100%
-    TEXT_WHITE  = { 1.00, 1.00, 1.00, 1.00 },
-    TEXT_GREY   = { 0.55, 0.55, 0.55, 1.00 },
-    TEXT_GREEN  = { 0.55, 0.90, 0.20, 1.00 },
-    TEXT_YELLOW = { 1.00, 0.82, 0.10, 1.00 },
-    TEXT_RED    = { 1.00, 0.30, 0.20, 1.00 },
-    TEXT_TEAL   = { 0.30, 0.85, 0.90, 1.00 },
-    TEXT_SKULL  = { 1.00, 0.35, 0.30, 1.00 },
-    TEXT_BLUE   = { 0.50, 0.72, 1.00, 1.00 },
-}
+TMT.C = {}
+
+-- Linear blend between two {r,g,b} tables. Used for the forces ramp.
+local function Mix(a, b, t)
+    if t < 0 then t = 0 elseif t > 1 then t = 1 end
+    return a[1] + (b[1] - a[1]) * t,
+           a[2] + (b[2] - a[2]) * t,
+           a[3] + (b[3] - a[3]) * t
+end
+
+local function ToHex(c)
+    return string.format("%02x%02x%02x",
+        math.floor(c[1] * 255 + 0.5),
+        math.floor(c[2] * 255 + 0.5),
+        math.floor(c[3] * 255 + 0.5))
+end
+
+function TMT:BuildPalette()
+    local U  = TomoMod_Utils
+    local TH = TomoMod_Widgets and TomoMod_Widgets.Theme
+
+    local BRAND = (U and U.BRAND)       or { 0.180, 0.847, 0.518 }
+    local DARK  = (U and U.BRAND_DARK)  or { 0.110, 0.541, 0.333 }
+    local HOVER = (U and U.BRAND_HOVER) or { 0.322, 0.941, 0.651 }
+
+    local text    = (TH and TH.text)    or { 0.88, 0.90, 0.89 }
+    local textDim = (TH and TH.textDim) or { 0.48, 0.48, 0.54 }
+    local border  = (TH and TH.border)  or { 0.18, 0.18, 0.22 }
+    local red     = (TH and TH.red)     or { 0.88, 0.22, 0.22 }
+    local yellow  = (TH and TH.yellow)  or { 0.96, 0.80, 0.10 }
+
+    local C = self.C
+    for k in pairs(C) do C[k] = nil end
+
+    -- Surfaces: near-black with a mint cast so the panel reads as TomoMod
+    -- rather than as a generic dark box.
+    C.BG         = { 0.035, 0.055, 0.046, 0.88 }
+    C.BG_HEADER  = { 0.055, 0.092, 0.076, 1.00 }
+    C.BG_ROW_ALT = { 0.055, 0.092, 0.076, 0.45 }
+    C.BAR_TRACK  = { 0.070, 0.092, 0.082, 1.00 }
+
+    C.ACCENT = { BRAND[1], BRAND[2], BRAND[3], 1.00 }
+    C.BORDER = { border[1], border[2], border[3], 0.85 }
+    C.SEP    = { BRAND[1], BRAND[2], BRAND[3], 0.30 }
+
+    -- Timer segments. Each palier owns a two-stop ramp, drawn as a real
+    -- horizontal gradient. Read left to right the bar goes mint, yellow,
+    -- red: the window spent first is the comfortable one, the last window
+    -- is the one that ends the key. Indices follow the chest indexing, so
+    -- 3 is the leftmost segment.
+    C.SEG_RAMP = {
+        [3] = { { DARK[1], DARK[2], DARK[3] }, { BRAND[1],  BRAND[2],  BRAND[3]  } },
+        [2] = { { 0.52, 0.40, 0.04 },          { yellow[1], yellow[2], yellow[3] } },
+        [1] = { { 0.42, 0.09, 0.07 },          { red[1],    red[2],    red[3]    } },
+    }
+    -- The uniform alternative, for reading the bar by shape not by colour.
+    C.SEG_RAMP_BRAND = { { DARK[1], DARK[2], DARK[3] }, { BRAND[1], BRAND[2], BRAND[3] } }
+
+    C.SEG_FILL = { BRAND[1], BRAND[2], BRAND[3], 0.85 }
+    C.SEG_DONE = { DARK[1],  DARK[2],  DARK[3],  0.85 }
+    C.SEG_LOST = { red[1],   red[2],   red[3],   0.80 }
+
+    -- Forces ramp: brand-dark at 0% to brand at 100%, hover once complete.
+    C.FORCES_LOW  = { DARK[1],  DARK[2],  DARK[3]  }
+    C.FORCES_HIGH = { BRAND[1], BRAND[2], BRAND[3] }
+    C.FORCES_DONE = { HOVER[1], HOVER[2], HOVER[3], 0.90 }
+
+    C.TEXT_WHITE  = { text[1], text[2], text[3], 1 }
+    C.TEXT_GREY   = { textDim[1], textDim[2], textDim[3], 1 }
+    C.TEXT_BRAND  = { BRAND[1], BRAND[2], BRAND[3], 1 }
+    C.TEXT_YELLOW = { yellow[1], yellow[2], yellow[3], 1 }
+    C.TEXT_RED    = { red[1], red[2], red[3], 1 }
+    C.TEXT_SKULL  = { red[1], red[2], red[3], 1 }
+    -- Text drawn on top of a filled bar segment.
+    --
+    -- This has to be a LIGHT colour, not a dark one. MakeFS gives every
+    -- font string an OUTLINE flag plus a black shadow, so near-black text
+    -- dissolves into its own outline -- which is exactly what made the
+    -- palier tag and the forces label unreadable in game while the white
+    -- elapsed time beside them stayed crisp.
+    C.ON_FILL     = { 0.96, 0.99, 0.97, 1 }
+
+    C.HEX_BRAND = (U and U.BRAND_HEX) or "2ed884"
+    C.HEX_RED   = ToHex(red)
+    C.HEX_GREY  = ToHex(textDim)
+
+    return C
+end
 
 -- ═══════════════════════════════════════════════════════════════════════
 --  LAYOUT CONSTANTS
 -- ═══════════════════════════════════════════════════════════════════════
-TMT.W           = 300
-TMT.HEADER_H    = 38
-TMT.BAR_H       = 22
-TMT.BOSS_H      = 20
-TMT.GAP         = 2
-TMT.EDGE        = 1
-TMT.UPDATE_RATE  = 0.20
+TMT.W             = 300
+TMT.PAD           = 9    -- inner horizontal padding for bars and text
+TMT.HEADER_H_FULL = 34   -- dungeon name line + affix / key level line
+TMT.HEADER_H_SLIM = 22   -- single line: deaths | affixes | key level
+TMT.TIMER_LINE_H  = 26   -- elapsed, time limit, delta
+TMT.SEG_H         = 18   -- segmented timer bar
+TMT.BAR_H         = 18   -- forces bar
+TMT.BOSS_H        = 18
+TMT.GAP           = 2
+TMT.SEG_GAP       = 2
+TMT.EDGE          = 1
+TMT.UPDATE_RATE   = 0.20
 TMT.BOSS_NAME_MAX = 22
+
+-- Bundled fonts. Poppins matches the config UI, Expressway is the
+-- condensed face the HUD preset is designed around.
+TMT.FONT_PANEL = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+TMT.FONT_HUD   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Expressway.TTF"
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  PRESETS
+--  A preset is nothing but a set of values for the style toggles. The
+--  moment the player flips one of those toggles by hand the preset key
+--  moves to "custom", exactly like the UnitFrames preset engine — the
+--  named presets stay meaningful instead of silently drifting.
+-- ═══════════════════════════════════════════════════════════════════════
+TMT.STYLE_KEYS = {
+    "showBackground", "showHeaderBlock", "showDungeonName",
+    "objectiveStyle", "timerLayout", "segmentColors", "fontLSM", "fontScale",
+}
+
+TMT.PRESETS = {
+    panel = {
+        showBackground  = true,
+        showHeaderBlock = true,
+        showDungeonName = false,
+        objectiveStyle  = "rows",
+        timerLayout     = "stacked",
+        segmentColors   = "palier",
+        fontLSM         = "",
+        fontScale       = 1.0,
+    },
+    hud = {
+        showBackground  = false,
+        showHeaderBlock = false,
+        showDungeonName = false,
+        objectiveStyle  = "text",
+        timerLayout     = "stacked",
+        segmentColors   = "palier",
+        fontLSM         = "",
+        fontScale       = 1.15,
+    },
+    -- Three rows and nothing else: information, timer, forces. The boss
+    -- list is gone, so its progress moves into the information row.
+    minimal = {
+        showBackground  = false,
+        showHeaderBlock = false,
+        showDungeonName = false,
+        objectiveStyle  = "none",
+        timerLayout     = "inline",
+        segmentColors   = "palier",
+        fontLSM         = "",
+        fontScale       = 1.0,
+    },
+}
 
 -- ═══════════════════════════════════════════════════════════════════════
 --  DB ACCESS
@@ -66,14 +185,118 @@ local function GetDB()
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
+--  PRESET HELPERS
+-- ═══════════════════════════════════════════════════════════════════════
+
+-- Write a named preset's style values into the database. Unknown names
+-- are ignored so a profile carrying "custom" (or a preset removed in a
+-- later version) never wipes the player's settings.
+function TMT:ApplyPreset(name)
+    local db  = GetDB()
+    local set = self.PRESETS[name]
+    if not db or not set then return false end
+    for key, value in pairs(set) do
+        db[key] = value
+    end
+    db.preset = name
+    return true
+end
+
+-- Called whenever a style toggle is changed by hand. Returns the preset
+-- key the database now sits on: the named preset if every value still
+-- matches it, "custom" otherwise.
+function TMT:ResolvePreset()
+    local db = GetDB()
+    if not db then return "custom" end
+    for name, set in pairs(self.PRESETS) do
+        local match = true
+        for key, value in pairs(set) do
+            if db[key] ~= value then match = false; break end
+        end
+        if match then db.preset = name; return name end
+    end
+    db.preset = "custom"
+    return "custom"
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  SECRET VALUE HELPERS
+--  In 12.x a growing number of API returns are opaque in combat. The
+--  rule this module follows: call issecretvalue() BEFORE any comparison,
+--  arithmetic or concatenation, and never assume a field is readable
+--  just because it was last time.
+-- ═══════════════════════════════════════════════════════════════════════
+local _issecret = issecretvalue
+
+local function IsSecret(v)
+    if not _issecret then return false end
+    local ok, secret = pcall(_issecret, v)
+    return ok and secret or false
+end
+
+local function SafeNum(v)
+    if v == nil or IsSecret(v) then return nil end
+    return type(v) == "number" and v or nil
+end
+
+local function SafeBool(v)
+    if v == nil or IsSecret(v) then return nil end
+    return v and true or false
+end
+
+-- A string is only usable if the client will actually hand us its
+-- characters. Pattern-matching an opaque string is the string equivalent
+-- of comparing a secret number, so the guard runs first.
+local function SafeStr(v)
+    if v == nil or IsSecret(v) then return nil end
+    return type(v) == "string" and v or nil
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
 --  FONT / UTILITY HELPERS
 -- ═══════════════════════════════════════════════════════════════════════
+
+-- Every FontString the tracker creates is registered here with the size
+-- and flags it was built at, so a font or scale change can be re-applied
+-- in place instead of forcing a frame rebuild.
+TMT._fontStrings = {}
+
 function TMT:GetFont(size, flags)
-    return "Fonts\\FRIZQT__.TTF", size or 12, flags or "OUTLINE"
+    local db    = GetDB()
+    local scale = (db and db.fontScale) or 1
+    local path
+
+    -- LibStub is vendored, but guard anyway: a broken LSM stub registers
+    -- as a truthy table with no Fetch, which would error on call.
+    local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+    if LSM and LSM.Fetch and db and db.fontLSM and db.fontLSM ~= "" then
+        local fetched = LSM:Fetch("font", db.fontLSM, true)
+        if fetched and fetched ~= "" then path = fetched end
+    end
+
+    if not path then
+        path = ((db and db.preset) == "hud") and self.FONT_HUD or self.FONT_PANEL
+    end
+
+    return path, math.max(6, math.floor((size or 12) * scale + 0.5)), flags or "OUTLINE"
+end
+
+-- Re-apply the resolved font to every registered FontString.
+function TMT:ApplyFonts()
+    for i = 1, #self._fontStrings do
+        local entry = self._fontStrings[i]
+        if entry.fs then
+            entry.fs:SetFont(self:GetFont(entry.size, entry.flags))
+        end
+    end
 end
 
 function TMT:FormatTime(sec, doCeil)
     if not sec then return "--:--" end
+    -- Magnitude only. A negative slipped through here once and the modulo
+    -- arithmetic turned -3:40 into "56:20" on screen; sign is the caller's
+    -- business, and FormatDelta already owns it.
+    sec = math.abs(sec)
     if doCeil then sec = math.ceil(sec) else sec = math.floor(sec) end
     local h = math.floor(sec / 3600)
     local m = math.floor((sec % 3600) / 60)
@@ -128,6 +351,7 @@ function TMT:MakeFS(parent, size, flags, anchor, relTo, x, y)
     if anchor then
         fs:SetPoint(anchor, relTo or parent, anchor, x or 0, y or 0)
     end
+    self._fontStrings[#self._fontStrings + 1] = { fs = fs, size = size, flags = flags }
     return fs
 end
 
@@ -165,47 +389,109 @@ end
 --  localised names instead of the raw scenario criteriaString.
 -- ═══════════════════════════════════════════════════════════════════════
 
--- MapChallengeMode → JournalInstance (from WarpDeplete / Reloe's M+ Timer)
-local _mapIDToEJID = {
-    -- Cata
-    [438] = 68,  [456] = 65,  [507] = 71,
-    -- MoP
-    [2]   = 313, [56]  = 302, [57]  = 303, [58]  = 312, [59]  = 324,
-    [60]  = 321, [76]  = 246, [77]  = 311, [78]  = 316,
-    -- WoD
-    [161] = 476, [163] = 385, [164] = 547, [165] = 537, [166] = 536,
-    [167] = 559, [168] = 556, [169] = 558,
-    -- Legion
-    [197] = 716, [198] = 762, [199] = 740, [200] = 721, [206] = 767,
-    [207] = 707, [208] = 727, [209] = 726, [210] = 800,
-    [227] = 860, [233] = 900, [234] = 860, [239] = 945,
-    -- BfA
-    [244] = 968,  [245] = 1001, [246] = 1002, [247] = 1012, [248] = 1021,
-    [249] = 1041, [250] = 1030, [251] = 1022, [252] = 1036,
-    [353] = 1023, [369] = 1178, [370] = 1178,
-    -- Shadowlands
-    [375] = 1184, [376] = 1182, [377] = 1188, [378] = 1185, [379] = 1183,
-    [380] = 1189, [381] = 1186, [382] = 1187,
-    [391] = 1194, [392] = 1194,
-    -- Dragonflight
-    [399] = 1202, [400] = 1198, [401] = 1203, [402] = 1201, [403] = 1197,
-    [404] = 1199, [405] = 1196, [406] = 1204,
-    [463] = 1209, [464] = 1209,
-    -- The War Within
-    [499] = 1267, [500] = 1268, [501] = 1269, [502] = 1274,
-    [503] = 1271, [504] = 1210, [505] = 1270, [506] = 1272,
-}
+-- [NO ROTTING DATA] This module used to carry a hand-written
+-- challengeMapID -> journalInstanceID table copied from another addon.
+-- Blizzard adds challenge maps every season and reuses journal instances
+-- across them, so such a table is wrong the day a patch ships and nobody
+-- notices until boss names silently degrade to "Boss 1".
+--
+-- Resolution is now entirely live, in three tiers:
+--   1. Walk the player's map hierarchy calling EJ_GetInstanceForMap.
+--      Multi-floor dungeons often have no mapping on the floor the
+--      player stands on, but the parent map does.
+--   2. Match the challenge map's client-supplied name against the
+--      Encounter Journal's dungeon list, across every tier.
+--   3. Give up. FindBossName already falls back to the raw criteria
+--      description, so the tracker degrades instead of breaking.
+--
+-- A successful resolution is remembered in the database, keyed by
+-- challengeMapID. That cache is learned at runtime and never authored,
+-- so unlike the old table it cannot be stale: a wrong entry could only
+-- come from the client itself.
+
+-- Lower-case and strip everything that is not a letter or digit, so
+-- punctuation and article differences between the challenge-mode name
+-- and the journal name do not defeat the match.
+local function NormalizeName(name)
+    if type(name) ~= "string" then return nil end
+    name = name:lower():gsub("[^%w]", "")
+    return name ~= "" and name or nil
+end
+
+local function LearnedEJ()
+    local db = GetDB()
+    if not db then return nil end
+    if type(db.learnedEJ) ~= "table" then db.learnedEJ = {} end
+    return db.learnedEJ
+end
+
+-- Tier 1 — climb the map hierarchy.
+local function InstanceFromMapChain()
+    local mapID = C_Map.GetBestMapForUnit("player")
+    local guard = 0
+    while mapID and mapID ~= 0 and guard < 10 do
+        local ok, instanceID = pcall(EJ_GetInstanceForMap, mapID)
+        if ok and instanceID and instanceID ~= 0 then return instanceID end
+        local info = C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
+        mapID = info and info.parentMapID
+        guard = guard + 1
+    end
+    return nil
+end
+
+-- Tier 2 — scan the journal's dungeon list for a matching name.
+local function InstanceFromName(challengeMapID)
+    if not challengeMapID then return nil end
+    local wanted = NormalizeName(C_ChallengeMode.GetMapUIInfo(challengeMapID))
+    if not wanted then return nil end
+
+    local numTiers = EJ_GetNumTiers and EJ_GetNumTiers() or 0
+    if numTiers < 1 then return nil end
+    local savedTier = EJ_GetCurrentTier and EJ_GetCurrentTier() or nil
+
+    local found
+    for tier = numTiers, 1, -1 do   -- newest expansion first
+        if EJ_SelectTier then EJ_SelectTier(tier) end
+        local index = 1
+        while true do
+            local id, name = EJ_GetInstanceByIndex(index, false)
+            if not id then break end
+            local norm = NormalizeName(name)
+            if norm then
+                -- Exact match wins. Otherwise accept containment, which
+                -- covers the cases where one journal instance is split
+                -- across several challenge maps under longer names.
+                if norm == wanted then
+                    found = id
+                    break
+                elseif not found and (wanted:find(norm, 1, true) or norm:find(wanted, 1, true)) then
+                    found = id
+                end
+            end
+            index = index + 1
+        end
+        if found then break end
+    end
+
+    if savedTier and EJ_SelectTier then EJ_SelectTier(savedTier) end
+    return found
+end
 
 -- Returns the EJ journalInstanceID for the current M+ map, or nil.
 function TMT:GetEJInstanceID()
-    local mapID = C_Map.GetBestMapForUnit("player")
-    local instanceID = mapID and EJ_GetInstanceForMap(mapID) or nil
-    if instanceID and instanceID ~= 0 then return instanceID end
     local challengeMapID = C_ChallengeMode.GetActiveChallengeMapID()
-    if challengeMapID and _mapIDToEJID[challengeMapID] then
-        return _mapIDToEJID[challengeMapID]
+
+    local cache = LearnedEJ()
+    if cache and challengeMapID and cache[challengeMapID] then
+        return cache[challengeMapID]
     end
-    return nil
+
+    local instanceID = InstanceFromMapChain() or InstanceFromName(challengeMapID)
+
+    if instanceID and cache and challengeMapID then
+        cache[challengeMapID] = instanceID
+    end
+    return instanceID
 end
 
 -- Loads the EJ addon if needed, then returns two tables:
@@ -276,13 +562,17 @@ end
 
 -- ═══════════════════════════════════════════════════════════════════════
 --  BUILD FRAME
+--  Every element is created unanchored vertically: LayoutFrame walks a
+--  running offset from the top and places them. That keeps the "which
+--  rows are visible" question in one function instead of a chain of
+--  re-anchoring branches spread over the update path.
 -- ═══════════════════════════════════════════════════════════════════════
 function TMT:BuildFrame()
     if self.Frame then return end
     local db = GetDB()
     if not db then return end
 
-    local C = self.C
+    local C = self:BuildPalette()
     local W = self.W
     local F = CreateFrame("Frame", "TomoMod_MythicTrackerFrame", UIParent)
     self.Frame = F
@@ -293,16 +583,14 @@ function TMT:BuildFrame()
     F:SetClampedToScreen(true)
     F:Hide()
 
-    -- Outer panel
-    F._bg = self:MakeBG(F, 0, 0, 0, 0.82)
+    -- ── PANEL CHROME ──────────────────────────────────────────────────
+    F._bg = self:MakeBG(F, unpack(C.BG))
 
     F._accent = F:CreateTexture(nil, "ARTWORK")
     F._accent:SetWidth(3)
     F._accent:SetPoint("TOPLEFT",    F, "TOPLEFT",    0, 0)
     F._accent:SetPoint("BOTTOMLEFT", F, "BOTTOMLEFT", 0, 0)
     F._accent:SetColorTexture(unpack(C.ACCENT))
-
-    self:MakeLineBorders(F, unpack(C.BORDER))
 
     F._bdrFrame = self:MakeBorder(F, unpack(C.BORDER))
     F._bdrFrame:SetFrameLevel(F:GetFrameLevel() + 8)
@@ -324,39 +612,42 @@ function TMT:BuildFrame()
     -- ── HEADER ────────────────────────────────────────────────────────
     local HDR = CreateFrame("Frame", nil, F)
     F.Hdr = HDR
-    HDR:SetHeight(self.HEADER_H)
-    HDR:SetPoint("TOPLEFT",  F, "TOPLEFT",  0, 0)
-    HDR:SetPoint("TOPRIGHT", F, "TOPRIGHT", 0, 0)
+    HDR:SetHeight(self.HEADER_H_SLIM)
 
     HDR._bg = HDR:CreateTexture(nil, "BACKGROUND")
     HDR._bg:SetAllPoints(HDR)
     HDR._bg:SetColorTexture(unpack(C.BG_HEADER))
 
-    HDR.dungeonName = self:MakeFS(HDR, 13, "OUTLINE")
-    HDR.dungeonName:SetPoint("TOPLEFT", HDR, "TOPLEFT", 8, -5)
+    -- Dungeon name occupies its own line, and only when enabled: the
+    -- panel preset hides it, which is what lets the header collapse to
+    -- a single row.
+    HDR.dungeonName = self:MakeFS(HDR, 12, "OUTLINE")
     HDR.dungeonName:SetWordWrap(false)
     HDR.dungeonName:SetNonSpaceWrap(false)
     HDR.dungeonName:SetTextColor(unpack(C.TEXT_WHITE))
 
-    HDR.keyLevel = self:MakeFS(HDR, 16, "OUTLINE")
-    HDR.keyLevel:SetPoint("TOPRIGHT", HDR, "TOPRIGHT", -8, -4)
-    HDR.keyLevel:SetTextColor(unpack(C.TEXT_GREEN))
+    HDR.keyLevel = self:MakeFS(HDR, 14, "OUTLINE")
+    HDR.keyLevel:SetTextColor(unpack(C.TEXT_BRAND))
 
-    HDR.deaths = self:MakeFS(HDR, 11, "OUTLINE")
-    HDR.deaths:SetPoint("BOTTOMRIGHT", HDR, "BOTTOMRIGHT", -8, 5)
+    HDR.deaths = self:MakeFS(HDR, 10, "OUTLINE")
     HDR.deaths:SetTextColor(unpack(C.TEXT_SKULL))
+
+    -- Boss progress, shown only when the boss list itself is hidden:
+    -- without it the minimal layout would drop that information entirely.
+    HDR.progress = self:MakeFS(HDR, 10, "OUTLINE")
+    HDR.progress:SetTextColor(unpack(C.TEXT_WHITE))
+    HDR.progress:Hide()
 
     -- ── DEATH TOOLTIP BUTTON ──────────────────────────────────────────
     HDR.deathBtn = CreateFrame("Button", nil, HDR)
-    HDR.deathBtn:SetSize(80, 16)
-    HDR.deathBtn:SetPoint("BOTTOMRIGHT", HDR, "BOTTOMRIGHT", -4, 3)
+    HDR.deathBtn:SetSize(110, 16)
     HDR.deathBtn:EnableMouse(true)
     HDR.deathBtn:SetScript("OnEnter", function(btn)
         local deaths, timeLost = C_ChallengeMode.GetDeathCount()
         if not deaths or deaths == 0 then return end
         GameTooltip:SetOwner(btn, "ANCHOR_CURSOR")
-        GameTooltip:AddLine("Deaths", 1, 0.35, 0.30)
-        GameTooltip:AddLine(string.format("Time lost: %s", TMT:FormatTime(timeLost or 0)), 0.7, 0.7, 0.7)
+        GameTooltip:AddLine(L["tmt_deaths"], 1, 0.35, 0.30)
+        GameTooltip:AddLine(string.format(L["tmt_time_lost"], TMT:FormatTime(timeLost or 0)), 0.7, 0.7, 0.7)
         local playerDeaths = TMT.playerDeaths or {}
         local sorted = {}
         for name, count in pairs(playerDeaths) do
@@ -376,7 +667,7 @@ function TMT:BuildFrame()
     HDR.affixes = {}
     for i = 1, 4 do
         local ic = HDR:CreateTexture(nil, "OVERLAY")
-        ic:SetSize(16, 16)
+        ic:SetSize(13, 13)
         ic:SetTexCoord(0.07, 0.93, 0.07, 0.93)
         HDR.affixes[i] = ic
         ic:Hide()
@@ -384,79 +675,69 @@ function TMT:BuildFrame()
 
     F._sep1 = F:CreateTexture(nil, "ARTWORK")
     F._sep1:SetHeight(1)
-    F._sep1:SetPoint("TOPLEFT",  HDR, "BOTTOMLEFT",  0, 0)
-    F._sep1:SetPoint("TOPRIGHT", HDR, "BOTTOMRIGHT", 0, 0)
     F._sep1:SetColorTexture(unpack(C.ACCENT))
 
-    -- ── TIMER BAR ─────────────────────────────────────────────────────
-    local TB = CreateFrame("StatusBar", nil, F)
-    F.TimerBar = TB
-    TB:SetHeight(self.BAR_H)
-    TB:SetPoint("TOPLEFT",  F._sep1, "BOTTOMLEFT",  0, -self.GAP)
-    TB:SetPoint("TOPRIGHT", F._sep1, "BOTTOMRIGHT", 0, -self.GAP)
-    TB:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
-    TB:SetMinMaxValues(0, 1)
-    TB:SetValue(0)
+    -- ── TIMER LINE (elapsed / limit / delta) ──────────────────────────
+    -- The segmented bar below cannot carry this text: once it is cut
+    -- into three paliers there is no full-width run left to put it on.
+    local TL = CreateFrame("Frame", nil, F)
+    F.TimerLine = TL
+    TL:SetHeight(self.TIMER_LINE_H)
 
-    TB._bg = TB:CreateTexture(nil, "BACKGROUND")
-    TB._bg:SetAllPoints(TB)
-    TB._bg:SetColorTexture(unpack(C.BAR_TRACK))
+    TL.elapsed = self:MakeFS(TL, 19, "OUTLINE")
+    TL.elapsed:SetPoint("BOTTOMLEFT", TL, "BOTTOMLEFT", self.PAD, 4)
+    TL.elapsed:SetTextColor(unpack(C.TEXT_WHITE))
 
-    TB.elapsed = self:MakeFS(TB, 13, "OUTLINE")
-    TB.elapsed:SetPoint("LEFT", TB, "LEFT", 8, 0)
-    TB.elapsed:SetTextColor(unpack(C.TEXT_WHITE))
+    TL.limit = self:MakeFS(TL, 10, "OUTLINE")
+    TL.limit:SetPoint("BOTTOMLEFT", TL.elapsed, "BOTTOMRIGHT", 5, 2)
+    TL.limit:SetTextColor(unpack(C.TEXT_GREY))
 
-    TB.delta = self:MakeFS(TB, 11, "OUTLINE")
-    TB.delta:SetPoint("CENTER", TB, "CENTER", 0, 0)
+    TL.delta = self:MakeFS(TL, 11, "OUTLINE")
+    TL.delta:SetPoint("BOTTOMRIGHT", TL, "BOTTOMRIGHT", -self.PAD, 5)
 
-    TB.limit = self:MakeFS(TB, 11, "OUTLINE")
-    TB.limit:SetPoint("RIGHT", TB, "RIGHT", -8, 0)
-    TB.limit:SetTextColor(unpack(C.TEXT_GREY))
+    -- ── SEGMENTED TIMER BAR ───────────────────────────────────────────
+    -- One segment per chest palier. Segment widths come from the live
+    -- chest times, never from hardcoded 60/20/20 fractions, so an affix
+    -- that shifts the paliers reshapes the bar on its own.
+    local SR = CreateFrame("Frame", nil, F)
+    F.SegRow = SR
+    SR:SetHeight(self.SEG_H)
 
-    TB.ticks = {}
+    -- The inline timer layout draws the elapsed time over the first
+    -- segment rather than on a row of its own.
+    SR.elapsed = self:MakeFS(SR, 10, "OUTLINE")
+    SR.elapsed:SetPoint("LEFT", SR, "LEFT", self.PAD + 5, 0)
+    SR.elapsed:Hide()
+
+    F.TimerSegs = {}
     for i = 1, 3 do
-        local tick = TB:CreateTexture(nil, "OVERLAY")
-        tick:SetSize(2, self.BAR_H)
-        tick:SetColorTexture(1, 1, 1, 0.40)
-        tick:Hide()
-        TB.ticks[i] = tick
+        local seg = CreateFrame("StatusBar", nil, SR)
+        seg:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
+        seg:SetMinMaxValues(0, 1)
+        seg:SetValue(0)
+        seg:SetHeight(self.SEG_H)
+
+        seg._bg = seg:CreateTexture(nil, "BACKGROUND")
+        seg._bg:SetAllPoints(seg)
+        seg._bg:SetColorTexture(unpack(C.BAR_TRACK))
+
+        -- Palier marker ("+3"), shown only on the segment being spent so
+        -- the two narrow segments keep room for their countdown.
+        seg.tag = self:MakeFS(seg, 10, "OUTLINE")
+        seg.tag:SetPoint("LEFT", seg, "LEFT", 4, 0)
+        seg.tag:SetTextColor(unpack(C.ON_FILL))
+
+        seg.label = self:MakeFS(seg, 10, "OUTLINE")
+        seg.label:SetPoint("RIGHT", seg, "RIGHT", -4, 0)
+        seg.label:SetTextColor(unpack(C.TEXT_GREY))
+
+        F.TimerSegs[i] = seg
     end
-
-    -- ── CHEST COUNTDOWN ROW ───────────────────────────────────────────
-    local CR = CreateFrame("Frame", nil, F)
-    F.ChestRow = CR
-    CR:SetHeight(14)
-    CR:SetPoint("TOPLEFT",  TB, "BOTTOMLEFT",  0, -1)
-    CR:SetPoint("TOPRIGHT", TB, "BOTTOMRIGHT", 0, -1)
-
-    CR.chest3 = self:MakeFS(CR, 10, "OUTLINE")
-    CR.chest3:SetPoint("LEFT", CR, "LEFT", 8, 0)
-    CR.chest3:SetTextColor(unpack(C.TEXT_GREEN))
-    CR.chest3:Hide()
-
-    CR.chest2 = self:MakeFS(CR, 10, "OUTLINE")
-    CR.chest2:SetPoint("CENTER", CR, "CENTER", 0, 0)
-    CR.chest2:SetTextColor(unpack(C.TEXT_TEAL))
-    CR.chest2:Hide()
-
-    CR.chest1 = self:MakeFS(CR, 10, "OUTLINE")
-    CR.chest1:SetPoint("RIGHT", CR, "RIGHT", -8, 0)
-    CR.chest1:SetTextColor(unpack(C.TEXT_YELLOW))
-    CR.chest1:Hide()
-
-    -- ── SEPARATOR 2 ───────────────────────────────────────────────────
-    F._sep2 = F:CreateTexture(nil, "ARTWORK")
-    F._sep2:SetHeight(1)
-    F._sep2:SetPoint("TOPLEFT",  CR, "BOTTOMLEFT",  0, -self.GAP)
-    F._sep2:SetPoint("TOPRIGHT", CR, "BOTTOMRIGHT", 0, -self.GAP)
-    F._sep2:SetColorTexture(unpack(C.SEP))
 
     -- ── FORCES BAR ────────────────────────────────────────────────────
     local FB = CreateFrame("StatusBar", nil, F)
     F.ForcesBar = FB
     FB:SetHeight(self.BAR_H)
-    FB:SetPoint("TOPLEFT",  F._sep2, "BOTTOMLEFT",  0, -self.GAP)
-    FB:SetPoint("TOPRIGHT", F._sep2, "BOTTOMRIGHT", 0, -self.GAP)
     FB:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
     FB:SetMinMaxValues(0, 1)
     FB:SetValue(0)
@@ -466,92 +747,140 @@ function TMT:BuildFrame()
     FB._bg:SetColorTexture(unpack(C.BAR_TRACK))
 
     FB.label = self:MakeFS(FB, 10, "OUTLINE")
-    FB.label:SetPoint("LEFT", FB, "LEFT", 8, 0)
+    FB.label:SetPoint("LEFT", FB, "LEFT", 4, 0)
     FB.label:SetText(L["tmt_forces"])
-    FB.label:SetTextColor(unpack(C.TEXT_TEAL))
+    FB.label:SetTextColor(unpack(C.ON_FILL))
 
-    FB.pct = self:MakeFS(FB, 12, "OUTLINE")
+    FB.pct = self:MakeFS(FB, 11, "OUTLINE")
     FB.pct:SetPoint("CENTER", FB, "CENTER", 0, 0)
     FB.pct:SetTextColor(unpack(C.TEXT_WHITE))
 
+    -- Remaining count reads better than "730 / 1000": the number that
+    -- matters mid-pull is how much is left to kill.
     FB.count = self:MakeFS(FB, 10, "OUTLINE")
-    FB.count:SetPoint("RIGHT", FB, "RIGHT", -8, 0)
+    FB.count:SetPoint("RIGHT", FB, "RIGHT", -4, 0)
     FB.count:SetTextColor(unpack(C.TEXT_GREY))
 
     -- ── FORCES COMPLETION ROW ─────────────────────────────────────────
     local FCR = CreateFrame("Frame", nil, F)
     F.ForcesCompRow = FCR
-    FCR:SetHeight(14)
-    FCR:SetPoint("TOPLEFT",  FB, "BOTTOMLEFT",  0, -1)
-    FCR:SetPoint("TOPRIGHT", FB, "BOTTOMRIGHT", 0, -1)
+    FCR:SetHeight(13)
 
     FCR.time = self:MakeFS(FCR, 10, "OUTLINE")
-    FCR.time:SetPoint("LEFT", FCR, "LEFT", 8, 0)
-    FCR.time:SetTextColor(unpack(C.TEXT_GREEN))
+    FCR.time:SetPoint("LEFT", FCR, "LEFT", self.PAD, 0)
+    FCR.time:SetTextColor(unpack(C.TEXT_BRAND))
     FCR:Hide()
 
-    -- ── SEPARATOR 3 ───────────────────────────────────────────────────
+    -- ── SEPARATOR BEFORE BOSSES ───────────────────────────────────────
     F._sep3 = F:CreateTexture(nil, "ARTWORK")
     F._sep3:SetHeight(1)
-    F._sep3:SetPoint("TOPLEFT",  FCR, "BOTTOMLEFT",  0, -self.GAP)
-    F._sep3:SetPoint("TOPRIGHT", FCR, "BOTTOMRIGHT", 0, -self.GAP)
     F._sep3:SetColorTexture(unpack(C.SEP))
 
     -- ── BOSS ROWS (up to 8) ──────────────────────────────────────────
     F.BossRows = {}
-    local prevAnchor = F._sep3
     for i = 1, 8 do
         local row = CreateFrame("Frame", nil, F)
         row:SetHeight(self.BOSS_H)
-        row:SetPoint("TOPLEFT",  prevAnchor, "BOTTOMLEFT",  0, i == 1 and -self.GAP or 0)
-        row:SetPoint("TOPRIGHT", prevAnchor, "BOTTOMRIGHT", 0, i == 1 and -self.GAP or 0)
 
         row._bg = row:CreateTexture(nil, "BACKGROUND")
         row._bg:SetAllPoints(row)
         row._bg:SetColorTexture(0, 0, 0, 0)
 
         row.dot = row:CreateTexture(nil, "ARTWORK")
-        row.dot:SetSize(7, 7)
-        row.dot:SetPoint("LEFT", row, "LEFT", 8, 0)
-        row.dot:SetColorTexture(0.35, 0.35, 0.35, 1)
+        row.dot:SetSize(6, 6)
+        row.dot:SetPoint("LEFT", row, "LEFT", self.PAD, 0)
+        row.dot:SetColorTexture(0.30, 0.30, 0.30, 1)
 
-        row.name = self:MakeFS(row, 11, "OUTLINE")
-        row.name:SetPoint("LEFT", row, "LEFT", 20, 0)
+        row.name = self:MakeFS(row, 10, "OUTLINE")
         row.name:SetMaxLines(1)
         row.name:SetWordWrap(false)
         row.name:SetTextColor(unpack(C.TEXT_GREY))
 
-        row.split = self:MakeFS(row, 10, "OUTLINE")
-        row.split:SetPoint("RIGHT", row, "RIGHT", -55, 0)
+        row.split = self:MakeFS(row, 9, "OUTLINE")
+        row.split:SetPoint("RIGHT", row, "RIGHT", -52, 0)
         row.split:SetTextColor(unpack(C.TEXT_GREY))
 
-        row.time = self:MakeFS(row, 11, "OUTLINE")
-        row.time:SetPoint("RIGHT", row, "RIGHT", -8, 0)
+        row.time = self:MakeFS(row, 10, "OUTLINE")
+        row.time:SetPoint("RIGHT", row, "RIGHT", -self.PAD, 0)
         row.time:SetTextColor(unpack(C.TEXT_GREY))
 
         row:Hide()
         F.BossRows[i] = row
-        prevAnchor = row
     end
 
     -- ── COMPLETION BANNER ─────────────────────────────────────────────
     local BNR = CreateFrame("Frame", nil, F)
     F.Banner = BNR
-    BNR:SetHeight(24)
-    BNR:SetPoint("LEFT",  F, "LEFT",  0, 0)
-    BNR:SetPoint("RIGHT", F, "RIGHT", 0, 0)
+    BNR:SetHeight(22)
 
     BNR._bg = BNR:CreateTexture(nil, "BACKGROUND")
     BNR._bg:SetAllPoints(BNR)
-    BNR._bg:SetColorTexture(0, 0.20, 0.04, 0.92)
+    BNR._bg:SetColorTexture(0, 0.20, 0.10, 0.92)
 
-    BNR.text = self:MakeFS(BNR, 13, "OUTLINE")
+    BNR.text = self:MakeFS(BNR, 12, "OUTLINE")
     BNR.text:SetPoint("CENTER", BNR, "CENTER", 0, 0)
-    BNR.text:SetTextColor(unpack(C.TEXT_GREEN))
+    BNR.text:SetTextColor(unpack(C.TEXT_BRAND))
     BNR:Hide()
 
-    -- Apply initial lock state
+    self:ApplyStyle()
     self:SetMovable(not (db and db.locked))
+end
+
+-- ═══════════════════════════════════════════════════════════════════════
+--  APPLY STYLE — everything the style toggles control, in one place.
+--  Safe to call at any time; the caller follows with LayoutFrame.
+-- ═══════════════════════════════════════════════════════════════════════
+function TMT:ApplyStyle()
+    local F  = self.Frame
+    local db = GetDB()
+    if not F or not db then return end
+
+    local C = self:BuildPalette()
+
+    -- Chrome
+    local chrome = db.showBackground ~= false
+    F._bg:SetColorTexture(unpack(C.BG))
+    F._bg:SetShown(chrome)
+    F._accent:SetColorTexture(unpack(C.ACCENT))
+    F._accent:SetShown(chrome)
+    if F._bdrFrame then
+        F._bdrFrame:SetShown(chrome)
+        F._bdrFrame:SetBackdropBorderColor(unpack(C.BORDER))
+    end
+
+    -- Header block fill and separator only exist in the panel look.
+    local headerBlock = db.showHeaderBlock ~= false
+    F.Hdr._bg:SetColorTexture(unpack(C.BG_HEADER))
+    F.Hdr._bg:SetShown(headerBlock)
+    F._sep1:SetColorTexture(unpack(C.ACCENT))
+    F._sep1:SetShown(headerBlock)
+    F._sep3:SetColorTexture(unpack(C.SEP))
+    -- LayoutFrame owns sep3's visibility: it also depends on whether any
+    -- boss row is showing, which is not known here.
+    F._chromeSeps = headerBlock
+
+    F.Hdr:SetHeight(db.showDungeonName and self.HEADER_H_FULL or self.HEADER_H_SLIM)
+
+    -- Bar tracks
+    for i = 1, 3 do
+        F.TimerSegs[i]._bg:SetColorTexture(unpack(C.BAR_TRACK))
+    end
+    F.ForcesBar._bg:SetColorTexture(unpack(C.BAR_TRACK))
+    F.ForcesBar.label:SetTextColor(unpack(C.ON_FILL))
+
+    -- Objectives: pastilles and alternating row fill belong to the panel
+    -- look; the HUD lists them as plain text.
+    local rows = (db.objectiveStyle == "rows")
+    for _, row in ipairs(F.BossRows) do
+        row.dot:SetShown(rows)
+        row.name:ClearAllPoints()
+        row.name:SetPoint("LEFT", row, "LEFT", rows and (self.PAD + 11) or self.PAD, 0)
+    end
+
+    F.Hdr.progress:ClearAllPoints()
+    F.Hdr.progress:SetPoint("RIGHT", F.Hdr.keyLevel, "LEFT", -8, 0)
+
+    self:ApplyFonts()
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -612,27 +941,63 @@ end
 
 -- ═══════════════════════════════════════════════════════════════════════
 --  UPDATE — HEADER
+--  Two shapes. "full" keeps the dungeon name on its own line with the
+--  affixes and death count below it. "slim" drops the name and folds
+--  everything onto one row: deaths | affixes | key level.
 -- ═══════════════════════════════════════════════════════════════════════
+function TMT:AnchorHeader()
+    local HDR = self.Frame.Hdr
+    local db  = GetDB()
+    local showName = db and db.showDungeonName and true or false
+    local mode = showName and "full" or "slim"
+    if HDR._mode == mode then return end
+    HDR._mode = mode
+
+    HDR.dungeonName:ClearAllPoints()
+    HDR.keyLevel:ClearAllPoints()
+    HDR.deaths:ClearAllPoints()
+    HDR.deathBtn:ClearAllPoints()
+
+    if showName then
+        HDR.dungeonName:SetPoint("TOPLEFT", HDR, "TOPLEFT", self.PAD, -4)
+        HDR.dungeonName:SetWidth(self.W - self.PAD * 2 - 46)
+        HDR.dungeonName:SetJustifyH("LEFT")
+        HDR.dungeonName:Show()
+        HDR.keyLevel:SetPoint("TOPRIGHT", HDR, "TOPRIGHT", -self.PAD, -3)
+        HDR.deaths:SetPoint("BOTTOMRIGHT", HDR, "BOTTOMRIGHT", -self.PAD, 4)
+        HDR.deathBtn:SetPoint("BOTTOMRIGHT", HDR, "BOTTOMRIGHT", -4, 2)
+    else
+        HDR.dungeonName:Hide()
+        HDR.deaths:SetPoint("LEFT", HDR, "LEFT", self.PAD, 0)
+        HDR.keyLevel:SetPoint("RIGHT", HDR, "RIGHT", -self.PAD, 0)
+        HDR.deathBtn:SetPoint("LEFT", HDR, "LEFT", 4, 0)
+    end
+end
+
 function TMT:UpdateHeader(preview)
     local HDR = self.Frame.Hdr
-    local C = self.C
+    local C   = self.C
+    local db  = GetDB()
 
-    local name = L["tmt_dungeon_unknown"]
-    if preview then
-        name = "Priory of the Sacred Flame"
-    elseif self.mapID and self.mapID > 0 then
-        local n = C_ChallengeMode.GetMapUIInfo(self.mapID)
-        if n then name = n end
+    self:AnchorHeader()
+
+    if db and db.showDungeonName then
+        local name = L["tmt_dungeon_unknown"]
+        if preview then
+            name = "Priory of the Sacred Flame"
+        elseif self.mapID and self.mapID > 0 then
+            local n = C_ChallengeMode.GetMapUIInfo(self.mapID)
+            if n then name = n end
+        end
+        HDR.dungeonName:SetText(name)
     end
-    HDR.dungeonName:SetText(name)
 
     local lvl = preview and 20 or (self.level or 0)
     HDR.keyLevel:SetText(lvl > 0 and string.format(L["tmt_key_level"], lvl) or "")
 
-    local skullIcon = "|TInterface\\Icons\\spell_shadow_soulleech_3:13:13:0:-1|t"
     local deaths, timeLost = 0, 0
     if preview then
-        deaths, timeLost = 1, 5
+        deaths, timeLost = 3, 15
     else
         deaths, timeLost = C_ChallengeMode.GetDeathCount()
         deaths   = deaths   or 0
@@ -640,57 +1005,217 @@ function TMT:UpdateHeader(preview)
     end
 
     if deaths > 0 then
+        local skullIcon = "|TInterface\\Icons\\spell_shadow_soulleech_3:11:11:0:-1|t"
         HDR.deaths:SetText(skullIcon
-            .. " |cFFE03030" .. deaths .. "|r"
-            .. " |cFF777777(+" .. self:FormatTime(timeLost) .. ")|r")
+            .. " |cFF" .. C.HEX_RED .. tostring(deaths) .. "|r"
+            .. " |cFF" .. C.HEX_GREY .. "(+" .. self:FormatTime(timeLost) .. ")|r")
     else
         HDR.deaths:SetText("")
     end
 
+    if db and db.objectiveStyle == "none" and self._bossTotal and self._bossTotal > 0 then
+        HDR.progress:SetText(string.format("%d/%d", self._bossDone or 0, self._bossTotal))
+        HDR.progress:Show()
+    else
+        HDR.progress:Hide()
+    end
+
     local affixes = preview and {9, 12, 134, 11} or (self.affixes or {})
-    local lastShown = nil
+
+    -- Count first so the slim header can centre the row.
+    local shown = {}
     for i = 1, 4 do
-        local ic = HDR.affixes[i]
-        ic:ClearAllPoints()
         if affixes[i] then
             local _, _, icon = C_ChallengeMode.GetAffixInfo(affixes[i])
-            if icon then
-                ic:SetTexture(icon)
-                if lastShown == nil then
-                    ic:SetPoint("BOTTOMLEFT", HDR, "BOTTOMLEFT", 8, 5)
-                else
-                    ic:SetPoint("LEFT", lastShown, "RIGHT", 3, 0)
-                end
-                ic:Show()
-                lastShown = ic
-            else
-                ic:Hide()
-            end
-        else
-            ic:Hide()
+            if icon then shown[#shown + 1] = { slot = i, icon = icon } end
         end
+    end
+
+    for i = 1, 4 do HDR.affixes[i]:ClearAllPoints(); HDR.affixes[i]:Hide() end
+
+    local n = #shown
+    local prev = nil
+    for i = 1, n do
+        local ic = HDR.affixes[i]
+        ic:SetTexture(shown[i].icon)
+        if prev then
+            ic:SetPoint("LEFT", prev, "RIGHT", 3, 0)
+        elseif HDR._mode == "full" then
+            ic:SetPoint("BOTTOMLEFT", HDR, "BOTTOMLEFT", self.PAD, 4)
+        else
+            -- Centre the strip: n icons of 13px with 3px gaps.
+            local total = n * 13 + (n - 1) * 3
+            ic:SetPoint("LEFT", HDR, "CENTER", -total / 2, 0)
+        end
+        ic:Show()
+        prev = ic
     end
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
---  UPDATE — TIMER BAR + CHEST COUNTDOWN
+--  UPDATE — TIMER LINE + SEGMENTED BAR
+--  One segment per chest palier, sized from the live chest times. Each
+--  segment shows the time left before that palier is lost, which is the
+--  number that actually drives decisions in a key.
 -- ═══════════════════════════════════════════════════════════════════════
+-- Paint one segment's fill.
+--
+-- The gradient is written onto the status bar texture. SetStatusBarColor
+-- writes the same vertex colours, so the two cannot both drive one bar --
+-- hence the fallback path rather than a belt-and-braces call to both.
+-- ══════════════════════════════════════════════════════════════════════
+--  SPLITS & CHECKPOINTS
+--
+--  Both features read from one store: your own best run per dungeon and
+--  key level. Nothing here is authored. A curated table of "expected
+--  forces at boss 2" would be the same rotting data as the old EJ map --
+--  wrong the day a dungeon is retuned -- and it would also be somebody
+--  else's route rather than yours.
+--
+--  Schema, per entry:
+--    total      run time in milliseconds
+--    level      key level the run was recorded at
+--    recordedAt epoch seconds
+--    bosses[i]  { time = seconds, forces = percent at that kill }
+--    forcesDone seconds at which the forces count completed
+-- ══════════════════════════════════════════════════════════════════════
+function TMT:SplitStore()
+    local db = GetDB()
+    if not db then return nil end
+    if type(db.splits) ~= "table" then db.splits = {} end
+    return db.splits
+end
+
+-- Best run for this dungeon. An exact key-level match wins; failing that
+-- the nearest level below (a slower reference is still a reference), then
+-- the nearest above. Returns the entry and the level it came from, so the
+-- caller can say where the comparison is coming from.
+function TMT:GetBestRun(mapID, level)
+    local store = self:SplitStore()
+    local byLevel = store and mapID and store[mapID]
+    if not byLevel or not level then return nil end
+    if byLevel[level] then return byLevel[level], level end
+
+    local lower, lowerLvl, higher, higherLvl
+    for lvl, run in pairs(byLevel) do
+        if type(lvl) == "number" then
+            if lvl < level then
+                if not lowerLvl or lvl > lowerLvl then lower, lowerLvl = run, lvl end
+            elseif not higherLvl or lvl < higherLvl then
+                higher, higherLvl = run, lvl
+            end
+        end
+    end
+    if lower  then return lower,  lowerLvl  end
+    if higher then return higher, higherLvl end
+    return nil
+end
+
+-- Store the run that just finished, if it beats what is on record. A
+-- depleted run still counts: it may be the only data for that dungeon,
+-- and a slow reference beats no reference.
+function TMT:RecordRun()
+    local db = GetDB()
+    if not db or db.splitsEnabled == false then return false end
+
+    local mapID, level, ms = self.mapID, self.level, self.completionTime
+    if not mapID or not level or not ms or ms <= 0 then return false end
+
+    local store = self:SplitStore()
+    if not store then return false end
+    store[mapID] = store[mapID] or {}
+
+    local prev = store[mapID][level]
+    if prev and prev.total and prev.total <= ms then return false end
+
+    local bosses = {}
+    for i, t in pairs(self.bossKillTimes or {}) do
+        bosses[i] = { time = t, forces = (self.bossForces or {})[i] }
+    end
+
+    store[mapID][level] = {
+        total      = ms,
+        level      = level,
+        recordedAt = time(),
+        bosses     = bosses,
+        forcesDone = self.forcesCompTime,
+    }
+    return true
+end
+
+function TMT:ClearSplits()
+    local db = GetDB()
+    if db then db.splits = {} end
+end
+
+-- The forces percentage the best run had reached by the boss you have
+-- just killed. Between kills the reference holds, which is what makes it
+-- readable at a glance instead of jittering every tick.
+function TMT:CurrentCheckpoint()
+    local db = GetDB()
+    if not db or db.checkpointsEnabled == false then return nil end
+    local done = self._bossDone
+    if not done or done < 1 then return nil end
+    local best = self:GetBestRun(self.mapID, self.level)
+    local entry = best and best.bosses and best.bosses[done]
+    return entry and entry.forces or nil
+end
+
+function TMT:PaintSegment(seg, index, state)
+    local C  = self.C
+    local db = GetDB()
+
+    local ramp = C.SEG_RAMP_BRAND
+    if not db or db.segmentColors ~= "brand" then
+        ramp = C.SEG_RAMP[index] or C.SEG_RAMP_BRAND
+    end
+
+    -- A spent palier is history: it keeps its own colour so the bar still
+    -- reads left to right, but dimmed, so the eye lands on the window
+    -- actually being spent.
+    local alpha = 0.90
+    if state == "spent" then alpha = 0.42
+    elseif state == "overtime" then alpha = 0.95 end
+
+    local lo, hi = ramp[1], ramp[2]
+    local tex = seg.GetStatusBarTexture and seg:GetStatusBarTexture()
+    local ok = false
+    if tex and tex.SetGradient and CreateColor then
+        ok = pcall(tex.SetGradient, tex, "HORIZONTAL",
+            CreateColor(lo[1], lo[2], lo[3], alpha),
+            CreateColor(hi[1], hi[2], hi[3], alpha))
+    end
+    if not ok then
+        -- No gradient support: the ramp's bright stop keeps the palier
+        -- readable, only the shading is lost.
+        seg:SetStatusBarColor(hi[1], hi[2], hi[3], alpha)
+    end
+end
+
 function TMT:UpdateTimerBar(preview)
-    local TB = self.Frame.TimerBar
-    local CR = self.Frame.ChestRow
+    local F  = self.Frame
+    local TL = F.TimerLine
+    local SR = F.SegRow
     local db = GetDB()
     if not db or not db.showTimer then
-        TB:Hide(); CR:Hide()
+        TL:Hide(); SR:Hide()
         return
     end
-    TB:Show()
+    SR:Show()
 
-    local C = self.C
+    -- "inline" folds the elapsed time onto the segment row and drops the
+    -- time limit and the delta: the last segment's countdown already is
+    -- the time left before depletion, so both would be restating it.
+    local inline = (db.timerLayout == "inline")
+    TL:SetShown(not inline)
+    SR.elapsed:SetShown(inline)
+
+    local C         = self.C
     local elapsed   = 0
     local timeLimit = self.timeLimit or 1800
 
     if preview then
-        elapsed, timeLimit = 179, 1800
+        elapsed, timeLimit = 754, 1800
     elseif self.completionTime then
         elapsed = self.completionTime / 1000
     elseif C_ChallengeMode.IsChallengeModeActive() then
@@ -698,116 +1223,115 @@ function TMT:UpdateTimerBar(preview)
     end
     if timeLimit <= 0 then timeLimit = 1800 end
 
-    local ratio    = math.min(elapsed / timeLimit, 1)
-    local overtime = elapsed > timeLimit
+    -- Chest times, with a defensive fallback if the map info has not
+    -- arrived yet. Index 1 is the full limit, 3 the +3 threshold.
+    local ct  = self.chestTimes or {}
+    local ct1 = ct[1] or timeLimit
+    local ct2 = ct[2] or math.floor(timeLimit * 0.80)
+    local ct3 = ct[3] or math.floor(timeLimit * 0.60)
+    if ct1 <= 0 then ct1 = timeLimit end
+    if ct2 <= 0 or ct2 >= ct1 then ct2 = math.floor(ct1 * 0.80) end
+    if ct3 <= 0 or ct3 >= ct2 then ct3 = math.floor(ct1 * 0.60) end
 
-    local r, g, b
-    if overtime then
-        r, g, b = C.BAR_RED[1], C.BAR_RED[2], C.BAR_RED[3]
-        TB:SetValue(1)
-    elseif ratio < 0.70 then
-        local t = ratio / 0.70
-        r = C.BAR_GREEN[1]  + (C.BAR_YELLOW[1] - C.BAR_GREEN[1])  * t
-        g = C.BAR_GREEN[2]  + (C.BAR_YELLOW[2] - C.BAR_GREEN[2])  * t
-        b = C.BAR_GREEN[3]  + (C.BAR_YELLOW[3] - C.BAR_GREEN[3])  * t
-        TB:SetValue(ratio)
-    else
-        local t = (ratio - 0.70) / 0.30
-        r = C.BAR_YELLOW[1] + (C.BAR_RED[1] - C.BAR_YELLOW[1]) * t
-        g = C.BAR_YELLOW[2] + (C.BAR_RED[2] - C.BAR_YELLOW[2]) * t
-        b = C.BAR_YELLOW[3] + (C.BAR_RED[3] - C.BAR_YELLOW[3]) * t
-        TB:SetValue(ratio)
-    end
-    TB:SetStatusBarColor(r, g, b, 0.85)
+    local limits = { ct1, ct2, ct3 }
+    local spans  = { ct1 - ct2, ct2 - ct3, ct3 }
 
-    TB.elapsed:SetText(self:FormatTime(elapsed))
-    if overtime then
-        TB.elapsed:SetTextColor(unpack(C.TEXT_RED))
-    else
-        TB.elapsed:SetTextColor(unpack(C.TEXT_WHITE))
-    end
+    -- ── Segment geometry ──────────────────────────────────────────────
+    local usable = self.W - self.PAD * 2 - self.SEG_GAP * 2
+    local w3 = math.floor(usable * spans[3] / ct1 + 0.5)
+    local w2 = math.floor(usable * spans[2] / ct1 + 0.5)
+    local w1 = usable - w3 - w2
+    if w1 < 10 then w1 = 10 end
+    if w2 < 10 then w2 = 10 end
+    local widths = { w1, w2, w3 }
 
-    TB.limit:SetText("/ " .. self:FormatTime(timeLimit))
+    local x3 = self.PAD
+    local x2 = x3 + w3 + self.SEG_GAP
+    local x1 = x2 + w2 + self.SEG_GAP
+    local xs = { x1, x2, x3 }
 
-    local diff = timeLimit - elapsed
-    local ds   = self:FormatDelta(diff)
-    if diff >= 0 then
-        local hex = string.format("|cFF%02x%02x%02x", math.floor(r*255), math.floor(g*255), math.floor(b*255))
-        TB.delta:SetText(hex .. ds .. "|r")
-    else
-        TB.delta:SetText("|cFFE03020" .. ds .. "|r")
-    end
+    local overtime = elapsed > ct1
 
-    local ct = preview and {timeLimit, math.floor(timeLimit * 0.80), math.floor(timeLimit * 0.60)} or (self.chestTimes or {})
     for i = 1, 3 do
-        local tick  = TB.ticks[i]
-        local ctime = ct[i]
-        if ctime and ctime > 0 and ctime < timeLimit then
-            local px = (ctime / timeLimit) * self.W
-            tick:ClearAllPoints()
-            tick:SetPoint("LEFT", TB, "LEFT", math.floor(px), 0)
-            tick:Show()
+        local seg = F.TimerSegs[i]
+        seg:ClearAllPoints()
+        seg:SetPoint("LEFT", SR, "LEFT", xs[i], 0)
+        seg:SetWidth(widths[i])
+
+        local barMax    = spans[i]
+        local remaining = limits[i] - elapsed
+        local value     = 0
+        if barMax > 0 then
+            value = (barMax - remaining) / barMax
+            if value < 0 then value = 0 elseif value > 1 then value = 1 end
+        end
+        seg:SetValue(value)
+
+        local active = (value > 0 and value < 1)
+        if i == 1 and overtime then
+            seg:SetValue(1)
+            self:PaintSegment(seg, i, "overtime")
+        elseif value >= 1 then
+            self:PaintSegment(seg, i, "spent")
         else
-            tick:Hide()
+            self:PaintSegment(seg, i, "active")
+        end
+
+        -- Countdown text
+        if i == 1 and overtime then
+            seg.label:SetText("-" .. self:FormatTime(-remaining))
+            seg.label:SetTextColor(unpack(C.ON_FILL))
+        elseif remaining > 0 then
+            seg.label:SetText(self:FormatTime(remaining))
+            if active then
+                seg.label:SetTextColor(unpack(C.TEXT_WHITE))
+            else
+                seg.label:SetTextColor(unpack(C.TEXT_GREY))
+            end
+        else
+            seg.label:SetText("")
+        end
+
+        -- The palier marker rides the segment currently being spent. It
+        -- yields its spot to the elapsed time in the inline layout.
+        if active and not inline then
+            seg.tag:SetText("+" .. i)
+            seg.tag:SetTextColor(unpack(C.ON_FILL))
+        else
+            seg.tag:SetText("")
         end
     end
 
-    -- Chest countdown row (+3 / +2 / +1)
-    local anyChest = false
-
-    -- +3 chest (60% time)
-    local ct3 = ct[3]
-    if ct3 and ct3 > 0 and ct3 < timeLimit then
-        local rem3 = ct3 - elapsed
-        local txt3
-        if rem3 > 0 then
-            txt3 = "|cFF55E210+3|r  " .. self:FormatTime(rem3)
-            CR.chest3:SetTextColor(unpack(C.TEXT_GREEN))
+    -- ── Elapsed time ──────────────────────────────────────────────────
+    if inline then
+        SR.elapsed:SetText(self:FormatTime(elapsed))
+        -- The text sits at the left edge of the first segment, which is
+        -- bare track early in a key and filled later. Dark on dark is
+        -- unreadable, so the colour follows what is actually behind it.
+        if overtime then
+            SR.elapsed:SetTextColor(unpack(C.TEXT_RED))
+        elseif F.TimerSegs[3]:GetValue() > 0.12 then
+            SR.elapsed:SetTextColor(unpack(C.ON_FILL))
         else
-            txt3 = "|cFF55E210+3|r  |cFF888888-" .. self:FormatTime(-rem3) .. "|r"
+            SR.elapsed:SetTextColor(unpack(C.TEXT_WHITE))
         end
-        CR.chest3:SetText(txt3)
-        CR.chest3:Show()
-        anyChest = true
+        return
+    end
+
+    TL.elapsed:SetText(self:FormatTime(elapsed))
+    TL.elapsed:SetTextColor(unpack(overtime and C.TEXT_RED or C.TEXT_WHITE))
+    TL.limit:SetText("/ " .. self:FormatTime(ct1))
+
+    local diff = ct1 - elapsed
+    if diff < 0 then
+        TL.delta:SetText("|cFF" .. C.HEX_RED .. self:FormatDelta(diff) .. "|r")
+    elseif diff <= ct1 * 0.20 then
+        TL.delta:SetText(self:FormatDelta(diff))
+        TL.delta:SetTextColor(unpack(C.TEXT_YELLOW))
     else
-        CR.chest3:Hide()
+        TL.delta:SetText(self:FormatDelta(diff))
+        TL.delta:SetTextColor(unpack(C.TEXT_BRAND))
     end
-
-    local ct2 = ct[2]
-    if ct2 and ct2 > 0 and ct2 < timeLimit then
-        local rem2 = ct2 - elapsed
-        local txt2
-        if rem2 > 0 then
-            txt2 = "|cFF30D9E0+2|r  " .. self:FormatTime(rem2)
-            CR.chest2:SetTextColor(unpack(C.TEXT_TEAL))
-        else
-            txt2 = "|cFF30D9E0+2|r  |cFF888888-" .. self:FormatTime(-rem2) .. "|r"
-        end
-        CR.chest2:SetText(txt2)
-        CR.chest2:Show()
-        anyChest = true
-    else
-        CR.chest2:Hide()
-    end
-
-    local ct1 = ct[1]
-    if ct1 and ct1 > 0 then
-        local rem1 = ct1 - elapsed
-        local txt1
-        if rem1 > 0 then
-            txt1 = self:FormatTime(rem1) .. "  |cFFFFCC00\194\1770|r"
-            CR.chest1:SetTextColor(unpack(C.TEXT_YELLOW))
-        else
-            txt1 = "|cFF888888-" .. self:FormatTime(-rem1) .. "|r  |cFFE03020OT|r"
-        end
-        CR.chest1:SetText(txt1)
-        CR.chest1:Show()
-        anyChest = true
-    else
-        CR.chest1:Hide()
-    end
-
-    if anyChest then CR:Show() else CR:Hide() end
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -816,41 +1340,68 @@ end
 function TMT:UpdateForcesBar(preview)
     local FB  = self.Frame.ForcesBar
     local FCR = self.Frame.ForcesCompRow
-    local sep = self.Frame._sep3
     local db  = GetDB()
     if not db or not db.showForces then
-        FB:Hide(); FCR:Hide(); sep:Hide()
+        FB:Hide(); FCR:Hide()
         return
     end
-    FB:Show(); sep:Show()
+    FB:Show()
 
     local C = self.C
-    local qty, total, pct = 0, 1, 0
+
+    -- [SECRET VALUES] Scenario criteria fields are not guaranteed readable
+    -- in combat in 12.x. Every field passes a guard before it is compared,
+    -- matched or used in arithmetic, and the bar degrades in stages rather
+    -- than lying: exact counts, then percentage only, then frozen.
+    local qty, total, pct
 
     if preview then
         qty, total = 730, 1000
     else
-        local steps = select(3, C_Scenario.GetStepInfo())
+        local steps = SafeNum(select(3, C_Scenario.GetStepInfo()))
         if steps and steps > 0 then
             for i = 1, steps do
                 local cr = C_ScenarioInfo.GetCriteriaInfo(i)
-                if cr and cr.isWeightedProgress and cr.totalQuantity and cr.totalQuantity > 0 then
-                    qty   = cr.quantityString and tonumber(cr.quantityString:match("%d+")) or 0
-                    total = cr.totalQuantity
+                -- Presence, not magnitude: asking "is totalQuantity > 0"
+                -- on an opaque value is exactly the banned comparison.
+                if cr and SafeBool(cr.isWeightedProgress) and cr.totalQuantity ~= nil then
+                    total = SafeNum(cr.totalQuantity)
+
+                    -- For weighted progress the client puts the absolute
+                    -- count in quantityString -- carrying a stray percent
+                    -- sign despite being an absolute value -- while
+                    -- quantity holds the percentage. Hence the string
+                    -- first, the number as the fallback.
+                    local qs = SafeStr(cr.quantityString)
+                    if qs then qty = tonumber(qs:match("%d+")) end
+                    if not qty then pct = SafeNum(cr.quantity) end
                     break
                 end
             end
         end
     end
-    pct = (total > 0) and (qty / total * 100) or 0
 
-    local ratio = math.min(pct / 100, 1)
-    FB:SetValue(ratio)
+    if qty and total and total > 0 then
+        pct = qty / total * 100
+    end
+    -- Published for UpdateBossRows, which snapshots it at each kill.
+    self._forcesPct = pct
 
-    if pct >= 100 then
+    -- Nothing readable this frame: hold the last known fill instead of
+    -- dropping the bar to zero, which would read as "the pull reset".
+    local ratio
+    if pct then
+        ratio = math.min(pct / 100, 1)
+        self._lastForcesRatio = ratio
+    else
+        ratio = self._lastForcesRatio
+    end
+    FB:SetValue(ratio or 0)
+
+    if pct and pct >= 100 then
         FB:SetStatusBarColor(unpack(C.FORCES_DONE))
         FB.pct:SetText(L["tmt_forces_done"])
-        FB.pct:SetTextColor(unpack(C.TEXT_GREEN))
+        FB.pct:SetTextColor(unpack(C.ON_FILL))
         FB.label:Hide()
         FB.count:Hide()
 
@@ -864,25 +1415,53 @@ function TMT:UpdateForcesBar(preview)
         if not self.forcesCompTime then
             self.forcesCompTime = elapsed
         end
-        FCR.time:SetText("|cFF55E210" .. L["tmt_forces"] .. "|r  " .. self:FormatTime(self.forcesCompTime))
+        local line = "|cFF" .. C.HEX_BRAND .. L["tmt_forces"] .. "|r  " .. self:FormatTime(self.forcesCompTime)
+        local best = (db.splitsEnabled ~= false)
+            and self:GetBestRun(self.mapID, self.level) or nil
+        if best and best.forcesDone then
+            local delta = self.forcesCompTime - best.forcesDone
+            local hex = (delta <= 0) and C.HEX_BRAND or C.HEX_RED
+            line = line .. "  |cFF" .. hex .. self:FormatDelta(delta) .. "|r"
+        end
+        FCR.time:SetText(line)
         FCR:Show()
     else
-        -- 5-stage gradient colors (inspired by MPlusTimer)
-        local forcesColor
-        if     pct < 20  then forcesColor = C.FORCES_1
-        elseif pct < 40  then forcesColor = C.FORCES_2
-        elseif pct < 60  then forcesColor = C.FORCES_3
-        elseif pct < 80  then forcesColor = C.FORCES_4
-        else                   forcesColor = C.FORCES_5
+        -- Brand ramp: dark mint at the pull, full mint as the count fills.
+        -- With no readable numbers the ramp sits at its low end; the bar
+        -- fill is still correct because it came from the raw values.
+        local r, g, b = Mix(C.FORCES_LOW, C.FORCES_HIGH, ratio or 0)
+        FB:SetStatusBarColor(r, g, b, 0.85)
+        if pct then
+            local text = string.format(L["tmt_forces_pct"], pct)
+            -- Checkpoint: where the best run stood at the boss you have
+            -- just killed. Up means ahead of that pace.
+            local ref = self:CurrentCheckpoint()
+            if ref then
+                local delta = pct - ref
+                local arrow = (delta >= 0) and "\226\150\178" or "\226\150\188"
+                local hex   = (delta >= 0) and C.HEX_BRAND or C.HEX_RED
+                text = text .. "  |cFF" .. hex .. arrow
+                    .. string.format("%.1f", math.abs(delta)) .. "|r"
+            end
+            FB.pct:SetText(text)
+        else
+            FB.pct:SetText("")
         end
-        FB:SetStatusBarColor(unpack(forcesColor))
-        FB.pct:SetText(string.format(L["tmt_forces_pct"], pct))
         FB.pct:SetTextColor(unpack(C.TEXT_WHITE))
         FB.label:Show()
+        FB.count:Show()
         FCR:Hide()
         self.forcesCompTime = nil
     end
-    FB.count:SetText(string.format(L["tmt_forces_count"], qty, total))
+
+    -- What is left to kill reads better mid-pull than "730 / 1000".
+    if qty and total then
+        local remaining = total - qty
+        if remaining < 0 then remaining = 0 end
+        FB.count:SetText(string.format(L["tmt_forces_remaining"], remaining))
+    else
+        FB.count:SetText("")
+    end
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -890,11 +1469,13 @@ end
 -- ═══════════════════════════════════════════════════════════════════════
 function TMT:UpdateBossRows(preview)
     for _, row in ipairs(self.Frame.BossRows) do row:Hide() end
+    self._bossDone, self._bossTotal = nil, nil
     local db = GetDB()
     if not db or not db.showBosses then return end
 
     local C       = self.C
     local elapsed = 0
+    local striped = (db.objectiveStyle == "rows")
 
     if not preview and C_ChallengeMode.IsChallengeModeActive() then
         elapsed = select(2, GetWorldElapsedTime(1)) or 0
@@ -903,8 +1484,11 @@ function TMT:UpdateBossRows(preview)
     local criteria = {}
     if preview then
         criteria = {
-            { criteriaString = "Prioress Murrpray",   completed = true,  elapsed = 340 },
-            { criteriaString = "Sergeant Shaynemail", completed = true,  elapsed = 560 },
+            -- cr.elapsed counts seconds SINCE the kill, so the boss killed
+            -- first carries the larger value. Reversed, the preview showed
+            -- boss 2 dying before boss 1 and a negative leg time.
+            { criteriaString = "Prioress Murrpray",   completed = true,  elapsed = 560 },
+            { criteriaString = "Sergeant Shaynemail", completed = true,  elapsed = 340 },
             { criteriaString = "Captain Dailcry",     completed = false, elapsed = nil },
             { criteriaString = "High Priest Aemya",   completed = false, elapsed = nil },
         }
@@ -913,21 +1497,38 @@ function TMT:UpdateBossRows(preview)
         local steps = select(3, C_Scenario.GetStepInfo()) or 0
         for i = 1, steps do
             local cr = C_ScenarioInfo.GetCriteriaInfo(i)
-            if cr and not cr.isWeightedProgress then
+            -- Explicitly false, not "falsy": if the flag is opaque we
+            -- cannot tell a boss from the forces counter, and listing the
+            -- forces counter as a boss is the worse failure.
+            if cr and SafeBool(cr.isWeightedProgress) == false then
                 table.insert(criteria, cr)
             end
         end
     end
 
+    -- Count before rendering: the minimal layout hides the rows but still
+    -- reports the tally in the header, so the count has to survive the
+    -- early return below.
+    local done = 0
+    for _, cr in ipairs(criteria) do
+        if cr.completed then done = done + 1 end
+    end
+    self._bossDone, self._bossTotal = done, #criteria
+
+    if db.objectiveStyle == "none" then return end
+
     self.bossKillTimes = self.bossKillTimes or {}
-    self.prevBossKillTimes = self.prevBossKillTimes or {}
+    self.bossForces    = self.bossForces or {}
+
+    local best = (db.splitsEnabled ~= false)
+        and self:GetBestRun(self.mapID, self.level) or nil
 
     for i, cr in ipairs(criteria) do
         local row = self.Frame.BossRows[i]
         if not row then break end
         row:Show()
 
-        if i % 2 == 0 then
+        if striped and i % 2 == 0 then
             row._bg:SetColorTexture(unpack(C.BG_ROW_ALT))
         else
             row._bg:SetColorTexture(0, 0, 0, 0)
@@ -955,18 +1556,22 @@ function TMT:UpdateBossRows(preview)
             if not kt and cr.elapsed and elapsed > 0 then
                 kt = elapsed - cr.elapsed
                 self.bossKillTimes[i] = kt
+                -- Snapshot the forces count at the kill: this is what a
+                -- future run compares itself against.
+                self.bossForces[i] = self._forcesPct
             end
-            local checkIcon = "|TInterface\\RAIDFRAME\\ReadyCheck-Ready:12:12:0:0|t"
-            row.time:SetText(kt and (checkIcon .. "  " .. self:FormatTime(kt)) or checkIcon)
-            row.time:SetTextColor(unpack(C.TEXT_GREEN))
+            row.time:SetText(kt and self:FormatTime(kt) or "")
+            row.time:SetTextColor(unpack(C.TEXT_BRAND))
 
-            -- Show split time (delta to previous boss)
-            if kt and i > 1 and self.bossKillTimes[i - 1] then
-                local split = kt - self.bossKillTimes[i - 1]
-                row.split:SetText(self:FormatTime(split))
-                row.split:SetTextColor(unpack(C.TEXT_GREY))
-            elseif kt and i == 1 then
-                row.split:SetText(self:FormatTime(kt))
+            -- Against the best run when there is one, otherwise fall back
+            -- to the leg time from the previous boss.
+            local ref = best and best.bosses and best.bosses[i] and best.bosses[i].time
+            if kt and ref then
+                local delta = kt - ref
+                row.split:SetText(self:FormatDelta(delta))
+                row.split:SetTextColor(unpack(delta <= 0 and C.TEXT_BRAND or C.TEXT_RED))
+            elseif kt and i > 1 and self.bossKillTimes[i - 1] then
+                row.split:SetText(self:FormatTime(kt - self.bossKillTimes[i - 1]))
                 row.split:SetTextColor(unpack(C.TEXT_GREY))
             else
                 row.split:SetText("")
@@ -985,101 +1590,125 @@ end
 --  UPDATE — COMPLETION BANNER
 -- ═══════════════════════════════════════════════════════════════════════
 function TMT:UpdateBanner()
-    local BNR = self.Frame.Banner
+    local BNR  = self.Frame.Banner
+    local C    = self.C
     local info = C_ChallengeMode.GetChallengeCompletionInfo()
-    if info and info.time and info.time > 0 then
-        local sec    = info.time / 1000
-        local inTime = self.timeLimit and (sec <= self.timeLimit)
-        local upgrades = info.keystoneUpgradeLevels or 0
-        if inTime then
-            BNR._bg:SetColorTexture(0, 0.22, 0.04, 0.92)
-            local upText = upgrades > 0 and (" |cFFFFCC00+" .. upgrades .. "|r") or ""
-            BNR.text:SetText("|cFF55E210" .. L["tmt_completed_on_time"] .. "|r" .. upText .. "  " .. self:FormatTime(sec))
-        else
-            BNR._bg:SetColorTexture(0.22, 0.04, 0, 0.92)
-            BNR.text:SetText("|cFFE03020" .. L["tmt_completed_depleted"] .. "|r  " .. self:FormatTime(sec))
-        end
-        BNR:Show()
-    else
+
+    -- Guard before comparing: the completion payload arrives on an event
+    -- that can fire while still in combat.
+    local ms = info and SafeNum(info.time)
+    if not ms or ms <= 0 then
         BNR:Hide()
+        return
     end
+
+    local sec   = ms / 1000
+    local limit = (self.chestTimes and self.chestTimes[1]) or self.timeLimit
+    local upgrades = SafeNum(info.keystoneUpgradeLevels) or 0
+
+    -- The margin is the number people actually talk about after a key:
+    -- how much room was left, or by how much it was missed.
+    local margin = limit and (limit - sec) or nil
+    local marginText = ""
+    if margin then
+        marginText = "  |cFF" .. C.HEX_GREY .. "(" .. self:FormatDelta(margin) .. ")|r"
+    end
+
+    if limit and sec <= limit then
+        BNR._bg:SetColorTexture(C.ACCENT[1] * 0.20, C.ACCENT[2] * 0.22, C.ACCENT[3] * 0.20, 0.92)
+        local upText = upgrades > 0 and ("  |cFF" .. C.HEX_BRAND .. "+" .. upgrades .. "|r") or ""
+        BNR.text:SetText("|cFF" .. C.HEX_BRAND .. L["tmt_completed_on_time"] .. "|r"
+            .. upText .. "  " .. self:FormatTime(sec) .. marginText)
+    else
+        BNR._bg:SetColorTexture(C.TEXT_RED[1] * 0.24, C.TEXT_RED[2] * 0.10, C.TEXT_RED[3] * 0.08, 0.92)
+        BNR.text:SetText("|cFF" .. C.HEX_RED .. L["tmt_completed_depleted"] .. "|r  "
+            .. self:FormatTime(sec) .. marginText)
+    end
+    BNR:Show()
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
---  LAYOUT — dynamic frame height
+--  LAYOUT — walk a running offset from the top of the frame
+--  Elements are never anchored to each other, so a hidden row costs one
+--  skipped branch here instead of a re-anchoring chain everywhere else.
 -- ═══════════════════════════════════════════════════════════════════════
 function TMT:LayoutFrame()
     if not self.Frame then return end
     local db = GetDB()
     if not db then return end
+
     local F   = self.Frame
     local GAP = self.GAP
+    local off = 0
 
-    local h = self.HEADER_H + 1 + GAP
+    local function Place(el, h, inset)
+        inset = inset or 0
+        el:ClearAllPoints()
+        el:SetPoint("TOPLEFT",  F, "TOPLEFT",   inset, -off)
+        el:SetPoint("TOPRIGHT", F, "TOPRIGHT", -inset, -off)
+        if h then off = off + h end
+    end
 
+    -- Header
+    local headerH = db.showDungeonName and self.HEADER_H_FULL or self.HEADER_H_SLIM
+    F.Hdr:SetHeight(headerH)
+    Place(F.Hdr, headerH)
+
+    if F._sep1:IsShown() then
+        Place(F._sep1, 1)
+    end
+    off = off + GAP
+
+    -- Timer line + segmented bar
     if db.showTimer then
-        h = h + self.BAR_H
-        if F.ChestRow:IsShown() then
-            h = h + 1 + 14
+        -- [FIX] SegRow spans the full width: UpdateTimerBar already insets
+        -- the segments by PAD, so insetting the row too pushed the last
+        -- segment past the right edge of the frame.
+        if F.TimerLine:IsShown() then
+            Place(F.TimerLine, self.TIMER_LINE_H)
         end
+        Place(F.SegRow, self.SEG_H)
+        off = off + GAP
     end
 
-    -- Re-anchor sep2 based on ChestRow visibility
-    F._sep2:ClearAllPoints()
-    if F.ChestRow:IsShown() then
-        F._sep2:SetPoint("TOPLEFT",  F.ChestRow, "BOTTOMLEFT",  0, -GAP)
-        F._sep2:SetPoint("TOPRIGHT", F.ChestRow, "BOTTOMRIGHT", 0, -GAP)
-    else
-        F._sep2:SetPoint("TOPLEFT",  F.TimerBar, "BOTTOMLEFT",  0, -GAP)
-        F._sep2:SetPoint("TOPRIGHT", F.TimerBar, "BOTTOMRIGHT", 0, -GAP)
-    end
-
+    -- Forces
     if db.showForces then
-        h = h + GAP + 1 + GAP + self.BAR_H
-        if F.ForcesCompRow and F.ForcesCompRow:IsShown() then
-            h = h + 1 + 14
+        Place(F.ForcesBar, self.BAR_H, self.PAD)
+        if F.ForcesCompRow:IsShown() then
+            off = off + 1
+            Place(F.ForcesCompRow, 13)
+        end
+        off = off + GAP
+    end
+
+    -- Bosses
+    local bossCnt = 0
+    for _, row in ipairs(F.BossRows) do
+        if row:IsShown() then bossCnt = bossCnt + 1 end
+    end
+
+    F._sep3:SetShown((F._chromeSeps ~= false) and bossCnt > 0)
+    if F._sep3:IsShown() then
+        Place(F._sep3, 1)
+        off = off + GAP
+    end
+
+    if bossCnt > 0 then
+        for _, row in ipairs(F.BossRows) do
+            if row:IsShown() then Place(row, self.BOSS_H) end
         end
     end
 
-    -- Re-anchor sep3 based on ForcesCompRow visibility
-    F._sep3:ClearAllPoints()
-    if F.ForcesCompRow and F.ForcesCompRow:IsShown() then
-        F._sep3:SetPoint("TOPLEFT",  F.ForcesCompRow, "BOTTOMLEFT",  0, -GAP)
-        F._sep3:SetPoint("TOPRIGHT", F.ForcesCompRow, "BOTTOMRIGHT", 0, -GAP)
-    else
-        F._sep3:SetPoint("TOPLEFT",  F.ForcesBar, "BOTTOMLEFT",  0, -GAP)
-        F._sep3:SetPoint("TOPRIGHT", F.ForcesBar, "BOTTOMRIGHT", 0, -GAP)
-    end
-
-    local bossCnt  = 0
-    local lastRow  = nil
-    for _, row in ipairs(F.BossRows) do
-        if row:IsShown() then bossCnt = bossCnt + 1; lastRow = row end
-    end
-    if bossCnt > 0 then
-        h = h + GAP + 1 + GAP
-        h = h + bossCnt * self.BOSS_H
-    end
-
+    -- Completion banner
     if F.Banner:IsShown() then
-        h = h + GAP + 24
+        off = off + GAP
+        Place(F.Banner, 22)
     end
-    h = h + 4
 
-    F:SetHeight(math.max(h, self.HEADER_H + self.BAR_H * 2 + 20))
+    off = off + 4
+    F:SetHeight(math.max(off, self.HEADER_H_SLIM + 20))
 
-    F._bg:SetAllPoints(F)
-    F._accent:ClearAllPoints()
-    F._accent:SetPoint("TOPLEFT",    F, "TOPLEFT",    0, 0)
-    F._accent:SetPoint("BOTTOMLEFT", F, "BOTTOMLEFT", 0, 0)
     if F._bdrFrame then F._bdrFrame:SetAllPoints(F) end
-
-    local bannerAnchor = (lastRow and lastRow:IsShown()) and lastRow
-                         or (db.showForces and F.ForcesBar)
-                         or F.TimerBar
-    F.Banner:ClearAllPoints()
-    F.Banner:SetPoint("TOPLEFT",  bannerAnchor, "BOTTOMLEFT",  0, -GAP)
-    F.Banner:SetPoint("TOPRIGHT", bannerAnchor, "BOTTOMRIGHT", 0, -GAP)
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1087,10 +1716,12 @@ end
 -- ═══════════════════════════════════════════════════════════════════════
 function TMT:RefreshAll(preview)
     if not self.Frame then return end
+    -- Boss rows first: they compute the tally the header displays when
+    -- the list itself is hidden.
+    self:UpdateBossRows(preview)
     self:UpdateHeader(preview)
     self:UpdateTimerBar(preview)
     self:UpdateForcesBar(preview)
-    self:UpdateBossRows(preview)
     self:UpdateBanner()
     self:LayoutFrame()
 end
@@ -1341,6 +1972,8 @@ EF:SetScript("OnEvent", function(_, event, ...)
 
     elseif event == "CHALLENGE_MODE_START" then
         TMT.bossKillTimes = {}
+        TMT.bossForces = {}
+        TMT._forcesPct = nil
         TMT.completionTime = nil
         TMT.playerDeaths = {}
         TMT.forcesCompTime = nil
@@ -1356,7 +1989,10 @@ EF:SetScript("OnEvent", function(_, event, ...)
     elseif event == "CHALLENGE_MODE_COMPLETED" then
         TMT:StopTicker()
         local info = C_ChallengeMode.GetChallengeCompletionInfo()
-        TMT.completionTime = info and info.time or nil
+        -- Guarded: this event can fire before combat has dropped, and the
+        -- value feeds arithmetic in UpdateTimerBar.
+        TMT.completionTime = info and SafeNum(info.time) or nil
+        TMT:RecordRun()
         TMT:UpdateTimerBar(false)
         TMT:UpdateBossRows(false)
         TMT:UpdateBanner()
@@ -1377,187 +2013,16 @@ EF:SetScript("OnEvent", function(_, event, ...)
 end)
 
 -- ═══════════════════════════════════════════════════════════════════════
---  CONFIG PANEL
+--  STYLE REFRESH ENTRY POINT
+--  The tracker used to carry a second, self-contained options window that
+--  duplicated every setting already present in Config/Panels/MythicPlus.
+--  It is gone: /tmt routes to the main config, and the panel calls this
+--  after writing a style key.
 -- ═══════════════════════════════════════════════════════════════════════
-function TMT:BuildConfigPanel()
-    if self.ConfigPanel then return end
-    local C = self.C
-    local W, H = 300, 434
-
-    local P = CreateFrame("Frame", "TomoMod_MythicTrackerConfig", UIParent, "BackdropTemplate")
-    self.ConfigPanel = P
-    P:SetSize(W, H)
-    P:SetPoint("CENTER", UIParent, "CENTER", 280, 20)
-    P:SetFrameStrata("HIGH")
-    P:SetFrameLevel(200)
-    P:SetMovable(true)
-    P:EnableMouse(true)
-    P:RegisterForDrag("LeftButton")
-    P:SetClampedToScreen(true)
-    P:SetScript("OnDragStart", function(s) s:StartMoving() end)
-    P:SetScript("OnDragStop",  function(s) s:StopMovingOrSizing() end)
-    P:Hide()
-
-    P:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    P:SetBackdropColor(0, 0, 0, 0.88)
-    P:SetBackdropBorderColor(unpack(C.BORDER))
-
-    local accent = P:CreateTexture(nil, "ARTWORK")
-    accent:SetWidth(3)
-    accent:SetPoint("TOPLEFT",    P, "TOPLEFT",    0, 0)
-    accent:SetPoint("BOTTOMLEFT", P, "BOTTOMLEFT", 0, 0)
-    accent:SetColorTexture(unpack(C.ACCENT))
-
-    local hdrBG = P:CreateTexture(nil, "BACKGROUND")
-    hdrBG:SetSize(W, 30)
-    hdrBG:SetPoint("TOPLEFT", P, "TOPLEFT", 0, 0)
-    hdrBG:SetColorTexture(unpack(C.BG_HEADER))
-
-    local titleFS = self:MakeFS(P, 14, "OUTLINE")
-    titleFS:SetPoint("LEFT", P, "TOPLEFT", 10, -15)
-    titleFS:SetText("|cff2ed884Tomo|r|cFF3377CC" .. L["tmt_cfg_title"] .. "|r"
-        .. "  |cFF445566M+ Tracker|r")
-
-    local closeBtn = CreateFrame("Button", nil, P)
-    closeBtn:SetSize(22, 22)
-    closeBtn:SetPoint("TOPRIGHT", P, "TOPRIGHT", -4, -4)
-    local closeX = self:MakeFS(closeBtn, 13, "OUTLINE")
-    closeX:SetPoint("CENTER")
-    closeX:SetText("|cFFCC3322\226\156\149|r")
-    closeBtn:SetScript("OnClick", function() TMT:ToggleConfig() end)
-
-    -- ── Helpers ──────────────────────────────────────────────────
-    local function SectionHdr(text, yOff)
-        local lbl = TMT:MakeFS(P, 10, "OUTLINE")
-        lbl:SetPoint("TOPLEFT", P, "TOPLEFT", 10, yOff)
-        lbl:SetText("|cFF3377CC" .. text:upper() .. "|r")
-        lbl:SetTextColor(unpack(C.TEXT_BLUE))
-        local line = P:CreateTexture(nil, "ARTWORK")
-        line:SetSize(W - 12, 1)
-        line:SetPoint("TOPLEFT", P, "TOPLEFT", 8, yOff - 13)
-        line:SetColorTexture(0.15, 0.32, 0.55, 0.60)
-    end
-
-    local checkboxes = {}
-    local function CB(label, yOff, dbKey, onChange)
-        local db = GetDB()
-        local cb = CreateFrame("CheckButton", nil, P, "UICheckButtonTemplate")
-        cb:SetSize(18, 18)
-        cb:SetPoint("TOPLEFT", P, "TOPLEFT", 10, yOff)
-        cb:SetChecked(db[dbKey])
-        local lbl = TMT:MakeFS(P, 12, "OUTLINE")
-        lbl:SetPoint("LEFT", cb, "RIGHT", 3, 0)
-        lbl:SetText(label)
-        lbl:SetTextColor(unpack(C.TEXT_WHITE))
-        cb:SetScript("OnClick", function(self)
-            local db = GetDB()
-            db[dbKey] = (self:GetChecked() == true)
-            if onChange then onChange(db[dbKey]) end
-        end)
-        checkboxes[dbKey] = cb
-        return cb
-    end
-
-    local sliderCount = 0
-    local function Slider(label, yOff, minV, maxV, step, dbKey, fmt, onChange)
-        local db = GetDB()
-        local lbl = TMT:MakeFS(P, 10, "OUTLINE")
-        lbl:SetPoint("TOPLEFT", P, "TOPLEFT", 10, yOff)
-        lbl:SetText(label)
-        lbl:SetTextColor(unpack(C.TEXT_GREY))
-
-        sliderCount = sliderCount + 1
-        local slName = "TomoMod_TMTConfigSlider" .. sliderCount
-        local sl = CreateFrame("Slider", slName, P, "OptionsSliderTemplate")
-        sl:SetSize(W - 60, 14)
-        sl:SetPoint("TOPLEFT", P, "TOPLEFT", 10, yOff - 17)
-        sl:SetMinMaxValues(minV, maxV)
-        sl:SetValueStep(step)
-        sl:SetObeyStepOnDrag(true)
-        sl:SetValue(db[dbKey])
-
-        local lowLbl  = _G[slName .. "Low"]
-        local highLbl = _G[slName .. "High"]
-        if lowLbl  then lowLbl:SetText( fmt and string.format(fmt, minV) or tostring(minV)) end
-        if highLbl then highLbl:SetText(fmt and string.format(fmt, maxV) or tostring(maxV)) end
-
-        local valLbl = TMT:MakeFS(P, 10, "OUTLINE")
-        valLbl:SetPoint("LEFT", sl, "RIGHT", 4, 0)
-        valLbl:SetText(fmt and string.format(fmt, db[dbKey]) or tostring(db[dbKey]))
-        valLbl:SetTextColor(unpack(C.TEXT_GREEN))
-
-        sl:SetScript("OnValueChanged", function(self, val)
-            val = math.floor(val / step + 0.5) * step
-            local db = GetDB()
-            db[dbKey] = val
-            valLbl:SetText(fmt and string.format(fmt, val) or tostring(val))
-            if onChange then onChange(val) end
-        end)
-        return sl
-    end
-
-    local function Btn(label, yOff, xOff, onClick)
-        local b = CreateFrame("Button", nil, P, "BackdropTemplate")
-        b:SetSize(118, 20)
-        b:SetPoint("TOPLEFT", P, "TOPLEFT", xOff or 10, yOff)
-        b:SetBackdrop({ bgFile="Interface\\Buttons\\WHITE8x8", edgeFile="Interface\\Buttons\\WHITE8x8", edgeSize=1 })
-        b:SetBackdropColor(0.05, 0.12, 0.26, 0.92)
-        b:SetBackdropBorderColor(unpack(C.BORDER_BLUE))
-        local fs = TMT:MakeFS(b, 11, "OUTLINE")
-        fs:SetPoint("CENTER"); fs:SetText(label)
-        fs:SetTextColor(unpack(C.TEXT_WHITE))
-        b:SetScript("OnEnter", function(s) s:SetBackdropColor(0.10, 0.22, 0.44, 0.95) end)
-        b:SetScript("OnLeave", function(s) s:SetBackdropColor(0.05, 0.12, 0.26, 0.92) end)
-        b:SetScript("OnClick", onClick)
-        return b
-    end
-
-    -- ── Layout ──────────────────────────────────────────────────
-    local y = -38
-    SectionHdr(L["tmt_cfg_section_display"], y) ; y = y - 20
-
-    CB(L["tmt_cfg_show_timer"],  y, "showTimer",  function(v) if TMT.Frame then TMT.Frame.TimerBar:SetShown(v); TMT:LayoutFrame() end end) ; y = y - 24
-    CB(L["tmt_cfg_show_forces"], y, "showForces", function(v) if TMT.Frame then TMT.Frame.ForcesBar:SetShown(v); TMT:LayoutFrame() end end) ; y = y - 24
-    CB(L["tmt_cfg_show_bosses"], y, "showBosses", function() TMT:UpdateBossRows(); TMT:LayoutFrame() end) ; y = y - 24
-    CB(L["tmt_cfg_hide_blizzard"], y, "hideBlizzard", function(v) if v and TMT._inChallenge then TMT:SuppressBlizzardUI() end end) ; y = y - 24
-    SectionHdr(L["tmt_cfg_section_frame"], y) ; y = y - 20
-    CB(L["tmt_cfg_lock"], y, "locked", function(v) TMT:SetMovable(not v) end) ; y = y - 30
-
-    Slider(L["tmt_cfg_scale"], y, 0.5, 2.0, 0.05, "scale", "%.2f", function(v) if TMT.Frame then TMT.Frame:SetScale(v) end end)
-    y = y - 48
-
-    Slider(L["tmt_cfg_alpha"], y, 0.2, 1.0, 0.05, "alpha", "%.2f", function(v) if TMT.Frame then TMT.Frame:SetAlpha(v) end end)
-    y = y - 44
-
-    SectionHdr(L["tmt_cfg_section_actions"], y) ; y = y - 24
-
-    Btn(L["tmt_cfg_preview"],   y,  10, function() TMT:Preview() end)
-    Btn(L["tmt_cfg_reset_pos"], y, 150, function() TMT:ResetPosition(); print(L["tmt_reset_msg"]) end)
-
-    local ver = TMT:MakeFS(P, 9, "OUTLINE")
-    ver:SetPoint("BOTTOMRIGHT", P, "BOTTOMRIGHT", -8, 6)
-    ver:SetText("|cFF334455M+ Tracker 1.0|r")
-
-    P._checkboxes = checkboxes
-end
-
-function TMT:ToggleConfig()
-    if not self.ConfigPanel then self:BuildConfigPanel() end
-    if self.ConfigPanel:IsShown() then
-        self.ConfigPanel:Hide()
-    else
-        if self.ConfigPanel._checkboxes then
-            local db = GetDB()
-            for key, cb in pairs(self.ConfigPanel._checkboxes) do
-                cb:SetChecked(db[key])
-            end
-        end
-        self.ConfigPanel:Show()
-    end
+function TMT:RefreshStyle()
+    if not self.Frame then return end
+    self:ApplyStyle()
+    self:RefreshAll(self._previewActive and true or false)
 end
 
 -- ═══════════════════════════════════════════════════════════════════════

@@ -1,5 +1,127 @@
 ## ####################################
 
+## CHANGELOG 3.4.1 — The Mythic+ Tracker Stops Being The One Screen In The Addon With A Colour Scheme Of Its Own, The Timer Becomes Three Segments That Each Count Down The Chest They Own, One Fixed Panel Becomes Three Looks With A Three-Row Minimal HUD Among Them, The Forces Count Learns To Say It Does Not Know Instead Of Reading Zero, Boss Names Stop Coming From A Hand-Written Table That Rots Every Season, A Run Can Finally Be Compared Against Your Own Best One Boss At A Time And One Checkpoint At A Time, The End Of A Key Gets A Banner That States The Margin, The Tracker's Private Options Window Is Gone, Text Written On Top Of A Filled Bar Stops Dissolving Into Its Own Outline, A Negative Time Stops Being Printed As A Large Positive One, Opening The Cooldown Studio Stops Being Able To Block Your Own Logout By Either Of The Two Routes It Had, LibOpenRaid Is Dropped Along With The Flood Of False Taint Reports It Produced, The Buff Frame Stops Wearing A Teal Nobody Else In The Addon Uses, Its Borders And Timers Learn To Say How Long Is Left By Colour, Its Timer Gets A Tile Of Its Own Instead Of Floating Over Whatever Is Behind It, And Its Icons Stop Coming Out Taller Than They Are Wide, And The Aura Tracker Is Retired In Favour Of CooldownForge
+
+#### Mythic+ Tracker — It Was The One Screen With Colours Of Its Own
+
+- **Change** — The tracker takes its colours from the TomoMod brand tokens. Surfaces are near-black with a mint cast, the accent is the same green as every other panel, and text, border, red and yellow come from the shared theme. 3.3.6 gave the end-of-run scoreboard this treatment and said in as many words that the in-run tracker still carried its own cyan set and the two would not match until it got the same pass. This is that pass.
+- **New** — A font size multiplier, 0.70 to 1.60, on top of whatever the preset sizes things at. It is the setting that makes the tracker usable at a scale that is not yours: the frame scale slider grows the panel, this grows only the text inside it.
+- **Internal** — The palette is built lazily in `TMT:BuildPalette` rather than at parse time. `Config/Widgets.lua` does load before this module today, but a parse-time dependency on TOC ordering is a trap for whoever reorders it next. The fallbacks run brand tokens, then the literal mint, so the tracker renders even when everything above it is missing.
+- **Internal** — Every FontString the module creates is registered with the size and flags it was built at, so a scale change is re-applied in place instead of tearing the frame down and rebuilding it. The registry is also what makes a shared-media font a one-line change later rather than a sweep through every `CreateFontString` call.
+
+#### Mythic+ Tracker — Text Written On Top Of A Filled Bar Was Unreadable
+
+- **Fix** — The colour used for text sitting on a filled bar was near-black, and every font string the tracker builds carries an `OUTLINE` flag and a black shadow. Near-black text on a black outline dissolves into it: the palier markers on the timer and the label on the forces bar were smudges in game while the white elapsed time beside them stayed crisp. That colour is now near-white, which is what it should have been from the start — an outline is only useful when the fill and the outline differ.
+- **Fix** — `FormatTime` printed a negative duration as a large positive one. The seconds were fed straight into modulo arithmetic, so a value of −220 came out as "56:20" rather than as anything recognisable. It now takes the magnitude and leaves the sign to `FormatDelta`, which is the function that owns it.
+- **Fix** — In the preview the first two bosses had their kill times the wrong way round. The client's field counts seconds *since* the kill, so the boss killed first carries the larger number; reversed, the preview showed boss 2 dying before boss 1 and a negative leg time under it.
+- **Change** — The first boss row no longer repeats its kill time in the split column. It was the same number twice on one line, since with nothing before it there is no leg to measure.
+
+#### Mythic+ Tracker — One Timer Bar, Three Countdowns
+
+- **New** — The timer is a segmented bar: one segment per chest threshold, each sized from that dungeon's real chest times rather than from a fixed ratio, each showing the time left before *that* threshold is lost. The number that drives decisions in a key is "how long until +2 is gone", and until now the only thing on screen was the total elapsed time and a delta against the full limit — the rest was arithmetic you did in your head between pulls.
+- **New** — Segment colours, *per palier* or *brand*. Per palier reads mint, yellow, red from left to right, so the window being spent tells you which one it is by colour alone; brand paints all three in the same mint ramp for anyone who would rather read the bar by shape than by hue.
+- **Change** — A spent segment keeps its own colour and drops to 42% alpha rather than being blanked. The bar still reads left to right as a history of the run, but the eye lands on the window actually being spent.
+- **New** — A *timer layout* choice. *Two lines* keeps the elapsed time, the limit and the delta on their own row above the bar. *One line* folds the elapsed time onto the bar itself and drops the other two, because the last segment's countdown already is the time left before depletion and both would be restating it.
+- **Internal** — The gradient is written onto the status bar texture, and `SetStatusBarColor` writes the same vertex colours — the two cannot both drive one bar. Hence a fallback path rather than a belt-and-braces call to both: where `SetGradient` is unavailable the ramp's bright stop is used, so the palier stays readable and only the shading is lost.
+- **Internal** — In the one-line layout the elapsed time sits at the left edge of a segment that is bare track early in a key and filled later. Its colour follows what is actually behind it rather than being fixed, because dark text on the filled state is unreadable and so is light text on the empty one.
+
+#### Mythic+ Tracker — One Fixed Panel Became Three Looks
+
+- **New** — Three presets. *Panel* is the tracker as it was: background, header block, boss rows with pastilles. *HUD* strips the chrome and the row striping and lists the objectives as plain text at 1.15× size, on the bundled condensed face. *Minimal* is three rows and nothing else — information, timer, forces — with the boss list gone entirely and its tally moved into the header, so you still know you are on 2/4 without giving up four rows of screen to say so.
+- **New** — Each thing a preset sets is also a control of its own: panel background, header block, dungeon name, boss list style, timer layout, segment colours, font size. A preset is nothing but a named set of values for those.
+- **Change** — Touching any of those by hand moves the preset to *custom*, exactly like the UnitFrames preset engine, and neither preset button highlights. A named preset that silently drifts away from what it says stops being worth naming.
+- **Internal** — `ApplyPreset` ignores unknown names, so a profile carrying `custom` — or a preset removed in some later version — never wipes the settings it was pointed at. `ResolvePreset` answers the reverse question after every hand edit and is what the config panel reads back.
+- **Internal** — Layout walks a running offset from the top of the frame and no element is anchored to another. A hidden row therefore costs one skipped branch in one function rather than a re-anchoring chain at every call site — which is the only reason "hide the boss list" is a checkbox and not a rewrite.
+
+#### Mythic+ Tracker — The Forces Count Could Lie Rather Than Say It Did Not Know
+
+- **Fix** — Scenario criteria fields are not guaranteed readable in combat under 12.x, and the forces bar was comparing, matching and doing arithmetic on them regardless. Every field now passes a guard before it is touched, and the bar degrades in stages instead of guessing: exact counts, then percentage only, then frozen at the last value it could read.
+- **Change** — With nothing readable this frame the bar holds its last known fill rather than dropping to zero. A forces bar that empties itself mid-pull does not read as "I cannot see the number", it reads as "the pull reset", which is the one thing it must never say by accident.
+- **Fix** — The weighted-progress criterion is matched on presence, not on magnitude: asking whether `totalQuantity` is greater than zero is exactly the comparison that is banned on an opaque value. The absolute count is read from `quantityString`, which carries a stray percent sign despite being an absolute number, with the numeric field as the fallback.
+- **Change** — The bar shows what is left to kill rather than "730 / 1000". Mid-pull the useful number is the remainder, and it is one glance instead of a subtraction.
+- **Fix** — A boss row is only listed when the criterion is *explicitly* not weighted progress. If the flag is unreadable there is no way to tell a boss apart from the forces counter, and listing the forces counter as a boss is the worse of the two failures.
+- **New** — When the count completes, the tracker states the time it completed at, and — if it has a recorded run to compare against — how that time compares.
+
+#### Mythic+ Tracker — Boss Names Came From A Table That Rots Every Season
+
+- **Change** — The module used to carry a hand-written challenge-map to journal-instance table copied from another addon. Blizzard adds challenge maps every season and reuses journal instances across them, so a table like that is wrong the day a patch ships and nobody notices, because the failure is silent: boss names quietly degrade to "Boss 1".
+- **New** — Resolution is live and in three tiers. Walk the player's map hierarchy calling `EJ_GetInstanceForMap`, since multi-floor dungeons often have no mapping on the floor you are standing on but the parent map does. Failing that, match the challenge map's own name against the Encounter Journal's dungeon list, newest expansion first, exact match preferred and containment accepted. Failing that, give up and fall back to the raw criteria text, so the tracker degrades instead of breaking.
+- **Internal** — Names are normalised to letters and digits before matching, so punctuation and article differences between the challenge-mode name and the journal name do not defeat it.
+- **Internal** — A successful resolution is cached in the database keyed by challenge map. That cache is learned at runtime and never authored, so unlike the table it replaces it cannot be stale: a wrong entry could only ever come from the client itself. The tier scan restores whichever expansion tier the journal was on, so opening it after a key does not land you somewhere you did not leave it.
+
+#### Mythic+ Tracker — There Was Nothing To Compare A Run Against
+
+- **New** — *Compare to best run*. Each finished key is recorded per dungeon and per key level, and on the next attempt every boss row carries the delta against that record. An exact key-level match wins; failing that the nearest level below, then the nearest above — a slower reference is still a reference.
+- **Change** — A depleted run is recorded too. It may be the only data you have for that dungeon, and a slow reference beats no reference. Only a faster run replaces what is on record.
+- **New** — *Forces checkpoints*. On each boss kill the forces percentage is snapshotted, and on later runs the bar shows where your best run stood at the boss you have just killed, with an arrow and the gap. The reference holds between kills instead of jittering every tick, which is what makes it readable mid-pull.
+- **Change** — With no record yet, a boss row falls back to the leg time from the previous kill rather than showing an empty column.
+- **Note** — Nothing here is authored. A curated "expected forces at boss 2" table would be the same rotting data as the boss-name table just removed — wrong the day a dungeon is retuned — and it would also be somebody else's route rather than yours.
+- **New** — *Clear recorded times*, in the panel, for when a dungeon is retuned or a route changes enough that the old reference is worse than none.
+
+#### Mythic+ Tracker — The End Of A Key Passed Without Comment
+
+- **New** — A completion banner: in time or depleted, the run time, the number of upgrades, and the margin in parentheses. The margin is the number people actually say out loud after a key — how much room was left, or by how much it was missed — and it was the one thing you had to work out yourself from a timer that had already stopped.
+- **Internal** — The completion payload arrives on an event that can fire while combat is still up, so the time is guarded before it is compared or divided. A completion time that cannot be read hides the banner rather than rendering a run of nonsense.
+
+#### Mythic+ Tracker — A Second Options Window Nobody Asked For
+
+- **Change** — The tracker carried its own self-contained options window duplicating every setting already present in the Mythic+ config panel — two places to change the same value, with all the drift that implies. It is gone. `/tmt` opens the main config on the Mythic+ category, and the panel drives the tracker directly.
+- **Note** — Every other `/tmt` subcommand is unchanged: `unlock`, `lock`, `reset`, `preview`, `key`, `kr`, `help`.
+
+#### Cooldown Studio — Opening It Could Block Your Own Logout
+
+- **Fix** — One line, `StaticPopupDialogs = StaticPopupDialogs or {}`, near the dialog definitions. Blizzard has already created that table long before this file loads, so the `or {}` never did anything except reassign the table to itself — but an assignment to a Blizzard global taints it whatever the value, and `StaticPopup_Show` reads that global. The taint then rode into every dialog sharing the pool, the logout confirmation among them, and the answer was blocked until the interface was reloaded. Indexing the table, which is what every other line in the file already did, carries no such cost.
+- **Note** — This only ever happened in a session where the Studio had been opened. It cost nothing on a session that never touched it, which is exactly why it took a while to attribute.
+
+#### Cooldown Studio — A Second Route To The Same Blocked Escape
+
+- **Fix** — The "copy the style from…" popup carried its own hand-rolled copy of the Escape handling, and that copy had drifted from the original: it had lost the combat guard and called `SetPropagateKeyboardInput` unconditionally. Propagating a key out of an addon's `OnKeyDown` makes the resulting binding run with that addon's taint, which is how `TOGGLEGAMEMENU` ended up refused on `ClearTarget` — the same symptom as the dialog-table fix above, reached by a completely different road. It uses the shared `U.CloseOnEscape` now, guarded in one place.
+- **Fix** — Closing that popup released the keyboard before hiding. An orphaned frame still claiming keyboard input is precisely the thing the change exists to prevent.
+- **Fix** — It also stopped calling `SetParent(nil)` on the dimmer, which left a live frame with its scripts attached and nothing owning it.
+- **Note** — Two hand-rolled copies of the same handler remain in the Profiles panel, both missing the combat guard. They are untouched here and worth the same treatment.
+
+#### Cooldown Studio — Closing The Window Left The Bars In Edit Mode
+
+- **Fix** — Leaving the Studio while the bars were unlocked stranded the movers in edit mode with the floating resume button still on screen. Both close paths — the shell's X and Escape — call `Hide` on the frame directly and never reach the Studio's own close function, so the cleanup lived somewhere neither of them went. It now hangs off the frame's `OnHide`, which is the one place both paths pass through.
+- **Internal** — Entering edit mode also hides the window, and that must not be read as the player leaving. A flag set across that single `Hide` call separates the two, so entering edit mode no longer re-locks the movers it just unlocked.
+
+#### Cooldown Studio — Releasing It From Memory
+
+- **New** — *Reload interface after closing the Studio*, on by default, in the CooldownForge panel. The Studio is load-on-demand, and the game has no way to unload an addon once it is in memory: only a reload releases it. Reloading on close is also what guarantees that anything the session picked up dies with it.
+- **Change** — The prompt waits for a safe moment rather than being dropped. It never appears in combat, during a Mythic+ key, or inside a party or raid instance — a reload mid-pull is its own disaster — and comes back when you leave combat, change zone or enter the world.
+- **Note** — The switch exists because taint cannot be proven absent, only unobserved. The line above was one confirmed source and it is fixed; the reload is what covers the ones nobody has found yet. Turn it off if you would rather not be asked.
+
+#### Libraries — LibOpenRaid Is Gone, And With It A Flood Of False Taint Reports
+
+- **Fix** — The library named TomoMod as a taint source dozens of times at every combat start. It decides whether a value is secret by performing the forbidden comparison inside a `pcall` — the answer comes back correct, but the client logs each attempt against the addon that made it, and the aura loop makes that attempt constantly. Any genuine taint report was buried under the noise.
+- **Change** — The library is no longer shipped. It was carried for four keystone functions and nothing else, while also synchronising cooldowns, gear, talents and durability — and the cooldown path, through `AuraUtil.ForEachAura`, was the source of the flood. Four functions are not worth 780 KB and a taint log nobody can read.
+- **New** — `KeySync.lua` replaces those four functions and only those. Your own keystone needs no library at all, `C_MythicPlus` hands it over directly; the rest is transport — one addon-message prefix, one line format, and a table that survives a logout and empties itself at the weekly reset. Nothing about it is authored: every entry is learned from the players you group with.
+- **Internal** — The public shape is deliberately the one the call sites already expected, so swapping the library out was one line per consumer. Both consumers, the party key viewer and the scoreboard, are otherwise untouched.
+- **Internal** — Keystone getters are read on events that can land mid-combat, so every numeric field passes an `issecretvalue()` guard before it is compared or stored. The wire format is pipe-free so realm names with punctuation survive it, and an unknown protocol version is ignored rather than guessed at.
+- **Fix** — The keystone update callback never fired. The library's `RegisterCallback` expects the *name* of a member function as its third argument, and the call site passed an anonymous function — so the party key viewer never refreshed on its own. The replacement takes a function, which is what was being handed to it all along.
+
+#### Buffs & Debuffs — A Teal Nobody Else In The Addon Was Wearing
+
+- **Change** — The accent border on your buffs was a hardcoded teal, `#0CD29F`, from before the brand tokens existed. It follows `U.BRAND` now, so it matches every other surface and a future change to the accent reaches the buff frame instead of leaving it behind. This is the same class of drift as the Mythic+ scoreboard in 3.3.6 and the tracker earlier in this version — the buff frame was the last one still holding its own colour.
+- **Change** — The setting is `brandBorder` rather than `tealBorder`, since the border is no longer teal and a name that describes a specific colour starts lying the moment the colour changes. A migration carries your choice across, so anyone who had turned the accent off keeps it off.
+- **New** — The remaining-time text can be coloured by how long is left: brand green under ten minutes, yellow under two, red under thirty seconds, and plain above that. All three thresholds are yours to set. Above the top one the text stays neutral on purpose — a buff with twenty minutes on it carries no information, and colouring it spends your attention on the one aura that does not need it.
+- **New** — The border carries the remaining time as well: brand green while there is room, yellow under two minutes, red under thirty seconds, on the same thresholds as the text. There is deliberately no neutral band on the border, unlike the text — mint *is* its resting state, so a long buff still reads as a TomoMod-framed icon and the border only starts warning as the aura runs down. This is what makes the timer text optional rather than load-bearing.
+- **New** — The timer gets its own tile directly under the icon, at the icon's width, in the same dark grey as every other TomoMod surface. Blizzard drops that text loose over whatever happens to be behind the buff frame, and on a bright zone it is unreadable however thick the outline. A new switch hides it for anyone who would rather read the border alone.
+- **New** — A thin dark line just outside the accent border. Without it the mint edge bleeds into bright backgrounds and the icon loses its shape; with it the button reads as a framed tile at any size.
+- **Fix** — The icon and its border came out taller than wide. The backdrop sat on Blizzard's aura button, which is not square — it reserves height under the icon for the timer — and the icon was stretched corner to corner to fill it. The frame now wraps the icon instead, and the icon is sized square from the button's width, so both are square whatever the container does.
+- **Internal** — The duration text is written by Blizzard's own update loop, so the colour is re-applied on a throttled ticker rather than by hooking `SetText`, which would fire far more often for no gain. Borders recolour on the same pass; otherwise they would only change when Blizzard happened to re-skin the button. The ticker stops when the skin or the option is switched off.
+- **Internal** — Aura fields can be unreadable in combat, so the expiration time passes a guard before it is compared or subtracted. Unreadable means *leave the colour alone*: flashing a buff back to white for a single tick is worse than not updating it at all.
+- **Note** — *Colour the timer by time left* governs the border ladder too, since both are refreshed on the one pass. Turning it off freezes the border on whatever colour it was last given, and does not repaint the timers already on screen either — existing auras keep their last colour until they are replaced, or until a reload.
+
+#### QOL — The Aura Tracker Is Gone
+
+- **Change** — The aura tracker has been removed: CooldownForge covers the same ground, and having two overlays competing for the same screen space was the whole reason it kept feeling redundant. Its module, its config tab, its presets, its mover and its settings are all gone with it.
+- **Change** — A migration drops the stored settings rather than leaving them orphaned in every profile. Nothing reads that table now, and the profile system would otherwise go on copying it around forever.
+- **New** — Spells you had added to it by hand are not lost silently. They have no equivalent in CooldownForge's schema so they cannot be converted, but the IDs are kept aside and listed once at login, with their names, so you can recreate the ones you still want. Blacklist entries are not kept: they were removals from a default list that no longer exists.
+- **Internal** — The notice prints from the login path, not from the migration. Migrations run before the chat frame is ready, so a message printed there would go nowhere. The rescue key is excluded from profile export for the same reason the migration flags are: it is bookkeeping, not configuration.
+
+## ####################################
+
 ## CHANGELOG 3.3.6 — A Buff That Is Up Stops Looking Exactly Like A Spell That Is Recharging, The Countdown Changes Colour Before The Spell Comes Back, The Icon Text Stops Being Locked To One Font, One Outline And One Size, Glow Learns To Wait For Every Charge Or For A Stack Count You Name, An Entry Can Belong To A Talent Instead Of To A Class, Unit Frame Auras Can Grow Upwards Instead Of Only Downwards, The Mythic+ Scoreboard Stops Being The One Screen In The Addon With A Colour Scheme Of Its Own, Escape Stops Being Able To Lock You Out Of The Game Menu, Edit Mode's Second Status Bar Finally Gets A Switch, And A Spell Dropped Onto A Bar Actually Appears On It
 
 #### CooldownForge — A Buff That Is Up Looked Exactly Like A Spell That Is Recharging

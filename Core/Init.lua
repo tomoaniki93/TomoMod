@@ -407,7 +407,6 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         safeInit("Loots",              TomoMod_Loots)
         safeInit("WorldQuestTab",      TomoMod_WorldQuestTab)
         safeInit("ActionBarSkin",      TomoMod_ActionBarSkin)
-        safeInit("AuraTracker",        TomoMod_AuraTracker)
         safeInit("CharacterSkin",      TomoMod_CharacterSkin)
         safeInit("ChatFrameSkin",      TomoMod_ChatFrameSkin)
         safeInit("BuffSkin",           TomoMod_BuffSkin)
@@ -434,6 +433,26 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         local r, g, b = TomoMod_Utils.GetClassColor()
         print("|cff2ed884TomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
         print("|cff2ed884TomoMod|r |cffff3333" .. L["msg_report_issue"] .. "|r")
+
+        -- One-time notice for players who had hand-added spells to the
+        -- removed aura tracker. Deferred to here rather than printed from
+        -- the migration itself: migrations run before the chat frame is
+        -- ready, so the message would go nowhere.
+        local rescue = TomoModDB._auraTrackerRescue
+        if type(rescue) == "table" and #rescue > 0 then
+            local parts = {}
+            for _, spellID in ipairs(rescue) do
+                local name
+                if C_Spell and C_Spell.GetSpellName then
+                    name = C_Spell.GetSpellName(spellID)
+                end
+                parts[#parts + 1] = name and (name .. " (" .. spellID .. ")") or tostring(spellID)
+            end
+            print("|cff2ed884TomoMod|r " .. L["at_rescue_header"])
+            print("|cff2ed884TomoMod|r " .. string.format(L["at_rescue_list"], table.concat(parts, ", ")))
+            print("|cff2ed884TomoMod|r " .. L["at_rescue_hint"])
+            TomoModDB._auraTrackerRescue = nil
+        end
 
         -- What's New popup (after update)
         if TomoMod_WhatsNew then

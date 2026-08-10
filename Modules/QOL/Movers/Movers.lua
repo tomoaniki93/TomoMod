@@ -171,22 +171,6 @@ local function BuildEntries()
         end,
     })
     table.insert(moduleEntries, {
-        label    = L["mover_auratracker"],
-        unlock   = function()
-            if TomoMod_AuraTracker and TomoMod_AuraTracker.ToggleLock then
-                if TomoMod_AuraTracker.IsLocked and TomoMod_AuraTracker.IsLocked() then TomoMod_AuraTracker.ToggleLock() end
-            end
-        end,
-        lock     = function()
-            if TomoMod_AuraTracker and TomoMod_AuraTracker.ToggleLock then
-                if TomoMod_AuraTracker.IsLocked and not TomoMod_AuraTracker.IsLocked() then TomoMod_AuraTracker.ToggleLock() end
-            end
-        end,
-        isActive = function()
-            return TomoModDB and TomoModDB.auraTracker and TomoModDB.auraTracker.enabled
-        end,
-    })
-    table.insert(moduleEntries, {
         label    = L["mover_player_auras"],
         unlock   = function()
             local container = _G["TomoMod_Auras_player"]

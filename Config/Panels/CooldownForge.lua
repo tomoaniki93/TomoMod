@@ -189,6 +189,15 @@ local function BuildContent(c)
         "Editeur dedie plein ecran : barres, sorts, styles, partage et mode edition.", cy)
     _, cy = W.CreateButton(card.inner, "Ouvrir le Cooldown Studio", 240, cy, OpenStudio)
 
+    -- The Studio is LoadOnDemand, but WoW cannot unload an addon once it
+    -- is in memory: only a reload releases it. Leaving this on also means
+    -- any interface taint picked up during a session dies with the reload.
+    TomoModDB.CDStudio = TomoModDB.CDStudio or { safetyReload = true }
+    _, cy = W.CreateCheckbox(card.inner, TomoMod_L["tmt_cfg_cds_safety_reload"],
+        TomoModDB.CDStudio.safetyReload, cy, function(v)
+            TomoModDB.CDStudio.safetyReload = v
+        end)
+
     -- Per-viewer switches for Blizzard's Cooldown Manager. The icons are
     -- ANCHORED to our holders, never reparented, so hiding a holder would not
     -- hide anything: the viewer itself is dimmed instead, with alpha and mouse

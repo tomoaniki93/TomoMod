@@ -6,7 +6,7 @@ local L  = TomoMod_L
 local TS = TomoMod_TomoScore
 local DK = TomoMod_DataKeys
 
-local openRaidLib = LibStub and LibStub:GetLibrary("LibOpenRaid-1.0", true)
+local openRaidLib = TomoMod_KeySync
 
 local SOURCE_DAMAGE  = Enum.DamageMeterType and Enum.DamageMeterType.DamageDone  or 0
 local SOURCE_HEALING = Enum.DamageMeterType and Enum.DamageMeterType.HealingDone or 1
@@ -112,7 +112,7 @@ function TS:CollectRunData()
         end
     end
 
-    -- Pull keystone info from LibOpenRaid
+    -- Pull keystone info from the keystone sync module
     if openRaidLib then
         local allKeys = openRaidLib.GetAllKeystonesInfo and openRaidLib.GetAllKeystonesInfo() or {}
         for pName, pData in pairs(playersByName) do

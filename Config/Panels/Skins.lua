@@ -646,10 +646,37 @@ local function BuildBuffsSkinTab(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_teal_border"], TomoModDB.buffSkin.tealBorder, y, function(v)
-        TomoModDB.buffSkin.tealBorder = v
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_brand_border"], TomoModDB.buffSkin.brandBorder, y, function(v)
+        TomoModDB.buffSkin.brandBorder = v
         if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
     end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_color_duration"], TomoModDB.buffSkin.colorDuration, y, function(v)
+        TomoModDB.buffSkin.colorDuration = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_show_duration"], TomoModDB.buffSkin.showDuration, y, function(v)
+        TomoModDB.buffSkin.showDuration = v
+        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
+    end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_buff_skin_dur_green"], TomoModDB.buffSkin.durationGreen, 60, 1800, 30, y, function(v)
+        TomoModDB.buffSkin.durationGreen = v
+    end, "%d")
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_buff_skin_dur_yellow"], TomoModDB.buffSkin.durationYellow, 10, 600, 10, y, function(v)
+        TomoModDB.buffSkin.durationYellow = v
+    end, "%d")
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_buff_skin_dur_red"], TomoModDB.buffSkin.durationRed, 3, 120, 1, y, function(v)
+        TomoModDB.buffSkin.durationRed = v
+    end, "%d")
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_desaturate"], TomoModDB.buffSkin.desaturateDebuffs, y, function(v)

@@ -386,7 +386,6 @@ local BASE = {
 
     ["resourceBars.enabled"]            = true,
     ["cooldownManager.enabled"]         = true,
-    ["auraTracker.enabled"]             = false,  -- advanced: opt-in
 
     -- ── Role axis: party frames ───────────────────────────
     ["partyFrames.width"]                    = 160,
@@ -677,7 +676,6 @@ local DELTAS = {
     minimal = {
         ["nameplates.enabled"]        = false,
         ["cooldownManager.enabled"]   = false,
-        ["auraTracker.enabled"]       = false,
 
         ["actionBarSkin.enabled"]     = false,
 

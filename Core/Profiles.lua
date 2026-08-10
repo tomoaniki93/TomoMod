@@ -34,7 +34,7 @@ local EXPORT_HEADER  = "TMOD"
 -- bookkeeping, not configuration: a profile saved before a migration would
 -- otherwise restore an empty flag table and let that migration run a second
 -- time, re-applying a change the player may have deliberately reverted.
-local EXCLUDED_KEYS = { ["_profiles"] = true, ["_migrations"] = true }
+local EXCLUDED_KEYS = { ["_profiles"] = true, ["_migrations"] = true, ["_auraTrackerRescue"] = true }
 
 -- =====================================
 -- DEEP COPY / DEEP MERGE

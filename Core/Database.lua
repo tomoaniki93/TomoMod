@@ -288,7 +288,19 @@ TomoMod_Defaults = {
         autoRefresh = true,
         sendToChat = true,
     },
+    -- Keystones shared by KeySync, kept across logouts and wiped at the
+    -- weekly reset. Learned from other players, never authored.
+    Keystones = {},
+    KeystonesResetAt = 0,
+
+    -- Cooldown Studio is a load-on-demand addon: once loaded it stays in
+    -- memory for the session. The safety reload releases it on close.
+    CDStudio = {
+        safetyReload = true,
+    },
+
     MythicTracker = {
+        schemaVersion = 1,
         enabled      = true,
         position     = { anchor = "TOPRIGHT", relTo = "TOPRIGHT", x = -20, y = -260 },
         scale        = 1.0,
@@ -298,6 +310,27 @@ TomoMod_Defaults = {
         showTimer    = true,
         showForces   = true,
         showBosses   = true,
+        -- Style. "preset" is only a label for the combination below: it
+        -- moves to "custom" as soon as one of these is changed by hand,
+        -- so a named preset always means what it says.
+        preset          = "panel",  -- "panel" | "hud" | "custom"
+        showBackground  = true,
+        showHeaderBlock = true,
+        showDungeonName = false,
+        objectiveStyle  = "rows",   -- "rows" | "text" | "none"
+        timerLayout     = "stacked",-- "stacked" | "inline"
+        segmentColors   = "palier", -- "palier" (mint/yellow/red) | "brand"
+        -- Best run per dungeon and key level, recorded from your own runs.
+        -- Feeds both the per-boss deltas and the forces checkpoints, so
+        -- neither feature ships an authored table that could go stale.
+        splits             = {},
+        splitsEnabled      = true,
+        checkpointsEnabled = true,
+        fontLSM         = "",       -- "" = the preset's bundled font
+        fontScale       = 1.0,
+        -- challengeMapID -> journalInstanceID, learned at runtime from the
+        -- live client. Never authored, so it cannot go stale at a patch.
+        learnedEJ       = {},
     },
     TomoScore = {
         enabled       = true,
@@ -492,7 +525,12 @@ TomoMod_Defaults = {
         hideBuffFrame = false,
         hideDebuffFrame = false,
         colorByType = true,          -- border colorée par type de dispel (Magic/Poison/Curse/Disease)
-        tealBorder = true,           -- border teal sur les buffs (accent TomoMod)
+        brandBorder = true,          -- border a l'accent de marque sur les buffs
+        colorDuration = true,        -- timer colore selon le temps restant
+        showDuration = true,         -- timer affiche dans sa tuile sous l'icone
+        durationGreen = 600,         -- <= 10 min : accent de marque
+        durationYellow = 120,        -- <= 2 min  : jaune
+        durationRed = 30,            -- <= 30 s   : rouge
         desaturateDebuffs = false,   -- désaturer les icônes de debuff
         fontSize = 11,
     },
@@ -1402,39 +1440,6 @@ TomoMod_Defaults = {
     },
 
     -- =====================
-    -- AURA TRACKER (WeakAura-lite)
-    -- =====================
-    auraTracker = {
-        enabled = false,
-        iconSize = 36,
-        spacing = 4,
-        maxIcons = 8,
-        growDirection = "RIGHT",  -- RIGHT, LEFT, UP, DOWN
-        showTimer = true,
-        showStacks = true,
-        showGlow = true,          -- glow on fresh proc
-        glowDuration = 0.6,
-        oorFade = false,
-        timerThreshold = 5,       -- flash timer below X seconds
-        fontSize = 11,
-        categories = {
-            trinkets = true,
-            enchants = true,
-            selfBuffs = true,
-            raidBuffs = false,
-            defensives = true,
-        },
-        customSpells = {},        -- user-added spellIDs: { [spellID] = true }
-        blacklist = {},           -- user-removed spellIDs: { [spellID] = true }
-        position = {
-            point = "CENTER",
-            relativePoint = "CENTER",
-            x = 0,
-            y = -180,
-        },
-    },
-
-    -- =====================
     -- HOUSING
     -- =====================
     housing = {
@@ -1499,6 +1504,47 @@ local function TomoMod_RunMigrations()
     -- The tooltip now ships an information layer instead of bars, so bring
     -- existing profiles onto hideHealthBar = true once. A player who wants the
     -- bar back can untick it and it will stick.
+    -- The aura tracker is gone: CooldownForge covers the same ground, and
+    -- keeping a second overlay competing for the same screen space was the
+    -- reason it existed at all. Drop the table rather than leave it
+    -- orphaned in every profile -- nothing reads it now, and Profiles.lua
+    -- would go on copying it around forever.
+    -- "tealBorder" predated the brand tokens and the border is no longer
+    -- teal. Carry the player's choice across to the new key rather than
+    -- silently resetting anyone who had turned the accent off.
+    if not done.buffSkinBrandBorder then
+        done.buffSkinBrandBorder = true
+        local bs = TomoModDB.buffSkin
+        if type(bs) == "table" then
+            if bs.tealBorder ~= nil then bs.brandBorder = bs.tealBorder end
+            bs.tealBorder = nil
+        end
+    end
+
+    if not done.dropAuraTracker then
+        done.dropAuraTracker = true
+        -- customSpells was hand-typed by the player and has no equivalent
+        -- in CooldownForge's schema, so it cannot be converted. Losing it
+        -- silently would be the worst outcome; stash the IDs and let the
+        -- login path report them once, so they can be recreated. Only the
+        -- additions are worth keeping -- blacklist entries were removals
+        -- from a default list that no longer exists.
+        local at = TomoModDB.auraTracker
+        if type(at) == "table" and type(at.customSpells) == "table" then
+            local ids = {}
+            for spellID, on in pairs(at.customSpells) do
+                if on and tonumber(spellID) then
+                    ids[#ids + 1] = tonumber(spellID)
+                end
+            end
+            if #ids > 0 then
+                table.sort(ids)
+                TomoModDB._auraTrackerRescue = ids
+            end
+        end
+        TomoModDB.auraTracker = nil
+    end
+
     if not done.ttHideHealthBar then
         done.ttHideHealthBar = true
         if type(TomoModDB.tooltipSkin) == "table" then

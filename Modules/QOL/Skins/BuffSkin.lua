@@ -25,8 +25,47 @@ local DISPEL_COLORS = {
 
 -- Couleur de bord par défaut (buffs ou debuffs sans type connu)
 local DEFAULT_BORDER  = { r = 0.12, g = 0.12, b = 0.12 }
--- Teal accent pour les buffs du joueur
-local BUFF_BORDER     = { r = 0.047, g = 0.824, b = 0.624 }
+
+-- Brand accent for player buffs. Was a hardcoded teal (#0CD29F) that
+-- predated the brand tokens; it now follows U.BRAND like the rest of the
+-- addon, so a change to the accent reaches the buff frame too.
+local function Brand()
+    local U = TomoMod_Utils
+    local c = (U and U.BRAND) or { 0.180, 0.847, 0.518 }
+    return c[1], c[2], c[3]
+end
+
+-- Remaining-time colours. Neutral above the green threshold: a buff with
+-- twenty minutes left carries no information, and colouring it would spend
+-- the player's attention on the one aura that does not need it.
+-- The config UI's card tile. Reused rather than reinvented so the timer
+-- badge is the same dark grey as every other TomoMod surface.
+local function CardColors()
+    local T = TomoMod_Widgets and TomoMod_Widgets.Theme
+    return (T and T.cardBg) or { 0.090, 0.090, 0.115, 1 },
+           (T and T.cardBorder) or { 0.20, 0.20, 0.26, 1 }
+end
+
+local function ThemeColor(key, fallback)
+    local T = TomoMod_Widgets and TomoMod_Widgets.Theme
+    local c = T and T[key]
+    if c then return c[1], c[2], c[3] end
+    return fallback[1], fallback[2], fallback[3]
+end
+
+local DURATION_NEUTRAL = { 0.90, 0.92, 0.91 }
+
+-- Border ladder. No neutral band here, unlike the text: mint IS the
+-- resting state, so a long buff still reads as a TomoMod-framed icon and
+-- the border only starts warning as the aura runs down.
+local function BorderDurationColor(remaining, settings)
+    if remaining <= (settings.durationRed or 30) then
+        return ThemeColor("red", { 0.88, 0.22, 0.22 })
+    elseif remaining <= (settings.durationYellow or 120) then
+        return ThemeColor("yellow", { 0.96, 0.80, 0.10 })
+    end
+    return Brand()
+end
 
 -- Fond sombre identique à ElvUI
 local BG_COLOR = { r = 0.09, g = 0.09, b = 0.09, a = 0.95 }
@@ -105,11 +144,16 @@ local function GetBorderColor(button, isDebuff)
         return 0.65, 0.12, 0.12
     end
 
-    -- Buffs : teal accent si activé, sinon dark border
+    -- Buffs : accent de marque si activé, sinon dark border. The accent
+    -- carries the remaining time, which is what lets the timer text be
+    -- optional rather than load-bearing.
     if not isDebuff then
-        local accent = settings.tealBorder ~= false  -- true par défaut
-        if accent then
-            return BUFF_BORDER.r, BUFF_BORDER.g, BUFF_BORDER.b
+        if settings.brandBorder ~= false then
+            local remaining = BS._Remaining and BS._Remaining(button)
+            if remaining then
+                return BorderDurationColor(remaining, settings)
+            end
+            return Brand()
         end
     end
 
@@ -131,20 +175,42 @@ local function SkinButton(button, isDebuff)
     local icon = button.Icon or button.icon
     if not icon then return end
 
-    -- Appliquer le backdrop ElvUI-style
+    -- [FIX] The backdrop used to go on the button itself and the icon was
+    -- stretched to fill it with TOPLEFT/BOTTOMRIGHT. Blizzard's aura button
+    -- is not square -- it reserves height below the icon -- so both the
+    -- icon and the border came out taller than wide. The frame now wraps
+    -- the icon, and the icon is sized square from the button's width.
+    if not button._tomoFrame then
+        local f = CreateFrame("Frame", nil, button, "BackdropTemplate")
+        f:SetFrameLevel(math.max(0, button:GetFrameLevel()))
+        button._tomoFrame = f
+    end
+
     local r, g, b = GetBorderColor(button, isDebuff)
-    ApplyBackdrop(button, r, g, b)
+    ApplyBackdrop(button._tomoFrame, r, g, b)
 
     -- [FIX] Always re-apply idempotent styling ops — Blizzard may recycle
     -- the frame (same pointer, new aura) and reset icon anchors/masks.
     -- The weak-table entry survives but Blizzard's re-init undoes our tweaks.
 
-    -- icon anchors/insets
+    -- Square edge taken from the button's width. GetWidth can be 0 before
+    -- Blizzard has laid the container out, so fall back rather than
+    -- collapsing the icon to nothing.
+    local edge = button:GetWidth()
+    if not edge or edge < 4 then edge = (icon:GetWidth() or 0) end
+    if not edge or edge < 4 then edge = 30 end
+    local inner = edge - INSET * 2
+
     icon:ClearAllPoints()
-    icon:SetPoint("TOPLEFT",     button, "TOPLEFT",     INSET,  -INSET)
-    icon:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -INSET,  INSET)
+    icon:SetPoint("TOPLEFT", button, "TOPLEFT", INSET, -INSET)
+    icon:SetSize(inner, inner)
     icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     icon:SetDrawLayer("ARTWORK", 0)
+
+    -- The frame hugs the icon, so it inherits the square shape.
+    button._tomoFrame:ClearAllPoints()
+    button._tomoFrame:SetPoint("TOPLEFT",     icon, "TOPLEFT",     -INSET,  INSET)
+    button._tomoFrame:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT",  INSET, -INSET)
 
     -- Supprimer le masque circulaire Blizzard
     if icon.SetMask then icon:SetMask("") end
@@ -161,6 +227,20 @@ local function SkinButton(button, isDebuff)
     -- Supprimer la border Blizzard par défaut
     local blizzBorder = button.Border or button.border or button.IconBorder
     if blizzBorder then blizzBorder:SetAlpha(0) end
+
+    -- Fine dark line just outside the accent border. Without it the mint
+    -- edge bleeds into bright backgrounds and the icon loses its shape;
+    -- with it the button reads as a framed tile at any zoom.
+    if not button._tomoOuter then
+        local outer = CreateFrame("Frame", nil, button, "BackdropTemplate")
+        outer:SetFrameLevel(math.max(0, button:GetFrameLevel() - 1))
+        outer:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1 })
+        outer:SetBackdropBorderColor(0, 0, 0, 0.9)
+        button._tomoOuter = outer
+    end
+    button._tomoOuter:ClearAllPoints()
+    button._tomoOuter:SetPoint("TOPLEFT",     button._tomoFrame, "TOPLEFT",     -1,  1)
+    button._tomoOuter:SetPoint("BOTTOMRIGHT", button._tomoFrame, "BOTTOMRIGHT",  1, -1)
 
     -- Overlay de highlight souris (créé une seule fois)
     if not button._tomoHighlight then
@@ -185,9 +265,138 @@ local function SkinButton(button, isDebuff)
     if duration and duration.SetFont then
         duration:SetFont(ADDON_FONT, fontSize - 1, outline)
         duration:SetDrawLayer("OVERLAY", 7)
+
+        if settings.showDuration == false then
+            duration:SetAlpha(0)
+            if button._tomoDurationCard then button._tomoDurationCard:Hide() end
+        else
+            duration:SetAlpha(1)
+
+            -- The timer gets its own tile directly under the icon, matching
+            -- the icon's width. Blizzard drops the text loose over whatever
+            -- happens to be behind the buff frame; on a bright zone that is
+            -- unreadable however thick the outline.
+            if not button._tomoDurationCard then
+                local card = CreateFrame("Frame", nil, button, "BackdropTemplate")
+                card:SetFrameLevel(math.max(0, button:GetFrameLevel()))
+                card:SetBackdrop({
+                    bgFile   = "Interface\\Buttons\\WHITE8x8",
+                    edgeFile = "Interface\\Buttons\\WHITE8x8",
+                    edgeSize = 1,
+                })
+                button._tomoDurationCard = card
+            end
+
+            local card = button._tomoDurationCard
+            local bg, edge = CardColors()
+            card:ClearAllPoints()
+            card:SetPoint("TOPLEFT",  button._tomoFrame, "BOTTOMLEFT",  0, -2)
+            card:SetPoint("TOPRIGHT", button._tomoFrame, "BOTTOMRIGHT", 0, -2)
+            card:SetHeight(fontSize + 5)
+            card:SetBackdropColor(bg[1], bg[2], bg[3], bg[4] or 1)
+            card:SetBackdropBorderColor(edge[1], edge[2], edge[3], edge[4] or 1)
+            card:Show()
+
+            duration:ClearAllPoints()
+            duration:SetPoint("CENTER", card, "CENTER", 0, 0)
+            duration:SetJustifyH("CENTER")
+        end
     end
 
     skinnedButtons[button] = isDebuff and "debuff" or "buff"
+end
+
+-- =====================================
+-- COULEUR DU TIMER SELON LE TEMPS RESTANT
+--
+-- The duration text is written by Blizzard's own update loop, so the
+-- colour is re-applied on a throttled ticker rather than hooked: a hook
+-- on every aura's SetText would fire far more often for no gain.
+-- =====================================
+
+local durationTicker
+
+-- Aura fields can be secret in combat. Guard before any comparison, and
+-- treat "unreadable" as "leave the colour alone" -- flashing a buff back
+-- to white for one tick is worse than not updating it.
+local function SafeNum(v)
+    if v == nil then return nil end
+    local builtin = rawget(_G, "issecretvalue")
+    if type(builtin) == "function" then
+        local ok, secret = pcall(builtin, v)
+        if ok and secret then return nil end
+    end
+    return type(v) == "number" and v or nil
+end
+
+local function RemainingSeconds(button)
+    local expiration
+
+    local instanceID = button.auraInstanceID
+    if instanceID and C_UnitAuras and C_UnitAuras.GetAuraDataByAuraInstanceID then
+        local ok, data = pcall(C_UnitAuras.GetAuraDataByAuraInstanceID,
+            button.unit or "player", instanceID)
+        if ok and data then expiration = SafeNum(data.expirationTime) end
+    end
+    if not expiration then expiration = SafeNum(button.expirationTime) end
+    if not expiration or expiration <= 0 then return nil end   -- permanent aura
+
+    return expiration - GetTime()
+end
+
+local function DurationColor(remaining, settings)
+    if remaining <= (settings.durationRed or 30) then
+        return ThemeColor("red", { 0.88, 0.22, 0.22 })
+    elseif remaining <= (settings.durationYellow or 120) then
+        return ThemeColor("yellow", { 0.96, 0.80, 0.10 })
+    elseif remaining <= (settings.durationGreen or 600) then
+        return Brand()
+    end
+    return DURATION_NEUTRAL[1], DURATION_NEUTRAL[2], DURATION_NEUTRAL[3]
+end
+
+-- GetBorderColor is declared above RemainingSeconds, so the resolver is
+-- handed over through the module table rather than reordering the file.
+BS._Remaining = RemainingSeconds
+
+-- Forward declaration: the ticker below calls UpdateButtonColor, which is
+-- defined further down. Without this the call compiles against a nil
+-- global and fails on the first tick.
+local UpdateButtonColor
+
+local function UpdateDurationColors()
+    local settings = S()
+    if settings.colorDuration == false then return end
+
+    for button in pairs(skinnedButtons) do
+        if button:IsShown() then
+            local duration = button.Duration or button.duration
+            if duration and duration.SetTextColor then
+                local remaining = RemainingSeconds(button)
+                if remaining then
+                    duration:SetTextColor(DurationColor(remaining, settings))
+                else
+                    duration:SetTextColor(DURATION_NEUTRAL[1], DURATION_NEUTRAL[2], DURATION_NEUTRAL[3])
+                end
+            end
+            -- Borders tick on the same pass; otherwise they would only
+            -- recolour when Blizzard happens to re-skin the button.
+            if skinnedButtons[button] == "buff" then
+                UpdateButtonColor(button)
+            end
+        end
+    end
+end
+
+local function StopDurationTicker()
+    if durationTicker then durationTicker:Cancel(); durationTicker = nil end
+end
+
+local function StartDurationTicker()
+    StopDurationTicker()
+    if not IsEnabled() then return end
+    if S().colorDuration == false then return end
+    durationTicker = C_Timer.NewTicker(0.25, UpdateDurationColors)
 end
 
 -- =====================================
@@ -195,13 +404,14 @@ end
 -- Appelée à chaque update d'aura pour refléter le type de dispel.
 -- =====================================
 
-local function UpdateButtonColor(button)
+function UpdateButtonColor(button)
     if not skinnedButtons[button] then return end
-    if not button.SetBackdropBorderColor then return end
+    local frame = button._tomoFrame
+    if not frame or not frame.SetBackdropBorderColor then return end
 
     local isDebuff = (skinnedButtons[button] == "debuff")
     local r, g, b  = GetBorderColor(button, isDebuff)
-    button:SetBackdropBorderColor(r, g, b, 1)
+    frame:SetBackdropBorderColor(r, g, b, 1)
 
     -- Désaturation optionnelle des debuffs
     local icon = button.Icon or button.icon
@@ -400,18 +610,24 @@ function BS.Initialize()
     end)
 
     isInitialized = true
+    StartDurationTicker()
 end
 
 function BS.ApplySettings()
-    if not IsEnabled() then return end
+    if not IsEnabled() then
+        StopDurationTicker()
+        return
+    end
     wipe(skinnedButtons)
     ApplyFrameHiding()
     ApplyBuffSkin()
+    StartDurationTicker()
 end
 
 function BS.SetEnabled(value)
     if not TomoModDB or not TomoModDB.buffSkin then return end
     TomoModDB.buffSkin.enabled = value
+    if not value then StopDurationTicker() end
     if value then
         wipe(skinnedButtons)
         -- [FIX] Always call Initialize — hooks are guarded by hooksInstalled,

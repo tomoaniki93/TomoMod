@@ -52,6 +52,7 @@
     <!-- Modules: MythicPlus -->
     <Include file="MythicPlus\DataKeys.lua" />
     <Include file="MythicPlus\Keystone.lua" />
+    <Include file="MythicPlus\KeySync.lua" />
     <Include file="MythicPlus\MythicKeys.lua"/>
     <Include file="MythicPlus\MythicTracker.lua"/>
 
@@ -117,9 +118,6 @@
     <Include file="Loots\ItemClasses.lua" />
     <Include file="Loots\Loots.lua" />
 
-    <!-- Modules: AuraTracker (WeakAura-lite buff/debuff overlay) -->
-    <Include file="AuraTracker\SpellDB.lua" />
-    <Include file="AuraTracker\AuraTracker.lua" />
 
     <!-- Modules: Diagnostics (Error Capture & Report — /tmdiag) -->
     <Include file="Diagnostics\Diagnostics.lua" />

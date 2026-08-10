@@ -50,6 +50,7 @@ local CLASS_LIST = {
     { value = "EVOKER",      text = "Evocateur" },
 }
 
+local L = TomoMod_L
 local frame, sidebarList, contentHost, editBtnTxt
 local hiddenBin
 
@@ -287,13 +288,23 @@ local function ShowCopyStylePopup()
     title:SetTextColor(1, 1, 1)
     title:SetText("Copier le style depuis...")
 
-    local function close() dimmer:Hide(); dimmer:SetParent(nil) end
+    -- [TAINT] This handler used to be a hand-rolled copy of the shell's
+    -- Escape logic that had drifted: it lost the InCombatLockdown guard and
+    -- called SetPropagateKeyboardInput unconditionally. Propagating a key
+    -- from an addon's OnKeyDown makes the binding execute with that addon's
+    -- taint, which is how TOGGLEGAMEMENU ended up blocked on ClearTarget.
+    -- One implementation, in U.CloseOnEscape, guarded in one place.
+    local function close()
+        -- Release the keyboard before hiding: an orphaned frame that still
+        -- claims keyboard input is exactly what we are trying to stop. The
+        -- dimmer also keeps its parent now -- SetParent(nil) left a live
+        -- frame with scripts attached and nothing owning it.
+        dimmer:EnableKeyboard(false)
+        dimmer:SetScript("OnKeyDown", nil)
+        dimmer:Hide()
+    end
     dimmer:SetScript("OnMouseDown", close)
-    dimmer:EnableKeyboard(true)
-    dimmer:SetScript("OnKeyDown", function(self, key)
-        if key == "ESCAPE" then self:SetPropagateKeyboardInput(false); close()
-        else self:SetPropagateKeyboardInput(true) end
-    end)
+    U.CloseOnEscape(dimmer, close)
 
     local yy = -44
     for _, bar in ipairs(sources) do
@@ -1341,7 +1352,12 @@ end
 local function StartEditMode()
     if not (CDF and CDF.SetLocked) then return end
     EnsureResumeBtn()
+    -- Hiding the window here is not the player closing it. Without this
+    -- flag the OnHide teardown below would re-lock the movers on the very
+    -- frame it just unlocked them for.
+    S._enteringEditMode = true
     frame:Hide()
+    S._enteringEditMode = nil
     CDF.SetLocked(false)
     resumeBtn:Show()
 end
@@ -1421,7 +1437,24 @@ local function BuildWindow()
     }, cy3)
 end
 
-StaticPopupDialogs = StaticPopupDialogs or {}
+-- [TAINT] Never assign the global itself. Blizzard has already defined
+-- StaticPopupDialogs by the time this file loads, so "or {}" only ever
+-- reassigned the table to itself -- but the assignment still marks the
+-- global as tainted, and Blizzard's own StaticPopup_Show reads it. That
+-- taint then rides into every dialog sharing the pool, the logout
+-- confirmation included, which is why actions were being blocked until
+-- a reload. Indexing the table, as the rest of the addon does, is safe.
+StaticPopupDialogs["TOMOMOD_CDS_SAFETY_RELOAD"] = {
+    text         = L and L["tmt_cds_reload_text"] or "Cooldown Studio stays loaded until the interface reloads. Reload now to release it?",
+    button1      = L and L["tmt_cds_reload_now"] or "Reload",
+    button2      = L and L["tmt_cds_reload_later"] or "Later",
+    timeout      = 0,
+    whileDead    = 1,
+    hideOnEscape = 1,
+    preferredIndex = 3,
+    OnAccept     = function() ReloadUI() end,
+}
+
 StaticPopupDialogs["TOMOMOD_CDS_RENAME"] = {
     text = "|cff2ed884Cooldown Studio|r\n\nNouveau nom de la barre :",
     button1 = "Renommer",
@@ -1497,6 +1530,68 @@ StaticPopupDialogs["TOMOMOD_CDS_CREATE"] = {
 -- ---------------------------------------------------------------------
 -- Public API
 -- ---------------------------------------------------------------------
+-- ---------------------------------------------------------------------
+-- Teardown
+-- ---------------------------------------------------------------------
+-- Both close paths -- the shell's X button and U.CloseOnEscape -- call
+-- frame:Hide() directly and never reach S.Close, so the frame's OnHide is
+-- the only reliable place to clean up after the player.
+local function Teardown()
+    -- Leaving the window while the bars were unlocked used to strand the
+    -- movers in edit mode with the floating resume button still on screen.
+    if CDF and CDF.SetLocked then CDF.SetLocked(true) end
+    if resumeBtn then resumeBtn:Hide() end
+end
+
+-- The safety reload exists because taint cannot be proven absent, only
+-- unobserved. The StaticPopupDialogs assignment above was one confirmed
+-- source; until a season of play says there are no others, releasing the
+-- addon from memory on close is the difference between a player losing a
+-- session and a player uninstalling.
+local reloadWatcher
+
+local function CanReloadNow()
+    if InCombatLockdown() then return false end
+    -- Never interrupt a key or a raid: a reload mid-pull is its own
+    -- disaster, and the taint only bites on player actions.
+    if C_ChallengeMode and C_ChallengeMode.IsChallengeModeActive
+        and C_ChallengeMode.IsChallengeModeActive() then return false end
+    local inInstance, kind = IsInInstance()
+    if inInstance and (kind == "party" or kind == "raid") then return false end
+    return true
+end
+
+local function PromptReload()
+    if not S._usedThisSession then return end
+    local db = TomoModDB and TomoModDB.CDStudio
+    if db and db.safetyReload == false then return end
+
+    if CanReloadNow() then
+        StaticPopup_Show("TOMOMOD_CDS_SAFETY_RELOAD")
+        return
+    end
+
+    -- Not a safe moment: wait for one rather than dropping the prompt.
+    if not reloadWatcher then
+        reloadWatcher = CreateFrame("Frame")
+        reloadWatcher:SetScript("OnEvent", function(self)
+            if CanReloadNow() then
+                self:UnregisterAllEvents()
+                StaticPopup_Show("TOMOMOD_CDS_SAFETY_RELOAD")
+            end
+        end)
+    end
+    reloadWatcher:RegisterEvent("PLAYER_REGEN_ENABLED")
+    reloadWatcher:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+    reloadWatcher:RegisterEvent("PLAYER_ENTERING_WORLD")
+end
+
+local function OnStudioHidden()
+    if S._enteringEditMode then return end
+    Teardown()
+    PromptReload()
+end
+
 function S.Open()
     CDF = CDF or TomoMod_CooldownForge
     if not (CDF and CDF.DB and CDF.DB()) then
@@ -1505,6 +1600,13 @@ function S.Open()
     end
     S.state.class = S.state.class or CDF.PlayerClass() or "WARRIOR"
     if not frame then BuildWindow() end
+    if not S._hideHooked then
+        S._hideHooked = true
+        frame:HookScript("OnHide", OnStudioHidden)
+    end
+    -- Merely building the window is enough exposure: the taint surface is
+    -- the frames and the Blizzard calls, not the edits.
+    S._usedThisSession = true
     S.RebuildSidebar()
     S.RebuildContent()
     frame:Show()

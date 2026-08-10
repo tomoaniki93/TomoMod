@@ -1,12 +1,14 @@
 ﻿-- =====================================================================
--- MythicKeys.lua  Party Key Viewer + Roulette (LibOpenRaid)
--- Replaces the old multi-protocol key viewer with LibOpenRaid.
+-- MythicKeys.lua  Party Key Viewer + Roulette
+-- Keystone data comes from KeySync.lua, TomoMod's own sharing module.
 -- /tm key  -> list party keystones in group chat
 -- /tmt kr  -> keystone roulette UI with random pick
 -- =====================================================================
 
 local L = TomoMod_L
-local openRaidLib = LibStub and LibStub:GetLibrary("LibOpenRaid-1.0", true)
+-- Keystone data now comes from TomoMod's own sync module (KeySync.lua),
+-- which exposes the same four functions this file already used.
+local openRaidLib = TomoMod_KeySync
 
 local PREFIX = "|cff2ed884Tomo|r|cFF3377CCMod|r"
 
@@ -55,7 +57,7 @@ local function GetDungeonFullName(mapID)
 end
 
 ---------------------------------------------------------------------------
--- COLLECT PARTY KEYSTONES (LibOpenRaid)
+-- COLLECT PARTY KEYSTONES
 ---------------------------------------------------------------------------
 
 local function CollectPartyKeystones()
@@ -116,7 +118,7 @@ end
 
 function MK:SendKeysToChat()
     if not openRaidLib then
-        print(PREFIX .. ": LibOpenRaid " .. (L["tmt_key_not_available"] or "not available"))
+        print(PREFIX .. ": " .. (L["tmt_key_not_available"] or "keystone sync not available"))
         return
     end
 
@@ -488,7 +490,7 @@ end
 
 function MK:ShowKeyRoulette()
     if not openRaidLib then
-        print(PREFIX .. ": LibOpenRaid " .. (L["tmt_key_not_available"] or "not available"))
+        print(PREFIX .. ": " .. (L["tmt_key_not_available"] or "keystone sync not available"))
         return
     end
 

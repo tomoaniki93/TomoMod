@@ -9,7 +9,7 @@
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 3.3.6
+## Version: 3.4.1
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
