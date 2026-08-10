@@ -104,7 +104,6 @@
     <Include file="Skins\ReputationBar.lua" />
     <Include file="Skins\ChatFrameSkin.lua" />
     <Include file="Skins\BagSkin.lua" />
-    <Include file="Skins\BuffSkin.lua" />
     <Include file="Skins\GameMenuSkin.lua" />
     <Include file="Skins\TooltipSkin.lua" />
     <Include file="Skins\TooltipInspect.lua" />

@@ -1067,20 +1067,6 @@ TomoMod_RegisterLocale("itIT", {
 
     -- Buff Skin
     ["sublabel_buff_skin"]               = "— Skin Buff / Debuff —",
-    ["opt_buff_skin_enable"]             = "Skin delle icone Buff/Debuff",
-    ["opt_buff_skin_buffs"]              = "Applica ai Buff",
-    ["opt_buff_skin_debuffs"]            = "Applica ai Debuff",
-    ["opt_buff_skin_color_by_type"]       = "Colora il bordo per tipo di debuff (Magia/Veleno/Maledizione…)",
-    ["opt_buff_skin_brand_border"]        = "Bordo nei colori del marchio sui benefici",
-    ["opt_buff_skin_color_duration"]      = "Colora il timer in base al tempo rimasto",
-    ["opt_buff_skin_show_duration"]     = "Mostra il timer sotto l\226\128\153icona",
-    ["opt_buff_skin_dur_green"]           = "Verde sotto (secondi)",
-    ["opt_buff_skin_dur_yellow"]          = "Giallo sotto (secondi)",
-    ["opt_buff_skin_dur_red"]             = "Rosso sotto (secondi)",
-    ["opt_buff_skin_desaturate"]          = "Desatura le icone dei debuff",
-    ["opt_buff_skin_hide_buffs"]         = "Nascondi riquadro Buff",
-    ["opt_buff_skin_hide_debuffs"]       = "Nascondi riquadro Debuff",
-    ["opt_buff_skin_font_size"]          = "Dimensione font timer",
 
     -- Game Menu Skin
     ["sublabel_game_menu_skin"]          = "— Menu di gioco (Escape) —",
@@ -1336,7 +1322,6 @@ TomoMod_RegisterLocale("itIT", {
     ["ins_skins_section"]            = "Skin disponibili",
     ["ins_skin_gamemenu"]            = "Skin del menu di gioco (Escape)",
     ["ins_skin_actionbar"]           = "Skin dei pulsanti barra azione",
-    ["ins_skin_buffs"]               = "Skin buff / debuff",
     ["ins_skin_chat"]                = "Skin della chat",
     ["ins_skin_character"]           = "Skin della scheda personaggio",
     ["ins_skin_style_section"]       = "Stile pulsanti barra azione",
@@ -1652,7 +1637,6 @@ TomoMod_RegisterLocale("itIT", {
     ["tab_skin_character"]               = "Personaggio",
 
     -- Skins > Buffs tab
-    ["tab_skin_buffs"]                   = "Buff",
 
     -- Skins > Game Menu tab
     ["tab_skin_gamemenu"]                = "Menu di gioco",
@@ -3049,7 +3033,7 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_341_legibility"] = "Tracker Mitica+: il testo scritto sopra una barra piena era illeggibile. Ogni etichetta disegnata dal tracker ha un contorno nero, e quel testo era a sua volta quasi nero: si scioglieva quindi nel proprio contorno — i segni degli scrigni sul cronometro e l'etichetta della barra dei mob erano macchie, mentre l'orologio bianco accanto restava nitido. Ora sono chiari. Due dettagli sono venuti con esso: una durata negativa poteva comparire come una grande positiva, -3:40 diventava 56:20, e il primo boss non ripete più il suo tempo di uccisione due volte sulla stessa riga.",
     ["wn_341_cds_taint"] = "Cooldown Studio: aprirlo poteva impedirti di disconnetterti, per due strade distinte. Una riga scriveva in una tabella che appartiene a Blizzard — senza cambiarne il valore, ma scriverci basta perché il gioco diffidi poi di ogni finestra costruita da quella tabella, conferma di uscita compresa. Separatamente, la finestra «copia lo stile da» gestiva Esc con una copia tutta sua di codice che esiste già altrove nell'addon, e quella copia era andata alla deriva: aveva perso il controllo sul combattimento e restituiva i tasti al gioco in un modo che impediva l'apertura del menu. Entrambe le cose sono risolte, e la finestra usa ora l'implementazione condivisa invece di tenerne una privata. Nessuna delle due toccava una sessione in cui non avessi aperto lo Studio, ed è per questo che ci è voluto tempo per attribuirle.",
     ["wn_341_keysync"] = "TomoMod si segnalava da solo come causa di problemi dell'interfaccia decine di volte a ogni combattimento, senza esserlo. La causa era una libreria inclusa, LibOpenRaid, che capisce se il gioco sta nascondendo un valore provando a leggerlo e intercettando l'errore — la risposta è giusta, ma il gioco scrive il nome di TomoMod nel proprio registro a ogni tentativo, e questo accade di continuo. La libreria non viene più distribuita. Era lì solo per quattro funzioni sulle pietre angolari, mentre sincronizzava anche tempi di recupero, equipaggiamento, talenti e durabilità — ed è proprio la parte dei tempi di recupero a causare tutto. La condivisione delle pietre angolari è ora di TomoMod, in un file molto più piccolo: la tua pietra arriva direttamente dal gioco, il resto viene scambiato con il gruppo e la gilda e conservato fino al reset settimanale. Una cosa dovrebbe funzionare per la prima volta: l'elenco delle pietre del gruppo si aggiorna da solo quando una cambia — il vecchio richiamo era collegato in un modo che la libreria non chiamava mai.",
-    ["wn_341_buffskin"] = "Benefici e penalità sono stati rifatti. Il bordo aveva un turchese che in TomoMod non usa nient'altro, residuo di prima che l'addon avesse un colore stabilito; ora prende lo stesso verde di tutto il resto, e la tua impostazione viene mantenuta: se avevi disattivato l'accento, resta disattivato. Quel bordo ti dice anche quanto manca: verde finché c'è margine, giallo sotto i due minuti, rosso sotto i trenta secondi, con tutte e tre le soglie regolabili. Il testo del conto alla rovescia segue la stessa scala, salvo che sopra la soglia più alta resta neutro: un beneficio con venti minuti davanti non ha nulla da dirti. Il timer ora sta in una piastrella scura tutta sua sotto l'icona, invece di fluttuare sopra qualunque cosa si trovi dietro i tuoi benefici, cosa che nelle zone chiare lo rendeva illeggibile per quanto spesso fosse il contorno; puoi nasconderlo del tutto e leggere solo il bordo. E una correzione attesa: le icone venivano più alte che larghe, perché il pulsante d'aura di Blizzard riserva altezza sotto l'immagine e TomoMod allungava l'icona per riempirla tutta. Ora sono quadrate.",
+    ["wn_341_buffskin"] = "L'aspetto di benefici e penalità è stato rimosso — l'intera funzione, con la sua scheda e le sue impostazioni. Sul gioco attuale non può funzionare: i pulsanti che Blizzard usa per le aure ora nascondono agli addon la propria dimensione, e mettere un bordo su uno di essi solleva un errore dentro il codice di Blizzard, non in quello di TomoMod, dove si sarebbe potuto intercettare. A questo si aggiunge che quei pulsanti vengono rifatti quasi a ogni patch: questa sola versione ci ha speso cinque tentativi. È manutenzione senza fine, proprio sulla parte dell'interfaccia in cui la visualizzazione di Blizzard è già adeguata. La tua finestra dei benefici torna a quella del gioco, e le impostazioni vengono cancellate dai profili perché non c'è dove riportarle. Se un aspetto personalizzato per i benefici ti sta davvero a cuore, un addon di aure dedicato è la risposta onesta.",
     ["wn_341_auratracker"] = "Il tracciatore di aure è stato rimosso. CooldownForge fa lo stesso lavoro e lo fa meglio, e tenere due sovrapposizioni che si contendono lo stesso angolo dello schermo non poteva finire altrimenti. La sua scheda, i suoi preset, il suo spostatore e le sue impostazioni se ne vanno con lui, e una pulizia una tantum toglie dai tuoi profili le impostazioni rimaste invece di portarsele dietro per sempre. Se ci avevi aggiunto incantesimi a mano, non vanno persi in silenzio: non possono essere convertiti automaticamente, quindi TomoMod li elenca una volta al prossimo accesso, con i loro nomi, e puoi ricreare quelli che ti interessano ancora nel Cooldown Studio.",
     ["wn_341_cds_reload"] = "Cooldown Studio: chiuderlo può ora ricaricare l'interfaccia, e lo fa in modo predefinito. Lo Studio si carica solo quando lo chiedi, ma il gioco non sa scaricare un addon — un ricaricamento è l'unica cosa che lo libera, ed è anche ciò che ripulisce quanto la sessione potrebbe aver raccolto per strada. La richiesta aspetta un momento sensato: mai in combattimento, mai durante una chiave, mai dentro un dungeon o un raid, e ritorna appena sei fuori. Puoi disattivarla nelle opzioni di CooldownForge. A parte questo, uscire dallo Studio con le barre sbloccate le lasciava bloccate in modalità modifica, con il pulsante di ripresa che galleggiava sullo schermo; ora entrambi i modi di chiudere la finestra fanno pulizia.",
 

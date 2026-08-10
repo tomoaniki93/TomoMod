@@ -518,22 +518,6 @@ TomoMod_Defaults = {
         collapsedSections = {},
         position = { anchor = "BOTTOMRIGHT", relTo = "BOTTOMRIGHT", x = -20, y = 60 },
     },
-    buffSkin = {
-        enabled = false,
-        skinBuffs = true,
-        skinDebuffs = true,
-        hideBuffFrame = false,
-        hideDebuffFrame = false,
-        colorByType = true,          -- border colorée par type de dispel (Magic/Poison/Curse/Disease)
-        brandBorder = true,          -- border a l'accent de marque sur les buffs
-        colorDuration = true,        -- timer colore selon le temps restant
-        showDuration = true,         -- timer affiche dans sa tuile sous l'icone
-        durationGreen = 600,         -- <= 10 min : accent de marque
-        durationYellow = 120,        -- <= 2 min  : jaune
-        durationRed = 30,            -- <= 30 s   : rouge
-        desaturateDebuffs = false,   -- désaturer les icônes de debuff
-        fontSize = 11,
-    },
     gameMenuSkin = {
         enabled = true,
     },
@@ -1509,16 +1493,14 @@ local function TomoMod_RunMigrations()
     -- reason it existed at all. Drop the table rather than leave it
     -- orphaned in every profile -- nothing reads it now, and Profiles.lua
     -- would go on copying it around forever.
-    -- "tealBorder" predated the brand tokens and the border is no longer
-    -- teal. Carry the player's choice across to the new key rather than
-    -- silently resetting anyone who had turned the accent off.
-    if not done.buffSkinBrandBorder then
-        done.buffSkinBrandBorder = true
-        local bs = TomoModDB.buffSkin
-        if type(bs) == "table" then
-            if bs.tealBorder ~= nil then bs.brandBorder = bs.tealBorder end
-            bs.tealBorder = nil
-        end
+    -- The buff frame skin is gone. Blizzard's aura buttons report secret
+    -- dimensions, so any backdrop we attached to them threw inside
+    -- Blizzard's own Backdrop.lua, and the frames get reshaped every
+    -- patch. Nothing here can be carried anywhere, so the table is simply
+    -- dropped rather than left orphaned in every profile.
+    if not done.dropBuffSkin then
+        done.dropBuffSkin = true
+        TomoModDB.buffSkin = nil
     end
 
     if not done.dropAuraTracker then

@@ -1067,20 +1067,6 @@ TomoMod_RegisterLocale("deDE", {
 
     -- Buff Skin
     ["sublabel_buff_skin"]               = "— Buff-/Debuff-Skin —",
-    ["opt_buff_skin_enable"]             = "Buff-/Debuff-Symbole skinnen",
-    ["opt_buff_skin_buffs"]              = "Auf Buffs anwenden",
-    ["opt_buff_skin_debuffs"]            = "Auf Debuffs anwenden",
-    ["opt_buff_skin_color_by_type"]       = "Rahmenfarbe nach Debuff-Typ (Magie/Gift/Fluch…)",
-    ["opt_buff_skin_brand_border"]        = "Markenfarbener Rand bei Buffs",
-    ["opt_buff_skin_color_duration"]      = "Timer nach Restzeit einf\195\164rben",
-    ["opt_buff_skin_show_duration"]     = "Timer unter dem Symbol anzeigen",
-    ["opt_buff_skin_dur_green"]           = "Gr\195\188n unter (Sekunden)",
-    ["opt_buff_skin_dur_yellow"]          = "Gelb unter (Sekunden)",
-    ["opt_buff_skin_dur_red"]             = "Rot unter (Sekunden)",
-    ["opt_buff_skin_desaturate"]          = "Debuff-Icons entsättigen",
-    ["opt_buff_skin_hide_buffs"]         = "Buff-Rahmen ausblenden",
-    ["opt_buff_skin_hide_debuffs"]       = "Debuff-Rahmen ausblenden",
-    ["opt_buff_skin_font_size"]          = "Timer-Schriftgröße",
 
     -- Game Menu Skin
     ["sublabel_game_menu_skin"]          = "— Spielmenü (Escape) —",
@@ -1336,7 +1322,6 @@ TomoMod_RegisterLocale("deDE", {
     ["ins_skins_section"]            = "Verf\195\188gbare Skins",
     ["ins_skin_gamemenu"]            = "Spielmen\195\188-Skin (Escape-Men\195\188)",
     ["ins_skin_actionbar"]           = "Aktionsleisten-Button-Skin",
-    ["ins_skin_buffs"]               = "Buff-/Debuff-Skin",
     ["ins_skin_chat"]                = "Chat-Fenster-Skin",
     ["ins_skin_character"]           = "Charakterbogen-Skin",
     ["ins_skin_style_section"]       = "Aktionsleisten-Button-Stil",
@@ -1652,7 +1637,6 @@ TomoMod_RegisterLocale("deDE", {
     ["tab_skin_character"]               = "Charakter",
 
     -- Skins > Buffs tab
-    ["tab_skin_buffs"]                   = "Buffs",
 
     -- Skins > Game Menu tab
     ["tab_skin_gamemenu"]                = "Spielmen\195\188",
@@ -3061,7 +3045,7 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_341_legibility"] = "Mythisch+-Tracker: Der Text auf einer gefüllten Leiste war unlesbar. Jede Beschriftung des Trackers hat eine schwarze Kontur, und dieser Text war selbst fast schwarz — er löste sich also in seiner eigenen Kontur auf: Die Truhenmarken auf dem Timer und die Beschriftung der Trash-Leiste waren nur noch Flecken, während die weiße Uhr daneben gestochen scharf blieb. Sie sind jetzt hell. Zwei Kleinigkeiten kamen mit: Eine negative Dauer konnte als große positive erscheinen, aus -3:40 wurde 56:20, und der erste Boss wiederholt seine Kill-Zeit nicht mehr zweimal in derselben Zeile.",
     ["wn_341_cds_taint"] = "Cooldown Studio: Es zu öffnen konnte dich am Ausloggen hindern, auf zwei verschiedenen Wegen. Eine Zeile schrieb in eine Tabelle, die Blizzard gehört — am Wert änderte das nichts, aber allein das Schreiben reicht, damit das Spiel danach jedem Fenster misstraut, das aus dieser Tabelle gebaut wird, die Logout-Bestätigung eingeschlossen. Davon unabhängig behandelte das Fenster „Stil kopieren von“ die Escape-Taste mit einer eigenen Kopie von Code, den es anderswo im Addon längst gibt, und diese Kopie war abgedriftet: Ihr fehlte die Kampfprüfung, und sie gab Tasteneingaben so an das Spiel zurück, dass sich das Spielmenü nicht mehr öffnete. Beides ist behoben, und das Fenster nutzt jetzt die gemeinsame Umsetzung statt einer eigenen. Keiner der beiden Fälle betraf eine Sitzung, in der du das Studio nicht geöffnet hattest — deshalb hat es gedauert, sie zuzuordnen.",
     ["wn_341_keysync"] = "TomoMod meldete sich bei jedem Kampf dutzendfach selbst als Quelle von Oberflächenproblemen, ohne eine zu sein. Ursache war eine mitgelieferte Bibliothek, LibOpenRaid: Sie stellt fest, ob das Spiel einen Wert verbirgt, indem sie ihn zu lesen versucht und den Fehler auffängt — die Antwort stimmt, aber das Spiel schreibt bei jedem Versuch TomoMods Namen in sein Protokoll, und das passiert pausenlos. Die Bibliothek wird nicht mehr ausgeliefert. Sie war nur wegen vier Schlüsselstein-Funktionen da, synchronisierte daneben aber auch Abklingzeiten, Ausrüstung, Talente und Haltbarkeit — und genau der Abklingzeiten-Teil verursachte alles. Das Teilen von Schlüsselsteinen ist jetzt TomoMods eigenes, in einer viel kleineren Datei: Dein Schlüssel kommt direkt aus dem Spiel, der Rest wird mit Gruppe und Gilde ausgetauscht und bis zum wöchentlichen Reset behalten. Eines dürfte zum ersten Mal funktionieren: Die Schlüsselliste der Gruppe aktualisiert sich von selbst, wenn sich ein Schlüssel ändert — der alte Rückruf war so verdrahtet, dass die Bibliothek ihn nie aufrief.",
-    ["wn_341_buffskin"] = "Stärkungs- und Schwächungszauber wurden überarbeitet. Der Rand hatte ein Türkis, das sonst nirgends in TomoMod vorkommt — ein Überbleibsel aus der Zeit, bevor das Addon eine feste Farbe hatte; er nimmt jetzt dasselbe Grün wie alles andere, und deine Einstellung wird übernommen: Hattest du den Akzent ausgeschaltet, bleibt er aus. Dieser Rand sagt dir außerdem, wie viel Zeit bleibt: grün, solange Luft ist, gelb unter zwei Minuten, rot unter dreißig Sekunden — alle drei Schwellen frei einstellbar. Der Ablauftext folgt derselben Staffelung, nur bleibt er oberhalb der höchsten Schwelle neutral: Ein Buff mit zwanzig Minuten Restzeit hat dir nichts zu sagen. Der Zähler sitzt nun in einer eigenen dunklen Kachel unter dem Symbol, statt über allem zu schweben, was sich hinter deinen Buffs befindet — in hellen Gebieten war er so unlesbar, egal wie dick die Kontur war; du kannst ihn ganz ausblenden und nur den Rand lesen. Und eine längst fällige Korrektur: Die Symbole kamen höher als breit heraus, weil Blizzards Aura-Schaltfläche unter dem Bild Höhe reserviert und TomoMod das Symbol über die ganze Fläche zog. Jetzt sind sie quadratisch.",
+    ["wn_341_buffskin"] = "Die Gestaltung der Stärkungs- und Schwächungszauber wurde entfernt — die gesamte Funktion samt Reiter und Einstellungen. Auf dem aktuellen Spiel ist sie nicht umsetzbar: Die Schaltflächen, die Blizzard für Auren verwendet, verbergen ihre eigene Größe inzwischen vor Addons, und ein Rand darauf löst einen Fehler innerhalb von Blizzards Code aus — nicht in TomoMods, wo er sich hätte abfangen lassen. Dazu kommt, dass diese Schaltflächen fast bei jedem Patch umgebaut werden: Allein diese Version hat fünf Anläufe darauf verwendet. Das ist Pflege ohne Ende, ausgerechnet an dem Teil der Oberfläche, an dem Blizzards eigene Darstellung bereits genügt. Dein Buff-Fenster kehrt zum Standard zurück, und die Einstellungen werden aus deinen Profilen entfernt, da es keinen Ort gibt, an den sie passen. Wenn dir ein gestaltetes Buff-Fenster wichtig ist, ist ein eigenes Auren-Addon die ehrliche Antwort.",
     ["wn_341_auratracker"] = "Der Aura-Tracker wurde entfernt. CooldownForge erledigt dieselbe Aufgabe besser, und zwei Overlays laufen zu lassen, die sich um dieselbe Bildschirmecke streiten, konnte nicht anders enden. Sein Reiter, seine Vorlagen, sein Mover und seine Einstellungen gehen mit, und eine einmalige Bereinigung entfernt die übrig gebliebenen Einstellungen aus deinen Profilen, statt sie ewig mitzuschleppen. Falls du dort Zauber von Hand hinzugefügt hattest, gehen sie nicht stillschweigend verloren: Automatisch umwandeln lassen sie sich nicht, also listet TomoMod sie bei deiner nächsten Anmeldung einmal mit Namen auf, und du kannst die, die dir noch wichtig sind, im Cooldown Studio neu anlegen.",
     ["wn_341_cds_reload"] = "Cooldown Studio: Es zu schließen kann jetzt die Oberfläche neu laden, und tut es standardmäßig. Das Studio lädt nur auf Anforderung, aber das Spiel kann ein Addon nicht wieder entladen — nur ein Neuladen gibt es frei, und dasselbe Neuladen beseitigt auch alles, was die Sitzung unterwegs aufgesammelt haben könnte. Die Nachfrage wartet auf einen sinnvollen Moment: nie im Kampf, nie während eines Schlüssels, nie in einem Dungeon oder Schlachtzug — und sie kommt zurück, sobald du draußen bist. In den CooldownForge-Optionen lässt sie sich abschalten. Außerdem: Das Studio zu verlassen, während die Leisten entsperrt waren, ließ sie im Bearbeitungsmodus zurück, samt schwebender Fortsetzen-Schaltfläche; beide Wege, das Fenster zu schließen, räumen jetzt auf.",
 

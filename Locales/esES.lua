@@ -1066,20 +1066,6 @@ TomoMod_RegisterLocale("esES", {
 
     -- Buff Skin
     ["sublabel_buff_skin"]               = "— Skin de Buffs / Debuffs —",
-    ["opt_buff_skin_enable"]             = "Skinear iconos de Buff/Debuff",
-    ["opt_buff_skin_buffs"]              = "Aplicar a Buffs",
-    ["opt_buff_skin_debuffs"]            = "Aplicar a Debuffs",
-    ["opt_buff_skin_color_by_type"]       = "Colorear borde por tipo de debuff (Magia/Veneno/Maldición…)",
-    ["opt_buff_skin_brand_border"]        = "Borde con los colores de la marca en los beneficios",
-    ["opt_buff_skin_color_duration"]      = "Colorear el temporizador seg\195\186n el tiempo restante",
-    ["opt_buff_skin_show_duration"]     = "Mostrar el temporizador bajo el icono",
-    ["opt_buff_skin_dur_green"]           = "Verde por debajo de (segundos)",
-    ["opt_buff_skin_dur_yellow"]          = "Amarillo por debajo de (segundos)",
-    ["opt_buff_skin_dur_red"]             = "Rojo por debajo de (segundos)",
-    ["opt_buff_skin_desaturate"]          = "Desaturar iconos de debuff",
-    ["opt_buff_skin_hide_buffs"]         = "Ocultar marco de Buffs",
-    ["opt_buff_skin_hide_debuffs"]       = "Ocultar marco de Debuffs",
-    ["opt_buff_skin_font_size"]          = "Tamaño de fuente del temporizador",
 
     -- Game Menu Skin
     ["sublabel_game_menu_skin"]          = "— Menú de juego (Escape) —",
@@ -1335,7 +1321,6 @@ TomoMod_RegisterLocale("esES", {
     ["ins_skins_section"]            = "Skins disponibles",
     ["ins_skin_gamemenu"]            = "Skin del men\195\186 de juego (Escape)",
     ["ins_skin_actionbar"]           = "Skin de botones de barra de acci\195\179n",
-    ["ins_skin_buffs"]               = "Skin de buffs / debuffs",
     ["ins_skin_chat"]                = "Skin del chat",
     ["ins_skin_character"]           = "Skin de la hoja de personaje",
     ["ins_skin_style_section"]       = "Estilo de botones de barra de acci\195\179n",
@@ -1651,7 +1636,6 @@ TomoMod_RegisterLocale("esES", {
     ["tab_skin_character"]               = "Personaje",
 
     -- Skins > Buffs tab
-    ["tab_skin_buffs"]                   = "Buffs",
 
     -- Skins > Game Menu tab
     ["tab_skin_gamemenu"]                = "Men\195\186 de juego",
@@ -3062,7 +3046,7 @@ TomoMod_RegisterLocale("esES", {
     ["wn_341_legibility"] = "Rastreador Mítica+: el texto escrito encima de una barra llena era ilegible. Cada etiqueta que dibuja el rastreador lleva un contorno negro, y ese texto era casi negro él mismo, así que se disolvía en su propio contorno — las marcas de cofre del cronómetro y la etiqueta de la barra de esbirros eran manchas mientras el reloj blanco de al lado seguía nítido. Ahora son claros. Dos detalles vienen con ello: una duración negativa podía aparecer como una positiva grande, -3:40 salía como 56:20, y el primer jefe ya no repite su tiempo de muerte dos veces en la misma línea.",
     ["wn_341_cds_taint"] = "Cooldown Studio: abrirlo podía impedirte cerrar sesión, por dos vías distintas. Una línea escribía en una tabla que pertenece a Blizzard — sin cambiar su valor, pero escribir en ella basta para que el juego desconfíe después de cualquier ventana construida a partir de esa tabla, incluida la confirmación de salida. Aparte, la ventana «copiar el estilo desde» gestionaba Escape con su propia copia de un código que ya existe en otra parte del addon, y esa copia se había desviado: había perdido la comprobación de combate y devolvía las teclas al juego de una forma que impedía abrir el menú. Ambas cosas están corregidas, y la ventana usa ya la implementación común en vez de guardar una propia. Ninguna de las dos afectaba a una sesión en la que no hubieras abierto el Studio, y por eso costó tanto atribuirlas.",
     ["wn_341_keysync"] = "TomoMod se señalaba a sí mismo como origen de problemas de interfaz decenas de veces en cada combate, sin serlo. La causa era una biblioteca incluida, LibOpenRaid, que averigua si el juego oculta un valor intentando leerlo y capturando el error — la respuesta es correcta, pero el juego escribe el nombre de TomoMod en su registro en cada intento, y eso ocurre sin parar. La biblioteca ya no se distribuye. Estaba ahí por cuatro funciones de piedras angulares y nada más, mientras además sincronizaba tiempos de reutilización, equipo, talentos y durabilidad — y es esa parte la que lo provocaba todo. El intercambio de piedras angulares es ahora propio de TomoMod, en un archivo mucho más pequeño: tu piedra viene directa del juego, y el resto se comparte con tu grupo y tu hermandad, y se conserva hasta el reinicio semanal. Algo que debería funcionar por primera vez: la lista de piedras del grupo se actualiza sola cuando alguien cambia la suya — el aviso antiguo estaba conectado de una forma que la biblioteca nunca llegaba a llamar.",
-    ["wn_341_buffskin"] = "Los beneficios y perjuicios se han rehecho. El borde tenía un turquesa que no usa nada más en TomoMod, resto de antes de que el addon tuviera un color fijo; ahora toma el mismo verde que todo lo demás, y tu ajuste se conserva: si habías desactivado el acento, sigue desactivado. Ese borde también te dice cuánto queda: verde mientras hay margen, amarillo por debajo de dos minutos, rojo por debajo de treinta segundos, con los tres umbrales a tu gusto. El texto de la cuenta atrás sigue la misma escala, salvo que por encima del umbral más alto se queda neutro: un beneficio con veinte minutos por delante no tiene nada que contarte. El temporizador se instala ahora en su propia baldosa oscura bajo el icono, en lugar de flotar sobre lo que haya detrás de tus beneficios, que en zonas claras lo hacía ilegible por gruesa que fuera la silueta; puedes ocultarlo del todo y leer solo el borde. Y una corrección que hacía falta: los iconos salían más altos que anchos, porque el botón de aura de Blizzard reserva altura bajo la imagen y TomoMod estiraba el icono para llenarla toda. Ahora son cuadrados.",
+    ["wn_341_buffskin"] = "El aspecto de beneficios y perjuicios se ha eliminado — la función entera, con su pestaña y sus ajustes. No puede funcionar en el juego actual: los botones que Blizzard usa para las auras ahora ocultan su propio tamaño a los addons, y poner un borde en uno provoca un error dentro del código de Blizzard, no en el de TomoMod, donde se habría podido atrapar. A eso se suma que esos botones se rehacen casi en cada parche: solo esta versión ha gastado cinco intentos persiguiéndolos. Es un mantenimiento sin final, justo en la parte de la interfaz donde la propia presentación de Blizzard ya es suficiente. Tu ventana de beneficios vuelve a la del juego, y los ajustes se borran de tus perfiles porque no hay adónde llevarlos. Si un aspecto propio para los beneficios te importa de verdad, un addon de auras dedicado es la respuesta honesta.",
     ["wn_341_auratracker"] = "El rastreador de auras se ha eliminado. CooldownForge hace el mismo trabajo y lo hace mejor, y tener dos capas peleándose por el mismo rincón de la pantalla no podía acabar de otra manera. Su pestaña, sus preajustes, su movedor y sus ajustes se van con él, y una limpieza única retira los ajustes sobrantes de tus perfiles en lugar de arrastrarlos para siempre. Si le habías añadido hechizos a mano, no se pierden en silencio: no se pueden convertir automáticamente, así que TomoMod los enumera una vez en tu próximo inicio de sesión, con sus nombres, y puedes recrear los que aún te importen en el Cooldown Studio.",
     ["wn_341_cds_reload"] = "Cooldown Studio: cerrarlo ahora puede recargar tu interfaz, y lo hace por defecto. El Studio solo se carga cuando lo pides, pero el juego no sabe descargar un addon — una recarga es lo único que lo libera, y es también lo que limpia cualquier cosa que la sesión haya podido arrastrar. El aviso espera un momento razonable: nunca en combate, nunca durante una llave, nunca dentro de una mazmorra o banda, y vuelve en cuanto sales. Puedes desactivarlo en las opciones de CooldownForge. Aparte, salir del Studio con las barras desbloqueadas las dejaba atrapadas en modo edición, con el botón de reanudar flotando en pantalla; ahora las dos formas de cerrar la ventana recogen.",
 

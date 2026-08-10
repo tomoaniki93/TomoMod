@@ -1193,20 +1193,6 @@ TomoMod_RegisterLocale("enUS", {
 
     -- Buff Skin
     ["sublabel_buff_skin"]               = "— Buff / Debuff Skin —",
-    ["opt_buff_skin_enable"]             = "Skin Buff/Debuff Icons",
-    ["opt_buff_skin_buffs"]              = "Apply to Buffs",
-    ["opt_buff_skin_debuffs"]            = "Apply to Debuffs",
-    ["opt_buff_skin_color_by_type"]       = "Color border by debuff type (Magic/Poison/Curse…)",
-    ["opt_buff_skin_brand_border"]        = "Brand-coloured border on buffs",
-    ["opt_buff_skin_color_duration"]      = "Colour the timer by time left",
-    ["opt_buff_skin_show_duration"]     = "Show the timer under the icon",
-    ["opt_buff_skin_dur_green"]           = "Green below (seconds)",
-    ["opt_buff_skin_dur_yellow"]          = "Yellow below (seconds)",
-    ["opt_buff_skin_dur_red"]             = "Red below (seconds)",
-    ["opt_buff_skin_desaturate"]          = "Desaturate debuff icons",
-    ["opt_buff_skin_hide_buffs"]         = "Hide Buff Frame",
-    ["opt_buff_skin_hide_debuffs"]       = "Hide Debuff Frame",
-    ["opt_buff_skin_font_size"]          = "Timer font size",
 
     -- Game Menu Skin
     ["sublabel_game_menu_skin"]          = "— Game Menu (Escape) —",
@@ -1497,7 +1483,6 @@ TomoMod_RegisterLocale("enUS", {
     ["ins_skins_section"]            = "Available Skins",
     ["ins_skin_gamemenu"]            = "Game Menu skin (Escape menu)",
     ["ins_skin_actionbar"]           = "Action bar button skin",
-    ["ins_skin_buffs"]               = "Buff / debuff skin",
     ["ins_skin_chat"]                = "Chat frame skin",
     ["ins_skin_character"]           = "Character sheet skin",
     ["ins_skin_style_section"]       = "Action Bar Button Style",
@@ -1857,7 +1842,6 @@ TomoMod_RegisterLocale("enUS", {
     ["tab_skin_character"]               = "Character",
 
     -- Skins > Buffs tab
-    ["tab_skin_buffs"]                   = "Buffs",
 
     -- Skins > Game Menu tab
     ["tab_skin_gamemenu"]                = "Game Menu",
@@ -3108,7 +3092,7 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_341_legibility"] = "Mythic+ tracker: the text written on top of a filled bar was unreadable. Every label the tracker draws has a black outline behind it, and that text was almost black itself, so it dissolved into its own outline — the chest markers on the timer and the label on the trash bar were smudges while the white clock beside them stayed sharp. They are light now. Two smaller things went with it: a negative duration could print as a large positive one, so -3:40 appeared as 56:20, and the first boss no longer repeats its kill time twice on the same line.",
     ["wn_341_cds_taint"] = "Cooldown Studio: opening it could stop you logging out, by either of two routes. One line wrote to a table belonging to Blizzard — harmlessly, as far as the value went, but writing to it at all is enough for the game to distrust every window built from that table afterwards, the logout confirmation included. Separately, the 'copy the style from' popup handled Escape with its own copy of code that lives elsewhere in the addon, and that copy had drifted: it had lost its combat check and handed keypresses back to the game in a way that made the game menu refuse to open. Both are fixed, and the popup now shares the one implementation instead of keeping a private one. Neither ever affected a session in which you had not opened the Studio, which is why they took a while to pin down.",
     ["wn_341_keysync"] = "TomoMod was reporting itself as a source of interface problems dozens of times at every fight, without being one. The cause was a bundled library, LibOpenRaid, which works out whether the game is hiding a value by trying to read it and catching the error — the answer is right, but the game writes TomoMod's name into its log on every attempt, and that happens constantly. The library is no longer shipped. It was there for four keystone functions and nothing else, while also syncing cooldowns, gear, talents and durability, and it is the cooldown part that caused all of it. Keystone sharing is now TomoMod's own, in a file a fraction of the size: your key comes straight from the game, and the rest is shared with your group and guild directly, kept until the weekly reset. One thing that should now work for the first time: the party key list refreshes on its own when somebody's key changes — the old callback was wired in a way the library never actually called.",
-    ["wn_341_buffskin"] = "Buffs and debuffs have been reworked. The border was a teal nothing else in TomoMod uses, left over from before the addon had a settled colour; it takes the same green as everything else now, and your setting carries over, so if you had the accent turned off it stays off. That border also tells you how long is left: green while there is room, yellow under two minutes, red under thirty seconds, with all three thresholds yours to set. The countdown text follows the same ladder, except that above the top threshold it stays plain — a buff with twenty minutes on it has nothing to tell you. The timer now sits in its own dark tile under the icon instead of floating over whatever happens to be behind your buffs, which on a bright zone made it unreadable no matter how thick the outline; you can hide it entirely and read the border alone. And a fix that was overdue: icons were coming out taller than they were wide, because Blizzard's aura button reserves height under the picture and TomoMod was stretching the icon to fill all of it. They are square now.",
+    ["wn_341_buffskin"] = "The buff and debuff skin has been removed — the whole feature, along with its tab and its settings. It cannot be made to work on the current game: the buttons Blizzard uses for auras now hide their own size from addons, and putting a border on one raises an error inside Blizzard's code rather than in TomoMod's, where it could have been caught. On top of that those buttons are reshaped almost every patch, and this version alone spent five attempts chasing them. That is upkeep with no end, on the one part of the interface where Blizzard's own display is already fine. Your buff frame goes back to the default one, and the settings are cleared from your profiles since there is nowhere to carry them. If a skinned buff frame matters to you, a dedicated aura addon is the honest answer.",
     ["wn_341_auratracker"] = "The Aura Tracker has been removed. CooldownForge does the same job and does it better, and running two overlays that compete for the same corner of your screen was never going to end anywhere else. Its tab, its presets, its mover and its settings go with it, and a one-time cleanup drops the leftover settings from your profiles instead of carrying them around forever. If you had added spells to it by hand, they are not lost quietly: they cannot be converted automatically, so TomoMod lists them once at your next login, with their names, and you can recreate the ones you still care about in the Cooldown Studio.",
     ["wn_341_cds_reload"] = "Cooldown Studio: closing it can now reload your interface, and does by default. The Studio only loads when you ask for it, but the game cannot unload an addon again — a reload is the only thing that releases it, and it is also what clears anything the session may have picked up. The prompt waits for a sensible moment: never in combat, never during a key, never inside a dungeon or raid, and it comes back once you are out. You can turn it off in the CooldownForge options. Separately, leaving the Studio while the bars were unlocked used to strand them in edit mode with the resume button still floating on screen; both ways of closing the window now tidy up.",
 

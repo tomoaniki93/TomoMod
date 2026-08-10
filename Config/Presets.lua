@@ -492,7 +492,6 @@ local BASE = {
     -- ── Skins ─────────────────────────────────────────────
     ["chatFrameSkin.enabled"]           = true,
     ["bagSkin.enabled"]                 = true,
-    ["buffSkin.enabled"]                = true,
     ["tooltipSkin.enabled"]             = true,
     ["gameMenuSkin.enabled"]            = true,
     ["characterSkin.enabled"]           = true,
@@ -681,7 +680,6 @@ local DELTAS = {
 
         ["chatFrameSkin.enabled"]     = false,
         ["bagSkin.enabled"]           = false,
-        ["buffSkin.enabled"]          = false,
         ["tooltipSkin.enabled"]       = false,
         ["gameMenuSkin.enabled"]      = false,
         ["characterSkin.enabled"]     = false,

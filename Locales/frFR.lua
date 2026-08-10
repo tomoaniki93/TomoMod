@@ -1127,20 +1127,6 @@ TomoMod_RegisterLocale("frFR", {
 
     -- Buff Skin
     ["sublabel_buff_skin"]               = "— Skin Buffs / Debuffs —",
-    ["opt_buff_skin_enable"]             = "Skinner les icônes Buff/Debuff",
-    ["opt_buff_skin_buffs"]              = "Appliquer aux Buffs",
-    ["opt_buff_skin_debuffs"]            = "Appliquer aux Debuffs",
-    ["opt_buff_skin_color_by_type"]       = "Colorer la bordure par type de debuff (Magie/Poison/Malédiction…)",
-    ["opt_buff_skin_brand_border"]        = "Bordure aux couleurs TomoMod sur les buffs",
-    ["opt_buff_skin_color_duration"]      = "Colorer le timer selon le temps restant",
-    ["opt_buff_skin_show_duration"]     = "Afficher le timer sous l\226\128\153ic\195\180ne",
-    ["opt_buff_skin_dur_green"]           = "Vert en dessous de (secondes)",
-    ["opt_buff_skin_dur_yellow"]          = "Jaune en dessous de (secondes)",
-    ["opt_buff_skin_dur_red"]             = "Rouge en dessous de (secondes)",
-    ["opt_buff_skin_desaturate"]          = "Désaturer les icônes de debuff",
-    ["opt_buff_skin_hide_buffs"]         = "Masquer le cadre des Buffs",
-    ["opt_buff_skin_hide_debuffs"]       = "Masquer le cadre des Debuffs",
-    ["opt_buff_skin_font_size"]          = "Taille de police des timers",
 
     -- Game Menu Skin
     ["sublabel_game_menu_skin"]          = "— Menu Echap —",
@@ -1428,7 +1414,6 @@ TomoMod_RegisterLocale("frFR", {
     ["ins_skins_section"]            = "Skins disponibles",
     ["ins_skin_gamemenu"]            = "Skin du menu Echap (Game Menu)",
     ["ins_skin_actionbar"]           = "Skin des barres d'action (boutons)",
-    ["ins_skin_buffs"]               = "Skin des buffs / debuffs",
     ["ins_skin_chat"]                = "Skin du chat",
     ["ins_skin_character"]           = "Skin de la fiche de personnage",
     ["ins_skin_style_section"]       = "Style des boutons de barres d'action",
@@ -1779,7 +1764,6 @@ TomoMod_RegisterLocale("frFR", {
     ["tab_skin_character"]               = "Personnage",
 
     -- Skins > Buffs tab
-    ["tab_skin_buffs"]                   = "Buffs",
 
     -- Skins > Game Menu tab
     ["tab_skin_gamemenu"]                = "Menu de jeu",
@@ -3077,7 +3061,7 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_341_legibility"] = "Suivi Mythique+ : le texte écrit par-dessus une barre remplie était illisible. Chaque libellé du suivi porte un contour noir, et ce texte-là était lui-même presque noir : il se dissolvait donc dans son propre contour — les marqueurs de coffre sur le chrono et le libellé de la barre de trash n'étaient que des taches, alors que l'horloge blanche juste à côté restait nette. Ils sont clairs désormais. Deux détails suivent : une durée négative pouvait s'afficher comme une grande valeur positive, -3:40 devenant 56:20, et le premier boss ne répète plus son temps de kill deux fois sur la même ligne.",
     ["wn_341_cds_taint"] = "Cooldown Studio : l'ouvrir pouvait t'empêcher de te déconnecter, par deux chemins distincts. Une ligne écrivait dans une table appartenant à Blizzard — sans rien changer à sa valeur, mais y écrire suffit pour que le jeu se méfie ensuite de toutes les fenêtres construites à partir de cette table, y compris la confirmation de déconnexion. Par ailleurs, la fenêtre « copier le style depuis » gérait Échap avec sa propre copie d'un code qui existe déjà ailleurs dans l'addon, et cette copie avait dérivé : elle avait perdu sa vérification de combat et rendait les touches au jeu d'une façon qui empêchait le menu de s'ouvrir. Les deux sont corrigés, et la fenêtre partage désormais l'implémentation commune au lieu d'en garder une à elle. Ni l'un ni l'autre ne touchait une session où tu n'avais pas ouvert le Studio, ce qui explique le temps qu'il a fallu pour les identifier.",
     ["wn_341_keysync"] = "TomoMod se signalait lui-même comme source de problèmes d'interface des dizaines de fois à chaque combat, sans en être un. La cause était une bibliothèque embarquée, LibOpenRaid, qui détermine si le jeu masque une valeur en essayant de la lire et en rattrapant l'erreur — la réponse est juste, mais le jeu inscrit le nom de TomoMod dans son journal à chaque tentative, et ça arrive sans arrêt. La bibliothèque n'est plus livrée. Elle n'était là que pour quatre fonctions de clés, alors qu'elle synchronisait aussi cooldowns, équipement, talents et durabilité — et c'est la partie cooldowns qui causait tout. Le partage de clés est désormais celui de TomoMod, dans un fichier bien plus petit : ta clé vient directement du jeu, le reste est échangé avec ton groupe et ta guilde, et conservé jusqu'au reset hebdomadaire. Une chose devrait fonctionner pour la première fois : la liste des clés du groupe se rafraîchit toute seule quand une clé change — l'ancien rappel était branché d'une façon que la bibliothèque n'appelait jamais.",
-    ["wn_341_buffskin"] = "Les buffs et debuffs ont été repris. La bordure était d'un turquoise que rien d'autre n'utilise dans TomoMod, reste d'avant que l'addon ait une couleur arrêtée ; elle prend désormais le même vert que tout le reste, et ton réglage est conservé : si tu avais désactivé l'accent, il reste désactivé. Cette bordure t'annonce aussi le temps restant : verte tant qu'il y a de la marge, jaune sous deux minutes, rouge sous trente secondes, les trois seuils étant réglables. Le texte du décompte suit la même échelle, à ceci près qu'au-dessus du seuil le plus haut il reste neutre — un buff avec vingt minutes devant lui n'a rien à te dire. Le timer s'installe maintenant dans sa propre tuile sombre sous l'icône, au lieu de flotter par-dessus ce qui se trouve derrière tes buffs, ce qui le rendait illisible en zone claire quelle que soit l'épaisseur du contour ; tu peux le masquer entièrement et ne lire que la bordure. Et un correctif qui traînait : les icônes sortaient plus hautes que larges, parce que le bouton d'aura de Blizzard réserve de la hauteur sous l'image et que TomoMod étirait l'icône pour tout remplir. Elles sont carrées désormais.",
+    ["wn_341_buffskin"] = "Le skin des buffs et debuffs a été retiré — la fonctionnalité entière, avec son onglet et ses réglages. Elle ne peut pas fonctionner sur le jeu actuel : les boutons que Blizzard utilise pour les auras masquent désormais leur propre taille aux addons, et poser une bordure sur l'un d'eux lève une erreur à l'intérieur du code de Blizzard, et non dans celui de TomoMod où elle aurait pu être rattrapée. À cela s'ajoute que ces boutons sont remaniés à presque chaque patch : cette version à elle seule y a consacré cinq tentatives. C'est un entretien sans fin, sur la seule partie de l'interface où l'affichage de Blizzard est déjà correct. Ta fenêtre de buffs revient à celle du jeu, et les réglages sont effacés de tes profils faute d'endroit où les reporter. Si un skin de buffs compte vraiment pour toi, un addon d'auras dédié est la réponse honnête.",
     ["wn_341_auratracker"] = "Le suivi d'auras a été retiré. CooldownForge fait le même travail en mieux, et faire tourner deux surcouches qui se disputent le même coin de l'écran ne pouvait pas finir autrement. Son onglet, ses préréglages, son mover et ses réglages partent avec lui, et un nettoyage unique retire les réglages résiduels de tes profils au lieu de les trimballer indéfiniment. Si tu y avais ajouté des sorts à la main, ils ne disparaissent pas en silence : ils ne peuvent pas être convertis automatiquement, alors TomoMod les liste une fois à ta prochaine connexion, avec leurs noms, et tu peux recréer ceux qui comptent encore dans le Cooldown Studio.",
     ["wn_341_cds_reload"] = "Cooldown Studio : le fermer peut maintenant recharger ton interface, et le fait par défaut. Le Studio ne se charge que si tu le demandes, mais le jeu ne sait pas décharger un addon — un rechargement est la seule chose qui le libère, et c'est aussi ce qui efface ce que la session aurait pu accrocher au passage. La proposition attend un moment raisonnable : jamais en combat, jamais pendant une clé, jamais dans un donjon ou un raid, et elle revient une fois dehors. Tu peux la désactiver dans les options de CooldownForge. Par ailleurs, quitter le Studio alors que les barres étaient déverrouillées les laissait bloquées en mode édition, avec le bouton de reprise flottant à l'écran ; les deux façons de fermer la fenêtre font maintenant le ménage.",
 

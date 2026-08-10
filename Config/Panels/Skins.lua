@@ -613,107 +613,6 @@ local function BuildCharacterSkinTab(parent)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
 end
-
-local function BuildBuffsSkinTab(parent)
-    local scroll = W.CreateScrollPanel(parent)
-    local c = scroll.child
-    local y = -10
-
-    local _, ny = W.CreateSectionHeader(c, L["sublabel_buff_skin"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_enable"], TomoModDB.buffSkin.enabled, y, function(v)
-        TomoModDB.buffSkin.enabled = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.SetEnabled(v) end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_buffs"], TomoModDB.buffSkin.skinBuffs, y, function(v)
-        TomoModDB.buffSkin.skinBuffs = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_debuffs"], TomoModDB.buffSkin.skinDebuffs, y, function(v)
-        TomoModDB.buffSkin.skinDebuffs = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_color_by_type"], TomoModDB.buffSkin.colorByType, y, function(v)
-        TomoModDB.buffSkin.colorByType = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_brand_border"], TomoModDB.buffSkin.brandBorder, y, function(v)
-        TomoModDB.buffSkin.brandBorder = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_color_duration"], TomoModDB.buffSkin.colorDuration, y, function(v)
-        TomoModDB.buffSkin.colorDuration = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_show_duration"], TomoModDB.buffSkin.showDuration, y, function(v)
-        TomoModDB.buffSkin.showDuration = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_buff_skin_dur_green"], TomoModDB.buffSkin.durationGreen, 60, 1800, 30, y, function(v)
-        TomoModDB.buffSkin.durationGreen = v
-    end, "%d")
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_buff_skin_dur_yellow"], TomoModDB.buffSkin.durationYellow, 10, 600, 10, y, function(v)
-        TomoModDB.buffSkin.durationYellow = v
-    end, "%d")
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_buff_skin_dur_red"], TomoModDB.buffSkin.durationRed, 3, 120, 1, y, function(v)
-        TomoModDB.buffSkin.durationRed = v
-    end, "%d")
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_desaturate"], TomoModDB.buffSkin.desaturateDebuffs, y, function(v)
-        TomoModDB.buffSkin.desaturateDebuffs = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_hide_buffs"], TomoModDB.buffSkin.hideBuffFrame, y, function(v)
-        TomoModDB.buffSkin.hideBuffFrame = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_buff_skin_hide_debuffs"], TomoModDB.buffSkin.hideDebuffFrame, y, function(v)
-        TomoModDB.buffSkin.hideDebuffFrame = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_buff_skin_font_size"], TomoModDB.buffSkin.fontSize or 11, 8, 20, 1, y, function(v)
-        TomoModDB.buffSkin.fontSize = v
-        if TomoMod_BuffSkin then TomoMod_BuffSkin.ApplySettings() end
-    end)
-    y = ny
-
-    c:SetHeight(math.abs(y) + 40)
-    if scroll.UpdateScroll then scroll.UpdateScroll() end
-    return scroll
-end
-
 local function BuildGameMenuSkinTab(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
@@ -1054,7 +953,6 @@ function TomoMod_ConfigPanel_Skins(parent)
         { key = "bags",       label = L["tab_skin_bags"],       builder = function(p) return BuildBagsTab(p) end },
         { key = "objtracker", label = L["tab_skin_objtracker"], builder = function(p) return BuildObjectiveTrackerTab(p) end },
         { key = "character",  label = L["tab_skin_character"],  builder = function(p) return BuildCharacterSkinTab(p) end },
-        { key = "buffs",      label = L["tab_skin_buffs"],      builder = function(p) return BuildBuffsSkinTab(p) end },
         { key = "gamemenu",   label = L["tab_skin_gamemenu"],   builder = function(p) return BuildGameMenuSkinTab(p) end },
         { key = "tooltip",    label = L["tab_skin_tooltip"],    builder = function(p) return BuildTooltipSkinTab(p) end },
         --{ key = "mail",       label = L["tab_skin_mail"],       builder = function(p) return BuildMailSkinTab(p) end },
