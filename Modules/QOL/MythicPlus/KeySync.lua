@@ -27,7 +27,23 @@ local PROTO   = "1"
 local PUSH_THROTTLE = 5      -- seconds between voluntary broadcasts
 local REPLY_JITTER  = 2.5    -- spread replies so a party of five does not burst
 
-KS.Data = {}                 -- [fullName] = entry
+-- [fullName] = entry, always fully qualified: the sender string on an
+-- addon message carries the realm even for your own realm.
+--
+-- Callers do not have that luxury. UnitName("party1") returns an empty
+-- realm for a same-realm member, so a consumer naturally looks up "Alice"
+-- while the entry is filed under "Alice-Varimathras" -- which is exactly
+-- how the party list came back empty. Rather than storing every entry
+-- twice, an __index fallback resolves a bare name against the player's
+-- own realm. pairs() still yields each entry once.
+KS.Data = setmetatable({}, {
+    __index = function(t, key)
+        if type(key) ~= "string" or key == "" or key:find("-", 1, true) then return nil end
+        local realm = GetRealmName()
+        if not realm or realm == "" then return nil end
+        return rawget(t, key .. "-" .. (realm:gsub("%s+", "")))
+    end,
+})
 local callbacks = {}
 local lastPush, pendingReply = 0, false
 
@@ -65,7 +81,7 @@ local function PurgeIfNewWeek()
     local now = time()
     if TomoModDB.KeystonesResetAt and now < TomoModDB.KeystonesResetAt then return end
 
-    wipe(KS.Data)
+    for k in pairs(KS.Data) do rawset(KS.Data, k, nil) end
     TomoModDB.Keystones = {}
     local secs = C_DateAndTime and C_DateAndTime.GetSecondsUntilWeeklyReset
         and C_DateAndTime.GetSecondsUntilWeeklyReset()
@@ -75,7 +91,7 @@ end
 local function Store(fullName, entry)
     if not fullName or fullName == "" then return end
     entry.updated = time()
-    KS.Data[fullName] = entry
+    rawset(KS.Data, fullName, entry)
     local db = DB()
     if db then db[fullName] = entry end
 end
@@ -297,7 +313,7 @@ f:SetScript("OnEvent", function(_, event, ...)
         -- Reload what survived the logout, minus anything the purge dropped.
         local db = DB()
         if db then
-            for name, entry in pairs(db) do KS.Data[name] = entry end
+            for name, entry in pairs(db) do rawset(KS.Data, name, entry) end
         end
         -- The keystone getters return stale data until the client has been
         -- asked for the weekly reward state at least once.
@@ -320,10 +336,30 @@ end)
 -- Slash helper: /tmt keysync
 -- ---------------------------------------------------------------------
 function KS.Debug()
+    print("|cff2ed884TomoMod|r KeySync: prefix " .. PREFIX
+        .. ", channel " .. tostring(GroupChannel() or "none")
+        .. ", guild " .. tostring(IsInGuild() and "yes" or "no"))
+
     local count = 0
     for name, entry in pairs(KS.Data) do
         count = count + 1
-        print(string.format("|cff2ed884%s|r  +%d  map %d", name, entry.level or 0, entry.challengeMapID or 0))
+        print(string.format("  |cff2ed884%s|r  +%d  map %d", name,
+            entry.level or 0, entry.challengeMapID or 0))
     end
-    print("|cff2ed884TomoMod|r KeySync: " .. count .. " entries.")
+    print("|cff2ed884TomoMod|r KeySync: " .. count .. " entries stored.")
+
+    -- Resolve each group member the way the key viewer does, so a silent
+    -- transport can be told apart from a lookup that never matched.
+    local members = GetNumGroupMembers() or 0
+    for i = 1, members - 1 do
+        local unit = "party" .. i
+        local name = UnitName(unit)
+        if name then
+            print(string.format("  %s -> %s", name,
+                KS.GetKeystoneInfo(unit) and "resolved" or "|cffE0503Cno data|r"))
+        end
+    end
+
+    KS.RequestKeystoneDataFromParty()
+    print("|cff2ed884TomoMod|r KeySync: request sent, re-run in a second.")
 end

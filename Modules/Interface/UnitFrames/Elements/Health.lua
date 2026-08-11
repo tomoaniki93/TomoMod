@@ -302,7 +302,10 @@ function UF_Elements.CreateHealth(parent, unit, settings)
     levelText:SetTextColor(1, 1, 0.6, 0.9)
     health.levelText = levelText
 
-    -- Raid icon (default: top center, adjustable via raidIconOffset)
+    -- Raid icon. Placement de construction uniquement : la position finale
+    -- vient du registre AstralForge (UF.ApplyVisuals -> UFE.ApplyAll), qui
+    -- passe systematiquement apres, y compris au demarrage via
+    -- UF.RefreshAllUnits.
     local raidIcon = health:CreateTexture(nil, "OVERLAY")
     raidIcon:SetSize(20, 20)
     raidIcon:SetPoint("BOTTOM", health, "TOP", 0, 2)
@@ -310,11 +313,11 @@ function UF_Elements.CreateHealth(parent, unit, settings)
     raidIcon:Hide()
     health.raidIcon = raidIcon
 
-    -- Leader icon (crown)
-    local leaderOfs = settings.leaderIconOffset or { x = -2, y = 0 }
+    -- Leader icon (crown) -- idem : position de construction, repositionne
+    -- par le registre.
     local leaderIcon = health:CreateTexture(nil, "OVERLAY")
     leaderIcon:SetSize(16, 16)
-    leaderIcon:SetPoint("BOTTOMLEFT", health, "TOPLEFT", leaderOfs.x, leaderOfs.y)
+    leaderIcon:SetPoint("BOTTOMLEFT", health, "TOPLEFT", -2, 0)
     leaderIcon:SetTexture("Interface\\GroupFrame\\UI-Group-LeaderIcon")
     leaderIcon:Hide()
     health.leaderIcon = leaderIcon
@@ -402,12 +405,11 @@ function UF_Elements.CreateThreatText(healthBar, settings)
     local font    = (globalDB and globalDB.fontFamily) or STANDARD_TEXT_FONT
     local fsize   = (tt and tt.fontSize) or 13
     local outline = (globalDB and globalDB.fontOutline) or "OUTLINE"
-    local ox      = (tt and tt.offsetX) or 0
-    local oy      = (tt and tt.offsetY) or 0
 
     local fs = healthBar:CreateFontString(nil, "OVERLAY")
     fs:SetFont(font, fsize, outline)
-    fs:SetPoint("CENTER", healthBar, "CENTER", ox, oy)
+    -- Position de construction : repositionne par le registre AstralForge.
+    fs:SetPoint("CENTER", healthBar, "CENTER", 0, 0)
     fs:SetTextColor(1, 0, 0, 1)
     fs:Hide()
     return fs

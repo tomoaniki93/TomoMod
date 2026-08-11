@@ -127,8 +127,6 @@ TomoMod_RegisterLocale("enUS", {
     ["section_threat_text"]             = "Threat % Text",
     ["opt_threat_text_enable"]          = "Show threat % on target",
     ["opt_threat_text_font_size"]       = "Font size",
-    ["opt_threat_text_offset_x"]        = "Offset X",
-    ["opt_threat_text_offset_y"]        = "Offset Y",
     ["info_threat_text"]                = "Green = tanking (+% lead), yellow = warning, red = aggro pulled",
     ["opt_show_leader_icon"]            = "Leader icon",
     ["opt_leader_icon_x"]               = "Leader icon X",
@@ -169,6 +167,86 @@ TomoMod_RegisterLocale("enUS", {
     ["elem_power"]                      = "Resource bar",
     ["elem_castbar"]                    = "Castbar",
     ["elem_auras"]                      = "Auras",
+    ["elem_enemy_buffs"]                = "Target buffs",
+
+    -- AstralForge: element registry
+    ["elem_raid_icon"]                  = "Raid marker",
+    ["elem_leader_icon"]                = "Leader icon",
+    ["elem_threat_text"]                = "Threat text",
+    ["opt_element_anchor"]              = "Anchor",
+    ["btn_reset_elements"]              = "Reset element positions",
+    ["anchor_host_frame"]               = "Frame",
+    ["anchor_host_health"]              = "Health bar",
+    ["anchor_host_power"]               = "Resource bar",
+    ["anchor_host_infobar"]             = "Info bar",
+    ["btn_open_astralforge"]            = "Open AstralForge",
+    ["info_astralforge"]                = "AstralForge is the full designer: drag each element straight onto the frame, pick its anchor point and its host. The sliders below stay available for pixel-level tweaks.",
+    ["target_kind_host"]                = "Structure: ",
+    ["target_kind_element"]             = "Element: ",
+
+    -- AstralForge : proprietes par element
+    ["sublabel_element_props"]          = "Visual properties",
+    ["opt_element_alpha"]               = "Opacity (%)",
+    ["opt_element_scale"]               = "Scale (%)",
+    ["opt_element_font_size"]           = "Font size override",
+    ["info_element_font_size"]          = "Leave at 0 to keep the size computed by the module.",
+
+    -- AstralForge : elements instancies
+    ["elem_custom_text"]                = "Custom text",
+    ["opt_custom_text_template"]        = "Text template",
+    ["info_custom_text_tokens"]         = "Available tokens:",
+    ["btn_add_custom_text"]             = "Add a custom text",
+    ["btn_reset_element"]               = "Reset this element",
+    ["btn_delete_element"]              = "Delete this element",
+    ["msg_element_max_reached"]         = "Maximum number of elements of this type reached.",
+
+    -- AstralForge : presets de disposition
+    ["section_forge_presets"]           = "Layout presets",
+    ["btn_forge_presets"]               = "Layout presets",
+    ["info_forge_presets"]              = "A preset stores the full layout of the current subject: anchors, visual properties and custom elements.",
+    ["opt_preset_name"]                 = "Preset name",
+    ["btn_preset_save"]                 = "Save / overwrite",
+    ["opt_preset_saved"]                = "Saved presets",
+    ["btn_preset_apply"]                = "Apply",
+    ["btn_preset_delete"]               = "Delete",
+    ["btn_preset_export"]               = "Generate share string",
+    ["opt_preset_share_string"]         = "Share string",
+    ["info_preset_copy"]                = "Click the field, then Ctrl+A and Ctrl+C to copy.",
+    ["opt_preset_import"]               = "Paste a share string",
+    ["btn_preset_import"]               = "Import",
+    ["info_no_preset"]                  = "No preset saved yet for this subject.",
+    ["msg_preset_saved"]                = "Preset saved.",
+    ["msg_preset_applied"]              = "Preset applied.",
+    ["msg_preset_imported"]             = "Preset imported:",
+    ["msg_preset_error"]                = "Preset operation failed.",
+    ["msg_presets_unavailable"]         = "Layout presets are unavailable.",
+    ["token_classification"]            = "Classification",
+    ["token_name"]                      = "Name",
+    ["token_level"]                     = "Level",
+    ["token_class"]                     = "Class",
+    ["token_race"]                      = "Race",
+    ["token_guild"]                     = "Guild",
+
+    -- AstralForge : domaine plaques de nom
+    ["section_np_elements"]             = "Element positions",
+    ["info_np_elements"]                = "Open AstralForge to drag each element onto the plate and choose its anchor. The sliders below are for pixel-level tweaks.",
+    ["np_host_plate"]                   = "Plate",
+    ["np_host_health"]                  = "Health bar",
+    ["np_host_castbar"]                 = "Cast bar",
+    ["np_host_name"]                    = "Name",
+    ["np_elem_name"]                    = "Name",
+    ["np_elem_hp_number"]               = "Health value",
+    ["np_elem_hp_percent"]              = "Health percentage",
+    ["np_elem_level"]                   = "Level",
+    ["np_elem_class_icon"]              = "Classification icon",
+    ["np_elem_class_text"]              = "Classification text",
+    ["np_elem_castbar"]                 = "Cast bar",
+    ["np_elem_cast_icon"]               = "Cast icon",
+    ["np_elem_cast_text"]               = "Cast name",
+    ["np_elem_cast_timer"]              = "Cast timer",
+    ["np_elem_cast_shield"]             = "Cast shield",
+    ["np_elem_quest_icon"]              = "Quest icon",
+    ["np_elem_raid_marker"]             = "Raid marker",
 
     -- =====================
     -- CONFIG: Nameplates Panel
@@ -198,7 +276,6 @@ TomoMod_RegisterLocale("enUS", {
 
     -- Raid Marker
     ["section_raid_marker"]             = "Raid Marker",
-    ["opt_np_raid_icon_anchor"]         = "Icon position",
     ["opt_np_raid_icon_x"]              = "Offset X",
     ["opt_np_raid_icon_y"]              = "Offset Y",
     ["opt_np_raid_icon_size"]           = "Icon size",
@@ -3077,6 +3154,19 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_diag_settle"] = "Diagnostics: the scale the game applies for itself while you log in was recorded in every report as a mid-session rescale. The display capture now waits four seconds for the client to settle before taking a reading, so the only scale entry left in a report is one that actually needs explaining.",
     ["wn_333_diag_mode"] = "Diagnostics: when the report cannot work out your display mode it now prints the raw values the game gave it instead of a bare question mark — those setting names change between expansions, and a '?' on its own could not be diagnosed without asking you for more. Windowed-fullscreen and maximized windows are recognised in more cases, and addon versions no longer read 'vv1.2.3'.",
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
+
+    -- =====================
+    -- 3.4.2 — What's New
+    -- =====================
+    ["wn_342_astralforge"] = "New — AstralForge, a full-screen designer for the pieces of a unit frame. Until now every part of a frame sat where TomoMod had decided it sat, and all you were given was a slider that pushed it a few pixels from there — so moving the name to the other side was not a setting, it was a number big enough to shove it across. You now drag each piece where you want it: which corner of the element attaches, and what it attaches to — the frame, the health bar, the resource bar, the info bar. It snaps to a small grid, lines up with the other elements as you pass them, and holding Shift drops it wherever you like. The sliders are still there for a two-pixel adjustment, and both write the same thing. It opens from the UnitFrames options, and like the Cooldown Studio it only loads when you ask for it. What you drag is a preview copy, never a real frame — the game protects those during combat, and editing one directly is what causes the interface problems TomoMod has spent two versions removing.",
+    ["wn_342_af_nameplates"] = "New — Nameplates get the same designer, and for them it is entirely new ground: apart from the raid marker, nothing on a plate had a position setting at all. The name, the health value and percentage, the level, the classification icon and text, the cast bar with its icon, name, timer and shield, and the quest icon can each be placed where you want them. Your existing raid marker position is carried over unchanged, and everything else starts exactly where it already was. Two things are deliberately not draggable: auras, whose position is worked out from their place in the row rather than set, and the parts pinned to a bar's fill — a handle on those would claim to move something it cannot.",
+    ["wn_342_af_props"] = "New — Opacity, scale and a text size override, per element. The size override starts at zero, meaning 'leave it as the module worked it out', so nothing changes until you say so. Only the settings a given piece can actually honour are shown: opacity means something on a piece of text, a scale does not, and a plain image takes neither of the two — you get the ones that apply to what you selected rather than a fixed row of sliders half of which do nothing.",
+    ["wn_342_af_customtext"] = "New — Text you write yourself. Add up to six custom texts to a unit frame and four to a nameplate, write something like '[name] - [level]', and place it like any other element. The tokens are name, level, class, race and guild on a frame, and name, level, class, race and classification on a plate. Worth knowing why this is not simply the addon gluing words together: in Midnight the game hands out a unit's name and level as values an addon is forbidden to read, so anything as ordinary as joining a name to a dash would fail. Your template is turned into a pattern with the values passed through untouched and assembled by the game itself.",
+    ["wn_342_af_presets"] = "New — Layout presets, and share strings. Save the whole layout of what you are editing under a name — every position, every opacity and scale, every custom text — apply it back later, or hand it to someone else as a string they paste in. Anything coming back in is checked the same way whether it is yours or a stranger's: values the addon does not recognise are dropped, an impossible anchor is refused before it reaches the game, and a layout that refers back to itself in a loop is broken apart. The worst a pasted string can describe is a layout.",
+    ["wn_342_af_migration"] = "Your frames do not move. Every position you had set is converted into the new form together with the anchor the engine used to apply it against, so a converted profile and a brand-new one draw exactly the same frame. One old setting is dropped rather than converted — an aura offset the engine stopped reading back in 3.0.5. It has had no effect for several versions, and converting it now would move auras that are sitting precisely where you put them. Aura containers also stop keeping their position in a second place of their own: dragging one in game, placing it in the designer and setting it with the sliders now all write to the same setting, so they can no longer disagree.",
+    ["wn_342_af_secret"] = "Fix — Opening AstralForge on a unit that was actually there could leave you with an empty window. The preview it builds was fed real data, and in the current game any piece of the interface whose content comes from protected information — a health value, for instance — also hides its own position and size from addons. Measuring those is the designer's entire job, so the very first measurement failed and took the preview down with it. The preview now runs on made-up data: an invented name, an invented health value, which nothing stops it from measuring and which look exactly like what you are laying out. Two safeguards come with it: anything that still cannot be measured is simply left without a handle instead of stopping everything around it, and if the preview cannot be built at all the window still opens with its element list, its inspector and its presets rather than opening empty.",
+    ["wn_342_keysync_realm"] = "Mythic+: the party keystone list was empty for everyone on your own realm. Their key was received and stored the whole time — it just could never be found again. When someone's addon sends you their key, the game names them as 'Alice-Varimathras' whether or not that realm is yours, so every key is filed under a full name; but when TomoMod asks the game about the person standing next to you on your own realm, it gets back 'Alice' with no realm, and that matches nothing. This appeared with the new keystone sharing in 3.4.1, because the library it replaced hid that mismatch inside its own code. A name with no realm is now retried against yours, so a same-realm key is found again — and it is done once, in the place the keys are stored, rather than being something every screen that reads them has to remember.",
+    ["wn_342_keysync_debug"] = "New — /tmt keysync. It prints which channel the sharing is using, whether you are in a guild, every key it currently holds, and then each member of your group with whether their key can actually be found. That last line is the whole point: a key that is stored but not found is a different problem from a key that never arrived, and from the party list the two look exactly the same — which is why the bug above took longer to identify than to fix. The command also asks your group for their keys as it finishes, so running it twice a second apart tells you whether anyone answered.",
 
     -- =====================
     -- 3.4.1 — What's New

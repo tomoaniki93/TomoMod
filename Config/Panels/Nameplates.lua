@@ -250,16 +250,57 @@ local function BuildGeneralTab(parent)
     local _, cy = W.CreateSlider(card4.inner, L["opt_np_role_icon_size"], db.roleIconSize or 32, 16, 60, 2, cy, function(v) db.roleIconSize = v; RefreshNP() end)
     y = W.FinalizeCard(card4, cy)
 
-    -- Marqueur de raid
+    -- Position des elements (registre AstralForge)
+    local NPE = TomoMod_NPElements
+    if NPE and db.elements then
+        local card4b, cy = W.CreateCard(c, L["section_np_elements"], y)
+        local _, cy = W.CreateButton(card4b.inner, L["btn_open_astralforge"], 240, cy, function()
+            TomoMod_Forge.Studio.Launch({
+                addon  = "TomoMod_AstralForge",
+                global = "TomoMod_AstralForge",
+                label  = "AstralForge",
+            })
+        end)
+        local _, cy = W.CreateInfoText(card4b.inner, L["info_np_elements"], cy)
+
+        -- Reglage rapide au pixel, sans quitter la config. L'ancrage complet
+        -- (point, cible) se fait dans le studio.
+        for _, desc in ipairs(NPE.List()) do
+            local cfg = db.elements[desc.id]
+            if cfg then
+                local label = L[desc.labelKey]
+                local _, ny = W.CreateTwoColumnRow(card4b.inner, cy,
+                    function(col)
+                        local _, n = W.CreateSlider(col, label .. " X", cfg.x, -200, 200, 1, 0, function(v)
+                            cfg.x = v; RefreshNP()
+                        end)
+                        return n
+                    end,
+                    function(col)
+                        local _, n = W.CreateSlider(col, label .. " Y", cfg.y, -200, 200, 1, 0, function(v)
+                            cfg.y = v; RefreshNP()
+                        end)
+                        return n
+                    end)
+                cy = ny
+            end
+        end
+
+        local _, cy = W.CreateButton(card4b.inner, L["btn_reset_elements"], 220, cy, function()
+            for _, desc in ipairs(NPE.List()) do
+                db.elements[desc.id] = TomoMod_Forge.Registry.Default(NPE.DOMAIN, desc.id)
+            end
+            RefreshNP()
+            if TomoMod_Config and TomoMod_Config.InvalidatePanels then
+                TomoMod_Config.InvalidatePanels()
+            end
+        end)
+        y = W.FinalizeCard(card4b, cy)
+    end
+
+    -- Marqueur de raid : la POSITION est passee dans le registre ci-dessus,
+    -- seule la taille reste ici.
     local card5, cy = W.CreateCard(c, L["section_raid_marker"], y)
-    local _, cy = W.CreateDropdown(card5.inner, L["opt_np_raid_icon_anchor"], {
-        { text = "Top",    value = "TOP" }, { text = "TopRight", value = "TOPRIGHT" }, { text = "TopLeft", value = "TOPLEFT" },
-        { text = "Bottom", value = "BOTTOM" }, { text = "BottomRight", value = "BOTTOMRIGHT" }, { text = "BottomLeft", value = "BOTTOMLEFT" },
-        { text = "Left",   value = "LEFT" }, { text = "Right", value = "RIGHT" }, { text = "Center", value = "CENTER" },
-    }, db.raidIconAnchor or "TOPRIGHT", cy, function(v) db.raidIconAnchor = v; RefreshNP() end)
-    local _, cy = W.CreateTwoColumnRow(card5.inner, cy,
-        function(col) local _, ny = W.CreateSlider(col, "X", db.raidIconX or 2, -50, 50, 1, 0, function(v) db.raidIconX = v; RefreshNP() end) return ny end,
-        function(col) local _, ny = W.CreateSlider(col, "Y", db.raidIconY or 2, -50, 50, 1, 0, function(v) db.raidIconY = v; RefreshNP() end) return ny end)
     local _, cy = W.CreateSlider(card5.inner, L["opt_np_raid_icon_size"], db.raidIconSize or 24, 10, 60, 1, cy, function(v) db.raidIconSize = v; RefreshNP() end)
     y = W.FinalizeCard(card5, cy)
 

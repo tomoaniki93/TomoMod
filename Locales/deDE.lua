@@ -123,8 +123,6 @@ TomoMod_RegisterLocale("deDE", {
     ["section_threat_text"]             = "Bedrohung % Text",
     ["opt_threat_text_enable"]          = "Bedrohung % auf dem Ziel anzeigen",
     ["opt_threat_text_font_size"]       = "Schriftgröße",
-    ["opt_threat_text_offset_x"]        = "Versatz X",
-    ["opt_threat_text_offset_y"]        = "Versatz Y",
     ["info_threat_text"]                = "Grün = Tank (Vorsprung), gelb = Warnung, rot = Aggro verloren",
     ["opt_show_leader_icon"]            = "Anführersymbol",
     ["opt_leader_icon_x"]               = "Anführersymbol X",
@@ -165,6 +163,86 @@ TomoMod_RegisterLocale("deDE", {
     ["elem_power"]                      = "Ressourcenleiste",
     ["elem_castbar"]                    = "Zauberleiste",
     ["elem_auras"]                      = "Auren",
+    ["elem_enemy_buffs"]                = "Ziel-Stärkungszauber",
+
+    -- AstralForge: element registry
+    ["elem_raid_icon"]                  = "Schlachtzugsmarkierung",
+    ["elem_leader_icon"]                = "Anführersymbol",
+    ["elem_threat_text"]                = "Bedrohungstext",
+    ["opt_element_anchor"]              = "Verankerung",
+    ["btn_reset_elements"]              = "Elementpositionen zurücksetzen",
+    ["anchor_host_frame"]               = "Rahmen",
+    ["anchor_host_health"]              = "Lebensleiste",
+    ["anchor_host_power"]               = "Ressourcenleiste",
+    ["anchor_host_infobar"]             = "Infoleiste",
+    ["btn_open_astralforge"]            = "AstralForge öffnen",
+    ["info_astralforge"]                = "AstralForge ist der vollständige Designer: Ziehe jedes Element direkt auf den Rahmen und wähle Ankerpunkt und Bezugsobjekt. Die Regler unten bleiben für pixelgenaue Feinabstimmung verfügbar.",
+    ["target_kind_host"]                = "Struktur: ",
+    ["target_kind_element"]             = "Element: ",
+
+    -- AstralForge : proprietes par element
+    ["sublabel_element_props"]          = "Visuelle Eigenschaften",
+    ["opt_element_alpha"]               = "Deckkraft (%)",
+    ["opt_element_scale"]               = "Skalierung (%)",
+    ["opt_element_font_size"]           = "Schriftgröße überschreiben",
+    ["info_element_font_size"]          = "Auf 0 lassen, um die vom Modul berechnete Größe zu behalten.",
+
+    -- AstralForge : elements instancies
+    ["elem_custom_text"]                = "Eigener Text",
+    ["opt_custom_text_template"]        = "Textvorlage",
+    ["info_custom_text_tokens"]         = "Verfügbare Platzhalter:",
+    ["btn_add_custom_text"]             = "Eigenen Text hinzufügen",
+    ["btn_reset_element"]               = "Dieses Element zurücksetzen",
+    ["btn_delete_element"]              = "Dieses Element löschen",
+    ["msg_element_max_reached"]         = "Maximale Anzahl an Elementen dieses Typs erreicht.",
+
+    -- AstralForge : presets de disposition
+    ["section_forge_presets"]           = "Layout-Vorlagen",
+    ["btn_forge_presets"]               = "Layout-Vorlagen",
+    ["info_forge_presets"]              = "Eine Vorlage speichert das komplette Layout des aktuellen Objekts: Verankerungen, visuelle Eigenschaften und eigene Elemente.",
+    ["opt_preset_name"]                 = "Name der Vorlage",
+    ["btn_preset_save"]                 = "Speichern / überschreiben",
+    ["opt_preset_saved"]                = "Gespeicherte Vorlagen",
+    ["btn_preset_apply"]                = "Anwenden",
+    ["btn_preset_delete"]               = "Löschen",
+    ["btn_preset_export"]               = "Teilen-Code erzeugen",
+    ["opt_preset_share_string"]         = "Teilen-Code",
+    ["info_preset_copy"]                = "Ins Feld klicken, dann Strg+A und Strg+C zum Kopieren.",
+    ["opt_preset_import"]               = "Teilen-Code einfügen",
+    ["btn_preset_import"]               = "Importieren",
+    ["info_no_preset"]                  = "Noch keine Vorlage für dieses Objekt gespeichert.",
+    ["msg_preset_saved"]                = "Vorlage gespeichert.",
+    ["msg_preset_applied"]              = "Vorlage angewendet.",
+    ["msg_preset_imported"]             = "Vorlage importiert:",
+    ["msg_preset_error"]                = "Vorgang für die Vorlage fehlgeschlagen.",
+    ["msg_presets_unavailable"]         = "Layout-Vorlagen sind nicht verfügbar.",
+    ["token_classification"]            = "Einstufung",
+    ["token_name"]                      = "Name",
+    ["token_level"]                     = "Stufe",
+    ["token_class"]                     = "Klasse",
+    ["token_race"]                      = "Volk",
+    ["token_guild"]                     = "Gilde",
+
+    -- AstralForge : domaine plaques de nom
+    ["section_np_elements"]             = "Elementpositionen",
+    ["info_np_elements"]                = "Öffne AstralForge, um jedes Element auf die Namensplakette zu ziehen und seine Verankerung zu wählen. Die Regler unten dienen der pixelgenauen Feinabstimmung.",
+    ["np_host_plate"]                   = "Plakette",
+    ["np_host_health"]                  = "Lebensleiste",
+    ["np_host_castbar"]                 = "Zauberleiste",
+    ["np_host_name"]                    = "Name",
+    ["np_elem_name"]                    = "Name",
+    ["np_elem_hp_number"]               = "Lebenswert",
+    ["np_elem_hp_percent"]              = "Lebensprozent",
+    ["np_elem_level"]                   = "Stufe",
+    ["np_elem_class_icon"]              = "Einstufungssymbol",
+    ["np_elem_class_text"]              = "Einstufungstext",
+    ["np_elem_castbar"]                 = "Zauberleiste",
+    ["np_elem_cast_icon"]               = "Zaubersymbol",
+    ["np_elem_cast_text"]               = "Zaubername",
+    ["np_elem_cast_timer"]              = "Zauberzeit",
+    ["np_elem_cast_shield"]             = "Zauberschild",
+    ["np_elem_quest_icon"]              = "Questsymbol",
+    ["np_elem_raid_marker"]             = "Schlachtzugsmarkierung",
 
     -- =====================
     -- CONFIG: Nameplates Panel
@@ -194,7 +272,6 @@ TomoMod_RegisterLocale("deDE", {
 
     -- Raid Marker
     ["section_raid_marker"]             = "Raid-Markierung",
-    ["opt_np_raid_icon_anchor"]         = "Symbol-Position",
     ["opt_np_raid_icon_x"]              = "Versatz X",
     ["opt_np_raid_icon_y"]              = "Versatz Y",
     ["opt_np_raid_icon_size"]           = "Symbolgröße",
@@ -3030,6 +3107,19 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_settle"] = "Diagnose: Die Skalierung, die das Spiel während der Anmeldung selbst anwendet, wurde in jedem Bericht als Neuskalierung mitten in der Sitzung festgehalten. Die Anzeigeerfassung wartet nun vier Sekunden, bis sich der Client eingependelt hat, bevor sie misst — der einzige verbliebene Skalierungseintrag in einem Bericht ist damit einer, der tatsächlich erklärungsbedürftig ist.",
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
+
+    -- =====================
+    -- 3.4.2 — Was ist neu
+    -- =====================
+    ["wn_342_astralforge"] = "Neu — AstralForge, ein bildschirmfüllender Editor für die Bestandteile eines Einheitenfensters. Bisher saß jeder Teil eines Fensters dort, wo TomoMod es entschieden hatte, und alles, was du bekamst, war ein Regler, der ihn ein paar Pixel weiter schob — den Namen auf die andere Seite zu holen war also keine Einstellung, sondern eine Zahl, die groß genug war, ihn hinüberzuschieben. Jetzt ziehst du jedes Teil dorthin, wo du es haben willst: welche Ecke des Elements andockt und woran sie andockt — Fenster, Lebensbalken, Ressourcenbalken, Infoleiste. Es rastet auf einem feinen Raster ein, richtet sich an anderen Elementen aus, wenn du daran vorbeikommst, und mit gehaltener Umschalttaste setzt du frei ab. Die Regler bleiben für eine Korrektur um zwei Pixel, und beide schreiben dasselbe. Geöffnet wird er aus den Einheitenfenster-Optionen und lädt wie das Cooldown Studio nur auf Anforderung. Was du ziehst, ist eine Vorschaukopie, nie ein echtes Fenster: Die echten sind im Kampf geschützt, und sie direkt zu bearbeiten ist genau das, was die Schnittstellenprobleme verursacht, die TomoMod zwei Versionen lang beseitigt hat.",
+    ["wn_342_af_nameplates"] = "Neu — Namensplaketten bekommen denselben Editor, und für sie ist das komplettes Neuland: außer der Schlachtzugsmarkierung hatte auf einer Plakette nichts überhaupt eine Positionseinstellung. Der Name, Lebenswert und -prozentsatz, die Stufe, Klassifizierungssymbol und -text, die Zauberleiste mit Symbol, Name, Zeitanzeige und Schild sowie das Questsymbol lassen sich einzeln platzieren. Deine bestehende Position der Schlachtzugsmarkierung wird unverändert übernommen, alles andere startet genau dort, wo es schon war. Zwei Dinge sind bewusst nicht verschiebbar: Auren, deren Position aus ihrem Platz in der Reihe berechnet und nicht gesetzt wird, und die Teile, die am Füllstand einer Leiste hängen — ein Griff daran würde vorgeben, etwas zu bewegen, das er nicht bewegen kann.",
+    ["wn_342_af_props"] = "Neu — Deckkraft, Skalierung und eine übersteuerte Textgröße, je Element. Die Übersteuerung beginnt bei null, also „lass die Größe, die das Modul errechnet hat“ — es ändert sich nichts, bis du es sagst. Angezeigt werden nur die Einstellungen, die das jeweilige Teil auch wirklich umsetzen kann: Deckkraft ergibt bei einem Text Sinn, eine Skalierung nicht, und ein reines Bild nimmt weder das eine noch das andere — du bekommst also, was auf das Ausgewählte zutrifft, statt einer festen Reihe von Reglern, von denen die Hälfte nichts tut.",
+    ["wn_342_af_customtext"] = "Neu — Text, den du selbst schreibst. Füge bis zu sechs eigene Texte auf einem Einheitenfenster und vier auf einer Namensplakette hinzu, schreibe etwas wie „[name] - [level]“ und platziere es wie jedes andere Element. Die Platzhalter sind Name, Stufe, Klasse, Volk und Gilde auf einem Fenster sowie Name, Stufe, Klasse, Volk und Klassifizierung auf einer Plakette. Es lohnt sich zu wissen, warum das Addon die Wörter nicht einfach aneinanderhängt: In Midnight liefert das Spiel Name und Stufe einer Einheit in einer Form, die ein Addon nicht lesen darf — schon etwas so Gewöhnliches wie einen Namen mit einem Bindestrich zu verbinden würde also fehlschlagen. Deine Vorlage wird in ein Muster verwandelt, die Werte werden unberührt durchgereicht und das Spiel selbst setzt alles zusammen.",
+    ["wn_342_af_presets"] = "Neu — Layout-Vorlagen und Teilen-Zeichenfolgen. Speichere das gesamte Layout dessen, was du gerade bearbeitest, unter einem Namen — jede Position, jede Deckkraft und Skalierung, jeden eigenen Text —, wende es später wieder an oder gib es als Zeichenfolge weiter, die jemand einfügt. Alles, was hereinkommt, wird gleich geprüft, ob es von dir stammt oder von einer fremden Person: Werte, die das Addon nicht kennt, werden verworfen, ein unmöglicher Ankerpunkt wird abgelehnt, bevor er das Spiel erreicht, und ein Layout, das sich im Kreis auf sich selbst bezieht, wird aufgebrochen. Das Schlimmste, was eine eingefügte Zeichenfolge beschreiben kann, ist ein Layout.",
+    ["wn_342_af_migration"] = "Deine Fenster verrutschen nicht. Jede Position, die du eingestellt hattest, wird zusammen mit dem Anker, gegen den die Engine sie angewandt hat, in die neue Form überführt — ein umgestelltes und ein brandneues Profil zeichnen also exakt dasselbe Fenster. Eine alte Einstellung wird verworfen statt übernommen: ein Aura-Versatz, den die Engine seit 3.0.5 nicht mehr liest. Er hat seit mehreren Versionen keine Wirkung, und ihn jetzt zu übernehmen würde Auren verschieben, die genau dort sitzen, wo du sie hingestellt hast. Auch die Aura-Behälter hören auf, ihre Position an einer zweiten eigenen Stelle zu führen: sie im Spiel zu ziehen, sie im Editor zu platzieren und sie mit den Reglern zu setzen schreibt jetzt an dieselbe Stelle — widersprechen können sie sich damit nicht mehr.",
+    ["wn_342_af_secret"] = "Behoben — AstralForge auf einer tatsächlich vorhandenen Einheit zu öffnen konnte dir ein leeres Fenster hinterlassen. Die erzeugte Vorschau wurde mit echten Daten gefüttert, und im aktuellen Spiel verbirgt jedes Interface-Teil, dessen Inhalt aus geschützten Informationen stammt — etwa ein Lebenswert —, auch seine eigene Position und Größe vor Addons. Genau diese zu messen ist die ganze Aufgabe des Editors: Die allererste Messung schlug fehl und riss die Vorschau mit sich. Die Vorschau läuft jetzt mit erfundenen Daten: ein erfundener Name, ein erfundener Lebenswert, die sich problemlos messen lassen und genau so aussehen wie das, was du gerade einrichtest. Zwei Absicherungen kommen dazu: Was sich trotzdem nicht messen lässt, bleibt einfach ohne Anfasser, statt alles ringsherum anzuhalten, und wenn sich die Vorschau überhaupt nicht bauen lässt, öffnet das Fenster trotzdem mit Elementliste, Inspektor und Vorlagen, statt leer zu bleiben.",
+    ["wn_342_keysync_realm"] ="Mythisch+: Die Schlüsselliste der Gruppe war für alle vom eigenen Realm leer. Ihr Schlüssel kam die ganze Zeit an und wurde auch gespeichert — er ließ sich danach nur nicht wiederfinden. Wenn das Addon einer anderen Person dir ihren Schlüssel schickt, benennt das Spiel sie als „Alice-Varimathras“, egal ob das dein Realm ist oder nicht: Jeder Schlüssel wird also unter einem vollständigen Namen abgelegt. Fragt TomoMod das Spiel aber nach der Person, die auf deinem eigenen Realm neben dir steht, bekommt es „Alice“ ohne Realm zurück — und das passt zu nichts. Aufgetaucht ist das mit dem neuen Schlüsselaustausch in 3.4.1, weil die ersetzte Bibliothek diesen Unterschied in ihrem eigenen Code verborgen hatte. Ein Name ohne Realm wird jetzt zusätzlich mit deinem versucht, sodass ein Schlüssel vom eigenen Realm wieder gefunden wird — und zwar an einer einzigen Stelle, dort wo die Schlüssel liegen, statt in jeder Ansicht, die sie ausliest.",
+    ["wn_342_keysync_debug"] = "Neu — /tmt keysync. Der Befehl zeigt, über welchen Kanal der Austausch läuft, ob du in einer Gilde bist, alle gerade gespeicherten Schlüssel und dann jedes Gruppenmitglied mit dem Hinweis, ob sein Schlüssel tatsächlich gefunden wird. Genau um diese letzte Zeile geht es: Ein Schlüssel, der gespeichert, aber nicht auffindbar ist, ist ein anderes Problem als einer, der nie angekommen ist — und in der Gruppenliste sehen beide völlig gleich aus. Deshalb hat der Fehler oben länger gedauert zu erkennen als zu beheben. Zum Abschluss fragt der Befehl die Gruppe nach ihren Schlüsseln: Führst du ihn eine Sekunde später erneut aus, siehst du, ob jemand geantwortet hat.",
 
     -- =====================
     -- 3.4.1 — Was ist neu

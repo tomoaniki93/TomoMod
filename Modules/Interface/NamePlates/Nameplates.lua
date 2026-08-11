@@ -273,6 +273,28 @@ local function CreatePixelBorder(parent, r, g, b)
 end
 
 -- =====================================
+-- ASTRALFORGE -- POSITION DES ELEMENTS
+-- =====================================
+-- Point d'application UNIQUE de la position des elements de plaque. Le
+-- registre lit settings.elements et pose nom, textes de vie, niveau, icone
+-- et texte de classification, barre d'incantation (et ses sous-elements),
+-- icone de quete et marque de raid. Ensure() comble les entrees absentes
+-- depuis les valeurs par defaut du registre, ce qui couvre les profils
+-- importes et les resets partiels sans passer par la DB.
+--
+-- Appele a la construction ET a chaque UpdateSize : une plaque recyclee
+-- par le client repasse donc toujours par ici.
+local function ApplyElements(plate)
+    local NPE = TomoMod_NPElements
+    if not NPE or not plate then return end
+    local s = DB()
+    if not s then return end
+    if type(s.elements) ~= "table" then s.elements = {} end
+    NPE.Ensure(s.elements)
+    NPE.ApplyAll(plate, s.elements)
+end
+
+-- =====================================
 -- CREATE NAMEPLATE
 -- =====================================
 
@@ -674,27 +696,20 @@ local function CreatePlate(baseFrame)
     plate.questIcon:Hide()
 
     -- =========== RAID MARKER ===========
-    local rs = DB()
-    local riAnchor = rs.raidIconAnchor or "TOPRIGHT"
-    local riSize = rs.raidIconSize or 24
-    local riX = rs.raidIconX or 2
-    local riY = rs.raidIconY or 2
-    -- Map anchor to health point: icon anchor -> health point
-    local ANCHOR_MAP = {
-        TOP = "TOP", TOPLEFT = "TOPLEFT", TOPRIGHT = "TOPRIGHT",
-        BOTTOM = "BOTTOM", BOTTOMLEFT = "BOTTOMLEFT", BOTTOMRIGHT = "BOTTOMRIGHT",
-        LEFT = "LEFT", RIGHT = "RIGHT", CENTER = "CENTER",
-    }
-    local healthPoint = ANCHOR_MAP[riAnchor] or "TOPRIGHT"
+    -- Placement de construction uniquement : la position finale vient du
+    -- registre AstralForge (ApplyElements plus bas), qui passe systemati-
+    -- quement apres, a la creation comme a chaque UpdateSize.
     plate.raidFrame = CreateFrame("Frame", nil, plate)
-    plate.raidFrame:SetSize(riSize, riSize)
-    plate.raidFrame:SetPoint(riAnchor, plate.health, healthPoint, riX, riY)
+    plate.raidFrame:SetSize(settings.raidIconSize or 24, settings.raidIconSize or 24)
+    plate.raidFrame:SetPoint("TOPRIGHT", plate.health, "TOPRIGHT", 2, 2)
     plate.raidFrame:SetFrameStrata("TOOLTIP")
     plate.raidFrame:Hide()
     plate.raidIcon = plate.raidFrame:CreateTexture(nil, "ARTWORK")
     plate.raidIcon:SetPoint("TOPLEFT", 1, -1)
     plate.raidIcon:SetPoint("BOTTOMRIGHT", -1, 1)
     plate.raidIcon:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons")
+
+    ApplyElements(plate)
 
     return plate
 end
@@ -738,15 +753,11 @@ local function UpdateSize(plate)
         plate.targetArrowRight:SetSize(arrowSize * 0.6, arrowSize)
     end
 
-    -- Raid marker reposition
+    -- Raid marker : seule la TAILLE se regle ici, la position appartient
+    -- au registre (ApplyElements en fin de fonction).
     if plate.raidFrame then
-        local riAnchor = s.raidIconAnchor or "TOPRIGHT"
         local riSize = s.raidIconSize or 24
-        local riX = s.raidIconX or 2
-        local riY = s.raidIconY or 2
         plate.raidFrame:SetSize(riSize, riSize)
-        plate.raidFrame:ClearAllPoints()
-        plate.raidFrame:SetPoint(riAnchor, plate.health, riAnchor, riX, riY)
     end
 
     if plate.auras then
@@ -771,6 +782,10 @@ local function UpdateSize(plate)
             end
         end
     end
+
+    -- En dernier : les tailles viennent de changer, donc les ancrages
+    -- doivent etre reposes par-dessus.
+    ApplyElements(plate)
 end
 
 -- Darken a color (Ellesmere-style: out-of-combat mobs appear dimmed)
@@ -1524,6 +1539,13 @@ local function UpdatePlate(plate, unit)
         plate.nameText:Hide()
     end
 
+    -- Textes personnalises : memes jetons d'identite que le nom, donc meme
+    -- point de rafraichissement.
+    local NPE = TomoMod_NPElements
+    if NPE and NPE.RefreshCustomTexts and type(s.elements) == "table" then
+        NPE.RefreshCustomTexts(plate, unit, s.elements)
+    end
+
     -- Quest Icon
     UpdateQuestIcon(plate, unit)
 
@@ -2238,6 +2260,80 @@ function NP.ApplySettings()
         SetCVar("nameplateShowFriends", NP._savedCVars.nameplateShowFriends)
     end
     NP.RefreshAll()
+end
+
+-- =====================================
+-- APERCU DETACHE (AstralForge)
+-- =====================================
+-- Le studio a besoin d'une plaque isolee, pas d'une plaque de jeu. Les
+-- plaques de jeu sont enfants des NamePlateN de Blizzard : recyclees,
+-- protegees, et deplacer un de leurs elements les souillerait. On
+-- construit donc une plaque avec LA MEME fabrique (CreatePlate), sur un
+-- porteur neutre fourni par l'appelant.
+--
+-- Aucune API d'unite n'est appelee ici : les valeurs affichees sont des
+-- constantes de demonstration, donc aucune valeur secrete ne peut entrer
+-- dans le studio.
+function NP.CreatePreviewPlate(parent, opts)
+    if not parent then return nil end
+    local s = DB()
+    if not s then return nil end
+
+    local w = s.width or 156
+    local h = s.height or 17
+
+    -- Porteur neutre : CreatePlate fait plate:SetAllPoints(baseFrame), donc
+    -- c'est lui qui donne sa geometrie a la plaque.
+    local base = CreateFrame("Frame", nil, parent)
+    base:SetSize(w, h)
+    base:EnableMouse(false)
+
+    local plate = CreatePlate(base)
+    plate._previewBase = base
+    UpdateSize(plate)
+
+    -- Donnees de demonstration (aucune lecture d'unite).
+    local name = (opts and opts.name) or "Cible d'exemple"
+    plate.health:SetMinMaxValues(0, 100)
+    plate.health:SetValue(72)
+    plate.health:SetStatusBarColor(0.80, 0.20, 0.20, 1)
+    if plate.nameText  then plate.nameText:SetText(name) end
+    if plate.hpNumber  then plate.hpNumber:SetText("72k") end
+    if plate.hpPercent then plate.hpPercent:SetText("72%") end
+    if plate.levelText then plate.levelText:SetText("82") end
+    if plate.classText then plate.classText:SetText("") end
+
+    -- La barre d'incantation est masquee en jeu tant qu'aucun sort n'est
+    -- lance : on la montre ici, sinon elle n'aurait pas de rectangle et le
+    -- studio ne pourrait pas en poser la poignee.
+    if plate.castbar then
+        plate.castbar:SetScript("OnUpdate", nil)   -- pas d'animation dans le studio
+        plate.castbar:SetMinMaxValues(0, 1)
+        plate.castbar:SetValue(0.55)
+        plate.castbar:Show()
+        if plate.castbar.text  then plate.castbar.text:SetText("Incantation") end
+        if plate.castbar.timer then plate.castbar.timer:SetText("1.4") end
+        if plate.castbar.shieldFrame then plate.castbar.shieldFrame:Show() end
+    end
+
+    -- Elements masques par defaut : le studio doit pouvoir les attraper.
+    if plate.classFrame then
+        plate.classFrame:Show()
+        if plate.classIcon then
+            plate.classIcon:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-Elite")
+        end
+    end
+    if plate.raidFrame then
+        plate.raidFrame:SetFrameStrata("MEDIUM")   -- TOOLTIP passerait au-dessus du studio
+        plate.raidFrame:Show()
+        if plate.raidIcon then
+            plate.raidIcon:SetTexCoord(0, 0.25, 0, 0.25)
+        end
+    end
+    if plate.questIcon then plate.questIcon:Show() end
+
+    ApplyElements(plate)
+    return plate, base
 end
 
 TomoMod_RegisterModule("nameplates", NP)

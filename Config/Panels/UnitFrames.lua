@@ -213,18 +213,10 @@ local function BuildDisplayTab(parent, unitKey)
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(c, L["opt_threat_text_offset_x"], db.threatText.offsetX, -200, 200, 1, y, function(v)
-            db.threatText.offsetX = v
-            RefreshUnit(unitKey)
-        end)
-        y = ny
-
-        local _, ny = W.CreateSlider(c, L["opt_threat_text_offset_y"], db.threatText.offsetY, -200, 200, 1, y, function(v)
-            db.threatText.offsetY = v
-            RefreshUnit(unitKey)
-        end)
-        y = ny
-
+        -- La position du texte de menace est passee dans l'onglet
+        -- Positionnement, avec les autres elements du registre AstralForge :
+        -- deux curseurs de decalage ici feraient doublon avec un ancrage
+        -- complet la-bas.
         local _, ny = W.CreateInfoText(c, L["info_threat_text"], y)
         y = ny
     end
@@ -358,72 +350,95 @@ local function BuildPositionTab(parent, unitKey, displayName)
 
     local y = -10
 
-    -- Element offsets
-    if db.elementOffsets then
+    -- ── AstralForge ─────────────────────────────────────────────────
+    -- Le studio est le chemin complet (glisser-deposer, ancrage libre,
+    -- hote au choix) ; les reglages ci-dessous restent la version rapide
+    -- pour un ajustement au pixel sans quitter la config.
+    local _, ny = W.CreateButton(c, L["btn_open_astralforge"], 240, y, function()
+        TomoMod_Forge.Studio.Launch({
+            addon  = "TomoMod_AstralForge",
+            global = "TomoMod_AstralForge",
+            label  = "AstralForge",
+        })
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_astralforge"], y)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+
+    -- ── Position des éléments (registre AstralForge) ────────────────
+    -- La liste, les libellés et les ancrages autorisés viennent du registre,
+    -- plus d'une liste codée en dur ici : ajouter un élément au registre le
+    -- fait apparaître dans ce panneau sans y toucher.
+    local UFE = TomoMod_UFElements
+    if UFE and db.elements then
         local _, ny = W.CreateSubLabel(c, L["sublabel_element_offsets"], y)
         y = ny
 
-        local elements = {
-            { key = "name",       label = L["elem_name"] },
-            { key = "level",      label = L["elem_level"] },
-            { key = "healthText", label = L["elem_health_text"] },
-            { key = "power",      label = L["elem_power"] },
-            { key = "castbar",    label = L["elem_castbar"] },
-            { key = "auras",      label = L["elem_auras"] },
-        }
-
-        for _, elem in ipairs(elements) do
-            -- Skip castbar for player (standalone drag & drop via /tm sr)
-            if elem.key == "castbar" and unitKey == "player" then
-                -- no-op
-            elseif db.elementOffsets[elem.key] then
-                local offData = db.elementOffsets[elem.key]
-
-                local _, ny = W.CreateSlider(c, elem.label .. " X", offData.x, -100, 100, 1, y, function(v)
-                    offData.x = v
-                    RefreshUnit(unitKey)
-                end)
-                y = ny
-
-                local _, ny = W.CreateSlider(c, elem.label .. " Y", offData.y, -100, 100, 1, y, function(v)
-                    offData.y = v
-                    RefreshUnit(unitKey)
-                end)
-                y = ny
+        local POINT_OPTIONS = {}
+        if TomoMod_Forge and TomoMod_Forge.Registry then
+            for _, p in ipairs(TomoMod_Forge.Registry.POINTS) do
+                POINT_OPTIONS[#POINT_OPTIONS + 1] = { text = p, value = p }
             end
         end
-    end
 
-    -- Raid icon offsets
-    if db.showRaidIcon and db.raidIconOffset then
-        local _, ny = W.CreateSeparator(c, y)
-        y = ny
+        for _, desc in ipairs(UFE.List()) do
+            local cfg = db.elements[desc.id]
+            if cfg then
+                local label = L[desc.labelKey]
 
-        local _, ny = W.CreateSlider(c, L["opt_raid_icon_x"], db.raidIconOffset.x, -100, 100, 1, y, function(v)
-            db.raidIconOffset.x = v
-            RefreshUnit(unitKey)
-        end)
-        y = ny
-        local _, ny = W.CreateSlider(c, L["opt_raid_icon_y"], db.raidIconOffset.y, -100, 100, 1, y, function(v)
-            db.raidIconOffset.y = v
-            RefreshUnit(unitKey)
-        end)
-        y = ny
-    end
+                if desc.anchorMode == "inside" and #POINT_OPTIONS > 0 then
+                    -- Ancrage libre dans la barre hôte : le point de l'élément
+                    -- et celui de l'hôte bougent ensemble (l'élément se pose
+                    -- DANS l'hôte). Les ancrages dissociés arrivent avec le
+                    -- canvas.
+                    local _, ny = W.CreateDropdownWithOffsets(c, y,
+                        {
+                            text     = label .. " — " .. L["opt_element_anchor"],
+                            options  = POINT_OPTIONS,
+                            selected = cfg.point,
+                            callback = function(v)
+                                cfg.point, cfg.relPoint = v, v
+                                RefreshUnit(unitKey)
+                            end,
+                        },
+                        {
+                            text = "X", value = cfg.x, min = -200, max = 200, step = 1,
+                            callback = function(v) cfg.x = v; RefreshUnit(unitKey) end,
+                        },
+                        {
+                            text = "Y", value = cfg.y, min = -200, max = 200, step = 1,
+                            callback = function(v) cfg.y = v; RefreshUnit(unitKey) end,
+                        })
+                    y = ny
+                else
+                    local _, ny = W.CreateSlider(c, label .. " X", cfg.x, -200, 200, 1, y, function(v)
+                        cfg.x = v
+                        RefreshUnit(unitKey)
+                    end)
+                    y = ny
+                    local _, ny = W.CreateSlider(c, label .. " Y", cfg.y, -200, 200, 1, y, function(v)
+                        cfg.y = v
+                        RefreshUnit(unitKey)
+                    end)
+                    y = ny
+                end
+            end
+        end
 
-    -- Leader icon offsets
-    if db.showLeaderIcon ~= nil and db.leaderIconOffset then
-        local _, ny = W.CreateSeparator(c, y)
-        y = ny
-
-        local _, ny = W.CreateSlider(c, L["opt_leader_icon_x"], db.leaderIconOffset.x, -50, 50, 1, y, function(v)
-            db.leaderIconOffset.x = v
+        local _, ny = W.CreateButton(c, L["btn_reset_elements"], 220, y, function()
+            for _, desc in ipairs(UFE.List()) do
+                db.elements[desc.id] = TomoMod_Forge.Registry.Default(UFE.DOMAIN, desc.id)
+            end
             RefreshUnit(unitKey)
-        end)
-        y = ny
-        local _, ny = W.CreateSlider(c, L["opt_leader_icon_y"], db.leaderIconOffset.y, -50, 50, 1, y, function(v)
-            db.leaderIconOffset.y = v
-            RefreshUnit(unitKey)
+            -- Les pages de config sont mises en cache : sans invalidation, les
+            -- curseurs continueraient d'afficher les anciennes valeurs.
+            if TomoMod_Config and TomoMod_Config.InvalidatePanels then
+                TomoMod_Config.InvalidatePanels()
+            end
         end)
         y = ny
     end

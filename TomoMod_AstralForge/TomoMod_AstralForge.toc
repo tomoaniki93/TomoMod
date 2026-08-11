@@ -1,6 +1,6 @@
 ## Interface: 120100, 120007
-## Title: |cff0cd29fTomo|rMod |cff2ed884Cooldown Studio|r
-## Notes: Dedicated full-screen editor for TomoMod CooldownForge bars.
+## Title: |cff0cd29fTomo|rMod |cff2ed884AstralForge|r
+## Notes: Visual designer for TomoMod unit frame elements.
 ## Author: TomoAniki
 ## Category: |cff0cd29fHUD|r
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
@@ -8,4 +8,4 @@
 ## LoadOnDemand: 1
 ## Dependencies: TomoMod
 
-CDStudio.lua
+AstralForge.lua

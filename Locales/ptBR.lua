@@ -123,8 +123,6 @@ TomoMod_RegisterLocale("ptBR", {
     ["section_threat_text"]             = "Texto % de ameaça",
     ["opt_threat_text_enable"]          = "Mostrar % de ameaça no alvo",
     ["opt_threat_text_font_size"]       = "Tamanho de fonte",
-    ["opt_threat_text_offset_x"]        = "Deslocamento X",
-    ["opt_threat_text_offset_y"]        = "Deslocamento Y",
     ["info_threat_text"]                = "Verde = tanqueando (vantagem), amarelo = aviso, vermelho = aggro perdido",
     ["opt_show_leader_icon"]            = "Ícone de líder",
     ["opt_leader_icon_x"]               = "Ícone de líder X",
@@ -165,6 +163,86 @@ TomoMod_RegisterLocale("ptBR", {
     ["elem_power"]                      = "Barra de recurso",
     ["elem_castbar"]                    = "Barra de lançamento",
     ["elem_auras"]                      = "Auras",
+    ["elem_enemy_buffs"]                = "Bônus do alvo",
+
+    -- AstralForge: element registry
+    ["elem_raid_icon"]                  = "Marca de raide",
+    ["elem_leader_icon"]                = "Ícone de líder",
+    ["elem_threat_text"]                = "Texto de ameaça",
+    ["opt_element_anchor"]              = "Ancoragem",
+    ["btn_reset_elements"]              = "Redefinir posição dos elementos",
+    ["anchor_host_frame"]               = "Quadro",
+    ["anchor_host_health"]              = "Barra de vida",
+    ["anchor_host_power"]               = "Barra de recurso",
+    ["anchor_host_infobar"]             = "Barra de informações",
+    ["btn_open_astralforge"]            = "Abrir AstralForge",
+    ["info_astralforge"]                = "AstralForge é o designer completo: arraste cada elemento diretamente sobre o quadro e escolha seu ponto de ancoragem e seu hospedeiro. Os controles abaixo continuam disponíveis para ajustes ao pixel.",
+    ["target_kind_host"]                = "Estrutura: ",
+    ["target_kind_element"]             = "Elemento: ",
+
+    -- AstralForge : proprietes par element
+    ["sublabel_element_props"]          = "Propriedades visuais",
+    ["opt_element_alpha"]               = "Opacidade (%)",
+    ["opt_element_scale"]               = "Escala (%)",
+    ["opt_element_font_size"]           = "Forçar tamanho da fonte",
+    ["info_element_font_size"]          = "Deixe em 0 para manter o tamanho calculado pelo módulo.",
+
+    -- AstralForge : elements instancies
+    ["elem_custom_text"]                = "Texto personalizado",
+    ["opt_custom_text_template"]        = "Modelo de texto",
+    ["info_custom_text_tokens"]         = "Marcadores disponíveis:",
+    ["btn_add_custom_text"]             = "Adicionar um texto personalizado",
+    ["btn_reset_element"]               = "Redefinir este elemento",
+    ["btn_delete_element"]              = "Excluir este elemento",
+    ["msg_element_max_reached"]         = "Número máximo de elementos deste tipo atingido.",
+
+    -- AstralForge : presets de disposition
+    ["section_forge_presets"]           = "Predefinições de layout",
+    ["btn_forge_presets"]               = "Predefinições de layout",
+    ["info_forge_presets"]              = "Uma predefinição guarda o layout completo do sujeito atual: ancoragens, propriedades visuais e elementos personalizados.",
+    ["opt_preset_name"]                 = "Nome da predefinição",
+    ["btn_preset_save"]                 = "Salvar / substituir",
+    ["opt_preset_saved"]                = "Predefinições salvas",
+    ["btn_preset_apply"]                = "Aplicar",
+    ["btn_preset_delete"]               = "Excluir",
+    ["btn_preset_export"]               = "Gerar código de compartilhamento",
+    ["opt_preset_share_string"]         = "Código de compartilhamento",
+    ["info_preset_copy"]                = "Clique no campo e use Ctrl+A e Ctrl+C para copiar.",
+    ["opt_preset_import"]               = "Cole um código de compartilhamento",
+    ["btn_preset_import"]               = "Importar",
+    ["info_no_preset"]                  = "Nenhuma predefinição salva para este sujeito.",
+    ["msg_preset_saved"]                = "Predefinição salva.",
+    ["msg_preset_applied"]              = "Predefinição aplicada.",
+    ["msg_preset_imported"]             = "Predefinição importada:",
+    ["msg_preset_error"]                = "A operação com a predefinição falhou.",
+    ["msg_presets_unavailable"]         = "As predefinições de layout não estão disponíveis.",
+    ["token_classification"]            = "Classificação",
+    ["token_name"]                      = "Nome",
+    ["token_level"]                     = "Nível",
+    ["token_class"]                     = "Classe",
+    ["token_race"]                      = "Raça",
+    ["token_guild"]                     = "Guilda",
+
+    -- AstralForge : domaine plaques de nom
+    ["section_np_elements"]             = "Posição dos elementos",
+    ["info_np_elements"]                = "Abra o AstralForge para arrastar cada elemento sobre a placa e escolher sua ancoragem. Os controles abaixo servem para ajustes ao pixel.",
+    ["np_host_plate"]                   = "Placa",
+    ["np_host_health"]                  = "Barra de vida",
+    ["np_host_castbar"]                 = "Barra de conjuração",
+    ["np_host_name"]                    = "Nome",
+    ["np_elem_name"]                    = "Nome",
+    ["np_elem_hp_number"]               = "Valor de vida",
+    ["np_elem_hp_percent"]              = "Porcentagem de vida",
+    ["np_elem_level"]                   = "Nível",
+    ["np_elem_class_icon"]              = "Ícone de classificação",
+    ["np_elem_class_text"]              = "Texto de classificação",
+    ["np_elem_castbar"]                 = "Barra de conjuração",
+    ["np_elem_cast_icon"]               = "Ícone de conjuração",
+    ["np_elem_cast_text"]               = "Nome da magia",
+    ["np_elem_cast_timer"]              = "Temporizador de conjuração",
+    ["np_elem_cast_shield"]             = "Escudo de conjuração",
+    ["np_elem_quest_icon"]              = "Ícone de missão",
+    ["np_elem_raid_marker"]             = "Marca de raide",
 
     -- =====================
     -- CONFIG: Nameplates Panel
@@ -194,7 +272,6 @@ TomoMod_RegisterLocale("ptBR", {
 
     -- Raid Marker
     ["section_raid_marker"]             = "Marcador de raide",
-    ["opt_np_raid_icon_anchor"]         = "Posição do ícone",
     ["opt_np_raid_icon_x"]              = "Deslocamento X",
     ["opt_np_raid_icon_y"]              = "Deslocamento Y",
     ["opt_np_raid_icon_size"]           = "Tamanho do ícone",
@@ -3018,6 +3095,19 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_333_diag_settle"] = "Diagnóstico: a escala que o jogo aplica por conta própria durante o login era registrada em todo relatório como um redimensionamento no meio da sessão. A captura de exibição agora espera quatro segundos até o cliente se estabilizar antes de fazer uma leitura, de forma que a única entrada de escala que resta em um relatório é aquela que realmente precisa de explicação.",
     ["wn_333_diag_mode"] = "Diagnóstico: quando o relatório não consegue determinar seu modo de exibição, ele agora imprime os valores brutos que o jogo forneceu em vez de apenas um ponto de interrogação — esses nomes de configuração mudam de uma expansão para outra, e um «?» sozinho não podia ser diagnosticado sem voltar a perguntar. Tela cheia em janela e janelas maximizadas são reconhecidas em mais casos, e as versões dos complementos não aparecem mais como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
+
+    -- =====================
+    -- 3.4.2 — Novidades
+    -- =====================
+    ["wn_342_astralforge"] = "Novo — AstralForge, um editor em tela cheia para as peças de um quadro de unidade. Até agora cada parte de um quadro ficava onde o TomoMod tinha decidido que ficasse, e tudo o que você recebia era um controle deslizante que a empurrava alguns pixels dali: mover o nome para o outro lado não era um ajuste, era um número grande o bastante para empurrá-lo até lá. Agora você arrasta cada peça para onde quiser: qual canto do elemento se prende, e a que ele se prende — o quadro, a barra de vida, a barra de recurso, a barra de informações. Ele se alinha a uma grade fina, se encaixa com os outros elementos quando você passa por eles, e segurando Shift você solta onde bem entender. Os controles deslizantes continuam ali para um acerto de dois pixels, e ambos escrevem a mesma coisa. Abre-se pelas opções de Quadros de unidade e, como o Cooldown Studio, só carrega quando você pede. O que você arrasta é uma cópia de pré-visualização, nunca um quadro real: o jogo protege esses durante o combate, e editá-los diretamente é justamente o que causa os problemas de interface que o TomoMod passou duas versões removendo.",
+    ["wn_342_af_nameplates"] = "Novo — As placas de nome ganham o mesmo editor, e para elas é terreno totalmente novo: fora o marcador de raide, nada em uma placa tinha qualquer ajuste de posição. O nome, o valor e a porcentagem de vida, o nível, o ícone e o texto de classificação, a barra de conjuração com seu ícone, seu nome, seu cronômetro e seu escudo, e o ícone de missão podem ser posicionados um a um onde você quiser. Sua posição do marcador de raide é mantida como está, e todo o resto começa exatamente onde já estava. Duas coisas propositalmente não são arrastáveis: as auras, cuja posição é calculada a partir do lugar delas na fileira em vez de definida, e as peças presas ao preenchimento de uma barra — uma alça sobre essas alegaria mover algo que não pode mover.",
+    ["wn_342_af_props"] = "Novo — Opacidade, escala e uma forçagem do tamanho do texto, por elemento. A forçagem começa em zero, ou seja «mantenha o tamanho que o módulo calculou», então nada muda até você mandar. Só aparecem os ajustes que aquela peça realmente consegue honrar: opacidade faz sentido em um texto, escala não, e uma imagem simples não aceita nenhuma das duas — você recebe os que se aplicam ao que selecionou, em vez de uma fileira fixa de controles em que metade não faz nada.",
+    ["wn_342_af_customtext"] = "Novo — Texto escrito por você. Adicione até seis textos personalizados em um quadro de unidade e quatro em uma placa de nome, escreva algo como «[name] - [level]» e posicione como qualquer outro elemento. Os marcadores são nome, nível, classe, raça e guilda em um quadro, e nome, nível, classe, raça e classificação em uma placa. Vale saber por que isso não é simplesmente o complemento colando palavras: no Midnight o jogo entrega o nome e o nível de uma unidade em uma forma que um complemento não tem permissão de ler, então algo tão comum quanto juntar um nome a um traço falharia. Seu modelo é transformado em um padrão, os valores passam sem serem tocados e é o próprio jogo que monta tudo.",
+    ["wn_342_af_presets"] = "Novo — Predefinições de disposição e textos de compartilhamento. Salve com um nome toda a disposição do que você está editando — cada posição, cada opacidade e escala, cada texto próprio —, aplique de volta mais tarde, ou passe para alguém como um texto que a pessoa cola. Tudo o que entra é verificado do mesmo jeito, seja seu ou de um desconhecido: valores que o complemento não reconhece são descartados, uma ancoragem impossível é recusada antes de chegar ao jogo, e uma disposição que se refere a si mesma em círculo é quebrada. O pior que um texto colado pode descrever é uma disposição.",
+    ["wn_342_af_migration"] = "Seus quadros não se mexem. Cada posição que você tinha ajustado é convertida para a nova forma junto com a ancoragem contra a qual o motor a aplicava, de modo que um perfil convertido e um recém-criado desenham exatamente o mesmo quadro. Um ajuste antigo é descartado em vez de convertido: um deslocamento de auras que o motor parou de ler na 3.0.5. Ele está sem efeito há várias versões, e convertê-lo agora moveria auras que estão exatamente onde você as colocou. Os contêineres de auras também deixam de guardar sua posição em um segundo lugar só deles: arrastá-los no jogo, posicioná-los no editor e ajustá-los pelos controles agora escrevem no mesmo lugar, então não podem mais se contradizer.",
+    ["wn_342_af_secret"] = "Correção — Abrir o AstralForge sobre uma unidade que realmente estava ali podia deixar você com uma janela vazia. A pré-visualização que ele constrói era alimentada com dados reais, e no jogo atual qualquer peça da interface cujo conteúdo vem de informações protegidas — um valor de vida, por exemplo — também esconde dos addons a própria posição e o próprio tamanho. Medir isso é justamente todo o trabalho do editor: a primeira medição falhava e levava a pré-visualização junto. Agora a pré-visualização funciona com dados inventados: um nome fictício, um valor de vida fictício, que nada impede de medir e que se parecem exatamente com aquilo que você está organizando. Vêm com ela duas proteções: o que mesmo assim não puder ser medido fica simplesmente sem alça em vez de travar tudo à sua volta, e se a pré-visualização não puder ser construída de jeito nenhum, a janela abre mesmo assim com sua lista de elementos, seu inspetor e suas predefinições, em vez de abrir vazia.",
+    ["wn_342_keysync_realm"] ="Mítica+: a lista de chaves do grupo aparecia vazia para todo mundo do seu próprio reino. A chave dessas pessoas era recebida e guardada o tempo todo — apenas não conseguia mais ser encontrada. Quando o complemento de alguém envia a chave para você, o jogo identifica a pessoa como «Alice-Varimathras», sendo ou não esse o seu reino: cada chave fica arquivada sob um nome completo. Mas quando o TomoMod pergunta ao jogo sobre a pessoa que está ao seu lado no seu próprio reino, ele recebe «Alice» sem reino, e isso não corresponde a nada. Isso surgiu com o novo compartilhamento de chaves da 3.4.1, porque a biblioteca que ele substituiu escondia essa diferença dentro do próprio código. Um nome sem reino agora é tentado de novo com o seu, então uma chave do mesmo reino volta a ser encontrada — e isso é feito uma única vez, onde as chaves ficam guardadas, em vez de ser algo que cada tela que as lê precise lembrar de fazer.",
+    ["wn_342_keysync_debug"] = "Novo — /tmt keysync. Ele mostra por qual canal o compartilhamento está passando, se você está em uma guilda, todas as chaves que estão guardadas naquele momento e, em seguida, cada membro do seu grupo indicando se a chave dele é realmente encontrada. Essa última linha é o ponto principal: uma chave guardada mas não encontrada é um problema diferente de uma chave que nunca chegou, e pela lista do grupo as duas parecem exatamente iguais — por isso o problema acima demorou mais para ser identificado do que para ser corrigido. O comando termina pedindo as chaves ao grupo, então executá-lo de novo um segundo depois diz se alguém respondeu.",
 
     -- =====================
     -- 3.4.1 — Novidades

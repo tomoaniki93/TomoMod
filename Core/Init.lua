@@ -78,6 +78,8 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if TomoMod_CinematicSkip then
             TomoMod_CinematicSkip.ClearHistory()
         end
+    elseif msg == "keysync" then
+        if TomoMod_KeySync then TomoMod_KeySync.Debug() end
     elseif msg == "key" then
         TomoMod_EnableModule("MythicKeys")
         if TomoMod_MythicKeys then TomoMod_MythicKeys:Toggle() end

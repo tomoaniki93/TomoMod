@@ -9,7 +9,7 @@
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 3.4.1
+## Version: 3.4.2
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -35,7 +35,11 @@ Locales\Locale_300.lua
 Core\Utils.lua
 Core\Forge\Forge.lua
 Core\Forge\ForgeIO.lua
+Core\Forge\ForgeText.lua
 Core\Forge\ForgeEdit.lua
+Core\Forge\ForgeRegistry.lua
+Core\Forge\ForgeCanvas.lua
+Core\Forge\ForgeAssets.lua
 Core\Forge\ForgeSchema.lua
 Core\Forge\ForgeStudio.lua
 Core\Database.lua

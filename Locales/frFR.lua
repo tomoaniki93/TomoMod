@@ -127,8 +127,6 @@ TomoMod_RegisterLocale("frFR", {
     ["section_threat_text"]             = "Texte % de Menace",
     ["opt_threat_text_enable"]          = "Afficher le % de menace sur la cible",
     ["opt_threat_text_font_size"]       = "Taille de la police",
-    ["opt_threat_text_offset_x"]        = "Décalage X",
-    ["opt_threat_text_offset_y"]        = "Décalage Y",
     ["info_threat_text"]                = "Vert = tank (avance sur le 2e), jaune = proche, rouge = aggro perdu",
     ["opt_show_leader_icon"]            = "Icône de Chef de groupe",
     ["opt_leader_icon_x"]               = "Icône de Chef de groupe X",
@@ -169,6 +167,86 @@ TomoMod_RegisterLocale("frFR", {
     ["elem_power"]                      = "Barre de ressource",
     ["elem_castbar"]                    = "Castbar",
     ["elem_auras"]                      = "Auras",
+    ["elem_enemy_buffs"]                = "Buffs de la cible",
+
+    -- AstralForge: element registry
+    ["elem_raid_icon"]                  = "Marque de raid",
+    ["elem_leader_icon"]                = "Icône de chef",
+    ["elem_threat_text"]                = "Texte de menace",
+    ["opt_element_anchor"]              = "Ancrage",
+    ["btn_reset_elements"]              = "Réinitialiser la position des éléments",
+    ["anchor_host_frame"]               = "Cadre",
+    ["anchor_host_health"]              = "Barre de vie",
+    ["anchor_host_power"]               = "Barre de ressource",
+    ["anchor_host_infobar"]             = "Bandeau d'info",
+    ["btn_open_astralforge"]            = "Ouvrir AstralForge",
+    ["info_astralforge"]                = "AstralForge est le designer complet : glisse chaque élément directement sur le cadre, choisis son point d'ancrage et son hôte. Les curseurs ci-dessous restent disponibles pour un ajustement au pixel.",
+    ["target_kind_host"]                = "Structure : ",
+    ["target_kind_element"]             = "Élément : ",
+
+    -- AstralForge : proprietes par element
+    ["sublabel_element_props"]          = "Propriétés visuelles",
+    ["opt_element_alpha"]               = "Opacité (%)",
+    ["opt_element_scale"]               = "Échelle (%)",
+    ["opt_element_font_size"]           = "Taille de police forcée",
+    ["info_element_font_size"]          = "Laisse à 0 pour conserver la taille calculée par le module.",
+
+    -- AstralForge : elements instancies
+    ["elem_custom_text"]                = "Texte personnalisé",
+    ["opt_custom_text_template"]        = "Modèle de texte",
+    ["info_custom_text_tokens"]         = "Jetons disponibles :",
+    ["btn_add_custom_text"]             = "Ajouter un texte personnalisé",
+    ["btn_reset_element"]               = "Réinitialiser cet élément",
+    ["btn_delete_element"]              = "Supprimer cet élément",
+    ["msg_element_max_reached"]         = "Nombre maximum d'éléments de ce type atteint.",
+
+    -- AstralForge : presets de disposition
+    ["section_forge_presets"]           = "Presets de disposition",
+    ["btn_forge_presets"]               = "Presets de disposition",
+    ["info_forge_presets"]              = "Un preset enregistre la disposition complète du sujet courant : ancrages, propriétés visuelles et éléments personnalisés.",
+    ["opt_preset_name"]                 = "Nom du preset",
+    ["btn_preset_save"]                 = "Enregistrer / remplacer",
+    ["opt_preset_saved"]                = "Presets enregistrés",
+    ["btn_preset_apply"]                = "Appliquer",
+    ["btn_preset_delete"]               = "Supprimer",
+    ["btn_preset_export"]               = "Générer la chaîne de partage",
+    ["opt_preset_share_string"]         = "Chaîne de partage",
+    ["info_preset_copy"]                = "Clique dans le champ, puis Ctrl+A et Ctrl+C pour copier.",
+    ["opt_preset_import"]               = "Colle une chaîne de partage",
+    ["btn_preset_import"]               = "Importer",
+    ["info_no_preset"]                  = "Aucun preset enregistré pour ce sujet.",
+    ["msg_preset_saved"]                = "Preset enregistré.",
+    ["msg_preset_applied"]              = "Preset appliqué.",
+    ["msg_preset_imported"]             = "Preset importé :",
+    ["msg_preset_error"]                = "L'opération sur le preset a échoué.",
+    ["msg_presets_unavailable"]         = "Les presets de disposition sont indisponibles.",
+    ["token_classification"]            = "Classification",
+    ["token_name"]                      = "Nom",
+    ["token_level"]                     = "Niveau",
+    ["token_class"]                     = "Classe",
+    ["token_race"]                      = "Race",
+    ["token_guild"]                     = "Guilde",
+
+    -- AstralForge : domaine plaques de nom
+    ["section_np_elements"]             = "Position des éléments",
+    ["info_np_elements"]                = "Ouvre AstralForge pour glisser chaque élément sur la plaque et choisir son ancrage. Les curseurs ci-dessous servent à l'ajustement au pixel.",
+    ["np_host_plate"]                   = "Plaque",
+    ["np_host_health"]                  = "Barre de vie",
+    ["np_host_castbar"]                 = "Barre d'incantation",
+    ["np_host_name"]                    = "Nom",
+    ["np_elem_name"]                    = "Nom",
+    ["np_elem_hp_number"]               = "Valeur de vie",
+    ["np_elem_hp_percent"]              = "Pourcentage de vie",
+    ["np_elem_level"]                   = "Niveau",
+    ["np_elem_class_icon"]              = "Icône de classification",
+    ["np_elem_class_text"]              = "Texte de classification",
+    ["np_elem_castbar"]                 = "Barre d'incantation",
+    ["np_elem_cast_icon"]               = "Icône d'incantation",
+    ["np_elem_cast_text"]               = "Nom du sort",
+    ["np_elem_cast_timer"]              = "Minuteur d'incantation",
+    ["np_elem_cast_shield"]             = "Bouclier d'incantation",
+    ["np_elem_quest_icon"]              = "Icône de quête",
+    ["np_elem_raid_marker"]             = "Marque de raid",
 
     -- =====================
     -- CONFIG: Nameplates Panel
@@ -198,7 +276,6 @@ TomoMod_RegisterLocale("frFR", {
 
     -- Raid Marker
     ["section_raid_marker"]             = "Marqueur de raid",
-    ["opt_np_raid_icon_anchor"]         = "Position de l'icône",
     ["opt_np_raid_icon_x"]              = "Décalage X",
     ["opt_np_raid_icon_y"]              = "Décalage Y",
     ["opt_np_raid_icon_size"]           = "Taille de l'icône",
@@ -3046,6 +3123,19 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_333_diag_settle"] = "Diagnostics : l'échelle que le jeu applique de lui-même pendant la connexion était consignée dans chaque rapport comme un redimensionnement en cours de session. La capture d'affichage attend désormais quatre secondes que le client se stabilise avant de prendre une mesure, si bien que la seule entrée d'échelle qui subsiste dans un rapport est celle qui mérite vraiment une explication.",
     ["wn_333_diag_mode"] = "Diagnostics : quand le rapport n'arrive pas à déterminer votre mode d'affichage, il indique maintenant les valeurs brutes renvoyées par le jeu au lieu d'un simple point d'interrogation — ces noms de réglages changent d'une extension à l'autre, et un « ? » seul ne pouvait pas être diagnostiqué sans revenir vers vous. Le plein écran fenêtré et les fenêtres agrandies sont reconnus dans davantage de cas, et les versions des addons ne s'affichent plus sous la forme « vv1.2.3 ».",
     ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
+
+    -- =====================
+    -- 3.4.2 — Quoi de neuf
+    -- =====================
+    ["wn_342_astralforge"] = "Nouveau — AstralForge, un éditeur plein écran pour les éléments d'un cadre d'unité. Jusqu'ici, chaque partie d'un cadre se trouvait là où TomoMod avait décidé qu'elle se trouve, et tout ce qu'on te donnait était un curseur pour la décaler de quelques pixels — déplacer le nom de l'autre côté n'était donc pas un réglage, c'était un chiffre assez gros pour l'y pousser. Tu fais désormais glisser chaque élément là où tu veux : quel coin de l'élément s'accroche, et à quoi il s'accroche — le cadre, la barre de vie, la barre de ressource, la barre d'infos. Ça s'aligne sur une petite grille, ça se cale sur les autres éléments quand tu passes devant, et maintenir Maj permet de poser où bon te semble. Les curseurs restent là pour un ajustement de deux pixels, et les deux écrivent la même chose. Ça s'ouvre depuis les options Cadres d'unité et, comme le Cooldown Studio, ça ne se charge que si tu le demandes. Ce que tu déplaces est une copie d'aperçu, jamais un vrai cadre : le jeu protège ces derniers en combat, et les modifier directement est précisément ce qui provoque les problèmes d'interface que TomoMod a passé deux versions à éliminer.",
+    ["wn_342_af_nameplates"] = "Nouveau — Les plaques de nom ont droit au même éditeur, et pour elles c'est un terrain entièrement neuf : à part la marque de raid, rien sur une plaque n'avait le moindre réglage de position. Le nom, la valeur et le pourcentage de vie, le niveau, l'icône et le texte de classification, la barre d'incantation avec son icône, son nom, son minuteur et son bouclier, ainsi que l'icône de quête peuvent chacun être placés où tu veux. Ta position de marque de raid est reprise telle quelle, et tout le reste démarre exactement là où il était déjà. Deux choses ne sont volontairement pas déplaçables : les auras, dont la position est calculée à partir de leur rang dans la rangée plutôt que définie, et les éléments accrochés au remplissage d'une barre — une poignée sur ceux-là prétendrait déplacer quelque chose qu'elle ne peut pas déplacer.",
+    ["wn_342_af_props"] = "Nouveau — Opacité, échelle et forçage de la taille du texte, par élément. Le forçage démarre à zéro, ce qui signifie « laisse la taille que le module a calculée » : rien ne change tant que tu ne le dis pas. Seuls les réglages qu'un élément donné peut réellement honorer sont affichés : l'opacité a un sens sur un texte, l'échelle non, et une simple image n'accepte ni l'une ni l'autre — tu obtiens donc ceux qui s'appliquent à ce que tu as sélectionné plutôt qu'une rangée figée de curseurs dont la moitié ne fait rien.",
+    ["wn_342_af_customtext"] = "Nouveau — Du texte que tu écris toi-même. Ajoute jusqu'à six textes personnalisés sur un cadre d'unité et quatre sur une plaque de nom, écris quelque chose comme « [name] - [level] », et place-le comme n'importe quel autre élément. Les jetons sont nom, niveau, classe, race et guilde sur un cadre, et nom, niveau, classe, race et classification sur une plaque. Il vaut la peine de savoir pourquoi ce n'est pas simplement l'addon qui colle des mots bout à bout : sous Midnight, le jeu transmet le nom et le niveau d'une unité sous une forme qu'un addon n'a pas le droit de lire, donc une opération aussi banale que joindre un nom à un tiret échouerait. Ton modèle est transformé en motif, les valeurs y passent sans être touchées et c'est le jeu lui-même qui assemble le tout.",
+    ["wn_342_af_presets"] = "Nouveau — Des préréglages de disposition, et des chaînes de partage. Enregistre sous un nom toute la disposition de ce que tu es en train d'éditer — chaque position, chaque opacité et échelle, chaque texte personnalisé — réapplique-la plus tard, ou transmets-la à quelqu'un sous forme de chaîne à coller. Tout ce qui rentre est vérifié de la même façon, que ce soit le tien ou celui d'un inconnu : les valeurs que l'addon ne reconnaît pas sont écartées, une ancre impossible est refusée avant d'atteindre le jeu, et une disposition qui se référence elle-même en boucle est cassée. Le pire qu'une chaîne collée puisse décrire, c'est une disposition.",
+    ["wn_342_af_migration"] = "Tes cadres ne bougent pas. Chaque position que tu avais réglée est convertie dans la nouvelle forme, accompagnée de l'ancre sur laquelle le moteur l'appliquait, si bien qu'un profil converti et un profil tout neuf dessinent exactement le même cadre. Un ancien réglage est abandonné plutôt que converti : un décalage d'auras que le moteur a cessé de lire en 3.0.5. Il n'a aucun effet depuis plusieurs versions, et le convertir aujourd'hui déplacerait des auras qui se trouvent précisément là où tu les as mises. Les conteneurs d'auras cessent également de conserver leur position dans un second endroit à eux : les déplacer en jeu, les placer dans l'éditeur et les régler aux curseurs écrivent désormais au même endroit, ils ne peuvent donc plus se contredire.",
+    ["wn_342_af_secret"] = "Correction — Ouvrir AstralForge sur une unité réellement présente pouvait te laisser une fenêtre vide. L'aperçu qu'il construit était alimenté en données réelles, et sur le jeu actuel tout élément d'interface dont le contenu provient d'informations protégées — une valeur de vie, par exemple — cache aussi sa propre position et sa taille aux addons. Or mesurer tout ça est précisément le travail de l'éditeur : la toute première mesure échouait et emportait l'aperçu avec elle. L'aperçu fonctionne désormais sur des données inventées : un nom fictif, une valeur de vie fictive, que rien n'empêche de mesurer et qui ressemblent exactement à ce que tu es en train d'agencer. Deux garde-fous l'accompagnent : ce qui reste malgré tout non mesurable est simplement laissé sans poignée au lieu de bloquer tout ce qui l'entoure, et si l'aperçu ne peut pas être construit du tout, la fenêtre s'ouvre quand même avec sa liste d'éléments, son inspecteur et ses préréglages plutôt que de s'ouvrir vide.",
+    ["wn_342_keysync_realm"] ="Mythique+ : la liste des clés du groupe était vide pour toutes les personnes de ton propre royaume. Leur clé était bien reçue et bien conservée depuis le début — elle ne pouvait simplement plus être retrouvée. Quand l'addon de quelqu'un t'envoie sa clé, le jeu le désigne comme « Alice-Varimathras », que ce royaume soit le tien ou non : chaque clé est donc classée sous un nom complet. Mais quand TomoMod interroge le jeu sur la personne qui se tient à côté de toi sur ton royaume, il récupère « Alice » sans royaume, et ça ne correspond à rien. C'est apparu avec le nouveau partage de clés de la 3.4.1, parce que la bibliothèque qu'il a remplacée masquait cet écart dans son propre code. Un nom sans royaume est désormais réessayé avec le tien, donc une clé du même royaume se retrouve à nouveau — et c'est fait une seule fois, à l'endroit où les clés sont stockées, plutôt que d'être quelque chose que chaque écran qui les lit doit penser à faire.",
+    ["wn_342_keysync_debug"] = "Nouveau — /tmt keysync. La commande affiche le canal utilisé par le partage, si tu es en guilde, toutes les clés actuellement en mémoire, puis chaque membre de ton groupe avec l'indication de savoir si sa clé est réellement retrouvée. C'est cette dernière ligne qui compte : une clé stockée mais introuvable est un problème différent d'une clé qui n'est jamais arrivée, et vue depuis la liste du groupe les deux se ressemblent exactement — ce qui explique pourquoi le bug ci-dessus a été plus long à identifier qu'à corriger. La commande demande aussi leurs clés aux membres du groupe en terminant : la relancer une seconde plus tard te dit si quelqu'un a répondu.",
 
     -- =====================
     -- 3.4.1 — Quoi de neuf

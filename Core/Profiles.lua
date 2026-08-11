@@ -86,6 +86,9 @@ local function ApplySnapshot(snap)
         if not EXCLUDED_KEYS[k] then TomoModDB[k] = DeepCopy(v) end
     end
     TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
+    -- A snapshot saved before an element was added to the AstralForge
+    -- registry has no entry for it; refill from the registry defaults.
+    if TomoMod_NormalizeAllElements then TomoMod_NormalizeAllElements() end
     RefreshConfigPanels()
 end
 
@@ -99,6 +102,9 @@ local function ApplySnapshotNoCopy(snap)
         if not EXCLUDED_KEYS[k] then TomoModDB[k] = v end
     end
     TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
+    -- A snapshot saved before an element was added to the AstralForge
+    -- registry has no entry for it; refill from the registry defaults.
+    if TomoMod_NormalizeAllElements then TomoMod_NormalizeAllElements() end
     RefreshConfigPanels()
 end
 

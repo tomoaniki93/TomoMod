@@ -16,6 +16,102 @@ Forge.Studio = Forge.Studio or {}
 
 local WHITE8 = "Interface\\Buttons\\WHITE8x8"
 
+-- ---------------------------------------------------------------------
+-- LoadOnDemand launcher
+--
+-- Studios ship as sibling LoadOnDemand addons, so every failure the client
+-- can report has to become something the player can act on. LoadAddOn
+-- returns a locale-independent token: "DISABLED" means the folder is
+-- installed but unticked in the addon list, "MISSING" means it is genuinely
+-- absent -- two very different fixes that a single catch-all message
+-- conflates. The client localises the reason itself through
+-- _G["ADDON_"..token]; what it never says is what to DO about it.
+-- ---------------------------------------------------------------------
+
+local HINT = {
+    MISSING               = "le dossier %s est absent de Interface/AddOns. Il s'installe a cote de TomoMod, jamais dedans.",
+    DISABLED              = "le sous-addon est decoche dans la liste des addons. Coche-le, puis recharge l'interface.",
+    DEP_DISABLED          = "une dependance du studio est decochee dans la liste des addons.",
+    DEP_MISSING           = "une dependance du studio est absente.",
+    INTERFACE_VERSION     = "le studio est marque obsolete pour cette version du jeu. Coche \"Charger les AddOns obsoletes\" a l'ecran de selection de personnage.",
+    DEP_INTERFACE_VERSION = "une dependance du studio est marquee obsolete pour cette version du jeu.",
+    CORRUPT               = "les fichiers du studio sont endommages. Reinstalle TomoMod.",
+    DEP_CORRUPT           = "une dependance du studio est endommagee.",
+    BANNED                = "le studio est bloque par le client.",
+    NOT_DEMAND_LOADED     = "le studio n'est pas marque LoadOnDemand.",
+    DEMAND_LOADED         = "le studio n'est pas marque LoadOnDemand.",
+    INSECURE              = "le studio a ete refuse par le client.",
+}
+
+function Forge.Studio.ReasonText(addon, reason)
+    if not reason then return nil end
+    local hint  = HINT[reason]
+    local label = _G["ADDON_" .. reason]
+    if hint then
+        return (label and (label .. " - ") or "") .. hint:format(addon or "")
+    end
+    return label or reason
+end
+
+-- Pre-flight state used to decorate a launcher card. Never let a bad addon
+-- name bubble an error up through a panel build.
+function Forge.Studio.LoadReason(addon)
+    if C_AddOns.IsAddOnLoaded(addon) then return nil end
+    local ok, _, _, _, _, reason = pcall(C_AddOns.GetAddOnInfo, addon)
+    if not ok then return nil end
+    return reason
+end
+
+-- opts = { addon, global, label }
+-- Loads the sibling addon on demand and calls its Open(). Returns true when
+-- the window was actually asked to open.
+function Forge.Studio.Launch(opts)
+    local addon  = opts and opts.addon
+    local global = opts and opts.global
+    local label  = (opts and opts.label) or addon or "Studio"
+    local PREFIX = "|cff2ed884TomoMod|r : "
+    if not addon or not global then return false end
+
+    if not C_AddOns.IsAddOnLoaded(addon) then
+        local ok, reason = C_AddOns.LoadAddOn(addon)
+
+        -- Self-heal the overwhelmingly common case: installed but unticked.
+        -- Enabling flips the client flag; the LoD load then succeeds straight
+        -- away on most clients, and where it does not the enable still sticks
+        -- so a single reload finishes the job.
+        if not ok and reason == "DISABLED" and C_AddOns.EnableAddOn then
+            pcall(C_AddOns.EnableAddOn, addon)
+            ok, reason = C_AddOns.LoadAddOn(addon)
+            if not ok then
+                print(PREFIX .. label .. " active. Recharge l'interface (/reload) pour l'ouvrir.")
+                return false
+            end
+        end
+
+        if not ok then
+            print(PREFIX .. label .. " indisponible : "
+                .. (Forge.Studio.ReasonText(addon, reason) or "raison inconnue") .. ".")
+            return false
+        end
+    end
+
+    -- LoadAddOn reported success but the entry point is missing: the
+    -- sub-addon bailed out during its own load (they return early when
+    -- TomoMod_Widgets is unavailable) and publish loadError to say why.
+    -- Report it rather than swallowing the click.
+    local S = _G[global]
+    if not (S and S.Open) then
+        local why = type(S) == "table" and S.loadError or nil
+        print(PREFIX .. label .. " charge mais non initialise"
+            .. (why and (" (" .. why .. ")") or "") .. ". Recharge l'interface (/reload).")
+        return false
+    end
+
+    if TomoMod_Config and TomoMod_Config.Hide then TomoMod_Config.Hide() end
+    S.Open()
+    return true
+end
+
 -- opts:
 --   name          : global frame name (used for the frame handle)
 --   title         : header title text (can contain color codes)

@@ -222,13 +222,16 @@ local ANCHOR_FY = {
 -- Rect du conteneur exprimé dans le repère du cadre parent (origine =
 -- BOTTOMLEFT du cadre). Calcul analytique : pas de dépendance à GetTop(),
 -- qui peut renvoyer nil tant que la chaîne d'ancrage n'est pas résolue.
+-- `pos` est un enregistrement d'element du registre : { point, relPoint,
+-- x, y }. Le champ historique s'appelait relativePoint ; on accepte les
+-- deux le temps qu'un profil non migre passe par ici.
 local function ContainerOverflow(container, pos, defPoint, defRel, defX, defY, fw, fh)
     if not container or not container:IsShown() then return 0, 0, 0, 0 end
     local cw, ch = container:GetWidth() or 0, container:GetHeight() or 0
     if cw <= 0 or ch <= 0 then return 0, 0, 0, 0 end
 
     local point = (pos and pos.point)         or defPoint
-    local rel   = (pos and pos.relativePoint) or defRel
+    local rel   = (pos and (pos.relPoint or pos.relativePoint)) or defRel
     local ox    = (pos and pos.x)             or defX
     local oy    = (pos and pos.y)             or defY
 
@@ -249,13 +252,14 @@ local function UnitOverflow(pu, settings)
     local fh = pu.frame:GetHeight() or 0
     local l, r, t, b = 0, 0, 0, 0
 
+    local elements = settings.elements
     local al, ar, at, ab = ContainerOverflow(
-        pu.frame.auraContainer, settings.auras and settings.auras.position,
+        pu.frame.auraContainer, elements and elements.auras,
         "BOTTOMLEFT", "TOPLEFT", 0, 6, fw, fh)
     l, r, t, b = math.max(l, al), math.max(r, ar), math.max(t, at), math.max(b, ab)
 
     local el, er, et, eb2 = ContainerOverflow(
-        pu.frame.enemyBuffContainer, settings.enemyBuffs and settings.enemyBuffs.position,
+        pu.frame.enemyBuffContainer, elements and elements.enemyBuffs,
         "BOTTOMRIGHT", "TOPRIGHT", 0, 6, fw, fh)
     l, r, t, b = math.max(l, el), math.max(r, er), math.max(t, et), math.max(b, eb2)
 
@@ -515,6 +519,62 @@ local function ApplyDataMode(pu, unitKey, settings, live)
         FillUnitFrame(pu, unitKey, settings)
     end
     pu.live = live and true or false
+end
+
+-- ============================================================
+-- API PUBLIQUE — CADRE D'APERÇU AUTONOME (AstralForge)
+-- ============================================================
+-- Le studio a besoin d'UN cadre d'aperçu isolé, pas du strip complet.
+-- Plutôt que de dupliquer BuildVisuals + le remplissage simulé, on expose
+-- les fabriques déjà utilisées par le panneau : le studio édite donc
+-- exactement le même arbre que l'aperçu, lui-même identique aux cadres de
+-- jeu. Aucune duplication possible entre les trois.
+--
+-- Le cadre rendu est DÉTACHÉ : il n'est jamais une frame oUF sécurisée,
+-- n'a pas de token d'unité par défaut et ne porte aucun attribut protégé.
+-- C'est ce qui autorise le glisser-déposer sans risque de souillure.
+
+local standaloneBin
+
+function UFP.CreateStandalone(parent, unitKey, opts)
+    local UF = UFEngine()
+    if not UF or not parent then return nil end
+    local settings = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames[unitKey]
+    if not settings then return nil end
+
+    if not standaloneBin then
+        standaloneBin = CreateFrame("Frame")
+        standaloneBin:Hide()
+    end
+
+    local T = TomoMod_Widgets and TomoMod_Widgets.Theme
+    local accent = {
+        (T and T.accent[1]) or TomoMod_Utils.BRAND[1],
+        (T and T.accent[2]) or TomoMod_Utils.BRAND[2],
+        (T and T.accent[3]) or TomoMod_Utils.BRAND[3],
+    }
+
+    local pu = { frame = opts and opts.recycle or nil }
+    if not BuildUnitFrame(pu, unitKey, settings, parent, standaloneBin, accent) then
+        return nil
+    end
+
+    -- Données SIMULÉES par défaut, et c'est structurel, pas cosmétique.
+    -- En mode réel, un widget alimenté par des données protégées (le texte
+    -- de vie, par exemple) voit son RECT devenir secret : GetLeft() rend
+    -- alors une valeur secrète, et tout designer qui mesure ce cadre pour
+    -- poser une poignée lève « arithmetic on a secret number value ».
+    -- Un cadre d'aperçu simulé n'a aucun rect secret, donc il est mesurable.
+    --
+    -- L'appelant peut redemander le mode réel (opts.live) s'il ne mesure
+    -- rien — le strip du panneau de config, lui, se contente d'afficher.
+    local live = (opts and opts.live) and IsLive(unitKey) or false
+    ApplyDataMode(pu, unitKey, settings, live)
+
+    if pu.frame and pu.frame.tomoHighlight then
+        pu.frame.tomoHighlight:Hide()
+    end
+    return pu.frame
 end
 
 -- ============================================================

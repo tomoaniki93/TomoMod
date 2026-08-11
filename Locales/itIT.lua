@@ -123,8 +123,6 @@ TomoMod_RegisterLocale("itIT", {
     ["section_threat_text"]             = "Testo % minaccia",
     ["opt_threat_text_enable"]          = "Mostra % di minaccia sul bersaglio",
     ["opt_threat_text_font_size"]       = "Dimensione font",
-    ["opt_threat_text_offset_x"]        = "Offset X",
-    ["opt_threat_text_offset_y"]        = "Offset Y",
     ["info_threat_text"]                = "Verde = tank (vantaggio), giallo = avviso, rosso = aggro perso",
     ["opt_show_leader_icon"]            = "Icona leader",
     ["opt_leader_icon_x"]               = "Icona leader X",
@@ -165,6 +163,86 @@ TomoMod_RegisterLocale("itIT", {
     ["elem_power"]                      = "Barra risorsa",
     ["elem_castbar"]                    = "Barra di lancio",
     ["elem_auras"]                      = "Aure",
+    ["elem_enemy_buffs"]                = "Benefici del bersaglio",
+
+    -- AstralForge: element registry
+    ["elem_raid_icon"]                  = "Simbolo incursione",
+    ["elem_leader_icon"]                = "Icona capogruppo",
+    ["elem_threat_text"]                = "Testo minaccia",
+    ["opt_element_anchor"]              = "Ancoraggio",
+    ["btn_reset_elements"]              = "Reimposta posizione elementi",
+    ["anchor_host_frame"]               = "Riquadro",
+    ["anchor_host_health"]              = "Barra della vita",
+    ["anchor_host_power"]               = "Barra risorsa",
+    ["anchor_host_infobar"]             = "Barra info",
+    ["btn_open_astralforge"]            = "Apri AstralForge",
+    ["info_astralforge"]                = "AstralForge è il designer completo: trascina ogni elemento direttamente sul riquadro e scegli il punto di ancoraggio e l'host. I cursori qui sotto restano disponibili per regolazioni al pixel.",
+    ["target_kind_host"]                = "Struttura: ",
+    ["target_kind_element"]             = "Elemento: ",
+
+    -- AstralForge : proprietes par element
+    ["sublabel_element_props"]          = "Proprietà visive",
+    ["opt_element_alpha"]               = "Opacità (%)",
+    ["opt_element_scale"]               = "Scala (%)",
+    ["opt_element_font_size"]           = "Forza dimensione carattere",
+    ["info_element_font_size"]          = "Lascia a 0 per mantenere la dimensione calcolata dal modulo.",
+
+    -- AstralForge : elements instancies
+    ["elem_custom_text"]                = "Testo personalizzato",
+    ["opt_custom_text_template"]        = "Modello di testo",
+    ["info_custom_text_tokens"]         = "Segnaposto disponibili:",
+    ["btn_add_custom_text"]             = "Aggiungi un testo personalizzato",
+    ["btn_reset_element"]               = "Reimposta questo elemento",
+    ["btn_delete_element"]              = "Elimina questo elemento",
+    ["msg_element_max_reached"]         = "Numero massimo di elementi di questo tipo raggiunto.",
+
+    -- AstralForge : presets de disposition
+    ["section_forge_presets"]           = "Preimpostazioni di layout",
+    ["btn_forge_presets"]               = "Preimpostazioni di layout",
+    ["info_forge_presets"]              = "Una preimpostazione salva l'intero layout del soggetto corrente: ancoraggi, proprietà visive ed elementi personalizzati.",
+    ["opt_preset_name"]                 = "Nome della preimpostazione",
+    ["btn_preset_save"]                 = "Salva / sovrascrivi",
+    ["opt_preset_saved"]                = "Preimpostazioni salvate",
+    ["btn_preset_apply"]                = "Applica",
+    ["btn_preset_delete"]               = "Elimina",
+    ["btn_preset_export"]               = "Genera stringa di condivisione",
+    ["opt_preset_share_string"]         = "Stringa di condivisione",
+    ["info_preset_copy"]                = "Clicca nel campo, poi Ctrl+A e Ctrl+C per copiare.",
+    ["opt_preset_import"]               = "Incolla una stringa di condivisione",
+    ["btn_preset_import"]               = "Importa",
+    ["info_no_preset"]                  = "Nessuna preimpostazione salvata per questo soggetto.",
+    ["msg_preset_saved"]                = "Preimpostazione salvata.",
+    ["msg_preset_applied"]              = "Preimpostazione applicata.",
+    ["msg_preset_imported"]             = "Preimpostazione importata:",
+    ["msg_preset_error"]                = "Operazione sulla preimpostazione fallita.",
+    ["msg_presets_unavailable"]         = "Le preimpostazioni di layout non sono disponibili.",
+    ["token_classification"]            = "Classificazione",
+    ["token_name"]                      = "Nome",
+    ["token_level"]                     = "Livello",
+    ["token_class"]                     = "Classe",
+    ["token_race"]                      = "Razza",
+    ["token_guild"]                     = "Gilda",
+
+    -- AstralForge : domaine plaques de nom
+    ["section_np_elements"]             = "Posizione degli elementi",
+    ["info_np_elements"]                = "Apri AstralForge per trascinare ogni elemento sulla targhetta e scegliere il suo ancoraggio. I cursori qui sotto servono per regolazioni al pixel.",
+    ["np_host_plate"]                   = "Targhetta",
+    ["np_host_health"]                  = "Barra della vita",
+    ["np_host_castbar"]                 = "Barra di lancio",
+    ["np_host_name"]                    = "Nome",
+    ["np_elem_name"]                    = "Nome",
+    ["np_elem_hp_number"]               = "Valore vita",
+    ["np_elem_hp_percent"]              = "Percentuale vita",
+    ["np_elem_level"]                   = "Livello",
+    ["np_elem_class_icon"]              = "Icona classificazione",
+    ["np_elem_class_text"]              = "Testo classificazione",
+    ["np_elem_castbar"]                 = "Barra di lancio",
+    ["np_elem_cast_icon"]               = "Icona di lancio",
+    ["np_elem_cast_text"]               = "Nome incantesimo",
+    ["np_elem_cast_timer"]              = "Timer di lancio",
+    ["np_elem_cast_shield"]             = "Scudo di lancio",
+    ["np_elem_quest_icon"]              = "Icona missione",
+    ["np_elem_raid_marker"]             = "Simbolo incursione",
 
     -- =====================
     -- CONFIG: Nameplates Panel
@@ -194,7 +272,6 @@ TomoMod_RegisterLocale("itIT", {
 
     -- Raid Marker
     ["section_raid_marker"]             = "Indicatore del raid",
-    ["opt_np_raid_icon_anchor"]         = "Posizione dell'icona",
     ["opt_np_raid_icon_x"]              = "Offset X",
     ["opt_np_raid_icon_y"]              = "Offset Y",
     ["opt_np_raid_icon_size"]           = "Dimensione icona",
@@ -3018,6 +3095,19 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_333_diag_settle"] = "Diagnostica: la scala che il gioco applica da sé durante l'accesso finiva in ogni rapporto come un ridimensionamento a metà sessione. La rilevazione dello schermo attende ora quattro secondi che il client si stabilizzi prima di effettuare una lettura, così l'unica voce di scala rimasta in un rapporto è quella che merita davvero una spiegazione.",
     ["wn_333_diag_mode"] = "Diagnostica: quando il rapporto non riesce a determinare la modalità di visualizzazione, ora stampa i valori grezzi forniti dal gioco anziché un semplice punto interrogativo — quei nomi di impostazione cambiano da un'espansione all'altra, e un «?» da solo non era diagnosticabile senza tornare a chiedertelo. Lo schermo intero in finestra e le finestre massimizzate vengono riconosciuti in più casi, e le versioni dei componenti aggiuntivi non compaiono più come «vv1.2.3».",
     ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
+
+    -- =====================
+    -- 3.4.2 — Novità
+    -- =====================
+    ["wn_342_astralforge"] = "Nuovo — AstralForge, un editor a schermo intero per gli elementi di un riquadro unità. Finora ogni parte di un riquadro stava dove TomoMod aveva deciso che stesse, e tutto ciò che ti veniva dato era un cursore che la spostava di qualche pixel da lì: portare il nome dall'altro lato non era un'impostazione, era un numero abbastanza grande da spingerlo fin là. Ora trascini ogni elemento dove vuoi: quale angolo dell'elemento si aggancia e a cosa si aggancia — il riquadro, la barra della salute, la barra della risorsa, la barra informazioni. Si allinea a una griglia sottile, si accosta agli altri elementi quando ci passi accanto, e tenendo Maiusc lo posi dove preferisci. I cursori restano per una correzione di due pixel, e i due scrivono la stessa cosa. Si apre dalle opzioni Riquadri unità e, come il Cooldown Studio, si carica solo quando lo chiedi. Ciò che trascini è una copia d'anteprima, mai un riquadro reale: quelli il gioco li protegge in combattimento, e modificarli direttamente è proprio ciò che causa i problemi di interfaccia che TomoMod ha passato due versioni a eliminare.",
+    ["wn_342_af_nameplates"] = "Nuovo — Le targhette ricevono lo stesso editor, e per loro è terreno del tutto nuovo: a parte il simbolo d'incursione, nulla su una targhetta aveva un'impostazione di posizione. Il nome, il valore e la percentuale di salute, il livello, l'icona e il testo di classificazione, la barra di lancio con la sua icona, il suo nome, il suo cronometro e il suo scudo, e l'icona missione possono essere collocati ciascuno dove vuoi. La tua posizione del simbolo d'incursione viene mantenuta invariata, e tutto il resto parte esattamente da dov'era. Due cose non sono trascinabili di proposito: le aure, la cui posizione è calcolata dal loro posto nella fila anziché impostata, e le parti agganciate al riempimento di una barra — una maniglia su quelle direbbe di spostare qualcosa che non può spostare.",
+    ["wn_342_af_props"] = "Nuovo — Opacità, scala e una forzatura della dimensione del testo, per singolo elemento. La forzatura parte da zero, cioè «lascia la dimensione calcolata dal modulo»: non cambia nulla finché non lo dici tu. Vengono mostrate solo le impostazioni che quel particolare elemento può davvero rispettare: l'opacità ha senso su un testo, la scala no, e una semplice immagine non accetta né l'una né l'altra — ottieni quindi quelle che si applicano a ciò che hai selezionato invece di una fila fissa di cursori metà dei quali non fa nulla.",
+    ["wn_342_af_customtext"] = "Nuovo — Testo scritto da te. Aggiungi fino a sei testi personalizzati su un riquadro unità e quattro su una targhetta, scrivi qualcosa come «[name] - [level]» e collocalo come qualsiasi altro elemento. I segnaposto sono nome, livello, classe, razza e gilda su un riquadro, e nome, livello, classe, razza e classificazione su una targhetta. Vale la pena sapere perché non si tratta semplicemente del componente aggiuntivo che incolla parole: in Midnight il gioco fornisce nome e livello di un'unità in una forma che un componente aggiuntivo non ha il permesso di leggere, quindi anche un'operazione banale come unire un nome a un trattino fallirebbe. Il tuo modello viene trasformato in uno schema, i valori ci passano senza essere toccati ed è il gioco stesso ad assemblare il tutto.",
+    ["wn_342_af_presets"] = "Nuovo — Preimpostazioni di disposizione e stringhe di condivisione. Salva con un nome l'intera disposizione di ciò che stai modificando — ogni posizione, ogni opacità e scala, ogni testo personalizzato —, riapplicala più tardi oppure passala a qualcuno come stringa da incollare. Tutto ciò che rientra viene controllato allo stesso modo, sia tuo sia di uno sconosciuto: i valori che il componente aggiuntivo non riconosce vengono scartati, un ancoraggio impossibile viene rifiutato prima di arrivare al gioco, e una disposizione che rimanda a se stessa in cerchio viene spezzata. Il peggio che una stringa incollata possa descrivere è una disposizione.",
+    ["wn_342_af_migration"] = "I tuoi riquadri non si spostano. Ogni posizione che avevi impostato viene convertita nella nuova forma insieme all'ancoraggio su cui il motore la applicava, così un profilo convertito e uno nuovo di zecca disegnano esattamente lo stesso riquadro. Una vecchia impostazione viene scartata invece che convertita: uno scostamento delle aure che il motore ha smesso di leggere nella 3.0.5. Non ha effetto da diverse versioni, e convertirlo oggi sposterebbe aure che si trovano precisamente dove le hai messe. Anche i contenitori delle aure smettono di conservare la loro posizione in un secondo posto tutto loro: trascinarli in gioco, collocarli nell'editor e regolarli con i cursori ora scrivono nello stesso punto, quindi non possono più contraddirsi.",
+    ["wn_342_af_secret"] = "Correzione — Aprire AstralForge su un'unità realmente presente poteva lasciarti una finestra vuota. L'anteprima che costruisce veniva alimentata con dati reali, e nel gioco attuale qualsiasi elemento dell'interfaccia il cui contenuto deriva da informazioni protette — un valore di salute, per esempio — nasconde agli addon anche la propria posizione e la propria dimensione. Misurarle è esattamente tutto il lavoro dell'editor: la primissima misurazione falliva e si portava dietro l'anteprima. Ora l'anteprima gira su dati inventati: un nome fittizio, un valore di salute fittizio, che nulla impedisce di misurare e che appaiono esattamente come ciò che stai disponendo. La accompagnano due protezioni: ciò che comunque non è misurabile resta semplicemente senza maniglia invece di bloccare tutto il resto, e se l'anteprima non può proprio essere costruita la finestra si apre lo stesso con l'elenco degli elementi, l'ispettore e i preset, anziché aprirsi vuota.",
+    ["wn_342_keysync_realm"] ="Mitica+: l'elenco delle chiavi del gruppo era vuoto per chiunque fosse sul tuo stesso reame. La loro chiave veniva ricevuta e conservata da sempre — semplicemente non si riusciva più a ritrovarla. Quando il componente aggiuntivo di un'altra persona ti manda la sua chiave, il gioco la identifica come «Alice-Varimathras», che quel reame sia il tuo o no: ogni chiave viene quindi archiviata sotto un nome completo. Ma quando TomoMod chiede al gioco della persona che ti sta accanto sul tuo stesso reame, riceve «Alice» senza reame, e questo non corrisponde a nulla. È emerso con la nuova condivisione delle chiavi della 3.4.1, perché la libreria che ha sostituito nascondeva questa differenza nel proprio codice. Un nome senza reame viene ora ritentato con il tuo, così una chiave dello stesso reame si ritrova di nuovo — e succede una volta sola, dove le chiavi sono conservate, invece di essere qualcosa che ogni schermata che le legge deve ricordarsi di fare.",
+    ["wn_342_keysync_debug"] = "Nuovo — /tmt keysync. Stampa su quale canale viaggia la condivisione, se sei in gilda, tutte le chiavi che ha in memoria in quel momento e poi ogni membro del gruppo, indicando se la sua chiave viene effettivamente trovata. È quell'ultima riga il punto: una chiave salvata ma non trovata è un problema diverso da una chiave mai arrivata, e dall'elenco del gruppo le due sembrano identiche — ecco perché il problema qui sopra ha richiesto più tempo per essere individuato che per essere corretto. Il comando chiude chiedendo le chiavi al gruppo: rieseguirlo un secondo dopo ti dice se qualcuno ha risposto.",
 
     -- =====================
     -- 3.4.1 — Novità

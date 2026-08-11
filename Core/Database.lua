@@ -10,6 +10,11 @@ local ADDON_TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
 -- =====================================
 
 TomoMod_Defaults = {
+    -- AstralForge : presets de disposition nommes, par domaine. Le magasin
+    -- est libre (l'utilisateur choisit les noms), donc pas de valeurs par
+    -- defaut a fusionner -- juste la table racine.
+    forgeAssets = {},
+
     -- =====================
     -- QOL MODULES (preserved from v1.x)
     -- =====================
@@ -841,15 +846,10 @@ TomoMod_Defaults = {
                 growDirection = "LEFT",
                 showDuration = true,
                 showOnlyMine = false,
-                position = { point = "BOTTOMRIGHT", relativePoint = "TOPRIGHT", x = 0, y = 6 },
             },
-            elementOffsets = {
-                name = { x = 6, y = 0 },
-                level = { x = -6, y = 0 },
-                healthText = { x = 0, y = 0 },
-                power = { x = 0, y = 0 },
-                auras = { x = 0, y = 0 },
-            },
+            -- elements: filled from the AstralForge registry at init (see
+            -- TomoMod_NormalizeUFElements). Kept OUT of the defaults on
+            -- purpose so the registry stays the single source of truth.
             position = { point = "BOTTOM", relativePoint = "CENTER", x = -280, y = -190 },
         },
 
@@ -901,15 +901,8 @@ TomoMod_Defaults = {
                 spacing = 2,
                 growDirection = "UP",
                 showDuration = true,
-                position = { point = "BOTTOMRIGHT", relativePoint = "TOPRIGHT", x = 0, y = 6 },
             },
-            elementOffsets = {
-                name = { x = 6, y = 0 },
-                level = { x = -6, y = 0 },
-                healthText = { x = 0, y = 0 },
-                power = { x = 0, y = 0 },
-                auras = { x = 0, y = 0 },
-            },
+            -- elements: see the note on the player block above.
             position = { point = "BOTTOM", relativePoint = "CENTER", x = 280, y = -190 },
         },
 
@@ -987,7 +980,6 @@ TomoMod_Defaults = {
                 spacing = 2,
                 growDirection = "UP",
                 showDuration = true,
-                position = { point = "BOTTOMRIGHT", relativePoint = "TOPRIGHT", x = 0, y = 6 },
             },
             position = { point = "CENTER", relativePoint = "CENTER", x = -350, y = 150 },
         },
@@ -1190,9 +1182,9 @@ TomoMod_Defaults = {
             trivial       = { r = 0.50, g = 0.50, b = 0.50 },
         },
         useClassificationColors = true,
-        raidIconAnchor = "TOPRIGHT",
-        raidIconX = 2,
-        raidIconY = 2,
+        -- La POSITION de la marque de raid vit desormais dans
+        -- nameplates.elements.raidMarker (registre AstralForge) ; seule la
+        -- taille reste ici.
         raidIconSize = 24,
         tankColors = {
             noThreat      = { r = 1.00, g = 0.22, b = 0.17 },
@@ -1607,6 +1599,185 @@ local function TomoMod_RunMigrations()
             cr.offsetX, cr.offsetY = nil, nil
         end
     end
+
+    -- AstralForge: unit frame element positions used to be a bag of
+    -- offsets applied against anchor points hard-coded in the engine
+    -- (elementOffsets, raidIconOffset, leaderIconOffset, threatText's own
+    -- offset pair). They are now full anchor records living under
+    -- `elements`, so the studio can move an element instead of only
+    -- nudging it. Carry every legacy offset over with the anchor pair the
+    -- engine used to apply, then drop the dead keys.
+    --
+    -- elementOffsets.auras is dropped without conversion: the engine
+    -- stopped reading it in 3.0.5 (auras.position is the single source of
+    -- truth, written by the drag), so it holds a value that has had no
+    -- effect for several versions and converting it would MOVE auras that
+    -- are currently sitting where the player put them.
+    if not done.ufElementsV1 then
+        done.ufElementsV1 = true
+        local uf = TomoModDB.unitFrames
+        if type(uf) == "table" then
+            local pair = function(t)
+                if type(t) ~= "table" then return nil end
+                return tonumber(t.x) or 0, tonumber(t.y) or 0
+            end
+            for _, unitKey in ipairs({ "player", "target", "targettarget", "pet", "focus" }) do
+                local s = uf[unitKey]
+                if type(s) == "table" then
+                    local el = type(s.elements) == "table" and s.elements or {}
+                    local old = s.elementOffsets
+
+                    local function carry(id, point, relPoint, src)
+                        local x, y = pair(src)
+                        if not x then return end
+                        el[id] = {
+                            point    = point,
+                            relTo    = "health",
+                            relPoint = relPoint,
+                            x        = x,
+                            y        = y,
+                        }
+                    end
+
+                    if type(old) == "table" then
+                        carry("name",       "LEFT",   "LEFT",   old.name)
+                        carry("level",      "RIGHT",  "RIGHT",  old.level)
+                        carry("healthText", "CENTER", "CENTER", old.healthText)
+                        carry("power",      "TOP",    "BOTTOM", old.power)
+                    end
+                    carry("raidIcon",   "BOTTOM",     "TOP",     s.raidIconOffset)
+                    carry("leaderIcon", "BOTTOMLEFT", "TOPLEFT", s.leaderIconOffset)
+
+                    local tt = s.threatText
+                    if type(tt) == "table" then
+                        carry("threatText", "CENTER", "CENTER",
+                            { x = tt.offsetX, y = tt.offsetY })
+                        tt.offsetX, tt.offsetY = nil, nil
+                    end
+
+                    s.elements          = el
+                    s.elementOffsets    = nil
+                    s.raidIconOffset    = nil
+                    s.leaderIconOffset  = nil
+                end
+            end
+        end
+    end
+
+    -- AstralForge : les deux conteneurs d'auras gardaient leur position dans
+    -- auras.position / enemyBuffs.position, ecrite par le drag en jeu. C'etait
+    -- la derniere seconde source de verite de position du domaine. On la
+    -- reporte telle quelle -- l'ancien drag sauvait deja un delta CENTER/CENTER
+    -- relatif au cadre, ce qui est exactement la forme d'un enregistrement
+    -- d'element -- puis on supprime la cle.
+    --
+    -- Un profil qui n'a jamais bouge ses auras n'a pas de `position` : il part
+    -- alors des valeurs par defaut du registre, identiques aux valeurs de repli
+    -- que le code utilisait (BOTTOMLEFT/TOPLEFT +0,+6 et BOTTOMRIGHT/TOPRIGHT).
+    if not done.ufAuraElementsV1 then
+        done.ufAuraElementsV1 = true
+        local uf = TomoModDB.unitFrames
+        if type(uf) == "table" then
+            for _, unitKey in ipairs({ "player", "target", "targettarget", "pet", "focus" }) do
+                local s = uf[unitKey]
+                if type(s) == "table" then
+                    local el = type(s.elements) == "table" and s.elements or {}
+                    local function carryContainer(elementID, holder)
+                        if type(holder) ~= "table" then return end
+                        local pos = holder.position
+                        if type(pos) == "table" and pos.point then
+                            el[elementID] = {
+                                point    = pos.point,
+                                relTo    = "frame",
+                                relPoint = pos.relativePoint or pos.point,
+                                x        = tonumber(pos.x) or 0,
+                                y        = tonumber(pos.y) or 0,
+                            }
+                        end
+                        holder.position = nil
+                    end
+                    carryContainer("auras", s.auras)
+                    carryContainer("enemyBuffs", s.enemyBuffs)
+                    s.elements = el
+                end
+            end
+        end
+    end
+
+    -- AstralForge, domaine plaques de nom. Seule la marque de raid avait un
+    -- reglage de position exploitable (raidIconAnchor / raidIconX / raidIconY) ;
+    -- tout le reste etait code en dur dans CreatePlate et part donc des
+    -- valeurs par defaut du registre, identiques a l'ancien comportement.
+    --
+    -- L'ancien code posait SetPoint(anchor, health, anchor, x, y) : le point
+    -- de l'icone ET celui de la barre de vie etaient le MEME. On reporte donc
+    -- l'ancre sur les deux, ce qui reproduit exactement le rendu d'avant.
+    if not done.npElementsV1 then
+        done.npElementsV1 = true
+        local np = TomoModDB.nameplates
+        if type(np) == "table" then
+            local el = type(np.elements) == "table" and np.elements or {}
+            local anchor = np.raidIconAnchor
+            if type(anchor) == "string" then
+                el.raidMarker = {
+                    point    = anchor,
+                    relTo    = "health",
+                    relPoint = anchor,
+                    x        = tonumber(np.raidIconX) or 2,
+                    y        = tonumber(np.raidIconY) or 2,
+                }
+            end
+            np.elements        = el
+            np.raidIconAnchor  = nil
+            np.raidIconX       = nil
+            np.raidIconY       = nil
+        end
+    end
+end
+
+-- =====================================
+-- ASTRALFORGE -- UNIT FRAME ELEMENT NORMALISATION
+-- =====================================
+-- The element defaults are NOT duplicated in TomoMod_Defaults: the
+-- AstralForge registry owns them, and this fills any entry a profile does
+-- not have yet. Run on every login (not behind a migration flag) so an
+-- element added in a later version lands additively in profiles already
+-- in the wild, and re-run after a reset or a profile switch because both
+-- rebuild TomoModDB from the defaults.
+function TomoMod_NormalizeUFElements()
+    local UFE = TomoMod_UFElements
+    if not UFE or not UFE.Ensure then return false end
+    local uf = TomoModDB and TomoModDB.unitFrames
+    if type(uf) ~= "table" then return false end
+
+    for _, unitKey in ipairs({ "player", "target", "targettarget", "pet", "focus" }) do
+        local s = uf[unitKey]
+        if type(s) == "table" then
+            if type(s.elements) ~= "table" then s.elements = {} end
+            UFE.Ensure(s.elements)
+        end
+    end
+    return true
+end
+
+-- Meme contrat pour les plaques de nom : le registre possede les valeurs
+-- par defaut, ceci comble ce qu'un profil n'a pas encore.
+function TomoMod_NormalizeNPElements()
+    local NPE = TomoMod_NPElements
+    if not NPE or not NPE.Ensure then return false end
+    local np = TomoModDB and TomoModDB.nameplates
+    if type(np) ~= "table" then return false end
+    if type(np.elements) ~= "table" then np.elements = {} end
+    NPE.Ensure(np.elements)
+    return true
+end
+
+-- Point d'entree unique appele par l'init, les resets et les profils : un
+-- domaine ajoute plus tard se branche ici et nulle part ailleurs.
+function TomoMod_NormalizeAllElements()
+    local a = TomoMod_NormalizeUFElements()
+    local b = TomoMod_NormalizeNPElements()
+    return a or b
 end
 
 function TomoMod_InitDatabase()
@@ -1615,16 +1786,21 @@ function TomoMod_InitDatabase()
     end
     TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
     TomoMod_RunMigrations()
+    TomoMod_NormalizeAllElements()
 end
 
 function TomoMod_ResetDatabase()
     TomoModDB = CopyTable(TomoMod_Defaults)
+    TomoMod_NormalizeAllElements()
     print("|cff2ed884TomoMod|r " .. TomoMod_L["msg_db_reset"])
 end
 
 function TomoMod_ResetModule(moduleName)
     if TomoMod_Defaults[moduleName] then
         TomoModDB[moduleName] = CopyTable(TomoMod_Defaults[moduleName])
+        if moduleName == "unitFrames" or moduleName == "nameplates" then
+            TomoMod_NormalizeAllElements()
+        end
         print("|cff2ed884TomoMod|r " .. string.format(TomoMod_L["msg_module_reset"], moduleName))
     end
 end

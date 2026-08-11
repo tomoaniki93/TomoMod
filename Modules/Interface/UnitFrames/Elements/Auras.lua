@@ -99,6 +99,57 @@ end
 -- nameOverride : nom global alternatif. L'aperçu de configuration construit
 -- de vrais conteneurs d'auras ; sans ce paramètre il écraserait
 -- _G["TomoMod_Auras_player"], que le module Movers utilise.
+-- =====================================
+-- SAUVEGARDE DU DRAG D'UN CONTENEUR (AstralForge)
+-- =====================================
+-- Point unique de sauvegarde pour les deux conteneurs. Ecrit un
+-- enregistrement d'element, comme le canvas du studio : le glisser en jeu,
+-- le glisser dans le studio et les curseurs de la config ecrivent donc tous
+-- au meme endroit et ne peuvent plus diverger.
+--
+-- La mesure passe par Forge.Canvas.ComputeOffset quand il est disponible :
+-- elle convertit en pixels ecran via les echelles effectives, donc elle
+-- survit a un SetScale sur le cadre. Le repli GetCenter reproduit l'ancien
+-- calcul, valable tant qu'aucune echelle n'est en jeu.
+--
+-- Jamais de GetPoint() : c'est la regle du mover.
+function UF_Elements.SaveContainerDrag(container, parent, elementID, settings)
+    if not (container and parent and settings) then return false end
+
+    local R = TomoMod_Forge and TomoMod_Forge.Registry
+    local C = TomoMod_Forge and TomoMod_Forge.Canvas
+    local UFE = TomoMod_UFElements
+    if not (R and UFE) then return false end
+
+    if type(settings.elements) ~= "table" then settings.elements = {} end
+    UFE.Ensure(settings.elements)
+
+    local rec = settings.elements[elementID]
+    if type(rec) ~= "table" then
+        rec = R.Default(UFE.DOMAIN, elementID)
+        settings.elements[elementID] = rec
+    end
+
+    local target = R.ResolveTarget(UFE.DOMAIN, rec.relTo, parent) or parent
+
+    local dx, dy
+    if C and C.ComputeOffset then
+        dx, dy = C.ComputeOffset(container, target, rec.point, rec.relPoint)
+    end
+    if not dx then
+        local sx, sy = container:GetCenter()
+        local px, py = target.GetCenter and target:GetCenter()
+        if not (sx and px) then return false end
+        rec.point, rec.relPoint = "CENTER", "CENTER"
+        dx, dy = sx - px, sy - py
+    end
+
+    rec.x, rec.y = dx, dy
+    container:ClearAllPoints()
+    container:SetPoint(rec.point, target, rec.relPoint, rec.x, rec.y)
+    return true
+end
+
 function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
     if not settings or not settings.auras or not settings.auras.enabled then return nil end
 
@@ -111,13 +162,10 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
     container.parentFrame = parent
     container.icons = {}
 
-    -- Position
-    local pos = auraSettings.position
-    if pos then
-        container:SetPoint(pos.point, parent, pos.relativePoint, pos.x, pos.y)
-    else
-        container:SetPoint("BOTTOMLEFT", parent, "TOPLEFT", 0, 6)
-    end
+    -- Position de construction uniquement : la position finale vient du
+    -- registre AstralForge (UF.ApplyVisuals -> UFE.ApplyAll), qui passe
+    -- systematiquement apres.
+    container:SetPoint("BOTTOMLEFT", parent, "TOPLEFT", 0, 6)
 
     -- Create icons
     for i = 1, auraSettings.maxAuras do
@@ -137,16 +185,7 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
     end)
     container:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
-        -- Convert to parent-relative coordinates
-        local sx, sy = self:GetCenter()
-        local px, py = parent:GetCenter()
-        if sx and sy and px and py then
-            local dx = sx - px
-            local dy = sy - py
-            self:ClearAllPoints()
-            self:SetPoint("CENTER", parent, "CENTER", dx, dy)
-            auraSettings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
-        end
+        UF_Elements.SaveContainerDrag(self, parent, "auras", settings)
     end)
 
     -- SetLocked(bool) — appelé par le système Movers pour activer/désactiver le drag
@@ -385,13 +424,8 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings, nameOverri
     container._tomoSize     = size
     container._tomoMaxAuras = maxAuras
 
-    -- Position (default: top-right of health bar)
-    local pos = buffSettings.position
-    if pos then
-        container:SetPoint(pos.point, parent, pos.relativePoint, pos.x, pos.y)
-    else
-        container:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", 0, 6)
-    end
+    -- Position de construction uniquement : cf. CreateAuraContainer.
+    container:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", 0, 6)
 
     -- Création des icônes en grille  (droite → gauche, bas → haut)
     --   col 0 = droite, col 1 = milieu, col 2 = gauche
@@ -459,16 +493,7 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings, nameOverri
     container:SetScript("OnDragStart", function(self) self:StartMoving() end)
     container:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
-        -- Convert to parent-relative coordinates
-        local sx, sy = self:GetCenter()
-        local px, py = parent:GetCenter()
-        if sx and sy and px and py then
-            local dx = sx - px
-            local dy = sy - py
-            self:ClearAllPoints()
-            self:SetPoint("CENTER", parent, "CENTER", dx, dy)
-            buffSettings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
-        end
+        UF_Elements.SaveContainerDrag(self, parent, "enemyBuffs", settings)
     end)
 
     return container

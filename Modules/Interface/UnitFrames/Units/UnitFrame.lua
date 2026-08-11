@@ -131,6 +131,14 @@ local function UpdateName(frame)
     else
         frame.health.nameText:SetFormattedText("%s", name)
     end
+
+    -- Les textes personnalises utilisent les memes jetons d'identite que le
+    -- nom : ils se rafraichissent donc au meme moment, sur les memes
+    -- evenements, sans en enregistrer de nouveaux.
+    local UFE = TomoMod_UFElements
+    if UFE and UFE.RefreshCustomTexts then
+        UFE.RefreshCustomTexts(frame, settings.elements)
+    end
 end
 
 local function UpdateLevel(frame)
@@ -787,68 +795,34 @@ function UF.ApplyVisuals(frame, unitKey, settings)
         ApplyBarTexture(frame.absorb,  barTex)
     end
 
-    -- Offsets d'éléments
-    local offsets = settings.elementOffsets
-    if offsets then
-        if frame.health.nameText and offsets.name then
-            frame.health.nameText:ClearAllPoints()
-            frame.health.nameText:SetPoint("LEFT", offsets.name.x, offsets.name.y)
-        end
-        if frame.health.levelText and offsets.level then
-            frame.health.levelText:ClearAllPoints()
-            frame.health.levelText:SetPoint("RIGHT", offsets.level.x, offsets.level.y)
-        end
-        if frame.health.text and offsets.healthText then
-            frame.health.text:ClearAllPoints()
-            frame.health.text:SetPoint("CENTER", offsets.healthText.x, offsets.healthText.y)
-        end
-        if frame.power and offsets.power then
-            frame.power:ClearAllPoints()
-            frame.power:SetPoint("TOP", frame.health, "BOTTOM", offsets.power.x, offsets.power.y)
-        end
-        -- [3.0.5] La position des auras vient UNIQUEMENT du drag (auras.position),
-        -- source de vérité unique, identique au restore de CreateAuraContainer.
-        -- On NE cumule PLUS elementOffsets.auras ici : ce double-comptage faisait
-        -- dériver les buffs/debuffs du cadre de joueur à chaque /reload.
-        if frame.auraContainer and offsets.auras then
-            local auraPos = settings.auras and settings.auras.position
-            if auraPos then
-                frame.auraContainer:ClearAllPoints()
-                frame.auraContainer:SetPoint(
-                    auraPos.point or "BOTTOMRIGHT", frame, auraPos.relativePoint or "TOPRIGHT",
-                    auraPos.x or 0,
-                    auraPos.y or 6
-                )
-            end
-        end
-    end
-
-    -- Raid icon offset
-    if frame.health and frame.health.raidIcon and settings.raidIconOffset then
-        local ofs = settings.raidIconOffset
-        frame.health.raidIcon:ClearAllPoints()
-        frame.health.raidIcon:SetPoint("BOTTOM", frame.health, "TOP", ofs.x, ofs.y)
-    end
-
-    -- Leader icon offset
-    if frame.health and frame.health.leaderIcon and settings.leaderIconOffset then
-        local ofs = settings.leaderIconOffset
-        frame.health.leaderIcon:ClearAllPoints()
-        frame.health.leaderIcon:SetPoint("BOTTOMLEFT", frame.health, "TOPLEFT", ofs.x, ofs.y)
-    end
-
-    -- Threat text — repositionnement et taille police
-    if frame.threatText then
-        local tt    = settings.threatText
-        local fsize = (tt and tt.fontSize) or 13
-        local ox    = (tt and tt.offsetX) or 0
-        local oy    = (tt and tt.offsetY) or 0
-        frame.threatText:SetFont(font, fsize, fontOutline)
-        frame.threatText:ClearAllPoints()
-        frame.threatText:SetPoint("CENTER", frame.health, "CENTER", ox, oy)
-    elseif settings.threatText and settings.threatText.enabled then
+    -- Texte de menace : créé si l'option vient d'être activée. Sa POSITION
+    -- est posée plus bas par le registre, comme tous les autres éléments —
+    -- ici on ne s'occupe que de la police.
+    if not frame.threatText and settings.threatText and settings.threatText.enabled then
         frame.threatText = E.CreateThreatText(frame.health, settings)
     end
+    if frame.threatText then
+        local tt = settings.threatText
+        frame.threatText:SetFont(font, (tt and tt.fontSize) or 13, fontOutline)
+    end
+
+    -- ── Position des éléments (AstralForge) ──────────────────────────
+    -- Un seul point d'application : le registre lit `settings.elements` et
+    -- pose chaque élément (nom, niveau, texte de vie, barre de ressource,
+    -- icônes de raid / chef, texte de menace). Ensure() comble les entrées
+    -- absentes depuis les valeurs par défaut du registre, ce qui couvre les
+    -- profils importés et les resets partiels sans passer par la DB.
+    local UFE = TomoMod_UFElements
+    if UFE then
+        if type(settings.elements) ~= "table" then settings.elements = {} end
+        UFE.Ensure(settings.elements)
+        UFE.ApplyAll(frame, settings.elements)
+        UFE.RefreshCustomTexts(frame, settings.elements)
+    end
+
+    -- Les deux conteneurs d'auras sont desormais des elements du registre
+    -- comme les autres : plus de branche dediee ici, et le drag en jeu ecrit
+    -- au meme endroit (UF_Elements.SaveContainerDrag).
 
     -- Redimensionner les icônes d'aura puis ré-appliquer la grille (même layout
     -- qu'à la création — évite toute incohérence de taille/espacement entre unités).
