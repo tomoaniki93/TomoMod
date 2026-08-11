@@ -50,16 +50,35 @@ U.BRAND_DARK  = { 0.110, 0.541, 0.333 }     -- darker shade for pressed states
 --- guard: in combat all keys propagate and the window stays open.
 function U.CloseOnEscape(frame, onEscape)
     if type(frame) ~= "table" or not frame.EnableKeyboard then return end
-    frame:EnableKeyboard(true)
+
+    -- [FIX] A frame with EnableKeyboard(true) swallows every key unless it
+    -- explicitly propagates, and propagation defaults to false. The old
+    -- handler only propagated as a side effect of handling a key, and
+    -- returned early in combat without propagating at all -- so while one
+    -- of these windows was open the player could not move, and closing
+    -- with Escape left propagation off for the next time it opened.
+    --
+    -- The rule now: propagate first, always. Escape is the only key this
+    -- helper consumes, and only outside combat, where hiding is safe.
     frame:SetScript("OnKeyDown", function(self, key)
-        if InCombatLockdown() then return end
-        if key == "ESCAPE" then
-            self:SetPropagateKeyboardInput(false)
-            if onEscape then onEscape(self) else self:Hide() end
-        else
-            self:SetPropagateKeyboardInput(true)
-        end
+        self:SetPropagateKeyboardInput(true)
+        if key ~= "ESCAPE" or InCombatLockdown() then return end
+        self:SetPropagateKeyboardInput(false)
+        if onEscape then onEscape(self) else self:Hide() end
     end)
+
+    -- Hold the keyboard only while visible. A hidden frame that still
+    -- claims keyboard input is how a closed window keeps eating keys.
+    --
+    -- Propagation is reset on show, not on hide. OnHide runs synchronously
+    -- inside the Escape keypress that closed the window, so re-opening
+    -- propagation there would hand that same Escape on to the game menu.
+    frame:HookScript("OnShow", function(self)
+        self:EnableKeyboard(true)
+        self:SetPropagateKeyboardInput(true)
+    end)
+    frame:HookScript("OnHide", function(self) self:EnableKeyboard(false) end)
+    frame:EnableKeyboard(frame:IsShown() and true or false)
 end
 
 --- Returns the edit box of a StaticPopup dialog, or nil.
