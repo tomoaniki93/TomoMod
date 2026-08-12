@@ -101,110 +101,8 @@ local function DB()
     return TomoModDB and TomoModDB.nameplates or {}
 end
 
--- [PERF] Reusable table for GetAuraSlots vararg capture (avoids table alloc per plate)
-local _npSlotResults = {}
-local function CaptureSlots(dest, ...)
-    wipe(dest)
-    for i = 1, select("#", ...) do
-        dest[i] = select(i, ...)
-    end
-    return dest
-end
-
--- [12.1] The guarded form of the above. GetAuraSlots throws once execution is
--- tainted, and `pcall(CaptureSlots, dest, C_UnitAuras.GetAuraSlots(...))` does
--- NOT catch that: argument expressions are evaluated before pcall is entered,
--- so the refusal escapes. The read has to happen inside the protected call.
--- Hoisted rather than wrapped in a closure at the call site so the guard costs
--- no allocation per plate, like the enemy buff processor below.
-local function CaptureAuraSlots(dest, unit, filter)
-    -- [12.1] The probe answers for the whole frame, so forty plates cost
-    -- one question rather than forty refusals.
-    if TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted() then wipe(dest); return dest end
-    return CaptureSlots(dest, C_UnitAuras.GetAuraSlots(unit, filter))
-end
-
--- [PERF] Hoisted enemy buff processor — avoids closure creation per nameplate
-local _ebBuffIndex = 0
-local _ebPlate = nil
-local _ebUnit = nil
-local _ebMaxBuffs = 0
-
--- [12.1] Aura reads now refuse outright once execution is tainted, and they
--- throw rather than return nothing: "Auras cannot be accessed when secret
--- while tainted". Every read below therefore goes through a guard, because
--- one refusal took the entire plate update with it -- which is why turning
--- the camera made enemy nameplates disappear.
-local function SafeAuraDuration(unit, instanceID)
-    if not (C_UnitAuras and C_UnitAuras.GetAuraDuration) then return nil end
-    if type(unit) == "nil" or type(instanceID) == "nil" then return nil end
-    local ok, durObj = pcall(C_UnitAuras.GetAuraDuration, unit, instanceID)
-    if ok then return durObj end
-    return nil
-end
-
--- Writes the remaining time into a FontString, or leaves it blank.
--- The value never touches Lua: it goes from one C function into another.
-local function SafeSetDuration(fontString, durObj, fmt)
-    if not fontString then return false end
-    if type(durObj) == "nil" or not durObj.GetRemainingDuration then return false end
-    -- Two pcalls, not one. `pcall(setter, ..., reader())` evaluates reader()
-    -- BEFORE pcall is entered, so a refusal from the reader escapes the guard
-    -- meant to contain it -- the same shape as ApplyClassColor in Core/Utils.
-    -- The value is still only carried, never operated on in Lua.
-    local ok, remaining = pcall(durObj.GetRemainingDuration, durObj)
-    if not ok then return false end
-    return (pcall(fontString.SetFormattedText, fontString, fmt or "%.0f", remaining))
-        and true or false
-end
-
-local function SafeAuraDataBySlot(unit, slot)
-    if not (C_UnitAuras and C_UnitAuras.GetAuraDataBySlot) then return nil end
-    local ok, data = pcall(C_UnitAuras.GetAuraDataBySlot, unit, slot)
-    if ok then return data end
-    return nil
-end
-local function ProcessEnemyBuffSlots(token, ...)
-    for i = 1, select("#", ...) do
-        if _ebBuffIndex >= _ebMaxBuffs then return end
-        local slot = select(i, ...)
-        if not slot then return end
-        local data = SafeAuraDataBySlot(_ebUnit, slot)
-        if data then
-            _ebBuffIndex = _ebBuffIndex + 1
-            local buffFrame = _ebPlate.enemyBuffs[_ebBuffIndex]
-            if buffFrame then
-                buffFrame.icon:SetTexture(data.icon)
-                local durObj = SafeAuraDuration(_ebUnit, data.auraInstanceID)
-                buffFrame._auraUnit = _ebUnit
-                buffFrame._auraInstanceID = data.auraInstanceID
-                if durObj then
-                    buffFrame.cooldown:Hide()
-                    if buffFrame.duration then
-                        -- TWW 11.1: GetRemainingDuration() returns a secret number —
-                        -- pass directly to C-side SetFormattedText (no Lua arithmetic)
-                        SafeSetDuration(buffFrame.duration, durObj, "%.0f")
-                        buffFrame.duration:Show()
-                    end
-                else
-                    buffFrame.cooldown:Hide()
-                    if buffFrame.duration then buffFrame.duration:Hide() end
-                end
-                local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(_ebUnit, data.auraInstanceID, 2, 1000)
-                buffFrame.count:SetText(stackStr or "")
-                buffFrame:Show()
-            end
-        end
-    end
-end
-
--- Guarded entry point, hoisted for the same reason the processor above is:
--- wrapping the call in a closure at the call site would put one allocation
--- per nameplate back exactly where that comment says it was removed.
-local function CaptureEnemyBuffSlots(unit)
-    if TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted() then return end
-    return ProcessEnemyBuffSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
-end
+-- The GetAuraSlots vararg capture buffer and its helper are gone with the
+-- scan they served: the engine enumerates auras itself now.
 
 -- =====================================
 -- BORDER HELPERS (9-slice rounded)
@@ -650,100 +548,36 @@ local function CreatePlate(baseFrame)
     end)
 
     -- =========== DEBUFFS (centered above name) ===========
-    plate.auras = {}
     local maxAuras = settings.maxAuras or 5
     local auraSize = settings.auraSize or 24
-    for i = 1, maxAuras do
-        local aura = CreateFrame("Frame", nil, plate)
-        aura:SetSize(auraSize, auraSize - 4)
-        aura:EnableMouse(false)
-        aura:SetPoint("BOTTOM", plate.nameText, "TOP", (i - (maxAuras + 1) / 2) * (auraSize + 2), 2)
 
-        aura.icon = aura:CreateTexture(nil, "ARTWORK")
-        aura.icon:SetPoint("TOPLEFT", 1, -1)
-        aura.icon:SetPoint("BOTTOMRIGHT", -1, 1)
-        local cropPercent = 2 / auraSize
-        aura.icon:SetTexCoord(0.08, 0.92, 0.08 + cropPercent, 0.92 - cropPercent)
-
-        aura.cooldown = CreateFrame("Cooldown", nil, aura, "CooldownFrameTemplate")
-        aura.cooldown:SetAllPoints(aura.icon)
-        aura.cooldown:SetDrawEdge(false)
-        aura.cooldown:SetReverse(true)
-        aura.cooldown:SetHideCountdownNumbers(true)
-        aura.cooldown:EnableMouse(false)
-
-        aura.count = aura:CreateFontString(nil, "OVERLAY")
-        aura.count:SetFont(font, 9, "OUTLINE")
-        aura.count:SetPoint("BOTTOMRIGHT", 1, 1)
-        aura.count:SetJustifyH("RIGHT")
-
-        aura.duration = aura:CreateFontString(nil, "OVERLAY")
-        aura.duration:SetFont(font, 9, "OUTLINE")
-        aura.duration:SetPoint("TOPLEFT", aura, "TOPLEFT", -3, 4)
-        aura.duration:SetJustifyH("LEFT")
-        aura.duration:SetTextColor(1, 1, 0, 1)
-
-        CreatePixelBorder(aura)
-        aura:Hide()
-        plate.auras[i] = aura
-    end
-
-    -- [12.1] Debuffs through the client's own aura engine when this client
-    -- has it. The loop above still runs: its frames are the fallback for
-    -- older clients, and they simply stay hidden when the container owns
-    -- the display.
-    local NPAC = TomoMod_NPAuraContainer
-    if NPAC and NPAC.IsAvailable() then
-        plate.auraContainer = NPAC.Create(plate, {
+    local AC = TomoMod_AuraContainer
+    if AC then
+        plate.auraContainer = AC.Create(plate, {
+            key      = "debuffs",
             unit     = plate.unit,
             size     = auraSize,
             max      = maxAuras,
             font     = font,
+            harmful  = true,
             onlyMine = settings.showOnlyMyAuras,
             border   = CreatePixelBorder,
             point    = { "BOTTOM", plate.nameText, "TOP", 0, 2 },
         })
+
+        plate.buffContainer = AC.Create(plate, {
+            key     = "enemybuffs",
+            unit    = plate.unit,
+            size    = settings.enemyBuffSize or 22,
+            max     = settings.maxEnemyBuffs or 4,
+            font    = font,
+            harmful = false,
+            border  = CreatePixelBorder,
+            point   = { "RIGHT", plate.health, "LEFT", -2, 0 },
+        })
     end
 
     -- =========== ENEMY BUFFS (left of health bar) ===========
-    plate.enemyBuffs = {}
-    local maxEnemyBuffs = settings.maxEnemyBuffs or 4
-    local enemyBuffSize = settings.enemyBuffSize or 22
-    for i = 1, maxEnemyBuffs do
-        local buff = CreateFrame("Frame", nil, plate)
-        buff:SetSize(enemyBuffSize, enemyBuffSize)
-        buff:EnableMouse(false)
-        if i == 1 then
-            buff:SetPoint("RIGHT", plate.health, "LEFT", -2, 0)
-        else
-            buff:SetPoint("RIGHT", plate.enemyBuffs[i - 1], "LEFT", -2, 0)
-        end
-
-        buff.icon = buff:CreateTexture(nil, "ARTWORK")
-        buff.icon:SetPoint("TOPLEFT", 1, -1)
-        buff.icon:SetPoint("BOTTOMRIGHT", -1, 1)
-        buff.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-
-        buff.cooldown = CreateFrame("Cooldown", nil, buff, "CooldownFrameTemplate")
-        buff.cooldown:SetAllPoints(buff.icon)
-        buff.cooldown:SetDrawEdge(false)
-        buff.cooldown:SetReverse(true)
-        buff.cooldown:SetHideCountdownNumbers(true)
-        buff.cooldown:EnableMouse(false)
-
-        buff.count = buff:CreateFontString(nil, "OVERLAY")
-        buff.count:SetFont(font, 8, "OUTLINE")
-        buff.count:SetPoint("BOTTOMRIGHT", 2, -2)
-
-        buff.duration = buff:CreateFontString(nil, "OVERLAY")
-        buff.duration:SetFont(font, 8, "OUTLINE")
-        buff.duration:SetPoint("TOP", buff, "BOTTOM", 0, -1)
-        buff.duration:SetTextColor(1, 1, 0.6, 1)
-
-        CreatePixelBorder(buff, 0.11, 0.82, 0.11)
-        buff:Hide()
-        plate.enemyBuffs[i] = buff
-    end
 
     -- =========== TARGET ARROWS ===========
     local arrowSize = h + 6
@@ -833,27 +667,18 @@ local function UpdateSize(plate)
         plate.raidFrame:SetSize(riSize, riSize)
     end
 
-    if plate.auras then
-        local auraSize = s.auraSize or 24
-        local maxAuras = s.maxAuras or 5
-        for i, aura in ipairs(plate.auras) do
-            aura:SetSize(auraSize, auraSize - 4)
-            aura:ClearAllPoints()
-            aura:SetPoint("BOTTOM", plate.nameText, "TOP", (i - (maxAuras + 1) / 2) * (auraSize + 2), 2)
-        end
-    end
-
-    if plate.enemyBuffs then
-        local enemyBuffSize = s.enemyBuffSize or 22
-        for i, buff in ipairs(plate.enemyBuffs) do
-            buff:SetSize(enemyBuffSize, enemyBuffSize)
-            buff:ClearAllPoints()
-            if i == 1 then
-                buff:SetPoint("RIGHT", plate.health, "LEFT", -2, 0)
-            else
-                buff:SetPoint("RIGHT", plate.enemyBuffs[i - 1], "LEFT", -2, 0)
-            end
-        end
+    -- [12.1] Aura button geometry belongs to the engine: it sizes and
+    -- anchors its own buttons from the group layout, so size and count
+    -- changes are applied by rebuilding the container rather than by
+    -- reaching into buttons we do not own.
+    local AC = TomoMod_AuraContainer
+    if AC then
+        if plate.auraContainer then AC.Relayout(plate.auraContainer, {
+            size = s.auraSize or 24, max = s.maxAuras or 5,
+        }) end
+        if plate.buffContainer then AC.Relayout(plate.buffContainer, {
+            size = s.enemyBuffSize or 22, max = s.maxEnemyBuffs or 4,
+        }) end
     end
 
     -- En dernier : les tailles viennent de changer, donc les ancrages
@@ -1139,12 +964,8 @@ local function ApplyFriendlyNameOnly(plate, unit)
     if plate.questIcon then plate.questIcon:Hide() end
 
     -- Hide auras
-    if plate.auras then
-        for _, a in ipairs(plate.auras) do a:Hide() end
-    end
-    if plate.enemyBuffs then
-        for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
-    end
+    if plate.auraContainer then plate.auraContainer:Hide() end
+    if plate.buffContainer then plate.buffContainer:Hide() end
 
     -- Hide castbar
     if plate.castbar then
@@ -1516,74 +1337,18 @@ local function UpdatePlateAuras(plate, unit)
     local s = DB()
     if not s then return end
 
-    -- [12.1] When the engine owns the debuffs there is nothing to scan:
-    -- it tracks the unit itself. Keeping the legacy frames hidden rather
-    -- than destroying them means a client without the engine, and a plate
-    -- built before the container could be created, both still work.
+    -- [12.1] Nothing to scan: the engine tracks the unit itself and keeps
+    -- its own buttons current. Showing or hiding the container, and telling
+    -- it which unit the plate now represents, is the whole update.
     if plate.auraContainer then
-        TomoMod_NPAuraContainer.SetUnit(plate.auraContainer, unit)
+        TomoMod_AuraContainer.SetUnit(plate.auraContainer, unit)
         plate.auraContainer:SetShown(s.showAuras and true or false)
-        if plate.auras then
-            for _, a in ipairs(plate.auras) do a:Hide() end
-        end
-    elseif s.showAuras then
-        local auraIndex = 0
-        local maxAuras = s.maxAuras or 5
-        local auraFilter = "HARMFUL"
-        if s.showOnlyMyAuras then auraFilter = "HARMFUL|PLAYER" end
-
-        -- A refusal here left every plate without auras AND aborted the
-        -- rest of the update, so the plate itself vanished.
-        local okSlots = pcall(CaptureAuraSlots, _npSlotResults, unit, auraFilter)
-        if not okSlots then wipe(_npSlotResults) end
-        local slotIdx = 2
-        while _npSlotResults[slotIdx] do
-            if auraIndex >= maxAuras then break end
-            local data = SafeAuraDataBySlot(unit, _npSlotResults[slotIdx])
-            if data then
-                auraIndex = auraIndex + 1
-                local auraFrame = plate.auras[auraIndex]
-                if auraFrame then
-                    auraFrame.icon:SetTexture(data.icon)
-                    local durObj = SafeAuraDuration(unit, data.auraInstanceID)
-                    auraFrame._auraUnit = unit
-                    auraFrame._auraInstanceID = data.auraInstanceID
-                    if durObj then
-                        auraFrame.cooldown:Hide()
-                        if auraFrame.duration then
-                            -- TWW 11.1: GetRemainingDuration() returns a secret number —
-                            -- pass directly to C-side SetFormattedText (no Lua arithmetic)
-                            SafeSetDuration(auraFrame.duration, durObj, "%.0f")
-                            auraFrame.duration:Show()
-                        end
-                    else
-                        auraFrame.cooldown:Hide()
-                        if auraFrame.duration then auraFrame.duration:Hide() end
-                    end
-                    local stackStr = C_UnitAuras.GetAuraApplicationDisplayCount(unit, data.auraInstanceID, 2, 1000)
-                    auraFrame.count:SetText(stackStr or "")
-                    auraFrame.count:Show()
-                    auraFrame:Show()
-                end
-            end
-            slotIdx = slotIdx + 1
-        end
-        for i = auraIndex + 1, maxAuras do
-            if plate.auras[i] then plate.auras[i]:Hide() end
-        end
-    else
-        for _, a in ipairs(plate.auras) do a:Hide() end
     end
 
-    if s.showEnemyBuffs and plate.enemyBuffs and UnitCanAttack("player", unit) then
-        for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
-        _ebBuffIndex = 0
-        _ebPlate = plate
-        _ebUnit = unit
-        _ebMaxBuffs = s.maxEnemyBuffs or 4
-        pcall(CaptureEnemyBuffSlots, unit)
-    elseif plate.enemyBuffs then
-        for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
+    if plate.buffContainer then
+        TomoMod_AuraContainer.SetUnit(plate.buffContainer, unit)
+        plate.buffContainer:SetShown(
+            (s.showEnemyBuffs and UnitCanAttack("player", unit)) and true or false)
     end
 end
 
@@ -1973,10 +1738,12 @@ local function OnNamePlateRemoved(unit)
         plate.highlight:Hide()
         plate.absorb:Hide()
         if plate.roleIconFrame then plate.roleIconFrame:Hide() end
-        for _, a in ipairs(plate.auras) do a:Hide() end
-        if plate.enemyBuffs then
-            for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
-        end
+        -- The scan-built plate.auras and plate.enemyBuffs tables are gone;
+        -- the engine's containers replace both. This line used to read
+        -- plate.auras unguarded, which is nil now, so every plate removal
+        -- -- every mob death, every plate leaving range -- would have errored.
+        if plate.auraContainer then plate.auraContainer:Hide() end
+        if plate.buffContainer then plate.buffContainer:Hide() end
         unitPlates[unit] = nil
     end
 end
@@ -2282,35 +2049,8 @@ function NP.Enable()
     eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     NP.RefreshAll()
 
-    if not NP._auraTicker then
-        -- TWW 11.1: GetRemainingDuration() returns a secret number — use SetFormattedText directly
-        NP._auraTicker = C_Timer.NewTicker(0.5, function()
-            for u, p in pairs(unitPlates) do
-                if p:IsVisible() then
-                    if p.auras then
-                        for _, aura in ipairs(p.auras) do
-                            if aura:IsShown() and aura.duration and aura._auraUnit and aura._auraInstanceID then
-                                local durObj = SafeAuraDuration(aura._auraUnit, aura._auraInstanceID)
-                                if durObj then
-                                    SafeSetDuration(aura.duration, durObj, "%.0f")
-                                end
-                            end
-                        end
-                    end
-                    if p.enemyBuffs then
-                        for _, buff in ipairs(p.enemyBuffs) do
-                            if buff:IsShown() and buff.duration and buff._auraUnit and buff._auraInstanceID then
-                                local durObj = SafeAuraDuration(buff._auraUnit, buff._auraInstanceID)
-                                if durObj then
-                                    SafeSetDuration(buff.duration, durObj, "%.0f")
-                                end
-                            end
-                        end
-                    end
-                end
-            end
-        end)
-    end
+    -- [12.1] The duration ticker is gone: the engine writes the
+    -- duration text on its own buttons and keeps it current.
 
     print("|cff2ed884TomoMod NP:|r " .. TomoMod_L["msg_np_enabled"])
 end
@@ -2325,11 +2065,6 @@ function NP.Disable()
     eventFrame:UnregisterEvent("GROUP_ROSTER_UPDATE")
     eventFrame:UnregisterEvent("PLAYER_ROLES_ASSIGNED")
     eventFrame:UnregisterEvent("PLAYER_ENTERING_WORLD")
-
-    if NP._auraTicker then
-        NP._auraTicker:Cancel()
-        NP._auraTicker = nil
-    end
 
     if NP._savedCVars then
         for k, v in pairs(NP._savedCVars) do
