@@ -117,7 +117,9 @@ function AC.TrySize(button)
     if d.sizedTo == d.wantSize then pending[button] = nil; return true end
 
     local size = d.wantSize
-    local ok = pcall(button.SetSize, button, size, size - 4)
+    -- Height is size - 4 for a normal aura button; a probe button is square
+    -- and one pixel, where that formula would ask for a negative height.
+    local ok = pcall(button.SetSize, button, size, d.wantHeight or (size - 4))
     -- Stamped AFTER the call: stamping first would make the next retry read
     -- a refusal as already applied, which is the bug this exists for.
     if ok then
@@ -387,6 +389,107 @@ function AC.Relayout(container, opts)
     local ok = AddGroups(container, data)
     if ok then pcall(container.UpdateAllAuras, container) end
     return ok
+end
+
+-- ---------------------------------------------------------------------
+-- Aura probe
+--
+-- Cooldown Studio cannot use a container to draw its bar: it orders
+-- cooldowns and auras in one row, which the engine has no notion of. What
+-- it needs is narrower -- "is this buff up, and how long is left" -- and
+-- that is exactly what it may no longer read.
+--
+-- A probe is a container with no visible buttons whose single slot is
+-- restricted to the tracked spell. The engine fills it, and it drives a
+-- Cooldown widget the CALLER owns: the swipe lands on the studio's own
+-- icon without anything reading an aura.
+--
+-- Presence comes from asking the button whether it is shown, which is a
+-- frame query and not an aura read.
+-- ---------------------------------------------------------------------
+
+-- Builds a probe. `cooldown` is the caller's Cooldown frame, driven by the
+-- engine. Returns the probe, or nil when it could not be built.
+function AC.CreateAuraProbe(parent, spellIDs, cooldown)
+    if not parent or type(spellIDs) ~= "table" or not next(spellIDs) then return nil end
+    if not AC.IsAvailable() then return nil end
+
+    local ok, container = pcall(CreateFrame, "AuraContainer", nil, parent,
+        "CustomAuraContainerTemplate")
+    if not ok or not container then return nil end
+
+    container:SetSize(1, 1)
+    container:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
+    container:SetAlpha(0)
+
+    local probe = { container = container }
+
+    local okGroup = pcall(container.AddAuraGroup, container, "probe",
+        AC.Filter("HELPFUL"), {
+            maxFrameCount    = 1,
+            candidateFilters = { includeSpellIDs = spellIDs },
+            initializeFrame  = function(button)
+                probe.button = button
+                -- Invisible and inert: the button exists to be driven, not
+                -- to be seen. Sizing it still matters -- an unsized button
+                -- is never laid out, so it would never be shown either, and
+                -- ProbeActive reads exactly that.
+                --
+                -- Which is why it goes through the same retry as every other
+                -- button rather than a bare SetSize: sizing is refused while
+                -- auras are restricted, and a probe that cannot be sized then
+                -- is a probe that answers "not up" during the only stretch it
+                -- was built for.
+                buttonData[button] = { wantSize = 1, wantHeight = 1 }
+                pending[button] = true
+                AC.TrySize(button)
+                pcall(button.SetAlpha, button, 0)
+                pcall(button.SetMouseClickEnabled, button, false)
+                pcall(button.SetMouseMotionEnabled, button, false)
+                -- The caller's cooldown, driven by the engine. This is the
+                -- whole point: the swipe is correct in combat because
+                -- nothing here read the aura to produce it.
+                if cooldown then
+                    pcall(button.SetDurationCooldown, button, cooldown)
+                end
+            end,
+            layout = { elementWidth = 1, elementHeight = 1 },
+        })
+    if not okGroup then
+        container:Hide()
+        container:SetParent(nil)
+        return nil
+    end
+
+    pcall(container.SetUnit, container, "player")
+    pcall(container.UpdateAllAuras, container)
+    return probe
+end
+
+-- Discards a probe. Two probes on one icon would both drive its cooldown.
+function AC.DestroyAuraProbe(probe)
+    if not probe or not probe.container then return end
+    if probe.button then
+        pcall(probe.button.SetDurationCooldown, probe.button, nil)
+        pending[probe.button] = nil
+        buttonData[probe.button] = nil
+    end
+    pcall(probe.container.SetUnit, probe.container, nil)
+    probe.container:Hide()
+    probe.container:SetParent(nil)
+    probe.button = nil
+end
+
+-- True when the tracked aura is up. A frame query, not an aura read.
+function AC.ProbeActive(probe)
+    -- The retry sweep is hooked to SetUnit, which probes never call: they sit
+    -- on "player" for life. Asking here is the sweep's only guaranteed
+    -- trigger in a session with no frames on screen, and it costs a next()
+    -- on an empty table once everything is sized.
+    AC.ResizePending()
+    if not probe or not probe.button then return false end
+    local ok, shown = pcall(probe.button.IsShown, probe.button)
+    return (ok and shown) and true or false
 end
 
 -- The unit behind a plate changes as plates are recycled.

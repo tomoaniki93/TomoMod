@@ -900,6 +900,60 @@ function CDF.RemainingSeconds(state)
     return (left > 0) and left or nil
 end
 
+-- ---------------------------------------------------------------------
+-- [12.1] Probe source.
+--
+-- One hidden aura container per tracked spell, restricted to that spell's
+-- candidate ids. The engine fills it and drives the icon's own cooldown,
+-- so the swipe is right in combat -- the case every source below fails,
+-- because they all end in a read the client refuses.
+--
+-- Probes are keyed by icon, weakly: the studio rebuilds its bars freely
+-- and a probe must not keep a discarded icon alive.
+-- ---------------------------------------------------------------------
+local probes = setmetatable({}, { __mode = "k" })
+
+-- Attaches a probe to an icon, or returns the one it already has.
+function CDF.EnsureAuraProbe(icon, spellID)
+    if not icon or not icon.cd then return nil end
+    local existing = probes[icon]
+    if existing and existing.spellID == spellID then return existing.probe end
+
+    local AC = TomoMod_AuraContainer
+    if not AC or not AC.CreateAuraProbe then return nil end
+
+    -- The studio reuses icons across rebuilds, so an icon can arrive here
+    -- carrying a probe for a different spell. Leaving that one attached
+    -- would put two containers on the same icon, both driving icon.cd.
+    if existing and existing.probe and AC.DestroyAuraProbe then
+        AC.DestroyAuraProbe(existing.probe)
+    end
+
+    local cands = CDF.AuraCandidates(spellID) or { spellID }
+    local include = {}
+    for _, id in ipairs(cands) do include[id] = true end
+    if not next(include) then return nil end
+
+    local probe = AC.CreateAuraProbe(icon, include, icon.cd)
+    probes[icon] = { spellID = spellID, probe = probe }
+    return probe
+end
+
+-- The probe's verdict, or nil when there is no probe to ask.
+function CDF.ProbeAuraState(icon, spellID)
+    local probe = CDF.EnsureAuraProbe(icon, spellID)
+    if not probe then return nil end
+
+    local AC = TomoMod_AuraContainer
+    if not AC.ProbeActive(probe) then return { active = false, fromProbe = true } end
+
+    -- Deliberately no duration numbers: the engine already drives the
+    -- icon's cooldown, and inventing figures here would mean reading the
+    -- aura again. `timed` stays false so the renderer leaves the swipe
+    -- alone rather than clearing it.
+    return { active = true, fromProbe = true }
+end
+
 function CDF.GetAuraState(spellID)
     spellID = tonumber(spellID)
     if not spellID then return nil end

@@ -438,6 +438,19 @@ local function applyEntry(icon, resolved, state, bar)
     local auraID = CDF.EntryAuraID and CDF.EntryAuraID(resolved and resolved._entry, resolved)
     if auraID then
         local a = CDF.GetAuraState and CDF.GetAuraState(auraID)
+
+        -- [12.1] The probe is attached whatever the sources above answered:
+        -- it drives icon.cd directly from the engine, so the swipe keeps
+        -- running in combat when every readable source has gone quiet.
+        --
+        -- Its verdict only overrides presence, and only when the readable
+        -- sources reported nothing. They carry duration and stacks, which
+        -- the probe deliberately does not, so preferring them where they
+        -- answer keeps the countdown text.
+        local probed = CDF.ProbeAuraState and CDF.ProbeAuraState(icon, auraID)
+        if probed and probed.active and not (a and a.active) then
+            a = probed
+        end
         -- Numbers first when they are readable. The duration object handed
         -- back by C_UnitAuras.GetAuraDuration is not the same shape as the one
         -- Cooldown:SetCooldownFromDurationObject consumes, so passing it
@@ -466,7 +479,9 @@ local function applyEntry(icon, resolved, state, bar)
         elseif a and a.active and a.durationObject and icon.cd.SetCooldownFromDurationObject then
             local okD = pcall(icon.cd.SetCooldownFromDurationObject, icon.cd, a.durationObject)
             if not okD then icon.cd:Clear() end
-        else
+        elseif not (a and a.fromProbe) then
+            -- Not cleared for a probe-sourced state: the engine owns that
+            -- cooldown, and clearing it would wipe the swipe it just set.
             icon.cd:Clear()
         end
         if a and a.active and a.timed then
