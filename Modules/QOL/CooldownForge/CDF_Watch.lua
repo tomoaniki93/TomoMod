@@ -939,6 +939,27 @@ function CDF.EnsureAuraProbe(icon, spellID)
     return probe
 end
 
+-- True when a probe is attached to this icon and driving its cooldown.
+--
+-- The engine writes that widget continuously. Anything else writing it
+-- too gives one Cooldown two owners, and the swipe flickers as they take
+-- turns -- so the renderer asks this before touching it at all, not just
+-- before clearing it.
+--
+-- Attached is not the same as driving, and the difference matters: the
+-- engine side rests on API shapes this addon cannot verify from Lua. A probe
+-- that never fills would, on "attached" alone, lock the readable sources out
+-- of a swipe it is not drawing either -- no swipe at all, and no error to say
+-- why. Ownership therefore transfers the first time the probe demonstrably
+-- shows its button, and stays transferred: flipping it back each time the
+-- aura drops would hand the widget between two owners again, which is the
+-- flicker this exists to remove.
+function CDF.ProbeDrives(icon)
+    if not icon then return false end
+    local held = probes[icon]
+    return (held and held.probe and held.proven) and true or false
+end
+
 -- The probe's verdict, or nil when there is no probe to ask.
 function CDF.ProbeAuraState(icon, spellID)
     local probe = CDF.EnsureAuraProbe(icon, spellID)
@@ -946,6 +967,10 @@ function CDF.ProbeAuraState(icon, spellID)
 
     local AC = TomoMod_AuraContainer
     if not AC.ProbeActive(probe) then return { active = false, fromProbe = true } end
+
+    -- It answered: from here the engine owns this icon's cooldown.
+    local held = probes[icon]
+    if held then held.proven = true end
 
     -- Deliberately no duration numbers: the engine already drives the
     -- icon's cooldown, and inventing figures here would mean reading the

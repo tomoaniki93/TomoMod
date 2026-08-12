@@ -451,6 +451,13 @@ local function applyEntry(icon, resolved, state, bar)
         if probed and probed.active and not (a and a.active) then
             a = probed
         end
+
+        -- Who owns the swipe. Once a probe is attached the engine writes
+        -- that Cooldown on its own schedule, so every write below is
+        -- skipped: two owners taking turns is what makes a swipe flicker.
+        -- The readable sources still drive the mirror text and the visuals,
+        -- which are ours alone.
+        local probeOwnsSwipe = CDF.ProbeDrives and CDF.ProbeDrives(icon)
         -- Numbers first when they are readable. The duration object handed
         -- back by C_UnitAuras.GetAuraDuration is not the same shape as the one
         -- Cooldown:SetCooldownFromDurationObject consumes, so passing it
@@ -458,7 +465,22 @@ local function applyEntry(icon, resolved, state, bar)
         -- duration and expiration still showed no swipe and no countdown.
         -- The object is now only the fallback, for when the raw fields are
         -- secret and there is nothing else to try.
-        if a and a.active and a.timed then
+        if probeOwnsSwipe then
+            -- Nothing to do for the swipe. The mirror text below still
+            -- applies when the bar asked for it and a readable source has
+            -- the figure, which the probe never does.
+            if a and a.active and a.timerText and wantMirror then
+                if not icon.mirrorTimer then
+                    icon.mirrorTimer = icon:CreateFontString(nil, "OVERLAY")
+                end
+                icon.mirrorTimer:SetFont(ResolveFont(bar), mSize, ResolveOutline(bar))
+                icon.mirrorTimer:SetTextColor(mr, mg, mb)
+                placeTimerFS(icon.mirrorTimer, icon, mStyle, mPos)
+                icon.mirrorTimer:SetText(a.timerText)
+                icon.mirrorTimer:Show()
+                mirrored = true
+            end
+        elseif a and a.active and a.timed then
             icon.cd:SetCooldown(a.expirationTime - a.duration, a.duration)
         elseif a and a.active and a.timerText and wantMirror then
             -- Mirror of the client's own countdown: no swipe without the
@@ -479,9 +501,7 @@ local function applyEntry(icon, resolved, state, bar)
         elseif a and a.active and a.durationObject and icon.cd.SetCooldownFromDurationObject then
             local okD = pcall(icon.cd.SetCooldownFromDurationObject, icon.cd, a.durationObject)
             if not okD then icon.cd:Clear() end
-        elseif not (a and a.fromProbe) then
-            -- Not cleared for a probe-sourced state: the engine owns that
-            -- cooldown, and clearing it would wipe the swipe it just set.
+        else
             icon.cd:Clear()
         end
         if a and a.active and a.timed then
