@@ -204,7 +204,10 @@ end
 
 -- True when the client refuses to let us read this value.
 function U.IsSecret(v)
-    if v == nil then return false end
+    -- `v == nil` is a comparison, and comparing a secret is exactly what
+    -- throws -- so the guard was sabotaging itself on the one input it
+    -- exists for. type() is the only presence test safe on a secret.
+    if type(v) == "nil" then return false end
     local builtin = rawget(_G, "issecretvalue")
     if type(builtin) ~= "function" then return false end
     local ok, secret = pcall(builtin, v)
@@ -214,7 +217,7 @@ end
 -- Returns the value only if it is a readable string, else nil. Callers
 -- must treat nil as "cannot know", not as "absent".
 function U.SafeStr(v)
-    if v == nil or U.IsSecret(v) then return nil end
+    if type(v) == "nil" or U.IsSecret(v) then return nil end
     return type(v) == "string" and v or nil
 end
 
@@ -315,10 +318,12 @@ function U.ApplyClassColor(region, unit, setter)
     local colour = U.ClassColorObject(unit)
     if not colour then return false end
 
-    -- pcall because the channels can be secret and a setter may yet refuse
-    -- them; a refusal must leave the region on its previous colour rather
-    -- than take the frame down.
-    return (pcall(function() fn(region, colour:GetRGB()) end)) and true or false
+    -- Both calls are protected, and neither allocates: a closure per call
+    -- would be real GC pressure on forty raid frames refreshing constantly,
+    -- in a module that carries [PERF] notes about reusing tables.
+    local ok, r, g, b = pcall(colour.GetRGB, colour)
+    if not ok then return false end
+    return (pcall(fn, region, r, g, b)) and true or false
 end
 
 function U.GetPowerColor(powerType)

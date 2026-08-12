@@ -111,23 +111,68 @@ local function CaptureSlots(dest, ...)
     return dest
 end
 
+-- [12.1] The guarded form of the above. GetAuraSlots throws once execution is
+-- tainted, and `pcall(CaptureSlots, dest, C_UnitAuras.GetAuraSlots(...))` does
+-- NOT catch that: argument expressions are evaluated before pcall is entered,
+-- so the refusal escapes. The read has to happen inside the protected call.
+-- Hoisted rather than wrapped in a closure at the call site so the guard costs
+-- no allocation per plate, like the enemy buff processor below.
+local function CaptureAuraSlots(dest, unit, filter)
+    return CaptureSlots(dest, C_UnitAuras.GetAuraSlots(unit, filter))
+end
+
 -- [PERF] Hoisted enemy buff processor — avoids closure creation per nameplate
 local _ebBuffIndex = 0
 local _ebPlate = nil
 local _ebUnit = nil
 local _ebMaxBuffs = 0
+
+-- [12.1] Aura reads now refuse outright once execution is tainted, and they
+-- throw rather than return nothing: "Auras cannot be accessed when secret
+-- while tainted". Every read below therefore goes through a guard, because
+-- one refusal took the entire plate update with it -- which is why turning
+-- the camera made enemy nameplates disappear.
+local function SafeAuraDuration(unit, instanceID)
+    if not (C_UnitAuras and C_UnitAuras.GetAuraDuration) then return nil end
+    if type(unit) == "nil" or type(instanceID) == "nil" then return nil end
+    local ok, durObj = pcall(C_UnitAuras.GetAuraDuration, unit, instanceID)
+    if ok then return durObj end
+    return nil
+end
+
+-- Writes the remaining time into a FontString, or leaves it blank.
+-- The value never touches Lua: it goes from one C function into another.
+local function SafeSetDuration(fontString, durObj, fmt)
+    if not fontString then return false end
+    if type(durObj) == "nil" or not durObj.GetRemainingDuration then return false end
+    -- Two pcalls, not one. `pcall(setter, ..., reader())` evaluates reader()
+    -- BEFORE pcall is entered, so a refusal from the reader escapes the guard
+    -- meant to contain it -- the same shape as ApplyClassColor in Core/Utils.
+    -- The value is still only carried, never operated on in Lua.
+    local ok, remaining = pcall(durObj.GetRemainingDuration, durObj)
+    if not ok then return false end
+    return (pcall(fontString.SetFormattedText, fontString, fmt or "%.0f", remaining))
+        and true or false
+end
+
+local function SafeAuraDataBySlot(unit, slot)
+    if not (C_UnitAuras and C_UnitAuras.GetAuraDataBySlot) then return nil end
+    local ok, data = pcall(C_UnitAuras.GetAuraDataBySlot, unit, slot)
+    if ok then return data end
+    return nil
+end
 local function ProcessEnemyBuffSlots(token, ...)
     for i = 1, select("#", ...) do
         if _ebBuffIndex >= _ebMaxBuffs then return end
         local slot = select(i, ...)
         if not slot then return end
-        local data = C_UnitAuras.GetAuraDataBySlot(_ebUnit, slot)
+        local data = SafeAuraDataBySlot(_ebUnit, slot)
         if data then
             _ebBuffIndex = _ebBuffIndex + 1
             local buffFrame = _ebPlate.enemyBuffs[_ebBuffIndex]
             if buffFrame then
                 buffFrame.icon:SetTexture(data.icon)
-                local durObj = C_UnitAuras.GetAuraDuration(_ebUnit, data.auraInstanceID)
+                local durObj = SafeAuraDuration(_ebUnit, data.auraInstanceID)
                 buffFrame._auraUnit = _ebUnit
                 buffFrame._auraInstanceID = data.auraInstanceID
                 if durObj then
@@ -135,7 +180,7 @@ local function ProcessEnemyBuffSlots(token, ...)
                     if buffFrame.duration then
                         -- TWW 11.1: GetRemainingDuration() returns a secret number —
                         -- pass directly to C-side SetFormattedText (no Lua arithmetic)
-                        buffFrame.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
+                        SafeSetDuration(buffFrame.duration, durObj, "%.0f")
                         buffFrame.duration:Show()
                     end
                 else
@@ -148,6 +193,13 @@ local function ProcessEnemyBuffSlots(token, ...)
             end
         end
     end
+end
+
+-- Guarded entry point, hoisted for the same reason the processor above is:
+-- wrapping the call in a closure at the call site would put one allocation
+-- per nameplate back exactly where that comment says it was removed.
+local function CaptureEnemyBuffSlots(unit)
+    return ProcessEnemyBuffSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
 end
 
 -- =====================================
@@ -1449,17 +1501,20 @@ local function UpdatePlateAuras(plate, unit)
         local auraFilter = "HARMFUL"
         if s.showOnlyMyAuras then auraFilter = "HARMFUL|PLAYER" end
 
-        CaptureSlots(_npSlotResults, C_UnitAuras.GetAuraSlots(unit, auraFilter))
+        -- A refusal here left every plate without auras AND aborted the
+        -- rest of the update, so the plate itself vanished.
+        local okSlots = pcall(CaptureAuraSlots, _npSlotResults, unit, auraFilter)
+        if not okSlots then wipe(_npSlotResults) end
         local slotIdx = 2
         while _npSlotResults[slotIdx] do
             if auraIndex >= maxAuras then break end
-            local data = C_UnitAuras.GetAuraDataBySlot(unit, _npSlotResults[slotIdx])
+            local data = SafeAuraDataBySlot(unit, _npSlotResults[slotIdx])
             if data then
                 auraIndex = auraIndex + 1
                 local auraFrame = plate.auras[auraIndex]
                 if auraFrame then
                     auraFrame.icon:SetTexture(data.icon)
-                    local durObj = C_UnitAuras.GetAuraDuration(unit, data.auraInstanceID)
+                    local durObj = SafeAuraDuration(unit, data.auraInstanceID)
                     auraFrame._auraUnit = unit
                     auraFrame._auraInstanceID = data.auraInstanceID
                     if durObj then
@@ -1467,7 +1522,7 @@ local function UpdatePlateAuras(plate, unit)
                         if auraFrame.duration then
                             -- TWW 11.1: GetRemainingDuration() returns a secret number —
                             -- pass directly to C-side SetFormattedText (no Lua arithmetic)
-                            auraFrame.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
+                            SafeSetDuration(auraFrame.duration, durObj, "%.0f")
                             auraFrame.duration:Show()
                         end
                     else
@@ -1495,7 +1550,7 @@ local function UpdatePlateAuras(plate, unit)
         _ebPlate = plate
         _ebUnit = unit
         _ebMaxBuffs = s.maxEnemyBuffs or 4
-        ProcessEnemyBuffSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
+        pcall(CaptureEnemyBuffSlots, unit)
     elseif plate.enemyBuffs then
         for _, b in ipairs(plate.enemyBuffs) do b:Hide() end
     end
@@ -2204,9 +2259,9 @@ function NP.Enable()
                     if p.auras then
                         for _, aura in ipairs(p.auras) do
                             if aura:IsShown() and aura.duration and aura._auraUnit and aura._auraInstanceID then
-                                local durObj = C_UnitAuras.GetAuraDuration(aura._auraUnit, aura._auraInstanceID)
+                                local durObj = SafeAuraDuration(aura._auraUnit, aura._auraInstanceID)
                                 if durObj then
-                                    aura.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
+                                    SafeSetDuration(aura.duration, durObj, "%.0f")
                                 end
                             end
                         end
@@ -2214,9 +2269,9 @@ function NP.Enable()
                     if p.enemyBuffs then
                         for _, buff in ipairs(p.enemyBuffs) do
                             if buff:IsShown() and buff.duration and buff._auraUnit and buff._auraInstanceID then
-                                local durObj = C_UnitAuras.GetAuraDuration(buff._auraUnit, buff._auraInstanceID)
+                                local durObj = SafeAuraDuration(buff._auraUnit, buff._auraInstanceID)
                                 if durObj then
-                                    buff.duration:SetFormattedText("%.0f", durObj:GetRemainingDuration())
+                                    SafeSetDuration(buff.duration, durObj, "%.0f")
                                 end
                             end
                         end
