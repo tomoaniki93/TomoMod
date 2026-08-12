@@ -9,7 +9,7 @@
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 3.4.2
+## Version: 3.4.3
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -70,6 +70,7 @@ Config\Panels\RaidFrames.lua
 Config\Panels\Skins.lua
 Config\Panels\Housing.lua
 Config\Panels\Profiles.lua
+Config\Panels\Changelog.lua
 Config\Panels\Diagnostics.lua
 Config\Panels\Roles.lua
 Config\Panels\Accueil.lua

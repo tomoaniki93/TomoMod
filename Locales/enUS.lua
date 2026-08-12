@@ -2614,6 +2614,9 @@ TomoMod_RegisterLocale("enUS", {
     ["dash_welcome"]             = "Quick overview of TomoMod. Toggle modules, apply a setup, switch profile, or relaunch the setup assistant.",
     ["dash_modules_section"]     = "Modules",
     ["dash_quickcfg_section"]    = "Quick configuration",
+    ["dash_studio_section"]           = "Cooldown Studio",
+    ["dash_studio_info"]              = "Full-screen editor for cooldown bars: layout, style, spells and visibility.",
+    ["dash_studio_open"]              = "Open the Cooldown Studio",
     ["dash_profile_section"]     = "Profile",
     ["dash_maint_section"]       = "Maintenance",
     ["dash_reload_hint"]         = "Toggling modules writes your settings — reload to apply module changes.",
@@ -2711,7 +2714,7 @@ TomoMod_RegisterLocale("enUS", {
     -- MythicTracker EJ Boss Names (2.9.10)
     -- ═══════════════════════════════════
     ["wn_2910_ej_boss_names"]            = "MythicTracker: boss names resolved via the Encounter Journal — localised, accent-safe, covering all dungeons from Cata to The War Within.",
-    ["wn_2910_ej_fallback"]              = "MythicTracker: 3-level name resolution — dungeonEncounterID > EJ index > filtered criteriaString, with automatic retry (\195\2275) if the EJ isn't loaded yet.",
+    ["wn_2910_ej_fallback"]              = "MythicTracker: 3-level name resolution — dungeonEncounterID > EJ index > filtered criteriaString, with automatic retry (×5) if the EJ isn't loaded yet.",
 
     -- =====================
     -- AuctionRecipeTracker
@@ -2926,6 +2929,16 @@ TomoMod_RegisterLocale("enUS", {
     ["cat_units_desc"]        = "Player, nameplates, party and raid in one place.",
     ["cat_combat_desc"]       = "Casts, resources, cooldowns and Mythic+.",
     ["cat_comfort_desc"]      = "Automations, quests, AFK, housing and comfort.",
+    ["cat_changelog"]                 = "What's New",
+    ["cat_changelog_desc"]            = "Every release note, newest first.",
+    ["cl_title"]                      = "Release notes",
+    ["cl_intro"]                      = "%d versions. Click a number to read its notes.",
+    ["cl_open"]                       = "Read the notes",
+    ["cl_close"]                      = "Close",
+    ["cl_empty"]                      = "No notes for this version.",
+    ["cl_unavailable"]                = "The release notes could not be loaded.",
+    ["cl_expand_all"]                 = "Expand all",
+    ["cl_collapse_all"]               = "Collapse all",
     ["cat_tools_desc"]        = "Profiles, backups, diagnostics and maintenance.",
     ["cat_profiles_desc"]     = "Profiles, specs, import / export and resets.",
     ["cat_diagnostics_desc"]  = "Live status, Lua errors and performance readings.",
@@ -3154,6 +3167,16 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_diag_settle"] = "Diagnostics: the scale the game applies for itself while you log in was recorded in every report as a mid-session rescale. The display capture now waits four seconds for the client to settle before taking a reading, so the only scale entry left in a report is one that actually needs explaining.",
     ["wn_333_diag_mode"] = "Diagnostics: when the report cannot work out your display mode it now prints the raw values the game gave it instead of a bare question mark — those setting names change between expansions, and a '?' on its own could not be diagnosed without asking you for more. Windowed-fullscreen and maximized windows are recognised in more cases, and addon versions no longer read 'vv1.2.3'.",
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
+
+    -- =====================
+    -- 3.4.3 — What's New
+    -- =====================
+    ["wn_343_changelog"] = "New — A What's New page in the options, holding every release TomoMod has ever shipped. Until now the release notes only ever appeared in the popup that follows an update, and that popup shows the version you have just moved to and nothing else — close it and the text is gone for good. The new page lists every version, newest first: click one to read its notes, click again to close it, or open and close them all at once. It reads the same notes the popup does, so there is no second list to fall out of date.",
+    ["wn_343_cdf_resync"] = "New — Cooldown Studio: a bar you built from Blizzard's Cooldown Manager can now be brought back in line with it. Those bars were correct on the day you made them and had no way back afterwards, so a class rework left you comparing lists by hand. Resynchronise re-reads the category: abilities Blizzard has added since arrive, abilities it has dropped are removed. Everything you did to the bar survives — a spell that is still listed keeps its entry exactly as you tuned it, glow condition, spec visibility and per-entry effects included — and anything you added yourself is never touched and never removed, whatever Blizzard's list does. A spell you had added by hand that Blizzard later adds to the category stays yours rather than being claimed, so a later resync can never delete something you created.",
+    ["wn_343_cds_icons"] = "Cooldown Studio: the list of what a bar tracks read 'Sort 384100' — correct, and no help at all. Each entry now shows its icon and its name, with the id kept in brackets after it. Until the game has cached a spell you still get the number on its own, which is the honest answer rather than a blank line.",
+    ["wn_343_cds_scale"] = "New — Cooldown Studio: an icon scale slider, on both bar layouts. Making a bar bigger meant moving a width slider and then moving a height slider to exactly the same place; it is one control now. It is a view over the size you already had rather than a new setting, so there is still a single number underneath and nothing to keep in step. A button sets the icons back to square, keeping the size you were looking at rather than jumping back to the default. Once you deliberately set a width and a height apart the scale slider greys out — 'scale by 1.2' has no single answer at that point — and that button is what brings it back.",
+    ["wn_343_iconsize_range"] = "Fix — Cooldown Studio: an icon size below 24 or above 64 looked accepted and was not. The bar rendered at the size you asked for and kept it, and then some later action — a resync, an import, a duplicate — quietly reverted it, with nothing to connect the change back to anything you had done. Meanwhile the separate width and height settings accepted 8 to 128 the whole time, so the same small icon was reachable through one control and refused by the other. There is one range now, 8 to 128, for all three. It is wider than before rather than narrower, so no bar you already have changes size.",
+    ["wn_343_studio_shortcut"] = "New — A Cooldown Studio button on the dashboard, so opening the studio no longer means finding the CooldownForge panel first.",
 
     -- =====================
     -- 3.4.2 — What's New

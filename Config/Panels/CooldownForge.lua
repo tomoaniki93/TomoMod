@@ -129,7 +129,12 @@ end
 
 -- Hoisted to module scope: BuildContent runs on every structural change, so
 -- keeping this out of the button closure avoids re-allocating it per rebuild.
-local function OpenStudio()
+-- Published so the dashboard can offer the same shortcut without owning a
+-- second copy of the load-and-self-heal logic.
+local OpenStudio
+function TomoMod_OpenCooldownStudio() return OpenStudio() end
+
+function OpenStudio()
     if not C_AddOns.IsAddOnLoaded(STUDIO) then
         local ok, reason = C_AddOns.LoadAddOn(STUDIO)
 

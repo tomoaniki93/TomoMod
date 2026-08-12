@@ -342,6 +342,9 @@ function CDF.CreateBarFromViewer(class, key)
     if not bar then return nil, "empty" end
     if def.iconSize then bar.iconSize = def.iconSize end
 
+    -- Remembering the source is what makes the bar re-syncable later.
+    bar.viewerSource = key
+
     for _, spellID in ipairs(ids) do
         bar.entries[#bar.entries + 1] = CDF.NewEntrySchema({
             kind = "spell",
@@ -349,10 +352,92 @@ function CDF.CreateBarFromViewer(class, key)
             -- Tracked buffs behave like auras: visible while up, with the
             -- remaining time, rather than as a plain cooldown swipe.
             mode = def.aura and "aura" or nil,
+            -- Marks the entry as Blizzard's, not the player's. Resync only
+            -- ever removes entries carrying this flag.
+            fromViewer = true,
         })
     end
     CDF.SanitizeBar(bar)
     return id, #ids
+end
+
+-- Re-reads the category and reconciles the bar against it.
+--
+-- Deliberately a reconcile, not a rebuild. A player who imported a bar
+-- then spent ten minutes setting glow conditions and spec visibility would
+-- not forgive a button that threw all of it away, so:
+--   * spells still listed keep their entry untouched, overrides included
+--   * spells newly listed are appended in Blizzard's order
+--   * entries flagged fromViewer that Blizzard dropped are removed
+--   * anything the player added by hand is never touched, and keeps its
+--     relative order after the imported block
+--
+-- Returns added, removed, kept -- or nil plus a status.
+function CDF.ResyncBarFromViewer(class, barId)
+    local bars = CDF.GetClassBars(class)
+    local bar
+    for _, b in ipairs(bars or {}) do
+        if b.id == barId then bar = b; break end
+    end
+    if not bar or not bar.viewerSource then return nil, "notimported" end
+
+    local def = CDF.VIEWER_IMPORTS[bar.viewerSource]
+    if not def then return nil, "noapi" end
+
+    local ids, status = CDF.GetViewerSpellIDs(bar.viewerSource)
+    if not ids then return nil, status end
+
+    local live = {}
+    for _, spellID in ipairs(ids) do live[spellID] = true end
+
+    -- Index the entries we already hold, so a kept spell reuses its entry
+    -- object rather than a fresh one.
+    local existing = {}
+    for _, e in ipairs(bar.entries or {}) do
+        if e.kind == "spell" and e.id then existing[e.id] = e end
+    end
+
+    local imported, manual = {}, {}
+    local removed = 0
+    for _, e in ipairs(bar.entries or {}) do
+        if e.fromViewer then
+            if not (e.kind == "spell" and e.id and live[e.id]) then
+                removed = removed + 1
+            end
+        else
+            manual[#manual + 1] = e
+        end
+    end
+
+    local added, kept = 0, 0
+    for _, spellID in ipairs(ids) do
+        local e = existing[spellID]
+        if e and e.fromViewer then
+            kept = kept + 1
+        elseif e then
+            -- The player had already added this spell by hand. Leave it in
+            -- their block and do not claim it: adopting it would mean a
+            -- later resync could delete an entry they created.
+            e = nil
+        else
+            e = CDF.NewEntrySchema({
+                kind = "spell",
+                id   = spellID,
+                mode = def.aura and "aura" or nil,
+                fromViewer = true,
+            })
+            added = added + 1
+        end
+        if e then imported[#imported + 1] = e end
+    end
+
+    local out = {}
+    for _, e in ipairs(imported) do out[#out + 1] = e end
+    for _, e in ipairs(manual)   do out[#out + 1] = e end
+    bar.entries = out
+
+    CDF.SanitizeBar(bar)
+    return added, removed, kept
 end
 
 -- Creates the blueprint as a new bar for `class`; returns the new bar id.

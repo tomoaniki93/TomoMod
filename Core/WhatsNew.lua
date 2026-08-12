@@ -56,7 +56,23 @@ local PANEL_H = 480
 -- Only keep the last few versions to avoid bloating memory.
 -- ============================================================
 
-local CHANGELOG = {
+-- Published for the Changelog config page. One table, two readers: the
+-- popup that shows what is new after an update, and the page that lets you
+-- read any past version. A second copy would drift the first time a release
+-- was added to only one of them.
+local CHANGELOG
+CHANGELOG = {
+    {
+        version = "3.4.3",
+        highlights = {
+            L["wn_343_changelog"] or "New — A What's New page in the options, holding every release TomoMod has ever shipped. Until now the release notes only ever appeared in the popup that follows an update, and that popup shows the version you have just moved to and nothing else — close it and the text is gone for good. The new page lists every version, newest first: click one to read its notes, click again to close it, or open and close them all at once. It reads the same notes the popup does, so there is no second list to fall out of date.",
+            L["wn_343_cdf_resync"] or "New — Cooldown Studio: a bar you built from Blizzard's Cooldown Manager can now be brought back in line with it. Those bars were correct on the day you made them and had no way back afterwards, so a class rework left you comparing lists by hand. Resynchronise re-reads the category: abilities Blizzard has added since arrive, abilities it has dropped are removed. Everything you did to the bar survives — a spell that is still listed keeps its entry exactly as you tuned it, glow condition, spec visibility and per-entry effects included — and anything you added yourself is never touched and never removed, whatever Blizzard's list does. A spell you had added by hand that Blizzard later adds to the category stays yours rather than being claimed, so a later resync can never delete something you created.",
+            L["wn_343_cds_icons"] or "Cooldown Studio: the list of what a bar tracks read 'Sort 384100' — correct, and no help at all. Each entry now shows its icon and its name, with the id kept in brackets after it. Until the game has cached a spell you still get the number on its own, which is the honest answer rather than a blank line.",
+            L["wn_343_cds_scale"] or "New — Cooldown Studio: an icon scale slider, on both bar layouts. Making a bar bigger meant moving a width slider and then moving a height slider to exactly the same place; it is one control now. It is a view over the size you already had rather than a new setting, so there is still a single number underneath and nothing to keep in step. A button sets the icons back to square, keeping the size you were looking at rather than jumping back to the default. Once you deliberately set a width and a height apart the scale slider greys out — 'scale by 1.2' has no single answer at that point — and that button is what brings it back.",
+            L["wn_343_iconsize_range"] or "Fix — Cooldown Studio: an icon size below 24 or above 64 looked accepted and was not. The bar rendered at the size you asked for and kept it, and then some later action — a resync, an import, a duplicate — quietly reverted it, with nothing to connect the change back to anything you had done. Meanwhile the separate width and height settings accepted 8 to 128 the whole time, so the same small icon was reachable through one control and refused by the other. There is one range now, 8 to 128, for all three. It is wider than before rather than narrower, so no bar you already have changes size.",
+            L["wn_343_studio_shortcut"] or "New — A Cooldown Studio button on the dashboard, so opening the studio no longer means finding the CooldownForge panel first.",
+        },
+    },
     {
         version = "3.4.2",
         highlights = {
@@ -730,6 +746,14 @@ local CHANGELOG = {
         },
     },
 }
+
+WN.CHANGELOG = CHANGELOG
+
+-- Returns the release list, newest first. Nil-safe for callers that load
+-- before WhatsNew has run.
+function WN.GetChangelog()
+    return CHANGELOG
+end
 
 -- ============================================================
 -- VERSION COMPARISON

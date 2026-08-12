@@ -115,6 +115,13 @@ CDF.TRINKET_SLOTS = { [13] = true, [14] = true }
 -- ---------------------------------------------------------------------
 -- Small helpers
 -- ---------------------------------------------------------------------
+-- Published so the Studio's sliders cannot drift from what Sanitize will
+-- accept. A slider that offers a value the sanitizer then rejects is worse
+-- than a narrower slider: it looks like it worked.
+CDF.ICON_MIN  = 8
+CDF.ICON_MAX  = 128
+CDF.ICON_BASE = 40   -- schema default, and the 1.00x point of the scale slider
+
 local function clamp(v, lo, hi)
     v = tonumber(v)
     if not v then return lo end
@@ -332,6 +339,11 @@ function CDF.NewEntrySchema(data)
         talentID   = tonumber(data.talentID) or nil,
         talentMode = (data.talentMode == "unknown") and "unknown" or nil,
         override = CDF.SanitizeOverride(data.override),   -- [S2] per-entry FX
+        -- Marks an entry as coming from a Blizzard viewer import rather than
+        -- from the player. Resync only ever removes entries carrying it, so
+        -- it has to survive the schema: this table is a whitelist, and a
+        -- field missing from it is silently dropped.
+        fromViewer = data.fromViewer and true or nil,
     }
 end
 
@@ -347,11 +359,17 @@ function CDF.SanitizeBar(bar)
     if not CDF.LAYOUTS[bar.layout] then bar.layout = "line" end
     if not CDF.ORIENTATIONS[bar.orientation] then bar.orientation = "horizontal" end
     if not CDF.GROWTHS[bar.growth] then bar.growth = "RIGHT" end
-    bar.iconSize = clamp(bar.iconSize, 24, 64)
+    -- iconSize used to be clamped to 24..64 while the width and height
+    -- overrides allowed 8..128, so the same 8px icon was reachable through
+    -- one control and refused by the other. Worse, nothing sanitizes on
+    -- every apply: a size outside the range looked accepted until something
+    -- called SanitizeBar -- a resync, an import, a duplicate -- and then
+    -- snapped back with no explanation. One range now, for all three.
+    bar.iconSize = clamp(bar.iconSize, CDF.ICON_MIN, CDF.ICON_MAX)
     -- [G2] nil stays nil so an untouched bar keeps following iconSize and
     -- exports stay portable; only an explicit override is clamped.
-    if bar.iconWidth  ~= nil then bar.iconWidth  = clamp(bar.iconWidth,  8, 128) end
-    if bar.iconHeight ~= nil then bar.iconHeight = clamp(bar.iconHeight, 8, 128) end
+    if bar.iconWidth  ~= nil then bar.iconWidth  = clamp(bar.iconWidth,  CDF.ICON_MIN, CDF.ICON_MAX) end
+    if bar.iconHeight ~= nil then bar.iconHeight = clamp(bar.iconHeight, CDF.ICON_MIN, CDF.ICON_MAX) end
     bar.spacing  = clamp(bar.spacing, 0, 64)
     if bar.spacingCross ~= nil then bar.spacingCross = clamp(bar.spacingCross, 0, 64) end
     bar.wrap     = clamp(bar.wrap, 0, 12)

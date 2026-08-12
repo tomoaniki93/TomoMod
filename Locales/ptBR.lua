@@ -2420,6 +2420,9 @@ TomoMod_RegisterLocale("ptBR", {
     ["dash_welcome"]             = "Visão rápida do TomoMod. Alterne módulos, aplique uma configuração, troque de perfil ou relance o assistente.",
     ["dash_modules_section"]     = "Módulos",
     ["dash_quickcfg_section"]    = "Configuração rápida",
+    ["dash_studio_section"]           = "Cooldown Studio",
+    ["dash_studio_info"]              = "Editor em tela cheia das barras de recarga: disposi\195\167\195\163o, estilo, magias e visibilidade.",
+    ["dash_studio_open"]              = "Abrir o Cooldown Studio",
     ["dash_profile_section"]     = "Perfil",
     ["dash_maint_section"]       = "Manutenção",
     ["dash_reload_hint"]         = "Alternar módulos salva seus ajustes — recarregue para aplicar as mudanças de módulo.",
@@ -2689,6 +2692,16 @@ TomoMod_RegisterLocale("ptBR", {
     ["cat_units_desc"]        = "Jogador, nameplates, grupo e raide em um só lugar.",
     ["cat_combat_desc"]       = "Lançamentos, recursos, cooldowns e Mythic+.",
     ["cat_comfort_desc"]      = "Automações, missões, AFK, housing e conforto.",
+    ["cat_changelog"]                 = "Novidades",
+    ["cat_changelog_desc"]            = "Todas as notas de vers\195\163o, da mais recente \195\160 mais antiga.",
+    ["cl_title"]                      = "Notas de vers\195\163o",
+    ["cl_intro"]                      = "%d vers\195\181es. Clique em um n\195\186mero para ler suas notas.",
+    ["cl_open"]                       = "Ler as notas",
+    ["cl_close"]                      = "Fechar",
+    ["cl_empty"]                      = "Nenhuma nota para esta vers\195\163o.",
+    ["cl_unavailable"]                = "N\195\163o foi poss\195\173vel carregar as notas de vers\195\163o.",
+    ["cl_expand_all"]                 = "Abrir tudo",
+    ["cl_collapse_all"]               = "Fechar tudo",
     ["cat_tools_desc"]        = "Perfis, backups, diagnósticos e manutenção.",
     ["cat_profiles_desc"]     = "Perfis, especializações, importar / exportar e redefinições.",
     ["cat_diagnostics_desc"]  = "Estado ao vivo, erros de Lua e medidas de desempenho.",
@@ -3095,6 +3108,16 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_333_diag_settle"] = "Diagnóstico: a escala que o jogo aplica por conta própria durante o login era registrada em todo relatório como um redimensionamento no meio da sessão. A captura de exibição agora espera quatro segundos até o cliente se estabilizar antes de fazer uma leitura, de forma que a única entrada de escala que resta em um relatório é aquela que realmente precisa de explicação.",
     ["wn_333_diag_mode"] = "Diagnóstico: quando o relatório não consegue determinar seu modo de exibição, ele agora imprime os valores brutos que o jogo forneceu em vez de apenas um ponto de interrogação — esses nomes de configuração mudam de uma expansão para outra, e um «?» sozinho não podia ser diagnosticado sem voltar a perguntar. Tela cheia em janela e janelas maximizadas são reconhecidas em mais casos, e as versões dos complementos não aparecem mais como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
+
+    -- =====================
+    -- 3.4.3 — Novidades
+    -- =====================
+    ["wn_343_changelog"] = "Novo — Uma página de Novidades nas opções, com todas as versões que o TomoMod já lançou. Até agora as notas de versão só apareciam na janela que segue uma atualização, e essa janela mostra apenas a versão para a qual você acabou de passar: uma vez fechada, o texto se perde. A nova página lista todas as versões, da mais recente à mais antiga: clique em uma para ler suas notas, clique de novo para fechá-la, ou abra e feche todas de uma vez. Ela lê exatamente as mesmas notas da janela, então não existe uma segunda lista que possa ficar para trás.",
+    ["wn_343_cdf_resync"] = "Novo — Cooldown Studio: uma barra criada a partir do gerenciador de recargas da Blizzard já pode ser realinhada com ele. Essas barras estavam corretas no dia em que você as criava e depois não tinham como voltar: uma reformulação de classe obrigava você a comparar listas na mão. Ressincronizar relê a categoria: as habilidades que a Blizzard acrescentou desde então chegam, as que ela removeu são removidas. Tudo o que você fez na barra sobrevive — uma magia que continua na lista mantém sua entrada exatamente como você a ajustou, incluindo condição de brilho, visibilidade por especialização e efeitos por entrada — e o que você acrescentou não é jamais tocado nem removido, faça o que fizer a lista da Blizzard. Uma magia que você tinha acrescentado à mão e que a Blizzard passa a incluir na categoria continua sendo sua em vez de ser adotada, de modo que uma ressincronização posterior nunca poderá apagar uma entrada que você criou.",
+    ["wn_343_cds_icons"] = "Cooldown Studio: a lista do que uma barra acompanha mostrava Sort 384100 — exato e sem nenhuma utilidade. Cada entrada agora mostra seu ícone e seu nome, com o identificador entre parênteses em seguida. Enquanto o cliente não tiver a magia em cache você continua vendo só o número, que é a resposta honesta em vez de uma linha em branco.",
+    ["wn_343_cds_scale"] = "Novo — Cooldown Studio: um controle de escala dos ícones, nas duas disposições. Aumentar uma barra significava mover um controle de largura e depois levar o de altura exatamente ao mesmo ponto; agora é um controle só. É uma vista sobre o tamanho que você já tinha e não um ajuste novo, então continua havendo um único número por baixo e nada a manter em sincronia. Um botão devolve os ícones ao formato quadrado mantendo o tamanho que você tinha diante de si em vez de saltar para o padrão. Assim que você separa de propósito a largura e a altura, o controle de escala fica esmaecido — escalar por 1,2 deixa de ter uma resposta única nesse ponto — e é esse botão que o traz de volta.",
+    ["wn_343_iconsize_range"] = "Correção — Cooldown Studio: um tamanho de ícone abaixo de 24 ou acima de 64 parecia aceito e não estava. A barra era desenhada no tamanho que você pedia e o mantinha, até que alguma ação posterior — uma ressincronização, uma importação, uma duplicação — o revertia em silêncio, sem nada que ligasse essa mudança a algo que você tivesse feito. Enquanto isso os ajustes separados de largura e altura aceitavam de 8 a 128, de modo que o mesmo ícone pequeno era alcançável por um controle e recusado pelo outro. Agora há um único intervalo, de 8 a 128, para os três. Ele é mais amplo do que antes e não mais estreito: nenhuma barra que você já tenha muda de tamanho.",
+    ["wn_343_studio_shortcut"] = "Novo — Um botão do Cooldown Studio no painel inicial, para que abrir o estúdio não exija mais passar antes pelo painel do CooldownForge.",
 
     -- =====================
     -- 3.4.2 — Novidades

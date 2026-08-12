@@ -1,5 +1,50 @@
 ## ####################################
 
+## CHANGELOG 3.4.3 — Every Release Note TomoMod Has Ever Shipped Becomes A Page You Can Open Instead Of A Popup You Dismissed Once And Lost, A Bar Imported From Blizzard's Cooldown Manager Stops Being A Snapshot That Rots At The Next Class Rework And Learns To Be Brought Back In Line Without Losing A Single Thing You Tuned On It, The Cooldown Studio's Entry List Stops Reading As A Column Of Spell Ids And Shows The Icon And The Name Of What It Is Actually Tracking, Icon Size Becomes A Scale You Set Once Rather Than Two Numbers You Keep In Step By Hand, The Scale Control Dims Itself Rather Than Guessing Once A Width And A Height Have Been Set Apart, The Dashboard Gets A Way Into The Studio That Does Not Require Finding The CooldownForge Panel First, And An Icon Size Outside Twenty-Four To Sixty-Four Stops Looking Accepted Right Up Until The Next Resync Or Import Or Duplicate Silently Snapped It Back
+
+#### What's New — The Notes Were Shown Once And Then They Were Gone
+
+- **New** — A *What's New* page in the options, listing every release TomoMod has shipped, newest first. Each version is a row you open to read its notes and close again, with two buttons that open or close them all at once. Until now the only place release notes ever appeared was the popup after an update, which shows the version you have just moved to and nothing else — dismiss it and the text is gone.
+- **Internal** — The page and the popup read one table. `Core/WhatsNew.lua` publishes it as `WN.GetChangelog()` rather than the page carrying a copy, which would have drifted the first time a release was added to only one of them.
+- **Note** — A release whose locale strings are missing falls through to its English text exactly as the popup does, and a highlight that resolves to nothing but its own key is skipped rather than printed. `wn_342_astralforge` on a line of its own would be worse than one line fewer.
+- **Change** — The page rebuilds on every toggle instead of being served from the panel cache, so expanding or collapsing a version cannot show a stale copy. It joins the dashboard, the profiles page and the diagnostics page on that list.
+
+#### Cooldown Studio — An Imported Bar Was A Snapshot, And Snapshots Rot
+
+- **New** — *Resynchroniser* on any bar built from a Blizzard Cooldown Manager category. It re-reads the category and brings the bar back in line: abilities Blizzard has added since the import arrive, abilities it has dropped are removed. Class reworks are the whole reason it exists — an imported bar was correct on the day you made it and had no way back afterwards.
+- **Change** — Deliberately a reconcile, not a rebuild. A spell that is still listed keeps its existing entry untouched: its glow condition, its spec visibility, its per-entry effects, all of it. Ten minutes of tuning surviving a single button press is the only thing that makes the button worth pressing.
+- **Note** — Anything you added by hand is never touched and never removed, whatever Blizzard's list does, and it keeps its relative order after the imported block. A spell you had added yourself that Blizzard later adds to the category stays yours rather than being adopted — adopting it would mean a later resync could delete an entry you created.
+- **Internal** — Imported entries carry a `fromViewer` flag and the bar remembers the category it came from in `viewerSource`. The flag is what makes removal safe, since a resync only ever deletes entries carrying it, and it had to be added to the entry schema explicitly: that table is a whitelist, and a field missing from it is dropped on the way in.
+- **Note** — Both failure cases report rather than doing nothing visible: a client with no Cooldown Manager API says so, and a specialisation Blizzard curates nothing for says that instead. The per-entry editor is also deselected on a resync, because it is keyed by index and the list has just moved underneath it.
+
+#### Cooldown Studio — The Entry List Was A Column Of Numbers
+
+- **New** — Every entry in a bar's spell list now shows its icon and its name. It read `Sort 384100` before — accurate, and useless: working out what a bar actually contained meant looking ids up somewhere else.
+- **Note** — The id stays, in brackets after the name, and is still what you get on its own while the client has not cached the spell yet. A blank row would be worse than a bare number.
+- **Internal** — The icon is a texture escape inside the existing text widget rather than a texture region per row. The list is rebuilt on any click, so a real widget per entry would mean laying them out and recycling them by hand for no visible gain. The escape trims the icon to 5..59 of 64, cropping Blizzard's built-in border, which otherwise reads as a grey box at 16 pixels.
+
+#### Cooldown Studio — Icon Size Was Two Numbers You Kept In Step By Hand
+
+- **New** — An *icon scale* slider, on both the line and the radial layouts. It is the control you want whenever the answer is "same bar, bigger", which until now meant moving a width slider and then moving a height slider to exactly the same place.
+- **Change** — Scale is a view over the existing size rather than a new stored setting. Two numbers describing one thing drift the first time a preset or an import writes only one of them, so there is still one number underneath.
+- **New** — *Revenir a des icones carrees*, which clears the width and height overrides and hands control back to the single size — keeping the size you were looking at rather than snapping back to the default.
+- **Change** — The scale slider dims once width and height have been set apart, because "scale by 1.2" has no single answer at that point. It dims rather than disappearing: a control that vanishes leaves you wondering what happened, one that greys out says "not right now". The button above is what brings it back, so the greying-out is not a one-way door.
+- **Internal** — `W.CreateSlider` gains `SetEnabled`. It greys the label, the value badge and the track fill, drops the frame's alpha, stops the slider and the badge taking mouse input, and hides a tooltip the badge may still own — a disabled control keeping a tooltip alive from before is its own small lie.
+
+#### CooldownForge — A Size Outside The Range Looked Accepted Until It Was Not
+
+- **Fix** — An icon size below 24 or above 64 was silently snapped back, but never at the moment you set it. Nothing sanitises on every change, so the bar rendered at the size you asked for and kept it — until a resync, an import or a duplicate ran the sanitiser and reverted it with no explanation and no obvious connection to what you had just done.
+- **Change** — One range now, 8 to 128, for the size and for both overrides. They disagreed until now: the width and height overrides accepted 8 to 128 the whole time, so the same 8-pixel icon was reachable through one control and refused by another.
+- **Internal** — The bounds are published as `CDF.ICON_MIN`, `CDF.ICON_MAX` and `CDF.ICON_BASE`, and the Studio's sliders read them rather than repeating the numbers. A slider that offers a value the sanitiser will later clamp away is worse than a narrower slider, because it looks like it worked.
+- **Note** — This widens the accepted range rather than narrowing it, so no bar you already have changes size.
+
+#### Dashboard — The Studio Was Behind A Panel You Had To Know About
+
+- **New** — A Cooldown Studio card on the dashboard, offering the same button as the CooldownForge panel.
+- **Internal** — It delegates to that panel's own opener through `TomoMod_OpenCooldownStudio` rather than keeping a second copy. The Studio is a LoadOnDemand sibling addon, so opening it means handling not-in-memory, disabled, and missing from the folder entirely; two copies of that dance would have drifted apart on the first change to either.
+
+## ####################################
+
 ## CHANGELOG 3.4.2 — AstralForge Arrives And Every Piece Of A Unit Frame Or A Nameplate Stops Being Something You Nudge By Two Pixels At A Time And Becomes Something You Drag Where You Want It, Anchor Points And Anchor Hosts Become Yours To Choose Instead Of Being Hard-Coded In The Engine, The Position Of A Thing Stops Living In Four Different Shapes Depending On Which Thing It Is, An Element Can Be Anchored To Another Element With A Cycle Guard That Makes That Safe, Opacity And Scale And A Font Size Override Arrive Per Element, Custom Text Elements Can Be Added With Tokens Compiled Rather Than Concatenated Because The Game Now Hands Out Names And Levels As Values Lua Is Not Allowed To Touch, A Whole Layout Can Be Saved Under A Name And Handed To Somebody Else As A String, Every Existing Profile Is Carried Over To Render Pixel-For-Pixel As It Did Before, The Designer Never Once Edits A Live Frame, The Party Keystone List Comes Back Empty For Everybody On Your Own Realm Because The Sender Of An Addon Message Always Carries A Realm And The Unit You Look It Up By Does Not, A Slash Command Is Added That Tells A Silent Transport Apart From A Name That Never Matched, Opening The Designer On A Unit That Actually Exists Stops Failing On A Rectangle The Game Has Made Secret Because A Preview Fed Real Data Cannot Be Measured At All, A Cooldown Bar Can Be Built From Blizzard's Own Cooldown Manager In One Click With Its Spell List Read Live At The Moment You Click Instead Of Shipped As A Table That Rots A Patch Later, And Every Window In The Addon That Closes With Escape Stops Keeping The Whole Keyboard To Itself For As Long As It Is Open And For Some Time After It Is Closed
 
 #### AstralForge — Everything Was A Slider, And A Slider Only Ever Nudged

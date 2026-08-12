@@ -86,6 +86,7 @@ local categories = {
     { key = "units",     label = L["cat_units"],                      icon = ICON_PATH .. "icon_unitframes.tga", accent = { 0.46, 0.72, 1.00 }, desc = L["cat_units_desc"], kw = "unit frames nameplates party raid groupe cible plaques" },
     { key = "combat",    label = L["cat_combat"],                      icon = ICON_PATH .. "icon_castbars.tga",   accent = { 0.96, 0.70, 0.26 }, desc = L["cat_combat_desc"], kw = "castbar ressources cooldown mythic mplus combat" },
     { key = "comfort",   label = L["cat_comfort"],                     icon = ICON_PATH .. "icon_qol.tga",        accent = { 0.38, 0.86, 0.56 }, desc = L["cat_comfort_desc"], kw = "qol confort quete afk housing logement automatisation" },
+    { key = "changelog", label = LT("cat_changelog", "Nouveautes"), icon = ICON_PATH .. "icon_qol.tga", accent = { 0.36, 0.78, 0.98 }, desc = LT("cat_changelog_desc", "Toutes les notes de version, de la plus recente a la plus ancienne."), kw = "changelog nouveautes notes version patch historique whatsnew quoi de neuf" },
     { key = "profiles",    label = L["cat_profiles"],                  icon = ICON_PATH .. "icon_profiles.tga",    accent = { 0.67, 0.52, 1.00 }, desc = L["cat_profiles_desc"], kw = "profil profils specialisation spec import export sauvegarde backup reinitialiser reset" },
     { key = "diagnostics", label = L["cat_diagnostics"],               icon = ICON_PATH .. "icon_diagnostics.tga", accent = { 0.94, 0.48, 0.48 }, desc = L["cat_diagnostics_desc"], kw = "diagnostics diagnostic debug erreurs lua performance memoire etat modules" },
 }
@@ -127,7 +128,7 @@ local hiddenPanelBin = nil
 -- [Lot C] Categories re-shown from cache on revisit. Accueil (dashboard,
 -- preset tiles), Profiles (profile list) and Diagnostics (live readings)
 -- always rebuild so their dynamic content stays fresh.
-local NO_CACHE = { accueil = true, profiles = true, diagnostics = true }
+local NO_CACHE = { accueil = true, profiles = true, diagnostics = true, changelog = true }
 
 -- =====================================================================
 -- HELPERS
@@ -445,6 +446,7 @@ C.CategoryTree = CATEGORY_TREE
 -- them exactly like the grouped ones.
 local SINGLE_PAGES = {
     accueil     = "TomoMod_ConfigPanel_Accueil",
+    changelog   = "TomoMod_ConfigPanel_Changelog",
     profiles    = "TomoMod_ConfigPanel_Profiles",
     diagnostics = "TomoMod_ConfigPanel_Diagnostics",
 }

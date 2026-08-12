@@ -2429,6 +2429,9 @@ TomoMod_RegisterLocale("deDE", {
     ["dash_welcome"]             = "Schnellübersicht von TomoMod. Module umschalten, eine Konfiguration anwenden, Profil wechseln oder den Assistenten neu starten.",
     ["dash_modules_section"]     = "Module",
     ["dash_quickcfg_section"]    = "Schnellkonfiguration",
+    ["dash_studio_section"]           = "Cooldown Studio",
+    ["dash_studio_info"]              = "Vollbild-Editor f\195\188r Cooldown-Leisten: Layout, Stil, Zauber und Sichtbarkeit.",
+    ["dash_studio_open"]              = "Cooldown Studio \195\182ffnen",
     ["dash_profile_section"]     = "Profil",
     ["dash_maint_section"]       = "Wartung",
     ["dash_reload_hint"]         = "Das Umschalten von Modulen speichert deine Einstellungen — lade neu, um Moduländerungen anzuwenden.",
@@ -2701,6 +2704,16 @@ TomoMod_RegisterLocale("deDE", {
     ["cat_units_desc"]        = "Spieler, Nameplates, Gruppe und Schlachtzug an einem Ort.",
     ["cat_combat_desc"]       = "Zauber, Ressourcen, Cooldowns und Mythic+.",
     ["cat_comfort_desc"]      = "Automatisierungen, Quests, AFK, Housing und Komfort.",
+    ["cat_changelog"]                 = "Neuerungen",
+    ["cat_changelog_desc"]            = "Alle Versionshinweise, neueste zuerst.",
+    ["cl_title"]                      = "Versionshinweise",
+    ["cl_intro"]                      = "%d Versionen. Klicke auf eine Nummer, um die Hinweise zu lesen.",
+    ["cl_open"]                       = "Hinweise lesen",
+    ["cl_close"]                      = "Schlie\195\159en",
+    ["cl_empty"]                      = "Keine Hinweise f\195\188r diese Version.",
+    ["cl_unavailable"]                = "Die Versionshinweise konnten nicht geladen werden.",
+    ["cl_expand_all"]                 = "Alle ausklappen",
+    ["cl_collapse_all"]               = "Alle einklappen",
     ["cat_tools_desc"]        = "Profile, Backups, Diagnose und Wartung.",
     ["cat_profiles_desc"]     = "Profile, Spezialisierungen, Import / Export und Zurücksetzen.",
     ["cat_diagnostics_desc"]  = "Live-Status, Lua-Fehler und Leistungswerte.",
@@ -3107,6 +3120,16 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_settle"] = "Diagnose: Die Skalierung, die das Spiel während der Anmeldung selbst anwendet, wurde in jedem Bericht als Neuskalierung mitten in der Sitzung festgehalten. Die Anzeigeerfassung wartet nun vier Sekunden, bis sich der Client eingependelt hat, bevor sie misst — der einzige verbliebene Skalierungseintrag in einem Bericht ist damit einer, der tatsächlich erklärungsbedürftig ist.",
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
+
+    -- =====================
+    -- 3.4.3 — Was ist neu
+    -- =====================
+    ["wn_343_changelog"] = "Neu — Eine Seite mit Neuerungen in den Optionen, die jede Version enthält, die TomoMod je veröffentlicht hat. Bisher tauchten die Versionshinweise nur in dem Fenster nach einem Update auf, und dieses zeigt ausschließlich die Version, auf die du gerade gewechselt bist — einmal geschlossen, ist der Text endgültig weg. Die neue Seite listet jede Version auf, die neueste zuerst: klicke eine an, um ihre Hinweise zu lesen, klicke erneut, um sie zu schließen, oder öffne und schließe alle auf einmal. Sie liest dieselben Hinweise wie das Fenster, es gibt also keine zweite Liste, die veralten könnte.",
+    ["wn_343_cdf_resync"] = "Neu — Cooldown Studio: Eine Leiste, die du aus Blizzards Cooldown-Manager erstellt hast, kann jetzt wieder mit ihm abgeglichen werden. Solche Leisten stimmten an dem Tag, an dem du sie erstellt hast, und hatten danach keinen Weg zurück: Nach einer Klassenüberarbeitung musstest du die Listen von Hand vergleichen. Resynchronisieren liest die Kategorie neu ein: Fähigkeiten, die Blizzard seitdem hinzugefügt hat, kommen dazu, entfernte werden entfernt. Alles, was du an der Leiste eingestellt hast, bleibt erhalten — ein weiterhin gelisteter Zauber behält seinen Eintrag genau so, wie du ihn abgestimmt hast, samt Leuchtbedingung, Sichtbarkeit je Spezialisierung und Effekten pro Eintrag — und was du selbst hinzugefügt hast, wird nie angerührt und nie entfernt, ganz gleich was Blizzards Liste tut. Ein Zauber, den du von Hand hinzugefügt hast und den Blizzard später in die Kategorie aufnimmt, bleibt deiner, statt übernommen zu werden, sodass eine spätere Resynchronisierung niemals einen Eintrag löschen kann, den du erstellt hast.",
+    ["wn_343_cds_icons"] = "Cooldown Studio: Die Liste dessen, was eine Leiste verfolgt, zeigte Sort 384100 — korrekt und völlig nutzlos. Jeder Eintrag zeigt jetzt sein Symbol und seinen Namen, die ID steht in Klammern dahinter. Solange der Client den Zauber noch nicht zwischengespeichert hat, bekommst du weiterhin nur die Nummer, was die ehrliche Antwort ist statt einer leeren Zeile.",
+    ["wn_343_cds_scale"] = "Neu — Cooldown Studio: ein Regler für die Symbolskalierung, in beiden Anordnungen. Eine Leiste zu vergrößern hieß bisher, den Breitenregler zu verschieben und den Höhenregler danach exakt an dieselbe Stelle zu bringen; jetzt ist es ein einziges Bedienelement. Es ist eine Sicht auf die Größe, die du ohnehin schon hattest, und keine neue Einstellung — darunter liegt weiterhin eine einzige Zahl, und nichts muss im Gleichschritt gehalten werden. Eine Schaltfläche stellt quadratische Symbole wieder her und behält dabei die Größe, die du gerade vor dir hattest, statt auf den Standard zurückzuspringen. Sobald du Breite und Höhe bewusst auseinanderziehst, wird der Skalierungsregler ausgegraut — eine Skalierung um 1,2 hat dann keine eindeutige Antwort mehr — und genau diese Schaltfläche holt ihn zurück.",
+    ["wn_343_iconsize_range"] = "Behoben — Cooldown Studio: Eine Symbolgröße unter 24 oder über 64 wirkte akzeptiert und war es nicht. Die Leiste wurde in der gewünschten Größe dargestellt und behielt sie, bis eine spätere Aktion — eine Resynchronisierung, ein Import, ein Duplizieren — sie stillschweigend zurücksetzte, ohne dass irgendetwas diese Änderung mit dem verband, was du zuvor getan hattest. Die getrennten Einstellungen für Breite und Höhe akzeptierten derweil die ganze Zeit 8 bis 128, sodass dasselbe kleine Symbol über das eine Bedienelement erreichbar und über das andere abgelehnt war. Es gibt jetzt einen einzigen Bereich, 8 bis 128, für alle drei. Er ist weiter als zuvor und nicht enger: Keine bestehende Leiste ändert ihre Größe.",
+    ["wn_343_studio_shortcut"] = "Neu — Eine Cooldown-Studio-Schaltfläche auf der Übersichtsseite, damit das Öffnen des Studios nicht mehr den Umweg über die CooldownForge-Seite verlangt.",
 
     -- =====================
     -- 3.4.2 — Was ist neu

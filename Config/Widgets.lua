@@ -1153,6 +1153,31 @@ function W.CreateSlider(parent, text, value, minVal, maxVal, step, yOffset, call
     frame.SetValue = function(_, v) slider:SetValue(v); UpdateVal(v) end
     frame.GetValue = function() return slider:GetValue() end
 
+    -- Greying out rather than hiding: a control that vanishes leaves the
+    -- player wondering what happened, one that dims says "not right now".
+    frame.SetEnabled = function(_, on)
+        on = on and true or false
+        if frame._enabled == on then return end
+        frame._enabled = on
+
+        slider:EnableMouse(on)
+        valBox:EnableMouse(on)
+        if on then
+            SC(lbl, T.text)
+            SC(valTxt, T.accent)
+            trackFill:SetVertexColor(T.accentDark[1], T.accentDark[2], T.accentDark[3], 1)
+            frame:SetAlpha(1)
+        else
+            SC(lbl, T.textDim)
+            SC(valTxt, T.textDim)
+            trackFill:SetVertexColor(T.textDim[1], T.textDim[2], T.textDim[3], 1)
+            frame:SetAlpha(0.55)
+            -- A disabled slider must not keep a tooltip open from before.
+            if GameTooltip:GetOwner() == valBox then GameTooltip:Hide() end
+        end
+    end
+    frame._enabled = true
+
     -- Direct value entry: right-click the value badge to type an exact number.
     -- Enter (or focus loss) applies it through the slider, which clamps to
     -- [minVal, maxVal], snaps to step, and fires the normal callback.

@@ -77,10 +77,39 @@ local function SelectedBar()
     return S.state.barId and CDF and CDF.GetBar(S.state.class, S.state.barId) or nil
 end
 
+-- Inline icon for an entry, as a texture escape.
+--
+-- The escape is used rather than a real texture region because the rows are
+-- plain info-text widgets: adding a widget per row would mean laying out
+-- and recycling them by hand for a list that can be rebuilt on any click.
+--
+-- Trimming to 5..59 of 64 crops Blizzard's built-in icon border, which
+-- otherwise reads as a grey box at 16px.
+local function IconMarkup(path)
+    if not path then return "" end
+    return "|T" .. tostring(path) .. ":16:16:0:0:64:64:5:59:5:59|t "
+end
+
+local function EntryIconAndName(e)
+    if e.kind == "spell" and e.id then
+        local tex  = C_Spell and C_Spell.GetSpellTexture and C_Spell.GetSpellTexture(e.id)
+        local name = C_Spell and C_Spell.GetSpellName and C_Spell.GetSpellName(e.id)
+        -- The name is only there once the client has the spell cached; the
+        -- id is the honest fallback, never a blank row.
+        return tex, name and (name .. " (" .. tostring(e.id) .. ")") or ("Sort " .. tostring(e.id))
+    elseif e.kind == "item" and e.id then
+        local tex  = C_Item and C_Item.GetItemIconByID and C_Item.GetItemIconByID(e.id)
+        local name = C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(e.id)
+        return tex, name and (name .. " (" .. tostring(e.id) .. ")") or ("Objet " .. tostring(e.id))
+    end
+    return nil, nil
+end
+
 local function EntryDesc(e)
     local k, who = e.kind, "?"
-    if k == "spell" then who = "Sort " .. tostring(e.id)
-    elseif k == "item" then who = "Objet " .. tostring(e.id)
+    local tex, named = EntryIconAndName(e)
+    if k == "spell" then who = IconMarkup(tex) .. (named or ("Sort " .. tostring(e.id)))
+    elseif k == "item" then who = IconMarkup(tex) .. (named or ("Objet " .. tostring(e.id)))
     elseif k == "itemPreset" then
         local p = CDF.PRESETS and CDF.PRESETS[e.preset]
         who = "Preset " .. ((p and p.name) or e.preset or "?")
@@ -176,6 +205,51 @@ local function readSpellID(t)
     return nil
 end
 
+-- Icon scale helpers.
+--
+-- Scale is a view over iconSize, not a stored field: adding one would mean
+-- two numbers describing the same thing, and they would drift the first
+-- time a preset or an import wrote only one of them.
+--
+-- The bounds come from CooldownForge rather than being repeated here: a
+-- slider offering a value SanitizeBar would clamp away looks like it worked
+-- until the next resync, import or duplicate silently snaps it back.
+local function IconMin()  return (CDF and CDF.ICON_MIN)  or 8   end
+local function IconMax()  return (CDF and CDF.ICON_MAX)  or 128 end
+local function ScaleBase() return (CDF and CDF.ICON_BASE) or 40 end
+
+local function ScaleMin() return IconMin() / ScaleBase() end
+local function ScaleMax() return IconMax() / ScaleBase() end
+
+local function IconScale(bar)
+    local base = ScaleBase()
+    local size = (bar and tonumber(bar.iconSize)) or base
+    local v = size / base
+    local lo, hi = ScaleMin(), ScaleMax()
+    if v < lo then v = lo elseif v > hi then v = hi end
+    return v
+end
+
+local function ScaleToSize(v)
+    local size = math.floor((tonumber(v) or 1) * ScaleBase() + 0.5)
+    local lo, hi = IconMin(), IconMax()
+    if size < lo then size = lo elseif size > hi then size = hi end
+    return size
+end
+
+-- Clearing both overrides hands control back to iconSize, which is what
+-- re-enables the scale slider. Without this the greying-out would be a
+-- one-way door.
+local function SquareAgain(bar)
+    if not bar then return end
+    local w = select(1, CDF.IconDims(bar))
+    bar.iconWidth  = nil
+    bar.iconHeight = nil
+    -- Keep the size the player was looking at rather than snapping to 40.
+    bar.iconSize = math.max(IconMin(), math.min(IconMax(),
+        math.floor(tonumber(w) or ScaleBase())))
+end
+
 local function TabDisposition(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c, y = scroll.child, -12
@@ -203,10 +277,29 @@ local function TabDisposition(parent)
             function(v) r.arc = v; Apply() end, "%.0f deg")
         _, cy = W.CreateCheckbox(card.inner, "Sens horaire", r.clockwise ~= false, cy,
             function(v) r.clockwise = v; Apply() end)
-        _, cy = W.CreateSlider(card.inner, "Largeur icones", select(1, CDF.IconDims(bar)), 8, 128, 1, cy,
-            function(v) bar.iconWidth = v; Apply() end, "%.0f px")
-        _, cy = W.CreateSlider(card.inner, "Hauteur icones", select(2, CDF.IconDims(bar)), 8, 128, 1, cy,
-            function(v) bar.iconHeight = v; Apply() end, "%.0f px")
+        local rScale, rW, rH
+        local function rSync()
+            local square = (bar.iconWidth == nil and bar.iconHeight == nil)
+            if rScale then rScale:SetEnabled(square) end
+        end
+        rScale, cy = W.CreateSlider(card.inner, "Echelle des icones",
+            IconScale(bar), ScaleMin(), ScaleMax(), 0.05, cy, function(v)
+                bar.iconSize = ScaleToSize(v); Apply()
+                if rW then rW:SetValue(select(1, CDF.IconDims(bar))) end
+                if rH then rH:SetValue(select(2, CDF.IconDims(bar))) end
+            end, "%.2f x")
+        rW, cy = W.CreateSlider(card.inner, "Largeur icones", select(1, CDF.IconDims(bar)), IconMin(), IconMax(), 1, cy,
+            function(v) bar.iconWidth = v; Apply(); rSync() end, "%.0f px")
+        rH, cy = W.CreateSlider(card.inner, "Hauteur icones", select(2, CDF.IconDims(bar)), IconMin(), IconMax(), 1, cy,
+            function(v) bar.iconHeight = v; Apply(); rSync() end, "%.0f px")
+        _, cy = W.CreateButton(card.inner, "Revenir a des icones carrees", 240, cy, function()
+            SquareAgain(bar)
+            if rW then rW:SetValue(select(1, CDF.IconDims(bar))) end
+            if rH then rH:SetValue(select(2, CDF.IconDims(bar))) end
+            if rScale then rScale:SetValue(IconScale(bar)) end
+            Apply(); rSync()
+        end)
+        rSync()
         _, cy = W.CreateInfoText(card.inner,
             "0 deg = a droite, 90 deg = en haut. Une amplitude de 360 repartit les icones "
             .. "sur un cercle complet. Le jeu ne permet pas de suivre le personnage a l'ecran : "
@@ -219,13 +312,39 @@ local function TabDisposition(parent)
             { { text = "Droite", value = "RIGHT" }, { text = "Gauche", value = "LEFT" },
               { text = "Bas", value = "DOWN" }, { text = "Haut", value = "UP" } },
             bar.growth, cy, function(v) bar.growth = v; Apply() end)
-        _, cy = W.CreateTripleSlider(card.inner, cy,
-            { text = "Largeur icones", value = select(1, CDF.IconDims(bar)), min = 8, max = 128, step = 1,
-              callback = function(v) bar.iconWidth = v; Apply() end },
-            { text = "Hauteur icones", value = select(2, CDF.IconDims(bar)), min = 8, max = 128, step = 1,
-              callback = function(v) bar.iconHeight = v; Apply() end },
+        -- Scale is only meaningful while the icons are square. As soon as
+        -- width and height are set apart, "scale by 1.2" has no single
+        -- answer, so the control dims instead of quietly picking one.
+        local lScale, lRow
+        local function lSync()
+            local square = (bar.iconWidth == nil and bar.iconHeight == nil)
+            if lScale then lScale:SetEnabled(square) end
+        end
+        lScale, cy = W.CreateSlider(card.inner, "Echelle des icones",
+            IconScale(bar), ScaleMin(), ScaleMax(), 0.05, cy, function(v)
+                bar.iconSize = ScaleToSize(v); Apply()
+                if lRow and lRow.sliders then
+                    if lRow.sliders[1] then lRow.sliders[1]:SetValue(select(1, CDF.IconDims(bar))) end
+                    if lRow.sliders[2] then lRow.sliders[2]:SetValue(select(2, CDF.IconDims(bar))) end
+                end
+            end, "%.2f x")
+        lRow, cy = W.CreateTripleSlider(card.inner, cy,
+            { text = "Largeur icones", value = select(1, CDF.IconDims(bar)), min = IconMin(), max = IconMax(), step = 1,
+              callback = function(v) bar.iconWidth = v; Apply(); lSync() end },
+            { text = "Hauteur icones", value = select(2, CDF.IconDims(bar)), min = IconMin(), max = IconMax(), step = 1,
+              callback = function(v) bar.iconHeight = v; Apply(); lSync() end },
             { text = "Espacement (dans la ligne)", value = bar.spacing, min = 0, max = 64, step = 1,
               callback = function(v) bar.spacing = v; Apply() end })
+        _, cy = W.CreateButton(card.inner, "Revenir a des icones carrees", 240, cy, function()
+            SquareAgain(bar)
+            if lRow and lRow.sliders then
+                if lRow.sliders[1] then lRow.sliders[1]:SetValue(select(1, CDF.IconDims(bar))) end
+                if lRow.sliders[2] then lRow.sliders[2]:SetValue(select(2, CDF.IconDims(bar))) end
+            end
+            if lScale then lScale:SetValue(IconScale(bar)) end
+            Apply(); lSync()
+        end)
+        lSync()
         -- Splitting the icon size into width+height filled the three-slider row,
         -- so the wrap slider gets its own line rather than being dropped.
         _, cy = W.CreateSlider(card.inner, "Retour (icones/ligne)", bar.wrap, 0, 12, 1, cy,
@@ -674,6 +793,37 @@ local function TabSorts(parent)
     local bar = SelectedBar()
     if not bar then return scroll end
     local card, cy
+
+    -- Imported bars keep a link to the Blizzard category they came from,
+    -- so they can be brought back in line after a class rework without
+    -- losing the tuning done since.
+    if bar.viewerSource and CDF and CDF.ResyncBarFromViewer then
+        local srcName = (CDF.VIEWER_IMPORTS and CDF.VIEWER_IMPORTS[bar.viewerSource]
+            and CDF.VIEWER_IMPORTS[bar.viewerSource].name) or bar.viewerSource
+        card, cy = W.CreateCard(c, "Barre importee -- " .. srcName, y)
+        _, cy = W.CreateInfoText(card.inner,
+            "Resynchroniser relit la liste de Blizzard : les sorts ajoutes sont "
+            .. "ajoutes, ceux retires sont retires. Tes reglages par entree et "
+            .. "les sorts que tu as ajoutes toi-meme sont conserves.", cy)
+        _, cy = W.CreateButton(card.inner, "Resynchroniser", 200, cy, function()
+            local added, removed, kept = CDF.ResyncBarFromViewer(S.state.class, S.state.barId)
+            if not added then
+                if removed == "noapi" then
+                    print("|cff2ed884Cooldown Studio|r : suivi Blizzard indisponible sur ce client.")
+                else
+                    print("|cff2ed884Cooldown Studio|r : aucune capacite suivie pour cette specialisation.")
+                end
+                return
+            end
+            -- The per-entry editor is keyed by index; the list just moved.
+            S.state.fxIdx = nil
+            print(string.format(
+                "|cff2ed884Cooldown Studio|r : %d ajoutee(s), %d retiree(s), %d conservee(s).",
+                added, removed, kept))
+            Apply(); S.RebuildContent()
+        end)
+        y = W.FinalizeCard(card, cy)
+    end
 
     card, cy = W.CreateCard(c, "Entrees de la barre", y)
     local es = bar.entries or {}
