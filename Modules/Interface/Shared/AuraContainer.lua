@@ -50,7 +50,14 @@ function AC.Filter(...)
         end
     end
     base = base or "HARMFUL"
-    table.sort(rest)
+    -- A negated token sorts directly after the token it negates, so
+    -- "!CROWD_CONTROL" cannot land far from "CROWD_CONTROL" and turn one
+    -- request into two scans.
+    table.sort(rest, function(a, b)
+        local ka = (a:sub(1, 1) == "!") and (a:sub(2) .. "!") or a
+        local kb = (b:sub(1, 1) == "!") and (b:sub(2) .. "!") or b
+        return ka < kb
+    end)
 
     -- No cache: Lua interns strings, so looking one up costs what building
     -- it costs. The table only added memory.

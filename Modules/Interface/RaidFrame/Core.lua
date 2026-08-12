@@ -367,16 +367,43 @@ function RF.CreateFrame(unit)
     sumFrame.texture = sumTex
     f.summonIndicator = sumFrame
 
-    -- ---- DISPEL HIGHLIGHT ----
+    -- ---- DISPELLABLE DEBUFF ----
+    --
+    -- [12.1] This was a coloured border around the whole frame, driven by
+    -- reading auraData.dispelName and comparing it against what the player
+    -- can dispel. Both halves of that are withheld now, so it only lit up
+    -- out of combat -- roughly the inverse of when it is useful.
+    --
+    -- RAID_PLAYER_DISPELLABLE asks the client the same question and gets an
+    -- answer without any read. Worth knowing: it covers class and spec
+    -- dispels only, so a bleed never matches -- nothing a class learns
+    -- removes one, only the dwarf racial does.
     if db.showDispel then
-        local dispel = CreateFrame("Frame", nil, content, "BackdropTemplate")
-        dispel:SetFrameLevel(content:GetFrameLevel() + 5)
-        dispel:EnableMouse(false)
-        dispel:Hide()
-        f.dispelHighlight = dispel
-        RF.ApplyDispelBorderSize(f)
-    end
+        local AC = TomoMod_AuraContainer
+        if AC then
+            local size = db.dispelSize or 16
+            local dispelHost = CreateFrame("Frame", nil, content)
+            dispelHost:SetFrameLevel(content:GetFrameLevel() + 5)
+            dispelHost:SetSize(size, size)
+            dispelHost:SetPoint("TOPRIGHT", content, "TOPRIGHT", -1, -1)
+            dispelHost:EnableMouse(false)
+            f.dispelHost = dispelHost
 
+            dispelHost.engine = AC.Create(dispelHost, {
+                key          = "dispellable",
+                size         = size,
+                max          = 1,
+                font         = ADDON_FONT,
+                -- Crowd control is excluded: it has its own display and
+                -- would otherwise claim the single slot.
+                filter       = AC.Filter("HARMFUL", "RAID_PLAYER_DISPELLABLE",
+                                         "!CROWD_CONTROL"),
+                tooltips     = false,
+                dispelBorder = true,
+                point        = { "TOPLEFT", dispelHost, "TOPLEFT", 0, 0 },
+            })
+        end
+    end
     -- ---- DEFENSIVE CD CONTAINER ----
     if db.showDefensives then
         f.defensiveContainer = TomoMod_DefensiveTrack and TomoMod_DefensiveTrack.Create(content, {
@@ -728,71 +755,36 @@ end
 -- eats into the health bar. At the default of 2 the geometry is identical to
 -- what shipped before.
 -- =====================================
+-- [12.1] The dispellable debuff is an icon now, not a border around the
+-- frame, so there is no inset to apply. Kept because callers still invoke
+-- it on a settings change; it resizes the host and its single button.
 function RF.ApplyDispelBorderSize(f)
-    if not f or not f.dispelHighlight then return end
-
+    if not f or not f.dispelHost then return end
     local db = TomoModDB and TomoModDB.raidFrames
-    local size = (db and db.dispelBorderSize) or 2
-    if size < 1 then size = 1 end
-
-    local inset = size - 1
-    f.dispelHighlight:ClearAllPoints()
-    f.dispelHighlight:SetPoint("TOPLEFT", -inset, inset)
-    f.dispelHighlight:SetPoint("BOTTOMRIGHT", inset, -inset)
-    f.dispelHighlight:SetBackdrop({
-        edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = size,
-    })
-    f.dispelHighlight:SetBackdropBorderColor(0, 0, 0, 0)
+    local size = (db and db.dispelSize) or 16
+    f.dispelHost:SetSize(size, size)
+    if f.dispelHost.engine and TomoMod_AuraContainer then
+        TomoMod_AuraContainer.Relayout(f.dispelHost.engine, { size = size, max = 1 })
+    end
 end
 
 -- =====================================
 -- UPDATE: DISPEL HIGHLIGHT
 -- =====================================
 function RF.UpdateDispel(f)
-    if not f or not f.dispelHighlight then return end
-
+    if not f or not f.dispelHost then return end
+    -- Honoured on every update, not only at creation: ApplySettings
+    -- re-applies visuals to existing frames rather than rebuilding them, so
+    -- without this the option worked one way and not the other.
     local db = TomoModDB and TomoModDB.raidFrames
-    if not db or not db.showDispel then f.dispelHighlight:Hide(); return end
-    if not UnitExists(f.unit) then f.dispelHighlight:Hide(); return end
-
-    local foundType = nil
-    -- [12.1] NOT converted, and not an oversight: this colours the unit
-    -- frame's own border from the dispel type of a debuff on the unit. The
-    -- engine draws dispel colours on ITS aura buttons, via
-    -- AddDispelTypeTexture; it has no way to answer "what type is on this
-    -- unit" without us reading the aura. So the guarded scan stays, and
-    -- the highlight keeps working out of combat only.
-    -- [12.1] One question per frame instead of forty protected calls that
-    -- would all fail together. The visible result is unchanged -- a scan that
-    -- can read nothing found nothing before either -- so what this buys is
-    -- the cost, not the outcome.
-    if not (TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted())
-        and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
-        local auraIndex = 1
-        while auraIndex <= 40 do
-            local ok, auraData = pcall(C_UnitAuras.GetAuraDataByIndex, f.unit, auraIndex, "HARMFUL")
-            if not ok or not auraData then break end
-
-            local dispelType = auraData.dispelName
-            if dispelType and not issecretvalue(dispelType) then
-                if dispelType == "Magic" then
-                    foundType = "Magic"
-                    break
-                elseif not foundType then
-                    foundType = dispelType
-                end
-            end
-            auraIndex = auraIndex + 1
-        end
-    end
-
-    if foundType and DEBUFF_TYPE_COLORS[foundType] then
-        local c = DEBUFF_TYPE_COLORS[foundType]
-        f.dispelHighlight:SetBackdropBorderColor(c.r, c.g, c.b, 0.90)
-        f.dispelHighlight:Show()
-    else
-        f.dispelHighlight:Hide()
+    if not db or not db.showDispel then f.dispelHost:Hide(); return end
+    local unit = f.unit
+    if not unit or not UnitExists(unit) then f.dispelHost:Hide(); return end
+    f.dispelHost:Show()
+    -- [12.1] The engine selects the dispellable debuff and colours it by
+    -- type; there is nothing left here to read.
+    if f.dispelHost.engine then
+        TomoMod_AuraContainer.SetUnit(f.dispelHost.engine, unit)
     end
 end
 

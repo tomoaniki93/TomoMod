@@ -1244,9 +1244,12 @@ TomoMod_Defaults = {
         showRange = true,
         oorAlpha = 0.40,
 
-        -- Dispel highlight
+        -- Dispellable debuff icon. dispelBorderSize is the old border
+        -- thickness, kept so existing profiles still load; the icon
+        -- reads dispelSize.
         showDispel = true,
         dispelBorderSize = 2,
+        dispelSize = 16,
 
         -- HoT tracking
         showHoTs = true,
@@ -1366,9 +1369,12 @@ TomoMod_Defaults = {
         showRange = true,
         oorAlpha = 0.40,
 
-        -- Dispel highlight
+        -- Dispellable debuff icon. dispelBorderSize is the old border
+        -- thickness, kept so existing profiles still load; the icon
+        -- reads dispelSize.
         showDispel = true,
         dispelBorderSize = 2,
+        dispelSize = 16,
 
         -- HoT tracking
         showHoTs = true,
