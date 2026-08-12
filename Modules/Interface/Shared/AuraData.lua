@@ -258,6 +258,13 @@ function AD.ScanDefensives(unit, want, maxCount, out)
     if not want then return 0 end
     if not maxCount or maxCount < 1 then return 0 end
     if not C_UnitAuras or not C_UnitAuras.GetAuraDataByIndex then return 0 end
+    -- [12.1] Nothing can be counted on a restricted frame. 0 does read as
+    -- "nobody has it" rather than "cannot tell", and this signature has no
+    -- way to say the latter -- but it is also exactly what the failing scan
+    -- below returned before, so the icons go dark either way. Saying "cannot
+    -- tell" properly would mean a nil return and a caller that leaves its
+    -- icons untouched, which is a visible-behaviour decision, not a cleanup.
+    if TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted() then return 0 end
 
     local count = 0
     local idx = 1

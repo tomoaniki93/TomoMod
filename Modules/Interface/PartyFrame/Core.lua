@@ -896,7 +896,14 @@ function PF.UpdateDispel(f)
     if not UnitExists(f.unit) then f.dispelHighlight:Hide(); return end
 
     local foundType = nil
-    if C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
+    -- [12.1] Ask once whether auras are readable at all, instead of
+    -- discovering it forty protected calls later. Note what this does NOT
+    -- change: foundType stays nil, so the tail below still hides the
+    -- highlight. That is the same thing a scan reading nothing did before,
+    -- and preserving the previous highlight instead would mean showing a
+    -- dispel cue for a debuff that may already be gone.
+    if not (TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted())
+        and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
         local auraIndex = 1
         while auraIndex <= 40 do
             local ok, auraData = pcall(C_UnitAuras.GetAuraDataByIndex, f.unit, auraIndex, "HARMFUL")
@@ -931,7 +938,12 @@ function PF.UpdateGroupBuff(f)
     if not f or not f.groupBuff then return end
     if not f.unit or not UnitExists(f.unit) then f.groupBuff:Hide(); return end
 
-    if C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
+    -- [12.1] One question per frame instead of forty protected calls that
+    -- would all fail together. The visible result is unchanged -- a scan that
+    -- can read nothing found nothing before either -- so what this buys is
+    -- the cost, not the outcome.
+    if not (TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted())
+        and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
         local idx = 1
         while idx <= 40 do
             local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, f.unit, idx, "HELPFUL")

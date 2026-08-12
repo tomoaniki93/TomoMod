@@ -315,6 +315,11 @@ function UF_Elements.UpdateAuras(frame)
     end
     local filters = AURA_FILTERS[filterKey] or AURA_FILTERS.HARMFUL
 
+    -- [12.1] Ask once, before touching the aura API at all. The per-call
+    -- guards below stay as a second line, but a restricted frame now costs
+    -- one probe instead of a protected call per filter and per slot.
+    if TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted() then return auras end
+
     for _, filter in ipairs(filters) do
         -- [12.1] GetAuraSlots now refuses outright once execution is tainted:
         -- "Auras cannot be accessed when secret while tainted". It throws
@@ -533,6 +538,9 @@ end
 local function CollectEnemyBuffData(unit, maxAuras)
     wipe(_uf_enemyBuffCollect)
     local auras = _uf_enemyBuffCollect
+
+    -- [12.1] Same question, same reason as the main collector above.
+    if TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted() then return auras end
 
     -- [12.1] Same refusal as the main aura path: GetAuraSlots throws once
     -- execution is tainted, so it is guarded and falls back to reading the

@@ -261,6 +261,51 @@ function U.GetClassColor(unit)
 end
 
 -- =====================================================================
+-- AURA ACCESS PROBE
+--
+-- [12.1] Aura reads do not return nil when the client is withholding
+-- them: they throw. Wrapping each read in pcall stops the error but keeps
+-- paying for it -- dozens of protected calls per frame in a dungeon, and
+-- a half-filled aura row when some reads land and others do not.
+--
+-- Asking once per frame is cheaper, and it removes the half-filled row: a
+-- refused frame is skipped whole rather than scanned until the first read
+-- that fails, so what is drawn is complete or empty, never a mixture. It
+-- does not preserve the previous frame -- an indicator whose scan read
+-- nothing still goes dark, exactly as it did before the probe existed.
+--
+-- InCombatLockdown alone is not the same question: auras are also
+-- withheld between pulls in protected instances, which is exactly where
+-- the scans were failing.
+-- =====================================================================
+
+local _auraProbeStamp, _auraProbeResult = nil, false
+
+-- True when the client will refuse aura reads right now.
+--
+-- The answer is cached for the current frame. Restriction does not change
+-- within a frame, and the probe itself is an aura read -- the one we are
+-- willing to spend.
+function U.AurasRestricted()
+    if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return true end
+
+    local now = GetTime and GetTime() or nil
+    if now and now == _auraProbeStamp then return _auraProbeResult end
+
+    -- Index 1 on the player: the cheapest read that exercises the same
+    -- restriction as every scan below.
+    local ok = pcall(C_UnitAuras.GetAuraDataByIndex, "player", 1, "HELPFUL")
+    _auraProbeStamp  = now
+    _auraProbeResult = not ok
+    return _auraProbeResult
+end
+
+-- Convenience for the common shape: `if U.AurasReadable() then ... end`.
+function U.AurasReadable()
+    return not U.AurasRestricted()
+end
+
+-- =====================================================================
 -- CLASS COLOUR THAT SURVIVES A SECRET CLASS
 --
 -- TryClassColor above returns nil when the client hides the class, and the

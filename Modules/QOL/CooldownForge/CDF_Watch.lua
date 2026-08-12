@@ -635,9 +635,17 @@ local function AuraRemoved(iid)
 end
 
 local function AuraFullUpdate()
+    if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return end
+    -- [12.1] A restricted frame cannot be rescanned. Returning leaves the
+    -- watch list as it was; the next UNIT_AURA will try again.
+    --
+    -- This has to come BEFORE the two wipes below, not after: returning once
+    -- they have run leaves the list empty, which is the opposite of leaving
+    -- it as it was, and CooldownForge then tracks nothing until the next
+    -- readable update arrives.
+    if TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted() then return end
     for k in pairs(activeBySpell) do activeBySpell[k] = nil end
     for k in pairs(spellByInstance) do spellByInstance[k] = nil end
-    if not (C_UnitAuras and C_UnitAuras.GetAuraDataByIndex) then return end
     for i = 1, 40 do
         local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, "player", i, "HELPFUL")
         if not ok or not aura then break end

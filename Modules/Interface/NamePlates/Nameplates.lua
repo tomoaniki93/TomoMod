@@ -118,6 +118,9 @@ end
 -- Hoisted rather than wrapped in a closure at the call site so the guard costs
 -- no allocation per plate, like the enemy buff processor below.
 local function CaptureAuraSlots(dest, unit, filter)
+    -- [12.1] The probe answers for the whole frame, so forty plates cost
+    -- one question rather than forty refusals.
+    if TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted() then wipe(dest); return dest end
     return CaptureSlots(dest, C_UnitAuras.GetAuraSlots(unit, filter))
 end
 
@@ -199,6 +202,7 @@ end
 -- wrapping the call in a closure at the call site would put one allocation
 -- per nameplate back exactly where that comment says it was removed.
 local function CaptureEnemyBuffSlots(unit)
+    if TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted() then return end
     return ProcessEnemyBuffSlots(C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
 end
 

@@ -44,7 +44,12 @@ function RA.UpdateDebuffs(f)
     local maxDebuffs = db.maxDebuffs or 3
     local found = {}
 
-    if C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
+    -- [12.1] One question per frame instead of forty protected calls that
+    -- would all fail together. The visible result is unchanged -- a scan that
+    -- can read nothing found nothing before either -- so what this buys is
+    -- the cost, not the outcome.
+    if not (TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted())
+        and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
         local auraIndex = 1
         while auraIndex <= 40 and #found < maxDebuffs do
             local ok, auraData = pcall(C_UnitAuras.GetAuraDataByIndex, unit, auraIndex, "HARMFUL")
@@ -121,7 +126,12 @@ function RA.UpdateHoTs(f)
     local maxHoTs = db.maxHoTs or 3
     local found = {}
 
-    if C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
+    -- [12.1] One question per frame instead of forty protected calls that
+    -- would all fail together. The visible result is unchanged -- a scan that
+    -- can read nothing found nothing before either -- so what this buys is
+    -- the cost, not the outcome.
+    if not (TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted())
+        and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
         local auraIndex = 1
         while auraIndex <= 40 and #found < maxHoTs do
             local ok, auraData = pcall(C_UnitAuras.GetAuraDataByIndex, unit, auraIndex, "HELPFUL")

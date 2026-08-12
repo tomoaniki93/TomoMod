@@ -757,7 +757,12 @@ function RF.UpdateDispel(f)
     if not UnitExists(f.unit) then f.dispelHighlight:Hide(); return end
 
     local foundType = nil
-    if C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
+    -- [12.1] One question per frame instead of forty protected calls that
+    -- would all fail together. The visible result is unchanged -- a scan that
+    -- can read nothing found nothing before either -- so what this buys is
+    -- the cost, not the outcome.
+    if not (TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted())
+        and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
         local auraIndex = 1
         while auraIndex <= 40 do
             local ok, auraData = pcall(C_UnitAuras.GetAuraDataByIndex, f.unit, auraIndex, "HARMFUL")

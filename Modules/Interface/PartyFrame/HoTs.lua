@@ -45,7 +45,10 @@ function HoT.UpdateUnit(f)
     local found = {}
 
     -- Scan buffs via C_UnitAuras
-    if C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
+    -- [12.1] Skip the whole scan when the client is withholding auras:
+    -- a partial result would drop HoTs that are actually up.
+    if not (TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted())
+        and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
         local auraIndex = 1
         while auraIndex <= 40 and #found < maxHoTs do
             local ok, auraData = pcall(C_UnitAuras.GetAuraDataByIndex, unit, auraIndex, "HELPFUL")
