@@ -1,5 +1,50 @@
 ## ####################################
 
+## CHANGELOG 3.4.4 — A Damage Meter Ships Inside TomoMod, Built On Blizzard's Own Combat Data Rather Than On A Combat Log It Would Have Had To Parse Itself, With Up To Five Windows That Dock Edge To Edge And Then Move And Resize As One Because Two Anchor Points Do What Size-Syncing Code Would Otherwise Have To, A Spell Breakdown And A Target Breakdown And Per-Encounter Segments Reachable From Any Bar, A Death Recap That Opens On The Player Who Died, An End-Of-Run Scoreboard That Accumulates Its Own Snapshots Because The Data Cannot Be Read At The Moment A Key Actually Ends, Nine Skins And A Font And A Bar Texture And A Column Set You Choose Per Window, And A Guard That Stands The Bundled Copy Down The Moment The Standalone Addon Is Installed So Two Meters Never Fight Over The Same Windows
+
+#### Damage Meter — TomoMod Had No Meter, And Adding One Usually Means Parsing The Combat Log
+
+- **New** — A damage meter, bundled with TomoMod. DPS, HPS, damage taken, avoidable damage taken, enemy damage taken, absorbs, interrupts, dispels and deaths, grouped into Damage, Healing and Actions categories you cycle from the header. Current and Overall sessions, a combat timer, and a bar for each player.
+- **Note** — It reads Blizzard's own `C_DamageMeter` data rather than parsing the combat log. That is the whole architectural decision: no `COMBAT_LOG_EVENT_UNFILTERED` subscription, no event flood to filter, and the numbers agree with Blizzard's own meter because they *are* Blizzard's numbers. It needs a client that has the API, and says so plainly when there is not one.
+- **New** — `/tdm`, with `toggle`, `reset`, `lock`, `recap`, `resetpos`, `diag` and `help`. `/tomodm` is the long form. None of them collide with TomoMod's existing commands.
+- **New** — Report to chat, with the channel chosen in the settings: say, party, raid, guild, instance, whisper, automatic by group type, or printed to yourself.
+- **Note** — Say and Yell are deliberately called out in the interface as restricted: the game lets only one addon message through per click on those, so a multi-line report silently loses everything after the first line. Naming the limit beats letting it look like a bug.
+
+#### Damage Meter — Five Windows That Behave Like One
+
+- **New** — Up to five meter windows at once, each with its own meter type, session, column set and format. Watching DPS and healing side by side is the ordinary case, and one window forced you to keep cycling.
+- **New** — Edge-to-edge docking. Drag a window against another and it hooks on; the chain then moves together, and pulling a window away detaches it.
+- **Internal** — There is no size-synchronisation code, and that is the point. A docked window is anchored by *two* points on the shared edge rather than one, so its width is the host's width by construction — permanently, including through a resize — and dragging the head moves the chain because the engine already resolves the anchors. A docked window also hides its resize grip, since the constrained axis now belongs to the window it is docked to.
+- **New** — Nine skins — Tomo Dark, Tomo Neon, Minimal, Glossy, Ember, Frost, Terminal, Void, Parchment — plus a bar texture, a font, a font size, a bar height, an accent colour or class colours, background and out-of-combat opacity, and an option to pin your own bar.
+
+#### Damage Meter — A Number On A Bar Does Not Tell You What Produced It
+
+- **New** — A spell breakdown from any bar: left-click expands the spells inline, right-click opens them in their own window. Totals, hit counts, crit counts and crit rate per spell.
+- **New** — A target breakdown, answering the other half of the question — not what you cast, but what you cast it into.
+- **New** — Per-encounter segments, so a pull can be read on its own rather than only as part of the running total.
+- **New** — A death recap, opened by clicking a player in the Deaths category, or automatically on your own death if you turn that on. It shows the events leading to the death, and `/tdm resetpos` brings the window back to the centre if it has been dragged somewhere unhelpful.
+- **Internal** — The per-spell data carries fields that were previously dropped: the pet or guardian that cast a spell, the overkill portion, whether the damage was avoidable, and whether the blow was the killing one. Every one of those reads is guarded, because any field can come back as a secret value mid-combat.
+
+#### Damage Meter — The End Of A Run Is Exactly When The Data Cannot Be Read
+
+- **New** — A run recap: an end-of-run group scoreboard, with damage, healing, interrupts, deaths and avoidable damage taken per player. It can open by itself when a dungeon ends, and `/tdm recap` brings the last one back.
+- **Internal** — It accumulates rather than queries, and it has to. The obvious version reads the meter when the dungeon ends, and that does not work: `CHALLENGE_MODE_COMPLETED`, `LFG_COMPLETION_REWARD` and zone changes are not `DAMAGE_METER_*` events, and outside those handlers the API returns secret values — no sorting, no comparison, no `string.format`. A recap built that way could not even rank the group.
+- **Internal** — So nothing is read at the end. A snapshot is taken at every `PLAYER_REGEN_ENABLED`, inside an event handler, where the values are readable and names have resolved. The Overall session is cumulative, so the last snapshot of a run *is* the run total and there is nothing to add up — roughly fifteen snapshots per key, at no measurable cost. A value that comes back secret is skipped rather than written, so a player's last readable figure survives.
+
+#### Damage Meter — Two Copies Of The Same Meter Is Worse Than Either One
+
+- **New** — The meter also ships as a standalone addon, TomoDamageMeter. When that one is installed, the copy bundled in TomoMod stands down at load and says so once at login, rather than two meters fighting over the same windows, settings and combat sessions.
+- **Note** — The bundled copy is the one that yields, deliberately. Someone who installed the standalone chose it on purpose, and standalone versions already in the wild carry no guard of their own, so they cannot be asked to stand down. Deferring here is the only rule that works without shipping a matching update first.
+- **Internal** — The guard loads before every other file in the module, so the flag is set before anything registers an event, and every entry point checks it rather than relying on load order alone.
+
+#### Damage Meter — Where Its Settings Live, For Now
+
+- **New** — A *Damage Meter* page in TomoMod's options. In this release it is a bridge: it states where the meter's settings live and opens them, and it opens or hides the windows.
+- **Note** — Deliberately not a half-ported copy of the settings. The meter still owns its own settings window, and a second set of controls that disagreed with the real ones would be worse than a page that is honest about being a doorway. Folding them in properly is the next step.
+- **Note** — The page says what is actually going on in the two cases where there is nothing to open: the standalone addon has taken over, or the client has no damage meter API. Neither is an error, and neither shows a dead button.
+
+## ####################################
+
 ## CHANGELOG 3.4.3 — Every Release Note TomoMod Has Ever Shipped Becomes A Page You Can Open Instead Of A Popup You Dismissed Once And Lost, A Bar Imported From Blizzard's Cooldown Manager Stops Being A Snapshot That Rots At The Next Class Rework And Learns To Be Brought Back In Line Without Losing A Single Thing You Tuned On It, The Cooldown Studio's Entry List Stops Reading As A Column Of Spell Ids And Shows The Icon And The Name Of What It Is Actually Tracking, Icon Size Becomes A Scale You Set Once Rather Than Two Numbers You Keep In Step By Hand, The Scale Control Dims Itself Rather Than Guessing Once A Width And A Height Have Been Set Apart, The Dashboard Gets A Way Into The Studio That Does Not Require Finding The CooldownForge Panel First, And An Icon Size Outside Twenty-Four To Sixty-Four Stops Looking Accepted Right Up Until The Next Resync Or Import Or Duplicate Silently Snapped It Back
 
 #### What's New — The Notes Were Shown Once And Then They Were Gone

@@ -4,12 +4,13 @@
 ## Notes: Complete UI Replacement for WoW.
 ## Category: |cff0cd29fHUD|r
 ## 
-## SavedVariables: TomoModDB, CompanionStatusDB
+## SavedVariables: TomoModDB, CompanionStatusDB, TomoModDamageMeterDB
+## OptionalDeps: Blizzard_DamageMeter
 ## SavedVariablesPerCharacter: TomoModCharDB
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 3.4.3
+## Version: 3.4.4
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -70,6 +71,7 @@ Config\Panels\RaidFrames.lua
 Config\Panels\Skins.lua
 Config\Panels\Housing.lua
 Config\Panels\Profiles.lua
+Config\Panels\DamageMeter.lua
 Config\Panels\Changelog.lua
 Config\Panels\Diagnostics.lua
 Config\Panels\Roles.lua
@@ -93,6 +95,12 @@ Modules\Interface\ResourceBars\ResourceBars.xml
 Modules\Interface\NamePlates\Nameplates.xml
 Modules\Interface\PartyFrame\PartyFrame.xml
 Modules\Interface\RaidFrame\RaidFrame.xml
+
+## =====================
+## Damage Meter (also published standalone as TomoDamageMeter;
+## Guard.lua stands this copy down when that addon is installed)
+## =====================
+Modules\DamageMeter\DamageMeter.xml
 
 ## =====================
 ## Housing Modules

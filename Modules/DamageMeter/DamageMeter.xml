@@ -1,0 +1,32 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+    <!-- Guard first: it decides whether anything below does any work. -->
+    <Include file="Guard.lua" />
+
+    <Include file="Locales\enUS.lua" />
+    <Include file="Locales\frFR.lua" />
+    <Include file="Locales\deDE.lua" />
+    <Include file="Locales\esES.lua" />
+    <Include file="Locales\itIT.lua" />
+    <Include file="Locales\ptBR.lua" />
+    <Include file="Locales\zhCN.lua" />
+    <Include file="Locales\zhTW.lua" />
+    <Include file="Locales\ruRU.lua" />
+
+    <Include file="Meter\Style.lua" />
+    <Include file="Meter\Skins.lua" />
+
+    <Include file="Core\Init.lua" />
+    <Include file="Core\Utils.lua" />
+    <Include file="Core\Database.lua" />
+
+    <Include file="Meter\SpellBridge.lua" />
+    <Include file="Meter\SpellBreakdown.lua" />
+    <Include file="Meter\TargetBreakdown.lua" />
+    <Include file="Meter\DeathRecap.lua" />
+    <Include file="Meter\DamageMeter.lua" />
+    <Include file="Meter\RunRecap.lua" />
+    <Include file="Meter\Snap.lua" />
+
+    <Include file="Config\Widgets.lua" />
+    <Include file="Config\ConfigUI.lua" />
+</Ui>
