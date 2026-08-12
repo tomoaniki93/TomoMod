@@ -1526,8 +1526,28 @@ local function UpdatePlate(plate, unit)
     plate.health:SetMinMaxValues(0, hpMax)
     plate.health:SetValue(hp)
 
-    local r, g, b = GetHealthColor(unit)
-    plate.health:SetStatusBarColor(r, g, b, 1)
+    -- [12.1] C-side class colour first, for enemy players whose class the
+    -- client now hides. GetHealthColor still handles everything else, and
+    -- still answers for a player whose class really is unavailable.
+    --
+    -- The check mirrors the class-colour branch inside GetHealthColor: only
+    -- an attackable player is class-coloured, and only when the option is on.
+    -- UnitIsEnemy is part of that mirror, not a spare guard: branch 2 there
+    -- paints an attackable non-enemy neutral, and it sits above the class
+    -- branch, so skipping it here would recolour a unit the fallback path
+    -- would never have class-coloured. Tapped and friendly cannot both hold
+    -- with UnitIsEnemy, so those two branches need no clause of their own.
+    local painted = false
+    if s and s.useClassColors and UnitIsPlayer(unit)
+        and UnitCanAttack("player", unit) and UnitIsEnemy(unit, "player")
+        and not (s.colors and s.colors.focus and UnitIsUnit(unit, "focus"))
+        and TomoMod_Utils and TomoMod_Utils.ApplyClassColor then
+        painted = TomoMod_Utils.ApplyClassColor(plate.health, unit, "SetStatusBarColor")
+    end
+    if not painted then
+        local r, g, b = GetHealthColor(unit)
+        plate.health:SetStatusBarColor(r, g, b, 1)
+    end
 
     UpdateHealthText(plate, unit)
     UpdateAbsorb(plate, unit)

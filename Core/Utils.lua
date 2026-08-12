@@ -257,6 +257,70 @@ function U.GetClassColor(unit)
     return 0.5, 0.5, 0.5, 1
 end
 
+-- =====================================================================
+-- CLASS COLOUR THAT SURVIVES A SECRET CLASS
+--
+-- TryClassColor above returns nil when the client hides the class, and the
+-- caller falls back to a faction colour. That is correct but lossy: the
+-- class colour is simply gone on exactly the units a dungeon is full of.
+--
+-- C_ClassColor.GetClassColor is C-side and accepts a secret token. What it
+-- gives back is a colour object whose GetRGB is also C-side, so the numbers
+-- can be handed straight to another C-side setter -- SetStatusBarColor,
+-- SetTextColor, SetVertexColor -- without ever being read in Lua.
+--
+-- That is the whole trick, and its limit: this works only where the colour
+-- goes directly into a setter. Anything that wants to darken, blend or
+-- compare has to read the numbers, and there is no way around the fallback.
+-- =====================================================================
+
+-- Presence test that is safe on a secret value.
+--
+-- `if x` is a boolean test and throws on a secret; type(x) does not. Every
+-- guard on a possibly-secret value has to be written this way.
+function U.Exists(v)
+    return type(v) ~= "nil"
+end
+
+-- Colour object for a unit's class, or nil.
+--
+-- Unlike TryClassColor this succeeds on a secret class: the token is never
+-- read, only forwarded. The returned object's channels may themselves be
+-- secret, which is why the result is meant for ApplyClassColor below rather
+-- than for arithmetic.
+function U.ClassColorObject(unit)
+    if not unit or not C_ClassColor or not C_ClassColor.GetClassColor then return nil end
+
+    local token
+    if UnitClassBase then token = UnitClassBase(unit) end
+    if not U.Exists(token) and UnitClass then token = select(2, UnitClass(unit)) end
+    if not U.Exists(token) then return nil end
+
+    local ok, colour = pcall(C_ClassColor.GetClassColor, token)
+    if not ok or not colour or not colour.GetRGB then return nil end
+    return colour
+end
+
+-- Paints `region` with the unit's class colour, passing the channels
+-- straight from one C function to the other.
+--
+-- `setter` is the method name: "SetStatusBarColor", "SetTextColor",
+-- "SetVertexColor". Returns true when the colour was applied, so the caller
+-- can fall back on false rather than guessing.
+function U.ApplyClassColor(region, unit, setter)
+    if not region or not setter then return false end
+    local fn = region[setter]
+    if type(fn) ~= "function" then return false end
+
+    local colour = U.ClassColorObject(unit)
+    if not colour then return false end
+
+    -- pcall because the channels can be secret and a setter may yet refuse
+    -- them; a refusal must leave the region on its previous colour rather
+    -- than take the frame down.
+    return (pcall(function() fn(region, colour:GetRGB()) end)) and true or false
+end
+
 function U.GetPowerColor(powerType)
     local info = PowerBarColor[powerType]
     if info then

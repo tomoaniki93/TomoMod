@@ -567,8 +567,19 @@ function PF.UpdateHealth(f)
     f.health:SetMinMaxValues(0, max)
     f.health:SetValue(cur)
 
-    local r, g, b = GetHealthColor(f.unit, db)
-    f.health:SetStatusBarColor(r, g, b, 1)
+    -- [12.1] Try the C-side class colour first. It is the only path that
+    -- keeps the class colour when the client hides the class token: the
+    -- token goes into a C function and the channels come straight back out
+    -- into another one, never touching Lua. It only works right here, at
+    -- the setter -- the r, g, b return below has to be tested, and testing
+    -- a secret channel is what throws.
+    local classMode = ((db.healthColor or "class") == "class")
+    local painted = classMode and TomoMod_Utils and TomoMod_Utils.ApplyClassColor
+        and TomoMod_Utils.ApplyClassColor(f.health, f.unit, "SetStatusBarColor")
+    if not painted then
+        local r, g, b = GetHealthColor(f.unit, db)
+        f.health:SetStatusBarColor(r, g, b, 1)
+    end
 
     -- Dead/disconnected
     if UnitIsDeadOrGhost(f.unit) then

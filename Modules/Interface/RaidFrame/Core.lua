@@ -475,8 +475,16 @@ function RF.UpdateHealth(f)
     f.health:SetMinMaxValues(0, max)
     f.health:SetValue(cur)
 
-    local r, g, b = GetHealthColor(f.unit, db)
-    f.health:SetStatusBarColor(r, g, b, 1)
+    -- [12.1] C-side class colour first: it survives a secret class token,
+    -- which the r, g, b path below cannot, because deciding whether it
+    -- succeeded means testing a channel that may itself be secret.
+    local classMode = ((db.healthColor or "class") == "class")
+    local painted = classMode and TomoMod_Utils and TomoMod_Utils.ApplyClassColor
+        and TomoMod_Utils.ApplyClassColor(f.health, f.unit, "SetStatusBarColor")
+    if not painted then
+        local r, g, b = GetHealthColor(f.unit, db)
+        f.health:SetStatusBarColor(r, g, b, 1)
+    end
 
     if UnitIsDeadOrGhost(f.unit) then
         f.health:SetStatusBarColor(0.5, 0.5, 0.5, 0.6)

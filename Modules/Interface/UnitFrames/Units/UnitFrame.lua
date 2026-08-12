@@ -65,8 +65,17 @@ local function UpdateHealth(frame)
     frame.health:SetValue(current)
 
     -- Couleur
-    local r, g, b = E.GetHealthColor(unit, settings)
-    frame.health:SetStatusBarColor(r, g, b, 1)
+    --
+    -- [12.1] C-side class colour first. GetHealthColor below falls back to
+    -- a faction colour when the class is hidden, which is correct but loses
+    -- the class colour on exactly the units a dungeon is full of.
+    local painted = settings.useClassColor and UnitIsPlayer(unit)
+        and TomoMod_Utils and TomoMod_Utils.ApplyClassColor
+        and TomoMod_Utils.ApplyClassColor(frame.health, unit, "SetStatusBarColor")
+    if not painted then
+        local r, g, b = E.GetHealthColor(unit, settings)
+        frame.health:SetStatusBarColor(r, g, b, 1)
+    end
 
     -- Texte de santé (SetFormattedText est C-side — zéro taint Lua)
     if settings.showHealthText and frame.health.text then
