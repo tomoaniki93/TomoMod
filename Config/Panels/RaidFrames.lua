@@ -114,12 +114,10 @@ local function BuildFeaturesTab(parent)
 
     local card3, cy = W.CreateCard(c, L["rf_section_dispel"], y, "H")
     local _, cy = W.CreateCheckbox(card3.inner, L["rf_opt_show_dispel"], db.showDispel, cy, function(v) db.showDispel = v; ApplyRF() end)
-    -- [12.1] Now the size of the dispellable-debuff icon, not a border
-    -- thickness: the border is gone. Pointed at dispelSize with an icon
-    -- range, because left on dispelBorderSize this slider wrote a value
-    -- nothing reads any more. The label key still says "border" and wants
-    -- rewording in the six locales.
-    local _, cy = W.CreateSlider(card3.inner, L["rf_opt_dispel_border"], db.dispelSize or 16, 10, 24, 1, cy, function(v) db.dispelSize = v; ApplyRF() end, "%.0f")
+    -- [12.1] The size of the dispellable-debuff icon, not a border
+    -- thickness: the border is gone. Left on dispelBorderSize this slider
+    -- wrote a value nothing reads any more.
+    local _, cy = W.CreateSlider(card3.inner, L["rf_opt_dispel_size"], db.dispelSize or 16, 10, 24, 1, cy, function(v) db.dispelSize = v; ApplyRF() end, "%.0f")
     local _, cy = W.CreateInfoText(card3.inner, L["pf_info_dispel"], cy)
     y = W.FinalizeCard(card3, cy)
 

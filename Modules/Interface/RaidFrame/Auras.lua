@@ -22,7 +22,6 @@ local AD = TomoMod_AuraData
 RA.HEALER_HOTS       = AD and AD.HEALER_HOTS or {}
 local SPELL_TO_CLASS = AD and AD.HOT_SPELL_TO_CLASS or {}
 local CLASS_HOT_COLORS = AD and AD.CLASS_HOT_COLORS or {}
-local DEBUFF_TYPE_COLORS = AD and AD.DEBUFF_TYPE_COLORS or {}
 
 -- =====================================
 -- UPDATE DEBUFFS FOR A UNIT FRAME
