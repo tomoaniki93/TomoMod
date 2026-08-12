@@ -482,7 +482,10 @@ function AC.CreateAuraProbe(parent, spellIDs, cooldown)
     container:SetPoint("TOPLEFT", parent, "TOPLEFT", 0, 0)
     container:SetAlpha(0)
 
-    local probe = { container = container }
+    -- The caller's cooldown is kept: it is the readable side of the same
+    -- question. The engine drives it, and unlike the engine's own button
+    -- it belongs to us, so its shown state is not withheld.
+    local probe = { container = container, cooldown = cooldown }
 
     local okGroup = pcall(container.AddAuraGroup, container, "probe",
         AC.Filter("HELPFUL"), {
@@ -540,16 +543,46 @@ function AC.DestroyAuraProbe(probe)
     probe.button = nil
 end
 
--- True when the tracked aura is up. A frame query, not an aura read.
+-- True when the tracked aura is up.
+--
+-- NOT a plain frame query, which is what this used to assume: IsShown on an
+-- ENGINE button is a secret boolean, because whether an aura button is
+-- displayed is exactly the aura presence the client is withholding. Testing
+-- it threw on the first probed icon.
+--
+-- The caller's own Cooldown answers the same question and is ours: the
+-- engine puts a swipe on it while the aura is up and takes it away when it
+-- ends. The engine button stays as a fallback, now guarded.
+--
+-- When neither side can be read the answer is false, which costs nothing:
+-- the probe simply contributes no presence that frame and goes on driving
+-- the swipe, which is its other and larger job.
 function AC.ProbeActive(probe)
     -- The retry sweep is hooked to SetUnit, which probes never call: they sit
     -- on "player" for life. Asking here is the sweep's only guaranteed
     -- trigger in a session with no frames on screen, and it costs a next()
     -- on an empty table once everything is sized.
     AC.ResizePending()
-    if not probe or not probe.button then return false end
-    local ok, shown = pcall(probe.button.IsShown, probe.button)
-    return (ok and shown) and true or false
+    if not probe then return false end
+
+    local U = TomoMod_Utils
+    local function readable(frame)
+        if not frame or not frame.IsShown then return nil end
+        local ok, shown = pcall(frame.IsShown, frame)
+        if not ok then return nil end
+        -- The guard has to run BEFORE the boolean test, not after: testing
+        -- a secret is the operation that throws.
+        if U and U.IsSecret and U.IsSecret(shown) then return nil end
+        return shown and true or false
+    end
+
+    local mine = readable(probe.cooldown)
+    if mine ~= nil then return mine end
+
+    local theirs = readable(probe.button)
+    if theirs ~= nil then return theirs end
+
+    return false
 end
 
 -- The unit behind a plate changes as plates are recycled.

@@ -3126,6 +3126,13 @@ TomoMod_RegisterLocale("esES", {
     ["wn_333_shared"] = "Interno: los marcos de grupo y de banda mantenían dos copias de las mismas 250 líneas — la lógica de invocación, la lista de sanaciones periódicas, el seguimiento de defensivos. Los tres fallos anteriores vienen de ahí: una corrección aplicada a una copia y no a la otra. Ahora comparten una única implementación.",
 
     -- =====================
+    -- 3.4.6 — Novedades
+    -- =====================
+
+    ["wn_346_probe_secret"] = "Corrección — Los iconos de beneficio del Estudio de reutilizaciones, a los que 3.4.5 acababa de enseñar a conservar su cuenta atrás en combate, provocaban un error en el primer icono que vigilaba un beneficio. Al marcador invisible unido a cada icono se le preguntaba si estaba en pantalla, dando por hecho que esa es una pregunta sobre un elemento de la interfaz y no sobre el beneficio — y no lo es. Que un icono de aura esté en pantalla es exactamente que el beneficio esté activo, que es justo lo que el juego oculta: el sí-o-no que devolvía estaba a su vez oculto, y consultarlo era lo que fallaba. Proteger la llamada nunca pudo servir de nada: la llamada funcionaba perfectamente, y el fallo llegaba una línea después, al mirar la respuesta.",
+    ["wn_346_probe_cooldown"] = "Cambio — Así que la pregunta se le hace a otra cosa. Cada icono ya tiene su propio barrido, el que el juego mueve directamente, y esa pieza pertenece a TomoMod y no al juego: el barrido aparece mientras el beneficio está activo y se retira cuando termina, y nada impide al addon leerlo. Da la misma respuesta, desde el lado de la frontera donde aún se puede leer. El marcador del propio juego se mantiene detrás como segunda opinión, ahora consultado sin riesgo, y si ninguno de los dos responde el icono simplemente no aporta nada en ese fotograma y sigue moviendo el barrido — que siempre fue la mayor parte de su cometido.",
+
+    -- =====================
     -- 3.4.5 — Novedades
     -- =====================
 

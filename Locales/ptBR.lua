@@ -3113,6 +3113,13 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
 
     -- =====================
+    -- 3.4.6 — Novidades
+    -- =====================
+
+    ["wn_346_probe_secret"] = "Correção — Os ícones de benefício no Estúdio de recargas, que a 3.4.5 tinha acabado de ensinar a manter a contagem em combate, geravam um erro no primeiro ícone que vigiava um benefício. Ao marcador invisível preso a cada ícone se perguntava se ele estava na tela, partindo do princípio de que essa é uma pergunta sobre um pedaço da interface e não sobre o benefício — e não é. Que um ícone de aura esteja na tela é exatamente o fato de o benefício estar ativo, que é justamente o que o jogo está retendo: o sim-ou-não devolvido estava ele próprio retido, e consultá-lo era o que falhava. Proteger a chamada nunca poderia ajudar: a chamada funcionava perfeitamente, e a falha vinha uma linha depois, ao olhar para a resposta.",
+    ["wn_346_probe_cooldown"] = "Mudança — Então a pergunta é feita a outra coisa. Cada ícone já tem a sua própria varredura, aquela que o jogo move diretamente, e essa peça pertence ao TomoMod e não ao jogo: a varredura aparece enquanto o benefício está ativo e some quando ele acaba, e nada impede o addon de ler isso. Ela dá a mesma resposta, do lado da fronteira em que ler ainda é permitido. O marcador do próprio jogo fica atrás dele como segunda opinião, agora consultado com segurança, e se nenhum dos dois responder o ícone simplesmente não contribui com nada naquele quadro e segue movendo a varredura — que sempre foi a maior parte da sua função.",
+
+    -- =====================
     -- 3.4.5 — Novidades
     -- =====================
 

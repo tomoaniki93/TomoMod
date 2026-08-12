@@ -3113,6 +3113,13 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
 
     -- =====================
+    -- 3.4.6 — Novità
+    -- =====================
+
+    ["wn_346_probe_secret"] = "Correzione — Le icone dei benefici nello Studio dei recuperi, a cui la 3.4.5 aveva appena insegnato a mantenere il conto alla rovescia in combattimento, generavano un errore alla prima icona che sorvegliava un beneficio. Al contrassegno invisibile agganciato a ogni icona veniva chiesto se fosse sullo schermo, dando per scontato che sia una domanda su un pezzo di interfaccia e non sul beneficio — e non lo è. Che un'icona d'aura sia sullo schermo è esattamente il fatto che il beneficio sia attivo, cioè proprio ciò che il gioco trattiene: il sì-o-no restituito era a sua volta trattenuto, e a fallire era il fatto di consultarlo. Proteggere la chiamata non poteva servire: la chiamata funzionava benissimo, e l'errore arrivava una riga dopo, nel guardare la risposta.",
+    ["wn_346_probe_cooldown"] = "Modifica — La domanda viene quindi posta a qualcos'altro. Ogni icona ha già la propria spazzata, quella che il gioco muove direttamente, e quel pezzo appartiene a TomoMod e non al gioco: la spazzata compare finché il beneficio è attivo e sparisce quando finisce, e nulla impedisce all'addon di leggerla. Dà la stessa risposta, dal lato del confine in cui leggere è ancora permesso. Il contrassegno del gioco resta dietro come secondo parere, ora interrogato in sicurezza, e se nessuno dei due risponde l'icona semplicemente non contribuisce nulla per quel fotogramma e continua a muovere la spazzata — che è sempre stata la parte più grande del suo compito.",
+
+    -- =====================
     -- 3.4.5 — Novità
     -- =====================
 

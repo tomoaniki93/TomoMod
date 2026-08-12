@@ -3125,6 +3125,13 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
 
     -- =====================
+    -- 3.4.6 — Was ist neu
+    -- =====================
+
+    ["wn_346_probe_secret"] = "Behoben — Die Buff-Symbole im Cooldown-Studio, denen 3.4.5 gerade erst beigebracht hatte, ihren Countdown im Kampf zu behalten, erzeugten beim ersten Symbol, das einen Buff überwachte, einen Fehler. Der unsichtbare Marker an jedem Symbol wurde gefragt, ob er auf dem Bildschirm ist — in der Annahme, das sei eine Frage über ein Stück Benutzeroberfläche und nicht über den Buff. Ist es aber nicht. Ob ein Aura-Symbol angezeigt wird, ist genau die Information, ob der Buff aktiv ist, und genau die hält das Spiel zurück: Das zurückgegebene Ja-oder-Nein war selbst zurückgehalten, und der Fehler entstand dadurch, dass es abgefragt wurde. Den Aufruf abzusichern konnte nie helfen: Der Aufruf lief einwandfrei, und der Fehler kam eine Zeile später, beim Ansehen der Antwort.",
+    ["wn_346_probe_cooldown"] = "Änderung — Also wird die Frage an etwas anderes gestellt. Jedes Symbol hat bereits seinen eigenen Wischer, den das Spiel direkt antreibt, und dieses Stück gehört TomoMod und nicht dem Spiel: Der Wischer erscheint, solange der Buff aktiv ist, und verschwindet, wenn er endet — und nichts hindert das Addon daran, das zu lesen. Er gibt dieselbe Antwort, von der Seite der Grenze aus, auf der Lesen noch erlaubt ist. Der Marker des Spiels bleibt als Zweitmeinung dahinter erhalten, nun sicher abgefragt, und wenn keiner von beiden antwortet, steuert das Symbol für dieses Bild schlicht nichts bei und treibt den Wischer weiter an — was ohnehin immer der größere Teil seiner Aufgabe war.",
+
+    -- =====================
     -- 3.4.5 — Was ist neu
     -- =====================
 

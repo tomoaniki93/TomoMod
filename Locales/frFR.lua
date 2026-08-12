@@ -3141,6 +3141,13 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
 
     -- =====================
+    -- 3.4.6 — Quoi de neuf
+    -- =====================
+
+    ["wn_346_probe_secret"] = "Correction — Les icônes de buff du Studio de cooldowns, à qui la 3.4.5 venait d'apprendre à garder leur décompte en combat, provoquaient une erreur dès la première icône surveillant un buff. Le marqueur invisible attaché à chaque icône était interrogé sur sa présence à l'écran, en partant du principe qu'il s'agit d'une question portant sur un élément d'interface et non sur le buff — or ce n'en est pas une. Qu'une icône d'aura soit à l'écran, c'est exactement le fait que le buff soit actif, c'est-à-dire précisément ce que le jeu dissimule : le oui-ou-non renvoyé était lui-même dissimulé, et c'est le fait de le consulter qui échouait. Protéger l'appel ne pouvait rien y faire : l'appel se déroulait très bien, et l'échec survenait une ligne plus loin, au moment de regarder la réponse.",
+    ["wn_346_probe_cooldown"] = "Modification — La question est donc posée à autre chose. Chaque icône possède déjà son propre balayage, celui que le jeu pilote directement, et cet élément appartient à TomoMod et non au jeu : le balayage apparaît tant que le buff est actif et disparaît quand il se termine, et rien n'empêche l'addon de le lire. Il donne la même réponse, depuis le côté de la frontière où la lecture reste permise. Le marqueur du jeu est conservé derrière lui comme second avis, désormais interrogé sans risque, et si aucun des deux ne répond, l'icône n'apporte simplement rien pour cette image et continue de piloter le balayage — ce qui a toujours été la plus grande part de son rôle.",
+
+    -- =====================
     -- 3.4.5 — Quoi de neuf
     -- =====================
 

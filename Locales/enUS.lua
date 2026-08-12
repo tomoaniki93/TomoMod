@@ -3172,6 +3172,13 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
 
     -- =====================
+    -- 3.4.6 — What's New
+    -- =====================
+
+    ["wn_346_probe_secret"] = "Fix — The buff icons in the Cooldown Studio, which 3.4.5 had just taught to keep their countdown in combat, threw an error on the first icon that watched a buff. The invisible marker attached to each icon was asked whether it was on screen, on the understanding that this is a question about a piece of the interface rather than about the buff — and it is not. Whether an aura icon is on screen is whether the buff is up, which is precisely what the game is withholding, so the yes-or-no that came back was itself withheld, and asking it the question was what failed. Protecting the call could never have helped: the call worked fine, and the failure came a line later, from looking at the answer.",
+    ["wn_346_probe_cooldown"] = "Change — So the question is put to something else. Each icon already has its own sweep, the one the game drives directly, and that piece belongs to TomoMod rather than to the game: the sweep appears while the buff is up and goes away when it ends, and nothing stops the addon from reading that. It gives the same answer from the side of the line where reading is still allowed. The game's own marker is kept behind it as a second opinion, now asked safely, and if neither will answer the icon simply contributes nothing that frame and carries on driving the sweep — which was always the larger half of what it is there for.",
+
+    -- =====================
     -- 3.4.5 — What's New
     -- =====================
 
