@@ -122,6 +122,12 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
             -- setting drives the swipe's countdown digits.
             tooltips     = true,
             showDuration = auraSettings.showDuration ~= false,
+            -- Where the swipe digits used to sit, so dropping them changes
+            -- nothing on screen.
+            durationPoint = "CENTER",
+            durationX     = 0,
+            durationY     = 0,
+            durationColor = { 1, 1, 1, 1 },
             point    = { "TOPLEFT", container, "TOPLEFT", 0, 0 },
         })
     end
@@ -250,6 +256,12 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings, nameOverri
             harmful      = false,
             tooltips     = true,
             showDuration = (settings.enemyBuffs and settings.enemyBuffs.showDuration) ~= false,
+            -- Where the swipe digits used to sit, so dropping them changes
+            -- nothing on screen.
+            durationPoint = "CENTER",
+            durationX     = 0,
+            durationY     = 0,
+            durationColor = { 1, 1, 1, 1 },
             point   = { "TOPLEFT", container, "TOPLEFT", 0, 0 },
         })
     end

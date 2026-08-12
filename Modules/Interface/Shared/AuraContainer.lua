@@ -176,16 +176,12 @@ local function MakeInitializer(opts)
         d.cooldown:SetAllPoints(d.icon)
         d.cooldown:SetDrawEdge(false)
         d.cooldown:SetReverse(true)
-        -- The swipe's own countdown numbers. Forced off unconditionally
-        -- before, which made the "show duration" setting inert: the engine
-        -- writes the duration text on its own font string either way, and
-        -- this is the digit overlay on the swipe.
-        --
-        -- Opt-in rather than opt-out, because an absent setting has to mean
-        -- what it meant before. Nameplates pass no showDuration and had these
-        -- digits off with the duration font string on; `== false` would have
-        -- turned them on and drawn the time twice on every plate aura.
-        d.cooldown:SetHideCountdownNumbers(opts.showDuration ~= true)
+        -- Blizzard's swipe digits stay off, always. The remaining time is
+        -- written by the engine on d.duration below, and having both on drew
+        -- it twice -- once centred over the icon art, once in the corner.
+        -- One mechanism, placed and coloured per caller; showDuration now
+        -- governs that one font string rather than a second overlay.
+        d.cooldown:SetHideCountdownNumbers(true)
         d.cooldown:EnableMouse(false)
 
         d.count = button:CreateFontString(nil, "OVERLAY")
@@ -195,9 +191,19 @@ local function MakeInitializer(opts)
 
         d.duration = button:CreateFontString(nil, "OVERLAY")
         d.duration:SetFont(opts.font, 9, "OUTLINE")
-        d.duration:SetPoint("TOPLEFT", button, "TOPLEFT", -3, 4)
+        -- Placement and colour are the caller's: the plates want it in the
+        -- corner in yellow, the unit frames had their time centred on the
+        -- icon in white. Same mechanism, each surface keeps its look.
+        local dp = opts.durationPoint or "TOPLEFT"
+        local drp = opts.durationRelPoint or dp
+        d.duration:SetPoint(dp, button, drp, opts.durationX or -3, opts.durationY or 4)
         d.duration:SetJustifyH("LEFT")
-        d.duration:SetTextColor(1, 1, 0, 1)
+        local dc = opts.durationColor
+        if dc then
+            d.duration:SetTextColor(dc[1], dc[2], dc[3], dc[4] or 1)
+        else
+            d.duration:SetTextColor(1, 1, 0, 1)
+        end
 
         if opts.border then opts.border(button) end
 
@@ -226,6 +232,9 @@ local function AddGroups(container, spec)
     local init = MakeInitializer({
         size = spec.size, font = spec.font, border = spec.border,
         showDuration = spec.showDuration, tooltips = spec.tooltips,
+        durationPoint = spec.durationPoint, durationRelPoint = spec.durationRelPoint,
+        durationX = spec.durationX, durationY = spec.durationY,
+        durationColor = spec.durationColor,
     })
     local layout = {
         elementWidth  = spec.size,
@@ -282,11 +291,17 @@ function AC.Create(parent, opts)
         opts.onlyMine and "PLAYER" or nil)
     local size = opts.size or 24
 
+    -- Everything that shapes a button belongs here. AddGroups is the only
+    -- builder, and Relayout replays this spec: an option that stops at
+    -- Create is an option that silently reverts on the first size change.
     local spec = {
         key = opts.key or "auras", filter = filter, size = size,
         max = opts.max or 5, font = opts.font, border = opts.border,
         showDuration = opts.showDuration, tooltips = opts.tooltips,
         onlyMine = opts.onlyMine, both = opts.both,
+        durationPoint = opts.durationPoint, durationRelPoint = opts.durationRelPoint,
+        durationX = opts.durationX, durationY = opts.durationY,
+        durationColor = opts.durationColor,
     }
 
     if not AddGroups(container, spec) then
