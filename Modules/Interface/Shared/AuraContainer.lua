@@ -243,6 +243,47 @@ local function MakeInitializer(opts)
 end
 
 -- ---------------------------------------------------------------------
+-- Container layout
+--
+-- Growth direction and wrapping belong to the CONTAINER, not to a group:
+-- a group's layout only describes one button's box. Sending element sizes
+-- and nothing else is why the grow direction and the icons-per-row limit
+-- stopped doing anything after the conversion.
+-- ---------------------------------------------------------------------
+
+-- Blizzard names the two axes separately, and so does the addon: unit frame
+-- auras carry growDirection (LEFT/RIGHT) and growVertical (UP, or nil for
+-- DOWN) as independent settings, both exposed in the options. Folding the
+-- vertical axis into the horizontal one would have pinned every row to Down
+-- and made the "grow upwards" dropdown do nothing.
+--
+-- growDirection also accepts UP/DOWN, which other surfaces store; those name
+-- the vertical axis, so they leave the horizontal one at its default.
+local HORIZONTAL = { LEFT = "Left", RIGHT = "Right" }
+local VERTICAL   = { UP = "Up", DOWN = "Down" }
+
+local function ApplyContainerLayout(container, spec)
+    local dir = spec.growDirection or "RIGHT"
+    local h = HORIZONTAL[dir] or "Right"
+    -- growVertical wins when set; a vertical growDirection is the fallback.
+    local v = VERTICAL[spec.growVertical or ""] or VERTICAL[dir] or "Down"
+
+    local setGrowth = container.SetFlowLayoutGrowthDirection
+        or container.SetAuraLayoutGrowthDirection
+    if setGrowth then pcall(setGrowth, container, h, v) end
+
+    -- Row width is a pixel budget, which is exactly how the setting was
+    -- already expressed: the old grid wrapped on auras.maxWidth. nil means
+    -- unlimited, which is what an unset or zero width should mean.
+    local setRow = container.SetFlowLayoutMaximumLineSize
+        or container.SetAuraLayoutRowWidth
+    if setRow then
+        local w = tonumber(spec.rowWidth)
+        pcall(setRow, container, (w and w > 0) and w or nil)
+    end
+end
+
+-- ---------------------------------------------------------------------
 -- Container
 -- ---------------------------------------------------------------------
 
@@ -251,6 +292,17 @@ end
 -- one of them and forgotten in the other is precisely how the tooltip and
 -- duration settings would be lost on the first size change.
 local function AddGroups(container, spec)
+    -- "Both polarities" is two groups, and each one honours maxFrameCount
+    -- on its own: giving both the full budget would let a container set to
+    -- 8 draw 16. The budget is split, with the odd icon going to the
+    -- polarity the caller asked for first.
+    local total = spec.max or 5
+    local primary, secondary = total, 0
+    if spec.both then
+        secondary = math.floor(total / 2)
+        primary = total - secondary
+    end
+
     local init = MakeInitializer({
         size = spec.size, font = spec.font, border = spec.border,
         showDuration = spec.showDuration, tooltips = spec.tooltips,
@@ -262,7 +314,8 @@ local function AddGroups(container, spec)
     local layout = {
         elementWidth  = spec.size,
         elementHeight = spec.size - 4,
-        spacingX      = 2,
+        spacingX      = spec.spacing or 2,
+        spacingY      = spec.spacing or 2,
     }
 
     -- includeSpellIDs narrows a group to a known set. That is how the HoT
@@ -272,7 +325,7 @@ local function AddGroups(container, spec)
         and { includeSpellIDs = spec.includeSpellIDs } or nil
 
     if not pcall(container.AddAuraGroup, container, spec.key, spec.filter, {
-        maxFrameCount    = spec.max,
+        maxFrameCount    = primary,
         initializeFrame  = init,
         layout           = layout,
         candidateFilters = candidates,
@@ -283,10 +336,10 @@ local function AddGroups(container, spec)
     -- "Both polarities" is two groups on one container, not one filter
     -- string: a group carries exactly one filter. The engine batches the
     -- two scans and lays both groups out in the same container.
-    if spec.both then
+    if spec.both and secondary > 0 then
         pcall(container.AddAuraGroup, container, spec.key .. "_helpful",
             AC.Filter("HELPFUL", spec.onlyMine and "PLAYER" or nil), {
-                maxFrameCount    = spec.max,
+                maxFrameCount    = secondary,
                 initializeFrame  = init,
                 layout           = layout,
                 candidateFilters = candidates,
@@ -335,6 +388,9 @@ function AC.Create(parent, opts)
         durationColor = opts.durationColor,
         dispelBorder = opts.dispelBorder, dispelColorMap = opts.dispelColorMap,
         includeSpellIDs = opts.includeSpellIDs,
+        growDirection = opts.growDirection, growVertical = opts.growVertical,
+        rowWidth = opts.rowWidth,
+        spacing = opts.spacing,
     }
 
     if not AddGroups(container, spec) then
@@ -346,6 +402,7 @@ function AC.Create(parent, opts)
     -- Unit LAST: assigning it re-evaluates the engine's event
     -- registrations, and those are gated on the container having groups.
     containerSpec[container] = spec
+    ApplyContainerLayout(container, spec)
 
     pcall(container.SetUnit, container, opts.unit)
     pcall(container.UpdateAllAuras, container)
@@ -387,7 +444,10 @@ function AC.Relayout(container, opts)
         end
     end
     local ok = AddGroups(container, data)
-    if ok then pcall(container.UpdateAllAuras, container) end
+    if ok then
+        ApplyContainerLayout(container, data)
+        pcall(container.UpdateAllAuras, container)
+    end
     return ok
 end
 

@@ -128,6 +128,12 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
             durationX     = 0,
             durationY     = 0,
             durationColor = { 1, 1, 1, 1 },
+            -- Dropped in the conversion, which is why the row stopped
+            -- wrapping and always grew the same way.
+            growDirection = auraSettings.growDirection,
+            growVertical  = auraSettings.growVertical,
+            rowWidth      = auraSettings.maxWidth,
+            spacing       = auraSettings.spacing,
             point    = { "TOPLEFT", container, "TOPLEFT", 0, 0 },
         })
     end
