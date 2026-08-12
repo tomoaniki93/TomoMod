@@ -826,11 +826,12 @@ end
 local function GetFriendlyNameColor(unit)
     -- Players: class color
     if UnitIsPlayer(unit) then
-        local _, class = UnitClass(unit)
-        if class and RAID_CLASS_COLORS[class] then
-            local c = RAID_CLASS_COLORS[class]
-            return c.r, c.g, c.b
-        end
+        -- [12.1] A secret class token cannot index RAID_CLASS_COLORS.
+        -- Hoisted rather than `TomoMod_Utils and ...`: `and` keeps only the
+        -- first return value, which would drop green and blue.
+        local cr, cg, cb
+        if TomoMod_Utils then cr, cg, cb = TomoMod_Utils.TryClassColor(unit) end
+        if cr then return cr, cg, cb end
     end
     -- NPCs: friendly green
     local s = DB()
@@ -987,10 +988,12 @@ local function UpdateFriendlyRoleIcon(plate, unit)
     -- Color by class if player, else use role color
     local rc = ROLE_COLORS[role]
     if UnitIsPlayer(unit) then
-        local _, class = UnitClass(unit)
-        if class and RAID_CLASS_COLORS[class] then
-            local cc = RAID_CLASS_COLORS[class]
-            plate.roleIconTex:SetVertexColor(cc.r, cc.g, cc.b, 1)
+        -- [12.1] A secret class token cannot index RAID_CLASS_COLORS.
+        -- Hoisted: `and` would keep only the first return value.
+        local cr, cg, cb
+        if TomoMod_Utils then cr, cg, cb = TomoMod_Utils.TryClassColor(unit) end
+        if cr then
+            plate.roleIconTex:SetVertexColor(cr, cg, cb, 1)
         elseif rc then
             plate.roleIconTex:SetVertexColor(rc[1], rc[2], rc[3], 1)
         end
@@ -1152,11 +1155,11 @@ local function GetHealthColor(unit)
     -- 5) Enemy players: class color
     if UnitIsPlayer(unit) and UnitCanAttack("player", unit) then
         if s.useClassColors then
-            local _, class = UnitClass(unit)
-            if class and RAID_CLASS_COLORS[class] then
-                local c = RAID_CLASS_COLORS[class]
-                return c.r, c.g, c.b
-            end
+            -- [12.1] A secret class token cannot index RAID_CLASS_COLORS.
+            -- Hoisted: `and` would keep only the first return value.
+            local cr, cg, cb
+            if TomoMod_Utils then cr, cg, cb = TomoMod_Utils.TryClassColor(unit) end
+            if cr then return cr, cg, cb end
         end
     end
 
@@ -1189,7 +1192,10 @@ local function GetHealthColor(unit)
 
     -- 7) Caster NPC: UnitClassBase returns "PALADIN" for caster mobs in WoW
     if s.colors.caster then
-        local unitClass = UnitClassBase and UnitClassBase(unit)
+        -- [12.1] UnitClassBase can return a secret string, and comparing one
+        -- throws. Unreadable means "cannot tell": skip the caster tint
+        -- rather than guessing, and let the colour fall through.
+        local unitClass = TomoMod_Utils and TomoMod_Utils.UnitClassToken(unit)
         if unitClass == "PALADIN" then
             local c = s.colors.caster
             if type(inCombat) == "boolean" and inCombat then

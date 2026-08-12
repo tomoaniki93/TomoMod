@@ -197,7 +197,11 @@ local TOKEN_FMT = Forge.Text and Forge.Text.CompileTokens(UFE.TOKENS) or {}
 local function TokenValue(token, unit)
     if token == "name"  then return UnitName(unit) end
     if token == "level" then return UnitLevel(unit) end
-    if token == "class" then return (UnitClass(unit)) end
+    if token == "class" then
+        -- [12.1] The display name can be secret, and a tag value is
+        -- concatenated downstream. Empty reads better than an error.
+        return (TomoMod_Utils and TomoMod_Utils.SafeStr(UnitClass(unit))) or ""
+    end
     if token == "race"  then return (UnitRace(unit)) end
     if token == "guild" then return (GetGuildInfo(unit)) end
     return nil

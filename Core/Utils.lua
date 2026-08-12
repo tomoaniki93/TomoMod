@@ -193,13 +193,67 @@ end
 -- COLOR UTILITIES
 -- =====================================
 
-function U.GetClassColor(unit)
-    unit = unit or "player"
-    local _, class = UnitClass(unit)
-    if class and RAID_CLASS_COLORS[class] then
-        local c = RAID_CLASS_COLORS[class]
-        return c.r, c.g, c.b, 1
+-- =====================================================================
+-- SECRET VALUES
+--
+-- [12.1] The client hands out more and more values an addon may not read.
+-- A secret is not nil: it is a live value that throws the moment Lua
+-- compares it, indexes with it, concatenates it or tests it as a boolean.
+-- The guard therefore has to run BEFORE the operation, never after.
+-- =====================================================================
+
+-- True when the client refuses to let us read this value.
+function U.IsSecret(v)
+    if v == nil then return false end
+    local builtin = rawget(_G, "issecretvalue")
+    if type(builtin) ~= "function" then return false end
+    local ok, secret = pcall(builtin, v)
+    return ok and secret and true or false
+end
+
+-- Returns the value only if it is a readable string, else nil. Callers
+-- must treat nil as "cannot know", not as "absent".
+function U.SafeStr(v)
+    if v == nil or U.IsSecret(v) then return nil end
+    return type(v) == "string" and v or nil
+end
+
+-- The unit's class token, or nil when the client will not say.
+--
+-- UnitClassBase is preferred: it returns the token directly, so there is
+-- no select() dance, and it is the call the nameplate and health colour
+-- paths already used.
+function U.UnitClassToken(unit)
+    if not unit then return nil end
+    local token
+    if UnitClassBase then
+        token = U.SafeStr(UnitClassBase(unit))
     end
+    if not token and UnitClass then
+        token = U.SafeStr(select(2, UnitClass(unit)))
+    end
+    return token
+end
+
+-- Class colour for a unit, or nil when the class is unreadable.
+--
+-- Returning nil rather than grey is deliberate: grey is a real colour a
+-- caller may legitimately want, and callers differ on what to do when the
+-- class is unknown -- the health bar falls back to a faction colour, which
+-- is far more useful than a grey bar.
+function U.TryClassColor(unit)
+    local class = U.UnitClassToken(unit or "player")
+    if not class then return nil end
+    -- Only index the table once the key is known readable: indexing with a
+    -- secret key throws inside Blizzard's own table, not here.
+    local c = RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
+    if not c then return nil end
+    return c.r, c.g, c.b, 1
+end
+
+function U.GetClassColor(unit)
+    local r, g, b, a = U.TryClassColor(unit or "player")
+    if r then return r, g, b, a end
     return 0.5, 0.5, 0.5, 1
 end
 

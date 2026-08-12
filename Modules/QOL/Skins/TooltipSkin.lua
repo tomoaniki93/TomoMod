@@ -194,7 +194,8 @@ local function ApplyClassColorName(tooltip)
     local ok, isPlayer = pcall(UnitIsPlayer, unit)
     if not ok or not isPlayer then return end
 
-    local _, classToken = UnitClass(unit)
+    -- [12.1] nil leaves the tooltip on its default colour.
+    local classToken = TomoMod_Utils and TomoMod_Utils.UnitClassToken(unit)
     if not classToken then return end
 
     local color = RAID_CLASS_COLORS and RAID_CLASS_COLORS[classToken]

@@ -49,11 +49,13 @@ local POWER_COLORS = {
 -- =====================================
 local function GetClassColor(unit)
     if not unit or not UnitExists(unit) then return 0.8, 0.04, 0.04 end
-    local _, cls = UnitClass(unit)
-    if cls then
-        local c = RAID_CLASS_COLORS[cls]
-        if c then return c.r, c.g, c.b end
-    end
+    -- [12.1] The class token can be secret, and indexing RAID_CLASS_COLORS
+    -- with one throws inside Blizzard's own table.
+    -- Hoisted rather than `TomoMod_Utils and ...`: `and` keeps only the
+    -- first return value, which would drop green and blue.
+    local cr, cg, cb
+    if TomoMod_Utils then cr, cg, cb = TomoMod_Utils.TryClassColor(unit) end
+    if cr then return cr, cg, cb end
     return 0.8, 0.04, 0.04
 end
 

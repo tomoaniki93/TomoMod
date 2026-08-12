@@ -187,10 +187,11 @@ end
 -- CLASS COLOR
 -- =====================================
 local function GetUnitClassColor(unit)
-    local _, class = UnitClass(unit)
-    if class and RAID_CLASS_COLORS[class] then
-        local c = RAID_CLASS_COLORS[class]
-        return c.r, c.g, c.b
+    -- [12.1] The class token can be secret, and indexing RAID_CLASS_COLORS
+    -- with one throws inside Blizzard's own table. nil means "cannot know",
+    -- and every caller here already treats nil as "use another colour".
+    if TomoMod_Utils and TomoMod_Utils.TryClassColor then
+        return TomoMod_Utils.TryClassColor(unit)
     end
     return nil
 end

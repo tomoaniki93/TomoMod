@@ -746,10 +746,14 @@ local function AnyGroupMemberMissing(entry)
         local unit = prefix .. i
         if UnitIsBuffable(unit) and not UnitIsUnit(unit, "player")
            and UnitInBuffRange(unit) then
-            local _, class = UnitClass(unit)
+            -- [12.1] A secret class token cannot index the benefits table.
+            -- Unknown is treated as a beneficiary: a reminder for someone who
+            -- does not need the buff is a smaller failure than never
+            -- reminding for someone who does.
+            local class = TomoMod_Utils and TomoMod_Utils.UnitClassToken(unit)
             -- The class gate runs before the aura read, so non-beneficiaries
             -- are skipped without touching the aura API at all.
-            if (not benefits or benefits[class]) and not UnitHasBuff(unit, entry.buffIDs) then
+            if (not benefits or not class or benefits[class]) and not UnitHasBuff(unit, entry.buffIDs) then
                 return true
             end
         end

@@ -278,7 +278,14 @@ local function UpdateLeaderIcon(frame)
         return
     end
 
-    if UnitIsGroupLeader(frame.unit) then
+    -- [12.1] UnitIsGroupLeader can return a secret boolean, and testing one
+    -- throws before the branch is taken. Unknown hides the icon: showing a
+    -- leader crown on a unit that may not be the leader is worse than not
+    -- showing one.
+    local isLeader = UnitIsGroupLeader(frame.unit)
+    if TomoMod_Utils and TomoMod_Utils.IsSecret(isLeader) then
+        frame.health.leaderIcon:Hide()
+    elseif isLeader then
         frame.health.leaderIcon:Show()
     else
         frame.health.leaderIcon:Hide()

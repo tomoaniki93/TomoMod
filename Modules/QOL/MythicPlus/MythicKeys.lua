@@ -92,7 +92,9 @@ local function CollectPartyKeystones()
             end
             local info = allKeys[fullName] or allKeys[uName]
             if info and info.level and info.level > 0 then
-                local _, class = UnitClass(unit)
+                -- [12.1] nil here simply means the row draws without a
+                -- class colour; every consumer already guards on it.
+                local class = TomoMod_Utils and TomoMod_Utils.UnitClassToken(unit)
                 results[#results + 1] = {
                     name  = uName,
                     class = class,

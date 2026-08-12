@@ -119,7 +119,10 @@ local function GetNameplateStyleColor(unit)
 
     -- Caster NPC
     if colors.caster then
-        local unitClass = UnitClassBase and UnitClassBase(unit)
+        -- [12.1] UnitClassBase can return a secret string, and comparing one
+        -- throws. Unreadable means "cannot tell": skip the caster tint
+        -- rather than guessing, and let the colour fall through.
+        local unitClass = TomoMod_Utils and TomoMod_Utils.UnitClassToken(unit)
         if unitClass == "PALADIN" then
             local c = colors.caster
             if type(inCombat) == "boolean" and inCombat then
@@ -179,11 +182,16 @@ function UF_Elements.GetHealthColor(unit, settings)
 
     -- Class color for players
     if settings.useClassColor and UnitIsPlayer(unit) then
-        local _, class = UnitClass(unit)
-        if class and RAID_CLASS_COLORS[class] then
-            local c = RAID_CLASS_COLORS[class]
-            return c.r, c.g, c.b
-        end
+        -- [12.1] The class token can be secret, and RAID_CLASS_COLORS then
+        -- refuses the lookup: "attempted to index a table that cannot be
+        -- indexed with secret keys". That fired 399 times in one session.
+        -- When the class cannot be read we fall through to the faction
+        -- colour below, which is a better answer than a grey bar.
+        -- Hoisted rather than `TomoMod_Utils and ...`: `and` keeps only the
+        -- first return value, which would drop green and blue.
+        local r, g, b
+        if TomoMod_Utils then r, g, b = TomoMod_Utils.TryClassColor(unit) end
+        if r then return r, g, b end
     end
 
     -- Nameplate-style colors for NPCs (caster, miniboss, threat, focus, darken OOC)

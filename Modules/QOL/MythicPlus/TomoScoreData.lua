@@ -64,7 +64,9 @@ function TS:CollectRunData()
             local name, realm = UnitName(unit)
             if name then
                 local fullName = realm and realm ~= "" and (name .. "-" .. realm) or name
-                local _, classFile = UnitClass(unit)
+                -- [12.1] nil when the client will not say; consumers colour by
+                -- class only when they have one.
+                local classFile = TomoMod_Utils and TomoMod_Utils.UnitClassToken(unit)
                 local role = UnitGroupRolesAssigned(unit)
 
                 -- GetInspectSpecialization only answers for units whose

@@ -214,7 +214,8 @@ local function OnSpellCastSucceeded(unit, spellID)
         -- spellID unresolvable (secret value AND string.format strip failed).
         -- Fall back to the class-known interrupt if not already on cooldown.
         -- Brez needs no fallback here: it is pool-driven in CD.UpdateFrame.
-        local _, classFile = UnitClass(unit)
+        -- [12.1] nil when unreadable; the caller already skips a nil class.
+        local classFile = TomoMod_Utils and TomoMod_Utils.UnitClassToken(unit)
         if classFile then
             local classKick = CLASS_INTERRUPT[classFile]
             if classKick then
@@ -277,7 +278,8 @@ function CD.UpdateFrame(f)
     local db = TomoModDB and TomoModDB.partyFrames
     if not db then return end
 
-    local _, classFile = UnitClass(f.unit)
+    -- [12.1] nil when unreadable; the caller already skips a nil class.
+    local classFile = TomoMod_Utils and TomoMod_Utils.UnitClassToken(f.unit)
     local unitCDs = CD.active[f.unit]
     local now = GetTime()
 
