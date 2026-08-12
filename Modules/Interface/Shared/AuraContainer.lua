@@ -19,9 +19,6 @@
 local AC = {}
 TomoMod_AuraContainer = AC
 
--- The old name, for anything not yet moved over.
-TomoMod_NPAuraContainer = AC
-
 -- Per-button regions, keyed by button. The engine owns the buttons and
 -- recycles them, so anything of ours has to hang off a side table rather
 -- than off fields it might reuse.
@@ -39,8 +36,6 @@ local containerSpec = setmetatable({}, { __mode = "k" })
 -- order pay for two scans, so every filter in the suite is built here:
 -- polarity first, then the rest in a fixed order.
 -- ---------------------------------------------------------------------
-local filterCache = {}
-
 function AC.Filter(...)
     local n = select("#", ...)
     local base, rest = nil, {}
@@ -57,12 +52,10 @@ function AC.Filter(...)
     base = base or "HARMFUL"
     table.sort(rest)
 
+    -- No cache: Lua interns strings, so looking one up costs what building
+    -- it costs. The table only added memory.
     local key = base
     for i = 1, #rest do key = key .. "|" .. rest[i] end
-
-    local cached = filterCache[key]
-    if cached then return cached end
-    filterCache[key] = key
     return key
 end
 
@@ -106,26 +99,57 @@ end
 -- are created and styled BEFORE any of them is registered.
 -- ---------------------------------------------------------------------
 
+-- Buttons whose size has not landed yet. Weak keys: the engine pools and
+-- discards buttons, and a stale entry must not keep one alive.
+local pending = setmetatable({}, { __mode = "k" })
+
+-- Applies the recorded size. Returns true once it has landed.
+function AC.TrySize(button)
+    local d = buttonData[button]
+    if not d or not d.wantSize then return false end
+    if d.sizedTo == d.wantSize then pending[button] = nil; return true end
+
+    local size = d.wantSize
+    local ok = pcall(button.SetSize, button, size, size - 4)
+    -- Stamped AFTER the call: stamping first would make the next retry read
+    -- a refusal as already applied, which is the bug this exists for.
+    if ok then
+        d.sizedTo = size
+        pending[button] = nil
+        return true
+    end
+    return false
+end
+
+-- Retries every outstanding button.
+function AC.ResizePending()
+    if not next(pending) then return end
+    for button in pairs(pending) do
+        AC.TrySize(button)
+    end
+end
+
 local function MakeInitializer(opts)
     return function(button)
         local d = {}
         buttonData[button] = d
 
         local size = opts.size or 24
-        -- The engine anchors buttons but never sizes them: an unsized
-        -- button renders nothing at all.
+        -- The engine anchors buttons but never sizes them: an unsized button
+        -- renders nothing at all.
         --
-        -- KNOWN GAP, and the one to watch when testing this: SetSize on an
-        -- aura button is refused while auras are restricted, which is exactly
-        -- the situation this whole file exists for. A button first initialised
-        -- during a restricted stretch therefore comes out with no size and
-        -- draws nothing, and there is no retry yet -- d.sizedTo and
-        -- buttonData above are written for one and nothing reads them.
-        -- Whether this bites depends on whether the engine runs
-        -- initializeFrame once per pooled button or again on reuse, which
-        -- needs checking in game before a retry is worth writing.
-        local okSize = pcall(button.SetSize, button, size, size - 4)
-        if okSize then d.sizedTo = size end
+        -- SetSize on an aura button is refused while auras are restricted --
+        -- exactly the situation this file exists for. A button first built
+        -- during a restricted stretch would come out sizeless and stay that
+        -- way, because the engine runs this initializer once per pooled
+        -- button, not again on reuse.
+        --
+        -- So the wanted size is recorded and retried from the container
+        -- update. d.wantSize is what was asked for, d.sizedTo what landed;
+        -- they differ only while a refusal is outstanding.
+        d.wantSize = size
+        pending[button] = true
+        AC.TrySize(button)
 
         pcall(button.SetMouseClickEnabled, button, false)
 
@@ -277,5 +301,8 @@ function AC.SetUnit(container, unit)
     if not container or not container.SetUnit then return false end
     local ok = pcall(container.SetUnit, container, unit)
     if ok then pcall(container.UpdateAllAuras, container) end
+    -- Every plate calls this on update, so it is the cheapest hook for the
+    -- retry: a `next()` on an empty table when nothing is pending.
+    AC.ResizePending()
     return ok
 end
