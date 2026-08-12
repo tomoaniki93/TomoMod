@@ -222,12 +222,11 @@ SlashCmdList["TOMOMOD"] = function(msg)
                 local p, _, rp, px, py = c:GetPoint()
                 print("  [4] container pos: " .. tostring(p) .. "->" .. tostring(rp)
                     .. " (" .. tostring(px) .. "," .. tostring(py) .. ")"
-                    .. " fLevel=" .. c:GetFrameLevel() .. " icons=" .. #c.icons)
-                if c.icons and c.icons[1] then
-                    c.icons[1].texture:SetTexture("Interface\\Icons\\Spell_Shadow_UnholyStrength")
-                    c.icons[1]:Show()
-                    print("  [4] |cff00ff00TEST ICON FORCED VISIBLE|r — look top-right of target HP bar!")
-                end
+                    .. " fLevel=" .. c:GetFrameLevel()
+                    -- [12.1] container.icons is gone: the aura engine owns the
+                    -- buttons now. This read was unguarded, so the diagnostic
+                    -- errored on the line meant to report the state.
+                    .. " engine=" .. tostring(c.engine ~= nil))
             end
         end
 

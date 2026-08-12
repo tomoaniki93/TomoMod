@@ -400,16 +400,8 @@ function UF.NeutralizeContainer(container)
     container:RegisterForDrag()
     container:SetScript("OnDragStart", nil)
     container:SetScript("OnDragStop", nil)
-    if container.icons then
-        for i = 1, #container.icons do
-            local icon = container.icons[i]
-            if icon then
-                icon:EnableMouse(false)
-                icon:SetScript("OnEnter", nil)
-                icon:SetScript("OnLeave", nil)
-            end
-        end
-    end
+    -- [12.1] Aura buttons belong to the engine, which sets their own mouse
+    -- state; the initializer already disables clicks on each one.
 end
 
 -- =====================================
@@ -842,26 +834,23 @@ function UF.ApplyVisuals(frame, unitKey, settings)
 
     -- Redimensionner les icônes d'aura puis ré-appliquer la grille (même layout
     -- qu'à la création — évite toute incohérence de taille/espacement entre unités).
-    if frame.auraContainer and frame.auraContainer.icons and settings.auras then
-        local auraSize     = settings.auras.size or 30
-        local hideCountdown = not settings.auras.showDuration
-        for _, icon in ipairs(frame.auraContainer.icons) do
-            icon:SetSize(auraSize, auraSize)
-            if icon.texture then icon.texture:SetAllPoints(icon) end
-            -- showDuration n'était appliqué qu'à la création : un /reload était
-            -- nécessaire pour voir le changement. Réappliqué à chaud ici.
-            if icon.cooldown then icon.cooldown:SetHideCountdownNumbers(hideCountdown) end
+    -- [12.1] Icon size and the countdown toggle belong to the engine now:
+    -- it sizes and anchors its own buttons. AC.Relayout rebuilds the group,
+    -- which is the only sanctioned way to change either.
+    local AC = TomoMod_AuraContainer
+    if AC then
+        if frame.auraContainer and frame.auraContainer.engine and settings.auras then
+            AC.Relayout(frame.auraContainer.engine, {
+                size = settings.auras.size or 30,
+                max  = settings.auras.maxAuras or 8,
+            })
         end
-        if E and E.LayoutAuraGrid then
-            E.LayoutAuraGrid(frame.auraContainer, settings.auras)
-        end
-    end
-
-    -- Icônes de buffs ennemis : idem pour le décompte.
-    if frame.enemyBuffContainer and frame.enemyBuffContainer.icons and settings.enemyBuffs then
-        local hideCountdown = not settings.enemyBuffs.showDuration
-        for _, icon in ipairs(frame.enemyBuffContainer.icons) do
-            if icon.cooldown then icon.cooldown:SetHideCountdownNumbers(hideCountdown) end
+        if frame.enemyBuffContainer and frame.enemyBuffContainer.engine
+            and settings.enemyBuffs then
+            AC.Relayout(frame.enemyBuffContainer.engine, {
+                size = settings.enemyBuffs.size or 24,
+                max  = settings.enemyBuffs.maxAuras or 4,
+            })
         end
     end
 end
