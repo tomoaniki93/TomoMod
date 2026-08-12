@@ -398,28 +398,21 @@ function RF.CreateFrame(unit)
         local debuffContainer = CreateFrame("Frame", nil, content)
         debuffContainer:SetPoint("BOTTOMRIGHT", content, "BOTTOMRIGHT", -1, 1)
         debuffContainer:SetSize(debuffSize * maxDebuffs + (maxDebuffs - 1), debuffSize)
-        debuffContainer.icons = {}
-        for i = 1, maxDebuffs do
-            local icon = CreateFrame("Frame", nil, debuffContainer, "BackdropTemplate")
-            icon:SetSize(debuffSize, debuffSize)
-            icon:SetPoint("RIGHT", debuffContainer, "RIGHT", -(i - 1) * (debuffSize + 1), 0)
-            icon:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
-            icon:SetBackdropBorderColor(0.8, 0, 0, 1)
-            local tex = icon:CreateTexture(nil, "ARTWORK")
-            tex:SetPoint("TOPLEFT", 1, -1)
-            tex:SetPoint("BOTTOMRIGHT", -1, 1)
-            tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-            icon.texture = tex
-            local dur = icon:CreateFontString(nil, "OVERLAY")
-            dur:SetFont(db.font or ADDON_FONT, 8, "OUTLINE")
-            dur:SetPoint("BOTTOM", icon, "BOTTOM", 0, -1)
-            icon.duration = dur
-            local stacks = icon:CreateFontString(nil, "OVERLAY")
-            stacks:SetFont(db.font or ADDON_FONT, 8, "OUTLINE")
-            stacks:SetPoint("TOPRIGHT", icon, "TOPRIGHT", 1, 1)
-            icon.stacks = stacks
-            icon:Hide()
-            debuffContainer.icons[i] = icon
+        -- [12.1] The engine draws the dispel-type border itself, from the
+        -- aura data the scan used to read.
+        local AC = TomoMod_AuraContainer
+        if AC then
+            debuffContainer.engine = AC.Create(debuffContainer, {
+                key          = "debuffs",
+                unit         = nil,
+                size         = debuffSize,
+                max          = maxDebuffs,
+                font         = db.font or ADDON_FONT,
+                harmful      = true,
+                tooltips     = false,
+                dispelBorder = true,
+                point        = { "TOPLEFT", debuffContainer, "TOPLEFT", 0, 0 },
+            })
         end
         f.debuffContainer = debuffContainer
     end
@@ -431,23 +424,30 @@ function RF.CreateFrame(unit)
         local hotContainer = CreateFrame("Frame", nil, content)
         hotContainer:SetPoint("BOTTOMLEFT", content, "BOTTOMLEFT", 1, 1)
         hotContainer:SetSize(hotSize * maxHoTs + (maxHoTs - 1), hotSize)
-        hotContainer.icons = {}
-        for i = 1, maxHoTs do
-            local icon = CreateFrame("Frame", nil, hotContainer, "BackdropTemplate")
-            icon:SetSize(hotSize, hotSize)
-            icon:SetPoint("LEFT", (i - 1) * (hotSize + 1), 0)
-            icon:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
-            icon:SetBackdropBorderColor(0, 0, 0, 1)
-            local tex = icon:CreateTexture(nil, "ARTWORK")
-            tex:SetAllPoints()
-            tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-            icon.texture = tex
-            local dur = icon:CreateFontString(nil, "OVERLAY")
-            dur:SetFont(db.font or ADDON_FONT, 7, "OUTLINE")
-            dur:SetPoint("CENTER", 0, 0)
-            icon.duration = dur
-            icon:Hide()
-            hotContainer.icons[i] = icon
+        -- [12.1] The engine builds and fills the buttons. includeSpellIDs
+        -- narrows the group to the HoTs we care about, which is what the
+        -- old spellId match did before the client withheld it.
+        local AD = TomoMod_AuraData
+        local AC = TomoMod_AuraContainer
+        if AC then
+            hotContainer.engine = AC.Create(hotContainer, {
+                key             = "hots",
+                unit            = nil,
+                size            = hotSize,
+                max             = maxHoTs,
+                font            = db.font or ADDON_FONT,
+                harmful         = false,
+                tooltips        = false,
+                includeSpellIDs = AD and AD.HOT_SPELL_TO_CLASS or nil,
+                -- Centred and white, which is where the old HoT duration sat
+                -- and what the party HoT container already asks for. Left to
+                -- the default it would move to the corner and turn yellow.
+                durationPoint   = "CENTER",
+                durationX       = 0,
+                durationY       = 0,
+                durationColor   = { 1, 1, 1, 1 },
+                point           = { "TOPLEFT", hotContainer, "TOPLEFT", 0, 0 },
+            })
         end
         f.hotContainer = hotContainer
     end
@@ -757,6 +757,12 @@ function RF.UpdateDispel(f)
     if not UnitExists(f.unit) then f.dispelHighlight:Hide(); return end
 
     local foundType = nil
+    -- [12.1] NOT converted, and not an oversight: this colours the unit
+    -- frame's own border from the dispel type of a debuff on the unit. The
+    -- engine draws dispel colours on ITS aura buttons, via
+    -- AddDispelTypeTexture; it has no way to answer "what type is on this
+    -- unit" without us reading the aura. So the guarded scan stays, and
+    -- the highlight keeps working out of combat only.
     -- [12.1] One question per frame instead of forty protected calls that
     -- would all fail together. The visible result is unchanged -- a scan that
     -- can read nothing found nothing before either -- so what this buys is

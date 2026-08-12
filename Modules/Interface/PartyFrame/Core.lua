@@ -421,25 +421,26 @@ function PF.CreateFrame(index, unit)
         hotContainer:SetPoint("BOTTOMLEFT", content, "BOTTOMLEFT", 2, 2)
         local hotSize = db.hotSize or 12
         hotContainer:SetSize(hotSize * (db.maxHoTs or 3) + 4, hotSize)
-        hotContainer.icons = {}
-        for i = 1, (db.maxHoTs or 3) do
-            local icon = CreateFrame("Frame", nil, hotContainer, "BackdropTemplate")
-            icon:SetSize(hotSize, hotSize)
-            icon:SetPoint("LEFT", (i - 1) * (hotSize + 1), 0)
-            icon:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
-            icon:SetBackdropBorderColor(0, 0, 0, 1)
-            local tex = icon:CreateTexture(nil, "ARTWORK")
-            tex:SetAllPoints()
-            tex:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-            icon.texture = tex
-            local dur = icon:CreateFontString(nil, "OVERLAY")
-            dur:SetFont(db.font or ADDON_FONT, 8, "OUTLINE")
-            dur:SetPoint("CENTER", 0, 0)
-            icon.duration = dur
-            -- Class-colored border (set during update)
-            icon.border = icon
-            icon:Hide()
-            hotContainer.icons[i] = icon
+        -- [12.1] The engine fills this container. includeSpellIDs narrows
+        -- the group to the HoTs we track, which is what the spellId match
+        -- did before the client withheld it.
+        local AD = TomoMod_AuraData
+        local AC = TomoMod_AuraContainer
+        if AC then
+            hotContainer.engine = AC.Create(hotContainer, {
+                key             = "hots",
+                size            = hotSize,
+                max             = db.maxHoTs or 3,
+                font            = db.font or ADDON_FONT,
+                harmful         = false,
+                tooltips        = false,
+                includeSpellIDs = AD and AD.HOT_SPELL_TO_CLASS or nil,
+                durationPoint   = "CENTER",
+                durationX       = 0,
+                durationY       = 0,
+                durationColor   = { 1, 1, 1, 1 },
+                point           = { "TOPLEFT", hotContainer, "TOPLEFT", 0, 0 },
+            })
         end
         f.hotContainer = hotContainer
     end
@@ -896,6 +897,12 @@ function PF.UpdateDispel(f)
     if not UnitExists(f.unit) then f.dispelHighlight:Hide(); return end
 
     local foundType = nil
+    -- [12.1] NOT converted, and not an oversight: this colours the unit
+    -- frame's own border from the dispel type of a debuff on the unit. The
+    -- engine draws dispel colours on ITS aura buttons, via
+    -- AddDispelTypeTexture; it has no way to answer "what type is on this
+    -- unit" without us reading the aura. So the guarded scan stays, and
+    -- the highlight keeps working out of combat only.
     -- [12.1] Ask once whether auras are readable at all, instead of
     -- discovering it forty protected calls later. Note what this does NOT
     -- change: foundType stays nil, so the tail below still hides the

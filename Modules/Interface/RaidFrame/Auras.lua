@@ -1,6 +1,7 @@
 -- =====================================
 -- RaidFrame/Auras.lua — Debuff, HoT & Defensive tracking for Raid Frames
--- Scans via C_UnitAuras.GetAuraDataByIndex (taint-safe)
+-- [12.1] The aura rows here are drawn by the client's aura engine
+-- (Shared/AuraContainer.lua); nothing in this file reads an aura.
 -- NO COMBAT_LOG_EVENT_UNFILTERED
 -- =====================================
 
@@ -26,157 +27,38 @@ local DEBUFF_TYPE_COLORS = AD and AD.DEBUFF_TYPE_COLORS or {}
 -- =====================================
 -- UPDATE DEBUFFS FOR A UNIT FRAME
 -- =====================================
-function RA.UpdateDebuffs(f)
+function RA.UpdateDebuffs(f, db)
     if not f or not f.debuffContainer then return end
-
-    local db = TomoModDB and TomoModDB.raidFrames
-    if not db or not db.showDebuffs then
-        for _, icon in ipairs(f.debuffContainer.icons) do icon:Hide() end
-        return
-    end
-
+    db = db or (TomoModDB and TomoModDB.raidFrames)
+    -- The setting still has to be honoured at update time, not only at
+    -- creation. ApplySettings re-applies visuals to existing frames rather
+    -- than rebuilding them, so without this, turning the option off left the
+    -- debuffs on screen until a reload.
+    if not db or not db.showDebuffs then f.debuffContainer:Hide(); return end
     local unit = f.unit
-    if not unit or not UnitExists(unit) then
-        for _, icon in ipairs(f.debuffContainer.icons) do icon:Hide() end
-        return
-    end
-
-    local maxDebuffs = db.maxDebuffs or 3
-    local found = {}
-
-    -- [12.1] One question per frame instead of forty protected calls that
-    -- would all fail together. The visible result is unchanged -- a scan that
-    -- can read nothing found nothing before either -- so what this buys is
-    -- the cost, not the outcome.
-    if not (TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted())
-        and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
-        local auraIndex = 1
-        while auraIndex <= 40 and #found < maxDebuffs do
-            local ok, auraData = pcall(C_UnitAuras.GetAuraDataByIndex, unit, auraIndex, "HARMFUL")
-            if not ok or not auraData then break end
-
-            local dispelType = auraData.dispelName
-            if dispelType and not issecretvalue(dispelType) then
-                found[#found + 1] = {
-                    icon      = auraData.icon,
-                    duration  = auraData.duration,
-                    expTime   = auraData.expirationTime,
-                    stacks    = auraData.applications,
-                    type      = dispelType,
-                }
-            end
-
-            auraIndex = auraIndex + 1
-        end
-    end
-
-    for i, icon in ipairs(f.debuffContainer.icons) do
-        local data = found[i]
-        if data then
-            if data.icon then
-                icon.texture:SetTexture(data.icon)
-            end
-            -- Color border by debuff type
-            local tc = DEBUFF_TYPE_COLORS[data.type]
-            if tc then
-                icon:SetBackdropBorderColor(tc.r, tc.g, tc.b, 1)
-            else
-                icon:SetBackdropBorderColor(0.8, 0, 0, 1)
-            end
-            -- Duration text
-            -- duration / expirationTime can be secret values on group
-            -- members in 12.x: the arithmetic goes through the shared guard.
-            local remaining = AD and AD.RemainingTime(data.duration, data.expTime)
-            if remaining then
-                icon.duration:SetText(string.format("%.0f", remaining))
-            else
-                icon.duration:SetText("")
-            end
-            -- Stacks
-            if data.stacks and data.stacks > 1 then
-                icon.stacks:SetText(tostring(data.stacks))
-            else
-                icon.stacks:SetText("")
-            end
-            icon:Show()
-        else
-            icon:Hide()
-        end
+    if not unit or not UnitExists(unit) then f.debuffContainer:Hide(); return end
+    f.debuffContainer:Show()
+    -- [12.1] The engine tracks the unit and colours the border from the
+    -- aura's own dispel type, which is what the scan used to read.
+    if f.debuffContainer.engine then
+        TomoMod_AuraContainer.SetUnit(f.debuffContainer.engine, unit)
     end
 end
 
 -- =====================================
 -- UPDATE HOTS FOR A UNIT FRAME
 -- =====================================
-function RA.UpdateHoTs(f)
+function RA.UpdateHoTs(f, db)
     if not f or not f.hotContainer then return end
-
-    local db = TomoModDB and TomoModDB.raidFrames
-    if not db or not db.showHoTs then
-        for _, icon in ipairs(f.hotContainer.icons) do icon:Hide() end
-        return
-    end
-
+    db = db or (TomoModDB and TomoModDB.raidFrames)
+    if not db or not db.showHoTs then f.hotContainer:Hide(); return end
     local unit = f.unit
-    if not unit or not UnitExists(unit) then
-        for _, icon in ipairs(f.hotContainer.icons) do icon:Hide() end
-        return
-    end
-
-    local maxHoTs = db.maxHoTs or 3
-    local found = {}
-
-    -- [12.1] One question per frame instead of forty protected calls that
-    -- would all fail together. The visible result is unchanged -- a scan that
-    -- can read nothing found nothing before either -- so what this buys is
-    -- the cost, not the outcome.
-    if not (TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted())
-        and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
-        local auraIndex = 1
-        while auraIndex <= 40 and #found < maxHoTs do
-            local ok, auraData = pcall(C_UnitAuras.GetAuraDataByIndex, unit, auraIndex, "HELPFUL")
-            if not ok or not auraData then break end
-
-            local spellID = auraData.spellId
-            if spellID and not issecretvalue(spellID) and SPELL_TO_CLASS[spellID] then
-                local cls = SPELL_TO_CLASS[spellID]
-                found[#found + 1] = {
-                    spellID  = spellID,
-                    class    = cls,
-                    icon     = auraData.icon,
-                    duration = auraData.duration,
-                    expTime  = auraData.expirationTime,
-                }
-            end
-
-            auraIndex = auraIndex + 1
-        end
-    end
-
-    for i, icon in ipairs(f.hotContainer.icons) do
-        local data = found[i]
-        if data then
-            if data.icon then
-                icon.texture:SetTexture(data.icon)
-            end
-            local cc = CLASS_HOT_COLORS[data.class]
-            if cc then
-                icon:SetBackdropBorderColor(cc.r, cc.g, cc.b, 1)
-            else
-                icon:SetBackdropBorderColor(0, 0, 0, 1)
-            end
-            -- duration / expirationTime can be secret values on group
-            -- members in 12.x: the arithmetic goes through the shared guard.
-            local remaining = AD and AD.RemainingTime(data.duration, data.expTime)
-            if remaining then
-                icon.duration:SetText(string.format("%.0f", remaining))
-            else
-                icon.duration:SetText("")
-            end
-            icon:Show()
-        else
-            icon:Hide()
-        end
+    if not unit or not UnitExists(unit) then f.hotContainer:Hide(); return end
+    f.hotContainer:Show()
+    -- [12.1] The spell list is now the group's candidate filter, applied by
+    -- the engine: spellId is exactly what the client withholds.
+    if f.hotContainer.engine then
+        TomoMod_AuraContainer.SetUnit(f.hotContainer.engine, unit)
     end
 end
 
@@ -184,6 +66,8 @@ end
 -- COMBINED UPDATE (called from Core on UNIT_AURA)
 -- =====================================
 function RA.UpdateUnit(f)
-    RA.UpdateDebuffs(f)
-    RA.UpdateHoTs(f)
+    -- Read once and hand it to both, which is what the db parameter is for.
+    local db = TomoModDB and TomoModDB.raidFrames
+    RA.UpdateDebuffs(f, db)
+    RA.UpdateHoTs(f, db)
 end

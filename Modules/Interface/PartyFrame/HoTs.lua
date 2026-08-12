@@ -1,6 +1,7 @@
 -- =====================================
 -- PartyFrame/HoTs.lua — HoT tracking with class-colored indicators
--- Scans via C_UnitAuras.GetAuraDataByIndex (taint-safe)
+-- [12.1] The aura rows here are drawn by the client's aura engine
+-- (Shared/AuraContainer.lua); nothing in this file reads an aura.
 -- Class-specific healer HoT databases
 -- NO COMBAT_LOG_EVENT_UNFILTERED
 -- =====================================
@@ -28,75 +29,18 @@ local CLASS_HOT_COLORS = AD and AD.CLASS_HOT_COLORS or {}
 -- =====================================
 function HoT.UpdateUnit(f)
     if not f or not f.hotContainer then return end
-
+    -- The setting is honoured at update time, not only at creation:
+    -- ApplySettings re-applies visuals to existing frames rather than
+    -- rebuilding them, so dropping this left the HoTs on screen after the
+    -- option was turned off, until a reload.
     local db = TomoModDB and TomoModDB.partyFrames
-    if not db or not db.showHoTs then
-        for _, icon in ipairs(f.hotContainer.icons) do icon:Hide() end
-        return
-    end
-
+    if not db or not db.showHoTs then f.hotContainer:Hide(); return end
     local unit = f.unit
-    if not unit or not UnitExists(unit) then
-        for _, icon in ipairs(f.hotContainer.icons) do icon:Hide() end
-        return
-    end
-
-    local maxHoTs = db.maxHoTs or 3
-    local found = {}
-
-    -- Scan buffs via C_UnitAuras
-    -- [12.1] Skip the whole scan when the client is withholding auras:
-    -- a partial result would drop HoTs that are actually up.
-    if not (TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted())
-        and C_UnitAuras and C_UnitAuras.GetAuraDataByIndex then
-        local auraIndex = 1
-        while auraIndex <= 40 and #found < maxHoTs do
-            local ok, auraData = pcall(C_UnitAuras.GetAuraDataByIndex, unit, auraIndex, "HELPFUL")
-            if not ok or not auraData then break end
-
-            local spellID = auraData.spellId
-            if spellID and not issecretvalue(spellID) and SPELL_TO_CLASS[spellID] then
-                local cls = SPELL_TO_CLASS[spellID]
-                local entry = {
-                    spellID  = spellID,
-                    class    = cls,
-                    icon     = auraData.icon,
-                    duration = auraData.duration,
-                    expTime  = auraData.expirationTime,
-                }
-                found[#found + 1] = entry
-            end
-
-            auraIndex = auraIndex + 1
-        end
-    end
-
-    -- Update icons
-    for i, icon in ipairs(f.hotContainer.icons) do
-        local data = found[i]
-        if data then
-            if data.icon then
-                icon.texture:SetTexture(data.icon)
-            end
-            -- Class-colored border
-            local cc = CLASS_HOT_COLORS[data.class]
-            if cc then
-                icon.border:SetBackdropBorderColor(cc.r, cc.g, cc.b, 1)
-            else
-                icon.border:SetBackdropBorderColor(0, 0, 0, 1)
-            end
-            -- Duration text. duration / expirationTime can be secret values
-            -- on group members in 12.x, so the arithmetic goes through the
-            -- shared guard rather than being done inline.
-            local remaining = AD and AD.RemainingTime(data.duration, data.expTime)
-            if remaining then
-                icon.duration:SetText(string.format("%.0f", remaining))
-            else
-                icon.duration:SetText("")
-            end
-            icon:Show()
-        else
-            icon:Hide()
-        end
+    if not unit or not UnitExists(unit) then f.hotContainer:Hide(); return end
+    f.hotContainer:Show()
+    -- [12.1] The engine tracks the unit and narrows the group to the
+    -- tracked HoT spell ids; there is nothing left to scan here.
+    if f.hotContainer.engine then
+        TomoMod_AuraContainer.SetUnit(f.hotContainer.engine, unit)
     end
 end

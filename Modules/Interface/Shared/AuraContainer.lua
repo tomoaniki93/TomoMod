@@ -207,6 +207,19 @@ local function MakeInitializer(opts)
 
         if opts.border then opts.border(button) end
 
+        -- Dispel-type colouring. The old scans read auraData.dispelName and
+        -- picked a border colour from it; the engine does that itself, from
+        -- data we are no longer allowed to read.
+        if opts.dispelBorder and button.AddDispelTypeTexture then
+            d.dispelBorder = button:CreateTexture(nil, "OVERLAY", nil, 6)
+            d.dispelBorder:SetAllPoints(button)
+            pcall(button.AddDispelTypeTexture, button, d.dispelBorder, {
+                showWhenHarmful = true,
+                showWhenHelpful = false,
+                customDispelColorMap = opts.dispelColorMap,
+            })
+        end
+
         -- Registration last, and each one guarded: these are the calls the
         -- client refuses while auras are restricted, and one refusal must
         -- not stop the others from binding.
@@ -235,6 +248,7 @@ local function AddGroups(container, spec)
         durationPoint = spec.durationPoint, durationRelPoint = spec.durationRelPoint,
         durationX = spec.durationX, durationY = spec.durationY,
         durationColor = spec.durationColor,
+        dispelBorder = spec.dispelBorder, dispelColorMap = spec.dispelColorMap,
     })
     local layout = {
         elementWidth  = spec.size,
@@ -242,10 +256,17 @@ local function AddGroups(container, spec)
         spacingX      = 2,
     }
 
+    -- includeSpellIDs narrows a group to a known set. That is how the HoT
+    -- rows keep working: they matched auraData.spellId against a table, and
+    -- spellId is exactly what the client now withholds.
+    local candidates = spec.includeSpellIDs
+        and { includeSpellIDs = spec.includeSpellIDs } or nil
+
     if not pcall(container.AddAuraGroup, container, spec.key, spec.filter, {
-        maxFrameCount   = spec.max,
-        initializeFrame = init,
-        layout          = layout,
+        maxFrameCount    = spec.max,
+        initializeFrame  = init,
+        layout           = layout,
+        candidateFilters = candidates,
     }) then
         return false
     end
@@ -256,9 +277,10 @@ local function AddGroups(container, spec)
     if spec.both then
         pcall(container.AddAuraGroup, container, spec.key .. "_helpful",
             AC.Filter("HELPFUL", spec.onlyMine and "PLAYER" or nil), {
-                maxFrameCount   = spec.max,
-                initializeFrame = init,
-                layout          = layout,
+                maxFrameCount    = spec.max,
+                initializeFrame  = init,
+                layout           = layout,
+                candidateFilters = candidates,
             })
     end
     return true
@@ -302,6 +324,8 @@ function AC.Create(parent, opts)
         durationPoint = opts.durationPoint, durationRelPoint = opts.durationRelPoint,
         durationX = opts.durationX, durationY = opts.durationY,
         durationColor = opts.durationColor,
+        dispelBorder = opts.dispelBorder, dispelColorMap = opts.dispelColorMap,
+        includeSpellIDs = opts.includeSpellIDs,
     }
 
     if not AddGroups(container, spec) then
