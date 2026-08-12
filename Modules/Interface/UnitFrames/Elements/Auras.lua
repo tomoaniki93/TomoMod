@@ -114,7 +114,14 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
             -- made this nil, which is not "HELPFUL", so every container came
             -- out harmful regardless of what the user chose.
             harmful  = (auraSettings.type ~= "HELPFUL"),
+            -- "ALL" wants both polarities. A group carries one filter, so
+            -- the container gets a second group rather than a merged string.
+            both     = (auraSettings.type == "ALL"),
             onlyMine = auraSettings.showOnlyMine,
+            -- Restored: the engine shows aura tooltips itself, and the
+            -- setting drives the swipe's countdown digits.
+            tooltips     = true,
+            showDuration = auraSettings.showDuration ~= false,
             point    = { "TOPLEFT", container, "TOPLEFT", 0, 0 },
         })
     end
@@ -240,7 +247,9 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings, nameOverri
             -- Same reason as the aura container: the initializer's SetFont is
             -- unprotected, so this cannot be left out.
             font    = FONT,
-            harmful = false,
+            harmful      = false,
+            tooltips     = true,
+            showDuration = (settings.enemyBuffs and settings.enemyBuffs.showDuration) ~= false,
             point   = { "TOPLEFT", container, "TOPLEFT", 0, 0 },
         })
     end

@@ -561,6 +561,8 @@ local function CreatePlate(baseFrame)
             font     = font,
             harmful  = true,
             onlyMine = settings.showOnlyMyAuras,
+            -- Plates never had aura tooltips; the engine would add them.
+            tooltips = false,
             border   = CreatePixelBorder,
             point    = { "BOTTOM", plate.nameText, "TOP", 0, 2 },
         })
@@ -571,8 +573,9 @@ local function CreatePlate(baseFrame)
             size    = settings.enemyBuffSize or 22,
             max     = settings.maxEnemyBuffs or 4,
             font    = font,
-            harmful = false,
-            border  = CreatePixelBorder,
+            harmful  = false,
+            tooltips = false,
+            border   = CreatePixelBorder,
             point   = { "RIGHT", plate.health, "LEFT", -2, 0 },
         })
     end

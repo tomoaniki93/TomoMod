@@ -151,7 +151,18 @@ local function MakeInitializer(opts)
         pending[button] = true
         AC.TrySize(button)
 
+        -- The engine shows aura tooltips itself: motion is what carries
+        -- them, clicks are separate. Disabling clicks was right; disabling
+        -- motion would silently drop a feature the unit frames had.
         pcall(button.SetMouseClickEnabled, button, false)
+        if opts.tooltips == false then
+            pcall(button.SetMouseMotionEnabled, button, false)
+        else
+            pcall(button.SetMouseMotionEnabled, button, true)
+            if button.SetTooltipAnchorPoint then
+                pcall(button.SetTooltipAnchorPoint, button, "ANCHOR_BOTTOMLEFT")
+            end
+        end
 
         d.icon = button:CreateTexture(nil, "ARTWORK")
         d.icon:SetPoint("TOPLEFT", 1, -1)
@@ -165,7 +176,16 @@ local function MakeInitializer(opts)
         d.cooldown:SetAllPoints(d.icon)
         d.cooldown:SetDrawEdge(false)
         d.cooldown:SetReverse(true)
-        d.cooldown:SetHideCountdownNumbers(true)
+        -- The swipe's own countdown numbers. Forced off unconditionally
+        -- before, which made the "show duration" setting inert: the engine
+        -- writes the duration text on its own font string either way, and
+        -- this is the digit overlay on the swipe.
+        --
+        -- Opt-in rather than opt-out, because an absent setting has to mean
+        -- what it meant before. Nameplates pass no showDuration and had these
+        -- digits off with the duration font string on; `== false` would have
+        -- turned them on and drawn the time twice on every plate aura.
+        d.cooldown:SetHideCountdownNumbers(opts.showDuration ~= true)
         d.cooldown:EnableMouse(false)
 
         d.count = button:CreateFontString(nil, "OVERLAY")
@@ -190,6 +210,7 @@ local function MakeInitializer(opts)
         if button.SetDurationText then
             pcall(button.SetDurationText, button, d.duration, {})
         end
+        d.duration:SetShown(opts.showDuration ~= false)
     end
 end
 
@@ -197,10 +218,48 @@ end
 -- Container
 -- ---------------------------------------------------------------------
 
--- Builds the debuff container for one plate. Returns it, or nil when the
+-- Adds a container's aura groups from its spec. The single place that does
+-- it, so Create and Relayout cannot drift: a button-shaping option added to
+-- one of them and forgotten in the other is precisely how the tooltip and
+-- duration settings would be lost on the first size change.
+local function AddGroups(container, spec)
+    local init = MakeInitializer({
+        size = spec.size, font = spec.font, border = spec.border,
+        showDuration = spec.showDuration, tooltips = spec.tooltips,
+    })
+    local layout = {
+        elementWidth  = spec.size,
+        elementHeight = spec.size - 4,
+        spacingX      = 2,
+    }
+
+    if not pcall(container.AddAuraGroup, container, spec.key, spec.filter, {
+        maxFrameCount   = spec.max,
+        initializeFrame = init,
+        layout          = layout,
+    }) then
+        return false
+    end
+
+    -- "Both polarities" is two groups on one container, not one filter
+    -- string: a group carries exactly one filter. The engine batches the
+    -- two scans and lays both groups out in the same container.
+    if spec.both then
+        pcall(container.AddAuraGroup, container, spec.key .. "_helpful",
+            AC.Filter("HELPFUL", spec.onlyMine and "PLAYER" or nil), {
+                maxFrameCount   = spec.max,
+                initializeFrame = init,
+                layout          = layout,
+            })
+    end
+    return true
+end
+
+-- Builds the aura container for one host frame. Returns it, or nil when the
 -- engine is unavailable or refused.
 --
--- opts: unit, size, max, font, onlyMine, border, point
+-- opts: unit, size, max, font, onlyMine, border, point, both, tooltips,
+--       showDuration
 function AC.Create(parent, opts)
     if not AC.IsAvailable() then return nil end
     if not parent or not opts then return nil end
@@ -223,18 +282,14 @@ function AC.Create(parent, opts)
         opts.onlyMine and "PLAYER" or nil)
     local size = opts.size or 24
 
-    local okGroup = pcall(container.AddAuraGroup, container, opts.key or "auras", filter, {
-        maxFrameCount   = opts.max or 5,
-        initializeFrame = MakeInitializer({
-            size = size, font = opts.font, border = opts.border,
-        }),
-        layout = {
-            elementWidth  = size,
-            elementHeight = size - 4,
-            spacingX      = 2,
-        },
-    })
-    if not okGroup then
+    local spec = {
+        key = opts.key or "auras", filter = filter, size = size,
+        max = opts.max or 5, font = opts.font, border = opts.border,
+        showDuration = opts.showDuration, tooltips = opts.tooltips,
+        onlyMine = opts.onlyMine, both = opts.both,
+    }
+
+    if not AddGroups(container, spec) then
         container:Hide()
         container:SetParent(nil)
         return nil
@@ -242,10 +297,7 @@ function AC.Create(parent, opts)
 
     -- Unit LAST: assigning it re-evaluates the engine's event
     -- registrations, and those are gated on the container having groups.
-    containerSpec[container] = {
-        key = opts.key or "auras", filter = filter, size = size,
-        max = opts.max or 5, font = opts.font, border = opts.border,
-    }
+    containerSpec[container] = spec
 
     pcall(container.SetUnit, container, opts.unit)
     pcall(container.UpdateAllAuras, container)
@@ -277,21 +329,16 @@ function AC.Relayout(container, opts)
     data.size, data.max = size, max
 
     -- RemoveAuraGroup then AddAuraGroup: there is no setter for either
-    -- value, and a stale group would keep drawing at the old size.
+    -- value, and a stale group would keep drawing at the old size. Both
+    -- groups go when the container carries both polarities -- dropping only
+    -- the primary would leave the helpful half at the old size for good.
     if container.RemoveAuraGroup then
         pcall(container.RemoveAuraGroup, container, data.key)
+        if data.both then
+            pcall(container.RemoveAuraGroup, container, data.key .. "_helpful")
+        end
     end
-    local ok = pcall(container.AddAuraGroup, container, data.key, data.filter, {
-        maxFrameCount   = max,
-        initializeFrame = MakeInitializer({
-            size = size, font = data.font, border = data.border,
-        }),
-        layout = {
-            elementWidth  = size,
-            elementHeight = size - 4,
-            spacingX      = 2,
-        },
-    })
+    local ok = AddGroups(container, data)
     if ok then pcall(container.UpdateAllAuras, container) end
     return ok
 end
