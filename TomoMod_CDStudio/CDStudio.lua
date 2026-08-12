@@ -1431,10 +1431,39 @@ local function BuildWindow()
         if id then S.state.barId = id end
         Apply(); S.RebuildSidebar(); S.RebuildContent()
     end
-    W.CreateButtonRow(crudHost, {
+    local _, cy4 = W.CreateButtonRow(crudHost, {
         { text = "Modele : Conso", width = BW, callback = function() fromBlueprint("conso") end },
         { text = "Modele : Utils", width = BW, callback = function() fromBlueprint("utils") end },
     }, cy3)
+
+    -- [S6] Import a Blizzard Cooldown Manager category as a ready-made bar.
+    -- The spell list is read live at click time, so it follows Blizzard's
+    -- curation across reworks instead of freezing a snapshot.
+    local function fromViewer(key)
+        if not (CDF and CDF.CreateBarFromViewer) then return end
+        local id, info = CDF.CreateBarFromViewer(S.state.class, key)
+        if not id then
+            if info == "noapi" then
+                print("|cff2ed884Cooldown Studio|r : suivi Blizzard indisponible sur ce client.")
+            else
+                -- Empty is the normal answer before the client has sent the
+                -- category set, and on a spec Blizzard does not curate.
+                print("|cff2ed884Cooldown Studio|r : aucune capacite suivie pour cette specialisation.")
+            end
+            return
+        end
+        S.state.barId = id
+        print(string.format("|cff2ed884Cooldown Studio|r : %d capacites importees.", info or 0))
+        Apply(); S.RebuildSidebar(); S.RebuildContent()
+    end
+
+    local _, cy5 = W.CreateButtonRow(crudHost, {
+        { text = "Import : Essentiels",  width = BW, callback = function() fromViewer("essential") end },
+        { text = "Import : Utilitaires", width = BW, callback = function() fromViewer("utility") end },
+    }, cy4)
+    W.CreateButtonRow(crudHost, {
+        { text = "Import : Buffs suivis", width = BW, callback = function() fromViewer("buff") end },
+    }, cy5)
 end
 
 -- [TAINT] Never assign the global itself. Blizzard has already defined

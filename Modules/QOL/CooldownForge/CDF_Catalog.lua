@@ -273,6 +273,88 @@ CDF.BAR_BLUEPRINTS = {
     },
 }
 
+-- =====================================================================
+-- [S6] Import from Blizzard's Cooldown Manager
+--
+-- Blizzard curates three category sets per spec -- Essential, Utility and
+-- Tracked Buffs -- and keeps them current across reworks. Rebuilding that
+-- list by hand is exactly the "no hardcoded rotting data" trap, so the
+-- import reads the live category set instead of shipping spell tables.
+--
+-- Category names, not numbers: Enum.CooldownViewerCategory members get
+-- renumbered between builds, so we resolve by key and skip anything the
+-- running client does not expose.
+CDF.VIEWER_IMPORTS = {
+    essential = { enumKey = "Essential",   name = "Essentiels",  iconSize = 36 },
+    utility   = { enumKey = "Utility",     name = "Utilitaires", iconSize = 34 },
+    -- Blizzard calls this "Tracked Buffs" in the UI and TrackedBuff in the
+    -- enum; entries come in as auras rather than plain cooldowns.
+    buff      = { enumKey = "TrackedBuff", name = "Buffs suivis", iconSize = 34, aura = true },
+}
+
+-- Returns the spell ids Blizzard currently lists for `key`, in its order,
+-- plus a status string: "ok", "noapi" or "empty".
+function CDF.GetViewerSpellIDs(key)
+    local def = CDF.VIEWER_IMPORTS[key]
+    if not def then return nil, "noapi" end
+
+    local CV = C_CooldownViewer
+    if not (CV and CV.GetCooldownViewerCategorySet and CV.GetCooldownViewerCooldownInfo) then
+        return nil, "noapi"
+    end
+    local cats = Enum and Enum.CooldownViewerCategory
+    if type(cats) ~= "table" then return nil, "noapi" end
+
+    local cat = cats[def.enumKey]
+    if cat == nil then return nil, "noapi" end
+
+    local ok, ids = pcall(CV.GetCooldownViewerCategorySet, cat)
+    if not ok or type(ids) ~= "table" then return nil, "empty" end
+
+    local out, seen = {}, {}
+    for _, cdID in ipairs(ids) do
+        local ok2, info = pcall(CV.GetCooldownViewerCooldownInfo, cdID)
+        if ok2 and type(info) == "table" then
+            -- overrideSpellID is what the player actually casts when a
+            -- talent replaces the base ability; prefer it so the icon
+            -- matches the spellbook.
+            local spellID = tonumber(info.overrideSpellID) or tonumber(info.spellID)
+            if spellID and not seen[spellID] then
+                seen[spellID] = true
+                out[#out + 1] = spellID
+            end
+        end
+    end
+    if #out == 0 then return nil, "empty" end
+    return out, "ok"
+end
+
+-- Creates a bar from a Blizzard viewer category. Returns the new bar id
+-- and how many entries were imported, or nil plus a status on failure.
+function CDF.CreateBarFromViewer(class, key)
+    local def = CDF.VIEWER_IMPORTS[key]
+    if not def then return nil, "noapi" end
+
+    local ids, status = CDF.GetViewerSpellIDs(key)
+    if not ids then return nil, status end
+
+    local bar, id = CDF.CreateBar(class, def.name)
+    if not bar then return nil, "empty" end
+    if def.iconSize then bar.iconSize = def.iconSize end
+
+    for _, spellID in ipairs(ids) do
+        bar.entries[#bar.entries + 1] = CDF.NewEntrySchema({
+            kind = "spell",
+            id   = spellID,
+            -- Tracked buffs behave like auras: visible while up, with the
+            -- remaining time, rather than as a plain cooldown swipe.
+            mode = def.aura and "aura" or nil,
+        })
+    end
+    CDF.SanitizeBar(bar)
+    return id, #ids
+end
+
 -- Creates the blueprint as a new bar for `class`; returns the new bar id.
 function CDF.CreateBarFromBlueprint(class, key)
     local bp = CDF.BAR_BLUEPRINTS[key]
