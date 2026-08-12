@@ -688,6 +688,23 @@ local function CreatePlate(baseFrame)
         plate.auras[i] = aura
     end
 
+    -- [12.1] Debuffs through the client's own aura engine when this client
+    -- has it. The loop above still runs: its frames are the fallback for
+    -- older clients, and they simply stay hidden when the container owns
+    -- the display.
+    local NPAC = TomoMod_NPAuraContainer
+    if NPAC and NPAC.IsAvailable() then
+        plate.auraContainer = NPAC.Create(plate, {
+            unit     = plate.unit,
+            size     = auraSize,
+            max      = maxAuras,
+            font     = font,
+            onlyMine = settings.showOnlyMyAuras,
+            border   = CreatePixelBorder,
+            point    = { "BOTTOM", plate.nameText, "TOP", 0, 2 },
+        })
+    end
+
     -- =========== ENEMY BUFFS (left of health bar) ===========
     plate.enemyBuffs = {}
     local maxEnemyBuffs = settings.maxEnemyBuffs or 4
@@ -1499,7 +1516,17 @@ local function UpdatePlateAuras(plate, unit)
     local s = DB()
     if not s then return end
 
-    if s.showAuras then
+    -- [12.1] When the engine owns the debuffs there is nothing to scan:
+    -- it tracks the unit itself. Keeping the legacy frames hidden rather
+    -- than destroying them means a client without the engine, and a plate
+    -- built before the container could be created, both still work.
+    if plate.auraContainer then
+        TomoMod_NPAuraContainer.SetUnit(plate.auraContainer, unit)
+        plate.auraContainer:SetShown(s.showAuras and true or false)
+        if plate.auras then
+            for _, a in ipairs(plate.auras) do a:Hide() end
+        end
+    elseif s.showAuras then
         local auraIndex = 0
         local maxAuras = s.maxAuras or 5
         local auraFilter = "HARMFUL"
