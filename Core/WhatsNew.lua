@@ -70,6 +70,8 @@ CHANGELOG = {
             L["wn_344_dm_breakdowns"] or "New — A number on a bar does not tell you what produced it. Left-click any bar to open its spells inline, right-click to give them their own window: totals, hits, crits and crit rate per spell. A target breakdown answers the other half — not what you cast, but what you cast it into — and each pull can be read on its own as a segment rather than only as part of the running total. Clicking a player in the Deaths list opens a death recap of what killed them, which can also open by itself when you die; /tdm resetpos brings that window back to the middle if it has wandered somewhere unhelpful.",
             L["wn_344_dm_runrecap"] or "New — A run recap at the end of a dungeon: damage, healing, interrupts, deaths and avoidable damage taken for the whole group, opening on its own when the run ends, or brought back with /tdm recap. It builds itself up as you go rather than reading everything at the end, and that is not a preference — when a key actually finishes, the game will not let an addon read those values at all, so a recap written the obvious way could not even put the group in order. Instead a quiet snapshot is taken each time you drop out of combat, which is about fifteen times in a key and costs nothing you would notice. Anything unreadable at that moment is left alone rather than overwritten, so the last good figure for a player is never lost.",
             L["wn_344_dm_standalone"] or "Note — The meter is also published on its own as TomoDamageMeter. If you have that installed, the copy inside TomoMod stands aside as it loads and tells you so once at login, rather than two meters arguing over the same windows, settings and combat sessions. The bundled one always yields: installing the standalone is a deliberate choice, and the versions of it already out there have no way of knowing to step aside themselves.",
+            L["wn_344_cds_window"] or "Fix — In the Cooldown Studio, the column of bar buttons down the left drew on top of the edit-mode button at the bottom of the window, and the labels spilled out of the buttons carrying them: 'Import : Buffs suivis' was simply wider than the box it sat in. The column had outgrown the room set aside for it when the import buttons were added, and nothing in this interface trims a piece that overflows — it just draws over whatever is beneath. The space is now worked out from what it has to hold, the buttons are wide enough for their own text, and the window is larger to pay for it. It also stops asking for more room than your screen has: it had only ever been told to stay on screen, which does nothing for a window that is bigger than the display, so on a smaller screen the whole left column could sit past the edge. It now fits itself to the space available, which is what makes making it bigger safe in the first place. AstralForge is built on the same window and gets the same treatment. On the dashboard, the Cooldown Studio card has also moved up next to the Tomo suite card, since both are ways out to something else.",
+            L["wn_344_changelog_popup"] or "Fix — The What's New page could not lay out the notes it was showing: expanding a release wrote its paragraphs on top of one another. The reason is that a block of text has to be measured before the window has decided how wide it is, so a paragraph destined to wrap over six lines was measured as one, and everything below it was placed in the space that one line would have taken. Rather than teach the page to measure text, it now hands the release you picked to this very window, which has always been able to scroll. The page itself is now an index: every version as a button with the number of notes it holds, four to a row, newest first — fifty-nine of them in a single column made for a lot of scrolling to reach anything old. Two smaller things came with it. Reading an old release no longer counts as having read the current one, so looking up what changed in 3.2.1 out of curiosity will not swallow the notice for an update you have not seen yet. And this window's scrollbar had kept Blizzard's two brass arrows at either end of an otherwise green track; they are gone, and the bar uses the space they were holding.",
             L["wn_344_dm_config"] or "New — A Damage Meter page in TomoMod's options. For now it is a doorway rather than the settings themselves: it tells you where the meter's own settings window is, opens it, and shows or hides the meter windows. That is on purpose — a half-copied set of options that disagreed with the real ones would be worse than a page that is honest about being a shortcut, and the real integration is the next step. In the two cases where there is nothing to open — the standalone addon has taken over, or your client has no damage meter data — the page says which, rather than offering a button that does nothing.",
         },
     },
@@ -892,6 +894,13 @@ local function CreateFrame_WN()
         -- ever having read it.
         if self:IsShown() then return end
         dimmer:Hide()
+        -- Reading an old release from the Changelog page is browsing, not
+        -- acknowledging this update: marking it seen here would swallow the
+        -- notice for a version the player has not read yet.
+        if self._browsing then
+            self._browsing = nil
+            return
+        end
         MarkSeen()
     end)
 
@@ -996,6 +1005,25 @@ local function CreateFrame_WN()
                 sb._thumbBG = bg
             end
         end
+        -- UIPanelScrollFrameTemplate ships two gold arrow buttons. The bar
+        -- itself was restyled but the arrows were left alone, so the panel
+        -- ended up with Blizzard's brass at both ends of a mint track.
+        for _, name in ipairs({ "ScrollUpButton", "ScrollDownButton", "Back", "Forward" }) do
+            local btn = sb[name]
+            if btn then
+                btn:Hide()
+                btn:SetAlpha(0)
+                btn:EnableMouse(false)
+                -- Blizzard's scroll code re-shows these on update, so a
+                -- one-off Hide does not hold.
+                btn:SetScript("OnShow", btn.Hide)
+            end
+        end
+        -- Reclaim the space the arrows had reserved at both ends.
+        sb:ClearAllPoints()
+        sb:SetPoint("TOPRIGHT", scrollFrame, "TOPRIGHT", 2, 0)
+        sb:SetPoint("BOTTOMRIGHT", scrollFrame, "BOTTOMRIGHT", 2, 0)
+
         sb:Hide() -- caché par défaut, affiché si besoin
     end
 
@@ -1140,6 +1168,32 @@ function WN.Show()
     PopulateContent(entry)
     frame._dimmer:Show()
     frame:Show()
+end
+
+-- Opens the popup on a given release, for the Changelog config page.
+--
+-- The page used to lay the notes out inline and they came out overlapping:
+-- the info-text widget measures its height right after SetText, before the
+-- frame has a width, so a wrapped paragraph measures as a single line. This
+-- popup already solves that with a real scroll frame, so the page hands the
+-- text to it rather than growing a second layout engine.
+function WN.ShowVersion(version)
+    if type(CHANGELOG) ~= "table" then return false end
+
+    local entry
+    for _, rel in ipairs(CHANGELOG) do
+        if tostring(rel.version) == tostring(version) then entry = rel; break end
+    end
+    if not entry then return false end
+
+    if not frame then CreateFrame_WN() end
+    if not frame then return false end
+
+    PopulateContent(entry)
+    frame._browsing = true
+    frame._dimmer:Show()
+    frame:Show()
+    return true
 end
 
 function WN.Hide()

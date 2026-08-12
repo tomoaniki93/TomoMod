@@ -28,8 +28,12 @@ local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local WHITE8    = "Interface\\Buttons\\WHITE8x8"
 
-local PANEL_W, PANEL_H = 1280, 840
-local SIDE_W           = 250
+-- Target size: the shell fits this to UIParent, so asking for more than a
+-- given screen has costs nothing and a wide monitor gets the room.
+local PANEL_W, PANEL_H = 1400, 880
+-- Wide enough for two CRUD buttons side by side without their labels
+-- spilling out of them: 16 inset + 143 + 10 gap + 143 + 16 inset = 328.
+local SIDE_W           = 330
 local TITLE_H          = 52
 local FOOTER_H         = 44
 local BRAND            = { 0.18, 0.85, 0.52 }
@@ -1527,7 +1531,11 @@ local function BuildWindow()
         sideWidth    = SIDE_W,
         titleH       = TITLE_H,
         footerH      = FOOTER_H,
-        crudHeight   = 150,
+        -- Sized from the rows below, not guessed: CreateButtonRow starts at
+        -- -2 and consumes 38px each, so the last of the five ends at
+        -- 2 + 4*38 + 28 = 182. At 150 it hung 32px below the host and landed
+        -- on the footer's edit-mode button. Add a row here, add 38 there.
+        crudHeight   = 190,
         accent       = BRAND,
         sidebarTitle = "BARRES",
         selector = {
@@ -1543,7 +1551,7 @@ local function BuildWindow()
             end,
         },
         footerButtons = {
-            { text = "Mode edition (deplacer les barres)", width = 210, callback = StartEditMode },
+            { text = "Mode edition (deplacer les barres)", width = 240, callback = StartEditMode },
         },
         hint = "Echap pour fermer  -  les reglages s'appliquent en direct",
     })
@@ -1552,7 +1560,11 @@ local function BuildWindow()
     contentHost = shell.contentHost
 
     local crudHost = shell.crudHost
-    local BW = 104   -- fits two buttons inside the sidebar width
+    -- Two per row inside SIDE_W, sized for the longest label rather than for
+    -- the box: at 104 "Import : Buffs suivis" drew wider than the button it
+    -- sat in, because the label is a centred FontString with no width and
+    -- nothing clips it.
+    local BW = 143
     local _, cy2 = W.CreateButtonRow(crudHost, {
         { text = "+ Nouvelle", width = BW, callback = function()
             StaticPopup_Show("TOMOMOD_CDS_CREATE")

@@ -136,6 +136,16 @@ function Forge.Studio.CreateShell(opts)
     local TITLE_H = opts.titleH or 52
     local FOOT_H  = opts.footerH or 44
 
+    -- The requested size is a target, not a promise. SetClampedToScreen keeps
+    -- a frame inside the screen but cannot shrink one that is larger than it,
+    -- so a studio sized for a wide monitor loses its edges on a small one --
+    -- and the sidebar buttons are the first thing off. Fit to UIParent, minus
+    -- a margin so the border is never flush with the screen edge.
+    local availW = UIParent and UIParent:GetWidth()  or PW
+    local availH = UIParent and UIParent:GetHeight() or PH
+    if availW and availW > 0 then PW = math.min(PW, math.floor(availW) - 24) end
+    if availH and availH > 0 then PH = math.min(PH, math.floor(availH) - 24) end
+
     local frame = CreateFrame("Frame", opts.name, UIParent, "BackdropTemplate")
     frame:SetSize(PW, PH)
     frame:SetPoint("CENTER")

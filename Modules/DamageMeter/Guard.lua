@@ -16,7 +16,13 @@
 -- time any of them registers an event.
 -- ---------------------------------------------------------------------
 
-local ADDON_NAME, ns = ...
+local ADDON_NAME, TomoMod = ...
+
+-- The module's own corner of TomoMod's shared namespace. Created here
+-- because Guard.lua is the first DamageMeter file the XML loads, so every
+-- other file can simply take it.
+TomoMod.DM = TomoMod.DM or {}
+local ns = TomoMod.DM
 
 local function StandaloneLoaded()
     local api = C_AddOns

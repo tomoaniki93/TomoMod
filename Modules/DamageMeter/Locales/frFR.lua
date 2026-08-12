@@ -1,4 +1,15 @@
-local ADDON_NAME, ns = ...
+local ADDON_NAME, TomoMod = ...
+
+-- [MERGE] Standalone, `ns` was this addon's own private table. Embedded, the
+-- vararg hands over TomoMod's, which every other file in the suite shares --
+-- so 157 generic names (db, L, FONT, BG, ACCENT, Refresh, windows, inCombat)
+-- would sit in the same table as everything TomoMod ever adds. Nothing
+-- collides today, but the first core file that reaches for `ns.db` would
+-- find this module's and neither would know.
+--
+-- One sub-table keeps the module's world to itself, and leaves every `ns.X`
+-- below untouched.
+local ns = TomoMod.DM
 
 ----------------------------------------------------------------------
 -- Localization: French

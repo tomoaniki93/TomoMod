@@ -414,6 +414,37 @@ local function CreateModules(parent, y)
     return nextY
 end
 
+-- Cooldown Studio shortcut.
+--
+-- The Studio is a LoadOnDemand sibling addon, so this cannot simply call a
+-- function: it may not be in memory, may be disabled, or may be missing
+-- from the folder entirely. The CooldownForge panel already owns that
+-- dance and publishes it, so the dashboard delegates rather than keeping
+-- a second copy of the load-and-self-heal logic that would drift.
+local function OpenCooldownStudio()
+    -- Defined at file scope in Panels/CooldownForge.lua, which the TOC loads
+    -- before this one, so the guard is belt and braces rather than a real
+    -- fallback path.
+    if TomoMod_OpenCooldownStudio then TomoMod_OpenCooldownStudio() end
+end
+
+local function CreateStudioShortcut(parent, y)
+    local card, cy = W.CreateCard(parent,
+        Localize("dash_studio_section", "Cooldown Studio"), y)
+
+    local _, ny = W.CreateInfoText(card.inner, Localize("dash_studio_info",
+        "Editeur plein ecran des barres de cooldowns : disposition, style, "
+        .. "sorts et visibilite."), cy)
+    cy = ny
+
+    local _, ny2 = W.CreateButton(card.inner,
+        Localize("dash_studio_open", "Ouvrir le Cooldown Studio"), 240, cy,
+        OpenCooldownStudio)
+    cy = ny2
+
+    return W.FinalizeCard(card, cy)
+end
+
 -- =====================================================================
 -- PRESET CARDS
 -- All the display data (icon, role colour, name, tagline, highlights,
@@ -612,37 +643,6 @@ local function CreateProfileOptions()
     return profOpts, active
 end
 
--- Cooldown Studio shortcut.
---
--- The Studio is a LoadOnDemand sibling addon, so this cannot simply call a
--- function: it may not be in memory, may be disabled, or may be missing
--- from the folder entirely. The CooldownForge panel already owns that
--- dance and publishes it, so the dashboard delegates rather than keeping
--- a second copy of the load-and-self-heal logic that would drift.
-local function OpenCooldownStudio()
-    -- Defined at file scope in Panels/CooldownForge.lua, which the TOC loads
-    -- before this one, so the guard is belt and braces rather than a real
-    -- fallback path.
-    if TomoMod_OpenCooldownStudio then TomoMod_OpenCooldownStudio() end
-end
-
-local function CreateStudioShortcut(parent, y)
-    local card, cy = W.CreateCard(parent,
-        Localize("dash_studio_section", "Cooldown Studio"), y)
-
-    local _, ny = W.CreateInfoText(card.inner, Localize("dash_studio_info",
-        "Editeur plein ecran des barres de cooldowns : disposition, style, "
-        .. "sorts et visibilite."), cy)
-    cy = ny
-
-    local _, ny2 = W.CreateButton(card.inner,
-        Localize("dash_studio_open", "Ouvrir le Cooldown Studio"), 240, cy,
-        OpenCooldownStudio)
-    cy = ny2
-
-    return W.FinalizeCard(card, cy)
-end
-
 local function CreateQuickConfig(parent, y)
     local list = {}
     if TomoMod_Presets and TomoMod_Presets.GetList then
@@ -711,12 +711,12 @@ function TomoMod_ConfigPanel_Accueil(parent)
     y = CreateHero(c, y)
     y = CreateQuickActions(c, y)
     y = CreateModules(c, y)
+    y = CreateStudioShortcut(c, y)
     -- Carte partagée (Config/Panels/_Suite.lua), en version compacte : le
     -- tableau de bord est une vue de synthèse. Placée AVANT Maintenance, qui
     -- contient la réinitialisation totale et doit rester la dernière chose lue.
     y = TomoMod_Suite.CreateCard(c, y, true)
     y = CreateQuickConfig(c, y)
-    y = CreateStudioShortcut(c, y)
 
     local card3, py = W.CreateCard(c, Localize("dash_profile_section", "Profil"), y)
     local profOpts, active = CreateProfileOptions()
