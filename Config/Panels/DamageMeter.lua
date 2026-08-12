@@ -25,6 +25,24 @@ end
 local function Get(key) local b = DM(); return b and b.Get and b.Get(key) end
 local function Set(key, v) local b = DM(); if b and b.Set then b.Set(key, v) end end
 
+-- The meter's list helpers return { value = ..., label = ... }, which is
+-- the shape its own widget library reads. TomoMod's dropdown reads
+-- `text`, so an unconverted list renders the right number of rows with
+-- nothing written on them -- present, but blank.
+--
+-- Converting here rather than changing the helpers keeps the standalone
+-- options window working off the same functions.
+local function ToDropdownOptions(list)
+    local out = {}
+    for _, entry in ipairs(list or {}) do
+        out[#out + 1] = {
+            value = entry.value,
+            text  = entry.text or entry.label or tostring(entry.value or "?"),
+        }
+    end
+    return out
+end
+
 function TomoMod_ConfigPanel_DamageMeter(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
@@ -62,12 +80,13 @@ function TomoMod_ConfigPanel_DamageMeter(parent)
     local card, cy = W.CreateCard(c, L("SETTINGS_APPEARANCE", "Apparence"), y)
 
     _, cy = W.CreateDropdown(card.inner, L("SETTINGS_SKIN", "Theme"),
-        bridge.GetSkinList(), Get("skin"), cy, function(v) Set("skin", v) end)
+        ToDropdownOptions(bridge.GetSkinList()), Get("skin"), cy,
+        function(v) Set("skin", v) end)
 
     -- Read at build time rather than cached: other addons register their
     -- own statusbars in LibSharedMedia, sometimes after we load.
     _, cy = W.CreateDropdown(card.inner, L("SETTINGS_BAR_TEXTURE", "Texture des barres"),
-        bridge.GetTextureList(), Get("barTexture"), cy,
+        ToDropdownOptions(bridge.GetTextureList()), Get("barTexture"), cy,
         function(v) Set("barTexture", v) end)
 
     local fontOpts = {}
