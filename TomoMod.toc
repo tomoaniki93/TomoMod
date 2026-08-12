@@ -1,4 +1,4 @@
-## Interface: 120100, 120007
+## Interface: 120100
 ## 
 ## Title: |cff0cd29fTomo|rMod
 ## Notes: Complete UI Replacement for WoW.

@@ -19,6 +19,7 @@
     <Include file="Core\Utils.lua" />
     <Include file="Core\Database.lua" />
 
+    <Include file="Meter\Settings.lua" />
     <Include file="Meter\SpellBridge.lua" />
     <Include file="Meter\SpellBreakdown.lua" />
     <Include file="Meter\TargetBreakdown.lua" />

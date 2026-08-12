@@ -647,28 +647,67 @@ end
 
 -- Called from the event handler with the UNIT_AURA payload.
 function CDF.OnUnitAura(updateInfo)
-    if type(updateInfo) ~= "table" or updateInfo.isFullUpdate then
+    if type(updateInfo) ~= "table" then
         AuraFullUpdate()
         return
     end
+
+    -- [12.1] The whole payload can arrive secret: isFullUpdate as a secret
+    -- boolean, addedAuras and the id lists as secret tables. A plain
+    -- `if updateInfo.isFullUpdate` is a boolean test on a secret value and
+    -- throws before anything else runs -- 38 times in one session in the
+    -- report that prompted this.
+    --
+    -- Unreadable is treated as a full update: the incremental lists are
+    -- just as unreadable, so rescanning is the only way to stay current.
+    local full = updateInfo.isFullUpdate
+    if issecretvalue and issecretvalue(full) then
+        AuraFullUpdate()
+        return
+    end
+    if full then
+        AuraFullUpdate()
+        return
+    end
+
+    -- The lists themselves can be secret even when the flag is not, and
+    -- ipairs on a secret table throws the same way. A failed walk falls
+    -- back to a rescan rather than silently dropping the update.
     if updateInfo.addedAuras then
-        for _, a in ipairs(updateInfo.addedAuras) do AuraAdded(a) end
+        local ok = pcall(function()
+            for _, a in ipairs(updateInfo.addedAuras) do AuraAdded(a) end
+        end)
+        if not ok then
+            AuraFullUpdate()
+            return
+        end
     end
     if updateInfo.updatedAuraInstanceIDs then
         -- A buff that merely gains a stack is reported here, never in
         -- addedAuras: without this, an instance first seen mid-fight was
         -- never learned at all.
         local get = C_UnitAuras and C_UnitAuras.GetAuraDataByAuraInstanceID
-        for _, iid in ipairs(updateInfo.updatedAuraInstanceIDs) do
-            local n = readableNumber(iid)
-            if n and spellByInstance[n] == nil and get then
-                local ok, a = pcall(get, "player", n)
-                if ok and a then AuraAdded(a) end
+        local ok = pcall(function()
+            for _, iid in ipairs(updateInfo.updatedAuraInstanceIDs) do
+                local n = readableNumber(iid)
+                if n and spellByInstance[n] == nil and get then
+                    local ok2, a = pcall(get, "player", n)
+                    if ok2 and a then AuraAdded(a) end
+                end
             end
+        end)
+        if not ok then
+            AuraFullUpdate()
+            return
         end
     end
     if updateInfo.removedAuraInstanceIDs then
-        for _, iid in ipairs(updateInfo.removedAuraInstanceIDs) do AuraRemoved(iid) end
+        -- A failed removal walk is not worth a rescan: the worst case is a
+        -- stale entry that the next full update clears anyway, and rescanning
+        -- on every removal event would be far more expensive than the bug.
+        pcall(function()
+            for _, iid in ipairs(updateInfo.removedAuraInstanceIDs) do AuraRemoved(iid) end
+        end)
     end
 end
 

@@ -34,7 +34,12 @@ local function CreateSettingsPanel()
     local frame = CreateFrame("Frame", "TomoDamageMeterSettings", UIParent, "BackdropTemplate")
     frame:SetSize(340, 690)
     frame:SetPoint("CENTER")
-    frame:SetFrameStrata("DIALOG")
+    -- TomoMod's own config window sits on FULLSCREEN_DIALOG, so a DIALOG
+    -- frame opened from it appears behind it. Matching the strata and
+    -- claiming top level puts this in front wherever it is opened from.
+    frame:SetFrameStrata("FULLSCREEN_DIALOG")
+    frame:SetFrameLevel(600)
+    frame:SetToplevel(true)
     frame:SetMovable(true)
     frame:EnableMouse(true)
     frame:RegisterForDrag("LeftButton")
@@ -256,11 +261,7 @@ local function CreateSettingsPanel()
             ns.GetTextureList,   -- live: LSM textures can be registered after us
             function() return ns.db.barTexture or ns.TEX_FLAT end,
             function(val)
-                ns.db.barTexture = val
-                for _, win in ipairs(ns.windows) do
-                    if win.RefreshSkin then win.RefreshSkin() end
-                    win.Refresh()
-                end
+                ns.ApplySetting("barTexture", val)
             end)
         AddWidget(texDD, 30)
 
@@ -268,12 +269,7 @@ local function CreateSettingsPanel()
             8, 22, 1,
             function() return ns.db.fontSize end,
             function(val)
-                ns.db.fontSize = val
-                ns.ClearCharWidthCache()
-                for _, win in ipairs(ns.windows) do
-                    if win.RefreshFonts then win.RefreshFonts() end
-                    win.Refresh()
-                end
+                ns.ApplySetting("fontSize", val)
             end)
         AddWidget(fontSlider, 50)
 
@@ -290,14 +286,7 @@ local function CreateSettingsPanel()
             fontOptions,
             function() return ns.db.fontPath end,
             function(val)
-                ns.db.fontPath = val
-                ns.ClearCharWidthCache()
-                for _, win in ipairs(ns.windows) do
-                    if win.RefreshFonts then win.RefreshFonts() end
-                    win.Refresh()
-                end
-                if ns.RefreshBreakdownFonts then ns.RefreshBreakdownFonts() end
-                if ns.RefreshTargetBreakdownFonts then ns.RefreshTargetBreakdownFonts() end
+                ns.ApplySetting("fontPath", val)
             end)
         AddWidget(fontDD, 30)
 
@@ -316,10 +305,7 @@ local function CreateSettingsPanel()
             0, 1, 0.05,
             function() return ns.db.bgAlpha end,
             function(val)
-                ns.db.bgAlpha = val
-                for _, win in ipairs(ns.windows) do
-                    if win.SetBGAlpha then win.SetBGAlpha(val) end
-                end
+                ns.ApplySetting("bgAlpha", val)
             end)
         AddWidget(bgSlider, 50)
 
@@ -327,12 +313,7 @@ local function CreateSettingsPanel()
             0.1, 1, 0.05,
             function() return ns.db.oocAlpha end,
             function(val)
-                ns.db.oocAlpha = val
-                if not ns.inCombat then
-                    for _, win in ipairs(ns.windows) do
-                        win.SetCombatAlpha(false)
-                    end
-                end
+                ns.ApplySetting("oocAlpha", val)
             end)
         AddWidget(oocSlider, 50)
 
@@ -442,11 +423,7 @@ local function CreateSettingsPanel()
         local classCB = ns.Widgets.CreateCheckbox(parent, L["SETTINGS_USE_CLASS_COLOR"],
             function() return ns.db.accentUseClassColor end,
             function(val)
-                ns.db.accentUseClassColor = val
-                ns.ApplyAccentColor()
-                for _, win in ipairs(ns.windows) do
-                    if win.RefreshAccentColor then win.RefreshAccentColor() end
-                end
+                ns.ApplySetting("accentUseClassColor", val)
             end)
         AddWidget(classCB, 24)
 
@@ -458,10 +435,7 @@ local function CreateSettingsPanel()
         local timerCB = ns.Widgets.CreateCheckbox(parent, L["SETTINGS_COMBAT_TIMER"],
             function() return ns.db.showCombatTimer end,
             function(val)
-                ns.db.showCombatTimer = val
-                for _, win in ipairs(ns.windows) do
-                    if win.UpdateTimer then win.UpdateTimer() end
-                end
+                ns.ApplySetting("showCombatTimer", val)
             end)
         AddWidget(timerCB, 24)
 
@@ -834,6 +808,40 @@ _G.TomoMod_DamageMeterBridge.ToggleSettings = function()
     if ns.Blocked and ns.Blocked() then return end
     if ns.ToggleSettings then ns.ToggleSettings() end
 end
+-- Settings surface for TomoMod's config page. The page lives outside the
+-- module and cannot reach TomoMod.DM, and handing it the namespace would
+-- let it touch internals it has no business with.
+_G.TomoMod_DamageMeterBridge.Get = function(key)
+    if ns.Blocked and ns.Blocked() then return nil end
+    return ns.GetSetting and ns.GetSetting(key)
+end
+_G.TomoMod_DamageMeterBridge.Set = function(key, value)
+    if ns.Blocked and ns.Blocked() then return false end
+    return ns.ApplySetting and ns.ApplySetting(key, value)
+end
+_G.TomoMod_DamageMeterBridge.GetTextureList = function()
+    return (ns.GetTextureList and ns.GetTextureList()) or {}
+end
+_G.TomoMod_DamageMeterBridge.GetSkinList = function()
+    return (ns.GetSkinList and ns.GetSkinList()) or {}
+end
+_G.TomoMod_DamageMeterBridge.GetFontList = function()
+    return ns.FONT_LIST or {}
+end
+
+-- The module already ships these strings in nine languages. Re-adding them
+-- to TomoMod's six locales would be duplication, and a downgrade for
+-- Chinese and Russian players.
+_G.TomoMod_DamageMeterBridge.L = function(key, fallback)
+    local v = ns.L and ns.L[key]
+    if v == nil or v == key then return fallback or key end
+    return v
+end
+
+_G.TomoMod_DamageMeterBridge.IsAvailable = function()
+    return not (ns.Blocked and ns.Blocked())
+end
+
 _G.TomoMod_DamageMeterBridge.ToggleWindows = function()
     if ns.Blocked and ns.Blocked() then return end
     for _, win in ipairs(ns.windows or {}) do

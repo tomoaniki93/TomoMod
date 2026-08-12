@@ -316,22 +316,43 @@ function UF_Elements.UpdateAuras(frame)
     local filters = AURA_FILTERS[filterKey] or AURA_FILTERS.HARMFUL
 
     for _, filter in ipairs(filters) do
-        -- GetAuraSlots returns: continuationToken, slot1, slot2, ... (varargs, NOT a table)
-        -- [PERF] Reuse module-level table instead of {varargs}
-        UF_CaptureSlots(_uf_slotResults, C_UnitAuras.GetAuraSlots(unit, filter))
-        -- _uf_slotResults[1] = continuationToken (may be nil!), [2..n] = slot indices
-        local idx = 2
-        while _uf_slotResults[idx] do
-            if #auras >= maxAuras then break end
-            local data = C_UnitAuras.GetAuraDataBySlot(unit, _uf_slotResults[idx])
-            if data then
-                -- Store only non-secret metadata we set ourselves
+        -- [12.1] GetAuraSlots now refuses outright once execution is tainted:
+        -- "Auras cannot be accessed when secret while tainted". It throws
+        -- rather than returning nothing, so an unguarded call fired on every
+        -- aura event -- 189 times in a single session in the report that
+        -- prompted this. pcall keeps the frame alive; the per-index reader
+        -- below is the fallback, and is not subject to the same refusal.
+        local okSlots = pcall(function()
+            UF_CaptureSlots(_uf_slotResults, C_UnitAuras.GetAuraSlots(unit, filter))
+        end)
+
+        if okSlots then
+            -- _uf_slotResults[1] = continuationToken (may be nil!), [2..n] = slot indices
+            local idx = 2
+            while _uf_slotResults[idx] do
+                if #auras >= maxAuras then break end
+                local ok, data = pcall(C_UnitAuras.GetAuraDataBySlot, unit, _uf_slotResults[idx])
+                if ok and data then
+                    -- Store only non-secret metadata we set ourselves
+                    data._filter = filter
+                    data._slotIndex = _uf_slotResults[idx]
+                    data._unit = unit
+                    auras[#auras + 1] = data
+                end
+                idx = idx + 1
+            end
+        elseif C_UnitAuras.GetAuraDataByIndex then
+            -- Same auras, read one at a time. Slower, but it is the only
+            -- path left when the slot enumerator is closed to us, and an
+            -- aura row that still draws beats one that errors.
+            for i = 1, maxAuras do
+                if #auras >= maxAuras then break end
+                local ok, data = pcall(C_UnitAuras.GetAuraDataByIndex, unit, i, filter)
+                if not ok or not data then break end
                 data._filter = filter
-                data._slotIndex = _uf_slotResults[idx]
                 data._unit = unit
                 auras[#auras + 1] = data
             end
-            idx = idx + 1
         end
     end
 
@@ -512,17 +533,35 @@ end
 local function CollectEnemyBuffData(unit, maxAuras)
     wipe(_uf_enemyBuffCollect)
     local auras = _uf_enemyBuffCollect
-    UF_CaptureSlots(_uf_slotResults, C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
-    local idx = 2
-    while _uf_slotResults[idx] do
-        if #auras >= maxAuras then break end
-        local data = C_UnitAuras.GetAuraDataBySlot(unit, _uf_slotResults[idx])
-        if data then
+
+    -- [12.1] Same refusal as the main aura path: GetAuraSlots throws once
+    -- execution is tainted, so it is guarded and falls back to reading the
+    -- auras one at a time.
+    local okSlots = pcall(function()
+        UF_CaptureSlots(_uf_slotResults, C_UnitAuras.GetAuraSlots(unit, "HELPFUL"))
+    end)
+
+    if okSlots then
+        local idx = 2
+        while _uf_slotResults[idx] do
+            if #auras >= maxAuras then break end
+            local ok, data = pcall(C_UnitAuras.GetAuraDataBySlot, unit, _uf_slotResults[idx])
+            if ok and data then
+                data._unit = unit
+                auras[#auras + 1] = data
+            end
+            idx = idx + 1
+        end
+    elseif C_UnitAuras.GetAuraDataByIndex then
+        for i = 1, maxAuras do
+            if #auras >= maxAuras then break end
+            local ok, data = pcall(C_UnitAuras.GetAuraDataByIndex, unit, i, "HELPFUL")
+            if not ok or not data then break end
             data._unit = unit
             auras[#auras + 1] = data
         end
-        idx = idx + 1
     end
+
     return auras
 end
 
