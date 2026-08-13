@@ -31,6 +31,16 @@ local function GetSettings()
     return TomoModDB.actionBarSkin
 end
 
+-- The skin is a layer ON TOP of the action bar system, not a standalone
+-- feature: with the bar system off there is nothing of ours to skin, and the
+-- fallback path would otherwise reach straight into Blizzard's buttons.
+local function SystemActive()
+    local AB_ = TomoMod_ActionBars
+    if AB_ and AB_.IsEnabled and not AB_.IsEnabled() then return false end
+    local s = GetSettings()
+    return (s and s.enabled) and true or false
+end
+
 local function GetSkinStyle()
     local s = GetSettings()
     return (s and s.skinStyle) or "classic"
@@ -112,22 +122,48 @@ end
 -- times a second. TomoMod_ABEngine diffs the state and only calls back when
 -- a value actually changed; range is evaluated by its gated ticker.
 -- =====================================================================
+-- Blizzard's own ActionButton_UpdateUsable writes the icon's vertex colour.
+-- Writing it too meant both sides overwrote each other depending on execution
+-- order, so after a reload or a bar swap the tint froze until a mouseover
+-- forced Blizzard to refresh. A separate MOD-blended texture over the icon
+-- multiplies exactly like a vertex colour would, without touching anything
+-- Blizzard owns.
+local function GetTintOverlay(button)
+    if button._tmTint then return button._tmTint end
+    local icon = button._tmIcon
+    if not icon or not button.CreateTexture then return nil end
+
+    -- Clear anything the previous implementation may have stamped on the icon.
+    pcall(icon.SetVertexColor, icon, 1, 1, 1)
+
+    local overlay = button:CreateTexture(nil, "ARTWORK", nil, 1)
+    overlay:SetAllPoints(icon)
+    overlay:SetBlendMode("MOD")
+    overlay:SetColorTexture(1, 1, 1, 1)
+    overlay:Hide()
+    button._tmTint = overlay
+    return overlay
+end
+
 local function ApplyIconTint(entry, state)
     local button = entry and entry.frame
     if not button or not skinnedButtons[button] then return end
-    local icon = button._tmIcon
-    if not icon then return end
+    local overlay = GetTintOverlay(button)
+    if not overlay then return end
 
     -- nil means "unknown / not applicable" (no range on the spell, or a
     -- value the client would not expose): render as normal.
     if state.inRange == false then
-        icon:SetVertexColor(0.8, 0.2, 0.2)
+        overlay:SetColorTexture(0.8, 0.2, 0.2)
+        overlay:Show()
     elseif state.noMana == true then
-        icon:SetVertexColor(0.3, 0.3, 0.9)
+        overlay:SetColorTexture(0.3, 0.3, 0.9)
+        overlay:Show()
     elseif state.usable == false then
-        icon:SetVertexColor(0.4, 0.4, 0.4)
+        overlay:SetColorTexture(0.4, 0.4, 0.4)
+        overlay:Show()
     else
-        icon:SetVertexColor(1, 1, 1)
+        overlay:Hide()
     end
 end
 
@@ -172,6 +208,7 @@ end
 -- =====================================================================
 local function SkinButton(button)
     if not button then return end
+    if not SystemActive() then return end
     if skinnedButtons[button] then return end
 
     local name = button:GetName()

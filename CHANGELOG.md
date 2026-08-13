@@ -1,5 +1,25 @@
 ## ####################################
 
+## CHANGELOG 3.5.2 — Three Faults That Shipped With The Action Bar Rebuild And Share One Cause Between Them, Which Is Writing Code Against What The API Used To Return Rather Than Against What It Returns Today: The Icon Texture Was Tested For Being A Path When Retail Has Handed Back A Numeric File ID For Years, So Every Real Icon Failed A Check Written To Catch Empty Ones And Was Cleared, Leaving A Row Of Black Squares Where The Bar Had Been; The Usability Tint Was Written Onto The Icon's Own Vertex Colour, Which Is A Slot Blizzard Also Writes On Its Own Schedule, So The Two Sides Overwrote Each Other In Whatever Order They Happened To Run And The Tint Froze After A Reload Until A Mouseover Shook It Loose, Fixed By Multiplying The Colour Through A Separate Texture That Belongs To TomoMod Instead Of Fighting For A Field That Does Not; And The Skin Kept Painting While The Bar System It Is A Layer On Top Of Was Switched Off, Reaching Through Its Own Name-Lookup Fallback Onto Blizzard's Untouched Buttons, Which Is Now Refused At The Door Because The System Was Finally Asked Whether It Was Running
+
+#### Action Bars — The Icons Came Back Black
+
+- **Fix** — `RenderIcon` cleared the texture on every button that had one. `GetActionTexture` returns a numeric file ID in retail, not a texture path, and the guard tested `type(texture) == "string"` — so a perfectly good icon failed the check written to reject empty ones, the texture was set to nil and the button was hidden, which draws as a black square. A new `IsUsableTexture` accepts a non-zero number as readily as a non-empty string, and both the engine's value and the direct fallback go through it.
+- **Internal** — The direct `GetActionTexture(slot)` fallback is wrapped in `pcall` like every other game read in this module. It was the one call in the render path still made bare.
+
+#### Action Bars — The Tint Stopped Fighting Blizzard For The Same Field
+
+- **Fix** — Out of range, out of mana and unusable stopped updating after a reload or a bar swap, and a mouseover would put them right. `ApplyIconTint` wrote `SetVertexColor` on the icon, which is exactly where Blizzard's own `ActionButton_UpdateUsable` writes: whichever ran last won, so the tint was correct or frozen depending on execution order rather than on state.
+- **Change** — The tint is now a separate texture of TomoMod's own, sitting over the icon in `MOD` blend mode. Multiplying the icon through it produces the same result a vertex colour would, on a widget Blizzard has no reason to touch, so there is nothing left to arbitrate. Normal is the overlay hidden rather than a colour written, which means the common case costs nothing.
+- **Note** — The overlay resets the icon's vertex colour to white the first time it is created, so a button carrying a stale tint from before this release is cleaned up on its first repaint. No settings need clearing.
+
+#### Action Bars — The Skin Stayed Inside Its Own Fence
+
+- **Fix** — With the action bar system disabled, the skin carried on skinning. Its `_G[prefix .. i]` fallback finds Blizzard's buttons by name whether or not TomoMod has taken them over, so turning the bar system off left the skin repainting frames it had no business touching. `SkinButton` now refuses to run unless both the skin and the bar system are on.
+- **Internal** — `ActionBars.lua` exports `IsEnabled` on `TomoMod_ActionBars` for this. The skin is a layer over the bar system rather than a feature beside it, and until now it had no way of asking whether the thing underneath it existed.
+
+## ####################################
+
 ## CHANGELOG 3.5.1 — The Action Bars Were Skinned By A Module That Repainted Every Button Five Times A Second Whether Or Not Anything Had Changed, Which Is The Shape You End Up With When A Skin Grows Into A Feature Set Without Ever Being Given A Place To Keep State, So The Whole Row Is Rebuilt Around One Engine That Owns The Question "What State Is This Button In" And Answers It From Events Rather Than From A Ticker, Diffs Every Value Before Telling Anyone, And Reads The Game Through An Adapter So Nothing Downstream Knows Or Cares Whether The Frame Underneath Belongs To Blizzard Or To TomoMod — And Then Five Layers Are Built On Top Of It That Could Not Have Existed Before, Icons And Cooldowns With A Choice Of Who Draws The Sweep, Proc And Rotation Glows That Coexist On The Same Button Because Each Owns Its Own Key, Hotkey Text Resolved From The Binding Itself Instead Of Scraped Off Blizzard's Fontstring So It Still Works On A Button Blizzard Never Made, The Stance And Equipped And Autocast States The Engine Had Tracked Since The First Day And Nothing Had Ever Drawn, And Finally Real Secure Buttons Of TomoMod's Own Behind A Per-Bar Opt-In That Is Reversible With A Reload, With A Hundred And Six Click Bindings Shipped To Make Them Bindable And A Binding Mode To Assign Them On The Bars, Which Joins Any Other Addon's Shared Binding Mode When One Is Present Because The Library That Arbitrates It Is Now Embedded Rather Than Hoped For
 
 #### Action Bars — One Engine Instead Of A Ticker

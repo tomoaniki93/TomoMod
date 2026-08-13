@@ -3245,6 +3245,13 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
 
     -- =====================
+    -- 3.5.2 — What's New
+    -- =====================
+    ["wn_352_icons"] = "Fix — The action bar icons came back black. The check meant to spot an empty slot was looking for the icon to be given as a file path, which is how the game used to answer and has not for years — it now hands back a number instead. So every real icon failed a test written to catch the ones that were missing, was wiped, and left an empty square where your spell had been. Both the usual route and the fallback now accept either answer.",
+    ["wn_352_tint"] = "Fix — Out of range, out of mana and unusable stopped showing after a reload or a bar change, and moving the mouse over the button would bring them back. TomoMod was tinting the icon in the very same place Blizzard tints it, so whichever of the two ran last decided what you saw. The tint is now a layer of TomoMod's own laid over the icon, which shades it exactly as before without the two of them writing over each other — and when there is nothing to signal, it simply is not there.",
+    ["wn_352_scope"] = "Fix — With the action bars turned off, the skin kept skinning anyway. It falls back to finding buttons by name, and those names belong to Blizzard's buttons whether or not TomoMod has taken them over — so switching the bars off left the skin repainting frames it had no business touching. It now checks that the bars are actually running before it changes anything.",
+
+    -- =====================
     -- 3.5.1 — What's New
     -- =====================
     ["wn_351_engine"] = "Internal — The action bars used to be repainted five times a second, every button, whether or not anything had changed. That was the shape a skin ends up with when it grows into a feature set without ever being given somewhere to keep track of things. There is now one piece that owns the question — what state is this button in — and it is told by the game when something happens instead of checking on a timer, and it passes the news on only when a value has actually changed. Range is the one exception, because the game has no way of announcing it; that check still runs on a timer, and only while you have a target. It also never assumes the button underneath belongs to Blizzard, which is what made everything else in this release possible.",

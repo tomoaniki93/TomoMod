@@ -187,20 +187,30 @@ end
 -- RENDER PASSES
 -- =====================================================================
 
+-- GetActionTexture returns a numeric fileID in retail, not a path. Testing for
+-- a string meant the check failed for every real icon, so the texture was
+-- cleared and the button rendered as a black square.
+local function IsUsableTexture(v)
+    local t = type(v)
+    if t == "number" then return v ~= 0 end
+    if t == "string" then return v ~= "" end
+    return false
+end
+
 local function RenderIcon(entry, vset, db)
     local ABE = TomoMod_ABEngine
     local texture = ABE and ABE.GetTexture and ABE.GetTexture(entry) or nil
-    if type(texture) ~= "string" or texture == "" then
+    if not IsUsableTexture(texture) then
         local slot = entry and entry.slot
         if type(slot) == "number" and GetActionTexture then
-            local direct = GetActionTexture(slot)
-            if type(direct) == "string" and direct ~= "" then
+            local ok, direct = pcall(GetActionTexture, slot)
+            if ok and IsUsableTexture(direct) then
                 texture = direct
             end
         end
     end
 
-    if type(texture) == "string" and texture ~= "" then
+    if IsUsableTexture(texture) then
         pcall(vset.icon.SetTexture, vset.icon, texture)
         vset.icon:Show()
     else

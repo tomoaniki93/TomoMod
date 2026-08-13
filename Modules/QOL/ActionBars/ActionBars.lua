@@ -144,6 +144,11 @@ local function IsEnabled()
     return db and db.enabled ~= false
 end
 
+-- Exposed so ActionBarSkin can refuse to touch anything when the action bar
+-- system itself is off. Without this the skin keeps repainting Blizzard's own
+-- buttons through its _G[prefix .. i] fallback.
+AB.IsEnabled = IsEnabled
+
 -- =====================================================================
 -- COMBAT DEFERRED QUEUE
 -- =====================================================================
