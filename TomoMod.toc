@@ -81,6 +81,9 @@ Config\GlobalSearch.lua
 Config\Installer.lua
 
 ## =====================
+## TUI compatibility layer (must load before any ported TUI module)
+Core\TuiCompat\TuiCompat.xml
+
 ## QOL Modules (unchanged)
 ## =====================
 Modules\QOL\QOL.xml
@@ -95,6 +98,7 @@ Modules\Interface\ResourceBars\ResourceBars.xml
 Modules\Interface\NamePlates\Nameplates.xml
 Modules\Interface\PartyFrame\PartyFrame.xml
 Modules\Interface\RaidFrame\RaidFrame.xml
+Modules\Interface\ActionBars\ActionBars.xml
 
 ## =====================
 ## Damage Meter (also published standalone as TomoDamageMeter;

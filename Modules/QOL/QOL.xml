@@ -83,17 +83,6 @@
     <!-- Modules: FrameAnchors -->
     <Include file="FrameAnchors\FrameAnchors.lua" />
 
-    <!-- Modules: ActionBars -->
-    <Include file="ActionBars\ActionBars.lua" />
-    <Include file="ActionBars\AB_Button.lua" />
-    <Include file="ActionBars\AB_Engine.lua" />
-    <Include file="ActionBars\AB_Render.lua" />
-    <Include file="ActionBars\AB_Glow.lua" />
-    <Include file="ActionBars\AB_Hotkey.lua" />
-    <Include file="ActionBars\AB_KeyBound.lua" />
-    <Include file="ActionBars\AB_Special.lua" />
-    <Include file="ActionBars\ActionBarSkin.lua" />
-
     <!-- Modules: LustSound -->
     <Include file="LustSound\LustSound.lua" />
 

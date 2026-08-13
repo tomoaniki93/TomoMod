@@ -1,0 +1,14 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
+
+    <Script file="Namespace.lua" />
+    <Script file="SafeCall.lua" />
+    <Script file="DebugGate.lua" />
+    <Script file="Registry.lua" />
+    <Script file="Helpers.lua" />
+    <Script file="IconSkin.lua" />
+    <Script file="IconGlow.lua" />
+    <Script file="UIKitShim.lua" />
+    <Script file="Bridges.lua" />
+
+</Ui>

@@ -1,0 +1,14 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
+
+    <Script file="ActionBars.lua" />
+    <Script file="AB_Button.lua" />
+    <Script file="AB_Engine.lua" />
+    <Script file="AB_Render.lua" />
+    <Script file="AB_Glow.lua" />
+    <Script file="AB_Hotkey.lua" />
+    <Script file="AB_KeyBound.lua" />
+    <Script file="AB_Special.lua" />
+    <Script file="ActionBarSkin.lua" />
+
+</Ui>
