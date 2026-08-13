@@ -21,6 +21,7 @@ local SKIN_STYLES = { "classic", "flat", "outlined", "glass", "minimal" }
 
 local skinnedButtons  = {}
 local classColor      = nil
+local engineBound     = false
 
 -- =====================================================================
 -- HELPERS
@@ -106,6 +107,67 @@ local function CreateFlatBorder(parent, r, g, b, a)
 end
 
 -- =====================================================================
+-- STATE ENGINE CONSUMER
+-- Replaces the former 0.2s OnUpdate frame that repainted every button five
+-- times a second. TomoMod_ABEngine diffs the state and only calls back when
+-- a value actually changed; range is evaluated by its gated ticker.
+-- =====================================================================
+local function ApplyIconTint(entry, state)
+    local button = entry and entry.frame
+    if not button or not skinnedButtons[button] then return end
+    local icon = button._tmIcon
+    if not icon then return end
+
+    -- nil means "unknown / not applicable" (no range on the spell, or a
+    -- value the client would not expose): render as normal.
+    if state.inRange == false then
+        icon:SetVertexColor(0.8, 0.2, 0.2)
+    elseif state.noMana == true then
+        icon:SetVertexColor(0.3, 0.3, 0.9)
+    elseif state.usable == false then
+        icon:SetVertexColor(0.4, 0.4, 0.4)
+    else
+        icon:SetVertexColor(1, 1, 1)
+    end
+end
+
+local function ApplyPushed(entry, state)
+    local button = entry and entry.frame
+    if not button or not skinnedButtons[button] then return end
+    local overlay = button._tmPushed
+    if overlay then overlay:SetShown(state.pushed == true) end
+end
+
+local function BindEngine()
+    if engineBound then return end
+    local ABE = TomoMod_ABEngine
+    if not ABE or not ABE.RegisterCallback then return end
+    engineBound = true
+    ABE.RegisterCallback("ActionBarSkin", "action", ApplyIconTint)
+    ABE.RegisterCallback("ActionBarSkin", "usable", ApplyIconTint)
+    ABE.RegisterCallback("ActionBarSkin", "range",  ApplyIconTint)
+    ABE.RegisterCallback("ActionBarSkin", "pushed", ApplyPushed)
+end
+
+-- Paints a freshly skinned button with the state the engine already holds.
+local function SyncFromEngine(button)
+    local ABE = TomoMod_ABEngine
+    if not ABE or not ABE.GetEntry then return end
+    local entry = ABE.GetEntry(button)
+    if not entry then return end
+    ApplyIconTint(entry, entry.state)
+    ApplyPushed(entry, entry.state)
+    -- Chrome has just been rebuilt; let the render layer repaint its content
+    -- on top of it (icon crop, cooldown style, count, macro name).
+    local R = TomoMod_ABRender
+    if R and R.Render then R.Render(entry, "all") end
+    local HK = TomoMod_ABHotkey
+    if HK and HK.Render then HK.Render(entry) end
+    local SP = TomoMod_ABSpecial
+    if SP and SP.Apply then SP.Apply(entry) end
+end
+
+-- =====================================================================
 -- SKIN A SINGLE BUTTON
 -- =====================================================================
 local function SkinButton(button)
@@ -175,7 +237,7 @@ local function SkinButton(button)
     icon:ClearAllPoints()
     icon:SetPoint("TOPLEFT",     inset, -inset)
     icon:SetPoint("BOTTOMRIGHT", -inset, inset)
-    icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    -- Icon crop is owned by AB_Render (configurable zoom).
 
     -- Border
     local borderParts
@@ -233,25 +295,8 @@ local function SkinButton(button)
     end
 
     -- Text elements
-    local hotkey = button.HotKey or _G[name .. "HotKey"]
-    if hotkey then
-        hotkey:SetFont(FONT, 12, "OUTLINE")
-        hotkey:ClearAllPoints()
-        hotkey:SetPoint("TOPRIGHT", button, "TOPRIGHT", -2, -2)
-        hotkey:SetJustifyH("RIGHT")
-    end
-    local count = button.Count or _G[name .. "Count"]
-    if count then
-        count:SetFont(FONT, 12, "OUTLINE")
-        count:ClearAllPoints()
-        count:SetPoint("BOTTOMRIGHT", button, "BOTTOMRIGHT", -2, 2)
-    end
-    local macroName = button.Name or _G[name .. "Name"]
-    if macroName then
-        macroName:SetFont(FONT, 8, "OUTLINE")
-        macroName:ClearAllPoints()
-        macroName:SetPoint("BOTTOM", button, "BOTTOM", 0, 2)
-    end
+    -- Hotkey text is owned by AB_Hotkey.
+    -- Count and macro name are owned by AB_Render.
 
     if button.Border then button.Border:SetTexture(nil); button.Border:Hide() end
     local flash = button.Flash or _G[name .. "Flash"]
@@ -262,48 +307,10 @@ local function SkinButton(button)
         flash:SetColorTexture(1, 0.2, 0.2, 0.30)
     end
 
-    -- Register for range polling
-    if not button._tmRangeRegistered and button.action then
-        button._tmRangeRegistered = true
-        button._tmIcon = icon
-    end
+    -- Rendering targets handed to the state engine.
+    button._tmIcon = icon
+    SyncFromEngine(button)
 end
-
--- =====================================================================
--- EXTERNAL POLLING FRAME (range-check + pushed state)
--- =====================================================================
-local _tmRangeFrame = CreateFrame("Frame")
-local _tmRangeTimer = 0
-_tmRangeFrame:SetScript("OnUpdate", function(self, elapsed)
-    _tmRangeTimer = _tmRangeTimer + elapsed
-    if _tmRangeTimer < 0.2 then return end
-    _tmRangeTimer = 0
-    for button in pairs(skinnedButtons) do
-        local icon = button._tmIcon
-        if icon and button.action then
-            local action = button.action
-            if IsActionInRange and IsActionInRange(action) == false then
-                icon:SetVertexColor(0.8, 0.2, 0.2)
-            elseif IsUsableAction then
-                local usable, noMana = IsUsableAction(action)
-                if noMana then
-                    icon:SetVertexColor(0.3, 0.3, 0.9)
-                elseif not usable then
-                    icon:SetVertexColor(0.4, 0.4, 0.4)
-                else
-                    icon:SetVertexColor(1, 1, 1)
-                end
-            else
-                icon:SetVertexColor(1, 1, 1)
-            end
-        end
-        local pushOverlay = button._tmPushed
-        if pushOverlay then
-            local state = button:GetButtonState()
-            pushOverlay:SetShown(state == "PUSHED")
-        end
-    end
-end)
 
 -- =====================================================================
 -- SKIN ALL BUTTONS (uses AB.BAR_DEFS)
@@ -341,6 +348,25 @@ end
 -- =====================================================================
 -- UPDATE BORDER COLORS
 -- =====================================================================
+-- Skin one arbitrary button. Used by AB_Button when it hands a flyout slot
+-- back to Blizzard's own button, which is not part of AB.GetButtons().
+function ABS.SkinOne(button)
+    local settings = GetSettings()
+    if not settings or not settings.enabled then return end
+    SkinButton(button)
+end
+
+function ABS.UnskinOne(button)
+    if not skinnedButtons[button] then return end
+    if button._tmBorder then
+        for _, part in ipairs(button._tmBorder) do
+            if part and part.Hide then part:Hide() end
+        end
+    end
+    if button._tmBG then button._tmBG:Hide() end
+    skinnedButtons[button] = nil
+end
+
 function ABS.UpdateColors()
     classColor = nil
     local r, g, b, a = GetBorderColor()
@@ -370,6 +396,7 @@ function ABS.Reskin()
         if button._tmBG then button._tmBG:Hide() end
     end
     wipe(skinnedButtons)
+    BindEngine()
     SkinAllButtons()
 end
 
@@ -402,6 +429,9 @@ function ABS.SetEnabled(val)
     local settings = GetSettings()
     if not settings then return end
     if val then
+        BindEngine()
+        local ABE = TomoMod_ABEngine
+        if ABE and ABE.IsEnabled and not ABE.IsEnabled() then ABE.SetEnabled(true) end
         SkinAllButtons()
     else
         for button in pairs(skinnedButtons) do
@@ -429,7 +459,12 @@ bootFrame:SetScript("OnEvent", function()
     local settings = GetSettings()
     if settings and settings.enabled then
         -- Delay to let ActionBars.lua create containers first
-        C_Timer.After(1.0, function()
+        C_Timer.After(1.1, function()
+            local ABE = TomoMod_ABEngine
+            if ABE then
+                BindEngine()
+                if ABE.IsEnabled and not ABE.IsEnabled() then ABE.SetEnabled(true) end
+            end
             SkinAllButtons()
         end)
     end

@@ -545,6 +545,79 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_ab_system_enable"]            = "Activer le syst\195\168me de barres d'action TomoMod (n\195\169cessite reload)",
     ["opt_ab_system_reload"]            = "D\195\169sactiver restaure enti\195\168rement les barres Blizzard apr\195\168s /reload.",
     ["section_ab_skin"]                 = "Skin visuel",
+
+    -- ActionBars: LibKeyBound integration (Lot A9)
+    ["btn_ab_kb_lib"]                       = "Mode assignation (LibKeyBound)",
+    ["info_ab_kb_lib"]                      = "Mode d'assignation partagé, détecté depuis un autre addon. Assigne les barres de TomoMod et celles de cet addon dans la même passe.",
+
+    -- ActionBars: keybinding command labels (Lot A8)
+    ["binding_category"]                    = "Barres d'action TomoMod",
+    ["binding_bar_header"]                  = "Barre TomoMod %d",
+    ["binding_button"]                      = "Barre %d Bouton %d",
+
+    -- ActionBars: config tab labels (Lot A7)
+    ["tab_abs_buttons"]                     = "Boutons",
+    ["tab_abs_glow"]                        = "Glow",
+    ["tab_abs_hotkeys"]                     = "Raccourcis",
+
+    -- ActionBars: TomoMod-owned buttons (Lot A6)
+    ["opt_bar_own_buttons"]                 = "Boutons TomoMod (expérimental)",
+    ["info_bar_own_buttons"]                = "Remplace les boutons Blizzard par ceux de TomoMod sur cette barre. Nécessite /reload. Les flyouts (portails, pièges, flacons) et la surbrillance assistée ne sont pas encore gérés.",
+
+    -- ActionBars: special bars (stances, pet, state decoration)
+    ["section_ab_special"]                  = "Postures, familier & états",
+    ["opt_ab_sp_active"]                    = "Surligner l'action active",
+    ["opt_ab_sp_active_color"]              = "Couleur active",
+    ["opt_ab_sp_equipped"]                  = "Surligner les objets équipés",
+    ["opt_ab_sp_equipped_color"]            = "Couleur équipé",
+    ["opt_ab_sp_thickness"]                 = "Épaisseur du surlignage",
+    ["opt_ab_sp_autocast"]                  = "Scintillement d'incantation auto",
+    ["opt_ab_sp_autocast_color"]            = "Couleur de l'incantation auto",
+    ["opt_ab_sp_pet_autohide"]              = "Masquer la barre de familier sans familier",
+    ["info_ab_sp_pet_autohide"]             = "La masque tant que vous n'avez aucun familier. Les postures n'ont pas de condition équivalente et restent gérées par Blizzard.",
+
+    -- ActionBars: hotkey layer (keybind text, binding mode)
+    ["section_ab_hotkey"]                   = "Raccourcis",
+    ["opt_ab_hk_enable"]                    = "Afficher les raccourcis",
+    ["opt_ab_hk_abbrev"]                    = "Abréger",
+    ["opt_ab_hk_size"]                      = "Taille de police",
+    ["opt_ab_hk_anchor"]                    = "Position",
+    ["opt_ab_hk_offx"]                      = "Décalage horizontal",
+    ["opt_ab_hk_offy"]                      = "Décalage vertical",
+    ["opt_ab_hk_color"]                     = "Couleur du texte",
+    ["opt_ab_hk_hide_empty"]                = "Masquer sur les cases vides",
+    ["btn_ab_hk_bind"]                      = "Mode assignation",
+    ["info_ab_hk_bind"]                     = "Assigner les touches directement sur les barres. Indisponible en combat.",
+    ["hotkey_bind_enter"]                   = "Mode assignation : survolez un bouton et appuyez sur une touche. Clic droit ou Échap efface.",
+    ["hotkey_bind_exit"]                    = "Mode assignation fermé, raccourcis enregistrés.",
+    ["hotkey_combat_blocked"]               = "Le mode assignation est indisponible en combat.",
+
+    -- ActionBars: glow layer (procs, rotation hint)
+    ["section_ab_glow"]                     = "Glow (procs & rotation)",
+    ["opt_ab_glow_proc"]                    = "Glow sur proc",
+    ["opt_ab_glow_proc_type"]               = "Style du glow de proc",
+    ["opt_ab_glow_proc_color"]              = "Couleur du glow de proc",
+    ["opt_ab_glow_assist"]                  = "Glow sur suggestion de rotation",
+    ["opt_ab_glow_assist_type"]             = "Style du glow de rotation",
+    ["opt_ab_glow_assist_color"]            = "Couleur du glow de rotation",
+    ["info_ab_glow_assist"]                 = "Suit la recommandation de l'Assistance de combat de Blizzard. Nécessite que la fonction soit disponible sur votre personnage.",
+    ["opt_ab_glow_lines"]                   = "Pixel : nombre de lignes",
+    ["opt_ab_glow_freq"]                    = "Vitesse d'animation",
+    ["opt_ab_glow_thickness"]               = "Pixel : épaisseur des lignes",
+
+    -- ActionBars: render layer (icons, cooldowns, texts)
+    ["section_ab_icons"]                    = "Icônes & recharges",
+    ["opt_ab_cd_backend"]                   = "Source des recharges",
+    ["info_ab_cd_managed"]                  = "Gérée : TomoMod dessine lui-même la recharge. Nécessaire aux futurs boutons TomoMod ; la source Blizzard reste plus sûre pour l'instant.",
+    ["opt_ab_cd_numbers"]                   = "Chiffres de recharge",
+    ["opt_ab_cd_size"]                      = "Taille des chiffres",
+    ["opt_ab_swipe_color"]                  = "Couleur du balayage",
+    ["opt_ab_swipe_alpha"]                  = "Opacité du balayage",
+    ["opt_ab_show_count"]                   = "Afficher charges / piles",
+    ["opt_ab_count_size"]                   = "Taille du texte de charges",
+    ["opt_ab_show_macro"]                   = "Afficher le nom de macro",
+    ["opt_ab_desat_unusable"]               = "Désaturer si inutilisable",
+    ["opt_ab_icon_zoom"]                    = "Recadrage de l'icône",
     ["cat_action_bars"]                 = "Barres d'action",
     ["opt_abs_enable"]                  = "Activer le skin des barres d'action",
     ["opt_abs_class_color"]             = "Couleur de classe pour les bordures",
@@ -3139,6 +3212,19 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_333_diag_settle"] = "Diagnostics : l'échelle que le jeu applique de lui-même pendant la connexion était consignée dans chaque rapport comme un redimensionnement en cours de session. La capture d'affichage attend désormais quatre secondes que le client se stabilise avant de prendre une mesure, si bien que la seule entrée d'échelle qui subsiste dans un rapport est celle qui mérite vraiment une explication.",
     ["wn_333_diag_mode"] = "Diagnostics : quand le rapport n'arrive pas à déterminer votre mode d'affichage, il indique maintenant les valeurs brutes renvoyées par le jeu au lieu d'un simple point d'interrogation — ces noms de réglages changent d'une extension à l'autre, et un « ? » seul ne pouvait pas être diagnostiqué sans revenir vers vous. Le plein écran fenêtré et les fenêtres agrandies sont reconnus dans davantage de cas, et les versions des addons ne s'affichent plus sous la forme « vv1.2.3 ».",
     ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
+
+    -- =====================
+    -- 3.5.1 — Quoi de neuf
+    -- =====================
+    ["wn_351_engine"] = "Interne — Les barres d'action étaient entièrement repeintes cinq fois par seconde, chaque bouton, que quelque chose ait changé ou non. C'est la forme que prend un habillage quand il grandit jusqu'à devenir un ensemble de fonctionnalités sans qu'on lui ait jamais donné d'endroit où retenir quoi que ce soit. Il existe désormais une seule pièce qui porte la question — dans quel état se trouve ce bouton — et c'est le jeu qui la prévient quand quelque chose se produit, au lieu qu'elle vérifie à intervalle régulier ; elle ne transmet la nouvelle que lorsqu'une valeur a réellement changé. La portée fait exception, parce que le jeu n'a aucun moyen de l'annoncer : cette vérification reste sur un minuteur, et uniquement tant que tu as une cible. Elle ne suppose jamais non plus que le bouton en dessous appartient à Blizzard, ce qui est précisément ce qui a rendu tout le reste de cette version possible.",
+    ["wn_351_render"] = "Nouveau — Les icônes et les cooldowns se règlent maintenant. Les chiffres du cooldown et leur taille, la couleur et l'opacité du balayage, le liseré et l'éclat, le texte des charges et des piles et sa taille, le nom de la macro, le grisement d'une action inutilisable, et le recadrage de l'icône — jusqu'à aucun recadrage du tout. S'y ajoute le choix de qui dessine le cooldown : Blizzard, qui conserve son propre balayage et se contente de le restyler, ou TomoMod, qui le dessine. Blizzard reste le réglage par défaut et le plus sûr des deux pour l'instant ; celui de TomoMod est ce dont les nouveaux boutons plus bas ont besoin, et il est là pour pouvoir être éprouvé avant que quoi que ce soit n'en dépende.",
+    ["wn_351_glow"] = "Nouveau — Deux lueurs sur les barres, et elles peuvent être allumées en même temps. La première est la mise en avant classique d'un proc ; la seconde suit la suggestion de rotation que le jeu formule lui-même. Chacune a son style — Pixel, Autocast, Bouton, Proc ou Blizzard — sa couleur, et pour la version pixel le nombre de lignes, leur épaisseur et la vitesse d'animation. Elles coexistent au lieu de se relayer, parce que chacune garde sa propre prise sur le bouton. La correspondance se fait sur le sort : une macro qui finit par lancer quelque chose s'illumine exactement comme le sort seul, et un talent qui renomme un sort est suivi lui aussi. La lueur de rotation est désactivée par défaut et exige que la fonctionnalité existe sur ton personnage.",
+    ["wn_351_hotkeys"] = "Nouveau — Le texte des raccourcis sur les boutons t'appartient désormais : l'afficher ou non, sa taille, sa couleur, le coin où il se place, son décalage, son abréviation, et sa présence ou non sur un emplacement vide. Il est déduit du raccourci lui-même plutôt que recopié depuis l'étiquette de Blizzard, ce qui compte parce qu'un bouton fabriqué par TomoMod n'a aucune étiquette à recopier — celle de Blizzard est conservée en secours, pour qu'un changement inattendu dans un futur correctif donne un texte légèrement moins bon plutôt qu'aucun texte. S'y ajoute un mode d'assignation : tu l'actives, tu survoles un bouton, tu appuies sur une touche. Un clic droit ou Échap en efface une. Il refuse de s'ouvrir en combat.",
+    ["wn_351_special"] = "Nouveau — Des choses que les barres savaient et ne t'ont jamais montrées. Sur une barre habillée, tu ne pouvais pas voir dans quelle posture tu étais, quel enchantement d'arme était équipé, ni quelle capacité de familier était réglée pour se lancer seule : l'habillage supprime les marqueurs de Blizzard et délave sa mise en avant. Il y a maintenant un anneau pour l'action active et pour les objets équipés, chacun avec sa couleur et une épaisseur commune, sur un seul anneau doté d'un ordre de priorité pour que deux états ne s'empilent jamais en un fouillis. L'autocast du familier reçoit son propre éclat, qui cohabite avec les deux lueurs ci-dessus. La barre de familier peut se masquer quand tu n'as pas de familier. Les postures n'ont pas d'équivalent — il n'existe aucun moyen de demander au jeu si une classe possède des formes, et les boutons de posture de Blizzard disparaîssent déjà d'eux-mêmes quand il n'y a rien à montrer.",
+    ["wn_351_ownbuttons"] = "Nouveau — TomoMod peut désormais fabriquer ses propres boutons d'action au lieu d'emprunter ceux de Blizzard. C'est désactivé partout, cela s'active barre par barre, et cela se défait en décochant l'option puis en rechargeant. Tout ce qui précède fonctionne dessus sans changement. Lis les limites avant de l'activer, car elles sont réelles : les menus volants ne s'ouvrent pas sur une barre convertie — portails de mage, pièges de chasseur, flacons invoqués. Les barres de véhicule et de remplaçement suivent toujours le changement de page, mais le bouton de sortie spécifique et son habillage ne suivent pas. La mise en avant de rotation du jeu n'y est pas dessinée ; utilise la lueur de rotation ci-dessus à la place. Les barres de familier et de posture restent entièrement sur les boutons de Blizzard. C'est marqué expérimental parce que ça l'est.",
+    ["wn_351_bindings"] = "Nouveau — Les nouveaux boutons arrivent avec 106 raccourcis déjà déclarés : ils apparaissent donc dans la fenêtre de raccourcis du jeu, sous un intitulé TomoMod avec une section par barre. Ils sont liés via un clic dédié plutôt qu'un simple clic gauche, et c'est ce qui fait que le lancement à l'appui de la touche se comporte correctement — c'est un écueil connu, et Bartender4 a fait le même déplacement il y a des années pour la même raison.",
+    ["wn_351_keybound"] = "Nouveau — Les barres de TomoMod rejoignent le mode d'assignation partagé qu'utilisent Dominos, Bartender4 et Bagnon : une seule passe assigne tes barres et les leurs, au lieu que chaque addon impose le sien. La bibliothèque qui arbitre tout cela est maintenant incluse, si bien que le mode partagé est là que tu utilises l'un de ces addons ou non. Un détail à consigner pour la prochaine mise à jour : elle doit être reprise d'une version empaquetée, jamais de son miroir GitHub, qui calcule sa propre version à partir d'un marqueur qui n'est renseigné qu'à l'intérieur d'un dépôt source — copiée ailleurs, elle échoue dès son chargement.",
+    ["wn_351_tabs"] = "Modification — La page d'options des barres d'action compte maintenant cinq onglets au lieu de deux : Habillage, Boutons, Lueur, Raccourcis et Barres. Toute nouveauté atterrissait jusqu'ici dans une longue colonne unique sur l'onglet d'habillage, et trois des cinq couches de cette version y seraient allées aussi.",
 
     -- =====================
     -- 3.4.6 — Quoi de neuf

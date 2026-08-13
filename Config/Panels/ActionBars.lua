@@ -18,6 +18,29 @@ local SKIN_STYLES_LIST = {
     { value = "minimal",  text = "Minimal (sans bordure)" },
 }
 
+local CD_BACKEND_LIST = {
+    { value = "native",  text = "Blizzard" },
+    { value = "managed", text = "TomoMod" },
+}
+
+local GLOW_TYPE_LIST = {
+    { value = "Pixel Glow",         text = "Pixel" },
+    { value = "Autocast Shine",     text = "Autocast" },
+    { value = "Action Button Glow", text = "Button" },
+    { value = "Proc Glow",          text = "Proc" },
+    { value = "Blizzard Glow",      text = "Blizzard" },
+}
+
+local HK_ANCHOR_LIST = {
+    { value = "TOPRIGHT",    text = "Haut droite" },
+    { value = "TOPLEFT",     text = "Haut gauche" },
+    { value = "TOP",         text = "Haut" },
+    { value = "BOTTOMRIGHT", text = "Bas droite" },
+    { value = "BOTTOMLEFT",  text = "Bas gauche" },
+    { value = "BOTTOM",      text = "Bas" },
+    { value = "CENTER",      text = "Centre" },
+}
+
 local ORIENTATION_LIST = {
     { value = "horizontal", text = "Horizontal" },
     { value = "vertical",   text = "Vertical" },
@@ -45,7 +68,7 @@ local function GetConditionList()
 end
 
 -- =====================================================================
--- TAB 1 — SKIN STYLE
+-- TAB 1 -- SKIN STYLE
 -- =====================================================================
 local function BuildSkinTab(parent)
     local scroll = W.CreateScrollPanel(parent)
@@ -109,7 +132,394 @@ local function BuildSkinTab(parent)
 end
 
 -- =====================================================================
--- TAB 2 — BAR MANAGEMENT (collapsible per-bar sections)
+-- TAB 2 -- BUTTONS (icons, cooldowns, texts, state decoration)
+-- =====================================================================
+local function BuildButtonsTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    -- =================================================================
+    -- ICONS & COOLDOWNS (render layer, AB_Render)
+    -- =================================================================
+    local RENDER = TomoMod_ABRender
+    local rdb = RENDER and RENDER.GetSettings and RENDER.GetSettings() or nil
+    if rdb then
+        local function ApplyRender()
+            if RENDER.ApplySettings then RENDER.ApplySettings() end
+        end
+        local sc = rdb.swipeColor or { 0, 0, 0, 0.65 }
+
+        local _, ny = W.CreateSectionHeader(c, L["section_ab_icons"], y)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_ab_cd_backend"], CD_BACKEND_LIST,
+            rdb.cooldownBackend or "native", y, function(v)
+                rdb.cooldownBackend = v
+                ApplyRender()
+            end)
+        y = ny
+
+        local _, ny = W.CreateInfoText(c, L["info_ab_cd_managed"], y)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_cd_numbers"],
+            rdb.countdownNumbers ~= false, y, function(v)
+                rdb.countdownNumbers = v
+                ApplyRender()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_cd_size"],
+            rdb.countdownFontSize or 16, 8, 28, 1, y, function(v)
+                rdb.countdownFontSize = v
+                ApplyRender()
+            end)
+        y = ny
+
+        local _, ny = W.CreateColorPicker(c, L["opt_ab_swipe_color"],
+            { r = sc[1] or 0, g = sc[2] or 0, b = sc[3] or 0 }, y, function(r, g, b)
+                sc[1], sc[2], sc[3] = r, g, b
+                rdb.swipeColor = sc
+                ApplyRender()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_swipe_alpha"],
+            sc[4] or 0.65, 0, 1, 0.05, y, function(v)
+                sc[4] = v
+                rdb.swipeColor = sc
+                ApplyRender()
+            end)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_show_count"],
+            rdb.showCount ~= false, y, function(v)
+                rdb.showCount = v
+                ApplyRender()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_count_size"],
+            rdb.countFontSize or 12, 8, 24, 1, y, function(v)
+                rdb.countFontSize = v
+                ApplyRender()
+            end)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_show_macro"],
+            rdb.showMacroText or false, y, function(v)
+                rdb.showMacroText = v
+                ApplyRender()
+            end)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_desat_unusable"],
+            rdb.desaturateUnusable or false, y, function(v)
+                rdb.desaturateUnusable = v
+                ApplyRender()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_icon_zoom"],
+            rdb.iconZoom or 0.07, 0, 0.20, 0.01, y, function(v)
+                rdb.iconZoom = v
+                ApplyRender()
+            end)
+        y = ny
+    end
+
+    -- =================================================================
+    -- STANCES / PET / STATE DECORATION (AB_Special)
+    -- =================================================================
+    local SP = TomoMod_ABSpecial
+    local sdb = SP and SP.GetSettings and SP.GetSettings() or nil
+    if sdb then
+        local function ApplySP()
+            if SP.ApplySettings then SP.ApplySettings() end
+        end
+        local acCol = sdb.activeColor   or { 1, 0.82, 0.25, 1 }
+        local eqCol = sdb.equippedColor or { 0.18, 0.85, 0.52, 1 }
+        local auCol = sdb.autoCastColor or { 0.95, 0.95, 0.32, 1 }
+
+        local _, ny = W.CreateSectionHeader(c, L["section_ab_special"], y)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_sp_active"],
+            sdb.activeEnabled ~= false, y, function(v)
+                sdb.activeEnabled = v
+                ApplySP()
+            end)
+        y = ny
+
+        local _, ny = W.CreateColorPicker(c, L["opt_ab_sp_active_color"],
+            { r = acCol[1] or 1, g = acCol[2] or 1, b = acCol[3] or 1 }, y, function(r, g, b)
+                acCol[1], acCol[2], acCol[3] = r, g, b
+                sdb.activeColor = acCol
+                ApplySP()
+            end)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_sp_equipped"],
+            sdb.equippedEnabled ~= false, y, function(v)
+                sdb.equippedEnabled = v
+                ApplySP()
+            end)
+        y = ny
+
+        local _, ny = W.CreateColorPicker(c, L["opt_ab_sp_equipped_color"],
+            { r = eqCol[1] or 1, g = eqCol[2] or 1, b = eqCol[3] or 1 }, y, function(r, g, b)
+                eqCol[1], eqCol[2], eqCol[3] = r, g, b
+                sdb.equippedColor = eqCol
+                ApplySP()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_sp_thickness"],
+            sdb.accentThickness or 2, 1, 6, 1, y, function(v)
+                sdb.accentThickness = v
+                ApplySP()
+            end)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_sp_autocast"],
+            sdb.autoCastShine ~= false, y, function(v)
+                sdb.autoCastShine = v
+                ApplySP()
+            end)
+        y = ny
+
+        local _, ny = W.CreateColorPicker(c, L["opt_ab_sp_autocast_color"],
+            { r = auCol[1] or 1, g = auCol[2] or 1, b = auCol[3] or 1 }, y, function(r, g, b)
+                auCol[1], auCol[2], auCol[3] = r, g, b
+                sdb.autoCastColor = auCol
+                ApplySP()
+            end)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_sp_pet_autohide"],
+            sdb.petAutoHide or false, y, function(v)
+                sdb.petAutoHide = v
+                if SP.RefreshPetVisibility then SP.RefreshPetVisibility() end
+            end)
+        y = ny
+
+        local _, ny = W.CreateInfoText(c, L["info_ab_sp_pet_autohide"], y)
+        y = ny
+    end
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================================================
+-- TAB 3 -- GLOW (procs, rotation hint)
+-- =====================================================================
+local function BuildGlowTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    -- =================================================================
+    -- GLOW (AB_Glow): procs + rotation hint
+    -- =================================================================
+    local GLOW = TomoMod_ABGlow
+    local gdb = GLOW and GLOW.GetSettings and GLOW.GetSettings() or nil
+    if gdb then
+        local function ApplyGlow()
+            if GLOW.ApplySettings then GLOW.ApplySettings() end
+        end
+        local pc = gdb.procColor   or { 0.95, 0.95, 0.32, 1 }
+        local ac = gdb.assistColor or { 0.18, 0.85, 0.52, 1 }
+
+        local _, ny = W.CreateSectionHeader(c, L["section_ab_glow"], y)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_glow_proc"],
+            gdb.procEnabled ~= false, y, function(v)
+                gdb.procEnabled = v
+                ApplyGlow()
+            end)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_ab_glow_proc_type"], GLOW_TYPE_LIST,
+            gdb.procType or "Pixel Glow", y, function(v)
+                gdb.procType = v
+                ApplyGlow()
+            end)
+        y = ny
+
+        local _, ny = W.CreateColorPicker(c, L["opt_ab_glow_proc_color"],
+            { r = pc[1] or 1, g = pc[2] or 1, b = pc[3] or 1 }, y, function(r, g, b)
+                pc[1], pc[2], pc[3] = r, g, b
+                gdb.procColor = pc
+                ApplyGlow()
+            end)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_glow_assist"],
+            gdb.assistEnabled or false, y, function(v)
+                gdb.assistEnabled = v
+                ApplyGlow()
+                if GLOW.UpdateAssistTicker then GLOW.UpdateAssistTicker() end
+            end)
+        y = ny
+
+        local _, ny = W.CreateInfoText(c, L["info_ab_glow_assist"], y)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_ab_glow_assist_type"], GLOW_TYPE_LIST,
+            gdb.assistType or "Proc Glow", y, function(v)
+                gdb.assistType = v
+                ApplyGlow()
+            end)
+        y = ny
+
+        local _, ny = W.CreateColorPicker(c, L["opt_ab_glow_assist_color"],
+            { r = ac[1] or 1, g = ac[2] or 1, b = ac[3] or 1 }, y, function(r, g, b)
+                ac[1], ac[2], ac[3] = r, g, b
+                gdb.assistColor = ac
+                ApplyGlow()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_glow_lines"],
+            gdb.pixelLines or 8, 2, 20, 1, y, function(v)
+                gdb.pixelLines = v
+                ApplyGlow()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_glow_thickness"],
+            gdb.pixelThickness or 2, 1, 6, 1, y, function(v)
+                gdb.pixelThickness = v
+                ApplyGlow()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_glow_freq"],
+            gdb.pixelFrequency or 0.25, 0.05, 1, 0.05, y, function(v)
+                gdb.pixelFrequency = v
+                gdb.autoFrequency = v
+                gdb.buttonFrequency = v
+                ApplyGlow()
+            end)
+        y = ny
+    end
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================================================
+-- TAB 4 -- HOTKEYS (keybind text, binding mode)
+-- =====================================================================
+local function BuildHotkeyTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    -- =================================================================
+    -- HOTKEYS (AB_Hotkey)
+    -- =================================================================
+    local HK = TomoMod_ABHotkey
+    local hdb = HK and HK.GetSettings and HK.GetSettings() or nil
+    if hdb then
+        local function ApplyHK()
+            if HK.ApplySettings then HK.ApplySettings() end
+        end
+        local hc = hdb.color or { 1, 1, 1, 1 }
+
+        local _, ny = W.CreateSectionHeader(c, L["section_ab_hotkey"], y)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_hk_enable"],
+            hdb.enabled ~= false, y, function(v)
+                hdb.enabled = v
+                ApplyHK()
+            end)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_hk_abbrev"],
+            hdb.abbreviate ~= false, y, function(v)
+                hdb.abbreviate = v
+                ApplyHK()
+            end)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_ab_hk_hide_empty"],
+            hdb.hideEmpty ~= false, y, function(v)
+                hdb.hideEmpty = v
+                ApplyHK()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_hk_size"],
+            hdb.fontSize or 12, 6, 24, 1, y, function(v)
+                hdb.fontSize = v
+                ApplyHK()
+            end)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_ab_hk_anchor"], HK_ANCHOR_LIST,
+            hdb.anchor or "TOPRIGHT", y, function(v)
+                hdb.anchor = v
+                ApplyHK()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_hk_offx"],
+            hdb.offsetX or -2, -20, 20, 1, y, function(v)
+                hdb.offsetX = v
+                ApplyHK()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_ab_hk_offy"],
+            hdb.offsetY or -2, -20, 20, 1, y, function(v)
+                hdb.offsetY = v
+                ApplyHK()
+            end)
+        y = ny
+
+        local _, ny = W.CreateColorPicker(c, L["opt_ab_hk_color"],
+            { r = hc[1] or 1, g = hc[2] or 1, b = hc[3] or 1 }, y, function(r, g, b)
+                hc[1], hc[2], hc[3] = r, g, b
+                hdb.color = hc
+                ApplyHK()
+            end)
+        y = ny
+
+        local _, ny = W.CreateButton(c, L["btn_ab_hk_bind"], 260, y, function()
+            if HK.ToggleBindMode then HK.ToggleBindMode() end
+        end)
+        y = ny
+
+        local _, ny = W.CreateInfoText(c, L["info_ab_hk_bind"], y)
+        y = ny
+
+        -- Only offered when another addon in the profile provides the library.
+        local KBM = TomoMod_ABKeyBound
+        if KBM and KBM.IsAvailable and KBM.IsAvailable() then
+            local _, ny = W.CreateButton(c, L["btn_ab_kb_lib"], 260, y, function()
+                if KBM.Toggle then KBM.Toggle() end
+            end)
+            y = ny
+
+            local _, ny = W.CreateInfoText(c, L["info_ab_kb_lib"], y)
+            y = ny
+        end
+    end
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================================================
+-- TAB 5 -- BAR MANAGEMENT (collapsible per-bar sections)
 -- =====================================================================
 
 -- Helper: get localized bar display name
@@ -163,6 +573,17 @@ local function BuildBarContent(contentFrame, id, barDB)
     cy = cny
 
     -- Orientation dropdown
+    local AB_ = TomoMod_ActionBars
+    if AB_ and AB_.OWN_BUTTON_ELIGIBLE and AB_.OWN_BUTTON_ELIGIBLE[id] then
+        local _, cny = W.CreateCheckbox(contentFrame, L["opt_bar_own_buttons"],
+            barDB.useOwnButtons == true, cy, function(v)
+                SetBarVal(id, "useOwnButtons", v)
+            end)
+        cy = cny
+        local _, cny = W.CreateInfoText(contentFrame, L["info_bar_own_buttons"], cy)
+        cy = cny
+    end
+
     local _, cny = W.CreateDropdown(contentFrame, L["opt_bar_orientation"], ORIENTATION_LIST,
         barDB.orientation or "horizontal", cy, function(v)
             SetBarVal(id, "orientation", v)
@@ -489,7 +910,10 @@ end
 -- =====================================================================
 function TomoMod_ConfigPanel_ActionBars(parent)
     return W.CreateTabPanel(parent, {
-        { key = "skin",  label = L["tab_abs_skin"], builder = BuildSkinTab },
-        { key = "bars",  label = L["tab_abs_bars"], builder = BuildManagementTab },
+        { key = "skin",    label = L["tab_abs_skin"],    builder = BuildSkinTab },
+        { key = "buttons", label = L["tab_abs_buttons"], builder = BuildButtonsTab },
+        { key = "glow",    label = L["tab_abs_glow"],    builder = BuildGlowTab },
+        { key = "hotkeys", label = L["tab_abs_hotkeys"], builder = BuildHotkeyTab },
+        { key = "bars",    label = L["tab_abs_bars"],    builder = BuildManagementTab },
     })
 end

@@ -557,6 +557,79 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_ab_system_enable"]            = "Enable TomoMod Action Bar system (requires reload)",
     ["opt_ab_system_reload"]            = "Disabling this fully restores Blizzard action bars after /reload.",
     ["section_ab_skin"]                 = "Visual Skin",
+
+    -- ActionBars: LibKeyBound integration (Lot A9)
+    ["btn_ab_kb_lib"]                       = "Binding mode (LibKeyBound)",
+    ["info_ab_kb_lib"]                      = "Shared binding mode, detected from another addon. Binds TomoMod's bars and that addon's in the same pass.",
+
+    -- ActionBars: keybinding command labels (Lot A8)
+    ["binding_category"]                    = "TomoMod Action Bars",
+    ["binding_bar_header"]                  = "TomoMod Bar %d",
+    ["binding_button"]                      = "Bar %d Button %d",
+
+    -- ActionBars: config tab labels (Lot A7)
+    ["tab_abs_buttons"]                     = "Buttons",
+    ["tab_abs_glow"]                        = "Glow",
+    ["tab_abs_hotkeys"]                     = "Hotkeys",
+
+    -- ActionBars: TomoMod-owned buttons (Lot A6)
+    ["opt_bar_own_buttons"]                 = "TomoMod buttons (experimental)",
+    ["info_bar_own_buttons"]                = "Replaces Blizzard's buttons with TomoMod's own on this bar. Requires /reload. Flyouts (portals, traps, flasks) and the Assisted Highlight are not supported yet.",
+
+    -- ActionBars: special bars (stances, pet, state decoration)
+    ["section_ab_special"]                  = "Stances, pet & states",
+    ["opt_ab_sp_active"]                    = "Highlight the active action",
+    ["opt_ab_sp_active_color"]              = "Active colour",
+    ["opt_ab_sp_equipped"]                  = "Highlight equipped items",
+    ["opt_ab_sp_equipped_color"]            = "Equipped colour",
+    ["opt_ab_sp_thickness"]                 = "Highlight thickness",
+    ["opt_ab_sp_autocast"]                  = "Pet autocast shine",
+    ["opt_ab_sp_autocast_color"]            = "Autocast colour",
+    ["opt_ab_sp_pet_autohide"]              = "Hide the pet bar without a pet",
+    ["info_ab_sp_pet_autohide"]             = "Also hides it while you have no pet at all. Stances have no equivalent condition and are left to Blizzard.",
+
+    -- ActionBars: hotkey layer (keybind text, binding mode)
+    ["section_ab_hotkey"]                   = "Hotkeys",
+    ["opt_ab_hk_enable"]                    = "Show hotkeys",
+    ["opt_ab_hk_abbrev"]                    = "Abbreviate",
+    ["opt_ab_hk_size"]                      = "Font size",
+    ["opt_ab_hk_anchor"]                    = "Position",
+    ["opt_ab_hk_offx"]                      = "Horizontal offset",
+    ["opt_ab_hk_offy"]                      = "Vertical offset",
+    ["opt_ab_hk_color"]                     = "Text colour",
+    ["opt_ab_hk_hide_empty"]                = "Hide on empty slots",
+    ["btn_ab_hk_bind"]                      = "Binding mode",
+    ["info_ab_hk_bind"]                     = "Assign keys directly on the bars. Not available in combat.",
+    ["hotkey_bind_enter"]                   = "Binding mode: hover a button and press a key. Right-click or Escape clears it.",
+    ["hotkey_bind_exit"]                    = "Binding mode closed, bindings saved.",
+    ["hotkey_combat_blocked"]               = "Binding mode is not available in combat.",
+
+    -- ActionBars: glow layer (procs, rotation hint)
+    ["section_ab_glow"]                     = "Glow (procs & rotation)",
+    ["opt_ab_glow_proc"]                    = "Glow on proc",
+    ["opt_ab_glow_proc_type"]               = "Proc glow style",
+    ["opt_ab_glow_proc_color"]              = "Proc glow colour",
+    ["opt_ab_glow_assist"]                  = "Glow on rotation hint",
+    ["opt_ab_glow_assist_type"]             = "Rotation glow style",
+    ["opt_ab_glow_assist_color"]            = "Rotation glow colour",
+    ["info_ab_glow_assist"]                 = "Follows Blizzard's Assisted Highlight recommendation. Requires the feature to be available on your character.",
+    ["opt_ab_glow_lines"]                   = "Pixel: number of lines",
+    ["opt_ab_glow_freq"]                    = "Animation speed",
+    ["opt_ab_glow_thickness"]               = "Pixel: line thickness",
+
+    -- ActionBars: render layer (icons, cooldowns, texts)
+    ["section_ab_icons"]                    = "Icons & Cooldowns",
+    ["opt_ab_cd_backend"]                   = "Cooldown source",
+    ["info_ab_cd_managed"]                  = "Managed: TomoMod draws the cooldown itself. Required by future TomoMod buttons; Blizzard's own source stays safer for now.",
+    ["opt_ab_cd_numbers"]                   = "Cooldown numbers",
+    ["opt_ab_cd_size"]                      = "Cooldown number size",
+    ["opt_ab_swipe_color"]                  = "Cooldown swipe colour",
+    ["opt_ab_swipe_alpha"]                  = "Cooldown swipe opacity",
+    ["opt_ab_show_count"]                   = "Show charges / stacks",
+    ["opt_ab_count_size"]                   = "Charge text size",
+    ["opt_ab_show_macro"]                   = "Show macro name",
+    ["opt_ab_desat_unusable"]               = "Desaturate when unusable",
+    ["opt_ab_icon_zoom"]                    = "Icon crop",
     ["cat_action_bars"]                 = "Action Bars",
     ["opt_abs_enable"]                  = "Enable Action Bar Skin",
     ["opt_abs_class_color"]             = "Use class color for borders",
@@ -3170,6 +3243,19 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_diag_settle"] = "Diagnostics: the scale the game applies for itself while you log in was recorded in every report as a mid-session rescale. The display capture now waits four seconds for the client to settle before taking a reading, so the only scale entry left in a report is one that actually needs explaining.",
     ["wn_333_diag_mode"] = "Diagnostics: when the report cannot work out your display mode it now prints the raw values the game gave it instead of a bare question mark — those setting names change between expansions, and a '?' on its own could not be diagnosed without asking you for more. Windowed-fullscreen and maximized windows are recognised in more cases, and addon versions no longer read 'vv1.2.3'.",
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
+
+    -- =====================
+    -- 3.5.1 — What's New
+    -- =====================
+    ["wn_351_engine"] = "Internal — The action bars used to be repainted five times a second, every button, whether or not anything had changed. That was the shape a skin ends up with when it grows into a feature set without ever being given somewhere to keep track of things. There is now one piece that owns the question — what state is this button in — and it is told by the game when something happens instead of checking on a timer, and it passes the news on only when a value has actually changed. Range is the one exception, because the game has no way of announcing it; that check still runs on a timer, and only while you have a target. It also never assumes the button underneath belongs to Blizzard, which is what made everything else in this release possible.",
+    ["wn_351_render"] = "New — Icons and cooldowns became yours to set. The cooldown numbers and their size, the colour and opacity of the sweep, the edge and the shine, the charge and stack text and its size, the macro name, greying out an action you cannot use, and how much the icon is cropped — down to not cropped at all. There is also a choice of who draws the cooldown: Blizzard, which keeps its own sweep and simply restyles it, or TomoMod, which draws it. Blizzard is the default and stays the safer of the two for now; TomoMod's is what the new buttons further down need, and it is there so it can be proven before anything relies on it.",
+    ["wn_351_glow"] = "New — Two glows on the bars, and they can both be lit at once. One is the classic proc highlight; the other follows the rotation suggestion the game itself makes. Each has its own style — Pixel, Autocast, Button, Proc or Blizzard — its own colour, and for the pixel one the number of lines, their thickness and the animation speed. They coexist rather than taking turns, because each keeps its own hold on the button. Matching is done on the spell, so a macro that ends up casting something glows exactly as the spell would on its own, and a talent that renames a spell is followed too. The rotation glow is off by default and needs the feature to exist on your character.",
+    ["wn_351_hotkeys"] = "New — The keybind text on the buttons is now yours: show or hide it, its size, its colour, which corner it sits in, how far it is nudged, whether it is shortened, and whether it appears at all on an empty slot. It is worked out from the binding itself rather than copied off Blizzard's label, which matters because a button TomoMod makes has no such label to copy — Blizzard's is kept as a fallback so an unexpected change in a future patch means slightly worse text rather than none. There is also a binding mode: turn it on, hover a button, press a key. Right-click or Escape clears one. It will not open in combat.",
+    ["wn_351_special"] = "New — Things the bars knew and never showed you. On a skinned bar you could not see which stance you were in, which weapon enchant was equipped, or which pet ability was set to cast itself: the skin removes Blizzard's markers and washes out its highlight. There is now a ring for the active action and for equipped items, each with its own colour and a shared thickness, on one ring with an order of precedence so two of them never pile up into a mess. Pet autocast gets its own shine that sits alongside the two glows above. The pet bar can hide itself when you have no pet. Stances have no equivalent — there is no way to ask the game whether a class has forms at all, and Blizzard's own stance buttons already vanish when there is nothing to show.",
+    ["wn_351_ownbuttons"] = "New — TomoMod can now make its own action buttons instead of borrowing Blizzard's. It is off everywhere, switched on one bar at a time, and undone by unticking it and reloading. Everything above works on them unchanged. Please read the limits before turning it on, because they are real: flyouts do not open on a converted bar — mage portals, hunter traps, summoned flasks. Vehicle and override bars still follow the page change, but the special exit button and its artwork do not come with it. The game's rotation highlight is not drawn on them; use the rotation glow above instead. Pet and stance bars are left on Blizzard's buttons entirely. It is marked experimental because it is.",
+    ["wn_351_bindings"] = "New — The new buttons come with 106 bindings already declared, so they show up in the game's own keybinding window under a TomoMod heading with a section per bar. They are bound through a dedicated click rather than a plain left click, which is what makes casting on key press behave correctly — this is a known corner, and Bartender4 moved the same way years ago for the same reason.",
+    ["wn_351_keybound"] = "New — TomoMod's bars join the shared binding mode that Dominos, Bartender4 and Bagnon use, so one pass binds your bars and theirs together instead of every addon insisting on its own. The library that arbitrates this is now included, so the shared mode is there whether or not you run one of those addons. One detail worth recording for whoever updates it next: it must be taken from a packaged release, never from its GitHub mirror, which computes its own version from a marker that only ever gets filled in inside a source checkout — copied anywhere else it fails as soon as it loads.",
+    ["wn_351_tabs"] = "Change — The Action Bars options page is five tabs now instead of two: Skin, Buttons, Glow, Hotkeys and Bars. Everything new used to land in one long column on the skin tab, and three of this release's five layers would have gone there too.",
 
     -- =====================
     -- 3.4.6 — What's New

@@ -7,6 +7,17 @@
          mais truthy -> "attempt to call a nil value" chez ses appelants.
          Doit rester chargee avant LibSharedMedia. -->
     <Script file="Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua"/>
+    <!-- LibKeyBound-1.0 (Rev 126, MINOR 100004) : mode d'assignation de
+         touches partage entre addons. Depend de LibStub + CallbackHandler-1.0,
+         doit donc rester apres eux.
+         Copie embarquee telle quelle depuis un build packagee (Dominos 11.3.3),
+         fins de ligne et BOM d'origine preserves par fichier.
+         POUR METTRE A JOUR : reprendre un zip packagee (CurseForge ou une
+         release Dominos / Bartender4). NE PAS prendre le depot GitHub
+         Tuller/LibKeyBound-1.0 : c'est un miroir SVN dont le MINOR vaut
+         tonumber(("$Revision$"):match("%d+")), ce qui leve une erreur
+         d'arithmetique hors checkout SVN. -->
+    <Include file="Libs\LibKeyBound-1.0\lib.xml"/>
     <Script file='Libs\LibDispel\LibDispel.lua'/> <!-- keep over oUF -->
     <Include file="Libs\oUF\oUF_Mainline.xml"/>
     <Script file="Libs\LibSharedMedia-3.0\LibSharedMedia-3.0.lua"/>

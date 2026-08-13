@@ -57,6 +57,7 @@ local BAR_DEFAULTS = {
     clickThrough     = false,
     showEmptyButtons = false,
     showCountText    = true,
+    useOwnButtons    = false,
     showHotkeyText   = true,
     hotkeyFontSize   = 14,
 }
@@ -282,9 +283,57 @@ local CHILD_UPDATE_OFFSET = [[
     end
 ]]
 
+-- Exposed so AB_Button can give TomoMod-owned buttons the exact same paging
+-- snippet Blizzard's reparented ones get. One definition, one behaviour.
+AB.CHILD_UPDATE_OFFSET = CHILD_UPDATE_OFFSET
+
+-- Only the eight standard action bars can be driven by TomoMod-owned
+-- buttons. Pet and stance use different secure types and stay on Blizzard's.
+local OWN_BUTTON_ELIGIBLE = {
+    bar1 = true, bar2 = true, bar3 = true, bar4 = true,
+    bar5 = true, bar6 = true, bar7 = true, bar8 = true,
+}
+
+local function UsesOwnButtons(id)
+    if not OWN_BUTTON_ELIGIBLE[id] then return false end
+    if not TomoMod_ABButton then return false end
+    local barDB = GetBarDB(id)
+    return barDB and barDB.useOwnButtons == true
+end
+
+AB.UsesOwnButtons      = UsesOwnButtons
+AB.OWN_BUTTON_ELIGIBLE = OWN_BUTTON_ELIGIBLE
+
 -- =====================================================================
 -- CONTAINER CREATION
 -- =====================================================================
+
+-- Base visibility gate plus the optional per-bar auto-hide, expressed as a
+-- SINGLE condition string. Registering a second state driver on the same
+-- frame would give two snippets competing to Show/Hide it, so options extend
+-- this string instead of adding a driver.
+local function BuildVisibilityCondition(id)
+    local base = "[overridebar][vehicleui][possessbar][petbattle] hide; "
+    if id == "pet" then
+        local db = GetDB()
+        local sp = db and db.special
+        if sp and sp.petAutoHide then
+            return base .. "[pet] show; hide"
+        end
+    end
+    return base .. "show"
+end
+
+function AB.RefreshVisibilityDriver(id)
+    local container = containers[id]
+    if not container then return end
+    if InCombatLockdown() then
+        -- RegisterStateDriver writes to SecureStateDriverManager, blocked in combat.
+        QueueProtectedOp("visdriver_" .. id, function() AB.RefreshVisibilityDriver(id) end)
+        return
+    end
+    RegisterStateDriver(container, "tomooverride", BuildVisibilityCondition(id))
+end
 
 local function CreateContainer(def)
     local id = def.id
@@ -303,8 +352,7 @@ local function CreateContainer(def)
             self:Show()
         end
     ]])
-    RegisterStateDriver(container, "tomooverride",
-        "[overridebar][vehicleui][possessbar][petbattle] hide; show")
+    RegisterStateDriver(container, "tomooverride", BuildVisibilityCondition(id))
 
     if def.paging then
         SetupPaging(container)
@@ -383,6 +431,22 @@ local function ReparentButtons(def, container)
         QueueProtectedOp("reparent_" .. def.id, function() ReparentButtons(def, container) end)
         return
     end
+
+    -- TomoMod-owned buttons: Blizzard's stay where they are, inside their
+    -- already-hidden Blizzard frame. Nothing is reparented.
+    if UsesOwnButtons(def.id) then
+        local list = TomoMod_ABButton.BuildBar(def, container)
+        for i = 1, #list do list[i]._tomoBarId = def.id end
+        barButtons[def.id] = list
+        return
+    end
+
+    -- The option was turned off since the last build: drop our buttons before
+    -- handing the bar back to Blizzard's.
+    if TomoMod_ABButton and TomoMod_ABButton.IsOwned(def.id) then
+        TomoMod_ABButton.ReleaseBar(def.id)
+    end
+
     local buttons = {}
     for i = 1, def.count do
         local btn = _G[def.prefix .. i]
@@ -482,17 +546,9 @@ local function LayoutBar(id)
             btn:SetSize(btnSize, btnSize)
             btn:SetPoint(anchor, container, anchor, x, y)
 
-            local hotkey = btn.HotKey or _G[def.prefix .. i .. "HotKey"]
-            if hotkey then
-                hotkey:SetShown(barDB.showHotkeyText ~= false)
-                -- Taille de police des raccourcis : on garde la police et les
-                -- contours d'origine, on ne change que la taille.
-                local fsize = barDB.hotkeyFontSize or 14
-                local face, _, fl = hotkey:GetFont()
-                if face then hotkey:SetFont(face, fsize, fl) end
-            end
-            local count = btn.Count or _G[def.prefix .. i .. "Count"]
-            if count then count:SetShown(barDB.showCountText ~= false) end
+            -- Hotkey text is owned by AB_Hotkey (reads barDB.showHotkeyText
+            -- and barDB.hotkeyFontSize).
+            -- Count text is owned by AB_Render (reads barDB.showCountText).
         end
     end
 
@@ -1289,8 +1345,22 @@ end
 
 function AB.RefreshBar(id)
     AB.ApplyBar(id)
+    -- The state engine must see the (possibly new) button set before the
+    -- skin repaints, so that SkinButton can read a fresh state.
+    if TomoMod_ABEngine and TomoMod_ABEngine.ScanBar then
+        TomoMod_ABEngine.ScanBar(id)
+    end
     if TomoMod_ActionBarSkin and TomoMod_ActionBarSkin.ReskinBar then
         TomoMod_ActionBarSkin.ReskinBar(id)
+    end
+    if TomoMod_ABRender and TomoMod_ABRender.RenderAll then
+        TomoMod_ABRender.RenderAll("all")
+    end
+    if TomoMod_ABHotkey and TomoMod_ABHotkey.RenderAll then
+        TomoMod_ABHotkey.RenderAll()
+    end
+    if TomoMod_ABSpecial and TomoMod_ABSpecial.ApplyAll then
+        TomoMod_ABSpecial.ApplyAll()
     end
 end
 

@@ -502,6 +502,79 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_ab_system_enable"]            = "Enable TomoMod Action Bar system (requires reload)",
     ["opt_ab_system_reload"]            = "Disabling this fully restores Blizzard action bars after /reload.",
     ["section_ab_skin"]                 = "Visual Skin",
+
+    -- ActionBars: LibKeyBound integration (Lot A9)
+    ["btn_ab_kb_lib"]                       = "Belegungsmodus (LibKeyBound)",
+    ["info_ab_kb_lib"]                      = "Gemeinsamer Belegungsmodus, von einem anderen Addon bereitgestellt. Belegt TomoMods Leisten und die des anderen Addons im selben Durchgang.",
+
+    -- ActionBars: keybinding command labels (Lot A8)
+    ["binding_category"]                    = "TomoMod-Aktionsleisten",
+    ["binding_bar_header"]                  = "TomoMod-Leiste %d",
+    ["binding_button"]                      = "Leiste %d Schaltfläche %d",
+
+    -- ActionBars: config tab labels (Lot A7)
+    ["tab_abs_buttons"]                     = "Schaltflächen",
+    ["tab_abs_glow"]                        = "Leuchten",
+    ["tab_abs_hotkeys"]                     = "Tasten",
+
+    -- ActionBars: TomoMod-owned buttons (Lot A6)
+    ["opt_bar_own_buttons"]                 = "TomoMod-Schaltflächen (experimentell)",
+    ["info_bar_own_buttons"]                = "Ersetzt Blizzards Schaltflächen auf dieser Leiste durch TomoMods eigene. Erfordert /reload. Flyouts (Portale, Fallen, Phiolen) und die assistierte Hervorhebung werden noch nicht unterstützt.",
+
+    -- ActionBars: special bars (stances, pet, state decoration)
+    ["section_ab_special"]                  = "Haltungen, Begleiter & Zustände",
+    ["opt_ab_sp_active"]                    = "Aktive Aktion hervorheben",
+    ["opt_ab_sp_active_color"]              = "Farbe für aktiv",
+    ["opt_ab_sp_equipped"]                  = "Ausgerüstete Gegenstände hervorheben",
+    ["opt_ab_sp_equipped_color"]            = "Farbe für ausgerüstet",
+    ["opt_ab_sp_thickness"]                 = "Stärke der Hervorhebung",
+    ["opt_ab_sp_autocast"]                  = "Autozauber-Schimmern des Begleiters",
+    ["opt_ab_sp_autocast_color"]            = "Farbe des Autozaubers",
+    ["opt_ab_sp_pet_autohide"]              = "Begleiterleiste ohne Begleiter ausblenden",
+    ["info_ab_sp_pet_autohide"]             = "Blendet sie aus, solange kein Begleiter da ist. Für Haltungen gibt es keine entsprechende Bedingung; sie bleiben bei Blizzard.",
+
+    -- ActionBars: hotkey layer (keybind text, binding mode)
+    ["section_ab_hotkey"]                   = "Tastenbelegung",
+    ["opt_ab_hk_enable"]                    = "Tastenbelegung anzeigen",
+    ["opt_ab_hk_abbrev"]                    = "Abkürzen",
+    ["opt_ab_hk_size"]                      = "Schriftgröße",
+    ["opt_ab_hk_anchor"]                    = "Position",
+    ["opt_ab_hk_offx"]                      = "Horizontaler Versatz",
+    ["opt_ab_hk_offy"]                      = "Vertikaler Versatz",
+    ["opt_ab_hk_color"]                     = "Textfarbe",
+    ["opt_ab_hk_hide_empty"]                = "Bei leeren Feldern ausblenden",
+    ["btn_ab_hk_bind"]                      = "Belegungsmodus",
+    ["info_ab_hk_bind"]                     = "Tasten direkt auf den Leisten zuweisen. Im Kampf nicht verfügbar.",
+    ["hotkey_bind_enter"]                   = "Belegungsmodus: Schaltfläche überfahren und Taste drücken. Rechtsklick oder Esc löscht.",
+    ["hotkey_bind_exit"]                    = "Belegungsmodus beendet, Belegungen gespeichert.",
+    ["hotkey_combat_blocked"]               = "Der Belegungsmodus ist im Kampf nicht verfügbar.",
+
+    -- ActionBars: glow layer (procs, rotation hint)
+    ["section_ab_glow"]                     = "Leuchten (Procs & Rotation)",
+    ["opt_ab_glow_proc"]                    = "Leuchten bei Proc",
+    ["opt_ab_glow_proc_type"]               = "Proc-Leuchtstil",
+    ["opt_ab_glow_proc_color"]              = "Proc-Leuchtfarbe",
+    ["opt_ab_glow_assist"]                  = "Leuchten bei Rotationshinweis",
+    ["opt_ab_glow_assist_type"]             = "Rotations-Leuchtstil",
+    ["opt_ab_glow_assist_color"]            = "Rotations-Leuchtfarbe",
+    ["info_ab_glow_assist"]                 = "Folgt Blizzards Assistierter Hervorhebung. Die Funktion muss auf dem Charakter verfügbar sein.",
+    ["opt_ab_glow_lines"]                   = "Pixel: Anzahl der Linien",
+    ["opt_ab_glow_freq"]                    = "Animationsgeschwindigkeit",
+    ["opt_ab_glow_thickness"]               = "Pixel: Linienstärke",
+
+    -- ActionBars: render layer (icons, cooldowns, texts)
+    ["section_ab_icons"]                    = "Symbole & Abklingzeiten",
+    ["opt_ab_cd_backend"]                   = "Abklingzeit-Quelle",
+    ["info_ab_cd_managed"]                  = "Verwaltet: TomoMod zeichnet die Abklingzeit selbst. Für künftige TomoMod-Schaltflächen nötig; Blizzards Quelle bleibt vorerst sicherer.",
+    ["opt_ab_cd_numbers"]                   = "Abklingzeit-Zahlen",
+    ["opt_ab_cd_size"]                      = "Größe der Zahlen",
+    ["opt_ab_swipe_color"]                  = "Farbe des Wischeffekts",
+    ["opt_ab_swipe_alpha"]                  = "Deckkraft des Wischeffekts",
+    ["opt_ab_show_count"]                   = "Aufladungen / Stapel anzeigen",
+    ["opt_ab_count_size"]                   = "Textgröße der Aufladungen",
+    ["opt_ab_show_macro"]                   = "Makronamen anzeigen",
+    ["opt_ab_desat_unusable"]               = "Entsättigen wenn unbenutzbar",
+    ["opt_ab_icon_zoom"]                    = "Symbolzuschnitt",
     ["cat_action_bars"]                 = "Aktionsleisten",
     ["opt_abs_enable"]                  = "Aktionsleisten-Skin aktivieren",
     ["opt_abs_class_color"]             = "Klassenfarbe für Ränder",
@@ -3123,6 +3196,19 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_settle"] = "Diagnose: Die Skalierung, die das Spiel während der Anmeldung selbst anwendet, wurde in jedem Bericht als Neuskalierung mitten in der Sitzung festgehalten. Die Anzeigeerfassung wartet nun vier Sekunden, bis sich der Client eingependelt hat, bevor sie misst — der einzige verbliebene Skalierungseintrag in einem Bericht ist damit einer, der tatsächlich erklärungsbedürftig ist.",
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
+
+    -- =====================
+    -- 3.5.1 — Was ist neu
+    -- =====================
+    ["wn_351_engine"] = "Intern — Die Aktionsleisten wurden fünfmal pro Sekunde komplett neu gezeichnet, jede Schaltfläche, ganz gleich ob sich etwas geändert hatte oder nicht. Das ist die Form, die eine Optik annimmt, wenn sie zu einem Funktionsumfang heranwächst, ohne je einen Ort bekommen zu haben, an dem sie sich etwas merken kann. Es gibt jetzt ein einziges Stück, dem die Frage gehört — in welchem Zustand ist diese Schaltfläche — und das Spiel sagt ihm Bescheid, wenn etwas passiert, statt dass es auf einem Zeitgeber nachsieht; weitergegeben wird nur, was sich tatsächlich geändert hat. Die Reichweite ist die Ausnahme, denn dafür hat das Spiel keine Meldung: Diese Prüfung läuft weiter auf einem Zeitgeber, und nur solange du ein Ziel hast. Außerdem nimmt es nie an, dass die Schaltfläche darunter Blizzard gehört — genau das hat alles Übrige in dieser Version erst möglich gemacht.",
+    ["wn_351_render"] = "Neu — Symbole und Abklingzeiten lassen sich jetzt einstellen. Die Zahlen der Abklingzeit und ihre Größe, Farbe und Deckkraft des Wischers, Kante und Aufblitzen, der Text für Aufladungen und Stapel samt Größe, der Makroname, das Ausgrauen einer nicht verwendbaren Aktion und der Beschnitt des Symbols — bis hin zu gar keinem Beschnitt. Dazu kommt die Wahl, wer die Abklingzeit zeichnet: Blizzard, das seinen eigenen Wischer behält und ihn lediglich umgestaltet, oder TomoMod, das ihn selbst zeichnet. Blizzard bleibt die Voreinstellung und vorerst die sicherere der beiden; die von TomoMod ist das, was die neuen Schaltflächen weiter unten brauchen, und sie ist da, damit sie sich bewähren kann, bevor irgendetwas auf sie angewiesen ist.",
+    ["wn_351_glow"] = "Neu — Zwei Leuchteffekte auf den Leisten, und beide können gleichzeitig an sein. Der eine ist die klassische Hervorhebung eines Procs, der andere folgt dem Rotationsvorschlag, den das Spiel selbst macht. Jeder hat seinen eigenen Stil — Pixel, Autocast, Schaltfläche, Proc oder Blizzard — seine eigene Farbe, und beim Pixel-Stil die Anzahl der Linien, ihre Stärke und die Animationsgeschwindigkeit. Sie bestehen nebeneinander, statt sich abzuwechseln, weil jeder seinen eigenen Griff auf die Schaltfläche behält. Zugeordnet wird über den Zauber, also leuchtet ein Makro, das am Ende etwas wirkt, genau so wie der Zauber allein, und einem Talent, das einen Zauber umbenennt, wird ebenfalls gefolgt. Der Rotationsleuchteffekt ist standardmäßig aus und setzt voraus, dass es die Funktion auf deinem Charakter gibt.",
+    ["wn_351_hotkeys"] = "Neu — Der Tastenbelegungstext auf den Schaltflächen gehört jetzt dir: anzeigen oder nicht, Größe, Farbe, in welcher Ecke er sitzt, wie weit er verschoben ist, ob er abgekürzt wird und ob er auf einem leeren Platz überhaupt erscheint. Er wird aus der Belegung selbst ermittelt statt von Blizzards Beschriftung abgeschrieben, und das ist wichtig, weil eine von TomoMod gebaute Schaltfläche gar keine solche Beschriftung hat — Blizzards wird als Rückfallebene behalten, damit eine unerwartete Änderung in einem künftigen Patch etwas schlechteren Text bedeutet und nicht gar keinen. Dazu ein Belegungsmodus: einschalten, eine Schaltfläche überfahren, eine Taste drücken. Rechtsklick oder Escape löscht eine. Im Kampf öffnet er sich nicht.",
+    ["wn_351_special"] = "Neu — Dinge, die die Leisten wussten und dir nie gezeigt haben. Auf einer gestalteten Leiste konntest du nicht sehen, in welcher Haltung du warst, welche Waffenverzauberung angelegt war oder welche Begleiterfähigkeit sich selbst wirken sollte: Die Optik entfernt Blizzards Markierungen und wäscht dessen Hervorhebung aus. Es gibt nun einen Ring für die aktive Aktion und für angelegte Gegenstände, jeder mit eigener Farbe und gemeinsamer Stärke, auf einem Ring mit einer Rangfolge, damit sich zwei Zustände nie zu einem Durcheinander stapeln. Das Autocast des Begleiters bekommt sein eigenes Funkeln, das neben den beiden Leuchteffekten oben besteht. Die Begleiterleiste kann sich ausblenden, wenn du keinen Begleiter hast. Für Haltungen gibt es kein Gegenstück — man kann das Spiel gar nicht fragen, ob eine Klasse überhaupt Formen hat, und Blizzards eigene Haltungsschaltflächen verschwinden bereits von selbst, wenn es nichts zu zeigen gibt.",
+    ["wn_351_ownbuttons"] = "Neu — TomoMod kann jetzt eigene Aktionsschaltflächen bauen, statt sich Blizzards zu leihen. Es ist überall aus, wird leistenweise eingeschaltet und lässt sich rückgängig machen, indem du das Häkchen entfernst und neu lädst. Alles Vorstehende funktioniert unverändert darauf. Lies bitte die Grenzen, bevor du es einschaltest, denn sie sind echt: Aufklappmenüs öffnen sich auf einer umgestellten Leiste nicht — Magierportale, Jägerfallen, beschworene Fläschchen. Fahrzeug- und Überschreibungsleisten folgen dem Seitenwechsel weiterhin, aber die besondere Ausstiegsschaltfläche und ihre Grafik kommen nicht mit. Die Rotationshervorhebung des Spiels wird darauf nicht gezeichnet; nimm stattdessen den Rotationsleuchteffekt von oben. Begleiter- und Haltungsleisten bleiben vollständig auf Blizzards Schaltflächen. Es ist als experimentell gekennzeichnet, weil es das ist.",
+    ["wn_351_bindings"] = "Neu — Die neuen Schaltflächen bringen 106 bereits deklarierte Belegungen mit, sie tauchen also im Tastenbelegungsfenster des Spiels auf, unter einer TomoMod-Überschrift mit einem Abschnitt pro Leiste. Sie werden über einen eigenen Klick gebunden statt über einen einfachen Linksklick, und genau das lässt das Wirken beim Tastendruck richtig funktionieren — eine bekannte Fallgrube, und Bartender4 ist vor Jahren aus demselben Grund denselben Schritt gegangen.",
+    ["wn_351_keybound"] = "Neu — TomoMods Leisten schließen sich dem gemeinsamen Belegungsmodus an, den Dominos, Bartender4 und Bagnon verwenden: Ein Durchgang belegt deine Leisten und ihre zusammen, statt dass jedes Addon auf seinem eigenen besteht. Die Bibliothek, die das regelt, liegt jetzt bei, der gemeinsame Modus ist also da, ob du eines dieser Addons benutzt oder nicht. Eine Einzelheit, die für die nächste Aktualisierung festgehalten gehört: Sie muss aus einer verpackten Veröffentlichung stammen, niemals aus ihrem GitHub-Spiegel, der seine eigene Version aus einer Markierung berechnet, die nur innerhalb einer Quell-Arbeitskopie überhaupt gefüllt wird — anderswohin kopiert scheitert er sofort beim Laden.",
+    ["wn_351_tabs"] = "Änderung — Die Optionsseite der Aktionsleisten hat jetzt fünf Reiter statt zwei: Optik, Schaltflächen, Leuchten, Tastenbelegung und Leisten. Jede Neuerung landete bisher in einer einzigen langen Spalte auf dem Optik-Reiter, und drei der fünf Schichten dieser Version wären ebenfalls dort gelandet.",
 
     -- =====================
     -- 3.4.6 — Was ist neu

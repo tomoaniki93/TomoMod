@@ -1,5 +1,70 @@
 ## ####################################
 
+## CHANGELOG 3.5.1 — The Action Bars Were Skinned By A Module That Repainted Every Button Five Times A Second Whether Or Not Anything Had Changed, Which Is The Shape You End Up With When A Skin Grows Into A Feature Set Without Ever Being Given A Place To Keep State, So The Whole Row Is Rebuilt Around One Engine That Owns The Question "What State Is This Button In" And Answers It From Events Rather Than From A Ticker, Diffs Every Value Before Telling Anyone, And Reads The Game Through An Adapter So Nothing Downstream Knows Or Cares Whether The Frame Underneath Belongs To Blizzard Or To TomoMod — And Then Five Layers Are Built On Top Of It That Could Not Have Existed Before, Icons And Cooldowns With A Choice Of Who Draws The Sweep, Proc And Rotation Glows That Coexist On The Same Button Because Each Owns Its Own Key, Hotkey Text Resolved From The Binding Itself Instead Of Scraped Off Blizzard's Fontstring So It Still Works On A Button Blizzard Never Made, The Stance And Equipped And Autocast States The Engine Had Tracked Since The First Day And Nothing Had Ever Drawn, And Finally Real Secure Buttons Of TomoMod's Own Behind A Per-Bar Opt-In That Is Reversible With A Reload, With A Hundred And Six Click Bindings Shipped To Make Them Bindable And A Binding Mode To Assign Them On The Bars, Which Joins Any Other Addon's Shared Binding Mode When One Is Present Because The Library That Arbitrates It Is Now Embedded Rather Than Hoped For
+
+#### Action Bars — One Engine Instead Of A Ticker
+
+- **Internal** — `Modules/QOL/ActionBars/AB_Engine.lua` is new, and it is the single source of truth for what state an action button is in: registration, adapters, event wiring, diffing and dispatch. Everything else in this release is a consumer of it. Building it first is what made the rest of the release small.
+- **Change** — The global 0.2s `OnUpdate` in `ActionBarSkin.lua` is gone. It pushed `SetVertexColor` onto every button five times a second regardless of whether anything had changed. State now arrives on events, and consumers are called only when a value actually differs from the one before it.
+- **Note** — Range is the one thing that still needs a ticker, because no event exists for it. That ticker is gated on actually having a target, so it costs nothing while you are not fighting anything.
+- **Internal** — The engine never assumes the frame underneath is a Blizzard button. An adapter turns a frame into raw state, which is why the TomoMod-owned buttons further down this release register through the *same* `action` adapter and inherit every layer built on top without a line of special-casing.
+- **Note** — Every game read goes through `pcall` and every boolean is resolved inside the protected call, so a value the client withholds degrades to *unknown* rather than throwing. No arithmetic is ever performed on a value that came from the game. This is the same discipline 3.4.5 and 3.4.6 established elsewhere in the addon, applied here from the start rather than retrofitted.
+
+#### Icons And Cooldowns — Choosing Who Draws The Sweep
+
+- **New** — `AB_Render.lua` owns the *content* of a button: icon texture and crop, cooldown, charge and stack count, macro name. The chrome — background, border, insets — stays with the skin, and the state stays with the engine. It never reads state itself; it only reacts to what the engine hands it.
+- **New** — A cooldown source setting. **Blizzard** adopts the Cooldown widget the button already has and merely restyles it, so Blizzard keeps feeding it and nothing can break. **TomoMod** draws it instead, through the same secret-safe duration-object path CooldownForge uses. Blizzard is the default and stays the safer answer while the bars still ride on Blizzard buttons; TomoMod's is what the owned buttons need, and it ships opt-in so it can be proven before anything depends on it.
+- **New** — Cooldown numbers with their own font size, swipe colour and opacity, edge and bling toggles, charge and stack text with its own size, optional macro name, desaturation on unusable actions, and an icon crop slider that goes down to no crop at all.
+- **Note** — Durations and charge counts are withheld values in Midnight. They are never compared and never used in arithmetic — they go straight into a C-side sink, `SetCooldownFromDurationObject` for spells and `SetText` for counts. Whether a cooldown is actually running is settled by feeding the object and then reading the widget's own `IsShown` back, which is the *detect-don't-test* pattern 3.4.6 arrived at.
+
+#### Glow — Two Sources That Can Both Be On At Once
+
+- **New** — `AB_Glow.lua`, with two independent glow sources: the classic proc highlight, and the Midnight rotation recommendation from `C_AssistedCombat.GetNextCastSpell`. Each has its own style, colour and LibCustomGlow key, which is what lets both sit on the same button without one clearing the other.
+- **New** — Five styles for each — Pixel, Autocast, Button, Proc and Blizzard — with line count, thickness and animation speed for the pixel variant.
+- **Change** — Matching runs on spell ID through the engine's cached content, so a macro that resolves to a spell glows exactly as the bare spell does, and a talent-morphed spell is matched through its override ID too.
+- **Note** — The rotation glow is off by default and needs the Assisted Highlight to be available on your character. Blizzard draws that highlight on its own buttons; TomoMod-owned buttons do not get it for free, which is the reason this exists.
+- **Internal** — The call conventions and the Blizzard-overlay suppression are deliberately identical to `CDMProcGlow.lua`. Two copies is the honest state today; they should collapse into one shared helper when ForgeLib lands, and writing them identically is what will make that a deletion rather than a merge.
+
+#### Hotkeys — Resolved From The Binding, Not Scraped Off A Fontstring
+
+- **New** — `AB_Hotkey.lua` owns the keybind text on every button: show or hide, font size, colour, one of seven anchor positions, offsets, abbreviation, and hiding the text on empty slots.
+- **Change** — The binding is resolved through `GetBindingKey` on the canonical binding name rather than read off Blizzard's `HotKey` fontstring. A TomoMod-owned button has no such fontstring to read, so going to the source is what makes one code path serve both. Blizzard's fontstring is kept as a fallback, so an unexpected binding name in a future patch degrades instead of showing nothing.
+- **New** — A binding mode: hover a button, press a key. Right-click or Escape clears the slot, and it refuses to open in combat.
+- **Internal** — Bind-on-hover never touches the buttons' own scripts. It builds its own overlay frames on top and destroys them on exit, so no `OnEnter`/`OnLeave` handler is ever installed on a secure button.
+
+#### Stances, Pet And States — Things The Engine Knew And Nothing Drew
+
+- **New** — `AB_Special.lua`. The engine has tracked *active*, *equipped*, *autoCastAllowed* and *autoCastEnabled* since the first commit of this release, and nothing ever drew any of them: the skin kills Blizzard's equipped border and flattens the checked texture to a barely visible white wash. So on a skinned bar you could not see which stance you were in, which weapon-enchant item was equipped, or which pet ability was on autocast.
+- **New** — An accent ring for the active action and for equipped items, each with its own colour and a shared thickness, on one ring with a priority so two states never stack into visual noise.
+- **New** — An autocast shine on its own LibCustomGlow key, so it coexists with the proc and rotation glows rather than competing with them.
+- **New** — Optional auto-hide for the pet bar when you have no pet. It extends the container's *existing* visibility driver condition rather than registering a second one, because two drivers calling Show and Hide on the same frame fight each other.
+- **Note** — There is no stance auto-hide, and that is a limit rather than an omission. No macro conditional expresses *this class has no forms* — `[stance:0]` means "no form active", which a druid in caster form legitimately is. Blizzard's stance buttons already hide themselves when there is nothing to show, so the container is simply empty.
+
+#### TomoMod's Own Buttons — Opt-In, Per Bar, And Reversible
+
+- **New** — `AB_Button.lua` creates real `SecureActionButtonTemplate` buttons owned by TomoMod, as an alternative to reparenting Blizzard's. Opt-in per bar, off everywhere by default, and reversible: untick the option, `/reload`, and the bar goes back to Blizzard buttons.
+- **Note** — Everything from the five layers above works on them unchanged, because they register with the engine through the same `action` adapter — it reads `frame.action` and falls back to `GetAttribute("action")`, and these buttons set only the attribute. That is what building the engine first bought.
+- **Internal** — The secure plumbing is not reinvented. `ActionBars.lua` already owns a working paging setup, and these buttons receive the same attributes Blizzard's do. The action slot is taken from the Blizzard counterpart button rather than hardcoded, since slot ranges have moved between expansions; the hardcoded table is only a fallback for when the counterpart is missing.
+- **New** — `Bindings.xml` ships 106 click bindings so the owned buttons are bindable from Blizzard's own keybinding UI, under a TomoMod category with a header per bar. They bind through a dedicated virtual mouse button rather than `LeftButton`, which is what makes cast-on-key-press behave — Bartender4 moved away from `LeftButton` for the same reason.
+- **Fix** — Releasing a bar left a delegation in place. `delegated` and `pendingDelegation` were declared below `ReleaseBar`, so the reference inside it resolved to a global rather than to the real table, and the delegation was never undone. They are declared next to `owned` now, which is what binds that reference correctly.
+- **Note** — Read this before enabling a bar. Flyouts do not open on a converted bar — mage portals, hunter traps, summon flasks. Vehicle, override and possess *paging* follows, but the specialised vehicle exit button and its artwork do not. The Assisted Highlight is not drawn; use the rotation glow above instead. Pet and stance bars stay on Blizzard buttons entirely.
+
+#### Binding Mode — Shared With Whatever Else Is Installed
+
+- **New** — `AB_KeyBound.lua` joins the shared binding mode that Dominos, Bartender4 and Bagnon use, so one pass binds TomoMod's bars and theirs together instead of each addon insisting on its own mode.
+- **New** — LibKeyBound-1.0 is embedded, so the shared mode is available whether or not another addon provides it. The copy is taken from a packaged build rather than from the GitHub mirror, which is an SVN mirror whose revision number is computed from a keyword that is never substituted outside a checkout — it throws on an arithmetic operation the moment it is loaded from a plain copy.
+- **Internal** — The proxy pattern is lifted from Dominos: rather than mixing six library methods into every action button, one hidden frame carries them and is reparented onto whichever button the mouse is over. The library only ever talks to that frame.
+- **Fix** — `FreeKey` had to be provided rather than left to the library's default. Without it the library compares `GetBindingAction(key)` against `CLICK <name>:LeftButton`, which for TomoMod is neither the right button name — it would be the proxy's — nor the right virtual button, so every key would have been reported as stolen from somewhere else.
+- **Internal** — `GetName` is forwarded to the real button for the same reason: the library prints the button's name when it confirms a binding, and the proxy's own name would have been meaningless there.
+- **Note** — All binding reads and writes go through `AB_Hotkey.GetBindingName`, so this works identically on TomoMod-owned buttons, which bind through their own click command, and on reparented Blizzard ones, which bind through the `ACTIONBUTTON` and `MULTIACTIONBAR` names.
+
+#### Options — The Page Grew Three Tabs
+
+- **Change** — The Action Bars page is now five tabs rather than two: Skin, Buttons, Glow, Hotkeys and Bars. The skin tab had been accumulating every new control in one column, and three of the five layers in this release would have landed in it.
+- **New** — 57 new strings across all six languages for the controls above.
+
+## ####################################
+
 ## CHANGELOG 3.4.6 — The Invisible Marker That 3.4.5 Attached To Every Cooldown Studio Buff Icon Was Asked The One Question It Could Not Be Asked, Because Whether An Aura Button Is On Screen Is Not A Fact About The Interface At All But The Aura Presence The Client Is Withholding Wearing A Frame's Clothes, So The Boolean That Came Back Was Itself Hidden And Testing It Threw From Inside The Very Guard Written To Make The Studio Safe, On The First Icon Probed Rather Than Occasionally, Which Means The Feature Shipped In 3.4.5 Errored For Anyone Whose Bars Track A Buff, And The Answer Is Not A Better Guard Around A Value That Cannot Be Read But A Different Widget Entirely — The Studio's Own Cooldown, Which The Engine Already Drives And Which Belongs To TomoMod Rather Than To The Client, So Its Shown State Is Ordinary Data And Says Exactly The Same Thing The Refused Boolean Would Have Said, With The Engine's Button Kept Behind It As A Guarded Fallback And A Plain False When Neither Side Will Answer, Costing That Frame Its Presence Reading And Nothing Else Because Driving The Swipe Was Always The Larger Half Of The Probe's Job
 
 #### Cooldown Studio — The Probe Asked A Frame Question And Got An Aura Answer
