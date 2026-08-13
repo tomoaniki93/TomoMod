@@ -188,6 +188,26 @@ end
 -- =====================================================================
 
 local function RenderIcon(entry, vset, db)
+    local ABE = TomoMod_ABEngine
+    local texture = ABE and ABE.GetTexture and ABE.GetTexture(entry) or nil
+    if type(texture) ~= "string" or texture == "" then
+        local slot = entry and entry.slot
+        if type(slot) == "number" and GetActionTexture then
+            local direct = GetActionTexture(slot)
+            if type(direct) == "string" and direct ~= "" then
+                texture = direct
+            end
+        end
+    end
+
+    if type(texture) == "string" and texture ~= "" then
+        pcall(vset.icon.SetTexture, vset.icon, texture)
+        vset.icon:Show()
+    else
+        pcall(vset.icon.SetTexture, vset.icon, nil)
+        vset.icon:Hide()
+    end
+
     local zoom = db.iconZoom or 0
     if type(zoom) ~= "number" or zoom < 0 or zoom >= 0.5 then zoom = 0 end
     pcall(vset.icon.SetTexCoord, vset.icon, zoom, 1 - zoom, zoom, 1 - zoom)

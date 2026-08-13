@@ -121,9 +121,30 @@ local function OnReceiveDrag(self)
     if type(slot) == "number" then pcall(PlaceAction, slot) end
 end
 
+local function RefreshTexture(button)
+    if not button or not button.icon then return end
+    local slot = button:GetAttribute("action")
+    if type(slot) ~= "number" then
+        button.icon:SetTexture(nil)
+        return
+    end
+
+    if GetActionTexture then
+        local tex = GetActionTexture(slot)
+        if type(tex) == "string" and tex ~= "" then
+            button.icon:SetTexture(tex)
+            button.icon:Show()
+        else
+            button.icon:SetTexture(nil)
+            button.icon:Hide()
+        end
+    end
+end
+
 local function OnEnter(self)
     local slot = self:GetAttribute("action")
     if type(slot) ~= "number" then return end
+    RefreshTexture(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     pcall(GameTooltip.SetAction, GameTooltip, slot)
     ABB._tooltipOwner = self
@@ -136,6 +157,7 @@ end
 
 local function OnPostClick(self)
     local ABE = TomoMod_ABEngine
+    RefreshTexture(self)
     if ABE and ABE.RefreshButton then ABE.RefreshButton(self) end
 end
 
@@ -202,6 +224,8 @@ function ABB.Create(def, container, index)
                 button:SetAttribute("_childupdate-offset", snippet)
             end
         end
+
+        RefreshTexture(button)
     end
 
     button:Show()

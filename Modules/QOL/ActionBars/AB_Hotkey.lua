@@ -229,6 +229,16 @@ local function EnsureText(entry)
     return fs
 end
 
+local function ApplyFont(fs, db, barDB)
+    if not fs then return end
+    local size = (barDB and barDB.hotkeyFontSize) or db.fontSize or 12
+    local outline = db.outline
+    if outline ~= "OUTLINE" and outline ~= "THICKOUTLINE" and outline ~= "" then
+        outline = "OUTLINE"
+    end
+    pcall(fs.SetFont, fs, FONT, size, outline)
+end
+
 local function Render(entry)
     local db = GetSettings()
     local fs = EnsureText(entry)
@@ -237,6 +247,7 @@ local function Render(entry)
     if entry._blizzHotkey then pcall(entry._blizzHotkey.SetAlpha, entry._blizzHotkey, 0) end
 
     local barDB = GetBarSettings(entry.barId)
+    ApplyFont(fs, db, barDB)
     local wanted = db.enabled and (not barDB or barDB.showHotkeyText ~= false)
 
     if not wanted then
@@ -259,14 +270,6 @@ local function Render(entry)
     end
 
     if db.abbreviate then key = Abbreviate(key) end
-
-    -- Per-bar font size wins over the global one when it was set.
-    local size = (barDB and barDB.hotkeyFontSize) or db.fontSize or 12
-    local outline = db.outline
-    if outline ~= "OUTLINE" and outline ~= "THICKOUTLINE" and outline ~= "" then
-        outline = "OUTLINE"
-    end
-    pcall(fs.SetFont, fs, FONT, size, outline)
 
     local c = db.color or DEFAULTS.color
     fs:SetTextColor(c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1)
