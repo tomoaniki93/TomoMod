@@ -292,6 +292,34 @@ local function BuildFadeTab(parent)
     local _, ny = W.CreateCheckbox(c, L["opt_abf_link"], f.linkBars1to8 ~= false, y,
         function(v) SetF("linkBars1to8", v) end) y = ny
 
+    local fadeBarKeys = {
+        { key = "bar1", label = "Barre 1" },
+        { key = "bar2", label = "Barre 2" },
+        { key = "bar3", label = "Barre 3" },
+        { key = "bar4", label = "Barre 4" },
+        { key = "bar5", label = "Barre 5" },
+        { key = "bar6", label = "Barre 6" },
+        { key = "bar7", label = "Barre 7" },
+        { key = "bar8", label = "Barre 8" },
+        { key = "pet", label = "Familier" },
+        { key = "stance", label = "Postures" },
+        { key = "microbar", label = "Micro menu" },
+        { key = "bags", label = "Barre de sac" },
+    }
+
+    local _, ny = W.CreateSectionHeader(c, "Barres ciblées", y) y = ny
+    for _, def in ipairs(fadeBarKeys) do
+        local bar = db.bars[def.key]
+        if type(bar) ~= "table" then bar = {}; db.bars[def.key] = bar end
+        local checked = bar.fadeEnabled ~= false
+        local _, ny2 = W.CreateCheckbox(c, def.label, checked, y,
+            function(v)
+                bar.fadeEnabled = v
+                RefreshFade()
+            end)
+        y = ny2
+    end
+
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll

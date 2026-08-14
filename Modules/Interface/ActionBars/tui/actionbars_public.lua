@@ -464,7 +464,7 @@ end)
 do
     local function RegisterLayoutModeElements()
         local um = ns.TUI_LayoutMode
-        if not um then return end
+        if not um or type(um.RegisterElement) ~= "function" then return end
 
         local BAR_ELEMENTS = {
             { key = "bar1", label = ns.L["Action Bar 1"], order = 1 },
@@ -478,12 +478,11 @@ do
             { key = "petBar",    label = ns.L["Pet Bar"],     order = 9 },
             { key = "stanceBar", label = ns.L["Stance Bar"],  order = 10 },
             { key = "microMenu", label = ns.L["Micro Menu"],  order = 11 },
-            { key = "bagBar",    label = ns.L["Bag Bar"],     order = 12 },
         }
 
         local DB_KEY_MAP = {
             petBar = "pet", stanceBar = "stance",
-            microMenu = "microbar", bagBar = "bags",
+            microMenu = "microbar",
         }
 
         um:RegisterElement({

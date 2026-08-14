@@ -45,6 +45,13 @@ function ns.TUI_LayoutMode.Toggle()
     if M and M.Toggle then pcall(M.Toggle) end
 end
 
+-- Ported TUI action-bar code registers its layout-mode elements via this hook.
+-- TomoMod does not implement the full TUI layout-mode registry, so this is a
+-- safe compatibility shim that keeps the ported code from crashing when the
+-- feature is not active.
+function ns.TUI_LayoutMode.RegisterElement()
+end
+
 ns.TUI_LayoutMode_Utils = ns.TUI_LayoutMode_Utils or {}
 
 -- Pixel backdrop: Tui ships this as a two-line file. Kept as a thin wrapper

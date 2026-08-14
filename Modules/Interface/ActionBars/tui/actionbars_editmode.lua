@@ -13,7 +13,43 @@ env.SetChunkEnv(1, env)
 
 ---@diagnostic disable: lowercase-global -- SetChunkEnv installs a setfenv
 
+local function ApplyContainerDragState(container, barKey)
+    if not container then return end
+    container:EnableMouse(true)
+    container:SetMovable(true)
+    container:RegisterForDrag("LeftButton")
+    container:SetScript("OnDragStart", function(self, button)
+        if button ~= "LeftButton" then return end
+        if not ActionBarsOwned or not ActionBarsOwned.editModeActive then return end
+        self:StartMoving()
+    end)
+    container:SetScript("OnDragStop", function(self)
+        if not ActionBarsOwned or not ActionBarsOwned.editModeActive then return end
+        self:StopMovingOrSizing()
+        if barKey then
+            SaveContainerPosition(barKey)
+        end
+    end)
+    container:SetScript("OnMouseDown", function(self, button)
+        if button ~= "LeftButton" then return end
+        if not ActionBarsOwned or not ActionBarsOwned.editModeActive then return end
+        self:StartMoving()
+    end)
+    container:SetScript("OnMouseUp", function(self)
+        if not ActionBarsOwned or not ActionBarsOwned.editModeActive then return end
+        if self.isMoving then
+            self:StopMovingOrSizing()
+            self.isMoving = nil
+            if barKey then
+                SaveContainerPosition(barKey)
+            end
+        end
+    end)
+end
+
 function CreateEditOverlay(container, barKey)
+    ApplyContainerDragState(container, barKey)
+
     local overlay = CreateFrame("Frame", nil, container, "BackdropTemplate")
     overlay:SetAllPoints(container)
     ns.SkinBase.ApplyPixelBackdrop(overlay, 2, true, false, {0.376, 0.647, 0.980, 1}, {0.2, 0.8, 0.6, 0.3})
@@ -29,12 +65,17 @@ function CreateEditOverlay(container, barKey)
     text:SetText(displayName)
     overlay.label = text
 
-    overlay:SetScript("OnDragStart", function()
+    overlay:SetScript("OnDragStart", function(self, button)
+        if button ~= "LeftButton" then return end
+        if not ActionBarsOwned or not ActionBarsOwned.editModeActive then return end
         container:StartMoving()
+        self:StartMoving()
     end)
 
-    overlay:SetScript("OnDragStop", function()
+    overlay:SetScript("OnDragStop", function(self)
+        if not ActionBarsOwned or not ActionBarsOwned.editModeActive then return end
         container:StopMovingOrSizing()
+        self:StopMovingOrSizing()
         SaveContainerPosition(barKey)
     end)
 
@@ -74,6 +115,8 @@ function OnEditModeEnter()
     for _, barKey in ipairs(ALL_MANAGED_BAR_KEYS) do
         local container = ActionBarsOwned.containers[barKey]
         if container then
+            LayoutNativeButtons(barKey)
+            ApplyContainerDragState(container, barKey)
             container:SetMovable(true)
 
             local state = GetOwnedBarFadeState(barKey)
@@ -97,6 +140,24 @@ function OnEditModeExit()
         SaveContainerPosition(barKey)
         LayoutNativeButtons(barKey)
         SetupOwnedBarMouseover(barKey)
+    end
+end
+
+function ActionBarsOwned.SetEditModeEnabled(enabled)
+    if not ActionBarsOwned then return end
+    if not ActionBarsOwned.initialized then
+        if type(ActionBarsOwned.Initialize) == "function" then
+            ActionBarsOwned:Initialize()
+        end
+        if not ActionBarsOwned.initialized then
+            return
+        end
+    end
+
+    if enabled then
+        OnEditModeEnter()
+    else
+        OnEditModeExit()
     end
 end
 

@@ -283,6 +283,10 @@ function PrimeStandardOwnedButtonVisuals(buttons)
 end
 
 function BuildBar(barKey)
+    if barKey == "bags" then
+        return
+    end
+
     local barFrame = GetBarFrame(barKey)
 
     if not ActionBarsOwned.containers[barKey] then

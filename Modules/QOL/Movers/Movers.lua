@@ -77,6 +77,22 @@ local function BuildEntries()
         isActive = function() return TomoModDB and TomoModDB.resourceBars and TomoModDB.resourceBars.enabled end,
     })
     table.insert(moduleEntries, {
+        label    = L["mover_actionbars"] or "Action Bars",
+        unlock   = function()
+            if ActionBarsOwned and ActionBarsOwned.SetEditModeEnabled then
+                ActionBarsOwned.SetEditModeEnabled(true)
+            end
+        end,
+        lock     = function()
+            if ActionBarsOwned and ActionBarsOwned.SetEditModeEnabled then
+                ActionBarsOwned.SetEditModeEnabled(false)
+            end
+        end,
+        isActive = function()
+            return true
+        end,
+    })
+    table.insert(moduleEntries, {
         label    = L["mover_skyriding"],
         unlock   = function()
             if TomoMod_SkyRide and TomoMod_SkyRide.IsLocked and TomoMod_SkyRide.IsLocked() then TomoMod_SkyRide.ToggleLock() end

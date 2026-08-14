@@ -66,6 +66,10 @@ function Helpers.ApplyFontWithFallback(fontString, mediaName, size, flags)
 end
 
 function Helpers.IsEditModeShown()
+    if ActionBarsOwned and ActionBarsOwned.editModeActive then
+        return true
+    end
+
     local f = _G.EditModeManagerFrame
     if not f or not f.IsShown then return false end
     local ok, shown = pcall(f.IsShown, f)
