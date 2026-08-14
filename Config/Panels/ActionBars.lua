@@ -72,6 +72,12 @@ local ANCHORS = {
     { value = "BOTTOMRIGHT", text = "Bas droite" },
 }
 
+local FLASH_MODES = {
+    { value = "blizzard", text = "Blizzard" },
+    { value = "qui",      text = "TomoMod" },
+    { value = false,      text = "Aucune" },
+}
+
 local ORIENTATIONS = {
     { value = "horizontal", text = "Horizontale" },
     { value = "vertical",   text = "Verticale" },
@@ -151,6 +157,10 @@ local function BuildGeneralTab(parent)
     local _, ny = W.CreateSectionHeader(c, L["section_ab_behaviour"], y) y = ny
     local _, ny = W.CreateCheckbox(c, L["opt_ab_hide_empty"], G("hideEmptySlots", false), y,
         function(v) SetG("hideEmptySlots", v) end) y = ny
+    local _, ny = W.CreateDropdown(c, L["opt_ab_flash"], FLASH_MODES, G("showFlash", "blizzard"), y,
+        function(v) SetG("showFlash", v) end) y = ny
+    local _, ny = W.CreateInfoText(c, L["info_ab_flash"], y) y = ny
+
     local _, ny = W.CreateCheckbox(c, L["opt_ab_lock"], G("lockButtons", false), y,
         function(v) SetG("lockButtons", v) end) y = ny
     local _, ny = W.CreateCheckbox(c, L["opt_ab_tooltips"], G("showTooltips", true), y,

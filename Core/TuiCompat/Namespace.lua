@@ -16,7 +16,54 @@ TomoMod_TuiNS = TomoMod_TuiNS or {}
 local ns = TomoMod_TuiNS
 
 ns.ADDON_NAME = "TomoMod"
-ns.Addon      = ns.Addon or {}
+-- The ported module reaches the addon object through Helpers.GetCore(), which
+-- gives it two things: db.profile (13 call sites) and an AceEvent-style
+-- RegisterEvent/UnregisterEvent pair used to defer work out of combat.
+--
+-- db.profile was already handled -- GetCore() installed it lazily. It is set
+-- up here instead so the object is complete from the moment the namespace
+-- exists, which keeps the two halves in one place.
+--
+-- RegisterEvent was not, and that was a real bug: actionbars_builder.lua sets
+-- _microDeferPending = true and THEN calls Addon:RegisterEvent. On a plain
+-- table that call throws, SafeCall swallows it, and the flag stays true
+-- forever -- so the deferred micro-button reparent never replayed after
+-- combat, silently and with nothing in the error log.
+ns.Addon = ns.Addon or {}
+
+-- db.profile must stay live rather than be captured once: TomoMod's profile
+-- engine swaps module tables in place under TomoModDB, so a snapshot taken at
+-- load would go stale on the first profile switch.
+if not ns.Addon.db then
+    ns.Addon.db = setmetatable({}, {
+        __index = function(_, key)
+            if key == "profile" then return TomoModDB end
+            return nil
+        end,
+    })
+end
+
+if not ns.Addon.RegisterEvent then
+    local eventFrame = CreateFrame("Frame")
+    local handlers = {}
+
+    eventFrame:SetScript("OnEvent", function(_, event, ...)
+        local fn = handlers[event]
+        if fn then fn(event, ...) end
+    end)
+
+    function ns.Addon:RegisterEvent(event, handler)
+        if type(event) ~= "string" then return end
+        handlers[event] = type(handler) == "function" and handler or nil
+        eventFrame:RegisterEvent(event)
+    end
+
+    function ns.Addon:UnregisterEvent(event)
+        if type(event) ~= "string" then return end
+        handlers[event] = nil
+        eventFrame:UnregisterEvent(event)
+    end
+end
 
 -- Locale bridge. Ported files read ns.L["key"]; TomoMod's own table already
 -- returns the raw key for anything undefined, so a missing translation shows

@@ -39,7 +39,6 @@
 
 - **Fix** — The "Action Bars" entry in `/tm layout` did nothing at all. The ported Tui action bar code runs inside a sandboxed chunk environment, and a bare `ActionBarsOwned = {...}` inside that sandbox writes only into the sandbox's private table, never into `_G` — so the mover's `ActionBarsOwned.SetEditModeEnabled(...)` call was always reading a nil global. Both the mover entry and `Helpers.IsEditModeShown()` now reach it through `TomoMod_TuiNS.ActionBarsOwned`, the one bridge that's actually a real global.
 - **Fix** — With move mode reachable, the drag overlay itself then crashed with `bad argument #1 to 'SetColorTexture'`. The compat shim `ApplyPixelBackdrop` was written for a `(frame, r, g, b, a)` signature that no call site actually uses — both real callers pass Tui's real signature, `(frame, borderSize, filled, glow, borderColor, glowColor)`, with color tables in the later positions. The shim now matches that signature and draws the highlight through `SetBackdrop` on the `BackdropTemplate` frames both callers already create.
-- **Fix** — Pressing an action button turned its icon fully white. The custom icon skin's Highlight/Pushed/Checked/Flash textures are white cutout shapes meant to be drawn with additive blending, but were being applied with the default alpha blend — painting an opaque white square over the icon instead of a bright flash. All four now render with `SetBlendMode("ADD")`.
 - **Fix** — A bar dragged into a new position in `/tm layout` reset to its default spot on every `/reload`. Two gaps stacked here: `Helpers.GetCore()` returned an empty table with no `.db.profile`, so every position save silently did nothing; and even after wiring that up, `RestoreContainerPosition` never actually read the saved position back — it only checked for a separate Tui frame-anchoring subsystem that was never ported, and fell straight through to the bar's native Blizzard position on every load. Both are now fixed: `core.db.profile` resolves to `TomoModDB`, and restore reads the saved anchor directly before falling back.
 
 #### Action Bars — Move Mode Visuals & Extra Button
@@ -54,6 +53,18 @@
 #### Nameplates — Secret-Value Taint on Group Roles
 
 - **Fix** — `UnitGroupRolesAssigned` can hand back a secret string value in restricted content; comparing it directly (`role == "TANK"`, `role ~= "NONE"`) threw a taint error and spammed the error log. Both call sites — the per-nameplate role icon and the tank/threat coloring pass — now guard with `issecretvalue` and treat a secret role the same as no role, rather than propagating it into a comparison.
+
+#### Action Bars — The Press Effect, Properly This Time
+
+- **Fix** — Pressing an action button turned its icon fully white, and the fix attempted earlier in this same release was the wrong one. `Pushed.tga` is not a white cutout shape: it is an opaque white square, measured at alpha 253. Additive blending cannot rescue that — white through `ADD` saturates to white — so the button still went white on press. Worse, the blend override was applied in `ReplaceTexture`, which is shared by Highlight, Checked, Flash and Pushed, so it brightened the three textures that sat at alpha 22-86 and had been rendering correctly all along. `ReplaceTexture` no longer touches blend mode, and the custom pushed texture is drawn in `BLEND` tinted to black at 35% — darkening the icon on press instead of covering it, which is what the custom mode was meant to look like from the start.
+- **Change** — The default press effect is now Blizzard's own pushed texture rather than TomoMod's. A custom press effect is worth having as a choice; it is not worth inheriting from a default that was painting a white square.
+- **New** — A "Press effect" dropdown in Config → Action Bars → General, with three modes: Blizzard, TomoMod and None. It applies immediately, no reload.
+- **Fix** — Switching press modes at runtime left the previous mode's tint behind: the custom mode darkens the texture through `SetVertexColor`, and nothing reset it, so picking Blizzard afterwards produced its standard flash stuck black at 35%. The tint is now reset before every mode is applied.
+
+#### Action Bars — Micro Buttons Stayed Where Combat Left Them
+
+- **Fix** — When the micro buttons need reparenting into their TomoMod container and that lands mid-combat, the work is deferred and replayed on `PLAYER_REGEN_ENABLED`. That replay was registered through `ns.Addon:RegisterEvent`, and `ns.Addon` was a bare table with no such method — so the call threw, `SafeCall` swallowed it, and the `_microDeferPending` flag set on the line before stayed `true` for the rest of the session. The micro bar never reclaimed its buttons after that first combat, and nothing reached the error log to say why. `ns.Addon` now carries a real `RegisterEvent`/`UnregisterEvent` pair backed by its own event frame.
+- **Internal** — `ns.Addon` is assembled in one place, `Core/TuiCompat/Namespace.lua`, with both halves visible together — `db.profile` and the event API. `Helpers.GetCore()` is reduced to returning the object rather than building half of it lazily on first access.
 
 ## ####################################
 

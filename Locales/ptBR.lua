@@ -513,6 +513,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["binding_button"]                      = "Barra %d Botão %d",
 
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
+    ["opt_ab_flash"]                    = "Efeito ao pressionar",
+    ["info_ab_flash"]                   = "O que é desenhado enquanto um botão fica pressionado. A textura do TomoMod escurece o ícone; a da Blizzard é o clarão padrão.",
     ["info_ab_masque"]                      = "Só tem efeito se o Masque estiver instalado. O visual próprio é então desativado para evitar conflito.",
     ["info_ab_nodb"]                        = "Configurações das barras de ação indisponíveis: o banco de dados não foi inicializado. Recarregue a interface.",
     ["opt_ab_assisted"]                     = "Destaque assistido",
@@ -3280,12 +3282,14 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_353_preyevent"] = "Correção — O Rastreador de Presa registrava um evento que não existe neste cliente, causando um erro na inicialização. Corrigido, e todo registro de evento agora está protegido para que um evento ausente não possa mais travar o módulo.",
     ["wn_353_preygui"] = "Novo — O Rastreador de Presa agora tem uma seção de configurações real: Configuração → QOL → Automações, com uma caixa de ativação e controles deslizantes de largura/tamanho de fonte. Antes não havia como ativá-lo pelo jogo.",
     ["wn_353_abmover"] = "Correção — A entrada \"Action Bars\" em `/tm layout` não fazia absolutamente nada. O código das barras de ação portado do Tui roda em um ambiente isolado que nunca se expunha ao resto do TomoMod, fazendo o modo de posicionamento falhar silenciosamente ao ativar. Agora ele alcança as barras corretamente.",
-    ["wn_353_abflash"] = "Correção — Pressionar um botão de ação deixava o ícone totalmente branco. As texturas de pressão/destaque da skin de ícones personalizada precisavam de mesclagem aditiva e, em vez disso, eram pintadas como uma sobreposição opaca. Corrigido.",
+    ["wn_353_abflash"] = "Correção — Pressionar um botão de ação deixava o ícone totalmente branco, e a primeira tentativa de correção, mais cedo nesta mesma versão, não funcionou. A textura envolvida não é uma forma recortada que precisasse de outro modo de mesclagem, é um quadrado branco sólido — mesclá-la de outra maneira continuava pintando-a por cima do ícone, e a mudança fazia outras três texturas, que estavam bem o tempo todo, saírem mais claras do que deveriam. O efeito ao pressionar agora escurece o ícone em vez de cobri-lo, que é o que sempre deveria fazer.",
+    ["wn_353_abpressopt"] = "Novo — Você escolhe o que um botão faz enquanto o mantém pressionado. Config → Barras de ação → Geral tem uma opção «Efeito ao pressionar» com três escolhas: o clarão da própria Blizzard, agora o padrão, o escurecimento do TomoMod, ou nada. Aplica-se assim que você escolhe, sem recarregar.",
     ["wn_353_abposition"] = "Correção — Uma barra de ação arrastada voltava à posição padrão a cada `/reload`. A posição salva nunca era realmente gravada, e o caminho de restauração nunca a relia mesmo quando estava. Ambos corrigidos — as posições das barras agora persistem corretamente.",
     ["wn_353_abcolor"] = "Mudança — A sobreposição do modo de movimento para as barras de ação e os botões de ação extra/habilidade de zona agora usa a cor teal da marca TomoMod em vez do azul original do Tui, correspondendo a todas as outras sobreposições de `/tm layout`.",
     ["wn_353_abextramover"] = "Correção — Os suportes do Botão de Ação Extra e da Habilidade de Zona tinham sua própria sobreposição de movimento separada que nunca foi conectada ao `/tm layout` — sempre visível na tela mas impossível de arrastar pela ferramenta de layout unificada. Ambos agora têm uma entrada própria de «Botão Extra» no `/tm layout`.",
     ["wn_353_brezicon"] = "Correção — O ícone do Contador de Battle Rez era exibido como um quadrado preto sólido: o caminho de textura usado não existe neste cliente. Agora exibe corretamente o ícone de Renascimento.",
     ["wn_353_nameplaterole"] = "Correção — As placas de nome podiam gerar uma enxurrada de erros de contaminação ao ler a função de grupo de uma unidade em conteúdo restrito, porque a função pode retornar como um valor secreto que não pode ser comparado diretamente. Agora está protegido e tratado como desconhecido em vez de gerar um erro.",
+    ["wn_353_abmicrodefer"] = "Correção — Os botões do micromenu podiam sumir pelo resto da sessão. Quando precisam voltar ao lugar e há um combate em andamento, o movimento espera o combate terminar — mas a parte que deveria acordá-lo depois nunca existiu, então ele esperava indefinidamente, em silêncio e sem nada no registro de erros indicando isso. Agora ele roda no instante em que você sai de combate.",
 
     -- 3.5.2 — Novidades
     -- =====================

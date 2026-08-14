@@ -208,7 +208,10 @@ TomoMod_Defaults = {
             backdropAlpha = 0.2,
             showGloss = true,
             glossAlpha = 0.3,
-            showFlash = "qui",
+            -- "qui" paints Pushed.tga, which is white at alpha 253 -- an opaque
+            -- white square over the whole button. Blizzard's own pushed texture
+            -- is the safe default; the custom one is selectable in the panel.
+            showFlash = "blizzard",
             showBorders = true,
             showProfessionQuality = true,
             showKeybinds = true,

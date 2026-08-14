@@ -84,9 +84,11 @@ function StripBlizzardArtwork(button)
         tex:ClearAllPoints()
         tex:SetAllPoints(button)
         tex:SetAlpha(1)
-        -- These iconskin overlays are white cutout shapes meant for an additive
-        -- flash, not a plain opaque overlay — without ADD they paint solid white.
-        tex:SetBlendMode("ADD")
+        -- TOMOMOD: no blend override here. This helper is shared by Highlight,
+        -- Checked, Pushed and Flash; only Pushed is opaque (alpha 253 measured),
+        -- the others sit at alpha 22-86 and render correctly in BLEND. Forcing
+        -- ADD for all four fixed nothing (white + ADD saturates to white anyway)
+        -- and brightened the three that were already fine.
     end
 
     local highlight = button:GetHighlightTexture()
@@ -380,6 +382,10 @@ SkinButton = function(button, settings)
 
     local function ApplyPushedMode(tex)
         if not tex then return end
+        -- TOMOMOD: reset the tint before branching -- the "qui" branch below
+        -- darkens the texture, and switching modes at runtime would otherwise
+        -- leave Blizzard's flash stuck black at 35%.
+        tex:SetVertexColor(1, 1, 1, 1)
         if flashMode == "off" then
             tex:SetAtlas(nil)
             tex:SetTexture(nil)
@@ -400,8 +406,11 @@ SkinButton = function(button, settings)
             tex:SetAtlas(nil)
             tex:SetTexture(TEXTURES.pushed)
             tex:SetTexCoord(0, 1, 0, 1)
-            -- white cutout shape meant for an additive flash, not a solid overlay
-            tex:SetBlendMode("ADD")
+            -- TOMOMOD: Pushed.tga is opaque white, so it is tinted down here
+            -- rather than blended. This darkens the button on press instead of
+            -- covering it, which is what the custom mode was meant to look like.
+            tex:SetBlendMode("BLEND")
+            tex:SetVertexColor(0, 0, 0, 0.35)
         end
     end
 
