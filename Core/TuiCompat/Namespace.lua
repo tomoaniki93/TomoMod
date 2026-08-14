@@ -42,10 +42,9 @@ ns._inInitSafeWindow = false
 -- Split perf probes are a Tui debugging switch; the ported code only reads it.
 ns.TUI_ENABLE_ACTIONBAR_SPLIT_PERF_PROBES = false
 
--- Gate for the ported action bar module. It self-initialises on ADDON_LOADED,
--- which must not happen until every Tui file it calls into has been ported.
--- Flipped on in lot P4.
-ns.TUI_ACTIONBARS_READY = false
+-- Gate for the ported action bar module, which self-initialises on
+-- ADDON_LOADED. The full Tui file set landed in lot P4, so it is live.
+ns.TUI_ACTIONBARS_READY = true
 
 -- Shared media, already vendored by TomoMod.
 ns.LSM = _G.LibStub and _G.LibStub("LibSharedMedia-3.0", true) or nil

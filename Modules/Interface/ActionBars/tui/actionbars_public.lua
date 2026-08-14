@@ -442,7 +442,7 @@ end
 initFrame = CreateFrame("Frame")
 initFrame:RegisterEvent("ADDON_LOADED")
 initFrame:SetScript("OnEvent", function(self, event, addonName)
-    -- TOMOMOD: gated until the full Tui file set is ported (lot P4).
+    -- TOMOMOD: kept as a kill switch (ns.TUI_ACTIONBARS_READY), on since P4.
     if addonName == ADDON_NAME and ns.TUI_ACTIONBARS_READY then
         if not GetDB() then return end
         ActionBarsOwned:Initialize()

@@ -8,6 +8,7 @@
     <Script file="Helpers.lua" />
     <Script file="IconSkin.lua" />
     <Script file="IconGlow.lua" />
+    <Script file="ExternalSkinBridge.lua" />
     <Script file="UIKitShim.lua" />
     <Script file="Bridges.lua" />
 

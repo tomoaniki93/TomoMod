@@ -158,6 +158,55 @@ function Helpers.GetSkinAccentColor()
     return Helpers.GetSkinBorderColor()
 end
 
+-- Added for lot P4 (skinning / mouseover / editmode). Ported verbatim from
+-- Tui, combat queue included: Hide() on a protected frame is blocked in
+-- combat, so the call is deferred to PLAYER_REGEN_ENABLED rather than dropped.
+local _deferredHideHooked = setmetatable({}, { __mode = "k" })
+local _combatHideQueue = {}
+local _combatHideFrame
+
+local function FlushCombatHideQueue()
+    if InCombatLockdown() then return end
+    for frame, shouldClearAlpha in pairs(_combatHideQueue) do
+        if not (frame.IsForbidden and frame:IsForbidden()) then
+            ns.SafeCallMethod("best-effort-style", frame, "Hide")
+            if shouldClearAlpha and frame.SetAlpha then frame:SetAlpha(0) end
+        end
+    end
+    wipe(_combatHideQueue)
+    _combatHideFrame:UnregisterEvent("PLAYER_REGEN_ENABLED")
+end
+
+local function QueueCombatHide(frame, clearAlpha)
+    _combatHideQueue[frame] = clearAlpha or false
+    if not _combatHideFrame then
+        _combatHideFrame = CreateFrame("Frame")
+        _combatHideFrame:SetScript("OnEvent", FlushCombatHideQueue)
+    end
+    _combatHideFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+end
+
+function Helpers.DeferredHideOnShow(frame, opts)
+    if not frame or not frame.Show then return end
+    if _deferredHideHooked[frame] then return end
+    _deferredHideHooked[frame] = true
+    local clearAlpha = opts and opts.clearAlpha or false
+    local combatCheck = not opts or opts.combatCheck ~= false
+    hooksecurefunc(frame, "Show", function(self)
+        C_Timer.After(0, function()
+            if self.IsForbidden and self:IsForbidden() then return end
+            if InCombatLockdown() then
+                if combatCheck then return end
+                if self.SetAlpha then self:SetAlpha(0) end
+                QueueCombatHide(self, clearAlpha)
+                return
+            end
+            ns.SafeCallMethod("best-effort-style", self, "Hide")
+            if clearAlpha and self.SetAlpha then self:SetAlpha(0) end
+        end)
+    end)
+end
+
 -- Keybind text formatting. Ported code calls ns.FormatKeybind(key).
 local ABBREV = {
     { "MOUSEWHEELUP", "mwu" }, { "MOUSEWHEELDOWN", "mwd" },

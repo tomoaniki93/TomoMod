@@ -1,35 +1,25 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/..\FrameXML\UI.xsd">
 
-    <!-- Ported Tui action bar module. Order is the one from Tui's own TOC,
-         which is authoritative: per_bar_builders loads last and events
-         before extra_buttons. Still dormant until P4 flips
-         ns.TUI_ACTIONBARS_READY. Missing from the set: editmode, skinning
-         and mouseover (lot P4). -->
+    <!-- Ported Tui action bar module, complete. Order is Tui's own TOC order,
+         which is authoritative. The legacy AB_* system it replaces was
+         removed in lot P4. -->
     <Script file="tui\actionbars_env.lua" />
     <Script file="tui\actionbars.lua" />
     <Script file="tui\actionbars_helpers.lua" />
     <Script file="tui\actionbars_layout.lua" />
+    <Script file="tui\actionbars_editmode.lua" />
     <Script file="tui\actionbars_builder.lua" />
     <Script file="tui\actionbars_petstance.lua" />
     <Script file="tui\actionbars_cooldowns.lua" />
     <Script file="tui\actionbars_glow.lua" />
     <Script file="tui\actionbars_events.lua" />
     <Script file="tui\actionbars_extra_buttons.lua" />
+    <Script file="tui\actionbars_skinning.lua" />
     <Script file="tui\actionbars_usability.lua" />
+    <Script file="tui\actionbars_mouseover.lua" />
     <Script file="tui\actionbars_flyout.lua" />
     <Script file="tui\actionbars_public.lua" />
     <Script file="tui\actionbars_per_bar_builders.lua" />
-
-    <!-- Legacy system, replaced from lot P4 onwards -->
-    <Script file="ActionBars.lua" />
-    <Script file="AB_Button.lua" />
-    <Script file="AB_Engine.lua" />
-    <Script file="AB_Render.lua" />
-    <Script file="AB_Glow.lua" />
-    <Script file="AB_Hotkey.lua" />
-    <Script file="AB_KeyBound.lua" />
-    <Script file="AB_Special.lua" />
-    <Script file="ActionBarSkin.lua" />
 
 </Ui>
