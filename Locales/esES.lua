@@ -2303,6 +2303,7 @@ TomoMod_RegisterLocale("esES", {
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["mover_battlerez"]                  = "Rez de combate",
+    ["mover_preytracker"]                = "Rastreador de Presa",
 
     ["at_section_general"]               = "General",
     ["at_opt_enable"]                    = "Activar rastreador de auras",
@@ -3269,6 +3270,16 @@ TomoMod_RegisterLocale("esES", {
     ["wn_333_shared"] = "Interno: los marcos de grupo y de banda mantenían dos copias de las mismas 250 líneas — la lógica de invocación, la lista de sanaciones periódicas, el seguimiento de defensivos. Los tres fallos anteriores vienen de ahí: una corrección aplicada a una copia y no a la otra. Ahora comparten una única implementación.",
 
     -- =====================
+    -- 3.5.3 — Novedades
+    ["wn_353_brezvisual"] = "Mejora — El HUD del Contador de Battle Rez recibió un rediseño visual inspirado en los patrones de diseño de Tui. El marco ahora presenta un telón de fondo multicapa profesional con efectos de sombra interior, espaciado mejorado y tipografía refinada para mejor legibilidad en combate.",
+    ["wn_353_brezglow"] = "Nuevo — Un efecto de brillo opcional ahora se activa cuando hay resurrección de combate disponible, proporcionando mejor retroalimentación visual y haciendo que el contador sea más notorio de un vistazo.",
+    ["wn_353_brezcolors"] = "Cambio — La paleta de colores del Contador de Battle Rez se ha actualizado con colores de acento teal inspirados en Tui y mejor contraste entre estados activo (verde) y cooldown (rojo) para una indicación de estado más clara.",
+    ["wn_353_brezlayers"] = "Interno — El diseño del marco del Contador de Battle Rez se refactorizó con orden de capas apropiado: fondo, sombra interior, textura de icono, barrido de cooldown y superposiciones de texto. Mejor geometría y posicionamiento en todos los elementos UI.",
+    ["wn_353_preytracker"] = "Nuevo — Rastreador de Presa: Una barra de progreso móvil que muestra el progreso activo de la caza de Presa (característica solo de la expansión Midnight). Muestra el nombre de la caza, nivel de dificultad y porcentaje de progreso en tiempo real con un diseño visual suave que coincide con el Contador de Battle Rez.",
+    ["wn_353_preyconfig"] = "Nuevo — El Rastreador de Presa está deshabilitado por defecto (contenido solo de Midnight) y se puede habilitar en Configuración → QOL → Combate → Rastreador de Presa. Se oculta automáticamente cuando no hay una caza de Presa activa y muestra una vista previa en modo de ubicación.",
+    ["wn_353_preylayout"] = "Nuevo — El Rastreador de Presa está completamente integrado con el sistema unificado de mover de diseño de TomoMod. Arrastre para posicionarlo junto a otros elementos HUD usando `/tm layout`, con comportamiento de bloqueo/desbloqueo sincronizado y vistas previas consistentes del modo de ubicación.",
+    ["wn_353_preyapi"] = "Interno — El Rastreador de Presa lee las API C_QuestLog y C_UIWidgetManager para detectar búsquedas de Presa activas y rastrear el progreso en tiempo real con una frecuencia de actualización de 1 segundo, proporcionando información de estado precisa durante las cazas.",
+
     -- 3.5.2 — Novedades
     -- =====================
     ["wn_352_icons"] = "Corrección — Los iconos de las barras de acción salían en negro. La comprobación que debía detectar un hueco vacío esperaba que el icono llegara como una ruta de archivo, que es como respondía el juego antes y hace años que no: ahora devuelve un número. Así que todo icono real suspendía una prueba escrita para cazar los que faltaban, se borraba y dejaba un cuadrado vacío donde estaba tu hechizo. Tanto la vía habitual como la de respaldo aceptan ya cualquiera de las dos respuestas.",

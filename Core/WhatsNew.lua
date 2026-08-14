@@ -63,6 +63,19 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "3.5.3",
+        highlights = {
+            L["wn_353_brezvisual"] or "Enhancement — The Battle Rez Counter HUD received a visual refresh inspired by Tui's design patterns. The frame now features a professional multi-layer backdrop with inner shadow effects, improved spacing, and refined typography for better readability during combat.",
+            L["wn_353_brezglow"] or "New — An optional glow effect now activates when battle resurrections are available, providing improved visual feedback and making the counter more noticeable at a glance.",
+            L["wn_353_brezcolors"] or "Change — The Battle Rez Counter's color palette has been upgraded with Tui-inspired teal accent colors and better contrast between active (green) and cooldown (red) states for clearer status indication.",
+            L["wn_353_brezlayers"] or "Internal — The Battle Rez Counter frame layout was refactored with proper layer ordering: background, inner shadow, icon texture, cooldown swipe, and text overlays. Better geometry and positioning across all UI elements.",
+            L["wn_353_preytracker"] or "New — Prey Tracker: A movable progress bar displaying active Prey hunt progress (Midnight expansion feature only). Shows the hunt name, difficulty level, and real-time progress percentage with a smooth visual design matching the Battle Rez Counter.",
+            L["wn_353_preyconfig"] or "New — The Prey Tracker is disabled by default (Midnight-only content) and can be enabled in Config → QOL → Combat → Prey Tracker. It automatically hides when no Prey hunt is active and shows a preview during placement mode.",
+            L["wn_353_preylayout"] or "New — The Prey Tracker is fully integrated with TomoMod's unified layout mover system. Drag to position it alongside other HUD elements using `/tm layout`, with synchronized lock/unlock behavior and consistent placement mode previews.",
+            L["wn_353_preyapi"] or "Internal — The Prey Tracker reads C_QuestLog and C_UIWidgetManager APIs to detect active Prey quests and track progress in real-time with a 1-second update rate, providing accurate status information during hunts.",
+        },
+    },
+    {
         version = "3.5.2",
         highlights = {
             L["wn_352_icons"] or "Fix — The action bar icons came back black. The check meant to spot an empty slot was looking for the icon to be given as a file path, which is how the game used to answer and has not for years — it now hands back a number instead. So every real icon failed a test written to catch the ones that were missing, was wiped, and left an empty square where your spell had been. Both the usual route and the fallback now accept either answer.",

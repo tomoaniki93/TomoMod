@@ -2475,6 +2475,7 @@ TomoMod_RegisterLocale("enUS", {
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["mover_battlerez"]                  = "Battle Rez",
+    ["mover_preytracker"]                = "Prey Tracker",
 
     ["at_section_general"]               = "General",
     ["at_opt_enable"]                    = "Enable Aura Tracker",
@@ -3313,6 +3314,18 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_diag_settle"] = "Diagnostics: the scale the game applies for itself while you log in was recorded in every report as a mid-session rescale. The display capture now waits four seconds for the client to settle before taking a reading, so the only scale entry left in a report is one that actually needs explaining.",
     ["wn_333_diag_mode"] = "Diagnostics: when the report cannot work out your display mode it now prints the raw values the game gave it instead of a bare question mark — those setting names change between expansions, and a '?' on its own could not be diagnosed without asking you for more. Windowed-fullscreen and maximized windows are recognised in more cases, and addon versions no longer read 'vv1.2.3'.",
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
+
+    -- =====================
+    -- 3.5.3 — What's New
+    -- =====================
+    ["wn_353_brezvisual"] = "Enhancement — The Battle Rez Counter HUD received a visual refresh inspired by Tui's design patterns. The frame now features a professional multi-layer backdrop with inner shadow effects, improved spacing, and refined typography for better readability during combat.",
+    ["wn_353_brezglow"] = "New — An optional glow effect now activates when battle resurrections are available, providing improved visual feedback and making the counter more noticeable at a glance.",
+    ["wn_353_brezcolors"] = "Change — The Battle Rez Counter's color palette has been upgraded with Tui-inspired teal accent colors and better contrast between active (green) and cooldown (red) states for clearer status indication.",
+    ["wn_353_brezlayers"] = "Internal — The Battle Rez Counter frame layout was refactored with proper layer ordering: background, inner shadow, icon texture, cooldown swipe, and text overlays. Better geometry and positioning across all UI elements.",
+    ["wn_353_preytracker"] = "New — Prey Tracker: A movable progress bar displaying active Prey hunt progress (Midnight expansion feature only). Shows the hunt name, difficulty level, and real-time progress percentage with a smooth visual design matching the Battle Rez Counter.",
+    ["wn_353_preyconfig"] = "New — The Prey Tracker is disabled by default (Midnight-only content) and can be enabled in Config → QOL → Combat → Prey Tracker. It automatically hides when no Prey hunt is active and shows a preview during placement mode.",
+    ["wn_353_preylayout"] = "New — The Prey Tracker is fully integrated with TomoMod's unified layout mover system. Drag to position it alongside other HUD elements using `/tm layout`, with synchronized lock/unlock behavior and consistent placement mode previews.",
+    ["wn_353_preyapi"] = "Internal — The Prey Tracker reads C_QuestLog and C_UIWidgetManager APIs to detect active Prey quests and track progress in real-time with a 1-second update rate, providing accurate status information during hunts.",
 
     -- =====================
     -- 3.5.2 — What's New

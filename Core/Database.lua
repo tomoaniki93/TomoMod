@@ -1722,6 +1722,19 @@ TomoMod_Defaults = {
     },
 
     -- =====================
+    -- PREY TRACKER (Midnight)
+    -- Shows Prey hunt progress bar (requires Midnight expansion)
+    -- Displays stage progress and time remaining for active Prey hunts
+    -- =====================
+    preyTracker = {
+        enabled = true,   -- disabled by default (Midnight only)
+        width = 250,
+        height = 20,
+        fontSize = 11,
+        position = { point = "CENTER", relativePoint = "CENTER", x = 0, y = -200 },
+    },
+
+    -- =====================
     -- HOUSING
     -- =====================
     housing = {

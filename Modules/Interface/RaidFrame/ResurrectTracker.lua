@@ -36,9 +36,18 @@ local RES_ICON  = "Interface\\RaidFrame\\RaidFrame-Icon-Rez"
 local BREZ_ICON = "Interface\\Icons\\Spell_Nature_Rebirth"
 local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local SOLID     = "Interface\\Buttons\\WHITE8X8"
-local TEAL  = { 0.047, 0.824, 0.624 }
-local GREEN = { 0.30, 0.90, 0.40 }
-local RED   = { 0.85, 0.25, 0.25 }
+
+-- Color palette (Tui-inspired)
+local COLORS = {
+    accent   = { 0.047, 0.824, 0.624, 1 },    -- Teal (primary)
+    accent2  = { 0.11, 0.459, 0.682, 1 },     -- Blue accent
+    ready    = { 0.30, 0.90, 0.40, 1 },       -- Green
+    cooldown = { 0.85, 0.25, 0.25, 1 },       -- Red
+    bg       = { 0.05, 0.05, 0.06, 0.85 },    -- Dark bg
+    border   = { 0.047, 0.824, 0.624, 0.9 },  -- Teal border
+    shadow   = { 0, 0, 0, 0.4 },              -- Shadow
+    text     = { 1, 1, 1, 1 },                -- White text
+}
 
 -- =====================================
 -- SHARED BATTLE-REZ CHARGE POOL READER
@@ -110,57 +119,113 @@ local function CreateBrezFrame()
     brezFrame:SetFrameStrata("MEDIUM")
     brezFrame:SetMovable(true)
     brezFrame:SetClampedToScreen(true)
+
+    -- ===== BACKDROP: Improved styling with multi-layer effect =====
     brezFrame:SetBackdrop({
         bgFile   = SOLID,
         edgeFile = SOLID,
-        edgeSize = 1,
-        insets   = { left = 1, right = 1, top = 1, bottom = 1 },
+        edgeSize = 2,
+        insets   = { left = 2, right = 2, top = 2, bottom = 2 },
     })
-    brezFrame:SetBackdropColor(0.05, 0.05, 0.06, 0.85)
-    brezFrame:SetBackdropBorderColor(TEAL[1], TEAL[2], TEAL[3], 0.9)
+    brezFrame:SetBackdropColor(COLORS.bg[1], COLORS.bg[2], COLORS.bg[3], COLORS.bg[4])
+    brezFrame:SetBackdropBorderColor(COLORS.border[1], COLORS.border[2], COLORS.border[3], COLORS.border[4])
 
+    -- ===== INNER SHADOW LAYER (for depth) =====
+    local shadowInner = brezFrame:CreateTexture(nil, "BACKGROUND", nil, 1)
+    shadowInner:SetPoint("TOPLEFT", brezFrame, "TOPLEFT", 2, -2)
+    shadowInner:SetPoint("BOTTOMRIGHT", brezFrame, "BOTTOMRIGHT", -2, 2)
+    shadowInner:SetColorTexture(COLORS.shadow[1], COLORS.shadow[2], COLORS.shadow[3], 0.2)
+    brezFrame.shadowInner = shadowInner
+
+    -- ===== ICON LAYER (centered, with trim) =====
     local ico = brezFrame:CreateTexture(nil, "ARTWORK")
-    ico:SetPoint("TOPLEFT", 2, -2)
-    ico:SetPoint("BOTTOMRIGHT", -2, 2)
+    ico:SetPoint("TOPLEFT", 3, -3)
+    ico:SetPoint("BOTTOMRIGHT", -3, 3)
     ico:SetTexture(BREZ_ICON)
     ico:SetTexCoord(0.08, 0.92, 0.08, 0.92)  -- trim the default icon border
     brezFrame.icon = ico
 
+    -- ===== COOLDOWN SWIPE LAYER =====
     local cd = CreateFrame("Cooldown", nil, brezFrame, "CooldownFrameTemplate")
     cd:SetAllPoints(ico)
+    cd:SetFrameLevel(ico:GetFrameLevel() + 1)
     cd:SetDrawEdge(false)
     if cd.SetHideCountdownNumbers then cd:SetHideCountdownNumbers(true) end
-    if cd.SetSwipeColor then cd:SetSwipeColor(0, 0, 0, 0.7) end
+    if cd.SetSwipeColor then cd:SetSwipeColor(COLORS.shadow[1], COLORS.shadow[2], COLORS.shadow[3], 0.7) end
     brezFrame.cooldown = cd
 
-    -- charge count (bottom-right)
+    -- ===== CHARGE COUNT TEXT (bottom-right) =====
     local count = brezFrame:CreateFontString(nil, "OVERLAY")
     count:SetFont(FONT, db.fontSize or 18, "OUTLINE")
-    count:SetPoint("BOTTOMRIGHT", brezFrame, "BOTTOMRIGHT", -2, 2)
+    count:SetPoint("BOTTOMRIGHT", brezFrame, "BOTTOMRIGHT", -3, 3)
     count:SetText("")
+    count:SetJustifyH("RIGHT")
+    count:SetJustifyV("BOTTOM")
     brezFrame.count = count
 
-    -- recharge timer (centered)
+    -- ===== RECHARGE TIMER TEXT (centered) =====
     local timer = brezFrame:CreateFontString(nil, "OVERLAY")
     timer:SetFont(FONT, smax(9, (db.fontSize or 18) - 4), "OUTLINE")
     timer:SetPoint("CENTER", brezFrame, "CENTER", 0, 0)
     timer:SetText("")
-    timer:SetTextColor(1, 1, 1)
+    timer:SetTextColor(COLORS.text[1], COLORS.text[2], COLORS.text[3], COLORS.text[4])
     brezFrame.timer = timer
 
-    -- drag handling (placement mode only — guarded by isLocked)
+    -- ===== OPTIONAL GLOW EFFECT (when charges available) =====
+    brezFrame.glowAnimations = {}
+    brezFrame.hasGlow = false
+
+    local function CreateGlow()
+        if brezFrame.hasGlow then return end
+        local glowFrame = CreateFrame("Frame", nil, brezFrame)
+        glowFrame:SetAllPoints(brezFrame)
+        glowFrame:SetFrameLevel(brezFrame:GetFrameLevel() - 1)
+        
+        local glow = glowFrame:CreateTexture(nil, "BACKGROUND")
+        glow:SetAllPoints(glowFrame)
+        glow:SetColorTexture(COLORS.accent[1], COLORS.accent[2], COLORS.accent[3], 0)
+        glow:SetBlendMode("ADD")
+        
+        brezFrame.glowFrame = glowFrame
+        brezFrame.glowTexture = glow
+        brezFrame.hasGlow = true
+        return glowFrame, glow
+    end
+
+    local function UpdateGlow(hasCharges)
+        if not hasCharges then
+            if brezFrame.glowFrame then
+                brezFrame.glowFrame:Hide()
+            end
+            return
+        end
+        
+        local glowFrame, glow = CreateGlow()
+        glowFrame:Show()
+        
+        -- Subtle pulsing glow animation
+        if glow:GetAlpha() < 0.15 then
+            glow:SetAlpha(0.15)
+        end
+    end
+    brezFrame.UpdateGlow = UpdateGlow
+
+    -- ===== DRAG HANDLING (placement mode only) =====
     brezFrame:RegisterForDrag("LeftButton")
-    brezFrame:SetScript("OnDragStart", function(self) if not isLocked then self:StartMoving() end end)
+    brezFrame:SetScript("OnDragStart", function(self)
+        if not isLocked then self:StartMoving() end
+    end)
     brezFrame:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()
         SavePosition()
     end)
     brezFrame:EnableMouse(false)
 
+    -- ===== DRAG LABEL (shown in placement mode) =====
     local dl = brezFrame:CreateFontString(nil, "OVERLAY")
     dl:SetFont(FONT, 9, "OUTLINE")
-    dl:SetPoint("TOP", brezFrame, "BOTTOM", 0, -2)
-    dl:SetTextColor(TEAL[1], TEAL[2], TEAL[3])
+    dl:SetPoint("TOP", brezFrame, "BOTTOM", 0, -3)
+    dl:SetTextColor(COLORS.accent[1], COLORS.accent[2], COLORS.accent[3], 1)
     dl:SetText((TomoMod_L and TomoMod_L["mover_battlerez"]) or "Battle Rez")
     dl:Hide()
     brezFrame.dragLabel = dl
@@ -178,9 +243,10 @@ function RT.UpdateBrezCounter()
         brezFrame:Show()
         brezFrame.icon:SetDesaturated(false)
         brezFrame.count:SetText("2")
-        brezFrame.count:SetTextColor(GREEN[1], GREEN[2], GREEN[3])
+        brezFrame.count:SetTextColor(COLORS.ready[1], COLORS.ready[2], COLORS.ready[3], COLORS.ready[4])
         brezFrame.timer:SetText("")
         brezFrame.cooldown:Clear()
+        if brezFrame.UpdateGlow then brezFrame.UpdateGlow(true) end
         return
     end
 
@@ -205,11 +271,13 @@ function RT.UpdateBrezCounter()
 
     brezFrame.count:SetText(tostring(cur))
     if cur > 0 then
-        brezFrame.count:SetTextColor(GREEN[1], GREEN[2], GREEN[3])
+        brezFrame.count:SetTextColor(COLORS.ready[1], COLORS.ready[2], COLORS.ready[3], COLORS.ready[4])
         brezFrame.icon:SetDesaturated(false)
+        if brezFrame.UpdateGlow then brezFrame.UpdateGlow(true) end
     else
-        brezFrame.count:SetTextColor(RED[1], RED[2], RED[3])
+        brezFrame.count:SetTextColor(COLORS.cooldown[1], COLORS.cooldown[2], COLORS.cooldown[3], COLORS.cooldown[4])
         brezFrame.icon:SetDesaturated(true)
+        if brezFrame.UpdateGlow then brezFrame.UpdateGlow(false) end
     end
 
     local recharging = (cur < maxC) and start and dur and start > 0 and dur > 0
@@ -269,8 +337,16 @@ function RT.ApplySettings()
     if brezFrame and db then
         local size = db.size or 44
         brezFrame:SetSize(size, size)
-        if brezFrame.count then brezFrame.count:SetFont(FONT, db.fontSize or 18, "OUTLINE") end
-        if brezFrame.timer then brezFrame.timer:SetFont(FONT, smax(9, (db.fontSize or 18) - 4), "OUTLINE") end
+        if brezFrame.count then 
+            brezFrame.count:SetFont(FONT, db.fontSize or 18, "OUTLINE")
+        end
+        if brezFrame.timer then 
+            brezFrame.timer:SetFont(FONT, smax(9, (db.fontSize or 18) - 4), "OUTLINE")
+        end
+        -- Reapply border color (in case it's customized in future)
+        if brezFrame.SetBackdropBorderColor then
+            brezFrame:SetBackdropBorderColor(COLORS.border[1], COLORS.border[2], COLORS.border[3], COLORS.border[4])
+        end
         ApplyPosition()
     end
     RT.UpdateBrezCounter()

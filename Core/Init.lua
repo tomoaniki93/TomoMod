@@ -407,6 +407,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         safeInit("Waypoint",           TomoMod_Waypoint)
         safeInit("Loots",              TomoMod_Loots)
         safeInit("WorldQuestTab",      TomoMod_WorldQuestTab)
+        safeInit("PreyTracker",        TomoMod_PreyTracker)
         -- ActionBarSkin removed in lot P4: the ported Tui module owns action
         -- bar skinning now and self-initialises on ADDON_LOADED.
         safeInit("CharacterSkin",      TomoMod_CharacterSkin)

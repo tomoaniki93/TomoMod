@@ -2313,6 +2313,7 @@ TomoMod_RegisterLocale("deDE", {
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["mover_battlerez"]                  = "Kampf-Rez",
+    ["mover_preytracker"]                = "Beute-Tracker",
 
     ["at_section_general"]               = "Allgemein",
     ["at_opt_enable"]                    = "Aura-Tracker aktivieren",
@@ -3268,6 +3269,16 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
 
     -- =====================
+    -- 3.5.3 — Was ist neu
+    ["wn_353_brezvisual"] = "Verbesserung — Der Battle Rez Counter HUD hat eine visuelle Auffrischung erhalten, inspiriert von Tuis Designmustern. Der Frame verfügt nun über einen professionellen mehrschichtigen Hintergrund mit Schatteneeffekten im Inneren, verbesserten Abständen und verfeinerter Typographie für bessere Lesbarkeit im Kampf.",
+    ["wn_353_brezglow"] = "Neu — Ein optionaler Gloweffekt wird nun aktiviert, wenn Kampfauferstehungen verfügbar sind, was eine verbesserte visuelle Rückmeldung bietet und den Counter auf einen Blick auffälliger macht.",
+    ["wn_353_brezcolors"] = "Änderung — Die Farbpalette des Battle Rez Counters wurde mit Tui-inspirierten Teal-Akzentfarben und besserem Kontrast zwischen aktiven (grün) und Cooldown (rot) Zuständen aktualisiert für eine klarere Statusanzeige.",
+    ["wn_353_brezlayers"] = "Intern — Die Frame-Anordnung des Battle Rez Counters wurde mit korrekter Schichtreihenfolge überarbeitet: Hintergrund, innerer Schatten, Symboltextur, Cooldown-Wisch und Textüberlagerungen. Bessere Geometrie und Positionierung aller UI-Elemente.",
+    ["wn_353_preytracker"] = "Neu — Prey Tracker: Eine verschiebbare Fortschrittsleiste zur Anzeige des aktiven Prey Hunt-Fortschritts (nur Midnight-Erweiterung). Zeigt den Hunt-Namen, Schwierigkeitsstufe und Echtzeit-Fortschrittsprozentsatz mit sanftem visuellen Design passend zum Battle Rez Counter.",
+    ["wn_353_preyconfig"] = "Neu — Der Prey Tracker ist standardmäßig deaktiviert (nur Midnight-Inhalte) und kann unter Konfiguration → QOL → Kampf → Prey Tracker aktiviert werden. Er wird automatisch ausgeblendet, wenn keine Prey Hunt aktiv ist, und zeigt eine Vorschau im Platzierungsmodus.",
+    ["wn_353_preylayout"] = "Neu — Der Prey Tracker ist vollständig in TomoMods einheitliches Mover-Layoutsystem integriert. Ziehen Sie ihn zur Positionierung neben anderen HUD-Elementen mit `/tm layout`, mit synchronisiertem Sperr-/Entsperrverhalten und konsistenten Platzierungsmodus-Vorschaubildern.",
+    ["wn_353_preyapi"] = "Intern — Der Prey Tracker liest C_QuestLog und C_UIWidgetManager APIs, um aktive Prey Quests zu erkennen und Fortschritte in Echtzeit mit einer Updaterate von 1 Sekunde zu verfolgen, was genaue Statusinformationen während Hunts bietet.",
+
     -- 3.5.2 — Was ist neu
     -- =====================
     ["wn_352_icons"] = "Behoben — Die Symbole der Aktionsleisten kamen schwarz zurück. Die Prüfung, die einen leeren Platz erkennen sollte, erwartete das Symbol als Dateipfad — so hat das Spiel früher geantwortet und tut es seit Jahren nicht mehr, es gibt jetzt eine Nummer zurück. Jedes echte Symbol fiel damit durch einen Test, der eigentlich die fehlenden abfangen sollte, wurde gelöscht und hinterließ ein leeres Quadrat an der Stelle deines Zaubers. Sowohl der normale Weg als auch die Ausweichlösung akzeptieren nun beide Antworten.",

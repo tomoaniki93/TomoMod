@@ -2304,6 +2304,7 @@ TomoMod_RegisterLocale("itIT", {
     -- Aura Tracker
     -- ═══════════════════════════════════
     ["mover_battlerez"]                  = "Rez combattimento",
+    ["mover_preytracker"]                = "Tracciatore di Preda",
 
     ["at_section_general"]               = "Generale",
     ["at_opt_enable"]                    = "Attiva tracciatore aure",
@@ -3256,6 +3257,16 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
 
     -- =====================
+    -- 3.5.3 — Novità
+    ["wn_353_brezvisual"] = "Miglioramento — L'HUD del Contatore Battle Rez ha ricevuto un rinnovamento visivo ispirato dai pattern di design di Tui. Il frame ora presenta uno sfondo multistrato professionale con effetti ombra interna, spaziatura migliorata e tipografia raffinata per una migliore leggibilità in combattimento.",
+    ["wn_353_brezglow"] = "Nuovo — Un effetto bagliore opzionale si attiva ora quando le risurrezioni di combattimento sono disponibili, fornendo un miglior feedback visivo e rendendo il contatore più evidente a prima vista.",
+    ["wn_353_brezcolors"] = "Modifica — La tavolozza dei colori del Contatore Battle Rez è stata aggiornata con i colori accento teal ispirati a Tui e un migliore contrasto tra gli stati attivo (verde) e cooldown (rosso) per un'indicazione di stato più chiara.",
+    ["wn_353_brezlayers"] = "Interno — Il layout del frame del Contatore Battle Rez è stato rielaborato con un appropriato ordinamento dei layer: sfondo, ombra interna, texture dell'icona, sweep cooldown e overlay di testo. Migliore geometria e posizionamento di tutti gli elementi UI.",
+    ["wn_353_preytracker"] = "Nuovo — Tracciatore di Preda: Una barra di progresso mobile che visualizza il progresso attivo della caccia Prey (esclusivo dell'espansione Midnight). Mostra il nome della caccia, il livello di difficoltà e la percentuale di progresso in tempo reale con un design visivo fluido che corrisponde al Contatore Battle Rez.",
+    ["wn_353_preyconfig"] = "Nuovo — Il Tracciatore di Preda è disabilitato per impostazione predefinita (contenuto solo Midnight) e può essere abilitato in Configurazione → QOL → Combattimento → Tracciatore di Preda. Si nasconde automaticamente quando nessuna caccia Prey è attiva e mostra un'anteprima in modalità di posizionamento.",
+    ["wn_353_preylayout"] = "Nuovo — Il Tracciatore di Preda è completamente integrato con il sistema mover di layout unificato di TomoMod. Trascinare per posizionarlo insieme ad altri elementi HUD usando `/tm layout`, con comportamento di blocco/sblocco sincronizzato e anteprime coerenti della modalità di posizionamento.",
+    ["wn_353_preyapi"] = "Interno — Il Tracciatore di Preda legge le API C_QuestLog e C_UIWidgetManager per rilevare i quest Prey attivi e tracciare il progresso in tempo reale con una frequenza di aggiornamento di 1 secondo, fornendo informazioni di stato accurate durante le cacce.",
+
     -- 3.5.2 — Novità
     -- =====================
     ["wn_352_icons"] = "Correzione — Le icone delle barre delle azioni tornavano nere. Il controllo che doveva individuare uno spazio vuoto si aspettava che l'icona arrivasse come percorso di file, che è come rispondeva il gioco un tempo e non risponde più da anni: ora restituisce un numero. Così ogni icona vera falliva un test scritto per intercettare quelle mancanti, veniva cancellata e lasciava un quadrato vuoto al posto della tua magia. Sia la via normale sia quella di riserva accettano ora entrambe le risposte.",
