@@ -74,6 +74,90 @@ function Helpers.GetSkinBorderColor()
     return 0, 0, 0, 1
 end
 
+-- Ported verbatim from Tui (TUI/core/utils.lua): the action bar core calls
+-- these five and nothing else from that file.
+
+function Helpers.CreateStateTable()
+    local tbl = setmetatable({}, { __mode = "k" })
+    local function get(key)
+        local s = tbl[key]
+        if not s then s = {}; tbl[key] = s end
+        return s
+    end
+    return tbl, get
+end
+
+function Helpers.GetCore()
+    return ns.Addon
+end
+
+function Helpers.HasSecretValue(...)
+    if not issecretvalue then return false end
+    for i = 1, select("#", ...) do
+        if issecretvalue(select(i, ...)) then
+            return true
+        end
+    end
+    return false
+end
+
+function Helpers.IsSecretValue(value)
+    return issecretvalue and issecretvalue(value) or false
+end
+
+function Helpers.SafeToNumber(value, fallback)
+    if issecretvalue and issecretvalue(value) then
+        return fallback or 0
+    end
+    local num = tonumber(value)
+    if num then
+        return num
+    end
+    return fallback or 0
+end
+
+-- Added for lot P3 (cooldowns / usability / glow / flyout / extra buttons).
+-- Ported verbatim from Tui, with the fail-closed secret policy intact: a value
+-- we cannot prove safe is treated as restricted rather than assumed benign.
+
+function Helpers.FrameMutationRestricted(frame)
+    if not frame then return false end
+    if frame.IsProtected then
+        local ok, answer = pcall(frame.IsProtected, frame)
+        if not ok then return true end
+        if issecretvalue and issecretvalue(answer) then return true end
+        if answer then return true end
+    end
+    if frame.IsAnchoringRestricted then
+        local ok, answer = pcall(frame.IsAnchoringRestricted, frame)
+        if not ok then return true end
+        if issecretvalue and issecretvalue(answer) then return true end
+        if answer then return true end
+    end
+    return false
+end
+
+function Helpers.SafeNumberOrNil(value)
+    if issecretvalue and issecretvalue(value) then
+        return nil
+    end
+    return tonumber(value)
+end
+
+function Helpers.SafeValue(value, fallback)
+    if issecretvalue and issecretvalue(value) then
+        return fallback
+    end
+    return value
+end
+
+-- Tui resolves this from its own skin colour settings; TomoMod has no
+-- equivalent yet, so it answers with the brand accent until lot P5 wires the
+-- real setting.
+function Helpers.GetSkinAccentColor()
+    return Helpers.GetSkinBorderColor()
+end
+
 -- Keybind text formatting. Ported code calls ns.FormatKeybind(key).
 local ABBREV = {
     { "MOUSEWHEELUP", "mwu" }, { "MOUSEWHEELDOWN", "mwd" },
