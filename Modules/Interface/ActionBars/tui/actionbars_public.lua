@@ -26,6 +26,10 @@ function ActionBarsOwned:Initialize()
 
     ownedEventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
     ownedEventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
+    -- TOMOMOD: the override bar was never listened to. Vehicles, skyriding and
+    -- druid Flight Form all swap the player onto it, and without this event the
+    -- module never learns the page changed.
+    ownedEventFrame:RegisterEvent("UPDATE_OVERRIDE_ACTIONBAR")
     ownedEventFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORM")
     ownedEventFrame:RegisterEvent("UPDATE_SHAPESHIFT_FORMS")
     ownedEventFrame:RegisterEvent("UPDATE_SHAPESHIFT_COOLDOWN")

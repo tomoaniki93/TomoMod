@@ -246,6 +246,11 @@ function OnOwnedEvent(self, event, ...)
 
     elseif event == "ACTIONBAR_PAGE_CHANGED"
         or event == "UPDATE_BONUS_ACTIONBAR"
+        -- TOMOMOD: routed here rather than to the UPDATE_VEHICLE_ACTIONBAR
+        -- branch below. That branch only schedules a visual rescan; this one
+        -- also rebuilds the slotMap and repaints, which is what an override
+        -- swap actually needs -- the buttons point at different slots.
+        or event == "UPDATE_OVERRIDE_ACTIONBAR"
         or event == "UPDATE_SHAPESHIFT_FORM"
         or event == "UPDATE_SHAPESHIFT_FORMS"
         or event == "UPDATE_STEALTH" then
@@ -597,6 +602,10 @@ function OnOwnedEvent(self, event, ...)
         ScheduleABCooldownUpdate()
         ActionBarsOwned.UpdateAllOverlayGlows()
         ApplyBar1OverrideBindings()
+        -- TOMOMOD: a vehicle swap repoints bar 1 at different action slots, so
+        -- a visual rescan alone leaves the slotMap stale and the icons behind.
+        -- Re-enter this handler through the paging path, which rebuilds both.
+        OnOwnedEvent(self, "ACTIONBAR_PAGE_CHANGED")
 
     elseif event == "UPDATE_EXTRA_ACTIONBAR" then
         RefreshExtraButtons()
