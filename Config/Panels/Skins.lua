@@ -92,6 +92,16 @@ local function BuildChatFrameTab(parent)
     end)
     y = ny
 
+    local _, ny = W.CreateDropdown(c, L["opt_chat_copy_button"], {
+        { text = L["opt_chat_copy_button_always"], value = "always" },
+        { text = L["opt_chat_copy_button_hover"],  value = "hover"  },
+        { text = L["opt_chat_copy_button_hidden"], value = "hidden" },
+    }, TomoModDB.chatFrameSkin.copyButtonMode or "hover", y, function(v)
+        TomoModDB.chatFrameSkin.copyButtonMode = v
+        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    end)
+    y = ny
+
     -- ── Historique du chat ────────────────────────────────────
     local _, ny = W.CreateSectionHeader(c, L["chat_history_section"], y)
     y = ny

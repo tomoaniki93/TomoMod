@@ -69,10 +69,6 @@ local function NoOp() end
 -- Tiny helpers
 -- =====================================
 
-local function RGBToHex(r, g, b)
-    return format("|cff%02x%02x%02x", (r or 1) * 255, (g or 1) * 255, (b or 1) * 255)
-end
-
 local function GetClassColorObj(class)
     if class and C_ClassColor and C_ClassColor.GetClassColor then
         return C_ClassColor.GetClassColor(class)
@@ -185,7 +181,6 @@ local Keywords = {}
 local hooks = {}
 local Smileys = {}
 local SmileysForMenu = {}
-local copyLines = {}
 local ignoreChats = {[2] = "Log", [3] = "Voice"}
 
 local SoundTimer
@@ -347,59 +342,13 @@ end
 
 -- =====================================
 -- COPY CHAT
+-- ---------------------------------------------------------------------
+-- Line extraction, the copy window and the URL popup all live in
+-- ChatCopy.lua now (ported from TUI). This module only wires the entry
+-- points: the sidebar icon, the per-window button and the URL hyperlink.
 -- =====================================
 
-local removeIconFromLine
-do
-    local raidIconFunc = function(x)
-        x = x ~= "" and _G["RAID_TARGET_" .. x]
-        return x and ("{" .. strlower(x) .. "}") or ""
-    end
-    local stripTextureFunc = function(w, x, y)
-        if x == "" then
-            return (w ~= "" and w) or (y ~= "" and y) or ""
-        end
-    end
-    local hyperLinkFunc = function(w, x, y)
-        if w ~= "" then return end
-        return y
-    end
-    local fourString = function(v, w, x, y)
-        return format("%s%s%s", v, w, (v and v == "1" and x) or y)
-    end
-
-    removeIconFromLine = function(text)
-        text = gsub(text, [[|TInterface\TargetingFrame\UI%-RaidTargetingIcon_(%d+):0|t]], raidIconFunc)
-        text = gsub(text, "(%s?)(|?)|[TA].-|[ta](%s?)", stripTextureFunc)
-        text = gsub(text, "(|?)|H(.-)|h(.-)|h", hyperLinkFunc)
-        text = gsub(text, "(%d+)(.-)|4(.-):(.-);", fourString)
-        return text
-    end
-end
-
-local function colorizeLine(text, r, g, b)
-    return format("%s%s|r", RGBToHex(r, g, b), text)
-end
-
-local function getLines(frame)
-    local index = 1
-    local maxMessages = 128
-    local frameMessages = frame:GetNumMessages()
-    local startLine = frameMessages <= maxMessages and 1 or frameMessages + 1 - maxMessages
-
-    for i = startLine, frameMessages do
-        local message, r, g, b = frame:GetMessageInfo(i)
-        if message and not ChatFunctions:IsMessageProtected(message) then
-            r, g, b = r or 1, g or 1, b or 1
-            message = removeIconFromLine(message)
-            message = colorizeLine(message, r, g, b)
-            copyLines[index] = message
-            index = index + 1
-        end
-    end
-
-    return index - 1
-end
+local Copy = TomoMod_ChatCopy
 
 -- =====================================
 -- EMOJI / SMILEY SYSTEM
@@ -470,40 +419,21 @@ local function GetSmileyReplacementText(msg)
 end
 
 -- =====================================
--- URL DETECTION (TUI_Core style â€” StaticPopup for copy)
+-- URL DETECTION (themed copy popup lives in ChatCopy.lua)
 -- =====================================
 
 local function GetChatLink(url)
     return format("|Hurl:%s|h|cFFFFE29E[%s]|r|h", url, url)
 end
 
-local function SetupURLPopup()
-    if not StaticPopupDialogs["TOMOMOD_URL_COPY"] then
-        StaticPopupDialogs["TOMOMOD_URL_COPY"] = {
-            text = "|cFF00CCFFTomoMod|r\n(CTRL+C to Copy, CTRL+V to Paste)",
-            button1 = CLOSE,
-            hasEditBox = true,
-            maxLetters = 1024,
-            editBoxWidth = 350,
-            hideOnEscape = 1,
-            timeout = 0,
-            whileDead = 1,
-            preferredIndex = 3,
-        }
-    end
-end
-
 local function OnHyperlinkClickURL(self, linkData, text, button)
     local linkType, value = linkData:match("(%a+):(.+)")
     if linkType == "url" then
-        SetupURLPopup()
-        local popup = StaticPopup_Show("TOMOMOD_URL_COPY")
-        if popup then
-            local editbox = _G[popup:GetName() .. "EditBox"]
-            editbox:SetText(value)
-            editbox:SetFocus()
-            editbox:HighlightText()
-        end
+        -- Was a StaticPopup: its edit box had to be reached through the
+        -- global "<name>EditBox", which 11.2 replaced with a :GetEditBox()
+        -- accessor. The themed popup owns its edit box outright, so the
+        -- accessor drift cannot break the copy path again.
+        Copy.ShowURLPopup(value)
     elseif linkData == "weakauras" then
         ChatFrame_OnHyperlinkShow(self, linkData, text, button)
     else
@@ -783,7 +713,7 @@ local function handleChatFrameFadeIn(chatFrame, force)
 
     local frameName = chatFrame:GetName()
 
-    if chatFrame.copyButton then
+    if chatFrame.copyButton and Copy.ButtonMode() == "always" then
         UIFrameFadeIn(chatFrame.copyButton, 0.5, chatFrame.copyButton:GetAlpha(), 0.35)
     end
 
@@ -802,7 +732,7 @@ local function handleChatFrameFadeOut(chatFrame, force)
 
     local frameName = chatFrame:GetName()
 
-    if chatFrame.copyButton then
+    if chatFrame.copyButton and Copy.ButtonMode() == "always" then
         UIFrameFadeOut(chatFrame.copyButton, 2, chatFrame.copyButton:GetAlpha(), 0)
     end
 
@@ -1519,23 +1449,16 @@ local function CreateSideBarIcon_CopyChat(parent)
 
     btn:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Copy Chat Text")
+        GameTooltip:SetText(L["chat_copy_title"])
         GameTooltip:Show()
     end)
     btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
     btn:SetScript("OnClick", function()
         PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or 856)
-        if not TomoModCopyChatFrame then return end
-        if not TomoModCopyChatFrame:IsShown() then
-            local count = getLines(ChatFrame1)
-            local text = table.concat(copyLines, " \n", 1, count)
-            TomoModCopyChatFrameEditBox:SetText(text)
-            TomoModCopyChatFrame:Show()
-        else
-            TomoModCopyChatFrameEditBox:SetText("")
-            TomoModCopyChatFrame:Hide()
-        end
+        -- Copy whatever tab the player is actually reading, not always
+        -- ChatFrame1: the sidebar is shared by the whole dock.
+        Copy.Toggle(SELECTED_CHAT_FRAME or ChatFrame1)
     end)
 
     return btn
@@ -2386,102 +2309,6 @@ local function styleChatWindow(frame)
 end
 
 -- =====================================
--- BUILD COPY CHAT FRAME
--- =====================================
-
-local function BuildCopyChatFrame()
-    local frame = CreateFrame("Frame", "TomoModCopyChatFrame", UIParent, "BackdropTemplate")
-    -- [fix] Escape captured by the window itself. Going through
-    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
-    -- ClearTarget/SpellStopCasting calls are then refused once anything
-    -- has tainted the path -- and the player can no longer quit.
-    TomoMod_Utils.CloseOnEscape(_G["TomoModCopyChatFrame"])
-
-    frame:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8X8",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        edgeSize = 14,
-        insets = { left = 3, right = 3, top = 3, bottom = 3 },
-    })
-    frame:SetBackdropColor(0.05, 0.05, 0.05, 0.9)
-    frame:SetBackdropBorderColor(0.3, 0.3, 0.3, 1)
-
-    frame:SetSize(700, 200)
-    frame:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 15)
-    frame:Hide()
-    frame:SetMovable(true)
-    frame:EnableMouse(true)
-    frame:SetResizable(true)
-    frame:SetResizeBounds(350, 100)
-    frame:SetScript("OnMouseDown", function(cf, button)
-        if button == "LeftButton" and not cf.isMoving then
-            cf:StartMoving()
-            cf.isMoving = true
-        elseif button == "RightButton" and not cf.isSizing then
-            cf:StartSizing()
-            cf.isSizing = true
-        end
-    end)
-    frame:SetScript("OnMouseUp", function(cf, button)
-        if button == "LeftButton" and cf.isMoving then
-            cf:StopMovingOrSizing()
-            cf.isMoving = false
-        elseif button == "RightButton" and cf.isSizing then
-            cf:StopMovingOrSizing()
-            cf.isSizing = false
-        end
-    end)
-    frame:SetScript("OnHide", function(cf)
-        if cf.isMoving or cf.isSizing then
-            cf:StopMovingOrSizing()
-            cf.isMoving = false
-            cf.isSizing = false
-        end
-    end)
-    frame:SetFrameStrata("DIALOG")
-
-    -- Title bar
-    local title = frame:CreateFontString(nil, "OVERLAY")
-    title:SetFont(ADDON_FONT_BOLD, 14, "")
-    title:SetPoint("TOP", 0, -8)
-    title:SetText("Copy Chat Text")
-
-    local editBox = CreateFrame("EditBox", "TomoModCopyChatFrameEditBox", frame)
-    editBox:SetHeight(200)
-    editBox:SetMultiLine(true)
-    editBox:SetMaxLetters(99999)
-    editBox:EnableMouse(true)
-    editBox:SetAutoFocus(false)
-    editBox:SetFontObject("ChatFontNormal")
-    editBox:SetFont(ADDON_FONT, 14, "")
-    editBox:SetScript("OnEscapePressed", function() frame:Hide() end)
-    editBox:SetScript("OnTextChanged", function(_, userInput)
-        if userInput then return end
-        local _, maxValue = TomoModCopyChatFrameScrollFrame.ScrollBar:GetMinMaxValues()
-        for _ = 1, maxValue do
-            ScrollFrameTemplate_OnMouseWheel(TomoModCopyChatFrameScrollFrame, -1)
-        end
-    end)
-    frame.editBox = editBox
-
-    local scrollFrame = CreateFrame("ScrollFrame", "TomoModCopyChatFrameScrollFrame", frame, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", 8, -30)
-    scrollFrame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -30, 8)
-    scrollFrame:SetScript("OnSizeChanged", function(_, width, height)
-        TomoModCopyChatFrameEditBox:SetSize(width, height)
-    end)
-    scrollFrame:SetScrollChild(editBox)
-    editBox:SetWidth(scrollFrame:GetWidth())
-    frame.scrollFrame = scrollFrame
-
-    frame.close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-    frame.close:SetPoint("TOPRIGHT")
-    frame.close:SetFrameLevel(frame.close:GetFrameLevel() + 1)
-    frame.close:EnableMouse(true)
-    frame.close:SetSize(20, 20)
-end
-
--- =====================================
 -- SAVE / DISPLAY CHAT HISTORY
 -- =====================================
 
@@ -2887,7 +2714,7 @@ local function LoadChat()
         CombatLogQuickButtonFrame_CustomTexture:Hide()
     end
 
-    BuildCopyChatFrame()
+    Copy.ApplyButtons(CHAT_FRAMES)
 
     -- Events
     eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -2928,6 +2755,10 @@ function CFS.ApplySettings()
         end
     end
 
+    -- Copy buttons (always / hover / hidden) + copy window font
+    Copy.ApplyButtons(CHAT_FRAMES)
+    Copy.ApplySettings()
+
     -- Re-apply skin style to container (allows live switching)
     local container = ChatFrame1 and ChatFrame1.tuiContainer
     if container then
@@ -2949,7 +2780,9 @@ function CFS.ApplySettings()
                 frame:SetAlpha(1)
                 local tab = GetTab(frame)
                 if tab then tab:SetAlpha(1) end
-                if frame.copyButton then frame.copyButton:SetAlpha(0.35) end
+                if frame.copyButton and Copy.ButtonMode() == "always" then
+                    frame.copyButton:SetAlpha(0.35)
+                end
             end
         end
     end
@@ -2997,13 +2830,8 @@ function CFS.ApplyHistorySettings()
 end
 
 -- Public helper for ChatFrameUI's copy-chat sidebar icon
-function CFS.CopyChatToFrame()
-    if not TomoModCopyChatFrame then return end
-    local count = getLines(ChatFrame1)
-    local text = table.concat(copyLines, " \n", 1, count)
-    if TomoModCopyChatFrameEditBox then
-        TomoModCopyChatFrameEditBox:SetText(text)
-    end
+function CFS.CopyChatToFrame(chatFrame)
+    Copy.Show(chatFrame or SELECTED_CHAT_FRAME or ChatFrame1)
 end
 
 function CFS.Initialize()

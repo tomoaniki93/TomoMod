@@ -192,16 +192,315 @@ TomoMod_Defaults = {
         showCurrencyID = true,
         showAchievementID = true,
     },
-    actionBarSkin = {
-        enabled = false,
-        skinStyle = "classic",
-        useClassColor = true,
-    },
+    -- Action bar defaults, lifted from Tui (TUI/core/defaults.lua) so the
+    -- ported module finds every key it reads. Without this its settings tables
+    -- are empty and buttons render with no size, no font and no colour.
+    -- Old TomoMod keys (shiftReveal, positions, the previous per-bar shape)
+    -- are migrated in Core/Migrations.lua rather than kept side by side.
     actionBars = {
         enabled = true,
-        shiftReveal = false,
-        bars = {},       -- per-bar overrides (lazy-filled by ActionBars.lua)
-        positions = {},  -- per-bar saved positions
+        engine = "owned",
+        global = {
+            skinEnabled = true,
+            iconSize = 36,
+            iconZoom = 0.05,
+            showBackdrop = true,
+            backdropAlpha = 0.2,
+            showGloss = true,
+            glossAlpha = 0.3,
+            showFlash = "qui",
+            showBorders = true,
+            showProfessionQuality = true,
+            showKeybinds = true,
+            showMacroNames = true,
+            showCounts = true,
+            hideEmptyKeybinds = false,
+            keybindFontSize = 12,
+            keybindColor = {1, 1, 1, 1},
+            keybindAnchor = "TOPRIGHT",
+            keybindOffsetX = 0,
+            keybindOffsetY = 0,
+            macroNameFontSize = 10,
+            macroNameColor = {1, 1, 1, 1},
+            macroNameAnchor = "BOTTOM",
+            macroNameOffsetX = 0,
+            macroNameOffsetY = 0,
+            countFontSize = 12,
+            countColor = {1, 1, 1, 1},
+            countAnchor = "BOTTOMRIGHT",
+            countOffsetX = 0,
+            countOffsetY = 0,
+            showCooldownText = true,
+            cooldownTextFontSize = 14,
+            cooldownTextColor = {1, 1, 1, 1},
+            cooldownTextAnchor = "CENTER",
+            cooldownTextOffsetX = 0,
+            cooldownTextOffsetY = 0,
+            barScale = 1.0,
+            buttonSpacing = 0,
+            hideEmptySlots = false,
+            lockButtons = false,
+            rangeIndicator = true,
+            rangeColor = {0.8, 0.1, 0.1, 1},
+            usabilityIndicator = true,
+            usabilityColor = {0.4, 0.4, 0.4, 1},
+            manaColor = {0.5, 0.5, 1.0, 1},
+            fastUsabilityUpdates = false,
+            showTooltips = true,
+            useOnKeyDown = false,
+            assistedHighlight = false,
+            externalSkinning = false,
+            iconSkin = "Default",
+            glowSource = "TUI",
+            glowStyle = "Button",
+            glowColorSource = "theme",
+            glowColor = {0.2, 0.82, 0.6, 1},
+            glowLength = 0,
+            glowLines = 8,
+            glowFrequency = 0.25,
+            glowThickness = 2,
+            glowParticles = 4,
+            glowScale = 1,
+        },
+        fade = {
+            enabled = false,
+            fadeInDuration = 0.2,
+            fadeOutDuration = 0.3,
+            fadeOutAlpha = 0.0,
+            fadeOutDelay = 0.5,
+            alwaysShowInCombat = false,
+            showWhenSpellBookOpen = false,
+            keepLeaveVehicleVisible = false,
+            disableBelowMaxLevel = false,
+            linkBars1to8 = true,
+        },
+        bars = {
+            bar1 = {
+                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                hidePageArrow = true,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal",
+                    columns = 12,
+                    iconCount = 12,
+                    buttonSize = 30,
+                    buttonSpacing = 0,
+                    growUp = false,
+                    growLeft = false,
+                    flyoutDirection = "AUTO",
+                },
+                overrideEnabled = false,
+                iconZoom = 0.05, showBackdrop = nil, backdropAlpha = 0,
+                showGloss = nil, glossAlpha = 0,
+                showKeybinds = nil, hideEmptyKeybinds = nil, keybindFontSize = nil,
+                keybindColor = nil, keybindAnchor = nil, keybindOffsetX = nil, keybindOffsetY = nil,
+                showMacroNames = nil, macroNameFontSize = nil, macroNameColor = nil,
+                macroNameAnchor = nil, macroNameOffsetX = nil, macroNameOffsetY = nil,
+                showCounts = nil, countFontSize = nil, countColor = nil,
+                countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
+            },
+            bar2 = {
+                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal", columns = 12, iconCount = 12,
+                    buttonSize = 30, buttonSpacing = 0, growUp = false, growLeft = false,
+                    flyoutDirection = "AUTO",
+                },
+                overrideEnabled = false,
+                iconZoom = 0.05, showBackdrop = nil, backdropAlpha = 0,
+                showGloss = nil, glossAlpha = 0,
+                showKeybinds = nil, hideEmptyKeybinds = nil, keybindFontSize = nil,
+                keybindColor = nil, keybindAnchor = nil, keybindOffsetX = nil, keybindOffsetY = nil,
+                showMacroNames = nil, macroNameFontSize = nil, macroNameColor = nil,
+                macroNameAnchor = nil, macroNameOffsetX = nil, macroNameOffsetY = nil,
+                showCounts = nil, countFontSize = nil, countColor = nil,
+                countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
+            },
+            bar3 = {
+                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal", columns = 12, iconCount = 12,
+                    buttonSize = 30, buttonSpacing = 0, growUp = false, growLeft = false,
+                    flyoutDirection = "AUTO",
+                },
+                overrideEnabled = false,
+                iconZoom = 0.05, showBackdrop = nil, backdropAlpha = 0,
+                showGloss = nil, glossAlpha = 0,
+                showKeybinds = nil, hideEmptyKeybinds = nil, keybindFontSize = nil,
+                keybindColor = nil, keybindAnchor = nil, keybindOffsetX = nil, keybindOffsetY = nil,
+                showMacroNames = nil, macroNameFontSize = nil, macroNameColor = nil,
+                macroNameAnchor = nil, macroNameOffsetX = nil, macroNameOffsetY = nil,
+                showCounts = nil, countFontSize = nil, countColor = nil,
+                countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
+            },
+            bar4 = {
+                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal", columns = 6, iconCount = 12,
+                    buttonSize = 30, buttonSpacing = 0, growUp = false, growLeft = false,
+                    flyoutDirection = "AUTO",
+                },
+                overrideEnabled = false,
+                iconZoom = 0.05, showBackdrop = nil, backdropAlpha = 0,
+                showGloss = nil, glossAlpha = 0,
+                showKeybinds = nil, hideEmptyKeybinds = nil, keybindFontSize = nil,
+                keybindColor = nil, keybindAnchor = nil, keybindOffsetX = nil, keybindOffsetY = nil,
+                showMacroNames = nil, macroNameFontSize = nil, macroNameColor = nil,
+                macroNameAnchor = nil, macroNameOffsetX = nil, macroNameOffsetY = nil,
+                showCounts = nil, countFontSize = nil, countColor = nil,
+                countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
+            },
+            bar5 = {
+                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal", columns = 6, iconCount = 12,
+                    buttonSize = 30, buttonSpacing = 0, growUp = false, growLeft = false,
+                    flyoutDirection = "AUTO",
+                },
+                overrideEnabled = false,
+                iconZoom = 0.05, showBackdrop = nil, backdropAlpha = 0,
+                showGloss = nil, glossAlpha = 0,
+                showKeybinds = nil, hideEmptyKeybinds = nil, keybindFontSize = nil,
+                keybindColor = nil, keybindAnchor = nil, keybindOffsetX = nil, keybindOffsetY = nil,
+                showMacroNames = nil, macroNameFontSize = nil, macroNameColor = nil,
+                macroNameAnchor = nil, macroNameOffsetX = nil, macroNameOffsetY = nil,
+                showCounts = nil, countFontSize = nil, countColor = nil,
+                countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
+            },
+            bar6 = {
+                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal", columns = 12, iconCount = 12,
+                    buttonSize = 30, buttonSpacing = 0, growUp = false, growLeft = false,
+                    flyoutDirection = "AUTO",
+                },
+                overrideEnabled = false,
+                iconZoom = 0.05, showBackdrop = nil, backdropAlpha = 0,
+                showGloss = nil, glossAlpha = 0,
+                showKeybinds = nil, hideEmptyKeybinds = nil, keybindFontSize = nil,
+                keybindColor = nil, keybindAnchor = nil, keybindOffsetX = nil, keybindOffsetY = nil,
+                showMacroNames = nil, macroNameFontSize = nil, macroNameColor = nil,
+                macroNameAnchor = nil, macroNameOffsetX = nil, macroNameOffsetY = nil,
+                showCounts = nil, countFontSize = nil, countColor = nil,
+                countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
+            },
+            bar7 = {
+                enabled = false, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal", columns = 12, iconCount = 12,
+                    buttonSize = 30, buttonSpacing = 0, growUp = false, growLeft = false,
+                    flyoutDirection = "AUTO",
+                },
+                overrideEnabled = false,
+                iconZoom = 0.05, showBackdrop = nil, backdropAlpha = 0,
+                showGloss = nil, glossAlpha = 0,
+                showKeybinds = nil, hideEmptyKeybinds = nil, keybindFontSize = nil,
+                keybindColor = nil, keybindAnchor = nil, keybindOffsetX = nil, keybindOffsetY = nil,
+                showMacroNames = nil, macroNameFontSize = nil, macroNameColor = nil,
+                macroNameAnchor = nil, macroNameOffsetX = nil, macroNameOffsetY = nil,
+                showCounts = nil, countFontSize = nil, countColor = nil,
+                countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
+            },
+            bar8 = {
+                enabled = false, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal", columns = 12, iconCount = 12,
+                    buttonSize = 30, buttonSpacing = 0, growUp = false, growLeft = false,
+                    flyoutDirection = "AUTO",
+                },
+                overrideEnabled = false,
+                iconZoom = 0.05, showBackdrop = nil, backdropAlpha = 0,
+                showGloss = nil, glossAlpha = 0,
+                showKeybinds = nil, hideEmptyKeybinds = nil, keybindFontSize = nil,
+                keybindColor = nil, keybindAnchor = nil, keybindOffsetX = nil, keybindOffsetY = nil,
+                showMacroNames = nil, macroNameFontSize = nil, macroNameColor = nil,
+                macroNameAnchor = nil, macroNameOffsetX = nil, macroNameOffsetY = nil,
+                showCounts = nil, countFontSize = nil, countColor = nil,
+                countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
+            },
+            pet = {
+                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal", columns = 10, iconCount = 10,
+                    buttonSize = nil, buttonSpacing = nil, growUp = false, growLeft = false,
+                },
+                overrideEnabled = false,
+                iconZoom = 0.05, showBackdrop = nil, backdropAlpha = 0,
+                showGloss = nil, glossAlpha = 0,
+                showKeybinds = nil, hideEmptyKeybinds = nil, keybindFontSize = nil,
+                keybindColor = nil, keybindAnchor = nil, keybindOffsetX = nil, keybindOffsetY = nil,
+                showMacroNames = nil, macroNameFontSize = nil, macroNameColor = nil,
+                macroNameAnchor = nil, macroNameOffsetX = nil, macroNameOffsetY = nil,
+                showCounts = nil, countFontSize = nil, countColor = nil,
+                countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
+            },
+            stance = {
+                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal", columns = 10, iconCount = 10,
+                    buttonSize = nil, buttonSpacing = nil, growUp = false, growLeft = false,
+                },
+                overrideEnabled = false,
+                iconZoom = 0.05, showBackdrop = nil, backdropAlpha = 0,
+                showGloss = nil, glossAlpha = 0,
+                showKeybinds = nil, hideEmptyKeybinds = nil, keybindFontSize = nil,
+                keybindColor = nil, keybindAnchor = nil, keybindOffsetX = nil, keybindOffsetY = nil,
+                showMacroNames = nil, macroNameFontSize = nil, macroNameColor = nil,
+                macroNameAnchor = nil, macroNameOffsetX = nil, macroNameOffsetY = nil,
+                showCounts = nil, countFontSize = nil, countColor = nil,
+                countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
+            },
+            microbar = {
+                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                clickthrough = false,
+                ticketIcon = { position = "auto", offsetX = 0, offsetY = 0 },
+                ownedLayout = {
+                    orientation = "horizontal", columns = 12, iconCount = 12,
+                    buttonSize = 32, buttonHeight = 40, buttonSpacing = -8,
+                    growUp = false, growLeft = false,
+                },
+            },
+            bags = {
+                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                ownedPosition = nil,
+                ownedLayout = {
+                    orientation = "horizontal", columns = 6, iconCount = 6,
+                    buttonSize = 32, buttonSpacing = 2, growUp = false, growLeft = false,
+                },
+            },
+            extraActionButton = {
+                enabled = true,
+                fadeEnabled = nil,
+                fadeOutAlpha = nil,
+                alwaysShow = true,
+                scale = 1.0,
+                offsetX = 0,
+                offsetY = 0,
+                position = { point = "CENTER", relPoint = "CENTER", x = -120.833, y = -25.833 },
+                hideArtwork = false,
+            },
+            zoneAbility = {
+                enabled = true,
+                fadeEnabled = nil,
+                fadeOutAlpha = nil,
+                alwaysShow = true,
+                scale = 1.0,
+                offsetX = 0,
+                offsetY = 0,
+                position = { point = "CENTER", relPoint = "CENTER", x = 150, y = -27.5 },
+                hideArtwork = false,
+            },
+        },
     },
     diagnostics = {
         enabled = false,
@@ -389,6 +688,7 @@ TomoMod_Defaults = {
         findURL = true,
         emoji = true,
         classColorMentions = true,
+        copyButtonMode = "hover",    -- "always" | "hover" | "hidden"
         chatHistory = true,
         historyMaxLines = 128,       -- hard cap on stored lines (10-500)
         historyMaxAge = 21600,       -- seconds; 0 = no age limit (6h default)
@@ -1496,6 +1796,28 @@ local function TomoMod_RunMigrations()
     -- Blizzard's own Backdrop.lua, and the frames get reshaped every
     -- patch. Nothing here can be carried anywhere, so the table is simply
     -- dropped rather than left orphaned in every profile.
+    -- The action bar system was rebuilt on the engine ported from Tui. The old
+    -- schema shares nothing with the new one -- different key names, different
+    -- nesting, different meaning for the ones that look alike -- so there is
+    -- nothing to carry across. The table is dropped and refilled from the new
+    -- defaults on the next MergeTables, and actionBarSkin goes with it since
+    -- the module that read it no longer exists.
+    --
+    -- This is a deliberate loss of the player's bar settings. Translating the
+    -- old keys would mean guessing at equivalences that mostly do not hold,
+    -- and a wrong guess is worse than a clean default: it produces a layout
+    -- the player never chose and cannot trace back to anything.
+    --
+    -- Note the CopyTable rather than a plain nil: migrations run AFTER
+    -- MergeTables, so nilling the table here would leave it empty until the
+    -- next login. It is replaced with a fresh copy of the new defaults so the
+    -- bars come up correctly on this very session.
+    if not done.actionBarsTuiPort then
+        done.actionBarsTuiPort = true
+        TomoModDB.actionBars = CopyTable(TomoMod_Defaults.actionBars)
+        TomoModDB.actionBarSkin = nil
+    end
+
     if not done.dropBuffSkin then
         done.dropBuffSkin = true
         TomoModDB.buffSkin = nil
@@ -1573,6 +1895,18 @@ local function TomoMod_RunMigrations()
         done.chatDropCopyLines = true
         if type(TomoModDB.chatFrameSkin) == "table" then
             TomoModDB.chatFrameSkin.copyChatLines = nil
+        end
+    end
+
+    -- The copy window moved to the TUI presentation and gained a per-window
+    -- copy button. Existing profiles have no copyButtonMode, so seed the
+    -- default explicitly rather than relying on the nil fallback -- the GUI
+    -- dropdown needs a concrete value to show a selection.
+    if not done.chatCopyButtonMode then
+        done.chatCopyButtonMode = true
+        local cfs = TomoModDB.chatFrameSkin
+        if type(cfs) == "table" and cfs.copyButtonMode == nil then
+            cfs.copyButtonMode = "hover"
         end
     end
 

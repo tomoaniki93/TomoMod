@@ -9,8 +9,9 @@
 -- tables in place under TomoModDB, so the "active profile" at runtime IS
 -- TomoModDB; CreateDBGetter("actionBars") therefore hands back
 -- TomoModDB.actionBars and the ported code finds db.global.* and db.bars.*
--- exactly where it expects them. Migration of the old TomoMod keys lands in
--- lot P5.
+-- exactly where it expects them. Defaults live in Core/Database.lua under
+-- TomoMod_Defaults.actionBars (lifted from Tui in lot P5) so the profile engine
+-- and the reset paths see them like any other module.
 -- =====================================================================
 
 local ns = TomoMod_TuiNS
@@ -30,11 +31,18 @@ function Helpers.CreateDBGetter(moduleKey)
         if not profile then return nil end
         local db = profile[moduleKey]
         if type(db) ~= "table" then
-            db = {}
+            -- Should not happen once TomoMod_InitDatabase has run, but a
+            -- module reset or a hand-edited SavedVariables can get here. Seed
+            -- from the real defaults rather than an empty table: empty means
+            -- buttons with no size, no font and no colour, which looks like a
+            -- rendering bug rather than a missing database.
+            local defaults = TomoMod_Defaults and TomoMod_Defaults[moduleKey]
+            db = (defaults and CopyTable) and CopyTable(defaults) or {}
             profile[moduleKey] = db
         end
         if type(db.global) ~= "table" then db.global = {} end
         if type(db.bars) ~= "table" then db.bars = {} end
+        if type(db.fade) ~= "table" then db.fade = {} end
         return db
     end
 end
