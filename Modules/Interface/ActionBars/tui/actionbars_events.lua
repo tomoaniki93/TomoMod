@@ -286,6 +286,32 @@ function OnOwnedEvent(self, event, ...)
                 ActionBarsOwned.UpdateOverlayGlow(btn)
             end
         end
+
+        -- TOMOMOD: repaint the buttons after a page change.
+        --
+        -- Paging swaps each button's action attribute through the secure
+        -- snippet, but nothing above repaints the icon: this branch only
+        -- refreshed cooldown, glow and empty-slot visibility. Upstream relies
+        -- on the hooksecurefunc("ActionButton_Update", ...) installed in
+        -- actionbars_public.lua to catch Blizzard's own repaint -- and that
+        -- hook is installed only `if ActionButton_Update then`, a global that
+        -- no longer exists on modern retail. So on a vehicle, a possess bar or
+        -- a skyriding page swap the buttons kept their previous artwork, or
+        -- none at all, until something forced a full rebuild.
+        --
+        -- This is the same trio the hook would have run, and the same one
+        -- OwnedButton_PostDrag uses after a drag. Guarded on combat because
+        -- SkinButton resizes and re-anchors regions.
+        if buttons and settings and not InCombatLockdown() then
+            for _, btn in ipairs(buttons) do
+                ActionBarsOwned.SafeUpdate(btn)
+                local st = GetFrameState(btn)
+                st.sk_sz = nil
+                SkinButton(btn, settings)
+                UpdateButtonText(btn, settings)
+                UpdateEmptySlotVisibility(btn, settings)
+            end
+        end
         if not InCombatLockdown() then
             UpdateStanceBarLayout()
         else
