@@ -1,6 +1,6 @@
 ## ####################################
 
-## CHANGELOG 3.5.3 — Battle Rez Visual Refresh & Prey Tracker Integration
+## CHANGELOG 3.5.3 — Battle Rez Visual Refresh, Prey Tracker Integration & The Action Bars Finally Following A Page Change: Vehicles, Skyriding And Flight Form Swap The Bar Underneath You, And Until Now The Buttons Either Kept The Artwork Of The Page You Had Just Left Or, With Hide Empty Slots On, Faded Out Entirely And Stayed That Way Until A Reload
 
 #### Battle Rez Counter — Visual Improvements
 
@@ -65,6 +65,13 @@
 
 - **Fix** — When the micro buttons need reparenting into their TomoMod container and that lands mid-combat, the work is deferred and replayed on `PLAYER_REGEN_ENABLED`. That replay was registered through `ns.Addon:RegisterEvent`, and `ns.Addon` was a bare table with no such method — so the call threw, `SafeCall` swallowed it, and the `_microDeferPending` flag set on the line before stayed `true` for the rest of the session. The micro bar never reclaimed its buttons after that first combat, and nothing reached the error log to say why. `ns.Addon` now carries a real `RegisterEvent`/`UnregisterEvent` pair backed by its own event frame.
 - **Internal** — `ns.Addon` is assembled in one place, `Core/TuiCompat/Namespace.lua`, with both halves visible together — `db.profile` and the event API. `Helpers.GetCore()` is reduced to returning the object rather than building half of it lazily on first access.
+
+#### Action Bars — A Page Change Left The Buttons Behind
+
+- **Fix** — Paging swapped the actions but never repainted the buttons. The `ACTIONBAR_PAGE_CHANGED` / `UPDATE_BONUS_ACTIONBAR` / shapeshift branch refreshed cooldown, glow and empty-slot visibility and nothing else; the actual repaint was left to the `hooksecurefunc("ActionButton_Update", ...)` installed in `actionbars_public.lua`, which is guarded by `if ActionButton_Update then` — a global that no longer exists on modern retail, so the hook was never installed and the repaint never happened. The branch now runs the same trio `OwnedButton_PostDrag` uses after a drag — `SafeUpdate`, `SkinButton` with the cached size invalidated, `UpdateButtonText` — guarded on combat because `SkinButton` resizes and re-anchors regions.
+- **Fix** — `UPDATE_OVERRIDE_ACTIONBAR` was never registered at all. That is the event for the bar a vehicle, a skyriding mount or a druid's Flight Form puts you on, so the module simply never learned the page had changed. It is now registered, and routed to the paging branch rather than to the `UPDATE_VEHICLE_ACTIONBAR` branch below it: that branch only schedules a visual rescan, while paging also rebuilds the slotMap, which is what an override swap actually needs — the buttons point at different slots.
+- **Fix** — `UPDATE_VEHICLE_ACTIONBAR` had the same gap for the same reason and now re-enters the handler through the paging path, so a vehicle swap rebuilds the slotMap and repaints instead of leaving both stale behind a visual rescan.
+- **Fix** — With "hide empty slots" on, those same swaps turned the buttons invisible rather than stale, and unticking the option made it go away entirely — which is what pointed at the cause. The secure snippet sets each button's action attribute during the swap, but the Lua-side `button.action` that `GetSafeActionSlot` reads is only synced afterwards, so a repaint in the same tick judges every button against the previous page's slots, finds them empty and has `UpdateEmptySlotVisibility` set alpha 0. Nothing re-evaluated afterwards, which is why only `TUI_RefreshActionBars` or a `/reload` brought them back. The repaint now runs immediately and again on the next frame, the same `C_Timer.After(0, ...)` idiom `OwnedButton_PostDrag` already uses after a drag, with the settings re-read rather than captured so a page swap that crosses a profile change does not repaint from the wrong table.
 
 ## ####################################
 

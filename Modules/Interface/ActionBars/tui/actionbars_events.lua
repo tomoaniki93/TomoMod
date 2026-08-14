@@ -307,16 +307,41 @@ function OnOwnedEvent(self, event, ...)
         -- This is the same trio the hook would have run, and the same one
         -- OwnedButton_PostDrag uses after a drag. Guarded on combat because
         -- SkinButton resizes and re-anchors regions.
-        if buttons and settings and not InCombatLockdown() then
-            for _, btn in ipairs(buttons) do
+        -- TOMOMOD: run the repaint now AND once more on the next frame.
+        --
+        -- The secure snippet sets each button's action attribute during the
+        -- page swap, but the Lua-side button.action that GetSafeActionSlot
+        -- reads is only synced afterwards. Repainting in the same tick
+        -- therefore judges the buttons against the previous page's slots --
+        -- and with hideEmptySlots on, UpdateEmptySlotVisibility answers by
+        -- setting alpha 0. That is the symptom: on a vehicle, skyriding or
+        -- druid Flight Form the buttons are present but invisible, and
+        -- unticking "hide empty slots" makes it go away entirely.
+        --
+        -- Nothing re-evaluates afterwards, which is why only a full rebuild
+        -- (TUI_RefreshActionBars or /reload) brought them back. The deferred
+        -- pass is the same C_Timer.After(0, ...) idiom OwnedButton_PostDrag
+        -- already uses after a drag, for the same reason.
+        local function RepaintBar1(list, s)
+            if not list or not s or InCombatLockdown() then return end
+            for _, btn in ipairs(list) do
                 ActionBarsOwned.SafeUpdate(btn)
                 local st = GetFrameState(btn)
                 st.sk_sz = nil
-                SkinButton(btn, settings)
-                UpdateButtonText(btn, settings)
-                UpdateEmptySlotVisibility(btn, settings)
+                SkinButton(btn, s)
+                UpdateButtonText(btn, s)
+                UpdateEmptySlotVisibility(btn, s)
             end
         end
+
+        RepaintBar1(buttons, settings)
+        C_Timer.After(0, function()
+            if not ActionBarsOwned.initialized then return end
+            -- Settings are re-read rather than captured: a page swap can cross
+            -- a profile change, and a stale table would repaint from the wrong
+            -- one.
+            RepaintBar1(ActionBarsOwned.nativeButtons["bar1"], GetEffectiveSettings("bar1"))
+        end)
         if not InCombatLockdown() then
             UpdateStanceBarLayout()
         else
