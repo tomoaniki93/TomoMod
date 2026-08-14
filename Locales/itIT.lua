@@ -2314,6 +2314,7 @@ TomoMod_RegisterLocale("itIT", {
     -- ═══════════════════════════════════
     ["mover_battlerez"]                  = "Rez combattimento",
     ["mover_preytracker"]                = "Tracciatore di Preda",
+    ["mover_extrabuttons"]               = "Pulsante Extra",
 
     ["at_section_general"]               = "Generale",
     ["at_opt_enable"]                    = "Attiva tracciatore aure",
@@ -3281,6 +3282,10 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_353_abmover"] = "Correzione — La voce \"Action Bars\" in `/tm layout` non faceva assolutamente nulla. Il codice delle barre azione portato da Tui viene eseguito in un ambiente sandbox che non si esponeva mai al resto di TomoMod, impedendo silenziosamente l'attivazione della modalità di posizionamento. Ora raggiunge correttamente le barre.",
     ["wn_353_abflash"] = "Correzione — Premere un pulsante azione rendeva la sua icona completamente bianca. Le texture di pressione/evidenziazione dello skin icone personalizzato richiedevano una fusione additiva ed erano invece disegnate come una sovrapposizione opaca. Risolto.",
     ["wn_353_abposition"] = "Correzione — Una barra azione trascinata tornava alla posizione predefinita ad ogni `/reload`. La posizione salvata non veniva mai effettivamente scritta, e il percorso di ripristino non la rileggeva mai anche quando lo era. Entrambi risolti — le posizioni delle barre ora persistono correttamente.",
+    ["wn_353_abcolor"] = "Modifica — La sovrapposizione della modalità spostamento per le barre azione e i pulsanti azione extra/abilità di zona ora usa il colore teal di TomoMod invece del blu originale di Tui, in linea con ogni altra sovrapposizione `/tm layout`.",
+    ["wn_353_abextramover"] = "Correzione — I supporti del Pulsante Azione Extra e dell'Abilità di Zona avevano una propria sovrapposizione di spostamento separata mai collegata a `/tm layout` — sempre visibile sullo schermo ma impossibile da trascinare dallo strumento di layout unificato. Entrambi ora hanno una voce «Pulsante Extra» dedicata in `/tm layout`.",
+    ["wn_353_brezicon"] = "Correzione — L'icona del Contatore Battle Rez veniva visualizzata come un quadrato nero pieno: il percorso della texture utilizzata non esiste su questo client. Ora mostra correttamente l'icona di Rinascita.",
+    ["wn_353_nameplaterole"] = "Correzione — Le nameplate potevano generare una raffica di errori di taint durante la lettura del ruolo di gruppo di un'unità in contenuti ristretti, perché il ruolo può tornare come valore segreto che non può essere confrontato direttamente. Ora è protetto e trattato come sconosciuto invece di generare un errore.",
 
     -- 3.5.2 — Novità
     -- =====================

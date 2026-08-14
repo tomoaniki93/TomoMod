@@ -2399,6 +2399,7 @@ TomoMod_RegisterLocale("frFR", {
     -- ═══════════════════════════════════
     ["mover_battlerez"]                  = "Compteur de rez",
     ["mover_preytracker"]                = "Traqueur de proie",
+    ["mover_extrabuttons"]               = "Bouton supplémentaire",
 
     ["at_section_general"]               = "Général",
     ["at_opt_enable"]                    = "Activer le suivi d'auras",
@@ -3309,6 +3310,10 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_353_abmover"] = "Correction — L'entrée « Action Bars » dans `/tm layout` ne faisait strictement rien. Le code des barres d'action porté depuis Tui s'exécute dans un environnement sandboxé qui ne s'exposait jamais au reste de TomoMod, empêchant le mode de déplacement de s'activer silencieusement. Il atteint désormais correctement les barres.",
     ["wn_353_abflash"] = "Correction — Appuyer sur un bouton d'action rendait son icône entièrement blanche. Les textures de pression/surbrillance du skin d'icônes personnalisé nécessitaient un mélange additif et étaient à la place peintes comme une surcouche opaque. Corrigé.",
     ["wn_353_abposition"] = "Correction — Une barre d'action déplacée revenait à sa position par défaut à chaque `/reload`. La position sauvegardée n'était en réalité jamais écrite, et le chemin de restauration ne la relisait jamais même quand elle l'était. Les deux sont corrigés — les positions des barres persistent désormais correctement.",
+    ["wn_353_abcolor"] = "Changement — La surcouche du mode déplacement pour les barres d'action et les boutons d'action supplémentaire/capacité de zone utilise désormais la couleur teal de TomoMod au lieu du bleu d'origine de Tui, en cohérence avec toutes les autres surcouches `/tm layout`.",
+    ["wn_353_abextramover"] = "Correction — Les emplacements du bouton d'action supplémentaire et de la capacité de zone avaient leur propre surcouche de déplacement, jamais connectée à `/tm layout` — toujours visible à l'écran mais impossible à déplacer depuis l'outil de disposition unifié. Les deux disposent maintenant d'une entrée « Bouton supplémentaire » dans `/tm layout`.",
+    ["wn_353_brezicon"] = "Correction — L'icône du compteur Battle Rez s'affichait comme un carré noir uni : le chemin de texture utilisé n'existe pas sur ce client. Elle affiche désormais correctement l'icône de Résurrection.",
+    ["wn_353_nameplaterole"] = "Correction — Les plaques de nom pouvaient générer un flot d'erreurs de taint lors de la lecture du rôle de groupe d'une unité en contenu restreint, car le rôle peut revenir comme une valeur secrète qui ne peut pas être comparée directement. C'est désormais protégé et traité comme inconnu plutôt que de lever une erreur.",
 
     -- 3.5.2 — Quoi de neuf
     -- =====================

@@ -79,6 +79,10 @@ CHANGELOG = {
             L["wn_353_abmover"] or "Fix — The \"Action Bars\" entry in `/tm layout` did nothing at all. The ported action bar code runs in a sandboxed environment that never exposed itself to the rest of TomoMod, so move mode silently failed to activate. It now reaches the bars correctly.",
             L["wn_353_abflash"] or "Fix — Pressing an action button turned its icon fully white. The custom icon skin's press/highlight textures needed additive blending and were instead painted as an opaque overlay. Fixed.",
             L["wn_353_abposition"] or "Fix — A dragged action bar reset to its default position on every `/reload`. The saved position was never actually being written, and the restore path never read it back even when it was. Both are fixed — bar positions now persist correctly.",
+            L["wn_353_abcolor"] or "Change — The move-mode overlay for action bars and the extra action/zone ability buttons now uses TomoMod's teal brand color instead of Tui's original blue, matching every other `/tm layout` overlay.",
+            L["wn_353_abextramover"] or "Fix — The Extra Action Button and Zone Ability holders had their own separate move overlay that was never connected to `/tm layout` — always visible on screen but impossible to drag from the unified layout tool. Both now have a proper \"Extra Button\" entry in `/tm layout`.",
+            L["wn_353_brezicon"] or "Fix — The Battle Rez Counter's icon rendered as a solid black square: the texture path used for it doesn't exist on this client. It now shows the correct Rebirth icon.",
+            L["wn_353_nameplaterole"] or "Fix — Nameplates could spam taint errors when reading a unit's group role in restricted content, because the role can come back as a secret value that can't be compared directly. It's now guarded and treated as unknown rather than thrown.",
         },
     },
     {

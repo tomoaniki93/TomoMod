@@ -286,7 +286,8 @@ function CreateExtraButtonHolder(buttonType, displayName)
 
     local mover = CreateFrame("Frame", "TUI_" .. buttonType .. "Mover", holder, "BackdropTemplate")
     mover:SetAllPoints(holder)
-    ns.SkinBase.ApplyPixelBackdrop(mover, 2, true, false, {0.376, 0.647, 0.980, 1}, {0.2, 0.8, 0.6, 0.5})
+    -- TomoMod teal, matching the rest of the /tm layout movers
+    ns.SkinBase.ApplyPixelBackdrop(mover, 2, true, false, {0.047, 0.824, 0.624, 1}, {0.047, 0.824, 0.624, 0.5})
     mover:EnableMouse(true)
     mover:SetMovable(true)
     mover:RegisterForDrag("LeftButton")
@@ -295,6 +296,7 @@ function CreateExtraButtonHolder(buttonType, displayName)
 
     local text = mover:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     text:SetPoint("CENTER")
+    text:SetTextColor(1, 1, 1, 1)
     text:SetText(displayName)
     mover.text = text
 
@@ -777,6 +779,8 @@ RefreshExtraButtons = function()
 end
 
 _G.TUI_ToggleExtraButtonMovers = ToggleExtraButtonMovers
+_G.TUI_ShowExtraButtonMovers = ShowExtraButtonMovers
+_G.TUI_HideExtraButtonMovers = HideExtraButtonMovers
 _G.TUI_RefreshExtraButtons = RefreshExtraButtons
 ActionBarsOwned.extraBtnState = extraBtnState
 

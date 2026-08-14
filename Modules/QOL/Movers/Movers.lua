@@ -96,6 +96,18 @@ local function BuildEntries()
         end,
     })
     table.insert(moduleEntries, {
+        label    = L["mover_extrabuttons"] or "Extra Button",
+        unlock   = function()
+            if _G.TUI_ShowExtraButtonMovers then _G.TUI_ShowExtraButtonMovers() end
+        end,
+        lock     = function()
+            if _G.TUI_HideExtraButtonMovers then _G.TUI_HideExtraButtonMovers() end
+        end,
+        isActive = function()
+            return true
+        end,
+    })
+    table.insert(moduleEntries, {
         label    = L["mover_skyriding"],
         unlock   = function()
             if TomoMod_SkyRide and TomoMod_SkyRide.IsLocked and TomoMod_SkyRide.IsLocked() then TomoMod_SkyRide.ToggleLock() end

@@ -2323,6 +2323,7 @@ TomoMod_RegisterLocale("deDE", {
     -- ═══════════════════════════════════
     ["mover_battlerez"]                  = "Kampf-Rez",
     ["mover_preytracker"]                = "Beute-Tracker",
+    ["mover_extrabuttons"]               = "Extra-Button",
 
     ["at_section_general"]               = "Allgemein",
     ["at_opt_enable"]                    = "Aura-Tracker aktivieren",
@@ -3293,6 +3294,10 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_353_abmover"] = "Fehlerbehebung — Der Eintrag „Action Bars“ in `/tm layout` tat überhaupt nichts. Der portierte Actionbar-Code läuft in einer Sandbox-Umgebung, die sich dem Rest von TomoMod nie offenbarte, wodurch der Platzierungsmodus stillschweigend nicht aktiviert wurde. Er erreicht die Leisten nun korrekt.",
     ["wn_353_abflash"] = "Fehlerbehebung — Das Drücken einer Aktionstaste färbte ihr Symbol komplett weiß. Die Druck-/Hervorhebungstexturen des benutzerdefinierten Symbol-Skins benötigten additives Blending und wurden stattdessen als undurchsichtige Überlagerung gezeichnet. Behoben.",
     ["wn_353_abposition"] = "Fehlerbehebung — Eine verschobene Aktionsleiste setzte sich bei jedem `/reload` auf ihre Standardposition zurück. Die gespeicherte Position wurde nie tatsächlich geschrieben, und der Wiederherstellungspfad las sie selbst dann nie zurück, wenn sie es war. Beides ist behoben — Leistenpositionen bleiben nun korrekt erhalten.",
+    ["wn_353_abcolor"] = "Änderung — Das Move-Mode-Overlay für Aktionsleisten und die zusätzlichen Aktions-/Zonenfähigkeitsknöpfe verwendet nun TomoMods Teal-Markenfarbe statt Tuis ursprünglichem Blau, passend zu jedem anderen `/tm layout`-Overlay.",
+    ["wn_353_abextramover"] = "Fehlerbehebung — Die Halterungen für die Extra-Aktionstaste und die Zonenfähigkeit hatten ihr eigenes separates Move-Overlay, das nie mit `/tm layout` verbunden war — immer auf dem Bildschirm sichtbar, aber unmöglich über das einheitliche Layout-Tool zu verschieben. Beide haben nun einen eigenen „Extra-Button“-Eintrag in `/tm layout`.",
+    ["wn_353_brezicon"] = "Fehlerbehebung — Das Symbol des Battle Rez Counters wurde als durchgehend schwarzes Quadrat dargestellt: Der dafür verwendete Texturpfad existiert auf diesem Client nicht. Es zeigt nun korrekt das Wiedergeburt-Symbol.",
+    ["wn_353_nameplaterole"] = "Fehlerbehebung — Nameplates konnten beim Lesen der Gruppenrolle einer Einheit in eingeschränkten Inhalten Taint-Fehler häufen, da die Rolle als geheimer Wert zurückkommen kann, der nicht direkt verglichen werden kann. Dies ist nun abgesichert und wird als unbekannt behandelt, statt einen Fehler auszulösen.",
 
     -- 3.5.2 — Was ist neu
     -- =====================

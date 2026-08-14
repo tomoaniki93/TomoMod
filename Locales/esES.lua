@@ -2313,6 +2313,7 @@ TomoMod_RegisterLocale("esES", {
     -- ═══════════════════════════════════
     ["mover_battlerez"]                  = "Rez de combate",
     ["mover_preytracker"]                = "Rastreador de Presa",
+    ["mover_extrabuttons"]               = "Botón Extra",
 
     ["at_section_general"]               = "General",
     ["at_opt_enable"]                    = "Activar rastreador de auras",
@@ -3294,6 +3295,10 @@ TomoMod_RegisterLocale("esES", {
     ["wn_353_abmover"] = "Corrección — La entrada «Action Bars» en `/tm layout` no hacía absolutamente nada. El código de las barras de acción portado desde Tui se ejecuta en un entorno aislado que nunca se exponía al resto de TomoMod, por lo que el modo de colocación fallaba silenciosamente al activarse. Ahora alcanza las barras correctamente.",
     ["wn_353_abflash"] = "Corrección — Pulsar un botón de acción volvía su icono completamente blanco. Las texturas de pulsación/resaltado de la skin de iconos personalizada necesitaban mezcla aditiva y en su lugar se pintaban como una superposición opaca. Corregido.",
     ["wn_353_abposition"] = "Corrección — Una barra de acción arrastrada volvía a su posición predeterminada en cada `/reload`. La posición guardada nunca se escribía realmente, y la ruta de restauración nunca la releía aunque lo estuviera. Ambos están corregidos — las posiciones de las barras ahora persisten correctamente.",
+    ["wn_353_abcolor"] = "Cambio — La superposición del modo de movimiento para las barras de acción y los botones de acción extra/habilidad de zona ahora usa el color teal de marca de TomoMod en lugar del azul original de Tui, coincidiendo con cualquier otra superposición de `/tm layout`.",
+    ["wn_353_abextramover"] = "Corrección — Los soportes del Botón de Acción Extra y la Habilidad de Zona tenían su propia superposición de movimiento separada que nunca estuvo conectada a `/tm layout` — siempre visible en pantalla pero imposible de arrastrar desde la herramienta de diseño unificada. Ambos ahora tienen una entrada propia de «Botón Extra» en `/tm layout`.",
+    ["wn_353_brezicon"] = "Corrección — El icono del Contador de Battle Rez se mostraba como un cuadrado negro sólido: la ruta de textura utilizada no existe en este cliente. Ahora muestra correctamente el icono de Reencarnación.",
+    ["wn_353_nameplaterole"] = "Corrección — Las placas de nombre podían generar un aluvión de errores de contaminación al leer el rol de grupo de una unidad en contenido restringido, porque el rol puede devolverse como un valor secreto que no puede compararse directamente. Ahora está protegido y se trata como desconocido en lugar de lanzar un error.",
 
     -- 3.5.2 — Novedades
     -- =====================

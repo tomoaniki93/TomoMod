@@ -33,7 +33,7 @@ local smax = math.max
 
 local REBIRTH_SPELLID = 20484
 local RES_ICON  = "Interface\\RaidFrame\\RaidFrame-Icon-Rez"
-local BREZ_ICON = "Interface\\Icons\\Spell_Nature_Rebirth"
+local BREZ_ICON = 136080  -- Spell_Nature_Reincarnation (Rebirth); the string path form of this icon doesn't exist
 local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local SOLID     = "Interface\\Buttons\\WHITE8X8"
 

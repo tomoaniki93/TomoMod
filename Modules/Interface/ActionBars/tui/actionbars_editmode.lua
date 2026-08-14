@@ -52,7 +52,8 @@ function CreateEditOverlay(container, barKey)
 
     local overlay = CreateFrame("Frame", nil, container, "BackdropTemplate")
     overlay:SetAllPoints(container)
-    ns.SkinBase.ApplyPixelBackdrop(overlay, 2, true, false, {0.376, 0.647, 0.980, 1}, {0.2, 0.8, 0.6, 0.3})
+    -- TomoMod teal, matching the rest of the /tm layout movers
+    ns.SkinBase.ApplyPixelBackdrop(overlay, 2, true, false, {0.047, 0.824, 0.624, 1}, {0.047, 0.824, 0.624, 0.3})
     overlay:EnableMouse(true)
     overlay:SetMovable(true)
     overlay:RegisterForDrag("LeftButton")
@@ -61,6 +62,7 @@ function CreateEditOverlay(container, barKey)
 
     local text = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     text:SetPoint("CENTER")
+    text:SetTextColor(1, 1, 1, 1)
     local displayName = barKey:gsub("bar", "Bar ")
     text:SetText(displayName)
     overlay.label = text

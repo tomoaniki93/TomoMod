@@ -2314,6 +2314,7 @@ TomoMod_RegisterLocale("ptBR", {
     -- ═══════════════════════════════════
     ["mover_battlerez"]                  = "Rez de combate",
     ["mover_preytracker"]                = "Rastreador de Presa",
+    ["mover_extrabuttons"]               = "Botão Extra",
 
     ["at_section_general"]               = "Geral",
     ["at_opt_enable"]                    = "Ativar rastreador de auras",
@@ -3281,6 +3282,10 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_353_abmover"] = "Correção — A entrada \"Action Bars\" em `/tm layout` não fazia absolutamente nada. O código das barras de ação portado do Tui roda em um ambiente isolado que nunca se expunha ao resto do TomoMod, fazendo o modo de posicionamento falhar silenciosamente ao ativar. Agora ele alcança as barras corretamente.",
     ["wn_353_abflash"] = "Correção — Pressionar um botão de ação deixava o ícone totalmente branco. As texturas de pressão/destaque da skin de ícones personalizada precisavam de mesclagem aditiva e, em vez disso, eram pintadas como uma sobreposição opaca. Corrigido.",
     ["wn_353_abposition"] = "Correção — Uma barra de ação arrastada voltava à posição padrão a cada `/reload`. A posição salva nunca era realmente gravada, e o caminho de restauração nunca a relia mesmo quando estava. Ambos corrigidos — as posições das barras agora persistem corretamente.",
+    ["wn_353_abcolor"] = "Mudança — A sobreposição do modo de movimento para as barras de ação e os botões de ação extra/habilidade de zona agora usa a cor teal da marca TomoMod em vez do azul original do Tui, correspondendo a todas as outras sobreposições de `/tm layout`.",
+    ["wn_353_abextramover"] = "Correção — Os suportes do Botão de Ação Extra e da Habilidade de Zona tinham sua própria sobreposição de movimento separada que nunca foi conectada ao `/tm layout` — sempre visível na tela mas impossível de arrastar pela ferramenta de layout unificada. Ambos agora têm uma entrada própria de «Botão Extra» no `/tm layout`.",
+    ["wn_353_brezicon"] = "Correção — O ícone do Contador de Battle Rez era exibido como um quadrado preto sólido: o caminho de textura usado não existe neste cliente. Agora exibe corretamente o ícone de Renascimento.",
+    ["wn_353_nameplaterole"] = "Correção — As placas de nome podiam gerar uma enxurrada de erros de contaminação ao ler a função de grupo de uma unidade em conteúdo restrito, porque a função pode retornar como um valor secreto que não pode ser comparado diretamente. Agora está protegido e tratado como desconhecido em vez de gerar um erro.",
 
     -- 3.5.2 — Novidades
     -- =====================

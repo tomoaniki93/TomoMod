@@ -70,6 +70,7 @@ local UnitIsPlayer, UnitIsEnemy, UnitIsTapDenied = UnitIsPlayer, UnitIsEnemy, Un
 local UnitReaction, UnitThreatSituation = UnitReaction, UnitThreatSituation
 local UnitAffectingCombat = UnitAffectingCombat
 local UnitGroupRolesAssigned, UnitClassBase = UnitGroupRolesAssigned, UnitClassBase
+local issecretvalue = issecretvalue
 local GetInstanceInfo = GetInstanceInfo
 local UnitHealth, UnitHealthMax = UnitHealth, UnitHealthMax
 local UnitGetTotalAbsorbs = UnitGetTotalAbsorbs
@@ -765,6 +766,10 @@ end
 
 local function GetUnitRole(unit)
     local role = UnitGroupRolesAssigned(unit)
+    -- [12.1] UnitGroupRolesAssigned can hand back a secret string in
+    -- restricted content; comparing it to a literal throws taint. Treat it
+    -- the same as "no role", same fail-closed pattern as elsewhere in this file.
+    if issecretvalue and issecretvalue(role) then role = nil end
     if role and role ~= "NONE" then return role end
 
     -- Fallback: detect NPC roles in follower dungeons
@@ -1110,6 +1115,8 @@ local function GetHealthColor(unit)
         local threatStatus = UnitThreatSituation("player", unit)
         if threatStatus and type(threatStatus) == "number" then
             local role = UnitGroupRolesAssigned("player")
+            -- [12.1] Same secret-string guard as GetUnitRole above.
+            if issecretvalue and issecretvalue(role) then role = nil end
             local isTankRole = (role == "TANK")
             if isTankRole then
                 if threatStatus == 3 then
