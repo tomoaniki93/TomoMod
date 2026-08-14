@@ -84,6 +84,9 @@ function StripBlizzardArtwork(button)
         tex:ClearAllPoints()
         tex:SetAllPoints(button)
         tex:SetAlpha(1)
+        -- These iconskin overlays are white cutout shapes meant for an additive
+        -- flash, not a plain opaque overlay — without ADD they paint solid white.
+        tex:SetBlendMode("ADD")
     end
 
     local highlight = button:GetHighlightTexture()
@@ -381,6 +384,7 @@ SkinButton = function(button, settings)
             tex:SetAtlas(nil)
             tex:SetTexture(nil)
         elseif flashMode == "blizzard" then
+            tex:SetBlendMode("BLEND")
             if state.origPushedAtlas then
                 tex:SetTexture(nil)
                 tex:SetAtlas(state.origPushedAtlas)
@@ -396,6 +400,8 @@ SkinButton = function(button, settings)
             tex:SetAtlas(nil)
             tex:SetTexture(TEXTURES.pushed)
             tex:SetTexCoord(0, 1, 0, 1)
+            -- white cutout shape meant for an additive flash, not a solid overlay
+            tex:SetBlendMode("ADD")
         end
     end
 

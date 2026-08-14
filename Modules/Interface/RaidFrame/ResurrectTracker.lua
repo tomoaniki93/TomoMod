@@ -148,8 +148,9 @@ local function CreateBrezFrame()
     -- ===== COOLDOWN SWIPE LAYER =====
     local cd = CreateFrame("Cooldown", nil, brezFrame, "CooldownFrameTemplate")
     cd:SetAllPoints(ico)
-    cd:SetFrameLevel(ico:GetFrameLevel() + 1)
-    cd:SetDrawEdge(false)
+    -- ico is a Texture, not a Frame — it has no frame level of its own
+    cd:SetFrameLevel(brezFrame:GetFrameLevel() + 1)
+    if cd.SetDrawEdge then cd:SetDrawEdge(false) end
     if cd.SetHideCountdownNumbers then cd:SetHideCountdownNumbers(true) end
     if cd.SetSwipeColor then cd:SetSwipeColor(COLORS.shadow[1], COLORS.shadow[2], COLORS.shadow[3], 0.7) end
     brezFrame.cooldown = cd
@@ -176,7 +177,7 @@ local function CreateBrezFrame()
     brezFrame.hasGlow = false
 
     local function CreateGlow()
-        if brezFrame.hasGlow then return end
+        if brezFrame.hasGlow then return brezFrame.glowFrame, brezFrame.glowTexture end
         local glowFrame = CreateFrame("Frame", nil, brezFrame)
         glowFrame:SetAllPoints(brezFrame)
         glowFrame:SetFrameLevel(brezFrame:GetFrameLevel() - 1)

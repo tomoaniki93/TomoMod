@@ -56,15 +56,35 @@ ns.TUI_LayoutMode_Utils = ns.TUI_LayoutMode_Utils or {}
 
 -- Pixel backdrop: Tui ships this as a two-line file. Kept as a thin wrapper
 -- so ported skinning code finds it where it expects.
+-- Real call sites (actionbars_editmode.lua, actionbars_extra_buttons.lua) use
+-- Tui's actual signature: (frame, borderSize, filled, glow, borderColor, glowColor)
+-- with borderColor/glowColor as {r,g,b,a} tables — not the (frame,r,g,b,a) floats
+-- this shim originally assumed. Both callers create their frame with
+-- "BackdropTemplate", so this goes through SetBackdrop instead of a raw texture.
 ns.SkinBase = ns.SkinBase or {}
-function ns.SkinBase.ApplyPixelBackdrop(frame, r, g, b, a)
-    if not frame or not frame.CreateTexture then return end
-    if not frame._tomoPixelBackdrop then
-        local t = frame:CreateTexture(nil, "BACKGROUND")
-        t:SetAllPoints()
-        frame._tomoPixelBackdrop = t
+local PIXEL_BACKDROP_SOLID = "Interface\\Buttons\\WHITE8X8"
+function ns.SkinBase.ApplyPixelBackdrop(frame, borderSize, filled, glow, borderColor, glowColor)
+    if not frame or not frame.SetBackdrop then return end
+    borderSize = tonumber(borderSize) or 1
+    borderColor = borderColor or { 1, 1, 1, 1 }
+
+    frame:SetBackdrop({
+        bgFile   = PIXEL_BACKDROP_SOLID,
+        edgeFile = PIXEL_BACKDROP_SOLID,
+        edgeSize = borderSize,
+        insets   = { left = borderSize, right = borderSize, top = borderSize, bottom = borderSize },
+    })
+
+    if filled then
+        frame:SetBackdropColor(borderColor[1] or 1, borderColor[2] or 1, borderColor[3] or 1, (borderColor[4] or 1) * 0.25)
+    else
+        frame:SetBackdropColor(0, 0, 0, 0)
     end
-    frame._tomoPixelBackdrop:SetColorTexture(r or 0, g or 0, b or 0, a or 1)
+
+    -- glow/glowColor accepted for signature compatibility; the border itself
+    -- carries enough contrast for a move-mode highlight, so no separate layer.
+    local edgeColor = (glow and glowColor) or borderColor
+    frame:SetBackdropBorderColor(edgeColor[1] or 1, edgeColor[2] or 1, edgeColor[3] or 1, edgeColor[4] or 1)
 end
 
 -- Settings search routing is a Tui options-framework feature with no TomoMod

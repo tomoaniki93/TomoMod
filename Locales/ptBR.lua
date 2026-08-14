@@ -1224,6 +1224,15 @@ TomoMod_RegisterLocale("ptBR", {
     ["opt_combat_text_offset_y"]         = "Deslocamento Y",
 
     -- =====================
+    -- PREY TRACKER
+    -- =====================
+    ["sublabel_prey_tracker"]            = "— Rastreador de Presa —",
+    ["opt_prey_tracker_enable"]          = "Ativar Rastreador de Presa",
+    ["opt_prey_tracker_width"]           = "Largura",
+    ["opt_prey_tracker_font"]            = "Tamanho da fonte",
+    ["info_prey_tracker"]                = "Recurso exclusivo de Midnight. Exibe uma barra de progresso móvel durante uma caçada Prey ativa. Posicione-a via /tm layout.",
+
+    -- =====================
     -- SKINS (Chat)
     -- =====================
     ["tab_qol_skins"]                    = "Skins",
@@ -3266,6 +3275,12 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_353_preyconfig"] = "Novo — O Rastreador de Presa está desabilitado por padrão (conteúdo exclusivo de Midnight) e pode ser habilitado em Configuração → QOL → Combate → Rastreador de Presa. Ele se oculta automaticamente quando nenhuma caçada Prey está ativa e mostra uma visualização no modo de posicionamento.",
     ["wn_353_preylayout"] = "Novo — O Rastreador de Presa está totalmente integrado ao sistema unificado de mover de layout do TomoMod. Arraste para posicioná-lo junto com outros elementos HUD usando `/tm layout`, com comportamento de bloqueio/desbloqueio sincronizado e visualizações consistentes do modo de posicionamento.",
     ["wn_353_preyapi"] = "Interno — O Rastreador de Presa lê as APIs C_QuestLog e C_UIWidgetManager para detectar quests Prey ativas e rastrear o progresso em tempo real com uma taxa de atualização de 1 segundo, fornecendo informações de status precisas durante as caçadas.",
+    ["wn_353_brezcrash"] = "Correção — O Contador de Battle Rez podia falhar totalmente ao carregar em algumas versões do cliente: um método de cooldown que não existe mais, e uma chamada de nível de frame feita em uma textura em vez de um frame, ambos travavam a inicialização do módulo. Ambos corrigidos, junto com um efeito de brilho que travava assim que precisava reaparecer após ter sido ocultado uma vez.",
+    ["wn_353_preyevent"] = "Correção — O Rastreador de Presa registrava um evento que não existe neste cliente, causando um erro na inicialização. Corrigido, e todo registro de evento agora está protegido para que um evento ausente não possa mais travar o módulo.",
+    ["wn_353_preygui"] = "Novo — O Rastreador de Presa agora tem uma seção de configurações real: Configuração → QOL → Automações, com uma caixa de ativação e controles deslizantes de largura/tamanho de fonte. Antes não havia como ativá-lo pelo jogo.",
+    ["wn_353_abmover"] = "Correção — A entrada \"Action Bars\" em `/tm layout` não fazia absolutamente nada. O código das barras de ação portado do Tui roda em um ambiente isolado que nunca se expunha ao resto do TomoMod, fazendo o modo de posicionamento falhar silenciosamente ao ativar. Agora ele alcança as barras corretamente.",
+    ["wn_353_abflash"] = "Correção — Pressionar um botão de ação deixava o ícone totalmente branco. As texturas de pressão/destaque da skin de ícones personalizada precisavam de mesclagem aditiva e, em vez disso, eram pintadas como uma sobreposição opaca. Corrigido.",
+    ["wn_353_abposition"] = "Correção — Uma barra de ação arrastada voltava à posição padrão a cada `/reload`. A posição salva nunca era realmente gravada, e o caminho de restauração nunca a relia mesmo quando estava. Ambos corrigidos — as posições das barras agora persistem corretamente.",
 
     -- 3.5.2 — Novidades
     -- =====================

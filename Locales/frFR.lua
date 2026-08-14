@@ -1284,6 +1284,15 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_combat_text_offset_y"]         = "Décalage Y",
 
     -- =====================
+    -- PREY TRACKER
+    -- =====================
+    ["sublabel_prey_tracker"]            = "— Traqueur de proie —",
+    ["opt_prey_tracker_enable"]          = "Activer le Traqueur de proie",
+    ["opt_prey_tracker_width"]           = "Largeur",
+    ["opt_prey_tracker_font"]            = "Taille de police",
+    ["info_prey_tracker"]                = "Fonctionnalité exclusive à Midnight. Affiche une barre de progression déplaçable pendant une chasse Prey active. Positionnez-la via /tm layout.",
+
+    -- =====================
     -- SKINS (Chat)
     -- =====================
     ["tab_qol_skins"]                    = "Skins",
@@ -3294,6 +3303,12 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_353_preyconfig"] = "Nouveau — Le Prey Tracker est désactivé par défaut (contenu Midnight uniquement) et peut être activé dans Config → QOL → Combat → Prey Tracker. Il se cache automatiquement quand aucune chasse Prey n'est active et affiche un aperçu en mode de placement.",
     ["wn_353_preylayout"] = "Nouveau — Le Prey Tracker est entièrement intégré au système de mover de disposition unifié de TomoMod. Glissez-le pour le positionner aux côtés d'autres éléments HUD en utilisant `/tm layout`, avec un comportement de verrouillage/déverrouillage synchronisé et des aperçus de mode de placement cohérents.",
     ["wn_353_preyapi"] = "Interne — Le Prey Tracker lit les API C_QuestLog et C_UIWidgetManager pour détecter les quêtes Prey actives et suivre la progression en temps réel avec une fréquence de mise à jour d'une seconde, fournissant des informations d'état précises pendant les chasses.",
+    ["wn_353_brezcrash"] = "Correction — Le compteur Battle Rez pouvait échouer à se charger entièrement sur certaines versions du client : une méthode de cooldown qui n'existe plus, et un appel de niveau de frame effectué sur une texture au lieu d'un frame, plantaient tous deux l'initialisation du module. Les deux sont corrigés, ainsi qu'un effet de lueur qui plantait dès qu'il devait réapparaître après avoir été masqué une fois.",
+    ["wn_353_preyevent"] = "Correction — Le Prey Tracker enregistrait un événement qui n'existe pas sur ce client, provoquant une erreur à l'initialisation. Corrigé, et chaque enregistrement d'événement est désormais protégé afin qu'un événement manquant ne puisse plus faire planter le module.",
+    ["wn_353_preygui"] = "Nouveau — Le Prey Tracker dispose désormais d'une véritable section de réglages : Config → QOL → Automatisations, avec une case à cocher d'activation et des curseurs de largeur/taille de police. Il n'y avait auparavant aucun moyen en jeu de l'activer.",
+    ["wn_353_abmover"] = "Correction — L'entrée « Action Bars » dans `/tm layout` ne faisait strictement rien. Le code des barres d'action porté depuis Tui s'exécute dans un environnement sandboxé qui ne s'exposait jamais au reste de TomoMod, empêchant le mode de déplacement de s'activer silencieusement. Il atteint désormais correctement les barres.",
+    ["wn_353_abflash"] = "Correction — Appuyer sur un bouton d'action rendait son icône entièrement blanche. Les textures de pression/surbrillance du skin d'icônes personnalisé nécessitaient un mélange additif et étaient à la place peintes comme une surcouche opaque. Corrigé.",
+    ["wn_353_abposition"] = "Correction — Une barre d'action déplacée revenait à sa position par défaut à chaque `/reload`. La position sauvegardée n'était en réalité jamais écrite, et le chemin de restauration ne la relisait jamais même quand elle l'était. Les deux sont corrigés — les positions des barres persistent désormais correctement.",
 
     -- 3.5.2 — Quoi de neuf
     -- =====================

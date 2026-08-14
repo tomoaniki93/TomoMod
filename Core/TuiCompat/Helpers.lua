@@ -66,7 +66,9 @@ function Helpers.ApplyFontWithFallback(fontString, mediaName, size, flags)
 end
 
 function Helpers.IsEditModeShown()
-    if ActionBarsOwned and ActionBarsOwned.editModeActive then
+    -- ActionBarsOwned lives in the sandboxed Tui env, reachable here via ns (TomoMod_TuiNS)
+    local ABO = ns.ActionBarsOwned
+    if ABO and ABO.editModeActive then
         return true
     end
 
@@ -100,6 +102,19 @@ function Helpers.CreateStateTable()
 end
 
 function Helpers.GetCore()
+    ns.Addon = ns.Addon or {}
+    if not ns.Addon.db then
+        -- Ported code reads core.db.profile as the whole addon-wide save file
+        -- (profile.actionBars, profile.frameAnchoring, ...) — that is exactly
+        -- what Helpers.GetProfile() returns (TomoModDB itself). Resolved live
+        -- via __index rather than cached, since a profile switch can swap out
+        -- module tables under TomoModDB in place.
+        ns.Addon.db = setmetatable({}, {
+            __index = function(_, key)
+                if key == "profile" then return Helpers.GetProfile() end
+            end,
+        })
+    end
     return ns.Addon
 end
 

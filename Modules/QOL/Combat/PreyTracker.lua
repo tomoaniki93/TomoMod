@@ -354,11 +354,12 @@ function PT.Initialize()
 
     -- Event listener for quest changes
     local evFrame = CreateFrame("Frame")
-    evFrame:RegisterEvent("QUEST_ACCEPTED")
-    evFrame:RegisterEvent("QUEST_REMOVED")
-    evFrame:RegisterEvent("QUEST_LOG_UPDATE")
-    evFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
-    evFrame:RegisterEvent("UI_WIDGET_SET_UPDATE")
+    -- pcall guards events that may not exist on every client build
+    pcall(evFrame.RegisterEvent, evFrame, "QUEST_ACCEPTED")
+    pcall(evFrame.RegisterEvent, evFrame, "QUEST_REMOVED")
+    pcall(evFrame.RegisterEvent, evFrame, "QUEST_LOG_UPDATE")
+    pcall(evFrame.RegisterEvent, evFrame, "PLAYER_ENTERING_WORLD")
+    pcall(evFrame.RegisterEvent, evFrame, "UPDATE_UI_WIDGET")
     evFrame:SetScript("OnEvent", function()
         PT.UpdatePreyDisplay()
     end)

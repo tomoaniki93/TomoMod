@@ -79,13 +79,16 @@ local function BuildEntries()
     table.insert(moduleEntries, {
         label    = L["mover_actionbars"] or "Action Bars",
         unlock   = function()
-            if ActionBarsOwned and ActionBarsOwned.SetEditModeEnabled then
-                ActionBarsOwned.SetEditModeEnabled(true)
+            -- ActionBarsOwned lives in the sandboxed Tui env, not _G — reach it via TomoMod_TuiNS
+            local ABO = TomoMod_TuiNS and TomoMod_TuiNS.ActionBarsOwned
+            if ABO and ABO.SetEditModeEnabled then
+                ABO.SetEditModeEnabled(true)
             end
         end,
         lock     = function()
-            if ActionBarsOwned and ActionBarsOwned.SetEditModeEnabled then
-                ActionBarsOwned.SetEditModeEnabled(false)
+            local ABO = TomoMod_TuiNS and TomoMod_TuiNS.ActionBarsOwned
+            if ABO and ABO.SetEditModeEnabled then
+                ABO.SetEditModeEnabled(false)
             end
         end,
         isActive = function()

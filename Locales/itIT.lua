@@ -1224,6 +1224,15 @@ TomoMod_RegisterLocale("itIT", {
     ["opt_combat_text_offset_y"]         = "Offset Y",
 
     -- =====================
+    -- PREY TRACKER
+    -- =====================
+    ["sublabel_prey_tracker"]            = "— Tracciatore di Preda —",
+    ["opt_prey_tracker_enable"]          = "Abilita Tracciatore di Preda",
+    ["opt_prey_tracker_width"]           = "Larghezza",
+    ["opt_prey_tracker_font"]            = "Dimensione carattere",
+    ["info_prey_tracker"]                = "Funzione esclusiva di Midnight. Mostra una barra di progresso mobile durante una caccia Prey attiva. Posizionala tramite /tm layout.",
+
+    -- =====================
     -- SKINS (Chat)
     -- =====================
     ["tab_qol_skins"]                    = "Skins",
@@ -3266,6 +3275,12 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_353_preyconfig"] = "Nuovo — Il Tracciatore di Preda è disabilitato per impostazione predefinita (contenuto solo Midnight) e può essere abilitato in Configurazione → QOL → Combattimento → Tracciatore di Preda. Si nasconde automaticamente quando nessuna caccia Prey è attiva e mostra un'anteprima in modalità di posizionamento.",
     ["wn_353_preylayout"] = "Nuovo — Il Tracciatore di Preda è completamente integrato con il sistema mover di layout unificato di TomoMod. Trascinare per posizionarlo insieme ad altri elementi HUD usando `/tm layout`, con comportamento di blocco/sblocco sincronizzato e anteprime coerenti della modalità di posizionamento.",
     ["wn_353_preyapi"] = "Interno — Il Tracciatore di Preda legge le API C_QuestLog e C_UIWidgetManager per rilevare i quest Prey attivi e tracciare il progresso in tempo reale con una frequenza di aggiornamento di 1 secondo, fornendo informazioni di stato accurate durante le cacce.",
+    ["wn_353_brezcrash"] = "Correzione — Il Contatore Battle Rez poteva non caricarsi affatto su alcune build del client: un metodo di cooldown non più esistente e una chiamata al livello del frame effettuata su una texture anziché su un frame mandavano entrambi in crash l'inizializzazione del modulo. Entrambi risolti, insieme a un effetto bagliore che andava in crash non appena doveva riapparire dopo essere stato nascosto una volta.",
+    ["wn_353_preyevent"] = "Correzione — Il Tracciatore di Preda registrava un evento che non esiste su questo client, generando un errore all'inizializzazione. Risolto, e ogni registrazione di evento è ora protetta cosicché un evento mancante non possa più mandare in crash il modulo.",
+    ["wn_353_preygui"] = "Nuovo — Il Tracciatore di Preda ha ora una vera sezione di impostazioni: Configurazione → QOL → Automazioni, con una casella di abilitazione e cursori per larghezza/dimensione carattere. In precedenza non c'era modo di attivarlo dal gioco.",
+    ["wn_353_abmover"] = "Correzione — La voce \"Action Bars\" in `/tm layout` non faceva assolutamente nulla. Il codice delle barre azione portato da Tui viene eseguito in un ambiente sandbox che non si esponeva mai al resto di TomoMod, impedendo silenziosamente l'attivazione della modalità di posizionamento. Ora raggiunge correttamente le barre.",
+    ["wn_353_abflash"] = "Correzione — Premere un pulsante azione rendeva la sua icona completamente bianca. Le texture di pressione/evidenziazione dello skin icone personalizzato richiedevano una fusione additiva ed erano invece disegnate come una sovrapposizione opaca. Risolto.",
+    ["wn_353_abposition"] = "Correzione — Una barra azione trascinata tornava alla posizione predefinita ad ogni `/reload`. La posizione salvata non veniva mai effettivamente scritta, e il percorso di ripristino non la rileggeva mai anche quando lo era. Entrambi risolti — le posizioni delle barre ora persistono correttamente.",
 
     -- 3.5.2 — Novità
     -- =====================

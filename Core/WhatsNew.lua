@@ -73,6 +73,12 @@ CHANGELOG = {
             L["wn_353_preyconfig"] or "New — The Prey Tracker is disabled by default (Midnight-only content) and can be enabled in Config → QOL → Combat → Prey Tracker. It automatically hides when no Prey hunt is active and shows a preview during placement mode.",
             L["wn_353_preylayout"] or "New — The Prey Tracker is fully integrated with TomoMod's unified layout mover system. Drag to position it alongside other HUD elements using `/tm layout`, with synchronized lock/unlock behavior and consistent placement mode previews.",
             L["wn_353_preyapi"] or "Internal — The Prey Tracker reads C_QuestLog and C_UIWidgetManager APIs to detect active Prey quests and track progress in real-time with a 1-second update rate, providing accurate status information during hunts.",
+            L["wn_353_brezcrash"] or "Fix — The Battle Rez Counter could fail to load entirely on some client builds: a cooldown method that no longer exists, and a frame-level call made on a texture instead of a frame, both crashed module init. Both are fixed, along with a glow effect that crashed the moment it needed to reappear after being hidden once.",
+            L["wn_353_preyevent"] or "Fix — The Prey Tracker registered an event that doesn't exist on this client, throwing during init. Fixed, and every event registration is now guarded so a missing event can no longer crash the module.",
+            L["wn_353_preygui"] or "New — The Prey Tracker now has an actual settings section: Config → QOL → Automations, with an enable checkbox and width/font-size sliders. It previously had no in-game way to turn on.",
+            L["wn_353_abmover"] or "Fix — The \"Action Bars\" entry in `/tm layout` did nothing at all. The ported action bar code runs in a sandboxed environment that never exposed itself to the rest of TomoMod, so move mode silently failed to activate. It now reaches the bars correctly.",
+            L["wn_353_abflash"] or "Fix — Pressing an action button turned its icon fully white. The custom icon skin's press/highlight textures needed additive blending and were instead painted as an opaque overlay. Fixed.",
+            L["wn_353_abposition"] or "Fix — A dragged action bar reset to its default position on every `/reload`. The saved position was never actually being written, and the restore path never read it back even when it was. Both are fixed — bar positions now persist correctly.",
         },
     },
     {

@@ -421,8 +421,19 @@ function RestoreContainerPosition(barKey)
     if not container then return false end
 
     local anchorKey = GetContainerAnchorKey(barKey)
-    if _G.TUI_HasFrameAnchor and _G.TUI_HasFrameAnchor(anchorKey) then
-        return true
+
+    -- TOMOMOD: TUI_HasFrameAnchor/TUI_ApplyFrameAnchor are a separate Tui
+    -- subsystem that was never ported — read the saved anchor directly.
+    local core = GetCore()
+    local profile = core and core.db and core.db.profile
+    local fa = profile and profile.frameAnchoring
+    local saved = type(fa) == "table" and fa[anchorKey] or nil
+    if type(saved) == "table" and saved.point then
+        container:ClearAllPoints()
+        local setOk = ns.SafeCallMethod("best-effort-style", container, "SetPoint",
+            saved.point, UIParent, saved.relative or saved.point,
+            saved.offsetX or 0, saved.offsetY or 0)
+        if setOk then return true end
     end
 
     local barFrame = GetBarFrame(barKey)
