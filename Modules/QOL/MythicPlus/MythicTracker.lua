@@ -2048,6 +2048,15 @@ SlashCmdList["TOMOMYTHICTRACKER"] = function(msg)
         if TomoMod_MythicPartyKeys then
             TomoMod_MythicPartyKeys:ShowKeyRoulette()
         end
+    elseif msg == "keysync" then
+        -- KeySync.Debug exists precisely to tell a silent transport apart from
+        -- a lookup that never matched, but nothing routed to it: the function
+        -- was unreachable from any slash command.
+        if TomoMod_KeySync and TomoMod_KeySync.Debug then
+            TomoMod_KeySync.Debug()
+        else
+            print("|cff2ed884TomoMod|r KeySync: module not loaded")
+        end
     elseif msg == "help"    then print(L["tmt_cmd_usage"])
     else print(L["tmt_unknown_cmd"]); print(L["tmt_cmd_usage"])
     end

@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- DataKeys.lua
 -- Fallback table: MapChallengeModeID → Dungeon Name / Short / Teleport
 -- Used when C_ChallengeMode.GetMapUIInfo() returns nil
@@ -68,8 +68,8 @@ local DB = {
     [246] = { "Tol Dagor",                              "TD",     nil     },
     [247] = { "The MOTHERLODE!!",                       "ML",     nil     },
     [248] = { "Waycrest Manor",                         "WM",     424167  },
-    [249] = { "Kings' Rest",                            "KR",     nil     },
-    [250] = { "Temple of Sethraliss",                   "SETH",   nil     },
+    [249] = { "Kings' Rest",                            "KR",     1286831 },
+    [250] = { "Temple of Sethraliss",                   "SETH",   1286828 },
     [251] = { "The Underrot",                           "UNDR",   410074  },
     [252] = { "Shrine of the Storm",                    "SHRINE", nil     },
     [353] = { "Siege of Boralus",                       "SIEGE",  nil     },
@@ -133,6 +133,16 @@ local DB = {
     [558] = { "Magisters' Terrace",                     "MAGI",   1254572 },
     [559] = { "Nexus-Point Xenas",                      "XENAS",  1254563 },
     [560] = { "Maisara Caverns",                        "CAVNS",  1254559 },
+
+    -- Season 2 rotation. Teleport spell IDs from the KeystoneLoot dataset
+    -- (season 17 / build 12.1.0), cross-checked against the published
+    -- rotation: Altar of the Fangs, Murder Row, Nalorakk's Lair, The
+    -- Blinding Vale, Void Scar Arena.
+    [584] = { "The Blinding Vale",                      "TBV",    1286801 },
+    [585] = { "Void Scar Arena",                        "VSA",    1286804 },
+    [586] = { "Nalorakk's Lair",                        "NAL",    1286807 },
+    [587] = { "Murder Row",                             "MR",     1286809 },
+    [588] = { "Altar of the Fangs",                     "AOF",    1286812 },
 }
 
 -- =====================================
