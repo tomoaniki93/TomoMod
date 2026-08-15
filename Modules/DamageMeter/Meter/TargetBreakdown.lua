@@ -1,4 +1,4 @@
-local ADDON_NAME, TomoMod = ...
+﻿local ADDON_NAME, TomoMod = ...
 
 -- [MERGE] Standalone, `ns` was this addon's own private table. Embedded, the
 -- vararg hands over TomoMod's, which every other file in the suite shares --
@@ -95,7 +95,13 @@ local function EnsureWindow()
     frame:SetBackdropColor(ns.BG[1], ns.BG[2], ns.BG[3], ns.db and ns.db.bgAlpha or ns.BG[4])
     frame:SetBackdropBorderColor(ns.BORDER_COLOR[1], ns.BORDER_COLOR[2], ns.BORDER_COLOR[3], ns.BORDER_COLOR[4])
 
-    tinsert(UISpecialFrames, "TomoDMTargetBreakdown")
+    -- [fix] Escape captured by the window itself. Going through
+    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
+    -- ClearTarget/SpellStopCasting calls are then refused once anything
+    -- has tainted the path -- and the player can no longer quit.
+    if TomoMod_Utils and TomoMod_Utils.CloseOnEscape then
+        TomoMod_Utils.CloseOnEscape(frame)
+    end
 
     --------------------------------------------------------------------------
     -- Header

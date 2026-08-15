@@ -519,6 +519,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["binding_bar_header"]                  = "Barra TomoMod %d",
     ["binding_button"]                      = "Barra %d Botão %d",
 
+    ["options_load_failed"]             = "painel de opções indisponível — o addon TomoMod_Options está ativado?",
+
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
     ["section_ab_totem"]                 = "Totens",
     ["opt_ab_totem_enabled"]             = "Barra de totens",
@@ -3289,6 +3291,9 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_354_perfpartylookup"] = "Interno — Os quadros de grupo abandonam uma busca linear de quadro em favor de uma tabela de busca direta, e agora se desinscrevem completamente dos eventos de vida/recurso/aura em raide — onde esses quadros ficam ocultos e os quadros de raide cuidam das atualizações — em vez de continuar processando-os silenciosamente à toa.",
     ["wn_354_perfcdf"] = "Interno — O evento de atualização do Cooldown Forge podia disparar várias vezes no mesmo quadro durante uma rajada de mudanças de recarga, cada uma repintando sozinha todas as barras e ícones. Essas rajadas agora são agrupadas em uma única repintura por quadro.",
     ["wn_354_perfmisc"] = "Interno — Algumas limpezas adicionais em caminhos críticos: a sondagem dos quadros de chefe não constrói mais novas strings a cada ciclo, a passagem de layout adiada do rastreador de objetivos e sua varredura recursiva de conteúdo não alocam mais tabelas descartáveis a cada nó, e os cálculos de velocidade do Skyriding não reconstroem mais uma closure a cada ciclo.",
+    ["wn_354_optionslod"] = "Mudança — O painel de opções — Config, 28 arquivos e cerca de 17.900 linhas — agora carrega sob demanda em vez de no login. Foi movido para seu próprio complemento TomoMod_Options e só carrega na primeira vez que é realmente aberto; cada botão e comando slash que antes o alcançava diretamente agora o carrega de forma transparente no primeiro uso.",
+    ["wn_354_optionsfallback"] = "Interno — As cores de pontuação Mítica+, antes lidas uma única vez no login a partir de uma tabela de tema que agora vive no complemento de opções sob demanda (e que, portanto, ainda não existia), agora são lidas de forma preguiçosa — elas se resolvem corretamente assim que o painel de opções é aberto uma vez, em vez de ficarem congeladas em um valor de reserva vazio durante toda a sessão.",
+    ["wn_354_escapefix"] = "Correção — As janelas Resumo de Morte, Resumo de Corrida, Detalhamento de Feitiço e Detalhamento de Alvo do Medidor de Dano podiam deixar o Esc incapaz de fechar o menu do jogo depois de usadas, porque fechá-las do jeito antigo passava por uma função cujas chamadas protegidas são recusadas assim que o caminho é contaminado. As quatro agora usam o mesmo manipulador seguro de fechamento com Esc que todas as outras janelas do TomoMod.",
 
     -- =====================
     -- 3.5.3 — Novidades

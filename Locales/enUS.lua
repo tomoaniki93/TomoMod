@@ -567,6 +567,8 @@ TomoMod_RegisterLocale("enUS", {
     ["binding_bar_header"]                  = "TomoMod Bar %d",
     ["binding_button"]                      = "Bar %d Button %d",
 
+    ["options_load_failed"]             = "options panel unavailable — is the TomoMod_Options addon enabled?",
+
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
     ["section_ab_totem"]                 = "Totems",
     ["opt_ab_totem_enabled"]             = "Totem bar",
@@ -3342,6 +3344,9 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_354_perfpartylookup"] = "Internal — Party frames dropped a linear frame search in favor of a direct lookup table, and now fully unsubscribe from health/power/aura events while in a raid — where those frames are hidden and the raid frames handle updates instead — rather than quietly continuing to process events for nothing.",
     ["wn_354_perfcdf"] = "Internal — Cooldown Forge's update event could fire several times in the same frame during a burst of cooldown changes, each one repainting every bar and icon on its own. Those bursts are now collapsed into a single repaint per frame.",
     ["wn_354_perfmisc"] = "Internal — A handful of smaller hot-path cleanups: boss frame polling no longer builds new strings every tick, the Objective Tracker's deferred layout pass and recursive content scan no longer allocate throwaway tables on every node, and Skyriding's speed calculations no longer rebuild a closure on every tick.",
+    ["wn_354_optionslod"] = "Change — The options panel — Config, 28 files and roughly 17,900 lines — now loads on demand instead of at login. It moved into its own TomoMod_Options add-on and only loads the first time you actually open it; every button and slash command that used to reach it directly now loads it transparently on first use.",
+    ["wn_354_optionsfallback"] = "Internal — Mythic+ score colors, previously read once at login from a theme table that now lives in the on-demand options add-on (and so didn't exist yet), are read lazily instead — they resolve correctly the moment the options panel has been opened once, rather than being frozen at an empty fallback for the whole session.",
+    ["wn_354_escapefix"] = "Fix — The Damage Meter's Death Recap, Run Recap, Spell Breakdown and Target Breakdown windows could leave Escape unable to close the game menu after being used, because closing them the old way routed through a function whose protected calls get refused once tainted. They now use the same safe close-on-Escape handler as every other TomoMod window.",
 
     -- =====================
     -- 3.5.3 — What's New

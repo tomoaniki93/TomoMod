@@ -519,6 +519,8 @@ TomoMod_RegisterLocale("deDE", {
     ["binding_bar_header"]                  = "TomoMod-Leiste %d",
     ["binding_button"]                      = "Leiste %d Schaltfläche %d",
 
+    ["options_load_failed"]             = "Optionsfenster nicht verfügbar — ist das Addon TomoMod_Options aktiviert?",
+
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
     ["section_ab_totem"]                 = "Totems",
     ["opt_ab_totem_enabled"]             = "Totemleiste",
@@ -3301,6 +3303,9 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_354_perfpartylookup"] = "Intern — Gruppenfenster verzichten nun auf eine lineare Fenstersuche zugunsten einer direkten Nachschlagetabelle und melden sich im Schlachtzug vollständig von Leben-/Ressourcen-/Aura-Events ab — wo diese Fenster ausgeblendet sind und die Schlachtzugsfenster die Updates übernehmen — statt diese Events weiterhin still und ergebnislos zu verarbeiten.",
     ["wn_354_perfcdf"] = "Intern — Das Update-Event von Cooldown Forge konnte bei einem Schwall von Abklingzeit-Änderungen mehrfach im selben Frame auslösen, wobei jedes einzelne für sich alle Leisten und Symbole neu zeichnete. Solche Schwälle werden nun zu einem einzigen Neuzeichnen pro Frame zusammengefasst.",
     ["wn_354_perfmisc"] = "Intern — Ein paar weitere Aufräumarbeiten an heißen Pfaden: Die Boss-Fenster-Abfrage baut nicht mehr bei jedem Tick neue Zeichenketten, der aufgeschobene Layout-Durchlauf des Zieltrackers und dessen rekursiver Inhaltsscan legen nicht mehr bei jedem Knoten Wegwerftabellen an, und die Geschwindigkeitsberechnungen von Skyriding bauen nicht mehr bei jedem Tick eine neue Closure auf.",
+    ["wn_354_optionslod"] = "Änderung — Das Optionsfenster — Config, 28 Dateien und rund 17.900 Zeilen — lädt nun bei Bedarf statt beim Einloggen. Es wurde in ein eigenes Addon TomoMod_Options verschoben und lädt erst beim ersten tatsächlichen Öffnen; jeder Knopf und jeder Slash-Befehl, der es zuvor direkt erreichte, lädt es nun beim ersten Gebrauch transparent nach.",
+    ["wn_354_optionsfallback"] = "Intern — Die Mythic+-Wertungsfarben, zuvor einmalig beim Einloggen aus einer Theme-Tabelle gelesen, die nun im bedarfsgeladenen Options-Addon liegt (und daher noch nicht existierte), werden nun träge gelesen — sie lösen sich korrekt auf, sobald das Optionsfenster einmal geöffnet wurde, statt für die ganze Sitzung auf einem leeren Rückfallwert eingefroren zu bleiben.",
+    ["wn_354_escapefix"] = "Fehlerbehebung — Die Fenster Todes-Rückblick, Lauf-Rückblick, Zauber-Aufschlüsselung und Ziel-Aufschlüsselung des Schadensmessers konnten dazu führen, dass Escape das Spielmenü nach ihrer Nutzung nicht mehr schließen konnte, weil das alte Schließen über eine Funktion lief, deren geschützte Aufrufe nach einer Verunreinigung des Pfades verweigert werden. Alle vier verwenden nun denselben sicheren Escape-Schließmechanismus wie jedes andere TomoMod-Fenster.",
 
     -- =====================
     -- 3.5.3 — Was ist neu

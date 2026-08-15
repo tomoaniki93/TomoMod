@@ -562,6 +562,8 @@ TomoMod_RegisterLocale("frFR", {
     ["binding_bar_header"]                  = "Barre TomoMod %d",
     ["binding_button"]                      = "Barre %d Bouton %d",
 
+    ["options_load_failed"]             = "panneau d'options indisponible — l'addon TomoMod_Options est-il activé ?",
+
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
     ["section_ab_totem"]                 = "Totems",
     ["opt_ab_totem_enabled"]             = "Barre de totems",
@@ -3317,6 +3319,9 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_354_perfpartylookup"] = "Interne — Les cadres de groupe abandonnent une recherche linéaire de cadre au profit d'une table de correspondance directe, et se désabonnent désormais complètement des événements de vie/ressource/aura en raid — où ces cadres sont masqués et où les cadres de raid gèrent les mises à jour — au lieu de continuer silencieusement à traiter ces événements pour rien.",
     ["wn_354_perfcdf"] = "Interne — L'événement de mise à jour de Cooldown Forge pouvait se déclencher plusieurs fois dans la même image lors d'une rafale de changements de temps de recharge, chacun redessinant seul toutes les barres et icônes. Ces rafales sont désormais regroupées en un seul redessin par image.",
     ["wn_354_perfmisc"] = "Interne — Quelques nettoyages supplémentaires de chemins critiques : le sondage des cadres de boss ne construit plus de nouvelles chaînes à chaque cycle, la passe de mise en page différée du traqueur d'objectifs et son scan récursif de contenu n'allouent plus de tables jetables à chaque nœud, et les calculs de vitesse du Skyriding ne reconstruisent plus une closure à chaque cycle.",
+    ["wn_354_optionslod"] = "Changement — Le panneau d'options — Config, 28 fichiers et environ 17 900 lignes — se charge désormais à la demande plutôt qu'à la connexion. Il a été déplacé dans son propre addon TomoMod_Options et ne se charge que la première fois que vous l'ouvrez réellement ; chaque bouton et chaque commande slash qui l'atteignaient directement le chargent désormais de façon transparente au premier usage.",
+    ["wn_354_optionsfallback"] = "Interne — Les couleurs de score Mythique+, auparavant lues une seule fois à la connexion depuis une table de thème qui vit désormais dans l'addon d'options à la demande (et qui n'existait donc pas encore), sont désormais lues paresseusement — elles se résolvent correctement dès que le panneau d'options a été ouvert une fois, au lieu de rester figées sur une valeur de repli vide pendant toute la session.",
+    ["wn_354_escapefix"] = "Correction — Les fenêtres Bilan de mort, Bilan de run, Détail des sorts et Détail de cible du Damage Meter pouvaient laisser Échap incapable de fermer le menu du jeu après avoir été utilisées, car les fermer à l'ancienne passait par une fonction dont les appels protégés sont refusés une fois le chemin tainted. Elles utilisent désormais le même gestionnaire sûr de fermeture par Échap que toutes les autres fenêtres de TomoMod.",
 
     -- =====================
     -- 3.5.3 — Quoi de neuf

@@ -518,6 +518,8 @@ TomoMod_RegisterLocale("esES", {
     ["binding_bar_header"]                  = "Barra TomoMod %d",
     ["binding_button"]                      = "Barra %d Botón %d",
 
+    ["options_load_failed"]             = "panel de opciones no disponible — ¿está activado el addon TomoMod_Options?",
+
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
     ["section_ab_totem"]                 = "Tótems",
     ["opt_ab_totem_enabled"]             = "Barra de tótems",
@@ -3302,6 +3304,9 @@ TomoMod_RegisterLocale("esES", {
     ["wn_354_perfpartylookup"] = "Interno — Los marcos de grupo abandonan una búsqueda lineal de marco en favor de una tabla de búsqueda directa, y ahora se dan de baja por completo de los eventos de vida/recurso/aura en banda — donde esos marcos están ocultos y los marcos de banda gestionan las actualizaciones — en lugar de seguir procesándolos silenciosamente para nada.",
     ["wn_354_perfcdf"] = "Interno — El evento de actualización de Cooldown Forge podía dispararse varias veces en el mismo fotograma durante una ráfaga de cambios de reutilización, cada uno repintando por sí solo todas las barras e iconos. Esas ráfagas ahora se agrupan en un único repintado por fotograma.",
     ["wn_354_perfmisc"] = "Interno — Algunas limpiezas adicionales en rutas críticas: el sondeo de marcos de jefe ya no construye cadenas nuevas en cada ciclo, el paso de diseño diferido del rastreador de objetivos y su escaneo recursivo de contenido ya no asignan tablas desechables en cada nodo, y los cálculos de velocidad de Skyriding ya no reconstruyen un cierre en cada ciclo.",
+    ["wn_354_optionslod"] = "Cambio — El panel de opciones — Config, 28 archivos y unas 17.900 líneas — ahora se carga bajo demanda en lugar de al iniciar sesión. Se trasladó a su propio complemento TomoMod_Options y solo se carga la primera vez que realmente se abre; cada botón y comando slash que antes lo alcanzaba directamente ahora lo carga de forma transparente en el primer uso.",
+    ["wn_354_optionsfallback"] = "Interno — Los colores de puntuación de Mítica+, antes leídos una sola vez al iniciar sesión desde una tabla de tema que ahora vive en el complemento de opciones bajo demanda (y que por tanto aún no existía), ahora se leen de forma perezosa — se resuelven correctamente en cuanto el panel de opciones se ha abierto una vez, en lugar de quedar congelados en un valor de respaldo vacío durante toda la sesión.",
+    ["wn_354_escapefix"] = "Corrección — Las ventanas de Resumen de muerte, Resumen de mazmorra, Desglose de hechizo y Desglose de objetivo del Medidor de daño podían dejar Escape incapaz de cerrar el menú del juego tras usarlas, porque cerrarlas a la manera antigua pasaba por una función cuyas llamadas protegidas se rechazan una vez contaminada la ruta. Las cuatro usan ahora el mismo manejador seguro de cierre con Escape que el resto de ventanas de TomoMod.",
 
     -- =====================
     -- 3.5.3 — Novedades

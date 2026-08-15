@@ -1,0 +1,39 @@
+## Interface: 120100
+## Title: |cff0cd29fTomo|rMod |cff2ed884Options|r
+## Notes: Configuration panels for TomoMod. Loaded on demand the first
+## Notes-frFR: Panneaux de configuration de TomoMod, charges a la demande.
+## Author: TomoAniki
+## Category: |cff0cd29fHUD|r
+## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
+## Version: 3.5.4
+## LoadOnDemand: 1
+## Dependencies: TomoMod
+
+Config\Widgets.lua
+Config\Presets.lua
+Config\Panels\_Suite.lua
+Config\Panels\General.lua
+Config\Panels\UFPreview.lua
+Config\Panels\UnitFrames.lua
+Config\Panels\Nameplates.lua
+Config\Panels\CooldownResource.lua
+Config\Panels\CooldownForge.lua
+Config\Panels\QOL.lua
+Config\Panels\Sound.lua
+Config\Panels\ActionBars.lua
+Config\Panels\MythicPlus.lua
+Config\Panels\Castbars.lua
+Config\Panels\PartyFrames.lua
+Config\Panels\RFPreview.lua
+Config\Panels\RaidFrames.lua
+Config\Panels\Skins.lua
+Config\Panels\Housing.lua
+Config\Panels\Profiles.lua
+Config\Panels\DamageMeter.lua
+Config\Panels\Changelog.lua
+Config\Panels\Diagnostics.lua
+Config\Panels\Roles.lua
+Config\Panels\Accueil.lua
+Config\ConfigUI.lua
+Config\GlobalSearch.lua
+Config\Installer.lua

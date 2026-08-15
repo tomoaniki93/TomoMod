@@ -1,4 +1,4 @@
--- =====================================================================
+﻿-- =====================================================================
 -- TomoScoreCore.lua — TomoScore integrated into TomoMod (MythicPlus)
 -- Addon table, color palette, utilities.
 -- =====================================================================
@@ -16,7 +16,15 @@ local TS = TomoMod_TomoScore
 -- product. Config\Widgets.lua loads at TOC line 49 and QOL.xml at 79, so the
 -- theme is always available here; the literals remain as a fallback rather
 -- than a second source of truth.
-local T = (TomoMod_Widgets and TomoMod_Widgets.Theme) or {}
+-- Theme lives in the TomoMod_Options load-on-demand sub-addon. The previous
+-- capture ran at login, before that addon exists, so it always resolved to
+-- the empty fallback and every colour below silently came out nil. The proxy
+-- resolves per access instead, and still falls back once loaded if a key is
+-- genuinely absent.
+local T = setmetatable({}, { __index = function(_, key)
+    local theme = TomoMod_Widgets and TomoMod_Widgets.Theme
+    return theme and theme[key] or nil
+end })
 
 local function tint(themeColor, fallback, alpha)
     local c = themeColor or fallback

@@ -519,6 +519,8 @@ TomoMod_RegisterLocale("itIT", {
     ["binding_bar_header"]                  = "Barra TomoMod %d",
     ["binding_button"]                      = "Barra %d Pulsante %d",
 
+    ["options_load_failed"]             = "pannello delle opzioni non disponibile — l'addon TomoMod_Options è attivo?",
+
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
     ["section_ab_totem"]                 = "Totem",
     ["opt_ab_totem_enabled"]             = "Barra dei totem",
@@ -3289,6 +3291,9 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_354_perfpartylookup"] = "Interno — I riquadri di gruppo abbandonano una ricerca lineare del riquadro a favore di una tabella di ricerca diretta, e ora si disiscrivono completamente dagli eventi vita/risorsa/aura durante un'incursione — dove quei riquadri sono nascosti e i riquadri d'incursione gestiscono gli aggiornamenti — invece di continuare silenziosamente a elaborarli per niente.",
     ["wn_354_perfcdf"] = "Interno — L'evento di aggiornamento di Cooldown Forge poteva scattare più volte nello stesso frame durante una raffica di cambi di ricarica, ognuno dei quali ridisegnava da solo tutte le barre e le icone. Quelle raffiche sono ora raggruppate in un unico ridisegno per frame.",
     ["wn_354_perfmisc"] = "Interno — Alcune pulizie aggiuntive nei percorsi critici: il polling dei riquadri boss non costruisce più nuove stringhe a ogni tick, il passaggio di layout differito del tracciatore obiettivi e la sua scansione ricorsiva dei contenuti non allocano più tabelle usa e getta a ogni nodo, e i calcoli di velocità dello Skyriding non ricostruiscono più una closure a ogni tick.",
+    ["wn_354_optionslod"] = "Modifica — Il pannello delle opzioni — Config, 28 file e circa 17.900 righe — ora si carica su richiesta anziché all'accesso. È stato spostato in un proprio componente aggiuntivo TomoMod_Options e si carica solo la prima volta che viene effettivamente aperto; ogni pulsante e comando slash che prima lo raggiungeva direttamente ora lo carica in modo trasparente al primo utilizzo.",
+    ["wn_354_optionsfallback"] = "Interno — I colori del punteggio Mitica+, prima letti una sola volta all'accesso da una tabella di tema che ora risiede nel componente aggiuntivo delle opzioni su richiesta (e quindi non esisteva ancora), vengono ora letti in modo pigro — si risolvono correttamente non appena il pannello delle opzioni è stato aperto una volta, invece di restare bloccati su un valore di ripiego vuoto per l'intera sessione.",
+    ["wn_354_escapefix"] = "Correzione — Le finestre Riepilogo morte, Riepilogo run, Dettaglio incantesimo e Dettaglio bersaglio del Misuratore di danno potevano lasciare Esc incapace di chiudere il menu di gioco dopo essere state usate, perché chiuderle nel vecchio modo passava per una funzione le cui chiamate protette vengono rifiutate una volta contaminato il percorso. Tutte e quattro usano ora lo stesso gestore sicuro di chiusura con Esc di ogni altra finestra di TomoMod.",
 
     -- =====================
     -- 3.5.3 — Novità

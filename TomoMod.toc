@@ -49,36 +49,12 @@ Core\WhatsNew.lua
 Core\Init.lua
 
 ## =====================
-## Config UI Widgets + Panels
+## Config UI
 ## =====================
-Config\Widgets.lua
-Config\Presets.lua
-Config\Panels\_Suite.lua
-Config\Panels\General.lua
-Config\Panels\UFPreview.lua
-Config\Panels\UnitFrames.lua
-Config\Panels\Nameplates.lua
-Config\Panels\CooldownResource.lua
-Config\Panels\CooldownForge.lua
-Config\Panels\QOL.lua
-Config\Panels\Sound.lua
-Config\Panels\ActionBars.lua
-Config\Panels\MythicPlus.lua
-Config\Panels\Castbars.lua
-Config\Panels\PartyFrames.lua
-Config\Panels\RFPreview.lua
-Config\Panels\RaidFrames.lua
-Config\Panels\Skins.lua
-Config\Panels\Housing.lua
-Config\Panels\Profiles.lua
-Config\Panels\DamageMeter.lua
-Config\Panels\Changelog.lua
-Config\Panels\Diagnostics.lua
-Config\Panels\Roles.lua
-Config\Panels\Accueil.lua
-Config\ConfigUI.lua
-Config\GlobalSearch.lua
-Config\Installer.lua
+## Moved to the TomoMod_Options sub-addon (## LoadOnDemand: 1) -- 28 files,
+## ~17900 lines that most sessions never open. Core/OptionsLoader.lua pulls
+## it in on first use.
+Core\OptionsLoader.lua
 
 ## =====================
 ## TUI compatibility layer (must load before any ported TUI module)
