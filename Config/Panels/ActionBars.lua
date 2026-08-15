@@ -176,6 +176,21 @@ local function BuildGeneralTab(parent)
         function(v) SetG("externalSkinning", v) end) y = ny
     local _, ny = W.CreateInfoText(c, L["info_ab_masque"], y) y = ny
 
+    -- The totem bar is a separate module with its own DB table, so it does not
+    -- go through G/SetG (which write into actionBars.global).
+    local _, ny = W.CreateSectionHeader(c, L["section_ab_totem"], y) y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_ab_totem_enabled"],
+        (TomoModDB and TomoModDB.totemBar and TomoModDB.totemBar.enabled) and true or false, y,
+        function(v)
+            if not TomoModDB then return end
+            if type(TomoModDB.totemBar) ~= "table" then TomoModDB.totemBar = {} end
+            TomoModDB.totemBar.enabled = v
+            if type(_G.TUI_RefreshTotemBar) == "function" then _G.TUI_RefreshTotemBar() end
+        end) y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_ab_totem"], y) y = ny
+
     local _, ny = W.CreateButton(c, L["btn_abs_layout"], 260, y, function()
         if TomoMod_Movers and TomoMod_Movers.Toggle then TomoMod_Movers.Toggle() end
     end) y = ny
@@ -378,16 +393,19 @@ local function BuildBarsTab(parent)
         local _, ny = W.CreateCheckbox(c, L["opt_bar_enabled"], bar.enabled ~= false, y,
             function(v) bar.enabled = v; Refresh() end) y = ny
 
-        -- Pet and stance bars have no free layout: Blizzard owns their button
-        -- count and the module only positions them.
-        if def.key ~= "pet" and def.key ~= "stance" then
-            local _, ny = W.CreateDropdown(c, L["opt_bar_orientation"], ORIENTATIONS,
-                lay.orientation or "horizontal", y, function(v) SetL("orientation", v) end) y = ny
-            local _, ny = W.CreateSlider(c, L["opt_bar_buttons"], lay.iconCount or 12, 1, 12, 1, y,
-                function(v) SetL("iconCount", v) end) y = ny
-            local _, ny = W.CreateSlider(c, L["opt_bar_columns"], lay.columns or 12, 1, 12, 1, y,
-                function(v) SetL("columns", v) end) y = ny
-        end
+        -- Pet and stance go through the same LayoutNativeButtons path as the
+        -- eight action bars, so they take the same layout keys. Only the
+        -- ceiling differs: ten slots instead of twelve. Stance additionally
+        -- clamps iconCount to the number of forms the class actually has, so
+        -- setting it high is harmless.
+        local maxButtons = (def.key == "pet" or def.key == "stance") and 10 or 12
+
+        local _, ny = W.CreateDropdown(c, L["opt_bar_orientation"], ORIENTATIONS,
+            lay.orientation or "horizontal", y, function(v) SetL("orientation", v) end) y = ny
+        local _, ny = W.CreateSlider(c, L["opt_bar_buttons"], lay.iconCount or maxButtons,
+            1, maxButtons, 1, y, function(v) SetL("iconCount", v) end) y = ny
+        local _, ny = W.CreateSlider(c, L["opt_bar_columns"], lay.columns or maxButtons,
+            1, maxButtons, 1, y, function(v) SetL("columns", v) end) y = ny
 
         local _, ny = W.CreateSlider(c, L["opt_bar_size"], lay.buttonSize or 30, 16, 64, 1, y,
             function(v) SetL("buttonSize", v) end) y = ny

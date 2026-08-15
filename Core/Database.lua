@@ -192,6 +192,27 @@ TomoMod_Defaults = {
         showCurrencyID = true,
         showAchievementID = true,
     },
+    -- Totem bar, defaults lifted from Tui (TUI/core/defaults.lua).
+    totemBar = {
+        enabled = false,
+        locked = false,
+        offsetX = 0,
+        offsetY = -200,
+        growDirection = "RIGHT",
+        iconSize = 36,
+        spacing = 4,
+        borderSize = 2,
+        zoom = 0,
+        durationSize = 13,
+        durationColor = { 1, 1, 1, 1 },
+        durationAnchor = "CENTER",
+        durationOffsetX = 0,
+        durationOffsetY = 0,
+        hideDurationText = false,
+        showSwipe = true,
+        swipeColor = { 0, 0, 0, 0.6 },
+    },
+
     -- Action bar defaults, lifted from Tui (TUI/core/defaults.lua) so the
     -- ported module finds every key it reads. Without this its settings tables
     -- are empty and buttons render with no size, no font and no colour.

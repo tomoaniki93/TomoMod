@@ -223,6 +223,54 @@ function Helpers.DeferredHideOnShow(frame, opts)
     end)
 end
 
+-- Added for the totem bar. ApplyCooldownFromStart is ported verbatim from
+-- Tui, secret policy included: the duration-object sink is tried first, and
+-- the numeric SetCooldown path is refused outright when any argument is a
+-- secret value rather than coerced into a guess.
+function Helpers.ApplyCooldownFromStart(cooldownFrame, durationObj, startTime, duration, modRate, reverse)
+    if not cooldownFrame then return false end
+
+    if durationObj and cooldownFrame.SetCooldownFromDurationObject then
+        local applied = pcall(cooldownFrame.SetCooldownFromDurationObject, cooldownFrame, durationObj, reverse)
+        if applied then return true end
+    end
+
+    if Helpers.IsSecretValue(startTime) or Helpers.IsSecretValue(duration)
+        or Helpers.IsSecretValue(modRate) then
+        return false
+    end
+    if type(startTime) ~= "number" or type(duration) ~= "number" then return false end
+    if duration <= 0 or not cooldownFrame.SetCooldown then return false end
+
+    if modRate ~= nil then
+        if type(modRate) ~= "number" then return false end
+        return pcall(cooldownFrame.SetCooldown, cooldownFrame, startTime, duration, modRate)
+    end
+    return pcall(cooldownFrame.SetCooldown, cooldownFrame, startTime, duration)
+end
+
+local DEFAULT_FONT_NAME = "Poppins SemiBold"
+local DEFAULT_OUTLINE   = "OUTLINE"
+
+function Helpers.GetGeneralFont()
+    local profile = Helpers.GetProfile()
+    local name = profile and profile.general and profile.general.font or DEFAULT_FONT_NAME
+    if ns.LSM then
+        local ok, path = pcall(ns.LSM.Fetch, ns.LSM, "font", name, true)
+        if ok and type(path) == "string" then return path end
+    end
+    return FALLBACK_FONT
+end
+
+function Helpers.GetGeneralFontOutline()
+    local profile = Helpers.GetProfile()
+    return (profile and profile.general and profile.general.fontOutline) or DEFAULT_OUTLINE
+end
+
+function Helpers.GetGeneralFontSettings()
+    return Helpers.GetGeneralFont(), Helpers.GetGeneralFontOutline()
+end
+
 -- Keybind text formatting. Ported code calls ns.FormatKeybind(key).
 local ABBREV = {
     { "MOUSEWHEELUP", "mwu" }, { "MOUSEWHEELDOWN", "mwd" },

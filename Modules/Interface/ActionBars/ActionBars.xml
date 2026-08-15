@@ -22,4 +22,10 @@
     <Script file="tui\actionbars_public.lua" />
     <Script file="tui\actionbars_per_bar_builders.lua" />
 
+    <!-- Totem bar (standalone module, same namespace) -->
+    <Script file="tui\totems.lua" />
+
+    <!-- TomoMod glue (not ported: keep out of tui/) -->
+    <Script file="TotemBarMover.lua" />
+
 </Ui>
