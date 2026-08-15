@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Interface/Shared/AuraData.lua — shared aura database for group frames
 --
 -- PartyFrame/HoTs.lua and RaidFrame/Auras.lua each carried their own copy of
@@ -267,29 +267,41 @@ function AD.ScanDefensives(unit, want, maxCount, out)
     if TomoMod_Utils and TomoMod_Utils.AurasRestricted and TomoMod_Utils.AurasRestricted() then return 0 end
 
     local count = 0
-    local idx = 1
-    while idx <= 40 and count < SCAN_LIMIT do
-        local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, unit, idx, "HELPFUL")
-        if not ok or not aura then break end
 
-        local spellID = AD.SafeNumber(aura.spellId)
-        if spellID then
-            local info = AD.DEFENSIVES[spellID]
-            if info and want[info.kind] then
-                count = count + 1
-                local entry = out[count]
-                if not entry then entry = {}; out[count] = entry end
-                entry.spellID  = spellID
-                entry.kind     = info.kind
-                entry.weight   = info.weight
-                entry.icon     = aura.icon
-                entry.duration = aura.duration
-                entry.expTime  = aura.expirationTime
+    -- One protected call around the whole scan instead of one per index.
+    -- pcall builds a protected call frame, which is among the most expensive
+    -- things in Lua 5.1, and this loop ran up to forty times per UNIT_AURA
+    -- per tracked unit. The degraded mode is identical -- an error abandons
+    -- the scan -- but the cost is divided by the number of iterations.
+    local scanOk = pcall(function()
+        local idx = 1
+        while idx <= 40 and count < SCAN_LIMIT do
+            local aura = C_UnitAuras.GetAuraDataByIndex(unit, idx, "HELPFUL")
+            if not aura then break end
+
+            local spellID = AD.SafeNumber(aura.spellId)
+            if spellID then
+                local info = AD.DEFENSIVES[spellID]
+                if info and want[info.kind] then
+                    count = count + 1
+                    local entry = out[count]
+                    if not entry then entry = {}; out[count] = entry end
+                    entry.spellID  = spellID
+                    entry.kind     = info.kind
+                    entry.weight   = info.weight
+                    entry.icon     = aura.icon
+                    entry.duration = aura.duration
+                    entry.expTime  = aura.expirationTime
+                end
             end
-        end
 
-        idx = idx + 1
-    end
+            idx = idx + 1
+        end
+    end)
+    -- A scan that threw partway keeps whatever it had already collected:
+    -- the entries written before the error are valid, and count reflects
+    -- exactly them.
+    if not scanOk and count < 0 then count = 0 end
 
     -- Insertion sort: at most SCAN_LIMIT entries, in practice two or three,
     -- and it allocates nothing (table.sort would need a comparator upvalue).

@@ -200,79 +200,6 @@ function GetExtraButtonInitialPosition(buttonType, fallbackPosition)
     return nil
 end
 
-function CreateExtraButtonNudgeButton(parent, direction, holder, buttonType)
-    local btn = CreateFrame("Button", nil, parent)
-    btn:SetSize(18, 18)
-    btn:SetFrameStrata("HIGH")
-    btn:SetFrameLevel(100)
-
-    local bg = btn:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetTexture("Interface\\Buttons\\WHITE8x8")
-    bg:SetVertexColor(0.1, 0.1, 0.1, 0.7)
-
-    local line1 = btn:CreateTexture(nil, "ARTWORK")
-    line1:SetColorTexture(1, 1, 1, 0.9)
-    line1:SetSize(7, 2)
-
-    local line2 = btn:CreateTexture(nil, "ARTWORK")
-    line2:SetColorTexture(1, 1, 1, 0.9)
-    line2:SetSize(7, 2)
-
-    if direction == "DOWN" then
-        line1:SetPoint("CENTER", btn, "CENTER", -2, 1)
-        line1:SetRotation(math.rad(-45))
-        line2:SetPoint("CENTER", btn, "CENTER", 2, 1)
-        line2:SetRotation(math.rad(45))
-    elseif direction == "UP" then
-        line1:SetPoint("CENTER", btn, "CENTER", -2, -1)
-        line1:SetRotation(math.rad(45))
-        line2:SetPoint("CENTER", btn, "CENTER", 2, -1)
-        line2:SetRotation(math.rad(-45))
-    elseif direction == "LEFT" then
-        line1:SetPoint("CENTER", btn, "CENTER", 1, -2)
-        line1:SetRotation(math.rad(-45))
-        line2:SetPoint("CENTER", btn, "CENTER", 1, 2)
-        line2:SetRotation(math.rad(45))
-    elseif direction == "RIGHT" then
-        line1:SetPoint("CENTER", btn, "CENTER", -1, -2)
-        line1:SetRotation(math.rad(45))
-        line2:SetPoint("CENTER", btn, "CENTER", -1, 2)
-        line2:SetRotation(math.rad(-45))
-    end
-
-    btn:SetScript("OnEnter", function(self)
-        line1:SetVertexColor(1, 0.8, 0, 1)
-        line2:SetVertexColor(1, 0.8, 0, 1)
-    end)
-    btn:SetScript("OnLeave", function(self)
-        line1:SetVertexColor(1, 1, 1, 0.9)
-        line2:SetVertexColor(1, 1, 1, 0.9)
-    end)
-
-    btn:SetScript("OnClick", function()
-        local dx, dy = 0, 0
-        if direction == "UP" then dy = 1
-        elseif direction == "DOWN" then dy = -1
-        elseif direction == "LEFT" then dx = -1
-        elseif direction == "RIGHT" then dx = 1
-        end
-        if holder.AdjustPointsOffset then
-            holder:AdjustPointsOffset(dx, dy)
-        else
-            local point, relativeTo, relativePoint, xOfs, yOfs = holder:GetPoint(1)
-            if Helpers.HasSecretValue(point, relativeTo, relativePoint, xOfs, yOfs) then return end
-            if point then
-                holder:ClearAllPoints()
-                holder:SetPoint(point, relativeTo, relativePoint, (xOfs or 0) + dx, (yOfs or 0) + dy)
-            end
-        end
-        SaveExtraButtonHolderPosition(buttonType, holder)
-    end)
-
-    return btn
-end
-
 function CreateExtraButtonHolder(buttonType, displayName)
     local settings = GetExtraButtonDB(buttonType)
     if not settings then return nil, nil end
@@ -299,15 +226,6 @@ function CreateExtraButtonHolder(buttonType, displayName)
     text:SetTextColor(1, 1, 1, 1)
     text:SetText(displayName)
     mover.text = text
-
-    local nudgeUp = CreateExtraButtonNudgeButton(mover, "UP", holder, buttonType)
-    nudgeUp:SetPoint("BOTTOM", mover, "TOP", 0, 4)
-    local nudgeDown = CreateExtraButtonNudgeButton(mover, "DOWN", holder, buttonType)
-    nudgeDown:SetPoint("TOP", mover, "BOTTOM", 0, -4)
-    local nudgeLeft = CreateExtraButtonNudgeButton(mover, "LEFT", holder, buttonType)
-    nudgeLeft:SetPoint("RIGHT", mover, "LEFT", -4, 0)
-    local nudgeRight = CreateExtraButtonNudgeButton(mover, "RIGHT", holder, buttonType)
-    nudgeRight:SetPoint("LEFT", mover, "RIGHT", 4, 0)
 
     mover:SetScript("OnDragStart", function(self)
         holder:StartMoving()

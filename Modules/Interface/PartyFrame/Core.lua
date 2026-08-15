@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- PartyFrame/Core.lua — Party & Group Frames
 -- Secure frames with health, absorb, heal prediction, HoTs,
 -- interrupt/brez CD tracking, dispel highlight, range check
@@ -35,6 +35,13 @@ local ROLE_TEXTURE  = "Interface\\LFGFrame\\UI-LFG-ICON-PORTRAITROLES"
 
 -- State
 PF.frames      = {}        -- [0]=player, [1..4]=party1..party4
+-- Parallel lookup, [unitToken] = frame. PF.frames stays keyed by slot index
+-- because several call sites address it numerically (PF.frames[0], the
+-- creation loop, the idx-aware layout pass), so re-keying it would be a much
+-- wider change than this needs to be. A unit token never moves between
+-- frames -- frame i is always "party"..i -- so this map is written once at
+-- creation and never invalidated.
+PF.byUnit      = {}
 PF.anchor      = nil       -- anchor frame for layout
 PF.isLocked    = true
 PF.initialized = false
@@ -569,6 +576,7 @@ function PF.CreateFrame(index, unit)
     f:Hide()  -- the secure visibility driver takes over from here
 
     PF.frames[index] = f
+    PF.byUnit[unit] = f
     return f
 end
 
@@ -978,10 +986,12 @@ end
 -- RANGE CHECK (event + timer fallback)
 -- =====================================
 
-function PF.UpdateRange(f)
+function PF.UpdateRange(f, db)
     if not f or not f.unit then return end
 
-    local db = TomoModDB and TomoModDB.partyFrames
+    -- Callers that already hold the settings table pass it in; the event
+    -- path and any other caller still gets the lookup.
+    db = db or (TomoModDB and TomoModDB.partyFrames)
     if not db or not db.showRange then f:SetAlpha(1); return end
 
     if f.unit == "player" then f:SetAlpha(1); return end
@@ -1009,10 +1019,11 @@ local rangeTicker = nil
 
 -- Forward-declared: also defined in EVENT HANDLER section
 local function GetFrameForUnit(unit)
-    for _, f in pairs(PF.frames) do
-        if f and f.unit == unit then return f end
-    end
-    return nil
+    -- Was a linear pairs() scan. The UNIT_* events below are registered
+    -- globally, so this ran for every unit token the client emits --
+    -- nameplate1..40, raid1..40, boss1..8, arena, pets -- and returned nil
+    -- almost every time.
+    return PF.byUnit[unit]
 end
 
 function PF.StartRangeChecker()
@@ -1029,12 +1040,18 @@ function PF.StartRangeChecker()
     end)
 
     -- Timer fallback: catches edge cases (phased, disconnect, zone changes)
-    rangeTicker = C_Timer.NewTicker(0.5, function()
+    -- UNIT_IN_RANGE_UPDATE above covers the nominal case instantly. This
+    -- ticker is only a safety net for transitions that fire no event
+    -- (phasing, disconnect, zone change), none of which is perceptible at
+    -- half a second -- so it ran forty frames a second in a 40-man for
+    -- nothing. Two seconds keeps the net and divides the cost by four.
+    rangeTicker = C_Timer.NewTicker(2.0, function()
         local db = TomoModDB and TomoModDB.partyFrames
         if not db or not db.showRange then return end
+        -- db passed down so UpdateRange does not re-read it per frame.
         for _, f in pairs(PF.frames) do
             if f and f:IsShown() and f.unit then
-                PF.UpdateRange(f)
+                PF.UpdateRange(f, db)
             end
         end
     end)
@@ -1275,9 +1292,43 @@ end
 -- Visibility itself is owned by the secure state drivers set in
 -- PF.CreateFrame, so it needs no work here — in or out of combat.
 -- =====================================
+-- The UNIT_* events below are registered globally, so the handler is invoked
+-- for every unit token the client emits: nameplate1..40, raid1..40, boss1..8,
+-- arena, pets. In a 40-man the party frames are not even shown, and every one
+-- of those fired a lookup that returned nothing.
+--
+-- RegisterUnitEvent per token would be tighter still, but party tokens are
+-- reused as the roster shifts and a mis-scoped registration silently stops
+-- updating a frame -- a worse failure than the cost it saves. Dropping the
+-- whole set while in raid removes the cost exactly where it hurts, and does
+-- so with one flag.
+local UNIT_EVENTS = {
+    "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_ABSORB_AMOUNT_CHANGED",
+    "UNIT_HEAL_PREDICTION", "UNIT_POWER_UPDATE", "UNIT_MAXPOWER",
+    "UNIT_NAME_UPDATE", "UNIT_AURA",
+}
+
+function PF.SetUnitEventsEnabled(enabled)
+    enabled = enabled and true or false
+    if PF._unitEventsOn == enabled then return end
+    PF._unitEventsOn = enabled
+    for i = 1, #UNIT_EVENTS do
+        if enabled then
+            eventFrame:RegisterEvent(UNIT_EVENTS[i])
+        else
+            eventFrame:UnregisterEvent(UNIT_EVENTS[i])
+        end
+    end
+end
+
 function PF.RefreshGroup()
     local db = TomoModDB and TomoModDB.partyFrames
     if not db or not db.enabled then return end
+
+    -- In a raid the party frames are hidden and the raid module takes over,
+    -- so nothing here needs unit updates. GROUP_ROSTER_UPDATE fires on both
+    -- transitions, which is what makes this the right place for the gate.
+    PF.SetUnitEventsEnabled(not IsInRaid())
 
     -- [COMBAT] Only frame creation (SetAttribute on secure buttons) and
     -- layout (SetPoint/SetSize on protected frames) must wait for regen.
@@ -1407,15 +1458,9 @@ function PF.Initialize()
     PF.CreateAnchor()
     PF.HideBlizzardFrames()
 
-    -- Register events
-    eventFrame:RegisterEvent("UNIT_HEALTH")
-    eventFrame:RegisterEvent("UNIT_MAXHEALTH")
-    eventFrame:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
-    eventFrame:RegisterEvent("UNIT_HEAL_PREDICTION")
-    eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
-    eventFrame:RegisterEvent("UNIT_MAXPOWER")
-    eventFrame:RegisterEvent("UNIT_NAME_UPDATE")
-    eventFrame:RegisterEvent("UNIT_AURA")
+    -- Register events. Logging in already inside a raid must not subscribe:
+    -- RefreshGroup would only correct it on the next roster event.
+    PF.SetUnitEventsEnabled(not IsInRaid())
     eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
     eventFrame:RegisterEvent("READY_CHECK")
     eventFrame:RegisterEvent("READY_CHECK_CONFIRM")

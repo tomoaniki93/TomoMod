@@ -2,6 +2,13 @@
 -- frFR.lua — Français
 -- =====================================
 
+-- Perf: Lua builds the whole table constructor below before
+-- TomoMod_RegisterLocale can decide to discard it. For a player on any other
+-- locale that is ~2900 key/value pairs allocated and turned straight into
+-- garbage, five files over, on every /reload. The chunk still compiles (the
+-- TOC loads it), but the constructor never runs.
+if GetLocale() ~= "frFR" then return end
+
 TomoMod_RegisterLocale("frFR", {
 
     -- =====================
@@ -3299,6 +3306,11 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_333_diag_settle"] = "Diagnostics : l'échelle que le jeu applique de lui-même pendant la connexion était consignée dans chaque rapport comme un redimensionnement en cours de session. La capture d'affichage attend désormais quatre secondes que le client se stabilise avant de prendre une mesure, si bien que la seule entrée d'échelle qui subsiste dans un rapport est celle qui mérite vraiment une explication.",
     ["wn_333_diag_mode"] = "Diagnostics : quand le rapport n'arrive pas à déterminer votre mode d'affichage, il indique maintenant les valeurs brutes renvoyées par le jeu au lieu d'un simple point d'interrogation — ces noms de réglages changent d'une extension à l'autre, et un « ? » seul ne pouvait pas être diagnostiqué sans revenir vers vous. Le plein écran fenêtré et les fenêtres agrandies sont reconnus dans davantage de cas, et les versions des addons ne s'affichent plus sous la forme « vv1.2.3 ».",
     ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
+
+    -- =====================
+    -- 3.5.4 — Quoi de neuf
+    ["wn_354_preyfix"] = "Correction — La barre de progression du Prey Tracker restait bloquée à 0 %. `GetPreyWidgetInfo` ne conservait que le booléen renvoyé par `pcall`, pas les données réelles du widget, si bien que lire `.progressPercent` dessus levait une erreur chaque seconde et interrompait la mise à jour avant qu'elle ne puisse jamais retomber sur le décompte de l'objectif de la quête. L'appel conserve désormais les deux valeurs de retour, si bien qu'un champ de widget manquant est géré silencieusement et que la progression réelle — lue depuis le décompte d'objectif de la chasse — s'affiche correctement.",
+    ["wn_354_extranudge"] = "Changement — Les surcouches de déplacement du bouton d'action supplémentaire et de la capacité de zone perdent les quatre flèches de réglage fin qui les entouraient dans `/tm layout`. Glisser la surcouche à la souris continue de la repositionner exactement comme avant ; seuls les boutons supplémentaires ont disparu.",
 
     -- =====================
     -- 3.5.3 — Quoi de neuf

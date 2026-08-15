@@ -2,6 +2,13 @@
 -- deDE.lua — Deutsch
 -- =====================================
 
+-- Perf: Lua builds the whole table constructor below before
+-- TomoMod_RegisterLocale can decide to discard it. For a player on any other
+-- locale that is ~2900 key/value pairs allocated and turned straight into
+-- garbage, five files over, on every /reload. The chunk still compiles (the
+-- TOC loads it), but the constructor never runs.
+if GetLocale() ~= "deDE" then return end
+
 TomoMod_RegisterLocale("deDE", {
 
     -- =====================
@@ -3283,6 +3290,11 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_settle"] = "Diagnose: Die Skalierung, die das Spiel während der Anmeldung selbst anwendet, wurde in jedem Bericht als Neuskalierung mitten in der Sitzung festgehalten. Die Anzeigeerfassung wartet nun vier Sekunden, bis sich der Client eingependelt hat, bevor sie misst — der einzige verbliebene Skalierungseintrag in einem Bericht ist damit einer, der tatsächlich erklärungsbedürftig ist.",
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
+
+    -- =====================
+    -- 3.5.4 — Was ist neu
+    ["wn_354_preyfix"] = "Fehlerbehebung — Die Fortschrittsleiste des Prey Trackers blieb dauerhaft bei 0 % stehen. `GetPreyWidgetInfo` behielt nur den von `pcall` zurückgegebenen Boolean, nicht die eigentlichen Widget-Daten, sodass das Lesen von `.progressPercent` daraus jede Sekunde einen Fehler auslöste und das Update abbrach, bevor es je auf die Ziel-Zählung der Quest zurückfallen konnte. Der Aufruf behält nun beide Rückgabewerte, sodass ein fehlendes Widget-Feld still behandelt wird und der tatsächliche Fortschritt — abgelesen an der Ziel-Zählung der Jagd — korrekt durchkommt.",
+    ["wn_354_extranudge"] = "Änderung — Die Verschiebe-Overlays der Extra-Aktionstaste und der Zonenfähigkeit verlieren die vier Klick-Pfeile zum Feinjustieren, die sie in `/tm layout` umgaben. Das Overlay per Maus zu ziehen positioniert es weiterhin exakt wie zuvor — nur die zusätzlichen Knöpfe sind verschwunden.",
 
     -- =====================
     -- 3.5.3 — Was ist neu

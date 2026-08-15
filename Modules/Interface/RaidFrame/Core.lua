@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- RaidFrame/Core.lua — Raid Group Frames
 -- Secure frames with health, absorb, heal prediction, HoTs,
 -- dispel highlight, role icons, raid markers, range check
@@ -827,10 +827,12 @@ end
 -- =====================================
 -- RANGE CHECK
 -- =====================================
-function RF.UpdateRange(f)
+function RF.UpdateRange(f, db)
     if not f or not f.unit then return end
 
-    local db = TomoModDB and TomoModDB.raidFrames
+    -- Callers that already hold the settings table pass it in; the event
+    -- path and any other caller still gets the lookup.
+    db = db or (TomoModDB and TomoModDB.raidFrames)
     if not db or not db.showRange then f:SetAlpha(1); return end
 
     if UnitIsUnit(f.unit, "player") then f:SetAlpha(1); return end
@@ -867,12 +869,18 @@ function RF.StartRangeChecker()
         end
     end)
 
-    rangeTicker = C_Timer.NewTicker(0.5, function()
+    -- UNIT_IN_RANGE_UPDATE above covers the nominal case instantly. This
+    -- ticker is only a safety net for transitions that fire no event
+    -- (phasing, disconnect, zone change), none of which is perceptible at
+    -- half a second -- so it ran forty frames a second in a 40-man for
+    -- nothing. Two seconds keeps the net and divides the cost by four.
+    rangeTicker = C_Timer.NewTicker(2.0, function()
         local db = TomoModDB and TomoModDB.raidFrames
         if not db or not db.showRange then return end
+        -- db passed down so UpdateRange does not re-read it per frame.
         for _, f in pairs(RF.frames) do
             if f and f:IsShown() and f.unit then
-                RF.UpdateRange(f)
+                RF.UpdateRange(f, db)
             end
         end
     end)

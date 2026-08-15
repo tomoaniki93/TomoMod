@@ -3332,6 +3332,12 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
 
     -- =====================
+    -- 3.5.4 — What's New
+    -- =====================
+    ["wn_354_preyfix"] = "Fix — The Prey Tracker's progress bar was permanently stuck at 0%. `GetPreyWidgetInfo` kept only the boolean returned by `pcall`, not the actual widget data, so reading `.progressPercent` off it threw an error every second and aborted the update before it could ever fall back to the quest's own objective count. The call now keeps both return values, so a missing widget field is handled quietly and the real progress — read from the hunt's own objective count — comes through correctly.",
+    ["wn_354_extranudge"] = "Change — The Extra Action Button and Zone Ability move overlays lose the four click-to-nudge arrows that surrounded them in `/tm layout`. Dragging the overlay with the mouse still repositions it exactly as before; only the extra buttons are gone.",
+
+    -- =====================
     -- 3.5.3 — What's New
     -- =====================
     ["wn_353_brezvisual"] = "Enhancement — The Battle Rez Counter HUD received a visual refresh inspired by Tui's design patterns. The frame now features a professional multi-layer backdrop with inner shadow effects, improved spacing, and refined typography for better readability during combat.",

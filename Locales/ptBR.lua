@@ -2,6 +2,13 @@
 -- ptBR.lua — Português (Brasil)
 -- =====================================
 
+-- Perf: Lua builds the whole table constructor below before
+-- TomoMod_RegisterLocale can decide to discard it. For a player on any other
+-- locale that is ~2900 key/value pairs allocated and turned straight into
+-- garbage, five files over, on every /reload. The chunk still compiles (the
+-- TOC loads it), but the constructor never runs.
+if GetLocale() ~= "ptBR" then return end
+
 TomoMod_RegisterLocale("ptBR", {
 
     -- =====================
@@ -3271,6 +3278,11 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_333_diag_settle"] = "Diagnóstico: a escala que o jogo aplica por conta própria durante o login era registrada em todo relatório como um redimensionamento no meio da sessão. A captura de exibição agora espera quatro segundos até o cliente se estabilizar antes de fazer uma leitura, de forma que a única entrada de escala que resta em um relatório é aquela que realmente precisa de explicação.",
     ["wn_333_diag_mode"] = "Diagnóstico: quando o relatório não consegue determinar seu modo de exibição, ele agora imprime os valores brutos que o jogo forneceu em vez de apenas um ponto de interrogação — esses nomes de configuração mudam de uma expansão para outra, e um «?» sozinho não podia ser diagnosticado sem voltar a perguntar. Tela cheia em janela e janelas maximizadas são reconhecidas em mais casos, e as versões dos complementos não aparecem mais como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
+
+    -- =====================
+    -- 3.5.4 — Novidades
+    ["wn_354_preyfix"] = "Correção — A barra de progresso do Prey Tracker ficava travada permanentemente em 0%. `GetPreyWidgetInfo` mantinha apenas o booleano retornado por `pcall`, não os dados reais do widget, então ler `.progressPercent` dele lançava um erro a cada segundo e interrompia a atualização antes que ela pudesse recorrer à contagem do objetivo da missão. A chamada agora mantém os dois valores de retorno, então um campo de widget ausente é tratado silenciosamente e o progresso real — lido da contagem de objetivo da caçada — aparece corretamente.",
+    ["wn_354_extranudge"] = "Mudança — As sobreposições de movimento do Botão de Ação Extra e da Habilidade de Zona perdem as quatro setas de ajuste fino que as cercavam em `/tm layout`. Arrastar a sobreposição com o mouse continua a reposicioná-la exatamente como antes; apenas os botões extras desapareceram.",
 
     -- =====================
     -- 3.5.3 — Novidades

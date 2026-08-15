@@ -123,8 +123,8 @@ local function GetPreyWidgetInfo()
             for _, widget in ipairs(widgets) do
                 if widget and widget.widgetType == PREY_WIDGET_TYPE and widget.shownState == WIDGET_SHOWN then
                     if C_UIWidgetManager.GetPreyHuntProgressWidgetVisualizationInfo then
-                        local info = pcall(C_UIWidgetManager.GetPreyHuntProgressWidgetVisualizationInfo, widget.widgetID)
-                        if info then return info, widget.widgetID end
+                        local ok, info = pcall(C_UIWidgetManager.GetPreyHuntProgressWidgetVisualizationInfo, widget.widgetID)
+                        if ok and info then return info, widget.widgetID end
                     end
                 end
             end
