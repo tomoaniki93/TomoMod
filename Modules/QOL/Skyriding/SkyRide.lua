@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- TomoMod_SkyRide.lua
 -- Module de barre Skyriding — v2.3.1+
 -- Deux rangées : Vigor (6 charges) + Second Souffle (3 charges)
@@ -18,6 +18,12 @@ local VIGOR_SPELL_IDS = { 372608, 372610 }
 -- Second Souffle (3 charges) : 425782
 local WIND_SPELL_IDS  = { 425782 }
 local SPEED_MULTIPLIER     = 14.285
+
+-- Hoisted out of the two pcall sites below: they run on a 0.25s ticker and an
+-- inline closure allocates on every tick. The pcall stays -- speed can be a
+-- secret value in restricted content, and arithmetic on one throws.
+local function PercentOfSeven(speed) return math.floor(speed / 7 * 100 + 0.5) end
+local function ScaleBySpeedMultiplier(v) return math.floor(v * SPEED_MULTIPLIER + 0.5) end
 local SPEED_MAX            = 1100
 local VIGOR_MAX_SEGMENTS   = 6
 local _vigorSpellID        = nil   -- détecté dynamiquement au premier tick
@@ -412,7 +418,7 @@ local function SafeGroundSpeedPercent()
     if not ok or not speed or (issecretvalue and issecretvalue(speed)) then
         return 0
     end
-    local ok2, result = pcall(function() return math.floor(speed / 7 * 100 + 0.5) end)
+    local ok2, result = pcall(PercentOfSeven, speed)
     if not ok2 or not result or (issecretvalue and issecretvalue(result)) then
         return 0
     end
@@ -477,7 +483,7 @@ local function UpdateSpeed()
     if issecretvalue and forwardSpeed ~= nil and issecretvalue(forwardSpeed) then forwardSpeed = 0 end
     local moveSpeed = 0
     if isGliding and forwardSpeed and forwardSpeed > 0 then
-        local okMul, mulResult = pcall(function() return math.floor(forwardSpeed * SPEED_MULTIPLIER + 0.5) end)
+        local okMul, mulResult = pcall(ScaleBySpeedMultiplier, forwardSpeed)
         moveSpeed = (okMul and mulResult) or 0
     else
         moveSpeed = SafeGroundSpeedPercent()

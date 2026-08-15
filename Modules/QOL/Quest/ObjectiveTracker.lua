@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- ObjectiveTracker.lua
 -- Skin for Blizzard's Objective Tracker (WoW 12.x)
 -- Uses recursive child scanning for maximum compatibility
@@ -941,16 +941,20 @@ local _tmSilenceHook = 0       -- > 0 means: ignore hook callbacks (we caused th
 local _tmHiddenModules = {}    -- WQ module frames we've alpha=0'd (not reparented)
 local _strayBars = {}          -- StatusBar frames hidden by layout; restored by DisableBuckets
 
+local function RunPendingPump()
+    _tmPendingPump = false
+    -- forward call without re-entry; OnTrackerUpdate guards itself too
+    if OT and OT._OnTrackerUpdate then OT._OnTrackerUpdate() end
+end
+
 local function PumpUpdateSoon()
     -- Ignore notifications that we ourselves triggered while laying out.
     if _tmInLayout or _tmSilenceHook > 0 then return end
     if _tmPendingPump then return end
     _tmPendingPump = true
-    C_Timer.After(0, function()
-        _tmPendingPump = false
-        -- forward call without re-entry; OnTrackerUpdate guards itself too
-        if OT and OT._OnTrackerUpdate then OT._OnTrackerUpdate() end
-    end)
+    -- Named function rather than an inline closure: the pump is coalesced but
+    -- still fires on every event burst, and the closure allocated each time.
+    C_Timer.After(0, RunPendingPump)
 end
 
 local function ToggleBucket(key)
@@ -1047,17 +1051,26 @@ local function ModuleHasVisibleContent(f, depth)
     if not f or depth > 5 then return false end
     if f.IsShown and not f:IsShown() then return false end
     if f.IsObjectType and f:IsObjectType("StatusBar") then return true end
+    -- select() over the varargs instead of { ... }: this walk descends five
+    -- levels over a tree that reaches a couple of hundred frames in a delve or
+    -- scenario, and every node allocated two throwaway tables. The other
+    -- { :GetChildren() } sites in this file are one-shot layout passes and are
+    -- deliberately left alone.
     if f.GetRegions then
-        for _, r in ipairs({ f:GetRegions() }) do
-            if r.IsObjectType and r:IsObjectType("FontString") and r:IsShown() then
+        local n = select("#", f:GetRegions())
+        for i = 1, n do
+            local r = select(i, f:GetRegions())
+            if r and r.IsObjectType and r:IsObjectType("FontString") and r:IsShown() then
                 local txt = r:GetText()
                 if txt and txt ~= "" then return true end
             end
         end
     end
     if f.GetChildren then
-        for _, c in ipairs({ f:GetChildren() }) do
-            if ModuleHasVisibleContent(c, depth + 1) then return true end
+        local n = select("#", f:GetChildren())
+        for i = 1, n do
+            local c = select(i, f:GetChildren())
+            if c and ModuleHasVisibleContent(c, depth + 1) then return true end
         end
     end
     return false
@@ -1072,12 +1085,14 @@ end
 local function HasSpecialModuleContent(parent, depth)
     depth = depth or 0
     if not parent or not parent.GetChildren or depth > 2 then return false end
-    for _, child in ipairs({ parent:GetChildren() }) do
-        if IsSpecialModule(child) then
+    local n = select("#", parent:GetChildren())
+    for i = 1, n do
+        local child = select(i, parent:GetChildren())
+        if child and IsSpecialModule(child) then
             if child:IsShown() and ModuleHasVisibleContent(child, 0) then
                 return true
             end
-        elseif not child.HeaderText and HasSpecialModuleContent(child, depth + 1) then
+        elseif child and not child.HeaderText and HasSpecialModuleContent(child, depth + 1) then
             return true
         end
     end

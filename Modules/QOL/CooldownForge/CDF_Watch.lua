@@ -1,4 +1,4 @@
--- =====================================================================
+﻿-- =====================================================================
 -- CooldownForge -- Watch (resolution, visibility, cooldown state, events)
 -- AstralForge Cooldown -- Lot 2. Turns schema entries into draw-ready
 -- descriptors and secret-safe cooldown data, and drives an event-based
@@ -373,13 +373,49 @@ function CDF.RegisterUpdate(fn)
     end
 end
 
-local function fireUpdate(reason)
+-- Hoisted out of the two pcall sites below. The table each returns is still
+-- allocated -- GetChildren/GetRegions return varargs and the callers iterate
+-- with ipairs -- but the closure around it no longer is.
+local function packChildren(frame) return { frame:GetChildren() } end
+local function packRegions(frame)  return { frame:GetRegions() } end
+
+local function runUpdate(reason)
     local subs = CDF._updateSubs
     for i = 1, #subs do
         subs[i](reason)
     end
 end
+
+-- Blizzard emits SPELL_UPDATE_COOLDOWN in bursts -- several times within one
+-- frame -- and each one used to drive a full pass over every bar and icon.
+-- Coalesce to one pass per frame, keeping the strongest reason seen: a layout
+-- refresh subsumes a cooldown refresh, never the other way round.
+--
+-- Same shape as dirtyBatchFrame in Nameplates and abUpdateFrame in the action
+-- bars; the pattern existed in the project but had not been applied here.
+local pendingReason
+local updateBatchFrame = CreateFrame("Frame")
+updateBatchFrame:Hide()
+updateBatchFrame:SetScript("OnUpdate", function(self)
+    self:Hide()
+    local reason = pendingReason
+    pendingReason = nil
+    if reason then runUpdate(reason) end
+end)
+
+local function fireUpdate(reason)
+    if reason == "layout" or pendingReason == nil then
+        pendingReason = reason
+    end
+    updateBatchFrame:Show()
+end
+
 CDF.FireUpdate = fireUpdate
+
+-- Escape hatch for anything that genuinely cannot wait a frame. Nothing uses
+-- it today; it exists so a future caller does not reach for runUpdate by
+-- copying the batched path and silently reintroducing the burst.
+CDF.FireUpdateNow = runUpdate
 
 local w = CreateFrame("Frame")
 w:RegisterEvent("SPELL_UPDATE_COOLDOWN")
@@ -754,7 +790,9 @@ local function ViewerFrameFor(cands)
     for _, name in ipairs(VIEWER_NAMES) do
         local viewer = _G[name]
         if viewer and viewer.GetChildren then
-            local ok, children = pcall(function() return { viewer:GetChildren() } end)
+            -- Named function instead of an inline closure: this ran per icon
+            -- per pass, and a closure allocates every single time.
+            local ok, children = pcall(packChildren, viewer)
             if ok then
                 for _, frame in ipairs(children) do
                     local sid = Scanner.GetCachedSpellID(frame)
@@ -837,7 +875,7 @@ local function ViewerAuraState(cands)
     -- Blizzard settled on -- no swipe is possible without the underlying
     -- values, but the figure is exact.
     if not st.timed and cd and cd.GetRegions then
-        local okR, regions = pcall(function() return { cd:GetRegions() } end)
+        local okR, regions = pcall(packRegions, cd)
         if okR then
             for _, r in ipairs(regions) do
                 if r.GetObjectType and r:GetObjectType() == "FontString"

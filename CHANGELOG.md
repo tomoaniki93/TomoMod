@@ -1,6 +1,6 @@
 ## ####################################
 
-## CHANGELOG 3.5.4 — The Prey Tracker's Progress Bar Was Stuck At Zero Percent Because Reading Its Own Widget Data Threw An Error Every Single Second, The Result Of Keeping Only Half Of What `pcall` Handed Back, And The Extra Action Button's Move Overlay Loses The Four Click-To-Nudge Arrows Nobody Asked It To Grow
+## CHANGELOG 3.5.4 — The Prey Tracker's Progress Bar Was Stuck At Zero Percent Because Reading Its Own Widget Data Threw An Error Every Single Second, The Result Of Keeping Only Half Of What `pcall` Handed Back, The Extra Action Button's Move Overlay Loses The Four Click-To-Nudge Arrows Nobody Asked It To Grow, And A Pass Of Performance Fixes Across The Locale Loader, Party And Raid Frames, The Shared Aura Scanner, Cooldown Forge, Boss Frames, The Objective Tracker And Skyriding Removes A Handful Of Habits That Cost Nothing On Their Own And Add Up On Every Tick: A Non-Active Locale's Nearly Three Thousand Translation Entries Built And Thrown Away On Every `/reload`, A Range-Check Ticker Running Twice As Often As Any Transition It Needs To Catch, A Protected Call Opened Once Per Aura Instead Of Once Per Scan, Unit Events Left Subscribed In A Raid For Frames The Raid Module Had Already Taken Over, A Burst Of Cooldown Events Each Repainting Every Bar On Its Own, And Inline Closures Rebuilt On Every Tick Where A Named Function Would Do
 
 #### Prey Tracker — Progress Was Stuck At 0%
 
@@ -10,6 +10,36 @@
 #### Action Bars — Extra Action Button & Zone Ability Move Overlay
 
 - **Change** — Removed the four click-to-nudge arrow buttons that surrounded the Extra Action Button and Zone Ability move overlays in `/tm layout`. Dragging the overlay with the mouse still repositions it exactly as before; only the extra buttons are gone.
+
+#### Performance — Locale Loading
+
+- **Fix** — `TomoMod_RegisterLocale`'s merge-in-base-locale check tested `TomoMod_L[k] == nil`, but `TomoMod_L` carries an `__index` metamethod that always returns something for any key — so the condition was always false and fired the metamethod on every one of the ~2900 enUS keys for nothing, on every load. It's `rawget`-only now.
+- **Change** — `deDE.lua`, `esES.lua`, `frFR.lua`, `itIT.lua` and `ptBR.lua` each now bail out with `if GetLocale() ~= "<locale>" then return end` before their table constructor. Lua still builds the whole ~2900-entry table before `TomoMod_RegisterLocale` gets a chance to discard it, so a player on any other locale was allocating and immediately garbage-collecting five of those tables on every `/reload`. Only the active locale's file still builds its table.
+
+#### Performance — Party & Raid Frame Range Checking
+
+- **Change** — The range-check safety-net ticker on both Party and Raid frames dropped from 0.5s to 2.0s. `UNIT_IN_RANGE_UPDATE` already covers the normal case instantly; the ticker only exists to catch transitions that fire no event (phasing, disconnect, zone change), none of which needs sub-second resolution — it was running forty times a second in a 40-man for nothing.
+- **Internal** — `PF.UpdateRange` / `RF.UpdateRange` now accept the settings table as an optional second argument so the ticker's loop doesn't re-read `TomoModDB` on every single frame.
+
+#### Performance — Shared Aura Scanning
+
+- **Change** — `AuraData.ScanDefensives` wrapped every `C_UnitAuras.GetAuraDataByIndex` call in its own `pcall` — up to 40 protected calls per `UNIT_AURA` per tracked unit, and a protected call frame is one of the more expensive things Lua can do. One `pcall` now wraps the whole scan loop instead; a mid-scan error still keeps whatever entries were already collected, so the degraded behavior is unchanged.
+
+#### Performance — Party Frames: Unit Lookups & Raid Gating
+
+- **Change** — `GetFrameForUnit` looked up a frame with a linear `pairs()` scan over every party slot, run from globally-registered `UNIT_*` events that fire for every unit token the client emits — nameplates, raid members, boss units, arena, pets — almost always to find nothing. It's now a direct `PF.byUnit[unit]` table lookup.
+- **New** — `PF.SetUnitEventsEnabled()` unregisters the eight `UNIT_*` health/power/aura events entirely while in a raid, where the party frames are hidden and the raid module owns unit updates. Re-evaluated on `GROUP_ROSTER_UPDATE` and at login, so joining a raid drops the dead subscriptions instead of leaving them firing for nothing.
+
+#### Performance — Cooldown Forge Update Batching
+
+- **Change** — `CDF.FireUpdate` now coalesces bursts of `SPELL_UPDATE_COOLDOWN` / `SPELL_UPDATE_CHARGES` — which Blizzard can fire several times within the same frame — into a single pass on the next `OnUpdate`, keeping the strongest reason seen (a layout refresh subsumes a plain cooldown refresh). Previously every one of those events drove a full pass over every bar and icon on its own. `CDF.FireUpdateNow` remains for anything that genuinely can't wait a frame, though nothing currently needs it.
+- **Internal** — Two inline closures wrapped in `pcall` for reading `GetChildren()`/`GetRegions()` — one running per icon per pass — replaced with named functions (`packChildren`, `packRegions`) so the closure isn't reallocated on every call.
+
+#### Performance — Boss Frames, Objective Tracker & Skyriding
+
+- **Change** — Boss frame polling built a fresh `"boss" .. i` string on its 0.15s ticker for all 8 possible slots; it now indexes a constant `BOSS_UNITS` table instead.
+- **Change** — The Objective Tracker's deferred layout pump (`PumpUpdateSoon`) passed a fresh inline closure to `C_Timer.After` on every event burst; it now passes a single named function. Its recursive content-scan helpers (`ModuleHasVisibleContent`, `HasSpecialModuleContent`) replaced `{ frame:GetChildren() }` / `{ frame:GetRegions() }` table allocations — walked at every node of a tree that can reach a couple hundred frames in a delve or scenario — with `select("#", ...)` iteration that allocates nothing.
+- **Change** — Skyriding's speed calculations wrapped an inline closure in `pcall` on a 0.25s ticker (needed because ground/forward speed can be a secret value in restricted content); both are now named functions (`PercentOfSeven`, `ScaleBySpeedMultiplier`) so the closure isn't rebuilt every tick.
 
 ## ####################################
 
