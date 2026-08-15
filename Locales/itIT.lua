@@ -521,6 +521,16 @@ TomoMod_RegisterLocale("itIT", {
 
     ["options_load_failed"]             = "pannello delle opzioni non disponibile — l'addon TomoMod_Options è attivo?",
 
+    ["anchor_queue"]                    = "Occhio della coda",
+
+    ["microbar_native_not_found"]       = "impossibile trovare il micro-menu di Blizzard da nascondere — segnalalo con la versione del client.",
+
+    ["microbar_tt_perf"]                    = "Prestazioni",
+    ["microbar_tt_fps"]                     = "Fotogrammi al secondo",
+    ["microbar_tt_latency"]                 = "Latenza",
+    ["microbar_tt_cpu"]                     = "CPU degli addon",
+    ["microbar_tt_cpu_off"]                 = "profilazione disattivata",
+
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
     ["section_ab_totem"]                 = "Totem",
     ["opt_ab_totem_enabled"]             = "Barra dei totem",
@@ -3280,6 +3290,18 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_333_diag_settle"] = "Diagnostica: la scala che il gioco applica da sé durante l'accesso finiva in ogni rapporto come un ridimensionamento a metà sessione. La rilevazione dello schermo attende ora quattro secondi che il client si stabilizzi prima di effettuare una lettura, così l'unica voce di scala rimasta in un rapporto è quella che merita davvero una spiegazione.",
     ["wn_333_diag_mode"] = "Diagnostica: quando il rapporto non riesce a determinare la modalità di visualizzazione, ora stampa i valori grezzi forniti dal gioco anziché un semplice punto interrogativo — quei nomi di impostazione cambiano da un'espansione all'altra, e un «?» da solo non era diagnosticabile senza tornare a chiedertelo. Lo schermo intero in finestra e le finestre massimizzate vengono riconosciuti in più casi, e le versioni dei componenti aggiuntivi non compaiono più come «vv1.2.3».",
     ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
+
+    -- =====================
+    -- 3.5.5 — Novità
+    -- =====================
+    ["wn_355_barhoverblocked"] = "Correzione: il semplice passaggio del mouse su un pulsante della barra delle azioni durante un combattimento produceva un errore di azione bloccata, ogni singola volta. L'aggiornamento del pulsante di Blizzard viene eseguito al passaggio del mouse e si conclude scrivendo direttamente un'impostazione di pressione prolungata — una scrittura non consentita in combattimento, e attribuita a TomoMod perché i pulsanti sono nostri. Una voce per ogni passaggio del mouse: è così che una sola sessione ne ha accumulate 127. TomoMod scrive ora quell'impostazione dal proprio percorso sicuro, dove veniva già scritta correttamente, e salta la versione ridondante di Blizzard.",
+    ["wn_355_barpingblocked"] = "Correzione: lo stesso passaggio del mouse eseguiva una seconda scrittura vietata due righe più avanti, questa volta appartenente al sistema dei ping. I ping riguardano le barre di Blizzard e non si sono mai applicati ai pulsanti di TomoMod, quindi anche quella chiamata viene ora saltata. Nessuna delle due ha mai rotto qualcosa a schermo — ma seppellivano gli errori reali sotto il rumore e facevano sembrare il componente aggiuntivo responsabile di qualunque altra cosa andasse storta nello stesso combattimento.",
+    ["wn_355_escapekeyblocked"] = "Correzione: con una finestra di TomoMod aperta in combattimento, ogni tasto premuto produceva un errore di azione bloccata — tenere premuto un tasto di movimento bastava da solo a riempire il registro degli errori. Il controllo del combattimento c'era già, veniva solo eseguito una riga troppo tardi, dopo la chiamata protetta che avrebbe dovuto impedire. Ora viene eseguito per primo.",
+    ["wn_355_microportrait"] = "Correzione: nel micromenu personalizzato, il pulsante della scheda del personaggio appariva come un quadrato colorato vuoto, mentre tutti gli altri pulsanti erano corretti. È l'unico la cui grafica non è un'icona fissa — è il ritratto del tuo personaggio — e TomoMod copiava un riferimento a una texture che semplicemente non si riproduce da nessun'altra parte. Ora chiede al gioco di disegnare il tuo ritratto direttamente sul pulsante e prende in prestito la stessa maschera arrotondata e la stessa ombra che Blizzard usa sul proprio pulsante del personaggio — così mostra il tuo personaggio con la stessa forma e la stessa profondità dei pulsanti accanto, invece di un quadrato piatto.",
+    ["wn_355_perftooltip"] = "Novità: il suggerimento sulla memoria del micro-menu personalizzato si apre ora con un blocco Prestazioni: i tuoi fotogrammi al secondo, la latenza locale e mondiale e la CPU totale degli addon. La riga della CPU ha senso solo se il gioco la sta registrando, cosa disattivata per impostazione predefinita e che richiede un ricaricamento — perciò, anziché mostrarti degli zeri che sembrerebbero una misurazione reale, indica «profilazione disattivata» finché non la attivi.",
+    ["wn_355_micronative"] = "Correzione: su alcuni client, spuntare «nascondi il micro-menu di Blizzard» non faceva assolutamente nulla: la casella restava spuntata e la barra restava sullo schermo. TomoMod cercava il menu di Blizzard sotto un unico nome, che è cambiato nel corso delle patch, e si arrendeva non appena non lo trovava — senza nemmeno nascondere i pulsanti, che era la parte che avrebbe funzionato. Ora riconosce tutti i nomi usati da Blizzard e gestisce comunque i pulsanti. Se sul tuo client non risponde nulla, ora te lo dice una volta in chat invece di fallire in silenzio — segnalalo con la versione del client se vedi quel messaggio.",
+    ["wn_355_queueanchor"] = "Novità: l'occhio della coda — la piccola icona che ruota mentre attendi un dungeon o un campo di battaglia — ora può essere spostato. Blizzard lo aggancia alla minimappa e non gli dà alcuna maniglia nella modalità Modifica, il che ne faceva l'unico elemento dell'interfaccia che semplicemente non potevi posizionare. Ora compare tra le ancore spostabili di `/tm sr`, e uno spostamento effettuato in combattimento viene applicato al termine dello scontro anziché essere rifiutato.",
+    ["wn_355_escapepropagate"] ="Interno: la propagazione della tastiera di quelle finestre viene ora stabilita una volta sola, alla costruzione della finestra, invece di essere reimpostata a ogni pressione di tasto. Non ne ha mai avuto bisogno: è una proprietà persistente del riquadro, e l'unica cosa che la disattiva è la chiusura della finestra con Esc, che in combattimento non può avvenire.",
 
     -- =====================
     -- 3.5.4 — Novità

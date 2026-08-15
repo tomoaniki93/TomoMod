@@ -521,6 +521,16 @@ TomoMod_RegisterLocale("ptBR", {
 
     ["options_load_failed"]             = "painel de opções indisponível — o addon TomoMod_Options está ativado?",
 
+    ["anchor_queue"]                    = "Olho da fila",
+
+    ["microbar_native_not_found"]       = "não foi possível encontrar o micromenu da Blizzard para ocultar — relate com a versão do seu cliente.",
+
+    ["microbar_tt_perf"]                    = "Desempenho",
+    ["microbar_tt_fps"]                     = "Quadros por segundo",
+    ["microbar_tt_latency"]                 = "Latência",
+    ["microbar_tt_cpu"]                     = "CPU dos addons",
+    ["microbar_tt_cpu_off"]                 = "criação de perfil desativada",
+
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
     ["section_ab_totem"]                 = "Totens",
     ["opt_ab_totem_enabled"]             = "Barra de totens",
@@ -3280,6 +3290,18 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_333_diag_settle"] = "Diagnóstico: a escala que o jogo aplica por conta própria durante o login era registrada em todo relatório como um redimensionamento no meio da sessão. A captura de exibição agora espera quatro segundos até o cliente se estabilizar antes de fazer uma leitura, de forma que a única entrada de escala que resta em um relatório é aquela que realmente precisa de explicação.",
     ["wn_333_diag_mode"] = "Diagnóstico: quando o relatório não consegue determinar seu modo de exibição, ele agora imprime os valores brutos que o jogo forneceu em vez de apenas um ponto de interrogação — esses nomes de configuração mudam de uma expansão para outra, e um «?» sozinho não podia ser diagnosticado sem voltar a perguntar. Tela cheia em janela e janelas maximizadas são reconhecidas em mais casos, e as versões dos complementos não aparecem mais como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
+
+    -- =====================
+    -- 3.5.5 — Novidades
+    -- =====================
+    ["wn_355_barhoverblocked"] = "Correção: o simples passar do mouse sobre um botão da barra de ação durante um combate produzia um erro de ação bloqueada, todas as vezes. A própria atualização de botão da Blizzard roda ao passar o mouse e termina escrevendo diretamente uma configuração de pressionar e segurar — uma escrita que não é permitida em combate e que é atribuída ao TomoMod porque os botões são nossos. Uma entrada por passagem do mouse: foi assim que uma única sessão acumulou 127 delas. O TomoMod agora escreve essa configuração pelo seu próprio caminho seguro, onde ela já estava sendo escrita corretamente, e ignora a versão redundante da Blizzard.",
+    ["wn_355_barpingblocked"] = "Correção: essa mesma passagem do mouse executava uma segunda escrita proibida duas linhas adiante, desta vez pertencente ao sistema de pings. Os pings se destinam às barras da própria Blizzard e nunca se aplicaram aos botões do TomoMod, então essa chamada também passou a ser ignorada. Nenhuma das duas chegou a quebrar algo na tela — mas elas soterravam os erros reais sob ruído e faziam o complemento parecer o responsável por qualquer outra coisa que desse errado no mesmo combate.",
+    ["wn_355_escapekeyblocked"] = "Correção: com uma janela do TomoMod aberta em combate, cada tecla pressionada produzia um erro de ação bloqueada — manter uma tecla de movimento pressionada bastava para encher o registro de erros sozinha. A verificação de combate já estava lá, apenas rodava uma linha tarde demais, depois da chamada protegida que deveria evitar. Agora ela roda primeiro.",
+    ["wn_355_microportrait"] = "Correção: no micromenu personalizado, o botão da ficha de personagem aparecia como um quadrado colorido vazio, enquanto todos os outros botões estavam corretos. Ele é o único cuja arte não é um ícone fixo — é o retrato do seu personagem — e o TomoMod copiava uma referência de textura que simplesmente não se reproduz em nenhum outro lugar. Agora ele pede ao jogo que desenhe o seu retrato diretamente no botão e toma emprestada a mesma máscara arredondada e a mesma sombra que a Blizzard usa no seu próprio botão de personagem — assim ele mostra o seu personagem com a mesma forma e a mesma profundidade dos botões ao lado, em vez de um quadrado chapado.",
+    ["wn_355_perftooltip"] = "Novidade: a dica de memória do micromenu personalizado agora abre com um bloco de Desempenho: seus quadros por segundo, sua latência local e mundial e a CPU total dos complementos. A linha de CPU só significa algo quando o jogo a está registrando, o que vem desativado por padrão e exige recarregar — então, em vez de mostrar zeros que pareceriam uma medição real, ela indica «criação de perfil desativada» até você ativá-la.",
+    ["wn_355_micronative"] = "Correção: em alguns clientes, marcar «ocultar o micromenu da Blizzard» não fazia absolutamente nada: a caixa continuava marcada e a barra continuava na tela. O TomoMod procurava o menu da Blizzard por um único nome, que mudou ao longo das atualizações, e desistia assim que não o encontrava — sem sequer ocultar os botões, que era a parte que teria funcionado. Agora ele reconhece todos os nomes já usados pela Blizzard e trata os botões de qualquer forma. Se nada responder no seu cliente, ele passa a avisar uma vez no chat em vez de falhar em silêncio — relate com a versão do seu cliente se vir essa mensagem.",
+    ["wn_355_queueanchor"] = "Novidade: o olho da fila — o pequeno ícone que gira enquanto você espera por uma masmorra ou campo de batalha — agora pode ser movido. A Blizzard o prende ao minimapa e não lhe dá alça alguma no modo de Edição, o que fazia dele o único elemento da interface que você simplesmente não conseguia posicionar. Ele agora aparece entre as âncoras móveis de `/tm sr`, e movê-lo durante o combate é aplicado assim que a luta termina, em vez de ser recusado.",
+    ["wn_355_escapepropagate"] ="Interno: a propagação de teclado dessas janelas agora é estabelecida uma única vez, na construção da janela, em vez de ser redefinida a cada tecla pressionada. Nunca foi necessário: é uma propriedade persistente do quadro, e a única coisa que a desliga é fechar a janela com Esc, o que não pode acontecer em combate.",
 
     -- =====================
     -- 3.5.4 — Novidades

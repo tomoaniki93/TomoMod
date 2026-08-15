@@ -187,7 +187,64 @@ local function ResolveArt(native)
     return nil
 end
 
-local function ApplyArt(icon, native)
+local function ApplyArt(icon, native, key)
+    -- CharacterMicroButton carries no atlas and no static file: its art is the
+    -- player portrait, pushed in by SetPortraitTexture. Reading GetTexture on
+    -- it hands back a portrait texture ID that does not reproduce on another
+    -- region, which renders as a plain square -- exactly what players report
+    -- for the character sheet button and nothing else.
+    if key == "character" and SetPortraitTexture then
+        -- CharacterMicroButton has no atlas and no static file: its art is the
+        -- player portrait, and Blizzard shapes it with a mask region --
+        -- visible in a frame stack as
+        --   CharacterMicroButton.PortraitMask : UI-HUD-MicroMenu-Portrait-Mask
+        -- Applying the portrait alone gave a raw square that read bigger than
+        -- its neighbours; a texcoord crop only approximated the shape. Reusing
+        -- Blizzard's own mask gives the same silhouette as the native button,
+        -- with no magic numbers to retune when the art changes.
+        local ok = pcall(SetPortraitTexture, icon, "player")
+        if ok then
+            icon:SetTexCoord(0, 1, 0, 1)
+            local parent = icon:GetParent()
+            if parent and parent.CreateMaskTexture and not icon._mbPortraitMask then
+                local mask = parent:CreateMaskTexture()
+                mask:SetAllPoints(icon)
+                local okMask = pcall(mask.SetAtlas, mask, "UI-HUD-MicroMenu-Portrait-Mask")
+                if okMask then
+                    pcall(icon.AddMaskTexture, icon, mask)
+                    icon._mbPortraitMask = mask
+                end
+            elseif icon._mbPortraitMask then
+                icon._mbPortraitMask:SetAllPoints(icon)
+            end
+
+            -- Blizzard also drops a shadow under the portrait
+            -- (CharacterMicroButton.Shadow : UI-HUD-MicroMenu-Portrait-Shadow).
+            -- Without it the masked portrait sits flat against the bar while
+            -- the native button has depth. BACKGROUND so it stays under the
+            -- portrait, and slightly oversized because the shadow atlas is
+            -- drawn larger than the shape it sits behind.
+            if parent and parent.CreateTexture and not icon._mbPortraitShadow then
+                local shadow = parent:CreateTexture(nil, "BACKGROUND")
+                local okShadow = pcall(shadow.SetAtlas, shadow, "UI-HUD-MicroMenu-Portrait-Shadow")
+                if okShadow then
+                    shadow:SetPoint("TOPLEFT", icon, "TOPLEFT", -2, 2)
+                    shadow:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", 2, -2)
+                    icon._mbPortraitShadow = shadow
+                else
+                    shadow:Hide()
+                end
+            end
+            if icon._mbPortraitShadow then icon._mbPortraitShadow:Show() end
+
+            return
+        end
+    end
+
+    -- Any other button reaching here must not keep a shadow left over from a
+    -- previous rebuild in which it was the character slot.
+    if icon._mbPortraitShadow then icon._mbPortraitShadow:Hide() end
+
     local kind, value = ResolveArt(native)
     if kind == "atlas" then
         icon:SetAtlas(value, false)
@@ -382,6 +439,30 @@ local function FormatMemory(kb)
     return string.format("%d KB", math.floor(kb + 0.5))
 end
 
+-- scriptProfile is a CVar the player sets and reloads into; when it is off,
+-- GetAddOnCPUUsage answers zero for everything and a CPU column would be a
+-- row of lies. Read once here and reported as "disabled" rather than 0.
+local cpuProfiling = false
+local cpuCache = { total = 0, stamp = -1, list = {} }
+
+local function RefreshCPU()
+    cpuProfiling = (GetCVar and GetCVar("scriptProfile") == "1") and true or false
+    if not cpuProfiling or not UpdateAddOnCPUUsage then return end
+
+    local now = GetTime()
+    if cpuCache.stamp >= 0 and (now - cpuCache.stamp) < MEM_TTL then return end
+    UpdateAddOnCPUUsage()
+
+    local count = (C_AddOns and C_AddOns.GetNumAddOns and C_AddOns.GetNumAddOns())
+        or (GetNumAddOns and GetNumAddOns()) or 0
+    local total = 0
+    for i = 1, count do
+        total = total + ((GetAddOnCPUUsage and GetAddOnCPUUsage(i)) or 0)
+    end
+    cpuCache.total = total
+    cpuCache.stamp = now
+end
+
 local function RefreshMemory()
     local now = GetTime()
     if memCache.stamp >= 0 and (now - memCache.stamp) < MEM_TTL then return end
@@ -428,6 +509,33 @@ local function ShowTooltip(self)
 
     if def.memory and (GetDB() or {}).memoryTooltip then
         RefreshMemory()
+        RefreshCPU()
+
+        -- Performance block above the per-addon list: framerate and latency
+        -- are what a player actually wants when they hover this button, and
+        -- both are cheap. CPU is only meaningful when the client is recording
+        -- it, which is off by default -- say so instead of showing zeroes.
+        GameTooltip:AddLine(" ")
+        GameTooltip:AddLine(L["microbar_tt_perf"], 0.4, 0.8, 1)
+        GameTooltip:AddDoubleLine(L["microbar_tt_fps"],
+            string.format("%.0f", GetFramerate and GetFramerate() or 0),
+            1, 0.82, 0, 1, 1, 1)
+        local home, world = 0, 0
+        if GetNetStats then
+            local _, _, h, w = GetNetStats()
+            home, world = h or 0, w or 0
+        end
+        GameTooltip:AddDoubleLine(L["microbar_tt_latency"],
+            string.format("%d / %d ms", home, world), 1, 0.82, 0, 1, 1, 1)
+
+        if cpuProfiling then
+            GameTooltip:AddDoubleLine(L["microbar_tt_cpu"],
+                string.format("%.1f ms", cpuCache.total), 1, 0.82, 0, 1, 1, 1)
+        else
+            GameTooltip:AddDoubleLine(L["microbar_tt_cpu"], L["microbar_tt_cpu_off"],
+                1, 0.82, 0, 0.6, 0.6, 0.6)
+        end
+
         GameTooltip:AddLine(" ")
         GameTooltip:AddLine(L["microbar_tt_memory"], 0.4, 0.8, 1)
         GameTooltip:AddDoubleLine(L["microbar_tt_total"], FormatMemory(memCache.total),
@@ -616,7 +724,7 @@ local function Rebuild()
 
         btn:SetSize(size, size)
         btn.icon:SetSize(size, size)
-        ApplyArt(btn.icon, native)
+        ApplyArt(btn.icon, native, def.key)
         btn.icon:SetDesaturated(db.desaturate and true or false)
         btn.icon:SetVertexColor(r, g, b)
 
@@ -673,20 +781,40 @@ end
 -- NATIVE MICRO MENU
 -- =====================================
 
+-- Blizzard has moved the micro menu's container more than once, and the frame
+-- was looked up by one hardcoded name with an early return when it was missing
+-- -- so on a client where that name no longer resolves, ticking "hide the
+-- Blizzard micro menu" did nothing at all, not even to the buttons.
+local NATIVE_CONTAINERS = { "MicroMenu", "MicroMenuContainer", "MicroButtonAndBagsBar" }
+
 local function MuteNative(mute)
-    local mm = _G.MicroMenu
-    if not mm then return end
     local a = mute and 0 or 1
-    mm:SetAlpha(a)
-    mm:EnableMouse(not mute)
+    local touched = false
+
+    for _, name in ipairs(NATIVE_CONTAINERS) do
+        local mm = _G[name]
+        if mm and mm.SetAlpha then
+            mm:SetAlpha(a)
+            if mm.EnableMouse then mm:EnableMouse(not mute) end
+            touched = true
+        end
+    end
+
+    -- The buttons are handled whether or not a container was found: they are
+    -- what the player actually sees, and they answer to their own names.
     for _, name in ipairs(NATIVE_BUTTONS) do
         local btn = _G[name]
         if btn then
             btn:SetAlpha(a)
             btn:EnableMouse(not mute)
+            touched = true
         end
     end
+
+    return touched
 end
+
+local nativeMuteWarned = false
 
 local function ApplyNative()
     if InCombatLockdown() then
@@ -700,8 +828,19 @@ local function ApplyNative()
     -- Nothing to do, and nothing to give back: never touched the native bar.
     if not shouldMute and not nativeMuted then return end
 
-    MuteNative(shouldMute)
+    local touched = MuteNative(shouldMute)
     nativeMuted = shouldMute
+
+    -- Say so when the option was asked for and nothing answered to it. A
+    -- silent no-op here is exactly what made this bug take a report and a
+    -- round trip to find: the box ticked, the bar stayed, nothing to go on.
+    -- Warned once per session, since UpdateMicroButtons re-enters this often.
+    if shouldMute and not touched and not nativeMuteWarned then
+        nativeMuteWarned = true
+        print("|cff2ed884TomoMod|r " ..
+            (TomoMod_L and TomoMod_L["microbar_native_not_found"] or
+             "could not find Blizzard's micro menu to hide"))
+    end
 
     -- BagMicroMenu also drives the native menu's alpha; hand it back cleanly.
     if not shouldMute and TomoMod_BagMicroMenu and TomoMod_BagMicroMenu.ApplySettings then

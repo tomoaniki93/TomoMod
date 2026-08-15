@@ -521,6 +521,16 @@ TomoMod_RegisterLocale("deDE", {
 
     ["options_load_failed"]             = "Optionsfenster nicht verfügbar — ist das Addon TomoMod_Options aktiviert?",
 
+    ["anchor_queue"]                    = "Warteschlangen-Auge",
+
+    ["microbar_native_not_found"]       = "Blizzards Mikromenü zum Ausblenden nicht gefunden — bitte mit Client-Version melden.",
+
+    ["microbar_tt_perf"]                    = "Leistung",
+    ["microbar_tt_fps"]                     = "Bildrate",
+    ["microbar_tt_latency"]                 = "Latenz",
+    ["microbar_tt_cpu"]                     = "Addon-CPU",
+    ["microbar_tt_cpu_off"]                 = "Profiling deaktiviert",
+
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
     ["section_ab_totem"]                 = "Totems",
     ["opt_ab_totem_enabled"]             = "Totemleiste",
@@ -3292,6 +3302,18 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_settle"] = "Diagnose: Die Skalierung, die das Spiel während der Anmeldung selbst anwendet, wurde in jedem Bericht als Neuskalierung mitten in der Sitzung festgehalten. Die Anzeigeerfassung wartet nun vier Sekunden, bis sich der Client eingependelt hat, bevor sie misst — der einzige verbliebene Skalierungseintrag in einem Bericht ist damit einer, der tatsächlich erklärungsbedürftig ist.",
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
+
+    -- =====================
+    -- 3.5.5 — Was ist neu
+    -- =====================
+    ["wn_355_barhoverblocked"] = "Fehlerbehebung: Schon das Überfahren einer Aktionsleistenschaltfläche mit der Maus während eines Kampfes erzeugte jedes Mal einen Fehler wegen blockierter Aktion. Blizzards eigene Schaltflächenaktualisierung läuft beim Überfahren und schreibt zum Schluss direkt eine Gedrückthalten-Einstellung — ein Schreibvorgang, der im Kampf nicht erlaubt ist und TomoMod angelastet wird, weil die Schaltflächen von uns stammen. Ein Eintrag pro Überfahren: So kamen in einer einzigen Sitzung 127 davon zusammen. TomoMod schreibt diese Einstellung nun über den eigenen geschützten Pfad, wo sie ohnehin schon korrekt geschrieben wurde, und überspringt Blizzards überflüssige Fassung.",
+    ["wn_355_barpingblocked"] = "Fehlerbehebung: Dasselbe Überfahren löste zwei Zeilen weiter einen zweiten unerlaubten Schreibvorgang aus, diesmal aus dem Ping-System. Pings richten sich an Blizzards eigene Leisten und galten nie für TomoMods Schaltflächen, daher wird auch dieser Aufruf jetzt übersprungen. Keiner von beiden hat je etwas auf dem Bildschirm kaputtgemacht — aber sie haben echte Fehler unter Rauschen begraben und das Addon für alles verantwortlich aussehen lassen, was im selben Kampf sonst schieflief.",
+    ["wn_355_escapekeyblocked"] = "Fehlerbehebung: War ein TomoMod-Fenster im Kampf geöffnet, erzeugte jeder Tastendruck einen Fehler wegen blockierter Aktion — eine gedrückt gehaltene Bewegungstaste genügte, um das Fehlerprotokoll allein zu füllen. Die Kampfprüfung war bereits vorhanden, sie lief nur eine Zeile zu spät, nach dem geschützten Aufruf, den sie verhindern sollte. Sie läuft jetzt zuerst.",
+    ["wn_355_microportrait"] = "Fehlerbehebung: Im eigenen Mikromenü wurde die Schaltfläche für das Charakterfenster als leeres farbiges Quadrat dargestellt, während alle anderen Schaltflächen korrekt aussahen. Sie ist die einzige, deren Grafik kein festes Symbol ist — es ist das Porträt Eures Charakters — und TomoMod kopierte einen Texturverweis, der sich schlicht nirgendwo sonst reproduzieren lässt. Nun wird das Spiel gebeten, Euer Porträt direkt auf die Schaltfläche zu zeichnen, und es übernimmt dieselbe abgerundete Maske und denselben Schlagschatten, die Blizzard auf seiner eigenen Charakterschaltfläche verwendet — Euer Charakter erscheint damit in derselben Form und mit derselben Tiefe wie die benachbarten Schaltflächen statt als flaches Quadrat.",
+    ["wn_355_perftooltip"] = "Neu: Der Speicher-Tooltip des eigenen Mikromenüs beginnt jetzt mit einem Leistungsblock: Eure Bildrate, Eure Latenz zu Heimat und Welt sowie die gesamte Addon-CPU. Die CPU-Zeile ist nur dann aussagekräftig, wenn das Spiel sie aufzeichnet, was standardmäßig deaktiviert ist und einen Neuladen erfordert — statt Euch Nullen zu zeigen, die wie eine echte Messung aussähen, steht dort „Profiling deaktiviert“, bis Ihr es einschaltet.",
+    ["wn_355_micronative"] = "Fehlerbehebung: Auf manchen Clients bewirkte das Anhaken von „Blizzards Mikromenü ausblenden“ überhaupt nichts: Das Häkchen blieb gesetzt, die Leiste blieb auf dem Bildschirm. TomoMod suchte Blizzards Menü unter einem einzigen Namen, der sich über die Patches hinweg geändert hat, und gab sofort auf, wenn er nicht vorhanden war — ohne auch nur die Schaltflächen auszublenden, was funktioniert hätte. Nun werden alle von Blizzard verwendeten Namen erkannt und die Schaltflächen in jedem Fall behandelt. Antwortet auf Eurem Client gar nichts, wird das jetzt einmal im Chat gemeldet, statt still zu scheitern — bitte meldet es mit Eurer Client-Version, wenn Ihr diese Nachricht seht.",
+    ["wn_355_queueanchor"] = "Neu: Das Warteschlangen-Auge — das kleine Symbol, das sich dreht, während Ihr auf einen Dungeon oder ein Schlachtfeld wartet — lässt sich nun verschieben. Blizzard hängt es an die Minikarte und gibt ihm keinen Griff im Bearbeitungsmodus, womit es das einzige Interface-Element war, das Ihr schlicht nicht platzieren konntet. Es erscheint jetzt unter den verschiebbaren Ankern in `/tm sr`, und eine im Kampf vorgenommene Verschiebung wird nach dem Kampfende angewendet, statt abgelehnt zu werden.",
+    ["wn_355_escapepropagate"] ="Intern: Die Tastaturweitergabe dieser Fenster wird nun einmalig beim Erstellen des Fensters festgelegt, statt bei jedem Tastendruck neu gesetzt zu werden. Nötig war das nie: Es ist eine dauerhafte Eigenschaft des Rahmens, und das Einzige, was sie je abschaltet, ist das Schließen des Fensters mit Escape — was im Kampf nicht vorkommen kann.",
 
     -- =====================
     -- 3.5.4 — Was ist neu

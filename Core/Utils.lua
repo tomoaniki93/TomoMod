@@ -60,9 +60,21 @@ function U.CloseOnEscape(frame, onEscape)
     --
     -- The rule now: propagate first, always. Escape is the only key this
     -- helper consumes, and only outside combat, where hiding is safe.
+    -- [FIX] SetPropagateKeyboardInput is itself protected, so the combat check
+    -- has to come FIRST. It used to sit after the call, which meant every
+    -- keypress with one of these windows open in combat produced an
+    -- ADDON_ACTION_BLOCKED -- one per key, so holding a movement key filled
+    -- the error log.
+    --
+    -- Returning early is safe because propagation is a persistent frame state,
+    -- not something re-established per keypress: it is set true below and only
+    -- ever flipped to false to swallow an Escape, which cannot happen in
+    -- combat. So in combat the frame is already propagating and there is
+    -- nothing to do.
     frame:SetScript("OnKeyDown", function(self, key)
+        if InCombatLockdown() then return end
         self:SetPropagateKeyboardInput(true)
-        if key ~= "ESCAPE" or InCombatLockdown() then return end
+        if key ~= "ESCAPE" then return end
         self:SetPropagateKeyboardInput(false)
         if onEscape then onEscape(self) else self:Hide() end
     end)
@@ -75,9 +87,21 @@ function U.CloseOnEscape(frame, onEscape)
     -- propagation there would hand that same Escape on to the game menu.
     frame:HookScript("OnShow", function(self)
         self:EnableKeyboard(true)
-        self:SetPropagateKeyboardInput(true)
+        -- Same protection applies here. A window opened mid-combat keeps the
+        -- propagation it already had, which the line below guarantees is true.
+        if not InCombatLockdown() then
+            self:SetPropagateKeyboardInput(true)
+        end
     end)
     frame:HookScript("OnHide", function(self) self:EnableKeyboard(false) end)
+
+    -- Establish propagation once, here, while the window is being built --
+    -- which is out of combat for every caller. Without this a frame whose
+    -- first ever Show happens in combat would swallow every key, since both
+    -- guarded paths above would decline to set it.
+    if not InCombatLockdown() then
+        frame:SetPropagateKeyboardInput(true)
+    end
     frame:EnableKeyboard(frame:IsShown() and true or false)
 end
 

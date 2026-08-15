@@ -805,6 +805,38 @@ end
 function InstallSecureActionFlagRefresh(btn)
     if not btn or btn._tomomodActionFlagRefreshInstalled then return end
     btn._tomomodActionFlagRefreshInstalled = true
+
+    -- TOMOMOD: neutralise Blizzard's own press-and-hold writer on this button.
+    --
+    -- These buttons are created by us from ActionBarButtonTemplate, and the
+    -- standard bars keep Blizzard's OnEnter (the tooltip is added with
+    -- HookScript, not SetScript). So every mouseover runs
+    --   OnEnter -> UpdateAction -> Update -> UpdatePressAndHoldAction
+    -- which ends in a plain-Lua SetAttribute. SetAttribute on a secure frame
+    -- is protected in combat, and because the frame is addon-created the call
+    -- is attributed to us:
+    --   [ADDON_ACTION_BLOCKED] TomoMod: TUI_Bar3Button9:SetAttribute()
+    -- One blocked action per hover, which is how a player collected 127 of
+    -- them in a single session.
+    --
+    -- Making it a no-op is safe because the attribute is already ours: the
+    -- TUI_UpdateActionFlags snippet installed just below writes
+    -- pressAndHoldAction from inside the restricted environment, and it is
+    -- driven by the OnAttributeChanged wrap on "action" -- exactly when the
+    -- value needs to change. Blizzard's version was redundant, not helpful.
+    if btn.UpdatePressAndHoldAction then
+        btn.UpdatePressAndHoldAction = function() end
+    end
+
+    -- Same chain, two lines further down UpdateAction: PingableType's
+    -- UpdatePingAttributes calls ClearAttribute, equally protected, equally
+    -- blocked on a hover in combat:
+    --   [ADDON_ACTION_BLOCKED] TomoMod: TUI_Bar3Button12:ClearAttribute()
+    -- Pings target Blizzard's own bars; these buttons are ours and are not a
+    -- ping surface, so dropping the call costs nothing.
+    if btn.UpdatePingAttributes then
+        btn.UpdatePingAttributes = function() end
+    end
     btn:SetAttribute("TUI_UpdateActionFlags", [[
         local action = self:GetAttribute("action")
         local gseButton = self:GetAttribute("gse-button")

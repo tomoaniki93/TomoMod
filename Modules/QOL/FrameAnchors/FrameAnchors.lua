@@ -22,6 +22,21 @@ local ANCHOR_DEFS = {
         anchorPoint = "TOP",
     },
     {
+        -- The queue status eye. Blizzard parents it to the minimap cluster and
+        -- gives it no Edit Mode entry, so it is the one HUD element a player
+        -- cannot place -- which is exactly what gets reported. Minimap.lua
+        -- already lists it under the buttons it must not collect, so nothing
+        -- else in TomoMod claims it.
+        key = "queueStatus",
+        label = L["anchor_queue"],
+        width = 34,
+        height = 34,
+        defaultPoint = { "TOPRIGHT", "TOPRIGHT", -220, -24 },
+        target = function() return QueueStatusButton end,
+        targetPoint = "CENTER",
+        anchorPoint = "CENTER",
+    },
+    {
         key = "lootFrame",
         label = L["anchor_loot"],
         width = 180,
@@ -122,12 +137,38 @@ end
 -- APPLY ANCHOR TO TARGET FRAME
 -- =====================================
 
+local pendingAnchors = {}
+local combatFrame
+
+--- Re-apply everything that was refused while the player was in combat.
+local function FlushPendingAnchors()
+    for key, def in pairs(pendingAnchors) do
+        pendingAnchors[key] = nil
+        FA.ApplyAnchor(def)
+    end
+end
+
 function FA.ApplyAnchor(def)
     local target = def.target()
     if not target then return end
 
     local anchor = anchors[def.key]
     if not anchor then return end
+
+    -- SetPoint on a protected frame is refused in combat. AlertFrame and
+    -- LootFrame are not protected so this never bit, but QueueStatusButton
+    -- hangs off MinimapCluster, which Edit Mode manages -- and a refused move
+    -- would surface as an ADDON_ACTION_BLOCKED attributed to us. Defer instead
+    -- of trying and failing.
+    if InCombatLockdown() then
+        pendingAnchors[def.key] = def
+        if not combatFrame then
+            combatFrame = CreateFrame("Frame")
+            combatFrame:SetScript("OnEvent", FlushPendingAnchors)
+        end
+        combatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+        return
+    end
 
     target:ClearAllPoints()
     target:SetPoint(def.targetPoint, anchor, def.anchorPoint, 0, 0)

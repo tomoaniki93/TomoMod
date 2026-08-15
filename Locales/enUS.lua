@@ -569,6 +569,16 @@ TomoMod_RegisterLocale("enUS", {
 
     ["options_load_failed"]             = "options panel unavailable — is the TomoMod_Options addon enabled?",
 
+    ["anchor_queue"]                    = "Queue eye",
+
+    ["microbar_native_not_found"]       = "could not find Blizzard's micro menu to hide — please report this with your client version.",
+
+    ["microbar_tt_perf"]                    = "Performance",
+    ["microbar_tt_fps"]                     = "Framerate",
+    ["microbar_tt_latency"]                 = "Latency",
+    ["microbar_tt_cpu"]                     = "Addon CPU",
+    ["microbar_tt_cpu_off"]                 = "profiling disabled",
+
     -- ActionBars: rebuilt panel on the Tui schema (lot P5)
     ["section_ab_totem"]                 = "Totems",
     ["opt_ab_totem_enabled"]             = "Totem bar",
@@ -3332,6 +3342,18 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_diag_settle"] = "Diagnostics: the scale the game applies for itself while you log in was recorded in every report as a mid-session rescale. The display capture now waits four seconds for the client to settle before taking a reading, so the only scale entry left in a report is one that actually needs explaining.",
     ["wn_333_diag_mode"] = "Diagnostics: when the report cannot work out your display mode it now prints the raw values the game gave it instead of a bare question mark — those setting names change between expansions, and a '?' on its own could not be diagnosed without asking you for more. Windowed-fullscreen and maximized windows are recognised in more cases, and addon versions no longer read 'vv1.2.3'.",
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
+
+    -- =====================
+    -- 3.5.5 — What's New
+    -- =====================
+    ["wn_355_barhoverblocked"] = "Fix — Simply moving your mouse over an action bar button during a fight produced a blocked-action error, every single time. Blizzard's own button update runs on mouseover and ends by writing a press-and-hold setting directly — a write that isn't allowed in combat, and that gets blamed on TomoMod because the buttons are ours. One entry per hover is how a single session collected 127 of them. TomoMod now writes that setting from its own secure path, where it was already being written correctly, and skips Blizzard's redundant version.",
+    ["wn_355_barpingblocked"] = "Fix — The same mouseover ran a second forbidden write two lines later, this one belonging to the ping system. Pings target Blizzard's own bars and never applied to TomoMod's buttons, so that call is now skipped as well. Neither of these ever broke anything on screen — but they buried real errors under noise and made the addon look responsible for whatever else went wrong in the same fight.",
+    ["wn_355_escapekeyblocked"] = "Fix — With a TomoMod window open in combat, every key you pressed produced a blocked-action error — holding a movement key down was enough to fill the error log by itself. The combat check was already there, it just ran one line too late, after the protected call it was meant to prevent. It now runs first.",
+    ["wn_355_microportrait"] = "Fix — On the custom micro menu, the character sheet button showed as a blank coloured square while every other button looked right. It is the only one whose art isn't a fixed icon — it's your character's portrait — and TomoMod was copying a texture reference that simply doesn't reproduce anywhere else. It now asks the game to draw your portrait onto the button directly, and borrows the same rounded mask and drop shadow Blizzard uses on its own character button — so it shows your character with the same shape and depth as the buttons beside it, instead of a flat square.",
+    ["wn_355_perftooltip"] = "New — The memory tooltip on the custom micro menu now opens with a Performance block: your framerate, your home and world latency, and total addon CPU. The CPU line only means anything when the game is recording it, which is off by default and needs a reload to change — so rather than show you zeroes that look like a real measurement, it says \"profiling disabled\" until you turn it on.",
+    ["wn_355_micronative"] = "Fix — On some clients, ticking \"hide the Blizzard micro menu\" did nothing whatsoever: the box stayed ticked, the bar stayed on screen. TomoMod looked for Blizzard's menu under a single name that has moved between patches, and gave up the moment it wasn't there — without even hiding the buttons, which was the part that would have worked. It now recognises every name Blizzard has used and always handles the buttons regardless. If nothing at all answers on your client, it now says so once in chat instead of failing silently — please report it with your client version if you see that message.",
+    ["wn_355_queueanchor"] = "New — The queue status eye — the small icon that spins while you're waiting for a dungeon or battleground — can now be moved. Blizzard attaches it to the minimap and gives it no Edit Mode handle, which made it the one HUD element you simply could not place. It now appears among the movable anchors in `/tm sr`, and moving it during combat is applied the moment the fight ends rather than being refused.",
+    ["wn_355_escapepropagate"] ="Internal — Keyboard propagation for those windows is now established once when the window is built, rather than re-set on every keypress. It never needed re-setting: it is a persistent property of the frame, and the only thing that ever turns it off is closing the window with Escape, which cannot happen in combat.",
 
     -- =====================
     -- 3.5.4 — What's New
