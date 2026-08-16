@@ -3315,7 +3315,7 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_356_queueeyeposition"] = "Fehlerbehebung — Die Standardposition des Warteschlangen-Auges war eine blinde Schätzung, die je nach Auflösung an einer anderen Stelle landete — bei einem Ultrawide-Monitor komplett außerhalb des Bildschirms, wodurch dies überhaupt entdeckt wurde. Sie sitzt nun standardmäßig neben der Minikarte, wo das Auge tatsächlich lebt.",
     ["wn_356_lfgeyesurvive"] = "Neu — Das Gruppensuche-Auge verschwand vollständig, wenn Ihr das Blizzard-Mikromenü ausgeblendet habt, da es im selben Container lebt. Es bleibt jetzt erhalten — der Gruppensuche-Warteschlangenstatus ist immer sichtbar, egal wo Ihr es platziert habt, ob das native Mikromenü ausgeblendet ist oder nicht.",
     ["wn_356_lfgeyeoptions"] = "Neu — Zwei neue Mikroleisten-Optionen erlauben es Euch, das Gruppensuche-Auge komplett auszuschalten oder in der Größe anzupassen, direkt neben der Einstellung, die das Blizzard-Mikromenü ausblendet.",
-    ["wn_356_lfgeyescale"] = "Fehlerbehebung — Der Größenregler des Gruppensuche-Auges bewirkte nichts, es sei denn, die Mikroleiste war vollständig aktiviert und „Blizzard-Mikromenü ausblenden" ebenfalls eingeschaltet — andernfalls wurde die Skalierung bei jeder Aktualisierung stillschweigend auf normal zurückgesetzt. Sie greift jetzt in jedem Fall.",
+    ["wn_356_lfgeyescale"] = "Fehlerbehebung — Der Größenregler des Gruppensuche-Auges bewirkte nichts, es sei denn, die Mikroleiste war vollständig aktiviert und „Blizzard-Mikromenü ausblenden” ebenfalls eingeschaltet — andernfalls wurde die Skalierung bei jeder Aktualisierung stillschweigend auf normal zurückgesetzt. Sie greift jetzt in jedem Fall.",
 
     -- =====================
     -- 3.5.5 — Was ist neu
