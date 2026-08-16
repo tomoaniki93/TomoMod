@@ -69,6 +69,9 @@ CHANGELOG = {
             L["wn_356_talkingheadcleanup"] or "Internal — A stop-sound call issued in the very same moment a voiceover starts is occasionally ignored by the sound engine, so Hide Talking Head now follows up a fraction of a second later to make sure it actually stops.",
             L["wn_356_queueeyedb"] or "Fix — The queue status eye's position never actually saved. Its entry was missing from the settings defaults table, so the save handler silently skipped writing a new position every time you dragged it — the eye moved fine on screen, but forgot where you put it on the next login. The missing entry is back, and the save path now creates it on the fly if your saved settings are still missing it, so an out-of-date save costs nothing worse than one extra table.",
             L["wn_356_queueeyeposition"] or "Fix — The queue status eye's default position was a blind guess that landed in a different spot on every resolution — off-screen entirely on an ultrawide monitor, which is how this was caught. It now defaults to a spot beside the minimap, where the eye actually lives.",
+            L["wn_356_lfgeyesurvive"] or "New — The Group Finder eye used to disappear entirely when you hid the Blizzard micro menu, since it lives inside that same menu's container. It now stays put — Group Finder queue status is always visible, wherever you've placed it, whether the native micro menu is hidden or not.",
+            L["wn_356_lfgeyeoptions"] or "New — Two new Micro Bar options let you turn the Group Finder eye off entirely or resize it, next to the setting that hides the Blizzard micro menu.",
+            L["wn_356_lfgeyescale"] or "Fix — The Group Finder eye's size slider did nothing unless Micro Bar was fully enabled with \"hide the Blizzard micro menu\" also turned on — the scale was silently reset back to normal on every refresh otherwise. It now applies regardless.",
         },
     },
     {

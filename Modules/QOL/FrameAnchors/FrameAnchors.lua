@@ -155,6 +155,19 @@ local function FlushPendingAnchors()
     end
 end
 
+--- Re-apply one anchor by key. MicroBar calls this after it reparents the
+--- Group Finder eye, and again whenever Blizzard re-anchors it, so placement
+--- stays in one place instead of two systems fighting over SetPoint.
+function FA.ApplyAnchorByKey(key)
+    for _, def in ipairs(ANCHOR_DEFS) do
+        if def.key == key then
+            FA.ApplyAnchor(def)
+            return true
+        end
+    end
+    return false
+end
+
 function FA.ApplyAnchor(def)
     local target = def.target()
     if not target then return end

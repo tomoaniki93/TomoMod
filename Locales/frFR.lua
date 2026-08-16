@@ -1217,6 +1217,9 @@ TomoMod_RegisterLocale("frFR", {
     ["section_microbar"]                = "Micro Barre",
     ["info_microbar"]                   = "Remplace le micro menu de Blizzard par une barre que vous pouvez dimensionner, réordonner et placer librement. Chaque bouton transmet son clic au bouton d'origine, tout continue donc de fonctionner en combat. Les icônes sont lues directement dans les ressources du jeu. Tant que cette option est active, le réglage Micro Menu ci-dessus ne s'applique plus.",
     ["opt_microbar_enable"]             = "Activer la Micro Barre",
+    ["opt_microbar_lfg_eye"]                = "Œil de recherche de groupe",
+    ["opt_microbar_lfg_eye_scale"]          = "Taille de l'œil",
+    ["info_microbar_lfg_eye"]               = "Détaché du micro-menu Blizzard pour survivre à son masquage. Placez-le en mode disposition.",
     ["opt_microbar_hide_native"]        = "Masquer le micro menu de Blizzard",
     ["opt_microbar_buttons"]            = "Boutons & ordre",
     ["opt_microbar_orientation"]        = "Orientation",
@@ -3324,6 +3327,11 @@ TomoMod_RegisterLocale("frFR", {
     -- =====================
     ["wn_356_talkingheadfix"] = "Correction — Masquer Talking Head pouvait laisser la voix off d'un talking head continuer à jouer sous un cadre masqué. Les cadres de talking head gèrent leur propre visibilité, donc simplement masquer le cadre à l'affichage laissait l'état de lecture et son minuteur de fin continuer à tourner — et sautait chaque ligne après la première d'un talking head à plusieurs lignes, puisque le cadre était déjà visible pour celles-ci. TomoMod s'accroche désormais à la fonction de lecture elle-même et ferme chaque talking head exactement comme le fait Blizzard, ce qui arrête de façon fiable le minuteur et la voix off ensemble.",
     ["wn_356_talkingheadcleanup"] = "Interne — Un appel d'arrêt du son émis au même instant que le démarrage d'une voix off est parfois ignoré par le moteur audio, donc Masquer Talking Head insiste désormais une fraction de seconde plus tard pour s'assurer qu'il s'arrête réellement.",
+    ["wn_356_queueeyedb"] = "Correction — La position de l'œil de file d'attente n'était en réalité jamais enregistrée. Son entrée manquait dans la table des réglages par défaut, donc le gestionnaire d'enregistrement ignorait silencieusement l'écriture d'une nouvelle position à chaque fois que vous la déplaciez — l'œil bougeait bien à l'écran, mais oubliait où vous l'aviez mis à la connexion suivante. L'entrée manquante est de retour, et le chemin d'enregistrement la crée désormais à la volée si vos réglages sauvegardés en sont encore dépourvus, de sorte qu'une sauvegarde obsolète ne coûte rien de plus qu'une table supplémentaire.",
+    ["wn_356_queueeyeposition"] = "Correction — La position par défaut de l'œil de file d'attente était une estimation à l'aveugle qui atterrissait à un endroit différent selon la résolution — complètement hors écran sur un moniteur ultra-large, ce qui a permis de le détecter. Elle se place désormais par défaut à côté de la minimap, là où l'œil vit réellement.",
+    ["wn_356_lfgeyesurvive"] = "Nouveau — L'œil du Groupe Finder disparaissait complètement quand vous masquiez le micro menu de Blizzard, car il vit dans ce même conteneur. Il reste désormais en place — le statut de file d'attente du Groupe Finder est toujours visible, où que vous l'ayez placé, que le micro menu natif soit masqué ou non.",
+    ["wn_356_lfgeyeoptions"] = "Nouveau — Deux nouvelles options de Micro Barre vous permettent de désactiver entièrement l'œil du Groupe Finder ou de le redimensionner, à côté du réglage qui masque le micro menu de Blizzard.",
+    ["wn_356_lfgeyescale"] = "Correction — Le curseur de taille de l'œil du Groupe Finder ne faisait rien à moins que la Micro Barre soit entièrement activée avec « masquer le micro menu de Blizzard » également activé — sinon, l'échelle était silencieusement réinitialisée à la normale à chaque actualisation. Elle s'applique désormais dans tous les cas.",
 
     -- =====================
     -- 3.5.5 — Quoi de neuf

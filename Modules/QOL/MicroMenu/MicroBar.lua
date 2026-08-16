@@ -787,6 +787,87 @@ end
 -- Blizzard micro menu" did nothing at all, not even to the buttons.
 local NATIVE_CONTAINERS = { "MicroMenu", "MicroMenuContainer", "MicroButtonAndBagsBar" }
 
+-- QueueStatusButton hangs off MicroMenu/MicroMenuContainer on current Retail,
+-- so MuteNative's alpha 0 on the container hides the Group Finder eye along
+-- with it -- which is why the eye stopped appearing when queueing.
+--
+-- Reparent it to UIParent while we own the micro menu, so it survives the
+-- mute, and hand it back untouched when the option is turned off. The real
+-- Blizzard button is kept throughout: its click handlers and right-click
+-- teleport menu come along for free.
+--
+-- POSITION IS DELIBERATELY NOT SET HERE. FrameAnchors already owns a
+-- "queueStatus" anchor, and two systems calling ClearAllPoints/SetPoint on the
+-- same frame from different triggers fight each other -- the frame jumps on
+-- whichever fires last. This function does parent, scale, alpha and mouse;
+-- FrameAnchors does placement.
+local lfgEyeOriginalParent
+local lfgEyeManaged = false
+local lfgEyeHooked = false
+
+local function ApplyLFGEye()
+    if InCombatLockdown() then return end
+
+    local btn = _G["QueueStatusButton"]
+    if not btn then return end
+
+    local db = GetDB() or {}
+    local wantVisible = db.lfgEyeEnabled ~= false
+    local wantDetached = (db.enabled and db.hideNative == true and wantVisible) and true or false
+
+    -- Scale applies regardless of detachment: leaving it gated behind
+    -- wantDetached meant the size slider silently did nothing unless Micro
+    -- Bar was enabled AND "hide native micro menu" was on, since the other
+    -- branch below unconditionally reset it back to 1 every time.
+    btn:SetScale(tonumber(db.lfgEyeScale) or 1.0)
+
+    if wantDetached then
+        if not lfgEyeManaged then
+            lfgEyeOriginalParent = btn:GetParent()
+            if not pcall(btn.SetParent, btn, UIParent) then return end
+            lfgEyeManaged = true
+        end
+        btn:SetAlpha(1)
+        btn:EnableMouse(true)
+
+        local FA = TomoMod_FrameAnchors
+        if FA and FA.ApplyAnchorByKey then FA.ApplyAnchorByKey("queueStatus") end
+    else
+        btn:SetAlpha(wantVisible and 1 or 0)
+        btn:EnableMouse(wantVisible and true or false)
+
+        if lfgEyeManaged and lfgEyeOriginalParent then
+            local parent = lfgEyeOriginalParent
+            lfgEyeManaged = false
+            pcall(btn.SetParent, btn, parent)
+            -- Let Blizzard put it back where it belongs rather than guessing.
+            if type(btn.UpdatePosition) == "function" then
+                pcall(btn.UpdatePosition, btn)
+            end
+        end
+    end
+end
+
+local function HookLFGEye()
+    if lfgEyeHooked then return end
+    local btn = _G["QueueStatusButton"]
+    if not btn or type(btn.UpdatePosition) ~= "function" then return end
+    lfgEyeHooked = true
+
+    -- MicroMenuMixin:Layout -> UpdateQueueStatusAnchors -> UpdatePosition
+    -- re-anchors the eye without changing its parent, so our placement has to
+    -- be re-asserted after Blizzard's pass. Deferred a frame so we run after it.
+    hooksecurefunc(btn, "UpdatePosition", function()
+        if not lfgEyeManaged or InCombatLockdown() then return end
+        C_Timer.After(0, function()
+            if not lfgEyeManaged or InCombatLockdown() then return end
+            local FA = TomoMod_FrameAnchors
+            if FA and FA.ApplyAnchorByKey then FA.ApplyAnchorByKey("queueStatus") end
+        end)
+    end)
+end
+
+
 local function MuteNative(mute)
     local a = mute and 0 or 1
     local touched = false
@@ -826,7 +907,13 @@ local function ApplyNative()
     local db = GetDB()
     local shouldMute = (db and db.enabled and db.hideNative) and true or false
     -- Nothing to do, and nothing to give back: never touched the native bar.
-    if not shouldMute and not nativeMuted then return end
+    if not shouldMute and not nativeMuted then
+        -- Still reconcile the eye: its own option can change while the native
+        -- menu was never muted.
+        HookLFGEye()
+        ApplyLFGEye()
+        return
+    end
 
     local touched = MuteNative(shouldMute)
     nativeMuted = shouldMute
@@ -835,6 +922,9 @@ local function ApplyNative()
     -- silent no-op here is exactly what made this bug take a report and a
     -- round trip to find: the box ticked, the bar stayed, nothing to go on.
     -- Warned once per session, since UpdateMicroButtons re-enters this often.
+    HookLFGEye()
+    ApplyLFGEye()
+
     if shouldMute and not touched and not nativeMuteWarned then
         nativeMuteWarned = true
         print("|cff2ed884TomoMod|r " ..
@@ -935,6 +1025,20 @@ end
 -- PUBLIC API
 -- =====================================
 
+function MB.SetLFGEyeEnabled(v)
+    local db = GetDB()
+    if not db then return end
+    db.lfgEyeEnabled = v and true or false
+    MB.Refresh()
+end
+
+function MB.SetLFGEyeScale(v)
+    local db = GetDB()
+    if not db then return end
+    db.lfgEyeScale = tonumber(v) or 1.0
+    MB.Refresh()
+end
+
 function MB.Refresh()
     Rebuild()
     ApplyNative()
@@ -964,6 +1068,8 @@ ev:RegisterEvent("PLAYER_REGEN_ENABLED")
 ev:RegisterEvent("PLAYER_REGEN_DISABLED")
 ev:RegisterEvent("EDIT_MODE_LAYOUTS_UPDATED")
 ev:RegisterEvent("UPDATE_BINDINGS")
+ev:RegisterEvent("LFG_UPDATE")
+ev:RegisterEvent("LFG_QUEUE_STATUS_UPDATE")
 ev:SetScript("OnEvent", function(_, event)
     if not initialized then return end
 
@@ -971,6 +1077,7 @@ ev:SetScript("OnEvent", function(_, event)
         if pendingRebuild then Rebuild() end
         if pendingNative then ApplyNative() end
         ApplyAlpha()
+        ApplyLFGEye()
         -- Leaving combat re-enables a batch of native buttons (group finder,
         -- talents...). Blizzard does call UpdateMicroButtons here, but the bar
         -- should not depend on that to stop showing them greyed out.
@@ -980,6 +1087,14 @@ ev:SetScript("OnEvent", function(_, event)
 
     if event == "PLAYER_REGEN_DISABLED" then
         ApplyAlpha()
+        return
+    end
+
+    -- Handled before the generic path below, and returning: LFG_UPDATE fires
+    -- repeatedly while queued, and letting it fall through would schedule a
+    -- full MB.Refresh -- a whole bar rebuild -- every half second in a queue.
+    if event == "LFG_UPDATE" or event == "LFG_QUEUE_STATUS_UPDATE" then
+        C_Timer.After(0, ApplyLFGEye)
         return
     end
 

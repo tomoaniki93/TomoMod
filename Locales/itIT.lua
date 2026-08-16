@@ -1158,6 +1158,9 @@ TomoMod_RegisterLocale("itIT", {
     ["section_microbar"]                = "Microbarra",
     ["info_microbar"]                   = "Sostituisce il micromenu di Blizzard con una barra che puoi dimensionare, riordinare e posizionare liberamente. Ogni pulsante inoltra il proprio clic al pulsante originale, quindi tutto continua a funzionare in combattimento. Le icone vengono lette direttamente dalle risorse del gioco. Finché è attiva, l'impostazione Micromenu qui sopra non si applica più.",
     ["opt_microbar_enable"]             = "Attiva la microbarra",
+    ["opt_microbar_lfg_eye"]                = "Occhio del cerca gruppo",
+    ["opt_microbar_lfg_eye_scale"]          = "Dimensione dell'occhio",
+    ["info_microbar_lfg_eye"]               = "Staccato dal micro-menu Blizzard per sopravvivere al suo occultamento. Posizionalo in modalità disposizione.",
     ["opt_microbar_hide_native"]        = "Nascondi il micromenu di Blizzard",
     ["opt_microbar_buttons"]            = "Pulsanti e ordine",
     ["opt_microbar_orientation"]        = "Orientamento",
@@ -3296,6 +3299,11 @@ TomoMod_RegisterLocale("itIT", {
     -- =====================
     ["wn_356_talkingheadfix"] = "Correzione — Nascondi Talking Head poteva lasciare la voce fuori campo di un talking head in riproduzione sotto un riquadro nascosto. I riquadri dei talking head gestiscono la propria visibilità, quindi limitarsi a nascondere il riquadro alla visualizzazione lasciava lo stato di riproduzione e il relativo timer di fine in esecuzione — e saltava ogni riga successiva alla prima in un talking head su più righe, poiché il riquadro era già visibile per quelle. TomoMod ora si aggancia alla funzione di riproduzione effettiva e chiude ogni talking head esattamente come fa Blizzard, il che ferma in modo affidabile timer e voce fuori campo insieme.",
     ["wn_356_talkingheadcleanup"] = "Interno — Una chiamata di stop dell'audio emessa nello stesso istante in cui parte una voce fuori campo viene occasionalmente ignorata dal motore audio, quindi Nascondi Talking Head ora ripete il comando una frazione di secondo dopo per assicurarsi che si fermi davvero.",
+    ["wn_356_queueeyedb"] = "Correzione — La posizione dell'occhio della coda in realtà non veniva mai salvata. La sua voce mancava dalla tabella delle impostazioni predefinite, quindi il gestore del salvataggio ignorava silenziosamente la scrittura di una nuova posizione ogni volta che la trascinavi — l'occhio si spostava correttamente a schermo, ma dimenticava dove l'avevi messo al login successivo. La voce mancante è tornata, e il percorso di salvataggio ora la crea al volo se le tue impostazioni salvate ne sono ancora prive, così che un salvataggio non aggiornato non costa più di una tabella in più.",
+    ["wn_356_queueeyeposition"] = "Correzione — La posizione predefinita dell'occhio della coda era una stima alla cieca che finiva in un punto diverso a seconda della risoluzione — completamente fuori schermo su un monitor ultrawide, ed è così che è stato scoperto. Ora per impostazione predefinita si trova accanto alla minimappa, dove l'occhio vive realmente.",
+    ["wn_356_lfgeyesurvive"] = "Novità — L'occhio del cerca gruppo scompariva del tutto quando nascondevi il micromenu di Blizzard, poiché vive in quello stesso contenitore. Ora resta al suo posto — lo stato della coda del cerca gruppo è sempre visibile, ovunque tu l'abbia posizionato, che il micromenu nativo sia nascosto o meno.",
+    ["wn_356_lfgeyeoptions"] = "Novità — Due nuove opzioni della microbarra ti permettono di disattivare del tutto l'occhio del cerca gruppo o ridimensionarlo, accanto all'impostazione che nasconde il micromenu di Blizzard.",
+    ["wn_356_lfgeyescale"] = "Correzione — Il cursore delle dimensioni dell'occhio del cerca gruppo non faceva nulla a meno che la microbarra non fosse completamente attiva con anche «nascondi il micromenu di Blizzard» attivo — altrimenti la scala veniva silenziosamente ripristinata al normale a ogni aggiornamento. Ora si applica in ogni caso.",
 
     -- =====================
     -- 3.5.5 — Novità

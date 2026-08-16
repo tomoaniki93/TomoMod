@@ -580,6 +580,12 @@ TomoMod_Defaults = {
     microBar = {
         enabled       = false,
         hideNative    = true,          -- mute the Blizzard micro menu
+        -- QueueStatusButton is a CHILD of the native micro menu, so muting
+        -- the container takes the Group Finder eye with it. These two govern
+        -- the eye once TomoMod owns the micro menu; position stays with
+        -- FrameAnchors, which already has a "queueStatus" anchor.
+        lfgEyeEnabled = true,
+        lfgEyeScale   = 1.0,
         iconSize      = 26,
         spacing       = 4,
         scale         = 1.0,

@@ -1222,6 +1222,9 @@ TomoMod_RegisterLocale("enUS", {
     ["section_microbar"]                = "Micro Bar",
     ["info_microbar"]                   = "Replaces the Blizzard micro menu with a bar you can size, order and place freely. Each button forwards its click to the original one, so everything keeps working in combat. Icons are read from the game's own art. While this is active, the Micro Menu setting above no longer applies.",
     ["opt_microbar_enable"]             = "Enable Micro Bar",
+    ["opt_microbar_lfg_eye"]                = "Group Finder eye",
+    ["opt_microbar_lfg_eye_scale"]          = "Eye scale",
+    ["info_microbar_lfg_eye"]               = "Kept out of the Blizzard micro menu so it survives hiding it. Place it in layout mode.",
     ["opt_microbar_hide_native"]        = "Hide the Blizzard micro menu",
     ["opt_microbar_buttons"]            = "Buttons & order",
     ["opt_microbar_orientation"]        = "Orientation",
@@ -3348,6 +3351,11 @@ TomoMod_RegisterLocale("enUS", {
     -- =====================
     ["wn_356_talkingheadfix"] = "Fix — Hide Talking Head could leave a talking head's voiceover playing underneath a hidden frame. Talking head frames manage their own visibility, so simply hiding the frame on show left the playing state and its finish timer running — and skipped every line after the first in a multi-line talking head, since the frame was already visible for those. TomoMod now hooks the actual play function and closes each talking head the same way Blizzard itself does, which reliably stops the timer and the voiceover together.",
     ["wn_356_talkingheadcleanup"] = "Internal — A stop-sound call issued in the very same moment a voiceover starts is occasionally ignored by the sound engine, so Hide Talking Head now follows up a fraction of a second later to make sure it actually stops.",
+    ["wn_356_queueeyedb"] = "Fix — The queue status eye's position never actually saved. Its entry was missing from the settings defaults table, so the save handler silently skipped writing a new position every time you dragged it — the eye moved fine on screen, but forgot where you put it on the next login. The missing entry is back, and the save path now creates it on the fly if your saved settings are still missing it, so an out-of-date save costs nothing worse than one extra table.",
+    ["wn_356_queueeyeposition"] = "Fix — The queue status eye's default position was a blind guess that landed in a different spot on every resolution — off-screen entirely on an ultrawide monitor, which is how this was caught. It now defaults to a spot beside the minimap, where the eye actually lives.",
+    ["wn_356_lfgeyesurvive"] = "New — The Group Finder eye used to disappear entirely when you hid the Blizzard micro menu, since it lives inside that same menu's container. It now stays put — Group Finder queue status is always visible, wherever you've placed it, whether the native micro menu is hidden or not.",
+    ["wn_356_lfgeyeoptions"] = "New — Two new Micro Bar options let you turn the Group Finder eye off entirely or resize it, next to the setting that hides the Blizzard micro menu.",
+    ["wn_356_lfgeyescale"] = "Fix — The Group Finder eye's size slider did nothing unless Micro Bar was fully enabled with \"hide the Blizzard micro menu\" also turned on — the scale was silently reset back to normal on every refresh otherwise. It now applies regardless.",
 
     -- =====================
     -- 3.5.5 — What's New

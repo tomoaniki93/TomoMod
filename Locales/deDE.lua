@@ -1158,6 +1158,9 @@ TomoMod_RegisterLocale("deDE", {
     ["section_microbar"]                = "Mikroleiste",
     ["info_microbar"]                   = "Ersetzt das Mikromenü von Blizzard durch eine Leiste, die du frei skalieren, sortieren und platzieren kannst. Jeder Knopf leitet seinen Klick an den ursprünglichen Knopf weiter, sodass alles auch im Kampf funktioniert. Die Symbole werden direkt aus den Spieldateien gelesen. Solange dies aktiv ist, greift die Einstellung Mikromenü oben nicht mehr.",
     ["opt_microbar_enable"]             = "Mikroleiste aktivieren",
+    ["opt_microbar_lfg_eye"]                = "Gruppensuche-Auge",
+    ["opt_microbar_lfg_eye_scale"]          = "Größe des Auges",
+    ["info_microbar_lfg_eye"]               = "Vom Blizzard-Mikromenü gelöst, damit es dessen Ausblenden übersteht. Im Layoutmodus platzieren.",
     ["opt_microbar_hide_native"]        = "Blizzard-Mikromenü ausblenden",
     ["opt_microbar_buttons"]            = "Knöpfe & Reihenfolge",
     ["opt_microbar_orientation"]        = "Ausrichtung",
@@ -3308,6 +3311,11 @@ TomoMod_RegisterLocale("deDE", {
     -- =====================
     ["wn_356_talkingheadfix"] = "Fehlerbehebung — Talking-Head-Fenster ausblenden konnte die Sprachausgabe eines Talking Heads unter einem ausgeblendeten Fenster weiterlaufen lassen. Talking-Head-Fenster verwalten ihre Sichtbarkeit selbst, sodass das bloße Ausblenden beim Anzeigen den Abspielzustand und dessen Abschluss-Timer weiterlaufen ließ — und jede Zeile nach der ersten eines mehrzeiligen Talking Heads übersprang, da das Fenster für diese bereits sichtbar war. TomoMod hakt sich nun in die eigentliche Abspielfunktion ein und schließt jeden Talking Head genauso, wie Blizzard es selbst tut, was Timer und Sprachausgabe zuverlässig gemeinsam stoppt.",
     ["wn_356_talkingheadcleanup"] = "Intern — Ein Stop-Sound-Aufruf, der im selben Moment erfolgt, in dem eine Sprachausgabe startet, wird von der Sound-Engine gelegentlich ignoriert, weshalb das Ausblenden von Talking Heads nun einen Sekundenbruchteil später nachfasst, um sicherzustellen, dass sie wirklich stoppt.",
+    ["wn_356_queueeyedb"] = "Fehlerbehebung — Die Position des Warteschlangen-Auges wurde in Wirklichkeit nie gespeichert. Ihr Eintrag fehlte in der Standardeinstellungstabelle, sodass der Speicherhandler jedes Mal beim Ziehen stillschweigend das Schreiben einer neuen Position übersprang — das Auge bewegte sich zwar auf dem Bildschirm, vergaß aber beim nächsten Login, wo Ihr es hingesetzt hattet. Der fehlende Eintrag ist zurück, und der Speicherpfad legt ihn nun im laufenden Betrieb an, falls Eure gespeicherten Einstellungen ihn noch nicht enthalten, sodass ein veraltetes Speicherformat höchstens eine zusätzliche Tabelle kostet.",
+    ["wn_356_queueeyeposition"] = "Fehlerbehebung — Die Standardposition des Warteschlangen-Auges war eine blinde Schätzung, die je nach Auflösung an einer anderen Stelle landete — bei einem Ultrawide-Monitor komplett außerhalb des Bildschirms, wodurch dies überhaupt entdeckt wurde. Sie sitzt nun standardmäßig neben der Minikarte, wo das Auge tatsächlich lebt.",
+    ["wn_356_lfgeyesurvive"] = "Neu — Das Gruppensuche-Auge verschwand vollständig, wenn Ihr das Blizzard-Mikromenü ausgeblendet habt, da es im selben Container lebt. Es bleibt jetzt erhalten — der Gruppensuche-Warteschlangenstatus ist immer sichtbar, egal wo Ihr es platziert habt, ob das native Mikromenü ausgeblendet ist oder nicht.",
+    ["wn_356_lfgeyeoptions"] = "Neu — Zwei neue Mikroleisten-Optionen erlauben es Euch, das Gruppensuche-Auge komplett auszuschalten oder in der Größe anzupassen, direkt neben der Einstellung, die das Blizzard-Mikromenü ausblendet.",
+    ["wn_356_lfgeyescale"] = "Fehlerbehebung — Der Größenregler des Gruppensuche-Auges bewirkte nichts, es sei denn, die Mikroleiste war vollständig aktiviert und „Blizzard-Mikromenü ausblenden" ebenfalls eingeschaltet — andernfalls wurde die Skalierung bei jeder Aktualisierung stillschweigend auf normal zurückgesetzt. Sie greift jetzt in jedem Fall.",
 
     -- =====================
     -- 3.5.5 — Was ist neu

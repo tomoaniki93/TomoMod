@@ -731,6 +731,25 @@ local function BuildBagMicroMenuTab(parent)
     end)
     y = ny
 
+    local _, ny = W.CreateCheckbox(c, L["opt_microbar_lfg_eye"],
+        MBDB().lfgEyeEnabled ~= false, y, function(v)
+            if TomoMod_MicroBar and TomoMod_MicroBar.SetLFGEyeEnabled then
+                TomoMod_MicroBar.SetLFGEyeEnabled(v)
+            end
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_microbar_lfg_eye_scale"],
+        MBDB().lfgEyeScale or 1.0, 0.5, 2.0, 0.05, y, function(v)
+            if TomoMod_MicroBar and TomoMod_MicroBar.SetLFGEyeScale then
+                TomoMod_MicroBar.SetLFGEyeScale(v)
+            end
+        end, "%.2f")
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_microbar_lfg_eye"], y)
+    y = ny
+
     local _, ny = W.CreateCheckbox(c, L["opt_microbar_hide_native"], MBDB().hideNative, y, function(v)
         MBDB().hideNative = v
         MBRefresh()

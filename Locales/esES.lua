@@ -1157,6 +1157,9 @@ TomoMod_RegisterLocale("esES", {
     ["section_microbar"]                = "Microbarra",
     ["info_microbar"]                   = "Sustituye el micromenú de Blizzard por una barra que puedes dimensionar, reordenar y colocar libremente. Cada botón reenvía su clic al botón original, así que todo sigue funcionando en combate. Los iconos se leen directamente de los recursos del juego. Mientras esté activa, el ajuste Micromenú de arriba deja de aplicarse.",
     ["opt_microbar_enable"]             = "Activar la microbarra",
+    ["opt_microbar_lfg_eye"]                = "Ojo del buscador de grupos",
+    ["opt_microbar_lfg_eye_scale"]          = "Tamaño del ojo",
+    ["info_microbar_lfg_eye"]               = "Separado del micromenú de Blizzard para sobrevivir a su ocultación. Colócalo en modo de disposición.",
     ["opt_microbar_hide_native"]        = "Ocultar el micromenú de Blizzard",
     ["opt_microbar_buttons"]            = "Botones y orden",
     ["opt_microbar_orientation"]        = "Orientación",
@@ -3309,6 +3312,11 @@ TomoMod_RegisterLocale("esES", {
     -- =====================
     ["wn_356_talkingheadfix"] = "Corrección — Ocultar Talking Head podía dejar la locución de un talking head reproduciéndose bajo un marco oculto. Los marcos de talking head gestionan su propia visibilidad, así que simplemente ocultar el marco al mostrarse dejaba el estado de reproducción y su temporizador de finalización en marcha — y se saltaba cada línea posterior a la primera en un talking head de varias líneas, ya que el marco ya estaba visible para esas. TomoMod ahora engancha la función de reproducción real y cierra cada talking head igual que lo hace Blizzard, lo que detiene de forma fiable el temporizador y la locución juntos.",
     ["wn_356_talkingheadcleanup"] = "Interno — Una llamada para detener el sonido emitida en el mismo instante en que arranca una locución es ocasionalmente ignorada por el motor de sonido, así que Ocultar Talking Head ahora insiste una fracción de segundo después para asegurarse de que realmente se detiene.",
+    ["wn_356_queueeyedb"] = "Corrección — La posición del ojo de cola en realidad nunca se guardaba. Le faltaba su entrada en la tabla de ajustes por defecto, así que el gestor de guardado omitía silenciosamente escribir una nueva posición cada vez que lo arrastrabas — el ojo se movía bien en pantalla, pero olvidaba dónde lo habías puesto en el siguiente inicio de sesión. La entrada que faltaba ha vuelto, y la ruta de guardado ahora la crea sobre la marcha si tus ajustes guardados todavía carecen de ella, de modo que un guardado desactualizado no cuesta más que una tabla adicional.",
+    ["wn_356_queueeyeposition"] = "Corrección — La posición por defecto del ojo de cola era una suposición a ciegas que aterrizaba en un lugar distinto según la resolución — completamente fuera de pantalla en un monitor ultrapanorámico, que es como se detectó. Ahora aparece por defecto junto al minimapa, donde realmente vive el ojo.",
+    ["wn_356_lfgeyesurvive"] = "Nuevo — El ojo del buscador de grupos desaparecía por completo al ocultar el micromenú de Blizzard, ya que vive dentro de ese mismo contenedor. Ahora permanece en su sitio — el estado de la cola del buscador de grupos siempre es visible, dondequiera que lo hayas colocado, esté oculto o no el micromenú nativo.",
+    ["wn_356_lfgeyeoptions"] = "Nuevo — Dos nuevas opciones de la microbarra te permiten desactivar por completo el ojo del buscador de grupos o cambiar su tamaño, junto al ajuste que oculta el micromenú de Blizzard.",
+    ["wn_356_lfgeyescale"] = "Corrección — El control deslizante de tamaño del ojo del buscador de grupos no hacía nada a menos que la microbarra estuviera totalmente activada y «ocultar el micromenú de Blizzard» también estuviera activado — de lo contrario, la escala se restablecía silenciosamente a la normal en cada actualización. Ahora se aplica en cualquier caso.",
 
     -- =====================
     -- 3.5.5 — Novedades
