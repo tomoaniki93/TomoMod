@@ -3308,6 +3308,7 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_357_cooldowntaint"] = "Correzione — Alcuni pulsanti della barra azione potevano accumulare un errore aggiornando la loro animazione di ricarica quando il gioco non permetteva di leggere il valore direttamente, anche sulle barre con la skin disattivata. Questo aggiornamento viene ora saltato in sicurezza su ogni pulsante interessato e ogni ricarica che porta, invece di generare un errore.",
     ["wn_357_mainbartaint"] = "Correzione — Poteva comparire un errore raro nel tentativo di rimostrare la barra azione predefinita dopo essere saliti in sella o in un veicolo. Ora viene silenziato allo stesso modo di casi simili.",
     ["wn_357_mailiconcrash"] = "Correzione — L'icona della posta della minimappa poteva generare un errore ogni volta che arrivava nuova posta. Ora non succede più, e l'icona si comporta esattamente come prima.",
+    ["wn_357_buggrabber"] = "Novità — Se usi anche !BugGrabber, Diagnostics ora si appoggia anche a lui, recuperando gli errori che ha visto prima che il tracciamento di TomoMod iniziasse in questa sessione. Nulla cambia se non lo hai installato.",
 
     -- =====================
     -- 3.5.5 — Novità

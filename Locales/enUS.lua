@@ -3360,6 +3360,7 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_357_cooldowntaint"] = "Fix — Some action bar buttons could spam an error updating their cooldown swipe when the game wouldn't let the value be read directly, even on bars with skinning turned off. That update is now skipped safely on every affected button and every cooldown it carries, instead of raising an error.",
     ["wn_357_mainbartaint"] = "Fix — A rare error could appear trying to reshow the default action bar after mounting or entering a vehicle. It is now silenced the same way similar cases already are.",
     ["wn_357_mailiconcrash"] = "Fix — The minimap's mail icon could raise an error every time you got new mail. It no longer does, and the icon behaves exactly as before.",
+    ["wn_357_buggrabber"] = "New — If you also run !BugGrabber, Diagnostics now backs itself up against it, catching errors it saw before TomoMod's own tracking started this session. Nothing changes if you don't have it installed.",
 
     -- =====================
     -- 3.5.5 — What's New

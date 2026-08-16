@@ -3320,6 +3320,7 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_357_cooldowntaint"] = "Fehlerbehebung — Manche Aktionsleisten-Schaltflächen konnten beim Aktualisieren ihrer Abklingzeit-Anzeige einen Fehler häufen, wenn das Spiel den Wert nicht direkt lesen ließ, selbst bei Leisten mit deaktiviertem Skin. Diese Aktualisierung wird jetzt bei jeder betroffenen Schaltfläche und jeder ihrer Abklingzeiten sicher übersprungen, statt einen Fehler auszulösen.",
     ["wn_357_mainbartaint"] = "Fehlerbehebung — Ein seltener Fehler konnte auftreten, wenn die Standard-Aktionsleiste nach dem Aufsteigen oder dem Betreten eines Fahrzeugs erneut angezeigt werden sollte. Er wird jetzt genauso abgefangen wie ähnliche Fälle.",
     ["wn_357_mailiconcrash"] = "Fehlerbehebung — Das Briefsymbol der Minikarte konnte bei jeder neuen Post einen Fehler auslösen. Das passiert nicht mehr, und das Symbol verhält sich genau wie zuvor.",
+    ["wn_357_buggrabber"] = "Neu — Wenn Ihr auch !BugGrabber verwendet, sichert sich die Diagnose nun zusätzlich dagegen ab und erfasst Fehler, die es vor dem Start von TomoMods eigener Erfassung in dieser Sitzung bereits gesehen hat. Ohne installiertes !BugGrabber ändert sich nichts.",
 
     -- =====================
     -- 3.5.5 — Was ist neu

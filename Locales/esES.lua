@@ -3321,6 +3321,7 @@ TomoMod_RegisterLocale("esES", {
     ["wn_357_cooldowntaint"] = "Corrección — Algunos botones de la barra de acción podían acumular un error al actualizar su animación de reutilización cuando el juego no permitía leer el valor directamente, incluso en barras con el estilo desactivado. Esa actualización ahora se omite de forma segura en cada botón afectado y en cada reutilización que lleve, en lugar de generar un error.",
     ["wn_357_mainbartaint"] = "Corrección — Podía aparecer un error poco frecuente al intentar volver a mostrar la barra de acción predeterminada tras montar o entrar en un vehículo. Ahora se silencia igual que casos similares.",
     ["wn_357_mailiconcrash"] = "Corrección — El icono de correo del minimapa podía generar un error cada vez que recibías correo nuevo. Ya no lo hace, y el icono se comporta exactamente igual que antes.",
+    ["wn_357_buggrabber"] = "Nuevo — Si también usas !BugGrabber, Diagnostics ahora se respalda también en él, capturando errores que vio antes de que el propio seguimiento de TomoMod comenzara en esta sesión. Nada cambia si no lo tienes instalado.",
 
     -- =====================
     -- 3.5.5 — Novedades

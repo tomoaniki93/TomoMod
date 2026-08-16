@@ -3336,6 +3336,7 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_357_cooldowntaint"] = "Correction — Certains boutons de barre d'action pouvaient multiplier une erreur en actualisant leur animation de récupération quand le jeu ne laissait pas lire la valeur directement, même sur des barres avec l'habillage désactivé. Cette actualisation est désormais ignorée en toute sécurité sur chaque bouton concerné et chaque récupération qu'il porte, plutôt que de déclencher une erreur.",
     ["wn_357_mainbartaint"] = "Correction — Une erreur rare pouvait apparaître en tentant de réafficher la barre d'action par défaut après avoir enfourché une monture ou pris place dans un véhicule. Elle est désormais neutralisée de la même manière que des cas similaires.",
     ["wn_357_mailiconcrash"] = "Correction — L'icône de courrier de la minimap pouvait déclencher une erreur à chaque nouveau courrier reçu. Ce n'est plus le cas, et l'icône se comporte exactement comme avant.",
+    ["wn_357_buggrabber"] = "Nouveau — Si vous utilisez aussi !BugGrabber, Diagnostics s'appuie désormais aussi sur lui, récupérant les erreurs qu'il a vues avant que le suivi propre à TomoMod ne démarre pour cette session. Rien ne change si vous ne l'avez pas installé.",
 
     -- =====================
     -- 3.5.5 — Quoi de neuf

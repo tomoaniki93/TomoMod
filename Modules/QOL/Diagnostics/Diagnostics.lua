@@ -816,6 +816,55 @@ local function InstallErrorHandler()
 end
 
 -- =====================================================================
+-- OPTIONAL: !BugGrabber INTEROP
+-- =====================================================================
+-- !BugGrabber (with or without BugSack) runs its own independent error
+-- handler chain, active from the moment IT loads -- which can be earlier
+-- than InstallErrorHandler() runs here, and its capture doesn't depend on
+-- our own seterrorhandler link surviving another addon replacing it later.
+-- Purely additive, and does nothing if the player doesn't have it installed.
+local bugGrabberHooked = false
+
+local function ImportBugGrabberError(errObj)
+    if not errObj or type(errObj.message) ~= "string" then return end
+    local msg = errObj.message
+    local isOurs = IsTomoModError(msg, errObj.stack)
+    if not db.captureAll and not isOurs then return end
+    if not isOurs and IsBlizzardOnlyError(msg, errObj.stack) then return end
+    local kind = IsTaintMessage(msg) and KIND_TAINT or KIND_LUA_ERROR
+    CaptureEntry(kind, msg, errObj.stack, errObj.locals, { source = "BugGrabber" })
+end
+
+local function HookBugGrabber()
+    if bugGrabberHooked or not _G.BugGrabber then return end
+    bugGrabberHooked = true
+
+    -- Backfill whatever it already caught this session before we got here
+    -- (its handler chain can be installed before ours).
+    local ok, sessionID_bg = pcall(function() return BugGrabber:GetSessionId() end)
+    if ok then
+        local okDB, bgDB = pcall(function() return BugGrabber:GetDB() end)
+        if okDB and type(bgDB) == "table" then
+            for _, errObj in ipairs(bgDB) do
+                if errObj.session == sessionID_bg then
+                    ImportBugGrabberError(errObj)
+                end
+            end
+        end
+    end
+
+    -- Stay subscribed for anything it catches from here on — a second,
+    -- independent observation path that survives another addon stomping on
+    -- our own seterrorhandler link.
+    if EventRegistry and EventRegistry.RegisterCallback then
+        EventRegistry:RegisterCallback("BugGrabber.BugGrabbed", function(_, tableID)
+            local okErr, errObj = pcall(function() return BugGrabber:GetErrorByID(tableID) end)
+            if okErr then ImportBugGrabberError(errObj) end
+        end, D)
+    end
+end
+
+-- =====================================================================
 -- CONSOLE UI (Diagnostics Console)
 -- =====================================================================
 
@@ -2088,6 +2137,7 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
         end
         StartPerfSampling()
         InstallErrorHandler()
+        HookBugGrabber()
         if db.suppressPopups then
             SuppressScriptErrors()
         end
