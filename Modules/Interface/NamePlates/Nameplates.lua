@@ -770,7 +770,12 @@ local function GetUnitRole(unit)
     -- restricted content; comparing it to a literal throws taint. Treat it
     -- the same as "no role", same fail-closed pattern as elsewhere in this file.
     if issecretvalue and issecretvalue(role) then role = nil end
-    if role and role ~= "NONE" then return role end
+    -- [3.5.7] issecretvalue() still let one through in the field (report
+    -- named this exact comparison), so pcall it too: an undetected secret
+    -- fails closed instead of throwing all the way up the nameplate update.
+    local ok, hasRole = pcall(function() return role ~= nil and role ~= "NONE" end)
+    if not ok then role = nil
+    elseif hasRole then return role end
 
     -- Fallback: detect NPC roles in follower dungeons
     if not UnitIsPlayer(unit) and IsFriendlyUnit(unit) and IsFollowerDungeon() then
@@ -1117,7 +1122,9 @@ local function GetHealthColor(unit)
             local role = UnitGroupRolesAssigned("player")
             -- [12.1] Same secret-string guard as GetUnitRole above.
             if issecretvalue and issecretvalue(role) then role = nil end
-            local isTankRole = (role == "TANK")
+            -- [3.5.7] Same pcall safety net as GetUnitRole above.
+            local ok, isTankRole = pcall(function() return role == "TANK" end)
+            if not ok then isTankRole = false end
             if isTankRole then
                 if threatStatus == 3 then
                     local c = s.tankColors.hasThreat; return c.r, c.g, c.b

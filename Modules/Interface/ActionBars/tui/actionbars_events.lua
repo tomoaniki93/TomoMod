@@ -237,8 +237,29 @@ function ScheduleSlotUpdate(slot)
     abSlotFrame:Show()
 end
 
+-- TOMOMOD: the events after which the client may have handed their events back
+-- to the Blizzard originals we retired at build time. Every one of these is
+-- already registered on ownedEventFrame; the sweep is idempotent and skips
+-- itself in combat, so re-entering it twice on a vehicle swap is free.
+local RESUPPRESS_EVENTS = {
+    PLAYER_ENTERING_WORLD    = true,
+    PLAYER_REGEN_ENABLED     = true,
+    ACTIONBAR_PAGE_CHANGED   = true,
+    UPDATE_BONUS_ACTIONBAR   = true,
+    UPDATE_OVERRIDE_ACTIONBAR = true,
+    UPDATE_VEHICLE_ACTIONBAR = true,
+    UNIT_ENTERED_VEHICLE     = true,
+    UNIT_EXITED_VEHICLE      = true,
+    UPDATE_SHAPESHIFT_FORM   = true,
+    PET_BATTLE_CLOSE         = true,
+}
+
 function OnOwnedEvent(self, event, ...)
     if not ActionBarsOwned.initialized then return end
+
+    if RESUPPRESS_EVENTS[event] then
+        ResuppressBlizzardButtons()
+    end
 
     if event == "ACTIONBAR_SLOT_CHANGED" then
         local slot = ...
@@ -384,6 +405,7 @@ function OnOwnedEvent(self, event, ...)
         end
 
     elseif event == "PLAYER_REGEN_ENABLED" then
+        FlushDeferredAttributeWrites()
         if ActionBarsOwned.pendingExtraButtonInit then
             ActionBarsOwned.pendingExtraButtonInit = false
             InitializeExtraButtons()

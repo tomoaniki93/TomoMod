@@ -90,6 +90,17 @@ function ActionBarsOwned:Initialize()
 
     PurgeOverrideBarShownExternal()
 
+    -- TOMOMOD: the override and extra buttons are never suppressed -- the player
+    -- casts from them -- but they carry our taint all the same, so Blizzard's
+    -- own attribute writers get blocked on them in combat. Defer those writes
+    -- rather than dropping them; see InstallCombatDeferredAttributeWriters.
+    for i = 1, 6 do
+        InstallCombatDeferredAttributeWriters(_G["OverrideActionBarButton" .. i])
+        InstallSecretSafeCooldown(_G["OverrideActionBarButton" .. i])
+    end
+    InstallCombatDeferredAttributeWriters(_G.ExtraActionButton1)
+    InstallSecretSafeCooldown(_G.ExtraActionButton1)
+
     local possessBar = _G.PossessActionBar or _G.PossessBarFrame
     if possessBar then
         possessBar:UnregisterAllEvents()

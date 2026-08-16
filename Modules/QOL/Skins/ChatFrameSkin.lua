@@ -196,13 +196,6 @@ local rolePaths = {
     DAMAGER = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/DAMAGER.tga:12:12:0:0:64:64:2:56:2:56|t ",
 }
 
--- Test
---local rolePaths = {
---    TANK    = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/Tank.png:12:12:0:0:64:64:2:56:2:56|t ",
---    HEALER  = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/Healer.png:12:12:0:0:64:64:2:56:2:56|t ",
---    DAMAGER = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/DPS.png:12:12:0:0:64:64:2:56:2:56|t ",
---}
-
 -- =====================================
 -- CHAT ACCESS ID SYSTEM
 -- =====================================

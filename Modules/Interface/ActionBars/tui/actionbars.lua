@@ -352,12 +352,48 @@ function PurgeShownExternalTaint(frame)
 
     frame.isShownExternal = nil
     local c = 42
+    -- TOMOMOD: the upstream loop is unbounded. It relies on the taint table
+    -- growing until the variable reports secure again, which is an
+    -- implementation detail of the client, not a guarantee. If a build ever
+    -- stops converging this spins forever inside a frame the player cannot
+    -- escape. Cap it: failing to purge is a cosmetic problem, hanging the
+    -- client is not.
+    local guard = 0
     repeat
         if frame[c] == nil then
             frame[c] = nil
         end
         c = c + 1
-    until issecurevariable(frame, "isShownExternal")
+        guard = guard + 1
+    until issecurevariable(frame, "isShownExternal") or guard >= 1000
+end
+
+-- TOMOMOD: the bar frames we retire, same registry pattern as the buttons.
+suppressedBlizzardBars = {}
+
+-- TOMOMOD: UpdateShownButtons is the bar-level half of the chain the reports
+-- caught -- it is what writes SetShown on both the button and its container.
+-- A retired bar has no shown buttons to update, and it is reachable from more
+-- than the button path (the bar's own events, EditMode), so silence it at the
+-- source rather than waiting for the next stack to name it.
+function SilenceSuppressedBlizzardBar(frame)
+    if not frame then return end
+    if frame.UpdateShownButtons then
+        frame.UpdateShownButtons = noop
+    end
+    if frame.UpdateGridLayout then
+        frame.UpdateGridLayout = noop
+    end
+    -- [3.5.7] ActionBarController re-validates bar visibility on its own
+    -- transitions (mount, vehicle, pet battle...) and calls Show() on a
+    -- retired bar straight into SetShownBase(), which is protected and
+    -- blocked because this frame carries our taint:
+    --   [ADDON_ACTION_BLOCKED] TomoMod: MainActionBar:SetShownBase()
+    -- UpdateVisibility is what Show() calls before it gets there; silencing
+    -- it here stops the chain at the same point as the two updaters above.
+    if frame.UpdateVisibility then
+        frame.UpdateVisibility = noop
+    end
 end
 
 function HideManagedBlizzardBarFrame(frame, clearEvents)
@@ -375,12 +411,166 @@ function HideManagedBlizzardBarFrame(frame, clearEvents)
     else
         frame:Hide()
     end
+
+    SilenceSuppressedBlizzardBar(frame)
+    suppressedBlizzardBars[frame] = true
+end
+
+-- TOMOMOD: every Blizzard original we have taken out of service. Kept as a set
+-- so the re-suppression sweep below has something to iterate; membership is
+-- permanent for the session, a button is never un-suppressed.
+suppressedBlizzardButtons = {}
+
+-- TOMOMOD: same reasoning as InstallSecureActionFlagRefresh in the helpers,
+-- applied to the other half of the problem.
+--
+-- We build our own TUI_Bar*Button* and retire Blizzard's originals, but the
+-- originals stay in the frame tree and they are tainted by us (SetParent,
+-- SetAttribute). UnregisterAllEvents is a one-shot: the client re-registers
+-- these buttons on its own schedule, and from then on every update they run
+-- ends in a protected call attributed to us.
+--
+-- The first version of this patch neutralised the two writers the reports
+-- named, UpdatePressAndHoldAction and UpdatePingAttributes. That was the wrong
+-- shape of fix and the next report proved it: with those two silenced,
+-- UpdateAction no longer aborted at line 546 and ran on to line 550, where it
+-- calls bar:UpdateShownButtons() -- another protected call, another blocked
+-- action, same event, same button:
+--   [ADDON_ACTION_BLOCKED] TomoMod: ActionButton1:SetShown()
+-- Silencing writers one at a time only moves the blocked action further down
+-- the same function. Blizzard's update chain is protected calls end to end,
+-- so the whole chain has to stop, not its current last step.
+--
+-- Cut at the entry points instead. These buttons are hidden, statehidden,
+-- mouse-dead duplicates that cast nothing and display nothing; there is no
+-- update they legitimately need to run. The writers stay in the list because
+-- UpdateAction is not their only caller. All plain table writes, so they keep
+-- holding while the button is resurrected mid-combat, when no protected call
+-- is available to us.
+local SILENCED_BUTTON_METHODS = {
+    "OnEvent",
+    "UpdateAction",
+    "Update",
+    "UpdatePressAndHoldAction",
+    "UpdatePingAttributes",
+}
+
+local function SilenceSuppressedBlizzardButton(btn)
+    for _, methodName in ipairs(SILENCED_BUTTON_METHODS) do
+        if btn[methodName] then
+            btn[methodName] = noop
+        end
+    end
 end
 
 function SuppressBlizzardButton(btn)
     btn:Hide()
     btn:UnregisterAllEvents()
     btn:SetAttribute("statehidden", true)
+    SilenceSuppressedBlizzardButton(btn)
+    suppressedBlizzardButtons[btn] = true
+end
+
+-- TOMOMOD: curative half. Silencing the chain stops the blocked actions, but a
+-- resurrected button still burns CPU running an update for a frame nobody can
+-- see. Put them back to sleep whenever the client has had a chance to wake
+-- them. Hide, SetScript and SetAttribute are protected on these frames, so
+-- this is strictly out of combat; PLAYER_REGEN_ENABLED is one of the callers,
+-- which covers anything that woke up mid-fight.
+function ResuppressBlizzardButtons()
+    if InCombatLockdown() then return end
+    for btn in pairs(suppressedBlizzardButtons) do
+        SilenceSuppressedBlizzardButton(btn)
+        ns.SafeCall("best-effort-style", btn.UnregisterAllEvents, btn)
+        ns.SafeCall("best-effort-style", btn.SetScript, btn, "OnEvent", nil)
+        ns.SafeCall("best-effort-style", btn.Hide, btn)
+        ns.SafeCall("best-effort-style", btn.SetAttribute, btn, "statehidden", true)
+    end
+    for bar in pairs(suppressedBlizzardBars) do
+        SilenceSuppressedBlizzardBar(bar)
+    end
+end
+
+-- TOMOMOD: the override and extra-action buttons are a different case. They are
+-- tainted by us too -- the skin writes to them, and the override bar goes
+-- through PurgeShownExternalTaint -- and the same two writers get blocked on
+-- them:
+--   [ADDON_ACTION_BLOCKED] TomoMod: OverrideActionBarButton2:SetAttribute()
+-- But unlike the suppressed originals these are live: the player casts from
+-- them in vehicles and during skyriding. A no-op would silently break
+-- press-and-hold there. Defer instead -- swallow the write during lockdown,
+-- replay it the moment combat ends. The attribute is only read when the action
+-- is next used, so a few seconds of staleness costs nothing.
+local deferredAttributeWrites = {}
+
+local DEFERRED_ATTRIBUTE_METHODS = { "UpdatePressAndHoldAction", "UpdatePingAttributes" }
+
+function InstallCombatDeferredAttributeWriters(btn)
+    if not btn or btn._tomomodDeferredWritersInstalled then return end
+    btn._tomomodDeferredWritersInstalled = true
+
+    for _, methodName in ipairs(DEFERRED_ATTRIBUTE_METHODS) do
+        local original = btn[methodName]
+        if type(original) == "function" then
+            btn[methodName] = function(self, ...)
+                if InCombatLockdown() then
+                    deferredAttributeWrites[self] = true
+                    return
+                end
+                return original(self, ...)
+            end
+        end
+    end
+end
+
+function FlushDeferredAttributeWrites()
+    if InCombatLockdown() then return end
+    for btn in pairs(deferredAttributeWrites) do
+        deferredAttributeWrites[btn] = nil
+        for _, methodName in ipairs(DEFERRED_ATTRIBUTE_METHODS) do
+            ns.SafeCallMethodIfPresent("best-effort-style", btn, methodName)
+        end
+    end
+end
+
+-- [3.5.7] The deferred writers above stop the button's own attribute calls
+-- from being blocked, but the button's tainted status doesn't go away --
+-- Blizzard's OnEvent still drives the cooldown swipe on the very same
+-- frame, and in restricted content that means SetCooldown(secret, secret,
+-- secret) reached from tainted execution:
+--   Blizzard_ActionBar/Shared/ActionButton.lua:847: bad argument #1 to 'SetCooldown'
+--   (Secret values are only allowed during untainted execution for this argument.)
+-- 470 of these from one report. There is nothing to defer here -- Blizzard
+-- calls this directly, never through us -- so skip the call outright when any
+-- argument is unreadable, rather than attempting it and catching the failure:
+-- disabling the swipe display wouldn't help, SetCooldown validates these
+-- arguments before it ever gets to drawing anything. The pcall stays as a
+-- second net in case a secret slips past issecretvalue() undetected, same
+-- reasoning as the nameplate role guard above.
+local function GuardCooldownWidget(cooldown)
+    if not cooldown or cooldown._tomomodSecretSafeInstalled then return end
+    cooldown._tomomodSecretSafeInstalled = true
+
+    local original = cooldown.SetCooldown
+    if type(original) ~= "function" then return end
+    cooldown.SetCooldown = function(self, start, duration, modRate, ...)
+        if issecretvalue and (issecretvalue(start) or issecretvalue(duration) or issecretvalue(modRate)) then
+            return
+        end
+        local ok = pcall(original, self, start, duration, modRate, ...)
+        if not ok then return end
+    end
+end
+
+-- [3.5.7] ActionButton_ApplyCooldown drives THREE separate cooldown widgets
+-- on the same button -- self.cooldown, self.chargeCooldown and
+-- self.lossOfControlCooldown -- each through its own SetCooldown call.
+-- Guarding only the first left the other two still throwing.
+function InstallSecretSafeCooldown(btn)
+    if not btn then return end
+    GuardCooldownWidget(btn.cooldown or btn.Cooldown)
+    GuardCooldownWidget(btn.chargeCooldown)
+    GuardCooldownWidget(btn.lossOfControlCooldown)
 end
 
 env.__declared.LayoutNativeButtons = true

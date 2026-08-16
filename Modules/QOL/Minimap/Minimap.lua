@@ -510,11 +510,23 @@ local function HoldHidden(frame)
     end)
 end
 
--- Ré-ancre une frame Blizzard selon la config DB d'un indicateur (ou la masque).
+-- [3.5.7] Blizzard's native indicators (mail, crafting orders, difficulty)
+-- call self:GetParent():Layout() at the end of their own OnEvent handlers,
+-- expecting MinimapCluster.IndicatorFrame's real Layout() method. Once
+-- reparented onto Minimap/TomoModMinimapBorder for positioning, that call hit
+-- a nil method ("attempt to call a nil value") -- Show()/Hide() already ran
+-- by that point, so the crash cost nothing visible, but a stub is cheaper
+-- than an error every mail/crafting update. A harmless no-op: we position
+-- these indicators ourselves via SetPoint, so nothing needs Blizzard's own
+-- layout pass to actually run.
+local function noop() end
+if not Minimap.Layout then Minimap.Layout = noop end
+
 local function AnchorBlizzFrame(frame, show, key)
     if not frame then return end
     if show == false then
         frame:SetParent(TomoModMinimapBorder or Minimap)
+        if TomoModMinimapBorder and not TomoModMinimapBorder.Layout then TomoModMinimapBorder.Layout = noop end
         frame:ClearAllPoints()
         if not _forcedHidden[frame] then
             _forcedHidden[frame] = { prevAlpha = frame:GetAlpha() }

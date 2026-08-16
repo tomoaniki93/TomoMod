@@ -261,6 +261,11 @@ SkinButton = function(button, settings)
         return
     end
 
+    -- [3.5.7] Unconditional: this button is reclaimed/tainted by us the
+    -- moment it reaches this function, whether or not cosmetic skinning is
+    -- on, so the cooldown guard can't wait behind the skinEnabled check below.
+    InstallSecretSafeCooldown(button)
+
     UpdateButtonProfessionQuality(button, settings)
 
     if not settings.skinEnabled then
