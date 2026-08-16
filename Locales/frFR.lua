@@ -3320,6 +3320,12 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
 
     -- =====================
+    -- 3.5.6 — Quoi de neuf
+    -- =====================
+    ["wn_356_talkingheadfix"] = "Correction — Masquer Talking Head pouvait laisser la voix off d'un talking head continuer à jouer sous un cadre masqué. Les cadres de talking head gèrent leur propre visibilité, donc simplement masquer le cadre à l'affichage laissait l'état de lecture et son minuteur de fin continuer à tourner — et sautait chaque ligne après la première d'un talking head à plusieurs lignes, puisque le cadre était déjà visible pour celles-ci. TomoMod s'accroche désormais à la fonction de lecture elle-même et ferme chaque talking head exactement comme le fait Blizzard, ce qui arrête de façon fiable le minuteur et la voix off ensemble.",
+    ["wn_356_talkingheadcleanup"] = "Interne — Un appel d'arrêt du son émis au même instant que le démarrage d'une voix off est parfois ignoré par le moteur audio, donc Masquer Talking Head insiste désormais une fraction de seconde plus tard pour s'assurer qu'il s'arrête réellement.",
+
+    -- =====================
     -- 3.5.5 — Quoi de neuf
     -- =====================
     ["wn_355_barhoverblocked"] = "Correctif : le simple fait de passer la souris sur un bouton de barre d'action pendant un combat déclenchait une erreur d'action bloquée, à chaque fois. La mise à jour de bouton de Blizzard s'exécute au survol et se termine par l'écriture directe d'un réglage d'appui prolongé — une écriture interdite en combat, et imputée à TomoMod puisque les boutons sont les nôtres. Une entrée par survol, c'est ainsi qu'une seule session en a accumulé 127. TomoMod écrit désormais ce réglage depuis son propre chemin sécurisé, où il l'écrivait déjà correctement, et ignore la version redondante de Blizzard.",

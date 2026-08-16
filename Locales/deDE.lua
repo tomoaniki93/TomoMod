@@ -3304,6 +3304,12 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
 
     -- =====================
+    -- 3.5.6 — Was ist neu
+    -- =====================
+    ["wn_356_talkingheadfix"] = "Fehlerbehebung — Talking-Head-Fenster ausblenden konnte die Sprachausgabe eines Talking Heads unter einem ausgeblendeten Fenster weiterlaufen lassen. Talking-Head-Fenster verwalten ihre Sichtbarkeit selbst, sodass das bloße Ausblenden beim Anzeigen den Abspielzustand und dessen Abschluss-Timer weiterlaufen ließ — und jede Zeile nach der ersten eines mehrzeiligen Talking Heads übersprang, da das Fenster für diese bereits sichtbar war. TomoMod hakt sich nun in die eigentliche Abspielfunktion ein und schließt jeden Talking Head genauso, wie Blizzard es selbst tut, was Timer und Sprachausgabe zuverlässig gemeinsam stoppt.",
+    ["wn_356_talkingheadcleanup"] = "Intern — Ein Stop-Sound-Aufruf, der im selben Moment erfolgt, in dem eine Sprachausgabe startet, wird von der Sound-Engine gelegentlich ignoriert, weshalb das Ausblenden von Talking Heads nun einen Sekundenbruchteil später nachfasst, um sicherzustellen, dass sie wirklich stoppt.",
+
+    -- =====================
     -- 3.5.5 — Was ist neu
     -- =====================
     ["wn_355_barhoverblocked"] = "Fehlerbehebung: Schon das Überfahren einer Aktionsleistenschaltfläche mit der Maus während eines Kampfes erzeugte jedes Mal einen Fehler wegen blockierter Aktion. Blizzards eigene Schaltflächenaktualisierung läuft beim Überfahren und schreibt zum Schluss direkt eine Gedrückthalten-Einstellung — ein Schreibvorgang, der im Kampf nicht erlaubt ist und TomoMod angelastet wird, weil die Schaltflächen von uns stammen. Ein Eintrag pro Überfahren: So kamen in einer einzigen Sitzung 127 davon zusammen. TomoMod schreibt diese Einstellung nun über den eigenen geschützten Pfad, wo sie ohnehin schon korrekt geschrieben wurde, und überspringt Blizzards überflüssige Fassung.",

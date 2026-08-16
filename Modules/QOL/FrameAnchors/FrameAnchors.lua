@@ -31,7 +31,10 @@ local ANCHOR_DEFS = {
         label = L["anchor_queue"],
         width = 34,
         height = 34,
-        defaultPoint = { "TOPRIGHT", "TOPRIGHT", -220, -24 },
+        -- Near the minimap, where the eye lives natively. The previous corner
+        -- offset was guessed blind and lands somewhere different on every
+        -- resolution -- which is how it went missing on an ultrawide.
+        defaultPoint = { "TOPRIGHT", "TOPRIGHT", -30, -220 },
         target = function() return QueueStatusButton end,
         targetPoint = "CENTER",
         anchorPoint = "CENTER",
@@ -105,6 +108,10 @@ local function CreateAnchor(def)
         self:StopMovingOrSizing()
         -- Save position
         local db = DB()
+        -- Create the entry rather than drop the position on the floor: a
+        -- defaults table that has fallen behind ANCHOR_DEFS should cost a
+        -- table, not a setting the player believes they saved.
+        if db and not db[def.key] then db[def.key] = {} end
         if db and db[def.key] then
             -- [DRAG] screen-absolute coords instead of GetPoint
             local left, bottom = self:GetLeft(), self:GetBottom()

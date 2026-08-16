@@ -3292,6 +3292,12 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
 
     -- =====================
+    -- 3.5.6 — Novità
+    -- =====================
+    ["wn_356_talkingheadfix"] = "Correzione — Nascondi Talking Head poteva lasciare la voce fuori campo di un talking head in riproduzione sotto un riquadro nascosto. I riquadri dei talking head gestiscono la propria visibilità, quindi limitarsi a nascondere il riquadro alla visualizzazione lasciava lo stato di riproduzione e il relativo timer di fine in esecuzione — e saltava ogni riga successiva alla prima in un talking head su più righe, poiché il riquadro era già visibile per quelle. TomoMod ora si aggancia alla funzione di riproduzione effettiva e chiude ogni talking head esattamente come fa Blizzard, il che ferma in modo affidabile timer e voce fuori campo insieme.",
+    ["wn_356_talkingheadcleanup"] = "Interno — Una chiamata di stop dell'audio emessa nello stesso istante in cui parte una voce fuori campo viene occasionalmente ignorata dal motore audio, quindi Nascondi Talking Head ora ripete il comando una frazione di secondo dopo per assicurarsi che si fermi davvero.",
+
+    -- =====================
     -- 3.5.5 — Novità
     -- =====================
     ["wn_355_barhoverblocked"] = "Correzione: il semplice passaggio del mouse su un pulsante della barra delle azioni durante un combattimento produceva un errore di azione bloccata, ogni singola volta. L'aggiornamento del pulsante di Blizzard viene eseguito al passaggio del mouse e si conclude scrivendo direttamente un'impostazione di pressione prolungata — una scrittura non consentita in combattimento, e attribuita a TomoMod perché i pulsanti sono nostri. Una voce per ogni passaggio del mouse: è così che una sola sessione ne ha accumulate 127. TomoMod scrive ora quell'impostazione dal proprio percorso sicuro, dove veniva già scritta correttamente, e salta la versione ridondante di Blizzard.",

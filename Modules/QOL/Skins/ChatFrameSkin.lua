@@ -190,10 +190,17 @@ local myName = UnitName("player") or "Unknown"
 local PLAYER_REALM = myRealm
 local PLAYER_NAME = format("%s-%s", myName, PLAYER_REALM)
 
+--local rolePaths = {
+--    TANK    = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/TANK.tga:12:12:0:0:64:64:2:56:2:56|t ",
+--    HEALER  = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/HEALER.tga:12:12:0:0:64:64:2:56:2:56|t ",
+--    DAMAGER = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/DAMAGER.tga:12:12:0:0:64:64:2:56:2:56|t ",
+--}
+
+-- Test
 local rolePaths = {
-    TANK    = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/TANK.tga:12:12:0:0:64:64:2:56:2:56|t ",
-    HEALER  = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/HEALER.tga:12:12:0:0:64:64:2:56:2:56|t ",
-    DAMAGER = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/DAMAGER.tga:12:12:0:0:64:64:2:56:2:56|t ",
+    TANK    = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/Tank.png:12:12:0:0:64:64:2:56:2:56|t ",
+    HEALER  = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/Healer.png:12:12:0:0:64:64:2:56:2:56|t ",
+    DAMAGER = "|TInterface/AddOns/TomoMod/Assets/Textures/Roles/DPS.png:12:12:0:0:64:64:2:56:2:56|t ",
 }
 
 -- =====================================

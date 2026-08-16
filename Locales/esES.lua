@@ -3305,6 +3305,12 @@ TomoMod_RegisterLocale("esES", {
     ["wn_333_shared"] = "Interno: los marcos de grupo y de banda mantenían dos copias de las mismas 250 líneas — la lógica de invocación, la lista de sanaciones periódicas, el seguimiento de defensivos. Los tres fallos anteriores vienen de ahí: una corrección aplicada a una copia y no a la otra. Ahora comparten una única implementación.",
 
     -- =====================
+    -- 3.5.6 — Novedades
+    -- =====================
+    ["wn_356_talkingheadfix"] = "Corrección — Ocultar Talking Head podía dejar la locución de un talking head reproduciéndose bajo un marco oculto. Los marcos de talking head gestionan su propia visibilidad, así que simplemente ocultar el marco al mostrarse dejaba el estado de reproducción y su temporizador de finalización en marcha — y se saltaba cada línea posterior a la primera en un talking head de varias líneas, ya que el marco ya estaba visible para esas. TomoMod ahora engancha la función de reproducción real y cierra cada talking head igual que lo hace Blizzard, lo que detiene de forma fiable el temporizador y la locución juntos.",
+    ["wn_356_talkingheadcleanup"] = "Interno — Una llamada para detener el sonido emitida en el mismo instante en que arranca una locución es ocasionalmente ignorada por el motor de sonido, así que Ocultar Talking Head ahora insiste una fracción de segundo después para asegurarse de que realmente se detiene.",
+
+    -- =====================
     -- 3.5.5 — Novedades
     -- =====================
     ["wn_355_barhoverblocked"] = "Corrección: el simple hecho de pasar el ratón por encima de un botón de la barra de acción durante un combate producía un error de acción bloqueada, todas y cada una de las veces. La propia actualización de botón de Blizzard se ejecuta al pasar el ratón y termina escribiendo directamente un ajuste de pulsación mantenida — una escritura que no está permitida en combate y que se le atribuye a TomoMod porque los botones son nuestros. Una entrada por cada paso del ratón: así fue como una sola sesión acumuló 127. TomoMod escribe ahora ese ajuste desde su propia vía segura, donde ya se estaba escribiendo correctamente, y omite la versión redundante de Blizzard.",

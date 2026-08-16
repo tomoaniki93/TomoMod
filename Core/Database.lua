@@ -85,6 +85,12 @@ TomoMod_Defaults = {
         lootFrame = {
             position = nil,
         },
+        -- Without this entry the save path in FrameAnchors is guarded out
+        -- (`if db and db[def.key] then`), so the anchor drags fine and then
+        -- silently forgets where it was put.
+        queueStatus = {
+            position = nil,
+        },
     },
     autoQuest = {
         autoAccept = false,

@@ -3344,6 +3344,12 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
 
     -- =====================
+    -- 3.5.6 — What's New
+    -- =====================
+    ["wn_356_talkingheadfix"] = "Fix — Hide Talking Head could leave a talking head's voiceover playing underneath a hidden frame. Talking head frames manage their own visibility, so simply hiding the frame on show left the playing state and its finish timer running — and skipped every line after the first in a multi-line talking head, since the frame was already visible for those. TomoMod now hooks the actual play function and closes each talking head the same way Blizzard itself does, which reliably stops the timer and the voiceover together.",
+    ["wn_356_talkingheadcleanup"] = "Internal — A stop-sound call issued in the very same moment a voiceover starts is occasionally ignored by the sound engine, so Hide Talking Head now follows up a fraction of a second later to make sure it actually stops.",
+
+    -- =====================
     -- 3.5.5 — What's New
     -- =====================
     ["wn_355_barhoverblocked"] = "Fix — Simply moving your mouse over an action bar button during a fight produced a blocked-action error, every single time. Blizzard's own button update runs on mouseover and ends by writing a press-and-hold setting directly — a write that isn't allowed in combat, and that gets blamed on TomoMod because the buttons are ours. One entry per hover is how a single session collected 127 of them. TomoMod now writes that setting from its own secure path, where it was already being written correctly, and skips Blizzard's redundant version.",

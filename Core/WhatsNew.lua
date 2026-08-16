@@ -63,6 +63,15 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "3.5.6",
+        highlights = {
+            L["wn_356_talkingheadfix"] or "Fix — Hide Talking Head could leave a talking head's voiceover playing underneath a hidden frame. Talking head frames manage their own visibility, so simply hiding the frame on show left the playing state and its finish timer running — and skipped every line after the first in a multi-line talking head, since the frame was already visible for those. TomoMod now hooks the actual play function and closes each talking head the same way Blizzard itself does, which reliably stops the timer and the voiceover together.",
+            L["wn_356_talkingheadcleanup"] or "Internal — A stop-sound call issued in the very same moment a voiceover starts is occasionally ignored by the sound engine, so Hide Talking Head now follows up a fraction of a second later to make sure it actually stops.",
+            L["wn_356_queueeyedb"] or "Fix — The queue status eye's position never actually saved. Its entry was missing from the settings defaults table, so the save handler silently skipped writing a new position every time you dragged it — the eye moved fine on screen, but forgot where you put it on the next login. The missing entry is back, and the save path now creates it on the fly if your saved settings are still missing it, so an out-of-date save costs nothing worse than one extra table.",
+            L["wn_356_queueeyeposition"] or "Fix — The queue status eye's default position was a blind guess that landed in a different spot on every resolution — off-screen entirely on an ultrawide monitor, which is how this was caught. It now defaults to a spot beside the minimap, where the eye actually lives.",
+        },
+    },
+    {
         version = "3.5.5",
         highlights = {
             L["wn_355_barhoverblocked"] or "Fix — Simply moving your mouse over an action bar button during a fight produced a blocked-action error, every single time. Blizzard's own button update runs on mouseover and ends by writing a press-and-hold setting directly — a write that isn't allowed in combat, and that gets blamed on TomoMod because the buttons are ours. One entry per hover is how a single session collected 127 of them. TomoMod now writes that setting from its own secure path, where it was already being written correctly, and skips Blizzard's redundant version.",

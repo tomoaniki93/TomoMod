@@ -3292,6 +3292,12 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
 
     -- =====================
+    -- 3.5.6 — Novidades
+    -- =====================
+    ["wn_356_talkingheadfix"] = "Correção — Ocultar Talking Head podia deixar a locução de um talking head tocando por baixo de um quadro oculto. Os quadros de talking head gerenciam sua própria visibilidade, então simplesmente ocultar o quadro ao ser exibido deixava o estado de reprodução e seu temporizador de finalização em execução — e pulava cada linha após a primeira em um talking head de várias linhas, já que o quadro já estava visível para essas. O TomoMod agora se conecta à função de reprodução real e fecha cada talking head da mesma forma que o próprio Blizzard faz, o que interrompe de forma confiável o temporizador e a locução juntos.",
+    ["wn_356_talkingheadcleanup"] = "Interno — Uma chamada para parar o som emitida no mesmo instante em que uma locução começa é ocasionalmente ignorada pelo motor de som, então Ocultar Talking Head agora insiste novamente uma fração de segundo depois para garantir que realmente pare.",
+
+    -- =====================
     -- 3.5.5 — Novidades
     -- =====================
     ["wn_355_barhoverblocked"] = "Correção: o simples passar do mouse sobre um botão da barra de ação durante um combate produzia um erro de ação bloqueada, todas as vezes. A própria atualização de botão da Blizzard roda ao passar o mouse e termina escrevendo diretamente uma configuração de pressionar e segurar — uma escrita que não é permitida em combate e que é atribuída ao TomoMod porque os botões são nossos. Uma entrada por passagem do mouse: foi assim que uma única sessão acumulou 127 delas. O TomoMod agora escreve essa configuração pelo seu próprio caminho seguro, onde ela já estava sendo escrita corretamente, e ignora a versão redundante da Blizzard.",
