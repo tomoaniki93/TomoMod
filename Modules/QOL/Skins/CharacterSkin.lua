@@ -746,6 +746,28 @@ local SLOT_SIDE = {
     CharacterSecondaryHandSlot  = "BOTTOM_RIGHT",
 }
 
+-- Same layout, for the Inspect frame's paperdoll (InspectHeadSlot, etc.)
+local INSPECT_SLOT_SIDE = {
+    InspectHeadSlot           = "LEFT",
+    InspectNeckSlot           = "LEFT",
+    InspectShoulderSlot       = "LEFT",
+    InspectBackSlot           = "LEFT",
+    InspectChestSlot          = "LEFT",
+    InspectShirtSlot          = "LEFT",
+    InspectTabardSlot         = "LEFT",
+    InspectWristSlot          = "LEFT",
+    InspectHandsSlot          = "RIGHT",
+    InspectWaistSlot          = "RIGHT",
+    InspectLegsSlot           = "RIGHT",
+    InspectFeetSlot           = "RIGHT",
+    InspectFinger0Slot        = "RIGHT",
+    InspectFinger1Slot        = "RIGHT",
+    InspectTrinket0Slot       = "RIGHT",
+    InspectTrinket1Slot       = "RIGHT",
+    InspectMainHandSlot       = "BOTTOM_LEFT",
+    InspectSecondaryHandSlot  = "BOTTOM_RIGHT",
+}
+
 -- Quality colors
 local QUALITY_COLORS = {
     [0] = { 0.62, 0.62, 0.62 }, -- Poor
@@ -775,6 +797,16 @@ local ENCHANTABLE_SLOTS_TWW = {
     CharacterFinger1Slot        = true,  -- 12
     CharacterMainHandSlot       = true,  -- 16
     CharacterSecondaryHandSlot  = true,  -- 17
+    -- Inspect frame mirrors
+    InspectChestSlot             = true,
+    InspectLegsSlot              = true,
+    InspectFeetSlot              = true,
+    InspectWristSlot             = true,
+    InspectBackSlot              = true,
+    InspectFinger0Slot           = true,
+    InspectFinger1Slot           = true,
+    InspectMainHandSlot          = true,
+    InspectSecondaryHandSlot     = true,
 }
 
 local ENCHANTABLE_SLOTS_MIDNIGHT = {
@@ -787,6 +819,16 @@ local ENCHANTABLE_SLOTS_MIDNIGHT = {
     CharacterFinger1Slot        = true,  -- 12
     CharacterMainHandSlot       = true,  -- 16
     CharacterSecondaryHandSlot  = true,  -- 17
+    -- Inspect frame mirrors
+    InspectHeadSlot              = true,
+    InspectShoulderSlot          = true,
+    InspectChestSlot             = true,
+    InspectLegsSlot              = true,
+    InspectFeetSlot              = true,
+    InspectFinger0Slot           = true,
+    InspectFinger1Slot           = true,
+    InspectMainHandSlot          = true,
+    InspectSecondaryHandSlot     = true,
 }
 
 local function IsEnchantableSlot(slotName)
@@ -796,6 +838,20 @@ local function IsEnchantableSlot(slotName)
         return ENCHANTABLE_SLOTS_TWW[slotName] or false
     end
 end
+
+-- Shields and off-hand holdables (tomes, frills, etc.) can't take weapon
+-- enchants even though the slot itself is in ENCHANTABLE_SLOTS_*.
+local NON_ENCHANTABLE_WEAPON_EQUIPLOC = {
+    INVTYPE_SHIELD   = true,
+    INVTYPE_HOLDABLE = true,
+}
+
+local WEAPON_SLOT_NAMES = {
+    CharacterMainHandSlot      = true,
+    CharacterSecondaryHandSlot = true,
+    InspectMainHandSlot        = true,
+    InspectSecondaryHandSlot   = true,
+}
 
 -- =====================================
 -- GEM / SOCKET DISPLAY SYSTEM
@@ -978,9 +1034,9 @@ local function TruncateText(text, maxLen)
     return text:sub(1, maxLen - 1) .. "..."
 end
 
-local function GetUpgradeTrackFromTooltip(slotID)
+local function GetUpgradeTrackFromTooltip(slotID, unit)
     scanTip:ClearLines()
-    scanTip:SetInventoryItem("player", slotID)
+    scanTip:SetInventoryItem(unit or "player", slotID)
 
     local upgradeLine = nil
     local enchantLine = nil
@@ -1031,7 +1087,7 @@ local function GetUpgradeTrackFromTooltip(slotID)
 end
 
 local function CreateItemInfoOverlay(slot, slotName)
-    local side = SLOT_SIDE[slotName]
+    local side = SLOT_SIDE[slotName] or INSPECT_SLOT_SIDE[slotName]
     if not side then return end
 
     local isBottom = (side == "BOTTOM_LEFT" or side == "BOTTOM_RIGHT")
@@ -1105,7 +1161,8 @@ local function CreateItemInfoOverlay(slot, slotName)
     return frame
 end
 
-local function UpdateItemInfoOverlay(slot, slotName)
+local function UpdateItemInfoOverlay(slot, slotName, unit)
+    unit = unit or "player"
     local frame = itemInfoFrames[slotName]
     if not frame then
         frame = CreateItemInfoOverlay(slot, slotName)
@@ -1118,19 +1175,19 @@ local function UpdateItemInfoOverlay(slot, slotName)
         return
     end
 
-    local itemLink = GetInventoryItemLink("player", slotID)
+    local itemLink = GetInventoryItemLink(unit, slotID)
     if not itemLink then
         frame:Hide()
         return
     end
 
     -- Get item info (with TWW API fallbacks)
-    local itemName, _, itemQuality
+    local itemName, _, itemQuality, itemEquipLoc
     if C_Item and C_Item.GetItemInfo then
-        itemName, _, itemQuality = C_Item.GetItemInfo(itemLink)
+        itemName, _, itemQuality, _, _, _, _, _, itemEquipLoc = C_Item.GetItemInfo(itemLink)
     end
     if not itemName and GetItemInfo then
-        itemName, _, itemQuality = GetItemInfo(itemLink)
+        itemName, _, itemQuality, _, _, _, _, _, itemEquipLoc = GetItemInfo(itemLink)
     end
     if not itemName then
         -- Item not cached yet
@@ -1145,14 +1202,14 @@ local function UpdateItemInfoOverlay(slot, slotName)
     elseif C_Item and C_Item.GetDetailedItemLevelInfo then
         effectiveILvl = C_Item.GetDetailedItemLevelInfo(itemLink)
     end
-    if not effectiveILvl then
+    if not effectiveILvl and unit == "player" then
         pcall(function()
             effectiveILvl = C_Item.GetCurrentItemLevel(ItemLocation:CreateFromEquipmentSlot(slotID))
         end)
     end
 
     -- Get upgrade track + enchant from tooltip scan
-    local upgradeTrack, enchantInfo = GetUpgradeTrackFromTooltip(slotID)
+    local upgradeTrack, enchantInfo = GetUpgradeTrackFromTooltip(slotID, unit)
 
     -- Quality color for ilvl
     local qColor = QUALITY_COLORS[itemQuality] or { 1, 1, 1 }
@@ -1174,6 +1231,10 @@ local function UpdateItemInfoOverlay(slot, slotName)
 
     -- Enchant/stat — only for enchantable slots
     local canEnchant = IsEnchantableSlot(slotName)
+    if canEnchant and WEAPON_SLOT_NAMES[slotName] and itemEquipLoc and NON_ENCHANTABLE_WEAPON_EQUIPLOC[itemEquipLoc] then
+        -- Shield or off-hand holdable equipped: not enchantable, don't warn
+        canEnchant = false
+    end
     if canEnchant and enchantInfo then
         -- Clean up enchant text for compact display
         local short = enchantInfo
@@ -1252,6 +1313,42 @@ local function UpdateAllItemInfoOverlays()
             local slot = _G[slotName]
             if slot then
                 UpdateGemOverlay(slot, slotName, "player")
+            end
+        end
+    end
+end
+
+-- Same item info + gem overlays, driven off the unit currently being inspected
+-- instead of "player" — lets the Inspect frame show ilvl/enchant/gems per item
+-- exactly like the character sheet does.
+local function UpdateInspectItemInfoOverlays()
+    local InspectFrame = _G.InspectFrame
+    local unit = InspectFrame and InspectFrame.unit or "target"
+    local settings = GetSettings()
+
+    if not settings.showInspectItemInfo or not InspectFrame or not InspectFrame:IsShown() or not UnitExists(unit) then
+        for slotName, _ in pairs(INSPECT_SLOT_SIDE) do
+            local f = itemInfoFrames[slotName]
+            if f then f:Hide() end
+            local overlay = gemOverlays[slotName]
+            if overlay then overlay:Hide() end
+        end
+        return
+    end
+
+    for slotName, _ in pairs(INSPECT_SLOT_SIDE) do
+        local slot = _G[slotName]
+        if slot then
+            if settings.showItemInfo then
+                UpdateItemInfoOverlay(slot, slotName, unit)
+            elseif itemInfoFrames[slotName] then
+                itemInfoFrames[slotName]:Hide()
+            end
+
+            if settings.showGems then
+                UpdateGemOverlay(slot, slotName, unit)
+            elseif gemOverlays[slotName] then
+                gemOverlays[slotName]:Hide()
             end
         end
     end
@@ -1856,14 +1953,36 @@ local function SkinInspectFrame()
     inspectUpdater:SetScript("OnEvent", function()
         if InspectFrame and InspectFrame:IsShown() then
             C_Timer.After(0.3, UpdateInspectIlvl)
+            C_Timer.After(0.3, UpdateInspectItemInfoOverlays)
         end
     end)
     InspectFrame:HookScript("OnShow", function()
         C_Timer.After(0.5, UpdateInspectIlvl)
+        C_Timer.After(0.5, UpdateInspectItemInfoOverlays)
     end)
     InspectFrame:HookScript("OnHide", function()
         ilvlFrame:Hide()
+        UpdateInspectItemInfoOverlays()
     end)
+
+    -- Refresh per-slot overlays whenever Blizzard redraws an inspect item button
+    -- (gear swap on the inspected unit, or the initial paperdoll fill-in)
+    if _G.InspectPaperDollItemSlotButton_Update then
+        hooksecurefunc("InspectPaperDollItemSlotButton_Update", function(button)
+            local slotName = button and button:GetName()
+            if slotName and INSPECT_SLOT_SIDE[slotName] then
+                local settings = GetSettings()
+                if not settings.showInspectItemInfo then return end
+                local unit = InspectFrame.unit or "target"
+                if settings.showItemInfo then
+                    UpdateItemInfoOverlay(button, slotName, unit)
+                end
+                if settings.showGems then
+                    UpdateGemOverlay(button, slotName, unit)
+                end
+            end
+        end)
+    end
 
     -- Apply scale to Inspect too
     local scale = GetSettings().scale or 1.0
@@ -2019,6 +2138,9 @@ function CS.ApplySettings()
         -- Refresh item info overlays (handles midnightEnchants toggle)
         if next(itemInfoFrames) then
             UpdateAllItemInfoOverlays()
+        end
+        if _G.InspectFrame and _G.InspectFrame:IsShown() then
+            UpdateInspectItemInfoOverlays()
         end
         print("|cff2ed884TomoMod|r " .. (L["msg_char_skin_reload"] or "Character Skin: /reload to apply changes."))
     end

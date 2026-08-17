@@ -1208,6 +1208,7 @@ TomoMod_RegisterLocale("esES", {
     ["opt_char_skin_enable"]            = "Activar skin de personaje",
     ["opt_char_skin_character"]         = "Skin Personaje / Reputación / Monedas",
     ["opt_char_skin_inspect"]           = "Skin ventana de inspección",
+    ["opt_char_skin_inspect_iteminfo"]  = "Mostrar nivel de objeto, encantamientos y gemas al inspeccionar",
     ["opt_char_skin_iteminfo"]          = "Mostrar info de objeto en huecos",
     ["opt_char_skin_gems"]              = "Mostrar gemas en los huecos",
     ["opt_char_skin_midnight"]          = "Encantamientos Midnight (Cabeza/Hombros en vez de Muñequeras/Capa)",
@@ -3322,6 +3323,9 @@ TomoMod_RegisterLocale("esES", {
     ["wn_357_mainbartaint"] = "Corrección — Podía aparecer un error poco frecuente al intentar volver a mostrar la barra de acción predeterminada tras montar o entrar en un vehículo. Ahora se silencia igual que casos similares.",
     ["wn_357_mailiconcrash"] = "Corrección — El icono de correo del minimapa podía generar un error cada vez que recibías correo nuevo. Ya no lo hace, y el icono se comporta exactamente igual que antes.",
     ["wn_357_buggrabber"] = "Nuevo — Si también usas !BugGrabber, Diagnostics ahora se respalda también en él, capturando errores que vio antes de que el propio seguimiento de TomoMod comenzara en esta sesión. Nada cambia si no lo tienes instalado.",
+    ["wn_357_shieldenchant"] = "Corrección — La advertencia de encantamiento de arma de la hoja de personaje podía marcar un escudo o un objeto sostenido en la mano izquierda (grimorios, adornos, etc.) como falto de encantamiento, aunque ninguno de los dos puede encantarse en absoluto — los tanques con escudo y los lanzadores de hechizos que sostenían un objeto en la mano izquierda veían una advertencia roja por algo que nunca fue encantable. La advertencia ahora solo aparece en una ranura que contiene un arma realmente encantable.",
+    ["wn_357_inspectiteminfo"] = "Nuevo — Inspeccionar a otro jugador ahora muestra el mismo desglose por objeto que tu propia hoja de personaje: nivel de objeto, nivel de mejora, texto de encantamiento (o una advertencia de encantamiento faltante) y engarces de gemas junto a cada objeto equipado, en lugar de un único número promediado arriba.",
+    ["wn_357_inspectiteminfotoggle"] = "Nuevo — Una nueva casilla te permite desactivar la info de objeto/encantamientos/gemas de la ventana de inspección de forma independiente a los ajustes de tu propia hoja de personaje.",
 
     -- =====================
     -- 3.5.5 — Novedades

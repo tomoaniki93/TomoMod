@@ -1209,6 +1209,7 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_char_skin_enable"]            = "Charakter-Skin aktivieren",
     ["opt_char_skin_character"]         = "Skin Charakter / Ruf / Währungen",
     ["opt_char_skin_inspect"]           = "Skin Inspektionsfenster",
+    ["opt_char_skin_inspect_iteminfo"]  = "Gegenstandsstufe, Verzauberungen & Edelsteine bei Inspektion anzeigen",
     ["opt_char_skin_iteminfo"]          = "Gegenstandsinfo auf Plätzen anzeigen",
     ["opt_char_skin_gems"]              = "Edelstein-Sockel auf Plätzen anzeigen",
     ["opt_char_skin_midnight"]          = "Midnight-Verzauberungen (Kopf/Schultern statt Armschienen/Umhang)",
@@ -3321,6 +3322,9 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_357_mainbartaint"] = "Fehlerbehebung — Ein seltener Fehler konnte auftreten, wenn die Standard-Aktionsleiste nach dem Aufsteigen oder dem Betreten eines Fahrzeugs erneut angezeigt werden sollte. Er wird jetzt genauso abgefangen wie ähnliche Fälle.",
     ["wn_357_mailiconcrash"] = "Fehlerbehebung — Das Briefsymbol der Minikarte konnte bei jeder neuen Post einen Fehler auslösen. Das passiert nicht mehr, und das Symbol verhält sich genau wie zuvor.",
     ["wn_357_buggrabber"] = "Neu — Wenn Ihr auch !BugGrabber verwendet, sichert sich die Diagnose nun zusätzlich dagegen ab und erfasst Fehler, die es vor dem Start von TomoMods eigener Erfassung in dieser Sitzung bereits gesehen hat. Ohne installiertes !BugGrabber ändert sich nichts.",
+    ["wn_357_shieldenchant"] = "Fehlerbehebung — Die Warnung zur Waffenverzauberung auf dem Charakterbogen konnte einen Schild oder einen in der linken Hand getragenen Gegenstand (Grimoire, Rüschen usw.) fälschlich als unverzaubert markieren, obwohl keines von beiden überhaupt verzaubert werden kann — Tanks mit Schild und Zauberwirker mit einem Gegenstand in der linken Hand sahen eine rote Warnung für etwas, das nie verzauberbar war. Die Warnung erscheint jetzt nur noch für einen Slot mit einer tatsächlich verzauberbaren Waffe.",
+    ["wn_357_inspectiteminfo"] = "Neu — Das Inspizieren eines anderen Spielers zeigt jetzt dieselbe Aufschlüsselung pro Gegenstand wie Euer eigener Charakterbogen: Gegenstandsstufe, Verbesserungsstufe, Verzauberungstext (oder eine Warnung bei fehlender Verzauberung) und Edelsteinsockel neben jedem ausgestatteten Gegenstand, statt nur einer einzigen gemittelten Zahl oben.",
+    ["wn_357_inspectiteminfotoggle"] = "Neu — Ein neues Kästchen erlaubt es Euch, die Gegenstandsinfo/Verzauberungen/Edelsteine des Inspektionsfensters unabhängig von den Einstellungen Eures eigenen Charakterbogens auszuschalten.",
 
     -- =====================
     -- 3.5.5 — Was ist neu

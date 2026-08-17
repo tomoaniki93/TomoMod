@@ -1209,6 +1209,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["opt_char_skin_enable"]            = "Ativar skin de personagem",
     ["opt_char_skin_character"]         = "Skin Personagem / Reputação / Moedas",
     ["opt_char_skin_inspect"]           = "Skin janela de inspeção",
+    ["opt_char_skin_inspect_iteminfo"]  = "Mostrar nível de item, encantamentos e gemas ao inspecionar",
     ["opt_char_skin_iteminfo"]          = "Mostrar info do item nos espaços",
     ["opt_char_skin_gems"]              = "Mostrar gemas nos espaços",
     ["opt_char_skin_midnight"]          = "Encantamentos Midnight (Cabeça/Ombros em vez de Pulsos/Capa)",
@@ -3309,6 +3310,9 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_357_mainbartaint"] = "Correção — Um erro raro podia aparecer ao tentar reexibir a barra de ação padrão depois de montar ou entrar em um veículo. Agora ele é silenciado da mesma forma que casos semelhantes.",
     ["wn_357_mailiconcrash"] = "Correção — O ícone de correio do minimapa podia gerar um erro toda vez que você recebia uma correspondência nova. Isso não acontece mais, e o ícone se comporta exatamente como antes.",
     ["wn_357_buggrabber"] = "Novidade — Se você também usa o !BugGrabber, o Diagnostics agora se apoia nele também, capturando erros que ele viu antes de o próprio rastreamento do TomoMod começar nesta sessão. Nada muda se você não o tiver instalado.",
+    ["wn_357_shieldenchant"] = "Correção — O aviso de encantamento de arma da ficha de personagem podia marcar um escudo ou um item segurado na mão esquerda (grimórios, enfeites, etc.) como sem encantamento, mesmo que nenhum dos dois possa ser encantado — tanques com escudo e conjuradores segurando um item na mão esquerda viam um aviso vermelho para algo que nunca foi encantável. O aviso agora só aparece em um slot que contém uma arma realmente encantável.",
+    ["wn_357_inspectiteminfo"] = "Novidade — Inspecionar outro jogador agora mostra o mesmo detalhamento por item da sua própria ficha de personagem: nível de item, nível de melhoria, texto de encantamento (ou um aviso de encantamento ausente) e encaixes de gema ao lado de cada item equipado, em vez de apenas um número médio no topo.",
+    ["wn_357_inspectiteminfotoggle"] = "Novidade — Uma nova caixa de seleção permite desativar as informações de item/encantamentos/gemas da janela de inspeção de forma independente das configurações da sua própria ficha de personagem.",
 
     -- =====================
     -- 3.5.5 — Novidades

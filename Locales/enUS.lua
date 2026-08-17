@@ -1273,6 +1273,7 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_char_skin_enable"]            = "Enable Character Skin",
     ["opt_char_skin_character"]         = "Skin Character / Reputation / Currency",
     ["opt_char_skin_inspect"]           = "Skin Inspect Frame",
+    ["opt_char_skin_inspect_iteminfo"]  = "Show iLvl, Enchants & Gems on Inspect",
     ["opt_char_skin_iteminfo"]          = "Show Item Info on Slots",
     ["opt_char_skin_gems"]              = "Show Gem Sockets on Slots",
     ["opt_char_skin_midnight"]          = "Midnight Enchant Slots (Head/Shoulder instead of Wrist/Back)",
@@ -3361,6 +3362,9 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_357_mainbartaint"] = "Fix — A rare error could appear trying to reshow the default action bar after mounting or entering a vehicle. It is now silenced the same way similar cases already are.",
     ["wn_357_mailiconcrash"] = "Fix — The minimap's mail icon could raise an error every time you got new mail. It no longer does, and the icon behaves exactly as before.",
     ["wn_357_buggrabber"] = "New — If you also run !BugGrabber, Diagnostics now backs itself up against it, catching errors it saw before TomoMod's own tracking started this session. Nothing changes if you don't have it installed.",
+    ["wn_357_shieldenchant"] = "Fix — The character sheet's weapon enchant warning could flag a shield or an off-hand held item (tomes, frills, and the like) as missing an enchant, even though neither can actually take one — tanks with a shield and casters holding an off-hand item saw a red warning for something that was never enchantable to begin with. The warning now only shows on a slot holding a real, enchantable weapon.",
+    ["wn_357_inspectiteminfo"] = "New — Inspecting another player now shows the same per-item breakdown as your own character sheet: item level, upgrade track, enchant text (or a missing-enchant warning) and gem sockets next to every equipped item, instead of just one averaged number at the top.",
+    ["wn_357_inspectiteminfotoggle"] = "New — A new checkbox lets you turn the Inspect frame's item info/enchants/gems off independently of your character sheet's own settings.",
 
     -- =====================
     -- 3.5.5 — What's New

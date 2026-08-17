@@ -707,6 +707,7 @@ TomoMod_Defaults = {
         skinInspect = true,
         showItemInfo = true,
         showGems = true,
+        showInspectItemInfo = true,
         midnightEnchants = false,
         scale = 1.0,
         movable = false,

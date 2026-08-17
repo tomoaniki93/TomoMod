@@ -1209,6 +1209,7 @@ TomoMod_RegisterLocale("itIT", {
     ["opt_char_skin_enable"]            = "Attiva skin personaggio",
     ["opt_char_skin_character"]         = "Skin Personaggio / Reputazione / Valute",
     ["opt_char_skin_inspect"]           = "Skin finestra di ispezione",
+    ["opt_char_skin_inspect_iteminfo"]  = "Mostra iLvl, incantamenti e gemme durante l'ispezione",
     ["opt_char_skin_iteminfo"]          = "Mostra info oggetto sugli slot",
     ["opt_char_skin_gems"]              = "Mostra gemme sugli slot",
     ["opt_char_skin_midnight"]          = "Incantamenti Midnight (Testa/Spalle invece di Polsi/Mantello)",
@@ -3309,6 +3310,9 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_357_mainbartaint"] = "Correzione — Poteva comparire un errore raro nel tentativo di rimostrare la barra azione predefinita dopo essere saliti in sella o in un veicolo. Ora viene silenziato allo stesso modo di casi simili.",
     ["wn_357_mailiconcrash"] = "Correzione — L'icona della posta della minimappa poteva generare un errore ogni volta che arrivava nuova posta. Ora non succede più, e l'icona si comporta esattamente come prima.",
     ["wn_357_buggrabber"] = "Novità — Se usi anche !BugGrabber, Diagnostics ora si appoggia anche a lui, recuperando gli errori che ha visto prima che il tracciamento di TomoMod iniziasse in questa sessione. Nulla cambia se non lo hai installato.",
+    ["wn_357_shieldenchant"] = "Correzione — L'avviso di incantamento arma nella scheda personaggio poteva segnalare uno scudo o un oggetto tenuto nella mano sinistra (grimori, fronzoli, ecc.) come privo di incantamento, anche se nessuno dei due può essere incantato — i tank con scudo e i lanciatori di incantesimi che tenevano un oggetto nella mano sinistra vedevano un avviso rosso per qualcosa che non è mai stato incantabile. L'avviso ora compare solo su uno slot che contiene un'arma realmente incantabile.",
+    ["wn_357_inspectiteminfo"] = "Novità — Ispezionare un altro giocatore ora mostra lo stesso dettaglio per oggetto della tua scheda personaggio: livello oggetto, livello di potenziamento, testo dell'incantamento (o un avviso di incantamento mancante) e slot delle gemme accanto a ogni oggetto indossato, invece di un solo numero medio in alto.",
+    ["wn_357_inspectiteminfotoggle"] = "Novità — Una nuova casella ti permette di disattivare le info oggetto/incantamenti/gemme della finestra di ispezione indipendentemente dalle impostazioni della tua scheda personaggio.",
 
     -- =====================
     -- 3.5.5 — Novità

@@ -1268,6 +1268,7 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_char_skin_enable"]            = "Activer le skin personnage",
     ["opt_char_skin_character"]         = "Skin Personnage / Réputation / Monnaies",
     ["opt_char_skin_inspect"]           = "Skin fenêtre d'inspection",
+    ["opt_char_skin_inspect_iteminfo"]  = "Afficher niveau d'objet, enchantements et gemmes à l'inspection",
     ["opt_char_skin_iteminfo"]          = "Afficher les infos d'objet sur les emplacements",
     ["opt_char_skin_gems"]              = "Afficher les gemmes sur les emplacements",
     ["opt_char_skin_midnight"]          = "Enchantements Midnight (Tête/Épaules au lieu de Brassard/Cape)",
@@ -3337,6 +3338,9 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_357_mainbartaint"] = "Correction — Une erreur rare pouvait apparaître en tentant de réafficher la barre d'action par défaut après avoir enfourché une monture ou pris place dans un véhicule. Elle est désormais neutralisée de la même manière que des cas similaires.",
     ["wn_357_mailiconcrash"] = "Correction — L'icône de courrier de la minimap pouvait déclencher une erreur à chaque nouveau courrier reçu. Ce n'est plus le cas, et l'icône se comporte exactement comme avant.",
     ["wn_357_buggrabber"] = "Nouveau — Si vous utilisez aussi !BugGrabber, Diagnostics s'appuie désormais aussi sur lui, récupérant les erreurs qu'il a vues avant que le suivi propre à TomoMod ne démarre pour cette session. Rien ne change si vous ne l'avez pas installé.",
+    ["wn_357_shieldenchant"] = "Correction — L'avertissement d'enchantement d'arme de la fiche de personnage pouvait signaler un bouclier ou un objet tenu en main gauche (grimoire, fioriture, etc.) comme non enchanté, alors qu'aucun des deux ne peut réellement recevoir d'enchantement — les tanks avec un bouclier et les lanceurs de sorts tenant un objet en main gauche voyaient un avertissement rouge pour quelque chose qui n'a jamais été enchantable. L'avertissement ne s'affiche plus que sur un emplacement contenant une véritable arme enchantable.",
+    ["wn_357_inspectiteminfo"] = "Nouveau — Inspecter un autre joueur affiche désormais le même détail par objet que votre propre fiche de personnage : niveau d'objet, palier d'amélioration, texte d'enchantement (ou un avertissement d'enchantement manquant) et emplacements de gemmes à côté de chaque objet équipé, au lieu d'un simple nombre moyené en haut.",
+    ["wn_357_inspectiteminfotoggle"] = "Nouveau — Une nouvelle case à cocher permet de désactiver les infos d'objet/enchantements/gemmes de la fenêtre d'inspection indépendamment des réglages de votre propre fiche de personnage.",
 
     -- =====================
     -- 3.5.5 — Quoi de neuf

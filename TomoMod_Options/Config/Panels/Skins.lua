@@ -567,6 +567,12 @@ local function BuildCharacterSkinTab(parent)
     end)
     y = ny
 
+    local _, ny = W.CreateCheckbox(c, L["opt_char_skin_inspect_iteminfo"], TomoModDB.characterSkin.showInspectItemInfo, y, function(v)
+        TomoModDB.characterSkin.showInspectItemInfo = v
+        if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
+    end)
+    y = ny
+
     local _, ny = W.CreateCheckbox(c, L["opt_char_skin_iteminfo"], TomoModDB.characterSkin.showItemInfo, y, function(v)
         TomoModDB.characterSkin.showItemInfo = v
         if TomoMod_CharacterSkin then TomoMod_CharacterSkin.ApplySettings() end
