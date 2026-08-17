@@ -477,7 +477,7 @@ local function EnsureDB()
     if not TomoModDB then return end
     if not TomoModDB.diagnostics then
         TomoModDB.diagnostics = {
-            enabled = false,
+            enabled = true,
             captureAll = false,       -- false = TomoMod-only, true = all addons
             suppressPopups = true,
             autoOpenOnError = false,

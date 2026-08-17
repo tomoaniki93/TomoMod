@@ -953,6 +953,8 @@ TomoMod_RegisterLocale("enUS", {
     -- PRINT MESSAGES: Core
     -- =====================
     ["msg_db_reset"]                    = "Database reset",
+    ["msg_migration_failed"]           = "A database migration step failed — please report this in the Discord: ",
+    ["msg_normalize_failed"]           = "Element normalization failed — please report this in the Discord: ",
     ["msg_module_reset"]                = "Module '%s' reset",
     ["msg_db_not_init"]                 = "Database not initialized",
     ["msg_loaded"]                      = "loaded — %s for config",
@@ -2266,6 +2268,7 @@ TomoMod_RegisterLocale("enUS", {
     ["info_cb_position"]                 = "Use /tm layout to unlock and drag this castbar.",
     ["btn_cb_reset_position"]            = "Reset Position",
     ["cb_move_label"]                    = "(Drag to move)",
+    ["cb_player_missing_notice"]         = "Player Cast Bar isn't enabled — turn it on in Castbars settings before it can be moved.",
     ["cb_preview_castbar"]               = "Preview: %s",
 
     -- Mover

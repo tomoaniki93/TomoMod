@@ -889,6 +889,8 @@ TomoMod_RegisterLocale("deDE", {
     -- PRINT MESSAGES: Core
     -- =====================
     ["msg_db_reset"]                    = "Datenbank zurückgesetzt",
+    ["msg_migration_failed"]           = "Ein Datenbank-Migrationsschritt ist fehlgeschlagen — bitte im Discord melden: ",
+    ["msg_normalize_failed"]           = "Die Element-Normalisierung ist fehlgeschlagen — bitte im Discord melden: ",
     ["msg_module_reset"]                = "Modul '%s' zurückgesetzt",
     ["msg_db_not_init"]                 = "Datenbank nicht initialisiert",
     ["msg_loaded"]                      = "geladen — %s für Konfiguration",
@@ -2141,6 +2143,7 @@ TomoMod_RegisterLocale("deDE", {
     ["info_cb_position"]                 = "/tm layout eingeben, um diese Zauberleiste zu verschieben.",
     ["btn_cb_reset_position"]            = "Position zurücksetzen",
     ["cb_move_label"]                    = "(Ziehen zum Bewegen)",
+    ["cb_player_missing_notice"]         = "Die Spieler-Zauberleiste ist nicht aktiviert — schalte sie in den Zauberleisten-Einstellungen ein, bevor sie verschoben werden kann.",
     ["cb_preview_castbar"]               = "Vorschau: %s",
 
     -- Mover

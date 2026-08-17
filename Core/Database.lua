@@ -533,7 +533,7 @@ TomoMod_Defaults = {
         },
     },
     diagnostics = {
-        enabled = false,
+        enabled = true,
         captureAll = false,
         suppressPopups = true,
         autoOpenOnError = false,
@@ -2130,6 +2130,22 @@ local function TomoMod_RunMigrations()
             np.raidIconY       = nil
         end
     end
+
+    -- Diagnostics used to default OFF: a purely opt-in feature nobody would
+    -- reasonably find unless they went looking for it, which meant a player
+    -- hitting a wall of real errors (their own BugGrabber, if they have it,
+    -- popping its "too many errors" warning) still produced an empty report
+    -- when asked for one -- not because anything was broken, but because
+    -- nothing was ever listening. It now defaults ON (popups stay suppressed
+    -- by default either way, so this is a quiet background capture, not a
+    -- new popup). Existing profiles are switched on once here; unticking the
+    -- box after this still sticks, same as any other setting.
+    if not done.diagEnableByDefault then
+        done.diagEnableByDefault = true
+        if type(TomoModDB.diagnostics) == "table" then
+            TomoModDB.diagnostics.enabled = true
+        end
+    end
 end
 
 -- =====================================
@@ -2182,8 +2198,27 @@ function TomoMod_InitDatabase()
         TomoModDB = {}
     end
     TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
-    TomoMod_RunMigrations()
-    TomoMod_NormalizeAllElements()
+
+    -- One bad migration step used to be able to take the whole session down
+    -- with it: an uncaught error here skipped every migration after it AND
+    -- NormalizeAllElements (called right after, unconditionally) -- which on
+    -- a profile with years of history behind it (unlike a fresh dev profile
+    -- reset every patch) can leave unit-frame/nameplate `elements` entries
+    -- missing, and everything downstream that reads them errors out anew on
+    -- every single update for the rest of the session. Both steps are now
+    -- independently pcall-guarded, so a failure in one cannot swallow the
+    -- other, and it is reported instead of silently repeating forever.
+    local okMigrate, errMigrate = pcall(TomoMod_RunMigrations)
+    if not okMigrate then
+        print("|cffff0000TomoMod|r " .. (TomoMod_L and TomoMod_L["msg_migration_failed"]
+            or "A database migration step failed — please report this in the Discord: ") .. tostring(errMigrate))
+    end
+
+    local okNormalize, errNormalize = pcall(TomoMod_NormalizeAllElements)
+    if not okNormalize then
+        print("|cffff0000TomoMod|r " .. (TomoMod_L and TomoMod_L["msg_normalize_failed"]
+            or "Element normalization failed — please report this in the Discord: ") .. tostring(errNormalize))
+    end
 end
 
 function TomoMod_ResetDatabase()

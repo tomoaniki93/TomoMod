@@ -889,6 +889,8 @@ TomoMod_RegisterLocale("itIT", {
     -- PRINT MESSAGES: Core
     -- =====================
     ["msg_db_reset"]                    = "Database ripristinato",
+    ["msg_migration_failed"]           = "Un passaggio di migrazione del database è fallito — segnalalo sul Discord: ",
+    ["msg_normalize_failed"]           = "La normalizzazione degli elementi è fallita — segnalalo sul Discord: ",
     ["msg_module_reset"]                = "Modulo '%s' ripristinato",
     ["msg_db_not_init"]                 = "Database non inizializzato",
     ["msg_loaded"]                      = "caricato — %s per configurazione",
@@ -2133,6 +2135,7 @@ TomoMod_RegisterLocale("itIT", {
     ["info_cb_position"]                 = "Usa /tm layout per sbloccare e trascinare questa barra.",
     ["btn_cb_reset_position"]            = "Reimposta posizione",
     ["cb_move_label"]                    = "(Trascina per spostare)",
+    ["cb_player_missing_notice"]         = "La barra di lancio del giocatore non è attivata — attivala nelle impostazioni Barre di lancio prima di poterla spostare.",
     ["cb_preview_castbar"]               = "Anteprima: %s",
 
     ["mover_castbar_standalone"]         = "Barre di lancio",

@@ -889,6 +889,8 @@ TomoMod_RegisterLocale("ptBR", {
     -- PRINT MESSAGES: Core
     -- =====================
     ["msg_db_reset"]                    = "Banco de dados redefinido",
+    ["msg_migration_failed"]           = "Uma etapa de migração do banco de dados falhou — por favor, reporte no Discord: ",
+    ["msg_normalize_failed"]           = "A normalização de elementos falhou — por favor, reporte no Discord: ",
     ["msg_module_reset"]                = "Módulo '%s' redefinido",
     ["msg_db_not_init"]                 = "Banco de dados não inicializado",
     ["msg_loaded"]                      = "carregado — %s para configuração",
@@ -2133,6 +2135,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["info_cb_position"]                 = "Use /tm layout para desbloquear e arrastar esta barra.",
     ["btn_cb_reset_position"]            = "Redefinir posição",
     ["cb_move_label"]                    = "(Arraste para mover)",
+    ["cb_player_missing_notice"]         = "A barra de conjuração do jogador não está ativada — ative-a nas configurações de Barras de Conjuração antes de poder movê-la.",
     ["cb_preview_castbar"]               = "Prévia: %s",
 
     ["mover_castbar_standalone"]         = "Barras de lançamento",

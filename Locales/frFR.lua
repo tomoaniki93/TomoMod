@@ -949,6 +949,8 @@ TomoMod_RegisterLocale("frFR", {
     -- PRINT MESSAGES: Core
     -- =====================
     ["msg_db_reset"]                    = "Base de données réinitialisée",
+    ["msg_migration_failed"]           = "Une étape de migration de la base de données a échoué — merci de le signaler sur le Discord : ",
+    ["msg_normalize_failed"]           = "La normalisation des éléments a échoué — merci de le signaler sur le Discord : ",
     ["msg_module_reset"]                = "Module '%s' réinitialisé",
     ["msg_db_not_init"]                 = "Base de données non initialisée",
     ["msg_loaded"]                      = "chargé — %s pour config",
@@ -2205,6 +2207,7 @@ TomoMod_RegisterLocale("frFR", {
     ["info_cb_position"]                 = "Utilisez /tm layout pour déverrouiller et déplacer cette barre.",
     ["btn_cb_reset_position"]            = "Réinitialiser la position",
     ["cb_move_label"]                    = "(Glisser pour déplacer)",
+    ["cb_player_missing_notice"]         = "La barre de cast du joueur n'est pas activée — active-la dans les réglages Barres de cast avant de pouvoir la déplacer.",
     ["cb_preview_castbar"]               = "Aperçu : %s",
 
     ["mover_castbar_standalone"]         = "Barres d'incantation",

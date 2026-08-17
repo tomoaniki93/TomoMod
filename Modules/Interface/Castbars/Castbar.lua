@@ -1206,7 +1206,18 @@ end
 
 function CB.UnlockPlayerCastbar()
     local cb = CB.castbars["player"]
-    if cb then cb:SetLocked(false); cb:ShowPreview() end
+    if cb then
+        cb:SetLocked(false); cb:ShowPreview()
+    else
+        -- The mover entry only calls this when its own isActive() check (same
+        -- enabled flags CB.Initialize reads) is true, so this should be
+        -- unreachable -- but a stale/uninitialized castbars table would
+        -- otherwise leave EditMode silently doing nothing for this bar,
+        -- with no clue why. Say so instead of a no-op.
+        local L = TomoMod_L
+        print("|cff2ed884TomoMod|r " .. (L and L["cb_player_missing_notice"]
+            or "Player Cast Bar isn't enabled — turn it on in Castbars settings before it can be moved."))
+    end
 end
 
 function CB.LockPlayerCastbar()

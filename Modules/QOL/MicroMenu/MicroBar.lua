@@ -906,6 +906,19 @@ end
 
 local nativeMuteWarned = false
 
+-- True while Blizzard's own Edit Mode window is open. `UpdateMicroButtons`
+-- fires constantly (bag changes, talent points, LFD eligibility...) and its
+-- hook below re-mutes the native containers on every call -- including,
+-- reportedly, while Edit Mode's own setup is mid-refresh. Repeatedly
+-- touching a frame Edit Mode also manages from ordinary Lua is exactly the
+-- kind of taint that later shows up as an unrelated blocked call deep in
+-- Blizzard's own code (e.g. `RefreshTargetAndFocus` -> `TargetUnit()`), so
+-- the mute stands down entirely while Edit Mode owns the screen.
+local function IsEditModeActive()
+    return EditModeManagerFrame and EditModeManagerFrame.IsEditModeActive
+        and EditModeManagerFrame:IsEditModeActive()
+end
+
 local function ApplyNative()
     if InCombatLockdown() then
         pendingNative = true
@@ -921,6 +934,12 @@ local function ApplyNative()
         -- menu was never muted.
         HookLFGEye()
         ApplyLFGEye()
+        return
+    end
+
+    if shouldMute and IsEditModeActive() then
+        -- Leave the native bar alone for now; the ExitEditMode hook below
+        -- re-applies the mute the moment Edit Mode closes.
         return
     end
 
@@ -959,10 +978,37 @@ if type(UpdateMicroButtons) == "function" then
         refreshThrottled = true
         C_Timer.After(0.1, function()
             refreshThrottled = false
-            if nativeMuted then MuteNative(true) end
+            if nativeMuted and not IsEditModeActive() then MuteNative(true) end
             RefreshStates()
         end)
     end)
+end
+
+-- Blizzard's real Edit Mode manages the native micro menu as one of its own
+-- systems; if we keep re-muting it out from under Edit Mode's setup (the
+-- UpdateMicroButtons hook above did exactly that), later Blizzard-internal
+-- calls in that same setup pass (e.g. RefreshTargetAndFocus's TargetUnit())
+-- can get blamed on TomoMod and blocked. Stand down for the duration and let
+-- ExitEditMode put the mute back.
+--
+-- Deferred to Initialize (not file-load time): Blizzard_EditMode's load
+-- timing relative to a regular addon isn't guaranteed the way UpdateMicroButtons
+-- (a base FrameXML global) is.
+local editModeHooksInstalled = false
+local function InstallEditModeHooks()
+    if editModeHooksInstalled or not EditModeManagerFrame then return end
+    editModeHooksInstalled = true
+
+    if type(EditModeManagerFrame.EnterEditMode) == "function" then
+        hooksecurefunc(EditModeManagerFrame, "EnterEditMode", function()
+            if nativeMuted then MuteNative(false) end
+        end)
+    end
+    if type(EditModeManagerFrame.ExitEditMode) == "function" then
+        hooksecurefunc(EditModeManagerFrame, "ExitEditMode", function()
+            C_Timer.After(0, ApplyNative)
+        end)
+    end
 end
 
 -- Exposed so BagMicroMenu can stand down instead of fighting us over alpha.
@@ -1132,6 +1178,7 @@ function MB.Initialize()
     -- frames a beat to exist before we read textures off them.
     C_Timer.After(1, function()
         MB.Refresh()
+        InstallEditModeHooks()
 
         if TomoMod_Movers and TomoMod_Movers.RegisterEntry and not MB._moverRegistered then
             MB._moverRegistered = true
