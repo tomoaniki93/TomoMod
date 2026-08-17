@@ -150,6 +150,25 @@ EnsureOwnedFlyoutFrame = function()
     ownedFlyout.BackgroundTex:SetAllPoints()
     ownedFlyout.BackgroundTex:SetColorTexture(0, 0, 0, 0.35)
     ownedFlyout:SetScript("OnShow", function(self)
+        -- TOMOMOD P1 12.1: a flyout can be opened from a keybind while its
+        -- source bar is fully faded. The flyout is parented to that button and
+        -- therefore inherits alpha 0, leaving an invisible interactive menu.
+        -- Force the source bar visible for the lifetime of the flyout while
+        -- keeping the secure click path untouched.
+        local sourceBarKey = GetSpellFlyoutSourceBarKey(self)
+        if sourceBarKey then
+            local fadeState = GetOwnedBarFadeState and GetOwnedBarFadeState(sourceBarKey)
+            if fadeState then
+                fadeState.isFading = false
+                if CancelOwnedBarFadeTimers then
+                    CancelOwnedBarFadeTimers(fadeState)
+                end
+            end
+            if ActionBarsOwned.SetBarAlpha then
+                ActionBarsOwned.SetBarAlpha(sourceBarKey, 1)
+            end
+        end
+
         for i = 1, (self:GetAttribute("numFlyoutButtons") or 0) do
             local btn = ownedFlyoutButtons[i]
             if btn and btn:IsShown() then
@@ -159,12 +178,20 @@ EnsureOwnedFlyoutFrame = function()
         end
     end)
     ownedFlyout:SetScript("OnHide", function(self)
+        local sourceBarKey = GetSpellFlyoutSourceBarKey(self)
         for i = 1, (self:GetAttribute("numFlyoutButtons") or 0) do
             local btn = ownedFlyoutButtons[i]
             if btn then
                 ApplyOwnedFlyoutButtonVisuals(btn, nil)
                 ClearOwnedFlyoutButtonCooldown(btn)
             end
+        end
+
+        -- Re-evaluate mouseover only after the flyout no longer participates
+        -- in ShouldSuspendMouseoverFade(), otherwise a bar opened by keybind
+        -- can remain stuck at alpha 1 indefinitely.
+        if sourceBarKey and SetupOwnedBarMouseover then
+            SetupOwnedBarMouseover(sourceBarKey)
         end
     end)
     ownedFlyout:SetAttribute("numFlyoutButtons", 0)
@@ -302,7 +329,7 @@ function EnsureOwnedFlyoutButton(index)
     do
         local _db = GetDB()
         local _g = _db and _db.global
-        btn:SetAttribute("useOnKeyDown", _g and _g.useOnKeyDown == true)
+        btn:SetAttribute("useOnKeyDown", not _g or _g.useOnKeyDown ~= false)
     end
     btn:SetAttribute("checkselfcast", true)
     btn:SetAttribute("checkfocuscast", true)
@@ -321,6 +348,10 @@ function EnsureOwnedFlyoutButton(index)
         ClearOwnedFlyoutButtonCooldown(self)
     end
     btn:SetScript("OnEnter", function(self)
+        -- TOMOMOD P1 12.1: never use a forbidden frame as a tooltip owner.
+        -- Owned buttons should normally stay accessible, but this guard keeps
+        -- a future protected/engine transition from turning hover into taint.
+        if self.IsForbidden and self:IsForbidden() then return end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         if self._tomomodFlyoutSpellID then
             GameTooltip:SetSpellByID(self._tomomodFlyoutSpellID)
@@ -709,6 +740,38 @@ function CollectPageArrowFrames()
     return frames
 end
 
+-- TOMOMOD P0 12.1: page/pager controls are Blizzard input surfaces. Merely
+-- hiding them is not enough protection against a controller refresh that
+-- leaves an invisible mouse-enabled frame over the owned bar. Preserve their
+-- previous mouse state so disabling the option can restore Blizzard behaviour.
+local function SetPageArrowInputSuppressed(frame, suppressed)
+    if not frame or InCombatLockdown() then return end
+
+    if suppressed then
+        if frame._tomomodPageInputSaved == nil then
+            local saved = {}
+            if frame.IsMouseEnabled then saved.mouse = frame:IsMouseEnabled() end
+            if frame.IsMouseClickEnabled then saved.click = frame:IsMouseClickEnabled() end
+            if frame.IsMouseMotionEnabled then saved.motion = frame:IsMouseMotionEnabled() end
+            if frame.IsMouseWheelEnabled then saved.wheel = frame:IsMouseWheelEnabled() end
+            frame._tomomodPageInputSaved = saved
+        end
+        if frame.EnableMouse then frame:EnableMouse(false) end
+        if frame.SetMouseClickEnabled then frame:SetMouseClickEnabled(false) end
+        if frame.SetMouseMotionEnabled then frame:SetMouseMotionEnabled(false) end
+        if frame.EnableMouseWheel then frame:EnableMouseWheel(false) end
+    else
+        local saved = frame._tomomodPageInputSaved
+        if saved then
+            if saved.mouse ~= nil and frame.EnableMouse then frame:EnableMouse(saved.mouse) end
+            if saved.click ~= nil and frame.SetMouseClickEnabled then frame:SetMouseClickEnabled(saved.click) end
+            if saved.motion ~= nil and frame.SetMouseMotionEnabled then frame:SetMouseMotionEnabled(saved.motion) end
+            if saved.wheel ~= nil and frame.EnableMouseWheel then frame:EnableMouseWheel(saved.wheel) end
+            frame._tomomodPageInputSaved = nil
+        end
+    end
+end
+
 function SchedulePageArrowVisibilityRetry()
     local ebs = ActionBarsOwned.extraBtnState
     if ebs.pageArrowRetryTimer or ebs.pageArrowRetryAttempts >= ebs.PAGE_ARROW_RETRY_MAX_ATTEMPTS then return end
@@ -740,6 +803,7 @@ ApplyPageArrowVisibility = function(hide)
 
     if hide then
         for _, frame in ipairs(frames) do
+            SetPageArrowInputSuppressed(frame, true)
             frame:Hide()
             if not ebs.pageArrowShowHooked[frame] then
                 ebs.pageArrowShowHooked[frame] = true
@@ -747,6 +811,7 @@ ApplyPageArrowVisibility = function(hide)
                     C_Timer.After(0, function()
                         local db = GetDB()
                         if db and db.bars and db.bars.bar1 and db.bars.bar1.hidePageArrow and self and self.Hide then
+                            SetPageArrowInputSuppressed(self, true)
                             self:Hide()
                         end
                     end)
@@ -755,6 +820,7 @@ ApplyPageArrowVisibility = function(hide)
         end
     else
         for _, frame in ipairs(frames) do
+            SetPageArrowInputSuppressed(frame, false)
             frame:Show()
         end
     end

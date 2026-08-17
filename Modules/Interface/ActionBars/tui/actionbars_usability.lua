@@ -17,11 +17,14 @@ do
 
 local _abUsabilityStats
 local function SetupDebugInstrumentation()
-    _abUsabilityStats = { activeScans = 0, fallbackScans = 0, buttons = 0 }
+    _abUsabilityStats = { activeScans = 0, fallbackScans = 0, buttons = 0, rangeScans = 0, rangeButtons = 0, rangeEvents = 0 }
     local mp = ns._memprobes or {}; ns._memprobes = mp
     mp[#mp + 1] = { name = "AB_usabilityActiveScans", counter = true, fn = function() return _abUsabilityStats.activeScans end }
     mp[#mp + 1] = { name = "AB_usabilityFallbackScans", counter = true, fn = function() return _abUsabilityStats.fallbackScans end }
     mp[#mp + 1] = { name = "AB_usabilityButtons", counter = true, fn = function() return _abUsabilityStats.buttons end }
+    mp[#mp + 1] = { name = "AB_rangeScans", counter = true, fn = function() return _abUsabilityStats.rangeScans end }
+    mp[#mp + 1] = { name = "AB_rangeButtons", counter = true, fn = function() return _abUsabilityStats.rangeButtons end }
+    mp[#mp + 1] = { name = "AB_rangeEvents", counter = true, fn = function() return _abUsabilityStats.rangeEvents end }
 end
 if ns.DebugRegister then
     ns.DebugRegister(SetupDebugInstrumentation)
@@ -30,10 +33,10 @@ else
 end
 
 local function ClearButtonTint(state)
-    if state.tinted then
-        if state.tintOverlay then state.tintOverlay:Hide() end
-        state.tinted = nil
-    end
+    if state.tintOverlay then state.tintOverlay:Hide() end
+    state.tinted = nil
+    state.usabilityTint = nil
+    state.rangeOut = nil
 end
 
 function GetTintOverlay(button)
@@ -51,43 +54,13 @@ function GetTintOverlay(button)
     return state.tintOverlay
 end
 
-function UpdateButtonUsability(button, settings)
-    if not settings then return end
-    local state = GetFrameState(button)
-    local action = GetSafeActionSlot(button)
-
-    if state.fadeHidden or state.hiddenEmpty then
-        return
-    end
-
-    if not action or not SafeHasAction(action) then
-        ClearButtonTint(state)
-        return
-    end
-
-    if not settings.rangeIndicator and not settings.usabilityIndicator then
-        ClearButtonTint(state)
-        return
-    end
-
-    local newTint = nil
-
-    if settings.rangeIndicator then
-        local inRange = SafeIsActionInRange(action)
-        if inRange == false then
-            newTint = "range"
-        end
-    end
-
-    if not newTint and settings.usabilityIndicator then
-        local isUsable, notEnoughMana = SafeIsUsableAction(action)
-        if notEnoughMana then
-            newTint = "mana"
-        elseif not isUsable then
-            newTint = "unusable"
-        end
-    end
-
+-- TOMOMOD P1 PERF: range and usability have different update semantics.
+-- Mana/unusable changes are event-driven; distance has no equivalent event and
+-- still needs a lightweight poll. Cache the two inputs separately so a range
+-- tick never calls IsUsableAction and an usability event never needs to own the
+-- continuous range loop.
+local function ApplyCachedButtonTint(button, settings, state)
+    local newTint = state.rangeOut and "range" or state.usabilityTint
     if state.tinted == newTint then return end
 
     if newTint == "range" then
@@ -120,11 +93,225 @@ function UpdateButtonUsability(button, settings)
     end
 end
 
+local function SetRangeCandidate(button, isCandidate)
+    local candidates = usabilityState.rangeCandidates
+    if not candidates then return end
+    candidates[button] = isCandidate and true or nil
+
+    -- TOMOMOD P1 PERF: no range-capable action means no permanent OnUpdate at
+    -- all. Events remain registered while the frame is hidden and will seed a
+    -- new candidate (target/slot/page change), which wakes the ticker again.
+    local checkFrame = usabilityState.checkFrame
+    if checkFrame and usabilityState.rangePollingActive then
+        if isCandidate or next(candidates) ~= nil then
+            checkFrame:Show()
+        else
+            checkFrame:Hide()
+            checkFrame.elapsed = 0
+        end
+    end
+end
+
+local function UpdateButtonRangeOnly(button, settings)
+    if not settings or not settings.rangeIndicator then return false end
+    local state = GetFrameState(button)
+    local action = GetSafeActionSlot(button)
+
+    if state.fadeHidden or state.hiddenEmpty or not action or not SafeHasAction(action) then
+        state.rangeOut = nil
+        SetRangeCandidate(button, false)
+        ApplyCachedButtonTint(button, settings, state)
+        return false
+    end
+
+    local inRange = SafeIsActionInRange(action)
+    if inRange == nil then
+        -- nil means the action has no meaningful range for the current target.
+        state.rangeOut = nil
+        SetRangeCandidate(button, false)
+        ApplyCachedButtonTint(button, settings, state)
+        return false
+    end
+
+    state.rangeOut = (inRange == false)
+    SetRangeCandidate(button, true)
+    ApplyCachedButtonTint(button, settings, state)
+    return true
+end
+
+function UpdateButtonUsability(button, settings)
+    if not settings then return end
+    local state = GetFrameState(button)
+    local action = GetSafeActionSlot(button)
+
+    if state.fadeHidden or state.hiddenEmpty then
+        SetRangeCandidate(button, false)
+        return
+    end
+
+    if not action or not SafeHasAction(action) then
+        SetRangeCandidate(button, false)
+        ClearButtonTint(state)
+        return
+    end
+
+    if not settings.rangeIndicator and not settings.usabilityIndicator then
+        SetRangeCandidate(button, false)
+        ClearButtonTint(state)
+        return
+    end
+
+    -- Seed/update range candidacy on events (target/slot/page/etc.). Between
+    -- those events the dedicated range ticker updates only these candidates.
+    if settings.rangeIndicator then
+        UpdateButtonRangeOnly(button, settings)
+    else
+        state.rangeOut = nil
+        SetRangeCandidate(button, false)
+    end
+
+    state.usabilityTint = nil
+    if settings.usabilityIndicator then
+        local isUsable, notEnoughMana = SafeIsUsableAction(action)
+        if notEnoughMana == true then
+            state.usabilityTint = "mana"
+        elseif isUsable == false then
+            -- TOMOMOD: nil means unknown/inaccessible, not unusable. Fail open
+            -- so a protected 12.1 read cannot leave a stale grey tint behind.
+            state.usabilityTint = "unusable"
+        end
+    end
+
+    ApplyCachedButtonTint(button, settings, state)
+end
+
+local function IsUsabilityButtonActive(button)
+    local active = ActionBarsOwned._activeStandardButtons
+    if active and active[button] then return true end
+    return not active or next(active) == nil
+end
+
+function UpdateAllButtonRange()
+    local settings = GetGlobalSettings()
+    if _abUsabilityStats then _abUsabilityStats.rangeScans = _abUsabilityStats.rangeScans + 1 end
+    if not settings or not settings.rangeIndicator then return end
+    local candidates = usabilityState.rangeCandidates
+    if not candidates then return end
+
+    for button in pairs(candidates) do
+        local barKey = button._tomomodBarKey or GetBarKeyFromButton(button)
+        local fadeState = ActionBarsOwned.fadeState and ActionBarsOwned.fadeState[barKey]
+        if not IsUsabilityButtonActive(button)
+            or (fadeState and fadeState.currentAlpha <= 0)
+            or (IsButtonInsideVisibleLayout and not IsButtonInsideVisibleLayout(button, barKey))
+            or (button.IsVisible and not button:IsVisible()) then
+            candidates[button] = nil
+        else
+            if _abUsabilityStats then _abUsabilityStats.rangeButtons = _abUsabilityStats.rangeButtons + 1 end
+            UpdateButtonRangeOnly(button, settings)
+        end
+    end
+end
+ActionBarsOwned.UpdateAllButtonRange = UpdateAllButtonRange
+
+-- TOMOMOD P1 PERF/12.1: Midnight exposes a C-side range subscription. Prefer
+-- it over a Lua ticker: the client tracks only the action slots we opt into and
+-- fires ACTION_RANGE_CHECK_UPDATE when their range state actually flips.
+local function DisableNativeRangeChecks()
+    local enabled = usabilityState.rangeSlots
+    if not enabled then return end
+    local fn = C_ActionBar and C_ActionBar.EnableActionRangeCheck
+    if fn then
+        for slot in pairs(enabled) do
+            pcall(fn, slot, false)
+        end
+    end
+    wipe(enabled)
+    wipe(usabilityState.rangeSlotButtons)
+    usabilityState.nativeRangeActive = false
+end
+
+local function SyncNativeRangeChecks(settings)
+    local fn = C_ActionBar and C_ActionBar.EnableActionRangeCheck
+    if not fn or not settings or not settings.rangeIndicator then
+        DisableNativeRangeChecks()
+        return false
+    end
+
+    local desired = {}
+    local slotButtons = {}
+    local active = ActionBarsOwned._activeStandardButtons
+    local useActive = active and next(active) ~= nil
+
+    local function Consider(button, barKey)
+        if useActive and not active[button] then return end
+        local fadeState = ActionBarsOwned.fadeState and ActionBarsOwned.fadeState[barKey]
+        if fadeState and fadeState.currentAlpha <= 0 then return end
+        if IsButtonInsideVisibleLayout and not IsButtonInsideVisibleLayout(button, barKey) then return end
+        if button.IsVisible and not button:IsVisible() then return end
+        local slot = GetSafeActionSlot(button)
+        if not slot or not SafeHasAction(slot) then return end
+        desired[slot] = true
+        local hosts = slotButtons[slot]
+        if not hosts then hosts = {}; slotButtons[slot] = hosts end
+        hosts[#hosts + 1] = button
+    end
+
+    if useActive then
+        for button in pairs(active) do
+            Consider(button, button._tomomodBarKey or GetBarKeyFromButton(button))
+        end
+    else
+        for _, barKey in ipairs(STANDARD_BAR_KEYS) do
+            for _, button in ipairs(GetBarButtons(barKey)) do
+                Consider(button, barKey)
+            end
+        end
+    end
+
+    local enabled = usabilityState.rangeSlots
+    for slot in pairs(enabled) do
+        if not desired[slot] then
+            pcall(fn, slot, false)
+            enabled[slot] = nil
+        end
+    end
+    for slot in pairs(desired) do
+        if not enabled[slot] then
+            pcall(fn, slot, true)
+            enabled[slot] = true
+        end
+    end
+
+    usabilityState.rangeSlotButtons = slotButtons
+    usabilityState.nativeRangeActive = true
+    return true
+end
+
+local function HandleNativeRangeUpdate(slot, inRange, checksRange)
+    if not usabilityState.nativeRangeActive or not slot then return end
+    if Helpers.IsSecretValue(inRange) or Helpers.IsSecretValue(checksRange) then return end
+    local hosts = usabilityState.rangeSlotButtons and usabilityState.rangeSlotButtons[slot]
+    if not hosts then return end
+    if _abUsabilityStats then _abUsabilityStats.rangeEvents = _abUsabilityStats.rangeEvents + 1 end
+
+    local outOfRange = (checksRange == true and inRange == false)
+    local settings = GetGlobalSettings()
+    if not settings or not settings.rangeIndicator then return end
+    for i = 1, #hosts do
+        local button = hosts[i]
+        if button then
+            local state = GetFrameState(button)
+            state.rangeOut = outOfRange or nil
+            ApplyCachedButtonTint(button, settings, state)
+        end
+    end
+end
+
 function UpdateAllButtonUsability()
     local globalSettings = GetGlobalSettings()
     if not globalSettings then return end
     if not globalSettings.rangeIndicator and not globalSettings.usabilityIndicator then return end
-    usabilityState.lastScanTime = GetTime()
 
     local activeStandardButtons = ActionBarsOwned._activeStandardButtons
     if activeStandardButtons and next(activeStandardButtons) ~= nil then
@@ -140,8 +327,10 @@ function UpdateAllButtonUsability()
             elseif IsButtonInsideVisibleLayout and not IsButtonInsideVisibleLayout(button, barKey) then
                 ActionBarsOwned._activeButtons[button] = nil
                 activeStandardButtons[button] = nil
+                SetRangeCandidate(button, false)
             end
         end
+        if usabilityState.nativeRangeActive then SyncNativeRangeChecks(globalSettings) end
         return
     end
 
@@ -158,23 +347,16 @@ function UpdateAllButtonUsability()
             end
         end
     end
+    if usabilityState.nativeRangeActive then SyncNativeRangeChecks(globalSettings) end
 end
 
 ActionBarsOwned.UpdateAllButtonUsability = UpdateAllButtonUsability
 
 env.__declared.usabilityUpdateFrame = true
 function GetUsabilityScheduleDelay()
-    local delay = usabilityState.EVENT_DEBOUNCE
-    if InCombatLockdown and InCombatLockdown() then
-        local lastScanTime = usabilityState.lastScanTime or 0
-        if lastScanTime > 0 then
-            local remaining = usabilityState.INTERVAL_COMBAT - (GetTime() - lastScanTime)
-            if remaining > delay then
-                delay = remaining
-            end
-        end
-    end
-    return delay
+    -- TOMOMOD P1 PERF: usability is event-driven now. Debounce event bursts,
+    -- but never hold a mana/usability change behind the range polling cadence.
+    return usabilityState.EVENT_DEBOUNCE
 end
 
 function UsabilityUpdateFrameOnUpdate(self, elapsed)
@@ -206,7 +388,10 @@ function EnsureUsabilityUpdateFrame()
 end
 
 function UsabilityCheckFrameOnEvent(self, event, ...)
-    if event == "PLAYER_REGEN_DISABLED" then
+    if event == "ACTION_RANGE_CHECK_UPDATE" then
+        HandleNativeRangeUpdate(...)
+        return
+    elseif event == "PLAYER_REGEN_DISABLED" then
         usabilityState.inCombat = true
         self.elapsed = 0
         return
@@ -220,16 +405,13 @@ end
 
 function UsabilityCheckFrameOnUpdate(self, elapsed)
     self.elapsed = self.elapsed + elapsed
-    local interval = usabilityState.inCombat and usabilityState.INTERVAL_COMBAT or usabilityState.INTERVAL_IDLE
+    local interval = usabilityState.inCombat and usabilityState.RANGE_INTERVAL_COMBAT or usabilityState.RANGE_INTERVAL_IDLE
     if self.elapsed < interval then return end
     self.elapsed = 0
-    UpdateAllButtonUsability()
+    UpdateAllButtonRange()
 end
 
 ScheduleUsabilityUpdate = function()
-    if usabilityState.rangePollingActive and InCombatLockdown and InCombatLockdown() then
-        return
-    end
     if usabilityState.updatePending then return end
     usabilityState.updatePending = true
     local frame = EnsureUsabilityUpdateFrame()
@@ -276,19 +458,42 @@ function UpdateUsabilityPolling()
     else
         checkFrame:UnregisterAllEvents()
         checkFrame:SetScript("OnEvent", nil)
+        DisableNativeRangeChecks()
     end
 
-    if rangeEnabled then
-        usabilityState.rangePollingActive = true
-        checkFrame:SetScript("OnUpdate", UsabilityCheckFrameOnUpdate)
-        checkFrame:Show()
-    else
+    if rangeEnabled and C_ActionBar and C_ActionBar.EnableActionRangeCheck then
+        -- 12.1 native path: zero permanent Lua polling.
         usabilityState.rangePollingActive = false
+        usabilityState.nativeRangeActive = true
         checkFrame:SetScript("OnUpdate", nil)
         checkFrame.elapsed = 0
+        checkFrame:RegisterEvent("ACTION_RANGE_CHECK_UPDATE")
+        checkFrame:Hide()
+        SyncNativeRangeChecks(settings)
+    elseif rangeEnabled then
+        -- Compatibility fallback for clients without native range subscriptions.
+        usabilityState.nativeRangeActive = false
+        usabilityState.rangePollingActive = true
+        checkFrame:SetScript("OnUpdate", UsabilityCheckFrameOnUpdate)
+        if usabilityState.rangeCandidates and next(usabilityState.rangeCandidates) ~= nil then
+            checkFrame:Show()
+        else
+            checkFrame:Hide()
+        end
+    else
+        DisableNativeRangeChecks()
+        usabilityState.rangePollingActive = false
+        checkFrame:UnregisterEvent("ACTION_RANGE_CHECK_UPDATE")
+        checkFrame:SetScript("OnUpdate", nil)
+        checkFrame.elapsed = 0
+        if usabilityState.rangeCandidates then wipe(usabilityState.rangeCandidates) end
         if not usabilityEnabled then
             checkFrame:Hide()
             ResetAllButtonTints()
+        else
+            -- Re-evaluate once so a former red range tint immediately falls
+            -- back to mana/unusable (or clears) when the option is disabled.
+            ScheduleUsabilityUpdate()
         end
     end
 end

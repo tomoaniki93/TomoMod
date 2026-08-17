@@ -412,6 +412,12 @@ function HideManagedBlizzardBarFrame(frame, clearEvents)
         frame:Hide()
     end
 
+    -- TOMOMOD P0: do not leave an invisible retired bar as a mouse surface.
+    if frame.EnableMouse then frame:EnableMouse(false) end
+    if frame.SetMouseClickEnabled then frame:SetMouseClickEnabled(false) end
+    if frame.SetMouseMotionEnabled then frame:SetMouseMotionEnabled(false) end
+    if frame.EnableMouseWheel then frame:EnableMouseWheel(false) end
+
     SilenceSuppressedBlizzardBar(frame)
     suppressedBlizzardBars[frame] = true
 end
@@ -463,10 +469,31 @@ local function SilenceSuppressedBlizzardButton(btn)
     end
 end
 
+-- TOMOMOD P0 12.1: a retired Blizzard button must be input-dead, not only
+-- invisible. Midnight can keep helper/pager surfaces alive across controller
+-- refreshes; an invisible mouse-enabled frame can steal a click before it ever
+-- reaches the TUI secure button. Keep all input mutations out of combat.
+local function DisableRetiredFrameInput(frame)
+    if not frame or InCombatLockdown() then return end
+    if frame.EnableMouse then
+        ns.SafeCall("best-effort-style", frame.EnableMouse, frame, false)
+    end
+    if frame.SetMouseClickEnabled then
+        ns.SafeCall("best-effort-style", frame.SetMouseClickEnabled, frame, false)
+    end
+    if frame.SetMouseMotionEnabled then
+        ns.SafeCall("best-effort-style", frame.SetMouseMotionEnabled, frame, false)
+    end
+    if frame.EnableMouseWheel then
+        ns.SafeCall("best-effort-style", frame.EnableMouseWheel, frame, false)
+    end
+end
+
 function SuppressBlizzardButton(btn)
     btn:Hide()
     btn:UnregisterAllEvents()
     btn:SetAttribute("statehidden", true)
+    DisableRetiredFrameInput(btn)
     SilenceSuppressedBlizzardButton(btn)
     suppressedBlizzardButtons[btn] = true
 end
@@ -485,9 +512,11 @@ function ResuppressBlizzardButtons()
         ns.SafeCall("best-effort-style", btn.SetScript, btn, "OnEvent", nil)
         ns.SafeCall("best-effort-style", btn.Hide, btn)
         ns.SafeCall("best-effort-style", btn.SetAttribute, btn, "statehidden", true)
+        DisableRetiredFrameInput(btn)
     end
     for bar in pairs(suppressedBlizzardBars) do
         SilenceSuppressedBlizzardBar(bar)
+        DisableRetiredFrameInput(bar)
     end
 end
 

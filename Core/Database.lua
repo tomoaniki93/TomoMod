@@ -277,7 +277,7 @@ TomoMod_Defaults = {
             manaColor = {0.5, 0.5, 1.0, 1},
             fastUsabilityUpdates = false,
             showTooltips = true,
-            useOnKeyDown = false,
+            useOnKeyDown = true,
             assistedHighlight = false,
             externalSkinning = false,
             iconSkin = "Default",
@@ -1873,6 +1873,19 @@ local function TomoMod_RunMigrations()
         done.actionBarsTuiPort = true
         TomoModDB.actionBars = CopyTable(TomoMod_Defaults.actionBars)
         TomoModDB.actionBarSkin = nil
+    end
+
+    -- P0 12.1 input hardening: the TUI port originally defaulted custom secure
+    -- action buttons to key-up dispatch. With override CLICK bindings this adds
+    -- release latency to every keyboard action and is especially noticeable on
+    -- interrupts. Move existing profiles to key-down once; players can still
+    -- turn the option back off afterwards and the migration flag preserves it.
+    if not done.actionBarsKeyDownP0 then
+        done.actionBarsKeyDownP0 = true
+        local ab = TomoModDB.actionBars
+        if type(ab) == "table" and type(ab.global) == "table" then
+            ab.global.useOnKeyDown = true
+        end
     end
 
     if not done.dropBuffSkin then

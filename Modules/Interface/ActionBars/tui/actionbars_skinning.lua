@@ -815,11 +815,17 @@ end
 
 usabilityState = {
     checkFrame = nil,
-    INTERVAL_COMBAT = 0.5,
-    INTERVAL_IDLE = 2.0,
+    -- TOMOMOD P1 PERF: usability is event-driven; only range keeps a ticker.
+    -- Because the range ticker now scans only range-capable active buttons we
+    -- can make it substantially more responsive without polling every button.
+    RANGE_INTERVAL_COMBAT = 0.15,
+    RANGE_INTERVAL_IDLE = 0.30,
     EVENT_DEBOUNCE = 0.05,
     inCombat = false,
     rangePollingActive = false,
+    nativeRangeActive = false,
     updatePending = false,
-    lastScanTime = 0,
+    rangeCandidates = setmetatable({}, { __mode = "k" }),
+    rangeSlots = {},
+    rangeSlotButtons = {},
 }

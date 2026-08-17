@@ -123,15 +123,28 @@ end
 
 function SafeIsActionInRange(action)
     local ok, val = pcall(IsActionInRange, action)
-    if not ok then return nil end
-    if val then return true end
-    if val == nil then return nil end
-    return false
+    if not ok or Helpers.IsSecretValue(val) then return nil end
+    if type(val) == "boolean" then return val end
+    -- Blizzard may return nil for actions/targets that do not perform a range
+    -- check. Treat every non-boolean as unknown rather than branching on it.
+    return nil
 end
 
 function SafeIsUsableAction(action)
-    local usable, noMana = IsUsableAction(action)
-    return (usable and true or false), (noMana and true or false)
+    -- TOMOMOD: prefer the modern C_ActionBar API on Midnight and fail open on
+    -- inaccessible/secret results. A nil/unknown usability state must never be
+    -- converted into "unusable" or a button can remain falsely grey after a
+    -- slot transform/spec swap.
+    local fn = C_ActionBar and C_ActionBar.IsUsableAction or IsUsableAction
+    if not fn then return nil, nil end
+    local ok, usable, noMana = pcall(fn, action)
+    if not ok then return nil, nil end
+    if Helpers.IsSecretValue(usable) or Helpers.IsSecretValue(noMana) then
+        return nil, nil
+    end
+    local usableState = type(usable) == "boolean" and usable or nil
+    local manaState = type(noMana) == "boolean" and noMana or nil
+    return usableState, manaState
 end
 
 function IsPlayerBelowMaxLevel()

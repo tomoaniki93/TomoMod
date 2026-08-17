@@ -25,6 +25,11 @@ function ActionBarsOwned:Initialize()
     PatchLibKeyBoundForMidnight()
 
     ownedEventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
+    -- TOMOMOD: SLOT_CHANGED is not a drag-only event. Midnight fires it for
+    -- transformed actions, macro resolution, spec/loadout changes and other
+    -- content swaps while the grid is closed. Keep one central targeted
+    -- listener alive permanently; actionbars_events.lua coalesces the work.
+    ownedEventFrame:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
     ownedEventFrame:RegisterEvent("UPDATE_BONUS_ACTIONBAR")
     -- TOMOMOD: the override bar was never listened to. Vehicles, skyriding and
     -- druid Flight Form all swap the player onto it, and without this event the
@@ -403,7 +408,7 @@ _G.TUI_ApplyUseOnKeyDown = function()
         return
     end
     local db = GetDB()
-    local value = db and db.global and db.global.useOnKeyDown == true
+    local value = not (db and db.global and db.global.useOnKeyDown == false)
     for bar = 1, 8 do
         for i = 1, 12 do
             local btn = _G["TUI_Bar" .. bar .. "Button" .. i]

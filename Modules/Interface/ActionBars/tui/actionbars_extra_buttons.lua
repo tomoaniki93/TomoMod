@@ -371,19 +371,27 @@ function NeutralizeExtraAbilityContainer()
     if sel then
         sel:SetAlpha(0)
         if sel.EnableMouse then sel:EnableMouse(false) end
+        if sel.SetMouseClickEnabled then sel:SetMouseClickEnabled(false) end
+        if sel.SetMouseMotionEnabled then sel:SetMouseMotionEnabled(false) end
         if not extraBtnState.containerSelectionHooked then
             extraBtnState.containerSelectionHooked = true
             hooksecurefunc(sel, "Show", function(self)
                 self:SetAlpha(0)
                 if self.EnableMouse and not InCombatLockdown() then
                     self:EnableMouse(false)
+                    if self.SetMouseClickEnabled then self:SetMouseClickEnabled(false) end
+                    if self.SetMouseMotionEnabled then self:SetMouseMotionEnabled(false) end
                 end
             end)
         end
     end
 
-    if ExtraActionBarFrame and ExtraActionBarFrame:IsMouseEnabled() then
-        ExtraActionBarFrame:EnableMouse(false)
+    if ExtraActionBarFrame then
+        if ExtraActionBarFrame:IsMouseEnabled() then
+            ExtraActionBarFrame:EnableMouse(false)
+        end
+        if ExtraActionBarFrame.SetMouseClickEnabled then ExtraActionBarFrame:SetMouseClickEnabled(false) end
+        if ExtraActionBarFrame.SetMouseMotionEnabled then ExtraActionBarFrame:SetMouseMotionEnabled(false) end
     end
 
     if container.AddFrame and not extraBtnState.containerAddFrameHooked then

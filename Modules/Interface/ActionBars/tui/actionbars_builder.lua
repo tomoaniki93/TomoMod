@@ -50,7 +50,7 @@ function EnsureOwnedActionButton(container, barKey, btnName, index)
         do
             local _db = GetDB()
             local _g = _db and _db.global
-            btn:SetAttribute("useOnKeyDown", _g and _g.useOnKeyDown == true)
+            btn:SetAttribute("useOnKeyDown", not _g or _g.useOnKeyDown ~= false)
         end
         if not btn.HasPopup then
             local popupDir

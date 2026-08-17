@@ -217,6 +217,13 @@ abSlotFrame:SetScript("OnUpdate", function(self)
                         UpdateEmptySlotVisibility(btn, settings)
                     end
                 end
+                -- TOMOMOD: slot contents can change without a separate usable
+                -- event. Refresh the affected button now so an old mana/range/
+                -- unusable tint cannot survive a spell/item replacement.
+                local globalSettings = GetGlobalSettings()
+                if globalSettings and UpdateButtonUsability then
+                    UpdateButtonUsability(btn, globalSettings)
+                end
             end
         end
     end
@@ -231,6 +238,16 @@ abSlotFrame:SetScript("OnUpdate", function(self)
 end)
 
 function ScheduleSlotUpdate(slot)
+    if slot == 0 then
+        -- TOMOMOD: Blizzard uses slot 0 as "all slots changed". Ignoring it
+        -- leaves stale icons/tints/cooldowns after broad content changes.
+        if ResetAllChargeCapabilityCaches then ResetAllChargeCapabilityCaches() end
+        ScheduleABVisualUpdate(true, true)
+        ScheduleABCooldownUpdate(true)
+        ScheduleUsabilityUpdate()
+        if MarkSpellIdMapDirty then MarkSpellIdMapDirty() end
+        return
+    end
     if not slot or slot < 1 then return end
     if GetTime() - _lastPagingTime < 0.5 then return end
     abDirtySlots[slot] = true
@@ -264,6 +281,7 @@ function OnOwnedEvent(self, event, ...)
     if event == "ACTIONBAR_SLOT_CHANGED" then
         local slot = ...
         ScheduleSlotUpdate(slot)
+        ScheduleUsabilityUpdate()
 
     elseif event == "ACTIONBAR_PAGE_CHANGED"
         or event == "UPDATE_BONUS_ACTIONBAR"
@@ -362,6 +380,7 @@ function OnOwnedEvent(self, event, ...)
             -- a profile change, and a stale table would repaint from the wrong
             -- one.
             RepaintBar1(ActionBarsOwned.nativeButtons["bar1"], GetEffectiveSettings("bar1"))
+            ScheduleUsabilityUpdate()
         end)
         if not InCombatLockdown() then
             UpdateStanceBarLayout()
@@ -392,7 +411,9 @@ function OnOwnedEvent(self, event, ...)
         end
 
     elseif event == "UPDATE_BINDINGS" then
-        C_Timer.After(0.1, RefreshNativeKeybinds)
+        -- P0: binding changes are input-path state. Do not add an arbitrary
+        -- 100 ms dead window before rebuilding our override CLICK bindings.
+        RefreshNativeKeybinds()
 
     elseif event == "CURSOR_CHANGED" then
         local settings = GetGlobalSettings()
@@ -489,6 +510,7 @@ function OnOwnedEvent(self, event, ...)
         RefreshAllNativeVisuals()
         ActionBarsOwned.UpdateAllButtonVisuals()
         ActionBarsOwned.UpdateAllCooldowns()
+        ScheduleUsabilityUpdate()
         UpdatePetBarVisibility()
         UpdateStanceBarLayout()
         ApplyAllFlyoutDirections()
@@ -511,6 +533,7 @@ function OnOwnedEvent(self, event, ...)
             ActionBarsOwned.ForceFullVisualRescan()
             ActionBarsOwned.UpdateAllButtonVisuals()
             ActionBarsOwned.UpdateAllCooldowns()
+            ScheduleUsabilityUpdate()
             UpdatePetBarVisibility()
             UpdateStanceBarLayout()
             ApplyAllFlyoutDirections()
@@ -606,7 +629,8 @@ function OnOwnedEvent(self, event, ...)
 
     elseif event == "ACTIONBAR_HIDEGRID" then
         ActionBarsOwned._showGrid = nil
-        self:UnregisterEvent("ACTIONBAR_SLOT_CHANGED")
+        -- TOMOMOD: ACTIONBAR_SLOT_CHANGED remains registered permanently; it
+        -- also carries non-drag transforms and spec/loadout content changes.
         ScheduleABVisualUpdate(true)
         ScheduleABCooldownUpdate()
         ActionBarsOwned.UpdateAllAssistedCombatRotation()
@@ -623,8 +647,14 @@ function OnOwnedEvent(self, event, ...)
 
     elseif event == "SPELLS_CHANGED"
         or event == "LEARNED_SPELL_IN_SKILL_LINE" then
+        -- TOMOMOD: a spec/loadout swap can replace the contents of an action
+        -- slot without changing its numeric slot. Drop per-button cooldown and
+        -- charge memos so the new action cannot inherit the previous spell's
+        -- cached duration/state.
+        if ResetAllChargeCapabilityCaches then ResetAllChargeCapabilityCaches() end
         ScheduleABVisualUpdate(true)
         ScheduleABCooldownUpdate()
+        ScheduleUsabilityUpdate()
         ActionBarsOwned.UpdateAllOverlayGlows()
         RefreshAllFlyouts()
         RefreshAllEmptySlotVisibility()

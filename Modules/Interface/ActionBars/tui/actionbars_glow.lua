@@ -80,11 +80,38 @@ function ForEachSpellCandidate(spellId, callback)
 
     callback(spellId)
 
+    -- TOMOMOD P1 12.1: proc events can name the base spell while the action
+    -- button currently exposes an override (or the reverse). Cover all three
+    -- client-side relationships used by Midnight without allocating a table in
+    -- this hot path, and avoid emitting duplicate IDs into spellIdToButtons.
+    local overrideId
     if C_Spell and C_Spell.GetOverrideSpell then
-        local ok, overrideId = ns.SafeCall("best-effort-style", C_Spell.GetOverrideSpell, spellId)
-        overrideId = ok and Helpers.SafeValue(overrideId, nil) or nil
-        if ok and overrideId and overrideId ~= spellId then
+        local ok, result = ns.SafeCall("best-effort-style", C_Spell.GetOverrideSpell, spellId)
+        overrideId = ok and Helpers.SafeValue(result, nil) or nil
+        if overrideId and overrideId ~= spellId then
             callback(overrideId)
+        end
+    end
+
+    local bookOverrideId
+    if C_SpellBook and C_SpellBook.FindSpellOverrideByID then
+        local ok, result = ns.SafeCall("best-effort-style", C_SpellBook.FindSpellOverrideByID, spellId)
+        bookOverrideId = ok and Helpers.SafeValue(result, nil) or nil
+        if bookOverrideId
+            and bookOverrideId ~= spellId
+            and bookOverrideId ~= overrideId then
+            callback(bookOverrideId)
+        end
+    end
+
+    if C_Spell and C_Spell.GetBaseSpell then
+        local ok, result = ns.SafeCall("best-effort-style", C_Spell.GetBaseSpell, spellId)
+        local baseId = ok and Helpers.SafeValue(result, nil) or nil
+        if baseId
+            and baseId ~= spellId
+            and baseId ~= overrideId
+            and baseId ~= bookOverrideId then
+            callback(baseId)
         end
     end
 end
@@ -471,9 +498,15 @@ end
 
 function ActionBarsOwned.OnSpellActivationGlowHide(spellId)
     if not spellId then return end
-    if not ForEachButtonForSpellGlow(spellId, HideActionButtonGlow) then
-        ActionBarsOwned.UpdateAllOverlayGlows()
-    end
+    ForEachButtonForSpellGlow(spellId, HideActionButtonGlow)
+
+    -- TOMOMOD P1 12.1: always sweep current button state after a HIDE event.
+    -- A transformed button can stop mapping to the spell that emitted HIDE
+    -- while another copy of that spell still matches elsewhere; the old
+    -- targeted-only path then left the transformed button glowing forever.
+    -- HIDE events are sparse, so this small event-driven sweep is preferable
+    -- to any timer/polling cleanup.
+    ActionBarsOwned.UpdateAllOverlayGlows()
 end
 
 ActionBarsOwned.RebuildSpellIdMap = RebuildSpellIdMap
