@@ -262,6 +262,17 @@ end
 local HORIZONTAL = { LEFT = "Left", RIGHT = "Right" }
 local VERTICAL   = { UP = "Up", DOWN = "Down" }
 
+-- The flow always starts AT its anchor corner and grows AWAY from it: a
+-- container anchored by its TOPLEFT with growVertical=UP grows further and
+-- further past its own top edge, leaving the space between its anchor and
+-- whatever it was meant to sit next to (a health bar, say) empty. The
+-- anchor corner has to be the one the content grows AWAY from, i.e. the
+-- opposite edge from the growth direction, so row/col 1 lands at the
+-- anchor and the stack fills outward from there instead of floating off
+-- past it.
+local HORIZONTAL_ANCHOR = { LEFT = "RIGHT", RIGHT = "LEFT" }
+local VERTICAL_ANCHOR   = { UP = "BOTTOM", DOWN = "TOP" }
+
 local function ApplyContainerLayout(container, spec)
     local dir = spec.growDirection or "RIGHT"
     local h = HORIZONTAL[dir] or "Right"
@@ -280,6 +291,19 @@ local function ApplyContainerLayout(container, spec)
     if setRow then
         local w = tonumber(spec.rowWidth)
         pcall(setRow, container, (w and w > 0) and w or nil)
+    end
+
+    -- Opt-in: callers that want the anchor corner to track growDirection/
+    -- growVertical (instead of a fixed corner passed once at Create) supply
+    -- anchorHost. Re-run on every layout change so flipping a direction
+    -- dropdown live moves the anchor, not just the flow inside it.
+    if spec.anchorHost then
+        local vAnchor = VERTICAL_ANCHOR[spec.growVertical or ""] or VERTICAL_ANCHOR[dir] or "TOP"
+        local hAnchor = HORIZONTAL_ANCHOR[dir] or "LEFT"
+        local anchorPoint = vAnchor .. hAnchor
+        container:ClearAllPoints()
+        container:SetPoint(anchorPoint, spec.anchorHost, anchorPoint,
+            spec.anchorOffsetX or 0, spec.anchorOffsetY or 0)
     end
 end
 
@@ -391,6 +415,8 @@ function AC.Create(parent, opts)
         growDirection = opts.growDirection, growVertical = opts.growVertical,
         rowWidth = opts.rowWidth,
         spacing = opts.spacing,
+        anchorHost = opts.anchorHost,
+        anchorOffsetX = opts.anchorOffsetX, anchorOffsetY = opts.anchorOffsetY,
     }
 
     if not AddGroups(container, spec) then
@@ -410,12 +436,19 @@ function AC.Create(parent, opts)
     return container
 end
 
--- Applies a new size or count.
+-- Applies a new size, count, or flow layout (direction/rowWidth).
 --
 -- The engine owns button geometry: it sizes and anchors its own buttons
 -- from the group layout, so there is nothing to reach into. Rebuilding
--- the group is the sanctioned way to change either, and it is only ever
--- triggered by a settings change.
+-- the group is the sanctioned way to change size or count, and that part
+-- is only ever triggered by a settings change.
+--
+-- growDirection/growVertical/rowWidth do NOT need a group rebuild --
+-- ApplyContainerLayout re-asserts them on the existing groups. Gating that
+-- call behind "size or max changed" (the original shape of this function)
+-- is exactly why the direction/row-count dropdowns did nothing until the
+-- next full container rebuild: a caller passing only a new growDirection
+-- hit the early return before ApplyContainerLayout ever ran.
 --
 -- Returns true when the container was updated. Be aware that no caller acts
 -- on false today: UpdateSize ignores it, so a refused relayout leaves the
@@ -429,26 +462,35 @@ function AC.Relayout(container, opts)
 
     local size = opts.size or data.size
     local max  = opts.max  or data.max
-    if size == data.size and max == data.max then return true end
+    local growDirection = (opts.growDirection ~= nil) and opts.growDirection or data.growDirection
+    local growVertical  = (opts.growVertical  ~= nil) and opts.growVertical  or data.growVertical
+    local rowWidth       = (opts.rowWidth ~= nil) and opts.rowWidth or data.rowWidth
+
+    local sizeChanged   = (size ~= data.size or max ~= data.max)
+    local layoutChanged = (growDirection ~= data.growDirection
+        or growVertical ~= data.growVertical or rowWidth ~= data.rowWidth)
+    if not sizeChanged and not layoutChanged then return true end
 
     data.size, data.max = size, max
+    data.growDirection, data.growVertical, data.rowWidth = growDirection, growVertical, rowWidth
 
-    -- RemoveAuraGroup then AddAuraGroup: there is no setter for either
-    -- value, and a stale group would keep drawing at the old size. Both
-    -- groups go when the container carries both polarities -- dropping only
-    -- the primary would leave the helpful half at the old size for good.
-    if container.RemoveAuraGroup then
-        pcall(container.RemoveAuraGroup, container, data.key)
-        if data.both then
-            pcall(container.RemoveAuraGroup, container, data.key .. "_helpful")
+    if sizeChanged then
+        -- RemoveAuraGroup then AddAuraGroup: there is no setter for either
+        -- value, and a stale group would keep drawing at the old size. Both
+        -- groups go when the container carries both polarities -- dropping
+        -- only the primary would leave the helpful half at the old size.
+        if container.RemoveAuraGroup then
+            pcall(container.RemoveAuraGroup, container, data.key)
+            if data.both then
+                pcall(container.RemoveAuraGroup, container, data.key .. "_helpful")
+            end
         end
+        if not AddGroups(container, data) then return false end
     end
-    local ok = AddGroups(container, data)
-    if ok then
-        ApplyContainerLayout(container, data)
-        pcall(container.UpdateAllAuras, container)
-    end
-    return ok
+
+    ApplyContainerLayout(container, data)
+    pcall(container.UpdateAllAuras, container)
+    return true
 end
 
 -- ---------------------------------------------------------------------

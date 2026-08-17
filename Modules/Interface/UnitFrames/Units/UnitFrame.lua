@@ -835,23 +835,14 @@ function UF.ApplyVisuals(frame, unitKey, settings)
     -- Redimensionner les icônes d'aura puis ré-appliquer la grille (même layout
     -- qu'à la création — évite toute incohérence de taille/espacement entre unités).
     -- [12.1] Icon size and the countdown toggle belong to the engine now:
-    -- it sizes and anchors its own buttons. AC.Relayout rebuilds the group,
-    -- which is the only sanctioned way to change either.
-    local AC = TomoMod_AuraContainer
-    if AC then
-        if frame.auraContainer and frame.auraContainer.engine and settings.auras then
-            AC.Relayout(frame.auraContainer.engine, {
-                size = settings.auras.size or 30,
-                max  = settings.auras.maxAuras or 8,
-            })
-        end
-        if frame.enemyBuffContainer and frame.enemyBuffContainer.engine
-            and settings.enemyBuffs then
-            AC.Relayout(frame.enemyBuffContainer.engine, {
-                size = settings.enemyBuffs.size or 24,
-                max  = settings.enemyBuffs.maxAuras or 4,
-            })
-        end
+    -- it sizes and anchors its own buttons. Relayout also re-asserts grow
+    -- direction/row width, which used to silently no-op here (see the
+    -- comment on AC.Relayout for why).
+    if frame.auraContainer and settings.auras then
+        E.RelayoutAuras(frame.auraContainer, settings.auras)
+    end
+    if frame.enemyBuffContainer and settings.enemyBuffs then
+        E.RelayoutEnemyBuffs(frame.enemyBuffContainer, settings.enemyBuffs)
     end
 end
 
@@ -865,23 +856,13 @@ function UF.RefreshUnit(unitKey)
 
     UF.ApplyVisuals(frame, unitKey, settings)
 
-    -- Enemy Buff Container
+    -- Enemy Buff Container : la taille/le nombre/la direction/lignes sont
+    -- déjà réappliqués en direct par ApplyVisuals ci-dessus (RelayoutEnemyBuffs).
+    -- Il ne reste que l'activation/désactivation et la création tardive.
     if settings.enemyBuffs then
         local eb = frame.enemyBuffContainer
-        if eb then
-            local wantedEnabled = settings.enemyBuffs.enabled
-            local wantedSize    = settings.enemyBuffs.size     or 24
-            local wantedMax     = settings.enemyBuffs.maxAuras or 4
-            local currentSize   = eb._tomoSize    or 0
-            local currentMax    = eb._tomoMaxAuras or 0
-            if not wantedEnabled then
-                eb:Hide()
-            elseif currentSize ~= wantedSize or currentMax ~= wantedMax then
-                eb:Hide()
-                eb:SetParent(nil)
-                frame.enemyBuffContainer = nil
-                E.UpdateEnemyBuffs(frame)
-            end
+        if eb and not settings.enemyBuffs.enabled then
+            eb:Hide()
         elseif settings.enemyBuffs.enabled then
             E.UpdateEnemyBuffs(frame)
         end

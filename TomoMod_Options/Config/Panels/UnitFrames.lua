@@ -243,6 +243,13 @@ local function BuildAurasTab(parent, unitKey)
 
     local y = -10
 
+    -- Certains réglages (activer/désactiver, type buff/debuff) reconstruisent
+    -- le conteneur à la création du cadre uniquement : un /reload garantit
+    -- que tout est bien pris en compte, même si la plupart des curseurs et
+    -- listes déroulantes s'appliquent déjà en direct.
+    local _, ny = W.CreateInfoText(c, L["info_module_reload"], y)
+    y = ny
+
     -- Debuffs/Buffs auras
     if db.auras then
         local _, ny = W.CreateSubLabel(c, L["sublabel_auras"], y)
@@ -255,6 +262,7 @@ local function BuildAurasTab(parent, unitKey)
 
         local _, ny = W.CreateSlider(c, L["opt_auras_max"], db.auras.maxAuras, 1, 16, 1, y, function(v)
             db.auras.maxAuras = v
+            RefreshUnit(unitKey)
         end)
         y = ny
 
@@ -270,10 +278,10 @@ local function BuildAurasTab(parent, unitKey)
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(c, L["opt_auras_max_width"], db.auras.maxWidth or 300, 60, 600, 10, y, function(v)
-            db.auras.maxWidth = v
+        local _, ny = W.CreateSlider(c, L["opt_auras_per_row"], db.auras.perRow or 6, 1, 8, 1, y, function(v)
+            db.auras.perRow = v
             RefreshUnit(unitKey)
-        end, "%d")
+        end)
         y = ny
 
         local _, ny = W.CreateDropdown(c, L["opt_auras_type"], {
@@ -290,6 +298,7 @@ local function BuildAurasTab(parent, unitKey)
             { text = L["aura_dir_left"], value = "LEFT" },
         }, db.auras.growDirection, y, function(v)
             db.auras.growDirection = v
+            RefreshUnit(unitKey)
         end)
         y = ny
 
@@ -298,6 +307,7 @@ local function BuildAurasTab(parent, unitKey)
             { text = L["aura_dir_up"],   value = "UP" },
         }, db.auras.growVertical or "DOWN", y, function(v)
             db.auras.growVertical = (v == "UP") and "UP" or nil
+            RefreshUnit(unitKey)
         end)
         y = ny
 
@@ -323,7 +333,7 @@ local function BuildAurasTab(parent, unitKey)
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_max"], db.enemyBuffs.maxAuras, 1, 8, 1, y, function(v)
+        local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_max"], db.enemyBuffs.maxAuras, 1, 12, 1, y, function(v)
             db.enemyBuffs.maxAuras = v
             RefreshUnit(unitKey)
         end)
@@ -331,6 +341,30 @@ local function BuildAurasTab(parent, unitKey)
 
         local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_size"], db.enemyBuffs.size, 14, 40, 1, y, function(v)
             db.enemyBuffs.size = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_enemy_buffs_direction"], {
+            { text = L["aura_dir_right"], value = "RIGHT" },
+            { text = L["aura_dir_left"], value = "LEFT" },
+        }, db.enemyBuffs.growDirection or "RIGHT", y, function(v)
+            db.enemyBuffs.growDirection = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_per_row"], db.enemyBuffs.perRow or 3, 1, 8, 1, y, function(v)
+            db.enemyBuffs.perRow = v
+            RefreshUnit(unitKey)
+        end)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_enemy_buffs_row_orientation"], {
+            { text = L["aura_dir_up"], value = "UP" },
+            { text = L["aura_dir_down"], value = "DOWN" },
+        }, db.enemyBuffs.growVertical or "UP", y, function(v)
+            db.enemyBuffs.growVertical = v
             RefreshUnit(unitKey)
         end)
         y = ny

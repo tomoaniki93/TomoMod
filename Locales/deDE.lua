@@ -303,6 +303,9 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_enemy_buffs_enable"]           = "Feindliche Buffs anzeigen",
     ["opt_enemy_buffs_max"]              = "Max. Buffs",
     ["opt_enemy_buffs_size"]             = "Buff-Symbolgröße",
+    ["opt_enemy_buffs_direction"]        = "Richtung",
+    ["opt_enemy_buffs_per_row"]          = "Symbole pro Zeile",
+    ["opt_enemy_buffs_row_orientation"]  = "Nächste Zeile",
     ["info_enemy_buffs"]                 = "Zeigt aktive Buffs (Wutanfall, Schilde...) auf feindlichen Einheiten. Symbole erscheinen oben rechts, stapeln sich nach oben.",
     ["opt_np_show_enemy_buffs"]          = "Feindliche Buffs anzeigen",
     ["opt_np_enemy_buff_size"]           = "Buff-Symbolgröße",
@@ -3001,6 +3004,7 @@ TomoMod_RegisterLocale("deDE", {
     ["btn_char_skin_reset_pos"]       = "Position zurücksetzen",
     ["btn_sound_test"]                = "▶ Diesen Sound abspielen",
     ["opt_auras_max_width"]           = "Max. Breite (Zeilenumbruch)",
+    ["opt_auras_per_row"]             = "Symbole pro Zeile",
 
     -- 3.2.0
     ["wn_320_gsearch"] = "Konfigurationsfenster: die Seitenleisten-Suche ist jetzt global — sie findet passende Optionen in allen Kategorien und Reitern, nicht nur auf der sichtbaren Seite, und ein Klick auf ein Ergebnis springt direkt dorthin mit einem kurzen Hervorhebungs-Blinken.",
@@ -3325,6 +3329,11 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_357_shieldenchant"] = "Fehlerbehebung — Die Warnung zur Waffenverzauberung auf dem Charakterbogen konnte einen Schild oder einen in der linken Hand getragenen Gegenstand (Grimoire, Rüschen usw.) fälschlich als unverzaubert markieren, obwohl keines von beiden überhaupt verzaubert werden kann — Tanks mit Schild und Zauberwirker mit einem Gegenstand in der linken Hand sahen eine rote Warnung für etwas, das nie verzauberbar war. Die Warnung erscheint jetzt nur noch für einen Slot mit einer tatsächlich verzauberbaren Waffe.",
     ["wn_357_inspectiteminfo"] = "Neu — Das Inspizieren eines anderen Spielers zeigt jetzt dieselbe Aufschlüsselung pro Gegenstand wie Euer eigener Charakterbogen: Gegenstandsstufe, Verbesserungsstufe, Verzauberungstext (oder eine Warnung bei fehlender Verzauberung) und Edelsteinsockel neben jedem ausgestatteten Gegenstand, statt nur einer einzigen gemittelten Zahl oben.",
     ["wn_357_inspectiteminfotoggle"] = "Neu — Ein neues Kästchen erlaubt es Euch, die Gegenstandsinfo/Verzauberungen/Edelsteine des Inspektionsfensters unabhängig von den Einstellungen Eures eigenen Charakterbogens auszuschalten.",
+    ["wn_357_enemybuffgrid"] = "Neu — Die Anzeige für gegnerische Buffs auf Euren Ziel- und Fokus-Frames (die hilfreichen Auras auf dem, was Ihr anvisiert) hat jetzt eigene Dropdown-Menüs für Richtung (rechts/links) und Nächste Zeile (hoch/runter) sowie einen Regler für Symbole pro Zeile — zuvor war es fest auf 3 pro Zeile nach oben wachsend eingestellt, ohne Änderungsmöglichkeit. Der Höchstwert des Anzahl-Reglers stieg außerdem von 8 auf 12, und jeder Stapel ist auf 3 Zeilen begrenzt — der Rest wird einfach ausgeblendet, statt den Container endlos wachsen zu lassen.",
+    ["wn_357_aurasgrid"] = "Neu — Normale Auras (Buffs, Debuffs oder beides, bei Spieler/Ziel/Fokus) nutzen jetzt das gleiche Symbole-pro-Zeile-Raster wie gegnerische Buffs: Ein Regler für Symbole pro Zeile (Standard 6) ersetzt den alten pixelbasierten Zeilenumbruch, mit derselben 3-Zeilen-Begrenzung.",
+    ["wn_357_auradirectionfix"] = "Fehlerbehebung — Die Richtungseinstellungen bei Auras und gegnerischen Buffs bewirkten bisher stillschweigend nichts: Die Live-Aktualisierung der Aura-Engine wandte die Wuchsrichtung nur an, wenn sich in derselben Aktualisierung auch Symbolgröße oder Anzahl änderten, und selbst dann sorgte eine fest verankerte Ecke dafür, dass „nach oben“ den Symbolstapel einige Zeilen über der Lebensleiste schweben ließ, statt bündig daran anzuliegen. Beides ist behoben — Richtungs- und Zeilenänderungen wirken jetzt sofort, und der Stapel wächst nun genau von der richtigen Stelle aus, ohne zu schweben.",
+    ["wn_357_aurasliverefresh"] = "Fehlerbehebung — Mehrere Auras-/Gegnerische-Buffs-Optionen (Anzahl, Richtung, Typ) benötigten bisher ein `/reload`, um wirklich wirksam zu werden, obwohl sie so aussahen, als müssten sie sofort reagieren. Die meisten tun das jetzt; die zwei, die wirklich noch eines brauchen — Aktivieren und das Buff/Debuff/beides-Dropdown — weisen jetzt direkt im Panel darauf hin.",
+    ["wn_357_microbarcombatfade"] = "Fehlerbehebung — Das Überfahren eines Micro-Bar-Symbols im Kampf konnte einen Fehler wegen blockierter Aktion auslösen, statt die Leiste einfach einzublenden. Der Hover-Übergang springt im Kampf jetzt direkt zum Zielwert, statt zu animieren, wodurch der blockierte Aufruf vollständig vermieden wird.",
 
     -- =====================
     -- 3.5.5 — Was ist neu

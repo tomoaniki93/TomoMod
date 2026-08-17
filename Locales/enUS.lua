@@ -300,6 +300,9 @@ TomoMod_RegisterLocale("enUS", {
     ["opt_enemy_buffs_enable"]           = "Show enemy buffs",
     ["opt_enemy_buffs_max"]              = "Max buffs",
     ["opt_enemy_buffs_size"]             = "Buff icon size",
+    ["opt_enemy_buffs_direction"]        = "Direction",
+    ["opt_enemy_buffs_per_row"]          = "Icons per row",
+    ["opt_enemy_buffs_row_orientation"]  = "Next row goes",
     ["info_enemy_buffs"]                 = "Displays active buffs (Enrage, shields...) on hostile units. Icons appear top-right, stacking upward.",
     ["opt_np_show_enemy_buffs"]          = "Show enemy buffs",
     ["opt_np_enemy_buff_size"]           = "Buff icon size",
@@ -3219,6 +3222,7 @@ TomoMod_RegisterLocale("enUS", {
     ["btn_char_skin_reset_pos"]       = "Reset position",
     ["btn_sound_test"]                = "▶ Play this sound",
     ["opt_auras_max_width"]           = "Max width (line wrap)",
+    ["opt_auras_per_row"]             = "Icons per row",
 
     -- 3.2.0
     ["wn_320_gsearch"] = "Config window: the sidebar search is now global — it finds matching options across every category and tab, not just the visible page, and clicking a result jumps straight to it with a highlight flash.",
@@ -3365,6 +3369,11 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_357_shieldenchant"] = "Fix — The character sheet's weapon enchant warning could flag a shield or an off-hand held item (tomes, frills, and the like) as missing an enchant, even though neither can actually take one — tanks with a shield and casters holding an off-hand item saw a red warning for something that was never enchantable to begin with. The warning now only shows on a slot holding a real, enchantable weapon.",
     ["wn_357_inspectiteminfo"] = "New — Inspecting another player now shows the same per-item breakdown as your own character sheet: item level, upgrade track, enchant text (or a missing-enchant warning) and gem sockets next to every equipped item, instead of just one averaged number at the top.",
     ["wn_357_inspectiteminfotoggle"] = "New — A new checkbox lets you turn the Inspect frame's item info/enchants/gems off independently of your character sheet's own settings.",
+    ["wn_357_enemybuffgrid"] = "New — The Enemy Buffs tracker on your target and focus frames (the helpful auras cast on whatever you're targeting) now has its own Direction (left/right) and Next Row Goes (up/down) dropdowns, plus an Icons Per Row slider — it was previously fixed at 3 per row, growing upward, with no way to change either. The count slider's ceiling also went from 8 to 12, and any stack is capped at 3 rows, hiding the rest instead of growing forever.",
+    ["wn_357_aurasgrid"] = "New — Regular Auras (buffs, debuffs, or both, on player/target/focus) now use the same icons-per-row grid as Enemy Buffs: an Icons Per Row slider (default 6) replaces the old pixel-width wrap, with the same 3-row cap.",
+    ["wn_357_auradirectionfix"] = "Fix — Direction settings on both Auras and Enemy Buffs used to silently do nothing: the aura engine's live-refresh only re-applied grow direction when the icon size or count also changed in the same update, and even then a fixed anchor corner meant \"grow upward\" left the icon stack floating a few rows above the health bar instead of sitting flush against it. Both are fixed — direction and per-row changes apply immediately, and the stack now grows from right where it should, with nothing floating.",
+    ["wn_357_aurasliverefresh"] = "Fix — Several Auras/Enemy Buffs options (count, direction, type) used to need a `/reload` to actually apply, even though they looked like they should update instantly. Most of them now do; the two that still genuinely need one — Enable and the buff/debuff/both Type dropdown — now say so directly in the panel.",
+    ["wn_357_microbarcombatfade"] = "Fix — Hovering a Micro Bar button in combat could raise a blocked-action error instead of just fading the bar in. The hover fade now snaps straight to its target instead of animating while in combat, which avoids the blocked call entirely.",
 
     -- =====================
     -- 3.5.5 — What's New

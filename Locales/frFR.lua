@@ -307,6 +307,9 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_enemy_buffs_enable"]           = "Afficher les buffs ennemis",
     ["opt_enemy_buffs_max"]              = "Nombre max de buffs",
     ["opt_enemy_buffs_size"]             = "Taille des icônes",
+    ["opt_enemy_buffs_direction"]        = "Direction",
+    ["opt_enemy_buffs_per_row"]          = "Icônes par ligne",
+    ["opt_enemy_buffs_row_orientation"]  = "Ligne suivante",
     ["info_enemy_buffs"]                 = "Affiche les buffs actifs (Enrage, boucliers...) sur les unités hostiles. Les icônes apparaissent en haut à droite, empilées vers le haut.",
     ["opt_np_show_enemy_buffs"]          = "Afficher les buffs ennemis",
     ["opt_np_enemy_buff_size"]           = "Taille des icônes buff",
@@ -3150,6 +3153,7 @@ TomoMod_RegisterLocale("frFR", {
     ["btn_char_skin_reset_pos"]       = "Réinitialiser la position",
     ["btn_sound_test"]                = "▶ Écouter ce son",
     ["opt_auras_max_width"]           = "Largeur max (retour à la ligne)",
+    ["opt_auras_per_row"]             = "Icônes par ligne",
 
     -- 3.2.0
     ["wn_320_gsearch"] = "Fenêtre de configuration : la recherche de la barre latérale est désormais globale — elle trouve les options correspondantes dans toutes les catégories et onglets, pas seulement sur la page visible, et cliquer sur un résultat y accède directement avec un flash de surbrillance.",
@@ -3341,6 +3345,11 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_357_shieldenchant"] = "Correction — L'avertissement d'enchantement d'arme de la fiche de personnage pouvait signaler un bouclier ou un objet tenu en main gauche (grimoire, fioriture, etc.) comme non enchanté, alors qu'aucun des deux ne peut réellement recevoir d'enchantement — les tanks avec un bouclier et les lanceurs de sorts tenant un objet en main gauche voyaient un avertissement rouge pour quelque chose qui n'a jamais été enchantable. L'avertissement ne s'affiche plus que sur un emplacement contenant une véritable arme enchantable.",
     ["wn_357_inspectiteminfo"] = "Nouveau — Inspecter un autre joueur affiche désormais le même détail par objet que votre propre fiche de personnage : niveau d'objet, palier d'amélioration, texte d'enchantement (ou un avertissement d'enchantement manquant) et emplacements de gemmes à côté de chaque objet équipé, au lieu d'un simple nombre moyené en haut.",
     ["wn_357_inspectiteminfotoggle"] = "Nouveau — Une nouvelle case à cocher permet de désactiver les infos d'objet/enchantements/gemmes de la fenêtre d'inspection indépendamment des réglages de votre propre fiche de personnage.",
+    ["wn_357_enemybuffgrid"] = "Nouveau — Le suivi des buffs ennemis sur vos cadres de cible et de focus (les auras utiles portées par ce que vous ciblez) a maintenant ses propres listes déroulantes Direction (droite/gauche) et Ligne suivante (haut/bas), plus un curseur Icônes par ligne — c'était auparavant figé à 3 par ligne, vers le haut, sans moyen de changer ni l'un ni l'autre. Le plafond du curseur de nombre est aussi passé de 8 à 12, et toute pile est plafonnée à 3 lignes, le reste étant simplement masqué plutôt que d'agrandir le conteneur indéfiniment.",
+    ["wn_357_aurasgrid"] = "Nouveau — Les Auras normales (buffs, debuffs, ou les deux, sur joueur/cible/focus) utilisent maintenant la même grille icônes-par-ligne que les Buffs ennemis : un curseur Icônes par ligne (6 par défaut) remplace l'ancien retour à la ligne en pixels, avec le même plafond de 3 lignes.",
+    ["wn_357_auradirectionfix"] = "Correction — Les réglages de direction des Auras et des Buffs ennemis ne faisaient jusque là silencieusement rien : le rafraîchissement en direct du moteur d'auras ne réappliquait la direction que si la taille ou le nombre d'icônes changeait aussi dans la même mise à jour, et même alors, un coin d'ancrage figé faisait que « vers le haut » laissait la pile d'icônes flotter plusieurs lignes au-dessus de la barre de vie au lieu de s'y coller. Les deux sont corrigés — la direction et le nombre par ligne s'appliquent désormais immédiatement, et la pile part bien de là où elle devrait, sans rien qui flotte.",
+    ["wn_357_aurasliverefresh"] = "Correction — Plusieurs réglages Auras/Buffs ennemis (nombre, direction, type) nécessitaient auparavant un `/reload` pour s'appliquer réellement, même s'ils semblaient devoir se mettre à jour instantanément. La plupart le font désormais ; les deux qui en ont encore réellement besoin — Activer et la liste déroulante de type buff/debuff/les deux — l'indiquent maintenant directement dans le panneau.",
+    ["wn_357_microbarcombatfade"] = "Correction — Survoler un bouton de la Micro Barre en combat pouvait provoquer une erreur d'action bloquée au lieu de simplement faire apparaître la barre en fondu. Le fondu au survol passe maintenant directement à sa valeur cible au lieu de s'animer en combat, ce qui évite complètement l'appel bloqué.",
 
     -- =====================
     -- 3.5.5 — Quoi de neuf

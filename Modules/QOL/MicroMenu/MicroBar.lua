@@ -575,6 +575,15 @@ local function ApplyAlpha(instant)
         anchor:SetAlpha(target)
         return
     end
+    -- UIFrameFadeIn calls frame:Show() unconditionally. OnButtonEnter/OnButtonLeave
+    -- run as OnEnter/OnLeave script handlers on a SecureActionButtonTemplate button,
+    -- so that Show() executes as a protected call and gets blocked in combat
+    -- (ADDON_ACTION_BLOCKED on TomoMod_MicroBarFrame:Show()). Snap instead of
+    -- animating while locked down: no fade, but no blocked call either.
+    if InCombatLockdown() then
+        anchor:SetAlpha(target)
+        return
+    end
     local dur = (target > current) and (db and db.fadeIn or 0.15) or (db and db.fadeOut or 0.25)
     if dur <= 0 then
         anchor:SetAlpha(target)

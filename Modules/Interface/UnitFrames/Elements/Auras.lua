@@ -79,14 +79,40 @@ function UF_Elements.SaveContainerDrag(container, parent, elementID, settings)
     return true
 end
 
+-- Même grille perRow/3-lignes-max que ComputeEnemyBuffLayout, pour les
+-- auras normales (buffs/debuffs joueur, cible, focus). Un seul calcul pour
+-- Create et Relayout : cf. le commentaire sur ComputeEnemyBuffLayout pour
+-- pourquoi ça doit rester un point unique.
+local MAX_AURA_ROWS = 3
+
+local function ComputeAuraLayout(auraSettings)
+    local size = auraSettings.size or 24
+    local spacing = auraSettings.spacing or 3
+    local maxAuras = auraSettings.maxAuras or 8
+    local growDirection = auraSettings.growDirection
+    local growVertical = auraSettings.growVertical
+    local perRow = auraSettings.perRow or 6
+
+    local numRows = math.min(MAX_AURA_ROWS, math.ceil(maxAuras / perRow))
+    maxAuras = math.min(maxAuras, numRows * perRow)
+
+    local containerW = perRow * size + (perRow - 1) * spacing
+    local containerH = numRows * size + (numRows - 1) * spacing
+
+    return {
+        size = size, spacing = spacing, maxAuras = maxAuras, perRow = perRow,
+        growDirection = growDirection, growVertical = growVertical,
+        containerW = containerW, containerH = containerH,
+    }
+end
+
 function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
     if not settings or not settings.auras or not settings.auras.enabled then return nil end
 
     local auraSettings = settings.auras
+    local layout = ComputeAuraLayout(auraSettings)
     local container = CreateFrame("Frame", nameOverride or ("TomoMod_Auras_" .. unit), parent)
-    -- Largeur de référence pour le calcul de la grille (réglage explicite sinon 300).
-    local refWidth = (auraSettings.maxWidth and auraSettings.maxWidth > 0) and auraSettings.maxWidth or 300
-    container:SetSize(refWidth, auraSettings.size + 4)
+    container:SetSize(layout.containerW, layout.containerH)
     container.unit = unit
     container.parentFrame = parent
 
@@ -104,8 +130,8 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
         container.engine = AC.Create(container, {
             key      = "auras",
             unit     = unit,
-            size     = auraSettings.size or 24,
-            max      = auraSettings.maxAuras or 8,
+            size     = layout.size,
+            max      = layout.maxAuras,
             -- The module FONT constant, not auraSettings.font: there is no
             -- such setting, and the initializer calls SetFont unprotected --
             -- a nil font errors inside the engine, on every container.
@@ -130,11 +156,15 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
             durationColor = { 1, 1, 1, 1 },
             -- Dropped in the conversion, which is why the row stopped
             -- wrapping and always grew the same way.
-            growDirection = auraSettings.growDirection,
-            growVertical  = auraSettings.growVertical,
-            rowWidth      = auraSettings.maxWidth,
-            spacing       = auraSettings.spacing,
-            point    = { "TOPLEFT", container, "TOPLEFT", 0, 0 },
+            growDirection = layout.growDirection,
+            growVertical  = layout.growVertical,
+            rowWidth      = layout.containerW,
+            spacing       = layout.spacing,
+            -- Anchor corner tracks growDirection/growVertical instead of a
+            -- fixed TOPLEFT: see the comment on HORIZONTAL_ANCHOR/
+            -- VERTICAL_ANCHOR in AuraContainer.lua for why a fixed corner
+            -- left a growing gap between the bar and the icons.
+            anchorHost = container,
         })
     end
 
@@ -181,6 +211,20 @@ end
 -- =====================================
 
 
+-- Réapplique en direct taille / nombre / direction / largeur de ligne sur
+-- un conteneur d'auras déjà construit, sans reconstruction complète : cf.
+-- UF_Elements.RelayoutEnemyBuffs pour le pourquoi (Relayout ignorait ces
+-- champs tant que la taille/le nombre ne changeaient pas aussi).
+function UF_Elements.RelayoutAuras(container, auraSettings)
+    if not container or not container.engine or not auraSettings then return end
+    local layout = ComputeAuraLayout(auraSettings)
+    TomoMod_AuraContainer.Relayout(container.engine, {
+        size = layout.size, max = layout.maxAuras,
+        growDirection = layout.growDirection, growVertical = layout.growVertical,
+        rowWidth = layout.containerW,
+    })
+end
+
 -- =====================================
 -- UPDATE AURAS
 -- =====================================
@@ -199,6 +243,7 @@ function UF_Elements.UpdateAuras(frame)
     end
 
     container:Show()
+    UF_Elements.RelayoutAuras(container, settings.auras)
 
     -- [12.1] Nothing to collect: the engine tracks the unit itself. Telling
     -- it which unit this frame now represents is the whole update.
@@ -211,34 +256,48 @@ end
 -- ENEMY BUFF CONTAINER (shows HELPFUL auras on enemy units)
 -- =====================================
 
+-- Grille : perRow icônes par ligne, remplissage droite → gauche (ou
+-- l'inverse selon growDirection), lignes vers le haut ou le bas selon
+-- growVertical. Un maximum de 3 lignes est imposé : au-delà, l'excédent
+-- est simplement masqué plutôt que d'agrandir le conteneur sans limite.
+--
+-- Point unique pour ce calcul : Create et le relayout en direct (settings
+-- modifiés sans reload) doivent produire exactement les mêmes chiffres,
+-- sinon l'un des deux dérive silencieusement de l'autre.
+local MAX_ENEMY_BUFF_ROWS = 3
+
+local function ComputeEnemyBuffLayout(buffSettings)
+    local size = buffSettings.size or 24
+    local spacing = buffSettings.spacing or 2
+    local maxAuras = buffSettings.maxAuras or 4
+    local growDirection = buffSettings.growDirection or "RIGHT"
+    local growVertical = buffSettings.growVertical or "UP"
+    local perRow = buffSettings.perRow or 3
+
+    local numRows = math.min(MAX_ENEMY_BUFF_ROWS, math.ceil(maxAuras / perRow))
+    maxAuras = math.min(maxAuras, numRows * perRow)
+
+    local containerW = perRow * size + (perRow - 1) * spacing
+    local containerH = numRows * size + (numRows - 1) * spacing
+
+    return {
+        size = size, spacing = spacing, maxAuras = maxAuras, perRow = perRow,
+        growDirection = growDirection, growVertical = growVertical,
+        containerW = containerW, containerH = containerH,
+    }
+end
+
 -- nameOverride : voir CreateAuraContainer.
 function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings, nameOverride)
     if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled then return nil end
 
-    local buffSettings = settings.enemyBuffs
-    local size = buffSettings.size or 24
-    local spacing = buffSettings.spacing or 2
-    local maxAuras = buffSettings.maxAuras or 4
-
-    -- Grille : 3 icônes par ligne, remplissage droite → gauche, lignes vers le haut
-    --   Ligne 0 (bas) :  icône 1 (droite)  icône 2 (milieu)  icône 3 (gauche)
-    --   Ligne 1       :  icône 4 (droite)  …
-    local ICONS_PER_ROW = 3
-    local numRows = math.ceil(maxAuras / ICONS_PER_ROW)
-
-    -- Largeur  = 3 icônes + 2 espacements
-    -- Hauteur  = nb lignes × (icône + espacement)
-    local containerW = ICONS_PER_ROW * size + (ICONS_PER_ROW - 1) * spacing
-    local containerH = numRows * size + (numRows - 1) * spacing
+    local layout = ComputeEnemyBuffLayout(settings.enemyBuffs)
 
     local container = CreateFrame("Frame", nameOverride or ("TomoMod_EnemyBuffs_" .. unit), parent)
-    container:SetSize(containerW, containerH)
+    container:SetSize(layout.containerW, layout.containerH)
     container:SetFrameLevel(parent:GetFrameLevel() + 10)
     container.unit = unit
     container.parentFrame = parent
-    -- Stocker les paramètres courants pour détecter les changements dans RefreshUnit
-    container._tomoSize     = size
-    container._tomoMaxAuras = maxAuras
 
     -- Position de construction uniquement : cf. CreateAuraContainer.
     container:SetPoint("BOTTOMRIGHT", parent, "TOPRIGHT", 0, 6)
@@ -254,8 +313,8 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings, nameOverri
         container.engine = AC.Create(container, {
             key     = "enemybuffs",
             unit    = unit,
-            size    = size,
-            max     = maxAuras,
+            size    = layout.size,
+            max     = layout.maxAuras,
             -- Same reason as the aura container: the initializer's SetFont is
             -- unprotected, so this cannot be left out.
             font    = FONT,
@@ -268,7 +327,13 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings, nameOverri
             durationX     = 0,
             durationY     = 0,
             durationColor = { 1, 1, 1, 1 },
-            point   = { "TOPLEFT", container, "TOPLEFT", 0, 0 },
+            growDirection = layout.growDirection,
+            growVertical  = layout.growVertical,
+            rowWidth      = layout.containerW,
+            spacing       = layout.spacing,
+            -- Anchor corner tracks growDirection/growVertical: see
+            -- HORIZONTAL_ANCHOR/VERTICAL_ANCHOR in AuraContainer.lua.
+            anchorHost = container,
         })
     end
 
@@ -284,6 +349,20 @@ function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings, nameOverri
     end)
 
     return container
+end
+
+-- Réapplique en direct taille / nombre / direction / lignes par ligne sur un
+-- conteneur déjà construit — appelé aussi bien par le rafraîchissement
+-- explicite (options) que par la mise à jour événementielle (UNIT_AURA),
+-- pour qu'un changement de réglage n'ait jamais besoin d'un /reload.
+function UF_Elements.RelayoutEnemyBuffs(container, buffSettings)
+    if not container or not container.engine or not buffSettings then return end
+    local layout = ComputeEnemyBuffLayout(buffSettings)
+    TomoMod_AuraContainer.Relayout(container.engine, {
+        size = layout.size, max = layout.maxAuras,
+        growDirection = layout.growDirection, growVertical = layout.growVertical,
+        rowWidth = layout.containerW,
+    })
 end
 
 -- =====================================
@@ -308,9 +387,20 @@ function UF_Elements.UpdateEnemyBuffs(frame)
     local container = frame.enemyBuffContainer
 
     if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled
-        or not UnitExists(unit) or not container then
+        or not UnitExists(unit) then
         if container then container:Hide() end
         return
+    end
+
+    -- Créé tardivement : le conteneur peut manquer si l'unité l'a d'abord
+    -- construit désactivé, ou après le hide/relayout d'un ancien profil.
+    if not container then
+        container = UF_Elements.CreateEnemyBuffContainer(frame, unit, settings,
+            frame._tomoNameSuffix and ("TomoMod_EnemyBuffs_" .. unit .. frame._tomoNameSuffix) or nil)
+        frame.enemyBuffContainer = container
+        if not container then return end
+    else
+        UF_Elements.RelayoutEnemyBuffs(container, settings.enemyBuffs)
     end
 
     container:Show()

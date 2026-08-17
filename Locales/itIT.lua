@@ -303,6 +303,9 @@ TomoMod_RegisterLocale("itIT", {
     ["opt_enemy_buffs_enable"]           = "Mostra buff nemici",
     ["opt_enemy_buffs_max"]              = "Max. buff",
     ["opt_enemy_buffs_size"]             = "Dimensione icona buff",
+    ["opt_enemy_buffs_direction"]        = "Direzione",
+    ["opt_enemy_buffs_per_row"]          = "Icone per riga",
+    ["opt_enemy_buffs_row_orientation"]  = "Riga successiva",
     ["info_enemy_buffs"]                 = "Mostra i buff attivi (Furia, scudi...) sulle unità ostili. Le icone appaiono in alto a destra, impilate verso l'alto.",
     ["opt_np_show_enemy_buffs"]          = "Mostra buff nemici",
     ["opt_np_enemy_buff_size"]           = "Dimensione icona buff",
@@ -2989,6 +2992,7 @@ TomoMod_RegisterLocale("itIT", {
     ["btn_char_skin_reset_pos"]       = "Ripristina posizione",
     ["btn_sound_test"]                = "▶ Riproduci questo suono",
     ["opt_auras_max_width"]           = "Larghezza massima (a capo)",
+    ["opt_auras_per_row"]             = "Icone per riga",
 
     -- 3.2.0
     ["wn_320_gsearch"] = "Finestra di configurazione: la ricerca nella barra laterale ora è globale — trova le opzioni corrispondenti in tutte le categorie e schede, non solo nella pagina visibile, e cliccando su un risultato si salta direttamente ad esso con un lampeggio di evidenziazione.",
@@ -3313,6 +3317,11 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_357_shieldenchant"] = "Correzione — L'avviso di incantamento arma nella scheda personaggio poteva segnalare uno scudo o un oggetto tenuto nella mano sinistra (grimori, fronzoli, ecc.) come privo di incantamento, anche se nessuno dei due può essere incantato — i tank con scudo e i lanciatori di incantesimi che tenevano un oggetto nella mano sinistra vedevano un avviso rosso per qualcosa che non è mai stato incantabile. L'avviso ora compare solo su uno slot che contiene un'arma realmente incantabile.",
     ["wn_357_inspectiteminfo"] = "Novità — Ispezionare un altro giocatore ora mostra lo stesso dettaglio per oggetto della tua scheda personaggio: livello oggetto, livello di potenziamento, testo dell'incantamento (o un avviso di incantamento mancante) e slot delle gemme accanto a ogni oggetto indossato, invece di un solo numero medio in alto.",
     ["wn_357_inspectiteminfotoggle"] = "Novità — Una nuova casella ti permette di disattivare le info oggetto/incantamenti/gemme della finestra di ispezione indipendentemente dalle impostazioni della tua scheda personaggio.",
+    ["wn_357_enemybuffgrid"] = "Novità — Il tracker dei Buff nemici sui tuoi riquadri bersaglio e focus (le aure benefiche lanciate su ciò che stai bersagliando) ha ora i propri menu a tendina Direzione (destra/sinistra) e Riga successiva (su/giù), più un cursore Icone per riga — prima era fisso a 3 per riga, in crescita verso l'alto, senza modo di cambiare nessuno dei due. Anche il massimo del cursore del numero è passato da 8 a 12, e qualsiasi pila è limitata a 3 righe, nascondendo il resto invece di crescere all'infinito.",
+    ["wn_357_aurasgrid"] = "Novità — Le Aure normali (buff, debuff, o entrambi, su giocatore/bersaglio/focus) ora usano la stessa griglia icone-per-riga dei Buff nemici: un cursore Icone per riga (6 di default) sostituisce il vecchio a capo basato sui pixel, con lo stesso limite di 3 righe.",
+    ["wn_357_auradirectionfix"] = "Correzione — Le impostazioni di direzione sia di Aure che di Buff nemici prima non facevano nulla silenziosamente: l'aggiornamento live del motore delle aure riapplicava la direzione di crescita solo se anche la dimensione o il numero di icone cambiavano nello stesso aggiornamento, e anche allora un angolo di ancoraggio fisso faceva sì che \"cresci verso l'alto\" lasciasse la pila di icone fluttuare alcune righe sopra la barra della salute invece di aderirvi. Entrambe sono corrette — le modifiche a direzione e icone per riga si applicano ora immediatamente, e la pila cresce esattamente da dove dovrebbe, senza nulla che fluttui.",
+    ["wn_357_aurasliverefresh"] = "Correzione — Diverse opzioni di Aure/Buff nemici (numero, direzione, tipo) prima richiedevano un `/reload` per applicarsi davvero, anche se sembravano dover aggiornarsi all'istante. La maggior parte ora lo fa; le due che ne hanno ancora davvero bisogno — Abilita e il menu a tendina di tipo buff/debuff/entrambi — ora lo indicano direttamente nel pannello.",
+    ["wn_357_microbarcombatfade"] = "Correzione — Passare il mouse su un pulsante della Micro Bar in combattimento poteva generare un errore di azione bloccata invece di far semplicemente comparire la barra in dissolvenza. La dissolvenza al passaggio del mouse ora salta direttamente al valore finale invece di animarsi durante il combattimento, evitando del tutto la chiamata bloccata.",
 
     -- =====================
     -- 3.5.5 — Novità

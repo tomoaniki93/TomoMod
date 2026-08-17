@@ -302,6 +302,9 @@ TomoMod_RegisterLocale("esES", {
     ["opt_enemy_buffs_enable"]           = "Mostrar buffs enemigos",
     ["opt_enemy_buffs_max"]              = "Máx. buffs",
     ["opt_enemy_buffs_size"]             = "Tamaño de icono de buff",
+    ["opt_enemy_buffs_direction"]        = "Dirección",
+    ["opt_enemy_buffs_per_row"]          = "Iconos por fila",
+    ["opt_enemy_buffs_row_orientation"]  = "Fila siguiente",
     ["info_enemy_buffs"]                 = "Muestra buffs activos (Enfurecer, escudos...) en unidades hostiles. Los iconos aparecen arriba a la derecha, apilándose hacia arriba.",
     ["opt_np_show_enemy_buffs"]          = "Mostrar buffs enemigos",
     ["opt_np_enemy_buff_size"]           = "Tamaño de icono de buff",
@@ -3002,6 +3005,7 @@ TomoMod_RegisterLocale("esES", {
     ["btn_char_skin_reset_pos"]       = "Restablecer posición",
     ["btn_sound_test"]                = "▶ Reproducir este sonido",
     ["opt_auras_max_width"]           = "Ancho máximo (ajuste de línea)",
+    ["opt_auras_per_row"]             = "Iconos por fila",
 
     -- 3.2.0
     ["wn_320_gsearch"] = "Ventana de configuración: la búsqueda de la barra lateral ahora es global — encuentra opciones coincidentes en todas las categorías y pestañas, no solo en la página visible, y al hacer clic en un resultado se salta directamente a él con un destello de resaltado.",
@@ -3326,6 +3330,11 @@ TomoMod_RegisterLocale("esES", {
     ["wn_357_shieldenchant"] = "Corrección — La advertencia de encantamiento de arma de la hoja de personaje podía marcar un escudo o un objeto sostenido en la mano izquierda (grimorios, adornos, etc.) como falto de encantamiento, aunque ninguno de los dos puede encantarse en absoluto — los tanques con escudo y los lanzadores de hechizos que sostenían un objeto en la mano izquierda veían una advertencia roja por algo que nunca fue encantable. La advertencia ahora solo aparece en una ranura que contiene un arma realmente encantable.",
     ["wn_357_inspectiteminfo"] = "Nuevo — Inspeccionar a otro jugador ahora muestra el mismo desglose por objeto que tu propia hoja de personaje: nivel de objeto, nivel de mejora, texto de encantamiento (o una advertencia de encantamiento faltante) y engarces de gemas junto a cada objeto equipado, en lugar de un único número promediado arriba.",
     ["wn_357_inspectiteminfotoggle"] = "Nuevo — Una nueva casilla te permite desactivar la info de objeto/encantamientos/gemas de la ventana de inspección de forma independiente a los ajustes de tu propia hoja de personaje.",
+    ["wn_357_enemybuffgrid"] = "Nuevo — El rastreador de Buffs enemigos en tus marcos de objetivo y foco (las auras beneficiosas lanzadas sobre lo que tienes como objetivo) ahora tiene sus propios desplegables de Dirección (derecha/izquierda) y Siguiente fila (arriba/abajo), además de un deslizador de Iconos por fila — antes estaba fijado en 3 por fila, creciendo hacia arriba, sin forma de cambiar ninguno de los dos. El máximo del deslizador de cantidad también pasó de 8 a 12, y cualquier pila queda limitada a 3 filas, ocultando el resto en lugar de crecer sin límite.",
+    ["wn_357_aurasgrid"] = "Nuevo — Las Auras normales (buffs, debuffs, o ambos, en jugador/objetivo/foco) ahora usan la misma cuadrícula de iconos por fila que los Buffs enemigos: un deslizador de Iconos por fila (6 por defecto) sustituye al antiguo ajuste de línea en píxeles, con el mismo límite de 3 filas.",
+    ["wn_357_auradirectionfix"] = "Corrección — Los ajustes de dirección tanto de Auras como de Buffs enemigos antes no hacían nada en silencio: la actualización en vivo del motor de auras solo volvía a aplicar la dirección de crecimiento cuando el tamaño o la cantidad de iconos también cambiaban en la misma actualización, e incluso entonces una esquina de anclaje fija hacía que \"crecer hacia arriba\" dejara la pila de iconos flotando varias filas por encima de la barra de vida en lugar de pegada a ella. Ambos están corregidos — los cambios de dirección y de iconos por fila se aplican ahora al instante, y la pila crece desde donde debería, sin nada flotando.",
+    ["wn_357_aurasliverefresh"] = "Corrección — Varias opciones de Auras/Buffs enemigos (cantidad, dirección, tipo) antes necesitaban un `/reload` para aplicarse de verdad, aunque parecía que debían actualizarse al instante. La mayoría ahora lo hacen; las dos que aún lo necesitan de verdad — Activar y el desplegable de tipo buff/debuff/ambos — ahora lo indican directamente en el panel.",
+    ["wn_357_microbarcombatfade"] = "Corrección — Pasar el ratón sobre un botón de la Barra Micro en combate podía provocar un error de acción bloqueada en lugar de simplemente atenuar la barra hacia dentro. El fundido al pasar el ratón ahora salta directamente a su valor objetivo en lugar de animarse durante el combate, lo que evita por completo la llamada bloqueada.",
 
     -- =====================
     -- 3.5.5 — Novedades
