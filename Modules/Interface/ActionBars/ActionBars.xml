@@ -8,6 +8,7 @@
     <Script file="tui\actionbars.lua" />
     <Script file="tui\actionbars_helpers.lua" />
     <Script file="tui\actionbars_visibility.lua" />
+    <Script file="tui\actionbars_paging.lua" />
     <Script file="tui\actionbars_layout.lua" />
     <Script file="tui\actionbars_editmode.lua" />
     <Script file="tui\actionbars_builder.lua" />

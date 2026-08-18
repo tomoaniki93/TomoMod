@@ -224,59 +224,6 @@ end
 
 ApplyBar1OverrideBindings = function() ApplyBarOverrideBindings("bar1") end
 
-function BuildPagingCondition()
-    local parts = {}
-    table.insert(parts, "[overridebar] override")
-    table.insert(parts, "[vehicleui][possessbar][shapeshift] possess")
-    table.insert(parts, "[bonusbar:5] 11")
-    for i = 4, 1, -1 do
-        table.insert(parts, "[bonusbar:" .. i .. "] " .. (6 + i))
-    end
-    for i = 6, 2, -1 do
-        table.insert(parts, "[bar:" .. i .. "] " .. i)
-    end
-    table.insert(parts, "1")
-    return table.concat(parts, "; ")
-end
-
-bar1PagingInitialized = false
-
-function SetupBar1Paging(container)
-    if bar1PagingInitialized then return end
-    bar1PagingInitialized = true
-
-    container:SetAttribute("_onstate-page", [[
-        local page = newstate
-        if page == "override" then
-            if HasVehicleActionBar and HasVehicleActionBar() then
-                page = GetVehicleBarIndex()
-            elseif HasOverrideActionBar and HasOverrideActionBar() then
-                page = GetOverrideBarIndex()
-            elseif HasTempShapeshiftActionBar and HasTempShapeshiftActionBar() then
-                page = GetTempShapeshiftBarIndex()
-            else
-                page = 1
-            end
-        elseif page == "possess" then
-            if HasVehicleActionBar and HasVehicleActionBar() then
-                page = GetVehicleBarIndex()
-            elseif HasOverrideActionBar and HasOverrideActionBar() then
-                page = GetOverrideBarIndex()
-            elseif HasTempShapeshiftActionBar and HasTempShapeshiftActionBar() then
-                page = GetTempShapeshiftBarIndex()
-            elseif HasBonusActionBar and HasBonusActionBar() then
-                page = GetBonusBarIndex()
-            else
-                page = 1
-            end
-        end
-        page = tonumber(page) or 1
-        local offset = (page - 1) * 12
-        control:ChildUpdate("offset", offset)
-    ]])
-    RegisterStateDriver(container, "page", BuildPagingCondition())
-end
-
 function SetupSecureActionFlagRefresh(container)
     if not container or container._tomomodActionFlagRefreshSetup then return end
     container._tomomodActionFlagRefreshSetup = true

@@ -63,6 +63,21 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "3.5.9",
+        highlights = {
+            L["wn_359_visibility"] or "New — Action bars now have a Secure Visibility Engine with combat-safe rules for combat state, group type, instances, mounts, targets, hidden mode and custom secure conditions.",
+            L["wn_359_gcd"] or "Changed — GCD swipes stay visible where they belong, but pure GCDs no longer show noisy fractional countdown text; numeric text is reserved for the action's real cooldown.",
+            L["wn_359_editmode"] or "Fix — Blizzard Edit Mode now opens without the protected TargetUnit/FocusUnit errors or Compact Party Frame secret-value failures that could previously be attributed to TomoMod.",
+            L["wn_359_dormancy"] or "New — Securely hidden bars now go dormant and stop doing unnecessary visual work. Keybinds remain active, and the bar performs a full refresh the instant it becomes visible again.",
+            L["wn_359_nativeglow"] or "New — TomoMod now uses its own native glow engine instead of LibCustomGlow, removing the obsolete AnimateTexCoords crash path and centralizing proc animation work.",
+            L["wn_359_conditional"] or "Fix — Conditional abilities such as Monk Touch of Death now refresh usability and proc state from Blizzard's action notifications. Unusable abilities stay dimmed instead of being incorrectly overridden by red range coloring.",
+            L["wn_359_specialbars"] or "Fix — Blizzard Pet, Stance and Possess bars stay fully Blizzard-owned for taint safety but are filtered with the 12.1 alwaysBlocked roleset, preventing duplicate native bars without bringing the Edit Mode errors back.",
+            L["wn_359_paging"] or "New — Secure Paging for Action Bar 1 adds Alt/Shift/Ctrl pages, Friendly/Hostile Target pages, optional form paging and optional Skyriding paging, all configurable from TomoMod_Options.",
+            L["wn_359_priority"] or "Changed — Paging priority now keeps Vehicle/Override/Possess authoritative while manual and modifier pages take precedence over automatic form or Skyriding pages when appropriate.",
+            L["wn_359_validation"] or "Tested — Visibility, GCD display, dormant bars, native glows, conditional usability, Edit Mode, Pet/Stance/Possess suppression and secure paging were validated in game without new ActionBar taint errors.",
+        },
+    },
+    {
         version = "3.5.8",
         highlights = {
             L["wn_358_input"] or "Fix — Action bar input is now consistently immediate: interrupts, instant abilities, GCD/off-GCD actions, rapid key spam and Shift/Ctrl binds no longer inherit the delayed keybind behavior seen before this update.",

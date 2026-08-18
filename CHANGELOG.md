@@ -1,5 +1,51 @@
 ﻿## ####################################
 
+## CHANGELOG 3.5.9 — Action Bars: Secure Visibility, Native Glows, Smarter Paging & Edit Mode Safety
+
+#### Action Bars — Secure Visibility Engine
+
+- **New** — Every TomoMod action bar can now use a secure visibility rule that continues to work in combat. Available modes include Always, In Combat, Out of Combat, Solo, Party Only, Raid Only, Any Instance, Mounted, Has Target, Hostile Target, Hidden and a custom secure condition.
+- **New** — Visibility controls live in TomoMod_Options while the secure runtime remains in the core ActionBars module, keeping configuration code separate from combat-critical execution.
+- **Fix** — Hidden bars no longer rely on ordinary Lua `Show()` / `Hide()` calls during combat. Visibility changes are driven by secure state drivers and combat-time edits are safely deferred until combat ends.
+
+#### Action Bars — Cooldowns & GCD Presentation
+
+- **Changed** — The GCD swipe remains visible on every action actually affected by the global cooldown, but pure GCDs no longer display distracting fractional countdown text.
+- **Changed** — Numeric cooldown text now tracks the action's real cooldown independently of the GCD, so long cooldowns and charge recovery remain readable without turning every GCD into a `0.x` timer.
+
+#### Action Bars — Edit Mode & Blizzard Frame Safety
+
+- **Fix** — Opening Blizzard Edit Mode no longer triggers protected `TargetUnit()` / `FocusUnit()` errors or secret-value failures while Blizzard refreshes Compact Party Frames.
+- **Changed** — Player/Target/Focus/Pet suppression now follows the safer modern oUF roleset approach instead of reparenting Blizzard frames or forcing them hidden from secure callbacks.
+- **Fix** — `StanceBar`, `PetActionBar` and `PossessActionBar` remain Blizzard-owned for taint safety while their native presentation is filtered with the Midnight `alwaysBlocked` roleset. TomoMod's own Pet/Stance bars stay visible without duplicate Blizzard bars.
+- **Fix** — Blizzard Edit Mode no longer forces Pet/Stance/Possess preview bars back on when TomoMod owns their replacement UI.
+
+#### Action Bars — Dormancy & Performance
+
+- **New** — Bars hidden by the Secure Visibility Engine now enter a dormant visual state. Cooldown, range, usability, glow and Pet/Stance visual work is suspended while the bar is structurally hidden.
+- **Changed** — Secure keybinds remain active while a bar is dormant. When the bar becomes visible again, TomoMod performs an immediate full visual refresh so icons, cooldowns, charges, range states and glows are current on the first frame.
+
+#### Action Bars — Native Glow Engine
+
+- **New** — TomoMod now ships its own native glow engine instead of LibCustomGlow-1.0. Pixel-style, action-button, auto-cast and proc effects are handled by TomoMod with a shared animation driver and Blizzard animation groups where appropriate.
+- **Fix** — Removed the obsolete `AnimateTexCoords()` dependency that could crash proc animations on Midnight 12.1.
+- **Fix** — Conditional procs such as Monk Touch of Death now refresh from Blizzard's action-usability notifications and target changes rather than depending only on traditional proc overlay events.
+- **Fix** — Usability and mana state now take priority over range coloring. An unusable conditional ability stays dimmed instead of incorrectly turning red simply because its range state changed or no valid target existed.
+
+#### Action Bars — Secure Paging
+
+- **New** — Action Bar 1 can securely page from Alt, Shift or Ctrl modifiers and from Friendly or Hostile Target conditions, with selectable destinations from Action Bar 1 through Action Bar 8.
+- **New** — Automatic form/stance paging and automatic Skyriding paging can each be disabled independently.
+- **Changed** — Paging priority has been rebuilt so Vehicle/Override/Possess states remain authoritative, while manual page changes and configured modifier pages are no longer swallowed by form or Skyriding states.
+- **Fix** — Paging configuration changed during combat is deferred and rebuilt safely after combat rather than attempting to replace secure drivers while protected.
+
+#### Validation
+
+- **Tested** — Secure Visibility, GCD display, dormant bars, native glows, Touch of Death conditional usability, Blizzard Edit Mode, Pet/Stance/Possess suppression and secure paging were tested in game without new ActionBar taint errors.
+- **Tested** — Blizzard Edit Mode opens cleanly after the taint hardening, including group/Compact Party Frame refreshes that previously reproduced `TargetUnit()`, `FocusUnit()` and secret health-color errors.
+
+## ####################################
+
 ## CHANGELOG 3.5.8 — Action Bars: Midnight 12.1 Reliability, Faster Input, Native Range Updates & Taint Hardening
 
 #### Action Bars — Input & Combat Responsiveness

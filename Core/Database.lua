@@ -308,6 +308,8 @@ TomoMod_Defaults = {
             bar1 = {
                 enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
                 visibilityMode = "always", visibilityCustom = "",
+                paging = { alt = 0, shift = 0, ctrl = 0, help = 0, harm = 0 },
+                disableFormPaging = false, disableSkyridingPaging = false,
                 hidePageArrow = true,
                 ownedPosition = nil,
                 ownedLayout = {

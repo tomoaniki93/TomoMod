@@ -3356,6 +3356,18 @@ TomoMod_RegisterLocale("enUS", {
     -- =====================
     -- 3.5.8 — What's New
     -- =====================
+    -- What's New 3.5.9
+    ["wn_359_visibility"] = "New — Action bars now have a Secure Visibility Engine with combat-safe rules for combat state, group type, instances, mounts, targets, hidden mode and custom secure conditions.",
+    ["wn_359_gcd"] = "Changed — GCD swipes stay visible where they belong, but pure GCDs no longer show noisy fractional countdown text; numeric text is reserved for the action’s real cooldown.",
+    ["wn_359_editmode"] = "Fix — Blizzard Edit Mode now opens without the protected TargetUnit/FocusUnit errors or Compact Party Frame secret-value failures that could previously be attributed to TomoMod.",
+    ["wn_359_dormancy"] = "New — Securely hidden bars now go dormant and stop doing unnecessary visual work. Keybinds remain active, and the bar performs a full refresh the instant it becomes visible again.",
+    ["wn_359_nativeglow"] = "New — TomoMod now uses its own native glow engine instead of LibCustomGlow, removing the obsolete AnimateTexCoords crash path and centralizing proc animation work.",
+    ["wn_359_conditional"] = "Fix — Conditional abilities such as Monk Touch of Death now refresh usability and proc state from Blizzard’s action notifications. Unusable abilities stay dimmed instead of being incorrectly overridden by red range coloring.",
+    ["wn_359_specialbars"] = "Fix — Blizzard Pet, Stance and Possess bars stay fully Blizzard-owned for taint safety but are filtered with the 12.1 alwaysBlocked roleset, preventing duplicate native bars without bringing the Edit Mode errors back.",
+    ["wn_359_paging"] = "New — Secure Paging for Action Bar 1 adds Alt/Shift/Ctrl pages, Friendly/Hostile Target pages, optional form paging and optional Skyriding paging, all configurable from TomoMod_Options.",
+    ["wn_359_priority"] = "Changed — Paging priority now keeps Vehicle/Override/Possess authoritative while manual and modifier pages take precedence over automatic form or Skyriding pages when appropriate.",
+    ["wn_359_validation"] = "Tested — Visibility, GCD display, dormant bars, native glows, conditional usability, Edit Mode, Pet/Stance/Possess suppression and secure paging were validated in game without new ActionBar taint errors.",
+
     ["wn_358_input"] = "Fix — Action bar input is now consistently immediate: interrupts, instant abilities, GCD/off-GCD actions, rapid key spam and Shift/Ctrl binds no longer inherit the delayed keybind behavior seen before this update.",
     ["wn_358_state"] = "Fix — Moving, replacing or clearing an action, changing specialization or talents, paging, forms, vehicles and skyriding now refresh the affected buttons cleanly without stale icons, cooldowns, glows, grey states or charge counts.",
     ["wn_358_range"] = "Changed — Midnight 12.1 range coloring now uses Blizzard’s native action-range notifications, while mana/usability updates are event-driven. The old periodic scan is kept only as a compatibility fallback.",
@@ -3687,5 +3699,25 @@ TomoMod_RegisterLocale("enUS", {
     ["Hidden"] = "Hidden",
     ["Custom Condition"] = "Custom Condition",
     ["Securely show or hide this bar based on game state. These rules keep working in combat without normal Lua Show/Hide calls."] = "Securely show or hide this bar based on game state. These rules keep working in combat without normal Lua Show/Hide calls.",
+
+    -- ActionBars: Secure Paging
+    ["Secure Paging"] = "Secure Paging",
+    ["Securely switch Action Bar 1 by modifier, target, form, skyriding, or manual page. Vehicle and override pages always keep priority."] = "Securely switch Action Bar 1 by modifier, target, form, skyriding, or manual page. Vehicle and override pages always keep priority.",
+    ["Alt Modifier Page"] = "Alt Modifier Page",
+    ["Shift Modifier Page"] = "Shift Modifier Page",
+    ["Ctrl Modifier Page"] = "Ctrl Modifier Page",
+    ["Friendly Target Page"] = "Friendly Target Page",
+    ["Hostile Target Page"] = "Hostile Target Page",
+    ["Disable Automatic Form Paging"] = "Disable Automatic Form Paging",
+    ["Disable Automatic Skyriding Paging"] = "Disable Automatic Skyriding Paging",
+    ["Default (no page switch)"] = "Default (no page switch)",
+    ["Action Bar 1"] = "Action Bar 1",
+    ["Action Bar 2"] = "Action Bar 2",
+    ["Action Bar 3"] = "Action Bar 3",
+    ["Action Bar 4"] = "Action Bar 4",
+    ["Action Bar 5"] = "Action Bar 5",
+    ["Action Bar 6"] = "Action Bar 6",
+    ["Action Bar 7"] = "Action Bar 7",
+    ["Action Bar 8"] = "Action Bar 8",
 
 })

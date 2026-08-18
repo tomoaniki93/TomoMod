@@ -31,6 +31,14 @@ local function RefreshFade()
     if type(_G.TUI_RefreshActionBarFade) == "function" then _G.TUI_RefreshActionBarFade() end
 end
 
+local function RefreshPaging()
+    if type(_G.TUI_RefreshActionBarsPaging) == "function" then
+        _G.TUI_RefreshActionBarsPaging()
+    else
+        Refresh()
+    end
+end
+
 local function RefreshVisibility(barKey)
     if type(_G.TUI_RefreshActionBarsVisibility) == "function" then
         _G.TUI_RefreshActionBarsVisibility(barKey)
@@ -89,6 +97,18 @@ local FLASH_MODES = {
 local ORIENTATIONS = {
     { value = "horizontal", text = "Horizontale" },
     { value = "vertical",   text = "Verticale" },
+}
+
+local PAGING_PAGES = {
+    { value = 0,  text = L["Default (no page switch)"] },
+    { value = 1,  text = L["Action Bar 1"] },
+    { value = 6,  text = L["Action Bar 2"] },
+    { value = 5,  text = L["Action Bar 3"] },
+    { value = 3,  text = L["Action Bar 4"] },
+    { value = 4,  text = L["Action Bar 5"] },
+    { value = 13, text = L["Action Bar 6"] },
+    { value = 14, text = L["Action Bar 7"] },
+    { value = 15, text = L["Action Bar 8"] },
 }
 
 local VISIBILITY_MODES = {
@@ -463,6 +483,34 @@ local function BuildBarsTab(parent)
 
         local _, ny = CreateVisibilityConditionRow(c, bar, def.key, y) y = ny
         local _, ny = W.CreateInfoText(c, L["Securely show or hide this bar based on game state. These rules keep working in combat without normal Lua Show/Hide calls."], y) y = ny
+
+        if def.key == "bar1" then
+            if type(bar.paging) ~= "table" then
+                bar.paging = { alt = 0, shift = 0, ctrl = 0, help = 0, harm = 0 }
+            end
+            local paging = bar.paging
+            local _, ny = W.CreateSectionHeader(c, L["Secure Paging"], y) y = ny
+            local _, ny = W.CreateInfoText(c, L["Securely switch Action Bar 1 by modifier, target, form, skyriding, or manual page. Vehicle and override pages always keep priority."], y) y = ny
+
+            local function SetPaging(key, value)
+                paging[key] = tonumber(value) or 0
+                RefreshPaging()
+            end
+
+            local _, ny = W.CreateDropdown(c, L["Alt Modifier Page"], PAGING_PAGES, paging.alt or 0, y, function(v) SetPaging("alt", v) end) y = ny
+            local _, ny = W.CreateDropdown(c, L["Shift Modifier Page"], PAGING_PAGES, paging.shift or 0, y, function(v) SetPaging("shift", v) end) y = ny
+            local _, ny = W.CreateDropdown(c, L["Ctrl Modifier Page"], PAGING_PAGES, paging.ctrl or 0, y, function(v) SetPaging("ctrl", v) end) y = ny
+            local _, ny = W.CreateDropdown(c, L["Friendly Target Page"], PAGING_PAGES, paging.help or 0, y, function(v) SetPaging("help", v) end) y = ny
+            local _, ny = W.CreateDropdown(c, L["Hostile Target Page"], PAGING_PAGES, paging.harm or 0, y, function(v) SetPaging("harm", v) end) y = ny
+            local _, ny = W.CreateCheckbox(c, L["Disable Automatic Form Paging"], bar.disableFormPaging == true, y, function(v)
+                bar.disableFormPaging = v and true or false
+                RefreshPaging()
+            end) y = ny
+            local _, ny = W.CreateCheckbox(c, L["Disable Automatic Skyriding Paging"], bar.disableSkyridingPaging == true, y, function(v)
+                bar.disableSkyridingPaging = v and true or false
+                RefreshPaging()
+            end) y = ny
+        end
 
         -- Pet and stance go through the same LayoutNativeButtons path as the
         -- eight action bars, so they take the same layout keys. Only the

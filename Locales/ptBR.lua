@@ -3304,6 +3304,18 @@ TomoMod_RegisterLocale("ptBR", {
     -- =====================
     -- 3.5.8 — Novidades
     -- =====================
+    -- What's New 3.5.9
+    ["wn_359_visibility"] = "Novo — As barras de ação agora têm um Motor de Visibilidade Segura com regras compatíveis com combate para estado de combate, tipo de grupo, instâncias, montarias, alvos, modo oculto e condições seguras personalizadas.",
+    ["wn_359_gcd"] = "Alteração — O swipe do GCD continua visível onde deve, mas um GCD puro não mostra mais uma contagem fracionária poluída; o texto numérico fica reservado para a recarga real da ação.",
+    ["wn_359_editmode"] = "Correção — O Modo de Edição da Blizzard agora abre sem os erros protegidos TargetUnit/FocusUnit ou as falhas de valores secretos dos quadros compactos de grupo que antes podiam ser atribuídas ao TomoMod.",
+    ["wn_359_dormancy"] = "Novo — Barras ocultadas de forma segura agora entram em repouso e deixam de fazer trabalho visual desnecessário. Os atalhos continuam ativos e a barra faz uma atualização completa assim que volta a aparecer.",
+    ["wn_359_nativeglow"] = "Novo — O TomoMod agora usa seu próprio motor de brilhos nativo em vez do LibCustomGlow, removendo o antigo caminho de erro AnimateTexCoords e centralizando as animações de proc.",
+    ["wn_359_conditional"] = "Correção — Habilidades condicionais como Toque da Morte do Monge agora atualizam usabilidade e proc pelas notificações de ação da Blizzard. Uma habilidade inutilizável permanece escurecida em vez de ser substituída incorretamente pelo vermelho de alcance.",
+    ["wn_359_specialbars"] = "Correção — As barras de ajudante, postura e possessão da Blizzard permanecem totalmente sob controle da Blizzard para segurança contra taint, mas são filtradas com o roleset alwaysBlocked do 12.1, evitando barras nativas duplicadas sem trazer de volta os erros do Modo de Edição.",
+    ["wn_359_paging"] = "Novo — O Paging Seguro da Barra de Ação 1 adiciona páginas Alt/Shift/Ctrl, páginas para Alvo Amigável/Hostil e paging opcional de formas e voo dinâmico, tudo configurável no TomoMod_Options.",
+    ["wn_359_priority"] = "Alteração — A prioridade do paging mantém Veículo/Override/Possessão como estados principais, enquanto páginas manuais e por modificador têm prioridade sobre páginas automáticas de forma ou voo dinâmico quando apropriado.",
+    ["wn_359_validation"] = "Testado — Visibilidade, GCD, barras em repouso, brilhos nativos, usabilidade condicional, Modo de Edição, supressão de Pet/Postura/Possessão e paging seguro foram validados em jogo sem novos erros de taint nas ActionBars.",
+
     ["wn_358_input"] = "Correção — A entrada das barras de ação agora responde imediatamente: interrupções, habilidades instantâneas, ações com/sem GCD, spam rápido de teclas e atalhos com Shift/Ctrl não sofrem mais o atraso percebido anteriormente.",
     ["wn_358_state"] = "Correção — Mover, substituir ou limpar uma ação, trocar especialização ou talentos, página, forma, veículo ou voo dinâmico agora atualiza os botões corretamente, sem ícones, recargas, brilhos, estados cinza ou cargas antigas.",
     ["wn_358_range"] = "Alteração — No Midnight 12.1, a coloração de alcance agora usa as notificações nativas da Blizzard, enquanto mana e usabilidade são atualizados por eventos. A varredura periódica antiga permanece apenas como fallback de compatibilidade.",
@@ -3632,5 +3644,25 @@ TomoMod_RegisterLocale("ptBR", {
     ["Hidden"] = "Oculto",
     ["Custom Condition"] = "Condição personalizada",
     ["Securely show or hide this bar based on game state. These rules keep working in combat without normal Lua Show/Hide calls."] = "Mostra ou oculta esta barra com segurança conforme o estado do jogo. As regras continuam funcionando em combate sem chamadas Lua normais de Show/Hide.",
+
+    -- ActionBars: Secure Paging
+    ["Secure Paging"] = "Paginação segura",
+    ["Securely switch Action Bar 1 by modifier, target, form, skyriding, or manual page. Vehicle and override pages always keep priority."] = "Alterne com segurança a Barra de Ações 1 por modificador, alvo, forma, voo dinâmico ou página manual. As páginas de veículo e substituição sempre têm prioridade.",
+    ["Alt Modifier Page"] = "Página com Alt",
+    ["Shift Modifier Page"] = "Página com Shift",
+    ["Ctrl Modifier Page"] = "Página com Ctrl",
+    ["Friendly Target Page"] = "Página com alvo amistoso",
+    ["Hostile Target Page"] = "Página com alvo hostil",
+    ["Disable Automatic Form Paging"] = "Desativar paginação automática de formas",
+    ["Disable Automatic Skyriding Paging"] = "Desativar paginação automática do voo dinâmico",
+    ["Default (no page switch)"] = "Padrão (sem troca de página)",
+    ["Action Bar 1"] = "Barra de Ações 1",
+    ["Action Bar 2"] = "Barra de Ações 2",
+    ["Action Bar 3"] = "Barra de Ações 3",
+    ["Action Bar 4"] = "Barra de Ações 4",
+    ["Action Bar 5"] = "Barra de Ações 5",
+    ["Action Bar 6"] = "Barra de Ações 6",
+    ["Action Bar 7"] = "Barra de Ações 7",
+    ["Action Bar 8"] = "Barra de Ações 8",
 
 })

@@ -3316,6 +3316,18 @@ TomoMod_RegisterLocale("deDE", {
     -- =====================
     -- 3.5.8 — Was ist neu
     -- =====================
+    -- What's New 3.5.9
+    ["wn_359_visibility"] = "Neu — Aktionsleisten besitzen jetzt eine sichere Sichtbarkeits-Engine mit kampfsicheren Regeln für Kampfstatus, Gruppentyp, Instanzen, Reittiere, Ziele, den Modus Versteckt und eigene sichere Bedingungen.",
+    ["wn_359_gcd"] = "Geändert — Der GCD-Swipe bleibt sichtbar, wo er hingehört, aber ein reiner GCD zeigt keinen störenden Sekundenbruchteil-Countdown mehr; Zahlen sind dem echten Cooldown der Aktion vorbehalten.",
+    ["wn_359_editmode"] = "Fehlerbehebung — Blizzards Bearbeitungsmodus öffnet sich jetzt ohne die geschützten TargetUnit-/FocusUnit-Fehler oder Secret-Value-Fehler der kompakten Gruppenframes, die zuvor TomoMod zugeschrieben wurden.",
+    ["wn_359_dormancy"] = "Neu — Sicher ausgeblendete Leisten wechseln jetzt in einen Ruhemodus und stellen unnötige visuelle Arbeit ein. Tastenkürzel bleiben aktiv und die Leiste wird sofort vollständig aktualisiert, sobald sie wieder sichtbar wird.",
+    ["wn_359_nativeglow"] = "Neu — TomoMod verwendet jetzt eine eigene native Glow-Engine anstelle von LibCustomGlow. Dadurch entfällt der veraltete AnimateTexCoords-Absturzpfad und Proc-Animationen werden zentral verwaltet.",
+    ["wn_359_conditional"] = "Fehlerbehebung — Bedingte Fähigkeiten wie Berührung des Todes des Mönchs aktualisieren Verwendbarkeit und Proc-Status jetzt über Blizzards Aktionsmeldungen. Nicht verwendbare Fähigkeiten bleiben abgedunkelt, statt fälschlich von der roten Reichweitenfarbe überschrieben zu werden.",
+    ["wn_359_specialbars"] = "Fehlerbehebung — Blizzards Begleiter-, Haltungs- und Besitzleisten bleiben für Taint-Sicherheit vollständig unter Blizzard-Kontrolle, werden aber mit dem 12.1-Roleset alwaysBlocked gefiltert. Dadurch erscheinen keine doppelten nativen Leisten und die Edit-Mode-Fehler kehren nicht zurück.",
+    ["wn_359_paging"] = "Neu — Sicheres Paging für Aktionsleiste 1 bietet Alt-/Shift-/Strg-Seiten, Seiten für freundliche/feindliche Ziele sowie optionales Form- und Skyriding-Paging, alles in TomoMod_Options konfigurierbar.",
+    ["wn_359_priority"] = "Geändert — Die Paging-Priorität hält Fahrzeug/Override/Besitz weiterhin an erster Stelle, während manuelle und Modifikator-Seiten bei Bedarf vor automatischen Form- oder Skyriding-Seiten liegen.",
+    ["wn_359_validation"] = "Getestet — Sichtbarkeit, GCD-Anzeige, ruhende Leisten, native Glows, bedingte Verwendbarkeit, Bearbeitungsmodus, Unterdrückung von Pet/Haltung/Besitz und sicheres Paging wurden im Spiel ohne neue ActionBar-Taint-Fehler geprüft.",
+
     ["wn_358_input"] = "Fehlerbehebung — Eingaben auf den Aktionsleisten reagieren jetzt zuverlässig sofort: Unterbrechungen, Sofortzauber, Aktionen mit/ohne GCD, schnelles Tastenspammen sowie Shift-/Strg-Bindings haben nicht mehr die zuvor spürbare Verzögerung.",
     ["wn_358_state"] = "Fehlerbehebung — Verschieben, Ersetzen oder Leeren einer Aktion sowie Spezialisierungs-, Talent-, Seiten-, Haltungs-, Fahrzeug- und dynamische Flugwechsel aktualisieren die betroffenen Tasten jetzt ohne veraltete Symbole, Abklingzeiten, Leuchteffekte, Grauzustände oder falsche Aufladungen.",
     ["wn_358_range"] = "Änderung — Unter Midnight 12.1 nutzt die Reichweitenfärbung jetzt Blizzards native Reichweitenmeldungen; Mana und Verwendbarkeit werden ereignisgesteuert aktualisiert. Der alte periodische Scan bleibt nur als Kompatibilitäts-Fallback.",
@@ -3644,5 +3656,25 @@ TomoMod_RegisterLocale("deDE", {
     ["Hidden"] = "Ausgeblendet",
     ["Custom Condition"] = "Benutzerdefinierte Bedingung",
     ["Securely show or hide this bar based on game state. These rules keep working in combat without normal Lua Show/Hide calls."] = "Blendet diese Leiste abhängig vom Spielzustand sicher ein oder aus. Die Regeln funktionieren auch im Kampf ohne normale Lua-Show/Hide-Aufrufe.",
+
+    -- ActionBars: Secure Paging
+    ["Secure Paging"] = "Sicherer Seitenwechsel",
+    ["Securely switch Action Bar 1 by modifier, target, form, skyriding, or manual page. Vehicle and override pages always keep priority."] = "Wechselt Aktionsleiste 1 sicher nach Modifikatortaste, Ziel, Gestalt, Himmelsreiten oder manueller Seite. Fahrzeug- und Überschreibungsseiten haben immer Vorrang.",
+    ["Alt Modifier Page"] = "Seite mit Alt",
+    ["Shift Modifier Page"] = "Seite mit Umschalt",
+    ["Ctrl Modifier Page"] = "Seite mit Strg",
+    ["Friendly Target Page"] = "Seite bei freundlichem Ziel",
+    ["Hostile Target Page"] = "Seite bei feindlichem Ziel",
+    ["Disable Automatic Form Paging"] = "Automatischen Gestaltwechsel deaktivieren",
+    ["Disable Automatic Skyriding Paging"] = "Automatischen Himmelsreitwechsel deaktivieren",
+    ["Default (no page switch)"] = "Standard (kein Seitenwechsel)",
+    ["Action Bar 1"] = "Aktionsleiste 1",
+    ["Action Bar 2"] = "Aktionsleiste 2",
+    ["Action Bar 3"] = "Aktionsleiste 3",
+    ["Action Bar 4"] = "Aktionsleiste 4",
+    ["Action Bar 5"] = "Aktionsleiste 5",
+    ["Action Bar 6"] = "Aktionsleiste 6",
+    ["Action Bar 7"] = "Aktionsleiste 7",
+    ["Action Bar 8"] = "Aktionsleiste 8",
 
 })

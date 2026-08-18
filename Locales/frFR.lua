@@ -3332,6 +3332,18 @@ TomoMod_RegisterLocale("frFR", {
     -- =====================
     -- 3.5.8 — Quoi de neuf
     -- =====================
+    -- What's New 3.5.9
+    ["wn_359_visibility"] = "Nouveau — Les barres d’action disposent maintenant d’un moteur de visibilité sécurisé avec des règles compatibles combat pour l’état de combat, le type de groupe, les instances, la monture, les cibles, le mode masqué et les conditions sécurisées personnalisées.",
+    ["wn_359_gcd"] = "Changement — Le balayage du GCD reste visible là où il doit l’être, mais un GCD seul n’affiche plus de compte à rebours fractionnaire inutile ; le texte numérique est réservé au véritable temps de recharge de l’action.",
+    ["wn_359_editmode"] = "Correction — Le mode Édition de Blizzard s’ouvre désormais sans les erreurs protégées TargetUnit/FocusUnit ni les erreurs de valeurs secrètes des cadres de groupe compacts auparavant attribuées à TomoMod.",
+    ["wn_359_dormancy"] = "Nouveau — Les barres masquées de façon sécurisée passent maintenant en veille et cessent les mises à jour visuelles inutiles. Les raccourcis restent actifs et la barre effectue un rafraîchissement complet dès qu’elle redevient visible.",
+    ["wn_359_nativeglow"] = "Nouveau — TomoMod utilise désormais son propre moteur de lueurs natives à la place de LibCustomGlow, supprimant l’ancien chemin de crash AnimateTexCoords et centralisant les animations de proc.",
+    ["wn_359_conditional"] = "Correction — Les capacités conditionnelles comme Toucher mortel du Moine actualisent maintenant leur utilisabilité et leur proc depuis les notifications d’action de Blizzard. Une capacité inutilisable reste grisée au lieu d’être remplacée à tort par la couleur rouge de portée.",
+    ["wn_359_specialbars"] = "Correction — Les barres Blizzard de familier, posture et possession restent entièrement sous contrôle de Blizzard pour éviter le taint, mais sont filtrées avec le roleset alwaysBlocked de 12.1 afin d’éviter les doublons sans réintroduire les erreurs du mode Édition.",
+    ["wn_359_paging"] = "Nouveau — La pagination sécurisée de la Barre d’action 1 ajoute des pages Alt/Shift/Ctrl, des pages Cible amicale/hostile, ainsi que la pagination optionnelle des formes et du vol dynamique, le tout configurable dans TomoMod_Options.",
+    ["wn_359_priority"] = "Changement — La priorité de pagination conserve Véhicule/Override/Possession au premier plan, tandis que les pages manuelles et par modificateur passent avant les pages automatiques de forme ou de vol dynamique lorsque nécessaire.",
+    ["wn_359_validation"] = "Testé — Visibilité, affichage du GCD, mise en veille des barres, lueurs natives, utilisabilité conditionnelle, mode Édition, masquage Pet/Posture/Possession et pagination sécurisée ont été validés en jeu sans nouvelle erreur de taint ActionBar.",
+
     ["wn_358_input"] = "Correction — Les commandes des barres d’action répondent désormais immédiatement : interruptions, sorts instantanés, actions avec ou sans GCD, spam rapide et raccourcis Shift/Ctrl ne subissent plus le retard de touches observé auparavant.",
     ["wn_358_state"] = "Correction — Déplacer, remplacer ou vider une action, changer de spécialisation ou de talents, de page, de forme, de véhicule ou utiliser le vol dynamique rafraîchit maintenant correctement les boutons sans ancienne icône, recharge, lueur, état grisé ou nombre de charges incorrect.",
     ["wn_358_range"] = "Changement — Sous Midnight 12.1, la couleur de portée utilise désormais les notifications natives de Blizzard, tandis que mana et utilisabilité sont pilotés par événements. L’ancien scan périodique ne reste qu’en solution de compatibilité.",
@@ -3660,5 +3672,25 @@ TomoMod_RegisterLocale("frFR", {
     ["Hidden"] = "Masqué",
     ["Custom Condition"] = "Condition personnalisée",
     ["Securely show or hide this bar based on game state. These rules keep working in combat without normal Lua Show/Hide calls."] = "Affiche ou masque cette barre de façon sécurisée selon l’état du jeu. Ces règles continuent de fonctionner en combat sans appels Lua classiques à Show/Hide.",
+
+    -- ActionBars: Secure Paging
+    ["Secure Paging"] = "Pagination sécurisée",
+    ["Securely switch Action Bar 1 by modifier, target, form, skyriding, or manual page. Vehicle and override pages always keep priority."] = "Changez la Barre d’action 1 de façon sécurisée selon un modificateur, la cible, la forme, le vol dynamique ou la page manuelle. Les pages de véhicule et de remplacement restent toujours prioritaires.",
+    ["Alt Modifier Page"] = "Page avec Alt",
+    ["Shift Modifier Page"] = "Page avec Maj",
+    ["Ctrl Modifier Page"] = "Page avec Ctrl",
+    ["Friendly Target Page"] = "Page avec cible alliée",
+    ["Hostile Target Page"] = "Page avec cible hostile",
+    ["Disable Automatic Form Paging"] = "Désactiver la pagination automatique des formes",
+    ["Disable Automatic Skyriding Paging"] = "Désactiver la pagination automatique du vol dynamique",
+    ["Default (no page switch)"] = "Par défaut (aucun changement)",
+    ["Action Bar 1"] = "Barre d’action 1",
+    ["Action Bar 2"] = "Barre d’action 2",
+    ["Action Bar 3"] = "Barre d’action 3",
+    ["Action Bar 4"] = "Barre d’action 4",
+    ["Action Bar 5"] = "Barre d’action 5",
+    ["Action Bar 6"] = "Barre d’action 6",
+    ["Action Bar 7"] = "Barre d’action 7",
+    ["Action Bar 8"] = "Barre d’action 8",
 
 })
