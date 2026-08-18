@@ -20,6 +20,11 @@ extraBtnState = {
     extraActionMover = nil,
     zoneAbilityHolder = nil,
     zoneAbilityMover = nil,
+    zoneAbilityProxies = {},
+    zoneAbilityNativeButtons = {},
+    zoneAbilityProxyEvents = nil,
+    leaveVehicleProxy = nil,
+    leaveVehicleStateDriverInstalled = false,
     moversVisible = false,
     hookingSetPoint = false,
     extraActionSetPointHooked = false,
@@ -762,6 +767,34 @@ local function EnsureExtraActionProxy()
     return proxy
 end
 
+-- TOMOMOD P3.3.14 / Midnight 12.1:
+-- First native-visual-suppression experiment.  P3.3.10 -> P3.3.13 proved that
+-- the protected Blizzard action-bar pipeline stays clean when ExtraActionButton1
+-- is otherwise completely untouched.  Hide only its rendered presentation by
+-- changing the button alpha once, outside combat.  Do NOT Hide/Show, reparent,
+-- move, unregister events, alter attributes, replace methods/scripts, touch the
+-- cooldown, or hook the native button/frame.  The state is kept entirely in our
+-- side table so no addon field is written onto the Blizzard object.
+local function ApplyNativeExtraActionVisualSuppression(suppress)
+    if InCombatLockdown() and not inInitSafeWindow then
+        ActionBarsOwned.pendingExtraButtonRefresh = true
+        return
+    end
+
+    suppress = suppress == true
+    if extraBtnState.nativeExtraActionAlphaSuppressed == suppress then
+        return
+    end
+
+    local native = _G.ExtraActionButton1
+    if not native or type(native.SetAlpha) ~= "function" then
+        return
+    end
+
+    native:SetAlpha(suppress and 0 or 1)
+    extraBtnState.nativeExtraActionAlphaSuppressed = suppress
+end
+
 local function ApplyExtraActionProxySettings()
     if InCombatLockdown() and not inInitSafeWindow then
         ActionBarsOwned.pendingExtraButtonRefresh = true
@@ -788,21 +821,304 @@ local function ApplyExtraActionProxySettings()
         proxy:Hide()
     end
 
+    -- P3.3.14: suppress only the native Extra Action visual while the TUI proxy
+    -- is enabled.  This is intentionally the sole native mutation in this stage.
+    ApplyNativeExtraActionVisualSuppression(enabled)
     RefreshExtraActionProxyVisual()
 end
 
+
+-- TOMOMOD P3.3.12 / Midnight 12.1:
+-- Restore Zone Ability with the same zero-touch rule validated by P3.3.11.
+-- ZoneAbilityFrame and its SpellButtonContainer remain entirely Blizzard-owned.
+-- TUI creates up to three standalone secure click proxies and only READS the
+-- active native button references/icons.  We never reparent, move, skin, hook,
+-- hide, alpha-change, change attributes on, or otherwise mutate a native zone
+-- ability button/frame.
+local MAX_ZONE_ABILITY_PROXIES = 3
+
+local function CollectActiveZoneAbilityButtons()
+    local active = {}
+    local frame = _G.ZoneAbilityFrame
+    local container = frame and frame.SpellButtonContainer
+    if not container or type(container.EnumerateActive) ~= "function" then
+        return active
+    end
+
+    local ok = pcall(function()
+        for button in container:EnumerateActive() do
+            if button then
+                active[#active + 1] = button
+                if #active >= MAX_ZONE_ABILITY_PROXIES then break end
+            end
+        end
+    end)
+    if not ok then
+        wipe(active)
+    end
+    return active
+end
+
+local function GetNativeProxyTexture(native)
+    if not native then return nil end
+    local icon = native.icon or native.Icon
+    if not icon or type(icon.GetTexture) ~= "function" then return nil end
+    local ok, texture = pcall(icon.GetTexture, icon)
+    if not ok or Helpers.IsSecretValue(texture) then return nil end
+    return texture
+end
+
+local function RefreshZoneAbilityProxyVisual(index)
+    local proxy = extraBtnState.zoneAbilityProxies[index]
+    if not proxy then return end
+    local native = extraBtnState.zoneAbilityNativeButtons[index]
+    if proxy.Icon then
+        proxy.Icon:SetTexture(GetNativeProxyTexture(native) or 134400)
+    end
+end
+
+local function CreateZoneAbilityProxy(index, holder)
+    local proxy = CreateFrame("Button", "TUI_ZoneAbilityProxyButton" .. index,
+        holder, "SecureActionButtonTemplate")
+    proxy:RegisterForClicks("AnyUp", "AnyDown")
+    proxy:Hide()
+
+    local icon = proxy:CreateTexture(nil, "ARTWORK")
+    icon:SetPoint("TOPLEFT", 3, -3)
+    icon:SetPoint("BOTTOMRIGHT", -3, 3)
+    proxy.Icon = icon
+
+    local bg = proxy:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints(proxy)
+    bg:SetColorTexture(0.03, 0.03, 0.03, 0.92)
+
+    local border = CreateFrame("Frame", nil, proxy, "BackdropTemplate")
+    border:SetAllPoints(proxy)
+    ns.SkinBase.ApplyPixelBackdrop(border, 2, true, false,
+        {0.047, 0.824, 0.624, 1}, {0, 0, 0, 0})
+    border:EnableMouse(false)
+    proxy.Border = border
+
+    proxy:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Zone Ability" .. (index > 1 and (" " .. index) or ""))
+        GameTooltip:Show()
+    end)
+    proxy:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    return proxy
+end
+
+local function EnsureZoneAbilityProxies()
+    if InCombatLockdown() and not inInitSafeWindow then
+        ActionBarsOwned.pendingExtraButtonInit = true
+        return nil, nil
+    end
+
+    if not extraBtnState.zoneAbilityHolder then
+        local holder, mover = CreateExtraButtonHolder("zoneAbility", "Zone Ability")
+        extraBtnState.zoneAbilityHolder = holder
+        extraBtnState.zoneAbilityMover = mover
+    end
+
+    local holder = extraBtnState.zoneAbilityHolder
+    if not holder then return nil, nil end
+
+    for i = 1, MAX_ZONE_ABILITY_PROXIES do
+        if not extraBtnState.zoneAbilityProxies[i] then
+            extraBtnState.zoneAbilityProxies[i] = CreateZoneAbilityProxy(i, holder)
+        end
+    end
+
+    if not extraBtnState.zoneAbilityProxyEvents then
+        local events = CreateFrame("Frame")
+        events:RegisterEvent("PLAYER_ENTERING_WORLD")
+        events:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+        events:RegisterEvent("ZONE_CHANGED")
+        events:RegisterEvent("ZONE_CHANGED_INDOORS")
+        events:RegisterEvent("SPELLS_CHANGED")
+        events:RegisterEvent("QUEST_LOG_UPDATE")
+        events:SetScript("OnEvent", function()
+            if InCombatLockdown() and not inInitSafeWindow then
+                ActionBarsOwned.pendingExtraButtonRefresh = true
+                return
+            end
+            if RefreshExtraButtons then RefreshExtraButtons() end
+        end)
+        extraBtnState.zoneAbilityProxyEvents = events
+    end
+
+    return extraBtnState.zoneAbilityProxies, holder
+end
+
+-- TOMOMOD P3.3.15 / Midnight 12.1:
+-- Second native-visual-suppression experiment. P3.3.14 validated alpha-only
+-- suppression for ExtraActionButton1 without reintroducing action-bar taint.
+-- Apply the same presentation-only rule to the Zone Ability parent frame.
+-- Do NOT Hide/Show, reparent, move, unregister events, alter attributes, hook,
+-- skin, or mutate any native zone-ability button. The suppression state lives
+-- only in TomoMod's side table and is restored when the TUI proxy is disabled.
+local function ApplyNativeZoneAbilityVisualSuppression(suppress)
+    if InCombatLockdown() and not inInitSafeWindow then
+        ActionBarsOwned.pendingExtraButtonRefresh = true
+        return
+    end
+
+    suppress = suppress == true
+    if extraBtnState.nativeZoneAbilityAlphaSuppressed == suppress then
+        return
+    end
+
+    local native = _G.ZoneAbilityFrame
+    if not native or type(native.SetAlpha) ~= "function" then
+        return
+    end
+
+    native:SetAlpha(suppress and 0 or 1)
+    extraBtnState.nativeZoneAbilityAlphaSuppressed = suppress
+end
+
+local function ApplyZoneAbilityProxySettings()
+    if InCombatLockdown() and not inInitSafeWindow then
+        ActionBarsOwned.pendingExtraButtonRefresh = true
+        return
+    end
+
+    local settings = GetExtraButtonDB("zoneAbility")
+    local proxies, holder = EnsureZoneAbilityProxies()
+    if not proxies or not holder then return end
+
+    local enabled = settings and settings.enabled == true
+    local scale = tonumber(settings and settings.scale) or 1
+    if scale <= 0 then scale = 1 end
+
+    local active = enabled and CollectActiveZoneAbilityButtons() or {}
+    local count = math.min(#active, MAX_ZONE_ABILITY_PROXIES)
+    local buttonSize = 64 * scale
+    local spacing = 4 * scale
+    local visibleWidth = count > 0 and (count * buttonSize + (count - 1) * spacing) or buttonSize
+
+    holder:SetSize(math.max(visibleWidth, 64), math.max(buttonSize, 64))
+    ApplyExtraButtonFrameAnchor("zoneAbility")
+
+    wipe(extraBtnState.zoneAbilityNativeButtons)
+
+    for i = 1, MAX_ZONE_ABILITY_PROXIES do
+        local proxy = proxies[i]
+        local native = active[i]
+
+        proxy:ClearAllPoints()
+        proxy:SetSize(buttonSize, buttonSize)
+        proxy:SetPoint("LEFT", holder, "LEFT", (i - 1) * (buttonSize + spacing), 0)
+
+        if enabled and native then
+            extraBtnState.zoneAbilityNativeButtons[i] = native
+            proxy:SetAttribute("type", "click")
+            proxy:SetAttribute("clickbutton", native)
+            RefreshZoneAbilityProxyVisual(i)
+            proxy:Show()
+        else
+            proxy:SetAttribute("clickbutton", nil)
+            proxy:SetAttribute("type", nil)
+            proxy:Hide()
+            RefreshZoneAbilityProxyVisual(i)
+        end
+    end
+
+    -- P3.3.15: suppress only the native Zone Ability presentation while its
+    -- independent TUI proxy is enabled. This is the sole new native mutation.
+    ApplyNativeZoneAbilityVisualSuppression(enabled)
+end
+
+-- TOMOMOD P3.3.13 / Midnight 12.1:
+-- Restore the Leave Vehicle control without touching Blizzard's native leave
+-- buttons at all. SecureTemplates exposes a native "leavevehicle" secure action
+-- whose protected handler calls VehicleExit(). This button is owned entirely by
+-- TomoMod, parented to UIParent and shown by a secure [vehicleui] state driver.
+-- MainMenuBarVehicleLeaveButton / OverrideActionBar.LeaveButton remain untouched.
+local function EnsureLeaveVehicleProxy()
+    if extraBtnState.leaveVehicleProxy then
+        return extraBtnState.leaveVehicleProxy
+    end
+    if InCombatLockdown() and not inInitSafeWindow then
+        ActionBarsOwned.pendingExtraButtonInit = true
+        return nil
+    end
+
+    local proxy = CreateFrame("Button", "TUI_LeaveVehicleProxyButton", UIParent,
+        "SecureActionButtonTemplate")
+    proxy:SetSize(40, 40)
+    proxy:SetFrameStrata("HIGH")
+    proxy:RegisterForClicks("AnyUp", "AnyDown")
+    proxy:SetAttribute("type", "leavevehicle")
+
+    local anchor = ActionBarsOwned.containers and ActionBarsOwned.containers.bar1
+    if anchor then
+        proxy:SetPoint("BOTTOM", anchor, "TOP", 0, 8)
+    else
+        proxy:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 180)
+    end
+
+    local normal = proxy:CreateTexture(nil, "ARTWORK")
+    normal:SetAllPoints(proxy)
+    normal:SetTexture([[Interface\Vehicles\UI-Vehicles-Button-Exit-Up]])
+    normal:SetTexCoord(0.140625, 0.859375, 0.140625, 0.859375)
+    proxy:SetNormalTexture(normal)
+
+    local pushed = proxy:CreateTexture(nil, "ARTWORK")
+    pushed:SetAllPoints(proxy)
+    pushed:SetTexture([[Interface\Vehicles\UI-Vehicles-Button-Exit-Down]])
+    pushed:SetTexCoord(0.140625, 0.859375, 0.140625, 0.859375)
+    proxy:SetPushedTexture(pushed)
+
+    local highlight = proxy:CreateTexture(nil, "HIGHLIGHT")
+    highlight:SetAllPoints(proxy)
+    highlight:SetTexture([[Interface\Buttons\ButtonHilight-Square]])
+    highlight:SetBlendMode("ADD")
+    proxy:SetHighlightTexture(highlight)
+
+    proxy:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(LEAVE_VEHICLE or "Leave Vehicle")
+        GameTooltip:Show()
+    end)
+    proxy:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    extraBtnState.leaveVehicleProxy = proxy
+    return proxy
+end
+
+local function ApplyLeaveVehicleProxySettings()
+    if InCombatLockdown() and not inInitSafeWindow then
+        ActionBarsOwned.pendingExtraButtonRefresh = true
+        return
+    end
+
+    local proxy = EnsureLeaveVehicleProxy()
+    if not proxy then return end
+
+    if not extraBtnState.leaveVehicleStateDriverInstalled then
+        RegisterStateDriver(proxy, "visibility", "[vehicleui] show; hide")
+        extraBtnState.leaveVehicleStateDriverInstalled = true
+    end
+end
+
 InitializeExtraButtons = function()
-    -- P3.3.11 stage 1: only the independent Extra Action proxy is restored.
-    -- ZoneAbilityFrame remains 100% Blizzard-owned and untouched until this
-    -- stage has been validated in combat.
+    -- P3.3.13 stage 3: Extra Action, Zone Ability and Leave Vehicle are all
+    -- independent secure controls. Their Blizzard originals remain 100%
+    -- native-owned and untouched.
     ActionBarsOwned.pendingExtraButtonInit = false
     ActionBarsOwned.pendingExtraButtonRefresh = false
     ApplyExtraActionProxySettings()
+    ApplyZoneAbilityProxySettings()
+    ApplyLeaveVehicleProxySettings()
 end
 
 RefreshExtraButtons = function()
     ActionBarsOwned.pendingExtraButtonRefresh = false
     ApplyExtraActionProxySettings()
+    ApplyZoneAbilityProxySettings()
+    ApplyLeaveVehicleProxySettings()
 end
 
 _G.TUI_ToggleExtraButtonMovers = ToggleExtraButtonMovers

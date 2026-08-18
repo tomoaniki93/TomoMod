@@ -591,8 +591,12 @@ do
             label = ns.L["Leave Vehicle"],
             group = ns.L["Action Bars"],
             order = 13,
+            isOwned = true,
             getFrame = function()
-                return _G.MainMenuBarVehicleLeaveButton
+                -- TOMOMOD P3.3.13: never expose Blizzard's protected native leave
+                -- button to our layout layer; return only the TomoMod-owned proxy.
+                return ActionBarsOwned.extraBtnState
+                    and ActionBarsOwned.extraBtnState.leaveVehicleProxy
             end,
         })
 
