@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- enUS.lua — English (default fallback)
 -- =====================================
 
@@ -3353,6 +3353,20 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_diag_settle"] = "Diagnostics: the scale the game applies for itself while you log in was recorded in every report as a mid-session rescale. The display capture now waits four seconds for the client to settle before taking a reading, so the only scale entry left in a report is one that actually needs explaining.",
     ["wn_333_diag_mode"] = "Diagnostics: when the report cannot work out your display mode it now prints the raw values the game gave it instead of a bare question mark — those setting names change between expansions, and a '?' on its own could not be diagnosed without asking you for more. Windowed-fullscreen and maximized windows are recognised in more cases, and addon versions no longer read 'vv1.2.3'.",
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
+    -- =====================
+    -- 3.5.8 — What's New
+    -- =====================
+    ["wn_358_input"] = "Fix — Action bar input is now consistently immediate: interrupts, instant abilities, GCD/off-GCD actions, rapid key spam and Shift/Ctrl binds no longer inherit the delayed keybind behavior seen before this update.",
+    ["wn_358_state"] = "Fix — Moving, replacing or clearing an action, changing specialization or talents, paging, forms, vehicles and skyriding now refresh the affected buttons cleanly without stale icons, cooldowns, glows, grey states or charge counts.",
+    ["wn_358_range"] = "Changed — Midnight 12.1 range coloring now uses Blizzard’s native action-range notifications, while mana/usability updates are event-driven. The old periodic scan is kept only as a compatibility fallback.",
+    ["wn_358_glowflyout"] = "Fix — Proc glows now follow transformed/base spell relationships more reliably, stale glows are cleaned up, and flyouts opened from mouseover-faded bars stay visible and return to normal fading when closed.",
+    ["wn_358_taintstate"] = "Internal — Custom bookkeeping that used to live directly on Blizzard-owned frames has moved into external weak tables, reducing the amount of addon state attached to protected UI objects.",
+    ["wn_358_registry"] = "Fix — TomoMod action buttons are isolated from Blizzard’s native action-button registries and broadcasters where needed, preventing the game’s controller from running retired native buttons through tainted update paths.",
+    ["wn_358_secretcooldown"] = "Fix — Combat could flood the error log when Blizzard tried to apply unreadable secret cooldown values to retired native action buttons. Those broadcaster paths are now isolated and no longer generate the repeated cooldown errors.",
+    ["wn_358_stancepossess"] = "Fix — StanceBar and PossessActionBar are now left fully under Blizzard’s control. This removes the protected MainActionBar error that could be reproduced by summoning a temporary Monk companion during combat.",
+    ["wn_358_blizzbars"] = "Fix — Blizzard’s standard action bars are hidden again through the safe 12.1 visual-suppression path, leaving only TomoMod’s bars visible without reintroducing the controller taint.",
+    ["wn_358_validation"] = "Tested — The rebuilt action-bar path has been validated through intensive combat, reloads, talents/spec changes, forms, vehicles, skyriding, transforming spells, charges, flyouts, proc glows and the Monk companion transition with no ActionBar errors observed.",
+
 
     -- =====================
     -- 3.5.7 — What's New

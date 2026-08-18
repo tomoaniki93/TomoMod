@@ -1,3 +1,44 @@
+﻿## ####################################
+
+## CHANGELOG 3.5.8 — Action Bars: Midnight 12.1 Reliability, Faster Input, Native Range Updates & Taint Hardening
+
+#### Action Bars — Input & Combat Responsiveness
+
+- **Fix** — Action bar keybinds now fire on key-down consistently, removing the delayed or "sticky" feeling that could make interrupts, instant abilities and modifier binds react late.
+- **Fix** — The secure action path was tightened so interrupts, GCD abilities, off-GCD abilities, rapid key spam, Shift/Ctrl binds and stance/form changes stay responsive in combat.
+- **Fix** — Invisible or retired Blizzard action-bar elements can no longer sit over TomoMod bars and steal mouse clicks.
+
+#### Action Bars — State, Cooldowns & Transforming Spells
+
+- **Fix** — Slot changes now refresh the affected TomoMod buttons immediately when a spell is moved, replaced, removed or restored.
+- **Fix** — Specialization, talent/loadout, paging, stance/form, vehicle and skyriding transitions now invalidate stale button state instead of leaving an old icon, cooldown, glow, greyed state or charge count behind.
+- **Fix** — Charge-based and transforming abilities now refresh their cooldown/charge state reliably after the action changes underneath the button.
+
+#### Action Bars — Range & Usability
+
+- **Changed** — On Midnight 12.1, range coloring now uses Blizzard's native action-range update path instead of continuously scanning every action button from Lua.
+- **Changed** — Mana/usability coloring is now event-driven. A lightweight polling fallback remains only for clients where the native range API is unavailable.
+- **Fix** — Range and usability updates are targeted to the affected buttons, reducing unnecessary work during combat without making range feedback less responsive.
+
+#### Action Bars — Proc Glows, Flyouts & Mouseover
+
+- **Fix** — Proc glows now follow base spells and transformed/override versions more reliably, and stale glows are cleaned up when a proc ends or an action changes.
+- **Fix** — Opening a flyout from a mouseover-faded bar now reveals the source bar correctly instead of allowing an interactive flyout to inherit a fully transparent state.
+- **Fix** — Closing the flyout correctly returns the bar to its normal mouseover/fade behavior.
+
+#### Action Bars — Midnight 12.1 Taint Hardening
+
+- **Fix** — Removed several custom state markers from Blizzard-owned frames and moved that bookkeeping into external weak tables, reducing the chance of contaminating protected UI objects.
+- **Fix** — TomoMod's custom action buttons are detached from Blizzard's internal action-button registries where appropriate, preventing Blizzard's controller from treating addon-owned buttons as native ones.
+- **Fix** — Blizzard action-button broadcasters are isolated from retired native buttons, eliminating repeated secret-value cooldown errors that could flood the error log in combat.
+- **Fix** — `StanceBar` and `PossessActionBar` are now left under Blizzard's ownership. This resolves the protected `MainActionBar:SetAttribute()` error that could occur in combat when a Monk summoned a temporary companion/pet.
+- **Fix** — Blizzard's standard action bars are hidden again using the safe visual-suppression path validated against the 12.1 controller, while TomoMod's own bars remain visible and functional.
+
+#### Validation
+
+- **Tested** — Reloads, specialization and talent changes, moving/replacing/clearing actions, charges, transforming spells, Druid forms, vehicles/skyriding, conditional macros, mana states, range changes, proc glows, flyouts, rapid key spam and modifier binds were tested without stale action states.
+- **Tested** — Intensive combat testing, including the Monk companion/pet transition that previously reproduced the protected-action error, completed without ActionBar taint errors.
+
 ## ####################################
 
 ## CHANGELOG 3.5.7 — Hide Talking Head Only Half-Worked Because The Frame Manages Its Own Visibility: `TalkingHeadFrameMixin` Shows Itself Whenever `isPlaying` Is Still True, So An `OnShow` Hook That Merely Called `Hide()` Left `isPlaying` Set, The Finish Timer Running And The Voiceover Playing — And Skipped Every Line After The First In A Multi-Line Talking Head, Since `PlayCurrent()` Never Calls `Show()` Once The Frame Is Already Visible. TomoMod Now Hooks `PlayCurrent()` Directly, The One Entry Point Every Line Actually Runs Through, And Calls Blizzard's Own `CloseImmediately()` — Which Clears `isPlaying`, Cancels The Finish Timer, Tells The Game To Ignore The Current Talking Head, And Hides The Frame The Way Blizzard Itself Does — Then Sweeps The Voiceover Sound A Tick Later In Case `StopSound()` Was Ignored For Firing In The Same Frame As The `PlaySound()` That Started It; And The Queue Status Eye's Moved Position Was Silently Discarded On Every Login Because Its Defaults Table Entry Was Never Added When The Anchor Was Introduced, So `FrameAnchors`' Own Save Guard (`if db and db[def.key] then`) Skipped Writing The New Position Every Single Drag — With The Missing Entry Restored, The Save Path Now Creating It On The Fly For Anyone Still Missing It, And The Blind Corner Offset It Defaulted To, Which Landed Off-Screen Entirely On An Ultrawide Monitor, Replaced With A Spot Beside The Minimap Where The Eye Actually Lives; And, Because `QueueStatusButton` Is Itself A Child Of That Same Native Micro Menu Container, Hiding The Blizzard Micro Menu Took The Group Finder Eye Down With It — Leaving No Queue Status Visible At All While Queued For Anything — So It Is Now Reparented To `UIParent` The Moment TomoMod Owns The Micro Menu, Placed Through The Very Same `queueStatus` Anchor Rather Than A Second Competing `SetPoint`, And Given Its Own Enable Toggle And Size Slider; And, Reported Live From A Player On A Midnight PTR Build, `GetUnitRole`'s Existing `issecretvalue()` Guard Still Let A Secret Role String Reach A Direct Comparison On Nameplates — The Comparison Itself Is Now Also Wrapped In `pcall`, So An Undetected Secret Fails Closed Instead Of Throwing All The Way Up Through The Nameplate Update; And, From The Same Kind Of Report, Hundreds Of Blocked `SetCooldown` Calls Traced Back To Every Skinned Action Bar Button Carrying TomoMod's Taint The Same Way The Override Bar Already Did, So Blizzard's Own Cooldown Updates Started Rejecting Secret Values On Them Too — Now Skipped Outright Rather Than Attempted, Covering All Three Cooldown Widgets A Button Can Carry And Installed Unconditionally Rather Than Behind The Cosmetic Skin Toggle That Was Quietly Excluding Whole Bars From It, With A Sibling Fix Silencing The Rarer Case Of Blizzard's Own Controller Trying To Reshow A Retired Bar Mid-Transition; And The Square Minimap's Mail Icon Threw `attempt to call a nil value` On Every New-Mail Update Because Reparenting It Broke Its Own Blizzard Event Handler's Closing `self:GetParent():Layout()` Call — Now Absorbed By A Harmless No-Op Stub Since TomoMod Positions It Itself; And Diagnostics Now Optionally Backs Itself Up Against `!BugGrabber`, Backfilling And Then Staying Subscribed To Whatever It Catches, For Players Who Also Run It

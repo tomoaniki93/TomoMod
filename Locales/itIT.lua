@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- itIT.lua — Italiano
 -- =====================================
 
@@ -3301,6 +3301,20 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_333_diag_settle"] = "Diagnostica: la scala che il gioco applica da sé durante l'accesso finiva in ogni rapporto come un ridimensionamento a metà sessione. La rilevazione dello schermo attende ora quattro secondi che il client si stabilizzi prima di effettuare una lettura, così l'unica voce di scala rimasta in un rapporto è quella che merita davvero una spiegazione.",
     ["wn_333_diag_mode"] = "Diagnostica: quando il rapporto non riesce a determinare la modalità di visualizzazione, ora stampa i valori grezzi forniti dal gioco anziché un semplice punto interrogativo — quei nomi di impostazione cambiano da un'espansione all'altra, e un «?» da solo non era diagnosticabile senza tornare a chiedertelo. Lo schermo intero in finestra e le finestre massimizzate vengono riconosciuti in più casi, e le versioni dei componenti aggiuntivi non compaiono più come «vv1.2.3».",
     ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
+    -- =====================
+    -- 3.5.8 — Novità
+    -- =====================
+    ["wn_358_input"] = "Correzione — L’input delle barre delle azioni ora risponde sempre subito: interrupt, abilità istantanee, azioni con/senza GCD, pressione rapida dei tasti e combinazioni Shift/Ctrl non subiscono più il ritardo percepito in precedenza.",
+    ["wn_358_state"] = "Correzione — Spostare, sostituire o svuotare un’azione, cambiare specializzazione o talenti, pagina, forma, veicolo o volo dinamico aggiorna correttamente i pulsanti senza vecchie icone, ricariche, bagliori, stati grigi o conteggi di cariche errati.",
+    ["wn_358_range"] = "Modifica — In Midnight 12.1, il colore della portata usa ora le notifiche native di Blizzard, mentre mana e utilizzabilità sono aggiornati tramite eventi. La vecchia scansione periodica resta solo come fallback di compatibilità.",
+    ["wn_358_glowflyout"] = "Correzione — I bagliori dei proc seguono meglio gli incantesimi base e trasformati, i bagliori obsoleti vengono rimossi e i flyout aperti da barre nascoste al passaggio del mouse restano visibili e tornano alla dissolvenza normale alla chiusura.",
+    ["wn_358_taintstate"] = "Interno — Lo stato personalizzato prima salvato direttamente sui frame Blizzard è stato spostato in weak table esterne, riducendo lo stato dell’addon collegato agli oggetti protetti.",
+    ["wn_358_registry"] = "Correzione — I pulsanti TomoMod vengono isolati dai registri e broadcaster nativi di Blizzard quando necessario, impedendo al controller di eseguire pulsanti nativi ritirati attraverso percorsi contaminati.",
+    ["wn_358_secretcooldown"] = "Correzione — In combattimento il registro poteva riempirsi di errori quando Blizzard tentava di applicare valori segreti di ricarica a pulsanti nativi ritirati. Questi percorsi sono ora isolati.",
+    ["wn_358_stancepossess"] = "Correzione — StanceBar e PossessActionBar restano completamente sotto il controllo di Blizzard. Questo elimina l’errore protetto MainActionBar riproducibile evocando un compagno temporaneo del Monaco in combattimento.",
+    ["wn_358_blizzbars"] = "Correzione — Le barre delle azioni standard di Blizzard vengono nuovamente nascoste tramite il percorso visivo sicuro validato per 12.1, lasciando visibili solo le barre TomoMod senza reintrodurre il taint del controller.",
+    ["wn_358_validation"] = "Testato — Il nuovo percorso delle barre delle azioni è stato verificato in combattimenti intensi, reload, cambi di talenti/specializzazione, forme, veicoli, volo dinamico, incantesimi trasformabili, cariche, flyout, proc e compagno del Monaco senza errori ActionBar.",
+
 
     -- =====================
     -- 3.5.7 — Novità

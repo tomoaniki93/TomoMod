@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- esES.lua — Español
 -- =====================================
 
@@ -3314,6 +3314,20 @@ TomoMod_RegisterLocale("esES", {
     ["wn_333_diag_settle"] = "Diagnóstico: la escala que el juego aplica por su cuenta durante el inicio de sesión quedaba registrada en todos los informes como un reescalado a mitad de sesión. La captura de pantalla espera ahora cuatro segundos a que el cliente se estabilice antes de tomar una lectura, de forma que la única entrada de escala que queda en un informe es la que de verdad necesita explicación.",
     ["wn_333_diag_mode"] = "Diagnóstico: cuando el informe no consigue determinar tu modo de pantalla, ahora imprime los valores en bruto que le dio el juego en lugar de un simple signo de interrogación — esos nombres de ajuste cambian de una expansión a otra, y un «?» a secas no se podía diagnosticar sin volver a preguntarte. La pantalla completa en ventana y las ventanas maximizadas se reconocen en más casos, y las versiones de los accesorios ya no aparecen como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: los marcos de grupo y de banda mantenían dos copias de las mismas 250 líneas — la lógica de invocación, la lista de sanaciones periódicas, el seguimiento de defensivos. Los tres fallos anteriores vienen de ahí: una corrección aplicada a una copia y no a la otra. Ahora comparten una única implementación.",
+    -- =====================
+    -- 3.5.8 — Novedades
+    -- =====================
+    ["wn_358_input"] = "Corrección — La entrada de las barras de acción responde ahora de forma inmediata: interrupciones, habilidades instantáneas, acciones con/sin GCD, pulsaciones rápidas y atajos con Shift/Ctrl ya no sufren el retraso de teclas anterior.",
+    ["wn_358_state"] = "Corrección — Mover, sustituir o vaciar una acción, cambiar especialización o talentos, página, forma, vehículo o vuelo dinámico actualiza correctamente los botones sin iconos, reutilizaciones, brillos, estados grises o cargas antiguas.",
+    ["wn_358_range"] = "Cambio — En Midnight 12.1, el color de alcance usa ahora las notificaciones nativas de Blizzard, mientras que maná y usabilidad se actualizan por eventos. El escaneo periódico anterior queda solo como compatibilidad.",
+    ["wn_358_glowflyout"] = "Corrección — Los brillos de proc siguen mejor los hechizos base y transformados, se limpian los brillos obsoletos y los flyouts abiertos desde barras ocultas por mouseover permanecen visibles y vuelven al desvanecido normal al cerrarse.",
+    ["wn_358_taintstate"] = "Interno — El estado personalizado que antes se guardaba directamente en marcos de Blizzard se ha movido a tablas débiles externas, reduciendo el estado del addon asociado a objetos protegidos.",
+    ["wn_358_registry"] = "Corrección — Los botones de TomoMod se aíslan de los registros y difusores nativos de Blizzard cuando es necesario, evitando que el controlador ejecute botones nativos retirados por rutas contaminadas.",
+    ["wn_358_secretcooldown"] = "Corrección — En combate, el registro podía llenarse de errores cuando Blizzard intentaba aplicar valores secretos de reutilización a botones nativos retirados. Esas rutas están ahora aisladas.",
+    ["wn_358_stancepossess"] = "Corrección — StanceBar y PossessActionBar quedan totalmente bajo control de Blizzard. Esto elimina el error protegido de MainActionBar reproducible al invocar un compañero temporal de Monje en combate.",
+    ["wn_358_blizzbars"] = "Corrección — Las barras de acción estándar de Blizzard vuelven a ocultarse mediante la ruta visual segura validada para 12.1, dejando visibles solo las barras de TomoMod sin reintroducir el taint del controlador.",
+    ["wn_358_validation"] = "Probado — La nueva ruta de barras de acción se ha validado en combate intenso, recargas, cambios de talentos/especialización, formas, vehículos, vuelo dinámico, hechizos transformables, cargas, flyouts, procs y el compañero de Monje sin errores de ActionBar.",
+
 
     -- =====================
     -- 3.5.7 — Novedades

@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- ptBR.lua — Português (Brasil)
 -- =====================================
 
@@ -3301,6 +3301,20 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_333_diag_settle"] = "Diagnóstico: a escala que o jogo aplica por conta própria durante o login era registrada em todo relatório como um redimensionamento no meio da sessão. A captura de exibição agora espera quatro segundos até o cliente se estabilizar antes de fazer uma leitura, de forma que a única entrada de escala que resta em um relatório é aquela que realmente precisa de explicação.",
     ["wn_333_diag_mode"] = "Diagnóstico: quando o relatório não consegue determinar seu modo de exibição, ele agora imprime os valores brutos que o jogo forneceu em vez de apenas um ponto de interrogação — esses nomes de configuração mudam de uma expansão para outra, e um «?» sozinho não podia ser diagnosticado sem voltar a perguntar. Tela cheia em janela e janelas maximizadas são reconhecidas em mais casos, e as versões dos complementos não aparecem mais como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
+    -- =====================
+    -- 3.5.8 — Novidades
+    -- =====================
+    ["wn_358_input"] = "Correção — A entrada das barras de ação agora responde imediatamente: interrupções, habilidades instantâneas, ações com/sem GCD, spam rápido de teclas e atalhos com Shift/Ctrl não sofrem mais o atraso percebido anteriormente.",
+    ["wn_358_state"] = "Correção — Mover, substituir ou limpar uma ação, trocar especialização ou talentos, página, forma, veículo ou voo dinâmico agora atualiza os botões corretamente, sem ícones, recargas, brilhos, estados cinza ou cargas antigas.",
+    ["wn_358_range"] = "Alteração — No Midnight 12.1, a coloração de alcance agora usa as notificações nativas da Blizzard, enquanto mana e usabilidade são atualizados por eventos. A varredura periódica antiga permanece apenas como fallback de compatibilidade.",
+    ["wn_358_glowflyout"] = "Correção — Os brilhos de proc acompanham melhor feitiços base e transformados, brilhos antigos são removidos e flyouts abertos em barras ocultas por mouseover permanecem visíveis e voltam ao fade normal ao fechar.",
+    ["wn_358_taintstate"] = "Interno — Estados personalizados antes armazenados diretamente em frames da Blizzard foram movidos para weak tables externas, reduzindo o estado do addon anexado a objetos protegidos.",
+    ["wn_358_registry"] = "Correção — Os botões do TomoMod são isolados dos registros e broadcasters nativos da Blizzard quando necessário, impedindo o controlador de executar botões nativos retirados por caminhos contaminados.",
+    ["wn_358_secretcooldown"] = "Correção — Em combate, o log podia ser inundado por erros quando a Blizzard tentava aplicar valores secretos de recarga a botões nativos retirados. Esses caminhos agora estão isolados.",
+    ["wn_358_stancepossess"] = "Correção — StanceBar e PossessActionBar agora permanecem totalmente sob controle da Blizzard. Isso elimina o erro protegido da MainActionBar reproduzido ao invocar um companheiro temporário de Monge em combate.",
+    ["wn_358_blizzbars"] = "Correção — As barras de ação padrão da Blizzard voltam a ser ocultadas pelo caminho visual seguro validado para 12.1, deixando apenas as barras do TomoMod visíveis sem reintroduzir o taint do controlador.",
+    ["wn_358_validation"] = "Testado — O novo caminho das barras de ação foi validado em combates intensos, reloads, mudanças de talentos/especialização, formas, veículos, voo dinâmico, feitiços transformáveis, cargas, flyouts, procs e companheiro de Monge sem erros de ActionBar.",
+
 
     -- =====================
     -- 3.5.7 — Novidades

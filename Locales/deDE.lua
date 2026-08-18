@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- deDE.lua — Deutsch
 -- =====================================
 
@@ -3313,6 +3313,20 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_settle"] = "Diagnose: Die Skalierung, die das Spiel während der Anmeldung selbst anwendet, wurde in jedem Bericht als Neuskalierung mitten in der Sitzung festgehalten. Die Anzeigeerfassung wartet nun vier Sekunden, bis sich der Client eingependelt hat, bevor sie misst — der einzige verbliebene Skalierungseintrag in einem Bericht ist damit einer, der tatsächlich erklärungsbedürftig ist.",
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
+    -- =====================
+    -- 3.5.8 — Was ist neu
+    -- =====================
+    ["wn_358_input"] = "Fehlerbehebung — Eingaben auf den Aktionsleisten reagieren jetzt zuverlässig sofort: Unterbrechungen, Sofortzauber, Aktionen mit/ohne GCD, schnelles Tastenspammen sowie Shift-/Strg-Bindings haben nicht mehr die zuvor spürbare Verzögerung.",
+    ["wn_358_state"] = "Fehlerbehebung — Verschieben, Ersetzen oder Leeren einer Aktion sowie Spezialisierungs-, Talent-, Seiten-, Haltungs-, Fahrzeug- und dynamische Flugwechsel aktualisieren die betroffenen Tasten jetzt ohne veraltete Symbole, Abklingzeiten, Leuchteffekte, Grauzustände oder falsche Aufladungen.",
+    ["wn_358_range"] = "Änderung — Unter Midnight 12.1 nutzt die Reichweitenfärbung jetzt Blizzards native Reichweitenmeldungen; Mana und Verwendbarkeit werden ereignisgesteuert aktualisiert. Der alte periodische Scan bleibt nur als Kompatibilitäts-Fallback.",
+    ["wn_358_glowflyout"] = "Fehlerbehebung — Proc-Leuchteffekte folgen Basis- und verwandelten Zaubern zuverlässiger, veraltete Leuchteffekte werden entfernt und Flyouts von per Mouseover ausgeblendeten Leisten bleiben sichtbar und kehren nach dem Schließen korrekt zum Fade zurück.",
+    ["wn_358_taintstate"] = "Intern — Eigene Zustände, die zuvor direkt auf Blizzard-Frames gespeichert wurden, liegen jetzt in externen Weak-Tables. Dadurch wird weniger Addon-Zustand an geschützte UI-Objekte angehängt.",
+    ["wn_358_registry"] = "Fehlerbehebung — TomoMod-Aktionstasten werden bei Bedarf von Blizzards nativen Registern und Broadcastern getrennt, damit der Spiel-Controller ausgemusterte native Tasten nicht über verunreinigte Aktualisierungspfade ausführt.",
+    ["wn_358_secretcooldown"] = "Fehlerbehebung — Im Kampf konnte das Fehlerprotokoll mit Meldungen geflutet werden, wenn Blizzard geheime Abklingzeitwerte auf ausgemusterte native Tasten anwenden wollte. Diese Broadcast-Pfade sind jetzt isoliert.",
+    ["wn_358_stancepossess"] = "Fehlerbehebung — StanceBar und PossessActionBar bleiben vollständig unter Blizzards Kontrolle. Dadurch verschwindet der geschützte MainActionBar-Fehler, der beim Beschwören eines temporären Mönch-Begleiters im Kampf reproduzierbar war.",
+    ["wn_358_blizzbars"] = "Fehlerbehebung — Blizzards Standard-Aktionsleisten werden wieder über den für 12.1 validierten sicheren visuellen Pfad ausgeblendet. Sichtbar bleiben nur TomoMods Leisten, ohne den Controller-Taint zurückzubringen.",
+    ["wn_358_validation"] = "Getestet — Der überarbeitete Aktionsleistenpfad wurde in intensiven Kämpfen, nach Reloads, Talent-/Spezialisierungswechseln, Formen, Fahrzeugen, dynamischem Flug, verwandelbaren Zaubern, Aufladungen, Flyouts, Procs und dem Mönch-Begleiter ohne ActionBar-Fehler geprüft.",
+
 
     -- =====================
     -- 3.5.7 — Was ist neu

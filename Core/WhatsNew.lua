@@ -63,6 +63,21 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "3.5.8",
+        highlights = {
+            L["wn_358_input"] or "Fix — Action bar input is now consistently immediate: interrupts, instant abilities, GCD/off-GCD actions, rapid key spam and Shift/Ctrl binds no longer inherit the delayed keybind behavior seen before this update.",
+            L["wn_358_state"] or "Fix — Moving, replacing or clearing an action, changing specialization or talents, paging, forms, vehicles and skyriding now refresh the affected buttons cleanly without stale icons, cooldowns, glows, grey states or charge counts.",
+            L["wn_358_range"] or "Changed — Midnight 12.1 range coloring now uses Blizzard's native action-range notifications, while mana/usability updates are event-driven. The old periodic scan is kept only as a compatibility fallback.",
+            L["wn_358_glowflyout"] or "Fix — Proc glows now follow transformed/base spell relationships more reliably, stale glows are cleaned up, and flyouts opened from mouseover-faded bars stay visible and return to normal fading when closed.",
+            L["wn_358_taintstate"] or "Internal — Custom bookkeeping that used to live directly on Blizzard-owned frames has moved into external weak tables, reducing the amount of addon state attached to protected UI objects.",
+            L["wn_358_registry"] or "Fix — TomoMod action buttons are isolated from Blizzard's native action-button registries and broadcasters where needed, preventing the game's controller from running retired native buttons through tainted update paths.",
+            L["wn_358_secretcooldown"] or "Fix — Combat could flood the error log when Blizzard tried to apply unreadable secret cooldown values to retired native action buttons. Those broadcaster paths are now isolated and no longer generate the repeated cooldown errors.",
+            L["wn_358_stancepossess"] or "Fix — StanceBar and PossessActionBar are now left fully under Blizzard's control. This removes the protected MainActionBar error that could be reproduced by summoning a temporary Monk companion during combat.",
+            L["wn_358_blizzbars"] or "Fix — Blizzard's standard action bars are hidden again through the safe 12.1 visual-suppression path, leaving only TomoMod's bars visible without reintroducing the controller taint.",
+            L["wn_358_validation"] or "Tested — The rebuilt action-bar path has been validated through intensive combat, reloads, talents/spec changes, forms, vehicles, skyriding, transforming spells, charges, flyouts, proc glows and the Monk companion transition with no ActionBar errors observed.",
+        },
+    },
+    {
         version = "3.5.7",
         highlights = {
             L["wn_357_talkingheadfix"] or "Fix — Hide Talking Head could leave a talking head's voiceover playing underneath a hidden frame. Talking head frames manage their own visibility, so simply hiding the frame on show left the playing state and its finish timer running — and skipped every line after the first in a multi-line talking head, since the frame was already visible for those. TomoMod now hooks the actual play function and closes each talking head the same way Blizzard itself does, which reliably stops the timer and the voiceover together.",

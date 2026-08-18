@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- frFR.lua — Français
 -- =====================================
 
@@ -3329,6 +3329,20 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_333_diag_settle"] = "Diagnostics : l'échelle que le jeu applique de lui-même pendant la connexion était consignée dans chaque rapport comme un redimensionnement en cours de session. La capture d'affichage attend désormais quatre secondes que le client se stabilise avant de prendre une mesure, si bien que la seule entrée d'échelle qui subsiste dans un rapport est celle qui mérite vraiment une explication.",
     ["wn_333_diag_mode"] = "Diagnostics : quand le rapport n'arrive pas à déterminer votre mode d'affichage, il indique maintenant les valeurs brutes renvoyées par le jeu au lieu d'un simple point d'interrogation — ces noms de réglages changent d'une extension à l'autre, et un « ? » seul ne pouvait pas être diagnostiqué sans revenir vers vous. Le plein écran fenêtré et les fenêtres agrandies sont reconnus dans davantage de cas, et les versions des addons ne s'affichent plus sous la forme « vv1.2.3 ».",
     ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
+    -- =====================
+    -- 3.5.8 — Quoi de neuf
+    -- =====================
+    ["wn_358_input"] = "Correction — Les commandes des barres d’action répondent désormais immédiatement : interruptions, sorts instantanés, actions avec ou sans GCD, spam rapide et raccourcis Shift/Ctrl ne subissent plus le retard de touches observé auparavant.",
+    ["wn_358_state"] = "Correction — Déplacer, remplacer ou vider une action, changer de spécialisation ou de talents, de page, de forme, de véhicule ou utiliser le vol dynamique rafraîchit maintenant correctement les boutons sans ancienne icône, recharge, lueur, état grisé ou nombre de charges incorrect.",
+    ["wn_358_range"] = "Changement — Sous Midnight 12.1, la couleur de portée utilise désormais les notifications natives de Blizzard, tandis que mana et utilisabilité sont pilotés par événements. L’ancien scan périodique ne reste qu’en solution de compatibilité.",
+    ["wn_358_glowflyout"] = "Correction — Les lueurs de proc suivent mieux les sorts de base et leurs transformations, les lueurs obsolètes sont nettoyées, et les menus déroulants ouverts depuis une barre masquée au survol restent visibles puis rendent correctement le contrôle au fondu.",
+    ["wn_358_taintstate"] = "Interne — Les états personnalisés auparavant stockés directement sur des cadres Blizzard sont désormais conservés dans des tables faibles externes, réduisant les données TomoMod attachées aux objets protégés.",
+    ["wn_358_registry"] = "Correction — Les boutons TomoMod sont isolés des registres et diffuseurs natifs des barres d’action Blizzard lorsque nécessaire, empêchant le contrôleur du jeu d’exécuter des boutons natifs retirés dans un chemin contaminé.",
+    ["wn_358_secretcooldown"] = "Correction — En combat, le journal pouvait être inondé d’erreurs lorsque Blizzard appliquait des valeurs secrètes de recharge à d’anciens boutons natifs. Ces chemins sont maintenant isolés et ne génèrent plus ces erreurs répétées.",
+    ["wn_358_stancepossess"] = "Correction — StanceBar et PossessActionBar restent désormais entièrement sous le contrôle de Blizzard. Cela supprime l’erreur protégée MainActionBar reproductible lorsqu’un Moine invoquait un compagnon temporaire en combat.",
+    ["wn_358_blizzbars"] = "Correction — Les barres d’action standard de Blizzard sont de nouveau masquées via le chemin visuel sécurisé validé pour 12.1 : seules les barres TomoMod restent visibles, sans réintroduire le taint du contrôleur.",
+    ["wn_358_validation"] = "Testé — Le nouveau chemin des barres d’action a été validé en combats intensifs, /reload, changements de talents/spécialisation, formes, véhicules, vol dynamique, sorts transformables, charges, flyouts, procs et invocation du compagnon Moine, sans erreur ActionBar observée.",
+
 
     -- =====================
     -- 3.5.7 — Quoi de neuf

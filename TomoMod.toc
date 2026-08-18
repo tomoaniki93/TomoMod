@@ -1,4 +1,4 @@
-## Interface: 120100
+﻿## Interface: 120100
 ## 
 ## Title: |cff0cd29fTomo|rMod
 ## Notes: Complete UI Replacement for WoW.
@@ -10,7 +10,7 @@
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 3.5.7
+## Version: 3.5.8
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
