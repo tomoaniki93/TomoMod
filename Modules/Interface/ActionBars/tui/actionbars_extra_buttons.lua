@@ -667,23 +667,142 @@ function ToggleExtraButtonMovers()
     end
 end
 
+-- TOMOMOD P3.3.11 / Midnight 12.1:
+-- Restore Extra Action without ever mutating Blizzard's native action-bar graph.
+-- The TUI button is a standalone SecureActionButtonTemplate configured as a
+-- secure click proxy to ExtraActionButton1.  Blizzard keeps complete ownership
+-- of ExtraActionBarFrame / ExtraActionButton1 and all of their scripts, events,
+-- cooldowns, attributes, parentage, visibility and artwork.
+local function RefreshExtraActionProxyVisual()
+    local proxy = extraBtnState.extraActionProxy
+    if not proxy then return end
+
+    local native = _G.ExtraActionButton1
+    local texture
+    if native then
+        local icon = native.icon or native.Icon
+        if icon and icon.GetTexture then
+            local ok, value = pcall(icon.GetTexture, icon)
+            if ok and not Helpers.IsSecretValue(value) then
+                texture = value
+            end
+        end
+    end
+
+    if proxy.Icon then
+        proxy.Icon:SetTexture(texture or 134400) -- INV_Misc_QuestionMark fallback
+    end
+end
+
+local function EnsureExtraActionProxy()
+    if extraBtnState.extraActionProxy then
+        return extraBtnState.extraActionProxy
+    end
+    if InCombatLockdown() and not inInitSafeWindow then
+        ActionBarsOwned.pendingExtraButtonInit = true
+        return nil
+    end
+
+    local native = _G.ExtraActionButton1
+    if not native then
+        ActionBarsOwned.pendingExtraButtonInit = true
+        return nil
+    end
+
+    if not extraBtnState.extraActionHolder then
+        local holder, mover = CreateExtraButtonHolder("extraActionButton", "Extra Action")
+        extraBtnState.extraActionHolder = holder
+        extraBtnState.extraActionMover = mover
+    end
+
+    local holder = extraBtnState.extraActionHolder
+    if not holder then return nil end
+
+    local proxy = CreateFrame("Button", "TUI_ExtraActionProxyButton", holder, "SecureActionButtonTemplate")
+    proxy:SetAllPoints(holder)
+    proxy:RegisterForClicks("AnyUp", "AnyDown")
+    proxy:SetAttribute("type", "click")
+    proxy:SetAttribute("clickbutton", native)
+
+    local icon = proxy:CreateTexture(nil, "ARTWORK")
+    icon:SetPoint("TOPLEFT", 3, -3)
+    icon:SetPoint("BOTTOMRIGHT", -3, 3)
+    proxy.Icon = icon
+
+    local bg = proxy:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints(proxy)
+    bg:SetColorTexture(0.03, 0.03, 0.03, 0.92)
+
+    local border = CreateFrame("Frame", nil, proxy, "BackdropTemplate")
+    border:SetAllPoints(proxy)
+    ns.SkinBase.ApplyPixelBackdrop(border, 2, true, false,
+        {0.047, 0.824, 0.624, 1}, {0, 0, 0, 0})
+    border:EnableMouse(false)
+    proxy.Border = border
+
+    proxy:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Extra Action")
+        GameTooltip:Show()
+    end)
+    proxy:SetScript("OnLeave", function() GameTooltip:Hide() end)
+
+    extraBtnState.extraActionProxy = proxy
+
+    local events = CreateFrame("Frame")
+    events:RegisterEvent("PLAYER_ENTERING_WORLD")
+    events:RegisterEvent("UPDATE_EXTRA_ACTIONBAR")
+    events:RegisterEvent("ACTIONBAR_UPDATE_STATE")
+    events:SetScript("OnEvent", function()
+        RefreshExtraActionProxyVisual()
+    end)
+    extraBtnState.extraActionProxyEvents = events
+
+    RefreshExtraActionProxyVisual()
+    return proxy
+end
+
+local function ApplyExtraActionProxySettings()
+    if InCombatLockdown() and not inInitSafeWindow then
+        ActionBarsOwned.pendingExtraButtonRefresh = true
+        return
+    end
+
+    local settings = GetExtraButtonDB("extraActionButton")
+    local proxy = EnsureExtraActionProxy()
+    local holder = extraBtnState.extraActionHolder
+    if not proxy or not holder then return end
+
+    local enabled = settings and settings.enabled == true
+    local scale = tonumber(settings and settings.scale) or 1
+    if scale <= 0 then scale = 1 end
+
+    holder:SetSize(64 * scale, 64 * scale)
+    ApplyExtraButtonFrameAnchor("extraActionButton")
+
+    if enabled then
+        UnregisterStateDriver(proxy, "visibility")
+        RegisterStateDriver(proxy, "visibility", "[extrabar] show; hide")
+    else
+        UnregisterStateDriver(proxy, "visibility")
+        proxy:Hide()
+    end
+
+    RefreshExtraActionProxyVisual()
+end
+
 InitializeExtraButtons = function()
-    -- TOMOMOD P3.3.10 / Midnight 12.1 FULL NATIVE ZERO-TOUCH:
-    -- Diagnostic path: leave ExtraActionBarFrame, ExtraActionButton1,
-    -- ExtraAbilityContainer and ZoneAbilityFrame 100% Blizzard-owned.
-    -- No holders, reparenting, SetPoint/SetScale/SetAlpha, artwork changes or
-    -- hooks are installed. Custom Extra Action / Zone Ability positioning is
-    -- intentionally suspended while the remaining ActionButton cooldown taint
-    -- is isolated.
+    -- P3.3.11 stage 1: only the independent Extra Action proxy is restored.
+    -- ZoneAbilityFrame remains 100% Blizzard-owned and untouched until this
+    -- stage has been validated in combat.
     ActionBarsOwned.pendingExtraButtonInit = false
     ActionBarsOwned.pendingExtraButtonRefresh = false
-    return
+    ApplyExtraActionProxySettings()
 end
 
 RefreshExtraButtons = function()
-    -- See InitializeExtraButtons above. Never mutate the native frames.
     ActionBarsOwned.pendingExtraButtonRefresh = false
-    return
+    ApplyExtraActionProxySettings()
 end
 
 _G.TUI_ToggleExtraButtonMovers = ToggleExtraButtonMovers
