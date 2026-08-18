@@ -600,9 +600,10 @@ do
         if next(activeButtons) ~= nil then
             for btn in pairs(activeButtons) do
                 local barKey = btn._tomomodBarKey
-                if not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(btn, barKey) then
+                local runtimeVisible = not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey)
+                if runtimeVisible and (not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(btn, barKey)) then
                     ActionBarsOwned.UpdateCooldown(btn)
-                else
+                elseif runtimeVisible then
                     activeButtons[btn] = nil
                     ActionBarsOwned._activeStandardButtons[btn] = nil
                 end
@@ -613,7 +614,8 @@ do
 
         for _, barKey in ipairs(STANDARD_BAR_KEYS) do
             local buttons = ActionBarsOwned.nativeButtons[barKey]
-            if buttons then
+            local runtimeVisible = not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey)
+            if buttons and runtimeVisible then
                 for _, btn in ipairs(buttons) do
                     if (not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(btn, barKey))
                         and HasAction(btn.action or 0) then

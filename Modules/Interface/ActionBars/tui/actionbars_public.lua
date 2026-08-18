@@ -128,6 +128,12 @@ function ActionBarsOwned:Initialize()
     ownedEventFrame:RegisterEvent("UPDATE_EXTRA_ACTIONBAR")
     ownedEventFrame:RegisterEvent("ACTIONBAR_UPDATE_COOLDOWN")
     ownedEventFrame:RegisterEvent("ACTIONBAR_UPDATE_USABLE")
+    -- TOMOMOD P3.2: Midnight's C-side action usability dispatcher.  Some
+    -- conditional abilities (Touch of Death is the canonical example) can
+    -- flip their activation-overlay state when the action becomes usable
+    -- without a reliable spell-ID glow edge reaching our detached buttons.
+    ownedEventFrame:RegisterEvent("ACTION_USABLE_CHANGED")
+    ownedEventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
     ownedEventFrame:RegisterEvent("ACTIONBAR_UPDATE_STATE")
     ownedEventFrame:RegisterEvent("ACTIONBAR_SHOWGRID")
     ownedEventFrame:RegisterEvent("ACTIONBAR_HIDEGRID")

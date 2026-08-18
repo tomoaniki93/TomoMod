@@ -5,12 +5,20 @@ https://www.wowace.com/projects/libbuttonglow-1-0
 
 -- luacheck: globals CreateFromMixins ObjectPoolMixin CreateTexturePool CreateFramePool
 
+-- TOMOMOD 12.1 compatibility: AnimateTexCoords moved under TextureUtil.
+-- Install the legacy global before LibStub version arbitration so older copies
+-- already loaded by another addon can also resolve it at OnUpdate time.
+if not _G.AnimateTexCoords and TextureUtil and TextureUtil.AnimateTexCoords then
+    _G.AnimateTexCoords = TextureUtil.AnimateTexCoords
+end
+
 local MAJOR_VERSION = "LibCustomGlow-1.0"
 local MINOR_VERSION = 19
 if not LibStub then error(MAJOR_VERSION .. " requires LibStub.") end
 local lib, oldversion = LibStub:NewLibrary(MAJOR_VERSION, MINOR_VERSION)
 if not lib then return end
 local Masque = LibStub("Masque", true)
+local AnimateTexCoords = (TextureUtil and TextureUtil.AnimateTexCoords) or _G.AnimateTexCoords
 
 local isRetail = WOW_PROJECT_ID == WOW_PROJECT_MAINLINE
 local textureList = {
@@ -539,9 +547,12 @@ local function bgHide(self)
 end
 
 local function bgUpdate(self, elapsed)
-    AnimateTexCoords(self.ants, 256, 256, 48, 48, 22, elapsed, self.throttle);
+    if AnimateTexCoords then
+        AnimateTexCoords(self.ants, 256, 256, 48, 48, 22, elapsed, self.throttle);
+    end
     local cooldown = self:GetParent().cooldown;
-    if(cooldown and cooldown:IsShown() and cooldown:GetCooldownDuration() > 3000) then
+    local duration = cooldown and cooldown:IsShown() and cooldown:GetCooldownDuration()
+    if((not issecretvalue or not issecretvalue(duration)) and duration and duration > 3000) then
         self:SetAlpha(0.5);
     else
         self:SetAlpha(1.0);

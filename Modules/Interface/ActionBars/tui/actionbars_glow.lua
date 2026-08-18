@@ -430,7 +430,8 @@ end
 function ActionBarsOwned.UpdateAllOverlayGlows()
     for _, barKey in ipairs(STANDARD_BAR_KEYS) do
         local btns = ActionBarsOwned.nativeButtons[barKey]
-        if btns then
+        local runtimeVisible = not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey)
+        if btns and runtimeVisible then
             for _, btn in ipairs(btns) do
                 if not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(btn, barKey) then
                     ActionBarsOwned.UpdateOverlayGlow(btn)
@@ -451,11 +452,14 @@ function ForEachButtonForSpellGlow(spellId, callback)
     local slotMap = ActionBarsOwned.slotMap
 
     local function VisitButton(button)
-        if button and not visited[button] then
-            visited[button] = true
-            matched = true
-            callback(button)
+        if not button or visited[button] then return end
+        local barKey = button._tomomodBarKey or (GetBarKeyFromButton and GetBarKeyFromButton(button))
+        if barKey and ActionBarsOwned.IsBarRuntimeVisible and not ActionBarsOwned.IsBarRuntimeVisible(barKey) then
+            return
         end
+        visited[button] = true
+        matched = true
+        callback(button)
     end
 
     ForEachSpellCandidate(spellId, function(candidateId)
@@ -528,8 +532,10 @@ function ActionBarsOwned.UpdateAllButtonStates()
     _lastStateUpdateTime = now
 
     for btn in pairs(ActionBarsOwned._activeButtons) do
+        local barKey = btn._tomomodBarKey
         local action = btn.action
-        if action and action ~= 0 then
+        if (not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey))
+            and action and action ~= 0 then
             if IsCurrentAction(action) or IsAutoRepeatAction(action) then
                 btn:SetChecked(true)
             else
@@ -546,7 +552,10 @@ function ActionBarsOwned.UpdateAllButtonCounts()
     _lastCountUpdateTime = now
 
     for btn in pairs(ActionBarsOwned._activeButtons) do
-        ns.SafeCallMethodIfPresent("best-effort-style", btn, "UpdateCount")
+        local barKey = btn._tomomodBarKey
+        if not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey) then
+            ns.SafeCallMethodIfPresent("best-effort-style", btn, "UpdateCount")
+        end
     end
 end
 
@@ -560,7 +569,8 @@ function ActionBarsOwned.UpdateAllButtonVisuals()
     if not _visualFirstRunDone then
         for _, barKey in ipairs(STANDARD_BAR_KEYS) do
             local btns = ActionBarsOwned.nativeButtons[barKey]
-            if btns then
+            local runtimeVisible = not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey)
+            if btns and runtimeVisible then
                 for _, btn in ipairs(btns) do
                     if not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(btn, barKey) then
                         local action = btn.action or 0
@@ -586,13 +596,16 @@ function ActionBarsOwned.UpdateAllButtonVisuals()
     else
         for btn in pairs(ActionBarsOwned._activeButtons) do
             local barKey = btn._tomomodBarKey
-            if not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(btn, barKey) then
-                local state = GetFrameState(btn)
-                state.wasEmpty = false
-                ns.SafeCall("best-effort-style", ActionBarsOwned.SafeUpdate, btn)
-            else
-                ActionBarsOwned._activeButtons[btn] = nil
-                ActionBarsOwned._activeStandardButtons[btn] = nil
+            local runtimeVisible = not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey)
+            if runtimeVisible then
+                if not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(btn, barKey) then
+                    local state = GetFrameState(btn)
+                    state.wasEmpty = false
+                    ns.SafeCall("best-effort-style", ActionBarsOwned.SafeUpdate, btn)
+                else
+                    ActionBarsOwned._activeButtons[btn] = nil
+                    ActionBarsOwned._activeStandardButtons[btn] = nil
+                end
             end
         end
     end

@@ -19,7 +19,8 @@ local function RefreshAllEmptySlotVisibility()
     for _, barKey in ipairs(STANDARD_BAR_KEYS) do
         local buttons = ActionBarsOwned.nativeButtons[barKey]
         local settings = GetEffectiveSettings(barKey)
-        if buttons and settings then
+        local runtimeVisible = not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey)
+        if buttons and settings and runtimeVisible then
             for _, btn in ipairs(buttons) do
                 UpdateEmptySlotVisibility(btn, settings)
             end
@@ -30,7 +31,8 @@ end
 local function RefreshAllFlyouts()
     for _, barKey in ipairs(STANDARD_BAR_KEYS) do
         local btns = ActionBarsOwned.nativeButtons[barKey]
-        if btns then
+        local runtimeVisible = not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey)
+        if btns and runtimeVisible then
             for _, btn in ipairs(btns) do
                 ns.SafeCallMethodIfPresent("best-effort-style", btn, "UpdateFlyout")
             end
@@ -236,6 +238,83 @@ abSlotFrame:SetScript("OnUpdate", function(self)
     UpdateAllAssistedHighlights()
     ActionBarsOwned.UpdateAllAssistedCombatRotation()
 end)
+
+-- TOMOMOD P3.2.1: consume the usability batch itself, mirroring Blizzard's
+-- ActionBarButtonUsableWatcherFrame. This preserves conditional usability states
+-- (for example Touch of Death) without reading target health or branching on
+-- secret unit data. Secret/inaccessible payload fields simply fall back to the
+-- existing safe query path inside UpdateButtonUsability.
+local function RefreshButtonUsabilityForChanges(changes)
+    if type(changes) ~= "table" then return false end
+    local slotMap = ActionBarsOwned.slotMap
+    local settings = GetGlobalSettings and GetGlobalSettings() or nil
+    if not slotMap or not settings or not UpdateButtonUsability then return false end
+
+    local sawMappedSlot = false
+    for _, change in ipairs(changes) do
+        if type(change) == "table" then
+            local slot = Helpers.SafeValue(change.slot, nil)
+            if type(slot) == "number" and slot > 0 then
+                local entry = slotMap[slot]
+                local btn = entry and entry.button
+                if btn then
+                    sawMappedSlot = true
+                    local barKey = entry.barKey or btn._tomomodBarKey
+                    if not ActionBarsOwned.IsBarRuntimeVisible
+                        or ActionBarsOwned.IsBarRuntimeVisible(barKey) then
+                        UpdateButtonUsability(btn, settings, change.usable, change.noMana)
+                    end
+                end
+            end
+        end
+    end
+    return sawMappedSlot
+end
+
+-- TOMOMOD P3.2: reconcile the proc glow from the action-slot usability
+-- signal rather than trying to inspect target health in Lua.  Midnight sends
+-- ACTION_USABLE_CHANGED as a batch of { slot, usable, noMana } records.  This
+-- is especially important for threshold actions such as Touch of Death: their
+-- activation overlay can become true when the target crosses the execute
+-- condition even when the GLOW_SHOW spell id is not useful to a detached
+-- custom button.  Query IsSpellOverlayed on the button currently occupying the
+-- changed slot, which keeps Blizzard as the source of truth.
+local function RefreshGlowForUsabilityChanges(changes)
+    if type(changes) ~= "table" then
+        ActionBarsOwned.UpdateAllOverlayGlows()
+        return
+    end
+
+    local slotMap = ActionBarsOwned.slotMap
+    if not slotMap then
+        ActionBarsOwned.UpdateAllOverlayGlows()
+        return
+    end
+
+    local sawMappedSlot = false
+    for _, change in ipairs(changes) do
+        local slot = type(change) == "table" and Helpers.SafeValue(change.slot, nil) or nil
+        if type(slot) == "number" and slot > 0 then
+            local entry = slotMap[slot]
+            local btn = entry and entry.button
+            if btn then
+                sawMappedSlot = true
+                local barKey = entry.barKey or btn._tomomodBarKey
+                if not ActionBarsOwned.IsBarRuntimeVisible
+                    or ActionBarsOwned.IsBarRuntimeVisible(barKey) then
+                    ActionBarsOwned.UpdateOverlayGlow(btn)
+                end
+            end
+        end
+    end
+
+    -- A batch can describe a slot which is currently represented through a
+    -- macro/flyout or a page transition not yet present in slotMap.  Falling
+    -- back only in that uncommon case keeps the hot path targeted.
+    if not sawMappedSlot then
+        ActionBarsOwned.UpdateAllOverlayGlows()
+    end
+end
 
 function ScheduleSlotUpdate(slot)
     if slot == 0 then
@@ -608,6 +687,20 @@ function OnOwnedEvent(self, event, ...)
 
     elseif event == "ACTIONBAR_UPDATE_USABLE" then
         ScheduleUsabilityUpdate()
+
+    elseif event == "ACTION_USABLE_CHANGED" then
+        local changes = ...
+        if not RefreshButtonUsabilityForChanges(changes) then
+            ScheduleUsabilityUpdate()
+        end
+        RefreshGlowForUsabilityChanges(changes)
+
+    elseif event == "PLAYER_TARGET_CHANGED" then
+        -- Target swaps can select an already-executable target without a fresh
+        -- overlay edge.  A target change is sparse, so one visible-bar scan is
+        -- cheap and guarantees the activation glow is reconciled immediately.
+        ScheduleUsabilityUpdate()
+        ActionBarsOwned.UpdateAllOverlayGlows()
 
     elseif event == "SPELL_UPDATE_CHARGES" then
         ScheduleABCountUpdate()

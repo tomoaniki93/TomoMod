@@ -84,6 +84,7 @@ function ActionBarsOwned.UpdatePetButton(btn)
 end
 
 function ActionBarsOwned.UpdateAllPetButtons()
+    if ActionBarsOwned.IsBarRuntimeVisible and not ActionBarsOwned.IsBarRuntimeVisible("pet") then return end
     local petBtns = ActionBarsOwned.nativeButtons["pet"]
     if not petBtns then return end
     for _, btn in ipairs(petBtns) do
@@ -124,6 +125,7 @@ function ActionBarsOwned.UpdateStanceButton(btn)
 end
 
 function ActionBarsOwned.UpdateAllStanceButtons()
+    if ActionBarsOwned.IsBarRuntimeVisible and not ActionBarsOwned.IsBarRuntimeVisible("stance") then return end
     local stanceBtns = ActionBarsOwned.nativeButtons["stance"]
     if not stanceBtns then return end
     for _, btn in ipairs(stanceBtns) do

@@ -142,8 +142,65 @@ local function ApplyDriverToContainer(container, barKey)
     SyncContainerShownState(container)
 end
 
+local function IsBarRuntimeVisible(barKey)
+    if not barKey then return true end
+    local container = ActionBarsOwned.containers and ActionBarsOwned.containers[barKey]
+    if not container then return true end
+    if container.GetAttribute and container:GetAttribute("qui-user-shown") == false then
+        return false
+    end
+    if container.IsShown then
+        return container:IsShown() == true
+    end
+    return true
+end
+
+local function WakeDormantBar(barKey)
+    if not IsBarRuntimeVisible(barKey) then return end
+
+    -- P3.1: a visibility-hidden bar does no continuous visual work. Re-arm its
+    -- presentation once when the secure driver makes it visible again so no
+    -- cooldown, glow, count, or usability state can be stale. These are all
+    -- TUI-owned visual refresh paths; bindings/secure action dispatch never
+    -- participate in dormancy.
+    if ScheduleABVisualUpdate then ScheduleABVisualUpdate(true, true) end
+    if ScheduleABCooldownUpdate then ScheduleABCooldownUpdate(true) end
+    if ScheduleABStateUpdate then ScheduleABStateUpdate(true) end
+    if ScheduleABCountUpdate then ScheduleABCountUpdate() end
+    if ScheduleUsabilityUpdate then ScheduleUsabilityUpdate() end
+    if MarkSpellIdMapDirty then MarkSpellIdMapDirty() end
+
+    if barKey == "pet" and ActionBarsOwned.UpdateAllPetButtons then
+        ActionBarsOwned.UpdateAllPetButtons()
+    elseif barKey == "stance" and ActionBarsOwned.UpdateAllStanceButtons then
+        ActionBarsOwned.UpdateAllStanceButtons()
+    end
+
+    if ActionBarsOwned.UpdateAllOverlayGlows then
+        ActionBarsOwned.UpdateAllOverlayGlows()
+    end
+end
+
+local function InstallDormancyHooks(container, barKey)
+    local state = GetFrameState(container)
+    if state.visibilityDormancyHooks then return end
+    state.visibilityDormancyHooks = true
+
+    container:HookScript("OnShow", function()
+        WakeDormantBar(barKey)
+    end)
+    container:HookScript("OnHide", function()
+        -- Drop native range subscriptions promptly when a visibility rule
+        -- hides the bar. The deferred usability pass is visual-only and safe
+        -- in combat; the secure buttons/bindings themselves stay untouched.
+        if ScheduleUsabilityUpdate then ScheduleUsabilityUpdate() end
+        if ActionBarsOwned.HideOwnedFlyout then ActionBarsOwned.HideOwnedFlyout() end
+    end)
+end
+
 function InstallBarVisibilityDriver(container, barKey)
     if not container or not IsSecureVisibilityBar(barKey) then return end
+    InstallDormancyHooks(container, barKey)
     container:SetAttribute("qui-bar-key", barKey)
     container:SetAttribute("_onstate-tuivis", [[
         if newstate == "show" and self:GetAttribute("qui-user-shown") then
@@ -209,6 +266,8 @@ end)
 ActionBarsOwned.visibilityErrors = ActionBarsOwned.visibilityErrors or {}
 ActionBarsOwned.RefreshVisibility = RefreshSecureBarVisibility
 ActionBarsOwned.IsSecureVisibilityBar = IsSecureVisibilityBar
+ActionBarsOwned.IsBarRuntimeVisible = IsBarRuntimeVisible
+ActionBarsOwned.WakeDormantBar = WakeDormantBar
 
 _G.TUI_RefreshActionBarsVisibility = function(barKey)
     RefreshSecureBarVisibility(barKey)

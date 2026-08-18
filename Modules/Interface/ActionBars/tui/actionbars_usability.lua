@@ -139,7 +139,7 @@ local function UpdateButtonRangeOnly(button, settings)
     return true
 end
 
-function UpdateButtonUsability(button, settings)
+function UpdateButtonUsability(button, settings, knownUsable, knownNoMana)
     if not settings then return end
     local state = GetFrameState(button)
     local action = GetSafeActionSlot(button)
@@ -172,7 +172,19 @@ function UpdateButtonUsability(button, settings)
 
     state.usabilityTint = nil
     if settings.usabilityIndicator then
-        local isUsable, notEnoughMana = SafeIsUsableAction(action)
+        -- TOMOMOD P3.2.1: ACTION_USABLE_CHANGED already carries Blizzard's
+        -- authoritative state for the changed slot. Prefer those values when
+        -- accessible instead of immediately re-querying C_ActionBar; threshold
+        -- abilities such as Touch of Death can otherwise fail open as visually
+        -- usable when the conditional state is unavailable to addon Lua.
+        local isUsable, notEnoughMana
+        local eventUsable = Helpers.SafeValue(knownUsable, nil)
+        local eventNoMana = Helpers.SafeValue(knownNoMana, nil)
+        if type(eventUsable) == "boolean" and type(eventNoMana) == "boolean" then
+            isUsable, notEnoughMana = eventUsable, eventNoMana
+        else
+            isUsable, notEnoughMana = SafeIsUsableAction(action)
+        end
         if notEnoughMana == true then
             state.usabilityTint = "mana"
         elseif isUsable == false then
@@ -202,6 +214,7 @@ function UpdateAllButtonRange()
         local barKey = button._tomomodBarKey or GetBarKeyFromButton(button)
         local fadeState = ActionBarsOwned.fadeState and ActionBarsOwned.fadeState[barKey]
         if not IsUsabilityButtonActive(button)
+            or (ActionBarsOwned.IsBarRuntimeVisible and not ActionBarsOwned.IsBarRuntimeVisible(barKey))
             or (fadeState and fadeState.currentAlpha <= 0)
             or (IsButtonInsideVisibleLayout and not IsButtonInsideVisibleLayout(button, barKey))
             or (button.IsVisible and not button:IsVisible()) then
@@ -245,6 +258,7 @@ local function SyncNativeRangeChecks(settings)
 
     local function Consider(button, barKey)
         if useActive and not active[button] then return end
+        if ActionBarsOwned.IsBarRuntimeVisible and not ActionBarsOwned.IsBarRuntimeVisible(barKey) then return end
         local fadeState = ActionBarsOwned.fadeState and ActionBarsOwned.fadeState[barKey]
         if fadeState and fadeState.currentAlpha <= 0 then return end
         if IsButtonInsideVisibleLayout and not IsButtonInsideVisibleLayout(button, barKey) then return end
@@ -300,7 +314,8 @@ local function HandleNativeRangeUpdate(slot, inRange, checksRange)
     if not settings or not settings.rangeIndicator then return end
     for i = 1, #hosts do
         local button = hosts[i]
-        if button then
+        local barKey = button and (button._tomomodBarKey or GetBarKeyFromButton(button))
+        if button and (not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey)) then
             local state = GetFrameState(button)
             state.rangeOut = outOfRange or nil
             ApplyCachedButtonTint(button, settings, state)
@@ -319,7 +334,8 @@ function UpdateAllButtonUsability()
         for button in pairs(activeStandardButtons) do
             local barKey = button._tomomodBarKey or GetBarKeyFromButton(button)
             local fadeState = ActionBarsOwned.fadeState and ActionBarsOwned.fadeState[barKey]
-            if (not fadeState or fadeState.currentAlpha > 0)
+            if (not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey))
+                and (not fadeState or fadeState.currentAlpha > 0)
                 and (not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(button, barKey))
                 and (not button.IsVisible or button:IsVisible()) then
                 if _abUsabilityStats then _abUsabilityStats.buttons = _abUsabilityStats.buttons + 1 end
@@ -337,7 +353,8 @@ function UpdateAllButtonUsability()
     if _abUsabilityStats then _abUsabilityStats.fallbackScans = _abUsabilityStats.fallbackScans + 1 end
     for _, barKey in ipairs(STANDARD_BAR_KEYS) do
         local fadeState = ActionBarsOwned.fadeState and ActionBarsOwned.fadeState[barKey]
-        if not fadeState or fadeState.currentAlpha > 0 then
+        if (not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey))
+            and (not fadeState or fadeState.currentAlpha > 0) then
             for _, button in ipairs(GetBarButtons(barKey)) do
                 if (not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(button, barKey))
                     and (not button.IsVisible or button:IsVisible()) then
