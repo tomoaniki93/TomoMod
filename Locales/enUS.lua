@@ -3670,4 +3670,22 @@ TomoMod_RegisterLocale("enUS", {
     ["info_companion_slash"]          = "Slash commands: /cs on, /cs off, /cs mounted, /cs debug.",
     ["companion_pet_missing"]         = "Pet missing",
     ["companion_pet_dead"]            = "Pet dead",
+
+    -- ActionBars: Secure Visibility Engine
+    ["Secure Visibility"] = "Secure Visibility",
+    ["Visibility Mode"] = "Visibility Mode",
+    ["Always"] = "Always",
+    ["In Combat"] = "In Combat",
+    ["Out of Combat"] = "Out of Combat",
+    ["Solo"] = "Solo",
+    ["Party Only"] = "Party Only",
+    ["Raid Only"] = "Raid Only",
+    ["Any Instance"] = "Any Instance",
+    ["Mounted"] = "Mounted",
+    ["Has Target"] = "Has Target",
+    ["Hostile Target"] = "Hostile Target",
+    ["Hidden"] = "Hidden",
+    ["Custom Condition"] = "Custom Condition",
+    ["Securely show or hide this bar based on game state. These rules keep working in combat without normal Lua Show/Hide calls."] = "Securely show or hide this bar based on game state. These rules keep working in combat without normal Lua Show/Hide calls.",
+
 })

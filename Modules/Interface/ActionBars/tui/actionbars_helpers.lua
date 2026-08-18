@@ -777,17 +777,16 @@ function CreateBarContainer(barKey)
     container:Show()
     container:SetClampedToScreen(true)
 
-    container:SetAttribute("qui-user-shown", true)
-    container:SetAttribute("_onstate-quioverride", [[
-        if newstate == "hide" then
-            self:Hide()
-        elseif self:GetAttribute("qui-user-shown") then
-            self:Show()
-        end
-    ]])
-    local driver = "[overridebar][vehicleui][possessbar][petbattle] hide; show"
+    -- TOMOMOD P2 Visibility Engine: structural visibility is secure. The
+    -- existing mouseover system remains alpha-only and cannot fight this state.
+    if InstallBarVisibilityDriver and ActionBarsOwned.IsSecureVisibilityBar
+        and ActionBarsOwned.IsSecureVisibilityBar(barKey) then
+        InstallBarVisibilityDriver(container, barKey)
+    else
+        container:SetAttribute("qui-user-shown", true)
+    end
+
     if barKey == "pet" then
-        driver = "[overridebar][vehicleui][possessbar][petbattle][nopet] hide; show"
         local function notifyAnchor()
             if _G.TUI_UpdateFramesAnchoredTo then
                 _G.TUI_UpdateFramesAnchoredTo("petBar")
@@ -796,15 +795,17 @@ function CreateBarContainer(barKey)
         container:HookScript("OnShow", notifyAnchor)
         container:HookScript("OnHide", notifyAnchor)
     end
-    RegisterStateDriver(container, "quioverride", driver)
-
     return container
 end
 
 function SetBarContainerShown(container, shown)
     if not container then return end
-    container:SetAttribute("qui-user-shown", shown and true or false)
+    if SetSecureBarUserShown and container:GetAttribute("qui-bar-key") then
+        SetSecureBarUserShown(container, shown)
+        return
+    end
     if InCombatLockdown() then return end
+    container:SetAttribute("qui-user-shown", shown and true or false)
     if shown then
         container:Show()
     else

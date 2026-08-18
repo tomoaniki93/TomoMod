@@ -307,6 +307,7 @@ TomoMod_Defaults = {
         bars = {
             bar1 = {
                 enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                visibilityMode = "always", visibilityCustom = "",
                 hidePageArrow = true,
                 ownedPosition = nil,
                 ownedLayout = {
@@ -331,6 +332,7 @@ TomoMod_Defaults = {
             },
             bar2 = {
                 enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                visibilityMode = "always", visibilityCustom = "",
                 ownedPosition = nil,
                 ownedLayout = {
                     orientation = "horizontal", columns = 12, iconCount = 12,
@@ -349,6 +351,7 @@ TomoMod_Defaults = {
             },
             bar3 = {
                 enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                visibilityMode = "always", visibilityCustom = "",
                 ownedPosition = nil,
                 ownedLayout = {
                     orientation = "horizontal", columns = 12, iconCount = 12,
@@ -367,6 +370,7 @@ TomoMod_Defaults = {
             },
             bar4 = {
                 enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                visibilityMode = "always", visibilityCustom = "",
                 ownedPosition = nil,
                 ownedLayout = {
                     orientation = "horizontal", columns = 6, iconCount = 12,
@@ -385,6 +389,7 @@ TomoMod_Defaults = {
             },
             bar5 = {
                 enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                visibilityMode = "always", visibilityCustom = "",
                 ownedPosition = nil,
                 ownedLayout = {
                     orientation = "horizontal", columns = 6, iconCount = 12,
@@ -403,6 +408,7 @@ TomoMod_Defaults = {
             },
             bar6 = {
                 enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                visibilityMode = "always", visibilityCustom = "",
                 ownedPosition = nil,
                 ownedLayout = {
                     orientation = "horizontal", columns = 12, iconCount = 12,
@@ -421,6 +427,7 @@ TomoMod_Defaults = {
             },
             bar7 = {
                 enabled = false, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                visibilityMode = "always", visibilityCustom = "",
                 ownedPosition = nil,
                 ownedLayout = {
                     orientation = "horizontal", columns = 12, iconCount = 12,
@@ -439,6 +446,7 @@ TomoMod_Defaults = {
             },
             bar8 = {
                 enabled = false, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                visibilityMode = "always", visibilityCustom = "",
                 ownedPosition = nil,
                 ownedLayout = {
                     orientation = "horizontal", columns = 12, iconCount = 12,
@@ -457,6 +465,7 @@ TomoMod_Defaults = {
             },
             pet = {
                 enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                visibilityMode = "always", visibilityCustom = "",
                 ownedPosition = nil,
                 ownedLayout = {
                     orientation = "horizontal", columns = 10, iconCount = 10,
@@ -474,6 +483,7 @@ TomoMod_Defaults = {
             },
             stance = {
                 enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                visibilityMode = "always", visibilityCustom = "",
                 ownedPosition = nil,
                 ownedLayout = {
                     orientation = "horizontal", columns = 10, iconCount = 10,

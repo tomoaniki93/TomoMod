@@ -3627,4 +3627,22 @@ TomoMod_RegisterLocale("deDE", {
     ["info_companion_slash"]          = "Befehle: /cs on, /cs off, /cs mounted, /cs debug.",
     ["companion_pet_missing"]         = "Begleiter fehlt",
     ["companion_pet_dead"]            = "Begleiter tot",
+
+    -- ActionBars: Secure Visibility Engine
+    ["Secure Visibility"] = "Sichere Sichtbarkeit",
+    ["Visibility Mode"] = "Sichtbarkeitsmodus",
+    ["Always"] = "Immer",
+    ["In Combat"] = "Im Kampf",
+    ["Out of Combat"] = "Außerhalb des Kampfes",
+    ["Solo"] = "Solo",
+    ["Party Only"] = "Nur Gruppe",
+    ["Raid Only"] = "Nur Schlachtzug",
+    ["Any Instance"] = "Beliebige Instanz",
+    ["Mounted"] = "Auf Reittier",
+    ["Has Target"] = "Mit Ziel",
+    ["Hostile Target"] = "Feindliches Ziel",
+    ["Hidden"] = "Ausgeblendet",
+    ["Custom Condition"] = "Benutzerdefinierte Bedingung",
+    ["Securely show or hide this bar based on game state. These rules keep working in combat without normal Lua Show/Hide calls."] = "Blendet diese Leiste abhängig vom Spielzustand sicher ein oder aus. Die Regeln funktionieren auch im Kampf ohne normale Lua-Show/Hide-Aufrufe.",
+
 })

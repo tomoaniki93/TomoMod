@@ -101,6 +101,45 @@ do
         return cd
     end
 
+    -- TOMOMOD 12.1: keep GCD visuals and real cooldown text on separate
+    -- CooldownFrames. The primary action cooldown continues to receive the
+    -- normal duration object (which includes the GCD), while this text-only
+    -- frame receives ignoreGCD=true. This avoids showing 0.x countdown text
+    -- for the global cooldown and remains safe when cooldown timings are secret.
+    local _actualCooldownTextFrames = setmetatable({}, { __mode = "k" })
+    local _cooldownTextEnabled = setmetatable({}, { __mode = "k" })
+
+    local function GetOrCreateActualCooldownTextFrame(button)
+        local existing = _actualCooldownTextFrames[button]
+        if existing then return existing end
+
+        local parent = button.cooldown or button.Cooldown or button
+        local cd = CreateFrame("Cooldown", nil, parent, "CooldownFrameTemplate")
+        cd:SetAllPoints(parent)
+        cd:SetFrameLevel((parent.GetFrameLevel and parent:GetFrameLevel() or button:GetFrameLevel()) + 1)
+        cd:SetHideCountdownNumbers(true)
+        if cd.SetDrawSwipe then cd:SetDrawSwipe(false) end
+        if cd.SetDrawEdge then cd:SetDrawEdge(false) end
+        if cd.SetDrawBling then cd:SetDrawBling(false) end
+        if cd.EnableMouse then cd:EnableMouse(false) end
+        cd:SetAlpha(0)
+
+        _actualCooldownTextFrames[button] = cd
+        return cd
+    end
+
+    ActionBarsOwned.GetOrCreateActualCooldownTextFrame = GetOrCreateActualCooldownTextFrame
+    ActionBarsOwned.SetActualCooldownTextEnabled = function(button, enabled)
+        _cooldownTextEnabled[button] = enabled == true
+        if enabled ~= true then
+            local cd = _actualCooldownTextFrames[button]
+            if cd then
+                cd:Clear()
+                cd:SetAlpha(0)
+            end
+        end
+    end
+
     local function SetOrClearCooldown(cooldown, shouldShow, durationObject)
         if not cooldown then return end
         if not shouldShow or not durationObject then
@@ -133,6 +172,8 @@ do
     local _batchCooldownInfo = {}
     local _batchCooldownDurationSeen = {}
     local _batchCooldownDurationObject = {}
+    local _batchActualCooldownDurationSeen = {}
+    local _batchActualCooldownDurationObject = {}
     local _batchChargeInfoSeen = {}
     local _batchChargeActive = {}
     local _batchChargeMayHaveCharges = {}
@@ -183,6 +224,8 @@ do
         wipe(_batchCooldownInfo)
         wipe(_batchCooldownDurationSeen)
         wipe(_batchCooldownDurationObject)
+        wipe(_batchActualCooldownDurationSeen)
+        wipe(_batchActualCooldownDurationObject)
         wipe(_batchChargeInfoSeen)
         wipe(_batchChargeActive)
         wipe(_batchChargeMayHaveCharges)
@@ -200,6 +243,8 @@ do
             wipe(_batchCooldownInfo)
             wipe(_batchCooldownDurationSeen)
             wipe(_batchCooldownDurationObject)
+            wipe(_batchActualCooldownDurationSeen)
+            wipe(_batchActualCooldownDurationObject)
             wipe(_batchChargeInfoSeen)
             wipe(_batchChargeActive)
             wipe(_batchChargeMayHaveCharges)
@@ -266,6 +311,55 @@ do
             _batchCooldownDurationObject[action] = durationObject
         end
         return durationObject
+    end
+
+    local function GetActionActualCooldownDurationObject(action)
+        if not C_ActionBar.GetActionCooldownDuration then return nil end
+        local actionCanBeCached = not Helpers.IsSecretValue(action)
+        if actionCanBeCached
+            and _cooldownBatchActive
+            and _batchActualCooldownDurationSeen[action] == _cooldownBatchToken then
+            if _abCooldownStats then _abCooldownStats.actionDurationHits = _abCooldownStats.actionDurationHits + 1 end
+            return _batchActualCooldownDurationObject[action]
+        end
+
+        if _abCooldownStats then _abCooldownStats.actionDurationQueries = _abCooldownStats.actionDurationQueries + 1 end
+        local durationObject = C_ActionBar.GetActionCooldownDuration(action, true)
+        if actionCanBeCached and _cooldownBatchActive then
+            _batchActualCooldownDurationSeen[action] = _cooldownBatchToken
+            _batchActualCooldownDurationObject[action] = durationObject
+        end
+        return durationObject
+    end
+
+    local function UpdateActualCooldownTextDuration(button, action)
+        local cd = _actualCooldownTextFrames[button]
+
+        if _cooldownTextEnabled[button] ~= true then
+            if cd then
+                cd:Clear()
+                cd:SetAlpha(0)
+            end
+            return
+        end
+
+        cd = cd or GetOrCreateActualCooldownTextFrame(button)
+        local durationObject = GetActionActualCooldownDurationObject(action)
+        if not durationObject then
+            cd:Clear()
+            cd:SetAlpha(0)
+            return
+        end
+
+        cd:SetCooldownFromDurationObject(durationObject)
+
+        -- IsZero() may itself be secret in restricted content. Feed it directly
+        -- into the C-side alpha selector instead of branching in Lua.
+        if durationObject.IsZero and cd.SetAlphaFromBoolean then
+            cd:SetAlphaFromBoolean(durationObject:IsZero(), 0, 1)
+        else
+            cd:SetAlpha(1)
+        end
     end
 
     local function GetActionCooldownState(button, action)
@@ -430,12 +524,23 @@ do
     function ActionBarsOwned.UpdateCooldown(button)
         if _abCooldownStats then _abCooldownStats.buttons = _abCooldownStats.buttons + 1 end
         local action = button.action
-        if not action or action == 0 then return end
+        if not action or action == 0 then
+            local textCooldown = _actualCooldownTextFrames[button]
+            if textCooldown then
+                textCooldown:Clear()
+                textCooldown:SetAlpha(0)
+            end
+            return
+        end
 
         local cooldown = button.cooldown or button.Cooldown
         if not cooldown then return end
 
         if USE_DURATION_OBJECTS then
+            -- Text uses the actual cooldown with the GCD excluded. The normal
+            -- cooldown frame still renders the GCD swipe below it.
+            UpdateActualCooldownTextDuration(button, action)
+
             local _, cdDurationObject, cdActive = GetActionCooldownState(button, action)
             local chActive = GetActionChargeActive(button, action)
             local chargeDurObj = chActive == true and GetActionChargeDurationObject(action) or nil

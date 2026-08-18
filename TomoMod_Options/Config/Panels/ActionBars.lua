@@ -31,6 +31,14 @@ local function RefreshFade()
     if type(_G.TUI_RefreshActionBarFade) == "function" then _G.TUI_RefreshActionBarFade() end
 end
 
+local function RefreshVisibility(barKey)
+    if type(_G.TUI_RefreshActionBarsVisibility) == "function" then
+        _G.TUI_RefreshActionBarsVisibility(barKey)
+    else
+        Refresh()
+    end
+end
+
 local function G(key, fallback)
     local db = DB()
     local v = db and db.global and db.global[key]
@@ -82,6 +90,60 @@ local ORIENTATIONS = {
     { value = "horizontal", text = "Horizontale" },
     { value = "vertical",   text = "Verticale" },
 }
+
+local VISIBILITY_MODES = {
+    { value = "always",   text = L["Always"] },
+    { value = "combat",   text = L["In Combat"] },
+    { value = "nocombat", text = L["Out of Combat"] },
+    { value = "solo",     text = L["Solo"] },
+    { value = "party",    text = L["Party Only"] },
+    { value = "raid",     text = L["Raid Only"] },
+    { value = "instance", text = L["Any Instance"] },
+    { value = "mounted",  text = L["Mounted"] },
+    { value = "target",   text = L["Has Target"] },
+    { value = "hostile",  text = L["Hostile Target"] },
+    { value = "hidden",   text = L["Hidden"] },
+    { value = "custom",   text = L["Custom Condition"] },
+}
+
+local function CreateVisibilityConditionRow(parent, bar, barKey, y)
+    local row = CreateFrame("Frame", nil, parent)
+    row:SetHeight(50)
+    row:SetPoint("TOPLEFT", 16, y)
+    row:SetPoint("TOPRIGHT", -16, y)
+
+    local label = row:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    label:SetPoint("TOPLEFT", 0, 0)
+    label:SetText(L["Custom Condition"])
+
+    local edit = CreateFrame("EditBox", nil, row, "InputBoxTemplate")
+    edit:SetAutoFocus(false)
+    edit:SetHeight(24)
+    edit:SetPoint("TOPLEFT", 4, -20)
+    edit:SetPoint("TOPRIGHT", -4, -20)
+    edit:SetText(bar.visibilityCustom or "")
+
+    local function Commit()
+        local value = edit:GetText() or ""
+        if value == (bar.visibilityCustom or "") then return end
+        bar.visibilityCustom = value
+        if (bar.visibilityMode or "always") == "custom" then
+            RefreshVisibility(barKey)
+        end
+    end
+
+    edit:SetScript("OnEnterPressed", function(self)
+        Commit()
+        self:ClearFocus()
+    end)
+    edit:SetScript("OnEscapePressed", function(self)
+        self:SetText(bar.visibilityCustom or "")
+        self:ClearFocus()
+    end)
+    edit:SetScript("OnEditFocusLost", Commit)
+
+    return row, y - 54
+end
 
 local function IconSkinList()
     local ns = TomoMod_TuiNS
@@ -165,7 +227,7 @@ local function BuildGeneralTab(parent)
         function(v) SetG("lockButtons", v) end) y = ny
     local _, ny = W.CreateCheckbox(c, L["opt_ab_tooltips"], G("showTooltips", true), y,
         function(v) SetG("showTooltips", v) end) y = ny
-    local _, ny = W.CreateCheckbox(c, L["opt_ab_keydown"], G("useOnKeyDown", false), y,
+    local _, ny = W.CreateCheckbox(c, L["opt_ab_keydown"], G("useOnKeyDown", true), y,
         function(v)
             SetG("useOnKeyDown", v)
             if type(_G.TUI_ApplyUseOnKeyDown) == "function" then _G.TUI_ApplyUseOnKeyDown() end
@@ -392,6 +454,15 @@ local function BuildBarsTab(parent)
 
         local _, ny = W.CreateCheckbox(c, L["opt_bar_enabled"], bar.enabled ~= false, y,
             function(v) bar.enabled = v; Refresh() end) y = ny
+
+        local _, ny = W.CreateDropdown(c, L["Visibility Mode"], VISIBILITY_MODES,
+            bar.visibilityMode or "always", y, function(v)
+                bar.visibilityMode = v
+                RefreshVisibility(def.key)
+            end) y = ny
+
+        local _, ny = CreateVisibilityConditionRow(c, bar, def.key, y) y = ny
+        local _, ny = W.CreateInfoText(c, L["Securely show or hide this bar based on game state. These rules keep working in combat without normal Lua Show/Hide calls."], y) y = ny
 
         -- Pet and stance go through the same LayoutNativeButtons path as the
         -- eight action bars, so they take the same layout keys. Only the

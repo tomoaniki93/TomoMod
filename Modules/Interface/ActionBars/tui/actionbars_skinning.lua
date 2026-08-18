@@ -615,12 +615,34 @@ function UpdateCooldownText(button, settings)
     if not cooldown then return end
 
     local showCooldownText = settings.showCooldownText ~= false
-    if cooldown.SetHideCountdownNumbers then
+    local textCooldown = cooldown
+    local barKey = GetBarKeyFromButton and GetBarKeyFromButton(button) or nil
+    local useSeparatedGCDText = IS_MIDNIGHT
+        and barKey
+        and barKey:match("^bar%d+$")
+        and ActionBarsOwned.GetOrCreateActualCooldownTextFrame
+        and ActionBarsOwned.SetActualCooldownTextEnabled
+
+    if useSeparatedGCDText then
+        -- The primary CooldownFrame is swipe-only so GCD remains visible on
+        -- every affected action without printing 0.x countdown text.
+        if cooldown.SetHideCountdownNumbers then
+            cooldown:SetHideCountdownNumbers(true)
+        end
+
+        ActionBarsOwned.SetActualCooldownTextEnabled(button, showCooldownText)
+        if not showCooldownText then return end
+
+        textCooldown = ActionBarsOwned.GetOrCreateActualCooldownTextFrame(button)
+        if textCooldown and textCooldown.SetHideCountdownNumbers then
+            textCooldown:SetHideCountdownNumbers(false)
+        end
+    elseif cooldown.SetHideCountdownNumbers then
         cooldown:SetHideCountdownNumbers(not showCooldownText)
     end
 
-    if not cooldown.GetCountdownFontString then return end
-    local text = cooldown:GetCountdownFontString()
+    if not textCooldown or not textCooldown.GetCountdownFontString then return end
+    local text = textCooldown:GetCountdownFontString()
     if not text then return end
 
     if not showCooldownText then
@@ -642,7 +664,7 @@ function UpdateCooldownText(button, settings)
 
     text:ClearAllPoints()
     local anchor = settings.cooldownTextAnchor or "CENTER"
-    text:SetPoint(anchor, cooldown, anchor, (settings.cooldownTextOffsetX or 0), (settings.cooldownTextOffsetY or 0))
+    text:SetPoint(anchor, textCooldown, anchor, (settings.cooldownTextOffsetX or 0), (settings.cooldownTextOffsetY or 0))
 
     if text.SetJustifyH then
         if anchor:find("LEFT") then
@@ -663,7 +685,7 @@ function UpdateCooldownText(button, settings)
         end
     end
 
-    local width = button.GetWidth and button:GetWidth() or cooldown.GetWidth and cooldown:GetWidth() or 36
+    local width = button.GetWidth and button:GetWidth() or textCooldown.GetWidth and textCooldown:GetWidth() or 36
     if text.SetWidth then text:SetWidth(math.max((width or 36) - 4, 1)) end
     if text.SetHeight then text:SetHeight(math.max(fontSize + 4, 1)) end
 end

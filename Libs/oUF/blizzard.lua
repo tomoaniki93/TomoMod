@@ -1,10 +1,9 @@
 local _, ns = ...
 local oUF = ns.oUF
 
-local wipe, next, type = wipe, next, type
+local next, type = next, type
 local hooksecurefunc = hooksecurefunc
 
-local InCombatLockdown = InCombatLockdown
 local _G = _G
 
 -- sourced from Blizzard_UnitFrame/TargetFrame.lua
@@ -13,43 +12,17 @@ local MAX_BOSS_FRAMES = 5 -- blizzard can spawn more than the default 5 apparent
 -- sourced from Blizzard_FrameXMLBase/Shared/Constants.lua
 local MEMBERS_PER_RAID_GROUP = MEMBERS_PER_RAID_GROUP or 5
 
-local hookedFrames = {}
 local hookedNameplates = {}
 local isArenaHooked = false
 local isBossHooked = false
 local isPartyHooked = false
 
-local hiddenParent = CreateFrame('Frame', nil, UIParent)
-hiddenParent:SetAllPoints()
-hiddenParent:Hide()
+-- Midnight 12.1 / Edit Mode taint hardening: do not re-parent Blizzard
+-- unit frames or install SetParent post-hooks. Current oUF keeps them blocked
+-- through Blizzard's roleset system instead, leaving Edit Mode's secure parent
+-- and visibility operations entirely Blizzard-owned.
 
--- local function insecureHide(self)
--- 	self:Hide()
--- end
-
-local looseFrames = {}
-
-local watcher = CreateFrame('Frame')
-watcher:RegisterEvent('PLAYER_REGEN_ENABLED')
-watcher:SetScript('OnEvent', function()
-	for frame in next, looseFrames do
-		frame:SetParent(hiddenParent)
-	end
-
-	wipe(looseFrames)
-end)
-
-local function resetParent(self, parent)
-	if(parent ~= hiddenParent) then
-		if(InCombatLockdown() and self:IsProtected()) then
-			looseFrames[self] = true
-		else
-			self:SetParent(hiddenParent)
-		end
-	end
-end
-
-local function handleFrame(baseName, doNotReparent, isNamePlate)
+local function handleFrame(baseName, _doNotReparent, isNamePlate)
 	local frame
 	if(type(baseName) == 'string') then
 		frame = _G[baseName]
@@ -62,18 +35,12 @@ local function handleFrame(baseName, doNotReparent, isNamePlate)
 		if(isNamePlate) then
 			-- TODO: remove this once we can adjust hitrects for nameplates
 			frame:SetAlpha(0)
+		elseif(frame.SetRolesets) then
+			frame:SetRolesets('alwaysBlocked')
 		else
+			-- Compatibility fallback for clients predating rolesets. Never add a
+			-- SetParent/OnShow hook here: Edit Mode can reach this frame securely.
 			frame:Hide()
-		end
-
-		if(not doNotReparent) then
-			frame:SetParent(hiddenParent)
-
-			if(not hookedFrames[frame]) then
-				hooksecurefunc(frame, 'SetParent', resetParent)
-
-				hookedFrames[frame] = true
-			end
 		end
 
 		local health = frame.healthBar or frame.healthbar or frame.HealthBar or (frame.HealthBarsContainer and frame.HealthBarsContainer.healthBar)

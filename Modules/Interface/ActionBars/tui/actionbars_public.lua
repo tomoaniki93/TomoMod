@@ -17,10 +17,77 @@ local function PurgeOverrideBarShownExternal()
     PurgeShownExternalTaint(_G.OverrideActionBar)
 end
 
+-- TOMOMOD P2.13 / Midnight 12.1 Edit Mode presentation:
+-- P2.12 proved that StanceBar, PetActionBar and PossessActionBar must remain
+-- entirely Blizzard-owned. Do not Hide(), SetAlpha(), reparent, unregister,
+-- hook or otherwise mutate those frames to remove their Edit Mode previews.
+-- Blizzard already exposes account settings whose sole job is deciding whether
+-- Edit Mode force-shows these bars. Switch those previews off through C_EditMode
+-- before the manager is opened; the real runtime bars remain untouched.
+local function DisableBlizzardSpecialBarEditModePreviews()
+    if ActionBarsOwned._blizzardSpecialEditModePreviewsDisabled then
+        return true
+    end
+
+    local api = C_EditMode
+    local accountEnum = Enum and Enum.EditModeAccountSetting
+    if not api or type(api.GetAccountSettings) ~= "function"
+        or type(api.SetAccountSetting) ~= "function" or not accountEnum then
+        return false
+    end
+
+    local wanted = {
+        accountEnum.ShowStanceBar,
+        accountEnum.ShowPetActionBar,
+        accountEnum.ShowPossessActionBar,
+    }
+
+    -- If a build removes/renames one of the enum fields, do nothing rather than
+    -- guessing a numeric enum and risking an unrelated Edit Mode preference.
+    for i = 1, #wanted do
+        if type(wanted[i]) ~= "number" then
+            return false
+        end
+    end
+
+    local okSettings, settings = pcall(api.GetAccountSettings)
+    if not okSettings or type(settings) ~= "table" then
+        return false
+    end
+
+    local current = {}
+    for _, info in pairs(settings) do
+        if type(info) == "table" and type(info.setting) == "number" then
+            current[info.setting] = info.value
+        end
+    end
+
+    for i = 1, #wanted do
+        local setting = wanted[i]
+        if current[setting] ~= 0 then
+            local ok = pcall(api.SetAccountSetting, setting, 0)
+            if not ok then
+                return false
+            end
+        end
+    end
+
+    ActionBarsOwned._blizzardSpecialEditModePreviewsDisabled = true
+    return true
+end
+
 function ActionBarsOwned:Initialize()
     if self.initialized then return end
 
     self.initialized = true
+
+    -- Apply the Blizzard-owned Edit Mode preview policy before any user can
+    -- enter Edit Mode. Retry one tick later if account settings were not ready
+    -- yet during ADDON_LOADED; the retry is deliberately outside Blizzard's
+    -- secure Edit Mode enter/exit execution.
+    if not DisableBlizzardSpecialBarEditModePreviews() and C_Timer and C_Timer.After then
+        C_Timer.After(0, DisableBlizzardSpecialBarEditModePreviews)
+    end
 
     PatchLibKeyBoundForMidnight()
 

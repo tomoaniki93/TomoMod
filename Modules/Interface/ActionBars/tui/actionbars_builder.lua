@@ -374,16 +374,14 @@ function BuildBar(barKey)
         -- before MainActionBar:SetAttribute() is reached. Leave the native stance
         -- graph completely Blizzard-owned. The TUI stance buttons are separate.
         --
-        -- PetActionBar is not part of this controller pre-chain, so preserve the
-        -- existing pet retirement behaviour for now; this keeps the diagnostic
-        -- change narrow and lets the monk-companion repro isolate Stance/Possess.
-        if barKey == "pet" and barFrame then
-            HideManagedBlizzardBarFrame(barFrame, true)
-        end
-
-        if barKey ~= "pet" then
-            -- Intentionally do not suppress StanceButton*.
-        end
+        -- TOMOMOD P2.12 / Midnight 12.1 Edit Mode hardening:
+        -- Keep PetActionBar Blizzard-owned too. Edit Mode setup touches
+        -- PetActionBar before RefreshTargetAndFocus(); retiring or silencing
+        -- the native pet bar from addon execution can taint that setup pass,
+        -- causing the protected TargetUnit()/FocusUnit() calls that follow to
+        -- be attributed to TomoMod. TUI_PetButton* are separate owned buttons,
+        -- so the native PetActionBar/PetActionButton* graph can stay untouched.
+        -- StanceBar/PossessActionBar already follow this zero-touch rule.
 
         local template = barKey == "pet" and "PetActionButtonTemplate" or "StanceButtonTemplate"
         local prefix = barKey == "pet" and "TUI_PetButton" or "TUI_StanceButton"

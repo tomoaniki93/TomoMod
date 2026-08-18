@@ -1134,42 +1134,37 @@ end
 -- =====================================
 local blizzardHidden = false
 
-local function SuppressBlizzFrame(frame)
-    if not frame or frame._tomoSuppressed then return end
-    frame._tomoSuppressed = true
-    pcall(function() frame:UnregisterAllEvents() end)
-    pcall(function() frame:Hide() end)
-    -- IMPORTANT: never replace frame.Show with an addon function.
-    -- Doing so taints the C Show method; secure code (secureexecuterange /
-    -- EditModeManager) calls frame:Show() and the tainted Lua stub propagates
-    -- taint into UnitHealthMax comparisons → taint errors [3][4][5][6].
-    -- HookScript("OnShow") is a post-hook on the XML script event: it runs
-    -- after the frame has shown, lets us immediately re-hide it, and does NOT
-    -- taint the frame's C Show method itself.
-    pcall(function()
-        frame:HookScript("OnShow", function(self)
-            if not InCombatLockdown() then self:Hide() end
-        end)
-    end)
-end
-
 function PF.HideBlizzardFrames()
     if blizzardHidden then return end
 
     local db = TomoModDB and TomoModDB.partyFrames
     if not db or not db.hideBlizzardFrames then return end
 
-    -- CompactPartyFrame (Retail)
-    SuppressBlizzFrame(CompactPartyFrame)
-
-    -- Legacy PartyMemberFrame 1-4
-    for i = 1, 4 do
-        local pmf = _G["PartyFrame"] and _G["PartyFrame"]["MemberFrame" .. i]
-        SuppressBlizzFrame(pmf)
+    -- Midnight 12.1 / Edit Mode taint hardening:
+    -- Do not Hide(), SetParent(), UnregisterAllEvents() or install an OnShow
+    -- re-hide hook on CompactPartyFrame/PartyFrame from this module. Blizzard's
+    -- Edit Mode previews those frames inside secure execution and any inline
+    -- addon work there can poison RefreshTargetAndFocus/RefreshPartyFrames.
+    --
+    -- The bundled oUF suppression path is shared with Player/Target/Focus and
+    -- now uses the engine-side roleset block. Calling it here keeps the stock
+    -- party frames suppressed without a TomoMod HookScript on Blizzard frames.
+    local ouf = _G.TomoMod_oUF
+    if ouf and type(ouf.DisableBlizzard) == "function" then
+        ouf:DisableBlizzard("party")
+        blizzardHidden = true
+        return
     end
 
-    -- PartyFrame container
-    SuppressBlizzFrame(PartyFrame)
+    -- Extremely defensive fallback if oUF failed to load. Alpha is visual
+    -- only; most importantly this path installs no callback that can execute
+    -- inline from Edit Mode's secure Show/SetParent chain.
+    if CompactPartyFrame and not InCombatLockdown() then
+        pcall(CompactPartyFrame.SetAlpha, CompactPartyFrame, 0)
+    end
+    if PartyFrame and not InCombatLockdown() then
+        pcall(PartyFrame.SetAlpha, PartyFrame, 0)
+    end
 
     blizzardHidden = true
 end

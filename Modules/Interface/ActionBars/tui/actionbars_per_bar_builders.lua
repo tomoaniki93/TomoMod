@@ -48,6 +48,9 @@ do
                     ns.SafeCall("best-effort-style", LayoutNativeButtons, bk)
                 end
             end
+            if type(_G.TUI_RefreshActionBarsVisibility) == "function" then
+                _G.TUI_RefreshActionBarsVisibility()
+            end
         end
 
         local anchorOptions = {
@@ -136,6 +139,12 @@ do
         local function RefreshActionBarFade()
             if type(_G.TUI_RefreshActionBarFade) == "function" then
                 _G.TUI_RefreshActionBarFade()
+            end
+        end
+
+        local function RefreshSecureVisibility(barKey)
+            if type(_G.TUI_RefreshActionBarsVisibility) == "function" then
+                _G.TUI_RefreshActionBarsVisibility(barKey)
             end
         end
 
