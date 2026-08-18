@@ -11,7 +11,7 @@
 
 local CDF = TomoMod_CooldownForge
 local U   = TomoMod_Utils
-local LCG = LibStub and LibStub("LibCustomGlow-1.0", true)
+local Glow = TomoMod_NativeGlow
 
 local FONT     = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 
@@ -45,29 +45,29 @@ local floor, ceil, min, max = math.floor, math.ceil, math.min, math.max
 local cos, sin, rad = math.cos, math.sin, math.rad
 
 -- ---------------------------------------------------------------------
--- Glow (LibCustomGlow). Cached active type per frame to avoid flicker.
+-- Glow (TomoMod NativeGlow). Cached active type per frame to avoid flicker.
 -- ---------------------------------------------------------------------
 local function stopGlow(f)
-    if not LCG then return end
-    LCG.PixelGlow_Stop(f, GLOW_KEY)
-    LCG.AutoCastGlow_Stop(f, GLOW_KEY)
-    LCG.ButtonGlow_Stop(f)
+    if not Glow then return end
+    Glow.PixelGlow_Stop(f, GLOW_KEY)
+    Glow.AutoCastGlow_Stop(f, GLOW_KEY)
+    Glow.ButtonGlow_Stop(f, GLOW_KEY)
     f._cdfGlow = nil
 end
 
 local function startGlow(f, glow)
-    if not LCG then return end
+    if not Glow then return end
     local t = glow.type or "Pixel"
     local c = glow.color or { U.BRAND[1], U.BRAND[2], U.BRAND[3], 1 }
     if not c[4] then c = { c[1], c[2], c[3], 1 } end
     if f._cdfGlow == t then return end -- already active, same type
     stopGlow(f)
     if t == "Autocast" then
-        LCG.AutoCastGlow_Start(f, c, 4, 0.125, 1, 0, 0, GLOW_KEY)
+        Glow.AutoCastGlow_Start(f, c, 4, 0.125, 1, 0, 0, GLOW_KEY)
     elseif t == "Button" then
-        LCG.ButtonGlow_Start(f, c, 0.125)
+        Glow.ButtonGlow_Start(f, c, 0.125, GLOW_KEY)
     else -- "Pixel" (default)
-        LCG.PixelGlow_Start(f, c, 8, 0.25, nil, 2, 0, 0, false, GLOW_KEY)
+        Glow.PixelGlow_Start(f, c, 8, 0.25, nil, 2, 0, 0, false, GLOW_KEY)
     end
     f._cdfGlow = t
 end

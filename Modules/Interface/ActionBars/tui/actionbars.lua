@@ -364,6 +364,32 @@ end
 hiddenBarParent = CreateFrame("Frame")
 hiddenBarParent:Hide()
 
+-- TOMOMOD P3.2.3 / Midnight 12.1:
+-- StanceBar, PetActionBar and PossessActionBar must keep their Blizzard parent,
+-- events and methods intact: P2.9/P2.12 proved that retiring those frames can
+-- taint ActionBarController and Edit Mode. 12.1 provides an official visibility
+-- filter for exactly this use-case: the "alwaysBlocked" roleset prevents a
+-- frame from being displayed without changing its protected shown state.
+--
+-- Apply it once in file-load execution, before combat lockdown is restored.
+-- Do NOT add Hide/SetParent/UnregisterAllEvents/OnShow hooks back to these bars.
+local function BlockNativeSpecialBarPresentation(frame)
+    if not frame or type(frame.SetRolesets) ~= "function" then
+        return false
+    end
+
+    -- SetRolesets is protected in 12.1, but permitted from clean/untainted
+    -- execution. This chunk runs during addon load, which is the safe window.
+    local ok = pcall(frame.SetRolesets, frame, "alwaysBlocked")
+    return ok
+end
+
+do
+    BlockNativeSpecialBarPresentation(_G.StanceBar)
+    BlockNativeSpecialBarPresentation(_G.PetActionBar)
+    BlockNativeSpecialBarPresentation(_G.PossessActionBar)
+end
+
 ---@type fun(...)
 noop = function() end
 

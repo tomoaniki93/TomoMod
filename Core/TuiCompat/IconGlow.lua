@@ -1,17 +1,14 @@
 ﻿-- =====================================================================
 -- Core/TuiCompat/IconGlow.lua
--- Ported from Tui (TUI/core/icon_glow.lua), namespace line aside.
--- NOTE: the icon skin textures live in Tui under assets/iconskin/ and are
--- not shipped by this patch (1.6 MB of TGA). Copy that folder to
--- TomoMod/Assets/iconskin/ before lot P4 turns skinning on.
+-- Provider facade used by ported TUI modules.
+-- TomoMod's built-in provider is rendered by NativeGlow.lua.
 -- =====================================================================
 
 local ns = TomoMod_TuiNS
-
 local IconGlow = { providers = {}, order = {}, active = setmetatable({}, { __mode = "k" }) }
 ns.IconGlow = IconGlow
 
-local LCG
+local NATIVE_KEY = "TomoMod_IconGlow"
 
 function IconGlow.RegisterProvider(p)
     assert(type(p) == "table" and type(p.name) == "string", "provider needs a name")
@@ -60,33 +57,28 @@ function IconGlow.Start(button, opts)
     if p.start then p.start(button, opts) end
 end
 
-local function ResolveLCG()
-    if LCG == nil and _G.LibStub then
-        LCG = _G.LibStub("LibCustomGlow-1.0", true) or false
-    end
-    return LCG or nil
-end
-
 IconGlow.RegisterProvider({
     name = "TUI",
-    isAvailable = function() return ResolveLCG() ~= nil end,
+    isAvailable = function() return ns.NativeGlow ~= nil end,
     start = function(button, opts)
-        local lib = ResolveLCG(); if not lib then return end
+        local glow = ns.NativeGlow
+        if not glow then return end
         local style = opts.style or "Button"
-        if style == "Pixel" and lib.PixelGlow_Start then
-            lib.PixelGlow_Start(button, opts.color, opts.lines, opts.frequency,
-                opts.length, opts.thickness)
-        elseif style == "AutoCast" and lib.AutoCastGlow_Start then
-            lib.AutoCastGlow_Start(button, opts.color, opts.particles, opts.scale)
+        if style == "Pixel" then
+            glow.PixelGlow_Start(button, opts.color, opts.lines, opts.frequency,
+                opts.length, opts.thickness, 0, 0, false, NATIVE_KEY)
+        elseif style == "AutoCast" then
+            glow.AutoCastGlow_Start(button, opts.color, opts.particles, opts.frequency,
+                opts.scale, 0, 0, NATIVE_KEY)
+        elseif style == "Proc" then
+            glow.ProcGlow_Start(button, { color = opts.color, key = NATIVE_KEY })
         else
-            lib.ButtonGlow_Start(button, opts.color)
+            glow.ButtonGlow_Start(button, opts.color, opts.frequency, NATIVE_KEY)
         end
     end,
     stop = function(button)
-        local lib = ResolveLCG(); if not lib then return end
-        if lib.ButtonGlow_Stop   then lib.ButtonGlow_Stop(button)   end
-        if lib.PixelGlow_Stop     then lib.PixelGlow_Stop(button)    end
-        if lib.AutoCastGlow_Stop  then lib.AutoCastGlow_Stop(button) end
+        local glow = ns.NativeGlow
+        if glow then glow.Stop(button, NATIVE_KEY) end
     end,
 })
 

@@ -7,6 +7,7 @@
     <Script file="Registry.lua" />
     <Script file="Helpers.lua" />
     <Script file="IconSkin.lua" />
+    <Script file="NativeGlow.lua" />
     <Script file="IconGlow.lua" />
     <Script file="ExternalSkinBridge.lua" />
     <Script file="UIKitShim.lua" />

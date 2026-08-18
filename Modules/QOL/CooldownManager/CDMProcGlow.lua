@@ -3,7 +3,7 @@
 -- Inspired by DDingUI ProcGlow module
 --
 -- Replaces Blizzard's default SpellActivationAlert on CDM icons
--- with configurable glow effects via LibCustomGlow-1.0.
+-- with configurable glow effects via TomoMod's native glow engine.
 --
 -- Features:
 --   • 5 glow types: Pixel, Autocast, ButtonGlow, ProcGlow, Blizzard
@@ -19,7 +19,7 @@
 --   CDMProcGlow.UpdateButton(button) — after skin/layout changes
 --
 -- Requires: CDMScanner.lua loaded before this file.
--- Optional: LibCustomGlow-1.0 (falls back to Blizzard glow)
+-- Uses TomoMod NativeGlow (falls back to Blizzard glow)
 -- =====================================
 
 TomoMod_CDMProcGlow = TomoMod_CDMProcGlow or {}
@@ -30,7 +30,7 @@ local Scanner = TomoMod_CDMScanner
 -- =====================================
 -- OPTIONAL LIBRARY
 -- =====================================
-local LCG = LibStub and LibStub("LibCustomGlow-1.0", true)
+local Glow = TomoMod_NativeGlow
 
 -- =====================================
 -- CONSTANTS
@@ -153,25 +153,21 @@ end
 -- GLOW FRAME DETECTION
 -- =====================================
 local function IsGlowFramePresent(frame, glowType)
-    local glowFrame
-    if glowType == "Pixel Glow" then
-        glowFrame = frame["_PixelGlow" .. GLOW_KEY]
-    elseif glowType == "Autocast Shine" then
-        glowFrame = frame["_AutoCastGlow" .. GLOW_KEY]
-    elseif glowType == "Action Button Glow" then
-        glowFrame = frame._ButtonGlow
-    elseif glowType == "Proc Glow" then
-        glowFrame = frame["_ProcGlow" .. GLOW_KEY]
-    elseif glowType == "Blizzard Glow" then
+    if glowType == "Blizzard Glow" then
         if frame.overlay and frame.overlay:IsShown() then return true end
         if frame.SpellActivationAlert and frame.SpellActivationAlert:IsShown() then return true end
         return false
     end
-    return glowFrame and glowFrame.IsShown and glowFrame:IsShown() or false
+    if not Glow or not Glow.IsActive then return false end
+    local kind = glowType == "Pixel Glow" and "pixel"
+        or glowType == "Autocast Shine" and "autocast"
+        or glowType == "Action Button Glow" and "button"
+        or glowType == "Proc Glow" and "proc"
+    return kind and Glow.IsActive(frame, GLOW_KEY, kind) or false
 end
 
 -- =====================================
--- APPLY GLOW EFFECT (raw LCG call)
+-- APPLY GLOW EFFECT (TomoMod NativeGlow)
 -- =====================================
 local function ApplyGlowEffect(frame, forceRestart)
     local settings = GetSettings()
@@ -187,11 +183,11 @@ local function ApplyGlowEffect(frame, forceRestart)
     end
 
     -- Stop any existing glows first
-    if LCG then
-        LCG.PixelGlow_Stop(frame, GLOW_KEY)
-        LCG.AutoCastGlow_Stop(frame, GLOW_KEY)
-        LCG.ProcGlow_Stop(frame, GLOW_KEY)
-        LCG.ButtonGlow_Stop(frame)
+    if Glow then
+        Glow.PixelGlow_Stop(frame, GLOW_KEY)
+        Glow.AutoCastGlow_Stop(frame, GLOW_KEY)
+        Glow.ProcGlow_Stop(frame, GLOW_KEY)
+        Glow.ButtonGlow_Stop(frame, GLOW_KEY)
     end
     if ActionButton_HideOverlayGlow then
         ActionButton_HideOverlayGlow(frame)
@@ -202,25 +198,25 @@ local function ApplyGlowEffect(frame, forceRestart)
         if ActionButton_ShowOverlayGlow then
             ActionButton_ShowOverlayGlow(frame)
         end
-    elseif LCG then
+    elseif Glow then
         if glowType == "Pixel Glow" then
-            LCG.PixelGlow_Start(frame, color,
+            Glow.PixelGlow_Start(frame, color,
                 math.floor(settings.pixelLines or DEFAULTS.pixelLines),
                 settings.pixelFrequency or DEFAULTS.pixelFrequency,
                 settings.pixelLength or DEFAULTS.pixelLength,
                 settings.pixelThickness or DEFAULTS.pixelThickness,
                 -1, -1, false, GLOW_KEY)
         elseif glowType == "Autocast Shine" then
-            LCG.AutoCastGlow_Start(frame, color,
+            Glow.AutoCastGlow_Start(frame, color,
                 math.floor(settings.autoParticles or DEFAULTS.autoParticles),
                 settings.autoFrequency or DEFAULTS.autoFrequency,
                 settings.autoScale or DEFAULTS.autoScale,
                 0, 0, GLOW_KEY)
         elseif glowType == "Action Button Glow" then
-            LCG.ButtonGlow_Start(frame, color,
-                settings.buttonFrequency or DEFAULTS.buttonFrequency)
+            Glow.ButtonGlow_Start(frame, color,
+                settings.buttonFrequency or DEFAULTS.buttonFrequency, GLOW_KEY)
         elseif glowType == "Proc Glow" then
-            LCG.ProcGlow_Start(frame, {
+            Glow.ProcGlow_Start(frame, {
                 color = color,
                 startAnim = false,
                 xOffset = 0,
@@ -296,11 +292,11 @@ local function StopGlow(frame)
     if not frame._cdm_procGlowActive then return end
 
     -- Remove all glow types
-    if LCG then
-        LCG.PixelGlow_Stop(frame, GLOW_KEY)
-        LCG.AutoCastGlow_Stop(frame, GLOW_KEY)
-        LCG.ProcGlow_Stop(frame, GLOW_KEY)
-        LCG.ButtonGlow_Stop(frame)
+    if Glow then
+        Glow.PixelGlow_Stop(frame, GLOW_KEY)
+        Glow.AutoCastGlow_Stop(frame, GLOW_KEY)
+        Glow.ProcGlow_Stop(frame, GLOW_KEY)
+        Glow.ButtonGlow_Stop(frame, GLOW_KEY)
     end
     if ActionButton_HideOverlayGlow then
         ActionButton_HideOverlayGlow(frame)
@@ -519,7 +515,7 @@ SlashCmdList["TOMOCDMPROCGLOW"] = function(msg)
         print("|cff00ccffTomoMod ProcGlow:|r")
         print("  Active glows: " .. count)
         print("  Tracked spells: " .. spellCount)
-        print("  LCG loaded: " .. tostring(LCG ~= nil))
+        print("  NativeGlow loaded: " .. tostring(Glow ~= nil))
         print("  Initialized: " .. tostring(isInitialized))
     else
         print("|cff00ccffTomoMod ProcGlow:|r Commands: test, stop, status")

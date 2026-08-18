@@ -293,7 +293,7 @@ local FONT_LABEL   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.
 local TEAL         = { r = 0.047, g = 0.824, b = 0.624 }
 local FALLBACK_TEX = 134400   -- inv_misc_questionmark
 
-local LCG      = LibStub and LibStub("LibCustomGlow-1.0", true)
+local Glow     = TomoMod_NativeGlow
 local GLOW_KEY = "TomoModClassReminder"
 
 -- Glow identifiers stored in the database. Kept as plain strings so a profile
@@ -368,19 +368,18 @@ end
 -- ── Glow ─────────────────────────────────────────────────────
 
 local function StopGlow(f)
-    if not LCG then return end
-    LCG.PixelGlow_Stop(f, GLOW_KEY)
-    LCG.AutoCastGlow_Stop(f, GLOW_KEY)
-    LCG.ProcGlow_Stop(f, GLOW_KEY)
-    LCG.ButtonGlow_Stop(f)
+    if not Glow then return end
+    Glow.PixelGlow_Stop(f, GLOW_KEY)
+    Glow.AutoCastGlow_Stop(f, GLOW_KEY)
+    Glow.ProcGlow_Stop(f, GLOW_KEY)
+    Glow.ButtonGlow_Stop(f, GLOW_KEY)
 end
 
--- The colour table is cached per frame: LibCustomGlow keeps a reference to
--- whatever table it is handed, so a shared one would retint every live glow at
--- once and a fresh one per call would churn the collector on every refresh.
+-- Cache the colour table per frame so frequent reminder refreshes do not
+-- allocate temporary tables while a glow is active.
 local function StartGlow(f)
     StopGlow(f)
-    if not LCG then return end
+    if not Glow then return end
     local db = GetDB()
     local kind = (db and db.glowType) or GLOW_NONE
     if kind == GLOW_NONE then return end
@@ -394,13 +393,13 @@ local function StartGlow(f)
     col[4] = 1
 
     if kind == GLOW_PIXEL then
-        LCG.PixelGlow_Start(f, col, 8, 0.25, nil, 2, 0, 0, false, GLOW_KEY)
+        Glow.PixelGlow_Start(f, col, 8, 0.25, nil, 2, 0, 0, false, GLOW_KEY)
     elseif kind == GLOW_AUTOCAST then
-        LCG.AutoCastGlow_Start(f, col, 4, 0.25, 1, 0, 0, GLOW_KEY)
+        Glow.AutoCastGlow_Start(f, col, 4, 0.25, 1, 0, 0, GLOW_KEY)
     elseif kind == GLOW_BUTTON then
-        LCG.ButtonGlow_Start(f, col, 0.125)
+        Glow.ButtonGlow_Start(f, col, 0.125, GLOW_KEY)
     elseif kind == GLOW_PROC then
-        LCG.ProcGlow_Start(f, {
+        Glow.ProcGlow_Start(f, {
             color = col, startAnim = false, xOffset = 0, yOffset = 0, key = GLOW_KEY,
         })
     end

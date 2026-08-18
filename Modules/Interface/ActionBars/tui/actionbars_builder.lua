@@ -230,6 +230,13 @@ function SetupStandardOwnedButtonRuntime(container, btn)
     btn:SetAttribute("buttonlock", GetCVar("lockActionBars") == "1")
     btn.TUI_PostDrag = SharedOwnedButtonPostDrag
 
+    -- P3.2.2: pre-create TomoMod's unprotected glow wrapper while the secure
+    -- action button is being built. Proc transitions can then start/stop only
+    -- textures/animations in combat instead of creating a child frame there.
+    if ns.NativeGlow and ns.NativeGlow.Prepare then
+        ns.NativeGlow.Prepare(btn, "TomoMod_IconGlow")
+    end
+
     if not btn.quiSecureHooksInstalled then
         btn.quiSecureHooksInstalled = true
         SecureHandlerWrapScript(btn, "OnAttributeChanged", btn, [[

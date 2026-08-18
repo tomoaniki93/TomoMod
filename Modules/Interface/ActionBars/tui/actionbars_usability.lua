@@ -60,7 +60,11 @@ end
 -- tick never calls IsUsableAction and an usability event never needs to own the
 -- continuous range loop.
 local function ApplyCachedButtonTint(button, settings, state)
-    local newTint = state.rangeOut and "range" or state.usabilityTint
+    -- P3.2.2: usability is the stronger state. A conditional spell that cannot
+    -- currently be used (Touch of Death is the canonical example) should stay
+    -- dim even if its target is also out of range. Range is only meaningful for
+    -- an otherwise-usable action.
+    local newTint = state.usabilityTint or (state.rangeOut and "range")
     if state.tinted == newTint then return end
 
     if newTint == "range" then
@@ -124,6 +128,17 @@ local function UpdateButtonRangeOnly(button, settings)
         return false
     end
 
+    -- P3.2.2: no target is not "out of range". Some actions report false from
+    -- the range API while targetless during early login/page initialization;
+    -- painting that red creates the exact stale state that used to disappear
+    -- only after mousing over the button. PLAYER_TARGET_CHANGED reseeds range.
+    if UnitExists and not UnitExists("target") then
+        state.rangeOut = nil
+        SetRangeCandidate(button, false)
+        ApplyCachedButtonTint(button, settings, state)
+        return false
+    end
+
     local inRange = SafeIsActionInRange(action)
     if inRange == nil then
         -- nil means the action has no meaningful range for the current target.
@@ -170,13 +185,11 @@ function UpdateButtonUsability(button, settings, knownUsable, knownNoMana)
         SetRangeCandidate(button, false)
     end
 
-    state.usabilityTint = nil
     if settings.usabilityIndicator then
-        -- TOMOMOD P3.2.1: ACTION_USABLE_CHANGED already carries Blizzard's
-        -- authoritative state for the changed slot. Prefer those values when
-        -- accessible instead of immediately re-querying C_ActionBar; threshold
-        -- abilities such as Touch of Death can otherwise fail open as visually
-        -- usable when the conditional state is unavailable to addon Lua.
+        -- ACTION_USABLE_CHANGED carries Blizzard's authoritative conditional
+        -- state. Prefer it when supplied. When a follow-up generic refresh can
+        -- only obtain an unknown/secret result, preserve the last known tint
+        -- instead of clearing it and exposing a lower-priority red range tint.
         local isUsable, notEnoughMana
         local eventUsable = Helpers.SafeValue(knownUsable, nil)
         local eventNoMana = Helpers.SafeValue(knownNoMana, nil)
@@ -188,10 +201,13 @@ function UpdateButtonUsability(button, settings, knownUsable, knownNoMana)
         if notEnoughMana == true then
             state.usabilityTint = "mana"
         elseif isUsable == false then
-            -- TOMOMOD: nil means unknown/inaccessible, not unusable. Fail open
-            -- so a protected 12.1 read cannot leave a stale grey tint behind.
             state.usabilityTint = "unusable"
+        elseif isUsable == true then
+            state.usabilityTint = nil
         end
+        -- nil/nil = unknown: keep the last authoritative state unchanged.
+    else
+        state.usabilityTint = nil
     end
 
     ApplyCachedButtonTint(button, settings, state)
@@ -310,6 +326,9 @@ local function HandleNativeRangeUpdate(slot, inRange, checksRange)
     if _abUsabilityStats then _abUsabilityStats.rangeEvents = _abUsabilityStats.rangeEvents + 1 end
 
     local outOfRange = (checksRange == true and inRange == false)
+    if UnitExists and not UnitExists("target") then
+        outOfRange = false
+    end
     local settings = GetGlobalSettings()
     if not settings or not settings.rangeIndicator then return end
     for i = 1, #hosts do

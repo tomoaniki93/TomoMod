@@ -15,7 +15,6 @@ env.SetChunkEnv(1, env)
 
 do
 
-LCG = LibStub and LibStub("LibCustomGlow-1.0", true)
 
 local _glowOpts = {}
 local _glowThemeColor = {}

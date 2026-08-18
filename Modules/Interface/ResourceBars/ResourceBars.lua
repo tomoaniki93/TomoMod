@@ -16,7 +16,7 @@
 
 TomoMod_ResourceBars = TomoMod_ResourceBars or {}
 local RB = TomoMod_ResourceBars
-local LCG = LibStub and LibStub("LibCustomGlow-1.0", true)  -- optional full-state glow
+local Glow = TomoMod_NativeGlow  -- optional full-state glow
 
 local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
@@ -1008,16 +1008,16 @@ local function UpdatePoints(pointFrame, resDef)
     -- Full-state highlight: e.g. 5 Icicles -> Glacial Spike ready (opt-in via glowOnMax)
     if resDef.glowOnMax then
         local full = (displayMax > 0 and current >= displayMax)
-        if LCG and LCG.PixelGlow_Start then
+        if Glow and Glow.PixelGlow_Start then
             if full and not pointFrame._glowing then
                 pointFrame._glowing = true
-                LCG.PixelGlow_Start(pointFrame, { r, g, b, 1 }, 8, 0.20, nil, 2, 1, 1, false, "TomoMod_RB_FullGlow")
+                Glow.PixelGlow_Start(pointFrame, { r, g, b, 1 }, 8, 0.20, nil, 2, 1, 1, false, "TomoMod_RB_FullGlow")
             elseif (not full) and pointFrame._glowing then
                 pointFrame._glowing = false
-                LCG.PixelGlow_Stop(pointFrame, "TomoMod_RB_FullGlow")
+                Glow.PixelGlow_Stop(pointFrame, "TomoMod_RB_FullGlow")
             end
         elseif full and not useTex then
-            -- Fallback when LibCustomGlow is unavailable: brighten the filled segments.
+            -- Fallback when the native glow engine is unavailable: brighten the filled segments.
             local br, bgc, bb = math.min(r + 0.30, 1), math.min(g + 0.30, 1), math.min(b + 0.30, 1)
             for i = 1, displayMax do
                 local pt = pointFrame.points[i]

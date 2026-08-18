@@ -24,7 +24,7 @@ local FONT_LABEL = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.tt
 local TEAL       = { r = 0.18, g = 0.85, b = 0.62 }
 local FALLBACK_ICON = 134400   -- inv_misc_questionmark
 
-local LCG      = LibStub and LibStub("LibCustomGlow-1.0", true)
+local Glow     = TomoMod_NativeGlow
 local GLOW_KEY = "TomoModMicroBar"
 
 -- Same vocabulary as ClassReminder so a player meets one set of glow names
@@ -279,16 +279,16 @@ end
 -- depending on which texture Blizzard flashes this expansion.
 
 local function StopGlow(f)
-    if not (LCG and f) then return end
-    LCG.PixelGlow_Stop(f, GLOW_KEY)
-    LCG.AutoCastGlow_Stop(f, GLOW_KEY)
-    LCG.ProcGlow_Stop(f, GLOW_KEY)
-    LCG.ButtonGlow_Stop(f)
+    if not (Glow and f) then return end
+    Glow.PixelGlow_Stop(f, GLOW_KEY)
+    Glow.AutoCastGlow_Stop(f, GLOW_KEY)
+    Glow.ProcGlow_Stop(f, GLOW_KEY)
+    Glow.ButtonGlow_Stop(f, GLOW_KEY)
 end
 
 local function StartGlow(f)
     StopGlow(f)
-    if not (LCG and f) then return end
+    if not (Glow and f) then return end
     local db = GetDB()
     local kind = (db and db.alertStyle) or GLOW_PIXEL
     if kind == GLOW_NONE then return end
@@ -302,13 +302,13 @@ local function StartGlow(f)
     col[4] = 1
 
     if kind == GLOW_PIXEL then
-        LCG.PixelGlow_Start(f, col, 8, 0.25, nil, 2, 0, 0, false, GLOW_KEY)
+        Glow.PixelGlow_Start(f, col, 8, 0.25, nil, 2, 0, 0, false, GLOW_KEY)
     elseif kind == GLOW_AUTOCAST then
-        LCG.AutoCastGlow_Start(f, col, 4, 0.25, 1, 0, 0, GLOW_KEY)
+        Glow.AutoCastGlow_Start(f, col, 4, 0.25, 1, 0, 0, GLOW_KEY)
     elseif kind == GLOW_BUTTON then
-        LCG.ButtonGlow_Start(f, col, 0.125)
+        Glow.ButtonGlow_Start(f, col, 0.125, GLOW_KEY)
     elseif kind == GLOW_PROC then
-        LCG.ProcGlow_Start(f, {
+        Glow.ProcGlow_Start(f, {
             color = col, startAnim = false, xOffset = 0, yOffset = 0, key = GLOW_KEY,
         })
     end
