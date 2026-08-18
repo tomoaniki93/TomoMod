@@ -96,6 +96,23 @@ function ActionBarsOwned.UpdateStanceButton(btn)
     local id = btn:GetID()
     if not id or id < 1 then return end
     local texture, isActive, isCastable, spellID = GetShapeshiftFormInfo(id)
+
+    -- TOMOMOD P3.3.9 / Midnight 12.1:
+    -- TUI stance buttons are bare SecureActionButtons. Keep their protected
+    -- spell attribute synchronized only while unlocked; form spell IDs do not
+    -- change when simply entering Cat/Bear, so combat transitions need no Lua
+    -- attribute write at all. The secure click then calls CastSpellByID from the
+    -- restricted handler instead of StanceBar:Select().
+    btn.spellID = spellID
+    if not InCombatLockdown() then
+        if btn:GetAttribute("type") ~= "spell" then
+            btn:SetAttribute("type", "spell")
+        end
+        if btn:GetAttribute("spell") ~= spellID then
+            btn:SetAttribute("spell", spellID)
+        end
+    end
+
     local icon = btn.icon
     if icon then
         if texture then

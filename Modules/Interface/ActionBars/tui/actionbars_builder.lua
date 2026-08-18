@@ -32,69 +32,67 @@ function SharedOwnedButtonPostDrag(self)
     OwnedButton_PostDrag(self)
 end
 
--- TOMOMOD P2.8 / Midnight 12.1:
--- ActionBarButtonTemplate registers every created button into Blizzard's
--- ActionBarButtonEventsFrame.frames array during its OnLoad.  Our TUI buttons
--- are addon-created values; leaving them in that Blizzard-owned registry taints
--- the list that ActionBarController_UpdateAll() later iterates during bonus/
--- vehicle/pet transitions.  The controller can then be blocked on its own
--- MainActionBar:SetAttribute() even when TomoMod never touches MainActionBar.
+-- TOMOMOD P3.3.8 / Midnight 12.1:
+-- Never let addon-owned standard buttons enter Blizzard's native action-button
+-- registries in the first place. ActionBarButtonTemplate runs
+-- ActionBarActionButtonMixin:OnLoad(), which unconditionally inserts the new
+-- frame into ActionBarButtonEventsFrame.frames. ActionBarController_UpdateAll()
+-- later iterates that exact table during Druid/bonus/vehicle paging. Removing an
+-- addon-created entry afterwards still leaves us writing Blizzard-owned registry
+-- state and can taint every native ActionButton update that follows.
 --
--- Remove ONLY our freshly-created/reused TUI buttons from Blizzard's registries.
--- Never tremove() the array: shifting later Blizzard-owned entries would rewrite
--- them from addon execution.  Nil the matching slot in place, mirroring the
--- hardened 12.1 strategy used by EllesmereUI.
+-- Blizzard's own BaseActionButtonMixin documents the supported addon pattern:
+-- use ActionButtonTemplate + SecureActionButtonTemplate for a bare secure action
+-- button. That keeps the stock visuals/flyout surface but DOES NOT run the native
+-- ActionBarActionButton OnLoad registration path. TUI already owns refreshing,
+-- cooldowns, usability, paging and keybinds, so no native broadcaster membership
+-- is required.
 function DetachOwnedActionButtonFromBlizzardRegistries(btn)
+    -- P3.3.8: intentionally no-op. A TUI standard button must never have been
+    -- registered with the Blizzard ActionBar registries, so there is nothing to
+    -- remove and, critically, no Blizzard-owned table is ever written here.
+end
+
+local function InstallBareOwnedActionButtonMethods(btn)
     if not btn then return end
 
-    local broadcaster = _G.ActionBarButtonEventsFrame
-    local frames = broadcaster and broadcaster.frames
-    if type(frames) == "table" then
-        local tail = #frames
-        if tail > 0 and frames[tail] == btn then
-            frames[tail] = nil
-        else
-            for k, frame in pairs(frames) do
-                if frame == btn then
-                    frames[k] = nil
-                end
+    -- ActionButtonTemplate supplies icon/Count/Name/Border/Flash/cooldown and the
+    -- BaseActionButton flyout helpers, but not ActionBarActionButtonMixin methods.
+    -- TUI only needs these tiny visual helpers; keeping them local prevents the
+    -- Blizzard mixin from registering the button in any native update frame.
+    if not btn.UpdateCount then
+        btn.UpdateCount = function(self)
+            if not self.Count then return end
+            local action = self.action
+            if not action or (Helpers.IsSecretValue and Helpers.IsSecretValue(action)) then
+                self.Count:SetText("")
+                return
+            end
+            local fn = C_ActionBar and C_ActionBar.GetActionDisplayCount
+            if not fn then
+                self.Count:SetText("")
+                return
+            end
+            local ok, count = pcall(fn, action, self.maxDisplayCount)
+            if ok then
+                self.Count:SetText(count or "")
             end
         end
     end
 
-    -- ActionBarActionEventsFrame uses a keyed set and exposes a proper remover.
-    -- Template Update() may have registered the button already if its initial
-    -- action resolved during OnLoad; our own event pipeline owns these updates.
-    local actionEvents = _G.ActionBarActionEventsFrame
-    if actionEvents and actionEvents.UnregisterFrame then
-        actionEvents:UnregisterFrame(btn)
-        btn.eventsRegistered = nil
-    end
-
-    -- Keep addon-owned buttons out of Blizzard's auxiliary update registries as
-    -- well.  These are not used by the TUI event/range/usability pipelines.
-    local updateFrame = _G.ActionBarButtonUpdateFrame
-    if updateFrame and updateFrame.UnregisterFrame then
-        updateFrame:UnregisterFrame(btn)
-        btn.needsUpdate = nil
-    end
-
-    local action = btn.action
-    if action then
-        -- Do not call UnregisterActionBarButtonCheckFrames(): Blizzard's range
-        -- remover also disables the C-side range check for the whole action,
-        -- which may still be needed by a native button.  Remove only our keyed
-        -- frame entries from the two Lua registries.
-        local rangeActions = _G.ActionBarButtonRangeCheckFrame and _G.ActionBarButtonRangeCheckFrame.actions
-        local rangeFrames = type(rangeActions) == "table" and rangeActions[action]
-        if type(rangeFrames) == "table" then
-            rangeFrames[btn] = nil
+    if not btn.StartFlash then
+        btn.StartFlash = function(self)
+            self.flashing = 1
+            self.flashtime = 0
+            if self.Flash then self.Flash:Show() end
         end
+    end
 
-        local usableActions = _G.ActionBarButtonUsableWatcherFrame and _G.ActionBarButtonUsableWatcherFrame.actions
-        local usableFrames = type(usableActions) == "table" and usableActions[action]
-        if type(usableFrames) == "table" then
-            usableFrames[btn] = nil
+    if not btn.StopFlash then
+        btn.StopFlash = function(self)
+            self.flashing = 0
+            self.flashtime = 0
+            if self.Flash then self.Flash:Hide() end
         end
     end
 end
@@ -104,9 +102,14 @@ function EnsureOwnedActionButton(container, barKey, btnName, index)
     local existed = btn ~= nil
     if not btn then
         local ok
-        ok, btn = ns.SafeCall("best-effort-style", CreateFrame, "CheckButton", btnName, container, "ActionBarButtonTemplate")
+        ok, btn = ns.SafeCall("best-effort-style", CreateFrame, "CheckButton", btnName, container, "ActionButtonTemplate,SecureActionButtonTemplate")
         if not ok then btn = _G[btnName] end
-        DetachOwnedActionButtonFromBlizzardRegistries(btn)
+        InstallBareOwnedActionButtonMethods(btn)
+        -- ActionButtonTemplate carries a cosmetic OnAttributeChanged handler.
+        -- TUI owns action changes and flyout refreshes itself; remove that Lua
+        -- callback before installing our restricted secure wrapper below so an
+        -- in-combat page change never re-enters Blizzard ActionButton Lua.
+        if btn and btn.SetScript then btn:SetScript("OnAttributeChanged", nil) end
         btn:SetAttribute("type", "action")
         btn:SetAttribute("checkselfcast", true)
         btn:SetAttribute("checkfocuscast", true)
@@ -139,9 +142,7 @@ function EnsureOwnedActionButton(container, barKey, btnName, index)
 
     else
         btn:SetParent(container)
-        -- Rebuilds reuse the same frame.  Re-detach defensively in case a Blizzard
-        -- mixin call re-registered it since the previous build.
-        DetachOwnedActionButtonFromBlizzardRegistries(btn)
+        InstallBareOwnedActionButtonMethods(btn)
     end
     btn._tomomodBarKey = barKey
     btn._tomomodButtonIndex = index
@@ -240,9 +241,12 @@ function SetupStandardOwnedButtonRuntime(container, btn)
     if not btn.quiSecureHooksInstalled then
         btn.quiSecureHooksInstalled = true
         SecureHandlerWrapScript(btn, "OnAttributeChanged", btn, [[
-            if name == "action" and IsPressHoldReleaseSpell and type(value) == "number" then
-                self:RunAttribute("TUI_UpdateActionFlags")
-            end
+            -- P3.3.4: do not re-enter TUI_UpdateActionFlags from the action
+            -- attribute callback. The page ChildUpdate runs it immediately
+            -- after the action write, and slot-content events trigger the
+            -- dedicated secure refresh path. Running it here happened BEFORE
+            -- Blizzard's original OnAttributeChanged and multiplied protected
+            -- attribute callbacks inside the same combat state-driver pass.
             if name == "action" then
                 local container = self:GetParent()
                 local flyoutHandler = container and container.GetFrameRef and container:GetFrameRef("qui-flyout-handler")
@@ -390,7 +394,18 @@ function BuildBar(barKey)
         -- so the native PetActionBar/PetActionButton* graph can stay untouched.
         -- StanceBar/PossessActionBar already follow this zero-touch rule.
 
-        local template = barKey == "pet" and "PetActionButtonTemplate" or "StanceButtonTemplate"
+        -- TOMOMOD P3.3.9 / Midnight 12.1:
+        -- StanceButtonTemplate is NOT safe for an addon-owned clone. Its normal
+        -- OnClick calls the global Blizzard StanceBar:Select(), which writes
+        -- StanceBar.lastSelected and then casts the form. During combat that
+        -- addon-originated write taints StanceBar before ActionBarController
+        -- validates MainActionBar/MultiBars, producing SetShownBase/ShowBase and
+        -- secret-cooldown failures. Build TUI stance buttons as independent
+        -- SecureActionButtons instead; the secure "spell" action casts the form
+        -- without ever entering the native StanceBar object.
+        local template = barKey == "pet"
+            and "PetActionButtonTemplate"
+            or "ActionButtonTemplate,SecureActionButtonTemplate"
         local prefix = barKey == "pet" and "TUI_PetButton" or "TUI_StanceButton"
         local count = BUTTON_COUNTS[barKey] or 10
 
@@ -434,6 +449,25 @@ function BuildBar(barKey)
                         ActionBarsOwned.UpdatePetButton(self)
                     end
                 end)
+            else
+                InstallBareOwnedActionButtonMethods(btn)
+                -- Do not inherit any Blizzard ActionButton Lua callback that can
+                -- reach StanceBar or the native ActionBar event registries.
+                btn:SetScript("OnAttributeChanged", nil)
+                btn:SetScript("OnClick", nil)
+                btn:RegisterForClicks("AnyDown", "AnyUp")
+                btn:SetAttribute("type", "spell")
+                do
+                    local _db = GetDB()
+                    local _g = _db and _db.global
+                    btn:SetAttribute("useOnKeyDown", not _g or _g.useOnKeyDown ~= false)
+                end
+                btn:SetScript("OnEnter", function(self)
+                    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+                    GameTooltip:SetShapeshift(self:GetID())
+                    GameTooltip:Show()
+                end)
+                btn:SetScript("OnLeave", GameTooltip_Hide)
             end
             btn:Show()
             if barKey == "pet" then

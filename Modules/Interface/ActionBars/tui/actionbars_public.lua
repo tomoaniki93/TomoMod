@@ -14,7 +14,11 @@ env.SetChunkEnv(1, env)
 ---@diagnostic disable: lowercase-global -- SetChunkEnv installs a setfenv
 
 local function PurgeOverrideBarShownExternal()
-    PurgeShownExternalTaint(_G.OverrideActionBar)
+    -- TOMOMOD P3.3.10 / Midnight 12.1 FULL NATIVE ZERO-TOUCH:
+    -- OverrideActionBar belongs entirely to Blizzard. Never write addon fields,
+    -- purge taint markers, alter methods, attributes, cooldowns or presentation
+    -- on this frame. Reads are allowed; mutations are not.
+    return
 end
 
 -- TOMOMOD P2.13 / Midnight 12.1 Edit Mode presentation:
@@ -168,16 +172,12 @@ function ActionBarsOwned:Initialize()
 
     PurgeOverrideBarShownExternal()
 
-    -- TOMOMOD: the override and extra buttons are never suppressed -- the player
-    -- casts from them -- but they carry our taint all the same, so Blizzard's
-    -- own attribute writers get blocked on them in combat. Defer those writes
-    -- rather than dropping them; see InstallCombatDeferredAttributeWriters.
-    for i = 1, 6 do
-        InstallCombatDeferredAttributeWriters(_G["OverrideActionBarButton" .. i])
-        InstallSecretSafeCooldown(_G["OverrideActionBarButton" .. i])
-    end
-    InstallCombatDeferredAttributeWriters(_G.ExtraActionButton1)
-    InstallSecretSafeCooldown(_G.ExtraActionButton1)
+    -- TOMOMOD P3.3.10 / Midnight 12.1 FULL NATIVE ZERO-TOUCH:
+    -- Do not wrap or replace any method on OverrideActionBarButton1..6 or
+    -- ExtraActionButton1. ExtraActionButtonTemplate inherits Blizzard's native
+    -- ActionBar button code and participates in the same action-event/cooldown
+    -- pipeline as ActionButton1..12. Even a well-intentioned SetCooldown or
+    -- attribute guard here can contaminate later secret-value execution.
 
     -- TOMOMOD P2.9 / Midnight 12.1:
     -- Do not mutate PossessActionBar. Blizzard calls PossessActionBar:Update()
@@ -186,12 +186,11 @@ function ActionBarsOwned:Initialize()
     -- the possess bar can therefore poison the entire controller execution.
     -- Keep the native possess graph fully Blizzard-owned.
 
-    if _G.AddSpellToActionBar then
-        _G.AddSpellToActionBar = noop
-    end
-    if _G.AddClassSpellToActionBar then
-        _G.AddClassSpellToActionBar = noop
-    end
+    -- TOMOMOD P3.3.9 / Midnight 12.1:
+    -- Keep Blizzard's action-bar globals pristine. Replacing AddSpellToActionBar
+    -- or AddClassSpellToActionBar marks shared ActionBar controller execution as
+    -- addon-owned and is incompatible with the zero-touch native-bar strategy.
+    -- AutoPushSpellWatcher is allowed to run with Blizzard's original handlers.
     ns.SafeCallMethodIfPresent("report", _G.AutoPushSpellWatcher, "Start")
 
     if EventRegistry and EventRegistry.RegisterCallback then
@@ -524,12 +523,9 @@ _G.TUI_RefreshActionBarFade = function()
         CancelOwnedBarFadeTimers(state)
         SetupOwnedBarMouseover(barKey)
     end
-    for _, barKey in ipairs({"extraActionButton", "zoneAbility"}) do
-        local state = GetBarFadeState(barKey)
-        state.isFading = false
-        CancelBarFadeTimers(state)
-        SetupBarMouseover(barKey)
-    end
+    -- TOMOMOD P3.3.10: ExtraActionBarFrame and ZoneAbilityFrame are native
+    -- Blizzard surfaces in the full zero-touch diagnostic path. Do not install
+    -- fade/mouseover handlers or change their alpha here.
 end
 
 initFrame = CreateFrame("Frame")

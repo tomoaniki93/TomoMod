@@ -194,22 +194,12 @@ function ShouldKeepLeaveVehicleVisible()
 end
 
 function ApplyLeaveVehicleButtonVisibilityOverride(forceVisible)
-    local mainLeaveButton = _G.MainMenuBarVehicleLeaveButton
-    local overrideBar = _G.OverrideActionBar
-    local overrideLeaveButton = overrideBar and overrideBar.LeaveButton
-    local leaveButtons = { mainLeaveButton, overrideLeaveButton }
-
-    for _, button in ipairs(leaveButtons) do
-        if button then
-            local keepOpaque = forceVisible and button.IsShown and button:IsShown()
-            if button.SetIgnoreParentAlpha then
-                button:SetIgnoreParentAlpha(keepOpaque)
-            end
-            if keepOpaque then
-                button:SetAlpha(1)
-            end
-        end
-    end
+    -- TOMOMOD P3.3.10 / Midnight 12.1 FULL NATIVE ZERO-TOUCH:
+    -- MainMenuBarVehicleLeaveButton and OverrideActionBar.LeaveButton are
+    -- Blizzard-owned. Do not SetIgnoreParentAlpha/SetAlpha on either button.
+    -- The keep-leave-button-visible cosmetic option is temporarily bypassed
+    -- in this diagnostic build so the override graph stays pristine.
+    return
 end
 
 function IsSpellBookVisible()
@@ -820,48 +810,59 @@ function InstallSecureActionFlagRefresh(btn)
     if not btn or btn._tomomodActionFlagRefreshInstalled then return end
     btn._tomomodActionFlagRefreshInstalled = true
 
-    -- TOMOMOD: neutralise Blizzard's own press-and-hold writer on this button.
+    -- TOMOMOD P3.3.4 / Midnight 12.1:
+    -- The Druid combat-form diagnostic finally identified the direct injector:
+    -- a secure ChildUpdate rewrites this addon-owned button's "action" attr,
+    -- Blizzard's ActionBarButtonTemplate immediately enters
+    -- OnAttributeChanged -> UpdateAction -> Update, and its native
+    -- UpdatePressAndHoldAction then attempts a protected SetAttribute from the
+    -- mixin callback. That write is billed to TomoMod and is blocked in combat.
+    -- The same tainted secure pass then reaches Blizzard's native action bars,
+    -- producing ActionButton*:SetShown and SetCooldown(secret) failures.
     --
-    -- These buttons are created by us from ActionBarButtonTemplate, and the
-    -- standard bars keep Blizzard's OnEnter (the tooltip is added with
-    -- HookScript, not SetScript). So every mouseover runs
-    --   OnEnter -> UpdateAction -> Update -> UpdatePressAndHoldAction
-    -- which ends in a plain-Lua SetAttribute. SetAttribute on a secure frame
-    -- is protected in combat, and because the frame is addon-created the call
-    -- is attributed to us:
-    --   [ADDON_ACTION_BLOCKED] TomoMod: TUI_Bar3Button9:SetAttribute()
-    -- One blocked action per hover, which is how a player collected 127 of
-    -- them in a single session.
-    --
-    -- Making it a no-op is safe because the attribute is already ours: the
-    -- TUI_UpdateActionFlags snippet installed just below writes
-    -- pressAndHoldAction from inside the restricted environment, and it is
-    -- driven by the OnAttributeChanged wrap on "action" -- exactly when the
-    -- value needs to change. Blizzard's version was redundant, not helpful.
+    -- TUI already owns these two protected-attribute concerns. Keep the mixin
+    -- writers inert on OUR buttons only; TUI_UpdateActionFlags below performs
+    -- the hold-release write from the restricted environment, and ping attrs
+    -- are not used by the TUI button surface. Native Blizzard buttons are not
+    -- touched by this code.
     if btn.UpdatePressAndHoldAction then
         btn.UpdatePressAndHoldAction = function() end
     end
-
-    -- Same chain, two lines further down UpdateAction: PingableType's
-    -- UpdatePingAttributes calls ClearAttribute, equally protected, equally
-    -- blocked on a hover in combat:
-    --   [ADDON_ACTION_BLOCKED] TomoMod: TUI_Bar3Button12:ClearAttribute()
-    -- Pings target Blizzard's own bars; these buttons are ours and are not a
-    -- ping surface, so dropping the call costs nothing.
     if btn.UpdatePingAttributes then
         btn.UpdatePingAttributes = function() end
     end
+    btn:SetScript("OnEnter", function(self)
+        local global = GetGlobalSettings()
+        if global and global.showTooltips == false then
+            GameTooltip:Hide()
+            return
+        end
+
+        local action = self.action
+        if not action or Helpers.IsSecretValue(action) then
+            GameTooltip:Hide()
+            return
+        end
+
+        if self:GetRight() and self:GetRight() >= (GetScreenWidth() / 2) then
+            GameTooltip:SetOwner(self, "ANCHOR_LEFT")
+        else
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        end
+        GameTooltip:SetAction(action)
+        GameTooltip:Show()
+    end)
+    btn:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+    end)
+
     btn:SetAttribute("TUI_UpdateActionFlags", [[
         local action = self:GetAttribute("action")
         local gseButton = self:GetAttribute("gse-button")
-        local pressAndHold = false
 
         if gseButton then
-            -- When useOnKeyDown=true, the press fires the click → forwards to the
-            -- sequence frame and advances the step.  typerelease="click" would fire
-            -- a SECOND click on release, double-advancing the sequence.  Clear it
-            -- in that mode; keep it for useOnKeyDown=false so release-mode still
-            -- forwards reliably even when BAR_SWAP flips type to "action".
+            -- GSE forwarding is the only path that intentionally owns
+            -- typerelease. Keep its press/release contract unchanged.
             if self:GetAttribute("useOnKeyDown") then
                 self:SetAttribute("typerelease", nil)
             else
@@ -871,17 +872,26 @@ function InstallSecureActionFlagRefresh(btn)
             return
         end
 
-        self:SetAttribute("typerelease", "actionrelease")
+        -- Blizzard sets typerelease="actionrelease" once in the template's
+        -- OnLoad. Do not rewrite it on every form/page swap. Only maintain
+        -- pressAndHoldAction, and only when restricted GetActionInfo gives a
+        -- positive/readable identity. Empty, scrubbed or unresolved macro
+        -- identities keep the previous value until the next readable refresh.
         if action and IsPressHoldReleaseSpell then
             local actionType, id, subType = GetActionInfo(action)
+            local spellID = nil
             if actionType == "spell" then
-                pressAndHold = IsPressHoldReleaseSpell(id)
+                spellID = id
             elseif actionType == "macro" and subType == "spell" then
-                pressAndHold = IsPressHoldReleaseSpell(id)
+                spellID = id
+            end
+
+            if spellID then
+                self:SetAttribute("pressAndHoldAction", IsPressHoldReleaseSpell(spellID))
+            elseif actionType and actionType ~= "spell" and actionType ~= "macro" then
+                self:SetAttribute("pressAndHoldAction", false)
             end
         end
-
-        self:SetAttribute("pressAndHoldAction", pressAndHold)
     ]])
 end
 ActionBarsOwned.SetBarContainerShown = SetBarContainerShown

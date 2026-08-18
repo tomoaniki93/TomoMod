@@ -668,40 +668,22 @@ function ToggleExtraButtonMovers()
 end
 
 InitializeExtraButtons = function()
-    if InCombatLockdown() and not inInitSafeWindow then
-        ActionBarsOwned.pendingExtraButtonInit = true
-        return
-    end
-
-    if not extraBtnState.extraActionHolder then
-        extraBtnState.extraActionHolder, extraBtnState.extraActionMover =
-            CreateExtraButtonHolder("extraActionButton", "Extra Action Button")
-    end
-    if not extraBtnState.zoneAbilityHolder then
-        extraBtnState.zoneAbilityHolder, extraBtnState.zoneAbilityMover =
-            CreateExtraButtonHolder("zoneAbility", "Zone Ability")
-    end
-
-    local function applyAll()
-        ApplyExtraButtonSettings("extraActionButton")
-        ApplyExtraButtonFrameAnchor("extraActionButton")
-        ApplyExtraButtonSettings("zoneAbility")
-        ApplyExtraButtonFrameAnchor("zoneAbility")
-        HookExtraButtonPositioning()
-    end
-
-    if inInitSafeWindow then
-        applyAll()
-    end
-    C_Timer.After(0.5, applyAll)
+    -- TOMOMOD P3.3.10 / Midnight 12.1 FULL NATIVE ZERO-TOUCH:
+    -- Diagnostic path: leave ExtraActionBarFrame, ExtraActionButton1,
+    -- ExtraAbilityContainer and ZoneAbilityFrame 100% Blizzard-owned.
+    -- No holders, reparenting, SetPoint/SetScale/SetAlpha, artwork changes or
+    -- hooks are installed. Custom Extra Action / Zone Ability positioning is
+    -- intentionally suspended while the remaining ActionButton cooldown taint
+    -- is isolated.
+    ActionBarsOwned.pendingExtraButtonInit = false
+    ActionBarsOwned.pendingExtraButtonRefresh = false
+    return
 end
 
 RefreshExtraButtons = function()
-    ApplyExtraButtonSettings("extraActionButton")
-    ApplyExtraButtonFrameAnchor("extraActionButton")
-    ApplyExtraButtonSettings("zoneAbility")
-    ApplyExtraButtonFrameAnchor("zoneAbility")
-    HookExtraButtonPositioning()
+    -- See InitializeExtraButtons above. Never mutate the native frames.
+    ActionBarsOwned.pendingExtraButtonRefresh = false
+    return
 end
 
 _G.TUI_ToggleExtraButtonMovers = ToggleExtraButtonMovers

@@ -360,19 +360,12 @@ local function HideBlizzardExtra()
         end
     end
 
-    -- TWW: ActionBarActionEventsFrame affiche un overlay de cast sur les boutons d'action
-    if ActionBarActionEventsFrame then
-        local castEvents = {
-            "UNIT_SPELLCAST_START",         "UNIT_SPELLCAST_STOP",
-            "UNIT_SPELLCAST_FAILED",        "UNIT_SPELLCAST_INTERRUPTED",
-            "UNIT_SPELLCAST_DELAYED",       "UNIT_SPELLCAST_CHANNEL_START",
-            "UNIT_SPELLCAST_CHANNEL_STOP",  "UNIT_SPELLCAST_CHANNEL_UPDATE",
-            "UNIT_SPELLCAST_INTERRUPTIBLE", "UNIT_SPELLCAST_NOT_INTERRUPTIBLE",
-        }
-        for _, ev in ipairs(castEvents) do
-            ActionBarActionEventsFrame:UnregisterEvent(ev)
-        end
-    end
+    -- TOMOMOD P3.3.9 / Midnight 12.1:
+    -- Never unregister events from Blizzard's ActionBarActionEventsFrame here.
+    -- It is the native broadcaster used by ActionButton.lua; mutating its event
+    -- registrations from TomoMod taints later native OnEvent/UpdateCooldown
+    -- execution, where Midnight passes secret cooldown values to SetCooldown().
+    -- Our custom unit frames do not need to alter that global action-bar frame.
 end
 
 -- =====================================

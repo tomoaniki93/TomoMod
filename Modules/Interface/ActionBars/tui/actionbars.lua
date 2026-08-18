@@ -402,127 +402,28 @@ earlyDisposedStandardBars = setmetatable({}, { __mode = "k" })
 -- Runtime mutations are what turn Blizzard's later restricted cooldown and
 -- ActionBarController execution into tainted execution.
 local function EarlyDisposeStandardBlizzardBars()
-    -- TOMOMOD P2.10 / Midnight 12.1:
-    -- P2.9 proved the controller stays clean once StanceBar/PossessActionBar are
-    -- left fully Blizzard-owned. Restore native STANDARD-bar suppression using the
-    -- same load-time-only model as EllesmereUI: protected Hide/SetParent work is
-    -- completed here before combat state is restored, and runtime code never
-    -- re-suppresses these frames.
-    --
-    -- MainActionBar is special: keep it in Blizzard's parent/event chain so
-    -- ActionBarController can continue to own actionpage/visibility transitions.
-    -- We only keep its presentation transparent after Blizzard re-shows it.
-    local function KillPagerMouse(bar)
-        local pager = bar and bar.ActionBarPageNumber
-        if not pager then return end
-        local function KillOne(frame)
-            if not frame then return end
-            if frame.EnableMouse then frame:EnableMouse(false) end
-            if frame.EnableMouseClicks then frame:EnableMouseClicks(false) end
-            if frame.EnableMouseMotion then frame:EnableMouseMotion(false) end
-            if frame.EnableMouseWheel then frame:EnableMouseWheel(false) end
-        end
-        KillOne(pager)
-        KillOne(pager.UpButton)
-        KillOne(pager.DownButton)
-        if pager.GetChildren then
-            for i = 1, pager:GetNumChildren() do
-                KillOne(select(i, pager:GetChildren()))
-            end
-        end
-    end
-
-    local framesToHide = {
-        "MainActionBar",
-        "MultiBar5",
-        "MultiBar6",
-        "MultiBar7",
-        "MultiBarBottomLeft",
-        "MultiBarBottomRight",
-        "MultiBarLeft",
-        "MultiBarRight",
-    }
-
-    for _, frameName in ipairs(framesToHide) do
-        local frame = _G[frameName]
-        if frame then
-            if frameName ~= "MainActionBar" then
-                if frame.UnregisterAllEvents then frame:UnregisterAllEvents() end
-                if frame.HideBase then frame:HideBase() else frame:Hide() end
-                frame:SetParent(hiddenBarParent)
-                earlyDisposedStandardBars[frame] = true
-            else
-                -- Keep the secure controller graph intact. Never call Hide() from
-                -- the Show hook: changing protected shown state at runtime is what
-                -- produced the earlier SetShownBase/SetAttribute taint. Alpha and
-                -- mouse state are presentation-only here.
-                hooksecurefunc(frame, "Show", function(self)
-                    self:SetAlpha(0)
-                    KillPagerMouse(self)
-                end)
-                if frame.EnableMouse then frame:EnableMouse(false) end
-                if frame.EnableMouseClicks then frame:EnableMouseClicks(false) end
-                if frame.EnableMouseMotion then frame:EnableMouseMotion(false) end
-                if frame.EnableMouseWheel then frame:EnableMouseWheel(false) end
-                KillPagerMouse(frame)
-                if frame.Selection then
-                    frame.Selection:Hide()
-                    frame.Selection:SetAlpha(0)
-                end
-                if frame.EndCaps then frame.EndCaps:Hide() end
-                if frame.BorderArt then frame.BorderArt:Hide() end
-                frame:SetAlpha(0)
-                earlyDisposedStandardBars[frame] = true
-            end
-
-            -- Retire the actual Blizzard native buttons once, in this clean
-            -- load-time window. TUI owns the visible buttons and P2.5 isolates
-            -- the global broadcasters, so these frames need no runtime updates.
-            if type(frame.actionButtons) == "table" then
-                for _, button in pairs(frame.actionButtons) do
-                    if button then
-                        if button.UnregisterAllEvents then button:UnregisterAllEvents() end
-                        if button.SetAttributeNoHandler then
-                            button:SetAttributeNoHandler("statehidden", true)
-                        elseif button.SetAttribute then
-                            button:SetAttribute("statehidden", true)
-                        end
-                        button:Hide()
-                        earlyDisposedStandardButtons[button] = true
-                    end
-                end
-            end
-        end
-    end
-
-    -- Cosmetic stock parent only; OverrideActionBar is parented elsewhere.
-    if _G.ActionBarParent then
-        _G.ActionBarParent:Hide()
-        _G.ActionBarParent:SetParent(hiddenBarParent)
-    end
+    -- TOMOMOD P3.3.6 / Midnight 12.1 diagnostic isolation:
+    -- Restore the P2.9 ZERO-TOUCH rule for Blizzard standard action bars.
+    -- Do not Hide, SetAlpha, SetParent, unregister events, alter mouse state,
+    -- hook Show(), or mutate any presentation region on MainActionBar/MultiBars.
+    -- Druid form transitions force ActionBarController_UpdateAll() through the
+    -- native button graph in combat, where even presentation writes performed
+    -- by TomoMod can make Blizzard SetShown()/SetCooldown(secret) untrusted.
+    -- Native Blizzard standard bars are intentionally visible in this build.
+    return
 end
 
 EarlyDisposeStandardBlizzardBars()
 
--- TOMOMOD P2.5 / Midnight 12.1:
--- ActionBarButtonTemplate does not rely only on per-button RegisterEvent. Blizzard
--- also dispatches ACTIONBAR_SLOT_CHANGED / cooldown / spellcast events through
--- these two global broadcaster frames. Retired stock buttons therefore continue
--- to execute OnEvent even after button:UnregisterAllEvents(), which re-enters
--- UpdateAction/UpdatePressAndHoldAction and SetCooldown with secret values from
--- tainted execution. TUI owns its standard buttons and has its own event pipeline,
--- so the stock broadcasters are not needed for Bars 1-8. Disable them once in
--- the same clean load-time window as the native bar disposal.
-local function DisableStandardBlizzardActionBroadcasters()
-    if _G.ActionBarButtonEventsFrame and _G.ActionBarButtonEventsFrame.UnregisterAllEvents then
-        _G.ActionBarButtonEventsFrame:UnregisterAllEvents()
-    end
-    if _G.ActionBarActionEventsFrame and _G.ActionBarActionEventsFrame.UnregisterAllEvents then
-        _G.ActionBarActionEventsFrame:UnregisterAllEvents()
-    end
-end
-
-DisableStandardBlizzardActionBroadcasters()
+-- TOMOMOD P3.3.7 / Midnight 12.1 native-registry zero-touch:
+-- Never unregister Blizzard's ActionBarButtonEventsFrame or
+-- ActionBarActionEventsFrame. ActionBarController_UpdateAll() directly iterates
+-- ActionBarButtonEventsFrame.frames during bonus/form/vehicle paging. Mutating
+-- the broadcaster frames from addon execution can make the subsequent native
+-- ActionButton:UpdateAction() chain untrusted, which surfaces as blocked
+-- ActionButton:SetShown() and secret Cooldown:SetCooldown() calls in combat.
+-- TUI buttons are detached individually in actionbars_builder.lua using secure
+-- registry writes; Blizzard keeps complete ownership of the broadcaster frames.
 
 function PurgeShownExternalTaint(frame)
     if not frame or not frame.system then return end

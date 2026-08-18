@@ -791,42 +791,23 @@ function SchedulePageArrowVisibilityRetry()
 end
 
 ApplyPageArrowVisibility = function(hide)
-    local frames = CollectPageArrowFrames()
-    if #frames == 0 then
-        if hide then
-            SchedulePageArrowVisibilityRetry()
-        end
-        return
-    end
-
+    -- TOMOMOD P3.3.7 / Midnight 12.1:
+    -- MainActionBar.ActionBarPageNumber and the legacy page-arrow globals are
+    -- part of Blizzard's controller-owned standard-bar presentation. P3.3.6
+    -- established a zero-touch diagnostic baseline for MainActionBar itself;
+    -- keep that rule consistent here too. Hide()/Show(), mouse mutations and a
+    -- Show hook on these Blizzard frames can contaminate the parent action-bar
+    -- graph before ActionBarController_UpdateAll() runs in combat.
+    --
+    -- The TUI bar does not require Blizzard's pager controls for paging, so this
+    -- option is intentionally a no-op while the 12.1 zero-taint path is active.
+    -- Do not schedule retries that would touch those frames later.
     local ebs = ActionBarsOwned.extraBtnState
-    ebs.pageArrowRetryAttempts = 0
-    if ebs.pageArrowRetryTimer then
-        ebs.pageArrowRetryTimer:Cancel()
-        ebs.pageArrowRetryTimer = nil
-    end
-
-    if hide then
-        for _, frame in ipairs(frames) do
-            SetPageArrowInputSuppressed(frame, true)
-            frame:Hide()
-            if not ebs.pageArrowShowHooked[frame] then
-                ebs.pageArrowShowHooked[frame] = true
-                hooksecurefunc(frame, "Show", function(self)
-                    C_Timer.After(0, function()
-                        local db = GetDB()
-                        if db and db.bars and db.bars.bar1 and db.bars.bar1.hidePageArrow and self and self.Hide then
-                            SetPageArrowInputSuppressed(self, true)
-                            self:Hide()
-                        end
-                    end)
-                end)
-            end
-        end
-    else
-        for _, frame in ipairs(frames) do
-            SetPageArrowInputSuppressed(frame, false)
-            frame:Show()
+    if ebs then
+        ebs.pageArrowRetryAttempts = 0
+        if ebs.pageArrowRetryTimer then
+            ebs.pageArrowRetryTimer:Cancel()
+            ebs.pageArrowRetryTimer = nil
         end
     end
 end
