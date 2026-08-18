@@ -747,27 +747,32 @@ end
 local function SetPageArrowInputSuppressed(frame, suppressed)
     if not frame or InCombatLockdown() then return end
 
+    -- TOMOMOD P2 12.1: do not store our saved-input marker directly on the
+    -- Blizzard pager frame. Keep it in the shared weak-keyed side table so a
+    -- hidden protected frame does not acquire addon-owned custom fields.
+    local state = ActionBarsOwned.GetExternalFrameState(frame)
+
     if suppressed then
-        if frame._tomomodPageInputSaved == nil then
+        if state.pageInputSaved == nil then
             local saved = {}
             if frame.IsMouseEnabled then saved.mouse = frame:IsMouseEnabled() end
             if frame.IsMouseClickEnabled then saved.click = frame:IsMouseClickEnabled() end
             if frame.IsMouseMotionEnabled then saved.motion = frame:IsMouseMotionEnabled() end
             if frame.IsMouseWheelEnabled then saved.wheel = frame:IsMouseWheelEnabled() end
-            frame._tomomodPageInputSaved = saved
+            state.pageInputSaved = saved
         end
         if frame.EnableMouse then frame:EnableMouse(false) end
         if frame.SetMouseClickEnabled then frame:SetMouseClickEnabled(false) end
         if frame.SetMouseMotionEnabled then frame:SetMouseMotionEnabled(false) end
         if frame.EnableMouseWheel then frame:EnableMouseWheel(false) end
     else
-        local saved = frame._tomomodPageInputSaved
+        local saved = state.pageInputSaved
         if saved then
             if saved.mouse ~= nil and frame.EnableMouse then frame:EnableMouse(saved.mouse) end
             if saved.click ~= nil and frame.SetMouseClickEnabled then frame:SetMouseClickEnabled(saved.click) end
             if saved.motion ~= nil and frame.SetMouseMotionEnabled then frame:SetMouseMotionEnabled(saved.motion) end
             if saved.wheel ~= nil and frame.EnableMouseWheel then frame:EnableMouseWheel(saved.wheel) end
-            frame._tomomodPageInputSaved = nil
+            state.pageInputSaved = nil
         end
     end
 end

@@ -32,6 +32,73 @@ function SharedOwnedButtonPostDrag(self)
     OwnedButton_PostDrag(self)
 end
 
+-- TOMOMOD P2.8 / Midnight 12.1:
+-- ActionBarButtonTemplate registers every created button into Blizzard's
+-- ActionBarButtonEventsFrame.frames array during its OnLoad.  Our TUI buttons
+-- are addon-created values; leaving them in that Blizzard-owned registry taints
+-- the list that ActionBarController_UpdateAll() later iterates during bonus/
+-- vehicle/pet transitions.  The controller can then be blocked on its own
+-- MainActionBar:SetAttribute() even when TomoMod never touches MainActionBar.
+--
+-- Remove ONLY our freshly-created/reused TUI buttons from Blizzard's registries.
+-- Never tremove() the array: shifting later Blizzard-owned entries would rewrite
+-- them from addon execution.  Nil the matching slot in place, mirroring the
+-- hardened 12.1 strategy used by EllesmereUI.
+function DetachOwnedActionButtonFromBlizzardRegistries(btn)
+    if not btn then return end
+
+    local broadcaster = _G.ActionBarButtonEventsFrame
+    local frames = broadcaster and broadcaster.frames
+    if type(frames) == "table" then
+        local tail = #frames
+        if tail > 0 and frames[tail] == btn then
+            frames[tail] = nil
+        else
+            for k, frame in pairs(frames) do
+                if frame == btn then
+                    frames[k] = nil
+                end
+            end
+        end
+    end
+
+    -- ActionBarActionEventsFrame uses a keyed set and exposes a proper remover.
+    -- Template Update() may have registered the button already if its initial
+    -- action resolved during OnLoad; our own event pipeline owns these updates.
+    local actionEvents = _G.ActionBarActionEventsFrame
+    if actionEvents and actionEvents.UnregisterFrame then
+        actionEvents:UnregisterFrame(btn)
+        btn.eventsRegistered = nil
+    end
+
+    -- Keep addon-owned buttons out of Blizzard's auxiliary update registries as
+    -- well.  These are not used by the TUI event/range/usability pipelines.
+    local updateFrame = _G.ActionBarButtonUpdateFrame
+    if updateFrame and updateFrame.UnregisterFrame then
+        updateFrame:UnregisterFrame(btn)
+        btn.needsUpdate = nil
+    end
+
+    local action = btn.action
+    if action then
+        -- Do not call UnregisterActionBarButtonCheckFrames(): Blizzard's range
+        -- remover also disables the C-side range check for the whole action,
+        -- which may still be needed by a native button.  Remove only our keyed
+        -- frame entries from the two Lua registries.
+        local rangeActions = _G.ActionBarButtonRangeCheckFrame and _G.ActionBarButtonRangeCheckFrame.actions
+        local rangeFrames = type(rangeActions) == "table" and rangeActions[action]
+        if type(rangeFrames) == "table" then
+            rangeFrames[btn] = nil
+        end
+
+        local usableActions = _G.ActionBarButtonUsableWatcherFrame and _G.ActionBarButtonUsableWatcherFrame.actions
+        local usableFrames = type(usableActions) == "table" and usableActions[action]
+        if type(usableFrames) == "table" then
+            usableFrames[btn] = nil
+        end
+    end
+end
+
 function EnsureOwnedActionButton(container, barKey, btnName, index)
     local btn = _G[btnName]
     local existed = btn ~= nil
@@ -39,6 +106,7 @@ function EnsureOwnedActionButton(container, barKey, btnName, index)
         local ok
         ok, btn = ns.SafeCall("best-effort-style", CreateFrame, "CheckButton", btnName, container, "ActionBarButtonTemplate")
         if not ok then btn = _G[btnName] end
+        DetachOwnedActionButtonFromBlizzardRegistries(btn)
         btn:SetAttribute("type", "action")
         btn:SetAttribute("checkselfcast", true)
         btn:SetAttribute("checkfocuscast", true)
@@ -71,6 +139,9 @@ function EnsureOwnedActionButton(container, barKey, btnName, index)
 
     else
         btn:SetParent(container)
+        -- Rebuilds reuse the same frame.  Re-detach defensively in case a Blizzard
+        -- mixin call re-registered it since the previous build.
+        DetachOwnedActionButtonFromBlizzardRegistries(btn)
     end
     btn._tomomodBarKey = barKey
     btn._tomomodButtonIndex = index
@@ -109,21 +180,16 @@ function FinalizeStandardOwnedActionButtons(container, barKey, buttons)
 end
 
 function SuppressOriginalStandardBar(barFrame, barKey)
+    -- P2.2: MainActionBar/MultiBars AND their native ActionButtons are part of
+    -- Blizzard's secure controller graph. Do not structurally retire either.
+    -- The owned TUI buttons sit above them; make the originals invisible and
+    -- non-interactive while leaving parent/events/attributes/methods intact.
     if barFrame then
-        HideManagedBlizzardBarFrame(barFrame, true)
+        HideManagedBlizzardBarFrame(barFrame, true) -- no-op for controller bars
     end
     local origButtons = GetOriginalBlizzButtons(barKey)
     for _, blizzBtn in ipairs(origButtons) do
-        if barKey == "bar1" then
-            blizzBtn:SetParent(hiddenBarParent)
-        end
-        SuppressBlizzardButton(blizzBtn)
-    end
-    if barKey == "bar1" then
-        local leaveBtn = _G.MainMenuBarVehicleLeaveButton
-        if leaveBtn then
-            leaveBtn:SetParent(UIParent)
-        end
+        SoftSuppressStandardBlizzardButton(blizzBtn)
     end
 end
 
@@ -301,15 +367,22 @@ function BuildBar(barKey)
         SuppressOriginalStandardBar(barFrame, barKey)
         buttons = BuildStandardOwnedButtons(container, barKey)
     elseif barKey == "pet" or barKey == "stance" then
-        if barFrame then
+        -- TOMOMOD P2.9 / Midnight 12.1:
+        -- ActionBarController_UpdateAll() calls StanceBar:Update() before it writes
+        -- MainActionBar's protected actionpage attribute. Mutating StanceBar or
+        -- StanceButton* from addon execution can therefore taint the controller
+        -- before MainActionBar:SetAttribute() is reached. Leave the native stance
+        -- graph completely Blizzard-owned. The TUI stance buttons are separate.
+        --
+        -- PetActionBar is not part of this controller pre-chain, so preserve the
+        -- existing pet retirement behaviour for now; this keeps the diagnostic
+        -- change narrow and lets the monk-companion repro isolate Stance/Possess.
+        if barKey == "pet" and barFrame then
             HideManagedBlizzardBarFrame(barFrame, true)
         end
 
         if barKey ~= "pet" then
-            local origButtons = GetOriginalBlizzButtons(barKey)
-            for _, blizzBtn in ipairs(origButtons) do
-                SuppressBlizzardButton(blizzBtn)
-            end
+            -- Intentionally do not suppress StanceButton*.
         end
 
         local template = barKey == "pet" and "PetActionButtonTemplate" or "StanceButtonTemplate"
@@ -542,9 +615,10 @@ function BuildBar(barKey)
                 hooksecurefunc("UpdateMicroButtonsParent", ReclaimOrYield)
             end
 
-            if ActionBarController_UpdateAll then
-                hooksecurefunc("ActionBarController_UpdateAll", ReclaimMicroButtons)
-            end
+            -- P2.2: do not hook the secure ActionBarController update path.
+            -- UpdateMicroButtons / UpdateMicroButtonsParent already reclaim the
+            -- micro menu, and keeping our callback off this controller further
+            -- reduces attribution/taint surface during action-page transitions.
 
             if C_PetBattles then
                 local petBattleFrame = CreateFrame("Frame")

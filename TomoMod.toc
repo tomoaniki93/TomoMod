@@ -5,7 +5,7 @@
 ## Category: |cff0cd29fHUD|r
 ## 
 ## SavedVariables: TomoModDB, CompanionStatusDB, TomoModDamageMeterDB
-## OptionalDeps: Blizzard_DamageMeter
+## OptionalDeps: Blizzard_ActionBar, Blizzard_ActionBarController, Blizzard_DamageMeter
 ## SavedVariablesPerCharacter: TomoModCharDB
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF

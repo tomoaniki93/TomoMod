@@ -106,12 +106,12 @@ function ActionBarsOwned:Initialize()
     InstallCombatDeferredAttributeWriters(_G.ExtraActionButton1)
     InstallSecretSafeCooldown(_G.ExtraActionButton1)
 
-    local possessBar = _G.PossessActionBar or _G.PossessBarFrame
-    if possessBar then
-        possessBar:UnregisterAllEvents()
-        possessBar:SetParent(hiddenBarParent)
-        possessBar:Hide()
-    end
+    -- TOMOMOD P2.9 / Midnight 12.1:
+    -- Do not mutate PossessActionBar. Blizzard calls PossessActionBar:Update()
+    -- at the very start of ActionBarController_UpdateAll(), before the protected
+    -- MainActionBar:SetAttribute("actionpage", ...) write. Any addon taint on
+    -- the possess bar can therefore poison the entire controller execution.
+    -- Keep the native possess graph fully Blizzard-owned.
 
     if _G.AddSpellToActionBar then
         _G.AddSpellToActionBar = noop

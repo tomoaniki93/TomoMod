@@ -149,6 +149,26 @@ ActionBarsOwned._activeButtons = ActionBarsOwned._activeButtons
 ActionBarsOwned._activeStandardButtons = ActionBarsOwned._activeStandardButtons
     or setmetatable({}, { __mode = "k" })
 
+-- TOMOMOD P2 12.1: keep addon bookkeeping OFF Blizzard-owned frame tables.
+-- Writing custom marker fields (frame._tomomod*) onto protected/live Blizzard
+-- frames expands the taint surface even when the marker itself is harmless.
+-- Use one weak-keyed side table instead; entries disappear automatically if a
+-- transient frame is released, and our own TUI frames may still keep local
+-- fields where that is useful. Mirrors the hardening pattern used by modern
+-- 12.1 UI code for per-frame metadata.
+ActionBarsOwned._externalFrameState = ActionBarsOwned._externalFrameState
+    or setmetatable({}, { __mode = "k" })
+
+function ActionBarsOwned.GetExternalFrameState(frame, create)
+    if not frame then return nil end
+    local state = ActionBarsOwned._externalFrameState[frame]
+    if not state and create ~= false then
+        state = {}
+        ActionBarsOwned._externalFrameState[frame] = state
+    end
+    return state
+end
+
 local function SetupDebugInstrumentation()
     local mp = ns._memprobes or {}; ns._memprobes = mp
     mp[#mp + 1] = {
@@ -347,6 +367,67 @@ hiddenBarParent:Hide()
 ---@type fun(...)
 noop = function() end
 
+-- TOMOMOD P2.3 12.1: standard Blizzard action bars/buttons must be retired
+-- during file-load execution, BEFORE runtime event callbacks can carry TomoMod
+-- taint into ActionBarController. Doing the same writes later (PLAYER_LOGIN,
+-- bar rebuild, PLAYER_REGEN_ENABLED, etc.) contaminates the native secure
+-- graph: the next Blizzard action-page/visibility update then gets billed to
+-- TomoMod and secret cooldown values are rejected.
+--
+-- Keep the controller-owned bar frames alive and event-driven, but make the
+-- whole native presentation inert now, in this early safe window. Native
+-- ActionButtons no longer need runtime updates once TUI owns the visible
+-- buttons, so unregister them once and never touch them again after this pass.
+earlyDisposedStandardButtons = setmetatable({}, { __mode = "k" })
+earlyDisposedStandardBars = setmetatable({}, { __mode = "k" })
+
+-- TOMOMOD P2.4 / Midnight 12.1:
+-- Retire Blizzard's STANDARD bars in the same clean load-time window used by
+-- EllesmereUI. The important details are:
+--   * operate on frame.actionButtons (the authoritative Blizzard registry),
+--     not only on globals that may not exist yet;
+--   * keep MainActionBar in Blizzard's parent/event chain, but alpha-hide it;
+--   * retire MultiBars completely (events + parent) before runtime callbacks;
+--   * never touch standard bars/buttons again after this function returns.
+-- Runtime mutations are what turn Blizzard's later restricted cooldown and
+-- ActionBarController execution into tainted execution.
+local function EarlyDisposeStandardBlizzardBars()
+    -- TOMOMOD P2.7 / Midnight 12.1 diagnostic hardening:
+    -- Zero-touch policy for Blizzard's STANDARD action-bar controller graph.
+    -- P2.5 proved the global ActionButton broadcasters were responsible for the
+    -- secret-cooldown / UpdatePressAndHoldAction cascade. The remaining taint is
+    -- entirely ActionBarController-owned. Even presentation writes such as
+    -- SetAlpha() plus a Show hook can mark these protected frames for later
+    -- restricted transitions. Therefore do absolutely nothing to MainActionBar
+    -- or MultiBars here: no alpha, parent, event, attribute, method or hook.
+    -- Native bars may be visible during this diagnostic build; that is deliberate.
+    -- If controller taint disappears, we will solve presentation separately without
+    -- mutating the protected Blizzard graph.
+    return
+end
+
+EarlyDisposeStandardBlizzardBars()
+
+-- TOMOMOD P2.5 / Midnight 12.1:
+-- ActionBarButtonTemplate does not rely only on per-button RegisterEvent. Blizzard
+-- also dispatches ACTIONBAR_SLOT_CHANGED / cooldown / spellcast events through
+-- these two global broadcaster frames. Retired stock buttons therefore continue
+-- to execute OnEvent even after button:UnregisterAllEvents(), which re-enters
+-- UpdateAction/UpdatePressAndHoldAction and SetCooldown with secret values from
+-- tainted execution. TUI owns its standard buttons and has its own event pipeline,
+-- so the stock broadcasters are not needed for Bars 1-8. Disable them once in
+-- the same clean load-time window as the native bar disposal.
+local function DisableStandardBlizzardActionBroadcasters()
+    if _G.ActionBarButtonEventsFrame and _G.ActionBarButtonEventsFrame.UnregisterAllEvents then
+        _G.ActionBarButtonEventsFrame:UnregisterAllEvents()
+    end
+    if _G.ActionBarActionEventsFrame and _G.ActionBarActionEventsFrame.UnregisterAllEvents then
+        _G.ActionBarActionEventsFrame:UnregisterAllEvents()
+    end
+end
+
+DisableStandardBlizzardActionBroadcasters()
+
 function PurgeShownExternalTaint(frame)
     if not frame or not frame.system then return end
 
@@ -396,8 +477,33 @@ function SilenceSuppressedBlizzardBar(frame)
     end
 end
 
+local function IsActionBarControllerManagedFrame(frame)
+    if not frame then return false end
+    for _, barKey in ipairs(STANDARD_BAR_KEYS) do
+        local frameName = BAR_FRAMES[barKey]
+        if frameName and _G[frameName] == frame then
+            return true
+        end
+    end
+    return false
+end
+
 function HideManagedBlizzardBarFrame(frame, clearEvents)
     if not frame then return end
+
+    -- TOMOMOD P2.1 12.1: never mutate the controller-owned standard bar
+    -- frames themselves. ActionBarController_ResetToDefault() writes secure
+    -- attributes back onto MainActionBar (and may do the same for MultiBars)
+    -- during state transitions such as temporary guardian/pet summons. Any
+    -- insecure table/method/parent/event mutation on those frames can taint
+    -- Blizzard's later SetAttribute() call and produce ADDON_ACTION_BLOCKED.
+    -- We retire the ORIGINAL BUTTONS instead; the controller frames are left
+    -- completely in Blizzard's ownership. This is intentionally an early
+    -- return before PurgeShownExternalTaint, SetParent, UnregisterAllEvents,
+    -- input changes or method replacement.
+    if IsActionBarControllerManagedFrame(frame) then
+        return
+    end
 
     if clearEvents then
         frame:UnregisterAllEvents()
@@ -427,33 +533,18 @@ end
 -- permanent for the session, a button is never un-suppressed.
 suppressedBlizzardButtons = {}
 
--- TOMOMOD: same reasoning as InstallSecureActionFlagRefresh in the helpers,
--- applied to the other half of the problem.
---
--- We build our own TUI_Bar*Button* and retire Blizzard's originals, but the
--- originals stay in the frame tree and they are tainted by us (SetParent,
--- SetAttribute). UnregisterAllEvents is a one-shot: the client re-registers
--- these buttons on its own schedule, and from then on every update they run
--- ends in a protected call attributed to us.
---
--- The first version of this patch neutralised the two writers the reports
--- named, UpdatePressAndHoldAction and UpdatePingAttributes. That was the wrong
--- shape of fix and the next report proved it: with those two silenced,
--- UpdateAction no longer aborted at line 546 and ran on to line 550, where it
--- calls bar:UpdateShownButtons() -- another protected call, another blocked
--- action, same event, same button:
---   [ADDON_ACTION_BLOCKED] TomoMod: ActionButton1:SetShown()
--- Silencing writers one at a time only moves the blocked action further down
--- the same function. Blizzard's update chain is protected calls end to end,
--- so the whole chain has to stop, not its current last step.
---
--- Cut at the entry points instead. These buttons are hidden, statehidden,
--- mouse-dead duplicates that cast nothing and display nothing; there is no
--- update they legitimately need to run. The writers stay in the list because
--- UpdateAction is not their only caller. All plain table writes, so they keep
--- holding while the button is resurrected mid-combat, when no protected call
--- is available to us.
-local SILENCED_BUTTON_METHODS = {
+-- TOMOMOD P2.3: standard native buttons are disposed once at file load by
+-- EarlyDisposeStandardBlizzardBars(). Runtime bar construction must never
+-- mutate them again; even SetAlpha/EnableMouse from an event callback can taint
+-- their Blizzard OnEvent path and make SetCooldown(secret, ...) fail.
+function SoftSuppressStandardBlizzardButton(btn)
+    -- Intentionally no-op after file load.
+end
+
+-- TOMOMOD P2.3.2: only non-standard retired Blizzard buttons (Pet/Stance)
+-- may use the legacy method-silencing path. Standard ActionButton/MultiActionButton
+-- frames are early-disposed and must never be mutated again from runtime code.
+local NONSTANDARD_SILENCED_BUTTON_METHODS = {
     "OnEvent",
     "UpdateAction",
     "Update",
@@ -462,17 +553,18 @@ local SILENCED_BUTTON_METHODS = {
 }
 
 local function SilenceSuppressedBlizzardButton(btn)
-    for _, methodName in ipairs(SILENCED_BUTTON_METHODS) do
+    if not btn or earlyDisposedStandardButtons[btn] then return end
+    for _, methodName in ipairs(NONSTANDARD_SILENCED_BUTTON_METHODS) do
         if btn[methodName] then
             btn[methodName] = noop
         end
     end
 end
 
--- TOMOMOD P0 12.1: a retired Blizzard button must be input-dead, not only
--- invisible. Midnight can keep helper/pager surfaces alive across controller
--- refreshes; an invisible mouse-enabled frame can steal a click before it ever
--- reaches the TUI secure button. Keep all input mutations out of combat.
+-- TOMOMOD P2.3.1: non-standard retired Blizzard frames (Pet/Stance/etc.)
+-- still use the legacy suppression path. Keep their invisible frames input-dead
+-- outside combat, but do not apply this helper to the early-disposed standard
+-- ActionButton/MultiActionButton graph.
 local function DisableRetiredFrameInput(frame)
     if not frame or InCombatLockdown() then return end
     if frame.EnableMouse then
@@ -488,7 +580,6 @@ local function DisableRetiredFrameInput(frame)
         ns.SafeCall("best-effort-style", frame.EnableMouseWheel, frame, false)
     end
 end
-
 function SuppressBlizzardButton(btn)
     btn:Hide()
     btn:UnregisterAllEvents()
@@ -507,16 +598,20 @@ end
 function ResuppressBlizzardButtons()
     if InCombatLockdown() then return end
     for btn in pairs(suppressedBlizzardButtons) do
-        SilenceSuppressedBlizzardButton(btn)
-        ns.SafeCall("best-effort-style", btn.UnregisterAllEvents, btn)
-        ns.SafeCall("best-effort-style", btn.SetScript, btn, "OnEvent", nil)
-        ns.SafeCall("best-effort-style", btn.Hide, btn)
-        ns.SafeCall("best-effort-style", btn.SetAttribute, btn, "statehidden", true)
-        DisableRetiredFrameInput(btn)
+        if not earlyDisposedStandardButtons[btn] then
+            SilenceSuppressedBlizzardButton(btn)
+            ns.SafeCall("best-effort-style", btn.UnregisterAllEvents, btn)
+            ns.SafeCall("best-effort-style", btn.SetScript, btn, "OnEvent", nil)
+            ns.SafeCall("best-effort-style", btn.Hide, btn)
+            ns.SafeCall("best-effort-style", btn.SetAttribute, btn, "statehidden", true)
+            DisableRetiredFrameInput(btn)
+        end
     end
     for bar in pairs(suppressedBlizzardBars) do
-        SilenceSuppressedBlizzardBar(bar)
-        DisableRetiredFrameInput(bar)
+        if not earlyDisposedStandardBars[bar] then
+            SilenceSuppressedBlizzardBar(bar)
+            DisableRetiredFrameInput(bar)
+        end
     end
 end
 
@@ -530,13 +625,15 @@ end
 -- press-and-hold there. Defer instead -- swallow the write during lockdown,
 -- replay it the moment combat ends. The attribute is only read when the action
 -- is next used, so a few seconds of staleness costs nothing.
-local deferredAttributeWrites = {}
+local deferredAttributeWrites = setmetatable({}, { __mode = "k" })
 
 local DEFERRED_ATTRIBUTE_METHODS = { "UpdatePressAndHoldAction", "UpdatePingAttributes" }
 
 function InstallCombatDeferredAttributeWriters(btn)
-    if not btn or btn._tomomodDeferredWritersInstalled then return end
-    btn._tomomodDeferredWritersInstalled = true
+    if not btn then return end
+    local state = ActionBarsOwned.GetExternalFrameState(btn)
+    if state.deferredWritersInstalled then return end
+    state.deferredWritersInstalled = true
 
     for _, methodName in ipairs(DEFERRED_ATTRIBUTE_METHODS) do
         local original = btn[methodName]
@@ -577,8 +674,10 @@ end
 -- second net in case a secret slips past issecretvalue() undetected, same
 -- reasoning as the nameplate role guard above.
 local function GuardCooldownWidget(cooldown)
-    if not cooldown or cooldown._tomomodSecretSafeInstalled then return end
-    cooldown._tomomodSecretSafeInstalled = true
+    if not cooldown then return end
+    local state = ActionBarsOwned.GetExternalFrameState(cooldown)
+    if state.secretSafeCooldownInstalled then return end
+    state.secretSafeCooldownInstalled = true
 
     local original = cooldown.SetCooldown
     if type(original) ~= "function" then return end
