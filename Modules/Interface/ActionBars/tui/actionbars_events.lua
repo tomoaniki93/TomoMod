@@ -337,6 +337,35 @@ end
 -- to the Blizzard originals we retired at build time. Every one of these is
 -- already registered on ownedEventFrame; the sweep is idempotent and skips
 -- itself in combat, so re-entering it twice on a vehicle swap is free.
+-- P3.5.17: Blizzard repaints the native Stance/Pet/Possess visuals on these
+-- events. Reapply the region mask plus the residual Cooldown/AutoCastOverlay
+-- helper-frame alpha on the next frame, after Blizzard's own handlers finish.
+-- The protected bar/button frames themselves remain untouched.
+local NATIVE_SPECIAL_VISUAL_RESUPPRESS_EVENTS = {
+    PLAYER_ENTERING_WORLD = true,
+    PLAYER_REGEN_ENABLED = true,
+    UPDATE_SHAPESHIFT_FORM = true,
+    UPDATE_SHAPESHIFT_FORMS = true,
+    UPDATE_SHAPESHIFT_COOLDOWN = true,
+    UPDATE_SHAPESHIFT_USABLE = true,
+    PET_BAR_UPDATE = true,
+    PET_BAR_UPDATE_COOLDOWN = true,
+    PET_UI_UPDATE = true,
+    UNIT_PET = true,
+    UPDATE_VEHICLE_ACTIONBAR = true,
+    UPDATE_POSSESS_BAR = true,
+}
+
+local function ScheduleNativeSpecialVisualResuppression()
+    if not C_Timer or not C_Timer.After then return end
+    C_Timer.After(0, function()
+        if not ActionBarsOwned.initialized then return end
+        if ActionBarsOwned.SuppressNativeSpecialVisualRegions then
+            ActionBarsOwned.SuppressNativeSpecialVisualRegions()
+        end
+    end)
+end
+
 local RESUPPRESS_EVENTS = {
     PLAYER_ENTERING_WORLD    = true,
     PLAYER_REGEN_ENABLED     = true,
@@ -355,6 +384,10 @@ function OnOwnedEvent(self, event, ...)
 
     if RESUPPRESS_EVENTS[event] then
         ResuppressBlizzardButtons()
+    end
+
+    if NATIVE_SPECIAL_VISUAL_RESUPPRESS_EVENTS[event] then
+        ScheduleNativeSpecialVisualResuppression()
     end
 
     if event == "ACTIONBAR_SLOT_CHANGED" then
@@ -387,7 +420,7 @@ function OnOwnedEvent(self, event, ...)
             end
             if buttons then
                 for _, btn in ipairs(buttons) do
-                    local action = btn.action
+                    local action = GetSafeActionSlot(btn)
                     if action and action > 0 then
                         slotMap[action] = { button = btn, barKey = "bar1" }
                         if ResetButtonChargeCapabilityCache then
@@ -428,9 +461,10 @@ function OnOwnedEvent(self, event, ...)
         -- TOMOMOD: run the repaint now AND once more on the next frame.
         --
         -- The secure snippet sets each button's action attribute during the
-        -- page swap, but the Lua-side button.action that GetSafeActionSlot
-        -- reads is only synced afterwards. Repainting in the same tick
-        -- therefore judges the buttons against the previous page's slots --
+        -- page swap. GetSafeActionSlot reads that attribute directly, so the
+        -- repaint never depends on a stale Lua-side button.action snapshot.
+        -- The deferred pass remains useful for APIs whose visual data settles
+        -- one frame after the secure page transition --
         -- and with hideEmptySlots on, UpdateEmptySlotVisibility answers by
         -- setting alpha 0. That is the symptom: on a vehicle, skyriding or
         -- druid Flight Form the buttons are present but invisible, and
@@ -441,12 +475,19 @@ function OnOwnedEvent(self, event, ...)
         -- pass is the same C_Timer.After(0, ...) idiom OwnedButton_PostDrag
         -- already uses after a drag, for the same reason.
         local function RepaintBar1(list, s)
-            if not list or not s or InCombatLockdown() then return end
+            if not list or not s then return end
+            local inCombat = InCombatLockdown()
             for _, btn in ipairs(list) do
+                -- SafeUpdate is visual-only on TUI-owned buttons and now reads
+                -- the authoritative secure action attribute without copying it
+                -- into Lua state. This lets Cat/Bear/vehicle/possess pages repaint
+                -- immediately in combat. Geometry/skin writes remain out-of-combat.
                 ActionBarsOwned.SafeUpdate(btn)
-                local st = GetFrameState(btn)
-                st.sk_sz = nil
-                SkinButton(btn, s)
+                if not inCombat then
+                    local st = GetFrameState(btn)
+                    st.sk_sz = nil
+                    SkinButton(btn, s)
+                end
                 UpdateButtonText(btn, s)
                 UpdateEmptySlotVisibility(btn, s)
             end

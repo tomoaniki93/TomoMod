@@ -199,8 +199,19 @@ env.__declared.SafeHasAction = true
 env.__declared.HasButtonContent = true
 
 function ActionBarsOwned.SafeUpdate(self)
-    local action = self.action
-    if not action then return end
+    local action = GetSafeActionSlot(self)
+    if not action then
+        ActionBarsOwned._activeButtons[self] = nil
+        ActionBarsOwned._activeStandardButtons[self] = nil
+        if self.icon then self.icon:Hide() end
+        if self.SlotBackground then self.SlotBackground:Show() end
+        if self.SetChecked then self:SetChecked(false) end
+        if self.cooldown then self.cooldown:Hide() end
+        if self.Count then self.Count:SetText("") end
+        if self.Name then self.Name:SetText("") end
+        if self.Border then self.Border:Hide() end
+        return
+    end
     local hasAction = SafeHasAction(action)
     local hasContent = hasAction or (self.GetAttribute and self:GetAttribute("gse-button"))
 

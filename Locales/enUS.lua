@@ -3354,9 +3354,26 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_diag_mode"] = "Diagnostics: when the report cannot work out your display mode it now prints the raw values the game gave it instead of a bare question mark — those setting names change between expansions, and a '?' on its own could not be diagnosed without asking you for more. Windowed-fullscreen and maximized windows are recognised in more cases, and addon versions no longer read 'vv1.2.3'.",
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
     -- =====================
-    -- 3.5.8 — What's New
+    -- 3.6.0 — What's New
     -- =====================
-    -- What's New 3.5.9
+    ["wn_360_foundation"] = "Changed — ActionBars now use a zero-taint ownership model: TomoMod keeps addon-owned buttons out of Blizzard's native action-button broadcaster and leaves protected Blizzard bar state under Blizzard ownership.",
+    ["wn_360_nativebars"] = "Fix — Blizzard standard action bars stay alive for secure paging but are visually suppressed, so only TomoMod bars are shown without freezing their runtime state.",
+    ["wn_360_specialvisuals"] = "Fix — Blizzard Stance, Pet and Possess bars remain functional underneath while their duplicate textures, text, cooldown swipes, autocast overlays, checked borders and flash effects are masked.",
+    ["wn_360_stance"] = "Fix — TomoMod Stance buttons now use independent secure spell actions and remain clickable for Druid forms, Paladin auras and Warrior stances.",
+    ["wn_360_pet"] = "Fix — TomoMod Pet buttons now use independent secure pet actions; normal pet commands, abilities and right-click autocast toggles remain usable without relying on the visible Blizzard Pet Bar.",
+    ["wn_360_possess"] = "Fix — Possession and vehicle states continue through Action Bar 1's secure paging instead of requiring TomoMod to manipulate Blizzard's PossessActionBar.",
+    ["wn_360_paging"] = "Fix — Action Bar 1 reads its current secure action slot directly, keeping form, vehicle, override and possess paging live instead of freezing on a Lua-side snapshot.",
+    ["wn_360_formsafe"] = "Fix — Druid Human/Cat/Bear changes now update Action Bar 1 correctly in and out of combat with no protected-action or secret cooldown errors observed in testing.",
+    ["wn_360_extra"] = "Fix — Extra Action keeps Blizzard's secure gameplay behavior while TomoMod provides the visible button, its own GCD/charges and a click-safe presentation without the invisible native hitbox stealing input.",
+    ["wn_360_zone"] = "Fix — Zone Ability keeps live state-dependent icons, GCD and charges, disappears when no longer active, and preserves native click behavior for quest abilities that require it.",
+    ["wn_360_vehicle"] = "Fix — Leave Vehicle remains a secure TomoMod action with the shared ActionBar skin while Blizzard taxi behavior stays available when needed.",
+    ["wn_360_gcd"] = "Fix — Native Stance/Aura/Posture GCD remnants are visually masked without touching Blizzard's cooldown values or protected button state.",
+    ["wn_360_petvisuals"] = "Fix — The remaining Blizzard PetBar checked-state borders, flash effects and autocast overlays are now hidden while the underlying pet state stays fully functional.",
+    ["wn_360_skin"] = "Changed — Extra Action, Zone Ability and Leave Vehicle now share the same regular TomoMod action-button skin pipeline as the rest of the bars.",
+    ["wn_360_validation"] = "Tested — Standard bars, Human/Cat/Bear paging, Stance, Pet, Possession, special buttons, mouse/keyboard input and combat were validated in game with no new ActionBar taint errors.",
+    -- =====================
+    -- 3.5.9 — What's New
+    -- =====================
     ["wn_359_visibility"] = "New — Action bars now have a Secure Visibility Engine with combat-safe rules for combat state, group type, instances, mounts, targets, hidden mode and custom secure conditions.",
     ["wn_359_gcd"] = "Changed — GCD swipes stay visible where they belong, but pure GCDs no longer show noisy fractional countdown text; numeric text is reserved for the action’s real cooldown.",
     ["wn_359_editmode"] = "Fix — Blizzard Edit Mode now opens without the protected TargetUnit/FocusUnit errors or Compact Party Frame secret-value failures that could previously be attributed to TomoMod.",
@@ -3373,6 +3390,9 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_359_specialskin"] = "Changed — Extra Action, Zone Ability and Leave Vehicle now use the same action-button skin pipeline as the rest of the bars; invisible Blizzard hitboxes no longer steal clicks or tooltips.",
     ["wn_359_validation"] = "Tested — Forms, special ability buttons, mouse clicks, GCD/charges, visibility, native glows, Edit Mode and secure paging were validated in game without new ActionBar taint errors.",
 
+    -- =====================
+    -- 3.5.8 — What's New
+    -- =====================
     ["wn_358_input"] = "Fix — Action bar input is now consistently immediate: interrupts, instant abilities, GCD/off-GCD actions, rapid key spam and Shift/Ctrl binds no longer inherit the delayed keybind behavior seen before this update.",
     ["wn_358_state"] = "Fix — Moving, replacing or clearing an action, changing specialization or talents, paging, forms, vehicles and skyriding now refresh the affected buttons cleanly without stale icons, cooldowns, glows, grey states or charge counts.",
     ["wn_358_range"] = "Changed — Midnight 12.1 range coloring now uses Blizzard’s native action-range notifications, while mana/usability updates are event-driven. The old periodic scan is kept only as a compatibility fallback.",

@@ -523,7 +523,7 @@ do
 
     function ActionBarsOwned.UpdateCooldown(button)
         if _abCooldownStats then _abCooldownStats.buttons = _abCooldownStats.buttons + 1 end
-        local action = button.action
+        local action = GetSafeActionSlot(button)
         if not action or action == 0 then
             local textCooldown = _actualCooldownTextFrames[button]
             if textCooldown then
@@ -618,7 +618,7 @@ do
             if buttons and runtimeVisible then
                 for _, btn in ipairs(buttons) do
                     if (not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(btn, barKey))
-                        and HasAction(btn.action or 0) then
+                        and HasAction(GetSafeActionSlot(btn) or 0) then
                         ActionBarsOwned.UpdateCooldown(btn)
                     end
                 end

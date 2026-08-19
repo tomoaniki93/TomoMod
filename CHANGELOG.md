@@ -1,5 +1,53 @@
 ﻿## ####################################
 
+## CHANGELOG 3.6.0 — Action Bars: Zero-Taint Native Separation, Secure Stance/Pet/Possession & Complete Blizzard Visual Cleanup
+
+#### Action Bars — Zero-Taint Native Separation
+
+- **Changed** — TomoMod's standard action buttons are now fully separated from Blizzard's native ActionBar broadcaster path. Addon-owned buttons no longer register as native Blizzard action buttons, preventing the controller from later executing protected native updates through TomoMod-owned state.
+- **Fix** — Removed the remaining global ActionBar broadcaster mutations, native cooldown wrappers and protected-frame ownership tricks that could surface later as `ADDON_ACTION_BLOCKED`, `SetShownBase`, `SetScaleBase`, `SetAttribute` or secret-value cooldown errors.
+- **Changed** — Blizzard keeps ownership of `MainActionBar`, `StanceBar`, `PetActionBar`, `PossessActionBar`, Override/Vehicle bars and their secure state machinery. TomoMod now limits itself to independent secure buttons, read-only state observation and narrowly scoped visual masking.
+
+#### Action Bars — Blizzard Standard Bar Visual Suppression
+
+- **Fix** — Blizzard's standard action bars can remain fully alive for paging and secure controller updates while their native presentation is visually suppressed, leaving only TomoMod's action bars on screen.
+- **Fix** — The suppression path no longer snapshots or writes the current action slot back into TomoMod buttons. Action Bar 1 reads its secure `action` attribute directly, so form, vehicle, possess and override paging remain live in combat.
+- **Fix** — Empty-slot presentation now refreshes from the current secure slot, restoring the **Hide Empty Buttons** option without freezing icons or paging.
+
+#### Action Bars — Secure Stance, Pet & Possession
+
+- **Fix** — TomoMod Stance buttons use independent `SecureActionButtonTemplate` spell actions and keep Blizzard's secure click handler intact. Druid forms, Paladin auras and Warrior stances remain clickable without depending on Blizzard's visible StanceBar.
+- **Fix** — TomoMod Pet buttons now use independent secure pet actions instead of cloned `PetActionButtonTemplate` behavior. Left-click pet commands and abilities remain functional, while right-click autocast toggles continue to work where supported.
+- **Fix** — Possession and vehicle states continue through Action Bar 1's secure paging instead of requiring TomoMod to manipulate Blizzard's PossessActionBar.
+- **Fix** — Blizzard's Stance, Pet and Possess bars remain functionally active but their native textures, font strings, cooldown swipes, pet autocast overlays, checked borders and flash effects are masked. This removes duplicate Blizzard visuals without touching the secure parent bars or their gameplay state.
+
+#### Action Bars — Druid Forms & Secure Paging
+
+- **Fix** — Action Bar 1 now changes correctly between Human, Cat and Bear forms in and out of combat without stale icons, frozen action slots or protected-action errors.
+- **Changed** — The current action slot is treated as secure runtime state and is read directly from the button attribute instead of being copied into a Lua-side `button.action` snapshot.
+- **Fix** — Vehicle, Override and Possess states remain authoritative, while configured modifier, form and target paging continue to coexist with the secure state driver.
+
+#### Action Bars — Extra Action, Zone Ability & Leave Vehicle
+
+- **Fix** — Extra Action uses a TomoMod-owned secure presentation with its own GCD, cooldown and charge display while Blizzard's native button remains available as the gameplay authority. Its invisible native hitbox no longer steals mouse clicks or tooltips.
+- **Fix** — Zone Ability keeps live quest/state icons, GCD and charge recovery, disappears when the ability is no longer active, and preserves Blizzard's native click semantics for abilities that require them.
+- **Fix** — Leave Vehicle remains a secure `leavevehicle` action with the same TomoMod skin as the rest of the ActionBars, while Blizzard taxi behavior remains available when needed.
+- **Changed** — Extra Action, Zone Ability and Leave Vehicle share the regular TomoMod `SkinButton()` pipeline instead of temporary diagnostic styling.
+
+#### Action Bars — Cooldowns, GCD & Native Visual Cleanup
+
+- **Fix** — TomoMod-owned special buttons use duration-object cooldown updates where required, avoiding reads of secret numeric cooldown values from Blizzard-owned cooldown widgets.
+- **Fix** — Residual Blizzard GCD swipes on Stance/Aura/Posture buttons are now visually masked without calling `SetCooldown()` or modifying the protected buttons themselves.
+- **Fix** — Residual PetBar visuals are fully cleaned up, including autocast overlays, checked-state borders and flash effects, while Blizzard's pet state remains intact underneath.
+
+#### Validation
+
+- **Tested** — Human/Cat/Bear form paging, Stance, Pet and Possession controls, standard action bars, Extra Action, Zone Ability, Leave Vehicle, GCD/charges, mouse clicks and keyboard activation were validated in game with no new ActionBar taint errors.
+- **Tested** — The final native visual masking leaves Blizzard's secure bars operational while removing their duplicate presentation, including Pet checked/autocast states and Stance GCD remnants.
+- **Internal** — 3.6.0 is the new clean ActionBars baseline. The validated zero-touch boundaries around Blizzard-owned secure frames are documented in code and should not be replaced by `Hide()`, `SetParent()`, event unregistering or protected attribute writes.
+
+## ####################################
+
 ## CHANGELOG 3.5.9 — Action Bars: Secure Visibility, Special Buttons, Smarter Paging & Taint Safety
 
 #### Action Bars — Secure Visibility Engine

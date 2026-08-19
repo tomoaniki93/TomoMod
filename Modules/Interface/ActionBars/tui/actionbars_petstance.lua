@@ -20,6 +20,22 @@ function ActionBarsOwned.UpdatePetButton(btn)
     local id = btn:GetID()
     if not id or id < 1 then return end
     local name, texture, isToken, isActive, autoCastAllowed, autoCastEnabled, spellID = GetPetActionInfo(id)
+
+    -- P3.5.15: TUI pet buttons use SecureActionButtonTemplate instead of
+    -- PetActionButtonTemplate.  Left click is type=pet/action1=<slot>.  Preserve
+    -- Blizzard's familiar right-click autocast toggle with a secure macro, but
+    -- only rewrite protected attributes while out of combat.
+    if not InCombatLockdown() then
+        local petActionName = isToken and name and _G[name] or name
+        if autoCastAllowed and petActionName and petActionName ~= "" then
+            btn:SetAttribute("type2", "macro")
+            btn:SetAttribute("macrotext2", "/petautocasttoggle " .. petActionName)
+        else
+            btn:SetAttribute("type2", ATTRIBUTE_NOOP or "")
+            btn:SetAttribute("macrotext2", nil)
+        end
+    end
+
     local icon = btn.icon
     if icon then
         if texture then

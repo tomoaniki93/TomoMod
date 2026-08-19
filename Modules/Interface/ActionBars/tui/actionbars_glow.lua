@@ -51,7 +51,7 @@ local function ActionBarGlowOpts(overrideColor)
 end
 
 function GetButtonSpellId(button)
-    local action = button.action
+    local action = GetSafeActionSlot(button)
     if not action then return nil end
     if not HasAction(action) then return nil end
 
@@ -116,7 +116,7 @@ function ForEachSpellCandidate(spellId, callback)
 end
 
 function ButtonFlyoutContainsSpell(button, spellId)
-    local action = button.action
+    local action = GetSafeActionSlot(button)
     if not action then return false end
     local ok, actionType, id = ns.SafeCall("best-effort-style", GetActionInfo, action)
     if not ok or actionType ~= "flyout" then return false end
@@ -180,7 +180,7 @@ function RebuildSpellIdMap()
                             list[#list + 1] = btn
                         end)
                     else
-                        local action = btn.action
+                        local action = GetSafeActionSlot(btn)
                         if action and HasAction(action) then
                             local ok, actionType = ns.SafeCall("best-effort-style", GetActionInfo, action)
                             if ok and actionType == "flyout" then
@@ -262,7 +262,7 @@ function UpdateSpellHighlight(button)
             shown = true
         end
     elseif spellHighlight.type == "flyout" then
-        local action = button.action
+        local action = GetSafeActionSlot(button)
         if action then
             local ok, actionType, actionId = ns.SafeCall("best-effort-style", GetActionInfo, action)
             if ok and actionType == "flyout" and actionId == spellHighlight.id then
@@ -308,7 +308,7 @@ UpdateAssistedCombatRotationFrame = function(button)
     local frame = button.AssistedCombatRotationFrame
     if not ActionBarsOwned._assistedCombatEverActive and not frame then return end
 
-    local action = button.action
+    local action = GetSafeActionSlot(button)
     local show = false
     local hasAction = action and HasAction(action)
     if hasAction then
@@ -322,7 +322,7 @@ UpdateAssistedCombatRotationFrame = function(button)
         _assistRotationButton = button
         if not button.OnActionBarSlotChanged then
             button.OnActionBarSlotChanged = function(self)
-                if ClearNewActionHighlight then ClearNewActionHighlight(self.action, true) end
+                if ClearNewActionHighlight then ClearNewActionHighlight(GetSafeActionSlot(self), true) end
                 if self.Update then self:Update() end
             end
         end
@@ -532,7 +532,7 @@ function ActionBarsOwned.UpdateAllButtonStates()
 
     for btn in pairs(ActionBarsOwned._activeButtons) do
         local barKey = btn._tomomodBarKey
-        local action = btn.action
+        local action = GetSafeActionSlot(btn)
         if (not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey))
             and action and action ~= 0 then
             if IsCurrentAction(action) or IsAutoRepeatAction(action) then
@@ -572,7 +572,7 @@ function ActionBarsOwned.UpdateAllButtonVisuals()
             if btns and runtimeVisible then
                 for _, btn in ipairs(btns) do
                     if not IsButtonInsideVisibleLayout or IsButtonInsideVisibleLayout(btn, barKey) then
-                        local action = btn.action or 0
+                        local action = GetSafeActionSlot(btn) or 0
                         if HasAction(action) then
                             local state = GetFrameState(btn)
                             state.wasEmpty = false

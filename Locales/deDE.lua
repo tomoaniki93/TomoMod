@@ -3314,9 +3314,26 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
     -- =====================
-    -- 3.5.8 — Was ist neu
+    -- 3.6.0 — What's New
     -- =====================
-    -- What's New 3.5.9
+    ["wn_360_foundation"] = "Geändert — Die Aktionsleisten verwenden jetzt ein Zero-Taint-Besitzmodell: TomoMod hält eigene Schaltflächen aus Blizzards nativer ActionButton-Verteilung heraus und überlässt geschützte Blizzard-Leistenzustände vollständig Blizzard.",
+    ["wn_360_nativebars"] = "Behoben — Blizzards Standard-Aktionsleisten bleiben für sicheres Paging aktiv, werden aber visuell ausgeblendet, sodass nur TomoMod-Leisten sichtbar sind, ohne ihren Laufzeitzustand einzufrieren.",
+    ["wn_360_specialvisuals"] = "Behoben — Blizzards Haltungs-, Begleiter- und Besitzleisten bleiben im Hintergrund funktionsfähig, während doppelte Texturen, Texte, GCD-Wipes, Autocast-Effekte, aktive Rahmen und Blitze maskiert werden.",
+    ["wn_360_stance"] = "Behoben — TomoMods Haltungsbuttons verwenden jetzt unabhängige sichere Zauberaktionen und bleiben für Druidenformen, Paladinauren und Kriegerhaltungen anklickbar.",
+    ["wn_360_pet"] = "Behoben — TomoMods Begleiterbuttons verwenden jetzt unabhängige sichere Begleiteraktionen; Befehle, Fähigkeiten und Rechtsklick-Autocast funktionieren ohne sichtbare Blizzard-Begleiterleiste.",
+    ["wn_360_possess"] = "Behoben — Besitz- und Fahrzeugzustände laufen weiterhin über das sichere Paging von Aktionsleiste 1, statt Blizzards PossessActionBar durch TomoMod verändern zu müssen.",
+    ["wn_360_paging"] = "Behoben — Aktionsleiste 1 liest ihren aktuellen sicheren Aktionsplatz direkt, sodass Formen-, Fahrzeug-, Override- und Besitz-Paging aktiv bleiben und nicht in einer Lua-Kopie einfrieren.",
+    ["wn_360_formsafe"] = "Behoben — Druidenwechsel zwischen Mensch/Katze/Bär aktualisieren Aktionsleiste 1 jetzt im und außerhalb des Kampfes korrekt; in Tests traten keine geschützten Aktions- oder geheimen Cooldown-Fehler auf.",
+    ["wn_360_extra"] = "Behoben — Extra Action behält Blizzards sicheres Spielverhalten, während TomoMod den sichtbaren Button, eigenen GCD/Ladungen und eine klicksichere Darstellung ohne unsichtbare native Hitbox bereitstellt.",
+    ["wn_360_zone"] = "Behoben — Zonenfähigkeiten behalten dynamische Statussymbole, GCD und Ladungen, verschwinden wenn sie nicht mehr aktiv sind und bewahren natives Klickverhalten für entsprechende Questfähigkeiten.",
+    ["wn_360_vehicle"] = "Behoben — Fahrzeug verlassen bleibt eine sichere TomoMod-Aktion mit gemeinsamem ActionBar-Skin; Blizzards Taxi-Verhalten bleibt bei Bedarf verfügbar.",
+    ["wn_360_gcd"] = "Behoben — Verbleibende native GCD-Anzeigen für Haltung/Aura/Form werden visuell maskiert, ohne Blizzard-Cooldownwerte oder geschützten Buttonzustand anzutasten.",
+    ["wn_360_petvisuals"] = "Behoben — Die verbleibenden aktiven Rahmen, Flash-Effekte und Autocast-Overlays der Blizzard-Begleiterleiste sind verborgen, während der echte Begleiterzustand vollständig funktioniert.",
+    ["wn_360_skin"] = "Geändert — Extra Action, Zonenfähigkeit und Fahrzeug verlassen verwenden jetzt dieselbe reguläre TomoMod-Button-Skin-Pipeline wie die übrigen Aktionsleisten.",
+    ["wn_360_validation"] = "Getestet — Standardleisten, Mensch/Katze/Bär-Paging, Haltung, Begleiter, Besitz, Spezialbuttons, Maus/Tastatur und Kampf wurden im Spiel ohne neue ActionBar-Taint-Fehler validiert.",
+    -- =====================
+    -- 3.5.9 — What's New
+    -- =====================
     ["wn_359_visibility"] = "Neu — Aktionsleisten besitzen jetzt eine sichere Sichtbarkeits-Engine mit kampfsicheren Regeln für Kampfstatus, Gruppentyp, Instanzen, Reittiere, Ziele, den Modus Versteckt und eigene sichere Bedingungen.",
     ["wn_359_gcd"] = "Geändert — Der GCD-Swipe bleibt sichtbar, wo er hingehört, aber ein reiner GCD zeigt keinen störenden Sekundenbruchteil-Countdown mehr; Zahlen sind dem echten Cooldown der Aktion vorbehalten.",
     ["wn_359_editmode"] = "Fehlerbehebung — Blizzards Bearbeitungsmodus öffnet sich jetzt ohne die geschützten TargetUnit-/FocusUnit-Fehler oder Secret-Value-Fehler der kompakten Gruppenframes, die zuvor TomoMod zugeschrieben wurden.",
@@ -3333,6 +3350,9 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_359_specialskin"] = "Geändert — Extra-Aktion, Zonenfähigkeit und Fahrzeug verlassen verwenden jetzt exakt denselben Aktionsknopf-Stil wie die übrigen TomoMod-Leisten; unsichtbare Blizzard-Klickflächen stehlen keine Klicks oder Tooltips mehr.",
     ["wn_359_validation"] = "Getestet — Formen, Spezialfähigkeiten, Mausklicks, GCD/Aufladungen, Sichtbarkeit, native Glows, Bearbeitungsmodus und sicheres Paging wurden im Spiel ohne neue ActionBar-Taint-Fehler geprüft.",
 
+    -- =====================
+    -- 3.5.8 — What's New
+    -- =====================
     ["wn_358_input"] = "Fehlerbehebung — Eingaben auf den Aktionsleisten reagieren jetzt zuverlässig sofort: Unterbrechungen, Sofortzauber, Aktionen mit/ohne GCD, schnelles Tastenspammen sowie Shift-/Strg-Bindings haben nicht mehr die zuvor spürbare Verzögerung.",
     ["wn_358_state"] = "Fehlerbehebung — Verschieben, Ersetzen oder Leeren einer Aktion sowie Spezialisierungs-, Talent-, Seiten-, Haltungs-, Fahrzeug- und dynamische Flugwechsel aktualisieren die betroffenen Tasten jetzt ohne veraltete Symbole, Abklingzeiten, Leuchteffekte, Grauzustände oder falsche Aufladungen.",
     ["wn_358_range"] = "Änderung — Unter Midnight 12.1 nutzt die Reichweitenfärbung jetzt Blizzards native Reichweitenmeldungen; Mana und Verwendbarkeit werden ereignisgesteuert aktualisiert. Der alte periodische Scan bleibt nur als Kompatibilitäts-Fallback.",

@@ -63,6 +63,26 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "3.6.0",
+        highlights = {
+            L["wn_360_foundation"] or "Changed — ActionBars now use a zero-taint ownership model: TomoMod keeps addon-owned buttons out of Blizzard's native action-button broadcaster and leaves protected Blizzard bar state under Blizzard ownership.",
+            L["wn_360_nativebars"] or "Fix — Blizzard standard action bars stay alive for secure paging but are visually suppressed, so only TomoMod bars are shown without freezing their runtime state.",
+            L["wn_360_specialvisuals"] or "Fix — Blizzard Stance, Pet and Possess bars remain functional underneath while their duplicate textures, text, cooldown swipes, autocast overlays, checked borders and flash effects are masked.",
+            L["wn_360_stance"] or "Fix — TomoMod Stance buttons now use independent secure spell actions and remain clickable for Druid forms, Paladin auras and Warrior stances.",
+            L["wn_360_pet"] or "Fix — TomoMod Pet buttons now use independent secure pet actions; normal pet commands, abilities and right-click autocast toggles remain usable without relying on the visible Blizzard Pet Bar.",
+            L["wn_360_possess"] or "Fix — Possession and vehicle states continue through Action Bar 1's secure paging instead of requiring TomoMod to manipulate Blizzard's PossessActionBar.",
+            L["wn_360_paging"] or "Fix — Action Bar 1 reads its current secure action slot directly, keeping form, vehicle, override and possess paging live instead of freezing on a Lua-side snapshot.",
+            L["wn_360_formsafe"] or "Fix — Druid Human/Cat/Bear changes now update Action Bar 1 correctly in and out of combat with no protected-action or secret cooldown errors observed in testing.",
+            L["wn_360_extra"] or "Fix — Extra Action keeps Blizzard's secure gameplay behavior while TomoMod provides the visible button, its own GCD/charges and a click-safe presentation without the invisible native hitbox stealing input.",
+            L["wn_360_zone"] or "Fix — Zone Ability keeps live state-dependent icons, GCD and charges, disappears when no longer active, and preserves native click behavior for quest abilities that require it.",
+            L["wn_360_vehicle"] or "Fix — Leave Vehicle remains a secure TomoMod action with the shared ActionBar skin while Blizzard taxi behavior stays available when needed.",
+            L["wn_360_gcd"] or "Fix — Native Stance/Aura/Posture GCD remnants are visually masked without touching Blizzard's cooldown values or protected button state.",
+            L["wn_360_petvisuals"] or "Fix — The remaining Blizzard PetBar checked-state borders, flash effects and autocast overlays are now hidden while the underlying pet state stays fully functional.",
+            L["wn_360_skin"] or "Changed — Extra Action, Zone Ability and Leave Vehicle now share the same regular TomoMod action-button skin pipeline as the rest of the bars.",
+            L["wn_360_validation"] or "Tested — Standard bars, Human/Cat/Bear paging, Stance, Pet, Possession, special buttons, mouse/keyboard input and combat were validated in game with no new ActionBar taint errors.",
+        },
+    },
+    {
         version = "3.5.9",
         highlights = {
             L["wn_359_visibility"] or "New — Action bars now have a Secure Visibility Engine with combat-safe rules for combat state, group type, instances, mounts, targets, hidden mode and custom secure conditions.",

@@ -17,10 +17,39 @@ GetDB = Helpers.CreateDBGetter("actionBars")
 
 function GetSafeActionSlot(button)
     if not button then return nil end
-    local action = button.action
-    if action == nil or Helpers.IsSecretValue(action) then
+
+    -- P3.5.14 / Midnight 12.1:
+    -- Standard TUI buttons are bare SecureActionButtons. Their authoritative
+    -- page/form slot lives in the secure "action" attribute and can change in
+    -- combat through the state driver. Never copy that value back into
+    -- button.action from insecure Lua: doing so freezes the visual page and can
+    -- contaminate the secure transition. Read it only, guard secret values, and
+    -- fall back to the legacy Lua field for non-standard/custom buttons.
+    local action
+    local barKey = button._tomomodBarKey
+    if barKey and STANDARD_BAR_KEY_SET and STANDARD_BAR_KEY_SET[barKey] and button.GetAttribute then
+        local okAttr, attrAction = pcall(button.GetAttribute, button, "action")
+        if okAttr then
+            if Helpers.IsSecretValue and Helpers.IsSecretValue(attrAction) then
+                return nil
+            end
+            local attrType = type(attrAction)
+            if attrType == "number" or attrType == "string" then
+                action = attrAction
+            end
+        end
+    end
+
+    if action == nil then
+        action = button.action
+    end
+    if Helpers.IsSecretValue and Helpers.IsSecretValue(action) then
         return nil
     end
+    if action == nil then
+        return nil
+    end
+
     local ok, numericAction = ns.SafeCall("best-effort-style", tonumber, action)
     if not ok or type(numericAction) ~= "number" or numericAction < 1 then
         return nil
@@ -838,7 +867,7 @@ function InstallSecureActionFlagRefresh(btn)
             return
         end
 
-        local action = self.action
+        local action = GetSafeActionSlot(self)
         if not action or Helpers.IsSecretValue(action) then
             GameTooltip:Hide()
             return

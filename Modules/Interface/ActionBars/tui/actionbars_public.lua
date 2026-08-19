@@ -21,10 +21,10 @@ local function PurgeOverrideBarShownExternal()
     return
 end
 
--- P3.5.11: visually suppress Blizzard's controller-owned standard bars only
--- after TomoMod has built/refreshed its own independent button graph.  The
--- native frames keep their secure paging/events/attributes; only bar alpha is
--- changed and only out of combat.
+-- P3.5.14: standard Blizzard bars stay fully alive for the controller, but
+-- their presentation is suppressed after TUI has painted its own independent
+-- buttons. This function never touches StanceBar, PetActionBar or
+-- PossessActionBar.
 local function SuppressStandardBlizzardBarVisuals()
     if InCombatLockdown and InCombatLockdown() then
         return false
@@ -39,55 +39,156 @@ local function SuppressStandardBlizzardBarVisuals()
             touched = true
         end
     end
-
     return touched
 end
 
--- P3.5.11: the standard TUI buttons are detached from Blizzard's native
--- ActionButton registry.  Keep their Lua-side action slot synchronized from
--- their own secure action attribute before repainting.  This is TomoMod-owned
--- state only; no Blizzard ActionButton or cooldown object is mutated here.
-local function RefreshOwnedStandardButtonVisuals()
-    if InCombatLockdown and InCombatLockdown() then
-        return false
+-- P3.5.17: native Stance/Pet/Possess bars must stay fully functional because
+-- Blizzard's ActionBarController still updates them as part of the protected
+-- action-bar graph. P3.5.12 proved that changing the bar/button alpha itself
+-- can break paging/input. P3.5.16 successfully hid ordinary Texture/FontString
+-- regions, but two C/animation-backed visual helpers remain visible:
+--   * Cooldown frames (stance/form GCD swipe)
+--   * Pet AutoCastOverlay frames (animated gold border)
+-- Suppress those helper frames only; never mutate the native bar/button alpha,
+-- secure attributes, events, parentage, cooldown data or click handlers.
+local NATIVE_SPECIAL_VISUAL_BAR_NAMES = {
+    "StanceBar",
+    "PetActionBar",
+    "PossessActionBar",
+}
+
+local NATIVE_SPECIAL_BUTTON_GROUPS = {
+    { prefix = "StanceButton", count = 10 },
+    { prefix = "PetActionButton", count = 10 },
+    { prefix = "PossessButton", count = 2 },
+}
+
+local function SuppressNativeVisualHelperFrame(frame)
+    if frame and frame.SetAlpha then
+        -- Presentation-only alpha. Do not Hide() the helper and do not alter
+        -- cooldown timing/swipe APIs; Blizzard remains the sole state owner.
+        frame:SetAlpha(0)
     end
+end
 
-    for _, barKey in ipairs(STANDARD_BAR_KEYS) do
-        local buttons = ActionBarsOwned.nativeButtons and ActionBarsOwned.nativeButtons[barKey]
-        local settings = GetEffectiveSettings and GetEffectiveSettings(barKey)
-        if buttons and settings then
-            for _, btn in ipairs(buttons) do
-                if btn and btn.GetAttribute then
-                    local action = btn:GetAttribute("action")
-                    if action ~= nil and not (Helpers.IsSecretValue and Helpers.IsSecretValue(action)) then
-                        local ok, numericAction = ns.SafeCall("best-effort-style", tonumber, action)
-                        if ok and type(numericAction) == "number" then
-                            btn.action = numericAction
-                        end
-                    end
-                end
+local function SuppressNativeButtonResidualVisuals(button)
+    if not button then return end
 
-                if btn then
-                    ActionBarsOwned.SafeUpdate(btn)
-                    local state = GetFrameState(btn)
-                    state.sk_sz = nil
-                    SkinButton(btn, settings)
-                    UpdateButtonText(btn, settings)
-                    UpdateEmptySlotVisibility(btn, settings)
-                end
+    -- CooldownFrame has C-side rendering, so hiding only its texture regions
+    -- does not remove the swipe/GCD. Alpha on the child Cooldown frame does.
+    SuppressNativeVisualHelperFrame(button.cooldown)
+    SuppressNativeVisualHelperFrame(button.Cooldown)
+    SuppressNativeVisualHelperFrame(button.chargeCooldown)
+    SuppressNativeVisualHelperFrame(button.ChargeCooldown)
+
+    -- PetActionBar:Update() explicitly drives AutoCastOverlay visibility and
+    -- animation. Keeping the overlay frame alive at alpha 0 prevents its
+    -- animated gold border from reappearing while preserving native state.
+    SuppressNativeVisualHelperFrame(button.AutoCastOverlay)
+end
+
+-- P3.5.18: PetActionBar also keeps persistent command/reaction buttons in a
+-- checked state (Follow/Assist/Defensive/etc.) and may flash an active action.
+-- Those textures are driven independently from the icon/AutoCastOverlay, so
+-- suppress them explicitly without changing SetChecked(), action state or any
+-- secure input path. This is presentation-only and limited to native pet
+-- buttons; the TUI pet buttons keep their own checked/flash feedback.
+local function SuppressNativePetStateVisuals(button)
+    if not button then return end
+
+    if button.GetCheckedTexture then
+        SuppressNativeVisualHelperFrame(button:GetCheckedTexture())
+    end
+    SuppressNativeVisualHelperFrame(button.CheckedTexture)
+    SuppressNativeVisualHelperFrame(button.checkedTexture)
+    SuppressNativeVisualHelperFrame(button.Flash)
+    SuppressNativeVisualHelperFrame(button.flash)
+end
+
+local function SuppressNativeRenderRegions(frame, depth, seen)
+    if not frame or depth > 6 or seen[frame] then return end
+    seen[frame] = true
+
+    if frame.GetRegions then
+        local regions = { frame:GetRegions() }
+        for i = 1, #regions do
+            local region = regions[i]
+            -- Regions are presentation-only objects. Do not Hide() them: some
+            -- Blizzard update paths Show() the icon/checked texture again.
+            -- Alpha 0 survives those Show() calls and does not mutate the
+            -- protected owner frame.
+            if region and region.SetAlpha then
+                region:SetAlpha(0)
             end
         end
     end
 
-    return true
+    if frame.GetChildren then
+        local children = { frame:GetChildren() }
+        for i = 1, #children do
+            local child = children[i]
+            -- A Cooldown is a visual child frame with its own C-side swipe
+            -- renderer. SetAlpha(0) is intentionally limited to this helper
+            -- type; ordinary native Button/Frame objects remain zero-touch.
+            local objectType = child and child.GetObjectType and child:GetObjectType()
+            if objectType == "Cooldown" then
+                SuppressNativeVisualHelperFrame(child)
+            end
+            SuppressNativeRenderRegions(child, depth + 1, seen)
+        end
+    end
 end
 
-local function ApplyStandardBlizzardVisualSuppression()
-    if not SuppressStandardBlizzardBarVisuals() then
+function ActionBarsOwned.SuppressNativeSpecialVisualRegions()
+    local seen = {}
+    for i = 1, #NATIVE_SPECIAL_VISUAL_BAR_NAMES do
+        local bar = _G[NATIVE_SPECIAL_VISUAL_BAR_NAMES[i]]
+        if bar then
+            SuppressNativeRenderRegions(bar, 0, seen)
+        end
+    end
+
+    -- Explicit field pass catches Blizzard helper frames even if a template
+    -- changes their child nesting/order. The buttons themselves are untouched.
+    for i = 1, #NATIVE_SPECIAL_BUTTON_GROUPS do
+        local group = NATIVE_SPECIAL_BUTTON_GROUPS[i]
+        for index = 1, group.count do
+            local button = _G[group.prefix .. index]
+            SuppressNativeButtonResidualVisuals(button)
+            if group.prefix == "PetActionButton" then
+                SuppressNativePetStateVisuals(button)
+            end
+        end
+    end
+end
+
+local function ScheduleNativeSpecialVisualSuppression()
+    if not ActionBarsOwned.SuppressNativeSpecialVisualRegions then return end
+    ActionBarsOwned.SuppressNativeSpecialVisualRegions()
+    if C_Timer and C_Timer.After then
+        C_Timer.After(0, function()
+            if ActionBarsOwned.initialized and ActionBarsOwned.SuppressNativeSpecialVisualRegions then
+                ActionBarsOwned.SuppressNativeSpecialVisualRegions()
+            end
+        end)
+    end
+end
+
+local function PaintOwnedStandardBarsBeforeSuppression()
+    if ActionBarsOwned.ForceFullVisualRescan then
+        ActionBarsOwned.ForceFullVisualRescan()
+    end
+    if ActionBarsOwned.UpdateAllButtonVisuals then
+        ActionBarsOwned.UpdateAllButtonVisuals()
+    end
+end
+
+local function ApplyLateStandardBarSuppression()
+    if InCombatLockdown and InCombatLockdown() then
         return false
     end
-    RefreshOwnedStandardButtonVisuals()
-    return true
+    PaintOwnedStandardBarsBeforeSuppression()
+    return SuppressStandardBlizzardBarVisuals()
 end
 
 -- TOMOMOD P2.13 / Midnight 12.1 Edit Mode presentation:
@@ -162,10 +263,6 @@ function ActionBarsOwned:Initialize()
         C_Timer.After(0, DisableBlizzardSpecialBarEditModePreviews)
     end
 
-    -- Do not suppress Blizzard standard-bar alpha yet.  TUI button construction
-    -- and the first icon/empty-slot pass run below with the native presentation
-    -- untouched; suppression is applied only after all owned bars exist.
-
     PatchLibKeyBoundForMidnight()
 
     ownedEventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
@@ -230,6 +327,9 @@ function ActionBarsOwned:Initialize()
     ownedEventFrame:RegisterEvent("SPELL_UPDATE_USABLE")
     ownedEventFrame:RegisterEvent("SPELL_FLYOUT_UPDATE")
     ownedEventFrame:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
+    -- P3.5.16: possession has its own native visual update event.  Listen only
+    -- so the visual-region mask can be refreshed after Blizzard repaints it.
+    ownedEventFrame:RegisterEvent("UPDATE_POSSESS_BAR")
     ownedEventFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
     ownedEventFrame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
     ownedEventFrame:RegisterEvent("START_AUTOREPEAT_SPELL")
@@ -243,14 +343,22 @@ function ActionBarsOwned:Initialize()
         BuildBar(barKey)
     end
 
-    -- P3.5.11: late alpha suppression.  Repaint our owned standard buttons on
-    -- the same pass and again next frame so icon/action-slot state is settled.
-    ApplyStandardBlizzardVisualSuppression()
+    -- P3.5.16: keep native special-bar behavior alive but remove only their
+    -- presentation regions.  This intentionally happens after TUI owns its
+    -- independent Stance/Pet controls.
+    ScheduleNativeSpecialVisualSuppression()
+
+    -- Paint TUI from its own secure action attributes first, then hide only the
+    -- standard Blizzard bar parents. No Lua-side action slot is written here.
+    ApplyLateStandardBarSuppression()
     if C_Timer and C_Timer.After then
         C_Timer.After(0, function()
             if not ActionBarsOwned.initialized then return end
-            if InCombatLockdown and InCombatLockdown() then return end
-            ApplyStandardBlizzardVisualSuppression()
+            ApplyLateStandardBarSuppression()
+        end)
+        C_Timer.After(0.25, function()
+            if not ActionBarsOwned.initialized then return end
+            ApplyLateStandardBarSuppression()
         end)
     end
 
@@ -522,10 +630,7 @@ function ActionBarsOwned:Refresh()
         SkinBar(barKey)
     end
 
-    -- Keep Blizzard standard bars visually suppressed after every options
-    -- refresh, then repaint TomoMod's own buttons so hide-empty/icon state is
-    -- recalculated from the current secure action slots.
-    ApplyStandardBlizzardVisualSuppression()
+    ApplyLateStandardBarSuppression()
 
     ActionBarsOwned.HookSpellFlyoutSkinning()
 
@@ -548,6 +653,7 @@ function ActionBarsOwned:Refresh()
 
     UpdatePetBarVisibility()
     UpdateStanceBarLayout()
+    ScheduleNativeSpecialVisualSuppression()
 
     ActionBarsOwned.UpdateUsabilityPolling()
     if self.RefreshTooltipSuppressCache then self:RefreshTooltipSuppressCache() end
@@ -626,15 +732,14 @@ initFrame:SetScript("OnEvent", function(self, event, addonName)
         if not GetDB() then return end
         ActionBarsOwned:Initialize()
     elseif addonName == "Blizzard_ActionBar" then
-        -- P3.5.11: if Blizzard_ActionBar loads after TomoMod, suppress only
-        -- after its frames exist and repaint our independent buttons afterwards.
         if ActionBarsOwned.initialized then
-            ApplyStandardBlizzardVisualSuppression()
+            ApplyLateStandardBarSuppression()
+            ScheduleNativeSpecialVisualSuppression()
             if C_Timer and C_Timer.After then
                 C_Timer.After(0, function()
-                    if not ActionBarsOwned.initialized then return end
-                    if InCombatLockdown and InCombatLockdown() then return end
-                    ApplyStandardBlizzardVisualSuppression()
+                    if ActionBarsOwned.initialized then
+                        ApplyLateStandardBarSuppression()
+                    end
                 end)
             end
         end

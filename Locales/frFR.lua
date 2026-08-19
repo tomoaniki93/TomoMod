@@ -3330,9 +3330,26 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_333_diag_mode"] = "Diagnostics : quand le rapport n'arrive pas à déterminer votre mode d'affichage, il indique maintenant les valeurs brutes renvoyées par le jeu au lieu d'un simple point d'interrogation — ces noms de réglages changent d'une extension à l'autre, et un « ? » seul ne pouvait pas être diagnostiqué sans revenir vers vous. Le plein écran fenêtré et les fenêtres agrandies sont reconnus dans davantage de cas, et les versions des addons ne s'affichent plus sous la forme « vv1.2.3 ».",
     ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
     -- =====================
-    -- 3.5.8 — Quoi de neuf
+    -- 3.6.0 — What's New
     -- =====================
-    -- What's New 3.5.9
+    ["wn_360_foundation"] = "Changement — Les barres d’action utilisent désormais une architecture de propriété zéro-taint : les boutons TomoMod restent hors du diffuseur natif de Blizzard et l’état protégé des barres Blizzard reste sous le contrôle de Blizzard.",
+    ["wn_360_nativebars"] = "Correction — Les barres d’action standard de Blizzard restent actives pour le paging sécurisé mais sont masquées visuellement, afin de n’afficher que les barres TomoMod sans figer leur état dynamique.",
+    ["wn_360_specialvisuals"] = "Correction — Les barres Blizzard de postures, familier et possession restent fonctionnelles en arrière-plan tandis que leurs textures, textes, GCD, effets d’autocast, contours actifs et flashs en double sont masqués.",
+    ["wn_360_stance"] = "Correction — Les boutons de postures TomoMod utilisent maintenant des actions de sort sécurisées indépendantes et restent cliquables pour les formes du Druide, les auras du Paladin et les postures du Guerrier.",
+    ["wn_360_pet"] = "Correction — Les boutons de familier TomoMod utilisent maintenant des actions de familier sécurisées indépendantes ; commandes, capacités et activation/désactivation de l’autocast au clic droit restent utilisables sans dépendre de la barre Blizzard visible.",
+    ["wn_360_possess"] = "Correction — Les états de possession et de véhicule passent par le paging sécurisé de la Barre d’action 1 au lieu d’exiger une manipulation de la PossessActionBar de Blizzard.",
+    ["wn_360_paging"] = "Correction — La Barre d’action 1 lit directement son emplacement d’action sécurisé actuel, ce qui maintient le paging des formes, véhicules, override et possession sans le figer dans une copie Lua.",
+    ["wn_360_formsafe"] = "Correction — Les passages Druide Humain/Félin/Ours mettent maintenant correctement à jour la Barre d’action 1 en combat comme hors combat, sans erreur d’action protégée ni de cooldown secret observée lors des tests.",
+    ["wn_360_extra"] = "Correction — Action supplémentaire conserve le comportement sécurisé de Blizzard tandis que TomoMod fournit le bouton visible, son propre GCD/charges et une zone de clic propre sans hitbox native invisible qui vole les interactions.",
+    ["wn_360_zone"] = "Correction — Capacité de zone conserve ses icônes dynamiques, GCD et charges, disparaît lorsqu’elle n’est plus active et préserve le comportement de clic natif requis par certaines capacités de quête.",
+    ["wn_360_vehicle"] = "Correction — Quitter le véhicule reste une action TomoMod sécurisée utilisant le skin commun des barres, tandis que le comportement taxi de Blizzard reste disponible quand nécessaire.",
+    ["wn_360_gcd"] = "Correction — Les derniers GCD natifs des formes, auras et postures sont masqués visuellement sans toucher aux valeurs de cooldown Blizzard ni à l’état protégé des boutons.",
+    ["wn_360_petvisuals"] = "Correction — Les derniers contours d’état actif, flashs et effets d’autocast de la barre de familier Blizzard sont maintenant masqués tout en conservant l’état réel du familier entièrement fonctionnel.",
+    ["wn_360_skin"] = "Changement — Action supplémentaire, Capacité de zone et Quitter le véhicule utilisent maintenant le même pipeline d’habillage que les autres boutons d’action TomoMod.",
+    ["wn_360_validation"] = "Testé — Barres standard, paging Humain/Félin/Ours, postures, familier, possession, boutons spéciaux, souris/clavier et combat ont été validés en jeu sans nouvelle erreur de taint des ActionBars.",
+    -- =====================
+    -- 3.5.9 — What's New
+    -- =====================
     ["wn_359_visibility"] = "Nouveau — Les barres d’action disposent maintenant d’un moteur de visibilité sécurisé avec des règles compatibles combat pour l’état de combat, le type de groupe, les instances, la monture, les cibles, le mode masqué et les conditions sécurisées personnalisées.",
     ["wn_359_gcd"] = "Changement — Le balayage du GCD reste visible là où il doit l’être, mais un GCD seul n’affiche plus de compte à rebours fractionnaire inutile ; le texte numérique est réservé au véritable temps de recharge de l’action.",
     ["wn_359_editmode"] = "Correction — Le mode Édition de Blizzard s’ouvre désormais sans les erreurs protégées TargetUnit/FocusUnit ni les erreurs de valeurs secrètes des cadres de groupe compacts auparavant attribuées à TomoMod.",
@@ -3349,6 +3366,9 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_359_specialskin"] = "Modifié — Action supplémentaire, Capacité de zone et Quitter le véhicule utilisent désormais exactement le même habillage que les autres boutons d’action TomoMod ; les zones cliquables Blizzard invisibles ne volent plus les clics ni les infobulles.",
     ["wn_359_validation"] = "Testé — Formes, boutons spéciaux, clics souris, GCD/charges, visibilité, glows natifs, mode Édition et paging sécurisé ont été validés en jeu sans nouvelle erreur de taint des barres d’action.",
 
+    -- =====================
+    -- 3.5.8 — What's New
+    -- =====================
     ["wn_358_input"] = "Correction — Les commandes des barres d’action répondent désormais immédiatement : interruptions, sorts instantanés, actions avec ou sans GCD, spam rapide et raccourcis Shift/Ctrl ne subissent plus le retard de touches observé auparavant.",
     ["wn_358_state"] = "Correction — Déplacer, remplacer ou vider une action, changer de spécialisation ou de talents, de page, de forme, de véhicule ou utiliser le vol dynamique rafraîchit maintenant correctement les boutons sans ancienne icône, recharge, lueur, état grisé ou nombre de charges incorrect.",
     ["wn_358_range"] = "Changement — Sous Midnight 12.1, la couleur de portée utilise désormais les notifications natives de Blizzard, tandis que mana et utilisabilité sont pilotés par événements. L’ancien scan périodique ne reste qu’en solution de compatibilité.",

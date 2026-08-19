@@ -63,7 +63,7 @@ local function InstallBareOwnedActionButtonMethods(btn)
     if not btn.UpdateCount then
         btn.UpdateCount = function(self)
             if not self.Count then return end
-            local action = self.action
+            local action = GetSafeActionSlot(self)
             if not action or (Helpers.IsSecretValue and Helpers.IsSecretValue(action)) then
                 self.Count:SetText("")
                 return
@@ -357,6 +357,15 @@ function BuildBar(barKey)
     end
     local container = ActionBarsOwned.containers[barKey]
 
+    -- P3.5.15: alpha-suppressed native bars still exist as mouse surfaces.
+    -- Keep TUI's input-critical secure buttons above them rather than mutating
+    -- ActionButton*/PetActionButton*/StanceButton* hitboxes.  Possession uses
+    -- bar1 paging, so bar1 is included here as well.
+    if barKey == "bar1" or barKey == "pet" or barKey == "stance" then
+        container:SetFrameStrata("HIGH")
+        container:SetFrameLevel(math.max(container:GetFrameLevel(), 20))
+    end
+
     local settings = GetEffectiveSettings(barKey)
     local buttons = {}
 
@@ -388,9 +397,14 @@ function BuildBar(barKey)
         -- secret-cooldown failures. Build TUI stance buttons as independent
         -- SecureActionButtons instead; the secure "spell" action casts the form
         -- without ever entering the native StanceBar object.
-        local template = barKey == "pet"
-            and "PetActionButtonTemplate"
-            or "ActionButtonTemplate,SecureActionButtonTemplate"
+        -- P3.5.15 / Midnight 12.1:
+        -- Pet and stance controls are fully TUI-owned secure buttons.  Do not
+        -- inherit PetActionButtonTemplate or StanceButtonTemplate: both carry
+        -- Blizzard bar-specific Lua behavior.  SecureActionButtonTemplate
+        -- already provides pristine protected handlers for type="pet" and
+        -- type="spell", so these controls can remain independent of the
+        -- native PetActionBar/StanceBar graphs.
+        local template = "ActionButtonTemplate,SecureActionButtonTemplate"
         local prefix = barKey == "pet" and "TUI_PetButton" or "TUI_StanceButton"
         local count = BUTTON_COUNTS[barKey] or 10
 
@@ -405,10 +419,33 @@ function BuildBar(barKey)
             else
                 btn:SetParent(container)
             end
+            -- Keep the secure OnClick installed by SecureActionButtonTemplate.
+            -- Removing it disables the protected spell/pet dispatcher entirely.
+            InstallBareOwnedActionButtonMethods(btn)
+            btn:SetScript("OnAttributeChanged", nil)
+            btn:EnableMouse(true)
+            if btn.SetMouseClickEnabled then btn:SetMouseClickEnabled(true) end
+            if btn.SetMouseMotionEnabled then btn:SetMouseMotionEnabled(true) end
+            btn:RegisterForClicks("AnyDown", "AnyUp")
+            btn:SetFrameStrata("HIGH")
+            btn:SetFrameLevel(math.max((container.GetFrameLevel and container:GetFrameLevel() or 0) + 10, 10))
+
+            do
+                local _db = GetDB()
+                local _g = _db and _db.global
+                btn:SetAttribute("useOnKeyDown", not _g or _g.useOnKeyDown ~= false)
+            end
+
             if barKey == "pet" then
-                btn:UnregisterAllEvents()
-                btn:SetScript("OnEvent", nil)
                 btn.id = i
+                -- Left click is a native secure pet action.  Right click is
+                -- configured by UpdatePetButton() as a secure macro only when
+                -- the slot supports autocast.
+                btn:SetAttribute("type1", "pet")
+                btn:SetAttribute("action1", i)
+                btn:SetAttribute("type2", ATTRIBUTE_NOOP or "")
+                btn:SetAttribute("macrotext2", nil)
+                btn:RegisterForDrag("LeftButton", "RightButton")
                 btn:SetScript("OnEnter", function(self)
                     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
                     GameTooltip:SetPetAction(self:GetID())
@@ -435,18 +472,11 @@ function BuildBar(barKey)
                     end
                 end)
             else
-                InstallBareOwnedActionButtonMethods(btn)
-                -- Do not inherit any Blizzard ActionButton Lua callback that can
-                -- reach StanceBar or the native ActionBar event registries.
-                btn:SetScript("OnAttributeChanged", nil)
-                btn:SetScript("OnClick", nil)
-                btn:RegisterForClicks("AnyDown", "AnyUp")
+                -- type=spell is executed by SecureActionButton_OnClick.  The
+                -- spell attribute itself is refreshed out of combat in
+                -- UpdateStanceButton(), while form transitions in combat need no
+                -- further protected writes.
                 btn:SetAttribute("type", "spell")
-                do
-                    local _db = GetDB()
-                    local _g = _db and _db.global
-                    btn:SetAttribute("useOnKeyDown", not _g or _g.useOnKeyDown ~= false)
-                end
                 btn:SetScript("OnEnter", function(self)
                     GameTooltip_SetDefaultAnchor(GameTooltip, self)
                     GameTooltip:SetShapeshift(self:GetID())
@@ -785,8 +815,9 @@ function BuildBar(barKey)
 
     if not ActionBarsOwned.slotMap then ActionBarsOwned.slotMap = {} end
     for _, btn in ipairs(buttons) do
-        if btn.action and btn.action > 0 then
-            ActionBarsOwned.slotMap[btn.action] = { button = btn, barKey = barKey }
+        local action = GetSafeActionSlot(btn)
+        if action and action > 0 then
+            ActionBarsOwned.slotMap[action] = { button = btn, barKey = barKey }
         end
     end
 
