@@ -32,7 +32,7 @@ function SharedOwnedButtonPostDrag(self)
     OwnedButton_PostDrag(self)
 end
 
--- TOMOMOD P3.3.8 / Midnight 12.1:
+-- Midnight 12.1:
 -- Never let addon-owned standard buttons enter Blizzard's native action-button
 -- registries in the first place. ActionBarButtonTemplate runs
 -- ActionBarActionButtonMixin:OnLoad(), which unconditionally inserts the new
@@ -48,7 +48,7 @@ end
 -- cooldowns, usability, paging and keybinds, so no native broadcaster membership
 -- is required.
 function DetachOwnedActionButtonFromBlizzardRegistries(btn)
-    -- P3.3.8: intentionally no-op. A TUI standard button must never have been
+    -- Intentionally no-op. A TUI standard button must never have been
     -- registered with the Blizzard ActionBar registries, so there is nothing to
     -- remove and, critically, no Blizzard-owned table is ever written here.
 end
@@ -180,20 +180,6 @@ function FinalizeStandardOwnedActionButtons(container, barKey, buttons)
     end
 end
 
-function SuppressOriginalStandardBar(barFrame, barKey)
-    -- P2.2: MainActionBar/MultiBars AND their native ActionButtons are part of
-    -- Blizzard's secure controller graph. Do not structurally retire either.
-    -- The owned TUI buttons sit above them; make the originals invisible and
-    -- non-interactive while leaving parent/events/attributes/methods intact.
-    if barFrame then
-        HideManagedBlizzardBarFrame(barFrame, true) -- no-op for controller bars
-    end
-    local origButtons = GetOriginalBlizzButtons(barKey)
-    for _, blizzBtn in ipairs(origButtons) do
-        SoftSuppressStandardBlizzardButton(blizzBtn)
-    end
-end
-
 function BuildStandardOwnedButtons(container, barKey)
     local buttons = {}
 
@@ -241,7 +227,7 @@ function SetupStandardOwnedButtonRuntime(container, btn)
     if not btn.quiSecureHooksInstalled then
         btn.quiSecureHooksInstalled = true
         SecureHandlerWrapScript(btn, "OnAttributeChanged", btn, [[
-            -- P3.3.4: do not re-enter TUI_UpdateActionFlags from the action
+            -- Do not re-enter TUI_UpdateActionFlags from the action
             -- attribute callback. The page ChildUpdate runs it immediately
             -- after the action write, and slot-content events trigger the
             -- dedicated secure refresh path. Running it here happened BEFORE
@@ -375,7 +361,6 @@ function BuildBar(barKey)
     local buttons = {}
 
     if barKey == "bar1" or (barKey:match("^bar[2-8]$")) then
-        SuppressOriginalStandardBar(barFrame, barKey)
         buttons = BuildStandardOwnedButtons(container, barKey)
     elseif barKey == "pet" or barKey == "stance" then
         -- TOMOMOD P2.9 / Midnight 12.1:
@@ -394,7 +379,7 @@ function BuildBar(barKey)
         -- so the native PetActionBar/PetActionButton* graph can stay untouched.
         -- StanceBar/PossessActionBar already follow this zero-touch rule.
 
-        -- TOMOMOD P3.3.9 / Midnight 12.1:
+        -- Midnight 12.1:
         -- StanceButtonTemplate is NOT safe for an addon-owned clone. Its normal
         -- OnClick calls the global Blizzard StanceBar:Select(), which writes
         -- StanceBar.lastSelected and then casts the form. During combat that

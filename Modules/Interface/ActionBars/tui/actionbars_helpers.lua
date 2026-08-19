@@ -194,11 +194,11 @@ function ShouldKeepLeaveVehicleVisible()
 end
 
 function ApplyLeaveVehicleButtonVisibilityOverride(forceVisible)
-    -- TOMOMOD P3.3.10 / Midnight 12.1 FULL NATIVE ZERO-TOUCH:
+    -- Midnight 12.1 native-frame ownership rule:
     -- MainMenuBarVehicleLeaveButton and OverrideActionBar.LeaveButton are
     -- Blizzard-owned. Do not SetIgnoreParentAlpha/SetAlpha on either button.
     -- The keep-leave-button-visible cosmetic option is temporarily bypassed
-    -- in this diagnostic build so the override graph stays pristine.
+    -- so the native override graph stays pristine.
     return
 end
 
@@ -810,7 +810,7 @@ function InstallSecureActionFlagRefresh(btn)
     if not btn or btn._tomomodActionFlagRefreshInstalled then return end
     btn._tomomodActionFlagRefreshInstalled = true
 
-    -- TOMOMOD P3.3.4 / Midnight 12.1:
+    -- Midnight 12.1:
     -- The Druid combat-form diagnostic finally identified the direct injector:
     -- a secure ChildUpdate rewrites this addon-owned button's "action" attr,
     -- Blizzard's ActionBarButtonTemplate immediately enters

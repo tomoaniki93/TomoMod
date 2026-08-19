@@ -33,9 +33,9 @@ local function GetFadeButtons(barKey, barState)
 end
 
 function SetBarAlpha(barKey, alpha)
-    -- TOMOMOD P3.3.10 / Midnight 12.1 FULL NATIVE ZERO-TOUCH:
+    -- Midnight 12.1 native-frame ownership rule:
     -- ExtraActionBarFrame/ExtraActionButton1 and ZoneAbilityFrame stay entirely
-    -- Blizzard-owned in this diagnostic build. This guard protects every fade
+    -- Blizzard-owned. This guard protects every fade
     -- path, including spellbook/layout refreshes that do not pass through
     -- InitializeExtraButtons/RefreshExtraButtons.
     if barKey == "extraActionButton" or barKey == "zoneAbility" then return end
@@ -246,7 +246,7 @@ function HookFrameForMouseover(frame, barKey)
 end
 
 function SetupBarMouseover(barKey)
-    -- TOMOMOD P3.3.10: never HookScript or change alpha on native extra/zone
+    -- Never HookScript or change alpha on native extra/zone
     -- action surfaces while isolating the shared Blizzard action-event path.
     if barKey == "extraActionButton" or barKey == "zoneAbility" then return end
 

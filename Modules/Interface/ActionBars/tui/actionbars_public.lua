@@ -14,11 +14,80 @@ env.SetChunkEnv(1, env)
 ---@diagnostic disable: lowercase-global -- SetChunkEnv installs a setfenv
 
 local function PurgeOverrideBarShownExternal()
-    -- TOMOMOD P3.3.10 / Midnight 12.1 FULL NATIVE ZERO-TOUCH:
+    -- Midnight 12.1 native-frame ownership rule:
     -- OverrideActionBar belongs entirely to Blizzard. Never write addon fields,
     -- purge taint markers, alter methods, attributes, cooldowns or presentation
     -- on this frame. Reads are allowed; mutations are not.
     return
+end
+
+-- P3.5.11: visually suppress Blizzard's controller-owned standard bars only
+-- after TomoMod has built/refreshed its own independent button graph.  The
+-- native frames keep their secure paging/events/attributes; only bar alpha is
+-- changed and only out of combat.
+local function SuppressStandardBlizzardBarVisuals()
+    if InCombatLockdown and InCombatLockdown() then
+        return false
+    end
+
+    local touched = false
+    for _, barKey in ipairs(STANDARD_BAR_KEYS) do
+        local frameName = BAR_FRAMES[barKey]
+        local frame = frameName and _G[frameName]
+        if frame and frame.SetAlpha then
+            frame:SetAlpha(0)
+            touched = true
+        end
+    end
+
+    return touched
+end
+
+-- P3.5.11: the standard TUI buttons are detached from Blizzard's native
+-- ActionButton registry.  Keep their Lua-side action slot synchronized from
+-- their own secure action attribute before repainting.  This is TomoMod-owned
+-- state only; no Blizzard ActionButton or cooldown object is mutated here.
+local function RefreshOwnedStandardButtonVisuals()
+    if InCombatLockdown and InCombatLockdown() then
+        return false
+    end
+
+    for _, barKey in ipairs(STANDARD_BAR_KEYS) do
+        local buttons = ActionBarsOwned.nativeButtons and ActionBarsOwned.nativeButtons[barKey]
+        local settings = GetEffectiveSettings and GetEffectiveSettings(barKey)
+        if buttons and settings then
+            for _, btn in ipairs(buttons) do
+                if btn and btn.GetAttribute then
+                    local action = btn:GetAttribute("action")
+                    if action ~= nil and not (Helpers.IsSecretValue and Helpers.IsSecretValue(action)) then
+                        local ok, numericAction = ns.SafeCall("best-effort-style", tonumber, action)
+                        if ok and type(numericAction) == "number" then
+                            btn.action = numericAction
+                        end
+                    end
+                end
+
+                if btn then
+                    ActionBarsOwned.SafeUpdate(btn)
+                    local state = GetFrameState(btn)
+                    state.sk_sz = nil
+                    SkinButton(btn, settings)
+                    UpdateButtonText(btn, settings)
+                    UpdateEmptySlotVisibility(btn, settings)
+                end
+            end
+        end
+    end
+
+    return true
+end
+
+local function ApplyStandardBlizzardVisualSuppression()
+    if not SuppressStandardBlizzardBarVisuals() then
+        return false
+    end
+    RefreshOwnedStandardButtonVisuals()
+    return true
 end
 
 -- TOMOMOD P2.13 / Midnight 12.1 Edit Mode presentation:
@@ -92,6 +161,10 @@ function ActionBarsOwned:Initialize()
     if not DisableBlizzardSpecialBarEditModePreviews() and C_Timer and C_Timer.After then
         C_Timer.After(0, DisableBlizzardSpecialBarEditModePreviews)
     end
+
+    -- Do not suppress Blizzard standard-bar alpha yet.  TUI button construction
+    -- and the first icon/empty-slot pass run below with the native presentation
+    -- untouched; suppression is applied only after all owned bars exist.
 
     PatchLibKeyBoundForMidnight()
 
@@ -170,23 +243,34 @@ function ActionBarsOwned:Initialize()
         BuildBar(barKey)
     end
 
+    -- P3.5.11: late alpha suppression.  Repaint our owned standard buttons on
+    -- the same pass and again next frame so icon/action-slot state is settled.
+    ApplyStandardBlizzardVisualSuppression()
+    if C_Timer and C_Timer.After then
+        C_Timer.After(0, function()
+            if not ActionBarsOwned.initialized then return end
+            if InCombatLockdown and InCombatLockdown() then return end
+            ApplyStandardBlizzardVisualSuppression()
+        end)
+    end
+
     PurgeOverrideBarShownExternal()
 
-    -- TOMOMOD P3.3.10 / Midnight 12.1 FULL NATIVE ZERO-TOUCH:
+    -- Midnight 12.1 native-frame ownership rule:
     -- Do not wrap or replace any method on OverrideActionBarButton1..6 or
     -- ExtraActionButton1. ExtraActionButtonTemplate inherits Blizzard's native
     -- ActionBar button code and participates in the same action-event/cooldown
     -- pipeline as ActionButton1..12. Even a well-intentioned SetCooldown or
     -- attribute guard here can contaminate later secret-value execution.
 
-    -- TOMOMOD P2.9 / Midnight 12.1:
+    -- Midnight 12.1:
     -- Do not mutate PossessActionBar. Blizzard calls PossessActionBar:Update()
     -- at the very start of ActionBarController_UpdateAll(), before the protected
     -- MainActionBar:SetAttribute("actionpage", ...) write. Any addon taint on
     -- the possess bar can therefore poison the entire controller execution.
     -- Keep the native possess graph fully Blizzard-owned.
 
-    -- TOMOMOD P3.3.9 / Midnight 12.1:
+    -- Midnight 12.1:
     -- Keep Blizzard's action-bar globals pristine. Replacing AddSpellToActionBar
     -- or AddClassSpellToActionBar marks shared ActionBar controller execution as
     -- addon-owned and is incompatible with the zero-touch native-bar strategy.
@@ -437,6 +521,12 @@ function ActionBarsOwned:Refresh()
     for _, barKey in ipairs(ALL_MANAGED_BAR_KEYS) do
         SkinBar(barKey)
     end
+
+    -- Keep Blizzard standard bars visually suppressed after every options
+    -- refresh, then repaint TomoMod's own buttons so hide-empty/icon state is
+    -- recalculated from the current secure action slots.
+    ApplyStandardBlizzardVisualSuppression()
+
     ActionBarsOwned.HookSpellFlyoutSkinning()
 
     ApplyAllBarSpacing()
@@ -523,8 +613,8 @@ _G.TUI_RefreshActionBarFade = function()
         CancelOwnedBarFadeTimers(state)
         SetupOwnedBarMouseover(barKey)
     end
-    -- TOMOMOD P3.3.10: ExtraActionBarFrame and ZoneAbilityFrame are native
-    -- Blizzard surfaces in the full zero-touch diagnostic path. Do not install
+    -- ExtraActionBarFrame and ZoneAbilityFrame are native
+    -- Blizzard-owned surfaces. Do not install
     -- fade/mouseover handlers or change their alpha here.
 end
 
@@ -536,6 +626,18 @@ initFrame:SetScript("OnEvent", function(self, event, addonName)
         if not GetDB() then return end
         ActionBarsOwned:Initialize()
     elseif addonName == "Blizzard_ActionBar" then
+        -- P3.5.11: if Blizzard_ActionBar loads after TomoMod, suppress only
+        -- after its frames exist and repaint our independent buttons afterwards.
+        if ActionBarsOwned.initialized then
+            ApplyStandardBlizzardVisualSuppression()
+            if C_Timer and C_Timer.After then
+                C_Timer.After(0, function()
+                    if not ActionBarsOwned.initialized then return end
+                    if InCombatLockdown and InCombatLockdown() then return end
+                    ApplyStandardBlizzardVisualSuppression()
+                end)
+            end
+        end
         ActionBarsOwned.HookSpellFlyoutSkinning()
         C_Timer.After(0, SkinSpellFlyoutButtons)
         local db = GetDB()
@@ -593,7 +695,7 @@ do
             order = 13,
             isOwned = true,
             getFrame = function()
-                -- TOMOMOD P3.3.13: never expose Blizzard's protected native leave
+                -- Never expose Blizzard's protected native leave
                 -- button to our layout layer; return only the TomoMod-owned proxy.
                 return ActionBarsOwned.extraBtnState
                     and ActionBarsOwned.extraBtnState.leaveVehicleProxy

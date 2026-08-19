@@ -97,7 +97,7 @@ function ActionBarsOwned.UpdateStanceButton(btn)
     if not id or id < 1 then return end
     local texture, isActive, isCastable, spellID = GetShapeshiftFormInfo(id)
 
-    -- TOMOMOD P3.3.9 / Midnight 12.1:
+    -- Midnight 12.1:
     -- TUI stance buttons are bare SecureActionButtons. Keep their protected
     -- spell attribute synchronized only while unlocked; form spell IDs do not
     -- change when simply entering Cat/Bear, so combat transitions need no Lua

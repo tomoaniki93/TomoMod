@@ -360,7 +360,7 @@ local function HideBlizzardExtra()
         end
     end
 
-    -- TOMOMOD P3.3.9 / Midnight 12.1:
+    -- Midnight 12.1 action-bar ownership rule:
     -- Never unregister events from Blizzard's ActionBarActionEventsFrame here.
     -- It is the native broadcaster used by ActionButton.lua; mutating its event
     -- registrations from TomoMod taints later native OnEvent/UpdateCooldown

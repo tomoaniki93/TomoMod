@@ -3366,7 +3366,12 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_359_specialbars"] = "Fix — Blizzard Pet, Stance and Possess bars stay fully Blizzard-owned for taint safety but are filtered with the 12.1 alwaysBlocked roleset, preventing duplicate native bars without bringing the Edit Mode errors back.",
     ["wn_359_paging"] = "New — Secure Paging for Action Bar 1 adds Alt/Shift/Ctrl pages, Friendly/Hostile Target pages, optional form paging and optional Skyriding paging, all configurable from TomoMod_Options.",
     ["wn_359_priority"] = "Changed — Paging priority now keeps Vehicle/Override/Possess authoritative while manual and modifier pages take precedence over automatic form or Skyriding pages when appropriate.",
-    ["wn_359_validation"] = "Tested — Visibility, GCD display, dormant bars, native glows, conditional usability, Edit Mode, Pet/Stance/Possess suppression and secure paging were validated in game without new ActionBar taint errors.",
+    ["wn_359_formsafe"] = "Fix — Druid form changes in combat are now clean and reliable, without protected-action or secret cooldown errors when moving between Human, Cat and Bear.",
+    ["wn_359_zoneability"] = "Fix — Zone Ability buttons now keep their icon, GCD and charge display in sync, update correctly when a quest changes state, and disappear when the ability is no longer available.",
+    ["wn_359_extragcd"] = "Fix — Extra Action buttons now mirror their GCD and charge recovery on the TomoMod skin without reading or modifying Blizzard's native cooldown widget.",
+    ["wn_359_specialbuttons"] = "Changed — Extra Action, Zone Ability and Leave Vehicle keep Blizzard's secure gameplay behavior while TomoMod provides the visible controls, preserving quest, vehicle and taxi behavior.",
+    ["wn_359_specialskin"] = "Changed — Extra Action, Zone Ability and Leave Vehicle now use the same action-button skin pipeline as the rest of the bars; invisible Blizzard hitboxes no longer steal clicks or tooltips.",
+    ["wn_359_validation"] = "Tested — Forms, special ability buttons, mouse clicks, GCD/charges, visibility, native glows, Edit Mode and secure paging were validated in game without new ActionBar taint errors.",
 
     ["wn_358_input"] = "Fix — Action bar input is now consistently immediate: interrupts, instant abilities, GCD/off-GCD actions, rapid key spam and Shift/Ctrl binds no longer inherit the delayed keybind behavior seen before this update.",
     ["wn_358_state"] = "Fix — Moving, replacing or clearing an action, changing specialization or talents, paging, forms, vehicles and skyriding now refresh the affected buttons cleanly without stale icons, cooldowns, glows, grey states or charge counts.",

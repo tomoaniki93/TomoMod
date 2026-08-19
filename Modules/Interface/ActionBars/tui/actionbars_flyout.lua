@@ -714,102 +714,11 @@ end
 
 do
 
-function CollectPageArrowFrames()
-    local seen, frames = {}, {}
-
-    local function AddFrame(frame)
-        if not frame or seen[frame] then return end
-        if frame.Hide and frame.Show then
-            seen[frame] = true
-            table.insert(frames, frame)
-        end
-    end
-
-    local mainBar = _G.MainActionBar or _G.MainMenuBar
-    AddFrame(mainBar and mainBar.ActionBarPageNumber)
-    AddFrame(_G.ActionBarPageNumber)
-
-    AddFrame(_G.ActionBarUpButton)
-    AddFrame(_G.ActionBarDownButton)
-
-    local artFrame = _G.MainMenuBarArtFrame
-    AddFrame(artFrame and artFrame.PageNumber)
-    AddFrame(artFrame and artFrame.PageUpButton)
-    AddFrame(artFrame and artFrame.PageDownButton)
-
-    return frames
-end
-
--- TOMOMOD P0 12.1: page/pager controls are Blizzard input surfaces. Merely
--- hiding them is not enough protection against a controller refresh that
--- leaves an invisible mouse-enabled frame over the owned bar. Preserve their
--- previous mouse state so disabling the option can restore Blizzard behaviour.
-local function SetPageArrowInputSuppressed(frame, suppressed)
-    if not frame or InCombatLockdown() then return end
-
-    -- TOMOMOD P2 12.1: do not store our saved-input marker directly on the
-    -- Blizzard pager frame. Keep it in the shared weak-keyed side table so a
-    -- hidden protected frame does not acquire addon-owned custom fields.
-    local state = ActionBarsOwned.GetExternalFrameState(frame)
-
-    if suppressed then
-        if state.pageInputSaved == nil then
-            local saved = {}
-            if frame.IsMouseEnabled then saved.mouse = frame:IsMouseEnabled() end
-            if frame.IsMouseClickEnabled then saved.click = frame:IsMouseClickEnabled() end
-            if frame.IsMouseMotionEnabled then saved.motion = frame:IsMouseMotionEnabled() end
-            if frame.IsMouseWheelEnabled then saved.wheel = frame:IsMouseWheelEnabled() end
-            state.pageInputSaved = saved
-        end
-        if frame.EnableMouse then frame:EnableMouse(false) end
-        if frame.SetMouseClickEnabled then frame:SetMouseClickEnabled(false) end
-        if frame.SetMouseMotionEnabled then frame:SetMouseMotionEnabled(false) end
-        if frame.EnableMouseWheel then frame:EnableMouseWheel(false) end
-    else
-        local saved = state.pageInputSaved
-        if saved then
-            if saved.mouse ~= nil and frame.EnableMouse then frame:EnableMouse(saved.mouse) end
-            if saved.click ~= nil and frame.SetMouseClickEnabled then frame:SetMouseClickEnabled(saved.click) end
-            if saved.motion ~= nil and frame.SetMouseMotionEnabled then frame:SetMouseMotionEnabled(saved.motion) end
-            if saved.wheel ~= nil and frame.EnableMouseWheel then frame:EnableMouseWheel(saved.wheel) end
-            state.pageInputSaved = nil
-        end
-    end
-end
-
-function SchedulePageArrowVisibilityRetry()
-    local ebs = ActionBarsOwned.extraBtnState
-    if ebs.pageArrowRetryTimer or ebs.pageArrowRetryAttempts >= ebs.PAGE_ARROW_RETRY_MAX_ATTEMPTS then return end
-    ebs.pageArrowRetryAttempts = ebs.pageArrowRetryAttempts + 1
-    ebs.pageArrowRetryTimer = C_Timer.NewTimer(ebs.PAGE_ARROW_RETRY_DELAY, function()
-        ebs.pageArrowRetryTimer = nil
-        local db = GetDB()
-        if db and db.bars and db.bars.bar1 then
-            ApplyPageArrowVisibility(db.bars.bar1.hidePageArrow)
-        end
-    end)
-end
-
+-- Blizzard's native page-number/arrow controls belong to MainActionBar.
+-- TUI paging does not need them, so the public option handler deliberately
+-- avoids touching these controller-owned frames.
 ApplyPageArrowVisibility = function(hide)
-    -- TOMOMOD P3.3.7 / Midnight 12.1:
-    -- MainActionBar.ActionBarPageNumber and the legacy page-arrow globals are
-    -- part of Blizzard's controller-owned standard-bar presentation. P3.3.6
-    -- established a zero-touch diagnostic baseline for MainActionBar itself;
-    -- keep that rule consistent here too. Hide()/Show(), mouse mutations and a
-    -- Show hook on these Blizzard frames can contaminate the parent action-bar
-    -- graph before ActionBarController_UpdateAll() runs in combat.
-    --
-    -- The TUI bar does not require Blizzard's pager controls for paging, so this
-    -- option is intentionally a no-op while the 12.1 zero-taint path is active.
-    -- Do not schedule retries that would touch those frames later.
-    local ebs = ActionBarsOwned.extraBtnState
-    if ebs then
-        ebs.pageArrowRetryAttempts = 0
-        if ebs.pageArrowRetryTimer then
-            ebs.pageArrowRetryTimer:Cancel()
-            ebs.pageArrowRetryTimer = nil
-        end
-    end
+    return
 end
 
 _G.TUI_ApplyPageArrowVisibility = ApplyPageArrowVisibility

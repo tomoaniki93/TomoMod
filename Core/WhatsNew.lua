@@ -74,7 +74,12 @@ CHANGELOG = {
             L["wn_359_specialbars"] or "Fix — Blizzard Pet, Stance and Possess bars stay fully Blizzard-owned for taint safety but are filtered with the 12.1 alwaysBlocked roleset, preventing duplicate native bars without bringing the Edit Mode errors back.",
             L["wn_359_paging"] or "New — Secure Paging for Action Bar 1 adds Alt/Shift/Ctrl pages, Friendly/Hostile Target pages, optional form paging and optional Skyriding paging, all configurable from TomoMod_Options.",
             L["wn_359_priority"] or "Changed — Paging priority now keeps Vehicle/Override/Possess authoritative while manual and modifier pages take precedence over automatic form or Skyriding pages when appropriate.",
-            L["wn_359_validation"] or "Tested — Visibility, GCD display, dormant bars, native glows, conditional usability, Edit Mode, Pet/Stance/Possess suppression and secure paging were validated in game without new ActionBar taint errors.",
+            L["wn_359_formsafe"] or "Fix — Druid form changes in combat are now clean and reliable, without protected-action or secret cooldown errors when moving between Human, Cat and Bear.",
+            L["wn_359_zoneability"] or "Fix — Zone Ability buttons now keep their icon, GCD and charge display in sync, update correctly when a quest changes state, and disappear when the ability is no longer available.",
+            L["wn_359_extragcd"] or "Fix — Extra Action buttons now mirror their GCD and charge recovery on the TomoMod skin without reading or modifying Blizzard's native cooldown widget.",
+            L["wn_359_specialbuttons"] or "Changed — Extra Action, Zone Ability and Leave Vehicle keep Blizzard's secure gameplay behavior while TomoMod provides the visible controls, preserving quest, vehicle and taxi behavior.",
+            L["wn_359_specialskin"] or "Changed — Extra Action, Zone Ability and Leave Vehicle now use the same action-button skin pipeline as the rest of the bars; invisible Blizzard hitboxes no longer steal clicks or tooltips.",
+            L["wn_359_validation"] or "Tested — Forms, special ability buttons, mouse clicks, GCD/charges, visibility, native glows, Edit Mode and secure paging were validated in game without new ActionBar taint errors.",
         },
     },
     {

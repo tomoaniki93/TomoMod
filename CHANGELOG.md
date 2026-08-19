@@ -1,6 +1,6 @@
 ﻿## ####################################
 
-## CHANGELOG 3.5.9 — Action Bars: Secure Visibility, Native Glows, Smarter Paging & Edit Mode Safety
+## CHANGELOG 3.5.9 — Action Bars: Secure Visibility, Special Buttons, Smarter Paging & Taint Safety
 
 #### Action Bars — Secure Visibility Engine
 
@@ -39,10 +39,21 @@
 - **Changed** — Paging priority has been rebuilt so Vehicle/Override/Possess states remain authoritative, while manual page changes and configured modifier pages are no longer swallowed by form or Skyriding states.
 - **Fix** — Paging configuration changed during combat is deferred and rebuilt safely after combat rather than attempting to replace secure drivers while protected.
 
+#### Action Bars — Forms & Special Ability Buttons
+
+- **Fix** — Druid form changes in combat are now clean and reliable. Switching between Human, Cat and Bear no longer triggers the protected-action or secret cooldown errors that could flood BugSack.
+- **Fix** — Extra Action, Zone Ability and Leave Vehicle now keep Blizzard's secure gameplay behavior while TomoMod provides the visible controls, so quest abilities, vehicles and special encounters continue to work without compromising combat safety.
+- **Fix** — Zone Ability buttons now update their icon, GCD and charge recovery live. Stateful quest abilities correctly change appearance after use, and expired abilities disappear after leaving their dungeon, quest area or scenario.
+- **Fix** — Extra Action now mirrors its GCD and charge recovery on the TomoMod-owned skin using secret-safe duration objects, without reading or modifying Blizzard's native cooldown widget.
+- **Fix** — Invisible Blizzard Extra Action buttons can no longer sit over a TomoMod Zone Ability and steal mouse clicks or tooltips.
+- **Changed** — Extra Action, Zone Ability and Leave Vehicle now use the exact same `SkinButton()` pipeline as the regular TomoMod action buttons, including the current icon crop, backdrop, border, gloss and selected icon-skin preset. The temporary diagnostic styling is removed from all three special-button presentations.
+- **Fix** — The TomoMod vehicle-leave button keeps normal vehicle exit behavior, while Blizzard's taxi button remains available when early landing is supported.
+
 #### Validation
 
-- **Tested** — Secure Visibility, GCD display, dormant bars, native glows, Touch of Death conditional usability, Blizzard Edit Mode, Pet/Stance/Possess suppression and secure paging were tested in game without new ActionBar taint errors.
-- **Tested** — Blizzard Edit Mode opens cleanly after the taint hardening, including group/Compact Party Frame refreshes that previously reproduced `TargetUnit()`, `FocusUnit()` and secret health-color errors.
+- **Tested** — Human/Cat/Bear form changes, spell use before and after shapeshifting, Extra Action, Zone Ability, quest-state icon swaps, GCD/charges, mouse clicks, keyboard activation and vehicle exit were validated in game without ActionBar taint errors.
+- **Tested** — Secure Visibility, dormant bars, native glows, Touch of Death conditional usability, Blizzard Edit Mode, Pet/Stance/Possess handling and secure paging remain clean after the special-button rebuild.
+- **Internal** — Removed obsolete ActionBar isolation scaffolding and retry helpers from the final 3.5.9 package while preserving the native-frame ownership rules validated in game.
 
 ## ####################################
 

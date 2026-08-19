@@ -505,7 +505,6 @@ function OnOwnedEvent(self, event, ...)
         end
 
     elseif event == "PLAYER_REGEN_ENABLED" then
-        FlushDeferredAttributeWrites()
         if ActionBarsOwned.pendingExtraButtonInit then
             ActionBarsOwned.pendingExtraButtonInit = false
             InitializeExtraButtons()
