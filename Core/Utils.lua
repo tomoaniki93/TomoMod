@@ -34,6 +34,31 @@ U.BRAND_DARK  = { 0.110, 0.541, 0.333 }     -- darker shade for pressed states
 -- nothing (or threw). These helpers resolve the edit box on both the old
 -- and the new shape, plus the global-name fallback that still works.
 
+-- =====================================
+-- MIDNIGHT SECRET-SAFE GROUP ROLE
+-- =====================================
+-- UnitGroupRolesAssigned() may return a secret string in restricted content.
+-- Any Lua comparison or table lookup on that value can throw. Keep the entire
+-- read + validation inside pcall so even a value not flagged by issecretvalue()
+-- fails closed instead of escaping into callers.
+function U.SafeGroupRole(unit)
+    if type(UnitGroupRolesAssigned) ~= "function" then return nil end
+
+    local ok, role = pcall(function()
+        local value = UnitGroupRolesAssigned(unit)
+        if type(issecretvalue) == "function" and issecretvalue(value) then
+            return nil
+        end
+        if value == "TANK" or value == "HEALER" or value == "DAMAGER" or value == "NONE" then
+            return value
+        end
+        return nil
+    end)
+
+    if not ok then return nil end
+    return role
+end
+
 --- Close a window on Escape WITHOUT UISpecialFrames.
 ---
 --- Registering a frame in UISpecialFrames routes Escape through Blizzard's

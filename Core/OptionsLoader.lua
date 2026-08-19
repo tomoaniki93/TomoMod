@@ -69,3 +69,91 @@ for _, name in ipairs(FORWARDED) do
     stubs[name] = stub
     C[name] = stub
 end
+
+-- =====================================================================
+-- FIRST-RUN INSTALLER BRIDGE
+-- =====================================================================
+-- Installer.lua lives in the LoadOnDemand TomoMod_Options addon, therefore it
+-- cannot own PLAYER_LOGIN: on a fresh install that file is not loaded yet.
+-- Keep the tiny bootstrap here in core and only load the full options addon
+-- once the player is out of cinematics and combat.
+local INSTALLER_RETRY_DELAY = 2
+local INSTALLER_MAX_ATTEMPTS = 150
+local installerGeneration = 0
+
+local function InstallerBlocked()
+    if _G.CinematicFrame and _G.CinematicFrame:IsShown() then return true end
+    if _G.MovieFrame and _G.MovieFrame:IsShown() then return true end
+    if type(_G.InCinematic) == "function" then
+        local ok, active = pcall(_G.InCinematic)
+        if ok and active then return true end
+    end
+    if InCombatLockdown() then return true end
+    local ok, fighting = pcall(function()
+        return UnitAffectingCombat("player") and true or false
+    end)
+    if ok and fighting then return true end
+    return false
+end
+
+local function TryShowInstaller(attempt, generation)
+    attempt = tonumber(attempt) or 1
+    if generation ~= installerGeneration then return end
+    if not TomoModDB then return end
+
+    TomoModDB.installer = TomoModDB.installer or { completed = false, step = 1 }
+    if TomoModDB.installer.completed then return end
+
+    if InstallerBlocked() then
+        if attempt < INSTALLER_MAX_ATTEMPTS then
+            C_Timer.After(INSTALLER_RETRY_DELAY, function()
+                TryShowInstaller(attempt + 1, generation)
+            end)
+        end
+        return
+    end
+
+    if not Load() then return end
+    if TomoMod_Installer and TomoMod_Installer.Show then
+        TomoMod_Installer.Show()
+    end
+end
+
+-- Manual and automatic entry points use the same guards. A manual request
+-- supersedes any earlier pending retry so only one installer can appear.
+function TomoMod_OpenInstaller(manual)
+    installerGeneration = installerGeneration + 1
+    local generation = installerGeneration
+
+    if TomoModDB then
+        TomoModDB.installer = TomoModDB.installer or { completed = false, step = 1 }
+        if manual then
+            local function TryManual(attempt)
+                if generation ~= installerGeneration then return end
+                if InstallerBlocked() then
+                    if attempt < INSTALLER_MAX_ATTEMPTS then
+                        C_Timer.After(INSTALLER_RETRY_DELAY, function() TryManual(attempt + 1) end)
+                    end
+                    return
+                end
+                if Load() and TomoMod_Installer and TomoMod_Installer.Show then
+                    TomoMod_Installer.Show()
+                end
+            end
+            TryManual(1)
+            return
+        end
+    end
+
+    TryShowInstaller(1, generation)
+end
+
+local installerBoot = CreateFrame("Frame")
+installerBoot:RegisterEvent("PLAYER_LOGIN")
+installerBoot:SetScript("OnEvent", function(self)
+    self:UnregisterEvent("PLAYER_LOGIN")
+    C_Timer.After(1.5, function()
+        TomoMod_OpenInstaller(false)
+    end)
+end)
+

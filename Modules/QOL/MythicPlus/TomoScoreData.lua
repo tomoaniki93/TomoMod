@@ -67,7 +67,7 @@ function TS:CollectRunData()
                 -- [12.1] nil when the client will not say; consumers colour by
                 -- class only when they have one.
                 local classFile = TomoMod_Utils and TomoMod_Utils.UnitClassToken(unit)
-                local role = UnitGroupRolesAssigned(unit)
+                local role = TomoMod_Utils.SafeGroupRole(unit)
 
                 -- GetInspectSpecialization only answers for units whose
                 -- inspect data is cached, and it returns 0 for the player
@@ -237,7 +237,7 @@ end
 function TS:ShowLastRun()
     local db = self:GetDB()
     if db and db.lastRun then
-        self:ShowScoreboard(db.lastRun)
+        self:SafeShowScoreboard(db.lastRun)
     else
         print(L["ts_no_data"])
     end

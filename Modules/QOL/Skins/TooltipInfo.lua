@@ -172,7 +172,7 @@ local function BuildNameIcons(unit, s)
     local isPlayer = SafeBool(SafeCall(UnitIsPlayer, unit))
 
     if s.showTooltipRoleIcon ~= false and isPlayer == true then
-        local role = SafeStr(SafeCall(UnitGroupRolesAssigned, unit))
+        local role = TomoMod_Utils.SafeGroupRole(unit)
         if role == "TANK" or role == "HEALER" or role == "DAMAGER" then
             out = out .. string.format(ROLE_TEX, role, size, size)
         end

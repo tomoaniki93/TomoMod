@@ -696,7 +696,7 @@ function PF.UpdatePower(f)
     if not UnitExists(f.unit) then return end
 
     -- Only show power bar for healers
-    local role = UnitGroupRolesAssigned(f.unit)
+    local role = TomoMod_Utils.SafeGroupRole(f.unit)
     if role ~= "HEALER" then
         f.power:Hide()
         if f.powerBG then f.powerBG:Hide() end
@@ -757,7 +757,7 @@ function PF.UpdateRole(f)
     if not f or not f.roleIcon then return end
     if not UnitExists(f.unit) then f.roleIcon:Hide(); return end
 
-    local role = UnitGroupRolesAssigned(f.unit)
+    local role = TomoMod_Utils.SafeGroupRole(f.unit)
     local coords = ROLE_TEX_COORDS[role]
     if coords then
         f.roleIcon:SetTexture(ROLE_TEXTURE)
@@ -1094,8 +1094,8 @@ function PF.LayoutFrames()
 
     if db.sortByRole then
         table.sort(units, function(a, b)
-            local ra = ROLE_ORDER[UnitGroupRolesAssigned(a.unit) or "NONE"] or 4
-            local rb = ROLE_ORDER[UnitGroupRolesAssigned(b.unit) or "NONE"] or 4
+            local ra = ROLE_ORDER[TomoMod_Utils.SafeGroupRole(a.unit) or "NONE"] or 4
+            local rb = ROLE_ORDER[TomoMod_Utils.SafeGroupRole(b.unit) or "NONE"] or 4
             if ra ~= rb then return ra < rb end
             return (a.index or 0) < (b.index or 0)
         end)

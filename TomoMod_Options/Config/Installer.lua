@@ -914,15 +914,5 @@ function INS.Toggle()
     if frame and frame:IsShown() then INS.Hide() else INS.Show() end
 end
 
--- ── Auto-ouverture au premier démarrage ────────────────────
-local bootF = CreateFrame("Frame")
-bootF:RegisterEvent("PLAYER_LOGIN")
-bootF:SetScript("OnEvent", function()
-    C_Timer.After(1.5, function()
-        if not TomoModDB then return end
-        TomoModDB.installer = TomoModDB.installer or { completed = false, step = 1 }
-        if not TomoModDB.installer.completed then
-            INS.Show()
-        end
-    end)
-end)
+-- First-run auto-opening is bootstrapped from Core/OptionsLoader.lua.
+-- This file is LoadOnDemand and therefore cannot reliably own PLAYER_LOGIN.

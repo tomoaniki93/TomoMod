@@ -60,7 +60,11 @@ SlashCmdList["TOMOMOD"] = function(msg)
     msg = string.lower(msg or "")
 
     if msg == "install" or msg == "installer" then
-        if TomoMod_Installer then TomoMod_Installer.Show() end
+        if TomoMod_OpenInstaller then
+            TomoMod_OpenInstaller(true)
+        elseif TomoMod_Installer then
+            TomoMod_Installer.Show()
+        end
         return
     elseif msg == "reset" then
         TomoMod_ResetDatabase()

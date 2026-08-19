@@ -19,7 +19,12 @@ spellFlyoutSkinHooked = false
 
 do
 
-USE_OWNED_FLYOUT = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
+-- TOMOMOD 3.6.0 P1: leave flyout execution to Blizzard's secure action
+-- handler.  SecureActionButtonTemplate already handles action-slot flyouts via
+-- SpellFlyout:Toggle(); intercepting them with the custom owned flyout made
+-- Mage portal / Hunter trap flyouts fail to open on Midnight 12.1.
+-- The native SpellFlyout is still skinned by the TomoMod cosmetic path below.
+USE_OWNED_FLYOUT = false
 ActionBarsOwned.useOwnedFlyout = USE_OWNED_FLYOUT
 
 env.__declared.ownedFlyout = true

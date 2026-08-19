@@ -610,7 +610,13 @@ end
 --  POPULATE — Refresh dungeon data + vault
 -- ═══════════════════════════════════════════════════════════════════════
 function HUB:Refresh()
+    if InCombatLockdown() then
+        self._pendingRefresh = true
+        return
+    end
+
     local F = self.Frame
+    self._pendingRefresh = nil
     if not F then return end
 
     DK.RefreshFromAPI()
@@ -1051,7 +1057,33 @@ end
 -- ═══════════════════════════════════════════════════════════════════════
 --  PUBLIC API
 -- ═══════════════════════════════════════════════════════════════════════
+local hubCombatFrame = CreateFrame("Frame")
+hubCombatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+hubCombatFrame:SetScript("OnEvent", function()
+    local action = HUB._pendingAction
+    local refresh = HUB._pendingRefresh
+    HUB._pendingAction = nil
+    HUB._pendingRefresh = nil
+    if action == "toggle" then
+        HUB:Toggle()
+    elseif action == "show" then
+        HUB:Show()
+    elseif action == "hide" then
+        HUB:Hide()
+    elseif refresh then
+        HUB:Refresh()
+    end
+end)
+
 function HUB:Toggle()
+    -- The hub owns secure teleport buttons. Building, reconfiguring or hiding
+    -- their parent during combat can produce protected-action errors, so a
+    -- combat-time open request is replayed once combat ends.
+    if InCombatLockdown() then
+        self._pendingAction = "toggle"
+        return
+    end
+
     local F = self:Build()
     if F:IsShown() then
         F:Hide()
@@ -1069,6 +1101,11 @@ function HUB:Toggle()
 end
 
 function HUB:Show()
+    if InCombatLockdown() then
+        self._pendingAction = "show"
+        return
+    end
+
     local F = self:Build()
     self:Refresh()
     F:ClearAllPoints()
@@ -1081,5 +1118,9 @@ function HUB:Show()
 end
 
 function HUB:Hide()
+    if InCombatLockdown() then
+        self._pendingAction = "hide"
+        return
+    end
     if self.Frame then self.Frame:Hide() end
 end

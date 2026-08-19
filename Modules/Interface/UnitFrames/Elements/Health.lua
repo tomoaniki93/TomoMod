@@ -141,7 +141,7 @@ local function GetNameplateStyleColor(unit)
         if tankColors then
             local status = UnitThreatSituation("player", unit)
             if status then
-                local role = UnitGroupRolesAssigned("player")
+                local role = TomoMod_Utils.SafeGroupRole("player")
                 local isTankRole = (role == "TANK")
                 -- status: 0=no threat, 1=lower threat, 2=tanking lower, 3=tanking
                 local isTanking = (status == 3 or status == 2)

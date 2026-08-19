@@ -547,14 +547,14 @@ TS.ROLE_ART = {
 
 -- Sample data, for laying out the frame. NOT the group.
 function TS:ShowPreview()
-    self:ShowScoreboard(self:GetPreviewData())
+    self:SafeShowScoreboard(self:GetPreviewData())
 end
 
 -- The live group, on demand (/tm keys). CollectRunData is safe outside an
 -- instance: the M+ block is gated on difficultyID 8, the unit list falls back
 -- to "player" when solo, and the damage-meter totals simply come back at zero.
 function TS:ShowGroup()
-    self:ShowScoreboard(self:CollectRunData())
+    self:SafeShowScoreboard(self:CollectRunData())
 end
 
 function TS:HideScoreboard()

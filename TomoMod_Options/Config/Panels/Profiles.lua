@@ -185,11 +185,7 @@ local function ShowExportPopup(exportStr)
     dimmer:SetScript("OnMouseDown", function(s)
         if not pop:IsMouseOver() then s:Hide() end
     end)
-    pop:EnableKeyboard(true)
-    pop:SetScript("OnKeyDown", function(self, key)
-        if key == "ESCAPE" then self:SetPropagateKeyboardInput(false); dimmer:Hide()
-        else self:SetPropagateKeyboardInput(true) end
-    end)
+    TomoMod_Utils.CloseOnEscape(pop, function() dimmer:Hide() end)
 
     dimmer:Show()
 
@@ -387,11 +383,7 @@ local function ShowImportPopup(onImport)
     dimmer:SetScript("OnMouseDown", function(s)
         if not pop:IsMouseOver() then s:Hide() end
     end)
-    pop:EnableKeyboard(true)
-    pop:SetScript("OnKeyDown", function(self, key)
-        if key == "ESCAPE" then self:SetPropagateKeyboardInput(false); dimmer:Hide()
-        else self:SetPropagateKeyboardInput(true) end
-    end)
+    TomoMod_Utils.CloseOnEscape(pop, function() dimmer:Hide() end)
 
     dimmer:Show()
     C_Timer.After(0.05, function() eb:SetFocus() end)

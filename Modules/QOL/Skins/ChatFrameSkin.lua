@@ -658,7 +658,7 @@ local function CollectLfgRolesForChatIcons()
     if not IsInGroup() then return end
     wipe(lfgRoles)
 
-    local playerRole = UnitGroupRolesAssigned("player")
+    local playerRole = TomoMod_Utils.SafeGroupRole("player")
     if playerRole then
         lfgRoles[PLAYER_NAME] = rolePaths[playerRole]
     end
@@ -666,7 +666,7 @@ local function CollectLfgRolesForChatIcons()
     local unit = (IsInRaid() and "raid" or "party")
     for i = 1, GetNumGroupMembers() do
         if UnitExists(unit .. i) and not UnitIsUnit(unit .. i, "player") then
-            local role = UnitGroupRolesAssigned(unit .. i)
+            local role = TomoMod_Utils.SafeGroupRole(unit .. i)
             local name, realm = UnitName(unit .. i)
             if role and name then
                 name = (realm and realm ~= "" and name .. "-" .. realm) or name .. "-" .. PLAYER_REALM

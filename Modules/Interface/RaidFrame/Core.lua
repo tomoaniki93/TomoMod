@@ -91,7 +91,7 @@ local HEALER_SPECS = {
 -- Returns true if unit is a healer (role assignment + spec fallback)
 local function IsUnitHealer(unit)
     if not unit or not UnitExists(unit) then return false end
-    local role = UnitGroupRolesAssigned(unit)
+    local role = TomoMod_Utils.SafeGroupRole(unit)
     if role == "HEALER" then return true end
     if role == "TANK" or role == "DAMAGER" then return false end
     -- role == "NONE": fall back to spec ID
@@ -655,7 +655,7 @@ function RF.UpdateRole(f)
     if not f or not f.roleIcon then return end
     if not UnitExists(f.unit) then f.roleIcon:Hide(); return end
 
-    local role = UnitGroupRolesAssigned(f.unit)
+    local role = TomoMod_Utils.SafeGroupRole(f.unit)
     local coords = ROLE_TEX_COORDS[role]
     if coords then
         f.roleIcon:SetTexture(ROLE_TEXTURE)
@@ -980,7 +980,7 @@ function RF.LayoutFrames()
                 frame = f,
                 unit = unit,
                 group = subgroup or 1,
-                role = ROLE_ORDER[UnitGroupRolesAssigned(unit) or "NONE"] or 4,
+                role = ROLE_ORDER[TomoMod_Utils.SafeGroupRole(unit) or "NONE"] or 4,
             }
         end
     end

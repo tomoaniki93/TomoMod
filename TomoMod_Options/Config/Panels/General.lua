@@ -423,8 +423,8 @@ function TomoMod_ConfigPanel_General(parent)
     end)
 
     local _, cy = W.CreateButton(card4.inner, L["btn_relaunch_installer"], 220, cy, function()
-        if TomoMod_Installer then
-            TomoMod_Installer.Show()
+        if TomoMod_OpenInstaller then
+            TomoMod_OpenInstaller(true)
             if TomoMod_Config and TomoMod_Config.Hide then TomoMod_Config.Hide() end
         end
     end)

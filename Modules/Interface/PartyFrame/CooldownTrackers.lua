@@ -285,9 +285,9 @@ function CD.UpdateFrame(f)
 
     -- Kick icon (hidden for healers — since 12.x healers have no interrupt)
     if f.cdContainer.kickIcon and db.showInterruptCD then
-        local role = UnitGroupRolesAssigned(f.unit)
+        local role = TomoMod_Utils.SafeGroupRole(f.unit)
         local classKick = classFile and CLASS_INTERRUPT[classFile]
-        if classKick and role ~= "HEALER" then
+        if classKick and role and role ~= "HEALER" then
             local kickData = unitCDs and unitCDs.kick
             if kickData and (kickData.startTime + kickData.duration) > now then
                 local remaining = (kickData.startTime + kickData.duration) - now

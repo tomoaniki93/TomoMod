@@ -323,8 +323,8 @@ end
 local function CreateQuickActions(parent, y)
     local panel, nextY = CreatePanel(parent, Localize("dash_actions_section", "Actions rapides"), y, 90, CY[1], CY[2], CY[3])
     CreateActionButton(panel, Localize("dash_action_forge", "Installeur"), 18, -38, 160, A[1], A[2], A[3], function()
-        if TomoMod_Installer then
-            TomoMod_Installer.Show()
+        if TomoMod_OpenInstaller then
+            TomoMod_OpenInstaller(true)
             if TomoMod_Config and TomoMod_Config.Hide then TomoMod_Config.Hide() end
         end
     end)
