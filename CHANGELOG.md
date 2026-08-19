@@ -40,10 +40,30 @@
 - **Fix** — Residual Blizzard GCD swipes on Stance/Aura/Posture buttons are now visually masked without calling `SetCooldown()` or modifying the protected buttons themselves.
 - **Fix** — Residual PetBar visuals are fully cleaned up, including autocast overlays, checked-state borders and flash effects, while Blizzard's pet state remains intact underneath.
 
+#### Action Bars — Native Spell Flyouts
+
+- **Fix** — Spell flyouts now open correctly again from TomoMod action buttons, including Mage portal/teleport flyouts and Hunter trap flyouts. TomoMod keeps the visual styling while Blizzard handles the native secure flyout behavior.
+
+#### First-Run Installer — LoadOnDemand & Safety Guards
+
+- **Fix** — The first-run installer is now bootstrapped from the core addon instead of depending on the LoadOnDemand options addon already being open. Fresh installs and `/tm install` can therefore launch the installer reliably without first opening the configuration panel.
+- **Fix** — The installer waits until cinematics, movies and combat are finished before loading and appearing. A new character can complete or skip the intro normally without an unseen installer intercepting input in the background. Manual installer requests made while blocked are deferred and resume automatically when it is safe.
+
+#### Midnight Role Data — Shared Secret-Safe Handling
+
+- **Fix** — Group-role reads now use one shared safe path across Party Frames, Raid Frames, UnitFrames threat coloring, Nameplates, TomoScore, Chat role icons and Tooltip role icons. When Midnight temporarily restricts role data, TomoMod now treats it as unavailable instead of allowing a secret value to reach comparisons, sorting or table lookups.
+
+#### Mythic+ & Profiles — Combat Safety
+
+- **Fix** — MythicHub no longer builds, refreshes, shows or hides its teleport controls during combat. Requests made in combat are remembered and replayed automatically after combat ends.
+- **Fix** — `/tm score`, `/tm keys` and `/tm score last` now use TomoScore's combat-safe display path, preserving the requested data and opening the scoreboard automatically after combat when necessary.
+- **Fix** — Profile Import and Export popups now use TomoMod's shared Escape-key handling, preventing protected keyboard-input changes from being attempted while in combat.
+
 #### Validation
 
 - **Tested** — Human/Cat/Bear form paging, Stance, Pet and Possession controls, standard action bars, Extra Action, Zone Ability, Leave Vehicle, GCD/charges, mouse clicks and keyboard activation were validated in game with no new ActionBar taint errors.
 - **Tested** — The final native visual masking leaves Blizzard's secure bars operational while removing their duplicate presentation, including Pet checked/autocast states and Stance GCD remnants.
+- **Tested** — Mage/Hunter spell flyouts, first-run installer launch after reload, MythicHub, `/tm score`, `/tm keys`, `/tm score last` and Profile Import/Export were validated in game after the 3.6.0 safety pass.
 - **Internal** — 3.6.0 is the new clean ActionBars baseline. The validated zero-touch boundaries around Blizzard-owned secure frames are documented in code and should not be replaced by `Hide()`, `SetParent()`, event unregistering or protected attribute writes.
 
 ## ####################################

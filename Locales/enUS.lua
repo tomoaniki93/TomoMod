@@ -3370,6 +3370,11 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_360_gcd"] = "Fix — Native Stance/Aura/Posture GCD remnants are visually masked without touching Blizzard's cooldown values or protected button state.",
     ["wn_360_petvisuals"] = "Fix — The remaining Blizzard PetBar checked-state borders, flash effects and autocast overlays are now hidden while the underlying pet state stays fully functional.",
     ["wn_360_skin"] = "Changed — Extra Action, Zone Ability and Leave Vehicle now share the same regular TomoMod action-button skin pipeline as the rest of the bars.",
+    ["wn_360_flyouts"] = "Fix — Spell flyouts open correctly again from TomoMod Action Bars, including Mage portals and Hunter traps.",
+    ["wn_360_installer"] = "Fix — The first-run installer now loads reliably on fresh installs and waits until cinematics, movies and combat are over before appearing.",
+    ["wn_360_rolesafe"] = "Fix — Party/Raid frames, Nameplates, TomoScore, Chat and Tooltips now handle Midnight's restricted group-role data safely instead of producing secret-value errors.",
+    ["wn_360_mythiccombat"] = "Fix — MythicHub and TomoScore commands now wait until combat ends before opening or refreshing protected controls, then continue automatically.",
+    ["wn_360_profiles"] = "Fix — Profile Import/Export popups now handle Escape safely in combat without causing blocked keyboard-input actions.",
     ["wn_360_validation"] = "Tested — Standard bars, Human/Cat/Bear paging, Stance, Pet, Possession, special buttons, mouse/keyboard input and combat were validated in game with no new ActionBar taint errors.",
     -- =====================
     -- 3.5.9 — What's New

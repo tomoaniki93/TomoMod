@@ -3330,6 +3330,11 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_360_gcd"] = "Behoben — Verbleibende native GCD-Anzeigen für Haltung/Aura/Form werden visuell maskiert, ohne Blizzard-Cooldownwerte oder geschützten Buttonzustand anzutasten.",
     ["wn_360_petvisuals"] = "Behoben — Die verbleibenden aktiven Rahmen, Flash-Effekte und Autocast-Overlays der Blizzard-Begleiterleiste sind verborgen, während der echte Begleiterzustand vollständig funktioniert.",
     ["wn_360_skin"] = "Geändert — Extra Action, Zonenfähigkeit und Fahrzeug verlassen verwenden jetzt dieselbe reguläre TomoMod-Button-Skin-Pipeline wie die übrigen Aktionsleisten.",
+    ["wn_360_flyouts"] = "Behoben — Zauber-Flyouts öffnen sich wieder korrekt über TomoMod-Aktionsleisten, einschließlich Magierportalen und Jägerfallen.",
+    ["wn_360_installer"] = "Behoben — Der Ersteinrichtungsassistent wird bei Neuinstallationen zuverlässig geladen und wartet mit dem Anzeigen, bis Zwischensequenzen, Filme und Kämpfe beendet sind.",
+    ["wn_360_rolesafe"] = "Behoben — Gruppen-/Schlachtzugsfenster, Namensplaketten, TomoScore, Chat und Tooltips verarbeiten Midnights eingeschränkte Rollendaten jetzt sicher, statt Secret-Value-Fehler auszulösen.",
+    ["wn_360_mythiccombat"] = "Behoben — MythicHub und TomoScore-Befehle warten jetzt bis zum Kampfende, bevor geschützte Bedienelemente geöffnet oder aktualisiert werden, und setzen danach automatisch fort.",
+    ["wn_360_profiles"] = "Behoben — Profil-Import/Export-Fenster verarbeiten Escape im Kampf jetzt sicher, ohne blockierte Tastatureingabe-Aktionen auszulösen.",
     ["wn_360_validation"] = "Getestet — Standardleisten, Mensch/Katze/Bär-Paging, Haltung, Begleiter, Besitz, Spezialbuttons, Maus/Tastatur und Kampf wurden im Spiel ohne neue ActionBar-Taint-Fehler validiert.",
     -- =====================
     -- 3.5.9 — What's New

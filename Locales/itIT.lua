@@ -3318,6 +3318,11 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_360_gcd"] = "Correzione — I residui del GCD nativo di forme, aure e posture vengono mascherati visivamente senza toccare i valori di cooldown Blizzard né lo stato protetto dei pulsanti.",
     ["wn_360_petvisuals"] = "Correzione — I bordi di stato attivo, i flash e gli overlay autocast rimanenti della barra famiglio Blizzard sono ora nascosti mentre lo stato reale del famiglio resta completamente funzionale.",
     ["wn_360_skin"] = "Modifica — Azione extra, Abilità di zona ed Esci dal veicolo usano ora lo stesso normale pipeline di skin dei pulsanti azione TomoMod delle altre barre.",
+    ["wn_360_flyouts"] = "Correzione — I flyout degli incantesimi si aprono di nuovo correttamente dalle barre delle azioni TomoMod, inclusi i portali del Mago e le trappole del Cacciatore.",
+    ["wn_360_installer"] = "Correzione — L’installazione guidata al primo avvio ora si carica in modo affidabile sulle nuove installazioni e attende la fine di cinematiche, filmati e combattimenti prima di apparire.",
+    ["wn_360_rolesafe"] = "Correzione — Riquadri gruppo/incursione, nameplate, TomoScore, chat e tooltip ora gestiscono in sicurezza i dati di ruolo limitati di Midnight invece di generare errori di valori segreti.",
+    ["wn_360_mythiccombat"] = "Correzione — MythicHub e i comandi TomoScore ora attendono la fine del combattimento prima di aprire o aggiornare controlli protetti, quindi continuano automaticamente.",
+    ["wn_360_profiles"] = "Correzione — Le finestre Importa/Esporta profili ora gestiscono Escape in sicurezza durante il combattimento senza causare azioni di input da tastiera bloccate.",
     ["wn_360_validation"] = "Testato — Barre standard, paging Umano/Felino/Orso, posture, famiglio, possesso, pulsanti speciali, mouse/tastiera e combattimento sono stati validati in gioco senza nuovi errori di taint delle ActionBar.",
     -- =====================
     -- 3.5.9 — What's New

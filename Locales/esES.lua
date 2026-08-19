@@ -3331,6 +3331,11 @@ TomoMod_RegisterLocale("esES", {
     ["wn_360_gcd"] = "Corrección — Los restos de GCD nativo de formas, auras y posturas se ocultan visualmente sin tocar los valores de cooldown de Blizzard ni el estado protegido de los botones.",
     ["wn_360_petvisuals"] = "Corrección — Los bordes de estado activo, destellos y overlays de autocast restantes de la barra de mascota Blizzard quedan ocultos mientras el estado real de la mascota sigue funcionando.",
     ["wn_360_skin"] = "Cambio — Acción extra, Habilidad de zona y Salir del vehículo usan ahora el mismo sistema de aspecto de botones que el resto de las barras de TomoMod.",
+    ["wn_360_flyouts"] = "Corrección — Los flyouts de hechizos vuelven a abrirse correctamente desde las barras de acción de TomoMod, incluidos los portales de Mago y las trampas de Cazador.",
+    ["wn_360_installer"] = "Corrección — El instalador del primer inicio se carga de forma fiable en instalaciones nuevas y espera a que terminen las cinemáticas, vídeos y el combate antes de mostrarse.",
+    ["wn_360_rolesafe"] = "Corrección — Los marcos de grupo/banda, placas de nombre, TomoScore, chat y tooltips gestionan ahora de forma segura los datos de rol restringidos de Midnight en lugar de provocar errores de valores secretos.",
+    ["wn_360_mythiccombat"] = "Corrección — MythicHub y los comandos de TomoScore esperan ahora al final del combate antes de abrir o actualizar controles protegidos y continúan automáticamente después.",
+    ["wn_360_profiles"] = "Corrección — Las ventanas de Importar/Exportar perfiles gestionan ahora Escape de forma segura en combate sin provocar acciones de entrada de teclado bloqueadas.",
     ["wn_360_validation"] = "Probado — Barras estándar, paging Humano/Felino/Oso, posturas, mascota, posesión, botones especiales, ratón/teclado y combate se validaron en juego sin nuevos errores de taint de ActionBar.",
     -- =====================
     -- 3.5.9 — What's New
