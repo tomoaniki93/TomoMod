@@ -639,17 +639,21 @@ end
 ApplySpellFlyoutButtonStateTextures = function(button)
     if not button then return end
 
-    -- [3.6.1] SetHitRectInsets is frame geometry, not a texture, so it taints a
-    -- protected frame like SetSize does. Our own TUI_SpellFlyoutButton* need the
-    -- reset; Blizzard's SpellFlyoutButton* already ship with zero insets and are
-    -- left untouched. Everything below this point is region work only.
+    -- [3.6.1] Blizzard's native flyout popup buttons cast from their Lua
+    -- OnClick handler via protected CastSpellByID/CastSpellByName calls. On
+    -- Midnight 12.1 even cosmetic writes to those protected button regions can
+    -- contaminate that execution path and make the cast ADDON_ACTION_FORBIDDEN.
+    -- Keep native SpellFlyout buttons completely Blizzard-owned. This helper is
+    -- still used by TomoMod's own TUI_SpellFlyoutButton* implementation.
     local name = button.GetName and button:GetName()
     local isNative = (name and (
         name:match("^SpellFlyoutPopupButton%d+$")
         or name:match("^SpellFlyoutButton%d+$")
     )) and true or false
 
-    if not isNative and button.SetHitRectInsets then
+    if isNative then return end
+
+    if button.SetHitRectInsets then
         button:SetHitRectInsets(0, 0, 0, 0)
     end
 
@@ -683,53 +687,20 @@ ApplySpellFlyoutButtonStateTextures = function(button)
 end
 
 SkinSpellFlyoutButtons = function()
-    if ActionBarsOwned.useOwnedFlyout then return end
-    local flyout = _G.SpellFlyout
-    if not (flyout and flyout.IsShown and flyout:IsShown()) then return end
-    if InCombatLockdown() then
-        ActionBarsOwned.pendingFlyoutSkin = true
-        return
-    end
-
-    SkinSpellFlyoutContainer(flyout)
-
-    local settings = GetSpellFlyoutSkinSettings(flyout)
-    if not (settings and settings.skinEnabled) then return end
-
-    -- [3.6.1] What used to be here: button:SetSize(sourceWidth, sourceHeight) on
-    -- every button, then flyout:Layout() to re-flow them.
-    --
-    -- Both are writes to Blizzard-owned protected frames from addon code.
-    -- SetSize taints the button; Layout() runs Blizzard's own method inside our
-    -- tainted execution and spreads that taint across SpellFlyout and every
-    -- button it touches. SpellFlyout:Toggle() then re-populates those buttons on
-    -- the next open -- SetAttribute("type"/"spell") -- from a path that is now
-    -- tainted, and the secure click is refused. The flyout opens normally and
-    -- the spell simply does not cast, which is exactly what mage
-    -- Portal/Teleport reports describe. The same spell dropped directly on a
-    -- bar works, because that button is ours and carries our own attributes.
-    --
-    -- Cosmetic consequence: flyout buttons keep Blizzard's size and spacing
-    -- instead of matching the source bar's icon size. Textures below are pure
-    -- region work and do not move or resize anything.
-    for _, button in ipairs(CollectSpellFlyoutButtons(flyout)) do
-        ApplySpellFlyoutButtonStateTextures(button)
-        -- Native SpellFlyout buttons stay Blizzard-owned. Do not route them
-        -- through the general SkinButton path: that path also touches cooldowns,
-        -- anchors, artwork state and helper fields on the protected button.
-    end
+    -- [3.6.1] Native SpellFlyout is intentionally hands-off. Its popup buttons
+    -- execute protected spell casts from Blizzard Lua, so no TomoMod frame or
+    -- region mutation is allowed here. Losing the cosmetic skin is preferable
+    -- to tainting CastSpellByID after the flyout is opened.
+    ActionBarsOwned.pendingFlyoutSkin = nil
 end
 
 function HookSpellFlyoutSkinning()
     if spellFlyoutSkinHooked then return end
 
-    local flyout = _G.SpellFlyout
-    if not flyout then return end
-
+    -- Do not HookScript Blizzard's SpellFlyout either. Keeping the entire
+    -- native show/click path untouched prevents TomoMod taint from reaching
+    -- SpellFlyoutPopupButtonMixin:OnClick().
     spellFlyoutSkinHooked = true
-    flyout:HookScript("OnShow", function()
-        C_Timer.After(0, SkinSpellFlyoutButtons)
-    end)
 end
 
 ActionBarsOwned.HookSpellFlyoutSkinning = HookSpellFlyoutSkinning

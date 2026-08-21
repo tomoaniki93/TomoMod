@@ -22,6 +22,7 @@
 #### Action Bars — Spell Flyout Taint Removal
 
 - **Fix** — Spell flyouts (e.g. Mage Portal/Teleport) no longer silently fail to cast after opening. Resizing native flyout buttons and calling the flyout's own `Layout()` from addon code tainted the protected `SpellFlyout` and its buttons; TomoMod no longer resizes or re-skins native flyout buttons, leaving Blizzard fully in control of their secure attributes.
+- **Fix** — Native flyout popup buttons cast through Blizzard's own protected `CastSpellByID`/`CastSpellByName` calls, and even cosmetic writes to those buttons could contaminate that path into `ADDON_ACTION_FORBIDDEN`. TomoMod's flyout skinning no longer hooks or writes to native `SpellFlyout` buttons at all, trading the cosmetic skin for a guaranteed cast.
 
 #### Objective Tracker — Combat Deferral
 

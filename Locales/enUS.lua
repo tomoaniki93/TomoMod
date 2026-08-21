@@ -3361,6 +3361,7 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_361_safewindow"] = "Fix — Combat-deferred override bindings from a mid-combat /reload now reliably replay after combat instead of relying on a safety window that could itself allow blocked actions.",
     ["wn_361_strata"] = "Fix — Action Bar 1, Pet and Stance buttons no longer render above full-screen Blizzard panels such as the World Map.",
     ["wn_361_flyouts"] = "Fix — Spell flyouts such as Mage Portal/Teleport open and cast correctly again; TomoMod no longer resizes native flyout buttons in a way that could taint the secure flyout.",
+    ["wn_361_flyouts_cast"] = "Fix — Native flyout popup buttons are no longer hooked or written to at all, since even cosmetic changes could taint Blizzard's protected CastSpellByID/CastSpellByName cast path.",
     ["wn_361_tracker"] = "Fix — Objective Tracker quest blocks skipped during combat now finish laying out automatically once combat ends, instead of staying overlapped until an unrelated quest update.",
     ["wn_361_validation"] = "Tested — Assisted Combat, key-down casting, combat-reload bindings, Bar 1/Pet/Stance strata near the World Map, spell flyouts and Objective Tracker combat deferral were validated in game.",
     ["wn_360_foundation"] = "Changed — ActionBars now use a zero-taint ownership model: TomoMod keeps addon-owned buttons out of Blizzard's native action-button broadcaster and leaves protected Blizzard bar state under Blizzard ownership.",

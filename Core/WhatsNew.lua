@@ -70,6 +70,7 @@ CHANGELOG = {
             L["wn_361_safewindow"] or "Fix — Combat-deferred override bindings from a mid-combat /reload now reliably replay after combat instead of relying on a safety window that could itself allow blocked actions.",
             L["wn_361_strata"] or "Fix — Action Bar 1, Pet and Stance buttons no longer render above full-screen Blizzard panels such as the World Map.",
             L["wn_361_flyouts"] or "Fix — Spell flyouts such as Mage Portal/Teleport open and cast correctly again; TomoMod no longer resizes native flyout buttons in a way that could taint the secure flyout.",
+            L["wn_361_flyouts_cast"] or "Fix — Native flyout popup buttons are no longer hooked or written to at all, since even cosmetic changes could taint Blizzard's protected CastSpellByID/CastSpellByName cast path.",
             L["wn_361_tracker"] or "Fix — Objective Tracker quest blocks skipped during combat now finish laying out automatically once combat ends, instead of staying overlapped until an unrelated quest update.",
             L["wn_361_validation"] or "Tested — Assisted Combat, key-down casting, combat-reload bindings, Bar 1/Pet/Stance strata near the World Map, spell flyouts and Objective Tracker combat deferral were validated in game.",
         },
