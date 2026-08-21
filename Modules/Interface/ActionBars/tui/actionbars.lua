@@ -25,7 +25,13 @@ pcall = pcall
 C_Timer = C_Timer
 InCombatLockdown = InCombatLockdown
 
-inInitSafeWindow = false
+-- TOMOMOD 3.6.1: the inInitSafeWindow escape hatch was removed.
+-- It was raised for the whole PLAYER_ENTERING_WORLD handler and neutralised
+-- every `InCombatLockdown()` guard in the module. The one case it was meant
+-- to cover -- a /reload taken in combat -- is precisely the case where the
+-- lockdown is real, so the window only ever opened the door to blocked
+-- actions. Every guarded site now defers through its pending* flag and is
+-- replayed on PLAYER_REGEN_ENABLED instead.
 
 IS_MIDNIGHT = select(4, GetBuildInfo()) >= 120000
 

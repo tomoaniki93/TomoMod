@@ -61,11 +61,22 @@ function BuildPagingCondition()
         if ctrl then table.insert(parts, "[mod:ctrl] " .. ctrl) end
     end
 
+    -- TOMOMOD 3.6.1: form and skyriding pages MUST be tested before [bar:N].
+    --
+    -- The first SecurePaging revision put [bar:6]..[bar:2] first, reasoning that
     -- Blizzard only consults the bonus bar while the manual action page is 1.
-    -- Mirror that resolution order so /changeactionbar and the built-in page
-    -- bindings still work while mounted or after a form transition.
-    for i = 6, 2, -1 do
-        table.insert(parts, "[bar:" .. i .. "] " .. i)
+    -- In practice that broke druid form transitions: as soon as anything leaves
+    -- the manual page at a value other than 1 -- a page binding, /changeactionbar,
+    -- an addon, or Blizzard's own controller during a form swap -- the [bar:N]
+    -- clause wins and the [bonusbar:N] form page is never reached, so Cat/Bear
+    -- keep showing the caster page.
+    --
+    -- Bonusbar-before-bar is also what every other bar addon ships and what the
+    -- pre-SecurePaging TomoMod condition used, i.e. the ordering that was known
+    -- to work in the field. Do not reorder these two blocks again without an
+    -- in-game druid test.
+    if not (settings and settings.disableSkyridingPaging) then
+        table.insert(parts, "[bonusbar:5] 11")
     end
 
     if not (settings and settings.disableFormPaging) then
@@ -74,8 +85,8 @@ function BuildPagingCondition()
         end
     end
 
-    if not (settings and settings.disableSkyridingPaging) then
-        table.insert(parts, "[bonusbar:5] 11")
+    for i = 6, 2, -1 do
+        table.insert(parts, "[bar:" .. i .. "] " .. i)
     end
 
     -- Target paging is intentionally lower priority than manual/form/skyriding
@@ -91,9 +102,14 @@ function BuildPagingCondition()
     return table.concat(parts, "; ")
 end
 
+-- TOMOMOD 3.6.1: writing _onstate-page is SetAttribute on a protected frame, so
+-- it is only legal out of combat. The caller checks the lockdown first; the
+-- installed flag is set only after the write actually happened, otherwise a
+-- single in-combat call would latch the flag and the bar would never get a
+-- paging snippet for the rest of the session.
 local function InstallPagingSnippet(container)
     if not container or container._tomomodPagingSnippetInstalled then return end
-    container._tomomodPagingSnippetInstalled = true
+    if InCombatLockdown() then return end
     container:SetAttribute("_onstate-page", [[
         local page = newstate
         if page == "override" then
@@ -123,13 +139,12 @@ local function InstallPagingSnippet(container)
         local offset = (page - 1) * 12
         control:ChildUpdate("offset", offset)
     ]])
+    container._tomomodPagingSnippetInstalled = true
 end
 
 local function ApplyBar1Paging(container)
     container = container or (ActionBarsOwned.containers and ActionBarsOwned.containers.bar1)
     if not container then return end
-
-    InstallPagingSnippet(container)
 
     if InCombatLockdown() then
         pagingPending = true
@@ -137,18 +152,30 @@ local function ApplyBar1Paging(container)
         return
     end
 
+    InstallPagingSnippet(container)
+
     local driver = BuildPagingCondition()
     local state = GetFrameState(container)
-    if state.pagingDriver == driver then return end
+    -- The cached-driver shortcut is only valid once a driver has actually been
+    -- registered on this container. Checking the string alone would skip the
+    -- very first registration after a build that was deferred out of combat.
+    if state.pagingInstalled and state.pagingDriver == driver then return end
 
     UnregisterStateDriver(container, "page")
     local ok, err = pcall(RegisterStateDriver, container, "page", driver)
     if ok then
         state.pagingDriver = driver
+        state.pagingInstalled = true
         state.pagingRegisterError = nil
     else
         state.pagingRegisterError = tostring(err)
-        pcall(RegisterStateDriver, container, "page", "[overridebar] override; [vehicleui][possessbar][shapeshift] possess; [bar:6] 6; [bar:5] 5; [bar:4] 4; [bar:3] 3; [bar:2] 2; [bonusbar:4] 10; [bonusbar:3] 9; [bonusbar:2] 8; [bonusbar:1] 7; [bonusbar:5] 11; 1")
+        -- Same ordering rule as BuildPagingCondition: forms first, [bar:N] last.
+        local fallbackOk = pcall(RegisterStateDriver, container, "page",
+            "[overridebar] override; [vehicleui][possessbar][shapeshift] possess; "
+            .. "[bonusbar:5] 11; [bonusbar:4] 10; [bonusbar:3] 9; [bonusbar:2] 8; [bonusbar:1] 7; "
+            .. "[bar:6] 6; [bar:5] 5; [bar:4] 4; [bar:3] 3; [bar:2] 2; 1")
+        state.pagingDriver = nil
+        state.pagingInstalled = fallbackOk and true or nil
     end
 
     -- Reconcile visual caches after a driver rebuild. The actual page switch

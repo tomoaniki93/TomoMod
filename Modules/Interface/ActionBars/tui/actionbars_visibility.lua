@@ -32,7 +32,16 @@ local VISIBILITY_MODE_DRIVERS = {
 
 local visibilityPending = {}
 local pendingUserShown = setmetatable({}, { __mode = "k" })
+-- TOMOMOD 3.6.1: containers whose secure attributes could not be written yet
+-- because the module was built under combat lockdown (a /reload taken in
+-- combat reaches ADDON_LOADED -> Initialize -> BuildBar with the lockdown on).
+local pendingInstall = setmetatable({}, { __mode = "k" })
 local visibilityEventFrame = CreateFrame("Frame")
+
+-- TOMOMOD 3.6.1: declared here rather than at the bottom of the file.
+-- BuildBarVisibilityDriver writes into this table, and only the load order of
+-- this chunk kept that from being a nil index.
+ActionBarsOwned.visibilityErrors = ActionBarsOwned.visibilityErrors or {}
 
 local function IsSecureVisibilityBar(barKey)
     return SECURE_VISIBILITY_BAR_KEYS[barKey] == true
@@ -200,7 +209,20 @@ end
 
 function InstallBarVisibilityDriver(container, barKey)
     if not container or not IsSecureVisibilityBar(barKey) then return end
+
+    -- Script hooks are plain Lua and safe at any time; install them first so a
+    -- deferred container still wakes correctly once the driver arrives.
     InstallDormancyHooks(container, barKey)
+
+    -- TOMOMOD 3.6.1: everything below is SetAttribute on a protected frame plus
+    -- RegisterStateDriver, none of which is legal under lockdown. Defer the
+    -- whole install instead of firing three blocked actions per bar.
+    if InCombatLockdown() then
+        pendingInstall[container] = barKey
+        visibilityEventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+        return
+    end
+
     container:SetAttribute("qui-bar-key", barKey)
     container:SetAttribute("_onstate-tuivis", [[
         if newstate == "show" and self:GetAttribute("qui-user-shown") then
@@ -244,6 +266,13 @@ end
 visibilityEventFrame:SetScript("OnEvent", function(self, event)
     if event ~= "PLAYER_REGEN_ENABLED" then return end
 
+    -- Installs first: a container with no driver yet must get one before any
+    -- user-shown or refresh work is replayed on top of it.
+    for container, barKey in pairs(pendingInstall) do
+        pendingInstall[container] = nil
+        if container then InstallBarVisibilityDriver(container, barKey) end
+    end
+
     for container, shown in pairs(pendingUserShown) do
         pendingUserShown[container] = nil
         if container then
@@ -258,12 +287,12 @@ visibilityEventFrame:SetScript("OnEvent", function(self, event)
         if container then ApplyDriverToContainer(container, barKey) end
     end
 
-    if not next(visibilityPending) and not next(pendingUserShown) then
+    if not next(visibilityPending) and not next(pendingUserShown)
+        and not next(pendingInstall) then
         self:UnregisterEvent("PLAYER_REGEN_ENABLED")
     end
 end)
 
-ActionBarsOwned.visibilityErrors = ActionBarsOwned.visibilityErrors or {}
 ActionBarsOwned.RefreshVisibility = RefreshSecureBarVisibility
 ActionBarsOwned.IsSecureVisibilityBar = IsSecureVisibilityBar
 ActionBarsOwned.IsBarRuntimeVisible = IsBarRuntimeVisible

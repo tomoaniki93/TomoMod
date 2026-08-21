@@ -199,7 +199,7 @@ UpdateStanceBarLayout = function()
     local container = ActionBarsOwned.containers["stance"]
     if not container then return end
 
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingStanceUpdate = true
         return
     end
@@ -221,7 +221,7 @@ UpdateStanceBarLayout = function()
     if not buttons then return end
 
     if numForms == 0 then
-        if inInitSafeWindow and InCombatLockdown() then
+        if InCombatLockdown() then
             ActionBarsOwned.pendingStanceUpdate = true
             return
         end

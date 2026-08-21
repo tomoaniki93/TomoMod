@@ -3304,6 +3304,13 @@ TomoMod_RegisterLocale("ptBR", {
     -- =====================
     -- 3.6.0 — What's New
     -- =====================
+    ["wn_361_assist"] = "Correção — O quadro de rotação de Combate Assistido da Blizzard agora é exibido e atualizado corretamente nos botões de ação do TomoMod, em vez de travar no campo de ação Lua não sincronizado do botão.",
+    ["wn_361_keydown"] = "Correção — A configuração “Conjurar ao pressionar” do TomoMod agora permanece sincronizada com a CVar de entrada da própria Blizzard, corrigindo uma primeira pressão após o login que podia ser ignorada silenciosamente.",
+    ["wn_361_safewindow"] = "Correção — As ligações de override adiadas por combate após um /reload em combate agora são reproduzidas de forma confiável após o combate, em vez de depender de uma janela de segurança que podia ela mesma permitir ações bloqueadas.",
+    ["wn_361_strata"] = "Correção — Os botões da Barra de Ação 1, Ajudante e Postura não são mais renderizados acima de painéis em tela cheia da Blizzard, como o Mapa Mundial.",
+    ["wn_361_flyouts"] = "Correção — Flyouts de magia como Portal/Teletransporte de Mago voltam a abrir e conjurar corretamente; o TomoMod não redimensiona mais os botões de flyout nativos de uma forma que pudesse contaminar (taint) o flyout seguro.",
+    ["wn_361_tracker"] = "Correção — Blocos de missão ignorados durante o combate no Rastreador de Objetivos agora terminam de se organizar automaticamente ao fim do combate, em vez de permanecerem sobrepostos até um evento de missão não relacionado.",
+    ["wn_361_validation"] = "Testado — Combate Assistido, conjuração ao pressionar, ligações após reload em combate, o posicionamento de Barra 1/Ajudante/Postura perto do Mapa Mundial, os flyouts de magia e o adiamento de combate do Rastreador de Objetivos foram validados em jogo.",
     ["wn_360_foundation"] = "Alteração — As barras de ação agora usam um modelo de propriedade sem taint: os botões do TomoMod ficam fora do broadcaster nativo da Blizzard e o estado protegido das barras Blizzard continua sob controle da Blizzard.",
     ["wn_360_nativebars"] = "Correção — As barras de ação padrão da Blizzard continuam ativas para o paging seguro, mas ficam visualmente ocultas, exibindo apenas as barras TomoMod sem congelar o estado dinâmico.",
     ["wn_360_specialvisuals"] = "Correção — As barras Blizzard de postura, ajudante e possessão continuam funcionais em segundo plano enquanto texturas, textos, GCD, efeitos de autocast, bordas ativas e flashes duplicados são mascarados.",

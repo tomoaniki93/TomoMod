@@ -63,6 +63,18 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "3.6.1",
+        highlights = {
+            L["wn_361_assist"] or "Fix — Blizzard's Assisted Combat rotation frame now shows and updates correctly on TomoMod action buttons instead of freezing on the button's unsynced Lua action field.",
+            L["wn_361_keydown"] or "Fix — TomoMod's Cast on Key Press setting now stays in sync with Blizzard's own input CVar, fixing a first-press-after-login input that could be silently swallowed.",
+            L["wn_361_safewindow"] or "Fix — Combat-deferred override bindings from a mid-combat /reload now reliably replay after combat instead of relying on a safety window that could itself allow blocked actions.",
+            L["wn_361_strata"] or "Fix — Action Bar 1, Pet and Stance buttons no longer render above full-screen Blizzard panels such as the World Map.",
+            L["wn_361_flyouts"] or "Fix — Spell flyouts such as Mage Portal/Teleport open and cast correctly again; TomoMod no longer resizes native flyout buttons in a way that could taint the secure flyout.",
+            L["wn_361_tracker"] or "Fix — Objective Tracker quest blocks skipped during combat now finish laying out automatically once combat ends, instead of staying overlapped until an unrelated quest update.",
+            L["wn_361_validation"] or "Tested — Assisted Combat, key-down casting, combat-reload bindings, Bar 1/Pet/Stance strata near the World Map, spell flyouts and Objective Tracker combat deferral were validated in game.",
+        },
+    },
+    {
         version = "3.6.0",
         highlights = {
             L["wn_360_foundation"] or "Changed — ActionBars now use a zero-taint ownership model: TomoMod keeps addon-owned buttons out of Blizzard's native action-button broadcaster and leaves protected Blizzard bar state under Blizzard ownership.",

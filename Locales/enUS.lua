@@ -3356,6 +3356,13 @@ TomoMod_RegisterLocale("enUS", {
     -- =====================
     -- 3.6.0 — What's New
     -- =====================
+    ["wn_361_assist"] = "Fix — Blizzard's Assisted Combat rotation frame now shows and updates correctly on TomoMod action buttons instead of freezing on the button's unsynced Lua action field.",
+    ["wn_361_keydown"] = "Fix — TomoMod's Cast on Key Press setting now stays in sync with Blizzard's own input CVar, fixing a first-press-after-login input that could be silently swallowed.",
+    ["wn_361_safewindow"] = "Fix — Combat-deferred override bindings from a mid-combat /reload now reliably replay after combat instead of relying on a safety window that could itself allow blocked actions.",
+    ["wn_361_strata"] = "Fix — Action Bar 1, Pet and Stance buttons no longer render above full-screen Blizzard panels such as the World Map.",
+    ["wn_361_flyouts"] = "Fix — Spell flyouts such as Mage Portal/Teleport open and cast correctly again; TomoMod no longer resizes native flyout buttons in a way that could taint the secure flyout.",
+    ["wn_361_tracker"] = "Fix — Objective Tracker quest blocks skipped during combat now finish laying out automatically once combat ends, instead of staying overlapped until an unrelated quest update.",
+    ["wn_361_validation"] = "Tested — Assisted Combat, key-down casting, combat-reload bindings, Bar 1/Pet/Stance strata near the World Map, spell flyouts and Objective Tracker combat deferral were validated in game.",
     ["wn_360_foundation"] = "Changed — ActionBars now use a zero-taint ownership model: TomoMod keeps addon-owned buttons out of Blizzard's native action-button broadcaster and leaves protected Blizzard bar state under Blizzard ownership.",
     ["wn_360_nativebars"] = "Fix — Blizzard standard action bars stay alive for secure paging but are visually suppressed, so only TomoMod bars are shown without freezing their runtime state.",
     ["wn_360_specialvisuals"] = "Fix — Blizzard Stance, Pet and Possess bars remain functional underneath while their duplicate textures, text, cooldown swipes, autocast overlays, checked borders and flash effects are masked.",

@@ -1,5 +1,38 @@
 ﻿## ####################################
 
+## CHANGELOG 3.6.1 — Action Bars: Assisted Combat Bridge, Input Latency Fix, Combat-Safe Paging & Flyout Taint Removal
+
+#### Action Bars — Assisted Combat Secure Slot Bridge
+
+- **Fix** — Blizzard's Assisted Combat rotation frame no longer freezes or fails to appear on TomoMod-owned buttons. Its native `UpdateState()`/`OnUpdate()` logic dereferenced the button's Lua-side `action` field, which TomoMod intentionally leaves unsynced; every assisted-combat lookup is now bridged through the button's real secure action slot instead.
+
+#### Action Bars — Input Latency
+
+- **Fix** — TomoMod's "Cast on key press" setting is now kept in lockstep with Blizzard's `ActionButtonUseKeyDown` CVar before any owned button or override CLICK binding is built. Previously, a secure CLICK binding could follow Blizzard's account-wide press/release policy while the button attribute said otherwise, causing the first key press after login to be silently swallowed.
+
+#### Action Bars — Combat-Safe Paging & Bindings
+
+- **Removed** — The `inInitSafeWindow` escape hatch has been removed. It disabled every `InCombatLockdown()` guard in the ActionBars module for the whole `PLAYER_ENTERING_WORLD` handler, which meant the one case it was meant to help — a `/reload` taken mid-combat — was exactly the case where the lockdown was real and protected actions could still be blocked.
+- **Changed** — Override bar bindings deferred by combat now replay reliably through the existing `pendingBindings` flag on `PLAYER_REGEN_ENABLED`, instead of relying on the removed safe window.
+
+#### Action Bars — World Map Strata Fix
+
+- **Fix** — Bar 1, Pet and Stance containers and buttons no longer render above full-screen Blizzard panels such as the World Map. They previously used `HIGH` frame strata to stay above alpha-suppressed native bars; they now stay on `MEDIUM` strata and rely on higher frame levels instead, which is enough to remain on top of the native surfaces without floating above other UI.
+
+#### Action Bars — Spell Flyout Taint Removal
+
+- **Fix** — Spell flyouts (e.g. Mage Portal/Teleport) no longer silently fail to cast after opening. Resizing native flyout buttons and calling the flyout's own `Layout()` from addon code tainted the protected `SpellFlyout` and its buttons; TomoMod no longer resizes or re-skins native flyout buttons, leaving Blizzard fully in control of their secure attributes.
+
+#### Objective Tracker — Combat Deferral
+
+- **Fix** — Quest blocks skipped during combat (because their secure objective buttons make `Hide`/`SetParent`/`SetPoint` protected) are no longer left half laid-out until an unrelated quest event happens to fire later. Skipped layout passes are now tracked and replayed automatically on `PLAYER_REGEN_ENABLED`, and frames pending correct placement are alpha-suppressed in the meantime instead of visibly overlapping.
+
+#### Validation
+
+- **Tested** — Assisted Combat rotation display, key-down/key-up casting, override bindings across a combat `/reload`, Bar 1/Pet/Stance visibility next to the World Map, Mage/Hunter spell flyouts and Objective Tracker layout during and after combat were validated in game.
+
+## ####################################
+
 ## CHANGELOG 3.6.0 — Action Bars: Zero-Taint Native Separation, Secure Stance/Pet/Possession & Complete Blizzard Visual Cleanup
 
 #### Action Bars — Zero-Taint Native Separation

@@ -357,12 +357,15 @@ function BuildBar(barKey)
     end
     local container = ActionBarsOwned.containers[barKey]
 
-    -- P3.5.15: alpha-suppressed native bars still exist as mouse surfaces.
-    -- Keep TUI's input-critical secure buttons above them rather than mutating
-    -- ActionButton*/PetActionButton*/StanceButton* hitboxes.  Possession uses
-    -- bar1 paging, so bar1 is included here as well.
+    -- TOMOMOD 3.6.1: alpha-suppressed native bars still exist as mouse
+    -- surfaces. Keep TUI's input-critical bars above those native surfaces by
+    -- frame LEVEL, not by promoting the entire bar to HIGH strata. HIGH can
+    -- render above Blizzard full-screen panels such as the World Map.
+    -- Blizzard action bars normally live on MEDIUM; our higher frame levels
+    -- are sufficient to keep TUI buttons on top within that strata.
+    -- Possession uses bar1 paging, so bar1 is included here as well.
     if barKey == "bar1" or barKey == "pet" or barKey == "stance" then
-        container:SetFrameStrata("HIGH")
+        container:SetFrameStrata("MEDIUM")
         container:SetFrameLevel(math.max(container:GetFrameLevel(), 20))
     end
 
@@ -427,7 +430,7 @@ function BuildBar(barKey)
             if btn.SetMouseClickEnabled then btn:SetMouseClickEnabled(true) end
             if btn.SetMouseMotionEnabled then btn:SetMouseMotionEnabled(true) end
             btn:RegisterForClicks("AnyDown", "AnyUp")
-            btn:SetFrameStrata("HIGH")
+            btn:SetFrameStrata("MEDIUM")
             btn:SetFrameLevel(math.max((container.GetFrameLevel and container:GetFrameLevel() or 0) + 10, 10))
 
             do

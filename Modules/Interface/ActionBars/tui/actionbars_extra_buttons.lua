@@ -82,7 +82,7 @@ end
 function ApplyExtraButtonFrameAnchor(buttonType)
     -- COMBAT GATE (extra path): the extra holder hosts the anchored
     if buttonType == "extraActionButton"
-        and InCombatLockdown() and not inInitSafeWindow
+        and InCombatLockdown()
     then
         ActionBarsOwned.pendingExtraButtonRefresh = true
         return
@@ -98,7 +98,7 @@ function ApplyExtraButtonFrameAnchor(buttonType)
         and extraBtnState.extraActionHolder
         or extraBtnState.zoneAbilityHolder
     if not holder then return end
-    if InCombatLockdown() and not inInitSafeWindow
+    if InCombatLockdown()
         and Helpers.FrameMutationRestricted(holder)
     then
         ActionBarsOwned.pendingExtraButtonRefresh = true
@@ -371,7 +371,7 @@ end
 function NeutralizeExtraAbilityContainer()
     local container = ExtraAbilityContainer
     if not container or extraBtnState.containerNeutralized then return end
-    if InCombatLockdown() and not inInitSafeWindow then return end
+    if InCombatLockdown() then return end
     extraBtnState.containerNeutralized = true
 
     container:SetScript("OnShow", nil)
@@ -416,7 +416,7 @@ end
 
 -- DELIBERATE SAFETY EXCEPTION to the dual-mover invariant: when this
 local function ZoneFrameCombatMutable(frame, holder)
-    if not InCombatLockdown() or inInitSafeWindow then return true end
+    if not InCombatLockdown() then return true end
     if Helpers.FrameMutationRestricted(frame) then return false end
     if holder and Helpers.FrameMutationRestricted(holder) then return false end
     return true
@@ -462,7 +462,7 @@ local function EvictZoneAbilityFrame(scale, offsetX, offsetY)
     extraBtnState.zoneOwned = true
     local container = ExtraAbilityContainer
     if container then
-        if not InCombatLockdown() or inInitSafeWindow then
+        if not InCombatLockdown() then
             ns.SafeCallMethodIfPresent("defer-ooc", container, "MarkDirty")
         else
             ActionBarsOwned.pendingExtraButtonRefresh = true
@@ -485,7 +485,7 @@ function ApplyExtraButtonSettings(buttonType)
     if buttonType == "extraActionButton" then
         if not ShouldOwnExtraAbilityContainer() then return end
         -- COMBAT GATE (load-bearing).  ExtraActionBarFrame owns the secure
-        if InCombatLockdown() and not inInitSafeWindow then
+        if InCombatLockdown() then
             ActionBarsOwned.pendingExtraButtonRefresh = true
             return
         end
@@ -838,7 +838,7 @@ local function EnsureExtraActionProxy()
     if extraBtnState.extraActionProxy then
         return extraBtnState.extraActionProxy
     end
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonInit = true
         return nil
     end
@@ -958,7 +958,7 @@ end
 -- attributes, replace methods/scripts, touch cooldown state, or hook the native
 -- button/frame.  All saved presentation/input state lives in TomoMod side data.
 local function ApplyNativeExtraActionVisualSuppression(suppress)
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonRefresh = true
         return
     end
@@ -1012,7 +1012,7 @@ local function ApplyNativeExtraActionVisualSuppression(suppress)
 end
 
 local function ApplyExtraActionProxySettings()
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonRefresh = true
         return
     end
@@ -1415,7 +1415,7 @@ local function QueueZoneAbilityStructuralResync()
             if generation ~= extraBtnState.zoneAbilityResyncGeneration then
                 return
             end
-            if InCombatLockdown() and not inInitSafeWindow then
+            if InCombatLockdown() then
                 ActionBarsOwned.pendingExtraButtonRefresh = true
                 return
             end
@@ -1425,7 +1425,7 @@ local function QueueZoneAbilityStructuralResync()
 end
 
 local function EnsureZoneAbilityProxies()
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonInit = true
         return nil, nil
     end
@@ -1494,7 +1494,7 @@ local function EnsureZoneAbilityProxies()
 
             -- Structural changes may alter which native button each secure click
             -- proxy targets. Those attributes remain deferred during combat.
-            if InCombatLockdown() and not inInitSafeWindow then
+            if InCombatLockdown() then
                 ActionBarsOwned.pendingExtraButtonRefresh = true
                 return
             end
@@ -1559,7 +1559,7 @@ local function SetNativeZoneAbilityMouseSuppressed(native, suppress)
 end
 
 local function ApplyNativeZoneAbilityMouseSuppression(suppress, activeButtons, bridgeButtons)
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonRefresh = true
         return
     end
@@ -1601,7 +1601,7 @@ local function ApplyNativeZoneAbilityMouseSuppression(suppress, activeButtons, b
 end
 
 local function ApplyNativeZoneAbilityVisualSuppression(suppress)
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonRefresh = true
         return
     end
@@ -1657,7 +1657,7 @@ local function CaptureNativeZoneAbilityLayout(frame)
 end
 
 local function ApplyNativeZoneAbilityBridgePosition(enabled, holder, settings)
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonRefresh = true
         return
     end
@@ -1694,7 +1694,7 @@ local function ApplyNativeZoneAbilityBridgePosition(enabled, holder, settings)
 end
 
 local function ApplyZoneAbilityProxySettings()
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonRefresh = true
         return
     end
@@ -1779,7 +1779,7 @@ end
 -- SetAlpha(0/1) is allowed here, and only outside combat. State is tracked in
 -- TomoMod's side table rather than written onto Blizzard frames.
 local function ApplyNativeLeaveVehicleVisualSuppression(suppress)
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonRefresh = true
         return
     end
@@ -1827,7 +1827,7 @@ local function EnsureLeaveVehicleProxy()
     if extraBtnState.leaveVehicleProxy then
         return extraBtnState.leaveVehicleProxy
     end
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonInit = true
         return nil
     end
@@ -1909,7 +1909,7 @@ local function EnsureLeaveVehicleProxy()
                 and unit and unit ~= "player" then
                 return
             end
-            if InCombatLockdown() and not inInitSafeWindow then
+            if InCombatLockdown() then
                 ActionBarsOwned.pendingExtraButtonRefresh = true
                 return
             end
@@ -1922,7 +1922,7 @@ local function EnsureLeaveVehicleProxy()
 end
 
 local function ApplyLeaveVehicleProxySettings()
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingExtraButtonRefresh = true
         return
     end

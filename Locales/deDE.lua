@@ -3316,6 +3316,13 @@ TomoMod_RegisterLocale("deDE", {
     -- =====================
     -- 3.6.0 — What's New
     -- =====================
+    ["wn_361_assist"] = "Behoben — Blizzards Verbündeter-Kampf-Rotationsrahmen wird auf TomoMod-Aktionsbuttons jetzt korrekt angezeigt und aktualisiert, statt am unsynchronisierten Lua-Aktionsfeld des Buttons einzufrieren.",
+    ["wn_361_keydown"] = "Behoben — TomoMods Einstellung „Beim Tastendruck wirken“ bleibt jetzt mit Blizzards eigener Eingabe-CVar synchron; dies behebt einen ersten Tastendruck nach dem Login, der zuvor stillschweigend verschluckt werden konnte.",
+    ["wn_361_safewindow"] = "Behoben — Durch Kampf verzögerte Override-Bindungen nach einem /reload im Kampf werden jetzt zuverlässig nach dem Kampf wiederhergestellt, statt sich auf ein Sicherheitsfenster zu verlassen, das selbst blockierte Aktionen zulassen konnte.",
+    ["wn_361_strata"] = "Behoben — Aktionsleiste 1, Begleiter- und Haltungsbuttons werden nicht mehr über Blizzard-Vollbildfenstern wie der Weltkarte dargestellt.",
+    ["wn_361_flyouts"] = "Behoben — Zauber-Flyouts wie Magier-Portal/Teleport öffnen sich und wirken wieder korrekt; TomoMod ändert die Größe nativer Flyout-Buttons nicht mehr auf eine Weise, die den sicheren Flyout beschmutzen (taint) konnte.",
+    ["wn_361_tracker"] = "Behoben — Im Kampf übersprungene Questblöcke des Questzielverfolgers werden nach Kampfende jetzt automatisch fertig angeordnet, statt bis zu einem unabhängigen Questereignis überlappend stehen zu bleiben.",
+    ["wn_361_validation"] = "Getestet — Verbündeter Kampf, Tastendruck-Wirken, Override-Bindungen nach Kampf-Reload, Leiste 1/Begleiter/Haltung nahe der Weltkarte, Zauber-Flyouts und die Kampfverzögerung des Questzielverfolgers wurden im Spiel getestet.",
     ["wn_360_foundation"] = "Geändert — Die Aktionsleisten verwenden jetzt ein Zero-Taint-Besitzmodell: TomoMod hält eigene Schaltflächen aus Blizzards nativer ActionButton-Verteilung heraus und überlässt geschützte Blizzard-Leistenzustände vollständig Blizzard.",
     ["wn_360_nativebars"] = "Behoben — Blizzards Standard-Aktionsleisten bleiben für sicheres Paging aktiv, werden aber visuell ausgeblendet, sodass nur TomoMod-Leisten sichtbar sind, ohne ihren Laufzeitzustand einzufrieren.",
     ["wn_360_specialvisuals"] = "Behoben — Blizzards Haltungs-, Begleiter- und Besitzleisten bleiben im Hintergrund funktionsfähig, während doppelte Texturen, Texte, GCD-Wipes, Autocast-Effekte, aktive Rahmen und Blitze maskiert werden.",

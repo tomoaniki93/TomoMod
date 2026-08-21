@@ -801,8 +801,13 @@ function CreateBarContainer(barKey)
     if InstallBarVisibilityDriver and ActionBarsOwned.IsSecureVisibilityBar
         and ActionBarsOwned.IsSecureVisibilityBar(barKey) then
         InstallBarVisibilityDriver(container, barKey)
-    else
+    elseif not InCombatLockdown() then
+        -- microbar/bags: no secure driver, but the container is still a
+        -- protected SecureHandler frame, so the write waits for the lockdown
+        -- to lift. Refresh replays it.
         container:SetAttribute("qui-user-shown", true)
+    else
+        ActionBarsOwned.pendingRefresh = true
     end
 
     if barKey == "pet" then
@@ -823,7 +828,12 @@ function SetBarContainerShown(container, shown)
         SetSecureBarUserShown(container, shown)
         return
     end
-    if InCombatLockdown() then return end
+    if InCombatLockdown() then
+        -- Reached only for containers whose secure install was itself deferred.
+        -- Record the request so Refresh replays it after combat.
+        ActionBarsOwned.pendingRefresh = true
+        return
+    end
     container:SetAttribute("qui-user-shown", shown and true or false)
     if shown then
         container:Show()

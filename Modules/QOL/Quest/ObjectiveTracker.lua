@@ -766,8 +766,12 @@ end
 -- HIDE BLIZZARD HEADER
 -- =====================================
 
+-- Forward declaration: HideBlizzardHeader is defined before the combat
+-- deferral block below, so this must already be a local upvalue at that point.
+local MarkLayoutPending
+
 local function HideBlizzardHeader()
-    if InCombatLockdown() then return end
+    if InCombatLockdown() then MarkLayoutPending(); return end
 
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
@@ -847,6 +851,70 @@ local function IsBucketCollapsed(key)
     return t and t[key] == true
 end
 
+-- =====================================
+-- [fix 3.6.1] COMBAT DEFERRAL
+-- =====================================
+-- Every layout path in this file bails out on InCombatLockdown(), and rightly
+-- so: quest blocks parent the secure QuestObjectiveItem button, so Hide /
+-- SetParent / SetPoint on a block are protected operations. What was missing is
+-- the other half of a combat guard -- remembering that the work was skipped and
+-- replaying it. PLAYER_REGEN_ENABLED was never even registered, so a quest that
+-- arrived during a fight (or a /reload taken in combat) left the tracker in a
+-- half-laid-out state until some unrelated quest event happened to fire much
+-- later. That is the reported overlap: the new Blizzard-positioned block paints
+-- over our bucket stack, and a block belonging to a collapsed bucket that
+-- Blizzard re-Shows mid-fight stays on screen underneath the headers.
+local _tmPendingLayout  = false  -- layout work skipped because of the lockdown
+local _tmPendingDisable = false  -- OT.Disable() restore skipped because of it
+local _tmPlacedCount    = 0      -- blocks positioned under skinFrame, last pass
+local _tmCombatAlpha    = {}     -- [block or button] = alpha to restore
+
+MarkLayoutPending = function()
+    _tmPendingLayout = true
+end
+
+-- SetAlpha is never a protected operation, unlike Hide/SetPoint/SetParent, so
+-- it is the one tool available while the lockdown is on. Used to keep an
+-- unplaced or wrongly-reappearing frame from painting over the layout until the
+-- real pass can run.
+local function CombatSuppressAlpha(frame)
+    if not frame or _tmCombatAlpha[frame] then return end
+    if not frame.GetAlpha or not frame.SetAlpha then return end
+    _tmCombatAlpha[frame] = frame:GetAlpha() or 1
+    frame:SetAlpha(0)
+    MarkLayoutPending()
+end
+
+local function RestoreCombatSuppressedAlpha()
+    for frame, alpha in pairs(_tmCombatAlpha) do
+        if frame and frame.SetAlpha then
+            frame:SetAlpha(type(alpha) == "number" and alpha or 1)
+        end
+    end
+    wipe(_tmCombatAlpha)
+end
+
+-- Called from OnTrackerUpdate while locked down. Only meaningful once a layout
+-- pass has actually placed something under skinFrame: on a fresh /reload taken
+-- in combat nothing is placed yet, the Blizzard tracker is alone on screen and
+-- perfectly readable, so blanking it would be a regression rather than a fix.
+local function SuppressUnplacedBlocksInCombat()
+    if not bucketEnabled or not skinFrame then return end
+    if _tmPlacedCount <= 0 then return end
+    local tracker = ObjectiveTrackerFrame
+    if not tracker then return end
+
+    -- CollectQuestBlocks stops at skinFrame, so everything it returns here is a
+    -- block still living in Blizzard's tree, i.e. one we have not placed.
+    local blocks = {}
+    CollectQuestBlocks(tracker, 0, blocks)
+    for _, b in ipairs(blocks) do
+        if b.IsShown and b:IsShown() then
+            CombatSuppressAlpha(b)
+        end
+    end
+end
+
 -- =====================================================================
 -- RIGHT-EDGE BUTTONS (item + "recherche de groupe") d'un bloc de quete
 -- ---------------------------------------------------------------------
@@ -889,12 +957,19 @@ local function HideBlockButtons(block)
             btn._tmShowHooked = true
             hooksecurefunc(btn, "Show", function(self)
                 if not bucketEnabled then return end
-                if InCombatLockdown() then return end
                 local b = self._tmBucketBlock
                 local k = b and b._tmBucketKey
-                if k and IsBucketCollapsed(k) then
-                    self:Hide()
+                if not (k and IsBucketCollapsed(k)) then return end
+                -- [COMBAT] This is the secure QuestObjectiveItem button: Hide()
+                -- on it under lockdown is a blocked action. Alpha only, and the
+                -- deferred pass hides it properly after combat. Mouse state is
+                -- left alone on purpose -- EnableMouse on a protected frame is
+                -- itself restricted.
+                if InCombatLockdown() then
+                    CombatSuppressAlpha(self)
+                    return
                 end
+                self:Hide()
             end)
         end
         btn._tmBucketBlock = block
@@ -940,6 +1015,7 @@ local _tmPendingPump = false   -- true while a deferred OnTrackerUpdate is queue
 local _tmSilenceHook = 0       -- > 0 means: ignore hook callbacks (we caused them)
 local _tmHiddenModules = {}    -- WQ module frames we've alpha=0'd (not reparented)
 local _strayBars = {}          -- StatusBar frames hidden by layout; restored by DisableBuckets
+
 
 local function RunPendingPump()
     _tmPendingPump = false
@@ -1110,8 +1186,12 @@ LayoutBuckets = function()
         _tmInLayout = false
         return
     end
-    if InCombatLockdown() then _tmInLayout = false; return end
+    if InCombatLockdown() then _tmInLayout = false; MarkLayoutPending(); return end
     if not skinFrame or not headerBar then _tmInLayout = false; return end
+
+    -- Out of combat now: anything alpha-suppressed during the fight goes back to
+    -- its own alpha before the pass measures and repositions it.
+    RestoreCombatSuppressedAlpha()
 
     local tracker = ObjectiveTrackerFrame
     if not tracker then _tmInLayout = false; return end
@@ -1437,6 +1517,9 @@ LayoutBuckets = function()
             -- panel spanning most of the screen. Collapse to the header.
             skinFrame:SetHeight((headerBar:GetHeight() or 28) + 16)
         end
+        -- The pass completed, it just had nothing to place.
+        _tmPlacedCount = 0
+        _tmPendingLayout = false
         _tmInLayout = false
         _tmSilenceHook = _tmSilenceHook + 1
         C_Timer.After(0.20, function()
@@ -1480,14 +1563,18 @@ LayoutBuckets = function()
                             block._tmShowHooked = true
                             hooksecurefunc(block, "Show", function(self)
                                 if not bucketEnabled then return end
+                                local k = self._tmBucketKey
+                                if not (k and IsBucketCollapsed(k)) then return end
                                 -- [COMBAT] Blizzard can re-Show this block during an
                                 -- in-combat quest update; self:Hide() on a protected
-                                -- tracker block would taint. Match the itemButton hook.
-                                if InCombatLockdown() then return end
-                                local k = self._tmBucketKey
-                                if k and IsBucketCollapsed(k) then
-                                    self:Hide()
+                                -- tracker block would taint. Alpha is not protected,
+                                -- so keep it off screen and let the deferred pass do
+                                -- the real Hide once the lockdown lifts.
+                                if InCombatLockdown() then
+                                    CombatSuppressAlpha(self)
+                                    return
                                 end
+                                self:Hide()
                             end)
                         end
                         block:Hide()
@@ -1504,14 +1591,18 @@ LayoutBuckets = function()
                             block._tmShowHooked = true
                             hooksecurefunc(block, "Show", function(self)
                                 if not bucketEnabled then return end
+                                local k = self._tmBucketKey
+                                if not (k and IsBucketCollapsed(k)) then return end
                                 -- [COMBAT] Blizzard can re-Show this block during an
                                 -- in-combat quest update; self:Hide() on a protected
-                                -- tracker block would taint. Match the itemButton hook.
-                                if InCombatLockdown() then return end
-                                local k = self._tmBucketKey
-                                if k and IsBucketCollapsed(k) then
-                                    self:Hide()
+                                -- tracker block would taint. Alpha is not protected,
+                                -- so keep it off screen and let the deferred pass do
+                                -- the real Hide once the lockdown lifts.
+                                if InCombatLockdown() then
+                                    CombatSuppressAlpha(self)
+                                    return
                                 end
+                                self:Hide()
                             end)
                         end
                         if block:GetParent() ~= skinFrame then
@@ -1637,6 +1728,16 @@ LayoutBuckets = function()
     if totalH < 60 then totalH = 60 end
     skinFrame:SetHeight(totalH)
 
+    -- How many blocks this pass actually placed under skinFrame. Read by the
+    -- in-combat suppression: with nothing placed there is nothing to overlap.
+    _tmPlacedCount = 0
+    for _, b in ipairs(blocks) do
+        if b.GetParent and b:GetParent() == skinFrame then
+            _tmPlacedCount = _tmPlacedCount + 1
+        end
+    end
+
+    _tmPendingLayout = false
     _tmInLayout = false
     -- Keep the silence window open for a few frames so Blizzard's own deferred
     -- MarkDirty/OnUpdate reactions (caused by our SetParent/SetPoint/Layout)
@@ -1651,7 +1752,8 @@ local function DisableBuckets()
     bucketEnabled = false
     for _, bf in pairs(bucketFrames) do bf.frame:Hide() end
     -- Restore any re-parented quest blocks to their original parent so Blizzard regains control
-    if InCombatLockdown() then return end
+    if InCombatLockdown() then MarkLayoutPending(); return end
+    RestoreCombatSuppressedAlpha()
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
     local blocks = {}
@@ -1744,6 +1846,19 @@ local function OnTrackerUpdate()
     ScanAndStyle(tracker, 0)
     UpdateQuestCount()
     RefreshBucketsEnabled()
+
+    -- [fix 3.6.1] Under lockdown the layout below cannot run at all. Rather than
+    -- letting a block Blizzard just created paint over the bucket stack for the
+    -- rest of the fight, take it off screen with alpha (unprotected) and record
+    -- that a real pass is owed. Nothing here touches _tmHasContent: leaving the
+    -- panel exactly as the last successful pass left it is better than deriving
+    -- a verdict from a tree we are not allowed to reorganise.
+    if InCombatLockdown() then
+        if bucketEnabled then SuppressUnplacedBlocksInCombat() end
+        MarkLayoutPending()
+        return
+    end
+
     if bucketEnabled then
         LayoutBuckets()
     else
@@ -1857,13 +1972,60 @@ local function InstallHooks()
     evFrame:RegisterEvent("CHALLENGE_MODE_START")
     evFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
     evFrame:RegisterEvent("CHALLENGE_MODE_RESET")
+    -- [fix 3.6.1] The missing half of every InCombatLockdown() guard in this
+    -- file. Without it, work skipped during a fight was skipped for good.
+    evFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 
     local lastUpdate = 0
-    evFrame:SetScript("OnEvent", function()
-        local now = GetTime()
-        if now - lastUpdate < 0.25 then return end
-        lastUpdate = now
+    local trailingQueued = false
+
+    local function FireUpdate()
+        lastUpdate = GetTime()
         PumpUpdateSoon()
+    end
+
+    evFrame:SetScript("OnEvent", function(_, event)
+        if event == "PLAYER_REGEN_ENABLED" then
+            -- Combat exit bypasses the throttle entirely: this is the one moment
+            -- the deferred layout is allowed to run, and a 0.25s window shared
+            -- with the quest-event burst that usually accompanies it would drop
+            -- exactly the pass we are waiting for.
+            if _tmPendingDisable then
+                _tmPendingDisable = false
+                if OT.Disable then OT.Disable() end
+                return
+            end
+            if _tmPendingLayout or next(_tmCombatAlpha) then
+                FireUpdate()
+                -- PumpUpdateSoon drops the request while the post-layout silence
+                -- window is open. That window is what stops the hook feedback
+                -- loop, so re-check shortly after instead of forcing past it.
+                C_Timer.After(0.30, function()
+                    if InCombatLockdown() then return end
+                    if _tmPendingLayout or next(_tmCombatAlpha) then
+                        PumpUpdateSoon()
+                    end
+                end)
+            end
+            return
+        end
+
+        local now = GetTime()
+        if now - lastUpdate < 0.25 then
+            -- [fix 3.6.1] The throttle used to drop the event outright. A quest
+            -- accepted inside another event's window therefore never reached the
+            -- layout, and nothing replayed it. Coalesce to the trailing edge
+            -- instead of discarding.
+            if not trailingQueued then
+                trailingQueued = true
+                C_Timer.After(0.25 - (now - lastUpdate), function()
+                    trailingQueued = false
+                    FireUpdate()
+                end)
+            end
+            return
+        end
+        FireUpdate()
     end)
 end
 
@@ -2062,7 +2224,9 @@ function OT.Disable()
 
     DisableBuckets()
 
-    if InCombatLockdown() then return end
+    if InCombatLockdown() then _tmPendingDisable = true; return end
+    _tmPendingDisable = false
+    RestoreCombatSuppressedAlpha()
 
     local tracker = ObjectiveTrackerFrame
     if tracker then

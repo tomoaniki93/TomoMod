@@ -3332,6 +3332,13 @@ TomoMod_RegisterLocale("frFR", {
     -- =====================
     -- 3.6.0 — What's New
     -- =====================
+    ["wn_361_assist"] = "Correction — Le cadre de rotation Combat assisté de Blizzard s’affiche et se met à jour désormais correctement sur les boutons d’action TomoMod, au lieu de se figer sur le champ d’action Lua non synchronisé du bouton.",
+    ["wn_361_keydown"] = "Correction — Le réglage « Lancer à l’appui de la touche » de TomoMod reste désormais synchronisé avec la CVar d’entrée propre de Blizzard, corrigeant une première pression après connexion qui pouvait être silencieusement ignorée.",
+    ["wn_361_safewindow"] = "Correction — Les liaisons override différées par le combat après un /reload en combat se rejouent désormais de façon fiable après le combat, au lieu de dépendre d’une fenêtre de sécurité qui pouvait elle-même autoriser des actions bloquées.",
+    ["wn_361_strata"] = "Correction — Les boutons de la Barre d’action 1, Familier et Postures ne s’affichent plus au-dessus des panneaux plein écran de Blizzard tels que la Carte du monde.",
+    ["wn_361_flyouts"] = "Correction — Les flyouts de sorts comme Portail/Téléportation du Mage s’ouvrent et lancent de nouveau correctement ; TomoMod ne redimensionne plus les boutons de flyout natifs d’une façon qui pouvait contaminer (taint) le flyout sécurisé.",
+    ["wn_361_tracker"] = "Correction — Les blocs de quête ignorés pendant le combat dans le Suivi d’objectifs terminent désormais automatiquement leur mise en page une fois le combat terminé, au lieu de rester superposés jusqu’à un événement de quête sans rapport.",
+    ["wn_361_validation"] = "Testé — Combat assisté, lancement à l’appui de la touche, liaisons après un reload en combat, la disposition Barre 1/Familier/Postures près de la Carte du monde, les flyouts de sorts et le report de combat du Suivi d’objectifs ont été validés en jeu.",
     ["wn_360_foundation"] = "Changement — Les barres d’action utilisent désormais une architecture de propriété zéro-taint : les boutons TomoMod restent hors du diffuseur natif de Blizzard et l’état protégé des barres Blizzard reste sous le contrôle de Blizzard.",
     ["wn_360_nativebars"] = "Correction — Les barres d’action standard de Blizzard restent actives pour le paging sécurisé mais sont masquées visuellement, afin de n’afficher que les barres TomoMod sans figer leur état dynamique.",
     ["wn_360_specialvisuals"] = "Correction — Les barres Blizzard de postures, familier et possession restent fonctionnelles en arrière-plan tandis que leurs textures, textes, GCD, effets d’autocast, contours actifs et flashs en double sont masqués.",

@@ -303,17 +303,85 @@ ActionBarsOwned._assistedCombatEverActive = false
 
 _assistRotationButton = nil
 
+-- TOMOMOD 3.6.0 / Midnight 12.1:
+-- Blizzard's assisted-combat frame dereferences actionButton.action in both
+-- UpdateState() and OnUpdate(). Standard TomoMod buttons intentionally keep
+-- their authoritative page/form slot only in the secure "action" attribute,
+-- so bridge every assisted-combat lookup through GetSafeActionSlot().
+local function IsOwnedAssistedCombatAction(button)
+    if not (C_ActionBar and C_ActionBar.IsAssistedCombatAction) then
+        return false, nil
+    end
+
+    local action = GetSafeActionSlot(button)
+    if not action or not HasAction(action) then
+        return false, action
+    end
+
+    local ok, result = pcall(C_ActionBar.IsAssistedCombatAction, action)
+    if not ok or (Helpers.IsSecretValue and Helpers.IsSecretValue(result)) then
+        return false, action
+    end
+    return result == true, action
+end
+
+local function InstallOwnedAssistedCombatFrameBridge(button, frame)
+    if not frame or frame._tomomodSafeActionSlotBridge then return end
+    frame._tomomodSafeActionSlotBridge = true
+
+    -- The Blizzard template's native UpdateState() calls
+    -- IsAssistedCombatAction(parent.action). Never let it see the intentionally
+    -- unsynchronised Lua action field on a TomoMod-owned button.
+    frame.UpdateState = function(self)
+        local owner = self:GetParent()
+        local show = IsOwnedAssistedCombatAction(owner)
+        local wasShown = self:IsShown()
+        if show ~= wasShown then
+            self:SetShown(show)
+            if EventRegistry and EventRegistry.TriggerEvent then
+                EventRegistry:TriggerEvent("ActionButton.OnAssistedCombatRotationFrameChanged", owner, show)
+            end
+        end
+        return show
+    end
+
+    -- Preserve Blizzard's periodic assisted-rotation refresh, but use the
+    -- secure slot instead of parent.action for ForceUpdateAction(). Updating
+    -- through SafeUpdate also avoids calling the native OnActionBarSlotChanged
+    -- path, which assumes a Blizzard ActionBarActionButton.
+    frame:SetScript("OnUpdate", function(self, elapsed)
+        self.updateTimeLeft = (self.updateTimeLeft or 0) - elapsed
+        if self.updateTimeLeft > 0 then return end
+
+        local owner = self:GetParent()
+        local action = GetSafeActionSlot(owner)
+        if action and C_ActionBar and C_ActionBar.ForceUpdateAction then
+            pcall(C_ActionBar.ForceUpdateAction, action, true)
+        end
+
+        if owner and ActionBarsOwned.SafeUpdate then
+            ActionBarsOwned.SafeUpdate(owner)
+        else
+            self:UpdateState()
+        end
+
+        local updateRate = 0.2
+        if AssistedCombatManager and AssistedCombatManager.GetUpdateRate then
+            local ok, rate = pcall(AssistedCombatManager.GetUpdateRate, AssistedCombatManager)
+            if ok and type(rate) == "number" and rate > 0 then
+                updateRate = rate
+            end
+        end
+        self.updateTimeLeft = updateRate
+    end)
+end
+
 UpdateAssistedCombatRotationFrame = function(button)
     if not (C_ActionBar and C_ActionBar.IsAssistedCombatAction) then return end
     local frame = button.AssistedCombatRotationFrame
     if not ActionBarsOwned._assistedCombatEverActive and not frame then return end
 
-    local action = GetSafeActionSlot(button)
-    local show = false
-    local hasAction = action and HasAction(action)
-    if hasAction then
-        show = C_ActionBar.IsAssistedCombatAction(action)
-    end
+    local show = IsOwnedAssistedCombatAction(button)
 
     if show and not frame then
         ActionBarsOwned._assistedCombatEverActive = true
@@ -322,13 +390,20 @@ UpdateAssistedCombatRotationFrame = function(button)
         _assistRotationButton = button
         if not button.OnActionBarSlotChanged then
             button.OnActionBarSlotChanged = function(self)
-                if ClearNewActionHighlight then ClearNewActionHighlight(GetSafeActionSlot(self), true) end
-                if self.Update then self:Update() end
+                local action = GetSafeActionSlot(self)
+                if action and ClearNewActionHighlight then
+                    pcall(ClearNewActionHighlight, action, true)
+                end
+                if ActionBarsOwned.SafeUpdate then
+                    ActionBarsOwned.SafeUpdate(self)
+                end
             end
         end
+        InstallOwnedAssistedCombatFrameBridge(button, frame)
         frame:SetFrameLevel(button:GetFrameLevel() + 5)
     end
     if frame then
+        InstallOwnedAssistedCombatFrameBridge(button, frame)
         frame:UpdateState()
         frame:SetFrameLevel(button:GetFrameLevel() + 5)
     end

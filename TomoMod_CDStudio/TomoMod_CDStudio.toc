@@ -4,7 +4,7 @@
 ## Author: TomoAniki
 ## Category: |cff0cd29fHUD|r
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
-## Version: 3.6.0
+## Version: 3.6.1
 ## LoadOnDemand: 1
 ## Dependencies: TomoMod
 

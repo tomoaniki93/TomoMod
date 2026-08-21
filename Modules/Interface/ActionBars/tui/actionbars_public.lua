@@ -250,6 +250,42 @@ local function DisableBlizzardSpecialBarEditModePreviews()
     return true
 end
 
+-- TOMOMOD 3.6.1 / input latency:
+-- Keep TomoMod's per-button useOnKeyDown setting and Blizzard's account-wide
+-- ActionButtonUseKeyDown CVar in lockstep.  Secure CLICK bindings can otherwise
+-- traverse two different press/release policies: TomoMod's button attribute
+-- says "down" while the binding path still follows Blizzard's CVar.  The result
+-- is not necessarily an error; the first hardware event can simply be ignored
+-- and a later press/release is the one that finally casts.
+local function GetConfiguredUseOnKeyDown()
+    local db = GetDB()
+    return not (db and db.global and db.global.useOnKeyDown == false)
+end
+
+local function SyncActionButtonUseKeyDownCVar(value)
+    local wanted = value and "1" or "0"
+    local current = nil
+
+    if type(GetCVar) == "function" then
+        local ok, result = pcall(GetCVar, "ActionButtonUseKeyDown")
+        if ok and result ~= nil then
+            current = tostring(result)
+        end
+    end
+
+    if current == wanted then
+        return true
+    end
+
+    local setter = (C_CVar and C_CVar.SetCVar) or SetCVar
+    if type(setter) ~= "function" then
+        return false
+    end
+
+    local ok = pcall(setter, "ActionButtonUseKeyDown", wanted)
+    return ok
+end
+
 function ActionBarsOwned:Initialize()
     if self.initialized then return end
 
@@ -264,6 +300,12 @@ function ActionBarsOwned:Initialize()
     end
 
     PatchLibKeyBoundForMidnight()
+
+    -- Honour the TomoMod "Cast on key press" setting through Blizzard's real
+    -- input CVar before any owned action button or override CLICK binding is
+    -- built.  The button-specific attribute remains in place for Midnight's
+    -- secure template, but both sides now agree on the same phase.
+    SyncActionButtonUseKeyDownCVar(GetConfiguredUseOnKeyDown())
 
     ownedEventFrame:RegisterEvent("ACTIONBAR_PAGE_CHANGED")
     -- TOMOMOD: SLOT_CHANGED is not a drag-only event. Midnight fires it for
@@ -524,9 +566,9 @@ function ActionBarsOwned:Initialize()
     ActionBarsOwned.HookSpellBookToggleFunction("TogglePlayerSpellsFrame")
     ActionBarsOwned.ScheduleSpellBookVisibilityRefresh()
 
-    inInitSafeWindow = true
+    -- Extra/zone buttons defer themselves through pendingExtraButtonInit when
+    -- the lockdown is on; no safe-window override is needed or wanted here.
     InitializeExtraButtons()
-    inInitSafeWindow = false
 
     local db = GetDB()
     if db and db.bars and db.bars.bar1 then
@@ -538,8 +580,11 @@ function ActionBarsOwned:Initialize()
         if barDB and barDB.enabled == false then
             local container = self.containers[barKey]
             if container then
-                container:SetAttribute("qui-user-shown", false)
-                container:Hide()
+                -- TOMOMOD 3.6.1: was a raw SetAttribute + Hide, which ran under
+                -- lockdown on a /reload taken in combat. SetBarContainerShown
+                -- routes through the secure user-shown path and defers when
+                -- locked, replaying on PLAYER_REGEN_ENABLED.
+                SetBarContainerShown(container, false)
             end
         end
     end
@@ -561,8 +606,7 @@ function ActionBarsOwned:Initialize()
             if hiddenHandles[layoutKey] then
                 local container = self.containers[containerKey]
                 if container then
-                    container:SetAttribute("qui-user-shown", false)
-                    container:Hide()
+                    SetBarContainerShown(container, false)
                     if lm then
                         lm._gameplayHidden[layoutKey] = true
                     end
@@ -645,8 +689,11 @@ function ActionBarsOwned:Refresh()
         if barDB and barDB.enabled == false then
             local container = self.containers[barKey]
             if container then
-                container:SetAttribute("qui-user-shown", false)
-                container:Hide()
+                -- TOMOMOD 3.6.1: was a raw SetAttribute + Hide, which ran under
+                -- lockdown on a /reload taken in combat. SetBarContainerShown
+                -- routes through the secure user-shown path and defers when
+                -- locked, replaying on PLAYER_REGEN_ENABLED.
+                SetBarContainerShown(container, false)
             end
         end
     end
@@ -675,8 +722,14 @@ _G.TUI_ApplyUseOnKeyDown = function()
         ActionBarsOwned.pendingUseOnKeyDownUpdate = true
         return
     end
-    local db = GetDB()
-    local value = not (db and db.global and db.global.useOnKeyDown == false)
+
+    local value = GetConfiguredUseOnKeyDown()
+
+    -- The GUI option now controls the same input phase Blizzard uses for
+    -- action bindings.  Do this before updating the secure button attributes
+    -- so there is never a window where CVar and button disagree.
+    SyncActionButtonUseKeyDownCVar(value)
+
     for bar = 1, 8 do
         for i = 1, 12 do
             local btn = _G["TUI_Bar" .. bar .. "Button" .. i]
@@ -688,6 +741,18 @@ _G.TUI_ApplyUseOnKeyDown = function()
             end
         end
     end
+
+    -- Pet and Stance are TUI-owned secure buttons too.  They were initialized
+    -- from the setting but were never updated when the option changed later.
+    for _, prefix in ipairs({ "TUI_PetButton", "TUI_StanceButton" }) do
+        for i = 1, 10 do
+            local btn = _G[prefix .. i]
+            if btn then
+                btn:SetAttribute("useOnKeyDown", value)
+            end
+        end
+    end
+
     if EnsureOwnedFlyoutFrame then
         local flyout = EnsureOwnedFlyoutFrame()
         local count = (flyout and flyout.GetAttribute and flyout:GetAttribute("numFlyoutButtons")) or 0

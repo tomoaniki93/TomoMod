@@ -639,7 +639,17 @@ end
 ApplySpellFlyoutButtonStateTextures = function(button)
     if not button then return end
 
-    if button.SetHitRectInsets then
+    -- [3.6.1] SetHitRectInsets is frame geometry, not a texture, so it taints a
+    -- protected frame like SetSize does. Our own TUI_SpellFlyoutButton* need the
+    -- reset; Blizzard's SpellFlyoutButton* already ship with zero insets and are
+    -- left untouched. Everything below this point is region work only.
+    local name = button.GetName and button:GetName()
+    local isNative = (name and (
+        name:match("^SpellFlyoutPopupButton%d+$")
+        or name:match("^SpellFlyoutButton%d+$")
+    )) and true or false
+
+    if not isNative and button.SetHitRectInsets then
         button:SetHitRectInsets(0, 0, 0, 0)
     end
 
@@ -686,18 +696,27 @@ SkinSpellFlyoutButtons = function()
     local settings = GetSpellFlyoutSkinSettings(flyout)
     if not (settings and settings.skinEnabled) then return end
 
-    local sourceWidth, sourceHeight = GetSpellFlyoutSourceButtonSize(flyout)
-
+    -- [3.6.1] What used to be here: button:SetSize(sourceWidth, sourceHeight) on
+    -- every button, then flyout:Layout() to re-flow them.
+    --
+    -- Both are writes to Blizzard-owned protected frames from addon code.
+    -- SetSize taints the button; Layout() runs Blizzard's own method inside our
+    -- tainted execution and spreads that taint across SpellFlyout and every
+    -- button it touches. SpellFlyout:Toggle() then re-populates those buttons on
+    -- the next open -- SetAttribute("type"/"spell") -- from a path that is now
+    -- tainted, and the secure click is refused. The flyout opens normally and
+    -- the spell simply does not cast, which is exactly what mage
+    -- Portal/Teleport reports describe. The same spell dropped directly on a
+    -- bar works, because that button is ours and carries our own attributes.
+    --
+    -- Cosmetic consequence: flyout buttons keep Blizzard's size and spacing
+    -- instead of matching the source bar's icon size. Textures below are pure
+    -- region work and do not move or resize anything.
     for _, button in ipairs(CollectSpellFlyoutButtons(flyout)) do
-        if sourceWidth and sourceHeight and button.SetSize then
-            button:SetSize(sourceWidth, sourceHeight)
-        end
         ApplySpellFlyoutButtonStateTextures(button)
-        SkinButton(button, settings)
-    end
-
-    if flyout.Layout then
-        flyout:Layout()
+        -- Native SpellFlyout buttons stay Blizzard-owned. Do not route them
+        -- through the general SkinButton path: that path also touches cooldowns,
+        -- anchors, artwork state and helper fields on the protected button.
     end
 end
 

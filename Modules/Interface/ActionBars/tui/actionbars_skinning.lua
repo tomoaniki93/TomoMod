@@ -261,6 +261,21 @@ SkinButton = function(button, settings)
         return
     end
 
+    -- [3.6.1] Blizzard's native SpellFlyout buttons are protected and are
+    -- repopulated by SpellFlyout:Toggle() every time the flyout opens. Keep the
+    -- general TomoMod skinning pipeline completely away from those frames: it
+    -- installs cooldown wrappers, stores helper state on the button and adjusts
+    -- regions/anchors. Native flyouts are styled only by the dedicated
+    -- region-only path in actionbars_flyout.lua.
+    local buttonName = button.GetName and button:GetName()
+    local isNativeSpellFlyoutButton = buttonName and (
+        buttonName:match("^SpellFlyoutPopupButton%d+$")
+        or buttonName:match("^SpellFlyoutButton%d+$")
+    )
+    if isNativeSpellFlyoutButton then
+        return
+    end
+
     -- [3.5.7] Unconditional: this button is reclaimed/tainted by us the
     -- moment it reaches this function, whether or not cosmetic skinning is
     -- on, so the cooldown guard can't wait behind the skinEnabled check below.

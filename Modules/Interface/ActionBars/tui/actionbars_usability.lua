@@ -589,7 +589,7 @@ function GetBarGridLayout(barFrame, buttons)
 end
 
 function ApplyButtonSpacing(barKey)
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingSpacing = true
         return
     end
@@ -749,7 +749,7 @@ function ApplyButtonSpacing(barKey)
 end
 
 ApplyAllBarSpacing = function()
-    if InCombatLockdown() and not inInitSafeWindow then
+    if InCombatLockdown() then
         ActionBarsOwned.pendingSpacing = true
         return
     end
