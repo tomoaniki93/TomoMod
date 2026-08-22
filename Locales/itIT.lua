@@ -3302,7 +3302,7 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_333_diag_mode"] = "Diagnostica: quando il rapporto non riesce a determinare la modalità di visualizzazione, ora stampa i valori grezzi forniti dal gioco anziché un semplice punto interrogativo — quei nomi di impostazione cambiano da un'espansione all'altra, e un «?» da solo non era diagnosticabile senza tornare a chiedertelo. Lo schermo intero in finestra e le finestre massimizzate vengono riconosciuti in più casi, e le versioni dei componenti aggiuntivi non compaiono più come «vv1.2.3».",
     ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
     -- =====================
-    -- 3.6.0 — What's New
+    -- 3.6.1 — What's New
     -- =====================
     ["wn_361_assist"] = "Correzione — Il frame di rotazione Combattimento assistito di Blizzard ora viene mostrato e aggiornato correttamente sui pulsanti azione TomoMod, invece di bloccarsi sul campo azione Lua non sincronizzato del pulsante.",
     ["wn_361_keydown"] = "Correzione — L’impostazione TomoMod “Lancia alla pressione del tasto” resta ora sincronizzata con la CVar di input di Blizzard, risolvendo una prima pressione dopo il login che poteva essere ignorata silenziosamente.",
@@ -3311,7 +3311,12 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_361_flyouts"] = "Correzione — I flyout degli incantesimi come Portale/Teletrasporto del Mago si aprono e lanciano di nuovo correttamente; TomoMod non ridimensiona più i pulsanti flyout nativi in un modo che potesse contaminare (taint) il flyout sicuro.",
     ["wn_361_flyouts_cast"] = "Correzione — I pulsanti popup nativi del flyout non vengono più agganciati (hook) né modificati in alcun modo, poiché anche modifiche puramente estetiche potevano contaminare (taint) il percorso protetto CastSpellByID/CastSpellByName di Blizzard.",
     ["wn_361_tracker"] = "Correzione — I blocchi missione saltati durante il combattimento nel Localizzatore obiettivi ora completano automaticamente la disposizione al termine del combattimento, invece di restare sovrapposti fino a un evento missione non correlato.",
+    ["wn_361_buttonbag"] = "Correzione — Il collettore dei pulsanti degli addon della minimappa non dimentica più i pulsanti già raccolti quando esegue una nuova scansione: gli addon che registrano il proprio pulsante più tardi ora aprono una nuova riga invece di accumularsi sulla prima.",
+    ["wn_361_trackdupe"] = "Correzione — Il pannello Localizzazione non elenca più due volte la stessa voce («Banchiere» compariva su due righe). I filtri di localizzazione che il gioco restituisce con lo stesso nome vengono uniti in un’unica riga che li attiva e disattiva insieme.",
     ["wn_361_validation"] = "Testato — Combattimento assistito, lancio alla pressione del tasto, binding dopo un reload in combattimento, la disposizione di Barra 1/Famiglio/Postura vicino alla Mappa del Mondo, i flyout degli incantesimi e il rinvio da combattimento del Localizzatore obiettivi sono stati validati in gioco.",
+    -- =====================
+    -- 3.6.0 — What's New
+    -- =====================
     ["wn_360_foundation"] = "Modifica — Le barre delle azioni usano ora un modello di proprietà zero-taint: i pulsanti TomoMod restano fuori dal broadcaster nativo di Blizzard e lo stato protetto delle barre Blizzard rimane sotto il controllo di Blizzard.",
     ["wn_360_nativebars"] = "Correzione — Le barre delle azioni standard di Blizzard restano attive per il paging sicuro ma vengono nascoste visivamente, mostrando solo le barre TomoMod senza congelarne lo stato dinamico.",
     ["wn_360_specialvisuals"] = "Correzione — Le barre Blizzard di postura, famiglio e possesso restano funzionali in background mentre texture, testi, GCD, effetti autocast, bordi attivi e flash duplicati vengono mascherati.",

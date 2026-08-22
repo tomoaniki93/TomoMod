@@ -3314,7 +3314,7 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
     -- =====================
-    -- 3.6.0 — What's New
+    -- 3.6.1 — What's New
     -- =====================
     ["wn_361_assist"] = "Behoben — Blizzards Verbündeter-Kampf-Rotationsrahmen wird auf TomoMod-Aktionsbuttons jetzt korrekt angezeigt und aktualisiert, statt am unsynchronisierten Lua-Aktionsfeld des Buttons einzufrieren.",
     ["wn_361_keydown"] = "Behoben — TomoMods Einstellung „Beim Tastendruck wirken“ bleibt jetzt mit Blizzards eigener Eingabe-CVar synchron; dies behebt einen ersten Tastendruck nach dem Login, der zuvor stillschweigend verschluckt werden konnte.",
@@ -3323,7 +3323,12 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_361_flyouts"] = "Behoben — Zauber-Flyouts wie Magier-Portal/Teleport öffnen sich und wirken wieder korrekt; TomoMod ändert die Größe nativer Flyout-Buttons nicht mehr auf eine Weise, die den sicheren Flyout beschmutzen (taint) konnte.",
     ["wn_361_flyouts_cast"] = "Behoben — Native Flyout-Popup-Buttons werden überhaupt nicht mehr gehookt oder beschrieben, da selbst kosmetische Änderungen Blizzards geschützten CastSpellByID/CastSpellByName-Wirkpfad beschmutzen (taint) konnten.",
     ["wn_361_tracker"] = "Behoben — Im Kampf übersprungene Questblöcke des Questzielverfolgers werden nach Kampfende jetzt automatisch fertig angeordnet, statt bis zu einem unabhängigen Questereignis überlappend stehen zu bleiben.",
+    ["wn_361_buttonbag"] = "Behoben — Der Minikarten-Sammler für Addon-Buttons vergisst beim erneuten Suchen die bereits eingesammelten Buttons nicht mehr: Addons, die ihren Button später registrieren, öffnen jetzt eine neue Zeile, statt sich auf die erste zu stapeln.",
+    ["wn_361_trackdupe"] = "Behoben — Das Verfolgen-Fenster listet denselben Eintrag nicht mehr doppelt auf („Bankier“ erschien in zwei Zeilen). Verfolgungsfilter, die das Spiel unter demselben Namen meldet, werden zu einer einzigen Zeile zusammengefasst, die sie gemeinsam umschaltet.",
     ["wn_361_validation"] = "Getestet — Verbündeter Kampf, Tastendruck-Wirken, Override-Bindungen nach Kampf-Reload, Leiste 1/Begleiter/Haltung nahe der Weltkarte, Zauber-Flyouts und die Kampfverzögerung des Questzielverfolgers wurden im Spiel getestet.",
+    -- =====================
+    -- 3.6.0 — What's New
+    -- =====================
     ["wn_360_foundation"] = "Geändert — Die Aktionsleisten verwenden jetzt ein Zero-Taint-Besitzmodell: TomoMod hält eigene Schaltflächen aus Blizzards nativer ActionButton-Verteilung heraus und überlässt geschützte Blizzard-Leistenzustände vollständig Blizzard.",
     ["wn_360_nativebars"] = "Behoben — Blizzards Standard-Aktionsleisten bleiben für sicheres Paging aktiv, werden aber visuell ausgeblendet, sodass nur TomoMod-Leisten sichtbar sind, ohne ihren Laufzeitzustand einzufrieren.",
     ["wn_360_specialvisuals"] = "Behoben — Blizzards Haltungs-, Begleiter- und Besitzleisten bleiben im Hintergrund funktionsfähig, während doppelte Texturen, Texte, GCD-Wipes, Autocast-Effekte, aktive Rahmen und Blitze maskiert werden.",

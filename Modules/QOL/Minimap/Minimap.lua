@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Minimap.lua
 -- =====================================
 
@@ -195,10 +195,23 @@ end
 local function OpenTrackingPanel()
     local count = (C_Minimap and C_Minimap.GetNumTrackingTypes) and C_Minimap.GetNumTrackingTypes() or 0
     local entries = {}
+    local byName  = {}
     for i = 1, count do
         local name, tex, _, nested = ReadTrackingInfo(i)
         if name and (nested == nil or nested < 0) then
-            entries[#entries + 1] = { idx = i, name = name, tex = tex }
+            -- [FIX] Le client renvoie plusieurs filtres de pistage qui portent le
+            -- MÊME libellé localisé (« Banquier » apparaissait sur deux lignes).
+            -- Rien à l'écran ne permet de les distinguer : on les fusionne en une
+            -- seule ligne qui les bascule ensemble, au lieu d'afficher deux
+            -- entrées identiques dont on ne peut pas deviner laquelle fait quoi.
+            local e = byName[name]
+            if e then
+                e.idxs[#e.idxs + 1] = i
+            else
+                e = { idxs = { i }, name = name, tex = tex }
+                byName[name] = e
+                entries[#entries + 1] = e
+            end
         end
     end
 
@@ -312,11 +325,19 @@ local function OpenTrackingPanel()
         row.lbl:SetText(entry.name)
         if entry.tex then row.ico:SetTexture(entry.tex); row.ico:Show() else row.ico:Hide() end
 
-        -- État de la checkbox
-        local idx = entry.idx
+        -- État de la checkbox : une ligne peut couvrir plusieurs filtres fusionnés
+        -- (même libellé) — elle est cochée dès que l'un d'eux est actif, et un clic
+        -- les aligne tous sur l'état inverse.
+        local idxs = entry.idxs
+        local function IsActive()
+            for _, ix in ipairs(idxs) do
+                local _, _, active = ReadTrackingInfo(ix)
+                if active then return true end
+            end
+            return false
+        end
         local function Refresh()
-            local _, _, active = ReadTrackingInfo(idx)
-            if active then
+            if IsActive() then
                 row.chk:SetColorTexture(0.05, 0.82, 0.62, 1)
             else
                 row.chk:SetColorTexture(0.3, 0.3, 0.35, 0.8)
@@ -324,8 +345,10 @@ local function OpenTrackingPanel()
         end
         Refresh()
         row:SetScript("OnClick", function()
-            local _, _, active = ReadTrackingInfo(idx)
-            TM_SetTracking(idx, not active)
+            local want = not IsActive()
+            for _, ix in ipairs(idxs) do
+                TM_SetTracking(ix, want)
+            end
             C_Timer.After(0.05, Refresh)
         end)
         row:Show()
@@ -891,8 +914,6 @@ local function LayoutBag()
 end
 
 function TomoMod_Minimap.RefreshButtonBag()
-    wipe(collectedButtons)
-    wipe(collectedOrder)
     if not (bagFrame and bagFrame.content) then return end
     local db = TomoModDB.minimap
     if db.buttonBag and db.buttonBag.enabled == false then
@@ -906,6 +927,26 @@ function TomoMod_Minimap.RefreshButtonBag()
         TomoMod_Minimap.ReleaseCollectedButtons()
         return
     end
+    -- [FIX] Ne pas repartir d'une liste vide à chaque rescan : les boutons déjà
+    -- capturés sont reparentés sous bagFrame.content, donc les ScanParent
+    -- ci-dessous (qui ne balaient que la minimap) ne les retrouvent plus. Les
+    -- oublier remettait la numérotation du layout à 1 pour les boutons collectés
+    -- ensuite (addons chargés tard → un RefreshButtonBag par ADDON_LOADED) :
+    -- ils se replaçaient PAR-DESSUS la première ligne au lieu d'ouvrir une ligne
+    -- supplémentaire, et le panneau se redimensionnait sur ce seul dernier lot.
+    -- On conserve donc les boutons toujours présents dans la boîte et on ajoute
+    -- les nouveaux à la suite.
+    local kept = {}
+    for _, btn in ipairs(collectedOrder) do
+        if btn:GetParent() == bagFrame.content then
+            kept[#kept + 1] = btn
+        else
+            collectedButtons[btn] = nil   -- repris par son addon : re-collectable
+        end
+    end
+    wipe(collectedOrder)
+    for i = 1, #kept do collectedOrder[i] = kept[i] end
+
     ScanParent(Minimap)
     ScanParent(MinimapBackdrop)
     ScanParent(MinimapCluster)
@@ -1145,15 +1186,11 @@ function TomoMod_Minimap.CreateButtonBag()
                 bagFrame:Hide()
             else
                 bagUserOpened = true
-                -- Si les boutons sont déjà collectés (reparentés sous bagFrame.content),
-                -- un nouveau scan ne les retrouve pas → on relayout sans rescan.
-                -- On rescanne uniquement si la liste est vide (première ouverture ou
-                -- après un ReleaseCollectedButtons).
-                if #collectedOrder == 0 then
-                    TomoMod_Minimap.RefreshButtonBag()
-                else
-                    TomoMod_Minimap.RelayoutBag()
-                end
+                -- RefreshButtonBag conserve désormais les boutons déjà capturés
+                -- (reparentés sous bagFrame.content) et ajoute les nouveaux à la
+                -- suite : on peut donc toujours rescanner à l'ouverture, ce qui
+                -- ramasse aussi les boutons apparus depuis le dernier scan.
+                TomoMod_Minimap.RefreshButtonBag()
                 bagFrame:Show()
             end
         end)

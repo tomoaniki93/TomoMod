@@ -281,7 +281,7 @@ function SetupStandardOwnedButtonRuntime(container, btn)
                     -- insecure SetAttribute on useOnKeyDown taints the dispatch
                     -- and breaks AllowedWhenUntainted calls such as a /tm
                     -- macro's SetRaidTarget.
-                    if button ~= "Keybind"
+                    if button ~= "Keybind" and button ~= "Key"
                         and self:GetAttribute("buttonlock")
                         and IsModifiedClick("PICKUPACTION")
                         and not self:GetAttribute("LABdisableDragNDrop")
@@ -293,7 +293,7 @@ function SetupStandardOwnedButtonRuntime(container, btn)
                     flyoutHandler:SetAttribute("flyoutID", nil)
                     flyoutHandler:Hide()
                 end
-                if button == "Keybind" then
+                if button == "Keybind" or button == "Key" then
                     return "LeftButton"
                 end
             ]], [[

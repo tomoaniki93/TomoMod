@@ -72,6 +72,8 @@ CHANGELOG = {
             L["wn_361_flyouts"] or "Fix — Spell flyouts such as Mage Portal/Teleport open and cast correctly again; TomoMod no longer resizes native flyout buttons in a way that could taint the secure flyout.",
             L["wn_361_flyouts_cast"] or "Fix — Native flyout popup buttons are no longer hooked or written to at all, since even cosmetic changes could taint Blizzard's protected CastSpellByID/CastSpellByName cast path.",
             L["wn_361_tracker"] or "Fix — Objective Tracker quest blocks skipped during combat now finish laying out automatically once combat ends, instead of staying overlapped until an unrelated quest update.",
+            L["wn_361_buttonbag"] or "Fix — The minimap addon-button collector no longer forgets the buttons it has already gathered when it rescans, so addons that register their button later open a new row instead of stacking on top of the first one.",
+            L["wn_361_trackdupe"] or "Fix — The Tracking panel no longer lists the same entry twice (Banker showed up on two rows). Tracking filters the game reports under the same name are merged into a single row that toggles them together.",
             L["wn_361_validation"] or "Tested — Assisted Combat, key-down casting, combat-reload bindings, Bar 1/Pet/Stance strata near the World Map, spell flyouts and Objective Tracker combat deferral were validated in game.",
         },
     },

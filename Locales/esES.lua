@@ -3315,7 +3315,7 @@ TomoMod_RegisterLocale("esES", {
     ["wn_333_diag_mode"] = "Diagnóstico: cuando el informe no consigue determinar tu modo de pantalla, ahora imprime los valores en bruto que le dio el juego en lugar de un simple signo de interrogación — esos nombres de ajuste cambian de una expansión a otra, y un «?» a secas no se podía diagnosticar sin volver a preguntarte. La pantalla completa en ventana y las ventanas maximizadas se reconocen en más casos, y las versiones de los accesorios ya no aparecen como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: los marcos de grupo y de banda mantenían dos copias de las mismas 250 líneas — la lógica de invocación, la lista de sanaciones periódicas, el seguimiento de defensivos. Los tres fallos anteriores vienen de ahí: una corrección aplicada a una copia y no a la otra. Ahora comparten una única implementación.",
     -- =====================
-    -- 3.6.0 — What's New
+    -- 3.6.1 — What's New
     -- =====================
     ["wn_361_assist"] = "Corrección — El marco de rotación de Combate Asistido de Blizzard ahora se muestra y actualiza correctamente en los botones de acción de TomoMod, en lugar de congelarse en el campo de acción Lua no sincronizado del botón.",
     ["wn_361_keydown"] = "Corrección — El ajuste «Lanzar al pulsar» de TomoMod ahora se mantiene sincronizado con la CVar de entrada propia de Blizzard, corrigiendo una primera pulsación tras iniciar sesión que podía ignorarse silenciosamente.",
@@ -3324,7 +3324,12 @@ TomoMod_RegisterLocale("esES", {
     ["wn_361_flyouts"] = "Corrección — Los flyouts de hechizos como Portal/Teletransporte de Mago vuelven a abrirse y lanzarse correctamente; TomoMod ya no redimensiona los botones de flyout nativos de una forma que pudiera contaminar (taint) el flyout seguro.",
     ["wn_361_flyouts_cast"] = "Corrección — Los botones emergentes nativos del flyout ya no se enganchan (hook) ni se modifican en absoluto, ya que incluso los cambios cosméticos podían contaminar (taint) la ruta protegida CastSpellByID/CastSpellByName de Blizzard.",
     ["wn_361_tracker"] = "Corrección — Los bloques de misión omitidos durante el combate en el Rastreador de objetivos ahora terminan de organizarse automáticamente al finalizar el combate, en lugar de quedar superpuestos hasta un evento de misión no relacionado.",
+    ["wn_361_buttonbag"] = "Corrección — El colector de botones de addon del minimapa ya no olvida los botones que ya había recogido al volver a escanear: los addons que registran su botón más tarde ahora abren una fila nueva en lugar de amontonarse sobre la primera.",
+    ["wn_361_trackdupe"] = "Corrección — El panel de Rastreo ya no muestra dos veces la misma entrada («Banquero» aparecía en dos filas). Los filtros de rastreo que el juego devuelve con el mismo nombre se fusionan en una sola fila que los activa y desactiva a la vez.",
     ["wn_361_validation"] = "Probado — Combate Asistido, lanzamiento al pulsar, enlaces tras un reload en combate, la disposición de Barra 1/Mascota/Postura junto al Mapa del Mundo, los flyouts de hechizos y el aplazamiento de combate del Rastreador de objetivos se validaron en el juego.",
+    -- =====================
+    -- 3.6.0 — What's New
+    -- =====================
     ["wn_360_foundation"] = "Cambio — Las barras de acción usan ahora un modelo de propiedad sin taint: los botones de TomoMod quedan fuera del difusor nativo de botones de Blizzard y el estado protegido de las barras Blizzard permanece bajo control de Blizzard.",
     ["wn_360_nativebars"] = "Corrección — Las barras de acción estándar de Blizzard siguen activas para el paging seguro pero se ocultan visualmente, mostrando solo las barras TomoMod sin congelar su estado dinámico.",
     ["wn_360_specialvisuals"] = "Corrección — Las barras Blizzard de postura, mascota y posesión siguen funcionando en segundo plano mientras se ocultan sus texturas, textos, GCD, efectos de autocast, bordes activos y destellos duplicados.",

@@ -1,6 +1,6 @@
 ﻿## ####################################
 
-## CHANGELOG 3.6.1 — Action Bars: Assisted Combat Bridge, Input Latency Fix, Combat-Safe Paging & Flyout Taint Removal
+## CHANGELOG 3.6.1 — Action Bars: Assisted Combat Bridge, Input Latency Fix, Combat-Safe Paging & Flyout Taint Removal + Minimap Collector Row Wrapping
 
 #### Action Bars — Assisted Combat Secure Slot Bridge
 
@@ -27,6 +27,15 @@
 #### Objective Tracker — Combat Deferral
 
 - **Fix** — Quest blocks skipped during combat (because their secure objective buttons make `Hide`/`SetParent`/`SetPoint` protected) are no longer left half laid-out until an unrelated quest event happens to fire later. Skipped layout passes are now tracked and replayed automatically on `PLAYER_REGEN_ENABLED`, and frames pending correct placement are alpha-suppressed in the meantime instead of visibly overlapping.
+
+#### Minimap — Tracking Panel
+
+- **Fix** — The Tracking panel listed **Banker** twice. The panel builds its rows straight from `C_Minimap.GetTrackingInfo`, and the client returns more than one tracking filter under the same localised name, so two rows were rendered that nothing on screen could tell apart. Filters sharing a name are now merged into one row: it reads as enabled as soon as any of them is active, and a click sets all of them to the opposite state.
+
+#### Minimap — Addon Button Collector
+
+- **Fix** — The addon-button collector no longer drops the buttons it has already gathered every time it rescans. Captured buttons are reparented into the collector panel, so the rescan (which only walks `Minimap`, `MinimapBackdrop` and `MinimapCluster`) could never find them again — and since a rescan runs on every `ADDON_LOADED`, the layout restarted its numbering at 1 for buttons collected later. Those buttons were placed **on top of** the first row instead of opening a new one, and the panel resized itself around that last batch only. Already-collected buttons are now kept and new ones are appended, so the grid wraps onto as many rows as the column count requires. Buttons an addon has taken back are detected by their parent and become collectable again.
+- **Changed** — Opening the collector always rescans now, instead of only when the internal list was empty, so buttons registered since the last scan are picked up on open.
 
 #### Validation
 

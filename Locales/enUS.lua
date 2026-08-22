@@ -3354,7 +3354,7 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_diag_mode"] = "Diagnostics: when the report cannot work out your display mode it now prints the raw values the game gave it instead of a bare question mark — those setting names change between expansions, and a '?' on its own could not be diagnosed without asking you for more. Windowed-fullscreen and maximized windows are recognised in more cases, and addon versions no longer read 'vv1.2.3'.",
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
     -- =====================
-    -- 3.6.0 — What's New
+    -- 3.6.1 — What's New
     -- =====================
     ["wn_361_assist"] = "Fix — Blizzard's Assisted Combat rotation frame now shows and updates correctly on TomoMod action buttons instead of freezing on the button's unsynced Lua action field.",
     ["wn_361_keydown"] = "Fix — TomoMod's Cast on Key Press setting now stays in sync with Blizzard's own input CVar, fixing a first-press-after-login input that could be silently swallowed.",
@@ -3363,7 +3363,12 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_361_flyouts"] = "Fix — Spell flyouts such as Mage Portal/Teleport open and cast correctly again; TomoMod no longer resizes native flyout buttons in a way that could taint the secure flyout.",
     ["wn_361_flyouts_cast"] = "Fix — Native flyout popup buttons are no longer hooked or written to at all, since even cosmetic changes could taint Blizzard's protected CastSpellByID/CastSpellByName cast path.",
     ["wn_361_tracker"] = "Fix — Objective Tracker quest blocks skipped during combat now finish laying out automatically once combat ends, instead of staying overlapped until an unrelated quest update.",
+    ["wn_361_buttonbag"] = "Fix — The minimap addon-button collector no longer forgets the buttons it has already gathered when it rescans, so addons that register their button later open a new row instead of stacking on top of the first one.",
+    ["wn_361_trackdupe"] = "Fix — The Tracking panel no longer lists the same entry twice (Banker showed up on two rows). Tracking filters the game reports under the same name are merged into a single row that toggles them together.",
     ["wn_361_validation"] = "Tested — Assisted Combat, key-down casting, combat-reload bindings, Bar 1/Pet/Stance strata near the World Map, spell flyouts and Objective Tracker combat deferral were validated in game.",
+    -- =====================
+    -- 3.6.0 — What's New
+    -- =====================
     ["wn_360_foundation"] = "Changed — ActionBars now use a zero-taint ownership model: TomoMod keeps addon-owned buttons out of Blizzard's native action-button broadcaster and leaves protected Blizzard bar state under Blizzard ownership.",
     ["wn_360_nativebars"] = "Fix — Blizzard standard action bars stay alive for secure paging but are visually suppressed, so only TomoMod bars are shown without freezing their runtime state.",
     ["wn_360_specialvisuals"] = "Fix — Blizzard Stance, Pet and Possess bars remain functional underneath while their duplicate textures, text, cooldown swipes, autocast overlays, checked borders and flash effects are masked.",

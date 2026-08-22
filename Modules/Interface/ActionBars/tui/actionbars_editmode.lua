@@ -208,7 +208,7 @@ function ApplyBarOverrideBindings(barKey)
                 local existing = GetBindingAction(key, true)
                 if not existing or existing == "" or existing == command then
                     local vBtn = ((barKey == "pet" or barKey == "stance") or btn:GetAttribute("gse-button"))
-                        and "LeftButton" or "Keybind"
+                        and "LeftButton" or "Key"
                     SetOverrideBindingClick(container, false, key, btn:GetName(), vBtn)
                 end
             end
