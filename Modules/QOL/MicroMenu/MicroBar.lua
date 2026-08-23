@@ -6,10 +6,10 @@
 -- The forwarders are SecureActionButtons with type="click" / clickbutton=<native>,
 -- so every entry keeps working in combat without a single protected call of ours.
 --
--- The native MicroMenu is not hidden with Hide(): it stays shown (its buttons are
--- our click targets, and a hidden protected button cannot be clicked from secure
--- code), it is only made invisible and mouse-transparent. That also keeps
--- EditMode's layout manager from fighting us.
+-- The native MicroMenu layout/container remains entirely Blizzard-owned. TomoMod
+-- only mutes the individual native buttons (alpha + mouse) because those buttons
+-- are our secure click targets; touching MicroMenu/MicroMenuContainer themselves
+-- can race Blizzard Edit Mode geometry updates on Midnight 12.1.
 --
 -- Icon art is READ FROM the native buttons at runtime rather than shipped as
 -- files. No assets to maintain, and the bar follows whatever Blizzard ships next
@@ -790,27 +790,15 @@ end
 -- NATIVE MICRO MENU
 -- =====================================
 
--- Blizzard has moved the micro menu's container more than once, and the frame
--- was looked up by one hardcoded name with an early return when it was missing
--- -- so on a client where that name no longer resolves, ticking "hide the
--- Blizzard micro menu" did nothing at all, not even to the buttons.
-local NATIVE_CONTAINERS = { "MicroMenu", "MicroMenuContainer", "MicroButtonAndBagsBar" }
+-- Midnight 12.1: MicroMenu and MicroMenuContainer are Edit Mode systems. Do not
+-- change their alpha, mouse state, parent, anchors or scale. Blizzard's
+-- MicroMenuMixin:GetEdgeButton() compares the centers of its edge children while
+-- Edit Mode is updating layouts; keeping the native layout intact avoids nil
+-- geometry during those passes. Only the individual native buttons are muted.
 
--- QueueStatusButton hangs off MicroMenu/MicroMenuContainer on current Retail,
--- so MuteNative's alpha 0 on the container hides the Group Finder eye along
--- with it -- which is why the eye stopped appearing when queueing.
---
--- Reparent it to UIParent while we own the micro menu, so it survives the
--- mute, and hand it back untouched when the option is turned off. The real
--- Blizzard button is kept throughout: its click handlers and right-click
--- teleport menu come along for free.
---
--- POSITION IS DELIBERATELY NOT SET HERE. FrameAnchors already owns a
--- "queueStatus" anchor, and two systems calling ClearAllPoints/SetPoint on the
--- same frame from different triggers fight each other -- the frame jumps on
--- whichever fires last. This function does parent, scale, alpha and mouse;
--- FrameAnchors does placement.
-local lfgEyeOriginalParent
+-- QueueStatusButton no longer needs to be detached from MicroMenuContainer because
+-- the container itself stays visible. FrameAnchors may still move the eye; after
+-- Blizzard repositions it we simply re-apply the configured anchor.
 local lfgEyeManaged = false
 local lfgEyeHooked = false
 
@@ -822,38 +810,21 @@ local function ApplyLFGEye()
 
     local db = GetDB() or {}
     local wantVisible = db.lfgEyeEnabled ~= false
-    local wantDetached = (db.enabled and db.hideNative == true and wantVisible) and true or false
+    local wantCustomPlacement = (db.enabled and db.hideNative == true and wantVisible) and true or false
 
-    -- Scale applies regardless of detachment: leaving it gated behind
-    -- wantDetached meant the size slider silently did nothing unless Micro
-    -- Bar was enabled AND "hide native micro menu" was on, since the other
-    -- branch below unconditionally reset it back to 1 every time.
     btn:SetScale(tonumber(db.lfgEyeScale) or 1.0)
+    btn:SetScale(tonumber(db.lfgEyeScale) or 1.0)
+    btn:SetAlpha(wantVisible and 1 or 0)
+    btn:EnableMouse(wantVisible and true or false)
 
-    if wantDetached then
-        if not lfgEyeManaged then
-            lfgEyeOriginalParent = btn:GetParent()
-            if not pcall(btn.SetParent, btn, UIParent) then return end
-            lfgEyeManaged = true
-        end
-        btn:SetAlpha(1)
-        btn:EnableMouse(true)
+    lfgEyeManaged = wantCustomPlacement
+    if wantCustomPlacement then
 
         local FA = TomoMod_FrameAnchors
         if FA and FA.ApplyAnchorByKey then FA.ApplyAnchorByKey("queueStatus") end
-    else
-        btn:SetAlpha(wantVisible and 1 or 0)
-        btn:EnableMouse(wantVisible and true or false)
-
-        if lfgEyeManaged and lfgEyeOriginalParent then
-            local parent = lfgEyeOriginalParent
-            lfgEyeManaged = false
-            pcall(btn.SetParent, btn, parent)
-            -- Let Blizzard put it back where it belongs rather than guessing.
-            if type(btn.UpdatePosition) == "function" then
-                pcall(btn.UpdatePosition, btn)
-            end
-        end
+    elseif type(btn.UpdatePosition) == "function" then
+        -- Hand placement back to Blizzard when TomoMod is no longer managing it.
+        pcall(btn.UpdatePosition, btn)
     end
 end
 
@@ -863,9 +834,6 @@ local function HookLFGEye()
     if not btn or type(btn.UpdatePosition) ~= "function" then return end
     lfgEyeHooked = true
 
-    -- MicroMenuMixin:Layout -> UpdateQueueStatusAnchors -> UpdatePosition
-    -- re-anchors the eye without changing its parent, so our placement has to
-    -- be re-asserted after Blizzard's pass. Deferred a frame so we run after it.
     hooksecurefunc(btn, "UpdatePosition", function()
         if not lfgEyeManaged or InCombatLockdown() then return end
         C_Timer.After(0, function()
@@ -876,22 +844,13 @@ local function HookLFGEye()
     end)
 end
 
-
 local function MuteNative(mute)
     local a = mute and 0 or 1
     local touched = false
 
-    for _, name in ipairs(NATIVE_CONTAINERS) do
-        local mm = _G[name]
-        if mm and mm.SetAlpha then
-            mm:SetAlpha(a)
-            if mm.EnableMouse then mm:EnableMouse(not mute) end
-            touched = true
-        end
-    end
-
-    -- The buttons are handled whether or not a container was found: they are
-    -- what the player actually sees, and they answer to their own names.
+    -- Never touch MicroMenu, MicroMenuContainer or MicroButtonAndBagsBar here.
+    -- They must remain geometrically valid for Blizzard Edit Mode even while the
+    -- TomoMod replacement bar is active.
     for _, name in ipairs(NATIVE_BUTTONS) do
         local btn = _G[name]
         if btn then
@@ -906,14 +865,9 @@ end
 
 local nativeMuteWarned = false
 
--- True while Blizzard's own Edit Mode window is open. `UpdateMicroButtons`
--- fires constantly (bag changes, talent points, LFD eligibility...) and its
--- hook below re-mutes the native containers on every call -- including,
--- reportedly, while Edit Mode's own setup is mid-refresh. Repeatedly
--- touching a frame Edit Mode also manages from ordinary Lua is exactly the
--- kind of taint that later shows up as an unrelated blocked call deep in
--- Blizzard's own code (e.g. `RefreshTargetAndFocus` -> `TargetUnit()`), so
--- the mute stands down entirely while Edit Mode owns the screen.
+-- While Blizzard's own Edit Mode window is open, expose the native buttons so
+-- the system can preview its own micro menu normally. The containers themselves
+-- are never modified by TomoMod.
 local function IsEditModeActive()
     return EditModeManagerFrame and EditModeManagerFrame.IsEditModeActive
         and EditModeManagerFrame:IsEditModeActive()
@@ -968,8 +922,8 @@ end
 
 -- Blizzard re-asserts micro button state constantly (bag changes, talent
 -- points, LFD eligibility...). UpdateMicroButtons is the single funnel for all
--- of it, so both the re-mute and the enabled/disabled mirroring ride on it
--- instead of polling.
+-- of it, so the individual-button re-mute and enabled/disabled mirroring ride
+-- on it instead of polling.
 if type(UpdateMicroButtons) == "function" then
     hooksecurefunc("UpdateMicroButtons", function()
         if refreshThrottled then return end
@@ -984,12 +938,9 @@ if type(UpdateMicroButtons) == "function" then
     end)
 end
 
--- Blizzard's real Edit Mode manages the native micro menu as one of its own
--- systems; if we keep re-muting it out from under Edit Mode's setup (the
--- UpdateMicroButtons hook above did exactly that), later Blizzard-internal
--- calls in that same setup pass (e.g. RefreshTargetAndFocus's TargetUnit())
--- can get blamed on TomoMod and blocked. Stand down for the duration and let
--- ExitEditMode put the mute back.
+-- Blizzard's real Edit Mode owns MicroMenu/MicroMenuContainer. TomoMod never
+-- mutates those frames; while the Edit Mode UI is open we additionally unmute
+-- the native child buttons so Blizzard's preview remains complete.
 --
 -- Deferred to Initialize (not file-load time): Blizzard_EditMode's load
 -- timing relative to a regular addon isn't guaranteed the way UpdateMicroButtons
@@ -1119,14 +1070,29 @@ end
 
 local ev = CreateFrame("Frame", "TomoMod_MicroBarEvents")
 ev:RegisterEvent("PLAYER_ENTERING_WORLD")
+if ev.RegisterUnitEvent then
+    ev:RegisterUnitEvent("UNIT_PORTRAIT_UPDATE", "player")
+else
+    ev:RegisterEvent("UNIT_PORTRAIT_UPDATE")
+end
 ev:RegisterEvent("PLAYER_REGEN_ENABLED")
 ev:RegisterEvent("PLAYER_REGEN_DISABLED")
 ev:RegisterEvent("EDIT_MODE_LAYOUTS_UPDATED")
 ev:RegisterEvent("UPDATE_BINDINGS")
 ev:RegisterEvent("LFG_UPDATE")
 ev:RegisterEvent("LFG_QUEUE_STATUS_UPDATE")
-ev:SetScript("OnEvent", function(_, event)
+ev:SetScript("OnEvent", function(_, event, unit)
     if not initialized then return end
+
+    if event == "UNIT_PORTRAIT_UPDATE" then
+        if unit and unit ~= "player" then return end
+        local btn = buttons.character
+        local native = _G.CharacterMicroButton
+        if btn and btn.icon and native then
+            ApplyArt(btn.icon, native, "character")
+        end
+        return
+    end
 
     if event == "PLAYER_REGEN_ENABLED" then
         if pendingRebuild then Rebuild() end
