@@ -107,7 +107,9 @@ MICRO_BUTTON_NAMES = {
     "CharacterMicroButton", "ProfessionMicroButton", "PlayerSpellsMicroButton",
     "AchievementMicroButton", "QuestLogMicroButton", "HousingMicroButton",
     "GuildMicroButton", "LFDMicroButton", "CollectionsMicroButton",
-    "EJMicroButton", "StoreMicroButton", "MainMenuMicroButton",
+    -- Keep Game Menu ahead of Store so legacy 11-icon layouts never drop the
+    -- essential logout/settings button after Midnight added HousingMicroButton.
+    "EJMicroButton", "MainMenuMicroButton", "StoreMicroButton",
 }
 
 STANDARD_BAR_KEYS = {"bar1", "bar2", "bar3", "bar4", "bar5", "bar6", "bar7", "bar8"}

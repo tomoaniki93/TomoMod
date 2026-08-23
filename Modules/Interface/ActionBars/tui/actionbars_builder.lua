@@ -524,19 +524,34 @@ function BuildBar(barKey)
             end
         end
 
-        local helpBtn = _G.HelpMicroButton
-        if helpBtn then
-            helpBtn:SetParent(container)
-        end
-
+        -- HelpMicroButton is a distinct Blizzard Help action, not the Game Menu.
+        -- Do not reparent or overlay it on TomoMod's micro bar; MainMenuMicroButton
+        -- is the real logout/settings button and stays in MICRO_BUTTON_NAMES.
         if MicroMenu and origLayout then MicroMenu.Layout = origLayout end
 
         local barDB = GetBarSettings("microbar")
-        if barDB and barDB.clickthrough then
-            for _, btn in ipairs(buttons) do
-                btn:EnableMouse(false)
+        local clickthrough = barDB and barDB.clickthrough
+        for _, btn in ipairs(buttons) do
+            -- Always restore mouse input when click-through is turned back off.
+            btn:EnableMouse(not clickthrough)
+        end
+
+        local function RefreshCharacterMicroPortrait()
+            local charBtn = _G.CharacterMicroButton
+            if not charBtn then return end
+            if charBtn.UpdateMicroButton then
+                if securecallfunction then
+                    securecallfunction(charBtn.UpdateMicroButton, charBtn)
+                else
+                    pcall(charBtn.UpdateMicroButton, charBtn)
+                end
+            end
+            if charBtn.Portrait and SetPortraitTexture then
+                SetPortraitTexture(charBtn.Portrait, "player")
+                charBtn.Portrait:Show()
             end
         end
+        RefreshCharacterMicroPortrait()
 
         if not ActionBarsOwned._microLayoutHooked then
             ActionBarsOwned._microLayoutHooked = true
@@ -580,16 +595,14 @@ function BuildBar(barKey)
                             btn:SetParent(cont)
                         end
                     end
-                    local helpBtn = _G.HelpMicroButton
-                    if helpBtn and helpBtn:GetParent() ~= cont then
-                        helpBtn:SetParent(cont)
-                    end
-                    local microDB = GetBarSettings("microbar")
-                    local ct = microDB and microDB.clickthrough
-                    for _, btn in ipairs(btns) do
-                        btn:EnableMouse(not ct)
-                    end
                 end
+                local microDB = GetBarSettings("microbar")
+                local ct = microDB and microDB.clickthrough
+                for _, btn in ipairs(btns) do
+                    -- Mouse state can outlive a reparent; reconcile it every pass.
+                    btn:EnableMouse(not ct)
+                end
+                RefreshCharacterMicroPortrait()
 
                 if InCombatLockdown() then
                     if not microCombatLayoutPending then
@@ -625,10 +638,6 @@ function BuildBar(barKey)
                             btn:ClearAllPoints()
                             btn:SetPoint(unpack(savedAnchors[i]))
                         end
-                    end
-                    local helpBtn = _G.HelpMicroButton
-                    if helpBtn then
-                        helpBtn:SetParent(MicroMenu)
                     end
                 end
             end

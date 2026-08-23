@@ -305,17 +305,11 @@ LayoutNativeButtons = function(barKey)
     end
 
     if barKey == "microbar" then
-        local helpBtn = _G.HelpMicroButton
-        local storeBtn = _G.StoreMicroButton
-        if helpBtn and storeBtn then
-            helpBtn:ClearAllPoints()
-            helpBtn:SetAllPoints(storeBtn)
-            if storeBtn:IsShown() then
-                helpBtn:Hide()
-            else
-                helpBtn:Show()
-            end
-        end
+        -- HelpMicroButton opens Blizzard Help, not the Game Menu. Older TomoMod
+        -- code overlaid it on StoreMicroButton when the store was hidden, which
+        -- produced a red ? that looked like MainMenuMicroButton but was the wrong
+        -- action. Leave HelpMicroButton under Blizzard ownership and only anchor
+        -- the separate support-ticket indicator here.
         AnchorHelpTicketButton()
     end
 
