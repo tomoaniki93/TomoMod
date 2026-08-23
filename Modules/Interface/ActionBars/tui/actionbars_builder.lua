@@ -123,20 +123,12 @@ function EnsureOwnedActionButton(container, barKey, btnName, index)
             local _g = _db and _db.global
             btn:SetAttribute("useOnKeyDown", not _g or _g.useOnKeyDown ~= false)
         end
-        if not btn.HasPopup then
-            local popupDir
-            btn.HasPopup = true
-            btn.SetPopupDirection = function(_, dir) popupDir = dir end
-            btn.GetPopupDirection = function() return popupDir end
-            btn.SetPopup = function(self2, popup)
-                if popup then
-                    rawset(self2, "_tomomodPopup", popup)
-                end
-            end
-            btn.ClearPopup = function(self2)
-                rawset(self2, "_tomomodPopup", nil)
-            end
-        end
+        -- ActionButtonTemplate already inherits Blizzard's FlyoutButtonTemplate.
+        -- Do not install addon-owned popup methods here: SpellFlyout:Toggle()
+        -- calls the source button's popup API before populating native popup
+        -- buttons, so replacing that API widens the taint path to CastSpellByID.
+        -- BaseActionButtonMixin.UpdateFlyout explicitly supports this bare
+        -- ActionButtonTemplate + SecureActionButtonTemplate combination.
         btn.flashing = 0
         btn.flashtime = 0
 
@@ -337,8 +329,23 @@ end
 
 function PrimeStandardOwnedButtonVisuals(buttons)
     for _, btn in ipairs(buttons) do
-        if ActionButton_Update then
-            ns.SafeCall("best-effort-style", ActionButton_Update, btn)
+        local barKey = btn and btn._tomomodBarKey
+        if ShouldUseOwnedFlyoutForBar and ShouldUseOwnedFlyoutForBar(barKey) then
+            -- Quarantined bar: never associate this button with Blizzard's
+            -- native SpellFlyout. SafeUpdate covers the rest of the visuals
+            -- while RefreshOwnedButtonFlyout() stays a no-op for it.
+            if ActionBarsOwned.SafeUpdate then
+                ActionBarsOwned.SafeUpdate(btn)
+            end
+        elseif ActionButton_Update and securecallfunction then
+            -- Keep the initial Blizzard visual pass out of the addon-tainted call
+            -- chain. ActionButton_Update reaches BaseActionButtonMixin.UpdateFlyout,
+            -- which associates the button with the native SpellFlyout.
+            securecallfunction(ActionButton_Update, btn)
+        elseif ActionBarsOwned.SafeUpdate then
+            -- WoW retail always provides securecallfunction; this fallback is
+            -- intentionally TomoMod-only and does not enter native flyout Lua.
+            ActionBarsOwned.SafeUpdate(btn)
         end
         ActionBarsOwned.UpdateCooldown(btn)
         ActionBarsOwned.UpdateOverlayGlow(btn)
@@ -808,7 +815,7 @@ function BuildBar(barKey)
     ActionBarsOwned.nativeButtons[barKey] = buttons
     if barKey ~= "pet" and barKey ~= "stance" and barKey ~= "microbar" and barKey ~= "bags" then
         FinalizeStandardOwnedActionButtons(container, barKey, buttons)
-        if EnsureOwnedFlyoutFrame then
+        if EnsureOwnedFlyoutFrame and ShouldUseOwnedFlyoutForBar and ShouldUseOwnedFlyoutForBar(barKey) then
             local flyoutHandler = EnsureOwnedFlyoutFrame()
             if flyoutHandler then
                 container:SetFrameRef("qui-flyout-handler", flyoutHandler)

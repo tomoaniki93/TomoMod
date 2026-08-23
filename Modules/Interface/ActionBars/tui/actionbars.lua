@@ -140,6 +140,29 @@ ActionBarsOwned = {
 }
 ns.ActionBarsOwned = ActionBarsOwned
 
+-- TOMOMOD 3.6.2 HOTFIX: native SpellFlyout is Blizzard-owned and its popup buttons
+-- eventually call protected CastSpellByID()/CastSpellByName() from Blizzard Lua.
+-- A normal addon-originated :UpdateFlyout() call can carry the addon's taint
+-- into BaseActionButtonMixin:SetPopup(SpellFlyout).  Run Blizzard's own
+-- BaseActionButtonMixin.UpdateFlyout through securecallfunction instead.
+-- The bare ActionButtonTemplate + SecureActionButtonTemplate combination is
+-- explicitly supported by Blizzard's BaseActionButtonMixin.UpdateFlyout.
+function ActionBarsOwned.RefreshOwnedButtonFlyout(button)
+    if not button then return end
+    local barKey = button._tomomodBarKey
+    if ShouldUseOwnedFlyoutForBar and ShouldUseOwnedFlyoutForBar(barKey) then
+        -- Quarantined bars use the TomoMod-owned secure flyout. Never enter
+        -- Blizzard's SpellFlyout for those action-slot ranges.
+        return
+    end
+    local mixin = BaseActionButtonMixin
+    local updateFlyout = mixin and mixin.UpdateFlyout
+    if type(updateFlyout) ~= "function" or type(securecallfunction) ~= "function" then
+        return
+    end
+    securecallfunction(updateFlyout, button)
+end
+
 env.__declared.UpdateAssistedCombatRotationFrame = true
 env.__declared.UpdateAllAssistedHighlights = true
 env.__declared.ResetButtonChargeCapabilityCache = true
@@ -311,7 +334,7 @@ function ActionBarsOwned.SafeUpdate(self)
 
         ActionBarsOwned.UpdateOverlayGlow(self)
 
-        ns.SafeCallMethodIfPresent("best-effort-style", self, "UpdateFlyout")
+        ActionBarsOwned.RefreshOwnedButtonFlyout(self)
 
         if hasAction
             and C_ActionBar and C_ActionBar.IsAssistedCombatAction
@@ -372,7 +395,7 @@ function ActionBarsOwned.SafeUpdate(self)
         if self.flashing == 1 then
             ns.SafeCallMethodIfPresent("best-effort-style", self, "StopFlash")
         end
-        ns.SafeCallMethodIfPresent("best-effort-style", self, "UpdateFlyout")
+        ActionBarsOwned.RefreshOwnedButtonFlyout(self)
         UpdateAssistedCombatRotationFrame(self)
         ActionBarsOwned.UpdateOverlayGlow(self)
     end

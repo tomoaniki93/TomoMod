@@ -1,6 +1,6 @@
 ﻿## ####################################
 
-## CHANGELOG 3.6.1 — Action Bars: Assisted Combat Bridge, Input Latency Fix, Combat-Safe Paging & Flyout Taint Removal + Minimap Collector Row Wrapping
+## CHANGELOG 3.6.1 — Action Bars: Assisted Combat Bridge, Input Latency Fix, Combat-Safe Paging, Flyout Taint Removal & Movable Leave Vehicle + Minimap Collector Row Wrapping
 
 #### Action Bars — Assisted Combat Secure Slot Bridge
 
@@ -23,6 +23,20 @@
 
 - **Fix** — Spell flyouts (e.g. Mage Portal/Teleport) no longer silently fail to cast after opening. Resizing native flyout buttons and calling the flyout's own `Layout()` from addon code tainted the protected `SpellFlyout` and its buttons; TomoMod no longer resizes or re-skins native flyout buttons, leaving Blizzard fully in control of their secure attributes.
 - **Fix** — Native flyout popup buttons cast through Blizzard's own protected `CastSpellByID`/`CastSpellByName` calls, and even cosmetic writes to those buttons could contaminate that path into `ADDON_ACTION_FORBIDDEN`. TomoMod's flyout skinning no longer hooks or writes to native `SpellFlyout` buttons at all, trading the cosmetic skin for a guaranteed cast.
+- **Fix** — Owned action buttons now refresh their flyout through the new `ActionBarsOwned.RefreshOwnedButtonFlyout()`, which runs Blizzard's own `BaseActionButtonMixin.UpdateFlyout` inside `securecallfunction`. An addon-originated `:UpdateFlyout()` call could otherwise carry TomoMod's taint into `BaseActionButtonMixin:SetPopup(SpellFlyout)`, and from there into the popup's protected cast path. The initial visual pass in `PrimeStandardOwnedButtonVisuals()` calls `ActionButton_Update` the same way, since it reaches `UpdateFlyout` too.
+- **Removed** — The addon-owned `HasPopup`/`SetPopup`/`GetPopupDirection`/`SetPopupDirection`/`ClearPopup` replacements installed on every owned button have been removed. `ActionButtonTemplate` already inherits Blizzard's `FlyoutButtonTemplate`, and `SpellFlyout:Toggle()` calls the source button's popup API before it populates the native popup buttons — so replacing that API widened the taint path all the way to `CastSpellByID`. The bare `ActionButtonTemplate` + `SecureActionButtonTemplate` combination TomoMod uses is explicitly supported by `BaseActionButtonMixin.UpdateFlyout`.
+- **Fix** — Spell flyouts on Bar 6 (MultiBar5, action slots 145-156) no longer risk becoming forbidden to cast. Blizzard's native `SpellFlyout:Toggle()` could still pick up TomoMod's taint specifically when opened from that bar, contaminating `SpellFlyoutPopupButton*.spellID`/`spellName` and turning the follow-up `CastSpellByID` into a protected-forbidden error. Bar 6 is now quarantined onto TomoMod's own secure flyout via `ShouldUseOwnedFlyoutForBar()`; every other bar keeps using Blizzard's native flyout untouched.
+- **Fix** — TomoMod's owned flyout buttons now correctly respond to an assigned keybind press, not only a mouse click. The secure `OnClick` handler only checked for `button == "Keybind"`, which does not match the actual `button` value WoW passes on a keybind-triggered click.
+- **Changed** — The owned flyout no longer refreshes slot icons/textures through `CallMethod()` calls from inside its restricted secure snippet; visuals are instead refreshed from the flyout's own insecure `OnShow`, keeping the secure click path minimal.
+- **Fix** — TomoMod's owned flyout spell discovery now also inspects the actual action slots on the quarantined bar (via `GetActionInfo`) instead of relying solely on spellbook enumeration, so a flyout placed there — including ones not covered by the currently active spellbook branch for the player's class/spec — always gets correct known/unknown slot icons.
+
+#### Action Bars — Leave Vehicle Mover & Visibility
+
+- **New** — Leave Vehicle has its own holder and mover (`TUI_leaveVehicleHolder` / `TUI_leaveVehicleMover`), shown and hidden alongside the Extra Action and Zone Ability movers. It can be dragged anywhere on screen instead of being hard-anchored above Bar 1, and its position is persisted in `profile.frameAnchoring` like the other movers. Until it is dragged, it still falls back to its previous default position just above TomoMod Bar 1 — or to the screen bottom when Bar 1 does not exist.
+- **Changed** — `CreateExtraButtonHolder()` no longer requires an `actionBars.bars` entry for Leave Vehicle, which has none; the anchor resolution for it is applied locally because the generic `TUI_ApplyFrameAnchor` resolver predates the new holder.
+- **Changed** — The combat gate in `ApplyExtraButtonFrameAnchor()` now covers Leave Vehicle as well as Extra Action. Both host secure descendants, so neither holder is moved during lockdown; the move replays through the existing `pendingExtraButtonRefresh` flag on `PLAYER_REGEN_ENABLED`. Profile and layout changes reapply the saved position on the next Leave Vehicle refresh.
+- **Changed** — The Leave Vehicle proxy's visibility state driver moved from `[vehicleui]` to `[canexitvehicle]`, so the button follows whether the vehicle can actually be left rather than whether a vehicle UI happens to be displayed.
+- **Fix** — Blizzard's native Leave Vehicle button is now suppressed only when TomoMod's secure `leavevehicle` proxy is expected to be usable — `CanExitVehicle()` is true and the player is not on a taxi. Previously the native button could be hidden in states where the proxy would not work, leaving no way to exit; the native control is now kept as the fail-safe, including for early taxi landings.
 
 #### Objective Tracker — Combat Deferral
 

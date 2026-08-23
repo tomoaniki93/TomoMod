@@ -19,13 +19,26 @@ spellFlyoutSkinHooked = false
 
 do
 
--- TOMOMOD 3.6.0 P1: leave flyout execution to Blizzard's secure action
--- handler.  SecureActionButtonTemplate already handles action-slot flyouts via
--- SpellFlyout:Toggle(); intercepting them with the custom owned flyout made
--- Mage portal / Hunter trap flyouts fail to open on Midnight 12.1.
--- The native SpellFlyout is still skinned by the TomoMod cosmetic path below.
+-- TOMOMOD 3.6.2 HOTFIX / Midnight 12.1:
+-- Keep Blizzard's native flyout everywhere it is currently verified clean.
+-- The reported Midnight 12.1 taint is isolated to TomoMod bar 6 (MultiBar5 /
+-- action slots 145-156): Blizzard's SpellFlyout:Toggle() can run there in a
+-- TomoMod-attributed path and taint SpellFlyoutPopupButton*.spellID/spellName,
+-- which later makes Blizzard's protected CastSpellByID() forbidden. Quarantine
+-- bar 6 only for now; do not widen the custom path without an in-game repro.
 USE_OWNED_FLYOUT = false
+OWNED_FLYOUT_BAR_KEYS = { bar6 = true }
 ActionBarsOwned.useOwnedFlyout = USE_OWNED_FLYOUT
+ActionBarsOwned.ownedFlyoutBarKeys = OWNED_FLYOUT_BAR_KEYS
+
+function ShouldUseOwnedFlyoutForBar(barKey)
+    return USE_OWNED_FLYOUT or (barKey and OWNED_FLYOUT_BAR_KEYS[barKey] == true) or false
+end
+
+function HasAnyOwnedFlyoutRoute()
+    if USE_OWNED_FLYOUT then return true end
+    return next(OWNED_FLYOUT_BAR_KEYS) ~= nil
+end
 
 env.__declared.ownedFlyout = true
 ownedFlyoutButtons = {}
@@ -142,7 +155,7 @@ function ClearOwnedFlyoutButtonCooldown(button)
 end
 
 EnsureOwnedFlyoutFrame = function()
-    if ownedFlyout or not USE_OWNED_FLYOUT then return ownedFlyout end
+    if ownedFlyout or not HasAnyOwnedFlyoutRoute() then return ownedFlyout end
 
     ownedFlyout = CreateFrame("Frame", "TUI_SpellFlyout", UIParent, "SecureHandlerBaseTemplate")
     ownedFlyout:SetFrameStrata("DIALOG")
@@ -238,7 +251,9 @@ EnsureOwnedFlyoutFrame = function()
                     slotButton:SetAttribute("type", "spell")
                     slotButton:SetAttribute("spell", slotInfo.spellID)
                     slotButton:SetAttribute("qui-flyout-spell", slotInfo.spellID)
-                    slotButton:CallMethod("TUI_UpdateOwnedFlyoutVisuals", slotInfo.spellID)
+                    -- Visuals are refreshed from the flyout's insecure OnShow
+                    -- after the secure attributes are complete. Keep the
+                    -- restricted click handler free of CallMethod() hops.
                     slotButton:SetWidth(width)
                     slotButton:SetHeight(height)
                     slotButton:ClearAllPoints()
@@ -282,7 +297,6 @@ EnsureOwnedFlyoutFrame = function()
                 slotButton:SetAttribute("type", nil)
                 slotButton:SetAttribute("spell", nil)
                 slotButton:SetAttribute("qui-flyout-spell", nil)
-                slotButton:CallMethod("TUI_ClearOwnedFlyoutVisuals")
             end
         end
 
@@ -372,7 +386,7 @@ function EnsureOwnedFlyoutButton(index)
             owner:SetAttribute("flyoutID", nil)
             owner:Hide()
         end
-        if button == "Keybind" then
+        if button == "Key" or button == "Keybind" then
             return "LeftButton"
         end
     ]])
@@ -411,24 +425,55 @@ function PopulateOwnedFlyoutInfoEntry(info, flyoutID, numSlots, isKnown)
 end
 
 local ownedFlyoutIDScratch = {}
+local ownedFlyoutIDSeenScratch = {}
 local function CollectOwnedFlyoutIDs(out)
     wipe(out)
-    if not (C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines) then return out end
-    local playerBank = Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player or 0
-    local flyoutType = Enum.SpellBookItemType and Enum.SpellBookItemType.Flyout or 4
-    for lineIndex = 1, C_SpellBook.GetNumSpellBookSkillLines() do
-        local lineInfo = C_SpellBook.GetSpellBookSkillLineInfo(lineIndex)
-        if lineInfo and lineInfo.numSpellBookItems then
-            for i = 1, lineInfo.numSpellBookItems do
-                local slotIndex = (lineInfo.itemIndexOffset or 0) + i
-                local itemType, actionID = C_SpellBook.GetSpellBookItemType(slotIndex, playerBank)
-                if (itemType == flyoutType or itemType == "FLYOUT")
-                    and type(actionID) == "number" and actionID > 0 then
-                    out[#out + 1] = actionID
+    local seen = ownedFlyoutIDSeenScratch
+    wipe(seen)
+
+    local function AddFlyoutID(flyoutID)
+        if type(flyoutID) ~= "number" or flyoutID <= 0 or seen[flyoutID] then return end
+        seen[flyoutID] = true
+        out[#out + 1] = flyoutID
+    end
+
+    -- Spellbook discovery remains the broad fallback.
+    if C_SpellBook and C_SpellBook.GetNumSpellBookSkillLines then
+        local playerBank = Enum.SpellBookSpellBank and Enum.SpellBookSpellBank.Player or 0
+        local flyoutType = Enum.SpellBookItemType and Enum.SpellBookItemType.Flyout or 4
+        for lineIndex = 1, C_SpellBook.GetNumSpellBookSkillLines() do
+            local lineInfo = C_SpellBook.GetSpellBookSkillLineInfo(lineIndex)
+            if lineInfo and lineInfo.numSpellBookItems then
+                for i = 1, lineInfo.numSpellBookItems do
+                    local slotIndex = (lineInfo.itemIndexOffset or 0) + i
+                    local itemType, actionID = C_SpellBook.GetSpellBookItemType(slotIndex, playerBank)
+                    if itemType == flyoutType or itemType == "FLYOUT" then
+                        AddFlyoutID(actionID)
+                    end
                 end
             end
         end
     end
+
+    -- Also discover the exact flyouts placed on the quarantined bar. This is
+    -- important for portal/trap actions that may not be represented by the
+    -- currently enumerated spellbook branch on every class/spec state.
+    for barKey in pairs(OWNED_FLYOUT_BAR_KEYS) do
+        local buttons = ActionBarsOwned.nativeButtons and ActionBarsOwned.nativeButtons[barKey]
+        if buttons then
+            for _, button in ipairs(buttons) do
+                local action = GetSafeActionSlot(button)
+                if action then
+                    local actionType, actionID = GetActionInfo(action)
+                    if actionType == "flyout" then
+                        AddFlyoutID(actionID)
+                    end
+                end
+            end
+        end
+    end
+
+    wipe(seen)
     return out
 end
 
@@ -489,7 +534,7 @@ end
 ActionBarsOwned.HideOwnedFlyout = HideOwnedFlyout
 
 SyncOwnedFlyoutInfoToHandler = function()
-    if not USE_OWNED_FLYOUT then return end
+    if not HasAnyOwnedFlyoutRoute() then return end
     if InCombatLockdown() then
         ActionBarsOwned.pendingOwnedFlyoutSync = true
         return
@@ -532,7 +577,7 @@ SyncOwnedFlyoutInfoToHandler = function()
     ActionBarsOwned.pendingOwnedFlyoutSync = false
 end
 
-do
+if HasAnyOwnedFlyoutRoute() then
     local cdEventFrame = CreateFrame("Frame")
     cdEventFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
     cdEventFrame:RegisterEvent("SPELL_UPDATE_CHARGES")

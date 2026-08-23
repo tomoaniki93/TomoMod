@@ -34,7 +34,7 @@ local function RefreshAllFlyouts()
         local runtimeVisible = not ActionBarsOwned.IsBarRuntimeVisible or ActionBarsOwned.IsBarRuntimeVisible(barKey)
         if btns and runtimeVisible then
             for _, btn in ipairs(btns) do
-                ns.SafeCallMethodIfPresent("best-effort-style", btn, "UpdateFlyout")
+                ActionBarsOwned.RefreshOwnedButtonFlyout(btn)
             end
         end
     end

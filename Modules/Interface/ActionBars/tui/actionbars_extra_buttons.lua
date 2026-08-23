@@ -20,6 +20,8 @@ extraBtnState = {
     extraActionMover = nil,
     zoneAbilityHolder = nil,
     zoneAbilityMover = nil,
+    leaveVehicleHolder = nil,
+    leaveVehicleMover = nil,
     zoneAbilityProxies = {},
     zoneAbilityNativeButtons = {},
     zoneAbilityNativeMouseStates = {},
@@ -52,6 +54,17 @@ function GetExtraButtonDB(buttonType)
         and core.db.profile.actionBars.bars[buttonType]
 end
 
+local function GetExtraButtonHolderForType(buttonType)
+    if buttonType == "extraActionButton" then
+        return extraBtnState.extraActionHolder
+    elseif buttonType == "zoneAbility" then
+        return extraBtnState.zoneAbilityHolder
+    elseif buttonType == "leaveVehicle" then
+        return extraBtnState.leaveVehicleHolder
+    end
+    return nil
+end
+
 function GetSavedExtraButtonFrameAnchor(buttonType)
     local core = GetCore()
     local profile = core and core.db and core.db.profile
@@ -71,17 +84,30 @@ function ApplyExtraButtonHolderFallbackPosition(buttonType, holder)
     local point, relativeTo, relPoint, x, y =
         GetExtraButtonInitialPosition(buttonType, settings and settings.position)
     if not point then
-        point, relativeTo, relPoint = "CENTER", UIParent, "CENTER"
-        x = buttonType == "extraActionButton" and -100 or 100
-        y = -200
+        if buttonType == "leaveVehicle" then
+            -- Preserve the existing default: Leave Vehicle sits just above
+            -- TomoMod Bar 1 until the user drags its dedicated mover.
+            local bar1 = ActionBarsOwned.containers and ActionBarsOwned.containers.bar1
+            if bar1 then
+                point, relativeTo, relPoint, x, y = "BOTTOM", bar1, "TOP", 0, 8
+            else
+                point, relativeTo, relPoint, x, y = "BOTTOM", UIParent, "BOTTOM", 0, 180
+            end
+        else
+            point, relativeTo, relPoint = "CENTER", UIParent, "CENTER"
+            x = buttonType == "extraActionButton" and -100 or 100
+            y = -200
+        end
     end
     holder:ClearAllPoints()
     holder:SetPoint(point, relativeTo or UIParent, relPoint or point, x or 0, y or 0)
 end
 
 function ApplyExtraButtonFrameAnchor(buttonType)
-    -- COMBAT GATE (extra path): the extra holder hosts the anchored
-    if buttonType == "extraActionButton"
+    -- COMBAT GATE: Extra Action and Leave Vehicle host secure descendants.
+    -- Never move either holder during lockdown; replay through the existing
+    -- pending extra-button refresh after PLAYER_REGEN_ENABLED.
+    if (buttonType == "extraActionButton" or buttonType == "leaveVehicle")
         and InCombatLockdown()
     then
         ActionBarsOwned.pendingExtraButtonRefresh = true
@@ -89,14 +115,15 @@ function ApplyExtraButtonFrameAnchor(buttonType)
     end
     local HasAnchor = _G.TUI_HasFrameAnchor
     local ApplyAnchor = _G.TUI_ApplyFrameAnchor
-    if HasAnchor and ApplyAnchor and HasAnchor(buttonType) then
+    -- Leave Vehicle persists its mover position in frameAnchoring too, but it
+    -- is intentionally applied locally because the generic resolver predates
+    -- TUI_LeaveVehicleHolder.
+    if buttonType ~= "leaveVehicle" and HasAnchor and ApplyAnchor and HasAnchor(buttonType) then
         ApplyAnchor(buttonType)
         return
     end
     -- NO-OVERRIDE FALLBACK (see ApplyExtraButtonHolderFallbackPosition).
-    local holder = buttonType == "extraActionButton"
-        and extraBtnState.extraActionHolder
-        or extraBtnState.zoneAbilityHolder
+    local holder = GetExtraButtonHolderForType(buttonType)
     if not holder then return end
     if InCombatLockdown()
         and Helpers.FrameMutationRestricted(holder)
@@ -212,7 +239,9 @@ end
 
 function CreateExtraButtonHolder(buttonType, displayName)
     local settings = GetExtraButtonDB(buttonType)
-    if not settings then return nil, nil end
+    -- Leave Vehicle has no actionBars.bars entry; its position is stored in
+    -- profile.frameAnchoring just like the other movers.
+    if not settings and buttonType ~= "leaveVehicle" then return nil, nil end
 
     local holder = CreateFrame("Frame", "TUI_" .. buttonType .. "Holder", UIParent)
     holder:SetSize(64, 64)
@@ -661,12 +690,14 @@ function ShowExtraButtonMovers()
     extraBtnState.moversVisible = true
     if extraBtnState.extraActionMover then extraBtnState.extraActionMover:Show() end
     if extraBtnState.zoneAbilityMover then extraBtnState.zoneAbilityMover:Show() end
+    if extraBtnState.leaveVehicleMover then extraBtnState.leaveVehicleMover:Show() end
 end
 
 function HideExtraButtonMovers()
     extraBtnState.moversVisible = false
     if extraBtnState.extraActionMover then extraBtnState.extraActionMover:Hide() end
     if extraBtnState.zoneAbilityMover then extraBtnState.zoneAbilityMover:Hide() end
+    if extraBtnState.leaveVehicleMover then extraBtnState.leaveVehicleMover:Hide() end
 end
 
 function ToggleExtraButtonMovers()
@@ -1791,7 +1822,10 @@ local function ApplyNativeLeaveVehicleVisualSuppression(suppress)
     -- type="leavevehicle" proxy intentionally only performs VehicleExit().
     -- Keep the native button visible on taxis so that functionality is retained.
     local onTaxi = UnitOnTaxi and UnitOnTaxi("player") or false
-    local desiredSuppressed = suppress and not onTaxi
+    local canExit = CanExitVehicle and CanExitVehicle() or false
+    -- Fail-safe: suppress Blizzard only when the TomoMod secure proxy is
+    -- expected to be usable. Keep the native taxi button for early landing.
+    local desiredSuppressed = suppress and canExit and not onTaxi
 
     extraBtnState.nativeLeaveVehicleAlphaStates =
         extraBtnState.nativeLeaveVehicleAlphaStates or {}
@@ -1832,19 +1866,28 @@ local function EnsureLeaveVehicleProxy()
         return nil
     end
 
-    local proxy = CreateFrame("Button", "TUI_LeaveVehicleProxyButton", UIParent,
+    if not extraBtnState.leaveVehicleHolder then
+        local holder, mover = CreateExtraButtonHolder("leaveVehicle", LEAVE_VEHICLE or "Leave Vehicle")
+        extraBtnState.leaveVehicleHolder = holder
+        extraBtnState.leaveVehicleMover = mover
+        if holder then
+            holder:SetSize(40, 40)
+            ApplyExtraButtonFrameAnchor("leaveVehicle")
+        end
+        if mover and extraBtnState.moversVisible then
+            mover:Show()
+        end
+    end
+
+    local parent = extraBtnState.leaveVehicleHolder or UIParent
+    local proxy = CreateFrame("Button", "TUI_LeaveVehicleProxyButton", parent,
         "SecureActionButtonTemplate")
     proxy:SetSize(40, 40)
     proxy:SetFrameStrata("HIGH")
     proxy:RegisterForClicks("AnyUp", "AnyDown")
     proxy:SetAttribute("type", "leavevehicle")
 
-    local anchor = ActionBarsOwned.containers and ActionBarsOwned.containers.bar1
-    if anchor then
-        proxy:SetPoint("BOTTOM", anchor, "TOP", 0, 8)
-    else
-        proxy:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 180)
-    end
+    proxy:SetPoint("CENTER", parent, "CENTER", 0, 0)
 
     -- Give Leave Vehicle the same owned presentation path as the
     -- other special buttons.  The exit artwork becomes the button Icon so
@@ -1931,12 +1974,13 @@ local function ApplyLeaveVehicleProxySettings()
     if not proxy then return end
 
     if not extraBtnState.leaveVehicleStateDriverInstalled then
-        RegisterStateDriver(proxy, "visibility", "[vehicleui] show; hide")
+        RegisterStateDriver(proxy, "visibility", "[canexitvehicle] show; hide")
         extraBtnState.leaveVehicleStateDriverInstalled = true
     end
 
-    -- Reapply the owned visual skin so changing the global ActionBar icon-skin
-    -- preset also updates the Leave Vehicle button on the next refresh.
+    -- Reapply the saved mover position and owned visual skin so profile/layout
+    -- changes and global ActionBar skin changes both update the proxy.
+    ApplyExtraButtonFrameAnchor("leaveVehicle")
     ApplyOwnedSpecialButtonActionSkin(proxy)
     ApplyNativeLeaveVehicleVisualSuppression(true)
 end
