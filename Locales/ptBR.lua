@@ -3320,6 +3320,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_361_tracker"] = "Correção — Blocos de missão ignorados durante o combate no Rastreador de Objetivos agora terminam de se organizar automaticamente ao fim do combate, em vez de permanecerem sobrepostos até um evento de missão não relacionado.",
     ["wn_361_buttonbag"] = "Correção — O coletor de botões de addon do minimapa não esquece mais os botões já reunidos ao fazer uma nova varredura: os addons que registram seu botão mais tarde agora abrem uma nova linha em vez de se empilharem sobre a primeira.",
     ["wn_361_trackdupe"] = "Correção — O painel de Rastreamento não lista mais a mesma entrada duas vezes (“Banqueiro” aparecia em duas linhas). Os filtros de rastreamento que o jogo retorna com o mesmo nome são unidos em uma única linha que os alterna em conjunto.",
+    ["wn_361_micromenu_native"] = "Correção — O TomoMod não cria mais seu próprio contêiner, não reassocia botões nem interfere no layout do Micro Menu da Blizzard. A opção Micro Menu agora apenas altera o alfa do menu nativo ao passar o mouse, deixando sua geometria totalmente sob o controle da Blizzard.",
+    ["wn_361_micromenu_gui"] = "Alterado — O painel de opções de Esmaecimento agora rotula a entrada do Micro Menu como “Micro Menu da Blizzard (ao passar o mouse)” e explica que o TomoMod só ajusta seu alfa, sem reposicionar, redimensionar, aplicar skin ou reassociar.",
     ["wn_361_validation"] = "Testado — Combate Assistido, conjuração ao pressionar, ligações após reload em combate, o posicionamento de Barra 1/Ajudante/Postura perto do Mapa Mundial, os flyouts de magia e o adiamento de combate do Rastreador de Objetivos foram validados em jogo.",
     -- =====================
     -- 3.6.0 — What's New

@@ -40,6 +40,24 @@ function SetBarAlpha(barKey, alpha)
     -- InitializeExtraButtons/RefreshExtraButtons.
     if barKey == "extraActionButton" or barKey == "zoneAbility" then return end
 
+    -- TOMOMOD 3.6.1 / Midnight 12.1:
+    -- MicroMenu stays Blizzard-owned. Mouseover is presentation-only: change
+    -- the native MicroMenuContainer alpha and never touch individual buttons,
+    -- textures, parents, anchors, scale, or Blizzard layout state.
+    if barKey == "microbar" then
+        if alpha < 1 and ShouldSuspendMouseoverFade(barKey) then
+            alpha = 1
+        end
+
+        local barState = GetBarFadeState(barKey)
+        local barFrame = GetBarFrame(barKey)
+        if barFrame then
+            barFrame:SetAlpha(alpha)
+        end
+        barState.currentAlpha = alpha
+        return
+    end
+
     if alpha < 1 and ShouldSuspendMouseoverFade(barKey) then
         alpha = 1
     end

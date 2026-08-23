@@ -81,6 +81,8 @@ CHANGELOG = {
             L["wn_361_tracker"] or "Fix — Objective Tracker quest blocks skipped during combat now finish laying out automatically once combat ends, instead of staying overlapped until an unrelated quest update.",
             L["wn_361_buttonbag"] or "Fix — The minimap addon-button collector no longer forgets the buttons it has already gathered when it rescans, so addons that register their button later open a new row instead of stacking on top of the first one.",
             L["wn_361_trackdupe"] or "Fix — The Tracking panel no longer lists the same entry twice (Banker showed up on two rows). Tracking filters the game reports under the same name are merged into a single row that toggles them together.",
+            L["wn_361_micromenu_native"] or "Fix — TomoMod no longer builds its own container, reparents buttons or touches layout for Blizzard's Micro Menu. The Micro Menu bar option now only changes the native menu's alpha on mouseover, leaving its geometry entirely under Blizzard's control.",
+            L["wn_361_micromenu_gui"] or "Changed — The Fade options panel now labels the Micro Menu entry \"Blizzard Micro Menu (mouseover)\" and explains that TomoMod only adjusts its alpha, with no repositioning, resizing, skinning or reparenting.",
             L["wn_361_validation"] or "Tested — Assisted Combat, key-down casting, combat-reload bindings, Bar 1/Pet/Stance strata near the World Map, spell flyouts and Objective Tracker combat deferral were validated in game.",
         },
     },

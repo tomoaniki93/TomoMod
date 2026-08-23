@@ -356,6 +356,18 @@ function PrimeStandardOwnedButtonVisuals(buttons)
 end
 
 function BuildBar(barKey)
+    if barKey == "microbar" then
+        -- TOMOMOD 3.6.1 / Midnight 12.1:
+        -- Keep Blizzard's MicroMenu completely native. Do not create a TomoMod
+        -- container for it and do not enter the legacy reparent/layout/hook path
+        -- below. TomoMod only keeps alpha-based mouseover presentation through
+        -- actionbars_mouseover.lua.
+        ActionBarsOwned.nativeButtons[barKey] = nil
+        ActionBarsOwned.containers[barKey] = nil
+        SetupBarMouseover(barKey)
+        return
+    end
+
     if barKey == "bags" then
         return
     end

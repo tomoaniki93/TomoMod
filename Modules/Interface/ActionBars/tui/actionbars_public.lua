@@ -596,7 +596,7 @@ function ActionBarsOwned:Initialize()
             bar1 = "bar1", bar2 = "bar2", bar3 = "bar3", bar4 = "bar4",
             bar5 = "bar5", bar6 = "bar6", bar7 = "bar7", bar8 = "bar8",
             petBar = "pet", stanceBar = "stance",
-            microMenu = "microbar", bagBar = "bags",
+            bagBar = "bags",
         }
         local lm = ns.TUI_LayoutMode
         if lm then
@@ -779,10 +779,18 @@ _G.TUI_RefreshActionBarFade = function()
         RefreshActionBarContextVisibility()
     end
     for _, barKey in ipairs(ALL_MANAGED_BAR_KEYS) do
-        local state = GetOwnedBarFadeState(barKey)
-        state.isFading = false
-        CancelOwnedBarFadeTimers(state)
-        SetupOwnedBarMouseover(barKey)
+        if barKey == "microbar" then
+            -- Blizzard owns MicroMenu; only refresh native alpha/mouseover.
+            local state = GetBarFadeState(barKey)
+            state.isFading = false
+            CancelBarFadeTimers(state)
+            SetupBarMouseover(barKey)
+        else
+            local state = GetOwnedBarFadeState(barKey)
+            state.isFading = false
+            CancelOwnedBarFadeTimers(state)
+            SetupOwnedBarMouseover(barKey)
+        end
     end
     -- ExtraActionBarFrame and ZoneAbilityFrame are native
     -- Blizzard-owned surfaces. Do not install
@@ -838,12 +846,10 @@ do
             { key = "bar8", label = ns.L["Action Bar 8"], order = 8 },
             { key = "petBar",    label = ns.L["Pet Bar"],     order = 9 },
             { key = "stanceBar", label = ns.L["Stance Bar"],  order = 10 },
-            { key = "microMenu", label = ns.L["Micro Menu"],  order = 11 },
         }
 
         local DB_KEY_MAP = {
             petBar = "pet", stanceBar = "stance",
-            microMenu = "microbar",
         }
 
         um:RegisterElement({
@@ -925,7 +931,7 @@ do
                         bar5 = "MultiBarLeft", bar6 = "MultiBar5",
                         bar7 = "MultiBar6", bar8 = "MultiBar7",
                         petBar = "PetActionBar", stanceBar = "StanceBar",
-                        microMenu = "MicroMenuContainer", bagBar = "BagsBar",
+                        bagBar = "BagsBar",
                     }
                     return _G[BLIZZARD_FRAMES[info.key]]
                 end,

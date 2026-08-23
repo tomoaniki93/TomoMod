@@ -3332,6 +3332,8 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_361_tracker"] = "Behoben — Im Kampf übersprungene Questblöcke des Questzielverfolgers werden nach Kampfende jetzt automatisch fertig angeordnet, statt bis zu einem unabhängigen Questereignis überlappend stehen zu bleiben.",
     ["wn_361_buttonbag"] = "Behoben — Der Minikarten-Sammler für Addon-Buttons vergisst beim erneuten Suchen die bereits eingesammelten Buttons nicht mehr: Addons, die ihren Button später registrieren, öffnen jetzt eine neue Zeile, statt sich auf die erste zu stapeln.",
     ["wn_361_trackdupe"] = "Behoben — Das Verfolgen-Fenster listet denselben Eintrag nicht mehr doppelt auf („Bankier“ erschien in zwei Zeilen). Verfolgungsfilter, die das Spiel unter demselben Namen meldet, werden zu einer einzigen Zeile zusammengefasst, die sie gemeinsam umschaltet.",
+    ["wn_361_micromenu_native"] = "Behoben — TomoMod erstellt für Blizzards Mikromenü keinen eigenen Container mehr, hängt keine Buttons um und greift nicht mehr ins Layout ein. Die Mikromenü-Option ändert jetzt nur noch die Alpha-Transparenz des nativen Menüs bei Mausüberfahrt; seine Geometrie bleibt vollständig unter Blizzards Kontrolle.",
+    ["wn_361_micromenu_gui"] = "Geändert — Das Ausblenden-Optionsfenster beschriftet den Mikromenü-Eintrag jetzt als „Blizzard-Mikromenü (Mausüberfahrt)“ und erklärt, dass TomoMod nur dessen Alpha-Wert anpasst, ohne Verschieben, Skalieren, Skinnen oder Umhängen.",
     ["wn_361_validation"] = "Getestet — Verbündeter Kampf, Tastendruck-Wirken, Override-Bindungen nach Kampf-Reload, Leiste 1/Begleiter/Haltung nahe der Weltkarte, Zauber-Flyouts und die Kampfverzögerung des Questzielverfolgers wurden im Spiel getestet.",
     -- =====================
     -- 3.6.0 — What's New

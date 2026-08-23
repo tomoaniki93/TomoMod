@@ -77,9 +77,20 @@ The replacement micro bar used to mute Blizzard's micro menu by fading its *cont
 - **Fix** — Turning the micro bar's **Click-through** option off restores mouse input to its buttons. The build path only ever called `EnableMouse(false)` when the option was on and had no path back, so a bar made click-through stayed inert until the next reload; both the build and the reclaim path now reconcile unconditionally with `EnableMouse(not clickthrough)`.
 - **Changed** — The mouse-state reconcile and the portrait refresh moved out of the `needsReparent` branch of `ReclaimMicroButtons()` and now run on every pass. Blizzard can repaint or re-enable those buttons without moving them, so a pass that found nothing to reparent used to return with both left wrong.
 
+#### Action Bars — Native Micro Menu Fade (No Container Ownership)
+
+The ActionBars fade/build system used to treat `microbar` like any other owned bar: it created a TomoMod container for it, reparented it under that container's anchor key, and ran it through the same reclaim/layout hooks as Bar 1-8. On Midnight 12.1 that container ownership is unnecessary risk for a frame Edit Mode also lays out — the fix below removes it entirely and leaves the mouseover fade as the only thing TomoMod still does to it.
+
+- **Changed** — `BuildBar("microbar")` now returns immediately: no container is created, `ActionBarsOwned.containers.microbar` and `ActionBarsOwned.nativeButtons.microbar` are cleared, and only `SetupBarMouseover()` runs. The legacy reparent/layout/hook branch further down `BuildBar()` is unreachable for this bar and is left in place only as dead code for the next cleanup pass.
+- **Changed** — `GetContainerAnchorKey()` no longer maps `microbar` to `microMenu`, since no container is created for it to anchor.
+- **Changed** — `SetBarAlpha("microbar", alpha)` now only calls `SetAlpha()` on the native `MicroMenuContainer` frame and updates the fade state's `currentAlpha`. It no longer walks or mutates individual buttons, textures, parents, anchors or scale — that responsibility stays with the separate Micro Bar module described above.
+- **Changed** — `TUI_RefreshActionBarFade()` now branches on `microbar`: it refreshes the native fade state and calls `SetupBarMouseover()` directly instead of routing through the owned-bar fade helpers (`GetOwnedBarFadeState`, `CancelOwnedBarFadeTimers`, `SetupOwnedBarMouseover`), which assume an owned container that no longer exists for this bar.
+- **Removed** — The `microMenu` entries in the Edit Mode hidden-handles map, the Edit Mode element list/DB key map, and the Edit Mode Blizzard-frame lookup table. Micro Menu visibility and positioning are Blizzard's Edit Mode concerns now that TomoMod does not own a container for it.
+- **Changed** — The Fade options panel's bar list now labels this entry "Micro menu Blizzard (survol)" and adds an explanatory line above the bar checkboxes: the Micro Menu stays entirely Blizzard-owned, and TomoMod only changes its alpha to show it on mouseover — no move, resize, skin or reparent.
+
 #### Validation
 
-- **Tested** — Assisted Combat rotation display, key-down/key-up casting, override bindings across a combat `/reload`, Bar 1/Pet/Stance visibility next to the World Map, Mage/Hunter spell flyouts and Objective Tracker layout during and after combat were validated in game.
+- **Tested** — Assisted Combat rotation display, key-down/key-up casting, override bindings across a combat `/reload`, Bar 1/Pet/Stance visibility next to the World Map, Mage/Hunter spell flyouts, Objective Tracker layout during and after combat, and Micro Menu mouseover fade/geometry under Edit Mode were validated in game.
 
 ## ####################################
 

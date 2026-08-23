@@ -410,11 +410,12 @@ local function BuildFadeTab(parent)
         { key = "bar8", label = "Barre 8" },
         { key = "pet", label = "Familier" },
         { key = "stance", label = "Postures" },
-        { key = "microbar", label = "Micro menu" },
+        { key = "microbar", label = "Micro menu Blizzard (survol)" },
         { key = "bags", label = "Barre de sac" },
     }
-
     local _, ny = W.CreateSectionHeader(c, "Barres ciblées", y) y = ny
+    local _, ny = W.CreateInfoText(c,
+        "Le Micro menu reste entièrement géré par Blizzard. TomoMod ne modifie que son alpha pour l'afficher au survol : aucun déplacement, redimensionnement, skin ou reparentage.", y) y = ny
     for _, def in ipairs(fadeBarKeys) do
         local bar = db.bars[def.key]
         if type(bar) ~= "table" then bar = {}; db.bars[def.key] = bar end

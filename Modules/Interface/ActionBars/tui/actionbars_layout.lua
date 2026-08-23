@@ -330,7 +330,6 @@ end
 local function GetContainerAnchorKey(barKey)
     return (barKey == "pet" and "petBar")
         or (barKey == "stance" and "stanceBar")
-        or (barKey == "microbar" and "microMenu")
         or (barKey == "bags" and "bagBar")
         or barKey
 end
