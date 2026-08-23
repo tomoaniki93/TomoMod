@@ -255,7 +255,10 @@ function SetupStandardOwnedButtonRuntime(container, btn)
                     local actionType, flyoutID, subType = action and GetActionInfo(action)
                     if actionType == "flyout" and flyoutHandler then
                         if not down then
-                            local effectiveFlyoutID = self:GetAttribute("qui-flyout-id")
+                            -- Use the live action-slot flyout first. Bar 1 can page
+                            -- while in combat, so the cached attribute may describe the
+                            -- previous page and must only be a fallback.
+                            local effectiveFlyoutID = flyoutID or subType or self:GetAttribute("qui-flyout-id")
                             flyoutHandler:SetAttribute("flyoutParentHandle", self)
                             flyoutHandler:SetAttribute("flyoutID", effectiveFlyoutID)
                             flyoutHandler:RunAttribute("HandleFlyout")

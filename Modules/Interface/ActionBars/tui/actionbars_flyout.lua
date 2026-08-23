@@ -20,14 +20,17 @@ spellFlyoutSkinHooked = false
 do
 
 -- TOMOMOD 3.6.2 HOTFIX / Midnight 12.1:
--- Keep Blizzard's native flyout everywhere it is currently verified clean.
--- The reported Midnight 12.1 taint is isolated to TomoMod bar 6 (MultiBar5 /
--- action slots 145-156): Blizzard's SpellFlyout:Toggle() can run there in a
--- TomoMod-attributed path and taint SpellFlyoutPopupButton*.spellID/spellName,
--- which later makes Blizzard's protected CastSpellByID() forbidden. Quarantine
--- bar 6 only for now; do not widen the custom path without an in-game repro.
+-- The TomoMod-owned secure flyout is now used on every TomoMod standard action
+-- bar. In-game validation showed that Portal/Teleport works cleanly through the
+-- owned route while Blizzard's SpellFlyout path fails on the other owned bars
+-- and can taint SpellFlyoutPopupButton*.spellID/spellName before protected
+-- CastSpellByID(). Keep pet/stance on their native paths; all eight standard
+-- bars use the same verified TUI_SpellFlyout implementation.
 USE_OWNED_FLYOUT = false
-OWNED_FLYOUT_BAR_KEYS = { bar6 = true }
+OWNED_FLYOUT_BAR_KEYS = {
+    bar1 = true, bar2 = true, bar3 = true, bar4 = true,
+    bar5 = true, bar6 = true, bar7 = true, bar8 = true,
+}
 ActionBarsOwned.useOwnedFlyout = USE_OWNED_FLYOUT
 ActionBarsOwned.ownedFlyoutBarKeys = OWNED_FLYOUT_BAR_KEYS
 
@@ -455,7 +458,7 @@ local function CollectOwnedFlyoutIDs(out)
         end
     end
 
-    -- Also discover the exact flyouts placed on the quarantined bar. This is
+    -- Also discover the exact flyouts placed on TomoMod-owned standard bars. This is
     -- important for portal/trap actions that may not be represented by the
     -- currently enumerated spellbook branch on every class/spec state.
     for barKey in pairs(OWNED_FLYOUT_BAR_KEYS) do
