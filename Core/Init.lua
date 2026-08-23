@@ -399,13 +399,24 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         safeInit("AutoSkipRole",       TomoMod_AutoSkipRole)
         safeInit("TooltipIDs",         TomoMod_TooltipIDs)
         safeInit("AutoSummon",         TomoMod_AutoSummon)
+
+        -- Native Blizzard micro menu mode:
+        -- - the legacy QOL MicroBar module is no longer loaded
+        -- - the owned ActionBars microbar is forcibly disabled for existing DBs
+        --   so stable 3.6.1 behaves like the V4 native-micromenu path.
+        if TomoModDB and TomoModDB.actionBars and TomoModDB.actionBars.bars
+            and type(TomoModDB.actionBars.bars.microbar) == "table" then
+            TomoModDB.actionBars.bars.microbar.enabled = false
+            TomoModDB.actionBars.bars.microbar.fadeEnabled = false
+        end
+
         safeInit("HideCastBar",        TomoMod_HideCastBar)
         safeInit("BagMicroMenu",       TomoMod_BagMicroMenu)
-        safeInit("MicroBar",           TomoMod_MicroBar)
         safeInit("AutoFillDelete",     TomoMod_AutoFillDelete)
         safeInit("LustSound",          TomoMod_LustSound)
         safeInit("ClassReminder",      TomoMod_ClassReminder)
         safeInit("AFKDisplay",         TomoMod_AFKDisplay)
+
         safeInit("FrameAnchors",       TomoMod_FrameAnchors)
         safeInit("ProfessionHelper",   TomoMod_ProfessionHelper)
         safeInit("Waypoint",           TomoMod_Waypoint)

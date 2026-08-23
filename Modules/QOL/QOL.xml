@@ -36,7 +36,6 @@
     <Include file="Auto\AutoSkipRole.lua"/>
     <Include file="Auto\TooltipIDs.lua"/>
     <Include file="Auto\BagMicroMenu.lua"/>
-    <Include file="MicroMenu\MicroBar.lua"/>
     <Include file="Auto\MerchantTools.lua"/>
 
     <!-- Modules: AFK Display -->

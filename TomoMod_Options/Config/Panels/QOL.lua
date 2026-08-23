@@ -705,280 +705,41 @@ local function BuildBagMicroMenuTab(parent)
     end, 2)
     y = ny
 
-    -- ── Micro Bar ─────────────────────────────────────────────────
-
-    local function MBDB()
+    -- Œil LFG Blizzard natif : on conserve uniquement ON/OFF + taille.
+    local function EyeDB()
         if not TomoModDB.microBar then TomoModDB.microBar = {} end
         return TomoModDB.microBar
     end
 
-    local function MBRefresh()
-        if TomoMod_MicroBar and TomoMod_MicroBar.Refresh then TomoMod_MicroBar.Refresh() end
-    end
-
-    local _, ny = W.CreateSectionHeader(c, L["section_microbar"], y)
+    local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, L["info_microbar"], y)
+    local _, ny = W.CreateSectionHeader(c, "Œil de recherche de groupe", y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_microbar_enable"], MBDB().enabled, y, function(v)
-        if TomoMod_MicroBar and TomoMod_MicroBar.SetEnabled then
-            TomoMod_MicroBar.SetEnabled(v)
-        else
-            MBDB().enabled = v
-        end
-    end)
+    local _, ny = W.CreateInfoText(c,
+        "Le micro menu Blizzard n'est plus remplacé. TomoMod gère uniquement son affichage (toujours visible ou au survol) et l'œil LFG ci-dessous.",
+        y)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, L["opt_microbar_lfg_eye"],
-        MBDB().lfgEyeEnabled ~= false, y, function(v)
-            if TomoMod_MicroBar and TomoMod_MicroBar.SetLFGEyeEnabled then
-                TomoMod_MicroBar.SetLFGEyeEnabled(v)
+        EyeDB().lfgEyeEnabled ~= false, y, function(v)
+            if TomoMod_BagMicroMenu and TomoMod_BagMicroMenu.SetLFGEyeEnabled then
+                TomoMod_BagMicroMenu.SetLFGEyeEnabled(v)
+            else
+                EyeDB().lfgEyeEnabled = v
             end
         end)
     y = ny
 
     local _, ny = W.CreateSlider(c, L["opt_microbar_lfg_eye_scale"],
-        MBDB().lfgEyeScale or 1.0, 0.5, 2.0, 0.05, y, function(v)
-            if TomoMod_MicroBar and TomoMod_MicroBar.SetLFGEyeScale then
-                TomoMod_MicroBar.SetLFGEyeScale(v)
+        EyeDB().lfgEyeScale or 1.0, 0.5, 2.0, 0.05, y, function(v)
+            if TomoMod_BagMicroMenu and TomoMod_BagMicroMenu.SetLFGEyeScale then
+                TomoMod_BagMicroMenu.SetLFGEyeScale(v)
+            else
+                EyeDB().lfgEyeScale = v
             end
         end, "%.2f")
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_microbar_lfg_eye"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_microbar_hide_native"], MBDB().hideNative, y, function(v)
-        MBDB().hideNative = v
-        MBRefresh()
-    end)
-    y = ny
-
-    -- Buttons + order in a single control: tick to include, arrows to reorder.
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local reorderItems = {}
-    do
-        local db = MBDB()
-        local defs = (TomoMod_MicroBar and TomoMod_MicroBar.GetButtonDefs
-            and TomoMod_MicroBar.GetButtonDefs()) or {}
-        local byKey, seen = {}, {}
-        for _, def in ipairs(defs) do byKey[def.key] = def end
-        for _, key in ipairs(db.order or {}) do
-            local def = byKey[key]
-            if def and not seen[key] then
-                seen[key] = true
-                reorderItems[#reorderItems + 1] = {
-                    key     = def.key,
-                    text    = L[def.labelKey],
-                    checked = (db.buttons and db.buttons[def.key]) and true or false,
-                }
-            end
-        end
-        for _, def in ipairs(defs) do
-            if not seen[def.key] then
-                reorderItems[#reorderItems + 1] = {
-                    key     = def.key,
-                    text    = L[def.labelKey],
-                    checked = (db.buttons and db.buttons[def.key]) and true or false,
-                }
-            end
-        end
-    end
-
-    local _, ny = W.CreateReorderDropdown(c, L["opt_microbar_buttons"], reorderItems, y, function(items)
-        local db = MBDB()
-        db.order = {}
-        db.buttons = db.buttons or {}
-        for i, it in ipairs(items) do
-            db.order[i] = it.key
-            db.buttons[it.key] = it.checked and true or false
-        end
-        MBRefresh()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateSegmentedControl(c, L["opt_microbar_orientation"], {
-        { value = "horizontal", text = L["microbar_orient_h"] },
-        { value = "vertical",   text = L["microbar_orient_v"] },
-    }, MBDB().orientation or "horizontal", y, function(v)
-        MBDB().orientation = v
-        MBRefresh()
-    end, 2)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_microbar_per_line"], MBDB().perLine or 0,
-        0, 14, 1, y, function(v)
-            MBDB().perLine = v
-            MBRefresh()
-        end, "%.0f", 0)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_microbar_icon_size"], MBDB().iconSize or 26,
-        16, 64, 1, y, function(v)
-            MBDB().iconSize = v
-            MBRefresh()
-        end, "%.0f", 26)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_microbar_spacing"], MBDB().spacing or 4,
-        -4, 24, 1, y, function(v)
-            MBDB().spacing = v
-            MBRefresh()
-        end, "%.0f", 4)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_microbar_scale"], MBDB().scale or 1.0,
-        0.5, 2.0, 0.05, y, function(v)
-            MBDB().scale = v
-            MBRefresh()
-        end, "%.2f", 1.0)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_microbar_alpha"], MBDB().alpha or 1.0,
-        0.1, 1.0, 0.05, y, function(v)
-            MBDB().alpha = v
-            MBRefresh()
-        end, "%.2f", 1.0)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateDropdown(c, L["opt_microbar_fade_mode"], {
-        { value = "always",      text = L["microbar_fade_always"] },
-        { value = "hover",       text = L["microbar_fade_hover"] },
-        { value = "hovercombat", text = L["microbar_fade_hovercombat"] },
-    }, MBDB().fadeMode or "always", y, function(v)
-        MBDB().fadeMode = v
-        MBRefresh()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_microbar_fade_alpha"], MBDB().fadeAlpha or 0,
-        0, 1.0, 0.05, y, function(v)
-            MBDB().fadeAlpha = v
-            MBRefresh()
-        end, "%.2f", 0)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateSegmentedControl(c, L["opt_microbar_color_mode"], {
-        { value = "class",  text = L["microbar_color_class"] },
-        { value = "custom", text = L["microbar_color_custom"] },
-        { value = "native", text = L["microbar_color_native"] },
-    }, MBDB().colorMode or "class", y, function(v)
-        MBDB().colorMode = v
-        MBRefresh()
-    end, 3)
-    y = ny
-
-    local mbColor = MBDB().color or { r = 1, g = 1, b = 1 }
-    MBDB().color = mbColor
-    local _, ny = W.CreateColorPicker(c, L["opt_microbar_color"], mbColor, y, function(r, g, b)
-        local col = MBDB().color or {}
-        col.r, col.g, col.b = r, g, b
-        MBDB().color = col
-        MBRefresh()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_microbar_desaturate"], MBDB().desaturate, y, function(v)
-        MBDB().desaturate = v
-        MBRefresh()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_microbar_hover_zoom"], MBDB().hoverZoom, y, function(v)
-        MBDB().hoverZoom = v
-        MBRefresh()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_microbar_memory_tooltip"], MBDB().memoryTooltip, y, function(v)
-        MBDB().memoryTooltip = v
-    end)
-    y = ny
-
-    -- ── State parity ──────────────────────────────────────────────
-
-    local _, ny = W.CreateSectionHeader(c, L["section_microbar_states"], y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_microbar_states"], y)
-    y = ny
-
-    local _, ny = W.CreateDropdown(c, L["opt_microbar_alert_style"], {
-        { value = "None",               text = L["microbar_glow_none"]     },
-        { value = "Pixel Glow",         text = L["microbar_glow_pixel"]    },
-        { value = "Autocast Shine",     text = L["microbar_glow_autocast"] },
-        { value = "Action Button Glow", text = L["microbar_glow_button"]   },
-        { value = "Proc Glow",          text = L["microbar_glow_proc"]     },
-    }, MBDB().alertStyle or "Pixel Glow", y, function(v)
-        MBDB().alertStyle = v
-        MBRefresh()
-    end)
-    y = ny
-
-    local mbAlert = MBDB().alertColor or { r = 1.0, g = 0.82, b = 0.20 }
-    MBDB().alertColor = mbAlert
-    local _, ny = W.CreateColorPicker(c, L["opt_microbar_alert_color"], mbAlert, y, function(r, g, b)
-        local col = MBDB().alertColor or {}
-        col.r, col.g, col.b = r, g, b
-        MBDB().alertColor = col
-        MBRefresh()
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_microbar_dim_disabled"], MBDB().dimDisabled, y, function(v)
-        MBDB().dimDisabled = v
-        MBRefresh()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_microbar_disabled_alpha"], MBDB().disabledAlpha or 0.35,
-        0.1, 1.0, 0.05, y, function(v)
-            MBDB().disabledAlpha = v
-            MBRefresh()
-        end, "%.2f", 0.35)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_microbar_show_keybind"], MBDB().showKeybind, y, function(v)
-        MBDB().showKeybind = v
-        MBRefresh()
-    end)
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_microbar_keybind_size"], MBDB().keybindSize or 10,
-        6, 20, 1, y, function(v)
-            MBDB().keybindSize = v
-            MBRefresh()
-        end, "%.0f", 10)
-    y = ny
-
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    local _, ny = W.CreateButtonRow(c, {
-        { text = L["btn_microbar_place"], callback = function()
-            if TomoMod_MicroBar and TomoMod_MicroBar.ToggleLock then
-                TomoMod_MicroBar.ToggleLock()
-            end
-        end },
-        { text = L["btn_microbar_reset_pos"], callback = function()
-            if TomoMod_MicroBar and TomoMod_MicroBar.ResetPosition then
-                TomoMod_MicroBar.ResetPosition()
-            end
-        end },
-    }, y)
     y = ny
 
     c:SetHeight(math.abs(y) + 40)

@@ -410,7 +410,6 @@ local function BuildFadeTab(parent)
         { key = "bar8", label = "Barre 8" },
         { key = "pet", label = "Familier" },
         { key = "stance", label = "Postures" },
-        { key = "microbar", label = "Micro menu Blizzard (survol)" },
         { key = "bags", label = "Barre de sac" },
     }
     local _, ny = W.CreateSectionHeader(c, "Barres ciblées", y) y = ny

@@ -1,7 +1,13 @@
 -- =====================================
 -- BagMicroMenu.lua
--- Cache la barre de sac et le micro menu
--- avec option de survol à la souris
+-- Gère la barre de sac et le micro menu Blizzard natif
+-- avec option de survol à la souris.
+--
+-- Important:
+--   - TomoMod ne remplace plus le MicroMenu Blizzard.
+--   - le fade n'agit plus sur MicroMenuContainer mais seulement sur MicroMenu,
+--     afin de ne pas faire disparaître l'oeil LFG.
+--   - l'oeil LFG reste Blizzard natif ; TomoMod conserve seulement ON/OFF + taille.
 -- =====================================
 
 TomoMod_BagMicroMenu = TomoMod_BagMicroMenu or {}
@@ -20,19 +26,40 @@ local function GetBagBarFrame()
 end
 
 local function GetMicroMenuFrame()
-    return _G.MicroMenu or _G.MicroMenuContainer
+    return _G.MicroMenu
+end
+
+local function EnsureBagDB()
+    if not TomoModDB.bagMicroMenu then
+        TomoModDB.bagMicroMenu = {
+            bagBarMode = "show",
+            microMenuMode = "show",
+        }
+    end
+    return TomoModDB.bagMicroMenu
+end
+
+local function EnsureEyeDB()
+    if not TomoModDB.microBar then
+        TomoModDB.microBar = {}
+    end
+    if TomoModDB.microBar.lfgEyeEnabled == nil then
+        TomoModDB.microBar.lfgEyeEnabled = true
+    end
+    if TomoModDB.microBar.lfgEyeScale == nil then
+        TomoModDB.microBar.lfgEyeScale = 1.0
+    end
+    return TomoModDB.microBar
 end
 
 -- =====================================
 -- HOVER LOGIC
 -- =====================================
 
-local hoverFrame = nil
-
 local function IsMouseOverFrame(frame)
     if not frame or not frame:IsShown() then return false end
     if frame:IsMouseOver() then return true end
-    -- Vérifier aussi les enfants (boutons)
+
     for _, child in ipairs({ frame:GetChildren() }) do
         if child:IsMouseOver() then return true end
     end
@@ -45,13 +72,11 @@ local function SetupHoverForFrame(frame, onEnter, onLeave)
     frame:HookScript("OnEnter", onEnter)
     frame:HookScript("OnLeave", onLeave)
 
-    -- Hook aussi les enfants (boutons individuels)
     for _, child in ipairs({ frame:GetChildren() }) do
         if child:HasScript("OnEnter") then
             child:HookScript("OnEnter", onEnter)
             child:HookScript("OnLeave", onLeave)
         else
-            child:EnableMouse(true)
             child:SetScript("OnEnter", onEnter)
             child:SetScript("OnLeave", onLeave)
         end
@@ -62,14 +87,13 @@ local function FadeIn(frame)
     if not frame then return end
     UIFrameFadeIn(frame, FADE_IN_TIME, frame:GetAlpha(), 1)
 end
-
 local function FadeOut(frame)
     if not frame then return end
     UIFrameFadeOut(frame, FADE_OUT_TIME, frame:GetAlpha(), FADE_OUT_ALPHA)
 end
 
 -- =====================================
--- APPLICATION DES RÉGLAGES
+-- APPLICATION DES REGLAGES
 -- =====================================
 
 local hookedBagBar = false
@@ -109,7 +133,6 @@ local function ApplyBagBar()
             SetupHoverForFrame(bagBar, OnEnter, OnLeave)
         end
     else
-        -- Mode "show" : toujours visible
         bagBar:SetAlpha(1)
     end
 end
@@ -117,14 +140,6 @@ end
 local function ApplyMicroMenu()
     local settings = TomoModDB and TomoModDB.bagMicroMenu
     if not settings then return end
-
-    -- MicroBar replaces the native menu with its own bar and keeps the original
-    -- muted. Two modules writing alpha on the same frame would flicker, so the
-    -- one that owns it wins and this one stands down.
-    if TomoMod_MicroBar and TomoMod_MicroBar.OwnsNativeMenu
-        and TomoMod_MicroBar.OwnsNativeMenu() then
-        return
-    end
 
     local microMenu = GetMicroMenuFrame()
     if not microMenu then return end
@@ -156,47 +171,77 @@ local function ApplyMicroMenu()
             SetupHoverForFrame(microMenu, OnEnter, OnLeave)
         end
     else
-        -- Mode "show" : toujours visible
         microMenu:SetAlpha(1)
     end
+end
+
+local function ApplyLFGEye()
+    local btn = _G["QueueStatusButton"]
+    if not btn then return end
+
+    local db = EnsureEyeDB()
+    local visible = db.lfgEyeEnabled ~= false
+    local scale = tonumber(db.lfgEyeScale) or 1.0
+
+    btn:SetScale(scale)
+    btn:SetAlpha(visible and 1 or 0)
+    btn:EnableMouse(visible and true or false)
 end
 
 function BMM.ApplySettings()
     ApplyBagBar()
     ApplyMicroMenu()
+    ApplyLFGEye()
 end
 
 -- =====================================
 -- INITIALISATION
 -- =====================================
 
+local eventFrame = nil
+
 function BMM.Initialize()
     if not TomoModDB then return end
 
-    if not TomoModDB.bagMicroMenu then
-        TomoModDB.bagMicroMenu = {
-            bagBarMode = "show",
-            microMenuMode = "show",
-        }
+    EnsureBagDB()
+    EnsureEyeDB()
+
+    if not eventFrame then
+        eventFrame = CreateFrame("Frame")
+        eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+        eventFrame:RegisterEvent("LFG_UPDATE")
+        eventFrame:RegisterEvent("LFG_QUEUE_STATUS_UPDATE")
+        eventFrame:RegisterEvent("UPDATE_BATTLEFIELD_STATUS")
+        eventFrame:SetScript("OnEvent", function()
+            C_Timer.After(0, function()
+                BMM.ApplySettings()
+            end)
+        end)
     end
 
-    -- Attendre que les frames soient prêtes
     C_Timer.After(1, function()
         BMM.ApplySettings()
     end)
 end
 
 function BMM.SetBagBarMode(mode)
-    if not TomoModDB or not TomoModDB.bagMicroMenu then return end
-    TomoModDB.bagMicroMenu.bagBarMode = mode
+    EnsureBagDB().bagBarMode = mode
     ApplyBagBar()
 end
 
 function BMM.SetMicroMenuMode(mode)
-    if not TomoModDB or not TomoModDB.bagMicroMenu then return end
-    TomoModDB.bagMicroMenu.microMenuMode = mode
+    EnsureBagDB().microMenuMode = mode
     ApplyMicroMenu()
 end
 
--- Export
+function BMM.SetLFGEyeEnabled(enabled)
+    EnsureEyeDB().lfgEyeEnabled = enabled and true or false
+    ApplyLFGEye()
+end
+
+function BMM.SetLFGEyeScale(scale)
+    EnsureEyeDB().lfgEyeScale = tonumber(scale) or 1.0
+    ApplyLFGEye()
+end
+
 _G.TomoMod_BagMicroMenu = BMM

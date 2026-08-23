@@ -502,7 +502,7 @@ TomoMod_Defaults = {
                 countAnchor = nil, countOffsetX = nil, countOffsetY = nil,
             },
             microbar = {
-                enabled = true, fadeEnabled = nil, fadeOutAlpha = nil, alwaysShow = false,
+                enabled = false, fadeEnabled = false, fadeOutAlpha = nil, alwaysShow = false,
                 ownedPosition = nil,
                 clickthrough = false,
                 ticketIcon = { position = "auto", offsetX = 0, offsetY = 0 },

@@ -88,9 +88,22 @@ The ActionBars fade/build system used to treat `microbar` like any other owned b
 - **Removed** — The `microMenu` entries in the Edit Mode hidden-handles map, the Edit Mode element list/DB key map, and the Edit Mode Blizzard-frame lookup table. Micro Menu visibility and positioning are Blizzard's Edit Mode concerns now that TomoMod does not own a container for it.
 - **Changed** — The Fade options panel's bar list now labels this entry "Micro menu Blizzard (survol)" and adds an explanatory line above the bar checkboxes: the Micro Menu stays entirely Blizzard-owned, and TomoMod only changes its alpha to show it on mouseover — no move, resize, skin or reparent.
 
+#### Micro Menu — Legacy Micro Bar Module Removed, Native Ownership Consolidated
+
+The two Micro Menu code paths above still left two different systems touching `microbar`: the ActionBars fade helper faded the native `MicroMenuContainer`, and the standalone Micro Bar module (`Modules/QOL/MicroMenu/MicroBar.lua`) built its own forwarder bar next to it. Running both meant a profile with the Micro Bar enabled fought the ActionBars fade for the same frame's mouseover state, and the LFG eye (`QueueStatusButton`) still rode along with whichever container happened to be faded to 0, appearing and disappearing with either module's mouseover instead of staying under its own control.
+
+- **Removed** — `Modules/QOL/MicroMenu/MicroBar.lua` is no longer included by `QOL.xml` and its `Initialize()` is no longer called from `Core/Init.lua`; the file itself is left in place but unloaded, since nothing else in the addon references `TomoMod_MicroBar` anymore.
+- **Changed** — `Core/Init.lua` now force-disables `actionBars.bars.microbar.enabled`/`.fadeEnabled` on every existing profile at load, and `TomoMod_Defaults.actionBars.bars.microbar` defaults to `enabled = false, fadeEnabled = false` for new profiles, so upgrading does not leave the old ActionBars-owned fade fighting the module below for the same frame.
+- **Removed** — The `microbar` entry is gone from the Fade tab's targeted-bar list in `ActionBars.lua`; there is nothing left for it to control once the ActionBars-owned fade path is disabled.
+- **Changed** — `BagMicroMenu.lua` now targets the native `MicroMenu` frame directly (instead of `MicroMenu or MicroMenuContainer`) for its show/hover fade, and the `TomoMod_MicroBar.OwnsNativeMenu()` stand-down check it used to defer to is gone along with the module.
+- **Fix** — The Group Finder eye (`QueueStatusButton`) no longer disappears when the Micro Menu fades out on mouse-leave. It previously lived inside whichever container got muted to alpha 0; a new `ApplyLFGEye()` in `BagMicroMenu.lua` sets its scale, alpha and mouse state independently of the Micro Menu's own fade, driven by a dedicated ON/OFF toggle and size slider.
+- **New** — `BagMicroMenu` now refreshes on `PLAYER_ENTERING_WORLD`, `LFG_UPDATE`, `LFG_QUEUE_STATUS_UPDATE` and `UPDATE_BATTLEFIELD_STATUS`, in addition to the existing one-second startup delay, so the eye's state stays correct across zoning and queue pops instead of only being set once at login.
+- **Changed** — The QOL options panel's Bag & Micro Menu tab no longer builds the full Micro Bar section (button ordering, orientation, per-line count, icon size, spacing, scale, alpha, fade mode, colors, glow states, keybind text and position controls). In its place is a single "Group Finder eye" section with the same ON/OFF toggle and size slider, now wired to `TomoMod_BagMicroMenu.SetLFGEyeEnabled`/`SetLFGEyeScale`.
+
 #### Validation
 
 - **Tested** — Assisted Combat rotation display, key-down/key-up casting, override bindings across a combat `/reload`, Bar 1/Pet/Stance visibility next to the World Map, Mage/Hunter spell flyouts, Objective Tracker layout during and after combat, and Micro Menu mouseover fade/geometry under Edit Mode were validated in game.
+- **Tested** — Group Finder eye visibility while the Micro Menu fades on mouseover, and across `LFG_UPDATE`/`LFG_QUEUE_STATUS_UPDATE`/`UPDATE_BATTLEFIELD_STATUS` events (queue pops, dungeon/battleground finder updates), were validated in game.
 
 ## ####################################
 
