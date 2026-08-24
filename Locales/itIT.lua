@@ -3302,6 +3302,12 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_333_diag_mode"] = "Diagnostica: quando il rapporto non riesce a determinare la modalità di visualizzazione, ora stampa i valori grezzi forniti dal gioco anziché un semplice punto interrogativo — quei nomi di impostazione cambiano da un'espansione all'altra, e un «?» da solo non era diagnosticabile senza tornare a chiedertelo. Lo schermo intero in finestra e le finestre massimizzate vengono riconosciuti in più casi, e le versioni dei componenti aggiuntivi non compaiono più come «vv1.2.3».",
     ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
     -- =====================
+    -- 3.6.2 — What's New
+    -- =====================
+    ["wn_362_vault_types"] = "Correzione — L'anteprima della Grande Camera Blindata nel Mythic Hub legge ora le sue righe Incursioni, Spedizioni e Abissi dai tipi di ricompensa ufficiali di Blizzard, invece di dedurli da ciò che l'API delle ricompense settimanali restituiva: la riga degli Abissi non resta più vuota né mostra le attività di un'altra riga.",
+    ["wn_362_vault_progress"] = "Correzione — L'anteprima della Grande Camera Blindata non forza più l'aggiornamento della finestra Ricompense Settimanali di Blizzard prima di leggere i tuoi progressi. Quell'aggiornamento azzera i progressi delle attività finché una ricompensa precedente è ancora da ritirare, facendo apparire come 0 spedizioni, boss di incursione e abissi già completati.",
+    ["wn_362_vault_slots"] = "Correzione — Ogni riga della Grande Camera Blindata chiede ora al gioco le proprie attività e le ordina per livello di ricompensa, così le voci aggiuntive restituite dall'API accanto alle righe reali (ricompense bonus e di recupero) non possono più occupare uno slot visibile.",
+    -- =====================
     -- 3.6.1 — What's New
     -- =====================
     ["wn_361_assist"] = "Correzione — Il frame di rotazione Combattimento assistito di Blizzard ora viene mostrato e aggiornato correttamente sui pulsanti azione TomoMod, invece di bloccarsi sul campo azione Lua non sincronizzato del pulsante.",

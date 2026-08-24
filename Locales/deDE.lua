@@ -3314,6 +3314,12 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
     -- =====================
+    -- 3.6.2 — What's New
+    -- =====================
+    ["wn_362_vault_types"] = "Behoben — Die Vorschau der Großen Schatzkammer im Mythic Hub liest ihre Zeilen für Schlachtzüge, Dungeons und Tiefen jetzt aus Blizzards offiziellen Belohnungstypen, statt sie aus dem zu erraten, was die Wochenbelohnungs-API gerade zurückgab. Die Tiefen-Zeile bleibt dadurch nicht mehr leer und zeigt auch nicht mehr die Aktivitäten einer anderen Zeile.",
+    ["wn_362_vault_progress"] = "Behoben — Die Vorschau der Großen Schatzkammer erzwingt keine Aktualisierung von Blizzards eigenem Wochenbelohnungs-Fenster mehr, bevor sie deinen Fortschritt ausliest. Diese Aktualisierung setzt den Aktivitätsfortschritt auf null zurück, solange eine frühere Belohnung noch abgeholt werden kann — abgeschlossene Dungeons, Schlachtzugsbosse und Tiefen wurden dadurch als 0 angezeigt.",
+    ["wn_362_vault_slots"] = "Behoben — Jede Zeile der Großen Schatzkammer fragt ihre Aktivitäten jetzt einzeln beim Spiel ab und sortiert sie nach Belohnungsstufe. Die zusätzlichen Einträge, die die API neben den echten Zeilen zurückgibt (Bonus- und Aufholbelohnungen), können damit keinen sichtbaren Platz mehr belegen.",
+    -- =====================
     -- 3.6.1 — What's New
     -- =====================
     ["wn_361_assist"] = "Behoben — Blizzards Verbündeter-Kampf-Rotationsrahmen wird auf TomoMod-Aktionsbuttons jetzt korrekt angezeigt und aktualisiert, statt am unsynchronisierten Lua-Aktionsfeld des Buttons einzufrieren.",

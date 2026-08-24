@@ -3330,6 +3330,12 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_333_diag_mode"] = "Diagnostics : quand le rapport n'arrive pas à déterminer votre mode d'affichage, il indique maintenant les valeurs brutes renvoyées par le jeu au lieu d'un simple point d'interrogation — ces noms de réglages changent d'une extension à l'autre, et un « ? » seul ne pouvait pas être diagnostiqué sans revenir vers vous. Le plein écran fenêtré et les fenêtres agrandies sont reconnus dans davantage de cas, et les versions des addons ne s'affichent plus sous la forme « vv1.2.3 ».",
     ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
     -- =====================
+    -- 3.6.2 — What's New
+    -- =====================
+    ["wn_362_vault_types"] = "Correction — L'aperçu de la Grande Chambre forte du Mythic Hub lit désormais ses lignes Raids, Donjons et Gouffres à partir des types de récompense officiels de Blizzard, au lieu de les deviner d'après ce que l'API des récompenses hebdomadaires renvoyait : la ligne Gouffres n'apparaît donc plus vide ni remplie des activités d'une autre ligne.",
+    ["wn_362_vault_progress"] = "Correction — L'aperçu de la Grande Chambre forte ne force plus le rafraîchissement de la fenêtre Récompenses hebdomadaires de Blizzard avant de lire ta progression. Ce rafraîchissement remet la progression des activités à zéro tant qu'une récompense précédente n'a pas été récupérée, ce qui affichait 0 pour des donjons, des boss de raid et des gouffres pourtant terminés.",
+    ["wn_362_vault_slots"] = "Correction — Chaque ligne de la Grande Chambre forte demande désormais ses propres activités au jeu et les trie par palier de récompense : les entrées supplémentaires renvoyées par l'API à côté des vraies lignes (récompenses bonus et de rattrapage) ne peuvent plus occuper un emplacement visible.",
+    -- =====================
     -- 3.6.1 — What's New
     -- =====================
     ["wn_361_assist"] = "Correction — Le cadre de rotation Combat assisté de Blizzard s’affiche et se met à jour désormais correctement sur les boutons d’action TomoMod, au lieu de se figer sur le champ d’action Lua non synchronisé du bouton.",

@@ -3315,6 +3315,12 @@ TomoMod_RegisterLocale("esES", {
     ["wn_333_diag_mode"] = "Diagnóstico: cuando el informe no consigue determinar tu modo de pantalla, ahora imprime los valores en bruto que le dio el juego en lugar de un simple signo de interrogación — esos nombres de ajuste cambian de una expansión a otra, y un «?» a secas no se podía diagnosticar sin volver a preguntarte. La pantalla completa en ventana y las ventanas maximizadas se reconocen en más casos, y las versiones de los accesorios ya no aparecen como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: los marcos de grupo y de banda mantenían dos copias de las mismas 250 líneas — la lógica de invocación, la lista de sanaciones periódicas, el seguimiento de defensivos. Los tres fallos anteriores vienen de ahí: una corrección aplicada a una copia y no a la otra. Ahora comparten una única implementación.",
     -- =====================
+    -- 3.6.2 — What's New
+    -- =====================
+    ["wn_362_vault_types"] = "Corrección — La vista previa de la Gran Cámara en el Mythic Hub ahora lee sus filas de Bandas, Mazmorras y Profundidades a partir de los tipos de recompensa oficiales de Blizzard, en lugar de deducirlos de lo que devolviera la API de recompensas semanales, así que la fila de Profundidades ya no aparece vacía ni con las actividades de otra fila.",
+    ["wn_362_vault_progress"] = "Corrección — La vista previa de la Gran Cámara ya no fuerza una actualización de la propia ventana de Recompensas Semanales de Blizzard antes de leer tu progreso. Esa actualización pone el progreso de las actividades a cero mientras quede una recompensa anterior por recoger, lo que hacía que mazmorras, jefes de banda y profundidades ya completados se mostraran como 0.",
+    ["wn_362_vault_slots"] = "Corrección — Cada fila de la Gran Cámara pide ahora al juego sus propias actividades y las ordena por nivel de recompensa, de modo que las entradas adicionales que la API devuelve junto a las filas reales (recompensas extra y de recuperación) ya no pueden ocupar una casilla visible.",
+    -- =====================
     -- 3.6.1 — What's New
     -- =====================
     ["wn_361_assist"] = "Corrección — El marco de rotación de Combate Asistido de Blizzard ahora se muestra y actualiza correctamente en los botones de acción de TomoMod, en lugar de congelarse en el campo de acción Lua no sincronizado del botón.",

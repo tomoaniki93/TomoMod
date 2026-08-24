@@ -63,6 +63,14 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "3.6.2",
+        highlights = {
+            L["wn_362_vault_types"] or "Fix — The Great Vault preview in Mythic Hub now reads its Raids, Dungeons and Delves rows from Blizzard's official reward types instead of guessing them from whatever the weekly rewards API happened to return, so the Delves row no longer comes up empty or filled with another row's activities.",
+            L["wn_362_vault_progress"] or "Fix — The Great Vault preview no longer forces a refresh of Blizzard's own Weekly Rewards window before reading your progress. That refresh resets activity progress to zero while a previous reward is still waiting to be claimed, which made completed dungeons, raid bosses and delves show up as 0.",
+            L["wn_362_vault_slots"] or "Fix — Each Great Vault row now asks the game for its own activities and orders them by reward tier, so the extra entries the API returns alongside the real rows (bonus and catch-up rewards) can no longer take over a visible slot.",
+        },
+    },
+    {
         version = "3.6.1",
         highlights = {
             L["wn_361_assist"] or "Fix — Blizzard's Assisted Combat rotation frame now shows and updates correctly on TomoMod action buttons instead of freezing on the button's unsynced Lua action field.",

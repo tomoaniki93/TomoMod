@@ -3302,6 +3302,12 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_333_diag_mode"] = "Diagnóstico: quando o relatório não consegue determinar seu modo de exibição, ele agora imprime os valores brutos que o jogo forneceu em vez de apenas um ponto de interrogação — esses nomes de configuração mudam de uma expansão para outra, e um «?» sozinho não podia ser diagnosticado sem voltar a perguntar. Tela cheia em janela e janelas maximizadas são reconhecidas em mais casos, e as versões dos complementos não aparecem mais como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
     -- =====================
+    -- 3.6.2 — What's New
+    -- =====================
+    ["wn_362_vault_types"] = "Correção — A prévia da Grande Câmara no Mythic Hub agora lê suas linhas de Raides, Masmorras e Abismos a partir dos tipos de recompensa oficiais da Blizzard, em vez de deduzi-los do que a API de recompensas semanais retornasse, então a linha de Abismos não aparece mais vazia nem preenchida com as atividades de outra linha.",
+    ["wn_362_vault_progress"] = "Correção — A prévia da Grande Câmara não força mais uma atualização da própria janela de Recompensas Semanais da Blizzard antes de ler o seu progresso. Essa atualização zera o progresso das atividades enquanto uma recompensa anterior ainda não foi coletada, o que fazia masmorras, chefes de raide e abismos já concluídos aparecerem como 0.",
+    ["wn_362_vault_slots"] = "Correção — Cada linha da Grande Câmara agora pede ao jogo as suas próprias atividades e as ordena por nível de recompensa, de modo que as entradas extras que a API retorna ao lado das linhas reais (recompensas bônus e de recuperação) não podem mais ocupar um espaço visível.",
+    -- =====================
     -- 3.6.1 — What's New
     -- =====================
     ["wn_361_assist"] = "Correção — O quadro de rotação de Combate Assistido da Blizzard agora é exibido e atualizado corretamente nos botões de ação do TomoMod, em vez de travar no campo de ação Lua não sincronizado do botão.",

@@ -57,36 +57,12 @@ local COL = {
 }
 
 -- ═══════════════════════════════════════════════════════════════════════
---  VAULT ROW DEFS — discover real type values from API data
+--  VAULT ROW DEFS — use Blizzard's official enum values
 -- ═══════════════════════════════════════════════════════════════════════
-local VAULT_TYPE_DUNGEON = 1   -- fallback
-local VAULT_TYPE_RAID    = 3   -- fallback
-local VAULT_TYPE_WORLD   = 6   -- fallback
-
-local function DiscoverVaultTypes()
-    if not C_WeeklyRewards then return end
-    local activities = C_WeeklyRewards.GetActivities()
-    if not activities then return end
-    local seen = {}
-    for _, act in ipairs(activities) do
-        seen[act.type] = true
-    end
-    -- Sort type keys
-    local keys = {}
-    for k in pairs(seen) do keys[#keys + 1] = k end
-    table.sort(keys)
-    -- Expect 3 types: lowest = dungeons, middle = raid, highest = world
-    if #keys >= 3 then
-        VAULT_TYPE_DUNGEON = keys[1]
-        VAULT_TYPE_RAID    = keys[2]
-        VAULT_TYPE_WORLD   = keys[3]
-    elseif #keys == 2 then
-        VAULT_TYPE_DUNGEON = keys[1]
-        VAULT_TYPE_RAID    = keys[2]
-    elseif #keys == 1 then
-        VAULT_TYPE_DUNGEON = keys[1]
-    end
-end
+local WEEKLY_REWARD_TYPES = Enum and Enum.WeeklyRewardChestThresholdType
+local VAULT_TYPE_DUNGEON = (WEEKLY_REWARD_TYPES and (WEEKLY_REWARD_TYPES.Activities or WEEKLY_REWARD_TYPES.MythicPlus)) or 1
+local VAULT_TYPE_RAID    = (WEEKLY_REWARD_TYPES and WEEKLY_REWARD_TYPES.Raid) or 3
+local VAULT_TYPE_WORLD   = (WEEKLY_REWARD_TYPES and WEEKLY_REWARD_TYPES.World) or 6
 
 local function GetVaultRowDefs()
     return {
@@ -834,32 +810,28 @@ function HUB:RefreshVault()
         if not loaded then return end
     end
 
-    -- Force a data refresh so we get up-to-date vault info
-    if WeeklyRewardsFrame and WeeklyRewardsFrame.FullRefresh then
-        WeeklyRewardsFrame:FullRefresh()
-    end
+    -- Important: do NOT call WeeklyRewardsFrame:FullRefresh() here.
+    -- Blizzard's refresh code can intentionally overwrite activityInfo.progress
+    -- with 0 while previous rewards are claimable. MythicHub only needs the
+    -- read-only C_WeeklyRewards API, so forcing the Blizzard frame refresh can
+    -- corrupt the progress values we are about to display.
 
-    local activities = C_WeeklyRewards.GetActivities()
-    if not activities then return end
-
-    local hasGenerated = C_WeeklyRewards.HasGeneratedRewards()
-
-    -- Organize by type + threshold index
-    local byType = {}
-    for _, act in ipairs(activities) do
-        if not byType[act.type] then byType[act.type] = {} end
-        byType[act.type][act.index] = act
-    end
-
-    DiscoverVaultTypes()
     local VAULT_ROWS = GetVaultRowDefs()
 
     for ri, rowDef in ipairs(VAULT_ROWS) do
+        -- Query each vault row explicitly. This avoids mixing in auxiliary
+        -- activity types (AlsoReceive / Concession) from GetActivities() and
+        -- keeps the visual slots bound to Blizzard's actual row data.
+        local rowActivities = C_WeeklyRewards.GetActivities(rowDef.type) or {}
+        table.sort(rowActivities, function(a, b)
+            return (a.index or math.huge) < (b.index or math.huge)
+        end)
+
         for si = 1, 3 do
             local slot = F._vaultSlots[ri] and F._vaultSlots[ri][si]
             if not slot then break end
 
-            local act = byType[rowDef.type] and byType[rowDef.type][si]
+            local act = rowActivities[si]
 
             if act then
                 slot._activityData = act  -- store for tooltip

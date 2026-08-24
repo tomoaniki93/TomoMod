@@ -1,5 +1,24 @@
 ﻿## ####################################
 
+## CHANGELOG 3.6.2 — Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding
+
+#### Mythic Hub — Great Vault Row Types
+
+- **Fix** — The Great Vault preview no longer guesses which reward type belongs to which row. `DiscoverVaultTypes()` collected every `type` value returned by `C_WeeklyRewards.GetActivities()`, sorted them, and assumed the lowest was dungeons, the middle raids and the highest world content. Any week where one of the three did not appear — or where an auxiliary type showed up alongside them — shifted the whole mapping by one row. Row types are now taken straight from `Enum.WeeklyRewardChestThresholdType` (`Activities` / `MythicPlus`, `Raid`, `World`), with the previous 1 / 3 / 6 values kept only as fallbacks should the enum be unavailable.
+- **Fix** — The **Delves** row, the one most often mis-detected by that heuristic, now binds to the correct reward type and shows its real progress instead of coming up empty or mirroring another row's activities.
+- **Removed** — `DiscoverVaultTypes()` is gone. It ran on every vault refresh and could only ever re-derive what the client already publishes as an enum.
+
+#### Mythic Hub — Great Vault Progress Values
+
+- **Fix** — `RefreshVault()` no longer calls `WeeklyRewardsFrame:FullRefresh()` before reading the API. Blizzard's refresh path deliberately zeroes `activityInfo.progress` while a previous reward is still claimable, so forcing it made completed dungeons, raid bosses and delves display as `0`. MythicHub only ever reads from the `C_WeeklyRewards` API, so nothing in it required the Blizzard frame to be refreshed in the first place.
+
+#### Mythic Hub — Great Vault Slot Binding
+
+- **Changed** — Each row now queries `C_WeeklyRewards.GetActivities(rowDef.type)` for its own activities and sorts them by `index`, instead of bucketing one unfiltered `GetActivities()` call into a `byType[type][index]` table. The unfiltered call also returns auxiliary entries (`AlsoReceive`, `Concession`) that could land in a visible slot; the per-row query keeps the three displayed slots bound to Blizzard's actual row data.
+- **Internal** — `hasGenerated` (`C_WeeklyRewards.HasGeneratedRewards()`) was read in `RefreshVault()` and never used afterwards. It has been removed along with the now-unused unfiltered activity list.
+
+## ####################################
+
 ## CHANGELOG 3.6.1 — Action Bars: Assisted Combat Bridge, Input Latency Fix, Combat-Safe Paging, Flyout Taint Removal & Movable Leave Vehicle + Minimap Collector Row Wrapping
 
 #### Action Bars — Assisted Combat Secure Slot Bridge
