@@ -1,6 +1,6 @@
 ﻿## ####################################
 
-## CHANGELOG 3.6.2 — Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding + Action Bars: Restored Secure Release Contract on Owned Buttons, Combat Input Latency, Coalesced Glow Reconciliation & Assisted Combat Event Load
+## CHANGELOG 3.6.2 — Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding + Action Bars: Restored Secure Release Contract on Owned Buttons, Cooldown State Push-Through, Combat Input Latency, Coalesced Glow Reconciliation & Assisted Combat Event Load
 
 #### Mythic Hub — Great Vault Row Types
 
@@ -23,6 +23,13 @@
 - **Fix** — `TUI_UpdateActionFlags`, the restricted snippet that runs on every action, form and page change, now restores `typerelease = "actionrelease"` whenever it is not already set. This also repairs a button coming back from the GSE forwarding path, which intentionally owns `typerelease` (`nil` or `"click"`) and previously left the normal action path with the GSE release contract until the next reload.
 - **Unchanged** — `RegisterForClicks("AnyDown", "AnyUp")` stays as it is. TUI keybinds are routed through secure click bindings and need both phases, notably for press/hold/release spells.
 - **Note** — The rewrite is conditional, so it costs a single attribute read per refresh and never re-writes an attribute that is already correct — the reason the previous code avoided touching it on every form/page swap.
+
+#### Action Bars — Cooldown State Push-Through
+
+- **Fix** — `GetActionCooldownState()` no longer memoizes an action's cooldown state across frames and events. During the server acknowledgement window, `ACTIONBAR_UPDATE_COOLDOWN` can arrive while the previously cached state no longer represents the action; reusing that state until an arbitrary TTL or `expiresAt` could hide a cooldown transition entirely, which is most noticeable on short cooldowns. Every call now reads the API.
+- **Unchanged** — The same-batch caches inside `GetActionCooldownInfo()` and `GetActionCooldownDurationObject()` are kept, so duplicate queries for the same action within one `UpdateAllCooldowns()` pass are still coalesced. Event throttling is untouched.
+- **Removed** — The cross-frame cache the fix makes dead: the five per-button weak tables (`_buttonCooldownAction`, `_buttonCooldownInfo`, `_buttonCooldownDurationObject`, `_buttonCooldownExpiresAt`, `_buttonCooldownInactiveAt`), the four TTL constants that drove them (`ACTIVE_COOLDOWN_CACHE_MAX_DURATION`, `ACTIVE_COOLDOWN_CACHE_LONG_REFRESH_TTL`, `ACTIVE_COOLDOWN_CACHE_FALLBACK_TTL`, `INACTIVE_COOLDOWN_CACHE_TTL`), `ResetButtonCooldownRuntimeCache()` with its call site and wipes, and `GetSafeCooldownTiming()`, whose only consumer was the cache expiry computation.
+- **Removed** — Three debug counters that could only ever read `0` once the cache was gone: `AB_actionCooldownActiveHits`, `AB_actionCooldownInactiveSkips` and `AB_actionDurationActiveHits`. `AB_actionCooldownQueries`, `AB_actionCooldownHits`, `AB_actionDurationQueries` and `AB_actionDurationHits` remain, now reporting purely on the same-batch caches.
 
 #### Action Bars — Combat Input Latency
 

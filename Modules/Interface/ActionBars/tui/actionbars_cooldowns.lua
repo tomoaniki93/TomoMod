@@ -23,11 +23,8 @@ local function SetupDebugInstrumentation()
         buttons = 0,
         actionCooldownQueries = 0,
         actionCooldownHits = 0,
-        actionCooldownActiveHits = 0,
-        actionCooldownInactiveSkips = 0,
         actionDurationQueries = 0,
         actionDurationHits = 0,
-        actionDurationActiveHits = 0,
         chargeInfoQueries = 0,
         chargeInfoSkips = 0,
         chargeInfoActive = 0,
@@ -44,11 +41,8 @@ local function SetupDebugInstrumentation()
     mp[#mp + 1] = { name = "AB_cooldownButtons", counter = true, fn = function() return _abCooldownStats.buttons end }
     mp[#mp + 1] = { name = "AB_actionCooldownQueries", counter = true, fn = function() return _abCooldownStats.actionCooldownQueries end }
     mp[#mp + 1] = { name = "AB_actionCooldownHits", counter = true, fn = function() return _abCooldownStats.actionCooldownHits end }
-    mp[#mp + 1] = { name = "AB_actionCooldownActiveHits", counter = true, fn = function() return _abCooldownStats.actionCooldownActiveHits end }
-    mp[#mp + 1] = { name = "AB_actionCooldownInactiveSkips", counter = true, fn = function() return _abCooldownStats.actionCooldownInactiveSkips end }
     mp[#mp + 1] = { name = "AB_actionDurationQueries", counter = true, fn = function() return _abCooldownStats.actionDurationQueries end }
     mp[#mp + 1] = { name = "AB_actionDurationHits", counter = true, fn = function() return _abCooldownStats.actionDurationHits end }
-    mp[#mp + 1] = { name = "AB_actionDurationActiveHits", counter = true, fn = function() return _abCooldownStats.actionDurationActiveHits end }
     mp[#mp + 1] = { name = "AB_chargeInfoQueries", counter = true, fn = function() return _abCooldownStats.chargeInfoQueries end }
     mp[#mp + 1] = { name = "AB_chargeInfoSkips", counter = true, fn = function() return _abCooldownStats.chargeInfoSkips end }
     mp[#mp + 1] = { name = "AB_chargeInfoActive", counter = true, fn = function() return _abCooldownStats.chargeInfoActive end }
@@ -72,10 +66,6 @@ do
 
     local DEFAULT_CD_INFO  = { startTime = 0, duration = 0, isEnabled = false, isActive = false, modRate = 0 }
     local DEFAULT_LOC_INFO = { startTime = 0, duration = 0, modRate = 0, isActive = false, shouldReplaceNormalCooldown = false }
-    local ACTIVE_COOLDOWN_CACHE_MAX_DURATION = 2.5
-    local ACTIVE_COOLDOWN_CACHE_LONG_REFRESH_TTL = 1.0
-    local ACTIVE_COOLDOWN_CACHE_FALLBACK_TTL = 0.20
-    local INACTIVE_COOLDOWN_CACHE_TTL = 0.25
 
     local function GetOrCreateChargeCooldown(button)
         if button.chargeCooldown then return button.chargeCooldown end
@@ -159,11 +149,6 @@ do
     end
 
     local _buttonWasActive = setmetatable({}, { __mode = "k" })
-    local _buttonCooldownAction = setmetatable({}, { __mode = "k" })
-    local _buttonCooldownInfo = setmetatable({}, { __mode = "k" })
-    local _buttonCooldownDurationObject = setmetatable({}, { __mode = "k" })
-    local _buttonCooldownExpiresAt = setmetatable({}, { __mode = "k" })
-    local _buttonCooldownInactiveAt = setmetatable({}, { __mode = "k" })
     local _buttonChargeAction = setmetatable({}, { __mode = "k" })
     local _buttonMayHaveCharges = setmetatable({}, { __mode = "k" })
     local _cooldownBatchToken = 0
@@ -198,26 +183,12 @@ do
         SetupChargeCacheProbe()
     end
 
-    local function ResetButtonCooldownRuntimeCache(button)
-        _buttonCooldownAction[button] = nil
-        _buttonCooldownInfo[button] = nil
-        _buttonCooldownDurationObject[button] = nil
-        _buttonCooldownExpiresAt[button] = nil
-        _buttonCooldownInactiveAt[button] = nil
-    end
-
     ResetButtonChargeCapabilityCache = function(button)
-        ResetButtonCooldownRuntimeCache(button)
         _buttonChargeAction[button] = nil
         _buttonMayHaveCharges[button] = nil
     end
 
     ResetAllChargeCapabilityCaches = function()
-        wipe(_buttonCooldownAction)
-        wipe(_buttonCooldownInfo)
-        wipe(_buttonCooldownDurationObject)
-        wipe(_buttonCooldownExpiresAt)
-        wipe(_buttonCooldownInactiveAt)
         wipe(_buttonChargeAction)
         wipe(_buttonMayHaveCharges)
         wipe(_batchCooldownInfoSeen)
@@ -258,21 +229,6 @@ do
 
     local function EndCooldownBatch()
         _cooldownBatchActive = false
-    end
-
-    local function GetSafeCooldownTiming(cdInfo)
-        local start = cdInfo.startTime
-        local duration = cdInfo.duration
-        if Helpers.IsSecretValue(start) or Helpers.IsSecretValue(duration) then
-            return nil, nil -- @secret-policy: reject-secret-value
-        end
-        if type(start) ~= "number" or type(duration) ~= "number" then
-            return nil, nil
-        end
-        if start <= 0 or duration <= 0 then
-            return nil, nil
-        end
-        return start + duration, duration
     end
 
     local function GetActionCooldownInfo(action)
@@ -363,68 +319,21 @@ do
     end
 
     local function GetActionCooldownState(button, action)
-        local actionCanBeCached = not Helpers.IsSecretValue(action)
-        if actionCanBeCached and _buttonCooldownAction[button] == action then
-            local expiresAt = _buttonCooldownExpiresAt[button]
-            if type(expiresAt) == "number" and GetTime() < expiresAt - 0.05 then
-                local durationObject = _buttonCooldownDurationObject[button]
-                if durationObject then
-                    if _abCooldownStats then
-                        _abCooldownStats.actionCooldownHits = _abCooldownStats.actionCooldownHits + 1
-                        _abCooldownStats.actionCooldownActiveHits = _abCooldownStats.actionCooldownActiveHits + 1
-                        _abCooldownStats.actionDurationHits = _abCooldownStats.actionDurationHits + 1
-                        _abCooldownStats.actionDurationActiveHits = _abCooldownStats.actionDurationActiveHits + 1
-                    end
-                    return _buttonCooldownInfo[button], durationObject, true
-                end
-            end
-
-            local inactiveAt = _buttonCooldownInactiveAt[button]
-            if type(inactiveAt) == "number"
-                and GetTime() - inactiveAt < INACTIVE_COOLDOWN_CACHE_TTL then
-                if _abCooldownStats then
-                    _abCooldownStats.actionCooldownHits = _abCooldownStats.actionCooldownHits + 1
-                    _abCooldownStats.actionCooldownInactiveSkips = _abCooldownStats.actionCooldownInactiveSkips + 1
-                end
-                return DEFAULT_CD_INFO, nil, false
-            end
-        end
-
+        -- TOMOMOD INPUT/COOLDOWN HOTFIX:
+        -- Do not memoize action cooldown state across frames/events.
+        --
+        -- During the server acknowledgement window ACTIONBAR_UPDATE_COOLDOWN can
+        -- arrive while a previous cached state no longer represents the action.
+        -- Reusing that state until an arbitrary TTL/expiresAt can hide a cooldown
+        -- transition, which is especially noticeable on short cooldowns.
+        --
+        -- GetActionCooldownInfo() / GetActionCooldownDurationObject() still keep
+        -- the existing SAME-BATCH cache, so duplicate queries for the same action
+        -- inside one UpdateAllCooldowns() pass remain coalesced. Event throttling
+        -- remains untouched.
         local cdInfo = GetActionCooldownInfo(action)
         local cdActive = DecodePotentialSecretBoolean(cdInfo.isActive)
         local durationObject = cdActive and GetActionCooldownDurationObject(action) or nil
-        if actionCanBeCached then
-            if cdActive == true and durationObject then
-                local expiresAt, duration = GetSafeCooldownTiming(cdInfo)
-                if expiresAt and duration <= ACTIVE_COOLDOWN_CACHE_MAX_DURATION then
-                    _buttonCooldownAction[button] = action
-                    _buttonCooldownInfo[button] = cdInfo
-                    _buttonCooldownDurationObject[button] = durationObject
-                    _buttonCooldownExpiresAt[button] = expiresAt
-                    _buttonCooldownInactiveAt[button] = nil
-                elseif expiresAt then
-                    _buttonCooldownAction[button] = action
-                    _buttonCooldownInfo[button] = cdInfo
-                    _buttonCooldownDurationObject[button] = durationObject
-                    _buttonCooldownExpiresAt[button] = math.min(expiresAt, GetTime() + ACTIVE_COOLDOWN_CACHE_LONG_REFRESH_TTL)
-                    _buttonCooldownInactiveAt[button] = nil
-                elseif not expiresAt then
-                    _buttonCooldownAction[button] = action
-                    _buttonCooldownInfo[button] = cdInfo
-                    _buttonCooldownDurationObject[button] = durationObject
-                    _buttonCooldownExpiresAt[button] = GetTime() + ACTIVE_COOLDOWN_CACHE_FALLBACK_TTL
-                    _buttonCooldownInactiveAt[button] = nil
-                end
-            elseif cdActive == false then
-                _buttonCooldownAction[button] = action
-                _buttonCooldownInfo[button] = nil
-                _buttonCooldownDurationObject[button] = nil
-                _buttonCooldownExpiresAt[button] = nil
-                _buttonCooldownInactiveAt[button] = GetTime()
-            else
-                ResetButtonCooldownRuntimeCache(button)
-            end
-        end
         return cdInfo, durationObject, cdActive
     end
 
