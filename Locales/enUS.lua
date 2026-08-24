@@ -517,6 +517,8 @@ TomoMod_RegisterLocale("enUS", {
     -- v2.9: Animations & power bar
     ["section_rb_anim"]                 = "Animations & Power Bar",
     ["opt_rb_smooth"]                   = "Smooth bar animations",
+    ["opt_rb_full_glow"]                = "Glow at maximum class resource",
+    ["opt_rb_supercharged_points"]      = "Show supercharged combo points",
     ["opt_rb_power_ticks"]              = "Ticks on power bar (% of max)",
     ["ticks_none"]                      = "None",
     ["opt_rb_power_threshold"]          = "Low resource threshold (power bar)",
@@ -3367,6 +3369,8 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_362_ab_assist_rotation"] = "Changed — Assisted Combat now locates its action buttons through the game's dedicated Assisted Combat slot API instead of searching every bar for the currently suggested spell, so a change of suggestion no longer touches unrelated buttons.",
     ["wn_362_ab_assist_load"] = "Fix — A change of Assisted Combat suggestion no longer refreshes every TomoMod action button, and TomoMod no longer hooks a Blizzard highlight function that can be called at rotation speed during combat. Together these were the largest source of extra work while the One Button rotation was active.",
     ["wn_362_ab_assist_highlight"] = "Fix — The Assisted Combat highlight is now cleared when the game stops suggesting a spell, and toggling Blizzard's assisted highlight option takes effect immediately instead of requiring a reload.",
+    ["wn_362_rb_toggles"] = "New — Two new options under Animations & Power Bar: one turns off the glow that appears when a class resource reaches its maximum, the other turns off the supercharged combo point art for Rogues. Both are on by default, and switching either off immediately restores the normal look of the points already on screen.",
+    ["wn_362_rb_glow_stop"] = "Fix — The maximum-resource glow no longer lingers when it should be gone. It is now stopped when the option is switched off and when the class resource display is rebuilt, instead of being left running on a frame that has already been discarded.",
     -- =====================
     -- 3.6.1 — What's New
     -- =====================

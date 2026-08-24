@@ -471,6 +471,8 @@ TomoMod_RegisterLocale("ptBR", {
     -- v2.9: Animações e barra de poder
     ["section_rb_anim"]                 = "Animações e barra de poder",
     ["opt_rb_smooth"]                   = "Animações suaves das barras",
+    ["opt_rb_full_glow"]                = "Brilho no máximo do recurso de classe",
+    ["opt_rb_supercharged_points"]      = "Mostrar pontos de combo sobrecarregados",
     ["opt_rb_power_ticks"]              = "Marcas na barra de poder (% do máx.)",
     ["ticks_none"]                      = "Nenhum",
     ["opt_rb_power_threshold"]          = "Limite de recurso baixo (barra de poder)",
@@ -3315,6 +3317,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_362_ab_assist_rotation"] = "Alterado — O Combate Assistido agora localiza seus botões de ação pela API dedicada de espaços de Combate Assistido do jogo, em vez de percorrer todas as barras procurando a magia sugerida no momento, de modo que uma troca de sugestão não toca mais em botões não relacionados.",
     ["wn_362_ab_assist_load"] = "Correção — Uma troca de sugestão do Combate Assistido não atualiza mais todos os botões de ação do TomoMod, e o TomoMod não engancha mais uma função de destaque da Blizzard que pode ser chamada na cadência da rotação durante o combate. Juntos, esses eram a maior fonte de trabalho extra enquanto a rotação de Um Botão estava ativa.",
     ["wn_362_ab_assist_highlight"] = "Correção — O destaque do Combate Assistido agora é limpo quando o jogo para de sugerir uma magia, e alternar a opção de destaque assistido da Blizzard passa a valer imediatamente, em vez de exigir um recarregamento.",
+    ["wn_362_rb_toggles"] = "Novidade — Duas novas opções em Animações e barra de poder: uma desativa o brilho que aparece quando um recurso de classe atinge o máximo, a outra desativa a arte dos pontos de combo sobrecarregados do Ladino. As duas vêm ativadas por padrão, e desativar qualquer uma restaura na hora a aparência normal dos pontos que já estão na tela.",
+    ["wn_362_rb_glow_stop"] = "Correção — O brilho de recurso no máximo não fica mais na tela quando já deveria ter sumido. Ele agora é interrompido quando a opção é desativada e quando a exibição de recurso de classe é reconstruída, em vez de continuar rodando em um quadro já descartado.",
     -- =====================
     -- 3.6.1 — What's New
     -- =====================

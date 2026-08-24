@@ -512,6 +512,8 @@ TomoMod_RegisterLocale("frFR", {
     -- v2.9: Animations & barre de puissance
     ["section_rb_anim"]                 = "Animations & Barre de puissance",
     ["opt_rb_smooth"]                   = "Animations fluides des barres",
+    ["opt_rb_full_glow"]                = "Glow à ressource de classe maximale",
+    ["opt_rb_supercharged_points"]      = "Afficher les points de combo surchargés",
     ["opt_rb_power_ticks"]              = "Ticks sur la barre de puissance (% du max)",
     ["ticks_none"]                      = "Aucun",
     ["opt_rb_power_threshold"]          = "Seuil ressource basse (barre de puissance)",
@@ -3343,6 +3345,8 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_362_ab_assist_rotation"] = "Modifié — Le Combat assisté localise désormais ses boutons d'action via l'API dédiée aux emplacements de Combat assisté du jeu, au lieu de parcourir toutes les barres à la recherche du sort actuellement suggéré : un changement de suggestion ne touche donc plus de boutons sans rapport.",
     ["wn_362_ab_assist_load"] = "Correction — Un changement de suggestion du Combat assisté ne rafraîchit plus tous les boutons d'action TomoMod, et TomoMod n'accroche plus une fonction de surbrillance de Blizzard qui peut être appelée à la cadence de la rotation en combat. À elles deux, ces sources constituaient l'essentiel du travail supplémentaire lorsque la rotation One Button était active.",
     ["wn_362_ab_assist_highlight"] = "Correction — La surbrillance du Combat assisté est désormais effacée quand le jeu cesse de suggérer un sort, et l'activation ou la désactivation de l'option de surbrillance assistée de Blizzard prend effet immédiatement au lieu de nécessiter un rechargement.",
+    ["wn_362_rb_toggles"] = "Nouveau — Deux nouvelles options sous Animations & Barre de puissance : l’une désactive le glow qui apparaît quand une ressource de classe atteint son maximum, l’autre désactive l’affichage des points de combo surchargés du Voleur. Les deux sont activées par défaut, et en désactiver une restaure immédiatement l’apparence normale des points déjà à l’écran.",
+    ["wn_362_rb_glow_stop"] = "Correction — Le glow de ressource au maximum ne reste plus affiché alors qu’il devrait avoir disparu. Il est désormais arrêté quand l’option est désactivée et quand l’affichage de ressource de classe est reconstruit, au lieu de continuer à tourner sur un cadre déjà abandonné.",
     -- =====================
     -- 3.6.1 — What's New
     -- =====================

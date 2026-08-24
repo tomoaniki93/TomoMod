@@ -471,6 +471,8 @@ TomoMod_RegisterLocale("itIT", {
     -- v2.9: Animazioni e barra del potere
     ["section_rb_anim"]                 = "Animazioni e barra del potere",
     ["opt_rb_smooth"]                   = "Animazioni fluide delle barre",
+    ["opt_rb_full_glow"]                = "Bagliore al massimo della risorsa di classe",
+    ["opt_rb_supercharged_points"]      = "Mostra punti combo sovraccarichi",
     ["opt_rb_power_ticks"]              = "Tacche sulla barra del potere (% del max)",
     ["ticks_none"]                      = "Nessuno",
     ["opt_rb_power_threshold"]          = "Soglia risorsa bassa (barra del potere)",
@@ -3315,6 +3317,8 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_362_ab_assist_rotation"] = "Modificato — Il Combattimento assistito individua ora i propri pulsanti azione tramite l'API dedicata agli slot di Combattimento assistito del gioco, invece di cercare in tutte le barre l'incantesimo attualmente suggerito: un cambio di suggerimento non tocca più pulsanti estranei.",
     ["wn_362_ab_assist_load"] = "Correzione — Un cambio di suggerimento del Combattimento assistito non aggiorna più tutti i pulsanti azione di TomoMod, e TomoMod non aggancia più una funzione di evidenziazione di Blizzard che può essere chiamata alla cadenza della rotazione durante il combattimento. Insieme erano la principale fonte di lavoro aggiuntivo con la rotazione One Button attiva.",
     ["wn_362_ab_assist_highlight"] = "Correzione — L'evidenziazione del Combattimento assistito viene ora rimossa quando il gioco smette di suggerire un incantesimo, e attivare o disattivare l'opzione di evidenziazione assistita di Blizzard ha effetto immediato invece di richiedere un ricaricamento.",
+    ["wn_362_rb_toggles"] = "Novità — Due nuove opzioni in Animazioni e barra del potere: una disattiva il bagliore che compare quando una risorsa di classe raggiunge il massimo, l’altra disattiva la grafica dei punti combo sovraccarichi del Ladro. Entrambe sono attive per impostazione predefinita, e disattivarne una ripristina subito l’aspetto normale dei punti già a schermo.",
+    ["wn_362_rb_glow_stop"] = "Correzione — Il bagliore di risorsa al massimo non resta più visibile quando dovrebbe essere sparito. Ora viene interrotto quando l’opzione viene disattivata e quando la visualizzazione della risorsa di classe viene ricostruita, invece di continuare su un frame già scartato.",
     -- =====================
     -- 3.6.1 — What's New
     -- =====================

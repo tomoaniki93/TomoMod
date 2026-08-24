@@ -1,6 +1,6 @@
 ﻿## ####################################
 
-## CHANGELOG 3.6.2 — Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding + Action Bars: Restored Secure Release Contract on Owned Buttons, Cooldown State Push-Through, Combat Input Latency, Coalesced Glow Reconciliation & Assisted Combat Event Load
+## CHANGELOG 3.6.2 — Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding + Action Bars: Restored Secure Release Contract on Owned Buttons, Cooldown State Push-Through, Combat Input Latency, Coalesced Glow Reconciliation & Assisted Combat Event Load + Resource Bars: Full-Resource Glow and Supercharged Combo Point Toggles
 
 #### Mythic Hub — Great Vault Row Types
 
@@ -16,6 +16,14 @@
 
 - **Changed** — Each row now queries `C_WeeklyRewards.GetActivities(rowDef.type)` for its own activities and sorts them by `index`, instead of bucketing one unfiltered `GetActivities()` call into a `byType[type][index]` table. The unfiltered call also returns auxiliary entries (`AlsoReceive`, `Concession`) that could land in a visible slot; the per-row query keeps the three displayed slots bound to Blizzard's actual row data.
 - **Internal** — `hasGenerated` (`C_WeeklyRewards.HasGeneratedRewards()`) was read in `RefreshVault()` and never used afterwards. It has been removed along with the now-unused unfiltered activity list.
+
+#### Resource Bars — Visual Toggles
+
+- **New** — Two options under **Animations & Power Bar**: *Glow at maximum class resource* (`showFullResourceGlow`) and *Show supercharged combo points* (`showSuperchargedComboPoints`). Both default to `true`, so an existing profile looks exactly as it did.
+- **Changed** — `UpdatePoints()` now keeps resource detection and the visual toggle apart. `isComboPointResource` still identifies a combo-point display on its own (`display == "points"` and `powerType == POWER_COMBO_POINTS`), while `chargeable` is that *and* the option. The texture branch stays gated on `isComboPointResource`, so switching the effect off actively repaints the normal art on point frames that already exist instead of leaving the last charged slot as it was.
+- **Fix** — A running full-resource glow is now stopped rather than abandoned. The glow block gained an `elseif` that calls `PixelGlow_Stop` whenever the frame is glowing but should not be — the option turned off, or `glowOnMax` not set — and the class power frame stops its own glow before being hidden and rebuilt. Previously the glow could keep running on a frame that had already been discarded.
+- **Internal** — `UpdatePoints()` reads `GetSettings()` once at the top of the call rather than re-deriving state further down.
+- **Note** — The two labels are defined in all six locales.
 
 #### Action Bars — Secure Release Contract on Owned Buttons
 

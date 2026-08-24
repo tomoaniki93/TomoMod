@@ -470,6 +470,8 @@ TomoMod_RegisterLocale("esES", {
     -- v2.9: Animaciones y barra de poder
     ["section_rb_anim"]                 = "Animaciones y barra de poder",
     ["opt_rb_smooth"]                   = "Animaciones suaves de las barras",
+    ["opt_rb_full_glow"]                = "Destello al máximo de recurso de clase",
+    ["opt_rb_supercharged_points"]      = "Mostrar puntos de combo sobrecargados",
     ["opt_rb_power_ticks"]              = "Marcas en la barra de poder (% del máx.)",
     ["ticks_none"]                      = "Ninguno",
     ["opt_rb_power_threshold"]          = "Umbral de recurso bajo (barra de poder)",
@@ -3328,6 +3330,8 @@ TomoMod_RegisterLocale("esES", {
     ["wn_362_ab_assist_rotation"] = "Cambiado — El Combate Asistido localiza ahora sus botones de acción mediante la API de espacios de Combate Asistido del propio juego, en lugar de recorrer todas las barras buscando el hechizo sugerido en ese momento, de modo que un cambio de sugerencia ya no toca botones ajenos.",
     ["wn_362_ab_assist_load"] = "Corrección — Un cambio en la sugerencia del Combate Asistido ya no actualiza todos los botones de acción de TomoMod, y TomoMod ya no engancha una función de resaltado de Blizzard que puede llamarse al ritmo de la rotación durante el combate. Ambas cosas eran la mayor fuente de trabajo adicional mientras la rotación de Un Botón estaba activa.",
     ["wn_362_ab_assist_highlight"] = "Corrección — El resaltado del Combate Asistido ahora se borra cuando el juego deja de sugerir un hechizo, y activar o desactivar la opción de resaltado asistido de Blizzard surte efecto de inmediato en lugar de requerir una recarga.",
+    ["wn_362_rb_toggles"] = "Nuevo — Dos nuevas opciones en Animaciones y barra de poder: una desactiva el destello que aparece cuando un recurso de clase alcanza su máximo, la otra desactiva la representación de los puntos de combo sobrecargados del Pícaro. Ambas están activadas por defecto, y desactivar cualquiera de ellas restaura al instante el aspecto normal de los puntos que ya están en pantalla.",
+    ["wn_362_rb_glow_stop"] = "Corrección — El destello de recurso al máximo ya no se queda en pantalla cuando debería haber desaparecido. Ahora se detiene al desactivar la opción y al reconstruirse la visualización del recurso de clase, en lugar de seguir ejecutándose sobre un marco ya descartado.",
     -- =====================
     -- 3.6.1 — What's New
     -- =====================

@@ -471,6 +471,8 @@ TomoMod_RegisterLocale("deDE", {
     -- v2.9: Animationen & Kraftbalken
     ["section_rb_anim"]                 = "Animationen & Kraftbalken",
     ["opt_rb_smooth"]                   = "Flüssige Balkenanimationen",
+    ["opt_rb_full_glow"]                = "Leuchten bei maximaler Klassenressource",
+    ["opt_rb_supercharged_points"]      = "Aufgeladene Kombopunkte anzeigen",
     ["opt_rb_power_ticks"]              = "Markierungen auf dem Kraftbalken (% des Max)",
     ["ticks_none"]                      = "Kein",
     ["opt_rb_power_threshold"]          = "Schwelle niedrige Ressource (Kraftbalken)",
@@ -3327,6 +3329,8 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_362_ab_assist_rotation"] = "Geändert — Verbündeter Kampf findet seine Aktionsbuttons jetzt über die dafür vorgesehene Slot-API des Spiels, statt alle Leisten nach dem aktuell vorgeschlagenen Zauber zu durchsuchen. Ein Wechsel des Vorschlags berührt dadurch keine unbeteiligten Buttons mehr.",
     ["wn_362_ab_assist_load"] = "Behoben — Ein Wechsel des Verbündeter-Kampf-Vorschlags aktualisiert nicht mehr sämtliche TomoMod-Aktionsbuttons, und TomoMod hängt sich nicht mehr in eine Blizzard-Hervorhebungsfunktion ein, die im Kampf in Rotationsgeschwindigkeit aufgerufen werden kann. Beides zusammen war die größte Quelle zusätzlicher Arbeit, solange die One-Button-Rotation aktiv war.",
     ["wn_362_ab_assist_highlight"] = "Behoben — Die Verbündeter-Kampf-Hervorhebung wird jetzt entfernt, sobald das Spiel keinen Zauber mehr vorschlägt, und das Umschalten von Blizzards Option für die unterstützte Hervorhebung wirkt sofort, statt einen Reload zu erfordern.",
+    ["wn_362_rb_toggles"] = "Neu — Zwei neue Optionen unter Animationen & Kraftbalken: Die eine schaltet das Leuchten ab, das erscheint, wenn eine Klassenressource ihr Maximum erreicht, die andere die Darstellung aufgeladener Kombopunkte für Schurken. Beide sind standardmäßig aktiv, und das Abschalten stellt sofort das normale Aussehen der bereits sichtbaren Punkte wieder her.",
+    ["wn_362_rb_glow_stop"] = "Behoben — Das Leuchten bei maximaler Ressource bleibt nicht mehr sichtbar, wenn es längst verschwunden sein sollte. Es wird jetzt beendet, sobald die Option abgeschaltet wird und wenn die Klassenressourcen-Anzeige neu aufgebaut wird, statt auf einem bereits verworfenen Frame weiterzulaufen.",
     -- =====================
     -- 3.6.1 — What's New
     -- =====================

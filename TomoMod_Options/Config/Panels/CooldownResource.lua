@@ -392,6 +392,12 @@ local function BuildResourceBarsTab(parent)
     local _, cy = W.CreateCheckbox(cardAN.inner, L["opt_rb_smooth"], db.smoothBars ~= false, cy, function(v)
         db.smoothBars = v; ApplyRB()
     end)
+    local _, cy = W.CreateCheckbox(cardAN.inner, L["opt_rb_full_glow"], db.showFullResourceGlow ~= false, cy, function(v)
+        db.showFullResourceGlow = v; ApplyRB()
+    end)
+    local _, cy = W.CreateCheckbox(cardAN.inner, L["opt_rb_supercharged_points"], db.showSuperchargedComboPoints ~= false, cy, function(v)
+        db.showSuperchargedComboPoints = v; ApplyRB()
+    end)
     local _, cy = W.CreateDropdown(cardAN.inner, L["opt_rb_power_ticks"], {
         { text = L["ticks_none"],             value = ""            },
         { text = "50%",                                    value = "50"          },

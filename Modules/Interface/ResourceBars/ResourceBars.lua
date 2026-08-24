@@ -917,6 +917,7 @@ end
 
 local function UpdatePoints(pointFrame, resDef)
     if not pointFrame or not pointFrame.points then return end
+    local s = GetSettings()
 
     local current, max, partialFrac
     if resDef.display == "aura" then
@@ -947,13 +948,13 @@ local function UpdatePoints(pointFrame, resDef)
     local r, g, b = GetColor(colorKey)
     local displayMax = math.min(max, #pointFrame.points)
 
-    -- Gated on the power type: UpdatePoints is shared with soul shards,
-    -- essence, arcane charges and the aura-driven displays, none of which
-    -- have a charged state. No class gate on top -- the API already returns
-    -- nothing for a Druid, so if Blizzard ever widens the mechanic this
-    -- follows on its own.
-    local chargeable = (resDef.display == "points")
-                       and (resDef.powerType == POWER_COMBO_POINTS)
+    -- Supercharged points are a Rogue combo-point mechanic. Keep resource
+    -- detection separate from the visual toggle so disabling the effect also
+    -- actively restores normal art on already-created point frames.
+    local isComboPointResource = (resDef.display == "points")
+                                 and (resDef.powerType == POWER_COMBO_POINTS)
+    local showSupercharged = (not s) or (s.showSuperchargedComboPoints ~= false)
+    local chargeable = isComboPointResource and showSupercharged
     local cpTC = ICON_TEXCOORDS.comboPoints
     local cr, cg, cb = GetColor("chargedComboPoints")
 
@@ -972,7 +973,7 @@ local function UpdatePoints(pointFrame, resDef)
             -- BEFORE it is filled, that is the whole point of showing it.
             -- Textures are built once and reused, so every branch must also
             -- restore the normal art when a slot stops being charged.
-            if chargeable then
+            if isComboPointResource then
                 if useTex then
                     pt.bg:SetTexCoord(unpack(charged and cpTC.charged or cpTC.empty))
                     pt.fill:SetTexCoord(unpack(charged and cpTC.charged or cpTC.filled))
@@ -1005,8 +1006,9 @@ local function UpdatePoints(pointFrame, resDef)
         end
     end
 
-    -- Full-state highlight: e.g. 5 Icicles -> Glacial Spike ready (opt-in via glowOnMax)
-    if resDef.glowOnMax then
+    -- Full-state highlight: e.g. 5 Icicles -> Glacial Spike ready.
+    local showFullGlow = (not s) or (s.showFullResourceGlow ~= false)
+    if resDef.glowOnMax and showFullGlow then
         local full = (displayMax > 0 and current >= displayMax)
         if Glow and Glow.PixelGlow_Start then
             if full and not pointFrame._glowing then
@@ -1024,6 +1026,9 @@ local function UpdatePoints(pointFrame, resDef)
                 if pt and pt.fill then pt.fill:SetColorTexture(br, bgc, bb) end
             end
         end
+    elseif pointFrame._glowing and Glow and Glow.PixelGlow_Stop then
+        pointFrame._glowing = false
+        Glow.PixelGlow_Stop(pointFrame, "TomoMod_RB_FullGlow")
     end
 end
 
@@ -1227,7 +1232,14 @@ local function BuildResourceDisplay()
     local gap = 2
 
     -- Clear old
-    if classPowerFrame then classPowerFrame:Hide(); classPowerFrame = nil end
+    if classPowerFrame then
+        if classPowerFrame._glowing and Glow and Glow.PixelGlow_Stop then
+            Glow.PixelGlow_Stop(classPowerFrame, "TomoMod_RB_FullGlow")
+            classPowerFrame._glowing = false
+        end
+        classPowerFrame:Hide()
+        classPowerFrame = nil
+    end
     if druidManaBar then druidManaBar:Hide(); druidManaBar = nil end
     if primaryPowerBar then primaryPowerBar:Hide(); primaryPowerBar = nil end
     if healthBar then healthBar:Hide(); healthBar = nil end
