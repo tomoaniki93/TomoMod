@@ -55,12 +55,19 @@ AB_CD_UPDATE_INTERVAL_COMBAT = 0.033
 AB_CD_UPDATE_INTERVAL_IDLE   = 0.20
 AB_STATE_UPDATE_INTERVAL     = 0.033
 AB_VIS_UPDATE_INTERVAL       = 0.033
+-- TOMOMOD 3.6.1 / combat input-latency hardening:
+-- UNIT_AURA and SPELL_UPDATE_CHARGES can arrive in bursts during large M+
+-- pulls. Counts are cosmetic, so coalesce those bursts instead of allowing a
+-- full active-button count pass every render frame. Out of combat remains
+-- unthrottled.
+AB_COUNT_UPDATE_INTERVAL_COMBAT = 0.05
 
 abUpdateFrame = CreateFrame("Frame")
 abUpdateFrame:Hide()
 abUpdateFrame._lastCd = 0
 abUpdateFrame._lastState = 0
 abUpdateFrame._lastVis = 0
+abUpdateFrame._lastCount = 0
 abUpdateFrame._dirtyCooldowns = false
 abUpdateFrame._dirtyStates = false
 abUpdateFrame._dirtyVisuals = false
@@ -71,6 +78,7 @@ abUpdateFrame:SetScript("OnUpdate", function(self)
     local inCombat = InCombatLockdown()
     local throttle = inCombat and not self._immediate
     local cdInterval = inCombat and AB_CD_UPDATE_INTERVAL_COMBAT or AB_CD_UPDATE_INTERVAL_IDLE
+    local countInterval = inCombat and AB_COUNT_UPDATE_INTERVAL_COMBAT or 0
     self._immediate = false
 
     local doVis = self._dirtyVisuals
@@ -84,6 +92,7 @@ abUpdateFrame:SetScript("OnUpdate", function(self)
         self._lastVis = now
         self._lastCd = now
         self._lastState = now
+        self._lastCount = now
         self._dirtyCooldowns = false
         self._dirtyStates = false
         self._dirtyVisuals = false
@@ -105,8 +114,13 @@ abUpdateFrame:SetScript("OnUpdate", function(self)
             end
         end
         if doCount then
-            self._dirtyCounts = false
-            ActionBarsOwned.UpdateAllButtonCounts()
+            if now - self._lastCount >= countInterval then
+                self._lastCount = now
+                self._dirtyCounts = false
+                ActionBarsOwned.UpdateAllButtonCounts()
+            else
+                self:Show()
+            end
         end
     elseif doCd then
         if now - self._lastCd < cdInterval then return end
@@ -115,11 +129,18 @@ abUpdateFrame:SetScript("OnUpdate", function(self)
         self._dirtyCooldowns = false
         ActionBarsOwned.UpdateAllCooldowns()
         if doCount then
-            self._dirtyCounts = false
-            ActionBarsOwned.UpdateAllButtonCounts()
+            if now - self._lastCount >= countInterval then
+                self._lastCount = now
+                self._dirtyCounts = false
+                ActionBarsOwned.UpdateAllButtonCounts()
+            else
+                self:Show()
+            end
         end
     elseif doCount then
+        if now - self._lastCount < countInterval then return end
         self:Hide()
+        self._lastCount = now
         self._dirtyCounts = false
         ActionBarsOwned.UpdateAllButtonCounts()
     else

@@ -1,6 +1,6 @@
 ﻿## ####################################
 
-## CHANGELOG 3.6.2 — Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding
+## CHANGELOG 3.6.2 — Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding + Action Bars: Combat Input Latency, Coalesced Glow Reconciliation & Assisted Combat Event Load
 
 #### Mythic Hub — Great Vault Row Types
 
@@ -16,6 +16,25 @@
 
 - **Changed** — Each row now queries `C_WeeklyRewards.GetActivities(rowDef.type)` for its own activities and sorts them by `index`, instead of bucketing one unfiltered `GetActivities()` call into a `byType[type][index]` table. The unfiltered call also returns auxiliary entries (`AlsoReceive`, `Concession`) that could land in a visible slot; the per-row query keeps the three displayed slots bound to Blizzard's actual row data.
 - **Internal** — `hasGenerated` (`C_WeeklyRewards.HasGeneratedRewards()`) was read in `RefreshVault()` and never used afterwards. It has been removed along with the now-unused unfiltered activity list.
+
+#### Action Bars — Combat Input Latency
+
+- **Changed** — Button count refreshes (charges and aura stacks) are now coalesced during combat behind a new `AB_COUNT_UPDATE_INTERVAL_COMBAT` of 50 ms, tracked by `abUpdateFrame._lastCount`. `UNIT_AURA` and `SPELL_UPDATE_CHARGES` arrive in bursts on large Mythic+ pulls, and each one previously allowed a full active-button count pass on the next render frame. Counts are cosmetic, so the burst is collapsed instead. Out of combat the interval is `0` and the path stays completely unthrottled.
+- **Fix** — A count pass deferred by that throttle no longer loses its work. When the window has not elapsed, `abUpdateFrame` re-arms itself with `_dirtyCounts` still set instead of consuming the flag, so the pending refresh runs on the next eligible frame rather than waiting for an unrelated event to schedule another one.
+
+#### Action Bars — Overlay Glow Reconciliation
+
+- **Changed** — The safety reconciliation that follows a spell-activation glow HIDE edge now runs through a dedicated `OnUpdate` frame with a 100 ms floor (`OVERLAY_GLOW_RECONCILE_INTERVAL`) instead of synchronously sweeping every visible action button for each event. Proc-heavy pulls can emit many HIDE edges close together, and that sweep is purely cosmetic cleanup.
+- **Unchanged** — The P1 12.1 guarantee is preserved. The button belonging to the spell that emitted the edge is still updated immediately and synchronously, and a transformed button that has stopped mapping to that spell is still cleaned up by the reconciliation — now at most ten times per second instead of once per event.
+
+#### Action Bars — Assisted Combat Event Load
+
+- **Removed** — The `hooksecurefunc` on `AssistedCombatManager.UpdateAllAssistedHighlightFramesForSpell` is gone. Blizzard can call that method at rotation-evaluation cadence in combat, and every call scheduled a full owned-button visual pass. Its override-spell resolution and its `ns.Keybinds.UpdateAllRotationHelpers` call have moved into the `AssistedCombatManager.OnAssistedHighlightSpellChange` callback, which only fires when the highlighted spell actually changes.
+- **Removed** — Both `ScheduleABVisualUpdate(false, true)` calls on the Assisted Combat path. A change of suggested spell is not a reason to invalidate every owned action button; rotation-frame and highlight work is now targeted, and unrelated buttons keep being updated by the normal action and cooldown events.
+- **Changed** — `UpdateAllAssistedCombatRotation()` now prefers `C_ActionBar.FindAssistedCombatActionButtons()`, the authoritative Assisted Combat slot API. The previous route — `C_AssistedCombat.GetNextCastSpell()` followed by `C_ActionBar.FindSpellActionButtons()` — searched by the currently suggested spell, so it could touch unrelated normal spell buttons every time the suggestion changed. It is kept only as a fallback for clients that do not expose the slot API.
+- **Fix** — `OnAssistedHighlightSpellChange` no longer returns early when the client reports no next spell. Losing the suggestion is itself a state change, and skipping it left the previous highlight on screen.
+- **New** — A callback on `AssistedCombatManager.OnSetUseAssistedHighlight` refreshes the assisted highlights when the assisted-highlight CVar is toggled, so turning the feature off or back on now applies without a reload.
+- **Changed** — The owned Assisted Combat rotation frame's `OnUpdate` treats its 0.2 s default as a floor rather than a starting point: `AssistedCombatManager:GetUpdateRate()` is adopted only when it is *slower*. That handler touches exactly one button and never runs faster than 5 Hz.
 
 ## ####################################
 

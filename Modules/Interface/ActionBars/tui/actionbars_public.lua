@@ -479,6 +479,12 @@ function ActionBarsOwned:Initialize()
     end
 
     if EventRegistry and EventRegistry.RegisterCallback then
+        -- TOMOMOD 3.6.1 Assisted Combat optimization:
+        -- A suggestion change is not a reason to invalidate every owned action
+        -- button. Keep rotation-frame/highlight work targeted and let normal
+        -- action/cooldown events update unrelated buttons. In particular, do
+        -- not hook AssistedCombatManager:UpdateAllAssistedHighlightFramesForSpell;
+        -- Blizzard can call it at rotation-evaluation cadence in combat.
         EventRegistry:RegisterCallback("AssistedCombatManager.OnSetActionSpell", function()
             local okSpell, newSpell = ns.SafeCall("best-effort-style", C_AssistedCombat.GetNextCastSpell, false)
             if not okSpell then newSpell = nil end
@@ -486,7 +492,6 @@ function ActionBarsOwned:Initialize()
             ActionBarsOwned._lastAssistRotationSpell = newSpell
             if newSpell then ActionBarsOwned._assistedCombatEverActive = true end
             ActionBarsOwned.UpdateAllAssistedCombatRotation()
-            ScheduleABVisualUpdate(false, true)
             local kb = ns.Keybinds
             if kb and kb.UpdateAllRotationHelpers then ns.SafeCall("bulkhead", kb.UpdateAllRotationHelpers) end
         end, "TUI_ActionBars_AssistedCombat")
@@ -494,33 +499,31 @@ function ActionBarsOwned:Initialize()
         EventRegistry:RegisterCallback("AssistedCombatManager.OnAssistedHighlightSpellChange", function()
             local okHL, nextSpell = ns.SafeCall("best-effort-style", C_AssistedCombat.GetNextCastSpell, false)
             if not okHL then nextSpell = nil end
-            if not nextSpell then return end
             if nextSpell == ActionBarsOwned._lastAssistHighlightSpell then return end
             ActionBarsOwned._lastAssistHighlightSpell = nextSpell
             UpdateAllAssistedHighlights()
-        end, "TUI_ActionBars_AssistedHighlight")
-    end
 
-    if AssistedCombatManager and AssistedCombatManager.UpdateAllAssistedHighlightFramesForSpell then
-        hooksecurefunc(AssistedCombatManager, "UpdateAllAssistedHighlightFramesForSpell", function(_, spellID)
-            if not spellID then return end
-            local Helpers = ns.Helpers
-            local isSecret = Helpers and Helpers.IsSecretValue(spellID)
-
-            local resolvedID = spellID
-            if not isSecret then
-                local okOvr, overrideID = ns.SafeCall("best-effort-style", C_Spell.GetOverrideSpell, spellID)
-                if okOvr and overrideID and overrideID ~= spellID then
-                    resolvedID = overrideID
+            local resolvedID = nextSpell
+            if nextSpell and C_Spell and C_Spell.GetOverrideSpell then
+                local Helpers = ns.Helpers
+                local isSecret = Helpers and Helpers.IsSecretValue and Helpers.IsSecretValue(nextSpell)
+                if not isSecret then
+                    local okOvr, overrideID = ns.SafeCall("best-effort-style", C_Spell.GetOverrideSpell, nextSpell)
+                    if okOvr and overrideID and overrideID ~= nextSpell then
+                        resolvedID = overrideID
+                    end
                 end
             end
 
-            ScheduleABVisualUpdate(false, true)
             local kb = ns.Keybinds
             if kb and kb.UpdateAllRotationHelpers then
-                ns.SafeCall("bulkhead", kb.UpdateAllRotationHelpers, resolvedID, spellID)
+                ns.SafeCall("bulkhead", kb.UpdateAllRotationHelpers, resolvedID, nextSpell)
             end
-        end)
+        end, "TUI_ActionBars_AssistedHighlight")
+
+        EventRegistry:RegisterCallback("AssistedCombatManager.OnSetUseAssistedHighlight", function()
+            UpdateAllAssistedHighlights()
+        end, "TUI_ActionBars_AssistedHighlight_CVar")
     end
 
     if ActionButton_Update then

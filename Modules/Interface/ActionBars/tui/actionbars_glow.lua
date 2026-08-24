@@ -365,10 +365,14 @@ local function InstallOwnedAssistedCombatFrameBridge(button, frame)
             self:UpdateState()
         end
 
+        -- TOMOMOD 3.6.1 One Button hardening:
+        -- keep the owned assist button responsive without inheriting a very
+        -- aggressive Blizzard highlight CVar cadence. This OnUpdate touches
+        -- exactly one button, and never runs faster than 5 Hz.
         local updateRate = 0.2
         if AssistedCombatManager and AssistedCombatManager.GetUpdateRate then
             local ok, rate = pcall(AssistedCombatManager.GetUpdateRate, AssistedCombatManager)
-            if ok and type(rate) == "number" and rate > 0 then
+            if ok and type(rate) == "number" and rate > updateRate then
                 updateRate = rate
             end
         end
@@ -415,13 +419,26 @@ function UpdateAllAssistedCombatRotation()
         return
     end
 
-    if not (C_AssistedCombat and C_AssistedCombat.GetNextCastSpell
-        and C_ActionBar and C_ActionBar.FindSpellActionButtons) then
-        return
+    if not C_ActionBar then return end
+
+    -- Prefer the authoritative Assisted Combat slot API. The previous fallback
+    -- searched by the currently suggested spell, which can touch unrelated
+    -- normal spell buttons and does unnecessary work every time the suggestion
+    -- changes.
+    local slots
+    if C_ActionBar.FindAssistedCombatActionButtons then
+        local okSlots, found = ns.SafeCall("best-effort-style", C_ActionBar.FindAssistedCombatActionButtons)
+        if okSlots then slots = found end
     end
-    local ok, spellID = ns.SafeCall("best-effort-style", C_AssistedCombat.GetNextCastSpell, false)
-    if not ok or not spellID then return end
-    local slots = C_ActionBar.FindSpellActionButtons(spellID)
+    if not slots then
+        if not (C_AssistedCombat and C_AssistedCombat.GetNextCastSpell
+            and C_ActionBar.FindSpellActionButtons) then
+            return
+        end
+        local ok, spellID = ns.SafeCall("best-effort-style", C_AssistedCombat.GetNextCastSpell, false)
+        if not ok or not spellID then return end
+        slots = C_ActionBar.FindSpellActionButtons(spellID)
+    end
     if not slots then return end
     local slotMap = ActionBarsOwned.slotMap
     if not slotMap then return end
@@ -515,6 +532,28 @@ function ActionBarsOwned.UpdateAllOverlayGlows()
     end
 end
 
+-- TOMOMOD 3.6.1 / combat input-latency hardening:
+-- HIDE edges are targeted immediately, but their safety reconciliation used to
+-- sweep every visible action button synchronously for every event. Proc-heavy
+-- M+ pulls can emit many HIDE edges close together, so collapse them into at
+-- most one global reconciliation every 100 ms. This affects only cosmetic glow
+-- cleanup; the spell that emitted the edge is still updated immediately.
+local OVERLAY_GLOW_RECONCILE_INTERVAL = 0.10
+local overlayGlowReconcileFrame = CreateFrame("Frame")
+overlayGlowReconcileFrame:Hide()
+overlayGlowReconcileFrame._lastRun = 0
+overlayGlowReconcileFrame:SetScript("OnUpdate", function(self)
+    local now = GetTime()
+    if now - self._lastRun < OVERLAY_GLOW_RECONCILE_INTERVAL then return end
+    self:Hide()
+    self._lastRun = now
+    ActionBarsOwned.UpdateAllOverlayGlows()
+end)
+
+local function ScheduleOverlayGlowReconcile()
+    overlayGlowReconcileFrame:Show()
+end
+
 spellGlowVisited = {}
 function ForEachButtonForSpellGlow(spellId, callback)
     if not spellId or not callback then return false end
@@ -578,13 +617,10 @@ function ActionBarsOwned.OnSpellActivationGlowHide(spellId)
     if not spellId then return end
     ForEachButtonForSpellGlow(spellId, HideActionButtonGlow)
 
-    -- TOMOMOD P1 12.1: always sweep current button state after a HIDE event.
-    -- A transformed button can stop mapping to the spell that emitted HIDE
-    -- while another copy of that spell still matches elsewhere; the old
-    -- targeted-only path then left the transformed button glowing forever.
-    -- HIDE events are sparse, so this small event-driven sweep is preferable
-    -- to any timer/polling cleanup.
-    ActionBarsOwned.UpdateAllOverlayGlows()
+    -- Keep the P1 12.1 transformed-spell safety reconciliation, but coalesce
+    -- bursty proc HIDE edges instead of synchronously rescanning every bar for
+    -- each event.
+    ScheduleOverlayGlowReconcile()
 end
 
 ActionBarsOwned.RebuildSpellIdMap = RebuildSpellIdMap
