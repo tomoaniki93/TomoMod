@@ -1,6 +1,6 @@
 ﻿## ####################################
 
-## CHANGELOG 3.6.2 — Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding + Action Bars: Combat Input Latency, Coalesced Glow Reconciliation & Assisted Combat Event Load
+## CHANGELOG 3.6.2 — Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding + Action Bars: Restored Secure Release Contract on Owned Buttons, Combat Input Latency, Coalesced Glow Reconciliation & Assisted Combat Event Load
 
 #### Mythic Hub — Great Vault Row Types
 
@@ -16,6 +16,13 @@
 
 - **Changed** — Each row now queries `C_WeeklyRewards.GetActivities(rowDef.type)` for its own activities and sorts them by `index`, instead of bucketing one unfiltered `GetActivities()` call into a `byType[type][index]` table. The unfiltered call also returns auxiliary entries (`AlsoReceive`, `Concession`) that could land in a visible slot; the per-row query keeps the three displayed slots bound to Blizzard's actual row data.
 - **Internal** — `hasGenerated` (`C_WeeklyRewards.HasGeneratedRewards()`) was read in `RefreshVault()` and never used afterwards. It has been removed along with the now-unused unfiltered activity list.
+
+#### Action Bars — Secure Release Contract on Owned Buttons
+
+- **Fix** — Owned action buttons never carried `typerelease = "actionrelease"`, so the release half of every click was bound to nothing. With **Cast on key press** disabled the press is deliberately a no-op and the cast is supposed to happen on release, so those clicks did nothing at all; press/hold/release spells such as Evoker empowered casts could be started but never released. TomoMod builds its buttons from `ActionButtonTemplate,SecureActionButtonTemplate` and deliberately does not run `ActionBarActionButtonMixin:OnLoad()`, to keep addon-owned buttons out of Blizzard's native action-button registries — and that `OnLoad` is where Blizzard sets the attribute. `EnsureOwnedActionButton()` now sets it explicitly, right after `type = "action"`.
+- **Fix** — `TUI_UpdateActionFlags`, the restricted snippet that runs on every action, form and page change, now restores `typerelease = "actionrelease"` whenever it is not already set. This also repairs a button coming back from the GSE forwarding path, which intentionally owns `typerelease` (`nil` or `"click"`) and previously left the normal action path with the GSE release contract until the next reload.
+- **Unchanged** — `RegisterForClicks("AnyDown", "AnyUp")` stays as it is. TUI keybinds are routed through secure click bindings and need both phases, notably for press/hold/release spells.
+- **Note** — The rewrite is conditional, so it costs a single attribute read per refresh and never re-writes an attribute that is already correct — the reason the previous code avoided touching it on every form/page swap.
 
 #### Action Bars — Combat Input Latency
 

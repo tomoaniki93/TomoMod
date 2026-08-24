@@ -911,9 +911,16 @@ function InstallSecureActionFlagRefresh(btn)
             return
         end
 
-        -- Blizzard sets typerelease="actionrelease" once in the template's
-        -- OnLoad. Do not rewrite it on every form/page swap. Only maintain
-        -- pressAndHoldAction, and only when restricted GetActionInfo gives a
+        -- TUI deliberately does not run ActionBarActionButtonMixin:OnLoad(),
+        -- because doing so would register this addon-owned button in Blizzard's
+        -- native action-button registries. Ensure the native release contract is
+        -- nevertheless restored from the restricted environment. This also
+        -- repairs a normal action button after it previously used the GSE
+        -- forwarding path above, which intentionally owns typerelease.
+        if self:GetAttribute("typerelease") ~= "actionrelease" then
+            self:SetAttribute("typerelease", "actionrelease")
+        end
+        -- Maintain pressAndHoldAction, and only when restricted GetActionInfo gives a
         -- positive/readable identity. Empty, scrubbed or unresolved macro
         -- identities keep the previous value until the next readable refresh.
         if action and IsPressHoldReleaseSpell then

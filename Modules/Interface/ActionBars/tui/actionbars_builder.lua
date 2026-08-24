@@ -111,6 +111,16 @@ function EnsureOwnedActionButton(container, barKey, btnName, index)
         -- in-combat page change never re-enters Blizzard ActionButton Lua.
         if btn and btn.SetScript then btn:SetScript("OnAttributeChanged", nil) end
         btn:SetAttribute("type", "action")
+        -- TOMOMOD INPUT HOTFIX:
+        -- The bare ActionButtonTemplate + SecureActionButtonTemplate combination
+        -- intentionally skips ActionBarActionButtonMixin:OnLoad() to stay out of
+        -- Blizzard's native action-button registries. Recreate the secure
+        -- press/release attribute that Blizzard normally initializes there.
+        --
+        -- Keep RegisterForClicks("AnyDown", "AnyUp") below: TUI keybinds are
+        -- routed through secure click bindings and need both phases (notably for
+        -- press/hold/release spells).
+        btn:SetAttribute("typerelease", "actionrelease")
         btn:SetAttribute("checkselfcast", true)
         btn:SetAttribute("checkfocuscast", true)
         btn:SetAttribute("checkmouseovercast", true)
