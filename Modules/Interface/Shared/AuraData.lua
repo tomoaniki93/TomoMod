@@ -1,4 +1,4 @@
-﻿-- =====================================
+-- =====================================
 -- Interface/Shared/AuraData.lua — shared aura database for group frames
 --
 -- PartyFrame/HoTs.lua and RaidFrame/Auras.lua each carried their own copy of
@@ -126,12 +126,14 @@ end
 
 -- =====================================
 -- DEBUFF TYPE COLOURS (dispel highlight, debuff borders)
+-- Shared by the 12.1 typed-debuff slots used on party / raid frames.
 -- =====================================
 AD.DEBUFF_TYPE_COLORS = {
-    Magic   = { r = 0.20, g = 0.60, b = 1.00 },
-    Curse   = { r = 0.60, g = 0.00, b = 1.00 },
-    Disease = { r = 0.60, g = 0.40, b = 0.00 },
-    Poison  = { r = 0.00, g = 0.60, b = 0.00 },
+    Magic   = { r = 0.10, g = 0.55, b = 1.00 },
+    Curse   = { r = 0.65, g = 0.10, b = 0.95 },
+    Disease = { r = 1.00, g = 0.50, b = 0.05 },
+    Poison  = { r = 0.55, g = 0.90, b = 0.05 },
+    Bleed   = { r = 1.00, g = 0.05, b = 0.12 },
 }
 
 -- =====================================

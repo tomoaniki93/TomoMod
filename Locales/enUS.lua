@@ -2341,10 +2341,14 @@ TomoMod_RegisterLocale("enUS", {
     ["pf_opt_show_range"]                = "Fade out-of-range members",
     ["pf_opt_oor_alpha"]                 = "Out-of-range opacity",
 
-    ["pf_section_dispel"]                = "Dispellable Debuff",
-    ["pf_opt_show_dispel"]               = "Show dispellable debuff icon",
-    ["pf_opt_dispel_size"]               = "Dispel icon size",
-    ["pf_info_dispel"]                   = "Shows the debuff you can remove as an icon on the frame, its border coloured by type: Magic (blue), Curse (purple), Disease (brown), Poison (green). Bleeds never appear — no class ability removes one — and crowd control is left out, having its own display.",
+    ["pf_section_dispel"]                = "Debuff Type Alert",
+    ["pf_opt_show_dispel"]               = "Enable debuff type alert",
+    ["pf_opt_show_dispel_border"]        = "Color the whole frame by debuff type",
+    ["pf_opt_show_dispel_icon"]          = "Show priority debuff icon",
+    ["pf_opt_show_dispel_bleed"]         = "Include Bleed",
+    ["pf_opt_dispel_size"]               = "Priority debuff icon size",
+    ["pf_opt_dispel_border_size"]        = "Alert border thickness",
+    ["pf_info_dispel"]                   = "Uses the Midnight 12.1 aura engine to show Magic (blue), Curse (purple), Disease (orange), Poison (green), and Bleed (red) without reading protected aura data in combat. The icon is the actual debuff; the frame outline never changes the health-bar fill.",
 
     ["pf_section_hots"]                  = "HoT Tracking",
     ["pf_opt_show_hots"]                 = "Show HoT indicators",
@@ -2460,9 +2464,14 @@ TomoMod_RegisterLocale("enUS", {
     ["rf_opt_oor_alpha"]                 = "Out-of-range opacity",
 
     -- Features: Dispel
-    ["rf_section_dispel"]                = "Dispellable Debuff",
-    ["rf_opt_show_dispel"]               = "Show dispellable debuff icon",
-    ["rf_opt_dispel_size"]               = "Dispel icon size",
+    ["rf_section_dispel"]                = "Debuff Type Alert",
+    ["rf_opt_show_dispel"]               = "Enable debuff type alert",
+    ["rf_opt_show_dispel_border"]        = "Color the whole frame by debuff type",
+    ["rf_opt_show_dispel_icon"]          = "Show priority debuff icon",
+    ["rf_opt_show_dispel_bleed"]         = "Include Bleed",
+    ["rf_opt_dispel_size"]               = "Priority debuff icon size",
+    ["rf_opt_dispel_border_size"]        = "Alert border thickness",
+    ["rf_info_dispel"]                   = "Magic = blue, Curse = purple, Disease = orange, Poison = green, Bleed = red. Uses engine-side AuraSlots, so the alert remains combat-safe when aura data is protected.",
 
     -- Features: HoTs
     ["rf_section_hots"]                  = "HoT Tracking",

@@ -361,42 +361,25 @@ function RF.CreateFrame(unit)
     sumFrame.texture = sumTex
     f.summonIndicator = sumFrame
 
-    -- ---- DISPELLABLE DEBUFF ----
-    --
-    -- [12.1] This was a coloured border around the whole frame, driven by
-    -- reading auraData.dispelName and comparing it against what the player
-    -- can dispel. Both halves of that are withheld now, so it only lit up
-    -- out of combat -- roughly the inverse of when it is useful.
-    --
-    -- RAID_PLAYER_DISPELLABLE asks the client the same question and gets an
-    -- answer without any read. Worth knowing: it covers class and spec
-    -- dispels only, so a bleed never matches -- nothing a class learns
-    -- removes one, only the dwarf racial does.
-    if db.showDispel then
-        local AC = TomoMod_AuraContainer
-        if AC then
-            local size = db.dispelSize or 16
-            local dispelHost = CreateFrame("Frame", nil, content)
-            dispelHost:SetFrameLevel(content:GetFrameLevel() + 5)
-            dispelHost:SetSize(size, size)
-            dispelHost:SetPoint("TOPRIGHT", content, "TOPRIGHT", -1, -1)
-            dispelHost:EnableMouse(false)
-            f.dispelHost = dispelHost
-
-            dispelHost.engine = AC.Create(dispelHost, {
-                key          = "dispellable",
-                size         = size,
-                max          = 1,
-                font         = ADDON_FONT,
-                -- Crowd control is excluded: it has its own display and
-                -- would otherwise claim the single slot.
-                filter       = AC.Filter("HARMFUL", "RAID_PLAYER_DISPELLABLE",
-                                         "!CROWD_CONTROL"),
-                tooltips     = false,
-                dispelBorder = true,
-                point        = { "TOPLEFT", dispelHost, "TOPLEFT", 0, 0 },
-            })
-        end
+    -- ---- DEBUFF-TYPE ALERT ----
+    -- Same 12.1 slot engine as party frames: a full-frame type outline plus
+    -- the real aura icon, including Bleed, without reading secret aura data.
+    local AC = TomoMod_AuraContainer
+    if AC and AC.CreateDispelIndicator then
+        local dispelHost = CreateFrame("Frame", nil, content)
+        dispelHost:SetAllPoints(content)
+        dispelHost:SetFrameLevel(content:GetFrameLevel() + 5)
+        dispelHost:EnableMouse(false)
+        f.dispelHost = dispelHost
+        dispelHost.engine = AC.CreateDispelIndicator(dispelHost, {
+            unit       = nil,
+            iconSize   = db.dispelSize or 18,
+            borderSize = db.dispelBorderSize or 2,
+            showIcon   = db.showDispelIcon ~= false,
+            showBorder = db.showDispelBorder ~= false,
+            showBleed  = db.showDispelBleed ~= false,
+            font       = db.font or ADDON_FONT,
+        })
     end
     -- ---- DEFENSIVE CD CONTAINER ----
     if db.showDefensives then
@@ -744,40 +727,36 @@ function RF.UpdateSummon(f)
 end
 
 -- =====================================
--- DISPEL HIGHLIGHT BORDER SIZE
--- The border grows outwards from the frame edge, so a thicker cadre never
--- eats into the health bar. At the default of 2 the geometry is identical to
--- what shipped before.
+-- DEBUFF-TYPE ALERT VISUALS
 -- =====================================
--- [12.1] The dispellable debuff is an icon now, not a border around the
--- frame, so there is no inset to apply. Kept because callers still invoke
--- it on a settings change; it resizes the host and its single button.
 function RF.ApplyDispelBorderSize(f)
-    if not f or not f.dispelHost then return end
+    if not f or not f.dispelHost or not f.dispelHost.engine then return end
     local db = TomoModDB and TomoModDB.raidFrames
-    local size = (db and db.dispelSize) or 16
-    f.dispelHost:SetSize(size, size)
-    if f.dispelHost.engine and TomoMod_AuraContainer then
-        TomoMod_AuraContainer.Relayout(f.dispelHost.engine, { size = size, max = 1 })
+    if not db then return end
+    local AC = TomoMod_AuraContainer
+    if AC and AC.UpdateDispelIndicator then
+        AC.UpdateDispelIndicator(f.dispelHost.engine, {
+            iconSize   = db.dispelSize or 18,
+            borderSize = db.dispelBorderSize or 2,
+            showIcon   = db.showDispelIcon ~= false,
+            showBorder = db.showDispelBorder ~= false,
+            showBleed  = db.showDispelBleed ~= false,
+            font       = db.font or ADDON_FONT,
+        })
     end
 end
 
 -- =====================================
--- UPDATE: DISPEL HIGHLIGHT
+-- UPDATE: DEBUFF-TYPE ALERT
 -- =====================================
 function RF.UpdateDispel(f)
     if not f or not f.dispelHost then return end
-    -- Honoured on every update, not only at creation: ApplySettings
-    -- re-applies visuals to existing frames rather than rebuilding them, so
-    -- without this the option worked one way and not the other.
     local db = TomoModDB and TomoModDB.raidFrames
     if not db or not db.showDispel then f.dispelHost:Hide(); return end
     local unit = f.unit
     if not unit or not UnitExists(unit) then f.dispelHost:Hide(); return end
     f.dispelHost:Show()
-    -- [12.1] The engine selects the dispellable debuff and colours it by
-    -- type; there is nothing left here to read.
-    if f.dispelHost.engine then
+    if f.dispelHost.engine and TomoMod_AuraContainer then
         TomoMod_AuraContainer.SetUnit(f.dispelHost.engine, unit)
     end
 end

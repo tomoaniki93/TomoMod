@@ -1602,12 +1602,14 @@ TomoMod_Defaults = {
         showRange = true,
         oorAlpha = 0.40,
 
-        -- Dispellable debuff icon. dispelBorderSize is the old border
-        -- thickness, kept so existing profiles still load; the icon
-        -- reads dispelSize.
+        -- Typed debuff alert: full-frame outline + real aura icon.
+        -- AuraSlots cover Magic / Curse / Disease / Poison / Bleed in 12.1.
         showDispel = true,
+        showDispelBorder = true,
+        showDispelIcon = true,
+        showDispelBleed = true,
         dispelBorderSize = 2,
-        dispelSize = 16,
+        dispelSize = 22,
 
         -- HoT tracking
         showHoTs = true,
@@ -1727,12 +1729,13 @@ TomoMod_Defaults = {
         showRange = true,
         oorAlpha = 0.40,
 
-        -- Dispellable debuff icon. dispelBorderSize is the old border
-        -- thickness, kept so existing profiles still load; the icon
-        -- reads dispelSize.
+        -- Typed debuff alert: full-frame outline + real aura icon.
         showDispel = true,
+        showDispelBorder = true,
+        showDispelIcon = true,
+        showDispelBleed = true,
         dispelBorderSize = 2,
-        dispelSize = 16,
+        dispelSize = 18,
 
         -- HoT tracking
         showHoTs = true,
@@ -1741,7 +1744,7 @@ TomoMod_Defaults = {
 
         -- Debuff tracking
         showDebuffs = true,
-        debuffSize = 14,
+        debuffSize = 18,
         maxDebuffs = 3,
 
         -- Defensive cooldowns (active buffs on the member)

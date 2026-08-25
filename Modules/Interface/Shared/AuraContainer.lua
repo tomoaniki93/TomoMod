@@ -627,6 +627,219 @@ function AC.ProbeActive(probe)
     return false
 end
 
+-- ---------------------------------------------------------------------
+-- Typed debuff indicator (party / raid)
+--
+-- One AuraSlot per dispel type lets the client answer "is there a Magic /
+-- Curse / Disease / Poison / Bleed aura?" without Lua reading aura data.
+-- That matters in 12.1: aura fields are secret through most combat, while
+-- candidateFilters/includeDispelTypes remains engine-side and combat-safe.
+--
+-- The slot button itself is a 1x1 parked anchor. Its children draw:
+--   * the REAL aura icon (SetIcon, driven by the client),
+--   * a cooldown swipe + stack count,
+--   * an outward full-frame border pre-coloured for that slot's type.
+-- When the engine hides the slot, all of those children hide with it.
+-- ---------------------------------------------------------------------
+local dispelIndicatorData = setmetatable({}, { __mode = "k" })
+
+local DISPEL_ALERT_SLOTS = {
+    { key = "Magic",   level = 5 },
+    { key = "Curse",   level = 4 },
+    { key = "Disease", level = 3 },
+    { key = "Poison",  level = 2 },
+    { key = "Bleed",   level = 1 },
+}
+
+local DISPEL_ALERT_FALLBACK_COLORS = {
+    Magic   = { r = 0.10, g = 0.55, b = 1.00 },
+    Curse   = { r = 0.65, g = 0.10, b = 0.95 },
+    Disease = { r = 1.00, g = 0.50, b = 0.05 },
+    Poison  = { r = 0.55, g = 0.90, b = 0.05 },
+    Bleed   = { r = 1.00, g = 0.05, b = 0.12 },
+}
+
+local function GetDispelAlertColor(kind)
+    local AD = TomoMod_AuraData
+    local c = AD and AD.DEBUFF_TYPE_COLORS and AD.DEBUFF_TYPE_COLORS[kind]
+    return c or DISPEL_ALERT_FALLBACK_COLORS[kind] or { r = 1, g = 1, b = 1 }
+end
+
+local function ApplyDispelAlertVisual(record, kind, d)
+    if not record or not d then return end
+
+    local iconSize = math.max(8, tonumber(record.iconSize) or 20)
+    local borderSize = math.max(1, math.floor((tonumber(record.borderSize) or 2) + 0.5))
+    local typeEnabled = (kind ~= "Bleed") or record.showBleed
+    local showIcon = typeEnabled and record.showIcon
+    local showBorder = typeEnabled and record.showBorder
+    local c = GetDispelAlertColor(kind)
+    local borderAlpha = showBorder and 1 or 0
+
+    d.icon:SetSize(iconSize, iconSize)
+    d.icon:SetAlpha(showIcon and 1 or 0)
+    d.cooldown:SetAlpha(showIcon and 1 or 0)
+    d.count:SetAlpha(showIcon and 1 or 0)
+    d.count:SetFont(record.font or STANDARD_TEXT_FONT,
+        math.max(8, math.floor(iconSize * 0.42)), "OUTLINE")
+
+    -- Four simple textures, all children of the engine AuraButton. They grow
+    -- OUTSIDE the unit frame, so the health bar itself is never recoloured
+    -- or resized. Textures remain addon-owned and safe to restyle in combat.
+    d.edgeTop:ClearAllPoints()
+    d.edgeTop:SetPoint("TOPLEFT", record.parent, "TOPLEFT", -borderSize, borderSize)
+    d.edgeTop:SetPoint("TOPRIGHT", record.parent, "TOPRIGHT", borderSize, borderSize)
+    d.edgeTop:SetHeight(borderSize)
+
+    d.edgeBottom:ClearAllPoints()
+    d.edgeBottom:SetPoint("BOTTOMLEFT", record.parent, "BOTTOMLEFT", -borderSize, -borderSize)
+    d.edgeBottom:SetPoint("BOTTOMRIGHT", record.parent, "BOTTOMRIGHT", borderSize, -borderSize)
+    d.edgeBottom:SetHeight(borderSize)
+
+    d.edgeLeft:ClearAllPoints()
+    d.edgeLeft:SetPoint("TOPLEFT", record.parent, "TOPLEFT", -borderSize, borderSize)
+    d.edgeLeft:SetPoint("BOTTOMLEFT", record.parent, "BOTTOMLEFT", -borderSize, -borderSize)
+    d.edgeLeft:SetWidth(borderSize)
+
+    d.edgeRight:ClearAllPoints()
+    d.edgeRight:SetPoint("TOPRIGHT", record.parent, "TOPRIGHT", borderSize, borderSize)
+    d.edgeRight:SetPoint("BOTTOMRIGHT", record.parent, "BOTTOMRIGHT", borderSize, -borderSize)
+    d.edgeRight:SetWidth(borderSize)
+
+    d.edgeTop:SetColorTexture(c.r, c.g, c.b, borderAlpha)
+    d.edgeBottom:SetColorTexture(c.r, c.g, c.b, borderAlpha)
+    d.edgeLeft:SetColorTexture(c.r, c.g, c.b, borderAlpha)
+    d.edgeRight:SetColorTexture(c.r, c.g, c.b, borderAlpha)
+end
+
+local function MakeDispelAlertInitializer(record, slot)
+    return function(button)
+        local d = { wantSize = 1, wantHeight = 1 }
+        buttonData[button] = d
+        pending[button] = true
+        AC.TrySize(button)
+
+        pcall(button.SetMouseClickEnabled, button, false)
+        pcall(button.SetMouseMotionEnabled, button, false)
+
+        -- AuraSlots are not auto-anchored. Do this inside initializeFrame:
+        -- touching an engine-owned AuraButton later can be forbidden while
+        -- auras are secret.
+        pcall(button.SetPoint, button, "CENTER", record.parent, "CENTER", 0, 0)
+        pcall(button.SetFrameLevel, button,
+            record.parent:GetFrameLevel() + (slot.level or 1))
+
+        d.icon = button:CreateTexture(nil, "ARTWORK", nil, 4)
+        d.icon:SetPoint(record.iconPoint or "TOPRIGHT", record.parent,
+            record.iconRelPoint or "TOPRIGHT", record.iconX or -2, record.iconY or -2)
+        d.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+
+        d.cooldown = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
+        d.cooldown:SetAllPoints(d.icon)
+        d.cooldown:SetDrawEdge(false)
+        d.cooldown:SetReverse(true)
+        d.cooldown:SetHideCountdownNumbers(true)
+        d.cooldown:SetSwipeColor(0, 0, 0, 0.62)
+        d.cooldown:EnableMouse(false)
+
+        d.count = button:CreateFontString(nil, "OVERLAY")
+        d.count:SetPoint("BOTTOMRIGHT", d.icon, "BOTTOMRIGHT", 1, 1)
+        d.count:SetJustifyH("RIGHT")
+
+        d.edgeTop = button:CreateTexture(nil, "OVERLAY", nil, 7)
+        d.edgeBottom = button:CreateTexture(nil, "OVERLAY", nil, 7)
+        d.edgeLeft = button:CreateTexture(nil, "OVERLAY", nil, 7)
+        d.edgeRight = button:CreateTexture(nil, "OVERLAY", nil, 7)
+
+        record.slots[slot.key] = d
+        ApplyDispelAlertVisual(record, slot.key, d)
+
+        -- Registration last: these setters immediately let the aura engine
+        -- drive our regions, so every region must already be fully styled.
+        if button.SetIcon then
+            pcall(button.SetIcon, button, d.icon)
+        end
+        if button.SetDurationCooldown then
+            pcall(button.SetDurationCooldown, button, d.cooldown)
+        end
+        if button.SetApplicationCount then
+            pcall(button.SetApplicationCount, button, d.count, {})
+        end
+    end
+end
+
+function AC.CreateDispelIndicator(parent, opts)
+    if not AC.IsAvailable() then return nil end
+    if not parent or not opts then return nil end
+
+    local ok, container = pcall(CreateFrame, "AuraContainer", nil, parent,
+        "CustomAuraContainerTemplate")
+    if not ok or not container or not container.AddAuraSlot then return nil end
+
+    container:SetSize(1, 1)
+    container:SetPoint("CENTER", parent, "CENTER", 0, 0)
+
+    local record = {
+        parent = parent,
+        slots = {},
+        iconSize = opts.iconSize or 20,
+        borderSize = opts.borderSize or 2,
+        showIcon = opts.showIcon ~= false,
+        showBorder = opts.showBorder ~= false,
+        showBleed = opts.showBleed ~= false,
+        font = opts.font or STANDARD_TEXT_FONT,
+        iconPoint = opts.iconPoint or "TOPRIGHT",
+        iconRelPoint = opts.iconRelPoint or "TOPRIGHT",
+        iconX = opts.iconX or -2,
+        iconY = opts.iconY or -2,
+    }
+    dispelIndicatorData[container] = record
+
+    local filter = AC.Filter("HARMFUL", "!CROWD_CONTROL")
+    local added = 0
+    for i = 1, #DISPEL_ALERT_SLOTS do
+        local slot = DISPEL_ALERT_SLOTS[i]
+        local okSlot = pcall(container.AddAuraSlot, container,
+            "tomomod_debuff_" .. slot.key:lower(), filter, {
+                candidateFilters = {
+                    includeDispelTypes = { [slot.key] = true },
+                },
+                initializeFrame = MakeDispelAlertInitializer(record, slot),
+            })
+        if okSlot then added = added + 1 end
+    end
+
+    if added == 0 then
+        dispelIndicatorData[container] = nil
+        container:Hide()
+        container:SetParent(nil)
+        return nil
+    end
+
+    pcall(container.SetUnit, container, opts.unit)
+    pcall(container.UpdateAllAuras, container)
+    return container
+end
+
+-- Visual options are addon-owned regions, so these can update live without
+-- rebuilding slots or reading any aura. The slot filters stay fixed forever.
+function AC.UpdateDispelIndicator(container, opts)
+    local record = dispelIndicatorData[container]
+    if not record or not opts then return false end
+
+    if opts.iconSize ~= nil then record.iconSize = opts.iconSize end
+    if opts.borderSize ~= nil then record.borderSize = opts.borderSize end
+    if opts.showIcon ~= nil then record.showIcon = opts.showIcon == true end
+    if opts.showBorder ~= nil then record.showBorder = opts.showBorder == true end
+    if opts.showBleed ~= nil then record.showBleed = opts.showBleed == true end
+    if opts.font then record.font = opts.font end
+
+    for kind, d in pairs(record.slots) do
+        ApplyDispelAlertVisual(record, kind, d)
+    end
+    return true
+end
+
 -- The unit behind a plate changes as plates are recycled.
 function AC.SetUnit(container, unit)
     if not container or not container.SetUnit then return false end

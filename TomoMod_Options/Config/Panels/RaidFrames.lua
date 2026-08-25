@@ -114,11 +114,12 @@ local function BuildFeaturesTab(parent)
 
     local card3, cy = W.CreateCard(c, L["rf_section_dispel"], y, "H")
     local _, cy = W.CreateCheckbox(card3.inner, L["rf_opt_show_dispel"], db.showDispel, cy, function(v) db.showDispel = v; ApplyRF() end)
-    -- [12.1] The size of the dispellable-debuff icon, not a border
-    -- thickness: the border is gone. Left on dispelBorderSize this slider
-    -- wrote a value nothing reads any more.
-    local _, cy = W.CreateSlider(card3.inner, L["rf_opt_dispel_size"], db.dispelSize or 16, 10, 24, 1, cy, function(v) db.dispelSize = v; ApplyRF() end, "%.0f")
-    local _, cy = W.CreateInfoText(card3.inner, L["pf_info_dispel"], cy)
+    local _, cy = W.CreateCheckbox(card3.inner, L["rf_opt_show_dispel_border"], db.showDispelBorder ~= false, cy, function(v) db.showDispelBorder = v; ApplyRF() end)
+    local _, cy = W.CreateCheckbox(card3.inner, L["rf_opt_show_dispel_icon"], db.showDispelIcon ~= false, cy, function(v) db.showDispelIcon = v; ApplyRF() end)
+    local _, cy = W.CreateCheckbox(card3.inner, L["rf_opt_show_dispel_bleed"], db.showDispelBleed ~= false, cy, function(v) db.showDispelBleed = v; ApplyRF() end)
+    local _, cy = W.CreateSlider(card3.inner, L["rf_opt_dispel_size"], db.dispelSize or 18, 10, 28, 1, cy, function(v) db.dispelSize = v; ApplyRF() end, "%.0f")
+    local _, cy = W.CreateSlider(card3.inner, L["rf_opt_dispel_border_size"], db.dispelBorderSize or 2, 1, 5, 1, cy, function(v) db.dispelBorderSize = v; ApplyRF() end, "%.0f")
+    local _, cy = W.CreateInfoText(card3.inner, L["rf_info_dispel"], cy)
     y = W.FinalizeCard(card3, cy)
 
     local card4, cy = W.CreateCard(c, L["rf_section_hots"], y, "H")
@@ -129,7 +130,7 @@ local function BuildFeaturesTab(parent)
 
     local card5, cy = W.CreateCard(c, L["rf_section_debuffs"], y, "H")
     local _, cy = W.CreateCheckbox(card5.inner, L["rf_opt_show_debuffs"], db.showDebuffs, cy, function(v) db.showDebuffs = v; ApplyRF() end)
-    local _, cy = W.CreateSlider(card5.inner, L["rf_opt_debuff_size"], db.debuffSize, 8, 20, 1, cy, function(v) db.debuffSize = v end, "%.0f")
+    local _, cy = W.CreateSlider(card5.inner, L["rf_opt_debuff_size"], db.debuffSize or 18, 10, 28, 1, cy, function(v) db.debuffSize = v end, "%.0f")
     local _, cy = W.CreateSlider(card5.inner, L["rf_opt_max_debuffs"], db.maxDebuffs, 1, 5, 1, cy, function(v) db.maxDebuffs = v end, "%.0f")
     y = W.FinalizeCard(card5, cy)
 
