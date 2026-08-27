@@ -3327,6 +3327,12 @@ TomoMod_RegisterLocale("deDE", {
     -- =====================
     -- 3.6.2 — What's New
     -- =====================
+    ["wn_362_healer_studio"] = "Neu — Healer Studio: Wähle genau aus, welche deiner eigenen Heilung-über-Zeit-Effekte, Schilde und Heiler-Buffs auf den Gruppen- und Schlachtzugsrahmen erscheinen, und platziere jedes Symbol frei auf der Zelle. Es ersetzt die feste Reihe von HoT-Symbolen durch deine eigene Anordnung, und Gruppe und Schlachtzug behalten je eine eigene. Verfügbar für Priester, Druide, Paladin, Schamane, Mönch und Rufer.",
+    ["wn_362_healer_editor"] = "Neu — Die Anordnung wird in einem eigenen Fenster erstellt, das sich unter Gruppenrahmen oder Schlachtzugsrahmen im Reiter Funktionen öffnet. Ziehe ein Symbol auf die Zellenvorschau, um es zu platzieren, oder stelle Größe, Verankerung und genaue Versatzwerte über die Regler daneben ein — alles wird laufend gespeichert, ohne Übernehmen-Schaltfläche und ohne Neuladen. Eine Startvorlage aktiviert die ersten Zauber deiner Klasse, und du kannst jede Heilerklasse einrichten, nicht nur die, die du gerade spielst.",
+    ["wn_362_healer_preview"] = "Neu — Die Vorschau im Healer Studio ist deine eigene Zelle, vergrößert: Sie verwendet die Breite und Höhe, die für deine Gruppen- oder Schlachtzugsrahmen tatsächlich eingestellt sind, sodass das Ergebnis im Spiel dem entspricht, was du platzierst. Ein losgelassenes Symbol rastet an der nächsten Ecke, Kante oder Mitte ein und bleibt dadurch an seinem Platz, wenn du deine Rahmen später in der Größe änderst.",
+    ["wn_362_healer_profile"] = "Neu — Healer-Studio-Anordnungen werden mit deinen übrigen Einstellungen gespeichert, folgen also einem Profilexport und kommen beim Import zurück, statt unterwegs verloren zu gehen.",
+    ["wn_362_healer_spec"] = "Neu — Standardmäßig gilt die erweiterte Anordnung nur in einer Heilerspezialisierung, sodass deine Schatten- oder Wildheitsspezialisierung die normale HoT-Reihe behält, ohne dass du etwas umstellen musst. Beim Wechsel der Spezialisierung tauschen die beiden von selbst, ohne Neuladen.",
+    ["wn_362_healer_legacy"] = "Hinweis — Solange du Healer Studio nicht einschaltest, ändert sich nichts: Es ist für Gruppen- und Schlachtzugsrahmen deaktiviert, und die klassische HoT-Reihe arbeitet genau wie zuvor. Du kannst die klassische Reihe auch ganz abschalten und nur deine selbst platzierten Symbole behalten.",
     ["wn_362_vault_types"] = "Behoben — Die Vorschau der Großen Schatzkammer im Mythic Hub liest ihre Zeilen für Schlachtzüge, Dungeons und Tiefen jetzt aus Blizzards offiziellen Belohnungstypen, statt sie aus dem zu erraten, was die Wochenbelohnungs-API gerade zurückgab. Die Tiefen-Zeile bleibt dadurch nicht mehr leer und zeigt auch nicht mehr die Aktivitäten einer anderen Zeile.",
     ["wn_362_vault_progress"] = "Behoben — Die Vorschau der Großen Schatzkammer erzwingt keine Aktualisierung von Blizzards eigenem Wochenbelohnungs-Fenster mehr, bevor sie deinen Fortschritt ausliest. Diese Aktualisierung setzt den Aktivitätsfortschritt auf null zurück, solange eine frühere Belohnung noch abgeholt werden kann — abgeschlossene Dungeons, Schlachtzugsbosse und Tiefen wurden dadurch als 0 angezeigt.",
     ["wn_362_vault_slots"] = "Behoben — Jede Zeile der Großen Schatzkammer fragt ihre Aktivitäten jetzt einzeln beim Spiel ab und sortiert sie nach Belohnungsstufe. Die zusätzlichen Einträge, die die API neben den echten Zeilen zurückgibt (Bonus- und Aufholbelohnungen), können damit keinen sichtbaren Platz mehr belegen.",
@@ -3756,5 +3762,35 @@ TomoMod_RegisterLocale("deDE", {
     ["Action Bar 6"] = "Aktionsleiste 6",
     ["Action Bar 7"] = "Aktionsleiste 7",
     ["Action Bar 8"] = "Aktionsleiste 8",
+
+    -- =====================
+    -- HEALER STUDIO (advanced Party/Raid healer indicators)
+    -- =====================
+    ["btn_open_healerstudio"]    = "Healer Studio oeffnen",
+    ["info_healerstudio"]        = "Erweitertes Profil: waehle deine HoTs, Schilde und Heilbuffs und platziere jedes Symbol frei auf der Zelle. Ersetzt die Reihe darueber, wenn aktiviert.",
+    ["hs_list"]                  = "AUREN",
+    ["hs_mode"]                  = "Profil",
+    ["hs_mode_party"]            = "Gruppe",
+    ["hs_mode_raid"]             = "Schlachtzug",
+    ["hs_class"]                 = "Klasse",
+    ["hs_enable"]                = "Erweitertes Profil aktivieren",
+    ["hs_healer_only"]           = "Nur in einer Heiler-Spezialisierung",
+    ["hs_mode_on"]               = "Erweitertes Profil aktiv: die klassische HoT-Reihe ist auf diesen Zellen ausgeblendet.",
+    ["hs_mode_off"]              = "Die klassische HoT-Reihe bleibt aktiv, solange dieses Profil deaktiviert ist.",
+    ["hs_preset"]                = "Startvorlage",
+    ["hs_reset_class"]           = "Diese Klasse zuruecksetzen",
+    ["hs_reset_position"]        = "Position zuruecksetzen",
+    ["hs_select"]                = "Waehle eine Aura in der Liste, um sie zu platzieren.",
+    ["hs_size"]                  = "Symbolgroesse",
+    ["hs_anchor"]                = "Ankerpunkt",
+    ["hs_offset_x"]              = "Horizontaler Versatz",
+    ["hs_offset_y"]              = "Vertikaler Versatz",
+    ["hs_hint"]                  = "Ziehe die Symbole auf die Zelle - Aenderungen werden sofort gespeichert",
+    ["hs_combat"]                = "die Anordnung kann im Kampf nicht geaendert werden.",
+    ["hs_cat_hot"]               = "HoT",
+    ["hs_cat_shield"]            = "Schild",
+    ["hs_cat_beacon"]            = "Verbindung",
+    ["hs_cat_marker"]            = "Heilungsmarker",
+    ["hs_cat_external"]          = "Externer Schutz",
 
 })

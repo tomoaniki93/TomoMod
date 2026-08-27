@@ -1829,6 +1829,20 @@ TomoMod_Defaults = {
         enabled       = true,
         bars          = {},   -- [classToken] = { <BarSchema>, ... }
     },
+
+    -- =====================
+    -- HEALER STUDIO (advanced Party/Raid healer indicators) -- schema V1
+    -- Layouts are stored per class token, empty by default. Declared here
+    -- and not only created on demand: Profiles.lua sanitizes an imported
+    -- profile against the keys of TomoMod_Defaults, so a root key missing
+    -- from this table is silently dropped on every import/export.
+    -- =====================
+    healerStudio = {
+        schemaVersion  = 1,
+        onlyHealerSpec = true,
+        party = { enabled = false, defaultSize = 12, classes = {} },
+        raid  = { enabled = false, defaultSize = 10, classes = {} },
+    },
 }
 
 -- =====================================

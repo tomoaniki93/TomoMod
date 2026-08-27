@@ -3328,6 +3328,12 @@ TomoMod_RegisterLocale("esES", {
     -- =====================
     -- 3.6.2 — What's New
     -- =====================
+    ["wn_362_healer_studio"] = "Nuevo — Healer Studio: elige exactamente cuáles de tus sanaciones periódicas, escudos y beneficios de sanador aparecen en los marcos de grupo y de banda, y coloca cada icono donde quieras en la celda. Sustituye la fila fija de iconos de sanación periódica por tu propia disposición, y Grupo y Banda conservan cada uno la suya. Disponible para Sacerdote, Druida, Paladín, Chamán, Monje y Evocador.",
+    ["wn_362_healer_editor"] = "Nuevo — La disposición se construye en una ventana dedicada, que se abre desde Marcos de grupo o Marcos de banda, en la pestaña Funciones. Arrastra un icono sobre la vista previa de la celda para colocarlo, o ajusta su tamaño, su anclaje y sus desplazamientos exactos con los controles de al lado: todo se guarda sobre la marcha, sin botón Aplicar y sin recargar. Un preajuste inicial activa los primeros hechizos de tu clase, y puedes preparar la disposición de cualquier clase sanadora, no solo la que juegas.",
+    ["wn_362_healer_preview"] = "Nuevo — La vista previa de Healer Studio es tu propia celda, ampliada: usa el ancho y el alto que realmente tienen configurados tus marcos de grupo o de banda, así que lo que colocas es lo que ves en el juego. Al soltar un icono, este se ajusta a la esquina, el borde o el centro más cercano, de modo que se queda donde lo pusiste si cambias el tamaño de los marcos más adelante.",
+    ["wn_362_healer_profile"] = "Nuevo — Las disposiciones de Healer Studio se guardan junto con el resto de tus ajustes, así que acompañan a la exportación de un perfil y vuelven con la importación en lugar de perderse por el camino.",
+    ["wn_362_healer_spec"] = "Nuevo — De forma predeterminada, la disposición avanzada solo se aplica en una especialización de sanación, así que tus especializaciones Sombras o Feral conservan la fila de sanación periódica normal sin que tengas que cambiar nada. Al cambiar de especialización, ambas se alternan solas, sin recargar.",
+    ["wn_362_healer_legacy"] = "Nota — Nada cambia mientras no actives Healer Studio: está desactivado tanto para los marcos de grupo como para los de banda, y la fila clásica sigue funcionando exactamente igual que antes. También puedes desactivarla por completo y quedarte solo con tus iconos colocados.",
     ["wn_362_vault_types"] = "Corrección — La vista previa de la Gran Cámara en el Mythic Hub ahora lee sus filas de Bandas, Mazmorras y Profundidades a partir de los tipos de recompensa oficiales de Blizzard, en lugar de deducirlos de lo que devolviera la API de recompensas semanales, así que la fila de Profundidades ya no aparece vacía ni con las actividades de otra fila.",
     ["wn_362_vault_progress"] = "Corrección — La vista previa de la Gran Cámara ya no fuerza una actualización de la propia ventana de Recompensas Semanales de Blizzard antes de leer tu progreso. Esa actualización pone el progreso de las actividades a cero mientras quede una recompensa anterior por recoger, lo que hacía que mazmorras, jefes de banda y profundidades ya completados se mostraran como 0.",
     ["wn_362_vault_slots"] = "Corrección — Cada fila de la Gran Cámara pide ahora al juego sus propias actividades y las ordena por nivel de recompensa, de modo que las entradas adicionales que la API devuelve junto a las filas reales (recompensas extra y de recuperación) ya no pueden ocupar una casilla visible.",
@@ -3757,5 +3763,35 @@ TomoMod_RegisterLocale("esES", {
     ["Action Bar 6"] = "Barra de acción 6",
     ["Action Bar 7"] = "Barra de acción 7",
     ["Action Bar 8"] = "Barra de acción 8",
+
+    -- =====================
+    -- HEALER STUDIO (advanced Party/Raid healer indicators)
+    -- =====================
+    ["btn_open_healerstudio"]    = "Abrir Healer Studio",
+    ["info_healerstudio"]        = "Perfil avanzado: elige tus HoTs, escudos y beneficios de sanacion, y coloca cada icono libremente en la celda. Sustituye la fila superior cuando esta activo.",
+    ["hs_list"]                  = "AURAS",
+    ["hs_mode"]                  = "Perfil",
+    ["hs_mode_party"]            = "Grupo",
+    ["hs_mode_raid"]             = "Banda",
+    ["hs_class"]                 = "Clase",
+    ["hs_enable"]                = "Activar el perfil avanzado",
+    ["hs_healer_only"]           = "Solo en una especializacion de sanador",
+    ["hs_mode_on"]               = "Perfil avanzado activo: la fila de HoTs clasica se oculta en estas celdas.",
+    ["hs_mode_off"]              = "La fila de HoTs clasica sigue en uso mientras este perfil este desactivado.",
+    ["hs_preset"]                = "Preajuste inicial",
+    ["hs_reset_class"]           = "Restablecer esta clase",
+    ["hs_reset_position"]        = "Restablecer la posicion",
+    ["hs_select"]                = "Selecciona un aura en la lista para colocarla.",
+    ["hs_size"]                  = "Tamano del icono",
+    ["hs_anchor"]                = "Anclaje",
+    ["hs_offset_x"]              = "Desplazamiento horizontal",
+    ["hs_offset_y"]              = "Desplazamiento vertical",
+    ["hs_hint"]                  = "Arrastra los iconos sobre la celda - los cambios se guardan al instante",
+    ["hs_combat"]                = "la disposicion no se puede modificar en combate.",
+    ["hs_cat_hot"]               = "HoT",
+    ["hs_cat_shield"]            = "Escudo",
+    ["hs_cat_beacon"]            = "Faro / vinculo",
+    ["hs_cat_marker"]            = "Marcador de sanacion",
+    ["hs_cat_external"]          = "Externo",
 
 })

@@ -3367,6 +3367,12 @@ TomoMod_RegisterLocale("enUS", {
     -- =====================
     -- 3.6.2 — What's New
     -- =====================
+    ["wn_362_healer_studio"] = "New — Healer Studio: pick exactly which of your own heal-over-time effects, shields and healer buffs appear on the party and raid frames, and place each icon wherever you want on the cell. It replaces the fixed row of HoT icons with your own layout, and Party and Raid each keep their own. Available for Priest, Druid, Paladin, Shaman, Monk and Evoker.",
+    ["wn_362_healer_editor"] = "New — The layout is built in a dedicated window, opened from Party Frames or Raid Frames under Features. Drag an icon onto the cell preview to place it, or set its size, its anchor and its exact offsets with the controls next to it — everything is saved as you go, with no Apply button and no reload. A starter preset switches on the first few spells of your class, and you can lay out any healer class, not only the one you are playing.",
+    ["wn_362_healer_preview"] = "New — The preview in Healer Studio is your own cell, enlarged: it uses the width and height your party or raid frames are actually set to, so what you place is what you get in game. Dropping an icon snaps it to the nearest corner, edge or centre, which means it stays where you put it if you resize your frames later.",
+    ["wn_362_healer_profile"] = "New — Healer Studio layouts are stored with the rest of your settings, so they follow a profile export and come back with an import instead of being dropped along the way.",
+    ["wn_362_healer_spec"] = "New — By default the advanced layout only applies while you are in a healer specialization, so your Shadow or Feral spec keeps the normal HoT row without you having to switch anything. Leaving or entering a healer spec swaps the two over on its own, without a reload.",
+    ["wn_362_healer_legacy"] = "Note — Nothing changes unless you turn Healer Studio on: it is off for both party and raid frames, and the classic HoT row keeps working exactly as before. You can also turn the classic row off entirely and keep only your own placed icons.",
     ["wn_362_vault_types"] = "Fix — The Great Vault preview in Mythic Hub now reads its Raids, Dungeons and Delves rows from Blizzard's official reward types instead of guessing them from whatever the weekly rewards API happened to return, so the Delves row no longer comes up empty or filled with another row's activities.",
     ["wn_362_vault_progress"] = "Fix — The Great Vault preview no longer forces a refresh of Blizzard's own Weekly Rewards window before reading your progress. That refresh resets activity progress to zero while a previous reward is still waiting to be claimed, which made completed dungeons, raid bosses and delves show up as 0.",
     ["wn_362_vault_slots"] = "Fix — Each Great Vault row now asks the game for its own activities and orders them by reward tier, so the extra entries the API returns alongside the real rows (bonus and catch-up rewards) can no longer take over a visible slot.",
@@ -3799,5 +3805,35 @@ TomoMod_RegisterLocale("enUS", {
     ["Action Bar 6"] = "Action Bar 6",
     ["Action Bar 7"] = "Action Bar 7",
     ["Action Bar 8"] = "Action Bar 8",
+
+    -- =====================
+    -- HEALER STUDIO (advanced Party/Raid healer indicators)
+    -- =====================
+    ["btn_open_healerstudio"]    = "Open Healer Studio",
+    ["info_healerstudio"]        = "Advanced profile: pick your HoTs, shields and healing buffs, then place each icon freely on the cell. Replaces the row above when enabled.",
+    ["hs_list"]                  = "AURAS",
+    ["hs_mode"]                  = "Profile",
+    ["hs_mode_party"]            = "Party",
+    ["hs_mode_raid"]             = "Raid",
+    ["hs_class"]                 = "Class",
+    ["hs_enable"]                = "Enable the advanced profile",
+    ["hs_healer_only"]           = "Only while in a healer specialization",
+    ["hs_mode_on"]               = "Advanced profile active: the classic HoT row is hidden on these cells.",
+    ["hs_mode_off"]              = "The classic HoT row stays in use while this profile is off.",
+    ["hs_preset"]                = "Starter preset",
+    ["hs_reset_class"]           = "Reset this class",
+    ["hs_reset_position"]        = "Reset position",
+    ["hs_select"]                = "Select an aura in the list to place it.",
+    ["hs_size"]                  = "Icon size",
+    ["hs_anchor"]                = "Anchor",
+    ["hs_offset_x"]              = "Horizontal offset",
+    ["hs_offset_y"]              = "Vertical offset",
+    ["hs_hint"]                  = "Drag the icons on the cell - changes are saved immediately",
+    ["hs_combat"]                = "the layout cannot be changed during combat.",
+    ["hs_cat_hot"]               = "HoT",
+    ["hs_cat_shield"]            = "Shield",
+    ["hs_cat_beacon"]            = "Beacon / link",
+    ["hs_cat_marker"]            = "Healing marker",
+    ["hs_cat_external"]          = "External",
 
 })

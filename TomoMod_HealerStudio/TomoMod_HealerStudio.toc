@@ -1,0 +1,11 @@
+## Interface: 120100
+## Title: |cff0cd29fTomo|rMod |cff2ed884Healer Studio|r
+## Notes: Advanced HoT, shield and healer-buff layout editor for TomoMod Party/Raid frames.
+## Author: TomoAniki
+## Category: |cff0cd29fHUD|r
+## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
+## Version: 3.6.2
+## LoadOnDemand: 1
+## Dependencies: TomoMod
+
+HealerStudio.lua

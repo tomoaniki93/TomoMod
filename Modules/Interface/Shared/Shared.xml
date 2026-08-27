@@ -5,6 +5,7 @@
 
     <Script file="GroupSummon.lua" />
     <Script file="AuraData.lua" />
+    <Script file="HealerIndicators.lua" />
     <Script file="DefensiveTrack.lua" />
 
 </Ui>

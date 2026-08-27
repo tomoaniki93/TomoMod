@@ -137,6 +137,13 @@ local function BuildFeaturesTab(parent)
     local _, cy = W.CreateSlider(card4.inner, L["pf_opt_hot_size"], db.hotSize, 8, 20, 1, cy, function(v) db.hotSize = v end, "%.0f")
     local _, cy = W.CreateSlider(card4.inner, L["pf_opt_max_hots"], db.maxHoTs, 1, 6, 1, cy, function(v) db.maxHoTs = v end, "%.0f")
     local _, cy = W.CreateInfoText(card4.inner, L["pf_info_hots"], cy)
+    -- Healer Studio is the full path (free placement, one icon per spell);
+    -- the three settings above stay the quick row for everyone else.
+    local _, cy = W.CreateSeparator(card4.inner, cy)
+    local _, cy = W.CreateButton(card4.inner, L["btn_open_healerstudio"], 240, cy, function()
+        TomoMod_OpenHealerStudio("party")
+    end)
+    local _, cy = W.CreateInfoText(card4.inner, L["info_healerstudio"], cy)
     y = W.FinalizeCard(card4, cy)
 
     -- Defensive cooldowns

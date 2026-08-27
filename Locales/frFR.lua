@@ -3343,6 +3343,12 @@ TomoMod_RegisterLocale("frFR", {
     -- =====================
     -- 3.6.2 — What's New
     -- =====================
+    ["wn_362_healer_studio"] = "Nouveau — Healer Studio : choisis exactement lesquels de tes soins sur la durée, boucliers et buffs de soin s'affichent sur les cadres de groupe et de raid, et place chaque icône où tu veux sur la cellule. Il remplace la rangée fixe d'icônes de HoT par ta propre disposition, et Groupe et Raid en conservent chacun une. Disponible pour le Prêtre, le Druide, le Paladin, le Chaman, le Moine et l'Évocateur.",
+    ["wn_362_healer_editor"] = "Nouveau — La disposition se construit dans une fenêtre dédiée, ouverte depuis Cadres de groupe ou Cadres de raid, onglet Fonctionnalités. Fais glisser une icône sur l'aperçu de la cellule pour la placer, ou règle sa taille, son ancrage et ses décalages exacts avec les contrôles à côté — tout est enregistré au fur et à mesure, sans bouton Appliquer ni rechargement. Un preset de base active les premiers sorts de ta classe, et tu peux préparer la disposition de n'importe quelle classe de soigneur, pas seulement celle que tu joues.",
+    ["wn_362_healer_preview"] = "Nouveau — L'aperçu de Healer Studio est ta propre cellule, agrandie : il reprend la largeur et la hauteur réellement réglées pour tes cadres de groupe ou de raid, donc ce que tu places est ce que tu obtiens en jeu. Une icône lâchée s'aimante au coin, au bord ou au centre le plus proche, ce qui lui permet de rester en place si tu redimensionnes tes cadres plus tard.",
+    ["wn_362_healer_profile"] = "Nouveau — Les dispositions de Healer Studio sont enregistrées avec le reste de tes réglages : elles suivent l'export d'un profil et reviennent à l'import, au lieu d'être perdues en route.",
+    ["wn_362_healer_spec"] = "Nouveau — Par défaut, la disposition avancée ne s'applique qu'en spécialisation de soin : tes spés Ombre ou Farouche conservent la rangée de HoT classique sans que tu aies à changer quoi que ce soit. Le passage d'une spé à l'autre bascule entre les deux tout seul, sans rechargement.",
+    ["wn_362_healer_legacy"] = "Note — Rien ne change tant que tu n'actives pas Healer Studio : il est désactivé pour les cadres de groupe comme de raid, et la rangée de HoT classique continue de fonctionner exactement comme avant. Tu peux aussi désactiver complètement cette rangée et ne garder que tes propres icônes placées.",
     ["wn_362_vault_types"] = "Correction — L'aperçu de la Grande Chambre forte du Mythic Hub lit désormais ses lignes Raids, Donjons et Gouffres à partir des types de récompense officiels de Blizzard, au lieu de les deviner d'après ce que l'API des récompenses hebdomadaires renvoyait : la ligne Gouffres n'apparaît donc plus vide ni remplie des activités d'une autre ligne.",
     ["wn_362_vault_progress"] = "Correction — L'aperçu de la Grande Chambre forte ne force plus le rafraîchissement de la fenêtre Récompenses hebdomadaires de Blizzard avant de lire ta progression. Ce rafraîchissement remet la progression des activités à zéro tant qu'une récompense précédente n'a pas été récupérée, ce qui affichait 0 pour des donjons, des boss de raid et des gouffres pourtant terminés.",
     ["wn_362_vault_slots"] = "Correction — Chaque ligne de la Grande Chambre forte demande désormais ses propres activités au jeu et les trie par palier de récompense : les entrées supplémentaires renvoyées par l'API à côté des vraies lignes (récompenses bonus et de rattrapage) ne peuvent plus occuper un emplacement visible.",
@@ -3772,5 +3778,35 @@ TomoMod_RegisterLocale("frFR", {
     ["Action Bar 6"] = "Barre d’action 6",
     ["Action Bar 7"] = "Barre d’action 7",
     ["Action Bar 8"] = "Barre d’action 8",
+
+    -- =====================
+    -- HEALER STUDIO (advanced Party/Raid healer indicators)
+    -- =====================
+    ["btn_open_healerstudio"]    = "Ouvrir Healer Studio",
+    ["info_healerstudio"]        = "Profil avance : choisis tes HoTs, boucliers et buffs de soin, puis place chaque icone librement sur la cellule. Remplace la rangee ci-dessus quand il est actif.",
+    ["hs_list"]                  = "AURAS",
+    ["hs_mode"]                  = "Profil",
+    ["hs_mode_party"]            = "Groupe",
+    ["hs_mode_raid"]             = "Raid",
+    ["hs_class"]                 = "Classe",
+    ["hs_enable"]                = "Activer le profil avance",
+    ["hs_healer_only"]           = "Uniquement en specialisation Soigneur",
+    ["hs_mode_on"]               = "Profil avance actif : la rangee de HoTs classique est masquee sur ces cellules.",
+    ["hs_mode_off"]              = "La rangee de HoTs classique reste utilisee tant que ce profil est desactive.",
+    ["hs_preset"]                = "Preset de base",
+    ["hs_reset_class"]           = "Reinitialiser cette classe",
+    ["hs_reset_position"]        = "Reinitialiser la position",
+    ["hs_select"]                = "Selectionne une aura dans la liste pour la placer.",
+    ["hs_size"]                  = "Taille de l'icone",
+    ["hs_anchor"]                = "Ancrage",
+    ["hs_offset_x"]              = "Decalage horizontal",
+    ["hs_offset_y"]              = "Decalage vertical",
+    ["hs_hint"]                  = "Glisse les icones sur la cellule - les changements sont enregistres immediatement",
+    ["hs_combat"]                = "la disposition ne peut pas etre modifiee en combat.",
+    ["hs_cat_hot"]               = "HoT",
+    ["hs_cat_shield"]            = "Bouclier",
+    ["hs_cat_beacon"]            = "Lien / balise",
+    ["hs_cat_marker"]            = "Marqueur de soin",
+    ["hs_cat_external"]          = "Externe",
 
 })

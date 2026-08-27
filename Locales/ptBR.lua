@@ -3315,6 +3315,12 @@ TomoMod_RegisterLocale("ptBR", {
     -- =====================
     -- 3.6.2 — What's New
     -- =====================
+    ["wn_362_healer_studio"] = "Novo — Healer Studio: escolha exatamente quais das suas curas ao longo do tempo, escudos e bônus de curandeiro aparecem nos quadros de grupo e de raide, e posicione cada ícone onde quiser na célula. Ele substitui a fileira fixa de ícones de cura periódica pelo seu próprio layout, e Grupo e Raide mantêm um layout cada. Disponível para Sacerdote, Druida, Paladino, Xãmã, Monge e Evocador.",
+    ["wn_362_healer_editor"] = "Novo — O layout é montado em uma janela dedicada, aberta em Quadros de Grupo ou Quadros de Raide, na aba Recursos. Arraste um ícone sobre a prévia da célula para posicioná-lo, ou defina o tamanho, a ancoragem e os deslocamentos exatos nos controles ao lado — tudo é salvo conforme você trabalha, sem botão Aplicar e sem recarregar. Uma predefinição inicial ativa as primeiras magias da sua classe, e você pode preparar o layout de qualquer classe curandeira, não só a que está jogando.",
+    ["wn_362_healer_preview"] = "Novo — A prévia do Healer Studio é a sua própria célula, ampliada: ela usa a largura e a altura realmente definidas para os seus quadros de grupo ou de raide, então o que você posiciona é o que aparece no jogo. Ao soltar um ícone, ele se encaixa no canto, na borda ou no centro mais próximo, de modo que permanece onde você o colocou se redimensionar os quadros depois.",
+    ["wn_362_healer_profile"] = "Novo — Os layouts do Healer Studio são salvos junto com o restante das suas configurações, então acompanham a exportação de um perfil e voltam na importação, em vez de se perderem no caminho.",
+    ["wn_362_healer_spec"] = "Novo — Por padrão, o layout avançado só se aplica enquanto você está em uma especialização de cura, então suas especializações Sombras ou Feral mantêm a fileira de cura periódica normal sem que você precise mudar nada. Ao trocar de especialização, as duas se alternam sozinhas, sem recarregar.",
+    ["wn_362_healer_legacy"] = "Nota — Nada muda enquanto você não ativar o Healer Studio: ele vem desligado tanto para os quadros de grupo quanto para os de raide, e a fileira clássica continua funcionando exatamente como antes. Você também pode desligá-la por completo e ficar apenas com os seus ícones posicionados.",
     ["wn_362_vault_types"] = "Correção — A prévia da Grande Câmara no Mythic Hub agora lê suas linhas de Raides, Masmorras e Abismos a partir dos tipos de recompensa oficiais da Blizzard, em vez de deduzi-los do que a API de recompensas semanais retornasse, então a linha de Abismos não aparece mais vazia nem preenchida com as atividades de outra linha.",
     ["wn_362_vault_progress"] = "Correção — A prévia da Grande Câmara não força mais uma atualização da própria janela de Recompensas Semanais da Blizzard antes de ler o seu progresso. Essa atualização zera o progresso das atividades enquanto uma recompensa anterior ainda não foi coletada, o que fazia masmorras, chefes de raide e abismos já concluídos aparecerem como 0.",
     ["wn_362_vault_slots"] = "Correção — Cada linha da Grande Câmara agora pede ao jogo as suas próprias atividades e as ordena por nível de recompensa, de modo que as entradas extras que a API retorna ao lado das linhas reais (recompensas bônus e de recuperação) não podem mais ocupar um espaço visível.",
@@ -3744,5 +3750,35 @@ TomoMod_RegisterLocale("ptBR", {
     ["Action Bar 6"] = "Barra de Ações 6",
     ["Action Bar 7"] = "Barra de Ações 7",
     ["Action Bar 8"] = "Barra de Ações 8",
+
+    -- =====================
+    -- HEALER STUDIO (advanced Party/Raid healer indicators)
+    -- =====================
+    ["btn_open_healerstudio"]    = "Abrir o Healer Studio",
+    ["info_healerstudio"]        = "Perfil avancado: escolha seus HoTs, escudos e bencaos de cura e posicione cada icone livremente na celula. Substitui a linha acima quando ativado.",
+    ["hs_list"]                  = "AURAS",
+    ["hs_mode"]                  = "Perfil",
+    ["hs_mode_party"]            = "Grupo",
+    ["hs_mode_raid"]             = "Raide",
+    ["hs_class"]                 = "Classe",
+    ["hs_enable"]                = "Ativar o perfil avancado",
+    ["hs_healer_only"]           = "Apenas em uma especializacao de curandeiro",
+    ["hs_mode_on"]               = "Perfil avancado ativo: a linha de HoTs classica fica oculta nessas celulas.",
+    ["hs_mode_off"]              = "A linha de HoTs classica continua em uso enquanto este perfil estiver desativado.",
+    ["hs_preset"]                = "Predefinicao inicial",
+    ["hs_reset_class"]           = "Redefinir esta classe",
+    ["hs_reset_position"]        = "Redefinir a posicao",
+    ["hs_select"]                = "Selecione uma aura na lista para posiciona-la.",
+    ["hs_size"]                  = "Tamanho do icone",
+    ["hs_anchor"]                = "Ancoragem",
+    ["hs_offset_x"]              = "Deslocamento horizontal",
+    ["hs_offset_y"]              = "Deslocamento vertical",
+    ["hs_hint"]                  = "Arraste os icones sobre a celula - as alteracoes sao salvas na hora",
+    ["hs_combat"]                = "o layout nao pode ser alterado em combate.",
+    ["hs_cat_hot"]               = "HoT",
+    ["hs_cat_shield"]            = "Escudo",
+    ["hs_cat_beacon"]            = "Farol / vinculo",
+    ["hs_cat_marker"]            = "Marcador de cura",
+    ["hs_cat_external"]          = "Externo",
 
 })

@@ -28,7 +28,21 @@ local CLASS_HOT_COLORS = AD and AD.CLASS_HOT_COLORS or {}
 -- UPDATE HOTS FOR A UNIT FRAME
 -- =====================================
 function HoT.UpdateUnit(f)
-    if not f or not f.hotContainer then return end
+    if not f then return end
+
+    -- Healer Studio owns the advanced slots when its Party profile is
+    -- active. Checked before f.hotContainer on purpose: the legacy row is
+    -- only built when showHoTs was on at frame creation, and the advanced
+    -- profile has to work for a player who turned that row off entirely.
+    -- HI.UpdateUnit hides its own indicators and returns false when the
+    -- profile is off, so this is a single check, not two.
+    local HI = TomoMod_HealerIndicators
+    if HI and HI.UpdateUnit(f, "party") then
+        if f.hotContainer then f.hotContainer:Hide() end
+        return
+    end
+
+    if not f.hotContainer then return end
     -- The setting is honoured at update time, not only at creation:
     -- ApplySettings re-applies visuals to existing frames rather than
     -- rebuilding them, so dropping this left the HoTs on screen after the

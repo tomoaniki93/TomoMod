@@ -3315,6 +3315,12 @@ TomoMod_RegisterLocale("itIT", {
     -- =====================
     -- 3.6.2 — What's New
     -- =====================
+    ["wn_362_healer_studio"] = "Novità — Healer Studio: scegli esattamente quali tra le tue cure nel tempo, scudi e potenziamenti da guaritore compaiono sui riquadri del gruppo e dell'incursione, e posiziona ogni icona dove vuoi sulla cella. Sostituisce la fila fissa di icone HoT con la tua disposizione, e Gruppo e Incursione ne mantengono una ciascuno. Disponibile per Sacerdote, Druido, Paladino, Sciamano, Monaco ed Evocatore.",
+    ["wn_362_healer_editor"] = "Novità — La disposizione si costruisce in una finestra dedicata, che si apre da Riquadri del gruppo o Riquadri dell'incursione, nella scheda Funzionalità. Trascina un'icona sull'anteprima della cella per posizionarla, oppure imposta dimensione, ancoraggio e scostamenti esatti con i controlli accanto: tutto viene salvato man mano, senza pulsante Applica e senza ricaricare. Un preset iniziale attiva le prime magie della tua classe, e puoi preparare la disposizione di qualsiasi classe curatrice, non solo quella che stai giocando.",
+    ["wn_362_healer_preview"] = "Novità — L'anteprima di Healer Studio è la tua cella, ingrandita: usa la larghezza e l'altezza realmente impostate per i tuoi riquadri del gruppo o dell'incursione, quindi quello che posizioni è quello che vedi in gioco. Rilasciando un'icona, questa si aggancia all'angolo, al bordo o al centro più vicino, così resta dove l'hai messa se in seguito ridimensioni i riquadri.",
+    ["wn_362_healer_profile"] = "Novità — Le disposizioni di Healer Studio vengono salvate insieme al resto delle tue impostazioni, quindi seguono l'esportazione di un profilo e tornano con l'importazione invece di perdersi per strada.",
+    ["wn_362_healer_spec"] = "Novità — Per impostazione predefinita la disposizione avanzata si applica solo in una specializzazione da guaritore, così le tue specializzazioni Ombra o Ferino mantengono la normale fila di HoT senza che tu debba cambiare nulla. Al cambio di specializzazione le due si scambiano da sole, senza ricaricare.",
+    ["wn_362_healer_legacy"] = "Nota — Finché non attivi Healer Studio non cambia nulla: è disattivato sia per i riquadri del gruppo sia per quelli dell'incursione, e la fila HoT classica continua a funzionare esattamente come prima. Puoi anche disattivarla del tutto e tenere solo le icone che hai posizionato.",
     ["wn_362_vault_types"] = "Correzione — L'anteprima della Grande Camera Blindata nel Mythic Hub legge ora le sue righe Incursioni, Spedizioni e Abissi dai tipi di ricompensa ufficiali di Blizzard, invece di dedurli da ciò che l'API delle ricompense settimanali restituiva: la riga degli Abissi non resta più vuota né mostra le attività di un'altra riga.",
     ["wn_362_vault_progress"] = "Correzione — L'anteprima della Grande Camera Blindata non forza più l'aggiornamento della finestra Ricompense Settimanali di Blizzard prima di leggere i tuoi progressi. Quell'aggiornamento azzera i progressi delle attività finché una ricompensa precedente è ancora da ritirare, facendo apparire come 0 spedizioni, boss di incursione e abissi già completati.",
     ["wn_362_vault_slots"] = "Correzione — Ogni riga della Grande Camera Blindata chiede ora al gioco le proprie attività e le ordina per livello di ricompensa, così le voci aggiuntive restituite dall'API accanto alle righe reali (ricompense bonus e di recupero) non possono più occupare uno slot visibile.",
@@ -3744,5 +3750,35 @@ TomoMod_RegisterLocale("itIT", {
     ["Action Bar 6"] = "Barra azioni 6",
     ["Action Bar 7"] = "Barra azioni 7",
     ["Action Bar 8"] = "Barra azioni 8",
+
+    -- =====================
+    -- HEALER STUDIO (advanced Party/Raid healer indicators)
+    -- =====================
+    ["btn_open_healerstudio"]    = "Apri Healer Studio",
+    ["info_healerstudio"]        = "Profilo avanzato: scegli i tuoi HoT, scudi e benefici di cura, poi posiziona ogni icona liberamente sulla cella. Sostituisce la riga sopra quando e attivo.",
+    ["hs_list"]                  = "AURE",
+    ["hs_mode"]                  = "Profilo",
+    ["hs_mode_party"]            = "Gruppo",
+    ["hs_mode_raid"]             = "Incursione",
+    ["hs_class"]                 = "Classe",
+    ["hs_enable"]                = "Attiva il profilo avanzato",
+    ["hs_healer_only"]           = "Solo in una specializzazione da guaritore",
+    ["hs_mode_on"]               = "Profilo avanzato attivo: la riga di HoT classica e nascosta su queste celle.",
+    ["hs_mode_off"]              = "La riga di HoT classica resta in uso finche questo profilo e disattivato.",
+    ["hs_preset"]                = "Preimpostazione iniziale",
+    ["hs_reset_class"]           = "Reimposta questa classe",
+    ["hs_reset_position"]        = "Reimposta la posizione",
+    ["hs_select"]                = "Seleziona un'aura nell'elenco per posizionarla.",
+    ["hs_size"]                  = "Dimensione icona",
+    ["hs_anchor"]                = "Ancoraggio",
+    ["hs_offset_x"]              = "Scostamento orizzontale",
+    ["hs_offset_y"]              = "Scostamento verticale",
+    ["hs_hint"]                  = "Trascina le icone sulla cella - le modifiche vengono salvate subito",
+    ["hs_combat"]                = "la disposizione non puo essere modificata in combattimento.",
+    ["hs_cat_hot"]               = "HoT",
+    ["hs_cat_shield"]            = "Scudo",
+    ["hs_cat_beacon"]            = "Faro / legame",
+    ["hs_cat_marker"]            = "Marcatore di cura",
+    ["hs_cat_external"]          = "Esterno",
 
 })

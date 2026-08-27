@@ -1,6 +1,60 @@
 ﻿## ####################################
 
-## CHANGELOG 3.6.2 — Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding + Action Bars: Restored Secure Release Contract on Owned Buttons, Cooldown State Push-Through, Combat Input Latency, Coalesced Glow Reconciliation & Assisted Combat Event Load + Resource Bars: Full-Resource Glow and Supercharged Combo Point Toggles
+## CHANGELOG 3.6.2 — Healer Studio: New Advanced HoT, Shield and Healer-Buff Indicators for Party and Raid Frames, Per-Spell Free Placement, Starter Presets & a LoadOnDemand Layout Editor + Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding + Action Bars: Restored Secure Release Contract on Owned Buttons, Cooldown State Push-Through, Combat Input Latency, Coalesced Glow Reconciliation & Assisted Combat Event Load + Resource Bars: Full-Resource Glow and Supercharged Combo Point Toggles
+
+#### Healer Studio — Advanced Healer Indicators (New)
+
+- **New** — `Shared/HealerIndicators.lua` adds an opt-in replacement for the fixed HoT row on Party and Raid frames. Instead of one row of up to six generic HoT icons, a healer picks exactly which of their own auras to track and places each one freely on the unit cell, with its own anchor, offset and size. Party and Raid keep two independent profiles, so a dense raid grid can show three markers where the party cell shows six.
+- **New** — Curated spell lists for the six healer classes — Priest, Druid, Paladin, Shaman, Monk and Evoker, 35 spells in total. Druid covers Rejuvenation, Regrowth, Lifebloom, Wild Growth, Germination, Spring Blossoms, Cultivation, Adaptive Swarm and Ironbark; Paladin covers both Beacons plus Bestow Faith, Glimmer of Light and Blessing of Summer; and so on for each class.
+- **Note** — `AuraData.HEALER_HOTS` remains the source of truth. `GetSpellsForClass()` filters the presentation order against it and appends any spell ID present in `AuraData` but not yet listed here, so adding a spell in one place is enough.
+- **Note** — `SPELL_CATEGORY` (`hot`, `shield`, `beacon`, `marker`, `external`) is a grouping for the studio list only and never gates behaviour. Spell names and icons come from the client, so nothing in the module duplicates a localised string that would rot at a patch.
+- **Note** — Midnight-safe by construction: the module never reads aura data itself. Each selected spell owns one `CustomAuraContainerTemplate` group narrowed with `includeSpellIDs`, so the client decides whether the aura is present and drives the icon, the cooldown swipe and the stack count. `onlyMine` is set, so another healer's Rejuvenation never lights up your indicator.
+- **New** — A **Only while in a healer specialization** switch, on by default. The advanced profile stays dormant on a Shadow Priest or a Feral Druid and the normal HoT row keeps running, so a single profile works across specs without being toggled by hand.
+
+#### Healer Studio — The Editor
+
+- **New** — `TomoMod_HealerStudio`, a LoadOnDemand sibling addon holding the editor. It is loaded on first use and costs nothing until then. Two buttons open it, one per profile, placed directly under the existing HoT settings: **Party Frames → Features → HoTs** and **Raid Frames → Features → HoTs**.
+- **New** — The window shows the aura list for the selected class on one side and a live cell preview on the other. Icons are dragged straight onto the preview, and a size slider, an anchor dropdown and X/Y offset sliders cover the cases a drag cannot hit exactly. Every edit is written to the profile as it happens, with no Apply step and no reload.
+- **New** — The preview is a magnified copy of the real cell, not a generic square: it reads the current Party or Raid `width` / `height` straight from the profile and scales it between 1.5x and 5x so small raid cells stay workable. Every offset is divided back by that scale before it is stored, so what the database holds is cell pixels and a layout does not shift when the preview scale changes.
+- **New** — A dropped icon snaps to the nearest of the nine anchor points rather than keeping a free offset from wherever it landed. An icon dropped in a corner stays pinned to that corner when the cell is resized later, which a raw offset from `TOPLEFT` would not survive.
+- **New** — **Starter preset** enables the first spells of the class at spread-out default anchors — four in Party, three in Raid — and **Reset this class** clears the whole class back to defaults. A per-spell **Reset position** returns a single icon to its default corner.
+- **New** — Any of the six healer classes can be edited, not only the one being played, so a layout can be prepared before switching character.
+- **Note** — Window chrome comes from `Forge.Studio`, every control from the shared widget kit and every string from `TomoMod_L`, so the studio inherits the look and the localisation of the rest of the configuration rather than carrying its own.
+- **Note** — The drag surface is deliberately local rather than `Forge.Canvas`. The canvas is driven by ForgeRegistry element descriptors, and healer slots are per-spell rows in a saved table, not registry elements; folding them into the registry belongs to the AstralForge party/raid work.
+- **Note** — Nothing in the studio reads an aura or touches a live cell. Edits land in `TomoModDB.healerStudio` and are pushed to the frames through `HI.Commit`, which is also why an edit can no longer reach the database without reaching the frames.
+- **Note** — The editor refuses to open in combat rather than half-applying a layout, and enabling a profile that has no spell selected yet applies the starter preset automatically, so the switch never turns on an empty layout.
+
+#### Party & Raid Frames — Legacy HoT Row Handover
+
+- **Changed** — `PartyHoTs.UpdateUnit()` and `RaidAuras.UpdateHoTs()` now hand over to Healer Studio whenever its profile owns that cell, hiding the legacy container first. `HI.UpdateUnit()` returns `true` only when it took ownership, and hides its own indicators and returns `false` otherwise — so the handover is a single check per update rather than an `IsModeActive` test followed by a separate hide.
+- **Fix** — Both handover branches deliberately run before the `f.hotContainer` guard. The legacy row is only built when `showHoTs` was on at frame creation, so a player who turned that row off entirely would have been unable to use the advanced indicators at all behind the previous early return.
+- **Note** — Nothing changes for a profile that leaves Healer Studio off. Both `enabled` flags default to `false`, and the classic HoT row keeps its own size, count and options.
+
+#### Healer Studio — Runtime
+
+- **Changed** — The set of enabled spells for a mode is held in a revision-stamped active list: one record per mode holding parallel `ids` / `entries` / `set` arrays, rebuilt only when the revision or the player class changes and reused verbatim on every aura event in between. The arrays are `wipe`d rather than reallocated, and the `MODES` / `EMPTY` constants are hoisted, because the normalisation loop is reachable from the aura path on the first call after a profile swap — a table constructor there would generate garbage inside combat.
+- **New** — `HI.Prewarm(f, mode)` builds every container a cell needs while out of combat, called from `RefreshAll()` whenever there is no combat lockdown. A first pull no longer pays for forty cells' worth of frame creation at once, and it avoids the engine refusing a `SetSize` while aura data is restricted.
+- **New** — `HI.Commit(mode)` and `HI.Touch(mode)` split the two kinds of edit. A structural change (a spell enabled, a class reset) invalidates the cached list and refreshes; a geometry change only refreshes, since size, anchor and offset live in the very entry tables the cached list already holds by reference. The studio's sliders fire on every drag tick and use the cheap one.
+- **Note** — Aura containers are created once per frame and spell, then reused. Deselecting a spell deactivates its container and unbinds its unit rather than destroying it, so toggling a checkbox during a fight does not churn frames.
+- **Note** — A single watcher re-runs `RefreshAll()` on `PLAYER_REGEN_ENABLED`, `PLAYER_SPECIALIZATION_CHANGED`, `PLAYER_ENTERING_WORLD` and `GROUP_ROSTER_UPDATE` — no ticker and no polling. That covers a container creation refused while aura data was restricted, and re-evaluates the spec gate, so leaving a healer spec puts the classic row back without a reload.
+- **Changed** — `HI.MIN_SIZE` and `HI.MAX_SIZE` (6 and 30 px) are published rather than private, so the studio's size slider cannot carry its own copy of the bounds the runtime clamps to. A profile with no size of its own inherits the frame type's existing HoT size, so a first run looks like what was already on screen.
+
+#### Healer Studio — Settings Storage
+
+- **New** — `healerStudio` is declared in `TomoMod_Defaults` (`Core/Database.lua`) with its `schemaVersion`, the `onlyHealerSpec` switch and the two mode tables, rather than being created only on demand. `Profiles.lua` sanitises an imported profile against the keys of `TomoMod_Defaults`, so a root key missing from that table is silently dropped on every import and export — the layouts would not have survived a profile round-trip.
+- **Note** — Layouts are stored per class token and are empty by default, so declaring the key costs nothing for a player who never enables the feature, and an existing profile is untouched until the feature is switched on.
+
+#### Forge Studio — Optional Open Argument
+
+- **Changed** — `Forge.Studio.Launch()` accepts an optional `arg` in its options table and forwards it verbatim to the sub-addon's `Open()`. Studios that open on a single subject ignore it; Healer Studio uses it to pick which of its two profiles to edit. Loading the sibling addon on demand, self-healing a DISABLED one and reporting a locale-independent failure reason all stay in `Forge.Studio.Launch`, so `HI.OpenStudio()` is only the combat gate and the mode argument.
+
+#### Healer Studio — Localisation
+
+- **New** — 21 keys in all six locales (`btn_open_healerstudio`, `info_healerstudio` and the `hs_*` set) covering the options button, the studio window, its controls, its category labels and its combat refusal. Nothing in the feature carries a hard-coded user-facing string.
+
+#### Packaging
+
+- **New** — `.pkgmeta` moves `TomoMod/TomoMod_HealerStudio` out to a sibling `TomoMod_HealerStudio` folder at package time, the same arrangement as Cooldown Studio, Astral Forge and the options panel. The `.toc` declares `## LoadOnDemand: 1` and `## Dependencies: TomoMod`, and the studio degrades to a reported `loadError` if the widget kit or Forge is unavailable rather than erroring.
 
 #### Mythic Hub — Great Vault Row Types
 

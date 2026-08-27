@@ -48,7 +48,17 @@ end
 -- UPDATE HOTS FOR A UNIT FRAME
 -- =====================================
 function RA.UpdateHoTs(f, db)
-    if not f or not f.hotContainer then return end
+    if not f then return end
+
+    -- See PartyFrame/HoTs.lua: the advanced healer profile takes over the
+    -- whole slot, with or without the legacy row underneath it.
+    local HI = TomoMod_HealerIndicators
+    if HI and HI.UpdateUnit(f, "raid") then
+        if f.hotContainer then f.hotContainer:Hide() end
+        return
+    end
+
+    if not f.hotContainer then return end
     db = db or (TomoModDB and TomoModDB.raidFrames)
     if not db or not db.showHoTs then f.hotContainer:Hide(); return end
     local unit = f.unit

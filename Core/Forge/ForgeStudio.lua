@@ -62,9 +62,11 @@ function Forge.Studio.LoadReason(addon)
     return reason
 end
 
--- opts = { addon, global, label }
--- Loads the sibling addon on demand and calls its Open(). Returns true when
--- the window was actually asked to open.
+-- opts = { addon, global, label, arg }
+-- Loads the sibling addon on demand and calls its Open(opts.arg). Returns
+-- true when the window was actually asked to open. arg is optional and
+-- forwarded verbatim: studios that open on a single subject ignore it,
+-- studios that edit several profiles use it to pick one.
 function Forge.Studio.Launch(opts)
     local addon  = opts and opts.addon
     local global = opts and opts.global
@@ -108,7 +110,7 @@ function Forge.Studio.Launch(opts)
     end
 
     if TomoMod_Config and TomoMod_Config.Hide then TomoMod_Config.Hide() end
-    S.Open()
+    S.Open(opts.arg)
     return true
 end
 
