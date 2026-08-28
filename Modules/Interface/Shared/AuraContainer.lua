@@ -336,10 +336,10 @@ local function AddGroups(container, spec)
         dispelBorder = spec.dispelBorder, dispelColorMap = spec.dispelColorMap,
     })
     local layout = {
-        elementWidth  = spec.size,
-        elementHeight = spec.size - 4,
-        spacingX      = spec.spacing or 2,
-        spacingY      = spec.spacing or 2,
+        elementWidth   = spec.size,
+        elementHeight  = spec.size - 4,
+        elementSpacing = spec.spacing or 2,
+        lineSpacing    = spec.spacing or 2,
     }
 
     -- includeSpellIDs narrows a group to a known set. That is how the HoT
@@ -430,7 +430,12 @@ function AC.Create(parent, opts)
     containerSpec[container] = spec
     ApplyContainerLayout(container, spec)
 
-    pcall(container.SetUnit, container, opts.unit)
+    if opts.unit then
+        local unitOK = pcall(container.SetUnit, container, opts.unit)
+        if unitOK and container.SetEnabled then
+            pcall(container.SetEnabled, container, true)
+        end
+    end
     pcall(container.UpdateAllAuras, container)
 
     return container
@@ -475,17 +480,48 @@ function AC.Relayout(container, opts)
     data.growDirection, data.growVertical, data.rowWidth = growDirection, growVertical, rowWidth
 
     if sizeChanged then
-        -- RemoveAuraGroup then AddAuraGroup: there is no setter for either
-        -- value, and a stale group would keep drawing at the old size. Both
-        -- groups go when the container carries both polarities -- dropping
-        -- only the primary would leave the helpful half at the old size.
-        if container.RemoveAuraGroup then
-            pcall(container.RemoveAuraGroup, container, data.key)
-            if data.both then
-                pcall(container.RemoveAuraGroup, container, data.key .. "_helpful")
+        -- AuraGroups are add-only in 12.1. Resize/count changes must use the
+        -- live group setters instead of trying to remove and re-add a key.
+        if not container.SetAuraGroupLayout or not container.SetAuraGroupMaxFrameCount then
+            return false
+        end
+
+        local total = data.max or 5
+        local primary, secondary = total, 0
+        if data.both then
+            secondary = math.floor(total / 2)
+            primary = total - secondary
+        end
+        local layout = {
+            elementWidth   = size,
+            elementHeight  = size - 4,
+            elementSpacing = data.spacing or 2,
+            lineSpacing    = data.spacing or 2,
+        }
+        local okLayout = pcall(container.SetAuraGroupLayout, container, data.key, layout)
+        local okMax = pcall(container.SetAuraGroupMaxFrameCount, container, data.key, primary)
+        if not okLayout or not okMax then return false end
+
+        if data.both and secondary > 0 then
+            local helpfulKey = data.key .. "_helpful"
+            local okHelpfulLayout = pcall(container.SetAuraGroupLayout, container, helpfulKey, layout)
+            local okHelpfulMax = pcall(container.SetAuraGroupMaxFrameCount, container, helpfulKey, secondary)
+            if not okHelpfulLayout or not okHelpfulMax then return false end
+        end
+
+        -- SetAuraGroupLayout moves the engine-owned boxes, but the actual
+        -- AuraButtons are sized by our initializer. Update already-created
+        -- buttons too; newly pooled buttons inherit the new spec automatically.
+        for button, d in pairs(buttonData) do
+            local okParent, parent = pcall(button.GetParent, button)
+            if okParent and parent == container then
+                d.wantSize = size
+                d.wantHeight = nil
+                d.sizedTo = nil
+                pending[button] = true
+                AC.TrySize(button)
             end
         end
-        if not AddGroups(container, data) then return false end
     end
 
     ApplyContainerLayout(container, data)
@@ -566,7 +602,10 @@ function AC.CreateAuraProbe(parent, spellIDs, cooldown)
         return nil
     end
 
-    pcall(container.SetUnit, container, "player")
+    local unitOK = pcall(container.SetUnit, container, "player")
+    if unitOK and container.SetEnabled then
+        pcall(container.SetEnabled, container, true)
+    end
     pcall(container.UpdateAllAuras, container)
     return probe
 end
@@ -578,6 +617,9 @@ function AC.DestroyAuraProbe(probe)
         pcall(probe.button.SetDurationCooldown, probe.button, nil)
         pending[probe.button] = nil
         buttonData[probe.button] = nil
+    end
+    if probe.container.SetEnabled then
+        pcall(probe.container.SetEnabled, probe.container, false)
     end
     pcall(probe.container.SetUnit, probe.container, nil)
     probe.container:Hide()
@@ -816,7 +858,12 @@ function AC.CreateDispelIndicator(parent, opts)
         return nil
     end
 
-    pcall(container.SetUnit, container, opts.unit)
+    if opts.unit then
+        local unitOK = pcall(container.SetUnit, container, opts.unit)
+        if unitOK and container.SetEnabled then
+            pcall(container.SetEnabled, container, true)
+        end
+    end
     pcall(container.UpdateAllAuras, container)
     return container
 end
@@ -840,13 +887,31 @@ function AC.UpdateDispelIndicator(container, opts)
     return true
 end
 
--- The unit behind a plate changes as plates are recycled.
+-- The unit behind a plate/cell changes as frames are recycled.
 function AC.SetUnit(container, unit)
-    if not container or not container.SetUnit then return false end
+    if not container then return false end
+
+    -- Unbinding a recycled cell must stop the native container from watching
+    -- its previous unit. Disabling also clears its engine-owned aura buttons.
+    if not unit then
+        if container.SetEnabled then
+            pcall(container.SetEnabled, container, false)
+        end
+        if container.SetUnit then
+            pcall(container.SetUnit, container, nil)
+        end
+        AC.ResizePending()
+        return true
+    end
+
+    if not container.SetUnit then return false end
     local ok = pcall(container.SetUnit, container, unit)
+    if ok and container.SetEnabled then
+        pcall(container.SetEnabled, container, true)
+    end
     if ok then pcall(container.UpdateAllAuras, container) end
-    -- Every plate calls this on update, so it is the cheapest hook for the
-    -- retry: a `next()` on an empty table when nothing is pending.
+    -- Every plate/cell calls this on update, so it is the cheapest hook for
+    -- the retry: a `next()` on an empty table when nothing is pending.
     AC.ResizePending()
     return ok
 end

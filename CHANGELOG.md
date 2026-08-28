@@ -1,5 +1,56 @@
 ﻿## ####################################
 
+## CHANGELOG 3.6.3 — Aura Containers on 12.1: Restored Icon Spacing, Containers Enabled When a Unit Is Bound, Live Size and Count Changes Without a Group Rebuild, Recycled Cells and Plates Unbound Cleanly & Aura Probes Disabled on Teardown — Fixing Healer Studio Indicators, Party and Raid HoT Rows, Debuff and Dispel Indicators, Nameplate Auras, Unit Frame Auras and Cooldown Forge Probes + Party and Raid Frames: Death Tint Cleared on Resurrection Through Unit-State Events + TomoScore: Mouse-Only Scoreboard So Movement Keys Keep Reaching the Game + Raid Frames: Unit Events Gated on Raid Membership Instead of Running Everywhere
+
+#### Shared Aura Containers — Layout Keys
+
+- **Fix** — `AddGroups()` built its group layout with `spacingX` / `spacingY`, which the 12.1 aura container engine does not read. The spacing option was therefore ignored everywhere a container is used and every icon row was drawn at the engine's own default gap. The keys are now `elementSpacing` (between icons on a line) and `lineSpacing` (between lines), which is what the engine actually consumes.
+- **Note** — One layout table feeds every consumer, so the fix lands in the same pass on nameplate auras and buffs, party and raid HoT rows, debuff and dispel indicators, unit frame auras and Healer Studio indicators.
+
+#### Shared Aura Containers — Enabling a Bound Container
+
+- **Fix** — A container is inert until it is enabled. `AC.Create()`, `AC.CreateAuraProbe()`, `AC.CreateDispelIndicator()` and `AC.SetUnit()` assigned a unit and then asked for an update, but never called `SetEnabled`, so the engine had a unit and groups and still scanned nothing. Every path that binds a unit now enables the container immediately after, and only when the assignment itself succeeded.
+- **Changed** — `AC.Create()` and `AC.CreateDispelIndicator()` no longer call `SetUnit` at all when `opts.unit` is nil. Passing nil into the engine's setter is not the same as never binding: a container created for a frame whose unit is not known yet is now left untouched until `AC.SetUnit()` gives it one.
+- **Note** — `SetEnabled` is called through `pcall` and guarded on the method existing, so a client that does not publish it behaves exactly as before rather than erroring.
+
+#### Shared Aura Containers — Live Size and Count Changes
+
+- **Fix** — Changing an aura size or an icon count from the settings did nothing on 12.1. `AC.Relayout()` removed the container's aura groups and re-added them at the new size, but aura groups are add-only now: `RemoveAuraGroup` does not take the key back, so the re-add landed on a key that was still occupied and the container kept drawing at its previous size until the frame was rebuilt from scratch.
+- **Changed** — The rebuild is replaced by the engine's live setters. `SetAuraGroupLayout` pushes the new geometry and `SetAuraGroupMaxFrameCount` the new budget, for the primary group and — when the container carries both polarities — for its `_helpful` twin, whose half of the budget is computed exactly as `AddGroups()` computes it. `AC.Relayout()` returns `false` when either setter is missing, rather than silently taking a path that cannot work.
+- **Fix** — The engine lays out its own boxes but never sizes an aura button; that is done by our initializer, which only runs when a button is first pooled. Buttons already on screen therefore kept their old size through a `SetAuraGroupLayout`. `AC.Relayout()` now walks `buttonData`, and for every button parented to this container rewrites its wanted size, clears the `sizedTo` stamp and pushes it back through the existing `pending` / `AC.TrySize` retry. Buttons pooled later still inherit the new spec from the initializer, so both halves end up at the same size.
+- **Note** — Clearing `sizedTo` matters as much as setting `wantSize`: `AC.TrySize()` treats a matching stamp as already applied, so a button that had landed at the old size would have skipped the resize entirely.
+- **Removed** — The `RemoveAuraGroup` / `AddGroups` branch in `AC.Relayout()`. `AddGroups()` stays the single builder for `AC.Create()`.
+
+#### Shared Aura Containers — Unbinding a Recycled Frame
+
+- **Fix** — `AC.SetUnit(container, nil)` only forwarded the nil to the engine, which leaves the container enabled and still watching the unit it was last given. Party and raid cells, and nameplates, are recycled constantly, so a cell released from one unit went on displaying that unit's auras until it was handed another one. Unbinding now disables the container first, which is also what clears its engine-owned aura buttons, and then detaches the unit.
+- **Changed** — `AC.SetUnit()` no longer refuses outright when the container has no `SetUnit` method: the unbind path only needs `SetEnabled`, and it still runs the pending-resize sweep and reports success. The bind path keeps its original contract and still returns whatever the assignment returned.
+
+#### Aura Probes — Teardown
+
+- **Fix** — `AC.DestroyAuraProbe()` detached the probe's unit but left its container enabled, so a discarded probe could keep being driven for the rest of the session. It is now disabled before the unit is detached, in the same order as a recycled cell.
+
+#### Party & Raid Frames — Resurrection Colour
+
+- **Fix** — A resurrected player could keep the grey death tint on their health bar until a `/reload`. `UNIT_HEALTH` can fire while `UnitIsDeadOrGhost()` still reports the pre-resurrection state, so the repaint it triggers reads the old state and stores the wrong colour — and nothing repaints afterwards, because health is no longer changing. `UNIT_FLAGS` and `UNIT_CONNECTION`, which carry the state transition itself, are now handled in `OnEvent` and repaint health and range on both party and raid frames.
+- **Changed** — On both party and raid frames the two events sit in that module's `UNIT_EVENTS` table, so its gate registers and unregisters them along with the rest of the unit events. The raid side gained that gate in the same release, below.
+- **Note** — `UNIT_CONNECTION` covers the same class of stale paint for a player dropping offline and coming back, which runs through the same colour path.
+
+#### TomoScore — Keyboard Bindings
+
+- **Fix** — The end-of-dungeon scoreboard could swallow movement keys. TomoScore is shown automatically at key completion and was made keyboard-enabled so that Escape would close it; when key propagation is unavailable or restricted at the instant the frame appears, the frame keeps the key press instead of passing it on and ZQSD/WASD stop reaching WorldFrame.
+- **Changed** — The scoreboard is mouse-only again: `TomoMod_Utils.CloseOnEscape()` is no longer applied to it. The close button is unchanged, and every game binding keeps reaching WorldFrame while the scoreboard is on screen.
+- **Note** — Escape no longer closes the scoreboard, and it is deliberately not routed through `UISpecialFrames` either — that path goes via `ToggleGameMenu`, whose protected `ClearTarget` / `SpellStopCasting` calls are refused once anything has tainted it. Other windows keep `CloseOnEscape`; only the frame that appears on its own, mid-keypress, gives it up.
+
+#### Raid Frames — Unit Event Gating
+
+- **Fix** — RaidFrame subscribed to its ten `UNIT_*` events from `RF.Initialize()` and never released them. Those events are global rather than per-frame, so outside a raid every party member, nameplate, boss and target token still woke `OnEvent` and paid for a `GetFrameForUnit()` lookup that could only fail. PartyFrame has had a gate of its own since its optimisation pass; the raid side never got one.
+- **Changed** — The ten events move into a `UNIT_EVENTS` table behind `RF.SetUnitEventsEnabled()`, the mirror of `PF.SetUnitEventsEnabled()`, with the same `_unitEventsOn` short-circuit so a repeated call with an unchanged state costs nothing. `RF.Initialize()` now calls it with `IsInRaid()`, which leaves the block completely dormant when logging in outside a raid and subscribes immediately for a player who logs in already inside one.
+- **Changed** — `RF.RefreshGroup()` re-evaluates the gate on every roster change, and does so *before* the `InCombatLockdown()` branch that returns early. Registering and unregistering events is not protected, so joining or leaving a raid mid-fight starts or stops the state updates at once instead of waiting for the pending refresh that runs on regen.
+- **Note** — `GROUP_ROSTER_UPDATE` and the other non-unit events stay registered permanently — they are what drives the gate. Party and raid now carry the same shape, so the pair can no longer drift apart the way it just did.
+
+## ####################################
+
 ## CHANGELOG 3.6.2 — Healer Studio: New Advanced HoT, Shield and Healer-Buff Indicators for Party and Raid Frames, Per-Spell Free Placement, Starter Presets & a LoadOnDemand Layout Editor + Mythic Hub: Great Vault Row Types from Blizzard's Official Enums, Delves Row Fix, Progress Reset Caused by a Forced Blizzard Refresh & Per-Row Activity Binding + Action Bars: Restored Secure Release Contract on Owned Buttons, Cooldown State Push-Through, Combat Input Latency, Coalesced Glow Reconciliation & Assisted Combat Event Load + Resource Bars: Full-Resource Glow and Supercharged Combo Point Toggles
 
 #### Healer Studio — Advanced Healer Indicators (New)

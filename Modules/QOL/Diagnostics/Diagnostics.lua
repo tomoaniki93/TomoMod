@@ -51,6 +51,10 @@ local EXCLUDED_GLOBAL_KEYS = {
     "ERR_OUT_OF_SOUL_SHARDS", "ERR_OUT_OF_LUNAR_POWER", "ERR_OUT_OF_INSANITY",
     "ERR_OUT_OF_ARCANE_CHARGES", "ERR_OUT_OF_FURY", "ERR_OUT_OF_PAIN",
     "ERR_OUT_OF_MAELSTROM", "ERR_OUT_OF_HEALTH", "ERR_OUT_OF_ESSENCE",
+    -- Generic "Not enough %s". The per-resource keys above only cover the
+    -- resources that existed when they were added; a new one (Steam
+    -- Pressure in 12.1) is reported through this string instead.
+    "ERR_OUT_OF_POWER_DISPLAY",
     -- Cooldown / ability errors
     "ERR_ABILITY_COOLDOWN", "ERR_SPELL_COOLDOWN",
     "SPELL_FAILED_NOT_READY", "SPELL_FAILED_SPELL_IN_PROGRESS",
@@ -61,6 +65,7 @@ local EXCLUDED_GLOBAL_KEYS = {
     "ERR_INVALID_ATTACK_TARGET", "SPELL_FAILED_BAD_TARGETS",
     "ERR_SPELL_OUT_OF_RANGE", "ERR_OUT_OF_RANGE",
     "SPELL_FAILED_OUT_OF_RANGE", "SPELL_FAILED_LINE_OF_SIGHT",
+    "ERR_GENERIC_NO_VALID_TARGETS", "SPELL_FAILED_NO_VALID_TARGETS",
     -- Movement / state
     "ERR_AUTOFOLLOW_TOO_FAR", "SPELL_FAILED_MOVING",
     "SPELL_FAILED_NOPATH",
@@ -371,6 +376,39 @@ local function BuildExclusionSet()
         "objetos vinculados",                 -- ES
         "oggetti legati",                     -- IT
         "itens vinculados",                   -- PT
+        -- Not enough <resource> (report #1391: session 2026-08-27)
+        -- Kept as keywords as well as GlobalStrings: the generic power string
+        -- is what a resource with no ERR_OUT_OF_* key of its own falls back
+        -- to, and a client that does not publish that key would let every one
+        -- of these through.
+        --
+        -- NOTE on the ".-" in the entries below: these are Lua patterns run
+        -- against the message AFTER string.lower(), which only maps ASCII, so
+        -- an accented letter reaches the match in whatever form the client
+        -- sent it. Spelling the accent out only matches when those bytes line
+        -- up exactly; "gen.-gend" matches genuegend and genügend alike, and
+        -- costs nothing when they do.
+        "pas assez",                          -- FR "Pas assez de Pression vapeur"
+        "not enough",                         -- EN equivalent
+        "nicht genug", "nicht gen.-gend",     -- DE
+        "suficiente",                         -- ES "No tienes suficiente ...", PT "Nao ha ... suficiente"
+        "abbastanza",                         -- IT "Non hai abbastanza ..."
+        -- The resource itself, should the message ever be phrased differently
+        "pression vapeur", "pression de vapeur", -- FR
+        "steam pressure",                     -- EN
+        "dampfdruck",                         -- DE
+        "presi.-n de vapor",                  -- ES
+        "pressione del vapore",               -- IT
+        "press.-o de vapor",                  -- PT
+        -- No valid target within range (report #1391: session 2026-08-27)
+        -- "hors de portee" above does not match this one: the message is
+        -- phrased as "no allowed target IN range", not "out of range".
+        "cible autoris", "cibles autoris",    -- FR "Il n'y a pas de cible autorisee a portee."
+        "valid target",                       -- EN "There are no valid targets within range."
+        "g.-ltige ziele", "g.-ltigen ziele",  -- DE
+        "objetivo v.-lido", "objetivos v.-lidos", -- ES
+        "bersaglio valido", "bersagli validi", -- IT
+        "alvo v.-lido", "alvos v.-lidos",     -- PT
     }
     for _, kw in ipairs(keywords) do
         EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = kw

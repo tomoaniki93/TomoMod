@@ -45,11 +45,12 @@ function TS:BuildScoreboard()
     end)
     F:Hide()
 
-    -- [fix] Escape captured by the window itself. Going through
-    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
-    -- ClearTarget/SpellStopCasting calls are then refused once anything
-    -- has tainted the path -- and the player can no longer quit.
-    TomoMod_Utils.CloseOnEscape(_G[FRAME_NAME])
+    -- [KEYBOARD] TomoScore is shown automatically at dungeon completion and
+    -- must never become a keyboard-enabled frame. Keyboard bindings are handled
+    -- by WorldFrame; if propagation is unavailable/restricted at the instant the
+    -- scoreboard appears, a keyboard-enabled dialog can swallow movement keys.
+    -- Keep TomoScore mouse-only: the close button remains available, while
+    -- ZQSD/WASD and every other game binding continue to reach WorldFrame.
 
     -- Background
     self:MakeBG(F, unpack(C.BG))

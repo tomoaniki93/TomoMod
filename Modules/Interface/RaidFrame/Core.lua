@@ -1116,6 +1116,12 @@ function RF.RefreshGroup()
     local db = TomoModDB and TomoModDB.raidFrames
     if not db or not db.enabled then return end
 
+    -- Raid UNIT_* events are only useful while raidN tokens exist. Mirror the
+    -- PartyFrame gate and switch them before the combat branch: registering
+    -- or unregistering events is not protected, so a raid transition that
+    -- happens in combat still starts receiving state updates immediately.
+    RF.SetUnitEventsEnabled(IsInRaid())
+
     -- [COMBAT] Only frame creation (SetAttribute on secure buttons) and
     -- layout (SetPoint/SetSize on protected frames) must wait for regen.
     -- Repainting already-shown frames is safe: their elements are
@@ -1400,6 +1406,28 @@ end
 -- =====================================
 local eventFrame = CreateFrame("Frame")
 
+-- Keep the raid UNIT_* block dormant outside raids. These events are global
+-- and would otherwise wake RaidFrame for unrelated party/nameplate/boss unit
+-- tokens even though no raid frame is active.
+local UNIT_EVENTS = {
+    "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_ABSORB_AMOUNT_CHANGED",
+    "UNIT_HEAL_PREDICTION", "UNIT_POWER_UPDATE", "UNIT_MAXPOWER",
+    "UNIT_NAME_UPDATE", "UNIT_AURA", "UNIT_FLAGS", "UNIT_CONNECTION",
+}
+
+function RF.SetUnitEventsEnabled(enabled)
+    enabled = enabled and true or false
+    if RF._unitEventsOn == enabled then return end
+    RF._unitEventsOn = enabled
+    for i = 1, #UNIT_EVENTS do
+        if enabled then
+            eventFrame:RegisterEvent(UNIT_EVENTS[i])
+        else
+            eventFrame:UnregisterEvent(UNIT_EVENTS[i])
+        end
+    end
+end
+
 local function OnEvent(self, event, arg1, ...)
     if not RF.initialized then return end
 
@@ -1409,6 +1437,16 @@ local function OnEvent(self, event, arg1, ...)
             RF.UpdateHealth(f)
             RF.UpdateAbsorb(f)
             RF.UpdateHealPrediction(f)
+        end
+
+    elseif event == "UNIT_FLAGS" or event == "UNIT_CONNECTION" then
+        -- UNIT_HEALTH can arrive while UnitIsDeadOrGhost() still reports the
+        -- pre-resurrection state. UNIT_FLAGS is the state transition that
+        -- clears it, so repaint here instead of leaving the death tint stuck.
+        local f = GetFrameForUnit(arg1)
+        if f then
+            RF.UpdateHealth(f)
+            RF.UpdateRange(f)
         end
 
     elseif event == "UNIT_ABSORB_AMOUNT_CHANGED" then
@@ -1500,14 +1538,10 @@ function RF.Initialize()
     RF.CreateAnchor()
     RF.HideBlizzardFrames()
 
-    eventFrame:RegisterEvent("UNIT_HEALTH")
-    eventFrame:RegisterEvent("UNIT_MAXHEALTH")
-    eventFrame:RegisterEvent("UNIT_ABSORB_AMOUNT_CHANGED")
-    eventFrame:RegisterEvent("UNIT_HEAL_PREDICTION")
-    eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
-    eventFrame:RegisterEvent("UNIT_MAXPOWER")
-    eventFrame:RegisterEvent("UNIT_NAME_UPDATE")
-    eventFrame:RegisterEvent("UNIT_AURA")
+    -- Logging in already inside a raid must subscribe immediately; elsewhere
+    -- the raid UNIT_* block stays completely dormant until the roster changes.
+    RF.SetUnitEventsEnabled(IsInRaid())
+
     eventFrame:RegisterEvent("RAID_TARGET_UPDATE")
     eventFrame:RegisterEvent("READY_CHECK")
     eventFrame:RegisterEvent("READY_CHECK_CONFIRM")

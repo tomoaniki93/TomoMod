@@ -1166,6 +1166,16 @@ local function OnEvent(self, event, arg1, ...)
             PF.UpdateHealPrediction(f)
         end
 
+    elseif event == "UNIT_FLAGS" or event == "UNIT_CONNECTION" then
+        -- UNIT_HEALTH can fire before the dead/ghost flag is cleared during
+        -- a resurrection. Repaint on the authoritative unit-state change so
+        -- the temporary grey death colour cannot remain stuck until /reload.
+        local f = GetFrameForUnit(arg1)
+        if f then
+            PF.UpdateHealth(f)
+            PF.UpdateRange(f)
+        end
+
     elseif event == "UNIT_ABSORB_AMOUNT_CHANGED" then
         local f = GetFrameForUnit(arg1)
         if f then PF.UpdateAbsorb(f) end
@@ -1281,7 +1291,7 @@ end
 local UNIT_EVENTS = {
     "UNIT_HEALTH", "UNIT_MAXHEALTH", "UNIT_ABSORB_AMOUNT_CHANGED",
     "UNIT_HEAL_PREDICTION", "UNIT_POWER_UPDATE", "UNIT_MAXPOWER",
-    "UNIT_NAME_UPDATE", "UNIT_AURA",
+    "UNIT_NAME_UPDATE", "UNIT_AURA", "UNIT_FLAGS", "UNIT_CONNECTION",
 }
 
 function PF.SetUnitEventsEnabled(enabled)
