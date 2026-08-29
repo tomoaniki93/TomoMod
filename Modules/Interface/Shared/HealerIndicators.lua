@@ -103,7 +103,13 @@ end
 
 -- Published: the studio's size slider must not carry its own copy of the
 -- bounds the runtime clamps to.
-HI.MIN_SIZE, HI.MAX_SIZE = 6, 30
+--
+-- The ceiling is deliberately larger than any cell: a 50px indicator covers
+-- a raid cell outright, and that is a legitimate layout -- one big icon on a
+-- small cell reads at a glance where a 20px one does not. Clamping to the
+-- cell would take that choice away, so the bound only stops a value the
+-- engine cannot draw.
+HI.MIN_SIZE, HI.MAX_SIZE = 6, 50
 local MIN_SIZE, MAX_SIZE = HI.MIN_SIZE, HI.MAX_SIZE
 
 local function ClampSize(v, fallback)
@@ -242,6 +248,10 @@ local function Normalize(root)
         if modeDB.enabled == nil then modeDB.enabled = false end
         if type(modeDB.classes) ~= "table" then modeDB.classes = {} end
         if not tonumber(modeDB.defaultSize) then modeDB.defaultSize = GetLegacySize(mode) end
+        -- Digits on is what every existing layout was drawn with, so an
+        -- absent key has to mean on: defaulting to off would silently
+        -- restyle a profile written before this setting existed.
+        if modeDB.showDuration == nil then modeDB.showDuration = true end
     end
 end
 
@@ -471,13 +481,20 @@ function HI.HideFrame(f, mode)
     for _, record in pairs(cache.records) do DeactivateRecord(record) end
 end
 
-local function ApplyRecordGeometry(record, host, entry)
+local function ApplyRecordGeometry(record, host, entry, showDuration)
     if not record or not record.container or not host or not entry then return end
 
+    -- One Relayout for both, and only when something actually moved: in the
+    -- steady state this function allocates nothing, which is the contract
+    -- the whole UpdateUnit path is written to.
     local size = ClampSize(entry.size, 12)
-    if record.size ~= size then
-        if AC.Relayout then AC.Relayout(record.container, { size = size, max = 1 }) end
-        record.size = size
+    if record.size ~= size or record.showDuration ~= showDuration then
+        if AC.Relayout then
+            AC.Relayout(record.container, {
+                size = size, max = 1, showDuration = showDuration,
+            })
+        end
+        record.size, record.showDuration = size, showDuration
     end
 
     local point = entry.point or "TOPLEFT"
@@ -489,10 +506,10 @@ local function ApplyRecordGeometry(record, host, entry)
     end
 end
 
-local function EnsureRecord(f, cache, mode, spellID, entry)
+local function EnsureRecord(f, cache, mode, spellID, entry, showDuration)
     local record = cache.records[spellID]
     if record and record.container then
-        ApplyRecordGeometry(record, f.content, entry)
+        ApplyRecordGeometry(record, f.content, entry, showDuration)
         return record
     end
     if not AC or not AC.Create then return nil end
@@ -506,7 +523,7 @@ local function EnsureRecord(f, cache, mode, spellID, entry)
         harmful         = false,
         onlyMine        = true,
         tooltips        = false,
-        showDuration    = true,
+        showDuration    = showDuration,
         includeSpellIDs = { [spellID] = true },
         durationPoint   = "CENTER",
         durationX       = 0,
@@ -520,10 +537,20 @@ local function EnsureRecord(f, cache, mode, spellID, entry)
         pcall(container.SetFrameLevel, container, f.content:GetFrameLevel() + 20)
     end
 
-    record = { container = container, size = size, boundUnit = nil, active = false }
+    record = {
+        container = container, size = size, showDuration = showDuration,
+        boundUnit = nil, active = false,
+    }
     cache.records[spellID] = record
-    ApplyRecordGeometry(record, f.content, entry)
+    ApplyRecordGeometry(record, f.content, entry, showDuration)
     return record
+end
+
+-- One table read plus an identity compare behind Root(), so the aura path
+-- can ask per update without allocating or walking anything.
+local function ModeShowDuration(mode)
+    local modeDB = HI.GetModeDB(mode)
+    return not (modeDB and modeDB.showDuration == false)
 end
 
 -- Builds every container a cell needs while out of combat, so the first
@@ -534,8 +561,9 @@ function HI.Prewarm(f, mode)
     if not HI.IsModeActive(mode) then return end
     local cache = GetFrameCache(f, mode)
     local list = ActiveList(mode, HI.GetPlayerClass())
+    local showDuration = ModeShowDuration(mode)
     for i = 1, list.n do
-        EnsureRecord(f, cache, mode, list.ids[i], list.entries[i])
+        EnsureRecord(f, cache, mode, list.ids[i], list.entries[i], showDuration)
     end
 end
 
@@ -559,6 +587,7 @@ function HI.UpdateUnit(f, mode)
 
     local cache = GetFrameCache(f, mode)
     local list  = ActiveList(mode, HI.GetPlayerClass())
+    local showDuration = ModeShowDuration(mode)
 
     -- Retire containers only when the selection actually changed. Objects
     -- are kept and reused when the checkbox is turned back on.
@@ -570,7 +599,7 @@ function HI.UpdateUnit(f, mode)
     end
 
     for i = 1, list.n do
-        local record = EnsureRecord(f, cache, mode, list.ids[i], list.entries[i])
+        local record = EnsureRecord(f, cache, mode, list.ids[i], list.entries[i], showDuration)
         if record and record.container then
             record.container:Show()
             record.active = true

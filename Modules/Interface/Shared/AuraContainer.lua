@@ -138,9 +138,53 @@ function AC.ResizePending()
     end
 end
 
-local function MakeInitializer(opts)
+-- Re-sizes the buttons one container has already been handed. The engine
+-- pools and recycles them and never runs the initializer again on reuse, so
+-- a size change has to reach the live ones by hand.
+--
+-- Ownership comes from d.container, stamped by the initializer, not from
+-- GetParent: the engine is free to hang its buttons off an intermediate
+-- frame of its own, and a parent compare that misses is silent -- the icons
+-- simply keep their old size. Probe and dispel-alert buttons carry no
+-- container and are skipped, which is correct: they are one pixel by design.
+local function ResizeContainerButtons(container, size)
+    for button, d in pairs(buttonData) do
+        if d.container == container then
+            d.wantSize   = size
+            d.wantHeight = nil
+            d.sizedTo    = nil
+            pending[button] = true
+            AC.TrySize(button)
+            -- The icon is anchored to the button so it follows on its own,
+            -- but the aspect crop was computed from the old size.
+            if d.icon and d.iconCrop then
+                local crop = 2 / size
+                pcall(d.icon.SetTexCoord, d.icon, 0.08, 0.92, 0.08 + crop, 0.92 - crop)
+            end
+        end
+    end
+end
+
+-- Shows or hides the remaining-time text on the buttons one container has
+-- already been handed. The swipe is a separate widget (`d.cooldown`) and is
+-- deliberately untouched: turning the digits off leaves the sweep, which is
+-- the whole point of the setting.
+local function ShowContainerDuration(container, show)
+    for button, d in pairs(buttonData) do
+        if d.container == container and d.duration then
+            pcall(d.duration.SetShown, d.duration, show ~= false)
+        end
+    end
+end
+
+-- `opts` is the container's LIVE spec table, not a copy: the engine builds a
+-- button whenever an aura first appears, which can be long after a size
+-- change, and a closure over a snapshot would hand that button the size the
+-- container was created with. That is how a HoT resized while no HoT was up
+-- came back at its old size.
+local function MakeInitializer(opts, container)
     return function(button)
-        local d = {}
+        local d = { container = container }
         buttonData[button] = d
 
         local size = opts.size or 24
@@ -178,6 +222,7 @@ local function MakeInitializer(opts)
         d.icon:SetPoint("BOTTOMRIGHT", -1, 1)
         local crop = 2 / size
         d.icon:SetTexCoord(0.08, 0.92, 0.08 + crop, 0.92 - crop)
+        d.iconCrop = true
 
         -- CooldownFrameTemplate carries the swipe textures; a bare
         -- Cooldown draws no swipe.
@@ -327,14 +372,10 @@ local function AddGroups(container, spec)
         primary = total - secondary
     end
 
-    local init = MakeInitializer({
-        size = spec.size, font = spec.font, border = spec.border,
-        showDuration = spec.showDuration, tooltips = spec.tooltips,
-        durationPoint = spec.durationPoint, durationRelPoint = spec.durationRelPoint,
-        durationX = spec.durationX, durationY = spec.durationY,
-        durationColor = spec.durationColor,
-        dispelBorder = spec.dispelBorder, dispelColorMap = spec.dispelColorMap,
-    })
+    -- The spec itself, by reference. Relayout writes the new size into it,
+    -- so a button pooled after a settings change is built at the size that
+    -- is current then rather than the one this group was declared with.
+    local init = MakeInitializer(spec, container)
     local layout = {
         elementWidth   = spec.size,
         elementHeight  = spec.size - 4,
@@ -471,15 +512,34 @@ function AC.Relayout(container, opts)
     local growVertical  = (opts.growVertical  ~= nil) and opts.growVertical  or data.growVertical
     local rowWidth       = (opts.rowWidth ~= nil) and opts.rowWidth or data.rowWidth
 
+    -- Written out rather than folded into an `and`/`or` chain like its
+    -- neighbours: this one is a boolean, and `false` is falsy, so the idiom
+    -- above would quietly discard every request to turn the digits OFF.
+    local showDuration = data.showDuration
+    if opts.showDuration ~= nil then showDuration = opts.showDuration end
+
     local sizeChanged   = (size ~= data.size or max ~= data.max)
     local layoutChanged = (growDirection ~= data.growDirection
         or growVertical ~= data.growVertical or rowWidth ~= data.rowWidth)
-    if not sizeChanged and not layoutChanged then return true end
+    local durationChanged = ((showDuration ~= false) ~= (data.showDuration ~= false))
+    if not sizeChanged and not layoutChanged and not durationChanged then return true end
 
     data.size, data.max = size, max
     data.growDirection, data.growVertical, data.rowWidth = growDirection, growVertical, rowWidth
+    data.showDuration = showDuration
+
+    -- Before the size branch, which can bail out on a missing engine setter.
+    -- Buttons pooled later read the live spec from the initializer.
+    if durationChanged then ShowContainerDuration(container, showDuration) end
 
     if sizeChanged then
+        -- Our buttons first, and unconditionally. The spec has just been
+        -- stamped, so every later call sees no change and returns early:
+        -- anything skipped here is skipped for good. Giving the engine
+        -- setters the first word is what let a missing or refused setter
+        -- leave the icons at their old size permanently.
+        ResizeContainerButtons(container, size)
+
         -- AuraGroups are add-only in 12.1. Resize/count changes must use the
         -- live group setters instead of trying to remove and re-add a key.
         if not container.SetAuraGroupLayout or not container.SetAuraGroupMaxFrameCount then
@@ -509,19 +569,6 @@ function AC.Relayout(container, opts)
             if not okHelpfulLayout or not okHelpfulMax then return false end
         end
 
-        -- SetAuraGroupLayout moves the engine-owned boxes, but the actual
-        -- AuraButtons are sized by our initializer. Update already-created
-        -- buttons too; newly pooled buttons inherit the new spec automatically.
-        for button, d in pairs(buttonData) do
-            local okParent, parent = pcall(button.GetParent, button)
-            if okParent and parent == container then
-                d.wantSize = size
-                d.wantHeight = nil
-                d.sizedTo = nil
-                pending[button] = true
-                AC.TrySize(button)
-            end
-        end
     end
 
     ApplyContainerLayout(container, data)

@@ -1,5 +1,122 @@
 ﻿## ####################################
 
+## CHANGELOG 3.6.4 — Mythic+ Studio: A Dedicated Load-On-Demand Control Centre With Eleven Pages — Dashboard, Tracker, TomoScore, Keys, Run History, Statistics, Weekly Planner, Score Planner, Level Analysis, Season Goals And Modules + Local Run History Recorded By TomoMod And Capped At 100 Completed Keys + Run A/B Comparison With Boss Splits + Custom Mythic+ Tracker Colours Read From The Saved Profile + Tracker Positioning Mode And Live HUD Preview Driven From The Studio + The Legacy MythicHub Window Redirected To The New Dashboard While Keystone, DataKeys, KeySync, The Tracker And TomoScore Stay Permanently Loaded In TomoMod + A New /tmplus Slash Command And An "Open Mythic+ Studio" Button On The Options Mythic+ Page + Party And Raid HoT Icon Size Applied Again, From The Options Sliders And From Healer Studio Alike + An Optional HoT Duration Readout — Keep The Seconds Or Keep Only The Sweep — And A HoT Size Ceiling Raised To 50px Everywhere + A Mythic+ Studio Appearance Page With Text Scale, Window Scale, Background Opacity And A Custom Accent, Plus Weekly Reward Item Levels On The Vault And The Weekly Planner
+
+#### Mythic+ Studio — New Load-On-Demand Addon
+
+- **New** — `TomoMod_MythicPlus` is a separate `LoadOnDemand` addon (`Bootstrap.lua`, `RunHistory.lua`, `Studio.lua`) that depends on TomoMod and owns the dashboard, the history and the statistics. Nothing of it is in memory until the Studio is opened for the first time or a key starts, so a player who never opens it pays nothing for it.
+- **New** — Eleven pages behind a left-hand nav: Dashboard, Tracker, TomoScore, Keys, Run History, Statistics, Weekly Planner, Score Planner, Level Analysis, Season Goals and Modules. The window position and the last page visited are remembered in `TomoModMythicPlusDB`.
+- **New** — A Modules page switches Run History and Statistics off individually. A page whose module is disabled says so rather than drawing an empty shell.
+- **Note** — The Studio is deliberately mouse-only: it never calls `EnableKeyboard`, so it cannot compete with WorldFrame for movement bindings when it opens around a dungeon event. This is the same rule TomoScore was put back under in 3.6.3.
+- **Internal** — Every value read from the game's Mythic+ API goes through `IsSecret` / `Num` / `Bool` / `Str` guards, so a secret value returned mid-run is treated as missing instead of erroring.
+
+#### Mythic+ Studio — Entry Points
+
+- **New** — `Modules/QOL/MythicPlus/MythicPlusBridge.lua` is a small always-loaded bridge that owns every entry point: it loads the LoD addon on demand, prints a localised error when the load fails, and forwards `CHALLENGE_MODE_START` / `CHALLENGE_MODE_COMPLETED`.
+- **New** — `/tmplus` (and `/tmmplus`) toggles the Studio.
+- **Changed** — The old MythicHub window's `Show` and `Toggle` now open the new dashboard. The original implementation is kept and is still reachable from the Studio through `OpenLegacyHub()`, so the detailed dungeon/vault view is not lost.
+- **Fix** — Opening the Studio during combat no longer fails silently: the request is queued, a localised message says it will open when combat ends, and `PLAYER_REGEN_ENABLED` opens the page that was asked for.
+- **Note** — The bridge itself forwards the challenge-start event that caused the LoD addon to load. A frame created in response to an event cannot receive that event retroactively, so without this the very first key of a session would not have been recorded.
+
+#### Run History — Local Recording
+
+- **New** — Every Mythic+ key completed from this version onward is recorded locally: dungeon, level, time, timed or not, deaths, affixes, score gain and boss splits.
+- **Note** — Blizzard's historical run list is read for dashboard context but is never rewritten as local history. The history therefore starts empty and fills up as you play; it is not back-filled from anything.
+- **Changed** — The store keeps the latest 100 runs. The first draft kept 500; the cap is fixed rather than a slider, and existing databases are trimmed on load instead of only after the next completed key, so a profile copied between characters cannot carry an oversized store forward.
+
+#### Statistics & Run Comparison
+
+- **New** — A Statistics page builds season and per-dungeon figures — runs, timed rate, average time, average deaths — from the local history.
+- **New** — Run A/B comparison puts two recorded runs side by side with their boss splits and the delta between them. Comparing two runs of different dungeons is allowed and says so: splits are then matched by position only.
+
+#### Weekly Planner, Score Planner, Level Analysis & Season Goals
+
+- **New** — Weekly Planner shows the three weekly dungeon slots, what is still missing for the next one and your best key of the week.
+- **New** — Score Planner suggests the next key level to run and shows an indicative gain. The figure is a planning estimate — Blizzard's recorded dungeon score stays the authoritative value, and the page says so.
+- **New** — Level Analysis breaks the local history down by key level and derives a "comfort level": the highest level with at least three tracked runs and a 70% timed rate.
+- **New** — Season Goals tracks score, highest key, timed keys at a target level, total tracked runs and all season dungeons cleared at a given level, each with its own target. Run-count goals read the local history, so they start counting when Run History is enabled.
+
+#### Mythic+ Tracker — Custom Colours
+
+- **New** — `TMT:BuildPalette()` reads `TomoModDB.MythicTracker.colors` when `useCustomColors` is set, so the accent, background, header, text, enemy-forces and the three timer-bracket colours can be set per profile from the Studio's Tracker page.
+- **Changed** — Only the accent is picked directly; its darker and hover variants are derived from it (×0.58, and ×1.18 + 0.08 clamped to 1) so a custom accent keeps a consistent set of shades instead of needing three separate pickers.
+- **Note** — With `useCustomColors` off, the palette resolves exactly as before through `TomoMod_Utils.BRAND` and the shared widget theme. Each colour also falls back to its old value individually, so a partially filled colour table cannot blank part of the tracker.
+
+#### Mythic+ Tracker — Positioning & Preview
+
+- **New** — The Tracker page carries a live HUD preview of the tracker, so a scale, alpha or colour change can be judged without starting a key.
+- **New** — A positioning mode drops the real tracker on screen with a Done / Cancel / Reset bar, so it can be placed against the rest of the interface rather than dragged blind.
+- **Note** — Positioning mode refuses to start during an active Mythic+ run and says why, instead of moving the frame you are currently reading.
+
+#### Options — Mythic+ Page
+
+- **New** — The Mythic+ options page opens with a Mythic+ Studio card and an "Open Mythic+ Studio" button. The existing controls stay below it, so nothing moves for a profile that was already set up.
+- **Note** — The card's strings come from the bridge, not from `TomoMod_L`: the Studio is reachable even when `TomoMod_Options` has never been loaded, so it carries its own six-locale vocabulary.
+
+#### Mythic+ Studio — Appearance Page
+
+- **New** — A twelfth page, Appearance, owns the Studio's own look: window text size (0.85–1.50), window scale (0.85–1.15), background opacity (0.72–1.00), an optional custom accent colour and a reset button, over a live mock of the header, a card and a stat value so a change can be judged without leaving the page.
+- **New** — `MP:ApplyStudioAppearance()` pushes the accent, the background alpha and the window scale onto the live frame and re-runs the font sizing across the header, the subtitle, the version label and every nav button. Each font string records the size it was authored at (`_tmMPlusBaseSize` / `_tmMPlusBold`), so the scale multiplies that rather than flattening every string in the window to one size.
+- **Changed** — `TomoModMythicPlusDB` gains a `ui` block — `textScale`, `windowScale`, `backgroundAlpha`, `useCustomAccent`, `accent` — normalised field by field on load, with the accent accepting either `{r,g,b}` or `{[1],[2],[3]}`. `MP.VERSION` moves 2 → 4.
+- **Note** — The page states plainly that it governs the Studio only: tracker colours stay independent on the Dungeon Tracker page, and the two are stored apart. The strings ship in `Bootstrap.lua`'s own six-locale table, like the rest of the Studio's vocabulary.
+
+#### Mythic+ Studio — Slider Widget
+
+- **Changed** — Sliders are drawn in-house — a rail, an accent fill that tracks the value, a thumb — instead of `OptionsSliderTemplate`, whose Low/High/Text labels were being blanked one by one anyway. They take the mouse wheel, and the fill repaints on the rail's `OnSizeChanged`, so a slider built before its rail has a width still ends up drawn correctly.
+- **Fix** — The value is seeded BEFORE `OnValueChanged` is wired. `SetValue()` raises that script, so in the other order every slider fired its caller's callback once while being constructed. On the Appearance page that callback rebuilds the page, which builds the slider, which fires again — the Studio died with a C stack overflow the moment the page was opened. Every other page was silently running its slider callbacks at build time too: opening the Tracker page fired a full `TrackerRefresh()` once per slider.
+- **Fix** — `MP:RefreshStudioAppearance()` no longer nests. It calls `SelectPage()`, which rebuilds the page it was itself called from, and a rebuilt control can call straight back in. The guard is released through a `pcall` so a failure inside `SelectPage()` cannot latch it and silently disable every later refresh.
+
+#### Mythic+ Studio — Weekly Reward Item Level
+
+- **New** — Every Great Vault slot, on the dashboard and in the Weekly Planner, shows the item level its reward would come in at, under the key level. `C_MythicPlus.GetRewardLevelForDifficultyLevel` is tried first and `GetRewardLevelFromKeystoneLevel` second; both are `pcall`ed, both may return several values, and the highest positive one is kept. A level the client will not answer for draws an em dash rather than a wrong number.
+
+#### Mythic+ Studio — Tracker Preview
+
+- **Changed** — The tracker's real preview is a toggle: the same button opens the actual tracker and puts it away again, instead of only ever showing it and leaving the player to work out how to dismiss it. The label follows the state.
+- **New** — The preview is torn down on every way out — leaving the Tracker page, resetting the tracker position, and closing the Studio, whose X now goes through `MP:Hide()` rather than a bare `Frame:Hide()`.
+- **Note** — It refuses to put itself away while a key is actually running, so a preview opened before the pull cannot take the real tracker off screen mid-run.
+- **Fix** — Four helpers (`WeeklyRewardItemLevel`, `RefreshOpenPage`, `MP:HideTrackerStandalonePreview`, `MP:ToggleTrackerStandalonePreview`) had landed inside the body of `SeasonBest()`, between its last loop and its `return`. That is valid Lua and loads without a word of complaint, which is what makes it dangerous: it scoped the two local helpers to `SeasonBest` — invisible to the dashboard and the weekly planner that call them — and left the two `MP:` methods unassigned until `SeasonBest` happened to run at least once, while `BeginPage()` calls one of them with no existence check. They now sit at file scope.
+
+#### Mythic+ Studio — Tracker Page Layout
+
+- **Fix** — The Tracker page's controls ran off the bottom of their own card. The card is 646 tall and the column reached −705 by the time the buttons were placed, so Reset position was drawn outside it entirely. The vertical rhythm is retightened along the whole column — every slider step, the checkbox groups and the three segmented controls — which brings the last row to −627 and leaves the card about 19px of slack.
+- **Changed** — `Slider()` is 46 tall again rather than 54, with its rail at −20 and its thumb at +6. The extra height arrived with the in-house rail in the previous pass and is what pushed the page over; the reduction applies to every page that draws a slider, not only this one.
+- **Changed** — Real preview, Edit mode and Reset position now sit on a single row of three 122px buttons 8px apart (right edge at 396 inside a 420 card) instead of a row of two and an orphan below. Three shorter labels ship with it in all six locales, and the unused `previewButton` local left behind by the previous pass is gone.
+- **Note** — The three older strings the buttons used (`tracker_preview_show`, `tracker_preview_hide`, `tracker_reset`) are now unreferenced. They are left in place: they cost one table entry each, and `MP:T()` falls back to enUS and then to the key name, so nothing depends on pruning them.
+
+#### Party & Raid Frames — HoT Icon Size
+
+- **Fix** — Changing the HoT icon size did nothing on the party and raid cells, from either entry point: the `HoT icon size` sliders on the Party Frames and Raid Frames pages, and Healer Studio's per-spell size slider. Placement was applied correctly, which made it read as a display bug rather than a settings one — an indicator's anchor goes through a direct `SetPoint()` on its container, while its size has to travel through the aura engine, and only that half was lost.
+- **Fix** — `AddGroups()` handed `MakeInitializer()` a COPY of the container's spec (`MakeInitializer({ size = spec.size, ... })`). The engine builds a button the first time an aura actually appears, which can be long after a size change, and it never re-runs the initializer on a recycled button — so a closure over a snapshot gave every later button the size the container was created with. Resizing a HoT while that HoT was not up therefore always came back at the old size. The initializer now closes over the live `spec` table, which is the one `AC.Relayout()` writes into. That is what the 3.6.3 note "newly pooled buttons inherit the new spec automatically" described and did not do.
+- **Fix** — `AC.Relayout()` recognised its own buttons with `button:GetParent() == container`, which is a guess about where the engine parents the buttons it hands back, and a guess whose failure is silent: the icons simply keep their previous size. Every button now carries `d.container`, stamped by the initializer, and the sweep matches on that instead. Probe and dispel-alert buttons carry no container and are skipped, which is correct — they are one pixel by design.
+- **Fix** — That sweep also ran AFTER the `SetAuraGroupLayout` / `SetAuraGroupMaxFrameCount` guard, so a missing or refused setter returned before it ever happened. `data.size` had already been stamped by then, and every later call exits on `not sizeChanged`, so a single refusal locked the icon size for the rest of the session. The sweep is extracted into `ResizeContainerButtons()` and now runs first and unconditionally.
+- **Changed** — The icon's aspect crop (`2 / size`) is recomputed on a resize. It was calculated once from the size the button was built at, so a resized icon kept a crop cut for a size it no longer had.
+
+#### Party & Raid Frames — Legacy HoT Row Settings
+
+- **Fix** — The HoT size and count sliders on the Party Frames and Raid Frames pages saved to the profile and applied nothing: their callbacks were `function(v) db.hotSize = v end`, with no `ApplyPF()` / `ApplyRF()`. Both now apply, as the neighbouring sliders in the same card already did.
+- **Fix** — `PF.ApplySettings()` and `RF.ApplySettings()` never touched `f.hotContainer`, so even a forced apply left the row alone and the two settings only reached cells built after a `/reload`. Both now resize the host frame from `hotSize` and `maxHoTs` and push the pair through `AC.Relayout()` on the engine group, alongside the CD tracker and defensive containers they already handled.
+- **Note** — The raid `Debuff size` and `Max debuffs` sliders carry the same defect and are deliberately left for a separate pass rather than folded into a HoT fix.
+
+#### Party & Raid Frames — HoT Duration Text & Size Ceiling
+
+- **New** — The seconds printed over a HoT icon can be switched off, leaving the cooldown sweep. The swipe is a separate widget from the duration font string, so hiding the text costs nothing else: the icon still shows time running out, just without a number over art that may be only a few pixels wide. Blizzard's own swipe digits stay off as before, so this governs one readout and not two overlapping ones.
+- **New** — Party Frames and Raid Frames each carry the toggle next to their HoT size and count sliders (`hotShowDuration`), and Healer Studio carries a per-mode one on its Party and Raid profiles. Neither imposes on the other: the legacy row and the advanced indicators keep their own setting, so a player can have digits on one and only the sweep on the other.
+- **Changed** — `AC.Relayout()` accepts `showDuration`. It is deliberately written out rather than folded into the `and` / `or` chain its neighbours use: this one is a boolean, `false` is falsy, and that idiom would silently discard every request to turn the digits OFF. It is also applied before the size branch, which can still bail out on a missing engine setter.
+- **Note** — An absent `showDuration` means on — in the defaults, in `Normalize()` and at every read site (`~= false`). A profile written before this version keeps the look it had instead of being silently restyled.
+- **Changed** — The Healer Studio size ceiling goes from 30 to 50 px (`HI.MAX_SIZE`, which the studio's slider already read rather than copying). It is not clamped to the cell: a 50px indicator covers a raid cell outright, and one big icon on a small cell reads at a glance where a 20px one does not, so the bound only stops a value the engine cannot draw.
+- **Changed** — The HoT icon size sliders on the Party Frames and Raid Frames pages follow, reaching 50 as well; they were capped at 20 and 16. "HoT size" now means the same range wherever it is set.
+- **New** — The Healer Studio preview draws the duration text when it is on, at `9 * scale`. The runtime draws it at a fixed 9pt whatever the icon size, so the preview shows how small the number really is beside a 50px icon rather than scaling it into something the game will not draw.
+- **Note** — That preview string is given its font at creation, before its first `SetText()`, not by the sizing call that runs later: `SetText()` on a FontString with no font assigned throws `Font not set`. It is the same ordering trap `AuraContainer.lua` documents at the top of its button builder, and the studio hit it because `EnsureIcon()` runs ahead of `PlaceIcon()`. The shared helper also falls back to `STANDARD_TEXT_FONT`, since `SetFont()` returns `false` rather than erroring when the client refuses a font file — a bare `SetFont()` is not proof that a font landed.
+- **Changed** — `hotShowDuration` is carried by the party and raid defaults in `Core/Database.lua`, and by both the defaults map and the one preset that overrides HoT settings in `Presets.lua`, so applying a preset sets it explicitly instead of leaving whatever the profile happened to hold.
+
+#### Packaging
+
+- **Changed** — `.pkgmeta` gained `TomoMod/TomoMod_MythicPlus: TomoMod_MythicPlus`, so the packager ships the new addon as a sibling folder like CDStudio, AstralForge, HealerStudio and Options.
+- **Changed** — All eleven `.toc` files move to 3.6.4 together, the two new ones included.
+
+## ####################################
+
 ## CHANGELOG 3.6.3 — Aura Containers on 12.1: Restored Icon Spacing, Containers Enabled When a Unit Is Bound, Live Size and Count Changes Without a Group Rebuild, Recycled Cells and Plates Unbound Cleanly & Aura Probes Disabled on Teardown — Fixing Healer Studio Indicators, Party and Raid HoT Rows, Debuff and Dispel Indicators, Nameplate Auras, Unit Frame Auras and Cooldown Forge Probes + Party and Raid Frames: Death Tint Cleared on Resurrection Through Unit-State Events + TomoScore: Mouse-Only Scoreboard So Movement Keys Keep Reaching the Game + Raid Frames: Unit Events Gated on Raid Membership Instead of Running Everywhere + Leveling Bar: Frame And Module No Longer Share A Global Name, So The Option, The Size Sliders, The Mover And /tm sr Work After The Bar Has Been Built Once + Resource Bars: Flat Fill For Death Knight Runes + AstralForge: Dropping An Element Now Picks The Nearest Anchor On Its Current Target, The Same Drag Model As Healer Studio, While Element-To-Element Anchoring Is Deliberately Preserved
 
 #### Shared Aura Containers — Layout Keys

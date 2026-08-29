@@ -26,6 +26,25 @@ function TomoMod_ConfigPanel_MythicPlus(parent)
     local c = scroll.child
     local y = -12
 
+    -- Dedicated LoadOnDemand Mythic+ control centre.  The legacy controls
+    -- remain below during V1 so profiles keep their existing workflow, while
+    -- every new Mythic+ feature has a single home from now on.
+    local studioCard, sy = W.CreateCard(c,
+        (TomoMod_MythicPlusText and TomoMod_MythicPlusText("studio_title")) or "Mythic+ Studio", y)
+    local _, nextY = W.CreateInfoText(studioCard.inner,
+        (TomoMod_MythicPlusText and TomoMod_MythicPlusText("studio_blurb"))
+            or "Central dashboard for Mythic+ settings, run history, statistics, keys and weekly progress.", sy)
+    sy = nextY
+    local _, buttonY = W.CreateButton(studioCard.inner,
+        (TomoMod_MythicPlusText and TomoMod_MythicPlusText("open_studio")) or "Open Mythic+ Studio",
+        220, sy, function()
+            if TomoMod_MythicPlusLauncher and TomoMod_MythicPlusLauncher.Open then
+                TomoMod_MythicPlusLauncher:Open("dashboard")
+            end
+        end)
+    sy = buttonY
+    y = W.FinalizeCard(studioCard, sy)
+
     -- ═══════════════════════════════════════════════
     -- M+ TRACKER
     -- ═══════════════════════════════════════════════

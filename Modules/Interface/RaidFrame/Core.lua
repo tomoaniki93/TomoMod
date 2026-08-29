@@ -443,6 +443,8 @@ function RF.CreateFrame(unit)
                 harmful         = false,
                 tooltips        = false,
                 includeSpellIDs = AD and AD.HOT_SPELL_TO_CLASS or nil,
+                -- Digits off leaves the cooldown swipe: cf. PartyFrame/Core.
+                showDuration    = db.hotShowDuration ~= false,
                 -- Centred and white, which is where the old HoT duration sat
                 -- and what the party HoT container already asks for. Left to
                 -- the default it would move to the corner and turn yellow.
@@ -1599,6 +1601,20 @@ function RF.ApplySettings()
             end
             if f.healthText then
                 f.healthText:SetFont(db.font or ADDON_FONT, math.max(6, (db.fontSize or 10) - 2), db.fontOutline or "OUTLINE")
+            end
+
+            -- HoT row: cf. PartyFrame/Core.lua. The container width follows
+            -- the count, and the engine group follows both.
+            if f.hotContainer then
+                local hotSize = db.hotSize or 10
+                local maxHoTs = db.maxHoTs or 3
+                f.hotContainer:SetSize(hotSize * maxHoTs + (maxHoTs - 1), hotSize)
+                if f.hotContainer.engine and TomoMod_AuraContainer then
+                    TomoMod_AuraContainer.Relayout(f.hotContainer.engine, {
+                        size = hotSize, max = maxHoTs,
+                        showDuration = db.hotShowDuration ~= false,
+                    })
+                end
             end
 
             local rcSize = db.readyCheckSize or 20

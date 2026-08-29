@@ -2216,6 +2216,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["pf_opt_show_hots"]                 = "Mostrar indicadores HoT",
     ["pf_opt_hot_size"]                  = "Tamanho do ícone HoT",
     ["pf_opt_max_hots"]                  = "Máx. HoTs mostrados",
+    ["pf_opt_hot_duration"]              = "Mostrar os segundos restantes nos HoTs",
     ["pf_info_hots"]                     = "Exibe efeitos de cura ao longo do tempo com bordas coloridas por classe. Suporta Sacerdote, Druida, Paladino, Xamã, Monge e Evocador.",
     ["pf_section_defensives"]            = "Recargas defensivas",
     ["pf_opt_show_defensives"]           = "Exibir recargas defensivas",
@@ -2318,6 +2319,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["rf_opt_show_hots"]                 = "Mostrar indicadores HoT",
     ["rf_opt_hot_size"]                  = "Tamanho do ícone HoT",
     ["rf_opt_max_hots"]                  = "Máx. HoTs mostrados",
+    ["rf_opt_hot_duration"]              = "Mostrar os segundos restantes nos HoTs",
     ["rf_section_debuffs"]               = "Rastreamento de debuffs",
     ["rf_opt_show_debuffs"]              = "Mostrar ícones de debuff",
     ["rf_opt_debuff_size"]               = "Tamanho do ícone de debuff",
@@ -3313,6 +3315,29 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_333_diag_mode"] = "Diagnóstico: quando o relatório não consegue determinar seu modo de exibição, ele agora imprime os valores brutos que o jogo forneceu em vez de apenas um ponto de interrogação — esses nomes de configuração mudam de uma expansão para outra, e um «?» sozinho não podia ser diagnosticado sem voltar a perguntar. Tela cheia em janela e janelas maximizadas são reconhecidas em mais casos, e as versões dos complementos não aparecem mais como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
     -- =====================
+    -- 3.6.4 — What's New
+    -- =====================
+    ["wn_364_studio"] = "Novidade — Estúdio Mítico+: uma janela Mítico+ dedicada com onze páginas: Painel, Rastreador, TomoScore, Chaves, Histórico de runs, Estatísticas, Planejamento semanal, Planejador de pontuação, Análise por nível, Objetivos de temporada e Módulos. É um addon separado, carregado apenas na primeira vez que você o abre ou quando uma chave começa, então não custa nada até você usá-lo.",
+    ["wn_364_open"] = "Novidade — Abra o Estúdio com /tmplus ou com o novo botão na página de opções de Mítico+. A antiga janela de Mítico+ agora também abre o novo painel; a sua visão detalhada de masmorras e do cofre é preservada e continua acessível de dentro do Estúdio. Pedi-lo em combate não fica mais sem efeito: ele abre assim que o combate termina, e avisa você.",
+    ["wn_364_history"] = "Novidade — O histórico de runs registra cada chave Mítico+ que você concluir a partir de agora: masmorra, nível, tempo, se foi no tempo, mortes, afixos, pontuação ganha e parciais de chefes. Começa vazio — os runs anteriores do jogo são mostrados como contexto, mas nunca viram histórico local — e guarda as suas últimas 100 chaves.",
+    ["wn_364_statistics"] = "Novidade — Uma página de Estatísticas monta números de temporada e por masmorra a partir desse histórico: runs, taxa no tempo, tempo médio e mortes em média.",
+    ["wn_364_compare"] = "Novidade — Dois runs registrados podem ser colocados lado a lado, com os parciais de chefes e a diferença entre eles. Comparar runs de masmorras diferentes é permitido: os parciais são então alinhados apenas por posição, e a página avisa.",
+    ["wn_364_weekly"] = "Novidade — Um planejamento semanal mostra os seus três espaços de masmorra da semana, a sua melhor chave da semana e quantos runs concluídos ainda faltam para preencher o próximo.",
+    ["wn_364_score_planner"] = "Novidade — Um planejador de pontuação sugere o próximo nível de chave e quanto ele renderia. O número é uma estimativa de planejamento: a pontuação de masmorra registrada pelo jogo continua sendo a referência.",
+    ["wn_364_analysis"] = "Novidade — A análise por nível abre o seu histórico nível a nível — runs, no tempo, taxa de sucesso, tempo médio e mortes — e destaca o seu nível de conforto: o nível mais alto em que você tem pelo menos três runs e fecha no tempo sete de cada dez vezes.",
+    ["wn_364_goals"] = "Novidade — Os objetivos de temporada acompanham a sua pontuação, a sua chave mais alta, as chaves no tempo no nível que você escolher, o total de runs registrados e ter feito todas as masmorras da temporada em um dado nível, cada um diante da meta que você definir.",
+    ["wn_364_tracker_colors"] = "Novidade — O rastreador Mítico+ pode usar as suas próprias cores: destaque, fundo, cabeçalho, texto, forças inimigas e as três cores do cronômetro. Os tons mais escuros e mais claros derivam do destaque, então uma única escolha mantém tudo coerente. Com a opção desligada, o rastreador fica exatamente como antes.",
+    ["wn_364_tracker_position"] = "Novidade — A página do Rastreador traz uma prévia ao vivo e um modo de posicionamento que coloca o rastreador real na tela com Concluir, Cancelar e Redefinir, para posicioná-lo sem começar uma chave. Durante uma chave ativa, o posicionamento é recusado em vez de mover o quadro que você está lendo.",
+    ["wn_364_keys"] = "Mudança — As chaves do seu grupo, o rastreador e o placar de fim de chave têm cada um a sua página dentro do Estúdio. Eles continuam rodando no próprio TomoMod, então funcionam mesmo antes de o Estúdio ter sido aberto alguma vez.",
+    ["wn_364_mplus_appearance"] = "Novidade — O Estúdio Mítico+ tem uma página Aparência: tamanho do texto, escala da janela, opacidade do fundo e uma cor de destaque sua, com prévia ao vivo e um botão de redefinir. Muda apenas o Estúdio — as cores do seu rastreador continuam onde estavam, na página Rastreador de masmorra.",
+    ["wn_364_mplus_reward_ilvl"] = "Novidade — Cada espaço do Grande Cofre, tanto no painel quanto no planejamento semanal, mostra agora o nível de item da recompensa que ele daria, abaixo do nível da chave. Quando o jogo não responde para um nível, aparece um traço em vez de um palpite.",
+    ["wn_364_mplus_tracker_preview"] = "Mudança — A prévia real do rastreador agora é um alternador: o mesmo botão abre e guarda, e ela se fecha sozinha quando você sai da página Rastreador ou fecha o Estúdio. Enquanto uma chave está mesmo em andamento ela se recusa a ocultar, então uma prévia que você abriu antes não pode tirar o rastreador real da sua tela no meio da corrida.",
+    ["wn_364_hot_size"] = "Correção — Mudar o tamanho do ícone HoT agora realmente os redimensiona nos quadros de grupo e de raide, seja pelo controle deslizante das páginas Quadros de grupo e Quadros de raide, seja no Healer Studio. A posição deles já era aplicada, o que fazia parecer um problema de exibição: só o tamanho se perdia, e um ícone que aparecia depois da mudança voltava ainda no tamanho antigo.",
+    ["wn_364_hot_sliders"] = "Correção — Os controles deslizantes de tamanho do ícone HoT e de máximo de HoTs mostrados nas páginas Quadros de grupo e Quadros de raide passam a valer imediatamente. Eles eram salvos no seu perfil, mas nunca aplicados aos quadros na tela, então a fileira de HoTs mantinha a aparência anterior até o próximo recarregamento.",
+    ["wn_364_hot_duration"] = "Novidade — Os segundos mostrados nos seus ícones de HoT podem ser ocultados. O ícone mantém a varredura de tempo, então você continua vendo o tempo passar: só perde o número por cima, que num ícone pequeno cobre quase toda a arte. A escolha é sua e é configurada separadamente para os quadros de grupo, os quadros de raide e o Healer Studio, então dá para manter os números num e só a varredura no outro. Deixe ligado e nada muda.",
+    ["wn_364_hot_max_size"] = "Mudança — Os ícones de HoT podem ficar bem maiores: até 50 pixels no Healer Studio em vez de 30, e os controles deslizantes de tamanho do ícone HoT nas páginas Quadros de grupo e Quadros de raide também chegam a 50 em vez de parar em 20 e 16. Nada impede um ícone de cobrir um quadro inteiro, e isso é proposital: um ícone grande às vezes se lê melhor no meio de um pull do que uma fileira de pequenos.",
+
+    -- =====================
     -- 3.6.3 — What's New
     -- =====================
     ["wn_363_aura_display"] = "Correção — Os ícones de auras voltam a aparecer em todos os quadros que os desenham pelo sistema de auras do próprio jogo: os indicadores do Healer Studio, as fileiras de curas ao longo do tempo dos quadros de grupo e de raide, os indicadores de penalidades e de dissipação, as auras das placas de nome e as dos quadros de unidade. A exibição recebia uma unidade, mas nunca era ligada: tinha tudo de que precisava e ainda assim não mostrava nada.",
@@ -3778,6 +3803,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["hs_class"]                 = "Classe",
     ["hs_enable"]                = "Ativar o perfil avancado",
     ["hs_healer_only"]           = "Apenas em uma especializacao de curandeiro",
+    ["hs_show_duration"]         = "Mostrar os segundos restantes",
+    ["hs_show_duration_info"]    = "Desativado, o ícone mantém a varredura de tempo e perde apenas o número por cima. Útil em ícones pequenos, onde os dígitos cobrem quase toda a arte.",
     ["hs_mode_on"]               = "Perfil avancado ativo: a linha de HoTs classica fica oculta nessas celulas.",
     ["hs_mode_off"]              = "A linha de HoTs classica continua em uso enquanto este perfil estiver desativado.",
     ["hs_preset"]                = "Predefinicao inicial",

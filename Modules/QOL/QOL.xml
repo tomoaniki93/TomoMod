@@ -62,6 +62,7 @@
 
     <!-- Modules: MythicHub (M+ Overview Panel) -->
     <Include file="MythicPlus\MythicHub.lua" />
+    <Include file="MythicPlus\MythicPlusBridge.lua" />
 
     <!-- Modules: Quest -->
     <Include file="Quest\AutoQuest.lua" />

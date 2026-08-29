@@ -2225,6 +2225,7 @@ TomoMod_RegisterLocale("deDE", {
     ["pf_opt_show_hots"]                 = "HoT-Symbole anzeigen",
     ["pf_opt_hot_size"]                  = "HoT-Symbolgröße",
     ["pf_opt_max_hots"]                  = "Max. angezeigte HoTs",
+    ["pf_opt_hot_duration"]              = "Verbleibende Sekunden auf HoTs anzeigen",
     ["pf_info_hots"]                     = "Zeigt Heilung-über-Zeit-Effekte mit klassenfarbierten Rändern an. Unterstützt Priester, Druide, Paladin, Schamane, Mönch und Rufer.",
     ["pf_section_defensives"]            = "Verteidigungs-Cooldowns",
     ["pf_opt_show_defensives"]           = "Verteidigungs-Cooldowns anzeigen",
@@ -2327,6 +2328,7 @@ TomoMod_RegisterLocale("deDE", {
     ["rf_opt_show_hots"]                 = "HoT-Indikatoren anzeigen",
     ["rf_opt_hot_size"]                  = "HoT-Symbolgröße",
     ["rf_opt_max_hots"]                  = "Max. angezeigte HoTs",
+    ["rf_opt_hot_duration"]              = "Verbleibende Sekunden auf HoTs anzeigen",
     ["rf_section_debuffs"]               = "Debuff-Verfolgung",
     ["rf_opt_show_debuffs"]              = "Debuff-Symbole anzeigen",
     ["rf_opt_debuff_size"]               = "Debuff-Symbolgröße",
@@ -3325,6 +3327,29 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
     -- =====================
+    -- 3.6.4 — What's New
+    -- =====================
+    ["wn_364_studio"] = "Neu — Mythic+ Studio: ein eigenes Mythic+-Fenster mit elf Seiten — Übersicht, Tracker, TomoScore, Schlüssel, Laufhistorie, Statistiken, Wochenplaner, Wertungsplaner, Stufenanalyse, Saisonziele und Module. Es ist ein eigenständiges Addon, das erst beim ersten Öffnen oder beim Start eines Schlüssels geladen wird und bis dahin nichts kostet.",
+    ["wn_364_open"] = "Neu — Öffne das Studio mit /tmplus oder über die neue Schaltfläche auf der Mythic+-Optionsseite. Das alte Mythic+-Fenster öffnet jetzt ebenfalls die neue Übersicht; seine ausführliche Dungeon- und Schatzkammeransicht bleibt erhalten und ist weiterhin aus dem Studio heraus erreichbar. Ein Aufruf im Kampf bleibt nicht mehr wirkungslos: Das Fenster öffnet sich, sobald der Kampf endet, und sagt dir das auch.",
+    ["wn_364_history"] = "Neu — Die Laufhistorie zeichnet ab sofort jeden abgeschlossenen Mythisch+-Schlüssel auf: Dungeon, Stufe, Zeit, ob in der Zeit, Tode, Affixe, Wertungsgewinn und Boss-Zwischenzeiten. Sie beginnt leer — die vergangenen Läufe des Spiels werden zur Einordnung angezeigt, aber nie in lokale Historie umgewandelt — und behält deine letzten 100 Schlüssel.",
+    ["wn_364_statistics"] = "Neu — Eine Statistikseite erstellt aus dieser Historie Saison- und Dungeonwerte: Läufe, Quote in der Zeit, Durchschnittszeit und durchschnittliche Tode.",
+    ["wn_364_compare"] = "Neu — Zwei aufgezeichnete Läufe lassen sich nebeneinanderlegen, mit ihren Boss-Zwischenzeiten und dem Abstand dazwischen. Läufe aus verschiedenen Dungeons dürfen verglichen werden: Die Zwischenzeiten werden dann nur nach Position zugeordnet, und die Seite weist darauf hin.",
+    ["wn_364_weekly"] = "Neu — Ein Wochenplaner zeigt deine drei wöchentlichen Dungeonplätze, deinen besten Schlüssel der Woche und wie viele abgeschlossene Läufe dir für den nächsten Platz noch fehlen.",
+    ["wn_364_score_planner"] = "Neu — Ein Wertungsplaner schlägt die nächste Schlüsselstufe vor und zeigt, was sie einbringen würde. Der Wert ist eine Planungsschätzung: Maßgeblich bleibt die vom Spiel erfasste Dungeonwertung.",
+    ["wn_364_analysis"] = "Neu — Die Stufenanalyse schlüsselt deine Historie Stufe für Stufe auf — Läufe, in der Zeit, Erfolgsquote, Durchschnittszeit und Tode — und hebt deine Komfortstufe hervor: die höchste Stufe, auf der du mindestens drei Läufe hast und sieben von zehn in der Zeit abschließt.",
+    ["wn_364_goals"] = "Neu — Die Saisonziele verfolgen deine Wertung, deinen höchsten Schlüssel, in der Zeit abgeschlossene Schlüssel auf einer Stufe deiner Wahl, deine Gesamtzahl aufgezeichneter Läufe und das Abschließen aller Saisondungeons auf einer bestimmten Stufe, jeweils gegen ein von dir gesetztes Ziel.",
+    ["wn_364_tracker_colors"] = "Neu — Der Mythic+-Tracker kann deine eigenen Farben verwenden: Akzent, Hintergrund, Kopfzeile, Text, Gegnerkräfte und die drei Timerfarben. Dunklere und hellere Abstufungen werden aus dem Akzent abgeleitet, sodass eine einzige Auswahl den ganzen Tracker stimmig hält. Bleibt die Option aus, sieht der Tracker exakt aus wie bisher.",
+    ["wn_364_tracker_position"] = "Neu — Die Trackerseite bietet eine Live-Vorschau des Trackers und einen Positionierungsmodus, der den echten Tracker mit Fertig, Abbrechen und Zurücksetzen auf den Bildschirm holt, damit du ihn ohne laufenden Schlüssel platzieren kannst. Während eines aktiven Schlüssels wird die Positionierung abgelehnt, statt den Rahmen zu verschieben, den du gerade liest.",
+    ["wn_364_keys"] = "Geändert — Die Schlüssel deiner Gruppe, der Tracker und die Wertungstafel am Ende eines Schlüssels haben im Studio jeweils eine eigene Seite. Sie laufen weiterhin in TomoMod selbst und funktionieren daher auch, bevor das Studio je geöffnet wurde.",
+    ["wn_364_mplus_appearance"] = "Neu — Das Mythic+ Studio hat eine Seite Darstellung: Textgröße, Fensterskalierung, Hintergrunddeckkraft und eine eigene Akzentfarbe, mit Live-Vorschau und Zurücksetzen-Schaltfläche. Sie ändert nur das Studio — deine Tracker-Farben bleiben, wo sie sind, auf der Seite Dungeon-Tracker.",
+    ["wn_364_mplus_reward_ilvl"] = "Neu — Jeder Platz der Großen Schatzkammer zeigt jetzt sowohl auf der Übersicht als auch im Wochenplaner das Gegenstandsstufe der Belohnung unter der Schlüsselstufe an. Wenn das Spiel für eine Stufe keine Antwort liefert, erscheint ein Gedankenstrich statt einer Schätzung.",
+    ["wn_364_mplus_tracker_preview"] = "Geändert — Die echte Tracker-Vorschau ist jetzt ein Umschalter: Dieselbe Schaltfläche öffnet sie und räumt sie wieder weg, und sie schließt sich von selbst, wenn du die Tracker-Seite verlässt oder das Studio schließt. Während ein Schlüssel tatsächlich läuft, weigert sie sich auszublenden — eine vorher geöffnete Vorschau kann dir den echten Tracker also nicht mitten im Lauf vom Bildschirm nehmen.",
+    ["wn_364_hot_size"] = "Fehlerbehebung — Wenn du die HoT-Symbolgröße änderst, werden die Symbole auf den Gruppen- und Schlachtzugsrahmen jetzt wirklich neu skaliert — egal ob über den Regler auf den Seiten Gruppenrahmen und Schlachtzugsrahmen oder im Healer Studio. Ihre Position wurde die ganze Zeit korrekt übernommen, wodurch es wie ein Anzeigefehler wirkte: nur die Größe ging verloren, und ein Symbol, das nach der Änderung auftauchte, kam weiterhin in seiner alten Größe zurück.",
+    ["wn_364_hot_sliders"] = "Fehlerbehebung — Die Regler für HoT-Symbolgröße und maximal angezeigte HoTs auf den Seiten Gruppenrahmen und Schlachtzugsrahmen wirken sofort. Sie wurden zwar im Profil gespeichert, aber nie auf die Rahmen auf dem Bildschirm angewendet, sodass die HoT-Reihe bis zum nächsten Neuladen unverändert blieb.",
+    ["wn_364_hot_duration"] = "Neu — Die Sekunden auf deinen HoT-Symbolen lassen sich ausblenden. Das Symbol behält seinen Cooldown-Sweep, du siehst die Zeit also weiterhin ablaufen und verlierst nur die Zahl darüber, die auf einem kleinen Symbol fast das ganze Bild verdeckt. Die Wahl liegt bei dir und wird getrennt für Gruppenrahmen, Schlachtzugsrahmen und das Healer Studio eingestellt: Du kannst die Ziffern auf der einen Seite behalten und auf der anderen nur den Sweep. Eingeschaltet gelassen ändert sich nichts.",
+    ["wn_364_hot_max_size"] = "Geändert — HoT-Symbole können deutlich größer werden: bis zu 50 Pixel im Healer Studio statt 30, und die Regler für die HoT-Symbolgröße auf den Seiten Gruppenrahmen und Schlachtzugsrahmen reichen ebenfalls bis 50 statt bei 20 und 16 zu enden. Nichts hindert ein Symbol daran, einen ganzen Rahmen zu bedecken — das ist Absicht: ein großes Symbol ist mitten im Pull manchmal besser zu lesen als eine Reihe kleiner.",
+
+    -- =====================
     -- 3.6.3 — What's New
     -- =====================
     ["wn_363_aura_display"] = "Behoben — Aurensymbole werden wieder auf allen Rahmen angezeigt, die sie über die spieleigene Aurenanzeige zeichnen: die Indikatoren von Healer Studio, die Reihen der Heilung-über-Zeit-Effekte auf Gruppen- und Schlachtzugsrahmen, die Schwächungs- und Entzauberungsindikatoren, die Auren auf Namensplaketten und die auf Einheitenfenstern. Der Anzeige wurde zwar eine Einheit zugewiesen, sie wurde aber nie eingeschaltet: Sie hatte alles, was sie brauchte, und zeigte trotzdem nichts.",
@@ -3790,6 +3815,8 @@ TomoMod_RegisterLocale("deDE", {
     ["hs_class"]                 = "Klasse",
     ["hs_enable"]                = "Erweitertes Profil aktivieren",
     ["hs_healer_only"]           = "Nur in einer Heiler-Spezialisierung",
+    ["hs_show_duration"]         = "Verbleibende Sekunden anzeigen",
+    ["hs_show_duration_info"]    = "Ausgeschaltet behält das Symbol seinen Cooldown-Sweep und verliert nur die Zahl darüber. Nützlich bei kleinen Symbolen, bei denen die Ziffern fast das ganze Bild verdecken.",
     ["hs_mode_on"]               = "Erweitertes Profil aktiv: die klassische HoT-Reihe ist auf diesen Zellen ausgeblendet.",
     ["hs_mode_off"]              = "Die klassische HoT-Reihe bleibt aktiv, solange dieses Profil deaktiviert ist.",
     ["hs_preset"]                = "Startvorlage",

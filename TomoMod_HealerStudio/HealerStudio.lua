@@ -58,6 +58,19 @@ local WHITE8 = "Interface\\Buttons\\WHITE8x8"
 -- ---------------------------------------------------------------------
 local function Clamp(v, lo, hi) return max(lo, min(hi, v)) end
 
+-- SetText() on a FontString with no font assigned throws "Font not set", and
+-- SetFont() returns false rather than erroring when the client refuses the
+-- file -- so a bare SetFont is not proof there is a font. Every duration
+-- string in the preview goes through this, and it is called at creation,
+-- before the first SetText, not only when the size changes.
+local function ApplyFont(fs, size)
+    if not fs then return end
+    size = max(6, size or 9)
+    if not fs:SetFont(FONT, size, "OUTLINE") then
+        fs:SetFont(STANDARD_TEXT_FONT, size, "OUTLINE")
+    end
+end
+
 local function Round(v)
     if v >= 0 then return floor(v + 0.5) end
     return -floor(-v + 0.5)
@@ -123,6 +136,16 @@ local function PlaceIcon(icon, entry)
     local scale = PreviewScale()
     local size = Clamp(tonumber(entry.size) or 12, MIN_SIZE, MAX_SIZE)
     icon:SetSize(size * scale, size * scale)
+
+    -- The runtime draws the remaining time at a fixed 9pt whatever the icon
+    -- size, so the preview scales 9 rather than the icon: at 50px the number
+    -- really is that small next to the art, and the point of the preview is
+    -- to let that be judged before committing to it.
+    if icon.duration then
+        local modeDB = HI.GetModeDB(S.mode)
+        ApplyFont(icon.duration, 9 * scale)
+        icon.duration:SetShown(not (modeDB and modeDB.showDuration == false))
+    end
     icon:ClearAllPoints()
     local point = entry.point or "TOPLEFT"
     icon:SetPoint(point, previewCell, point,
@@ -219,6 +242,15 @@ local function EnsureIcon(spellID)
     icon.texture:SetPoint("TOPLEFT", 1, -1)
     icon.texture:SetPoint("BOTTOMRIGHT", -1, 1)
     icon.texture:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+
+    -- A stand-in value, not a live one: nothing in the studio reads an aura.
+    -- The font comes first: EnsureIcon runs before PlaceIcon, so leaving the
+    -- sizing call to do it means this SetText lands on a fontless string.
+    icon.duration = icon:CreateFontString(nil, "OVERLAY")
+    ApplyFont(icon.duration, 9)
+    icon.duration:SetPoint("CENTER")
+    icon.duration:SetTextColor(1, 1, 1, 1)
+    icon.duration:SetText("12")
 
     icon:SetScript("OnMouseDown", function()
         S.selected = spellID
@@ -413,6 +445,22 @@ function S.RefreshInspector()
         HI.Commit()
         S.Refresh()
     end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["hs_show_duration"],
+        modeDB and modeDB.showDuration ~= false, y, function(v)
+            if not CanEdit() then S.Refresh(); return end
+            local m = HI.GetModeDB(S.mode)
+            if m then m.showDuration = v and true or false end
+            -- Geometry-only push: the setting lives in the mode table the
+            -- runtime already reads by reference, so the cached active list
+            -- stays valid and only the frames need telling.
+            Touch()
+            S.RefreshPreview()
+        end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["hs_show_duration_info"], y)
     y = ny
 
     local _, ny = W.CreateInfoText(c,

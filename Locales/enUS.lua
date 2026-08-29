@@ -2354,6 +2354,7 @@ TomoMod_RegisterLocale("enUS", {
     ["pf_opt_show_hots"]                 = "Show HoT indicators",
     ["pf_opt_hot_size"]                  = "HoT icon size",
     ["pf_opt_max_hots"]                  = "Max HoTs shown",
+    ["pf_opt_hot_duration"]              = "Show remaining seconds on HoTs",
     ["pf_info_hots"]                     = "Displays healing-over-time effects with class-colored borders. Supports Priest, Druid, Paladin, Shaman, Monk, and Evoker HoTs.",
     ["pf_section_defensives"]            = "Defensive Cooldowns",
     ["pf_opt_show_defensives"]           = "Show defensive cooldowns",
@@ -2478,6 +2479,7 @@ TomoMod_RegisterLocale("enUS", {
     ["rf_opt_show_hots"]                 = "Show HoT indicators",
     ["rf_opt_hot_size"]                  = "HoT icon size",
     ["rf_opt_max_hots"]                  = "Max HoTs shown",
+    ["rf_opt_hot_duration"]              = "Show remaining seconds on HoTs",
 
     -- Features: Debuffs
     ["rf_section_debuffs"]               = "Debuff Tracking",
@@ -3365,6 +3367,29 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_diag_mode"] = "Diagnostics: when the report cannot work out your display mode it now prints the raw values the game gave it instead of a bare question mark — those setting names change between expansions, and a '?' on its own could not be diagnosed without asking you for more. Windowed-fullscreen and maximized windows are recognised in more cases, and addon versions no longer read 'vv1.2.3'.",
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
     -- =====================
+    -- 3.6.4 — What's New
+    -- =====================
+    ["wn_364_studio"] = "New — Mythic+ Studio: a dedicated Mythic+ window with eleven pages — Dashboard, Tracker, TomoScore, Keys, Run History, Statistics, Weekly Planner, Score Planner, Level Analysis, Season Goals and Modules. It is a separate addon, loaded only the first time you open it or when a key starts, so it costs nothing until you use it.",
+    ["wn_364_open"] = "New — Open the Studio with /tmplus, or with the new button on the Mythic+ options page. The old Mythic+ window now opens the new dashboard as well; its detailed dungeon and vault view is kept and is still reachable from inside the Studio. Asking for it in combat no longer does nothing: it opens as soon as combat ends, and tells you so.",
+    ["wn_364_history"] = "New — Run History records every Mythic+ key you complete from now on: dungeon, level, time, whether it was timed, deaths, affixes, score gained and boss splits. It starts empty — the game's own past runs are shown for context but are never turned into local history — and it keeps your latest 100 keys.",
+    ["wn_364_statistics"] = "New — A Statistics page builds season and per-dungeon figures from that history: runs, timed rate, average time and average deaths.",
+    ["wn_364_compare"] = "New — Two recorded runs can be put side by side, with their boss splits and the gap between them. Comparing runs from different dungeons is allowed: the splits are then matched by position only, and the page says so.",
+    ["wn_364_weekly"] = "New — A Weekly Planner shows your three weekly dungeon slots, your best key of the week and how many more completed runs are needed to fill the next one.",
+    ["wn_364_score_planner"] = "New — A Score Planner suggests the next key level to run and what it would be worth. The figure is a planning estimate: the dungeon score recorded by the game stays the reference.",
+    ["wn_364_analysis"] = "New — Level Analysis breaks your history down level by level — runs, timed, success rate, average time and deaths — and points out your comfort level: the highest level where you have at least three runs and finish in time seven times out of ten.",
+    ["wn_364_goals"] = "New — Season Goals tracks your score, your highest key, timed keys at a level of your choice, your total recorded runs and clearing every season dungeon at a given level, each against a target you set.",
+    ["wn_364_tracker_colors"] = "New — The Mythic+ tracker can use your own colours: accent, background, header, text, enemy forces and the three timer colours. The darker and lighter shades are derived from the accent, so a single pick keeps the whole tracker consistent. Leave the option off and the tracker looks exactly as before.",
+    ["wn_364_tracker_position"] = "New — The Tracker page carries a live preview of the tracker and a positioning mode that puts the real one on screen with Done, Cancel and Reset, so you can place it without starting a key. During an active key, positioning is refused rather than moving the frame you are reading.",
+    ["wn_364_keys"] = "Changed — Your party's keystones, the tracker and the end-of-key scoreboard now have a page each inside the Studio. They keep running in TomoMod itself, so they still work before the Studio has ever been opened.",
+    ["wn_364_mplus_appearance"] = "New — The Mythic+ Studio has an Appearance page: text size, window scale, background opacity and an accent colour of your own, with a live preview and a reset button. It changes the Studio only — your tracker colours stay where they are, on the Dungeon Tracker page.",
+    ["wn_364_mplus_reward_ilvl"] = "New — Every Great Vault slot, on the dashboard and in the Weekly Planner, now shows the item level its reward would come in at, under the key level. When the game will not answer for a level, a dash is drawn rather than a guess.",
+    ["wn_364_mplus_tracker_preview"] = "Changed — The tracker's real preview is now a toggle: the same button opens it and puts it away, and it closes on its own when you leave the Tracker page or close the Studio. While a key is actually running it refuses to hide, so a preview you opened beforehand cannot take the real tracker off your screen mid-run.",
+    ["wn_364_hot_size"] = "Fix — Changing your HoT icon size really resizes the icons on the party and raid frames again, whether you change it with the slider on the Party Frames and Raid Frames pages or in Healer Studio. Their placement was applied correctly all along, which made it look like a display glitch: only the size was being dropped, and an icon that appeared after the change still came back at its old size.",
+    ["wn_364_hot_sliders"] = "Fix — The HoT icon size and max HoTs sliders on the Party Frames and Raid Frames pages take effect immediately. They were saved to your profile but never applied to the frames on screen, so the HoT row kept its previous look until the next reload.",
+    ["wn_364_hot_duration"] = "New — The seconds shown on your HoT icons can be turned off. The icon keeps its sweeping cooldown animation, so you still see the time running out; you only lose the number printed over it, which on a small icon covers most of the artwork. The choice is yours and it is set separately for party frames, raid frames and Healer Studio, so you can keep the digits on one and only the sweep on the other. Leave it on and nothing changes.",
+    ["wn_364_hot_max_size"] = "Changed — HoT icons can be made much bigger: up to 50 pixels in Healer Studio instead of 30, and the HoT icon size sliders on the Party Frames and Raid Frames pages reach 50 as well instead of stopping at 20 and 16. Nothing stops an icon from covering a whole cell, which is deliberate: one large icon can be easier to read mid-pull than a row of small ones.",
+
+    -- =====================
     -- 3.6.3 — What's New
     -- =====================
     ["wn_363_aura_display"] = "Fix — Aura icons are showing again on every frame that draws them through the game's own aura display: Healer Studio indicators, the party and raid heal-over-time rows, debuff and dispel indicators, nameplate auras and unit frame auras. The display behind them was given a unit but never switched on, so it had everything it needed and still showed nothing.",
@@ -3833,6 +3858,8 @@ TomoMod_RegisterLocale("enUS", {
     ["hs_class"]                 = "Class",
     ["hs_enable"]                = "Enable the advanced profile",
     ["hs_healer_only"]           = "Only while in a healer specialization",
+    ["hs_show_duration"]         = "Show remaining seconds",
+    ["hs_show_duration_info"]    = "Off, the icon keeps its cooldown sweep and only loses the number printed over it. Useful on small icons, where the digits cover most of the art.",
     ["hs_mode_on"]               = "Advanced profile active: the classic HoT row is hidden on these cells.",
     ["hs_mode_off"]              = "The classic HoT row stays in use while this profile is off.",
     ["hs_preset"]                = "Starter preset",

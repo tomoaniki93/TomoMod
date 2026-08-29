@@ -446,6 +446,10 @@ function PF.CreateFrame(index, unit)
                 font            = db.font or ADDON_FONT,
                 harmful         = false,
                 tooltips        = false,
+                -- Digits off leaves the cooldown swipe, which is the point:
+                -- the icon still shows time passing, just without a number
+                -- printed over art that may only be a few pixels wide.
+                showDuration    = db.hotShowDuration ~= false,
                 includeSpellIDs = AD and AD.HOT_SPELL_TO_CLASS or nil,
                 durationPoint   = "CENTER",
                 durationX       = 0,
@@ -1537,6 +1541,21 @@ function PF.ApplySettings()
                         icon:SetPoint("TOP", f.cdContainer, "TOP", 0, -idx * (cdSize + 2))
                     end
                     idx = idx + 1
+                end
+            end
+
+            -- HoT row. Size and count are live settings, so both the host
+            -- frame and the engine group have to follow: without this the
+            -- sliders only landed on cells built after the next /reload.
+            if f.hotContainer then
+                local hotSize = db.hotSize or 12
+                local maxHoTs = db.maxHoTs or 3
+                f.hotContainer:SetSize(hotSize * maxHoTs + 4, hotSize)
+                if f.hotContainer.engine and TomoMod_AuraContainer then
+                    TomoMod_AuraContainer.Relayout(f.hotContainer.engine, {
+                        size = hotSize, max = maxHoTs,
+                        showDuration = db.hotShowDuration ~= false,
+                    })
                 end
             end
 

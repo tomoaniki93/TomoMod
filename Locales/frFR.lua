@@ -2289,6 +2289,7 @@ TomoMod_RegisterLocale("frFR", {
     ["pf_opt_show_hots"]                 = "Afficher les indicateurs HoT",
     ["pf_opt_hot_size"]                  = "Taille d'icône HoT",
     ["pf_opt_max_hots"]                  = "Max. HoTs affichés",
+    ["pf_opt_hot_duration"]              = "Afficher les secondes restantes sur les HoTs",
     ["pf_info_hots"]                     = "Affiche les effets de soin dans le temps avec des bordures colorées par classe. Compatible Prêtre, Druide, Paladin, Chaman, Moine et Évocateur.",
     ["pf_section_defensives"]            = "Temps de recharge défensifs",
     ["pf_opt_show_defensives"]           = "Afficher les CD défensifs",
@@ -2401,6 +2402,7 @@ TomoMod_RegisterLocale("frFR", {
     ["rf_opt_show_hots"]                 = "Afficher les indicateurs HoT",
     ["rf_opt_hot_size"]                  = "Taille des icônes HoT",
     ["rf_opt_max_hots"]                  = "HoTs max affichés",
+    ["rf_opt_hot_duration"]              = "Afficher les secondes restantes sur les HoTs",
 
     ["rf_section_debuffs"]               = "Suivi des debuffs",
     ["rf_opt_show_debuffs"]              = "Afficher les icônes de debuff",
@@ -3341,6 +3343,29 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_333_diag_mode"] = "Diagnostics : quand le rapport n'arrive pas à déterminer votre mode d'affichage, il indique maintenant les valeurs brutes renvoyées par le jeu au lieu d'un simple point d'interrogation — ces noms de réglages changent d'une extension à l'autre, et un « ? » seul ne pouvait pas être diagnostiqué sans revenir vers vous. Le plein écran fenêtré et les fenêtres agrandies sont reconnus dans davantage de cas, et les versions des addons ne s'affichent plus sous la forme « vv1.2.3 ».",
     ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
     -- =====================
+    -- 3.6.4 — What's New
+    -- =====================
+    ["wn_364_studio"] = "Nouveau — Studio Mythic+ : une fenêtre Mythic+ dédiée avec onze pages — Tableau de bord, Tracker, TomoScore, Clés, Historique des runs, Statistiques, Planning hebdomadaire, Planificateur de score, Analyse par niveau, Objectifs de saison et Modules. C'est un addon séparé, chargé uniquement à sa première ouverture ou au démarrage d'une clé : il ne coûte rien tant que tu ne t'en sers pas.",
+    ["wn_364_open"] = "Nouveau — Ouvre le Studio avec /tmplus, ou avec le nouveau bouton de la page d'options Mythic+. L'ancienne fenêtre Mythic+ ouvre désormais le nouveau tableau de bord elle aussi ; sa vue détaillée des donjons et du coffre est conservée et reste accessible depuis le Studio. Le demander en combat ne reste plus sans effet : il s'ouvre dès la fin du combat, et te le dit.",
+    ["wn_364_history"] = "Nouveau — L'historique des runs enregistre chaque clé Mythic+ que tu termines à partir de maintenant : donjon, niveau, temps, dans les temps ou non, morts, affixes, score gagné et splits de boss. Il démarre vide — les runs passés du jeu sont affichés pour le contexte mais ne sont jamais transformés en historique local — et conserve tes 100 dernières clés.",
+    ["wn_364_statistics"] = "Nouveau — Une page Statistiques construit des chiffres de saison et par donjon à partir de cet historique : nombre de runs, taux de réussite dans les temps, temps moyen et morts en moyenne.",
+    ["wn_364_compare"] = "Nouveau — Deux runs enregistrés peuvent être placés côte à côte, avec leurs splits de boss et l'écart entre eux. Comparer des runs de donjons différents est autorisé : les splits sont alors alignés uniquement par position, et la page le précise.",
+    ["wn_364_weekly"] = "Nouveau — Un planning hebdomadaire affiche tes trois emplacements Donjons de la semaine, ta meilleure clé de la semaine et le nombre de clés terminées qu'il te reste à faire pour remplir le suivant.",
+    ["wn_364_score_planner"] = "Nouveau — Un planificateur de score propose le prochain niveau de clé à faire et ce qu'il rapporterait. Le chiffre est une estimation de planification : le score de donjon enregistré par le jeu reste la référence.",
+    ["wn_364_analysis"] = "Nouveau — L'analyse par niveau détaille ton historique niveau par niveau — runs, dans les temps, taux de réussite, temps moyen et morts — et met en avant ton niveau de confort : le plus haut niveau où tu as au moins trois runs et où tu finis dans les temps sept fois sur dix.",
+    ["wn_364_goals"] = "Nouveau — Les objectifs de saison suivent ton score, ta meilleure clé, les clés réussies dans les temps au niveau de ton choix, ton total de runs enregistrés et le fait d'avoir fait tous les donjons de la saison à un niveau donné, chacun avec la cible que tu fixes.",
+    ["wn_364_tracker_colors"] = "Nouveau — Le tracker Mythic+ peut utiliser tes propres couleurs : accent, fond, en-tête, texte, forces ennemies et les trois couleurs du chrono. Les nuances plus sombres et plus claires sont dérivées de l'accent : un seul choix garde l'ensemble cohérent. Option désactivée, le tracker est exactement comme avant.",
+    ["wn_364_tracker_position"] = "Nouveau — La page Tracker propose un aperçu en direct du tracker et un mode de positionnement qui affiche le vrai tracker à l'écran avec Valider, Annuler et Réinitialiser, pour le placer sans lancer de clé. Pendant une clé en cours, le positionnement est refusé plutôt que de déplacer le cadre que tu es en train de lire.",
+    ["wn_364_keys"] = "Modifié — Les clés de ton groupe, le tracker et le tableau de score de fin de clé ont chacun leur page dans le Studio. Ils continuent de tourner dans TomoMod lui-même : ils fonctionnent donc toujours avant même que le Studio ait été ouvert.",
+    ["wn_364_mplus_appearance"] = "Nouveau — Le Studio Mythic+ a une page Apparence : taille du texte, échelle de la fenêtre, opacité du fond et une couleur d'accent à toi, avec un aperçu en direct et un bouton de réinitialisation. Ça ne change que le Studio — les couleurs de ton tracker restent où elles sont, sur la page Suivi en donjon.",
+    ["wn_364_mplus_reward_ilvl"] = "Nouveau — Chaque emplacement du Grand coffre, sur le tableau de bord comme dans le planning hebdomadaire, affiche désormais l'ilvl de la récompense qu'il donnerait, sous le niveau de clé. Quand le jeu ne répond pas pour un niveau, un tiret s'affiche plutôt qu'une estimation.",
+    ["wn_364_mplus_tracker_preview"] = "Modifié — L'aperçu réel du tracker est maintenant une bascule : le même bouton l'ouvre et le range, et il se ferme tout seul quand tu quittes la page Tracker ou que tu fermes le Studio. Pendant une clé en cours, il refuse de se masquer : un aperçu ouvert avant le pull ne peut pas te retirer le vrai tracker de l'écran en pleine course.",
+    ["wn_364_hot_size"] = "Correction — Changer la taille de tes icônes de HoT les redimensionne enfin sur les cadres de groupe et de raid, que tu la changes avec le curseur des pages Cadres de groupe et Cadres de raid ou dans le Healer Studio. Leur emplacement, lui, était bien appliqué, ce qui faisait passer le problème pour un souci d'affichage : seule la taille était perdue, et une icône apparue après le changement revenait encore à son ancienne taille.",
+    ["wn_364_hot_sliders"] = "Correction — Les curseurs de taille d'icône HoT et de HoTs max des pages Cadres de groupe et Cadres de raid s'appliquent immédiatement. Ils étaient enregistrés dans ton profil mais jamais appliqués aux cadres à l'écran : la rangée de HoTs gardait son apparence précédente jusqu'au rechargement suivant.",
+    ["wn_364_hot_duration"] = "Nouveau — Les secondes affichées sur tes icônes de HoT peuvent être masquées. L'icône garde son balayage de temps, donc tu vois toujours le temps s'écouler : tu perds seulement le nombre écrit par-dessus, qui sur une petite icône en recouvre presque toute l'image. Le choix est le tien, et il se règle séparément pour les cadres de groupe, les cadres de raid et le Healer Studio : tu peux garder les chiffres d'un côté et seulement le balayage de l'autre. Laisse l'option activée et rien ne change.",
+    ["wn_364_hot_max_size"] = "Modifié — Les icônes de HoT peuvent être bien plus grandes : jusqu'à 50 pixels dans le Healer Studio au lieu de 30, et les curseurs de taille d'icône HoT des pages Cadres de groupe et Cadres de raid montent aussi à 50 au lieu de s'arrêter à 20 et 16. Rien n'empêche une icône de recouvrir toute une cellule, et c'est volontaire : une grande icône se lit parfois mieux en plein pull qu'une rangée de petites.",
+
+    -- =====================
     -- 3.6.3 — What's New
     -- =====================
     ["wn_363_aura_display"] = "Correction — Les icônes d'auras s'affichent de nouveau sur tous les cadres qui passent par le système d'auras du jeu : les indicateurs de Healer Studio, les rangées de soins sur la durée des cadres de groupe et de raid, les indicateurs d'affaiblissements et de dissipation, les auras des barres de noms et celles des cadres d'unité. Leur affichage recevait bien une unité mais n'était jamais activé : il avait tout ce qu'il fallait et ne montrait rien.",
@@ -3806,6 +3831,8 @@ TomoMod_RegisterLocale("frFR", {
     ["hs_class"]                 = "Classe",
     ["hs_enable"]                = "Activer le profil avance",
     ["hs_healer_only"]           = "Uniquement en specialisation Soigneur",
+    ["hs_show_duration"]         = "Afficher les secondes restantes",
+    ["hs_show_duration_info"]    = "Désactivé, l'icône garde son balayage de temps et perd seulement le nombre affiché par-dessus. Pratique sur les petites icônes, où les chiffres recouvrent presque toute l'image.",
     ["hs_mode_on"]               = "Profil avance actif : la rangee de HoTs classique est masquee sur ces cellules.",
     ["hs_mode_off"]              = "La rangee de HoTs classique reste utilisee tant que ce profil est desactive.",
     ["hs_preset"]                = "Preset de base",

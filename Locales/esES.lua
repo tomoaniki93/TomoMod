@@ -2215,6 +2215,7 @@ TomoMod_RegisterLocale("esES", {
     ["pf_opt_show_hots"]                 = "Mostrar indicadores de HoT",
     ["pf_opt_hot_size"]                  = "Tamaño de icono HoT",
     ["pf_opt_max_hots"]                  = "Max. HoTs mostrados",
+    ["pf_opt_hot_duration"]              = "Mostrar los segundos restantes en los HoTs",
     ["pf_info_hots"]                     = "Muestra efectos de curación con el tiempo con bordes de color de clase. Compatible con Sacerdote, Druida, Paladín, Chamán, Monje y Evocador.",
     ["pf_section_defensives"]            = "Reutilizaciones defensivas",
     ["pf_opt_show_defensives"]           = "Mostrar reutilizaciones defensivas",
@@ -2317,6 +2318,7 @@ TomoMod_RegisterLocale("esES", {
     ["rf_opt_show_hots"]                 = "Mostrar indicadores HoT",
     ["rf_opt_hot_size"]                  = "Tamaño de icono HoT",
     ["rf_opt_max_hots"]                  = "Máx. HoTs mostrados",
+    ["rf_opt_hot_duration"]              = "Mostrar los segundos restantes en los HoTs",
     ["rf_section_debuffs"]               = "Rastreo de debuffs",
     ["rf_opt_show_debuffs"]              = "Mostrar iconos de debuff",
     ["rf_opt_debuff_size"]               = "Tamaño de icono de debuff",
@@ -3326,6 +3328,29 @@ TomoMod_RegisterLocale("esES", {
     ["wn_333_diag_mode"] = "Diagnóstico: cuando el informe no consigue determinar tu modo de pantalla, ahora imprime los valores en bruto que le dio el juego en lugar de un simple signo de interrogación — esos nombres de ajuste cambian de una expansión a otra, y un «?» a secas no se podía diagnosticar sin volver a preguntarte. La pantalla completa en ventana y las ventanas maximizadas se reconocen en más casos, y las versiones de los accesorios ya no aparecen como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: los marcos de grupo y de banda mantenían dos copias de las mismas 250 líneas — la lógica de invocación, la lista de sanaciones periódicas, el seguimiento de defensivos. Los tres fallos anteriores vienen de ahí: una corrección aplicada a una copia y no a la otra. Ahora comparten una única implementación.",
     -- =====================
+    -- 3.6.4 — What's New
+    -- =====================
+    ["wn_364_studio"] = "Nuevo — Estudio Mítico+: una ventana Mítico+ propia con once páginas: Panel, Rastreador, TomoScore, Llaves, Historial de runs, Estadísticas, Plan semanal, Planificador de puntuación, Análisis por nivel, Objetivos de temporada y Módulos. Es un accesorio aparte que solo se carga la primera vez que lo abres o cuando empieza una llave, así que no cuesta nada hasta que lo usas.",
+    ["wn_364_open"] = "Nuevo — Abre el Estudio con /tmplus o con el nuevo botón de la página de opciones de Mítico+. La antigua ventana de Mítico+ ahora abre también el nuevo panel; su vista detallada de mazmorras y cámara acorazada se conserva y sigue siendo accesible desde el Estudio. Pedirlo en combate ya no se queda en nada: se abre en cuanto acaba el combate, y te lo dice.",
+    ["wn_364_history"] = "Nuevo — El historial de runs registra cada llave Mítico+ que completes a partir de ahora: mazmorra, nivel, tiempo, si fue a tiempo, muertes, afijos, puntuación ganada y parciales de jefes. Empieza vacío — los runs pasados del juego se muestran como contexto pero nunca se convierten en historial local — y conserva tus últimas 100 llaves.",
+    ["wn_364_statistics"] = "Nuevo — Una página de Estadísticas construye cifras de temporada y por mazmorra a partir de ese historial: runs, porcentaje a tiempo, tiempo medio y muertes medias.",
+    ["wn_364_compare"] = "Nuevo — Dos runs registrados se pueden poner lado a lado, con sus parciales de jefes y la diferencia entre ambos. Comparar runs de mazmorras distintas está permitido: los parciales se emparejan entonces solo por posición, y la página lo indica.",
+    ["wn_364_weekly"] = "Nuevo — Un plan semanal muestra tus tres espacios de mazmorra de la semana, tu mejor llave de la semana y cuántos runs completados faltan para llenar el siguiente.",
+    ["wn_364_score_planner"] = "Nuevo — Un planificador de puntuación sugiere el próximo nivel de llave y lo que aportaría. La cifra es una estimación de planificación: la puntuación de mazmorra que registra el juego sigue siendo la referencia.",
+    ["wn_364_analysis"] = "Nuevo — El análisis por nivel desglosa tu historial nivel a nivel — runs, a tiempo, tasa de éxito, tiempo medio y muertes — y destaca tu nivel de comodidad: el nivel más alto en el que tienes al menos tres runs y llegas a tiempo siete de cada diez veces.",
+    ["wn_364_goals"] = "Nuevo — Los objetivos de temporada siguen tu puntuación, tu llave más alta, las llaves a tiempo en el nivel que elijas, tu total de runs registrados y haber hecho todas las mazmorras de la temporada a un nivel dado, cada uno frente a la meta que fijes.",
+    ["wn_364_tracker_colors"] = "Nuevo — El rastreador Mítico+ puede usar tus propios colores: acento, fondo, encabezado, texto, fuerzas enemigas y los tres colores del cronómetro. Los tonos más oscuros y más claros se derivan del acento, así que una sola elección mantiene todo coherente. Con la opción desactivada, el rastreador se ve exactamente como antes.",
+    ["wn_364_tracker_position"] = "Nuevo — La página del rastreador incluye una vista previa en vivo y un modo de posicionamiento que pone el rastreador real en pantalla con Aceptar, Cancelar y Restablecer, para colocarlo sin empezar una llave. Durante una llave activa, el posicionamiento se rechaza en vez de mover el marco que estás leyendo.",
+    ["wn_364_keys"] = "Cambio — Las llaves de tu grupo, el rastreador y el marcador de fin de llave tienen cada uno su página dentro del Estudio. Siguen funcionando en el propio TomoMod, así que sirven incluso antes de que el Estudio se haya abierto alguna vez.",
+    ["wn_364_mplus_appearance"] = "Nuevo — El Estudio Mítico+ tiene una página Apariencia: tamaño del texto, escala de la ventana, opacidad del fondo y un color de acento propio, con vista previa en directo y un botón para restablecer. Solo cambia el Estudio: los colores de tu rastreador siguen donde estaban, en la página Seguimiento de mazmorra.",
+    ["wn_364_mplus_reward_ilvl"] = "Nuevo — Cada espacio de la Gran cámara, tanto en el panel como en el plan semanal, muestra ahora el nivel de objeto de la recompensa que daría, bajo el nivel de llave. Cuando el juego no responde para un nivel, se dibuja un guión en lugar de una estimación.",
+    ["wn_364_mplus_tracker_preview"] = "Cambio — La vista previa real del rastreador es ahora un interruptor: el mismo botón la abre y la guarda, y se cierra sola cuando sales de la página Rastreador o cierras el Estudio. Mientras una llave está en curso se niega a ocultarse, así que una vista previa que abriste antes no puede quitarte el rastreador real de la pantalla a mitad de carrera.",
+    ["wn_364_hot_size"] = "Corrección — Cambiar el tamaño de icono HoT ahora sí los redimensiona en los marcos de grupo y de banda, tanto si lo cambias con el deslizador de las páginas Marcos de grupo y Marcos de banda como en el Healer Studio. Su colocación sí se aplicaba, lo que hacía parecer un problema de visualización: solo se perdía el tamaño, y un icono que aparecía después del cambio seguía volviendo a su tamaño anterior.",
+    ["wn_364_hot_sliders"] = "Corrección — Los deslizadores de tamaño de icono HoT y de máximo de HoTs mostrados de las páginas Marcos de grupo y Marcos de banda surten efecto de inmediato. Se guardaban en tu perfil pero nunca se aplicaban a los marcos en pantalla, así que la fila de HoTs mantenía su aspecto anterior hasta la siguiente recarga.",
+    ["wn_364_hot_duration"] = "Nuevo — Los segundos que aparecen sobre tus iconos de HoT se pueden ocultar. El icono conserva su barrido de tiempo, así que sigues viendo el tiempo agotarse: solo pierdes el número de encima, que en un icono pequeño tapa casi toda la imagen. La decisión es tuya y se ajusta por separado para los marcos de grupo, los marcos de banda y el Healer Studio, así que puedes conservar las cifras en uno y solo el barrido en el otro. Déjalo activado y no cambia nada.",
+    ["wn_364_hot_max_size"] = "Cambio — Los iconos de HoT pueden ser mucho más grandes: hasta 50 píxeles en el Healer Studio en lugar de 30, y los deslizadores de tamaño de icono HoT de las páginas Marcos de grupo y Marcos de banda también llegan a 50 en vez de pararse en 20 y 16. Nada impide que un icono cubra un marco entero, y es a propósito: un icono grande a veces se lee mejor en plena pelea que una fila de pequeños.",
+
+    -- =====================
     -- 3.6.3 — What's New
     -- =====================
     ["wn_363_aura_display"] = "Corrección — Los iconos de auras vuelven a mostrarse en todos los marcos que los dibujan mediante el sistema de auras del propio juego: los indicadores de Healer Studio, las filas de sanaciones periódicas de los marcos de grupo y de banda, los indicadores de perjuicios y de disipación, las auras de las placas de nombre y las de los marcos de unidad. A la pantalla se le asignaba una unidad pero nunca se activaba: tenía todo lo necesario y aun así no mostraba nada.",
@@ -3791,6 +3816,8 @@ TomoMod_RegisterLocale("esES", {
     ["hs_class"]                 = "Clase",
     ["hs_enable"]                = "Activar el perfil avanzado",
     ["hs_healer_only"]           = "Solo en una especializacion de sanador",
+    ["hs_show_duration"]         = "Mostrar los segundos restantes",
+    ["hs_show_duration_info"]    = "Desactivado, el icono conserva su barrido de tiempo y solo pierde el número de encima. Útil en iconos pequeños, donde las cifras tapan casi toda la imagen.",
     ["hs_mode_on"]               = "Perfil avanzado activo: la fila de HoTs clasica se oculta en estas celdas.",
     ["hs_mode_off"]              = "La fila de HoTs clasica sigue en uso mientras este perfil este desactivado.",
     ["hs_preset"]                = "Preajuste inicial",

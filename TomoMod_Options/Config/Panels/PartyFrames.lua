@@ -134,8 +134,9 @@ local function BuildFeaturesTab(parent)
     -- HoTs
     local card4, cy = W.CreateCard(c, L["pf_section_hots"], y, "H")
     local _, cy = W.CreateCheckbox(card4.inner, L["pf_opt_show_hots"], db.showHoTs, cy, function(v) db.showHoTs = v; ApplyPF() end)
-    local _, cy = W.CreateSlider(card4.inner, L["pf_opt_hot_size"], db.hotSize, 8, 20, 1, cy, function(v) db.hotSize = v end, "%.0f")
-    local _, cy = W.CreateSlider(card4.inner, L["pf_opt_max_hots"], db.maxHoTs, 1, 6, 1, cy, function(v) db.maxHoTs = v end, "%.0f")
+    local _, cy = W.CreateSlider(card4.inner, L["pf_opt_hot_size"], db.hotSize, 8, 50, 1, cy, function(v) db.hotSize = v; ApplyPF() end, "%.0f")
+    local _, cy = W.CreateSlider(card4.inner, L["pf_opt_max_hots"], db.maxHoTs, 1, 6, 1, cy, function(v) db.maxHoTs = v; ApplyPF() end, "%.0f")
+    local _, cy = W.CreateCheckbox(card4.inner, L["pf_opt_hot_duration"], db.hotShowDuration ~= false, cy, function(v) db.hotShowDuration = v; ApplyPF() end)
     local _, cy = W.CreateInfoText(card4.inner, L["pf_info_hots"], cy)
     -- Healer Studio is the full path (free placement, one icon per spell);
     -- the three settings above stay the quick row for everyone else.

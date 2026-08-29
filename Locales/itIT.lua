@@ -2216,6 +2216,7 @@ TomoMod_RegisterLocale("itIT", {
     ["pf_opt_show_hots"]                 = "Mostra indicatori HoT",
     ["pf_opt_hot_size"]                  = "Dimensione icona HoT",
     ["pf_opt_max_hots"]                  = "Max. HoT mostrati",
+    ["pf_opt_hot_duration"]              = "Mostra i secondi rimanenti sugli HoT",
     ["pf_info_hots"]                     = "Mostra effetti di cura nel tempo con bordi colorati per classe. Supporta Sacerdote, Druido, Paladino, Sciamano, Monaco ed Evocatore.",
     ["pf_section_defensives"]            = "Recuperi difensivi",
     ["pf_opt_show_defensives"]           = "Mostra i recuperi difensivi",
@@ -2318,6 +2319,7 @@ TomoMod_RegisterLocale("itIT", {
     ["rf_opt_show_hots"]                 = "Mostra indicatori HoT",
     ["rf_opt_hot_size"]                  = "Dimensione icona HoT",
     ["rf_opt_max_hots"]                  = "Max HoT mostrati",
+    ["rf_opt_hot_duration"]              = "Mostra i secondi rimanenti sugli HoT",
     ["rf_section_debuffs"]               = "Tracciamento debuff",
     ["rf_opt_show_debuffs"]              = "Mostra icone debuff",
     ["rf_opt_debuff_size"]               = "Dimensione icona debuff",
@@ -3313,6 +3315,29 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_333_diag_mode"] = "Diagnostica: quando il rapporto non riesce a determinare la modalità di visualizzazione, ora stampa i valori grezzi forniti dal gioco anziché un semplice punto interrogativo — quei nomi di impostazione cambiano da un'espansione all'altra, e un «?» da solo non era diagnosticabile senza tornare a chiedertelo. Lo schermo intero in finestra e le finestre massimizzate vengono riconosciuti in più casi, e le versioni dei componenti aggiuntivi non compaiono più come «vv1.2.3».",
     ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
     -- =====================
+    -- 3.6.4 — What's New
+    -- =====================
+    ["wn_364_studio"] = "Novità — Studio Mitica+: una finestra Mitica+ dedicata con undici pagine: Cruscotto, Tracker, TomoScore, Chiavi, Cronologia run, Statistiche, Pianificazione settimanale, Planner del punteggio, Analisi per livello, Obiettivi di stagione e Moduli. È un addon separato, caricato solo alla prima apertura o all'avvio di una chiave: fino ad allora non costa nulla.",
+    ["wn_364_open"] = "Novità — Apri lo Studio con /tmplus o con il nuovo pulsante nella pagina delle opzioni Mitica+. La vecchia finestra Mitica+ ora apre anch'essa il nuovo cruscotto; la sua vista dettagliata di spedizioni e forziere è conservata e resta raggiungibile dallo Studio. Richiederlo in combattimento non resta più senza effetto: si apre appena il combattimento finisce, e te lo dice.",
+    ["wn_364_history"] = "Novità — La cronologia run registra ogni chiave Mitica+ che completi da ora in poi: spedizione, livello, tempo, se nei tempi, morti, affissi, punteggio guadagnato e tempi parziali dei boss. Parte vuota — i run passati del gioco vengono mostrati come contesto ma non diventano mai cronologia locale — e conserva le tue ultime 100 chiavi.",
+    ["wn_364_statistics"] = "Novità — Una pagina Statistiche costruisce numeri di stagione e per spedizione a partire da quella cronologia: run, percentuale nei tempi, tempo medio e morti medie.",
+    ["wn_364_compare"] = "Novità — Due run registrati possono essere messi fianco a fianco, con i tempi parziali dei boss e lo scarto tra loro. Confrontare run di spedizioni diverse è permesso: i parziali vengono allora accostati solo per posizione, e la pagina lo segnala.",
+    ["wn_364_weekly"] = "Novità — Una pianificazione settimanale mostra i tuoi tre slot spedizione della settimana, la tua chiave migliore della settimana e quanti run completati mancano per riempire il successivo.",
+    ["wn_364_score_planner"] = "Novità — Un planner del punteggio suggerisce il prossimo livello di chiave e quanto renderebbe. Il valore è una stima di pianificazione: il punteggio spedizioni registrato dal gioco resta il riferimento.",
+    ["wn_364_analysis"] = "Novità — L'analisi per livello scompone la tua cronologia livello per livello — run, nei tempi, tasso di riuscita, tempo medio e morti — e mette in evidenza il tuo livello di comfort: il livello più alto in cui hai almeno tre run e chiudi nei tempi sette volte su dieci.",
+    ["wn_364_goals"] = "Novità — Gli obiettivi di stagione seguono il tuo punteggio, la tua chiave più alta, le chiavi nei tempi al livello che scegli, il totale dei run registrati e l'aver fatto tutte le spedizioni della stagione a un dato livello, ciascuno rispetto all'obiettivo che imposti.",
+    ["wn_364_tracker_colors"] = "Novità — Il tracker Mitica+ può usare i tuoi colori: accento, sfondo, intestazione, testo, forze nemiche e i tre colori del cronometro. Le tonalità più scure e più chiare derivano dall'accento, così una sola scelta mantiene tutto coerente. Con l'opzione disattivata il tracker è identico a prima.",
+    ["wn_364_tracker_position"] = "Novità — La pagina Tracker offre un'anteprima dal vivo e una modalità di posizionamento che porta il tracker reale a schermo con Conferma, Annulla e Reimposta, per collocarlo senza avviare una chiave. Durante una chiave attiva il posizionamento viene rifiutato invece di spostare il riquadro che stai leggendo.",
+    ["wn_364_keys"] = "Modifica — Le chiavi del tuo gruppo, il tracker e il tabellone di fine chiave hanno ciascuno una pagina dentro lo Studio. Continuano a girare in TomoMod stesso, quindi funzionano anche prima che lo Studio sia mai stato aperto.",
+    ["wn_364_mplus_appearance"] = "Novità — Lo Studio Mitica+ ha una pagina Aspetto: dimensione del testo, scala della finestra, opacità dello sfondo e un colore d'accento tuo, con anteprima dal vivo e un pulsante di ripristino. Cambia solo lo Studio: i colori del tuo tracker restano dove sono, nella pagina Tracker dungeon.",
+    ["wn_364_mplus_reward_ilvl"] = "Novità — Ogni slot della Grande Camera, sia nel cruscotto sia nella pianificazione settimanale, mostra ora il livello oggetto della ricompensa che darebbe, sotto il livello di chiave. Quando il gioco non risponde per un livello viene disegnato un trattino invece di una stima.",
+    ["wn_364_mplus_tracker_preview"] = "Modifica — L'anteprima reale del tracker è ora un interruttore: lo stesso pulsante la apre e la richiude, e si chiude da sola quando esci dalla pagina Tracker o chiudi lo Studio. Mentre una chiave è davvero in corso si rifiuta di nascondersi, quindi un'anteprima aperta prima non può toglierti il tracker vero dallo schermo a metà run.",
+    ["wn_364_hot_size"] = "Correzione — Cambiare la dimensione delle icone HoT ora le ridimensiona davvero sui riquadri di gruppo e incursione, sia che tu la cambi con il cursore delle pagine Riquadri gruppo e Riquadri incursione sia nell'Healer Studio. La loro posizione veniva già applicata, il che faceva sembrare un problema di visualizzazione: si perdeva solo la dimensione, e un'icona comparsa dopo la modifica tornava comunque alla dimensione precedente.",
+    ["wn_364_hot_sliders"] = "Correzione — I cursori di dimensione icona HoT e di HoT massimi mostrati nelle pagine Riquadri gruppo e Riquadri incursione hanno effetto immediato. Venivano salvati nel profilo ma non applicati ai riquadri a schermo, quindi la fila di HoT manteneva l'aspetto precedente fino al ricaricamento successivo.",
+    ["wn_364_hot_duration"] = "Novità — I secondi mostrati sulle icone HoT possono essere nascosti. L'icona mantiene la sua spazzata di ricarica, quindi vedi ancora il tempo scorrere: perdi solo il numero sopra, che su un'icona piccola copre quasi tutta l'immagine. La scelta è tua e si imposta separatamente per i riquadri di gruppo, i riquadri di incursione e l'Healer Studio, così puoi tenere le cifre da una parte e solo la spazzata dall'altra. Lasciala attiva e non cambia nulla.",
+    ["wn_364_hot_max_size"] = "Modifica — Le icone HoT possono essere molto più grandi: fino a 50 pixel nell'Healer Studio invece di 30, e i cursori di dimensione icona HoT nelle pagine Riquadri gruppo e Riquadri incursione arrivano anch'essi a 50 invece di fermarsi a 20 e 16. Nulla impedisce a un'icona di coprire un intero riquadro, ed è voluto: un'icona grande a volte si legge meglio in mezzo a un pull che una fila di icone piccole.",
+
+    -- =====================
     -- 3.6.3 — What's New
     -- =====================
     ["wn_363_aura_display"] = "Correzione — Le icone delle aure tornano a comparire su tutti i riquadri che le disegnano tramite il sistema di aure del gioco: gli indicatori di Healer Studio, le righe delle cure nel tempo dei riquadri di gruppo e d'incursione, gli indicatori di penalità e di dissoluzione, le aure sulle targhette e quelle dei riquadri unità. Alla visualizzazione veniva assegnata un'unità ma non veniva mai attivata: aveva tutto il necessario e non mostrava nulla.",
@@ -3778,6 +3803,8 @@ TomoMod_RegisterLocale("itIT", {
     ["hs_class"]                 = "Classe",
     ["hs_enable"]                = "Attiva il profilo avanzato",
     ["hs_healer_only"]           = "Solo in una specializzazione da guaritore",
+    ["hs_show_duration"]         = "Mostra i secondi rimanenti",
+    ["hs_show_duration_info"]    = "Disattivato, l'icona mantiene la sua spazzata di ricarica e perde solo il numero sopra. Utile sulle icone piccole, dove le cifre coprono quasi tutta l'immagine.",
     ["hs_mode_on"]               = "Profilo avanzato attivo: la riga di HoT classica e nascosta su queste celle.",
     ["hs_mode_off"]              = "La riga di HoT classica resta in uso finche questo profilo e disattivato.",
     ["hs_preset"]                = "Preimpostazione iniziale",

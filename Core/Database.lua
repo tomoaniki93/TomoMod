@@ -1615,6 +1615,9 @@ TomoMod_Defaults = {
         showHoTs = true,
         hotSize = 12,
         maxHoTs = 3,
+        -- Seconds over the icon, or only the cooldown swipe. The swipe is
+        -- drawn either way; this governs the number on top of it.
+        hotShowDuration = true,
 
         -- Defensive cooldowns (active buffs on the member)
         -- Externals are what a healer needs mid-pull; raid-wide buffs light up
@@ -1741,6 +1744,8 @@ TomoMod_Defaults = {
         showHoTs = true,
         hotSize = 10,
         maxHoTs = 3,
+        -- cf. partyFrames.hotShowDuration.
+        hotShowDuration = true,
 
         -- Debuff tracking
         showDebuffs = true,

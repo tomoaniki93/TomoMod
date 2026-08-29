@@ -39,51 +39,63 @@ end
 function TMT:BuildPalette()
     local U  = TomoMod_Utils
     local TH = TomoMod_Widgets and TomoMod_Widgets.Theme
+    local db = TomoModDB and TomoModDB.MythicTracker
+    local custom = db and db.useCustomColors and type(db.colors) == "table" and db.colors or nil
 
-    local BRAND = (U and U.BRAND)       or { 0.180, 0.847, 0.518 }
-    local DARK  = (U and U.BRAND_DARK)  or { 0.110, 0.541, 0.333 }
-    local HOVER = (U and U.BRAND_HOVER) or { 0.322, 0.941, 0.651 }
+    local function ResolveColor(value, fallback)
+        if type(value) ~= "table" then return { fallback[1], fallback[2], fallback[3] } end
+        return {
+            tonumber(value.r or value[1]) or fallback[1],
+            tonumber(value.g or value[2]) or fallback[2],
+            tonumber(value.b or value[3]) or fallback[3],
+        }
+    end
 
-    local text    = (TH and TH.text)    or { 0.88, 0.90, 0.89 }
-    local textDim = (TH and TH.textDim) or { 0.48, 0.48, 0.54 }
-    local border  = (TH and TH.border)  or { 0.18, 0.18, 0.22 }
-    local red     = (TH and TH.red)     or { 0.88, 0.22, 0.22 }
-    local yellow  = (TH and TH.yellow)  or { 0.96, 0.80, 0.10 }
+    local baseBrand = (U and U.BRAND) or { 0.180, 0.847, 0.518 }
+    local BRAND = ResolveColor(custom and custom.accent, baseBrand)
+    local DARK  = custom and { BRAND[1] * 0.58, BRAND[2] * 0.58, BRAND[3] * 0.58 }
+        or ((U and U.BRAND_DARK) or { 0.110, 0.541, 0.333 })
+    local HOVER = custom and {
+        math.min(1, BRAND[1] * 1.18 + 0.08),
+        math.min(1, BRAND[2] * 1.18 + 0.08),
+        math.min(1, BRAND[3] * 1.18 + 0.08),
+    } or ((U and U.BRAND_HOVER) or { 0.322, 0.941, 0.651 })
+
+    local text    = ResolveColor(custom and custom.text,       (TH and TH.text)    or { 0.88, 0.90, 0.89 })
+    local textDim = ResolveColor(nil,                          (TH and TH.textDim) or { 0.48, 0.48, 0.54 })
+    local border  = ResolveColor(nil,                          (TH and TH.border)  or { 0.18, 0.18, 0.22 })
+    local red     = ResolveColor(custom and custom.danger,     (TH and TH.red)     or { 0.88, 0.22, 0.22 })
+    local yellow  = ResolveColor(custom and custom.warning,    (TH and TH.yellow)  or { 0.96, 0.80, 0.10 })
+    local comfort = ResolveColor(custom and custom.comfort,    BRAND)
+    local forces  = ResolveColor(custom and custom.forces,     BRAND)
+    local bg      = ResolveColor(custom and custom.background, { 0.035, 0.055, 0.046 })
+    local header  = ResolveColor(custom and custom.header,     { 0.055, 0.092, 0.076 })
 
     local C = self.C
     for k in pairs(C) do C[k] = nil end
 
-    -- Surfaces: near-black with a mint cast so the panel reads as TomoMod
-    -- rather than as a generic dark box.
-    C.BG         = { 0.035, 0.055, 0.046, 0.88 }
-    C.BG_HEADER  = { 0.055, 0.092, 0.076, 1.00 }
-    C.BG_ROW_ALT = { 0.055, 0.092, 0.076, 0.45 }
-    C.BAR_TRACK  = { 0.070, 0.092, 0.082, 1.00 }
+    C.BG         = { bg[1], bg[2], bg[3], 0.88 }
+    C.BG_HEADER  = { header[1], header[2], header[3], 1.00 }
+    C.BG_ROW_ALT = { header[1], header[2], header[3], 0.45 }
+    C.BAR_TRACK  = { (bg[1]+header[1])*0.5, (bg[2]+header[2])*0.5, (bg[3]+header[3])*0.5, 1.00 }
 
     C.ACCENT = { BRAND[1], BRAND[2], BRAND[3], 1.00 }
     C.BORDER = { border[1], border[2], border[3], 0.85 }
     C.SEP    = { BRAND[1], BRAND[2], BRAND[3], 0.30 }
 
-    -- Timer segments. Each palier owns a two-stop ramp, drawn as a real
-    -- horizontal gradient. Read left to right the bar goes mint, yellow,
-    -- red: the window spent first is the comfortable one, the last window
-    -- is the one that ends the key. Indices follow the chest indexing, so
-    -- 3 is the leftmost segment.
     C.SEG_RAMP = {
-        [3] = { { DARK[1], DARK[2], DARK[3] }, { BRAND[1],  BRAND[2],  BRAND[3]  } },
-        [2] = { { 0.52, 0.40, 0.04 },          { yellow[1], yellow[2], yellow[3] } },
-        [1] = { { 0.42, 0.09, 0.07 },          { red[1],    red[2],    red[3]    } },
+        [3] = { { DARK[1], DARK[2], DARK[3] }, { comfort[1], comfort[2], comfort[3] } },
+        [2] = { { bg[1], bg[2], bg[3] },       { yellow[1],  yellow[2],  yellow[3]  } },
+        [1] = { { bg[1], bg[2], bg[3] },       { red[1],     red[2],     red[3]     } },
     }
-    -- The uniform alternative, for reading the bar by shape not by colour.
-    C.SEG_RAMP_BRAND = { { DARK[1], DARK[2], DARK[3] }, { BRAND[1], BRAND[2], BRAND[3] } }
+    C.SEG_RAMP_BRAND = { { DARK[1], DARK[2], DARK[3] }, { comfort[1], comfort[2], comfort[3] } }
 
-    C.SEG_FILL = { BRAND[1], BRAND[2], BRAND[3], 0.85 }
-    C.SEG_DONE = { DARK[1],  DARK[2],  DARK[3],  0.85 }
-    C.SEG_LOST = { red[1],   red[2],   red[3],   0.80 }
+    C.SEG_FILL = { comfort[1], comfort[2], comfort[3], 0.85 }
+    C.SEG_DONE = { DARK[1],    DARK[2],    DARK[3],    0.85 }
+    C.SEG_LOST = { red[1],     red[2],     red[3],     0.80 }
 
-    -- Forces ramp: brand-dark at 0% to brand at 100%, hover once complete.
-    C.FORCES_LOW  = { DARK[1],  DARK[2],  DARK[3]  }
-    C.FORCES_HIGH = { BRAND[1], BRAND[2], BRAND[3] }
+    C.FORCES_LOW  = { (bg[1]+forces[1])*0.5, (bg[2]+forces[2])*0.5, (bg[3]+forces[3])*0.5 }
+    C.FORCES_HIGH = { forces[1], forces[2], forces[3] }
     C.FORCES_DONE = { HOVER[1], HOVER[2], HOVER[3], 0.90 }
 
     C.TEXT_WHITE  = { text[1], text[2], text[3], 1 }
@@ -92,22 +104,14 @@ function TMT:BuildPalette()
     C.TEXT_YELLOW = { yellow[1], yellow[2], yellow[3], 1 }
     C.TEXT_RED    = { red[1], red[2], red[3], 1 }
     C.TEXT_SKULL  = { red[1], red[2], red[3], 1 }
-    -- Text drawn on top of a filled bar segment.
-    --
-    -- This has to be a LIGHT colour, not a dark one. MakeFS gives every
-    -- font string an OUTLINE flag plus a black shadow, so near-black text
-    -- dissolves into its own outline -- which is exactly what made the
-    -- palier tag and the forces label unreadable in game while the white
-    -- elapsed time beside them stayed crisp.
     C.ON_FILL     = { 0.96, 0.99, 0.97, 1 }
 
-    C.HEX_BRAND = (U and U.BRAND_HEX) or "2ed884"
+    C.HEX_BRAND = ToHex(BRAND)
     C.HEX_RED   = ToHex(red)
     C.HEX_GREY  = ToHex(textDim)
 
     return C
 end
-
 -- ═══════════════════════════════════════════════════════════════════════
 --  LAYOUT CONSTANTS
 -- ═══════════════════════════════════════════════════════════════════════
