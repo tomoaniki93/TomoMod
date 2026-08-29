@@ -968,7 +968,13 @@ local function MessageFormatter(frame, info, chatType, chatGroup, chatTarget, ch
             playerLink = playerLinkDisplayText
         end
     elseif chatType == "BN_WHISPER" or chatType == "BN_WHISPER_INFORM" then
-        playerLink = ChatFunctions:GetBNPlayerLink(playerName, playerLinkDisplayText, arg13, arg11, chatGroup, chatTarget)
+        -- chatTarget is deliberately 0 here, as it is in Blizzard's own handler.
+        -- For a BNet whisper chatTarget is strupper(arg2), and arg2 is a |Ks<n>|k
+        -- name token: uppercasing it gives |KS<n>|K, which the client no longer
+        -- recognises as an escape, so the stray pipes stay inside the |H...|h
+        -- payload and the whole line is printed as raw link text. The BNet
+        -- account id (arg13) is what identifies the target anyway.
+        playerLink = ChatFunctions:GetBNPlayerLink(playerName, playerLinkDisplayText, arg13, arg11, chatGroup, 0)
     else
         playerLink = ChatFunctions:GetPlayerLink(playerName, playerLinkDisplayText, arg11, chatGroup, chatTarget)
     end

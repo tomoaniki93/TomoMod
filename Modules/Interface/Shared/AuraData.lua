@@ -1,4 +1,4 @@
--- =====================================
+﻿-- =====================================
 -- Interface/Shared/AuraData.lua — shared aura database for group frames
 --
 -- PartyFrame/HoTs.lua and RaidFrame/Auras.lua each carried their own copy of
@@ -87,6 +87,7 @@ AD.HEALER_HOTS = {
     },
     SHAMAN = {
         [61295]  = true,  -- Riptide
+        [974]    = true,  -- Earth Shield
         [382024] = true,  -- Earthliving Weapon
         [383009] = true,  -- Healing Tide (buff)
         [157153] = true,  -- Cloudburst
