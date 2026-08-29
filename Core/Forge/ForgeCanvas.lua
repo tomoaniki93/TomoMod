@@ -365,10 +365,38 @@ end
 -- Drag
 -- ---------------------------------------------------------------------
 
--- During the drag the handle is the authority: the element is repositioned
--- to follow it every frame, so what you see under the cursor is the real
--- widget, not a ghost.
-function CanvasMT:_Measure(id, source)
+-- AstralForge now follows the same drag model as Healer Studio: the visible
+-- element follows the cursor, and the drop chooses the nearest 3x3 anchor on
+-- its CURRENT target. `relTo` is deliberately preserved, so advanced layouts
+-- anchored to a sibling element keep that relationship instead of being
+-- flattened back onto the unit frame.
+--
+-- The nearest anchor is picked in screen pixels. This is important when the
+-- preview or one of its ancestors is scaled: comparing raw UI coordinates is
+-- the exact source of the old minimap double-scale bug.
+local function PickAnchor(source, host)
+    local cx, cy = C.PointCoord(source, "CENTER")
+    local left, top = C.PointCoord(host, "TOPLEFT")
+    local right, bottom = C.PointCoord(host, "BOTTOMRIGHT")
+    if not (cx and cy and left and right and top and bottom) then return "CENTER" end
+
+    local w, h = right - left, top - bottom
+    local midX, midY = (left + right) * 0.5, (bottom + top) * 0.5
+
+    local horizontal = ""
+    if cx < midX - w / 6 then horizontal = "LEFT"
+    elseif cx > midX + w / 6 then horizontal = "RIGHT" end
+
+    local vertical = ""
+    if cy > midY + h / 6 then vertical = "TOP"
+    elseif cy < midY - h / 6 then vertical = "BOTTOM" end
+
+    local point = vertical .. horizontal
+    if point == "" then point = "CENTER" end
+    return point
+end
+
+function CanvasMT:_Measure(id, source, autoAnchor)
     local desc = R.Get(self.domain, id)
     if not desc or not self.subject then return end
     local cfg    = R.Sanitize(self.domain, id, self.store and self.store[id])
@@ -377,6 +405,10 @@ function CanvasMT:_Measure(id, source)
         cfg.relTo = desc.default.relTo
         target = R.ResolveTarget(self.domain, cfg.relTo, self.subject)
         if not target then return end
+    end
+    if autoAnchor then
+        local point = PickAnchor(source, target)
+        cfg.point, cfg.relPoint = point, point
     end
     local x, y = C.ComputeOffset(source, target, cfg.point, cfg.relPoint)
     if not x then return end
@@ -387,7 +419,7 @@ function CanvasMT:_DragUpdate(id)
     local h = self.handles[id]
     local desc = R.Get(self.domain, id)
     if not h or not desc then return end
-    local cfg, target, x, y = self:_Measure(id, h)
+    local cfg, target, x, y = self:_Measure(id, h, true)
     if not cfg then return end
 
     local ok, el = pcall(desc.resolve, self.subject)
@@ -415,7 +447,7 @@ function CanvasMT:_DragStop(id)
     -- Measure from the ELEMENT, not the handle: _DragUpdate already moved
     -- the element onto the snapped/guided position, and the handle still
     -- carries the raw cursor delta.
-    local cfg, target, x, y = self:_Measure(id, el)
+    local cfg, target, x, y = self:_Measure(id, el, true)
     self:_ShowGuides(nil, false, false)
     if not cfg then return end
 

@@ -261,10 +261,11 @@ local function CreateReputationBar()
     if pos then
         repBar:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
     else
-        -- Auto-ancrer au-dessus de la LevelingBar (frame) si présente et visible,
-        -- sinon bas d'écran. On vérifie que lb est bien un Frame (pas juste le module table).
-        local lb = _G["TomoMod_LevelingBar"]
-        if lb and lb.GetObjectType and lb:GetObjectType() == "Frame" then
+        -- Auto-ancrer au-dessus de la LevelingBar si elle est visible, sinon
+        -- bas d'ecran. Le frame porte son propre nom global : TomoMod_LevelingBar
+        -- est la table du module, pas un widget.
+        local lb = _G["TomoMod_LevelingBarFrame"]
+        if lb and lb:IsShown() then
             repBar:SetPoint("BOTTOM", lb, "TOP", 0, 4)
         else
             repBar:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 70)

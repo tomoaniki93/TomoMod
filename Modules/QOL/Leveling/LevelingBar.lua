@@ -271,7 +271,14 @@ local function CreateBar()
     if not db then return end
 
     -- Main container
-    barFrame = CreateFrame("Frame", "TomoMod_LevelingBar", UIParent, "BackdropTemplate")
+    -- The frame must NOT be named "TomoMod_LevelingBar": that is the module
+    -- table this file publishes at the top, and CreateFrame writes its global
+    -- name straight into _G. Naming them the same replaced the module with the
+    -- frame the moment the bar was first built, so every later
+    -- TomoMod_LevelingBar.SetEnabled / .ApplySettings / .ToggleLock call from
+    -- the options panel, the movers and /tm sr hit a nil field and died.
+    barFrame = CreateFrame("Frame", "TomoMod_LevelingBarFrame", UIParent, "BackdropTemplate")
+    LB.frame = barFrame
     barFrame:SetSize(db.width or 500, db.height or 28)
     barFrame:SetFrameStrata("MEDIUM")
     barFrame:SetFrameLevel(50)

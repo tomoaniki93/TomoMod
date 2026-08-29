@@ -19,6 +19,10 @@ local RB = TomoMod_ResourceBars
 local Glow = TomoMod_NativeGlow  -- optional full-state glow
 
 local TEXTURE = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki"
+-- Flat 1x1 fill. The shared bar texture (tomoaniki) bakes in a vertical
+-- gradient, which reads as a gloss highlight on tall bars but just muddies
+-- the six small DK rune segments -- they want a solid block of colour.
+local TEXTURE_FLAT = "Interface\\Buttons\\WHITE8X8"
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 
 -- =====================================
@@ -629,8 +633,8 @@ local function CreateRuneDisplay(parent, width, height)
             frame.runes[i] = runeF
         end
     else
-        -- Bar mode: StatusBar per rune
-        local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+        -- Bar mode: StatusBar per rune, flat fill (no gradient)
+        local tex = TEXTURE_FLAT
         for i = 1, 6 do
             local rune = CreateFrame("StatusBar", nil, frame)
             rune:SetSize(rw, height)
