@@ -183,11 +183,11 @@ function HUB:Build()
     F:SetScript("OnDragStop",  function(s) s:StopMovingOrSizing() end)
     F:Hide()
 
-    -- [fix] Escape captured by the window itself. Going through
-    -- UISpecialFrames routes it via ToggleGameMenu, whose protected
-    -- ClearTarget/SpellStopCasting calls are then refused once anything
-    -- has tainted the path -- and the player can no longer quit.
-    TomoMod_Utils.CloseOnEscape(_G["TomoMod_MythicHubFrame"])
+    -- MythicHub is an informational, mouse-driven window. Do not enable
+    -- keyboard input here: a keyboard-enabled dialog can consume WorldFrame
+    -- bindings (ZQSD/WASD, jump, shortcuts) when propagation is restricted.
+    -- The close button remains the intentional way to dismiss this panel.
+    F:EnableKeyboard(false)
 
     -- Background
     local bg = F:CreateTexture(nil, "BACKGROUND")
