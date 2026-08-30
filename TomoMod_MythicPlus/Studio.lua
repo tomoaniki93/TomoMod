@@ -410,6 +410,11 @@ local function SafeRunHistory()
     return MP.RunHistory:GetRuns() or {}
 end
 
+-- RunLabel is declared before the formatter implementation below. Forward
+-- declare it so the closure captures this local instead of looking up a
+-- nonexistent global FormatMS when the first recorded run is displayed.
+local FormatMS
+
 local function FindRunIndex(runs, id, fallback)
     if id then
         for i, run in ipairs(runs) do
@@ -596,7 +601,7 @@ local function Divider(parent, y)
     t:SetColorTexture(C.border[1], C.border[2], C.border[3], 0.8)
 end
 
-local function FormatMS(ms)
+FormatMS = function(ms)
     ms = tonumber(ms) or 0
     if ms <= 0 then return "--:--" end
     local sec = math.floor(ms / 1000)
@@ -1182,35 +1187,85 @@ function MP:BuildStatistics()
             MP:SelectPage("statistics")
         end
         local la=Text(cc,self:T("compare_run_a"),8,true); la:SetPoint("TOPLEFT",14,-36); la:SetTextColor(unpack(C.dim))
-        Button(cc,"<",14,-52,28,function() Shift("a",-1) end); local at=Text(cc,RunLabel(a),8,false); at:SetPoint("LEFT",50,-66); at:SetWidth(395); at:SetJustifyH("LEFT")
+        Button(cc,"<",14,-52,28,function() Shift("a",-1) end)
+        local at=Text(cc,RunLabel(a),8,false); at:SetPoint("TOPLEFT",50,-66); at:SetWidth(410); at:SetJustifyH("LEFT")
         Button(cc,">",474,-52,28,function() Shift("a",1) end)
         local lb=Text(cc,self:T("compare_run_b"),8,true); lb:SetPoint("TOPLEFT",14,-86); lb:SetTextColor(unpack(C.dim))
-        Button(cc,"<",14,-102,28,function() Shift("b",-1) end); local bt=Text(cc,RunLabel(b),8,false); bt:SetPoint("LEFT",50,-116); bt:SetWidth(395); bt:SetJustifyH("LEFT")
+        Button(cc,"<",14,-102,28,function() Shift("b",-1) end)
+        local bt=Text(cc,RunLabel(b),8,false); bt:SetPoint("TOPLEFT",50,-116); bt:SetWidth(410); bt:SetJustifyH("LEFT")
         Button(cc,">",474,-102,28,function() Shift("b",1) end)
         Button(cc,self:T("compare_swap"),14,-136,120,function() ui.compareAId,ui.compareBId=ui.compareBId,ui.compareAId; MP:SelectPage("statistics") end)
 
         if a.mapID~=b.mapID then local warn=Text(cc,self:T("compare_different"),8,false); warn:SetPoint("TOPLEFT",146,-141); warn:SetWidth(352); warn:SetWordWrap(true); warn:SetTextColor(unpack(C.yellow)) end
         local hy=-180
-        local headers={{self:T("compare_run_a"),265},{self:T("compare_run_b"),365},{self:T("compare_delta"),465}}
-        for _,h in ipairs(headers) do local t=Text(cc,h[1],8,true); t:SetPoint("TOPRIGHT",h[2],hy); t:SetTextColor(unpack(C.dim)) end
-        hy=hy-22
-        local function Row(label,av,bv,delta)
-            local l=Text(cc,label,8,false); l:SetPoint("TOPLEFT",14,hy)
-            local ta=Text(cc,av or "—",8,false); ta:SetPoint("TOPRIGHT",265,hy)
-            local tb=Text(cc,bv or "—",8,false); tb:SetPoint("TOPRIGHT",365,hy)
-            local td=Text(cc,delta or "—",8,true); td:SetPoint("TOPRIGHT",465,hy); td:SetTextColor(unpack(C.dim))
+        local colLabel = 14
+        local colA = 245
+        local colB = 330
+        local colDelta = 415
+        local valueW = 70
+
+        -- Fixed-width comparison columns kept entirely inside the 520px card.
+        local headerBg=cc:CreateTexture(nil,"ARTWORK")
+        headerBg:SetPoint("TOPLEFT",10,hy+5)
+        headerBg:SetSize(compareW-20,20)
+        headerBg:SetColorTexture(C.panel2[1],C.panel2[2],C.panel2[3],0.55)
+
+        local headers={{self:T("compare_run_a"),colA},{self:T("compare_run_b"),colB},{self:T("compare_delta"),colDelta}}
+        for _,h in ipairs(headers) do
+            local t=Text(cc,h[1],8,true)
+            t:SetPoint("TOPLEFT",h[2],hy)
+            t:SetWidth(valueW)
+            t:SetJustifyH("CENTER")
+            t:SetTextColor(unpack(C.dim))
+        end
+
+        for _,x in ipairs({235,320,405}) do
+            local sep=cc:CreateTexture(nil,"ARTWORK")
+            sep:SetPoint("TOPLEFT",x,hy+5)
+            sep:SetSize(1,206)
+            sep:SetColorTexture(C.border[1],C.border[2],C.border[3],0.55)
+        end
+
+        hy=hy-24
+        local rowIndex=0
+        local function Row(label,av,bv,delta,deltaValue,higherIsBetter)
+            rowIndex=rowIndex+1
+            if rowIndex%2==0 then
+                local stripe=cc:CreateTexture(nil,"BACKGROUND")
+                stripe:SetPoint("TOPLEFT",10,hy+4)
+                stripe:SetSize(compareW-20,22)
+                stripe:SetColorTexture(C.panel2[1],C.panel2[2],C.panel2[3],0.20)
+            end
+
+            local l=Text(cc,label,8,false); l:SetPoint("TOPLEFT",colLabel,hy); l:SetWidth(210); l:SetJustifyH("LEFT")
+            local ta=Text(cc,av or "—",8,false); ta:SetPoint("TOPLEFT",colA,hy); ta:SetWidth(valueW); ta:SetJustifyH("CENTER")
+            local tb=Text(cc,bv or "—",8,false); tb:SetPoint("TOPLEFT",colB,hy); tb:SetWidth(valueW); tb:SetJustifyH("CENTER")
+            local td=Text(cc,delta or "—",8,true); td:SetPoint("TOPLEFT",colDelta,hy); td:SetWidth(valueW); td:SetJustifyH("CENTER")
+
+            local color=C.dim
+            if type(deltaValue)=="number" and deltaValue~=0 then
+                local improved=(higherIsBetter and deltaValue>0) or (not higherIsBetter and deltaValue<0)
+                color=improved and C.green or C.red
+            end
+            td:SetTextColor(unpack(color))
             hy=hy-24
         end
-        Row(self:T("h_level"),"+"..(a.level or 0),"+"..(b.level or 0),string.format("%+d",(b.level or 0)-(a.level or 0)))
-        Row(self:T("h_time"),FormatMS(a.durationMS),FormatMS(b.durationMS),SignedSeconds(((b.durationMS or 0)-(a.durationMS or 0))/1000))
-        Row(self:T("h_deaths"),tostring(a.deaths or 0),tostring(b.deaths or 0),string.format("%+d",(b.deaths or 0)-(a.deaths or 0)))
+
+        local levelDelta=(b.level or 0)-(a.level or 0)
+        local timeDelta=((b.durationMS or 0)-(a.durationMS or 0))/1000
+        local deathDelta=(b.deaths or 0)-(a.deaths or 0)
+        Row(self:T("h_level"),"+"..(a.level or 0),"+"..(b.level or 0),string.format("%+d",levelDelta),levelDelta,true)
+        Row(self:T("h_time"),FormatMS(a.durationMS),FormatMS(b.durationMS),SignedSeconds(timeDelta),timeDelta,false)
+        Row(self:T("h_deaths"),tostring(a.deaths or 0),tostring(b.deaths or 0),string.format("%+d",deathDelta),deathDelta,false)
         local as=a.splits or {}; local bs=b.splits or {}
-        Row(self:T("compare_forces"),FormatSec(as.forcesDone),FormatSec(bs.forcesDone),as.forcesDone and bs.forcesDone and SignedSeconds(bs.forcesDone-as.forcesDone) or "—")
+        local forcesDelta=as.forcesDone and bs.forcesDone and (bs.forcesDone-as.forcesDone) or nil
+        Row(self:T("compare_forces"),FormatSec(as.forcesDone),FormatSec(bs.forcesDone),forcesDelta and SignedSeconds(forcesDelta) or "—",forcesDelta,false)
         local ab=as.bosses or {}; local bb=bs.bosses or {}
         for i=1,math.min(4,math.max(#ab,#bb)) do
             local ar,br=ab[i],bb[i]
             local label=(ar and ar.name) or (br and br.name) or ("Boss "..i)
-            Row(label,ar and FormatSec(ar.time) or "—",br and FormatSec(br.time) or "—",ar and br and ar.time and br.time and SignedSeconds(br.time-ar.time) or "—")
+            local bossDelta=ar and br and ar.time and br.time and (br.time-ar.time) or nil
+            Row(label,ar and FormatSec(ar.time) or "—",br and FormatSec(br.time) or "—",bossDelta and SignedSeconds(bossDelta) or "—",bossDelta,false)
         end
     end
 

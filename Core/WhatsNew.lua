@@ -63,6 +63,16 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "3.6.5",
+        highlights = {
+            L["wn_365_mplus_stats_compare"] or "Fix — The Mythic+ Studio's Statistics page no longer throws an error once you have two or more recorded runs. The run comparison card formats each run's time, and the formatter it called was not yet in scope where that card is built, so the page stopped drawing halfway through and the comparison never appeared. A fresh profile looked fine, because the card is only built from the second recorded key onward.",
+            L["wn_365_mplus_compare_columns"] or "Fix — The run comparison table on the Mythic+ Studio's Statistics page draws inside its card again. Its three value columns — run A, run B and the difference — were positioned past the right-hand edge of the panel, so the row labels appeared with no figures next to them. The columns, and the two run names above them, are now placed from the card's top-left corner and stay within it.",
+            L["wn_365_mplus_compare_polish"] or "New — The comparison table reads as a table: a header band, a rule in front of each column, one row in two shaded, and the figures centred under their heading. The difference column is coloured now — green when the second run is the better one, red when it is worse, grey when there is nothing to compare — using the right direction for each line: a higher key level is an improvement, and so is a lower time, death count, enemy-forces time or boss split.",
+            L["wn_365_teleport_launcher"] or "Changed — The Mythic+ teleport button on your character sheet is now a small, discreet icon placed just to the left of the sheet's close button, instead of the large icon that sat in the top-right corner. It opens exactly the same teleport panel, and behaves the same way — it simply no longer competes with the character sheet's own header for your attention.",
+            L["wn_365_chat_secret_channel"] or "Fix — Channel notices no longer break the chat window. The game now hands the chat handler a protected value instead of a plain name for some channel notices, and comparing such a value with text is not allowed — so working out which channel a notice belonged to could fail before the notice was ever printed. TomoMod's chat skin now checks whether the value is protected before comparing it, and join, leave, invite and wrong-password notices are handled normally again.",
+        },
+    },
+    {
         version = "3.6.4",
         highlights = {
             L["wn_364_studio"] or "New — Mythic+ Studio: a dedicated Mythic+ window with eleven pages — Dashboard, Tracker, TomoScore, Keys, Run History, Statistics, Weekly Planner, Score Planner, Level Analysis, Season Goals and Modules. It is a separate addon, loaded only the first time you open it or when a key starts, so it costs nothing until you use it.",

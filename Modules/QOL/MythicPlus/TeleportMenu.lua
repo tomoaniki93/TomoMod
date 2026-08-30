@@ -100,6 +100,12 @@ local function CharacterSkinEnabled()
     return db and db.enabled and db.skinCharacter
 end
 
+local function CharacterSheetVisible()
+    return CharacterSkinEnabled()
+        and _G.CharacterFrame and CharacterFrame:IsShown()
+        and _G.PaperDollFrame and PaperDollFrame:IsShown()
+end
+
 local function GetSpellTextureSafe(spellID)
     if not spellID then return nil end
     if C_Spell and C_Spell.GetSpellTexture then
@@ -342,6 +348,13 @@ function TM:Refresh()
 end
 
 function TM:Toggle()
+    if not CharacterSheetVisible() then
+        if self.Frame and self.Frame:IsShown() and not InCombatLockdown() then
+            self.Frame:Hide()
+        end
+        return
+    end
+
     if InCombatLockdown() then
         if UIErrorsFrame then
             UIErrorsFrame:AddMessage(T("combat"), RED[1], RED[2], RED[3], 1)
@@ -361,23 +374,50 @@ function TM:Toggle()
     end
 end
 
+function TM:RefreshLauncherVisibility(subFrameName)
+    local visible
+    if subFrameName ~= nil then
+        visible = CharacterSkinEnabled()
+            and _G.CharacterFrame and CharacterFrame:IsShown()
+            and subFrameName == "PaperDollFrame"
+    else
+        visible = CharacterSheetVisible()
+    end
+
+    if self.Launcher then
+        self.Launcher:SetShown(visible and true or false)
+    end
+
+    if not visible and self.Frame and self.Frame:IsShown() then
+        if InCombatLockdown() then
+            self._hideMenuPending = true
+        else
+            self.Frame:Hide()
+            self._hideMenuPending = nil
+        end
+    end
+end
+
 function TM:BuildLauncher()
     if self.Launcher or not _G.CharacterFrame then return self.Launcher end
 
     local button = CreateFrame("Button", "TomoMod_CharacterTeleportLauncher", CharacterFrame, "BackdropTemplate")
     self.Launcher = button
-    -- Align with the Character Sheet's top-right shortcut row (as in the
-    -- reference layout): same visual line as the three existing square icons,
-    -- with the circular teleport icon sitting immediately to their right.
-    button:SetSize(44, 44)
-    button:SetPoint("TOPRIGHT", CharacterFrame, "TOPRIGHT", 0, -22)
+    -- Move the teleport launcher next to the close button and keep it smaller
+    -- so it behaves like a discreet utility shortcut instead of a large header icon.
+    button:SetSize(22, 22)
+    if CharacterFrame.CloseButton then
+        button:SetPoint("RIGHT", CharacterFrame.CloseButton, "LEFT", -4, 0)
+    else
+        button:SetPoint("TOPRIGHT", CharacterFrame, "TOPRIGHT", -32, -16)
+    end
     button:SetFrameLevel(CharacterFrame:GetFrameLevel() + 35)
     button:EnableMouse(true)
     ApplyBackdrop(button, { 0, 0, 0, 0 }, { 0, 0, 0, 0 })
 
     local icon = button:CreateTexture(nil, "ARTWORK")
     icon:SetPoint("CENTER")
-    icon:SetSize(36, 36)
+    icon:SetSize(18, 18)
     icon:SetTexture(ICON_PATH)
     -- Keep the launcher deliberately subdued at rest, matching the Character
     -- Sheet close button instead of drawing more attention than the UI chrome.
@@ -403,18 +443,27 @@ function TM:BuildLauncher()
         GameTooltip:Hide()
     end)
 
+    if _G.CharacterFrameMixin and _G.CharacterFrameMixin.ShowSubFrame and not self._subFrameHooked then
+        self._subFrameHooked = true
+        hooksecurefunc(_G.CharacterFrameMixin, "ShowSubFrame", function(_, name)
+            TM:RefreshLauncherVisibility(name)
+        end)
+    end
+
     CharacterFrame:HookScript("OnShow", function()
-        button:SetShown(CharacterSkinEnabled())
-        if CharacterSkinEnabled() and not InCombatLockdown() then
-            C_Timer.After(0.2, function()
-                if CharacterFrame and CharacterFrame:IsShown() then
-                    TM:Refresh()
-                end
-            end)
-        end
+        C_Timer.After(0, function()
+            TM:RefreshLauncherVisibility()
+            if CharacterSheetVisible() and not InCombatLockdown() then
+                C_Timer.After(0.2, function()
+                    if CharacterSheetVisible() then
+                        TM:Refresh()
+                    end
+                end)
+            end
+        end)
     end)
 
-    button:SetShown(CharacterSkinEnabled())
+    self:RefreshLauncherVisibility()
     self:BuildMenu()
     self:Refresh()
     return button
@@ -440,6 +489,13 @@ function TM:Initialize()
             if TM._refreshPending or (TM.Frame and TM.Frame:IsShown()) then
                 TM:Refresh()
             end
+            if TM._hideMenuPending then
+                TM._hideMenuPending = nil
+                if TM.Frame and TM.Frame:IsShown() and not CharacterSheetVisible() then
+                    TM.Frame:Hide()
+                end
+            end
+            TM:RefreshLauncherVisibility()
             if TM.Frame and TM.Frame:IsShown() and (not CharacterFrame or not CharacterFrame:IsShown()) then
                 TM.Frame:Hide()
             end
@@ -449,6 +505,7 @@ function TM:Initialize()
         if _G.CharacterFrame then
             C_Timer.After(0, function()
                 TM:BuildLauncher()
+                TM:RefreshLauncherVisibility()
                 if event == "CHALLENGE_MODE_COMPLETED" then
                     C_Timer.After(1, function() TM:Refresh() end)
                 end
@@ -457,7 +514,10 @@ function TM:Initialize()
     end)
 
     if _G.CharacterFrame then
-        C_Timer.After(0, function() TM:BuildLauncher() end)
+        C_Timer.After(0, function()
+            TM:BuildLauncher()
+            TM:RefreshLauncherVisibility()
+        end)
     end
 end
 

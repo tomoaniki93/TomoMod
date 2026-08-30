@@ -1091,11 +1091,12 @@ local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg
 
         local channelLength = strlen(arg4)
         local infoType = chatType
+        local arg1IsSecret = issecretvalue and issecretvalue(arg1)
 
         if chatType == "VOICE_TEXT" and not GetCVarBool("speechToText") then
             return
-        elseif chatType == "COMMUNITIES_CHANNEL" or ((strsub(chatType, 1, 7) == "CHANNEL") and (chatType ~= "CHANNEL_LIST") and ((arg1 ~= "INVITE") or (chatType ~= "CHANNEL_NOTICE_USER"))) then
-            if arg1 == "WRONG_PASSWORD" then
+        elseif chatType == "COMMUNITIES_CHANNEL" or ((strsub(chatType, 1, 7) == "CHANNEL") and (chatType ~= "CHANNEL_LIST") and ((chatType ~= "CHANNEL_NOTICE_USER") or (not arg1IsSecret and arg1 ~= "INVITE"))) then
+            if not arg1IsSecret and arg1 == "WRONG_PASSWORD" then
                 local _, popup = StaticPopup_Visible("CHAT_CHANNEL_PASSWORD")
                 if popup and strupper(popup.data) == strupper(arg9) then return end
             end
@@ -1112,7 +1113,7 @@ local function ChatFrame_MessageEventHandler(frame, event, arg1, arg2, arg3, arg
                         found = true
                         infoType = "CHANNEL" .. arg8
                         info = ChatTypeInfo[infoType]
-                        if chatType == "CHANNEL_NOTICE" and arg1 == "YOU_LEFT" and frame.zoneChannelList then
+                        if chatType == "CHANNEL_NOTICE" and not arg1IsSecret and arg1 == "YOU_LEFT" and frame.zoneChannelList then
                             frame.channelList[index] = nil
                             frame.zoneChannelList[index] = nil
                         end
