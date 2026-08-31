@@ -30,11 +30,11 @@ local function BuildGeneralTab(parent)
     local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_enable"], db.enabled, cy, function(v)
         db.enabled = v
         if TomoMod_RaidFrames then TomoMod_RaidFrames.SetEnabled(v) end
-        StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
+        if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("raidFrames") end
     end)
     local _, cy = W.CreateInfoText(card.inner, L["info_module_reload"], cy)
     local _, cy = W.CreateInfoText(card.inner, L["rf_info_description"], cy)
-    local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_hide_blizzard"], db.hideBlizzardFrames, cy, function(v) db.hideBlizzardFrames = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
+    local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_hide_blizzard"], db.hideBlizzardFrames, cy, function(v) db.hideBlizzardFrames = v; if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("raidFrames") end end)
     local _, cy = W.CreateCheckbox(card.inner, L["rf_opt_skin_group_manager"], db.skinGroupManager, cy, function(v)
         db.skinGroupManager = v
         if TomoMod_GroupManagerSkin then TomoMod_GroupManagerSkin.ApplySettings() end
@@ -144,7 +144,7 @@ local function BuildFeaturesTab(parent)
     local card6, cy = W.CreateCard(c, L["rf_section_defensives"], y, "TH")
     local _, cy = W.CreateCheckbox(card6.inner, L["rf_opt_show_defensives"], db.showDefensives, cy, function(v) db.showDefensives = v; ApplyRF() end)
     local _, cy = W.CreateSlider(card6.inner, L["rf_opt_defensive_size"], db.defensiveIconSize, 10, 22, 1, cy, function(v) db.defensiveIconSize = v; ApplyRF() end, "%.0f")
-    local _, cy = W.CreateSlider(card6.inner, L["rf_opt_max_defensives"], db.maxDefensives or 2, 1, 4, 1, cy, function(v) db.maxDefensives = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
+    local _, cy = W.CreateSlider(card6.inner, L["rf_opt_max_defensives"], db.maxDefensives or 2, 1, 4, 1, cy, function(v) db.maxDefensives = v; if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("raidFrames") end end)
     local _, cy = W.CreateCheckbox(card6.inner, L["rf_opt_def_externals"], db.defensiveShowExternals ~= false, cy, function(v) db.defensiveShowExternals = v; ApplyRF() end)
     local _, cy = W.CreateCheckbox(card6.inner, L["rf_opt_def_raidwide"], db.defensiveShowRaidWide == true, cy, function(v) db.defensiveShowRaidWide = v; ApplyRF() end)
     local _, cy = W.CreateCheckbox(card6.inner, L["rf_opt_def_personals"], db.defensiveShowPersonals == true, cy, function(v) db.defensiveShowPersonals = v; ApplyRF() end)

@@ -27,11 +27,11 @@ local function BuildGeneralTab(parent)
     local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_enable"], db.enabled, cy, function(v)
         db.enabled = v
         if TomoMod_PartyFrames then TomoMod_PartyFrames.SetEnabled(v) end
-        StaticPopup_Show("TOMOMOD_MODULE_RELOAD")
+        if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("partyFrames") end
     end)
     local _, cy = W.CreateInfoText(card.inner, L["info_module_reload"], cy)
     local _, cy = W.CreateInfoText(card.inner, L["pf_info_description"], cy)
-    local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_hide_blizzard"], db.hideBlizzardFrames, cy, function(v) db.hideBlizzardFrames = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
+    local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_hide_blizzard"], db.hideBlizzardFrames, cy, function(v) db.hideBlizzardFrames = v; if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("partyFrames") end end)
     local _, cy = W.CreateCheckbox(card.inner, L["pf_opt_sort_role"], db.sortByRole, cy, function(v) db.sortByRole = v; ApplyPF() end)
     y = W.FinalizeCard(card, cy)
 
@@ -151,7 +151,7 @@ local function BuildFeaturesTab(parent)
     local card5, cy = W.CreateCard(c, L["pf_section_defensives"], y, "TH")
     local _, cy = W.CreateCheckbox(card5.inner, L["pf_opt_show_defensives"], db.showDefensives, cy, function(v) db.showDefensives = v; ApplyPF() end)
     local _, cy = W.CreateSlider(card5.inner, L["pf_opt_defensive_size"], db.defensiveIconSize or 16, 10, 24, 1, cy, function(v) db.defensiveIconSize = v; ApplyPF() end, "%.0f")
-    local _, cy = W.CreateSlider(card5.inner, L["pf_opt_max_defensives"], db.maxDefensives or 2, 1, 4, 1, cy, function(v) db.maxDefensives = v; StaticPopup_Show("TOMOMOD_MODULE_RELOAD") end)
+    local _, cy = W.CreateSlider(card5.inner, L["pf_opt_max_defensives"], db.maxDefensives or 2, 1, 4, 1, cy, function(v) db.maxDefensives = v; if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("partyFrames") end end)
     local _, cy = W.CreateCheckbox(card5.inner, L["pf_opt_def_externals"], db.defensiveShowExternals ~= false, cy, function(v) db.defensiveShowExternals = v; ApplyPF() end)
     local _, cy = W.CreateCheckbox(card5.inner, L["pf_opt_def_raidwide"], db.defensiveShowRaidWide == true, cy, function(v) db.defensiveShowRaidWide = v; ApplyPF() end)
     local _, cy = W.CreateCheckbox(card5.inner, L["pf_opt_def_personals"], db.defensiveShowPersonals == true, cy, function(v) db.defensiveShowPersonals = v; ApplyPF() end)

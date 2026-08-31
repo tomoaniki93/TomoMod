@@ -20,6 +20,7 @@ local TEXT     = { 0.94, 0.95, 0.97, 1.00 }
 local DIM      = { 0.52, 0.54, 0.60, 1.00 }
 local RED      = { 1.00, 0.28, 0.24, 1.00 }
 
+local MIN_LEVEL   = 90
 local MAX_PORTALS = 8
 local BUTTON_SIZE = 46
 local CELL_W      = 58
@@ -100,8 +101,20 @@ local function CharacterSkinEnabled()
     return db and db.enabled and db.skinCharacter
 end
 
+-- No season teleport spell can be learned below MIN_LEVEL, so the
+-- launcher would only ever open a menu of eight locked cells on a
+-- levelling character. An unreadable level closes the gate rather than
+-- opening it: showing the button to someone who cannot use it is the
+-- failure this guard exists to prevent.
+local function LevelGateOpen()
+    local level = UnitLevel and UnitLevel("player")
+    if type(level) ~= "number" or level <= 0 then return false end
+    return level >= MIN_LEVEL
+end
+
 local function CharacterSheetVisible()
-    return CharacterSkinEnabled()
+    return LevelGateOpen()
+        and CharacterSkinEnabled()
         and _G.CharacterFrame and CharacterFrame:IsShown()
         and _G.PaperDollFrame and PaperDollFrame:IsShown()
 end
@@ -377,7 +390,8 @@ end
 function TM:RefreshLauncherVisibility(subFrameName)
     local visible
     if subFrameName ~= nil then
-        visible = CharacterSkinEnabled()
+        visible = LevelGateOpen()
+            and CharacterSkinEnabled()
             and _G.CharacterFrame and CharacterFrame:IsShown()
             and subFrameName == "PaperDollFrame"
     else
@@ -478,6 +492,7 @@ function TM:Initialize()
     events:RegisterEvent("PLAYER_LOGIN")
     events:RegisterEvent("ADDON_LOADED")
     events:RegisterEvent("PLAYER_REGEN_ENABLED")
+    events:RegisterEvent("PLAYER_LEVEL_UP")
     events:RegisterEvent("CHALLENGE_MODE_COMPLETED")
 
     events:SetScript("OnEvent", function(_, event, arg1)

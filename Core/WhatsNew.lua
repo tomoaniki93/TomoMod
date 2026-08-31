@@ -63,6 +63,18 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "4.0.0",
+        highlights = {
+            L["wn_400_live_toggles"] or "New — Most of TomoMod's modules can now be switched on and off without reloading the interface. 27 of the 62 modules take effect the moment you flip the switch, instead of setting a flag and asking you to reload before anything happens. The rest still need a reload, and now they only ask when there is a real reason for it.",
+            L["wn_400_combat_defer"] or "New — A switch flipped in the middle of a fight is no longer refused, nor applied halfway. A change that would have to rebuild a protected frame is held until you leave combat and applied automatically then, and TomoMod tells you it is waiting. The changes that are safe in combat — fast loot, auto-repair, the alerts and the trackers — go through immediately, because making you leave a fight to turn off automatic looting would be theatre.",
+            L["wn_400_dependencies"] or "New — Modules know what they depend on. Turning one off now also turns off the ones that cannot work without it, and names them; turning one on warns you when something it needs is still off. Nothing is left half-connected in silence any more.",
+            L["wn_400_reload_honest"] or "Changed — The reload prompt is no longer TomoMod's answer to every single toggle. It appears for the 14 modules that genuinely cannot undo their work while the game is running — secure buttons that may not be respawned in combat, and hooks that cannot be removed once installed — and nowhere else.",
+            L["wn_400_reload_batch"] or "New — When a change really does need a reload, TomoMod asks once instead of once per click. Ticking five boxes in a row raises a single question at the end, and choosing Later keeps your answer rather than dropping it: a small banner at the top of the screen then lists what is waiting, and reloads when you are ready. Undoing a change before you reload removes it from that list on its own — putting a setting back the way it was when you logged in is no longer something you have to reload to confirm.",
+            L["wn_400_inventory"] or "New — /tm modules prints everything TomoMod contains, grouped the way the options are, with each module's state and whether it can be changed live or needs a reload. /tm modules <key> flips one straight from the chat box. Useful on its own, and the fastest way to find out which of your modules are live and which are not.",
+            L["wn_400_foundation"] or "Note — Underneath all of the above, TomoMod now keeps one single description of its own contents: 68 entries covering every setting it saves, in nine groups, with 29 movable elements declared. Nothing changes on screen because of it. What it buys is the next few releases: profiles per content type, importing only part of a profile and the new layout engine will all read that one list instead of each rebuilding its own slightly different version.",
+        },
+    },
+    {
         version = "3.6.5",
         highlights = {
             L["wn_365_mplus_stats_compare"] or "Fix — The Mythic+ Studio's Statistics page no longer throws an error once you have two or more recorded runs. The run comparison card formats each run's time, and the formatter it called was not yet in scope where that card is built, so the page stopped drawing halfway through and the comparison never appeared. A fresh profile looked fine, because the card is only built from the second recorded key onward.",

@@ -12,6 +12,14 @@ TomoMod_Modules = TomoMod_Modules or {}
 
 function TomoMod_RegisterModule(name, module)
     TomoMod_Modules[name] = module
+    -- Also hand the implementation to the manifest of the same name, so
+    -- Core/ModuleRegistry.lua can reach a live module without every
+    -- caller having to register twice. Modules with no manifest, and
+    -- manifests no module ever registers against, both stay legal:
+    -- Bind returns false and nothing else changes.
+    if TomoMod_Registry and TomoMod_Registry.Bind then
+        TomoMod_Registry.Bind(name, module)
+    end
 end
 
 function TomoMod_EnableModule(name)
@@ -66,6 +74,58 @@ SlashCmdList["TOMOMOD"] = function(msg)
             TomoMod_Installer.Show()
         end
         return
+    elseif msg == "modules" or msg:match("^modules%s+") then
+        -- [v4 lot 1] Inventory readout, and a toggle by key. The config
+        -- UI grows its own view in lot 7; until then this is the only
+        -- way to see what the lifecycle engine can actually do, which
+        -- matters because "live" versus "reload" is per module and not
+        -- guessable from the outside.
+        local arg = msg:match("^modules%s+(.+)$")
+        local LC, REG = TomoMod_Lifecycle, TomoMod_Registry
+        if not LC or not REG then return end
+
+        if arg then
+            arg = arg:gsub("%s+$", "")
+            if not REG.Has(arg) then
+                print("|cff2ed884TomoMod|r |cffff4040" .. tostring(arg) .. "|r ?")
+                return
+            end
+            local rep = LC.Toggle(arg)
+            local state = rep.value and "|cff00ff00ON|r" or "|cffff4040OFF|r"
+            local how = rep.deferred and " (après le combat)"
+                     or rep.needsReload and " (/reload requis)"
+                     or ""
+            print("|cff2ed884TomoMod|r " .. arg .. " -> " .. state .. how)
+            if #rep.cascade > 0 then
+                print("  |cff888888dépendants coupés :|r " .. table.concat(rep.cascade, ", "))
+            end
+            if #rep.missingDeps > 0 then
+                print("  |cffffcc00dépendances éteintes :|r " .. table.concat(rep.missingDeps, ", "))
+            end
+            -- La demande est déjà posée par SetEnabled ; elle sera
+            -- regroupée avec les autres et présentée une seule fois.
+            if rep.needsReload and TomoMod_ReloadUI then
+                print("  |cff888888" .. LC.PendingReloadCount() .. " en attente de /reload|r")
+            end
+            return
+        end
+
+        local live, reload, none = LC.Summary()
+        print(("|cff2ed884TomoMod|r modules : |cff00ff00%d à chaud|r, %d au /reload, %d sans bascule")
+            :format(live, reload, none))
+        for _, g in ipairs(REG.Tree()) do
+            print("|cff2ed884" .. (L[g.label] or g.key) .. "|r")
+            for _, m in ipairs(g.modules) do
+                local on  = REG.IsEnabled(m.key)
+                local cap = LC.Capability(m.key)
+                print(("  %s %-22s |cff888888%s|r"):format(
+                    on and "|cff00ff00[x]|r" or "|cff555555[ ]|r",
+                    m.key,
+                    cap == "live" and "" or cap))
+            end
+        end
+        print("|cff888888/tm modules <clé> pour basculer|r")
+
     elseif msg == "reset" then
         TomoMod_ResetDatabase()
         ReloadUI()
@@ -445,6 +505,14 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
 
         -- Layout Mover System (doit être après tous les autres modules)
         safeInit("Movers",             TomoMod_Movers)
+
+        -- [v4 lot 1] Binds every manifest to the global that implements
+        -- it. Deliberately last: a module that failed its Initialize()
+        -- still created its table, so it stays bound and reports its
+        -- real state instead of silently vanishing from the inventory.
+        if TomoMod_Lifecycle and TomoMod_Lifecycle.Resolve then
+            TomoMod_Lifecycle.Resolve()
+        end
 
         -- Welcome
         local r, g, b = TomoMod_Utils.GetClassColor()

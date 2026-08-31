@@ -10,7 +10,7 @@
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 3.6.5
+## Version: 4.0.0
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -29,6 +29,7 @@ Locales\esES.lua
 Locales\itIT.lua
 Locales\ptBR.lua
 Locales\Locale_300.lua
+Locales\Locale_Modules.lua
 
 ## =====================
 ## Core
@@ -44,6 +45,14 @@ Core\Forge\ForgeAssets.lua
 Core\Forge\ForgeSchema.lua
 Core\Forge\ForgeStudio.lua
 Core\Database.lua
+## Module inventory: the engine, then the manifests that populate it.
+## Both must load after Database.lua -- the manifests are validated
+## against TomoMod_Defaults -- and before Profiles.lua, which will read
+## the inventory for selective import.
+Core\ModuleRegistry.lua
+Core\ModuleManifest.lua
+Core\ModuleLifecycle.lua
+Core\ModuleReloadUI.lua
 Core\Profiles.lua
 Core\WhatsNew.lua
 Core\Init.lua
