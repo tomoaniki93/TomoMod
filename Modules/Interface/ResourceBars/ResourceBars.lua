@@ -1264,7 +1264,7 @@ local function BuildResourceDisplay()
                 s.position.x = left * scale
                 s.position.y = bottom * scale
             end
-        end)
+        end, TomoMod_Layout and TomoMod_Layout.Label("resourceBars"))
     end
 
     -- Apply scale

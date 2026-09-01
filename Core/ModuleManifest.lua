@@ -60,7 +60,7 @@ local R = TomoMod_Registry
 R.Define{
     key = "minimap", label = "mod_minimap", group = "general",
     enabledPath = "minimap.enabled",
-    anchors = { { id = "minimap", path = "minimap.position", shape = "anchor_relTo" } },
+    anchors = { { id = "minimap", path = "minimap.position", shape = "anchor_relTo", label = "frame_minimap" } },
     global = "TomoMod_Minimap",
 }
 
@@ -119,8 +119,8 @@ R.Define{
     enabledPath = "actionBars.enabled",
     requiresReload = true,   -- secure action buttons
     anchors = {
-        { id = "actionBars.extraActionButton", path = "actionBars.bars.extraActionButton.position", shape = "point_relPoint" },
-        { id = "actionBars.zoneAbility",       path = "actionBars.bars.zoneAbility.position",       shape = "point_relPoint" },
+        { id = "actionBars.extraActionButton", path = "actionBars.bars.extraActionButton.position", shape = "point_relPoint", label = "frame_extraaction" },
+        { id = "actionBars.zoneAbility",       path = "actionBars.bars.zoneAbility.position",       shape = "point_relPoint", label = "frame_zoneability" },
     },
 }
 
@@ -141,7 +141,7 @@ R.Define{
 R.Define{
     key = "objectiveTracker", label = "mod_objectiveTracker", group = "skins",
     enabledPath = "objectiveTracker.enabled",
-    anchors = { { id = "objectiveTracker", path = "objectiveTracker.position", shape = "point_relativePoint" } },
+    anchors = { { id = "objectiveTracker", path = "objectiveTracker.position", shape = "point_relativePoint", label = "frame_objectivetracker" } },
     global = "TomoMod_ObjectiveTracker", applyMode = "pair",
 }
 
@@ -177,7 +177,7 @@ R.Define{
     key = "chatFrameSkin", label = "mod_chatFrameSkin", group = "skins",
     enabledPath = "chatFrameSkin.enabled",
     requiresReload = true,
-    anchors = { { id = "chatFrameSkin", path = "chatFrameSkin.position", shape = "anchor_relTo" } },
+    anchors = { { id = "chatFrameSkin", path = "chatFrameSkin.position", shape = "anchor_relTo", label = "frame_chat" } },
     global = "TomoMod_ChatFrameSkin",
 }
 
@@ -185,7 +185,7 @@ R.Define{
     key = "chatFrameSkinV2", label = "mod_chatFrameSkinV2", group = "skins",
     enabledPath = "chatFrameSkinV2.enabled",
     requiresReload = true,
-    anchors = { { id = "chatFrameSkinV2", path = "chatFrameSkinV2.position", shape = "anchor_relTo" } },
+    anchors = { { id = "chatFrameSkinV2", path = "chatFrameSkinV2.position", shape = "anchor_relTo", label = "frame_chat_v2" } },
 }
 
 R.Define{
@@ -197,7 +197,7 @@ R.Define{
 R.Define{
     key = "bagSkin", label = "mod_bagSkin", group = "skins",
     enabledPath = "bagSkin.enabled",
-    anchors = { { id = "bagSkin", path = "bagSkin.position", shape = "anchor_relTo" } },
+    anchors = { { id = "bagSkin", path = "bagSkin.position", shape = "anchor_relTo", label = "frame_bags" } },
     global = "TomoMod_BagSkin", applyMode = "setter", apply = "SetEnabled",
 }
 
@@ -224,14 +224,14 @@ R.Define{
     requiresReload = true,   -- oUF spawns secure unit buttons
     forgeDomain = "unitframes",
     anchors = {
-        { id = "unitFrames.player",       path = "unitFrames.player.position",       shape = "point_relativePoint" },
-        { id = "unitFrames.target",       path = "unitFrames.target.position",       shape = "point_relativePoint" },
-        { id = "unitFrames.targettarget", path = "unitFrames.targettarget.position", shape = "point_relativePoint" },
-        { id = "unitFrames.focus",        path = "unitFrames.focus.position",        shape = "point_relativePoint" },
-        { id = "unitFrames.pet",          path = "unitFrames.pet.position",          shape = "point_relativePoint" },
-        { id = "unitFrames.bossFrames",   path = "unitFrames.bossFrames.position",   shape = "point_relativePoint" },
-        { id = "unitFrames.target.auras", path = "unitFrames.target.auras.position", shape = "point_relativePoint" },
-        { id = "unitFrames.focus.auras",  path = "unitFrames.focus.auras.position",  shape = "point_relativePoint" },
+        { id = "unitFrames.player",       path = "unitFrames.player.position",       shape = "point_relativePoint", label = "frame_player" },
+        { id = "unitFrames.target",       path = "unitFrames.target.position",       shape = "point_relativePoint", label = "frame_target" },
+        { id = "unitFrames.targettarget", path = "unitFrames.targettarget.position", shape = "point_relativePoint", label = "frame_targettarget" },
+        { id = "unitFrames.focus",        path = "unitFrames.focus.position",        shape = "point_relativePoint", label = "frame_focus" },
+        { id = "unitFrames.pet",          path = "unitFrames.pet.position",          shape = "point_relativePoint", label = "frame_pet" },
+        { id = "unitFrames.bossFrames",   path = "unitFrames.bossFrames.position",   shape = "point_relativePoint", label = "frame_boss" },
+        { id = "unitFrames.target.auras", path = "unitFrames.target.auras.position", shape = "point_relativePoint", label = "frame_target_auras" },
+        { id = "unitFrames.focus.auras",  path = "unitFrames.focus.auras.position",  shape = "point_relativePoint", label = "frame_focus_auras" },
     },
     global = "TomoMod_UnitFrames",
 }
@@ -240,11 +240,11 @@ R.Define{
     key = "castbars", label = "mod_castbars", group = "unitframes",
     enabledPath = "castbars.enabled",
     anchors = {
-        { id = "castbars.player", path = "castbars.player.position", shape = "point_relativePoint" },
-        { id = "castbars.target", path = "castbars.target.position", shape = "point_relativePoint" },
-        { id = "castbars.focus",  path = "castbars.focus.position",  shape = "point_relativePoint" },
-        { id = "castbars.pet",    path = "castbars.pet.position",    shape = "point_relativePoint" },
-        { id = "castbars.boss",   path = "castbars.boss.position",   shape = "point_relativePoint" },
+        { id = "castbars.player", path = "castbars.player.position", shape = "point_relativePoint", label = "frame_cast_player" },
+        { id = "castbars.target", path = "castbars.target.position", shape = "point_relativePoint", label = "frame_cast_target" },
+        { id = "castbars.focus",  path = "castbars.focus.position",  shape = "point_relativePoint", label = "frame_cast_focus" },
+        { id = "castbars.pet",    path = "castbars.pet.position",    shape = "point_relativePoint", label = "frame_cast_pet" },
+        { id = "castbars.boss",   path = "castbars.boss.position",   shape = "point_relativePoint", label = "frame_cast_boss" },
     },
     global = "TomoMod_Castbar", applyMode = "setter", apply = "SetEnabled",
 }
@@ -252,7 +252,7 @@ R.Define{
 R.Define{
     key = "resourceBars", label = "mod_resourceBars", group = "unitframes",
     enabledPath = "resourceBars.enabled",
-    anchors = { { id = "resourceBars", path = "resourceBars.position", shape = "point_relativePoint" } },
+    anchors = { { id = "resourceBars", path = "resourceBars.position", shape = "point_relativePoint", label = "frame_resources" } },
     global = "TomoMod_ResourceBars", applyMode = "setter", apply = "SetEnabled",
 }
 
@@ -265,8 +265,8 @@ R.Define{
     enabledPath = "partyFrames.enabled",
     requiresReload = true,   -- secure group header
     anchors = {
-        { id = "partyFrames",       path = "partyFrames.position",       shape = "point_relativePoint" },
-        { id = "partyFrames.arena", path = "partyFrames.arena.position", shape = "point_relativePoint" },
+        { id = "partyFrames",       path = "partyFrames.position",       shape = "point_relativePoint", label = "frame_party" },
+        { id = "partyFrames.arena", path = "partyFrames.arena.position", shape = "point_relativePoint", label = "frame_arena" },
     },
     global = "TomoMod_PartyFrames",
 }
@@ -275,14 +275,14 @@ R.Define{
     key = "raidFrames", label = "mod_raidFrames", group = "groupframes",
     enabledPath = "raidFrames.enabled",
     requiresReload = true,   -- secure group header
-    anchors = { { id = "raidFrames", path = "raidFrames.position", shape = "point_relativePoint" } },
+    anchors = { { id = "raidFrames", path = "raidFrames.position", shape = "point_relativePoint", label = "frame_raid" } },
     global = "TomoMod_RaidFrames",
 }
 
 R.Define{
     key = "battleRez", label = "mod_battleRez", group = "groupframes",
     enabledPath = "battleRez.enabled",
-    anchors = { { id = "battleRez", path = "battleRez.position", shape = "point_relativePoint" } },
+    anchors = { { id = "battleRez", path = "battleRez.position", shape = "point_relativePoint", label = "frame_battlerez" } },
     global = "TomoMod_ResurrectTracker",
 }
 
@@ -344,14 +344,14 @@ R.Define{
 R.Define{
     key = "MythicTracker", label = "mod_MythicTracker", group = "mythicplus",
     enabledPath = "MythicTracker.enabled",
-    anchors = { { id = "mythicTracker", path = "MythicTracker.position", shape = "anchor_relTo" } },
+    anchors = { { id = "mythicTracker", path = "MythicTracker.position", shape = "anchor_relTo", label = "frame_mythictracker" } },
 }
 
 R.Define{
     key = "TomoScore", label = "mod_TomoScore", group = "mythicplus",
     enabledPath = "TomoScore.enabled",
     requiresReload = true,   -- secure score UI buttons
-    anchors = { { id = "tomoScore", path = "TomoScore.position", shape = "anchor_relTo" } },
+    anchors = { { id = "tomoScore", path = "TomoScore.position", shape = "anchor_relTo", label = "frame_tomoscore" } },
 }
 
 -- ---------------------------------------------------------------------
@@ -377,7 +377,7 @@ R.Define{
 R.Define{
     key = "skyRide", label = "mod_skyRide", group = "qol",
     enabledPath = "skyRide.enabled",
-    anchors = { { id = "skyRide", path = "skyRide.position", shape = "point_relativePoint" } },
+    anchors = { { id = "skyRide", path = "skyRide.position", shape = "point_relativePoint", label = "frame_skyride" } },
     global = "TomoMod_SkyRide", applyMode = "setter", apply = "SetEnabled",
 }
 
@@ -534,7 +534,7 @@ R.Define{
 R.Define{
     key = "preyTracker", label = "mod_preyTracker", group = "qol",
     enabledPath = "preyTracker.enabled",
-    anchors = { { id = "preyTracker", path = "preyTracker.position", shape = "point_relativePoint" } },
+    anchors = { { id = "preyTracker", path = "preyTracker.position", shape = "point_relativePoint", label = "frame_preytracker" } },
     global = "TomoMod_PreyTracker",
 }
 

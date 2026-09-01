@@ -538,6 +538,8 @@ local function StyleTomoMod(self, unit)
 
     -- ── Drag ─────────────────────────────────────────────────────
     -- La position est appliquée dans Initialize après tous les Spawns.
+    -- Le libellé vient du manifeste de l'ancre : sans lui, les six
+    -- superpositions affichaient toutes le même mot générique.
     TomoMod_Utils.SetupDraggable(self, function()
         if settings.anchorTo and frames[settings.anchorTo] then
             local anchor   = frames[settings.anchorTo]
@@ -562,7 +564,7 @@ local function StyleTomoMod(self, unit)
                 settings.position.y             = bottom * scale
             end
         end
-    end)
+    end, TomoMod_Layout and TomoMod_Layout.Label("unitFrames." .. unit))
 end
 
 -- =====================================

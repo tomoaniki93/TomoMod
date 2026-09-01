@@ -49,28 +49,90 @@ local TITLE_H          = 52
 local FOOTER_H         = 44
 local STAGE_H          = 300
 
--- Sujets editables. Les cinq premiers sont des cadres d'unite, le dernier
--- une plaque de nom : meme canvas, meme inspecteur, registre different.
-local SUBJECT_LIST = {
-    { value = "player",       text = "Joueur" },
-    { value = "target",       text = "Cible" },
-    { value = "focus",        text = "Focus" },
-    { value = "pet",          text = "Familier" },
-    { value = "targettarget", text = "Cible de la cible" },
-    { value = "nameplate",    text = "Plaque de nom" },
+-- ---------------------------------------------------------------------
+-- Sujets editables
+-- ---------------------------------------------------------------------
+-- Une table plutot qu'une chaine de « if ». Avant, ajouter un domaine
+-- voulait dire toucher Registry(), Settings(), Apply() et
+-- RebuildSubject(), quatre endroits qu'il fallait penser a garder
+-- d'accord ; il en reste un seul, et chaque entree decrit tout ce que le
+-- studio a besoin de savoir :
+--
+--   value    identifiant stable, aussi la valeur du menu deroulant
+--   labelKey cle de locale. Les libelles etaient ecrits en francais en
+--            dur : un client allemand ou espagnol lisait « Cible de la
+--            cible » dans son menu. Les cles viennent du lot 2, elles
+--            existent deja dans les six langues.
+--   registry le module de descripteurs (UFE, NPE, CBE...)
+--   settings ou vit la configuration dans TomoModDB
+--   build    fabrique le sujet d'apercu sur la scene
+--   apply    repousse vers les frames vivantes
+-- ---------------------------------------------------------------------
+
+local SUBJECTS = {
+    { value = "player",       labelKey = "frame_player",
+      registry = function() return TomoMod_UFElements end,
+      settings = function() return TomoModDB.unitFrames and TomoModDB.unitFrames.player end },
+    { value = "target",       labelKey = "frame_target",
+      registry = function() return TomoMod_UFElements end,
+      settings = function() return TomoModDB.unitFrames and TomoModDB.unitFrames.target end },
+    { value = "focus",        labelKey = "frame_focus",
+      registry = function() return TomoMod_UFElements end,
+      settings = function() return TomoModDB.unitFrames and TomoModDB.unitFrames.focus end },
+    { value = "pet",          labelKey = "frame_pet",
+      registry = function() return TomoMod_UFElements end,
+      settings = function() return TomoModDB.unitFrames and TomoModDB.unitFrames.pet end },
+    { value = "targettarget", labelKey = "frame_targettarget",
+      registry = function() return TomoMod_UFElements end,
+      settings = function() return TomoModDB.unitFrames and TomoModDB.unitFrames.targettarget end },
+    { value = "nameplate",    labelKey = "frame_nameplate",
+      registry = function() return TomoMod_NPElements end,
+      settings = function() return TomoModDB.nameplates end },
+    { value = "castbar_player", labelKey = "frame_cast_player", castUnit = "player",
+      registry = function() return TomoMod_CBElements end,
+      settings = function() return TomoModDB.castbars and TomoModDB.castbars.player end },
+    { value = "castbar_target", labelKey = "frame_cast_target", castUnit = "target",
+      registry = function() return TomoMod_CBElements end,
+      settings = function() return TomoModDB.castbars and TomoModDB.castbars.target end },
+    { value = "castbar_focus",  labelKey = "frame_cast_focus",  castUnit = "focus",
+      registry = function() return TomoMod_CBElements end,
+      settings = function() return TomoModDB.castbars and TomoModDB.castbars.focus end },
+    { value = "castbar_pet",    labelKey = "frame_cast_pet",    castUnit = "pet",
+      registry = function() return TomoMod_CBElements end,
+      settings = function() return TomoModDB.castbars and TomoModDB.castbars.pet end },
+    { value = "castbar_boss",   labelKey = "frame_cast_boss",   castUnit = "boss",
+      registry = function() return TomoMod_CBElements end,
+      settings = function() return TomoModDB.castbars and TomoModDB.castbars.boss end },
 }
 
+local SUBJECT_BY_VALUE = {}
+for _, sub in ipairs(SUBJECTS) do SUBJECT_BY_VALUE[sub.value] = sub end
+
 local NAMEPLATE = "nameplate"
+
+local function Subject()
+    return SUBJECT_BY_VALUE[S.state.subject] or SUBJECTS[1]
+end
 
 local function IsPlate()
     return S.state.subject == NAMEPLATE
 end
 
--- Registre actif. Tout le reste du fichier passe par ici : ajouter un
--- domaine se limite a etendre cette fonction et Settings().
 local function Registry()
-    if IsPlate() then return NPE end
-    return UFE
+    local sub = Subject()
+    return sub and sub.registry()
+end
+
+-- Le menu deroulant lit les libelles a l'ouverture, pas au chargement du
+-- fichier : TomoMod_L n'est pas encore garni quand ce fichier s'execute.
+local function BuildSubjectOptions()
+    local out = {}
+    for i, sub in ipairs(SUBJECTS) do
+        local text = TomoMod_L and TomoMod_L[sub.labelKey]
+        if not text or text == sub.labelKey then text = sub.value end
+        out[i] = { value = sub.value, text = text }
+    end
+    return out
 end
 
 local L = TomoMod_L
@@ -84,8 +146,10 @@ local rowButtons = {}
 -- ---------------------------------------------------------------------
 local function Settings()
     if not TomoModDB then return nil end
-    if IsPlate() then return TomoModDB.nameplates end
-    return TomoModDB.unitFrames and TomoModDB.unitFrames[S.state.subject]
+    local sub = Subject()
+    if not sub then return nil end
+    local ok, s = pcall(sub.settings)
+    return ok and s or nil
 end
 
 local function Store()
@@ -100,13 +164,21 @@ end
 -- Push to the live frames AND to the config panel preview, so closing the
 -- studio never reveals a frame that disagrees with what was just designed.
 local function Apply()
-    if IsPlate() then
+    local sub = Subject()
+    if not sub then return end
+
+    if sub.castUnit then
+        local CB = TomoMod_Castbar
+        if CB and CB.ApplySettings then CB.ApplySettings() end
+        return
+    end
+    if sub.value == NAMEPLATE then
         local NP = TomoMod_Nameplates
         if NP and NP.RefreshAll then NP.RefreshAll() end
         return
     end
     local UF = TomoMod_UnitFrames
-    if UF and UF.RefreshUnit then UF.RefreshUnit(S.state.subject) end
+    if UF and UF.RefreshUnit then UF.RefreshUnit(sub.value) end
     if TomoMod_UFPreview and TomoMod_UFPreview.Refresh then
         TomoMod_UFPreview.Refresh()
     end
@@ -124,7 +196,16 @@ local function RebuildSubject()
     local reg = Registry()
     if not reg then return end
 
-    if IsPlate() then
+    if reg.CreatePreview then
+        -- Domaine qui fabrique son propre sujet de scene (castbars).
+        local sub = Subject()
+        local bar = reg.CreatePreview(canvas.stage, sub and sub.castUnit, { recycle = subject })
+        if not bar then return end
+        subject = bar
+        bar:ClearAllPoints()
+        bar:SetPoint("CENTER", canvas.stage, "CENTER", 0, 0)
+        bar:Show()
+    elseif IsPlate() then
         local NP = TomoMod_Nameplates
         if not (NP and NP.CreatePreviewPlate) then return end
         if not plateBin then
@@ -548,7 +629,7 @@ local function BuildWindow()
         sidebarTitle = "ELEMENTS",
         selector = {
             label   = "Sujet edite",
-            options = SUBJECT_LIST,
+            options = BuildSubjectOptions(),
             get     = function() return S.state.subject end,
             set     = function(v)
                 S.state.subject = v

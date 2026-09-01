@@ -19,6 +19,12 @@
 TomoMod_RegisterLocale("enUS", {
     -- [3.0.5] Compass (Waypoint 2.0)
     ["mover_compass"] = "Compass",
+    ["ready_tracker_section"] = "Consumable readiness",
+    ["ready_tracker_info"] = "Shows Flask, Well Fed and Thalassian Phoenix Oil below the minimap, next to the clock. The button is available everywhere; it only turns green or red in dungeons, raids, scenarios and delves.",
+    ["ready_tracker_enable"] = "Enable consumable tracker",
+    ["ready_tracker_button_side"] = "Button position",
+    ["ready_tracker_side_left"] = "Left of the clock",
+    ["ready_tracker_side_right"] = "Right of the clock",
     ["compass_dir_n"] = "N",
     ["compass_dir_e"] = "E",
     ["compass_dir_s"] = "S",
@@ -67,6 +73,12 @@ TomoMod_RegisterLocale("enUS", {
 TomoMod_RegisterLocale("frFR", {
     -- [3.0.5] Compass (Waypoint 2.0)
     ["mover_compass"] = "Boussole",
+    ["ready_tracker_section"] = "Préparation des consommables",
+    ["ready_tracker_info"] = "Affiche Flacon, Bien nourri et Huile de phénix thalassienne sous la minicarte, à côté de l'heure. Le bouton est disponible partout ; il ne passe au vert ou au rouge qu'en donjon, raid, scénario et gouffre.",
+    ["ready_tracker_enable"] = "Activer le suivi des consommables",
+    ["ready_tracker_button_side"] = "Position du bouton",
+    ["ready_tracker_side_left"] = "À gauche de l'heure",
+    ["ready_tracker_side_right"] = "À droite de l'heure",
     ["compass_dir_n"] = "N",
     ["compass_dir_e"] = "E",
     ["compass_dir_s"] = "S",
@@ -111,6 +123,12 @@ TomoMod_RegisterLocale("frFR", {
 TomoMod_RegisterLocale("deDE", {
     -- [3.0.5] Compass (Waypoint 2.0)
     ["mover_compass"] = "Kompass",
+    ["ready_tracker_section"] = "Verbrauchsbereitschaft",
+    ["ready_tracker_info"] = "Zeigt Fläschchen, Satt und Thalassisches Phönixöl unter der Minikarte, neben der Uhr. Die Schaltfläche ist überall verfügbar; sie wird nur in Dungeons, Schlachtzügen, Szenarien und Tiefen grün oder rot.",
+    ["ready_tracker_enable"] = "Verbrauchs-Tracker aktivieren",
+    ["ready_tracker_button_side"] = "Schaltflächenposition",
+    ["ready_tracker_side_left"] = "Links von der Uhr",
+    ["ready_tracker_side_right"] = "Rechts von der Uhr",
     ["compass_dir_n"] = "N",
     ["compass_dir_e"] = "O",
     ["compass_dir_s"] = "S",
@@ -154,6 +172,12 @@ TomoMod_RegisterLocale("deDE", {
 TomoMod_RegisterLocale("esES", {
     -- [3.0.5] Compass (Waypoint 2.0)
     ["mover_compass"] = "Brújula",
+    ["ready_tracker_section"] = "Preparación de consumibles",
+    ["ready_tracker_info"] = "Muestra Frasco, Bien alimentado y Aceite de fénix thalassiano bajo el minimapa, junto al reloj. El botón está disponible en todas partes; solo se pone verde o rojo en mazmorras, bandas, escenarios y simas.",
+    ["ready_tracker_enable"] = "Activar seguimiento de consumibles",
+    ["ready_tracker_button_side"] = "Posición del botón",
+    ["ready_tracker_side_left"] = "A la izquierda del reloj",
+    ["ready_tracker_side_right"] = "A la derecha del reloj",
     ["compass_dir_n"] = "N",
     ["compass_dir_e"] = "E",
     ["compass_dir_s"] = "S",
@@ -197,6 +221,12 @@ TomoMod_RegisterLocale("esES", {
 TomoMod_RegisterLocale("itIT", {
     -- [3.0.5] Compass (Waypoint 2.0)
     ["mover_compass"] = "Bussola",
+    ["ready_tracker_section"] = "Preparazione consumabili",
+    ["ready_tracker_info"] = "Mostra Fiala, Ben nutrito e Olio di fenice thalassiano sotto la minimappa, accanto all'orologio. Il pulsante è disponibile ovunque; diventa verde o rosso solo in spedizioni, incursioni, scenari e cavità.",
+    ["ready_tracker_enable"] = "Attiva monitor consumabili",
+    ["ready_tracker_button_side"] = "Posizione del pulsante",
+    ["ready_tracker_side_left"] = "A sinistra dell'orologio",
+    ["ready_tracker_side_right"] = "A destra dell'orologio",
     ["compass_dir_n"] = "N",
     ["compass_dir_e"] = "E",
     ["compass_dir_s"] = "S",
@@ -240,6 +270,12 @@ TomoMod_RegisterLocale("itIT", {
 TomoMod_RegisterLocale("ptBR", {
     -- [3.0.5] Compass (Waypoint 2.0)
     ["mover_compass"] = "Bússola",
+    ["ready_tracker_section"] = "Preparação de consumíveis",
+    ["ready_tracker_info"] = "Mostra Frasco, Bem alimentado e Óleo de fênix thalassiano abaixo do minimapa, ao lado do relógio. O botão está disponível em qualquer lugar; ele só fica verde ou vermelho em masmorras, raides, cenários e delves.",
+    ["ready_tracker_enable"] = "Ativar rastreador de consumíveis",
+    ["ready_tracker_button_side"] = "Posição do botão",
+    ["ready_tracker_side_left"] = "À esquerda do relógio",
+    ["ready_tracker_side_right"] = "À direita do relógio",
     ["compass_dir_n"] = "N",
     ["compass_dir_e"] = "L",
     ["compass_dir_s"] = "S",

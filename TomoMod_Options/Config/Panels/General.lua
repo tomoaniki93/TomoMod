@@ -319,6 +319,37 @@ function TomoMod_ConfigPanel_General(parent)
             return ny
         end)
 
+    -- Ready Tracker / consommables — intégré au panneau Informations car son
+    -- bouton vit directement à gauche ou à droite de l'heure.
+    local _, cy = W.CreateSeparator(card2.inner, cy)
+    local _, cy = W.CreateSubLabel(card2.inner, L["ready_tracker_section"], cy)
+    local _, cy = W.CreateInfoText(card2.inner, L["ready_tracker_info"], cy)
+
+    local function ReadyTrackerDB()
+        TomoModDB.consumableBar = TomoModDB.consumableBar or {}
+        return TomoModDB.consumableBar
+    end
+
+    local function ApplyReadyTracker()
+        if TomoMod_ConsumableBar and TomoMod_ConsumableBar.ApplySettings then
+            TomoMod_ConsumableBar.ApplySettings()
+        end
+    end
+
+    local readyDB = ReadyTrackerDB()
+    local _, cy = W.CreateCheckbox(card2.inner, L["ready_tracker_enable"], readyDB.enabled ~= false, cy, function(v)
+        ReadyTrackerDB().enabled = v
+        ApplyReadyTracker()
+    end)
+
+    local _, cy = W.CreateDropdown(card2.inner, L["ready_tracker_button_side"], {
+        { text = L["ready_tracker_side_left"],  value = "left"  },
+        { text = L["ready_tracker_side_right"], value = "right" },
+    }, readyDB.buttonSide or "left", cy, function(v)
+        ReadyTrackerDB().buttonSide = v
+        ApplyReadyTracker()
+    end)
+
     -- [3.1.7] Position de la durabilité (configurable) — le bouton d'extension
     -- apparu en 12.0.7 sur la minimap peut chevaucher le coin par défaut.
     local _, cy = W.CreateInfoText(card2.inner, L["info_durability_position"], cy)

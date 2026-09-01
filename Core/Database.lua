@@ -2195,6 +2195,25 @@ local function TomoMod_RunMigrations()
             TomoModDB.diagnostics.enabled = true
         end
     end
+
+    -- Positions were stored in three shapes that grew independently --
+    -- point/relativePoint, anchor/relTo and point/relPoint -- none of
+    -- which recorded the screen they were captured on. The v2 shape uses
+    -- one pair of names and carries the reference dimensions, so a
+    -- profile can be moved between resolutions without every element
+    -- keeping a pixel offset that no longer means the same thing.
+    --
+    -- The conversion is a rename and nothing more. No reference size is
+    -- stamped, which makes every converted position apply exactly as it
+    -- did before: an upgrade that quietly rearranged someone's screen
+    -- would be worse than the problem being fixed. Only positions saved
+    -- after this point carry a reference and get rescaled.
+    if not done.layoutSchemaV2 then
+        done.layoutSchemaV2 = true
+        if TomoMod_Layout and TomoMod_Layout.MigrateAll then
+            TomoMod_Layout.MigrateAll(TomoModDB)
+        end
+    end
 end
 
 -- =====================================

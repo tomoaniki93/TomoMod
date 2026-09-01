@@ -154,7 +154,10 @@ for _, loc in ipairs(LOCALES) do
         fail(("aucun bloc de locale pour %s"):format(loc))
     else
         local blockEnd = locSrc:find("\n}%)", blockStart) or #locSrc
-        for key in locSrc:sub(blockStart, blockEnd):gmatch('%["(mod_[%w_]+)"%]%s*=') do
+        -- Toutes les clés, pas seulement le namespace mod_ : ce fichier
+        -- porte aussi les noms de cadres (frame_*) et le repli générique
+        -- de la superposition de déplacement.
+        for key in locSrc:sub(blockStart, blockEnd):gmatch('%["([%w_]+)"%]%s*=') do
             defined[loc][key] = true
         end
     end
@@ -170,6 +173,12 @@ for _, m in ipairs(R.ListAll()) do
     for _, t in ipairs(m.toggles or {}) do
         if t.label then needed[t.label] = true end
     end
+    -- Lot 2 : le nom affiché sur la superposition de déplacement. Une
+    -- clé manquante ici ne lève rien, elle s'affiche brute au milieu de
+    -- l'écran pendant que le joueur déplace le cadre.
+    for _, a in ipairs(m.anchors or {}) do
+        if a.label then needed[a.label] = true end
+    end
 end
 
 -- La couche de présentation du rechargement puise dans le même
@@ -183,6 +192,40 @@ for key in uiSrc:gmatch('L%("(mod_[%w_]+)"') do
     uiKeys = uiKeys + 1
 end
 check("clés citées par l'UI de rechargement", uiKeys > 0, true)
+
+-- Core/Utils.lua consomme le repli de la superposition de déplacement
+-- directement, sans passer par un manifeste.
+local utilsSrc = read("Core/Utils.lua")
+local utilsKeys = 0
+for key in utilsSrc:gmatch('TomoMod_L%["(mover_[%w_]+)"%]') do
+    needed[key] = true
+    utilsKeys = utilsKeys + 1
+end
+check("repli de déplacement cité par Utils", utilsKeys > 0, true)
+
+-- Lot 3 : les descripteurs de domaine AstralForge et la table de sujets
+-- du studio puisent dans le même fichier de locale. Leurs clés arrivent
+-- par labelKey, pas par un manifeste de module, donc on les relit à la
+-- source plutôt que de les inscrire en dur ici -- une liste figée se
+-- désynchroniserait au premier domaine ajouté.
+local forgeConsumers = {
+    "Modules/Interface/Castbars/CBElements.lua",
+    "TomoMod_AstralForge/AstralForge.lua",
+}
+local forgeKeys = 0
+for _, path in ipairs(forgeConsumers) do
+    local src = read(path)
+    for key in src:gmatch('labelKey%s*=%s*"([%w_]+)"') do
+        needed[key] = true
+        forgeKeys = forgeKeys + 1
+    end
+    -- Textes de démonstration de l'aperçu.
+    for key in src:gmatch('TomoMod_L%["(cb_[%w_]+)"%]') do
+        needed[key] = true
+        forgeKeys = forgeKeys + 1
+    end
+end
+check("clés citées par les domaines Forge", forgeKeys > 0, true)
 
 local neededCount, gaps = 0, 0
 for key in pairs(needed) do
@@ -354,6 +397,79 @@ print(("  Lot 1 : %d modules avec un chemin d'application, dont %d hors combat")
         end
         return n
     end)()))
+
+-- ═══════════════════════════════════════════════════════════════════════
+print("── 7. Migration de layout sur les données réelles ──")
+
+assert(loadfile("Core/LayoutEngine.lua"))()
+local Layout = _G.TomoMod_Layout
+
+-- Chaque ancre déclarée doit porter un nom affichable : c'est ce texte
+-- que le joueur lit sur la superposition pendant qu'il déplace le cadre.
+local unlabelled = 0
+for _, a in ipairs(R.Anchors()) do
+    if not a.label then
+        unlabelled = unlabelled + 1
+        fail(("ancre '%s' (%s) n'a pas de libellé"):format(a.id, a.module))
+    end
+end
+check("toutes les ancres nommées", unlabelled, 0)
+
+-- La migration tourne sur une copie des vrais defaults : les 29 ancres
+-- doivent toutes passer en v2, et AUCUNE ne doit ressortir avec une
+-- taille de référence -- c'est ce qui garantit qu'une mise à jour ne
+-- déplace rien à l'écran.
+local function DeepCopy(t)
+    if type(t) ~= "table" then return t end
+    local o = {}
+    for k, v in pairs(t) do o[k] = DeepCopy(v) end
+    return o
+end
+
+local db = DeepCopy(D)
+local converted, seen = Layout.MigrateAll(db)
+check("toutes les ancres vues",     seen,      #R.Anchors())
+check("toutes les ancres migrées",  converted, #R.Anchors())
+
+local stamped, notV2, leftover = 0, 0, 0
+for _, a in ipairs(R.Anchors()) do
+    local pos = R.GetPath(db, a.path)
+    if type(pos) == "table" then
+        if pos.v ~= Layout.SCHEMA_VERSION then
+            notV2 = notV2 + 1
+            fail(("'%s' n'est pas passée en v2"):format(a.id))
+        end
+        if pos.refW or pos.refH then
+            stamped = stamped + 1
+            fail(("'%s' porte une taille de référence après migration"):format(a.id))
+        end
+        if pos.relativePoint or pos.relPoint or pos.relTo then
+            leftover = leftover + 1
+            fail(("'%s' garde une ancienne clé"):format(a.id))
+        end
+    end
+end
+check("toutes en v2",                      notV2,    0)
+check("aucune référence stampée",          stamped,  0)
+check("aucune ancienne clé résiduelle",    leftover, 0)
+
+-- Rejouer la migration ne doit rien changer : le runner la protège déjà
+-- par un drapeau, mais l'idempotence doit tenir toute seule.
+local again = Layout.MigrateAll(db)
+check("seconde passe sans effet", again, 0)
+
+-- Et le point d'entrée du repli générique doit exister dans les six
+-- langues, puisque Core/Utils.lua s'en sert quand un appelant ne
+-- fournit pas de nom.
+needed["mover_generic"] = true
+local genGaps = 0
+for _, loc in ipairs(LOCALES) do
+    if not defined[loc]["mover_generic"] then
+        genGaps = genGaps + 1
+        fail(("mover_generic absent de %s"):format(loc))
+    end
+end
+check("repli générique traduit partout", genGaps, 0)
 
 print(ok and "\nTOUT EST VERT" or "\nDES TESTS ONT ÉCHOUÉ")
 os.exit(ok and 0 or 1)

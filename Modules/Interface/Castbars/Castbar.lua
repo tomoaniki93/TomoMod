@@ -556,6 +556,16 @@ function CB.CreateCastbar(unit)
         castbar.targetText = targetText
     end
 
+    -- ── Domaine AstralForge ──────────────────────────────────────
+    -- Les ancres posées juste au-dessus sont les valeurs par défaut des
+    -- descripteurs : réappliquer ici ne bouge rien tant que le joueur
+    -- n'a rien modifié dans le studio, et respecte ses réglages sinon.
+    if TomoMod_CBElements then
+        if type(unitSettings.elements) ~= "table" then unitSettings.elements = {} end
+        TomoMod_CBElements.Ensure(unitSettings.elements)
+        TomoMod_CBElements.ApplyAll(castbar, unitSettings.elements)
+    end
+
     -- Transition Animations
     do
         local fadeAG = castbar:CreateAnimationGroup()

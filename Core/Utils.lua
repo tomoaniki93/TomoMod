@@ -572,8 +572,20 @@ function U.SetupDraggable(frame, savePositionCallback, labelText)
     dragLabel:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11, "OUTLINE")
     dragLabel:SetPoint("CENTER", dragFrame, "CENTER")
     dragLabel:SetTextColor(1, 1, 1, 0.90)
-    dragLabel:SetText(labelText or "Déplacer")
+    -- The fallback used to be a hardcoded French "Déplacer", which every
+    -- unit frame and the resource bar container got because they passed
+    -- no label: six overlays on screen at once, all reading the same
+    -- word, none of them saying which frame was under the cursor. Callers
+    -- now pass a name from TomoMod_Layout.Label(); the remaining fallback
+    -- is the generic verb in the player's own language.
+    dragLabel:SetText(labelText or (TomoMod_L and TomoMod_L["mover_generic"]) or "Move")
     frame.dragLabel = dragLabel
+
+    --- Lets a caller rename the overlay after creation -- boss frames are
+    --- spawned from one factory and only learn their index afterwards.
+    frame.SetDragLabel = function(_, text)
+        if text then dragLabel:SetText(text) end
+    end
 
     dragFrame:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then

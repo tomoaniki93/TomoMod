@@ -120,8 +120,8 @@
     <!-- Modules: Diagnostics (Error Capture & Report — /tmdiag) -->
     <Include file="Diagnostics\Diagnostics.lua" />
 
-    <!-- Modules: ConsumableBar (Flask / Nourriture / Huiles) -->
-    <!-- <Include file="Consumables\ConsumableBar.lua" /> -->
+    <!-- Modules: Consumable Tracker (Flacon / Bien nourri / Huile) -->
+    <Include file="Consumables\ConsumableBar.lua" />
 
     <!-- Modules: Compass (Waypoint 2.0 — barre de cap N/E/S/O) -->
     <Include file="Compass\Compass.lua" />
