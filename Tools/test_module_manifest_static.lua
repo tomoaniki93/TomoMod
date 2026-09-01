@@ -227,6 +227,24 @@ for _, path in ipairs(forgeConsumers) do
 end
 check("clés citées par les domaines Forge", forgeKeys > 0, true)
 
+-- Lot 4 : les libellés de contexte sont déclarés dans la table CONTEXTS
+-- du moteur et consommés par la commande slash. Comme pour les domaines
+-- Forge, on les relit à la source plutôt que d'en figer la liste.
+local ctxKeys = 0
+for _, path in ipairs({ "Core/ContextProfiles.lua", "Core/Init.lua" }) do
+    local src = read(path)
+    for key in src:gmatch('label%s*=%s*"(ctx_[%w_]+)"') do
+        needed[key] = true; ctxKeys = ctxKeys + 1
+    end
+    for key in src:gmatch('L%["(ctx_[%w_]+)"%]') do
+        needed[key] = true; ctxKeys = ctxKeys + 1
+    end
+end
+-- ctx_any_spec habille le joker "*" dans la future interface ; il est
+-- traduit d'avance, on l'inscrit pour qu'il ne compte pas pour orphelin.
+needed["ctx_any_spec"] = true
+check("clés de contexte citées", ctxKeys > 0, true)
+
 local neededCount, gaps = 0, 0
 for key in pairs(needed) do
     neededCount = neededCount + 1

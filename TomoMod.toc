@@ -55,6 +55,7 @@ Core\ModuleLifecycle.lua
 Core\ModuleReloadUI.lua
 Core\LayoutEngine.lua
 Core\Profiles.lua
+Core\ContextProfiles.lua
 Core\WhatsNew.lua
 Core\Init.lua
 

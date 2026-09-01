@@ -160,6 +160,17 @@ TomoMod_RegisterLocale("enUS", {
     ["elem_cb_target"]            = "Cast Target",
     ["cb_preview_spell"]          = "Spell Name",
     ["cb_preview_target"]         = "Target",
+
+    -- Profils par contenu (lot 4)
+    ["ctx_title"]      = "Content profiles",
+    ["ctx_detected"]   = "detected",
+    ["ctx_none"]       = "No assignment.",
+    ["ctx_solo"]       = "Solo",
+    ["ctx_party"]      = "Dungeon",
+    ["ctx_mythicplus"] = "Mythic+",
+    ["ctx_raid"]       = "Raid",
+    ["ctx_pvp"]        = "PvP",
+    ["ctx_any_spec"]   = "Any spec",
 })
 
 -- =====================
@@ -304,6 +315,17 @@ TomoMod_RegisterLocale("frFR", {
     ["elem_cb_target"]            = "Cible du sort",
     ["cb_preview_spell"]          = "Nom du sort",
     ["cb_preview_target"]         = "Cible",
+
+    -- Profils par contenu (lot 4)
+    ["ctx_title"]      = "Profils par contenu",
+    ["ctx_detected"]   = "détecté",
+    ["ctx_none"]       = "Aucune affectation.",
+    ["ctx_solo"]       = "Solo",
+    ["ctx_party"]      = "Donjon",
+    ["ctx_mythicplus"] = "Mythique+",
+    ["ctx_raid"]       = "Raid",
+    ["ctx_pvp"]        = "JcJ",
+    ["ctx_any_spec"]   = "Toute spé",
 })
 
 -- =====================
@@ -448,6 +470,17 @@ TomoMod_RegisterLocale("deDE", {
     ["elem_cb_target"]            = "Zauberziel",
     ["cb_preview_spell"]          = "Zaubername",
     ["cb_preview_target"]         = "Ziel",
+
+    -- Profils par contenu (lot 4)
+    ["ctx_title"]      = "Inhaltsprofile",
+    ["ctx_detected"]   = "erkannt",
+    ["ctx_none"]       = "Keine Zuweisung.",
+    ["ctx_solo"]       = "Solo",
+    ["ctx_party"]      = "Dungeon",
+    ["ctx_mythicplus"] = "Mythisch+",
+    ["ctx_raid"]       = "Schlachtzug",
+    ["ctx_pvp"]        = "PvP",
+    ["ctx_any_spec"]   = "Jede Spezi",
 })
 
 -- =====================
@@ -592,6 +625,17 @@ TomoMod_RegisterLocale("esES", {
     ["elem_cb_target"]            = "Objetivo del hechizo",
     ["cb_preview_spell"]          = "Nombre del hechizo",
     ["cb_preview_target"]         = "Objetivo",
+
+    -- Profils par contenu (lot 4)
+    ["ctx_title"]      = "Perfiles por contenido",
+    ["ctx_detected"]   = "detectado",
+    ["ctx_none"]       = "Sin asignación.",
+    ["ctx_solo"]       = "En solitario",
+    ["ctx_party"]      = "Mazmorra",
+    ["ctx_mythicplus"] = "Mítica+",
+    ["ctx_raid"]       = "Banda",
+    ["ctx_pvp"]        = "JcJ",
+    ["ctx_any_spec"]   = "Cualquier esp.",
 })
 
 -- =====================
@@ -736,6 +780,17 @@ TomoMod_RegisterLocale("itIT", {
     ["elem_cb_target"]            = "Bersaglio incantesimo",
     ["cb_preview_spell"]          = "Nome incantesimo",
     ["cb_preview_target"]         = "Bersaglio",
+
+    -- Profils par contenu (lot 4)
+    ["ctx_title"]      = "Profili per contenuto",
+    ["ctx_detected"]   = "rilevato",
+    ["ctx_none"]       = "Nessuna assegnazione.",
+    ["ctx_solo"]       = "Da solo",
+    ["ctx_party"]      = "Spedizione",
+    ["ctx_mythicplus"] = "Mitica+",
+    ["ctx_raid"]       = "Incursione",
+    ["ctx_pvp"]        = "PvP",
+    ["ctx_any_spec"]   = "Qualsiasi spec",
 })
 
 -- =====================
@@ -880,4 +935,15 @@ TomoMod_RegisterLocale("ptBR", {
     ["elem_cb_target"]            = "Alvo do feitiço",
     ["cb_preview_spell"]          = "Nome do feitiço",
     ["cb_preview_target"]         = "Alvo",
+
+    -- Profils par contenu (lot 4)
+    ["ctx_title"]      = "Perfis por conteúdo",
+    ["ctx_detected"]   = "detectado",
+    ["ctx_none"]       = "Nenhuma atribuição.",
+    ["ctx_solo"]       = "Solo",
+    ["ctx_party"]      = "Masmorra",
+    ["ctx_mythicplus"] = "Mítica+",
+    ["ctx_raid"]       = "Raide",
+    ["ctx_pvp"]        = "JxJ",
+    ["ctx_any_spec"]   = "Qualquer esp.",
 })

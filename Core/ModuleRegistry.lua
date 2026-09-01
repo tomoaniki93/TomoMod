@@ -390,17 +390,25 @@ end
 local SUSPEND_KEY = "_suspended"
 
 function R.IsEnabled(key)
+    return R.IsEnabledIn(TomoModDB, key)
+end
+
+--- Same reading, against an arbitrary table. A content profile has to be
+--- inspected before it is applied -- to know whether the swap changes
+--- which modules are on, and therefore whether a reload is unavoidable --
+--- and at that point the snapshot is not the live DB yet.
+function R.IsEnabledIn(source, key)
     local m = manifests[key]
     if not m then return nil end
-    if not TomoModDB then return nil end
+    if type(source) ~= "table" then return nil end
 
     if m.toggleModel == "simple" then
-        return GetPath(TomoModDB, m.enabledPath) and true or false
+        return GetPath(source, m.enabledPath) and true or false
     elseif m.toggleModel == "composite" then
         -- Composite modules have no master switch, so "enabled" means
         -- at least one sub-feature is live.
         for _, t in ipairs(m.toggles) do
-            if GetPath(TomoModDB, t.path) then return true end
+            if GetPath(source, t.path) then return true end
         end
         return false
     end

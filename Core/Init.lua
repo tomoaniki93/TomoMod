@@ -126,6 +126,37 @@ SlashCmdList["TOMOMOD"] = function(msg)
         end
         print("|cff888888/tm modules <clé> pour basculer|r")
 
+    elseif msg == "context" or msg:match("^context%s+") then
+        -- [v4 lot 4] Inspection et bascule des profils par contenu. Le
+        -- lot 7 en fera un panneau ; en attendant c'est le seul moyen de
+        -- voir ce que la détection renvoie réellement, ce qui compte
+        -- parce que « M+ » ne s'active qu'une fois la clé lancée.
+        local CTX = TomoMod_Context
+        if not CTX then return end
+        local arg = msg:match("^context%s+(.+)$")
+
+        if arg == "on" or arg == "off" then
+            CTX.SetEnabled(arg == "on")
+            print("|cff2ed884TomoMod|r " .. (L["ctx_title"] or "Content profiles") .. " : "
+                .. (arg == "on" and "|cff00ff00ON|r" or "|cffff4040OFF|r"))
+            return
+        end
+
+        print(("|cff2ed884TomoMod|r %s : %s | %s : |cffffcc00%s|r"):format(
+            L["ctx_title"] or "Content profiles",
+            CTX.IsEnabled() and "|cff00ff00ON|r" or "|cffff4040OFF|r",
+            L["ctx_detected"] or "detected",
+            tostring(CTX.Detect())))
+        local rows = CTX.List()
+        if #rows == 0 then
+            print("  |cff888888" .. (L["ctx_none"] or "No assignment.") .. "|r")
+        else
+            for _, r in ipairs(rows) do
+                print(("  %-12s %-6s -> |cffffcc00%s|r"):format(r.context, r.spec, r.profile))
+            end
+        end
+        print("|cff888888/tm context on|off|r")
+
     elseif msg == "reset" then
         TomoMod_ResetDatabase()
         ReloadUI()
@@ -403,6 +434,13 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         if TomoMod_Profiles then
             TomoMod_Profiles.EnsureProfilesDB()
             TomoMod_Profiles.InitSpecTracking()
+            -- [v4 lot 4] Profils suivant le contenu. Initialize() amorce
+            -- le contexte sans échanger quoi que ce soit : à la connexion
+            -- le profil actif est celui qui a été sauvegardé, et traiter
+            -- ça comme un changement échangerait à chaque /reload.
+            if TomoMod_Context then
+                TomoMod_Context.Initialize()
+            end
             -- Auto-save : sauvegarder le profil actif à la fermeture du panneau Config
             C_Timer.After(1, function()
                 local configFrame = _G["TomoModConfigFrame"]

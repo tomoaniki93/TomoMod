@@ -264,6 +264,47 @@ function P.LoadNamedProfile(name)
     return true
 end
 
+-- =====================================
+-- CONTEXT SWAP (v4 lot 4)
+-- =====================================
+-- Comme LoadNamedProfile, à une réserve près : les modules que le
+-- registre marque contextSwap = false ne suivent pas le contenu. Ce sont
+-- des outils, pas de la mise en page — diagnostics, détection d'addons,
+-- les studios. Quelqu'un qui ouvre un studio en raid ne doit pas le
+-- retrouver fermé après être entré en clé.
+--
+-- L'épinglage ne s'applique QUE ici. Un chargement manuel de profil doit
+-- tout remplacer, c'est ce que le joueur demande en cliquant.
+function P.ApplyForContext(name)
+    P.EnsureProfilesDB()
+    local db = TomoModDB._profiles
+    local snap = db.named[name]
+    if not snap then return false end
+
+    P.AutoSaveActiveProfile()
+
+    local R = TomoMod_Registry
+    local pinned = {}
+    if R and R.ContextPinned then
+        for _, key in ipairs(R.ContextPinned()) do
+            local m = R.Get(key)
+            local dbKey = m and m.dbKey
+            if dbKey and TomoModDB[dbKey] ~= nil then
+                pinned[dbKey] = DeepCopy(TomoModDB[dbKey])
+            end
+        end
+    end
+
+    ApplySnapshot(snap)
+
+    for dbKey, value in pairs(pinned) do
+        TomoModDB[dbKey] = value
+    end
+
+    db.activeProfile = name
+    return true
+end
+
 --- Supprime un profil nommé (pas "Default")
 function P.DeleteNamedProfile(name)
     if name == "Default" then return false end
