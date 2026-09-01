@@ -719,6 +719,50 @@ end
 --- [PERF] Cache interne pour éviter de re-décoder la même chaîne
 local _previewCache = { str = nil, result = nil, payload = nil }
 
+-- =====================================
+-- DECODE (partagé)
+-- =====================================
+-- La séquence décode / décompresse / désérialise / valide l'en-tête était
+-- recopiée dans Import, PreviewImport et ImportAsProfile. L'import
+-- sélectif du lot 6 en aurait fait une quatrième copie, et les messages
+-- d'erreur avaient déjà commencé à diverger entre les trois.
+--
+-- Ne consomme pas le cache d'aperçu : l'appelant peut inspecter la charge
+-- utile puis l'appliquer sans repayer la désérialisation.
+function P.DecodeImport(str)
+    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
+    local LibDeflate   = LibStub and LibStub("LibDeflate", true)
+    if not LibSerialize or not LibDeflate then
+        return nil, "Librairies manquantes (LibSerialize / LibDeflate)"
+    end
+    if type(str) ~= "string" or str == "" then return nil, "Chaîne vide" end
+
+    str = str:match("^%s*(.-)%s*$") or str
+
+    local decoded = LibDeflate:DecodeForPrint(str)
+    if not decoded then return nil, "Décodage échoué" end
+
+    local decompressed = LibDeflate:DecompressDeflate(decoded)
+    if not decompressed then return nil, "Décompression échouée" end
+
+    local okCall, payload = pcall(function()
+        return LibSerialize:DeSerialize(decompressed)
+    end)
+    if not okCall or type(payload) ~= "table" then
+        return nil, "Désérialisation échouée"
+    end
+    if payload._header ~= EXPORT_HEADER then
+        return nil, "Pas une chaîne TomoMod"
+    end
+    if type(payload._version) ~= "number" or payload._version > EXPORT_VERSION then
+        return nil, "Version incompatible (v" .. tostring(payload._version) .. ")"
+    end
+    if type(payload.settings) ~= "table" then
+        return nil, "Données manquantes"
+    end
+    return payload
+end
+
 function P.PreviewImport(str)
     local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
     local LibDeflate   = LibStub and LibStub("LibDeflate",   true)

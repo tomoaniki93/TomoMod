@@ -3386,6 +3386,11 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_400_combat_workspace"] = "New — Combat now has the same focused workspace navigation. Cast Bars, Resources, Cooldown Forge and Mythic+ are listed directly beneath Combat in the sidebar, keeping related configuration pages together. Their existing controls, previews, nested tabs, search and deep links are unchanged.",
     ["wn_400_comfort_workspace"] = "New — Comfort is now a grouped workspace with compact in-content navigation. Automation, Players, Classes, CVars, World Quest and Other sit in a first tab row; a second row shows only the pages of the selected group and remembers the last one you used. The sidebar stays compact, including a dedicated Consumables page for the readiness tracker, while your settings, previews, nested tabs, search and direct links are unchanged.",
 
+    ["wn_400_resolution_presets"] = "New - Resolution presets adapt TomoMod to 1080p, 1440p and 4K displays. They set readable font sizes from the defaults and mark your current layout so it follows a later resolution change. Use /tm resolution to inspect the detected tier and /tm resolution <tier> to apply one.",
+    ["wn_400_resolution_capture"] = "New - You can capture a layout you have tuned yourself for the current screen with /tm resolution capture. A captured layout and its font sizes take priority over the computed preset whenever that tier is applied.",
+    ["wn_400_selective_import"] = "New - Profile imports no longer have to be all or nothing. TomoMod can inspect an import by module group, show which settings differ from yours and identify the entries it does not recognise. Use /tm import <string> to review an import before accepting it; the selectable import panel follows with the v4 options work.",
+    ["wn_400_foundation_v2"] = "Note - TomoMod now keeps one single description of its own contents: 68 entries covering every setting it saves, in nine groups, with 29 movable elements declared. It already powers content profiles and selective imports, while the layout engine reads the same inventory instead of maintaining another slightly different list.",
+
     -- =====================
     -- 3.6.5 — What's New
     -- =====================

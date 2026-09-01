@@ -3334,6 +3334,11 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_400_combat_workspace"] = "Novidade — Combate agora usa a mesma navegação por espaço de trabalho. Barras de lançamento, Recursos, Cooldown Forge e Mythic+ ficam listados diretamente sob Combate na barra lateral, mantendo juntas as páginas de configuração relacionadas. Os controles, as prévias, as abas aninhadas, a busca e os links diretos existentes não mudam.",
     ["wn_400_comfort_workspace"] = "Novidade — Conforto agora é um espaço de trabalho agrupado com navegação compacta dentro do conteúdo. Automação, Jogadores, Classes, CVars, Missões Mundiais e Outros ficam em uma primeira linha de abas; uma segunda mostra apenas as páginas do grupo escolhido e lembra a última usada. A barra lateral continua compacta, incluindo uma página de Consumíveis para o controle de preparação, enquanto suas configurações, prévias, abas aninhadas, busca e links diretos não mudam.",
 
+    ["wn_400_resolution_presets"] = "Novidade - As predefinicoes de resolucao adaptam o TomoMod a telas 1080p, 1440p e 4K. Elas definem tamanhos de fonte legiveis a partir dos padroes e marcam o layout atual para que ele acompanhe uma mudanca futura de resolucao. Use /tm resolution para ver a faixa detectada e /tm resolution <faixa> para aplica-la.",
+    ["wn_400_resolution_capture"] = "Novidade - Voce pode capturar um layout ajustado para a tela atual com /tm resolution capture. Um layout capturado e seus tamanhos de fonte tem prioridade sobre a predefinicao calculada quando essa faixa e aplicada.",
+    ["wn_400_selective_import"] = "Novidade - As importacoes de perfil nao precisam mais ser tudo ou nada. O TomoMod pode inspecionar uma importacao por grupo de modulos, mostrar quais ajustes diferem dos seus e identificar entradas que nao reconhece. Use /tm import <texto> para revisa-la antes de aceitar; o painel de selecao chegara com as opcoes v4.",
+    ["wn_400_foundation_v2"] = "Nota - O TomoMod mantem agora uma descricao unica do proprio conteudo: 68 entradas cobrindo cada ajuste que ele guarda, em nove grupos, com 29 elementos moveis declarados. Ela ja sustenta os perfis por conteudo e as importacoes seletivas, enquanto o motor de posicionamento le essa mesma lista em vez de manter outra, ligeiramente diferente.",
+
     -- =====================
     -- 3.6.5 — What's New
     -- =====================

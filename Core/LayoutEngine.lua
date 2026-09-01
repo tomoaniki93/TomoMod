@@ -256,6 +256,36 @@ function Layout.Apply(store, frame, defaults)
     return true
 end
 
+--- Marks every declared anchor with the current screen size, so that
+--- positions which came through the migration -- and therefore carry no
+--- reference and are applied verbatim -- start following a resolution
+--- change from here on.
+---
+--- Never called by the migration itself, on purpose: doing it there
+--- would rescale everyone's layout on upgrade, which is the one thing
+--- the v2 conversion is built to avoid. It belongs to a moment when the
+--- player has just said the layout suits this screen, which is exactly
+--- what applying a resolution preset means.
+function Layout.StampReference(db)
+    db = db or TomoModDB
+    if type(db) ~= "table" or not R then return 0 end
+    local w, h = ScreenSize()
+    if not w then return 0 end
+
+    local n = 0
+    for _, a in ipairs(R.Anchors()) do
+        local pos = R.GetPath(db, a.path)
+        if type(pos) == "table" then
+            if not IsV2(pos) then Layout.MigratePosition(pos) end
+            if pos.point or pos.anchor then
+                pos.refW, pos.refH = w, h
+                n = n + 1
+            end
+        end
+    end
+    return n
+end
+
 -- ---------------------------------------------------------------------
 -- LABELS
 -- ---------------------------------------------------------------------

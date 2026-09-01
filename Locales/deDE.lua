@@ -3346,6 +3346,11 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_400_combat_workspace"] = "Neu — Kampf nutzt jetzt dieselbe Arbeitsbereichsnavigation. Zauberleisten, Ressourcen, Cooldown Forge und Mythic+ stehen direkt unter Kampf in der Seitenleiste und halten zusammengehörige Einstellungsseiten beisammen. Ihre vorhandenen Einstellungen, Vorschauen, Untertabs, Suche und Direktlinks bleiben unverändert.",
     ["wn_400_comfort_workspace"] = "Neu — Komfort ist jetzt ein gruppierter Arbeitsbereich mit kompakter Navigation im Inhalt. Automatisierung, Spieler, Klassen, CVars, Weltquests und Andere stehen in einer ersten Tab-Reihe; eine zweite zeigt nur die Seiten der gewählten Gruppe und merkt sich die zuletzt verwendete. Die Seitenleiste bleibt kompakt, einschließlich einer eigenen Verbrauchsmaterialien-Seite für die Bereitschaftsanzeige, während Einstellungen, Vorschauen, Untertabs, Suche und Direktlinks unverändert bleiben.",
 
+    ["wn_400_resolution_presets"] = "Neu - Auflosungs-Presets passen TomoMod an 1080p-, 1440p- und 4K-Bildschirme an. Sie setzen lesbare Schriftgrossen aus den Standardwerten und markieren das aktuelle Layout, damit es einer spateren Auflosungsanderung folgt. Mit /tm resolution seht ihr den erkannten Bereich, mit /tm resolution <Bereich> wendet ihr ihn an.",
+    ["wn_400_resolution_capture"] = "Neu - Mit /tm resolution capture konnt ihr ein selbst abgestimmtes Layout fur den aktuellen Bildschirm erfassen. Ein erfasstes Layout und seine Schriftgrossen haben Vorrang vor dem berechneten Preset, wenn dieser Bereich angewendet wird.",
+    ["wn_400_selective_import"] = "Neu - Profilimporte mussen nicht mehr alles oder nichts sein. TomoMod kann einen Import nach Modulgruppen prufen, abweichende Einstellungen anzeigen und unbekannte Eintrage benennen. Mit /tm import <Zeichenfolge> pruft ihr einen Import vor dem Ubernehmen; das Auswahlfenster folgt mit der v4-Optionsarbeit.",
+    ["wn_400_foundation_v2"] = "Hinweis - TomoMod fuhrt jetzt eine einzige Beschreibung seines Inhalts: 68 Eintrage fur jede gespeicherte Einstellung, in neun Gruppen, mit 29 deklarierten verschiebbaren Elementen. Sie versorgt bereits Inhaltsprofile und selektive Importe, wahrend die Positionierungs-Engine dieselbe Liste liest, statt eine weitere, leicht abweichende zu fuhren.",
+
     -- =====================
     -- 3.6.5 — What's New
     -- =====================

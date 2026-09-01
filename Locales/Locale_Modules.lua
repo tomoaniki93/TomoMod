@@ -171,6 +171,23 @@ TomoMod_RegisterLocale("enUS", {
     ["ctx_raid"]       = "Raid",
     ["ctx_pvp"]        = "PvP",
     ["ctx_any_spec"]   = "Any spec",
+
+    -- Presets de résolution (lot 5)
+    ["res_title"]    = "Resolution preset",
+    ["res_1080"]     = "1080p",
+    ["res_1440"]     = "1440p",
+    ["res_2160"]     = "2160p (4K)",
+    ["res_detected"] = "detected",
+    ["res_floored"]  = "The client floors uiScale at 0.64, so it is left untouched.",
+    ["res_captured"] = "Tuned capture in use",
+    ["res_computed"] = "Computed values",
+
+    -- Import sélectif (lot 6)
+    ["imp_title"]          = "Selective import",
+    ["imp_summary"]        = "%d modules, %d changed, %d need a reload",
+    ["imp_unchanged"]      = "identical",
+    ["imp_changed"]        = "changed",
+    ["imp_unknown"]        = "Unrecognised entries",
 })
 
 -- =====================
@@ -326,6 +343,23 @@ TomoMod_RegisterLocale("frFR", {
     ["ctx_raid"]       = "Raid",
     ["ctx_pvp"]        = "JcJ",
     ["ctx_any_spec"]   = "Toute spé",
+
+    -- Presets de résolution (lot 5)
+    ["res_title"]    = "Preset de résolution",
+    ["res_1080"]     = "1080p",
+    ["res_1440"]     = "1440p",
+    ["res_2160"]     = "2160p (4K)",
+    ["res_detected"] = "détecté",
+    ["res_floored"]  = "Le client plafonne l'uiScale à 0.64 : il n'est pas modifié.",
+    ["res_captured"] = "Capture personnalisée utilisée",
+    ["res_computed"] = "Valeurs calculées",
+
+    -- Import sélectif (lot 6)
+    ["imp_title"]          = "Import sélectif",
+    ["imp_summary"]        = "%d modules, %d modifiés, %d exigent un rechargement",
+    ["imp_unchanged"]      = "identique",
+    ["imp_changed"]        = "modifié",
+    ["imp_unknown"]        = "Entrées non reconnues",
 })
 
 -- =====================
@@ -481,6 +515,23 @@ TomoMod_RegisterLocale("deDE", {
     ["ctx_raid"]       = "Schlachtzug",
     ["ctx_pvp"]        = "PvP",
     ["ctx_any_spec"]   = "Jede Spezi",
+
+    -- Presets de résolution (lot 5)
+    ["res_title"]    = "Auflösungs-Preset",
+    ["res_1080"]     = "1080p",
+    ["res_1440"]     = "1440p",
+    ["res_2160"]     = "2160p (4K)",
+    ["res_detected"] = "erkannt",
+    ["res_floored"]  = "Der Client begrenzt uiScale auf 0.64 und lässt ihn unverändert.",
+    ["res_captured"] = "Angepasste Aufnahme aktiv",
+    ["res_computed"] = "Berechnete Werte",
+
+    -- Import sélectif (lot 6)
+    ["imp_title"]          = "Selektiver Import",
+    ["imp_summary"]        = "%d Module, %d geändert, %d erfordern Neuladen",
+    ["imp_unchanged"]      = "identisch",
+    ["imp_changed"]        = "geändert",
+    ["imp_unknown"]        = "Unbekannte Einträge",
 })
 
 -- =====================
@@ -636,6 +687,23 @@ TomoMod_RegisterLocale("esES", {
     ["ctx_raid"]       = "Banda",
     ["ctx_pvp"]        = "JcJ",
     ["ctx_any_spec"]   = "Cualquier esp.",
+
+    -- Presets de résolution (lot 5)
+    ["res_title"]    = "Ajuste de resolución",
+    ["res_1080"]     = "1080p",
+    ["res_1440"]     = "1440p",
+    ["res_2160"]     = "2160p (4K)",
+    ["res_detected"] = "detectado",
+    ["res_floored"]  = "El cliente limita uiScale a 0.64, así que no se modifica.",
+    ["res_captured"] = "Captura personalizada en uso",
+    ["res_computed"] = "Valores calculados",
+
+    -- Import sélectif (lot 6)
+    ["imp_title"]          = "Importación selectiva",
+    ["imp_summary"]        = "%d módulos, %d cambiados, %d requieren recarga",
+    ["imp_unchanged"]      = "idéntico",
+    ["imp_changed"]        = "cambiado",
+    ["imp_unknown"]        = "Entradas no reconocidas",
 })
 
 -- =====================
@@ -791,6 +859,23 @@ TomoMod_RegisterLocale("itIT", {
     ["ctx_raid"]       = "Incursione",
     ["ctx_pvp"]        = "PvP",
     ["ctx_any_spec"]   = "Qualsiasi spec",
+
+    -- Presets de résolution (lot 5)
+    ["res_title"]    = "Preset di risoluzione",
+    ["res_1080"]     = "1080p",
+    ["res_1440"]     = "1440p",
+    ["res_2160"]     = "2160p (4K)",
+    ["res_detected"] = "rilevato",
+    ["res_floored"]  = "Il client limita uiScale a 0.64, quindi non viene modificato.",
+    ["res_captured"] = "Cattura personalizzata in uso",
+    ["res_computed"] = "Valori calcolati",
+
+    -- Import sélectif (lot 6)
+    ["imp_title"]          = "Importazione selettiva",
+    ["imp_summary"]        = "%d moduli, %d modificati, %d richiedono ricaricamento",
+    ["imp_unchanged"]      = "identico",
+    ["imp_changed"]        = "modificato",
+    ["imp_unknown"]        = "Voci non riconosciute",
 })
 
 -- =====================
@@ -946,4 +1031,21 @@ TomoMod_RegisterLocale("ptBR", {
     ["ctx_raid"]       = "Raide",
     ["ctx_pvp"]        = "JxJ",
     ["ctx_any_spec"]   = "Qualquer esp.",
+
+    -- Presets de résolution (lot 5)
+    ["res_title"]    = "Predefinição de resolução",
+    ["res_1080"]     = "1080p",
+    ["res_1440"]     = "1440p",
+    ["res_2160"]     = "2160p (4K)",
+    ["res_detected"] = "detectado",
+    ["res_floored"]  = "O cliente limita o uiScale a 0.64, então ele não é alterado.",
+    ["res_captured"] = "Captura personalizada em uso",
+    ["res_computed"] = "Valores calculados",
+
+    -- Import sélectif (lot 6)
+    ["imp_title"]          = "Importação seletiva",
+    ["imp_summary"]        = "%d módulos, %d alterados, %d exigem recarregamento",
+    ["imp_unchanged"]      = "idêntico",
+    ["imp_changed"]        = "alterado",
+    ["imp_unknown"]        = "Entradas não reconhecidas",
 })

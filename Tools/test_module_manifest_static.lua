@@ -245,6 +245,29 @@ end
 needed["ctx_any_spec"] = true
 check("clés de contexte citées", ctxKeys > 0, true)
 
+-- Lot 5 : les libellés de palier vivent dans la table TIERS du moteur,
+-- le reste est consommé par la commande slash. Même lecture à la source
+-- que pour les lots 3 et 4.
+local resKeys = 0
+for _, path in ipairs({ "Core/ResolutionPresets.lua", "Core/Init.lua" }) do
+    local src = read(path)
+    for key in src:gmatch('label%s*=%s*"(res_[%w_]+)"') do
+        needed[key] = true; resKeys = resKeys + 1
+    end
+    for key in src:gmatch('L%["(res_[%w_]+)"%]') do
+        needed[key] = true; resKeys = resKeys + 1
+    end
+end
+check("clés de résolution citées", resKeys > 0, true)
+
+-- Lot 6 : les libellés de l'import sélectif sont consommés par la
+-- commande slash en attendant le panneau du lot 7.
+local impKeys = 0
+for key in read("Core/Init.lua"):gmatch('L%["(imp_[%w_]+)"%]') do
+    needed[key] = true; impKeys = impKeys + 1
+end
+check("clés d'import citées", impKeys > 0, true)
+
 local neededCount, gaps = 0, 0
 for key in pairs(needed) do
     neededCount = neededCount + 1

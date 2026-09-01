@@ -157,6 +157,79 @@ SlashCmdList["TOMOMOD"] = function(msg)
         end
         print("|cff888888/tm context on|off|r")
 
+    elseif msg == "resolution" or msg:match("^resolution%s+") then
+        -- [v4 lot 5] Presets de résolution. La commande affiche d'abord
+        -- les faits d'échelle, parce que le plancher client à 0.64 rend
+        -- 1440p et 2160p identiques et que c'est contre-intuitif.
+        local RES = TomoMod_Resolution
+        if not RES then return end
+        local arg = msg:match("^resolution%s+(.+)$")
+
+        if arg == "capture" then
+            local tier = RES.Detect()
+            local okCap = RES.Capture(tier)
+            print("|cff2ed884TomoMod|r " .. (okCap and ("capture -> " .. tier) or "capture: échec"))
+            return
+        end
+        if arg and RES.Get(arg) then
+            local rep = RES.Apply(arg)
+            print(("|cff2ed884TomoMod|r %s : |cffffcc00%s|r (%s, %d polices, %d ancres)"):format(
+                L["res_title"] or "Resolution preset", arg,
+                rep.fromCapture and (L["res_captured"] or "capture")
+                               or (L["res_computed"] or "computed"),
+                rep.fonts, rep.stamped))
+            if rep.floored then print("  |cff888888" .. (L["res_floored"] or "") .. "|r") end
+            return
+        end
+
+        local pw, ph = RES.PhysicalSize()
+        print(("|cff2ed884TomoMod|r %s : |cffffcc00%s|r  (%sx%s)"):format(
+            L["res_detected"] or "detected", RES.Detect(),
+            tostring(pw), tostring(ph)))
+        for _, t in ipairs(RES.Tiers()) do
+            local h = (t.key == "2160p" and 2160) or (t.key == "1440p" and 1440) or 1080
+            local d = RES.Describe(h)
+            print(("  %-7s uiScale %.3f%s -> UIParent %d %s"):format(
+                t.key, d.appliedScale,
+                d.floored and " |cff888888(plancher)|r" or "         ",
+                d.uiHeight,
+                RES.HasCapture(t.key) and "|cff00ff00[capture]|r" or ""))
+        end
+        print("|cff888888/tm resolution 1080p|1440p|2160p|capture|r")
+
+    elseif msg:match("^import%s+") then
+        -- [v4 lot 6] Inspection d'une chaîne d'import AVANT de l'accepter.
+        -- Le panneau à cases arrive au lot 7 ; en attendant, voir ce
+        -- qu'une chaîne contient réellement — et surtout ce qui diffère
+        -- de la configuration actuelle — évite d'importer à l'aveugle.
+        local SI = TomoMod_SelectiveImport
+        if not SI then return end
+        local str = msg:match("^import%s+(.+)$")
+        local groups, meta, unknown, err = SI.InspectString(str)
+        if not groups then
+            print("|cff2ed884TomoMod|r |cffff4040" .. tostring(err) .. "|r")
+            return
+        end
+        local total, changed, reloads = SI.Summarize(groups)
+        print("|cff2ed884TomoMod|r " .. (L["imp_title"] or "Selective import"))
+        print("  " .. string.format(L["imp_summary"] or "%d / %d / %d",
+            total, changed, reloads))
+        for _, g in ipairs(groups) do
+            local names = {}
+            for _, row in ipairs(g.modules) do
+                names[#names + 1] = row.differs
+                    and ("|cffffcc00" .. row.key .. "|r")
+                    or  ("|cff555555" .. row.key .. "|r")
+            end
+            print(("  |cff2ed884%s|r %s"):format(L[g.label] or g.key, table.concat(names, " ")))
+        end
+        if #unknown > 0 then
+            print("  |cffff8800" .. (L["imp_unknown"] or "Unrecognised") .. "|r "
+                .. table.concat(unknown, ", "))
+        end
+        print("|cff888888" .. (L["imp_changed"] or "changed") .. " / |cff555555"
+            .. (L["imp_unchanged"] or "identical") .. "|r")
+
     elseif msg == "reset" then
         TomoMod_ResetDatabase()
         ReloadUI()
