@@ -108,6 +108,7 @@ local categoryAliases = {
 
     castbars    = { key = "combat", tab = "castbars" },
     resources   = { key = "combat", tab = "resources" },
+    cdforge     = { key = "combat", tab = "cdforge" },
     mythicplus  = { key = "combat", tab = "mythicplus" },
 
     qol         = { key = "comfort", tab = "qol" },
@@ -118,11 +119,152 @@ local categoryAliases = {
     tools       = { key = "profiles" },
 }
 
+-- Interface is the first category migrated to the new sidebar workspace.
+-- The panel builders stay untouched: only their outer navigation changes.
+local INTERFACE_WORKSPACE_ITEMS = {
+    { key = "general",    label = L["cfg_tab_general"],    kw = "general minimap interface" },
+    { key = "actionbars", label = L["cfg_tab_actionbars"], kw = "action bars barres action" },
+    { key = "skins",      label = L["cfg_tab_skins"],      kw = "skins apparence chat sacs menu" },
+    { key = "sound",      label = L["cfg_tab_sound"],      kw = "sound son audio" },
+}
+
+local UNITS_WORKSPACE_ITEMS = {
+    { key = "unitframes",  label = L["cfg_tab_unitframes"],  kw = "unit frames unitframes joueur cible focus boss" },
+    { key = "nameplates",  label = L["cfg_tab_nameplates"],  kw = "nameplates plaques noms" },
+    { key = "partyframes", label = L["cfg_tab_partyframes"], kw = "party frames groupe party" },
+    { key = "raidframes",  label = L["cfg_tab_raidframes"],  kw = "raid frames raid groupe" },
+}
+
+local COMBAT_WORKSPACE_ITEMS = {
+    { key = "castbars",   label = L["cfg_tab_castbars"],   kw = "castbars cast bars incantation" },
+    { key = "resources",  label = L["cfg_tab_resources"],  kw = "resources ressources cooldown resource bars" },
+    { key = "cdforge",    label = L["cfg_tab_cdforge"],    kw = "cooldown forge cd forge cooldowns" },
+    { key = "mythicplus", label = L["cfg_tab_mythicplus"], kw = "mythic plus mythic+ mplus donjon" },
+}
+
+local function ComfortText(fr, en)
+    return (GetLocale and GetLocale() == "frFR") and fr or en
+end
+
+-- Confort uses one more navigation level than Interface/Unités/Combat.
+-- Group rows stay visible while the existing QOL builders are reused as
+-- leaves, so the refactor changes navigation without duplicating settings.
+local COMFORT_WORKSPACE_GROUPS = {
+    {
+        key = "automation", label = ComfortText("Automatisation", "Automation"), default = "automations",
+        pages = {
+            { key = "automations", label = ComfortText("Général", "General"), kw = "automation automatisation general invite summon delete vendor repair combat text prey" },
+            { key = "cinematic",   label = L["tab_qol_cinematic"],  kw = "cinematic cinematique skip" },
+            { key = "autoquest",   label = L["tab_qol_auto_quest"], kw = "auto quest quete" },
+        },
+    },
+    {
+        key = "players", label = ComfortText("Joueurs", "Players"), default = "mythickeys",
+        pages = {
+            { key = "mythickeys",  label = L["tab_qol_mythic_keys"],      kw = "mythic keys clefs cles" },
+            { key = "skyride",     label = L["tab_qol_skyride"],          kw = "skyride vol flying" },
+            { key = "leveling",    label = L["tab_qol_leveling"],         kw = "leveling level niveau" },
+            { key = "merchant",    label = L["tab_qol_merchant_tools"],   kw = "merchant vendeur repair reparer" },
+            { key = "consumables", label = LT("tab_qol_consumable_bar", ComfortText("Consommables", "Consumables")), kw = "consumables consommables flask food huile oil ready tracker" },
+            { key = "rarealert",   label = L["tab_qol_rare_alert"],       kw = "rare alert alerte rares" },
+            { key = "profhelper",  label = L["tab_qol_prof_helper"],      kw = "profession helper metier" },
+        },
+    },
+    {
+        key = "classes", label = "Classes", default = "classremind",
+        pages = {
+            { key = "classremind", label = L["tab_qol_class_reminder"], kw = "class reminder classe rappel" },
+            { key = "companion",   label = L["tab_qol_companion"],      kw = "companion compagnon" },
+        },
+    },
+    { key = "cvars", label = "CVars", default = "cvaropt", direct = true, kw = "cvars optimizer optimisation" },
+    {
+        key = "worldquest", label = ComfortText("World Quest", "World Quest"), default = "worldquests",
+        pages = {
+            { key = "worldquests", label = L["tab_qol_world_quests"], kw = "world quest quetes monde" },
+            { key = "waypoint",    label = L["tab_qol_waypoint"],     kw = "waypoint point navigation" },
+            { key = "compass",     label = L["tab_qol_compass"],      kw = "compass boussole" },
+        },
+    },
+    {
+        key = "other", label = ComfortText("Autres", "Other"), default = "bagmicro",
+        pages = {
+            -- Kept reachable during the navigation migration. Bag & Micro Menu
+            -- will move to Interface > Skins in the later content pass.
+            { key = "bagmicro", label = L["tab_qol_bag_micro"], kw = "bag micro menu sacs" },
+            { key = "housing",  label = L["cfg_tab_housing"],   kw = "housing logement maison" },
+        },
+    },
+}
+
+local COMFORT_QOL_PAGES = {
+    automations = true, cinematic = true, autoquest = true, mythickeys = true,
+    skyride = true, leveling = true, merchant = true, rarealert = true,
+    profhelper = true, classremind = true, companion = true, cvaropt = true,
+    worldquests = true, waypoint = true, compass = true, bagmicro = true,
+}
+
+local COMFORT_PAGE_TO_GROUP = {}
+local COMFORT_PAGE_LABEL = {}
+for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
+    if group.direct then
+        COMFORT_PAGE_TO_GROUP[group.default] = group.key
+        COMFORT_PAGE_LABEL[group.default] = group.label
+    else
+        for _, page in ipairs(group.pages or {}) do
+            COMFORT_PAGE_TO_GROUP[page.key] = group.key
+            COMFORT_PAGE_LABEL[page.key] = page.label
+        end
+    end
+end
+
+local INTERFACE_WORKSPACE_ALLOWED = {
+    accueil = true,
+    roles = true,
+    interface = true,
+    profiles = true,
+    diagnostics = true,
+}
+
+local UNITS_WORKSPACE_ALLOWED = {
+    accueil = true,
+    roles = true,
+    units = true,
+    profiles = true,
+    diagnostics = true,
+}
+
+local COMBAT_WORKSPACE_ALLOWED = {
+    accueil = true,
+    roles = true,
+    combat = true,
+    profiles = true,
+    diagnostics = true,
+}
+
+local COMFORT_WORKSPACE_ALLOWED = {
+    accueil = true,
+    roles = true,
+    comfort = true,
+    profiles = true,
+    diagnostics = true,
+}
+
 -- State
 local configFrame
 local currentCategory = nil
+local currentWorkspace = nil
+local currentInterfacePage = "general"
+local currentUnitsPage = "unitframes"
+local currentCombatPage = "castbars"
+local currentComfortPage = "automations"
 local categoryPanels  = {}
 local categoryButtons = {}
+local interfaceSubButtons = {}
+local unitsSubButtons = {}
+local combatSubButtons = {}
+local comfortGroupButtons = {}
+local comfortLeafButtons = {}
 local activeCategoryPanel = nil
 local hiddenPanelBin = nil
 
@@ -306,6 +448,71 @@ local function CreateNavButton(parent, cat, yOffset)
     return btn
 end
 
+local function CreateSubNavButton(parent, item, categoryKey)
+    local cat = GetCategory(categoryKey)
+    local aR, aG, aB = CategoryAccent(cat)
+    local btn = CreateFrame("Button", nil, parent)
+    btn:SetSize(NAV_W, 32)
+
+    local bg = btn:CreateTexture(nil, "BACKGROUND")
+    bg:SetPoint("TOPLEFT", 28, 0)
+    bg:SetPoint("BOTTOMRIGHT", -8, 0)
+    bg:SetColorTexture(aR, aG, aB, 0)
+
+    local dot = btn:CreateTexture(nil, "OVERLAY")
+    dot:SetSize(4, 4)
+    dot:SetPoint("LEFT", 34, 0)
+    dot:SetColorTexture(aR, aG, aB, 0.30)
+
+    local lbl = btn:CreateFontString(nil, "OVERLAY")
+    lbl:SetFont(FONT, 11, "")
+    lbl:SetPoint("LEFT", 48, 0)
+    lbl:SetPoint("RIGHT", -10, 0)
+    lbl:SetJustifyH("LEFT")
+    lbl:SetText(item.label or item.key)
+
+    local function SetActive(active)
+        if active then
+            bg:SetColorTexture(aR, aG, aB, 0.11)
+            dot:SetColorTexture(aR, aG, aB, 1)
+            lbl:SetTextColor(aR, aG, aB, 1)
+        else
+            bg:SetColorTexture(aR, aG, aB, 0)
+            dot:SetColorTexture(aR, aG, aB, 0.30)
+            lbl:SetTextColor(0.52, 0.52, 0.58, 1)
+        end
+    end
+    btn.SetActive = SetActive
+    SetActive(false)
+
+    local function IsActive()
+        if currentCategory ~= categoryKey then return false end
+        if categoryKey == "interface" then
+            return currentInterfacePage == item.key
+        elseif categoryKey == "units" then
+            return currentUnitsPage == item.key
+        elseif categoryKey == "combat" then
+            return currentCombatPage == item.key
+        end
+        return false
+    end
+
+    btn:SetScript("OnEnter", function()
+        if not IsActive() then
+            bg:SetColorTexture(aR, aG, aB, 0.05)
+            lbl:SetTextColor(0.76, 0.78, 0.80, 1)
+        end
+    end)
+    btn:SetScript("OnLeave", function()
+        SetActive(IsActive())
+    end)
+    btn:SetScript("OnClick", function()
+        C.SwitchCategory(item.key)
+    end)
+
+    return btn
+end
+
 local function CreatePageShell(parent, cat)
     if not cat or cat.key == "accueil" then
         return parent, nil
@@ -464,6 +671,531 @@ local function BuildGroupedFromTree(parent, catKey)
         }
     end
     return BuildGroupedPanel(parent, tabs, tabs[1] and tabs[1].key)
+end
+
+-- Interface workspace: same lazy panel caching as CreateTabPanel, but the
+-- first navigation level lives in the left sidebar instead of a horizontal
+-- tab bar. Nested tabs inside General/ActionBars/Skins/Sound are unchanged.
+local function BuildInterfaceWorkspacePanel(parent)
+    local tabs = CATEGORY_TREE.interface or {}
+    local wrapper = CreateFrame("Frame", nil, parent)
+    wrapper:SetAllPoints()
+    wrapper._muiDesign = GetCategory("interface")
+
+    local content = CreateFrame("Frame", nil, wrapper)
+    content:SetAllPoints()
+    content._muiDesign = wrapper._muiDesign
+
+    local tabPanels = {}
+    local currentTab = nil
+
+    local function FindTab(key)
+        for _, tab in ipairs(tabs) do
+            if tab.key == key then return tab end
+        end
+        return nil
+    end
+
+    local function SwitchTab(key)
+        local tab = FindTab(key)
+        if not tab then return end
+
+        if currentTab and tabPanels[currentTab] and tabPanels[currentTab].Hide then
+            tabPanels[currentTab]:Hide()
+        end
+
+        if not tabPanels[key] then
+            -- Reproduce the outer-tab build path that CreateTabPanel normally
+            -- establishes, so Global Search and nested deep-links keep the
+            -- exact same category > tab path as before this GUI refactor.
+            if W._RestoreTabPath then W._RestoreTabPath({}) end
+            if W._SetBuildTabAt then
+                W._SetBuildTabAt(1, tab.key, tab.label)
+            elseif W._SetBuildTab then
+                W._SetBuildTab(tab.key, tab.label)
+            end
+
+            local panel = BuildPanelByName(content, tab.global)
+            if panel then
+                if panel:GetParent() ~= content then panel:SetParent(content) end
+                panel:SetAllPoints(content)
+                tabPanels[key] = panel
+            end
+        end
+
+        if tabPanels[key] then tabPanels[key]:Show() end
+        currentTab = key
+        currentInterfacePage = key
+
+        if configFrame and configFrame._contextTitle then
+            local cat = GetCategory("interface")
+            configFrame._contextTitle:SetText(
+                string.format("%s  /  %s", cat and cat.label or "Interface", tab.label or key))
+        end
+        if C.RefreshWorkspaceNav then C.RefreshWorkspaceNav() end
+        if W.ApplyRoleFilter then W.ApplyRoleFilter() end
+    end
+
+    local pendingPath = C._pendingTabPath
+    local startKey = (pendingPath and pendingPath[1]) or C._pendingGroupTab or currentInterfacePage
+    if not FindTab(startKey) then startKey = tabs[1] and tabs[1].key end
+
+    wrapper.SwitchTab = SwitchTab
+    wrapper.HasTab = function(key) return FindTab(key) ~= nil end
+    wrapper.content = content
+    wrapper:SetScript("OnShow", function()
+        if currentTab then SwitchTab(currentTab) end
+    end)
+
+    if startKey then SwitchTab(startKey) end
+    return wrapper
+end
+
+-- Units workspace: Unit Frames, Nameplates, Party Frames and Raid Frames use
+-- the same left-sidebar navigation as Interface. Their panel builders and all
+-- nested tabs/previews remain untouched.
+local function BuildUnitsWorkspacePanel(parent)
+    local tabs = CATEGORY_TREE.units or {}
+    local wrapper = CreateFrame("Frame", nil, parent)
+    wrapper:SetAllPoints()
+    wrapper._muiDesign = GetCategory("units")
+
+    local content = CreateFrame("Frame", nil, wrapper)
+    content:SetAllPoints()
+    content._muiDesign = wrapper._muiDesign
+
+    local tabPanels = {}
+    local currentTab = nil
+
+    local function FindTab(key)
+        for _, tab in ipairs(tabs) do
+            if tab.key == key then return tab end
+        end
+        return nil
+    end
+
+    local function SwitchTab(key)
+        local tab = FindTab(key)
+        if not tab then return end
+
+        if currentTab and tabPanels[currentTab] and tabPanels[currentTab].Hide then
+            tabPanels[currentTab]:Hide()
+        end
+
+        if not tabPanels[key] then
+            if W._RestoreTabPath then W._RestoreTabPath({}) end
+            if W._SetBuildTabAt then
+                W._SetBuildTabAt(1, tab.key, tab.label)
+            elseif W._SetBuildTab then
+                W._SetBuildTab(tab.key, tab.label)
+            end
+
+            local panel = BuildPanelByName(content, tab.global)
+            if panel then
+                if panel:GetParent() ~= content then panel:SetParent(content) end
+                panel:SetAllPoints(content)
+                tabPanels[key] = panel
+            end
+        end
+
+        if tabPanels[key] then tabPanels[key]:Show() end
+        currentTab = key
+        currentUnitsPage = key
+
+        if configFrame and configFrame._contextTitle then
+            local cat = GetCategory("units")
+            configFrame._contextTitle:SetText(
+                string.format("%s  /  %s", cat and cat.label or "Unités", tab.label or key))
+        end
+        if C.RefreshWorkspaceNav then C.RefreshWorkspaceNav() end
+        if W.ApplyRoleFilter then W.ApplyRoleFilter() end
+    end
+
+    local pendingPath = C._pendingTabPath
+    local startKey = (pendingPath and pendingPath[1]) or C._pendingGroupTab or currentUnitsPage
+    if not FindTab(startKey) then startKey = tabs[1] and tabs[1].key end
+
+    wrapper.SwitchTab = SwitchTab
+    wrapper.HasTab = function(key) return FindTab(key) ~= nil end
+    wrapper.content = content
+    wrapper:SetScript("OnShow", function()
+        if currentTab then SwitchTab(currentTab) end
+    end)
+
+    if startKey then SwitchTab(startKey) end
+    return wrapper
+end
+
+-- Combat workspace: Castbars, Resources, Cooldown Forge and Mythic+ use the
+-- left sidebar as their first navigation level. The panels themselves keep
+-- every nested tab, preview and live setting exactly as before.
+local function BuildCombatWorkspacePanel(parent)
+    local tabs = CATEGORY_TREE.combat or {}
+    local wrapper = CreateFrame("Frame", nil, parent)
+    wrapper:SetAllPoints()
+    wrapper._muiDesign = GetCategory("combat")
+
+    local content = CreateFrame("Frame", nil, wrapper)
+    content:SetAllPoints()
+    content._muiDesign = wrapper._muiDesign
+
+    local tabPanels = {}
+    local currentTab = nil
+
+    local function FindTab(key)
+        for _, tab in ipairs(tabs) do
+            if tab.key == key then return tab end
+        end
+        return nil
+    end
+
+    local function SwitchTab(key)
+        local tab = FindTab(key)
+        if not tab then return end
+
+        if currentTab and tabPanels[currentTab] and tabPanels[currentTab].Hide then
+            tabPanels[currentTab]:Hide()
+        end
+
+        if not tabPanels[key] then
+            -- Preserve the old category > tab build path for Global Search
+            -- and for any nested deep-links owned by the combat panels.
+            if W._RestoreTabPath then W._RestoreTabPath({}) end
+            if W._SetBuildTabAt then
+                W._SetBuildTabAt(1, tab.key, tab.label)
+            elseif W._SetBuildTab then
+                W._SetBuildTab(tab.key, tab.label)
+            end
+
+            local panel = BuildPanelByName(content, tab.global)
+            if panel then
+                if panel:GetParent() ~= content then panel:SetParent(content) end
+                panel:SetAllPoints(content)
+                tabPanels[key] = panel
+            end
+        end
+
+        if tabPanels[key] then tabPanels[key]:Show() end
+        currentTab = key
+        currentCombatPage = key
+
+        if configFrame and configFrame._contextTitle then
+            local cat = GetCategory("combat")
+            configFrame._contextTitle:SetText(
+                string.format("%s  /  %s", cat and cat.label or "Combat", tab.label or key))
+        end
+        if C.RefreshWorkspaceNav then C.RefreshWorkspaceNav() end
+        if W.ApplyRoleFilter then W.ApplyRoleFilter() end
+    end
+
+    local pendingPath = C._pendingTabPath
+    local startKey = (pendingPath and pendingPath[1]) or C._pendingGroupTab or currentCombatPage
+    if not FindTab(startKey) then startKey = tabs[1] and tabs[1].key end
+
+    wrapper.SwitchTab = SwitchTab
+    wrapper.HasTab = function(key) return FindTab(key) ~= nil end
+    wrapper.content = content
+    wrapper:SetScript("OnShow", function()
+        if currentTab then SwitchTab(currentTab) end
+    end)
+
+    if startKey then SwitchTab(startKey) end
+    return wrapper
+end
+
+local function CreateComfortGroupButton(parent, group)
+    local cat = GetCategory("comfort")
+    local aR, aG, aB = CategoryAccent(cat)
+    local btn = CreateFrame("Button", nil, parent)
+    btn:SetSize(NAV_W, 30)
+
+    local bg = btn:CreateTexture(nil, "BACKGROUND")
+    bg:SetPoint("TOPLEFT", 24, 0)
+    bg:SetPoint("BOTTOMRIGHT", -8, 0)
+    bg:SetColorTexture(aR, aG, aB, 0)
+
+    local marker = btn:CreateFontString(nil, "OVERLAY")
+    marker:SetFont(FONT_BOLD, 11, "")
+    marker:SetPoint("LEFT", 32, 0)
+    marker:SetText(group.direct and "•" or "›")
+
+    local lbl = btn:CreateFontString(nil, "OVERLAY")
+    lbl:SetFont(FONT_BOLD, 11, "")
+    lbl:SetPoint("LEFT", 44, 0)
+    lbl:SetPoint("RIGHT", -10, 0)
+    lbl:SetJustifyH("LEFT")
+    lbl:SetText(group.label or group.key)
+
+    local function IsActive()
+        return currentCategory == "comfort" and COMFORT_PAGE_TO_GROUP[currentComfortPage] == group.key
+    end
+    local function SetActive(active)
+        if active then
+            bg:SetColorTexture(aR, aG, aB, 0.09)
+            marker:SetTextColor(aR, aG, aB, 1)
+            lbl:SetTextColor(0.92, 0.95, 0.93, 1)
+        else
+            bg:SetColorTexture(aR, aG, aB, 0)
+            marker:SetTextColor(aR, aG, aB, 0.45)
+            lbl:SetTextColor(0.62, 0.62, 0.68, 1)
+        end
+    end
+    btn.SetActive = SetActive
+    SetActive(false)
+
+    btn:SetScript("OnEnter", function()
+        if not IsActive() then
+            bg:SetColorTexture(aR, aG, aB, 0.05)
+            lbl:SetTextColor(0.80, 0.82, 0.84, 1)
+        end
+    end)
+    btn:SetScript("OnLeave", function() SetActive(IsActive()) end)
+    btn:SetScript("OnClick", function()
+        if C.OpenComfortPage then C.OpenComfortPage(group.default) end
+    end)
+    return btn
+end
+
+local function CreateComfortLeafButton(parent, page)
+    local cat = GetCategory("comfort")
+    local aR, aG, aB = CategoryAccent(cat)
+    local btn = CreateFrame("Button", nil, parent)
+    btn:SetSize(NAV_W, 28)
+
+    local bg = btn:CreateTexture(nil, "BACKGROUND")
+    bg:SetPoint("TOPLEFT", 44, 0)
+    bg:SetPoint("BOTTOMRIGHT", -8, 0)
+    bg:SetColorTexture(aR, aG, aB, 0)
+
+    local dot = btn:CreateTexture(nil, "OVERLAY")
+    dot:SetSize(3, 3)
+    dot:SetPoint("LEFT", 50, 0)
+    dot:SetColorTexture(aR, aG, aB, 0.28)
+
+    local lbl = btn:CreateFontString(nil, "OVERLAY")
+    lbl:SetFont(FONT, 10, "")
+    lbl:SetPoint("LEFT", 60, 0)
+    lbl:SetPoint("RIGHT", -10, 0)
+    lbl:SetJustifyH("LEFT")
+    lbl:SetText(page.label or page.key)
+
+    local function IsActive()
+        return currentCategory == "comfort" and currentComfortPage == page.key
+    end
+    local function SetActive(active)
+        if active then
+            bg:SetColorTexture(aR, aG, aB, 0.11)
+            dot:SetColorTexture(aR, aG, aB, 1)
+            lbl:SetTextColor(aR, aG, aB, 1)
+        else
+            bg:SetColorTexture(aR, aG, aB, 0)
+            dot:SetColorTexture(aR, aG, aB, 0.28)
+            lbl:SetTextColor(0.50, 0.50, 0.56, 1)
+        end
+    end
+    btn.SetActive = SetActive
+    SetActive(false)
+
+    btn:SetScript("OnEnter", function()
+        if not IsActive() then
+            bg:SetColorTexture(aR, aG, aB, 0.05)
+            lbl:SetTextColor(0.74, 0.76, 0.78, 1)
+        end
+    end)
+    btn:SetScript("OnLeave", function() SetActive(IsActive()) end)
+    btn:SetScript("OnClick", function()
+        if C.OpenComfortPage then C.OpenComfortPage(page.key) end
+    end)
+    return btn
+end
+
+local function BuildReadyTrackerComfortPanel(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+
+    local _, ny = W.CreateSectionHeader(c, L["ready_tracker_section"], y)
+    y = ny
+    local _, ny = W.CreateInfoText(c, L["ready_tracker_info"], y)
+    y = ny
+
+    local function ReadyDB()
+        TomoModDB.consumableBar = TomoModDB.consumableBar or {}
+        return TomoModDB.consumableBar
+    end
+    local function Apply()
+        if TomoMod_ConsumableBar and TomoMod_ConsumableBar.ApplySettings then
+            TomoMod_ConsumableBar.ApplySettings()
+        end
+    end
+
+    local db = ReadyDB()
+    local _, ny = W.CreateCheckbox(c, L["ready_tracker_enable"], db.enabled ~= false, y, function(v)
+        ReadyDB().enabled = v
+        Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateDropdown(c, L["ready_tracker_button_side"], {
+        { text = L["ready_tracker_side_left"],  value = "left" },
+        { text = L["ready_tracker_side_right"], value = "right" },
+    }, db.buttonSide or "left", y, function(v)
+        ReadyDB().buttonSide = v
+        Apply()
+    end)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- Confort workspace: the QOL tab panel remains the rendering engine, but its
+-- own first-level tab bar is hidden and controlled by the hierarchical left
+-- sidebar. This keeps every existing builder/deep-link intact.
+local function BuildComfortWorkspacePanel(parent)
+    local wrapper = CreateFrame("Frame", nil, parent)
+    wrapper:SetAllPoints()
+    wrapper._muiDesign = GetCategory("comfort")
+
+    local content = CreateFrame("Frame", nil, wrapper)
+    content:SetAllPoints()
+    content._muiDesign = wrapper._muiDesign
+
+    local qolPanel, housingPanel, readyPanel
+    local currentSurface
+
+    local function HideCurrent()
+        if currentSurface and currentSurface.Hide then currentSurface:Hide() end
+        currentSurface = nil
+    end
+
+    local function SetOuterPath(key, label)
+        if W._RestoreTabPath then W._RestoreTabPath({}) end
+        if W._SetBuildTabAt then
+            W._SetBuildTabAt(1, key, label)
+        elseif W._SetBuildTab then
+            W._SetBuildTab(key, label)
+        end
+    end
+
+    local function EnsureQOLPanel()
+        if qolPanel then return qolPanel end
+        SetOuterPath("qol", L["cfg_tab_qol"])
+        qolPanel = BuildPanelByName(content, "TomoMod_ConfigPanel_QOL")
+        if not qolPanel then return nil end
+        if qolPanel:GetParent() ~= content then qolPanel:SetParent(content) end
+        qolPanel:SetAllPoints(content)
+
+        -- W.CreateTabPanel exposes its content frame. Hide only the sibling
+        -- tab bar and let the content reclaim the full available height.
+        if qolPanel.content then
+            local children = { qolPanel:GetChildren() }
+            for _, child in ipairs(children) do
+                if child ~= qolPanel.content and child.Hide then child:Hide() end
+            end
+            qolPanel.content:ClearAllPoints()
+            qolPanel.content:SetAllPoints(qolPanel)
+        end
+        return qolPanel
+    end
+
+    local function EnsureHousingPanel()
+        if housingPanel then return housingPanel end
+        SetOuterPath("housing", L["cfg_tab_housing"])
+        housingPanel = BuildPanelByName(content, "TomoMod_ConfigPanel_Housing")
+        if housingPanel then
+            if housingPanel:GetParent() ~= content then housingPanel:SetParent(content) end
+            housingPanel:SetAllPoints(content)
+        end
+        return housingPanel
+    end
+
+    local function EnsureReadyPanel()
+        if readyPanel then return readyPanel end
+        SetOuterPath("consumables", COMFORT_PAGE_LABEL.consumables)
+        readyPanel = BuildReadyTrackerComfortPanel(content)
+        if readyPanel then
+            if readyPanel:GetParent() ~= content then readyPanel:SetParent(content) end
+            readyPanel:SetAllPoints(content)
+        end
+        return readyPanel
+    end
+
+    local function IsKnownPage(key)
+        return COMFORT_QOL_PAGES[key] or key == "consumables" or key == "housing"
+    end
+
+    local function SwitchTab(key)
+        if key == "qol" then key = currentComfortPage end
+        if not IsKnownPage(key) then key = "automations" end
+        HideCurrent()
+
+        if COMFORT_QOL_PAGES[key] then
+            local panel = EnsureQOLPanel()
+            if panel then
+                panel:Show()
+                if panel.SwitchTab then panel.SwitchTab(key) end
+                currentSurface = panel
+            end
+        elseif key == "consumables" then
+            local panel = EnsureReadyPanel()
+            if panel then panel:Show(); currentSurface = panel end
+        elseif key == "housing" then
+            local panel = EnsureHousingPanel()
+            if panel then panel:Show(); currentSurface = panel end
+        end
+
+        currentComfortPage = key
+
+        if configFrame and configFrame._contextTitle then
+            local cat = GetCategory("comfort")
+            local groupKey = COMFORT_PAGE_TO_GROUP[key]
+            local groupLabel
+            for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
+                if group.key == groupKey then groupLabel = group.label; break end
+            end
+            local pageLabel = COMFORT_PAGE_LABEL[key] or key
+            if groupLabel and groupLabel ~= pageLabel then
+                configFrame._contextTitle:SetText(string.format("%s  /  %s  /  %s",
+                    cat and cat.label or "Confort", groupLabel, pageLabel))
+            else
+                configFrame._contextTitle:SetText(string.format("%s  /  %s",
+                    cat and cat.label or "Confort", pageLabel))
+            end
+        end
+
+        if C.RefreshWorkspaceNav then C.RefreshWorkspaceNav() end
+        if W.ApplyRoleFilter then W.ApplyRoleFilter() end
+    end
+
+    local pendingPath = C._pendingTabPath
+    local requested = C._pendingGroupTab
+    C._pendingGroupTab = nil
+    local startKey = currentComfortPage
+    if pendingPath and pendingPath[1] == "qol" then
+        startKey = pendingPath[2] or startKey
+    elseif pendingPath and pendingPath[1] then
+        startKey = pendingPath[1]
+    elseif requested then
+        startKey = requested
+    end
+    if startKey == "qol" or not IsKnownPage(startKey) then startKey = currentComfortPage end
+    if not IsKnownPage(startKey) then startKey = "automations" end
+
+    wrapper.SwitchTab = SwitchTab
+    wrapper.HasTab = function(key) return key == "qol" or IsKnownPage(key) end
+    wrapper.content = content
+    wrapper:SetScript("OnShow", function() SwitchTab(currentComfortPage) end)
+
+    SwitchTab(startKey)
+    return wrapper
+end
+
+function C.OpenComfortPage(key)
+    if not key then return end
+    C._pendingGroupTab = key
+    C.SwitchCategory("comfort")
 end
 
 -- =====================================================================
@@ -860,30 +1592,167 @@ local function CreateConfigFrame()
         categoryButtons[cat.key] = btn
         btn._cat = cat
     end
+    for _, item in ipairs(INTERFACE_WORKSPACE_ITEMS) do
+        interfaceSubButtons[item.key] = CreateSubNavButton(navChild, item, "interface")
+        interfaceSubButtons[item.key]:Hide()
+    end
+    for _, item in ipairs(UNITS_WORKSPACE_ITEMS) do
+        unitsSubButtons[item.key] = CreateSubNavButton(navChild, item, "units")
+        unitsSubButtons[item.key]:Hide()
+    end
+    for _, item in ipairs(COMBAT_WORKSPACE_ITEMS) do
+        combatSubButtons[item.key] = CreateSubNavButton(navChild, item, "combat")
+        combatSubButtons[item.key]:Hide()
+    end
+    for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
+        comfortGroupButtons[group.key] = CreateComfortGroupButton(navChild, group)
+        comfortGroupButtons[group.key]:Hide()
+        for _, page in ipairs(group.pages or {}) do
+            comfortLeafButtons[page.key] = CreateComfortLeafButton(navChild, page)
+            comfortLeafButtons[page.key]:Hide()
+        end
+    end
 
-    -- Relayout + filtre de recherche (label + clé + mots-clés)
+    -- Relayout + filtre de recherche. In Interface workspace, Accueil is the
+    -- explicit exit: Roles/Profiles/Diagnostics remain reachable without
+    -- collapsing the workspace, exactly like the requested left menu.
     local function RelayoutNav(filter)
         filter = (filter or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
-        local yy, count = -4, 0
-        for _, cat in ipairs(categories) do
-            local btn = categoryButtons[cat.key]
-            local hay = ((cat.label or "") .. " " .. (cat.key or "") .. " " .. (cat.kw or "")):lower()
-            local match = (filter == "") or (hay:find(filter, 1, true) ~= nil)
-            if match then
-                btn:ClearAllPoints()
-                btn:SetPoint("TOPLEFT", navChild, "TOPLEFT", 0, yy)
-                btn:Show()
-                yy = yy - NAV_BTN_H
-                count = count + 1
-            else
-                btn:Hide()
+        local yy = -4
+
+        for _, btn in pairs(categoryButtons) do btn:Hide() end
+        for _, btn in pairs(interfaceSubButtons) do btn:Hide() end
+        for _, btn in pairs(unitsSubButtons) do btn:Hide() end
+        for _, btn in pairs(combatSubButtons) do btn:Hide() end
+        for _, btn in pairs(comfortGroupButtons) do btn:Hide() end
+        for _, btn in pairs(comfortLeafButtons) do btn:Hide() end
+
+        local function Match(label, key, kw)
+            if filter == "" then return true end
+            local hay = ((label or "") .. " " .. (key or "") .. " " .. (kw or "")):lower()
+            return hay:find(filter, 1, true) ~= nil
+        end
+
+        local function Place(btn, height)
+            btn:ClearAllPoints()
+            btn:SetPoint("TOPLEFT", navChild, "TOPLEFT", 0, yy)
+            btn:Show()
+            yy = yy - height
+        end
+
+        if currentWorkspace == "interface" then
+            local order = { "accueil", "roles", "interface", "profiles", "diagnostics" }
+            for _, key in ipairs(order) do
+                local btn = categoryButtons[key]
+                local cat = btn and btn._cat
+                if btn and cat and Match(cat.label, cat.key, cat.kw) then
+                    Place(btn, NAV_BTN_H)
+                end
+                if key == "interface" then
+                    for _, item in ipairs(INTERFACE_WORKSPACE_ITEMS) do
+                        local sub = interfaceSubButtons[item.key]
+                        if sub and Match(item.label, item.key, item.kw) then
+                            Place(sub, 32)
+                        end
+                    end
+                end
+            end
+        elseif currentWorkspace == "units" then
+            local order = { "accueil", "roles", "units", "profiles", "diagnostics" }
+            for _, key in ipairs(order) do
+                local btn = categoryButtons[key]
+                local cat = btn and btn._cat
+                if btn and cat and Match(cat.label, cat.key, cat.kw) then
+                    Place(btn, NAV_BTN_H)
+                end
+                if key == "units" then
+                    for _, item in ipairs(UNITS_WORKSPACE_ITEMS) do
+                        local sub = unitsSubButtons[item.key]
+                        if sub and Match(item.label, item.key, item.kw) then
+                            Place(sub, 32)
+                        end
+                    end
+                end
+            end
+        elseif currentWorkspace == "combat" then
+            local order = { "accueil", "roles", "combat", "profiles", "diagnostics" }
+            for _, key in ipairs(order) do
+                local btn = categoryButtons[key]
+                local cat = btn and btn._cat
+                if btn and cat and Match(cat.label, cat.key, cat.kw) then
+                    Place(btn, NAV_BTN_H)
+                end
+                if key == "combat" then
+                    for _, item in ipairs(COMBAT_WORKSPACE_ITEMS) do
+                        local sub = combatSubButtons[item.key]
+                        if sub and Match(item.label, item.key, item.kw) then
+                            Place(sub, 32)
+                        end
+                    end
+                end
+            end
+        elseif currentWorkspace == "comfort" then
+            local order = { "accueil", "roles", "comfort", "profiles", "diagnostics" }
+            for _, key in ipairs(order) do
+                local btn = categoryButtons[key]
+                local cat = btn and btn._cat
+                if btn and cat and Match(cat.label, cat.key, cat.kw) then
+                    Place(btn, NAV_BTN_H)
+                end
+                if key == "comfort" then
+                    for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
+                        local groupMatch = Match(group.label, group.key, group.kw)
+                        local childMatch = false
+                        for _, page in ipairs(group.pages or {}) do
+                            if Match(page.label, page.key, page.kw) then childMatch = true; break end
+                        end
+                        if group.direct then
+                            if groupMatch or Match(group.label, group.default, group.kw) then
+                                Place(comfortGroupButtons[group.key], 30)
+                            end
+                        elseif filter == "" or groupMatch or childMatch then
+                            Place(comfortGroupButtons[group.key], 30)
+                            for _, page in ipairs(group.pages or {}) do
+                                if filter == "" or groupMatch or Match(page.label, page.key, page.kw) then
+                                    Place(comfortLeafButtons[page.key], 28)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        else
+            for _, cat in ipairs(categories) do
+                local btn = categoryButtons[cat.key]
+                if Match(cat.label, cat.key, cat.kw) then
+                    Place(btn, NAV_BTN_H)
+                end
             end
         end
-        navChild:SetHeight(math.max(count * NAV_BTN_H + 8, 1))
+
+        navChild:SetHeight(math.max(math.abs(yy) + 8, 1))
         navScroll:SetVerticalScroll(0)
         UpdateNavThumb()
     end
     C.RelayoutNav = RelayoutNav
+    C.RefreshWorkspaceNav = function()
+        for key, btn in pairs(interfaceSubButtons) do
+            btn.SetActive(currentCategory == "interface" and currentInterfacePage == key)
+        end
+        for key, btn in pairs(unitsSubButtons) do
+            btn.SetActive(currentCategory == "units" and currentUnitsPage == key)
+        end
+        for key, btn in pairs(combatSubButtons) do
+            btn.SetActive(currentCategory == "combat" and currentCombatPage == key)
+        end
+        for key, btn in pairs(comfortGroupButtons) do
+            btn.SetActive(currentCategory == "comfort" and COMFORT_PAGE_TO_GROUP[currentComfortPage] == key)
+        end
+        for key, btn in pairs(comfortLeafButtons) do
+            btn.SetActive(currentCategory == "comfort" and currentComfortPage == key)
+        end
+        RelayoutNav(searchBox:GetText() or "")
+    end
 
     searchBox:SetScript("OnTextChanged", function(self)
         local txt = self:GetText() or ""
@@ -987,6 +1856,29 @@ function C.SwitchCategory(key)
         key = alias.key
     end
 
+    -- Interface opens its dedicated workspace. Accueil is the explicit way
+    -- back to the normal TomoMod menu. The three utility destinations shown
+    -- in that workspace do not close it; unrelated deep-links do.
+    if key == "interface" then
+        currentWorkspace = "interface"
+    elseif key == "units" then
+        currentWorkspace = "units"
+    elseif key == "combat" then
+        currentWorkspace = "combat"
+    elseif key == "comfort" then
+        currentWorkspace = "comfort"
+    elseif key == "accueil" then
+        currentWorkspace = nil
+    elseif currentWorkspace == "interface" and not INTERFACE_WORKSPACE_ALLOWED[key] then
+        currentWorkspace = nil
+    elseif currentWorkspace == "units" and not UNITS_WORKSPACE_ALLOWED[key] then
+        currentWorkspace = nil
+    elseif currentWorkspace == "combat" and not COMBAT_WORKSPACE_ALLOWED[key] then
+        currentWorkspace = nil
+    elseif currentWorkspace == "comfort" and not COMFORT_WORKSPACE_ALLOWED[key] then
+        currentWorkspace = nil
+    end
+
     local catMeta = GetCategory(key)
     if W and W.SetPanelContext then W.SetPanelContext(catMeta) end
     if W and W.SetBuildContext then W.SetBuildContext(key, catMeta and catMeta.label or key) end
@@ -1039,11 +1931,11 @@ function C.SwitchCategory(key)
         end
 
         local builderMap = {
-            interface = function(p) return BuildGroupedFromTree(p, "interface") end,
+            interface = function(p) return BuildInterfaceWorkspacePanel(p) end,
             roles     = function(p) return BuildGroupedFromTree(p, "roles") end,
-            units     = function(p) return BuildGroupedFromTree(p, "units") end,
-            combat    = function(p) return BuildGroupedFromTree(p, "combat") end,
-            comfort   = function(p) return BuildGroupedFromTree(p, "comfort") end,
+            units     = function(p) return BuildUnitsWorkspacePanel(p) end,
+            combat    = function(p) return BuildCombatWorkspacePanel(p) end,
+            comfort   = function(p) return BuildComfortWorkspacePanel(p) end,
         }
         local builder = builderMap[key] or SINGLE_PAGES[key]
         if type(builder) == "string" then builder = _G[builder] end
@@ -1073,6 +1965,7 @@ function C.SwitchCategory(key)
     if W and W.ApplyRoleFilter then W.ApplyRoleFilter() end
 
     currentCategory = key
+    if C.RefreshWorkspaceNav then C.RefreshWorkspaceNav() end
 end
 
 -- =====================================================================

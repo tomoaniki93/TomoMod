@@ -4,6 +4,14 @@
 
 #### Module Inventory — The Foundation
 
+#### Options — Focused Workspaces
+
+- **New** — The Interface category now opens as a focused workspace in the options sidebar. Its General, Action Bars, Skins and Sound pages sit directly below Interface, while Home, Roles, Profiles and Diagnostics remain available without leaving the workspace. The existing panel builders, nested tabs, search and deep links are preserved.
+- **New** — Units now uses the same focused workspace navigation for UnitFrames, Nameplates, Party Frames and Raid Frames. Each page remains lazily built and cached as before, including its existing nested controls and previews.
+- **New** — Combat now uses the focused workspace navigation for Cast Bars, Resources, Cooldown Forge and Mythic+. The sidebar keeps the combat configuration pages together while preserving their existing builders, nested tabs, search paths and live previews.
+- **New** — Comfort is now a grouped workspace in the sidebar. Automation, Players, Classes, CVars, World Quest and Other organise the existing quality-of-life pages into a clear second navigation level, while keeping their original panel builders, nested settings, search paths and live behaviour. The Consumables readiness tracker has a dedicated leaf, and Housing remains reachable from Other during this navigation migration.
+- **Changed** — The sidebar search filters workspace pages as well as categories, and its active state follows the selected page. Choosing Home returns to the full category list; opening another category outside the workspace does the same.
+
 - **New** — `Core/ModuleRegistry.lua` is the engine of a central module inventory. It stores no behaviour of its own: a manifest records where a module keeps its settings, which group it belongs to, what it can be toggled by, what it may move on screen, and whether it survives a content swap. Defining a manifest does not load, enable, disable or touch a module.
 - **New** — `Core/ModuleManifest.lua` is the inventory itself: **68 entries, one per top-level key of `TomoMod_Defaults`** — 62 public modules and 6 internal bookkeeping entries (installer progress, cached keystones, CVar backups, the last seen version) that are never listed, never toggled and never offered at import time.
 - **New** — Nine groups own the drill-down level for selective profile import and the spine of the v4 navigation: general (8), actionbars (2), skins (11), unitframes (3), groupframes (4), nameplates (1), cooldowns (3), mythicplus (3) and qol (27). They deliberately do not mirror `TomoMod_Config.CategoryTree`, which describes the *current* config UI and is due to be rewritten — binding the data layer to it would mean re-labelling every manifest the day the shell changes.
