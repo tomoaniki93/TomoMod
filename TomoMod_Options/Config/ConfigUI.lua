@@ -147,8 +147,8 @@ local function ComfortText(fr, en)
 end
 
 -- Confort uses one more navigation level than Interface/Unités/Combat.
--- Group rows stay visible while the existing QOL builders are reused as
--- leaves, so the refactor changes navigation without duplicating settings.
+-- Its group aliases therefore live in a compact secondary navigation on the
+-- right, while the existing QOL builders are reused as leaves.
 local COMFORT_WORKSPACE_GROUPS = {
     {
         key = "automation", label = ComfortText("Automatisation", "Automation"), default = "automations",
@@ -258,13 +258,12 @@ local currentInterfacePage = "general"
 local currentUnitsPage = "unitframes"
 local currentCombatPage = "castbars"
 local currentComfortPage = "automations"
+local comfortLastPageByGroup = {}
 local categoryPanels  = {}
 local categoryButtons = {}
 local interfaceSubButtons = {}
 local unitsSubButtons = {}
 local combatSubButtons = {}
-local comfortGroupButtons = {}
-local comfortLeafButtons = {}
 local activeCategoryPanel = nil
 local hiddenPanelBin = nil
 
@@ -903,112 +902,6 @@ local function BuildCombatWorkspacePanel(parent)
     return wrapper
 end
 
-local function CreateComfortGroupButton(parent, group)
-    local cat = GetCategory("comfort")
-    local aR, aG, aB = CategoryAccent(cat)
-    local btn = CreateFrame("Button", nil, parent)
-    btn:SetSize(NAV_W, 30)
-
-    local bg = btn:CreateTexture(nil, "BACKGROUND")
-    bg:SetPoint("TOPLEFT", 24, 0)
-    bg:SetPoint("BOTTOMRIGHT", -8, 0)
-    bg:SetColorTexture(aR, aG, aB, 0)
-
-    local marker = btn:CreateFontString(nil, "OVERLAY")
-    marker:SetFont(FONT_BOLD, 11, "")
-    marker:SetPoint("LEFT", 32, 0)
-    marker:SetText(group.direct and "•" or "›")
-
-    local lbl = btn:CreateFontString(nil, "OVERLAY")
-    lbl:SetFont(FONT_BOLD, 11, "")
-    lbl:SetPoint("LEFT", 44, 0)
-    lbl:SetPoint("RIGHT", -10, 0)
-    lbl:SetJustifyH("LEFT")
-    lbl:SetText(group.label or group.key)
-
-    local function IsActive()
-        return currentCategory == "comfort" and COMFORT_PAGE_TO_GROUP[currentComfortPage] == group.key
-    end
-    local function SetActive(active)
-        if active then
-            bg:SetColorTexture(aR, aG, aB, 0.09)
-            marker:SetTextColor(aR, aG, aB, 1)
-            lbl:SetTextColor(0.92, 0.95, 0.93, 1)
-        else
-            bg:SetColorTexture(aR, aG, aB, 0)
-            marker:SetTextColor(aR, aG, aB, 0.45)
-            lbl:SetTextColor(0.62, 0.62, 0.68, 1)
-        end
-    end
-    btn.SetActive = SetActive
-    SetActive(false)
-
-    btn:SetScript("OnEnter", function()
-        if not IsActive() then
-            bg:SetColorTexture(aR, aG, aB, 0.05)
-            lbl:SetTextColor(0.80, 0.82, 0.84, 1)
-        end
-    end)
-    btn:SetScript("OnLeave", function() SetActive(IsActive()) end)
-    btn:SetScript("OnClick", function()
-        if C.OpenComfortPage then C.OpenComfortPage(group.default) end
-    end)
-    return btn
-end
-
-local function CreateComfortLeafButton(parent, page)
-    local cat = GetCategory("comfort")
-    local aR, aG, aB = CategoryAccent(cat)
-    local btn = CreateFrame("Button", nil, parent)
-    btn:SetSize(NAV_W, 28)
-
-    local bg = btn:CreateTexture(nil, "BACKGROUND")
-    bg:SetPoint("TOPLEFT", 44, 0)
-    bg:SetPoint("BOTTOMRIGHT", -8, 0)
-    bg:SetColorTexture(aR, aG, aB, 0)
-
-    local dot = btn:CreateTexture(nil, "OVERLAY")
-    dot:SetSize(3, 3)
-    dot:SetPoint("LEFT", 50, 0)
-    dot:SetColorTexture(aR, aG, aB, 0.28)
-
-    local lbl = btn:CreateFontString(nil, "OVERLAY")
-    lbl:SetFont(FONT, 10, "")
-    lbl:SetPoint("LEFT", 60, 0)
-    lbl:SetPoint("RIGHT", -10, 0)
-    lbl:SetJustifyH("LEFT")
-    lbl:SetText(page.label or page.key)
-
-    local function IsActive()
-        return currentCategory == "comfort" and currentComfortPage == page.key
-    end
-    local function SetActive(active)
-        if active then
-            bg:SetColorTexture(aR, aG, aB, 0.11)
-            dot:SetColorTexture(aR, aG, aB, 1)
-            lbl:SetTextColor(aR, aG, aB, 1)
-        else
-            bg:SetColorTexture(aR, aG, aB, 0)
-            dot:SetColorTexture(aR, aG, aB, 0.28)
-            lbl:SetTextColor(0.50, 0.50, 0.56, 1)
-        end
-    end
-    btn.SetActive = SetActive
-    SetActive(false)
-
-    btn:SetScript("OnEnter", function()
-        if not IsActive() then
-            bg:SetColorTexture(aR, aG, aB, 0.05)
-            lbl:SetTextColor(0.74, 0.76, 0.78, 1)
-        end
-    end)
-    btn:SetScript("OnLeave", function() SetActive(IsActive()) end)
-    btn:SetScript("OnClick", function()
-        if C.OpenComfortPage then C.OpenComfortPage(page.key) end
-    end)
-    return btn
-end
-
 local function BuildReadyTrackerComfortPanel(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
@@ -1050,20 +943,191 @@ local function BuildReadyTrackerComfortPanel(parent)
     return scroll
 end
 
--- Confort workspace: the QOL tab panel remains the rendering engine, but its
--- own first-level tab bar is hidden and controlled by the hierarchical left
--- sidebar. This keeps every existing builder/deep-link intact.
+-- Confort workspace: QOL remains the rendering engine, but its extra
+-- hierarchy is rendered on the RIGHT. The main sidebar therefore stays as
+-- compact as Interface/Unités/Combat and never grows just because Confort
+-- contains more pages.
 local function BuildComfortWorkspacePanel(parent)
     local wrapper = CreateFrame("Frame", nil, parent)
     wrapper:SetAllPoints()
     wrapper._muiDesign = GetCategory("comfort")
 
+    local cat = GetCategory("comfort")
+    local aR, aG, aB = CategoryAccent(cat)
+    local GROUP_H, PAGE_H = 34, 30
+
+    -- First row: aliases (Automatisation / Joueurs / Classes / CVars / ...).
+    local groupBar = CreateFrame("Frame", nil, wrapper)
+    groupBar:SetPoint("TOPLEFT")
+    groupBar:SetPoint("TOPRIGHT")
+    groupBar:SetHeight(GROUP_H)
+    local groupBg = groupBar:CreateTexture(nil, "BACKGROUND")
+    groupBg:SetAllPoints()
+    groupBg:SetColorTexture(0.052, 0.052, 0.066, 1)
+    local groupLine = groupBar:CreateTexture(nil, "ARTWORK")
+    groupLine:SetHeight(1)
+    groupLine:SetPoint("BOTTOMLEFT")
+    groupLine:SetPoint("BOTTOMRIGHT")
+    groupLine:SetColorTexture(aR, aG, aB, 0.22)
+
+    -- Second row: only the pages belonging to the selected alias.
+    local pageBar = CreateFrame("Frame", nil, wrapper)
+    pageBar:SetPoint("TOPLEFT", groupBar, "BOTTOMLEFT", 0, -1)
+    pageBar:SetPoint("TOPRIGHT", groupBar, "BOTTOMRIGHT", 0, -1)
+    pageBar:SetHeight(PAGE_H)
+    local pageBg = pageBar:CreateTexture(nil, "BACKGROUND")
+    pageBg:SetAllPoints()
+    pageBg:SetColorTexture(0.043, 0.043, 0.056, 1)
+    local pageLine = pageBar:CreateTexture(nil, "ARTWORK")
+    pageLine:SetHeight(1)
+    pageLine:SetPoint("BOTTOMLEFT")
+    pageLine:SetPoint("BOTTOMRIGHT")
+    pageLine:SetColorTexture(aR, aG, aB, 0.14)
+
     local content = CreateFrame("Frame", nil, wrapper)
-    content:SetAllPoints()
+    content:SetPoint("TOPLEFT", pageBar, "BOTTOMLEFT", 0, -1)
+    content:SetPoint("BOTTOMRIGHT", 0, 0)
     content._muiDesign = wrapper._muiDesign
 
     local qolPanel, housingPanel, readyPanel
     local currentSurface
+    local groupButtons, pageButtons = {}, {}
+
+    local function FindGroup(groupKey)
+        for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
+            if group.key == groupKey then return group end
+        end
+        return nil
+    end
+
+    local function CreateRightTabButton(parentFrame, label, height, bold)
+        local btn = CreateFrame("Button", nil, parentFrame)
+        btn:SetHeight(height)
+
+        local bg = btn:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bg:SetColorTexture(0, 0, 0, 0)
+        btn._bg = bg
+
+        local indicator = btn:CreateTexture(nil, "ARTWORK")
+        indicator:SetHeight(2)
+        indicator:SetPoint("BOTTOMLEFT", 4, 0)
+        indicator:SetPoint("BOTTOMRIGHT", -4, 0)
+        indicator:SetColorTexture(aR, aG, aB, 1)
+        indicator:Hide()
+        btn._indicator = indicator
+
+        local lbl = btn:CreateFontString(nil, "OVERLAY")
+        lbl:SetFont(bold and FONT_BOLD or FONT, bold and 11 or 10, "")
+        lbl:SetPoint("LEFT", 7, 0)
+        lbl:SetPoint("RIGHT", -7, 0)
+        lbl:SetJustifyH("CENTER")
+        lbl:SetText(label or "")
+        lbl:SetTextColor(0.52, 0.52, 0.58, 1)
+        btn._label = lbl
+
+        btn.SetActive = function(_, active)
+            if active then
+                bg:SetColorTexture(aR, aG, aB, 0.11)
+                indicator:Show()
+                lbl:SetTextColor(aR, aG, aB, 1)
+            else
+                bg:SetColorTexture(0, 0, 0, 0)
+                indicator:Hide()
+                lbl:SetTextColor(0.52, 0.52, 0.58, 1)
+            end
+        end
+        btn:SetScript("OnEnter", function(self)
+            if not self._active then
+                bg:SetColorTexture(aR, aG, aB, 0.05)
+                lbl:SetTextColor(0.76, 0.78, 0.80, 1)
+            end
+        end)
+        btn:SetScript("OnLeave", function(self)
+            self:SetActive(self._active)
+        end)
+        return btn
+    end
+
+    local function LayoutButtons(bar, buttons, orderedKeys, height)
+        local count = #orderedKeys
+        if count == 0 then return end
+        local width = bar:GetWidth() or 0
+        if width < 100 then width = parent:GetWidth() or 1000 end
+        if width < 100 then width = 1000 end
+        local each = math.max(80, math.floor(width / count))
+        for i, key in ipairs(orderedKeys) do
+            local btn = buttons[key]
+            if btn then
+                btn:ClearAllPoints()
+                btn:SetSize((i == count) and math.max(80, width - each * (count - 1)) or each, height)
+                btn:SetPoint("TOPLEFT", bar, "TOPLEFT", (i - 1) * each, 0)
+            end
+        end
+    end
+
+    local groupOrder = {}
+    for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
+        local groupDef = group
+        groupOrder[#groupOrder + 1] = groupDef.key
+        local btn = CreateRightTabButton(groupBar, groupDef.label, GROUP_H, true)
+        btn:SetScript("OnClick", function()
+            local target = comfortLastPageByGroup[groupDef.key] or groupDef.default
+            if wrapper.SwitchTab then wrapper.SwitchTab(target) end
+        end)
+        groupButtons[groupDef.key] = btn
+
+        for _, page in ipairs(groupDef.pages or {}) do
+            local pageDef = page
+            local pageBtn = CreateRightTabButton(pageBar, pageDef.label, PAGE_H, false)
+            pageBtn:SetScript("OnClick", function()
+                if wrapper.SwitchTab then wrapper.SwitchTab(pageDef.key) end
+            end)
+            pageBtn:Hide()
+            pageButtons[pageDef.key] = pageBtn
+        end
+    end
+
+    local function LayoutGroupBar()
+        LayoutButtons(groupBar, groupButtons, groupOrder, GROUP_H)
+    end
+    groupBar:SetScript("OnSizeChanged", LayoutGroupBar)
+    C_Timer.After(0, LayoutGroupBar)
+
+    local function RefreshRightNav(key)
+        local groupKey = COMFORT_PAGE_TO_GROUP[key]
+        local group = FindGroup(groupKey)
+        for gKey, btn in pairs(groupButtons) do
+            btn._active = (gKey == groupKey)
+            btn:SetActive(btn._active)
+        end
+        for _, btn in pairs(pageButtons) do btn:Hide() end
+
+        local orderedPages = {}
+        if group and not group.direct then
+            for _, page in ipairs(group.pages or {}) do
+                orderedPages[#orderedPages + 1] = page.key
+                local btn = pageButtons[page.key]
+                if btn then
+                    btn._active = (page.key == key)
+                    btn:SetActive(btn._active)
+                    btn:Show()
+                end
+            end
+            pageBar:Show()
+            content:ClearAllPoints()
+            content:SetPoint("TOPLEFT", pageBar, "BOTTOMLEFT", 0, -1)
+            content:SetPoint("BOTTOMRIGHT", 0, 0)
+            LayoutButtons(pageBar, pageButtons, orderedPages, PAGE_H)
+        else
+            pageBar:Hide()
+            content:ClearAllPoints()
+            content:SetPoint("TOPLEFT", groupBar, "BOTTOMLEFT", 0, -1)
+            content:SetPoint("BOTTOMRIGHT", 0, 0)
+        end
+    end
+
+    pageBar:SetScript("OnSizeChanged", function() RefreshRightNav(currentComfortPage) end)
 
     local function HideCurrent()
         if currentSurface and currentSurface.Hide then currentSurface:Hide() end
@@ -1147,14 +1211,13 @@ local function BuildComfortWorkspacePanel(parent)
         end
 
         currentComfortPage = key
+        local groupKey = COMFORT_PAGE_TO_GROUP[key]
+        if groupKey then comfortLastPageByGroup[groupKey] = key end
+        RefreshRightNav(key)
 
         if configFrame and configFrame._contextTitle then
-            local cat = GetCategory("comfort")
-            local groupKey = COMFORT_PAGE_TO_GROUP[key]
-            local groupLabel
-            for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
-                if group.key == groupKey then groupLabel = group.label; break end
-            end
+            local group = FindGroup(groupKey)
+            local groupLabel = group and group.label
             local pageLabel = COMFORT_PAGE_LABEL[key] or key
             if groupLabel and groupLabel ~= pageLabel then
                 configFrame._contextTitle:SetText(string.format("%s  /  %s  /  %s",
@@ -1604,14 +1667,6 @@ local function CreateConfigFrame()
         combatSubButtons[item.key] = CreateSubNavButton(navChild, item, "combat")
         combatSubButtons[item.key]:Hide()
     end
-    for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
-        comfortGroupButtons[group.key] = CreateComfortGroupButton(navChild, group)
-        comfortGroupButtons[group.key]:Hide()
-        for _, page in ipairs(group.pages or {}) do
-            comfortLeafButtons[page.key] = CreateComfortLeafButton(navChild, page)
-            comfortLeafButtons[page.key]:Hide()
-        end
-    end
 
     -- Relayout + filtre de recherche. In Interface workspace, Accueil is the
     -- explicit exit: Roles/Profiles/Diagnostics remain reachable without
@@ -1624,8 +1679,6 @@ local function CreateConfigFrame()
         for _, btn in pairs(interfaceSubButtons) do btn:Hide() end
         for _, btn in pairs(unitsSubButtons) do btn:Hide() end
         for _, btn in pairs(combatSubButtons) do btn:Hide() end
-        for _, btn in pairs(comfortGroupButtons) do btn:Hide() end
-        for _, btn in pairs(comfortLeafButtons) do btn:Hide() end
 
         local function Match(label, key, kw)
             if filter == "" then return true end
@@ -1692,34 +1745,27 @@ local function CreateConfigFrame()
                 end
             end
         elseif currentWorkspace == "comfort" then
+            -- Confort's extra hierarchy is on the right. Keep the main sidebar
+            -- deliberately short so it behaves like the other workspaces.
             local order = { "accueil", "roles", "comfort", "profiles", "diagnostics" }
+            local comfortChildMatch = false
+            if filter ~= "" then
+                for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
+                    if Match(group.label, group.key, group.kw) or Match(group.label, group.default, group.kw) then
+                        comfortChildMatch = true; break
+                    end
+                    for _, page in ipairs(group.pages or {}) do
+                        if Match(page.label, page.key, page.kw) then comfortChildMatch = true; break end
+                    end
+                    if comfortChildMatch then break end
+                end
+            end
             for _, key in ipairs(order) do
                 local btn = categoryButtons[key]
-                local cat = btn and btn._cat
-                if btn and cat and Match(cat.label, cat.key, cat.kw) then
-                    Place(btn, NAV_BTN_H)
-                end
-                if key == "comfort" then
-                    for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
-                        local groupMatch = Match(group.label, group.key, group.kw)
-                        local childMatch = false
-                        for _, page in ipairs(group.pages or {}) do
-                            if Match(page.label, page.key, page.kw) then childMatch = true; break end
-                        end
-                        if group.direct then
-                            if groupMatch or Match(group.label, group.default, group.kw) then
-                                Place(comfortGroupButtons[group.key], 30)
-                            end
-                        elseif filter == "" or groupMatch or childMatch then
-                            Place(comfortGroupButtons[group.key], 30)
-                            for _, page in ipairs(group.pages or {}) do
-                                if filter == "" or groupMatch or Match(page.label, page.key, page.kw) then
-                                    Place(comfortLeafButtons[page.key], 28)
-                                end
-                            end
-                        end
-                    end
-                end
+                local catMeta = btn and btn._cat
+                local match = btn and catMeta and Match(catMeta.label, catMeta.key, catMeta.kw)
+                if key == "comfort" and comfortChildMatch then match = true end
+                if match then Place(btn, NAV_BTN_H) end
             end
         else
             for _, cat in ipairs(categories) do
@@ -1744,12 +1790,6 @@ local function CreateConfigFrame()
         end
         for key, btn in pairs(combatSubButtons) do
             btn.SetActive(currentCategory == "combat" and currentCombatPage == key)
-        end
-        for key, btn in pairs(comfortGroupButtons) do
-            btn.SetActive(currentCategory == "comfort" and COMFORT_PAGE_TO_GROUP[currentComfortPage] == key)
-        end
-        for key, btn in pairs(comfortLeafButtons) do
-            btn.SetActive(currentCategory == "comfort" and currentComfortPage == key)
         end
         RelayoutNav(searchBox:GetText() or "")
     end
