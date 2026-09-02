@@ -16,6 +16,7 @@ local DEFAULTS = {
     enabled = true,
     appearance = {
         bgAlpha = 0.72,
+        messageBgAlpha = 0.72,
         fontSize = 13,
         tabHeight = 25,
         inputHeight = 30,
@@ -81,7 +82,10 @@ local function MigrateLegacySettings(db)
         if legacy.enabled ~= nil then db.enabled = legacy.enabled and true or false end
 
         db.appearance = db.appearance or {}
-        if type(legacy.bgAlpha) == "number" then db.appearance.bgAlpha = legacy.bgAlpha end
+        if type(legacy.bgAlpha) == "number" then
+            db.appearance.bgAlpha = legacy.bgAlpha
+            db.appearance.messageBgAlpha = legacy.bgAlpha
+        end
         if type(legacy.fontSize) == "number" then db.appearance.fontSize = legacy.fontSize end
 
         db.messages = db.messages or {}
@@ -95,6 +99,15 @@ local function MigrateLegacySettings(db)
         if legacy.classColorMentions ~= nil then m.classColorMentions = legacy.classColorMentions and true or false end
     end
     db._legacySettingsMigrated = true
+end
+
+local function MigrateMessageBackground(db)
+    if db._messageBackgroundMigrated then return end
+
+    db.appearance = type(db.appearance) == "table" and db.appearance or {}
+    local frameAlpha = db.appearance.bgAlpha
+    db.appearance.messageBgAlpha = type(frameAlpha) == "number" and frameAlpha or 0.72
+    db._messageBackgroundMigrated = true
 end
 
 local function SanitizeSidebar(db)
@@ -119,6 +132,7 @@ function Chat.GetDB()
     TomoModDB = TomoModDB or {}
     TomoModDB.chatV4 = TomoModDB.chatV4 or {}
     MigrateLegacySettings(TomoModDB.chatV4)
+    MigrateMessageBackground(TomoModDB.chatV4)
     CopyDefaults(TomoModDB.chatV4, DEFAULTS)
     SanitizeSidebar(TomoModDB.chatV4)
     return TomoModDB.chatV4

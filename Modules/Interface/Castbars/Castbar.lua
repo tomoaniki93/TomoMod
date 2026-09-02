@@ -29,6 +29,13 @@ local RAID_CLASS_COLORS = RAID_CLASS_COLORS
 
 local MAX_EMPOWER_STAGES = 4
 local MAX_CHANNEL_TICKS  = 20
+-- [v4.0.1] Marge au-delà de la fin annoncée avant de considérer une barre
+-- comme bloquée. Généreuse à dessein : un cast repoussé émet UNIT_SPELLCAST_DELAYED
+-- et une canalisation accélérée émet CHANNEL_UPDATE, qui recalculent tous deux
+-- _realEndSec. Une seconde ne peut donc être atteinte que si plus aucun
+-- événement ne parvient à la barre.
+local STALE_CAST_GRACE = 1.0
+
 local TIMER_UPDATE_FREQ  = 0.05
 
 -- [PERF] Scratch table reused each OnUpdate tick to avoid per-frame allocation.
@@ -685,6 +692,7 @@ function CB.CreateCastbar(unit)
         self._castEndMS=nil; self._realStartSec=nil; self._realEndSec=nil
         self._realDurationSec=nil; self._channelSpellID=nil; self._timerElapsed=0
         self._lastSpellID = nil
+        self._activeCastGUID = nil; self._activeEventSpellID = nil
         -- [TWW] Release the C-side timer started via SetTimerDuration so the next
         -- cast (or preview / interrupt SetMinMaxValues) gets a clean state.
         if self._useTimerAPI and self.ResetTimer then self:ResetTimer() end
@@ -939,6 +947,28 @@ function CB.CreateCastbar(unit)
             return
         end
 
+        -- [v4.0.1] Filet de dernier recours.
+        --
+        -- UNIT_SPELLCAST_SUCCEEDED ne ferme plus la barre : il se déclenche pour
+        -- les instantanés et les procs lancés PENDANT un cast long, et fermait
+        -- donc la barre du sort en cours. STOP est désormais le seul signal de
+        -- fin -- et pour le joueur c'était le seul chemin restant, puisque le
+        -- garde « le porteur a disparu » plus haut exclut explicitement "player".
+        --
+        -- Un STOP perdu (pic de latence, reconnexion en plein cast) laisserait
+        -- alors la barre figée à l'écran sans rien pour la refermer : on
+        -- échangerait un bug fréquent et visible contre un bug rare et bloquant,
+        -- qui se signale beaucoup plus mal.
+        --
+        -- Les sorts à charge sont exclus : ils se maintiennent volontairement
+        -- au-delà de leur fin annoncée jusqu'au relâchement.
+        if self._realEndSec and not self.empowered
+            and GetTime() > self._realEndSec + STALE_CAST_GRACE then
+            self.failstart = nil
+            FadeOut(self)
+            return
+        end
+
         -- [TWW FIX] When SetTimerDuration was used, the C-side animates the bar
         -- automatically from the Duration object. Calling SetValue here would override
         -- (and reset) that internal timer every frame, so skip it in that branch.
@@ -992,6 +1022,39 @@ function CB.CreateCastbar(unit)
     -- =====================
     -- EVENTS
     -- =====================
+    -- Terminal UNIT_SPELLCAST events can be interleaved with instant/proc casts.
+    -- Keep the identity of the cast that actually opened this bar and ignore a
+    -- STOP/FAILED/INTERRUPTED that belongs to another cast. Midnight may mark
+    -- either value secret, so comparisons are only made after the secret guard.
+    local function PlainEventValue(v)
+        if v == nil or issecretvalue(v) then return nil end
+        return v
+    end
+
+    local function RememberCastIdentity(self, castGUID, spellID)
+        self._activeCastGUID = PlainEventValue(castGUID)
+        self._activeEventSpellID = PlainEventValue(spellID)
+    end
+
+    local function EventBelongsToActiveCast(self, castGUID, spellID)
+        local eventGUID = PlainEventValue(castGUID)
+        local activeGUID = PlainEventValue(self._activeCastGUID)
+        if eventGUID and activeGUID then
+            return eventGUID == activeGUID
+        end
+
+        local eventSpellID = PlainEventValue(spellID)
+        local activeSpellID = PlainEventValue(self._activeEventSpellID)
+            or PlainEventValue(self._lastSpellID)
+        if eventSpellID and activeSpellID then
+            return eventSpellID == activeSpellID
+        end
+
+        -- No safe identity available: preserve the old behaviour rather than
+        -- risking a stuck bar because a client build hid both identifiers.
+        return true
+    end
+
     local events = CreateFrame("Frame")
     events:RegisterUnitEvent("UNIT_SPELLCAST_START",             unit)
     events:RegisterUnitEvent("UNIT_SPELLCAST_STOP",              unit)
@@ -1009,6 +1072,7 @@ function CB.CreateCastbar(unit)
     events:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED",           unit)
     if unit == "target" then events:RegisterEvent("PLAYER_TARGET_CHANGED")
     elseif unit == "focus" then events:RegisterEvent("PLAYER_FOCUS_CHANGED") end
+    if unit == "player" then events:RegisterEvent("PLAYER_REGEN_DISABLED") end
     events:RegisterEvent("PLAYER_ENTERING_WORLD")
 
     -- Guarded the same way RefreshAll already guards UnregisterCallback.
@@ -1020,7 +1084,24 @@ function CB.CreateCastbar(unit)
         end)
     end
 
-    events:SetScript("OnEvent", function(self, event, eventUnit, _, _, interrupterGUID)
+    events:SetScript("OnEvent", function(self, event, eventUnit, castGUID, spellID, interrupterGUID)
+        -- A layout/config preview must never win over a real combat cast. If the
+        -- player enters combat while a preview is visible, close every preview
+        -- immediately; the unified Layout manager will finish its normal relock
+        -- after combat without leaving the player castbar stuck in preview mode.
+        if event == "PLAYER_REGEN_DISABLED" then
+            if CB._previewMode or CB._layoutPreview then
+                CB._previewMode = false
+                CB._layoutPreview = false
+                for _, bar in pairs(CB.castbars) do
+                    if bar.SetLocked then bar:SetLocked(true) end
+                    if bar.HidePreview then bar:HidePreview() end
+                end
+                CheckCast(castbar, false)
+            end
+            return
+        end
+
         if castbar._preview then return end
         if event == "PLAYER_TARGET_CHANGED" or event == "PLAYER_FOCUS_CHANGED" or event == "PLAYER_ENTERING_WORLD" then
             -- La cible/focus a change : tout cast en cours appartenait a l'ANCIENNE
@@ -1037,6 +1118,7 @@ function CB.CreateCastbar(unit)
         end
         if eventUnit ~= unit then return end
         if event == "UNIT_SPELLCAST_START" or event == "UNIT_SPELLCAST_CHANNEL_START" or event == "UNIT_SPELLCAST_EMPOWER_START" then
+            RememberCastIdentity(castbar, castGUID, spellID)
             castbar.failstart = nil; CheckCast(castbar, false)
         elseif event == "UNIT_SPELLCAST_CHANNEL_UPDATE" or event == "UNIT_SPELLCAST_EMPOWER_UPDATE" then
             if castbar.channeling or castbar.empowered then CheckCast(castbar, false) end
@@ -1045,16 +1127,17 @@ function CB.CreateCastbar(unit)
         elseif event == "UNIT_SPELLCAST_INTERRUPTIBLE" or event == "UNIT_SPELLCAST_NOT_INTERRUPTIBLE" then
             if castbar.casting or castbar.channeling or castbar.empowered then CheckCast(castbar, false) end
         elseif event == "UNIT_SPELLCAST_INTERRUPTED" then
-            CheckCast(castbar, true, interrupterGUID)
+            if EventBelongsToActiveCast(castbar, castGUID, spellID) then
+                CheckCast(castbar, true, interrupterGUID)
+            end
         elseif event == "UNIT_SPELLCAST_SUCCEEDED" then
-            if castbar.channeling or castbar.empowered then return end
-            FadeOut(castbar)
+            -- SUCCEEDED is not the lifecycle terminator for the visual bar.
+            -- Instant/proc spells can emit it while another spell is casting;
+            -- the matching STOP event is the canonical close signal.
+            return
         elseif event == "UNIT_SPELLCAST_STOP" or event == "UNIT_SPELLCAST_FAILED"
             or event == "UNIT_SPELLCAST_CHANNEL_STOP" or event == "UNIT_SPELLCAST_EMPOWER_STOP" then
-            -- Guard against double-FadeOut: UNIT_SPELLCAST_STOP always follows
-            -- UNIT_SPELLCAST_SUCCEEDED; if the cast was already reset by SUCCEEDED
-            -- the second FadeOut would find _fadeAG already playing and call
-            -- self:Hide() instead, cutting the transition short.
+            if not EventBelongsToActiveCast(castbar, castGUID, spellID) then return end
             if not castbar.failstart and (castbar.casting or castbar.channeling or castbar.empowered) then
                 FadeOut(castbar)
             end
@@ -1214,16 +1297,30 @@ function CB.IsLocked()
     return true
 end
 
-function CB.UnlockPlayerCastbar()
+-- Layout mode and the config-panel preview are deliberately independent.
+-- The Layout mover can therefore materialise/show the player castbar without
+-- loading TomoMod_Options, while closing Layout does not cancel a GUI preview.
+CB._layoutPreview = false
+
+local function EnsurePlayerCastbar()
     local cb = CB.castbars["player"]
+    if cb then return cb end
+
+    local db = TomoModDB and TomoModDB.castbars
+    if not db or not db.enabled or not db.player or not db.player.enabled then
+        return nil
+    end
+
+    return CB.CreateCastbar("player")
+end
+
+function CB.UnlockPlayerCastbar()
+    CB._layoutPreview = true
+    local cb = EnsurePlayerCastbar()
     if cb then
         cb:SetLocked(false); cb:ShowPreview()
     else
-        -- The mover entry only calls this when its own isActive() check (same
-        -- enabled flags CB.Initialize reads) is true, so this should be
-        -- unreachable -- but a stale/uninitialized castbars table would
-        -- otherwise leave EditMode silently doing nothing for this bar,
-        -- with no clue why. Say so instead of a no-op.
+        CB._layoutPreview = false
         local L = TomoMod_L
         print("|cff2ed884TomoMod|r " .. (L and L["cb_player_missing_notice"]
             or "Player Cast Bar isn't enabled — turn it on in Castbars settings before it can be moved."))
@@ -1231,8 +1328,15 @@ function CB.UnlockPlayerCastbar()
 end
 
 function CB.LockPlayerCastbar()
+    CB._layoutPreview = false
     local cb = CB.castbars["player"]
-    if cb then cb:SetLocked(true); cb:HidePreview() end
+    if not cb then return end
+
+    if CB._previewMode then
+        cb:SetLocked(false); cb:ShowPreview()
+    else
+        cb:SetLocked(true); cb:HidePreview()
+    end
 end
 
 function CB.ToggleLock()
@@ -1252,9 +1356,10 @@ CB._previewMode = false
 function CB.IsPreview() return CB._previewMode == true end
 function CB.SetPreview(on)
     CB._previewMode = on and true or false
-    for _, cb in pairs(CB.castbars) do
-        cb:SetLocked(not CB._previewMode)
-        if CB._previewMode then cb:ShowPreview() else cb:HidePreview() end
+    for unitKey, cb in pairs(CB.castbars) do
+        local preview = CB._previewMode or (unitKey == "player" and CB._layoutPreview)
+        cb:SetLocked(not preview)
+        if preview then cb:ShowPreview() else cb:HidePreview() end
     end
 end
 function CB.TogglePreview() CB.SetPreview(not CB._previewMode) end
@@ -1342,6 +1447,16 @@ function CB.RefreshAll()
                 if state.preview and cb.ShowPreview then cb:ShowPreview() end
             end
         end
+
+        -- RefreshAll can be triggered by settings that do not involve the
+        -- config window. Keep the /tm layout player preview alive explicitly.
+        if CB._layoutPreview then
+            local cb = EnsurePlayerCastbar()
+            if cb then
+                cb:SetLocked(false)
+                cb:ShowPreview()
+            end
+        end
     end
 end
 
@@ -1354,6 +1469,8 @@ function CB.SetEnabled(v)
     if v then
         CB.Initialize()
     else
+        CB._previewMode = false
+        CB._layoutPreview = false
         for unit, cb in pairs(CB.castbars) do
             if cb.eventFrame then
                 cb.eventFrame:UnregisterAllEvents(); cb.eventFrame:SetScript("OnEvent", nil)

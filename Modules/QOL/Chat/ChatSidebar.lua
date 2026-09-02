@@ -1,11 +1,12 @@
 -- =====================================================================
 -- ChatSidebar.lua — TomoMod Chat V4 sidebar
--- Friends / Guild / Player Status / Voice / Mute / Deafen / Emotes /
--- Copy / Loot Browser / TomoMod Settings / Scroll Bottom.
+-- Friends / Guild / Player Status / Voice / Mute / Deafen / Copy /
+-- Loot Browser / TomoMod Settings / Scroll Bottom.
 -- =====================================================================
 
 local Chat = TomoMod_ChatFrameSkin
 if not Chat then return end
+local L = TomoMod_L
 
 local Sidebar = {}
 Chat.RegisterModule("Sidebar", Sidebar)
@@ -19,6 +20,32 @@ local YELLOW_R, YELLOW_G, YELLOW_B = 1.00, 0.78, 0.20
 local GREEN_R, GREEN_G, GREEN_B = 0.42, 0.96, 0.58
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local FONT = STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
+
+-- Sidebar icon assets. Every visual lives in its own 64x64 transparent TGA
+-- so the artwork can be replaced without touching this Lua file.
+local SIDEBAR_TEX = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Chat\\Sidebar\\"
+local ICON_TEXTURES = {
+    friends = SIDEBAR_TEX .. "friends.tga",
+    guild = SIDEBAR_TEX .. "guild.tga",
+    playerStatus = {
+        ONLINE = SIDEBAR_TEX .. "status_online.tga",
+        AFK = SIDEBAR_TEX .. "status_afk.tga",
+        DND = SIDEBAR_TEX .. "status_dnd.tga",
+    },
+    voice = SIDEBAR_TEX .. "voice.tga",
+    mute = {
+        inactive = SIDEBAR_TEX .. "mute.tga",
+        active = SIDEBAR_TEX .. "mute_active.tga",
+    },
+    deafen = {
+        inactive = SIDEBAR_TEX .. "deafen.tga",
+        active = SIDEBAR_TEX .. "deafen_active.tga",
+    },
+    copy = SIDEBAR_TEX .. "copy.tga",
+    loot = SIDEBAR_TEX .. "loot.tga",
+    settings = SIDEBAR_TEX .. "settings.tga",
+    scroll = SIDEBAR_TEX .. "scroll.tga",
+}
 
 local NATIVE_CHAT_CONTROLS = {
     "ChatFrameMenuButton",
@@ -54,6 +81,12 @@ local function PlayClick()
     if PlaySound then
         PlaySound(SOUNDKIT and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or 856)
     end
+end
+
+local function Localize(key, fallback)
+    local value = L and L[key]
+    if type(value) == "string" and value ~= key then return value end
+    return fallback or key
 end
 
 local function SetTooltip(button, title, text)
@@ -135,7 +168,11 @@ local function CreateButton(parent, key)
     iconHost:SetPoint("TOPLEFT", 4, -4)
     iconHost:SetPoint("BOTTOMRIGHT", -4, 4)
     b.iconHost = iconHost
-    b.iconRegions = {}
+
+    local icon = iconHost:CreateTexture(nil, "ARTWORK")
+    icon:SetAllPoints(iconHost)
+    icon:SetTexCoord(0, 1, 0, 1)
+    b.icon = icon
 
     local count = b:CreateFontString(nil, "OVERLAY")
     count:SetFont(FONT, 10, "OUTLINE")
@@ -185,175 +222,20 @@ local function CreateButton(parent, key)
     return b
 end
 
-local function WipeIcon(button)
-    for i = 1, #button.iconRegions do
-        local region = button.iconRegions[i]
-        if region then
-            region:Hide()
-            if region.SetParent then
-                region:SetParent(nil)
-            end
-        end
-    end
-    wipe(button.iconRegions)
-end
-
-local function AddPiece(button, layer, w, h, x, y, r, g, b, a, rotation)
-    local tex = button.iconHost:CreateTexture(nil, layer or "ARTWORK")
-    tex:SetTexture(WHITE)
-    tex:SetSize(w, h)
-    tex:SetPoint("CENTER", button.iconHost, "CENTER", x or 0, y or 0)
-    tex:SetColorTexture(r or 1, g or 1, b or 1, a or 1)
-    if rotation then tex:SetRotation(rotation) end
-    button.iconRegions[#button.iconRegions + 1] = tex
-    return tex
-end
-
-local function AddOutlineRect(button, x, y, w, h, t, r, g, b, a)
-    AddPiece(button, "ARTWORK", w, t, x, y + ((h - t) / 2), r, g, b, a)
-    AddPiece(button, "ARTWORK", w, t, x, y - ((h - t) / 2), r, g, b, a)
-    AddPiece(button, "ARTWORK", t, h, x - ((w - t) / 2), y, r, g, b, a)
-    AddPiece(button, "ARTWORK", t, h, x + ((w - t) / 2), y, r, g, b, a)
-end
-
-local function AddChevron(button, x, y, size, r, g, b)
-    AddPiece(button, "ARTWORK", size, 2, x - (size * 0.22), y + 1, r, g, b, 1, math.rad(45))
-    AddPiece(button, "ARTWORK", size, 2, x + (size * 0.22), y + 1, r, g, b, 1, math.rad(-45))
-end
-
-local function IconScale(button)
-    local w = button:GetWidth() or 20
-    return math.max(12, math.floor(w - 8))
-end
-
-local function DrawFriends(button)
-    local s = IconScale(button)
-    local unit = math.max(1, math.floor(s / 12))
-    local head = unit * 2 + 1
-    local bodyW = unit * 3 + 1
-    local bodyH = unit * 2 + 1
-
-    AddPiece(button, "ARTWORK", head, head, -3, 4, 1, 1, 1, 1)
-    AddPiece(button, "ARTWORK", head, head, 3, 2, 1, 1, 1, 0.86)
-    AddPiece(button, "ARTWORK", bodyW, bodyH, -3, -2, 1, 1, 1, 1)
-    AddPiece(button, "ARTWORK", bodyW, bodyH, 3, -4, 1, 1, 1, 0.86)
-end
-
-local function DrawGuild(button)
-    local poleR, poleG, poleB = 0.92, 0.94, 0.98
-    AddPiece(button, "ARTWORK", 2, 13, -5, 0, poleR, poleG, poleB, 1)
-    AddPiece(button, "ARTWORK", 9, 2, 0, 5, 0.98, 0.98, 0.98, 1)
-    AddPiece(button, "ARTWORK", 9, 2, -1, 2, 0.98, 0.98, 0.98, 1)
-    AddPiece(button, "ARTWORK", 5, 2, -2, -1, 0.98, 0.98, 0.98, 1)
-    AddPiece(button, "ARTWORK", 3, 2, 2, 0, 0.98, 0.98, 0.98, 1, math.rad(-35))
-end
-
-local function DrawPlayerStatus(button, mode)
-    local r, g, b = GREEN_R, GREEN_G, GREEN_B
-    if mode == "AFK" then
-        r, g, b = YELLOW_R, YELLOW_G, YELLOW_B
-    elseif mode == "DND" then
-        r, g, b = RED_R, RED_G, RED_B
-    end
-    AddOutlineRect(button, 0, 0, 12, 12, 2, 0.14, 0.18, 0.19, 1)
-    AddPiece(button, "ARTWORK", 6, 6, 0, 0, r, g, b, 1)
-end
-
-local function DrawVoice(button)
-    AddPiece(button, "ARTWORK", 4, 7, -5, 0, 1, 1, 1, 1)
-    AddPiece(button, "ARTWORK", 6, 2, -2, 0, 1, 1, 1, 1, math.rad(30))
-    AddPiece(button, "ARTWORK", 6, 2, -2, 0, 1, 1, 1, 1, math.rad(-30))
-    AddPiece(button, "ARTWORK", 2, 4, 5, 0, TEAL_R, TEAL_G, TEAL_B, 1)
-    AddPiece(button, "ARTWORK", 2, 7, 8, 0, TEAL_R, TEAL_G, TEAL_B, 0.85)
-end
-
-local function DrawMute(button, active)
-    local baseR, baseG, baseB = 0.96, 0.97, 0.99
-    local slashR, slashG, slashB = active and RED_R or TEAL_R, active and RED_G or TEAL_G, active and RED_B or TEAL_B
-
-    AddOutlineRect(button, 0, 3, 7, 8, 2, baseR, baseG, baseB, 1)
-    AddPiece(button, "ARTWORK", 2, 6, 0, -2, baseR, baseG, baseB, 1)
-    AddPiece(button, "ARTWORK", 8, 2, 0, -5, baseR, baseG, baseB, 1)
-    AddPiece(button, "ARTWORK", 14, 2, 0, 0, slashR, slashG, slashB, 1, math.rad(-45))
-end
-
-local function DrawDeafen(button, active)
-    local baseR, baseG, baseB = 0.96, 0.97, 0.99
-    local slashR, slashG, slashB = active and RED_R or TEAL_R, active and RED_G or TEAL_G, active and RED_B or TEAL_B
-
-    AddPiece(button, "ARTWORK", 10, 2, 0, 5, baseR, baseG, baseB, 1)
-    AddPiece(button, "ARTWORK", 2, 7, -5, 1, baseR, baseG, baseB, 1)
-    AddPiece(button, "ARTWORK", 2, 7, 5, 1, baseR, baseG, baseB, 1)
-    AddPiece(button, "ARTWORK", 4, 2, -3, -3, baseR, baseG, baseB, 1)
-    AddPiece(button, "ARTWORK", 4, 2, 3, -3, baseR, baseG, baseB, 1)
-    AddPiece(button, "ARTWORK", 14, 2, 0, 0, slashR, slashG, slashB, 1, math.rad(-45))
-end
-
-local function DrawCopy(button)
-    AddOutlineRect(button, 2, -1, 9, 11, 2, YELLOW_R, YELLOW_G, YELLOW_B, 1)
-    AddOutlineRect(button, -2, 2, 9, 11, 2, GREEN_R, GREEN_G, GREEN_B, 1)
-    AddPiece(button, "ARTWORK", 5, 1, 2, 2, YELLOW_R, YELLOW_G, YELLOW_B, 1)
-    AddPiece(button, "ARTWORK", 5, 1, -2, 5, GREEN_R, GREEN_G, GREEN_B, 1)
-end
-
-local function DrawLoot(button)
-    local pageR, pageG, pageB = 0.96, 0.97, 0.99
-    AddOutlineRect(button, -4, 0, 7, 11, 2, pageR, pageG, pageB, 1)
-    AddOutlineRect(button, 4, 0, 7, 11, 2, pageR, pageG, pageB, 1)
-    AddPiece(button, "ARTWORK", 2, 11, 0, 0, TEAL_R, TEAL_G, TEAL_B, 1)
-    AddPiece(button, "ARTWORK", 3, 1, -4, 2, pageR, pageG, pageB, 0.90)
-    AddPiece(button, "ARTWORK", 3, 1, 4, 2, pageR, pageG, pageB, 0.90)
-    AddPiece(button, "ARTWORK", 3, 1, -4, -1, pageR, pageG, pageB, 0.90)
-    AddPiece(button, "ARTWORK", 3, 1, 4, -1, pageR, pageG, pageB, 0.90)
-end
-
-local function DrawSettings(button)
-    local function cog(x, y, size, r, g, b)
-        local core = math.max(3, math.floor(size * 0.42))
-        local tooth = math.max(2, math.floor(size * 0.22))
-        AddPiece(button, "ARTWORK", core, core, x, y, r, g, b, 1)
-        AddPiece(button, "ARTWORK", core, tooth, x, y + (core / 2) + 1, r, g, b, 1)
-        AddPiece(button, "ARTWORK", core, tooth, x, y - (core / 2) - 1, r, g, b, 1)
-        AddPiece(button, "ARTWORK", tooth, core, x - (core / 2) - 1, y, r, g, b, 1)
-        AddPiece(button, "ARTWORK", tooth, core, x + (core / 2) + 1, y, r, g, b, 1)
-        AddPiece(button, "ARTWORK", tooth + 1, tooth, x - (core / 2), y + (core / 2), r, g, b, 1, math.rad(45))
-        AddPiece(button, "ARTWORK", tooth + 1, tooth, x + (core / 2), y + (core / 2), r, g, b, 1, math.rad(-45))
-        AddPiece(button, "ARTWORK", tooth + 1, tooth, x - (core / 2), y - (core / 2), r, g, b, 1, math.rad(-45))
-        AddPiece(button, "ARTWORK", tooth + 1, tooth, x + (core / 2), y - (core / 2), r, g, b, 1, math.rad(45))
-    end
-
-    cog(-3, 2, 9, 0.95, 0.97, 0.99)
-    cog(4, -3, 7, TEAL_R, TEAL_G, TEAL_B)
-end
-
-local function DrawScroll(button)
-    AddChevron(button, 0, 3, 8, 0.96, 0.97, 0.99)
-    AddChevron(button, 0, -2, 8, TEAL_R, TEAL_G, TEAL_B)
-end
-
 local function RenderButtonIcon(button, key, state)
-    WipeIcon(button)
-    if key == "friends" then
-        DrawFriends(button)
-    elseif key == "guild" then
-        DrawGuild(button)
-    elseif key == "playerStatus" then
-        DrawPlayerStatus(button, state)
-    elseif key == "voice" then
-        DrawVoice(button)
+    if not (button and button.icon) then return end
+
+    local texture = ICON_TEXTURES[key]
+    if key == "playerStatus" then
+        local status = type(state) == "string" and state or "ONLINE"
+        texture = ICON_TEXTURES.playerStatus[status] or ICON_TEXTURES.playerStatus.ONLINE
     elseif key == "mute" then
-        DrawMute(button, state)
+        texture = state and ICON_TEXTURES.mute.active or ICON_TEXTURES.mute.inactive
     elseif key == "deafen" then
-        DrawDeafen(button, state)
-    elseif key == "copy" then
-        DrawCopy(button)
-    elseif key == "loot" then
-        DrawLoot(button)
-    elseif key == "settings" then
-        DrawSettings(button)
-    elseif key == "scroll" then
-        DrawScroll(button)
+        texture = state and ICON_TEXTURES.deafen.active or ICON_TEXTURES.deafen.inactive
     end
+
+    button.icon:SetTexture(texture)
 end
 
 local function FriendCount()
@@ -409,9 +291,9 @@ local function BuildStatusMenu(owner)
     Sidebar.statusMenu = menu
 
     local rows = {
-        { "Online", "ONLINE", GREEN_R, GREEN_G, GREEN_B },
-        { "AFK", "AFK", YELLOW_R, YELLOW_G, YELLOW_B },
-        { "DND", "DND", RED_R, RED_G, RED_B },
+        { Localize("chat_v4_status_online", "Online"), "ONLINE", GREEN_R, GREEN_G, GREEN_B },
+        { Localize("chat_v4_status_afk", "AFK"), "AFK", YELLOW_R, YELLOW_G, YELLOW_B },
+        { Localize("chat_v4_status_dnd", "DND"), "DND", RED_R, RED_G, RED_B },
     }
     for i, row in ipairs(rows) do
         local b = CreateFrame("Button", nil, menu)
@@ -509,14 +391,14 @@ function Sidebar:BuildButtons()
     local parent = Chat.Modules.Layout.sidebarHost
 
     local friends = CreateButton(parent, "friends")
-    SetTooltip(friends, "Friends", "Open Blizzard Social / Friends.")
+    SetTooltip(friends, Localize("chat_v4_btn_friends", "Friends"), Localize("chat_v4_tip_friends", "Open Blizzard Social / Friends."))
     friends:SetScript("OnClick", function()
         PlayClick()
         if ToggleFriendsFrame then ToggleFriendsFrame(1) end
     end)
 
     local guild = CreateButton(parent, "guild")
-    SetTooltip(guild, "Guild", "Open the guild / communities panel.")
+    SetTooltip(guild, Localize("chat_v4_btn_guild", "Guild"), Localize("chat_v4_tip_guild", "Open the guild / communities panel."))
     guild:SetScript("OnClick", function()
         PlayClick()
         if ToggleGuildFrame then
@@ -527,7 +409,7 @@ function Sidebar:BuildButtons()
     end)
 
     local status = CreateButton(parent, "playerStatus")
-    SetTooltip(status, "Player Status", "Choose Online, AFK or DND.")
+    SetTooltip(status, Localize("chat_v4_btn_status", "Player Status"), Localize("chat_v4_tip_status", "Choose Online, AFK or DND."))
     status:SetScript("OnClick", function(self)
         PlayClick()
         local menu = BuildStatusMenu(self)
@@ -541,7 +423,7 @@ function Sidebar:BuildButtons()
     end)
 
     local voice = CreateButton(parent, "voice")
-    SetTooltip(voice, "Voice / Channels", "Open Blizzard chat channels and voice controls.")
+    SetTooltip(voice, Localize("chat_v4_btn_voice", "Voice / Channels"), Localize("chat_v4_tip_voice", "Open Blizzard chat channels and voice controls."))
     voice:SetScript("OnClick", function()
         PlayClick()
         if _G.ChatFrameChannelButton and _G.ChatFrameChannelButton.Click then
@@ -550,7 +432,7 @@ function Sidebar:BuildButtons()
     end)
 
     local mute = CreateButton(parent, "mute")
-    SetTooltip(mute, "Mute Microphone", "Toggle your voice-chat microphone.")
+    SetTooltip(mute, Localize("chat_v4_btn_mute", "Mute Microphone"), Localize("chat_v4_tip_mute", "Toggle your voice-chat microphone."))
     mute:SetScript("OnClick", function()
         PlayClick()
         if C_VoiceChat and C_VoiceChat.ToggleMuted then C_VoiceChat.ToggleMuted() end
@@ -558,7 +440,7 @@ function Sidebar:BuildButtons()
     end)
 
     local deafen = CreateButton(parent, "deafen")
-    SetTooltip(deafen, "Deafen", "Toggle voice-chat deafen.")
+    SetTooltip(deafen, Localize("chat_v4_btn_deafen", "Deafen"), Localize("chat_v4_tip_deafen", "Toggle voice-chat deafen."))
     deafen:SetScript("OnClick", function()
         PlayClick()
         if C_VoiceChat and C_VoiceChat.ToggleDeafened then C_VoiceChat.ToggleDeafened() end
@@ -567,14 +449,14 @@ function Sidebar:BuildButtons()
 
 
     local copy = CreateButton(parent, "copy")
-    SetTooltip(copy, "Copy Chat", "Open the TomoMod copy window for the selected tab.")
+    SetTooltip(copy, Localize("chat_v4_btn_copy", "Copy Chat"), Localize("chat_v4_tip_copy", "Open the TomoMod copy window for the selected tab."))
     copy:SetScript("OnClick", function()
         PlayClick()
         if Chat.Modules.Copy then Chat.Modules.Copy:Toggle() end
     end)
 
     local loot = CreateButton(parent, "loot")
-    SetTooltip(loot, "Loot Browser", "Open TomoMod Loot Browser.")
+    SetTooltip(loot, Localize("chat_v4_btn_loot", "Loot Browser"), Localize("chat_v4_tip_loot", "Open TomoMod Loot Browser."))
     loot:SetScript("OnClick", function()
         PlayClick()
         if TomoMod_Loots and TomoMod_Loots.Toggle then
@@ -585,7 +467,7 @@ function Sidebar:BuildButtons()
     end)
 
     local settings = CreateButton(parent, "settings")
-    SetTooltip(settings, "TomoMod", "Open the main TomoMod configuration.")
+    SetTooltip(settings, Localize("chat_v4_btn_settings", "TomoMod Settings"), Localize("chat_v4_tip_settings", "Open the main TomoMod configuration."))
     settings:SetScript("OnClick", function()
         PlayClick()
         if TomoMod_Config and TomoMod_Config.Toggle then
@@ -596,7 +478,7 @@ function Sidebar:BuildButtons()
     end)
 
     local scroll = CreateButton(parent, "scroll")
-    SetTooltip(scroll, "Scroll to Bottom", "Return to the newest chat message.")
+    SetTooltip(scroll, Localize("chat_v4_btn_scroll", "Scroll to Bottom"), Localize("chat_v4_tip_scroll", "Return to the newest chat message."))
     scroll:SetScript("OnClick", function()
         PlayClick()
         local cf = Chat.Modules.Renderer and Chat.Modules.Renderer:GetSelectedFrame()

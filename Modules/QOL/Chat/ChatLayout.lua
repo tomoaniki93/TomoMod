@@ -47,14 +47,16 @@ function Layout:Initialize()
     panel:Hide()
     self.panel = panel
 
-    local messageHost = CreateFrame("Frame", "TomoMod_ChatV4MessageHost", UIParent)
+    local messageHost = CreateFrame("Frame", "TomoMod_ChatV4MessageHost", UIParent, "BackdropTemplate")
+    messageHost:SetBackdrop({ bgFile = WHITE })
     messageHost:SetFrameStrata("MEDIUM")
     messageHost:SetFrameLevel(90)
     messageHost:EnableMouse(false)
     messageHost:Hide()
     self.messageHost = messageHost
 
-    local tabsHost = CreateFrame("Frame", "TomoMod_ChatV4TabsHost", UIParent)
+    local tabsHost = CreateFrame("Frame", "TomoMod_ChatV4TabsHost", UIParent, "BackdropTemplate")
+    tabsHost:SetBackdrop({ bgFile = WHITE })
     tabsHost:SetFrameStrata("MEDIUM")
     tabsHost:SetFrameLevel(98)
     tabsHost:EnableMouse(false)
@@ -151,12 +153,20 @@ function Layout:ApplySettings(enabled)
     if not self.panel then return end
     local db = Chat.GetDB()
     local a = db.appearance
+    local frameAlpha = a.bgAlpha or 0.72
+    local messageAlpha = a.messageBgAlpha
+    if type(messageAlpha) ~= "number" then messageAlpha = frameAlpha end
 
-    self.panel:SetBackdropColor(BG_R, BG_G, BG_B, a.bgAlpha or 0.72)
+    -- The outer panel owns only the border. Each visible surface owns its own
+    -- fill so the message area can be made transparent without also fading the
+    -- tabs, sidebar or input box (and without a global backdrop showing through).
+    self.panel:SetBackdropColor(BG_R, BG_G, BG_B, 0)
     self.panel:SetBackdropBorderColor(TEAL_R, TEAL_G, TEAL_B, a.borderAlpha or 0.22)
-    self.sidebarHost:SetBackdropColor(BG_R, BG_G, BG_B, math.min(0.96, (a.bgAlpha or 0.72) + 0.08))
+    self.messageHost:SetBackdropColor(BG_R, BG_G, BG_B, messageAlpha)
+    self.tabsHost:SetBackdropColor(BG_R, BG_G, BG_B, frameAlpha)
+    self.sidebarHost:SetBackdropColor(BG_R, BG_G, BG_B, math.min(0.96, frameAlpha + 0.08))
     self.sidebarHost:SetBackdropBorderColor(TEAL_R, TEAL_G, TEAL_B, a.borderAlpha or 0.22)
-    self.inputHost:SetBackdropColor(BG_R, BG_G, BG_B, math.min(0.96, (a.bgAlpha or 0.72) + 0.08))
+    self.inputHost:SetBackdropColor(BG_R, BG_G, BG_B, math.min(0.96, frameAlpha + 0.08))
     self.inputHost:SetBackdropBorderColor(TEAL_R, TEAL_G, TEAL_B, a.borderAlpha or 0.22)
 
     if enabled then

@@ -732,6 +732,7 @@ TomoMod_Defaults = {
         enabled = true,
         appearance = {
             bgAlpha = 0.72,
+            messageBgAlpha = 0.72,
             fontSize = 13,
             tabHeight = 25,
             inputHeight = 30,

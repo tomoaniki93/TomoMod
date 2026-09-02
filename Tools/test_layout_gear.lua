@@ -135,12 +135,14 @@ check("catégories valides", badCat,  0)
 check("pages confort valides", badPage, 0)
 
 -- Les points d'entree utilises par OpenConfigRoute doivent exister.
+local missingEntry = 0
 for _, fn in ipairs({ "OpenComfortPage", "OpenCategory", "Show", "SwitchCategory" }) do
     if not cfgSrc:find("function C%." .. fn) then
+        missingEntry = missingEntry + 1
         fail(("TomoMod_Config.%s() est appelé mais n'existe pas"):format(fn))
     end
 end
-check("points d'entrée du GUI présents", ok, true)
+check("points d'entrée du GUI présents", missingEntry, 0)
 
 -- ═══════════════════════════════════════════════════════════════════════
 print("── 5. Ordre et unicité ──")
@@ -172,12 +174,14 @@ check("aucun motif en double", dup, 0)
 -- cibles, sinon survoler l'engrenage le ferait sauter d'un element a l'autre.
 check("le chrome du layout est exclu",
       moversSrc:find("GEAR_SELF", 1, true) ~= nil, true)
+local missingSelf = 0
 for _, self_ in ipairs({ "TomoModLayoutConfigGear", "TomoModLayoutHeader", "TomoModLayoutGrid" }) do
     if not moversSrc:find(self_ .. "%s*=%s*true") then
+        missingSelf = missingSelf + 1
         fail(("'%s' n'est pas dans la liste d'exclusion"):format(self_))
     end
 end
-check("les trois frames de chrome sont exclues", ok, true)
+check("les trois frames de chrome sont exclues", missingSelf, 0)
 
 print()
 print(("  %d routes, %d frames nommées dans le dépôt"):format(#routes, #names))

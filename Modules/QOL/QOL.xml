@@ -112,7 +112,16 @@
     <!-- Modules: Skins -->
     <Include file="Skins\CharacterSkin.lua" />
     <Include file="Skins\ReputationBar.lua" />
-    <Include file="Skins\BagSkin.lua" />
+
+    <!-- Modules: Bags V4 (fresh implementation; legacy Skins\BagSkin.lua is kept on disk but not loaded) -->
+    <Include file="Bags\BagCore.lua" />
+    <Include file="Bags\BagData.lua" />
+    <Include file="Bags\BagLayout.lua" />
+    <Include file="Bags\BagSlots.lua" />
+    <Include file="Bags\BagSidebar.lua" />
+    <Include file="Bags\BagSearch.lua" />
+    <Include file="Bags\BagBridge.lua" />
+
     <Include file="Skins\GameMenuSkin.lua" />
     <Include file="Skins\BlizzardAuraFrames.lua" />
     <Include file="Skins\TooltipSkin.lua" />

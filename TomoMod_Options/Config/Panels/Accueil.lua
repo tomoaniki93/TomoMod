@@ -47,7 +47,7 @@ if TomoMod_RegisterLocale then
         ["dash_mod_cdm"]             = "Cooldown Manager",
         ["dash_mod_abskin"]          = "Action bar skin",
         ["dash_mod_chatskin"]        = "Chat V4",
-        ["dash_mod_bagskin"]         = "Bag skin",
+        ["dash_mod_bagskin"]         = "Bags V4",
         ["dash_mod_mtracker"]        = "Mythic+ tracker",
         ["dash_mod_score"]           = "Mythic+ score",
         ["dash_toggle_on"]           = "On",
@@ -85,7 +85,7 @@ if TomoMod_RegisterLocale then
         ["dash_mod_cdm"]             = "Cooldown Manager",
         ["dash_mod_abskin"]          = "Skin des barres d'action",
         ["dash_mod_chatskin"]        = "Chat V4",
-        ["dash_mod_bagskin"]         = "Skin des sacs",
+        ["dash_mod_bagskin"]         = "Sacs V4",
         ["dash_mod_mtracker"]        = "Suivi Mythic+",
         ["dash_mod_score"]           = "Score Mythic+",
         ["dash_toggle_on"]           = "Actif",
@@ -106,7 +106,7 @@ local MODULES = {
     { label = "dash_mod_cdm",          tbl = "cooldownManager",  key = "enabled" },
     { label = "dash_mod_abskin",       tbl = "actionBarSkin",    key = "enabled" },
     { label = "dash_mod_chatskin",     tbl = "chatV4",           key = "enabled" },
-    { label = "dash_mod_bagskin",      tbl = "bagSkin",          key = "enabled" },
+    { label = "dash_mod_bagskin",      tbl = "bagsV4",           key = "enabled" },
     { label = "dash_mod_mtracker",     tbl = "MythicTracker",    key = "enabled" },
     { label = "dash_mod_score",        tbl = "MysticScore",      key = "enabled" },
 }
@@ -138,6 +138,17 @@ local function SetModuleState(def, value)
     -- the dashboard switch can apply immediately without a UI reload.
     if def.tbl == "chatV4" and TomoMod_ChatFrameSkin and TomoMod_ChatFrameSkin.SetEnabled then
         TomoMod_ChatFrameSkin.SetEnabled(enabled)
+    end
+
+    -- Bags V4 is also fully reversible at runtime. Keep the dashboard bound
+    -- to the clean bagsV4 DB, but mirror the old flag while the remaining
+    -- Phase-1 presets and installer still use it. This also prevents the
+    -- compatibility bridge from restoring a stale enabled state.
+    if def.tbl == "bagsV4" then
+        EnsureDBTable("bagSkin").enabled = enabled
+        if TomoMod_BagSkin and TomoMod_BagSkin.SetEnabled then
+            TomoMod_BagSkin.SetEnabled(enabled)
+        end
     end
 end
 

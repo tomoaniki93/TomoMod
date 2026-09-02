@@ -98,8 +98,11 @@ local LAYOUT_ROUTES = {
     { "^TomoModObjectiveTrackerMover",   "skins" },
     { "^TomoMod_OTHeader",               "skins" },
     { "^TomoMod_OTSkin",                 "skins" },
-    { "^TomoMod_ChatMoverOverlay",       "skins" },
-    { "^TomoMod_ChatContainer",          "skins" },
+    -- Le chat v4 (commit « v4 ChatFrame ») a remplace ChatFrameSkin.lua : les
+    -- anciennes frames n'existent plus, seuls les noms TomoMod_ChatV4* sont
+    -- crees. Le motif large couvre l'hote des messages, la barre laterale, les
+    -- onglets et la fenetre de copie, qui partagent tous ce prefixe.
+    { "^TomoMod_ChatV4",                 "skins" },
     { "^TomoMod_TooltipMover",           "skins" },
     { "^TomoMod_ReputationBar",          "skins" },
     { "^TomoMod_BagSkin_",               "skins" },

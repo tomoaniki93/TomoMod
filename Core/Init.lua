@@ -598,6 +598,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         -- bar skinning now and self-initialises on ADDON_LOADED.
         safeInit("CharacterSkin",      TomoMod_CharacterSkin)
         safeInit("ChatFrameSkin",      TomoMod_ChatFrameSkin)
+        safeInit("BagsV4",             TomoMod_BagSkin)
         safeInit("GameMenuSkin",       TomoMod_GameMenuSkin)
         safeInit("BlizzardAuraFrames", TomoMod_BlizzardAuraFrames)
         safeInit("TooltipSkin",        TomoMod_TooltipSkin)

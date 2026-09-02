@@ -55,6 +55,12 @@ local function BuildChatFrameTab(parent)
     end, "%.0f%%")
     y = ny
 
+    local _, ny = W.CreateSlider(c, L["opt_chat_message_bg_alpha"], (appearance.messageBgAlpha or appearance.bgAlpha or 0.72) * 100, 0, 100, 5, y, function(v)
+        appearance.messageBgAlpha = v / 100
+        Apply()
+    end, "%.0f%%")
+    y = ny
+
     local _, ny = W.CreateSlider(c, L["opt_chat_skin_font_size"], appearance.fontSize or 13, 9, 20, 1, y, function(v)
         appearance.fontSize = v
         Apply()
@@ -246,175 +252,149 @@ local function BuildBagsTab(parent)
     local c = scroll.child
     local y = -10
 
-    local _, ny = W.CreateSectionHeader(c, L["section_skin_bags"], y)
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["info_skin_bags_desc"], y)
-    y = ny
-
-    local db = TomoModDB.bagSkin
-    if not db then
-        TomoModDB.bagSkin = {}
-        db = TomoModDB.bagSkin
+    local Bags = TomoMod_BagSkin
+    if not Bags or not Bags.GetDB then
+        local _, ny = W.CreateInfoText(c, "Bags V4 unavailable.", y)
+        y = ny
+        c:SetHeight(math.abs(y) + 40)
+        if scroll.UpdateScroll then scroll.UpdateScroll() end
+        return scroll
     end
 
-    -- Enable
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_enable"], db.enabled, y, function(v)
-        db.enabled = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.SetEnabled(v) end
+    local db = Bags.GetDB()
+    local layout = db.layout
+    local appearance = db.appearance
+    local sorting = db.sorting
+    local slots = db.slots
+    local sidebar = db.sidebar
+    local search = db.search
+
+    local function Loc(key, fallback)
+        local value = L and L[key]
+        if type(value) == "string" and value ~= key and value ~= "" then return value end
+        return fallback
+    end
+
+    local function Apply()
+        if Bags and Bags.ApplySettings then Bags.ApplySettings() end
+    end
+
+    local _, ny = W.CreateSectionHeader(c, Loc("section_skin_bags", "Bags V4"), y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, Loc("bags_v4_gui_info", "Combined mode uses one TomoMod bag window. Separate mode restores Blizzard's individual bag windows."), y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, Loc("opt_skin_bags_enable", "Enable Bags V4"), db.enabled ~= false, y, function(v)
+        Bags.SetEnabled(v)
     end)
     y = ny
 
-    -- Layout mode (GW2_UI-inspired: combined / categories / separate bags)
-    local _, ny = W.CreateSegmentedControl(c, (L and L["opt_skin_bags_layout_mode"]) or "Layout Mode", {
-        { text = (L and L["opt_skin_bags_layout_combined"])   or "Combined Grid",  value = "combined" },
-        { text = (L and L["opt_skin_bags_layout_separate"])   or "Separate Bags",  value = "separateBags" },
-    }, db.layoutMode or "combined", y, function(v)
-        db.layoutMode = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    -- Display mode ------------------------------------------------------
+    local _, ny = W.CreateSegmentedControl(c, Loc("bags_v4_gui_mode", "Bag display"), {
+        { text = Loc("bags_v4_gui_combined", "Combined"), value = "combined" },
+        { text = Loc("bags_v4_gui_separate", "Separate"), value = "separate" },
+    }, layout.mode or "combined", y, function(v)
+        if Bags.SetDisplayMode then
+            Bags.SetDisplayMode(v)
+        else
+            layout.mode = v
+            Apply()
+        end
     end, 2)
     y = ny
 
-    -- Sort mode
-    local _, ny = W.CreateSegmentedControl(c, L["opt_skin_bags_sort_mode"], {
-        { text = L["opt_skin_bags_sort_none"],    value = "none" },
-        { text = L["opt_skin_bags_sort_quality"], value = "quality" },
-        { text = L["opt_skin_bags_sort_name"],    value = "name" },
-        { text = L["opt_skin_bags_sort_type"],    value = "type" },
-        { text = L["opt_skin_bags_sort_ilvl"],    value = "ilvl" },
-        { text = L["opt_skin_bags_sort_recent"],  value = "recent" },
-    }, db.sortMode or "quality", y, function(v)
-        db.sortMode = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end, 3)
+    -- Appearance --------------------------------------------------------
+    local _, ny = W.CreateSectionHeader(c, Loc("bags_v4_gui_appearance", "Appearance"), y)
     y = ny
 
-    local _, ny = W.CreateSeparator(c, y)
+    local _, ny = W.CreateSlider(c, Loc("bags_v4_gui_columns", "Columns"), layout.columns or 12, 6, 16, 1, y, function(v)
+        layout.columns = math.floor(v + 0.5)
+        Apply()
+    end, "%.0f")
     y = ny
 
-    -- Slot size (GW2_UI: BAG_ITEM_SIZE 26–48)
-    local _, ny = W.CreateSlider(c, L["opt_skin_bags_slot_size"], db.slotSize or 40, 26, 48, 1, y, function(v)
-        db.slotSize = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
+    local _, ny = W.CreateSlider(c, Loc("opt_skin_bags_slot_size", "Slot size"), layout.slotSize or 38, 28, 52, 1, y, function(v)
+        layout.slotSize = math.floor(v + 0.5)
+        Apply()
+    end, "%.0f")
     y = ny
 
-    -- Slot spacing X (GW2_UI-style separate X/Y)
-    local _, ny = W.CreateSlider(c, (L and L["opt_skin_bags_slot_spacing_x"]) or "Slot Spacing X", db.slotSpacingX or 5, 0, 20, 1, y, function(v)
-        db.slotSpacingX = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
+    local _, ny = W.CreateSlider(c, Loc("bags_v4_gui_spacing", "Slot spacing"), layout.spacing or 4, 0, 10, 1, y, function(v)
+        layout.spacing = math.floor(v + 0.5)
+        Apply()
+    end, "%.0f")
     y = ny
 
-    -- Slot spacing Y
-    local _, ny = W.CreateSlider(c, (L and L["opt_skin_bags_slot_spacing_y"]) or "Slot Spacing Y", db.slotSpacingY or 5, 0, 20, 1, y, function(v)
-        db.slotSpacingY = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
-    y = ny
-
-    -- Scale
-    local _, ny = W.CreateSlider(c, L["opt_skin_bags_scale"], db.scale or 100, 50, 200, 5, y, function(v)
-        db.scale = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    local _, ny = W.CreateSlider(c, Loc("opt_skin_bags_scale", "Scale"), (appearance.scale or 1) * 100, 70, 140, 5, y, function(v)
+        appearance.scale = v / 100
+        Apply()
     end, "%.0f%%")
     y = ny
 
-    -- Opacity
-    local _, ny = W.CreateSlider(c, L["opt_skin_bags_opacity"], db.opacity or 92, 0, 100, 5, y, function(v)
-        db.opacity = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    local _, ny = W.CreateSlider(c, Loc("opt_skin_bags_opacity", "Opacity"), (appearance.alpha or 0.96) * 100, 25, 100, 5, y, function(v)
+        appearance.alpha = v / 100
+        Apply()
     end, "%.0f%%")
     y = ny
 
+    -- Sorting & search --------------------------------------------------
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    -- Visual options
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_quality_borders"], db.showQualityBorders ~= false, y, function(v)
-        db.showQualityBorders = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    local _, ny = W.CreateSegmentedControl(c, Loc("opt_skin_bags_sort_mode", "Visual sorting"), {
+        { text = Loc("bags_v4_sort_natural", "Bag order"), value = "natural" },
+        { text = Loc("bags_v4_sort_quality", "Quality"), value = "quality" },
+        { text = Loc("bags_v4_sort_name", "Name"), value = "name" },
+        { text = Loc("bags_v4_sort_ilvl", "Item level"), value = "ilvl" },
+    }, sorting.mode or "natural", y, function(v)
+        sorting.mode = v
+        Apply()
+    end, 2)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, Loc("opt_skin_bags_search", "Search bar"), search.enabled ~= false, y, function(v)
+        search.enabled = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, (L and L["opt_skin_bags_show_ilvl"]) or "Show Item Level", db.showItemLevel == true, y, function(v)
-        db.showItemLevel = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, (L and L["opt_skin_bags_show_junk_icon"]) or "Show Junk Icon", db.showJunkIcon == true, y, function(v)
-        db.showJunkIcon = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_cooldowns"], db.showCooldowns ~= false, y, function(v)
-        db.showCooldowns = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_quantity"], db.showQuantityBadges ~= false, y, function(v)
-        db.showQuantityBadges = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_search"], db.showSearchBar ~= false, y, function(v)
-        db.showSearchBar = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
-    y = ny
-
+    -- Item slots --------------------------------------------------------
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    -- Feature toggles
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_stack_merge"], db.stackMerge == true, y, function(v)
-        db.stackMerge = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    local _, ny = W.CreateCheckbox(c, Loc("opt_skin_bags_quality_borders", "Quality borders"), slots.qualityBorders ~= false, y, function(v)
+        slots.qualityBorders = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_show_empty"], db.showEmptySlots ~= false, y, function(v)
-        db.showEmptySlots = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    local _, ny = W.CreateCheckbox(c, Loc("opt_skin_bags_show_ilvl", "Show item level"), slots.itemLevel ~= false, y, function(v)
+        slots.itemLevel = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_show_recent"], db.showRecentItems ~= false, y, function(v)
-        db.showRecentItems = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
+    local _, ny = W.CreateCheckbox(c, Loc("opt_skin_bags_show_empty", "Show empty slots"), slots.showEmpty ~= false, y, function(v)
+        slots.showEmpty = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, (L and L["opt_skin_bags_reverse_order"]) or "Reverse Bag Order", db.reverseBagOrder == true, y, function(v)
-        db.reverseBagOrder = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
+    -- Pinned / Recent ---------------------------------------------------
+    local _, ny = W.CreateSectionHeader(c, Loc("bags_v4_gui_sidebar", "Pinned & Recent"), y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, (L and L["opt_skin_bags_show_bag_bar"]) or "Show Bag Bar", db.showBagBar ~= false, y, function(v)
-        db.showBagBar = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
+    local _, ny = W.CreateSlider(c, Loc("bags_v4_gui_pinned_max", "Pinned items"), sidebar.pinnedMax or 8, 2, 12, 1, y, function(v)
+        sidebar.pinnedMax = math.floor(v + 0.5)
+        Apply()
+    end, "%.0f")
     y = ny
 
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-
-    -- Footer options
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_show_gold"], db.showGold ~= false, y, function(v)
-        db.showGold = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_skin_bags_show_currencies"], db.showCurrencies == true, y, function(v)
-        db.showCurrencies = v
-        if TomoMod_BagSkin then TomoMod_BagSkin.ApplySettings() end
-    end)
+    local _, ny = W.CreateSlider(c, Loc("bags_v4_gui_recent_max", "Recent items"), sidebar.recentMax or 8, 2, 12, 1, y, function(v)
+        sidebar.recentMax = math.floor(v + 0.5)
+        Apply()
+    end, "%.0f")
     y = ny
 
     c:SetHeight(math.abs(y) + 40)
@@ -619,7 +599,7 @@ local function BuildGameMenuSkinTab(parent)
 
     local _, ny = W.CreateInfoText(c, L["info_game_menu_skin_reload"], y)
     y = ny
-    
+
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll
