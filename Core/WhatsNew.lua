@@ -63,6 +63,16 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "4.0.1",
+        highlights = {
+            L["wn_401_tracker_anchor"] or "Changed - The Consumable Tracker button now stays firmly docked beside the information panel clock. It follows the clock itself instead of its time text, so opening the calendar or changing the time format cannot move the button over the clock.",
+            L["wn_401_tracker_sizes"] or "New - You can now set the Consumable Tracker button size and icon size separately in Options. Both sizes update immediately and are saved with your profile.",
+            L["wn_401_tracker_timers"] or "Changed - Tracker timers now scale with the icons. Larger or smaller tracker icons keep timer text and timer space proportioned and readable.",
+            L["wn_401_layout_cogs"],
+            L["wn_401_blizzard_auras"],
+        },
+    },
+    {
         version = "4.0.0",
         highlights = {
             L["wn_400_interface_workspace"] or "New — Interface is now a focused workspace in the options sidebar. Its General, Action Bars, Skins and Sound pages sit directly underneath it, while Home, Roles, Profiles and Diagnostics remain one click away. The pages themselves, their nested tabs, search and deep links work exactly as before.",

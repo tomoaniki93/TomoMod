@@ -59,7 +59,7 @@ globals = {
     "TomoMod_AuraTracker", "TomoMod_AuraTrackerDB", "TomoMod_Auras_player", "TomoMod_AutoAcceptInvite",
     "TomoMod_AutoFillDelete", "TomoMod_AutoQuest", "TomoMod_AutoSkipRole", "TomoMod_AutoSummon",
     "TomoMod_BagBank", "TomoMod_BagCategories", "TomoMod_BagMicroMenu", "TomoMod_BagSkin",
-    "TomoMod_BossFrames", "TomoMod_BuffSkin", "TomoMod_CDMKeybinds", "TomoMod_CDMLayout",
+    "TomoMod_BlizzardAuraFrames", "TomoMod_BossFrames", "TomoMod_BuffSkin", "TomoMod_CDMKeybinds", "TomoMod_CDMLayout",
     "TomoMod_CDMProcGlow", "TomoMod_CDMScanner", "TomoMod_CVarOptimizer", "TomoMod_Castbar",
     "TomoMod_CastbarSpark", "TomoMod_CharacterSkin", "TomoMod_ChatButtonHandlers", "TomoMod_ChatButtonNames",
     "TomoMod_ChatFrameSkin", "TomoMod_ChatFrameSkinV2", "TomoMod_ChatFrameUI", "TomoMod_CinematicSkip",

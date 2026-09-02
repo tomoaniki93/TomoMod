@@ -38,7 +38,6 @@ TomoMod_RegisterLocale("enUS", {
     ["mod_infoPanel"]        = "Info Panel",
     ["mod_cursorRing"]       = "Cursor Ring",
     ["mod_frameAnchors"]     = "Frame Anchors",
-    ["mod_microBar"]         = "Micro Bar",
     ["mod_bagMicroMenu"]     = "Bags & Micro Menu",
     ["mod_addonDetect"]      = "Addon Detection",
     ["mod_diagnostics"]      = "Diagnostics",
@@ -54,6 +53,7 @@ TomoMod_RegisterLocale("enUS", {
     ["mod_chatFrameUI"]      = "Chat Interface",
     ["mod_bagSkin"]          = "Bag Skin",
     ["mod_gameMenuSkin"]     = "Game Menu",
+    ["mod_blizzardAuraFrames"] = "Blizzard Aura Frames",
     ["mod_mailSkin"]         = "Mail Skin",
     ["mod_unitFrames"]       = "Unit Frames",
     ["mod_castbars"]         = "Cast Bars",
@@ -188,6 +188,12 @@ TomoMod_RegisterLocale("enUS", {
     ["imp_unchanged"]      = "identical",
     ["imp_changed"]        = "changed",
     ["imp_unknown"]        = "Unrecognised entries",
+
+    -- Panneau de sélection d'import (lot 7)
+    ["imp_select_all"]     = "Select all",
+    ["imp_select_changed"] = "Only what changes",
+    ["imp_applied"]        = "%d modules imported",
+    ["imp_nothing"]        = "Nothing selected.",
 })
 
 -- =====================
@@ -210,7 +216,6 @@ TomoMod_RegisterLocale("frFR", {
     ["mod_infoPanel"]        = "Panneau d'informations",
     ["mod_cursorRing"]       = "Anneau de curseur",
     ["mod_frameAnchors"]     = "Ancres de cadres",
-    ["mod_microBar"]         = "Barre micro",
     ["mod_bagMicroMenu"]     = "Sacs et menu micro",
     ["mod_addonDetect"]      = "Détection d'addons",
     ["mod_diagnostics"]      = "Diagnostics",
@@ -226,6 +231,7 @@ TomoMod_RegisterLocale("frFR", {
     ["mod_chatFrameUI"]      = "Interface du chat",
     ["mod_bagSkin"]          = "Habillage des sacs",
     ["mod_gameMenuSkin"]     = "Menu du jeu",
+    ["mod_blizzardAuraFrames"] = "Cadres d'auras Blizzard",
     ["mod_mailSkin"]         = "Habillage du courrier",
     ["mod_unitFrames"]       = "Cadres d'unité",
     ["mod_castbars"]         = "Barres d'incantation",
@@ -360,6 +366,12 @@ TomoMod_RegisterLocale("frFR", {
     ["imp_unchanged"]      = "identique",
     ["imp_changed"]        = "modifié",
     ["imp_unknown"]        = "Entrées non reconnues",
+
+    -- Panneau de sélection d'import (lot 7)
+    ["imp_select_all"]     = "Tout sélectionner",
+    ["imp_select_changed"] = "Seulement ce qui change",
+    ["imp_applied"]        = "%d modules importés",
+    ["imp_nothing"]        = "Aucune sélection.",
 })
 
 -- =====================
@@ -382,7 +394,6 @@ TomoMod_RegisterLocale("deDE", {
     ["mod_infoPanel"]        = "Infoleiste",
     ["mod_cursorRing"]       = "Cursorring",
     ["mod_frameAnchors"]     = "Rahmenanker",
-    ["mod_microBar"]         = "Mikroleiste",
     ["mod_bagMicroMenu"]     = "Taschen & Mikromenü",
     ["mod_addonDetect"]      = "Addon-Erkennung",
     ["mod_diagnostics"]      = "Diagnose",
@@ -398,6 +409,7 @@ TomoMod_RegisterLocale("deDE", {
     ["mod_chatFrameUI"]      = "Chat-Interface",
     ["mod_bagSkin"]          = "Taschen-Design",
     ["mod_gameMenuSkin"]     = "Spielmenü",
+    ["mod_blizzardAuraFrames"] = "Blizzard-Aurafenster",
     ["mod_mailSkin"]         = "Post-Design",
     ["mod_unitFrames"]       = "Einheitenfenster",
     ["mod_castbars"]         = "Zauberleisten",
@@ -532,6 +544,12 @@ TomoMod_RegisterLocale("deDE", {
     ["imp_unchanged"]      = "identisch",
     ["imp_changed"]        = "geändert",
     ["imp_unknown"]        = "Unbekannte Einträge",
+
+    -- Panneau de sélection d'import (lot 7)
+    ["imp_select_all"]     = "Alle auswählen",
+    ["imp_select_changed"] = "Nur Geändertes",
+    ["imp_applied"]        = "%d Module importiert",
+    ["imp_nothing"]        = "Nichts ausgewählt.",
 })
 
 -- =====================
@@ -554,7 +572,6 @@ TomoMod_RegisterLocale("esES", {
     ["mod_infoPanel"]        = "Panel de información",
     ["mod_cursorRing"]       = "Anillo del cursor",
     ["mod_frameAnchors"]     = "Anclas de marcos",
-    ["mod_microBar"]         = "Barra micro",
     ["mod_bagMicroMenu"]     = "Bolsas y micromenú",
     ["mod_addonDetect"]      = "Detección de addons",
     ["mod_diagnostics"]      = "Diagnóstico",
@@ -570,6 +587,7 @@ TomoMod_RegisterLocale("esES", {
     ["mod_chatFrameUI"]      = "Interfaz del chat",
     ["mod_bagSkin"]          = "Diseño de bolsas",
     ["mod_gameMenuSkin"]     = "Menú del juego",
+    ["mod_blizzardAuraFrames"] = "Marcos de auras de Blizzard",
     ["mod_mailSkin"]         = "Diseño del correo",
     ["mod_unitFrames"]       = "Marcos de unidad",
     ["mod_castbars"]         = "Barras de lanzamiento",
@@ -704,6 +722,12 @@ TomoMod_RegisterLocale("esES", {
     ["imp_unchanged"]      = "idéntico",
     ["imp_changed"]        = "cambiado",
     ["imp_unknown"]        = "Entradas no reconocidas",
+
+    -- Panneau de sélection d'import (lot 7)
+    ["imp_select_all"]     = "Seleccionar todo",
+    ["imp_select_changed"] = "Solo lo que cambia",
+    ["imp_applied"]        = "%d módulos importados",
+    ["imp_nothing"]        = "Nada seleccionado.",
 })
 
 -- =====================
@@ -726,7 +750,6 @@ TomoMod_RegisterLocale("itIT", {
     ["mod_infoPanel"]        = "Pannello informazioni",
     ["mod_cursorRing"]       = "Anello del cursore",
     ["mod_frameAnchors"]     = "Ancore dei riquadri",
-    ["mod_microBar"]         = "Barra micro",
     ["mod_bagMicroMenu"]     = "Borse e micro menu",
     ["mod_addonDetect"]      = "Rilevamento addon",
     ["mod_diagnostics"]      = "Diagnostica",
@@ -742,6 +765,7 @@ TomoMod_RegisterLocale("itIT", {
     ["mod_chatFrameUI"]      = "Interfaccia chat",
     ["mod_bagSkin"]          = "Stile borse",
     ["mod_gameMenuSkin"]     = "Menu di gioco",
+    ["mod_blizzardAuraFrames"] = "Riquadri aure Blizzard",
     ["mod_mailSkin"]         = "Stile posta",
     ["mod_unitFrames"]       = "Riquadri unità",
     ["mod_castbars"]         = "Barre di lancio",
@@ -876,6 +900,12 @@ TomoMod_RegisterLocale("itIT", {
     ["imp_unchanged"]      = "identico",
     ["imp_changed"]        = "modificato",
     ["imp_unknown"]        = "Voci non riconosciute",
+
+    -- Panneau de sélection d'import (lot 7)
+    ["imp_select_all"]     = "Seleziona tutto",
+    ["imp_select_changed"] = "Solo ciò che cambia",
+    ["imp_applied"]        = "%d moduli importati",
+    ["imp_nothing"]        = "Nessuna selezione.",
 })
 
 -- =====================
@@ -898,7 +928,6 @@ TomoMod_RegisterLocale("ptBR", {
     ["mod_infoPanel"]        = "Painel de informações",
     ["mod_cursorRing"]       = "Anel do cursor",
     ["mod_frameAnchors"]     = "Âncoras de quadros",
-    ["mod_microBar"]         = "Barra micro",
     ["mod_bagMicroMenu"]     = "Bolsas e micromenu",
     ["mod_addonDetect"]      = "Detecção de addons",
     ["mod_diagnostics"]      = "Diagnóstico",
@@ -914,6 +943,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["mod_chatFrameUI"]      = "Interface do chat",
     ["mod_bagSkin"]          = "Estilo das bolsas",
     ["mod_gameMenuSkin"]     = "Menu do jogo",
+    ["mod_blizzardAuraFrames"] = "Quadros de auras da Blizzard",
     ["mod_mailSkin"]         = "Estilo do correio",
     ["mod_unitFrames"]       = "Quadros de unidade",
     ["mod_castbars"]         = "Barras de conjuração",
@@ -1048,4 +1078,10 @@ TomoMod_RegisterLocale("ptBR", {
     ["imp_unchanged"]      = "idêntico",
     ["imp_changed"]        = "alterado",
     ["imp_unknown"]        = "Entradas não reconhecidas",
+
+    -- Panneau de sélection d'import (lot 7)
+    ["imp_select_all"]     = "Selecionar tudo",
+    ["imp_select_changed"] = "Só o que muda",
+    ["imp_applied"]        = "%d módulos importados",
+    ["imp_nothing"]        = "Nada selecionado.",
 })

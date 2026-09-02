@@ -3327,6 +3327,12 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_333_diag_mode"] = "Diagnose: Wenn der Bericht den Anzeigemodus nicht bestimmen kann, gibt er jetzt die Rohwerte aus, die das Spiel geliefert hat, statt eines bloßen Fragezeichens — diese Einstellungsnamen ändern sich von Erweiterung zu Erweiterung, und ein alleinstehendes „?“ ließ sich ohne Rückfrage nicht auswerten. Vollbildfenster und maximierte Fenster werden in mehr Fällen erkannt, und Addon-Versionen lauten nicht mehr „vv1.2.3“.",
     ["wn_333_shared"] = "Intern: Die Gruppen- und Schlachtzugsfenster hielten zwei Kopien derselben 250 Zeilen vor — die Beschwörungslogik, die Liste der Heilung-über-Zeit-Effekte, die Verteidigungsverfolgung. Alle drei Fehler oben rühren daher: eine Korrektur, die an einer Kopie vorgenommen wurde und an der anderen nicht. Sie teilen sich jetzt eine einzige Implementierung.",
     -- =====================
+    -- 4.0.1 — What's New
+    -- =====================
+    ["wn_401_tracker_anchor"] = "Geändert - Die Schaltfläche der Verbrauchsanzeige bleibt jetzt fest neben der Uhr der Informationsleiste angedockt. Sie folgt der Uhr selbst statt ihrem Zeittext, sodass das Öffnen des Kalenders oder ein anderes Zeitformat die Schaltfläche nicht mehr über die Uhr verschieben kann.",
+    ["wn_401_tracker_sizes"] = "Neu - In den Optionen können Sie jetzt die Größe der Schaltfläche und der Symbole der Verbrauchsanzeige getrennt einstellen. Beide Größen werden sofort aktualisiert und mit Ihrem Profil gespeichert.",
+    ["wn_401_tracker_timers"] = "Geändert - Die Timer der Anzeige skalieren jetzt mit den Symbolen. Größere oder kleinere Symbole behalten proportionierten und lesbaren Timertext sowie passenden Platz dafür.",
+    -- =====================
     -- 4.0.0 — What's New
     -- =====================
     ["wn_400_context_profiles"] = "Neu — Eure Profile können jetzt dem Inhalt folgen, in dem ihr euch befindet. Weist eines dem Solospiel, den Dungeons, Mythisch+, den Schlachtzügen und dem PvP zu, und TomoMod wechselt von selbst: das Schlachtzugsprofil, sobald ihr die Instanz betretet, das Mythisch+-Profil, sobald der Schlüsselstein startet. Eine Zuweisung gilt für eine Spezialisierung oder für alle, die genauere gewinnt, und ein Kontext, dem ihr nichts zuweist, ändert überhaupt nichts — eure Spezialisierungsprofile entscheiden weiterhin genau wie bisher. Das Ganze bleibt aus, bis ihr es mit /tm context on einschaltet, und /tm context zeigt euch, was gerade erkannt wird und was ihr zugewiesen habt.",

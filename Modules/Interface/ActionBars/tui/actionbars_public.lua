@@ -372,7 +372,15 @@ function ActionBarsOwned:Initialize()
     -- P3.5.16: possession has its own native visual update event.  Listen only
     -- so the visual-region mask can be refreshed after Blizzard repaints it.
     ownedEventFrame:RegisterEvent("UPDATE_POSSESS_BAR")
-    ownedEventFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
+    -- [PERF v4] Le handler ne fait quelque chose que pour "player" ; pose
+    -- globalement, cet evenement se declenchait pour chaque changement
+    -- d'equipement visible de chaque unite alentour -- en ville ou en raid,
+    -- beaucoup de reveils pour un test qui echoue.
+    if ownedEventFrame.RegisterUnitEvent then
+        ownedEventFrame:RegisterUnitEvent("UNIT_INVENTORY_CHANGED", "player")
+    else
+        ownedEventFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
+    end
     ownedEventFrame:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
     ownedEventFrame:RegisterEvent("START_AUTOREPEAT_SPELL")
     ownedEventFrame:RegisterEvent("STOP_AUTOREPEAT_SPELL")

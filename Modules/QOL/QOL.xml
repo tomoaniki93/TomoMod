@@ -104,6 +104,7 @@
     <Include file="Skins\ChatFrameSkin.lua" />
     <Include file="Skins\BagSkin.lua" />
     <Include file="Skins\GameMenuSkin.lua" />
+    <Include file="Skins\BlizzardAuraFrames.lua" />
     <Include file="Skins\TooltipSkin.lua" />
     <Include file="Skins\TooltipInspect.lua" />
     <Include file="Skins\TooltipInfo.lua" />

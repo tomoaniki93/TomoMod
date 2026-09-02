@@ -266,6 +266,10 @@ local impKeys = 0
 for key in read("Core/Init.lua"):gmatch('L%["(imp_[%w_]+)"%]') do
     needed[key] = true; impKeys = impKeys + 1
 end
+-- Lot 7 : le panneau de sélection passe par son propre helper T(clé, repli).
+for key in read("TomoMod_Options/Config/ImportSelector.lua"):gmatch('T%("(imp_[%w_]+)"') do
+    needed[key] = true; impKeys = impKeys + 1
+end
 check("clés d'import citées", impKeys > 0, true)
 
 local neededCount, gaps = 0, 0

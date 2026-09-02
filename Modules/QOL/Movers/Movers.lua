@@ -32,6 +32,252 @@ local combatFrame  = nil     -- [TWW] frame d'écoute PLAYER_REGEN_*
 local moduleEntries = {}
 
 -- =====================================
+-- v4.0.1 — CONTEXTUAL CONFIG GEAR
+-- =====================================
+-- Un engrenage apparait au survol d'un element deplacable et ouvre sa page
+-- de configuration.
+--
+-- La difficulte est d'attribuer une page a la frame sous le curseur. La
+-- premiere version la decouvrait : elle photographiait l'etat de TOUTES les
+-- frames du jeu avant et apres chaque entree de mover, et retenait celles qui
+-- venaient d'apparaitre. Avec vingt-quatre entrees, cela faisait quarante-huit
+-- parcours complets du graphe de frames a chaque ouverture du mode layout --
+-- entre un et trois millions de visites sur un client charge, et autant
+-- d'allocations. La detection etait aussi fragile : n'importe quelle frame
+-- apparaissant dans la meme fenetre de temps, un tooltip ou la reaction d'un
+-- autre addon, se retrouvait attribuee au mover en cours.
+--
+-- Les frames de TomoMod portent des noms stables. Le routage se fait donc par
+-- nom, au moment du survol, en remontant la chaine de parents : aucun parcours
+-- global, et l'attribution est deterministe. Tools/test_layout_gear.lua verifie
+-- que chaque motif correspond a une frame reellement creee dans les sources et
+-- que chaque destination est une categorie qui existe.
+
+local COGS_TEX = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\cogs.tga"
+local GEAR_SCAN_INTERVAL = 0.05
+local layoutGearButton
+local layoutGearDriver
+
+-- Motifs de nom -> destination de configuration.
+--
+-- L'ordre compte : le premier motif qui correspond gagne, donc les plus longs
+-- passent avant ceux qui les prefixent. "TomoMod_Castbar_GCD" doit etre teste
+-- avant "TomoMod_Castbar_".
+--
+-- Une destination est soit une cle de categorie, soit une table
+-- { category = "comfort", page = "..." } pour les pages du confort, qui ont
+-- leur propre point d'entree.
+local LAYOUT_ROUTES = {
+    -- Cadres d'unite et incantations
+    { "^TomoMod_UF_",                    "unitframes" },
+    { "^TomoMod_Boss_",                  "unitframes" },
+    { "^TomoMod_CastbarInterruptFeedback", "castbars" },
+    { "^TomoMod_Castbar_GCD",            "castbars" },
+    { "^TomoMod_Castbar_",               "castbars" },
+    { "^TomoMod_ResourceBars_Container", "resources" },
+
+    -- Groupe et raid
+    { "^TomoMod_PartyAnchor",            "partyframes" },
+    { "^TomoMod_ArenaAnchor",            "partyframes" },
+    { "^TomoMod_RaidAnchor",             "raidframes" },
+    { "^TomoMod_BattleRezCounter",       "raidframes" },
+
+    -- Barres d'action
+    { "^TomoModTotemBarMoverOverlay",    "actionbars" },
+
+    -- Recharges
+    { "^TomoModCDM_",                    "resources" },
+
+    -- Mythique+
+    { "^TomoMod_MythicTrackerFrame",     "mythicplus" },
+    { "^TomoMod_MythicScoreWidget",      "mythicplus" },
+    { "^TomoMod_MythicTeleportMenuFrame", "mythicplus" },
+    { "^TomoMod_KeyRoulette",            "mythicplus" },
+
+    -- Habillages
+    { "^TomoModObjectiveTrackerMover",   "skins" },
+    { "^TomoMod_OTHeader",               "skins" },
+    { "^TomoMod_OTSkin",                 "skins" },
+    { "^TomoMod_ChatMoverOverlay",       "skins" },
+    { "^TomoMod_ChatContainer",          "skins" },
+    { "^TomoMod_TooltipMover",           "skins" },
+    { "^TomoMod_ReputationBar",          "skins" },
+    { "^TomoMod_BagSkin_",               "skins" },
+    { "^TomoMod_WorldQuestTabFrame",     "skins" },
+
+    -- General
+    { "^TomoModMinimap",                 "general" },
+    { "^TomoModAnchor_",                 "general" },
+    { "^TomoModCursorRing",              "general" },
+    { "^TomoMod_ClockBar",               "general" },
+    { "^TomoMod_ZoneBar",                "general" },
+
+    -- Confort : pages dediees
+    { "^TomoModSkyRideFrame",            { category = "comfort", page = "skyride" } },
+    { "^TomoMod_LevelingBar",            { category = "comfort", page = "leveling" } },
+    { "^TomoMod_ConsumableBar",          { category = "comfort", page = "consumables" } },
+    { "^TomoMod_ConsumableTrackerButton", { category = "comfort", page = "consumables" } },
+    { "^TomoMod_Compass",                { category = "comfort", page = "compass" } },
+    { "^TomoMod_PreyTracker",            { category = "comfort", page = "automations" } },
+    { "^TomoMod_ClassReminder",          { category = "comfort", page = "classremind" } },
+    { "^TomoMod_AFKDisplayFrame",        { category = "comfort", page = "automations" } },
+    { "^TomoMod_LootsFrame",             { category = "comfort", page = "automations" } },
+    { "^TomoMod_RareAlertBanner",        { category = "comfort", page = "automations" } },
+    { "^TomoMod_ProfessionHelperFrame",  { category = "comfort", page = "automations" } },
+    { "^TomoMod_WaypointRoot",           { category = "comfort", page = "automations" } },
+    { "^TomoMod_CombatTextFrame",        { category = "comfort", page = "automations" } },
+}
+M.LAYOUT_ROUTES = LAYOUT_ROUTES
+
+-- Frames qui appartiennent au mode layout lui-meme : jamais de cible.
+local GEAR_SELF = {
+    TomoModLayoutConfigGear = true,
+    TomoModLayoutHeader     = true,
+    TomoModLayoutGrid       = true,
+}
+
+local function RouteForName(name)
+    if type(name) ~= "string" or name == "" then return nil end
+    if GEAR_SELF[name] then return nil end
+    for i = 1, #LAYOUT_ROUTES do
+        if name:find(LAYOUT_ROUTES[i][1]) then return LAYOUT_ROUTES[i][2] end
+    end
+    return nil
+end
+M.RouteForName = RouteForName
+
+local function OpenConfigRoute(route)
+    if not route then return end
+    local cfg = TomoMod_Config
+    if not cfg then return end
+
+    if type(route) == "table" and route.category == "comfort" and route.page then
+        if cfg.Show then cfg.Show() end
+        if cfg.OpenComfortPage then
+            cfg.OpenComfortPage(route.page)
+            return
+        end
+    end
+
+    local key = type(route) == "table" and (route.page or route.category) or route
+    if cfg.OpenCategory then
+        cfg.OpenCategory(key)
+    else
+        if cfg.Show then cfg.Show() end
+        if cfg.SwitchCategory then cfg.SwitchCategory(key) end
+    end
+end
+
+local function CurrentMouseFocus()
+    if GetMouseFoci then
+        local first = GetMouseFoci()
+        if type(first) == "table" and not first.GetParent then return first[1] end
+        return first
+    end
+    if GetMouseFocus then return GetMouseFocus() end
+end
+
+-- Remonte la chaine de parents depuis la frame survolee. Une frame anonyme
+-- (nom nil) est traversee sans etre testee : c'est le cas des habillages et
+-- des textures posees sur un conteneur nomme.
+local function FindGearTarget()
+    if layoutGearButton and layoutGearButton:IsShown() and layoutGearButton:IsMouseOver() then
+        return layoutGearButton._target, layoutGearButton._route
+    end
+
+    local focus = CurrentMouseFocus()
+    local depth = 0
+    while focus and depth < 12 do
+        if type(focus.GetName) == "function" then
+            local route = RouteForName(focus:GetName())
+            if route then return focus, route end
+        end
+        if type(focus.GetParent) ~= "function" then break end
+        focus = focus:GetParent()
+        depth = depth + 1
+    end
+end
+
+local function EnsureLayoutGear()
+    if layoutGearButton then return layoutGearButton end
+
+    local button = CreateFrame("Button", "TomoModLayoutConfigGear", UIParent)
+    button:SetSize(28, 28)
+    button:SetFrameStrata("TOOLTIP")
+    button:SetFrameLevel(900)
+    button:EnableMouse(true)
+    button:Hide()
+
+    local bg = button:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetColorTexture(0.02, 0.02, 0.03, 0.88)
+
+    local icon = button:CreateTexture(nil, "ARTWORK")
+    icon:SetPoint("TOPLEFT", 3, -3)
+    icon:SetPoint("BOTTOMRIGHT", -3, 3)
+    icon:SetTexture(COGS_TEX)
+    button._icon = icon
+
+    local hl = button:CreateTexture(nil, "HIGHLIGHT")
+    hl:SetAllPoints()
+    hl:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.22)
+
+    button:SetScript("OnEnter", function(self)
+        if GameTooltip then
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText((L and L["layout_configure"]) or "Configurer cet élément")
+            GameTooltip:Show()
+        end
+    end)
+    button:SetScript("OnLeave", function()
+        if GameTooltip then GameTooltip:Hide() end
+    end)
+    button:SetScript("OnClick", function(self)
+        OpenConfigRoute(self._route)
+    end)
+
+    layoutGearButton = button
+    return button
+end
+
+local function StartLayoutGearDriver()
+    local gear = EnsureLayoutGear()
+    if not layoutGearDriver then layoutGearDriver = CreateFrame("Frame") end
+    layoutGearDriver._elapsed = 0
+    layoutGearDriver:SetScript("OnUpdate", function(self, elapsed)
+        self._elapsed = self._elapsed + elapsed
+        if self._elapsed < GEAR_SCAN_INTERVAL then return end
+        self._elapsed = 0
+
+        local target, route = FindGearTarget()
+        if not target or not route or type(target.IsShown) ~= "function" or not target:IsShown() then
+            gear:Hide()
+            gear._target, gear._route = nil, nil
+            return
+        end
+
+        if gear._target ~= target then
+            gear:ClearAllPoints()
+            gear:SetPoint("TOPRIGHT", target, "TOPRIGHT", 8, 8)
+        end
+        gear._target, gear._route = target, route
+        gear:Show()
+    end)
+    layoutGearDriver:Show()
+end
+
+local function StopLayoutGearDriver()
+    if layoutGearDriver then
+        layoutGearDriver:SetScript("OnUpdate", nil)
+        layoutGearDriver:Hide()
+    end
+    if layoutGearButton then
+        layoutGearButton:Hide()
+        layoutGearButton._target, layoutGearButton._route = nil, nil
+    end
+end
+
+-- =====================================
 -- REGISTRATION API
 -- =====================================
 
@@ -820,6 +1066,8 @@ function M.SetUnlocked(unlock)
         if gridFrame then gridFrame:Hide() end
     end
 
+    if unlock then StartLayoutGearDriver() else StopLayoutGearDriver() end
+
     if unlock then
         print("|cff2ed884TomoMod Layout:|r " .. L["layout_unlocked"])
     else
@@ -868,6 +1116,7 @@ function M.Initialize()
                     pendingRelock = true
                     if headerBar then headerBar:Hide() end
                     if gridFrame then gridFrame:Hide() end
+                    StopLayoutGearDriver()
                 end
             else -- PLAYER_REGEN_ENABLED
                 if pendingRelock then

@@ -3315,6 +3315,12 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_333_diag_mode"] = "Diagnóstico: quando o relatório não consegue determinar seu modo de exibição, ele agora imprime os valores brutos que o jogo forneceu em vez de apenas um ponto de interrogação — esses nomes de configuração mudam de uma expansão para outra, e um «?» sozinho não podia ser diagnosticado sem voltar a perguntar. Tela cheia em janela e janelas maximizadas são reconhecidas em mais casos, e as versões dos complementos não aparecem mais como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: os quadros de grupo e de raide mantinham duas cópias das mesmas 250 linhas — a lógica de invocação, a lista de curas ao longo do tempo, o rastreamento de defensivas. Os três problemas acima vêm daí: uma correção aplicada a uma cópia e não à outra. Agora eles compartilham uma única implementação.",
     -- =====================
+    -- 4.0.1 — What's New
+    -- =====================
+    ["wn_401_tracker_anchor"] = "Mudança - O botão do rastreador de consumíveis agora fica firmemente encaixado ao lado do relógio do painel de informações. Ele acompanha o próprio relógio, e não o texto da hora, portanto abrir o calendário ou mudar o formato da hora não pode mais deslocá-lo sobre o relógio.",
+    ["wn_401_tracker_sizes"] = "Novidade - Agora você pode ajustar separadamente nas Opções o tamanho do botão e dos ícones do rastreador de consumíveis. Ambos são atualizados imediatamente e salvos no seu perfil.",
+    ["wn_401_tracker_timers"] = "Mudança - Os temporizadores do rastreador agora acompanham o tamanho dos ícones. Ícones maiores ou menores mantêm texto e espaço do temporizador proporcionados e legíveis.",
+    -- =====================
     -- 4.0.0 — What's New
     -- =====================
     ["wn_400_context_profiles"] = "Novo — Os seus perfis podem agora seguir o conteúdo em que você está. Atribua um ao jogo a solo, às masmorras, ao Mítico+, às raides e ao JxJ: o TomoMod troca sozinho pelo caminho — o perfil de raide assim que você entra na instância, o de Mítico+ assim que a chave começa. Uma atribuição vale para uma especialização ou para todas, a mais precisa ganha, e um contexto ao qual você não atribui nada não muda absolutamente nada — os seus perfis por especialização continuam decidindo exatamente como hoje. Tudo isso fica desligado até você ligar com /tm context on, e /tm context mostra o que ele detecta e tudo o que você atribuiu.",

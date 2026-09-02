@@ -744,8 +744,18 @@ local function BuildImportExportTab(parent)
                     end
                 end)
             else
-                -- Importer et écraser le profil actif
-                StaticPopup_Show("TOMOMOD_IMPORT_CONFIRM", nil, nil, { text = str })
+                -- [v4 lot 7] Sans nom de profil, l'import écrasait la
+                -- configuration active en entier. Le sélecteur laisse
+                -- choisir ce qui entre ; s'il ne peut pas s'ouvrir (charge
+                -- illisible, aucun module reconnu), on retombe sur la
+                -- confirmation d'écrasement d'avant.
+                local IS = TomoMod_ImportSelector
+                local shown = IS and IS.ShowString(str, function()
+                    StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
+                end)
+                if not shown then
+                    StaticPopup_Show("TOMOMOD_IMPORT_CONFIRM", nil, nil, { text = str })
+                end
             end
         end)
     end)

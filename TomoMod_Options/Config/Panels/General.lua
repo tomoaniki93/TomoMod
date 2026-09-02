@@ -350,6 +350,24 @@ function TomoMod_ConfigPanel_General(parent)
         ApplyReadyTracker()
     end)
 
+    local _, cy = W.CreateTwoColumnRow(card2.inner, cy,
+        function(col)
+            local _, ny = W.CreateSlider(col, L["ready_tracker_button_size"], readyDB.buttonSize or 20,
+                14, 32, 1, 0, function(v)
+                    ReadyTrackerDB().buttonSize = v
+                    ApplyReadyTracker()
+                end, "%d px")
+            return ny
+        end,
+        function(col)
+            local _, ny = W.CreateSlider(col, L["ready_tracker_tracker_size"], readyDB.iconSize or 36,
+                24, 56, 2, 0, function(v)
+                    ReadyTrackerDB().iconSize = v
+                    ApplyReadyTracker()
+                end, "%d px")
+            return ny
+        end)
+
     -- [3.1.7] Position de la durabilité (configurable) — le bouton d'extension
     -- apparu en 12.0.7 sur la minimap peut chevaucher le coin par défaut.
     local _, cy = W.CreateInfoText(card2.inner, L["info_durability_position"], cy)
@@ -379,6 +397,39 @@ function TomoMod_ConfigPanel_General(parent)
         end)
 
     y = W.FinalizeCard(card2, cy)
+
+    -- ═══════════════════════════════════════════════
+    -- BLIZZARD AURA FRAMES
+    -- ═══════════════════════════════════════════════
+    local auraCard, ay = W.CreateCard(c, L["section_blizzard_auras"], y)
+    local _, ay = W.CreateInfoText(auraCard.inner, L["info_blizzard_auras"], ay)
+
+    TomoModDB.blizzardAuraFrames = TomoModDB.blizzardAuraFrames or {
+        enabled = true,
+        showBuffs = true,
+        showDebuffs = true,
+    }
+    local auraDB = TomoModDB.blizzardAuraFrames
+    local function ApplyBlizzardAuraFrames()
+        if TomoMod_BlizzardAuraFrames and TomoMod_BlizzardAuraFrames.ApplySettings then
+            TomoMod_BlizzardAuraFrames.ApplySettings()
+        end
+    end
+
+    local _, ay = W.CreateCheckbox(auraCard.inner, L["opt_blizzard_auras_manage"], auraDB.enabled ~= false, ay, function(v)
+        auraDB.enabled = v
+        ApplyBlizzardAuraFrames()
+    end)
+    local _, ay = W.CreateCheckbox(auraCard.inner, L["opt_blizzard_buffs"], auraDB.showBuffs ~= false, ay, function(v)
+        auraDB.showBuffs = v
+        ApplyBlizzardAuraFrames()
+    end)
+    local _, ay = W.CreateCheckbox(auraCard.inner, L["opt_blizzard_debuffs"], auraDB.showDebuffs ~= false, ay, function(v)
+        auraDB.showDebuffs = v
+        ApplyBlizzardAuraFrames()
+    end)
+
+    y = W.FinalizeCard(auraCard, ay)
 
     -- ═══════════════════════════════════════════════
     -- CURSOR RING

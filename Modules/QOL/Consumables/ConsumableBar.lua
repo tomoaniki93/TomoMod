@@ -226,27 +226,38 @@ local function ApplyButtonAnchor()
     statusButton:ClearAllPoints()
 
     if clock and clock:IsShown() then
+        -- Le bouton est maintenant un ENFANT de la barre d'heure, pas un frame
+        -- UIParent ancré aux FontStrings timeText/timeLabel. Il reste donc au-
+        -- dessus de la barre quand l'heure ouvre le calendrier ou change de mode.
+        if statusButton:GetParent() ~= clock then
+            statusButton:SetParent(clock)
+        end
         statusButton:SetFrameStrata(clock:GetFrameStrata())
-        statusButton:SetFrameLevel((clock:GetFrameLevel() or 0) + 3)
+        statusButton:SetFrameLevel((clock:GetFrameLevel() or 0) + 20)
 
+        -- Dock stable autour du centre de la barre. Le texte peut changer de
+        -- largeur (heure locale/serveur, 12/24 h) sans déplacer ni recouvrir le
+        -- bouton, puisque l'ancre ne dépend plus du FontString.
+        local buttonSize = db and tonumber(db.buttonSize) or 20
+        buttonSize = math.max(14, math.min(32, buttonSize))
+        local offset = 40 + (buttonSize * 0.5)
         if db and db.buttonSide == "right" then
-            local rightAnchor = clock.timeLabel or clock.timeText
-            if rightAnchor then
-                statusButton:SetPoint("LEFT", rightAnchor, "RIGHT", 5, 0)
-            else
-                statusButton:SetPoint("RIGHT", clock, "RIGHT", -5, 0)
-            end
+            statusButton:SetPoint("CENTER", clock, "CENTER", offset, 0)
         else
-            local leftAnchor = clock.timeText
-            if leftAnchor then
-                statusButton:SetPoint("RIGHT", leftAnchor, "LEFT", -5, 0)
-            else
-                statusButton:SetPoint("LEFT", clock, "LEFT", 5, 0)
-            end
+            statusButton:SetPoint("CENTER", clock, "CENTER", -offset, 0)
         end
     elseif Minimap then
+        if statusButton:GetParent() ~= UIParent then
+            statusButton:SetParent(UIParent)
+        end
+        statusButton:SetFrameStrata("MEDIUM")
+        statusButton:SetFrameLevel((Minimap:GetFrameLevel() or 0) + 20)
         statusButton:SetPoint("TOP", Minimap, "BOTTOM", 0, -7)
     else
+        if statusButton:GetParent() ~= UIParent then
+            statusButton:SetParent(UIParent)
+        end
+        statusButton:SetFrameStrata("MEDIUM")
         statusButton:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -250, -250)
     end
 end
@@ -399,7 +410,10 @@ local function CreateStatusButton()
     if statusButton then return end
 
     statusButton = CreateFrame("Button", "TomoMod_ConsumableTrackerButton", UIParent, "BackdropTemplate")
-    statusButton:SetSize(20, 20)
+    local db = DB()
+    local buttonSize = db and tonumber(db.buttonSize) or 20
+    buttonSize = math.max(14, math.min(32, buttonSize))
+    statusButton:SetSize(buttonSize, buttonSize)
     statusButton:SetClampedToScreen(true)
     statusButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     statusButton:SetBackdrop({
@@ -493,8 +507,11 @@ local function UpdateAllSlots(isPreview)
         timerPos = "right"
     end
 
-    local TIMER_H = 14
-    local TIMER_W = 42
+    -- Le tracker se redimensionne réellement avec iconSize : la zone du timer
+    -- et sa police suivent aussi la taille des icônes au lieu de rester figées.
+    local TIMER_H = math.max(12, floor(iconSize * 0.40))
+    local TIMER_W = math.max(36, floor(iconSize * 1.15))
+    local timerFontSize = math.max(8, math.min(14, floor(iconSize * 0.28 + 0.5)))
 
     local slotW, slotH
     if orientation == "vertical" then
@@ -520,6 +537,7 @@ local function UpdateAllSlots(isPreview)
 
         if shouldShow then
             slot:SetSize(slotW, slotH)
+            slot.timer:SetFont(FONT, timerFontSize, "OUTLINE")
 
             slot.icon:ClearAllPoints()
             if orientation == "vertical" then
@@ -840,10 +858,21 @@ end
 function CB.ApplySettings()
     if not frame then return end
 
+    local db = DB()
+    if not db then return end
+
+    -- Taille du bouton et du tracker appliquées à chaud depuis le GUI.
+    db.buttonSize = math.max(14, math.min(32, tonumber(db.buttonSize) or 20))
+    db.iconSize = math.max(24, math.min(56, tonumber(db.iconSize) or 36))
+    if statusButton then
+        statusButton:SetSize(db.buttonSize, db.buttonSize)
+    end
+
     if dragLabel and L then
         dragLabel:SetText(L["mover_consumable_bar"] or "Consommables")
     end
 
+    ApplyButtonAnchor()
     Refresh()
 end
 
@@ -880,10 +909,12 @@ function CB.Initialize()
         db.showMissing = true
         db.expanded = false
         db.buttonSide = "left"
+        db.buttonSize = 20
         db.readyTrackerMigrated = true
     else
         if db.expanded == nil then db.expanded = false end
         if db.buttonSide ~= "right" then db.buttonSide = "left" end
+        if db.buttonSize == nil then db.buttonSize = 20 end
         if db.showMissing == nil then db.showMissing = true end
     end
 
@@ -891,8 +922,18 @@ function CB.Initialize()
     CreateStatusButton()
 
     local eventFrame = CreateFrame("Frame")
-    eventFrame:RegisterEvent("UNIT_AURA")
-    eventFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
+    -- [PERF v4] Ces deux evenements n'interessent que le joueur : OnEvent
+    -- sortait aussitot pour toute autre unite. Enregistres globalement, ils
+    -- reveillaient le handler pour chaque changement d'aura de chaque unite
+    -- visible -- soit, en raid, des centaines de reveils par seconde pour
+    -- un test qui retourne immediatement. Le filtre est fait par le client.
+    if eventFrame.RegisterUnitEvent then
+        eventFrame:RegisterUnitEvent("UNIT_AURA", "player")
+        eventFrame:RegisterUnitEvent("UNIT_INVENTORY_CHANGED", "player")
+    else
+        eventFrame:RegisterEvent("UNIT_AURA")
+        eventFrame:RegisterEvent("UNIT_INVENTORY_CHANGED")
+    end
     eventFrame:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
     eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     eventFrame:RegisterEvent("ZONE_CHANGED")

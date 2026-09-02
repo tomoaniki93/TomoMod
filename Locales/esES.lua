@@ -3328,6 +3328,12 @@ TomoMod_RegisterLocale("esES", {
     ["wn_333_diag_mode"] = "Diagnóstico: cuando el informe no consigue determinar tu modo de pantalla, ahora imprime los valores en bruto que le dio el juego en lugar de un simple signo de interrogación — esos nombres de ajuste cambian de una expansión a otra, y un «?» a secas no se podía diagnosticar sin volver a preguntarte. La pantalla completa en ventana y las ventanas maximizadas se reconocen en más casos, y las versiones de los accesorios ya no aparecen como «vv1.2.3».",
     ["wn_333_shared"] = "Interno: los marcos de grupo y de banda mantenían dos copias de las mismas 250 líneas — la lógica de invocación, la lista de sanaciones periódicas, el seguimiento de defensivos. Los tres fallos anteriores vienen de ahí: una corrección aplicada a una copia y no a la otra. Ahora comparten una única implementación.",
     -- =====================
+    -- 4.0.1 — What's New
+    -- =====================
+    ["wn_401_tracker_anchor"] = "Cambio - El botón del control de consumibles queda ahora firmemente acoplado junto al reloj del panel de información. Sigue al reloj en vez de a su texto, así que abrir el calendario o cambiar el formato de hora ya no puede desplazarlo sobre el reloj.",
+    ["wn_401_tracker_sizes"] = "Nuevo - Ahora puedes ajustar por separado en Opciones el tamaño del botón y de los iconos del control de consumibles. Ambos tamaños se actualizan de inmediato y se guardan con tu perfil.",
+    ["wn_401_tracker_timers"] = "Cambio - Los temporizadores del control ahora escalan con los iconos. Los iconos más grandes o pequeños conservan un texto y un espacio de temporizador proporcionados y legibles.",
+    -- =====================
     -- 4.0.0 — What's New
     -- =====================
     ["wn_400_context_profiles"] = "Nuevo — Tus perfiles pueden seguir ahora el contenido en el que estás. Asigna uno al juego en solitario, a las mazmorras, a Mítica+, a las bandas y al JcJ, y TomoMod cambia solo sobre la marcha: el perfil de banda en cuanto entras en la instancia, el de Mítica+ en cuanto arranca la piedra angular. Una asignación vale para una especialización o para todas, gana la más precisa, y un contexto al que no asignes nada no cambia absolutamente nada — tus perfiles por especialización siguen decidiendo igual que hoy. Todo ello está apagado hasta que lo enciendes con /tm context on, y /tm context te muestra lo que detecta y todo lo que has asignado.",

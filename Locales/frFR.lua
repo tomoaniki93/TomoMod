@@ -3343,6 +3343,12 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_333_diag_mode"] = "Diagnostics : quand le rapport n'arrive pas à déterminer votre mode d'affichage, il indique maintenant les valeurs brutes renvoyées par le jeu au lieu d'un simple point d'interrogation — ces noms de réglages changent d'une extension à l'autre, et un « ? » seul ne pouvait pas être diagnostiqué sans revenir vers vous. Le plein écran fenêtré et les fenêtres agrandies sont reconnus dans davantage de cas, et les versions des addons ne s'affichent plus sous la forme « vv1.2.3 ».",
     ["wn_333_shared"] = "Interne : les cadres de groupe et de raid conservaient deux copies des mêmes 250 lignes — la logique d'invocation, la liste des soins sur la durée, le suivi des défensifs. Les trois correctifs ci-dessus en découlent tous : un correctif appliqué à une copie et pas à l'autre. Ils partagent désormais une seule implémentation.",
     -- =====================
+    -- 4.0.1 — What's New
+    -- =====================
+    ["wn_401_tracker_anchor"] = "Modifié - Le bouton du suivi des consommables reste désormais solidement ancré à côté de l'horloge du panneau d'informations. Il suit l'horloge elle-même plutôt que son texte, donc ouvrir le calendrier ou changer le format de l'heure ne peut plus le déplacer sur l'horloge.",
+    ["wn_401_tracker_sizes"] = "Nouveau - Vous pouvez maintenant régler séparément la taille du bouton et celle des icônes du suivi des consommables dans les Options. Les deux tailles se mettent à jour immédiatement et sont enregistrées dans votre profil.",
+    ["wn_401_tracker_timers"] = "Modifié - Les minuteries du suivi s'adaptent désormais à la taille des icônes. Des icônes plus grandes ou plus petites conservent un texte et un espace de minuterie proportionnés et lisibles.",
+    -- =====================
     -- 4.0.0 — What's New
     -- =====================
     ["wn_400_context_profiles"] = "Nouveau — Vos profils peuvent désormais suivre le contenu dans lequel vous êtes. Affectez-en un au solo, aux donjons, au Mythique+, aux raids et au JcJ : TomoMod bascule tout seul au fil du jeu — le profil raid dès l'entrée dans l'instance, le profil Mythique+ dès le lancement de la clé. Une affectation vaut pour une spécialisation ou pour toutes, la plus précise l'emporte, et un contexte auquel vous n'affectez rien ne change strictement rien : vos profils par spé continuent de décider exactement comme aujourd'hui. Le tout reste éteint jusqu'à ce que vous l'allumiez avec /tm context on, et /tm context vous montre ce qu'il détecte et tout ce que vous avez affecté.",

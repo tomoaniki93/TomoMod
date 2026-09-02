@@ -83,12 +83,6 @@ R.Define{
     global = "TomoMod_FrameAnchors",
 }
 
-R.Define{
-    key = "microBar", label = "mod_microBar", group = "general",
-    enabledPath = "microBar.enabled",
-    global = "TomoMod_MicroBar", applyMode = "setter", apply = "SetEnabled",
-}
-
 -- Modes are strings ("show" / "hide"), not booleans, so there is no
 -- flag for the registry to own. Passive until Lot 1 decides whether a
 -- third mode or a real master switch is the better shape.
@@ -205,6 +199,13 @@ R.Define{
     key = "gameMenuSkin", label = "mod_gameMenuSkin", group = "skins",
     enabledPath = "gameMenuSkin.enabled",
     global = "TomoMod_GameMenuSkin", applyMode = "setter", apply = "SetEnabled",
+    combatSafe = true,
+}
+
+R.Define{
+    key = "blizzardAuraFrames", label = "mod_blizzardAuraFrames", group = "skins",
+    enabledPath = "blizzardAuraFrames.enabled",
+    global = "TomoMod_BlizzardAuraFrames", applyMode = "gate", apply = "ApplySettings",
     combatSafe = true,
 }
 
@@ -551,6 +552,11 @@ R.Define{
 -- here is ever offered in a selective import.
 -- ---------------------------------------------------------------------
 
+-- Le module Micro Bar a ete supprime, mais sa table de reglages est encore
+-- lue par BagMicroMenu et le panneau Confort (lfgEyeEnabled, positions des
+-- boutons). Declaree interne : la cle reste couverte par la bijection
+-- manifeste <-> defaults sans etre proposee a l'import ni au cycle de vie.
+R.Define{ key = "microBar",         internal = true }
 R.Define{ key = "forgeAssets",      internal = true }
 R.Define{ key = "installer",        internal = true }
 R.Define{ key = "cvarOptimizer",    internal = true }

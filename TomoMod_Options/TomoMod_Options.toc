@@ -5,7 +5,7 @@
 ## Author: TomoAniki
 ## Category: |cff0cd29fHUD|r
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
-## Version: 4.0.0
+## Version: 4.0.1
 ## LoadOnDemand: 1
 ## Dependencies: TomoMod
 
@@ -28,6 +28,7 @@ Config\Panels\RFPreview.lua
 Config\Panels\RaidFrames.lua
 Config\Panels\Skins.lua
 Config\Panels\Housing.lua
+Config\ImportSelector.lua
 Config\Panels\Profiles.lua
 Config\Panels\DamageMeter.lua
 Config\Panels\Changelog.lua

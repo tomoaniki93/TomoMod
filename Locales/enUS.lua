@@ -3367,6 +3367,12 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_333_diag_mode"] = "Diagnostics: when the report cannot work out your display mode it now prints the raw values the game gave it instead of a bare question mark — those setting names change between expansions, and a '?' on its own could not be diagnosed without asking you for more. Windowed-fullscreen and maximized windows are recognised in more cases, and addon versions no longer read 'vv1.2.3'.",
     ["wn_333_shared"] = "Internal: the party and raid frames kept two copies of the same 250 lines — the summon logic, the heal-over-time list, the defensive tracking. All three bugs above came from that: a fix applied to one copy and not the other. They share one implementation now.",
     -- =====================
+    -- 4.0.1 — What's New
+    -- =====================
+    ["wn_401_tracker_anchor"] = "Changed - The Consumable Tracker button now stays firmly docked beside the information panel clock. It follows the clock itself instead of its time text, so opening the calendar or changing the time format cannot move the button over the clock.",
+    ["wn_401_tracker_sizes"] = "New - You can now set the Consumable Tracker button size and icon size separately in Options. Both sizes update immediately and are saved with your profile.",
+    ["wn_401_tracker_timers"] = "Changed - Tracker timers now scale with the icons. Larger or smaller tracker icons keep timer text and timer space proportioned and readable.",
+    -- =====================
     -- 4.0.0 — What's New
     -- =====================
     ["wn_400_context_profiles"] = "New — Your profiles can now follow the content you are in. Assign one to solo play, to dungeons, to Mythic+, to raids and to PvP, and TomoMod switches to it as you go: the raid profile the moment you zone in, the Mythic+ profile the moment the key starts. An assignment can be made for one specialisation or for all of them, the more precise one wins, and a context you never assign changes nothing at all — your spec profiles keep deciding exactly as they do today. The whole thing stays off until you switch it on with /tm context on, and /tm context shows you what it currently detects and everything you have assigned.",

@@ -138,6 +138,7 @@ TomoMod_Defaults = {
     consumableBar = {
         enabled     = false,
         iconSize    = 36,
+        buttonSize  = 20,
         gap         = 4,
         showMissing = false,        -- afficher les slots manquants en fantôme
         orientation = "horizontal", -- "horizontal" | "vertical"
@@ -874,6 +875,11 @@ TomoMod_Defaults = {
     },
     gameMenuSkin = {
         enabled = true,
+    },
+    blizzardAuraFrames = {
+        enabled = true,
+        showBuffs = true,
+        showDebuffs = true,
     },
     tooltipSkin = {
         enabled = true,

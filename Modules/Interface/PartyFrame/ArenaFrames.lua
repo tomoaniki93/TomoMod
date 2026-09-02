@@ -474,6 +474,7 @@ local function OnEvent(self, event, arg1, ...)
         end
 
     elseif event == "PLAYER_ENTERING_WORLD" then
+        AF.SetUnitEventsActive(IsActiveBattlefieldArena and IsActiveBattlefieldArena() or false)
         C_Timer.After(0.5, function()
             for _, f in ipairs(AF.frames) do
                 if f and f:IsShown() then AF.UpdateFrame(f) end
@@ -506,6 +507,36 @@ end
 -- =====================================
 -- INITIALIZE
 -- =====================================
+-- [PERF v4] Bascule les evenements d'unite. RegisterUnitEvent accepte au
+-- plus deux unites, et il y a trois cadres d'arene ; plutot que d'empiler
+-- des cadres d'evenements, on les enregistre pendant l'arene et on les
+-- retire en sortant. Le handler filtre deja par unite, donc la semantique
+-- ne change pas -- seul le nombre de reveils inutiles change.
+local UNIT_EVENTS = {
+    "UNIT_HEALTH", "UNIT_MAXHEALTH",
+    "UNIT_POWER_UPDATE", "UNIT_MAXPOWER",
+    "UNIT_NAME_UPDATE",
+}
+local _unitEventsOn = false
+
+function AF.SetUnitEventsActive(active)
+    active = active and true or false
+    if active == _unitEventsOn then return false end
+    _unitEventsOn = active
+    for _, ev in ipairs(UNIT_EVENTS) do
+        if active then
+            eventFrame:RegisterEvent(ev)
+        else
+            eventFrame:UnregisterEvent(ev)
+        end
+    end
+    return true
+end
+
+function AF.AreUnitEventsActive()
+    return _unitEventsOn
+end
+
 function AF.Initialize()
     local db = TomoModDB and TomoModDB.partyFrames and TomoModDB.partyFrames.arena
     if not db or not db.enabled then return end
@@ -523,12 +554,13 @@ function AF.Initialize()
     eventFrame:RegisterEvent("ARENA_PREP_OPPONENT_SPECIALIZATIONS")
     eventFrame:RegisterEvent("ARENA_COOLDOWNS_UPDATE")
     eventFrame:RegisterEvent("ARENA_CROWD_CONTROL_SPELL_UPDATE")
-    eventFrame:RegisterEvent("UNIT_HEALTH")
-    eventFrame:RegisterEvent("UNIT_MAXHEALTH")
-    eventFrame:RegisterEvent("UNIT_POWER_UPDATE")
-    eventFrame:RegisterEvent("UNIT_MAXPOWER")
-    eventFrame:RegisterEvent("UNIT_NAME_UPDATE")
     eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+    -- [PERF v4] Les cinq evenements d'unite ne sont enregistres qu'en arene.
+    -- Ils etaient poses une fois pour toutes : hors arene, chaque
+    -- UNIT_HEALTH de chaque unite visible faisait parcourir les trois
+    -- cadres pour n'en trouver aucun. En raid c'est le pire endroit
+    -- possible pour une boucle qui ne trouve jamais rien.
+    AF.SetUnitEventsActive(IsActiveBattlefieldArena and IsActiveBattlefieldArena() or false)
     eventFrame:SetScript("OnEvent", OnEvent)
 
     AF.initialized = true

@@ -938,6 +938,20 @@ local function BuildReadyTrackerComfortPanel(parent)
     end)
     y = ny
 
+    local _, ny = W.CreateSlider(c, L["ready_tracker_button_size"], db.buttonSize or 20,
+        14, 32, 1, y, function(v)
+            ReadyDB().buttonSize = v
+            Apply()
+        end, "%d px")
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["ready_tracker_tracker_size"], db.iconSize or 36,
+        24, 56, 2, y, function(v)
+            ReadyDB().iconSize = v
+            Apply()
+        end, "%d px")
+    y = ny
+
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
     return scroll

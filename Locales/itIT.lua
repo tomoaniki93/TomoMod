@@ -3315,6 +3315,12 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_333_diag_mode"] = "Diagnostica: quando il rapporto non riesce a determinare la modalità di visualizzazione, ora stampa i valori grezzi forniti dal gioco anziché un semplice punto interrogativo — quei nomi di impostazione cambiano da un'espansione all'altra, e un «?» da solo non era diagnosticabile senza tornare a chiedertelo. Lo schermo intero in finestra e le finestre massimizzate vengono riconosciuti in più casi, e le versioni dei componenti aggiuntivi non compaiono più come «vv1.2.3».",
     ["wn_333_shared"] = "Interno: i riquadri di gruppo e d'incursione mantenevano due copie delle stesse 250 righe — la logica di evocazione, l'elenco delle cure nel tempo, il tracciamento delle difensive. Tutti e tre i problemi qui sopra derivano da questo: una correzione applicata a una copia e non all'altra. Ora condividono un'unica implementazione.",
     -- =====================
+    -- 4.0.1 — What's New
+    -- =====================
+    ["wn_401_tracker_anchor"] = "Modifica - Il pulsante del controllo dei consumabili ora resta saldamente agganciato accanto all'orologio del pannello informazioni. Segue l'orologio stesso invece del testo dell'ora, quindi aprire il calendario o cambiare il formato dell'ora non può più spostarlo sopra l'orologio.",
+    ["wn_401_tracker_sizes"] = "Novità - Ora puoi impostare separatamente nelle Opzioni la dimensione del pulsante e quella delle icone del controllo dei consumabili. Entrambe si aggiornano subito e vengono salvate nel tuo profilo.",
+    ["wn_401_tracker_timers"] = "Modifica - I timer del controllo ora si adattano alla dimensione delle icone. Icone più grandi o più piccole mantengono testo e spazio del timer proporzionati e leggibili.",
+    -- =====================
     -- 4.0.0 — What's New
     -- =====================
     ["wn_400_context_profiles"] = "Novità — I tuoi profili possono ora seguire il contenuto in cui ti trovi. Assegnane uno al gioco in solitaria, ai dungeon, al Mitica+, alle incursioni e al PvP: TomoMod cambia da solo strada facendo — il profilo incursione appena entri nell'istanza, quello Mitica+ appena parte la chiave. Un'assegnazione vale per una specializzazione o per tutte, vince la più precisa, e un contesto a cui non assegni nulla non cambia proprio niente — i tuoi profili per specializzazione continuano a decidere esattamente come oggi. Il tutto resta spento finché non lo accendi con /tm context on, e /tm context ti mostra cosa rileva e tutto quello che hai assegnato.",
