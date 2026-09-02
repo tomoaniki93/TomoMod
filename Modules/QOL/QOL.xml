@@ -97,11 +97,21 @@
     <Include file="Combat\CombatText.lua" />
     <Include file="Combat\PreyTracker.lua" />
 
+    <!-- Modules: Chat V4 (fresh implementation; old ChatFrameSkin/ChatCopy are not loaded) -->
+    <Include file="Chat\ChatLocale.lua" />
+    <Include file="Chat\ChatCore.lua" />
+    <Include file="Chat\ChatLayout.lua" />
+    <Include file="Chat\ChatMessages.lua" />
+    <Include file="Chat\ChatRenderer.lua" />
+    <Include file="Chat\ChatTabs.lua" />
+    <Include file="Chat\ChatInput.lua" />
+    <Include file="Chat\ChatCopy.lua" />
+    <Include file="Chat\ChatSidebar.lua" />
+    <Include file="Chat\ChatBridge.lua" />
+
     <!-- Modules: Skins -->
     <Include file="Skins\CharacterSkin.lua" />
     <Include file="Skins\ReputationBar.lua" />
-    <Include file="Skins\ChatCopy.lua" />
-    <Include file="Skins\ChatFrameSkin.lua" />
     <Include file="Skins\BagSkin.lua" />
     <Include file="Skins\GameMenuSkin.lua" />
     <Include file="Skins\BlizzardAuraFrames.lua" />

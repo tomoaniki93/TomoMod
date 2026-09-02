@@ -726,6 +726,59 @@ TomoMod_Defaults = {
         movable = false,
         position = nil,  -- { x, y } en coordonnées écran (BOTTOMLEFT) une fois déplacé
     },
+    -- Chat V4 — current chat implementation. The three legacy chat tables
+    -- below are kept temporarily so existing profiles can migrate once.
+    chatV4 = {
+        enabled = true,
+        appearance = {
+            bgAlpha = 0.72,
+            fontSize = 13,
+            tabHeight = 25,
+            inputHeight = 30,
+            borderAlpha = 0.22,
+            maxLines = 512,
+        },
+        messages = {
+            fade = true,
+            showTimestamp = true,
+            timestampFormat = "%H:%M",
+            shortChannelNames = true,
+            findURL = true,
+            emoji = true,
+            classColorMentions = true,
+        },
+        sidebar = {
+            side = "LEFT",
+            width = 32,
+            iconSize = 20,
+            spacing = 2,
+            buttons = {
+                friends = true,
+                guild = true,
+                playerStatus = true,
+                voice = true,
+                mute = true,
+                deafen = true,
+                copy = true,
+                loot = true,
+                settings = true,
+                scroll = true,
+            },
+            order = {
+                "friends", "guild", "playerStatus",
+                "voice", "mute", "deafen",
+                "copy",
+                "loot", "settings",
+                "scroll",
+            },
+        },
+        copy = {
+            maxLines = 500,
+        },
+    },
+
+    -- Legacy ChatFrame V1 settings — migration source only. No runtime module
+    -- loads these settings anymore; ChatCore migrates them into chatV4 once.
     chatFrameSkin = {
         enabled = true,
         skinStyle = "tui",          -- "tui" (current sidebar+window), "classic" (old image-based), "glass", "minimal"

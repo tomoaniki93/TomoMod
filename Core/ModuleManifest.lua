@@ -168,22 +168,31 @@ R.Define{
 }
 
 R.Define{
-    key = "chatFrameSkin", label = "mod_chatFrameSkin", group = "skins",
+    key = "chatV4", label = "mod_chatFrameSkin", group = "skins",
+    enabledPath = "chatV4.enabled",
+    global = "TomoMod_ChatFrameSkin", applyMode = "setter", apply = "SetEnabled",
+    combatSafe = true,
+}
+
+-- Migration-only roots. They stay in the registry as internal entries while
+-- old profiles are still accepted, but no GUI/import/content-profile list
+-- exposes them as modules anymore.
+R.Define{
+    key = "chatFrameSkin", label = "mod_chatFrameSkin", internal = true,
     enabledPath = "chatFrameSkin.enabled",
     requiresReload = true,
     anchors = { { id = "chatFrameSkin", path = "chatFrameSkin.position", shape = "anchor_relTo", label = "frame_chat" } },
-    global = "TomoMod_ChatFrameSkin",
 }
 
 R.Define{
-    key = "chatFrameSkinV2", label = "mod_chatFrameSkinV2", group = "skins",
+    key = "chatFrameSkinV2", label = "mod_chatFrameSkinV2", internal = true,
     enabledPath = "chatFrameSkinV2.enabled",
     requiresReload = true,
     anchors = { { id = "chatFrameSkinV2", path = "chatFrameSkinV2.position", shape = "anchor_relTo", label = "frame_chat_v2" } },
 }
 
 R.Define{
-    key = "chatFrameUI", label = "mod_chatFrameUI", group = "skins",
+    key = "chatFrameUI", label = "mod_chatFrameUI", internal = true,
     enabledPath = "chatFrameUI.enabled",
     requiresReload = true,
 }

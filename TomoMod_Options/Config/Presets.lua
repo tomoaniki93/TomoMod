@@ -492,7 +492,7 @@ local BASE = {
     ["actionBarSkin.useClassColor"]     = true,
 
     -- ── Skins ─────────────────────────────────────────────
-    ["chatFrameSkin.enabled"]           = true,
+    ["chatV4.enabled"]           = true,
     ["bagSkin.enabled"]                 = true,
     ["tooltipSkin.enabled"]             = true,
     ["gameMenuSkin.enabled"]            = true,
@@ -682,7 +682,7 @@ local DELTAS = {
 
         ["actionBarSkin.enabled"]     = false,
 
-        ["chatFrameSkin.enabled"]     = false,
+        ["chatV4.enabled"]     = false,
         ["bagSkin.enabled"]           = false,
         ["tooltipSkin.enabled"]       = false,
         ["gameMenuSkin.enabled"]      = false,

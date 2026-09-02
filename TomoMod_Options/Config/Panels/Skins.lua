@@ -10,7 +10,7 @@ local W = TomoMod_Widgets
 local T = W.Theme
 
 -- =====================================================================
--- TAB: CHAT FRAME (v2 — tabbed standalone chat panel)
+-- TAB: CHAT FRAME V4 — live Chat V4 controls
 -- =====================================================================
 
 local function BuildChatFrameTab(parent)
@@ -18,170 +18,144 @@ local function BuildChatFrameTab(parent)
     local c = scroll.child
     local y = -10
 
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_chat_skin"], y)
+    local Chat = TomoMod_ChatFrameSkin
+    if not Chat or not Chat.GetDB then
+        local _, ny = W.CreateInfoText(c, "Chat V4 unavailable.", y)
+        y = ny
+        c:SetHeight(math.abs(y) + 40)
+        if scroll.UpdateScroll then scroll.UpdateScroll() end
+        return scroll
+    end
+
+    local db = Chat.GetDB()
+    local appearance = db.appearance
+    local messages = db.messages
+    local sidebar = db.sidebar
+    local copy = db.copy
+
+    local function Apply()
+        if Chat and Chat.ApplySettings then Chat.ApplySettings() end
+    end
+
+    local _, ny = W.CreateInfoText(c, L["chat_v4_live_info"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_enable"], TomoModDB.chatFrameSkin.enabled, y, function(v)
-        TomoModDB.chatFrameSkin.enabled = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.SetEnabled(v) end
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_enable"], db.enabled ~= false, y, function(v)
+        Chat.SetEnabled(v)
     end)
     y = ny
 
-    local _, ny = W.CreateSegmentedControl(c, L["opt_chat_skin_style"], {
-        { text = L["opt_chat_skin_style_tui"],     value = "tui" },
-        { text = L["opt_chat_skin_style_classic"],  value = "classic" },
-        { text = L["opt_chat_skin_style_glass"],    value = "glass" },
-        { text = L["opt_chat_skin_style_minimal"],  value = "minimal" },
-    }, TomoModDB.chatFrameSkin.skinStyle or "tui", y, function(v)
-        TomoModDB.chatFrameSkin.skinStyle = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
-    end, 2)
+    -- ── Appearance ─────────────────────────────────────────────
+    local _, ny = W.CreateSectionHeader(c, L["chat_v4_appearance"], y)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_chat_skin_bg_alpha"], (TomoModDB.chatFrameSkin.bgAlpha or 0.70) * 100, 0, 100, 5, y, function(v)
-        TomoModDB.chatFrameSkin.bgAlpha = v / 100
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    local _, ny = W.CreateSlider(c, L["opt_chat_skin_bg_alpha"], (appearance.bgAlpha or 0.72) * 100, 0, 100, 5, y, function(v)
+        appearance.bgAlpha = v / 100
+        Apply()
     end, "%.0f%%")
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_chat_skin_font_size"], TomoModDB.chatFrameSkin.fontSize or 13, 9, 18, 1, y, function(v)
-        TomoModDB.chatFrameSkin.fontSize = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    local _, ny = W.CreateSlider(c, L["opt_chat_skin_font_size"], appearance.fontSize or 13, 9, 20, 1, y, function(v)
+        appearance.fontSize = v
+        Apply()
     end)
     y = ny
 
-    -- New settings
-    local _, ny = W.CreateSeparator(c, y)
+    -- ── Messages ───────────────────────────────────────────────
+    local _, ny = W.CreateSectionHeader(c, L["chat_v4_messages"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_fade"], TomoModDB.chatFrameSkin.fade, y, function(v)
-        TomoModDB.chatFrameSkin.fade = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_fade"], messages.fade ~= false, y, function(v)
+        messages.fade = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_short_channels"], TomoModDB.chatFrameSkin.shortChannelNames, y, function(v)
-        TomoModDB.chatFrameSkin.shortChannelNames = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_timestamp"], messages.showTimestamp ~= false, y, function(v)
+        messages.showTimestamp = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_timestamp"], TomoModDB.chatFrameSkin.showTimestamp, y, function(v)
-        TomoModDB.chatFrameSkin.showTimestamp = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_short_channels"], messages.shortChannelNames ~= false, y, function(v)
+        messages.shortChannelNames = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_url"], TomoModDB.chatFrameSkin.findURL, y, function(v)
-        TomoModDB.chatFrameSkin.findURL = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_url"], messages.findURL ~= false, y, function(v)
+        messages.findURL = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_emoji"], TomoModDB.chatFrameSkin.emoji, y, function(v)
-        TomoModDB.chatFrameSkin.emoji = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_emoji"], messages.emoji ~= false, y, function(v)
+        messages.emoji = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_class_colors"], TomoModDB.chatFrameSkin.classColorMentions, y, function(v)
-        TomoModDB.chatFrameSkin.classColorMentions = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_class_colors"], messages.classColorMentions ~= false, y, function(v)
+        messages.classColorMentions = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateDropdown(c, L["opt_chat_copy_button"], {
-        { text = L["opt_chat_copy_button_always"], value = "always" },
-        { text = L["opt_chat_copy_button_hover"],  value = "hover"  },
-        { text = L["opt_chat_copy_button_hidden"], value = "hidden" },
-    }, TomoModDB.chatFrameSkin.copyButtonMode or "hover", y, function(v)
-        TomoModDB.chatFrameSkin.copyButtonMode = v
-        if TomoMod_ChatFrameSkin then TomoMod_ChatFrameSkin.ApplySettings() end
+    -- ── Sidebar ────────────────────────────────────────────────
+    local _, ny = W.CreateSectionHeader(c, L["chat_v4_sidebar"], y)
+    y = ny
+
+    local _, ny = W.CreateDropdown(c, L["chat_v4_sidebar_side"], {
+        { text = L["chat_v4_sidebar_left"],  value = "LEFT"  },
+        { text = L["chat_v4_sidebar_right"], value = "RIGHT" },
+    }, sidebar.side or "LEFT", y, function(v)
+        sidebar.side = v
+        Apply()
     end)
     y = ny
 
-    -- ── Historique du chat ────────────────────────────────────
-    local _, ny = W.CreateSectionHeader(c, L["chat_history_section"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_skin_history"], TomoModDB.chatFrameSkin.chatHistory, y, function(v)
-        TomoModDB.chatFrameSkin.chatHistory = v
-        if TomoMod_ChatFrameSkin then
-            if TomoMod_ChatFrameSkin.ApplyHistorySettings then TomoMod_ChatFrameSkin.ApplyHistorySettings() end
-            TomoMod_ChatFrameSkin.ApplySettings()
-        end
+    local _, ny = W.CreateSlider(c, L["chat_v4_sidebar_width"], sidebar.width or 32, 26, 48, 1, y, function(v)
+        sidebar.width = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, L["opt_chat_skin_history_info"], y)
-    y = ny
-
-    local _, ny = W.CreateDropdown(c, L["opt_chat_history_max_age"], {
-        { text = L["opt_chat_history_age_1h"],        value = 3600 },
-        { text = L["opt_chat_history_age_6h"],        value = 21600 },
-        { text = L["opt_chat_history_age_24h"],       value = 86400 },
-        { text = L["opt_chat_history_age_3d"],        value = 259200 },
-        { text = L["opt_chat_history_age_unlimited"], value = 0 },
-    }, TomoModDB.chatFrameSkin.historyMaxAge or 21600, y, function(v)
-        TomoModDB.chatFrameSkin.historyMaxAge = v
-        if TomoMod_ChatFrameSkin and TomoMod_ChatFrameSkin.ApplyHistorySettings then
-            TomoMod_ChatFrameSkin.ApplyHistorySettings()
-        end
+    local _, ny = W.CreateSlider(c, L["chat_v4_sidebar_icon_size"], sidebar.iconSize or 20, 16, 30, 1, y, function(v)
+        sidebar.iconSize = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_chat_history_max_lines"], TomoModDB.chatFrameSkin.historyMaxLines or 128, 10, 500, 10, y, function(v)
-        TomoModDB.chatFrameSkin.historyMaxLines = v
-        if TomoMod_ChatFrameSkin and TomoMod_ChatFrameSkin.ApplyHistorySettings then
-            TomoMod_ChatFrameSkin.ApplyHistorySettings()
-        end
-    end, "%.0f")
-    y = ny
-
-    local _, ny = W.CreateSlider(c, L["opt_chat_history_delay"], TomoModDB.chatFrameSkin.historyDelay or 2, 0, 10, 0.5, y, function(v)
-        TomoModDB.chatFrameSkin.historyDelay = v
-    end, "%.1fs")
-    y = ny
-
-    local _, ny = W.CreateInfoText(c, L["opt_chat_history_delay_info"], y)
-    y = ny
-
-    local _, ny = W.CreateCheckbox(c, L["opt_chat_history_separator"], TomoModDB.chatFrameSkin.historySeparator ~= false, y, function(v)
-        TomoModDB.chatFrameSkin.historySeparator = v
+    local _, ny = W.CreateSlider(c, L["chat_v4_sidebar_spacing"], sidebar.spacing or 2, 0, 8, 1, y, function(v)
+        sidebar.spacing = v
+        Apply()
     end)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, L["opt_chat_history_separator_info"], y)
-    y = ny
-
-    -- Per-channel replay filter. The setting already existed in the DB but
-    -- had never been exposed.
-    local _, ny = W.CreateSubLabel(c, L["sublabel_chat_history_channels"], y)
-    y = ny
-
-    TomoModDB.chatFrameSkin.showHistory = TomoModDB.chatFrameSkin.showHistory or {}
-    local sh = TomoModDB.chatFrameSkin.showHistory
-
-    local CHANNEL_ROWS = {
-        { "WHISPER",  "opt_chat_history_ch_whisper",  "GUILD",    "opt_chat_history_ch_guild"   },
-        { "OFFICER",  "opt_chat_history_ch_officer",  "PARTY",    "opt_chat_history_ch_party"   },
-        { "RAID",     "opt_chat_history_ch_raid",     "INSTANCE", "opt_chat_history_ch_instance"},
-        { "CHANNEL",  "opt_chat_history_ch_channel",  "SAY",      "opt_chat_history_ch_say"     },
-        { "YELL",     "opt_chat_history_ch_yell",     "EMOTE",    "opt_chat_history_ch_emote"   },
+    sidebar.buttons = sidebar.buttons or {}
+    local sb = sidebar.buttons
+    local BUTTON_ROWS = {
+        { "friends",      "chat_v4_btn_friends",  "guild",    "chat_v4_btn_guild"    },
+        { "playerStatus", "chat_v4_btn_status",   "voice",    "chat_v4_btn_voice"    },
+        { "mute",         "chat_v4_btn_mute",     "deafen",   "chat_v4_btn_deafen"   },
+        { "copy",         "chat_v4_btn_copy",     "loot",     "chat_v4_btn_loot"     },
+        { "settings",     "chat_v4_btn_settings", "scroll",   "chat_v4_btn_scroll"   },
     }
-    for _, row in ipairs(CHANNEL_ROWS) do
-        local keyA, lblA, keyB, lblB = row[1], row[2], row[3], row[4]
+    for _, row in ipairs(BUTTON_ROWS) do
+        local keyA, labelA, keyB, labelB = row[1], row[2], row[3], row[4]
         local _, rowY = W.CreateCheckboxPair(c,
-            L[lblA], sh[keyA] == true, y, function(v) sh[keyA] = v end,
-            L[lblB], sh[keyB] == true,    function(v) sh[keyB] = v end)
+            L[labelA], sb[keyA] ~= false, y, function(v) sb[keyA] = v; Apply() end,
+            L[labelB], sb[keyB] ~= false,    function(v) sb[keyB] = v; Apply() end)
         y = rowY
     end
 
-    local _, ny = W.CreateButton(c, L["btn_chat_history_clear"], 260, y, function()
-        StaticPopup_Show("TOMOMOD_CLEAR_CHAT_HISTORY")
-    end)
+    -- ── Copy Chat ──────────────────────────────────────────────
+    local _, ny = W.CreateSectionHeader(c, L["chat_v4_copy"], y)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["chat_v4_copy_lines"], copy.maxLines or 500, 50, 1000, 50, y, function(v)
+        copy.maxLines = v
+    end, "%.0f")
     y = ny
 
     c:SetHeight(math.abs(y) + 40)

@@ -468,7 +468,7 @@ pages.custom_barsskins = {
         local _, ny = CbPath(c, L["ins_ab_shift_reveal"],  "actionBarSkin.shiftReveal", false, y); y = ny
 
         y = Sec(c, L["ins_skins_section"], y)
-        local _, ny = CbPath(c, L["ins_skin_chat"],       "chatFrameSkin.enabled", true, y); y = ny
+        local _, ny = CbPath(c, L["ins_skin_chat"],       "chatV4.enabled", true, y); y = ny
         local _, ny = CbPath(c, L["ins_skin_bag"],        "bagSkin.enabled", true, y); y = ny
         local _, ny = CbPath(c, L["ins_skin_tooltip"],    "tooltipSkin.enabled", true, y); y = ny
         local _, ny = CbPath(c, L["ins_skin_gamemenu"],   "gameMenuSkin.enabled", true, y); y = ny

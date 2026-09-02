@@ -85,6 +85,67 @@ local function IsEnabled()
     return S().enabled
 end
 
+-- Blizzard's ObjectiveTrackerContainerTemplate owns a full-size NineSlice
+-- ("common-opacity-background"), and its header templates animate their own
+-- Background textures back to alpha 1. A one-shot SetAlpha(0) therefore only
+-- lasts until the next native layout/update. Keep only those presentation
+-- regions locked at zero while TomoMod owns the skin, then restore their exact
+-- previous alpha when the module is disabled.
+local nativeAlphaLocks     = setmetatable({}, { __mode = "k" })
+local nativeAlphaHooks     = setmetatable({}, { __mode = "k" })
+local nativeAlphaEnforcing = setmetatable({}, { __mode = "k" })
+local nativeAlphaOriginal  = setmetatable({}, { __mode = "k" })
+
+local function LockNativeAlpha(region)
+    if not region or type(region.SetAlpha) ~= "function" then return end
+
+    if nativeAlphaOriginal[region] == nil and type(region.GetAlpha) == "function" then
+        nativeAlphaOriginal[region] = region:GetAlpha()
+    end
+    nativeAlphaLocks[region] = true
+
+    if not nativeAlphaHooks[region] and hooksecurefunc then
+        local ok = pcall(hooksecurefunc, region, "SetAlpha", function(self)
+            if not nativeAlphaLocks[self] or nativeAlphaEnforcing[self] then return end
+            nativeAlphaEnforcing[self] = true
+            self:SetAlpha(0)
+            nativeAlphaEnforcing[self] = nil
+        end)
+        if ok then nativeAlphaHooks[region] = true end
+    end
+
+    nativeAlphaEnforcing[region] = true
+    region:SetAlpha(0)
+    nativeAlphaEnforcing[region] = nil
+end
+
+local function LockNativeFrameTree(frame, depth)
+    if not frame or (depth or 0) > 2 then return end
+    LockNativeAlpha(frame)
+
+    if frame.GetRegions then
+        for _, region in ipairs({ frame:GetRegions() }) do
+            LockNativeAlpha(region)
+        end
+    end
+    if frame.GetChildren then
+        for _, child in ipairs({ frame:GetChildren() }) do
+            LockNativeFrameTree(child, (depth or 0) + 1)
+        end
+    end
+end
+
+local function RestoreNativeAlphaLocks()
+    for region, alpha in pairs(nativeAlphaOriginal) do
+        nativeAlphaLocks[region] = nil
+        nativeAlphaEnforcing[region] = nil
+        if region and type(region.SetAlpha) == "function" then
+            region:SetAlpha(type(alpha) == "number" and alpha or 1)
+        end
+        nativeAlphaOriginal[region] = nil
+    end
+end
+
 -- =====================================
 -- GET COLOR FOR HEADER TEXT
 -- =====================================
@@ -174,8 +235,9 @@ local function StyleModuleHeader(frame, headerText)
         end
     end
 
-    -- Dim default background
-    if frame.Background then frame.Background:SetAlpha(0) end
+    -- Suppress the animated native module-header background permanently while
+    -- the TomoMod skin is active.
+    if frame.Background then LockNativeAlpha(frame.Background) end
 
     -- Add colored underline
     if not frame._tomoLine then
@@ -776,23 +838,28 @@ local function HideBlizzardHeader()
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
 
+    -- Retail's ObjectiveTrackerContainerTemplate includes a full-size native
+    -- opacity backdrop. It is separate from Header, so hiding the header alone
+    -- leaves a second translucent panel behind TomoMod's skin.
+    LockNativeFrameTree(tracker.NineSlice, 0)
+
     local header = tracker.Header or tracker.HeaderMenu
     if not header then return end
 
     -- Hide all regions (textures, fontstrings, lines)
     local regions = { header:GetRegions() }
     for _, region in ipairs(regions) do
-        region:SetAlpha(0)
+        LockNativeAlpha(region)
     end
 
     -- Hide all children (buttons, sub-frames)
     local children = { header:GetChildren() }
     for _, child in ipairs(children) do
-        child:SetAlpha(0)
+        LockNativeFrameTree(child, 0)
     end
 
     -- Also collapse height so it doesn't take space
-    header:SetAlpha(0)
+    LockNativeAlpha(header)
 end
 
 -- =====================================
@@ -2227,22 +2294,7 @@ function OT.Disable()
     if InCombatLockdown() then _tmPendingDisable = true; return end
     _tmPendingDisable = false
     RestoreCombatSuppressedAlpha()
-
-    local tracker = ObjectiveTrackerFrame
-    if tracker then
-        local header = tracker.Header or tracker.HeaderMenu
-        if header then
-            header:SetAlpha(1)
-            local regions = { header:GetRegions() }
-            for _, region in ipairs(regions) do
-                region:SetAlpha(1)
-            end
-            local children = { header:GetChildren() }
-            for _, child in ipairs(children) do
-                child:SetAlpha(1)
-            end
-        end
-    end
+    RestoreNativeAlphaLocks()
 end
 
 function OT.SetEnabled(value)

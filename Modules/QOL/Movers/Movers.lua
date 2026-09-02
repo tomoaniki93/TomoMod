@@ -220,7 +220,7 @@ local function EnsureLayoutGear()
 
     local hl = button:CreateTexture(nil, "HIGHLIGHT")
     hl:SetAllPoints()
-    hl:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.22)
+    hl:SetColorTexture(0.05, 0.82, 0.62, 0.22)
 
     button:SetScript("OnEnter", function(self)
         if GameTooltip then
