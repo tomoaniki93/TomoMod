@@ -1,5 +1,5 @@
 -- =====================================================================
--- BagSlots.lua — secure Blizzard item buttons rendered by TomoMod
+-- BagSlots.lua — secure Blizzard item buttons with minimal TomoMod visuals
 -- =====================================================================
 
 local Bags = TomoMod_BagSkin
@@ -13,10 +13,22 @@ Bags.RegisterModule("Slots", Slots)
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
-local NP_MEDIA = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Nameplates\\"
-local EMPTY_BG_TEX = NP_MEDIA .. "background.png"
-local EMPTY_BORDER_TEX = NP_MEDIA .. "border.png"
 local ACCENT = { 0.18, 0.85, 0.52 }
+
+-- Slot identity colors: normal bag space uses TomoMod mint/teal, while
+-- the reagent bag gets an azure-white outline so its reserved capacity is
+-- immediately recognizable in the combined grid. Item quality borders still
+-- take priority for occupied slots when that option is enabled.
+local NORMAL_SLOT = { 0.18, 0.85, 0.52 }
+local REAGENT_SLOT = { 0.58, 0.88, 1.00 }
+local REAGENT_BAG_ID = Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag
+
+local function SlotIdentityColor(bagID)
+    if REAGENT_BAG_ID and bagID == REAGENT_BAG_ID then
+        return REAGENT_SLOT[1], REAGENT_SLOT[2], REAGENT_SLOT[3]
+    end
+    return NORMAL_SLOT[1], NORMAL_SLOT[2], NORMAL_SLOT[3]
+end
 
 local QUALITY = {
     [0] = { 0.45, 0.45, 0.48 },
@@ -31,7 +43,7 @@ local QUALITY = {
 }
 
 local function AddEdge(parent, pointA, pointB, width, height)
-    local tex = parent:CreateTexture(nil, "OVERLAY", nil, 7)
+    local tex = parent:CreateTexture(nil, "OVERLAY")
     tex:SetTexture(WHITE)
     tex:SetPoint(pointA)
     tex:SetPoint(pointB)
@@ -50,27 +62,25 @@ local function BuildBorder(parent)
 end
 
 local function SetBorder(border, r, g, b, a)
-    for _, tex in ipairs(border) do
-        tex:SetColorTexture(r, g, b, a or 1)
-        tex:Show()
-    end
+    for _, tex in ipairs(border) do tex:SetColorTexture(r, g, b, a or 1) end
 end
 
-local function ItemFor(wrapper)
-    return Bags.Modules.Data and Bags.Modules.Data.byKey[wrapper.key]
+local function TextSizes(slotSize)
+    slotSize = tonumber(slotSize) or 38
+    if slotSize <= 30 then return 7, 7 end
+    if slotSize <= 36 then return 8, 8 end
+    if slotSize <= 42 then return 9, 8 end
+    return 10, 9
 end
 
-local function ShowTooltip(button, wrapper)
-    local item = ItemFor(wrapper)
-    if not item or not item.hasItem then return end
-
-    GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
-    if GameTooltip.SetBagItem then
-        GameTooltip:SetBagItem(wrapper.bagID, wrapper.slotID)
-    elseif item.link then
-        GameTooltip:SetHyperlink(item.link)
-    end
-    GameTooltip:Show()
+local function CreateTextPlate(parent, anchor, x, y, width, height)
+    local tex = parent:CreateTexture(nil, "OVERLAY", nil, 1)
+    tex:SetTexture(WHITE)
+    tex:SetSize(width, height)
+    tex:SetPoint(anchor, x, y)
+    tex:SetColorTexture(0.01, 0.015, 0.018, 0.78)
+    tex:Hide()
+    return tex
 end
 
 function Slots:CreatePhysicalSlot(bagID, slotID)
@@ -87,16 +97,13 @@ function Slots:CreatePhysicalSlot(bagID, slotID)
     wrapper:SetID(bagID)
     wrapper:EnableMouse(false)
 
-    -- The Blizzard template owns all protected bag actions. TomoMod only
-    -- supplies visuals and an explicit tooltip. Keep it above every decorative
-    -- region so hover/click/drag can never be swallowed by our renderer.
     local button = CreateFrame("ItemButton", nil, wrapper, "ContainerFrameItemButtonTemplate")
     button:SetAllPoints(wrapper)
-    button:SetFrameLevel(wrapper:GetFrameLevel() + 10)
     button:SetID(slotID)
+    button:SetFrameLevel(wrapper:GetFrameLevel() + 2)
     button:EnableMouse(true)
-    button:SetHitRectInsets(0, 0, 0, 0)
-    button:RegisterForClicks("LeftButtonUp", "RightButtonUp", "MiddleButtonUp")
+    button:Show()
+    button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     button:RegisterForDrag("LeftButton")
     button:EnableMouseWheel(false)
 
@@ -111,90 +118,68 @@ function Slots:CreatePhysicalSlot(bagID, slotID)
     bg:SetColorTexture(0.04, 0.052, 0.056, 0.92)
     wrapper.bg = bg
 
-    -- Existing TomoMod nameplate assets make empty slots readable without
-    -- introducing another media set.
-    local emptyBG = wrapper:CreateTexture(nil, "BORDER", nil, 1)
-    emptyBG:SetPoint("TOPLEFT", 1, -1)
-    emptyBG:SetPoint("BOTTOMRIGHT", -1, 1)
-    emptyBG:SetTexture(EMPTY_BG_TEX)
-    emptyBG:SetVertexColor(0.18, 0.22, 0.23, 0.55)
-    emptyBG:Hide()
-    wrapper.emptyBG = emptyBG
-
-    local emptyBorder = wrapper:CreateTexture(nil, "BORDER", nil, 2)
-    emptyBorder:SetAllPoints()
-    emptyBorder:SetTexture(EMPTY_BORDER_TEX)
-    emptyBorder:SetVertexColor(0.34, 0.40, 0.41, 0.70)
-    emptyBorder:Hide()
-    wrapper.emptyBorder = emptyBorder
-
-    -- Do not depend on Blizzard's private visual region names. The secure
-    -- button remains fully interactive while its native decoration is hidden.
+    -- Blizzard's ContainerFrameItemButtonTemplate remains the secure/input
+    -- owner, but TomoMod renders the visible item itself. The internal
+    -- texture/count region names have changed across client versions and
+    -- relying on them caused perfectly valid bag slots to appear empty on
+    -- Midnight. Keep every native decorative region transparent.
     local normal = button.GetNormalTexture and button:GetNormalTexture()
-    if normal then normal:SetTexture(nil); normal:SetAlpha(0) end
+    if normal then normal:SetAlpha(0) end
     if button.NormalTexture then button.NormalTexture:SetAlpha(0) end
-    if button.IconBorder then button.IconBorder:SetAlpha(0) end
-    local nativeIcon = button.icon or button.IconTexture or button.Icon
-    if nativeIcon then nativeIcon:SetAlpha(0) end
-    local nativeCount = button.Count or button.count
-    if nativeCount and nativeCount.SetAlpha then nativeCount:SetAlpha(0) end
+    if button.IconBorder then button.IconBorder:SetAlpha(0); button.IconBorder:Hide() end
     if button.NewItemTexture then button.NewItemTexture:Hide(); button.NewItemTexture:SetAlpha(0) end
     if button.BattlepayItemTexture then button.BattlepayItemTexture:Hide(); button.BattlepayItemTexture:SetAlpha(0) end
     if button.flash then button.flash:Hide(); button.flash:SetAlpha(0) end
     if button.newitemglowAnim then button.newitemglowAnim:Stop() end
+    local nativeIcon = button.icon or button.IconTexture or button.Icon
+    if nativeIcon then nativeIcon:SetAlpha(0) end
+    local nativeCount = button.Count or button.count
+    if nativeCount and nativeCount.SetAlpha then nativeCount:SetAlpha(0) end
 
-    local itemIcon = button:CreateTexture(nil, "ARTWORK", nil, 1)
+    local itemIcon = wrapper:CreateTexture(nil, "ARTWORK", nil, 1)
     itemIcon:SetPoint("TOPLEFT", 2, -2)
     itemIcon:SetPoint("BOTTOMRIGHT", -2, 2)
     itemIcon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     itemIcon:Hide()
     wrapper.itemIcon = itemIcon
 
-    local hover = button:CreateTexture(nil, "HIGHLIGHT", nil, 6)
-    hover:SetPoint("TOPLEFT", 1, -1)
-    hover:SetPoint("BOTTOMRIGHT", -1, 1)
-    hover:SetTexture(WHITE)
-    hover:SetColorTexture(1, 1, 1, 0.12)
-    hover:SetBlendMode("ADD")
-    wrapper.hover = hover
+    local countPlate = CreateTextPlate(button, "BOTTOMRIGHT", -2, 2, 22, 12)
+    wrapper.countPlate = countPlate
 
-    local cooldown = CreateFrame("Cooldown", nil, button, "CooldownFrameTemplate")
+    local countText = button:CreateFontString(nil, "OVERLAY", nil, 2)
+    countText:SetFont(FONT_BOLD, 9, "OUTLINE")
+    countText:SetPoint("BOTTOMRIGHT", -3, 3)
+    countText:SetTextColor(1, 1, 1, 1)
+    countText:SetJustifyH("RIGHT")
+    countText:SetJustifyV("BOTTOM")
+    countText:Hide()
+    wrapper.countText = countText
+
+    local cooldown = CreateFrame("Cooldown", nil, wrapper, "CooldownFrameTemplate")
     cooldown:SetPoint("TOPLEFT", itemIcon, "TOPLEFT")
     cooldown:SetPoint("BOTTOMRIGHT", itemIcon, "BOTTOMRIGHT")
-    cooldown:SetFrameLevel(button:GetFrameLevel() + 1)
     cooldown:SetDrawEdge(false)
     cooldown:SetHideCountdownNumbers(false)
     cooldown:EnableMouse(false)
     cooldown:Hide()
     wrapper.cooldown = cooldown
 
-    -- Text/borders live in a mouse-disabled frame above the cooldown swipe.
-    local overlay = CreateFrame("Frame", nil, button)
-    overlay:SetAllPoints(button)
-    overlay:SetFrameLevel(cooldown:GetFrameLevel() + 2)
-    overlay:EnableMouse(false)
-    wrapper.overlay = overlay
-
-    local border = BuildBorder(overlay)
-    SetBorder(border, 1, 1, 1, 0.12)
+    local border = BuildBorder(button)
+    SetBorder(border, 1, 1, 1, 0.10)
     wrapper.border = border
 
-    local countText = overlay:CreateFontString(nil, "OVERLAY", nil, 7)
-    countText:SetFont(FONT_BOLD, 10, "OUTLINE")
-    countText:SetPoint("BOTTOMRIGHT", -3, 3)
-    countText:SetTextColor(1, 1, 1, 1)
-    countText:SetJustifyH("RIGHT")
-    countText:Hide()
-    wrapper.countText = countText
+    local ilvlPlate = CreateTextPlate(button, "TOPLEFT", 2, -2, 24, 12)
+    wrapper.ilvlPlate = ilvlPlate
 
-    local ilvl = overlay:CreateFontString(nil, "OVERLAY", nil, 7)
-    ilvl:SetFont(FONT_BOLD, 9, "OUTLINE")
+    local ilvl = button:CreateFontString(nil, "OVERLAY", nil, 2)
+    ilvl:SetFont(FONT_BOLD, 8, "OUTLINE")
     ilvl:SetPoint("TOPLEFT", 3, -3)
-    ilvl:SetTextColor(1.00, 0.88, 0.38, 1)
+    ilvl:SetTextColor(1.00, 0.82, 0.24, 1)
     ilvl:SetJustifyH("LEFT")
+    ilvl:SetJustifyV("TOP")
     wrapper.ilvl = ilvl
 
-    local pin = overlay:CreateTexture(nil, "OVERLAY", nil, 7)
+    local pin = button:CreateTexture(nil, "OVERLAY")
     pin:SetTexture(WHITE)
     pin:SetSize(6, 6)
     pin:SetPoint("TOPRIGHT", -3, -3)
@@ -202,18 +187,24 @@ function Slots:CreatePhysicalSlot(bagID, slotID)
     pin:Hide()
     wrapper.pin = pin
 
-    -- Explicit tooltip handling means the V4 frame does not depend on any
-    -- Blizzard container-parent implementation detail for mouse-over.
-    button:SetScript("OnEnter", function(self)
-        ShowTooltip(self, wrapper)
+    button:HookScript("OnEnter", function(self)
+        local item = Bags.Modules.Data.byKey[key]
+        if not item or not item.hasItem then return end
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        if GameTooltip.SetBagItem then
+            GameTooltip:SetBagItem(bagID, slotID)
+        elseif item.link then
+            GameTooltip:SetHyperlink(item.link)
+        end
+        GameTooltip:Show()
     end)
-    button:SetScript("OnLeave", function()
+    button:HookScript("OnLeave", function()
         GameTooltip:Hide()
     end)
 
     button:HookScript("OnMouseUp", function(_, mouseButton)
         if mouseButton ~= "MiddleButton" then return end
-        local item = ItemFor(wrapper)
+        local item = Bags.Modules.Data.byKey[key]
         if item and item.itemID then
             Bags.Modules.Data:TogglePinned(item.itemID)
         end
@@ -244,39 +235,53 @@ function Slots:Render(wrapper, item)
 
     button:SetID(wrapper.slotID)
     wrapper:SetID(wrapper.bagID)
+    button:Show()
+    button:EnableMouse(true)
 
     local size = Bags.GetDB().layout.slotSize or 38
     wrapper:SetSize(size, size)
+
+    local countSize, ilvlSize = TextSizes(size)
+    wrapper.countText:SetFont(FONT_BOLD, countSize, "OUTLINE")
+    wrapper.ilvl:SetFont(FONT_BOLD, ilvlSize, "OUTLINE")
 
     if not item or not item.hasItem then
         wrapper.itemIcon:SetTexture(nil)
         wrapper.itemIcon:Hide()
         wrapper.countText:SetText("")
         wrapper.countText:Hide()
+        wrapper.countPlate:Hide()
         wrapper.cooldown:Hide()
-        wrapper.bg:SetColorTexture(0.028, 0.038, 0.041, 0.94)
-        wrapper.emptyBG:Show()
-        wrapper.emptyBorder:Show()
-        SetBorder(wrapper.border, 0.38, 0.44, 0.45, 0.38)
+        wrapper.bg:SetColorTexture(0.035, 0.045, 0.048, 0.82)
+        local sr, sg, sb = SlotIdentityColor(wrapper.bagID)
+        local slotAlpha = (REAGENT_BAG_ID and wrapper.bagID == REAGENT_BAG_ID) and 0.62 or 0.48
+        SetBorder(wrapper.border, sr, sg, sb, slotAlpha)
         wrapper.ilvl:SetText("")
+        wrapper.ilvlPlate:Hide()
         wrapper.pin:Hide()
+        button:SetAlpha(1)
+        button:EnableMouse(true)
         return
     end
 
-    wrapper.emptyBG:Hide()
-    wrapper.emptyBorder:Hide()
-
+    -- Render independently from Blizzard's private template regions.
     wrapper.itemIcon:SetTexture(item.icon)
+    wrapper.itemIcon:SetVertexColor(1, 1, 1, 1)
+    wrapper.itemIcon:SetAlpha(1)
     wrapper.itemIcon:SetDesaturated(item.locked and true or false)
     wrapper.itemIcon:Show()
+    button:SetAlpha(1)
+    button:EnableMouse(true)
 
     local count = tonumber(item.count) or 1
     if count > 1 then
         wrapper.countText:SetText(count)
         wrapper.countText:Show()
+        wrapper.countPlate:Show()
     else
         wrapper.countText:SetText("")
         wrapper.countText:Hide()
+        wrapper.countPlate:Hide()
     end
 
     if C_Container.GetContainerItemCooldown then
@@ -296,20 +301,22 @@ function Slots:Render(wrapper, item)
         wrapper.cooldown:Hide()
     end
 
-    wrapper.bg:SetColorTexture(0.020, 0.027, 0.030, 0.98)
+    wrapper.bg:SetColorTexture(0.025, 0.033, 0.036, 0.96)
     local db = Bags.GetDB().slots
     if db.qualityBorders ~= false then
         local c = QUALITY[item.quality or 0] or QUALITY[0]
-        local alpha = (item.quality or 0) > 1 and 1.0 or 0.48
-        SetBorder(wrapper.border, c[1], c[2], c[3], alpha)
+        SetBorder(wrapper.border, c[1], c[2], c[3], item.quality and item.quality > 1 and 0.90 or 0.30)
     else
-        SetBorder(wrapper.border, 1, 1, 1, 0.12)
+        local sr, sg, sb = SlotIdentityColor(wrapper.bagID)
+        SetBorder(wrapper.border, sr, sg, sb, 0.58)
     end
 
     if db.itemLevel ~= false and item.ilvl and item.ilvl > 0 then
         wrapper.ilvl:SetText(item.ilvl)
+        wrapper.ilvlPlate:Show()
     else
         wrapper.ilvl:SetText("")
+        wrapper.ilvlPlate:Hide()
     end
     wrapper.pin:SetShown(Bags.Modules.Data:IsPinned(item.itemID))
 end
@@ -322,9 +329,10 @@ function Slots:LayoutDisplay(items)
 
     local db = Bags.GetDB()
     local ld = db.layout
-    local columns = math.max(1, tonumber(ld.columns) or 12)
     local size = tonumber(ld.slotSize) or 38
     local gap = tonumber(ld.spacing) or 4
+    local layout = Bags.Modules.Layout
+    local columns = layout and layout:FitToContent(#items) or math.max(1, tonumber(ld.columns) or 12)
 
     for _, wrapper in ipairs(self.list) do wrapper:Hide() end
 
@@ -336,6 +344,7 @@ function Slots:LayoutDisplay(items)
             wrapper:ClearAllPoints()
             wrapper:SetPoint("TOPLEFT", Bags.Modules.Layout.content, "TOPLEFT", col * (size + gap), -(row * (size + gap)))
             wrapper:Show()
+            if wrapper.button then wrapper.button:Show() end
             self:Render(wrapper, item)
         end
     end
@@ -350,8 +359,9 @@ function Slots:Refresh(layoutToo)
     local data = Bags.Modules.Data
     data:Scan(true)
 
-    -- Physical identities never change; layout changes are still deferred in
-    -- lockdown because moving protected descendants in combat is unsafe.
+    -- Always refresh the physical buttons, even in combat. Their bag/slot
+    -- identity is fixed; only layout/filter changes are deferred until combat
+    -- ends so no protected descendant is moved by our code in lockdown.
     for key, wrapper in pairs(self.byKey) do
         self:Render(wrapper, data.byKey[key])
     end

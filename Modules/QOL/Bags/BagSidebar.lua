@@ -130,15 +130,23 @@ function Sidebar:Create()
     local emptyPinned = root:CreateFontString(nil, "OVERLAY")
     emptyPinned:SetFont(FONT, 8, "OUTLINE")
     emptyPinned:SetText(L("bags_v4_empty_pinned", "Middle-click an item"))
-    emptyPinned:SetTextColor(0.40, 0.45, 0.47, 1)
+    emptyPinned:SetTextColor(0.46, 0.51, 0.53, 1)
     emptyPinned:SetJustifyH("LEFT")
+    emptyPinned:SetJustifyV("TOP")
+    emptyPinned:SetWordWrap(true)
+    if emptyPinned.SetMaxLines then emptyPinned:SetMaxLines(2) end
+    emptyPinned:SetHeight(22)
     self.emptyPinned = emptyPinned
 
     local emptyRecent = root:CreateFontString(nil, "OVERLAY")
     emptyRecent:SetFont(FONT, 8, "OUTLINE")
     emptyRecent:SetText(L("bags_v4_empty_recent", "No recent items"))
-    emptyRecent:SetTextColor(0.40, 0.45, 0.47, 1)
+    emptyRecent:SetTextColor(0.46, 0.51, 0.53, 1)
     emptyRecent:SetJustifyH("LEFT")
+    emptyRecent:SetJustifyV("TOP")
+    emptyRecent:SetWordWrap(true)
+    if emptyRecent.SetMaxLines then emptyRecent:SetMaxLines(2) end
+    emptyRecent:SetHeight(22)
     self.emptyRecent = emptyRecent
 end
 
@@ -155,17 +163,21 @@ function Sidebar:Refresh()
     EnsureButtons(self.recentButtons, rmax, self.root, false)
 
     local pHeight = LayoutPool(self.pinnedButtons, pinned, self.pinnedLabel, pmax)
+    local textWidth = math.max(46, (self.root:GetWidth() or 80) - 2)
+
     self.emptyPinned:ClearAllPoints()
     self.emptyPinned:SetPoint("TOPLEFT", self.pinnedLabel, "BOTTOMLEFT", 0, -7)
+    self.emptyPinned:SetWidth(textWidth)
     self.emptyPinned:SetShown(#pinned == 0)
 
-    local pinnedBlock = #pinned == 0 and 28 or (pHeight + 7)
+    local pinnedBlock = #pinned == 0 and 38 or (pHeight + 7)
     self.recentLabel:ClearAllPoints()
     self.recentLabel:SetPoint("TOPLEFT", self.pinnedLabel, "BOTTOMLEFT", 0, -(pinnedBlock + 8))
 
     LayoutPool(self.recentButtons, recent, self.recentLabel, rmax)
     self.emptyRecent:ClearAllPoints()
     self.emptyRecent:SetPoint("TOPLEFT", self.recentLabel, "BOTTOMLEFT", 0, -7)
+    self.emptyRecent:SetWidth(textWidth)
     self.emptyRecent:SetShown(#recent == 0)
 end
 

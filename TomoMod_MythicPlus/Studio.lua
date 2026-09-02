@@ -1339,16 +1339,43 @@ function MP:BuildScorePlanner()
         rows[#rows+1]={mapID=mapID,name=MapName(mapID),level=level,score=score,duration=duration,over=over}
     end
     table.sort(rows,function(a,b) if a.level==b.level then return a.score<b.score end return a.level<b.level end)
-    local headers={{self:T("h_dungeon"),14},{self:T("score_current"),410},{self:T("score_target"),610},{self:T("score_est_gain"),760},{self:T("score_potential"),900}}
-    for _,h in ipairs(headers) do local t=Text(card,h[1],9,true); t:SetPoint("TOPLEFT",h[2],-78); t:SetTextColor(unpack(C.dim)) end
+    -- Keep every column inside the card. The old fixed x=900 position for
+    -- Potentiel was wider than the content area at the default Studio size,
+    -- and text scaling made the overflow even more visible.
+    local tableW=innerW-28
+    local colRatios={0.40,0.20,0.20,0.11,0.09}
+    local colX={14}
+    local colW={}
+    local cursor=14
+    for i,ratio in ipairs(colRatios) do
+        local width=(i==#colRatios) and (14+tableW-cursor) or math.floor(tableW*ratio)
+        colW[i]=math.max(width,1)
+        colX[i]=cursor
+        cursor=cursor+colW[i]
+    end
+
+    local headers={self:T("h_dungeon"),self:T("score_current"),self:T("score_target"),self:T("score_est_gain"),self:T("score_potential")}
+    for i,label in ipairs(headers) do
+        local t=Text(card,label,9,true)
+        t:SetPoint("TOPLEFT",colX[i],-78)
+        t:SetWidth(colW[i])
+        t:SetJustifyH(i==1 and "LEFT" or "CENTER")
+        t:SetTextColor(unpack(C.dim))
+    end
     Divider(card,-102); local ry=-118
     for i=1,math.min(12,#rows) do
         local r=rows[i]; local target=math.max(2,(r.level or 0)+1); local gap=(r.level or 0)==0 and 99 or (maxLevel-(r.level or 0))
         local potential=gap>=2 and self:T("score_potential_high") or (gap==1 and self:T("score_potential_medium") or self:T("score_potential_low"))
         local potColor=gap>=2 and C.green or (gap==1 and C.yellow or C.dim)
         local current=(r.level or 0)>0 and string.format("+%d  %.0f",r.level,r.score or 0) or self:T("score_new")
-        local vals={{r.name,14,C.text},{current,410,C.dim},{"+"..target,610,C.text},{(r.level or 0)>0 and "~+5" or self:T("score_new"),760,C.dim},{potential,900,potColor}}
-        for _,v in ipairs(vals) do local t=Text(card,v[1],10,false); t:SetPoint("TOPLEFT",v[2],ry); t:SetTextColor(unpack(v[3])) end
+        local vals={{r.name,C.text},{current,C.dim},{"+"..target,C.text},{(r.level or 0)>0 and "~+5" or self:T("score_new"),C.dim},{potential,potColor}}
+        for col,v in ipairs(vals) do
+            local t=Text(card,v[1],10,false)
+            t:SetPoint("TOPLEFT",colX[col],ry)
+            t:SetWidth(colW[col])
+            t:SetJustifyH(col==1 and "LEFT" or "CENTER")
+            t:SetTextColor(unpack(v[2]))
+        end
         ry=ry-36; if i<math.min(12,#rows) then Divider(card,ry+11) end
     end
 end

@@ -32,7 +32,7 @@ end
 
 local function Surface(frame, bgA, borderA)
     frame:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
-    frame:SetBackdropColor(0.025, 0.032, 0.035, bgA or 0.96)
+    frame:SetBackdropColor(0.045, 0.052, 0.055, bgA or 0.96)
     frame:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], borderA or 0.30)
 end
 
@@ -48,7 +48,7 @@ local function CreateTextButton(parent, width, height)
     button.text = text
 
     button:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(0.04, 0.07, 0.065, 0.96)
+        self:SetBackdropColor(0.055, 0.078, 0.073, 0.96)
         self:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.65)
         self.text:SetTextColor(1, 1, 1, 1)
     end)
@@ -81,7 +81,7 @@ function Layout:CreateFrame()
 
     local headerBG = header:CreateTexture(nil, "BACKGROUND")
     headerBG:SetAllPoints()
-    headerBG:SetColorTexture(0.035, 0.045, 0.048, 0.96)
+    headerBG:SetColorTexture(0.055, 0.064, 0.067, 0.96)
 
     local line = header:CreateTexture(nil, "ARTWORK")
     line:SetPoint("BOTTOMLEFT")
@@ -153,12 +153,12 @@ function Layout:CreateFrame()
     searchHost:SetPoint("TOPRIGHT", -1, -(HEADER_H + 1))
     searchHost:SetHeight(SEARCH_H)
     searchHost:SetBackdrop({ bgFile = WHITE })
-    searchHost:SetBackdropColor(0.018, 0.024, 0.026, 0.92)
+    searchHost:SetBackdropColor(0.038, 0.045, 0.048, 0.94)
     self.searchHost = searchHost
 
     local sidebar = CreateFrame("Frame", nil, f, "BackdropTemplate")
     sidebar:SetBackdrop({ bgFile = WHITE })
-    sidebar:SetBackdropColor(0.022, 0.029, 0.031, 0.94)
+    sidebar:SetBackdropColor(0.042, 0.049, 0.052, 0.96)
     self.sidebarHost = sidebar
 
     local sideLine = sidebar:CreateTexture(nil, "ARTWORK")
@@ -199,7 +199,7 @@ function Layout:CreateFrame()
 
     local footerBG = footer:CreateTexture(nil, "BACKGROUND")
     footerBG:SetAllPoints()
-    footerBG:SetColorTexture(0.018, 0.024, 0.026, 0.94)
+    footerBG:SetColorTexture(0.038, 0.045, 0.048, 0.96)
 
     local footerLine = footer:CreateTexture(nil, "ARTWORK")
     footerLine:SetPoint("TOPLEFT")
@@ -241,28 +241,40 @@ function Layout:ScrollBy(amount)
 end
 
 function Layout:RefreshScrollThumb()
-    if not self.scroll or not self.scrollThumb then return end
+    if not self.scroll or not self.scrollThumb or not self.scrollTrack then return end
     local range = self.scroll:GetVerticalScrollRange() or 0
+
+    -- Combined bags should normally size themselves to the complete grid.
+    -- Do not leave a decorative scrollbar visible when there is nothing to
+    -- scroll; it makes the frame look artificially cropped.
+    if range <= 1 then
+        self.scroll:SetVerticalScroll(0)
+        self.scrollTrack:Hide()
+        return
+    end
+
+    self.scrollTrack:Show()
     local view = self.scroll:GetHeight() or 1
     local total = view + range
     local trackH = self.scrollTrack:GetHeight() or 1
-    local thumbH = range <= 0 and trackH or math.max(24, trackH * (view / math.max(total, 1)))
+    local thumbH = math.max(24, trackH * (view / math.max(total, 1)))
     self.scrollThumb:SetHeight(thumbH)
     self.scrollThumb:ClearAllPoints()
-    if range <= 0 then
-        self.scrollThumb:SetPoint("TOP", self.scrollTrack, "TOP", 0, 0)
-        self.scrollThumb:SetAlpha(0.20)
-    else
-        local progress = (self.scroll:GetVerticalScroll() or 0) / range
-        local travel = math.max(0, trackH - thumbH)
-        self.scrollThumb:SetPoint("TOP", self.scrollTrack, "TOP", 0, -(travel * progress))
-        self.scrollThumb:SetAlpha(0.75)
-    end
+
+    local progress = (self.scroll:GetVerticalScroll() or 0) / range
+    local travel = math.max(0, trackH - thumbH)
+    self.scrollThumb:SetPoint("TOP", self.scrollTrack, "TOP", 0, -(travel * progress))
+    self.scrollThumb:SetAlpha(0.75)
 end
 
 function Layout:SetContentHeight(height)
     if not self.content then return end
-    self.content:SetHeight(math.max(height or 1, self.scroll:GetHeight() or 1))
+    local viewHeight = self.scroll:GetHeight() or 1
+    local contentHeight = math.max(height or 1, viewHeight)
+    self.content:SetHeight(contentHeight)
+    if contentHeight <= viewHeight + 1 then
+        self.scroll:SetVerticalScroll(0)
+    end
     C_Timer.After(0, function()
         if self.scroll and self.scroll:IsVisible() then self:RefreshScrollThumb() end
     end)
@@ -289,69 +301,124 @@ function Layout:RefreshHeader()
     self:RefreshSortLabel()
 end
 
-function Layout:ApplySettings()
-    if not self.frame then return end
+local function GeometrySettings()
     local db = Bags.GetDB()
     local ld = db.layout
-    local requestedColumns = math.max(6, math.min(16, tonumber(ld.columns) or 12))
-    local slot = math.max(28, math.min(52, tonumber(ld.slotSize) or 38))
-    local spacing = math.max(0, math.min(10, tonumber(ld.spacing) or 4))
-    local sidebarW = math.max(82, math.min(116, tonumber(ld.sidebarWidth) or 94))
-    local pad = math.max(6, tonumber(ld.padding) or 10)
-    local scale = math.max(0.70, math.min(1.40, tonumber(db.appearance.scale) or 1))
+    return {
+        db = db,
+        ld = ld,
+        requestedColumns = math.max(6, math.min(16, tonumber(ld.columns) or 12)),
+        slot = math.max(28, math.min(52, tonumber(ld.slotSize) or 38)),
+        spacing = math.max(0, math.min(10, tonumber(ld.spacing) or 4)),
+        sidebarW = math.max(82, math.min(116, tonumber(ld.sidebarWidth) or 94)),
+        pad = math.max(6, tonumber(ld.padding) or 10),
+        scale = math.max(0.70, math.min(1.40, tonumber(db.appearance.scale) or 1)),
+    }
+end
 
-    -- Never let a user setting build a window wider/taller than the usable
-    -- screen. The configured column count is preserved in the DB; this only
-    -- reduces the live layout when the current resolution cannot fit it.
+local function MaxScreenGeometry(g)
     local uiWidth = UIParent and UIParent:GetWidth() or 1200
     local uiHeight = UIParent and UIParent:GetHeight() or 900
-    local maxFrameW = math.max(360, (uiWidth * 0.94) / scale)
-    local fixedW = sidebarW + pad * 3 + 8
-    local maxColumns = math.floor((maxFrameW - fixedW + spacing) / math.max(1, slot + spacing))
-    local columns = math.max(6, math.min(requestedColumns, maxColumns))
+    local maxFrameW = math.max(360, (uiWidth * 0.94) / g.scale)
+    local maxFrameH = math.max(320, (uiHeight * 0.90) / g.scale)
+    local fixedW = g.sidebarW + g.pad * 3 + 8
+    local fixedH = HEADER_H + (g.db.search.enabled ~= false and SEARCH_H or 0) + FOOTER_H + g.pad * 2
+    local maxColumns = math.max(1, math.floor((maxFrameW - fixedW + g.spacing) / math.max(1, g.slot + g.spacing)))
+    local maxRows = math.max(1, math.floor((maxFrameH - fixedH + g.spacing) / math.max(1, g.slot + g.spacing)))
+    return maxFrameW, maxFrameH, fixedW, fixedH, maxColumns, maxRows
+end
 
-    local gridW = columns * slot + (columns - 1) * spacing
-    local width = sidebarW + pad * 3 + gridW + 8
+local function FrameDimensions(g, columns, rows)
+    local gridW = columns * g.slot + math.max(0, columns - 1) * g.spacing
+    local gridH = rows * g.slot + math.max(0, rows - 1) * g.spacing
+    local width = g.sidebarW + g.pad * 3 + gridW + 8
+    local fixedH = HEADER_H + (g.db.search.enabled ~= false and SEARCH_H or 0) + FOOTER_H + g.pad * 2
+    return width, fixedH + gridH
+end
 
-    local fixedH = HEADER_H + (db.search.enabled ~= false and SEARCH_H or 0) + FOOTER_H + pad * 2
-    local maxFrameH = math.max(320, (uiHeight * 0.90) / scale)
-    local maxRows = math.floor((maxFrameH - fixedH + spacing) / math.max(1, slot + spacing))
-    local rowsVisible = math.max(5, math.min(9, maxRows))
-    local gridH = rowsVisible * slot + (rowsVisible - 1) * spacing
-    local height = fixedH + gridH
+function Layout:ApplyFrameGeometry(columns, rows, allowScroll)
+    local g = GeometrySettings()
+    local width, height = FrameDimensions(g, columns, rows)
+
+    self.liveColumns = columns
+    self.liveRows = rows
+    self.allowScroll = allowScroll and true or false
 
     self.frame:SetSize(width, height)
-    self.frame:SetScale(scale)
-    self.frame:SetAlpha(db.appearance.alpha or 0.96)
+    self.frame:SetScale(g.scale)
+    self.frame:SetAlpha(g.db.appearance.alpha or 0.96)
 
     self.sidebarHost:ClearAllPoints()
     self.sidebarHost:SetPoint("TOPLEFT", 1, -(HEADER_H + SEARCH_H + 1))
     self.sidebarHost:SetPoint("BOTTOMLEFT", 1, FOOTER_H + 1)
-    self.sidebarHost:SetWidth(sidebarW)
+    self.sidebarHost:SetWidth(g.sidebarW)
 
     self.scroll:ClearAllPoints()
-    self.scroll:SetPoint("TOPLEFT", self.sidebarHost, "TOPRIGHT", pad, -pad)
-    self.scroll:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", -(pad + 8), FOOTER_H + pad)
+    self.scroll:SetPoint("TOPLEFT", self.sidebarHost, "TOPRIGHT", g.pad, -g.pad)
+    self.scroll:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", -(g.pad + 8), FOOTER_H + g.pad)
 
     self.scrollTrack:ClearAllPoints()
-    self.scrollTrack:SetPoint("TOPRIGHT", self.frame, "TOPRIGHT", -4, -(HEADER_H + SEARCH_H + pad))
-    self.scrollTrack:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", -4, FOOTER_H + pad)
+    self.scrollTrack:SetPoint("TOPRIGHT", self.frame, "TOPRIGHT", -4, -(HEADER_H + SEARCH_H + g.pad))
+    self.scrollTrack:SetPoint("BOTTOMRIGHT", self.frame, "BOTTOMRIGHT", -4, FOOTER_H + g.pad)
 
-    local pos = db.position
+    self.searchHost:SetShown(g.db.search.enabled ~= false)
+    if g.db.search.enabled == false then
+        self.sidebarHost:SetPoint("TOPLEFT", 1, -(HEADER_H + 1))
+        self.scroll:SetPoint("TOPLEFT", self.sidebarHost, "TOPRIGHT", g.pad, -g.pad)
+        self.scrollTrack:SetPoint("TOPRIGHT", self.frame, "TOPRIGHT", -4, -(HEADER_H + g.pad))
+    end
+
+    if not self.allowScroll then
+        self.scroll:SetVerticalScroll(0)
+        self.scrollTrack:Hide()
+    end
+end
+
+-- Resize the combined bag to the actual number of displayed slots. The
+-- configured column count is preferred, but when that would make the bag too
+-- tall we first add columns (while staying on screen) instead of introducing a
+-- scrollbar. Scrolling is therefore only a final fallback for an impossible
+-- combination of resolution / scale / slot size.
+function Layout:FitToContent(itemCount)
+    if not self.frame then return nil end
+    local g = GeometrySettings()
+    local _, _, _, _, maxColumns, maxRows = MaxScreenGeometry(g)
+
+    local count = math.max(1, tonumber(itemCount) or 1)
+    local columns = math.max(1, math.min(g.requestedColumns, maxColumns))
+    local rows = math.max(1, math.ceil(count / columns))
+
+    if rows > maxRows then
+        local neededColumns = math.ceil(count / maxRows)
+        columns = math.max(columns, math.min(maxColumns, neededColumns))
+        rows = math.max(1, math.ceil(count / columns))
+    end
+
+    local allowScroll = rows > maxRows
+    local visibleRows = allowScroll and maxRows or rows
+    self:ApplyFrameGeometry(columns, visibleRows, allowScroll)
+    return columns
+end
+
+function Layout:ApplySettings()
+    if not self.frame then return end
+    local g = GeometrySettings()
+    local _, _, _, _, maxColumns, maxRows = MaxScreenGeometry(g)
+
+    -- Before the first data scan, use a small safe geometry. LayoutDisplay()
+    -- immediately replaces it with the exact auto-fit geometry for the grid.
+    local columns = math.max(1, math.min(g.requestedColumns, maxColumns))
+    local rows = math.max(1, math.min(5, maxRows))
+    self:ApplyFrameGeometry(columns, rows, false)
+
+    local pos = g.db.position
     if not self.frame._positionApplied then
         self.frame:ClearAllPoints()
         self.frame:SetPoint(pos.point or "BOTTOMRIGHT", UIParent, pos.relativePoint or "BOTTOMRIGHT", pos.x or -42, pos.y or 86)
         self.frame._positionApplied = true
     end
 
-    self.searchHost:SetShown(db.search.enabled ~= false)
-    if db.search.enabled == false then
-        self.sidebarHost:SetPoint("TOPLEFT", 1, -(HEADER_H + 1))
-        self.scroll:SetPoint("TOPLEFT", self.sidebarHost, "TOPRIGHT", pad, -pad)
-        self.scrollTrack:SetPoint("TOPRIGHT", self.frame, "TOPRIGHT", -4, -(HEADER_H + pad))
-    end
-
-    if ld.mode == "separate" then
+    if g.ld.mode == "separate" then
         self.frame:Hide()
     end
 
