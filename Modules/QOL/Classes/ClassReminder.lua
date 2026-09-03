@@ -342,15 +342,19 @@ local RequestUpdate       -- forward declaration, defined with the throttle
 local function SavePosition()
     local db = GetDB()
     if not db then return end
+    db.position = db.position or {}
+    if TomoMod_Layout and TomoMod_Layout.Save then
+        TomoMod_Layout.Save(db.position, anchor)
+        return
+    end
+
     local left, bottom = anchor:GetLeft(), anchor:GetBottom()
     if not left or not bottom then return end
     local s = anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
-    db.position = {
-        point         = "BOTTOMLEFT",
-        relativePoint = "BOTTOMLEFT",
-        x             = left * s,
-        y             = bottom * s,
-    }
+    db.position.point = "BOTTOMLEFT"
+    db.position.relativePoint = "BOTTOMLEFT"
+    db.position.x = left * s
+    db.position.y = bottom * s
 end
 
 local function ApplyPosition()
@@ -358,8 +362,20 @@ local function ApplyPosition()
     local db = GetDB()
     anchor:ClearAllPoints()
     local p = db and db.position
-    if p and p.point then
-        anchor:SetPoint(p.point, UIParent, p.relativePoint or p.point, p.x or 0, p.y or 0)
+    if p and (p.point or p.anchor) then
+        if TomoMod_Layout and TomoMod_Layout.MigratePosition then
+            TomoMod_Layout.MigratePosition(p)
+        end
+        local point = p.point or p.anchor or "CENTER"
+        local relativePoint = p.anchor or p.relativePoint or p.relPoint or p.relTo or point
+        local x, y = p.x or 0, p.y or 0
+        if TomoMod_Layout and TomoMod_Layout.Rescale then
+            x, y = TomoMod_Layout.Rescale(x, y, p.refW, p.refH,
+                UIParent:GetWidth(), UIParent:GetHeight())
+        end
+        local ratio = anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
+        if not (ratio and ratio > 0) then ratio = 1 end
+        anchor:SetPoint(point, UIParent, relativePoint, x / ratio, y / ratio)
     else
         anchor:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     end

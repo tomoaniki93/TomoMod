@@ -1254,11 +1254,16 @@ local function BuildResourceDisplay()
         container = CreateFrame("Frame", "TomoMod_ResourceBars_Container", UIParent)
         container:SetClampedToScreen(true)
         TomoMod_Utils.SetupDraggable(container, function()
-            -- [DRAG] screen-absolute coords instead of GetPoint
+            s.position = s.position or {}
+            if TomoMod_Layout and TomoMod_Layout.Save
+                and TomoMod_Layout.Save(s.position, container) then
+                return
+            end
+
+            -- Legacy fallback.
             local left, bottom = container:GetLeft(), container:GetBottom()
             if left and bottom then
                 local scale = container:GetEffectiveScale() / UIParent:GetEffectiveScale()
-                s.position = s.position or {}
                 s.position.point = "BOTTOMLEFT"
                 s.position.relativePoint = "BOTTOMLEFT"
                 s.position.x = left * scale
@@ -1267,15 +1272,23 @@ local function BuildResourceDisplay()
         end, TomoMod_Layout and TomoMod_Layout.Label("resourceBars"))
     end
 
-    -- Apply scale
+    -- Apply scale before position: Layout.Apply converts UIParent-space offsets
+    -- back into this frame's scaled coordinate space.
     container:SetScale(s.scale or 1.0)
 
     -- Position
     local pos = s.position
-    container:ClearAllPoints()
     if pos then
-        container:SetPoint(pos.point or "BOTTOM", UIParent, pos.relativePoint or "CENTER", pos.x or 0, pos.y or -230)
+        if TomoMod_Layout and TomoMod_Layout.Apply then
+            TomoMod_Layout.Apply(pos, container)
+        else
+            local point = pos.point or pos.anchor or "BOTTOM"
+            local anchor = pos.anchor or pos.relativePoint or pos.relPoint or pos.relTo or "CENTER"
+            container:ClearAllPoints()
+            container:SetPoint(point, UIParent, anchor, pos.x or 0, pos.y or -230)
+        end
     else
+        container:ClearAllPoints()
         container:SetPoint("BOTTOM", UIParent, "CENTER", 0, -230)
     end
 

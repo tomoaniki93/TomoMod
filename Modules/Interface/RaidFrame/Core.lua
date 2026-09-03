@@ -1316,6 +1316,25 @@ end
 -- =====================================
 -- MOVER SYSTEM
 -- =====================================
+local function SaveRaidAnchorPosition()
+    local db = TomoModDB and TomoModDB.raidFrames
+    if not (db and RF.anchor) then return end
+    db.position = db.position or {}
+
+    if TomoMod_Layout and TomoMod_Layout.Save then
+        TomoMod_Layout.Save(db.position, RF.anchor)
+        return
+    end
+
+    local left, bottom = RF.anchor:GetLeft(), RF.anchor:GetBottom()
+    if not left or not bottom then return end
+    local scale = RF.anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    db.position.point = "BOTTOMLEFT"
+    db.position.relativePoint = "BOTTOMLEFT"
+    db.position.x = left * scale
+    db.position.y = bottom * scale
+end
+
 function RF.ToggleLock()
     RF.isLocked = not RF.isLocked
     if RF.anchor then
@@ -1331,16 +1350,7 @@ function RF.ToggleLock()
             RF.anchor.moverOverlay:Hide()
             -- Hide preview when locking
             RF.HidePreview()
-            local db = TomoModDB and TomoModDB.raidFrames
-            if db and RF.anchor then
-                -- [DRAG] screen-absolute coords instead of GetPoint
-                local left, bottom = RF.anchor:GetLeft(), RF.anchor:GetBottom()
-                if left and bottom then
-                    local scale = RF.anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
-                    db.position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT",
-                                    x = left * scale, y = bottom * scale }
-                end
-            end
+            SaveRaidAnchorPosition()
         end
     end
 end
@@ -1360,8 +1370,13 @@ function RF.CreateAnchor()
     anchor:SetSize(db.width * 5, db.height * 8)
 
     local pos = db.position
-    if pos and pos.point then
-        anchor:SetPoint(pos.point, UIParent, pos.relativePoint or pos.point, pos.x or 0, pos.y or 0)
+    if pos and (pos.point or pos.anchor) then
+        if TomoMod_Layout and TomoMod_Layout.Apply then
+            TomoMod_Layout.Apply(pos, anchor)
+        else
+            anchor:SetPoint(pos.point or pos.anchor, UIParent,
+                pos.anchor or pos.relativePoint or pos.point or "TOPLEFT", pos.x or 0, pos.y or 0)
+        end
     else
         anchor:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 20, -200)
     end
@@ -1384,13 +1399,7 @@ function RF.CreateAnchor()
     mover:SetScript("OnDragStart", function() anchor:StartMoving() end)
     mover:SetScript("OnDragStop", function()
         anchor:StopMovingOrSizing()
-        -- [DRAG] screen-absolute coords instead of GetPoint
-        local left, bottom = anchor:GetLeft(), anchor:GetBottom()
-        if db and left and bottom then
-            local scale = anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
-            db.position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT",
-                            x = left * scale, y = bottom * scale }
-        end
+        SaveRaidAnchorPosition()
     end)
     local label = mover:CreateFontString(nil, "OVERLAY")
     label:SetFont(ADDON_FONT, 11, "OUTLINE")

@@ -260,6 +260,25 @@ LayoutNativeButtons = function(barKey)
         numRows = math.ceil(numVisible / numCols)
     end
 
+    -- [4.0.x] Negative spacing is a supported compact-layout option, but the
+    -- secure buttons previously kept their full rectangular hit boxes. Two
+    -- neighbouring buttons could therefore own the same pixels; whichever
+    -- frame happened to be above the other received the spell drag, making it
+    -- look as if a different icon/bar had been selected. Split the overlapped
+    -- area at the midpoint while keeping normal/non-negative layouts full-size.
+    -- SetHitRectInsets is expressed in the button's unscaled coordinates.
+    if not InCombatLockdown() then
+        local overlap = (spacing and spacing < 0) and -spacing or 0
+        local insetX = (overlap > 0 and numCols > 1) and (overlap * 0.5 / btnScale) or 0
+        local insetY = (overlap > 0 and numRows > 1) and (overlap * 0.5 / btnScale) or 0
+        for i = 1, numVisible do
+            local btn = buttons[i]
+            if btn and btn.SetHitRectInsets then
+                btn:SetHitRectInsets(insetX, insetX, insetY, insetY)
+            end
+        end
+    end
+
     local anchor
     if growUp then
         anchor = growLeft and "BOTTOMRIGHT" or "BOTTOMLEFT"

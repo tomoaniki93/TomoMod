@@ -2129,17 +2129,29 @@ local function ApplyPosition()
     end
 
     local pos = db.position
-    if pos and pos.point then
-        -- SavePosition stores UIParent-space coordinates (it multiplies by the
-        -- tracker/UIParent scale ratio); SetPoint wants offsets in the
-        -- tracker's own space. Without dividing by that same ratio here, the
-        -- round trip multiplied the position by the tracker scale every time,
-        -- so any tracker not at 100% crept across the screen on each reload.
+    if pos and (pos.point or pos.anchor) then
+        -- V4's LayoutEngine migrates point/relativePoint into point/anchor and
+        -- stamps refW/refH for resolution-independent positions. This module
+        -- used to keep reading the deleted relativePoint key, so after a reload
+        -- it silently fell back to pos.point and could jump to another anchor.
+        if TomoMod_Layout and TomoMod_Layout.MigratePosition then
+            TomoMod_Layout.MigratePosition(pos)
+        end
+        local point = pos.point or pos.anchor or "BOTTOMLEFT"
+        local relativePoint = pos.anchor or pos.relativePoint or pos.relPoint or pos.relTo or point
+        local x, y = pos.x or 0, pos.y or 0
+        if TomoMod_Layout and TomoMod_Layout.Rescale then
+            x, y = TomoMod_Layout.Rescale(x, y, pos.refW, pos.refH,
+                UIParent:GetWidth(), UIParent:GetHeight())
+        end
+
+        -- Layout.Save stores UIParent-space coordinates. ObjectiveTracker can
+        -- have its own scale, so SetPoint offsets must be converted back into
+        -- the tracker's coordinate space for an exact save/apply round trip.
         local ratio = tracker:GetEffectiveScale() / UIParent:GetEffectiveScale()
         if not (ratio and ratio > 0) then ratio = 1 end
         tracker:ClearAllPoints()
-        tracker:SetPoint(pos.point, UIParent, pos.relativePoint or pos.point,
-                         (pos.x or 0) / ratio, (pos.y or 0) / ratio)
+        tracker:SetPoint(point, UIParent, relativePoint, x / ratio, y / ratio)
     end
     positionApplied = true
 end
@@ -2148,17 +2160,21 @@ OT.ApplyPosition = ApplyPosition
 local function SavePosition()
     local tracker = ObjectiveTrackerFrame
     if not tracker then return end
-    -- [DRAG] screen-absolute coords instead of GetPoint
+    local db = S()
+    db.position = db.position or {}
+    if TomoMod_Layout and TomoMod_Layout.Save then
+        TomoMod_Layout.Save(db.position, tracker)
+        return
+    end
+
+    -- Legacy fallback when the core layout engine is unavailable.
     local left, bottom = tracker:GetLeft(), tracker:GetBottom()
     if not left or not bottom then return end
     local scale = tracker:GetEffectiveScale() / UIParent:GetEffectiveScale()
-    local db = S()
-    db.position = {
-        point         = "BOTTOMLEFT",
-        relativePoint = "BOTTOMLEFT",
-        x             = left * scale,
-        y             = bottom * scale,
-    }
+    db.position.point = "BOTTOMLEFT"
+    db.position.relativePoint = "BOTTOMLEFT"
+    db.position.x = left * scale
+    db.position.y = bottom * scale
 end
 OT.SavePosition = SavePosition
 

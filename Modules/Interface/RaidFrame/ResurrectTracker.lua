@@ -83,20 +83,36 @@ end
 local function SavePosition()
     local db = DB()
     if not db or not brezFrame then return end
-    -- GetLeft/GetBottom (never GetPoint after a drag) → re-anchor to BOTTOMLEFT.
+    db.position = db.position or {}
+    if TomoMod_Layout and TomoMod_Layout.Save
+        and TomoMod_Layout.Save(db.position, brezFrame) then
+        return
+    end
+
+    -- Legacy fallback.
     local l, b = brezFrame:GetLeft(), brezFrame:GetBottom()
     if not l or not b then return end
-    db.position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT", x = l, y = b }
+    db.position.point = "BOTTOMLEFT"
+    db.position.relativePoint = "BOTTOMLEFT"
+    db.position.x = l
+    db.position.y = b
 end
 
 local function ApplyPosition()
     local db = DB()
     if not brezFrame then return end
-    brezFrame:ClearAllPoints()
     local p = db and db.position
-    if p and p.point then
-        brezFrame:SetPoint(p.point, UIParent, p.relativePoint or p.point, p.x or 0, p.y or 0)
+    if p and (p.point or p.anchor) then
+        if TomoMod_Layout and TomoMod_Layout.Apply then
+            TomoMod_Layout.Apply(p, brezFrame)
+        else
+            local point = p.point or p.anchor or "CENTER"
+            local anchor = p.anchor or p.relativePoint or p.relPoint or p.relTo or point
+            brezFrame:ClearAllPoints()
+            brezFrame:SetPoint(point, UIParent, anchor, p.x or 0, p.y or 0)
+        end
     else
+        brezFrame:ClearAllPoints()
         brezFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 200)
     end
 end

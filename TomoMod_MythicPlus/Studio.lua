@@ -933,12 +933,16 @@ function MP:BeginTrackerEditMode()
     if not T.Frame and T.BuildFrame then T:BuildFrame() end
     if not T.Frame then return end
 
+    -- Keep the complete V4 position. Saving only anchor/relTo silently dropped
+    -- point/refW/refH and recreated the legacy schema when Cancel was pressed.
+    local savedPosition
+    if type(db.position) == "table" then
+        savedPosition = {}
+        for k, v in pairs(db.position) do savedPosition[k] = v end
+    end
     self._trackerEditState = {
-        locked=db.locked,
-        anchor=db.position and db.position.anchor or "CENTER",
-        relTo=db.position and db.position.relTo or "CENTER",
-        x=db.position and db.position.x or 0,
-        y=db.position and db.position.y or 0,
+        locked = db.locked,
+        position = savedPosition,
     }
     self:Hide()
     if T.Preview then T:Preview() end
@@ -963,9 +967,10 @@ function MP:EndTrackerEditMode(cancel)
     local db=TomoModDB and TomoModDB.MythicTracker
     if not state or not T or not db then return end
     if cancel then
-        db.position=db.position or {}
-        db.position.anchor=state.anchor; db.position.relTo=state.relTo; db.position.x=state.x; db.position.y=state.y
-        if T.Frame then T.Frame:ClearAllPoints(); T.Frame:SetPoint(state.anchor,UIParent,state.relTo,state.x,state.y) end
+        db.position = db.position or {}
+        for k in pairs(db.position) do db.position[k] = nil end
+        for k, v in pairs(state.position or {}) do db.position[k] = v end
+        if T.ApplyPosition then T:ApplyPosition() end
     end
     if T.SetMovable then T:SetMovable(not state.locked) end
     db.locked=state.locked

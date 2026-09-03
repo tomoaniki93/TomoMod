@@ -350,7 +350,13 @@ function CB.CreateCastbar(unit)
         castbar:SetPoint("TOP", anchorFrame, "BOTTOM", 0, offY)
         castbar._anchorFrame = anchorFrame
     else
-        castbar:SetPoint(pos.point, UIParent, pos.relativePoint, pos.x, pos.y)
+        if TomoMod_Layout and TomoMod_Layout.Apply then
+            TomoMod_Layout.Apply(unitSettings.position, castbar, pos)
+        else
+            local point = pos.point or pos.anchor or "CENTER"
+            local anchor = pos.anchor or pos.relativePoint or pos.relPoint or pos.relTo or point
+            castbar:SetPoint(point, UIParent, anchor, pos.x or 0, pos.y or 0)
+        end
     end
 
     -- Draggable setup (only player uses the mover system; anchored bars are not draggable)
@@ -379,11 +385,16 @@ function CB.CreateCastbar(unit)
     dragFrame:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
             castbar:StopMovingOrSizing()
-            -- [DRAG] screen-absolute coords instead of GetPoint
+            unitSettings.position = unitSettings.position or {}
+            if TomoMod_Layout and TomoMod_Layout.Save
+                and TomoMod_Layout.Save(unitSettings.position, castbar) then
+                return
+            end
+
+            -- Legacy fallback.
             local left, bottom = castbar:GetLeft(), castbar:GetBottom()
             if left and bottom then
                 local scale = castbar:GetEffectiveScale() / UIParent:GetEffectiveScale()
-                unitSettings.position = unitSettings.position or {}
                 unitSettings.position.point = "BOTTOMLEFT"
                 unitSettings.position.relativePoint = "BOTTOMLEFT"
                 unitSettings.position.x = left * scale

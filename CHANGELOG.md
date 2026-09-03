@@ -69,6 +69,10 @@
 
 - **Fixed** - The Current Score, Target Score, Estimated Gain and Potential columns now share the available card width instead of relying on fixed horizontal positions. Potential no longer extends beyond the right edge at the default Studio size or when text scaling is increased.
 
+#### Action Bars — Negative Spacing
+
+- **Fixed** - Action buttons using negative spacing no longer keep overlapping rectangular hit boxes. TomoMod splits the shared pixels at their midpoint, so clicking or dragging a spell targets the button actually under the pointer instead of a neighbouring icon or bar. Zero and positive spacing retain the full button hit area, and protected geometry is never changed during combat.
+
 #### Cast Bars
 
 - **Fixed** - The cast bar no longer closes partway through a long cast. `UNIT_SPELLCAST_SUCCEEDED` was treated as the end of the bar's lifecycle, but an instant spell or a proc fired during a cast emits its own SUCCEEDED, and that event closed the bar belonging to the spell still being cast. `UNIT_SPELLCAST_STOP` is now the single closing signal.
@@ -79,10 +83,16 @@
 - **Fixed** - Layout Mode and the options-panel preview are now independent. Moving the player cast bar from Layout Mode materialises it on demand without loading TomoMod_Options, and closing Layout Mode no longer cancels a preview started from the configuration window, nor the other way round. A settings change that triggers a full refresh keeps the Layout Mode preview alive instead of dropping it.
 - **Fixed** - Entering combat closes every cast bar preview immediately, so a preview left open can never win over a real cast. Disabling the module clears both preview states rather than leaving them set for the next time it is switched on.
 
+#### Raid Frames And Class Reminder — Position Persistence
+
+- **Fixed** - Raid-frame anchor positions now use the shared Layout Engine when they are saved and restored. Existing position formats remain compatible, while resolution and scale metadata are applied consistently so a moved raid layout no longer jumps after a reload or display change.
+- **Fixed** - Class Reminder now follows the same position migration, resolution rescaling and frame-scale conversion. Its saved location survives reloads and changes of UI scale or resolution without drifting away from the chosen anchor.
+
 #### Objective Tracker
 
 - **Fixed** - Blizzard's full-size `common-opacity-background` NineSlice no longer appears as a second translucent panel behind the TomoMod Objective Tracker after a native layout or objective refresh.
 - **Fixed** - The native tracker header and animated module-header backgrounds remain locked at zero while the TomoMod skin is active, preventing Blizzard's header animations from bringing them back. Every captured alpha is released and restored when the TomoMod Objective Tracker is disabled; an in-combat disable safely completes after combat.
+- **Fixed** - Saved Objective Tracker positions now understand both legacy and Layout V4 anchor fields, rescale from the resolution on which they were recorded and convert offsets back through the tracker's own scale. The tracker no longer changes anchor or creeps across the screen after a reload, UI-scale change or resolution change.
 
 #### Consumable Tracker
 
@@ -97,6 +107,13 @@
 - **Fixed** - The cog button's hover colour is now defined where the button is created. Its previous reference pointed to an accent local declared later in the file and could stop the Layout Mode shortcut from being built.
 - **Changed** - The configuration shortcut resolves its destination from the stable name of the hovered frame and its parents. It no longer scans the entire frame hierarchy when Layout Mode opens, making the routing deterministic and avoiding unnecessary work on busy interfaces.
 - **Fixed** - The Layout Mode cog is available again on the chat window. Its two routes still pointed at the frames of the old chat skin, which Chat V4 replaced and which are no longer created; a single route now covers the Chat V4 message host, sidebar, tab strip and copy window, which all share the same name prefix.
+
+#### Layout V4 — Runtime Position Persistence
+
+- **Fixed** - `Layout.Apply` now converts offsets saved in `UIParent` units back through the moved frame's effective scale before calling `SetPoint`. Scaled frames no longer multiply their coordinates on every save/reload cycle and drift across the screen. The engine also gains `Layout.Matches`, which compares the expected and current physical positions independently of frame scale and internal anchor changes.
+- **Fixed** - The Minimap's exceptional legacy raw-coordinate format is restored once with its original semantics and immediately normalized into canonical Layout V4 data. Subsequent position checks compare physical pixels, allowing harmless Blizzard re-anchoring without forcing another anchor or producing a one-frame mismatch between the Minimap and its surrounding chrome.
+- **Changed** - The player cast bar, Resource Bars and Battle Resurrection counter now save and restore positions through the shared Layout Engine, while retaining defensive fallbacks for early load-order cases. Scale is applied before position where required, so reloads and changes of UI scale or resolution preserve the selected location.
+- **Fixed** - The Mythic+ Tracker now applies its scale before restoring its V4 position and uses the same engine for drags, resets and Layout Mode previews. Cancelling tracker positioning in Mythic+ Studio restores the complete saved position, including its point and resolution reference, instead of recreating the legacy `anchor`/`relTo` schema and moving the tracker on the next reload.
 
 #### Blizzard Aura Frames
 

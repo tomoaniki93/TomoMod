@@ -251,9 +251,63 @@ function Layout.Apply(store, frame, defaults)
     local w, h   = ScreenSize()
     local x, y   = Layout.Rescale(pos.x, pos.y, pos.refW, pos.refH, w, h)
 
+    -- Save() stores offsets in UIParent units. SetPoint() offsets are in the
+    -- moved frame's own coordinate space, so scaled frames need the inverse
+    -- conversion here or every save/reload cycle multiplies their position by
+    -- their scale (Minimap, ResourceBars, MythicTracker, ObjectiveTracker...).
+    local ratio = 1
+    if frame.GetEffectiveScale and UIParent.GetEffectiveScale then
+        local fs, us = frame:GetEffectiveScale(), UIParent:GetEffectiveScale()
+        if fs and us and fs > 0 and us > 0 then ratio = fs / us end
+    end
+
     frame:ClearAllPoints()
-    frame:SetPoint(point, UIParent, anchor, x, y)
+    frame:SetPoint(point, UIParent, anchor, x / ratio, y / ratio)
     return true
+end
+
+--- True when `frame` is already at the physical position represented by
+--- `store`. Comparison happens in UIParent units and is therefore independent
+--- of the frame's own scale. Used by frames such as the Minimap which Blizzard
+--- may harmlessly re-anchor internally without actually moving on screen.
+function Layout.Matches(store, frame, tolerance)
+    if type(store) ~= "table" or not frame then return false end
+    if not (frame.GetLeft and frame.GetBottom and frame.GetRight and frame.GetTop) then return false end
+    if not IsV2(store) then Layout.MigratePosition(store) end
+
+    local point  = store.point  or store.anchor or "CENTER"
+    local anchor = store.anchor or store.point  or "CENTER"
+    local w, h   = ScreenSize()
+    if not w then return false end
+
+    local x, y = Layout.Rescale(store.x, store.y, store.refW, store.refH, w, h)
+    local ax, ay = Layout.AnchorPoint(anchor, w, h)
+    local expectedX, expectedY = ax + x, ay + y
+
+    local ratio = 1
+    if frame.GetEffectiveScale and UIParent.GetEffectiveScale then
+        local fs, us = frame:GetEffectiveScale(), UIParent:GetEffectiveScale()
+        if fs and us and fs > 0 and us > 0 then ratio = fs / us end
+    end
+
+    local left, bottom = frame:GetLeft(), frame:GetBottom()
+    local right, top   = frame:GetRight(), frame:GetTop()
+    if not left or not bottom or not right or not top then return false end
+    left, bottom, right, top = left * ratio, bottom * ratio, right * ratio, top * ratio
+
+    local currentX
+    if point:find("LEFT", 1, true) then currentX = left
+    elseif point:find("RIGHT", 1, true) then currentX = right
+    else currentX = (left + right) / 2 end
+
+    local currentY
+    if point:find("BOTTOM", 1, true) then currentY = bottom
+    elseif point:find("TOP", 1, true) then currentY = top
+    else currentY = (bottom + top) / 2 end
+
+    tolerance = tonumber(tolerance) or 1
+    return math.abs(currentX - expectedX) <= tolerance
+       and math.abs(currentY - expectedY) <= tolerance
 end
 
 --- Marks every declared anchor with the current screen size, so that

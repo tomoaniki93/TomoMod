@@ -1279,19 +1279,51 @@ local _tmMinimapPosHooked    = false
 local function SavePosition()
     local db = TomoModDB and TomoModDB.minimap
     if not db then return end
-    -- [DRAG] Store the raw GetLeft()/GetBottom() edges (no scale factor).
-    -- The Minimap lives under MinimapCluster and carries its own
-    -- SetScale(db.scale), so Minimap:GetEffectiveScale() differs from
-    -- UIParent's. SetPoint offsets are already interpreted in the Minimap's
-    -- own scale, so re-applying these raw edges in RestorePosition round-trips
-    -- exactly for any cluster/minimap scale. The former
-    -- GetEffectiveScale()/UIParent ratio double-scaled the offset and pushed
-    -- the minimap into a screen corner on every reload/reconnect.
+    db.position = db.position or {}
+
+    -- V4 owns persisted positions. Keeping anchor/relTo here after MigrateAll()
+    -- recreated the legacy schema and made the minimap jump on the next reload.
+    if TomoMod_Layout and TomoMod_Layout.Save
+        and TomoMod_Layout.Save(db.position, Minimap) then
+        return
+    end
+
+    -- Legacy fallback for defensive load-order compatibility.
     local left, bottom = Minimap:GetLeft(), Minimap:GetBottom()
     if left and bottom then
-        db.position = { anchor = "BOTTOMLEFT", relTo = "BOTTOMLEFT",
-                        x = left, y = bottom }
+        db.position.anchor = "BOTTOMLEFT"
+        db.position.relTo = "BOTTOMLEFT"
+        db.position.x = left
+        db.position.y = bottom
     end
+end
+
+-- Minimap is the one pre-V4 mover whose legacy SavePosition deliberately
+-- stored raw frame-space edges instead of UIParent-space offsets. MigrateAll()
+-- can rename anchor/relTo into point/anchor, but it cannot know that the numeric
+-- x/y use this exceptional convention. A migrated position has no refW/refH by
+-- design, so restore it once with the legacy semantics and immediately capture
+-- the exact same pixels with Layout.Save(). From then on it is canonical V4.
+local function NormalizeMigratedMinimapPosition(p)
+    if not (TomoMod_Layout and TomoMod_Layout.Apply and TomoMod_Layout.Save) then
+        return false
+    end
+    if TomoMod_Layout.MigratePosition then
+        TomoMod_Layout.MigratePosition(p)
+    end
+
+    local schema = TomoMod_Layout.SCHEMA_VERSION or 2
+    if p.v ~= schema or p.refW or p.refH then return false end
+
+    local point = p.point or p.anchor or "BOTTOMLEFT"
+    local anchor = p.anchor or p.point or "BOTTOMLEFT"
+    Minimap:ClearAllPoints()
+    Minimap:SetPoint(point, UIParent, anchor, p.x or 0, p.y or 0)
+
+    -- If geometry is already available this stamps refW/refH and converts the
+    -- offsets to the same UIParent-space convention as every other V4 mover.
+    TomoMod_Layout.Save(p, Minimap)
+    return true
 end
 
 local function RestorePosition()
@@ -1299,8 +1331,15 @@ local function RestorePosition()
     if not db or not db.position then return end
     local p = db.position
     _tmApplyingMinimapPos = true
-    Minimap:ClearAllPoints()
-    Minimap:SetPoint(p.anchor, UIParent, p.relTo, p.x, p.y)
+    if not NormalizeMigratedMinimapPosition(p)
+        and TomoMod_Layout and TomoMod_Layout.Apply then
+        TomoMod_Layout.Apply(p, Minimap)
+    elseif not (TomoMod_Layout and TomoMod_Layout.Apply) then
+        local point = p.point or p.anchor or "BOTTOMLEFT"
+        local anchor = p.anchor or p.relTo or p.relativePoint or point
+        Minimap:ClearAllPoints()
+        Minimap:SetPoint(point, UIParent, anchor, p.x or 0, p.y or 0)
+    end
     _tmApplyingMinimapPos = false
 end
 
@@ -1312,14 +1351,9 @@ end
 -- fixed for the Objective Tracker mover. Re-assert our saved anchor whenever
 -- anything else calls SetPoint on the Minimap AND the result actually drifted
 -- from our saved position.
--- [FIX 2] The naive "always reassert" version fought even Blizzard's own
--- harmless internal SetPoint calls (e.g. MinimapCluster adjusting layout when
--- the zone-name bar's text/width changes) — clearing/re-anchoring Minimap on
--- every single one of those caused a visible one-frame misalignment between
--- Minimap and its sibling MinimapCluster chrome (zone text, native icons)
--- overlapping our tracking button. Only correct the position when it has
--- actually drifted (beyond a small pixel tolerance) from what we saved, so
--- harmless in-place SetPoint calls are left alone.
+-- [FIX 2] Compare the physical V4 position, not legacy x/y BOTTOMLEFT values.
+-- Blizzard may harmlessly change the internal anchor while leaving the minimap
+-- on the exact same pixels; Layout.Matches avoids fighting those calls.
 local function InstallMinimapPositionHook()
     if _tmMinimapPosHooked then return end
     _tmMinimapPosHooked = true
@@ -1327,14 +1361,25 @@ local function InstallMinimapPositionHook()
         if _tmApplyingMinimapPos then return end
         local db = TomoModDB and TomoModDB.minimap
         if not db or not db.position then return end
-        local p = db.position
-        local left, bottom = Minimap:GetLeft(), Minimap:GetBottom()
-        if not left or not bottom then return end
-        -- Same convention as SavePosition: raw frame-space edges, no scale.
-        local curX, curY = left, bottom
-        if math.abs(curX - (p.x or 0)) < 1 and math.abs(curY - (p.y or 0)) < 1 then
-            return -- already where it should be — don't fight a harmless internal SetPoint
+
+        if TomoMod_Layout and TomoMod_Layout.Matches
+            and TomoMod_Layout.Matches(db.position, Minimap, 1) then
+            return
         end
+
+        -- Old clients/load orders without LayoutEngine keep the pre-V4 check.
+        if not (TomoMod_Layout and TomoMod_Layout.Matches) then
+            local p = db.position
+            local left, bottom = Minimap:GetLeft(), Minimap:GetBottom()
+            if not left or not bottom then return end
+            if (p.anchor or p.point) == "BOTTOMLEFT"
+                and (p.relTo or p.relativePoint or "BOTTOMLEFT") == "BOTTOMLEFT"
+                and math.abs(left - (p.x or 0)) < 1
+                and math.abs(bottom - (p.y or 0)) < 1 then
+                return
+            end
+        end
+
         RestorePosition()
     end)
 end

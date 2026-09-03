@@ -603,7 +603,15 @@ function TMT:BuildFrame()
     F:SetScript("OnDragStart", function(s) s:StartMoving() end)
     F:SetScript("OnDragStop",  function(s)
         s:StopMovingOrSizing()
-        -- [DRAG] screen-absolute coords instead of GetPoint
+        local db = GetDB()
+        if not db then return end
+        db.position = db.position or {}
+        if TomoMod_Layout and TomoMod_Layout.Save
+            and TomoMod_Layout.Save(db.position, s) then
+            return
+        end
+
+        -- Legacy fallback.
         local left, bottom = s:GetLeft(), s:GetBottom()
         if left and bottom then
             local scale = s:GetEffectiveScale() / UIParent:GetEffectiveScale()
@@ -827,6 +835,8 @@ function TMT:BuildFrame()
     BNR:Hide()
 
     self:ApplyStyle()
+    F:SetScale(db.scale or 1.0)
+    self:ApplyPosition()
     self:SetMovable(not (db and db.locked))
 end
 
@@ -925,22 +935,47 @@ function TMT:SetMovable(enable)
     end
 end
 
-function TMT:SetPos(anchor, relTo, x, y)
+function TMT:SetPos(point, anchor, x, y)
     local db = GetDB()
     if not db then return end
-    db.position.anchor = anchor
-    db.position.relTo  = relTo
-    db.position.x      = x
-    db.position.y      = y
+    db.position = db.position or {}
+    local p = db.position
+    p.v      = (TomoMod_Layout and TomoMod_Layout.SCHEMA_VERSION) or 2
+    p.point  = point or "CENTER"
+    p.anchor = anchor or point or "CENTER"
+    p.x      = x or 0
+    p.y      = y or 0
+    -- A programmatic/default reset is expressed in UIParent units for the
+    -- current UI. The next real drag stamps refW/refH for resolution scaling.
+    p.refW, p.refH = nil, nil
+    p.relativePoint, p.relPoint, p.relTo = nil, nil, nil
+end
+
+function TMT:ApplyPosition()
+    local db = GetDB()
+    if not db or not self.Frame then return false end
+    local defaults = TomoMod_Defaults and TomoMod_Defaults.MythicTracker
+        and TomoMod_Defaults.MythicTracker.position
+
+    if TomoMod_Layout and TomoMod_Layout.Apply then
+        return TomoMod_Layout.Apply(db.position, self.Frame, defaults)
+    end
+
+    local p = db.position or defaults
+    if not p then return false end
+    local point = p.point or p.anchor or "CENTER"
+    local anchor = p.anchor or p.relativePoint or p.relPoint or p.relTo or point
+    self.Frame:ClearAllPoints()
+    self.Frame:SetPoint(point, UIParent, anchor, p.x or 0, p.y or 0)
+    return true
 end
 
 function TMT:ResetPosition()
     local def = TomoMod_Defaults.MythicTracker.position
-    self:SetPos(def.anchor, def.relTo, def.x, def.y)
-    if self.Frame then
-        self.Frame:ClearAllPoints()
-        self.Frame:SetPoint(def.anchor, UIParent, def.relTo, def.x, def.y)
-    end
+    local point = def.point or def.anchor or "TOPRIGHT"
+    local anchor = def.anchor or def.relTo or def.relativePoint or point
+    self:SetPos(point, anchor, def.x, def.y)
+    self:ApplyPosition()
 end
 
 -- ═══════════════════════════════════════════════════════════════════════
@@ -1956,10 +1991,9 @@ EF:SetScript("OnEvent", function(_, event, ...)
         if not TMT.Frame then
             TMT:BuildFrame()
             TMT:InitBlizzardSuppress()
-            local p = db.position
-            TMT.Frame:ClearAllPoints()
-            TMT.Frame:SetPoint(p.anchor, UIParent, p.relTo, p.x, p.y)
-            TMT.Frame:SetScale(db.scale)
+            -- BuildFrame applies scale first, then restores the V4 position.
+            TMT.Frame:SetScale(db.scale or 1.0)
+            TMT:ApplyPosition()
         end
         C_MythicPlus.RequestMapInfo()
         if C_ChallengeMode.IsChallengeModeActive() then

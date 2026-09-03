@@ -480,10 +480,12 @@ local function BuildEntries()
                     TomoMod_MythicTracker:BuildFrame()
                     local db = TomoModDB and TomoModDB.MythicTracker
                     if db then
-                        local p = db.position
-                        TomoMod_MythicTracker.Frame:ClearAllPoints()
-                        TomoMod_MythicTracker.Frame:SetPoint(p.anchor, UIParent, p.relTo, p.x, p.y)
-                        TomoMod_MythicTracker.Frame:SetScale(db.scale)
+                        -- Scale first, then let the V4 engine convert the saved
+                        -- UIParent-space offset into the tracker's coordinate space.
+                        TomoMod_MythicTracker.Frame:SetScale(db.scale or 1.0)
+                        if TomoMod_MythicTracker.ApplyPosition then
+                            TomoMod_MythicTracker:ApplyPosition()
+                        end
                     end
                 end
                 TomoMod_MythicTracker:Preview()
