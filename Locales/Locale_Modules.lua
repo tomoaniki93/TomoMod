@@ -133,8 +133,6 @@ TomoMod_RegisterLocale("enUS", {
     ["frame_resources"]        = "Resource Bars",
     ["frame_minimap"]          = "Minimap",
     ["frame_objectivetracker"] = "Objective Tracker",
-    ["frame_chat"]             = "Chat Window",
-    ["frame_chat_v2"]          = "Chat Window v2",
     ["frame_bags"]             = "Bags",
     ["frame_party"]            = "Party Frames",
     ["frame_arena"]            = "Arena Frames",
@@ -194,6 +192,11 @@ TomoMod_RegisterLocale("enUS", {
     ["imp_select_changed"] = "Only what changes",
     ["imp_applied"]        = "%d modules imported",
     ["imp_nothing"]        = "Nothing selected.",
+
+    -- Sacs et chat v4 (ancres declarees)
+    ["frame_bags_v4"] = "Bags",
+    ["frame_chat_v4"] = "Chat Window",
+    ["mod_bagsV4"]    = "Bags",
 })
 
 -- =====================
@@ -311,8 +314,6 @@ TomoMod_RegisterLocale("frFR", {
     ["frame_resources"]        = "Barres de ressources",
     ["frame_minimap"]          = "Minicarte",
     ["frame_objectivetracker"] = "Suivi des objectifs",
-    ["frame_chat"]             = "Fenêtre de chat",
-    ["frame_chat_v2"]          = "Fenêtre de chat v2",
     ["frame_bags"]             = "Sacs",
     ["frame_party"]            = "Cadres de groupe",
     ["frame_arena"]            = "Cadres d'arène",
@@ -372,6 +373,11 @@ TomoMod_RegisterLocale("frFR", {
     ["imp_select_changed"] = "Seulement ce qui change",
     ["imp_applied"]        = "%d modules importés",
     ["imp_nothing"]        = "Aucune sélection.",
+
+    -- Sacs et chat v4 (ancres declarees)
+    ["frame_bags_v4"] = "Sacs",
+    ["frame_chat_v4"] = "Fenêtre de chat",
+    ["mod_bagsV4"]    = "Sacs",
 })
 
 -- =====================
@@ -489,8 +495,6 @@ TomoMod_RegisterLocale("deDE", {
     ["frame_resources"]        = "Ressourcenleisten",
     ["frame_minimap"]          = "Minikarte",
     ["frame_objectivetracker"] = "Zielverfolgung",
-    ["frame_chat"]             = "Chatfenster",
-    ["frame_chat_v2"]          = "Chatfenster v2",
     ["frame_bags"]             = "Taschen",
     ["frame_party"]            = "Gruppenfenster",
     ["frame_arena"]            = "Arenafenster",
@@ -550,6 +554,11 @@ TomoMod_RegisterLocale("deDE", {
     ["imp_select_changed"] = "Nur Geändertes",
     ["imp_applied"]        = "%d Module importiert",
     ["imp_nothing"]        = "Nichts ausgewählt.",
+
+    -- Sacs et chat v4 (ancres declarees)
+    ["frame_bags_v4"] = "Taschen",
+    ["frame_chat_v4"] = "Chatfenster",
+    ["mod_bagsV4"]    = "Taschen",
 })
 
 -- =====================
@@ -667,8 +676,6 @@ TomoMod_RegisterLocale("esES", {
     ["frame_resources"]        = "Barras de recursos",
     ["frame_minimap"]          = "Minimapa",
     ["frame_objectivetracker"] = "Seguimiento de objetivos",
-    ["frame_chat"]             = "Ventana de chat",
-    ["frame_chat_v2"]          = "Ventana de chat v2",
     ["frame_bags"]             = "Bolsas",
     ["frame_party"]            = "Marcos de grupo",
     ["frame_arena"]            = "Marcos de arena",
@@ -728,6 +735,11 @@ TomoMod_RegisterLocale("esES", {
     ["imp_select_changed"] = "Solo lo que cambia",
     ["imp_applied"]        = "%d módulos importados",
     ["imp_nothing"]        = "Nada seleccionado.",
+
+    -- Sacs et chat v4 (ancres declarees)
+    ["frame_bags_v4"] = "Bolsas",
+    ["frame_chat_v4"] = "Ventana de chat",
+    ["mod_bagsV4"]    = "Bolsas",
 })
 
 -- =====================
@@ -845,8 +857,6 @@ TomoMod_RegisterLocale("itIT", {
     ["frame_resources"]        = "Barre delle risorse",
     ["frame_minimap"]          = "Minimappa",
     ["frame_objectivetracker"] = "Tracciamento obiettivi",
-    ["frame_chat"]             = "Finestra chat",
-    ["frame_chat_v2"]          = "Finestra chat v2",
     ["frame_bags"]             = "Borse",
     ["frame_party"]            = "Riquadri gruppo",
     ["frame_arena"]            = "Riquadri arena",
@@ -906,6 +916,11 @@ TomoMod_RegisterLocale("itIT", {
     ["imp_select_changed"] = "Solo ciò che cambia",
     ["imp_applied"]        = "%d moduli importati",
     ["imp_nothing"]        = "Nessuna selezione.",
+
+    -- Sacs et chat v4 (ancres declarees)
+    ["frame_bags_v4"] = "Borse",
+    ["frame_chat_v4"] = "Finestra chat",
+    ["mod_bagsV4"]    = "Borse",
 })
 
 -- =====================
@@ -1023,8 +1038,6 @@ TomoMod_RegisterLocale("ptBR", {
     ["frame_resources"]        = "Barras de recursos",
     ["frame_minimap"]          = "Minimapa",
     ["frame_objectivetracker"] = "Rastreador de objetivos",
-    ["frame_chat"]             = "Janela de chat",
-    ["frame_chat_v2"]          = "Janela de chat v2",
     ["frame_bags"]             = "Bolsas",
     ["frame_party"]            = "Quadros de grupo",
     ["frame_arena"]            = "Quadros de arena",
@@ -1084,4 +1097,9 @@ TomoMod_RegisterLocale("ptBR", {
     ["imp_select_changed"] = "Só o que muda",
     ["imp_applied"]        = "%d módulos importados",
     ["imp_nothing"]        = "Nada selecionado.",
+
+    -- Sacs et chat v4 (ancres declarees)
+    ["frame_bags_v4"] = "Bolsas",
+    ["frame_chat_v4"] = "Janela de chat",
+    ["mod_bagsV4"]    = "Bolsas",
 })

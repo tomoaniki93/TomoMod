@@ -140,12 +140,19 @@ function Layout:CreateFrame()
     end)
     header:SetScript("OnDragStop", function()
         f:StopMovingOrSizing()
-        local point, _, relativePoint, x, y = f:GetPoint(1)
         local pos = Bags.GetDB().position
-        pos.point = point
-        pos.relativePoint = relativePoint
-        pos.x = math.floor((x or 0) + 0.5)
-        pos.y = math.floor((y or 0) + 0.5)
+        -- GetPoint() apres un deplacement rapporte l'ancre d'AVANT le drag :
+        -- c'est ce qui faisait deriver les positions d'un cran a chaque
+        -- glissement. Layout.Save lit les bords reels et normalise l'echelle.
+        if TomoMod_Layout and TomoMod_Layout.Save then
+            TomoMod_Layout.Save(pos, f)
+        else
+            local point, _, relativePoint, x, y = f:GetPoint(1)
+            pos.point = point
+            pos.relativePoint = relativePoint
+            pos.x = math.floor((x or 0) + 0.5)
+            pos.y = math.floor((y or 0) + 0.5)
+        end
     end)
 
     local searchHost = CreateFrame("Frame", nil, f, "BackdropTemplate")
@@ -413,8 +420,16 @@ function Layout:ApplySettings()
 
     local pos = g.db.position
     if not self.frame._positionApplied then
-        self.frame:ClearAllPoints()
-        self.frame:SetPoint(pos.point or "BOTTOMRIGHT", UIParent, pos.relativePoint or "BOTTOMRIGHT", pos.x or -42, pos.y or 86)
+        -- Layout.Apply migre la forme heritee au passage et applique la
+        -- conversion d'echelle inverse ; sans elle un cadre a l'echelle
+        -- multiplie sa position par son ratio a chaque cycle.
+        local DEFAULT_POS = { point = "BOTTOMRIGHT", anchor = "BOTTOMRIGHT", x = -42, y = 86 }
+        if TomoMod_Layout and TomoMod_Layout.Apply then
+            TomoMod_Layout.Apply(pos, self.frame, DEFAULT_POS)
+        else
+            self.frame:ClearAllPoints()
+            self.frame:SetPoint(pos.point or "BOTTOMRIGHT", UIParent, pos.relativePoint or "BOTTOMRIGHT", pos.x or -42, pos.y or 86)
+        end
         self.frame._positionApplied = true
     end
 

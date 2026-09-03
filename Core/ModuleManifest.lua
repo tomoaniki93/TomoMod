@@ -170,6 +170,7 @@ R.Define{
 R.Define{
     key = "chatV4", label = "mod_chatFrameSkin", group = "skins",
     enabledPath = "chatV4.enabled",
+    anchors = { { id = "chatV4", path = "chatV4.position", shape = "point_relativePoint", label = "frame_chat_v4" } },
     global = "TomoMod_ChatFrameSkin", applyMode = "setter", apply = "SetEnabled",
     combatSafe = true,
 }
@@ -181,14 +182,12 @@ R.Define{
     key = "chatFrameSkin", label = "mod_chatFrameSkin", internal = true,
     enabledPath = "chatFrameSkin.enabled",
     requiresReload = true,
-    anchors = { { id = "chatFrameSkin", path = "chatFrameSkin.position", shape = "anchor_relTo", label = "frame_chat" } },
 }
 
 R.Define{
     key = "chatFrameSkinV2", label = "mod_chatFrameSkinV2", internal = true,
     enabledPath = "chatFrameSkinV2.enabled",
     requiresReload = true,
-    anchors = { { id = "chatFrameSkinV2", path = "chatFrameSkinV2.position", shape = "anchor_relTo", label = "frame_chat_v2" } },
 }
 
 R.Define{
@@ -202,6 +201,14 @@ R.Define{
     enabledPath = "bagSkin.enabled",
     anchors = { { id = "bagSkin", path = "bagSkin.position", shape = "anchor_relTo", label = "frame_bags" } },
     global = "TomoMod_BagSkin", applyMode = "setter", apply = "SetEnabled",
+}
+
+R.Define{
+    key = "bagsV4", label = "mod_bagsV4", group = "skins",
+    -- Pas de flag propre : l'affichage des sacs v4 est pilote par bagSkin.
+    -- Seule la position lui appartient, et elle doit etre declaree pour que le
+    -- moteur de layout la migre, l'estampille et la capture dans un preset.
+    anchors = { { id = "bagsV4", path = "bagsV4.position", shape = "point_relativePoint", label = "frame_bags_v4" } },
 }
 
 R.Define{

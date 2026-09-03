@@ -77,11 +77,22 @@ local function Collect(dir)
         if not path:find("/Libs/") then
             local src = read(path)
             if src then
-                for n in src:gmatch('CreateFrame%([^,]+,%s*"(TomoMod[%w_]*)') do
+                -- Nom litteral passe a CreateFrame.
+                for n in src:gmatch('CreateFrame%([^,]+,%s*"([%a][%w_]*)"') do
                     names[#names + 1] = n
                 end
                 -- oUF nomme ses cadres a la volee : ouf:Spawn(unit, "TomoMod_UF_" .. unit)
-                for n in src:gmatch('Spawn%([^,]+,%s*"(TomoMod[%w_]*)') do
+                for n in src:gmatch('Spawn%([^,]+,%s*"([%a][%w_]*)"?%s*%.%.') do
+                    names[#names + 1] = n
+                end
+                for n in src:gmatch('Spawn%([^,]+,%s*"([%a][%w_]*)"') do
+                    names[#names + 1] = n
+                end
+                -- Nom construit puis passe en variable :
+                --   local containerName = "TUI_ActionBar_" .. barKey
+                -- Sans ca le collecteur ignore des familles entieres de frames,
+                -- et un motif de routage valide passerait pour mort.
+                for n in src:gmatch('=%s*"([%a][%w_]*)"%s*%.%.') do
                     names[#names + 1] = n
                 end
             end
@@ -185,5 +196,85 @@ check("les trois frames de chrome sont exclues", missingSelf, 0)
 
 print()
 print(("  %d routes, %d frames nommées dans le dépôt"):format(#routes, #names))
+-- ═══════════════════════════════════════════════════════════════════════
+print("── 6. Contrôle inverse : ancre sans route ──")
+
+-- Les sections précédentes vérifient que chaque route mène quelque part.
+-- L'asymétrie est qu'un module déplaçable SANS route ne déclenche aucune
+-- alerte : l'engrenage n'apparaît simplement jamais dessus. C'est comme ça
+-- que les barres d'action et les sacs v4 sont passés à travers.
+--
+-- La correspondance ancre -> motif ne peut pas être déduite automatiquement
+-- (les noms de frames ne suivent pas les clés de manifeste), donc la table
+-- ci-dessous est tenue à la main. Son intérêt : ajouter une ancre sans la
+-- renseigner ici fait échouer la suite, ce qui force la question.
+local COVERED = {
+    ["minimap"]                        = "^TomoModMinimap",
+    ["objectiveTracker"]               = "^TomoModObjectiveTrackerMover",
+    ["chatV4"]                         = "^TomoMod_ChatV4",
+    ["bagSkin"]                        = "^TomoMod_BagSkin_",
+    ["bagsV4"]                         = "^TomoMod_BagsV4_",
+    ["actionBars.extraActionButton"]   = "^TUI_ActionBar_",
+    ["actionBars.zoneAbility"]         = "^TUI_ActionBar_",
+    ["unitFrames.player"]              = "^TomoMod_UF_",
+    ["unitFrames.target"]              = "^TomoMod_UF_",
+    ["unitFrames.targettarget"]        = "^TomoMod_UF_",
+    ["unitFrames.focus"]               = "^TomoMod_UF_",
+    ["unitFrames.pet"]                 = "^TomoMod_UF_",
+    ["unitFrames.bossFrames"]          = "^TomoMod_Boss_",
+    ["unitFrames.target.auras"]        = "^TomoMod_UF_",
+    ["unitFrames.focus.auras"]         = "^TomoMod_UF_",
+    ["castbars.player"]                = "^TomoMod_Castbar_",
+    ["castbars.target"]                = "^TomoMod_Castbar_",
+    ["castbars.focus"]                 = "^TomoMod_Castbar_",
+    ["castbars.pet"]                   = "^TomoMod_Castbar_",
+    ["castbars.boss"]                  = "^TomoMod_Castbar_",
+    ["resourceBars"]                   = "^TomoMod_ResourceBars_Container",
+    ["partyFrames"]                    = "^TomoMod_PartyAnchor",
+    ["partyFrames.arena"]              = "^TomoMod_ArenaAnchor",
+    ["raidFrames"]                     = "^TomoMod_RaidAnchor",
+    ["battleRez"]                      = "^TomoMod_BattleRezCounter",
+    ["preyTracker"]                    = "^TomoMod_PreyTracker",
+    ["skyRide"]                        = "^TomoModSkyRideFrame",
+    ["mythicTracker"]                  = "^TomoMod_MythicTrackerFrame",
+    ["tomoScore"]                      = "^TomoMod_MythicScoreWidget",
+}
+
+-- Les ancres réellement déclarées, lues depuis les manifestes.
+local manifestSrc = read("Core/ModuleManifest.lua")
+local declared = {}
+for id in manifestSrc:gmatch('%{%s*id%s*=%s*"([%w%._]+)"') do
+    declared[#declared + 1] = id
+end
+check("des ancres sont déclarées", #declared > 20, true)
+
+local byPattern = {}
+for _, r in ipairs(routes) do byPattern[r.pattern] = true end
+
+local uncovered, staleMap = 0, 0
+for _, id in ipairs(declared) do
+    local pat = COVERED[id]
+    if not pat then
+        uncovered = uncovered + 1
+        fail(("l'ancre '%s' n'a pas de route d'engrenage déclarée"):format(id))
+    elseif not byPattern[pat] then
+        uncovered = uncovered + 1
+        fail(("l'ancre '%s' vise le motif '%s', absent de LAYOUT_ROUTES"):format(id, pat))
+    end
+end
+check("toute ancre a une route", uncovered, 0)
+
+-- L'inverse : une entrée de COVERED pour une ancre qui n'existe plus signale
+-- un renommage à moitié fait.
+local declaredSet = {}
+for _, id in ipairs(declared) do declaredSet[id] = true end
+for id in pairs(COVERED) do
+    if not declaredSet[id] then
+        staleMap = staleMap + 1
+        fail(("COVERED cite '%s', qui n'est plus une ancre déclarée"):format(id))
+    end
+end
+check("aucune entrée périmée", staleMap, 0)
+
 print(ok and "\nTOUT EST VERT" or "\nDES TESTS ONT ÉCHOUÉ")
 os.exit(ok and 0 or 1)

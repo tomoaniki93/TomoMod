@@ -57,6 +57,7 @@ end
 
 local function ShouldMirrorTab(cf)
     if not cf then return false end
+    if cf._tomoCommunity then return true end
     -- Combat Log is special: players can undock/move ChatFrame2 independently,
     -- but V4 still treats it as a first-class tab beside General.
     return cf == _G.ChatFrame1 or cf == _G.ChatFrame2 or cf.isDocked == true
@@ -175,6 +176,39 @@ function Tabs:Refresh()
 
     local used = 0
     local x = 1
+    local function PlaceGhost(cf, tab, name)
+        used = used + 1
+        local g = self.ghosts[used] or CreateGhost()
+        self.ghosts[used] = g
+        g.cf = cf
+        g.tab = tab
+        g.text:SetText(name)
+
+        -- Never use the native tab's screen position. ChatFrame2 can be
+        -- undocked and physically moved by Blizzard; V4 tabs always flow
+        -- left-to-right inside our own tabsHost.
+        local nativeWidth = tab and tab.GetWidth and tab:GetWidth()
+        local textWidth = g.text:GetStringWidth()
+        if not SafeNumber(textWidth) then textWidth = 48 end
+        local width = SafeNumber(nativeWidth) and nativeWidth or (textWidth + 22)
+        width = math.max(62, math.min(130, width))
+        if hostWidth and x + width > hostWidth then
+            width = math.max(42, hostWidth - x - 1)
+        end
+
+        g:ClearAllPoints()
+        g:SetPoint("BOTTOMLEFT", host, "BOTTOMLEFT", x, 1)
+        g:SetSize(width, math.max(18, (hostHeight or 25) - 2))
+        x = x + width + 3
+
+        local active = cf == selected
+        g.text:SetTextColor(active and 1 or 0.72, active and 1 or 0.76, active and 1 or 0.78, 1)
+        g.underline:SetShown(active)
+        g.dot:SetShown(self.unread[cf] == true and not active)
+        g:Show()
+        if tab then SuppressNativeTab(tab, g) end
+    end
+
     for i = 1, 20 do
         local cf = _G["ChatFrame" .. i]
         local tab = _G["ChatFrame" .. i .. "Tab"]
@@ -183,38 +217,16 @@ function Tabs:Refresh()
             if IsSecret(name) then name = nil end
 
             if enabled and name and name ~= "" then
-                used = used + 1
-                local g = self.ghosts[used] or CreateGhost()
-                self.ghosts[used] = g
-                g.cf = cf
-                g.tab = tab
-                g.text:SetText(name)
-
-                -- Never use the native tab's screen position. ChatFrame2 can be
-                -- undocked and physically moved by Blizzard; V4 tabs always flow
-                -- left-to-right inside our own tabsHost.
-                local nativeWidth = tab.GetWidth and tab:GetWidth()
-                local textWidth = g.text:GetStringWidth()
-                if not SafeNumber(textWidth) then textWidth = 48 end
-                local width = SafeNumber(nativeWidth) and nativeWidth or (textWidth + 22)
-                width = math.max(62, math.min(130, width))
-                if hostWidth and x + width > hostWidth then
-                    width = math.max(42, hostWidth - x - 1)
-                end
-
-                g:ClearAllPoints()
-                g:SetPoint("BOTTOMLEFT", host, "BOTTOMLEFT", x, 1)
-                g:SetSize(width, math.max(18, (hostHeight or 25) - 2))
-                x = x + width + 3
-
-                local active = cf == selected
-                g.text:SetTextColor(active and 1 or 0.72, active and 1 or 0.76, active and 1 or 0.78, 1)
-                g.underline:SetShown(active)
-                g.dot:SetShown(self.unread[cf] == true and not active)
-                g:Show()
-                SuppressNativeTab(tab, g)
+                PlaceGhost(cf, tab, name)
             end
         end
+    end
+
+    local renderer = Chat.Modules.Renderer
+    local community = renderer and renderer.communityFrame
+    if enabled and community then
+        PlaceGhost(community, nil,
+            (TomoMod_L and TomoMod_L["chat_v4_tab_community"]) or "Community")
     end
 
     for i = used + 1, #self.ghosts do

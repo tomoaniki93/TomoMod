@@ -55,6 +55,7 @@ Core\ModuleManifest.lua
 Core\ModuleLifecycle.lua
 Core\ModuleReloadUI.lua
 Core\LayoutEngine.lua
+Core\LayoutV41.lua
 Core\ResolutionPresets.lua
 Core\Profiles.lua
 Core\ContextProfiles.lua

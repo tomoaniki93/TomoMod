@@ -22,6 +22,7 @@ local function SelectedFrame()
 end
 
 local function EditBoxFor(cf)
+    if cf and cf._tomoCommunity then cf = _G.ChatFrame1 end
     local name = cf and cf.GetName and cf:GetName()
     return name and _G[name .. "EditBox"]
 end

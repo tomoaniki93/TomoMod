@@ -553,15 +553,22 @@ local function StyleTomoMod(self, unit)
                 settings.position = { point = "CENTER", relativePoint = "CENTER", x = dx, y = dy }
             end
         else
-            -- [DRAG] screen-absolute coords instead of GetPoint
-            local left, bottom = self:GetLeft(), self:GetBottom()
-            if left and bottom then
-                local scale = self:GetEffectiveScale() / UIParent:GetEffectiveScale()
-                settings.position               = settings.position or {}
-                settings.position.point         = "BOTTOMLEFT"
-                settings.position.relativePoint = "BOTTOMLEFT"
-                settings.position.x             = left * scale
-                settings.position.y             = bottom * scale
+            settings.position = settings.position or {}
+            if TomoMod_Layout and TomoMod_Layout.Save then
+                TomoMod_Layout.Save(settings.position, self)
+            else
+                -- Compatibility fallback when the V4 engine is unavailable.
+                local left, bottom = self:GetLeft(), self:GetBottom()
+                if left and bottom then
+                    local scale = self:GetEffectiveScale() / UIParent:GetEffectiveScale()
+                    settings.position.point = "BOTTOMLEFT"
+                    settings.position.relativePoint = "BOTTOMLEFT"
+                    settings.position.x = left * scale
+                    settings.position.y = bottom * scale
+                end
+            end
+            if TomoMod_LayoutV41 and TomoMod_LayoutV41.OnAnchorSaved then
+                TomoMod_LayoutV41.OnAnchorSaved("unitFrames." .. unit, settings.position, self)
             end
         end
     end, TomoMod_Layout and TomoMod_Layout.Label("unitFrames." .. unit))
@@ -937,12 +944,16 @@ function UF.Initialize()
             local settings = TomoModDB.unitFrames[unit]
             if f and settings and settings.position then
                 local pos = settings.position
-                f:ClearAllPoints()
-                f:SetPoint(
-                    pos.point or "CENTER", UIParent,
-                    pos.relativePoint or "CENTER",
-                    pos.x or 0, pos.y or 0
-                )
+                if TomoMod_Layout and TomoMod_Layout.Apply then
+                    TomoMod_Layout.Apply(pos, f)
+                else
+                    f:ClearAllPoints()
+                    f:SetPoint(
+                        pos.point or "CENTER", UIParent,
+                        pos.relativePoint or pos.anchor or "CENTER",
+                        pos.x or 0, pos.y or 0
+                    )
+                end
             end
         end
 

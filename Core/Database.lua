@@ -728,8 +728,21 @@ TomoMod_Defaults = {
     },
     -- Chat V4 — current chat implementation. The three legacy chat tables
     -- below are kept temporarily so existing profiles can migrate once.
+    -- Les sacs v4 construisaient leur table a l'execution : hors des defaults,
+    -- la cle echappait a la bijection manifeste, a l'import selectif et au
+    -- moteur de layout. Seule la position est declaree ici ; BagCore continue
+    -- de remplir le reste par DeepFill.
+    bagsV4 = {
+        position = { point = "BOTTOMRIGHT", relativePoint = "BOTTOMRIGHT", x = -42, y = 86 },
+    },
+
     chatV4 = {
         enabled = true,
+        -- Position declaree : sans entree ici l'ancre n'existe pas pour le
+        -- moteur de layout, donc pas de migration de schema, pas
+        -- d'estampillage de reference et pas de capture par les presets
+        -- de resolution.
+        position = { point = "BOTTOMLEFT", relativePoint = "BOTTOMLEFT", x = 20, y = 30 },
         appearance = {
             bgAlpha = 0.72,
             messageBgAlpha = 0.72,

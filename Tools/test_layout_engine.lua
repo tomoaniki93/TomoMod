@@ -227,5 +227,60 @@ check("  rien n'a été écrit", next(st6), nil)
 check("Save sans frame", Layout.Save({}, nil), false)
 check("Save sans store", Layout.Save(nil, Frame(0, 0, 10, 10)), false)
 
+-- ═══════════════════════════════════════════════════════════════════════
+print("── 9. Aller-retour à une échelle ≠ 1 ──")
+
+-- Le trou de la version initiale. La section 7 vérifiait la conversion
+-- d'échelle du côté Save, et la section 5 l'aller-retour à l'échelle 1 : la
+-- combinaison des deux n'était testée nulle part.
+--
+-- Save stocke des offsets en unités UIParent, mais les offsets de SetPoint
+-- sont interprétés dans le repère de la frame déplacée. Sans la conversion
+-- inverse à l'application, une frame à l'échelle 0.8 revenait à 240 au lieu
+-- de 300, et à 1.25 elle partait à 375 -- une dérive composée à chaque cycle,
+-- sur la minimap, les barres de ressources, le suivi Mythique+ et le suivi
+-- d'objectifs.
+for _, sc in ipairs({ 0.8, 1.25, 2.0 }) do
+    local store = {}
+    -- Pour occuper 300/200 en unités UIParent, une frame d'échelle `sc` a ses
+    -- bords à 300/sc et 200/sc dans son propre repère.
+    Layout.Save(store, Frame(300 / sc, 200 / sc, 200 / sc, 60 / sc, sc))
+    near(("échelle %.2f : offset stocké en unités UIParent"):format(sc), store.x, 300)
+
+    local back = Frame(0, 0, 200 / sc, 60 / sc, sc)
+    Layout.Apply(store, back)
+    -- La position réelle vaut l'offset rendu à SetPoint, multiplié par l'échelle.
+    near(("échelle %.2f : position réelle après Apply"):format(sc), back._pts.x * sc, 300)
+    near(("échelle %.2f : ordonnée réelle"):format(sc),             back._pts.y * sc, 200)
+end
+
+-- À l'échelle 1 la conversion doit être neutre.
+local st1 = {}
+Layout.Save(st1, Frame(300, 200, 200, 60, 1))
+local b1 = Frame(0, 0, 200, 60, 1)
+Layout.Apply(st1, b1)
+near("échelle 1 : aucune conversion", b1._pts.x, 300)
+
+-- ═══════════════════════════════════════════════════════════════════════
+print("── 10. Matches : comparaison indépendante de l'échelle ──")
+
+-- Blizzard peut réancrer certaines frames sans qu'elles bougent à l'écran.
+-- Matches doit répondre en unités UIParent, donc identiquement quelle que
+-- soit l'échelle de la frame.
+local stM = {}
+Layout.Save(stM, Frame(300, 200, 200, 60, 1))
+check("frame au bon endroit",     Layout.Matches(stM, Frame(300, 200, 200, 60, 1)), true)
+check("frame déplacée détectée",  Layout.Matches(stM, Frame(500, 200, 200, 60, 1)), false)
+-- Même position physique, échelle différente : Matches doit dire oui.
+check("échelle 0.5, même position",
+      Layout.Matches(stM, Frame(300 / 0.5, 200 / 0.5, 200 / 0.5, 60 / 0.5, 0.5)), true)
+check("tolérance respectée",      Layout.Matches(stM, Frame(300.5, 200, 200, 60, 1), 1), true)
+check("au-delà de la tolérance",  Layout.Matches(stM, Frame(305, 200, 200, 60, 1), 1), false)
+check("store absent",             Layout.Matches(nil, Frame(0, 0, 10, 10)), false)
+check("frame sans bords",
+      Layout.Matches(stM, { GetLeft = function() return nil end, GetBottom = function() return nil end,
+                            GetRight = function() return nil end, GetTop = function() return nil end,
+                            GetEffectiveScale = function() return 1 end }), false)
+
 print(ok and "\nTOUT EST VERT" or "\nDES TESTS ONT ÉCHOUÉ")
 os.exit(ok and 0 or 1)

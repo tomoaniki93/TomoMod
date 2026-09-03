@@ -38,6 +38,22 @@ local function CreateBackdropFrame(name, parent)
     return frame
 end
 
+local function SaveChatPosition(frame)
+    if not frame then return end
+
+    local db = Chat.GetDB()
+    db.position = type(db.position) == "table" and db.position or {}
+    if TomoMod_Layout and TomoMod_Layout.Save then
+        TomoMod_Layout.Save(db.position, frame)
+    end
+
+    -- Keep Blizzard's own chat-window persistence in sync as well. The call is
+    -- optional so a client rename cannot prevent the TomoMod position save.
+    if type(FCF_SavePositionAndDimensions) == "function" then
+        pcall(FCF_SavePositionAndDimensions, frame)
+    end
+end
+
 function Layout:Initialize()
     if self.panel then return end
 
@@ -81,7 +97,88 @@ function Layout:Initialize()
     divider:SetHeight(1)
     self.divider = divider
 
+    self:RegisterMover()
+
     self:ApplySettings(Chat.IsEnabled())
+end
+
+function Layout:EnsureMover()
+    if self.mover then return self.mover end
+
+    local mover = CreateFrame("Frame", "TomoMod_ChatV4Mover", UIParent, "BackdropTemplate")
+    mover:SetAllPoints(self.panel)
+    mover:SetFrameStrata("HIGH")
+    mover:SetFrameLevel(500)
+    mover:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 2 })
+    mover:SetBackdropColor(TEAL_R, TEAL_G, TEAL_B, 0.16)
+    mover:SetBackdropBorderColor(TEAL_R, TEAL_G, TEAL_B, 0.95)
+    mover:EnableMouse(true)
+    mover:RegisterForDrag("LeftButton")
+    mover:Hide()
+
+    local label = mover:CreateFontString(nil, "OVERLAY")
+    label:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Tomo.ttf", 12, "OUTLINE")
+    label:SetPoint("CENTER")
+    label:SetText((TomoMod_L and TomoMod_L["frame_chat_v4"]) or "Chat V4")
+    label:SetTextColor(1, 1, 1, 1)
+
+    mover:SetScript("OnDragStart", function(self)
+        if InCombatLockdown() then return end
+        local frame = _G.ChatFrame1
+        if not frame then return end
+
+        self._dragFrame = frame
+        self._wasMovable = frame.IsMovable and frame:IsMovable() or false
+        frame:SetMovable(true)
+        frame:StartMoving()
+        self:SetScript("OnUpdate", function()
+            Layout:RefreshGeometry()
+        end)
+    end)
+
+    mover:SetScript("OnDragStop", function(self)
+        self:SetScript("OnUpdate", nil)
+        local frame = self._dragFrame
+        self._dragFrame = nil
+        if not frame then return end
+
+        frame:StopMovingOrSizing()
+        if frame.SetUserPlaced then pcall(frame.SetUserPlaced, frame, true) end
+        SaveChatPosition(frame)
+        if not self._wasMovable then frame:SetMovable(false) end
+        self._wasMovable = nil
+        Layout:RefreshGeometry()
+    end)
+
+    self.mover = mover
+    return mover
+end
+
+function Layout:SetMoverUnlocked(unlocked)
+    local mover = self:EnsureMover()
+    if unlocked and Chat.IsEnabled() then
+        mover:SetAllPoints(self.panel)
+        mover:Show()
+    else
+        if mover._dragFrame then
+            mover:GetScript("OnDragStop")(mover)
+        end
+        mover:Hide()
+    end
+end
+
+function Layout:RegisterMover()
+    if self._moverRegistered then return end
+    local movers = _G.TomoMod_Movers
+    if not movers or type(movers.RegisterEntry) ~= "function" then return end
+
+    self._moverRegistered = true
+    movers.RegisterEntry({
+        label = (TomoMod_L and TomoMod_L["frame_chat_v4"]) or "Chat V4",
+        unlock = function() Layout:SetMoverUnlocked(true) end,
+        lock = function() Layout:SetMoverUnlocked(false) end,
+        isActive = function() return Chat.IsEnabled() end,
+    })
 end
 
 function Layout:RefreshGeometry()
@@ -183,6 +280,10 @@ function Layout:ApplySettings(enabled)
         self.sidebarHost:Hide()
         self.inputHost:Hide()
     end
+
+    local movers = _G.TomoMod_Movers
+    local layoutUnlocked = movers and type(movers.IsUnlocked) == "function" and movers.IsUnlocked()
+    self:SetMoverUnlocked(enabled and layoutUnlocked)
 end
 
 function Layout:GetSafeRect(frame)

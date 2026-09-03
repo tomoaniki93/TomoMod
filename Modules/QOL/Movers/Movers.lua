@@ -83,6 +83,10 @@ local LAYOUT_ROUTES = {
     { "^TomoMod_BattleRezCounter",       "raidframes" },
 
     -- Barres d'action
+    -- Les conteneurs de barres sont nommes "TUI_ActionBar_<barre>" : ils
+    -- viennent du portage TUI et ne portent pas le prefixe TomoMod, ce qui les
+    -- rendait invisibles au routage.
+    { "^TUI_ActionBar_",                 "actionbars" },
     { "^TomoModTotemBarMoverOverlay",    "actionbars" },
 
     -- Recharges
@@ -106,6 +110,7 @@ local LAYOUT_ROUTES = {
     { "^TomoMod_TooltipMover",           "skins" },
     { "^TomoMod_ReputationBar",          "skins" },
     { "^TomoMod_BagSkin_",               "skins" },
+    { "^TomoMod_BagsV4_",                "skins" },
     { "^TomoMod_WorldQuestTabFrame",     "skins" },
 
     -- General
@@ -137,6 +142,7 @@ local GEAR_SELF = {
     TomoModLayoutConfigGear = true,
     TomoModLayoutHeader     = true,
     TomoModLayoutGrid       = true,
+    TomoModLayoutNudger     = true,
 }
 
 local function RouteForName(name)
@@ -191,6 +197,10 @@ local function FindGearTarget()
     local focus = CurrentMouseFocus()
     local depth = 0
     while focus and depth < 12 do
+        -- Minimap is Blizzard-named, but TomoMod owns its Layout V4 position.
+        -- Treat it as a normal selectable Layout target for the V4.1 nudger.
+        if focus == _G.Minimap then return focus, "general" end
+
         if type(focus.GetName) == "function" then
             local route = RouteForName(focus:GetName())
             if route then return focus, route end
@@ -257,6 +267,10 @@ local function StartLayoutGearDriver()
             gear:Hide()
             gear._target, gear._route = nil, nil
             return
+        end
+
+        if TomoMod_LayoutV41 and TomoMod_LayoutV41.SelectFrame then
+            TomoMod_LayoutV41.SelectFrame(target)
         end
 
         if gear._target ~= target then
@@ -1073,6 +1087,10 @@ function M.SetUnlocked(unlock)
 
     if unlock then StartLayoutGearDriver() else StopLayoutGearDriver() end
 
+    if TomoMod_LayoutV41 and TomoMod_LayoutV41.SetEditMode then
+        TomoMod_LayoutV41.SetEditMode(unlock, headerBar)
+    end
+
     if unlock then
         print("|cff2ed884TomoMod Layout:|r " .. L["layout_unlocked"])
     else
@@ -1122,6 +1140,9 @@ function M.Initialize()
                     if headerBar then headerBar:Hide() end
                     if gridFrame then gridFrame:Hide() end
                     StopLayoutGearDriver()
+                    if TomoMod_LayoutV41 and TomoMod_LayoutV41.SetEditMode then
+                        TomoMod_LayoutV41.SetEditMode(false, headerBar)
+                    end
                 end
             else -- PLAYER_REGEN_ENABLED
                 if pendingRelock then

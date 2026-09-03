@@ -225,6 +225,14 @@ function Layout.Save(store, frame)
     store.refW   = w
     store.refH   = h
     store.relativePoint, store.relPoint, store.relTo = nil, nil, nil
+
+    -- Layout V4.1 precision layer. It is loaded after this engine and is
+    -- intentionally optional: profiles and headless tests keep the exact V4
+    -- behaviour when the layer is absent or Pixel Perfect is disabled.
+    local precision = _G.TomoMod_LayoutV41
+    if precision and precision.OnLayoutSave then
+        precision.OnLayoutSave(store, frame)
+    end
     return true
 end
 
