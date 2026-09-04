@@ -914,8 +914,8 @@ local function CreateDragOverlay()
     dragOverlay:SetPoint("TOPLEFT", -4, 4)
     dragOverlay:SetPoint("BOTTOMRIGHT", 4, -4)
     dragOverlay:SetFrameLevel(anchor:GetFrameLevel() + 30)
-    -- Rendu unifie du mode edition : degrade azur vers blanc, nom centre
-    -- sur bandeau azur fonce. Une seule definition, dans Core/Utils.lua.
+    -- Rendu unifie du mode edition : degrade azur vers blanc et libelle azur
+    -- avec contour noir. Une seule definition, dans Core/Utils.lua.
     if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
         TomoMod_Utils.StyleMoverOverlay(dragOverlay, (L and L["mod_classReminder"]))
     end

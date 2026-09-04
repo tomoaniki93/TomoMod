@@ -262,7 +262,7 @@ function CreateExtraButtonHolder(buttonType, displayName)
 
     local text = mover:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     text:SetPoint("CENTER")
-    text:SetTextColor(1, 1, 1, 1)
+    TomoMod_Utils.StyleMoverLabel(text, 11) -- TOMOMOD: shared mover typography
     text:SetText(displayName)
     mover.text = text
 

@@ -993,9 +993,8 @@ local function CreateDragOverlay()
     end)
 
     dragLabel = dragOverlay:CreateFontString(nil, "OVERLAY")
-    dragLabel:SetFont(FONT_LABEL, 9, "OUTLINE")
+    TomoMod_Utils.StyleMoverLabel(dragLabel, 9)
     dragLabel:SetPoint("BOTTOM", dragOverlay, "TOP", 0, 3)
-    dragLabel:SetTextColor(TEAL.r, TEAL.g, TEAL.b)
     dragLabel:SetText(L["mover_microbar"])
     dragOverlay:Hide()
 end

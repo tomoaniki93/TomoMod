@@ -233,9 +233,8 @@ local function CreatePreyFrame()
 
     -- ===== DRAG LABEL =====
     local dragLabel = preyFrame:CreateFontString(nil, "OVERLAY")
-    dragLabel:SetFont(FONT, 9, "OUTLINE")
+    TomoMod_Utils.StyleMoverLabel(dragLabel, 9)
     dragLabel:SetPoint("TOP", preyFrame, "BOTTOM", 0, -3)
-    dragLabel:SetTextColor(COLORS.accent[1], COLORS.accent[2], COLORS.accent[3], 1)
     dragLabel:SetText((TomoMod_L and TomoMod_L["mover_preytracker"]) or "Prey Tracker")
     dragLabel:Hide()
     preyFrame.dragLabel = dragLabel

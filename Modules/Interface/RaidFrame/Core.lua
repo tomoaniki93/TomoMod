@@ -1402,10 +1402,9 @@ function RF.CreateAnchor()
         SaveRaidAnchorPosition()
     end)
     local label = mover:CreateFontString(nil, "OVERLAY")
-    label:SetFont(ADDON_FONT, 11, "OUTLINE")
+    TomoMod_Utils.StyleMoverLabel(label, 11)
     label:SetPoint("CENTER")
     label:SetText("Raid Frames")
-    label:SetTextColor(0.047, 0.624, 0.824, 1)
     mover:Hide()
     anchor.moverOverlay = mover
 

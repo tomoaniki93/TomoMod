@@ -303,13 +303,12 @@ local function EnsureOverlay(holder)
     holder._tm_overlay = o
 
     local hint = o:CreateFontString(nil, "OVERLAY")
-    hint:SetFont(FONT, 9)
+    TomoMod_Utils.StyleMoverLabel(hint, 9)
     if label then
         hint:SetPoint("TOP", label, "BOTTOM", 0, -2)
     else
         hint:SetPoint("CENTER", o, "CENTER", 0, -10)
     end
-    hint:SetTextColor(0.055, 0.165, 0.239, 0.85)
     hint:SetText((TomoMod_L and TomoMod_L["cdm_drag_hint"]) or "Glisser pour déplacer")
 
     o:SetScript("OnDragStart", function()

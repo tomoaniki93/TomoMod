@@ -158,15 +158,25 @@ check("aucune teinte teal residuelle", suspicious, 0)
 print("── 4. La superposition a une seule definition ──")
 
 check("StyleMoverOverlay existe", type(U.StyleMoverOverlay), "function")
+check("StyleMoverLabel existe", type(U.StyleMoverLabel), "function")
 
 local utilsSrc = read("Core/Utils.lua")
 check("palette du mover déclarée", utilsSrc:find("U.MOVER_GRAD_TOP", 1, true) ~= nil, true)
 -- The inner label plate was removed because it looked like a box inside a box
--- on small movers. MOVER_BAND now supplies the dark label colour instead.
+-- on small movers. Labels match Party Frames and Auras instead: brand azure
+-- with WoW's black font outline.
 check("aucun bandeau derriere le texte",
       utilsSrc:find("_tmMoverPlate", 1, true), nil)
-check("texte sombre sur le degrade",
-      utilsSrc:find("text:SetTextColor(band[1], band[2], band[3], 1)", 1, true) ~= nil, true)
+check("texte azur sur le degrade",
+      utilsSrc:find("text:SetTextColor(textC[1], textC[2], textC[3], 1)", 1, true) ~= nil, true)
+check("couleur identique a Party Frames et Auras",
+      U.MOVER_TEXT[1] == U.BRAND[1]
+          and U.MOVER_TEXT[2] == U.BRAND[2]
+          and U.MOVER_TEXT[3] == U.BRAND[3], true)
+check("contour noir du texte",
+      utilsSrc:find('"OUTLINE"', 1, true) ~= nil, true)
+check("aucune ombre blanche",
+      utilsSrc:find("text:SetShadowColor(1, 1, 1", 1, true), nil)
 -- Le degrade doit etre opaque : la superposition doit masquer ce qui est
 -- dessous, c'est la demande explicite.
 local alpha = tonumber(utilsSrc:match("CreateColor%(bot%[1%], bot%[2%], bot%[3%], ([%d%.]+)%)"))
@@ -199,6 +209,32 @@ for _, spec in ipairs({
     end
 end
 check("modules migrés conformes", moverBad, 0)
+
+-- Some older movers keep their own frame/background implementation. Their
+-- labels must still use the same typography as the common overlay.
+local customLabelBad = 0
+for _, path in ipairs({
+    "Modules/Interface/UnitFrames/Elements/Auras.lua",
+    "Modules/Interface/PartyFrame/Core.lua",
+    "Modules/Interface/PartyFrame/ArenaFrames.lua",
+    "Modules/Interface/RaidFrame/Core.lua",
+    "Modules/Interface/RaidFrame/ResurrectTracker.lua",
+    "Modules/Interface/ActionBars/tui/actionbars_editmode.lua",
+    "Modules/Interface/ActionBars/tui/actionbars_extra_buttons.lua",
+    "Modules/QOL/Chat/ChatLayout.lua",
+    "Modules/QOL/Skyriding/SkyRide.lua",
+    "Modules/QOL/MicroMenu/MicroBar.lua",
+    "Modules/QOL/Combat/PreyTracker.lua",
+    "Modules/QOL/Skins/TooltipSkin.lua",
+    "Modules/QOL/CooldownManager/CDMHolders.lua",
+}) do
+    local src = read(path)
+    if src and not src:find("StyleMoverLabel", 1, true) then
+        customLabelBad = customLabelBad + 1
+        fail(("%s n'utilise pas le style commun du libelle"):format(path))
+    end
+end
+check("libellés personnalisés conformes", customLabelBad, 0)
 
 -- Migrated modules must reuse the common label instead of drawing another one
 -- over it, which made the text unreadable in game.

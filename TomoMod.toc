@@ -1,8 +1,8 @@
 ## Interface: 120100
 ## 
-## Title: |cff0cd29fTomo|rMod
+## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r
 ## Notes: Complete UI Replacement for WoW.
-## Category: |cff0cd29fHUD|r
+## Category: |cff2e9dd8HUD|r
 ## 
 ## SavedVariables: TomoModDB, CompanionStatusDB, TomoModDamageMeterDB
 ## OptionalDeps: Blizzard_ActionBar, Blizzard_ActionBarController, Blizzard_DamageMeter

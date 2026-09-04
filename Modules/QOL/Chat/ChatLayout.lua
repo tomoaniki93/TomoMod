@@ -117,10 +117,9 @@ function Layout:EnsureMover()
     mover:Hide()
 
     local label = mover:CreateFontString(nil, "OVERLAY")
-    label:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Tomo.ttf", 12, "OUTLINE")
+    TomoMod_Utils.StyleMoverLabel(label, 12)
     label:SetPoint("CENTER")
     label:SetText((TomoMod_L and TomoMod_L["frame_chat_v4"]) or "Chat V4")
-    label:SetTextColor(1, 1, 1, 1)
 
     mover:SetScript("OnDragStart", function(self)
         if InCombatLockdown() then return end

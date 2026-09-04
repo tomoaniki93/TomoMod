@@ -240,9 +240,8 @@ local function CreateBrezFrame()
 
     -- ===== DRAG LABEL (shown in placement mode) =====
     local dl = brezFrame:CreateFontString(nil, "OVERLAY")
-    dl:SetFont(FONT, 9, "OUTLINE")
+    TomoMod_Utils.StyleMoverLabel(dl, 9)
     dl:SetPoint("TOP", brezFrame, "BOTTOM", 0, -3)
-    dl:SetTextColor(COLORS.accent[1], COLORS.accent[2], COLORS.accent[3], 1)
     dl:SetText((TomoMod_L and TomoMod_L["mover_battlerez"]) or "Battle Rez")
     dl:Hide()
     brezFrame.dragLabel = dl

@@ -1428,10 +1428,9 @@ function PF.CreateAnchor()
         end
     end)
     local label = mover:CreateFontString(nil, "OVERLAY")
-    label:SetFont(ADDON_FONT, 11, "OUTLINE")
+    TomoMod_Utils.StyleMoverLabel(label, 11)
     label:SetPoint("CENTER")
     label:SetText("Party Frames")
-    label:SetTextColor(0.180, 0.616, 0.847, 1)
     mover:Hide()
     anchor.moverOverlay = mover
 

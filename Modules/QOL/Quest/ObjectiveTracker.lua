@@ -2186,8 +2186,8 @@ local function CreateMoverOverlay()
     moverOverlay = CreateFrame("Frame", "TomoModObjectiveTrackerMover", UIParent, "BackdropTemplate")
     moverOverlay:SetFrameStrata("HIGH")
     moverOverlay:SetFrameLevel(200)
-    -- Rendu unifie du mode edition : degrade azur vers blanc, nom centre
-    -- sur bandeau azur fonce. Une seule definition, dans Core/Utils.lua.
+    -- Rendu unifie du mode edition : degrade azur vers blanc et libelle azur
+    -- avec contour noir. Une seule definition, dans Core/Utils.lua.
     if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
         TomoMod_Utils.StyleMoverOverlay(moverOverlay, (TomoMod_Layout and TomoMod_Layout.Label("objectiveTracker")))
     end

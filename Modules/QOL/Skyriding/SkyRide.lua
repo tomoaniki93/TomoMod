@@ -588,8 +588,8 @@ local function CreateUI()
 
     dragLabel = frame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     dragLabel:SetPoint("CENTER")
-    dragLabel:SetTextColor(C.teal.r, C.teal.g, C.teal.b)
-    dragLabel:SetText("SKYRIDE\n|cffaaaaaa(Cliquez et glissez)")
+    TomoMod_Utils.StyleMoverLabel(dragLabel, 11)
+    dragLabel:SetText("SKYRIDE\n(Cliquez et glissez)")
     dragLabel:Hide()
 
     -- ── Barre de vitesse ─────────────────────────────────────────

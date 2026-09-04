@@ -2,7 +2,7 @@
 ## Title: |cff0cd29fTomo|rMod |cff2e9dd8Mythic+|r
 ## Notes: LoadOnDemand Mythic+ control centre for TomoMod.
 ## Author: TomoAniki
-## Category: |cff0cd29fHUD|r
+## Category: |cff2e9dd8HUD|r
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 ## Version: 4.0.1
 ## LoadOnDemand: 1

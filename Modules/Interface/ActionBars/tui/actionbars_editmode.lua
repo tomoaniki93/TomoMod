@@ -62,7 +62,7 @@ function CreateEditOverlay(container, barKey)
 
     local text = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     text:SetPoint("CENTER")
-    text:SetTextColor(1, 1, 1, 1)
+    TomoMod_Utils.StyleMoverLabel(text, 11) -- TOMOMOD: shared mover typography
     local displayName = barKey:gsub("bar", "Bar ")
     text:SetText(displayName)
     overlay.label = text

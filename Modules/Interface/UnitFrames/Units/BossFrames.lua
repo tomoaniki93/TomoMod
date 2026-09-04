@@ -250,8 +250,8 @@ local function SetupBossDrag()
     local dragFrame = CreateFrame("Frame", nil, boss1, "BackdropTemplate")
     dragFrame:SetAllPoints(boss1)
     dragFrame:SetFrameLevel(boss1:GetFrameLevel() + 20)
-    -- Rendu unifie du mode edition : degrade azur vers blanc, nom centre
-    -- sur bandeau azur fonce. Definition unique dans Core/Utils.lua.
+    -- Rendu unifie du mode edition : degrade azur vers blanc et libelle azur
+    -- avec contour noir. Definition unique dans Core/Utils.lua.
     if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
         TomoMod_Utils.StyleMoverOverlay(dragFrame, (TomoMod_Layout and TomoMod_Layout.Label("unitFrames.bossFrames")))
     end

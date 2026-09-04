@@ -3,7 +3,7 @@
 ## Notes: Configuration panels for TomoMod. Loaded on demand the first
 ## Notes-frFR: Panneaux de configuration de TomoMod, charges a la demande.
 ## Author: TomoAniki
-## Category: |cff0cd29fHUD|r
+## Category: |cff2e9dd8HUD|r
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 ## Version: 4.0.1
 ## LoadOnDemand: 1

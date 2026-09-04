@@ -330,8 +330,8 @@ local function CreateBar()
     dragOverlay = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     dragOverlay:SetAllPoints(frame)
     dragOverlay:SetFrameLevel(frame:GetFrameLevel() + 30)
-    -- Rendu unifie du mode edition : degrade azur vers blanc, nom centre
-    -- sur bandeau azur fonce. Une seule definition, dans Core/Utils.lua.
+    -- Rendu unifie du mode edition : degrade azur vers blanc et libelle azur
+    -- avec contour noir. Une seule definition, dans Core/Utils.lua.
     if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
         TomoMod_Utils.StyleMoverOverlay(dragOverlay, (TomoMod_Layout and TomoMod_Layout.Label("compass")) or (L and L["mover_compass"]))
     end

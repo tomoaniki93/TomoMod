@@ -32,7 +32,7 @@ U.BRAND_DARK  = { 0.110, 0.373, 0.541 }     -- darker shade for pressed states
 -- opaque where BRAND is used at low alpha almost everywhere else.
 U.MOVER_GRAD_TOP = { 0.180, 0.616, 0.847 }  -- azure, top of the gradient
 U.MOVER_GRAD_BOT = { 0.902, 0.949, 0.980 }  -- near-white, bottom
-U.MOVER_BAND     = { 0.055, 0.165, 0.239 }  -- #0E2A3D, the label band
+U.MOVER_TEXT     = { 0.180, 0.616, 0.847 }  -- matches Party Frames / Auras
 U.MOVER_BORDER   = { 0.373, 0.737, 0.941 }
 
 -- Surfaces. The old values sat around 0.06 and read as flat black next to the
@@ -570,11 +570,28 @@ end
 -- The gradient is opaque on purpose: the overlay has to hide what sits under
 -- it. A raid grid or a full action bar showing through made it impossible to
 -- see where one movable element ended and the next began.
+function U.StyleMoverLabel(text, size)
+    if not text or not text.SetFont then return nil end
+
+    local textC = U.MOVER_TEXT or U.BRAND
+    text:SetFont(
+        "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf",
+        size or 11,
+        "OUTLINE"
+    )
+    text:SetTextColor(textC[1], textC[2], textC[3], 1)
+    if text.SetShadowColor then
+        text:SetShadowColor(0, 0, 0, 0)
+        text:SetShadowOffset(0, 0)
+    end
+    return text
+end
+
 function U.StyleMoverOverlay(overlay, labelText)
     if not overlay or not overlay.CreateTexture then return nil end
 
     local top, bot = U.MOVER_GRAD_TOP, U.MOVER_GRAD_BOT
-    local band, edgeC = U.MOVER_BAND, U.MOVER_BORDER
+    local edgeC = U.MOVER_BORDER
 
     local grad = overlay._tmMoverGrad
     if not grad then
@@ -605,9 +622,9 @@ function U.StyleMoverOverlay(overlay, labelText)
     edge:SetPoint("BOTTOMRIGHT", overlay, "BOTTOMRIGHT", 1, -1)
     edge:SetColorTexture(edgeC[1], edgeC[2], edgeC[3], 0.85)
 
-    -- No plate behind the label: on small movers it looked like a box inside
-    -- another box. Dark azure text with a light shadow stays readable across
-    -- both ends of the opaque azure-to-white gradient.
+    -- Match the established Party Frames and Auras mover labels: brand azure
+    -- text with WoW's black OUTLINE. The outline stays readable across both
+    -- ends of the opaque azure-to-white gradient without adding another box.
 
     local text = overlay._tmMoverText
     if not text then
@@ -615,12 +632,7 @@ function U.StyleMoverOverlay(overlay, labelText)
         text:SetPoint("CENTER", overlay, "CENTER", 0, 0)
         overlay._tmMoverText = text
     end
-    text:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11)
-    text:SetTextColor(band[1], band[2], band[3], 1)
-    if text.SetShadowColor then
-        text:SetShadowColor(1, 1, 1, 0.85)
-        text:SetShadowOffset(1, -1)
-    end
+    U.StyleMoverLabel(text, 11)
     text:SetText(labelText or (TomoMod_L and TomoMod_L["mover_generic"]) or "Move")
 
     overlay.SetMoverLabel = function(_, newText)
@@ -670,9 +682,8 @@ function U.SetupDraggable(frame, savePositionCallback, labelText)
             if savePositionCallback then savePositionCallback() end
         end
     end)
-    -- Survol : la bordure s'eclaircit. Le libelle ne change plus de couleur --
-    -- il est blanc sur bandeau azur fonce, le passer en azur le ferait
-    -- disparaitre dans son propre fond.
+    -- Survol : seule la bordure s'eclaircit. Le libelle conserve le style
+    -- azur avec contour noir defini par U.StyleMoverLabel.
     dragFrame:SetScript("OnEnter", function(self)
         if self._tmMoverEdge then self._tmMoverEdge:SetColorTexture(1, 1, 1, 1) end
     end)
