@@ -133,6 +133,11 @@ CHANGELOG = {
             L["wn_401_tomolayout_selection"],
             L["wn_401_tomolayout_config"],
             L["wn_401_tomolayout_highlight"],
+            L["wn_401_azure_identity"],
+            L["wn_401_azure_movers"],
+            L["wn_401_azure_mover_labels"],
+            L["wn_401_azure_mover_coverage"],
+            L["wn_401_azure_guard"],
             L["wn_401_blizzard_auras"],
         },
     },
@@ -881,7 +886,7 @@ CHANGELOG = {
     {
         version = "3.1.2",
         highlights = {
-            L["wn_312_brand"]         or "Brand color updated from #0cd29f to #2ed884 (mint green) across the entire UI — title bar, panels, chat messages, popups and default color values.",
+            L["wn_312_brand"]         or "Brand color updated from #0cd29f to #2e9dd8 (mint green) across the entire UI — title bar, panels, chat messages, popups and default color values.",
             L["wn_312_brand_api"]     or "New TomoMod_Utils.BRAND / BRAND_DARK / BRAND_HOVER constants centralise the accent color: Config panels and the Widget theme now read from a single source of truth.",
             L["wn_312_companion_fix"] or "CompanionStatus: fixed a global variable leak (UpdateIcon was declared without 'local').",
         },
@@ -1516,7 +1521,7 @@ local function PopulateContent(entry)
         bullet:SetJustifyH("LEFT")
         bullet:SetWordWrap(true)
         bullet:SetSpacing(3)
-        bullet:SetText("|cff2ed884•|r  " .. text)
+        bullet:SetText("|cff2e9dd8•|r  " .. text)
         bullet:SetTextColor(TX[1], TX[2], TX[3])
         local textH = bullet:GetStringHeight() or 16
         y = y - textH - 10

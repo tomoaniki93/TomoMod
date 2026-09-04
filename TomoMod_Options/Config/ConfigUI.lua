@@ -80,7 +80,7 @@ local PAGE_HEAD_H = 92
 local ICON_PATH = ADDON_PATH .. "Assets\\Textures\\icons\\"
 
 local categories = {
-    { key = "accueil",   label = LT("cat_accueil", "Accueil"), icon = ICON_PATH .. "ico_gui.tga",          accent = { 0.180, 0.847, 0.518 }, desc = L["cat_accueil_desc"], kw = "accueil home dashboard tableau bord vue" },
+    { key = "accueil",   label = LT("cat_accueil", "Accueil"), icon = ICON_PATH .. "ico_gui.tga",          accent = { 0.180, 0.616, 0.847 }, desc = L["cat_accueil_desc"], kw = "accueil home dashboard tableau bord vue" },
     { key = "roles",     label = L["cat_roles"],                      icon = ICON_PATH .. "icon_partyframes.tga", accent = { 0.94, 0.74, 0.35 }, desc = L["cat_roles_desc"], kw = "role roles tank tanking heal healer soigneur dps damage degats guide" },
     { key = "interface", label = L["cat_interface"],                   icon = ICON_PATH .. "icon_general.tga",    accent = { 0.49, 0.91, 1.00 }, desc = L["cat_interface_desc"], kw = "general minimap actionbar skins son audio chat sacs tooltip" },
     { key = "units",     label = L["cat_units"],                      icon = ICON_PATH .. "icon_unitframes.tga", accent = { 0.46, 0.72, 1.00 }, desc = L["cat_units_desc"], kw = "unit frames nameplates party raid groupe cible plaques" },
@@ -1387,7 +1387,7 @@ local function CreateConfigFrame()
     local titleText = titleBar:CreateFontString(nil, "OVERLAY")
     titleText:SetFont(FONT_BOLD, 16, "")
     titleText:SetPoint("LEFT", logo, "RIGHT", 8, 1)
-    titleText:SetText("|cff2ed884Tomo|r|cffe4e4e4Mod|r")
+    titleText:SetText("|cff2e9dd8Tomo|r|cffe4e4e4Mod|r")
 
     local versionText = titleBar:CreateFontString(nil, "OVERLAY")
     versionText:SetFont(FONT, 10, "")

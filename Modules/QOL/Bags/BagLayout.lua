@@ -11,7 +11,7 @@ Bags.RegisterModule("Layout", Layout)
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
-local ACCENT = { 0.18, 0.85, 0.52 }
+local ACCENT = { 0.18, 0.62, 0.85 }
 local HEADER_H = 42
 local SEARCH_H = 34
 local FOOTER_H = 30

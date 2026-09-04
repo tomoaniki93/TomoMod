@@ -35,9 +35,9 @@ local FONT       = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.tt
 
 -- Single source of truth for the accent (with defensive fallbacks in case
 -- Core/Utils.lua load order ever changes — it currently loads first).
-local BRAND       = U.BRAND       or { 0.180, 0.847, 0.518 }
-local BRAND_HOVER = U.BRAND_HOVER or { 0.322, 0.941, 0.651 }
-local BRAND_DARK  = U.BRAND_DARK  or { 0.110, 0.541, 0.333 }
+local BRAND       = U.BRAND       or { 0.180, 0.616, 0.847 }
+local BRAND_HOVER = U.BRAND_HOVER or { 0.373, 0.737, 0.941 }
+local BRAND_DARK  = U.BRAND_DARK  or { 0.110, 0.373, 0.541 }
 
 -- Dark theme surfaces (match the rest of TomoMod's skins)
 local BG_PANEL    = { 0.055, 0.059, 0.075, 0.96 } -- outer card

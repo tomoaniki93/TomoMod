@@ -89,7 +89,7 @@ local function CanEdit()
     -- engine to build and resize containers, and it refuses both while
     -- auras are restricted. Editing in combat would silently half-apply.
     if InCombatLockdown() then
-        print("|cff2ed884TomoMod|r : " .. L["hs_combat"])
+        print("|cff2e9dd8TomoMod|r : " .. L["hs_combat"])
         return false
     end
     return true
@@ -576,7 +576,7 @@ end
 local function BuildWindow()
     local shell = Forge.Studio.CreateShell({
         name         = "TomoModHealerStudioFrame",
-        title        = "|cff2ed884Healer|r Studio",
+        title        = "|cff2e9dd8Healer|r Studio",
         width        = PANEL_W,
         height       = PANEL_H,
         sideWidth    = SIDE_W,
@@ -651,7 +651,7 @@ end
 
 function S.Open(mode)
     if InCombatLockdown() then
-        print("|cff2ed884TomoMod|r : " .. L["hs_combat"])
+        print("|cff2e9dd8TomoMod|r : " .. L["hs_combat"])
         return
     end
 

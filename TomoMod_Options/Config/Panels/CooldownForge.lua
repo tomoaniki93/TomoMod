@@ -89,7 +89,7 @@ end
 -- that the old single catch-all message conflated.
 -- ---------------------------------------------------------------------
 local STUDIO = "TomoMod_CDStudio"
-local PREFIX = "|cff2ed884TomoMod|r : "
+local PREFIX = "|cff2e9dd8TomoMod|r : "
 
 -- Per-token remediation advice. The client already localises the reason
 -- itself through _G["ADDON_"..token]; what it never says is what to do.

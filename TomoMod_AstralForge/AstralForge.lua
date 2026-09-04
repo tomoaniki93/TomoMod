@@ -41,7 +41,7 @@ TomoMod_AstralForge = S
 
 local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
-local BRAND     = { 0.18, 0.85, 0.52 }
+local BRAND     = { 0.18, 0.62, 0.85 }
 
 local PANEL_W, PANEL_H = 1180, 780
 local SIDE_W           = 230
@@ -507,7 +507,7 @@ function S.BuildPresetPanel(c, store)
 
     local _, ny = W.CreateButton(c, L["btn_preset_save"], 220, y, function()
         local ok, err = A.Save(dom, S.state.presetName, store)
-        print("|cff2ed884TomoMod|r " ..
+        print("|cff2e9dd8TomoMod|r " ..
             (ok and L["msg_preset_saved"] or (err or L["msg_preset_error"])))
         if ok then S.RebuildInspector() end
     end)
@@ -535,9 +535,9 @@ function S.BuildPresetPanel(c, store)
             local ok, err = A.Apply(dom, S.state.preset, store)
             if ok then
                 Apply(); RebuildSubject(); S.RebuildSidebar()
-                print("|cff2ed884TomoMod|r " .. L["msg_preset_applied"])
+                print("|cff2e9dd8TomoMod|r " .. L["msg_preset_applied"])
             else
-                print("|cff2ed884TomoMod|r " .. (err or L["msg_preset_error"]))
+                print("|cff2e9dd8TomoMod|r " .. (err or L["msg_preset_error"]))
             end
             S.RebuildInspector()
         end)
@@ -553,7 +553,7 @@ function S.BuildPresetPanel(c, store)
         local _, ny = W.CreateButton(c, L["btn_preset_export"], 220, y, function()
             local str, err = A.Export(dom, S.state.preset)
             if not str then
-                print("|cff2ed884TomoMod|r " .. (err or L["msg_preset_error"]))
+                print("|cff2e9dd8TomoMod|r " .. (err or L["msg_preset_error"]))
                 return
             end
             S.state.exportText = str
@@ -592,12 +592,12 @@ function S.BuildPresetPanel(c, store)
         -- ce qui se lit comme un bug et non comme une erreur de manipulation.
         local name, err = A.Import(S.state.importText, dom)
         if not name then
-            print("|cff2ed884TomoMod|r " .. (err or L["msg_preset_error"]))
+            print("|cff2e9dd8TomoMod|r " .. (err or L["msg_preset_error"]))
             return
         end
         S.state.preset = name
         S.state.importText = ""
-        print("|cff2ed884TomoMod|r " .. L["msg_preset_imported"] .. " " .. name)
+        print("|cff2e9dd8TomoMod|r " .. L["msg_preset_imported"] .. " " .. name)
         S.RebuildInspector()
     end)
 end
@@ -618,7 +618,7 @@ end
 local function BuildWindow()
     local shell = Forge.Studio.CreateShell({
         name         = "TomoModAstralForgeFrame",
-        title        = "|cff2ed884Astral|rForge",
+        title        = "|cff2e9dd8Astral|rForge",
         width        = PANEL_W,
         height       = PANEL_H,
         sideWidth    = SIDE_W,
@@ -647,7 +647,7 @@ local function BuildWindow()
                 local key, why = R.AddInstance(dom, store, "customText")
                 if not key then
                     if why == "max" then
-                        print("|cff2ed884TomoMod|r " .. L["msg_element_max_reached"])
+                        print("|cff2e9dd8TomoMod|r " .. L["msg_element_max_reached"])
                     end
                     return
                 end
@@ -726,7 +726,7 @@ function S.Open()
     -- mesure sur rect secret levait au milieu de Rebuild.
     local ok, err = pcall(RebuildSubject)
     if not ok then
-        print("|cff2ed884TomoMod|r AstralForge : apercu indisponible ("
+        print("|cff2e9dd8TomoMod|r AstralForge : apercu indisponible ("
             .. tostring(err) .. ")")
     end
 

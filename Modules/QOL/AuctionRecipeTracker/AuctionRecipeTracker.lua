@@ -13,7 +13,7 @@ local L = TomoMod_L or setmetatable({}, { __index = function(_, k) return k end 
 local FONT   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_B = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 
-local ACCENT  = { 0.047, 0.824, 0.624, 1 }
+local ACCENT  = { 0.180, 0.616, 0.847, 1 }
 local BG      = { 0.08, 0.08, 0.10, 0.97 }
 local BG_DARK = { 0.06, 0.06, 0.08, 1 }
 local BORDER  = { 0.20, 0.20, 0.25, 1 }
@@ -563,7 +563,7 @@ local function BuildFrame()
     local title = f:CreateFontString(nil, "OVERLAY")
     title:SetFont(FONT_B, 13, "")
     title:SetPoint("TOPLEFT", 10, -10)
-    title:SetText("|cff2ed884Tomo|rMod — " .. (L["art_title"] or "Recipe Tracker"))
+    title:SetText("|cff2e9dd8Tomo|rMod — " .. (L["art_title"] or "Recipe Tracker"))
     title:SetTextColor(unpack(TEXT))
 
     -- Close button
@@ -787,7 +787,7 @@ end)
 SLASH_TOMOMODARTRACKER1 = "/tmrecipe"
 SlashCmdList["TOMOMODARTRACKER"] = function()
     if not (AuctionHouseFrame and AuctionHouseFrame:IsShown()) then
-        print("|cff2ed884TomoMod|r: " .. (L["art_only_at_ah"] or "Open the Auction House first."))
+        print("|cff2e9dd8TomoMod|r: " .. (L["art_only_at_ah"] or "Open the Auction House first."))
         return
     end
     local f = BuildFrame()
@@ -827,7 +827,7 @@ local function AddPriceLines(tooltip, itemID, stackCount)
     local unit = db.prices[itemID]
     if not unit then return end
 
-    local label = "|cff2ed884TomoHDV|r"
+    local label = "|cff2e9dd8TomoHDV|r"
     -- Per-unit price (always shown)
     tooltip:AddDoubleLine(label, FormatGold(unit))
 

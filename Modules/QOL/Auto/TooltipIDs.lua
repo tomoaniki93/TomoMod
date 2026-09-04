@@ -285,9 +285,9 @@ function TID.SetEnabled(enabled)
     end
 
     if enabled then
-        print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_tid_enabled"])
+        print("|cff2e9dd8TomoMod:|r " .. TomoMod_L["msg_tid_enabled"])
     else
-        print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_tid_disabled"])
+        print("|cff2e9dd8TomoMod:|r " .. TomoMod_L["msg_tid_disabled"])
     end
 end
 

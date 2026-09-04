@@ -37,7 +37,7 @@ local L = TomoMod_L
 -- STATIC POPUPS
 -- =====================================
 StaticPopupDialogs["TOMOMOD_SPEC_RELOAD"] = {
-    text = "|cff2ed884TomoMod|r\n" .. (L and L["msg_spec_changed_reload"] or "Spec changed. Reload UI to apply profile?"),
+    text = "|cff2e9dd8TomoMod|r\n" .. (L and L["msg_spec_changed_reload"] or "Spec changed. Reload UI to apply profile?"),
     button1 = OKAY or "OK",
     button2 = CANCEL or "Cancel",
     OnAccept = function() ReloadUI() end,
@@ -48,7 +48,7 @@ StaticPopupDialogs["TOMOMOD_SPEC_RELOAD"] = {
 }
 
 StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] = {
-    text = "|cff2ed884TomoMod|r\n" .. (L and L["msg_module_reload"] or "This change requires a UI reload to take effect.\nReload now?"),
+    text = "|cff2e9dd8TomoMod|r\n" .. (L and L["msg_module_reload"] or "This change requires a UI reload to take effect.\nReload now?"),
     button1 = OKAY or "OK",
     button2 = CANCEL or "Cancel",
     OnAccept = function() ReloadUI() end,
@@ -87,7 +87,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if arg then
             arg = arg:gsub("%s+$", "")
             if not REG.Has(arg) then
-                print("|cff2ed884TomoMod|r |cffff4040" .. tostring(arg) .. "|r ?")
+                print("|cff2e9dd8TomoMod|r |cffff4040" .. tostring(arg) .. "|r ?")
                 return
             end
             local rep = LC.Toggle(arg)
@@ -95,7 +95,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
             local how = rep.deferred and " (après le combat)"
                      or rep.needsReload and " (/reload requis)"
                      or ""
-            print("|cff2ed884TomoMod|r " .. arg .. " -> " .. state .. how)
+            print("|cff2e9dd8TomoMod|r " .. arg .. " -> " .. state .. how)
             if #rep.cascade > 0 then
                 print("  |cff888888dépendants coupés :|r " .. table.concat(rep.cascade, ", "))
             end
@@ -111,10 +111,10 @@ SlashCmdList["TOMOMOD"] = function(msg)
         end
 
         local live, reload, none = LC.Summary()
-        print(("|cff2ed884TomoMod|r modules : |cff00ff00%d à chaud|r, %d au /reload, %d sans bascule")
+        print(("|cff2e9dd8TomoMod|r modules : |cff00ff00%d à chaud|r, %d au /reload, %d sans bascule")
             :format(live, reload, none))
         for _, g in ipairs(REG.Tree()) do
-            print("|cff2ed884" .. (L[g.label] or g.key) .. "|r")
+            print("|cff2e9dd8" .. (L[g.label] or g.key) .. "|r")
             for _, m in ipairs(g.modules) do
                 local on  = REG.IsEnabled(m.key)
                 local cap = LC.Capability(m.key)
@@ -137,12 +137,12 @@ SlashCmdList["TOMOMOD"] = function(msg)
 
         if arg == "on" or arg == "off" then
             CTX.SetEnabled(arg == "on")
-            print("|cff2ed884TomoMod|r " .. (L["ctx_title"] or "Content profiles") .. " : "
+            print("|cff2e9dd8TomoMod|r " .. (L["ctx_title"] or "Content profiles") .. " : "
                 .. (arg == "on" and "|cff00ff00ON|r" or "|cffff4040OFF|r"))
             return
         end
 
-        print(("|cff2ed884TomoMod|r %s : %s | %s : |cffffcc00%s|r"):format(
+        print(("|cff2e9dd8TomoMod|r %s : %s | %s : |cffffcc00%s|r"):format(
             L["ctx_title"] or "Content profiles",
             CTX.IsEnabled() and "|cff00ff00ON|r" or "|cffff4040OFF|r",
             L["ctx_detected"] or "detected",
@@ -168,12 +168,12 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if arg == "capture" then
             local tier = RES.Detect()
             local okCap = RES.Capture(tier)
-            print("|cff2ed884TomoMod|r " .. (okCap and ("capture -> " .. tier) or "capture: échec"))
+            print("|cff2e9dd8TomoMod|r " .. (okCap and ("capture -> " .. tier) or "capture: échec"))
             return
         end
         if arg and RES.Get(arg) then
             local rep = RES.Apply(arg)
-            print(("|cff2ed884TomoMod|r %s : |cffffcc00%s|r (%s, %d polices, %d ancres)"):format(
+            print(("|cff2e9dd8TomoMod|r %s : |cffffcc00%s|r (%s, %d polices, %d ancres)"):format(
                 L["res_title"] or "Resolution preset", arg,
                 rep.fromCapture and (L["res_captured"] or "capture")
                                or (L["res_computed"] or "computed"),
@@ -183,7 +183,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         end
 
         local pw, ph = RES.PhysicalSize()
-        print(("|cff2ed884TomoMod|r %s : |cffffcc00%s|r  (%sx%s)"):format(
+        print(("|cff2e9dd8TomoMod|r %s : |cffffcc00%s|r  (%sx%s)"):format(
             L["res_detected"] or "detected", RES.Detect(),
             tostring(pw), tostring(ph)))
         for _, t in ipairs(RES.Tiers()) do
@@ -207,11 +207,11 @@ SlashCmdList["TOMOMOD"] = function(msg)
         local str = msg:match("^import%s+(.+)$")
         local groups, meta, unknown, err = SI.InspectString(str)
         if not groups then
-            print("|cff2ed884TomoMod|r |cffff4040" .. tostring(err) .. "|r")
+            print("|cff2e9dd8TomoMod|r |cffff4040" .. tostring(err) .. "|r")
             return
         end
         local total, changed, reloads = SI.Summarize(groups)
-        print("|cff2ed884TomoMod|r " .. (L["imp_title"] or "Selective import"))
+        print("|cff2e9dd8TomoMod|r " .. (L["imp_title"] or "Selective import"))
         print("  " .. string.format(L["imp_summary"] or "%d / %d / %d",
             total, changed, reloads))
         for _, g in ipairs(groups) do
@@ -221,7 +221,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
                     and ("|cffffcc00" .. row.key .. "|r")
                     or  ("|cff555555" .. row.key .. "|r")
             end
-            print(("  |cff2ed884%s|r %s"):format(L[g.label] or g.key, table.concat(names, " ")))
+            print(("  |cff2e9dd8%s|r %s"):format(L[g.label] or g.key, table.concat(names, " ")))
         end
         if #unknown > 0 then
             print("  |cffff8800" .. (L["imp_unknown"] or "Unrecognised") .. "|r "
@@ -319,7 +319,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
     elseif msg == "cdm" or msg == "ci" then
         if TomoMod_CooldownManager then
             local enabled = TomoModDB and TomoModDB.cooldownManager and TomoModDB.cooldownManager.enabled
-            print("|cff2ed884TomoMod CDM:|r " .. (enabled and L["msg_cdm_status"] or L["msg_cdm_disabled"]))
+            print("|cff2e9dd8TomoMod CDM:|r " .. (enabled and L["msg_cdm_status"] or L["msg_cdm_disabled"]))
         end
     elseif msg == "uf" or msg == "unitframes" then
         -- Rétrocompat: redirige vers le Layout Mode unifié
@@ -351,13 +351,13 @@ SlashCmdList["TOMOMOD"] = function(msg)
     elseif msg == "debugbuffs" then
         if UF_Elements then
             UF_Elements._debugEnemyBuffs = not UF_Elements._debugEnemyBuffs
-            print("|cff2ed884TomoMod|r Enemy buff debug: " .. (UF_Elements._debugEnemyBuffs and "|cff00ff00ON|r" or "|cffff0000OFF|r"))
+            print("|cff2e9dd8TomoMod|r Enemy buff debug: " .. (UF_Elements._debugEnemyBuffs and "|cff00ff00ON|r" or "|cffff0000OFF|r"))
             if UF_Elements._debugEnemyBuffs then
-                print("|cff2ed884TomoMod|r Target an enemy with a buff, output will appear in chat.")
+                print("|cff2e9dd8TomoMod|r Target an enemy with a buff, output will appear in chat.")
             end
         end
     elseif msg == "testbuff" then
-        print("|cff2ed884=== TomoMod Enemy Buff Diagnostic ===|r")
+        print("|cff2e9dd8=== TomoMod Enemy Buff Diagnostic ===|r")
 
         -- Step 0: FORCE reset position to top-right
         local s = TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.target
@@ -419,7 +419,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         UF_Elements._debugEnemyBuffs = true
         print("  [6] Debug ON — target a hostile mob, check chat. /tm debugbuffs to disable")
 
-        print("|cff2ed884=== End Diagnostic ===|r")
+        print("|cff2e9dd8=== End Diagnostic ===|r")
     elseif msg == "np" or msg == "nameplates" then
         if TomoModDB and TomoModDB.nameplates then
             TomoModDB.nameplates.enabled = not TomoModDB.nameplates.enabled
@@ -430,32 +430,32 @@ SlashCmdList["TOMOMOD"] = function(msg)
                     TomoMod_Nameplates.Disable()
                 end
             end
-            print("|cff2ed884TomoMod Nameplates:|r " .. (TomoModDB.nameplates.enabled and L["msg_np_enabled"] or L["msg_np_disabled"]))
+            print("|cff2e9dd8TomoMod Nameplates:|r " .. (TomoModDB.nameplates.enabled and L["msg_np_enabled"] or L["msg_np_disabled"]))
         end
     elseif msg == "help" or msg == "?" then
-        print("|cff2ed884TomoMod|r " .. L["msg_help_title"])
-        print("  |cff2ed884/tm install|r — Relancer l'assistant de configuration")
-        print("  |cff2ed884/tm layout|r — " .. L["msg_help_layout"])
-        print("  |cff2ed884/tm|r — " .. L["msg_help_open"])
-        print("  |cff2ed884/tm reset|r — " .. L["msg_help_reset"])
-        print("  |cff2ed884/tm uf|r — " .. L["msg_help_uf"])
-        print("  |cff2ed884/tm uf reset|r — " .. L["msg_help_uf_reset"])
-        print("  |cff2ed884/tm rb|r — " .. L["msg_help_rb"])
-        print("  |cff2ed884/tm rb sync|r — " .. L["msg_help_rb_sync"])
-        print("  |cff2ed884/tm np|r — " .. L["msg_help_np"])
-        print("  |cff2ed884/tm minimap|r — " .. L["msg_help_minimap"])
-        print("  |cff2ed884/tm panel|r — " .. L["msg_help_panel"])
-        print("  |cff2ed884/tm cursor|r — " .. L["msg_help_cursor"])
-        print("  |cff2ed884/tm clearcinema|r — " .. L["msg_help_clearcinema"])
-        print("  |cff2ed884/tm sr|r — " .. L["msg_help_sr"])
-        print("  |cff2ed884/tm loot|r — Ouvrir le navigateur de loots (donjons & raids)")
-        print("  |cff2ed884/tm way|r — " .. L["msg_help_way"])
-        print("  |cff2ed884/tm way x y [name]|r — " .. L["msg_help_way_coords"])
-        print("  |cff2ed884/tm way clear|r — " .. L["msg_help_way_clear"])
-        print("  |cff2ed884/tm compass|r — " .. (L["msg_help_compass"] or "Toggle the heading compass bar"))
-        print("  |cff2ed884/tm key|r — " .. L["msg_help_key"])
-        print("  |cff2ed884/tm cr|r — " .. L["msg_help_cr"])
-        print("  |cff2ed884/tm help|r — " .. L["msg_help_help"])
+        print("|cff2e9dd8TomoMod|r " .. L["msg_help_title"])
+        print("  |cff2e9dd8/tm install|r — Relancer l'assistant de configuration")
+        print("  |cff2e9dd8/tm layout|r — " .. L["msg_help_layout"])
+        print("  |cff2e9dd8/tm|r — " .. L["msg_help_open"])
+        print("  |cff2e9dd8/tm reset|r — " .. L["msg_help_reset"])
+        print("  |cff2e9dd8/tm uf|r — " .. L["msg_help_uf"])
+        print("  |cff2e9dd8/tm uf reset|r — " .. L["msg_help_uf_reset"])
+        print("  |cff2e9dd8/tm rb|r — " .. L["msg_help_rb"])
+        print("  |cff2e9dd8/tm rb sync|r — " .. L["msg_help_rb_sync"])
+        print("  |cff2e9dd8/tm np|r — " .. L["msg_help_np"])
+        print("  |cff2e9dd8/tm minimap|r — " .. L["msg_help_minimap"])
+        print("  |cff2e9dd8/tm panel|r — " .. L["msg_help_panel"])
+        print("  |cff2e9dd8/tm cursor|r — " .. L["msg_help_cursor"])
+        print("  |cff2e9dd8/tm clearcinema|r — " .. L["msg_help_clearcinema"])
+        print("  |cff2e9dd8/tm sr|r — " .. L["msg_help_sr"])
+        print("  |cff2e9dd8/tm loot|r — Ouvrir le navigateur de loots (donjons & raids)")
+        print("  |cff2e9dd8/tm way|r — " .. L["msg_help_way"])
+        print("  |cff2e9dd8/tm way x y [name]|r — " .. L["msg_help_way_coords"])
+        print("  |cff2e9dd8/tm way clear|r — " .. L["msg_help_way_clear"])
+        print("  |cff2e9dd8/tm compass|r — " .. (L["msg_help_compass"] or "Toggle the heading compass bar"))
+        print("  |cff2e9dd8/tm key|r — " .. L["msg_help_key"])
+        print("  |cff2e9dd8/tm cr|r — " .. L["msg_help_cr"])
+        print("  |cff2e9dd8/tm help|r — " .. L["msg_help_help"])
     else
         -- Argument purement numérique : soit une macro tierce (ex : RareScanner
         -- « marqueur sur la cible » → « /tm <1-8> »), soit une tentative d'utiliser
@@ -545,7 +545,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
                 return tostring(msg) .. "\n" .. debugstack(2)
             end)
             if not ok then
-                print("|cff2ed884TomoMod|r |cffff4040Init failed:|r " .. name .. " — " .. tostring(err))
+                print("|cff2e9dd8TomoMod|r |cffff4040Init failed:|r " .. name .. " — " .. tostring(err))
                 local handler = geterrorhandler and geterrorhandler()
                 if handler then handler("TomoMod " .. name .. " Initialize: " .. tostring(err)) end
             end
@@ -629,8 +629,8 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
 
         -- Welcome
         local r, g, b = TomoMod_Utils.GetClassColor()
-        print("|cff2ed884TomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
-        print("|cff2ed884TomoMod|r |cffff3333" .. L["msg_report_issue"] .. "|r")
+        print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
+        print("|cff2e9dd8TomoMod|r |cffff3333" .. L["msg_report_issue"] .. "|r")
 
         -- One-time notice for players who had hand-added spells to the
         -- removed aura tracker. Deferred to here rather than printed from
@@ -646,9 +646,9 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
                 end
                 parts[#parts + 1] = name and (name .. " (" .. spellID .. ")") or tostring(spellID)
             end
-            print("|cff2ed884TomoMod|r " .. L["at_rescue_header"])
-            print("|cff2ed884TomoMod|r " .. string.format(L["at_rescue_list"], table.concat(parts, ", ")))
-            print("|cff2ed884TomoMod|r " .. L["at_rescue_hint"])
+            print("|cff2e9dd8TomoMod|r " .. L["at_rescue_header"])
+            print("|cff2e9dd8TomoMod|r " .. string.format(L["at_rescue_list"], table.concat(parts, ", ")))
+            print("|cff2e9dd8TomoMod|r " .. L["at_rescue_hint"])
             TomoModDB._auraTrackerRescue = nil
         end
 

@@ -39,7 +39,7 @@ local FONT       = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.tt
 local FONT_BOLD  = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local SOLID      = "Interface\\BUTTONS\\WHITE8X8"
 
-local TEAL       = { 0.047, 0.824, 0.624 }   -- point de route / accent
+local TEAL       = { 0.180, 0.616, 0.847 }   -- point de route / accent
 local AMBER      = { 0.937, 0.624, 0.153 }   -- quête suivie (#EF9F27)
 
 -- Pas angulaire des graduations (en degrés). Cardinales = 0/90/180/270.
@@ -329,14 +329,12 @@ local function CreateBar()
     -- Overlay de placement (capte le drag, couvre tout)
     dragOverlay = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     dragOverlay:SetAllPoints(frame)
-    dragOverlay:SetBackdrop({
-        bgFile   = SOLID,
-        edgeFile = SOLID,
-        edgeSize = 1,
-    })
-    dragOverlay:SetBackdropColor(TEAL[1], TEAL[2], TEAL[3], 0.18)
-    dragOverlay:SetBackdropBorderColor(TEAL[1], TEAL[2], TEAL[3], 0.80)
     dragOverlay:SetFrameLevel(frame:GetFrameLevel() + 30)
+    -- Rendu unifie du mode edition : degrade azur vers blanc, nom centre
+    -- sur bandeau azur fonce. Une seule definition, dans Core/Utils.lua.
+    if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
+        TomoMod_Utils.StyleMoverOverlay(dragOverlay, (TomoMod_Layout and TomoMod_Layout.Label("compass")) or (L and L["mover_compass"]))
+    end
     dragOverlay:EnableMouse(true)
     dragOverlay:RegisterForDrag("LeftButton")
     dragOverlay:SetScript("OnDragStart", function() frame:StartMoving() end)
@@ -345,11 +343,8 @@ local function CreateBar()
         SavePosition()
     end)
 
-    dragLabel = dragOverlay:CreateFontString(nil, "OVERLAY")
-    dragLabel:SetFont(FONT_BOLD, 10, "OUTLINE")
-    dragLabel:SetPoint("CENTER")
-    dragLabel:SetTextColor(TEAL[1], TEAL[2], TEAL[3])
-    dragLabel:SetText((L and L["mover_compass"]) or "Compass")
+    -- Reuse the common label so the compass does not draw overlapping text.
+    dragLabel = dragOverlay._tmMoverText
     dragOverlay:Hide()
 
     frame:SetScript("OnUpdate", C._OnUpdate)
@@ -635,13 +630,13 @@ function C.Toggle()
     if not TomoModDB.compass then TomoModDB.compass = {} end
     TomoModDB.compass.enabled = not TomoModDB.compass.enabled
     UpdateVisibility()
-    print("|cff2ed884TomoMod Compass:|r " ..
+    print("|cff2e9dd8TomoMod Compass:|r " ..
         (TomoModDB.compass.enabled and "|cff00ff00ON|r" or "|cffff4040OFF|r"))
 end
 
 function C.Debug()
     local db = DB()
-    print("|cff2ed884=== TomoMod Compass debug ===|r")
+    print("|cff2e9dd8=== TomoMod Compass debug ===|r")
     print("  enabled: " .. tostring(db and db.enabled))
     local f = GetPlayerFacing()
     print("  GetPlayerFacing(): " .. tostring(f))

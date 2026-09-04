@@ -33,7 +33,7 @@ local WHITE     = "Interface\\Buttons\\WHITE8x8"
 -- ------------------------------------------------------------
 if TomoMod_RegisterLocale then
     TomoMod_RegisterLocale("enUS", {
-        ["ins_v3_welcome_desc"]      = "Welcome! This quick setup gets you a clean, complete interface in seconds.\n\nPick a setup that matches how you play — you can fine-tune everything afterwards from |cff2ed884/tm|r. Prefer to choose every option yourself? Pick |cffc89530Custom|r.",
+        ["ins_v3_welcome_desc"]      = "Welcome! This quick setup gets you a clean, complete interface in seconds.\n\nPick a setup that matches how you play — you can fine-tune everything afterwards from |cff2e9dd8/tm|r. Prefer to choose every option yourself? Pick |cffc89530Custom|r.",
         ["ins_pick_title"]           = "Choose your setup",
         ["ins_pick_subtitle"]        = "Select a play style below. Everything stays adjustable later via /tm.",
         ["ins_pick_recommended"]     = "Recommended",
@@ -44,12 +44,12 @@ if TomoMod_RegisterLocale then
         ["ins_custom_barsskins_intro"] = "Action bar skin and the visual skins for chat, bags, tooltips and more.",
         ["ins_custom_mythicqol_intro"] = "Mythic+ tools, interface extras, automations and sound.",
         ["ins_recap_title"]          = "All set",
-        ["ins_recap_preset"]         = "Setup applied: |cff2ed884%s|r",
+        ["ins_recap_preset"]         = "Setup applied: |cff2e9dd8%s|r",
         ["ins_recap_custom"]         = "Your custom setup is ready",
-        ["ins_recap_desc"]           = "Reload your interface to apply everything. You can reopen this assistant anytime with |cff2ed884/tm install|r, and open the full configuration panel with |cff2ed884/tm|r.",
+        ["ins_recap_desc"]           = "Reload your interface to apply everything. You can reopen this assistant anytime with |cff2e9dd8/tm install|r, and open the full configuration panel with |cff2e9dd8/tm|r.",
     })
     TomoMod_RegisterLocale("frFR", {
-        ["ins_v3_welcome_desc"]      = "Bienvenue ! Cet assistant rapide te prépare une interface propre et complète en quelques secondes.\n\nChoisis une configuration qui correspond à ta façon de jouer — tu pourras tout ajuster ensuite via |cff2ed884/tm|r. Tu préfères choisir chaque option toi-même ? Prends |cffc89530Personnalisé|r.",
+        ["ins_v3_welcome_desc"]      = "Bienvenue ! Cet assistant rapide te prépare une interface propre et complète en quelques secondes.\n\nChoisis une configuration qui correspond à ta façon de jouer — tu pourras tout ajuster ensuite via |cff2e9dd8/tm|r. Tu préfères choisir chaque option toi-même ? Prends |cffc89530Personnalisé|r.",
         ["ins_pick_title"]           = "Choisis ta configuration",
         ["ins_pick_subtitle"]        = "Sélectionne un style de jeu ci-dessous. Tout reste ajustable ensuite via /tm.",
         ["ins_pick_recommended"]     = "Recommandé",
@@ -60,9 +60,9 @@ if TomoMod_RegisterLocale then
         ["ins_custom_barsskins_intro"] = "Skin des barres d'action et skins visuels : chat, sacs, infobulles et plus.",
         ["ins_custom_mythicqol_intro"] = "Outils Mythic+, options d'interface, automatisations et son.",
         ["ins_recap_title"]          = "Tout est prêt",
-        ["ins_recap_preset"]         = "Configuration appliquée : |cff2ed884%s|r",
+        ["ins_recap_preset"]         = "Configuration appliquée : |cff2e9dd8%s|r",
         ["ins_recap_custom"]         = "Ta configuration personnalisée est prête",
-        ["ins_recap_desc"]           = "Recharge ton interface pour tout appliquer. Tu peux rouvrir cet assistant à tout moment avec |cff2ed884/tm install|r, et ouvrir le panneau de configuration complet avec |cff2ed884/tm|r.",
+        ["ins_recap_desc"]           = "Recharge ton interface pour tout appliquer. Tu peux rouvrir cet assistant à tout moment avec |cff2e9dd8/tm install|r, et ouvrir le panneau de configuration complet avec |cff2e9dd8/tm|r.",
     })
 end
 
@@ -243,7 +243,7 @@ pages.welcome = {
 
         local title = c:CreateFontString(nil, "OVERLAY")
         title:SetFont(FONT_BOLD, 20, ""); title:SetPoint("TOP", 0, -88)
-        title:SetText("|cff2ed884Tomo|r|cffe8e8e8Mod|r  v" .. (C_AddOns.GetAddOnMetadata("TomoMod", "Version") or "?"))
+        title:SetText("|cff2e9dd8Tomo|r|cffe8e8e8Mod|r  v" .. (C_AddOns.GetAddOnMetadata("TomoMod", "Version") or "?"))
 
         local sub = c:CreateFontString(nil, "OVERLAY")
         sub:SetFont(FONT, 12, ""); sub:SetPoint("TOP", 0, -116)

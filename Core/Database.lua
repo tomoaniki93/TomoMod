@@ -2365,7 +2365,7 @@ end
 function TomoMod_ResetDatabase()
     TomoModDB = CopyTable(TomoMod_Defaults)
     TomoMod_NormalizeAllElements()
-    print("|cff2ed884TomoMod|r " .. TomoMod_L["msg_db_reset"])
+    print("|cff2e9dd8TomoMod|r " .. TomoMod_L["msg_db_reset"])
 end
 
 function TomoMod_ResetModule(moduleName)
@@ -2374,6 +2374,6 @@ function TomoMod_ResetModule(moduleName)
         if moduleName == "unitFrames" or moduleName == "nameplates" then
             TomoMod_NormalizeAllElements()
         end
-        print("|cff2ed884TomoMod|r " .. string.format(TomoMod_L["msg_module_reset"], moduleName))
+        print("|cff2e9dd8TomoMod|r " .. string.format(TomoMod_L["msg_module_reset"], moduleName))
     end
 end

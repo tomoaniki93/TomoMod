@@ -39,12 +39,12 @@ local SOLID     = "Interface\\Buttons\\WHITE8X8"
 
 -- Color palette (Tui-inspired)
 local COLORS = {
-    accent   = { 0.047, 0.824, 0.624, 1 },    -- Teal (primary)
+    accent   = { 0.180, 0.616, 0.847, 1 },    -- Teal (primary)
     accent2  = { 0.11, 0.459, 0.682, 1 },     -- Blue accent
     ready    = { 0.30, 0.90, 0.40, 1 },       -- Green
     cooldown = { 0.85, 0.25, 0.25, 1 },       -- Red
     bg       = { 0.05, 0.05, 0.06, 0.85 },    -- Dark bg
-    border   = { 0.047, 0.824, 0.624, 0.9 },  -- Teal border
+    border   = { 0.180, 0.616, 0.847, 0.9 },  -- Teal border
     shadow   = { 0, 0, 0, 0.4 },              -- Shadow
     text     = { 1, 1, 1, 1 },                -- White text
 }

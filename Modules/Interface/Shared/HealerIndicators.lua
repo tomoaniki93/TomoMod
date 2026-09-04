@@ -667,7 +667,7 @@ function HI.OpenStudio(mode)
 
     local Forge = TomoMod_Forge
     if not (Forge and Forge.Studio and Forge.Studio.Launch) then
-        print("|cff2ed884TomoMod|r : Forge.Studio indisponible, Healer Studio ne peut pas s'ouvrir.")
+        print("|cff2e9dd8TomoMod|r : Forge.Studio indisponible, Healer Studio ne peut pas s'ouvrir.")
         return false
     end
 

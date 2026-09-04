@@ -9,7 +9,7 @@ TomoMod_AFKDisplay = TomoMod_AFKDisplay or {}
 local AFK = TomoMod_AFKDisplay
 
 local ADDON_FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
-local ACCENT_R, ACCENT_G, ACCENT_B = 0.047, 0.824, 0.624  -- TomoMod teal
+local ACCENT_R, ACCENT_G, ACCENT_B = 0.180, 0.616, 0.847  -- TomoMod teal
 
 -- =====================================
 -- LOCAL REFERENCES

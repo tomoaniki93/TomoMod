@@ -261,7 +261,7 @@ function E.SetLocked(locked)
     for _, fn in ipairs(providers) do
         local ok, err = pcall(fn, locked)
         if not ok then
-            print("|cff2ed884TomoMod|r Forge.Edit: provider error -- " .. tostring(err))
+            print("|cff2e9dd8TomoMod|r Forge.Edit: provider error -- " .. tostring(err))
         end
     end
 end

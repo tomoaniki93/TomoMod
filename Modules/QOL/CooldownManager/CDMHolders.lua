@@ -33,7 +33,6 @@ local floor, max, min, ceil = math.floor, math.max, math.min, math.ceil
 local FONT       = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local BORDER_TEX = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Nameplates\\border.png"
 local BORDER_CORNER = 4
-local ACCENT     = { r = 0.18, g = 0.85, b = 0.52 }   -- vert TomoMod (#2ED884)
 local QUESTION_MARK_ICON = 134400                      -- INV_Misc_QuestionMark
 
 -- Définition des 4 viewers
@@ -290,28 +289,27 @@ local function EnsureOverlay(holder)
     o:SetAllPoints(holder)
     o:SetFrameStrata("HIGH")
     o:SetFrameLevel(holder:GetFrameLevel() + 30)
+    -- Shared Layout Mode appearance. The holder keeps ownership of dragging
+    -- and persistence; Core/Utils.lua owns only the visual treatment.
+    if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
+        TomoMod_Utils.StyleMoverOverlay(o, holder._tm_label)
+    end
     o:EnableMouse(true)
     o:RegisterForDrag("LeftButton")
     o:Hide()
 
-    local bg = o:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(ACCENT.r, ACCENT.g, ACCENT.b, 0.18)
-
-    o._borders = Create9SliceBorder(o, ACCENT.r, ACCENT.g, ACCENT.b, 0.9, 7)
-
-    local label = o:CreateFontString(nil, "OVERLAY")
-    label:SetFont(FONT, 12, "OUTLINE")
-    label:SetPoint("CENTER")
-    label:SetTextColor(1, 1, 1)
-    label:SetText(holder._tm_label or "CDM")
+    local label = o._tmMoverText
     o._label = label
     holder._tm_overlay = o
 
     local hint = o:CreateFontString(nil, "OVERLAY")
-    hint:SetFont(FONT, 9, "OUTLINE")
-    hint:SetPoint("TOP", label, "BOTTOM", 0, -2)
-    hint:SetTextColor(1, 1, 1, 0.7)
+    hint:SetFont(FONT, 9)
+    if label then
+        hint:SetPoint("TOP", label, "BOTTOM", 0, -2)
+    else
+        hint:SetPoint("CENTER", o, "CENTER", 0, -10)
+    end
+    hint:SetTextColor(0.055, 0.165, 0.239, 0.85)
     hint:SetText((TomoMod_L and TomoMod_L["cdm_drag_hint"]) or "Glisser pour déplacer")
 
     o:SetScript("OnDragStart", function()
@@ -323,8 +321,17 @@ local function EnsureOverlay(holder)
         -- Re-normalise l'ancre sur CENTER/UIParent
         H.ApplyPosition(holder._tm_key)
     end)
-    o:SetScript("OnEnter", function() bg:SetColorTexture(ACCENT.r, ACCENT.g, ACCENT.b, 0.30) end)
-    o:SetScript("OnLeave", function() bg:SetColorTexture(ACCENT.r, ACCENT.g, ACCENT.b, 0.18) end)
+    o:SetScript("OnEnter", function(self)
+        if self._tmMoverEdge then
+            self._tmMoverEdge:SetColorTexture(1, 1, 1, 1)
+        end
+    end)
+    o:SetScript("OnLeave", function(self)
+        if self._tmMoverEdge and TomoMod_Utils and TomoMod_Utils.MOVER_BORDER then
+            local border = TomoMod_Utils.MOVER_BORDER
+            self._tmMoverEdge:SetColorTexture(border[1], border[2], border[3], 0.85)
+        end
+    end)
 
     holder._tm_overlay = o
     return o

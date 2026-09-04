@@ -310,7 +310,7 @@ local function ShowImportPopup(onImport)
             local meta = P.PreviewImport(currentTxt)
             if meta then
                 preview:SetText(
-                    "|cff2ed884✓|r " ..
+                    "|cff2e9dd8✓|r " ..
                     (L["import_preview"] and string.format(L["import_preview"],
                         meta.class or "?", tostring(meta.moduleCount or 0), meta.date or "?")
                     or ("Classe : " .. (meta.class or "?") .. " · " .. tostring(meta.moduleCount or 0) .. " modules · " .. (meta.date or "?")))
@@ -410,7 +410,7 @@ local function BuildProfileTab(parent)
     activeDisp:SetFont(FONT, 11, "")
     activeDisp:SetPoint("TOPLEFT", 16, y)
     activeDisp:SetTextColor(1, 1, 1)
-    activeDisp:SetText((L["profile_active_label"]) .. " : |cff2ed884" .. activeName .. "|r")
+    activeDisp:SetText((L["profile_active_label"]) .. " : |cff2e9dd8" .. activeName .. "|r")
     y = y - 22
 
     -- ── Liste des profils ────────────────────────────────────────────────────
@@ -489,7 +489,7 @@ local function BuildProfileTab(parent)
                 local loadBtn = MkSmallBtn(row, L["btn_load_profile"], 70, function()
                     local ok = P.LoadNamedProfile(name)
                     if ok then
-                        print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_loaded"], name))
+                        print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_loaded"], name))
                         StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
                     end
                 end)
@@ -514,7 +514,7 @@ local function BuildProfileTab(parent)
         end
         local ok, err = P.CreateNamedProfile(name)
         if ok then
-            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_created"], name))
+            print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_created"], name))
             nameBox.editBox:SetText("")
             nameBox.editBox:ClearFocus()
         else
@@ -528,7 +528,7 @@ local function BuildProfileTab(parent)
         if name and not name:match("^%s*$") then
             local ok = P.CreateNamedProfile(name)
             if ok then
-                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_created"], name))
+                print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_created"], name))
                 self:SetText("")
             end
         end
@@ -539,7 +539,7 @@ local function BuildProfileTab(parent)
     local _, ny = W.CreateSeparator(c, y); y = ny
     local _, ny = W.CreateButton(c, L["btn_save_profile"], 240, y, function()
         P.AutoSaveActiveProfile()
-        print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_saved"], activeName))
+        print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_saved"], activeName))
     end)
     y = ny
     local _, ny = W.CreateInfoText(c, L["info_save_profile"], y); y = ny
@@ -737,7 +737,7 @@ local function BuildImportExportTab(parent)
                 profName = profName:match("^%s*(.-)%s*$")
                 P.ImportAsProfileAsync(str, profName, function(ok, err)
                     if ok then
-                        print("|cff2ed884TomoMod|r " .. string.format(L["msg_import_as_profile"], profName))
+                        print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_import_as_profile"], profName))
                         StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
                     else
                         print("|cffff0000TomoMod|r " .. (err or L["profiles_import_failed"]))
@@ -802,7 +802,7 @@ local function BuildResetsTab(parent)
     for _, mod in ipairs(modules) do
         local _, ny = W.CreateButton(c, (L["btn_reset_prefix"]) .. mod.label, 260, y, function()
             TomoMod_ResetModule(mod.key)
-            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_reset"], mod.label))
+            print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_reset"], mod.label))
         end)
         y = ny
     end
@@ -848,7 +848,7 @@ StaticPopupDialogs["TOMOMOD_IMPORT_CONFIRM"] = {
         if data and data.text then
             P.ImportAsync(data.text, function(ok, err)
                 if ok then
-                    print("|cff2ed884TomoMod|r " .. (L["msg_import_success"]))
+                    print("|cff2e9dd8TomoMod|r " .. (L["msg_import_success"]))
                     ReloadUI()
                 else
                     print("|cffff0000TomoMod|r " .. (err or L["profiles_import_failed"]))
@@ -878,7 +878,7 @@ StaticPopupDialogs["TOMOMOD_DELETE_PROFILE"] = {
     OnAccept = function(self, data)
         if data and data.name then
             P.DeleteNamedProfile(data.name)
-            print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_name_deleted"], data.name))
+            print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_name_deleted"], data.name))
         end
     end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
@@ -909,7 +909,7 @@ StaticPopupDialogs["TOMOMOD_RENAME_PROFILE"] = {
             local newName = U.PopupText(self)
             local ok, err = P.RenameProfile(data.name, newName)
             if ok then
-                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_renamed"], data.name, newName))
+                print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_renamed"], data.name, newName))
             else
                 print("|cffff0000TomoMod|r " .. (err or L["profiles_rename_failed"]))
             end
@@ -938,7 +938,7 @@ StaticPopupDialogs["TOMOMOD_DUPLICATE_PROFILE"] = {
             local toName = U.PopupText(self)
             local ok, err = P.DuplicateProfile(data.name, toName)
             if ok then
-                print("|cff2ed884TomoMod|r " .. string.format(L["msg_profile_duplicated"], data.name, toName))
+                print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_duplicated"], data.name, toName))
             else
                 print("|cffff0000TomoMod|r " .. (err or "Erreur duplication"))
             end

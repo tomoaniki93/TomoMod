@@ -45,7 +45,7 @@ local function Load()
         -- Disabled in the addon list, missing from the package, or out of
         -- memory. Say so once rather than failing silently on every click.
         loadFailed = true
-        print("|cff2ed884TomoMod|r " ..
+        print("|cff2e9dd8TomoMod|r " ..
             (TomoMod_L and TomoMod_L["options_load_failed"] or
              "options panel unavailable") ..
             (reason and (" (" .. tostring(reason) .. ")") or ""))

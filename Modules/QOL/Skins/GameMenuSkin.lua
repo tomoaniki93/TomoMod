@@ -19,19 +19,19 @@ local isInitialized = false
 local isHooked      = false
 
 -- Palette (matches TomoMod theme)
-local ACCENT       = { 0.047, 0.824, 0.624 }
+local ACCENT       = { 0.180, 0.616, 0.847 }
 local BG_COLOR     = { 0.06, 0.06, 0.08, 0.98 }
-local BORDER_COLOR = { 0.047, 0.824, 0.624, 0.35 }
+local BORDER_COLOR = { 0.180, 0.616, 0.847, 0.35 }
 local TEXT_COLOR   = { 0.88, 0.90, 0.92, 1 }
 local TEXT_DIM     = { 0.55, 0.55, 0.60, 1 }
 local SEPARATOR    = { 0.15, 0.15, 0.18, 1 }
 
 -- Button states
 local BTN_NORMAL   = { 0.09, 0.09, 0.12, 1 }
-local BTN_HOVER    = { 0.047, 0.824, 0.624, 0.12 }
-local BTN_PRESSED  = { 0.047, 0.824, 0.624, 0.22 }
+local BTN_HOVER    = { 0.180, 0.616, 0.847, 0.12 }
+local BTN_PRESSED  = { 0.180, 0.616, 0.847, 0.22 }
 local BTN_BORDER   = { 0.18, 0.18, 0.22, 0.6 }
-local BTN_BORDER_H = { 0.047, 0.824, 0.624, 0.7 }
+local BTN_BORDER_H = { 0.180, 0.616, 0.847, 0.7 }
 
 -- Dedup
 local skinnedFrames  = setmetatable({}, { __mode = "k" })
@@ -541,7 +541,7 @@ local function EnsureTomoModButton()
 
     -- MainMenuFrameButtonTemplate = template des boutons natifs du GameMenu en TWW
     gmButton = CreateFrame("Button", "GameMenuButtonTomoMod", GameMenuFrame, "MainMenuFrameButtonTemplate")
-    gmButton:SetText("|cff2ed884Tomo|r|cffFFFFFFMod|r")
+    gmButton:SetText("|cff2e9dd8Tomo|r|cffFFFFFFMod|r")
     gmButton:SetScript("OnClick", function()
         CloseGameMenu()
         C_Timer.After(0.05, function()

@@ -102,7 +102,7 @@ function ns.ApplySetting(key, value)
         -- would change a setting, see an error, and find it reverted.
         local ok, err = pcall(fn, value)
         if not ok then
-            print("|cff2ed884TomoMod|r DamageMeter: " .. tostring(err))
+            print("|cff2e9dd8TomoMod|r DamageMeter: " .. tostring(err))
         end
     end
     return true

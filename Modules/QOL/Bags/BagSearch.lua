@@ -10,7 +10,7 @@ Bags.RegisterModule("Search", Search)
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
-local ACCENT = { 0.18, 0.85, 0.52 }
+local ACCENT = { 0.18, 0.62, 0.85 }
 
 local function L(key, fallback)
     local value = TomoMod_L and TomoMod_L[key]

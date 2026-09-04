@@ -64,7 +64,7 @@ local function TryAutoFill(dialog)
     end
 
     if settings.showMessages then
-        print("|cff2ed884TomoMod:|r " .. L["msg_afd_filled"])
+        print("|cff2e9dd8TomoMod:|r " .. L["msg_afd_filled"])
     end
 end
 
@@ -145,9 +145,9 @@ function AFD.SetEnabled(enabled)
     end
 
     if enabled then
-        print("|cff2ed884TomoMod:|r " .. L["msg_afd_enabled"])
+        print("|cff2e9dd8TomoMod:|r " .. L["msg_afd_enabled"])
     else
-        print("|cff2ed884TomoMod:|r " .. L["msg_afd_disabled"])
+        print("|cff2e9dd8TomoMod:|r " .. L["msg_afd_disabled"])
     end
 end
 

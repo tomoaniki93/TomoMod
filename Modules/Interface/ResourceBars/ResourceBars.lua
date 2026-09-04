@@ -1556,7 +1556,7 @@ local function SyncWithEssentialCooldowns()
         if w and w > 0 then
             s.width = w
             BuildResourceDisplay()
-            print("|cff2ed884TomoMod ResourceBars:|r " .. string.format(TomoMod_L["msg_rb_width_synced"], math.floor(w)))
+            print("|cff2e9dd8TomoMod ResourceBars:|r " .. string.format(TomoMod_L["msg_rb_width_synced"], math.floor(w)))
         end
     end
 end
@@ -1644,9 +1644,9 @@ function RB.ToggleLock()
         local locked = container:IsLocked()
         container:SetLocked(not locked)
         if not locked then
-            print("|cff2ed884TomoMod ResourceBars:|r " .. TomoMod_L["msg_rb_locked"])
+            print("|cff2e9dd8TomoMod ResourceBars:|r " .. TomoMod_L["msg_rb_locked"])
         else
-            print("|cff2ed884TomoMod ResourceBars:|r " .. TomoMod_L["msg_rb_unlocked"])
+            print("|cff2e9dd8TomoMod ResourceBars:|r " .. TomoMod_L["msg_rb_unlocked"])
         end
     end
 end

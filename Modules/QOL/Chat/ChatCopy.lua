@@ -47,7 +47,7 @@ end
 local function Accent()
     local brand = U and U.BRAND
     if brand then return brand[1], brand[2], brand[3] end
-    return 0.180, 0.847, 0.518
+    return 0.180, 0.616, 0.847
 end
 
 local function Loc(key, fallback)

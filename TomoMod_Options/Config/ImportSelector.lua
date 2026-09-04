@@ -35,7 +35,7 @@ TomoMod_ImportSelector = TomoMod_ImportSelector or {}
 local IS = TomoMod_ImportSelector
 
 local L = TomoMod_L
-local ACCENT = { 0.18, 0.85, 0.52 }
+local ACCENT = { 0.18, 0.62, 0.85 }
 
 local ROW_H, GROUP_H, INDENT = 22, 26, 18
 
@@ -291,11 +291,11 @@ local function Build()
         table.sort(keys)
         dimmer:Hide()
         if #keys == 0 then
-            print("|cff2ed884TomoMod|r " .. T("imp_nothing", "Nothing selected."))
+            print("|cff2e9dd8TomoMod|r " .. T("imp_nothing", "Nothing selected."))
             return
         end
         local report = SI.Apply(currentSettings, keys)
-        print("|cff2ed884TomoMod|r " .. string.format(
+        print("|cff2e9dd8TomoMod|r " .. string.format(
             T("imp_applied", "%d modules imported"), report.applied))
         if onAccept then onAccept(report) end
     end)
@@ -328,7 +328,7 @@ function IS.Show(settings, cb)
     for _, k in ipairs(SI.AllKeys(groups, true)) do selected[k] = true end
 
     if unknown and #unknown > 0 then
-        print("|cff2ed884TomoMod|r |cffff8800"
+        print("|cff2e9dd8TomoMod|r |cffff8800"
             .. T("imp_unknown", "Unrecognised entries") .. "|r "
             .. table.concat(unknown, ", "))
     end

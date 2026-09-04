@@ -248,7 +248,7 @@ local function BuildViewerBarsTab(parent)
                     Hd.ResetPosition("buffIcon")
                     Hd.ResetPosition("buffBar")
                     ApplyCDM()
-                    print("|cff2ed884TomoMod|r " .. (L["msg_cdm_pos_reset"]))
+                    print("|cff2e9dd8TomoMod|r " .. (L["msg_cdm_pos_reset"]))
                 end
             end)
             return ny
@@ -431,7 +431,7 @@ local function BuildResourceBarsTab(parent)
         function(col)
             local _, ny = W.CreateButton(col, L["btn_reset_position"], 180, 0, function()
                 db.position = nil; ApplyRB()
-                print("|cff2ed884TomoMod|r " .. (L["msg_rb_position_reset"]))
+                print("|cff2e9dd8TomoMod|r " .. (L["msg_rb_position_reset"]))
             end)
             return ny
         end)

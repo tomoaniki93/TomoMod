@@ -22,10 +22,10 @@ local isHooked      = false
 local isAnchorLocked = true -- hides the draggable "custom" anchor swatch outside Layout mode
 
 -- Palette
-local ACCENT     = { 0.047, 0.824, 0.624 }
+local ACCENT     = { 0.180, 0.616, 0.847 }
 local BG_COLOR   = { 0.06, 0.06, 0.08 }
 local BORDER_CLR = { 0.20, 0.20, 0.24 }
-local GUILD_CLR  = { 0.047, 0.824, 0.624 }
+local GUILD_CLR  = { 0.180, 0.616, 0.847 }
 
 local gsub = string.gsub
 local find = string.find

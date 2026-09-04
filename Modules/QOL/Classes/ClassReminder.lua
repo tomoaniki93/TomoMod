@@ -914,13 +914,11 @@ local function CreateDragOverlay()
     dragOverlay:SetPoint("TOPLEFT", -4, 4)
     dragOverlay:SetPoint("BOTTOMRIGHT", 4, -4)
     dragOverlay:SetFrameLevel(anchor:GetFrameLevel() + 30)
-    dragOverlay:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    dragOverlay:SetBackdropColor(TEAL.r, TEAL.g, TEAL.b, 0.18)
-    dragOverlay:SetBackdropBorderColor(TEAL.r, TEAL.g, TEAL.b, 0.80)
+    -- Rendu unifie du mode edition : degrade azur vers blanc, nom centre
+    -- sur bandeau azur fonce. Une seule definition, dans Core/Utils.lua.
+    if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
+        TomoMod_Utils.StyleMoverOverlay(dragOverlay, (L and L["mod_classReminder"]))
+    end
     dragOverlay:EnableMouse(true)
     dragOverlay:RegisterForDrag("LeftButton")
     dragOverlay:SetScript("OnDragStart", function() anchor:StartMoving() end)
@@ -929,11 +927,8 @@ local function CreateDragOverlay()
         SavePosition()
     end)
 
-    dragLabel = dragOverlay:CreateFontString(nil, "OVERLAY")
-    dragLabel:SetFont(FONT_LABEL, 9, "OUTLINE")
-    dragLabel:SetPoint("BOTTOM", dragOverlay, "TOP", 0, 3)
-    dragLabel:SetTextColor(TEAL.r, TEAL.g, TEAL.b)
-    dragLabel:SetText((L and L["mover_class_reminder"]) or "Class Reminder")
+    -- Reuse the label supplied by the unified mover renderer.
+    dragLabel = dragOverlay._tmMoverText
     dragOverlay:Hide()
 end
 

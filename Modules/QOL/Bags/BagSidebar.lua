@@ -14,7 +14,7 @@ Bags.RegisterModule("Sidebar", Sidebar)
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
-local ACCENT = { 0.18, 0.85, 0.52 }
+local ACCENT = { 0.18, 0.62, 0.85 }
 local MINI = 32
 local GAP = 5
 

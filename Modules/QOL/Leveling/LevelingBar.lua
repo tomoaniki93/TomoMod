@@ -165,13 +165,13 @@ local function BuildInfoPanel()
         edgeSize = 1,
     })
     infoPanel:SetBackdropColor(0.04, 0.04, 0.06, 0.96)
-    infoPanel:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.7)
+    infoPanel:SetBackdropBorderColor(0.180, 0.616, 0.847, 0.7)
     infoPanel:Hide()
 
     local title = infoPanel:CreateFontString(nil, "OVERLAY")
     title:SetFont(FONT_BOLD, 12, "OUTLINE")
     title:SetPoint("TOPLEFT", infoPanel, "TOPLEFT", 10, -PAD)
-    title:SetTextColor(0.047, 0.824, 0.624)
+    title:SetTextColor(0.180, 0.616, 0.847)
     title:SetText("TomoMod " .. Label("leveling_bar_title", "Leveling Bar"))
 
     infoPanel.rows = {}
@@ -213,7 +213,7 @@ local function UpdateInfoPanel()
     add("XP", FormatNumberFull(cur) .. " / " .. FormatNumberFull(max))
     add(Label("leveling_remaining", "Remaining"), FormatNumberFull(math.max(0, max - cur)))
     add(Label("leveling_progress", "Progress"),
-        string.format("%.1f%%", (cur / max) * 100), 0.047, 0.824, 0.624)
+        string.format("%.1f%%", (cur / max) * 100), 0.180, 0.616, 0.847)
 
     local rested = GetRestedXP()
     if rested > 0 then
@@ -298,7 +298,7 @@ local function CreateBar()
     xpBar = CreateFrame("StatusBar", nil, barFrame)
     xpBar:SetAllPoints()
     xpBar:SetStatusBarTexture(TEXTURE)
-    xpBar:SetStatusBarColor(0.047, 0.824, 0.624, 0.70)
+    xpBar:SetStatusBarColor(0.180, 0.616, 0.847, 0.70)
     xpBar:SetMinMaxValues(0, 1)
     xpBar:SetValue(0)
 
@@ -337,7 +337,7 @@ local function CreateBar()
     pctText = textOverlay:CreateFontString(nil, "OVERLAY")
     pctText:SetFont(FONT_BOLD, 12, "OUTLINE")
     pctText:SetPoint("RIGHT", barFrame, "RIGHT", -8, 0)
-    pctText:SetTextColor(0.047, 0.824, 0.624, 1)
+    pctText:SetTextColor(0.180, 0.616, 0.847, 1)
 
     -- Rested % (left of pct)
     restedText = textOverlay:CreateFontString(nil, "OVERLAY")
@@ -602,7 +602,7 @@ function LB.ToggleLock()
         barFrame:SetBackdropBorderColor(0, 0, 0, 1)
     else
         -- Unlocked: green border to show it's movable
-        barFrame:SetBackdropBorderColor(0.047, 0.824, 0.624, 1)
+        barFrame:SetBackdropBorderColor(0.180, 0.616, 0.847, 1)
     end
 end
 

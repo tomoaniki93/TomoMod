@@ -13,13 +13,13 @@ Bags.RegisterModule("Slots", Slots)
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
-local ACCENT = { 0.18, 0.85, 0.52 }
+local ACCENT = { 0.18, 0.62, 0.85 }
 
 -- Slot identity colors: normal bag space uses TomoMod mint/teal, while
 -- the reagent bag gets an azure-white outline so its reserved capacity is
 -- immediately recognizable in the combined grid. Item quality borders still
 -- take priority for occupied slots when that option is enabled.
-local NORMAL_SLOT = { 0.18, 0.85, 0.52 }
+local NORMAL_SLOT = { 0.18, 0.62, 0.85 }
 local REAGENT_SLOT = { 0.58, 0.88, 1.00 }
 local REAGENT_BAG_ID = Enum and Enum.BagIndex and Enum.BagIndex.ReagentBag
 

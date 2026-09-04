@@ -34,7 +34,7 @@ local function OnEvent(self, event, ...)
         CompleteLFGRoleCheck(true)
 
         if settings.showMessages then
-            print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_asr_lfg_accepted"])
+            print("|cff2e9dd8TomoMod:|r " .. TomoMod_L["msg_asr_lfg_accepted"])
         end
 
     elseif event == "ROLE_POLL_BEGIN" then
@@ -48,7 +48,7 @@ local function OnEvent(self, event, ...)
             end
 
             if settings.showMessages then
-                print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_asr_poll_accepted"])
+                print("|cff2e9dd8TomoMod:|r " .. TomoMod_L["msg_asr_poll_accepted"])
             end
         end)
     end
@@ -85,13 +85,13 @@ function ASR.SetEnabled(enabled)
             mainFrame:RegisterEvent("ROLE_POLL_BEGIN")
             mainFrame:SetScript("OnEvent", OnEvent)
         end
-        print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_asr_enabled"])
+        print("|cff2e9dd8TomoMod:|r " .. TomoMod_L["msg_asr_enabled"])
     else
         if mainFrame then
             mainFrame:UnregisterAllEvents()
             mainFrame:SetScript("OnEvent", nil)
         end
-        print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_asr_disabled"])
+        print("|cff2e9dd8TomoMod:|r " .. TomoMod_L["msg_asr_disabled"])
     end
 end
 

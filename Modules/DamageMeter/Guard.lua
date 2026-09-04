@@ -59,7 +59,7 @@ if ns.disabled then
         self:UnregisterAllEvents()
         if shown then return end
         shown = true
-        print("|cff2ed884TomoMod|r : le damage meter integre est en veille, "
+        print("|cff2e9dd8TomoMod|r : le damage meter integre est en veille, "
             .. "l'addon TomoDamageMeter autonome est installe.")
     end)
 end

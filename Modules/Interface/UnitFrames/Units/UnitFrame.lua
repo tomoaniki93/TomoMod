@@ -687,7 +687,7 @@ function UF.ToggleLock()
     -- en combat. On refuse tout (dé)verrouillage tant que le combat est actif
     -- (le mode placement passe normalement par Movers, qui garde déjà l'entrée).
     if InCombatLockdown() then
-        print("|cff2ed884TomoMod UF:|r " .. (TomoMod_L["layout_combat_blocked"] or "Impossible de déplacer les cadres en combat."))
+        print("|cff2e9dd8TomoMod UF:|r " .. (TomoMod_L["layout_combat_blocked"] or "Impossible de déplacer les cadres en combat."))
         return
     end
 
@@ -747,9 +747,9 @@ function UF.ToggleLock()
     end
 
     if isLocked then
-        print("|cff2ed884TomoMod UF:|r " .. TomoMod_L["msg_uf_locked"])
+        print("|cff2e9dd8TomoMod UF:|r " .. TomoMod_L["msg_uf_locked"])
     else
-        print("|cff2ed884TomoMod UF:|r " .. TomoMod_L["msg_uf_unlocked"])
+        print("|cff2e9dd8TomoMod UF:|r " .. TomoMod_L["msg_uf_unlocked"])
     end
 
     -- Sync BossFrames
@@ -997,7 +997,7 @@ function UF.Initialize()
         -- ── Appliquer tailles, polices et offsets ───────────────────
         UF.RefreshAllUnits()
 
-        print("|cff2ed884TomoMod UF:|r " .. TomoMod_L["msg_uf_initialized"])
+        print("|cff2e9dd8TomoMod UF:|r " .. TomoMod_L["msg_uf_initialized"])
     end)
 end
 

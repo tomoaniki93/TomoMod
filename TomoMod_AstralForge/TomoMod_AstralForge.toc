@@ -1,5 +1,5 @@
 ## Interface: 120100
-## Title: |cff0cd29fTomo|rMod |cff2ed884AstralForge|r
+## Title: |cff0cd29fTomo|rMod |cff2e9dd8AstralForge|r
 ## Notes: Visual designer for TomoMod unit frame elements.
 ## Author: TomoAniki
 ## Category: |cff0cd29fHUD|r

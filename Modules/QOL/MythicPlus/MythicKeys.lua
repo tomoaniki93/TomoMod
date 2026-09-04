@@ -10,7 +10,7 @@ local L = TomoMod_L
 -- which exposes the same four functions this file already used.
 local openRaidLib = TomoMod_KeySync
 
-local PREFIX = "|cff2ed884Tomo|r|cFF3377CCMod|r"
+local PREFIX = "|cff2e9dd8Tomo|r|cFF3377CCMod|r"
 
 -- Keep a namespaced global + local alias for backward compatibility (/tm key)
 TomoMod_MythicKeys = TomoMod_MythicKeys or {}
@@ -221,7 +221,7 @@ local function EnsureRouletteFrame()
 
     F.title = MakeFS(F, 13, "OUTLINE")
     F.title:SetPoint("LEFT", F, "TOPLEFT", 10, -HEADER_H / 2)
-    F.title:SetText("|cff2ed884Tomo|r|cFF3377CCMod|r  |cFFAAAAAAKeystone Roulette|r")
+    F.title:SetText("|cff2e9dd8Tomo|r|cFF3377CCMod|r  |cFFAAAAAAKeystone Roulette|r")
 
     -- Close button
     local closeBtn = CreateFrame("Button", nil, F)

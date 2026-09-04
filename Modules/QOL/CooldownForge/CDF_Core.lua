@@ -270,7 +270,7 @@ function CDF.NewBarSchema(name)
         radial      = { radius = 90, startAngle = 90, arc = 360, clockwise = true },
         hideOnCooldown = false,        -- [S8] drop icons while they are on cooldown
         hideOnUnusable = false,        -- [S9] drop icons the player cannot afford
-        glow  = { enabled = true, type = "Pixel", color = { 0.18, 0.85, 0.52, 1 },
+        glow  = { enabled = true, type = "Pixel", color = { 0.18, 0.62, 0.85, 1 },
                   condition = "ready", auraSpellID = nil, stacks = 2 },
         swipe = { draw = true, color = { 0, 0, 0, 0.6 }, reverse = false },
         -- [H2] threshold: 0 disables. Below it the countdown switches colour,
@@ -378,7 +378,7 @@ function CDF.SanitizeBar(bar)
     -- [S9] independent of hideOnCooldown: hides an icon that is off cooldown
     -- but currently uncastable (not enough rage, wrong form, ...).
     bar.hideOnUnusable = bar.hideOnUnusable == true
-    bar.glow  = bar.glow  or { enabled = true, type = "Pixel", color = { 0.18, 0.85, 0.52, 1 } }
+    bar.glow  = bar.glow  or { enabled = true, type = "Pixel", color = { 0.18, 0.62, 0.85, 1 } }
     if not CDF.GLOW_TYPES[bar.glow.type] then bar.glow.type = "Pixel" end
     if not CDF.GLOW_CONDS[bar.glow.condition] then bar.glow.condition = "ready" end
     if bar.glow.auraSpellID ~= nil then

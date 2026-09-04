@@ -15,7 +15,7 @@
 local Forge = TomoMod_Forge or {}
 TomoMod_Forge = Forge
 
-Forge.BRAND     = (TomoMod_Utils and TomoMod_Utils.BRAND) or { 0.18, 0.85, 0.52 }
+Forge.BRAND     = (TomoMod_Utils and TomoMod_Utils.BRAND) or { 0.18, 0.62, 0.85 }
 Forge.FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 Forge.FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 

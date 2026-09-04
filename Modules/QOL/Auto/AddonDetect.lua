@@ -11,7 +11,7 @@ TomoMod_AddonDetect = TomoMod_AddonDetect or {}
 local AD = TomoMod_AddonDetect
 
 local PREFIX     = "TomoMod"
-local BADGE      = "|cff2ed884TM|r "
+local BADGE      = "|cff2e9dd8TM|r "
 local knownUsers = {}   -- [baseName] = true
 local _init      = false
 

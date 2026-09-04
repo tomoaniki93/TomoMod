@@ -1411,8 +1411,8 @@ function PF.CreateAnchor()
         edgeFile = "Interface\\Buttons\\WHITE8X8",
         edgeSize = 1,
     })
-    mover:SetBackdropColor(0.047, 0.824, 0.624, 0.3)
-    mover:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.8)
+    mover:SetBackdropColor(0.180, 0.616, 0.847, 0.3)
+    mover:SetBackdropBorderColor(0.180, 0.616, 0.847, 0.8)
     mover:SetFrameLevel(500)
     mover:EnableMouse(true)
     mover:RegisterForDrag("LeftButton")
@@ -1431,7 +1431,7 @@ function PF.CreateAnchor()
     label:SetFont(ADDON_FONT, 11, "OUTLINE")
     label:SetPoint("CENTER")
     label:SetText("Party Frames")
-    label:SetTextColor(0.047, 0.824, 0.624, 1)
+    label:SetTextColor(0.180, 0.616, 0.847, 1)
     mover:Hide()
     anchor.moverOverlay = mover
 

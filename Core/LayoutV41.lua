@@ -12,10 +12,10 @@ local R = TomoMod_Registry
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local FONT  = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Tomo.ttf"
 
-local ACCENT = { 0.05, 0.82, 0.62 }
-local BG     = { 0.035, 0.040, 0.050, 0.96 }
-local PANEL  = { 0.055, 0.062, 0.074, 0.96 }
-local BORDER = { 0.11, 0.25, 0.22, 1.00 }
+local ACCENT = TomoMod_Utils.BRAND
+local BG     = { TomoMod_Utils.SURFACE_DEEP[1], TomoMod_Utils.SURFACE_DEEP[2], TomoMod_Utils.SURFACE_DEEP[3], 0.96 }
+local PANEL  = { TomoMod_Utils.SURFACE[1], TomoMod_Utils.SURFACE[2], TomoMod_Utils.SURFACE[3], 0.96 }
+local BORDER = { TomoMod_Utils.BRAND_DARK[1], TomoMod_Utils.BRAND_DARK[2], TomoMod_Utils.BRAND_DARK[3], 1.00 }
 local DIM    = { 0.52, 0.56, 0.60 }
 
 local selectedFrame

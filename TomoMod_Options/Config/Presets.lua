@@ -864,16 +864,16 @@ SLASH_TOMOPRESET1 = "/tmpreset"
 SlashCmdList["TOMOPRESET"] = function(msg)
     msg = (msg or ""):gsub("^%s+", ""):gsub("%s+$", ""):lower()
     if msg == "" then
-        print("|cff2ed884TomoMod|r " .. L["preset_usage"])
+        print("|cff2e9dd8TomoMod|r " .. L["preset_usage"])
         return
     end
     if not P.IsApplicable(msg) then
-        print("|cff2ed884TomoMod|r " .. string.format(L["preset_unknown"], msg))
+        print("|cff2e9dd8TomoMod|r " .. string.format(L["preset_unknown"], msg))
         return
     end
     if P.Apply(msg) then
         local def  = P.Get(msg)
         local name = def and L["preset_" .. def.key .. "_name"] or msg
-        print("|cff2ed884TomoMod|r " .. string.format(L["preset_applied"], name))
+        print("|cff2e9dd8TomoMod|r " .. string.format(L["preset_applied"], name))
     end
 end

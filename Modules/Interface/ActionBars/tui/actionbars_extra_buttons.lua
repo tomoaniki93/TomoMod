@@ -253,7 +253,7 @@ function CreateExtraButtonHolder(buttonType, displayName)
     local mover = CreateFrame("Frame", "TUI_" .. buttonType .. "Mover", holder, "BackdropTemplate")
     mover:SetAllPoints(holder)
     -- TomoMod teal, matching the rest of the /tm layout movers
-    ns.SkinBase.ApplyPixelBackdrop(mover, 2, true, false, {0.047, 0.824, 0.624, 1}, {0.047, 0.824, 0.624, 0.5})
+    ns.SkinBase.ApplyPixelBackdrop(mover, 2, true, false, {0.180, 0.616, 0.847, 1}, {0.180, 0.616, 0.847, 0.5})
     mover:EnableMouse(true)
     mover:SetMovable(true)
     mover:RegisterForDrag("LeftButton")
@@ -930,7 +930,7 @@ local function EnsureExtraActionProxy()
     local border = CreateFrame("Frame", nil, proxy, "BackdropTemplate")
     border:SetAllPoints(proxy)
     ns.SkinBase.ApplyPixelBackdrop(border, 2, true, false,
-        {0.047, 0.824, 0.624, 1}, {0, 0, 0, 0})
+        {0.180, 0.616, 0.847, 1}, {0, 0, 0, 0})
     border:EnableMouse(false)
     proxy.LegacyBorder = border
     proxy.Border = border

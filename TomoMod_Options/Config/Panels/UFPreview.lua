@@ -656,7 +656,7 @@ function UFP.Create(parent)
         labels[k] = lbl
     end
 
-    local BRAND_HEX = (TomoMod_Utils and TomoMod_Utils.BRAND_HEX) or "2ed884"
+    local BRAND_HEX = (TomoMod_Utils and TomoMod_Utils.BRAND_HEX) or "2e9dd8"
 
     local function BaseLabel(k)
         return L["preview_lbl_" .. (k == "targettarget" and "tot" or k)] or k:upper()

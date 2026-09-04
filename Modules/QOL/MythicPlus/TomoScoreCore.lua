@@ -36,13 +36,13 @@ TS.C = {
     BG_HEADER     = tint(T.bgMid,       { 0.09,  0.09,  0.115 }, 1.00),
     BG_ROW_ODD    = tint(T.bgLight,     { 0.11,  0.11,  0.14  }, 0.55),
     BG_ROW_EVEN   = tint(T.bgDark,      { 0.045, 0.045, 0.060 }, 0.55),
-    ACCENT        = tint(T.accent,      { 0.18,  0.85,  0.52  }, 1.00),
+    ACCENT        = tint(T.accent,      { 0.18,  0.62,  0.85  }, 1.00),
     ACCENT_DIM    = tint(T.accentDark,  { 0.11,  0.54,  0.33  }, 0.60),
     BORDER        = tint(T.border,      { 0.18,  0.18,  0.22  }, 0.85),
     -- Historic names said TEAL; the colour is the brand accent now, so the
     -- names follow rather than lying about it.
-    BORDER_ACCENT = tint(T.accent,      { 0.18,  0.85,  0.52  }, 0.80),
-    BAR_ACCENT    = tint(T.accent,      { 0.18,  0.85,  0.52  }, 0.80),
+    BORDER_ACCENT = tint(T.accent,      { 0.18,  0.62,  0.85  }, 0.80),
+    BAR_ACCENT    = tint(T.accent,      { 0.18,  0.62,  0.85  }, 0.80),
     BAR_TRACK     = tint(T.bgDark,      { 0.045, 0.045, 0.060 }, 1.00),
     -- Kept distinct from the accent: on a green-accented panel, "on time"
     -- must not be the same green as every border and header.
@@ -50,7 +50,7 @@ TS.C = {
     BAR_RED       = tint(T.red,         { 0.88,  0.22,  0.22  }, 0.90),
     TEXT_WHITE    = tint(T.text,        { 0.88,  0.90,  0.89  }, 1.00),
     TEXT_GREY     = tint(T.textDim,     { 0.48,  0.48,  0.54  }, 1.00),
-    TEXT_ACCENT   = tint(T.textHeader,  { 0.18,  0.85,  0.52  }, 1.00),
+    TEXT_ACCENT   = tint(T.textHeader,  { 0.18,  0.62,  0.85  }, 1.00),
     TEXT_GREEN    = { 0.55, 0.90, 0.20, 1.00 },
     TEXT_RED      = tint(T.red,         { 0.88,  0.22,  0.22  }, 1.00),
     TEXT_YELLOW   = tint(T.yellow,      { 0.96,  0.80,  0.10  }, 1.00),

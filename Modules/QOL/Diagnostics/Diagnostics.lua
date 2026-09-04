@@ -13,7 +13,7 @@ local D = TomoMod_Diagnostics
 -- =====================================================================
 
 local ADDON_NAME    = "TomoMod"
-local ADDON_PREFIX  = "|cff2ed884Tomo|rMod"
+local ADDON_PREFIX  = "|cff2e9dd8Tomo|rMod"
 local FONT          = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local FONT_MEDIUM   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_MONO     = "Fonts\\FRIZQT__.TTF"  -- monospace-ish for stack traces
@@ -945,7 +945,7 @@ local function CreateConsole()
     local title = titleBar:CreateFontString(nil, "OVERLAY")
     title:SetFont(FONT, 13, "")
     title:SetPoint("LEFT", 12, 0)
-    title:SetTextColor(0.047, 0.824, 0.624, 1)
+    title:SetTextColor(0.180, 0.616, 0.847, 1)
     title:SetText(ADDON_PREFIX .. " |cffaaaaaaDiagnostics Console|r")
 
     -- Error count badge
@@ -999,7 +999,7 @@ local function CreateConsole()
 
         local function UpdateColor()
             if f._activeFilter == label then
-                txt:SetTextColor(0.047, 0.824, 0.624, 1)
+                txt:SetTextColor(0.180, 0.616, 0.847, 1)
             else
                 txt:SetTextColor(0.45, 0.45, 0.50, 1)
             end
@@ -1010,7 +1010,7 @@ local function CreateConsole()
             for _, b in ipairs(f._filterBtns) do
                 b._txt:SetTextColor(0.45, 0.45, 0.50, 1)
             end
-            txt:SetTextColor(0.047, 0.824, 0.624, 1)
+            txt:SetTextColor(0.180, 0.616, 0.847, 1)
             D.RefreshConsole()
         end)
         btn:SetScript("OnEnter", function()
@@ -1053,9 +1053,9 @@ local function CreateConsole()
     thumb:EnableMouse(true)
     local thumbTex = thumb:CreateTexture(nil, "OVERLAY")
     thumbTex:SetAllPoints()
-    thumbTex:SetColorTexture(0.047, 0.824, 0.624, 0.5)
-    thumb:SetScript("OnEnter", function() thumbTex:SetColorTexture(0.047, 0.824, 0.624, 0.8) end)
-    thumb:SetScript("OnLeave", function() thumbTex:SetColorTexture(0.047, 0.824, 0.624, 0.5) end)
+    thumbTex:SetColorTexture(0.180, 0.616, 0.847, 0.5)
+    thumb:SetScript("OnEnter", function() thumbTex:SetColorTexture(0.180, 0.616, 0.847, 0.8) end)
+    thumb:SetScript("OnLeave", function() thumbTex:SetColorTexture(0.180, 0.616, 0.847, 0.5) end)
     thumb._dragging = false
 
     local function UpdateThumb()
@@ -1158,7 +1158,7 @@ local function CreateConsole()
     exportTxt:SetFont(FONT_MEDIUM, 10, "")
     exportTxt:SetPoint("CENTER")
     exportTxt:SetText("Copy Report")
-    exportTxt:SetTextColor(0.047, 0.824, 0.624, 1)
+    exportTxt:SetTextColor(0.180, 0.616, 0.847, 1)
     exportBtn:SetScript("OnClick", function()
         D.ShowExportFrame()
     end)
@@ -1275,7 +1275,7 @@ function D.RefreshConsole()
         local countStr = (entry.count and entry.count > 1) and string.format(" |cff888888(x%d)|r", entry.count) or ""
         local timeStr = entry.timestamp or ""
         local combatStr = entry.inCombat and " |cffff4444[COMBAT]|r" or ""
-        local tomoStr = entry.isTomoMod and " |cff2ed884[TM]|r" or ""
+        local tomoStr = entry.isTomoMod and " |cff2e9dd8[TM]|r" or ""
         header:SetText(badge .. " " .. timeStr .. countStr .. combatStr .. tomoStr)
 
         -- Message
@@ -1365,8 +1365,8 @@ local exportFrame = nil
 -- can be regenerated after the browser trip.
 -- =====================================================================
 
-local VIEW_ACTIVE_BG   = { 0.047, 0.824, 0.624, 0.18 }
-local VIEW_ACTIVE_EDGE = { 0.047, 0.824, 0.624, 0.9 }
+local VIEW_ACTIVE_BG   = { 0.180, 0.616, 0.847, 0.18 }
+local VIEW_ACTIVE_EDGE = { 0.180, 0.616, 0.847, 0.9 }
 local VIEW_IDLE_BG     = { 0.10, 0.10, 0.13, 0.9 }
 local VIEW_IDLE_EDGE   = { 0.25, 0.25, 0.30, 0.9 }
 
@@ -1378,7 +1378,7 @@ local function StyleViewButton(btn, active)
     btn:SetBackdropBorderColor(edge[1], edge[2], edge[3], edge[4])
     if btn._text then
         if active then
-            btn._text:SetTextColor(0.047, 0.824, 0.624, 1)
+            btn._text:SetTextColor(0.180, 0.616, 0.847, 1)
         else
             btn._text:SetTextColor(0.6, 0.6, 0.66, 1)
         end
@@ -1446,13 +1446,13 @@ function D.ShowExportFrame(mode)
             edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1,
         })
         ef:SetBackdropColor(0.05, 0.05, 0.07, 0.98)
-        ef:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.6)
+        ef:SetBackdropBorderColor(0.180, 0.616, 0.847, 0.6)
 
         -- Title
         local title = ef:CreateFontString(nil, "OVERLAY")
         title:SetFont(FONT, 12, "")
         title:SetPoint("TOP", 0, -10)
-        title:SetTextColor(0.047, 0.824, 0.624, 1)
+        title:SetTextColor(0.180, 0.616, 0.847, 1)
         ef._title = title
 
         -- Close
@@ -1470,7 +1470,7 @@ function D.ShowExportFrame(mode)
         local url = ef:CreateFontString(nil, "OVERLAY")
         url:SetFont(FONT, 11, "")
         url:SetPoint("TOP", 0, -30)
-        url:SetTextColor(0.047, 0.824, 0.624, 1)
+        url:SetTextColor(0.180, 0.616, 0.847, 1)
         url:SetText(TRACKER_HOST)
 
         -- Hint. Rewritten per view: the clipboard holds one thing at a time,
@@ -1541,9 +1541,9 @@ function D.ShowExportFrame(mode)
         eThumb:EnableMouse(true)
         local eThumbTex = eThumb:CreateTexture(nil, "OVERLAY")
         eThumbTex:SetAllPoints()
-        eThumbTex:SetColorTexture(0.047, 0.824, 0.624, 0.5)
-        eThumb:SetScript("OnEnter", function() eThumbTex:SetColorTexture(0.047, 0.824, 0.624, 0.8) end)
-        eThumb:SetScript("OnLeave", function() eThumbTex:SetColorTexture(0.047, 0.824, 0.624, 0.5) end)
+        eThumbTex:SetColorTexture(0.180, 0.616, 0.847, 0.5)
+        eThumb:SetScript("OnEnter", function() eThumbTex:SetColorTexture(0.180, 0.616, 0.847, 0.8) end)
+        eThumb:SetScript("OnLeave", function() eThumbTex:SetColorTexture(0.180, 0.616, 0.847, 0.5) end)
 
         local function UpdateExportThumb()
             local viewH = scrollFrame:GetHeight()
@@ -1606,7 +1606,7 @@ function D.ShowExportFrame(mode)
         ef:SetScript("OnHide", function()
             if trackerReminderShown then return end
             trackerReminderShown = true
-            print(ADDON_PREFIX .. " |cffaaaaaaPaste your report at|r |cff2ed884"
+            print(ADDON_PREFIX .. " |cffaaaaaaPaste your report at|r |cff2e9dd8"
                 .. TRACKER_URL .. "|r |cffaaaaaa— reopen it with|r |cffffffff/tmdiag tracker|r")
         end)
 
@@ -2119,7 +2119,7 @@ SlashCmdList["TOMODIAG"] = function(msg)
         if db then db.enabled = true end
         InstallErrorHandler()
         if db and db.suppressPopups then SuppressScriptErrors() end
-        print(ADDON_PREFIX .. " |cff2ed884Diagnostics enabled.|r")
+        print(ADDON_PREFIX .. " |cff2e9dd8Diagnostics enabled.|r")
     elseif msg == "off" then
         if db then db.enabled = false end
         RestoreScriptErrors()

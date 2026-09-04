@@ -51,15 +51,15 @@ function TMT:BuildPalette()
         }
     end
 
-    local baseBrand = (U and U.BRAND) or { 0.180, 0.847, 0.518 }
+    local baseBrand = (U and U.BRAND) or { 0.180, 0.616, 0.847 }
     local BRAND = ResolveColor(custom and custom.accent, baseBrand)
     local DARK  = custom and { BRAND[1] * 0.58, BRAND[2] * 0.58, BRAND[3] * 0.58 }
-        or ((U and U.BRAND_DARK) or { 0.110, 0.541, 0.333 })
+        or ((U and U.BRAND_DARK) or { 0.110, 0.373, 0.541 })
     local HOVER = custom and {
         math.min(1, BRAND[1] * 1.18 + 0.08),
         math.min(1, BRAND[2] * 1.18 + 0.08),
         math.min(1, BRAND[3] * 1.18 + 0.08),
-    } or ((U and U.BRAND_HOVER) or { 0.322, 0.941, 0.651 })
+    } or ((U and U.BRAND_HOVER) or { 0.373, 0.737, 0.941 })
 
     local text    = ResolveColor(custom and custom.text,       (TH and TH.text)    or { 0.88, 0.90, 0.89 })
     local textDim = ResolveColor(nil,                          (TH and TH.textDim) or { 0.48, 0.48, 0.54 })
@@ -2093,7 +2093,7 @@ SlashCmdList["TOMOMYTHICTRACKER"] = function(msg)
         if TomoMod_KeySync and TomoMod_KeySync.Debug then
             TomoMod_KeySync.Debug()
         else
-            print("|cff2ed884TomoMod|r KeySync: module not loaded")
+            print("|cff2e9dd8TomoMod|r KeySync: module not loaded")
         end
     elseif msg == "help"    then print(L["tmt_cmd_usage"])
     else print(L["tmt_unknown_cmd"]); print(L["tmt_cmd_usage"])

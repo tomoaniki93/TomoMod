@@ -256,7 +256,7 @@ local function AddGuildRank(tooltip, unit, s)
         label = label .. " - " .. realmStr
     end
 
-    tooltip:AddDoubleLine(L["tt_guild_rank"], label, 0.65, 0.65, 0.70, 0.047, 0.824, 0.624)
+    tooltip:AddDoubleLine(L["tt_guild_rank"], label, 0.65, 0.65, 0.70, 0.180, 0.616, 0.847)
 end
 
 -- Returns text, r, g, b for the unit's target -- colour separated from text on

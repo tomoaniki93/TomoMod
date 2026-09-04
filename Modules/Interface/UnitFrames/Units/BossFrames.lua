@@ -250,20 +250,17 @@ local function SetupBossDrag()
     local dragFrame = CreateFrame("Frame", nil, boss1, "BackdropTemplate")
     dragFrame:SetAllPoints(boss1)
     dragFrame:SetFrameLevel(boss1:GetFrameLevel() + 20)
+    -- Rendu unifie du mode edition : degrade azur vers blanc, nom centre
+    -- sur bandeau azur fonce. Definition unique dans Core/Utils.lua.
+    if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
+        TomoMod_Utils.StyleMoverOverlay(dragFrame, (TomoMod_Layout and TomoMod_Layout.Label("unitFrames.bossFrames")))
+    end
     dragFrame:EnableMouse(false)
     dragFrame:Hide()
 
-    local ACCENT = { 0.047, 0.824, 0.624 }
+    local ACCENT = { 0.180, 0.616, 0.847 }
     local BG_COL = { 0.02, 0.07, 0.05, 0.80 }
     local BD_COL = { ACCENT[1], ACCENT[2], ACCENT[3], 0.90 }
-
-    dragFrame:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8X8",
-        edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = 1,
-    })
-    dragFrame:SetBackdropColor(BG_COL[1], BG_COL[2], BG_COL[3], BG_COL[4])
-    dragFrame:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
 
     local accentLine = dragFrame:CreateTexture(nil, "OVERLAY")
     accentLine:SetHeight(1)
@@ -271,23 +268,23 @@ local function SetupBossDrag()
     accentLine:SetPoint("TOPRIGHT", dragFrame, "TOPRIGHT", 0, 0)
     accentLine:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.8)
 
-    local dragLabel = dragFrame:CreateFontString(nil, "OVERLAY")
-    dragLabel:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11, "OUTLINE")
-    dragLabel:SetPoint("CENTER", dragFrame, "CENTER")
-    dragLabel:SetTextColor(1, 1, 1, 0.90)
-    dragLabel:SetText("Boss Frames")
+    -- Reuse the unified label instead of drawing a second one over it.
+    local dragLabel = dragFrame._tmMoverText
     boss1.dragLabel = dragLabel
 
     dragFrame:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then
             boss1:StartMoving()
-            self:SetBackdropBorderColor(1, 1, 1, 1)
+            if self._tmMoverEdge then self._tmMoverEdge:SetColorTexture(1, 1, 1, 1) end
         end
     end)
     dragFrame:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
             boss1:StopMovingOrSizing()
-            self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
+            if self._tmMoverEdge then
+                local border = TomoMod_Utils.MOVER_BORDER
+                self._tmMoverEdge:SetColorTexture(border[1], border[2], border[3], 0.85)
+            end
             local db = TomoModDB.unitFrames.bossFrames
             if db then
                 local left   = boss1:GetLeft()   or 0
@@ -301,12 +298,13 @@ local function SetupBossDrag()
         end
     end)
     dragFrame:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(1, 1, 1, 1)
-        dragLabel:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
+        if self._tmMoverEdge then self._tmMoverEdge:SetColorTexture(1, 1, 1, 1) end
     end)
     dragFrame:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
-        dragLabel:SetTextColor(1, 1, 1, 0.90)
+        if self._tmMoverEdge then
+            local border = TomoMod_Utils.MOVER_BORDER
+            self._tmMoverEdge:SetColorTexture(border[1], border[2], border[3], 0.85)
+        end
     end)
 
     boss1.dragFrame = dragFrame
@@ -559,7 +557,7 @@ function BF.Initialize()
     -- Aussi masquer après PLAYER_ENTERING_WORLD (rechargement en instance)
     C_Timer.After(0.5, HideBlizzBossFrames)
 
-    print("|cff2ed884TomoMod Boss:|r " .. TomoMod_L["msg_boss_initialized"])
+    print("|cff2e9dd8TomoMod Boss:|r " .. TomoMod_L["msg_boss_initialized"])
 end
 
 -- =====================================

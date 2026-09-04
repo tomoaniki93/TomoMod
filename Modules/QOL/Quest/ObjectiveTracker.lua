@@ -504,7 +504,7 @@ local function StyleStatusBar(bar)
 
     -- Apply our texture
     bar:SetStatusBarTexture(ADDON_TEXTURE)
-    bar:SetStatusBarColor(0.047, 0.824, 0.624, 1)
+    bar:SetStatusBarColor(0.180, 0.616, 0.847, 1)
 
     -- Dark background
     if not bar._tmBG then
@@ -753,7 +753,7 @@ local function CreateOrUpdateHeader()
         accent:SetHeight(1)
         accent:SetPoint("BOTTOMLEFT", headerBar, "BOTTOMLEFT", 0, 0)
         accent:SetPoint("BOTTOMRIGHT", headerBar, "BOTTOMRIGHT", 0, 0)
-        accent:SetColorTexture(0.047, 0.824, 0.624, 0.60)
+        accent:SetColorTexture(0.180, 0.616, 0.847, 0.60)
 
         -- Title
         headerTitle = headerBar:CreateFontString(nil, "OVERLAY")
@@ -773,7 +773,7 @@ local function CreateOrUpdateHeader()
         headerOptions:SetWidth(headerOptions.text:GetStringWidth() + 10)
         headerOptions:SetPoint("RIGHT", headerBar, "RIGHT", -60, 0)
         headerOptions:SetScript("OnEnter", function(self)
-            self.text:SetTextColor(0.047, 0.824, 0.624, 1)
+            self.text:SetTextColor(0.180, 0.616, 0.847, 1)
         end)
         headerOptions:SetScript("OnLeave", function(self)
             self.text:SetTextColor(0.55, 0.55, 0.60, 1)
@@ -2186,14 +2186,12 @@ local function CreateMoverOverlay()
     moverOverlay = CreateFrame("Frame", "TomoModObjectiveTrackerMover", UIParent, "BackdropTemplate")
     moverOverlay:SetFrameStrata("HIGH")
     moverOverlay:SetFrameLevel(200)
+    -- Rendu unifie du mode edition : degrade azur vers blanc, nom centre
+    -- sur bandeau azur fonce. Une seule definition, dans Core/Utils.lua.
+    if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
+        TomoMod_Utils.StyleMoverOverlay(moverOverlay, (TomoMod_Layout and TomoMod_Layout.Label("objectiveTracker")))
+    end
     moverOverlay:SetAllPoints(skinFrame or tracker)
-    moverOverlay:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    moverOverlay:SetBackdropColor(0.05, 0.82, 0.62, 0.12)
-    moverOverlay:SetBackdropBorderColor(0.05, 0.82, 0.62, 1)
     moverOverlay:EnableMouse(true)
     moverOverlay:SetMovable(true)
     moverOverlay:RegisterForDrag("LeftButton")
@@ -2215,16 +2213,19 @@ local function CreateMoverOverlay()
         db.scale = s
         ApplyPosition()
         if moverOverlay._label then
-            moverOverlay._label:SetText(string.format("Objective Tracker  —  drag to move  |  scale %d%%", math.floor(s * 100 + 0.5)))
+            moverOverlay:UpdateScaleLabel(s)
         end
     end)
 
-    local label = moverOverlay:CreateFontString(nil, "OVERLAY")
-    label:SetFont(ADDON_FONT_BOLD, 13, "OUTLINE")
-    label:SetPoint("TOP", moverOverlay, "TOP", 0, -6)
-    label:SetText("Objective Tracker  —  drag to move  |  wheel = scale")
-    label:SetTextColor(1, 1, 1, 1)
-    moverOverlay._label = label
+    -- Reuse the unified, localized mover label instead of drawing a second
+    -- hardcoded English label over it.
+    moverOverlay._label = moverOverlay._tmMoverText
+
+    function moverOverlay:UpdateScaleLabel(scale)
+        if not self.SetMoverLabel then return end
+        local base = (TomoMod_Layout and TomoMod_Layout.Label("objectiveTracker")) or "Objective Tracker"
+        self:SetMoverLabel(("%s  -  %d%%"):format(base, math.floor((scale or 1) * 100 + 0.5)))
+    end
 
     moverOverlay:Hide()
     return moverOverlay
@@ -2248,7 +2249,7 @@ function OT.SetLocked(value)
         if moverOverlay then
             local db = S()
             if moverOverlay._label then
-                moverOverlay._label:SetText(string.format("Objective Tracker  —  drag to move  |  scale %d%%", math.floor((db.scale or 1.0) * 100 + 0.5)))
+                moverOverlay:UpdateScaleLabel((db.scale or 1.0))
             end
             moverOverlay:Show()
         end

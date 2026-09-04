@@ -10,7 +10,7 @@
 local CDF = TomoMod_CooldownForge
 if not CDF then return end
 
-local BRAND = { 0.18, 0.85, 0.52 }
+local BRAND = { 0.18, 0.62, 0.85 }
 
 CDF.SKIN_TEX = {
     mask_soft   = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\cdf\\mask_corner_soft.tga",

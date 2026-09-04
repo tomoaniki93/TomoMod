@@ -26,7 +26,7 @@ local BACKDROP_BORDER    = { 0.12, 0.12, 0.14, 1 }
 local SLOT_BG            = { 0.08, 0.08, 0.10, 1 }
 local SLOT_BORDER        = { 0.20, 0.20, 0.24, 1 }
 local HIGHLIGHT_COLOR    = { 1, 1, 1, 0.15 }
-local ACCENT_COLOR       = { 0.05, 0.82, 0.62, 1 }
+local ACCENT_COLOR       = { 0.18, 0.62, 0.85, 1 }
 local STAT_GRADIENT      = { 0.8, 0.8, 0.8, 0.12 }
 local TAB_BG_INACTIVE    = { 0.06, 0.06, 0.08, 0.9 }
 local REP_BAR_BG         = { 0.05, 0.05, 0.07, 1 }
@@ -1257,7 +1257,7 @@ local function UpdateItemInfoOverlay(slot, slotName, unit)
         if frame.isBottom then
             -- Weapons: append enchant to ilvl on same line
             local current = frame.infoText:GetText() or ""
-            frame.infoText:SetText(current .. " |cff00d1a0" .. short .. "|r")
+            frame.infoText:SetText(current .. " |cff2e9dd8" .. short .. "|r")
         elseif frame.statText then
             frame.statText:SetText(short)
             frame.statText:Show()
@@ -1613,7 +1613,7 @@ local function SkinCharacterFrame()
         accent:SetHeight(1)
         accent:SetPoint("BOTTOMLEFT", mplusFrame, "BOTTOMLEFT", 0, 0)
         accent:SetPoint("BOTTOMRIGHT", mplusFrame, "BOTTOMRIGHT", 0, 0)
-        accent:SetColorTexture(0.05, 0.82, 0.62, 0.60)
+        accent:SetColorTexture(0.18, 0.62, 0.85, 0.60)
 
         -- Label
         local label = mplusFrame:CreateFontString(nil, "OVERLAY")
@@ -1670,7 +1670,7 @@ local function SkinCharacterFrame()
         -- Tooltip on hover
         mplusFrame:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText("Mythic+ Score", 0.05, 0.82, 0.62)
+            GameTooltip:SetText("Mythic+ Score", 0.18, 0.62, 0.85)
             local score = 0
             if C_ChallengeMode and C_ChallengeMode.GetOverallDungeonScore then
                 score = C_ChallengeMode.GetOverallDungeonScore() or 0
@@ -2142,6 +2142,6 @@ function CS.ApplySettings()
         if _G.InspectFrame and _G.InspectFrame:IsShown() then
             UpdateInspectItemInfoOverlays()
         end
-        print("|cff2ed884TomoMod|r " .. (L["msg_char_skin_reload"] or "Character Skin: /reload to apply changes."))
+        print("|cff2e9dd8TomoMod|r " .. (L["msg_char_skin_reload"] or "Character Skin: /reload to apply changes."))
     end
 end

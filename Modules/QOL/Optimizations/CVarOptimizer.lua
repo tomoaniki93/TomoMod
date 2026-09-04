@@ -197,7 +197,7 @@ function OPT.ApplyAll()
         end
     end
 
-    local msg = string.format("|cff2ed884TomoMod:|r %s (%d ok", TomoMod_L["msg_cvar_applied"], ok)
+    local msg = string.format("|cff2e9dd8TomoMod:|r %s (%d ok", TomoMod_L["msg_cvar_applied"], ok)
     if fail > 0 then msg = msg .. ", " .. fail .. " ignorés" end
     print(msg .. ")")
 
@@ -211,7 +211,7 @@ end
 function OPT.RevertAll()
     local db = TomoModDB and TomoModDB.cvarOptimizer
     if not db or not db.backup then
-        print("|cff2ed884TomoMod:|r " .. TomoMod_L["msg_cvar_no_backup"])
+        print("|cff2e9dd8TomoMod:|r " .. TomoMod_L["msg_cvar_no_backup"])
         return
     end
 
@@ -222,7 +222,7 @@ function OPT.RevertAll()
 
     db.backup = nil
 
-    print(string.format("|cff2ed884TomoMod:|r %s (%d restaurées)", TomoMod_L["msg_cvar_reverted"], ok))
+    print(string.format("|cff2e9dd8TomoMod:|r %s (%d restaurées)", TomoMod_L["msg_cvar_reverted"], ok))
     StaticPopup_Show("TOMOMOD_CVAR_RELOAD")
 end
 
@@ -273,7 +273,7 @@ local function RegisterDialog()
     if dialogRegistered then return end
     dialogRegistered = true
     StaticPopupDialogs["TOMOMOD_CVAR_RELOAD"] = {
-        text = "|cff2ed884TomoMod — CVars|r\n\n"
+        text = "|cff2e9dd8TomoMod — CVars|r\n\n"
             .. "Paramètres appliqués.\n\n"
             .. "|cffffaa00Un ReloadUI est recommandé pour activer certains changements.|r",
         button1 = "ReloadUI",

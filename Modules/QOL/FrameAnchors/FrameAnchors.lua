@@ -68,34 +68,17 @@ local function CreateAnchor(def)
     anchor:SetSize(def.width, def.height)
     anchor:SetFrameStrata("HIGH")
     anchor:SetFrameLevel(200)
+    -- Shared Layout Mode appearance. This frame still owns its drag and save
+    -- behaviour; the common renderer supplies the gradient, edge and label.
+    if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
+        TomoMod_Utils.StyleMoverOverlay(anchor, def.label)
+    end
     anchor:SetMovable(true)
     anchor:SetClampedToScreen(true)
     anchor:EnableMouse(false) -- invisible by default, no mouse
     anchor:SetAlpha(0)
 
-    -- Blue border (visible only when unlocked)
-    anchor:SetBackdrop({
-        bgFile = "Interface\\Buttons\\WHITE8X8",
-        edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = 1,
-    })
-    anchor:SetBackdropColor(0.02, 0.07, 0.05, 0.80)
-    anchor:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.90)
-
-    -- Ligne d'accent teal en haut
-    local accentLine = anchor:CreateTexture(nil, "OVERLAY")
-    accentLine:SetHeight(1)
-    accentLine:SetPoint("TOPLEFT",  anchor, "TOPLEFT",  0, 0)
-    accentLine:SetPoint("TOPRIGHT", anchor, "TOPRIGHT", 0, 0)
-    accentLine:SetColorTexture(0.047, 0.824, 0.624, 0.8)
-
-    -- Label
-    local label = anchor:CreateFontString(nil, "OVERLAY")
-    label:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11, "OUTLINE")
-    label:SetPoint("CENTER")
-    label:SetTextColor(1, 1, 1, 0.90)
-    label:SetText(def.label)
-    anchor.label = label
+    anchor.label = anchor._tmMoverText
 
     -- Drag handling
     anchor:RegisterForDrag("LeftButton")
@@ -215,9 +198,9 @@ end
 function FA.ToggleLock()
     SetLocked(not isLocked)
     if isLocked then
-        print("|cff2ed884TomoMod Anchors:|r " .. L["msg_anchors_locked"])
+        print("|cff2e9dd8TomoMod Anchors:|r " .. L["msg_anchors_locked"])
     else
-        print("|cff2ed884TomoMod Anchors:|r " .. L["msg_anchors_unlocked"])
+        print("|cff2e9dd8TomoMod Anchors:|r " .. L["msg_anchors_unlocked"])
     end
 end
 

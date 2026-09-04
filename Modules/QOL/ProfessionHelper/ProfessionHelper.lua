@@ -10,7 +10,7 @@ local L  = TomoMod_L
 local FONT   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local FONT_B = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 
-local ACCENT  = { 0.047, 0.824, 0.624, 1 }
+local ACCENT  = { 0.180, 0.616, 0.847, 1 }
 local BG      = { 0.08, 0.08, 0.10, 0.97 }
 local BG_DARK = { 0.06, 0.06, 0.08, 1 }
 

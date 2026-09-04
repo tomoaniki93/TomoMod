@@ -909,7 +909,7 @@ local function ApplyNative()
 
     if shouldMute and not touched and not nativeMuteWarned then
         nativeMuteWarned = true
-        print("|cff2ed884TomoMod|r " ..
+        print("|cff2e9dd8TomoMod|r " ..
             (TomoMod_L and TomoMod_L["microbar_native_not_found"] or
              "could not find Blizzard's micro menu to hide"))
     end

@@ -19,7 +19,7 @@ local ADDON_FONT_BOLD  = ADDON_PATH .. "Assets\\Fonts\\Poppins-SemiBold.ttf"
 local L = TomoMod_L
 
 -- Theme
-local ACCENT          = { 0.047, 0.824, 0.624 }
+local ACCENT          = { 0.180, 0.616, 0.847 }
 local BG_COLOR        = { 0.045, 0.045, 0.060 }
 local HEADER_BG       = { 0.065, 0.065, 0.082 }
 local BORDER_COLOR    = { 0.18,  0.18,  0.22 }
@@ -1202,7 +1202,7 @@ local function CreateBagFrame()
     local title = header:CreateFontString(nil, "OVERLAY")
     title:SetFont(ADDON_FONT_BOLD, 13, "")
     title:SetPoint("LEFT", 10, 0)
-    title:SetText("|cff2ed884Bags|r")
+    title:SetText("|cff2e9dd8Bags|r")
 
     -- Space string
     local spaceStr = header:CreateFontString(nil, "OVERLAY")
@@ -1603,7 +1603,7 @@ end
 local function RegisterWithMovers()
     if not TomoMod_Movers or not TomoMod_Movers.RegisterEntry then return end
     TomoMod_Movers.RegisterEntry({
-        label = "Bag Skin",
+        label = (TomoMod_L and TomoMod_L["cfui_btn_bags"]) or "Bags",
         unlock = function()
             if bagFrame then bagFrame:SetMovable(true); bagFrame:EnableMouse(true) end
         end,

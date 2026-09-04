@@ -2055,7 +2055,7 @@ function NP.Enable()
     -- [12.1] The duration ticker is gone: the engine writes the
     -- duration text on its own buttons and keeps it current.
 
-    print("|cff2ed884TomoMod NP:|r " .. TomoMod_L["msg_np_enabled"])
+    print("|cff2e9dd8TomoMod NP:|r " .. TomoMod_L["msg_np_enabled"])
 end
 
 function NP.Disable()

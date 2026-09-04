@@ -351,7 +351,7 @@ local function CreateReputationBar()
         edgeFile = "Interface\\Buttons\\WHITE8X8",
         edgeSize = 1,
     })
-    repBar.unlockBorder:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.90)
+    repBar.unlockBorder:SetBackdropBorderColor(0.180, 0.616, 0.847, 0.90)
     repBar.unlockBorder:Hide()
 
     -- Draggable (Layout Mode)

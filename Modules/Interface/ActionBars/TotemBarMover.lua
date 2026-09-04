@@ -11,8 +11,6 @@
 -- totems out and the container would otherwise be empty.
 -- =====================================================================
 
-local ACCENT = { 0.05, 0.82, 0.62 }   -- same accent Movers.lua uses
-
 local overlay
 
 local function GetDB()
@@ -29,32 +27,13 @@ local function EnsureOverlay(container)
     overlay = CreateFrame("Frame", "TomoModTotemBarMoverOverlay", container)
     overlay:SetAllPoints(container)
     overlay:SetFrameStrata("DIALOG")
-    overlay:Hide()
-
-    local bg = overlay:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints()
-    bg:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.25)
-
-    for _, side in ipairs({ "TOP", "BOTTOM", "LEFT", "RIGHT" }) do
-        local edge = overlay:CreateTexture(nil, "OVERLAY")
-        edge:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 1)
-        if side == "TOP" or side == "BOTTOM" then
-            edge:SetPoint(side .. "LEFT")
-            edge:SetPoint(side .. "RIGHT")
-            edge:SetHeight(1)
-        else
-            edge:SetPoint("TOP" .. side)
-            edge:SetPoint("BOTTOM" .. side)
-            edge:SetWidth(1)
-        end
+    if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
+        TomoMod_Utils.StyleMoverOverlay(
+            overlay,
+            (TomoMod_L and TomoMod_L["mover_totembar"]) or "Totem Bar"
+        )
     end
-
-    local label = overlay:CreateFontString(nil, "OVERLAY")
-    label:SetPoint("CENTER")
-    label:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf", 11, "OUTLINE")
-    label:SetTextColor(1, 1, 1, 1)
-    local L = TomoMod_L
-    label:SetText(L and L["mover_totembar"] or "Totems")
+    overlay:Hide()
 
     return overlay
 end

@@ -71,7 +71,7 @@ end
 -- ---------------------------------------------------------------------
 
 StaticPopupDialogs[POPUP] = {
-    text = "|cff2ed884TomoMod|r\n%s\n\n|cff888888%s|r",
+    text = "|cff2e9dd8TomoMod|r\n%s\n\n|cff888888%s|r",
     button1 = L("mod_reload_now", "Reload now"),
     button2 = L("mod_reload_later", "Later"),
     OnShow = function(self)
@@ -143,7 +143,7 @@ local function BuildBanner()
             edgeSize = 1,
         })
         f:SetBackdropColor(0.06, 0.06, 0.07, 0.94)
-        f:SetBackdropBorderColor(0.18, 0.85, 0.52, 0.85)
+        f:SetBackdropBorderColor(0.18, 0.62, 0.85, 0.85)
     end
 
     local text = f:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
@@ -189,7 +189,7 @@ function UI.RefreshBanner()
     local label = (n == 1)
         and L("mod_pending_one",  "1 module is waiting for a reload:")
         or  L("mod_pending_many", "%d modules are waiting for a reload:"):format(n)
-    f.text:SetText("|cff2ed884TomoMod|r  " .. label .. " |cffaaaaaa" .. PendingText(4) .. "|r")
+    f.text:SetText("|cff2e9dd8TomoMod|r  " .. label .. " |cffaaaaaa" .. PendingText(4) .. "|r")
     f:Show()
 end
 

@@ -71,7 +71,7 @@ function Forge.Studio.Launch(opts)
     local addon  = opts and opts.addon
     local global = opts and opts.global
     local label  = (opts and opts.label) or addon or "Studio"
-    local PREFIX = "|cff2ed884TomoMod|r : "
+    local PREFIX = "|cff2e9dd8TomoMod|r : "
     if not addon or not global then return false end
 
     if not C_AddOns.IsAddOnLoaded(addon) then

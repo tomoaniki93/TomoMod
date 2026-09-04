@@ -101,7 +101,7 @@ local function CreateBanner()
         edgeSize = 2,
     })
     banner:SetBackdropColor(0.06, 0.06, 0.08, 0.95)
-    banner:SetBackdropBorderColor(0.047, 0.824, 0.624, 1)  -- teal #2ed884
+    banner:SetBackdropBorderColor(0.180, 0.616, 0.847, 1)  -- teal #2e9dd8
 
     -- Icône Tête de mort à gauche
     local icon = banner:CreateTexture(nil, "ARTWORK")
@@ -141,12 +141,12 @@ local function CreateBanner()
         self:SetBackdropBorderColor(0.6, 0.95, 0.85, 1)
         GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -4)
         GameTooltip:ClearLines()
-        GameTooltip:AddLine(self.rareName or "Rare", 0.047, 0.824, 0.624)
+        GameTooltip:AddLine(self.rareName or "Rare", 0.180, 0.616, 0.847)
         GameTooltip:AddLine(L["rare_alert_tooltip"], 1, 1, 1, true)
         GameTooltip:Show()
     end)
     banner:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(0.047, 0.824, 0.624, 1)
+        self:SetBackdropBorderColor(0.180, 0.616, 0.847, 1)
         GameTooltip:Hide()
     end)
 

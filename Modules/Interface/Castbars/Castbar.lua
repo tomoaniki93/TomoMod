@@ -367,17 +367,15 @@ function CB.CreateCastbar(unit)
     local dragFrame = CreateFrame("Frame", nil, castbar)
     dragFrame:SetAllPoints(castbar)
     dragFrame:SetFrameLevel(castbar:GetFrameLevel() + 20)
+    if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
+        TomoMod_Utils.StyleMoverOverlay(
+            dragFrame,
+            (TomoMod_Layout and TomoMod_Layout.Label("castbars." .. unit))
+                or (L and L["cb_move_label"])
+        )
+    end
     dragFrame:EnableMouse(false)
     dragFrame:Hide()
-
-    local dragOverlay = dragFrame:CreateTexture(nil, "OVERLAY")
-    dragOverlay:SetAllPoints(dragFrame)
-    dragOverlay:SetColorTexture(1, 1, 0, 0.1)
-
-    local dragLabel = dragFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
-    dragLabel:SetPoint("CENTER", dragFrame, "CENTER")
-    dragLabel:SetTextColor(1, 1, 0)
-    dragLabel:SetText(L["cb_move_label"] or "(Move)")
 
     dragFrame:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then castbar:StartMoving() end
@@ -1333,7 +1331,7 @@ function CB.UnlockPlayerCastbar()
     else
         CB._layoutPreview = false
         local L = TomoMod_L
-        print("|cff2ed884TomoMod|r " .. (L and L["cb_player_missing_notice"]
+        print("|cff2e9dd8TomoMod|r " .. (L and L["cb_player_missing_notice"]
             or "Player Cast Bar isn't enabled — turn it on in Castbars settings before it can be moved."))
     end
 end

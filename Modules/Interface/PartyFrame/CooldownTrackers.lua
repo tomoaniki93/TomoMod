@@ -243,7 +243,7 @@ end
 -- Always visible when unit's class has the ability
 -- Ready = teal border, full alpha | On CD = desaturated + swipe
 -- =====================================
-local TEAL = { 0.047, 0.824, 0.624 }
+local TEAL = { 0.180, 0.616, 0.847 }
 local RED  = { 0.8, 0.2, 0.2 }
 local IDLE = { 0.20, 0.20, 0.20 }
 

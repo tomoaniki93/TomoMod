@@ -11,7 +11,7 @@ TomoMod_MythicPlusLauncher = TomoMod_MythicPlusLauncher or {}
 local B = TomoMod_MythicPlusLauncher
 
 local ADDON = "TomoMod_MythicPlus"
-local PREFIX = "|cff2ed884TomoMod|r Mythic+ : "
+local PREFIX = "|cff2e9dd8TomoMod|r Mythic+ : "
 
 local STRINGS = {
     enUS = {

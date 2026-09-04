@@ -53,7 +53,7 @@ function CreateEditOverlay(container, barKey)
     local overlay = CreateFrame("Frame", nil, container, "BackdropTemplate")
     overlay:SetAllPoints(container)
     -- TomoMod teal, matching the rest of the /tm layout movers
-    ns.SkinBase.ApplyPixelBackdrop(overlay, 2, true, false, {0.047, 0.824, 0.624, 1}, {0.047, 0.824, 0.624, 0.3})
+    ns.SkinBase.ApplyPixelBackdrop(overlay, 2, true, false, {0.180, 0.616, 0.847, 1}, {0.180, 0.616, 0.847, 0.3})
     overlay:EnableMouse(true)
     overlay:SetMovable(true)
     overlay:RegisterForDrag("LeftButton")

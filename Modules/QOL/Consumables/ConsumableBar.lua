@@ -738,14 +738,11 @@ local function CreateBar()
 
     dragOverlay = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     dragOverlay:SetAllPoints()
-    dragOverlay:SetBackdrop({
-        bgFile   = "Interface\\BUTTONS\\WHITE8X8",
-        edgeFile = "Interface\\BUTTONS\\WHITE8X8",
-        edgeSize = 1,
-    })
-    dragOverlay:SetBackdropColor(TEAL.r, TEAL.g, TEAL.b, 0.18)
-    dragOverlay:SetBackdropBorderColor(TEAL.r, TEAL.g, TEAL.b, 0.80)
     dragOverlay:SetFrameLevel(frame:GetFrameLevel() + 20)
+    -- Unified Layout Mode appearance from Core/Utils.lua.
+    if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
+        TomoMod_Utils.StyleMoverOverlay(dragOverlay, (TomoMod_L and TomoMod_L["mover_consumable_bar"]))
+    end
     dragOverlay:EnableMouse(true)
     dragOverlay:RegisterForDrag("LeftButton")
     dragOverlay:SetScript("OnDragStart", function()
@@ -756,11 +753,7 @@ local function CreateBar()
         SavePosition()
     end)
 
-    dragLabel = dragOverlay:CreateFontString(nil, "OVERLAY")
-    dragLabel:SetFont(FONT_BOLD, 9, "OUTLINE")
-    dragLabel:SetPoint("CENTER")
-    dragLabel:SetTextColor(TEAL.r, TEAL.g, TEAL.b)
-    dragLabel:SetText(L and L["mover_consumable_bar"] or "Consommables")
+    dragLabel = dragOverlay._tmMoverText
     dragOverlay:Hide()
 
     local defaultFlaskIcon = GetSpellIconSafe(1235111) or 134906

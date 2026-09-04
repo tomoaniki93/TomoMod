@@ -52,9 +52,9 @@ local QUALITY_COLORS = {
 -- Theme colors matching TomoMod
 local BG_COLOR        = { 0.08, 0.08, 0.10, 0.95 }
 local BG_ROW_ALT      = { 0.10, 0.10, 0.13, 0.80 }
-local BG_ROW_HOVER    = { 0.047, 0.824, 0.624, 0.15 }
+local BG_ROW_HOVER    = { 0.180, 0.616, 0.847, 0.15 }
 local BORDER_COLOR    = { 0.20, 0.20, 0.25, 1 }
-local ACCENT_COLOR    = { 0.047, 0.824, 0.624, 1 }
+local ACCENT_COLOR    = { 0.180, 0.616, 0.847, 1 }
 local TEXT_COLOR      = { 0.90, 0.90, 0.92, 1 }
 local TEXT_DIM_COLOR  = { 0.55, 0.55, 0.60, 1 }
 local HEADER_BG_COLOR = { 0.06, 0.06, 0.08, 1 }

@@ -36,7 +36,7 @@ local PANEL_W, PANEL_H = 1400, 880
 local SIDE_W           = 330
 local TITLE_H          = 52
 local FOOTER_H         = 44
-local BRAND            = { 0.18, 0.85, 0.52 }
+local BRAND            = { 0.18, 0.62, 0.85 }
 
 local CLASS_LIST = {
     { value = "WARRIOR",     text = "Guerrier" },
@@ -813,16 +813,16 @@ local function TabSorts(parent)
             local added, removed, kept = CDF.ResyncBarFromViewer(S.state.class, S.state.barId)
             if not added then
                 if removed == "noapi" then
-                    print("|cff2ed884Cooldown Studio|r : suivi Blizzard indisponible sur ce client.")
+                    print("|cff2e9dd8Cooldown Studio|r : suivi Blizzard indisponible sur ce client.")
                 else
-                    print("|cff2ed884Cooldown Studio|r : aucune capacite suivie pour cette specialisation.")
+                    print("|cff2e9dd8Cooldown Studio|r : aucune capacite suivie pour cette specialisation.")
                 end
                 return
             end
             -- The per-entry editor is keyed by index; the list just moved.
             S.state.fxIdx = nil
             print(string.format(
-                "|cff2ed884Cooldown Studio|r : %d ajoutee(s), %d retiree(s), %d conservee(s).",
+                "|cff2e9dd8Cooldown Studio|r : %d ajoutee(s), %d retiree(s), %d conservee(s).",
                 added, removed, kept))
             Apply(); S.RebuildContent()
         end)
@@ -1379,7 +1379,7 @@ local function TabPartage(parent)
         if ok then
             Apply(); S.RebuildSidebar(); S.RebuildContent()
         else
-            print("|cff2ed884TomoMod|r CD Studio : import echoue (" .. tostring(err or "?") .. ")")
+            print("|cff2e9dd8TomoMod|r CD Studio : import echoue (" .. tostring(err or "?") .. ")")
         end
     end)
     _, cy = W.CreateInfoText(card.inner, "L'import ecrase les barres de la classe contenue dans la chaine (backup automatique cote schema).", cy)
@@ -1525,7 +1525,7 @@ end
 local function BuildWindow()
     local shell = TomoMod_Forge.Studio.CreateShell({
         name         = "TomoModCDStudioFrame",
-        title        = "|cff2ed884Cooldown|r Studio",
+        title        = "|cff2e9dd8Cooldown|r Studio",
         width        = PANEL_W,
         height       = PANEL_H,
         sideWidth    = SIDE_W,
@@ -1606,16 +1606,16 @@ local function BuildWindow()
         local id, info = CDF.CreateBarFromViewer(S.state.class, key)
         if not id then
             if info == "noapi" then
-                print("|cff2ed884Cooldown Studio|r : suivi Blizzard indisponible sur ce client.")
+                print("|cff2e9dd8Cooldown Studio|r : suivi Blizzard indisponible sur ce client.")
             else
                 -- Empty is the normal answer before the client has sent the
                 -- category set, and on a spec Blizzard does not curate.
-                print("|cff2ed884Cooldown Studio|r : aucune capacite suivie pour cette specialisation.")
+                print("|cff2e9dd8Cooldown Studio|r : aucune capacite suivie pour cette specialisation.")
             end
             return
         end
         S.state.barId = id
-        print(string.format("|cff2ed884Cooldown Studio|r : %d capacites importees.", info or 0))
+        print(string.format("|cff2e9dd8Cooldown Studio|r : %d capacites importees.", info or 0))
         Apply(); S.RebuildSidebar(); S.RebuildContent()
     end
 
@@ -1647,7 +1647,7 @@ StaticPopupDialogs["TOMOMOD_CDS_SAFETY_RELOAD"] = {
 }
 
 StaticPopupDialogs["TOMOMOD_CDS_RENAME"] = {
-    text = "|cff2ed884Cooldown Studio|r\n\nNouveau nom de la barre :",
+    text = "|cff2e9dd8Cooldown Studio|r\n\nNouveau nom de la barre :",
     button1 = "Renommer",
     button2 = "Annuler",
     hasEditBox = true,
@@ -1685,7 +1685,7 @@ StaticPopupDialogs["TOMOMOD_CDS_RENAME"] = {
 -- renaming. Empty/Escape still creates one with the default name (never
 -- blocking). Shares the z-order fix so the popup shows above the studio.
 StaticPopupDialogs["TOMOMOD_CDS_CREATE"] = {
-    text = "|cff2ed884Cooldown Studio|r\n\nNom de la nouvelle barre :",
+    text = "|cff2e9dd8Cooldown Studio|r\n\nNom de la nouvelle barre :",
     button1 = "Creer",
     button2 = "Annuler",
     hasEditBox = true,
@@ -1786,7 +1786,7 @@ end
 function S.Open()
     CDF = CDF or TomoMod_CooldownForge
     if not (CDF and CDF.DB and CDF.DB()) then
-        print("|cff2ed884TomoMod|r CD Studio : CooldownForge indisponible.")
+        print("|cff2e9dd8TomoMod|r CD Studio : CooldownForge indisponible.")
         return
     end
     S.state.class = S.state.class or CDF.PlayerClass() or "WARRIOR"

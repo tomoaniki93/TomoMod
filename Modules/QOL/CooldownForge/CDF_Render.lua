@@ -976,7 +976,7 @@ CDF.__entryShown    = entryShown
 -- the tracked-buff work: every step below is a place an icon can silently
 -- vanish, and reading them one by one is faster than guessing.
 function CDF.DumpAura(class)
-    local P = "|cff2ed884TomoMod|r "
+    local P = "|cff2e9dd8TomoMod|r "
     class = class or CDF.PlayerClass()
     local bars = class and CDF.GetClassBars(class)
     if not bars or #bars == 0 then print(P .. "aucune barre pour " .. tostring(class)); return end

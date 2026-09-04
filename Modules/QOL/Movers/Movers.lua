@@ -234,7 +234,7 @@ local function EnsureLayoutGear()
 
     local hl = button:CreateTexture(nil, "HIGHLIGHT")
     hl:SetAllPoints()
-    hl:SetColorTexture(0.05, 0.82, 0.62, 0.22)
+    hl:SetColorTexture(0.18, 0.62, 0.85, 0.22)
 
     button:SetScript("OnEnter", function(self)
         if GameTooltip then
@@ -592,7 +592,7 @@ end
 -- =====================================
 
 local FONT   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Tomo.ttf"
-local ACCENT = { 0.05, 0.82, 0.62 }
+local ACCENT = { 0.18, 0.62, 0.85 }
 local BG     = { 0.04, 0.04, 0.06, 0.92 }
 local BORDER = { 0.08, 0.25, 0.20, 1 }
 
@@ -1060,7 +1060,7 @@ function M.SetUnlocked(unlock)
     -- si le combat démarre alors qu'on est déjà déverrouillé, combatFrame
     -- programme un relock automatique à la sortie du combat.
     if InCombatLockdown() then
-        print("|cff2ed884TomoMod Layout:|r " .. (L and L["layout_combat_blocked"] or "Impossible de déplacer l'interface en combat."))
+        print("|cff2e9dd8TomoMod Layout:|r " .. (L and L["layout_combat_blocked"] or "Impossible de déplacer l'interface en combat."))
         return
     end
 
@@ -1095,9 +1095,9 @@ function M.SetUnlocked(unlock)
     end
 
     if unlock then
-        print("|cff2ed884TomoMod Layout:|r " .. L["layout_unlocked"])
+        print("|cff2e9dd8TomoMod Layout:|r " .. L["layout_unlocked"])
     else
-        print("|cff2ed884TomoMod Layout:|r " .. L["layout_locked"])
+        print("|cff2e9dd8TomoMod Layout:|r " .. L["layout_locked"])
     end
 end
 
@@ -1108,7 +1108,7 @@ function M.Toggle()
     if not initialized then
         local ok, err = pcall(M.Initialize)
         if not ok then
-            print("|cff2ed884TomoMod Layout:|r |cffff4040Initialization failed:|r " .. tostring(err))
+            print("|cff2e9dd8TomoMod Layout:|r |cffff4040Initialization failed:|r " .. tostring(err))
             return
         end
     end

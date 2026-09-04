@@ -130,6 +130,15 @@
 - **New** - The selected mover is outlined in teal with a faint fill. Its border and gap remain two physical pixels at every UI scale, follow the frame while it moves and disappear when the selection ends, the frame is hidden or Layout Mode closes.
 - **Internal** - Layout Engine tests now exercise complete save/apply round trips at 0.8, 1.25 and 2.0 scale, physical-position matching and tolerance. The layout-gear test also checks the inverse contract: every anchor declared in the manifest must have a live options route, and every coverage entry must still name a declared anchor.
 
+#### Visual Identity — Azure
+
+- **Changed** - TomoMod's visual identity is unified around azure `#2E9DD8` throughout the core, modules, options and load-on-demand companion addons. Residual mint and teal accent literals in titles, buttons, borders, messages and defaults have been replaced, while semantic success, warning, error, class and item-quality colours remain independent.
+- **Changed** - The shared brand palette now defines the base, hover and pressed accents plus blue-cast deep, normal and raised surfaces in one source of truth. Components can consume the same values instead of maintaining near-duplicate local palettes, preserving contrast against dark game backgrounds.
+- **Changed** - Layout mover overlays share one reusable style: an opaque azure-to-near-white gradient, a high-contrast border and a centred dark-azure label with a light shadow. The inner name band has been removed so small movers no longer look like a box inside a box, while repeated styling calls still reuse existing textures.
+- **Fixed** - Boss Frames, Class Reminder, the Consumable Bar and the Objective Tracker now reuse the shared mover label instead of drawing a second label over it. The Objective Tracker reports its scale through the localized shared label, and the Bags mover now uses its existing six-language Bags name.
+- **Changed** - The shared mover renderer now also covers the Compass, Cooldown Manager holders, Frame Anchors, Minimap, player Cast Bar and Totem Bar. Their existing drag and save behaviour remains unchanged, while obsolete local backgrounds, borders and duplicate labels have been removed.
+- **Internal** - The out-of-game brand identity bench scans more than 100 Lua sources, verifies hexadecimal/RGB consistency and the palette hierarchy, rejects the previous mint and unexpected residual teal accents, checks ten migrated mover overlays, and fails if a migrated module recreates its own label.
+
 #### Blizzard Aura Frames
 
 - **New** - Interface > General can now manage Blizzard's default buff and debuff frames separately. You can keep either one visible, hide either one, or disable TomoMod's management entirely; every choice applies immediately without a reload.
@@ -3008,15 +3017,15 @@ The two Micro Menu code paths above still left two different systems touching `m
 
 ## CHANGELOG 3.1.2 — Brand Color Refresh & Code Fixes
 
-#### UI — Brand Color Updated (#0cd29f → #2ed884)
-- **Change** — The addon accent color has been updated from the old teal `#0cd29f` to a new mint green `#2ed884` across the entire interface: title bar, all Config panels, chat messages, in-game popups, progress-bar tints and every default color value stored in the database.
-- **Change** — Every RGB float triplet (`0.047, 0.824, 0.624`) that was previously hardcoded has been replaced with a reference to the new centralised `TomoMod_Utils.BRAND` constant, so a future recolor only requires changing one place.
+#### UI — Brand Color Updated (#0cd29f → #2e9dd8)
+- **Change** — The addon accent color has been updated from the old teal `#0cd29f` to the azure `#2e9dd8` across the entire interface: title bar, all Config panels, chat messages, in-game popups, progress-bar tints and every default color value stored in the database.
+- **Change** — Every RGB float triplet (`0.180, 0.616, 0.847`) that was previously hardcoded has been replaced with a reference to the new centralised `TomoMod_Utils.BRAND` constant, so a future recolor only requires changing one place.
 
 #### Core — BRAND Color Constants (New API)
-- **New** — `TomoMod_Utils.BRAND` `{ r, g, b }` — primary mint accent (`#2ED884`).
+- **New** — `TomoMod_Utils.BRAND` `{ r, g, b }` — primary azure accent (`#2e9dd8`).
 - **New** — `TomoMod_Utils.BRAND_DARK` `{ r, g, b }` — darker pressed-state variant (`#1C8A55`).
 - **New** — `TomoMod_Utils.BRAND_HOVER` `{ r, g, b }` — lighter hover-state variant (`#52F0A6`).
-- **New** — `TomoMod_Utils.BRAND_HEX` — hex string `"2ed884"` for use in `|cff` color codes.
+- **New** — `TomoMod_Utils.BRAND_HEX` — hex string `"2e9dd8"` for use in `|cff` color codes.
 - All `Config/` panels, the `Widgets.lua` Theme table (`accent`, `accentDark`, `accentHover`, `accentBg`, `textHeader`) and the `Installer.lua` local palette now read from these constants.
 
 #### QOL — CompanionStatus Global Leak Fix
@@ -4765,7 +4774,7 @@ Two QOL features merged into a single lightweight module, inspired by ElvUI_Wind
 - **MythicHub**: Fixed "attempt to compare number with table" — `C_MythicPlus.GetSeasonBestForMap()` now returns an info table instead of two numbers; added `type(result)` check to handle both new table format and legacy number format
 
 #### BuffSkin — Visual Improvements
-- **Teal border**: All buff and debuff icons now display a teal border (addon accent color `0.047, 0.824, 0.624`) instead of black (buffs) / dark red (debuffs); debuffs retain red glow to distinguish them
+- **Azure border**: All buff and debuff icons now display an azure border (addon accent color `0.180, 0.616, 0.847`) instead of black (buffs) / dark red (debuffs); debuffs retain red glow to distinguish them
 - **Fixed dark overlay on icons**: Removed Blizzard circular mask (`SetMask("")`, `IconMask:Hide()`, `CircleMask:Hide()`), hidden `IconOverlay` and `Highlight` overlays that were darkening the icon textures; also checks `IconBorder` in addition to `Border`
 
 #### Slash Commands
@@ -5125,7 +5134,7 @@ Two QOL features merged into a single lightweight module, inspired by ElvUI_Wind
 
 ### Ameliorations internes
 - Added `IsLocked()` to all mobile modules (UnitFrames, BossFrames, ResourceBars, LevelingBar)
-- Improved synchronization between layout mode and the actual state of modules 
+- Improved synchronization between layout mode and the actual state of modules
 
 ## ####################################
 

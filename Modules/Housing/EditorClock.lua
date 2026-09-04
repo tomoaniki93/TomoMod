@@ -169,7 +169,7 @@ function ClockUIMixin:ShowTooltip()
     tooltip:AddDoubleLine((L and L["housing_clock_total"])   or "Total:",    Counter:GetLifetimeText(), 1, 0.82, 0, 1, 1, 1)
 
     tooltip:AddLine(" ")
-    tooltip:AddLine((L and L["housing_clock_rightclick"]) or "Right-click to toggle analog/digital", 0.05, 0.82, 0.62, true)
+    tooltip:AddLine((L and L["housing_clock_rightclick"]) or "Right-click to toggle analog/digital", 0.18, 0.62, 0.85, true)
     tooltip:Show()
 end
 
@@ -249,7 +249,7 @@ function Handler:Init()
     local dot = f:CreateTexture(nil, "OVERLAY", nil, 1)
     dot:SetSize(6, 6)
     dot:SetPoint("CENTER", f, "CENTER", 0, 0)
-    dot:SetColorTexture(0.05, 0.82, 0.62, 1)
+    dot:SetColorTexture(0.18, 0.62, 0.85, 1)
 
     -- Digital fallback text (Poppins for consistency)
     local FONT_DIGITAL = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"

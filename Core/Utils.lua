@@ -19,10 +19,28 @@ local U = TomoMod_Utils
 -- TomoMod brand accent. To recolor the whole UI, change these three values.
 -- BRAND_HEX feeds the |cff color codes; BRAND / BRAND_DARK feed all float
 -- (r, g, b) accents across the suite.
-U.BRAND_HEX   = "2ed884"                    -- #2ED884
-U.BRAND       = { 0.180, 0.847, 0.518 }     -- #2ED884  (mint accent)
-U.BRAND_HOVER = { 0.322, 0.941, 0.651 }     -- lighter shade for hover states
-U.BRAND_DARK  = { 0.110, 0.541, 0.333 }     -- darker shade for pressed states
+-- v4 identity: azure, replacing the mint that another published addon had
+-- settled on independently. Same perceived lightness, so contrast against the
+-- dark surfaces is unchanged and nothing needed re-tuning around it.
+U.BRAND_HEX   = "2e9dd8"                    -- #2E9DD8
+U.BRAND       = { 0.180, 0.616, 0.847 }     -- #2E9DD8  (azure accent)
+U.BRAND_HOVER = { 0.373, 0.737, 0.941 }     -- lighter shade for hover states
+U.BRAND_DARK  = { 0.110, 0.373, 0.541 }     -- darker shade for pressed states
+
+-- Mover overlay palette. Kept apart from BRAND because these are surfaces,
+-- not accents: the overlay has to hide what sits under it, so its colours are
+-- opaque where BRAND is used at low alpha almost everywhere else.
+U.MOVER_GRAD_TOP = { 0.180, 0.616, 0.847 }  -- azure, top of the gradient
+U.MOVER_GRAD_BOT = { 0.902, 0.949, 0.980 }  -- near-white, bottom
+U.MOVER_BAND     = { 0.055, 0.165, 0.239 }  -- #0E2A3D, the label band
+U.MOVER_BORDER   = { 0.373, 0.737, 0.941 }
+
+-- Surfaces. The old values sat around 0.06 and read as flat black next to the
+-- azure; lifted slightly and given a blue cast so they belong to the same
+-- palette without losing contrast against the game world.
+U.SURFACE_DEEP   = { 0.055, 0.063, 0.078 }
+U.SURFACE        = { 0.086, 0.098, 0.118 }
+U.SURFACE_RAISED = { 0.118, 0.133, 0.157 }
 
 -- =====================================
 -- STATIC POPUP COMPAT  (11.2 rewrite)
@@ -533,10 +551,83 @@ end
 -- LOCK/UNLOCK DRAG SYSTEM
 -- =====================================
 
--- [PERF] Constant color tables — shared by all draggable frames
-local DRAG_ACCENT = { U.BRAND[1], U.BRAND[2], U.BRAND[3] }
-local DRAG_BG_COL = { 0.02, 0.07, 0.05, 0.80 }
-local DRAG_BD_COL = { U.BRAND[1], U.BRAND[2], U.BRAND[3], 0.60 }
+-- Les tables de couleurs de la superposition vivent desormais dans
+-- U.MOVER_* : la fabrique de style les lit directement.
+
+-- =====================================
+-- MOVER OVERLAY — unified appearance
+-- =====================================
+-- Thirteen modules drew their own drag overlay, each with its own colours,
+-- height and label placement. On screen that read as thirteen different
+-- widgets rather than one edit mode: some were bare grey boxes, some had an
+-- accent line, some tinted the frame underneath.
+--
+-- This is the single definition. It styles whatever frame it is handed, so a
+-- module keeps the drag and save logic that already works and only gives up
+-- the drawing. Calling it twice on the same frame reuses the textures instead
+-- of stacking new ones.
+--
+-- The gradient is opaque on purpose: the overlay has to hide what sits under
+-- it. A raid grid or a full action bar showing through made it impossible to
+-- see where one movable element ended and the next began.
+function U.StyleMoverOverlay(overlay, labelText)
+    if not overlay or not overlay.CreateTexture then return nil end
+
+    local top, bot = U.MOVER_GRAD_TOP, U.MOVER_GRAD_BOT
+    local band, edgeC = U.MOVER_BAND, U.MOVER_BORDER
+
+    local grad = overlay._tmMoverGrad
+    if not grad then
+        grad = overlay:CreateTexture(nil, "BACKGROUND")
+        grad:SetAllPoints(overlay)
+        overlay._tmMoverGrad = grad
+    end
+    grad:SetTexture("Interface\\Buttons\\WHITE8X8")
+    -- SetGradient took loose numbers before the CreateColor signature landed;
+    -- the pcall keeps the overlay drawn rather than blank if a client differs.
+    local okGrad = false
+    if CreateColor then
+        okGrad = pcall(grad.SetGradient, grad, "VERTICAL",
+            CreateColor(bot[1], bot[2], bot[3], 0.94),
+            CreateColor(top[1], top[2], top[3], 0.94))
+    end
+    if not okGrad then
+        grad:SetColorTexture(top[1], top[2], top[3], 0.94)
+    end
+
+    local edge = overlay._tmMoverEdge
+    if not edge then
+        edge = overlay:CreateTexture(nil, "BORDER")
+        overlay._tmMoverEdge = edge
+    end
+    edge:ClearAllPoints()
+    edge:SetPoint("TOPLEFT", overlay, "TOPLEFT", -1, 1)
+    edge:SetPoint("BOTTOMRIGHT", overlay, "BOTTOMRIGHT", 1, -1)
+    edge:SetColorTexture(edgeC[1], edgeC[2], edgeC[3], 0.85)
+
+    -- No plate behind the label: on small movers it looked like a box inside
+    -- another box. Dark azure text with a light shadow stays readable across
+    -- both ends of the opaque azure-to-white gradient.
+
+    local text = overlay._tmMoverText
+    if not text then
+        text = overlay:CreateFontString(nil, "OVERLAY")
+        text:SetPoint("CENTER", overlay, "CENTER", 0, 0)
+        overlay._tmMoverText = text
+    end
+    text:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11)
+    text:SetTextColor(band[1], band[2], band[3], 1)
+    if text.SetShadowColor then
+        text:SetShadowColor(1, 1, 1, 0.85)
+        text:SetShadowOffset(1, -1)
+    end
+    text:SetText(labelText or (TomoMod_L and TomoMod_L["mover_generic"]) or "Move")
+
+    overlay.SetMoverLabel = function(_, newText)
+        if newText then text:SetText(newText) end
+    end
+    return overlay
+end
 
 function U.SetupDraggable(frame, savePositionCallback, labelText)
     if not frame then return end
@@ -544,69 +635,52 @@ function U.SetupDraggable(frame, savePositionCallback, labelText)
     frame:SetMovable(true)
     frame:SetClampedToScreen(true)
 
-    local ACCENT = DRAG_ACCENT
-    local BG_COL = DRAG_BG_COL
-    local BD_COL = DRAG_BD_COL
-
     local dragFrame = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     dragFrame:SetAllPoints(frame)
     dragFrame:SetFrameLevel(frame:GetFrameLevel() + 20)
     dragFrame:EnableMouse(false)
     dragFrame:Hide()
 
-    dragFrame:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8X8",
-        edgeFile = "Interface\\Buttons\\WHITE8X8",
-        edgeSize = 1,
-    })
-    dragFrame:SetBackdropColor(BG_COL[1], BG_COL[2], BG_COL[3], BG_COL[4])
-    dragFrame:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
-
-    local accentLine = dragFrame:CreateTexture(nil, "OVERLAY")
-    accentLine:SetHeight(1)
-    accentLine:SetPoint("TOPLEFT",  dragFrame, "TOPLEFT",  0, 0)
-    accentLine:SetPoint("TOPRIGHT", dragFrame, "TOPRIGHT", 0, 0)
-    accentLine:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.8)
-
-    local dragLabel = dragFrame:CreateFontString(nil, "OVERLAY")
-    dragLabel:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", 11, "OUTLINE")
-    dragLabel:SetPoint("CENTER", dragFrame, "CENTER")
-    dragLabel:SetTextColor(1, 1, 1, 0.90)
-    -- The fallback used to be a hardcoded French "Déplacer", which every
-    -- unit frame and the resource bar container got because they passed
-    -- no label: six overlays on screen at once, all reading the same
-    -- word, none of them saying which frame was under the cursor. Callers
-    -- now pass a name from TomoMod_Layout.Label(); the remaining fallback
-    -- is the generic verb in the player's own language.
-    dragLabel:SetText(labelText or (TomoMod_L and TomoMod_L["mover_generic"]) or "Move")
+    -- Rendu delegue a U.StyleMoverOverlay : une seule definition pour les
+    -- treize modules, au lieu d'un backdrop et d'une ligne d'accent recopies
+    -- ici et redessines differemment ailleurs.
+    U.StyleMoverOverlay(dragFrame, labelText)
+    local dragLabel = dragFrame._tmMoverText
     frame.dragLabel = dragLabel
 
     --- Lets a caller rename the overlay after creation -- boss frames are
     --- spawned from one factory and only learn their index afterwards.
     frame.SetDragLabel = function(_, text)
-        if text then dragLabel:SetText(text) end
+        if dragFrame.SetMoverLabel then dragFrame:SetMoverLabel(text) end
     end
 
     dragFrame:SetScript("OnMouseDown", function(self, button)
         if button == "LeftButton" then
             frame:StartMoving()
-            self:SetBackdropBorderColor(1, 1, 1, 1)
+            if self._tmMoverEdge then self._tmMoverEdge:SetColorTexture(1, 1, 1, 1) end
         end
     end)
     dragFrame:SetScript("OnMouseUp", function(self, button)
         if button == "LeftButton" then
             frame:StopMovingOrSizing()
-            self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
+            if self._tmMoverEdge then
+                local b = U.MOVER_BORDER
+                self._tmMoverEdge:SetColorTexture(b[1], b[2], b[3], 0.85)
+            end
             if savePositionCallback then savePositionCallback() end
         end
     end)
+    -- Survol : la bordure s'eclaircit. Le libelle ne change plus de couleur --
+    -- il est blanc sur bandeau azur fonce, le passer en azur le ferait
+    -- disparaitre dans son propre fond.
     dragFrame:SetScript("OnEnter", function(self)
-        self:SetBackdropBorderColor(1, 1, 1, 1)
-        dragLabel:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3], 1)
+        if self._tmMoverEdge then self._tmMoverEdge:SetColorTexture(1, 1, 1, 1) end
     end)
     dragFrame:SetScript("OnLeave", function(self)
-        self:SetBackdropBorderColor(BD_COL[1], BD_COL[2], BD_COL[3], BD_COL[4])
-        dragLabel:SetTextColor(1, 1, 1, 0.90)
+        if self._tmMoverEdge then
+            local b = U.MOVER_BORDER
+            self._tmMoverEdge:SetColorTexture(b[1], b[2], b[3], 0.85)
+        end
     end)
 
     frame.dragFrame = dragFrame

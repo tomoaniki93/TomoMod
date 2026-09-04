@@ -11,7 +11,7 @@ Chat.RegisterModule("Messages", Messages)
 
 Messages.classByName = {}
 
-local TEAL = "|cff2ed884"
+local TEAL = "|cff2e9dd8"
 local RESET = "|r"
 local issecretvalue = issecretvalue
 

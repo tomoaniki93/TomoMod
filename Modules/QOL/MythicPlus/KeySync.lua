@@ -101,7 +101,7 @@ local function Fire(fullName)
         local ok, err = pcall(cb.fn, fullName, KS.Data[fullName], KS.Data)
         if not ok then
             -- A broken listener must not take the sync down with it.
-            print("|cff2ed884TomoMod|r KeySync: callback error (" .. tostring(cb.owner) .. "): " .. tostring(err))
+            print("|cff2e9dd8TomoMod|r KeySync: callback error (" .. tostring(cb.owner) .. "): " .. tostring(err))
         end
     end
 end
@@ -336,17 +336,17 @@ end)
 -- Slash helper: /tmt keysync
 -- ---------------------------------------------------------------------
 function KS.Debug()
-    print("|cff2ed884TomoMod|r KeySync: prefix " .. PREFIX
+    print("|cff2e9dd8TomoMod|r KeySync: prefix " .. PREFIX
         .. ", channel " .. tostring(GroupChannel() or "none")
         .. ", guild " .. tostring(IsInGuild() and "yes" or "no"))
 
     local count = 0
     for name, entry in pairs(KS.Data) do
         count = count + 1
-        print(string.format("  |cff2ed884%s|r  +%d  map %d", name,
+        print(string.format("  |cff2e9dd8%s|r  +%d  map %d", name,
             entry.level or 0, entry.challengeMapID or 0))
     end
-    print("|cff2ed884TomoMod|r KeySync: " .. count .. " entries stored.")
+    print("|cff2e9dd8TomoMod|r KeySync: " .. count .. " entries stored.")
 
     -- Resolve each group member the way the key viewer does, so a silent
     -- transport can be told apart from a lookup that never matched.
@@ -361,5 +361,5 @@ function KS.Debug()
     end
 
     KS.RequestKeystoneDataFromParty()
-    print("|cff2ed884TomoMod|r KeySync: request sent, re-run in a second.")
+    print("|cff2e9dd8TomoMod|r KeySync: request sent, re-run in a second.")
 end

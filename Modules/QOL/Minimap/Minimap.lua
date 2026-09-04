@@ -53,7 +53,7 @@ function TomoMod_Minimap.MakeSquare()
     Minimap:SetArchBlobRingScalar(0)
     Minimap:SetQuestBlobRingScalar(0)
     Minimap:SetSize(TomoModDB.minimap.size, TomoModDB.minimap.size)
-    
+
     -- Cache les éléments ronds de Blizzard
     local framesToHide = {
         MinimapBorder,
@@ -64,7 +64,7 @@ function TomoMod_Minimap.MakeSquare()
         MiniMapWorldMapButton,
         MinimapCompassTexture,
     }
-    
+
     for _, frame in pairs(framesToHide) do
         if frame then
             frame:Hide()
@@ -72,13 +72,13 @@ function TomoMod_Minimap.MakeSquare()
             frame:EnableMouse(false)
         end
     end
-    
+
     -- Sécurité supplémentaire
     if MinimapBorder then MinimapBorder:Hide() end
     if MinimapBorderTop then MinimapBorderTop:Hide() end
     if MinimapZoomIn then MinimapZoomIn:Hide() end
     if MinimapZoomOut then MinimapZoomOut:Hide() end
-    
+
     Minimap:SetClampedToScreen(true)
 end
 
@@ -89,12 +89,12 @@ function TomoMod_Minimap.CreateBorder()
         minimapBorder:SetAllPoints(Minimap)
         minimapBorder:SetFrameLevel(Minimap:GetFrameLevel() + 1)
     end
-    
+
     local r, g, b, a = 0, 0, 0, 1
     if TomoModDB.minimap.borderColor == "class" then
         r, g, b, a = TomoMod_Utils.GetClassColor()
     end
-    
+
     minimapBorder:SetBackdrop({
         edgeFile = "Interface\\Buttons\\WHITE8X8",
         edgeSize = 2,
@@ -237,7 +237,7 @@ local function OpenTrackingPanel()
         t:SetFont(TM_PANEL_FONT_BOLD, 11, "")
         t:SetPoint("TOPLEFT", PAD, -PAD)
         t:SetText(MINIMAP_TRACKING_TITLE or TRACKING or "Pistage")
-        t:SetTextColor(0.05, 0.82, 0.62, 1)
+        t:SetTextColor(0.18, 0.62, 0.85, 1)
 
         -- Séparateur horizontal
         local sep = trackingPanel:CreateTexture(nil, "ARTWORK")
@@ -307,7 +307,7 @@ local function OpenTrackingPanel()
             row.lbl = lbl
 
             row:SetScript("OnEnter", function(self)
-                self.hl:SetColorTexture(0.05, 0.82, 0.62, 0.12)
+                self.hl:SetColorTexture(0.18, 0.62, 0.85, 0.12)
                 self.lbl:SetTextColor(1, 1, 1, 1)
             end)
             row:SetScript("OnLeave", function(self)
@@ -338,7 +338,7 @@ local function OpenTrackingPanel()
         end
         local function Refresh()
             if IsActive() then
-                row.chk:SetColorTexture(0.05, 0.82, 0.62, 1)
+                row.chk:SetColorTexture(0.18, 0.62, 0.85, 1)
             else
                 row.chk:SetColorTexture(0.3, 0.3, 0.35, 0.8)
             end
@@ -1218,7 +1218,7 @@ function TomoMod_Minimap.CreateButtonBag()
         title:SetFont(FONT_BOLD, 11, "")
         title:SetPoint("TOPLEFT", 8, -8)
         title:SetText(TomoMod_L["minimap_buttonbag"] or "Boutons d'addon")
-        title:SetTextColor(0.05, 0.82, 0.62, 1)
+        title:SetTextColor(0.18, 0.62, 0.85, 1)
 
         -- Séparateur horizontal
         local sep = bagFrame:CreateTexture(nil, "ARTWORK")
@@ -1390,22 +1390,17 @@ end
 
 local function CreateMoverOverlay()
     if moverOverlay then return end
-    local FONT = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
     moverOverlay = CreateFrame("Frame", nil, Minimap, "BackdropTemplate")
     moverOverlay:SetAllPoints(Minimap)
     moverOverlay:SetFrameLevel(Minimap:GetFrameLevel() + 10)
-    moverOverlay:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 2,
-    })
-    moverOverlay:SetBackdropColor(0.047, 0.824, 0.624, 0.25)
-    moverOverlay:SetBackdropBorderColor(0.047, 0.824, 0.624, 0.8)
-    local label = moverOverlay:CreateFontString(nil, "OVERLAY")
-    label:SetFont(FONT, 12, "OUTLINE")
-    label:SetPoint("CENTER")
-    label:SetText("Minimap")
-    label:SetTextColor(1, 1, 1, 1)
+    if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
+        TomoMod_Utils.StyleMoverOverlay(
+            moverOverlay,
+            (TomoMod_Layout and TomoMod_Layout.Label("minimap"))
+                or (TomoMod_L and TomoMod_L["mover_minimap"])
+                or "Minimap"
+        )
+    end
     moverOverlay:Hide()
 end
 
@@ -1444,7 +1439,7 @@ end
 -- Appliquer tous les paramètres
 function TomoMod_Minimap.ApplySettings()
     if not TomoModDB.minimap.enabled then return end
-    
+
     TomoMod_Minimap.MakeSquare()
     TomoMod_Minimap.CreateBorder()
     TomoMod_Minimap.ApplyScale()

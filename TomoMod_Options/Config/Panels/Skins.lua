@@ -942,7 +942,7 @@ StaticPopupDialogs["TOMOMOD_CLEAR_CHAT_HISTORY"] = {
         if TomoMod_ChatFrameSkin and TomoMod_ChatFrameSkin.ClearChatHistory then
             n = TomoMod_ChatFrameSkin.ClearChatHistory() or 0
         end
-        print("|cff2ed884TomoMod|r " .. string.format(L["msg_chat_history_cleared"], n))
+        print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_chat_history_cleared"], n))
     end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }

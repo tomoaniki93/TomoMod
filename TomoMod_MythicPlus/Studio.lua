@@ -12,7 +12,7 @@ local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf
 local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local WHITE8    = "Interface\\Buttons\\WHITE8x8"
 
-local DEFAULT_STUDIO_ACCENT = { 0.18, 0.85, 0.52, 1 }
+local DEFAULT_STUDIO_ACCENT = { 0.18, 0.62, 0.85, 1 }
 local DEFAULT_STUDIO_BG_ALPHA = 0.98
 
 local C = {
@@ -767,7 +767,7 @@ local function PreviewPalette(db)
     local colors = EnsureTrackerColors(db)
     if db.useCustomColors then return colors end
     local U = TomoMod_Utils
-    local brand = (U and U.BRAND) or {0.180,0.847,0.518}
+    local brand = (U and U.BRAND) or {0.180,0.616,0.847}
     return {
         accent={r=brand[1],g=brand[2],b=brand[3]}, background=TRACKER_COLOR_DEFAULTS.background,
         header=TRACKER_COLOR_DEFAULTS.header, text=TRACKER_COLOR_DEFAULTS.text,
@@ -924,7 +924,7 @@ end
 function MP:BeginTrackerEditMode()
     local active = C_ChallengeMode and C_ChallengeMode.IsChallengeModeActive and C_ChallengeMode.IsChallengeModeActive()
     if active then
-        print("|cff2ed884TomoMod|r Mythic+ : " .. self:T("tracker_edit_blocked"))
+        print("|cff2e9dd8TomoMod|r Mythic+ : " .. self:T("tracker_edit_blocked"))
         return
     end
     local T = TomoMod_MythicTracker
