@@ -1,5 +1,5 @@
 -- =====================================================================
--- LayoutV41.lua — Pixel Perfect, Nudger & Layout Links
+-- LayoutV41.lua — TomoLayout precision placement & layout links
 -- Original TomoMod implementation. No third-party layout code is used.
 -- =====================================================================
 
@@ -25,6 +25,8 @@ local nudger
 local anchorIndex
 local applyingSnap = false
 local applyingLink = false
+local selectionHooks = setmetatable({}, { __mode = "k" })
+local selectionOutline
 
 local function Settings()
     if not TomoModDB then return nil end
@@ -318,17 +320,163 @@ function P.SetPlayerTargetMirror(enabled)
     P.RefreshUI()
 end
 
+local function EnsureSelectionOutline()
+    if selectionOutline then return selectionOutline end
+
+    local f = CreateFrame("Frame", "TomoModLayoutSelectionOutline", UIParent)
+    f:SetFrameStrata("DIALOG")
+    f:SetFrameLevel(608)
+    f:EnableMouse(false)
+    f:Hide()
+
+    local function Line()
+        local tex = f:CreateTexture(nil, "OVERLAY")
+        tex:SetTexture(WHITE)
+        tex:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 1)
+        return tex
+    end
+
+    f._top = Line()
+    f._bottom = Line()
+    f._left = Line()
+    f._right = Line()
+
+    -- A second, faint shell separates the selected mover from teal artwork
+    -- that may already exist inside the module itself.
+    local glow = f:CreateTexture(nil, "BACKGROUND")
+    glow:SetAllPoints()
+    glow:SetTexture(WHITE)
+    glow:SetColorTexture(ACCENT[1], ACCENT[2], ACCENT[3], 0.055)
+    f._fill = glow
+
+    selectionOutline = f
+    return f
+end
+
+local function RefreshSelectionOutline()
+    local f = EnsureSelectionOutline()
+    if not editModeActive or not selectedFrame
+        or not selectedFrame.IsShown or not selectedFrame:IsShown() then
+        f:Hide()
+        return
+    end
+
+    local px, py = P.PixelSize()
+    px = (px and px > 0) and px or 1
+    py = (py and py > 0) and py or 1
+
+    -- Two *physical* pixels regardless of UI scale, plus a two-pixel gap so
+    -- the highlight never hides the mover's own border.
+    local thickX, thickY = px * 2, py * 2
+    local gapX, gapY = px * 2, py * 2
+
+    f:ClearAllPoints()
+    f:SetPoint("TOPLEFT", selectedFrame, "TOPLEFT", -gapX, gapY)
+    f:SetPoint("BOTTOMRIGHT", selectedFrame, "BOTTOMRIGHT", gapX, -gapY)
+
+    f._top:ClearAllPoints()
+    f._top:SetPoint("TOPLEFT")
+    f._top:SetPoint("TOPRIGHT")
+    f._top:SetHeight(thickY)
+
+    f._bottom:ClearAllPoints()
+    f._bottom:SetPoint("BOTTOMLEFT")
+    f._bottom:SetPoint("BOTTOMRIGHT")
+    f._bottom:SetHeight(thickY)
+
+    f._left:ClearAllPoints()
+    f._left:SetPoint("TOPLEFT")
+    f._left:SetPoint("BOTTOMLEFT")
+    f._left:SetWidth(thickX)
+
+    f._right:ClearAllPoints()
+    f._right:SetPoint("TOPRIGHT")
+    f._right:SetPoint("BOTTOMRIGHT")
+    f._right:SetWidth(thickX)
+
+    f:Show()
+end
+
 function P.SelectFrame(frame)
+    if not editModeActive then return false end
     local anchorID = P.ResolveAnchorID(frame)
     if not anchorID or not Store(anchorID) then return false end
     selectedFrame = frame
     selectedAnchorID = anchorID
+    RefreshSelectionOutline()
+    if nudger then nudger:Show() end
     P.RefreshUI()
     return true
 end
 
 function P.GetSelection()
     return selectedFrame, selectedAnchorID
+end
+
+local SELECTION_ANCHORS = {
+    "unitFrames.player", "unitFrames.target", "unitFrames.focus",
+    "castbars.player", "resourceBars",
+    "partyFrames", "partyFrames.arena", "raidFrames", "battleRez",
+    "objectiveTracker", "mythicTracker", "minimap", "skyRide",
+}
+
+local function BindSelectionFrame(frame)
+    if not frame or selectionHooks[frame] then return end
+
+    -- SetupDraggable owners expose a dedicated, non-secure mover overlay.
+    -- Selecting from that overlay avoids touching the underlying unit button.
+    local drag = frame.dragFrame
+    if drag and drag.HookScript then
+        drag:HookScript("OnMouseDown", function(_, button)
+            if button == "LeftButton" and editModeActive then P.SelectFrame(frame) end
+        end)
+        selectionHooks[frame] = true
+        return
+    end
+
+    -- A few TomoMod movers (Minimap/Mythic tracker/etc.) own their drag
+    -- scripts directly. Hook the existing drag start rather than replacing it.
+    if frame.HookScript then
+        local ok = pcall(frame.HookScript, frame, "OnDragStart", function()
+            if editModeActive then P.SelectFrame(frame) end
+        end)
+        if ok then selectionHooks[frame] = true end
+    end
+end
+
+function P.BindSelectionFrames()
+    for i = 1, #SELECTION_ANCHORS do
+        BindSelectionFrame(FindFrame(SELECTION_ANCHORS[i]))
+    end
+end
+
+local function SelectionRoute()
+    if not selectedFrame then return nil end
+    if selectedFrame == _G.Minimap then return "general" end
+
+    local movers = TomoMod_Movers
+    if not movers or not movers.RouteForName then return nil end
+
+    local frame, depth = selectedFrame, 0
+    while frame and depth < 12 do
+        local name = frame.GetName and frame:GetName()
+        if name then
+            local route = movers.RouteForName(name)
+            if route then return route end
+        end
+        frame = frame.GetParent and frame:GetParent() or nil
+        depth = depth + 1
+    end
+end
+
+function P.ConfigureSelection()
+    local movers = TomoMod_Movers
+    local route = SelectionRoute()
+    if route and movers and movers.OpenConfigRoute then
+        movers.OpenConfigRoute(route)
+        return true
+    end
+    return false
 end
 
 local function MakeButton(parent, w, h, text, callback)
@@ -403,15 +551,21 @@ local function EnsureNudger(headerBar)
     local title = f:CreateFontString(nil, "OVERLAY")
     title:SetFont(FONT, 12, "OUTLINE")
     title:SetPoint("TOPLEFT", 12, -12)
-    title:SetText("PIXEL PERFECT / NUDGER")
+    title:SetText("TOMOLAYOUT")
     title:SetTextColor(ACCENT[1], ACCENT[2], ACCENT[3])
 
     local selected = f:CreateFontString(nil, "OVERLAY")
     selected:SetFont(FONT, 11, "OUTLINE")
     selected:SetPoint("TOPLEFT", 12, -34)
-    selected:SetWidth(366)
+    selected:SetWidth(220)
     selected:SetJustifyH("LEFT")
     f._selected = selected
+
+    local configure = MakeButton(f, 132, 26,
+        (TomoMod_L and TomoMod_L["layout_configure"]) or "Configurer",
+        function() P.ConfigureSelection() end)
+    configure:SetPoint("TOPRIGHT", -12, -28)
+    f._config = configure
 
     local coords = f:CreateFontString(nil, "OVERLAY")
     coords:SetFont(FONT, 10, "OUTLINE")
@@ -473,7 +627,7 @@ local function EnsureNudger(headerBar)
     hint:SetFont(FONT, 9, "")
     hint:SetPoint("BOTTOMLEFT", 12, 10)
     hint:SetTextColor(0.42, 0.45, 0.48)
-    hint:SetText("Survolez un élément déplaçable pour le sélectionner.")
+    hint:SetText("Cliquez ou déplacez un élément pour ouvrir TomoLayout.")
 
     f:SetScript("OnUpdate", function(self, elapsed)
         self._elapsed = (self._elapsed or 0) + elapsed
@@ -491,6 +645,7 @@ function P.RefreshUI()
     if not db then return end
 
     if selectedFrame and selectedAnchorID then
+        RefreshSelectionOutline()
         local label = Layout and Layout.Label and Layout.Label(selectedAnchorID, selectedAnchorID) or selectedAnchorID
         nudger._selected:SetText(label)
         nudger._selected:SetTextColor(0.92, 0.94, 0.95)
@@ -500,10 +655,14 @@ function P.RefreshUI()
         else
             nudger._coords:SetText("X -    Y -")
         end
+        if nudger._config then
+            if SelectionRoute() then nudger._config:Show() else nudger._config:Hide() end
+        end
     else
-        nudger._selected:SetText("Aucun élément sélectionné")
-        nudger._selected:SetTextColor(DIM[1], DIM[2], DIM[3])
-        nudger._coords:SetText("X -    Y -")
+        if selectionOutline then selectionOutline:Hide() end
+        if nudger._config then nudger._config:Hide() end
+        if editModeActive then nudger:Hide() end
+        return
     end
 
     nudger._step._text:SetText(string.format("Pas : %d px", db.nudgeStep))
@@ -514,12 +673,14 @@ end
 function P.SetEditMode(enabled, headerBar)
     editModeActive = enabled and true or false
     local f = EnsureNudger(headerBar)
+    selectedFrame, selectedAnchorID = nil, nil
+    if selectionOutline then selectionOutline:Hide() end
     if editModeActive then
-        f:Show()
-        P.RefreshUI()
+        P.BindSelectionFrames()
+        -- v1.2: TomoLayout only appears after the player selects a mover.
+        f:Hide()
     else
         f:Hide()
-        selectedFrame, selectedAnchorID = nil, nil
     end
 end
 

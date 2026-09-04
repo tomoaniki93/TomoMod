@@ -176,6 +176,7 @@ local function OpenConfigRoute(route)
         if cfg.SwitchCategory then cfg.SwitchCategory(key) end
     end
 end
+M.OpenConfigRoute = OpenConfigRoute
 
 local function CurrentMouseFocus()
     if GetMouseFoci then
@@ -1085,7 +1086,9 @@ function M.SetUnlocked(unlock)
         if gridFrame then gridFrame:Hide() end
     end
 
-    if unlock then StartLayoutGearDriver() else StopLayoutGearDriver() end
+    -- TomoLayout v1.2 owns selection and configuration from the mover itself.
+    -- The old hover scanner/cog stays stopped: no full-time mouse-focus search.
+    StopLayoutGearDriver()
 
     if TomoMod_LayoutV41 and TomoMod_LayoutV41.SetEditMode then
         TomoMod_LayoutV41.SetEditMode(unlock, headerBar)
