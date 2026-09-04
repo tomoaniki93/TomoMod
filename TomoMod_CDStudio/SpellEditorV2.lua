@@ -1608,3 +1608,362 @@ if not W._TomoCDStudioPresetsV3Wrapped then
 end
 
 end
+
+-- =====================================================================
+-- Cooldown Studio V4 -- first-run onboarding + replayable help
+-- Loaded after CDStudio.lua, so it can wrap S.Open without touching the
+-- existing Studio shell. tutorialVersion is deliberately versioned rather
+-- than boolean: a future major walkthrough can opt players back in safely.
+-- =====================================================================
+do
+local S = TomoMod_CDStudio
+if not S then return end
+
+local WHITE8    = "Interface\\Buttons\\WHITE8x8"
+local FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+local FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
+local AZURE     = { 0.23, 0.65, 1.00 }
+local TUTORIAL_VERSION = 1
+local SIDE_W, TITLE_H, FOOTER_H = 330, 52, 44
+
+local function Loc(key, fallback)
+    local L = TomoMod_L
+    local v = L and L[key]
+    if not v or v == key then return fallback end
+    return v
+end
+
+local function StudioDB()
+    if not TomoModDB then return nil end
+    TomoModDB.CDStudio = TomoModDB.CDStudio or {}
+    return TomoModDB.CDStudio
+end
+
+local function MarkComplete()
+    local db = StudioDB()
+    if db then db.tutorialVersion = TUTORIAL_VERSION end
+end
+
+local StartTutorial
+
+local function EnsureHelpButton(studio)
+    if studio._tmCDSHelpButton then return studio._tmCDSHelpButton end
+
+    local btn = CreateFrame("Button", nil, studio, "BackdropTemplate")
+    btn:SetSize(78, 26)
+    btn:SetPoint("TOPRIGHT", -42, -10)
+    btn:SetFrameLevel((studio:GetFrameLevel() or 100) + 20)
+    btn:SetBackdrop({
+        bgFile = WHITE8,
+        edgeFile = WHITE8,
+        edgeSize = 1,
+    })
+    btn:SetBackdropColor(0.04, 0.06, 0.09, 0.92)
+    btn:SetBackdropBorderColor(AZURE[1], AZURE[2], AZURE[3], 0.42)
+
+    local label = btn:CreateFontString(nil, "OVERLAY")
+    label:SetFont(FONT_BOLD, 10, "")
+    label:SetPoint("CENTER")
+    label:SetText(Loc("cds_p4_help", "? Help"))
+    label:SetTextColor(0.90, 0.94, 1.00, 1)
+
+    btn:SetScript("OnEnter", function(self)
+        self:SetBackdropColor(AZURE[1] * 0.14, AZURE[2] * 0.14, AZURE[3] * 0.14, 0.96)
+        self:SetBackdropBorderColor(AZURE[1], AZURE[2], AZURE[3], 0.95)
+        label:SetTextColor(AZURE[1], AZURE[2], AZURE[3], 1)
+        if GameTooltip then
+            GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+            GameTooltip:SetText(Loc("cds_p4_help_tip", "Replay the Cooldown Studio guide."))
+            GameTooltip:Show()
+        end
+    end)
+    btn:SetScript("OnLeave", function(self)
+        self:SetBackdropColor(0.04, 0.06, 0.09, 0.92)
+        self:SetBackdropBorderColor(AZURE[1], AZURE[2], AZURE[3], 0.42)
+        label:SetTextColor(0.90, 0.94, 1.00, 1)
+        if GameTooltip then GameTooltip:Hide() end
+    end)
+    btn:SetScript("OnClick", function()
+        if GameTooltip then GameTooltip:Hide() end
+        StartTutorial(studio, true)
+    end)
+
+    studio._tmCDSHelpButton = btn
+    return btn
+end
+
+local function BuildTutorial(studio)
+    if studio._tmCDSTutorial then return studio._tmCDSTutorial end
+
+    local overlay = CreateFrame("Frame", nil, studio)
+    overlay:SetAllPoints(studio)
+    overlay:SetFrameLevel((studio:GetFrameLevel() or 100) + 100)
+    overlay:EnableMouse(true)
+    overlay:Hide()
+
+    local function NewDim()
+        local t = overlay:CreateTexture(nil, "BACKGROUND")
+        t:SetColorTexture(0, 0, 0, 0.72)
+        return t
+    end
+    overlay.dimTop    = NewDim()
+    overlay.dimBottom = NewDim()
+    overlay.dimLeft   = NewDim()
+    overlay.dimRight  = NewDim()
+
+    local focus = CreateFrame("Frame", nil, overlay, "BackdropTemplate")
+    focus:SetFrameLevel(overlay:GetFrameLevel() + 1)
+    focus:SetBackdrop({ edgeFile = WHITE8, edgeSize = 2 })
+    focus:SetBackdropBorderColor(AZURE[1], AZURE[2], AZURE[3], 1)
+    focus:EnableMouse(false)
+    overlay.focus = focus
+
+    local glow = focus:CreateTexture(nil, "BACKGROUND")
+    glow:SetPoint("TOPLEFT", -4, 4)
+    glow:SetPoint("BOTTOMRIGHT", 4, -4)
+    glow:SetColorTexture(AZURE[1], AZURE[2], AZURE[3], 0.08)
+
+    local card = CreateFrame("Frame", nil, overlay, "BackdropTemplate")
+    card:SetSize(520, 238)
+    card:SetPoint("CENTER", overlay, "CENTER", 0, 0)
+    card:SetFrameLevel(overlay:GetFrameLevel() + 5)
+    card:SetBackdrop({
+        bgFile = WHITE8,
+        edgeFile = WHITE8,
+        edgeSize = 1,
+    })
+    card:SetBackdropColor(0.035, 0.043, 0.060, 0.985)
+    card:SetBackdropBorderColor(AZURE[1], AZURE[2], AZURE[3], 0.82)
+    overlay.card = card
+
+    local accent = card:CreateTexture(nil, "ARTWORK")
+    accent:SetHeight(3)
+    accent:SetPoint("TOPLEFT", 1, -1)
+    accent:SetPoint("TOPRIGHT", -1, -1)
+    accent:SetColorTexture(AZURE[1], AZURE[2], AZURE[3], 1)
+
+    local stepText = card:CreateFontString(nil, "OVERLAY")
+    stepText:SetFont(FONT_BOLD, 9, "")
+    stepText:SetPoint("TOPLEFT", 18, -16)
+    stepText:SetTextColor(AZURE[1], AZURE[2], AZURE[3], 1)
+    overlay.stepText = stepText
+
+    local title = card:CreateFontString(nil, "OVERLAY")
+    title:SetFont(FONT_BOLD, 16, "")
+    title:SetPoint("TOPLEFT", 18, -38)
+    title:SetPoint("TOPRIGHT", -18, -38)
+    title:SetJustifyH("LEFT")
+    title:SetTextColor(0.94, 0.97, 1.00, 1)
+    overlay.title = title
+
+    local body = card:CreateFontString(nil, "OVERLAY")
+    body:SetFont(FONT, 11, "")
+    body:SetPoint("TOPLEFT", 18, -70)
+    body:SetPoint("TOPRIGHT", -18, -70)
+    body:SetHeight(105)
+    body:SetJustifyH("LEFT")
+    body:SetJustifyV("TOP")
+    body:SetWordWrap(true)
+    body:SetTextColor(0.72, 0.76, 0.84, 1)
+    overlay.body = body
+
+    local function MakeButton(width)
+        local b = CreateFrame("Button", nil, card, "BackdropTemplate")
+        b:SetSize(width, 30)
+        b:SetBackdrop({ bgFile = WHITE8, edgeFile = WHITE8, edgeSize = 1 })
+        b:SetBackdropColor(0.055, 0.070, 0.095, 1)
+        b:SetBackdropBorderColor(AZURE[1], AZURE[2], AZURE[3], 0.48)
+        b.txt = b:CreateFontString(nil, "OVERLAY")
+        b.txt:SetFont(FONT_BOLD, 10, "")
+        b.txt:SetPoint("CENTER")
+        b.txt:SetTextColor(0.90, 0.94, 1.00, 1)
+        b:SetScript("OnEnter", function(self)
+            self:SetBackdropColor(AZURE[1] * 0.18, AZURE[2] * 0.18, AZURE[3] * 0.18, 1)
+            self:SetBackdropBorderColor(AZURE[1], AZURE[2], AZURE[3], 0.95)
+        end)
+        b:SetScript("OnLeave", function(self)
+            self:SetBackdropColor(0.055, 0.070, 0.095, 1)
+            self:SetBackdropBorderColor(AZURE[1], AZURE[2], AZURE[3], 0.48)
+        end)
+        return b
+    end
+
+    local skip = MakeButton(96)
+    skip:SetPoint("BOTTOMLEFT", 18, 16)
+    skip.txt:SetText(Loc("cds_p4_skip", "Skip"))
+    overlay.skip = skip
+
+    local back = MakeButton(96)
+    back:SetPoint("BOTTOMRIGHT", -124, 16)
+    back.txt:SetText(Loc("cds_p4_back", "Back"))
+    overlay.back = back
+
+    local nextBtn = MakeButton(106)
+    nextBtn:SetPoint("BOTTOMRIGHT", -18, 16)
+    overlay.nextBtn = nextBtn
+
+    local STEPS = {
+        {
+            title = function() return Loc("cds_p4_welcome_title", "Welcome to Cooldown Studio") end,
+            body  = function() return Loc("cds_p4_welcome_body",
+                "Cooldown Studio lets you build, style and position your cooldown bars visually. This short guide shows the main areas. You can replay it anytime with the Help button.") end,
+            rect = function(w, h) return 0, h - TITLE_H, w, TITLE_H end,
+        },
+        {
+            title = function() return Loc("cds_p4_bars_title", "Bars and class") end,
+            body  = function() return Loc("cds_p4_bars_body",
+                "The left side contains the class selector and all bars for that class. Create, duplicate, rename or delete bars here. Selecting a bar opens its settings on the right.") end,
+            rect = function(w, h) return 0, FOOTER_H, math.min(SIDE_W, w), math.max(1, h - TITLE_H - FOOTER_H) end,
+        },
+        {
+            title = function() return Loc("cds_p4_spells_title", "Spells: click, customize, drag") end,
+            body  = function() return Loc("cds_p4_spells_body",
+                "In Spells, click an icon to edit its specialization, glow, swipe, timer and other overrides. Drag an icon and drop it elsewhere to change the order directly.") end,
+            rect = function(w, h) return math.min(SIDE_W, w), FOOTER_H, math.max(1, w - SIDE_W), math.max(1, h - TITLE_H - FOOTER_H) end,
+        },
+        {
+            title = function() return Loc("cds_p4_library_title", "Library: build a bar quickly") end,
+            body  = function() return Loc("cds_p4_library_body",
+                "The Library scans the current character's spellbook, talents and hero talents. Search by name or ID, filter the list, add one spell, or add a whole group at once.") end,
+            rect = function(w, h) return math.min(SIDE_W, w), FOOTER_H, math.max(1, w - SIDE_W), math.max(1, h - TITLE_H - FOOTER_H) end,
+        },
+        {
+            title = function() return Loc("cds_p4_presets_title", "Presets: automatic context") end,
+            body  = function() return Loc("cds_p4_presets_body",
+                "The Presets tab can install a contextual pack for your active specialization. TomoMod automatically uses Minimal while solo, Mythic+ in a group, and Raid in a raid.") end,
+            rect = function(w, h) return math.min(SIDE_W, w), FOOTER_H, math.max(1, w - SIDE_W), math.max(1, h - TITLE_H - FOOTER_H) end,
+        },
+        {
+            title = function() return Loc("cds_p4_edit_title", "Edit Mode: place the bars") end,
+            body  = function() return Loc("cds_p4_edit_body",
+                "Use Edit Mode at the bottom to move cooldown bars directly on screen. Changes elsewhere in the Studio apply live, so you can immediately see the result.") end,
+            rect = function(w, h) return 0, 0, math.min(math.max(SIDE_W, 360), w), FOOTER_H end,
+        },
+    }
+    overlay.steps = STEPS
+    overlay.index = 1
+
+    local function SetDimRect(tex, p1, rel1, x1, y1, p2, rel2, x2, y2)
+        tex:ClearAllPoints()
+        tex:SetPoint(p1, overlay, rel1, x1, y1)
+        tex:SetPoint(p2, overlay, rel2, x2, y2)
+    end
+
+    local function ApplySpotlight()
+        local step = STEPS[overlay.index]
+        if not step then return end
+        local w, h = overlay:GetWidth() or 1, overlay:GetHeight() or 1
+        local x, y, rw, rh = step.rect(w, h)
+        x  = math.max(0, math.min(x, w))
+        y  = math.max(0, math.min(y, h))
+        rw = math.max(1, math.min(rw, w - x))
+        rh = math.max(1, math.min(rh, h - y))
+        local top = y + rh
+        local right = x + rw
+
+        SetDimRect(overlay.dimTop, "TOPLEFT", "TOPLEFT", 0, 0,
+            "BOTTOMRIGHT", "BOTTOMRIGHT", 0, top)
+        SetDimRect(overlay.dimBottom, "BOTTOMLEFT", "BOTTOMLEFT", 0, 0,
+            "TOPRIGHT", "BOTTOMRIGHT", 0, y)
+        SetDimRect(overlay.dimLeft, "BOTTOMLEFT", "BOTTOMLEFT", 0, y,
+            "TOPRIGHT", "BOTTOMLEFT", x, top)
+        SetDimRect(overlay.dimRight, "BOTTOMLEFT", "BOTTOMLEFT", right, y,
+            "TOPRIGHT", "BOTTOMRIGHT", 0, top)
+
+        focus:ClearAllPoints()
+        focus:SetPoint("BOTTOMLEFT", overlay, "BOTTOMLEFT", x, y)
+        focus:SetSize(rw, rh)
+    end
+
+    local function Refresh()
+        local n = #STEPS
+        if overlay.index < 1 then overlay.index = 1 end
+        if overlay.index > n then overlay.index = n end
+        local step = STEPS[overlay.index]
+
+        stepText:SetText(string.format(Loc("cds_p4_step", "Step %d/%d"), overlay.index, n))
+        title:SetText(step.title())
+        body:SetText(step.body())
+        back:SetShown(overlay.index > 1)
+        nextBtn.txt:SetText(overlay.index == n
+            and Loc("cds_p4_finish", "Finish")
+            or Loc("cds_p4_next", "Next"))
+        ApplySpotlight()
+    end
+    overlay.Refresh = Refresh
+
+    skip:SetScript("OnClick", function()
+        MarkComplete()
+        overlay:Hide()
+    end)
+    back:SetScript("OnClick", function()
+        overlay.index = math.max(1, overlay.index - 1)
+        Refresh()
+    end)
+    nextBtn:SetScript("OnClick", function()
+        if overlay.index >= #STEPS then
+            MarkComplete()
+            overlay:Hide()
+            return
+        end
+        overlay.index = overlay.index + 1
+        Refresh()
+    end)
+
+    overlay:SetScript("OnSizeChanged", ApplySpotlight)
+    studio:HookScript("OnHide", function()
+        overlay:Hide()
+    end)
+
+    studio._tmCDSTutorial = overlay
+    return overlay
+end
+
+StartTutorial = function(studio, manual)
+    if not studio or not studio:IsShown() then return end
+    local overlay = BuildTutorial(studio)
+    overlay.index = 1
+    overlay._manual = manual and true or nil
+    overlay:Refresh()
+    overlay:Show()
+end
+
+S.StartTutorial = function()
+    local studio = _G.TomoModCDStudioFrame
+    if studio and studio:IsShown() then
+        StartTutorial(studio, true)
+    end
+end
+
+if not S._p4OpenWrapped and type(S.Open) == "function" then
+    S._p4OpenWrapped = true
+    local OriginalOpen = S.Open
+    S.Open = function(...)
+        OriginalOpen(...)
+        local studio = _G.TomoModCDStudioFrame
+        if not (studio and studio:IsShown()) then return end
+
+        EnsureHelpButton(studio)
+
+        local db = StudioDB()
+        local seen = db and tonumber(db.tutorialVersion) or 0
+        if seen >= TUTORIAL_VERSION or S._p4TutorialQueued then return end
+
+        S._p4TutorialQueued = true
+        local function OpenFirstRun()
+            S._p4TutorialQueued = nil
+            if not (studio and studio:IsShown()) then return end
+            local now = StudioDB()
+            if (now and tonumber(now.tutorialVersion) or 0) < TUTORIAL_VERSION then
+                StartTutorial(studio, false)
+            end
+        end
+        if C_Timer and C_Timer.After then
+            C_Timer.After(0.15, OpenFirstRun)
+        else
+            OpenFirstRun()
+        end
+    end
+end
+
+end

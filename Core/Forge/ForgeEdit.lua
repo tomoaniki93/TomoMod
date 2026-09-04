@@ -130,6 +130,13 @@ function E.AttachOverlay(f, onStop, onReset)
     local o = CreateFrame("Frame", nil, f)
     o:SetAllPoints(f)
     o:SetFrameStrata("HIGH")
+    -- CooldownForge owns this overlay instead of U.StyleMoverOverlay(), so it
+    -- must opt into TomoLayout's temporary EditMode layer explicitly. The
+    -- shared layer manager lowers both the overlay and its bar owner only
+    -- while Layout Mode is active, then restores their original strata.
+    if TomoMod_Utils and TomoMod_Utils.RegisterMoverLayer then
+        TomoMod_Utils.RegisterMoverLayer(o, f)
+    end
     o:SetFrameLevel(f:GetFrameLevel() + 30)
     o:EnableMouse(true)
     o:RegisterForDrag("LeftButton")

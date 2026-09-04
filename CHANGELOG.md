@@ -35,7 +35,7 @@
 - **Changed** - The sidebar's TomoMod Settings shortcut now opens a localized two-action menu instead of entering the configuration immediately. Players can choose between opening the main TomoMod settings and reloading the interface; opening it closes the Player Status menu, and both popups close when Chat V4 is disabled.
 - **Internal** - Chat V4 does not hook any `FCF_*` function, keeps Blizzard's specialised Combat Log filtering and formatting authoritative, rejects secret geometry and message values before reading or storing them, and limits its post-hooks to mirroring final output into TomoMod-owned presentation frames.
 
-#### Cooldown Studio — Spell Editor And Library V2
+#### Cooldown Studio — Spell Editor, Presets And Guided Onboarding
 
 - **New** - The Spells tab is now a visual icon editor. Clicking an icon opens its inspector, while drag-and-drop changes the exact order in the bar and keeps the selected entry attached to the moved spell instead of to its former slot.
 - **New** - Each entry can override specialization visibility, aura tracking, talent conditions, glow behaviour and colour, cooldown desaturation, insufficient-resource treatment, swipe, timer, stacks or charges, and relative icon emphasis. Inherited values continue to follow the bar, and emphasis enlarges an icon around its own slot without changing the surrounding layout.
@@ -43,6 +43,11 @@
 - **New** - The Library tab gains live name-or-ID search, All / To Add / In Bar filters, grouped icon tiles and one-click group installation. It reads the logged-in character's spellbook, identifies entries already present in the selected bar, and explains when the chosen class, selected bar or client API cannot provide a usable library.
 - **Fixed** - Shared options scrollbars now use the `ScrollFrame`'s live vertical range instead of assuming the scroll child's bootstrap height describes all anchored content. The thumb refreshes when that range changes, clamps its size and travel safely, and is widened to 11px, so long Cooldown Studio lists can be scrolled and dragged reliably.
 - **Internal** - Library translations and implementation are consolidated into `Locales.lua` and `SpellEditorV2.lua`. The temporary `LocalesLibraryV2.lua` and `LibraryV2.lua` load-on-demand files and their TOC entries have been removed without changing the feature.
+- **New** - A Presets tab can build a specialization-aware three-bar pack from Blizzard's live Cooldown Manager categories: Minimal while solo, Mythic+ in a non-raid group and Raid while in a raid. The active context and the abilities supplied by each profile are previewed before installation.
+- **Changed** - Updating a contextual pack reconciles generated entries instead of rebuilding its bars. Per-spell overrides and manual additions are preserved, abilities Blizzard removed are cleaned up safely, and duplicating one member produces an independent normal bar rather than another member of the managed pack.
+- **Changed** - The three contextual bars share a single Edit Mode mover and saved position. Moving the visible member moves the complete pack, preventing the layout from jumping when the player changes group context, while every profile keeps its own visual styling.
+- **New** - The first Cooldown Studio opening starts a localized six-step guide covering bar selection, the visual spell editor, the Library, contextual presets and Edit Mode. Completion is stored with a tutorial version, and a dedicated Help button can replay the guide at any time.
+- **Fixed** - Hovering the new Help button now uses the current one-argument tooltip text API, preventing the Lua error raised by the former five-argument call on WoW 12.1.
 
 #### Bags V4
 
@@ -100,6 +105,7 @@
 
 - **Fixed** - Raid-frame anchor positions now use the shared Layout Engine when they are saved and restored. Existing position formats remain compatible, while resolution and scale metadata are applied consistently so a moved raid layout no longer jumps after a reload or display change.
 - **Fixed** - Class Reminder now follows the same position migration, resolution rescaling and frame-scale conversion. Its saved location survives reloads and changes of UI scale or resolution without drifting away from the chosen anchor.
+- **Fixed** - The simulated 20-player raid shown in Layout Mode now refreshes its cell dimensions, spacing, power bars and labels immediately when raid settings change. Its anchor bounds follow the refreshed simulation instead of being collapsed by the empty live roster.
 
 #### Objective Tracker
 
@@ -120,6 +126,7 @@
 - **Fixed** - The cog button's hover colour is now defined where the button is created. Its previous reference pointed to an accent local declared later in the file and could stop the Layout Mode shortcut from being built.
 - **Changed** - The configuration shortcut resolves its destination from the stable name of the hovered frame and its parents. It no longer scans the entire frame hierarchy when Layout Mode opens, making the routing deterministic and avoiding unnecessary work on busy interfaces.
 - **Fixed** - The Layout Mode cog is available again on the chat window. Its two routes still pointed at the frames of the old chat skin, which Chat V4 replaced and which are no longer created; a single route now covers the Chat V4 message host, sidebar, tab strip and copy window, which all share the same name prefix.
+- **Fixed** - The Totem Bar is visible, azure-skinned and draggable again in Layout Mode even when no totem is active. Its mover overlay remains above the totem buttons, provides a usable minimum grab area and refreshes the real runtime state when Layout Mode closes.
 
 #### Layout V4 — Runtime Position Persistence
 
@@ -139,6 +146,7 @@
 - **Changed** - TomoLayout now owns the contextual Configure button for the selected element. The former continuously running mouse-focus scanner and floating cog remain stopped, removing a full-time polling loop from Layout Mode while retaining direct access to the relevant options page.
 - **New** - The selected mover is outlined in azure with a faint fill. Its border and gap remain two physical pixels at every UI scale, follow the frame while it moves and disappear when the selection ends, the frame is hidden or Layout Mode closes.
 - **New** - TomoLayout 1.4 adds focus to that selection: the chosen mover keeps full brightness, a slightly larger semibold label and the hover accent, while other shared mover overlays are darkened without becoming transparent. Hovering another mover temporarily restores its contrast, and closing Layout Mode resets every registered overlay.
+- **Fixed** - TomoLayout mover surfaces now enter a dedicated LOW edit layer while Layout Mode is active, including custom action-bar, Chat V4, aura, tooltip and CooldownForge overlays. Blizzard windows and menus can cover the layout canvas correctly, and every mover and owner returns to its exact original frame strata when editing ends.
 - **Internal** - Layout Engine tests now exercise complete save/apply round trips at 0.8, 1.25 and 2.0 scale, physical-position matching and tolerance. The layout-gear test also checks the inverse contract: every anchor declared in the manifest must have a live options route, and every coverage entry must still name a declared anchor.
 
 #### Visual Identity — Azure
