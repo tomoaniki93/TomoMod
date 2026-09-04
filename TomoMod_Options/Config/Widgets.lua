@@ -381,7 +381,7 @@ end
 function W.CreateScrollPanel(parent)
     -- [a11y] 5px of dark grey on a dark panel is invisible even when shown.
     -- Wider and lighter, so the control can be found without a mouse wheel.
-    local SCROLLBAR_W   = 9
+    local SCROLLBAR_W   = 11
     local SCROLLBAR_PAD = 20
     local TRACK_PAD_V   = 8
     local THUMB_MIN_H   = 24
@@ -404,9 +404,8 @@ function W.CreateScrollPanel(parent)
     trackEdge:SetPoint("BOTTOMRIGHT", -4 - SCROLLBAR_W,  TRACK_PAD_V)
     trackEdge:SetColorTexture(0, 0, 0, 0.6)
 
-    -- [a11y] The bar is 5px wide by design, which is fine to look at and
-    -- impossible to grab. A click surface sits over it, wider than the visual
-    -- and invisible, so the panel stays usable without a working mouse wheel.
+    -- [a11y] Keep the visual bar slim, but give it a generous invisible hit
+    -- surface so the panel stays usable without a working mouse wheel.
     local trackHit = CreateFrame("Frame", nil, container)
     trackHit:SetWidth(SCROLLBAR_W)
     trackHit:SetPoint("TOPRIGHT",    -4, -TRACK_PAD_V)
@@ -435,18 +434,29 @@ function W.CreateScrollPanel(parent)
 
     local function UpdateThumb()
         local scrollH = scroll:GetHeight() or 0
-        local childH  = child:GetHeight()  or 0
-        local trackH  = scrollH - 2 * TRACK_PAD_V
-        local maxS    = childH - scrollH
-        if maxS <= 0 then
+        local trackH  = math.max(scrollH - 2 * TRACK_PAD_V, 1)
+
+        -- Do not derive the range from child:GetHeight(). Several panels,
+        -- including Cooldown Studio's spell library, size their content with
+        -- anchored children while the ScrollChild itself keeps its bootstrap
+        -- height of 1px. ScrollFrame already knows the real range, so use it
+        -- as the single source of truth.
+        local maxS = scroll:GetVerticalScrollRange() or 0
+        if maxS <= 0 or scrollH <= 0 then
             thumbFrame:Hide(); track:Hide(); trackEdge:Hide(); trackHit:Hide(); return
         end
+
         track:Show(); trackEdge:Show(); thumbFrame:Show(); trackHit:Show()
-        local ratio  = math.min(scrollH / childH, 1)
-        local thumbH = math.max(math.floor(trackH * ratio), THUMB_MIN_H)
+
+        local contentH = scrollH + maxS
+        local ratio    = math.min(scrollH / math.max(contentH, 1), 1)
+        local thumbH   = math.min(trackH, math.max(math.floor(trackH * ratio), THUMB_MIN_H))
         thumbFrame:SetHeight(thumbH)
-        local cur    = scroll:GetVerticalScroll()
-        local thumbY = (cur / maxS) * (trackH - thumbH)
+
+        local cur    = math.max(0, math.min(scroll:GetVerticalScroll() or 0, maxS))
+        local travel = math.max(trackH - thumbH, 0)
+        local thumbY = (maxS > 0) and ((cur / maxS) * travel) or 0
+        thumbFrame:ClearAllPoints()
         thumbFrame:SetPoint("TOPRIGHT", -4, -(TRACK_PAD_V + thumbY))
     end
 
@@ -455,6 +465,9 @@ function W.CreateScrollPanel(parent)
         local cur = self:GetVerticalScroll()
         local max = self:GetVerticalScrollRange()
         self:SetVerticalScroll(math.max(0, math.min(cur - delta * 36, max)))
+        UpdateThumb()
+    end)
+    scroll:SetScript("OnScrollRangeChanged", function()
         UpdateThumb()
     end)
 
@@ -490,12 +503,17 @@ function W.CreateScrollPanel(parent)
             local curY      = select(2, GetCursorPosition()) / UIParent:GetEffectiveScale()
             local delta     = dragStartY - curY
             local scrollH   = scroll:GetHeight() or 0
-            local childH    = child:GetHeight()  or 0
-            local trackH    = scrollH - 2 * TRACK_PAD_V
-            local ratio     = math.min(scrollH / childH, 1)
-            local thumbH    = math.max(math.floor(trackH * ratio), THUMB_MIN_H)
-            local maxScroll = childH - scrollH
-            local newScroll = dragStartScroll + delta * (maxScroll / (trackH - thumbH))
+            local trackH    = math.max(scrollH - 2 * TRACK_PAD_V, 1)
+            local maxScroll = scroll:GetVerticalScrollRange() or 0
+            if maxScroll <= 0 then return end
+
+            local contentH = scrollH + maxScroll
+            local ratio    = math.min(scrollH / math.max(contentH, 1), 1)
+            local thumbH   = math.min(trackH, math.max(math.floor(trackH * ratio), THUMB_MIN_H))
+            local travel   = trackH - thumbH
+            if travel <= 0 then return end
+
+            local newScroll = dragStartScroll + delta * (maxScroll / travel)
             scroll:SetVerticalScroll(math.max(0, math.min(newScroll, maxScroll)))
             UpdateThumb()
         end)
@@ -2117,6 +2135,17 @@ function W.CreateTabPanel(parent, tabs, initialTab, onSwitch)
     wrapper._muiDesign = FindDesign(parent)
 
     local TABS_PER_ROW = 6
+    -- [P3] Cooldown Studio gains a seventh top-level tab (Presets). Its
+    -- content area is intentionally wide enough for seven labels; keeping the
+    -- generic six-tab limit would create a lonely second row for one button.
+    do
+        local studio = _G.TomoModCDStudioFrame
+        local node = parent
+        while studio and node do
+            if node == studio then TABS_PER_ROW = 7; break end
+            node = node.GetParent and node:GetParent() or nil
+        end
+    end
     local totalTabs    = #tabs
     local numRows      = math.ceil(totalTabs / TABS_PER_ROW)
     local TAB_H        = 32

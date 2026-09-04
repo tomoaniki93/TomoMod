@@ -350,6 +350,9 @@ local function EnsureTooltipMover()
     local m = CreateFrame("Frame", "TomoMod_TooltipMover", UIParent, "BackdropTemplate")
     m:SetSize(210, 38)
     m:SetFrameStrata("DIALOG")
+    if TomoMod_Utils and TomoMod_Utils.RegisterMoverLayer then
+        TomoMod_Utils.RegisterMoverLayer(m, m)
+    end
     m:SetClampedToScreen(true)
     m:SetMovable(true)
     m:EnableMouse(true)

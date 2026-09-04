@@ -58,6 +58,9 @@ function CreateEditOverlay(container, barKey)
     overlay:SetMovable(true)
     overlay:RegisterForDrag("LeftButton")
     overlay:SetFrameStrata("HIGH")
+    if TomoMod_Utils and TomoMod_Utils.RegisterMoverLayer then
+        TomoMod_Utils.RegisterMoverLayer(overlay, container)
+    end
     overlay:Hide()
 
     local text = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormal")

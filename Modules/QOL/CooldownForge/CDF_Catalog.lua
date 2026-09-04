@@ -453,3 +453,229 @@ function CDF.CreateBarFromBlueprint(class, key)
     CDF.SanitizeBar(bar)
     return id
 end
+
+-- =====================================================================
+-- [P3] Contextual cooldown preset packs
+--
+-- One pack is three normal bars, all tied to the same specialization and
+-- position. Existing bar-level visibility does the runtime switching:
+--   solo  -> Minimal   (not in a group)
+--   party -> Mythic+   (in a group, but not a raid)
+--   raid  -> Raid      (in a raid)
+--
+-- Spell data is read from Blizzard's live Cooldown Manager categories, so
+-- class/spec reworks do not require a hardcoded spell table in TomoMod.
+-- =====================================================================
+CDF.CONTEXT_PRESET_PROFILES = {
+    solo = {
+        categories = { "essential" },
+        visibility = { inGroup = false },
+        iconSize = 36,
+    },
+    party = {
+        categories = { "essential", "utility" },
+        visibility = { inGroup = true, inRaid = false },
+        iconSize = 36,
+    },
+    raid = {
+        categories = { "essential", "utility", "buff" },
+        visibility = { inRaid = true },
+        iconSize = 36,
+    },
+}
+CDF.CONTEXT_PRESET_ORDER = { "solo", "party", "raid" }
+
+local function contextEntryKey(spellID, mode)
+    return tostring(tonumber(spellID) or 0) .. ":" .. tostring(mode or "cooldown")
+end
+
+-- Returns ordered desired entries for a profile, or nil + noapi/empty.
+-- Each item is { id, mode, source } and is still pure data at this stage.
+function CDF.GetContextPresetProfileData(profileKey)
+    local profile = CDF.CONTEXT_PRESET_PROFILES[profileKey]
+    if not profile then return nil, "empty" end
+
+    local out, seen = {}, {}
+    local sawAPI = false
+    for _, sourceKey in ipairs(profile.categories or {}) do
+        local ids, status = CDF.GetViewerSpellIDs(sourceKey)
+        if status ~= "noapi" then sawAPI = true end
+        if ids then
+            local sourceDef = CDF.VIEWER_IMPORTS[sourceKey]
+            local mode = sourceDef and sourceDef.aura and "aura" or nil
+            for _, spellID in ipairs(ids) do
+                local key = contextEntryKey(spellID, mode)
+                if not seen[key] then
+                    seen[key] = true
+                    out[#out + 1] = {
+                        id = spellID,
+                        mode = mode,
+                        source = sourceKey,
+                    }
+                end
+            end
+        end
+    end
+
+    if #out == 0 then return nil, sawAPI and "empty" or "noapi" end
+    return out, "ok"
+end
+
+function CDF.ContextPresetPackID(class, specID)
+    class = class or CDF.PlayerClass() or "UNKNOWN"
+    return "tm_context_" .. tostring(class) .. "_" .. tostring(tonumber(specID) or 0)
+end
+
+-- Returns a table keyed solo/party/raid. Missing members stay nil so an
+-- interrupted/deleted pack can be repaired by InstallContextPresetPack.
+function CDF.FindContextPresetPack(class, specID)
+    local out = {}
+    local packID = CDF.ContextPresetPackID(class, specID)
+    for _, bar in ipairs(CDF.GetClassBars(class) or {}) do
+        if bar.contextPackID == packID and CDF.CONTEXT_PRESET_PROFILES[bar.contextProfile] then
+            out[bar.contextProfile] = bar
+        end
+    end
+    return out
+end
+
+local function copyContextVisuals(src, dst)
+    if not (src and dst) then return end
+    for _, key in ipairs({
+        "layout", "orientation", "growth", "iconSize", "iconWidth", "iconHeight",
+        "spacing", "spacingCross", "wrap", "radial", "hideOnCooldown", "hideOnUnusable",
+        "glow", "swipe", "text", "style", "position",
+    }) do
+        local v = src[key]
+        if type(v) == "table" then
+            dst[key] = CopyTable(v)
+        elseif v ~= nil then
+            dst[key] = v
+        end
+    end
+end
+
+local function reconcileContextEntries(bar, specID, desired)
+    local generated, manual, manualKeys = {}, {}, {}
+    local oldGenerated = 0
+
+    for _, entry in ipairs(bar.entries or {}) do
+        if entry.fromContextPreset then
+            oldGenerated = oldGenerated + 1
+            if entry.kind == "spell" and entry.id then
+                generated[contextEntryKey(entry.id, entry.mode)] = entry
+            end
+        else
+            manual[#manual + 1] = entry
+            if entry.kind == "spell" and entry.id then
+                manualKeys[contextEntryKey(entry.id, entry.mode)] = true
+            end
+        end
+    end
+
+    local imported = {}
+    local added, kept, keptGenerated = 0, 0, 0
+    for _, want in ipairs(desired) do
+        local key = contextEntryKey(want.id, want.mode)
+        local entry = generated[key]
+        if entry then
+            kept = kept + 1
+            keptGenerated = keptGenerated + 1
+        elseif manualKeys[key] then
+            -- The player already owns an equivalent manual entry. Do not
+            -- duplicate it and never adopt it into the generated block.
+            kept = kept + 1
+        else
+            entry = CDF.NewEntrySchema({
+                kind = "spell",
+                id = want.id,
+                spec = specID,
+                mode = want.mode,
+            })
+            entry.fromContextPreset = true
+            entry.contextSource = want.source
+            added = added + 1
+        end
+
+        if entry then
+            entry.spec = specID
+            entry.mode = want.mode
+            entry.fromContextPreset = true
+            entry.contextSource = want.source
+            imported[#imported + 1] = entry
+        end
+    end
+
+    local removed = math.max(0, oldGenerated - keptGenerated)
+    local out = {}
+    for _, entry in ipairs(imported) do out[#out + 1] = entry end
+    for _, entry in ipairs(manual) do out[#out + 1] = entry end
+    bar.entries = out
+    return added, removed, kept
+end
+
+-- Installs or updates the three-bar pack for the CURRENT character/spec.
+-- Existing generated entries are reconciled in place, preserving per-entry
+-- overrides. Manual entries are never removed. Returns barsByProfile, stats.
+function CDF.InstallContextPresetPack(class, specID, names)
+    class = class or CDF.PlayerClass()
+    specID = tonumber(specID) or 0
+    if class ~= CDF.PlayerClass() then return nil, "wrongclass" end
+    local currentSpec = CDF.CurrentSpecID and CDF.CurrentSpecID() or 0
+    if specID == 0 or currentSpec ~= specID then return nil, "wrongspec" end
+
+    -- Read every profile before mutating the DB. If Blizzard has not finished
+    -- populating a category set yet, an update must not erase a valid pack.
+    local desired = {}
+    for _, profileKey in ipairs(CDF.CONTEXT_PRESET_ORDER) do
+        local data, status = CDF.GetContextPresetProfileData(profileKey)
+        if not data then return nil, status end
+        desired[profileKey] = data
+    end
+
+    local packID = CDF.ContextPresetPackID(class, specID)
+    local bars = CDF.FindContextPresetPack(class, specID)
+    local template = bars.solo or bars.party or bars.raid
+    local stats = {}
+
+    for _, profileKey in ipairs(CDF.CONTEXT_PRESET_ORDER) do
+        local profile = CDF.CONTEXT_PRESET_PROFILES[profileKey]
+        local bar = bars[profileKey]
+        local isNew = false
+        if not bar then
+            local b = CDF.CreateBar(class,
+                (names and names[profileKey]) or ("Context " .. profileKey))
+            bar = b
+            if not bar then return nil, "create" end
+            isNew = true
+            if template then copyContextVisuals(template, bar) end
+            bars[profileKey] = bar
+            if not template then template = bar end
+        end
+
+        bar.contextPreset = true
+        bar.contextPackID = packID
+        bar.contextProfile = profileKey
+        bar.contextSpecID = specID
+        if isNew and profile.iconSize then
+            bar.iconSize = profile.iconSize
+        end
+        bar.visibility = CopyTable(profile.visibility or {})
+
+        local added, removed, kept = reconcileContextEntries(bar, specID, desired[profileKey])
+        CDF.SanitizeBar(bar)
+        stats[profileKey] = { added = added, removed = removed, kept = kept, total = #desired[profileKey] }
+    end
+
+    -- Context bars are one visual element. Keep every member on the same
+    -- anchor immediately; CDF_Movers keeps them linked after the player moves it.
+    local anchor = bars.solo or bars.party or bars.raid
+    if anchor and anchor.position then
+        for _, profileKey in ipairs(CDF.CONTEXT_PRESET_ORDER) do
+            local bar = bars[profileKey]
+            if bar then bar.position = CopyTable(anchor.position) end
+        end
+    end
+
+    return bars, stats
+end

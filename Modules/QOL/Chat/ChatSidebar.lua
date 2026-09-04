@@ -319,6 +319,70 @@ local function BuildStatusMenu(owner)
     return menu
 end
 
+local function OpenTomoModSettings()
+    if TomoMod_Config and TomoMod_Config.Toggle then
+        TomoMod_Config.Toggle()
+    elseif SlashCmdList and SlashCmdList["TOMOMOD"] then
+        SlashCmdList["TOMOMOD"]("config")
+    end
+end
+
+local function BuildSettingsMenu()
+    if Sidebar.settingsMenu then return Sidebar.settingsMenu end
+
+    local menu = CreateFrame("Frame", "TomoMod_ChatV4SettingsMenu", UIParent, "BackdropTemplate")
+    menu:SetSize(204, 50)
+    menu:SetFrameStrata("DIALOG")
+    menu:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
+    menu:SetBackdropColor(0.025, 0.045, 0.05, 0.98)
+    menu:SetBackdropBorderColor(TEAL_R, TEAL_G, TEAL_B, 0.45)
+    menu:Hide()
+    Sidebar.settingsMenu = menu
+
+    local rows = {
+        {
+            Localize("chat_v4_settings_open", "Open TomoMod settings"),
+            OpenTomoModSettings,
+            TEAL_R, TEAL_G, TEAL_B,
+        },
+        {
+            Localize("chat_v4_settings_reload", "Reload interface"),
+            function() ReloadUI() end,
+            YELLOW_R, YELLOW_G, YELLOW_B,
+        },
+    }
+
+    for i, row in ipairs(rows) do
+        local label, action = row[1], row[2]
+        local b = CreateFrame("Button", nil, menu)
+        b:SetSize(200, 22)
+        b:SetPoint("TOPLEFT", 2, -2 - (i - 1) * 23)
+        b:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+
+        local dot = b:CreateTexture(nil, "OVERLAY")
+        dot:SetTexture(WHITE)
+        dot:SetSize(8, 8)
+        dot:SetPoint("LEFT", 8, 0)
+        dot:SetColorTexture(row[3], row[4], row[5], 1)
+
+        local text = b:CreateFontString(nil, "OVERLAY")
+        text:SetFont(FONT, 11, "OUTLINE")
+        text:SetPoint("LEFT", 22, 0)
+        text:SetPoint("RIGHT", -6, 0)
+        text:SetJustifyH("LEFT")
+        text:SetText(label)
+        text:SetTextColor(1, 1, 1, 1)
+
+        b:SetScript("OnClick", function()
+            PlayClick()
+            menu:Hide()
+            action()
+        end)
+    end
+
+    return menu
+end
+
 function Sidebar:RefreshSocialCounts()
     local friends = self.buttons.friends
     if friends then
@@ -412,6 +476,8 @@ function Sidebar:BuildButtons()
     SetTooltip(status, Localize("chat_v4_btn_status", "Player Status"), Localize("chat_v4_tip_status", "Choose Online, AFK or DND."))
     status:SetScript("OnClick", function(self)
         PlayClick()
+        GameTooltip:Hide()
+        if Sidebar.settingsMenu then Sidebar.settingsMenu:Hide() end
         local menu = BuildStatusMenu(self)
         menu:ClearAllPoints()
         if Chat.GetDB().sidebar.side == "RIGHT" then
@@ -467,14 +533,20 @@ function Sidebar:BuildButtons()
     end)
 
     local settings = CreateButton(parent, "settings")
-    SetTooltip(settings, Localize("chat_v4_btn_settings", "TomoMod Settings"), Localize("chat_v4_tip_settings", "Open the main TomoMod configuration."))
-    settings:SetScript("OnClick", function()
+    SetTooltip(settings, Localize("chat_v4_btn_settings", "TomoMod Settings"), Localize("chat_v4_tip_settings", "Open TomoMod settings or reload the interface."))
+    settings:SetScript("OnClick", function(self)
         PlayClick()
-        if TomoMod_Config and TomoMod_Config.Toggle then
-            TomoMod_Config.Toggle()
-        elseif SlashCmdList and SlashCmdList["TOMOMOD"] then
-            SlashCmdList["TOMOMOD"]("config")
+        GameTooltip:Hide()
+        if Sidebar.statusMenu then Sidebar.statusMenu:Hide() end
+
+        local menu = BuildSettingsMenu()
+        menu:ClearAllPoints()
+        if Chat.GetDB().sidebar.side == "RIGHT" then
+            menu:SetPoint("TOPRIGHT", self, "TOPLEFT", -5, 0)
+        else
+            menu:SetPoint("TOPLEFT", self, "TOPRIGHT", 5, 0)
         end
+        menu:SetShown(not menu:IsShown())
     end)
 
     local scroll = CreateButton(parent, "scroll")
@@ -573,7 +645,8 @@ function Sidebar:ApplySettings(enabled)
         self:RefreshSocialCounts()
         self:RefreshStatus()
         self:LayoutButtons()
-    elseif self.statusMenu then
-        self.statusMenu:Hide()
+    else
+        if self.statusMenu then self.statusMenu:Hide() end
+        if self.settingsMenu then self.settingsMenu:Hide() end
     end
 end

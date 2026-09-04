@@ -1177,6 +1177,44 @@ local PREVIEW_HEALTH_PCT = { 1.0, 0.85, 0.72, 0.60, 0.95, 0.50, 0.88, 0.40, 0.78
 RF.previewFrames = {}
 RF._previewActive = false
 
+local function ApplyPreviewFrameSettings(f, index, db, layoutValues)
+    if not f then return end
+
+    local w = layoutValues.width
+    local h = layoutValues.height
+    local powerH = db.showPower and (db.powerHeight or 3) or 0
+    local healthH = math.max(1, h - powerH - 2)
+
+    f:SetSize(w, h)
+    if f._previewHealth then
+        f._previewHealth:SetHeight(healthH)
+    end
+    if f._previewPower then
+        if powerH > 0 then
+            f._previewPower:SetHeight(math.max(1, powerH - 1))
+            f._previewPower:Show()
+        else
+            f._previewPower:Hide()
+        end
+    end
+
+    local text = f._previewName
+    if text then
+        text:SetFont(db.font or ADDON_FONT, db.fontSize or 10, db.fontOutline or "OUTLINE")
+        if db.showName then
+            local name = PREVIEW_NAMES[index] or ("Player" .. index)
+            local maxLen = db.nameMaxLength or 0
+            if maxLen > 0 and #name > maxLen then
+                name = string.sub(name, 1, maxLen)
+            end
+            text:SetText(name)
+            text:Show()
+        else
+            text:Hide()
+        end
+    end
+end
+
 function RF.ShowPreview(count)
     if not RF.anchor then return end
     local db = TomoModDB and TomoModDB.raidFrames
@@ -1186,10 +1224,9 @@ function RF.ShowPreview(count)
     RF._previewActive = true
 
     count = math.min(count or 20, 40)
-    local w = db.width
-    local h = db.height
-    local powerH = db.showPower and db.powerHeight or 0
-    local healthH = h - powerH
+    local layoutValues = RF.GetLayoutValues()
+    local w = layoutValues.width
+    local h = layoutValues.height
 
     for i = 1, count do
         local f = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
@@ -1206,44 +1243,40 @@ function RF.ShowPreview(count)
         local health = CreateFrame("StatusBar", nil, f)
         health:SetPoint("TOPLEFT", 1, -1)
         health:SetPoint("TOPRIGHT", -1, -1)
-        health:SetHeight(healthH - 2)
+        health:SetHeight(1)
         health:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
         local ci = ((i - 1) % #PREVIEW_CLASSES) + 1
         local c = PREVIEW_CLASSES[ci]
         health:SetStatusBarColor(c.r, c.g, c.b, 0.85)
         health:SetMinMaxValues(0, 100)
         health:SetValue((PREVIEW_HEALTH_PCT[i] or 0.75) * 100)
+        f._previewHealth = health
 
-        -- Power bar (show only for first 4 = "healers")
-        if powerH > 0 and i <= 4 then
+        -- Power bar (only the first 4 preview members are "healers"). It is
+        -- always created so toggling the option while Layout is open is live.
+        if i <= 4 then
             local power = CreateFrame("StatusBar", nil, f)
             power:SetPoint("BOTTOMLEFT", 1, 1)
             power:SetPoint("BOTTOMRIGHT", -1, 1)
-            power:SetHeight(powerH - 1)
+            power:SetHeight(1)
             power:SetStatusBarTexture("Interface\\Buttons\\WHITE8X8")
             power:SetStatusBarColor(0.00, 0.00, 1.00, 0.80)
             power:SetMinMaxValues(0, 100)
             power:SetValue(60 + (i * 8) % 40)
+            f._previewPower = power
         end
 
         -- Name text
-        if db.showName then
-            local txt = f:CreateFontString(nil, "OVERLAY")
-            txt:SetFont("Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf", db.fontSize or 10, "OUTLINE")
-            txt:SetPoint("TOP", 0, -2)
-            txt:SetJustifyH("CENTER")
-            txt:SetWordWrap(false)
-            txt:SetMaxLines(1)
-            local name = PREVIEW_NAMES[i] or ("Player" .. i)
-            local maxLen = db.nameMaxLength or 0
-            if maxLen > 0 and #name > maxLen then
-                name = string.sub(name, 1, maxLen)
-            end
-            txt:SetText(name)
-            txt:SetTextColor(1, 1, 1, 0.9)
-        end
+        local txt = f:CreateFontString(nil, "OVERLAY")
+        txt:SetPoint("TOP", 0, -2)
+        txt:SetJustifyH("CENTER")
+        txt:SetWordWrap(false)
+        txt:SetMaxLines(1)
+        txt:SetTextColor(1, 1, 1, 0.9)
+        f._previewName = txt
 
         f.previewIndex = i
+        ApplyPreviewFrameSettings(f, i, db, layoutValues)
         f:Show()
         RF.previewFrames[i] = f
     end
@@ -1256,11 +1289,12 @@ function RF._layoutPreview(count)
     local db = TomoModDB and TomoModDB.raidFrames
     if not db or not RF.anchor then return end
 
-    local layout = db.layout or "grid"
-    local spacing = db.spacing or 2
-    local groupSpacing = db.groupSpacing or 6
-    local w = db.width
-    local h = db.height
+    local layoutValues = RF.GetLayoutValues()
+    local layout = layoutValues.layout
+    local spacing = layoutValues.spacing
+    local groupSpacing = layoutValues.groupSpacing
+    local w = layoutValues.width
+    local h = layoutValues.height
     local membersPerGroup = 5
 
     if layout == "grid" then
@@ -1299,6 +1333,22 @@ function RF._layoutPreview(count)
         if totalH < h then totalH = h end
         RF.anchor:SetSize(w, totalH)
     end
+end
+
+function RF.RefreshPreview()
+    if not RF._previewActive or not RF.anchor then return end
+    local db = TomoModDB and TomoModDB.raidFrames
+    if not db then return end
+
+    local layoutValues = RF.GetLayoutValues()
+    local count = 0
+    for i, f in ipairs(RF.previewFrames) do
+        if f then
+            ApplyPreviewFrameSettings(f, i, db, layoutValues)
+            count = i
+        end
+    end
+    if count > 0 then RF._layoutPreview(count) end
 end
 
 function RF.HidePreview()
@@ -1386,6 +1436,9 @@ function RF.CreateAnchor()
 
     local mover = CreateFrame("Frame", nil, anchor, "BackdropTemplate")
     mover:SetAllPoints()
+    if TomoMod_Utils and TomoMod_Utils.RegisterMoverLayer then
+        TomoMod_Utils.RegisterMoverLayer(mover, anchor)
+    end
     mover:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8X8",
         edgeFile = "Interface\\Buttons\\WHITE8X8",
@@ -1640,7 +1693,14 @@ function RF.ApplySettings()
         end
     end
 
-    RF.LayoutFrames()
+    -- Outside a real raid, Layout mode owns a 20-member simulation. Keep that
+    -- simulation and its mover bounds in sync instead of letting LayoutFrames
+    -- collapse the empty real roster to a single-frame anchor.
+    if RF._previewActive then
+        RF.RefreshPreview()
+    else
+        RF.LayoutFrames()
+    end
 end
 
 -- =====================================

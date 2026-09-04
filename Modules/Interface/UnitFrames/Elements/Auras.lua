@@ -189,6 +189,9 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
         if not self._moverOverlay then
             local ov = CreateFrame("Frame", nil, self)
             ov:SetAllPoints()
+            if TomoMod_Utils and TomoMod_Utils.RegisterMoverLayer then
+                TomoMod_Utils.RegisterMoverLayer(ov, self)
+            end
             ov:SetFrameLevel(self:GetFrameLevel() + 5)
             local t = ov:CreateTexture(nil, "OVERLAY")
             t:SetAllPoints()

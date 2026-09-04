@@ -348,6 +348,9 @@ function AF.CreateAnchor()
     -- Mover overlay
     local mover = CreateFrame("Frame", nil, anchor, "BackdropTemplate")
     mover:SetAllPoints()
+    if TomoMod_Utils and TomoMod_Utils.RegisterMoverLayer then
+        TomoMod_Utils.RegisterMoverLayer(mover, anchor)
+    end
     mover:SetBackdrop({
         bgFile = "Interface\\Buttons\\WHITE8X8",
         edgeFile = "Interface\\Buttons\\WHITE8X8",

@@ -109,6 +109,9 @@ function Layout:EnsureMover()
     mover:SetAllPoints(self.panel)
     mover:SetFrameStrata("HIGH")
     mover:SetFrameLevel(500)
+    if TomoMod_Utils and TomoMod_Utils.RegisterMoverLayer then
+        TomoMod_Utils.RegisterMoverLayer(mover, mover)
+    end
     mover:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 2 })
     mover:SetBackdropColor(TEAL_R, TEAL_G, TEAL_B, 0.16)
     mover:SetBackdropBorderColor(TEAL_R, TEAL_G, TEAL_B, 0.95)

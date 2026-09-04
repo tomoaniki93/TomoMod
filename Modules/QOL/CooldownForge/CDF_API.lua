@@ -86,6 +86,17 @@ function CDF.DuplicateBar(class, id)
     local copy = CopyTable(src)
     copy.id   = CDF.genBarId(arr)
     copy.name = (src.name or "Bar") .. " (copie)"
+    -- [P3] A duplicate of one member of a contextual preset becomes a normal
+    -- standalone bar. Keeping the pack metadata would make future preset
+    -- updates mistake the copy for the real Solo/Mythic+/Raid member.
+    copy.contextPreset  = nil
+    copy.contextPackID  = nil
+    copy.contextProfile = nil
+    copy.contextSpecID  = nil
+    for _, entry in ipairs(copy.entries or {}) do
+        entry.fromContextPreset = nil
+        entry.contextSource = nil
+    end
     -- Position is personal; reset the copy so it doesn't overlap the source.
     copy.position = { point = "CENTER", relPoint = "CENTER", x = 0, y = 0 }
     table.insert(arr, idx + 1, copy)

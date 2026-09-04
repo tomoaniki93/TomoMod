@@ -324,8 +324,10 @@ local function EnsureSelectionOutline()
     if selectionOutline then return selectionOutline end
 
     local f = CreateFrame("Frame", "TomoModLayoutSelectionOutline", UIParent)
-    f:SetFrameStrata("DIALOG")
-    f:SetFrameLevel(608)
+    -- The selection shell is part of the edit surface too. LOW keeps it above
+    -- TomoLayout movers while every Blizzard panel remains free to cover it.
+    f:SetFrameStrata("LOW")
+    f:SetFrameLevel(9000)
     f:EnableMouse(false)
     f:Hide()
 
@@ -397,12 +399,23 @@ local function RefreshSelectionOutline()
     f:Show()
 end
 
+local function RefreshMoverFocus()
+    local U = TomoMod_Utils
+    if U and U.SetMoverFocusSelection then
+        U.SetMoverFocusSelection(
+            selectedFrame,
+            editModeActive and selectedFrame ~= nil
+        )
+    end
+end
+
 function P.SelectFrame(frame)
     if not editModeActive then return false end
     local anchorID = P.ResolveAnchorID(frame)
     if not anchorID or not Store(anchorID) then return false end
     selectedFrame = frame
     selectedAnchorID = anchorID
+    RefreshMoverFocus()
     RefreshSelectionOutline()
     if nudger then nudger:Show() end
     P.RefreshUI()
@@ -674,6 +687,10 @@ function P.SetEditMode(enabled, headerBar)
     editModeActive = enabled and true or false
     local f = EnsureNudger(headerBar)
     selectedFrame, selectedAnchorID = nil, nil
+    RefreshMoverFocus()
+    if TomoMod_Utils and TomoMod_Utils.SetMoverLayerMode then
+        TomoMod_Utils.SetMoverLayerMode(editModeActive)
+    end
     if selectionOutline then selectionOutline:Hide() end
     if editModeActive then
         P.BindSelectionFrames()

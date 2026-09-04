@@ -570,6 +570,154 @@ end
 -- The gradient is opaque on purpose: the overlay has to hide what sits under
 -- it. A raid grid or a full action bar showing through made it impossible to
 -- see where one movable element ended and the next began.
+
+-- TomoLayout 1.4 focus state. Styled overlays register themselves here so the
+-- edit mode can lower the visual weight of every non-selected mover without
+-- making the underlying UI visible again. Weak keys mean modules can destroy
+-- and rebuild movers without leaving stale references behind.
+local styledMoverOverlays = setmetatable({}, { __mode = "k" })
+local moverFocusSelection = nil
+local moverFocusEnabled = false
+
+-- Dedicated edit-layer registry. A mover can be a standalone frame or a child
+-- overlay placed over a live HUD frame. During EditMode both the overlay and
+-- its owner are temporarily lowered to LOW, then their exact original strata
+-- are restored when EditMode closes. This keeps Blizzard panels above layout
+-- surfaces without permanently changing the runtime HUD layering.
+local moverLayerFrames = setmetatable({}, { __mode = "k" })
+local moverLayerActive = false
+
+local function ApplyMoverLayerFrame(frame)
+    local state = moverLayerFrames[frame]
+    if not frame or not state or not frame.SetFrameStrata then return end
+
+    if moverLayerActive then
+        if not state.lowered then
+            state.strata = frame.GetFrameStrata and frame:GetFrameStrata() or nil
+            state.lowered = true
+        end
+        frame:SetFrameStrata("LOW")
+    elseif state.lowered then
+        frame:SetFrameStrata(state.strata or "MEDIUM")
+        state.strata = nil
+        state.lowered = false
+    end
+end
+
+local function TrackMoverLayerFrame(frame)
+    if not frame or not frame.SetFrameStrata then return end
+    if not moverLayerFrames[frame] then moverLayerFrames[frame] = {} end
+    ApplyMoverLayerFrame(frame)
+end
+
+function U.RegisterMoverLayer(overlay, owner)
+    if not overlay then return end
+    if not owner and overlay.GetParent then
+        local parent = overlay:GetParent()
+        if parent and parent ~= UIParent then owner = parent end
+    end
+    owner = owner or overlay
+
+    TrackMoverLayerFrame(owner)
+    if overlay ~= owner then TrackMoverLayerFrame(overlay) end
+    overlay._tmMoverLayerOwner = owner
+end
+
+function U.SetMoverLayerMode(enabled)
+    moverLayerActive = enabled and true or false
+    for frame in pairs(moverLayerFrames) do
+        ApplyMoverLayerFrame(frame)
+    end
+end
+
+local function MoverBelongsToSelection(overlay, selected)
+    if not overlay or not selected then return false end
+    if overlay == selected then return true end
+
+    -- Most shared overlays are children of the real movable frame. A few
+    -- movers are the styled frame themselves. Walk both directions so custom
+    -- wrappers do not need another registration API just for focus mode.
+    local cursor, depth = overlay, 0
+    while cursor and depth < 12 do
+        if cursor == selected then return true end
+        cursor = cursor.GetParent and cursor:GetParent() or nil
+        depth = depth + 1
+    end
+
+    cursor, depth = selected, 0
+    while cursor and depth < 12 do
+        if cursor == overlay then return true end
+        cursor = cursor.GetParent and cursor:GetParent() or nil
+        depth = depth + 1
+    end
+    return false
+end
+
+local function ApplyMoverFocusVisual(overlay)
+    if not overlay then return end
+
+    local selected = moverFocusEnabled
+        and MoverBelongsToSelection(overlay, moverFocusSelection)
+    local hovered = moverFocusEnabled and overlay._tmMoverHovered
+    local dimmed = moverFocusEnabled and not selected and not hovered
+
+    local grad = overlay._tmMoverGrad
+    if grad and grad.SetVertexColor then
+        if dimmed then
+            -- Darken the opaque gradient instead of lowering alpha: the mover
+            -- remains a clean placement block and the live UI cannot bleed
+            -- through it while another element is being edited.
+            grad:SetVertexColor(0.52, 0.58, 0.66, 1)
+        else
+            grad:SetVertexColor(1, 1, 1, 1)
+        end
+    end
+
+    local edge = overlay._tmMoverEdge
+    if edge then
+        local border = U.MOVER_BORDER
+        if selected then
+            local c = U.BRAND_HOVER or U.BRAND
+            edge:SetColorTexture(c[1], c[2], c[3], 1)
+        elseif hovered then
+            edge:SetColorTexture(1, 1, 1, 1)
+        elseif dimmed then
+            edge:SetColorTexture(border[1], border[2], border[3], 0.32)
+        else
+            edge:SetColorTexture(border[1], border[2], border[3], 0.85)
+        end
+    end
+
+    local text = overlay._tmMoverText
+    if text then
+        local size = overlay._tmMoverTextSize or 11
+        if selected then
+            text:SetFont(
+                "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf",
+                size + 1,
+                "OUTLINE"
+            )
+            local c = U.BRAND_HOVER or U.BRAND
+            text:SetTextColor(c[1], c[2], c[3], 1)
+            text:SetAlpha(1)
+        else
+            U.StyleMoverLabel(text, size)
+            text:SetAlpha(dimmed and 0.62 or 1)
+        end
+    end
+end
+
+function U.SetMoverFocusSelection(frame, enabled)
+    moverFocusSelection = frame
+    moverFocusEnabled = enabled and frame ~= nil or false
+    for overlay in pairs(styledMoverOverlays) do
+        ApplyMoverFocusVisual(overlay)
+    end
+end
+
+function U.RefreshMoverFocus(overlay)
+    if overlay then ApplyMoverFocusVisual(overlay) end
+end
 function U.StyleMoverLabel(text, size)
     if not text or not text.SetFont then return nil end
 
@@ -632,12 +780,37 @@ function U.StyleMoverOverlay(overlay, labelText)
         text:SetPoint("CENTER", overlay, "CENTER", 0, 0)
         overlay._tmMoverText = text
     end
-    U.StyleMoverLabel(text, 11)
+    overlay._tmMoverTextSize = overlay._tmMoverTextSize or 11
+    U.StyleMoverLabel(text, overlay._tmMoverTextSize)
     text:SetText(labelText or (TomoMod_L and TomoMod_L["mover_generic"]) or "Move")
 
     overlay.SetMoverLabel = function(_, newText)
         if newText then text:SetText(newText) end
     end
+
+    styledMoverOverlays[overlay] = true
+    U.RegisterMoverLayer(overlay)
+    if overlay.HookScript and not overlay._tmMoverFocusHooks then
+        overlay._tmMoverFocusHooks = true
+        pcall(overlay.HookScript, overlay, "OnEnter", function(self)
+            self._tmMoverHovered = true
+            ApplyMoverFocusVisual(self)
+        end)
+        pcall(overlay.HookScript, overlay, "OnLeave", function(self)
+            self._tmMoverHovered = false
+            ApplyMoverFocusVisual(self)
+        end)
+        pcall(overlay.HookScript, overlay, "OnMouseDown", function(self)
+            ApplyMoverFocusVisual(self)
+        end)
+        pcall(overlay.HookScript, overlay, "OnMouseUp", function(self)
+            ApplyMoverFocusVisual(self)
+        end)
+        pcall(overlay.HookScript, overlay, "OnShow", function(self)
+            ApplyMoverFocusVisual(self)
+        end)
+    end
+    ApplyMoverFocusVisual(overlay)
     return overlay
 end
 

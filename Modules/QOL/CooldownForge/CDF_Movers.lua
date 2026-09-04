@@ -40,15 +40,33 @@ local function place(f, bar)
     f:SetPoint(p.point or "CENTER", UIParent, p.relPoint or "CENTER", p.x or 0, p.y or 0)
 end
 
+-- [P3] Contextual preset members are one visual element. Moving any member
+-- updates every sibling in the pack so Solo/Mythic+/Raid never jump to three
+-- different places when the group context changes.
+local function setLinkedPosition(bar, x, y)
+    local pos = { point = "CENTER", relPoint = "CENTER", x = x, y = y }
+    local packID = bar.contextPackID
+    if not packID then
+        bar.position = pos
+        place(CDF.GetBarFrame(bar), bar)
+        return
+    end
+
+    for _, sibling in ipairs(CDF.GetClassBars(CDF.PlayerClass()) or {}) do
+        if sibling.contextPackID == packID then
+            sibling.position = { point = "CENTER", relPoint = "CENTER", x = x, y = y }
+            place(CDF.GetBarFrame(sibling), sibling)
+        end
+    end
+end
+
 local function ensureBarOverlay(f, bar)
     return Forge.Edit.AttachOverlay(f,
         function(x, y)
-            bar.position = { point = "CENTER", relPoint = "CENTER", x = x, y = y }
-            place(f, bar)
+            setLinkedPosition(bar, x, y)
         end,
         function()
-            bar.position = { point = "CENTER", relPoint = "CENTER", x = 0, y = 0 }
-            place(f, bar)
+            setLinkedPosition(bar, 0, 0)
         end)
 end
 
@@ -67,21 +85,40 @@ local function BarsProvider(locked)
         -- Restore normal rendering (hides empty/disabled bars).
         if CDF.RefreshAll then CDF.RefreshAll() end
     else
+        local shownPacks = {}
         for i = 1, #arr do
             local bar = arr[i]
             local f = CDF.GetBarFrame(bar)
             place(f, bar)
-            local o = ensureBarOverlay(f, bar)
-            o._label:SetText(bar.name or "Bar")
-            -- Keep empty/disabled bars grabbable with a minimum footprint.
-            local w, h = f:GetSize()
-            if (w or 0) < 40 or (h or 0) < 24 then
-                f:SetSize(max(w or 0, 120), max(h or 0, 34))
+
+            -- Only one mover is needed for a linked contextual pack. The
+            -- sibling frames still follow it through setLinkedPosition.
+            local showOverlay = true
+            if bar.contextPackID then
+                if shownPacks[bar.contextPackID] then
+                    showOverlay = false
+                else
+                    shownPacks[bar.contextPackID] = true
+                end
             end
-            f:SetMovable(true)
-            f:SetClampedToScreen(true)
-            f:Show()
-            o:Show()
+
+            if showOverlay then
+                local o = ensureBarOverlay(f, bar)
+                o._label:SetText(bar.name or "Bar")
+                -- Keep empty/disabled bars grabbable with a minimum footprint.
+                local w, h = f:GetSize()
+                if (w or 0) < 40 or (h or 0) < 24 then
+                    f:SetSize(max(w or 0, 120), max(h or 0, 34))
+                end
+                f:SetMovable(true)
+                f:SetClampedToScreen(true)
+                f:Show()
+                o:Show()
+            else
+                if f._forgeOverlay then f._forgeOverlay:Hide() end
+                f:SetMovable(false)
+                f:Show()
+            end
         end
     end
 end

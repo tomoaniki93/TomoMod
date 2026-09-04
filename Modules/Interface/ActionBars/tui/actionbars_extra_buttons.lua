@@ -258,6 +258,9 @@ function CreateExtraButtonHolder(buttonType, displayName)
     mover:SetMovable(true)
     mover:RegisterForDrag("LeftButton")
     mover:SetFrameStrata("HIGH")
+    if TomoMod_Utils and TomoMod_Utils.RegisterMoverLayer then
+        TomoMod_Utils.RegisterMoverLayer(mover, mover)
+    end
     mover:Hide()
 
     local text = mover:CreateFontString(nil, "OVERLAY", "GameFontNormal")
