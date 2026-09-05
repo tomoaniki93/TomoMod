@@ -103,7 +103,7 @@ if TomoMod_RegisterLocale then
         ["af_tutorial_1_title"]        = "Welcome to Astral Forge Studio",
         ["af_tutorial_1_body"]         = "Astral Forge is the visual editor for TomoMod UnitFrames and Nameplates. Design the frame, move its elements and create your own bars without touching the protected live frame.",
         ["af_tutorial_2_title"]        = "Choose what you want to edit",
-        ["af_tutorial_2_body"]         = "Use the subject selector to switch between Player, Target and Nameplates. Other supported Forge subjects remain available for element editing.",
+        ["af_tutorial_2_body"]         = "Use the subject selector to choose a UnitFrame, Boss Frames, Nameplates or one of the supported non-player cast bars.",
         ["af_tutorial_3_title"]        = "Edit the frame itself",
         ["af_tutorial_3_body"]         = "The Frame tab controls the main dimensions and display of Player, Target and Nameplates. Changes are reflected immediately in the detached preview.",
         ["af_tutorial_4_title"]        = "Move elements directly",
@@ -174,7 +174,7 @@ if TomoMod_RegisterLocale then
         ["af_tutorial_1_title"]        = "Bienvenue dans Astral Forge Studio",
         ["af_tutorial_1_body"]         = "Astral Forge est l'éditeur visuel des UnitFrames et Nameplates de TomoMod. Modifie le cadre, déplace ses éléments et crée tes propres barres sans toucher directement aux frames protégées en jeu.",
         ["af_tutorial_2_title"]        = "Choisis ce que tu veux éditer",
-        ["af_tutorial_2_body"]         = "Le sélecteur de sujet permet de passer rapidement de Player à Target ou aux Nameplates. Les autres sujets Forge restent disponibles pour l'édition de leurs éléments.",
+        ["af_tutorial_2_body"]         = "Le sélecteur permet de choisir une UnitFrame, les Boss Frames, les Nameplates ou l'une des barres d'incantation prises en charge hors Player.",
         ["af_tutorial_3_title"]        = "Modifie le cadre lui-même",
         ["af_tutorial_3_body"]         = "L'onglet Cadre règle les dimensions et l'affichage principal de Player, Target et Nameplates. Les changements apparaissent immédiatement dans l'aperçu détaché.",
         ["af_tutorial_4_title"]        = "Déplace les éléments directement",
@@ -245,7 +245,7 @@ if TomoMod_RegisterLocale then
         ["af_tutorial_1_title"]        = "Willkommen im Astral Forge Studio",
         ["af_tutorial_1_body"]         = "Astral Forge ist der visuelle Editor für TomoMod-UnitFrames und Namensplaketten. Gestalte Rahmen, verschiebe Elemente und erstelle eigene Leisten ohne die geschützten Live-Rahmen direkt anzufassen.",
         ["af_tutorial_2_title"]        = "Wähle dein Bearbeitungsziel",
-        ["af_tutorial_2_body"]         = "Mit der Zielauswahl wechselst du zwischen Spieler, Ziel und Namensplaketten. Weitere Forge-Ziele bleiben für die Elementbearbeitung verfügbar.",
+        ["af_tutorial_2_body"]         = "Mit der Auswahl bearbeitest du UnitFrames, Boss-Rahmen, Namensplaketten oder eine der unterstützten Zauberleisten außer Spieler.",
         ["af_tutorial_3_title"]        = "Bearbeite den Rahmen selbst",
         ["af_tutorial_3_body"]         = "Der Reiter Rahmen steuert Abmessungen und Hauptanzeige von Spieler, Ziel und Namensplaketten. Änderungen erscheinen sofort in der getrennten Vorschau.",
         ["af_tutorial_4_title"]        = "Elemente direkt verschieben",
@@ -316,7 +316,7 @@ if TomoMod_RegisterLocale then
         ["af_tutorial_1_title"]        = "Bienvenido a Astral Forge Studio",
         ["af_tutorial_1_body"]         = "Astral Forge es el editor visual de UnitFrames y Placas de nombre de TomoMod. Diseña el marco, mueve sus elementos y crea tus propias barras sin manipular directamente los marcos protegidos.",
         ["af_tutorial_2_title"]        = "Elige lo que quieres editar",
-        ["af_tutorial_2_body"]         = "El selector permite cambiar entre Jugador, Objetivo y Placas de nombre. Los demás sujetos Forge siguen disponibles para editar sus elementos.",
+        ["af_tutorial_2_body"]         = "El selector permite editar UnitFrames, Marcos de jefe, Placas de nombre o una de las barras de lanzamiento compatibles excepto la del Jugador.",
         ["af_tutorial_3_title"]        = "Edita el propio marco",
         ["af_tutorial_3_body"]         = "La pestaña Marco controla las dimensiones y la visualización principal de Jugador, Objetivo y Placas de nombre. Los cambios aparecen al instante en la vista previa.",
         ["af_tutorial_4_title"]        = "Mueve los elementos directamente",
@@ -387,7 +387,7 @@ if TomoMod_RegisterLocale then
         ["af_tutorial_1_title"]        = "Benvenuto in Astral Forge Studio",
         ["af_tutorial_1_body"]         = "Astral Forge è l'editor visivo di UnitFrame e Nameplate di TomoMod. Progetta il riquadro, sposta gli elementi e crea barre personali senza manipolare direttamente i frame protetti.",
         ["af_tutorial_2_title"]        = "Scegli cosa modificare",
-        ["af_tutorial_2_body"]         = "Il selettore permette di passare tra Giocatore, Bersaglio e Nameplate. Gli altri soggetti Forge restano disponibili per modificare i loro elementi.",
+        ["af_tutorial_2_body"]         = "Il selettore permette di modificare UnitFrame, Boss Frame, Nameplate o una delle barre di lancio supportate tranne quella del Giocatore.",
         ["af_tutorial_3_title"]        = "Modifica il riquadro",
         ["af_tutorial_3_body"]         = "La scheda Riquadro controlla dimensioni e visualizzazione principale di Giocatore, Bersaglio e Nameplate. Le modifiche appaiono subito nell'anteprima separata.",
         ["af_tutorial_4_title"]        = "Sposta gli elementi direttamente",
@@ -458,7 +458,7 @@ if TomoMod_RegisterLocale then
         ["af_tutorial_1_title"]        = "Bem-vindo ao Astral Forge Studio",
         ["af_tutorial_1_body"]         = "Astral Forge é o editor visual das UnitFrames e Placas de nome do TomoMod. Crie o quadro, mova seus elementos e crie barras próprias sem manipular diretamente os quadros protegidos.",
         ["af_tutorial_2_title"]        = "Escolha o que deseja editar",
-        ["af_tutorial_2_body"]         = "O seletor permite alternar entre Jogador, Alvo e Placas de nome. Os outros assuntos Forge continuam disponíveis para edição de seus elementos.",
+        ["af_tutorial_2_body"]         = "O seletor permite editar UnitFrames, Quadros de chefe, Placas de nome ou uma das barras de lançamento compatíveis, exceto a do Jogador.",
         ["af_tutorial_3_title"]        = "Edite o próprio quadro",
         ["af_tutorial_3_body"]         = "A aba Quadro controla dimensões e exibição principal de Jogador, Alvo e Placas de nome. As alterações aparecem imediatamente na prévia destacada.",
         ["af_tutorial_4_title"]        = "Mova elementos diretamente",
@@ -467,6 +467,203 @@ if TomoMod_RegisterLocale then
         ["af_tutorial_5_body"]         = "Barras permite criar barras independentes de Vida, Recurso ou decorativas. Cada barra se torna um elemento Forge livremente posicionável e personalizável.",
         ["af_tutorial_6_title"]        = "Reutilize seus layouts",
         ["af_tutorial_6_body"]         = "As Predefinições permitem salvar, duplicar, exportar e restaurar layouts Forge. O botão Ajuda na barra de título reinicia este guia a qualquer momento.",
+    })
+end
+
+-- ---------------------------------------------------------------------
+-- Astral Forge Studio V2.1 - Lot 2 locales
+-- Existing TomoMod option labels are reused wherever possible; only the
+-- Studio-specific grouping/help text is declared here.
+-- ---------------------------------------------------------------------
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["af_v21_global_uf"]          = "Global UnitFrame settings",
+        ["af_v21_global_uf_info"]     = "These settings are shared by Player, Target, Focus, Pet, Target of Target and Boss Frames.",
+        ["af_v21_frame_behavior"]     = "Frame behavior",
+        ["af_v21_auras"]              = "Auras",
+        ["af_v21_enemy_buffs"]        = "Enemy buffs",
+        ["af_v21_np_roles"]           = "Friendly role icons",
+        ["af_v21_np_advanced"]        = "Advanced Nameplate behavior",
+        ["af_v21_np_colors"]          = "Context colors",
+        ["af_v21_np_classification"]  = "Classification colors",
+        ["af_v21_np_tank"]            = "Tank / threat mode",
+        ["af_v21_boss_info"]          = "Boss Frames share one layout: width, height and spacing are applied to all five boss frames.",
+        ["af_v21_bar_note"]           = "Textures, absorb appearance and detailed bar styling are configured in the Bars tab.",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["af_v21_global_uf"]          = "Réglages globaux UnitFrames",
+        ["af_v21_global_uf_info"]     = "Ces réglages sont partagés par Player, Target, Focus, Pet, Target of Target et les Boss Frames.",
+        ["af_v21_frame_behavior"]     = "Comportement du cadre",
+        ["af_v21_auras"]              = "Auras",
+        ["af_v21_enemy_buffs"]        = "Buffs ennemis",
+        ["af_v21_np_roles"]           = "Icônes de rôle alliées",
+        ["af_v21_np_advanced"]        = "Comportement avancé des Nameplates",
+        ["af_v21_np_colors"]          = "Couleurs contextuelles",
+        ["af_v21_np_classification"]  = "Couleurs de classification",
+        ["af_v21_np_tank"]            = "Mode Tank / menace",
+        ["af_v21_boss_info"]          = "Les Boss Frames partagent une même disposition : largeur, hauteur et espacement sont appliqués aux cinq cadres de boss.",
+        ["af_v21_bar_note"]           = "Les textures, l'apparence de l'absorbe et le style détaillé des barres se règlent dans l'onglet Barres.",
+    })
+    TomoMod_RegisterLocale("deDE", {
+        ["af_v21_global_uf"]          = "Globale UnitFrame-Einstellungen",
+        ["af_v21_global_uf_info"]     = "Diese Einstellungen gelten gemeinsam für Spieler, Ziel, Fokus, Begleiter, Ziel des Ziels und Boss-Rahmen.",
+        ["af_v21_frame_behavior"]     = "Rahmenverhalten",
+        ["af_v21_auras"]              = "Auren",
+        ["af_v21_enemy_buffs"]        = "Gegnerische Buffs",
+        ["af_v21_np_roles"]           = "Rollen-Symbole für Verbündete",
+        ["af_v21_np_advanced"]        = "Erweitertes Namensplaketten-Verhalten",
+        ["af_v21_np_colors"]          = "Kontextfarben",
+        ["af_v21_np_classification"]  = "Klassifizierungsfarben",
+        ["af_v21_np_tank"]            = "Tank- / Bedrohungsmodus",
+        ["af_v21_boss_info"]          = "Boss-Rahmen teilen sich ein Layout: Breite, Höhe und Abstand gelten für alle fünf Boss-Rahmen.",
+        ["af_v21_bar_note"]           = "Texturen, Absorb-Darstellung und detailliertes Leisten-Design werden im Reiter Leisten eingestellt.",
+    })
+    TomoMod_RegisterLocale("esES", {
+        ["af_v21_global_uf"]          = "Ajustes globales de UnitFrames",
+        ["af_v21_global_uf_info"]     = "Estos ajustes se comparten entre Jugador, Objetivo, Foco, Mascota, Objetivo del objetivo y Marcos de jefe.",
+        ["af_v21_frame_behavior"]     = "Comportamiento del marco",
+        ["af_v21_auras"]              = "Auras",
+        ["af_v21_enemy_buffs"]        = "Beneficios enemigos",
+        ["af_v21_np_roles"]           = "Iconos de rol aliados",
+        ["af_v21_np_advanced"]        = "Comportamiento avanzado de Placas de nombre",
+        ["af_v21_np_colors"]          = "Colores contextuales",
+        ["af_v21_np_classification"]  = "Colores de clasificación",
+        ["af_v21_np_tank"]            = "Modo Tanque / amenaza",
+        ["af_v21_boss_info"]          = "Los Marcos de jefe comparten una disposición: ancho, alto y separación se aplican a los cinco marcos.",
+        ["af_v21_bar_note"]           = "Las texturas, el aspecto de absorción y el estilo detallado de las barras se configuran en la pestaña Barras.",
+    })
+    TomoMod_RegisterLocale("itIT", {
+        ["af_v21_global_uf"]          = "Impostazioni globali UnitFrame",
+        ["af_v21_global_uf_info"]     = "Queste impostazioni sono condivise da Giocatore, Bersaglio, Focus, Famiglio, Bersaglio del bersaglio e Boss Frame.",
+        ["af_v21_frame_behavior"]     = "Comportamento del riquadro",
+        ["af_v21_auras"]              = "Aure",
+        ["af_v21_enemy_buffs"]        = "Buff nemici",
+        ["af_v21_np_roles"]           = "Icone ruolo alleati",
+        ["af_v21_np_advanced"]        = "Comportamento avanzato Nameplate",
+        ["af_v21_np_colors"]          = "Colori contestuali",
+        ["af_v21_np_classification"]  = "Colori classificazione",
+        ["af_v21_np_tank"]            = "Modalità Tank / minaccia",
+        ["af_v21_boss_info"]          = "I Boss Frame condividono una disposizione: larghezza, altezza e spaziatura si applicano a tutti e cinque.",
+        ["af_v21_bar_note"]           = "Texture, aspetto degli assorbimenti e stile dettagliato delle barre si configurano nella scheda Barre.",
+    })
+    TomoMod_RegisterLocale("ptBR", {
+        ["af_v21_global_uf"]          = "Ajustes globais de UnitFrames",
+        ["af_v21_global_uf_info"]     = "Esses ajustes são compartilhados por Jogador, Alvo, Foco, Ajudante, Alvo do alvo e Quadros de chefe.",
+        ["af_v21_frame_behavior"]     = "Comportamento do quadro",
+        ["af_v21_auras"]              = "Auras",
+        ["af_v21_enemy_buffs"]        = "Bônus inimigos",
+        ["af_v21_np_roles"]           = "Ícones de função aliados",
+        ["af_v21_np_advanced"]        = "Comportamento avançado das Placas de nome",
+        ["af_v21_np_colors"]          = "Cores contextuais",
+        ["af_v21_np_classification"]  = "Cores de classificação",
+        ["af_v21_np_tank"]            = "Modo Tanque / ameaça",
+        ["af_v21_boss_info"]          = "Os Quadros de chefe compartilham um layout: largura, altura e espaçamento valem para os cinco quadros.",
+        ["af_v21_bar_note"]           = "Texturas, aparência de absorção e estilo detalhado das barras são configurados na aba Barras.",
+    })
+end
+
+-- ---------------------------------------------------------------------
+-- Astral Forge Studio V2.1 - Lot 2 follow-up
+-- Cadre tab UX refinement: dedicated setting sections in the left sidebar,
+-- cleaner preview in Cadre mode, and less scrolling by showing only the
+-- selected settings block.
+-- ---------------------------------------------------------------------
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["af_v22_editor_title"]      = "Frame editor",
+        ["af_v22_editor_info"]       = "Select a settings category on the left. Only the selected block is shown below the preview.",
+        ["af_v22_sec_global"]        = "Global settings",
+        ["af_v22_sec_dimensions"]    = "Dimensions",
+        ["af_v22_sec_display"]       = "Display",
+        ["af_v22_sec_colors"]        = "Colors & threat",
+        ["af_v22_sec_auras"]         = "Auras",
+        ["af_v22_sec_enemy_buffs"]   = "Enemy buffs",
+        ["af_v22_sec_roles"]         = "Role icons",
+        ["af_v22_sec_castbar"]       = "Castbar",
+        ["af_v22_sec_advanced"]      = "Advanced",
+        ["af_v22_sec_context_colors"] = "Context colors",
+        ["af_v22_sec_classification"] = "Classification",
+        ["af_v22_sec_tank"]          = "Tank mode",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["af_v22_editor_title"]      = "Éditeur de cadre",
+        ["af_v22_editor_info"]       = "Sélectionne une catégorie de réglages à gauche. Seul le bloc choisi est affiché sous l'aperçu.",
+        ["af_v22_sec_global"]        = "Réglages globaux",
+        ["af_v22_sec_dimensions"]    = "Dimensions",
+        ["af_v22_sec_display"]       = "Affichage",
+        ["af_v22_sec_colors"]        = "Couleurs & menace",
+        ["af_v22_sec_auras"]         = "Auras",
+        ["af_v22_sec_enemy_buffs"]   = "Buffs ennemis",
+        ["af_v22_sec_roles"]         = "Icônes de rôle",
+        ["af_v22_sec_castbar"]       = "Barre d'incantation",
+        ["af_v22_sec_advanced"]      = "Avancé",
+        ["af_v22_sec_context_colors"] = "Couleurs contextuelles",
+        ["af_v22_sec_classification"] = "Classification",
+        ["af_v22_sec_tank"]          = "Mode Tank",
+    })
+    TomoMod_RegisterLocale("deDE", {
+        ["af_v22_editor_title"]      = "Rahmen-Editor",
+        ["af_v22_editor_info"]       = "Wähle links eine Einstellungskategorie. Unter der Vorschau wird nur der gewählte Block angezeigt.",
+        ["af_v22_sec_global"]        = "Globale Einstellungen",
+        ["af_v22_sec_dimensions"]    = "Abmessungen",
+        ["af_v22_sec_display"]       = "Anzeige",
+        ["af_v22_sec_colors"]        = "Farben & Bedrohung",
+        ["af_v22_sec_auras"]         = "Auren",
+        ["af_v22_sec_enemy_buffs"]   = "Gegnerische Buffs",
+        ["af_v22_sec_roles"]         = "Rollen-Symbole",
+        ["af_v22_sec_castbar"]       = "Zauberleiste",
+        ["af_v22_sec_advanced"]      = "Erweitert",
+        ["af_v22_sec_context_colors"] = "Kontextfarben",
+        ["af_v22_sec_classification"] = "Klassifizierung",
+        ["af_v22_sec_tank"]          = "Tankmodus",
+    })
+    TomoMod_RegisterLocale("esES", {
+        ["af_v22_editor_title"]      = "Editor de marco",
+        ["af_v22_editor_info"]       = "Selecciona a la izquierda una categoría de ajustes. Solo se muestra debajo de la vista previa el bloque elegido.",
+        ["af_v22_sec_global"]        = "Ajustes globales",
+        ["af_v22_sec_dimensions"]    = "Dimensiones",
+        ["af_v22_sec_display"]       = "Visualización",
+        ["af_v22_sec_colors"]        = "Colores y amenaza",
+        ["af_v22_sec_auras"]         = "Auras",
+        ["af_v22_sec_enemy_buffs"]   = "Beneficios enemigos",
+        ["af_v22_sec_roles"]         = "Iconos de rol",
+        ["af_v22_sec_castbar"]       = "Barra de lanzamiento",
+        ["af_v22_sec_advanced"]      = "Avanzado",
+        ["af_v22_sec_context_colors"] = "Colores contextuales",
+        ["af_v22_sec_classification"] = "Clasificación",
+        ["af_v22_sec_tank"]          = "Modo tanque",
+    })
+    TomoMod_RegisterLocale("itIT", {
+        ["af_v22_editor_title"]      = "Editor del riquadro",
+        ["af_v22_editor_info"]       = "Seleziona a sinistra una categoria di impostazioni. Sotto l'anteprima viene mostrato solo il blocco scelto.",
+        ["af_v22_sec_global"]        = "Impostazioni globali",
+        ["af_v22_sec_dimensions"]    = "Dimensioni",
+        ["af_v22_sec_display"]       = "Visualizzazione",
+        ["af_v22_sec_colors"]        = "Colori e minaccia",
+        ["af_v22_sec_auras"]         = "Aure",
+        ["af_v22_sec_enemy_buffs"]   = "Buff nemici",
+        ["af_v22_sec_roles"]         = "Icone ruolo",
+        ["af_v22_sec_castbar"]       = "Barra di lancio",
+        ["af_v22_sec_advanced"]      = "Avanzato",
+        ["af_v22_sec_context_colors"] = "Colori contestuali",
+        ["af_v22_sec_classification"] = "Classificazione",
+        ["af_v22_sec_tank"]          = "Modalità tank",
+    })
+    TomoMod_RegisterLocale("ptBR", {
+        ["af_v22_editor_title"]      = "Editor de quadro",
+        ["af_v22_editor_info"]       = "Selecione à esquerda uma categoria de ajustes. Abaixo da prévia é exibido apenas o bloco escolhido.",
+        ["af_v22_sec_global"]        = "Ajustes globais",
+        ["af_v22_sec_dimensions"]    = "Dimensões",
+        ["af_v22_sec_display"]       = "Exibição",
+        ["af_v22_sec_colors"]        = "Cores e ameaça",
+        ["af_v22_sec_auras"]         = "Auras",
+        ["af_v22_sec_enemy_buffs"]   = "Bônus inimigos",
+        ["af_v22_sec_roles"]         = "Ícones de função",
+        ["af_v22_sec_castbar"]       = "Barra de lançamento",
+        ["af_v22_sec_advanced"]      = "Avançado",
+        ["af_v22_sec_context_colors"] = "Cores contextuais",
+        ["af_v22_sec_classification"] = "Classificação",
+        ["af_v22_sec_tank"]          = "Modo tanque",
     })
 end
 
@@ -508,37 +705,48 @@ local STAGE_H          = 300
 -- ---------------------------------------------------------------------
 
 local SUBJECTS = {
-    { value = "player",       labelKey = "frame_player",
+    { value = "player", kind = "unitframe", labelKey = "frame_player",
       registry = function() return TomoMod_UFElements end,
       settings = function() return TomoModDB.unitFrames and TomoModDB.unitFrames.player end },
-    { value = "target",       labelKey = "frame_target",
+    { value = "target", kind = "unitframe", labelKey = "frame_target",
       registry = function() return TomoMod_UFElements end,
       settings = function() return TomoModDB.unitFrames and TomoModDB.unitFrames.target end },
-    { value = "focus",        labelKey = "frame_focus",
+    { value = "focus", kind = "unitframe", labelKey = "frame_focus",
       registry = function() return TomoMod_UFElements end,
       settings = function() return TomoModDB.unitFrames and TomoModDB.unitFrames.focus end },
-    { value = "pet",          labelKey = "frame_pet",
+    { value = "pet", kind = "unitframe", labelKey = "frame_pet",
       registry = function() return TomoMod_UFElements end,
       settings = function() return TomoModDB.unitFrames and TomoModDB.unitFrames.pet end },
-    { value = "targettarget", labelKey = "frame_targettarget",
+    { value = "targettarget", kind = "unitframe", labelKey = "frame_targettarget",
       registry = function() return TomoMod_UFElements end,
       settings = function() return TomoModDB.unitFrames and TomoModDB.unitFrames.targettarget end },
-    { value = "nameplate",    labelKey = "frame_nameplate",
+
+    { value = "bossframe", kind = "bossframe", labelKey = "frame_boss",
+      registry = function() return TomoMod_BossFrameElements end,
+      settings = function()
+          return TomoModDB.unitFrames and TomoModDB.unitFrames.bossFrames
+      end },
+
+    { value = "nameplate", kind = "nameplate", labelKey = "frame_nameplate",
       registry = function() return TomoMod_NPElements end,
       settings = function() return TomoModDB.nameplates end },
-    { value = "castbar_player", labelKey = "frame_cast_player", castUnit = "player",
-      registry = function() return TomoMod_CBElements end,
-      settings = function() return TomoModDB.castbars and TomoModDB.castbars.player end },
-    { value = "castbar_target", labelKey = "frame_cast_target", castUnit = "target",
+
+    -- Player castbar deliberately leaves Astral Forge. It will belong to the
+    -- future CastBars / ResourceBars Studio. Target/Focus/Pet/Boss remain here.
+    { value = "castbar_target", kind = "castbar",
+      labelKey = "frame_cast_target", castUnit = "target",
       registry = function() return TomoMod_CBElements end,
       settings = function() return TomoModDB.castbars and TomoModDB.castbars.target end },
-    { value = "castbar_focus",  labelKey = "frame_cast_focus",  castUnit = "focus",
+    { value = "castbar_focus", kind = "castbar",
+      labelKey = "frame_cast_focus", castUnit = "focus",
       registry = function() return TomoMod_CBElements end,
       settings = function() return TomoModDB.castbars and TomoModDB.castbars.focus end },
-    { value = "castbar_pet",    labelKey = "frame_cast_pet",    castUnit = "pet",
+    { value = "castbar_pet", kind = "castbar",
+      labelKey = "frame_cast_pet", castUnit = "pet",
       registry = function() return TomoMod_CBElements end,
       settings = function() return TomoModDB.castbars and TomoModDB.castbars.pet end },
-    { value = "castbar_boss",   labelKey = "frame_cast_boss",   castUnit = "boss",
+    { value = "castbar_boss", kind = "castbar",
+      labelKey = "frame_cast_boss", castUnit = "boss",
       registry = function() return TomoMod_CBElements end,
       settings = function() return TomoModDB.castbars and TomoModDB.castbars.boss end },
 }
@@ -552,8 +760,21 @@ local function Subject()
     return SUBJECT_BY_VALUE[S.state.subject] or SUBJECTS[1]
 end
 
+local function SubjectKind()
+    local sub = Subject()
+    return sub and sub.kind or "unitframe"
+end
+
 local function IsPlate()
-    return S.state.subject == NAMEPLATE
+    return SubjectKind() == "nameplate"
+end
+
+local function IsBoss()
+    return SubjectKind() == "bossframe"
+end
+
+local function IsCastbar()
+    return SubjectKind() == "castbar"
 end
 
 local function Registry()
@@ -581,6 +802,7 @@ local navigationHost, selectorHighlightHost
 local rowButtons = {}
 local navButtons = {}
 local tutorialUI
+local suppressCanvasSelect = false
 local TUTORIAL_VERSION = 1
 
 -- ---------------------------------------------------------------------
@@ -609,16 +831,20 @@ local function Apply()
     local sub = Subject()
     if not sub then return end
 
-    if sub.castUnit then
+    if sub.kind == "castbar" then
         local CB = TomoMod_Castbar
         if CB and CB.ApplySettings then CB.ApplySettings() end
         return
-    end
-    if sub.value == NAMEPLATE then
+    elseif sub.kind == "bossframe" then
+        local BF = TomoMod_BossFrames
+        if BF and BF.RefreshAll then BF.RefreshAll() end
+        return
+    elseif sub.kind == "nameplate" then
         local NP = TomoMod_Nameplates
         if NP and NP.RefreshAll then NP.RefreshAll() end
         return
     end
+
     local UF = TomoMod_UnitFrames
     if UF and UF.RefreshUnit then UF.RefreshUnit(sub.value) end
     if TomoMod_UFPreview and TomoMod_UFPreview.Refresh then
@@ -629,47 +855,137 @@ end
 -- ---------------------------------------------------------------------
 -- Stage: the detached subject frame
 -- ---------------------------------------------------------------------
--- Les frames WoW ne se detruisent pas : la plaque d'apercu precedente part
--- dans un bac cache, comme le fait UFPreview pour les cadres d'unite.
-local plateBin
+-- WoW frames cannot be destroyed. Every replaced preview is explicitly
+-- retired into one hidden bin before the next subject is created. This is
+-- stricter than relying on each factory's recycle path and guarantees that
+-- Player -> Target -> Nameplate can never leave two visible subjects stacked
+-- on the canvas.
+local subjectBin
+
+local function SubjectBin()
+    if not subjectBin then
+        subjectBin = CreateFrame("Frame")
+        subjectBin:Hide()
+    end
+    return subjectBin
+end
+
+local function RetireSubject()
+    -- Hide every handle before the old widget tree leaves the stage.
+    if canvas and canvas.SetSubject then
+        canvas:SetSubject(nil, nil)
+    end
+
+    -- A Nameplate preview has a base frame that owns the visible plate.
+    if plateSubjectBase then
+        plateSubjectBase:Hide()
+        plateSubjectBase:ClearAllPoints()
+        plateSubjectBase:SetParent(SubjectBin())
+        plateSubjectBase = nil
+        subject = nil
+        return
+    end
+
+    if subject then
+        subject:Hide()
+        subject:ClearAllPoints()
+        if subject.SetParent then subject:SetParent(SubjectBin()) end
+        subject = nil
+    end
+end
+
+local function CreateBossPreview(parent)
+    local db = Settings()
+    if not (parent and db) then return nil end
+
+    local f = CreateFrame("Frame", nil, parent)
+    f:SetSize(db.width or 200, db.height or 28)
+
+    local tex = TomoModDB.unitFrames.texture
+        or "Interface\\Buttons\\WHITE8x8"
+    local font = TomoModDB.unitFrames.fontFamily
+        or TomoModDB.unitFrames.font
+        or "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
+    local fontSize = TomoModDB.unitFrames.fontSize or 12
+
+    local health = CreateFrame("StatusBar", nil, f)
+    health:SetAllPoints()
+    health:SetStatusBarTexture(tex)
+    health:SetMinMaxValues(0, 100)
+    health:SetValue(72)
+    health:SetStatusBarColor(0.82, 0.16, 0.18, 1)
+    f.health = health
+
+    local bg = health:CreateTexture(nil, "BACKGROUND")
+    bg:SetAllPoints()
+    bg:SetTexture(tex)
+    bg:SetVertexColor(0.08, 0.08, 0.10, 0.88)
+    health.bg = bg
+
+    local raidIcon = health:CreateTexture(nil, "OVERLAY")
+    raidIcon:SetSize(16, 16)
+    raidIcon:SetTexture("Interface\\TargetingFrame\\UI-RaidTargetingIcons")
+    SetRaidTargetIconTexture(raidIcon, 8)
+    f.raidIcon = raidIcon
+
+    local nameText = health:CreateFontString(nil, "OVERLAY")
+    nameText:SetFont(font, math.max(8, fontSize - 1), "OUTLINE")
+    nameText:SetText("Boss - Taurache")
+    nameText:SetTextColor(1, 1, 1, 0.95)
+    nameText:SetJustifyH("LEFT")
+    nameText:SetWidth((db.width or 200) * 0.55)
+    f.nameText = nameText
+
+    local healthText = health:CreateFontString(nil, "OVERLAY")
+    healthText:SetFont(font, fontSize, "OUTLINE")
+    healthText:SetText("72%")
+    healthText:SetTextColor(1, 1, 1, 1)
+    healthText:SetJustifyH("RIGHT")
+    f.healthText = healthText
+
+    return f
+end
 
 local function RebuildSubject()
     if not (canvas and stageHost) then return end
+    local sub = Subject()
     local reg = Registry()
-    if not reg then return end
+    if not (sub and reg) then return end
 
-    if reg.CreatePreview then
-        -- Domaine qui fabrique son propre sujet de scene (castbars).
-        local sub = Subject()
-        local bar = reg.CreatePreview(canvas.stage, sub and sub.castUnit, { recycle = subject })
-        if not bar then return end
-        subject = bar
-        bar:ClearAllPoints()
-        bar:SetPoint("CENTER", canvas.stage, "CENTER", 0, 0)
-        bar:Show()
-    elseif IsPlate() then
+    RetireSubject()
+
+    if sub.kind == "castbar" and reg.CreatePreview then
+        subject = reg.CreatePreview(canvas.stage, sub.castUnit)
+        if not subject then return end
+        subject:ClearAllPoints()
+        subject:SetPoint("CENTER", canvas.stage, "CENTER", 0, 0)
+        subject:Show()
+
+    elseif sub.kind == "nameplate" then
         local NP = TomoMod_Nameplates
         if not (NP and NP.CreatePreviewPlate) then return end
-        if not plateBin then
-            plateBin = CreateFrame("Frame")
-            plateBin:Hide()
-        end
-        if plateSubjectBase then
-            plateSubjectBase:Hide()
-            plateSubjectBase:ClearAllPoints()
-            plateSubjectBase:SetParent(plateBin)
-        end
         local plate, base = NP.CreatePreviewPlate(canvas.stage)
-        if not plate then return end
+        if not (plate and base) then return end
         subject, plateSubjectBase = plate, base
         base:ClearAllPoints()
         base:SetPoint("CENTER", canvas.stage, "CENTER", 0, 0)
         base:Show()
         plate:Show()
+
+    elseif sub.kind == "bossframe" then
+        subject = CreateBossPreview(canvas.stage)
+        if not subject then return end
+        subject:ClearAllPoints()
+        subject:SetPoint("CENTER", canvas.stage, "CENTER", 0, 0)
+        subject:Show()
+
     else
         local UFP = TomoMod_UFPreview
         if not (UFP and UFP.CreateStandalone) then return end
-        subject = UFP.CreateStandalone(canvas.stage, S.state.subject, { recycle = subject })
+        -- Never recycle a preview belonging to another subject. The previous
+        -- tree was already retired above, so the factory must build from the
+        -- settings of the newly selected unit.
+        subject = UFP.CreateStandalone(canvas.stage, sub.value)
         if not subject then return end
         subject:ClearAllPoints()
         subject:SetPoint("CENTER", canvas.stage, "CENTER", 0, 0)
@@ -679,14 +995,296 @@ local function RebuildSubject()
     local store = Store()
     if store then
         reg.ApplyAll(subject, store)
-        -- Detached previews deliberately use demonstration values; no unit
-        -- API is read by the Studio itself.
         if reg.RefreshCustomBars then
             reg.RefreshCustomBars(subject, store, true)
         end
     end
     canvas:SetSubject(subject, store, reg.DOMAIN)
 end
+
+-- ---------------------------------------------------------------------
+-- Nameplates Cadre Preview Parity
+-- ---------------------------------------------------------------------
+-- The normal Forge nameplate subject is perfect for Elements because it
+-- exposes each draggable widget. Cadre has a different job: quickly show
+-- how the configured plate reads in common situations. Reuse the visual
+-- language of Options > Nameplates instead of trying to coerce the live-like
+-- Forge subject into being both a drag canvas and a configuration preview.
+local nameplateCadreParity
+
+local function NPPreviewText(key, fallback)
+    local value = L and L[key]
+    if value and value ~= key then return value end
+    return fallback or key
+end
+
+local function NPPreviewClamp(v, lo, hi, fallback)
+    v = tonumber(v) or fallback
+    if v < lo then return lo end
+    if v > hi then return hi end
+    return v
+end
+
+local function NPPreviewColor(db, key, fallback)
+    local c = db and db.colors and db.colors[key]
+    if type(c) == "table" then
+        return tonumber(c.r or c[1]) or fallback[1],
+               tonumber(c.g or c[2]) or fallback[2],
+               tonumber(c.b or c[3]) or fallback[3]
+    end
+    return fallback[1], fallback[2], fallback[3]
+end
+
+local function CreateNameplateCadreParity(parent)
+    if nameplateCadreParity then
+        nameplateCadreParity:SetParent(parent)
+        nameplateCadreParity:ClearAllPoints()
+        nameplateCadreParity:SetAllPoints(parent)
+        return nameplateCadreParity
+    end
+
+    local WHITE = "Interface\\Buttons\\WHITE8x8"
+    local root = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+    root:SetAllPoints(parent)
+    root:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
+    root:SetBackdropColor(0.022, 0.026, 0.036, 0.98)
+    root:SetBackdropBorderColor(BRAND[1], BRAND[2], BRAND[3], 0.22)
+    if root.SetClipsChildren then root:SetClipsChildren(true) end
+
+    local wash = root:CreateTexture(nil, "BACKGROUND", nil, -1)
+    wash:SetAllPoints()
+    if wash.SetGradientAlpha then
+        wash:SetGradientAlpha(
+            "HORIZONTAL",
+            BRAND[1], BRAND[2], BRAND[3], 0.08,
+            0.02, 0.03, 0.05, 0.01)
+    else
+        wash:SetColorTexture(BRAND[1], BRAND[2], BRAND[3], 0.035)
+    end
+
+    local title = root:CreateFontString(nil, "OVERLAY")
+    title:SetFont(FONT_BOLD, 11, "")
+    title:SetPoint("TOPLEFT", 18, -14)
+    title:SetText(NPPreviewText("np_preview_title", "Nameplate preview"))
+    title:SetTextColor(BRAND[1], BRAND[2], BRAND[3], 1)
+    root._title = title
+
+    local hint = root:CreateFontString(nil, "OVERLAY")
+    hint:SetFont(FONT, 9, "")
+    hint:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -5)
+    hint:SetText(NPPreviewText(
+        "np_preview_hint",
+        "Quick readability: color, cast, auras and threat in one place."))
+    hint:SetTextColor(0.52, 0.56, 0.64, 1)
+    root._hint = hint
+
+    root._plates = {}
+
+    local function CreatePlate(slot, labelKey, fallbackLabel, value, hostile)
+        local plate = CreateFrame("Frame", nil, root, "BackdropTemplate")
+        plate:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
+        plate:SetBackdropColor(0.020, 0.022, 0.030, 0.90)
+        plate._slot = slot
+        plate._value = value
+        plate._hostile = hostile
+
+        local name = plate:CreateFontString(nil, "OVERLAY")
+        name:SetFont(
+            "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf",
+            10, "OUTLINE")
+        name:SetPoint("BOTTOMLEFT", plate, "TOPLEFT", 1, 3)
+        name:SetText(NPPreviewText(labelKey, fallbackLabel))
+        plate._name = name
+
+        local hp = CreateFrame("StatusBar", nil, plate)
+        hp:SetPoint("TOPLEFT", 3, -4)
+        hp:SetPoint("TOPRIGHT", -3, -4)
+        hp:SetStatusBarTexture(WHITE)
+        hp:SetMinMaxValues(0, 100)
+        hp:SetValue(value)
+        plate._hp = hp
+
+        local hpBg = hp:CreateTexture(nil, "BACKGROUND")
+        hpBg:SetAllPoints()
+        plate._hpBg = hpBg
+
+        local pct = hp:CreateFontString(nil, "OVERLAY")
+        pct:SetFont(
+            "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf",
+            8, "OUTLINE")
+        pct:SetPoint("RIGHT", -4, 0)
+        pct:SetText(value .. "%")
+        pct:SetTextColor(1, 1, 1, 0.84)
+        plate._pct = pct
+
+        local cast = CreateFrame("StatusBar", nil, plate)
+        cast:SetPoint("TOPLEFT", hp, "BOTTOMLEFT", 0, -3)
+        cast:SetPoint("TOPRIGHT", hp, "BOTTOMRIGHT", 0, -3)
+        cast:SetStatusBarTexture(WHITE)
+        cast:SetMinMaxValues(0, 100)
+        cast:SetValue(hostile and 68 or 0)
+        cast:SetStatusBarColor(0.95, 0.58, 0.20, hostile and 0.92 or 0)
+        plate._cast = cast
+
+        local castBg = cast:CreateTexture(nil, "BACKGROUND")
+        castBg:SetAllPoints()
+        castBg:SetColorTexture(0.16, 0.10, 0.04, hostile and 0.82 or 0.20)
+        plate._castBg = castBg
+
+        plate._dots = {}
+        for i = 1, hostile and 4 or 2 do
+            local dot = plate:CreateTexture(nil, "OVERLAY")
+            dot:SetSize(7, 7)
+            dot:SetPoint("TOPLEFT", plate, "BOTTOMLEFT", 4 + (i - 1) * 9, -4)
+            if i == 1 then
+                dot:SetColorTexture(0.82, 0.18, 0.22, 0.92)
+            elseif i == 2 then
+                dot:SetColorTexture(0.55, 0.24, 0.90, 0.92)
+            elseif i == 3 then
+                dot:SetColorTexture(0.22, 0.56, 0.95, 0.92)
+            else
+                dot:SetColorTexture(0.25, 0.78, 0.34, 0.92)
+            end
+            plate._dots[#plate._dots + 1] = dot
+        end
+
+        root._plates[#root._plates + 1] = plate
+        return plate
+    end
+
+    CreatePlate(1, "preview_np_friendly", "Friendly",       92, false)
+    CreatePlate(2, "preview_np_target",   "Hostile target", 48, true)
+    CreatePlate(3, "preview_np_boss",     "Marked boss",    71, true)
+
+    function root:Refresh()
+        if not self:IsShown() then return end
+        local db = TomoModDB and TomoModDB.nameplates
+        if not db then return end
+
+        local stageW = self:GetWidth() or 0
+        local stageH = self:GetHeight() or 0
+        if stageW < 200 or stageH < 120 then return end
+
+        local sourceW = NPPreviewClamp(db.width, 120, 300, 170)
+        local sourceH = NPPreviewClamp(db.height, 8, 40, 12)
+        local castH = NPPreviewClamp(db.castbarHeight, 3, 14, 5)
+
+        -- Cadre's canvas is considerably larger than the Options card.
+        -- Keep the configured proportions, but cap the visual size so all
+        -- three examples remain readable at once.
+        local baseW = math.min(sourceW, math.max(130, (stageW - 84) * 0.38))
+        local baseH = math.min(sourceH, 28)
+
+        local margin = math.max(22, math.floor(stageW * 0.035))
+        local gap = math.max(26, math.floor(stageW * 0.055))
+
+        local specs = {
+            {
+                plate = self._plates[1],
+                w = baseW,
+                h = baseH,
+                x = margin,
+                y = -82,
+                colorKey = "friendly",
+                fallback = { 0.38, 0.88, 0.72 },
+            },
+            {
+                plate = self._plates[2],
+                w = math.min(baseW + 28, (stageW - margin * 2 - gap) * 0.48),
+                h = baseH + 2,
+                x = stageW - margin,
+                y = -78,
+                right = true,
+                colorKey = "hostile",
+                fallback = { 0.95, 0.35, 0.28 },
+            },
+            {
+                plate = self._plates[3],
+                w = math.min(baseW + 18, stageW - margin * 2),
+                h = baseH,
+                x = stageW * 0.5,
+                y = math.min(-158, -stageH * 0.52),
+                center = true,
+                colorKey = "boss",
+                fallback = { 0.96, 0.70, 0.26 },
+            },
+        }
+
+        for _, spec in ipairs(specs) do
+            local plate = spec.plate
+            local r, g, b = NPPreviewColor(db, spec.colorKey, spec.fallback)
+
+            plate:ClearAllPoints()
+            if spec.right then
+                plate:SetPoint("TOPRIGHT", self, "TOPLEFT", spec.x, spec.y)
+            elseif spec.center then
+                plate:SetPoint("TOP", self, "TOPLEFT", spec.x, spec.y)
+            else
+                plate:SetPoint("TOPLEFT", self, "TOPLEFT", spec.x, spec.y)
+            end
+            plate:SetSize(spec.w, spec.h + castH + 12)
+            plate:SetBackdropBorderColor(r, g, b, plate._hostile and 0.72 or 0.46)
+
+            plate._hp:SetHeight(spec.h)
+            plate._hp:SetStatusBarColor(r, g, b, 0.96)
+            plate._hpBg:SetColorTexture(r * 0.12, g * 0.12, b * 0.12, 1)
+
+            plate._name:SetTextColor(r, g, b, 1)
+            plate._name:SetShown(db.showName ~= false)
+            plate._name:SetFont(
+                "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf",
+                NPPreviewClamp(db.nameFontSize, 6, 20, 10),
+                "OUTLINE")
+
+            plate._pct:SetShown(db.showHealthText ~= false)
+            plate._pct:SetText((plate._value or 0) .. "%")
+
+            plate._cast:SetHeight(castH)
+            plate._cast:SetShown(db.showCastbar ~= false and plate._hostile)
+
+            local showDots = db.showAuras ~= false or db.showEnemyBuffs ~= false
+            for _, dot in ipairs(plate._dots) do
+                dot:SetShown(showDots)
+            end
+        end
+    end
+
+    root:SetScript("OnSizeChanged", function(self)
+        if not self:IsShown() then return end
+        C_Timer.After(0, function()
+            if self and self:IsShown() and self.Refresh then self:Refresh() end
+        end)
+    end)
+
+    nameplateCadreParity = root
+    return root
+end
+
+local function ShowNameplateCadreParity()
+    if SubjectKind() ~= "nameplate" or not S.state.showFrameEditor then return end
+    if not stageHost then return end
+
+    local preview = CreateNameplateCadreParity(stageHost)
+
+    -- Cadre intentionally uses the Options-style readability preview.
+    -- Keep the Forge nameplate tree alive for Elements, but hidden here.
+    if plateSubjectBase and plateSubjectBase.Hide then plateSubjectBase:Hide() end
+    if subject and subject.Hide then subject:Hide() end
+
+    preview:Show()
+    preview:Refresh()
+end
+
+local function HideNameplateCadreParity(restoreForgePreview)
+    if nameplateCadreParity then nameplateCadreParity:Hide() end
+
+    if restoreForgePreview and SubjectKind() == "nameplate" then
+        if plateSubjectBase and plateSubjectBase.Show then plateSubjectBase:Show() end
+        if subject and subject.Show then subject:Show() end
+        RebuildSubject()
+    end
+end
+
 
 -- ---------------------------------------------------------------------
 -- Sidebar: element list
@@ -749,6 +1347,10 @@ end
 local FRAME_EDITOR_SUBJECTS = {
     player = true,
     target = true,
+    focus = true,
+    pet = true,
+    targettarget = true,
+    bossframe = true,
     nameplate = true,
 }
 
@@ -762,6 +1364,10 @@ local NAMEPLATE_FRAME_FIELDS = {
     "width", "height", "castbarHeight", "nameFontSize",
     "showName", "showLevel", "showHealthText", "healthTextFormat",
     "showClassification", "showCastbar", "useClassColors",
+}
+
+local BOSS_FRAME_FIELDS = {
+    "width", "height", "spacing",
 }
 
 local function FrameEditorSupported()
@@ -786,6 +1392,10 @@ local function ResetFrameFields(db)
     if IsPlate() then
         defaults = TomoMod_Defaults and TomoMod_Defaults.nameplates
         fields = NAMEPLATE_FRAME_FIELDS
+    elseif IsBoss() then
+        defaults = TomoMod_Defaults and TomoMod_Defaults.unitFrames
+            and TomoMod_Defaults.unitFrames.bossFrames
+        fields = BOSS_FRAME_FIELDS
     else
         defaults = TomoMod_Defaults and TomoMod_Defaults.unitFrames
             and TomoMod_Defaults.unitFrames[S.state.subject]
@@ -798,7 +1408,7 @@ local function ResetFrameFields(db)
             db[key] = defaults[key]
         end
     end
-    if not IsPlate() then SyncLegacyUnitHeight(db) end
+    if not IsPlate() and not IsBoss() then SyncLegacyUnitHeight(db) end
     return true
 end
 
@@ -856,6 +1466,32 @@ function S.BuildFrameEditor(c)
                 CommitFrameEdit()
             end)
         y = ny
+    elseif IsBoss() then
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_width"], db.width or 200,
+                    100, 350, 5, 0, function(v)
+                        db.width = v
+                        CommitFrameEdit()
+                    end)
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_boss_height"], db.height or 28,
+                    16, 50, 2, 0, function(v)
+                        db.height = v
+                        CommitFrameEdit()
+                    end)
+                return n
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_boss_spacing"], db.spacing or 4,
+            0, 20, 1, y, function(v)
+                db.spacing = v
+                CommitFrameEdit()
+            end)
+        y = ny
     else
         local _, ny = W.CreateTwoColumnRow(c, y,
             function(col)
@@ -897,16 +1533,18 @@ function S.BuildFrameEditor(c)
         end
     end
 
-    local _, ny = W.CreateSubLabel(c, L["af_frame_display"], y)
-    y = ny
+    if not IsBoss() then
+        local _, ny = W.CreateSubLabel(c, L["af_frame_display"], y)
+        y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_show_name"], db.showName ~= false, y, function(v)
-        db.showName = v
-        CommitFrameEdit()
-    end)
-    y = ny
+        local _, ny = W.CreateCheckbox(c, L["opt_show_name"], db.showName ~= false, y, function(v)
+            db.showName = v
+            CommitFrameEdit()
+        end)
+        y = ny
+    end
 
-    if db.showLevel ~= nil then
+    if not IsBoss() and db.showLevel ~= nil then
         local _, ny = W.CreateCheckbox(c, L["opt_show_level"], db.showLevel ~= false, y, function(v)
             db.showLevel = v
             CommitFrameEdit()
@@ -914,7 +1552,7 @@ function S.BuildFrameEditor(c)
         y = ny
     end
 
-    if db.showHealthText ~= nil then
+    if not IsBoss() and db.showHealthText ~= nil then
         local _, ny = W.CreateCheckbox(c, L["opt_show_health_text"], db.showHealthText ~= false, y, function(v)
             db.showHealthText = v
             CommitFrameEdit()
@@ -922,7 +1560,7 @@ function S.BuildFrameEditor(c)
         y = ny
     end
 
-    if db.healthTextFormat ~= nil then
+    if not IsBoss() and db.healthTextFormat ~= nil then
         local formats = {
             { text = L["af_fmt_current"],         value = "current" },
             { text = L["af_fmt_percent"],         value = "percent" },
@@ -968,7 +1606,7 @@ function S.BuildFrameEditor(c)
                 end)
             y = ny
         end
-    else
+    elseif not IsBoss() then
         if db.useClassColor ~= nil then
             local _, ny = W.CreateCheckbox(c, L["opt_class_color_uf"],
                 db.useClassColor ~= false, y, function(v)
@@ -1009,12 +1647,1955 @@ function S.BuildFrameEditor(c)
     c:SetHeight(math.abs(y) + 40)
 end
 
+-- =====================================================================
+-- Astral Forge V2.1 - Cadre / Lot 2
+-- Full structural + behaviour editor, backed by the SAME TomoModDB fields
+-- as TomoMod_Options. Element offsets stay in Elements; bar textures and
+-- absorb/castbar artwork stay in Bars.
+-- =====================================================================
+
+local AF_FONT_PATH = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\"
+local AF_FONT_LIST = {
+    { text = "Poppins Medium",      value = AF_FONT_PATH .. "Poppins-Medium.ttf" },
+    { text = "Poppins SemiBold",    value = AF_FONT_PATH .. "Poppins-SemiBold.ttf" },
+    { text = "Poppins Bold",        value = AF_FONT_PATH .. "Poppins-Bold.ttf" },
+    { text = "Poppins Black",       value = AF_FONT_PATH .. "Poppins-Black.ttf" },
+    { text = "Expressway",          value = AF_FONT_PATH .. "Expressway.TTF" },
+    { text = "Accidental Pres.",    value = AF_FONT_PATH .. "accidental_pres.ttf" },
+    { text = "Tomo",                value = AF_FONT_PATH .. "Tomo.ttf" },
+    { text = "Friz Quadrata (WoW)", value = "Fonts\\FRIZQT__.TTF" },
+    { text = "Arial Narrow (WoW)",  value = "Fonts\\ARIALN.TTF" },
+    { text = "Morpheus (WoW)",      value = "Fonts\\MORPHEUS.TTF" },
+}
+
+local function V21RefreshAllUnitFrames()
+    local UF = TomoMod_UnitFrames
+    if UF and UF.RefreshAllUnits then UF.RefreshAllUnits() end
+    local BF = TomoMod_BossFrames
+    if BF and BF.RefreshAll then BF.RefreshAll() end
+    RebuildSubject()
+end
+
+local function V21RefreshNameplateCVars()
+    local NP = TomoMod_Nameplates
+    if NP and NP.ApplySettings then NP.ApplySettings() end
+    if NP and NP.RefreshAll then NP.RefreshAll() end
+    RebuildSubject()
+end
+
+local function V21Separator(c, y)
+    local _, ny = W.CreateSeparator(c, y)
+    return ny
+end
+
+local function V21Color(c, label, color, y, cb)
+    if type(color) ~= "table" then return y end
+    local _, ny = W.CreateColorPicker(c, label, color, y, cb)
+    return ny
+end
+
+local function BuildGlobalUnitFrameSettings(c, y)
+    local g = TomoModDB and TomoModDB.unitFrames
+    if not g then return y end
+
+    local _, ny = W.CreateSectionHeader(c, L["af_v21_global_uf"], y, "G")
+    y = ny
+    local _, ny = W.CreateInfoText(c, L["af_v21_global_uf_info"], y)
+    y = ny
+
+    if g.enabled ~= nil and g.hideBlizzardFrames ~= nil then
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_uf_enable"], g.enabled, y,
+            function(v)
+                g.enabled = v
+                if TomoMod_Lifecycle then
+                    TomoMod_Lifecycle.RequestReload("unitFrames")
+                end
+            end,
+            L["opt_hide_blizzard"], g.hideBlizzardFrames,
+            function(v)
+                g.hideBlizzardFrames = v
+                if TomoMod_Lifecycle then
+                    TomoMod_Lifecycle.RequestReload("unitFrames")
+                end
+            end)
+        y = ny
+    end
+
+    local _, ny = W.CreateDropdown(c, L["opt_font_family"], AF_FONT_LIST,
+        g.fontFamily or g.font, y, function(v)
+            g.fontFamily = v
+            g.font = v
+            V21RefreshAllUnitFrames()
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_global_font_size"],
+        g.fontSize or 12, 8, 20, 1, y, function(v)
+            g.fontSize = v
+            V21RefreshAllUnitFrames()
+        end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["info_module_reload"], y)
+    y = ny
+    return y
+end
+
+local function BuildUnitFrameCadre(c, y, db, unitKey)
+    if not db then return y end
+
+    local _, ny = W.CreateSectionHeader(c, L["af_frame_dimensions"], y, "D")
+    y = ny
+
+    if db.enabled ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_enable"], db.enabled, y, function(v)
+            db.enabled = v
+            if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("unitFrames") end
+            CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_width"], db.width or 220,
+                80, 400, 5, 0, function(v)
+                    db.width = v
+                    CommitFrameEdit()
+                end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_health_height"],
+                db.healthHeight or 38, 10, 80, 2, 0, function(v)
+                    db.healthHeight = v
+                    SyncLegacyUnitHeight(db)
+                    CommitFrameEdit()
+                end)
+            return n
+        end)
+    y = ny
+
+    if db.powerHeight ~= nil then
+        local _, ny = W.CreateSlider(c, L["opt_power_height"],
+            db.powerHeight or 0, 0, 20, 1, y, function(v)
+                db.powerHeight = v
+                SyncLegacyUnitHeight(db)
+                CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.infoBarHeight ~= nil then
+        local _, ny = W.CreateSlider(c, L["af_frame_info_height"],
+            db.infoBarHeight or 0, 0, 30, 1, y, function(v)
+                db.infoBarHeight = v
+                CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    y = V21Separator(c, y)
+    local _, ny = W.CreateSubLabel(c, L["af_v21_frame_behavior"], y)
+    y = ny
+
+    if db.showName ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_show_name"], db.showName, y, function(v)
+            db.showName = v; CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    if db.nameTruncate ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_name_truncate"],
+            db.nameTruncate, y, function(v)
+                db.nameTruncate = v; CommitFrameEdit()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_name_truncate_length"],
+            db.nameTruncateLength or 20, 5, 40, 1, y, function(v)
+                db.nameTruncateLength = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.showLevel ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_show_level"], db.showLevel, y, function(v)
+            db.showLevel = v; CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    if db.showHealthText ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_show_health_text"],
+            db.showHealthText, y, function(v)
+                db.showHealthText = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.healthTextFormat then
+        local _, ny = W.CreateDropdown(c, L["opt_health_format"], {
+            { text = L["fmt_current"],         value = "current" },
+            { text = L["fmt_percent"],         value = "percent" },
+            { text = L["fmt_current_percent"], value = "current_percent" },
+            { text = L["fmt_current_max"],     value = "current_max" },
+        }, db.healthTextFormat, y, function(v)
+            db.healthTextFormat = v; CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    if db.useFactionColor ~= nil then
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_class_color_uf"], db.useClassColor, y,
+            function(v) db.useClassColor = v; CommitFrameEdit() end,
+            L["opt_faction_color"], db.useFactionColor,
+            function(v) db.useFactionColor = v; CommitFrameEdit() end)
+        y = ny
+    elseif db.useClassColor ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_class_color_uf"],
+            db.useClassColor, y, function(v)
+                db.useClassColor = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.useNameplateColors ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_use_nameplate_colors"],
+            db.useNameplateColors, y, function(v)
+                db.useNameplateColors = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.showAbsorb ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_show_absorb"],
+            db.showAbsorb, y, function(v)
+                db.showAbsorb = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.showThreat ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_show_threat"],
+            db.showThreat, y, function(v)
+                db.showThreat = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.showLeaderIcon ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_show_leader_icon"],
+            db.showLeaderIcon, y, function(v)
+                db.showLeaderIcon = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if type(db.threatText) == "table" then
+        y = V21Separator(c, y)
+        local _, ny = W.CreateSubLabel(c, L["section_threat_text"], y)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_threat_text_enable"],
+            db.threatText.enabled, y, function(v)
+                db.threatText.enabled = v; CommitFrameEdit()
+            end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_threat_text_font_size"],
+            db.threatText.fontSize or 13, 8, 24, 1, y, function(v)
+                db.threatText.fontSize = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if type(db.auras) == "table" then
+        y = V21Separator(c, y)
+        local _, ny = W.CreateSubLabel(c, L["af_v21_auras"], y)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_auras_enable"],
+            db.auras.enabled, y, function(v)
+                db.auras.enabled = v; CommitFrameEdit()
+            end)
+        y = ny
+
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_auras_max"],
+                    db.auras.maxAuras or 6, 1, 16, 1, 0, function(v)
+                        db.auras.maxAuras = v; CommitFrameEdit()
+                    end)
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_auras_size"],
+                    db.auras.size or 24, 16, 48, 1, 0, function(v)
+                        db.auras.size = v; CommitFrameEdit()
+                    end)
+                return n
+            end)
+        y = ny
+
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_auras_spacing"],
+                    db.auras.spacing or 3, 0, 16, 1, 0, function(v)
+                        db.auras.spacing = v; CommitFrameEdit()
+                    end)
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_auras_per_row"],
+                    db.auras.perRow or 6, 1, 8, 1, 0, function(v)
+                        db.auras.perRow = v; CommitFrameEdit()
+                    end)
+                return n
+            end)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_auras_type"], {
+            { text = L["aura_harmful"], value = "HARMFUL" },
+            { text = L["aura_helpful"], value = "HELPFUL" },
+            { text = L["aura_all"],     value = "ALL" },
+        }, db.auras.type or "HARMFUL", y, function(v)
+            db.auras.type = v; CommitFrameEdit()
+        end)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_auras_direction"], {
+            { text = L["aura_dir_right"], value = "RIGHT" },
+            { text = L["aura_dir_left"],  value = "LEFT" },
+        }, db.auras.growDirection or "RIGHT", y, function(v)
+            db.auras.growDirection = v; CommitFrameEdit()
+        end)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_auras_direction_v"], {
+            { text = L["aura_dir_down"], value = "DOWN" },
+            { text = L["aura_dir_up"],   value = "UP" },
+        }, db.auras.growVertical or "DOWN", y, function(v)
+            db.auras.growVertical = (v == "UP") and "UP" or nil
+            CommitFrameEdit()
+        end)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_auras_only_mine"],
+            db.auras.showOnlyMine, y, function(v)
+                db.auras.showOnlyMine = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if type(db.enemyBuffs) == "table"
+        and (unitKey == "target" or unitKey == "focus") then
+        y = V21Separator(c, y)
+        local _, ny = W.CreateSubLabel(c, L["af_v21_enemy_buffs"], y)
+        y = ny
+
+        local _, ny = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"],
+            db.enemyBuffs.enabled, y, function(v)
+                db.enemyBuffs.enabled = v; CommitFrameEdit()
+            end)
+        y = ny
+
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_enemy_buffs_max"],
+                    db.enemyBuffs.maxAuras or 3, 1, 12, 1, 0, function(v)
+                        db.enemyBuffs.maxAuras = v; CommitFrameEdit()
+                    end)
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_enemy_buffs_size"],
+                    db.enemyBuffs.size or 18, 14, 40, 1, 0, function(v)
+                        db.enemyBuffs.size = v; CommitFrameEdit()
+                    end)
+                return n
+            end)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_enemy_buffs_direction"], {
+            { text = L["aura_dir_right"], value = "RIGHT" },
+            { text = L["aura_dir_left"],  value = "LEFT" },
+        }, db.enemyBuffs.growDirection or "RIGHT", y, function(v)
+            db.enemyBuffs.growDirection = v; CommitFrameEdit()
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_per_row"],
+            db.enemyBuffs.perRow or 3, 1, 8, 1, y, function(v)
+                db.enemyBuffs.perRow = v; CommitFrameEdit()
+            end)
+        y = ny
+
+        local _, ny = W.CreateDropdown(c, L["opt_enemy_buffs_row_orientation"], {
+            { text = L["aura_dir_up"],   value = "UP" },
+            { text = L["aura_dir_down"], value = "DOWN" },
+        }, db.enemyBuffs.growVertical or "UP", y, function(v)
+            db.enemyBuffs.growVertical = v; CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    local _, ny = W.CreateInfoText(c, L["af_v21_bar_note"], y)
+    y = ny
+    return y
+end
+
+local function BuildBossCadre(c, y, db)
+    local _, ny = W.CreateSectionHeader(c, L["section_boss_frames"], y, "B")
+    y = ny
+    local _, ny = W.CreateInfoText(c, L["af_v21_boss_info"], y)
+    y = ny
+
+    if db.enabled ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_boss_enable"],
+            db.enabled, y, function(v)
+                db.enabled = v
+                if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("bossFrames") end
+                CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_width"], db.width or 200,
+                100, 350, 5, 0, function(v)
+                    db.width = v; CommitFrameEdit()
+                end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_boss_height"], db.height or 28,
+                16, 50, 2, 0, function(v)
+                    db.height = v; CommitFrameEdit()
+                end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_boss_spacing"],
+        db.spacing or 4, 0, 20, 1, y, function(v)
+            db.spacing = v; CommitFrameEdit()
+        end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, L["af_v21_bar_note"], y)
+    y = ny
+    return y
+end
+
+local function BuildNameplateCadre(c, y, db)
+    local _, ny = W.CreateSectionHeader(c, L["section_np_general"], y, "N")
+    y = ny
+
+    if db.enabled ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_enable"],
+            db.enabled, y, function(v)
+                db.enabled = v
+                local NP = TomoMod_Nameplates
+                if NP then
+                    if v and NP.Enable then NP.Enable()
+                    elseif not v and NP.Disable then NP.Disable() end
+                end
+                if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("nameplates") end
+                RebuildSubject()
+            end)
+        y = ny
+    end
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_width"], db.width or 156,
+                60, 300, 5, 0, function(v)
+                    db.width = v; CommitFrameEdit()
+                end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_health_height"], db.height or 17,
+                6, 40, 1, 0, function(v)
+                    db.height = v; CommitFrameEdit()
+                end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_np_name_font_size"],
+        db.nameFontSize or 10, 6, 20, 1, y, function(v)
+            db.nameFontSize = v; CommitFrameEdit()
+        end)
+    y = ny
+
+    y = V21Separator(c, y)
+    local _, ny = W.CreateSubLabel(c, L["af_v21_frame_behavior"], y)
+    y = ny
+
+    if db.showName ~= nil and db.showLevel ~= nil then
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_show_name"], db.showName, y,
+            function(v) db.showName = v; CommitFrameEdit() end,
+            L["opt_show_level"], db.showLevel,
+            function(v) db.showLevel = v; CommitFrameEdit() end)
+        y = ny
+    end
+
+    if db.showHealthText ~= nil and db.showClassification ~= nil then
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_show_health_text"], db.showHealthText, y,
+            function(v) db.showHealthText = v; CommitFrameEdit() end,
+            L["opt_np_show_classification"], db.showClassification,
+            function(v) db.showClassification = v; CommitFrameEdit() end)
+        y = ny
+    end
+
+    if db.showThreat ~= nil and db.useClassColors ~= nil then
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_show_threat"], db.showThreat, y,
+            function(v) db.showThreat = v; CommitFrameEdit() end,
+            L["opt_np_class_colors"], db.useClassColors,
+            function(v) db.useClassColors = v; CommitFrameEdit() end)
+        y = ny
+    end
+
+    if db.showAbsorb ~= nil and db.friendlyNameOnly ~= nil then
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_np_show_absorb"], db.showAbsorb, y,
+            function(v) db.showAbsorb = v; CommitFrameEdit() end,
+            L["opt_np_friendly_name_only"], db.friendlyNameOnly,
+            function(v) db.friendlyNameOnly = v; CommitFrameEdit() end)
+        y = ny
+    end
+
+    if db.healthTextFormat then
+        local _, ny = W.CreateDropdown(c, L["opt_health_format"], {
+            { text = L["np_fmt_percent"],         value = "percent" },
+            { text = L["np_fmt_current"],         value = "current" },
+            { text = L["np_fmt_current_percent"], value = "current_percent" },
+        }, db.healthTextFormat, y, function(v)
+            db.healthTextFormat = v; CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    y = V21Separator(c, y)
+    local _, ny = W.CreateSubLabel(c, L["af_v21_np_roles"], y)
+    y = ny
+
+    if db.friendlyRoleIcons ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_friendly_role_icons"],
+            db.friendlyRoleIcons, y, function(v)
+                db.friendlyRoleIcons = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.roleShowTank ~= nil and db.roleShowHealer ~= nil then
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_np_role_show_tank"], db.roleShowTank, y,
+            function(v) db.roleShowTank = v; CommitFrameEdit() end,
+            L["opt_np_role_show_healer"], db.roleShowHealer,
+            function(v) db.roleShowHealer = v; CommitFrameEdit() end)
+        y = ny
+    end
+
+    if db.roleShowDps ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_role_show_dps"],
+            db.roleShowDps, y, function(v)
+                db.roleShowDps = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.roleIconSize ~= nil then
+        local _, ny = W.CreateSlider(c, L["opt_np_role_icon_size"],
+            db.roleIconSize, 16, 60, 2, y, function(v)
+                db.roleIconSize = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    y = V21Separator(c, y)
+    local _, ny = W.CreateSubLabel(c, L["section_castbar"], y)
+    y = ny
+
+    if db.showCastbar ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_show_castbar"],
+            db.showCastbar, y, function(v)
+                db.showCastbar = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.castbarHeight ~= nil then
+        local _, ny = W.CreateSlider(c, L["opt_np_castbar_height"],
+            db.castbarHeight, 4, 20, 1, y, function(v)
+                db.castbarHeight = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    y = V21Separator(c, y)
+    local _, ny = W.CreateSubLabel(c, L["af_v21_auras"], y)
+    y = ny
+
+    if db.showAuras ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_show_auras"],
+            db.showAuras, y, function(v)
+                db.showAuras = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.showOnlyMyAuras ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_only_my_debuffs"],
+            db.showOnlyMyAuras, y, function(v)
+                db.showOnlyMyAuras = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.auraSize ~= nil and db.maxAuras ~= nil then
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_aura_size"],
+                    db.auraSize, 12, 36, 1, 0, function(v)
+                        db.auraSize = v; CommitFrameEdit()
+                    end)
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_max_auras"],
+                    db.maxAuras, 1, 10, 1, 0, function(v)
+                        db.maxAuras = v; CommitFrameEdit()
+                    end)
+                return n
+            end)
+        y = ny
+    end
+
+    y = V21Separator(c, y)
+    local _, ny = W.CreateSubLabel(c, L["af_v21_enemy_buffs"], y)
+    y = ny
+
+    if db.showEnemyBuffs ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_show_enemy_buffs"],
+            db.showEnemyBuffs, y, function(v)
+                db.showEnemyBuffs = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    if db.enemyBuffSize ~= nil and db.maxEnemyBuffs ~= nil then
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_enemy_buff_size"],
+                    db.enemyBuffSize, 12, 36, 1, 0, function(v)
+                        db.enemyBuffSize = v; CommitFrameEdit()
+                    end)
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_max_enemy_buffs"],
+                    db.maxEnemyBuffs, 1, 8, 1, 0, function(v)
+                        db.maxEnemyBuffs = v; CommitFrameEdit()
+                    end)
+                return n
+            end)
+        y = ny
+    end
+
+    if db.enemyBuffYOffset ~= nil then
+        local _, ny = W.CreateSlider(c, L["opt_np_enemy_buff_y_offset"],
+            db.enemyBuffYOffset, 0, 20, 1, y, function(v)
+                db.enemyBuffYOffset = v; CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    y = V21Separator(c, y)
+    local _, ny = W.CreateSubLabel(c, L["af_v21_np_advanced"], y)
+    y = ny
+
+    if db.selectedAlpha ~= nil and db.unselectedAlpha ~= nil then
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_selected_alpha"],
+                    db.selectedAlpha, 0.3, 1.0, 0.05, 0,
+                    function(v) db.selectedAlpha = v end, "%.2f")
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_unselected_alpha"],
+                    db.unselectedAlpha, 0.3, 1.0, 0.05, 0,
+                    function(v) db.unselectedAlpha = v end, "%.2f")
+                return n
+            end)
+        y = ny
+    end
+
+    if db.overlapV ~= nil and db.topInset ~= nil then
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_overlap"],
+                    db.overlapV, 0.5, 3.0, 0.1, 0,
+                    function(v)
+                        db.overlapV = v; V21RefreshNameplateCVars()
+                    end, "%.1f")
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_top_inset"],
+                    db.topInset, 0.01, 0.5, 0.005, 0,
+                    function(v)
+                        db.topInset = v; V21RefreshNameplateCVars()
+                    end, "%.3f")
+                return n
+            end)
+        y = ny
+    end
+
+    if type(db.colors) == "table" then
+        y = V21Separator(c, y)
+        local _, ny = W.CreateSubLabel(c, L["af_v21_np_colors"], y)
+        y = ny
+
+        local colorKeys = {
+            { "color_hostile",         "hostile" },
+            { "color_neutral",         "neutral" },
+            { "color_friendly",        "friendly" },
+            { "color_tapped",          "tapped" },
+            { "color_focus",           "focus" },
+            { "color_caster",          "caster" },
+            { "color_miniboss",        "miniboss" },
+            { "color_enemy_in_combat", "enemyInCombat" },
+        }
+        for _, rec in ipairs(colorKeys) do
+            local key = rec[2]
+            if type(db.colors[key]) == "table" then
+                y = V21Color(c, L[rec[1]], db.colors[key], y, function(r, g, b)
+                    db.colors[key] = { r = r, g = g, b = b }
+                    CommitFrameEdit()
+                end)
+            end
+        end
+
+        local _, ny = W.CreateSubLabel(c, L["af_v21_np_classification"], y)
+        y = ny
+
+        if db.useClassificationColors ~= nil then
+            local _, ny = W.CreateCheckbox(c, L["opt_np_use_classification"],
+                db.useClassificationColors, y, function(v)
+                    db.useClassificationColors = v; CommitFrameEdit()
+                end)
+            y = ny
+        end
+
+        local classColors = {
+            { "color_boss",    "boss" },
+            { "color_elite",   "elite" },
+            { "color_rare",    "rare" },
+            { "color_normal",  "normal" },
+            { "color_trivial", "trivial" },
+        }
+        for _, rec in ipairs(classColors) do
+            local key = rec[2]
+            if type(db.colors[key]) == "table" then
+                y = V21Color(c, L[rec[1]], db.colors[key], y, function(r, g, b)
+                    db.colors[key] = { r = r, g = g, b = b }
+                    CommitFrameEdit()
+                end)
+            end
+        end
+    end
+
+    if type(db.tankColors) == "table" then
+        y = V21Separator(c, y)
+        local _, ny = W.CreateSubLabel(c, L["af_v21_np_tank"], y)
+        y = ny
+
+        if db.tankMode ~= nil then
+            local _, ny = W.CreateCheckbox(c, L["opt_np_tank_mode"],
+                db.tankMode, y, function(v)
+                    db.tankMode = v; CommitFrameEdit()
+                end)
+            y = ny
+        end
+
+        local tankColors = {
+            { "color_no_threat",      "noThreat" },
+            { "color_low_threat",     "lowThreat" },
+            { "color_has_threat",     "hasThreat" },
+            { "color_dps_has_aggro",  "dpsHasAggro" },
+            { "color_dps_near_aggro", "dpsNearAggro" },
+        }
+        for _, rec in ipairs(tankColors) do
+            local key = rec[2]
+            if type(db.tankColors[key]) == "table" then
+                y = V21Color(c, L[rec[1]], db.tankColors[key], y, function(r, g, b)
+                    db.tankColors[key] = { r = r, g = g, b = b }
+                    CommitFrameEdit()
+                end)
+            end
+        end
+    end
+
+    local _, ny = W.CreateInfoText(c, L["af_v21_bar_note"], y)
+    y = ny
+    return y
+end
+
+function S.BuildFrameEditorV21(c)
+    local db = Settings()
+    local y = -8
+
+    local _, ny = W.CreateSectionHeader(c, L["af_frame_title"], y, "F")
+    y = ny
+    local _, ny = W.CreateInfoText(c, L["af_frame_info"], y)
+    y = ny
+
+    if not db then
+        local _, ny = W.CreateInfoText(c, L["af_frame_unavailable"], y)
+        y = ny
+        c:SetHeight(math.abs(y) + 40)
+        return
+    end
+
+    local kind = SubjectKind()
+
+    if kind == "unitframe" then
+        y = BuildGlobalUnitFrameSettings(c, y)
+        y = V21Separator(c, y)
+        y = BuildUnitFrameCadre(c, y, db, S.state.subject)
+
+    elseif kind == "bossframe" then
+        y = BuildGlobalUnitFrameSettings(c, y)
+        y = V21Separator(c, y)
+        y = BuildBossCadre(c, y, db)
+
+    elseif kind == "nameplate" then
+        y = BuildNameplateCadre(c, y, db)
+
+    else
+        local _, ny = W.CreateInfoText(c, L["af_frame_unavailable"], y)
+        y = ny
+    end
+
+    c:SetHeight(math.abs(y) + 56)
+end
+
+-- ---------------------------------------------------------------------
+-- Cadre UX refinement (follow-up)
+-- ---------------------------------------------------------------------
+local function V22HideFramePreviewNoise()
+    if not canvas then return end
+    canvas.selected = nil
+    if type(canvas.handles) == "table" then
+        for _, h in pairs(canvas.handles) do
+            if h.Hide then h:Hide() end
+            if h.EnableMouse then h:EnableMouse(false) end
+        end
+    end
+end
+
+local function V22EnsureFramePreview()
+    if not (canvas and stageHost) then return end
+
+    local kind = SubjectKind()
+    if kind == "nameplate" then
+        if (not plateSubjectBase) or (not subject)
+            or (plateSubjectBase.IsShown and not plateSubjectBase:IsShown())
+            or (subject.IsShown and not subject:IsShown()) then
+            RebuildSubject()
+        else
+            if plateSubjectBase.SetParent and plateSubjectBase:GetParent() ~= canvas.stage then
+                plateSubjectBase:SetParent(canvas.stage)
+            end
+            if subject.SetParent and subject:GetParent() ~= plateSubjectBase then
+                subject:SetParent(plateSubjectBase)
+            end
+            plateSubjectBase:Show()
+            subject:Show()
+        end
+    elseif kind == "unitframe" or kind == "bossframe" then
+        if (not subject) or (subject.IsShown and not subject:IsShown()) then
+            RebuildSubject()
+        else
+            subject:Show()
+        end
+    end
+end
+
+local function V22RestoreCanvasInteractivity()
+    if not canvas or type(canvas.handles) ~= "table" then return end
+    for _, h in pairs(canvas.handles) do
+        if h.EnableMouse then h:EnableMouse(true) end
+    end
+end
+
+local function V22CommitFrameEdit()
+    CommitFrameEdit()
+    if SubjectKind() == "nameplate" and S.state.showFrameEditor then
+        ShowNameplateCadreParity()
+    end
+    V22HideFramePreviewNoise()
+end
+
+local function V22GetFrameSections()
+    local kind = SubjectKind()
+    local subject = S.state.subject
+
+    if kind == "unitframe" then
+        local t = {
+            { id = "global",      label = L["af_v22_sec_global"] },
+            { id = "dimensions",  label = L["af_v22_sec_dimensions"] },
+            { id = "display",     label = L["af_v22_sec_display"] },
+            { id = "colors",      label = L["af_v22_sec_colors"] },
+            { id = "auras",       label = L["af_v22_sec_auras"] },
+        }
+        if subject == "target" or subject == "focus" then
+            table.insert(t, { id = "enemyBuffs", label = L["af_v22_sec_enemy_buffs"] })
+        end
+        return t
+    elseif kind == "bossframe" then
+        return {
+            { id = "global",     label = L["af_v22_sec_global"] },
+            { id = "dimensions", label = L["af_v22_sec_dimensions"] },
+        }
+    elseif kind == "nameplate" then
+        return {
+            { id = "dimensions",    label = L["af_v22_sec_dimensions"] },
+            { id = "display",       label = L["af_v22_sec_display"] },
+            { id = "roles",         label = L["af_v22_sec_roles"] },
+            { id = "castbar",       label = L["af_v22_sec_castbar"] },
+            { id = "auras",         label = L["af_v22_sec_auras"] },
+            { id = "enemyBuffs",    label = L["af_v22_sec_enemy_buffs"] },
+            { id = "advanced",      label = L["af_v22_sec_advanced"] },
+            { id = "contextColors", label = L["af_v22_sec_context_colors"] },
+            { id = "classification",label = L["af_v22_sec_classification"] },
+            { id = "tank",          label = L["af_v22_sec_tank"] },
+        }
+    end
+
+    return {
+        { id = "dimensions", label = L["af_v22_sec_dimensions"] },
+    }
+end
+
+local function V22EnsureFrameSection()
+    local sections = V22GetFrameSections()
+    local current = S.state.frameSection
+    for _, sec in ipairs(sections) do
+        if sec.id == current then
+            return sections, current
+        end
+    end
+    current = sections[1] and sections[1].id or nil
+    S.state.frameSection = current
+    return sections, current
+end
+
+local function V22CreateSidebarButton(parent, idx)
+    parent._afFrameButtons = parent._afFrameButtons or {}
+    local b = parent._afFrameButtons[idx]
+    if b then return b end
+
+    b = CreateFrame("Button", nil, parent, "BackdropTemplate")
+    b:SetHeight(28)
+    b:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    b:SetBackdropColor(0.040, 0.048, 0.065, 1)
+    b:SetBackdropBorderColor(BRAND[1], BRAND[2], BRAND[3], 0.22)
+
+    local fs = b:CreateFontString(nil, "OVERLAY")
+    fs:SetFont(FONT_BOLD, 11, "")
+    fs:SetPoint("LEFT", 10, 0)
+    fs:SetJustifyH("LEFT")
+    fs:SetTextColor(0.78, 0.82, 0.90, 1)
+    b._label = fs
+
+    parent._afFrameButtons[idx] = b
+    return b
+end
+
+local function V22BuildFrameSidebar()
+    if not sidebarList then return end
+
+    for _, row in pairs(rowButtons or {}) do
+        if row and row.Hide then row:Hide() end
+    end
+
+    local sections, active = V22EnsureFrameSection()
+    local previous
+    for i, sec in ipairs(sections) do
+        local b = V22CreateSidebarButton(sidebarList, i)
+        b:ClearAllPoints()
+        if previous then
+            b:SetPoint("TOPLEFT", previous, "BOTTOMLEFT", 0, -6)
+        else
+            b:SetPoint("TOPLEFT", 6, -4)
+        end
+        b:SetPoint("TOPRIGHT", -6, 0)
+        b._label:SetText(sec.label)
+
+        local on = sec.id == active
+        b:SetBackdropColor(
+            on and BRAND[1] or 0.040,
+            on and BRAND[2] or 0.048,
+            on and BRAND[3] or 0.065,
+            on and 0.18 or 1)
+        b:SetBackdropBorderColor(BRAND[1], BRAND[2], BRAND[3], on and 0.95 or 0.22)
+        b._label:SetTextColor(
+            on and 1 or 0.78,
+            on and 1 or 0.82,
+            on and 1 or 0.90,
+            1)
+
+        b:SetScript("OnClick", function()
+            S.state.frameSection = sec.id
+            S.RebuildSidebar()
+            S.RebuildInspector()
+            V22HideFramePreviewNoise()
+        end)
+        b:Show()
+        previous = b
+    end
+
+    if sidebarList._afFrameButtons then
+        for i = #sections + 1, #sidebarList._afFrameButtons do
+            sidebarList._afFrameButtons[i]:Hide()
+        end
+    end
+end
+
+local function V22HideFrameSidebarButtons()
+    if sidebarList and sidebarList._afFrameButtons then
+        for _, b in ipairs(sidebarList._afFrameButtons) do
+            if b then b:Hide() end
+        end
+    end
+end
+
+local function V22SectionHeader(c, y, text, icon)
+    local _, ny = W.CreateSectionHeader(c, text, y, icon or "S")
+    return ny
+end
+
+local function V22BuildUnitDimensions(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_dimensions"], "D")
+
+    if db.enabled ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_enable"], db.enabled, y, function(v)
+            db.enabled = v
+            if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("unitFrames") end
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_width"], db.width or 220,
+                80, 400, 5, 0, function(v)
+                    db.width = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_health_height"], db.healthHeight or 38,
+                10, 80, 2, 0, function(v)
+                    db.healthHeight = v
+                    SyncLegacyUnitHeight(db)
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end)
+    y = ny
+
+    if db.powerHeight ~= nil or db.infoBarHeight ~= nil then
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                if db.powerHeight ~= nil then
+                    local _, n = W.CreateSlider(col, L["opt_power_height"], db.powerHeight or 0,
+                        0, 20, 1, 0, function(v)
+                            db.powerHeight = v
+                            SyncLegacyUnitHeight(db)
+                            V22CommitFrameEdit()
+                        end)
+                    return n
+                end
+                return 0
+            end,
+            function(col)
+                if db.infoBarHeight ~= nil then
+                    local _, n = W.CreateSlider(col, L["af_frame_info_height"], db.infoBarHeight or 0,
+                        0, 30, 1, 0, function(v)
+                            db.infoBarHeight = v
+                            V22CommitFrameEdit()
+                        end)
+                    return n
+                end
+                return 0
+            end)
+        y = ny
+    end
+
+    return y
+end
+
+local function V22BuildUnitDisplay(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_display"], "V")
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            if db.showName ~= nil then
+                local _, n = W.CreateCheckbox(col, L["opt_show_name"], db.showName, 0, function(v)
+                    db.showName = v
+                    V22CommitFrameEdit()
+                end)
+                return n
+            end
+            return 0
+        end,
+        function(col)
+            if db.showLevel ~= nil then
+                local _, n = W.CreateCheckbox(col, L["opt_show_level"], db.showLevel, 0, function(v)
+                    db.showLevel = v
+                    V22CommitFrameEdit()
+                end)
+                return n
+            end
+            return 0
+        end)
+    y = ny
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            if db.showHealthText ~= nil then
+                local _, n = W.CreateCheckbox(col, L["opt_show_health_text"], db.showHealthText, 0, function(v)
+                    db.showHealthText = v
+                    V22CommitFrameEdit()
+                end)
+                return n
+            end
+            return 0
+        end,
+        function(col)
+            if db.showLeaderIcon ~= nil then
+                local _, n = W.CreateCheckbox(col, L["opt_show_leader_icon"], db.showLeaderIcon, 0, function(v)
+                    db.showLeaderIcon = v
+                    V22CommitFrameEdit()
+                end)
+                return n
+            end
+            return 0
+        end)
+    y = ny
+
+    if db.healthTextFormat ~= nil then
+        local _, ny = W.CreateDropdown(c, L["opt_health_format"], {
+            { text = L["fmt_current"],         value = "current" },
+            { text = L["fmt_percent"],         value = "percent" },
+            { text = L["fmt_current_percent"], value = "current_percent" },
+            { text = L["fmt_current_max"],     value = "current_max" },
+        }, db.healthTextFormat, y, function(v)
+            db.healthTextFormat = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    if db.nameTruncate ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_name_truncate"], db.nameTruncate, y, function(v)
+            db.nameTruncate = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_name_truncate_length"], db.nameTruncateLength or 20,
+            5, 40, 1, y, function(v)
+                db.nameTruncateLength = v
+                V22CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    return y
+end
+
+local function V22BuildUnitColors(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_colors"], "C")
+
+    if db.useClassColor ~= nil and db.useFactionColor ~= nil then
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_class_color_uf"], db.useClassColor, y,
+            function(v) db.useClassColor = v; V22CommitFrameEdit() end,
+            L["opt_faction_color"], db.useFactionColor,
+            function(v) db.useFactionColor = v; V22CommitFrameEdit() end)
+        y = ny
+    elseif db.useClassColor ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_class_color_uf"], db.useClassColor, y, function(v)
+            db.useClassColor = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    if db.useNameplateColors ~= nil and db.showAbsorb ~= nil then
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_use_nameplate_colors"], db.useNameplateColors, y,
+            function(v) db.useNameplateColors = v; V22CommitFrameEdit() end,
+            L["opt_show_absorb"], db.showAbsorb,
+            function(v) db.showAbsorb = v; V22CommitFrameEdit() end)
+        y = ny
+    elseif db.showAbsorb ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_show_absorb"], db.showAbsorb, y, function(v)
+            db.showAbsorb = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    if db.showThreat ~= nil and db.showLeaderIcon ~= nil then
+        local _, ny = W.CreateCheckboxPair(c,
+            L["opt_show_threat"], db.showThreat, y,
+            function(v) db.showThreat = v; V22CommitFrameEdit() end,
+            L["opt_show_leader_icon"], db.showLeaderIcon,
+            function(v) db.showLeaderIcon = v; V22CommitFrameEdit() end)
+        y = ny
+    elseif db.showThreat ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_show_threat"], db.showThreat, y, function(v)
+            db.showThreat = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    if type(db.threatText) == "table" then
+        local _, ny = W.CreateCheckbox(c, L["opt_threat_text_enable"], db.threatText.enabled, y, function(v)
+            db.threatText.enabled = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+
+        local _, ny = W.CreateSlider(c, L["opt_threat_text_font_size"], db.threatText.fontSize or 13,
+            8, 24, 1, y, function(v)
+                db.threatText.fontSize = v
+                V22CommitFrameEdit()
+            end)
+        y = ny
+    end
+
+    return y
+end
+
+local function V22BuildUnitAuras(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_auras"], "A")
+    if type(db.auras) ~= "table" then return y end
+
+    local _, ny = W.CreateCheckbox(c, L["opt_auras_enable"], db.auras.enabled, y, function(v)
+        db.auras.enabled = v
+        V22CommitFrameEdit()
+    end)
+    y = ny
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_auras_max"], db.auras.maxAuras or 6,
+                1, 16, 1, 0, function(v)
+                    db.auras.maxAuras = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_auras_size"], db.auras.size or 24,
+                16, 48, 1, 0, function(v)
+                    db.auras.size = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_auras_spacing"], db.auras.spacing or 3,
+                0, 16, 1, 0, function(v)
+                    db.auras.spacing = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_auras_per_row"], db.auras.perRow or 6,
+                1, 8, 1, 0, function(v)
+                    db.auras.perRow = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateDropdown(c, L["opt_auras_type"], {
+        { text = L["aura_harmful"], value = "HARMFUL" },
+        { text = L["aura_helpful"], value = "HELPFUL" },
+        { text = L["aura_all"],     value = "ALL" },
+    }, db.auras.type or "HARMFUL", y, function(v)
+        db.auras.type = v
+        V22CommitFrameEdit()
+    end)
+    y = ny
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateDropdown(col, L["opt_auras_direction"], {
+                { text = L["aura_dir_right"], value = "RIGHT" },
+                { text = L["aura_dir_left"],  value = "LEFT" },
+            }, db.auras.growDirection or "RIGHT", 0, function(v)
+                db.auras.growDirection = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateDropdown(col, L["opt_auras_direction_v"], {
+                { text = L["aura_dir_down"], value = "DOWN" },
+                { text = L["aura_dir_up"],   value = "UP" },
+            }, db.auras.growVertical or "DOWN", 0, function(v)
+                db.auras.growVertical = (v == "UP") and "UP" or nil
+                V22CommitFrameEdit()
+            end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, L["opt_auras_only_mine"], db.auras.showOnlyMine, y, function(v)
+        db.auras.showOnlyMine = v
+        V22CommitFrameEdit()
+    end)
+    y = ny
+    return y
+end
+
+local function V22BuildUnitEnemyBuffs(c, y, db)
+    if type(db.enemyBuffs) ~= "table" then return y end
+    y = V22SectionHeader(c, y, L["af_v22_sec_enemy_buffs"], "E")
+
+    local _, ny = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"], db.enemyBuffs.enabled, y, function(v)
+        db.enemyBuffs.enabled = v
+        V22CommitFrameEdit()
+    end)
+    y = ny
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_enemy_buffs_max"], db.enemyBuffs.maxAuras or 3,
+                1, 12, 1, 0, function(v)
+                    db.enemyBuffs.maxAuras = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_enemy_buffs_size"], db.enemyBuffs.size or 18,
+                14, 40, 1, 0, function(v)
+                    db.enemyBuffs.size = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateDropdown(col, L["opt_enemy_buffs_direction"], {
+                { text = L["aura_dir_right"], value = "RIGHT" },
+                { text = L["aura_dir_left"],  value = "LEFT" },
+            }, db.enemyBuffs.growDirection or "RIGHT", 0, function(v)
+                db.enemyBuffs.growDirection = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateDropdown(col, L["opt_enemy_buffs_row_orientation"], {
+                { text = L["aura_dir_up"],   value = "UP" },
+                { text = L["aura_dir_down"], value = "DOWN" },
+            }, db.enemyBuffs.growVertical or "UP", 0, function(v)
+                db.enemyBuffs.growVertical = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_per_row"], db.enemyBuffs.perRow or 3,
+        1, 8, 1, y, function(v)
+            db.enemyBuffs.perRow = v
+            V22CommitFrameEdit()
+        end)
+    y = ny
+    return y
+end
+
+local function V22BuildBossDimensions(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_dimensions"], "B")
+    local _, ny = W.CreateInfoText(c, L["af_v21_boss_info"], y)
+    y = ny
+
+    if db.enabled ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_boss_enable"], db.enabled, y, function(v)
+            db.enabled = v
+            if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("bossFrames") end
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_width"], db.width or 200,
+                100, 350, 5, 0, function(v)
+                    db.width = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_boss_height"], db.height or 28,
+                16, 50, 2, 0, function(v)
+                    db.height = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_boss_spacing"], db.spacing or 4,
+        0, 20, 1, y, function(v)
+            db.spacing = v
+            V22CommitFrameEdit()
+        end)
+    y = ny
+    return y
+end
+
+local function V22BuildNameplateDimensions(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_dimensions"], "N")
+
+    if db.enabled ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_enable"], db.enabled, y, function(v)
+            db.enabled = v
+            local NP = TomoMod_Nameplates
+            if NP then
+                if v and NP.Enable then NP.Enable()
+                elseif not v and NP.Disable then NP.Disable() end
+            end
+            if TomoMod_Lifecycle then TomoMod_Lifecycle.RequestReload("nameplates") end
+            RebuildSubject()
+            ShowNameplateCadreParity()
+            V22HideFramePreviewNoise()
+        end)
+        y = ny
+    end
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_width"], db.width or 156,
+                60, 300, 5, 0, function(v)
+                    db.width = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateSlider(col, L["opt_health_height"], db.height or 17,
+                6, 40, 1, 0, function(v)
+                    db.height = v
+                    V22CommitFrameEdit()
+                end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, L["opt_np_name_font_size"], db.nameFontSize or 10,
+        6, 20, 1, y, function(v)
+            db.nameFontSize = v
+            V22CommitFrameEdit()
+        end)
+    y = ny
+    return y
+end
+
+local function V22BuildNameplateDisplay(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_display"], "V")
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateCheckbox(col, L["opt_show_name"], db.showName, 0, function(v)
+                db.showName = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateCheckbox(col, L["opt_show_level"], db.showLevel, 0, function(v)
+                db.showLevel = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateCheckbox(col, L["opt_show_health_text"], db.showHealthText, 0, function(v)
+                db.showHealthText = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateCheckbox(col, L["opt_np_show_classification"], db.showClassification, 0, function(v)
+                db.showClassification = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateCheckbox(col, L["opt_show_threat"], db.showThreat, 0, function(v)
+                db.showThreat = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateCheckbox(col, L["opt_np_class_colors"], db.useClassColors, 0, function(v)
+                db.useClassColors = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            local _, n = W.CreateCheckbox(col, L["opt_np_show_absorb"], db.showAbsorb, 0, function(v)
+                db.showAbsorb = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end,
+        function(col)
+            local _, n = W.CreateCheckbox(col, L["opt_np_friendly_name_only"], db.friendlyNameOnly, 0, function(v)
+                db.friendlyNameOnly = v
+                V22CommitFrameEdit()
+            end)
+            return n
+        end)
+    y = ny
+
+    local _, ny = W.CreateDropdown(c, L["opt_health_format"], {
+        { text = L["np_fmt_percent"],         value = "percent" },
+        { text = L["np_fmt_current"],         value = "current" },
+        { text = L["np_fmt_current_percent"], value = "current_percent" },
+    }, db.healthTextFormat or "percent", y, function(v)
+        db.healthTextFormat = v
+        V22CommitFrameEdit()
+    end)
+    y = ny
+    return y
+end
+
+local function V22BuildNameplateRoles(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_roles"], "R")
+    if db.friendlyRoleIcons ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_friendly_role_icons"], db.friendlyRoleIcons, y, function(v)
+            db.friendlyRoleIcons = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    local _, ny = W.CreateTwoColumnRow(c, y,
+        function(col)
+            if db.roleShowTank ~= nil then
+                local _, n = W.CreateCheckbox(col, L["opt_np_role_show_tank"], db.roleShowTank, 0, function(v)
+                    db.roleShowTank = v
+                    V22CommitFrameEdit()
+                end)
+                return n
+            end
+            return 0
+        end,
+        function(col)
+            if db.roleShowHealer ~= nil then
+                local _, n = W.CreateCheckbox(col, L["opt_np_role_show_healer"], db.roleShowHealer, 0, function(v)
+                    db.roleShowHealer = v
+                    V22CommitFrameEdit()
+                end)
+                return n
+            end
+            return 0
+        end)
+    y = ny
+
+    if db.roleShowDps ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_role_show_dps"], db.roleShowDps, y, function(v)
+            db.roleShowDps = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+
+    if db.roleIconSize ~= nil then
+        local _, ny = W.CreateSlider(c, L["opt_np_role_icon_size"], db.roleIconSize,
+            16, 60, 2, y, function(v)
+                db.roleIconSize = v
+                V22CommitFrameEdit()
+            end)
+        y = ny
+    end
+    return y
+end
+
+local function V22BuildNameplateCastbar(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_castbar"], "C")
+    if db.showCastbar ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_show_castbar"], db.showCastbar, y, function(v)
+            db.showCastbar = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+    if db.castbarHeight ~= nil then
+        local _, ny = W.CreateSlider(c, L["opt_np_castbar_height"], db.castbarHeight,
+            4, 20, 1, y, function(v)
+                db.castbarHeight = v
+                V22CommitFrameEdit()
+            end)
+        y = ny
+    end
+    local _, ny = W.CreateInfoText(c, L["af_v21_bar_note"], y)
+    y = ny
+    return y
+end
+
+local function V22BuildNameplateAuras(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_auras"], "A")
+    if db.showAuras ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_show_auras"], db.showAuras, y, function(v)
+            db.showAuras = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+    if db.showOnlyMyAuras ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_only_my_debuffs"], db.showOnlyMyAuras, y, function(v)
+            db.showOnlyMyAuras = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+    if db.auraSize ~= nil and db.maxAuras ~= nil then
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_aura_size"], db.auraSize,
+                    12, 36, 1, 0, function(v)
+                        db.auraSize = v
+                        V22CommitFrameEdit()
+                    end)
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_max_auras"], db.maxAuras,
+                    1, 10, 1, 0, function(v)
+                        db.maxAuras = v
+                        V22CommitFrameEdit()
+                    end)
+                return n
+            end)
+        y = ny
+    end
+    return y
+end
+
+local function V22BuildNameplateEnemyBuffs(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_enemy_buffs"], "E")
+    if db.showEnemyBuffs ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_show_enemy_buffs"], db.showEnemyBuffs, y, function(v)
+            db.showEnemyBuffs = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+    if db.enemyBuffSize ~= nil and db.maxEnemyBuffs ~= nil then
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_enemy_buff_size"], db.enemyBuffSize,
+                    12, 36, 1, 0, function(v)
+                        db.enemyBuffSize = v
+                        V22CommitFrameEdit()
+                    end)
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_max_enemy_buffs"], db.maxEnemyBuffs,
+                    1, 8, 1, 0, function(v)
+                        db.maxEnemyBuffs = v
+                        V22CommitFrameEdit()
+                    end)
+                return n
+            end)
+        y = ny
+    end
+    if db.enemyBuffYOffset ~= nil then
+        local _, ny = W.CreateSlider(c, L["opt_np_enemy_buff_y_offset"], db.enemyBuffYOffset,
+            0, 20, 1, y, function(v)
+                db.enemyBuffYOffset = v
+                V22CommitFrameEdit()
+            end)
+        y = ny
+    end
+    return y
+end
+
+local function V22BuildNameplateAdvanced(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_advanced"], "+")
+    if db.selectedAlpha ~= nil and db.unselectedAlpha ~= nil then
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_selected_alpha"], db.selectedAlpha,
+                    0.3, 1.0, 0.05, 0, function(v)
+                        db.selectedAlpha = v
+                        V22CommitFrameEdit()
+                    end, "%.2f")
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_unselected_alpha"], db.unselectedAlpha,
+                    0.3, 1.0, 0.05, 0, function(v)
+                        db.unselectedAlpha = v
+                        V22CommitFrameEdit()
+                    end, "%.2f")
+                return n
+            end)
+        y = ny
+    end
+    if db.overlapV ~= nil and db.topInset ~= nil then
+        local _, ny = W.CreateTwoColumnRow(c, y,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_overlap"], db.overlapV,
+                    0.5, 3.0, 0.1, 0, function(v)
+                        db.overlapV = v
+                        V21RefreshNameplateCVars()
+                        ShowNameplateCadreParity()
+                        V22HideFramePreviewNoise()
+                    end, "%.1f")
+                return n
+            end,
+            function(col)
+                local _, n = W.CreateSlider(col, L["opt_np_top_inset"], db.topInset,
+                    0.01, 0.5, 0.005, 0, function(v)
+                        db.topInset = v
+                        V21RefreshNameplateCVars()
+                        ShowNameplateCadreParity()
+                        V22HideFramePreviewNoise()
+                    end, "%.3f")
+                return n
+            end)
+        y = ny
+    end
+    return y
+end
+
+local function V22BuildNameplateContextColors(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_context_colors"], "C")
+    if type(db.colors) ~= "table" then return y end
+    local colorKeys = {
+        { "color_hostile",         "hostile" },
+        { "color_neutral",         "neutral" },
+        { "color_friendly",        "friendly" },
+        { "color_tapped",          "tapped" },
+        { "color_focus",           "focus" },
+        { "color_caster",          "caster" },
+        { "color_miniboss",        "miniboss" },
+        { "color_enemy_in_combat", "enemyInCombat" },
+    }
+    for _, rec in ipairs(colorKeys) do
+        local key = rec[2]
+        if type(db.colors[key]) == "table" then
+            y = V21Color(c, L[rec[1]], db.colors[key], y, function(r, g, b)
+                db.colors[key] = { r = r, g = g, b = b }
+                V22CommitFrameEdit()
+            end)
+        end
+    end
+    return y
+end
+
+local function V22BuildNameplateClassification(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_classification"], "K")
+    if db.useClassificationColors ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_use_classification"], db.useClassificationColors, y, function(v)
+            db.useClassificationColors = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+    if type(db.colors) == "table" then
+        local classColors = {
+            { "color_boss",    "boss" },
+            { "color_elite",   "elite" },
+            { "color_rare",    "rare" },
+            { "color_normal",  "normal" },
+            { "color_trivial", "trivial" },
+        }
+        for _, rec in ipairs(classColors) do
+            local key = rec[2]
+            if type(db.colors[key]) == "table" then
+                y = V21Color(c, L[rec[1]], db.colors[key], y, function(r, g, b)
+                    db.colors[key] = { r = r, g = g, b = b }
+                    V22CommitFrameEdit()
+                end)
+            end
+        end
+    end
+    return y
+end
+
+local function V22BuildNameplateTank(c, y, db)
+    y = V22SectionHeader(c, y, L["af_v22_sec_tank"], "T")
+    if db.tankMode ~= nil then
+        local _, ny = W.CreateCheckbox(c, L["opt_np_tank_mode"], db.tankMode, y, function(v)
+            db.tankMode = v
+            V22CommitFrameEdit()
+        end)
+        y = ny
+    end
+    if type(db.tankColors) == "table" then
+        local tankColors = {
+            { "color_no_threat",      "noThreat" },
+            { "color_low_threat",     "lowThreat" },
+            { "color_has_threat",     "hasThreat" },
+            { "color_dps_has_aggro",  "dpsHasAggro" },
+            { "color_dps_near_aggro", "dpsNearAggro" },
+        }
+        for _, rec in ipairs(tankColors) do
+            local key = rec[2]
+            if type(db.tankColors[key]) == "table" then
+                y = V21Color(c, L[rec[1]], db.tankColors[key], y, function(r, g, b)
+                    db.tankColors[key] = { r = r, g = g, b = b }
+                    V22CommitFrameEdit()
+                end)
+            end
+        end
+    end
+    return y
+end
+
+function S.BuildFrameEditorV22(c)
+    local db = Settings()
+    local y = -8
+
+    V22EnsureFramePreview()
+    if SubjectKind() == "nameplate" then
+        ShowNameplateCadreParity()
+    else
+        HideNameplateCadreParity(false)
+    end
+    V22HideFramePreviewNoise()
+
+    local _, current = V22EnsureFrameSection()
+
+    local _, ny = W.CreateSectionHeader(c, L["af_v22_editor_title"], y, "F")
+    y = ny
+    local _, ny = W.CreateInfoText(c, L["af_v22_editor_info"], y)
+    y = ny
+
+    if not db then
+        local _, ny = W.CreateInfoText(c, L["af_frame_unavailable"], y)
+        y = ny
+        c:SetHeight(math.abs(y) + 40)
+        return
+    end
+
+    local kind = SubjectKind()
+
+    if kind == "unitframe" then
+        if current == "global" then
+            y = BuildGlobalUnitFrameSettings(c, y)
+        elseif current == "dimensions" then
+            y = V22BuildUnitDimensions(c, y, db)
+        elseif current == "display" then
+            y = V22BuildUnitDisplay(c, y, db)
+        elseif current == "colors" then
+            y = V22BuildUnitColors(c, y, db)
+        elseif current == "auras" then
+            y = V22BuildUnitAuras(c, y, db)
+        elseif current == "enemyBuffs" then
+            y = V22BuildUnitEnemyBuffs(c, y, db)
+        end
+    elseif kind == "bossframe" then
+        if current == "global" then
+            y = BuildGlobalUnitFrameSettings(c, y)
+        else
+            y = V22BuildBossDimensions(c, y, db)
+        end
+    elseif kind == "nameplate" then
+        if current == "dimensions" then
+            y = V22BuildNameplateDimensions(c, y, db)
+        elseif current == "display" then
+            y = V22BuildNameplateDisplay(c, y, db)
+        elseif current == "roles" then
+            y = V22BuildNameplateRoles(c, y, db)
+        elseif current == "castbar" then
+            y = V22BuildNameplateCastbar(c, y, db)
+        elseif current == "auras" then
+            y = V22BuildNameplateAuras(c, y, db)
+        elseif current == "enemyBuffs" then
+            y = V22BuildNameplateEnemyBuffs(c, y, db)
+        elseif current == "advanced" then
+            y = V22BuildNameplateAdvanced(c, y, db)
+        elseif current == "contextColors" then
+            y = V22BuildNameplateContextColors(c, y, db)
+        elseif current == "classification" then
+            y = V22BuildNameplateClassification(c, y, db)
+        elseif current == "tank" then
+            y = V22BuildNameplateTank(c, y, db)
+        end
+    else
+        local _, ny = W.CreateInfoText(c, L["af_frame_unavailable"], y)
+        y = ny
+    end
+
+    c:SetHeight(math.abs(y) + 56)
+end
+
 -- ---------------------------------------------------------------------
 -- Custom Bars manager
 -- ---------------------------------------------------------------------
 local BAR_SUBJECTS = {
     player = true,
     target = true,
+    focus = true,
+    pet = true,
+    targettarget = true,
     nameplate = true,
 }
 
@@ -1116,7 +3697,7 @@ function S.RebuildInspector()
     local store = Store()
 
     if S.state.showFrameEditor then
-        S.BuildFrameEditor(c)
+        S.BuildFrameEditorV22(c)
         return
     end
 
@@ -1519,6 +4100,13 @@ local function UpdateNavigation()
     end
 end
 
+local function SelectCanvasSilently(id)
+    if not (canvas and canvas.Select) then return end
+    suppressCanvasSelect = true
+    canvas:Select(id)
+    suppressCanvasSelect = false
+end
+
 local function SetStudioView(view)
     S.state.showFrameEditor = view == "frame"
     S.state.showBars        = view == "bars"
@@ -1531,12 +4119,15 @@ local function SetStudioView(view)
             local first = list[1]
             if first then S.state.element = first.id end
         end
-        if canvas and canvas.Select and S.state.element then
-            canvas:Select(S.state.element)
+        if S.state.element then
+            SelectCanvasSilently(S.state.element)
         end
     else
         S.state.element = nil
-        if canvas and canvas.Select then canvas:Select(nil) end
+        -- IMPORTANT: Canvas.Select() invokes the Studio's onSelect callback.
+        -- Without suppression that callback immediately cleared the requested
+        -- Frame/Bars/Presets mode and switched back to Elements.
+        SelectCanvasSilently(nil)
     end
 
     S.RebuildSidebar()
@@ -1776,13 +4367,30 @@ function S.StartTutorial()
     ShowTutorialStep(1)
 end
 
+do
+    local _RebuildSidebar = S.RebuildSidebar
+    function S.RebuildSidebar()
+        if S.state.showFrameEditor then
+            if SubjectKind() ~= "nameplate" then
+                HideNameplateCadreParity(false)
+            end
+            V22BuildFrameSidebar()
+            return
+        end
+        HideNameplateCadreParity(true)
+        V22HideFrameSidebarButtons()
+        V22RestoreCanvasInteractivity()
+        return _RebuildSidebar()
+    end
+end
+
 function S.SelectElement(id)
     S.state.element = id
     S.state.showFrameEditor = false
     S.state.showBars = false
     S.state.showPresets = false
     if canvas and canvas.GetSelection and canvas:GetSelection() ~= id then
-        canvas:Select(id)
+        SelectCanvasSilently(id)
     end
     S.RebuildSidebar()
     S.RebuildInspector()
@@ -1932,6 +4540,7 @@ local function BuildWindow()
         domain = UFE.DOMAIN,   -- remplace par SetSubject a chaque changement
         accent = BRAND,
         onSelect = function(id)
+            if suppressCanvasSelect then return end
             local modeChanged = S.state.showFrameEditor or S.state.showBars
                 or S.state.showPresets
             S.state.showFrameEditor = false

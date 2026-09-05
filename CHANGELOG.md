@@ -2,6 +2,19 @@
 
 ## CHANGELOG 4.0.2
 
+#### Astral Forge Studio — Focused Frame Workflow And Nameplate Preview
+
+- **Changed** - Frame mode now turns the left sidebar into a subject-aware settings navigator. Only the selected category is rendered below the preview, keeping dimensions, display, colours, auras and advanced Nameplate controls focused while substantially reducing inspector scrolling.
+- **Fixed** - Entering Frame mode now preserves a visible preview for UnitFrames, Boss Frames and Nameplates while hiding only element handles and selection outlines. Leaving Frame mode restores the normal Forge subject and canvas interaction.
+- **New** - Nameplates gain a dedicated Frame-mode readability preview with friendly, hostile-target and boss examples. It reflects the configured dimensions, name and health visibility, cast bar, aura presence and contextual colours immediately, while Elements mode retains the draggable Forge subject.
+
+#### Astral Forge Studio — Complete Frame Configuration
+
+- **New** - Focus, Pet, Target of Target and Boss Frames are now first-class Astral Forge subjects alongside Player, Target and Nameplates. Their supported elements can be selected and repositioned directly on the canvas.
+- **New** - The V2.1 Frame editor now exposes shared UnitFrame font settings and detailed per-frame controls for activation, dimensions, health text, names, levels, colours, absorbs, threat, auras and enemy buffs wherever the selected frame supports them.
+- **Changed** - Boss Frames now use a dedicated Forge element registry. Boss 1 follows the shared Forge anchor, Bosses 2–5 stack beneath it, and the Frame editor controls the common width, height and spacing for all five.
+- **New** - Nameplate configuration now includes friendly role icons, cast-bar sizing, aura and enemy-buff layouts, selected and unselected alpha, overlap and top inset, context and classification colours, and tank/threat colour rules.
+
 #### Astral Forge Studio — Canvas Dragging And Instanced Elements
 
 - **Fixed** - Dragging an element no longer moves its selection handle as an independent screen-anchored frame. The preview element now follows the cursor directly, so its handle remains attached to the Astral Forge Studio when the complete window is moved.

@@ -162,6 +162,15 @@ local function CreateBossFrame(bossIndex)
     healthText:SetJustifyH("RIGHT")
     frame.healthText = healthText
 
+    -- Astral Forge Boss elements are part of the live frame model, not only
+    -- the detached preview. Ensure defaults once and apply saved positions.
+    local BFE = TomoMod_BossFrameElements
+    if BFE then
+        if type(db.elements) ~= "table" then db.elements = {} end
+        BFE.Ensure(db.elements)
+        BFE.ApplyAll(frame, db.elements)
+    end
+
     return frame
 end
 
@@ -498,10 +507,18 @@ function BF.RefreshAll()
                 frame.healthText:SetFont(font, fontSize, "OUTLINE")
             end
 
-            -- Update raid icon position
+            -- Legacy base position first; Astral Forge overrides it below
+            -- when the player has a Boss layout.
             if frame.raidIcon then
                 frame.raidIcon:ClearAllPoints()
                 frame.raidIcon:SetPoint("LEFT", frame.health, "LEFT", 4, 0)
+            end
+
+            local BFE = TomoMod_BossFrameElements
+            if BFE then
+                if type(db.elements) ~= "table" then db.elements = {} end
+                BFE.Ensure(db.elements)
+                BFE.ApplyAll(frame, db.elements)
             end
 
             UpdateBossFrame(frame)

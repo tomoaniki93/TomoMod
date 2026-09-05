@@ -3,6 +3,7 @@
 
     <!-- UnitFrames Engine -->
     <Include file="UFElements.lua" />
+    <Include file="BFElements.lua" />
     <Include file="Elements\Health.lua" />
     <Include file="Elements\Power.lua" />
     <Include file="Elements\Auras.lua" />
