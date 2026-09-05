@@ -32,6 +32,12 @@ local DEFAULTS = {
         emoji = true,
         classColorMentions = true,
     },
+    community = {
+        whisper = true,
+        bnWhisper = true,
+        guild = true,
+        officer = true,
+    },
     sidebar = {
         side = "LEFT",
         width = 32,

@@ -162,13 +162,15 @@ function R.Caps(desc)
 end
 
 function R.HasProp(domainName, id, prop)
-    local caps = R.Caps(R.Get(domainName, id))
+    local caps = R.Caps(R.Describe(domainName, id))
     return caps ~= nil and caps[prop] == true
 end
 
 -- Ordered list of the properties this element supports, for the GUI.
+-- Describe(), rather than Get(), is important here: instanced elements
+-- (custom text / custom bars) have the same visual capabilities.
 function R.Props(domainName, id)
-    local caps = R.Caps(R.Get(domainName, id))
+    local caps = R.Caps(R.Describe(domainName, id))
     local out = {}
     if not caps then return out end
     for _, prop in ipairs({ "alpha", "scale", "fontSize" }) do
@@ -187,6 +189,56 @@ local function clampProp(prop, value, fallback)
     if v < lim.min then return lim.min end
     if v > lim.max then return lim.max end
     return v
+end
+
+-- ---------------------------------------------------------------------
+-- Payload fields owned by instanced element types
+-- ---------------------------------------------------------------------
+-- `fields` lets an instanced descriptor persist its own data without teaching
+-- the registry what that data means. CustomText historically used a special
+-- `text` case; custom bars need several typed fields. Keeping the validation
+-- declarative also makes imported/share-code data safe before a widget sees it.
+local function clampNumber(v, minV, maxV, fallback)
+    v = tonumber(v)
+    if not v then return fallback end
+    if minV ~= nil and v < minV then v = minV end
+    if maxV ~= nil and v > maxV then v = maxV end
+    return v
+end
+
+local function copyColor(value, fallback)
+    local src = type(value) == "table" and value
+        or (type(fallback) == "table" and fallback or { r = 1, g = 1, b = 1 })
+    return {
+        r = clampNumber(src.r or src[1], 0, 1, 1),
+        g = clampNumber(src.g or src[2], 0, 1, 1),
+        b = clampNumber(src.b or src[3], 0, 1, 1),
+    }
+end
+
+local function enumValue(spec, value, fallback)
+    if type(spec.values) ~= "table" then return fallback end
+    for _, allowed in ipairs(spec.values) do
+        if value == allowed then return value end
+    end
+    return fallback
+end
+
+local function sanitizeField(spec, value, fallback)
+    if type(spec) ~= "table" then return fallback end
+    local kind = spec.type
+    if kind == "number" then
+        return clampNumber(value, spec.min, spec.max, fallback)
+    elseif kind == "boolean" then
+        return type(value) == "boolean" and value or fallback
+    elseif kind == "enum" then
+        return enumValue(spec, value, fallback)
+    elseif kind == "color" then
+        return copyColor(value, fallback)
+    elseif kind == "string" then
+        return type(value) == "string" and value or fallback
+    end
+    return fallback
 end
 
 -- ---------------------------------------------------------------------
@@ -215,6 +267,7 @@ function R.DefineInstanced(domainName, desc)
     desc.instanced = true
     desc.max = tonumber(desc.max) or 8
     if not R.KINDS[desc.kind] then desc.kind = "frame" end
+    if type(desc.fields) ~= "table" then desc.fields = nil end
     d.types = d.types or {}
     d.typeOrder = d.typeOrder or {}
     if not d.types[desc.id] then d.typeOrder[#d.typeOrder + 1] = desc.id end
@@ -408,9 +461,18 @@ function R.DefaultFor(domainName, desc)
             out[prop] = clampProp(prop, d ~= nil and d or lim.default, lim.default)
         end
     end
-    -- Free-form payload owned by the instance type (a custom text template,
-    -- for instance). The registry stores and copies it, never interprets it.
-    if desc.instanced and dft.text ~= nil then out.text = dft.text end
+    -- Typed payload owned by an instanced type. The registry validates and
+    -- copies it but never interprets the meaning of a field.
+    if desc.instanced and desc.fields then
+        for key, spec in pairs(desc.fields) do
+            out[key] = sanitizeField(spec, dft[key], dft[key])
+        end
+    end
+
+    -- Backwards compatibility for the original customText descriptor.
+    if desc.instanced and dft.text ~= nil and out.text == nil then
+        out.text = dft.text
+    end
     return out
 end
 
@@ -447,7 +509,15 @@ function R.Sanitize(domainName, id, cfg)
         end
     end
 
-    if desc.instanced and type(cfg.text) == "string" then
+    if desc.instanced and desc.fields then
+        for key, spec in pairs(desc.fields) do
+            if cfg[key] ~= nil then
+                out[key] = sanitizeField(spec, cfg[key], out[key])
+            end
+        end
+    end
+
+    if desc.instanced and type(cfg.text) == "string" and out.text ~= nil then
         out.text = cfg.text
     end
 
@@ -459,11 +529,29 @@ end
 -- corrected value is what gets saved.
 function R.Ensure(domainName, store)
     if type(store) ~= "table" then return store end
+
+    -- Preserve record identity. Inspector widgets keep a reference to the
+    -- selected record while a slider is dragged; replacing the whole table
+    -- on every Apply made the first OnValueChanged work and subsequent ones
+    -- write into a stale table. The original comment already promised
+    -- in-place sanitisation, so honour that contract here.
+    local function ensureOne(key)
+        local clean = R.Sanitize(domainName, key, store[key])
+        if not clean then return end
+        local current = store[key]
+        if type(current) == "table" then
+            for k in pairs(current) do current[k] = nil end
+            for k, v in pairs(clean) do current[k] = v end
+        else
+            store[key] = clean
+        end
+    end
+
     for _, desc in ipairs(R.List(domainName)) do
-        store[desc.id] = R.Sanitize(domainName, desc.id, store[desc.id])
+        ensureOne(desc.id)
     end
     for _, inst in ipairs(R.ListInstances(domainName, store)) do
-        store[inst.key] = R.Sanitize(domainName, inst.key, store[inst.key])
+        ensureOne(inst.key)
     end
     -- Sanitize only sees one record at a time, so a loop spanning several
     -- entries survives it. Repair the graph once every entry exists.

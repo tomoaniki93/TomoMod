@@ -753,7 +753,6 @@ function SR.Initialize()
         updateTicker = nil
     end
 
-    print("|cff00ff00TomoMod SkyRide:|r " .. TomoMod_L["msg_sr_initialized"])
 end
 
 _G.TomoMod_SkyRide = SR

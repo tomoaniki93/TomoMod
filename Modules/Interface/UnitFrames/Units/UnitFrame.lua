@@ -77,6 +77,13 @@ local function UpdateHealth(frame)
         frame.health:SetStatusBarColor(r, g, b, 1)
     end
 
+    -- Astral Forge custom health bars use the exact same secret-safe values:
+    -- no percentage or arithmetic is performed in Lua.
+    local UFE = TomoMod_UFElements
+    if UFE and UFE.RefreshCustomBarsSource and type(settings.elements) == "table" then
+        UFE.RefreshCustomBarsSource(frame, settings.elements, "health", current, max)
+    end
+
     -- Texte de santé (SetFormattedText est C-side — zéro taint Lua)
     if settings.showHealthText and frame.health.text then
         E.SetHealthText(frame.health.text, current, max, settings.healthTextFormat, unit)
@@ -647,6 +654,11 @@ local function RegisterSupplementaryEvents()
             uef:RegisterUnitEvent("UNIT_THREAT_SITUATION_UPDATE", unit)
             uef:RegisterUnitEvent("UNIT_ABSORB_AMOUNT_CHANGED",   unit)
             uef:RegisterUnitEvent("UNIT_AURA",                    unit)
+            -- A Forge power bar may exist even when the native UF power bar
+            -- is disabled/centered elsewhere. These two events keep that
+            -- custom source live without polling.
+            uef:RegisterUnitEvent("UNIT_POWER_UPDATE",            unit)
+            uef:RegisterUnitEvent("UNIT_MAXPOWER",                unit)
             uef:SetScript("OnEvent", function(_, event, u)
                 local frame = frames[u]
                 if not frame then return end
@@ -663,6 +675,22 @@ local function RegisterSupplementaryEvents()
 
                 elseif event == "UNIT_ABSORB_AMOUNT_CHANGED" then
                     UpdateAbsorb(frame)
+
+                elseif event == "UNIT_POWER_UPDATE" or event == "UNIT_MAXPOWER" then
+                    -- When frame.power exists oUF's Power.Override already
+                    -- updates Forge. Avoid doing the work twice.
+                    if not frame.power then
+                        local settings = TomoModDB.unitFrames[u]
+                        local UFE = TomoMod_UFElements
+                        if settings and type(settings.elements) == "table"
+                            and UFE and UFE.RefreshCustomBarsSource then
+                            local powerType = UnitPowerType(u) or 0
+                            UFE.RefreshCustomBarsSource(
+                                frame, settings.elements, "power",
+                                UnitPower(u, powerType), UnitPowerMax(u, powerType),
+                                powerType)
+                        end
+                    end
 
                 elseif event == "UNIT_AURA" then
                     E.UpdateAuras(frame)
@@ -828,6 +856,7 @@ function UF.ApplyVisuals(frame, unitKey, settings)
         UFE.Ensure(settings.elements)
         UFE.ApplyAll(frame, settings.elements)
         UFE.RefreshCustomTexts(frame, settings.elements)
+        UFE.RefreshCustomBars(frame, settings.elements, false)
     end
 
     -- Les deux conteneurs d'auras sont desormais des elements du registre
@@ -997,7 +1026,6 @@ function UF.Initialize()
         -- ── Appliquer tailles, polices et offsets ───────────────────
         UF.RefreshAllUnits()
 
-        print("|cff2e9dd8TomoMod UF:|r " .. TomoMod_L["msg_uf_initialized"])
     end)
 end
 

@@ -278,11 +278,15 @@ local function ShowImportPopup(onImport)
     local _previewTimer = nil
     local _previewGeneration = 0
 
-    eb:SetScript("OnTextChanged", function(self, userInput)
-        if not userInput then return end
-        local txt = self:GetText()
+    -- Une chaîne d'export fait ~50 000 caractères. Collée dans l'EditBox,
+    -- c'est l'EditBox qui bloque le client, pas le décodage : elle dispose
+    -- chaque glyphe et recommence à chaque frappe, chaque déplacement du
+    -- curseur et chaque passe de rendu. L'absorbeur garde la chaîne dans un
+    -- buffer Lua et ne laisse qu'une ligne de résumé dans la boîte.
+    local absorber
 
-        -- Annuler le timer précédent
+    local function RunPreview()
+        local txt = absorber and absorber.GetText() or eb:GetText()
         _previewGeneration = _previewGeneration + 1
 
         if not txt or txt == "" then
@@ -290,10 +294,8 @@ local function ShowImportPopup(onImport)
             return
         end
 
-        -- Feedback immédiat : "Analyse..."
         preview:SetText("|cff888888" .. (L["import_preview_analyzing"]) .. "|r")
 
-        -- Lancer le preview après un délai
         local gen = _previewGeneration
         C_Timer.After(0.3, function()
             -- Si une frappe plus récente a eu lieu, ignorer
@@ -301,7 +303,7 @@ local function ShowImportPopup(onImport)
             -- Si le popup est fermé, ignorer
             if not dimmer:IsShown() then return end
 
-            local currentTxt = eb:GetText()
+            local currentTxt = absorber and absorber.GetText() or eb:GetText()
             if not currentTxt or currentTxt == "" then
                 preview:SetText("")
                 return
@@ -319,7 +321,27 @@ local function ShowImportPopup(onImport)
                 preview:SetText("|cffff4444✗|r " .. (L["import_preview_invalid"]))
             end
         end)
+    end
+
+    -- Une saisie manuelle courte suit le chemin d'avant ; un collage passe
+    -- par onSettled, une fois la rafale de OnChar terminée.
+    eb:SetScript("OnTextChanged", function(_, userInput)
+        if not userInput then return end
+        if absorber and absorber.IsCaptured() then return end
+        RunPreview()
     end)
+
+    if W.AttachPasteAbsorber then
+        absorber = W.AttachPasteAbsorber(eb, {
+            summary = function(n)
+                return string.format(L["import_captured"], n)
+            end,
+            onSettled = function() RunPreview() end,
+            onRetry = function()
+                preview:SetText("|cffff8800!|r " .. L["import_paste_retry"])
+            end,
+        })
+    end
 
     -- Nom du profil à créer
     local nameBox, _ = MkEditBox(pop, L["placeholder_import_profile_name"], 260, -230)
@@ -365,7 +387,7 @@ local function ShowImportPopup(onImport)
         importLbl:SetTextColor(unpack(ACCENT))
     end)
     importBtn:SetScript("OnClick", function()
-        local str = eb:GetText()
+        local str = absorber and absorber.GetText() or eb:GetText()
         if not str or str == "" then
             preview:SetText("|cffff4444✗|r " .. (L["msg_import_empty"]))
             return
@@ -733,8 +755,36 @@ local function BuildImportExportTab(parent)
     local _, ny = W.CreateButton(c, L["btn_import"], 240, y, function()
         ShowImportPopup(function(str, profName)
             if profName and not profName:match("^%s*$") then
-                -- [PERF v2] Import asynchrone comme nouveau profil
                 profName = profName:match("^%s*(.-)%s*$")
+            else
+                profName = nil
+            end
+
+            -- [v4 lot 7] Le sélecteur était réservé à la branche sans nom de
+            -- profil, c'est-à-dire à la seule qui écrase la configuration
+            -- active. Nommer un profil est le geste prudent et personne ne
+            -- laisse le champ vide spontanément : en pratique le tableau à
+            -- cases ne s'ouvrait jamais. Les deux routes y passent
+            -- désormais, le nom devient la destination plutôt qu'un
+            -- aiguillage.
+            local IS = TomoMod_ImportSelector
+            local shown, why
+            if IS and IS.ShowString then
+                shown, why = IS.ShowString(str, function()
+                    StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
+                end, { profileName = profName })
+            end
+            if shown then return end
+
+            -- Le sélecteur n'a pas pu s'ouvrir : charge illisible, ou aucun
+            -- module reconnu. Il échouait en silence et on retombait sur
+            -- l'écrasement complet sans que le joueur sache pourquoi.
+            if why then
+                print("|cff2e9dd8TomoMod|r |cffff8800"
+                    .. L["imp_open_failed"] .. "|r " .. tostring(why))
+            end
+
+            if profName then
                 P.ImportAsProfileAsync(str, profName, function(ok, err)
                     if ok then
                         print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_import_as_profile"], profName))
@@ -744,18 +794,7 @@ local function BuildImportExportTab(parent)
                     end
                 end)
             else
-                -- [v4 lot 7] Sans nom de profil, l'import écrasait la
-                -- configuration active en entier. Le sélecteur laisse
-                -- choisir ce qui entre ; s'il ne peut pas s'ouvrir (charge
-                -- illisible, aucun module reconnu), on retombe sur la
-                -- confirmation d'écrasement d'avant.
-                local IS = TomoMod_ImportSelector
-                local shown = IS and IS.ShowString(str, function()
-                    StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
-                end)
-                if not shown then
-                    StaticPopup_Show("TOMOMOD_IMPORT_CONFIRM", nil, nil, { text = str })
-                end
+                StaticPopup_Show("TOMOMOD_IMPORT_CONFIRM", nil, nil, { text = str })
             end
         end)
     end)

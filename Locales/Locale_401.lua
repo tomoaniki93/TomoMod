@@ -94,6 +94,9 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_401_raid_preview_sync"] = "Fixed — The simulated 20-player raid in Layout Mode now updates its cell size, spacing, power bars and labels immediately when raid settings change, and its mover bounds follow the refreshed preview.",
     ["wn_401_tomolayout_layering"] = "Fixed — TomoLayout mover surfaces temporarily use a dedicated low edit layer, including CooldownForge and custom overlays, so Blizzard windows and menus can cover Layout Mode correctly. Every original frame strata is restored on exit.",
     ["wn_401_totem_mover"] = "Fixed — The Totem Bar is visible, azure-skinned and draggable again in Layout Mode even with no active totem. Its overlay stays above the totem buttons and the runtime state is refreshed when Layout Mode closes.",
+    ["wn_401_studios_hub"] = "New — The Home dashboard now gathers Cooldown Studio, Mythic+ Studio, Healer Studio and Astral Forge Studio into a dedicated two-column hub. Every tile describes its editor, reports availability and provides a direct launch button.",
+    ["wn_401_studios_launchers"] = "Changed — The Studios hub uses each editor's existing LoadOnDemand launcher. Missing companion addons are reported without breaking the dashboard, while installed Studios still load only when requested.",
+    ["wn_401_astral_studio_identity"] = "Changed — AstralForge is now presented consistently as Astral Forge Studio in its window title, addon metadata and dashboard entry, with UnitFrame and Nameplate editing stated clearly.",
 })
 
 TomoMod_RegisterLocale("frFR", {
@@ -188,6 +191,9 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_401_raid_preview_sync"] = "Correctif — La simulation de raid à 20 joueurs du mode Layout actualise désormais immédiatement la taille et l'espacement des cellules, les barres de puissance et les noms lorsque les réglages de raid changent ; les dimensions du mover suivent l'aperçu actualisé.",
     ["wn_401_tomolayout_layering"] = "Correctif — Les surfaces déplaçables de TomoLayout utilisent temporairement une couche d'édition basse dédiée, y compris CooldownForge et les superpositions personnalisées, afin que les fenêtres et menus Blizzard puissent couvrir correctement le mode Layout. La strate d'origine de chaque cadre est restaurée à la fermeture.",
     ["wn_401_totem_mover"] = "Correctif — La barre de totems est de nouveau visible, habillée en azur et déplaçable en mode Layout, même sans totem actif. Sa superposition reste au-dessus des boutons de totem et l'état réel est actualisé à la fermeture du mode Layout.",
+    ["wn_401_studios_hub"] = "Nouveau — Le tableau de bord Accueil regroupe désormais Cooldown Studio, le Studio Mythique+, Healer Studio et Astral Forge Studio dans un hub dédié à deux colonnes. Chaque vignette décrit son éditeur, indique sa disponibilité et propose un bouton d'ouverture directe.",
+    ["wn_401_studios_launchers"] = "Modifié — Le hub des Studios utilise le lanceur à la demande déjà fourni par chaque éditeur. Un addon compagnon manquant est signalé sans bloquer le tableau de bord, tandis que les Studios installés ne sont toujours chargés qu'à leur ouverture.",
+    ["wn_401_astral_studio_identity"] = "Modifié — AstralForge est désormais présenté partout comme Astral Forge Studio dans le titre de sa fenêtre, les métadonnées de l'addon et le tableau de bord, avec une mention claire de l'édition des UnitFrames et des Nameplates.",
 })
 
 TomoMod_RegisterLocale("deDE", {
@@ -282,6 +288,9 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_401_raid_preview_sync"] = "Behoben — Die simulierte 20-Spieler-Schlachtgruppe im Layoutmodus aktualisiert Zellengröße, Abstände, Ressourcenleisten und Beschriftungen jetzt sofort nach einer Änderung der Schlachtzugeinstellungen; die Grenzen des Verschiebers folgen der aktualisierten Vorschau.",
     ["wn_401_tomolayout_layering"] = "Behoben — TomoLayout-Verschiebeflächen verwenden vorübergehend eine eigene niedrige Bearbeitungsebene, einschließlich CooldownForge und eigener Overlays, damit Blizzard-Fenster und -Menüs den Layoutmodus korrekt überdecken können. Beim Beenden wird die ursprüngliche Strata jedes Fensters wiederhergestellt.",
     ["wn_401_totem_mover"] = "Behoben — Die Totemleiste ist im Layoutmodus wieder sichtbar, azurblau gestaltet und verschiebbar, auch wenn kein Totem aktiv ist. Ihr Overlay bleibt über den Totemschaltflächen und der Laufzeitzustand wird beim Schließen des Layoutmodus aktualisiert.",
+    ["wn_401_studios_hub"] = "Neu — Das Start-Dashboard fasst Cooldown Studio, Mythisch+ Studio, Heiler-Studio und Astral Forge Studio jetzt in einem eigenen zweispaltigen Hub zusammen. Jede Kachel beschreibt den Editor, zeigt seine Verfügbarkeit an und bietet eine direkte Startschaltfläche.",
+    ["wn_401_studios_launchers"] = "Geändert — Der Studios-Hub verwendet den vorhandenen bedarfsgesteuerten Launcher jedes Editors. Fehlende Begleit-Addons werden gemeldet, ohne das Dashboard zu beeinträchtigen; installierte Studios werden weiterhin erst beim Öffnen geladen.",
+    ["wn_401_astral_studio_identity"] = "Geändert — AstralForge wird im Fenstertitel, in den Addon-Metadaten und im Dashboard einheitlich als Astral Forge Studio bezeichnet; die Bearbeitung von UnitFrames und Namensplaketten wird dabei klar angegeben.",
 })
 
 TomoMod_RegisterLocale("esES", {
@@ -376,6 +385,9 @@ TomoMod_RegisterLocale("esES", {
     ["wn_401_raid_preview_sync"] = "Corregido — La banda simulada de 20 jugadores del modo Layout actualiza ahora al instante el tamaño y espaciado de las celdas, las barras de recurso y las etiquetas cuando cambian los ajustes de banda; los límites del elemento móvil siguen la vista previa actualizada.",
     ["wn_401_tomolayout_layering"] = "Corregido — Las superficies móviles de TomoLayout usan temporalmente una capa de edición baja específica, incluidas CooldownForge y las superposiciones personalizadas, para que las ventanas y menús de Blizzard puedan cubrir correctamente el modo Layout. Al salir se restaura el estrato original de cada marco.",
     ["wn_401_totem_mover"] = "Corregido — La barra de tótems vuelve a estar visible, vestida de azul celeste y se puede arrastrar en el modo Layout incluso sin tótems activos. Su superposición permanece sobre los botones de tótem y el estado real se actualiza al cerrar el modo Layout.",
+    ["wn_401_studios_hub"] = "Nuevo — El panel de Inicio reúne ahora Cooldown Studio, Estudio Mítico+, Estudio de sanador y Astral Forge Studio en un centro específico de dos columnas. Cada tarjeta describe su editor, indica su disponibilidad y ofrece un botón de apertura directa.",
+    ["wn_401_studios_launchers"] = "Cambio — El centro de Estudios utiliza el lanzador bajo demanda existente de cada editor. Los addons complementarios ausentes se indican sin afectar al panel, mientras que los Estudios instalados siguen cargándose solo al abrirlos.",
+    ["wn_401_astral_studio_identity"] = "Cambio — AstralForge se presenta ahora de forma coherente como Astral Forge Studio en el título de su ventana, los metadatos del addon y el panel, indicando claramente la edición de UnitFrames y placas de nombre.",
 })
 
 TomoMod_RegisterLocale("itIT", {
@@ -470,6 +482,9 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_401_raid_preview_sync"] = "Corretto — L'incursione simulata da 20 giocatori in modalità Layout aggiorna subito dimensioni e spaziatura delle celle, barre delle risorse ed etichette quando cambiano le impostazioni dell'incursione; i limiti dell'elemento mobile seguono l'anteprima aggiornata.",
     ["wn_401_tomolayout_layering"] = "Corretto — Le superfici mobili di TomoLayout usano temporaneamente un livello di modifica basso dedicato, inclusi CooldownForge e le sovrapposizioni personalizzate, così finestre e menu Blizzard possono coprire correttamente la modalità Layout. All'uscita viene ripristinato lo strata originale di ogni riquadro.",
     ["wn_401_totem_mover"] = "Corretto — La barra dei totem è di nuovo visibile, in stile azzurro e trascinabile in modalità Layout anche senza un totem attivo. La sovrapposizione resta sopra i pulsanti dei totem e lo stato reale viene aggiornato alla chiusura della modalità Layout.",
+    ["wn_401_studios_hub"] = "Novità — La dashboard Home riunisce ora Studio recuperi, Studio Mitica+, Studio guaritore e Astral Forge Studio in un hub dedicato a due colonne. Ogni riquadro descrive l'editor, ne indica la disponibilità e offre un pulsante di apertura diretta.",
+    ["wn_401_studios_launchers"] = "Modifica — L'hub degli Studi usa il launcher su richiesta già esistente per ogni editor. Gli addon complementari mancanti vengono segnalati senza compromettere la dashboard, mentre gli Studi installati continuano a caricarsi solo quando vengono aperti.",
+    ["wn_401_astral_studio_identity"] = "Modifica — AstralForge viene ora presentato in modo coerente come Astral Forge Studio nel titolo della finestra, nei metadati dell'addon e nella dashboard, indicando chiaramente la modifica di UnitFrame e Nameplate.",
 })
 
 TomoMod_RegisterLocale("ptBR", {
@@ -564,4 +579,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_401_raid_preview_sync"] = "Corrigido — A simulação de raide com 20 jogadores no modo Layout agora atualiza imediatamente o tamanho e o espaçamento das células, as barras de recurso e os rótulos quando as configurações da raide mudam; os limites do elemento móvel acompanham a prévia atualizada.",
     ["wn_401_tomolayout_layering"] = "Corrigido — As superfícies móveis do TomoLayout usam temporariamente uma camada baixa de edição dedicada, incluindo CooldownForge e sobreposições personalizadas, para que janelas e menus da Blizzard possam cobrir corretamente o modo Layout. O strata original de cada quadro é restaurado ao sair.",
     ["wn_401_totem_mover"] = "Corrigido — A barra de totens volta a ficar visível, com estilo azul-celeste e arrastável no modo Layout mesmo sem um totem ativo. A sobreposição permanece acima dos botões de totem e o estado real é atualizado quando o modo Layout fecha.",
+    ["wn_401_studios_hub"] = "Novidade — O painel Início agora reúne Estúdio de recargas, Estúdio Mítico+, Estúdio de cura e Astral Forge Studio em uma central dedicada com duas colunas. Cada bloco descreve o editor, informa sua disponibilidade e oferece um botão de abertura direta.",
+    ["wn_401_studios_launchers"] = "Mudança — A central de Estúdios usa o inicializador sob demanda já existente de cada editor. Addons complementares ausentes são informados sem prejudicar o painel, enquanto os Estúdios instalados continuam sendo carregados somente quando abertos.",
+    ["wn_401_astral_studio_identity"] = "Mudança — AstralForge agora é apresentado de forma consistente como Astral Forge Studio no título da janela, nos metadados do addon e no painel, deixando clara a edição de UnitFrames e placas de nome.",
 })

@@ -1,4 +1,62 @@
-﻿## CHANGELOG 4.0.1
+﻿## ####################################
+
+## CHANGELOG 4.0.2
+
+#### Astral Forge Studio — Canvas Dragging And Instanced Elements
+
+- **Fixed** - Dragging an element no longer moves its selection handle as an independent screen-anchored frame. The preview element now follows the cursor directly, so its handle remains attached to the Astral Forge Studio when the complete window is moved.
+- **Changed** - Selection handles are anchored to the real preview element instead of recreating its screen rectangle on `UIParent`. Their outline now follows window movement, resizing and scale changes automatically, while small elements retain an expanded hit area without changing their geometry.
+- **Changed** - Canvas dragging now starts from the element's saved anchor and converts the cursor delta back through its effective scale. Live snapping, alignment guides and nearest-anchor selection continue to use the element's actual preview position before the final coordinates are saved.
+- **New** - Instanced Forge elements now share the same selection and drag path as singleton elements. Custom text instances can be selected, outlined and repositioned directly on the canvas, establishing the same foundation for future custom bars.
+
+#### Astral Forge Studio — Frame Editor
+
+- **New** - Astral Forge Studio gains a dedicated Frame editor for Player, Target and Nameplate subjects. The new Frame button switches the inspector from individual element positioning to the selected subject's frame-level settings without leaving the Studio.
+- **New** - Player and Target frames can now be tuned directly for width, health-bar height, power-bar height and information-bar height. Nameplates expose width, health-bar height, cast-bar height and name font size, while supported display controls cover names, levels, health text and its format, classification, cast bars, class colours, absorbs and threat.
+- **Changed** - Frame edits use the same profile data and runtime refresh paths as TomoMod's regular options. Every change updates the preview and game frames immediately, Reset Frame Settings restores only the supported fields from TomoMod defaults, and Refresh Preview remains available as a separate action.
+
+#### Astral Forge Studio — Custom Bars
+
+- **New** - Player and Target frames can now carry up to eight independent custom bars, while Nameplates can carry up to six. Every bar is a normal Forge instance that can be selected, outlined, dragged, anchored to another valid target and stored alongside the subject's other elements.
+- **New** - Custom bars can follow live Health, live Power on Player and Target frames, or a static decorative fill. Each bar has independent width, height, source, source/class/custom colour mode, custom colour, background opacity and reverse-fill controls, all available directly in the Studio inspector.
+- **Changed** - Live UnitFrame health and power events now feed matching custom status bars through the same secret-safe values supplied by the game, without calculating protected percentages in Lua. Nameplate health bars update with their plate and are hidden when a pooled plate is released, preventing bars from leaking between units.
+
+#### Astral Forge Studio — Navigation And Guided Onboarding
+
+- **New** - Frame, Elements, Bars and Presets are now first-class navigation tabs above the canvas, with a clear active state. Switching subjects, selecting a preview element or creating custom content keeps the current view and selection state synchronised.
+- **New** - A localized six-step first-run guide introduces subject selection, frame editing, direct canvas movement, custom bars and reusable presets. Tutorial completion is versioned, and the new Help button in the title bar can replay the guide at any time.
+- **Changed** - The Studio shell, subject selector, sidebar title, refresh action, reset action, placement hint and empty-selection guidance are now localized in English, French, German, Spanish, Italian and Brazilian Portuguese. Moving navigation out of the sidebar also gives the element list more vertical room.
+
+#### Bags V4 — Slot Readability And Item Rendering
+
+- **Changed** - Bags V4 now uses a lighter cool-grey panel and recessed slot palette. Item quality is shown with a restrained slot tint by default, while the settings panel offers Tinted Slot, Coloured Frame, Both and None; reagent-bag slots keep their distinct azure outline.
+- **Fixed** - Occupied slots now render their own item icon and count above Blizzard's secure container button instead of depending on internal template regions that changed on the current client. Valid items no longer appear as empty slots, while native clicks, tooltips and cooldown behaviour remain intact.
+
+#### Chat V4 — Community Controls And Reliability
+
+- **New** - Right-clicking the Community tab now opens a dedicated localized filter menu. Character whispers, Battle.net whispers, Guild chat and Officer chat can be enabled independently, and the aggregate view refreshes immediately when a source is changed.
+- **Fixed** - The Community tab now captures its supported chat events directly and keeps a short replay history, so Guild and Officer messages remain complete even when Blizzard does not route them through a detected chat window. Its synthetic tab no longer delegates right-clicks to a native chat tab, preventing the protected `ClearEventFilters` and `AddEventFilter` taint path.
+
+#### Startup Chat
+
+- **Changed** - Successful initialization notices from SkyRide, HideCastBar, UnitFrames, Boss Frames and Nameplates no longer fill the chat window at login. Actionable error, lock-state and combat warnings are unchanged.
+
+#### Profiles — Selective Named Imports
+
+- **New** - The module selector now opens for imports targeting a new named profile as well as for imports applied to the active configuration. Only the checked modules are applied, and the resulting configuration is saved and activated under the requested profile name.
+- **Changed** - The selector clearly states whether it will overwrite the active configuration or create a named profile. Successful named imports and selector failures now produce explicit localized feedback instead of leaving the destination or fallback path implicit.
+- **Internal** - Synchronous, asynchronous and selective named imports now share one validated `SaveActiveAs` path for trimming the profile name, taking the settings snapshot, maintaining profile order and selecting the saved profile.
+
+#### Profiles — Import Performance And Presentation
+
+- **Fixed** - Pasting an export string of roughly 50,000 characters no longer asks the import edit box to lay out every glyph. A paste absorber keeps the complete string in a lightweight Lua buffer and shows only a localized character-count summary; if the client does not deliver the full paste to the absorber, the byte cap is removed and the player is asked to paste again instead of importing truncated data.
+- **Changed** - Opening the selective-import panel now consumes the payload already decoded for the import preview. The same string is no longer decoded, decompressed and deserialized a second time immediately before module selection.
+- **Fixed** - The selective-import panel recalculates its frame level every time it opens and explicitly raises both its dimmer and content above the current TomoMod configuration window. Reusing the panel can no longer leave it hidden behind a higher-level window.
+- **Changed** - The selector now reads the shared TomoMod widget theme for its palette, Poppins fonts, inset content surface, slim scrollbar, custom checkboxes and buttons. Blizzard panel templates, fixed azure accents and hard-coded inline colours have been removed from its normal presentation path.
+
+## ####################################
+
+## CHANGELOG 4.0.1
 
 #### Chat V4
 
@@ -34,6 +92,13 @@
 - **New** - A localized Community tab combines incoming and outgoing character whispers, Battle.net private messages, Guild chat and Officer chat from every detected Blizzard chat window. Copies delivered to more than one native window are deduplicated by Blizzard line ID, and the aggregate retains clickable links, scrolling, unread state, native text entry and Copy Chat support.
 - **Changed** - The sidebar's TomoMod Settings shortcut now opens a localized two-action menu instead of entering the configuration immediately. Players can choose between opening the main TomoMod settings and reloading the interface; opening it closes the Player Status menu, and both popups close when Chat V4 is disabled.
 - **Internal** - Chat V4 does not hook any `FCF_*` function, keeps Blizzard's specialised Combat Log filtering and formatting authoritative, rejects secret geometry and message values before reading or storing them, and limits its post-hooks to mirroring final output into TomoMod-owned presentation frames.
+
+#### Dashboard — TomoMod Studios Hub
+
+- **New** - The Home dashboard now gathers Cooldown Studio, Mythic+ Studio, Healer Studio and Astral Forge Studio into a dedicated two-column hub. Each tile explains the editor's purpose, reports whether its companion addon is available and provides a direct launch button.
+- **Changed** - The hub delegates opening to each Studio's existing launcher instead of duplicating its LoadOnDemand logic. Missing companion addons are reported without breaking the dashboard, while installed Studios continue to load only when requested.
+- **New** - All hub titles, descriptions, launch actions and availability states are translated for English, French, German, Spanish, Italian and Brazilian Portuguese.
+- **Changed** - AstralForge is presented consistently as **Astral Forge Studio** in its window title, addon metadata and dashboard entry, with updated notes covering both UnitFrame and Nameplate editing.
 
 #### Cooldown Studio — Spell Editor, Presets And Guided Onboarding
 

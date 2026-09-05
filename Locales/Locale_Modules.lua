@@ -191,6 +191,13 @@ TomoMod_RegisterLocale("enUS", {
     ["imp_select_all"]     = "Select all",
     ["imp_select_changed"] = "Only what changes",
     ["imp_applied"]        = "%d modules imported",
+    ["import_captured"]    = "[ Import string captured — %d characters ]",
+    ["import_paste_retry"] = "The box could not absorb the paste. Paste again.",
+    ["imp_dest_active"]    = "Destination: active configuration (overwritten)",
+    ["imp_dest_profile"]   = "Destination: new profile '%s'",
+    ["imp_saved_as"]       = "Saved as profile '%s'",
+    ["imp_no_modules"]     = "No recognised module in this string",
+    ["imp_open_failed"]    = "Selection unavailable:",
     ["imp_nothing"]        = "Nothing selected.",
 
     -- Sacs et chat v4 (ancres declarees)
@@ -372,6 +379,13 @@ TomoMod_RegisterLocale("frFR", {
     ["imp_select_all"]     = "Tout sélectionner",
     ["imp_select_changed"] = "Seulement ce qui change",
     ["imp_applied"]        = "%d modules importés",
+    ["import_captured"]    = "[ Chaîne d'import capturée — %d caractères ]",
+    ["import_paste_retry"] = "Le collage n'a pas pu être absorbé. Collez à nouveau.",
+    ["imp_dest_active"]    = "Destination : configuration active (écrasée)",
+    ["imp_dest_profile"]   = "Destination : nouveau profil « %s »",
+    ["imp_saved_as"]       = "Enregistré sous le profil « %s »",
+    ["imp_no_modules"]     = "Aucun module reconnu dans cette chaîne",
+    ["imp_open_failed"]    = "Sélection impossible :",
     ["imp_nothing"]        = "Aucune sélection.",
 
     -- Sacs et chat v4 (ancres declarees)
@@ -553,6 +567,13 @@ TomoMod_RegisterLocale("deDE", {
     ["imp_select_all"]     = "Alle auswählen",
     ["imp_select_changed"] = "Nur Geändertes",
     ["imp_applied"]        = "%d Module importiert",
+    ["import_captured"]    = "[ Importzeichenkette erfasst – %d Zeichen ]",
+    ["import_paste_retry"] = "Das Einfügen konnte nicht übernommen werden. Bitte erneut einfügen.",
+    ["imp_dest_active"]    = "Ziel: aktive Konfiguration (wird überschrieben)",
+    ["imp_dest_profile"]   = "Ziel: neues Profil „%s“",
+    ["imp_saved_as"]       = "Als Profil „%s“ gespeichert",
+    ["imp_no_modules"]     = "Kein erkanntes Modul in dieser Zeichenkette",
+    ["imp_open_failed"]    = "Auswahl nicht möglich:",
     ["imp_nothing"]        = "Nichts ausgewählt.",
 
     -- Sacs et chat v4 (ancres declarees)
@@ -734,6 +755,13 @@ TomoMod_RegisterLocale("esES", {
     ["imp_select_all"]     = "Seleccionar todo",
     ["imp_select_changed"] = "Solo lo que cambia",
     ["imp_applied"]        = "%d módulos importados",
+    ["import_captured"]    = "[ Cadena de importación capturada — %d caracteres ]",
+    ["import_paste_retry"] = "No se pudo absorber el pegado. Pega de nuevo.",
+    ["imp_dest_active"]    = "Destino: configuración activa (se sobrescribe)",
+    ["imp_dest_profile"]   = "Destino: nuevo perfil «%s»",
+    ["imp_saved_as"]       = "Guardado como perfil «%s»",
+    ["imp_no_modules"]     = "Ningún módulo reconocido en esta cadena",
+    ["imp_open_failed"]    = "Selección no disponible:",
     ["imp_nothing"]        = "Nada seleccionado.",
 
     -- Sacs et chat v4 (ancres declarees)
@@ -915,6 +943,13 @@ TomoMod_RegisterLocale("itIT", {
     ["imp_select_all"]     = "Seleziona tutto",
     ["imp_select_changed"] = "Solo ciò che cambia",
     ["imp_applied"]        = "%d moduli importati",
+    ["import_captured"]    = "[ Stringa di importazione acquisita — %d caratteri ]",
+    ["import_paste_retry"] = "Impossibile acquisire il contenuto incollato. Incolla di nuovo.",
+    ["imp_dest_active"]    = "Destinazione: configurazione attiva (sovrascritta)",
+    ["imp_dest_profile"]   = "Destinazione: nuovo profilo «%s»",
+    ["imp_saved_as"]       = "Salvato come profilo «%s»",
+    ["imp_no_modules"]     = "Nessun modulo riconosciuto in questa stringa",
+    ["imp_open_failed"]    = "Selezione non disponibile:",
     ["imp_nothing"]        = "Nessuna selezione.",
 
     -- Sacs et chat v4 (ancres declarees)
@@ -1096,6 +1131,13 @@ TomoMod_RegisterLocale("ptBR", {
     ["imp_select_all"]     = "Selecionar tudo",
     ["imp_select_changed"] = "Só o que muda",
     ["imp_applied"]        = "%d módulos importados",
+    ["import_captured"]    = "[ String de importação capturada — %d caracteres ]",
+    ["import_paste_retry"] = "Não foi possível absorver a colagem. Cole novamente.",
+    ["imp_dest_active"]    = "Destino: configuração ativa (será substituída)",
+    ["imp_dest_profile"]   = "Destino: novo perfil «%s»",
+    ["imp_saved_as"]       = "Salvo como perfil «%s»",
+    ["imp_no_modules"]     = "Nenhum módulo reconhecido nesta string",
+    ["imp_open_failed"]    = "Seleção indisponível:",
     ["imp_nothing"]        = "Nada selecionado.",
 
     -- Sacs et chat v4 (ancres declarees)

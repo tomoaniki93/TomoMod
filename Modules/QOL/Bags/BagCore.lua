@@ -141,7 +141,10 @@ local DEFAULTS = {
         mode = "natural", -- natural | quality | name | ilvl
     },
     slots = {
-        qualityBorders = true,
+        -- tint | border | both | none. "tint" carries item quality in the slot
+        -- fill; "border" is the 4.0.x coloured frame, kept for players who
+        -- preferred it.
+        qualityStyle = "tint",
         itemLevel = true,
         showEmpty = true,
     },
@@ -230,15 +233,33 @@ local function SyncLegacyVisualSettings(db)
         db.sorting.mode = "natural"
     end
 
-    if legacy.showQualityBorders ~= nil then db.slots.qualityBorders = legacy.showQualityBorders and true or false end
+    if legacy.showQualityBorders ~= nil then
+        db.slots.qualityStyle = legacy.showQualityBorders and "border" or "none"
+    end
     if legacy.showItemLevel ~= nil then db.slots.itemLevel = legacy.showItemLevel and true or false end
     if legacy.showEmptySlots ~= nil then db.slots.showEmpty = legacy.showEmptySlots and true or false end
     if legacy.showSearchBar ~= nil then db.search.enabled = legacy.showSearchBar and true or false end
 end
 
+-- 4.0.x stored a single boolean. A profile that had the frames on moves to
+-- the new tinted fill (that is the point of the change); one that had them
+-- off asked for no quality cue at all and keeps none. Runs once: the old
+-- field is cleared so a later toggle is never overridden by it.
+local function MigrateQualityStyle(db)
+    if type(db.slots) ~= "table" then return end
+    if db.slots.qualityBorders == nil then return end
+    if db.slots.qualityStyle == nil then
+        db.slots.qualityStyle = (db.slots.qualityBorders == false) and "none" or "tint"
+    end
+    db.slots.qualityBorders = nil
+end
+
 local function EnsureDB()
     TomoModDB = TomoModDB or {}
     if type(TomoModDB.bagsV4) ~= "table" then TomoModDB.bagsV4 = {} end
+    -- Before DeepFill: it would install the new default and hide the fact
+    -- that this profile predates the field.
+    MigrateQualityStyle(TomoModDB.bagsV4)
     local db = DeepFill(TomoModDB.bagsV4, DEFAULTS)
     local legacy = LegacyDB()
 

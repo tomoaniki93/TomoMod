@@ -674,12 +674,20 @@ function P.ImportAsync(str, callback)
 end
 
 --- Importe et sauvegarde sous un profil nommé (sans ReloadUI immédiat)
-function P.ImportAsProfile(str, profileName)
-    local ok, err = P.Import(str)
-    if not ok then return false, err end
+--- Sauvegarde la configuration active sous `profileName` et l'active.
+---
+--- Le bloc snapshot + insertion dans profileOrder + bascule d'activeProfile
+--- etait recopie dans ImportAsProfile et ImportAsProfileAsync. L'import
+--- selectif en aurait fait une troisieme copie : les trois chemins
+--- appliquent d'abord en memoire, puis figent le resultat sous un nom.
+---
+--- Insere en position 2 comme les copies d'origine : l'index 1 est le profil
+--- par defaut, qui reste en tete de liste.
+function P.SaveActiveAs(profileName)
+    if type(profileName) ~= "string" then return false, "Empty name" end
+    profileName = profileName:match("^%s*(.-)%s*$")
+    if profileName == "" then return false, "Empty name" end
 
-    -- [PERF] Les paramètres sont déjà appliqués en mémoire par Import()
-    -- On snapshot une fois pour sauvegarder sous le nouveau nom
     P.EnsureProfilesDB()
     local db = TomoModDB._profiles
     db.named[profileName] = SnapshotSettings()
@@ -692,6 +700,15 @@ function P.ImportAsProfile(str, profileName)
     return true
 end
 
+function P.ImportAsProfile(str, profileName)
+    local ok, err = P.Import(str)
+    if not ok then return false, err end
+
+    -- [PERF] Les paramètres sont déjà appliqués en mémoire par Import()
+    -- On snapshot une fois pour sauvegarder sous le nouveau nom
+    return P.SaveActiveAs(profileName)
+end
+
 --- Import asynchrone comme profil nommé — callback(ok, err)
 function P.ImportAsProfileAsync(str, profileName, callback)
     P.ImportAsync(str, function(ok, err)
@@ -701,15 +718,7 @@ function P.ImportAsProfileAsync(str, profileName, callback)
         -- Yield one frame first so the client can draw the applied import
         -- instead of stacking both costs into the same frame.
         C_Timer.After(0, function()
-            P.EnsureProfilesDB()
-            local db = TomoModDB._profiles
-            db.named[profileName] = SnapshotSettings()
-            local found = false
-            for _, n in ipairs(db.profileOrder) do
-                if n == profileName then found = true; break end
-            end
-            if not found then table.insert(db.profileOrder, 2, profileName) end
-            db.activeProfile = profileName
+            P.SaveActiveAs(profileName)
             callback(true, nil)
         end)
     end)

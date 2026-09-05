@@ -258,6 +258,165 @@ function UFE.RefreshCustomTexts(frame, store)
 end
 
 -- ---------------------------------------------------------------------
+-- Instanced type: custom status bar
+-- ---------------------------------------------------------------------
+local BAR_FALLBACK = { r = 0.18, g = 0.62, b = 0.85 }
+
+R.DefineInstanced(DOMAIN, {
+    id       = "customBar",
+    kind     = "frame",
+    labelKey = "af_elem_custom_bar",
+    max      = 8,
+    fields   = {
+        source          = { type = "enum", values = { "health", "power", "static" } },
+        width           = { type = "number", min = 20, max = 500 },
+        height          = { type = "number", min = 2,  max = 80 },
+        colorMode       = { type = "enum", values = { "source", "class", "custom" } },
+        color           = { type = "color" },
+        backgroundAlpha = { type = "number", min = 0, max = 1 },
+        reverse         = { type = "boolean" },
+    },
+    default = {
+        point = "TOPLEFT", relTo = "frame", relPoint = "BOTTOMLEFT", x = 0, y = -8,
+        source = "health", width = 180, height = 10,
+        colorMode = "source",
+        color = { r = 0.18, g = 0.62, b = 0.85 },
+        backgroundAlpha = 0.35,
+        reverse = false,
+    },
+    build = function(frame)
+        if not frame then return nil end
+        local bar = CreateFrame("StatusBar", nil, frame)
+        bar:SetSize(180, 10)
+        bar:SetMinMaxValues(0, 1)
+        bar:SetValue(1)
+        bar:EnableMouse(false)
+
+        local bg = bar:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bar.bg = bg
+        return bar
+    end,
+})
+
+local function CustomBarTexture()
+    local db = TomoModDB and TomoModDB.unitFrames
+    return (db and (db.texture or db.statusbarTexture))
+        or "Interface\\Buttons\\WHITE8x8"
+end
+
+local function PaintCustomBar(frame, bar, rec, source, preview, powerType)
+    if not (bar and rec) then return end
+
+    bar:SetSize(rec.width or 180, rec.height or 10)
+    if bar.SetReverseFill then bar:SetReverseFill(rec.reverse == true) end
+
+    local tex = CustomBarTexture()
+    bar:SetStatusBarTexture(tex)
+    if bar.bg then
+        bar.bg:SetTexture(tex)
+        bar.bg:SetVertexColor(0.035, 0.045, 0.060, rec.backgroundAlpha or 0.35)
+    end
+
+    local painted = false
+    if rec.colorMode == "custom" then
+        local c = rec.color or BAR_FALLBACK
+        bar:SetStatusBarColor(c.r or BAR_FALLBACK.r, c.g or BAR_FALLBACK.g,
+            c.b or BAR_FALLBACK.b, 1)
+        painted = true
+    elseif rec.colorMode == "class" and not preview and frame.unit
+        and TomoMod_Utils and TomoMod_Utils.ApplyClassColor then
+        painted = TomoMod_Utils.ApplyClassColor(bar, frame.unit, "SetStatusBarColor")
+    end
+
+    if not painted and rec.colorMode ~= "custom" then
+        if source == "power" and frame.power and frame.power.GetStatusBarColor then
+            local r, g, b = frame.power:GetStatusBarColor()
+            if r then bar:SetStatusBarColor(r, g, b, 1); painted = true end
+        elseif source == "power" and powerType ~= nil
+            and TomoMod_Utils and TomoMod_Utils.GetPowerColor then
+            local r, g, b = TomoMod_Utils.GetPowerColor(powerType)
+            if r then bar:SetStatusBarColor(r, g, b, 1); painted = true end
+        elseif source == "health" and frame.health and frame.health.GetStatusBarColor then
+            local r, g, b = frame.health:GetStatusBarColor()
+            if r then bar:SetStatusBarColor(r, g, b, 1); painted = true end
+        end
+    end
+
+    if not painted then
+        bar:SetStatusBarColor(BAR_FALLBACK.r, BAR_FALLBACK.g, BAR_FALLBACK.b, 1)
+    end
+end
+
+-- Hot-path update for one source. `current` and `maximum` may be Midnight
+-- secret numbers: they are passed straight to C-side StatusBar APIs.
+function UFE.RefreshCustomBarsSource(frame, store, source, current, maximum, powerType)
+    if not frame or type(store) ~= "table" then return 0 end
+    local n = 0
+    for _, inst in ipairs(R.ListInstances(DOMAIN, store)) do
+        if inst.typeID == "customBar" then
+            local rec = store[inst.key]
+            if rec and rec.source == source then
+                local bar = R.ResolveInstance(DOMAIN, inst.key, frame)
+                if bar then
+                    PaintCustomBar(frame, bar, rec, source, false, powerType)
+                    if source == "static" then
+                        bar:SetMinMaxValues(0, 1)
+                        bar:SetValue(1)
+                    else
+                        bar:SetMinMaxValues(0, maximum)
+                        bar:SetValue(current)
+                    end
+                    bar:Show()
+                    n = n + 1
+                end
+            end
+        end
+    end
+    return n
+end
+
+-- Full refresh used after a style edit / rebuild and by the detached Studio
+-- preview. Live health/power events use RefreshCustomBarsSource instead.
+function UFE.RefreshCustomBars(frame, store, preview)
+    if not frame or type(store) ~= "table" then return 0 end
+    local n = 0
+    local unit = frame.unit
+
+    for _, inst in ipairs(R.ListInstances(DOMAIN, store)) do
+        if inst.typeID == "customBar" then
+            local rec = store[inst.key]
+            local bar = R.ResolveInstance(DOMAIN, inst.key, frame)
+            if rec and bar then
+                local source = rec.source or "health"
+                if preview then
+                    PaintCustomBar(frame, bar, rec, source, true, source == "power" and 0 or nil)
+                    bar:SetMinMaxValues(0, 100)
+                    bar:SetValue(source == "power" and 64 or (source == "static" and 100 or 78))
+                    bar:Show()
+                elseif source == "static" then
+                    PaintCustomBar(frame, bar, rec, source, false)
+                    bar:SetMinMaxValues(0, 1)
+                    bar:SetValue(1)
+                    bar:Show()
+                elseif unit and UnitExists(unit) and source == "health" then
+                    local current, maximum = UnitHealth(unit), UnitHealthMax(unit)
+                    UFE.RefreshCustomBarsSource(frame, store, "health", current, maximum)
+                elseif unit and UnitExists(unit) and source == "power" then
+                    local powerType = UnitPowerType(unit) or 0
+                    local current, maximum = UnitPower(unit, powerType), UnitPowerMax(unit, powerType)
+                    UFE.RefreshCustomBarsSource(frame, store, "power", current, maximum, powerType)
+                else
+                    bar:Hide()
+                end
+                n = n + 1
+            end
+        end
+    end
+    return n
+end
+
+-- ---------------------------------------------------------------------
 -- Convenience wrappers (keep the domain string in one place)
 -- ---------------------------------------------------------------------
 function UFE.List()

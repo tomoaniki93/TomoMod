@@ -557,7 +557,6 @@ function BF.Initialize()
     -- Aussi masquer après PLAYER_ENTERING_WORLD (rechargement en instance)
     C_Timer.After(0.5, HideBlizzBossFrames)
 
-    print("|cff2e9dd8TomoMod Boss:|r " .. TomoMod_L["msg_boss_initialized"])
 end
 
 -- =====================================

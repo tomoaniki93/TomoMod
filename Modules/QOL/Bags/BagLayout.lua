@@ -30,9 +30,15 @@ local function L(key, fallback)
     return fallback or key
 end
 
+-- Panel surface. Sits one step ABOVE the slot base (BagSlots.SLOT_BASE) so
+-- the grid reads as recessed into the panel rather than painted onto it. The
+-- two used to be within two thousandths of each other, below the perception
+-- threshold, which is what flattened the whole window into one black plate.
+local SURFACE = { 0.118, 0.124, 0.132 }
+
 local function Surface(frame, bgA, borderA)
     frame:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
-    frame:SetBackdropColor(0.045, 0.052, 0.055, bgA or 0.96)
+    frame:SetBackdropColor(SURFACE[1], SURFACE[2], SURFACE[3], bgA or 0.96)
     frame:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], borderA or 0.30)
 end
 
@@ -48,7 +54,7 @@ local function CreateTextButton(parent, width, height)
     button.text = text
 
     button:SetScript("OnEnter", function(self)
-        self:SetBackdropColor(0.055, 0.078, 0.073, 0.96)
+        self:SetBackdropColor(0.150, 0.168, 0.182, 0.96)
         self:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.65)
         self.text:SetTextColor(1, 1, 1, 1)
     end)
@@ -81,7 +87,7 @@ function Layout:CreateFrame()
 
     local headerBG = header:CreateTexture(nil, "BACKGROUND")
     headerBG:SetAllPoints()
-    headerBG:SetColorTexture(0.055, 0.064, 0.067, 0.96)
+    headerBG:SetColorTexture(0.132, 0.139, 0.148, 0.96)
 
     local line = header:CreateTexture(nil, "ARTWORK")
     line:SetPoint("BOTTOMLEFT")
@@ -160,12 +166,12 @@ function Layout:CreateFrame()
     searchHost:SetPoint("TOPRIGHT", -1, -(HEADER_H + 1))
     searchHost:SetHeight(SEARCH_H)
     searchHost:SetBackdrop({ bgFile = WHITE })
-    searchHost:SetBackdropColor(0.038, 0.045, 0.048, 0.94)
+    searchHost:SetBackdropColor(0.094, 0.100, 0.108, 0.94)
     self.searchHost = searchHost
 
     local sidebar = CreateFrame("Frame", nil, f, "BackdropTemplate")
     sidebar:SetBackdrop({ bgFile = WHITE })
-    sidebar:SetBackdropColor(0.042, 0.049, 0.052, 0.96)
+    sidebar:SetBackdropColor(0.104, 0.110, 0.118, 0.96)
     self.sidebarHost = sidebar
 
     local sideLine = sidebar:CreateTexture(nil, "ARTWORK")
@@ -206,7 +212,7 @@ function Layout:CreateFrame()
 
     local footerBG = footer:CreateTexture(nil, "BACKGROUND")
     footerBG:SetAllPoints()
-    footerBG:SetColorTexture(0.038, 0.045, 0.048, 0.96)
+    footerBG:SetColorTexture(0.100, 0.106, 0.114, 0.96)
 
     local footerLine = footer:CreateTexture(nil, "ARTWORK")
     footerLine:SetPoint("TOPLEFT")

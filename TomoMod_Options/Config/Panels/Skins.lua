@@ -363,10 +363,22 @@ local function BuildBagsTab(parent)
     local _, ny = W.CreateSeparator(c, y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, Loc("opt_skin_bags_quality_borders", "Quality borders"), slots.qualityBorders ~= false, y, function(v)
-        slots.qualityBorders = v
+    local qualityStyle = slots.qualityStyle
+    if qualityStyle ~= "tint" and qualityStyle ~= "border"
+        and qualityStyle ~= "both" and qualityStyle ~= "none" then
+        qualityStyle = (slots.qualityBorders == false) and "none" or "tint"
+    end
+
+    local _, ny = W.CreateSegmentedControl(c, Loc("bags_v4_quality_style", "Item quality"), {
+        { text = Loc("bags_v4_quality_tint", "Tinted slot"), value = "tint" },
+        { text = Loc("bags_v4_quality_border", "Coloured frame"), value = "border" },
+        { text = Loc("bags_v4_quality_both", "Both"), value = "both" },
+        { text = Loc("bags_v4_quality_none", "None"), value = "none" },
+    }, qualityStyle, y, function(v)
+        slots.qualityStyle = v
+        slots.qualityBorders = nil
         Apply()
-    end)
+    end, 2)
     y = ny
 
     local _, ny = W.CreateCheckbox(c, Loc("opt_skin_bags_show_ilvl", "Show item level"), slots.itemLevel ~= false, y, function(v)

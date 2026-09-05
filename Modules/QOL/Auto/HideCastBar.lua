@@ -47,7 +47,6 @@ function HCB.Initialize()
     -- Attendre que l'interface soit chargée
     C_Timer.After(1, HideCastBar)
     
-    print("|cff00ff00TomoMod HideCastBar:|r " .. TomoMod_L["msg_hcb_initialized"])
 end
 
 function HCB.SetEnabled(enabled)

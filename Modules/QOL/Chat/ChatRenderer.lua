@@ -19,20 +19,36 @@ Renderer.interactionEnabled = true
 Renderer.communitySeen = {}
 Renderer.communitySeenOrder = {}
 Renderer.communitySourcesBackfilled = setmetatable({}, { __mode = "k" })
+Renderer.communityEventHistory = {}
 
 local COMMUNITY_EVENTS = {
-    CHAT_MSG_WHISPER = true,
-    CHAT_MSG_WHISPER_INFORM = true,
-    CHAT_MSG_BN_WHISPER = true,
-    CHAT_MSG_BN_WHISPER_INFORM = true,
-    CHAT_MSG_GUILD = true,
-    CHAT_MSG_OFFICER = true,
+    CHAT_MSG_WHISPER = {
+        setting = "whisper", chatType = "WHISPER", formatKey = "CHAT_WHISPER_GET",
+    },
+    CHAT_MSG_WHISPER_INFORM = {
+        setting = "whisper", chatType = "WHISPER_INFORM", formatKey = "CHAT_WHISPER_INFORM_GET",
+    },
+    CHAT_MSG_BN_WHISPER = {
+        setting = "bnWhisper", chatType = "BN_WHISPER", formatKey = "CHAT_BN_WHISPER_GET",
+    },
+    CHAT_MSG_BN_WHISPER_INFORM = {
+        setting = "bnWhisper", chatType = "BN_WHISPER_INFORM", formatKey = "CHAT_BN_WHISPER_INFORM_GET",
+    },
+    CHAT_MSG_GUILD = {
+        setting = "guild", chatType = "GUILD", formatKey = "CHAT_GUILD_GET",
+    },
+    CHAT_MSG_OFFICER = {
+        setting = "officer", chatType = "OFFICER", formatKey = "CHAT_OFFICER_GET",
+    },
 }
 
 local COMMUNITY_TYPES = {
-    "WHISPER", "WHISPER_INFORM",
-    "BN_WHISPER", "BN_WHISPER_INFORM",
-    "GUILD", "OFFICER",
+    WHISPER = "whisper",
+    WHISPER_INFORM = "whisper",
+    BN_WHISPER = "bnWhisper",
+    BN_WHISPER_INFORM = "bnWhisper",
+    GUILD = "guild",
+    OFFICER = "officer",
 }
 
 local NATIVE_CHROME_SUFFIXES = {
@@ -82,17 +98,57 @@ for _, method in ipairs({
     end
 end
 
-local function IsCommunityMessage(chatTypeID, event)
-    if not IsSecret(event) and type(event) == "string" and COMMUNITY_EVENTS[event] then
-        return true
+local function CommunitySetting(chatTypeID, event)
+    if not IsSecret(event) and type(event) == "string" then
+        local eventInfo = COMMUNITY_EVENTS[event]
+        if eventInfo then return eventInfo.setting end
     end
     if IsSecret(chatTypeID) or type(chatTypeID) ~= "number" then return false end
 
-    for _, chatType in ipairs(COMMUNITY_TYPES) do
+    for chatType, setting in pairs(COMMUNITY_TYPES) do
         local info = ChatTypeInfo and ChatTypeInfo[chatType]
-        if info and not IsSecret(info.id) and info.id == chatTypeID then return true end
+        if info and not IsSecret(info.id) and info.id == chatTypeID then return setting end
     end
-    return false
+end
+
+local function IsCommunityMessage(chatTypeID, event)
+    local setting = CommunitySetting(chatTypeID, event)
+    if not setting then return false end
+    local community = Chat.GetDB().community or {}
+    return community[setting] ~= false
+end
+
+local function CommunityEventDisplay(event, msg, author)
+    local info = COMMUNITY_EVENTS[event]
+    if not info or IsSecret(msg) or type(msg) ~= "string"
+        or IsSecret(author) or type(author) ~= "string" then
+        return
+    end
+
+    local prefix
+    local template = _G[info.formatKey]
+    if type(template) == "string" then
+        local ok, value = pcall(string.format, template, author)
+        if ok and type(value) == "string" then prefix = value end
+    end
+    if not prefix then
+        prefix = "[" .. info.chatType .. "] " .. author .. ": "
+    end
+    return prefix .. msg
+end
+
+local function CommunityEventColor(event)
+    local eventInfo = COMMUNITY_EVENTS[event]
+    local info = eventInfo and ChatTypeInfo and ChatTypeInfo[eventInfo.chatType]
+    local r = info and info.r
+    local g = info and info.g
+    local b = info and info.b
+    local id = info and info.id
+    if not SafeNumber(r) then r = 1 end
+    if not SafeNumber(g) then g = 1 end
+    if not SafeNumber(b) then b = 1 end
+    if not SafeNumber(id) then id = nil end
+    return r, g, b, id
 end
 
 local function CommunityMessageKey(message, chatTypeID, lineID, event)
@@ -491,6 +547,47 @@ function Renderer:AddCommunityMessage(msg, r, g, b, chatTypeID, messageAccessID,
     if tabs and tabs.NotifyMessage then tabs:NotifyMessage(communityFrame) end
 end
 
+function Renderer:DeliverCommunityEvent(record)
+    if not record then return end
+    local display = CommunityEventDisplay(record.event, record.msg, record.author)
+    if not display then return end
+    local messages = Chat.Modules.Messages
+    if messages and messages.Format then display = messages:Format(display) end
+    self:AddCommunityMessage(
+        record.msg, record.r, record.g, record.b, record.chatTypeID,
+        nil, record.lineID, record.event, display)
+end
+
+function Renderer:OnCommunityEvent(event, ...)
+    if not Chat.IsEnabled() or not COMMUNITY_EVENTS[event] then return end
+    local msg, author = ...
+    if IsSecret(msg) or type(msg) ~= "string"
+        or IsSecret(author) or type(author) ~= "string" then
+        return
+    end
+
+    local r, g, b, chatTypeID = CommunityEventColor(event)
+    local record = {
+        event = event,
+        msg = msg,
+        author = author,
+        lineID = select(11, ...),
+        r = r, g = g, b = b,
+        chatTypeID = chatTypeID,
+    }
+    local history = self.communityEventHistory
+    history[#history + 1] = record
+    if #history > 1024 then table.remove(history, 1) end
+
+    -- Blizzard chat frames process the same event first in normal operation.
+    -- Waiting one frame lets their fully formatted AddMessage output win; the
+    -- line ID deduplicates this fallback. If every native tab filters the
+    -- group out, the fallback is what keeps Community complete.
+    C_Timer.After(0, function()
+        if Chat.IsEnabled() then Renderer:DeliverCommunityEvent(record) end
+    end)
+end
+
 function Renderer:OnAddMessage(cf, msg, r, g, b, chatTypeID, messageAccessID, lineID, event)
     if not Chat.IsEnabled() then return end
     if not self:ShouldManage(cf) then
@@ -589,10 +686,21 @@ function Renderer:RebuildAll()
     for i = 1, 20 do
         self:BackfillCommunity(_G["ChatFrame" .. i])
     end
+    for _, record in ipairs(self.communityEventHistory) do
+        self:DeliverCommunityEvent(record)
+    end
     self:RefreshVisibility()
 end
 
 function Renderer:Initialize()
+    if not self.communityEvents then
+        local events = CreateFrame("Frame")
+        for event in pairs(COMMUNITY_EVENTS) do events:RegisterEvent(event) end
+        events:SetScript("OnEvent", function(_, event, ...)
+            Renderer:OnCommunityEvent(event, ...)
+        end)
+        self.communityEvents = events
+    end
     self:EnsureFrame(communityFrame)
     self:ApplySettings(Chat.IsEnabled())
 end

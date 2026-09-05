@@ -18,6 +18,19 @@ Tabs.selected = nil
 local TEAL_R, TEAL_G, TEAL_B = 0.20, 0.82, 0.60
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 
+local COMMUNITY_FILTERS = {
+    { key = "whisper",   label = "chat_v4_community_whispers",    fallback = "Private messages" },
+    { key = "bnWhisper", label = "chat_v4_community_bn_whispers", fallback = "Battle.net whispers" },
+    { key = "guild",     label = "chat_v4_community_guild",       fallback = "Guild" },
+    { key = "officer",   label = "chat_v4_community_officer",     fallback = "Officer" },
+}
+
+local function Localize(key, fallback)
+    local value = TomoMod_L and TomoMod_L[key]
+    if type(value) == "string" and value ~= key then return value end
+    return fallback or key
+end
+
 local function IsSecret(value)
     return issecretvalue and issecretvalue(value)
 end
@@ -95,6 +108,96 @@ local function RefreshSelection()
     if input and input.Refresh then input:Refresh() end
 end
 
+function Tabs:RefreshCommunityMenu()
+    local menu = self.communityMenu
+    if not menu then return end
+    local settings = Chat.GetDB().community or {}
+    for _, row in ipairs(menu.rows) do
+        row.mark:SetShown(settings[row.key] ~= false)
+    end
+end
+
+local function CreateCommunityMenu()
+    local menu = CreateFrame("Frame", "TomoModChatV4CommunityMenu", UIParent, "BackdropTemplate")
+    menu:SetSize(252, 142)
+    menu:SetFrameStrata("DIALOG")
+    menu:SetFrameLevel(220)
+    menu:SetClampedToScreen(true)
+    menu:EnableMouse(true)
+    menu:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
+    menu:SetBackdropColor(0.025, 0.035, 0.045, 0.98)
+    menu:SetBackdropBorderColor(TEAL_R, TEAL_G, TEAL_B, 0.75)
+    menu:Hide()
+
+    local title = menu:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    title:SetPoint("TOPLEFT", 12, -10)
+    title:SetPoint("TOPRIGHT", -12, -10)
+    title:SetJustifyH("LEFT")
+    title:SetText(Localize("chat_v4_community_settings", "Community messages"))
+    title:SetTextColor(1, 1, 1, 1)
+
+    menu.rows = {}
+    for index, option in ipairs(COMMUNITY_FILTERS) do
+        local row = CreateFrame("Button", nil, menu)
+        row:SetPoint("TOPLEFT", 7, -30 - ((index - 1) * 26))
+        row:SetPoint("TOPRIGHT", -7, -30 - ((index - 1) * 26))
+        row:SetHeight(24)
+        row.key = option.key
+
+        local hover = row:CreateTexture(nil, "BACKGROUND")
+        hover:SetAllPoints()
+        hover:SetColorTexture(TEAL_R, TEAL_G, TEAL_B, 0.10)
+        hover:Hide()
+
+        local box = row:CreateTexture(nil, "ARTWORK")
+        box:SetSize(14, 14)
+        box:SetPoint("LEFT", 5, 0)
+        box:SetColorTexture(0.16, 0.19, 0.22, 1)
+
+        local mark = row:CreateTexture(nil, "OVERLAY")
+        mark:SetSize(8, 8)
+        mark:SetPoint("CENTER", box)
+        mark:SetColorTexture(TEAL_R, TEAL_G, TEAL_B, 1)
+        row.mark = mark
+
+        local label = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        label:SetPoint("LEFT", box, "RIGHT", 8, 0)
+        label:SetPoint("RIGHT", -5, 0)
+        label:SetJustifyH("LEFT")
+        label:SetText(Localize(option.label, option.fallback))
+        label:SetTextColor(0.84, 0.87, 0.90, 1)
+
+        row:SetScript("OnEnter", function() hover:Show(); label:SetTextColor(1, 1, 1, 1) end)
+        row:SetScript("OnLeave", function() hover:Hide(); label:SetTextColor(0.84, 0.87, 0.90, 1) end)
+        row:SetScript("OnClick", function(self)
+            local settings = Chat.GetDB().community
+            settings[self.key] = settings[self.key] == false
+            Tabs:RefreshCommunityMenu()
+            local renderer = Chat.Modules.Renderer
+            if renderer and renderer.RebuildAll then renderer:RebuildAll() end
+        end)
+        menu.rows[#menu.rows + 1] = row
+    end
+
+    Tabs.communityMenu = menu
+    Tabs:RefreshCommunityMenu()
+    return menu
+end
+
+function Tabs:ToggleCommunityMenu(anchor)
+    local menu = self.communityMenu or CreateCommunityMenu()
+    if menu:IsShown() and menu.anchor == anchor then
+        menu:Hide()
+        menu.anchor = nil
+        return
+    end
+    menu.anchor = anchor
+    self:RefreshCommunityMenu()
+    menu:ClearAllPoints()
+    menu:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -3)
+    menu:Show()
+end
+
 local function CreateGhost()
     local g = CreateFrame("Button", nil, UIParent, "BackdropTemplate")
     g:SetBackdrop({ bgFile = WHITE })
@@ -139,6 +242,13 @@ local function CreateGhost()
         if not cf then return end
 
         Tabs:SetSelectedFrame(cf)
+
+        if cf._tomoCommunity and button == "RightButton" then
+            Tabs:ToggleCommunityMenu(self)
+        elseif Tabs.communityMenu then
+            Tabs.communityMenu:Hide()
+            Tabs.communityMenu.anchor = nil
+        end
 
         -- Let Blizzard execute its normal tab behavior (Combat Log filter state,
         -- temporary windows, context menu). The native tab is only invisible;
@@ -249,6 +359,7 @@ function Tabs:ApplySettings(enabled)
         self:Refresh()
     else
         self.selected = nil
+        if self.communityMenu then self.communityMenu:Hide() end
         for _, g in ipairs(self.ghosts) do
             RestoreNativeTab(g)
             g:Hide()

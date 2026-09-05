@@ -80,8 +80,17 @@ function UF_Elements.UpdatePower(frame)
     local r, g, b = TomoMod_Utils.GetPowerColor(powerType)
     frame.power:SetStatusBarColor(r, g, b, 1)
 
-    -- Show power text if enabled (AbbreviateLargeNumbers is C-side, accepts secret numbers)
     local settings = TomoModDB.unitFrames[unit]
+
+    -- Same source values, passed unchanged into custom StatusBars.
+    local UFE = TomoMod_UFElements
+    if UFE and UFE.RefreshCustomBarsSource and settings
+        and type(settings.elements) == "table" then
+        UFE.RefreshCustomBarsSource(
+            frame, settings.elements, "power", current, max, powerType)
+    end
+
+    -- Show power text if enabled (AbbreviateLargeNumbers is C-side, accepts secret numbers)
     if settings and settings.showPowerText and not settings.infoBarHeight then
         frame.power.text:SetFormattedText("%s", AbbreviateLargeNumbers(current))
     else

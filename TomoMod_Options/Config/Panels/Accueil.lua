@@ -94,6 +94,132 @@ if TomoMod_RegisterLocale then
     })
 end
 
+-- Dashboard Studio Hub -- localised in all six supported languages.
+-- Kept here with the dashboard renderer so the hub can evolve without
+-- coupling these labels to the individual LoadOnDemand studio addons.
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["dash_studios_section"]          = "TomoMod Studios",
+        ["dash_studios_info"]             = "Advanced visual editors for the main TomoMod systems.",
+        ["dash_studio_cooldown_title"]     = "Cooldown Studio",
+        ["dash_studio_cooldown_desc"]      = "Full-screen cooldown bar editor: layout, style, spells, visibility and presets.",
+        ["dash_studio_cooldown_open"]      = "Open Cooldown Studio",
+        ["dash_studio_mythic_title"]       = "Mythic+ Studio",
+        ["dash_studio_mythic_desc"]        = "Configure Mythic+ tracking, score, run history, keys, widgets and dungeon elements.",
+        ["dash_studio_mythic_open"]        = "Open Mythic+ Studio",
+        ["dash_studio_healer_title"]       = "Healer Studio",
+        ["dash_studio_healer_desc"]        = "Configure HoTs, shields and healing indicators on PartyFrames and RaidFrames.",
+        ["dash_studio_healer_open"]        = "Open Healer Studio",
+        ["dash_studio_astral_title"]       = "Astral Forge Studio",
+        ["dash_studio_astral_desc"]        = "Advanced creation and editing studio for UnitFrame and Nameplate elements, with layout tools and visual customisation.",
+        ["dash_studio_astral_open"]        = "Open Astral Forge Studio",
+        ["dash_studio_status_available"]   = "Available",
+        ["dash_studio_status_missing"]     = "Not installed",
+        ["dash_studio_status_soon"]        = "Coming soon",
+        ["btn_open_astralforge"]           = "Open Astral Forge Studio",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["dash_studios_section"]          = "Studios TomoMod",
+        ["dash_studios_info"]             = "Éditeurs visuels avancés pour les principaux systèmes de TomoMod.",
+        ["dash_studio_cooldown_title"]     = "Cooldown Studio",
+        ["dash_studio_cooldown_desc"]      = "Éditeur plein écran des barres de cooldowns : disposition, style, sorts, visibilité et presets.",
+        ["dash_studio_cooldown_open"]      = "Ouvrir Cooldown Studio",
+        ["dash_studio_mythic_title"]       = "Studio Mythic+",
+        ["dash_studio_mythic_desc"]        = "Configuration du suivi Mythique+, score, historique, clés, widgets et éléments de donjon.",
+        ["dash_studio_mythic_open"]        = "Ouvrir le Studio Mythic+",
+        ["dash_studio_healer_title"]       = "Healer Studio",
+        ["dash_studio_healer_desc"]        = "Configuration des HoTs, boucliers et indicateurs de soins sur les PartyFrames et RaidFrames.",
+        ["dash_studio_healer_open"]        = "Ouvrir Healer Studio",
+        ["dash_studio_astral_title"]       = "Astral Forge Studio",
+        ["dash_studio_astral_desc"]        = "Studio de création et d’édition avancée pour les éléments UnitFrame et Nameplates, avec outils de disposition et personnalisation visuelle.",
+        ["dash_studio_astral_open"]        = "Ouvrir Astral Forge Studio",
+        ["dash_studio_status_available"]   = "Disponible",
+        ["dash_studio_status_missing"]     = "Non installé",
+        ["dash_studio_status_soon"]        = "Bientôt disponible",
+        ["btn_open_astralforge"]           = "Ouvrir Astral Forge Studio",
+    })
+    TomoMod_RegisterLocale("deDE", {
+        ["dash_studios_section"]          = "TomoMod Studios",
+        ["dash_studios_info"]             = "Erweiterte visuelle Editoren für die wichtigsten TomoMod-Systeme.",
+        ["dash_studio_cooldown_title"]     = "Cooldown Studio",
+        ["dash_studio_cooldown_desc"]      = "Vollbild-Editor für Cooldown-Leisten: Layout, Stil, Zauber, Sichtbarkeit und Presets.",
+        ["dash_studio_cooldown_open"]      = "Cooldown Studio öffnen",
+        ["dash_studio_mythic_title"]       = "Mythisch+ Studio",
+        ["dash_studio_mythic_desc"]        = "Konfiguriere Mythisch+-Tracking, Wertung, Laufhistorie, Schlüssel, Widgets und Dungeonelemente.",
+        ["dash_studio_mythic_open"]        = "Mythisch+ Studio öffnen",
+        ["dash_studio_healer_title"]       = "Heiler-Studio",
+        ["dash_studio_healer_desc"]        = "Konfiguriere HoTs, Schilde und Heilungsindikatoren auf Gruppen- und Schlachtzugsrahmen.",
+        ["dash_studio_healer_open"]        = "Heiler-Studio öffnen",
+        ["dash_studio_astral_title"]       = "Astral Forge Studio",
+        ["dash_studio_astral_desc"]        = "Erweitertes Studio zum Erstellen und Bearbeiten von UnitFrame- und Nameplate-Elementen mit Layout- und visuellen Anpassungswerkzeugen.",
+        ["dash_studio_astral_open"]        = "Astral Forge Studio öffnen",
+        ["dash_studio_status_available"]   = "Verfügbar",
+        ["dash_studio_status_missing"]     = "Nicht installiert",
+        ["dash_studio_status_soon"]        = "Demnächst",
+        ["btn_open_astralforge"]           = "Astral Forge Studio öffnen",
+    })
+    TomoMod_RegisterLocale("esES", {
+        ["dash_studios_section"]          = "Estudios TomoMod",
+        ["dash_studios_info"]             = "Editores visuales avanzados para los principales sistemas de TomoMod.",
+        ["dash_studio_cooldown_title"]     = "Estudio de reutilizaciones",
+        ["dash_studio_cooldown_desc"]      = "Editor a pantalla completa de barras de reutilización: disposición, estilo, hechizos, visibilidad y preajustes.",
+        ["dash_studio_cooldown_open"]      = "Abrir Estudio de reutilizaciones",
+        ["dash_studio_mythic_title"]       = "Estudio Mítico+",
+        ["dash_studio_mythic_desc"]        = "Configura seguimiento Mítico+, puntuación, historial, piedras, widgets y elementos de mazmorra.",
+        ["dash_studio_mythic_open"]        = "Abrir Estudio Mítico+",
+        ["dash_studio_healer_title"]       = "Estudio de sanador",
+        ["dash_studio_healer_desc"]        = "Configura HoTs, escudos e indicadores de sanación en marcos de grupo y banda.",
+        ["dash_studio_healer_open"]        = "Abrir Estudio de sanador",
+        ["dash_studio_astral_title"]       = "Astral Forge Studio",
+        ["dash_studio_astral_desc"]        = "Estudio avanzado de creación y edición para elementos de UnitFrame y Nameplates, con herramientas de disposición y personalización visual.",
+        ["dash_studio_astral_open"]        = "Abrir Astral Forge Studio",
+        ["dash_studio_status_available"]   = "Disponible",
+        ["dash_studio_status_missing"]     = "No instalado",
+        ["dash_studio_status_soon"]        = "Próximamente",
+        ["btn_open_astralforge"]           = "Abrir Astral Forge Studio",
+    })
+    TomoMod_RegisterLocale("itIT", {
+        ["dash_studios_section"]          = "Studi TomoMod",
+        ["dash_studios_info"]             = "Editor visuali avanzati per i principali sistemi di TomoMod.",
+        ["dash_studio_cooldown_title"]     = "Studio recuperi",
+        ["dash_studio_cooldown_desc"]      = "Editor a schermo intero delle barre dei tempi di recupero: disposizione, stile, abilità, visibilità e preset.",
+        ["dash_studio_cooldown_open"]      = "Apri Studio recuperi",
+        ["dash_studio_mythic_title"]       = "Studio Mitica+",
+        ["dash_studio_mythic_desc"]        = "Configura tracciamento Mitica+, punteggio, cronologia, chiavi, widget ed elementi dei dungeon.",
+        ["dash_studio_mythic_open"]        = "Apri Studio Mitica+",
+        ["dash_studio_healer_title"]       = "Studio guaritore",
+        ["dash_studio_healer_desc"]        = "Configura HoT, scudi e indicatori di cura sui riquadri di gruppo e incursione.",
+        ["dash_studio_healer_open"]        = "Apri Studio guaritore",
+        ["dash_studio_astral_title"]       = "Astral Forge Studio",
+        ["dash_studio_astral_desc"]        = "Studio avanzato per creare e modificare elementi UnitFrame e Nameplates, con strumenti di disposizione e personalizzazione visiva.",
+        ["dash_studio_astral_open"]        = "Apri Astral Forge Studio",
+        ["dash_studio_status_available"]   = "Disponibile",
+        ["dash_studio_status_missing"]     = "Non installato",
+        ["dash_studio_status_soon"]        = "Prossimamente",
+        ["btn_open_astralforge"]           = "Apri Astral Forge Studio",
+    })
+    TomoMod_RegisterLocale("ptBR", {
+        ["dash_studios_section"]          = "Estúdios TomoMod",
+        ["dash_studios_info"]             = "Editores visuais avançados para os principais sistemas do TomoMod.",
+        ["dash_studio_cooldown_title"]     = "Estúdio de recargas",
+        ["dash_studio_cooldown_desc"]      = "Editor em tela cheia das barras de recarga: layout, estilo, habilidades, visibilidade e predefinições.",
+        ["dash_studio_cooldown_open"]      = "Abrir Estúdio de recargas",
+        ["dash_studio_mythic_title"]       = "Estúdio Mítico+",
+        ["dash_studio_mythic_desc"]        = "Configure rastreamento Mítico+, pontuação, histórico, chaves, widgets e elementos de masmorra.",
+        ["dash_studio_mythic_open"]        = "Abrir Estúdio Mítico+",
+        ["dash_studio_healer_title"]       = "Estúdio de cura",
+        ["dash_studio_healer_desc"]        = "Configure HoTs, escudos e indicadores de cura nos quadros de grupo e raide.",
+        ["dash_studio_healer_open"]        = "Abrir Estúdio de cura",
+        ["dash_studio_astral_title"]       = "Astral Forge Studio",
+        ["dash_studio_astral_desc"]        = "Estúdio avançado para criação e edição de elementos de UnitFrame e Nameplates, com ferramentas de layout e personalização visual.",
+        ["dash_studio_astral_open"]        = "Abrir Astral Forge Studio",
+        ["dash_studio_status_available"]   = "Disponível",
+        ["dash_studio_status_missing"]     = "Não instalado",
+        ["dash_studio_status_soon"]        = "Em breve",
+        ["btn_open_astralforge"]           = "Abrir Astral Forge Studio",
+    })
+end
+
 local L = TomoMod_L
 
 local MODULES = {
@@ -432,34 +558,210 @@ local function CreateModules(parent, y)
     return nextY
 end
 
--- Cooldown Studio shortcut.
---
--- The Studio is a LoadOnDemand sibling addon, so this cannot simply call a
--- function: it may not be in memory, may be disabled, or may be missing
--- from the folder entirely. The CooldownForge panel already owns that
--- dance and publishes it, so the dashboard delegates rather than keeping
--- a second copy of the load-and-self-heal logic that would drift.
+-- =====================================================================
+-- STUDIOS HUB
+-- Centralises every dedicated LoadOnDemand editor in one dashboard card.
+-- Each studio keeps its own launcher: this hub only presents and routes.
+-- =====================================================================
 local function OpenCooldownStudio()
-    -- Defined at file scope in Panels/CooldownForge.lua, which the TOC loads
-    -- before this one, so the guard is belt and braces rather than a real
-    -- fallback path.
     if TomoMod_OpenCooldownStudio then TomoMod_OpenCooldownStudio() end
 end
 
-local function CreateStudioShortcut(parent, y)
-    local card, cy = W.CreateCard(parent,
-        Localize("dash_studio_section", "Cooldown Studio"), y)
+local function OpenMythicPlusStudio()
+    if TomoMod_MythicPlusLauncher and TomoMod_MythicPlusLauncher.Open then
+        TomoMod_MythicPlusLauncher:Open("dashboard")
+    end
+end
 
-    local _, ny = W.CreateInfoText(card.inner, Localize("dash_studio_info",
-        "Editeur plein ecran des barres de cooldowns : disposition, style, "
-        .. "sorts et visibilite."), cy)
+local function OpenHealerStudio()
+    if TomoMod_OpenHealerStudio then TomoMod_OpenHealerStudio("party") end
+end
+
+local function OpenAstralForgeStudio()
+    local Forge = TomoMod_Forge
+    if not (Forge and Forge.Studio and Forge.Studio.Launch) then return end
+    Forge.Studio.Launch({
+        addon  = "TomoMod_AstralForge",
+        global = "TomoMod_AstralForge",
+        label  = Localize("dash_studio_astral_title", "Astral Forge Studio"),
+    })
+end
+
+local STUDIO_DEFS = {
+    {
+        addon = "TomoMod_CDStudio",
+        title = "dash_studio_cooldown_title",
+        titleFallback = "Cooldown Studio",
+        desc = "dash_studio_cooldown_desc",
+        descFallback = "Full-screen cooldown bar editor: layout, style, spells, visibility and presets.",
+        open = "dash_studio_cooldown_open",
+        openFallback = "Open Cooldown Studio",
+        callback = OpenCooldownStudio,
+    },
+    {
+        addon = "TomoMod_MythicPlus",
+        title = "dash_studio_mythic_title",
+        titleFallback = "Mythic+ Studio",
+        desc = "dash_studio_mythic_desc",
+        descFallback = "Configure Mythic+ tracking, score, run history, keys, widgets and dungeon elements.",
+        open = "dash_studio_mythic_open",
+        openFallback = "Open Mythic+ Studio",
+        callback = OpenMythicPlusStudio,
+    },
+    {
+        addon = "TomoMod_HealerStudio",
+        title = "dash_studio_healer_title",
+        titleFallback = "Healer Studio",
+        desc = "dash_studio_healer_desc",
+        descFallback = "Configure HoTs, shields and healing indicators on PartyFrames and RaidFrames.",
+        open = "dash_studio_healer_open",
+        openFallback = "Open Healer Studio",
+        callback = OpenHealerStudio,
+    },
+    {
+        addon = "TomoMod_AstralForge",
+        title = "dash_studio_astral_title",
+        titleFallback = "Astral Forge Studio",
+        desc = "dash_studio_astral_desc",
+        descFallback = "Advanced creation and editing studio for UnitFrame and Nameplate elements, with layout tools and visual customisation.",
+        open = "dash_studio_astral_open",
+        openFallback = "Open Astral Forge Studio",
+        callback = OpenAstralForgeStudio,
+    },
+}
+
+local STUDIO_TILE_H = 122
+local STUDIO_GAP    = 10
+
+local function GetStudioStatus(def)
+    if def.comingSoon then
+        return Localize("dash_studio_status_soon", "Coming soon"), GD[1], GD[2], GD[3]
+    end
+
+    -- _Suite.lua already owns the reliable installed-state detector. It
+    -- enumerates addons by index because GetAddOnInfo("missing-name") echoes
+    -- the requested name and therefore cannot be used as a presence test.
+    local state = TomoMod_Suite and TomoMod_Suite.State
+        and TomoMod_Suite.State(def.addon) or "loaded"
+    if state == "absent" then
+        return Localize("dash_studio_status_missing", "Not installed"),
+               DM[1], DM[2], DM[3]
+    end
+    return Localize("dash_studio_status_available", "Available"),
+           0.30, 0.85, 0.55
+end
+
+local function CreateStudioTile(grid, def)
+    local tile = CreateFrame("Frame", nil, grid, "BackdropTemplate")
+    tile:SetHeight(STUDIO_TILE_H)
+    SetPanelBackdrop(tile, A[1], A[2], A[3], 0.72)
+
+    local bar = tile:CreateTexture(nil, "ARTWORK")
+    bar:SetWidth(3)
+    bar:SetPoint("TOPLEFT", 1, -1)
+    bar:SetPoint("BOTTOMLEFT", 1, 1)
+    bar:SetColorTexture(A[1], A[2], A[3], 0.95)
+
+    local title = tile:CreateFontString(nil, "OVERLAY")
+    title:SetFont(FONT_BOLD, 12, "")
+    title:SetPoint("TOPLEFT", 14, -12)
+    title:SetPoint("RIGHT", -112, 0)
+    title:SetJustifyH("LEFT")
+    title:SetWordWrap(false)
+    title:SetText(Localize(def.title, def.titleFallback))
+    title:SetTextColor(A[1], A[2], A[3], 1)
+
+    local statusText, sr, sg, sb = GetStudioStatus(def)
+    local status = tile:CreateFontString(nil, "OVERLAY")
+    status:SetFont(FONT_BOLD, 8, "")
+    status:SetPoint("TOPRIGHT", -12, -14)
+    status:SetText(statusText)
+    status:SetTextColor(sr, sg, sb, 1)
+
+    local desc = tile:CreateFontString(nil, "OVERLAY")
+    desc:SetFont(FONT, 9, "")
+    desc:SetPoint("TOPLEFT", 14, -34)
+    desc:SetPoint("TOPRIGHT", -14, -34)
+    desc:SetHeight(42)
+    desc:SetJustifyH("LEFT")
+    desc:SetJustifyV("TOP")
+    desc:SetWordWrap(true)
+    desc:SetText(Localize(def.desc, def.descFallback))
+    desc:SetTextColor(DM[1], DM[2], DM[3], 1)
+
+    local btn = CreateFrame("Button", nil, tile, "BackdropTemplate")
+    btn:SetHeight(28)
+    btn:SetPoint("BOTTOMLEFT", 14, 12)
+    btn:SetPoint("BOTTOMRIGHT", -14, 12)
+    SetPanelBackdrop(btn, A[1], A[2], A[3], 0.82)
+
+    local bt = btn:CreateFontString(nil, "OVERLAY")
+    bt:SetFont(FONT_BOLD, 10, "")
+    bt:SetPoint("CENTER")
+    bt:SetText(Localize(def.open, def.openFallback))
+    bt:SetTextColor(1, 1, 1, 1)
+
+    btn:SetScript("OnEnter", function()
+        btn:SetBackdropColor(A[1] * 0.18, A[2] * 0.18, A[3] * 0.18, 0.95)
+        btn:SetBackdropBorderColor(A[1], A[2], A[3], 0.9)
+        bt:SetTextColor(A[1], A[2], A[3], 1)
+    end)
+    btn:SetScript("OnLeave", function()
+        btn:SetBackdropColor(0.045, 0.042, 0.065, 0.82)
+        btn:SetBackdropBorderColor(A[1], A[2], A[3], 0.38)
+        bt:SetTextColor(1, 1, 1, 1)
+    end)
+    btn:SetScript("OnClick", function()
+        if def.callback then def.callback() end
+    end)
+
+    return tile
+end
+
+local function LayoutStudioGrid(grid)
+    local tiles = grid._tiles
+    if not tiles then return end
+    local width = grid:GetWidth() or 0
+    if width < 2 then return end
+
+    local tileW = math.max(180, math.floor((width - STUDIO_GAP) / 2))
+    for i = 1, #tiles do
+        local col = (i - 1) % 2
+        local row = math.floor((i - 1) / 2)
+        local tile = tiles[i]
+        tile:ClearAllPoints()
+        tile:SetPoint("TOPLEFT", grid, "TOPLEFT",
+            col * (tileW + STUDIO_GAP),
+            -row * (STUDIO_TILE_H + STUDIO_GAP))
+        tile:SetWidth(tileW)
+    end
+end
+
+local function CreateStudiosHub(parent, y)
+    local card, cy = W.CreateCard(parent,
+        Localize("dash_studios_section", "TomoMod Studios"), y)
+
+    local _, ny = W.CreateInfoText(card.inner,
+        Localize("dash_studios_info",
+            "Advanced visual editors for the main TomoMod systems."), cy)
     cy = ny
 
-    local _, ny2 = W.CreateButton(card.inner,
-        Localize("dash_studio_open", "Ouvrir le Cooldown Studio"), 240, cy,
-        OpenCooldownStudio)
-    cy = ny2
+    local gridH = STUDIO_TILE_H * 2 + STUDIO_GAP
+    local grid = CreateFrame("Frame", nil, card.inner)
+    grid:SetPoint("TOPLEFT", 12, cy - 2)
+    grid:SetPoint("TOPRIGHT", -12, cy - 2)
+    grid:SetHeight(gridH)
 
+    local tiles = {}
+    for i = 1, #STUDIO_DEFS do
+        tiles[i] = CreateStudioTile(grid, STUDIO_DEFS[i])
+    end
+    grid._tiles = tiles
+    grid:SetScript("OnSizeChanged", LayoutStudioGrid)
+    grid:SetScript("OnShow", LayoutStudioGrid)
+    LayoutStudioGrid(grid)
+
+    cy = cy - gridH - 10
     return W.FinalizeCard(card, cy)
 end
 
@@ -729,7 +1031,7 @@ function TomoMod_ConfigPanel_Accueil(parent)
     y = CreateHero(c, y)
     y = CreateQuickActions(c, y)
     y = CreateModules(c, y)
-    y = CreateStudioShortcut(c, y)
+    y = CreateStudiosHub(c, y)
     -- Carte partagée (Config/Panels/_Suite.lua), en version compacte : le
     -- tableau de bord est une vue de synthèse. Placée AVANT Maintenance, qui
     -- contient la réinitialisation totale et doit rester la dernière chose lue.

@@ -971,6 +971,12 @@ local function ApplyFriendlyNameOnly(plate, unit)
     if plate.auraContainer then plate.auraContainer:Hide() end
     if plate.buffContainer then plate.buffContainer:Hide() end
 
+    -- Forge instances must not leak from a previously hostile pooled plate.
+    local NPE = TomoMod_NPElements
+    if NPE and NPE.HideCustomBars and type(s.elements) == "table" then
+        NPE.HideCustomBars(plate, s.elements)
+    end
+
     -- Hide castbar
     if plate.castbar then
         plate.castbar:Hide()
@@ -1419,11 +1425,16 @@ local function UpdatePlate(plate, unit)
         plate.nameText:Hide()
     end
 
-    -- Textes personnalises : memes jetons d'identite que le nom, donc meme
-    -- point de rafraichissement.
+    -- Forge instances use the same plate update: text identity tokens and
+    -- custom health/static bars therefore follow pooled units immediately.
     local NPE = TomoMod_NPElements
-    if NPE and NPE.RefreshCustomTexts and type(s.elements) == "table" then
-        NPE.RefreshCustomTexts(plate, unit, s.elements)
+    if NPE and type(s.elements) == "table" then
+        if NPE.RefreshCustomTexts then
+            NPE.RefreshCustomTexts(plate, unit, s.elements)
+        end
+        if NPE.RefreshCustomBars then
+            NPE.RefreshCustomBars(plate, unit, s.elements, false, hp, hpMax)
+        end
     end
 
     -- Quest Icon
@@ -2055,7 +2066,6 @@ function NP.Enable()
     -- [12.1] The duration ticker is gone: the engine writes the
     -- duration text on its own buttons and keeps it current.
 
-    print("|cff2e9dd8TomoMod NP:|r " .. TomoMod_L["msg_np_enabled"])
 end
 
 function NP.Disable()

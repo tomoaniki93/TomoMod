@@ -1,10 +1,10 @@
 ## Interface: 120100
-## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r |cff2e9dd8AstralForge|r
-## Notes: Visual designer for TomoMod unit frame elements.
+## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r |cff2e9dd8Astral Forge|r |cffFFFFFFStudio|r
+## Notes: Visual studio for TomoMod UnitFrame and Nameplate elements.
 ## Author: TomoAniki
 ## Category: |cff2e9dd8HUD|r
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
-## Version: 4.0.1
+## Version: 4.0.2
 ## LoadOnDemand: 1
 ## Dependencies: TomoMod
 

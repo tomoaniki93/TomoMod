@@ -2538,3 +2538,132 @@ function W.CreateButtonRow(parent, buttons, yOffset)
 
     return frame, yOffset - 38
 end
+
+-- =====================================================================
+-- PASTE ABSORBER
+-- ---------------------------------------------------------------------
+-- An import string runs to roughly fifty thousand characters. Dropped
+-- into an EditBox it is the EditBox, not the decoding, that stalls the
+-- client: the box lays out every glyph and redoes that layout on each
+-- keystroke, each cursor move and each render pass. Measured against the
+-- real pipeline, decode + decompress + deserialize of a full profile is
+-- about 70 ms; the paste is the part that takes minutes.
+--
+-- So the box never receives the string. It is capped to a couple of
+-- kilobytes and the paste is intercepted character by character through
+-- OnChar into a plain Lua table, where length costs nothing. WoW delivers
+-- a paste as one uninterrupted burst of OnChar events, so the first
+-- OnUpdate with no new character marks the end of it. The box then shows
+-- a one-line summary and the real text lives in the buffer.
+--
+-- Returns a handle:
+--   GetText()  the captured string, or the box's own trimmed text when
+--              nothing was absorbed (short strings typed by hand still
+--              work exactly as before)
+--   Clear()    drop the capture and empty the box
+--   IsCaptured()
+--
+-- opts.onSettled(text)  fires once a paste has been absorbed, so callers
+--                       can run their preview against the buffer rather
+--                       than against the summary line.
+-- opts.summary(n)       builds the visible line; defaults to a bare count.
+-- opts.cap              byte cap on the box, default 2048.
+-- =====================================================================
+function W.AttachPasteAbsorber(editBox, opts)
+    if not editBox or not editBox.SetMaxBytes then return nil end
+    opts = opts or {}
+    local cap = tonumber(opts.cap) or 2048
+
+    editBox:SetMaxLetters(0)
+    editBox:SetMaxBytes(cap)
+
+    local buf, bufN = {}, 0
+    local captured
+    local settingText = false
+
+    local handle = {}
+
+    local function Summary(n)
+        if opts.summary then return opts.summary(n) end
+        return "[ " .. tostring(n) .. " ]"
+    end
+
+    local function Finalize()
+        editBox:SetScript("OnUpdate", nil)
+        local s = table.concat(buf, "", 1, bufN)
+        for i = 1, bufN do buf[i] = nil end
+        bufN = 0
+        s = s:match("^%s*(.-)%s*$") or s
+
+        local boxText = editBox:GetText() or ""
+        if #s > #boxText then
+            -- The box refused part of the burst; the buffer holds all of it.
+            captured = s
+            settingText = true
+            editBox:SetText(Summary(#s))
+            editBox:SetCursorPosition(0)
+            settingText = false
+            if opts.onSettled then opts.onSettled(s) end
+        elseif #boxText >= cap then
+            -- The box filled to the cap and the buffer saw nothing past it,
+            -- so the paste never reached OnChar. Lift the cap and let the
+            -- player paste again: slower, but nothing is silently truncated.
+            captured = nil
+            editBox:SetMaxBytes(0)
+            settingText = true
+            editBox:SetText("")
+            settingText = false
+            if opts.onRetry then opts.onRetry() end
+        else
+            -- Short enough to live in the box. Nothing to absorb.
+            captured = nil
+            if opts.onSettled then opts.onSettled(boxText) end
+        end
+    end
+
+    editBox:HookScript("OnChar", function(_, c)
+        bufN = bufN + 1
+        buf[bufN] = c
+        if bufN == 1 then
+            local seen = 0
+            editBox:SetScript("OnUpdate", function()
+                -- A paste arrives as one burst: the first frame that adds
+                -- no character is the end of it.
+                if bufN == seen then
+                    Finalize()
+                else
+                    seen = bufN
+                end
+            end)
+        end
+    end)
+
+    -- A manual edit after a capture means the player is starting over, so
+    -- the buffer must not shadow what they are now typing. Guarded against
+    -- our own SetText, which would otherwise drop the capture immediately.
+    editBox:HookScript("OnTextChanged", function(_, userInput)
+        if settingText or not userInput then return end
+        if captured and bufN == 0 then captured = nil end
+    end)
+
+    function handle.GetText()
+        if captured then return captured end
+        local t = editBox:GetText() or ""
+        return (t:match("^%s*(.-)%s*$") or t)
+    end
+
+    function handle.IsCaptured()
+        return captured ~= nil
+    end
+
+    function handle.Clear()
+        captured = nil
+        for i = 1, bufN do buf[i] = nil end
+        bufN = 0
+        settingText = true
+        editBox:SetText("")
+        settingText = false
+    end
+
+    return handle
+end

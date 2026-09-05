@@ -254,7 +254,6 @@ function CanvasMT:_CreateHandle(id)
     h:SetFrameLevel(self.overlay:GetFrameLevel() + 5)
     h:EnableMouse(true)
     h:RegisterForDrag("LeftButton")
-    h:SetMovable(true)
 
     local bg = h:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints()
@@ -281,12 +280,15 @@ function CanvasMT:_CreateHandle(id)
 
     h:SetScript("OnDragStart", function(hh)
         self:Select(id)
-        hh:StartMoving()
-        hh:SetScript("OnUpdate", function() self:_DragUpdate(id) end)
+        -- Never move the handle itself. StartMoving() can turn a child
+        -- handle into a screen-anchored frame and detach it from the Studio.
+        -- The preview element follows the cursor; its handle stays attached.
+        if self:_BeginDrag(id) then
+            hh:SetScript("OnUpdate", function() self:_DragUpdate(id) end)
+        end
     end)
     h:SetScript("OnDragStop", function(hh)
         hh:SetScript("OnUpdate", nil)
-        hh:StopMovingOrSizing()
         self:_DragStop(id)
     end)
 
@@ -306,10 +308,10 @@ end
 -- explicitly rather than left implicit.
 function CanvasMT:_SyncHandle(id)
     local h = self.handles[id]
-    local desc = R.Get(self.domain, id)
+    local desc = R.Describe(self.domain, id)
     if not h or not desc then return end
-    local ok, el = pcall(desc.resolve, self.subject)
-    if not ok or not el then h:Hide(); return end
+    local el = R.ResolveTarget(self.domain, id, self.subject)
+    if not el then h:Hide(); return end
 
     -- Idem : un rect secret rend nil, et la poignee se masque au lieu de
     -- faire lever toute la reconstruction.
@@ -326,9 +328,13 @@ function CanvasMT:_SyncHandle(id)
     local ht = max((t - b) * k, 1)
 
     h:ClearAllPoints()
-    h:SetSize(w, ht)
-    h:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", l * k, b * k)
+    -- A Studio handle belongs to the Studio canvas. Anchoring directly to
+    -- the preview element makes the outline follow the element when the
+    -- complete Studio window is moved, resized or re-scaled.
+    h:SetPoint("TOPLEFT", el, "TOPLEFT", 0, 0)
+    h:SetPoint("BOTTOMRIGHT", el, "BOTTOMRIGHT", 0, 0)
 
+    -- Keep tiny regions easy to grab without altering their geometry.
     local padX = max((C.MIN_HIT - w) * 0.5, 0)
     local padY = max((C.MIN_HIT - ht) * 0.5, 0)
     h:SetHitRectInsets(-padX, -padX, -padY, -padY)
@@ -338,14 +344,25 @@ end
 function CanvasMT:Rebuild()
     for _, h in pairs(self.handles) do h:Hide() end
     if not self.subject then return end
+
+    local ids = {}
     for _, desc in ipairs(R.List(self.domain)) do
-        local h = self.handles[desc.id]
+        ids[#ids + 1] = desc.id
+    end
+    -- Instanced elements use the same canvas path as singleton elements.
+    -- This fixes custom text today and is the foundation for custom bars.
+    for _, inst in ipairs(R.ListInstances(self.domain, self.store)) do
+        ids[#ids + 1] = inst.key
+    end
+
+    for _, id in ipairs(ids) do
+        local h = self.handles[id]
         if not h then
-            h = self:_CreateHandle(desc.id)
-            self.handles[desc.id] = h
+            h = self:_CreateHandle(id)
+            self.handles[id] = h
         end
-        self:_SyncHandle(desc.id)
-        styleHandle(h, self.accent, self.selected == desc.id)
+        self:_SyncHandle(id)
+        styleHandle(h, self.accent, self.selected == id)
     end
 end
 
@@ -353,7 +370,7 @@ end
 -- Selection
 -- ---------------------------------------------------------------------
 function CanvasMT:Select(id)
-    if id ~= nil and not R.Get(self.domain, id) then return end
+    if id ~= nil and not R.Describe(self.domain, id) then return end
     self.selected = id
     for hid, h in pairs(self.handles) do
         styleHandle(h, self.accent, hid == id)
@@ -397,7 +414,7 @@ local function PickAnchor(source, host)
 end
 
 function CanvasMT:_Measure(id, source, autoAnchor)
-    local desc = R.Get(self.domain, id)
+    local desc = R.Describe(self.domain, id)
     if not desc or not self.subject then return end
     local cfg    = R.Sanitize(self.domain, id, self.store and self.store[id])
     local target = R.ResolveTarget(self.domain, cfg.relTo, self.subject)
@@ -415,15 +432,62 @@ function CanvasMT:_Measure(id, source, autoAnchor)
     return cfg, target, x, y
 end
 
-function CanvasMT:_DragUpdate(id)
-    local h = self.handles[id]
-    local desc = R.Get(self.domain, id)
-    if not h or not desc then return end
-    local cfg, target, x, y = self:_Measure(id, h, true)
-    if not cfg then return end
+-- Start a canvas-local drag. Cursor coordinates and PointCoord() are both
+-- screen-pixel based, so their delta converts cleanly back to local UI units.
+function CanvasMT:_BeginDrag(id)
+    local desc = R.Describe(self.domain, id)
+    if not desc or not self.subject then return false end
 
-    local ok, el = pcall(desc.resolve, self.subject)
-    if not ok or not el then return end
+    local el = R.ResolveTarget(self.domain, id, self.subject)
+    if not el then return false end
+
+    local cfg, target, x, y = self:_Measure(id, el, false)
+    if not cfg or not target or x == nil or y == nil then return false end
+
+    local cx, cy = GetCursorPosition()
+    cx, cy = C.Plain(cx), C.Plain(cy)
+    if not cx or not cy then return false end
+
+    local scale = C.EffectiveScale(el)
+    if not scale or scale <= 0 then scale = 1 end
+
+    self._drag = {
+        id       = id,
+        element  = el,
+        target   = target,
+        point    = cfg.point,
+        relPoint = cfg.relPoint,
+        x        = x,
+        y        = y,
+        cursorX  = cx,
+        cursorY  = cy,
+        scale    = scale,
+    }
+    return true
+end
+
+function CanvasMT:_DragUpdate(id)
+    local drag = self._drag
+    if not drag or drag.id ~= id then return end
+
+    local desc = R.Describe(self.domain, id)
+    local el = R.ResolveTarget(self.domain, id, self.subject)
+    if not desc or not el then return end
+
+    local cx, cy = GetCursorPosition()
+    cx, cy = C.Plain(cx), C.Plain(cy)
+    if not cx or not cy then return end
+
+    -- First follow the cursor with the original anchor. Then choose the
+    -- nearest 3x3 anchor from the element's new, real preview position.
+    local x = drag.x + (cx - drag.cursorX) / drag.scale
+    local y = drag.y + (cy - drag.cursorY) / drag.scale
+    el:ClearAllPoints()
+    el:SetPoint(drag.point, drag.target, drag.relPoint, x, y)
+
+    local cfg, target
+    cfg, target, x, y = self:_Measure(id, el, true)
+    if not cfg then return end
 
     local gx, gy = false, false
     if not IsShiftKeyDown() then
@@ -433,20 +497,28 @@ function CanvasMT:_DragUpdate(id)
 
     el:ClearAllPoints()
     el:SetPoint(cfg.point, target, cfg.relPoint, x, y)
+    self:_SyncHandle(id)
     self:_ShowGuides(target, gx, gy)
 end
 
 function CanvasMT:_DragStop(id)
-    local h = self.handles[id]
-    local desc = R.Get(self.domain, id)
-    if not h or not desc then return end
+    local drag = self._drag
+    self._drag = nil
 
-    local ok, el = pcall(desc.resolve, self.subject)
-    if not ok or not el then return end
+    local desc = R.Describe(self.domain, id)
+    if not drag or drag.id ~= id or not desc then
+        self:_ShowGuides(nil, false, false)
+        return
+    end
 
-    -- Measure from the ELEMENT, not the handle: _DragUpdate already moved
-    -- the element onto the snapped/guided position, and the handle still
-    -- carries the raw cursor delta.
+    local el = R.ResolveTarget(self.domain, id, self.subject)
+    if not el then
+        self:_ShowGuides(nil, false, false)
+        return
+    end
+
+    -- Measure from the ELEMENT: it is already on the snapped/guided preview
+    -- position and the handle never leaves the Studio canvas.
     local cfg, target, x, y = self:_Measure(id, el, true)
     self:_ShowGuides(nil, false, false)
     if not cfg then return end

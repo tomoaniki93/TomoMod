@@ -291,6 +291,126 @@ function NPE.RefreshCustomTexts(plate, unit, store)
 end
 
 -- ---------------------------------------------------------------------
+-- Instanced type: custom status bar
+-- Nameplates expose health + static sources. Power is intentionally absent:
+-- the plate engine does not own a power provider and Forge must not invent
+-- one by polling unrelated APIs.
+-- ---------------------------------------------------------------------
+local BAR_FALLBACK = { r = 0.18, g = 0.62, b = 0.85 }
+
+R.DefineInstanced(DOMAIN, {
+    id       = "customBar",
+    kind     = "frame",
+    labelKey = "af_elem_custom_bar",
+    max      = 6,
+    fields   = {
+        source          = { type = "enum", values = { "health", "static" } },
+        width           = { type = "number", min = 20, max = 500 },
+        height          = { type = "number", min = 2,  max = 80 },
+        colorMode       = { type = "enum", values = { "source", "class", "custom" } },
+        color           = { type = "color" },
+        backgroundAlpha = { type = "number", min = 0, max = 1 },
+        reverse         = { type = "boolean" },
+    },
+    default = {
+        point = "TOPLEFT", relTo = "health", relPoint = "BOTTOMLEFT", x = 0, y = -4,
+        source = "health", width = 156, height = 6,
+        colorMode = "source",
+        color = { r = 0.18, g = 0.62, b = 0.85 },
+        backgroundAlpha = 0.35,
+        reverse = false,
+    },
+    build = function(plate)
+        if not plate then return nil end
+        local bar = CreateFrame("StatusBar", nil, plate)
+        bar:SetSize(156, 6)
+        bar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
+        bar:SetMinMaxValues(0, 1)
+        bar:SetValue(1)
+        bar:EnableMouse(false)
+
+        local bg = bar:CreateTexture(nil, "BACKGROUND")
+        bg:SetAllPoints()
+        bar.bg = bg
+        return bar
+    end,
+})
+
+local function PaintCustomBar(plate, bar, rec, unit, preview)
+    bar:SetSize(rec.width or 156, rec.height or 6)
+    if bar.SetReverseFill then bar:SetReverseFill(rec.reverse == true) end
+    bar:SetStatusBarTexture("Interface\\Buttons\\WHITE8x8")
+    if bar.bg then
+        bar.bg:SetColorTexture(0.035, 0.045, 0.060, rec.backgroundAlpha or 0.35)
+    end
+
+    local painted = false
+    if rec.colorMode == "custom" then
+        local c = rec.color or BAR_FALLBACK
+        bar:SetStatusBarColor(c.r or BAR_FALLBACK.r, c.g or BAR_FALLBACK.g,
+            c.b or BAR_FALLBACK.b, 1)
+        painted = true
+    elseif rec.colorMode == "class" and not preview and unit
+        and TomoMod_Utils and TomoMod_Utils.ApplyClassColor then
+        painted = TomoMod_Utils.ApplyClassColor(bar, unit, "SetStatusBarColor")
+    end
+
+    if not painted and rec.colorMode ~= "custom"
+        and plate.health and plate.health.GetStatusBarColor then
+        local r, g, b = plate.health:GetStatusBarColor()
+        if r then bar:SetStatusBarColor(r, g, b, 1); painted = true end
+    end
+
+    if not painted then
+        bar:SetStatusBarColor(BAR_FALLBACK.r, BAR_FALLBACK.g, BAR_FALLBACK.b, 1)
+    end
+end
+
+function NPE.RefreshCustomBars(plate, unit, store, preview, health, healthMax)
+    if not plate or type(store) ~= "table" then return 0 end
+    local n = 0
+    for _, inst in ipairs(R.ListInstances(DOMAIN, store)) do
+        if inst.typeID == "customBar" then
+            local rec = store[inst.key]
+            local bar = R.ResolveInstance(DOMAIN, inst.key, plate)
+            if rec and bar then
+                PaintCustomBar(plate, bar, rec, unit, preview)
+                if rec.source == "static" then
+                    bar:SetMinMaxValues(0, 1)
+                    bar:SetValue(1)
+                elseif preview then
+                    bar:SetMinMaxValues(0, 100)
+                    bar:SetValue(72)
+                elseif health ~= nil and healthMax ~= nil then
+                    -- Secret values are forwarded directly, never compared.
+                    bar:SetMinMaxValues(0, healthMax)
+                    bar:SetValue(health)
+                elseif unit and UnitExists(unit) then
+                    bar:SetMinMaxValues(0, UnitHealthMax(unit))
+                    bar:SetValue(UnitHealth(unit))
+                end
+                bar:Show()
+                n = n + 1
+            end
+        end
+    end
+    return n
+end
+
+function NPE.HideCustomBars(plate, store)
+    local cache = plate and rawget(plate, "_forgeInstances")
+    if not cache then return 0 end
+    local n = 0
+    for _, inst in ipairs(R.ListInstances(DOMAIN, store)) do
+        if inst.typeID == "customBar" then
+            local bar = cache[inst.key]
+            if bar then bar:Hide(); n = n + 1 end
+        end
+    end
+    return n
+end
+
+-- ---------------------------------------------------------------------
 -- Convenience wrappers (keep the domain string in one place)
 -- ---------------------------------------------------------------------
 function NPE.List()         return R.List(DOMAIN) end
