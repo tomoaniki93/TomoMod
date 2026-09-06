@@ -65,6 +65,13 @@ CHANGELOG = {
     {
         version = "4.0.2",
         highlights = {
+            L["wn_402_astral_contextual_chrome"],
+            L["wn_402_astral_contextual_actions"],
+            L["wn_402_astral_navigation_reflow"],
+            L["wn_402_layout_share"],
+            L["wn_402_layout_safe_import"],
+            L["wn_402_layout_scale_adaptation"],
+            L["wn_402_export_multiline"],
             L["wn_402_astral_bar_textures"],
             L["wn_402_astral_targeted_resets"],
             L["wn_402_astral_reset_workflow"],

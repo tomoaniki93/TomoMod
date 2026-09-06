@@ -273,6 +273,7 @@ function Forge.Studio.CreateShell(opts)
     fsep:SetHeight(1)
 
     local fx = 14
+    local footerButtons = {}
     for _, def in ipairs(opts.footerButtons or {}) do
         local b = CreateFrame("Button", nil, frame, "BackdropTemplate")
         b:SetSize(def.width or 180, 28)
@@ -286,11 +287,13 @@ function Forge.Studio.CreateShell(opts)
         bt:SetTextColor(0.92, 0.95, 0.93, 1)
         bt:SetText(def.text or "")
         b:SetScript("OnClick", def.callback)
+        footerButtons[#footerButtons + 1] = b
         fx = fx + (def.width or 180) + 10
     end
 
+    local hint
     if opts.hint then
-        local hint = frame:CreateFontString(nil, "OVERLAY")
+        hint = frame:CreateFontString(nil, "OVERLAY")
         hint:SetFont(Forge.FONT, 9, "")
         hint:SetPoint("BOTTOMRIGHT", -16, 16)
         hint:SetTextColor(0.36, 0.38, 0.44, 1)
@@ -298,9 +301,13 @@ function Forge.Studio.CreateShell(opts)
     end
 
     return {
-        frame       = frame,
-        sidebarList = sidebarList,
-        crudHost    = crudHost,
-        contentHost = contentHost,
+        frame         = frame,
+        side          = side,
+        sideTitle     = sideTitle,
+        sidebarList   = sidebarList,
+        crudHost      = crudHost,
+        contentHost   = contentHost,
+        footerButtons = footerButtons,
+        hint          = hint,
     }
 end

@@ -109,7 +109,9 @@ local function ShowExportPopup(exportStr)
 
     -- Popup
     local pop = CreateFrame("Frame", nil, dimmer, "BackdropTemplate")
-    pop:SetSize(560, 280)
+    -- Plus haut qu'avant : la chaîne est désormais visible en entier, autant
+    -- en montrer une part utile avant de faire défiler.
+    pop:SetSize(620, 400)
     pop:SetPoint("CENTER", UIParent, "CENTER", 0, 40)
     pop:SetFrameStrata("FULLSCREEN_DIALOG")
     pop:SetFrameLevel(dimmer:GetFrameLevel() + 10)
@@ -145,13 +147,42 @@ local function ShowExportPopup(exportStr)
     scrollBg:SetBackdropColor(0.03, 0.03, 0.04, 1)
     scrollBg:SetBackdropBorderColor(unpack(BORDER))
 
-    local eb = CreateFrame("EditBox", nil, scrollBg)
-    eb:SetAllPoints()
+    -- La boîte était en SetMultiLine(false) : les cinquante mille
+    -- caractères étaient posés sur UNE ligne, dont on ne voyait qu'une
+    -- tranche de la largeur du cadre. En multiligne le texte se replie et
+    -- se lit en entier, et la mise en page coûte nettement moins cher au
+    -- moteur qu'une ligne unique de cette longueur.
+    --
+    -- Une EditBox multiligne ajuste sa hauteur à son contenu quand elle est
+    -- l'enfant défilant d'un ScrollFrame et qu'on lui fixe une largeur.
+    local scroll = CreateFrame("ScrollFrame", nil, scrollBg)
+    scroll:SetPoint("TOPLEFT", 4, -4)
+    scroll:SetPoint("BOTTOMRIGHT", -6, 4)
+    scroll:EnableMouseWheel(true)
+
+    local eb = CreateFrame("EditBox", nil, scroll)
     eb:SetFont(FONT, 10, "")
     eb:SetTextColor(0.80, 0.95, 0.80, 1)
     eb:SetTextInsets(8, 8, 6, 6)
     eb:SetAutoFocus(false)
-    eb:SetMultiLine(false)
+    eb:SetMultiLine(true)
+    eb:SetMaxLetters(0)
+    eb:SetWidth(560)
+    eb:SetHeight(40)
+    scroll:SetScrollChild(eb)
+
+    scroll:SetScript("OnMouseWheel", function(self, delta)
+        local range = self:GetVerticalScrollRange() or 0
+        local pos   = (self:GetVerticalScroll() or 0) - delta * 36
+        if pos < 0 then pos = 0 elseif pos > range then pos = range end
+        self:SetVerticalScroll(pos)
+    end)
+    -- La molette doit fonctionner où que soit le curseur dans le puits,
+    -- pas seulement sur les quelques pixels hors du texte.
+    eb:EnableMouseWheel(true)
+    eb:SetScript("OnMouseWheel", function(_, delta)
+        scroll:GetScript("OnMouseWheel")(scroll, delta)
+    end)
 
     -- [PERF v2] Différer le SetText pour que le popup s'affiche immédiatement
     eb:SetText("")
@@ -165,6 +196,12 @@ local function ShowExportPopup(exportStr)
     end)
     eb:SetScript("OnMouseUp", function(self)
         C_Timer.After(0, function() self:SetFocus(); self:HighlightText() end)
+    end)
+    -- En multiligne, Échap sort du champ avant d'atteindre le popup ; sans
+    -- ça la fenêtre ne se fermerait plus au clavier.
+    eb:SetScript("OnEscapePressed", function(self)
+        self:ClearFocus()
+        dimmer:Hide()
     end)
 
     -- Fermer
@@ -193,9 +230,14 @@ local function ShowExportPopup(exportStr)
     -- apparaisse instantanément, puis populate l'EditBox
     C_Timer.After(0.01, function()
         if dimmer:IsShown() then
+            -- La largeur doit être posée avant le texte : c'est elle qui
+            -- décide du repli, donc de la hauteur que la boîte se donne.
+            eb:SetWidth((scroll:GetWidth() or 560) - 4)
             eb:SetText(exportStr or "")
             C_Timer.After(0.01, function()
                 if dimmer:IsShown() then
+                    scroll:UpdateScrollChildRect()
+                    scroll:SetVerticalScroll(0)
                     eb:SetFocus()
                     eb:HighlightText()
                 end

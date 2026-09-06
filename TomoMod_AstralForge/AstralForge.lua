@@ -775,6 +775,72 @@ if TomoMod_RegisterLocale then
     })
 end
 
+-- ---------------------------------------------------------------------
+-- Astral Forge Studio V2.1 - Polish pass
+-- ---------------------------------------------------------------------
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["af_sidebar_settings"] = "SETTINGS",
+        ["af_sidebar_elements"] = "ELEMENTS",
+        ["af_sidebar_bars"]     = "BARS",
+        ["af_sidebar_resets"]   = "RESETS",
+        ["af_hint_frame"]       = "Changes apply live  •  Use the categories on the left  •  Esc: close",
+        ["af_hint_elements"]    = "Drag an element to place it  •  Shift: free placement  •  Esc: close",
+        ["af_hint_bars"]        = "Textures apply live  •  Sizes: Frame  •  Placement: Elements",
+        ["af_hint_resets"]      = "Resets affect only the selected subject  •  Esc: close",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["af_sidebar_settings"] = "RÉGLAGES",
+        ["af_sidebar_elements"] = "ÉLÉMENTS",
+        ["af_sidebar_bars"]     = "BARRES",
+        ["af_sidebar_resets"]   = "RESETS",
+        ["af_hint_frame"]       = "Réglages appliqués en direct  •  Catégories à gauche  •  Échap : fermer",
+        ["af_hint_elements"]    = "Glisse un élément pour le placer  •  Maj : placement libre  •  Échap : fermer",
+        ["af_hint_bars"]        = "Textures appliquées en direct  •  Tailles : Cadre  •  Positions : Éléments",
+        ["af_hint_resets"]      = "Les resets concernent uniquement le sujet sélectionné  •  Échap : fermer",
+    })
+    TomoMod_RegisterLocale("deDE", {
+        ["af_sidebar_settings"] = "EINSTELLUNGEN",
+        ["af_sidebar_elements"] = "ELEMENTE",
+        ["af_sidebar_bars"]     = "LEISTEN",
+        ["af_sidebar_resets"]   = "ZURÜCKSETZEN",
+        ["af_hint_frame"]       = "Änderungen werden sofort angewendet  •  Kategorien links  •  Esc: schließen",
+        ["af_hint_elements"]    = "Element ziehen zum Platzieren  •  Umschalt: frei platzieren  •  Esc: schließen",
+        ["af_hint_bars"]        = "Texturen sofort aktiv  •  Größen: Rahmen  •  Positionen: Elemente",
+        ["af_hint_resets"]      = "Zurücksetzen betrifft nur das gewählte Ziel  •  Esc: schließen",
+    })
+    TomoMod_RegisterLocale("esES", {
+        ["af_sidebar_settings"] = "AJUSTES",
+        ["af_sidebar_elements"] = "ELEMENTOS",
+        ["af_sidebar_bars"]     = "BARRAS",
+        ["af_sidebar_resets"]   = "RESTABLECER",
+        ["af_hint_frame"]       = "Los cambios se aplican al instante  •  Categorías a la izquierda  •  Esc: cerrar",
+        ["af_hint_elements"]    = "Arrastra un elemento para colocarlo  •  Mayús: posición libre  •  Esc: cerrar",
+        ["af_hint_bars"]        = "Texturas en directo  •  Tamaños: Marco  •  Posiciones: Elementos",
+        ["af_hint_resets"]      = "El restablecimiento solo afecta al sujeto seleccionado  •  Esc: cerrar",
+    })
+    TomoMod_RegisterLocale("itIT", {
+        ["af_sidebar_settings"] = "IMPOSTAZIONI",
+        ["af_sidebar_elements"] = "ELEMENTI",
+        ["af_sidebar_bars"]     = "BARRE",
+        ["af_sidebar_resets"]   = "RIPRISTINA",
+        ["af_hint_frame"]       = "Modifiche applicate subito  •  Categorie a sinistra  •  Esc: chiudi",
+        ["af_hint_elements"]    = "Trascina un elemento per posizionarlo  •  Maiusc: libero  •  Esc: chiudi",
+        ["af_hint_bars"]        = "Texture in tempo reale  •  Dimensioni: Riquadro  •  Posizioni: Elementi",
+        ["af_hint_resets"]      = "Il ripristino riguarda solo il soggetto selezionato  •  Esc: chiudi",
+    })
+    TomoMod_RegisterLocale("ptBR", {
+        ["af_sidebar_settings"] = "AJUSTES",
+        ["af_sidebar_elements"] = "ELEMENTOS",
+        ["af_sidebar_bars"]     = "BARRAS",
+        ["af_sidebar_resets"]   = "REDEFINIR",
+        ["af_hint_frame"]       = "Alterações aplicadas ao vivo  •  Categorias à esquerda  •  Esc: fechar",
+        ["af_hint_elements"]    = "Arraste um elemento para posicioná-lo  •  Shift: livre  •  Esc: fechar",
+        ["af_hint_bars"]        = "Texturas ao vivo  •  Tamanhos: Quadro  •  Posições: Elementos",
+        ["af_hint_resets"]      = "A redefinição afeta somente o assunto selecionado  •  Esc: fechar",
+    })
+end
+
 local S = { state = {
     subject = "player", element = nil, preset = nil, importText = "",
     showFrameEditor = false,
@@ -907,6 +973,8 @@ local L = TomoMod_L
 local frame, sidebarList, contentHost
 local canvas, stageHost, inspectorHost, subject, plateSubjectBase
 local navigationHost, selectorHighlightHost
+local sidebarTitleText, footerButtonRefs, footerHintText
+local refreshPreviewButton, studioCrudHost
 local rowButtons = {}
 local navButtons = {}
 local tutorialUI
@@ -4642,26 +4710,84 @@ local function CurrentStudioView()
     return "elements"
 end
 
+local function CanAddCustomText()
+    if CurrentStudioView() ~= "elements" then return false end
+    local reg = Registry()
+    local dom = reg and reg.DOMAIN
+    return dom and R.GetType(dom, "customText") ~= nil
+end
+
+local function UpdateStudioChrome()
+    local view = CurrentStudioView()
+
+    if sidebarTitleText then
+        local key = ({ frame="af_sidebar_settings", elements="af_sidebar_elements", bars="af_sidebar_bars", presets="af_sidebar_resets" })[view]
+        sidebarTitleText:SetText(L[key or "af_sidebar_elements"])
+    end
+
+    local addButton = footerButtonRefs and footerButtonRefs[1]
+    local resetButton = footerButtonRefs and footerButtonRefs[2]
+    local showAdd = CanAddCustomText()
+    local showReset = view ~= "presets"
+
+    if addButton then
+        addButton:SetShown(showAdd)
+        addButton:ClearAllPoints()
+        addButton:SetPoint("BOTTOMLEFT", 14, 8)
+    end
+    if resetButton then
+        resetButton:SetShown(showReset)
+        resetButton:ClearAllPoints()
+        resetButton:SetPoint("BOTTOMLEFT", showAdd and 214 or 14, 8)
+    end
+
+    local showRefresh = view == "frame" or view == "elements"
+    if refreshPreviewButton then refreshPreviewButton:SetShown(showRefresh) end
+    if studioCrudHost then studioCrudHost:SetShown(showRefresh) end
+
+    if sidebarList then
+        sidebarList:ClearAllPoints()
+        sidebarList:SetPoint("TOPLEFT", 0, -26)
+        sidebarList:SetPoint("BOTTOMRIGHT", 0, showRefresh and 54 or 6)
+    end
+
+    if footerHintText then
+        local key = ({ frame="af_hint_frame", elements="af_hint_elements", bars="af_hint_bars", presets="af_hint_resets" })[view]
+        footerHintText:SetText(L[key or "af_hint_elements"])
+    end
+end
+
 local function UpdateNavigation()
     local active = CurrentStudioView()
-    for id, b in pairs(navButtons) do
-        local available = (id ~= "bars") or BarsSupported()
-        b:SetShown(available)
-        local on = available and id == active
-        b:SetBackdropColor(
-            on and BRAND[1] or 0.045,
-            on and BRAND[2] or 0.050,
-            on and BRAND[3] or 0.065,
-            on and 0.20 or 1)
-        b:SetBackdropBorderColor(
-            BRAND[1], BRAND[2], BRAND[3], on and 1 or 0.25)
-        if b._label then
-            b._label:SetTextColor(
-                on and 1 or 0.58,
-                on and 1 or 0.62,
-                on and 1 or 0.70, 1)
+    local order = { "frame", "elements", "bars", "presets" }
+    local x = 8
+
+    for _, id in ipairs(order) do
+        local b = navButtons[id]
+        if b then
+            local available = (id ~= "bars") or BarsSupported()
+            b:SetShown(available)
+            if available then
+                b:ClearAllPoints()
+                b:SetPoint("LEFT", navigationHost, "LEFT", x, 0)
+                x = x + 140
+            end
+            local on = available and id == active
+            b:SetBackdropColor(
+                on and BRAND[1] or 0.045,
+                on and BRAND[2] or 0.050,
+                on and BRAND[3] or 0.065,
+                on and 0.20 or 1)
+            b:SetBackdropBorderColor(BRAND[1], BRAND[2], BRAND[3], on and 1 or 0.25)
+            if b._label then
+                b._label:SetTextColor(
+                    on and 1 or 0.58,
+                    on and 1 or 0.62,
+                    on and 1 or 0.70, 1)
+            end
         end
     end
+    UpdateStudioChrome()
 end
 
 local function SelectCanvasSilently(id)
@@ -5026,9 +5152,13 @@ local function BuildWindow()
         },
         hint = L["af_hint"],
     })
-    frame       = shell.frame
-    sidebarList = shell.sidebarList
-    contentHost = shell.contentHost
+    frame             = shell.frame
+    sidebarList       = shell.sidebarList
+    contentHost       = shell.contentHost
+    sidebarTitleText  = shell.sideTitle
+    footerButtonRefs  = shell.footerButtons or {}
+    footerHintText    = shell.hint
+    studioCrudHost    = shell.crudHost
 
     -- Header help: stays next to Close and relaunches onboarding at will.
     local helpBtn = CreateFrame("Button", nil, frame, "BackdropTemplate")
@@ -5065,7 +5195,7 @@ local function BuildWindow()
     selectorHighlightHost:SetPoint("TOPLEFT", 200, -6)
     selectorHighlightHost:EnableMouse(false)
 
-    W.CreateButton(shell.crudHost, L["af_refresh"], 200, -6, function()
+    refreshPreviewButton = W.CreateButton(shell.crudHost, L["af_refresh"], 200, -6, function()
         RebuildSubject()
         S.RebuildInspector()
     end)

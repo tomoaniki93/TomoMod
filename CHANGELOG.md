@@ -2,6 +2,19 @@
 
 ## CHANGELOG 4.0.2
 
+#### Astral Forge Studio V2.1 — Context-Aware Polish
+
+- **Changed** - The sidebar title and footer guidance now follow the active Studio mode: Settings, Elements, Bars or Resets. Each view explains its own workflow, with every new label and hint localized across all six supported languages.
+- **Changed** - Contextual actions now appear only where they are useful. Add Custom Text is limited to Elements on compatible subjects, the Reset shortcut is hidden inside Resets, and Refresh Preview with its action area is shown only in Frame and Elements; hidden controls release additional sidebar space.
+- **Fixed** - The top navigation now uses a deterministic order and reflows visible buttons whenever Bars is unavailable for the selected subject, removing empty gaps while preserving the correct active-state styling.
+
+#### Layout Sharing And Multiline Export
+
+- **New** - `/tm layout export` and `/tm layout import <string>` now exchange a compact layout-only payload containing registered anchors and resolution-managed font sizes without copying unrelated profile settings.
+- **New** - Layout imports are constrained to registry-declared anchor paths and whitelisted font keys. Invalid headers, unsupported schema versions and malformed payloads are rejected, while ignored values and the final import totals are reported clearly.
+- **Changed** - Shared anchors preserve the author's reference dimensions so they scale to the recipient's screen, and font sizes are converted through the source and destination resolution tiers. Captured resolution layouts are preferred for export, with the live configuration used as a fallback.
+- **Fixed** - The profile and layout export popup is now larger and uses a wrapped multiline field with mouse-wheel scrolling. Long strings remain readable and fully selectable, the view starts at the beginning of the payload, and Escape closes the popup correctly.
+
 #### Astral Forge Studio V2.1 — Shared Bar Textures And Targeted Resets
 
 - **Changed** - The Bars view is now limited to supported UnitFrames: Player, Target, Focus, Pet and Target of Target. It also includes a shared main-bar texture selector for TomoMod, Flat or Blizzard styling; changes refresh UnitFrames and the Forge preview immediately, while bar sizes remain in Frame and placement remains in Elements.
