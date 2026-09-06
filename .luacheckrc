@@ -71,7 +71,7 @@ globals = {
     "TomoMod_ConfigPanel_UnitFrames", "TomoMod_ConsumableBar", "TomoMod_CooldownManager", "TomoMod_CursorRing",
     "TomoMod_DamageMeterSkin", "TomoMod_DataKeys", "TomoMod_Defaults", "TomoMod_Diagnostics",
     "TomoMod_EnableModule", "TomoMod_FastLoot", "TomoMod_FrameAnchors", "TomoMod_GameMenuSkin",
-    "TomoMod_GroupManagerSkin",
+    "TomoMod_GroupManagerSkin", "TomoMod_GroupPreview", "TomoMod_GroupStudio",
     "TomoMod_HideCastBar", "TomoMod_Housing", "TomoMod_InfoPanel", "TomoMod_InitDatabase",
     "TomoMod_Installer", "TomoMod_IsCompareOrMoneyTooltip", "TomoMod_ItemClasses", "TomoMod_L",
     "TomoMod_LevelingBar", "TomoMod_Loots", "TomoMod_LootsData", "TomoMod_LustSound",

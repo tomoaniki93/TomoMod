@@ -2,6 +2,13 @@
 
 ## CHANGELOG 4.0.2
 
+#### Party & Raid Studio — Visual Group Configuration
+
+- **New** - Party & Raid Studio is a new load-on-demand visual editor available from the Home dashboard. It centralizes PartyFrame, RaidFrame and healer-indicator configuration in dedicated Party, Raid, Healer and Reset tabs while continuing to use TomoMod's existing profile data and runtime refresh paths.
+- **New** - Detached previews can simulate a complete five-member party or a twenty-member raid while solo and outside an instance. Dimensions, layouts, names, health, roles, dispels, HoTs, defensives, cooldowns and other supported indicators update as their settings change without creating secure unit buttons.
+- **New** - The Healer tab lets players choose Party or Raid, select a supported healer class, enable the desired spells and drag each HoT, shield or healing indicator directly on the preview cell. Starter layouts and per-class resets provide a safe baseline for every supported specialization.
+- **New** - Targeted reset actions can restore Party or Raid positions, complete Party or Raid settings, the current healer class, every healer layout or all three systems together. A localized five-step first-run guide introduces the complete workflow, and editing is safely blocked during combat.
+
 #### Astral Forge Studio V2.1 — Context-Aware Polish
 
 - **Changed** - The sidebar title and footer guidance now follow the active Studio mode: Settings, Elements, Bars or Resets. Each view explains its own workflow, with every new label and hint localized across all six supported languages.

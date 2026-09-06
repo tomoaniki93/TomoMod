@@ -65,6 +65,10 @@ CHANGELOG = {
     {
         version = "4.0.2",
         highlights = {
+            L["wn_402_group_studio"],
+            L["wn_402_group_previews"],
+            L["wn_402_group_healer_editor"],
+            L["wn_402_group_resets"],
             L["wn_402_astral_contextual_chrome"],
             L["wn_402_astral_contextual_actions"],
             L["wn_402_astral_navigation_reflow"],

@@ -220,6 +220,41 @@ if TomoMod_RegisterLocale then
     })
 end
 
+-- Party & Raid Studio dashboard card. The old Healer Studio remains present
+-- during the transition; both editors use the same HealerIndicators DB.
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["dash_studio_group_title"] = "Party & Raid Studio",
+        ["dash_studio_group_desc"]  = "Configure PartyFrames, RaidFrames and healer indicators with real-time visual previews.",
+        ["dash_studio_group_open"]  = "Open Party & Raid Studio",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["dash_studio_group_title"] = "Studio Party & Raid",
+        ["dash_studio_group_desc"]  = "Configure les PartyFrames, RaidFrames et indicateurs Healer avec des aperçus visuels en temps réel.",
+        ["dash_studio_group_open"]  = "Ouvrir le Studio Party & Raid",
+    })
+    TomoMod_RegisterLocale("deDE", {
+        ["dash_studio_group_title"] = "Gruppen- & Schlachtzug-Studio",
+        ["dash_studio_group_desc"]  = "Konfiguriere PartyFrames, RaidFrames und Heileranzeigen mit visueller Echtzeitvorschau.",
+        ["dash_studio_group_open"]  = "Gruppen- & Schlachtzug-Studio öffnen",
+    })
+    TomoMod_RegisterLocale("esES", {
+        ["dash_studio_group_title"] = "Estudio Grupo y Banda",
+        ["dash_studio_group_desc"]  = "Configura PartyFrames, RaidFrames e indicadores de sanador con vistas previas visuales en tiempo real.",
+        ["dash_studio_group_open"]  = "Abrir Estudio Grupo y Banda",
+    })
+    TomoMod_RegisterLocale("itIT", {
+        ["dash_studio_group_title"] = "Studio Gruppo e Incursione",
+        ["dash_studio_group_desc"]  = "Configura PartyFrame, RaidFrame e indicatori guaritore con anteprime visive in tempo reale.",
+        ["dash_studio_group_open"]  = "Apri Studio Gruppo e Incursione",
+    })
+    TomoMod_RegisterLocale("ptBR", {
+        ["dash_studio_group_title"] = "Estúdio Grupo e Raide",
+        ["dash_studio_group_desc"]  = "Configure PartyFrames, RaidFrames e indicadores de curador com prévias visuais em tempo real.",
+        ["dash_studio_group_open"]  = "Abrir Estúdio Grupo e Raide",
+    })
+end
+
 local L = TomoMod_L
 
 local MODULES = {
@@ -577,6 +612,17 @@ local function OpenHealerStudio()
     if TomoMod_OpenHealerStudio then TomoMod_OpenHealerStudio("party") end
 end
 
+local function OpenGroupStudio()
+    local Forge = TomoMod_Forge
+    if not (Forge and Forge.Studio and Forge.Studio.Launch) then return end
+    Forge.Studio.Launch({
+        addon  = "TomoMod_GroupStudio",
+        global = "TomoMod_GroupStudio",
+        label  = Localize("dash_studio_group_title", "Party & Raid Studio"),
+        arg    = "party",
+    })
+end
+
 local function OpenAstralForgeStudio()
     local Forge = TomoMod_Forge
     if not (Forge and Forge.Studio and Forge.Studio.Launch) then return end
@@ -607,6 +653,16 @@ local STUDIO_DEFS = {
         open = "dash_studio_mythic_open",
         openFallback = "Open Mythic+ Studio",
         callback = OpenMythicPlusStudio,
+    },
+    {
+        addon = "TomoMod_GroupStudio",
+        title = "dash_studio_group_title",
+        titleFallback = "Party & Raid Studio",
+        desc = "dash_studio_group_desc",
+        descFallback = "Configure PartyFrames, RaidFrames and healer indicators with real-time visual previews.",
+        open = "dash_studio_group_open",
+        openFallback = "Open Party & Raid Studio",
+        callback = OpenGroupStudio,
     },
     {
         addon = "TomoMod_HealerStudio",
@@ -746,7 +802,8 @@ local function CreateStudiosHub(parent, y)
             "Advanced visual editors for the main TomoMod systems."), cy)
     cy = ny
 
-    local gridH = STUDIO_TILE_H * 2 + STUDIO_GAP
+    local rows = math.ceil(#STUDIO_DEFS / 2)
+    local gridH = STUDIO_TILE_H * rows + STUDIO_GAP * math.max(0, rows - 1)
     local grid = CreateFrame("Frame", nil, card.inner)
     grid:SetPoint("TOPLEFT", 12, cy - 2)
     grid:SetPoint("TOPRIGHT", -12, cy - 2)
