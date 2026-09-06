@@ -127,7 +127,7 @@ local function BuildFeaturesTab(parent)
     local _, cy = W.CreateSlider(card4.inner, L["rf_opt_hot_size"], db.hotSize, 6, 50, 1, cy, function(v) db.hotSize = v; ApplyRF() end, "%.0f")
     local _, cy = W.CreateSlider(card4.inner, L["rf_opt_max_hots"], db.maxHoTs, 1, 4, 1, cy, function(v) db.maxHoTs = v; ApplyRF() end, "%.0f")
     local _, cy = W.CreateCheckbox(card4.inner, L["rf_opt_hot_duration"], db.hotShowDuration ~= false, cy, function(v) db.hotShowDuration = v; ApplyRF() end)
-    -- See PartyFrames.lua: the studio is the advanced path for this row.
+    -- Party & Raid Studio -> Healer is the advanced path for this row.
     local _, cy = W.CreateSeparator(card4.inner, cy)
     local _, cy = W.CreateButton(card4.inner, L["btn_open_healerstudio"], 240, cy, function()
         TomoMod_OpenHealerStudio("raid")

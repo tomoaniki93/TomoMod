@@ -608,10 +608,6 @@ local function OpenMythicPlusStudio()
     end
 end
 
-local function OpenHealerStudio()
-    if TomoMod_OpenHealerStudio then TomoMod_OpenHealerStudio("party") end
-end
-
 local function OpenGroupStudio()
     local Forge = TomoMod_Forge
     if not (Forge and Forge.Studio and Forge.Studio.Launch) then return end
@@ -663,16 +659,6 @@ local STUDIO_DEFS = {
         open = "dash_studio_group_open",
         openFallback = "Open Party & Raid Studio",
         callback = OpenGroupStudio,
-    },
-    {
-        addon = "TomoMod_HealerStudio",
-        title = "dash_studio_healer_title",
-        titleFallback = "Healer Studio",
-        desc = "dash_studio_healer_desc",
-        descFallback = "Configure HoTs, shields and healing indicators on PartyFrames and RaidFrames.",
-        open = "dash_studio_healer_open",
-        openFallback = "Open Healer Studio",
-        callback = OpenHealerStudio,
     },
     {
         addon = "TomoMod_AstralForge",

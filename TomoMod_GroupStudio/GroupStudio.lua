@@ -1759,6 +1759,18 @@ function S.Open(view)
         print("|cff2e9dd8TomoMod|r : " .. T("hs_combat","Configuration unavailable in combat."))
         return
     end
+
+    -- Compatibility entry points used by TomoMod_OpenHealerStudio(mode).
+    -- This keeps the old TomoMod_Options buttons working while the dedicated
+    -- TomoMod_HealerStudio addon is removed.
+    if view == "healer_raid" then
+        S.healerMode = "raid"
+        view = "healer"
+    elseif view == "healer_party" then
+        S.healerMode = "party"
+        view = "healer"
+    end
+
     if not S.healerClass then
         local pc=HI.GetPlayerClass()
         S.healerClass=HI.IsHealerClass(pc) and pc or HI.CLASS_ORDER[1]

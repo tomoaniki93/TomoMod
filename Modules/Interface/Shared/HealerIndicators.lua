@@ -28,8 +28,8 @@ local pairs, ipairs, type, tonumber = pairs, ipairs, type, tonumber
 local wipe = wipe
 
 HI.SCHEMA_VERSION = 1
-HI.ADDON_NAME     = "TomoMod_HealerStudio"
-HI.STUDIO_GLOBAL  = "TomoMod_HealerStudio"
+HI.ADDON_NAME     = "TomoMod_GroupStudio"
+HI.STUDIO_GLOBAL  = "TomoMod_GroupStudio"
 HI.CLASS_ORDER    = { "PRIEST", "DRUID", "PALADIN", "SHAMAN", "MONK", "EVOKER" }
 
 -- Hoisted: the normalisation loop below is reachable from the aura path on
@@ -674,8 +674,12 @@ function HI.OpenStudio(mode)
     return Forge.Studio.Launch({
         addon  = HI.ADDON_NAME,
         global = HI.STUDIO_GLOBAL,
-        label  = "Healer Studio",
-        arg    = mode,
+        label  = "Party & Raid Studio",
+        -- Compatibility bridge for the old Party/Raid Options buttons:
+        -- they still call TomoMod_OpenHealerStudio(mode), but the standalone
+        -- Healer Studio no longer exists. Encode the requested mode in the
+        -- single Forge launcher argument and let GroupStudio open its Healer tab.
+        arg    = (mode == "raid") and "healer_raid" or "healer_party",
     })
 end
 

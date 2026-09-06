@@ -51,7 +51,6 @@ ignore:
 # the main TomoMod folder so they install as sibling addons.
 move-folders:
   TomoMod/TomoMod_CDStudio: TomoMod_CDStudio
-  TomoMod/TomoMod_HealerStudio: TomoMod_HealerStudio
   TomoMod/TomoMod_GroupStudio: TomoMod_GroupStudio
   TomoMod/TomoMod_AstralForge: TomoMod_AstralForge
   TomoMod/TomoMod_Options: TomoMod_Options

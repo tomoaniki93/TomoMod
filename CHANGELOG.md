@@ -16,6 +16,11 @@
 - **New** - The Healer tab lets players choose Party or Raid, select a supported healer class, enable the desired spells and drag each HoT, shield or healing indicator directly on the preview cell. Starter layouts and per-class resets provide a safe baseline for every supported specialization.
 - **New** - Targeted reset actions can restore Party or Raid positions, complete Party or Raid settings, the current healer class, every healer layout or all three systems together. A localized five-step first-run guide introduces the complete workflow, and editing is safely blocked during combat.
 
+#### Party & Raid Studio — Unified Healer Workflow
+
+- **Changed** - The Party and Raid option shortcuts now open the matching Healer workspace directly inside Party & Raid Studio, preserving the familiar workflow while keeping every group-frame tool in one place.
+- **Changed** - The former standalone Healer Studio and its duplicate Home dashboard entry have been retired. Existing healer settings and compatibility launch calls continue to use the same profile data through Party & Raid Studio.
+
 #### Astral Forge Studio V2.1 — Context-Aware Polish
 
 - **Changed** - The sidebar title and footer guidance now follow the active Studio mode: Settings, Elements, Bars or Resets. Each view explains its own workflow, with every new label and hint localized across all six supported languages.

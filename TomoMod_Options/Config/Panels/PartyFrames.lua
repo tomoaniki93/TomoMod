@@ -138,8 +138,8 @@ local function BuildFeaturesTab(parent)
     local _, cy = W.CreateSlider(card4.inner, L["pf_opt_max_hots"], db.maxHoTs, 1, 6, 1, cy, function(v) db.maxHoTs = v; ApplyPF() end, "%.0f")
     local _, cy = W.CreateCheckbox(card4.inner, L["pf_opt_hot_duration"], db.hotShowDuration ~= false, cy, function(v) db.hotShowDuration = v; ApplyPF() end)
     local _, cy = W.CreateInfoText(card4.inner, L["pf_info_hots"], cy)
-    -- Healer Studio is the full path (free placement, one icon per spell);
-    -- the three settings above stay the quick row for everyone else.
+    -- Party & Raid Studio -> Healer is the full path (free placement,
+    -- one icon per spell); the settings above remain the quick row.
     local _, cy = W.CreateSeparator(card4.inner, cy)
     local _, cy = W.CreateButton(card4.inner, L["btn_open_healerstudio"], 240, cy, function()
         TomoMod_OpenHealerStudio("party")
