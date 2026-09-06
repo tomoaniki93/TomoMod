@@ -2642,7 +2642,7 @@ TomoMod_RegisterLocale("deDE", {
     ["dash_studio_open"]              = "Cooldown Studio \195\182ffnen",
     ["dash_profile_section"]     = "Profil",
     ["dash_maint_section"]       = "Wartung",
-    ["dash_reload_hint"]         = "Das Umschalten von Modulen speichert deine Einstellungen — lade neu, um Moduländerungen anzuwenden.",
+    ["dash_reload_hint"]         = "Moduländerungen werden live angewendet. Geschützte Änderungen folgen automatisch nach dem Kampf.",
     ["dash_reload_now"]          = "Jetzt neu laden",
     ["dash_apply_preset"]        = "Konfigurations-Voreinstellung",
     ["dash_apply_preset_btn"]    = "Diese Voreinstellung anwenden",

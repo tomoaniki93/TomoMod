@@ -1161,6 +1161,8 @@ local eventFrame = CreateFrame("Frame")
 
 local function OnEvent(self, event, arg1, ...)
     if not PF.initialized then return end
+    local db = TomoModDB and TomoModDB.partyFrames
+    if not db or not db.enabled then return end
 
     if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
         local f = GetFrameForUnit(arg1)
@@ -1582,9 +1584,58 @@ function PF.ApplySettings()
 end
 
 -- =====================================
--- SET ENABLED
+-- SET ENABLED — live, no reload
 -- =====================================
+local function SetPartyVisibilityDriver(frame, enabled)
+    if not frame then return end
+    UnregisterStateDriver(frame, "visibility")
+    if not enabled then
+        frame:Hide()
+        return
+    end
+
+    local unit = frame.unit
+    local visibility
+    if frame.index == 0 then
+        visibility = "[group:raid] hide; [group] show; hide"
+    else
+        visibility = "[group:raid] hide; [@" .. unit .. ",exists] show; hide"
+    end
+    RegisterStateDriver(frame, "visibility", visibility)
+end
+
 function PF.SetEnabled(v)
     local db = TomoModDB and TomoModDB.partyFrames
-    if db then db.enabled = v end
+    if not db then return false end
+    v = v and true or false
+    db.enabled = v
+
+    if not v then
+        PF.SetUnitEventsEnabled(false)
+        PF.StopRangeChecker()
+        PF._pendingRefresh = nil
+        PF._pendingLayout = nil
+        for _, frame in pairs(PF.frames) do
+            SetPartyVisibilityDriver(frame, false)
+        end
+        if PF.anchor then
+            if PF.anchor.moverOverlay then PF.anchor.moverOverlay:Hide() end
+            PF.anchor:Hide()
+        end
+        return true
+    end
+
+    if not PF.initialized then
+        PF.Initialize()
+        return true
+    end
+
+    if PF.anchor then PF.anchor:Show() end
+    for _, frame in pairs(PF.frames) do
+        SetPartyVisibilityDriver(frame, true)
+    end
+    PF.SetUnitEventsEnabled(not IsInRaid())
+    PF.StartRangeChecker()
+    PF.RefreshGroup()
+    return true
 end

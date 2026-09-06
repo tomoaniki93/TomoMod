@@ -32,7 +32,7 @@ if TomoMod_RegisterLocale then
         ["dash_status_ready_tip"]    = "No TomoMod issue is currently captured by diagnostics.",
         ["dash_status_attention_tip"] = "TomoMod diagnostics have captured %d issue(s). Open Diagnostics for details.",
         ["dash_status_external_tip"] = "%d issue(s) are captured, but not attributed to TomoMod.",
-        ["dash_reload_hint"]         = "Module toggles are saved instantly. Reload to fully apply module startup changes.",
+        ["dash_reload_hint"]         = "Module changes apply live. Protected frame changes are applied automatically when combat ends.",
         ["dash_action_forge"]        = "Installer",
         ["dash_action_profiles"]     = "Profiles",
         ["dash_action_diagnostics"]  = "Diagnostics",
@@ -70,7 +70,7 @@ if TomoMod_RegisterLocale then
         ["dash_status_ready_tip"]    = "Aucun souci TomoMod n'est capturé par les diagnostics.",
         ["dash_status_attention_tip"] = "Les diagnostics TomoMod ont capturé %d souci(s). Ouvre Diagnostics pour le détail.",
         ["dash_status_external_tip"] = "%d souci(s) sont capturés, mais pas attribués à TomoMod.",
-        ["dash_reload_hint"]         = "Les modules sont enregistrés immédiatement. Recharge pour appliquer proprement les changements de démarrage.",
+        ["dash_reload_hint"]         = "Les modules sont appliqués à chaud. Les changements protégés sont appliqués automatiquement à la fin du combat.",
         ["dash_action_forge"]        = "Installeur",
         ["dash_action_profiles"]     = "Profils",
         ["dash_action_diagnostics"]  = "Diagnostics",
@@ -288,21 +288,90 @@ if TomoMod_RegisterLocale then
     })
 end
 
+-- Essential-module switches are live. Protected frame work is deferred by
+-- ModuleLifecycle until combat ends, but none of these switches requires a
+-- UI reload anymore.
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["dash_reload_hint"] = "Module changes apply live. Protected frame changes are applied automatically when combat ends.",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["dash_reload_hint"] = "Les modules sont appliqués à chaud. Les changements protégés sont appliqués automatiquement à la fin du combat.",
+    })
+    TomoMod_RegisterLocale("deDE", {
+        ["dash_reload_hint"] = "Moduländerungen werden live angewendet. Geschützte Änderungen folgen automatisch nach dem Kampf.",
+    })
+    TomoMod_RegisterLocale("esES", {
+        ["dash_reload_hint"] = "Los módulos se aplican en directo. Los cambios protegidos se aplican automáticamente al terminar el combate.",
+    })
+    TomoMod_RegisterLocale("itIT", {
+        ["dash_reload_hint"] = "Le modifiche ai moduli vengono applicate in tempo reale. Le modifiche protette vengono applicate automaticamente dopo il combattimento.",
+    })
+    TomoMod_RegisterLocale("ptBR", {
+        ["dash_reload_hint"] = "As alterações dos módulos são aplicadas em tempo real. Alterações protegidas são aplicadas automaticamente ao fim do combate.",
+    })
+end
+
 local L = TomoMod_L
 
+local actionBarSkinPending
+local actionBarSkinCombatFrame
+
+local function GetActionBarSkinState()
+    local bars = TomoModDB and TomoModDB.actionBars
+    local global = bars and bars.global
+    return not global or global.skinEnabled ~= false
+end
+
+local function RefreshActionBarSkin()
+    if type(_G.TUI_RefreshActionBars) == "function" then
+        _G.TUI_RefreshActionBars()
+    end
+end
+
+local function SetActionBarSkinState(value)
+    TomoModDB = TomoModDB or {}
+    TomoModDB.actionBars = TomoModDB.actionBars or {}
+    TomoModDB.actionBars.global = TomoModDB.actionBars.global or {}
+    TomoModDB.actionBars.global.skinEnabled = value and true or false
+
+    -- TUI_RefreshActionBars can touch secure buttons. Persist the choice now,
+    -- then perform only the protected visual rebuild after combat.
+    if InCombatLockdown and InCombatLockdown() then
+        actionBarSkinPending = true
+        if not actionBarSkinCombatFrame then
+            actionBarSkinCombatFrame = CreateFrame("Frame")
+            actionBarSkinCombatFrame:SetScript("OnEvent", function(self)
+                self:UnregisterEvent("PLAYER_REGEN_ENABLED")
+                if actionBarSkinPending then
+                    actionBarSkinPending = nil
+                    RefreshActionBarSkin()
+                end
+            end)
+        end
+        actionBarSkinCombatFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
+        return
+    end
+
+    actionBarSkinPending = nil
+    RefreshActionBarSkin()
+end
+
 local MODULES = {
-    { label = "cat_unitframes",        tbl = "unitFrames",       key = "enabled" },
-    { label = "cat_nameplates",        tbl = "nameplates",       key = "enabled" },
-    { label = "cat_partyframes",       tbl = "partyFrames",      key = "enabled" },
-    { label = "cat_raidframes",        tbl = "raidFrames",       key = "enabled" },
-    { label = "cat_castbars",          tbl = "castbars",         key = "enabled" },
-    { label = "dash_mod_resources",    tbl = "resourceBars",     key = "enabled" },
-    { label = "dash_mod_cdm",          tbl = "cooldownManager",  key = "enabled" },
-    { label = "dash_mod_abskin",       tbl = "actionBarSkin",    key = "enabled" },
-    { label = "dash_mod_chatskin",     tbl = "chatV4",           key = "enabled" },
-    { label = "dash_mod_bagskin",      tbl = "bagsV4",           key = "enabled" },
-    { label = "dash_mod_mtracker",     tbl = "MythicTracker",    key = "enabled" },
-    { label = "dash_mod_score",        tbl = "MysticScore",      key = "enabled" },
+    { label = "cat_unitframes",        module = "unitFrames" },
+    { label = "cat_nameplates",        module = "nameplates" },
+    { label = "cat_partyframes",       module = "partyFrames" },
+    { label = "cat_raidframes",        module = "raidFrames" },
+    { label = "cat_castbars",          module = "castbars" },
+    { label = "dash_mod_resources",    module = "resourceBars" },
+    { label = "dash_mod_cdm",          module = "cooldownManager" },
+    -- The old ActionBarSkin addon no longer exists. TUI owns this switch.
+    { label = "dash_mod_abskin",       get = GetActionBarSkinState, set = SetActionBarSkinState },
+    { label = "dash_mod_chatskin",     module = "chatV4" },
+    -- Bags V4 is the layout/schema; BagSkin is the live visual owner.
+    { label = "dash_mod_bagskin",      module = "bagSkin" },
+    { label = "dash_mod_mtracker",     module = "MythicTracker" },
+    { label = "dash_mod_score",        module = "TomoScore" },
 }
 
 local function Localize(key, fallback)
@@ -311,38 +380,41 @@ local function Localize(key, fallback)
     return fallback or key
 end
 
-local function EnsureDBTable(name)
-    TomoModDB = TomoModDB or {}
-    TomoModDB[name] = TomoModDB[name] or {}
-    return TomoModDB[name]
-end
-
 local function GetModuleState(def)
-    local db = TomoModDB and TomoModDB[def.tbl]
-    if not db then return true end
-    return db[def.key] ~= false
+    if def.get then
+        return def.get() and true or false
+    end
+
+    local registry = TomoMod_Registry
+    if registry and def.module and registry.IsEnabled then
+        local state = registry.IsEnabled(def.module)
+        if state ~= nil then return state and true or false end
+    end
+    return true
 end
 
 local function SetModuleState(def, value)
     local enabled = value and true or false
-    local db = EnsureDBTable(def.tbl)
-    db[def.key] = enabled
 
-    -- Chat V4 is fully reversible at runtime: unlike legacy ChatFrameSkin,
-    -- the dashboard switch can apply immediately without a UI reload.
-    if def.tbl == "chatV4" and TomoMod_ChatFrameSkin and TomoMod_ChatFrameSkin.SetEnabled then
-        TomoMod_ChatFrameSkin.SetEnabled(enabled)
+    if def.set then
+        def.set(enabled)
+        return
     end
 
-    -- Bags V4 is also fully reversible at runtime. Keep the dashboard bound
-    -- to the clean bagsV4 DB, but mirror the old flag while the remaining
-    -- Phase-1 presets and installer still use it. This also prevents the
-    -- compatibility bridge from restoring a stale enabled state.
-    if def.tbl == "bagsV4" then
-        EnsureDBTable("bagSkin").enabled = enabled
-        if TomoMod_BagSkin and TomoMod_BagSkin.SetEnabled then
-            TomoMod_BagSkin.SetEnabled(enabled)
-        end
+    -- One path for every real module. ModuleLifecycle owns dependency
+    -- handling, combat deferral and the live setter/pair/gate declared by the
+    -- manifest; the dashboard no longer writes random DB tables by itself.
+    local lifecycle = TomoMod_Lifecycle
+    if lifecycle and def.module and lifecycle.SetEnabled then
+        lifecycle.SetEnabled(def.module, enabled)
+        return
+    end
+
+    -- Defensive fallback for a damaged core: at least retain the requested
+    -- profile state. A healthy TomoMod session always takes the lifecycle path.
+    local registry = TomoMod_Registry
+    if registry and def.module and registry.SetEnabled then
+        registry.SetEnabled(def.module, enabled)
     end
 end
 
@@ -621,7 +693,7 @@ local function CreateModules(parent, y)
     hint:SetPoint("BOTTOMLEFT", 18, 14)
     hint:SetPoint("RIGHT", -18, 0)
     hint:SetJustifyH("LEFT")
-    hint:SetText(Localize("dash_reload_hint", "Recharge pour appliquer les changements de module."))
+    hint:SetText(Localize("dash_reload_hint", "Les modules sont appliqués à chaud. Les changements protégés sont appliqués automatiquement à la fin du combat."))
     hint:SetTextColor(DM[1], DM[2], DM[3], 1)
     return nextY
 end

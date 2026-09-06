@@ -26,8 +26,9 @@ local GetThreatStatusColor        = GetThreatStatusColor
 local pairs, wipe                 = pairs, wipe
 
 -- Table des frames par unit (remplie dans Initialize)
-local frames   = {}
-local isLocked = true
+local frames      = {}
+local isLocked    = true
+local initialized = false
 
 -- =====================================
 -- RAID ICON COORDS
@@ -604,6 +605,9 @@ eventFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
 eventFrame:RegisterEvent("PARTY_LEADER_CHANGED")
 
 eventFrame:SetScript("OnEvent", function(self, event, arg1)
+    local root = TomoModDB and TomoModDB.unitFrames
+    if not root or not root.enabled then return end
+
     if event == "PLAYER_TARGET_CHANGED" then
         local f = frames.target
         if f then
@@ -660,6 +664,8 @@ local function RegisterSupplementaryEvents()
             uef:RegisterUnitEvent("UNIT_POWER_UPDATE",            unit)
             uef:RegisterUnitEvent("UNIT_MAXPOWER",                unit)
             uef:SetScript("OnEvent", function(_, event, u)
+                local root = TomoModDB and TomoModDB.unitFrames
+                if not root or not root.enabled then return end
                 local frame = frames[u]
                 if not frame then return end
 
@@ -942,6 +948,7 @@ end
 function UF.Initialize()
     if not TomoModDB or not TomoModDB.unitFrames then return end
     if not TomoModDB.unitFrames.enabled then return end
+    if initialized then return end
 
     local oUF = TomoMod_oUF
     if not oUF then
@@ -1027,6 +1034,85 @@ function UF.Initialize()
         UF.RefreshAllUnits()
 
     end)
+    initialized = true
+end
+
+local function SetBossRuntimeEnabled(enabled)
+    local root = TomoModDB and TomoModDB.unitFrames
+    local bossDB = root and root.bossFrames
+    local BF = TomoMod_BossFrames
+    if not BF then return end
+
+    -- BossFrames are a child of the UnitFrames master switch. Preserve the
+    -- player's bossFrames.enabled preference while temporarily suspending the
+    -- whole UnitFrames family.
+    if enabled and bossDB and bossDB.enabled ~= false then
+        if not _G.TomoMod_Boss_1 and BF.Initialize then
+            BF.Initialize()
+            return
+        end
+        for i = 1, 5 do
+            local f = _G["TomoMod_Boss_" .. i]
+            if f then
+                f:SetAttribute("unit", "boss" .. i)
+                RegisterUnitWatch(f)
+            end
+        end
+        if BF.RefreshAll then BF.RefreshAll() end
+    else
+        for i = 1, 5 do
+            local f = _G["TomoMod_Boss_" .. i]
+            if f then
+                UnregisterUnitWatch(f)
+                f:Hide()
+                if f.dragFrame then f.dragFrame:Hide() end
+                if f.lockLabel then f.lockLabel:Hide() end
+            end
+        end
+    end
+end
+
+-- Runtime master switch used by ModuleLifecycle / Accueil.
+-- ModuleLifecycle already defers this setter until PLAYER_REGEN_ENABLED when
+-- combat lockdown is active, so all protected unit-watch work stays legal.
+function UF.SetEnabled(value)
+    local root = TomoModDB and TomoModDB.unitFrames
+    if not root then return false end
+    value = value and true or false
+    root.enabled = value
+
+    if not value then
+        for _, frame in pairs(frames) do
+            if frame then
+                if frame.dragFrame then frame.dragFrame:Hide() end
+                if frame.Disable then frame:Disable()
+                else
+                    UnregisterUnitWatch(frame)
+                    frame:Hide()
+                end
+            end
+        end
+        SetBossRuntimeEnabled(false)
+        return true
+    end
+
+    if not initialized then
+        UF.Initialize()
+    else
+        for unit, frame in pairs(frames) do
+            local settings = root[unit]
+            if frame and settings and settings.enabled ~= false then
+                if frame.Enable then frame:Enable()
+                else RegisterUnitWatch(frame) end
+            elseif frame and frame.Disable then
+                frame:Disable()
+            end
+        end
+        UF.RefreshAllUnits()
+    end
+
+    SetBossRuntimeEnabled(true)
+    return true
 end
 
 -- =====================================

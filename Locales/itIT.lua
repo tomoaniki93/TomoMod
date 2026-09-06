@@ -2633,7 +2633,7 @@ TomoMod_RegisterLocale("itIT", {
     ["dash_studio_open"]              = "Apri il Cooldown Studio",
     ["dash_profile_section"]     = "Profilo",
     ["dash_maint_section"]       = "Manutenzione",
-    ["dash_reload_hint"]         = "Attivare i moduli salva le tue impostazioni — ricarica per applicare le modifiche ai moduli.",
+    ["dash_reload_hint"]         = "Le modifiche ai moduli vengono applicate in tempo reale. Le modifiche protette vengono applicate automaticamente dopo il combattimento.",
     ["dash_reload_now"]          = "Ricarica ora",
     ["dash_apply_preset"]        = "Preset di configurazione",
     ["dash_apply_preset_btn"]    = "Applica questo preset",

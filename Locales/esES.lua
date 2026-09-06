@@ -2646,7 +2646,7 @@ TomoMod_RegisterLocale("esES", {
     ["dash_studio_open"]              = "Abrir el Cooldown Studio",
     ["dash_profile_section"]     = "Perfil",
     ["dash_maint_section"]       = "Mantenimiento",
-    ["dash_reload_hint"]         = "Activar módulos guarda tus ajustes — recarga para aplicar los cambios de módulo.",
+    ["dash_reload_hint"]         = "Los módulos se aplican en directo. Los cambios protegidos se aplican automáticamente al terminar el combate.",
     ["dash_reload_now"]          = "Recargar ahora",
     ["dash_apply_preset"]        = "Preset de configuración",
     ["dash_apply_preset_btn"]    = "Aplicar este preset",

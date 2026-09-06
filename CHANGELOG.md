@@ -2,6 +2,22 @@
 
 ## CHANGELOG 4.0.2
 
+#### Resource & Cast Studio V1.2 — Icon Preview And Live Sync
+
+- **New** - The detached Studio preview now honours the Icons display mode. Combo Points, Soul Shards, Essence and Runes render with their real class icons, Chi, Holy Power and Arcane Charges use their banded class textures, and Stagger switches to its dedicated Monk texture instead of a generic bar.
+- **Changed** - The preview header now names the resolved resource and the active display mode, and resource text moved to a dedicated overlay drawn above the bars so it stays readable in every layout.
+- **Fixed** - The preview no longer drifts away from the settings. A lightweight watcher compares the relevant profile values and refreshes as soon as one of them changes, and the selected preview resource is stored in the profile so it survives reopening the Studio.
+- **Fixed** - Applying ResourceBars settings now refreshes the Studio preview before the live module. A delayed or rejected runtime update can no longer leave the editor showing a stale state.
+
+#### Modules — Live Enable And Disable
+
+- **Changed** - Home dashboard module switches now apply immediately. UnitFrames, Party Frames, Raid Frames, Mythic Tracker and TomoScore gained real runtime enable and disable paths, so none of the dashboard switches asks for a UI reload anymore.
+- **Changed** - The dashboard now routes every switch through the module lifecycle instead of writing profile tables by itself. Dependency handling, combat deferral and the declared live setter are owned in one place, and protected frame work is replayed automatically when combat ends.
+- **Fixed** - Two dashboard switches pointed at the wrong module. The score switch targeted a module key that no longer exists, and the bag switch was bound to the layout schema rather than the live visual owner; both now control the module they name.
+- **Changed** - The Action Bar skin switch is now owned by the action-bar engine. The choice is saved immediately, while the protected visual rebuild is deferred until combat ends.
+- **Fixed** - Disabled UnitFrames, Party Frames and Raid Frames now stop reacting to unit events instead of continuing to update hidden frames.
+- **Changed** - The dashboard hint now explains that modules apply live and that protected changes follow at the end of combat, replacing the previous reload instruction in all six languages.
+
 #### Resource & Cast Studio — Visual HUD Editing
 
 - **New** - Resource & Cast Studio is a new load-on-demand editor available from the Home dashboard. It centralizes ResourceBars and Player Castbar configuration in dedicated Resources, Player Cast and Reset tabs while editing the same profile data used by the live modules.

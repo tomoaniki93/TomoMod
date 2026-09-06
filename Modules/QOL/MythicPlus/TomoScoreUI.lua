@@ -591,6 +591,41 @@ EF:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 EF:SetScript("OnEvent", function(_, event, ...) TS:OnScoreEvent(event, ...) end)
 
+local SCORE_RUNTIME_EVENTS = {
+    "PLAYER_ENTERING_WORLD",
+    "CHALLENGE_MODE_START",
+    "CHALLENGE_MODE_COMPLETED",
+    "PLAYER_REGEN_ENABLED",
+}
+
+local function SetScoreEventsEnabled(enabled)
+    EF:UnregisterAllEvents()
+    if not enabled then return end
+    for _, event in ipairs(SCORE_RUNTIME_EVENTS) do
+        EF:RegisterEvent(event)
+    end
+end
+
+-- Live module switch. This is intentionally a dot-function because
+-- ModuleLifecycle's setter contract calls impl.SetEnabled(value).
+function TS.SetEnabled(value)
+    local db = TS:GetDB()
+    if not db then return false end
+    value = value and true or false
+    db.enabled = value
+
+    if not value then
+        TS._pendingScoreboardData = nil
+        TS:HideScoreboard()
+        SetScoreEventsEnabled(false)
+        return true
+    end
+
+    SetScoreEventsEnabled(true)
+    TS:OnScoreEvent("PLAYER_ENTERING_WORLD")
+    return true
+end
+
 function TS:OnScoreEvent(event, ...)
     if event == "PLAYER_LOGIN" then
         -- Module enabled check

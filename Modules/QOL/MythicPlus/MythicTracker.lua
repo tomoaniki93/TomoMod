@@ -2050,6 +2050,43 @@ EF:SetScript("OnEvent", function(_, event, ...)
     end
 end)
 
+-- Live module switch used by ModuleLifecycle / Accueil. The event bridge is
+-- kept registered even when disabled, so re-enabling never requires a reload.
+function TMT.SetEnabled(value)
+    local db = GetDB()
+    if not db then return false end
+    value = value and true or false
+    db.enabled = value
+
+    if not value then
+        TMT:StopTicker()
+        TMT:RestoreBlizzardUI()
+        TMT:HideFrame()
+        return true
+    end
+
+    if not TMT.Frame then
+        TMT:BuildFrame()
+        TMT:InitBlizzardSuppress()
+        TMT.Frame:SetScale(db.scale or 1.0)
+        TMT:ApplyPosition()
+    end
+
+    C_MythicPlus.RequestMapInfo()
+    if C_ChallengeMode.IsChallengeModeActive() then
+        if db.hideBlizzard then TMT:SuppressBlizzardUI() end
+        TMT:_LoadActiveKey()
+        TMT:RefreshEJNames()
+        TMT:RefreshAll(false)
+        TMT:ShowFrame()
+        TMT:StartTicker()
+    else
+        TMT:RestoreBlizzardUI()
+        TMT:HideFrame()
+    end
+    return true
+end
+
 -- ═══════════════════════════════════════════════════════════════════════
 --  STYLE REFRESH ENTRY POINT
 --  The tracker used to carry a second, self-contained options window that

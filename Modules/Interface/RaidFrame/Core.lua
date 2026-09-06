@@ -1493,6 +1493,8 @@ end
 
 local function OnEvent(self, event, arg1, ...)
     if not RF.initialized then return end
+    local db = TomoModDB and TomoModDB.raidFrames
+    if not db or not db.enabled then return end
 
     if event == "UNIT_HEALTH" or event == "UNIT_MAXHEALTH" then
         local f = GetFrameForUnit(arg1)
@@ -1704,9 +1706,54 @@ function RF.ApplySettings()
 end
 
 -- =====================================
--- SET ENABLED
+-- SET ENABLED — live, no reload
 -- =====================================
+local function SetRaidVisibilityDriver(frame, enabled)
+    if not frame then return end
+    UnregisterStateDriver(frame, "visibility")
+    if not enabled then
+        frame:Hide()
+        return
+    end
+    local unit = frame.unit
+    if unit then
+        RegisterStateDriver(frame, "visibility", "[@" .. unit .. ",exists] show; hide")
+    end
+end
+
 function RF.SetEnabled(v)
     local db = TomoModDB and TomoModDB.raidFrames
-    if db then db.enabled = v end
+    if not db then return false end
+    v = v and true or false
+    db.enabled = v
+
+    if not v then
+        RF.SetUnitEventsEnabled(false)
+        RF.StopRangeChecker()
+        RF.HidePreview()
+        RF._pendingRefresh = nil
+        RF._pendingLayout = nil
+        for _, frame in pairs(RF.frames) do
+            SetRaidVisibilityDriver(frame, false)
+        end
+        if RF.anchor then
+            if RF.anchor.moverOverlay then RF.anchor.moverOverlay:Hide() end
+            RF.anchor:Hide()
+        end
+        return true
+    end
+
+    if not RF.initialized then
+        RF.Initialize()
+        return true
+    end
+
+    if RF.anchor then RF.anchor:Show() end
+    for _, frame in pairs(RF.frames) do
+        SetRaidVisibilityDriver(frame, true)
+    end
+    RF.SetUnitEventsEnabled(IsInRaid())
+    RF.StartRangeChecker()
+    RF.RefreshGroup()
+    return true
 end

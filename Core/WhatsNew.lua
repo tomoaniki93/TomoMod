@@ -65,6 +65,13 @@ CHANGELOG = {
     {
         version = "4.0.2",
         highlights = {
+            L["wn_402_resourcecast_icon_preview"],
+            L["wn_402_resourcecast_preview_sync"],
+            L["wn_402_resourcecast_preview_order"],
+            L["wn_402_modules_live_toggle"],
+            L["wn_402_modules_lifecycle_routing"],
+            L["wn_402_modules_switch_targets"],
+            L["wn_402_modules_event_gating"],
             L["wn_402_resourcecast_studio"],
             L["wn_402_resourcecast_previews"],
             L["wn_402_resourcebars_visuals"],

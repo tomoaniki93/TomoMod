@@ -2820,7 +2820,7 @@ TomoMod_RegisterLocale("enUS", {
     ["dash_studio_open"]              = "Open the Cooldown Studio",
     ["dash_profile_section"]     = "Profile",
     ["dash_maint_section"]       = "Maintenance",
-    ["dash_reload_hint"]         = "Toggling modules writes your settings — reload to apply module changes.",
+    ["dash_reload_hint"]         = "Module changes apply live. Protected frame changes are applied automatically when combat ends.",
     ["dash_reload_now"]          = "Reload now",
     ["dash_apply_preset"]        = "Setup preset",
     ["dash_apply_preset_btn"]    = "Apply this preset",

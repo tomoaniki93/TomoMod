@@ -238,7 +238,6 @@ R.Define{
 R.Define{
     key = "unitFrames", label = "mod_unitFrames", group = "unitframes",
     enabledPath = "unitFrames.enabled",
-    requiresReload = true,   -- oUF spawns secure unit buttons
     forgeDomain = "unitframes",
     anchors = {
         { id = "unitFrames.player",       path = "unitFrames.player.position",       shape = "point_relativePoint", label = "frame_player" },
@@ -250,7 +249,7 @@ R.Define{
         { id = "unitFrames.target.auras", path = "unitFrames.target.auras.position", shape = "point_relativePoint", label = "frame_target_auras" },
         { id = "unitFrames.focus.auras",  path = "unitFrames.focus.auras.position",  shape = "point_relativePoint", label = "frame_focus_auras" },
     },
-    global = "TomoMod_UnitFrames",
+    global = "TomoMod_UnitFrames", applyMode = "setter", apply = "SetEnabled",
 }
 
 R.Define{
@@ -280,20 +279,18 @@ R.Define{
 R.Define{
     key = "partyFrames", label = "mod_partyFrames", group = "groupframes",
     enabledPath = "partyFrames.enabled",
-    requiresReload = true,   -- secure group header
     anchors = {
         { id = "partyFrames",       path = "partyFrames.position",       shape = "point_relativePoint", label = "frame_party" },
         { id = "partyFrames.arena", path = "partyFrames.arena.position", shape = "point_relativePoint", label = "frame_arena" },
     },
-    global = "TomoMod_PartyFrames",
+    global = "TomoMod_PartyFrames", applyMode = "setter", apply = "SetEnabled",
 }
 
 R.Define{
     key = "raidFrames", label = "mod_raidFrames", group = "groupframes",
     enabledPath = "raidFrames.enabled",
-    requiresReload = true,   -- secure group header
     anchors = { { id = "raidFrames", path = "raidFrames.position", shape = "point_relativePoint", label = "frame_raid" } },
-    global = "TomoMod_RaidFrames",
+    global = "TomoMod_RaidFrames", applyMode = "setter", apply = "SetEnabled",
 }
 
 R.Define{
@@ -362,13 +359,14 @@ R.Define{
     key = "MythicTracker", label = "mod_MythicTracker", group = "mythicplus",
     enabledPath = "MythicTracker.enabled",
     anchors = { { id = "mythicTracker", path = "MythicTracker.position", shape = "anchor_relTo", label = "frame_mythictracker" } },
+    global = "TomoMod_MythicTracker", applyMode = "setter", apply = "SetEnabled",
 }
 
 R.Define{
     key = "TomoScore", label = "mod_TomoScore", group = "mythicplus",
     enabledPath = "TomoScore.enabled",
-    requiresReload = true,   -- secure score UI buttons
     anchors = { { id = "tomoScore", path = "TomoScore.position", shape = "anchor_relTo", label = "frame_tomoscore" } },
+    global = "TomoMod_TomoScore", applyMode = "setter", apply = "SetEnabled",
 }
 
 -- ---------------------------------------------------------------------
