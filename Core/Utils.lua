@@ -610,7 +610,7 @@ local function TrackMoverLayerFrame(frame)
     ApplyMoverLayerFrame(frame)
 end
 
-function U.RegisterMoverLayer(overlay, owner)
+function U.RegisterMoverLayer(overlay, owner, preserveOverlayStrata)
     if not overlay then return end
     if not owner and overlay.GetParent then
         local parent = overlay:GetParent()
@@ -619,8 +619,16 @@ function U.RegisterMoverLayer(overlay, owner)
     owner = owner or overlay
 
     TrackMoverLayerFrame(owner)
-    if overlay ~= owner then TrackMoverLayerFrame(overlay) end
+    -- Most movers are lowered together with their owner so Blizzard panels can
+    -- cover the edit surface. Action bars are the exception: their owned
+    -- buttons may remain on MEDIUM while the container is lowered to LOW.
+    -- Keeping only the mover overlay on its explicit HIGH strata guarantees
+    -- that it receives the mouse instead of an action button underneath.
+    if overlay ~= owner and not preserveOverlayStrata then
+        TrackMoverLayerFrame(overlay)
+    end
     overlay._tmMoverLayerOwner = owner
+    overlay._tmMoverLayerPreserveOverlayStrata = preserveOverlayStrata and true or nil
 end
 
 function U.SetMoverLayerMode(enabled)

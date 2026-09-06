@@ -50,17 +50,33 @@ end
 function CreateEditOverlay(container, barKey)
     ApplyContainerDragState(container, barKey)
 
-    local overlay = CreateFrame("Frame", nil, container, "BackdropTemplate")
+    -- The mover must be a real top-level edit surface, not a child of the
+    -- secure action-bar container. Keeping it under the container still lets
+    -- the action-button hierarchy win mouse hit-testing on some layouts even
+    -- when the child has an explicit HIGH strata.
+    --
+    -- Parent it to UIParent and anchor it TO the container instead. It follows
+    -- the bar visually without inheriting any secure/action-button hierarchy.
+    local overlayName = "TomoMod_ActionBarMover_" .. barKey
+    local overlay = CreateFrame("Frame", overlayName, UIParent, "BackdropTemplate")
     overlay:SetAllPoints(container)
-    -- TomoMod teal, matching the rest of the /tm layout movers
+    -- TomoMod teal, matching the rest of the /tm layout movers.
     ns.SkinBase.ApplyPixelBackdrop(overlay, 2, true, false, {0.180, 0.616, 0.847, 1}, {0.180, 0.616, 0.847, 0.3})
     overlay:EnableMouse(true)
-    overlay:SetMovable(true)
     overlay:RegisterForDrag("LeftButton")
-    overlay:SetFrameStrata("HIGH")
+    -- Below TomoLayout's header/nudger (DIALOG levels 600+), but decisively
+    -- above every action-button surface.
+    overlay:SetFrameStrata("DIALOG")
+    overlay:SetFrameLevel(450)
     if TomoMod_Utils and TomoMod_Utils.RegisterMoverLayer then
-        TomoMod_Utils.RegisterMoverLayer(overlay, container)
+        -- Lower only the runtime owner while Layout is active. This detached
+        -- overlay keeps its explicit DIALOG edit layer.
+        TomoMod_Utils.RegisterMoverLayer(overlay, container, true)
     end
+    -- TomoLayout can still discover the mover through its normal dragFrame
+    -- protocol, but selection is also bridged directly below so it does not
+    -- depend on module unlock/bind ordering.
+    container.dragFrame = overlay
     overlay:Hide()
 
     local text = overlay:CreateFontString(nil, "OVERLAY", "GameFontNormal")
@@ -70,18 +86,46 @@ function CreateEditOverlay(container, barKey)
     text:SetText(displayName)
     overlay.label = text
 
-    overlay:SetScript("OnDragStart", function(self, button)
+    local function SelectInTomoLayout()
+        local layout = _G.TomoMod_LayoutV41
+        if layout and layout.SelectFrame then
+            layout.SelectFrame(container)
+        end
+    end
+
+    -- Direct bridge: a simple click must open TomoLayout immediately. The V4.1
+    -- binder remains useful for all other movers, but ActionBars no longer rely
+    -- on its timing to become selectable.
+    overlay:SetScript("OnMouseDown", function(_, button)
         if button ~= "LeftButton" then return end
         if not ActionBarsOwned or not ActionBarsOwned.editModeActive then return end
-        container:StartMoving()
-        self:StartMoving()
+        SelectInTomoLayout()
     end)
 
-    overlay:SetScript("OnDragStop", function(self)
+    overlay:SetScript("OnDragStart", function(_, button)
+        if button ~= "LeftButton" then return end
+        if not ActionBarsOwned or not ActionBarsOwned.editModeActive then return end
+        SelectInTomoLayout()
+        -- One moving frame only. The detached overlay is anchored to the
+        -- container and follows it automatically.
+        container:StartMoving()
+    end)
+
+    overlay:SetScript("OnDragStop", function()
         if not ActionBarsOwned or not ActionBarsOwned.editModeActive then return end
         container:StopMovingOrSizing()
-        self:StopMovingOrSizing()
         SaveContainerPosition(barKey)
+        SelectInTomoLayout()
+    end)
+
+    -- If combat starts while Layout is open, stop intercepting action clicks
+    -- immediately. Movers.lua will perform the full protected relock after
+    -- combat, but hiding this non-secure edit surface is combat-safe.
+    overlay:RegisterEvent("PLAYER_REGEN_DISABLED")
+    overlay:SetScript("OnEvent", function(self, event)
+        if event == "PLAYER_REGEN_DISABLED" then
+            self:Hide()
+        end
     end)
 
     return overlay
@@ -131,6 +175,14 @@ function OnEditModeEnter()
 
             SetEditOverlayVisible(barKey, true)
         end
+    end
+
+    -- TomoLayout may have bound the containers before the edit overlays were
+    -- created. Re-run the binder now that container.dragFrame points at the
+    -- real click surface.
+    local layout = _G.TomoMod_LayoutV41
+    if layout and layout.BindSelectionFrames then
+        layout.BindSelectionFrames()
     end
 end
 

@@ -2,6 +2,26 @@
 
 ## CHANGELOG 4.0.2
 
+#### Resource & Cast Studio — Visual HUD Editing
+
+- **New** - Resource & Cast Studio is a new load-on-demand editor available from the Home dashboard. It centralizes ResourceBars and Player Castbar configuration in dedicated Resources, Player Cast and Reset tabs while editing the same profile data used by the live modules.
+- **New** - Detached real-time previews can demonstrate Combo Points, Runes, Soul Shards, Holy Power, Chi, Essence, Arcane Charges, Stagger and aura resources regardless of the current class. A persistent demonstration cast keeps Player Castbar changes visible between real casts.
+- **Changed** - ResourceBars V3 gains its own visual layer instead of inheriting continuous-bar styling from UnitFrames. Texture, background opacity, borders, segment spacing, spacing between stacked bars and upward or downward stacking can now be configured independently and refreshed live.
+- **New** - The Studio exposes the existing ResourceBars and Player Castbar controls alongside direct X/Y positioning, targeted resets and a localized five-step first-run guide. Reset actions can restore positions, individual systems, shared cast appearance or the complete Studio configuration without touching unrelated settings, and editing is safely blocked during combat.
+
+#### Resource & Cast Studio V1.1 — Class Resource Designer
+
+- **New** - The Class Resource Designer can render class resources as segments or as a continuous bar, horizontally or vertically. Partial fills, the empty-segment colour and per-segment, outer, combined or disabled borders can be configured independently.
+- **Changed** - Health, primary power and class resources now have separate textures, background opacity and border settings. Existing profiles migrate smoothly through the previous shared ResourceBars values.
+- **New** - Hash Lines V2 adds configurable percentage- or value-based markers with independent thickness, colour and opacity. Threshold System V2 can recolour the class-resource bar, its text or both at configurable low and high values, while safely skipping protected values.
+- **Changed** - The detached Studio preview now mirrors the new orientations, continuous and segmented modes, partial fills, independent styles, hash lines and threshold colours in real time, including a controllable demonstration value.
+- **Fixed** - Reset-tab actions now use a locale-safe aligned grid. Paired controls stretch evenly across their columns, while shared-appearance and full-Studio resets span the available width with consistent margins.
+
+#### TomoLayout — Action Bar Movers
+
+- **Fixed** - Action-bar mover overlays now remain above their buttons and move only the owning container. Action buttons no longer intercept the drag or compete with the overlay during Layout Mode.
+- **New** - Action Bars 1–8, Pet and Stance are now selectable TomoLayout elements with highlighting, pixel nudging and centring. Mouse drags and nudger operations are mirrored back to the action-bar anchoring store so positions persist across refreshes and reloads.
+
 #### Mythic+ — Post-Run Analysis
 
 - **New** - Completed Mythic+ TomoScore reports now include a localized Run Analysis button. A run-specific snapshot is captured when the score is saved, combining challenge-completion facts, the matching RunHistory entry and the available TomoDamageMeter snapshot instead of reading unrelated combat data later.

@@ -420,6 +420,19 @@ function SaveContainerPosition(barKey)
     entry.offsetX = tonumber(x) or 0
     entry.offsetY = tonumber(y) or 0
 
+    -- TomoLayout precision/nudger state lives in TomoModDB. Keep a mirrored V4
+    -- position for the ten owned movable bars while TUI's frameAnchoring entry
+    -- remains the runtime source of truth used by the action-bar engine.
+    local tmBars = _G.TomoModDB
+        and _G.TomoModDB.actionBars
+        and _G.TomoModDB.actionBars.bars
+    local tmBar = tmBars and tmBars[barKey]
+    local layout = _G.TomoMod_Layout
+    if tmBar and layout and layout.Save then
+        tmBar.ownedPosition = tmBar.ownedPosition or {}
+        layout.Save(tmBar.ownedPosition, container)
+    end
+
     if _G.TUI_ApplyFrameAnchor then
         _G.TUI_ApplyFrameAnchor(anchorKey)
     end
@@ -427,6 +440,10 @@ function SaveContainerPosition(barKey)
         _G.TUI:SendMessage("TUI_FRAME_ANCHOR_CHANGED", anchorKey)
     end
 end
+
+-- Public bridge used by TomoLayout after a nudge/center operation. The object
+-- itself is already exported through TomoMod_TuiNS.ActionBarsOwned.
+ActionBarsOwned.SaveContainerPosition = SaveContainerPosition
 
 function RestoreContainerPosition(barKey)
     local container = ActionBarsOwned.containers[barKey]

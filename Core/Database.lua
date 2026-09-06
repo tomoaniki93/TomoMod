@@ -1174,6 +1174,82 @@ TomoMod_Defaults = {
     resourceBars = {
         enabled = true,
         displayMode = "bars",       -- "icons" (GW2 textures) or "bars" (flat colors)
+
+        -- ResourceBars V3 visual layer. Continuous bars no longer borrow the
+        -- UnitFrame texture, and both spacing levels can be tuned separately.
+        barTexture = "tomo",        -- legacy/fallback for V3 styles
+        backgroundAlpha = 0.80,
+        borderEnabled = true,
+        borderSize = 1,
+        borderColor = { r = 0, g = 0, b = 0 },
+        barSpacing = 2,
+        segmentSpacing = 2,
+        stackDirection = "DOWN",    -- DOWN | UP
+
+        -- V3.1: each visual family can now be styled independently.
+        styles = {
+            health = {
+                barTexture = "tomo",
+                backgroundAlpha = 0.80,
+                borderEnabled = true,
+                borderSize = 1,
+                borderColor = { r = 0, g = 0, b = 0 },
+            },
+            power = {
+                barTexture = "tomo",
+                backgroundAlpha = 0.80,
+                borderEnabled = true,
+                borderSize = 1,
+                borderColor = { r = 0, g = 0, b = 0 },
+            },
+            class = {
+                barTexture = "tomo",
+                backgroundAlpha = 0.80,
+                borderEnabled = true,
+                borderSize = 1,
+                borderColor = { r = 0, g = 0, b = 0 },
+            },
+        },
+
+        -- V3.1: class resource designer.
+        classResource = {
+            mode = "segments",          -- segments | bar
+            orientation = "HORIZONTAL", -- HORIZONTAL | VERTICAL
+            partialFill = true,
+            borderMode = "segments",    -- segments | outer | both | none
+            emptyColor = { r = 0.06, g = 0.06, b = 0.08 },
+        },
+
+        -- Advanced marks. Legacy powerTicks remains supported as fallback.
+        hashLines = {
+            power = {
+                enabled = false,
+                values = "",
+                mode = "percent",        -- percent | value
+                width = 1,
+                color = { r = 1, g = 1, b = 1, a = 0.75 },
+            },
+            class = {
+                enabled = false,
+                values = "",
+                mode = "percent",
+                width = 1,
+                color = { r = 1, g = 1, b = 1, a = 0.75 },
+            },
+        },
+
+        thresholds = {
+            class = {
+                enabled = false,
+                mode = "percent",        -- percent | value
+                low = 30,
+                high = 80,
+                lowColor = { r = 1.00, g = 0.22, b = 0.18 },
+                highColor = { r = 1.00, g = 0.78, b = 0.16 },
+                target = "both",         -- bar | text | both
+            },
+        },
+
         visibilityMode = "always",   -- always, combat, target, hidden
         combatAlpha = 1.0,
         oocAlpha = 0.6,
@@ -1228,6 +1304,14 @@ TomoMod_Defaults = {
             healthLow       = { r = 1.00, g = 0.20, b = 0.20 },
             powerLow        = { r = 1.00, g = 0.25, b = 0.25 },
         },
+    },
+
+    -- LoadOnDemand Studio UI state. Kept in defaults so profile
+    -- import/export sanitisation does not drop the first-run tutorial state.
+    resourceCastStudio = {
+        tutorialVersion = 0,
+        previewKind = "auto",
+        demoValuePct = 70,
     },
 
     -- =====================

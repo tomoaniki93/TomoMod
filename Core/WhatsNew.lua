@@ -65,6 +65,17 @@ CHANGELOG = {
     {
         version = "4.0.2",
         highlights = {
+            L["wn_402_resourcecast_studio"],
+            L["wn_402_resourcecast_previews"],
+            L["wn_402_resourcebars_visuals"],
+            L["wn_402_resourcecast_workflow"],
+            L["wn_402_resourcecast_class_designer"],
+            L["wn_402_resourcecast_independent_styles"],
+            L["wn_402_resourcecast_hash_threshold"],
+            L["wn_402_resourcecast_v11_preview"],
+            L["wn_402_resourcecast_reset_alignment"],
+            L["wn_402_actionbar_mover_input"],
+            L["wn_402_actionbar_tomolayout"],
             L["wn_402_run_analysis_entry"],
             L["wn_402_run_analysis_summary"],
             L["wn_402_run_analysis_performance"],

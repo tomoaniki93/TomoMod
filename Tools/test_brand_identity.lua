@@ -33,7 +33,8 @@ local function Sources()
     local out = {}
     for _, dir in ipairs({ "Core", "Modules", "Locales", "TomoMod_Options",
                            "TomoMod_AstralForge", "TomoMod_CDStudio",
-                           "TomoMod_GroupStudio", "TomoMod_MythicPlus" }) do
+                           "TomoMod_GroupStudio", "TomoMod_ResourceCastStudio",
+                           "TomoMod_MythicPlus" }) do
         local pipe = io.popen('find "' .. dir .. '" -name "*.lua" 2>/dev/null')
         if pipe then
             for line in pipe:lines() do

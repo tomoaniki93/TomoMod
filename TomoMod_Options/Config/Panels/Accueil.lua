@@ -255,6 +255,39 @@ if TomoMod_RegisterLocale then
     })
 end
 
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["dash_studio_resourcecast_title"] = "Resource & Cast Studio",
+        ["dash_studio_resourcecast_desc"]  = "Rebuild ResourceBars visually and configure the Player castbar with permanent real-time previews.",
+        ["dash_studio_resourcecast_open"]  = "Open Resource & Cast Studio",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["dash_studio_resourcecast_title"] = "Studio Ressources & Incantation",
+        ["dash_studio_resourcecast_desc"]  = "Améliore visuellement les ResourceBars et configure l'incantation Player avec des aperçus permanents en temps réel.",
+        ["dash_studio_resourcecast_open"]  = "Ouvrir le Studio Ressources & Incantation",
+    })
+    TomoMod_RegisterLocale("deDE", {
+        ["dash_studio_resourcecast_title"] = "Ressourcen- & Zauberleisten-Studio",
+        ["dash_studio_resourcecast_desc"]  = "Überarbeite ResourceBars visuell und konfiguriere die Spieler-Zauberleiste mit permanenter Live-Vorschau.",
+        ["dash_studio_resourcecast_open"]  = "Ressourcen- & Zauberleisten-Studio öffnen",
+    })
+    TomoMod_RegisterLocale("esES", {
+        ["dash_studio_resourcecast_title"] = "Estudio Recursos e Incantación",
+        ["dash_studio_resourcecast_desc"]  = "Mejora visualmente ResourceBars y configura la barra de lanzamiento del jugador con vistas previas permanentes.",
+        ["dash_studio_resourcecast_open"]  = "Abrir Estudio Recursos e Incantación",
+    })
+    TomoMod_RegisterLocale("itIT", {
+        ["dash_studio_resourcecast_title"] = "Studio Risorse e Lancio",
+        ["dash_studio_resourcecast_desc"]  = "Migliora visivamente ResourceBars e configura la barra di lancio del giocatore con anteprime permanenti.",
+        ["dash_studio_resourcecast_open"]  = "Apri Studio Risorse e Lancio",
+    })
+    TomoMod_RegisterLocale("ptBR", {
+        ["dash_studio_resourcecast_title"] = "Estúdio Recursos e Conjuração",
+        ["dash_studio_resourcecast_desc"]  = "Melhore visualmente ResourceBars e configure a barra de conjuração do jogador com prévias permanentes.",
+        ["dash_studio_resourcecast_open"]  = "Abrir Estúdio Recursos e Conjuração",
+    })
+end
+
 local L = TomoMod_L
 
 local MODULES = {
@@ -619,6 +652,17 @@ local function OpenGroupStudio()
     })
 end
 
+local function OpenResourceCastStudio()
+    local Forge = TomoMod_Forge
+    if not (Forge and Forge.Studio and Forge.Studio.Launch) then return end
+    Forge.Studio.Launch({
+        addon  = "TomoMod_ResourceCastStudio",
+        global = "TomoMod_ResourceCastStudio",
+        label  = Localize("dash_studio_resourcecast_title", "Resource & Cast Studio"),
+        arg    = "resources",
+    })
+end
+
 local function OpenAstralForgeStudio()
     local Forge = TomoMod_Forge
     if not (Forge and Forge.Studio and Forge.Studio.Launch) then return end
@@ -659,6 +703,16 @@ local STUDIO_DEFS = {
         open = "dash_studio_group_open",
         openFallback = "Open Party & Raid Studio",
         callback = OpenGroupStudio,
+    },
+    {
+        addon = "TomoMod_ResourceCastStudio",
+        title = "dash_studio_resourcecast_title",
+        titleFallback = "Resource & Cast Studio",
+        desc = "dash_studio_resourcecast_desc",
+        descFallback = "Rebuild ResourceBars visually and configure the Player castbar with permanent real-time previews.",
+        open = "dash_studio_resourcecast_open",
+        openFallback = "Open Resource & Cast Studio",
+        callback = OpenResourceCastStudio,
     },
     {
         addon = "TomoMod_AstralForge",

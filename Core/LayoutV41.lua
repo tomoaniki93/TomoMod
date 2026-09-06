@@ -28,6 +28,24 @@ local applyingLink = false
 local selectionHooks = setmetatable({}, { __mode = "k" })
 local selectionOutline
 
+local ACTION_BAR_KEYS = {
+    "bar1", "bar2", "bar3", "bar4", "bar5",
+    "bar6", "bar7", "bar8", "pet", "stance",
+}
+local ACTION_BAR_KEY_SET = {}
+for _, key in ipairs(ACTION_BAR_KEYS) do ACTION_BAR_KEY_SET[key] = true end
+
+local function ActionBarKey(anchorID)
+    if type(anchorID) ~= "string" then return nil end
+    local key = anchorID:match("^actionBars%.([%w]+)$")
+    return key and ACTION_BAR_KEY_SET[key] and key or nil
+end
+
+local function ActionBarsOwned()
+    local ns = _G.TomoMod_TuiNS
+    return ns and ns.ActionBarsOwned or nil
+end
+
 local function Settings()
     if not TomoModDB then return nil end
     TomoModDB._layoutV41 = TomoModDB._layoutV41 or {}
@@ -53,8 +71,24 @@ local function Anchor(anchorID)
 end
 
 local function Store(anchorID, root)
-    local a = Anchor(anchorID)
     root = root or TomoModDB
+
+    -- Owned action bars use TUI frameAnchoring at runtime, but TomoLayout needs
+    -- a normal V4 position table for pixel nudging. Create that mirror lazily
+    -- only in the active DB, so existing profiles are left untouched until the
+    -- player actually selects/moves a bar.
+    local barKey = ActionBarKey(anchorID)
+    if barKey then
+        local bars = root and root.actionBars and root.actionBars.bars
+        local bar = bars and bars[barKey]
+        if type(bar) ~= "table" then return nil end
+        if root == TomoModDB and type(bar.ownedPosition) ~= "table" then
+            bar.ownedPosition = {}
+        end
+        return type(bar.ownedPosition) == "table" and bar.ownedPosition or nil
+    end
+
+    local a = Anchor(anchorID)
     if not a or not root or not R or not R.GetPath then return nil end
     return R.GetPath(root, a.path)
 end
@@ -155,6 +189,12 @@ function P.PixelCoordinates(frame)
 end
 
 local function FindFrame(anchorID)
+    local barKey = ActionBarKey(anchorID)
+    if barKey then
+        local owned = ActionBarsOwned()
+        return owned and owned.containers and owned.containers[barKey] or nil
+    end
+
     if anchorID == "unitFrames.player" then return _G.TomoMod_UF_player end
     if anchorID == "unitFrames.target" then return _G.TomoMod_UF_target end
     if anchorID == "unitFrames.focus" then return _G.TomoMod_UF_focus end
@@ -175,6 +215,15 @@ P.FindFrame = FindFrame
 function P.ResolveAnchorID(frame)
     if not frame then return nil end
     if frame == _G.Minimap then return "minimap" end
+
+    local owned = ActionBarsOwned()
+    if owned and owned.containers then
+        for _, barKey in ipairs(ACTION_BAR_KEYS) do
+            if frame == owned.containers[barKey] then
+                return "actionBars." .. barKey
+            end
+        end
+    end
 
     local name = frame.GetName and frame:GetName()
     if not name then return nil end
@@ -293,6 +342,18 @@ local function Mirror(sourceID, sourceFrame, targetID, targetFrame)
 end
 
 function P.OnAnchorSaved(anchorID, store, frame)
+    local barKey = ActionBarKey(anchorID)
+    if barKey then
+        -- Persist TomoLayout's final pixel position back into the action-bar
+        -- engine's frameAnchoring store so a refresh/reload cannot restore the
+        -- pre-nudge location.
+        local owned = ActionBarsOwned()
+        if owned and owned.SaveContainerPosition then
+            owned.SaveContainerPosition(barKey)
+        end
+        return
+    end
+
     local db = Settings()
     if not db or not db.playerTargetMirror or applyingLink then return end
 
@@ -429,23 +490,31 @@ end
 local SELECTION_ANCHORS = {
     "unitFrames.player", "unitFrames.target", "unitFrames.focus",
     "castbars.player", "resourceBars",
+    "actionBars.bar1", "actionBars.bar2", "actionBars.bar3", "actionBars.bar4",
+    "actionBars.bar5", "actionBars.bar6", "actionBars.bar7", "actionBars.bar8",
+    "actionBars.pet", "actionBars.stance",
     "partyFrames", "partyFrames.arena", "raidFrames", "battleRez",
     "objectiveTracker", "mythicTracker", "minimap", "skyRide",
 }
 
 local function BindSelectionFrame(frame)
-    if not frame or selectionHooks[frame] then return end
+    if not frame then return end
 
     -- SetupDraggable owners expose a dedicated, non-secure mover overlay.
     -- Selecting from that overlay avoids touching the underlying unit button.
+    -- Store the actual hooked surface rather than a boolean: action-bar
+    -- overlays can be created after TomoLayout entered edit mode.
     local drag = frame.dragFrame
     if drag and drag.HookScript then
+        if selectionHooks[frame] == drag then return end
         drag:HookScript("OnMouseDown", function(_, button)
             if button == "LeftButton" and editModeActive then P.SelectFrame(frame) end
         end)
-        selectionHooks[frame] = true
+        selectionHooks[frame] = drag
         return
     end
+
+    if selectionHooks[frame] then return end
 
     -- A few TomoMod movers (Minimap/Mythic tracker/etc.) own their drag
     -- scripts directly. Hook the existing drag start rather than replacing it.
@@ -453,7 +522,7 @@ local function BindSelectionFrame(frame)
         local ok = pcall(frame.HookScript, frame, "OnDragStart", function()
             if editModeActive then P.SelectFrame(frame) end
         end)
-        if ok then selectionHooks[frame] = true end
+        if ok then selectionHooks[frame] = frame end
     end
 end
 
@@ -652,6 +721,23 @@ local function EnsureNudger(headerBar)
     return f
 end
 
+local function SelectionLabel(anchorID)
+    local barKey = ActionBarKey(anchorID)
+    if barKey then
+        local labelKeys = {
+            bar1 = "Action Bar 1", bar2 = "Action Bar 2",
+            bar3 = "Action Bar 3", bar4 = "Action Bar 4",
+            bar5 = "Action Bar 5", bar6 = "Action Bar 6",
+            bar7 = "Action Bar 7", bar8 = "Action Bar 8",
+            pet = "Pet Bar", stance = "Stance Bar",
+        }
+        local ns = _G.TomoMod_TuiNS
+        local key = labelKeys[barKey]
+        return (ns and ns.L and key and ns.L[key]) or key or anchorID
+    end
+    return Layout and Layout.Label and Layout.Label(anchorID, anchorID) or anchorID
+end
+
 function P.RefreshUI()
     if not nudger then return end
     local db = Settings()
@@ -659,8 +745,7 @@ function P.RefreshUI()
 
     if selectedFrame and selectedAnchorID then
         RefreshSelectionOutline()
-        local label = Layout and Layout.Label and Layout.Label(selectedAnchorID, selectedAnchorID) or selectedAnchorID
-        nudger._selected:SetText(label)
+        nudger._selected:SetText(SelectionLabel(selectedAnchorID))
         nudger._selected:SetTextColor(0.92, 0.94, 0.95)
         local x, y = P.PixelCoordinates(selectedFrame)
         if x and y then

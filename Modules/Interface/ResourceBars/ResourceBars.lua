@@ -1,5 +1,5 @@
 -- =====================================
--- ResourceBars.lua v2.8 — Class Power Display System
+-- ResourceBars.lua v3.0 — Class Power Display System
 -- Displays class-specific resources: combo points, holy power,
 -- soul shards, chi, essence, arcane charges, runes, stagger, etc.
 -- Primary power (mana/rage/energy/etc.) is shown in UnitFrame info bar.
@@ -312,6 +312,169 @@ local function UseTextures()
 end
 
 -- =====================================
+-- v3.0 : DEDICATED VISUAL LAYER
+-- ResourceBars no longer has to inherit its continuous-bar texture from
+-- UnitFrames. Rebuilds are cheap configuration-time operations, so these
+-- values are read when widgets are created rather than cached on the event path.
+-- =====================================
+local function GetStyle(styleKey)
+    local s = GetSettings()
+    local st = s and s.styles and s.styles[styleKey]
+    if st then return st end
+    -- Smooth migration for profiles created before V3.1.
+    return s or {}
+end
+
+local function GetBarTexture(styleKey)
+    local s = GetSettings()
+    local st = GetStyle(styleKey)
+    local key = st.barTexture or (s and s.barTexture) or "tomo"
+    if key == "flat" then return TEXTURE_FLAT end
+    if key == "blizzard" then return "Interface\\TargetingFrame\\UI-StatusBar" end
+    return TEXTURE
+end
+
+local function GetBackgroundAlpha(styleKey)
+    local s = GetSettings()
+    local st = GetStyle(styleKey)
+    return tonumber(st.backgroundAlpha or (s and s.backgroundAlpha)) or 0.80
+end
+
+local function GetClassConfig()
+    local s = GetSettings()
+    return s and s.classResource or {}
+end
+
+local function GetClassOrientation()
+    local cfg = GetClassConfig()
+    return cfg.orientation == "VERTICAL" and "VERTICAL" or "HORIZONTAL"
+end
+
+local function GetSegmentSpacing()
+    local s = GetSettings()
+    return math.max(0, (s and tonumber(s.segmentSpacing)) or 2)
+end
+
+local function StyleBarBackground(bg, tex, styleKey)
+    if not bg then return end
+    bg:SetTexture(tex)
+    bg:SetVertexColor(0.06, 0.06, 0.08, GetBackgroundAlpha(styleKey))
+end
+
+local function SetEmptyPointBackground(tex)
+    if not tex then return end
+    local cfg = GetClassConfig()
+    local c = cfg.emptyColor or { r = 0.06, g = 0.06, b = 0.08 }
+    tex:SetColorTexture(c.r or 0.06, c.g or 0.06, c.b or 0.08, GetBackgroundAlpha("class"))
+end
+
+local function ClassUsesSegmentBorders()
+    local mode = GetClassConfig().borderMode or "segments"
+    return mode == "segments" or mode == "both"
+end
+
+local function ClassUsesOuterBorder()
+    local mode = GetClassConfig().borderMode or "segments"
+    return mode == "outer" or mode == "both"
+end
+
+local function ResolveClassThreshold(current, maxValue, baseR, baseG, baseB)
+    local s = GetSettings()
+    local cfg = s and s.thresholds and s.thresholds.class
+    local textR, textG, textB = 1, 1, 1
+    if not (cfg and cfg.enabled) or issecret(current) or issecret(maxValue)
+       or not maxValue or maxValue <= 0 then
+        return baseR, baseG, baseB, textR, textG, textB, false
+    end
+
+    local metric = current
+    if cfg.mode ~= "value" then metric = current / maxValue * 100 end
+
+    local c
+    if metric <= (tonumber(cfg.low) or 30) then
+        c = cfg.lowColor
+    elseif metric >= (tonumber(cfg.high) or 80) then
+        c = cfg.highColor
+    end
+    if not c then
+        return baseR, baseG, baseB, textR, textG, textB, false
+    end
+
+    local target = cfg.target or "both"
+    local r, g, b = c.r or baseR, c.g or baseG, c.b or baseB
+    local barR, barG, barB = baseR, baseG, baseB
+    if target == "bar" or target == "both" then barR, barG, barB = r, g, b end
+    if target == "text" or target == "both" then textR, textG, textB = r, g, b end
+    return barR, barG, barB, textR, textG, textB, true
+end
+
+local function ParseHashValues(str)
+    if not str or str == "" then return nil end
+    local vals = {}
+    for token in string.gmatch(str, "[%d%.]+") do
+        local n = tonumber(token)
+        if n and n >= 0 then vals[#vals + 1] = n end
+    end
+    return #vals > 0 and vals or nil
+end
+
+local function ApplyAdvancedHashLines(bar, cfg, maxValue, orientation)
+    if not bar then return end
+    bar._rbHashLines = bar._rbHashLines or {}
+    for i = 1, #bar._rbHashLines do bar._rbHashLines[i]:Hide() end
+    if not (cfg and cfg.enabled) then return end
+
+    local vals = ParseHashValues(cfg.values)
+    if not vals then return end
+
+    local mode = cfg.mode or "percent"
+    if mode == "value" and (issecret(maxValue) or not maxValue or maxValue <= 0) then return end
+    orientation = orientation or "HORIZONTAL"
+
+    local c = cfg.color or { r = 1, g = 1, b = 1, a = 0.75 }
+    local thickness = math.max(1, math.min(5, tonumber(cfg.width) or 1))
+    local width, height = bar:GetWidth(), bar:GetHeight()
+    local maxSig = issecret(maxValue) and "secret" or tostring(maxValue)
+    local signature = table.concat({
+        tostring(cfg.values), mode, tostring(thickness),
+        string.format("%.3f,%.3f,%.3f,%.3f", c.r or 1, c.g or 1, c.b or 1, c.a or 0.75),
+        orientation, tostring(width), tostring(height), maxSig
+    }, "|")
+    if bar._rbHashSignature == signature then
+        for i = 1, #vals do
+            if bar._rbHashLines[i] then bar._rbHashLines[i]:Show() end
+        end
+        return
+    end
+    bar._rbHashSignature = signature
+
+    for i, value in ipairs(vals) do
+        local pct = mode == "value" and (value / maxValue * 100) or value
+        if pct > 0 and pct < 100 then
+            local t = bar._rbHashLines[i]
+            if not t then
+                t = bar:CreateTexture(nil, "OVERLAY", nil, 6)
+                bar._rbHashLines[i] = t
+            end
+            t:ClearAllPoints()
+            t:SetColorTexture(c.r or 1, c.g or 1, c.b or 1, c.a or 0.75)
+            if orientation == "VERTICAL" then
+                local y = height * (pct / 100)
+                t:SetHeight(thickness)
+                t:SetPoint("LEFT", bar, "BOTTOMLEFT", 0, y)
+                t:SetPoint("RIGHT", bar, "BOTTOMRIGHT", 0, y)
+            else
+                t:SetWidth(thickness)
+                t:SetPoint("TOP")
+                t:SetPoint("BOTTOM")
+                t:SetPoint("LEFT", bar, "LEFT", width * (pct / 100), 0)
+            end
+            t:Show()
+        end
+    end
+end
+
+-- =====================================
 -- v2.8 : SMOOTHING (lerp — valeurs non secrètes uniquement)
 -- =====================================
 local function SetBarValueSmooth(bar, value)
@@ -433,38 +596,60 @@ end
 -- =====================================
 -- BORDER (mirrors UF_Elements.CreateBorder)
 -- =====================================
-local function CreateBorder(frame)
+local function CreateBorder(frame, styleKey, enabledForElement)
+    local s = GetSettings()
+    local st = GetStyle(styleKey)
+    local enabled = st.borderEnabled
+    if enabled == nil then enabled = not (s and s.borderEnabled == false) end
+    if enabled == false or enabledForElement == false then return end
+
+    local size = math.max(1, math.min(4,
+        tonumber(st.borderSize or (s and s.borderSize)) or 1))
+    local c = st.borderColor or (s and s.borderColor) or nil
+    local r, g, b = c and c.r or 0, c and c.g or 0, c and c.b or 0
+
     local function Edge(p1, p2, w, h)
         local t = frame:CreateTexture(nil, "OVERLAY", nil, 7)
-        t:SetColorTexture(0, 0, 0, 1)
+        t:SetColorTexture(r, g, b, 1)
         t:SetPoint(p1); t:SetPoint(p2)
         if w then t:SetWidth(w) end
         if h then t:SetHeight(h) end
     end
-    Edge("TOPLEFT", "TOPRIGHT", nil, 1)
-    Edge("BOTTOMLEFT", "BOTTOMRIGHT", nil, 1)
-    Edge("TOPLEFT", "BOTTOMLEFT", 1, nil)
-    Edge("TOPRIGHT", "BOTTOMRIGHT", 1, nil)
+    Edge("TOPLEFT", "TOPRIGHT", nil, size)
+    Edge("BOTTOMLEFT", "BOTTOMRIGHT", nil, size)
+    Edge("TOPLEFT", "BOTTOMLEFT", size, nil)
+    Edge("TOPRIGHT", "BOTTOMRIGHT", size, nil)
 end
 
 -- =====================================
 -- CREATE: BAR DISPLAY (used for aura_bar class powers)
 -- =====================================
 local function CreateBarDisplay(parent, width, height)
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local tex = GetBarTexture("class")
+    local orientation = GetClassOrientation()
 
     local bar = CreateFrame("StatusBar", nil, parent)
-    bar:SetSize(width, height)
+    if orientation == "VERTICAL" then
+        bar:SetSize(height, width)
+        bar:SetOrientation("VERTICAL")
+        bar._resourceOrientation = "VERTICAL"
+        bar._layerHeight = width
+    else
+        bar:SetSize(width, height)
+        bar:SetOrientation("HORIZONTAL")
+        bar._resourceOrientation = "HORIZONTAL"
+        bar._layerHeight = height
+    end
     bar:SetStatusBarTexture(tex)
     bar:GetStatusBarTexture():SetHorizTile(false)
     bar:SetMinMaxValues(0, 100)
     bar:SetValue(0)
 
     local bg = bar:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints(); bg:SetTexture(tex)
-    bg:SetVertexColor(0.06, 0.06, 0.08, 0.8)
+    bg:SetAllPoints()
+    StyleBarBackground(bg, tex, "class")
     bar.bg = bg
-    CreateBorder(bar)
+    CreateBorder(bar, "class", (GetClassConfig().borderMode or "segments") ~= "none")
 
     local text = bar:CreateFontString(nil, "OVERLAY")
     text:SetFont(GetFont(), GetFontSize(), "OUTLINE")
@@ -472,9 +657,9 @@ local function CreateBarDisplay(parent, width, height)
     bar.text = text
 
     local align = GetTextAlignment()
-    if align == "LEFT" then
+    if align == "LEFT" and orientation ~= "VERTICAL" then
         text:SetPoint("LEFT", 4, 0); text:SetJustifyH("LEFT")
-    elseif align == "RIGHT" then
+    elseif align == "RIGHT" and orientation ~= "VERTICAL" then
         text:SetPoint("RIGHT", -4, 0); text:SetJustifyH("RIGHT")
     else
         text:SetPoint("CENTER"); text:SetJustifyH("CENTER")
@@ -483,26 +668,40 @@ local function CreateBarDisplay(parent, width, height)
     return bar
 end
 
+local function CreateCountResourceBar(parent, width, height, colorKey)
+    local bar = CreateBarDisplay(parent, width, height)
+    bar.isCountResource = true
+    bar.colorKey = colorKey
+    return bar
+end
+
 -- =====================================
 -- CREATE: POINT DISPLAY (Combo, Soul Shards, Essence, auras)
 -- Supports both icon textures and flat color bars
 -- =====================================
--- Flat-mode empty slot fill. Shared with UpdatePoints, which has to restore
--- it when a point stops being supercharged.
-local EMPTY_POINT_BG = { 0.06, 0.06, 0.08, 0.8 }
-
+-- Flat-mode empty slot fill is styled through SetEmptyPointBackground so
+-- opacity changes apply to both fresh and restored combo-point slots.
 local function CreatePointDisplay(parent, maxPoints, width, height, colorKey, texType)
     local frame = CreateFrame("Frame", nil, parent)
-    frame:SetSize(width, height)
+    local orientation = GetClassOrientation()
+    if orientation == "VERTICAL" then
+        frame:SetSize(height, width)
+        frame._layerHeight = width
+    else
+        frame:SetSize(width, height)
+        frame._layerHeight = height
+    end
+    frame._resourceOrientation = orientation
 
     local useTex = UseTextures() and texType and ICON_TEXCOORDS[texType]
     local tc = useTex and ICON_TEXCOORDS[texType]
     local texPath = useTex and CP_TEXTURES[texType] and CP_TEXTURES[texType].fill
 
-    local spacing = useTex and 4 or 2
-    local pw = useTex and height or (width - (maxPoints - 1) * spacing) / maxPoints
-    local totalW = maxPoints * pw + (maxPoints - 1) * spacing
-    local offsetX = useTex and math.max((width - totalW) / 2, 0) or 0
+    local spacing = GetSegmentSpacing()
+    local length = width
+    local extent = useTex and height or (length - (maxPoints - 1) * spacing) / maxPoints
+    local totalExtent = maxPoints * extent + (maxPoints - 1) * spacing
+    local offset = useTex and math.max((length - totalExtent) / 2, 0) or 0
 
     frame.points = {}
     frame.maxPoints = maxPoints
@@ -511,16 +710,22 @@ local function CreatePointDisplay(parent, maxPoints, width, height, colorKey, te
 
     for i = 1, maxPoints do
         local pt = CreateFrame("Frame", nil, frame)
-        pt:SetSize(pw, height)
-        pt:SetPoint("LEFT", frame, "LEFT", offsetX + (i - 1) * (pw + spacing), 0)
+        if orientation == "VERTICAL" then
+            pt:SetSize(height, extent)
+            pt:SetPoint("BOTTOM", frame, "BOTTOM", 0, offset + (i - 1) * (extent + spacing))
+        else
+            pt:SetSize(extent, height)
+            pt:SetPoint("LEFT", frame, "LEFT", offset + (i - 1) * (extent + spacing), 0)
+        end
 
         local bg = pt:CreateTexture(nil, "BACKGROUND")
         bg:SetAllPoints()
         if useTex and texPath and tc then
             bg:SetTexture(texPath)
             bg:SetTexCoord(unpack(tc.empty))
+            bg:SetAlpha(GetBackgroundAlpha("class"))
         else
-            bg:SetColorTexture(unpack(EMPTY_POINT_BG))
+            SetEmptyPointBackground(bg)
         end
         pt.bg = bg
 
@@ -535,24 +740,35 @@ local function CreatePointDisplay(parent, maxPoints, width, height, colorKey, te
         fill:Hide()
         pt.fill = fill
 
-        -- Partial fill (for Soul Shards)
         local partial = pt:CreateTexture(nil, "ARTWORK")
-        partial:SetPoint("BOTTOMLEFT"); partial:SetPoint("TOPLEFT")
-        partial:SetWidth(0)
+        if orientation == "VERTICAL" then
+            partial:SetPoint("BOTTOMLEFT"); partial:SetPoint("BOTTOMRIGHT")
+            partial:SetHeight(0)
+        else
+            partial:SetPoint("BOTTOMLEFT"); partial:SetPoint("TOPLEFT")
+            partial:SetWidth(0)
+        end
         if useTex and texPath and tc then
             partial:SetTexture(texPath)
             partial:SetTexCoord(unpack(tc.filled))
         else
             partial:SetColorTexture(GetColor(colorKey))
         end
-        partial:SetAlpha(0.5)
+        partial:SetAlpha(0.60)
         partial:Hide()
         pt.partial = partial
 
-        if not useTex then CreateBorder(pt) end
+        CreateBorder(pt, "class", ClassUsesSegmentBorders())
         frame.points[i] = pt
     end
 
+    local text = frame:CreateFontString(nil, "OVERLAY")
+    text:SetFont(GetFont(), GetFontSize(), "OUTLINE")
+    text:SetPoint("CENTER")
+    text:SetTextColor(1, 1, 1, 0.90)
+    frame.text = text
+
+    CreateBorder(frame, "class", ClassUsesOuterBorder())
     return frame
 end
 
@@ -573,8 +789,8 @@ local function CreateBandDisplay(parent, width, height, texType)
     bg:SetTexture(cfg.texture)
     if cfg.desaturateBg then
         bg:SetDesaturated(true)
-        bg:SetAlpha(0.5)
     end
+    bg:SetAlpha(GetBackgroundAlpha("class"))
     frame.bg = bg
 
     local fill = frame:CreateTexture(nil, "ARTWORK")
@@ -582,6 +798,7 @@ local function CreateBandDisplay(parent, width, height, texType)
     fill:SetTexture(cfg.texture)
     fill:Hide()
     frame.fill = fill
+    CreateBorder(frame, "class", (GetClassConfig().borderMode or "segments") ~= "none")
 
     return frame
 end
@@ -591,16 +808,24 @@ end
 -- =====================================
 local function CreateRuneDisplay(parent, width, height)
     local frame = CreateFrame("Frame", nil, parent)
-    frame:SetSize(width, height)
+    local orientation = GetClassOrientation()
+    if orientation == "VERTICAL" then
+        frame:SetSize(height, width)
+        frame._layerHeight = width
+    else
+        frame:SetSize(width, height)
+        frame._layerHeight = height
+    end
+    frame._resourceOrientation = orientation
 
     local useTex = UseTextures()
     local tc = useTex and ICON_TEXCOORDS.runes
     local texPath = useTex and CP_TEXTURES.runes.frost
 
-    local spacing = useTex and 4 or 2
-    local rw = useTex and height or (width - 5 * spacing) / 6
-    local totalW = 6 * rw + 5 * spacing
-    local offsetX = useTex and math.max((width - totalW) / 2, 0) or 0
+    local spacing = GetSegmentSpacing()
+    local extent = useTex and height or (width - 5 * spacing) / 6
+    local totalExtent = 6 * extent + 5 * spacing
+    local offset = useTex and math.max((width - totalExtent) / 2, 0) or 0
     frame.runes = {}
     frame.useTextures = useTex and true or false
 
@@ -608,13 +833,19 @@ local function CreateRuneDisplay(parent, width, height)
         -- Icon mode: per-rune frames with texture + height-based fill
         for i = 1, 6 do
             local runeF = CreateFrame("Frame", nil, frame)
-            runeF:SetSize(rw, height)
-            runeF:SetPoint("LEFT", frame, "LEFT", offsetX + (i - 1) * (rw + spacing), 0)
+            if orientation == "VERTICAL" then
+                runeF:SetSize(height, extent)
+                runeF:SetPoint("BOTTOM", frame, "BOTTOM", 0, offset + (i - 1) * (extent + spacing))
+            else
+                runeF:SetSize(extent, height)
+                runeF:SetPoint("LEFT", frame, "LEFT", offset + (i - 1) * (extent + spacing), 0)
+            end
 
             local bg = runeF:CreateTexture(nil, "BACKGROUND")
             bg:SetAllPoints()
             bg:SetTexture(texPath)
             bg:SetTexCoord(unpack(tc.empty))
+            bg:SetAlpha(GetBackgroundAlpha("class"))
             runeF.bg = bg
 
             local fill = runeF:CreateTexture(nil, "ARTWORK")
@@ -629,6 +860,7 @@ local function CreateRuneDisplay(parent, width, height)
             cd:SetFont(GetFont(), math.max(GetFontSize() - 2, 7), "OUTLINE")
             cd:SetPoint("CENTER"); cd:SetTextColor(1, 1, 1, 0.8)
             runeF.cdText = cd
+            CreateBorder(runeF, "class", ClassUsesSegmentBorders())
 
             frame.runes[i] = runeF
         end
@@ -637,15 +869,22 @@ local function CreateRuneDisplay(parent, width, height)
         local tex = TEXTURE_FLAT
         for i = 1, 6 do
             local rune = CreateFrame("StatusBar", nil, frame)
-            rune:SetSize(rw, height)
-            rune:SetPoint("LEFT", frame, "LEFT", (i - 1) * (rw + spacing), 0)
+            if orientation == "VERTICAL" then
+                rune:SetSize(height, extent)
+                rune:SetPoint("BOTTOM", frame, "BOTTOM", 0, (i - 1) * (extent + spacing))
+                rune:SetOrientation("VERTICAL")
+            else
+                rune:SetSize(extent, height)
+                rune:SetPoint("LEFT", frame, "LEFT", (i - 1) * (extent + spacing), 0)
+                rune:SetOrientation("HORIZONTAL")
+            end
             rune:SetStatusBarTexture(tex)
             rune:GetStatusBarTexture():SetHorizTile(false)
             rune:SetMinMaxValues(0, 1); rune:SetValue(1)
 
             local bg = rune:CreateTexture(nil, "BACKGROUND")
             bg:SetAllPoints()
-            bg:SetColorTexture(0.06, 0.06, 0.08, 0.8)
+            SetEmptyPointBackground(bg)
             rune.bg = bg
 
             local cd = rune:CreateFontString(nil, "OVERLAY")
@@ -653,11 +892,12 @@ local function CreateRuneDisplay(parent, width, height)
             cd:SetPoint("CENTER"); cd:SetTextColor(1, 1, 1, 0.8)
             rune.cdText = cd
 
-            CreateBorder(rune)
+            CreateBorder(rune, "class", ClassUsesSegmentBorders())
             frame.runes[i] = rune
         end
     end
 
+    CreateBorder(frame, "class", ClassUsesOuterBorder())
     return frame
 end
 
@@ -665,13 +905,23 @@ end
 -- CREATE: STAGGER BAR (Monk Brewmaster)
 -- =====================================
 local function CreateStaggerBar(parent, width, height)
-    local useTex = UseTextures()
+    local orientation = GetClassOrientation()
+    local useTex = UseTextures() and orientation ~= "VERTICAL"
     local staggerTex = useTex and CP_TEXTURES.stagger
-    local barTex = (staggerTex and staggerTex.low) or (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local barTex = (staggerTex and staggerTex.low) or GetBarTexture("class")
     local bgTex  = (staggerTex and staggerTex.bg)  or barTex
 
     local bar = CreateFrame("StatusBar", nil, parent)
-    bar:SetSize(width, height)
+    if orientation == "VERTICAL" then
+        bar:SetSize(height, width)
+        bar:SetOrientation("VERTICAL")
+        bar._layerHeight = width
+    else
+        bar:SetSize(width, height)
+        bar:SetOrientation("HORIZONTAL")
+        bar._layerHeight = height
+    end
+    bar._resourceOrientation = orientation
     bar:SetStatusBarTexture(barTex)
     bar:GetStatusBarTexture():SetHorizTile(false)
     bar:SetMinMaxValues(0, 100); bar:SetValue(0)
@@ -679,9 +929,10 @@ local function CreateStaggerBar(parent, width, height)
 
     local bg = bar:CreateTexture(nil, "BACKGROUND")
     bg:SetAllPoints(); bg:SetTexture(bgTex)
-    if not useTex then bg:SetVertexColor(0.06, 0.06, 0.08, 0.8) end
+    if useTex then bg:SetAlpha(GetBackgroundAlpha("class"))
+    else bg:SetVertexColor(0.06, 0.06, 0.08, GetBackgroundAlpha("class")) end
     bar.bg = bg
-    CreateBorder(bar)
+    CreateBorder(bar, "class", (GetClassConfig().borderMode or "segments") ~= "none")
 
     local text = bar:CreateFontString(nil, "OVERLAY")
     text:SetFont(GetFont(), GetFontSize(), "OUTLINE")
@@ -695,7 +946,7 @@ end
 -- CREATE: DRUID MANA BAR (secondary when in form)
 -- =====================================
 local function CreateDruidManaBar(parent, width, height)
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local tex = GetBarTexture("power")
     local bar = CreateFrame("StatusBar", nil, parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(tex)
@@ -706,10 +957,10 @@ local function CreateDruidManaBar(parent, width, height)
     bar:SetStatusBarColor(r, g, b, 1)
 
     local bg = bar:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints(); bg:SetTexture(tex)
-    bg:SetVertexColor(0.06, 0.06, 0.08, 0.8)
+    bg:SetAllPoints()
+    StyleBarBackground(bg, tex, "power")
     bar.bg = bg
-    CreateBorder(bar)
+    CreateBorder(bar, "power")
 
     local text = bar:CreateFontString(nil, "OVERLAY")
     text:SetFont(GetFont(), math.max(GetFontSize() - 1, 7), "OUTLINE")
@@ -723,7 +974,7 @@ end
 -- PRIMARY POWER BAR (centered on screen, replaces UF power bar)
 -- =====================================
 local function CreatePrimaryPowerBar(parent, width, height)
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local tex = GetBarTexture("power")
     local bar = CreateFrame("StatusBar", nil, parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(tex)
@@ -731,10 +982,10 @@ local function CreatePrimaryPowerBar(parent, width, height)
     bar:SetMinMaxValues(0, 100); bar:SetValue(100)
 
     local bg = bar:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints(); bg:SetTexture(tex)
-    bg:SetVertexColor(0.06, 0.06, 0.08, 0.8)
+    bg:SetAllPoints()
+    StyleBarBackground(bg, tex, "power")
     bar.bg = bg
-    CreateBorder(bar)
+    CreateBorder(bar, "power")
 
     local text = bar:CreateFontString(nil, "OVERLAY")
     text:SetFont(GetFont(), math.max(GetFontSize() - 1, 7), "OUTLINE")
@@ -778,8 +1029,16 @@ local function UpdatePrimaryPower()
     end
     primaryPowerBar:SetStatusBarColor(r, g, b, 1)
 
-    -- v2.8 : ticks (positions en % — indépendantes du max)
-    ApplyBarTicks(primaryPowerBar, s and s.powerTicks)
+    -- V3.1 Hash Lines V2. Keep the old preset string as a fallback for
+    -- existing profiles until the advanced editor is explicitly enabled.
+    local hashCfg = s and s.hashLines and s.hashLines.power
+    if hashCfg and hashCfg.enabled then
+        ApplyBarTicks(primaryPowerBar, "")
+        ApplyAdvancedHashLines(primaryPowerBar, hashCfg, max, "HORIZONTAL")
+    else
+        ApplyAdvancedHashLines(primaryPowerBar, nil, max, "HORIZONTAL")
+        ApplyBarTicks(primaryPowerBar, s and s.powerTicks)
+    end
 
     -- Text (AbbreviateLargeNumbers is C-side, accepts secret numbers)
     if s and s.showText and primaryPowerBar.text then
@@ -796,7 +1055,7 @@ end
 -- Couleur seuil → ColorCurve évaluée par UnitHealthPercent côté C.
 -- =====================================
 local function CreateHealthBar(parent, width, height)
-    local tex = (TomoModDB and TomoModDB.unitFrames and TomoModDB.unitFrames.texture) or TEXTURE
+    local tex = GetBarTexture("health")
     local bar = CreateFrame("StatusBar", nil, parent)
     bar:SetSize(width, height)
     bar:SetStatusBarTexture(tex)
@@ -804,10 +1063,10 @@ local function CreateHealthBar(parent, width, height)
     bar:SetMinMaxValues(0, 100); bar:SetValue(100)
 
     local bg = bar:CreateTexture(nil, "BACKGROUND")
-    bg:SetAllPoints(); bg:SetTexture(tex)
-    bg:SetVertexColor(0.06, 0.06, 0.08, 0.8)
+    bg:SetAllPoints()
+    StyleBarBackground(bg, tex, "health")
     bar.bg = bg
-    CreateBorder(bar)
+    CreateBorder(bar, "health")
 
     local text = bar:CreateFontString(nil, "OVERLAY")
     text:SetFont(GetFont(), math.max(GetFontSize() - 1, 7), "OUTLINE")
@@ -935,7 +1194,7 @@ local function UpdatePoints(pointFrame, resDef)
         if max == 0 then max = 1 end
         partialFrac = 0
 
-        if resDef.showPartial then
+        if resDef.showPartial and GetClassConfig().partialFill ~= false then
             local rawCur = UnitPower("player", resDef.powerType, true)
             local modifier = UnitPowerDisplayMod(resDef.powerType)
             if modifier and modifier > 0 then
@@ -951,6 +1210,22 @@ local function UpdatePoints(pointFrame, resDef)
     local colorKey = pointFrame.colorKey or "comboPoints"
     local r, g, b = GetColor(colorKey)
     local displayMax = math.min(max, #pointFrame.points)
+    local fillR, fillG, fillB, textR, textG, textB, thresholdActive =
+        ResolveClassThreshold(current + partialFrac, max, r, g, b)
+
+    if pointFrame.text then
+        local s2 = GetSettings()
+        if s2 and s2.showText then
+            if partialFrac > 0 then
+                pointFrame.text:SetFormattedText("%.1f / %d", current + partialFrac, max)
+            else
+                pointFrame.text:SetFormattedText("%d / %d", current, max)
+            end
+            pointFrame.text:SetTextColor(textR, textG, textB, 0.95)
+        else
+            pointFrame.text:SetText("")
+        end
+    end
 
     -- Supercharged points are a Rogue combo-point mechanic. Keep resource
     -- detection separate from the visual toggle so disabling the effect also
@@ -970,7 +1245,7 @@ local function UpdatePoints(pointFrame, resDef)
             pt:Show()
 
             local charged = chargeable and chargedPoints[i] or false
-            local fr, fg, fb = r, g, b
+            local fr, fg, fb = fillR, fillG, fillB
             if charged then fr, fg, fb = cr, cg, cb end
 
             -- Empty slots matter here: a charged slot has to read as charged
@@ -985,13 +1260,25 @@ local function UpdatePoints(pointFrame, resDef)
                         pt.bg:SetVertexColor(cr, cg, cb, 0.45)
                         pt.fill:SetVertexColor(cr, cg, cb, 1)
                     else
-                        pt.bg:SetVertexColor(1, 1, 1, 1)
-                        pt.fill:SetVertexColor(1, 1, 1, 1)
+                        pt.bg:SetVertexColor(1, 1, 1, GetBackgroundAlpha("class"))
+                        if thresholdActive then
+                            pt.fill:SetVertexColor(fillR, fillG, fillB, 1)
+                        else
+                            pt.fill:SetVertexColor(1, 1, 1, 1)
+                        end
                     end
                 elseif charged then
                     pt.bg:SetColorTexture(cr * 0.35, cg * 0.35, cb * 0.35, 0.85)
                 else
-                    pt.bg:SetColorTexture(unpack(EMPTY_POINT_BG))
+                    SetEmptyPointBackground(pt.bg)
+                end
+            end
+
+            if useTex and not isComboPointResource then
+                if thresholdActive then
+                    pt.fill:SetVertexColor(fillR, fillG, fillB, 1)
+                else
+                    pt.fill:SetVertexColor(1, 1, 1, 1)
                 end
             end
 
@@ -1001,8 +1288,12 @@ local function UpdatePoints(pointFrame, resDef)
                 pt.partial:Hide()
             elseif i == current + 1 and partialFrac > 0 then
                 pt.fill:Hide()
-                if not useTex then pt.partial:SetColorTexture(r, g, b) end
-                pt.partial:SetWidth(math.max(pt:GetWidth() * partialFrac, 1))
+                if not useTex then pt.partial:SetColorTexture(fillR, fillG, fillB) end
+                if pointFrame._resourceOrientation == "VERTICAL" then
+                    pt.partial:SetHeight(math.max(pt:GetHeight() * partialFrac, 1))
+                else
+                    pt.partial:SetWidth(math.max(pt:GetWidth() * partialFrac, 1))
+                end
                 pt.partial:Show()
             else
                 pt.fill:Hide(); pt.partial:Hide()
@@ -1036,6 +1327,67 @@ local function UpdatePoints(pointFrame, resDef)
     end
 end
 
+local function UpdateCountResourceBar(bar, resDef)
+    if not bar then return end
+    local current, maxValue, partialFrac = 0, 1, 0
+
+    if resDef.display == "aura" then
+        local aura = C_UnitAuras.GetPlayerAuraBySpellID(resDef.spellID)
+        current = aura and aura.applications or 0
+        maxValue = resDef.maxStacks or 1
+    else
+        current = UnitPower("player", resDef.powerType)
+        maxValue = UnitPowerMax("player", resDef.powerType)
+        if maxValue == 0 then maxValue = 1 end
+        if resDef.showPartial and GetClassConfig().partialFill ~= false then
+            local rawCur = UnitPower("player", resDef.powerType, true)
+            local modifier = UnitPowerDisplayMod(resDef.powerType)
+            if modifier and modifier > 0 then
+                local full = math.floor(rawCur / modifier)
+                local rem = rawCur - (full * modifier)
+                current = full
+                partialFrac = rem / modifier
+            end
+        end
+    end
+
+    local value = current + partialFrac
+    bar:SetMinMaxValues(0, maxValue)
+    SetBarValueSmooth(bar, value)
+
+    local r, g, b = GetColor(bar.colorKey or "comboPoints")
+    local fillR, fillG, fillB, textR, textG, textB =
+        ResolveClassThreshold(value, maxValue, r, g, b)
+    bar:SetStatusBarColor(fillR, fillG, fillB, 1)
+
+    local s = GetSettings()
+    if s and s.showText and bar.text then
+        if partialFrac > 0 then
+            bar.text:SetFormattedText("%.1f / %d", value, maxValue)
+        else
+            bar.text:SetFormattedText("%d / %d", current, maxValue)
+        end
+        bar.text:SetTextColor(textR, textG, textB, 0.95)
+    elseif bar.text then
+        bar.text:SetText("")
+    end
+
+    local hashCfg = s and s.hashLines and s.hashLines.class
+    ApplyAdvancedHashLines(bar, hashCfg, maxValue, bar._resourceOrientation)
+
+    local showFullGlow = (not s) or (s.showFullResourceGlow ~= false)
+    local full = not issecret(value) and not issecret(maxValue) and value >= maxValue
+    if resDef.glowOnMax and showFullGlow and Glow and Glow.PixelGlow_Start then
+        if full and not bar._glowing then
+            bar._glowing = true
+            Glow.PixelGlow_Start(bar, { r, g, b, 1 }, 8, 0.20, nil, 2, 1, 1, false, "TomoMod_RB_FullGlow")
+        elseif (not full) and bar._glowing then
+            bar._glowing = false
+            Glow.PixelGlow_Stop(bar, "TomoMod_RB_FullGlow")
+        end
+    end
+end
+
 -- =====================================
 -- UPDATE: BAND DISPLAY (Chi, Holy Power, Arcane)
 -- =====================================
@@ -1050,6 +1402,10 @@ local function UpdateBandDisplay(bandFrame, resDef)
     local max = UnitPowerMax("player", resDef.powerType)
     if max == 0 then max = 1 end
 
+    local ck = POWER_COLOR_KEYS[resDef.powerType] or "comboPoints"
+    local r, g, b = GetColor(ck)
+    local fillR, fillG, fillB = ResolveClassThreshold(current, max, r, g, b)
+
     local m = cfg.multiplier
 
     -- Background: empty state showing full capacity
@@ -1060,6 +1416,7 @@ local function UpdateBandDisplay(bandFrame, resDef)
     if current > 0 then
         local fillRow = current - 1
         bandFrame.fill:SetTexCoord(0, 1, m * fillRow, m * (fillRow + 1))
+        bandFrame.fill:SetVertexColor(fillR, fillG, fillB, 1)
         bandFrame.fill:Show()
     else
         bandFrame.fill:Hide()
@@ -1160,15 +1517,21 @@ local function UpdateStagger(bar)
         bar:GetStatusBarTexture():SetHorizTile(false)
     else
         local r, g, b = GetColor("stagger")
-        bar:SetStatusBarColor(r, g, b, 1)
+        local fillR, fillG, fillB = ResolveClassThreshold(stagger, maxHP, r, g, b)
+        bar:SetStatusBarColor(fillR, fillG, fillB, 1)
     end
 
     local s = GetSettings()
+    local _, _, _, textR, textG, textB =
+        ResolveClassThreshold(stagger, maxHP, GetColor("stagger"))
     if s and s.showText and bar.text then
         bar.text:SetFormattedText("%s", AbbreviateLargeNumbers(stagger))
+        bar.text:SetTextColor(textR, textG, textB, 0.95)
     elseif bar.text then
         bar.text:SetText("")
     end
+    ApplyAdvancedHashLines(bar, s and s.hashLines and s.hashLines.class,
+        maxHP, bar._resourceOrientation)
 end
 
 -- =====================================
@@ -1189,6 +1552,8 @@ local function UpdateDruidMana()
     druidManaBar:SetStatusBarColor(r, g, b, 1)
 
     local s = GetSettings()
+    ApplyAdvancedHashLines(druidManaBar, s and s.hashLines and s.hashLines.power,
+        max, "HORIZONTAL")
     if s and s.showText and druidManaBar.text then
         druidManaBar.text:SetFormattedText("%s", AbbreviateLargeNumbers(current))
     elseif druidManaBar.text then
@@ -1233,7 +1598,11 @@ local function BuildResourceDisplay()
     local width = s.width or 260
     local cpH = s.primaryHeight or 16     -- height for class power display
     local dmH = s.secondaryHeight or 12   -- height for druid mana bar
-    local gap = 2
+    local gap = math.max(0, tonumber(s.barSpacing) or 2)
+    local stackUp = s.stackDirection == "UP"
+    local classCfg = GetClassConfig()
+    local classMode = classCfg.mode or "segments"
+    local classOrientation = GetClassOrientation()
 
     -- Clear old
     if classPowerFrame then
@@ -1295,15 +1664,26 @@ local function BuildResourceDisplay()
     local totalH, nextY = 0, 0
     local hasContent = false
 
+    local function PlaceLayer(layer, height)
+        layer:ClearAllPoints()
+        local centered = layer._resourceOrientation == "VERTICAL"
+        if stackUp then
+            if centered then layer:SetPoint("BOTTOM", container, "BOTTOM", 0, nextY)
+            else layer:SetPoint("BOTTOMLEFT", container, "BOTTOMLEFT", 0, nextY) end
+        else
+            if centered then layer:SetPoint("TOP", container, "TOP", 0, -nextY)
+            else layer:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY) end
+        end
+        nextY = nextY + height + gap
+        totalH = totalH + height + gap
+        hasContent = true
+    end
+
     -- === v2.8 : HEALTH BAR (HUD, optionnelle — toujours en haut) ===
     if s.healthBarEnabled then
         local hbH = s.healthBarHeight or 14
         healthBar = CreateHealthBar(container, width, hbH)
-        healthBar:ClearAllPoints()
-        healthBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
-        nextY = nextY + hbH + gap
-        totalH = totalH + hbH + gap
-        hasContent = true
+        PlaceLayer(healthBar, hbH)
         UpdateHealthBar()
     end
 
@@ -1313,11 +1693,16 @@ local function BuildResourceDisplay()
         if cpDef.display == "points" then
             local ck = POWER_COLOR_KEYS[cpDef.powerType] or "comboPoints"
             local texType = POWER_TEXTURE_TYPE[cpDef.powerType]
-            -- Band textures (chi, holypower, arcane) use a single wide spritesheet
-            if UseTextures() and texType and BAND_CONFIG[texType] then
+            if classMode == "bar" then
+                classPowerFrame = CreateCountResourceBar(container, width, cpH, ck)
+            -- Band spritesheets remain a high-quality icon-mode option when
+            -- horizontal. Vertical designer mode uses individual segments.
+            elseif UseTextures() and texType and BAND_CONFIG[texType]
+               and classOrientation == "HORIZONTAL" then
                 classPowerFrame = CreateBandDisplay(container, width, cpH, texType)
             else
-                classPowerFrame = CreatePointDisplay(container, cpDef.maxPoints or 5, width, cpH, ck, texType)
+                classPowerFrame = CreatePointDisplay(container,
+                    cpDef.maxPoints or 5, width, cpH, ck, texType)
             end
         elseif cpDef.display == "runes" then
             classPowerFrame = CreateRuneDisplay(container, width, cpH)
@@ -1325,17 +1710,18 @@ local function BuildResourceDisplay()
             classPowerFrame = CreateStaggerBar(container, width, cpH)
         elseif cpDef.display == "aura" then
             local ck = GetAuraColorKey(cpDef.label)
-            classPowerFrame = CreatePointDisplay(container, cpDef.maxStacks or 5, width, cpH, ck, nil)
+            if classMode == "bar" then
+                classPowerFrame = CreateCountResourceBar(container, width, cpH, ck)
+            else
+                classPowerFrame = CreatePointDisplay(container,
+                    cpDef.maxStacks or 5, width, cpH, ck, nil)
+            end
         elseif cpDef.display == "aura_bar" then
             classPowerFrame = CreateBarDisplay(container, width, cpH)
         end
 
         if classPowerFrame then
-            classPowerFrame:ClearAllPoints()
-            classPowerFrame:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
-            nextY = nextY + cpH + gap
-            totalH = totalH + cpH + gap
-            hasContent = true
+            PlaceLayer(classPowerFrame, classPowerFrame._layerHeight or cpH)
         end
     end
 
@@ -1345,11 +1731,7 @@ local function BuildResourceDisplay()
     -- === PRIMARY POWER BAR (spec default — e.g. Guardian Druid Rage, shown first) ===
     if specNeedsPrimary then
         primaryPowerBar = CreatePrimaryPowerBar(container, width, ppH)
-        primaryPowerBar:ClearAllPoints()
-        primaryPowerBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
-        nextY = nextY + ppH + gap
-        totalH = totalH + ppH + gap
-        hasContent = true
+        PlaceLayer(primaryPowerBar, ppH)
         UpdatePrimaryPower()
         if TomoMod_ResourceBars then
             TomoMod_ResourceBars._primaryPowerCentered = true
@@ -1359,21 +1741,13 @@ local function BuildResourceDisplay()
     -- === DRUID MANA BAR ===
     if resources and resources.druidMana then
         druidManaBar = CreateDruidManaBar(container, width, dmH)
-        druidManaBar:ClearAllPoints()
-        druidManaBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
-        nextY = nextY + dmH + gap
-        totalH = totalH + dmH + gap
-        hasContent = true
+        PlaceLayer(druidManaBar, dmH)
     end
 
     -- === PRIMARY POWER BAR (user setting, for specs without a spec-default primary power) ===
     if s.primaryPowerCentered and not specNeedsPrimary then
         primaryPowerBar = CreatePrimaryPowerBar(container, width, ppH)
-        primaryPowerBar:ClearAllPoints()
-        primaryPowerBar:SetPoint("TOPLEFT", container, "TOPLEFT", 0, -nextY)
-        nextY = nextY + ppH + gap
-        totalH = totalH + ppH + gap
-        hasContent = true
+        PlaceLayer(primaryPowerBar, ppH)
         -- Immediate update
         UpdatePrimaryPower()
         -- Notify UnitFrames to hide player power bar
@@ -1412,7 +1786,9 @@ local function UpdateAll()
     -- Class Power
     if classPowerFrame and resources and resources.classPower then
         local cpDef = resources.classPower
-        if classPowerFrame.isBand then
+        if classPowerFrame.isCountResource then
+            UpdateCountResourceBar(classPowerFrame, cpDef)
+        elseif classPowerFrame.isBand then
             UpdateBandDisplay(classPowerFrame, cpDef)
         elseif cpDef.display == "points" or cpDef.display == "aura" then
             UpdatePoints(classPowerFrame, cpDef)
@@ -1422,10 +1798,16 @@ local function UpdateAll()
             SetBarValueSmooth(classPowerFrame, cur)
             local ck = cpDef.colorKey or "soulFragments"
             local r, g, b = GetColor(ck)
-            classPowerFrame:SetStatusBarColor(r, g, b, 1)
+            local fillR, fillG, fillB, textR, textG, textB =
+                ResolveClassThreshold(cur, max, r, g, b)
+            classPowerFrame:SetStatusBarColor(fillR, fillG, fillB, 1)
             local s = GetSettings()
+            ApplyAdvancedHashLines(classPowerFrame,
+                s and s.hashLines and s.hashLines.class,
+                max, classPowerFrame._resourceOrientation)
             if s and s.showText and classPowerFrame.text then
                 classPowerFrame.text:SetFormattedText("%d / %d", cur, max)
+                classPowerFrame.text:SetTextColor(textR, textG, textB, 0.95)
             elseif classPowerFrame.text then
                 classPowerFrame.text:SetText("")
             end
