@@ -65,10 +65,15 @@ RES.UI_BASE_HEIGHT  = UI_BASE_HEIGHT
 -- 1440p player who prefers the 1080p type sizes can say so.
 -- ---------------------------------------------------------------------
 
+-- `sampleHeight` is the representative height used to describe a tier the
+-- player is not currently on -- the panels have to show what 1080p would
+-- do while the client reports 1440p. It was open-coded as a chain of
+-- key comparisons in the slash command; two more callers would have made
+-- three copies of the same mapping.
 local TIERS = {
-    { key = "2160p", label = "res_2160", minHeight = 1800, fontScale = 1.00 },
-    { key = "1440p", label = "res_1440", minHeight = 1200, fontScale = 1.00 },
-    { key = "1080p", label = "res_1080", minHeight = 0,    fontScale = 1.15 },
+    { key = "2160p", label = "res_2160", minHeight = 1800, fontScale = 1.00, sampleHeight = 2160 },
+    { key = "1440p", label = "res_1440", minHeight = 1200, fontScale = 1.00, sampleHeight = 1440 },
+    { key = "1080p", label = "res_1080", minHeight = 0,    fontScale = 1.15, sampleHeight = 1080 },
 }
 RES.TIERS = TIERS
 
@@ -173,6 +178,21 @@ local function Store()
     local s = TomoModDB._resolution
     if type(s.captures) ~= "table" then s.captures = {} end
     return s
+end
+
+--- The scale facts for a tier, whatever the player is running on.
+--- Returns the Describe table augmented with the tier's own fields, or
+--- nil for an unknown key.
+function RES.DescribeTier(tierKey)
+    local tier = TIER_BY_KEY[tierKey]
+    if not tier then return nil end
+    local d = RES.Describe(tier.sampleHeight)
+    if not d then return nil end
+    d.key        = tier.key
+    d.label      = tier.label
+    d.fontScale  = tier.fontScale
+    d.hasCapture = RES.HasCapture(tier.key) and true or false
+    return d
 end
 
 function RES.Applied()

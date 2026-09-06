@@ -93,13 +93,18 @@ local contentHost
 local pagePanels    = {}     -- pagePanels[key] = frame (cached)
 local stepDots      = {}     -- pool of MAX_DOTS dot textures
 local prevBtn, nextBtn, skipBtn, stepLabel
-local MAX_DOTS      = 6
+-- One dot per step. FLOW_CUSTOM is the longest flow and gained a step,
+-- so the pool has to grow with it or the last dot is never drawn.
+local MAX_DOTS      = 7
 
 local selectedPreset = "complet"
 local currentIndex   = 1
 
-local FLOW_PRESET = { "welcome", "picker", "recap" }
-local FLOW_CUSTOM = { "welcome", "picker", "custom_frames", "custom_barsskins", "custom_mythicqol", "recap" }
+-- "resolution" comes before "picker": the type sizes a resolution preset
+-- writes are the ground the archetype presets build on. Choosing the
+-- screen first and the role second is the order that does not undo work.
+local FLOW_PRESET = { "welcome", "resolution", "picker", "recap" }
+local FLOW_CUSTOM = { "welcome", "resolution", "picker", "custom_frames", "custom_barsskins", "custom_mythicqol", "recap" }
 local flow = FLOW_PRESET
 
 local function RebuildFlow()
@@ -257,6 +262,110 @@ pages.welcome = {
         desc:SetText(L["ins_v3_welcome_desc"])
 
         return -320
+    end,
+}
+
+-- ── Résolution ─────────────────────────────────────────────
+-- Core/ResolutionPresets.lua existait depuis le lot 5 sans autre porte
+-- d'entrée que /tm resolution. C'est la première décision de l'installeur
+-- après la bienvenue, parce qu'elle fixe les tailles de police sur
+-- lesquelles les presets d'archétype viennent ensuite s'appuyer.
+pages.resolution = {
+    title = L["respreset_section"],
+    icon  = ICON_PATH .. "icon_general.tga",
+    build = function(c, p)
+        local RES = TomoMod_Resolution
+        local y = -6
+
+        if not RES or not RES.Tiers then
+            -- Le moteur vit dans l'addon de base. On le dit plutôt que
+            -- d'afficher une page de choix qui n'appliquerait rien.
+            return Info(c, L["respreset_unavailable"], y)
+        end
+
+        local pw, ph = RES.PhysicalSize()
+        local detected = RES.Detect()
+
+        y = Info(c, ph
+            and string.format(L["respreset_detected_fmt"], tostring(pw), tostring(ph), detected)
+            or  L["respreset_unknown"], y)
+
+        y = Sec(c, L["respreset_choose"], y)
+
+        -- BigBtn fige son état d'accent à la construction : ses handlers de
+        -- survol capturent le drapeau. Comme le palier retenu change au clic
+        -- et que la page est mise en cache, il faut un bouton repeignable.
+        local tiers   = RES.Tiers()
+        local buttons = {}
+
+        local function Paint()
+            local chosen = RES.Applied() or detected
+            for key, b in pairs(buttons) do b.SetActive(key == chosen) end
+        end
+
+        local function TierButton(key, label, yy)
+            local btn = CreateFrame("Button", nil, c, "BackdropTemplate")
+            btn:SetSize(300, 38); btn:SetPoint("TOP", 0, yy)
+            btn:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
+            local lbl = btn:CreateFontString(nil, "OVERLAY")
+            lbl:SetFont(FONT_BOLD, 13, ""); lbl:SetPoint("CENTER"); lbl:SetText(label)
+
+            local active = false
+            function btn.SetActive(v)
+                active = v and true or false
+                if active then
+                    btn:SetBackdropColor(AD[1], AD[2], AD[3], 0.9)
+                    btn:SetBackdropBorderColor(A[1], A[2], A[3], 0.75)
+                    lbl:SetTextColor(1, 1, 1, 1)
+                else
+                    btn:SetBackdropColor(BG2[1], BG2[2], BG2[3], 1)
+                    btn:SetBackdropBorderColor(BD[1], BD[2], BD[3], 1)
+                    lbl:SetTextColor(TX[1], TX[2], TX[3], 1)
+                end
+            end
+            btn:SetScript("OnEnter", function()
+                btn:SetBackdropColor(A[1], A[2], A[3], 1)
+                lbl:SetTextColor(0.05, 0.05, 0.07, 1)
+            end)
+            btn:SetScript("OnLeave", function() btn.SetActive(active) end)
+            btn:SetScript("OnClick", function()
+                local rep = RES.Apply(key)
+                if rep and rep.ok then
+                    print("|cff2e9dd8TomoMod|r " .. string.format(
+                        L["respreset_applied_fmt"], key, rep.fonts or 0, rep.stamped or 0))
+                end
+                Paint()
+            end)
+            btn.SetActive(false)
+            return btn
+        end
+
+        -- Les paliers sont listés du plus grand au plus petit par le moteur ;
+        -- la page se lit mieux dans l'autre sens.
+        for i = #tiers, 1, -1 do
+            local t = tiers[i]
+            local d = RES.DescribeTier(t.key)
+            local label = L[t.label] or t.key
+            -- Meme marqueur que dans Accueil, et traduit : le mot etait
+            -- ecrit en anglais en dur des le depart.
+            if d and d.hasCapture then
+                label = label .. "  |cff00ff00" .. L["respreset_capture_tag"] .. "|r"
+            end
+            buttons[t.key] = TierButton(t.key, label, y)
+            y = y - 44
+        end
+
+        Paint()
+        p.Refresh = Paint
+
+        y = y - 4
+        local dTier = RES.DescribeTier(detected)
+        if dTier and dTier.floored then
+            y = Info(c, L["res_floored"], y)
+        end
+
+        y = Info(c, L["respreset_info"], y)
+        return y
     end,
 }
 
@@ -723,6 +832,7 @@ function INS.GoTo(index)
     currentIndex = index
 
     if key == "picker" and panel.Select  then panel.Select(selectedPreset) end
+    if key == "resolution" and panel.Refresh then panel.Refresh() end
     if key == "recap"  and panel.Refresh then panel.Refresh() end
 
     if panel._upd then C_Timer.After(0, panel._upd) end

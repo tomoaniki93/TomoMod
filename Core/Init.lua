@@ -157,6 +157,59 @@ SlashCmdList["TOMOMOD"] = function(msg)
         end
         print("|cff888888/tm context on|off|r")
 
+    elseif msg == "layout" or msg:match("^layout%s+") then
+        -- [v4] Partage de disposition. Une chaîne ne contient que les
+        -- ancres et les tailles de police : ~800 caractères contre ~50 000
+        -- pour un profil complet, et rien qui touche à la configuration.
+        local LS = TomoMod_LayoutShare
+        if not LS then return end
+        local arg = msg:match("^layout%s+(.+)$")
+
+        if arg and arg:match("^import%s+") then
+            local str = arg:match("^import%s+(.+)$")
+            local payload, err = LS.Decode(str)
+            if not payload then
+                print("|cffff0000TomoMod|r " .. tostring(err))
+                return
+            end
+            local rep = LS.Import(payload)
+            if not rep.ok then
+                print("|cffff0000TomoMod|r " .. (rep.err or L["lsh_import_empty"]))
+                return
+            end
+            print(("|cff2e9dd8TomoMod|r " .. L["lsh_imported"]):format(
+                rep.positions, rep.fonts))
+            if payload.dropped and payload.dropped > 0 then
+                print(("  |cff888888" .. L["lsh_dropped"] .. "|r"):format(payload.dropped))
+            end
+            if rep.ratio and math.abs(rep.ratio - 1) > 0.001 then
+                print(("  |cff888888" .. L["lsh_font_ratio"] .. "|r"):format(
+                    tostring(rep.fromTier), tostring(rep.tier), rep.ratio))
+            end
+            StaticPopup_Show("TOMOMOD_PROFILE_RELOAD")
+            return
+        end
+
+        if arg == "export" or arg == nil or arg == "" then
+            local str, rep = LS.Export()
+            if not str then
+                print("|cffff0000TomoMod|r " .. ((rep and rep.err) or "?"))
+                return
+            end
+            print(("|cff2e9dd8TomoMod|r " .. L["lsh_exported"]):format(
+                rep.positions, rep.fonts, rep.length))
+            -- Réutilise le popup de copie des profils : même geste, même
+            -- zone de texte sélectionnable.
+            if TomoMod_Config and TomoMod_Config.ShowExportString then
+                TomoMod_Config.ShowExportString(str)
+            else
+                print(str)
+            end
+            return
+        end
+
+        print("|cff888888/tm layout export|import <chaine>|r")
+
     elseif msg == "resolution" or msg:match("^resolution%s+") then
         -- [v4 lot 5] Presets de résolution. La commande affiche d'abord
         -- les faits d'échelle, parce que le plancher client à 0.64 rend
@@ -187,8 +240,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
             L["res_detected"] or "detected", RES.Detect(),
             tostring(pw), tostring(ph)))
         for _, t in ipairs(RES.Tiers()) do
-            local h = (t.key == "2160p" and 2160) or (t.key == "1440p" and 1440) or 1080
-            local d = RES.Describe(h)
+            local d = RES.DescribeTier(t.key)
             print(("  %-7s uiScale %.3f%s -> UIParent %d %s"):format(
                 t.key, d.appliedScale,
                 d.floored and " |cff888888(plancher)|r" or "         ",

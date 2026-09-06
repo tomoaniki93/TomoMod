@@ -251,5 +251,89 @@ check("police recalculée", TomoModDB.unitFrames.fontSize, D.unitFrames.fontSize
 check("palier inconnu refusé", RES.Apply("720p").ok, false)
 check("capture d'un palier inconnu refusée", RES.Capture("720p"), false)
 
+-- ═══════════════════════════════════════════════════════════════════════
+print("── 8. DescribeTier ──")
+
+-- Les panneaux doivent montrer ce que ferait 1080p alors que le client
+-- annonce 1440p. Le mapping palier -> hauteur representative etait
+-- recopie a la main dans la commande slash ; deux appelants de plus en
+-- auraient fait trois copies.
+PHYS.h = 1440
+local t1080 = RES.DescribeTier("1080p")
+check("1080p decrit hors du palier courant", t1080 ~= nil, true)
+check("1080p non plafonne",                  t1080 and t1080.floored, false)
+near("1080p UIParent",                       t1080 and t1080.uiHeight, 1080, 0.5)
+check("cle reportee",                        t1080 and t1080.key,   "1080p")
+check("libelle reporte",                     t1080 and t1080.label, "res_1080")
+
+local t2160 = RES.DescribeTier("2160p")
+check("2160p plafonne",   t2160 and t2160.floored,  true)
+near("2160p UIParent",    t2160 and t2160.uiHeight, 1200, 0.5)
+
+check("palier inconnu -> nil", RES.DescribeTier("720p"), nil)
+check("cle absente -> nil",    RES.DescribeTier(nil),    nil)
+
+-- L'etat de capture voyage avec la description : c'est lui qui allume la
+-- pastille verte dans les deux panneaux.
+RES._Reset()
+check("sans capture", RES.DescribeTier("1080p").hasCapture, false)
+RES.Capture("1080p")
+check("avec capture", RES.DescribeTier("1080p").hasCapture, true)
+
+-- Chaque palier doit porter sa hauteur representative, sinon Describe
+-- renvoie nil et les panneaux affichent une rangee vide.
+local missingSample = 0
+for _, t in ipairs(RES.Tiers()) do
+    if type(t.sampleHeight) ~= "number" then missingSample = missingSample + 1 end
+    if RES.DescribeTier(t.key) == nil then missingSample = missingSample + 1 end
+end
+check("tous les paliers descriptibles", missingSample, 0)
+
+-- ═══════════════════════════════════════════════════════════════════════
+print("── 9. Cablage des panneaux (garde statique) ──")
+
+local function read(path)
+    local fh = io.open(path, "rb")
+    if not fh then return nil end
+    local t = fh:read("*a"); fh:close()
+    return (t:gsub("^\239\187\191", ""):gsub("\r\n", "\n"))
+end
+
+local ins = read("TomoMod_Options/Config/Installer.lua")
+check("Installer lisible", ins ~= nil, true)
+if ins then
+    -- L'etape doit exister ET preceder le choix d'archetype dans les deux
+    -- parcours : les tailles de police qu'un preset ecrit sont le terrain
+    -- sur lequel les presets d'archetype s'appuient ensuite.
+    check("page resolution definie", ins:find("pages.resolution", 1, true) ~= nil, true)
+    for _, flowName in ipairs({ "FLOW_PRESET", "FLOW_CUSTOM" }) do
+        local line = ins:match("local " .. flowName .. "%s*=%s*(%b{})")
+        check(flowName .. " trouve", line ~= nil, true)
+        if line then
+            local iRes = line:find('"resolution"', 1, true)
+            local iPick = line:find('"picker"', 1, true)
+            check(flowName .. " contient resolution", iRes ~= nil, true)
+            check(flowName .. " : resolution avant picker",
+                  (iRes and iPick and iRes < iPick) or false, true)
+        end
+    end
+    -- Une pastille par etape : le vivier doit couvrir le plus long parcours.
+    local maxDots = tonumber(ins:match("local MAX_DOTS%s*=%s*(%d+)"))
+    local custom  = ins:match("local FLOW_CUSTOM%s*=%s*(%b{})") or ""
+    local n = 0
+    for _ in custom:gmatch('"[%w_]+"') do n = n + 1 end
+    check("assez de pastilles pour FLOW_CUSTOM", (maxDots or 0) >= n, true)
+end
+
+local acc = read("TomoMod_Options/Config/Panels/Accueil.lua")
+check("Accueil lisible", acc ~= nil, true)
+if acc then
+    check("carte resolution definie", acc:find("CreateResolution", 1, true) ~= nil, true)
+    local iRes  = acc:find("y = CreateResolution(c, y)", 1, true)
+    local iQuick = acc:find("y = CreateQuickConfig(c, y)", 1, true)
+    check("resolution avant la selection de role",
+          (iRes and iQuick and iRes < iQuick) or false, true)
+end
+
 print(ok and "\nTOUT EST VERT" or "\nDES TESTS ONT ÉCHOUÉ")
 os.exit(ok and 0 or 1)

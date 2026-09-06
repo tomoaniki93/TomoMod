@@ -58,6 +58,7 @@ Core\ModuleReloadUI.lua
 Core\LayoutEngine.lua
 Core\LayoutV41.lua
 Core\ResolutionPresets.lua
+Core\LayoutShare.lua
 Core\Profiles.lua
 Core\ContextProfiles.lua
 Core\SelectiveImport.lua

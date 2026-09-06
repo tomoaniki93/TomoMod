@@ -65,6 +65,9 @@ CHANGELOG = {
     {
         version = "4.0.2",
         highlights = {
+            L["wn_402_astral_bar_textures"],
+            L["wn_402_astral_targeted_resets"],
+            L["wn_402_astral_reset_workflow"],
             L["wn_402_astral_dragging"],
             L["wn_402_astral_handles"],
             L["wn_402_astral_instances"],
@@ -78,6 +81,12 @@ CHANGELOG = {
             L["wn_402_astral_frame_categories"],
             L["wn_402_astral_frame_preview"],
             L["wn_402_astral_nameplate_parity"],
+            L["wn_402_astral_np_elements_preview"],
+            L["wn_402_astral_np_elements_layering"],
+            L["wn_402_astral_np_elements_sync"],
+            L["wn_402_resolution_gui"],
+            L["wn_402_resolution_capture_gui"],
+            L["wn_402_resolution_tier_details"],
             L["wn_402_astral_custom_bars"],
             L["wn_402_astral_bar_sources"],
             L["wn_402_astral_bar_runtime"],

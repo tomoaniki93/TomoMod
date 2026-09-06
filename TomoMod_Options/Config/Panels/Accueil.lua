@@ -963,6 +963,112 @@ local function CreateProfileOptions()
     return profOpts, active
 end
 
+-- =====================================================================
+-- RESOLUTION PRESET
+-- Core/ResolutionPresets.lua shipped with a full engine, a bench and six
+-- locales, but no way in beyond /tm resolution. This is the entry point.
+--
+-- Placed before the archetype grid on purpose: the type sizes a preset
+-- writes are the ground the role presets then build on, so choosing the
+-- screen first and the role second is the order that does not undo work.
+-- =====================================================================
+
+local function ResolutionSummary(RES)
+    local pw, ph = RES.PhysicalSize()
+    local detected = RES.Detect()
+    if not ph then
+        return Localize("respreset_unknown", "Résolution indisponible."), detected
+    end
+    return string.format(
+        Localize("respreset_detected_fmt", "Écran %sx%s — palier détecté : %s"),
+        tostring(pw), tostring(ph), detected), detected
+end
+
+local function CreateResolution(parent, y)
+    local RES = TomoMod_Resolution
+    -- The engine lives in the base addon; the options addon must not
+    -- assume it loaded.
+    if not RES or not RES.Tiers then return y end
+
+    local card, cy = W.CreateCard(parent,
+        Localize("respreset_section", "Résolution"), y)
+
+    local summary, detected = ResolutionSummary(RES)
+    local _, sy = W.CreateInfoText(card.inner, summary, cy)
+    cy = sy
+
+    local opts, floored = {}, {}
+    for _, t in ipairs(RES.Tiers()) do
+        local d = RES.DescribeTier(t.key)
+        local label = Localize(t.label, t.key)
+        if d and d.hasCapture then
+            -- Un glyphe encode en octets Lua ne se dessine pas dans toutes
+            -- les polices : il sortait en carre vide. Un mot traduit ne peut
+            -- pas manquer a l'appel.
+            label = label .. "  |cff00ff00"
+                .. Localize("respreset_capture_tag", "capture") .. "|r"
+        end
+        -- Tiers are listed tallest first by the engine; the control reads
+        -- better the other way round.
+        table.insert(opts, 1, { text = label, value = t.key })
+        if d and d.floored then floored[t.key] = true end
+    end
+
+    local current = RES.Applied() or detected
+    local _, ry = W.CreateSegmentedControl(card.inner,
+        Localize("respreset_choose", "Palier"), opts, current, cy, function(v)
+            local rep = RES.Apply(v)
+            if not rep or not rep.ok then return end
+            print("|cff2e9dd8TomoMod|r " .. string.format(
+                Localize("respreset_applied_fmt", "Palier %s appliqué (%d polices, %d ancres)."),
+                v, rep.fonts or 0, rep.stamped or 0))
+            if rep.floored then
+                print("  |cff888888" .. Localize("res_floored", "") .. "|r")
+            end
+            StaticPopup_Show("TOMOMOD_DASH_RELOAD")
+        end, 3)
+    cy = ry
+
+    if floored[detected] then
+        local _, fy = W.CreateInfoText(card.inner, Localize("res_floored", ""), cy)
+        cy = fy
+    end
+
+    local _, capY = W.CreateButton(card.inner,
+        Localize("respreset_capture", "Capturer ma disposition"), 240, cy, function()
+            local tier = RES.Detect()
+            local okCap = RES.Capture(tier)
+            print("|cff2e9dd8TomoMod|r " .. (okCap
+                and string.format(Localize("respreset_capture_ok", "Disposition capturée pour %s."), tier)
+                or  Localize("respreset_capture_fail", "Capture impossible.")))
+            if TomoMod_Config and TomoMod_Config.InvalidatePanels then
+                TomoMod_Config.InvalidatePanels()
+            end
+        end)
+    cy = capY
+
+    if RES.HasCapture(detected) then
+        local _, clrY = W.CreateButton(card.inner,
+            Localize("respreset_capture_clear", "Effacer la capture"), 240, cy, function()
+                RES.ClearCapture(detected)
+                print("|cff2e9dd8TomoMod|r " .. string.format(
+                    Localize("respreset_capture_cleared", "Capture effacée pour %s."), detected))
+                if TomoMod_Config and TomoMod_Config.InvalidatePanels then
+                    TomoMod_Config.InvalidatePanels()
+                end
+            end)
+        cy = clrY
+    end
+
+    local _, infoY = W.CreateInfoText(card.inner,
+        Localize("respreset_info",
+            "Une capture prime toujours sur les valeurs calculées : réglez votre interface, puis capturez."),
+        cy)
+    cy = infoY
+
+    return W.FinalizeCard(card, cy)
+end
+
 local function CreateQuickConfig(parent, y)
     local list = {}
     if TomoMod_Presets and TomoMod_Presets.GetList then
@@ -1036,6 +1142,7 @@ function TomoMod_ConfigPanel_Accueil(parent)
     -- tableau de bord est une vue de synthèse. Placée AVANT Maintenance, qui
     -- contient la réinitialisation totale et doit rester la dernière chose lue.
     y = TomoMod_Suite.CreateCard(c, y, true)
+    y = CreateResolution(c, y)
     y = CreateQuickConfig(c, y)
 
     local card3, py = W.CreateCard(c, Localize("dash_profile_section", "Profil"), y)

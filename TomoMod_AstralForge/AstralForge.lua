@@ -667,6 +667,114 @@ if TomoMod_RegisterLocale then
     })
 end
 
+-- ---------------------------------------------------------------------
+-- Astral Forge Studio V2.1 - Lot 3 / Bars + Resets
+-- ---------------------------------------------------------------------
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["af_nav_presets"]         = "Resets",
+        ["af_bars_unit_only"]      = "Bars are available only for UnitFrames.",
+        ["af_bars_shared_info"]    = "Bar texture is shared by TomoMod UnitFrames. Sizes stay in Frame and placement stays in Elements.",
+        ["af_bars_main_texture"]   = "Main bar texture",
+        ["af_texture_tomo"]        = "TomoMod",
+        ["af_texture_flat"]        = "Flat",
+        ["af_texture_blizzard"]    = "Blizzard",
+        ["af_resets_title"]        = "Resets",
+        ["af_resets_info"]         = "Restore only what you need for the selected subject.",
+        ["af_reset_position"]      = "Reset interface position",
+        ["af_reset_position_info"] = "Restores the default screen anchor and offsets.",
+        ["af_reset_sizes"]         = "Reset sizes",
+        ["af_reset_sizes_info"]    = "Restores frame dimensions without moving elements.",
+        ["af_reset_elements"]      = "Reset elements",
+        ["af_reset_elements_info"] = "Restores Forge element positions/properties and removes custom instances.",
+        ["af_reset_complete"]      = "Reset everything",
+        ["af_reset_done"]          = "Reset applied.",
+        ["af_tutorial_6_title"]    = "Restore safely",
+        ["af_tutorial_6_body"]     = "The Resets tab restores the interface position, dimensions or elements independently, with a full reset available when needed.",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["af_nav_presets"]         = "Resets",
+        ["af_bars_unit_only"]      = "Les Barres sont disponibles uniquement pour les UnitFrames.",
+        ["af_bars_shared_info"]    = "La texture des barres est partagée par les UnitFrames TomoMod. Les tailles restent dans Cadre et les positions dans Éléments.",
+        ["af_bars_main_texture"]   = "Texture principale des barres",
+        ["af_texture_tomo"]        = "TomoMod",
+        ["af_texture_flat"]        = "Plate",
+        ["af_texture_blizzard"]    = "Blizzard",
+        ["af_resets_title"]        = "Resets",
+        ["af_resets_info"]         = "Restaure uniquement ce dont tu as besoin pour le sujet sélectionné.",
+        ["af_reset_position"]      = "Reset position interface",
+        ["af_reset_position_info"] = "Restaure l'ancrage et les décalages par défaut à l'écran.",
+        ["af_reset_sizes"]         = "Reset tailles",
+        ["af_reset_sizes_info"]    = "Restaure les dimensions sans déplacer les éléments.",
+        ["af_reset_elements"]      = "Reset éléments",
+        ["af_reset_elements_info"] = "Restaure les positions/propriétés Forge et supprime les éléments personnalisés.",
+        ["af_reset_complete"]      = "Tout réinitialiser",
+        ["af_reset_done"]          = "Reset appliqué.",
+        ["af_tutorial_6_title"]    = "Restaure proprement",
+        ["af_tutorial_6_body"]     = "L'onglet Resets permet de restaurer séparément la position sur l'interface, les tailles ou les éléments, avec un reset complet si nécessaire.",
+    })
+    TomoMod_RegisterLocale("deDE", {
+        ["af_nav_presets"]         = "Zurücksetzen",
+        ["af_bars_unit_only"]      = "Leisten sind nur für UnitFrames verfügbar.",
+        ["af_bars_shared_info"]    = "Die Leistentextur wird von TomoMod-UnitFrames gemeinsam genutzt. Größen bleiben unter Rahmen, Positionen unter Elemente.",
+        ["af_bars_main_texture"]   = "Haupt-Leistentextur",
+        ["af_texture_tomo"]        = "TomoMod", ["af_texture_flat"] = "Flach", ["af_texture_blizzard"] = "Blizzard",
+        ["af_resets_title"]        = "Zurücksetzen",
+        ["af_resets_info"]         = "Setze nur den benötigten Bereich des gewählten Ziels zurück.",
+        ["af_reset_position"]      = "Interface-Position zurücksetzen",
+        ["af_reset_position_info"] = "Stellt Standardanker und -versatz wieder her.",
+        ["af_reset_sizes"]         = "Größen zurücksetzen",
+        ["af_reset_sizes_info"]    = "Stellt die Abmessungen wieder her, ohne Elemente zu verschieben.",
+        ["af_reset_elements"]      = "Elemente zurücksetzen",
+        ["af_reset_elements_info"] = "Stellt Forge-Elemente wieder her und entfernt benutzerdefinierte Instanzen.",
+        ["af_reset_complete"]      = "Alles zurücksetzen", ["af_reset_done"] = "Zurücksetzen angewendet.",
+        ["af_tutorial_6_title"]    = "Sauber wiederherstellen",
+        ["af_tutorial_6_body"]     = "Der Reiter Zurücksetzen stellt Position, Größen oder Elemente getrennt wieder her; bei Bedarf ist ein kompletter Reset möglich.",
+    })
+    TomoMod_RegisterLocale("esES", {
+        ["af_nav_presets"]         = "Restablecer",
+        ["af_bars_unit_only"]      = "Las Barras están disponibles solo para UnitFrames.",
+        ["af_bars_shared_info"]    = "La textura se comparte entre los UnitFrames de TomoMod. Los tamaños quedan en Marco y las posiciones en Elementos.",
+        ["af_bars_main_texture"]   = "Textura principal de barras",
+        ["af_texture_tomo"]        = "TomoMod", ["af_texture_flat"] = "Plana", ["af_texture_blizzard"] = "Blizzard",
+        ["af_resets_title"]        = "Restablecer", ["af_resets_info"] = "Restaura solo lo necesario para el sujeto seleccionado.",
+        ["af_reset_position"]      = "Restablecer posición", ["af_reset_position_info"] = "Restaura el anclaje y desplazamientos predeterminados.",
+        ["af_reset_sizes"]         = "Restablecer tamaños", ["af_reset_sizes_info"] = "Restaura dimensiones sin mover elementos.",
+        ["af_reset_elements"]      = "Restablecer elementos", ["af_reset_elements_info"] = "Restaura elementos Forge y elimina instancias personalizadas.",
+        ["af_reset_complete"]      = "Restablecer todo", ["af_reset_done"] = "Restablecimiento aplicado.",
+        ["af_tutorial_6_title"]    = "Restaura con seguridad",
+        ["af_tutorial_6_body"]     = "La pestaña Restablecer permite restaurar por separado posición, tamaños o elementos, además de un restablecimiento completo.",
+    })
+    TomoMod_RegisterLocale("itIT", {
+        ["af_nav_presets"]         = "Ripristina",
+        ["af_bars_unit_only"]      = "Le Barre sono disponibili solo per le UnitFrame.",
+        ["af_bars_shared_info"]    = "La texture è condivisa dalle UnitFrame TomoMod. Le dimensioni restano in Riquadro e le posizioni in Elementi.",
+        ["af_bars_main_texture"]   = "Texture principale delle barre",
+        ["af_texture_tomo"]        = "TomoMod", ["af_texture_flat"] = "Piatta", ["af_texture_blizzard"] = "Blizzard",
+        ["af_resets_title"]        = "Ripristina", ["af_resets_info"] = "Ripristina solo ciò che serve per il soggetto selezionato.",
+        ["af_reset_position"]      = "Ripristina posizione", ["af_reset_position_info"] = "Ripristina ancoraggio e offset predefiniti.",
+        ["af_reset_sizes"]         = "Ripristina dimensioni", ["af_reset_sizes_info"] = "Ripristina le dimensioni senza spostare gli elementi.",
+        ["af_reset_elements"]      = "Ripristina elementi", ["af_reset_elements_info"] = "Ripristina gli elementi Forge e rimuove le istanze personalizzate.",
+        ["af_reset_complete"]      = "Ripristina tutto", ["af_reset_done"] = "Ripristino applicato.",
+        ["af_tutorial_6_title"]    = "Ripristina in sicurezza",
+        ["af_tutorial_6_body"]     = "La scheda Ripristina consente di ripristinare separatamente posizione, dimensioni o elementi, con un reset completo quando serve.",
+    })
+    TomoMod_RegisterLocale("ptBR", {
+        ["af_nav_presets"]         = "Redefinir",
+        ["af_bars_unit_only"]      = "As Barras estão disponíveis apenas para UnitFrames.",
+        ["af_bars_shared_info"]    = "A textura é compartilhada pelas UnitFrames TomoMod. Tamanhos ficam em Quadro e posições em Elementos.",
+        ["af_bars_main_texture"]   = "Textura principal das barras",
+        ["af_texture_tomo"]        = "TomoMod", ["af_texture_flat"] = "Plana", ["af_texture_blizzard"] = "Blizzard",
+        ["af_resets_title"]        = "Redefinir", ["af_resets_info"] = "Restaure apenas o necessário para o assunto selecionado.",
+        ["af_reset_position"]      = "Redefinir posição", ["af_reset_position_info"] = "Restaura a âncora e os deslocamentos padrão.",
+        ["af_reset_sizes"]         = "Redefinir tamanhos", ["af_reset_sizes_info"] = "Restaura dimensões sem mover os elementos.",
+        ["af_reset_elements"]      = "Redefinir elementos", ["af_reset_elements_info"] = "Restaura elementos Forge e remove instâncias personalizadas.",
+        ["af_reset_complete"]      = "Redefinir tudo", ["af_reset_done"] = "Redefinição aplicada.",
+        ["af_tutorial_6_title"]    = "Restaure com segurança",
+        ["af_tutorial_6_body"]     = "A aba Redefinir restaura separadamente posição, tamanhos ou elementos, com redefinição completa quando necessário.",
+    })
+end
+
 local S = { state = {
     subject = "player", element = nil, preset = nil, importText = "",
     showFrameEditor = false,
@@ -1284,6 +1392,320 @@ local function HideNameplateCadreParity(restoreForgePreview)
         RebuildSubject()
     end
 end
+
+-- ---------------------------------------------------------------------
+-- Nameplates Elements Preview Parity
+-- ---------------------------------------------------------------------
+-- Elements needs a single readable plate backdrop so handles are no longer
+-- floating in empty space. Unlike Cadre, keep the real Forge subject alive
+-- on top so every element remains selectable and draggable.
+local nameplateElementsParity
+
+local function IsElementsView()
+    return not S.state.showFrameEditor
+       and not S.state.showBars
+       and not S.state.showPresets
+end
+
+local function CreateNameplateElementsParity(parent)
+    if nameplateElementsParity then
+        nameplateElementsParity:SetParent(parent)
+        nameplateElementsParity:ClearAllPoints()
+        nameplateElementsParity:SetAllPoints(parent)
+        if parent.GetFrameStrata and nameplateElementsParity.SetFrameStrata then
+            nameplateElementsParity:SetFrameStrata(parent:GetFrameStrata())
+        end
+        if parent.GetFrameLevel and nameplateElementsParity.SetFrameLevel then
+            nameplateElementsParity:SetFrameLevel(parent:GetFrameLevel() + 4)
+        end
+        return nameplateElementsParity
+    end
+
+    local WHITE = "Interface\\Buttons\\WHITE8x8"
+    local root = CreateFrame("Frame", nil, parent)
+    root:SetAllPoints(parent)
+    -- Same strata as the Canvas, just above its opaque backdrop.
+    if parent.GetFrameStrata and root.SetFrameStrata then
+        root:SetFrameStrata(parent:GetFrameStrata())
+    end
+    if parent.GetFrameLevel and root.SetFrameLevel then
+        root:SetFrameLevel(parent:GetFrameLevel() + 4)
+    end
+    if root.SetClipsChildren then root:SetClipsChildren(true) end
+
+    local plate = CreateFrame("Frame", nil, root, "BackdropTemplate")
+    plate:SetFrameLevel(root:GetFrameLevel() + 1)
+    plate:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
+    plate:SetBackdropColor(0.020, 0.022, 0.030, 0.90)
+    root._plate = plate
+
+    local health = CreateFrame("StatusBar", nil, plate)
+    health:SetStatusBarTexture(WHITE)
+    health:SetMinMaxValues(0, 100)
+    health:SetValue(77)
+    plate._health = health
+
+    local healthBg = health:CreateTexture(nil, "BACKGROUND")
+    healthBg:SetAllPoints()
+    plate._healthBg = healthBg
+
+    local cast = CreateFrame("StatusBar", nil, plate)
+    cast:SetStatusBarTexture(WHITE)
+    cast:SetMinMaxValues(0, 100)
+    cast:SetValue(62)
+    plate._cast = cast
+
+    local castBg = cast:CreateTexture(nil, "BACKGROUND")
+    castBg:SetAllPoints()
+    plate._castBg = castBg
+
+    local name = plate:CreateFontString(nil, "OVERLAY")
+    name:SetFont(
+        "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf",
+        10, "OUTLINE")
+    plate._name = name
+
+    local pct = health:CreateFontString(nil, "OVERLAY")
+    pct:SetFont(
+        "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf",
+        8, "OUTLINE")
+    pct:SetText("77%")
+    pct:SetTextColor(1, 1, 1, 0.86)
+    plate._pct = pct
+
+    local level = plate:CreateFontString(nil, "OVERLAY")
+    level:SetFont(
+        "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf",
+        8, "OUTLINE")
+    level:SetText("82")
+    level:SetTextColor(0.92, 0.94, 0.98, 0.88)
+    plate._level = level
+
+    local classif = plate:CreateTexture(nil, "OVERLAY")
+    classif:SetSize(14, 14)
+    classif:SetColorTexture(1, 1, 1, 0.90)
+    plate._classification = classif
+
+    function root:Refresh()
+        if not self:IsShown() then return end
+        local db = TomoModDB and TomoModDB.nameplates
+        if not db then return end
+
+        local stageW = self:GetWidth() or 0
+        local stageH = self:GetHeight() or 0
+        if stageW < 160 or stageH < 90 then return end
+
+        -- Use the REAL detached Nameplate geometry after the engine refresh.
+        -- DB remains the fallback for the first frame before subject exists.
+        local width = db.width or 170
+        local height = db.height or 12
+        local castH = db.castbarHeight or 5
+        if subject and subject.health then
+            width = subject.health:GetWidth() or width
+            height = subject.health:GetHeight() or height
+        end
+        if subject and subject.castbar then
+            castH = subject.castbar:GetHeight() or castH
+        end
+
+        width  = NPPreviewClamp(width, 80, 360, 170)
+        height = NPPreviewClamp(height, 8, 50, 12)
+        castH  = NPPreviewClamp(castH, 3, 16, 5)
+
+        local maxW = math.max(120, stageW - 120)
+        width = math.min(width, maxW)
+
+        local pr, pg, pb = NPPreviewColor(db, "hostile", { 0.95, 0.35, 0.28 })
+        local cr, cg, cb = 0.95, 0.58, 0.20
+
+        local plate = self._plate
+        plate:ClearAllPoints()
+        plate:SetPoint("CENTER", self, "CENTER", 0, -10)
+        plate:SetSize(width + 6, height + castH + 14)
+        plate:SetBackdropBorderColor(pr, pg, pb, db.showThreat ~= false and 0.72 or 0.32)
+
+        local health = plate._health
+        health:ClearAllPoints()
+        health:SetPoint("TOPLEFT", plate, "TOPLEFT", 3, -4)
+        health:SetPoint("TOPRIGHT", plate, "TOPRIGHT", -3, -4)
+        health:SetHeight(height)
+        health:SetStatusBarColor(pr, pg, pb, 0.96)
+        plate._healthBg:SetColorTexture(pr * 0.12, pg * 0.12, pb * 0.12, 1)
+
+        local cast = plate._cast
+        cast:ClearAllPoints()
+        cast:SetPoint("TOPLEFT", health, "BOTTOMLEFT", 0, -3)
+        cast:SetPoint("TOPRIGHT", health, "BOTTOMRIGHT", 0, -3)
+        cast:SetHeight(castH)
+        cast:SetStatusBarColor(cr, cg, cb, 0.94)
+        cast:SetShown(db.showCastbar ~= false)
+        plate._castBg:SetColorTexture(0.16, 0.10, 0.04, db.showCastbar ~= false and 0.80 or 0.0)
+
+        plate._name:ClearAllPoints()
+        plate._name:SetPoint("BOTTOMLEFT", plate, "TOPLEFT", 2, 3)
+        plate._name:SetText(NPPreviewText("preview_np_target", "Cible hostile"))
+        plate._name:SetShown(db.showName ~= false)
+        plate._name:SetTextColor(pr, pg, pb, 1)
+        plate._name:SetFont(
+            "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf",
+            NPPreviewClamp(db.nameFontSize, 6, 20, 10),
+            "OUTLINE")
+
+        plate._pct:ClearAllPoints()
+        plate._pct:SetPoint("RIGHT", health, "RIGHT", -4, 0)
+        plate._pct:SetShown(db.showHealthText ~= false)
+
+        plate._level:ClearAllPoints()
+        plate._level:SetPoint("LEFT", health, "LEFT", 4, 0)
+        plate._level:SetShown(db.showLevel ~= false)
+
+        plate._classification:ClearAllPoints()
+        plate._classification:SetPoint("RIGHT", plate, "RIGHT", -10, 10)
+        plate._classification:SetShown(db.showClassification ~= false)
+    end
+
+    root:SetScript("OnSizeChanged", function(self)
+        C_Timer.After(0, function()
+            if self and self:IsShown() and self.Refresh then self:Refresh() end
+        end)
+    end)
+
+    nameplateElementsParity = root
+    return root
+end
+
+local function ShowNameplateElementsParity()
+    if SubjectKind() ~= "nameplate" or not IsElementsView() then return end
+    if not stageHost then return end
+
+    local NP = TomoMod_Nameplates
+    if NP and NP.RefreshPreviewPlate and subject then
+        NP.RefreshPreviewPlate(subject, plateSubjectBase, {
+            name = NPPreviewText("preview_np_target", "Cible hostile"),
+        })
+    end
+
+    -- Rebind the Canvas AFTER the engine changed the real widget geometry.
+    -- This is the important part: handles are recomputed from health,
+    -- castbar, texts, etc. at their new dimensions instead of preserving
+    -- their previous rectangles.
+    local store = Store()
+    local reg = Registry()
+    if canvas and canvas.SetSubject and subject and store and reg then
+        suppressCanvasSelect = true
+        canvas:SetSubject(subject, store, reg.DOMAIN)
+        suppressCanvasSelect = false
+        if S.state.element and canvas.Select then
+            suppressCanvasSelect = true
+            canvas:Select(S.state.element)
+            suppressCanvasSelect = false
+        end
+    end
+
+    local preview = CreateNameplateElementsParity(stageHost)
+
+    local function RaiseForgeHandles()
+        if not (preview and preview:IsShown()) then return end
+        local baseLevel = preview:GetFrameLevel() + 20
+        if canvas and type(canvas.handles) == "table" then
+            for _, handle in pairs(canvas.handles) do
+                if handle and handle.SetFrameLevel then
+                    handle:SetFrameLevel(baseLevel)
+                end
+                if handle and handle.EnableMouse then
+                    handle:EnableMouse(true)
+                end
+            end
+        end
+    end
+
+    local function ReanchorAndRefreshPreview()
+        if SubjectKind() ~= "nameplate" or not IsElementsView() then return end
+        if not (preview and preview:IsShown()) then return end
+
+        preview:SetParent(stageHost)
+        preview:ClearAllPoints()
+        preview:SetAllPoints(stageHost)
+
+        if stageHost.GetFrameStrata and preview.SetFrameStrata then
+            preview:SetFrameStrata(stageHost:GetFrameStrata())
+        end
+        if stageHost.GetFrameLevel and preview.SetFrameLevel then
+            preview:SetFrameLevel(stageHost:GetFrameLevel() + 4)
+        end
+        if preview._plate and preview._plate.SetFrameLevel then
+            preview._plate:SetFrameLevel(preview:GetFrameLevel() + 1)
+        end
+
+        preview:Show()
+        preview:Refresh()
+        RaiseForgeHandles()
+    end
+
+    preview:Show()
+    preview:Refresh()
+
+    if plateSubjectBase and plateSubjectBase.Show then plateSubjectBase:Show() end
+    if subject and subject.Show then subject:Show() end
+    RaiseForgeHandles()
+
+    -- The engine refresh above is synchronous. One deferred pass only
+    -- compensates for Canvas layout settling after a tab switch; it does not
+    -- rebuild the Nameplate subject.
+    C_Timer.After(0, function()
+        if SubjectKind() ~= "nameplate" or not IsElementsView() then return end
+
+        if NP and NP.RefreshPreviewPlate and subject then
+            NP.RefreshPreviewPlate(subject, plateSubjectBase, {
+                name = NPPreviewText("preview_np_target", "Cible hostile"),
+            })
+        end
+
+        local currentStore = Store()
+        local currentReg = Registry()
+        if canvas and canvas.SetSubject and subject and currentStore and currentReg then
+            suppressCanvasSelect = true
+            canvas:SetSubject(subject, currentStore, currentReg.DOMAIN)
+            if S.state.element and canvas.Select then
+                canvas:Select(S.state.element)
+            end
+            suppressCanvasSelect = false
+        end
+
+        ReanchorAndRefreshPreview()
+    end)
+end
+
+local function HideNameplateElementsParity()
+    if nameplateElementsParity then nameplateElementsParity:Hide() end
+end
+
+do
+    local _RebuildSubject = RebuildSubject
+    function RebuildSubject(...)
+        local result = _RebuildSubject(...)
+        if SubjectKind() == "nameplate" then
+            if S.state.showFrameEditor then
+                ShowNameplateCadreParity()
+            elseif IsElementsView() then
+                ShowNameplateElementsParity()
+            end
+        end
+        return result
+    end
+end
+
+do
+    local _CommitFrameEdit = CommitFrameEdit
+    function CommitFrameEdit(...)
+        local result = _CommitFrameEdit(...)
+        if SubjectKind() == "nameplate" and IsElementsView() then
+            ShowNameplateElementsParity()
+        end
+        return result
+    end
+end
+
 
 
 -- ---------------------------------------------------------------------
@@ -2542,8 +2964,12 @@ end
 
 local function V22CommitFrameEdit()
     CommitFrameEdit()
-    if SubjectKind() == "nameplate" and S.state.showFrameEditor then
-        ShowNameplateCadreParity()
+    if SubjectKind() == "nameplate" then
+        if S.state.showFrameEditor then
+            ShowNameplateCadreParity()
+        elseif IsElementsView() then
+            ShowNameplateElementsParity()
+        end
     end
     V22HideFramePreviewNoise()
 end
@@ -3513,6 +3939,7 @@ function S.BuildFrameEditorV22(c)
     local db = Settings()
     local y = -8
 
+    HideNameplateElementsParity()
     V22EnsureFramePreview()
     if SubjectKind() == "nameplate" then
         ShowNameplateCadreParity()
@@ -3596,21 +4023,42 @@ local BAR_SUBJECTS = {
     focus = true,
     pet = true,
     targettarget = true,
-    nameplate = true,
+}
+
+local function BarsSupported()
+    return BAR_SUBJECTS[S.state.subject] == true
+end
+
+local AF_BAR_TEXTURES = {
+    { text = L["af_texture_tomo"], value = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki" },
+    { text = L["af_texture_flat"], value = "Interface\\Buttons\\WHITE8x8" },
+    { text = L["af_texture_blizzard"], value = "Interface\\TargetingFrame\\UI-StatusBar" },
 }
 
 function S.BuildBarsPanel(c)
     local y = -8
     local _, ny = W.CreateSectionHeader(c, L["af_bars_title"], y, "B")
     y = ny
-    local _, ny = W.CreateInfoText(c, L["af_bars_info"], y)
+    local _, ny = W.CreateInfoText(c, L["af_bars_shared_info"], y)
     y = ny
 
-    if not BAR_SUBJECTS[S.state.subject] then
-        local _, ny = W.CreateInfoText(c, L["af_bars_unavailable"], y)
+    if not BarsSupported() then
+        local _, ny = W.CreateInfoText(c, L["af_bars_unit_only"], y)
         y = ny
         c:SetHeight(math.abs(y) + 40)
         return
+    end
+
+    local globalDB = TomoModDB and TomoModDB.unitFrames
+    if globalDB then
+        local _, ny = W.CreateDropdown(c, L["af_bars_main_texture"], AF_BAR_TEXTURES,
+            globalDB.texture or AF_BAR_TEXTURES[1].value, y, function(v)
+                globalDB.texture = v
+                local UF = TomoMod_UnitFrames
+                if UF and UF.RefreshAllUnits then UF.RefreshAllUnits() end
+                RebuildSubject()
+            end)
+        y = ny
     end
 
     local reg = Registry()
@@ -3706,10 +4154,9 @@ function S.RebuildInspector()
         return
     end
 
-    -- Panneau presets : occupe l'inspecteur quand il est ouvert, plutot que
-    -- d'ajouter une troisieme colonne dans une fenetre deja dense.
+    -- Resets : position, tailles et éléments sont restaurés séparément.
     if S.state.showPresets then
-        S.BuildPresetPanel(c, store)
+        S.BuildResetPanel(c)
         return
     end
 
@@ -4071,6 +4518,121 @@ function S.BuildPresetPanel(c, store)
 end
 
 -- ---------------------------------------------------------------------
+-- Resets
+-- ---------------------------------------------------------------------
+local function AFDeepCopy(value)
+    if type(value) ~= "table" then return value end
+    local out = {}
+    for k, v in pairs(value) do out[k] = AFDeepCopy(v) end
+    return out
+end
+
+local function ResetDefaultsForSubject()
+    local sub = Subject()
+    if not (sub and TomoMod_Defaults) then return nil end
+    if sub.kind == "unitframe" then
+        return TomoMod_Defaults.unitFrames and TomoMod_Defaults.unitFrames[sub.value]
+    elseif sub.kind == "bossframe" then
+        return TomoMod_Defaults.unitFrames and TomoMod_Defaults.unitFrames.bossFrames
+    elseif sub.kind == "nameplate" then
+        return TomoMod_Defaults.nameplates
+    elseif sub.kind == "castbar" then
+        return TomoMod_Defaults.castbars and TomoMod_Defaults.castbars[sub.castUnit]
+    end
+end
+
+local function ResetPositionOnly()
+    local db, def = Settings(), ResetDefaultsForSubject()
+    if not (db and def and def.position) then return false end
+    db.position = AFDeepCopy(def.position)
+    if def.anchorTo ~= nil then db.anchorTo = def.anchorTo end
+    if def.anchorToUnitFrame ~= nil then db.anchorToUnitFrame = def.anchorToUnitFrame end
+    if def.anchorOffsetY ~= nil then db.anchorOffsetY = def.anchorOffsetY end
+    return true
+end
+
+local function ResetSizesOnly()
+    local db, def = Settings(), ResetDefaultsForSubject()
+    if not (db and def) then return false end
+    local kind = SubjectKind()
+    local fields
+    if kind == "unitframe" then
+        fields = { "width", "height", "healthHeight", "powerHeight", "infoBarHeight" }
+    elseif kind == "bossframe" then
+        fields = { "width", "height", "spacing" }
+    elseif kind == "nameplate" then
+        fields = { "width", "height", "castbarHeight", "nameFontSize" }
+    elseif kind == "castbar" then
+        fields = { "width", "height" }
+    else
+        return false
+    end
+    for _, key in ipairs(fields) do
+        if def[key] ~= nil then db[key] = AFDeepCopy(def[key]) end
+    end
+    return true
+end
+
+local function ResetElementsOnly()
+    local store, reg = Store(), Registry()
+    local dom = reg and reg.DOMAIN
+    if not (store and reg and dom) then return false end
+
+    local instances = {}
+    for _, inst in ipairs(R.ListInstances(dom, store) or {}) do
+        instances[#instances + 1] = inst.key
+    end
+    for _, key in ipairs(instances) do R.RemoveInstance(dom, store, key) end
+    for _, desc in ipairs(reg.List() or {}) do
+        store[desc.id] = R.Default(dom, desc.id)
+    end
+    return true
+end
+
+local function FinishReset()
+    Apply()
+    RebuildSubject()
+    S.state.element = nil
+    S.RebuildSidebar()
+    S.RebuildInspector()
+    print("|cff2e9dd8TomoMod|r " .. L["af_reset_done"])
+end
+
+function S.BuildResetPanel(c)
+    local y = -8
+    local _, ny = W.CreateSectionHeader(c, L["af_resets_title"], y, "R"); y = ny
+    local _, ny = W.CreateInfoText(c, L["af_resets_info"], y); y = ny
+
+    local _, ny = W.CreateSubLabel(c, L["af_reset_position"], y); y = ny
+    local _, ny = W.CreateInfoText(c, L["af_reset_position_info"], y); y = ny
+    local _, ny = W.CreateButton(c, L["af_reset_position"], 260, y, function()
+        if ResetPositionOnly() then FinishReset() end
+    end); y = ny
+
+    local _, ny = W.CreateSubLabel(c, L["af_reset_sizes"], y); y = ny
+    local _, ny = W.CreateInfoText(c, L["af_reset_sizes_info"], y); y = ny
+    local _, ny = W.CreateButton(c, L["af_reset_sizes"], 260, y, function()
+        if ResetSizesOnly() then FinishReset() end
+    end); y = ny
+
+    local _, ny = W.CreateSubLabel(c, L["af_reset_elements"], y); y = ny
+    local _, ny = W.CreateInfoText(c, L["af_reset_elements_info"], y); y = ny
+    local _, ny = W.CreateButton(c, L["af_reset_elements"], 260, y, function()
+        if ResetElementsOnly() then FinishReset() end
+    end); y = ny
+
+    local _, ny = W.CreateSeparator(c, y); y = ny
+    local _, ny = W.CreateButton(c, L["af_reset_complete"], 300, y, function()
+        local changed = false
+        changed = ResetPositionOnly() or changed
+        changed = ResetSizesOnly() or changed
+        changed = ResetElementsOnly() or changed
+        if changed then FinishReset() end
+    end); y = ny
+    c:SetHeight(math.abs(y) + 48)
+end
+
+-- ---------------------------------------------------------------------
 -- Studio V2 navigation
 -- ---------------------------------------------------------------------
 local function CurrentStudioView()
@@ -4083,7 +4645,9 @@ end
 local function UpdateNavigation()
     local active = CurrentStudioView()
     for id, b in pairs(navButtons) do
-        local on = id == active
+        local available = (id ~= "bars") or BarsSupported()
+        b:SetShown(available)
+        local on = available and id == active
         b:SetBackdropColor(
             on and BRAND[1] or 0.045,
             on and BRAND[2] or 0.050,
@@ -4371,6 +4935,7 @@ do
     local _RebuildSidebar = S.RebuildSidebar
     function S.RebuildSidebar()
         if S.state.showFrameEditor then
+            HideNameplateElementsParity()
             if SubjectKind() ~= "nameplate" then
                 HideNameplateCadreParity(false)
             end
@@ -4380,7 +4945,13 @@ do
         HideNameplateCadreParity(true)
         V22HideFrameSidebarButtons()
         V22RestoreCanvasInteractivity()
-        return _RebuildSidebar()
+        local result = _RebuildSidebar()
+        if SubjectKind() == "nameplate" and IsElementsView() then
+            ShowNameplateElementsParity()
+        else
+            HideNameplateElementsParity()
+        end
+        return result
     end
 end
 
@@ -4449,13 +5020,8 @@ local function BuildWindow()
                 Apply(); RebuildSubject()
                 S.RebuildSidebar(); S.RebuildInspector(); UpdateNavigation()
             end },
-            { text = L["af_reset_all"], width = 170, callback = function()
-                local store = Store()
-                if not store then return end
-                for _, desc in ipairs(Registry().List()) do
-                    store[desc.id] = R.Default(Registry().DOMAIN, desc.id)
-                end
-                Apply(); RebuildSubject(); S.RebuildInspector()
+            { text = L["af_nav_presets"], width = 170, callback = function()
+                SetStudioView("presets")
             end },
         },
         hint = L["af_hint"],

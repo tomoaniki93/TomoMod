@@ -988,3 +988,14 @@ StaticPopupDialogs["TOMOMOD_DUPLICATE_PROFILE"] = {
     end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }
+
+-- Le partage de disposition (/tm layout export) produit une chaîne à
+-- copier, exactement comme l'export de profil. Plutôt qu'un second popup,
+-- on expose celui-ci. TomoMod_Options étant LoadOnDemand, Core/Init.lua
+-- garde l'appel et retombe sur un print si le panneau n'est pas chargé.
+TomoMod_Config = TomoMod_Config or {}
+function TomoMod_Config.ShowExportString(str)
+    if type(str) ~= "string" or str == "" then return false end
+    ShowExportPopup(str)
+    return true
+end

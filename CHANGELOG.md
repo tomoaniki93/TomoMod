@@ -2,6 +2,24 @@
 
 ## CHANGELOG 4.0.2
 
+#### Astral Forge Studio V2.1 — Shared Bar Textures And Targeted Resets
+
+- **Changed** - The Bars view is now limited to supported UnitFrames: Player, Target, Focus, Pet and Target of Target. It also includes a shared main-bar texture selector for TomoMod, Flat or Blizzard styling; changes refresh UnitFrames and the Forge preview immediately, while bar sizes remain in Frame and placement remains in Elements.
+- **New** - The former Presets navigation entry is now a subject-aware Resets panel. Restore only the selected subject's interface position, supported dimensions or Forge elements, or apply all three reset groups together.
+- **Changed** - Resetting elements rebuilds singleton defaults and removes custom text and bar instances without touching unrelated setting groups. The final onboarding step and all six Studio locales now explain this safer, targeted reset workflow.
+
+#### Resolution Presets — Graphical Setup
+
+- **New** - Resolution presets now have graphical controls on the Home dashboard and a dedicated installer step immediately after Welcome. Choose 1080p, 1440p or 2160p before the role preset, so resolution-dependent fonts and anchors establish the layout baseline first.
+- **New** - The Home interface can now capture the current layout for the detected resolution tier or clear an existing capture. Saved captures take priority over computed values and are marked in both graphical selectors.
+- **Changed** - Each resolution tier now carries its representative height and uses one shared description path across the dashboard, installer and `/tm resolution`, keeping detected scale, client-floor and capture information consistent.
+
+#### Astral Forge Studio — Nameplate Elements Preview
+
+- **New** - Elements mode now places a single readable hostile Nameplate beneath the real Forge widgets. Health, cast, name, level and classification remain visible as one coherent plate while every supported element stays independently selectable and draggable.
+- **Fixed** - The supporting plate now inherits the canvas frame strata and sits above its opaque backdrop, while Forge selection handles are explicitly raised above the preview and reasserted after deferred layout work. The preview can no longer disappear behind the Studio or block element interaction.
+- **Fixed** - The Nameplate engine can now refresh a detached preview in place, including its carrier size, health and cast geometry, visibility and deterministic sample data. Astral Forge rebinds the canvas after that refresh, so configured width and height changes immediately produce matching widget bounds and selection handles without recursively rebuilding the subject.
+
 #### Astral Forge Studio — Focused Frame Workflow And Nameplate Preview
 
 - **Changed** - Frame mode now turns the left sidebar into a subject-aware settings navigator. Only the selected category is rendered below the preview, keeping dimensions, display, colours, auras and advanced Nameplate controls focused while substantially reducing inspector scrolling.

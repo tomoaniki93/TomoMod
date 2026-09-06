@@ -2196,4 +2196,83 @@ function NP.CreatePreviewPlate(parent, opts)
     return plate, base
 end
 
+-- Refresh an AstralForge detached preview IN PLACE.
+-- CreatePreviewPlate builds the neutral base with the size that exists at
+-- creation time. Cadre can later change width / height / castbarHeight, so
+-- AstralForge needs one engine-owned path that updates both the carrier
+-- geometry and all of the real Nameplate widgets before Canvas recomputes
+-- its handles.
+function NP.RefreshPreviewPlate(plate, base, opts)
+    if not plate then return nil end
+    local s = DB()
+    if not s then return nil end
+
+    base = base or plate._previewBase
+    if not base then return nil end
+
+    local w = s.width or 156
+    local h = s.height or 17
+
+    -- Keep the carrier in sync too. The plate itself is SetAllPoints(base),
+    -- therefore leaving base at its creation size made Canvas geometry stale
+    -- even though UpdateSize resized health/castbar correctly.
+    base:SetSize(w, h)
+
+    UpdateSize(plate)
+
+    -- Restore deterministic studio demo data. UpdateSize intentionally only
+    -- handles geometry/style and does not decide visibility/value.
+    local name = (opts and opts.name) or "Cible d'exemple"
+    plate.health:SetMinMaxValues(0, 100)
+    plate.health:SetValue(72)
+    plate.health:SetStatusBarColor(0.80, 0.20, 0.20, 1)
+    plate.health:Show()
+
+    if plate.nameText then
+        plate.nameText:SetText(name)
+        plate.nameText:SetShown(s.showName ~= false)
+    end
+    if plate.hpNumber then
+        plate.hpNumber:SetText("72k")
+        plate.hpNumber:SetShown(s.showHealthText ~= false)
+    end
+    if plate.hpPercent then
+        plate.hpPercent:SetText("72%")
+        plate.hpPercent:SetShown(s.showHealthText ~= false)
+    end
+    if plate.levelText then
+        plate.levelText:SetText("82")
+        plate.levelText:SetShown(s.showLevel ~= false)
+    end
+
+    if plate.castbar then
+        plate.castbar:SetScript("OnUpdate", nil)
+        plate.castbar:SetMinMaxValues(0, 1)
+        plate.castbar:SetValue(0.55)
+        plate.castbar:SetShown(s.showCastbar ~= false)
+        if plate.castbar.text then plate.castbar.text:SetText("Incantation") end
+        if plate.castbar.timer then plate.castbar.timer:SetText("1.4") end
+    end
+
+    -- Elements must remain available to Forge even when they are normally
+    -- conditional in live gameplay.
+    if plate.classFrame then
+        plate.classFrame:SetShown(s.showClassification ~= false)
+        if plate.classIcon then
+            plate.classIcon:SetTexture("Interface\\TargetingFrame\\UI-TargetingFrame-Elite")
+        end
+    end
+    if plate.raidFrame then
+        plate.raidFrame:SetFrameStrata("MEDIUM")
+        plate.raidFrame:Show()
+    end
+    if plate.questIcon then plate.questIcon:Show() end
+
+    ApplyElements(plate)
+    plate:Show()
+    base:Show()
+
+    return plate, base
+end
+
 TomoMod_RegisterModule("nameplates", NP)

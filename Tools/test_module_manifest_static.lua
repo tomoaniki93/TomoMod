@@ -272,6 +272,54 @@ for key in read("TomoMod_Options/Config/ImportSelector.lua"):gmatch('T%("(imp_[%
 end
 check("clés d'import citées", impKeys > 0, true)
 
+-- Les panneaux et les commandes citent aussi ce namespace sans passer par
+-- un manifeste. Sans ce balayage, toute clé ajoutée pour l'accueil,
+-- l'installeur, les profils ou une commande slash serait comptée comme
+-- orpheline alors qu'elle est bel et bien utilisée -- et la suite
+-- tomberait à chaque ajout de fonctionnalité au lieu de tomber sur un
+-- vrai renommage à moitié fait, qui est ce qu'elle cherche.
+--
+-- Les quatre écritures acceptées sont celles réellement en usage :
+--   L["clé"]  L("clé")  Localize("clé"  Loc("clé"
+local CITING_SOURCES = {
+    "Core/Init.lua",
+    "TomoMod_Options/Config/Installer.lua",
+    "TomoMod_Options/Config/Widgets.lua",
+    "TomoMod_Options/Config/ConfigUI.lua",
+    "TomoMod_Options/Config/Panels/Accueil.lua",
+    "TomoMod_Options/Config/Panels/Profiles.lua",
+    "TomoMod_Options/Config/Panels/Skins.lua",
+}
+local CITE_PATTERNS = {
+    'L%["([%w_]+)"%]',
+    'L%("([%w_]+)"',
+    'Localize%("([%w_]+)"',
+    'Loc%("([%w_]+)"',
+}
+-- Ces citations alimentent UNIQUEMENT la détection d'orphelines, pas la
+-- vérification de parité. Beaucoup de ces panneaux citent des clés qui
+-- vivent dans enUS.lua plutôt que dans Locale_Modules.lua ; les verser
+-- dans `needed` exigerait qu'elles soient redéfinies ici, ce qui est
+-- faux. « Quelqu'un s'en sert » et « la clé doit être définie dans ce
+-- fichier » sont deux questions différentes.
+local cited, citedKeys, citedFiles = {}, 0, 0
+for _, path in ipairs(CITING_SOURCES) do
+    local src = read(path)
+    if src then
+        citedFiles = citedFiles + 1
+        for _, pat in ipairs(CITE_PATTERNS) do
+            for key in src:gmatch(pat) do
+                if not cited[key] then citedKeys = citedKeys + 1 end
+                cited[key] = true
+            end
+        end
+    else
+        fail(("source citante illisible : %s"):format(path))
+    end
+end
+check("sources citantes lues", citedFiles, #CITING_SOURCES)
+check("clés citées hors manifestes", citedKeys > 0, true)
+
 local neededCount, gaps = 0, 0
 for key in pairs(needed) do
     neededCount = neededCount + 1
@@ -289,7 +337,7 @@ check("aucune traduction manquante",    gaps, 0)
 -- du poids mort, et signale surtout un renommage à moitié fait.
 local orphans = 0
 for key in pairs(defined.enUS) do
-    if not needed[key] then
+    if not needed[key] and not cited[key] then
         orphans = orphans + 1
         fail(("clé de locale orpheline : '%s'"):format(key))
     end
