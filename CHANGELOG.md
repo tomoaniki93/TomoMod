@@ -2,6 +2,13 @@
 
 ## CHANGELOG 4.0.2
 
+#### Mythic+ — Post-Run Analysis
+
+- **New** - Completed Mythic+ TomoScore reports now include a localized Run Analysis button. A run-specific snapshot is captured when the score is saved, combining challenge-completion facts, the matching RunHistory entry and the available TomoDamageMeter snapshot instead of reading unrelated combat data later.
+- **New** - The analysis window summarizes timed or depleted status, keystone level, duration, deaths and score gain in a dedicated load-on-demand Mythic+ view.
+- **New** - Group performance presents each available player's DPS, HPS, interrupts and avoidable damage, with clear empty states when detailed meter data was not recorded.
+- **New** - Boss and enemy-forces splits provide a progression timeline when RunHistory data matches the completion. Opening the analysis closes overlapping Mythic+ views and is deferred safely until combat ends when required.
+
 #### Party & Raid Studio — Visual Group Configuration
 
 - **New** - Party & Raid Studio is a new load-on-demand visual editor available from the Home dashboard. It centralizes PartyFrame, RaidFrame and healer-indicator configuration in dedicated Party, Raid, Healer and Reset tabs while continuing to use TomoMod's existing profile data and runtime refresh paths.

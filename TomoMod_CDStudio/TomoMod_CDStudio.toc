@@ -1,5 +1,5 @@
 ## Interface: 120100
-## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r |cff2e9dd8Cooldown Studio|r
+## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r |cff2e9dd8Cooldown|r |cffFFFFFFStudio|r
 ## Notes: Dedicated full-screen editor for TomoMod CooldownForge bars.
 ## Author: TomoAniki
 ## Category: |cff2e9dd8HUD|r

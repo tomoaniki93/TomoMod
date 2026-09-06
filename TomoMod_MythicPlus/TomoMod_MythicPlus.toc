@@ -1,5 +1,5 @@
 ## Interface: 120100
-## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r |cff2e9dd8Mythic+|r
+## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r |cff2e9dd8Mythic+|r |cffFFFFFFStudio|r
 ## Notes: LoadOnDemand Mythic+ control centre for TomoMod.
 ## Author: TomoAniki
 ## Category: |cff2e9dd8HUD|r
@@ -11,4 +11,5 @@
 
 Bootstrap.lua
 RunHistory.lua
+RunAnalysis.lua
 Studio.lua

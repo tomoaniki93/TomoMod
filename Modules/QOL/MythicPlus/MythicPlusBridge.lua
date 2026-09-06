@@ -109,6 +109,8 @@ function B:Open(page)
         return false
     end
 
+    if mp.HideRunAnalysis then mp:HideRunAnalysis() end
+
     -- If the old detail window was left open, close it before showing the
     -- control centre.  Never hide its secure-button parent during combat.
     local hub = _G.TomoMod_MythicHub
@@ -118,6 +120,41 @@ function B:Open(page)
 
     mp:Open(page or "dashboard")
     return true
+end
+
+function B:OpenAnalysis(runData)
+    if InCombatLockdown() then
+        self._pendingAnalysisData = runData
+        print(PREFIX .. Text("combat_wait"))
+        return false
+    end
+
+    local ok, _, reason = EnsureLoaded()
+    if not ok then
+        print(PREFIX .. Text("load_error") .. (reason and (" (" .. tostring(reason) .. ")") or "") .. ".")
+        return false
+    end
+
+    if TomoMod_Config and TomoMod_Config.Hide then
+        TomoMod_Config.Hide()
+    end
+
+    local mp = Studio()
+    if not (mp and mp.OpenRunAnalysis) then
+        print(PREFIX .. Text("load_error") .. ".")
+        return false
+    end
+
+    if mp.Frame and mp.Frame:IsShown() and mp.Hide then
+        mp:Hide()
+    end
+
+    local hub = _G.TomoMod_MythicHub
+    if hub and hub.Frame and hub.Frame:IsShown() then
+        hub.Frame:Hide()
+    end
+
+    return mp:OpenRunAnalysis(runData)
 end
 
 function B:Toggle(page)
@@ -183,6 +220,12 @@ events:RegisterEvent("CHALLENGE_MODE_COMPLETED")
 events:RegisterEvent("PLAYER_REGEN_ENABLED")
 events:SetScript("OnEvent", function(_, event)
     if event == "PLAYER_REGEN_ENABLED" then
+        if B._pendingAnalysisData then
+            local data = B._pendingAnalysisData
+            B._pendingAnalysisData = nil
+            B:OpenAnalysis(data)
+            return
+        end
         if B._pendingPage then
             local page = B._pendingPage
             B._pendingPage = nil

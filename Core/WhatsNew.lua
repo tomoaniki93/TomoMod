@@ -65,6 +65,10 @@ CHANGELOG = {
     {
         version = "4.0.2",
         highlights = {
+            L["wn_402_run_analysis_entry"],
+            L["wn_402_run_analysis_summary"],
+            L["wn_402_run_analysis_performance"],
+            L["wn_402_run_analysis_splits"],
             L["wn_402_group_studio"],
             L["wn_402_group_previews"],
             L["wn_402_group_healer_editor"],

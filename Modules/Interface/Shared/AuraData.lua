@@ -65,7 +65,6 @@ AD.HEALER_HOTS = {
         [194384] = true,  -- Atonement
         [41635]  = true,  -- Prayer of Mending
         [77489]  = true,  -- Echo of Light
-        [214206] = true,  -- Atonement (PvP)
     },
     DRUID = {
         [774]    = true,  -- Rejuvenation
@@ -81,6 +80,7 @@ AD.HEALER_HOTS = {
     PALADIN = {
         [53563]  = true,  -- Beacon of Light
         [156910] = true,  -- Beacon of Faith
+        [200025] = true,  -- Beacon of Virtue
         [223306] = true,  -- Bestow Faith
         [287280] = true,  -- Glimmer of Light
         [388013] = true,  -- Blessing of Summer
@@ -90,13 +90,11 @@ AD.HEALER_HOTS = {
         [974]    = true,  -- Earth Shield
         [382024] = true,  -- Earthliving Weapon
         [383009] = true,  -- Healing Tide (buff)
-        [157153] = true,  -- Cloudburst
     },
     MONK = {
         [119611] = true,  -- Renewing Mist
         [116849] = true,  -- Life Cocoon
         [124682] = true,  -- Enveloping Mist
-        [191840] = true,  -- Essence Font
         [325209] = true,  -- Enveloping Breath
     },
     EVOKER = {
