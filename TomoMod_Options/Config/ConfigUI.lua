@@ -47,6 +47,161 @@ if TomoMod_RegisterLocale then
     })
 end
 
+-- Multi-step help for the main TomoMod_Options window.
+-- Kept here rather than in a Studio locale file because this guide belongs to
+-- the always-visible /tm shell itself.
+if TomoMod_RegisterLocale then
+    local HELP_LOCALES = {
+        enUS = {
+            ["cfg_help_button"] = "? Help",
+            ["cfg_help_progress"] = "Step %d / %d",
+            ["cfg_help_back"] = "Back",
+            ["cfg_help_close"] = "Close",
+            ["cfg_help_next"] = "Next",
+            ["cfg_help_finish"] = "Finish",
+            ["cfg_help_1_title"] = "Welcome to TomoMod",
+            ["cfg_help_1_body"] = "This short guide presents the main navigation, search, role filters, configuration workspaces, Layout mode, profiles and diagnostics.",
+            ["cfg_help_2_title"] = "Main navigation",
+            ["cfg_help_2_body"] = "Use the left sidebar to move between Home, Roles, Interface, Units, Combat, Comfort, Damage Meter, Profiles and Diagnostics. The active section is always highlighted.",
+            ["cfg_help_3_title"] = "Search",
+            ["cfg_help_3_body"] = "Type a module, feature or option here. TomoMod filters the navigation and can surface matching settings without forcing you to remember where they live.",
+            ["cfg_help_4_title"] = "Role filter",
+            ["cfg_help_4_body"] = "The four role buttons prioritize settings for Everyone, Tank, Healer or Damage. Other settings remain visible but are visually de-emphasized.",
+            ["cfg_help_5_title"] = "Workspaces and Studios",
+            ["cfg_help_5_body"] = "Interface, Units, Combat and Comfort open focused workspaces. Specialized Studios are launched from the relevant pages and edit the same TomoModDB settings used by the live modules.",
+            ["cfg_help_6_title"] = "Layout / EditMode",
+            ["cfg_help_6_body"] = "Use EditMode to unlock movable TomoMod elements. Hover a supported element to access its contextual configuration gear, move it, then lock the layout again when finished.",
+            ["cfg_help_7_title"] = "Profiles",
+            ["cfg_help_7_body"] = "Profiles let you save, switch, import and export complete configurations. Use them before major UI changes or when sharing a setup between characters.",
+            ["cfg_help_8_title"] = "Diagnostics",
+            ["cfg_help_8_body"] = "If something behaves unexpectedly, Diagnostics is the first place to check. It gathers module state, performance information and error/report data useful for troubleshooting.",
+        },
+        frFR = {
+            ["cfg_help_button"] = "? Aide",
+            ["cfg_help_progress"] = "Étape %d / %d",
+            ["cfg_help_back"] = "Retour",
+            ["cfg_help_close"] = "Fermer",
+            ["cfg_help_next"] = "Suivant",
+            ["cfg_help_finish"] = "Terminer",
+            ["cfg_help_1_title"] = "Bienvenue dans TomoMod",
+            ["cfg_help_1_body"] = "Ce petit guide présente la navigation principale, la recherche, les filtres de rôle, les espaces de configuration, le mode Layout, les profils et les diagnostics.",
+            ["cfg_help_2_title"] = "Navigation principale",
+            ["cfg_help_2_body"] = "Utilise la barre latérale pour passer entre Accueil, Rôles, Interface, Unités, Combat, Confort, Damage Meter, Profils et Diagnostics. La section active reste toujours mise en évidence.",
+            ["cfg_help_3_title"] = "Recherche",
+            ["cfg_help_3_body"] = "Saisis ici le nom d'un module, d'une fonction ou d'un réglage. TomoMod filtre la navigation et peut retrouver les options correspondantes sans devoir mémoriser leur emplacement.",
+            ["cfg_help_4_title"] = "Filtre par rôle",
+            ["cfg_help_4_body"] = "Les quatre boutons mettent en avant les réglages utiles à Tous, Tank, Healer ou DPS. Les autres réglages restent visibles mais sont volontairement atténués.",
+            ["cfg_help_5_title"] = "Espaces et Studios",
+            ["cfg_help_5_body"] = "Interface, Unités, Combat et Confort ouvrent des espaces dédiés. Les Studios spécialisés se lancent depuis les pages correspondantes et modifient la même TomoModDB que les modules en jeu.",
+            ["cfg_help_6_title"] = "Layout / EditMode",
+            ["cfg_help_6_body"] = "Utilise EditMode pour déverrouiller les éléments TomoMod déplaçables. Survole un élément compatible pour accéder à son engrenage de configuration, déplace-le puis reverrouille le Layout.",
+            ["cfg_help_7_title"] = "Profils",
+            ["cfg_help_7_body"] = "Les Profils permettent de sauvegarder, changer, importer et exporter une configuration complète. Ils sont pratiques avant une grosse modification ou pour partager un setup entre personnages.",
+            ["cfg_help_8_title"] = "Diagnostics",
+            ["cfg_help_8_body"] = "Si quelque chose se comporte anormalement, commence par Diagnostics. Cette page rassemble l'état des modules, les informations de performance et les données utiles au rapport d'erreur.",
+        },
+        deDE = {
+            ["cfg_help_button"] = "? Hilfe",
+            ["cfg_help_progress"] = "Schritt %d / %d",
+            ["cfg_help_back"] = "Zurück",
+            ["cfg_help_close"] = "Schließen",
+            ["cfg_help_next"] = "Weiter",
+            ["cfg_help_finish"] = "Fertig",
+            ["cfg_help_1_title"] = "Willkommen bei TomoMod",
+            ["cfg_help_1_body"] = "Diese kurze Hilfe zeigt die Hauptnavigation, Suche, Rollenfilter, Konfigurationsbereiche, den Layout-Modus, Profile und Diagnose.",
+            ["cfg_help_2_title"] = "Hauptnavigation",
+            ["cfg_help_2_body"] = "Über die linke Seitenleiste wechselst du zwischen Start, Rollen, Interface, Einheiten, Kampf, Komfort, Damage Meter, Profilen und Diagnose. Der aktive Bereich bleibt hervorgehoben.",
+            ["cfg_help_3_title"] = "Suche",
+            ["cfg_help_3_body"] = "Gib hier ein Modul, eine Funktion oder eine Option ein. TomoMod filtert die Navigation und findet passende Einstellungen, ohne dass du ihren genauen Ort kennen musst.",
+            ["cfg_help_4_title"] = "Rollenfilter",
+            ["cfg_help_4_body"] = "Die vier Rollen-Schaltflächen heben Einstellungen für Alle, Tank, Heiler oder Schaden hervor. Andere Einstellungen bleiben sichtbar, werden aber optisch zurückgenommen.",
+            ["cfg_help_5_title"] = "Bereiche und Studios",
+            ["cfg_help_5_body"] = "Interface, Einheiten, Kampf und Komfort öffnen fokussierte Bereiche. Spezialisierte Studios werden von den passenden Seiten gestartet und bearbeiten dieselben TomoModDB-Einstellungen wie die Live-Module.",
+            ["cfg_help_6_title"] = "Layout / EditMode",
+            ["cfg_help_6_body"] = "Mit EditMode entsperrst du verschiebbare TomoMod-Elemente. Fahre über ein unterstütztes Element, um das Kontext-Zahnrad zu öffnen, verschiebe es und sperre das Layout danach wieder.",
+            ["cfg_help_7_title"] = "Profile",
+            ["cfg_help_7_body"] = "Profile speichern, wechseln, importieren und exportieren komplette Konfigurationen. Nutze sie vor größeren UI-Änderungen oder zum Teilen eines Setups zwischen Charakteren.",
+            ["cfg_help_8_title"] = "Diagnose",
+            ["cfg_help_8_body"] = "Wenn sich etwas unerwartet verhält, prüfe zuerst Diagnose. Dort findest du Modulstatus, Leistungsinformationen sowie Fehler- und Berichtsdaten für die Fehlersuche.",
+        },
+        esES = {
+            ["cfg_help_button"] = "? Ayuda",
+            ["cfg_help_progress"] = "Paso %d / %d",
+            ["cfg_help_back"] = "Atrás",
+            ["cfg_help_close"] = "Cerrar",
+            ["cfg_help_next"] = "Siguiente",
+            ["cfg_help_finish"] = "Finalizar",
+            ["cfg_help_1_title"] = "Bienvenido a TomoMod",
+            ["cfg_help_1_body"] = "Esta guía breve presenta la navegación principal, la búsqueda, los filtros de rol, los espacios de configuración, el modo Layout, los perfiles y los diagnósticos.",
+            ["cfg_help_2_title"] = "Navegación principal",
+            ["cfg_help_2_body"] = "Usa la barra lateral izquierda para cambiar entre Inicio, Roles, Interfaz, Unidades, Combate, Comodidad, Damage Meter, Perfiles y Diagnósticos. La sección activa permanece resaltada.",
+            ["cfg_help_3_title"] = "Búsqueda",
+            ["cfg_help_3_body"] = "Escribe aquí un módulo, función u opción. TomoMod filtra la navegación y puede encontrar los ajustes relacionados sin que tengas que recordar dónde están.",
+            ["cfg_help_4_title"] = "Filtro por rol",
+            ["cfg_help_4_body"] = "Los cuatro botones de rol destacan los ajustes para Todos, Tanque, Sanador o Daño. Los demás ajustes siguen visibles, pero se muestran atenuados.",
+            ["cfg_help_5_title"] = "Espacios y Studios",
+            ["cfg_help_5_body"] = "Interfaz, Unidades, Combate y Comodidad abren espacios dedicados. Los Studios especializados se inician desde las páginas correspondientes y editan los mismos ajustes de TomoModDB que los módulos en vivo.",
+            ["cfg_help_6_title"] = "Layout / EditMode",
+            ["cfg_help_6_body"] = "Usa EditMode para desbloquear los elementos móviles de TomoMod. Pasa el cursor sobre un elemento compatible para acceder a su engranaje contextual, muévelo y vuelve a bloquear el Layout.",
+            ["cfg_help_7_title"] = "Perfiles",
+            ["cfg_help_7_body"] = "Los Perfiles permiten guardar, cambiar, importar y exportar configuraciones completas. Úsalos antes de grandes cambios de interfaz o para compartir un setup entre personajes.",
+            ["cfg_help_8_title"] = "Diagnósticos",
+            ["cfg_help_8_body"] = "Si algo se comporta de forma inesperada, empieza por Diagnósticos. Reúne el estado de los módulos, información de rendimiento y datos de errores e informes útiles para localizar problemas.",
+        },
+        itIT = {
+            ["cfg_help_button"] = "? Aiuto",
+            ["cfg_help_progress"] = "Passo %d / %d",
+            ["cfg_help_back"] = "Indietro",
+            ["cfg_help_close"] = "Chiudi",
+            ["cfg_help_next"] = "Avanti",
+            ["cfg_help_finish"] = "Fine",
+            ["cfg_help_1_title"] = "Benvenuto in TomoMod",
+            ["cfg_help_1_body"] = "Questa breve guida presenta la navigazione principale, la ricerca, i filtri ruolo, le aree di configurazione, la modalità Layout, i profili e la diagnostica.",
+            ["cfg_help_2_title"] = "Navigazione principale",
+            ["cfg_help_2_body"] = "Usa la barra laterale sinistra per passare tra Home, Ruoli, Interfaccia, Unità, Combattimento, Comfort, Damage Meter, Profili e Diagnostica. La sezione attiva resta evidenziata.",
+            ["cfg_help_3_title"] = "Ricerca",
+            ["cfg_help_3_body"] = "Inserisci qui un modulo, una funzione o un'opzione. TomoMod filtra la navigazione e può trovare le impostazioni corrispondenti senza doverne ricordare la posizione.",
+            ["cfg_help_4_title"] = "Filtro ruolo",
+            ["cfg_help_4_body"] = "I quattro pulsanti ruolo evidenziano le impostazioni per Tutti, Tank, Healer o Danni. Le altre impostazioni restano visibili ma vengono attenuate.",
+            ["cfg_help_5_title"] = "Aree e Studio",
+            ["cfg_help_5_body"] = "Interfaccia, Unità, Combattimento e Comfort aprono aree dedicate. Gli Studio specializzati si avviano dalle pagine relative e modificano le stesse impostazioni TomoModDB usate dai moduli attivi.",
+            ["cfg_help_6_title"] = "Layout / EditMode",
+            ["cfg_help_6_body"] = "Usa EditMode per sbloccare gli elementi TomoMod spostabili. Passa su un elemento supportato per aprire l'ingranaggio contestuale, spostalo e poi blocca nuovamente il Layout.",
+            ["cfg_help_7_title"] = "Profili",
+            ["cfg_help_7_body"] = "I Profili permettono di salvare, cambiare, importare ed esportare configurazioni complete. Usali prima di grandi modifiche alla UI o per condividere un setup tra personaggi.",
+            ["cfg_help_8_title"] = "Diagnostica",
+            ["cfg_help_8_body"] = "Se qualcosa si comporta in modo inatteso, controlla prima Diagnostica. Raccoglie stato dei moduli, informazioni sulle prestazioni e dati di errori e report utili alla risoluzione dei problemi.",
+        },
+        ptBR = {
+            ["cfg_help_button"] = "? Ajuda",
+            ["cfg_help_progress"] = "Etapa %d / %d",
+            ["cfg_help_back"] = "Voltar",
+            ["cfg_help_close"] = "Fechar",
+            ["cfg_help_next"] = "Próximo",
+            ["cfg_help_finish"] = "Concluir",
+            ["cfg_help_1_title"] = "Bem-vindo ao TomoMod",
+            ["cfg_help_1_body"] = "Este guia rápido apresenta a navegação principal, a busca, os filtros de função, as áreas de configuração, o modo Layout, os perfis e os diagnósticos.",
+            ["cfg_help_2_title"] = "Navegação principal",
+            ["cfg_help_2_body"] = "Use a barra lateral esquerda para alternar entre Início, Funções, Interface, Unidades, Combate, Conforto, Damage Meter, Perfis e Diagnósticos. A seção ativa permanece destacada.",
+            ["cfg_help_3_title"] = "Busca",
+            ["cfg_help_3_body"] = "Digite aqui um módulo, recurso ou opção. O TomoMod filtra a navegação e pode encontrar as configurações correspondentes sem exigir que você memorize onde elas ficam.",
+            ["cfg_help_4_title"] = "Filtro por função",
+            ["cfg_help_4_body"] = "Os quatro botões de função destacam configurações para Todos, Tank, Healer ou Dano. As demais configurações continuam visíveis, mas ficam visualmente atenuadas.",
+            ["cfg_help_5_title"] = "Áreas e Studios",
+            ["cfg_help_5_body"] = "Interface, Unidades, Combate e Conforto abrem áreas focadas. Os Studios especializados são iniciados nas páginas correspondentes e editam as mesmas configurações TomoModDB usadas pelos módulos ativos.",
+            ["cfg_help_6_title"] = "Layout / EditMode",
+            ["cfg_help_6_body"] = "Use o EditMode para desbloquear elementos móveis do TomoMod. Passe o cursor sobre um elemento compatível para acessar a engrenagem contextual, mova-o e depois bloqueie o Layout novamente.",
+            ["cfg_help_7_title"] = "Perfis",
+            ["cfg_help_7_body"] = "Perfis permitem salvar, alternar, importar e exportar configurações completas. Use-os antes de grandes mudanças na interface ou para compartilhar um setup entre personagens.",
+            ["cfg_help_8_title"] = "Diagnósticos",
+            ["cfg_help_8_body"] = "Se algo se comportar de forma inesperada, comece por Diagnósticos. A página reúne estado dos módulos, informações de desempenho e dados de erros e relatórios úteis para solução de problemas.",
+        },
+    }
+    for locale, strings in pairs(HELP_LOCALES) do
+        TomoMod_RegisterLocale(locale, strings)
+    end
+end
+
 TomoMod_Config = TomoMod_Config or {}
 local C = TomoMod_Config
 local W = TomoMod_Widgets
@@ -83,8 +238,12 @@ local categories = {
     { key = "accueil",   label = LT("cat_accueil", "Accueil"), icon = ICON_PATH .. "ico_gui.tga",          accent = { 0.180, 0.616, 0.847 }, desc = L["cat_accueil_desc"], kw = "accueil home dashboard tableau bord vue" },
     { key = "roles",     label = L["cat_roles"],                      icon = ICON_PATH .. "icon_partyframes.tga", accent = { 0.94, 0.74, 0.35 }, desc = L["cat_roles_desc"], kw = "role roles tank tanking heal healer soigneur dps damage degats guide" },
     { key = "interface", label = L["cat_interface"],                   icon = ICON_PATH .. "icon_general.tga",    accent = { 0.49, 0.91, 1.00 }, desc = L["cat_interface_desc"], kw = "general minimap actionbar skins son audio chat sacs tooltip" },
-    { key = "units",     label = L["cat_units"],                      icon = ICON_PATH .. "icon_unitframes.tga", accent = { 0.46, 0.72, 1.00 }, desc = L["cat_units_desc"], kw = "unit frames nameplates party raid groupe cible plaques" },
-    { key = "combat",    label = L["cat_combat"],                      icon = ICON_PATH .. "icon_castbars.tga",   accent = { 0.96, 0.70, 0.26 }, desc = L["cat_combat_desc"], kw = "castbar ressources cooldown mythic mplus combat" },
+    -- Legacy configuration workspaces kept in code for compatibility while
+    -- Astral Forge / Party & Raid Studio / Resource & Cast Studio own their
+    -- settings. hidden=true removes them from normal GUI navigation/search
+    -- without deleting their builders or breaking old deep-links.
+    { key = "units",     label = L["cat_units"],                      icon = ICON_PATH .. "icon_unitframes.tga", accent = { 0.46, 0.72, 1.00 }, desc = L["cat_units_desc"], kw = "unit frames nameplates party raid groupe cible plaques", hidden = true },
+    { key = "combat",    label = L["cat_combat"],                      icon = ICON_PATH .. "icon_castbars.tga",   accent = { 0.96, 0.70, 0.26 }, desc = L["cat_combat_desc"], kw = "castbar ressources cooldown mythic mplus combat", hidden = true },
     { key = "comfort",   label = L["cat_comfort"],                     icon = ICON_PATH .. "icon_qol.tga",        accent = { 0.38, 0.86, 0.56 }, desc = L["cat_comfort_desc"], kw = "qol confort quete afk housing logement automatisation" },
     { key = "damagemeter", label = LT("cat_damagemeter", "Damage Meter"),  icon = ICON_PATH .. "icon_damagemeter.tga", accent = { 0.80, 0.27, 1.00 }, desc = LT("cat_damagemeter_desc", "Compteur de degats, recap de mort et recap de donjon."), kw = "damage meter dps hps degats soins recap mort donjon compteur tdm" },
     { key = "changelog", label = LT("cat_changelog", "Nouveautes"), icon = ICON_PATH .. "icon_qol.tga", accent = { 0.36, 0.78, 0.98 }, desc = LT("cat_changelog_desc", "Toutes les notes de version, de la plus recente a la plus ancienne."), kw = "changelog nouveautes notes version patch historique whatsnew quoi de neuf" },
@@ -1276,6 +1435,213 @@ function C.OpenComfortPage(key)
 end
 
 -- =====================================================================
+-- MAIN OPTIONS MULTI-STEP HELP
+-- =====================================================================
+local OPTIONS_HELP_STEPS = {
+    { title = "cfg_help_1_title", body = "cfg_help_1_body", target = "title",   category = "accueil" },
+    { title = "cfg_help_2_title", body = "cfg_help_2_body", target = "sidebar" },
+    { title = "cfg_help_3_title", body = "cfg_help_3_body", target = "search" },
+    { title = "cfg_help_4_title", body = "cfg_help_4_body", target = "role" },
+    { title = "cfg_help_5_title", body = "cfg_help_5_body", target = "content", category = "interface" },
+    { title = "cfg_help_6_title", body = "cfg_help_6_body", target = "layout" },
+    { title = "cfg_help_7_title", body = "cfg_help_7_body", target = "content", category = "profiles" },
+    { title = "cfg_help_8_title", body = "cfg_help_8_body", target = "content", category = "diagnostics" },
+}
+
+local optionsHelp
+
+local function HelpButton(parent, width, text)
+    local b = CreateFrame("Button", nil, parent, "BackdropTemplate")
+    b:SetSize(width, 26)
+    b:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    b:SetBackdropColor(0.055, 0.060, 0.078, 0.98)
+    b:SetBackdropBorderColor(0.18, 0.62, 0.85, 0.70)
+
+    local fs = b:CreateFontString(nil, "OVERLAY")
+    fs:SetFont(FONT_BOLD, 10, "")
+    fs:SetPoint("CENTER")
+    fs:SetText(text or "")
+    fs:SetTextColor(0.88, 0.91, 0.95, 1)
+    b._label = fs
+
+    b:SetScript("OnEnter", function(self)
+        self:SetBackdropColor(0.08, 0.20, 0.30, 0.98)
+        self:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 1)
+        fs:SetTextColor(1, 1, 1, 1)
+    end)
+    b:SetScript("OnLeave", function(self)
+        self:SetBackdropColor(0.055, 0.060, 0.078, 0.98)
+        self:SetBackdropBorderColor(0.18, 0.62, 0.85, 0.70)
+        fs:SetTextColor(0.88, 0.91, 0.95, 1)
+    end)
+    return b
+end
+
+local function EnsureOptionsHelp()
+    if optionsHelp or not configFrame then return optionsHelp end
+
+    local shade = CreateFrame("Frame", nil, configFrame, "BackdropTemplate")
+    shade:SetAllPoints(configFrame)
+    shade:SetFrameLevel(configFrame:GetFrameLevel() + 100)
+    shade:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8x8" })
+    shade:SetBackdropColor(0.005, 0.008, 0.014, 0.58)
+    shade:EnableMouse(true)
+    shade:Hide()
+
+    local highlight = CreateFrame("Frame", nil, shade, "BackdropTemplate")
+    highlight:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 2,
+    })
+    highlight:SetBackdropColor(0.18, 0.62, 0.85, 0.07)
+    highlight:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 1)
+    highlight:EnableMouse(false)
+
+    local card = CreateFrame("Frame", nil, shade, "BackdropTemplate")
+    card:SetSize(500, 238)
+    card:SetPoint("BOTTOMRIGHT", shade, "BOTTOMRIGHT", -24, 52)
+    card:SetFrameLevel(shade:GetFrameLevel() + 5)
+    card:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    card:SetBackdropColor(0.035, 0.038, 0.052, 1)
+    card:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 0.85)
+
+    local accent = card:CreateTexture(nil, "ARTWORK")
+    accent:SetPoint("TOPLEFT", 0, 0)
+    accent:SetPoint("BOTTOMLEFT", 0, 0)
+    accent:SetWidth(3)
+    accent:SetColorTexture(T.accent[1], T.accent[2], T.accent[3], 1)
+
+    local progress = card:CreateFontString(nil, "OVERLAY")
+    progress:SetFont(FONT, 10, "")
+    progress:SetPoint("TOPLEFT", 18, -16)
+    progress:SetTextColor(0.46, 0.50, 0.58, 1)
+
+    local title = card:CreateFontString(nil, "OVERLAY")
+    title:SetFont(FONT_BOLD, 17, "")
+    title:SetPoint("TOPLEFT", progress, "BOTTOMLEFT", 0, -10)
+    title:SetPoint("RIGHT", card, "RIGHT", -42, 0)
+    title:SetJustifyH("LEFT")
+    title:SetTextColor(T.accent[1], T.accent[2], T.accent[3], 1)
+
+    local body = card:CreateFontString(nil, "OVERLAY")
+    body:SetFont(FONT, 11, "")
+    body:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -12)
+    body:SetPoint("RIGHT", card, "RIGHT", -20, 0)
+    body:SetJustifyH("LEFT")
+    body:SetJustifyV("TOP")
+    body:SetWordWrap(true)
+    body:SetTextColor(0.78, 0.80, 0.85, 1)
+
+    local closeX = CreateFrame("Button", nil, card)
+    closeX:SetSize(26, 26)
+    closeX:SetPoint("TOPRIGHT", -7, -7)
+    local closeXText = closeX:CreateFontString(nil, "OVERLAY")
+    closeXText:SetFont(FONT_BOLD, 18, "")
+    closeXText:SetPoint("CENTER")
+    closeXText:SetText("×")
+    closeXText:SetTextColor(0.46, 0.46, 0.52, 1)
+    closeX:SetScript("OnEnter", function() closeXText:SetTextColor(0.95, 0.35, 0.35, 1) end)
+    closeX:SetScript("OnLeave", function() closeXText:SetTextColor(0.46, 0.46, 0.52, 1) end)
+
+    local back = HelpButton(card, 92, L["cfg_help_back"] or "Back")
+    back:SetPoint("BOTTOMLEFT", 18, 16)
+    local close = HelpButton(card, 92, L["cfg_help_close"] or "Close")
+    close:SetPoint("BOTTOM", 0, 16)
+    local nextBtn = HelpButton(card, 112, L["cfg_help_next"] or "Next")
+    nextBtn:SetPoint("BOTTOMRIGHT", -18, 16)
+
+    optionsHelp = shade
+    shade.highlight = highlight
+    shade.card = card
+    shade.progress = progress
+    shade.title = title
+    shade.body = body
+    shade.back = back
+    shade.close = close
+    shade.next = nextBtn
+    shade.closeX = closeX
+    shade.step = 1
+    shade.returnCategory = nil
+    return shade
+end
+
+local function CloseOptionsHelp(restore)
+    local ui = optionsHelp
+    if not ui then return end
+    ui:Hide()
+    if restore and ui.returnCategory and C.SwitchCategory then
+        C.SwitchCategory(ui.returnCategory)
+    end
+    ui.returnCategory = nil
+end
+
+local function ShowOptionsHelpStep(index)
+    local ui = EnsureOptionsHelp()
+    local count = #OPTIONS_HELP_STEPS
+    index = math.max(1, math.min(tonumber(index) or 1, count))
+    local step = OPTIONS_HELP_STEPS[index]
+    if not ui or not step then return end
+
+    if step.category and C.SwitchCategory then
+        C.SwitchCategory(step.category)
+    end
+
+    ui.step = index
+    ui.progress:SetText(string.format(L["cfg_help_progress"] or "Step %d / %d", index, count))
+    ui.title:SetText(L[step.title] or step.title)
+    ui.body:SetText(L[step.body] or step.body)
+    ui.back:SetShown(index > 1)
+    ui.next._label:SetText(index == count
+        and (L["cfg_help_finish"] or "Finish")
+        or (L["cfg_help_next"] or "Next"))
+
+    local target = configFrame._helpTargets and configFrame._helpTargets[step.target]
+    target = target or configFrame
+    ui.highlight:ClearAllPoints()
+    ui.highlight:SetPoint("TOPLEFT", target, "TOPLEFT", -4, 4)
+    ui.highlight:SetPoint("BOTTOMRIGHT", target, "BOTTOMRIGHT", 4, -4)
+    ui.highlight:Show()
+end
+
+local function OpenOptionsHelp()
+    if not configFrame then return end
+    local ui = EnsureOptionsHelp()
+    if not ui then return end
+    ui.returnCategory = currentCategory or "accueil"
+    ui:Show()
+    ShowOptionsHelpStep(1)
+
+    ui.back:SetScript("OnClick", function()
+        ShowOptionsHelpStep((ui.step or 1) - 1)
+    end)
+    ui.close:SetScript("OnClick", function()
+        CloseOptionsHelp(true)
+    end)
+    ui.closeX:SetScript("OnClick", function()
+        CloseOptionsHelp(true)
+    end)
+    ui.next:SetScript("OnClick", function()
+        if (ui.step or 1) >= #OPTIONS_HELP_STEPS then
+            CloseOptionsHelp(true)
+        else
+            ShowOptionsHelpStep((ui.step or 1) + 1)
+        end
+    end)
+end
+
+C.ShowHelp = OpenOptionsHelp
+C.HideHelp = function() CloseOptionsHelp(true) end
+
+-- =====================================================================
 -- CREATE MAIN FRAME
 -- =====================================================================
 local function CreateConfigFrame()
@@ -1334,6 +1700,7 @@ local function CreateConfigFrame()
     configFrame:SetScript("OnHide", function(self)
         C.isOpen = false
         StopPerfTicker()
+        CloseOptionsHelp(false)
         if GameTooltip then GameTooltip:Hide() end
         if TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
             TomoMod_UnitFrames.RefreshThreatPreview(false)
@@ -1398,7 +1765,7 @@ local function CreateConfigFrame()
     local contextTitle = titleBar:CreateFontString(nil, "OVERLAY")
     contextTitle:SetFont(FONT_BOLD, 12, "")
     contextTitle:SetPoint("LEFT", titleText, "RIGHT", 96, 8)
-    contextTitle:SetPoint("RIGHT", -190, 0)
+    contextTitle:SetPoint("RIGHT", -282, 0)
     contextTitle:SetJustifyH("LEFT")
     contextTitle:SetTextColor(T.accent[1], T.accent[2], T.accent[3], 1)
     configFrame._contextTitle = contextTitle
@@ -1406,7 +1773,7 @@ local function CreateConfigFrame()
     local contextDesc = titleBar:CreateFontString(nil, "OVERLAY")
     contextDesc:SetFont(FONT, 10, "")
     contextDesc:SetPoint("TOPLEFT", contextTitle, "BOTTOMLEFT", 0, -3)
-    contextDesc:SetPoint("RIGHT", -190, 0)
+    contextDesc:SetPoint("RIGHT", -282, 0)
     contextDesc:SetJustifyH("LEFT")
     contextDesc:SetTextColor(0.46, 0.46, 0.54, 1)
     configFrame._contextDesc = contextDesc
@@ -1463,6 +1830,33 @@ local function CreateConfigFrame()
         if TomoMod_Movers and TomoMod_Movers.Toggle then TomoMod_Movers.Toggle() end
         UpdateLayoutStyle()
     end)
+
+    -- Multi-step help, matching the dedicated Studios' discoverability without
+    -- forcing an onboarding popup every time the main options are opened.
+    local helpBtn = CreateFrame("Button", nil, titleBar, "BackdropTemplate")
+    helpBtn:SetSize(78, 26)
+    helpBtn:SetPoint("RIGHT", layoutBtn, "LEFT", -6, 0)
+    helpBtn:SetBackdrop({
+        bgFile = "Interface\\Buttons\\WHITE8x8",
+        edgeFile = "Interface\\Buttons\\WHITE8x8",
+        edgeSize = 1,
+    })
+    helpBtn:SetBackdropColor(0.07, 0.07, 0.09, 0.8)
+    helpBtn:SetBackdropBorderColor(0.20, 0.20, 0.25, 0.8)
+    local helpTxt = helpBtn:CreateFontString(nil, "OVERLAY")
+    helpTxt:SetFont(FONT, 11, "")
+    helpTxt:SetPoint("CENTER")
+    helpTxt:SetText(L["cfg_help_button"] or "? Help")
+    helpTxt:SetTextColor(0.78, 0.80, 0.84, 1)
+    helpBtn:SetScript("OnEnter", function()
+        helpBtn:SetBackdropBorderColor(T.accent[1], T.accent[2], T.accent[3], 1)
+        helpTxt:SetTextColor(T.accent[1], T.accent[2], T.accent[3], 1)
+    end)
+    helpBtn:SetScript("OnLeave", function()
+        helpBtn:SetBackdropBorderColor(0.20, 0.20, 0.25, 0.8)
+        helpTxt:SetTextColor(0.78, 0.80, 0.84, 1)
+    end)
+    helpBtn:SetScript("OnClick", OpenOptionsHelp)
 
     -- ==============================================================
     -- SIDEBAR
@@ -1663,24 +2057,21 @@ local function CreateConfigFrame()
     end)
     navScroll:SetScript("OnShow", function() C_Timer.After(0, UpdateNavThumb) end)
 
-    -- Boutons de nav (dans le child défilant)
+    -- Boutons de nav (dans le child défilant). Legacy-hidden categories
+    -- remain addressable by old deep-links but are not wired into the GUI.
     for _, cat in ipairs(categories) do
-        local btn = CreateNavButton(navChild, cat, 0)
-        categoryButtons[cat.key] = btn
-        btn._cat = cat
+        if not cat.hidden then
+            local btn = CreateNavButton(navChild, cat, 0)
+            categoryButtons[cat.key] = btn
+            btn._cat = cat
+        end
     end
     for _, item in ipairs(INTERFACE_WORKSPACE_ITEMS) do
         interfaceSubButtons[item.key] = CreateSubNavButton(navChild, item, "interface")
         interfaceSubButtons[item.key]:Hide()
     end
-    for _, item in ipairs(UNITS_WORKSPACE_ITEMS) do
-        unitsSubButtons[item.key] = CreateSubNavButton(navChild, item, "units")
-        unitsSubButtons[item.key]:Hide()
-    end
-    for _, item in ipairs(COMBAT_WORKSPACE_ITEMS) do
-        combatSubButtons[item.key] = CreateSubNavButton(navChild, item, "combat")
-        combatSubButtons[item.key]:Hide()
-    end
+    -- Units / Combat sub-navigation is intentionally not created anymore.
+    -- Their panel builders stay in CATEGORY_TREE for compatibility only.
 
     -- Relayout + filtre de recherche. In Interface workspace, Accueil is the
     -- explicit exit: Roles/Profiles/Diagnostics remain reachable without
@@ -1784,7 +2175,7 @@ local function CreateConfigFrame()
         else
             for _, cat in ipairs(categories) do
                 local btn = categoryButtons[cat.key]
-                if Match(cat.label, cat.key, cat.kw) then
+                if btn and not cat.hidden and Match(cat.label, cat.key, cat.kw) then
                     Place(btn, NAV_BTN_H)
                 end
             end
@@ -1840,6 +2231,18 @@ local function CreateConfigFrame()
     content:SetPoint("TOPLEFT",     NAV_W + 1, -TITLE_H)
     content:SetPoint("BOTTOMRIGHT", 0,          FOOTER_H)
     configFrame.content = content
+
+    -- Stable targets used by the multi-step help overlay.  They are references
+    -- to the shell, not to lazily rebuilt option panels, so the guide survives
+    -- category switches, profile refreshes and NO_CACHE pages.
+    configFrame._helpTargets = {
+        title   = titleBar,
+        sidebar = sidebar,
+        search  = searchWrap,
+        role    = roleBar,
+        content = content,
+        layout  = layoutBtn,
+    }
 
     local contentShield = content:CreateTexture(nil, "BACKGROUND", nil, -8)
     contentShield:SetAllPoints()

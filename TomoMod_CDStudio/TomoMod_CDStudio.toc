@@ -9,5 +9,7 @@
 ## Dependencies: TomoMod
 
 Locales.lua
+LibraryHotkeyLocales.lua
 CDStudio.lua
+ClassLibrary.lua
 SpellEditorV2.lua

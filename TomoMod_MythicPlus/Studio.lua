@@ -1122,6 +1122,20 @@ function MP:BuildKeys()
     Button(party,self:T("keys_chat"),378,-284,175,function() if TomoMod_MythicKeys and TomoMod_MythicKeys.SendKeysToChat then TomoMod_MythicKeys:SendKeysToChat() end end)
 end
 
+local HISTORY_ANALYSIS_TEXT = {
+    enUS = "Analyze",
+    frFR = "Analyser",
+    deDE = "Analyse",
+    esES = "Analizar",
+    itIT = "Analizza",
+    ptBR = "Analisar",
+}
+
+local function HistoryAnalysisText()
+    local locale = GetLocale and GetLocale() or "enUS"
+    return HISTORY_ANALYSIS_TEXT[locale] or HISTORY_ANALYSIS_TEXT.enUS
+end
+
 -- ---------------------------------------------------------------------
 -- Run history
 -- ---------------------------------------------------------------------
@@ -1132,7 +1146,7 @@ function MP:BuildHistory()
         local t=Text(p,self:T("module_disabled"),11,false); t:SetPoint("TOPLEFT",PAGE_PAD,y); t:SetTextColor(unpack(C.dim)); return
     end
     local card=Card(p,PAGE_PAD,y,content:GetWidth()-PAGE_PAD*2,590,self:T("history"))
-    local cols={ {self:T("h_date"),14}, {self:T("h_dungeon"),105}, {self:T("h_level"),390}, {self:T("h_result"),465}, {self:T("h_time"),575}, {self:T("h_deaths"),650}, {self:T("h_score"),725} }
+    local cols={ {self:T("h_date"),14}, {self:T("h_dungeon"),105}, {self:T("h_level"),390}, {self:T("h_result"),465}, {self:T("h_time"),575}, {self:T("h_deaths"),650}, {self:T("h_score"),725}, {HistoryAnalysisText(),790} }
     for _,c in ipairs(cols) do local t=Text(card,c[1],8,true); t:SetPoint("TOPLEFT",c[2],-35); t:SetTextColor(unpack(C.dim)) end
     Divider(card,-55)
     local runs=self.RunHistory and self.RunHistory:GetRuns() or {}
@@ -1147,6 +1161,10 @@ function MP:BuildHistory()
             {FormatMS(r.durationMS),575,C.dim}, {tostring(r.deaths or 0),650,C.dim}, {r.scoreGain and r.scoreGain>0 and ("+"..math.floor(r.scoreGain+0.5)) or "—",725,C.dim},
         }
         for _,v in ipairs(vals) do local t=Text(card,v[1],9,false); t:SetPoint("TOPLEFT",v[2],ry); t:SetTextColor(unpack(v[3])) end
+        local run = r
+        Button(card,HistoryAnalysisText(),786,ry+7,82,function()
+            if MP.OpenHistoryRunAnalysis then MP:OpenHistoryRunAnalysis(run) end
+        end)
         ry=ry-31
         if i<math.min(16,#runs) then Divider(card,ry+9) end
     end

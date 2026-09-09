@@ -212,7 +212,9 @@ function TM:BuildMenu()
         local charScale = CharacterFrame:GetEffectiveScale() or uiScale
         frame:SetScale(charScale / uiScale)
         frame:ClearAllPoints()
-        frame:SetPoint("BOTTOM", CharacterFrame, "TOP", 0, 8)
+        -- Keep the palette beside the character sheet instead of above it.
+        -- Top-align both windows so the teleport grid reads as a side panel.
+        frame:SetPoint("TOPLEFT", CharacterFrame, "TOPRIGHT", 8, 0)
     end
     frame.PositionMenu = PositionMenu
     PositionMenu()

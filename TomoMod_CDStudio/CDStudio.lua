@@ -55,6 +55,12 @@ local CLASS_LIST = {
 }
 
 local L = TomoMod_L
+local function Loc(key, fallback)
+    local v = L and L[key]
+    if not v or v == key then return fallback end
+    return v
+end
+
 local frame, sidebarList, contentHost, editBtnTxt
 local hiddenBin
 
@@ -488,9 +494,14 @@ local function TabStyle(parent)
                     end
                 end
             end
-            -- (2) edited class catalog (real class/spec spells)
-            if #out < 3 and CDF.ScanSpellbook then
-                for _, group in ipairs(CDF.ScanSpellbook()) do
+            -- (2) edited class catalog. ClassLibrary makes this work even
+            -- when the player is editing another class; the logged-in class
+            -- additionally contains its live spellbook/talents.
+            if #out < 3 then
+                local groups = (CDF.GetStudioLibrary and CDF.GetStudioLibrary(S.state.class))
+                    or (CDF.ScanSpellbook and CDF.ScanSpellbook())
+                    or {}
+                for _, group in ipairs(groups) do
                     for _, sp in ipairs(group.spells or {}) do
                         if sp.icon then
                             out[#out + 1] = sp.icon
@@ -519,9 +530,12 @@ local function TabStyle(parent)
         -- Style ONCE (heavy: backdrop, mask, swipe...). Icon 1 ready; 2 & 3 on
         -- a looping fake cooldown to show the swipe + duration behavior. The
         -- OnUpdate only re-arms SetCooldown (cheap) -- no re-styling per frame.
-        CDF.StylePreviewIcon(host._icons[1], bar, DEMO_TEX[1], { cooldown = 0 })
-        CDF.StylePreviewIcon(host._icons[2], bar, DEMO_TEX[2], { cooldown = PREVIEW_CD, elapsed = 0 })
-        CDF.StylePreviewIcon(host._icons[3], bar, DEMO_TEX[3], { cooldown = PREVIEW_CD, elapsed = PREVIEW_CD / 2 })
+        CDF.StylePreviewIcon(host._icons[1], bar, DEMO_TEX[1],
+            { cooldown = 0, hotkeySample = "1" })
+        CDF.StylePreviewIcon(host._icons[2], bar, DEMO_TEX[2],
+            { cooldown = PREVIEW_CD, elapsed = 0, hotkeySample = "S2" })
+        CDF.StylePreviewIcon(host._icons[3], bar, DEMO_TEX[3],
+            { cooldown = PREVIEW_CD, elapsed = PREVIEW_CD / 2, hotkeySample = "C3" })
         host:SetScript("OnUpdate", function(self)
             local now = GetTime()
             if (self._t2 or 0) <= now then
@@ -558,6 +572,98 @@ local function TabStyle(parent)
         "Teinte l'icone quand le sort est hors cooldown mais impossible a lancer "
         .. "(rage, mana, forme...), comme sur les barres d'action.", cy)
     y = W.FinalizeCard(card, cy)
+
+    -- Keyboard shortcuts are stored inside bar.style so CopyStyle, duplicate
+    -- and share strings carry the look automatically. The renderer resolves
+    -- the actual binding from the tracked spellID via TomoMod_CDMKeybinds.
+    do
+        local hkResolved = (CDF.ResolveHotkeyStyle and CDF.ResolveHotkeyStyle(bar)) or {
+            enabled = false, size = 10, outline = "OUTLINE",
+            point = "TOPRIGHT", x = 0, y = 0, color = { 0.95, 0.97, 1, 1 },
+        }
+        local function HK()
+            bar.style = bar.style or { preset = "tomo" }
+            bar.style.hotkey = bar.style.hotkey or {}
+            return bar.style.hotkey
+        end
+        local function HotApply(rebuild)
+            Apply()
+            if rebuild then S.RebuildContent() end
+        end
+
+        card, cy = W.CreateCard(c, Loc("cds_hotkey_title", "Keyboard shortcuts"), y)
+        _, cy = W.CreateInfoText(card.inner,
+            Loc("cds_hotkey_info",
+                "Shows the binding of each tracked spell when it is found on an action bar."), cy)
+
+        _, cy = W.CreateCheckbox(card.inner, Loc("cds_hotkey_show", "Show keyboard shortcut"),
+            hkResolved.enabled == true, cy, function(v)
+                HK().enabled = v and true or false
+                HotApply(true)
+            end)
+
+        local fontOpts = {
+            { text = Loc("cds_hotkey_font_follow", "Follow bar text font"), value = "" },
+        }
+        do
+            local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
+            if LSM and LSM.List then
+                local ok, list = pcall(LSM.List, LSM, "font")
+                if ok and type(list) == "table" then
+                    for _, name in ipairs(list) do
+                        fontOpts[#fontOpts + 1] = { text = name, value = name }
+                    end
+                end
+            end
+        end
+        _, cy = W.CreateDropdown(card.inner, Loc("cds_hotkey_font", "Font"),
+            fontOpts, (bar.style.hotkey and bar.style.hotkey.font) or "", cy, function(v)
+                HK().font = (v ~= "") and v or nil
+                HotApply(true)
+            end)
+
+        _, cy = W.CreateSlider(card.inner, Loc("cds_hotkey_size", "Shortcut size"),
+            hkResolved.size or 10,
+            (CDF.HOTKEY_SIZE_MIN or 8), (CDF.HOTKEY_SIZE_MAX or 24), 1, cy,
+            function(v) HK().size = v; HotApply(true) end, "%d px")
+
+        _, cy = W.CreateDropdown(card.inner, Loc("cds_hotkey_outline", "Shortcut outline"), {
+            { text = Loc("cds_hotkey_outline_thin", "Thin"), value = "OUTLINE" },
+            { text = Loc("cds_hotkey_outline_thick", "Thick"), value = "THICKOUTLINE" },
+            { text = Loc("cds_hotkey_outline_none", "None"), value = "none" },
+        }, hkResolved.outline or "OUTLINE", cy, function(v)
+            HK().outline = v
+            HotApply(true)
+        end)
+
+        _, cy = W.CreateDropdown(card.inner, Loc("cds_hotkey_position", "Shortcut position"), {
+            { text = Loc("cds_hotkey_top_left", "Top left"), value = "TOPLEFT" },
+            { text = Loc("cds_hotkey_top_right", "Top right"), value = "TOPRIGHT" },
+            { text = Loc("cds_hotkey_bottom_left", "Bottom left"), value = "BOTTOMLEFT" },
+            { text = Loc("cds_hotkey_bottom_right", "Bottom right"), value = "BOTTOMRIGHT" },
+        }, hkResolved.point or "TOPRIGHT", cy, function(v)
+            HK().point = v
+            HotApply(true)
+        end)
+
+        _, cy = W.CreateSlider(card.inner, Loc("cds_hotkey_offset_x", "Horizontal offset"),
+            hkResolved.x or 0,
+            (CDF.HOTKEY_OFFSET_MIN or -30), (CDF.HOTKEY_OFFSET_MAX or 30), 1, cy,
+            function(v) HK().x = v; HotApply(true) end, "%d px")
+        _, cy = W.CreateSlider(card.inner, Loc("cds_hotkey_offset_y", "Vertical offset"),
+            hkResolved.y or 0,
+            (CDF.HOTKEY_OFFSET_MIN or -30), (CDF.HOTKEY_OFFSET_MAX or 30), 1, cy,
+            function(v) HK().y = v; HotApply(true) end, "%d px")
+
+        local hc = hkResolved.color or { 0.95, 0.97, 1, 1 }
+        _, cy = W.CreateColorPicker(card.inner, Loc("cds_hotkey_color", "Shortcut color"),
+            colorProxy(hc), cy, function(r, g, b)
+                HK().color = { r, g, b, 1 }
+                HotApply(true)
+            end)
+
+        y = W.FinalizeCard(card, cy)
+    end
 
     -- [S7] fine style axes. Editing any of these marks the style custom.
     local eff = (CDF.ResolveStyle and CDF.ResolveStyle(bar)) or {}

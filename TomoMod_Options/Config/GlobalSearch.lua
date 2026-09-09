@@ -256,11 +256,20 @@ function GhostTick()
     GhostSchedule()
 end
 
+local function HiddenCategoryMap()
+    local out = {}
+    for _, cat in ipairs(C.Categories or {}) do
+        if cat.hidden then out[cat.key] = true end
+    end
+    return out
+end
+
 local function GhostIndexAll()
     if GS.indexed then return end
     GS.indexed = true
     local tree = C.CategoryTree
     if not tree then return end
+    local hidden = HiddenCategoryMap()
 
     ghostLabels = {}
     if C.Categories then
@@ -274,13 +283,17 @@ local function GhostIndexAll()
     ghostQueue = {}
 
     for catKey, tabs in pairs(tree) do
-        for _, t in ipairs(tabs) do
-            ghostQueue[#ghostQueue + 1] =
-                { cat = catKey, tabKey = t.key, tabLabel = t.label, global = t.global }
+        if not hidden[catKey] then
+            for _, t in ipairs(tabs) do
+                ghostQueue[#ghostQueue + 1] =
+                    { cat = catKey, tabKey = t.key, tabLabel = t.label, global = t.global }
+            end
         end
     end
     for catKey, globalName in pairs(C.SinglePages or { accueil = "TomoMod_ConfigPanel_Accueil" }) do
-        ghostQueue[#ghostQueue + 1] = { cat = catKey, global = globalName }
+        if not hidden[catKey] then
+            ghostQueue[#ghostQueue + 1] = { cat = catKey, global = globalName }
+        end
     end
 
     GS.indexing = true
@@ -315,10 +328,13 @@ local function Search(query)
     end
     if #tokens == 0 then return nil end
     local results = {}
+    local hidden = HiddenCategoryMap()
     for _, e in ipairs(GS.entries) do
-        local s = MatchScore(e, tokens)
-        if s then
-            results[#results + 1] = { e = e, s = s }
+        if not hidden[e.cat] then
+            local s = MatchScore(e, tokens)
+            if s then
+                results[#results + 1] = { e = e, s = s }
+            end
         end
     end
     table.sort(results, function(a, b)

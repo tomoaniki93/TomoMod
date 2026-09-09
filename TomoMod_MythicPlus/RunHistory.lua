@@ -79,6 +79,13 @@ local function Runs()
     return db.history.runs
 end
 
+local function Analyses()
+    local db = MP:GetDB()
+    db.history = db.history or { maxRuns = 100, runs = {}, analyses = {} }
+    db.history.analyses = db.history.analyses or {}
+    return db.history.analyses
+end
+
 local function Trim()
     local db = MP:GetDB()
     local runs = Runs()
@@ -87,6 +94,15 @@ local function Trim()
     -- without letting SavedVariables grow indefinitely.
     db.history.maxRuns = 100
     while #runs > 100 do table.remove(runs) end
+
+    -- Analysis snapshots follow the same lifetime as their Run History row.
+    -- This prevents detailed post-run data from growing after the 100-run cap.
+    local keep = {}
+    for _, run in ipairs(runs) do if run.id then keep[tostring(run.id)] = true end end
+    local analyses = Analyses()
+    for runID in pairs(analyses) do
+        if not keep[tostring(runID)] then analyses[runID] = nil end
+    end
 end
 
 local function Fingerprint(run)
@@ -102,14 +118,17 @@ local function SnapshotSplits()
 
     local times  = type(tracker.bossKillTimes) == "table" and tracker.bossKillTimes or {}
     local forces = type(tracker.bossForces) == "table" and tracker.bossForces or {}
-    local names  = type(tracker._ejByIndex) == "table" and tracker._ejByIndex or {}
-    local maxIndex = math.max(#times, #forces, #names)
+    local liveNames = type(tracker.bossNames) == "table" and tracker.bossNames or {}
+    local ejNames = type(tracker._ejByIndex) == "table" and tracker._ejByIndex or {}
+    local maxIndex = math.max(#times, #forces, #liveNames, #ejNames)
     local bosses = {}
 
     for i = 1, maxIndex do
         local killTime = Num(times[i])
         local forcePct = Num(forces[i])
-        local name = Str(names[i])
+        -- Prefer the localized name actually rendered by MythicTracker; EJ is
+        -- still a useful fallback for runs where the row was never refreshed.
+        local name = Str(liveNames[i]) or Str(ejNames[i])
         if killTime or forcePct then
             bosses[#bosses + 1] = {
                 index = i,
@@ -195,6 +214,14 @@ function RH:Complete()
     if scoreBefore and scoreAfter then scoreGain = math.max(0, scoreAfter - scoreBefore) end
 
     local bossSplits, forcesDone = SnapshotSplits()
+    local forcesEstimated = false
+    if not forcesDone and durationMS > 0 then
+        -- A completed M+ necessarily reached 100% enemy forces. If the exact
+        -- transition stayed secret for the whole run, preserve the completion
+        -- time as an explicit upper bound instead of silently dropping it.
+        forcesDone = durationMS / 1000
+        forcesEstimated = true
+    end
 
     local run = {
         finishedAt = time(),
@@ -216,6 +243,7 @@ function RH:Complete()
         practiceRun = practice,
         splits = {
             forcesDone = forcesDone,
+            forcesEstimated = forcesEstimated,
             bosses = bossSplits or {},
         },
     }
@@ -245,6 +273,36 @@ end
 
 function RH:GetRuns()
     return Runs()
+end
+
+function RH:SaveAnalysis(runID, snapshot)
+    if runID == nil or type(snapshot) ~= "table" then return false end
+    local key = tostring(runID)
+    Analyses()[key] = snapshot
+    Trim()
+    return true
+end
+
+function RH:GetAnalysis(runID)
+    if runID == nil then return nil end
+    local key = tostring(runID)
+    local stored = Analyses()[key]
+    if type(stored) == "table" then return stored end
+
+    -- Compatibility with the first Run Analysis V1 patch: its detailed
+    -- snapshot lived only in TomoScore.lastRun. Keep the most recent one
+    -- usable after upgrading even before another dungeon has been completed.
+    local ts = _G.TomoMod_TomoScore
+    local tsdb = ts and ts.GetDB and ts:GetDB() or nil
+    local last = tsdb and tsdb.lastRun or nil
+    local meta = type(last) == "table" and type(last._tmRunAnalysis) == "table"
+        and last._tmRunAnalysis or nil
+    if meta and tostring(meta.historyID or "") == key then return last end
+    return nil
+end
+
+function RH:HasAnalysis(runID)
+    return type(self:GetAnalysis(runID)) == "table"
 end
 
 function RH:GetWeekStart()

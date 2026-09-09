@@ -2,6 +2,72 @@
 
 ## CHANGELOG 4.0.2
 
+#### Main Options — Guided Help And Teleport Placement
+
+- **New** - The main `/tm` window gains an optional eight-step Help guide covering navigation, search, role filters, focused workspaces, EditMode, profiles and diagnostics. Each step highlights the relevant interface area and closing the guide restores the previously selected category.
+- **New** - Every guide control, title and explanation is available in all six supported languages. The guide opens only from the new Help button and never forces an onboarding popup when the options window is opened.
+- **Changed** - The Mythic+ teleport palette now opens top-aligned to the right of the Character window, keeping the teleport grid beside the character sheet instead of above it.
+
+#### Class Reminder — Specialization Detection And TomoLayout Support
+
+- **New** - Class Reminder is now a selectable TomoLayout element. It can be highlighted, nudged pixel by pixel and centred like any other frame, and its position is saved through the shared anchor store.
+- **Changed** - The reminder positions itself through the shared Layout engine instead of its own copy of that logic, so resolution rescaling and scale handling stay identical to every other movable frame.
+- **Fixed** - Specialization detection no longer reports specialization 0. The reminder mixed the new specialization index API with the legacy global lookup, so on current clients every specialization-gated reminder silently believed you had no specialization.
+- **Fixed** - Class and specialization are refreshed on talent changes, spellbook updates, level-ups and every loading screen, not only when the specialization itself changes.
+- **Fixed** - Enabling Class Reminder from the dashboard or a profile import now re-applies its state, scale and position immediately instead of waiting for the next login.
+- **Internal** - The existing non-secure drag overlay is exposed to TomoLayout as the frame's mover surface, and Layout re-binds its selection frames when that overlay is created after Layout mode has already run its first binding pass.
+- **Internal** - The module manifest declares the reminder's anchor, so its position participates in layout sharing and import alongside the other declared frames.
+
+#### Mythic+ Run Analysis V1.2 — Reliable Splits And Death Attribution
+
+- **New** - Run Analysis attributes deaths per player from unit events rather than the protected combat log, covering the case where the damage meter reports a player's output but leaves their death count unavailable.
+- **Changed** - Per-player death attribution is cross-checked against Blizzard's total for the key. If the two disagree, or if the addon was reloaded mid-run, Run Analysis falls back to the meter or to unknown instead of showing a false zero.
+- **Changed** - Mythic+ split collection is now independent from display settings. Hiding the forces bar or the boss list only hides them: kill times, forces percentages and boss names keep being recorded for Run History and Run Analysis.
+- **Fixed** - The moment enemy forces reach 100% is no longer lost. A frame whose criteria are unreadable can no longer erase a timestamp already captured, and a completion that only becomes readable at the end falls back to the final run time.
+- **Fixed** - Run History now stores the localized boss name actually shown by the Mythic tracker, falling back to the Encounter Journal only when the row was never refreshed. Recorded splits no longer read Boss 1, Boss 2 in place of real names.
+- **Fixed** - Forces and boss rows are refreshed before the finished run is written to history, so the last readable state of the key is the one recorded. Forces are also updated before boss rows on every criteria update, so a kill snapshots the percentage from its own refresh.
+- **Internal** - The death tracker registers its unit events one pair at a time. RegisterUnitEvent accepts at most two unit tokens per event and a second call replaces the first filter, so a single registration would have watched the player and the first party member only.
+
+#### Mythic+ Run Analysis V1.2.1 — Polish And Reliability
+
+- **Fixed** - An exact enemy-forces completion timestamp can no longer be cleared by a later stale or protected criteria update. Completed runs without a readable 100% transition retain the final run time as an explicit upper bound instead of omitting the forces split.
+- **Fixed** - Per-player death values from the damage meter are now discarded when their readable sum disagrees with Run History's authoritative total, unless the trusted unit-event tracker supplied the data. The summary always prefers the authoritative run total.
+- **Changed** - Split labels and values are centred consistently. Bosses remain grouped from left to right and enemy forces are appended afterwards, so adding the forces timestamp never shifts the boss order.
+
+#### Cooldown Studio — Collected Class Library And Hotkey Style
+
+- **New** - Cooldown Studio ships a class library built from real spellbook and talent scans collected on WoW 12.1.0 across all thirteen classes. Every class can be browsed without being logged in on it.
+- **New** - Library spells are grouped by specialization, with a shared section for the abilities every specialization has. Group names come from the client and each list is sorted alphabetically.
+- **New** - CooldownForge icons can display the keyboard shortcut of the spell they track. TomoMod finds the ability on your action bars and shows its binding as a display-only label, without ever touching a secure action.
+- **New** - Shortcut appearance is configured per bar: font, size, outline, colour, corner and horizontal or vertical offset. The settings live inside the bar style, so copying, duplicating or sharing a bar carries them along.
+- **Changed** - For the class currently being played, the live spellbook and active talents are merged on top of the collected data, so a newly learned ability appears without waiting for a TomoMod update.
+- **Changed** - Spell names and icons are resolved from the client when a row is drawn, so the library reads in your own language. The collected text is only a fallback for a spell the client has not loaded yet.
+- **Changed** - Shortcut text refreshes on its own after a keybinding change or an action-bar rearrangement. Moving an ability to another slot updates the label without editing the CooldownForge entry.
+- **Fixed** - Cooldown icons no longer raise a font error when the shortcut option is left disabled, and a custom font the client cannot load now falls back to the default instead of leaving the label unusable.
+- **Internal** - The hand-written catalog that appeared earlier in this version was replaced rather than extended. The collected database records only abilities the spellbook scanner actually saw, which removes the class of error where a hand-picked spell ID had since been renamed or removed by a patch.
+- **Internal** - The database lives in the load-on-demand Studio, so browsing every class costs nothing during normal gameplay, and spell IDs are still filtered through C_Spell before a row is built.
+
+#### Mythic+ Run Analysis V1.1 — History Playback
+
+- **New** - Every row of the Mythic+ Run History now carries an Analyze button that reopens the complete Run Analysis window for that key. Post-run analysis is no longer limited to the run that has just finished.
+- **New** - A compact analysis snapshot is stored alongside each recorded run: keystone level, duration, timed status, score movement and the per-player damage, healing and interrupt figures. Reopening an older key shows what that run actually did instead of whatever combat data the client happens to hold later.
+- **Changed** - Snapshots share the lifetime of the history row that owns them and are discarded with it at the hundred-run ceiling, so the detailed data cannot grow past the history it documents.
+- **Changed** - Runs recorded before snapshots existed remain inspectable. Their summary, keystone level, duration, deaths and score gain are rebuilt from Run History, and the group performance card states clearly that detailed meter data was not recorded for that run.
+- **Internal** - The run captured by the first Run Analysis release stays reachable immediately after updating, through a compatibility read of the last saved TomoScore run, rather than requiring another dungeon to be completed first.
+
+#### Options — Studio-Owned Navigation
+
+- **Changed** - The legacy Units and Combat configuration workspaces no longer appear in the options navigation or its sub-navigation. Astral Forge Studio, Party & Raid Studio and Resource & Cast Studio own those settings, so each one now has a single place in the interface.
+- **Changed** - Global search no longer indexes or returns entries belonging to hidden categories. Their tabs and single pages are skipped while the index is built, and any remaining entry is filtered out of the results.
+- **Fixed** - Navigation search no longer places a button it never created. Hidden categories are skipped explicitly and the button lookup is guarded, closing the one unguarded path through the category list.
+- **Internal** - Nothing was deleted. Both category builders stay registered in the category tree, so existing deep-links keep resolving and the panels can be restored by clearing a single flag.
+
+#### Blizzard Cooldown Manager — Visibility In Interface
+
+- **Changed** - Per-viewer visibility for Blizzard's Cooldown Manager moved from the legacy Cooldowns panel to Interface > General. Essential, Utility and the tracked-bonus icon and bar viewers each keep their own switch.
+- **Fixed** - Those switches are now translated in all six supported languages. They previously shipped with hard-coded French labels whatever the client language.
+- **Changed** - The behaviour itself is unchanged: TomoMod only makes a viewer invisible and non-clickable, and never deletes or replaces Blizzard's own viewer.
+
 #### Resource & Cast Studio V1.2 — Icon Preview And Live Sync
 
 - **New** - The detached Studio preview now honours the Icons display mode. Combo Points, Soul Shards, Essence and Runes render with their real class icons, Chi, Holy Power and Arcane Charges use their banded class textures, and Stagger switches to its dedicated Monk texture instead of a generic bar.

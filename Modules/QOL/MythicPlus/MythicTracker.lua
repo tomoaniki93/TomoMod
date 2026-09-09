@@ -1380,11 +1380,12 @@ function TMT:UpdateForcesBar(preview)
     local FB  = self.Frame.ForcesBar
     local FCR = self.Frame.ForcesCompRow
     local db  = GetDB()
-    if not db or not db.showForces then
-        FB:Hide(); FCR:Hide()
-        return
-    end
-    FB:Show()
+    if not db then return end
+    -- Collection stays active even when the visual forces bar is disabled: Run
+    -- Analysis must not lose the 100% timestamp because of a display setting.
+    local showForces = db.showForces and true or false
+    FB:SetShown(showForces)
+    if not showForces then FCR:Hide() end
 
     local C = self.C
 
@@ -1448,6 +1449,11 @@ function TMT:UpdateForcesBar(preview)
         local elapsed = 0
         if preview then
             elapsed = 620
+        elseif self.completionTime then
+            -- Once the challenge has ended GetWorldElapsedTime is no longer a
+            -- dependable fallback. If 100% becomes readable only on completion,
+            -- the final run time is still a truthful upper bound.
+            elapsed = self.completionTime / 1000
         elseif C_ChallengeMode.IsChallengeModeActive() then
             elapsed = select(2, GetWorldElapsedTime(1)) or 0
         end
@@ -1463,7 +1469,7 @@ function TMT:UpdateForcesBar(preview)
             line = line .. "  |cFF" .. hex .. self:FormatDelta(delta) .. "|r"
         end
         FCR.time:SetText(line)
-        FCR:Show()
+        FCR:SetShown(showForces)
     else
         -- Brand ramp: dark mint at the pull, full mint as the count fills.
         -- With no readable numbers the ramp sits at its low end; the bar
@@ -1490,7 +1496,9 @@ function TMT:UpdateForcesBar(preview)
         FB.label:Show()
         FB.count:Show()
         FCR:Hide()
-        self.forcesCompTime = nil
+        -- Once 100% has been captured, forces cannot legitimately go backwards
+        -- during the same keystone. A later stale/secret criteria frame must not
+        -- erase the exact timestamp; CHALLENGE_MODE_START owns the reset.
     end
 
     -- What is left to kill reads better mid-pull than "730 / 1000".
@@ -1510,7 +1518,9 @@ function TMT:UpdateBossRows(preview)
     for _, row in ipairs(self.Frame.BossRows) do row:Hide() end
     self._bossDone, self._bossTotal = nil, nil
     local db = GetDB()
-    if not db or not db.showBosses then return end
+    if not db then return end
+    -- Keep split collection independent from the visible boss-list setting.
+    local renderRows = db.showBosses and db.objectiveStyle ~= "none"
 
     local C       = self.C
     local elapsed = 0
@@ -1554,10 +1564,9 @@ function TMT:UpdateBossRows(preview)
     end
     self._bossDone, self._bossTotal = done, #criteria
 
-    if db.objectiveStyle == "none" then return end
-
     self.bossKillTimes = self.bossKillTimes or {}
     self.bossForces    = self.bossForces or {}
+    self.bossNames     = self.bossNames or {}
 
     local best = (db.splitsEnabled ~= false)
         and self:GetBestRun(self.mapID, self.level) or nil
@@ -1565,7 +1574,7 @@ function TMT:UpdateBossRows(preview)
     for i, cr in ipairs(criteria) do
         local row = self.Frame.BossRows[i]
         if not row then break end
-        row:Show()
+        row:SetShown(renderRows)
 
         if striped and i % 2 == 0 then
             row._bg:SetColorTexture(unpack(C.BG_ROW_ALT))
@@ -1586,6 +1595,10 @@ function TMT:UpdateBossRows(preview)
             bossName = self:FindBossName(rawDesc ~= "" and rawDesc or ("Boss " .. i), i, dungeonEncounterID)
         end
         row.name:SetText(bossName)
+        -- Persist the exact localized name that the live tracker resolved.
+        -- RunHistory used to read only _ejByIndex, which can be unavailable
+        -- even though the scenario row itself has a perfectly good name.
+        self.bossNames[i] = bossName
 
         if cr.completed then
             row.dot:SetColorTexture(unpack(C.ACCENT))
@@ -1755,12 +1768,13 @@ end
 -- ═══════════════════════════════════════════════════════════════════════
 function TMT:RefreshAll(preview)
     if not self.Frame then return end
-    -- Boss rows first: they compute the tally the header displays when
-    -- the list itself is hidden.
+    -- Forces first so a boss kill snapshots the percentage from this exact
+    -- criteria refresh rather than the previous ticker frame.
+    self:UpdateForcesBar(preview)
+    -- Boss rows compute the tally the header displays when the list is hidden.
     self:UpdateBossRows(preview)
     self:UpdateHeader(preview)
     self:UpdateTimerBar(preview)
-    self:UpdateForcesBar(preview)
     self:UpdateBanner()
     self:LayoutFrame()
 end
@@ -2015,6 +2029,7 @@ EF:SetScript("OnEvent", function(_, event, ...)
         TMT.completionTime = nil
         TMT.playerDeaths = {}
         TMT.forcesCompTime = nil
+        TMT.bossNames = {}
         TMT._ejByIndex = nil
         TMT._ejByEncounterID = nil
         if db.hideBlizzard then TMT:SuppressBlizzardUI() end
@@ -2030,9 +2045,13 @@ EF:SetScript("OnEvent", function(_, event, ...)
         -- Guarded: this event can fire before combat has dropped, and the
         -- value feeds arithmetic in UpdateTimerBar.
         TMT.completionTime = info and SafeNum(info.time) or nil
+        -- Refresh final criteria before persisting the split. In V1.1 the best
+        -- run was recorded first, so the last readable 100%-forces state and
+        -- localized boss names could arrive one call too late.
+        TMT:UpdateForcesBar(false)
+        TMT:UpdateBossRows(false)
         TMT:RecordRun()
         TMT:UpdateTimerBar(false)
-        TMT:UpdateBossRows(false)
         TMT:UpdateBanner()
         TMT:LayoutFrame()
 
@@ -2042,8 +2061,8 @@ EF:SetScript("OnEvent", function(_, event, ...)
     elseif event == "SCENARIO_CRITERIA_UPDATE"
         or event == "SCENARIO_POI_UPDATE" then
         if TMT.Frame and C_ChallengeMode.IsChallengeModeActive() then
-            TMT:UpdateBossRows()
             TMT:UpdateForcesBar()
+            TMT:UpdateBossRows()
             TMT:LayoutFrame()
         end
 

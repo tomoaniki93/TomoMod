@@ -51,11 +51,17 @@ local function SafeNum(v)
 end
 
 local function CurrentSpecID()
-    local getIdx = (C_SpecializationInfo and C_SpecializationInfo.GetSpecialization) or GetSpecialization
+    local api = C_SpecializationInfo
+    local getIdx = (api and api.GetSpecialization) or GetSpecialization
+    local getInfo = (api and api.GetSpecializationInfo) or GetSpecializationInfo
     local idx = getIdx and getIdx()
-    if not idx then return 0 end
-    local id = GetSpecializationInfo and GetSpecializationInfo(idx)
-    return id or 0
+    if not idx or not getInfo then return 0 end
+
+    -- Midnight moved specialization helpers under C_SpecializationInfo.
+    -- Mixing the new index API with a missing legacy global silently made
+    -- spec-gated reminders think the player had specialization 0.
+    local id = getInfo(idx)
+    return tonumber(id) or 0
 end
 
 local function IsKnown(spellID)
@@ -287,6 +293,12 @@ local playerClass
 local currentSpecID
 local crPreview = false   -- aperçu actif : la mise à jour ne doit pas l'écraser
 
+local function RefreshPlayerState()
+    local _, englishClass = UnitClass("player")
+    playerClass = englishClass
+    currentSpecID = CurrentSpecID()
+end
+
 -- ── Display constants ────────────────────────────────────────
 
 local FONT_LABEL   = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
@@ -360,22 +372,21 @@ end
 local function ApplyPosition()
     if InCombatLockdown() then return end
     local db = GetDB()
-    anchor:ClearAllPoints()
     local p = db and db.position
+
+    -- Save and apply must use the same Layout engine. Keeping a second local
+    -- implementation here made ClassReminder sensitive to later Layout V4
+    -- schema/scale changes.
+    if p and (p.point or p.anchor) and TomoMod_Layout and TomoMod_Layout.Apply then
+        if TomoMod_Layout.Apply(p, anchor) then return end
+    end
+
+    -- Compatibility fallback for very old/corrupt positions or early load.
+    anchor:ClearAllPoints()
     if p and (p.point or p.anchor) then
-        if TomoMod_Layout and TomoMod_Layout.MigratePosition then
-            TomoMod_Layout.MigratePosition(p)
-        end
         local point = p.point or p.anchor or "CENTER"
         local relativePoint = p.anchor or p.relativePoint or p.relPoint or p.relTo or point
-        local x, y = p.x or 0, p.y or 0
-        if TomoMod_Layout and TomoMod_Layout.Rescale then
-            x, y = TomoMod_Layout.Rescale(x, y, p.refW, p.refH,
-                UIParent:GetWidth(), UIParent:GetHeight())
-        end
-        local ratio = anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
-        if not (ratio and ratio > 0) then ratio = 1 end
-        anchor:SetPoint(point, UIParent, relativePoint, x / ratio, y / ratio)
+        anchor:SetPoint(point, UIParent, relativePoint, tonumber(p.x) or 0, tonumber(p.y) or 0)
     else
         anchor:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
     end
@@ -921,6 +932,8 @@ local function CreateDragOverlay()
     end
     dragOverlay:EnableMouse(true)
     dragOverlay:RegisterForDrag("LeftButton")
+    -- Expose the existing non-secure mover surface to TomoLayout.
+    anchor.dragFrame = dragOverlay
     dragOverlay:SetScript("OnDragStart", function() anchor:StartMoving() end)
     dragOverlay:SetScript("OnDragStop", function()
         anchor:StopMovingOrSizing()
@@ -930,6 +943,12 @@ local function CreateDragOverlay()
     -- Reuse the label supplied by the unified mover renderer.
     dragLabel = dragOverlay._tmMoverText
     dragOverlay:Hide()
+
+    -- The overlay is lazy-created after Layout mode may already have done its
+    -- first selection-binding pass.
+    if TomoMod_LayoutV41 and TomoMod_LayoutV41.BindSelectionFrames then
+        TomoMod_LayoutV41.BindSelectionFrames()
+    end
 end
 
 local function SetLockedInternal(locked)
@@ -1167,13 +1186,20 @@ end
 
 function CR.SetEnabled(v)
     local db = GetDB()
-    if db then db.enabled = v end
-    if CR.UpdateAuraRegistration then CR.UpdateAuraRegistration() end
+    if not db then return false end
+    v = v and true or false
+    db.enabled = v
+
     if v then
-        UpdateDisplay()
-    else
-        HideEverything()
+        -- Profile/import switches can enable the module long after login.
+        RefreshPlayerState()
+        anchor:SetScale(db.scale or 1.0)
+        ApplyPosition()
     end
+
+    if CR.UpdateAuraRegistration then CR.UpdateAuraRegistration() end
+    if v then UpdateDisplay() else HideEverything() end
+    return true
 end
 
 function CR.ApplySettings()
@@ -1187,10 +1213,7 @@ function CR.Initialize()
     local db = GetDB()
     if not db then return end
 
-    -- Cache class & spec
-    local _, englishClass = UnitClass("player")
-    playerClass = englishClass
-    currentSpecID = CurrentSpecID()
+    RefreshPlayerState()
 
     anchor:SetScale(db.scale or 1.0)
     ApplyPosition()
@@ -1286,13 +1309,17 @@ eventFrame:SetScript("OnEvent", function(self, event, arg1)
     if event == "PLAYER_ENTERING_WORLD" then
         -- Middle-click dismissals last until the next loading screen.
         wipe(dismissed)
+        RefreshPlayerState()
     end
 
     local db = GetDB()
     if not db or not db.enabled then return end
 
-    if event == "PLAYER_SPECIALIZATION_CHANGED" then
-        currentSpecID = CurrentSpecID()
+    if event == "PLAYER_SPECIALIZATION_CHANGED"
+        or event == "TRAIT_CONFIG_UPDATED"
+        or event == "SPELLS_CHANGED"
+        or event == "PLAYER_LEVEL_CHANGED" then
+        RefreshPlayerState()
     elseif event == "GROUP_ROSTER_UPDATE" then
         UpdateAuraRegistration()
     elseif event == "UNIT_AURA" and arg1 ~= "player" then

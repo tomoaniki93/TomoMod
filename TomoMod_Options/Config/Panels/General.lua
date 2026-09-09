@@ -2,6 +2,57 @@
 local W = TomoMod_Widgets
 local L = TomoMod_L
 
+if TomoMod_RegisterLocale then
+    TomoMod_RegisterLocale("enUS", {
+        ["section_blizzard_cdm_visibility"] = "Blizzard Cooldown Manager",
+        ["info_blizzard_cdm_visibility"] = "Check a viewer to hide that Blizzard Cooldown Manager bar. TomoMod only makes it invisible and non-clickable; it does not delete or replace Blizzard's viewer.",
+        ["opt_hide_cdm_essential"] = "Hide CDM Essential (essential cooldowns)",
+        ["opt_hide_cdm_utility"] = "Hide CDM Utility (utilities)",
+        ["opt_hide_cdm_bufficon"] = "Hide CDM tracked bonuses (icons)",
+        ["opt_hide_cdm_buffbar"] = "Hide CDM tracked bonuses (bars)",
+    })
+    TomoMod_RegisterLocale("frFR", {
+        ["section_blizzard_cdm_visibility"] = "Cooldown Manager de Blizzard",
+        ["info_blizzard_cdm_visibility"] = "Coche une barre pour masquer le viewer correspondant du Cooldown Manager de Blizzard. TomoMod le rend seulement invisible et non cliquable : il ne supprime ni ne remplace le viewer Blizzard.",
+        ["opt_hide_cdm_essential"] = "Masquer CDM Essential (cooldowns essentiels)",
+        ["opt_hide_cdm_utility"] = "Masquer CDM Utility (utilitaires)",
+        ["opt_hide_cdm_bufficon"] = "Masquer CDM Bonus suivi (icônes)",
+        ["opt_hide_cdm_buffbar"] = "Masquer CDM Bonus suivi (barres)",
+    })
+    TomoMod_RegisterLocale("deDE", {
+        ["section_blizzard_cdm_visibility"] = "Blizzard Abklingzeitmanager",
+        ["info_blizzard_cdm_visibility"] = "Aktiviere einen Eintrag, um den entsprechenden Blizzard-Cooldown-Viewer auszublenden. TomoMod macht ihn nur unsichtbar und nicht anklickbar; der Blizzard-Viewer wird weder gelöscht noch ersetzt.",
+        ["opt_hide_cdm_essential"] = "CDM Essential ausblenden (wichtige Abklingzeiten)",
+        ["opt_hide_cdm_utility"] = "CDM Utility ausblenden (Hilfsfähigkeiten)",
+        ["opt_hide_cdm_bufficon"] = "CDM verfolgte Boni ausblenden (Symbole)",
+        ["opt_hide_cdm_buffbar"] = "CDM verfolgte Boni ausblenden (Leisten)",
+    })
+    TomoMod_RegisterLocale("esES", {
+        ["section_blizzard_cdm_visibility"] = "Gestor de reutilización de Blizzard",
+        ["info_blizzard_cdm_visibility"] = "Marca un visor para ocultar esa barra del gestor de reutilización de Blizzard. TomoMod solo la vuelve invisible y no interactiva; no elimina ni reemplaza el visor de Blizzard.",
+        ["opt_hide_cdm_essential"] = "Ocultar CDM Essential (reutilizaciones esenciales)",
+        ["opt_hide_cdm_utility"] = "Ocultar CDM Utility (utilidades)",
+        ["opt_hide_cdm_bufficon"] = "Ocultar bonos seguidos de CDM (iconos)",
+        ["opt_hide_cdm_buffbar"] = "Ocultar bonos seguidos de CDM (barras)",
+    })
+    TomoMod_RegisterLocale("itIT", {
+        ["section_blizzard_cdm_visibility"] = "Gestore recuperi Blizzard",
+        ["info_blizzard_cdm_visibility"] = "Seleziona un viewer per nascondere la relativa barra del gestore recuperi Blizzard. TomoMod la rende solo invisibile e non cliccabile; non elimina né sostituisce il viewer Blizzard.",
+        ["opt_hide_cdm_essential"] = "Nascondi CDM Essential (recuperi essenziali)",
+        ["opt_hide_cdm_utility"] = "Nascondi CDM Utility (utilità)",
+        ["opt_hide_cdm_bufficon"] = "Nascondi bonus tracciati CDM (icone)",
+        ["opt_hide_cdm_buffbar"] = "Nascondi bonus tracciati CDM (barre)",
+    })
+    TomoMod_RegisterLocale("ptBR", {
+        ["section_blizzard_cdm_visibility"] = "Gerenciador de recarga da Blizzard",
+        ["info_blizzard_cdm_visibility"] = "Marque um visualizador para ocultar a barra correspondente do Gerenciador de Recarga da Blizzard. O TomoMod apenas a torna invisível e não clicável; ele não remove nem substitui o visualizador da Blizzard.",
+        ["opt_hide_cdm_essential"] = "Ocultar CDM Essential (recargas essenciais)",
+        ["opt_hide_cdm_utility"] = "Ocultar CDM Utility (utilidades)",
+        ["opt_hide_cdm_bufficon"] = "Ocultar bônus acompanhados do CDM (ícones)",
+        ["opt_hide_cdm_buffbar"] = "Ocultar bônus acompanhados do CDM (barras)",
+    })
+end
+
 function TomoMod_ConfigPanel_General(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
@@ -430,6 +481,34 @@ function TomoMod_ConfigPanel_General(parent)
     end)
 
     y = W.FinalizeCard(auraCard, ay)
+
+    -- ═══════════════════════════════════════════════
+    -- BLIZZARD COOLDOWN MANAGER — VISIBILITY
+    -- Moved here from the legacy Combat > Cooldowns panel.
+    -- ═══════════════════════════════════════════════
+    local cdmCard, cdy = W.CreateCard(c, L["section_blizzard_cdm_visibility"], y)
+    local _, cdy = W.CreateInfoText(cdmCard.inner, L["info_blizzard_cdm_visibility"], cdy)
+
+    local Hd = TomoMod_CDMHolders
+    local function IsViewerHidden(key)
+        return Hd and Hd.IsViewerHidden and Hd.IsViewerHidden(key) or false
+    end
+    local function SetViewerHidden(key, value)
+        if Hd and Hd.SetViewerHidden then
+            Hd.SetViewerHidden(key, value)
+        end
+    end
+
+    local _, cdy = W.CreateCheckbox(cdmCard.inner, L["opt_hide_cdm_essential"],
+        IsViewerHidden("essential"), cdy, function(v) SetViewerHidden("essential", v) end)
+    local _, cdy = W.CreateCheckbox(cdmCard.inner, L["opt_hide_cdm_utility"],
+        IsViewerHidden("utility"), cdy, function(v) SetViewerHidden("utility", v) end)
+    local _, cdy = W.CreateCheckbox(cdmCard.inner, L["opt_hide_cdm_bufficon"],
+        IsViewerHidden("buffIcon"), cdy, function(v) SetViewerHidden("buffIcon", v) end)
+    local _, cdy = W.CreateCheckbox(cdmCard.inner, L["opt_hide_cdm_buffbar"],
+        IsViewerHidden("buffBar"), cdy, function(v) SetViewerHidden("buffBar", v) end)
+
+    y = W.FinalizeCard(cdmCard, cdy)
 
     -- ═══════════════════════════════════════════════
     -- CURSOR RING

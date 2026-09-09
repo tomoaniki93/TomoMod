@@ -36,6 +36,52 @@ CDF.SKIN_AXES = {
 -- Both axes accept the same modes: off, the class colour, or a custom one.
 CDF.ACTIVE_MODES = { off = true, class = true, custom = true }
 
+-- CooldownForge hotkeys are part of the visual style, but intentionally not
+-- a SKIN_AXIS: presets should never switch them on behind the player's back.
+-- Keeping them in bar.style means CopyStyle/import/duplicate carry them
+-- automatically without a schema migration.
+CDF.HOTKEY_POINTS = {
+    TOPLEFT = true, TOPRIGHT = true, BOTTOMLEFT = true, BOTTOMRIGHT = true,
+}
+CDF.HOTKEY_OUTLINES = { none = true, OUTLINE = true, THICKOUTLINE = true }
+CDF.HOTKEY_SIZE_MIN, CDF.HOTKEY_SIZE_MAX = 8, 24
+CDF.HOTKEY_OFFSET_MIN, CDF.HOTKEY_OFFSET_MAX = -30, 30
+
+local function hkClamp(v, lo, hi, fallback)
+    v = tonumber(v)
+    if v == nil then v = fallback end
+    if v < lo then return lo end
+    if v > hi then return hi end
+    return v
+end
+
+function CDF.ResolveHotkeyStyle(bar)
+    local style = (bar and bar.style) or {}
+    local hk = type(style.hotkey) == "table" and style.hotkey or {}
+    local point = CDF.HOTKEY_POINTS[hk.point] and hk.point or "TOPRIGHT"
+    local outline = CDF.HOTKEY_OUTLINES[hk.outline] and hk.outline or "OUTLINE"
+    local color = hk.color
+    if type(color) ~= "table" or tonumber(color[1]) == nil then
+        color = { 0.95, 0.97, 1.00, 1 }
+    end
+
+    return {
+        enabled = hk.enabled == true,
+        font = (type(hk.font) == "string" and hk.font ~= "") and hk.font or nil,
+        size = hkClamp(hk.size, CDF.HOTKEY_SIZE_MIN, CDF.HOTKEY_SIZE_MAX, 10),
+        outline = outline,
+        point = point,
+        x = hkClamp(hk.x, CDF.HOTKEY_OFFSET_MIN, CDF.HOTKEY_OFFSET_MAX, 0),
+        y = hkClamp(hk.y, CDF.HOTKEY_OFFSET_MIN, CDF.HOTKEY_OFFSET_MAX, 0),
+        color = {
+            hkClamp(color[1], 0, 1, 0.95),
+            hkClamp(color[2], 0, 1, 0.97),
+            hkClamp(color[3], 0, 1, 1.00),
+            hkClamp(color[4], 0, 1, 1),
+        },
+    }
+end
+
 CDF.SKIN_PRESETS = {
     net = {
         opacity = 1,

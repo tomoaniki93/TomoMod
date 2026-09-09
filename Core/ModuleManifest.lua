@@ -529,6 +529,10 @@ R.Define{
 R.Define{
     key = "classReminder", label = "mod_classReminder", group = "qol",
     enabledPath = "classReminder.enabled",
+    anchors = {
+        { id = "classReminder", path = "classReminder.position",
+          shape = "point_relativePoint", label = "mod_classReminder" },
+    },
     global = "TomoMod_ClassReminder", applyMode = "setter", apply = "SetEnabled",
 }
 

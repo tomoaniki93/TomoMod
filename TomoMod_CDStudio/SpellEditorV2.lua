@@ -926,17 +926,6 @@ local function TabLibraryV2(parent)
     local y = -12
     local bar = SelectedBar()
 
-    if S.state.class ~= CDF.PlayerClass() then
-        local card, cy = W.CreateCard(content,
-            Loc("cds_lib_title", "Spell library"), y)
-        _, cy = W.CreateInfoText(card.inner,
-            Loc("cds_lib_wrong_class", "The library scans the spellbook of the character currently logged in. Select that character's class to browse it."), cy)
-        W.FinalizeCard(card, cy)
-        content:SetHeight(math.max(220, math.abs(y) + 180))
-        if scroll.UpdateScroll then scroll.UpdateScroll() end
-        return scroll
-    end
-
     if not bar then
         local card, cy = W.CreateCard(content,
             Loc("cds_lib_title", "Spell library"), y)
@@ -948,7 +937,12 @@ local function TabLibraryV2(parent)
         return scroll
     end
 
-    local groups = CDF.ScanSpellbook and CDF.ScanSpellbook() or {}
+    -- ClassLibrary provides a curated catalog for every class. When the
+    -- edited class is the logged-in class it also merges the live spellbook,
+    -- active talents and hero talents from CDF.ScanSpellbook().
+    local groups = (CDF.GetStudioLibrary and CDF.GetStudioLibrary(S.state.class))
+        or ((S.state.class == CDF.PlayerClass() and CDF.ScanSpellbook)
+            and CDF.ScanSpellbook() or {})
     if #groups == 0 then
         local card, cy = W.CreateCard(content,
             Loc("cds_lib_title", "Spell library"), y)
@@ -965,6 +959,11 @@ local function TabLibraryV2(parent)
     local inBar = BuildInBarMap(bar)
     local groupFrames = {}
     local Reflow
+
+    local _, hintY = W.CreateInfoText(content,
+        Loc("cds_lib_catalog_hint",
+            "TomoMod provides a curated cooldown library for every class."), y)
+    y = hintY
 
     local search
     search, y = CreateSearchBox(content, y, function(text)
@@ -1007,7 +1006,7 @@ local function TabLibraryV2(parent)
         local ok = CDF.AddEntry(S.state.class, S.state.barId, {
             kind = "spell",
             id = spell.spellID,
-            spec = group.offSpecID or 0,
+            spec = spell.spec or group.offSpecID or 0,
         })
         if ok then
             RefreshInBar()

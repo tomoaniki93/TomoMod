@@ -208,6 +208,7 @@ local function FindFrame(anchorID)
     if anchorID == "mythicTracker" then return _G.TomoMod_MythicTrackerFrame end
     if anchorID == "minimap" then return _G.Minimap end
     if anchorID == "skyRide" then return _G.TomoModSkyRideFrame end
+    if anchorID == "classReminder" then return _G.TomoMod_ClassReminderFrame end
     return nil
 end
 P.FindFrame = FindFrame
@@ -242,6 +243,7 @@ function P.ResolveAnchorID(frame)
     if name == "TomoModObjectiveTrackerMover" then return "objectiveTracker" end
     if name == "TomoMod_MythicTrackerFrame" then return "mythicTracker" end
     if name == "TomoModSkyRideFrame" then return "skyRide" end
+    if name == "TomoMod_ClassReminderFrame" then return "classReminder" end
     return nil
 end
 
@@ -494,7 +496,7 @@ local SELECTION_ANCHORS = {
     "actionBars.bar5", "actionBars.bar6", "actionBars.bar7", "actionBars.bar8",
     "actionBars.pet", "actionBars.stance",
     "partyFrames", "partyFrames.arena", "raidFrames", "battleRez",
-    "objectiveTracker", "mythicTracker", "minimap", "skyRide",
+    "objectiveTracker", "mythicTracker", "minimap", "skyRide", "classReminder",
 }
 
 local function BindSelectionFrame(frame)

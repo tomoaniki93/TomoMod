@@ -23,13 +23,16 @@ local FONT     = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local LSM = LibStub and LibStub("LibSharedMedia-3.0", true)
 if LSM and not LSM.Fetch then LSM = nil end
 
-local function ResolveFont(bar)
-    local name = ((bar and bar.text) or {}).font
+local function ResolveNamedFont(name)
     if LSM and type(name) == "string" and name ~= "" then
         local ok, path = pcall(LSM.Fetch, LSM, "font", name)
         if ok and path then return path end
     end
     return FONT
+end
+
+local function ResolveFont(bar)
+    return ResolveNamedFont(((bar and bar.text) or {}).font)
 end
 
 -- Outline is a per-bar choice: a thin font on a busy background needs one,
@@ -200,6 +203,17 @@ local function makeIcon(container)
     icon.count = icon:CreateFontString(nil, "OVERLAY")
     icon.count:SetPoint("BOTTOMRIGHT", icon, "BOTTOMRIGHT", -1, 1)
 
+    -- Optional spell keybind. It is our own FontString on our own frame:
+    -- display-only, no secure action or binding write is ever performed.
+    icon.hotkey = icon:CreateFontString(nil, "OVERLAY")
+    -- A FontString with no font errors on SetText, and styleHotkey clears the
+    -- text before it ever reaches SetFont when the option is off. Give it the
+    -- default font here so it is always safe to write to.
+    icon.hotkey:SetFont(FONT, 10, "OUTLINE")
+    icon.hotkey:SetJustifyH("CENTER")
+    icon.hotkey:SetJustifyV("MIDDLE")
+    icon.hotkey:Hide()
+
     icon.name = icon:CreateFontString(nil, "OVERLAY")
     icon.name:SetPoint("TOP", icon, "BOTTOM", 0, -2)
     icon.name:SetJustifyH("CENTER")
@@ -266,6 +280,59 @@ local function placeTimerFS(fs, icon, st, tpos)
         fs:SetDrawLayer("OVERLAY")
         fs:SetPoint("CENTER", icon.cd, "CENTER", 0, 0)
     end
+end
+
+local keybindsInitialized = false
+local function styleHotkey(icon, bar, spellID, sample)
+    local fs = icon and icon.hotkey
+    if not fs then return end
+
+    local hk = CDF.ResolveHotkeyStyle and CDF.ResolveHotkeyStyle(bar)
+    if not hk or not hk.enabled then
+        fs:SetText("")
+        fs:Hide()
+        return
+    end
+
+    local key
+    local K = TomoMod_CDMKeybinds
+    if K then
+        if not keybindsInitialized and K.Initialize then
+            K.Initialize()
+            keybindsInitialized = true
+        end
+        if spellID and K.GetSpellHotkey then
+            key = K.GetSpellHotkey(spellID)
+        end
+    end
+    key = key or sample
+
+    if not key or key == "" then
+        fs:SetText("")
+        fs:Hide()
+        return
+    end
+
+    local textFont = ((bar and bar.text) or {}).font
+    local flags = OUTLINES[hk.outline] or "OUTLINE"
+    -- SetFont returns false on a path the client cannot load, leaving the
+    -- FontString fontless -- and the SetText below would then error.
+    if not fs:SetFont(ResolveNamedFont(hk.font or textFont), hk.size or 10, flags) then
+        fs:SetFont(FONT, hk.size or 10, flags)
+    end
+
+    local c = hk.color or { 0.95, 0.97, 1, 1 }
+    fs:SetTextColor(c[1] or 1, c[2] or 1, c[3] or 1, c[4] or 1)
+    fs:SetShadowOffset(1, -1)
+    fs:SetShadowColor(0, 0, 0, 1)
+
+    local p = hk.point or "TOPRIGHT"
+    local insetX = (p:find("LEFT", 1, true) and 2 or -2)
+    local insetY = (p:find("TOP", 1, true) and -2 or 2)
+    fs:ClearAllPoints()
+    fs:SetPoint(p, icon, p, insetX + (hk.x or 0), insetY + (hk.y or 0))
+    fs:SetText(key)
+    fs:Show()
 end
 
 local function styleIcon(icon, bar)
@@ -690,6 +757,11 @@ local function applyEntry(icon, resolved, state, bar)
     else
         icon.name:Hide()
     end
+
+    -- Keyboard shortcut. The resolver reads the same spellID the cooldown
+    -- entry resolved to, so moving the ability to another action slot updates
+    -- the text without changing the CooldownForge entry itself.
+    styleHotkey(icon, bar, resolved and resolved.spellID)
 end
 
 -- ---------------------------------------------------------------------
@@ -730,6 +802,9 @@ function CDF.StylePreviewIcon(icon, bar, texture, opts)
 
     local st = (CDF.ResolveStyle and CDF.ResolveStyle(bar)) or {}
     opts = opts or {}
+    -- Preview may provide a sample label. If a real spellID is provided and
+    -- bound, the real key wins; otherwise the sample demonstrates the style.
+    styleHotkey(icon, bar, opts.spellID, opts.hotkeySample)
     local cd = tonumber(opts.cooldown) or 0
     if cd > 0 then
         icon.cd:SetCooldown(GetTime() - (tonumber(opts.elapsed) or 0), cd)
@@ -1105,7 +1180,17 @@ end)
 local rf = CreateFrame("Frame")
 rf:RegisterEvent("PLAYER_ENTERING_WORLD")
 rf:RegisterEvent("PLAYER_LOGIN")
-rf:SetScript("OnEvent", function()
+rf:RegisterEvent("UPDATE_BINDINGS")
+rf:RegisterEvent("ACTIONBAR_SLOT_CHANGED")
+rf:SetScript("OnEvent", function(_, event)
+    if event == "UPDATE_BINDINGS" or event == "ACTIONBAR_SLOT_CHANGED" then
+        -- CDMKeybinds owns the multi-bar spell->binding resolver. Rebuild its
+        -- cache, then repaint only the already-created CooldownForge icons.
+        local K = TomoMod_CDMKeybinds
+        if K and K.Rebuild then K.Rebuild() end
+        if CDF.DB() then CDF.UpdateAll() end
+        return
+    end
     if CDF.DB() then CDF.RefreshAll() end
 end)
 CDF._renderFrame = rf

@@ -314,7 +314,7 @@ local function MeterSnapshot(runData)
     return nil
 end
 
-local function BuildPlayers(runData, meter)
+local function BuildPlayers(runData, meter, playerDeaths)
     local result, used = {}, {}
     local meterByName = {}
 
@@ -328,6 +328,8 @@ local function BuildPlayers(runData, meter)
     for _, base in ipairs(type(runData.players) == "table" and runData.players or {}) do
         local key = NameKey(base.name or base.fullName)
         local metric = key and meterByName[key] or nil
+        local trackedDeaths = key and type(playerDeaths) == "table"
+            and Number(playerDeaths[key]) or nil
         if key then used[key] = true end
         result[#result + 1] = {
             name = base.name or ShortName(base.fullName) or T("unknown"),
@@ -337,7 +339,7 @@ local function BuildPlayers(runData, meter)
             dps = metric and metric.dps or nil,
             hps = metric and metric.hps or nil,
             interrupts = metric and metric.interrupts or nil,
-            deaths = metric and metric.deaths or nil,
+            deaths = trackedDeaths ~= nil and trackedDeaths or (metric and metric.deaths or nil),
             avoidable = metric and metric.avoidable or nil,
         }
     end
@@ -346,13 +348,15 @@ local function BuildPlayers(runData, meter)
         for _, metric in ipairs(meter.players) do
             local key = NameKey(metric and metric.name)
             if key and not used[key] then
+                local trackedDeaths = type(playerDeaths) == "table"
+                    and Number(playerDeaths[key]) or nil
                 result[#result + 1] = {
                     name = ShortName(metric.name) or T("unknown"),
                     class = metric.class,
                     dps = metric.dps,
                     hps = metric.hps,
                     interrupts = metric.interrupts,
-                    deaths = metric.deaths,
+                    deaths = trackedDeaths ~= nil and trackedDeaths or metric.deaths,
                     avoidable = metric.avoidable,
                 }
             end
@@ -377,6 +381,30 @@ local function SumPlayerDeaths(players)
         end
     end
     return found and total or nil
+end
+
+-- C_DamageMeter can occasionally leave a stale 0 in the Deaths metric for a
+-- player even though Blizzard's challenge total proves that deaths occurred.
+-- The V1.2 UNIT_* tracker is authoritative when present because it is already
+-- cross-checked at capture time. Without that trusted table, keep per-player
+-- deaths only when their readable sum agrees with RunHistory's total.
+local function ReconcilePlayerDeaths(players, authoritativeTotal, trustedDeaths)
+    if type(players) ~= "table" or type(trustedDeaths) == "table" then return end
+    authoritativeTotal = Number(authoritativeTotal)
+    if authoritativeTotal == nil then return end
+
+    local sum, found = 0, false
+    for _, player in ipairs(players) do
+        local value = Number(player.deaths)
+        if value ~= nil then
+            sum = sum + value
+            found = true
+        end
+    end
+
+    if not found or math.floor(sum + 0.5) ~= math.floor(authoritativeTotal + 0.5) then
+        for _, player in ipairs(players) do player.deaths = nil end
+    end
 end
 
 local function EnsureFrame()
@@ -542,13 +570,17 @@ local function EnsureFrame()
         local cell = CreateFrame("Frame", nil, splits)
         cell:SetPoint("TOPLEFT", 12 + col * cellW, -36 - row * 54)
         cell:SetSize(cellW - 8, 46)
+        local textW = cellW - 12
         local label = Text(cell, "", 8, false)
-        label:SetPoint("TOPLEFT", 0, -2)
-        label:SetWidth(cellW - 12)
+        label:SetPoint("TOP", cell, "TOP", 0, -2)
+        label:SetWidth(textW)
+        label:SetJustifyH("CENTER")
         label:SetWordWrap(false)
         label:SetTextColor(unpack(C.dim))
         local value = Text(cell, "", 14, true)
-        value:SetPoint("TOPLEFT", label, "BOTTOMLEFT", 0, -3)
+        value:SetPoint("TOP", label, "BOTTOM", 0, -3)
+        value:SetWidth(textW)
+        value:SetJustifyH("CENTER")
         value:SetTextColor(unpack(C.text))
         cell._label = label
         cell._value = value
@@ -578,9 +610,11 @@ local function Populate(runData)
     end
 
     local history = FindHistoryRun(runData)
-    local meter = MeterSnapshot(runData)
-    local players = BuildPlayers(runData, meter)
     local meta = type(runData._tmRunAnalysis) == "table" and runData._tmRunAnalysis or {}
+    local meter = MeterSnapshot(runData)
+    local players = BuildPlayers(runData, meter, meta.playerDeaths)
+    local authoritativeDeaths = history and Number(history.deaths) or nil
+    ReconcilePlayerDeaths(players, authoritativeDeaths, meta.playerDeaths)
 
     local dungeon = runData.dungeonName or (history and history.mapName) or T("unknown")
     local level = Number(runData.keyLevel) or (history and Number(history.level)) or 0
@@ -591,7 +625,7 @@ local function Populate(runData)
     if onTime == nil then onTime = meta.onTime end
 
     local duration = history and Number(history.durationMS) and history.durationMS / 1000 or Number(runData.duration)
-    local deaths = history and Number(history.deaths) or SumPlayerDeaths(players)
+    local deaths = authoritativeDeaths or SumPlayerDeaths(players)
     local scoreGain = history and Number(history.scoreGain) or Number(meta.scoreGain)
 
     local stats = f._summaryStats
@@ -633,12 +667,11 @@ local function Populate(runData)
 
     local splitItems = {}
     local splitData = history and history.splits or nil
-    if splitData and Number(splitData.forcesDone) then
-        splitItems[#splitItems + 1] = { T("forces"), FormatTime(splitData.forcesDone) }
-    end
+    -- Bosses stay together from left to right. Forces is appended afterwards so
+    -- enabling the 100% timestamp never shifts Boss 1 into the second column.
     if splitData and type(splitData.bosses) == "table" then
         for i, boss in ipairs(splitData.bosses) do
-            if #splitItems >= 6 then break end
+            if #splitItems >= 5 then break end
             if type(boss) == "table" and Number(boss.time) then
                 splitItems[#splitItems + 1] = {
                     boss.name or ("Boss " .. i),
@@ -646,6 +679,22 @@ local function Populate(runData)
                 }
             end
         end
+    end
+    local forcesDone = splitData and Number(splitData.forcesDone) or nil
+    local forcesEstimated = splitData and splitData.forcesEstimated == true or false
+    if not forcesDone and history and Number(history.durationMS) and history.durationMS > 0 then
+        -- Completion itself proves that enemy forces reached 100%; for older
+        -- runs where the exact transition was not captured, the final run time
+        -- is an honest upper bound and lets the analysis remain informative.
+        forcesDone = history.durationMS / 1000
+        forcesEstimated = true
+    end
+    if forcesDone and #splitItems < 6 then
+        local value = FormatTime(forcesDone)
+        -- A completion-time fallback is an upper bound, not an invented exact
+        -- split. Mark it explicitly until a readable in-run 100% frame exists.
+        if forcesEstimated then value = "≤ " .. value end
+        splitItems[#splitItems + 1] = { T("forces"), value }
     end
 
     for i, cell in ipairs(f._splitCells) do
@@ -660,6 +709,44 @@ local function Populate(runData)
     end
     f._splitEmpty:SetShown(#splitItems == 0)
     if #splitItems == 0 then f._splitEmpty:SetText(T("no_splits")) end
+end
+
+local function HistoryRunData(history)
+    if type(history) ~= "table" then return nil end
+
+    local rh = MP.RunHistory
+    if rh and rh.GetAnalysis and history.id then
+        local saved = rh:GetAnalysis(history.id)
+        if type(saved) == "table" then return saved end
+    end
+
+    -- Runs recorded before persistent analysis snapshots were introduced can
+    -- still be inspected: summary and tracker splits come from RunHistory,
+    -- while the performance card correctly reports that meter data is absent.
+    return {
+        dungeonName = history.mapName,
+        keyLevel = Number(history.level) or 0,
+        isMPlus = true,
+        onTime = history.onTime == true,
+        duration = Number(history.durationMS) and history.durationMS / 1000 or 0,
+        players = {},
+        _tmRunAnalysis = {
+            historyID = history.id,
+            completedAt = Number(history.finishedAt),
+            mapID = Number(history.mapID),
+            upgradeLevels = Number(history.upgradeLevels),
+            oldScore = Number(history.scoreBefore),
+            newScore = Number(history.scoreAfter),
+            scoreGain = Number(history.scoreGain),
+            onTime = history.onTime == true,
+        },
+    }
+end
+
+function MP:OpenHistoryRunAnalysis(history)
+    local runData = HistoryRunData(history)
+    if not runData then return false end
+    return self:OpenRunAnalysis(runData)
 end
 
 function MP:OpenRunAnalysis(runData)
