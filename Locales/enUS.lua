@@ -1469,9 +1469,9 @@ TomoMod_RegisterLocale("enUS", {
     -- =====================
     ["tab_qol_world_quests"]             = "World Quests",
     ["section_wq_tab"]                   = "World Quest Tab",
-    ["info_wq_tab_desc"]                 = "Displays a list of available World Quests beside the World Map with details on rewards, zone, faction, and time remaining. Click a quest to navigate to its zone, Shift-Click to super-track.",
+    ["info_wq_tab_desc"]                 = "Adds a native World Quests tab to the quest journal with search, sorting, rewards, zone and time remaining. Click a quest to track it and show its zone on the map.",
     ["opt_wq_enable"]                    = "Enable World Quest Tab",
-    ["opt_wq_auto_show"]                 = "Auto-show when opening the map",
+    ["opt_wq_auto_show"]                 = "Open this tab by default with the quest journal",
     ["opt_wq_max_quests"]                = "Max quests shown (0 = unlimited)",
     ["opt_wq_min_time"]                  = "Min. time remaining (minutes, 0 = all)",
     ["section_wq_filters"]               = "Reward Filters",
@@ -1499,6 +1499,14 @@ TomoMod_RegisterLocale("enUS", {
     ["wq_sort_reward"]                   = "Reward",
     ["wq_sort_faction"]                  = "Faction",
     ["wq_status_count"]                  = "Showing %d / %d quests",
+    ["wq_empty"]                         = "No World Quests match these filters.",
+    ["wq_expired"]                       = "Expired",
+    ["wq_click_hint"]                    = "Click: track and show on the map",
+    ["wq_refresh_short"]                 = "R",
+    ["wq_reward_gear"]                   = "Gear",
+    ["wq_reward_reputation"]             = "Reputation",
+    ["wq_reward_pet"]                    = "Pet",
+    ["wq_reward_other"]                  = "Other",
 
     -- =====================
     -- PROFESSION HELPER

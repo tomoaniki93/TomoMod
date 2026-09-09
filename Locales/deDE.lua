@@ -1350,9 +1350,9 @@ TomoMod_RegisterLocale("deDE", {
     -- =====================
     ["tab_qol_world_quests"]             = "Weltquests",
     ["section_wq_tab"]                   = "Weltquest-Tab",
-    ["info_wq_tab_desc"]                 = "Zeigt eine Liste verfügbarer Weltquests neben der Weltkarte mit Details zu Belohnungen, Zone, Fraktion und verbleibender Zeit. Klicke auf eine Quest, um zur Zone zu navigieren. Shift-Klick zum Super-Tracking.",
+    ["info_wq_tab_desc"]                 = "Fügt dem Questtagebuch einen eigenen Weltquest-Tab mit Suche, Sortierung, Belohnungen, Zone und Restzeit hinzu. Klicke auf eine Quest, um sie zu verfolgen und auf der Karte anzuzeigen.",
     ["opt_wq_enable"]                    = "Weltquest-Tab aktivieren",
-    ["opt_wq_auto_show"]                 = "Automatisch beim Öffnen der Karte anzeigen",
+    ["opt_wq_auto_show"]                 = "Diesen Tab standardmäßig mit dem Questtagebuch öffnen",
     ["opt_wq_max_quests"]                = "Max. angezeigte Quests (0 = unbegrenzt)",
     ["opt_wq_min_time"]                  = "Min. verbleibende Zeit (Minuten, 0 = alle)",
     ["section_wq_filters"]               = "Belohnungsfilter",
@@ -1380,6 +1380,14 @@ TomoMod_RegisterLocale("deDE", {
     ["wq_sort_reward"]                   = "Belohnung",
     ["wq_sort_faction"]                  = "Fraktion",
     ["wq_status_count"]                  = "Zeige %d / %d Quests",
+    ["wq_empty"]                         = "Keine Weltquest entspricht diesen Filtern.",
+    ["wq_expired"]                       = "Abgelaufen",
+    ["wq_click_hint"]                    = "Klicken: verfolgen und auf der Karte zeigen",
+    ["wq_refresh_short"]                 = "A",
+    ["wq_reward_gear"]                   = "Ausrüstung",
+    ["wq_reward_reputation"]             = "Ruf",
+    ["wq_reward_pet"]                    = "Haustier",
+    ["wq_reward_other"]                  = "Andere",
 
     -- Profession Helper
     ["tab_qol_prof_helper"]              = "Berufe",

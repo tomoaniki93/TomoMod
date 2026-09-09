@@ -508,7 +508,7 @@ local BASE = {
     ["TomoScore.autoShowMPlus"]         = true,
     ["MythicKeys.enabled"]              = true,
     ["loots.enabled"]                   = true,
-    ["worldQuestTab.enabled"]           = false,  -- side panel: opt-in
+    ["worldQuestTab.enabled"]           = false,  -- journal tab: opt-in
 
     -- ── Quality of life ───────────────────────────────────
     ["minimap.enabled"]                 = true,

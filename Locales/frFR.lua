@@ -1410,9 +1410,9 @@ TomoMod_RegisterLocale("frFR", {
     -- =====================
     ["tab_qol_world_quests"]             = "Quêtes Monde",
     ["section_wq_tab"]                   = "Onglet Quêtes du monde",
-    ["info_wq_tab_desc"]                 = "Affiche une liste des Quêtes du monde disponibles à côté de la carte avec les détails des récompenses, zone, faction et temps restant. Cliquez sur une quête pour naviguer vers sa zone, Maj-Clic pour super-tracker.",
+    ["info_wq_tab_desc"]                 = "Ajoute un véritable onglet Quêtes du monde au journal de quêtes avec recherche, tri, récompenses, zone et temps restant. Cliquez sur une quête pour la suivre et afficher sa zone sur la carte.",
     ["opt_wq_enable"]                    = "Activer l'onglet Quêtes du monde",
-    ["opt_wq_auto_show"]                 = "Afficher automatiquement à l'ouverture de la carte",
+    ["opt_wq_auto_show"]                 = "Ouvrir cet onglet par défaut avec le journal de quêtes",
     ["opt_wq_max_quests"]                = "Nombre max de quêtes (0 = illimité)",
     ["opt_wq_min_time"]                  = "Temps restant minimum (minutes, 0 = toutes)",
     ["section_wq_filters"]               = "Filtres de récompenses",
@@ -1440,6 +1440,14 @@ TomoMod_RegisterLocale("frFR", {
     ["wq_sort_reward"]                   = "Récompense",
     ["wq_sort_faction"]                  = "Faction",
     ["wq_status_count"]                  = "Affichage %d / %d quêtes",
+    ["wq_empty"]                         = "Aucune Quête du monde ne correspond à ces filtres.",
+    ["wq_expired"]                       = "Expirée",
+    ["wq_click_hint"]                    = "Clic : suivre et afficher sur la carte",
+    ["wq_refresh_short"]                 = "R",
+    ["wq_reward_gear"]                   = "Équipement",
+    ["wq_reward_reputation"]             = "Réputation",
+    ["wq_reward_pet"]                    = "Mascotte",
+    ["wq_reward_other"]                  = "Autre",
 
     -- =====================
     -- PROFESSION HELPER

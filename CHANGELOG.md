@@ -1,5 +1,61 @@
 ﻿## ####################################
 
+## CHANGELOG 4.0.3
+
+#### Quest Journal — Skin Removed
+
+- **Removed** - The experimental Quest Journal and World Map skin has been removed because it caused errors in game. Blizzard's original journal artwork and behaviour are left untouched again.
+- **Changed** - The independent World Quests journal tab remains available and does not depend on the removed skin.
+
+#### World Quests — Native Journal Tab
+
+- **Changed** - The former panel beside the world map has been replaced by a native World Quests tab inside the quest journal.
+- **New** - World Quests use compact TomoMod cards with reward icons, rarity accents, elite markers, zone, remaining time, search and one-click sorting by time, reward, zone or name.
+- **Changed** - Clicking a World Quest now super-tracks it and navigates the world map to its zone. Existing reward and minimum-time filters remain available in the World Quest options.
+- **Changed** - The visible draggable scrollbar works independently of the mouse wheel, and the optional automatic opening now targets the journal tab instead of an external side panel.
+- **Fixed** - Sorting now tolerates missing or non-numeric quest times, reward types, reward values and quest IDs. Empty entries are ordered consistently, equal values use a deterministic quest-ID tie-break and both ascending and descending paths are explicit.
+- **Changed** - Quest Journal and World Quest settings, controls, tooltips, empty states and What's New notes are available in all six supported languages.
+
+#### Bags V4 — Separate Mode Skin And Tracked Currencies
+
+- **New** - Separate bag mode keeps Blizzard's individual container windows and gives each one a TomoMod presentation: dark body and header surfaces, azure borders, Poppins titles, recessed slots, cropped item icons and accent feedback on hover.
+- **Changed** - Separate-mode styling is applied whenever Blizzard creates or updates a container frame. Switching back to combined mode or disabling Bags restores the original frame artwork, title styling and slot textures instead of leaving a partial skin behind.
+- **New** - The Bags V4 sidebar now displays every currency marked Show in Backpack as compact two-column tiles with its icon, formatted quantity and native tooltip. The section appears only when currencies are tracked and refreshes when currency data changes.
+- **Fixed** - Hiding Blizzard's native backpack in combined mode could reduce its calculated watched-currency capacity to one. TomoMod now preserves the traditional three slots only while it owns the combined bag and reads each currency's persisted `isShowInBackpack` state directly, so additional tracked currencies no longer disappear.
+- **Changed** - The tracked-currency section has localized fallback headings for English, French, German, Spanish, Italian and Brazilian Portuguese.
+
+#### Color Picker — Global TomoMod Skin
+
+- **New** - Blizzard's global colour picker now receives a TomoMod skin with layered dark body, header and footer surfaces, azure borders, Poppins typography, a dedicated close control and themed confirm and cancel buttons.
+- **New** - The hexadecimal field, current and original colour swatches, colour-value area, alpha area and legacy opacity slider receive matching backgrounds, outlines and focus feedback while Blizzard retains ownership of colour selection and callbacks.
+- **Changed** - Both the current Retail layout and the legacy `ColorPickerFrame` layout are supported. The skin initializes when Blizzard's load-on-demand colour-picker addon becomes available and reapplies whenever the frame opens.
+- **Fixed** - Retail panel buttons no longer repaint Blizzard chrome over the TomoMod controls. Their persistent `Left`, `Middle` and `Right` background regions are kept transparent alongside the normal, pushed, highlighted and disabled textures.
+- **Fixed** - Cancelling through the custom close control still calls Blizzard's original cancel callback with the previous colour values before closing the picker.
+
+#### Waypoint — Cleaner Beacon
+
+- **Changed** - The waypoint beacon now uses only its compact inner ring. The oversized translucent outer glow has been removed for a cleaner, more precise marker.
+- **Changed** - Beacon colour and size updates now target only the remaining icon and centre dot; the beam and navigation arrow keep their existing behaviour.
+
+#### Mythic+ Run Analysis V2 — Survival And Death Analysis
+
+- **New** - Run Analysis is split into two tabs. Summary keeps the existing run summary, group performance and splits, while the new Survival tab holds the death analysis. Both live in the same window and a run always opens on Summary.
+- **New** - The Survival tab lists every death recorded during the key in chronological order, with the run time at which it happened and the player's name in class colour. Up to eighteen rows are shown, and a footer states how many further deaths were recorded but not listed.
+- **New** - Selecting a death opens it in the detail panel. For your own deaths it shows the fatal event — icon, spell name, damage taken, overkill and your maximum health — followed by the last ten events that preceded it, each with the time separating it from the killing blow, its amount, and the share of your health pool that remained. Heals are coloured apart from the damage.
+- **New** - A death recorded for another group member states plainly that a detailed recap exists only for your own deaths, instead of presenting an empty panel.
+- **New** - The death collector lives in the always-loaded part of TomoMod rather than in the load-on-demand Mythic+ Studio. Tracking starts on CHALLENGE_MODE_START, so a key is recorded whether or not the Studio has ever been opened.
+- **New** - The survival snapshot is written into the run analysis metadata alongside the existing meter and per-player death data, so it is stored with the run and travels with Run History. Reopening a past key shows the deaths that run actually had rather than an empty tab.
+- **Changed** - Deaths are detected from unit-state transitions rather than the combat log. COMBAT_LOG_EVENT_UNFILTERED is protected on WoW 12.x, and the player and party health and flag events give the same chronology without reading it. The dead-or-alive state of every group member is seeded when the run begins and re-seeded on each roster change, so a member who joins mid-run is not counted as a death.
+- **Changed** - The local player's pre-death timeline is copied from C_DeathRecap through TomoDamageMeter's existing guarded bridge instead of a second reader. The recap already present when the key starts is remembered so a death from before the run cannot be attributed to it, and each recap is consumed once.
+- **Changed** - The recap is not readable at the instant of death, so it is polled for up to twelve attempts spaced 0.20 seconds apart after an initial 0.35 second delay. A death whose recap never becomes readable is marked as such and says so in the detail panel instead of being silently dropped.
+- **Changed** - The number of deaths observed is cross-checked against C_ChallengeMode.GetDeathCount for the key. A run whose figures agree is reported as complete tracking; a key entered while already in progress, or reloaded mid-run, is reported as partial tracking with both the observed and the official counts.
+- **Changed** - Every string of the Survival tab is translated in the six supported languages: the tab labels, the chronology heading, the tracking state, the fatal event and timeline headings, the damage, overkill and maximum-health labels, and the two explanations shown when no detailed recap exists.
+- **Internal** - Every value read from the client passes through a secret-value guard before being stored or displayed. A protected number never reaches the snapshot, so an unreadable field degrades to an absent one instead of raising an error deep in the interface.
+- **Internal** - V2 decorates the existing V1 window rather than replacing it. SurvivalAnalysis.lua loads immediately after RunAnalysis.lua and wraps MP:OpenRunAnalysis exactly once, leaving the summary, performance and splits implementation untouched.
+- **Internal** - Each recorded death carries the serial number of the run that captured it, so a delayed recap callback left over from a previous key cannot attach its timeline to a death in the current one.
+
+## ####################################
+
 ## CHANGELOG 4.0.2
 
 #### Main Options — Guided Help And Teleport Placement

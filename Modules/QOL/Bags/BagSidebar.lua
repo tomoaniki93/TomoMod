@@ -8,6 +8,7 @@ if not Bags then return end
 local Sidebar = {
     pinnedButtons = {},
     recentButtons = {},
+    currencyButtons = {},
 }
 Bags.RegisterModule("Sidebar", Sidebar)
 
@@ -110,6 +111,91 @@ local function LayoutPool(pool, items, anchor, maxItems)
     return math.ceil(shown / 2) * (MINI + GAP)
 end
 
+local function CreateCurrencyMini(parent)
+    local b = CreateFrame("Button", nil, parent, "BackdropTemplate")
+    b:SetSize(MINI, MINI)
+    b:SetBackdrop({ bgFile = WHITE, edgeFile = WHITE, edgeSize = 1 })
+    b:SetBackdropColor(0.03, 0.04, 0.043, 0.95)
+    b:SetBackdropBorderColor(1, 1, 1, 0.10)
+
+    local icon = b:CreateTexture(nil, "ARTWORK")
+    icon:SetPoint("TOPLEFT", 2, -2)
+    icon:SetPoint("BOTTOMRIGHT", -2, 2)
+    icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    b.icon = icon
+
+    local quantity = b:CreateFontString(nil, "OVERLAY")
+    quantity:SetFont(FONT_BOLD, 8, "OUTLINE")
+    quantity:SetPoint("BOTTOMRIGHT", -2, 2)
+    quantity:SetTextColor(1, 1, 1, 1)
+    b.quantity = quantity
+
+    b:SetScript("OnEnter", function(self)
+        self:SetBackdropBorderColor(ACCENT[1], ACCENT[2], ACCENT[3], 0.65)
+        if self.currencyID then
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetCurrencyByID(self.currencyID)
+            GameTooltip:Show()
+        end
+    end)
+    b:SetScript("OnLeave", function(self)
+        self:SetBackdropBorderColor(1, 1, 1, 0.10)
+        GameTooltip:Hide()
+    end)
+    b:Hide()
+    return b
+end
+
+local function CollectTrackedCurrencies()
+    local currencies = {}
+    if not C_CurrencyInfo or not C_CurrencyInfo.GetCurrencyListSize or not C_CurrencyInfo.GetCurrencyListInfo then
+        return currencies
+    end
+
+    -- Do not use BackpackTokenFrame/GetNumWatchedTokens here. Blizzard sizes
+    -- that native token bar from the native backpack width; in TomoMod's
+    -- combined mode the native bag is deliberately hidden, so that count can
+    -- collapse to 1 even when several currencies are actually flagged with
+    -- "Show in Backpack". CurrencyInfo.isShowInBackpack is the authoritative
+    -- persisted state and works independently of the native bag frame.
+    local count = C_CurrencyInfo.GetCurrencyListSize() or 0
+    for i = 1, count do
+        local info = C_CurrencyInfo.GetCurrencyListInfo(i)
+        if info and not info.isHeader and info.isShowInBackpack and info.currencyID and info.iconFileID and info.quantity ~= nil then
+            currencies[#currencies + 1] = {
+                currencyTypesID = info.currencyID,
+                iconFileID = info.iconFileID,
+                quantity = info.quantity,
+                name = info.name,
+            }
+        end
+    end
+    return currencies
+end
+
+local function LayoutCurrencies(pool, currencies, anchor)
+    for _, b in ipairs(pool) do
+        b:Hide()
+        b.currencyID = nil
+    end
+
+    for i, info in ipairs(currencies) do
+        if not pool[i] then pool[i] = CreateCurrencyMini(anchor:GetParent()) end
+        local b = pool[i]
+        b.currencyID = info.currencyTypesID
+        b.icon:SetTexture(info.iconFileID)
+        local amount = BreakUpLargeNumbers and BreakUpLargeNumbers(info.quantity) or tostring(info.quantity)
+        b.quantity:SetText(amount)
+        b:ClearAllPoints()
+        local col = (i - 1) % 2
+        local row = math.floor((i - 1) / 2)
+        b:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", col * (MINI + GAP), -(5 + row * (MINI + GAP)))
+        b:Show()
+    end
+
+    return math.ceil(#currencies / 2) * (MINI + GAP)
+end
+
 function Sidebar:Create()
     if self.root then return end
     local host = Bags.Modules.Layout.sidebarHost
@@ -126,6 +212,14 @@ function Sidebar:Create()
 
     local recentLabel = CreateLabel(root, L("bags_v4_recent", "Recent"))
     self.recentLabel = recentLabel
+
+    local currencyFallback = ({
+        enUS = "CURRENCIES", frFR = "MONNAIES", deDE = "WÄHRUNGEN",
+        esES = "MONEDAS", itIT = "VALUTE", ptBR = "MOEDAS",
+    })[GetLocale and GetLocale() or "enUS"] or "CURRENCIES"
+    local currencyLabel = CreateLabel(root, L("bags_v4_currencies", currencyFallback))
+    currencyLabel:Hide()
+    self.currencyLabel = currencyLabel
 
     local emptyPinned = root:CreateFontString(nil, "OVERLAY")
     emptyPinned:SetFont(FONT, 8, "OUTLINE")
@@ -174,14 +268,29 @@ function Sidebar:Refresh()
     self.recentLabel:ClearAllPoints()
     self.recentLabel:SetPoint("TOPLEFT", self.pinnedLabel, "BOTTOMLEFT", 0, -(pinnedBlock + 8))
 
-    LayoutPool(self.recentButtons, recent, self.recentLabel, rmax)
+    local rHeight = LayoutPool(self.recentButtons, recent, self.recentLabel, rmax)
     self.emptyRecent:ClearAllPoints()
     self.emptyRecent:SetPoint("TOPLEFT", self.recentLabel, "BOTTOMLEFT", 0, -7)
     self.emptyRecent:SetWidth(textWidth)
     self.emptyRecent:SetShown(#recent == 0)
+
+    local currencies = CollectTrackedCurrencies()
+    local recentBlock = #recent == 0 and 38 or (rHeight + 7)
+    self.currencyLabel:ClearAllPoints()
+    self.currencyLabel:SetPoint("TOPLEFT", self.recentLabel, "BOTTOMLEFT", 0, -(recentBlock + 8))
+    self.currencyLabel:SetShown(#currencies > 0)
+    LayoutCurrencies(self.currencyButtons, currencies, self.currencyLabel)
 end
 
 function Sidebar:Initialize()
     self:Create()
     self:Refresh()
+
+    local events = CreateFrame("Frame")
+    events:RegisterEvent("CURRENCY_DISPLAY_UPDATE")
+    events:RegisterEvent("PLAYER_ENTERING_WORLD")
+    events:SetScript("OnEvent", function()
+        if Sidebar.root then Sidebar:Refresh() end
+    end)
+    self.currencyEvents = events
 end

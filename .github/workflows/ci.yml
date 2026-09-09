@@ -47,6 +47,20 @@ jobs:
           done < <(git ls-files '*.xml' | grep -v '^Libs/')
           exit $fail
 
+      # Hard gate: the secret-value linter must itself be sound. It checks
+      # both directions -- every violation shape caught, every guard shape
+      # honoured -- and re-runs each "clean" fixture with its guard stripped,
+      # so a linter that quietly stopped detecting anything fails here rather
+      # than reporting a reassuring zero.
+      - name: Secret-value linter self-test
+        run: python3 Tools/test_lint_secret_values.py
+
+      # Hard gate on *new* debt only. Tools/secret_baseline.txt records the
+      # unguarded uses that already existed; anything not in it fails the
+      # build. Shrink the baseline as the entries get fixed, never grow it.
+      - name: Secret-value audit
+        run: python3 Tools/lint_secret_values.py --baseline Tools/secret_baseline.txt
+
       # Advisory for now: surfaces the static-analysis backlog without failing
       # the build. Flip `continue-on-error` to false once the backlog is cleared
       # to make luacheck a hard gate too.

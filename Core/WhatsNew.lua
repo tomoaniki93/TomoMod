@@ -63,6 +63,31 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "4.0.3",
+        highlights = {
+            L["wn_403_quest_journal_skin_removed"],
+            L["wn_403_world_quest_tab"],
+            L["wn_403_world_quest_cards"],
+            L["wn_403_world_quest_sort"],
+            L["wn_403_bags_separate_skin"],
+            L["wn_403_bags_tracked_currencies"],
+            L["wn_403_bags_currency_reliability"],
+            L["wn_403_color_picker_skin"],
+            L["wn_403_color_picker_compatibility"],
+            L["wn_403_color_picker_buttons"],
+            L["wn_403_waypoint_inner_ring"],
+            L["wn_403_survival_tab"],
+            L["wn_403_survival_chronology"],
+            L["wn_403_survival_detail"],
+            L["wn_403_survival_collector"],
+            L["wn_403_survival_unit_events"],
+            L["wn_403_survival_recap_bridge"],
+            L["wn_403_survival_reliability"],
+            L["wn_403_survival_history"],
+            L["wn_403_survival_localization"],
+        },
+    },
+    {
         version = "4.0.2",
         highlights = {
             L["wn_402_options_help_guide"],

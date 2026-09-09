@@ -4,7 +4,7 @@
 ## Author: TomoAniki
 ## Category: |cff2e9dd8HUD|r
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
-## Version: 4.0.2
+## Version: 4.0.3
 ## LoadOnDemand: 1
 ## Dependencies: TomoMod
 ## SavedVariables: TomoModMythicPlusDB
@@ -12,4 +12,5 @@
 Bootstrap.lua
 RunHistory.lua
 RunAnalysis.lua
+SurvivalAnalysis.lua
 Studio.lua

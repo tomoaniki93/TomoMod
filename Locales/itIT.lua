@@ -1350,9 +1350,9 @@ TomoMod_RegisterLocale("itIT", {
     -- =====================
     ["tab_qol_world_quests"]             = "Missioni mondo",
     ["section_wq_tab"]                   = "Tab missioni del mondo",
-    ["info_wq_tab_desc"]                 = "Mostra un elenco delle missioni del mondo disponibili accanto alla mappa del mondo con dettagli su ricompense, zona, fazione e tempo rimanente. Clicca su una missione per navigare alla sua zona, Shift-Clic per super-tracciare.",
+    ["info_wq_tab_desc"]                 = "Aggiunge al registro missioni una scheda dedicata alle missioni mondiali con ricerca, ordinamento, ricompense, zona e tempo rimanente. Clicca per tracciare una missione e mostrarla sulla mappa.",
     ["opt_wq_enable"]                    = "Attiva tab missioni del mondo",
-    ["opt_wq_auto_show"]                 = "Mostra automaticamente all'apertura della mappa",
+    ["opt_wq_auto_show"]                 = "Apri questa scheda per impostazione predefinita con il registro missioni",
     ["opt_wq_max_quests"]                = "Max missioni mostrate (0 = illimitato)",
     ["opt_wq_min_time"]                  = "Tempo rimanente min. (minuti, 0 = tutte)",
     ["section_wq_filters"]               = "Filtri ricompense",
@@ -1380,6 +1380,14 @@ TomoMod_RegisterLocale("itIT", {
     ["wq_sort_reward"]                   = "Ricompensa",
     ["wq_sort_faction"]                  = "Fazione",
     ["wq_status_count"]                  = "Mostrando %d / %d missioni",
+    ["wq_empty"]                         = "Nessuna missione mondiale corrisponde ai filtri.",
+    ["wq_expired"]                       = "Scaduta",
+    ["wq_click_hint"]                    = "Clic: traccia e mostra sulla mappa",
+    ["wq_refresh_short"]                 = "A",
+    ["wq_reward_gear"]                   = "Equipaggiamento",
+    ["wq_reward_reputation"]             = "Reputazione",
+    ["wq_reward_pet"]                    = "Mascotte",
+    ["wq_reward_other"]                  = "Altro",
 
     -- Profession Helper
     ["tab_qol_prof_helper"]              = "Professioni",

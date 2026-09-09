@@ -180,6 +180,54 @@ local function CopyPlayerDeaths(deaths)
     return next(out) and out or nil
 end
 
+local function CopySurvival(survival)
+    if type(survival) ~= "table" then return nil end
+    local out = {
+        version = Number(survival.version) or 2,
+        reliable = survival.reliable == true,
+        totalDeaths = Number(survival.totalDeaths),
+        observedDeaths = Number(survival.observedDeaths),
+        mapID = Number(survival.mapID),
+        keyLevel = Number(survival.keyLevel),
+        startedAt = Number(survival.startedAt),
+        finishedAt = Number(survival.finishedAt),
+        deaths = {},
+    }
+
+    for _, death in ipairs(type(survival.deaths) == "table" and survival.deaths or {}) do
+        local copy = {
+            at = Number(death.at),
+            name = CopyString(death.name),
+            class = CopyString(death.class),
+            guid = CopyString(death.guid),
+            isLocal = death.isLocal == true,
+            detailUnavailable = death.detailUnavailable == true,
+        }
+        if type(death.detail) == "table" then
+            copy.detail = {
+                maxHP = Number(death.detail.maxHP),
+                fatalIndex = Number(death.detail.fatalIndex),
+                events = {},
+            }
+            for _, ev in ipairs(type(death.detail.events) == "table" and death.detail.events or {}) do
+                copy.detail.events[#copy.detail.events + 1] = {
+                    spellID = Number(ev.spellID),
+                    name = CopyString(ev.name),
+                    icon = Number(ev.icon),
+                    event = CopyString(ev.event),
+                    isHeal = ev.isHeal == true,
+                    amount = Number(ev.amount),
+                    overkill = Number(ev.overkill),
+                    currentHP = Number(ev.currentHP),
+                    timestamp = Number(ev.timestamp),
+                }
+            end
+        end
+        out.deaths[#out.deaths + 1] = copy
+    end
+    return out
+end
+
 local function CopyMeter(meter)
     if type(meter) ~= "table" then return nil end
     local out = {
@@ -232,6 +280,7 @@ local function CopyAnalysisRun(data)
         scoreGain = Number(meta.scoreGain), historyID = meta.historyID,
         meter = CopyMeter(meta.meter),
         playerDeaths = CopyPlayerDeaths(meta.playerDeaths),
+        survival = CopySurvival(meta.survival),
     }
     return out
 end
@@ -298,6 +347,14 @@ local function CaptureAnalysisData(data)
         meta.onTime = Boolean(info.onTime)
         if meta.oldScore and meta.newScore then
             meta.scoreGain = math.max(0, meta.newScore - meta.oldScore)
+        end
+    end
+
+    local survivalAPI = _G.TomoMod_RunSurvival
+    if survivalAPI and survivalAPI.GetSnapshot then
+        local ok, survival = pcall(survivalAPI.GetSnapshot)
+        if ok and type(survival) == "table" then
+            meta.survival = CopySurvival(survival)
         end
     end
 

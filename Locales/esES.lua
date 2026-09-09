@@ -1349,9 +1349,9 @@ TomoMod_RegisterLocale("esES", {
     -- =====================
     ["tab_qol_world_quests"]             = "Misiones de mundo",
     ["section_wq_tab"]                   = "Pestaña de misiones de mundo",
-    ["info_wq_tab_desc"]                 = "Muestra una lista de misiones de mundo disponibles junto al mapa del mundo con detalles de recompensas, zona, facción y tiempo restante. Haz clic en una misión para navegar a su zona, Shift-Clic para super-rastrear.",
+    ["info_wq_tab_desc"]                 = "Añade una pestaña de misiones de mundo al diario con búsqueda, ordenación, recompensas, zona y tiempo restante. Haz clic para seguir una misión y mostrar su zona en el mapa.",
     ["opt_wq_enable"]                    = "Activar pestaña de misiones de mundo",
-    ["opt_wq_auto_show"]                 = "Mostrar automáticamente al abrir el mapa",
+    ["opt_wq_auto_show"]                 = "Abrir esta pestaña por defecto con el diario de misiones",
     ["opt_wq_max_quests"]                = "Máx. misiones mostradas (0 = ilimitado)",
     ["opt_wq_min_time"]                  = "Tiempo restante mín. (minutos, 0 = todas)",
     ["section_wq_filters"]               = "Filtros de recompensa",
@@ -1379,6 +1379,14 @@ TomoMod_RegisterLocale("esES", {
     ["wq_sort_reward"]                   = "Recompensa",
     ["wq_sort_faction"]                  = "Facción",
     ["wq_status_count"]                  = "Mostrando %d / %d misiones",
+    ["wq_empty"]                         = "Ninguna misión de mundo coincide con estos filtros.",
+    ["wq_expired"]                       = "Caducada",
+    ["wq_click_hint"]                    = "Clic: seguir y mostrar en el mapa",
+    ["wq_refresh_short"]                 = "A",
+    ["wq_reward_gear"]                   = "Equipo",
+    ["wq_reward_reputation"]             = "Reputación",
+    ["wq_reward_pet"]                    = "Mascota",
+    ["wq_reward_other"]                  = "Otro",
 
     -- Profession Helper
     ["tab_qol_prof_helper"]              = "Profesiones",

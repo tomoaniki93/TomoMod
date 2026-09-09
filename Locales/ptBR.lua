@@ -1350,9 +1350,9 @@ TomoMod_RegisterLocale("ptBR", {
     -- =====================
     ["tab_qol_world_quests"]             = "Missões do mundo",
     ["section_wq_tab"]                   = "Aba de missões do mundo",
-    ["info_wq_tab_desc"]                 = "Exibe uma lista de missões do mundo disponíveis ao lado do mapa-múndi com detalhes de recompensas, zona, facção e tempo restante. Clique em uma missão para navegar até a zona, Shift-Clique para super-rastrear.",
+    ["info_wq_tab_desc"]                 = "Adiciona uma aba de missões mundiais ao diário com busca, ordenação, recompensas, zona e tempo restante. Clique para rastrear uma missão e mostrar sua zona no mapa.",
     ["opt_wq_enable"]                    = "Ativar aba de missões do mundo",
-    ["opt_wq_auto_show"]                 = "Mostrar automaticamente ao abrir o mapa",
+    ["opt_wq_auto_show"]                 = "Abrir esta aba por padrão com o diário de missões",
     ["opt_wq_max_quests"]                = "Máx. missões exibidas (0 = ilimitado)",
     ["opt_wq_min_time"]                  = "Tempo restante mín. (minutos, 0 = todas)",
     ["section_wq_filters"]               = "Filtros de recompensa",
@@ -1380,6 +1380,14 @@ TomoMod_RegisterLocale("ptBR", {
     ["wq_sort_reward"]                   = "Recompensa",
     ["wq_sort_faction"]                  = "Facção",
     ["wq_status_count"]                  = "Exibindo %d / %d missões",
+    ["wq_empty"]                         = "Nenhuma missão mundial corresponde a estes filtros.",
+    ["wq_expired"]                       = "Expirada",
+    ["wq_click_hint"]                    = "Clique: rastrear e mostrar no mapa",
+    ["wq_refresh_short"]                 = "A",
+    ["wq_reward_gear"]                   = "Equipamento",
+    ["wq_reward_reputation"]             = "Reputação",
+    ["wq_reward_pet"]                    = "Mascote",
+    ["wq_reward_other"]                  = "Outro",
 
     -- Profession Helper
     ["tab_qol_prof_helper"]              = "Profissões",

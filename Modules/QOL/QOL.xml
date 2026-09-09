@@ -54,6 +54,7 @@
     <Include file="MythicPlus\KeySync.lua" />
     <Include file="MythicPlus\MythicKeys.lua"/>
     <Include file="MythicPlus\MythicTracker.lua"/>
+    <Include file="MythicPlus\RunSurvival.lua"/>
 
     <!-- Modules: TomoScore (Dungeon Scoreboard) -->
     <Include file="MythicPlus\TomoScoreCore.lua" />
@@ -71,7 +72,7 @@
     <Include file="Quest\ObjectiveTracker.lua" />
 
     <!-- Modules: World Quest Tab -->
-    <Include file="WorldQuests\WorldQuestTab.lua" />
+    <Include file="WorldQuests\WorldQuestJournal.lua" />
 
     <!-- Modules: Skyriding -->
     <Include file="Skyriding\SkyRide.lua" />
@@ -112,6 +113,7 @@
 
     <!-- Modules: Skins -->
     <Include file="Skins\CharacterSkin.lua" />
+    <Include file="Skins\ColorPickerSkin.lua" />
     <Include file="Skins\ReputationBar.lua" />
 
     <!-- Modules: Bags V4 (fresh implementation; legacy Skins\BagSkin.lua is kept on disk but not loaded) -->

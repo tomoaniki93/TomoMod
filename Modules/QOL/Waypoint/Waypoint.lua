@@ -23,7 +23,6 @@ local WR, WG, WB = 0.92,  0.94,  0.92   -- near-white text
 
 -- ── Layout ───────────────────────────────────────────────────────────
 local BEACON_SIZE    = 32     -- icon diameter (px, default; DB overrides)
-local BEACON_GLOW    = 56     -- outer glow ring
 local BEAM_W         = 8      -- beam strip width
 local BEAM_H         = 500    -- beam strip height
 local ARROW_SIZE     = 38     -- navigator arrow
@@ -54,13 +53,6 @@ local Beacon = CreateFrame("Frame", nil, Root)
 Beacon:SetSize(BEACON_SIZE, BEACON_SIZE)
 Beacon:SetFrameLevel(3)
 Beacon:Hide()
-
--- Outer glow ring
-local BeaconGlow = Beacon:CreateTexture(nil, "BACKGROUND")
-BeaconGlow:SetTexture(TEX_RING)
-BeaconGlow:SetSize(BEACON_GLOW, BEACON_GLOW)
-BeaconGlow:SetPoint("CENTER")
-BeaconGlow:SetVertexColor(TR, TG, TB, 0.30)
 
 -- Inner icon circle (solid teal disc)
 local BeaconIcon = Beacon:CreateTexture(nil, "ARTWORK")
@@ -663,7 +655,6 @@ function WP.ApplySettings()
     local g = (db and db.color and db.color.g) or TG
     local b = (db and db.color and db.color.b) or TB
 
-    BeaconGlow:SetVertexColor(r, g, b, 0.30)
     BeaconIcon:SetVertexColor(r, g, b, 0.90)
     BeaconDot:SetColorTexture(r, g, b, 0.90)
     NavArrow:SetVertexColor(r, g, b, 1)
@@ -682,8 +673,6 @@ function WP.ApplySettings()
     -- Size
     local sz = (db and db.beaconSize) or BEACON_SIZE
     Beacon:SetSize(sz, sz)
-    local glowSz = sz * (BEACON_GLOW / BEACON_SIZE)
-    BeaconGlow:SetSize(glowSz, glowSz)
 end
 
 -- ══ Initialize ═══════════════════════════════════════════════════════
