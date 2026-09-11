@@ -873,13 +873,15 @@ function InstallSecureActionFlagRefresh(btn)
     btn:SetScript("OnEnter", function(self)
         local global = GetGlobalSettings()
         if global and global.showTooltips == false then
-            GameTooltip:Hide()
+            -- Do not hide a Blizzard tooltip that took ownership in the same
+            -- mouse transition (world-map POIs can carry secret widget data).
+            if GameTooltip:GetOwner() == self then GameTooltip:Hide() end
             return
         end
 
         local action = GetSafeActionSlot(self)
         if not action or Helpers.IsSecretValue(action) then
-            GameTooltip:Hide()
+            if GameTooltip:GetOwner() == self then GameTooltip:Hide() end
             return
         end
 
@@ -891,8 +893,12 @@ function InstallSecureActionFlagRefresh(btn)
         GameTooltip:SetAction(action)
         GameTooltip:Show()
     end)
-    btn:SetScript("OnLeave", function()
-        GameTooltip:Hide()
+    btn:SetScript("OnLeave", function(self)
+        -- Midnight 12.1: GameTooltip may already have been reassigned to a
+        -- Blizzard POI/quest pin before this OnLeave runs. Hiding that foreign
+        -- tooltip from addon execution taints GameTooltip_ClearWidgetSet and
+        -- later secret-number layout. Only close the tooltip we actually own.
+        if GameTooltip:GetOwner() == self then GameTooltip:Hide() end
     end)
 
     btn:SetAttribute("TUI_UpdateActionFlags", [[

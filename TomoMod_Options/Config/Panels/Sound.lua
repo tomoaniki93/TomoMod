@@ -60,10 +60,6 @@ function TomoMod_ConfigPanel_Sound(parent)
         db.channel = v
     end, 3)
 
-    local _, cy = W.CreateCheckbox(card2.inner, L["opt_sound_force"], db.forceSound, cy, function(v)
-        db.forceSound = v
-    end)
-
     y = W.FinalizeCard(card2, cy)
 
     -- ═══════════════════════════════════════════════

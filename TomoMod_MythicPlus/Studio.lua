@@ -1538,6 +1538,38 @@ local function ModuleCard(parent,y,title,desc,value,callback)
     return y-104
 end
 
+local EXPERIMENTAL_CAST_FOCUS_COPY = {
+    enUS = {
+        title = "|cffffcc00EXPERIMENTAL|r — Cast-focus nameplates",
+        desc = "In Mythic+, when at least 2 visible trash mobs are engaged and a cast starts, temporarily hides engaged trash plates that are not casting. Target/focus stay visible; tanks also keep low-threat mobs visible. Off by default.",
+    },
+    frFR = {
+        title = "|cffffcc00EXPÉRIMENTAL|r — Nameplates focalisées sur les casts",
+        desc = "En Mythic+, si au moins 2 trash mobs visibles sont engagés et qu'un cast commence, masque temporairement les plaques des trashs engagés qui ne castent pas. Cible/focus restent visibles ; en tank, les pertes d'aggro restent visibles. Désactivé par défaut.",
+    },
+    deDE = {
+        title = "|cffffcc00EXPERIMENTELL|r — Namensplaketten auf Zauber fokussieren",
+        desc = "In Mythisch+ werden bei mindestens 2 aktiven Trash-Gegnern während eines Zaubers die Plaketten anderer aktiver Trash-Gegner vorübergehend ausgeblendet. Ziel/Fokus und bei Tanks Gegner mit wenig Bedrohung bleiben sichtbar. Standardmäßig aus.",
+    },
+    esES = {
+        title = "|cffffcc00EXPERIMENTAL|r — Placas centradas en lanzamientos",
+        desc = "En Mítico+, con al menos 2 enemigos de trash activos, al comenzar un lanzamiento oculta temporalmente las placas del trash activo que no esté lanzando. Objetivo/foco siguen visibles y los tanques conservan enemigos con poca amenaza. Desactivado por defecto.",
+    },
+    itIT = {
+        title = "|cffffcc00SPERIMENTALE|r — Barre focalizzate sui cast",
+        desc = "In Mitica+, con almeno 2 nemici trash ingaggiati, quando parte un cast nasconde temporaneamente le barre dei trash ingaggiati che non stanno lanciando. Bersaglio/focus restano visibili; i tank vedono anche i mob con poca minaccia. Disattivato di default.",
+    },
+    ptBR = {
+        title = "|cffffcc00EXPERIMENTAL|r — Placas focadas em conjurações",
+        desc = "Em Mítico+, com pelo menos 2 inimigos trash em combate, quando uma conjuração começa oculta temporariamente as placas dos trashs em combate que não estão conjurando. Alvo/foco continuam visíveis; tanques também veem mobs com pouca ameaça. Desativado por padrão.",
+    },
+}
+
+local function ExperimentalCastFocusCopy()
+    local locale = GetLocale and GetLocale() or "enUS"
+    return EXPERIMENTAL_CAST_FOCUS_COPY[locale] or EXPERIMENTAL_CAST_FOCUS_COPY.enUS
+end
+
 function MP:BuildModules()
     local p=BeginPage("modules")
     local y=PageTitle(p,self:T("modules"),"V1.1")
@@ -1548,6 +1580,19 @@ function MP:BuildModules()
     y=ModuleCard(p,y,self:T("mod_tracker"),self:T("mod_tracker_desc"),tdb and tdb.enabled,function(v) if tdb then tdb.enabled=v; TrackerRefresh() end end)
     local sdb=TomoModDB and TomoModDB.TomoScore
     y=ModuleCard(p,y,self:T("mod_score"),self:T("mod_score_desc"),sdb and sdb.enabled,function(v) if sdb then sdb.enabled=v end end)
+
+    -- Experimental runtime option belongs to the core nameplate DB: the
+    -- Mythic+ Studio is LoadOnDemand and must not own combat-time state.
+    local npdb=TomoModDB and TomoModDB.nameplates
+    local exp=ExperimentalCastFocusCopy()
+    y=ModuleCard(p,y,exp.title,exp.desc,npdb and npdb.experimentalCastFocus == true,function(v)
+        if not npdb then return end
+        npdb.experimentalCastFocus = v and true or false
+        if TomoMod_Nameplates and TomoMod_Nameplates.RefreshExperimentalCastFocus then
+            TomoMod_Nameplates.RefreshExperimentalCastFocus()
+        end
+    end)
+
     local note=Text(p,self:T("v11_note"),9,false); note:SetPoint("TOPLEFT",PAGE_PAD,y-4); note:SetPoint("RIGHT",p,"RIGHT",-PAGE_PAD,0); note:SetJustifyH("LEFT"); note:SetWordWrap(true); note:SetTextColor(unpack(C.dim))
 end
 

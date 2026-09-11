@@ -150,8 +150,6 @@ function Slots:CreatePhysicalSlot(bagID, slotID)
     button:SetFrameLevel(wrapper:GetFrameLevel() + 2)
     button:EnableMouse(true)
     button:Show()
-    button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    button:RegisterForDrag("LeftButton")
     button:EnableMouseWheel(false)
 
     wrapper.button = button
@@ -234,28 +232,15 @@ function Slots:CreatePhysicalSlot(bagID, slotID)
     pin:Hide()
     wrapper.pin = pin
 
-    button:HookScript("OnEnter", function(self)
-        local item = Bags.Modules.Data.byKey[key]
-        if not item or not item.hasItem then return end
-        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        if GameTooltip.SetBagItem then
-            GameTooltip:SetBagItem(bagID, slotID)
-        elseif item.link then
-            GameTooltip:SetHyperlink(item.link)
-        end
-        GameTooltip:Show()
-    end)
-    button:HookScript("OnLeave", function()
-        GameTooltip:Hide()
-    end)
-
-    button:HookScript("OnMouseUp", function(_, mouseButton)
-        if mouseButton ~= "MiddleButton" then return end
-        local item = Bags.Modules.Data.byKey[key]
-        if item and item.itemID then
-            Bags.Modules.Data:TogglePinned(item.itemID)
-        end
-    end)
+    -- Midnight 12.1: keep ContainerFrameItemButtonTemplate's input scripts
+    -- pristine. C_Container.UseContainerItem is protected and Blizzard's
+    -- native template can execute it securely; attaching addon HookScripts to
+    -- the same button taints that click path and can turn a normal right-click
+    -- into ADDON_ACTION_FORBIDDEN. The template already owns bag tooltips,
+    -- clicks and drag handling because wrapper:GetID() is the bag ID and the
+    -- button ID is the slot ID.
+    --
+    -- Do not re-add an input script to this protected item button.
 
     self.byKey[key] = wrapper
     self.list[#self.list + 1] = wrapper

@@ -86,8 +86,17 @@ end
 local function OnTooltipSetItem(tooltip, data)
     local settings = GetSettings()
     if not settings or not settings.enabled or not settings.showItemID then return end
-    -- 12.x: never inject on compare/EncounterJournal tooltips — adding a line
-    -- (and the deferred Show) taints Blizzard's secret-money arithmetic.
+
+    -- TooltipDataProcessor also reports Blizzard's embedded item tooltips
+    -- (notably World Quest rewards). Their dimensions can be secret in 12.1;
+    -- adding a line there makes EmbeddedItemTooltip_UpdateSize run tainted.
+    if tooltip ~= GameTooltip and tooltip ~= ItemRefTooltip
+        and tooltip ~= ShoppingTooltip1 and tooltip ~= ShoppingTooltip2 then
+        return
+    end
+
+    -- 12.x: never inject on comparison, Encounter Journal or map/quest POI
+    -- tooltips. These contain secret-money or secret-layout data.
     if TomoMod_IsCompareOrMoneyTooltip and TomoMod_IsCompareOrMoneyTooltip(tooltip) then return end
 
     if data and data.id then

@@ -717,6 +717,141 @@ local function InDungeonOrDelve()
 end
 
 -- =====================================
+-- EXPERIMENTAL M+ CAST-FOCUS NAMEPLATES
+-- Inspired by asHideNamePlates, adapted to TomoMod-owned plates.
+--
+-- During an active Mythic+ key, once at least two meaningful trash mobs are
+-- engaged, a cast/channel temporarily hides the other ENGAGED trash plates.
+-- Target/focus always remain visible. Tanks also keep low/no-threat mobs visible
+-- so the filter cannot hide an aggro problem. Bosses and friendly plates are
+-- never filtered. When no cast is active, every plate is restored immediately.
+-- =====================================
+local EXPERIMENTAL_CAST_FOCUS_RATE = 0.10
+local EXPERIMENTAL_BOSS_UNITS = { "boss1", "boss2", "boss3", "boss4", "boss5" }
+local experimentalCastFocusTicker
+
+local function ExperimentalCastFocusEnabled()
+    local s = DB()
+    if not s or s.experimentalCastFocus ~= true then return false end
+
+    local inInstance, instanceType = IsInInstance()
+    if not inInstance or instanceType ~= "party" then return false end
+
+    if not C_ChallengeMode or not C_ChallengeMode.IsChallengeModeActive then return false end
+    local ok, active = pcall(C_ChallengeMode.IsChallengeModeActive)
+    return ok and active == true
+end
+
+local function IsExperimentalBossUnit(unit)
+    if UnitClassification(unit) == "worldboss" then return true end
+    for i = 1, #EXPERIMENTAL_BOSS_UNITS do
+        local bossUnit = EXPERIMENTAL_BOSS_UNITS[i]
+        if UnitExists(bossUnit) and UnitIsUnit(unit, bossUnit) then
+            return true
+        end
+    end
+    return false
+end
+
+local function IsExperimentalHostileTrash(unit)
+    if not unit or not UnitExists(unit) then return false end
+    if UnitIsPlayer(unit) then return false end
+    if not UnitCanAttack("player", unit) then return false end
+    if IsExperimentalBossUnit(unit) then return false end
+    return true
+end
+
+local function IsExperimentalEngaged(unit)
+    -- UnitAffectingCombat is the broad signal (also catches a mob engaged on
+    -- another party member). Threat is a useful fallback during pull pickup.
+    local inCombat = UnitAffectingCombat(unit)
+    if type(inCombat) == "boolean" and inCombat then return true end
+    return type(UnitThreatSituation("player", unit)) == "number"
+end
+
+local function IsExperimentalCasting(unit)
+    local name = UnitCastingInfo(unit)
+    if type(name) ~= "nil" then return true end
+    name = UnitChannelInfo(unit)
+    return type(name) ~= "nil"
+end
+
+local function RestoreExperimentalCastFocus()
+    for _, plate in pairs(unitPlates) do
+        if plate and plate.SetAlpha then plate:SetAlpha(1) end
+    end
+end
+
+local function UpdateExperimentalCastFocus()
+    if not npModuleActive or not ExperimentalCastFocusEnabled() then
+        RestoreExperimentalCastFocus()
+        return
+    end
+
+    local engaged = {}
+    local casting = {}
+    local engagedCount = 0
+    local castingCount = 0
+
+    for unit, plate in pairs(unitPlates) do
+        if plate and IsExperimentalHostileTrash(unit) and IsExperimentalEngaged(unit) then
+            engaged[unit] = true
+
+            -- Tiny/minus units may be hidden by the filter but do not count as
+            -- one of the two meaningful mobs required to activate it.
+            if UnitClassification(unit) ~= "minus" then
+                engagedCount = engagedCount + 1
+            end
+
+            if IsExperimentalCasting(unit) then
+                casting[unit] = true
+                castingCount = castingCount + 1
+            end
+        end
+    end
+
+    local filterActive = engagedCount >= 2 and castingCount > 0
+    local role = TomoMod_Utils and TomoMod_Utils.SafeGroupRole and TomoMod_Utils.SafeGroupRole("player")
+    local isTank = role == "TANK"
+
+    for unit, plate in pairs(unitPlates) do
+        local show = true
+
+        if filterActive and engaged[unit] then
+            show = casting[unit] == true
+                or UnitIsUnit(unit, "target")
+                or UnitIsUnit(unit, "focus")
+
+            -- Same safety idea as asHideNamePlates: a tank must still see a
+            -- mob whose threat is slipping, even if that mob is not casting.
+            if not show and isTank then
+                local status = UnitThreatSituation("player", unit)
+                if type(status) == "number" and status < 2 then
+                    show = true
+                end
+            end
+        end
+
+        -- Only the TomoMod visual child is faded. We deliberately do not Hide()
+        -- or reparent Blizzard's protected nameplate / hit rectangle.
+        plate:SetAlpha(show and 1 or 0)
+    end
+end
+
+local function RefreshExperimentalCastFocusDriver()
+    local shouldRun = npModuleActive and DB().experimentalCastFocus == true
+
+    if shouldRun and not experimentalCastFocusTicker then
+        experimentalCastFocusTicker = C_Timer.NewTicker(EXPERIMENTAL_CAST_FOCUS_RATE, UpdateExperimentalCastFocus)
+    elseif not shouldRun and experimentalCastFocusTicker then
+        experimentalCastFocusTicker:Cancel()
+        experimentalCastFocusTicker = nil
+    end
+
+    UpdateExperimentalCastFocus()
+end
+
+-- =====================================
 -- FRIENDLY NAME-ONLY HELPER
 -- =====================================
 
@@ -2022,6 +2157,13 @@ end)
 -- PUBLIC API
 -- =====================================
 
+-- Called by Mythic+ Studio when the experimental checkbox changes. Keeping
+-- the runtime in the core nameplate module means the LoD Studio never has to
+-- stay loaded during combat.
+function NP.RefreshExperimentalCastFocus()
+    RefreshExperimentalCastFocusDriver()
+end
+
 function NP.Initialize()
     if not DB().enabled then
         NP.Disable()
@@ -2062,6 +2204,7 @@ function NP.Enable()
     eventFrame:RegisterEvent("PLAYER_ROLES_ASSIGNED")
     eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
     NP.RefreshAll()
+    RefreshExperimentalCastFocusDriver()
 
     -- [12.1] The duration ticker is gone: the engine writes the
     -- duration text on its own buttons and keeps it current.
@@ -2070,6 +2213,7 @@ end
 
 function NP.Disable()
     npModuleActive = false
+    RefreshExperimentalCastFocusDriver()
     eventFrame:UnregisterEvent("NAME_PLATE_UNIT_ADDED")
     eventFrame:UnregisterEvent("NAME_PLATE_UNIT_REMOVED")
     eventFrame:UnregisterEvent("RAID_TARGET_UPDATE")
@@ -2120,6 +2264,7 @@ function NP.ApplySettings()
         SetCVar("nameplateShowFriends", NP._savedCVars.nameplateShowFriends)
     end
     NP.RefreshAll()
+    RefreshExperimentalCastFocusDriver()
 end
 
 -- =====================================

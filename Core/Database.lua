@@ -1078,7 +1078,6 @@ TomoMod_Defaults = {
         enabled = false,
         sound = "TALUANI",
         channel = "Master",
-        forceSound = true,
         showChat = false,
         debug = false,
     },
@@ -1660,6 +1659,8 @@ TomoMod_Defaults = {
         showClassification = true,
         showThreat = true,
         showCastbar = true,
+        -- EXPERIMENTAL: Mythic+ multi-pull cast-focus filter. Opt-in only.
+        experimentalCastFocus = false,
         castbarHeight = 14,
         castbarColor = { r = 0.85, g = 0.15, b = 0.15 },           -- RED (interruptible)
         castbarUninterruptible = { r = 0.45, g = 0.45, b = 0.45 }, -- GREY (non-interruptible)

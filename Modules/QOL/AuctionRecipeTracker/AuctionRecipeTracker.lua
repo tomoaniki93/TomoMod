@@ -766,11 +766,12 @@ listener:RegisterEvent("TRADE_SKILL_LIST_UPDATE")
 listener:RegisterEvent("TRACKED_RECIPE_UPDATE")
 listener:SetScript("OnEvent", function(_, event)
     if event == "AUCTION_HOUSE_SHOW" then
-        -- Always show the frame at the AH so the user can launch a scan
-        -- even when no recipes are tracked yet (the row list will simply
-        -- display the "no tracked recipes" placeholder).
-        BuildFrame():Show()
-        RefreshUI()
+        -- AuctionHouseStudio supersedes the former floating frame when loaded.
+        -- Keep the legacy path as a fallback if the integrated layer is absent.
+        if not (ART.Studio and ART.Studio.IsIntegrated) then
+            BuildFrame():Show()
+            RefreshUI()
+        end
     elseif event == "AUCTION_HOUSE_CLOSED" then
         if mainFrame then mainFrame:Hide() end
         if scanInProgress then

@@ -908,8 +908,9 @@ end
 -- injection or restyle that runs on them taints the arithmetic and throws
 -- ("attempt to perform arithmetic on a secret number value … tainted by
 -- 'TomoMod'"). Tooltip modules call this to skip those tooltips while
--- keeping their features on normal item tooltips. Single extension point:
--- add other compare/money sources here if they surface.
+-- keeping their features on normal item tooltips. World-map/quest POIs are
+-- included as well in 12.1: their widget sets and embedded quest rewards also
+-- carry secret geometry and must stay entirely Blizzard-owned.
 function TomoMod_IsCompareOrMoneyTooltip(tt)
     if not tt then return false end
 
@@ -918,16 +919,32 @@ function TomoMod_IsCompareOrMoneyTooltip(tt)
         return true
     end
 
-    -- Owner inside the Encounter Journal (compare tooltip w/ secret sell price)
+    -- Active Blizzard widget sets are laid out from secret dimensions in
+    -- Midnight. Never restyle/inject while such a set is attached.
+    local widgetContainer = tt.widgetContainer
+    if widgetContainer and widgetContainer.widgetSetID then
+        return true
+    end
+
+    -- Owners inside Encounter Journal and World/Quest Map frames are sensitive:
+    -- comparison money, POI widget sets and quest reward embedded tooltips all
+    -- perform Blizzard-side arithmetic on secret values. Walk far enough to
+    -- reach the map root even when the owner is a deeply nested pin.
     local ok, owner = pcall(tt.GetOwner, tt)
     if ok and owner then
         local frame = owner
-        for _ = 1, 6 do
+        for _ = 1, 16 do
             if not frame then break end
-            local okn, name = pcall(frame.GetName, frame)
-            if okn and type(name) == "string"
-                and name:find("EncounterJournal", 1, true) then
+            if frame == _G.WorldMapFrame or frame == _G.QuestMapFrame then
                 return true
+            end
+            local okn, name = pcall(frame.GetName, frame)
+            if okn and type(name) == "string" then
+                if name:find("EncounterJournal", 1, true)
+                    or name:find("WorldMap", 1, true)
+                    or name:find("QuestMap", 1, true) then
+                    return true
+                end
             end
             local okp, parent = pcall(frame.GetParent, frame)
             if not okp then break end

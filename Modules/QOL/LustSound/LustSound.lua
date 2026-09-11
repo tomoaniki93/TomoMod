@@ -3,7 +3,6 @@
 -- Dual detection:
 --   1. Instant via UNIT_SPELLCAST_SUCCEEDED (spell ID list)
 --   2. Fallback via Sated/Exhaustion debuff polling
--- Force-sound: overrides Master volume so alert plays even when muted
 -- =====================================
 
 TomoMod_LustSound = TomoMod_LustSound or {}
@@ -104,8 +103,6 @@ local active = false
 local soundHandle = nil
 local mainTicker = nil
 local suppressUntil = 0
-local savedMasterVol = nil
-local savedMasterEnabled = nil
 local satedGen = 0        -- generation counter; bumped on zone change or re-arm to invalidate stale timers
 local flickerTimer = nil  -- pending grace-period timer for Sated disappearing
 
@@ -126,34 +123,6 @@ local function HasSatedDebuff()
 end
 
 -- =====================================
--- FORCE-SOUND CVar MANAGEMENT
--- =====================================
-
-local function ForceSoundOn()
-    local db = TomoModDB and TomoModDB.lustSound
-    if not db or not db.forceSound then return end
-
-    if savedMasterVol == nil then
-        savedMasterVol = tonumber(GetCVar("Sound_MasterVolume")) or 0.5
-        savedMasterEnabled = GetCVar("Sound_EnableAllSound")
-    end
-
-    C_CVar.SetCVar("Sound_EnableAllSound", "1")
-    C_CVar.SetCVar("Sound_MasterVolume", tostring(math.max(savedMasterVol, 0.5)))
-end
-
-local function RestoreSound()
-    if savedMasterVol then
-        C_CVar.SetCVar("Sound_MasterVolume", tostring(savedMasterVol))
-    end
-    if savedMasterEnabled then
-        C_CVar.SetCVar("Sound_EnableAllSound", savedMasterEnabled)
-    end
-    savedMasterVol = nil
-    savedMasterEnabled = nil
-end
-
--- =====================================
 -- SOUND PLAYBACK
 -- =====================================
 
@@ -168,8 +137,6 @@ local function DoPlaySound()
         soundHandle = nil
     end
 
-    ForceSoundOn()
-
     local willPlay, handle = PlaySoundFile(entry.file, db.channel or "Master")
     if willPlay then
         soundHandle = handle
@@ -181,7 +148,6 @@ local function DoStopSound()
         StopSound(soundHandle, 500)
         soundHandle = nil
     end
-    RestoreSound()
 end
 
 function LS.PlayPreview()

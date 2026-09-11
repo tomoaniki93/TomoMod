@@ -24,6 +24,43 @@
 - **Fixed** - Hiding Blizzard's native backpack in combined mode could reduce its calculated watched-currency capacity to one. TomoMod now preserves the traditional three slots only while it owns the combined bag and reads each currency's persisted `isShowInBackpack` state directly, so additional tracked currencies no longer disappear.
 - **Changed** - The tracked-currency section has localized fallback headings for English, French, German, Spanish, Italian and Brazilian Portuguese.
 
+#### Bags V4 — Secure Container Clicks
+
+- **Fixed** - Bags V4 no longer attaches addon mouse, click or drag handlers to Blizzard's protected container item buttons. The native `ContainerFrameItemButtonTemplate` remains the sole owner of item use, pickup, splitting and tooltips, preventing ordinary right-clicks from triggering `ADDON_ACTION_FORBIDDEN` on `C_Container.UseContainerItem`.
+- **Changed** - Separate-mode styling now leaves Blizzard's native item buttons untouched. TomoMod continues to skin the surrounding bag windows while preserving the secure input path used by the game.
+
+#### TomoHDV V2 — Integrated Auction House Studio
+
+- **New** - TomoHDV is now a native Auction House tab with three focused workspaces: item Search, tracked Recipes and a full Auction House Scan. The former floating Recipe Tracker is retired from user-facing entry points while its saved price database and tooltip compatibility remain available.
+- **New** - Search includes recent queries, live result quantities, current minimum prices, stored scan prices and direct navigation to Blizzard's Buy view. Recipe sheets show every reagent with unit and total prices and can search a missing component with one click.
+- **New** - Full scans store the lowest observed unit price for each item, report processing progress and respect Blizzard's 15-minute replicate-scan cooldown.
+- **Changed** - The complete studio has been polished with centred navigation, persistent selection accents, flexible result columns, responsive search and recipe detail panels, price cards and a clearer scan-progress layout. It adapts its useful widths to the Auction House window instead of relying on fixed narrow panels.
+- **Fixed** - The TomoHDV tab now anchors to Blizzard's last native Auction House tab without ever anchoring to itself. Global tooltip customizers also skip sensitive embedded Auction House, World Map and Quest tooltips, avoiding protected-state contamination while leaving normal TomoMod tooltips unchanged.
+
+#### TomoHDV V3 — Direct Buy From The Search Sheet
+
+- **New** - The item sheet gains a full purchase panel. Selecting a search result now queries Blizzard's live offers for that exact item key and shows the auction type, a quantity field, the estimated total and a purchase status line, so an item can be bought without ever leaving the TomoHDV tab.
+- **New** - Commodities are priced through Blizzard's own quantity aggregation, so the estimated total reflects the real cost of consuming several stacked offers rather than the cheapest unit price multiplied by the quantity. The buy button states the quantity actually covered by the quote, and a Max control fills in every unit currently available.
+- **New** - Non-commodity auctions resolve to the cheapest buyable listing, skipping your own auctions and those of your account. The quantity field is locked to one for them, since a single auction is bought as a whole.
+- **Changed** - The purchase is re-quoted inside the hardware click, immediately before the protected call, so a price that moved between selection and click cannot be bought at a stale total. Blizzard keeps ownership of the confirmation dialog, which opens above TomoHDV.
+- **Changed** - The purchase panel reacts to live Auction House traffic. Commodity and item search results refresh the quote in place, a completed purchase re-queries the item so the remaining offers are shown, and a failed commodity purchase reports it and disables the button until a fresh quote arrives.
+- **Changed** - The former Open in Buy button has been removed along with its handler. It closed TomoHDV, deselected the tab and switched the Auction House to Blizzard's Buy view, which is no longer necessary now that the purchase happens in place.
+- **New** - Search results now have a persistent selection accent. The selected row keeps its azure background and border while the list refreshes, and hovering another row no longer clears it on mouse-out.
+- **Fixed** - Leaving a search row only hides the tooltip when that row still owns it, so a refresh no longer closes a tooltip belonging to another frame.
+- **Changed** - The search layout has been rebalanced for the new panel. Quantity, current price and scan price columns are narrower, the current and scan price cards sit side by side on one row instead of stacked, and the item sheet keeps a width between 330 and 380 pixels so both the result list and the purchase controls stay readable.
+- **Changed** - Every string of the purchase panel — the buy action, quantity, estimated total, Max, the commodity and auction-item labels, and the loading, ready, unavailable and failure messages — is available in English, French, German, Spanish, Italian and Brazilian Portuguese.
+
+#### TomoHDV V3.1 — UI Overflow Fixes
+
+- **Fixed** - The direct-purchase block now stays inside the item sheet at every supported Auction House height. Quantity, total, status and buy controls have been compacted and anchored from both the top and bottom so they no longer escape below the panel.
+- **Fixed** - Buttons, recent-search chips, price labels, quantities, auction types and status messages are constrained to their available width and line count. Long translations now truncate cleanly instead of wrapping over neighbouring controls.
+- **Changed** - Item names may use two controlled lines, the price cards are slightly more compact and the responsive detail sheet now uses a 340-to-400-pixel range to keep both results and purchase controls readable.
+
+#### LustSound — Respect WoW Audio Settings
+
+- **Changed** - LustSound now plays exclusively through the selected WoW audio channel and respects the player's current sound-enabled state and master volume.
+- **Removed** - The Force Sound option and its saved default have been removed. TomoMod no longer enables global game audio, raises the master volume or restores those CVars when a Bloodlust sound starts or stops.
+
 #### Color Picker — Global TomoMod Skin
 
 - **New** - Blizzard's global colour picker now receives a TomoMod skin with layered dark body, header and footer surfaces, azure borders, Poppins typography, a dedicated close control and themed confirm and cancel buttons.
@@ -36,6 +73,14 @@
 
 - **Changed** - The waypoint beacon now uses only its compact inner ring. The oversized translucent outer glow has been removed for a cleaner, more precise marker.
 - **Changed** - Beacon colour and size updates now target only the remaining icon and centre dot; the beam and navigation arrow keep their existing behaviour.
+
+#### Mythic+ — Experimental Cast-Focus Nameplates
+
+- **New** - The Mythic+ Studio Modules page gains an opt-in experimental Cast-focus nameplates setting. It is disabled by default and stores its state with the core Nameplates configuration.
+- **Changed** - During an active Mythic+ key, a pull with at least two meaningful engaged trash enemies switches into cast focus whenever one begins casting or channeling. Casting enemies remain visible while the other engaged trash plates are temporarily faded, and every plate is restored as soon as no cast is active.
+- **Changed** - Target and focus always remain visible, friendly units and bosses are never filtered, and tanks continue to see enemies whose threat is missing or below the secure threshold so an aggro problem cannot be hidden.
+- **Internal** - The filter changes only the alpha of TomoMod's visual child and never hides or reparents Blizzard's protected nameplate or click area. A lightweight core ticker owns combat-time updates, so the load-on-demand Mythic+ Studio does not need to remain loaded.
+- **Changed** - The experimental setting and its safety explanation are available in English, French, German, Spanish, Italian and Brazilian Portuguese.
 
 #### Mythic+ Run Analysis V2 — Survival And Death Analysis
 

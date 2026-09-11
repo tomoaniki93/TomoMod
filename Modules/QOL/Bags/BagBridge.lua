@@ -227,7 +227,9 @@ local function SkinNativeFrame(frame)
         skin.title:SetTextColor(0.92, 0.96, 0.98, 1)
     end
 
-    for _, button in ipairs(CollectNativeSlots(frame)) do SkinNativeSlot(button) end
+    -- Midnight 12.1: do not touch Blizzard's native ContainerFrameItemButtons.
+    -- Their click path reaches the protected C_Container.UseContainerItem API;
+    -- cosmetic addon HookScripts on those buttons can contaminate that path.
 end
 
 local function RestoreNativeFrame(frame)
@@ -248,7 +250,6 @@ local function RestoreNativeFrame(frame)
         skin.title:SetTextColor(skin.titleR or 1, skin.titleG or 1, skin.titleB or 1, skin.titleA or 1)
     end
 
-    for _, button in ipairs(CollectNativeSlots(frame)) do RestoreNativeSlot(button) end
 end
 
 function Bridge:SkinSeparateFrames()
