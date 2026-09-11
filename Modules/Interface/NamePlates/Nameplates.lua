@@ -918,6 +918,12 @@ local function GetUnitRole(unit)
         local powerType = UnitPowerType(unit)
         if powerType == 0 then -- Mana user
             local maxPower = UnitPowerMax(unit, 0)
+            -- Midnight can protect UnitPowerMax in restricted content. Guard
+            -- before the ordering comparison and fall back to the normal DPS
+            -- role when the value cannot be inspected.
+            if issecretvalue and issecretvalue(maxPower) then
+                return "DAMAGER"
+            end
             if maxPower and maxPower > 0 then
                 -- Not tanking (threatStatus nil or < 2) → likely healer
                 if not threatStatus or threatStatus < 2 then
