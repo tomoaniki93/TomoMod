@@ -63,6 +63,14 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "4.0.4",
+        highlights = {
+            L["wn_404_tomohdv_buy_layout"],
+            L["wn_404_tomohdv_buy_final_polish"],
+            L["wn_404_nameplates_secret_power"],
+        },
+    },
+    {
         version = "4.0.3",
         highlights = {
             L["wn_403_quest_journal_skin_removed"],

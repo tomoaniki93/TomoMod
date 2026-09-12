@@ -1,5 +1,24 @@
 ﻿## ####################################
 
+## CHANGELOG 4.0.4
+
+#### TomoHDV V3.2 — Stable Purchase Panel
+
+- **Fixed** - The direct-purchase controls now stay clear of the buy button on ultrawide displays and at compact UI scales. Quantity, total and status are anchored from the bottom of the item sheet, keeping the complete purchase workflow inside the available panel height.
+- **Changed** - The purchase status line is slightly more compact and aligned with the bottom-anchored controls, while the item header and price cards retain the responsive V3.1 layout.
+
+#### TomoHDV V3.3 — Final Buy-Pane Polish
+
+- **Changed** - The direct-purchase panel now uses four compact bottom-aligned rows: auction type and quantity, estimated total, status, then the confirmation button. The redundant section title has been removed so the controls remain readable at small and medium interface heights.
+- **Fixed** - Quantity controls have dedicated horizontal space, the estimated-total value is wider, and the status and confirmation button sit slightly lower. Labels no longer stack or collide inside the right-hand item card.
+
+#### Nameplates — Secret-Value Safety
+
+- **Fixed** - Follower-dungeon role detection now checks whether `UnitPowerMax` returned a protected value before comparing it. An unreadable mana maximum safely falls back to the default damage role instead of raising an error in restricted content.
+- **Internal** - The secret-value audit no longer reports the Nameplates `maxPower > 0` path as unguarded. This keeps the WoW 12.x safety check explicit and prevents the release workflow from failing on that comparison.
+
+## ####################################
+
 ## CHANGELOG 4.0.3
 
 #### Quest Journal — Skin Removed
