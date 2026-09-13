@@ -62,9 +62,9 @@ local CONSUMERS = {
     "Modules/Interface/UnitFrames/Elements/Health.lua",
     "Modules/Interface/UnitFrames/Elements/Power.lua",
     "Modules/Interface/UnitFrames/Elements/Auras.lua",
-    "Config/Panels/UnitFrames.lua",
-    "Config/Panels/UFPreview.lua",
-    "Config/Presets.lua",
+    "TomoMod_Options/Config/Panels/UnitFrames.lua",
+    "TomoMod_Options/Config/Panels/UFPreview.lua",
+    "TomoMod_Options/Config/Presets.lua",
 }
 
 for _, path in ipairs(CONSUMERS) do
@@ -213,7 +213,7 @@ do
     -- Les ecritures passent par le registre, jamais par un SetPoint direct
     -- sur un widget du sujet.
     check("studio : aucun SetPoint sur health/power",
-        countOccurrences(src, "subject%.health") + countOccurrences(src, "subject%.power"), 0)
+        countOccurrences(src, "subject%.health:SetPoint") + countOccurrences(src, "subject%.power:SetPoint"), 0)
 
     -- Le canvas ne connait pas les unites : c'est ce qui garantit qu'il ne
     -- peut pas toucher une API secrete ni un cadre protege.
@@ -322,7 +322,7 @@ do
     for _, key in ipairs({ "raidIconAnchor", "raidIconX", "raidIconY" }) do
         check(("Nameplates.lua : %s"):format(key), countOccurrences(src, key), 0)
     end
-    local panel = stripComments(read("Config/Panels/Nameplates.lua"))
+    local panel = stripComments(read("TomoMod_Options/Config/Panels/Nameplates.lua"))
     for _, key in ipairs({ "raidIconAnchor", "raidIconX", "raidIconY" }) do
         check(("panneau NP : %s"):format(key), countOccurrences(panel, key), 0)
     end
@@ -517,7 +517,7 @@ do
     for _, path in ipairs({
         "Modules/Interface/UnitFrames/Units/UnitFrame.lua",
         "Modules/Interface/UnitFrames/Elements/Auras.lua",
-        "Config/Panels/UnitFrames.lua",
+        "TomoMod_Options/Config/Panels/UnitFrames.lua",
     }) do
         local src = stripComments(read(path))
         check(("%s : plus de auraSettings.position"):format(path:match("[^/]+$")),
@@ -588,7 +588,7 @@ end
 print("── 17. Elements instancies : integrite ──")
 
 do
-    check("un type instanciable declare", #R.ListTypes(UFE.DOMAIN), 1)
+    check("deux types instanciables declares", #R.ListTypes(UFE.DOMAIN), 2)
     for _, t in ipairs(R.ListTypes(UFE.DOMAIN)) do
         check(("type %s : build defini"):format(t.id), type(t.build), "function")
         check(("type %s : plafond raisonnable"):format(t.id), t.max > 0 and t.max <= 20, true)
@@ -598,7 +598,7 @@ do
     end
     -- Le domaine plaques en declare un depuis le lot 7, avec son propre
     -- point de rafraichissement dans UpdatePlate.
-    check("nameplate : un type instanciable", #R.ListTypes(NPE.DOMAIN), 1)
+    check("nameplate : deux types instanciables", #R.ListTypes(NPE.DOMAIN), 2)
     for _, t in ipairs(R.ListTypes(NPE.DOMAIN)) do
         check(("np type %s : build defini"):format(t.id), type(t.build), "function")
         check(("np type %s : cible defaut declaree"):format(t.id),
@@ -678,7 +678,7 @@ do
     check("NP : corps de UpdatePlate trouve", #upBody > 0, true)
     check("NP : RefreshCustomTexts appele depuis UpdatePlate",
         upBody:find("RefreshCustomTexts") ~= nil, true)
-    check("nameplate declare un type instanciable", #R.ListTypes(NPE.DOMAIN), 1)
+    check("nameplate declare deux types instanciables", #R.ListTypes(NPE.DOMAIN), 2)
 end
 
 print("── 20. Presets : tout ce qui rentre est assaini ──")
@@ -781,7 +781,7 @@ do
     -- L'apercu du studio ne doit PAS partir en donnees reelles : un widget
     -- alimente en donnees protegees a un rect secret, donc non mesurable.
     -- C'est la correction de fond, le reste est la defense.
-    local prev = stripComments(read("Config/Panels/UFPreview.lua"))
+    local prev = stripComments(read("TomoMod_Options/Config/Panels/UFPreview.lua"))
     local stand = prev:match("function UFP%.CreateStandalone.-\nend\n") or ""
     check("CreateStandalone : corps trouve", #stand > 0, true)
     check("apercu autonome simule par defaut",

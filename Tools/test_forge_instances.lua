@@ -34,6 +34,7 @@ _G.UnitExists = function(u) return u ~= nil and u ~= "none" end
 _G.UnitName   = function() return currentUnitName end
 _G.UnitLevel  = function() return Secret("70") end
 _G.UnitClass  = function() return "Shaman", "SHAMAN" end
+_G.TomoMod_Utils = { SafeStr = function(v) return type(v) == "string" and v or "" end }
 _G.UnitRace   = function() return "Orc", "Orc" end
 _G.GetGuildInfo = function() return "Frostwolf" end
 _G.TomoModDB = { unitFrames = { font = "F", fontSize = 12, fontOutline = "OUTLINE" } }
@@ -94,8 +95,9 @@ end
 
 -- ═══════════════════════════════════════════════════════════════════════
 print("── Declaration du type instanciable ──")
-check("un type declare", #R.ListTypes(D), 1)
-check("type = customText", R.ListTypes(D)[1].id, "customText")
+check("deux types declares", #R.ListTypes(D), 2)
+check("type customText disponible", R.GetType(D, "customText") ~= nil, true)
+check("type customBar disponible", R.GetType(D, "customBar") ~= nil, true)
 check("plafond a 6", R.GetType(D, "customText").max, 6)
 check("kind = fontstring", R.GetType(D, "customText").kind, "fontstring")
 check("type inconnu -> nil", R.GetType(D, "plop"), nil)

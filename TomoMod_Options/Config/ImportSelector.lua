@@ -450,22 +450,14 @@ local function Build()
             print(HEX_BRAND .. "TomoMod|r " .. T("imp_nothing", "Nothing selected."))
             return
         end
-        local report = SI.Apply(currentSettings, keys)
+        local report = SI.Apply(currentSettings, keys, dest)
+        if report.err then print(HEX_BRAND .. "TomoMod|r " .. report.err); return end
         print(HEX_BRAND .. "TomoMod|r " .. string.format(
             T("imp_applied", "%d modules imported"), report.applied))
 
-        -- SI.Apply has written the selection into the live configuration.
-        -- Freezing it under a name is the same two-step the non-selective
-        -- named import already performs, so both routes leave the same state.
         if dest then
-            local Prof = TomoMod_Profiles
-            if Prof and Prof.SaveActiveAs then
-                local okSave = Prof.SaveActiveAs(dest)
-                if okSave then
-                    print(HEX_BRAND .. "TomoMod|r " .. string.format(
-                        T("imp_saved_as", "Saved as profile '%s'"), dest))
-                end
-            end
+            print(HEX_BRAND .. "TomoMod|r " .. string.format(
+                T("imp_saved_as", "Saved as profile '%s'"), dest))
         end
 
         if onAccept then onAccept(report) end

@@ -112,8 +112,10 @@ do
 	-- Register in the World of Warcraft library "LibStub" if detected.
 	if LibStub then
 		local lib, minor = LibStub:GetLibrary(_MAJOR, true)
-		if lib and minor and minor >= _MINOR then -- No need to update.
-			return lib
+		if lib and minor and minor >= _MINOR then
+			-- TomoMod local modification: build a private decoder even when a
+			-- newer shared library exists. Never replace that shared library.
+			LibDeflate = {}
 		else -- Update or first time register
 			LibDeflate = LibStub:NewLibrary(_MAJOR, _MINOR)
 			-- NOTE: It is important that new version has implemented
@@ -2264,6 +2266,8 @@ local function CreateDecompressState(str, dictionary)
 		buffer_size = 0,
 		buffer = {},
 		result_buffer = {},
+		-- TomoMod: cumulative flushed bytes, for the bounded import decoder.
+		flushed_size = 0,
 		dictionary = dictionary,
 	}
 	return state
@@ -2402,6 +2406,9 @@ local function DecodeUntilEndOfBlock(state, lcodes_huffman_bitlens
 			end
 		end
 
+		if state.output_limit and state.flushed_size + buffer_size > state.output_limit then
+			return -100 -- TomoMod: decompressed output limit exceeded
+		end
 		if ReaderBitlenLeft() < 0 then
 			return 2 -- available inflate data did not terminate
 		end
@@ -2413,6 +2420,7 @@ local function DecodeUntilEndOfBlock(state, lcodes_huffman_bitlens
 				buffer[i-32768] = buffer[i]
 			end
 			buffer_size = buffer_size - 32768
+			state.flushed_size = state.flushed_size + 32768
 			buffer[buffer_size+1] = nil
 			-- NOTE: buffer[32769..end] and buffer[-257..0] are not cleared.
 			-- This is why "buffer_size" variable is needed.
@@ -2452,6 +2460,9 @@ local function DecompressStoreBlock(state)
 	end
 
 	-- Note that ReadBytes will skip to the next byte boundary first.
+	if state.output_limit and state.flushed_size + buffer_size + bytelen > state.output_limit then
+		return -100
+	end
 	buffer_size = ReadBytes(bytelen, buffer, buffer_size)
 	if buffer_size < 0 then
 		return 2 -- available inflate data did not terminate
@@ -2464,6 +2475,7 @@ local function DecompressStoreBlock(state)
 			buffer[i-32768] = buffer[i]
 		end
 		buffer_size = buffer_size - 32768
+		state.flushed_size = state.flushed_size + 32768
 		buffer[buffer_size+1] = nil
 	end
 	state.buffer_size = buffer_size
@@ -2632,8 +2644,9 @@ end
 
 -- @see LibDeflate:DecompressDeflate(str)
 -- @see LibDeflate:DecompressDeflateWithDict(str, dictionary)
-local function DecompressDeflateInternal(str, dictionary)
+local function DecompressDeflateInternal(str, dictionary, output_limit)
 	local state = CreateDecompressState(str, dictionary)
+	state.output_limit = output_limit
 	local result, status = Inflate(state)
 	if not result then
 		return nil, status
@@ -2642,6 +2655,15 @@ local function DecompressDeflateInternal(str, dictionary)
 	local bitlen_left = state.ReaderBitlenLeft()
 	local bytelen_left = (bitlen_left - bitlen_left % 8) / 8
 	return result, bytelen_left
+end
+
+-- TomoMod local modification; the public LibDeflate API remains unchanged.
+-- This entry keeps its own decoder if another addon upgrades LibDeflate later.
+_G.TomoMod_InflateBounded = function(str, limit)
+	if type(str) ~= "string" or type(limit) ~= "number" or limit < 1 then
+		return nil, -100
+	end
+	return DecompressDeflateInternal(str, nil, limit)
 end
 
 -- @see LibDeflate:DecompressZlib(str)

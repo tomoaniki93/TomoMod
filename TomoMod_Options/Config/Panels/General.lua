@@ -196,7 +196,10 @@ function TomoMod_ConfigPanel_General(parent)
     end)
 
     -- Valeurs initiales (indicateur "tracking")
-    local iC, iS, iX, iY = TomoMod_Minimap and TomoMod_Minimap.GetIndicatorCfg(selKey)
+    local iC, iS, iX, iY
+    if TomoMod_Minimap and TomoMod_Minimap.GetIndicatorCfg then
+        iC, iS, iX, iY = TomoMod_Minimap.GetIndicatorCfg(selKey)
+    end
     iC = iC or "TOPLEFT"; iS = iS or 1.0; iX = iX or 0; iY = iY or 0
 
     -- Coin + Échelle
@@ -607,7 +610,7 @@ StaticPopupDialogs["TOMOMOD_RESET_ALL"] = {
     text     = L["popup_reset_text"],
     button1  = L["popup_confirm"],
     button2  = L["popup_cancel"],
-    OnAccept = function() TomoMod_ResetDatabase(); ReloadUI() end,
+    OnAccept = function() if TomoMod_ResetDatabase() then ReloadUI() end end,
     timeout       = 0,
     whileDead     = true,
     hideOnEscape  = true,

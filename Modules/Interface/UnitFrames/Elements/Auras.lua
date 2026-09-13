@@ -67,8 +67,9 @@ function UF_Elements.SaveContainerDrag(container, parent, elementID, settings)
     end
     if not dx then
         local sx, sy = container:GetCenter()
-        local px, py = target.GetCenter and target:GetCenter()
-        if not (sx and px) then return false end
+        local px, py
+        if target.GetCenter then px, py = target:GetCenter() end
+        if not (sx and sy and px and py) then return false end
         rec.point, rec.relPoint = "CENTER", "CENTER"
         dx, dy = sx - px, sy - py
     end

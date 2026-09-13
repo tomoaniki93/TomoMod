@@ -1359,6 +1359,6 @@ StaticPopupDialogs["TOMOMOD_DASH_RESET"] = {
     text     = Localize("popup_reset_text", "Réinitialiser tous les paramètres ?"),
     button1  = Localize("popup_confirm", "Confirmer"),
     button2  = Localize("popup_cancel", "Annuler"),
-    OnAccept = function() TomoMod_ResetDatabase(); ReloadUI() end,
+    OnAccept = function() if TomoMod_ResetDatabase() then ReloadUI() end end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }

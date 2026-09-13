@@ -15,12 +15,13 @@ local WHITE8    = "Interface\\Buttons\\WHITE8x8"
 local W, H = 980, 638
 local PAD = 18
 
+local brand = TomoMod_Utils.BRAND
 local C = {
     bg      = { 0.035, 0.043, 0.055, 0.985 },
     panel   = { 0.055, 0.065, 0.082, 0.97 },
     panel2  = { 0.070, 0.082, 0.102, 0.92 },
     border  = { 0.16, 0.18, 0.22, 1 },
-    accent  = { 0.18, 0.85, 0.52, 1 },
+    accent  = { brand[1], brand[2], brand[3], 1 },
     text    = { 0.94, 0.96, 0.95, 1 },
     dim     = { 0.50, 0.54, 0.58, 1 },
     green   = { 0.55, 0.90, 0.20, 1 },

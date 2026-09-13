@@ -32,7 +32,10 @@ import lint_secret_values as L  # noqa: E402
 SECRET = {"UnitHealth", "UnitHealthMax", "C_Thing.Get", "UnitClass"}
 
 
-def run(src, secret=None, geometry=False):
+WIDGET = {"GetLeft", "GetWidth", "GetFrameLevel", "GetText"}
+
+
+def run(src, secret=None, widgets=False, methods=None, no_secret_args=frozenset()):
     """Lint a source string; return the list of findings.
 
     `secret` is compared against None rather than tested for truth: an
@@ -43,7 +46,10 @@ def run(src, secret=None, geometry=False):
     tokens, suppressed = L.tokenize(src)
     if secret is None:
         secret = SECRET
-    return L.analyse("t.lua", tokens, suppressed, secret, geometry)
+    if methods is None:
+        methods = WIDGET
+    return L.analyse("t.lua", tokens, suppressed, secret, methods,
+                     no_secret_args, widgets)
 
 
 def kinds(src, **kw):
@@ -302,21 +308,60 @@ class TestGuards(unittest.TestCase):
 # geometry tier
 # ---------------------------------------------------------------------
 
-class TestGeometryTier(unittest.TestCase):
+class TestWidgetTier(unittest.TestCase):
 
     SRC = 'local l = frame:GetLeft()\nlocal x = l - 1'
 
-    def test_geometry_is_quiet_by_default(self):
+    def test_widgets_are_quiet_by_default(self):
         self.assertEqual(run(self.SRC), [])
 
-    def test_geometry_reports_when_asked(self):
-        self.assertEqual(kinds(self.SRC, geometry=True), ["arithmetic"])
+    def test_widgets_report_when_asked(self):
+        self.assertEqual(kinds(self.SRC, widgets=True), ["arithmetic"])
 
-    def test_geometry_call_is_consumed_once(self):
+    def test_widget_call_is_consumed_once(self):
         # `frame:GetWidth() * 2` must not report twice, once for the
         # receiver and once for the method.
         src = "local x = frame:GetWidth() * 2"
-        self.assertEqual(len(run(src, geometry=True)), 1)
+        self.assertEqual(len(run(src, widgets=True)), 1)
+
+    def test_documented_method_from_the_reference(self):
+        # GetFrameLevel is not geometry and was not in the hand-written
+        # list; it reaches the linter only through the generated file.
+        src = "local x = frame:GetFrameLevel() + 1"
+        self.assertEqual(kinds(src, widgets=True), ["arithmetic"])
+
+
+# ---------------------------------------------------------------------
+# arguments the client refuses outright
+# ---------------------------------------------------------------------
+
+class TestNoSecretArguments(unittest.TestCase):
+
+    REFUSERS = frozenset({"C_CVar.SetCVar"})
+
+    def test_tainted_argument_is_reported(self):
+        src = ('local v = C_Thing.Get()\n'
+               'C_CVar.SetCVar("x", v)')
+        found = run(src, no_secret_args=self.REFUSERS)
+        self.assertEqual([f.kind for f in found], ["secret argument refused by"])
+
+    def test_guarded_argument_is_not_reported(self):
+        src = ('local v = C_Thing.Get()\n'
+               'if issecretvalue(v) then return end\n'
+               'C_CVar.SetCVar("x", v)')
+        self.assertEqual(run(src, no_secret_args=self.REFUSERS), [])
+
+    def test_other_functions_are_not_reported(self):
+        src = ('local v = C_Thing.Get()\n'
+               'C_CVar.GetCVar("x", v)')
+        self.assertEqual(run(src, no_secret_args=self.REFUSERS), [])
+
+    def test_check_is_on_by_default(self):
+        # Unlike the widget tier this needs no flag: the client says the
+        # call refuses secrets, so passing one is wrong either way.
+        src = ('local v = C_Thing.Get()\n'
+               'C_CVar.SetCVar("x", v)')
+        self.assertNotEqual(run(src, no_secret_args=self.REFUSERS, widgets=False), [])
 
 
 # ---------------------------------------------------------------------
@@ -408,26 +453,82 @@ class TestMutation(unittest.TestCase):
 class TestReference(unittest.TestCase):
 
     def test_missing_file_is_not_an_error(self):
-        calls, meta = L.load_reference(Path("/nonexistent/apidoc_secrets.txt"))
-        self.assertEqual(calls, set())
-        self.assertEqual(meta, {})
+        ref = L.load_reference(Path("/nonexistent/apidoc_secrets.txt"))
+        self.assertFalse(ref.present())
+        self.assertEqual(ref.calls, set())
+        self.assertEqual(ref.methods, set())
 
-    def test_parses_header_and_functions(self):
+    def _write(self, lines):
         import tempfile
-        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False,
-                                         encoding="utf-8") as fh:
-            fh.write("# comment\n")
-            fh.write("H|12.1.0.62000|120100|2026-09-09\n")
-            fh.write("F|C_UnitAuras.GetAuraDataByIndex|AllowedWhenSecret|UnitData||\n")
-            fh.write("S|AuraData|name|ConditionalSecret\n")
-            path = Path(fh.name)
+        fh = tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False, encoding="utf-8")
+        fh.write("\n".join(lines) + "\n")
+        fh.close()
+        return Path(fh.name)
+
+    def test_parses_header(self):
+        path = self._write(["# comment", "H|12.1.0|120100|2026-09-13"])
         try:
-            calls, meta = L.load_reference(path)
-            self.assertIn("C_UnitAuras.GetAuraDataByIndex", calls)
-            self.assertEqual(meta["interface"], "120100")
-            self.assertEqual(meta["build"], "12.1.0.62000")
+            ref = L.load_reference(path)
+            self.assertEqual(ref.meta["interface"], "120100")
+            self.assertEqual(ref.meta["build"], "12.1.0")
         finally:
             path.unlink()
+
+    def test_bare_and_dotted_F_records_are_kept_apart(self):
+        # The real dump names widget methods bare and namespaced
+        # functions dotted; they match differently, so mixing them would
+        # make every `GetText` in the addon a namespaced-call finding.
+        path = self._write([
+            "H|12.1.0|120100|2026-09-13",
+            "F|GetText|Text|",
+            "F|C_Thing.Get|UnitData|",
+        ])
+        try:
+            ref = L.load_reference(path)
+            self.assertEqual(ref.calls, {"C_Thing.Get"})
+            self.assertEqual(ref.methods, {"GetText"})
+            self.assertEqual(ref.aspects["GetText"], "Text")
+        finally:
+            path.unlink()
+
+    def test_only_NotAllowed_arguments_are_collected(self):
+        path = self._write([
+            "H|12.1.0|120100|2026-09-13",
+            "A|C_CVar.SetCVar|NotAllowed|",
+            "A|AbbreviateNumbers|AllowedWhenTainted|",
+            "A|AddPoint|AllowedWhenUntainted|",
+        ])
+        try:
+            ref = L.load_reference(path)
+            self.assertEqual(ref.no_secret_args, {"C_CVar.SetCVar"})
+        finally:
+            path.unlink()
+
+    def test_S_and_X_records_do_not_taint(self):
+        path = self._write([
+            "H|12.1.0|120100|2026-09-13",
+            "S|AuraData|name|ConditionalSecret",
+            "X|ClearFocus|ScriptedInput(self)",
+        ])
+        try:
+            ref = L.load_reference(path)
+            self.assertEqual(ref.calls, set())
+            self.assertEqual(ref.methods, set())
+        finally:
+            path.unlink()
+
+    def test_real_reference_file_if_present(self):
+        # The checked-in dump is the thing the audit actually runs
+        # against; a format drift that silences it must fail loudly here
+        # rather than show up as a reassuring "0 findings".
+        path = Path(__file__).resolve().parent / "apidoc_secrets.txt"
+        if not path.is_file():
+            self.skipTest("no reference checked in")
+        ref = L.load_reference(path)
+        self.assertTrue(ref.present())
+        self.assertGreater(len(ref.methods), 50)
+        self.assertGreater(len(ref.no_secret_args), 20)
+        self.assertIn("GetFrameLevel", ref.methods)
 
 
 # ---------------------------------------------------------------------
@@ -492,14 +593,14 @@ class TestImporter(unittest.TestCase):
         header, good, _ = I.validate(I.extract_records(SV_SAMPLE))
         out.write_text("\n".join([header] + sorted(good)) + "\n", encoding="utf-8")
 
-        calls, meta = L.load_reference(out)
-        self.assertEqual(calls, {"C_UnitAuras.GetAuraDataByIndex"})
-        self.assertEqual(meta["interface"], "120100")
+        ref = L.load_reference(out)
+        self.assertEqual(ref.calls, {"C_UnitAuras.GetAuraDataByIndex"})
+        self.assertEqual(ref.meta["interface"], "120100")
 
         # And the call the reference names must actually taint.
         src = ('local a = C_UnitAuras.GetAuraDataByIndex("player", 1)\n'
                'local x = a + 1')
-        self.assertNotEqual(run(src, secret=calls), [])
+        self.assertNotEqual(run(src, secret=ref.calls), [])
 
 
 if __name__ == "__main__":

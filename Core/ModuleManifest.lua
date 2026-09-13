@@ -576,6 +576,7 @@ R.Define{
 -- manifeste <-> defaults sans etre proposee a l'import ni au cycle de vie.
 R.Define{ key = "microBar",         internal = true }
 R.Define{ key = "forgeAssets",      internal = true }
+R.Define{ key = "resourceCastStudio", internal = true } -- studio tutorial/preview state
 R.Define{ key = "installer",        internal = true }
 R.Define{ key = "cvarOptimizer",    internal = true }
 R.Define{ key = "Keystones",        internal = true }

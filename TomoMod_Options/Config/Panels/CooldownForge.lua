@@ -434,7 +434,8 @@ local function BuildContent(c)
         onTextChanged = function(t) state.importText = t end,
     })
     _, cy = W.CreateButton(card.inner, "Importer", 130, cy, function()
-        local okI, res = CDF.Import and CDF.Import(state.importText or "")
+        local okI, res
+        if CDF.Import then okI, res = CDF.Import(state.importText or "") end
         if okI then
             state.importText = ""
             if type(res) == "table" and res.class then state.class = res.class; state.barId = nil end

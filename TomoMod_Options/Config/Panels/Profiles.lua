@@ -858,6 +858,23 @@ local function BuildResetsTab(parent)
     local c = scroll.child
     local y = -10
 
+    local fr = GetLocale() == "frFR"
+    local _, backupY = W.CreateSectionHeader(c, fr and "Sauvegardes de sécurité" or "Recovery backups", y)
+    y = backupY
+    local _, infoY = W.CreateInfoText(c, fr
+        and "Les cinq dernières sauvegardes sont conservées. /tm backup affiche la liste."
+        or "The five latest backups are kept. /tm backup lists them.", y)
+    y = infoY
+    local _, saveY = W.CreateButton(c, fr and "Sauvegarder maintenant" or "Back up now", 260, y, function()
+        local entry, err = TomoMod_ProfileSafety.CreateBackup("manuelle", true)
+        print("TomoMod : " .. (entry and (fr and "sauvegarde créée." or "backup created.") or tostring(err)))
+    end)
+    y = saveY
+    local _, restoreY = W.CreateButton(c, fr and "Restaurer la dernière sauvegarde" or "Restore latest backup", 300, y, function()
+        TomoMod_ProfileSafety.ConfirmRestore(1)
+    end)
+    y = restoreY - 12
+
     local _, ny = W.CreateSectionHeader(c, L["section_reset_module"], y); y = ny
     local _, ny = W.CreateInfoText(c, L["info_resets"], y); y = ny
 
@@ -882,8 +899,9 @@ local function BuildResetsTab(parent)
 
     for _, mod in ipairs(modules) do
         local _, ny = W.CreateButton(c, (L["btn_reset_prefix"]) .. mod.label, 260, y, function()
-            TomoMod_ResetModule(mod.key)
-            print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_reset"], mod.label))
+            if TomoMod_ResetModule(mod.key) then
+                print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_reset"], mod.label))
+            end
         end)
         y = ny
     end

@@ -151,10 +151,11 @@ check("frame nil -> nil",     R.Get(CBE.DOMAIN, "spellText").resolve(nil),   nil
 print("── 5. Table de sujets du studio ──")
 
 local af = read("TomoMod_AstralForge/AstralForge.lua")
+local subjectBlock = assert(af:match("local SUBJECTS = %{(.-)\n%}"), "SUBJECTS absent")
 
 -- Plus aucun libelle en dur : ils etaient tous en francais.
 local hard = 0
-for line in af:gmatch("[^\n]+") do
+for line in subjectBlock:gmatch("[^\n]+") do
     if line:find("value%s*=%s*\"") and line:find("text%s*=%s*\"") then
         hard = hard + 1
     end
@@ -163,7 +164,7 @@ check("aucun libelle de sujet en dur", hard, 0)
 
 -- Chaque sujet declare une cle de locale et un registre.
 local subjects = {}
-for value, labelKey in af:gmatch('value%s*=%s*"([%w_]+)",%s*labelKey%s*=%s*"([%w_]+)"') do
+for value, labelKey in subjectBlock:gmatch('value%s*=%s*"([%w_]+)".-labelKey%s*=%s*"([%w_]+)"') do
     subjects[#subjects + 1] = { value = value, labelKey = labelKey }
 end
 check("onze sujets declares", #subjects, 11)
@@ -174,9 +175,12 @@ for _, sub in ipairs(subjects) do
     seen[sub.value] = true
 end
 check("aucun sujet en double", ok, true)
-check("les cinq castbars presentes",
-      (seen.castbar_player and seen.castbar_target and seen.castbar_focus
+check("les quatre castbars AstralForge presentes",
+      (seen.castbar_target and seen.castbar_focus
        and seen.castbar_pet and seen.castbar_boss) and true or false, true)
+check("la castbar joueur a quitte AstralForge", seen.castbar_player, nil)
+local playerStudio = read("TomoMod_ResourceCastStudio/ResourceCastStudio.lua")
+check("le studio joueur gere les incantations", playerStudio:find("castbars", 1, true) ~= nil, true)
 
 -- Les cles de libelle doivent exister dans les six langues.
 local locSrc = read("Locales/Locale_Modules.lua")

@@ -207,25 +207,10 @@ end
 ---
 --- Returns payload, err. The payload gains a `dropped` count.
 function LS.Decode(str)
-    if type(str) ~= "string" or str == "" then return nil, "Chaîne vide" end
-    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
-    local LibDeflate   = LibStub and LibStub("LibDeflate", true)
-    if not LibSerialize or not LibDeflate then
-        return nil, "Librairies manquantes (LibSerialize / LibDeflate)"
-    end
-
-    str = str:match("^%s*(.-)%s*$")
-    local decoded = LibDeflate:DecodeForPrint(str)
-    if not decoded then return nil, "Chaîne illisible" end
-    local decompressed = LibDeflate:DecompressDeflate(decoded)
-    if not decompressed then return nil, "Décompression échouée" end
-
-    local ok, payload = pcall(LibSerialize.DeSerialize, LibSerialize, decompressed)
-    if not ok or type(payload) ~= "table" then return nil, "Charge illisible" end
-    if payload._h ~= LS.HEADER then return nil, "Ce n'est pas une disposition TomoMod" end
-    if type(payload._v) ~= "number" or payload._v > LS.SCHEMA_VERSION then
-        return nil, "Version de disposition trop récente"
-    end
+    local safety = TomoMod_ProfileSafety
+    if not safety then return nil, "Validation des dispositions indisponible" end
+    local payload, err = safety.Decode(str, LS.HEADER, LS.SCHEMA_VERSION, true)
+    if not payload then return nil, err end
 
     -- The whitelist is the security boundary. A payload can name any key
     -- it likes; only the ones the manifests declare survive this filter,
@@ -348,51 +333,80 @@ function LS.Import(payload, opts)
         return report
     end
 
-    local myTier = (RES and RES.Detect and RES.Detect()) or nil
-    report.tier, report.fromTier = myTier, payload.tier
-
-    local only
-    if type(opts.paths) == "table" then
-        only = {}
-        for _, p in ipairs(opts.paths) do only[p] = true end
-    end
-
-    if opts.positions ~= false then
-        local anchors = LS.AnchorPaths()
-        for path, pos in pairs(payload.positions or {}) do
-            if anchors[path] and (not only or only[path]) then
-                local copy = CopyPosition(pos)
-                if copy then
-                    copy.v = copy.v or (Layout and Layout.SCHEMA_VERSION) or 2
-                    R.SetPath(TomoModDB, path, copy)
-                    report.positions = report.positions + 1
-                end
-            elseif anchors[path] then
-                report.skipped = report.skipped + 1
-            end
+    local safety = TomoMod_ProfileSafety
+    if not safety then report.err = "Validation des dispositions indisponible"; return report end
+    local safe, why = safety.Copy(payload)
+    if not safe then report.err = why; return report end
+    payload = safe
+    local count = 0
+    for path, pos in pairs(type(payload.positions) == "table" and payload.positions or {}) do
+        if LS.AnchorPaths()[path] then
+            local ok, err = safety.ValidatePosition(pos)
+            if not ok then report.err = path .. " : " .. err; return report end
+            count = count + 1
         end
     end
+    for path, value in pairs(type(payload.fonts) == "table" and payload.fonts or {}) do
+        if LS.FontPaths()[path] then
+            if type(value) ~= "number" or value < 4 or value > 256 then
+                report.err = path .. " : taille de police invalide"; return report
+            end
+            count = count + 1
+        end
+    end
+    if count == 0 then report.err = "Aucune position ou police valide"; return report end
+    if payload.positions ~= nil and type(payload.positions) ~= "table" then report.err = "Positions invalides"; return report end
+    if payload.fonts ~= nil and type(payload.fonts) ~= "table" then report.err = "Polices invalides"; return report end
+    local function ApplyLayout()
+        local myTier = (RES and RES.Detect and RES.Detect()) or nil
+        report.tier, report.fromTier = myTier, payload.tier
 
-    if opts.fonts ~= false then
-        local ratio = FontRatio(payload.tier, myTier)
-        report.ratio = ratio
-        for path, v in pairs(payload.fonts or {}) do
-            if LS.FontPaths()[path] and type(v) == "number" then
-                local scaled = (RES and RES.ScaledFont)
-                    and RES.ScaledFont(v, ratio)
-                    or math.floor(v * ratio + 0.5)
-                if scaled then
-                    R.SetPath(TomoModDB, path, scaled)
-                    report.fonts = report.fonts + 1
+        local only
+        if type(opts.paths) == "table" then
+            only = {}
+            for _, p in ipairs(opts.paths) do only[p] = true end
+        end
+
+        if opts.positions ~= false then
+            local anchors = LS.AnchorPaths()
+            for path, pos in pairs(payload.positions or {}) do
+                if anchors[path] and (not only or only[path]) then
+                    local copy = CopyPosition(pos)
+                    if copy then
+                        copy.v = copy.v or (Layout and Layout.SCHEMA_VERSION) or 2
+                        R.SetPath(TomoModDB, path, copy)
+                        report.positions = report.positions + 1
+                    end
+                elseif anchors[path] then
+                    report.skipped = report.skipped + 1
                 end
             end
         end
-    end
 
-    if opts.capture and myTier and RES and RES.Capture then
-        RES.Capture(myTier)
-    end
+        if opts.fonts ~= false then
+            local ratio = FontRatio(payload.tier, myTier)
+            report.ratio = ratio
+            for path, v in pairs(payload.fonts or {}) do
+                if LS.FontPaths()[path] and type(v) == "number" then
+                    local scaled = (RES and RES.ScaledFont)
+                        and RES.ScaledFont(v, ratio)
+                        or math.floor(v * ratio + 0.5)
+                    if scaled then
+                        R.SetPath(TomoModDB, path, scaled)
+                        report.fonts = report.fonts + 1
+                    end
+                end
+            end
+        end
 
-    report.ok = (report.positions + report.fonts) > 0
+        if opts.capture and myTier and RES and RES.Capture then
+            RES.Capture(myTier)
+        end
+
+        report.ok = (report.positions + report.fonts) > 0
+        return report
+    end
+    local ok, err = safety.Transaction("avant import disposition", ApplyLayout)
+    if not ok then report.ok = false; report.positions = 0; report.fonts = 0; report.err = err end
     return report
 end

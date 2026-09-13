@@ -235,6 +235,7 @@ local COVERED = {
     ["raidFrames"]                     = "^TomoMod_RaidAnchor",
     ["battleRez"]                      = "^TomoMod_BattleRezCounter",
     ["preyTracker"]                    = "^TomoMod_PreyTracker",
+    ["classReminder"]                  = "^TomoMod_ClassReminder",
     ["skyRide"]                        = "^TomoModSkyRideFrame",
     ["mythicTracker"]                  = "^TomoMod_MythicTrackerFrame",
     ["tomoScore"]                      = "^TomoMod_MythicScoreWidget",

@@ -109,6 +109,15 @@ for _, m in ipairs(R.ListAll()) do
 
     for _, a in ipairs(m.anchors) do
         local node = R.GetPath(D, a.path)
+        -- ClassReminder deliberately stores nil until moved. Assert the real
+        -- fallback before using that optional anchor in this contract check.
+        if node == nil and a.path == "classReminder.position" then
+            local file = assert(io.open("Modules/QOL/Classes/ClassReminder.lua", "rb"))
+            local cr = file:read("*a"); file:close()
+            check("ClassReminder possede une ancre par defaut",
+                cr:find('anchor:SetPoint("CENTER", UIParent, "CENTER", 0, 0)', 1, true) ~= nil, true)
+            node = { point = "CENTER", relativePoint = "CENTER", x = 0, y = 0 }
+        end
         if type(node) ~= "table" then
             badAnchor = badAnchor + 1
             fail(("'%s' : ancre '%s' ne se résout pas ('%s')"):format(m.key, a.id, a.path))
@@ -424,6 +433,13 @@ local function ScanSources()
         end
         -- Alias local usuel : « local M = TomoMod_X »
         local aliases = {}
+        -- Reverse alias: local TMT = {}; TomoMod_MythicTracker = TMT.
+        for g, alias in src:gmatch("\n(TomoMod_%w+)%s*=%s*([%w_]+)%s*\n") do
+            if src:find("local%s+" .. alias .. "%s*=%s*%{") then
+                aliases[alias] = g
+                owners[g] = owners[g] or path
+            end
+        end
         for alias, g in src:gmatch("\nlocal%s+(%w+)%s*=%s*(TomoMod_%w+)") do
             aliases[alias] = g
         end
@@ -520,6 +536,10 @@ local function DeepCopy(t)
 end
 
 local db = DeepCopy(D)
+-- Optional positions are absent until a mover is used. Migrate real stored
+-- anchors, and explicitly exercise ClassReminder's first saved position too.
+check("position facultative preservee dans les defaults", db.classReminder.position, nil)
+db.classReminder.position = { point = "CENTER", relativePoint = "CENTER", x = 42, y = -17 }
 local converted, seen = Layout.MigrateAll(db)
 check("toutes les ancres vues",     seen,      #R.Anchors())
 check("toutes les ancres migrées",  converted, #R.Anchors())

@@ -59,6 +59,8 @@ C.EnsureLoaded = Load
 for _, name in ipairs(FORWARDED) do
     local stub
     stub = function(...)
+        -- No window exists yet: hiding or invalidating cannot have any work.
+        if name == "Hide" or name == "InvalidatePanels" then return end
         if not Load() then return end
         local real = C[name]
         -- Guard against the sub-addon loading without defining this entry:
@@ -156,4 +158,3 @@ installerBoot:SetScript("OnEvent", function(self)
         TomoMod_OpenInstaller(false)
     end)
 end)
-

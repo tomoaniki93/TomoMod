@@ -17,7 +17,7 @@ _G.C_AddOns = {
     IsAddOnLoaded = function(n) return LOADED[n] == true end,
 }
 
-assert(loadfile("Config/Panels/_Suite.lua"))()
+assert(loadfile("TomoMod_Options/Config/Panels/_Suite.lua"))()
 local S = TomoMod_Suite
 
 local ok = true

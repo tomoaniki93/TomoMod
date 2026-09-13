@@ -29,6 +29,7 @@ import shutil
 import sys
 import tempfile
 import zipfile
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
@@ -189,6 +190,67 @@ def validate(staging):
                     continue
                 problems.append("nested addon folder %s -- WoW will not see it; "
                                 "add a move-folders entry in .pkgmeta" % rel)
+    # Walk the actual load graph AFTER sub-addon relocation. A well-formed XML
+    # or an existing TOC can still reference a missing/miscased Lua file.
+    visited, loading, ordered = set(), set(), []
+    root = staging.resolve()
+
+    def visit(path):
+        # Keep the spelling supplied by the TOC/XML for the case check.
+        # Path.resolve() canonicalizes the existing filename on Windows and
+        # would otherwise turn a bad `profiles.lua` reference back into the
+        # real `Profiles.lua` before we have a chance to reject it.
+        lexical = Path(os.path.abspath(path))
+        resolved = lexical.resolve()
+        if not resolved.is_relative_to(root):
+            problems.append("load reference escapes package: %s" % resolved)
+            return
+        relative = lexical.relative_to(root)
+        rel = relative.as_posix()
+        # Enforce casing even when the builder is run on Windows/macOS.
+        current = root
+        for part in relative.parts:
+            if not current.is_dir() or part not in {p.name for p in current.iterdir()}:
+                problems.append("missing or miscased load file: %s" % rel)
+                return
+            current = current / part
+        path = resolved
+        if not path.is_file():
+            problems.append("load reference is not a file: %s" % rel)
+            return
+        if path in loading:
+            problems.append("cyclic load reference: %s" % rel)
+            return
+        if path in visited:
+            return
+        visited.add(path)
+        loading.add(path)
+        ordered.append(rel)
+        refs = []
+        if path.suffix.lower() == ".toc":
+            refs = [line.strip() for line in path.read_text(encoding="utf-8-sig").splitlines()
+                    if line.strip() and not line.lstrip().startswith("#")]
+        elif path.suffix.lower() == ".xml":
+            try:
+                refs = [node.attrib["file"] for node in ET.parse(path).iter() if "file" in node.attrib]
+            except ET.ParseError as err:
+                problems.append("invalid XML %s: %s" % (rel, err))
+        for ref in refs:
+            visit(path.parent / ref.replace("\\", "/"))
+        loading.remove(path)
+
+    for top in tops:
+        toc = top / (top.name + ".toc")
+        if toc.is_file():
+            visit(toc)
+    # Safety must exist before any importer can be called during initialization.
+    critical = ["TomoMod/Core/ProfileSafety.lua", "TomoMod/Core/LayoutShare.lua",
+                "TomoMod/Core/Profiles.lua", "TomoMod/Core/Init.lua"]
+    if all(p in ordered for p in critical):
+        if [ordered.index(p) for p in critical] != sorted(ordered.index(p) for p in critical):
+            problems.append("profile safety/import initialization order is incorrect")
+    else:
+        problems.append("required profile safety/import source is missing from the load graph")
     return tops, problems
 
 
@@ -253,7 +315,8 @@ def main():
             out_dir = REPO / out_dir
         zip_path = write_zip(staging, out_dir, package, version)
         size_mb = zip_path.stat().st_size / (1024 * 1024)
-        print("\nOK: %s (%.2f MB)" % (zip_path.relative_to(REPO), size_mb))
+        display_path = zip_path.relative_to(REPO) if zip_path.is_relative_to(REPO) else zip_path
+        print("\nOK: %s (%.2f MB)" % (display_path, size_mb))
         return 0
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

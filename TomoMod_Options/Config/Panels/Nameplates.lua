@@ -419,8 +419,9 @@ local function BuildAdvancedTab(parent)
     -- Reset
     local card6, cy = W.CreateCard(c, "", y)
     local _, cy = W.CreateButton(card6.inner, L["btn_reset_nameplates"], 280, cy, function()
-        if TomoMod_ResetModule then TomoMod_ResetModule("nameplates") end
-        print("|cff2e9dd8TomoMod|r " .. (L["msg_np_reset"]))
+        if TomoMod_ResetModule and TomoMod_ResetModule("nameplates") then
+            print("|cff2e9dd8TomoMod|r " .. (L["msg_np_reset"]))
+        end
     end)
     y = W.FinalizeCard(card6, cy)
 

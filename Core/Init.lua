@@ -65,7 +65,9 @@ StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] = {
 SLASH_TOMOMOD1 = "/tm"
 SLASH_TOMOMOD2 = "/tomomod"
 SlashCmdList["TOMOMOD"] = function(msg)
-    msg = string.lower(msg or "")
+    -- Keep payloads and user labels intact; only command matching is folded.
+    local rawMsg = (msg or ""):match("^%s*(.-)%s*$")
+    msg = string.lower(rawMsg)
 
     if msg == "install" or msg == "installer" then
         if TomoMod_OpenInstaller then
@@ -86,6 +88,12 @@ SlashCmdList["TOMOMOD"] = function(msg)
 
         if arg then
             arg = arg:gsub("%s+$", "")
+            -- Registry keys are camelCase; accept either spelling at the CLI.
+            if not REG.Has(arg) then
+                for _, m in ipairs(REG.ListAll()) do
+                    if m.key:lower() == arg then arg = m.key; break end
+                end
+            end
             if not REG.Has(arg) then
                 print("|cff2e9dd8TomoMod|r |cffff4040" .. tostring(arg) .. "|r ?")
                 return
@@ -125,6 +133,22 @@ SlashCmdList["TOMOMOD"] = function(msg)
             end
         end
         print("|cff888888/tm modules <clé> pour basculer|r")
+
+    elseif msg == "backup" or msg:match("^backup%s+") then
+        local safety = TomoMod_ProfileSafety
+        if not safety then return end
+        local arg = msg:match("^backup%s+(.+)$")
+        if arg == "save" then
+            local saved, err = safety.CreateBackup("manuelle", true)
+            print("TomoMod : " .. (saved and "sauvegarde creee." or tostring(err)))
+        elseif arg == "restore" or (arg and arg:match("^restore%s+%d+$")) then
+            safety.ConfirmRestore(tonumber(arg:match("^restore%s+(%d+)$")) or 1)
+        else
+            for _, row in ipairs(safety.ListBackups()) do
+                print(("TomoMod #%d - %s - %s (%s)"):format(row.id, row.time or "", row.reason or "", row.profile or ""))
+            end
+            print("/tm backup save | /tm backup restore [numero]")
+        end
 
     elseif msg == "context" or msg:match("^context%s+") then
         -- [v4 lot 4] Inspection et bascule des profils par contenu. Le
@@ -166,7 +190,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         local arg = msg:match("^layout%s+(.+)$")
 
         if arg and arg:match("^import%s+") then
-            local str = arg:match("^import%s+(.+)$")
+            local str = rawMsg:match("^%S+%s+%S+%s+(.+)$")
             local payload, err = LS.Decode(str)
             if not payload then
                 print("|cffff0000TomoMod|r " .. tostring(err))
@@ -283,8 +307,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
             .. (L["imp_unchanged"] or "identical") .. "|r")
 
     elseif msg == "reset" then
-        TomoMod_ResetDatabase()
-        ReloadUI()
+        if TomoMod_ResetDatabase() then ReloadUI() end
     elseif msg == "minimap" then
         TomoMod_ResetModule("minimap")
         if TomoMod_Minimap then TomoMod_Minimap.ApplySettings() end
@@ -327,7 +350,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         end
     elseif msg:sub(1, 3) == "way" then
         if TomoMod_Waypoint then
-            local args = msg:sub(5)  -- strip "way" + space
+            local args = rawMsg:sub(5)  -- preserve a waypoint's user label
             TomoMod_Waypoint.HandleSlashCommand(args)
         end
     elseif msg == "compass" then
@@ -566,18 +589,7 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
             if TomoMod_Context then
                 TomoMod_Context.Initialize()
             end
-            -- Auto-save : sauvegarder le profil actif à la fermeture du panneau Config
-            C_Timer.After(1, function()
-                local configFrame = _G["TomoModConfigFrame"]
-                if configFrame and not configFrame._profileAutoSaveHooked then
-                    configFrame._profileAutoSaveHooked = true
-                    configFrame:HookScript("OnHide", function()
-                        if TomoMod_Profiles then
-                            TomoMod_Profiles.AutoSaveActiveProfile()
-                        end
-                    end)
-                end
-            end)
+            -- The options window installs its own save hook when it is created.
         end
 
         -- [SAFETY] Each Initialize() is wrapped so a single failing module

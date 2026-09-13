@@ -7,7 +7,7 @@ on:
 
 jobs:
   lint:
-    name: Lint & syntax
+    name: Tests, lint & package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -60,6 +60,17 @@ jobs:
       # build. Shrink the baseline as the entries get fixed, never grow it.
       - name: Secret-value audit
         run: python3 Tools/lint_secret_values.py --baseline Tools/secret_baseline.txt
+
+      - name: Execute Lua and Python regression tests
+        run: python3 Tools/run_tests.py --lua lua5.1
+
+      - name: Validate installed TOC and XML load graph
+        run: python3 Tools/build_release.py --check
+
+      # Hard gate: missing values, uninitialized locals and invalid control flow.
+      # The remaining lint backlog remains visible in the advisory step below.
+      - name: Critical Lua diagnostics
+        run: luacheck . --only 221 321 511 512 521 531
 
       # Advisory for now: surfaces the static-analysis backlog without failing
       # the build. Flip `continue-on-error` to false once the backlog is cleared

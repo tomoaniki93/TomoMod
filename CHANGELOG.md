@@ -17,6 +17,39 @@
 - **Fixed** - Follower-dungeon role detection now checks whether `UnitPowerMax` returned a protected value before comparing it. An unreadable mana maximum safely falls back to the default damage role instead of raising an error in restricted content.
 - **Internal** - The secret-value audit no longer reports the Nameplates `maxPower > 0` path as unguarded. This keeps the WoW 12.x safety check explicit and prevents the release workflow from failing on that comparison.
 
+#### Profiles And Imports — Recovery And Transaction Safety
+
+- **New** - TomoMod keeps a rolling set of the five latest recovery backups. A backup can be created or the latest one restored from Profiles > Resets, while `/tm backup`, `/tm backup save` and `/tm backup restore [number]` expose the complete list and recovery flow from chat.
+- **Changed** - Full, selective and named-profile imports, layout imports, presets, complete resets and individual-module resets now run outside combat inside guarded transactions. TomoMod creates a recovery point first and restores the previous settings automatically if applying the change raises an error.
+- **Changed** - Imported strings are bounded before and during decompression, restricted to data-only serialization and limited by encoded size, decoded size, nesting depth and node count. Cycles, metatables, functions, non-finite numbers, invalid anchors, incompatible versions and out-of-range values are rejected before anything reaches the live database.
+- **Changed** - Profile imports accept only portable settings declared by TomoMod's defaults and module registry. Internal bookkeeping, migrations, profile backups and unknown roots cannot be injected or exported, while selective imports remain limited to the modules explicitly chosen by the player.
+- **Fixed** - Existing settings receive a one-time recovery point before the new migration pass. Migration and element-normalization failures are isolated and reported independently, so one faulty step no longer prevents the remaining database initialization from completing.
+
+#### Layout Sharing And Commands — Safer Portability
+
+- **Fixed** - Slash-command matching no longer lowercases the complete user input. Case-sensitive layout share strings and waypoint labels retain their original spelling, while command names and module keys remain case-insensitive.
+- **Changed** - Layout imports share the same bounded decoder and transaction system as profiles. Only manifest-declared anchors and supported font paths may be written, invalid positions are rejected, source reference dimensions are preserved and font sizes are converted between the source and destination resolution tiers.
+
+#### Interface Reliability
+
+- **Fixed** - Closing the options window now saves the active profile through a hook installed when that window is created, including sessions where the load-on-demand options addon was opened after core initialization.
+- **Fixed** - Reload confirmations and profile import/export overlays are raised above the high-level TomoMod options window instead of appearing hidden behind it.
+- **Fixed** - The Unit Frames aura mover fallback now requires both coordinates from the moved container and its target before calculating an offset, preventing arithmetic on incomplete frame measurements.
+- **Changed** - Mythic+ Summary and Survival analysis now derive their accent from TomoMod's shared brand colour instead of keeping a separate hard-coded green.
+
+#### Release Validation — Expanded Automated Gates
+
+- **New** - CI now compiles every non-library Lua file with Lua 5.1, validates XML, self-tests the secret-value auditor, runs the Lua and Python regression suites, checks critical Luacheck diagnostics and validates the packaged load graph.
+- **Changed** - The release builder detects missing or incorrectly cased TOC/XML references, malformed XML, cycles, paths escaping the package, nested addons and incorrect profile-safety initialization order. Its casing check also preserves the original path spelling on Windows.
+- **Internal** - Profile imports use a private bounded LibDeflate inflater without replacing a newer copy supplied by another addon. The embedded LibSerialize XML declaration and LibStub path were corrected for strict XML and case-sensitive package validation.
+
+#### Secret-Value Audit — Generated Client Reference
+
+- **New** - The repository now includes a generated `Tools/apidoc_secrets.txt` reference from World of Warcraft 12.1.0, interface 120100, dumped on September 13, 2026. Its nearly 4,000 APIDocumentation records make protected-value changes in the live client reviewable and reproducible.
+- **Changed** - The auditor merges the generated client reference with repository evidence. The current reference identifies 82 widget methods documented as returning secret values and 85 functions that refuse secret arguments; argument checks run by default, while `--widgets` exposes the broader widget-method review list on demand.
+- **New** - Evidence, inconsistency and JSON reports are available alongside baseline filtering. Recognized sanitizers and guard spellings reduce false positives, and narrowly reviewed exceptional lines can use the explicit `@secret-ok` marker.
+- **Fixed** - Baseline fingerprints now always use repository-style forward-slash paths, so accepted findings match consistently on Windows and CI. The expanded 70-test linter suite passes, and the exact release audit reports zero new findings.
+
 ## ####################################
 
 ## CHANGELOG 4.0.3

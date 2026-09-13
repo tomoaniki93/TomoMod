@@ -34,7 +34,7 @@ local EXPORT_HEADER  = "TMOD"
 -- bookkeeping, not configuration: a profile saved before a migration would
 -- otherwise restore an empty flag table and let that migration run a second
 -- time, re-applying a change the player may have deliberately reverted.
-local EXCLUDED_KEYS = { ["_profiles"] = true, ["_migrations"] = true, ["_auraTrackerRescue"] = true }
+local EXCLUDED_KEYS = { ["_profiles"] = true, ["_migrations"] = true, ["_auraTrackerRescue"] = true, ["_profileBackups"] = true, ["_profileSafetyMigrationBackup"] = true }
 
 -- =====================================
 -- DEEP COPY / DEEP MERGE
@@ -92,22 +92,6 @@ local function ApplySnapshot(snap)
     RefreshConfigPanels()
 end
 
--- [PERF] Apply sans DeepCopy — utilisé quand on sait que snap ne sera plus référencé
--- (par ex. après désérialisation, le payload est jeté)
-local function ApplySnapshotNoCopy(snap)
-    for k in pairs(TomoModDB) do
-        if not EXCLUDED_KEYS[k] then TomoModDB[k] = nil end
-    end
-    for k, v in pairs(snap) do
-        if not EXCLUDED_KEYS[k] then TomoModDB[k] = v end
-    end
-    TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
-    -- A snapshot saved before an element was added to the AstralForge
-    -- registry has no entry for it; refill from the registry defaults.
-    if TomoMod_NormalizeAllElements then TomoMod_NormalizeAllElements() end
-    RefreshConfigPanels()
-end
-
 -- =====================================
 -- DB INIT
 -- =====================================
@@ -115,7 +99,7 @@ end
 local _profilesDBReady = false
 
 function P.EnsureProfilesDB()
-    if _profilesDBReady then return end
+    if _profilesDBReady == TomoModDB._profiles and type(_profilesDBReady) == "table" then return end
 
     if not TomoModDB._profiles then TomoModDB._profiles = {} end
     local db = TomoModDB._profiles
@@ -179,7 +163,7 @@ function P.EnsureProfilesDB()
         end
     end
 
-    _profilesDBReady = true
+    _profilesDBReady = db
 end
 
 -- =====================================
@@ -399,8 +383,7 @@ end
 
 function P.IsSpecProfilesEnabled()
     P.EnsureProfilesDB()
-    for _ in pairs(TomoModDB._profiles.specProfiles) do return true end
-    return false
+    return next(TomoModDB._profiles.specProfiles) ~= nil
 end
 
 function P.EnableSpecProfiles()
@@ -550,125 +533,70 @@ function P.ExportAsync(callback)
     end)
 end
 
---- Import synchrone (optimisé)
-function P.Import(str)
-    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
-    local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
-    if not LibSerialize or not LibDeflate then
-        return false, "Librairies manquantes (LibSerialize / LibDeflate)"
+-- Every import route shares validation, the combat gate and the transaction.
+function P.ValidateImportName(name)
+    if name == nil then return true end
+    if type(name) ~= "string" then return false, "Nom de profil invalide" end
+    name = name:match("^%s*(.-)%s*$")
+    if name == "" or #name > 80 then return false, "Nom de profil invalide (1 a 80 caracteres)" end
+    local db = TomoModDB and TomoModDB._profiles
+    if db and db.named and db.named[name] then return false, "Ce nom de profil existe deja" end
+    return true, name
+end
+
+function P.ApplyImportedSettings(settings, keys, profileName)
+    local safety = TomoMod_ProfileSafety
+    if not safety then return false, "Validation des profils indisponible" end
+    if InCombatLockdown and InCombatLockdown() then return false, "Import disponible hors combat" end
+    local validName, nameOrError = P.ValidateImportName(profileName)
+    if not validName then return false, nameOrError end
+    profileName = nameOrError
+    local selected
+    if keys then
+        selected = {}
+        for _, key in ipairs(keys) do
+            local m = TomoMod_Registry and TomoMod_Registry.Get(key)
+            selected[m and m.dbKey or key] = true
+        end
     end
-    if not str or str == "" then return false, "Chaîne vide" end
-
-    -- [PERF] Trim rapide : on n'a besoin de virer que les espaces/newlines
-    -- gsub("%s+", "") est O(n) mais crée une nouvelle string ; pour les très
-    -- longues chaînes on utilise un match qui coupe les bords
-    str = str:match("^%s*(.-)%s*$") or str
-
-    local decoded = LibDeflate:DecodeForPrint(str)
-    if not decoded then return false, "Décodage échoué" end
-
-    local decompressed = LibDeflate:DecompressDeflate(decoded)
-    if not decompressed then return false, "Décompression échouée" end
-
-    local pcallOk, payload = pcall(function()
-        return LibSerialize:DeSerialize(decompressed)
+    local clean, err = safety.ValidateSettings(settings, selected)
+    if not clean then return false, err end
+    local count = 0
+    for _ in pairs(clean) do count = count + 1 end
+    local ok, why = safety.Transaction("avant import", function()
+        P.AutoSaveActiveProfile()
+        if not selected then
+            for key in pairs(TomoModDB) do
+                if safety.IsPortable(key) then TomoModDB[key] = nil end
+            end
+        end
+        for key, value in pairs(clean) do TomoModDB[key] = value end
+        TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
+        if TomoMod_NormalizeAllElements then TomoMod_NormalizeAllElements() end
+        if profileName then
+            local saved, saveError = P.SaveActiveAs(profileName)
+            if not saved then error(saveError) end
+        end
     end)
-    if not pcallOk or type(payload) ~= "table" then
-        return false, "Désérialisation échouée"
-    end
-
-    if payload._header ~= EXPORT_HEADER then
-        return false, "Pas une chaîne TomoMod"
-    end
-    if type(payload._version) ~= "number" or payload._version > EXPORT_VERSION then
-        return false, "Version incompatible (v" .. tostring(payload._version) .. ")"
-    end
-    if type(payload.settings) ~= "table" then
-        return false, "Données manquantes"
-    end
-
-    -- [PERF] Sanitize in-place : on extrait les clés connues directement
-    -- depuis payload.settings (qu'on va jeter), pas besoin de DeepCopy
-    local sanitized = {}
-    for k in pairs(TomoMod_Defaults) do
-        if payload.settings[k] ~= nil then
-            sanitized[k] = payload.settings[k]  -- move, pas copy
-        end
-    end
-    payload.settings = nil  -- libérer la référence
-
-    -- [PERF] ApplySnapshotNoCopy : sanitized n'est référencé nulle part ailleurs
-    ApplySnapshotNoCopy(sanitized)
-    return true
+    if not ok then return false, why end
+    RefreshConfigPanels()
+    return true, count
 end
 
--- Validation + sanitize + apply, shared by the decode path and by the
--- fast path that reuses the payload already decoded for the preview.
-local function FinishImport(payload, callback)
-    if payload._header ~= EXPORT_HEADER then
-        callback(false, "Pas une chaine TomoMod"); return
-    end
-    if type(payload._version) ~= "number" or payload._version > EXPORT_VERSION then
-        callback(false, "Version incompatible (v" .. tostring(payload._version) .. ")"); return
-    end
-    if type(payload.settings) ~= "table" then
-        callback(false, "Donnees manquantes"); return
-    end
-
-    local sanitized = {}
-    for k in pairs(TomoMod_Defaults) do
-        if payload.settings[k] ~= nil then
-            sanitized[k] = payload.settings[k]
-        end
-    end
-    payload.settings = nil
-
-    ApplySnapshotNoCopy(sanitized)
-    callback(true, nil)
+function P.Import(str)
+    local payload, err = P.DecodeImport(str)
+    if not payload then return false, err end
+    return P.ApplyImportedSettings(payload.settings)
 end
 
---- Import asynchrone — callback(ok, err) à la fin
 function P.ImportAsync(str, callback)
-    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
-    local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
-    if not LibSerialize or not LibDeflate then
-        callback(false, "Librairies manquantes (LibSerialize / LibDeflate)")
-        return
-    end
-    if not str or str == "" then callback(false, "Chaîne vide"); return end
-
-    str = str:match("^%s*(.-)%s*$") or str
-
-    -- [PERF] The import popup already decoded this exact string to build
-    -- its preview. Reusing that payload removes a full second
-    -- decode + decompress + deserialize on accept, which was most of the
-    -- freeze players saw when clicking Import.
-    local reused = P.TakeDecodedPayload(str)
-    if reused then
-        C_Timer.After(0, function() FinishImport(reused, callback) end)
-        return
-    end
-
-    -- Étape 1 : décodage
     C_Timer.After(0, function()
-        local decoded = LibDeflate:DecodeForPrint(str)
-        if not decoded then callback(false, "Décodage échoué"); return end
-
-        -- Étape 2 : décompression
+        local payload, err = P.TakeDecodedPayload(str)
+        if not payload then payload, err = P.DecodeImport(str) end
+        if not payload then callback(false, err); return end
         C_Timer.After(0, function()
-            local decompressed = LibDeflate:DecompressDeflate(decoded)
-            if not decompressed then callback(false, "Décompression échouée"); return end
-
-            -- Étape 3 : désérialisation + application
-            C_Timer.After(0, function()
-                local pcallOk, payload = pcall(function()
-                    return LibSerialize:DeSerialize(decompressed)
-                end)
-                if not pcallOk or type(payload) ~= "table" then
-                    callback(false, "Désérialisation échouée"); return
-                end
-                FinishImport(payload, callback)
-            end)
+            local ok, why = P.ApplyImportedSettings(payload.settings)
+            if ok then callback(true) else callback(false, why) end
         end)
     end)
 end
@@ -701,25 +629,23 @@ function P.SaveActiveAs(profileName)
 end
 
 function P.ImportAsProfile(str, profileName)
-    local ok, err = P.Import(str)
-    if not ok then return false, err end
-
-    -- [PERF] Les paramètres sont déjà appliqués en mémoire par Import()
-    -- On snapshot une fois pour sauvegarder sous le nouveau nom
-    return P.SaveActiveAs(profileName)
+    local valid, name = P.ValidateImportName(profileName)
+    if not valid or not name then return false, name or "Nom de profil manquant" end
+    local payload, err = P.DecodeImport(str)
+    if not payload then return false, err end
+    return P.ApplyImportedSettings(payload.settings, nil, name)
 end
 
---- Import asynchrone comme profil nommé — callback(ok, err)
 function P.ImportAsProfileAsync(str, profileName, callback)
-    P.ImportAsync(str, function(ok, err)
-        if not ok then callback(false, err); return end
-
-        -- [PERF] SnapshotSettings deep-copies the whole settings tree.
-        -- Yield one frame first so the client can draw the applied import
-        -- instead of stacking both costs into the same frame.
+    local valid, name = P.ValidateImportName(profileName)
+    if not valid or not name then callback(false, name or "Nom de profil manquant"); return end
+    C_Timer.After(0, function()
+        local payload, err = P.TakeDecodedPayload(str)
+        if not payload then payload, err = P.DecodeImport(str) end
+        if not payload then callback(false, err); return end
         C_Timer.After(0, function()
-            P.SaveActiveAs(profileName)
-            callback(true, nil)
+            local ok, why = P.ApplyImportedSettings(payload.settings, nil, name)
+            if ok then callback(true) else callback(false, why) end
         end)
     end)
 end
@@ -739,98 +665,37 @@ local _previewCache = { str = nil, result = nil, payload = nil }
 -- Ne consomme pas le cache d'aperçu : l'appelant peut inspecter la charge
 -- utile puis l'appliquer sans repayer la désérialisation.
 function P.DecodeImport(str)
-    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
-    local LibDeflate   = LibStub and LibStub("LibDeflate", true)
-    if not LibSerialize or not LibDeflate then
-        return nil, "Librairies manquantes (LibSerialize / LibDeflate)"
-    end
-    if type(str) ~= "string" or str == "" then return nil, "Chaîne vide" end
-
-    str = str:match("^%s*(.-)%s*$") or str
-
-    local decoded = LibDeflate:DecodeForPrint(str)
-    if not decoded then return nil, "Décodage échoué" end
-
-    local decompressed = LibDeflate:DecompressDeflate(decoded)
-    if not decompressed then return nil, "Décompression échouée" end
-
-    local okCall, payload = pcall(function()
-        return LibSerialize:DeSerialize(decompressed)
-    end)
-    if not okCall or type(payload) ~= "table" then
-        return nil, "Désérialisation échouée"
-    end
-    if payload._header ~= EXPORT_HEADER then
-        return nil, "Pas une chaîne TomoMod"
-    end
-    if type(payload._version) ~= "number" or payload._version > EXPORT_VERSION then
-        return nil, "Version incompatible (v" .. tostring(payload._version) .. ")"
-    end
-    if type(payload.settings) ~= "table" then
-        return nil, "Données manquantes"
-    end
+    local safety = TomoMod_ProfileSafety
+    if not safety then return nil, "Validation des profils indisponible" end
+    local payload, err = safety.Decode(str, EXPORT_HEADER, EXPORT_VERSION)
+    if not payload then return nil, err end
+    local clean
+    clean, err = safety.ValidateSettings(payload.settings)
+    if not clean then return nil, err end
+    -- Keep bounded unknown slices for the selector's compatibility warning.
+    -- ApplyImportedSettings independently filters the actual database write.
     return payload
 end
 
 function P.PreviewImport(str)
-    local LibSerialize = LibStub and LibStub("TomoSerialize-1.0", true)
-    local LibDeflate   = LibStub and LibStub("LibDeflate",   true)
-    if not LibSerialize or not LibDeflate or not str or str == "" then return nil end
-
-    -- [PERF] Cache : si la chaîne n'a pas changé, retourner le résultat précédent
-    str = str:match("^%s*(.-)%s*$") or str
-    if _previewCache.str == str then return _previewCache.result end
-
-    -- Cache miss: the payload kept for the accept-time fast path is stale.
-    _previewCache.payload = nil
-
-    local decoded = LibDeflate:DecodeForPrint(str)
-    if not decoded then
-        _previewCache.str = str; _previewCache.result = nil
-        return nil
+    if type(str) ~= "string" then return nil end
+    str = str:match("^%s*(.-)%s*$")
+    if _previewCache.str == str then return _previewCache.result, _previewCache.err end
+    local payload, err = P.DecodeImport(str)
+    _previewCache = { str = str, payload = payload, err = err }
+    if not payload then return nil, err end
+    local count = 0
+    for key in pairs(payload.settings) do
+        if TomoMod_ProfileSafety.IsPortable(key) then count = count + 1 end
     end
-    local decompressed = LibDeflate:DecompressDeflate(decoded)
-    if not decompressed then
-        _previewCache.str = str; _previewCache.result = nil
-        return nil
-    end
-
-    local pcallOk, payload = pcall(function()
-        return LibSerialize:DeSerialize(decompressed)
-    end)
-    if not pcallOk or type(payload) ~= "table" then
-        _previewCache.str = str; _previewCache.result = nil
-        return nil
-    end
-    if payload._header ~= EXPORT_HEADER then
-        _previewCache.str = str; _previewCache.result = nil
-        return nil
-    end
-
-    local moduleCount = 0
-    if type(payload.settings) == "table" then
-        for k in pairs(payload.settings) do
-            if TomoMod_Defaults[k] then moduleCount = moduleCount + 1 end
-        end
-    end
-
-    local result = {
-        version     = payload._version,
-        class       = payload._class,
-        spec        = payload._spec,
-        date        = payload._date,
-        moduleCount = moduleCount,
-    }
-
-    _previewCache.str = str
+    local result = { version = payload._version, class = payload._class,
+        spec = payload._spec, date = payload._date, moduleCount = count }
     _previewCache.result = result
-    _previewCache.payload = payload
     return result
 end
 
 --- Hands over the payload decoded by the last PreviewImport for `str`,
---- or nil. Single use: FinishImport moves `settings` out of it, so the
---- payload must never be served twice.
+--- or nil. Single use; applying it validates and copies the settings again.
 function P.TakeDecodedPayload(str)
     if type(str) ~= "string" then return nil end
     str = str:match("^%s*(.-)%s*$") or str

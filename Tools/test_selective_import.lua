@@ -35,8 +35,18 @@ _G.LibStub = function() return nil end
 _G.StaticPopupDialogs, _G.SlashCmdList = {}, {}
 
 assert(loadfile("Core/ModuleRegistry.lua"))()
+assert(loadfile("Core/ProfileSafety.lua"))()
+assert(loadfile("Core/Profiles.lua"))()
 assert(loadfile("Core/SelectiveImport.lua"))()
 local R, SI = _G.TomoMod_Registry, _G.TomoMod_SelectiveImport
+
+-- The import validator uses real module defaults as its schema. These small
+-- fixtures declare their defaults alongside the registry, just as the addon does.
+local define = R.Define
+R.Define = function(m)
+    if not m.internal then TomoMod_Defaults[m.dbKey or m.key] = {} end
+    return define(m)
+end
 
 _G.TomoMod_MergeTables = function(dest, src)
     for k, v in pairs(src) do
@@ -181,7 +191,7 @@ local rep2 = SI.Apply({ mod = { v = 2 }, interne = { v = 9 }, _profiles = { x = 
 check("un seul appliqué",       rep2.applied, 1)
 check("trois refusés",          rep2.skipped, 3)
 check("interne non importé",    TomoModDB.interne, nil)
-check("_profiles non importé",  TomoModDB._profiles, nil)
+check("_profiles non importé",  TomoModDB._profiles.x, nil)
 
 check("charge non-table",  SI.Apply(nil, { "mod" }).applied, 0)
 check("clés non-table",    SI.Apply({ mod = {} }, nil).applied, 0)

@@ -48,17 +48,52 @@ Useful flags:
 ```
 --evidence        which calls the repo's own guards mark as secret-bearing
 --inconsistent    calls guarded in some places and trusted in others
---geometry        also audit GetLeft/GetWidth/GetPoint and friends
+--widgets         also audit widget methods (GetText, GetFrameLevel, GetLeft, ...)
 --json            machine-readable output
 --baseline FILE   accept the findings already recorded in FILE
 ```
 
-`--geometry` is off by default on purpose. Frame measurements only turn
-secret once a frame is anchored to, or fed from, protected data — the
-ForgeCanvas crash was exactly that. On a config widget we built
-ourselves they are plain numbers every time, and auditing them by
-default buries thirty real findings under five hundred harmless ones.
-Read it as a worklist, not a bug list.
+`--widgets` is off by default on purpose: it turns 32 findings into 634.
+A widget method only returns a secret once the frame carries the
+matching secret aspect, which on a config panel we built ourselves is
+almost never. Read that list as a worklist, not a bug list — but do
+read it, because `GetFrameLevel` alone accounts for 122 sites and the
+client documents its return as secret-capable.
+
+## What the dump actually says
+
+Worth knowing before trusting either source too far.
+
+The client documents secret **returns** almost exclusively on the
+widget API — 82 bare methods (`GetText`, `GetValue`, `GetAlpha`,
+`IsShown`, `GetFrameLevel`, `GetCooldownTimes`, ...), each keyed to a
+`SecretAspect`. Not one namespaced function (`UnitHealth`, `UnitClass`,
+`C_UnitAuras.*`) is marked as returning a secret. For those the
+documentation speaks instead through `SecretArguments`: 3573
+`AllowedWhenUntainted`, 123 `AllowedWhenTainted`, 86 `NotAllowed`.
+
+So the two sources disagree, in both directions, and both are needed:
+
+- The documentation lists widget methods this addon never guarded.
+- The repo guards `UnitHealth`, `UnitClass`, `UnitPower` and a dozen
+  others that the documentation does not flag at all — on the strength
+  of crashes that actually happened.
+- The documentation does **not** mark `GetLeft`, `GetWidth`, `GetPoint`
+  or `GetSize` as secret-returning, yet the ForgeCanvas crash was
+  `GetLeft()` handing back a secret number. Those stay in
+  `WIDGET_METHODS_FALLBACK` in the linter and are unioned in, because
+  dropping them because a generated file omits them would be trading
+  evidence for paperwork.
+
+Treat a clean run as "nothing obvious", never as "nothing".
+
+## Arguments the client refuses
+
+The 86 `NotAllowed` entries are a separate, cheap check and it is on by
+default: handing one of those functions a tainted value is wrong
+whatever the addon does next. `C_CVar.SetCVar`, `C_ChatInfo.SendAddonMessage`
+and `AddForbiddenAspects` are in that set. The audit currently finds no
+violation, which is worth keeping true.
 
 ## Regenerating the reference
 
@@ -73,9 +108,10 @@ Blizzard maintains cannot rot the way a hand-written one does.
        "<WoW>/WTF/Account/<ACCOUNT>/SavedVariables/TomoAPIDump.lua"
    ```
 
-That writes `Tools/apidoc_secrets.txt`. It is sorted and carries the
-build it came from, so the diff between two patches shows exactly which
-API changed its secrecy contract — which is worth reading on its own.
+That writes `Tools/apidoc_secrets.txt` — checked in, roughly 4 000
+records. It is sorted and carries the build it came from, so the diff
+between two patches shows exactly which API changed its secrecy
+contract, which is worth reading on its own.
 
 ## The baseline
 

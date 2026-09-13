@@ -103,14 +103,18 @@ SANITISER_FUNCTIONS = {
 SANITISER_PATTERN = re.compile(
     r"^(Safe[A-Z]\w*|Plain[A-Z]?\w*|Decode\w*Secret\w*)$")
 
-# Frame/widget methods that hand back geometry. `GetLeft()` returning a
-# secret is the exact shape of the ForgeCanvas crash the harness was
-# written for -- but that only happens once a frame is anchored to, or
-# fed from, protected data. On a config widget we built ourselves these
-# are plain numbers every time, so auditing them by default buries the
-# real findings under hundreds of harmless ones. They live behind
-# --geometry, to be read as a worklist rather than a bug list.
-GEOMETRY_METHODS = {
+# Widget methods whose return can go secret. The generated reference
+# supplies the authoritative list, and it is much broader than this one
+# -- GetText, IsShown, GetValue, GetAlpha, GetParent and eighty others.
+#
+# This list is kept anyway, and unioned with the reference, because the
+# two disagree in a direction worth preserving: the documentation does
+# NOT mark GetLeft, GetWidth, GetPoint or GetSize as secret-returning,
+# yet the ForgeCanvas crash was GetLeft() handing back a secret number
+# and the repo guards GetPoint and GetSize on purpose. Whichever way
+# that discrepancy is explained, dropping the accessors because a
+# generated file omits them would be trading evidence for paperwork.
+WIDGET_METHODS_FALLBACK = {
     "GetLeft", "GetRight", "GetTop", "GetBottom",
     "GetPoint", "GetRect", "GetCenter", "GetSize",
     "GetWidth", "GetHeight",
@@ -610,14 +614,20 @@ def classify_use(tokens, k, name_idx):
     return None
 
 
-def analyse(path, tokens, suppressed, secret_calls, geometry):
+def analyse(path, tokens, suppressed, secret_calls, secret_methods=frozenset(),
+            no_secret_args=frozenset(), widgets=False):
     """Report Lua operations reaching a value that came out of a secret
     API without a check in between.
 
-    `geometry` switches on the frame-measurement methods. They are a
-    different question -- a worklist of places that *could* go secret
-    once a frame touches protected data -- and mixing the two makes
-    neither readable.
+    `widgets` switches on the frame/widget methods. They are a different
+    question -- a worklist of places that *could* go secret once a frame
+    touches protected data, which on a config panel we built ourselves
+    is almost never -- and mixing them in buries the rest.
+
+    `no_secret_args` names the functions the client documents as
+    refusing secret arguments outright. Handing one a tainted value is a
+    finding regardless of what the addon then does with it, so that
+    check is on by default.
     """
     findings = []
     scopes = ScopeStack()
@@ -629,9 +639,17 @@ def analyse(path, tokens, suppressed, secret_calls, geometry):
     def is_secret_call(qname, last):
         if qname in secret_calls:
             return True
-        if geometry and last in GEOMETRY_METHODS:
+        if widgets and last in secret_methods:
             return True
         return False
+
+    def tainted_args(open_idx, close):
+        out = []
+        for j in range(open_idx + 1, close):
+            t = tokens[j]
+            if t.kind == "NAME" and scopes.get(t.value) == TAINTED:
+                out.append(t)
+        return out
 
     k = 0
     while k < len(tokens):
@@ -649,6 +667,14 @@ def analyse(path, tokens, suppressed, secret_calls, geometry):
                         scopes.set_anywhere(tokens[j].value, GUARDED)
                 k = close + 1
                 continue
+
+            if qname in no_secret_args:
+                for t in tainted_args(open_idx, close):
+                    if not suppressed_at(t.line):
+                        findings.append(Finding(
+                            path, t.line, t.value, qname + "()",
+                            source_of.get(t.value, "?"), "secret argument refused by"))
+                    scopes.set_anywhere(t.value, GUARDED)
 
             if last in UNSAFE_CONSUMERS:
                 for j in range(open_idx + 1, close):
@@ -711,21 +737,62 @@ def analyse(path, tokens, suppressed, secret_calls, geometry):
 # Reference file
 # =====================================================================
 
+class Reference:
+    """What the client's own documentation says about secrecy.
+
+    Kept apart from the repo evidence because the two answer different
+    questions and disagree in both directions -- see the note on
+    WIDGET_METHODS_FALLBACK above.
+    """
+
+    def __init__(self):
+        self.calls = set()          # dotted names: C_Thing.Get
+        self.methods = set()        # bare widget methods: GetText
+        self.aspects = {}           # name -> "Text" / "Alpha,VertexColor"
+        self.no_secret_args = set() # SecretArguments == NotAllowed
+        self.meta = {}
+
+    def present(self):
+        return bool(self.meta)
+
+
 def load_reference(path):
     """Read Tools/apidoc_secrets.txt. Missing file is not an error."""
-    calls, meta = set(), {}
+    ref = Reference()
     if not path.is_file():
-        return calls, meta
+        return ref
+
     for raw in path.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
         parts = line.split("|")
-        if parts[0] == "H" and len(parts) >= 4:
-            meta = {"build": parts[1], "interface": parts[2], "generated": parts[3]}
-        elif parts[0] == "F" and len(parts) >= 2 and parts[1]:
-            calls.add(parts[1])
-    return calls, meta
+        kind = parts[0]
+
+        if kind == "H" and len(parts) >= 4:
+            ref.meta = {"build": parts[1], "interface": parts[2], "generated": parts[3]}
+            continue
+
+        if len(parts) < 2 or not parts[1]:
+            continue
+        name = parts[1]
+
+        if kind == "F":
+            # The documentation names widget methods bare (GetText) and
+            # namespaced functions dotted (C_Thing.Get). They have to be
+            # matched differently, so they are kept apart here rather
+            # than sorted out at every use site.
+            if "." in name:
+                ref.calls.add(name)
+            else:
+                ref.methods.add(name)
+            if len(parts) >= 3 and parts[2]:
+                ref.aspects[name] = parts[2]
+
+        elif kind == "A" and len(parts) >= 3 and parts[2] == "NotAllowed":
+            ref.no_secret_args.add(name)
+
+    return ref
 
 
 # =====================================================================
@@ -753,7 +820,9 @@ def lex_all(paths, repo):
         if raw.startswith(b"\xef\xbb\xbf"):
             raw = raw[3:]
         src = raw.decode("utf-8", errors="replace")
-        rel = str(p.relative_to(repo))
+        # Baselines are committed with repository-style paths. Always emit
+        # forward slashes so the same fingerprints match on Windows and CI.
+        rel = p.relative_to(repo).as_posix()
         try:
             tokens, suppressed = tokenize(src)
         except LuaLexError as exc:
@@ -771,8 +840,8 @@ def main():
                     help="list the calls the repo's own guards mark as secret-bearing")
     ap.add_argument("--inconsistent", action="store_true",
                     help="list calls guarded in some places and trusted in others")
-    ap.add_argument("--geometry", action="store_true",
-                    help="also audit frame measurement methods (GetLeft, GetWidth, ...)")
+    ap.add_argument("--widgets", "--geometry", action="store_true", dest="widgets",
+                    help="also audit widget methods (GetText, GetValue, GetLeft, ...)")
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--baseline", help="accept the findings listed in this file")
     ap.add_argument("--write-baseline", help="record current findings and exit 0")
@@ -786,9 +855,10 @@ def main():
     paths = collect_files(repo, SCAN_ROOTS)
     files, lex_errors = lex_all(paths, repo)
 
-    ref_calls, ref_meta = load_reference(Path(args.reference))
+    ref = load_reference(Path(args.reference))
     evidence = harvest_evidence(files)
-    secret_calls = set(ref_calls) | set(evidence)
+    secret_calls = set(ref.calls) | set(evidence)
+    secret_methods = set(ref.methods) | set(WIDGET_METHODS_FALLBACK)
 
     if args.evidence:
         for name in sorted(evidence):
@@ -802,7 +872,8 @@ def main():
 
     findings = []
     for rel, tokens, suppressed in files:
-        findings.extend(analyse(rel, tokens, suppressed, secret_calls, args.geometry))
+        findings.extend(analyse(rel, tokens, suppressed, secret_calls,
+                                secret_methods, ref.no_secret_args, args.widgets))
 
     if args.inconsistent:
         guarded = {name: len(sites) for name, sites in evidence.items()}
@@ -834,7 +905,7 @@ def main():
 
     if args.json:
         print(json.dumps({
-            "reference": ref_meta or None,
+            "reference": ref.meta or None,
             "secret_calls": len(secret_calls),
             "from_evidence": len(evidence),
             "lex_errors": lex_errors,
@@ -851,15 +922,22 @@ def main():
         print(f.text())
 
     print()
-    if ref_meta:
-        print("reference: build %s, interface %s, generated %s"
-              % (ref_meta.get("build"), ref_meta.get("interface"), ref_meta.get("generated")))
+    if ref.present():
+        print("reference: client build %s (interface %s), dumped %s"
+              % (ref.meta.get("build"), ref.meta.get("interface"), ref.meta.get("generated")))
+        print("           %d widget method%s documented as secret-returning, "
+              "%d function%s refusing secret arguments."
+              % (len(ref.methods), "" if len(ref.methods) == 1 else "s",
+                 len(ref.no_secret_args), "" if len(ref.no_secret_args) == 1 else "s"))
     else:
         print("reference: Tools/apidoc_secrets.txt absent -- running on repo evidence only.")
         print("           see Tools/APIDump/README.md to generate it.")
     print("%d file%s scanned, %d secret-bearing call%s known (%d from repo evidence)."
           % (len(files), "" if len(files) == 1 else "s",
              len(secret_calls), "" if len(secret_calls) == 1 else "s", len(evidence)))
+    if not args.widgets:
+        print("%d widget method%s known; --widgets audits them too."
+              % (len(secret_methods), "" if len(secret_methods) == 1 else "s"))
     if accepted:
         print("%d finding%s accepted by baseline." % (len(accepted), "" if len(accepted) == 1 else "s"))
     print("%d finding%s." % (len(new), "" if len(new) == 1 else "s"))

@@ -2429,6 +2429,11 @@ function TomoMod_InitDatabase()
     if not TomoModDB then
         TomoModDB = {}
     end
+    -- One recovery point before the first migration pass with this local patch.
+    if next(TomoModDB) and not TomoModDB._profileSafetyMigrationBackup and TomoMod_ProfileSafety then
+        local saved = TomoMod_ProfileSafety.CreateBackup("avant migrations 4.0.4")
+        if saved then TomoModDB._profileSafetyMigrationBackup = true end
+    end
     TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
 
     -- One bad migration step used to be able to take the whole session down
@@ -2454,17 +2459,33 @@ function TomoMod_InitDatabase()
 end
 
 function TomoMod_ResetDatabase()
-    TomoModDB = CopyTable(TomoMod_Defaults)
-    TomoMod_NormalizeAllElements()
+    local safety = TomoMod_ProfileSafety
+    if not safety then return false, "Protection des profils indisponible" end
+    local ok, err = safety.Transaction("avant reinitialisation complete", function()
+        for key in pairs(TomoModDB) do
+            if not safety.EXCLUDED[key] then TomoModDB[key] = nil end
+        end
+        for key, value in pairs(CopyTable(TomoMod_Defaults)) do TomoModDB[key] = value end
+        TomoModDB._profiles = nil
+        TomoMod_NormalizeAllElements()
+    end, true)
+    if not ok then print("TomoMod : " .. tostring(err)); return false, err end
     print("|cff2e9dd8TomoMod|r " .. TomoMod_L["msg_db_reset"])
+    return true
 end
 
 function TomoMod_ResetModule(moduleName)
     if TomoMod_Defaults[moduleName] then
-        TomoModDB[moduleName] = CopyTable(TomoMod_Defaults[moduleName])
-        if moduleName == "unitFrames" or moduleName == "nameplates" then
-            TomoMod_NormalizeAllElements()
-        end
+        local safety = TomoMod_ProfileSafety
+        if not safety then return false, "Protection des profils indisponible" end
+        local ok, err = safety.Transaction("avant reinitialisation " .. moduleName, function()
+            TomoModDB[moduleName] = CopyTable(TomoMod_Defaults[moduleName])
+            if moduleName == "unitFrames" or moduleName == "nameplates" then
+                TomoMod_NormalizeAllElements()
+            end
+        end)
+        if not ok then print("TomoMod : " .. tostring(err)); return false, err end
         print("|cff2e9dd8TomoMod|r " .. string.format(TomoMod_L["msg_module_reset"], moduleName))
+        return true
     end
 end

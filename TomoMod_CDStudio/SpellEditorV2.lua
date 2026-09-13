@@ -1493,7 +1493,8 @@ local function TabPresetsV3(parent)
     local previews = {}
     local previewStatus
     for _, key in ipairs(PROFILE_ORDER) do
-        local data, status = CDF.GetContextPresetProfileData and CDF.GetContextPresetProfileData(key)
+        local data, status
+        if CDF.GetContextPresetProfileData then data, status = CDF.GetContextPresetProfileData(key) end
         previews[key] = data
         if not data then previewStatus = previewStatus or status end
     end
@@ -1552,7 +1553,8 @@ local function TabPresetsV3(parent)
     _, cy = W.CreateInfoText(card.inner,
         Loc("cds_p3_blizzard_info", "These create a normal standalone bar from one Blizzard Cooldown Manager category. Use them when you do not want automatic context switching."), cy)
     local function ImportViewer(key)
-        local id, info = CDF.CreateBarFromViewer and CDF.CreateBarFromViewer(selectedClass, key)
+        local id, info
+        if CDF.CreateBarFromViewer then id, info = CDF.CreateBarFromViewer(selectedClass, key) end
         if not id then
             print("|cff3aa7ffCooldown Studio|r: " .. ((info == "noapi")
                 and Loc("cds_p3_noapi", "Blizzard's cooldown category API is unavailable on this client.")

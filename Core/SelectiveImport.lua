@@ -41,6 +41,8 @@ local NEVER_IMPORT = {
     _migrations = true,
     _resolution = true,
     _auraTrackerRescue = true,
+    _profileBackups = true,
+    _profileSafetyMigrationBackup = true,
 }
 SI.NEVER_IMPORT = NEVER_IMPORT
 
@@ -66,13 +68,6 @@ local function Differs(a, b, depth)
     return false
 end
 SI.Differs = Differs
-
-local function DeepCopy(v)
-    if type(v) ~= "table" then return v end
-    local o = {}
-    for k, val in pairs(v) do o[k] = DeepCopy(val) end
-    return o
-end
 
 -- ---------------------------------------------------------------------
 -- INSPECT
@@ -218,62 +213,31 @@ end
 --- not go anywhere near ApplySnapshot.
 ---
 --- Returns a report: applied, skipped, reloads.
-function SI.Apply(settings, keys)
+function SI.Apply(settings, keys, profileName)
     local report = { applied = 0, skipped = 0, reloads = {} }
     if type(settings) ~= "table" or type(keys) ~= "table" or not TomoModDB or not R then
-        return report
+        report.err = "Selection invalide"; return report
     end
-
-    local LC = TomoMod_Lifecycle
-    -- One reload decision for the whole import rather than one per module.
-    if LC and LC.BeginBatch then LC.BeginBatch() end
-
+    local P, LC = TomoMod_Profiles, TomoMod_Lifecycle
+    if not P or not P.ApplyImportedSettings then report.err = "Profils indisponibles"; return report end
     for _, key in ipairs(keys) do
         local m = R.Get(key)
-        local dbKey = m and m.dbKey or key
-
-        if NEVER_IMPORT[dbKey] or (m and m.internal) then
-            report.skipped = report.skipped + 1
-        elseif settings[dbKey] == nil then
-            report.skipped = report.skipped + 1
-        else
-            -- A reload is only warranted when the module's enabled state
-            -- actually moves and cannot be realised live. A different
-            -- colour or position is applied on the spot.
-            if m then
-                local before = R.IsEnabled(m.key)
-                local after  = R.IsEnabledIn(settings, m.key)
-                local cap    = LC and LC.Capability(m.key) or "reload"
-                if after ~= nil and before ~= after and cap ~= "live" then
-                    report.reloads[#report.reloads + 1] = m.key
-                end
+        if m then
+            local before, after = R.IsEnabled(key), R.IsEnabledIn(settings, key)
+            if not m.internal and after ~= nil and before ~= after and (not LC or LC.Capability(key) ~= "live") then
+                report.reloads[#report.reloads + 1] = key
             end
-
-            TomoModDB[dbKey] = DeepCopy(settings[dbKey])
-            report.applied = report.applied + 1
         end
     end
-
-    -- A payload exported by an older version has no entry for settings
-    -- added since; the merge fills those from the defaults rather than
-    -- leaving the module reading nil.
-    if TomoMod_MergeTables and TomoMod_Defaults then
-        TomoMod_MergeTables(TomoModDB, TomoMod_Defaults)
-    end
-    if TomoMod_NormalizeAllElements then TomoMod_NormalizeAllElements() end
-
+    local ok, count = P.ApplyImportedSettings(settings, keys, profileName)
+    if not ok then report.err = count; report.reloads = {}; return report end
+    report.applied, report.skipped = count, math.max(0, #keys - count)
     if LC then
+        if LC.BeginBatch then LC.BeginBatch() end
         if LC.ApplyAll then LC.ApplyAll() end
-        for _, key in ipairs(report.reloads) do
-            if LC.RequestReload then LC.RequestReload(key) end
-        end
+        for _, key in ipairs(report.reloads) do if LC.RequestReload then LC.RequestReload(key) end end
         if LC.EndBatch then LC.EndBatch() end
     end
-
-    if TomoMod_Config and TomoMod_Config.InvalidatePanels then
-        TomoMod_Config.InvalidatePanels()
-    end
-
     table.sort(report.reloads)
     return report
 end

@@ -83,9 +83,10 @@ for _, path in ipairs(files) do
         for ev in src:gmatch('RegisterEvent%("(UNIT_[%w_]+)"%)') do
             if NOISY[ev] then
                 local filtered   = src:find('RegisterUnitEvent%("' .. ev .. '"') ~= nil
-                local unregisters = src:find('UnregisterEvent%(') ~= nil
+                local unregisters = src:find('UnregisterEvent%("' .. ev .. '"%)') ~= nil
+                    or (src:find('UnregisterEvent%(') ~= nil
                     and src:find(ev, 1, true) ~= nil
-                    and src:find('UNIT_EVENTS', 1, true) ~= nil
+                    and src:find('UNIT_EVENTS', 1, true) ~= nil)
                 if filtered or unregisters then
                     tolerated = tolerated + 1
                 else

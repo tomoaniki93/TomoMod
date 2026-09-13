@@ -1699,6 +1699,9 @@ local function CreateConfigFrame()
     end)
     configFrame:SetScript("OnHide", function(self)
         C.isOpen = false
+        if TomoMod_Profiles and TomoMod_Profiles.AutoSaveActiveProfile then
+            TomoMod_Profiles.AutoSaveActiveProfile()
+        end
         StopPerfTicker()
         CloseOptionsHelp(false)
         if GameTooltip then GameTooltip:Hide() end

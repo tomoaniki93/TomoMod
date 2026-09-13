@@ -839,16 +839,22 @@ function P.Apply(key)
     local delta = DELTAS[key]
     if not delta then return false end
 
-    -- 1) BASE (also acts as the reset floor for every delta key)
-    for path, val in pairs(BASE) do
-        SetPath(TomoModDB, path, val)
-    end
-    -- 2) archetype DELTA
-    for path, val in pairs(delta) do
-        SetPath(TomoModDB, path, val)
-    end
+    local safety = TomoMod_ProfileSafety
+    if not safety then return false end
+    local ok, err = safety.Transaction("avant preset " .. key, function()
+        -- 1) BASE (also acts as the reset floor for every delta key)
+        for path, val in pairs(BASE) do
+            SetPath(TomoModDB, path, val)
+        end
+        -- 2) archetype DELTA
+        for path, val in pairs(delta) do
+            SetPath(TomoModDB, path, val)
+        end
 
-    TomoModDB._lastPreset = key
+        TomoModDB._lastPreset = key
+
+    end)
+    if not ok then print("TomoMod : " .. tostring(err)); return false end
 
     -- [Lot C] Config pages are cached; a preset rewrites the DB globally
     if TomoMod_Config and TomoMod_Config.InvalidatePanels then

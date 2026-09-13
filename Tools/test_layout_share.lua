@@ -77,6 +77,7 @@ assert(loadfile("Core/ModuleRegistry.lua"))()
 assert(loadfile("Core/ModuleManifest.lua"))()
 assert(loadfile("Core/LayoutEngine.lua"))()
 assert(loadfile("Core/ResolutionPresets.lua"))()
+assert(loadfile("Core/ProfileSafety.lua"))()
 assert(loadfile("Core/LayoutShare.lua"))()
 
 local R   = _G.TomoMod_Registry
