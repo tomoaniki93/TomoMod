@@ -1129,7 +1129,7 @@ function ns.ShowTargetSpells(targetName, sourceCreatureID, sessionID)
     end
 
     -- Get player class for bar coloring
-    local _, classFile = UnitClass("player")
+    local classFile = TomoMod_Utils.UnitClassToken("player")
     local classColor = classFile and RAID_CLASS_COLORS[classFile]
 
     frame._dataProvider:Flush()

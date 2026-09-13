@@ -409,9 +409,12 @@ local function SetAFKDisplayShown(show)
             end
         end
 
-        local _, classFile = UnitClass("player")
-        local classColor = RAID_CLASS_COLORS[classFile]
-        local className = select(1, UnitClass("player"))
+        local classFile = TomoMod_Utils.UnitClassToken("player")
+        local classColor = classFile and RAID_CLASS_COLORS[classFile]
+        -- `or ""` is not cosmetic: the concatenation below had no nil
+        -- guard, so an unreadable class threw here rather than falling
+        -- back to the plain name.
+        local className = TomoMod_Utils.SafeStr(UnitClass("player")) or ""
         local coloredClass = classColor
             and format("|cff%02x%02x%02x%s%s|r", classColor.r * 255, classColor.g * 255, classColor.b * 255, specText, className)
             or (specText .. className)

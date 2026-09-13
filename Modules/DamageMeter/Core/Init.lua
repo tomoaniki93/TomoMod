@@ -163,11 +163,10 @@ end
 
 function ns.ApplyAccentColor()
     if ns.db and ns.db.accentUseClassColor then
-        local _, classFile = UnitClass("player")
-        local cc = RAID_CLASS_COLORS[classFile]
-        if cc then
-            ns.ACCENT[1], ns.ACCENT[2], ns.ACCENT[3] = cc.r, cc.g, cc.b
-            ns.db.accentColor = { cc.r, cc.g, cc.b }
+        local r, g, b = TomoMod_Utils.TryClassColor("player")
+        if r then
+            ns.ACCENT[1], ns.ACCENT[2], ns.ACCENT[3] = r, g, b
+            ns.db.accentColor = { r, g, b }
         end
     else
         local c = ns.db and ns.db.accentColor

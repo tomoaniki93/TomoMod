@@ -41,11 +41,21 @@ end
 -- Resolved at call time, never meant to be stored.
 -- ---------------------------------------------------------------------
 function U.ClassColor()
-    local _, class = UnitClass("player")
-    local c = class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
-    if c then return c.r, c.g, c.b end
-    local b = Forge.BRAND
-    return b[1], b[2], b[3]
+    -- TryClassColor resolves the class token and only indexes
+    -- RAID_CLASS_COLORS once the token is known readable. Indexing with a
+    -- secret key throws inside Blizzard's table, not here, which makes it
+    -- a miserable crash to trace back.
+    -- The guard is a statement, not part of the assignment: in Lua,
+    -- `local r, g, b = TU and TU.TryClassColor("player")` truncates the
+    -- call to a single value, so g and b come back nil and the bar
+    -- renders pure red.
+    local TU = TomoMod_Utils
+    if TU and TU.TryClassColor then
+        local r, g, b = TU.TryClassColor("player")
+        if r then return r, g, b end
+    end
+    local brand = Forge.BRAND
+    return brand[1], brand[2], brand[3]
 end
 
 -- ---------------------------------------------------------------------

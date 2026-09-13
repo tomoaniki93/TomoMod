@@ -385,8 +385,9 @@ local function EnsurePlaceholderBar(holder, index)
     bg:SetPoint("BOTTOMRIGHT", 1, -1)
     bg:SetColorTexture(0, 0, 0, 1)
 
-    local _, playerClass = UnitClass("player")
-    local cc = RAID_CLASS_COLORS[playerClass] or { r = 0.2, g = 0.8, b = 0.5 }
+    local playerClass = TomoMod_Utils.UnitClassToken("player")
+    local cc = (playerClass and RAID_CLASS_COLORS[playerClass])
+        or { r = 0.2, g = 0.8, b = 0.5 }
 
     local fill = ph:CreateTexture(nil, "ARTWORK")
     fill:SetPoint("TOPLEFT")

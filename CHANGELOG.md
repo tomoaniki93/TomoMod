@@ -17,6 +17,13 @@
 - **Fixed** - Follower-dungeon role detection now checks whether `UnitPowerMax` returned a protected value before comparing it. An unreadable mana maximum safely falls back to the default damage role instead of raising an error in restricted content.
 - **Internal** - The secret-value audit no longer reports the Nameplates `maxPower > 0` path as unguarded. This keeps the WoW 12.x safety check explicit and prevents the release workflow from failing on that comparison.
 
+#### Class-Aware Interface — Protected `UnitClass` Safety
+
+- **Fixed** - Forge, Damage Meter, Resource Bars, the AFK display, Cooldown Manager and Resource Cast Studio no longer index class-colour tables with a potentially protected value returned by `UnitClass`. They resolve a readable class token through TomoMod's guarded utilities before any lookup.
+- **Fixed** - When the player's class is temporarily unreadable, class-coloured elements now degrade safely: Forge keeps its brand accent, Cooldown Manager uses neutral grey, Resource Cast Studio uses its blue preview colour, and the remaining displays omit unavailable class details instead of raising an error.
+- **Changed** - Damage Meter accent settings and spell-breakdown bars now share the same sanitized class-token path as the rest of the interface, keeping class colours consistent in restricted content.
+- **Internal** - Nine formerly accepted `UnitClass` findings were removed from the secret-value baseline. The release audit now passes with 23 reviewed baseline entries and no new finding.
+
 #### Profiles And Imports — Recovery And Transaction Safety
 
 - **New** - TomoMod keeps a rolling set of the five latest recovery backups. A backup can be created or the latest one restored from Profiles > Resets, while `/tm backup`, `/tm backup save` and `/tm backup restore [number]` expose the complete list and recovery flow from chat.

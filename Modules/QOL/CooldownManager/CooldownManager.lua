@@ -130,9 +130,14 @@ end
 -- =====================================
 -- STATE
 -- =====================================
-local _, playerClass = UnitClass("player")
-local classColor = RAID_CLASS_COLORS[playerClass]
-local overlayColor = CLASS_OVERLAY_COLORS[playerClass] or classColor
+local playerClass = TomoMod_Utils.UnitClassToken("player")
+-- The fallback tables are load-bearing, not defensive noise: both colours
+-- are dereferenced later without a nil check (bar:SetStatusBarColor and
+-- the overlay accessor), so an unreadable class used to take the module
+-- down rather than render in grey.
+local classColor = (playerClass and RAID_CLASS_COLORS[playerClass])
+    or { r = 0.5, g = 0.5, b = 0.5 }
+local overlayColor = (playerClass and CLASS_OVERLAY_COLORS[playerClass]) or classColor
 local viewers = {}
 local cdViewers = {}
 local todoList = {}
@@ -1179,7 +1184,7 @@ function CDM.ApplySettings()
     if not settings then return end
 
     -- Update overlay color reference
-    overlayColor = CLASS_OVERLAY_COLORS[playerClass] or classColor
+    overlayColor = (playerClass and CLASS_OVERLAY_COLORS[playerClass]) or classColor
 
     RefreshHotkeyVisibility()
 

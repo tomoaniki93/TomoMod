@@ -258,7 +258,11 @@ local POWER_COLOR_KEYS = {
 -- =====================================
 -- MODULE STATE
 -- =====================================
-local _, playerClass = UnitClass("player")
+-- Resolved once at load, as before. UnitClassToken returns a plain
+-- string or nil, never a secret, so the three lookups downstream
+-- (health colour, CLASS_RESOURCES, the druid check) are all safe --
+-- reading a table with a nil key is fine in Lua, writing one is not.
+local playerClass = TomoMod_Utils.UnitClassToken("player")
 local mainFrame
 local container
 local classPowerFrame

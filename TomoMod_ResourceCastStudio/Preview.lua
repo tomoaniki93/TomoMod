@@ -623,9 +623,15 @@ function P.CreateResource(parent)
 end
 
 local function PlayerClassColor()
-    local _,class=UnitClass("player")
-    local c=class and RAID_CLASS_COLORS and RAID_CLASS_COLORS[class]
-    if c then return c.r,c.g,c.b end
+    -- Guarded on TomoMod_Utils itself: this is a sibling addon and the
+    -- Studio loads fine with TomoMod disabled.
+    -- Guard kept out of the assignment: an `and` chain truncates the
+    -- call to one value, leaving g and b nil.
+    local TU=TomoMod_Utils
+    if TU and TU.TryClassColor then
+        local r,g,b=TU.TryClassColor("player")
+        if r then return r,g,b end
+    end
     return .18,.62,.85
 end
 

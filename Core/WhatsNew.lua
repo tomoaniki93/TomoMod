@@ -68,6 +68,7 @@ CHANGELOG = {
             L["wn_404_tomohdv_buy_layout"],
             L["wn_404_tomohdv_buy_final_polish"],
             L["wn_404_nameplates_secret_power"],
+            L["wn_404_unitclass_safety"],
             L["wn_404_profile_recovery"],
             L["wn_404_import_safety"],
             L["wn_404_layout_share_safety"],
