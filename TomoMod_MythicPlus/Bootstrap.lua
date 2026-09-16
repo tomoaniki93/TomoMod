@@ -317,9 +317,16 @@ function MP:Toggle(page)
     end
 end
 
-function MP:Hide()
+function MP:Hide(keepConfigHidden)
     if self.HideTrackerStandalonePreview then self:HideTrackerStandalonePreview(false) end
-    if self.Frame then self.Frame:Hide() end
+    if self.Frame then
+        -- Some Studio actions temporarily replace the main window with an
+        -- editor or a detail view. Those transitions retain ownership of the
+        -- hidden TomoMod GUI; only a real close returns to it.
+        if keepConfigHidden then self.Frame._tomoStudioTransientHide = true end
+        self.Frame:Hide()
+        if keepConfigHidden then self.Frame._tomoStudioTransientHide = nil end
+    end
 end
 
 function MP:OnChallengeStart()

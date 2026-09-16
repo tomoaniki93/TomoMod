@@ -1616,7 +1616,9 @@ local function StartEditMode()
     -- flag the OnHide teardown below would re-lock the movers on the very
     -- frame it just unlocked them for.
     S._enteringEditMode = true
+    frame._tomoStudioTransientHide = true
     frame:Hide()
+    frame._tomoStudioTransientHide = nil
     S._enteringEditMode = nil
     CDF.SetLocked(false)
     resumeBtn:Show()
@@ -1637,6 +1639,9 @@ local function BuildWindow()
         sideWidth    = SIDE_W,
         titleH       = TITLE_H,
         footerH      = FOOTER_H,
+        -- Closing this Studio intentionally keeps its existing safety-reload
+        -- flow instead of reopening the TomoMod GUI behind the prompt.
+        returnToConfig = false,
         -- Sized from the rows below, not guessed: CreateButtonRow starts at
         -- -2 and consumes 38px each, so the last of the five ends at
         -- 2 + 4*38 + 28 = 182. At 150 it hung 32px below the host and landed

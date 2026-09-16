@@ -17,6 +17,42 @@ Forge.Studio = Forge.Studio or {}
 local WHITE8 = "Interface\\Buttons\\WHITE8x8"
 
 -- ---------------------------------------------------------------------
+-- Options hand-off
+--
+-- Studios replace the main options window while they are open. Every Studio
+-- must hide Options, even when its frame already exists or it was opened by
+-- another entry point. Most shells restore the GUI when they close; Cooldown
+-- Studio opts out because its established close flow owns the reload prompt.
+-- ---------------------------------------------------------------------
+function Forge.Studio.CaptureConfigReturn(frame, returnToConfig)
+    if not frame then return false end
+    frame._tomoStudioReturnToConfig = returnToConfig ~= false and true or nil
+    if TomoMod_Config and TomoMod_Config.Hide then
+        TomoMod_Config.Hide()
+    end
+    return true
+end
+
+function Forge.Studio.RestoreConfigAfterClose(frame)
+    if not (frame and frame._tomoStudioReturnToConfig) then return false end
+    if frame._tomoStudioTransientHide then return false end
+
+    frame._tomoStudioReturnToConfig = nil
+    C_Timer.After(0, function()
+        -- Hide/Show transitions used by an editor must keep ownership until
+        -- the player really closes the Studio.
+        if frame:IsShown() then
+            frame._tomoStudioReturnToConfig = true
+            return
+        end
+        if TomoMod_Config and TomoMod_Config.Show then
+            TomoMod_Config.Show()
+        end
+    end)
+    return true
+end
+
+-- ---------------------------------------------------------------------
 -- LoadOnDemand launcher
 --
 -- Studios ship as sibling LoadOnDemand addons, so every failure the client
@@ -163,6 +199,17 @@ function Forge.Studio.CreateShell(opts)
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop",  frame.StopMovingOrSizing)
     frame:SetClampedToScreen(true)
+    -- Hide Options immediately for a newly-created (already shown) frame,
+    -- then on every later Show for a reused shell. The close policy belongs
+    -- to the shell so Cooldown Studio can retain its reload-only exit flow.
+    local returnToConfig = opts.returnToConfig ~= false
+    Forge.Studio.CaptureConfigReturn(frame, returnToConfig)
+    frame:HookScript("OnShow", function(self)
+        Forge.Studio.CaptureConfigReturn(self, returnToConfig)
+    end)
+    frame:HookScript("OnHide", function(self)
+        Forge.Studio.RestoreConfigAfterClose(self)
+    end)
     -- [fix] Close on Escape WITHOUT UISpecialFrames. Going through
     -- UISpecialFrames routes Escape via ToggleGameMenu, which calls the
     -- protected ClearTarget() and taints (ADDON_ACTION_FORBIDDEN). We

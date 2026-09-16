@@ -4,13 +4,14 @@
 
 #### TomoHDV V3.2 — Stable Purchase Panel
 
-- **Fixed** - The direct-purchase controls now stay clear of the buy button on ultrawide displays and at compact UI scales. Quantity, total and status are anchored from the bottom of the item sheet, keeping the complete purchase workflow inside the available panel height.
-- **Changed** - The purchase status line is slightly more compact and aligned with the bottom-anchored controls, while the item header and price cards retain the responsive V3.1 layout.
+- **Fixed** - The direct-purchase controls now stay clear of the buy button on ultrawide displays and at compact UI scales. The complete purchase workflow stays inside the available height of the item sheet instead of overflowing it.
+- **Changed** - The purchase status line is slightly more compact, while the item header and price cards retain the responsive V3.1 layout.
 
-#### TomoHDV V3.3 — Final Buy-Pane Polish
+#### TomoHDV V3.3 — Dedicated Purchase Card
 
-- **Changed** - The direct-purchase panel now uses four compact bottom-aligned rows: auction type and quantity, estimated total, status, then the confirmation button. The redundant section title has been removed so the controls remain readable at small and medium interface heights.
-- **Fixed** - Quantity controls have dedicated horizontal space, the estimated-total value is wider, and the status and confirmation button sit slightly lower. Labels no longer stack or collide inside the right-hand item card.
+- **Changed** - The direct-purchase controls now live in their own card, anchored between the two price cards and the confirmation button. The card stretches with the available height instead of relying on absolute offsets measured from the item sheet, so the quantity field can no longer climb into the current and scanned price cards at any UI scale.
+- **Changed** - Quantity and auction type share the top row of that card, the estimated total sits in the middle and the status line runs along the bottom. Field, button and font sizes were reduced slightly so each row fits on a single line without wrapping.
+- **Fixed** - The item sheet now reaches further down the workspace and is slightly wider, up to 410 pixels or 37% of the available width. The estimated-total value and the status line gain room before they truncate.
 
 #### Nameplates — Secret-Value Safety
 
@@ -43,6 +44,12 @@
 - **Fixed** - Reload confirmations and profile import/export overlays are raised above the high-level TomoMod options window instead of appearing hidden behind it.
 - **Fixed** - The Unit Frames aura mover fallback now requires both coordinates from the moved container and its target before calculating an offset, preventing arithmetic on incomplete frame measurements.
 - **Changed** - Mythic+ Summary and Survival analysis now derive their accent from TomoMod's shared brand colour instead of keeping a separate hard-coded green.
+
+#### Studio Navigation — Return To The Main GUI
+
+- **Fixed** - Opening any Studio now always hides the TomoMod GUI, including Mythic+ Studio and reused Studio windows. The editor is the only configuration window left visible while it is active.
+- **New** - Closing Mythic+ Studio, Party & Raid Studio, Resource & Cast Studio or Astral Forge Studio automatically opens the TomoMod GUI again. Cooldown Studio deliberately keeps its existing safety-reload exit flow and does not reopen the GUI behind the reload confirmation.
+- **Fixed** - Temporary hand-offs to Cooldown bar positioning, Mythic+ tracker positioning, run analysis or the legacy dungeon view do not count as leaving a Studio and never reopen the GUI prematurely.
 
 #### Release Validation — Expanded Automated Gates
 

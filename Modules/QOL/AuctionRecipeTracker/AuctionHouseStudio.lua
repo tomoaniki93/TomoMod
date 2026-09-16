@@ -786,7 +786,7 @@ local function BuildSearchView(parent)
     -- list a fixed 690px width first, which could squeeze this panel down to a
     -- few dozen pixels depending on UI scale. Keep the sheet around one third
     -- of the available width and let the result list consume the remainder.
-    local detail=Card(p); detail:SetPoint("TOPRIGHT",-18,-110); detail:SetPoint("BOTTOMRIGHT",-18,48); p.detail=detail
+    local detail=Card(p); detail:SetPoint("TOPRIGHT",-18,-110); detail:SetPoint("BOTTOMRIGHT",-18,18); p.detail=detail
     local list=CreateScrollArea(p); list:SetPoint("TOPLEFT",18,-110); list:SetPoint("BOTTOMLEFT",18,48); list:SetPoint("RIGHT",detail,"LEFT",-12,0); p.list=list
 
     local head=CreateFrame("Frame",nil,p,"BackdropTemplate"); head:SetPoint("BOTTOMLEFT",list,"TOPLEFT",0,2); head:SetPoint("BOTTOMRIGHT",list,"TOPRIGHT",0,2); head:SetHeight(24); Backdrop(head,C.panel2,C.border)
@@ -810,33 +810,35 @@ local function BuildSearchView(parent)
     local scanLabel=Text(scanCard,T("scanned_price"),7,true); scanLabel:SetPoint("TOPLEFT",8,-7); scanLabel:SetPoint("RIGHT",-7,0); scanLabel:SetJustifyH("LEFT"); scanLabel:SetWordWrap(false); if scanLabel.SetMaxLines then scanLabel:SetMaxLines(1) end; scanLabel:SetTextColor(unpack(C.dim))
     detail.scanned=Text(scanCard,"",10,true); detail.scanned:SetPoint("BOTTOMLEFT",8,7); detail.scanned:SetPoint("RIGHT",-7,0); detail.scanned:SetJustifyH("LEFT"); detail.scanned:SetWordWrap(false); if detail.scanned.SetMaxLines then detail.scanned:SetMaxLines(1) end; detail.scanned:SetTextColor(unpack(C.text))
 
-    -- Compact purchase block. Keep it fully below the two price cards and
-    -- reserve one horizontal row for quantity controls, one for the total,
-    -- then status + the final confirmation button. This avoids the text stack
-    -- visible at small/medium UI heights and keeps the right card readable.
-    detail.type=Text(detail,"",8,false); detail.type:SetPoint("BOTTOMRIGHT",-14,88); detail.type:SetWidth(112); detail.type:SetJustifyH("RIGHT"); detail.type:SetWordWrap(false); if detail.type.SetMaxLines then detail.type:SetMaxLines(1) end; detail.type:SetTextColor(unpack(C.dim))
+    -- Compact purchase card. The old V3.2 controls used a mix of absolute
+    -- top/bottom anchors on the detail frame itself; depending on UI scale,
+    -- the quantity field could still climb into the price cards. Give the
+    -- purchase controls their own elastic area between prices and the button.
+    detail.buy=Button(detail,T("direct_buy"),170,28,DirectBuySelected); detail.buy:SetPoint("BOTTOMLEFT",14,14); detail.buy:SetPoint("BOTTOMRIGHT",-14,14); detail.buy:Disable(); detail.buy:SetAlpha(0.45)
 
-    local qtyLabel=Text(detail,T("buy_quantity"),8,true); qtyLabel:SetPoint("BOTTOMLEFT",14,88); qtyLabel:SetWidth(58); qtyLabel:SetWordWrap(false); if qtyLabel.SetMaxLines then qtyLabel:SetMaxLines(1) end; qtyLabel:SetTextColor(unpack(C.dim))
-    detail.qtyBox=CreateFrame("EditBox",nil,detail,"BackdropTemplate"); detail.qtyBox:SetSize(72,24); detail.qtyBox:SetPoint("BOTTOMLEFT",78,78); detail.qtyBox:SetAutoFocus(false); detail.qtyBox:SetNumeric(true); detail.qtyBox:SetMaxLetters(7); detail.qtyBox:SetFont(FONT_B,10,""); detail.qtyBox:SetJustifyH("CENTER"); detail.qtyBox:SetTextInsets(5,5,0,0); Backdrop(detail.qtyBox,{0.035,0.042,0.052,1},C.border)
+    local purchaseCard=Card(detail); purchaseCard:SetPoint("TOPLEFT",currentCard,"BOTTOMLEFT",0,-8); purchaseCard:SetPoint("TOPRIGHT",scanCard,"BOTTOMRIGHT",0,-8); purchaseCard:SetPoint("BOTTOMLEFT",detail.buy,"TOPLEFT",0,8); purchaseCard:SetPoint("BOTTOMRIGHT",detail.buy,"TOPRIGHT",0,8); detail.purchaseCard=purchaseCard
+
+    local qtyLabel=Text(purchaseCard,T("buy_quantity"),8,true); qtyLabel:SetPoint("TOPLEFT",9,-9); qtyLabel:SetWidth(58); qtyLabel:SetWordWrap(false); if qtyLabel.SetMaxLines then qtyLabel:SetMaxLines(1) end; qtyLabel:SetTextColor(unpack(C.dim))
+    detail.qtyBox=CreateFrame("EditBox",nil,purchaseCard,"BackdropTemplate"); detail.qtyBox:SetSize(66,22); detail.qtyBox:SetPoint("TOPLEFT",66,-4); detail.qtyBox:SetAutoFocus(false); detail.qtyBox:SetNumeric(true); detail.qtyBox:SetMaxLetters(7); detail.qtyBox:SetFont(FONT_B,9,""); detail.qtyBox:SetJustifyH("CENTER"); detail.qtyBox:SetTextInsets(4,4,0,0); Backdrop(detail.qtyBox,{0.035,0.042,0.052,1},C.border)
     detail.qtyBox:SetScript("OnEscapePressed",function(self) self:ClearFocus() end)
     detail.qtyBox:SetScript("OnEnterPressed",function(self) self:ClearFocus(); RefreshPurchaseOffer() end)
     detail.qtyBox:SetScript("OnTextChanged",function(self)
         if self._tmSetting then return end
         if purchase.isCommodity then RefreshPurchaseOffer() end
     end)
-    detail.max=Button(detail,T("buy_max"),48,24,SetMaxPurchaseQuantity); detail.max:SetPoint("LEFT",detail.qtyBox,"RIGHT",6,0); detail.max:Hide()
+    detail.max=Button(purchaseCard,T("buy_max"),46,22,SetMaxPurchaseQuantity); detail.max:SetPoint("LEFT",detail.qtyBox,"RIGHT",5,0); detail.max:Hide()
 
-    local totalLabel=Text(detail,T("buy_total"),8,true); totalLabel:SetPoint("BOTTOMLEFT",14,59); totalLabel:SetWidth(100); totalLabel:SetWordWrap(false); if totalLabel.SetMaxLines then totalLabel:SetMaxLines(1) end; totalLabel:SetTextColor(unpack(C.dim))
-    detail.totalValue=Text(detail,"—",11,true); detail.totalValue:SetPoint("BOTTOMRIGHT",-14,58); detail.totalValue:SetWidth(150); detail.totalValue:SetJustifyH("RIGHT"); detail.totalValue:SetWordWrap(false); if detail.totalValue.SetMaxLines then detail.totalValue:SetMaxLines(1) end
+    detail.type=Text(purchaseCard,"",8,false); detail.type:SetPoint("TOPRIGHT",-9,-9); detail.type:SetWidth(92); detail.type:SetJustifyH("RIGHT"); detail.type:SetWordWrap(false); if detail.type.SetMaxLines then detail.type:SetMaxLines(1) end; detail.type:SetTextColor(unpack(C.dim))
 
-    detail.buyStatus=Text(detail,T("buy_hint"),8,false); detail.buyStatus:SetPoint("BOTTOMLEFT",14,43); detail.buyStatus:SetPoint("BOTTOMRIGHT",-14,43); detail.buyStatus:SetHeight(11); detail.buyStatus:SetJustifyH("LEFT"); detail.buyStatus:SetJustifyV("MIDDLE"); detail.buyStatus:SetWordWrap(false); if detail.buyStatus.SetMaxLines then detail.buyStatus:SetMaxLines(1) end; detail.buyStatus:SetTextColor(unpack(C.dim))
+    local totalLabel=Text(purchaseCard,T("buy_total"),8,true); totalLabel:SetPoint("LEFT",9,-4); totalLabel:SetWidth(88); totalLabel:SetWordWrap(false); if totalLabel.SetMaxLines then totalLabel:SetMaxLines(1) end; totalLabel:SetTextColor(unpack(C.dim))
+    detail.totalValue=Text(purchaseCard,"—",11,true); detail.totalValue:SetPoint("RIGHT",-9,-4); detail.totalValue:SetWidth(140); detail.totalValue:SetJustifyH("RIGHT"); detail.totalValue:SetWordWrap(false); if detail.totalValue.SetMaxLines then detail.totalValue:SetMaxLines(1) end
 
-    detail.buy=Button(detail,T("direct_buy"),170,28,DirectBuySelected); detail.buy:SetPoint("BOTTOMLEFT",14,10); detail.buy:SetPoint("BOTTOMRIGHT",-14,10); detail.buy:Disable(); detail.buy:SetAlpha(0.45)
+    detail.buyStatus=Text(purchaseCard,T("buy_hint"),8,false); detail.buyStatus:SetPoint("BOTTOMLEFT",9,7); detail.buyStatus:SetPoint("BOTTOMRIGHT",-9,7); detail.buyStatus:SetHeight(12); detail.buyStatus:SetJustifyH("LEFT"); detail.buyStatus:SetJustifyV("MIDDLE"); detail.buyStatus:SetWordWrap(false); if detail.buyStatus.SetMaxLines then detail.buyStatus:SetMaxLines(1) end; detail.buyStatus:SetTextColor(unpack(C.dim))
 
     local function LayoutColumns()
         local w=p:GetWidth() or 0
         if w<=0 then return end
-        detail:SetWidth(math.max(340,math.min(400,math.floor(w*0.36))))
+        detail:SetWidth(math.max(350,math.min(410,math.floor(w*0.37))))
     end
     p:SetScript("OnSizeChanged",LayoutColumns)
 

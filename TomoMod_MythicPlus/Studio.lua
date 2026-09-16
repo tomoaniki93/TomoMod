@@ -944,7 +944,7 @@ function MP:BeginTrackerEditMode()
         locked = db.locked,
         position = savedPosition,
     }
-    self:Hide()
+    self:Hide(true)
     if T.Preview then T:Preview() end
     if T.SetMovable then T:SetMovable(true) end
 
@@ -1637,10 +1637,20 @@ function MP:BuildStudio()
     Backdrop(f,C.bg,C.border)
     f:SetScript("OnDragStart",function(s) s:StartMoving() end)
     f:SetScript("OnDragStop",function(s) s:StopMovingOrSizing() end)
+    local studioBridge=TomoMod_Forge and TomoMod_Forge.Studio
+    if studioBridge and studioBridge.CaptureConfigReturn then
+        studioBridge.CaptureConfigReturn(f)
+        f:HookScript("OnShow",function(s)
+            studioBridge.CaptureConfigReturn(s)
+        end)
+    end
     f:SetScript("OnHide",function(s)
         local point,_,relPoint,x,y=s:GetPoint(1)
         local db=MP:GetDB().ui
         db.point=point or "CENTER"; db.relPoint=relPoint or "CENTER"; db.x=x or 0; db.y=y or 20
+        if studioBridge and studioBridge.RestoreConfigAfterClose then
+            studioBridge.RestoreConfigAfterClose(s)
+        end
     end)
 
     local accent=f:CreateTexture(nil,"ARTWORK"); accent:SetPoint("TOPLEFT"); accent:SetPoint("BOTTOMLEFT"); accent:SetWidth(3); accent:SetColorTexture(unpack(C.accent)); f._accent=accent

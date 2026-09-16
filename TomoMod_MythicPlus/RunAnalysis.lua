@@ -760,7 +760,7 @@ function MP:OpenRunAnalysis(runData)
     end
 
     if self.Frame and self.Frame:IsShown() and self.Hide then
-        self:Hide()
+        self:Hide(true)
     end
 
     local f = EnsureFrame()

@@ -146,7 +146,7 @@ function B:OpenAnalysis(runData)
     end
 
     if mp.Frame and mp.Frame:IsShown() and mp.Hide then
-        mp:Hide()
+        mp:Hide(true)
     end
 
     local hub = _G.TomoMod_MythicHub
@@ -178,7 +178,7 @@ function B:OpenLegacyHub()
     if not hub then return false end
 
     local mp = Studio()
-    if mp and mp.Hide then mp:Hide() end
+    if mp and mp.Hide then mp:Hide(true) end
 
     if self._legacyHubShow then
         self._legacyHubShow(hub)
