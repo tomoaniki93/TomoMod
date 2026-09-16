@@ -60,6 +60,14 @@
 
 - **New** - The General options now provide separate controls for hiding Blizzard's floating damage and healing numbers. Other combat text, including absorb and shield notifications, remains unchanged.
 - **Changed** - TomoMod stores every affected Blizzard CVar before disabling it and restores its exact previous value when the option is cleared. The selected state is reapplied after login, world transitions and Blizzard Combat Text initialization without forcing the master floating-combat-text setting.
+- **Fixed** - Floating Combat Text is registered as a composite module with both controls declared in the central manifest. Its settings now participate correctly in profiles, selective imports and live profile application, while its private CVar backup remains excluded from portable data.
+
+#### Mythic+ Hindsight V2.1 — Group Death Recaps
+
+- **New** - Survival Analysis can now capture Blizzard's detailed death recap for every party member instead of limiting the timeline to the local player's deaths. Damage, healing, overkill, fatal events and maximum health can be inspected for any successfully recorded death.
+- **Changed** - Hindsight matches each death to its Damage Meter source by readable GUID, with a short-name fallback when no GUID is available. The current session is checked before the overall session and briefly retried because Blizzard may publish the recap after the unit-death transition.
+- **Fixed** - Recap identifiers already present when a Mythic+ run begins are marked as consumed, preventing stale data from a previous dungeon from being attached to the first death of a new run. Survival snapshots now use schema version 3.
+- **Changed** - The Hindsight subtitle, recap labels and unavailable-detail messages have been updated for V2.1 in English, French, German, Spanish, Italian and Brazilian Portuguese.
 
 #### Release Validation — Expanded Automated Gates
 

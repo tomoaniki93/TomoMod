@@ -477,6 +477,16 @@ R.Define{
 }
 
 R.Define{
+    key = "floatingCombatText", label = "mod_floatingCombatText", group = "qol",
+    toggles = {
+        { path = "floatingCombatText.hideDamage", label = "opt_hide_fct_damage" },
+        { path = "floatingCombatText.hideHealing", label = "opt_hide_fct_healing" },
+    },
+    global = "TomoMod_CombatText", applyMode = "gate", apply = "ApplyFloatingTextSettings",
+    combatSafe = true,
+}
+
+R.Define{
     key = "autoFillDelete", label = "mod_autoFillDelete", group = "qol",
     enabledPath = "autoFillDelete.enabled",
     global = "TomoMod_AutoFillDelete", applyMode = "setter", apply = "SetEnabled",

@@ -31,8 +31,8 @@ local STRINGS = {
         summary="Summary", survival="Survival", chronology="Death chronology", detail="Death detail",
         no_data="No survival data was recorded for this run.", complete="complete tracking",
         partial="partial tracking", observed="%d observed / %d total", deaths="%d deaths",
-        local_detail="Local recap", party_detail="Detailed recap is available only for your own deaths.",
-        local_missing="The local death was recorded, but Blizzard's death recap was not readable in time.",
+        local_detail="Recap", party_detail="Blizzard's detailed recap was not available for this death.",
+        local_missing="The death was recorded, but Blizzard's detailed recap was not readable in time.",
         select="Select a death to inspect it.", fatal="Fatal event", timeline="Last events before death",
         damage="Damage", overkill="Overkill", max_health="Max health", unknown="Unknown",
         more="+%d additional deaths not shown", heal="Heal",
@@ -41,8 +41,8 @@ local STRINGS = {
         summary="Résumé", survival="Survie", chronology="Chronologie des morts", detail="Détail de la mort",
         no_data="Aucune donnée de survie n'a été enregistrée pour ce run.", complete="suivi complet",
         partial="suivi partiel", observed="%d observées / %d au total", deaths="%d morts",
-        local_detail="Récap local", party_detail="Le récap détaillé est disponible uniquement pour tes propres morts.",
-        local_missing="La mort locale a été enregistrée, mais le récap Blizzard n'a pas été lisible à temps.",
+        local_detail="Récap", party_detail="Le récap détaillé Blizzard n'est pas disponible pour cette mort.",
+        local_missing="La mort a été enregistrée, mais le récap Blizzard n'a pas été lisible à temps.",
         select="Sélectionne une mort pour l'analyser.", fatal="Événement fatal", timeline="Derniers événements avant la mort",
         damage="Dégâts", overkill="Overkill", max_health="Vie max", unknown="Inconnu",
         more="+%d morts supplémentaires non affichées", heal="Soin",
@@ -51,8 +51,8 @@ local STRINGS = {
         summary="Übersicht", survival="Überleben", chronology="Todeschronologie", detail="Todesdetails",
         no_data="Für diesen Run wurden keine Überlebensdaten gespeichert.", complete="vollständige Erfassung",
         partial="teilweise Erfassung", observed="%d beobachtet / %d gesamt", deaths="%d Tode",
-        local_detail="Lokaler Rückblick", party_detail="Ein detaillierter Rückblick ist nur für deine eigenen Tode verfügbar.",
-        local_missing="Der eigene Tod wurde erfasst, aber Blizzards Todesrückblick war nicht rechtzeitig lesbar.",
+        local_detail="Rückblick", party_detail="Blizzards detaillierter Rückblick ist für diesen Tod nicht verfügbar.",
+        local_missing="Der Tod wurde erfasst, aber Blizzards Todesrückblick war nicht rechtzeitig lesbar.",
         select="Wähle einen Tod zur Analyse.", fatal="Tödliches Ereignis", timeline="Letzte Ereignisse vor dem Tod",
         damage="Schaden", overkill="Overkill", max_health="Max. Gesundheit", unknown="Unbekannt",
         more="+%d weitere Tode nicht angezeigt", heal="Heilung",
@@ -61,8 +61,8 @@ local STRINGS = {
         summary="Resumen", survival="Supervivencia", chronology="Cronología de muertes", detail="Detalle de muerte",
         no_data="No se registraron datos de supervivencia para esta run.", complete="seguimiento completo",
         partial="seguimiento parcial", observed="%d observadas / %d totales", deaths="%d muertes",
-        local_detail="Resumen local", party_detail="El resumen detallado solo está disponible para tus propias muertes.",
-        local_missing="La muerte local fue registrada, pero el resumen de Blizzard no estuvo disponible a tiempo.",
+        local_detail="Resumen", party_detail="El resumen detallado de Blizzard no está disponible para esta muerte.",
+        local_missing="La muerte fue registrada, pero el resumen de Blizzard no estuvo disponible a tiempo.",
         select="Selecciona una muerte para analizarla.", fatal="Evento fatal", timeline="Últimos eventos antes de morir",
         damage="Daño", overkill="Overkill", max_health="Salud máxima", unknown="Desconocido",
         more="+%d muertes adicionales no mostradas", heal="Sanación",
@@ -71,8 +71,8 @@ local STRINGS = {
         summary="Riepilogo", survival="Sopravvivenza", chronology="Cronologia morti", detail="Dettaglio morte",
         no_data="Nessun dato di sopravvivenza registrato per questa run.", complete="tracciamento completo",
         partial="tracciamento parziale", observed="%d osservate / %d totali", deaths="%d morti",
-        local_detail="Riepilogo locale", party_detail="Il riepilogo dettagliato è disponibile solo per le tue morti.",
-        local_missing="La morte locale è stata registrata, ma il riepilogo Blizzard non era leggibile in tempo.",
+        local_detail="Riepilogo", party_detail="Il riepilogo dettagliato Blizzard non è disponibile per questa morte.",
+        local_missing="La morte è stata registrata, ma il riepilogo Blizzard non era leggibile in tempo.",
         select="Seleziona una morte da analizzare.", fatal="Evento fatale", timeline="Ultimi eventi prima della morte",
         damage="Danni", overkill="Overkill", max_health="Salute massima", unknown="Sconosciuto",
         more="+%d morti aggiuntive non mostrate", heal="Cura",
@@ -81,8 +81,8 @@ local STRINGS = {
         summary="Resumo", survival="Sobrevivência", chronology="Cronologia de mortes", detail="Detalhe da morte",
         no_data="Nenhum dado de sobrevivência foi registrado para esta run.", complete="rastreamento completo",
         partial="rastreamento parcial", observed="%d observadas / %d no total", deaths="%d mortes",
-        local_detail="Resumo local", party_detail="O resumo detalhado está disponível apenas para suas próprias mortes.",
-        local_missing="A morte local foi registrada, mas o resumo da Blizzard não ficou legível a tempo.",
+        local_detail="Resumo", party_detail="O resumo detalhado da Blizzard não está disponível para esta morte.",
+        local_missing="A morte foi registrada, mas o resumo da Blizzard não ficou legível a tempo.",
         select="Selecione uma morte para analisá-la.", fatal="Evento fatal", timeline="Últimos eventos antes da morte",
         damage="Dano", overkill="Overkill", max_health="Vida máxima", unknown="Desconhecido",
         more="+%d mortes adicionais não exibidas", heal="Cura",
@@ -226,7 +226,7 @@ end
 function SA:Ensure(frame)
     if not frame or frame._survivalRoot then return end
 
-    frame._subtitle:SetText("Analyse post-run Mythic+ · V2")
+    frame._subtitle:SetText("Analyse post-run Mythic+ · V2.1")
 
     frame._summaryTab = Tab(frame, T("summary"), 320, function()
         SA:SetPage("summary")
@@ -413,7 +413,7 @@ function SA:SelectDeath(index)
 
     local detail = type(death.detail) == "table" and death.detail or nil
     if not detail or type(detail.events) ~= "table" or #detail.events == 0 then
-        right._note:SetText(death.isLocal and T("local_missing") or T("party_detail"))
+        right._note:SetText(death.detailUnavailable and T("local_missing") or T("party_detail"))
         right._note:Show()
         return
     end

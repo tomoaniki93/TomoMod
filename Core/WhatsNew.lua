@@ -76,6 +76,7 @@ CHANGELOG = {
             L["wn_404_studio_return"],
             L["wn_404_actionbar_glow_color"],
             L["wn_404_floating_combat_text"],
+            L["wn_404_hindsight_group_recaps"],
             L["wn_404_release_validation"],
             L["wn_404_secret_reference"],
             L["wn_404_secret_audit"],

@@ -45,8 +45,78 @@ local function Bool(v)
     return v and true or false
 end
 
+local function NameKey(name)
+    name = Str(name)
+    if not name then return nil end
+    name = name:match("^[^-]+") or name
+    return string.lower(name)
+end
+
 local function DM()
     return TomoMod and TomoMod.DM or nil
+end
+
+-- Iterate the Deaths sources while their C_DamageMeter values are readable.
+-- The source row carries the most recent deathRecapID for that player.  We
+-- match by GUID first and only fall back to the short name if the GUID is not
+-- readable.  Current is tried before Overall so a just-landed death wins.
+local function ForEachDeathSource(callback)
+    if not (C_DamageMeter and C_DamageMeter.GetCombatSessionFromType
+        and Enum and Enum.DamageMeterType and Enum.DamageMeterSessionType) then
+        return nil
+    end
+
+    local deathType = Enum.DamageMeterType.Deaths
+    local sessionTypes = {
+        Enum.DamageMeterSessionType.Current,
+        Enum.DamageMeterSessionType.Overall,
+    }
+
+    for _, sessionType in ipairs(sessionTypes) do
+        local ok, session = pcall(C_DamageMeter.GetCombatSessionFromType, sessionType, deathType)
+        if ok and session and not IsSecret(session) then
+            local sources = session.combatSources
+            if type(sources) == "table" and not IsSecret(sources) then
+                for _, source in ipairs(sources) do
+                    if type(source) == "table" and not IsSecret(source) then
+                        local stop = callback(source)
+                        if stop then return stop end
+                    end
+                end
+            end
+        end
+    end
+    return nil
+end
+
+local function SourceMatchesDeath(source, death)
+    if type(source) ~= "table" or type(death) ~= "table" then return false end
+
+    local sourceGUID = Str(source.sourceGUID)
+    local deathGUID = Str(death.guid)
+    if sourceGUID and deathGUID then
+        return sourceGUID == deathGUID
+    end
+
+    local sourceName = NameKey(source.name)
+    local deathName = NameKey(death.name)
+    return sourceName ~= nil and deathName ~= nil and sourceName == deathName
+end
+
+local function FindRecapID(run, death)
+    if not run or not death then return nil end
+    local found
+    ForEachDeathSource(function(source)
+        if SourceMatchesDeath(source, death) then
+            local rid = Num(source.deathRecapID)
+            if rid and rid > 0 and not run.seenRecaps[rid] then
+                found = rid
+                return true
+            end
+        end
+        return false
+    end)
+    return found
 end
 
 local function ChallengeElapsed()
@@ -113,7 +183,7 @@ end
 local function Snapshot(run)
     if type(run) ~= "table" then return nil end
     local out = {
-        version = 2,
+        version = 3,
         reliable = run.reliable == true,
         totalDeaths = Num(run.totalDeaths),
         observedDeaths = #run.deaths,
@@ -137,12 +207,17 @@ local function Snapshot(run)
     return out
 end
 
-local function SeedExistingRecap(run)
-    local dm = DM()
-    if not (run and dm and dm.FindLocalDeathRecap) then return end
-    local ok, rid = pcall(dm.FindLocalDeathRecap)
-    rid = ok and Num(rid) or nil
-    if rid and rid > 0 then run.seenRecaps[rid] = true end
+local function SeedExistingRecaps(run)
+    if not run then return end
+    -- Mark every recap already present when the key starts.  Overall may still
+    -- contain the previous dungeon; without this seed, the first death of a
+    -- player could accidentally inherit that stale recap while the new one is
+    -- still being published.
+    ForEachDeathSource(function(source)
+        local rid = Num(source.deathRecapID)
+        if rid and rid > 0 then run.seenRecaps[rid] = true end
+        return false
+    end)
 end
 
 local function FindFatalIndex(events)
@@ -152,39 +227,36 @@ local function FindFatalIndex(events)
     return #events > 0 and #events or nil
 end
 
-local function CaptureLocalRecap(run, death, attempt)
+local function CaptureDeathRecap(run, death, attempt)
     if not run or not death or death.detail then return end
     if run.serial ~= death.serial then return end
 
     local dm = DM()
-    if dm and dm.FindLocalDeathRecap and dm.GetDeathRecap then
-        local ok, rid = pcall(dm.FindLocalDeathRecap)
-        rid = ok and Num(rid) or nil
-        if rid and rid > 0 and not run.seenRecaps[rid] then
-            local ok2, events, maxHP = pcall(dm.GetDeathRecap, rid)
-            if ok2 and type(events) == "table" and #events > 0 then
-                run.seenRecaps[rid] = true
-                local copied = {}
-                local startAt = math.max(1, #events - MAX_RECAP_EVENTS + 1)
-                for i = startAt, #events do
-                    local ev = CopyEvent(events[i])
-                    if ev then copied[#copied + 1] = ev end
-                end
-                death.detail = {
-                    maxHP = Num(maxHP) or 0,
-                    events = copied,
-                    fatalIndex = FindFatalIndex(copied),
-                }
-                death.detailUnavailable = nil
-                return
+    local rid = FindRecapID(run, death)
+    if rid and dm and dm.GetDeathRecap then
+        local ok, events, maxHP = pcall(dm.GetDeathRecap, rid)
+        if ok and type(events) == "table" and #events > 0 then
+            run.seenRecaps[rid] = true
+            local copied = {}
+            local startAt = math.max(1, #events - MAX_RECAP_EVENTS + 1)
+            for i = startAt, #events do
+                local ev = CopyEvent(events[i])
+                if ev then copied[#copied + 1] = ev end
             end
+            death.detail = {
+                maxHP = Num(maxHP) or 0,
+                events = copied,
+                fatalIndex = FindFatalIndex(copied),
+            }
+            death.detailUnavailable = nil
+            return
         end
     end
 
     attempt = (attempt or 0) + 1
     if attempt < RECAP_RETRIES then
         C_Timer.After(RECAP_RETRY_DELAY, function()
-            CaptureLocalRecap(run, death, attempt)
+            CaptureDeathRecap(run, death, attempt)
         end)
     else
         death.detailUnavailable = true
@@ -214,11 +286,12 @@ local function RecordDeath(run, unit, guid)
     }
     run.deaths[#run.deaths + 1] = death
 
-    if death.isLocal then
-        C_Timer.After(0.35, function()
-            CaptureLocalRecap(run, death, 0)
-        end)
-    end
+    -- C_DamageMeter exposes a per-source deathRecapID for group members too.
+    -- Poll briefly because the source row is updated a fraction after the unit
+    -- death transition, especially during simultaneous deaths / wipes.
+    C_Timer.After(0.35, function()
+        CaptureDeathRecap(run, death, 0)
+    end)
 end
 
 local function TrackUnit(unit)
@@ -274,7 +347,7 @@ local function BeginRun(frame, reliable)
     for unit in pairs(UNITS) do SeedUnit(activeRun, unit) end
     RegisterUnitEvents(frame)
     C_Timer.After(0, function()
-        if activeRun and activeRun.serial == runSerial then SeedExistingRecap(activeRun) end
+        if activeRun and activeRun.serial == runSerial then SeedExistingRecaps(activeRun) end
     end)
 end
 
