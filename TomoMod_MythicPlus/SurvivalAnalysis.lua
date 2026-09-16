@@ -155,6 +155,16 @@ local function Tab(parent, label, x, callback)
     local b = CreateFrame("Button", nil, parent, "BackdropTemplate")
     b:SetPoint("TOPLEFT", x, -16)
     b:SetSize(92, 24)
+
+    -- The V1 header is a mouse-enabled drag surface covering the first 56 px
+    -- of the window.  V2 tabs live inside that same area; at the default
+    -- sibling frame level the header can win mouse hit-testing even though the
+    -- button artwork is visible.  Keep the tabs explicitly above that drag
+    -- surface and register the click we actually consume.
+    b:SetFrameLevel(parent:GetFrameLevel() + 20)
+    b:EnableMouse(true)
+    b:RegisterForClicks("LeftButtonUp")
+
     Backdrop(b, { 0.04, 0.05, 0.06, 0.90 }, C.border)
     local t = Text(b, label, 9, true)
     t:SetPoint("CENTER")

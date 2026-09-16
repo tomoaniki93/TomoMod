@@ -4,6 +4,10 @@ local L = TomoMod_L
 
 if TomoMod_RegisterLocale then
     TomoMod_RegisterLocale("enUS", {
+        ["section_blizzard_fct"] = "Blizzard Floating Combat Text",
+        ["info_blizzard_fct"] = "Hide damage and healing numbers independently. Other Blizzard combat text, including absorb/shield notifications, is left unchanged.",
+        ["opt_hide_fct_damage"] = "Disable floating damage",
+        ["opt_hide_fct_healing"] = "Disable floating healing",
         ["section_blizzard_cdm_visibility"] = "Blizzard Cooldown Manager",
         ["info_blizzard_cdm_visibility"] = "Check a viewer to hide that Blizzard Cooldown Manager bar. TomoMod only makes it invisible and non-clickable; it does not delete or replace Blizzard's viewer.",
         ["opt_hide_cdm_essential"] = "Hide CDM Essential (essential cooldowns)",
@@ -12,6 +16,10 @@ if TomoMod_RegisterLocale then
         ["opt_hide_cdm_buffbar"] = "Hide CDM tracked bonuses (bars)",
     })
     TomoMod_RegisterLocale("frFR", {
+        ["section_blizzard_fct"] = "Texte de combat flottant Blizzard",
+        ["info_blizzard_fct"] = "Masque séparément les nombres de dégâts et de soins. Les autres textes de combat Blizzard, y compris les absorptions/boucliers, restent inchangés.",
+        ["opt_hide_fct_damage"] = "Désactiver les dégâts flottants",
+        ["opt_hide_fct_healing"] = "Désactiver les soins flottants",
         ["section_blizzard_cdm_visibility"] = "Cooldown Manager de Blizzard",
         ["info_blizzard_cdm_visibility"] = "Coche une barre pour masquer le viewer correspondant du Cooldown Manager de Blizzard. TomoMod le rend seulement invisible et non cliquable : il ne supprime ni ne remplace le viewer Blizzard.",
         ["opt_hide_cdm_essential"] = "Masquer CDM Essential (cooldowns essentiels)",
@@ -20,6 +28,10 @@ if TomoMod_RegisterLocale then
         ["opt_hide_cdm_buffbar"] = "Masquer CDM Bonus suivi (barres)",
     })
     TomoMod_RegisterLocale("deDE", {
+        ["section_blizzard_fct"] = "Blizzards schwebender Kampftext",
+        ["info_blizzard_fct"] = "Blendet Schadens- und Heilungszahlen unabhängig aus. Andere Blizzard-Kampftexte, einschließlich Absorptionen/Schilden, bleiben unverändert.",
+        ["opt_hide_fct_damage"] = "Schwebenden Schaden deaktivieren",
+        ["opt_hide_fct_healing"] = "Schwebende Heilung deaktivieren",
         ["section_blizzard_cdm_visibility"] = "Blizzard Abklingzeitmanager",
         ["info_blizzard_cdm_visibility"] = "Aktiviere einen Eintrag, um den entsprechenden Blizzard-Cooldown-Viewer auszublenden. TomoMod macht ihn nur unsichtbar und nicht anklickbar; der Blizzard-Viewer wird weder gelöscht noch ersetzt.",
         ["opt_hide_cdm_essential"] = "CDM Essential ausblenden (wichtige Abklingzeiten)",
@@ -28,6 +40,10 @@ if TomoMod_RegisterLocale then
         ["opt_hide_cdm_buffbar"] = "CDM verfolgte Boni ausblenden (Leisten)",
     })
     TomoMod_RegisterLocale("esES", {
+        ["section_blizzard_fct"] = "Texto de combate flotante de Blizzard",
+        ["info_blizzard_fct"] = "Oculta por separado los números de daño y sanación. El resto del texto de combate de Blizzard, incluidas las absorciones/escudos, no cambia.",
+        ["opt_hide_fct_damage"] = "Desactivar daño flotante",
+        ["opt_hide_fct_healing"] = "Desactivar sanación flotante",
         ["section_blizzard_cdm_visibility"] = "Gestor de reutilización de Blizzard",
         ["info_blizzard_cdm_visibility"] = "Marca un visor para ocultar esa barra del gestor de reutilización de Blizzard. TomoMod solo la vuelve invisible y no interactiva; no elimina ni reemplaza el visor de Blizzard.",
         ["opt_hide_cdm_essential"] = "Ocultar CDM Essential (reutilizaciones esenciales)",
@@ -36,6 +52,10 @@ if TomoMod_RegisterLocale then
         ["opt_hide_cdm_buffbar"] = "Ocultar bonos seguidos de CDM (barras)",
     })
     TomoMod_RegisterLocale("itIT", {
+        ["section_blizzard_fct"] = "Testo di combattimento fluttuante Blizzard",
+        ["info_blizzard_fct"] = "Nasconde separatamente i numeri di danno e cura. Gli altri testi di combattimento Blizzard, inclusi assorbimenti/scudi, restano invariati.",
+        ["opt_hide_fct_damage"] = "Disattiva danni fluttuanti",
+        ["opt_hide_fct_healing"] = "Disattiva cure fluttuanti",
         ["section_blizzard_cdm_visibility"] = "Gestore recuperi Blizzard",
         ["info_blizzard_cdm_visibility"] = "Seleziona un viewer per nascondere la relativa barra del gestore recuperi Blizzard. TomoMod la rende solo invisibile e non cliccabile; non elimina né sostituisce il viewer Blizzard.",
         ["opt_hide_cdm_essential"] = "Nascondi CDM Essential (recuperi essenziali)",
@@ -44,6 +64,10 @@ if TomoMod_RegisterLocale then
         ["opt_hide_cdm_buffbar"] = "Nascondi bonus tracciati CDM (barre)",
     })
     TomoMod_RegisterLocale("ptBR", {
+        ["section_blizzard_fct"] = "Texto de combate flutuante da Blizzard",
+        ["info_blizzard_fct"] = "Oculta separadamente os números de dano e cura. Os outros textos de combate da Blizzard, incluindo absorções/escudos, permanecem inalterados.",
+        ["opt_hide_fct_damage"] = "Desativar dano flutuante",
+        ["opt_hide_fct_healing"] = "Desativar cura flutuante",
         ["section_blizzard_cdm_visibility"] = "Gerenciador de recarga da Blizzard",
         ["info_blizzard_cdm_visibility"] = "Marque um visualizador para ocultar a barra correspondente do Gerenciador de Recarga da Blizzard. O TomoMod apenas a torna invisível e não clicável; ele não remove nem substitui o visualizador da Blizzard.",
         ["opt_hide_cdm_essential"] = "Ocultar CDM Essential (recargas essenciais)",
@@ -484,6 +508,38 @@ function TomoMod_ConfigPanel_General(parent)
     end)
 
     y = W.FinalizeCard(auraCard, ay)
+
+    -- ═══════════════════════════════════════════════
+    -- BLIZZARD FLOATING COMBAT TEXT
+    -- ═══════════════════════════════════════════════
+    local fctCard, fty = W.CreateCard(c, L["section_blizzard_fct"], y)
+    local _, fty = W.CreateInfoText(fctCard.inner, L["info_blizzard_fct"], fty)
+
+    TomoModDB.floatingCombatText = TomoModDB.floatingCombatText or {
+        hideDamage = false,
+        hideHealing = false,
+    }
+    local fctDB = TomoModDB.floatingCombatText
+
+    local _, fty = W.CreateCheckbox(fctCard.inner, L["opt_hide_fct_damage"],
+        fctDB.hideDamage == true, fty, function(v)
+            if TomoMod_CombatText and TomoMod_CombatText.SetFloatingDamageHidden then
+                TomoMod_CombatText.SetFloatingDamageHidden(v)
+            else
+                fctDB.hideDamage = v
+            end
+        end)
+
+    local _, fty = W.CreateCheckbox(fctCard.inner, L["opt_hide_fct_healing"],
+        fctDB.hideHealing == true, fty, function(v)
+            if TomoMod_CombatText and TomoMod_CombatText.SetFloatingHealingHidden then
+                TomoMod_CombatText.SetFloatingHealingHidden(v)
+            else
+                fctDB.hideHealing = v
+            end
+        end)
+
+    y = W.FinalizeCard(fctCard, fty)
 
     -- ═══════════════════════════════════════════════
     -- BLIZZARD COOLDOWN MANAGER — VISIBILITY

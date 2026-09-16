@@ -76,6 +76,36 @@ local function SetCol(key, r, g, b)
     Refresh()
 end
 
+local function ClampColorChannel(value, fallback)
+    value = tonumber(value)
+    if not value then return fallback end
+    return math.max(0, math.min(1, value))
+end
+
+local function RefreshGlowAppearance()
+    if type(_G.TUI_RefreshActionBarGlowAppearance) == "function" then
+        _G.TUI_RefreshActionBarGlowAppearance()
+    else
+        Refresh()
+    end
+end
+
+local function SetGlowColor(r, g, b)
+    local db = DB()
+    if not db then return end
+    local c = db.global.glowColor
+    if type(c) ~= "table" then c = {}; db.global.glowColor = c end
+    c[1] = ClampColorChannel(r, 0.2)
+    c[2] = ClampColorChannel(g, 0.82)
+    c[3] = ClampColorChannel(b, 0.6)
+    c[4] = ClampColorChannel(c[4], 1)
+    -- Choosing a colour is an explicit request to stop inheriting the skin
+    -- accent. Without this, the picker changed a stored value the renderer
+    -- intentionally ignored while glowColorSource remained "theme".
+    db.global.glowColorSource = "custom"
+    RefreshGlowAppearance()
+end
+
 local ANCHORS = {
     { value = "TOPLEFT",     text = "Haut gauche" },
     { value = "TOP",         text = "Haut" },
@@ -349,8 +379,19 @@ local function BuildIndicatorsTab(parent)
     local _, ny = W.CreateSectionHeader(c, L["section_ab_glow"], y) y = ny
     local _, ny = W.CreateDropdown(c, L["opt_ab_glow_source"], GlowSourceList(), G("glowSource", "TUI"), y,
         function(v) SetG("glowSource", v) end) y = ny
+    local glowColorSourceBeforePicker
     local _, ny = W.CreateColorPicker(c, L["opt_ab_glow_color"], Col("glowColor", { 0.2, 0.82, 0.6, 1 }), y,
-        function(r, g, b) SetCol("glowColor", r, g, b) end) y = ny
+        function(r, g, b) SetGlowColor(r, g, b) end,
+        function(event)
+            local db = DB()
+            if not db then return end
+            if event == "begin" then
+                glowColorSourceBeforePicker = db.global.glowColorSource or "theme"
+            elseif event == "cancel" then
+                db.global.glowColorSource = glowColorSourceBeforePicker or "theme"
+                RefreshGlowAppearance()
+            end
+        end) y = ny
     local _, ny = W.CreateSlider(c, L["opt_ab_glow_lines"], G("glowLines", 8), 2, 20, 1, y,
         function(v) SetG("glowLines", v) end) y = ny
     local _, ny = W.CreateSlider(c, L["opt_ab_glow_thickness"], G("glowThickness", 2), 1, 6, 1, y,

@@ -1615,7 +1615,7 @@ local function PlaceColorPicker(swatch)
     cp:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", px, py)
 end
 
-function W.CreateColorPicker(parent, text, color, yOffset, callback)
+function W.CreateColorPicker(parent, text, color, yOffset, callback, lifecycle)
     local frame = CreateFrame("Frame", nil, parent)
     frame:SetHeight(30)
     frame:SetPoint("TOPLEFT",  16, yOffset)
@@ -1651,6 +1651,7 @@ function W.CreateColorPicker(parent, text, color, yOffset, callback)
 
     swatch:SetScript("OnClick", function()
         local prev = { color.r, color.g, color.b }
+        if lifecycle then lifecycle("begin") end
         local function OnChanged()
             local r, g, b = ColorPickerFrame:GetColorRGB()
             color.r, color.g, color.b = r, g, b
@@ -1661,6 +1662,7 @@ function W.CreateColorPicker(parent, text, color, yOffset, callback)
             color.r, color.g, color.b = prev[1], prev[2], prev[3]
             UpdateDisplay(prev[1], prev[2], prev[3])
             if callback then callback(prev[1], prev[2], prev[3]) end
+            if lifecycle then lifecycle("cancel") end
         end
         if ColorPickerFrame.SetupColorPickerAndShow then
             ColorPickerFrame:SetupColorPickerAndShow({

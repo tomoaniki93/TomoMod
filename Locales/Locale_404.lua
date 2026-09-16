@@ -3,6 +3,8 @@
 -- =====================================================================
 
 TomoMod_RegisterLocale("enUS", {
+    ["wn_404_actionbar_glow_color"] = "Fixed — Choosing an action-bar glow colour now automatically enables the custom-colour source and refreshes active glows immediately. Cancelling the picker restores both the previous colour and its original theme or custom source.",
+    ["wn_404_floating_combat_text"] = "New — General settings can now hide Blizzard's floating damage and healing numbers independently without changing absorb or shield notifications. TomoMod preserves and restores the exact previous CVar values when either option is disabled again.",
     ["wn_404_tomohdv_buy_layout"] = "Fixed — TomoHDV V3.2 keeps quantity, total and status clear of the buy button on ultrawide displays and at compact UI scales. The complete direct-purchase workflow now stays inside the available height of the item sheet.",
     ["wn_404_tomohdv_buy_final_polish"] = "Changed — TomoHDV V3.3 moves the direct-purchase controls into their own card, stretched between the price cards and the confirmation button. Quantity can no longer climb into the price cards at any UI scale, and the taller, slightly wider item sheet gives the estimated total and the status line more room.",
     ["wn_404_nameplates_secret_power"] = "Fixed — Follower-dungeon role detection checks whether UnitPowerMax returned a protected value before comparing it. Unreadable mana safely falls back to the damage role instead of raising an error in restricted content.",
@@ -18,6 +20,8 @@ TomoMod_RegisterLocale("enUS", {
 })
 
 TomoMod_RegisterLocale("frFR", {
+    ["wn_404_actionbar_glow_color"] = "Correction — Choisir la couleur du halo des barres d'action active maintenant automatiquement la source de couleur personnalisée et actualise immédiatement les halos visibles. Annuler restaure la couleur précédente ainsi que sa source, thème ou personnalisée.",
+    ["wn_404_floating_combat_text"] = "Nouveauté — Les réglages généraux peuvent maintenant masquer séparément les dégâts et les soins flottants de Blizzard sans modifier les notifications d'absorption ou de bouclier. TomoMod conserve et restaure les valeurs CVar précédentes exactes lorsque chaque option est désactivée.",
     ["wn_404_tomohdv_buy_layout"] = "Correction — TomoHDV V3.2 garde la quantité, le total et l'état à l'écart du bouton d'achat sur les écrans ultralarges et avec une échelle d'interface réduite. L'ensemble de l'achat direct reste maintenant dans la hauteur disponible de la fiche objet.",
     ["wn_404_tomohdv_buy_final_polish"] = "Modification — TomoHDV V3.3 déplace les contrôles d'achat direct dans une carte dédiée, étirée entre les cartes de prix et le bouton de confirmation. La quantité ne peut plus remonter sur les cartes de prix, quelle que soit l'échelle d'interface, et la fiche objet plus haute et légèrement plus large laisse davantage de place au total estimé et à la ligne d'état.",
     ["wn_404_nameplates_secret_power"] = "Correction — La détection des rôles dans les donjons avec compagnons vérifie si UnitPowerMax a renvoyé une valeur protégée avant de la comparer. Une mana illisible revient sans erreur au rôle de dégâts dans le contenu restreint.",
@@ -33,6 +37,8 @@ TomoMod_RegisterLocale("frFR", {
 })
 
 TomoMod_RegisterLocale("deDE", {
+    ["wn_404_actionbar_glow_color"] = "Behoben — Die Auswahl einer Aktionsleisten-Leuchtfarbe aktiviert jetzt automatisch die benutzerdefinierte Farbquelle und aktualisiert sichtbare Leuchteffekte sofort. Abbrechen stellt sowohl die vorherige Farbe als auch ihre ursprüngliche Design- oder benutzerdefinierte Quelle wieder her.",
+    ["wn_404_floating_combat_text"] = "Neu — In den allgemeinen Einstellungen lassen sich Blizzards schwebende Schadens- und Heilungszahlen jetzt unabhängig ausblenden, ohne Absorptions- oder Schildmeldungen zu verändern. TomoMod bewahrt die vorherigen CVar-Werte auf und stellt sie beim Deaktivieren der jeweiligen Option exakt wieder her.",
     ["wn_404_tomohdv_buy_layout"] = "Behoben — TomoHDV V3.2 hält Menge, Summe und Status auf Ultrawide-Bildschirmen und bei kleiner UI-Skalierung von der Kaufschaltfläche frei. Der vollständige Direktkauf bleibt nun innerhalb der verfügbaren Höhe der Gegenstandsansicht.",
     ["wn_404_tomohdv_buy_final_polish"] = "Geändert — TomoHDV V3.3 verschiebt die Direktkauf-Steuerelemente in eine eigene Karte, die sich zwischen den Preiskarten und der Bestätigungsschaltfläche aufspannt. Die Menge kann bei keiner UI-Skalierung mehr in die Preiskarten wandern, und die höhere, etwas breitere Gegenstandsansicht gibt der geschätzten Summe und der Statuszeile mehr Platz.",
     ["wn_404_nameplates_secret_power"] = "Behoben — Die Rollenerkennung in Anhängerdungeons prüft vor dem Vergleich, ob UnitPowerMax einen geschützten Wert geliefert hat. Nicht lesbares Mana fällt in eingeschränkten Inhalten fehlerfrei auf die Schadensrolle zurück.",
@@ -48,6 +54,8 @@ TomoMod_RegisterLocale("deDE", {
 })
 
 TomoMod_RegisterLocale("esES", {
+    ["wn_404_actionbar_glow_color"] = "Corrección — Elegir el color del brillo de las barras de acción ahora activa automáticamente la fuente de color personalizada y actualiza de inmediato los brillos visibles. Cancelar restaura tanto el color anterior como su fuente original, de tema o personalizada.",
+    ["wn_404_floating_combat_text"] = "Novedad — Los ajustes generales ahora permiten ocultar por separado los números flotantes de daño y sanación de Blizzard sin cambiar los avisos de absorción o escudo. TomoMod conserva y restaura los valores CVar anteriores exactos al desactivar cada opción.",
     ["wn_404_tomohdv_buy_layout"] = "Corrección — TomoHDV V3.2 mantiene la cantidad, el total y el estado alejados del botón de compra en pantallas ultrapanorámicas y con escalas de interfaz reducidas. Todo el flujo de compra directa permanece ahora dentro de la altura disponible de la ficha del objeto.",
     ["wn_404_tomohdv_buy_final_polish"] = "Cambio — TomoHDV V3.3 traslada los controles de compra directa a su propia tarjeta, estirada entre las tarjetas de precio y el botón de confirmación. La cantidad ya no puede invadir las tarjetas de precio con ninguna escala de interfaz, y la ficha del objeto, más alta y algo más ancha, deja más espacio al total estimado y a la línea de estado.",
     ["wn_404_nameplates_secret_power"] = "Corrección — La detección de roles en mazmorras con seguidores comprueba si UnitPowerMax devolvió un valor protegido antes de compararlo. Si el maná no es legible, se usa el rol de daño sin provocar errores en contenido restringido.",
@@ -63,6 +71,8 @@ TomoMod_RegisterLocale("esES", {
 })
 
 TomoMod_RegisterLocale("itIT", {
+    ["wn_404_actionbar_glow_color"] = "Correzione — La scelta del colore del bagliore delle barre delle azioni ora attiva automaticamente la sorgente colore personalizzata e aggiorna subito i bagliori visibili. Annullando vengono ripristinati sia il colore precedente sia la sua sorgente originale, tema o personalizzata.",
+    ["wn_404_floating_combat_text"] = "Novità — Le impostazioni generali possono ora nascondere separatamente i numeri fluttuanti di danno e cura di Blizzard senza modificare gli avvisi di assorbimento o scudo. TomoMod conserva e ripristina gli esatti valori CVar precedenti quando ciascuna opzione viene disattivata.",
     ["wn_404_tomohdv_buy_layout"] = "Correzione — TomoHDV V3.2 tiene quantità, totale e stato lontani dal pulsante di acquisto sugli schermi ultrawide e con scale dell'interfaccia ridotte. L'intero flusso di acquisto diretto resta ora entro l'altezza disponibile della scheda oggetto.",
     ["wn_404_tomohdv_buy_final_polish"] = "Modifica — TomoHDV V3.3 sposta i controlli di acquisto diretto in una scheda dedicata, estesa tra le schede dei prezzi e il pulsante di conferma. La quantità non può più salire sulle schede dei prezzi con nessuna scala dell'interfaccia, e la scheda oggetto più alta e leggermente più larga lascia più spazio al totale stimato e alla riga di stato.",
     ["wn_404_nameplates_secret_power"] = "Correzione — Il rilevamento dei ruoli nelle spedizioni con seguaci controlla se UnitPowerMax ha restituito un valore protetto prima di confrontarlo. Se il mana non è leggibile, viene usato senza errori il ruolo assaltatore nei contenuti limitati.",
@@ -78,6 +88,8 @@ TomoMod_RegisterLocale("itIT", {
 })
 
 TomoMod_RegisterLocale("ptBR", {
+    ["wn_404_actionbar_glow_color"] = "Correção — Escolher a cor do brilho das barras de ação agora ativa automaticamente a fonte de cor personalizada e atualiza de imediato os brilhos visíveis. Cancelar restaura tanto a cor anterior quanto sua fonte original, de tema ou personalizada.",
+    ["wn_404_floating_combat_text"] = "Novidade — As configurações gerais agora podem ocultar separadamente os números flutuantes de dano e cura da Blizzard sem alterar os avisos de absorção ou escudo. O TomoMod preserva e restaura os valores CVar anteriores exatos quando cada opção é desativada.",
     ["wn_404_tomohdv_buy_layout"] = "Correção — O TomoHDV V3.2 mantém quantidade, total e estado longe do botão de compra em telas ultrawide e com escalas reduzidas da interface. Todo o fluxo de compra direta agora permanece dentro da altura disponível da ficha do item.",
     ["wn_404_tomohdv_buy_final_polish"] = "Alteração — O TomoHDV V3.3 move os controles de compra direta para um cartão próprio, esticado entre os cartões de preço e o botão de confirmação. A quantidade não pode mais subir sobre os cartões de preço em nenhuma escala da interface, e a ficha do item, mais alta e um pouco mais larga, dá mais espaço ao total estimado e à linha de estado.",
     ["wn_404_nameplates_secret_power"] = "Correção — A detecção de função em masmorras com seguidores verifica se UnitPowerMax retornou um valor protegido antes de compará-lo. Se a mana não puder ser lida, a função volta com segurança para dano em conteúdo restrito.",

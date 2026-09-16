@@ -532,6 +532,27 @@ function ActionBarsOwned.UpdateAllOverlayGlows()
     end
 end
 
+-- TOMOMOD: Reapply the provider options of glows that are already visible.
+-- UpdateAllOverlayGlows only reconciles whether a glow should exist; its
+-- normal Show path deliberately returns early for an active glow, so a colour
+-- changed in Options otherwise does not reach that glow until the next proc.
+function ActionBarsOwned.RefreshActiveGlowAppearance()
+    local IconGlow = ns.IconGlow
+    if not IconGlow then return end
+
+    for button in pairs(ActionBarsOwned._activeButtons) do
+        local state = GetFrameState(button)
+        if state.quiProcGlow then
+            IconGlow.Stop(button)
+            IconGlow.Start(button, ActionBarGlowOpts(nil))
+        end
+    end
+end
+
+_G.TUI_RefreshActionBarGlowAppearance = function()
+    ActionBarsOwned.RefreshActiveGlowAppearance()
+end
+
 -- TOMOMOD 3.6.1 / combat input-latency hardening:
 -- HIDE edges are targeted immediately, but their safety reconciliation used to
 -- sweep every visible action button synchronously for every event. Proc-heavy

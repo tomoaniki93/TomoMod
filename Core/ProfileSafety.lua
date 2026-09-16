@@ -9,7 +9,8 @@ S.MAX_DEPTH = 24
 S.MAX_NODES = 150000
 S.MAX_BACKUPS = 5
 S.EXCLUDED = { _profiles = true, _profileBackups = true, _migrations = true,
-    _auraTrackerRescue = true, _profileSafetyMigrationBackup = true }
+    _auraTrackerRescue = true, _floatingCombatTextBackup = true,
+    _profileSafetyMigrationBackup = true }
 
 local POINTS = { TOPLEFT=true, TOP=true, TOPRIGHT=true, LEFT=true, CENTER=true,
     RIGHT=true, BOTTOMLEFT=true, BOTTOM=true, BOTTOMRIGHT=true }

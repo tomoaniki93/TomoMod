@@ -579,6 +579,10 @@ TomoMod_Defaults = {
         offsetX = 0,
         offsetY = 0,
     },
+    floatingCombatText = {
+        hideDamage = false,
+        hideHealing = false,
+    },
     bagMicroMenu = {
         bagBarMode = "show",
         microMenuMode = "show",

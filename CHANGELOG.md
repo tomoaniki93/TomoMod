@@ -51,6 +51,16 @@
 - **New** - Closing Mythic+ Studio, Party & Raid Studio, Resource & Cast Studio or Astral Forge Studio automatically opens the TomoMod GUI again. Cooldown Studio deliberately keeps its existing safety-reload exit flow and does not reopen the GUI behind the reload confirmation.
 - **Fixed** - Temporary hand-offs to Cooldown bar positioning, Mythic+ tracker positioning, run analysis or the legacy dungeon view do not count as leaving a Studio and never reopen the GUI prematurely.
 
+#### Action Bars — Glow Colour Validation
+
+- **Fixed** - Choosing an action-bar glow colour now automatically selects the custom-colour source, so the confirmed picker value is applied instead of being silently overridden by the theme accent.
+- **Changed** - Active proc glows refresh immediately while their colour is edited. Colour channels are kept within their valid range, and cancelling the picker restores both the previous colour and its original theme or custom source.
+
+#### Floating Combat Text — Independent Damage And Healing Controls
+
+- **New** - The General options now provide separate controls for hiding Blizzard's floating damage and healing numbers. Other combat text, including absorb and shield notifications, remains unchanged.
+- **Changed** - TomoMod stores every affected Blizzard CVar before disabling it and restores its exact previous value when the option is cleared. The selected state is reapplied after login, world transitions and Blizzard Combat Text initialization without forcing the master floating-combat-text setting.
+
 #### Release Validation — Expanded Automated Gates
 
 - **New** - CI now compiles every non-library Lua file with Lua 5.1, validates XML, self-tests the secret-value auditor, runs the Lua and Python regression suites, checks critical Luacheck diagnostics and validates the packaged load graph.
