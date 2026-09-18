@@ -115,6 +115,25 @@ check("point ≠ ancre : point", d.point,  "TOP")
 check("point ≠ ancre : ancre", d.anchor, "BOTTOM")
 
 check("migration idempotente", Layout.MigratePosition(a), false)
+
+-- A fill-missing defaults merge once reintroduced relativePoint into an
+-- already-v2 position. This exact mixed record made RaidFrame use TOPLEFT on a
+-- live resize and BOTTOMLEFT after /reload. It must be cleaned without changing
+-- the canonical v2 anchor.
+local mixed = { v = 2, point = "BOTTOMLEFT", anchor = "BOTTOMLEFT",
+                relativePoint = "TOPLEFT", x = 340, y = 220 }
+check("v2 mixte nettoyé", Layout.MigratePosition(mixed), true)
+check("  ancre v2 conservée", mixed.anchor, "BOTTOMLEFT")
+check("  alias contradictoire retiré", mixed.relativePoint, nil)
+check("v2 nettoyé idempotent", Layout.MigratePosition(mixed), false)
+
+local mixedOnApply = { v = 2, point = "BOTTOMLEFT", anchor = "BOTTOMLEFT",
+                       relativePoint = "TOPLEFT", x = 340, y = 220 }
+local mixedFrame = Frame(0, 0, 200, 60)
+Layout.Apply(mixedOnApply, mixedFrame)
+check("Apply nettoie aussi un v2 mixte", mixedOnApply.relativePoint, nil)
+check("Apply choisit l'ancre v2", mixedFrame._pts.anchor, "BOTTOMLEFT")
+
 check("table méconnaissable ignorée", Layout.MigratePosition({ x = 1, y = 2 }), false)
 check("non-table ignorée", Layout.MigratePosition("bonjour"), false)
 

@@ -1122,6 +1122,8 @@ TomoMod_RegisterLocale("esES", {
     ["sublabel_sound_choice"]           = "Sonido y canal",
     ["opt_sound_file"]                  = "Sonido a reproducir",
     ["opt_sound_channel"]               = "Canal de audio",
+    ["opt_sound_volume"]                = "Volumen del canal de audio",
+    ["info_sound_volume"]               = "Cambia el volumen global del canal seleccionado en los ajustes de audio de WoW.",
     ["btn_sound_preview"]               = ">> Escuchar sonido",
     ["btn_sound_stop"]                  = "■  Detener",
     ["opt_sound_force"]                 = "Forzar sonido aunque el juego esté silenciado",

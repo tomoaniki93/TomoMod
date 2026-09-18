@@ -55,8 +55,8 @@ function TomoMod_CursorRing.ApplyTexture()
     local FILE = {
         ring  = "Ring",
         glow  = "Glow",
-        cygle = "cygle",
-        heart = "heart",
+        arc = "Arc",
+        cross = "Cross",
     }
     local file = FILE[shape] or "Ring"
     ringTexture:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\Cursor\\" .. file)

@@ -1379,10 +1379,38 @@ local function SaveRaidAnchorPosition()
     local left, bottom = RF.anchor:GetLeft(), RF.anchor:GetBottom()
     if not left or not bottom then return end
     local scale = RF.anchor:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    db.position.v = 2
     db.position.point = "BOTTOMLEFT"
-    db.position.relativePoint = "BOTTOMLEFT"
+    db.position.anchor = "BOTTOMLEFT"
     db.position.x = left * scale
     db.position.y = bottom * scale
+    db.position.relativePoint, db.position.relPoint, db.position.relTo = nil, nil, nil
+end
+
+-- One restore path for login, profile/reset changes and live settings. The
+-- previous live-update path still read legacy `relativePoint`, while login used
+-- Layout.Apply and read the v2 `anchor`; a mixed SavedVariables record could
+-- therefore put BOTTOMLEFT above UIParent's TOPLEFT until the next /reload.
+local function ApplyRaidAnchorPosition()
+    local db = TomoModDB and TomoModDB.raidFrames
+    local anchor = RF.anchor
+    if not (db and anchor) then return false end
+
+    local pos = db.position
+    local defaults = TomoMod_Defaults and TomoMod_Defaults.raidFrames
+    defaults = defaults and defaults.position
+
+    if TomoMod_Layout and TomoMod_Layout.Apply then
+        return TomoMod_Layout.Apply(pos, anchor, defaults)
+    end
+
+    pos = (type(pos) == "table" and (pos.point or pos.anchor)) and pos or defaults
+    if type(pos) ~= "table" then return false end
+    local point = pos.point or pos.anchor or "TOPLEFT"
+    local relativePoint = pos.anchor or pos.relativePoint or pos.relPoint or pos.relTo or point
+    anchor:ClearAllPoints()
+    anchor:SetPoint(point, UIParent, relativePoint, pos.x or 0, pos.y or 0)
+    return true
 end
 
 function RF.ToggleLock()
@@ -1418,16 +1446,9 @@ function RF.CreateAnchor()
 
     local anchor = CreateFrame("Frame", "TomoMod_RaidAnchor", UIParent)
     anchor:SetSize(db.width * 5, db.height * 8)
+    anchor:SetClampedToScreen(true)
 
-    local pos = db.position
-    if pos and (pos.point or pos.anchor) then
-        if TomoMod_Layout and TomoMod_Layout.Apply then
-            TomoMod_Layout.Apply(pos, anchor)
-        else
-            anchor:SetPoint(pos.point or pos.anchor, UIParent,
-                pos.anchor or pos.relativePoint or pos.point or "TOPLEFT", pos.x or 0, pos.y or 0)
-        end
-    else
+    if not ApplyRaidAnchorPosition() then
         anchor:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 20, -200)
     end
 
@@ -1586,7 +1607,11 @@ local function OnEvent(self, event, arg1, ...)
             RF._pendingRefresh = nil
             RF.RefreshGroup()
         end
-        if RF._pendingLayout then
+        if RF._pendingSettings then
+            RF._pendingSettings = nil
+            RF._pendingLayout = nil
+            RF.ApplySettings()
+        elseif RF._pendingLayout then
             RF._pendingLayout = nil
             RF.LayoutFrames()
         end
@@ -1646,13 +1671,15 @@ function RF.ApplySettings()
     local db = TomoModDB and TomoModDB.raidFrames
     if not db then return end
 
-    if RF.anchor then
-        local pos = db.position
-        if pos and pos.point then
-            RF.anchor:ClearAllPoints()
-            RF.anchor:SetPoint(pos.point, UIParent, pos.relativePoint or pos.point, pos.x or 0, pos.y or 0)
-        end
+    -- Unit buttons are protected. Sliders in the legacy options panel can
+    -- still fire during combat, so defer the complete update instead of
+    -- leaving half-resized/half-positioned frames behind.
+    if InCombatLockdown() then
+        RF._pendingSettings = true
+        return false
     end
+
+    RF._pendingSettings = nil
 
     for _, f in pairs(RF.frames) do
         if f then
@@ -1703,6 +1730,11 @@ function RF.ApplySettings()
     else
         RF.LayoutFrames()
     end
+
+    -- Apply after LayoutFrames/RefreshPreview has established the final anchor
+    -- bounds. SetClampedToScreen can then keep the whole resized group reachable.
+    ApplyRaidAnchorPosition()
+    return true
 end
 
 -- =====================================
@@ -1733,6 +1765,7 @@ function RF.SetEnabled(v)
         RF.HidePreview()
         RF._pendingRefresh = nil
         RF._pendingLayout = nil
+        RF._pendingSettings = nil
         for _, frame in pairs(RF.frames) do
             SetRaidVisibilityDriver(frame, false)
         end

@@ -1123,6 +1123,8 @@ TomoMod_RegisterLocale("ptBR", {
     ["sublabel_sound_choice"]           = "Som e canal",
     ["opt_sound_file"]                  = "Som a reproduzir",
     ["opt_sound_channel"]               = "Canal de áudio",
+    ["opt_sound_volume"]                = "Volume do canal de áudio",
+    ["info_sound_volume"]               = "Altera o volume global do canal selecionado nas configurações de áudio do WoW.",
     ["btn_sound_preview"]               = ">> Ouvir som",
     ["btn_sound_stop"]                  = "■  Parar",
     ["opt_sound_force"]                 = "Forçar som mesmo com o jogo no mudo",

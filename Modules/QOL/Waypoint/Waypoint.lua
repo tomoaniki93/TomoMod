@@ -13,12 +13,13 @@ local ADDON_FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medi
 local ADDON_FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 local TEX_RING        = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Waypoint\\Ring"
 local TEX_ARROW       = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Waypoint\\arrow"
+local TEX_NAV_ARROW   = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Waypoint\\arrow-azure-white.tga"
 local TEX_BEAM_ATLAS  = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Waypoint\\Waypoint"
 local TEX_BEAM_MASK   = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\Waypoint\\Mask-Beam"
 local TEX_SOLID       = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\solid"
 
--- ── Palette (matches TomoMod teal) ───────────────────────────────────
-local TR, TG, TB = 0.180, 0.616, 0.847   -- accent teal (default, overridden by DB)
+-- ── Palette (matches TomoMod cyan électrique) ───────────────────────────────────
+local TR, TG, TB = 0.330, 0.870, 0.980   -- accentcyan électrique (default, overridden by DB)
 local WR, WG, WB = 0.92,  0.94,  0.92   -- near-white text
 
 -- ── Layout ───────────────────────────────────────────────────────────
@@ -132,16 +133,12 @@ Navigator:SetSize(ARROW_SIZE, ARROW_SIZE)
 Navigator:SetFrameLevel(3)
 Navigator:Hide()
 
+-- Dedicated azure-centre / white-outline navigator artwork. It stays separate
+-- from TEX_ARROW because the beacon's configurable colour still uses the
+-- original neutralised texture.
 local NavArrow = Navigator:CreateTexture(nil, "ARTWORK")
 NavArrow:SetAllPoints()
-NavArrow:SetTexture(TEX_ARROW)
-NavArrow:SetVertexColor(TR, TG, TB, 1)
-
--- Small dot on navigator arrow (direction indicator)
-local NavDot = Navigator:CreateTexture(nil, "OVERLAY")
-NavDot:SetSize(4, 4)
-NavDot:SetPoint("CENTER")
-NavDot:SetColorTexture(1, 1, 1, 0.7)
+NavArrow:SetTexture(TEX_NAV_ARROW)
 
 local NavDistFS = Navigator:CreateFontString(nil, "OVERLAY")
 NavDistFS:SetFont(ADDON_FONT, 9, "OUTLINE")
@@ -657,7 +654,7 @@ function WP.ApplySettings()
 
     BeaconIcon:SetVertexColor(r, g, b, 0.90)
     BeaconDot:SetColorTexture(r, g, b, 0.90)
-    NavArrow:SetVertexColor(r, g, b, 1)
+    NavArrow:SetVertexColor(1, 1, 1, 1)
     Beam:SetVertexColor(r, g, b, 0.50)
     BeamFX:SetVertexColor(r, g, b, 0.30)
     DistFS:SetTextColor(r, g, b, 1)
@@ -666,8 +663,10 @@ function WP.ApplySettings()
     local shape = (db and db.shape) or "ring"
     if shape == "arrow" then
         BeaconIcon:SetTexture(TEX_ARROW)
+        BeaconIcon:SetDesaturated(true)
     else
         BeaconIcon:SetTexture(TEX_RING)
+        BeaconIcon:SetDesaturated(false)
     end
 
     -- Size

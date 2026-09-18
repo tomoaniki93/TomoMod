@@ -289,7 +289,7 @@ R.Define{
 R.Define{
     key = "raidFrames", label = "mod_raidFrames", group = "groupframes",
     enabledPath = "raidFrames.enabled",
-    anchors = { { id = "raidFrames", path = "raidFrames.position", shape = "point_relativePoint", label = "frame_raid" } },
+    anchors = { { id = "raidFrames", path = "raidFrames.position", shape = "point_anchor", label = "frame_raid" } },
     global = "TomoMod_RaidFrames", applyMode = "setter", apply = "SetEnabled",
 }
 

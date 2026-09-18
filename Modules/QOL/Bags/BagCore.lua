@@ -321,11 +321,15 @@ function Bags.RequestRefresh(layoutToo)
     C_Timer.After(0, function()
         Bags.State.refreshPending = false
         if not Bags.State.initialized then return end
+        -- Consume the request before refreshing. A combat-time refresh can
+        -- put it back while refusing the protected layout pass; clearing it
+        -- afterwards used to lose that deferral permanently.
+        local layoutRequested = Bags.State.layoutPending
+        Bags.State.layoutPending = false
         local slots = Bags.Modules.Slots
         if slots and slots.Refresh then
-            slots:Refresh(Bags.State.layoutPending)
+            slots:Refresh(layoutRequested)
         end
-        Bags.State.layoutPending = false
         local sidebar = Bags.Modules.Sidebar
         if sidebar and sidebar.Refresh then sidebar:Refresh() end
         local layout = Bags.Modules.Layout

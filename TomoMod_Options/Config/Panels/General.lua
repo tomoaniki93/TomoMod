@@ -605,8 +605,8 @@ function TomoMod_ConfigPanel_General(parent)
         {
             { text = L["cursor_tex_ring"],  value = "ring"  },
             { text = L["cursor_tex_glow"],  value = "glow"  },
-            { text = L["cursor_tex_cygle"], value = "cygle" },
-            { text = L["cursor_tex_heart"], value = "heart" },
+            { text = L["cursor_tex_arc"], value = "arc" },
+            { text = L["cursor_tex_cross"], value = "cross" },
         },
         TomoModDB.cursorRing.shape or "ring",
         cy,

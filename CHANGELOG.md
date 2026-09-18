@@ -1,5 +1,35 @@
 ﻿## ####################################
 
+## CHANGELOG 4.0.5
+
+#### LustSound — Audio Channel Volume
+
+- **New** - The LustSound panel now includes a volume slider for the selected WoW audio channel. Switching channels refreshes the displayed value, and changes stay synchronized with WoW's native audio settings.
+
+#### Bags V4 — Combat Access
+
+- **New** - The combined TomoMod bag can now be opened and closed during combat when its secure slot pool and hidden Blizzard container frames were prepared before lockdown.
+- **Changed** - Separate bag mode now lets Blizzard's normal bag bindings open and close the native bags during combat, while deferred styling is applied when combat ends.
+- **Fixed** - If Blizzard creates a new unsuppressed container during combat, the native bag remains the safe fallback until combat ends instead of competing with the combined TomoMod window.
+- **Fixed** - A protected bag layout refresh skipped during combat remains queued for `PLAYER_REGEN_ENABLED` instead of being cleared at the end of the same refresh callback.
+
+#### Raid Frames — Stable Live Resizing And Positioning
+
+- **Fixed** - Changing Raid Frame width, height, spacing or layout now restores the anchor through the same resolution-aware layout engine used at login. Live updates can no longer reinterpret a saved `BOTTOMLEFT` position through a stale `TOPLEFT` relative point and move the complete raid off-screen until `/reload`.
+- **Changed** - Raid Frame positions now use the canonical `point` and `anchor` fields. Mixed version-2 records are cleaned whenever they are read, the default schema no longer reintroduces the legacy `relativePoint` field and existing profile coordinates remain compatible.
+- **Fixed** - Raid Frame settings requested during combat are deferred and replayed on `PLAYER_REGEN_ENABLED`, preventing protected unit buttons from being left partially resized. The final Raid Frame anchor is also clamped to the screen after its new bounds are calculated.
+
+#### Waypoint — Azure Navigator Arrow
+
+- **New** - The off-screen waypoint navigator now uses dedicated transparent artwork with an azure-blue centre and a clean white outline. The original arrow texture remains available for the configurable in-world beacon.
+- **Fixed** - The small white direction square at the centre of the navigator has been removed. The new navigator artwork is rendered without the former teal vertex tint, preserving its authored blue-and-white colours in game.
+
+#### Housing - Clock dot
+
+- **Changed** - The dot at the center of the clock as been removed
+
+## ####################################
+
 ## CHANGELOG 4.0.4
 
 #### TomoHDV V3.2 — Stable Purchase Panel

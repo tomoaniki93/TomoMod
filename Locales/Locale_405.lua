@@ -1,0 +1,69 @@
+-- =====================================================================
+-- Locale_405.lua — v4.0.5 release notes and feature highlights
+-- =====================================================================
+
+TomoMod_RegisterLocale("enUS", {
+    ["wn_405_bags_combat"] = "New — Bags V4 can now open and close its combined TomoMod window during combat when its protected item buttons and hidden Blizzard bag frames were prepared before lockdown. Bag keybinds, the backpack button and the normal Blizzard bag lifecycle continue to drive the window.",
+    ["wn_405_bags_native_fallback"] = "Changed — Separate mode keeps Blizzard's native bag bindings available during combat. If Blizzard creates an unsuppressed container after lockdown, that native window remains the safe fallback until combat ends instead of competing with the combined view.",
+    ["wn_405_bags_layout_replay"] = "Fixed — A bag layout refresh that cannot move protected slots during combat now stays queued and is replayed on PLAYER_REGEN_ENABLED, so the combined grid is fully updated as soon as combat ends.",
+    ["wn_405_raidframe_live_resize"] = "Fixed — Changing Raid Frame width, height, spacing or layout now uses the same resolution-aware position engine as login, so the complete raid can no longer jump off-screen until /reload.",
+    ["wn_405_raidframe_position_schema"] = "Changed — Raid Frame positions now use canonical point/anchor data. Contradictory legacy relativePoint values are removed automatically while existing profile coordinates remain compatible.",
+    ["wn_405_raidframe_combat_replay"] = "Fixed — Raid Frame settings requested during combat are deferred and fully replayed when combat ends. The resized anchor is also clamped to the screen so it remains reachable.",
+    ["wn_405_waypoint_arrow"] = "New — The off-screen waypoint navigator now uses dedicated transparent artwork with an azure-blue centre and a clean white outline.",
+    ["wn_405_waypoint_arrow_cleanup"] = "Fixed — The small white square at the centre of the waypoint arrow has been removed, and the artwork is no longer altered by the former teal tint.",
+})
+
+TomoMod_RegisterLocale("frFR", {
+    ["wn_405_bags_combat"] = "Nouveauté — Bags V4 peut maintenant ouvrir et fermer sa fenêtre combinée TomoMod pendant le combat lorsque ses boutons d'objet protégés et les fenêtres de sacs Blizzard masquées ont été préparés avant le verrouillage. Les raccourcis de sacs, le bouton du sac à dos et le cycle normal de Blizzard continuent de piloter la fenêtre.",
+    ["wn_405_bags_native_fallback"] = "Modification — Le mode séparé conserve les raccourcis de sacs natifs de Blizzard pendant le combat. Si Blizzard crée un conteneur non masqué après le verrouillage, cette fenêtre native reste la solution de secours sûre jusqu'à la fin du combat au lieu d'entrer en conflit avec la vue combinée.",
+    ["wn_405_bags_layout_replay"] = "Correction — Une actualisation de disposition qui ne peut pas déplacer les cases protégées pendant le combat reste maintenant en attente et est rejouée à PLAYER_REGEN_ENABLED, afin que la grille combinée soit entièrement mise à jour dès la fin du combat.",
+    ["wn_405_raidframe_live_resize"] = "Correction — Modifier la largeur, la hauteur, l'espacement ou la disposition des cadres de raid utilise maintenant le même moteur de position adapté à la résolution qu'à la connexion ; le raid complet ne peut donc plus sortir de l'écran jusqu'au /reload.",
+    ["wn_405_raidframe_position_schema"] = "Modification — Les positions des cadres de raid utilisent désormais les données canoniques point/anchor. Les anciennes valeurs relativePoint contradictoires sont supprimées automatiquement tout en conservant les coordonnées des profils existants.",
+    ["wn_405_raidframe_combat_replay"] = "Correction — Les réglages des cadres de raid demandés pendant le combat sont différés puis entièrement appliqués à la fin du combat. L'ancre redimensionnée est également limitée à l'écran afin de rester accessible.",
+    ["wn_405_waypoint_arrow"] = "Nouveauté — Le navigateur de point de route hors écran utilise maintenant une texture transparente dédiée, avec un centre bleu azur et un contour blanc net.",
+    ["wn_405_waypoint_arrow_cleanup"] = "Correction — Le petit carré blanc au centre de la flèche du point de route a été supprimé et l'ancienne teinte teal ne modifie plus les couleurs de l'image.",
+})
+
+TomoMod_RegisterLocale("deDE", {
+    ["wn_405_bags_combat"] = "Neu — Bags V4 kann sein kombiniertes TomoMod-Fenster jetzt im Kampf öffnen und schließen, wenn die geschützten Gegenstandsschaltflächen und ausgeblendeten Blizzard-Taschenfenster vor der Sperre vorbereitet wurden. Taschen-Tastenkürzel, der Rucksackknopf und Blizzards normaler Taschenablauf steuern das Fenster weiterhin.",
+    ["wn_405_bags_native_fallback"] = "Geändert — Im getrennten Modus bleiben Blizzards native Taschen-Tastenkürzel im Kampf verfügbar. Erstellt Blizzard nach der Sperre einen nicht unterdrückten Behälter, bleibt dieses native Fenster bis zum Kampfende die sichere Ausweichlösung, statt mit der kombinierten Ansicht zu konkurrieren.",
+    ["wn_405_bags_layout_replay"] = "Behoben — Eine Taschenlayout-Aktualisierung, die geschützte Plätze im Kampf nicht verschieben darf, bleibt jetzt vorgemerkt und wird bei PLAYER_REGEN_ENABLED wiederholt, sodass das kombinierte Raster direkt nach dem Kampf vollständig aktualisiert wird.",
+    ["wn_405_raidframe_live_resize"] = "Behoben — Änderungen an Breite, Höhe, Abstand oder Anordnung der Schlachtzugsfenster verwenden jetzt dieselbe auflösungsabhängige Positionslogik wie beim Anmelden. Der gesamte Schlachtzug kann dadurch nicht mehr bis zum /reload außerhalb des Bildschirms landen.",
+    ["wn_405_raidframe_position_schema"] = "Geändert — Positionen der Schlachtzugsfenster verwenden jetzt die einheitlichen point/anchor-Daten. Widersprüchliche ältere relativePoint-Werte werden automatisch entfernt, während vorhandene Profilkoordinaten kompatibel bleiben.",
+    ["wn_405_raidframe_combat_replay"] = "Behoben — Im Kampf angeforderte Einstellungen der Schlachtzugsfenster werden aufgeschoben und nach Kampfende vollständig angewendet. Der skalierte Anker wird außerdem innerhalb des Bildschirms gehalten.",
+    ["wn_405_waypoint_arrow"] = "Neu — Der Wegpunkt-Navigator außerhalb des Bildschirms verwendet jetzt eine eigene transparente Grafik mit azurblauer Mitte und sauberer weißer Kontur.",
+    ["wn_405_waypoint_arrow_cleanup"] = "Behoben — Das kleine weiße Quadrat in der Mitte des Wegpunktpfeils wurde entfernt und die frühere türkise Einfärbung verändert die Farben der Grafik nicht mehr.",
+})
+
+TomoMod_RegisterLocale("esES", {
+    ["wn_405_bags_combat"] = "Novedad — Bags V4 ahora puede abrir y cerrar su ventana combinada de TomoMod durante el combate cuando los botones de objeto protegidos y las ventanas de bolsas de Blizzard ocultas se prepararon antes del bloqueo. Los atajos de bolsas, el botón de la mochila y el ciclo normal de Blizzard siguen controlando la ventana.",
+    ["wn_405_bags_native_fallback"] = "Cambio — El modo separado mantiene disponibles durante el combate los atajos de bolsas nativos de Blizzard. Si Blizzard crea un contenedor no oculto después del bloqueo, esa ventana nativa permanece como alternativa segura hasta que termine el combate, sin competir con la vista combinada.",
+    ["wn_405_bags_layout_replay"] = "Corrección — Una actualización de la disposición que no puede mover casillas protegidas durante el combate ahora permanece en espera y se repite con PLAYER_REGEN_ENABLED, para que la cuadrícula combinada quede totalmente actualizada al terminar el combate.",
+    ["wn_405_raidframe_live_resize"] = "Corrección — Cambiar la anchura, la altura, el espaciado o la disposición de los marcos de banda ahora usa el mismo motor de posición adaptado a la resolución que al iniciar sesión, por lo que la banda completa ya no puede salir de la pantalla hasta hacer /reload.",
+    ["wn_405_raidframe_position_schema"] = "Cambio — Las posiciones de los marcos de banda ahora usan los datos canónicos point/anchor. Los valores relativePoint antiguos y contradictorios se eliminan automáticamente, manteniendo compatibles las coordenadas de los perfiles existentes.",
+    ["wn_405_raidframe_combat_replay"] = "Corrección — Los ajustes de los marcos de banda solicitados durante el combate se aplazan y se aplican por completo al terminar. El anclaje redimensionado también se mantiene dentro de la pantalla.",
+    ["wn_405_waypoint_arrow"] = "Novedad — El navegador de punto de ruta fuera de pantalla ahora usa una imagen transparente dedicada con centro azul celeste y un contorno blanco limpio.",
+    ["wn_405_waypoint_arrow_cleanup"] = "Corrección — Se ha eliminado el pequeño cuadrado blanco del centro de la flecha y el antiguo tinte turquesa ya no altera los colores de la imagen.",
+})
+
+TomoMod_RegisterLocale("itIT", {
+    ["wn_405_bags_combat"] = "Novità — Bags V4 può ora aprire e chiudere la finestra combinata di TomoMod durante il combattimento quando i pulsanti oggetto protetti e le finestre delle borse di Blizzard nascoste sono stati preparati prima del blocco. Le scorciatoie delle borse, il pulsante dello zaino e il normale ciclo di Blizzard continuano a controllare la finestra.",
+    ["wn_405_bags_native_fallback"] = "Modifica — La modalità separata mantiene disponibili in combattimento le scorciatoie native delle borse di Blizzard. Se Blizzard crea un contenitore non nascosto dopo il blocco, quella finestra nativa resta l'alternativa sicura fino alla fine del combattimento senza competere con la vista combinata.",
+    ["wn_405_bags_layout_replay"] = "Correzione — Un aggiornamento della disposizione che non può spostare gli scomparti protetti durante il combattimento resta ora in attesa e viene ripetuto con PLAYER_REGEN_ENABLED, così la griglia combinata viene aggiornata completamente appena termina il combattimento.",
+    ["wn_405_raidframe_live_resize"] = "Correzione — La modifica di larghezza, altezza, spaziatura o disposizione dei riquadri incursione usa ora lo stesso motore di posizione adattato alla risoluzione dell'accesso, quindi l'intera incursione non può più finire fuori schermo fino al /reload.",
+    ["wn_405_raidframe_position_schema"] = "Modifica — Le posizioni dei riquadri incursione usano ora i dati canonici point/anchor. I vecchi valori relativePoint contraddittori vengono rimossi automaticamente, mantenendo compatibili le coordinate dei profili esistenti.",
+    ["wn_405_raidframe_combat_replay"] = "Correzione — Le impostazioni dei riquadri incursione richieste durante il combattimento vengono rinviate e applicate completamente al termine. L'ancora ridimensionata viene inoltre mantenuta all'interno dello schermo.",
+    ["wn_405_waypoint_arrow"] = "Novità — Il navigatore del punto di rotta fuori schermo usa ora una grafica trasparente dedicata con centro azzurro e contorno bianco nitido.",
+    ["wn_405_waypoint_arrow_cleanup"] = "Correzione — Il piccolo quadrato bianco al centro della freccia è stato rimosso e la precedente tinta verde acqua non altera più i colori della grafica.",
+})
+
+TomoMod_RegisterLocale("ptBR", {
+    ["wn_405_bags_combat"] = "Novidade — O Bags V4 agora pode abrir e fechar sua janela combinada do TomoMod durante o combate quando os botões de item protegidos e as janelas de bolsas ocultas da Blizzard foram preparados antes do bloqueio. Os atalhos de bolsas, o botão da mochila e o ciclo normal da Blizzard continuam controlando a janela.",
+    ["wn_405_bags_native_fallback"] = "Alteração — O modo separado mantém os atalhos nativos de bolsas da Blizzard disponíveis durante o combate. Se a Blizzard criar um contêiner não oculto após o bloqueio, essa janela nativa permanece como alternativa segura até o fim do combate, sem competir com a visualização combinada.",
+    ["wn_405_bags_layout_replay"] = "Correção — Uma atualização de layout que não pode mover espaços protegidos durante o combate agora permanece na fila e é repetida em PLAYER_REGEN_ENABLED, para que a grade combinada seja totalmente atualizada assim que o combate terminar.",
+    ["wn_405_raidframe_live_resize"] = "Correção — Alterar largura, altura, espaçamento ou disposição dos quadros de raide agora usa o mesmo mecanismo de posição adaptado à resolução usado no login, portanto o raide inteiro não pode mais sair da tela até um /reload.",
+    ["wn_405_raidframe_position_schema"] = "Alteração — As posições dos quadros de raide agora usam os dados canônicos point/anchor. Valores relativePoint antigos e contraditórios são removidos automaticamente, mantendo compatíveis as coordenadas dos perfis existentes.",
+    ["wn_405_raidframe_combat_replay"] = "Correção — As configurações dos quadros de raide solicitadas durante o combate são adiadas e aplicadas por completo ao final. A âncora redimensionada também permanece limitada à tela.",
+    ["wn_405_waypoint_arrow"] = "Novidade — O navegador de ponto de rota fora da tela agora usa uma arte transparente dedicada com centro azul-celeste e contorno branco nítido.",
+    ["wn_405_waypoint_arrow_cleanup"] = "Correção — O pequeno quadrado branco no centro da seta foi removido e a antiga tonalidade verde-azulada não altera mais as cores da arte.",
+})

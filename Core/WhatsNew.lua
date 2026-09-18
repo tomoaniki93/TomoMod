@@ -63,6 +63,19 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "4.0.5",
+        highlights = {
+            L["wn_405_bags_combat"],
+            L["wn_405_bags_native_fallback"],
+            L["wn_405_bags_layout_replay"],
+            L["wn_405_raidframe_live_resize"],
+            L["wn_405_raidframe_position_schema"],
+            L["wn_405_raidframe_combat_replay"],
+            L["wn_405_waypoint_arrow"],
+            L["wn_405_waypoint_arrow_cleanup"],
+        },
+    },
+    {
         version = "4.0.4",
         highlights = {
             L["wn_404_tomohdv_buy_layout"],

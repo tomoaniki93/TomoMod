@@ -66,10 +66,10 @@ local ANCHORS = {
 }
 Layout.ANCHORS = ANCHORS
 
---- Legacy key names, mapped onto the two v2 fields. The three shapes
---- differ only in spelling, which is why the conversion is exact.
+--- Legacy/canonical key names, mapped onto the two v2 fields. The storage
+--- shapes differ only in spelling, which is why the conversion is exact.
 local LEGACY_POINT  = { "point",  "anchor" }
-local LEGACY_ANCHOR = { "relativePoint", "relPoint", "relTo" }
+local LEGACY_ANCHOR = { "relativePoint", "relPoint", "relTo", "anchor" }
 
 local function ScreenSize()
     if not UIParent then return nil, nil end
@@ -131,7 +131,15 @@ end
 --- land exactly where it landed before.
 function Layout.MigratePosition(pos)
     if type(pos) ~= "table" then return false end
-    if IsV2(pos) then return false end
+    if IsV2(pos) then
+        -- Fill-missing default merges used to reintroduce legacy aliases into
+        -- already-migrated records. They are ignored by v2, but leaving them
+        -- around lets older call sites pick a contradictory anchor. Normalise
+        -- these mixed records whenever the layout engine sees one.
+        local dirty = pos.relativePoint ~= nil or pos.relPoint ~= nil or pos.relTo ~= nil
+        pos.relativePoint, pos.relPoint, pos.relTo = nil, nil, nil
+        return dirty
+    end
 
     local point, anchor
     for _, k in ipairs(LEGACY_POINT) do
@@ -252,7 +260,7 @@ function Layout.Apply(store, frame, defaults)
     end
     if type(pos) ~= "table" then return false end
 
-    if not IsV2(pos) then Layout.MigratePosition(pos) end
+    Layout.MigratePosition(pos)
 
     local point  = pos.point  or pos.anchor or "CENTER"
     local anchor = pos.anchor or pos.point  or "CENTER"
@@ -281,7 +289,7 @@ end
 function Layout.Matches(store, frame, tolerance)
     if type(store) ~= "table" or not frame then return false end
     if not (frame.GetLeft and frame.GetBottom and frame.GetRight and frame.GetTop) then return false end
-    if not IsV2(store) then Layout.MigratePosition(store) end
+    Layout.MigratePosition(store)
 
     local point  = store.point  or store.anchor or "CENTER"
     local anchor = store.anchor or store.point  or "CENTER"
@@ -338,7 +346,7 @@ function Layout.StampReference(db)
     for _, a in ipairs(R.Anchors()) do
         local pos = R.GetPath(db, a.path)
         if type(pos) == "table" then
-            if not IsV2(pos) then Layout.MigratePosition(pos) end
+            Layout.MigratePosition(pos)
             if pos.point or pos.anchor then
                 pos.refW, pos.refH = w, h
                 n = n + 1

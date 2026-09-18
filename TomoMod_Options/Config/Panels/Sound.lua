@@ -20,6 +20,29 @@ local CHANNEL_OPTIONS = {
     { text = "Dialog",   value = "Dialog"    },
 }
 
+local CHANNEL_VOLUME_CVARS = {
+    Master   = "Sound_MasterVolume",
+    SFX      = "Sound_SFXVolume",
+    Music    = "Sound_MusicVolume",
+    Ambience = "Sound_AmbienceVolume",
+    Dialog   = "Sound_DialogVolume",
+}
+
+local function GetChannelVolume(channel)
+    local cvar = CHANNEL_VOLUME_CVARS[channel] or CHANNEL_VOLUME_CVARS.Master
+    local getter = (C_CVar and C_CVar.GetCVar) or GetCVar
+    local value = getter and tonumber(getter(cvar)) or 1
+    return math.floor(math.max(0, math.min(1, value or 1)) * 100 + 0.5)
+end
+
+local function SetChannelVolume(channel, percent)
+    local cvar = CHANNEL_VOLUME_CVARS[channel] or CHANNEL_VOLUME_CVARS.Master
+    local setter = (C_CVar and C_CVar.SetCVar) or SetCVar
+    if setter then
+        setter(cvar, string.format("%.2f", math.max(0, math.min(100, percent)) / 100))
+    end
+end
+
 function TomoMod_ConfigPanel_Sound(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
@@ -56,9 +79,20 @@ function TomoMod_ConfigPanel_Sound(parent)
         if TomoMod_LustSound and TomoMod_LustSound.PlayPreview then TomoMod_LustSound.PlayPreview() end
     end)
 
+    local volumeSlider
     local _, cy = W.CreateSegmentedControl(card2.inner, L["opt_sound_channel"], CHANNEL_OPTIONS, db.channel, cy, function(v)
         db.channel = v
+        if volumeSlider then
+            volumeSlider:SetValue(GetChannelVolume(v))
+        end
     end, 3)
+
+    volumeSlider, cy = W.CreateSlider(card2.inner, L["opt_sound_volume"],
+        GetChannelVolume(db.channel), 0, 100, 1, cy, function(v)
+            SetChannelVolume(db.channel, v)
+        end, "%d%%", GetChannelVolume(db.channel))
+
+    local _, cy = W.CreateInfoText(card2.inner, L["info_sound_volume"], cy)
 
     y = W.FinalizeCard(card2, cy)
 

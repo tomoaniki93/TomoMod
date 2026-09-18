@@ -314,6 +314,26 @@ function Bridge:AnyNativeShown()
     return false
 end
 
+-- Opening a bag in combat is safe when every native window involved was
+-- already parked under the hidden sink before lockdown. Reparenting a new or
+-- recycled Blizzard container is not safe, so that case deliberately keeps
+-- the native window as the fallback for the rest of the fight.
+function Bridge:HasUnsuppressedNativeShown()
+    for _, frame in ipairs(self:NativeFrames()) do
+        if frame:IsShown() and frame:GetParent() ~= self.hiddenParent then
+            return true
+        end
+    end
+    return false
+end
+
+function Bridge:HasSuppressedNativeFrames()
+    for frame in pairs(self.nativeParents) do
+        if frame and frame:GetParent() == self.hiddenParent then return true end
+    end
+    return false
+end
+
 function Bridge:SyncFromBlizzard()
     if self.syncing or not Bags.IsEnabled() then return end
     self.syncing = true
@@ -324,18 +344,32 @@ function Bridge:SyncFromBlizzard()
         local layout = Bags.Modules.Layout
         if layout and layout.frame then layout.frame:Hide() end
         Bags.State.visible = false
+        if InCombat() then
+            -- The native bag action has already run through Blizzard's secure
+            -- binding. Leave its frames untouched until combat ends, when the
+            -- separate-mode skin can be applied safely.
+            self.pendingMode = "separate"
+            self.syncing = false
+            return
+        end
         self:RestoreAll()
         self:SkinSeparateFrames()
     else
         self:RestoreNativeSkins()
-        -- We cannot safely reparent newly-created Blizzard container frames
-        -- while locked down. In that rare case keep the native bag visible
-        -- for the remainder of combat instead of displaying both systems.
+        -- Existing native frames are parked before combat, so their shown
+        -- state can still drive the prepared TomoMod window during lockdown.
+        -- Only a newly-created/reparented native frame needs the old fallback.
         if InCombat() then
             self.pendingMode = "combined"
-            local layout = Bags.Modules.Layout
-            if layout and layout.frame then layout.frame:Hide() end
-            Bags.State.visible = false
+            if self:HasUnsuppressedNativeShown() then
+                local layout = Bags.Modules.Layout
+                if layout and layout.frame then layout.frame:Hide() end
+                Bags.State.visible = false
+            elseif self:AnyNativeShown() then
+                Bags.Show()
+            else
+                Bags.Hide(true)
+            end
             self.syncing = false
             return
         end
@@ -369,6 +403,12 @@ end
 function Bridge:ShowSeparate()
     if InCombat() then
         self.pendingMode = "separate"
+        -- Separate mode normally restores every native frame before combat.
+        -- In that steady state Blizzard can open the bags normally; only a
+        -- stale suppressed frame requires waiting for PLAYER_REGEN_ENABLED.
+        if not self:HasSuppressedNativeFrames() and OpenAllBags then
+            OpenAllBags()
+        end
         return
     end
     self:RestoreAll()
@@ -377,7 +417,18 @@ function Bridge:ShowSeparate()
 end
 
 function Bridge:ToggleSeparate()
-    if InCombat() then return end
+    if InCombat() then
+        self.pendingMode = "separate"
+        if self:HasSuppressedNativeFrames() then return end
+        if ToggleAllBags then
+            ToggleAllBags()
+        elseif self:AnyNativeShown() then
+            if CloseAllBags then CloseAllBags() end
+        elseif OpenAllBags then
+            OpenAllBags()
+        end
+        return
+    end
     self:RestoreAll()
     if ToggleAllBags then
         ToggleAllBags()

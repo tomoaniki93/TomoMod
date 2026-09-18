@@ -244,13 +244,7 @@ function Handler:Init()
     f.MinuteHand:SetSize(64, 64)
     f.MinuteHand:SetPoint("CENTER", f, "CENTER", 0, 0)
     f.MinuteHand:SetTexture(TEXTURE_PATH .. "clock_hand_minute")
-
-    -- Accent centre dot (teal) — drawn on top of hands
-    local dot = f:CreateTexture(nil, "OVERLAY", nil, 1)
-    dot:SetSize(6, 6)
-    dot:SetPoint("CENTER", f, "CENTER", 0, 0)
-    dot:SetColorTexture(0.18, 0.62, 0.85, 1)
-
+   
     -- Digital fallback text (Poppins for consistency)
     local FONT_DIGITAL = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
     f.Digits = f:CreateFontString(nil, "OVERLAY")

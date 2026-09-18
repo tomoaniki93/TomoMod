@@ -62,14 +62,15 @@ for _, g in ipairs(GROUPS) do GROUP_BY_KEY[g.key] = g end
 
 R.GROUPS = GROUPS
 
--- Anchor storage shapes found in TomoMod_Defaults. Three variants grew
--- independently over time and all three are still live, so the layout
+-- Anchor storage shapes found in TomoMod_Defaults. Three legacy variants grew
+-- independently over time; point_anchor is the canonical v2 key pair. The layout
 -- engine cannot assume one. Declaring the shape per anchor turns the
 -- Lot 2 migration into a table walk instead of 26 special cases.
 local ANCHOR_SHAPES = {
     point_relativePoint = { point = "point", rel = "relativePoint", x = "x", y = "y" },
     point_relPoint      = { point = "point", rel = "relPoint",      x = "x", y = "y" },
     anchor_relTo        = { point = "anchor", rel = "relTo",        x = "x", y = "y" },
+    point_anchor        = { point = "point", rel = "anchor",       x = "x", y = "y" },
 }
 R.ANCHOR_SHAPES = ANCHOR_SHAPES
 

@@ -1034,7 +1034,7 @@ TomoMod_Defaults = {
         zoneOnly     = true,  -- hide waypoint when not in the same zone
         beaconSize   = 32,    -- icon diameter (px)
         shape        = "ring", -- "ring" or "arrow"
-        color        = { r = 0.180, g = 0.847, b = 0.518 }, -- accent teal
+        color        = { r = 0.330, g = 0.870, b = 0.980 }, -- accent cyan électrique
     },
 
     professionHelper = {
@@ -1934,7 +1934,7 @@ TomoMod_Defaults = {
         -- Position
         position = {
             point = "TOPLEFT",
-            relativePoint = "TOPLEFT",
+            anchor = "TOPLEFT",
             x = 20,
             y = -200,
         },
