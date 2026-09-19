@@ -1087,7 +1087,7 @@ TomoMod_Defaults = {
     },
 
     gearAdvisor = {
-        enabled = false,
+        enabled = true,
         mode = "automatic",
         showTooltip = true,
         showBagArrow = true,

@@ -323,6 +323,7 @@ local COMFORT_WORKSPACE_GROUPS = {
             { key = "mythickeys",  label = L["tab_qol_mythic_keys"],      kw = "mythic keys clefs cles" },
             { key = "skyride",     label = L["tab_qol_skyride"],          kw = "skyride vol flying" },
             { key = "leveling",    label = L["tab_qol_leveling"],         kw = "leveling level niveau" },
+            { key = "gearadvisor", label = (TomoMod_GearAdvisor and TomoMod_GearAdvisor.L and TomoMod_GearAdvisor.L("tab")) or ComfortText("Conseiller équipement", "Gear Advisor"), kw = "gear advisor tomogear equipment equipement upgrade score stats" },
             { key = "merchant",    label = L["tab_qol_merchant_tools"],   kw = "merchant vendeur repair reparer" },
             { key = "consumables", label = LT("tab_qol_consumable_bar", ComfortText("Consommables", "Consumables")), kw = "consumables consommables flask food huile oil ready tracker" },
             { key = "rarealert",   label = L["tab_qol_rare_alert"],       kw = "rare alert alerte rares" },
@@ -358,7 +359,7 @@ local COMFORT_WORKSPACE_GROUPS = {
 
 local COMFORT_QOL_PAGES = {
     automations = true, cinematic = true, autoquest = true, mythickeys = true,
-    skyride = true, leveling = true, merchant = true, rarealert = true,
+    skyride = true, leveling = true, gearadvisor = true, merchant = true, rarealert = true,
     profhelper = true, classremind = true, companion = true, cvaropt = true,
     worldquests = true, waypoint = true, compass = true, bagmicro = true,
 }

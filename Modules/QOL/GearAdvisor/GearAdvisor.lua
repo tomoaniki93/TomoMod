@@ -16,6 +16,11 @@ local GA = TomoMod_GearAdvisor
 local Scales = TomoMod_GearAdvisorScales or {}
 local issecretvalue = issecretvalue
 
+-- Use Blizzard atlas markup instead of a Unicode triangle. The Poppins/UI
+-- font used by TomoMod does not contain every geometric glyph, which could
+-- render the old ▲ marker as a missing-character box in item tooltips.
+local UPGRADE_MARK = "|A:bags-greenarrow:12:12:0:0|a"
+
 local DEFAULTS = {
     enabled = false,
     mode = "automatic",
@@ -423,9 +428,9 @@ local function AddTooltipAdvice(tooltip, itemLink)
 
     if info.isUpgrade then
         if info.emptySlot then
-            tooltip:AddLine("|cff2e9dd8TomoGear|r  |cff31d158▲ " .. GA.L("newslot") .. "|r")
+            tooltip:AddLine("|cff2e9dd8TomoGear|r  " .. UPGRADE_MARK .. " |cff31d158" .. GA.L("newslot") .. "|r")ine("|cff2e9dd8TomoGear|r  |cff31d158▲ " .. GA.L("newslot") .. "|r")
         elseif info.percent then
-            tooltip:AddLine(string.format("|cff2e9dd8TomoGear|r  |cff31d158▲ +%.1f%% %s|r", info.percent, GA.L("upgrade")))
+            tooltip:AddLine(string.format("|cff2e9dd8TomoGear|r  %s |cff31d158+%.1f%% %s|r", UPGRADE_MARK, info.percent, GA.L("upgrade")))
         end
     elseif db.showScores ~= true then
         return
