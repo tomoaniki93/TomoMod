@@ -561,6 +561,13 @@ R.Define{
 }
 
 R.Define{
+    key = "gearAdvisor", label = "mod_gearAdvisor", group = "qol",
+    enabledPath = "gearAdvisor.enabled",
+    global = "TomoMod_GearAdvisor", applyMode = "setter", apply = "SetEnabled",
+    combatSafe = true,
+}
+
+R.Define{
     key = "preyTracker", label = "mod_preyTracker", group = "qol",
     enabledPath = "preyTracker.enabled",
     anchors = { { id = "preyTracker", path = "preyTracker.position", shape = "point_relativePoint", label = "frame_preytracker" } },

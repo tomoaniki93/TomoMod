@@ -97,6 +97,7 @@ TomoMod_RegisterLocale("enUS", {
     ["mod_classReminder"]    = "Class Reminder",
     ["mod_afkDisplay"]       = "AFK Display",
     ["mod_lustSound"]        = "Bloodlust Sound",
+    ["mod_gearAdvisor"]      = "Gear Advisor",
     ["mod_preyTracker"]      = "Prey Tracker",
     ["mod_housing"]          = "Housing",
 
@@ -306,6 +307,7 @@ TomoMod_RegisterLocale("frFR", {
     ["mod_classReminder"]    = "Rappels de classe",
     ["mod_afkDisplay"]       = "Écran AFK",
     ["mod_lustSound"]        = "Son d'Ardeur du sang",
+    ["mod_gearAdvisor"]      = "Conseiller d'équipement",
     ["mod_preyTracker"]      = "Suivi des proies",
     ["mod_housing"]          = "Logement",
 
@@ -515,6 +517,7 @@ TomoMod_RegisterLocale("deDE", {
     ["mod_classReminder"]    = "Klassenerinnerung",
     ["mod_afkDisplay"]       = "AFK-Anzeige",
     ["mod_lustSound"]        = "Kampfrausch-Sound",
+    ["mod_gearAdvisor"]      = "Ausrüstungsberater",
     ["mod_preyTracker"]      = "Beutetracker",
     ["mod_housing"]          = "Behausung",
 
@@ -724,6 +727,7 @@ TomoMod_RegisterLocale("esES", {
     ["mod_classReminder"]    = "Recordatorio de clase",
     ["mod_afkDisplay"]       = "Pantalla AFK",
     ["mod_lustSound"]        = "Sonido de Ansia de sangre",
+    ["mod_gearAdvisor"]      = "Asesor de equipo",
     ["mod_preyTracker"]      = "Seguimiento de presas",
     ["mod_housing"]          = "Vivienda",
 
@@ -933,6 +937,7 @@ TomoMod_RegisterLocale("itIT", {
     ["mod_classReminder"]    = "Promemoria classe",
     ["mod_afkDisplay"]       = "Schermata AFK",
     ["mod_lustSound"]        = "Suono Sete di sangue",
+    ["mod_gearAdvisor"]      = "Consigliere equipaggiamento",
     ["mod_preyTracker"]      = "Tracciamento prede",
     ["mod_housing"]          = "Alloggio",
 
@@ -1142,6 +1147,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["mod_classReminder"]    = "Lembrete de classe",
     ["mod_afkDisplay"]       = "Tela AFK",
     ["mod_lustSound"]        = "Som de Sede de sangue",
+    ["mod_gearAdvisor"]      = "Assistente de equipamento",
     ["mod_preyTracker"]      = "Rastreador de presas",
     ["mod_housing"]          = "Moradia",
 

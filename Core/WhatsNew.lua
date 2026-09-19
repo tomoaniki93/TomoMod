@@ -73,6 +73,9 @@ CHANGELOG = {
             L["wn_405_raidframe_combat_replay"],
             L["wn_405_waypoint_arrow"],
             L["wn_405_waypoint_arrow_cleanup"],
+            L["wn_405_gear_advisor"],
+            L["wn_405_gear_advisor_options"],
+            L["wn_405_gear_advisor_safety"],
         },
     },
     {

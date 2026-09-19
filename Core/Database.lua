@@ -1086,6 +1086,17 @@ TomoMod_Defaults = {
         debug = false,
     },
 
+    gearAdvisor = {
+        enabled = false,
+        mode = "automatic",
+        showTooltip = true,
+        showBagArrow = true,
+        showScores = false,
+        minUpgradePercent = 1.0,
+        itemLevelWeight = 8.0,
+        custom = {},
+    },
+
     cooldownManager = {
         enabled = true,
         -- Masquage individuel des quatre viewers Blizzard (essential, utility,

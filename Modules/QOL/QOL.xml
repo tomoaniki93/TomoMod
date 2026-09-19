@@ -89,6 +89,10 @@
     <!-- Modules: LustSound -->
     <Include file="LustSound\LustSound.lua" />
 
+    <!-- Modules: GearAdvisor (TomoGear) -->
+    <Include file="GearAdvisor\GearAdvisorScales.lua" />
+    <Include file="GearAdvisor\GearAdvisor.lua" />
+
     <!-- Modules: ProfessionHelper -->
     <Include file="ProfessionHelper\ProfessionHelper.lua" />
 

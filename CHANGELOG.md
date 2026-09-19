@@ -2,6 +2,12 @@
 
 ## CHANGELOG 4.0.5
 
+#### TomoGear Advisor — Lightweight Upgrade Guidance
+
+- **New** - The opt-in TomoGear Advisor compares equippable items with conservative role-based weights in Automatic mode or per-specialization weights in Custom mode, providing quick upgrade guidance without requiring an external scale addon.
+- **New** - Advice can appear directly in item tooltips and as a green upgrade arrow in TomoMod bags. Options control numeric score display, the minimum upgrade percentage and resetting the current specialization's custom weights.
+- **Changed** - TomoGear avoids comparison, World Quest and Encounter Journal tooltips, never performs a first uncached evaluation during combat and does not attach scripts to Blizzard's secure bag buttons. Special effects, set bonuses and complex trinket procs are intentionally not simulated.
+
 #### LustSound — Audio Channel Volume
 
 - **New** - The LustSound panel now includes a volume slider for the selected WoW audio channel. Switching channels refreshes the displayed value, and changes stay synchronized with WoW's native audio settings.
@@ -23,6 +29,10 @@
 
 - **New** - The off-screen waypoint navigator now uses dedicated transparent artwork with an azure-blue centre and a clean white outline. The original arrow texture remains available for the configurable in-world beacon.
 - **Fixed** - The small white direction square at the centre of the navigator has been removed. The new navigator artwork is rendered without the former teal vertex tint, preserving its authored blue-and-white colours in game.
+
+#### Cursor Ring - Skin
+
+- **New** - Two new skin added **Cross and Arc** and two removed **Heart and Glyphe**
 
 #### Housing - Clock dot
 

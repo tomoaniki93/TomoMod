@@ -77,6 +77,7 @@ globals = {
     "TomoMod_HideCastBar", "TomoMod_Housing", "TomoMod_InfoPanel", "TomoMod_InitDatabase",
     "TomoMod_Installer", "TomoMod_IsCompareOrMoneyTooltip", "TomoMod_ItemClasses", "TomoMod_L",
     "TomoMod_LevelingBar", "TomoMod_Loots", "TomoMod_LootsData", "TomoMod_LustSound",
+    "TomoMod_GearAdvisor", "TomoMod_GearAdvisorScales",
     "TomoMod_MerchantTools", "TomoMod_MergeTables", "TomoMod_Minimap", "TomoMod_Modules",
     "TomoMod_Movers", "TomoMod_MythicHub", "TomoMod_MythicKeys", "TomoMod_MythicPartyKeys",
     "TomoMod_MythicTracker", "TomoMod_Nameplates", "TomoMod_ObjectiveTracker", "TomoMod_PartyCooldowns",

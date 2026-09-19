@@ -1734,6 +1734,109 @@ local function BuildCompanionStatusTab(parent)
 end
 
 -- =====================================
+-- TAB: TOMOGEAR ADVISOR
+-- =====================================
+
+local function BuildGearAdvisorTab(parent)
+    local scroll = W.CreateScrollPanel(parent)
+    local c = scroll.child
+    local y = -10
+    local GA = TomoMod_GearAdvisor
+
+    if not GA or not GA.GetSettings then
+        local _, ny = W.CreateSectionHeader(c, "TomoGear Advisor", y)
+        y = ny
+        local _, ny = W.CreateInfoText(c, "TomoGear Advisor is not available.", y)
+        y = ny
+        c:SetHeight(math.abs(y) + 40)
+        if scroll.UpdateScroll then scroll.UpdateScroll() end
+        return scroll
+    end
+
+    local function T(key) return GA.L and GA.L(key) or key end
+    local db = GA:GetSettings()
+    local custom = GA:GetCustomWeights()
+    local function Apply() if GA.ApplySettings then GA:ApplySettings() end end
+
+    local _, ny = W.CreateSectionHeader(c, T("section"), y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, T("desc"), y)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, string.format(T("profile"), GA:GetCurrentProfileName()), y)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, T("enable"), db.enabled == true, y, function(v)
+        GA.SetEnabled(v)
+    end)
+    y = ny
+
+    local _, ny = W.CreateCheckboxPair(c,
+        T("tooltip"), db.showTooltip ~= false, y,
+        function(v) db.showTooltip = v; Apply() end,
+        T("bags"), db.showBagArrow ~= false,
+        function(v) db.showBagArrow = v; Apply() end)
+    y = ny
+
+    local _, ny = W.CreateCheckbox(c, T("scores"), db.showScores == true, y, function(v)
+        db.showScores = v
+        Apply()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSegmentedControl(c, T("mode"), {
+        { value = "automatic", text = T("automatic") },
+        { value = "custom", text = T("custom") },
+    }, db.mode or "automatic", y, function(v)
+        db.mode = v
+        Apply()
+    end, 2)
+    y = ny
+
+    local _, ny = W.CreateSlider(c, T("threshold"), tonumber(db.minUpgradePercent) or 1.0,
+        0, 10, 0.5, y, function(v)
+            db.minUpgradePercent = v
+            Apply()
+        end, "%.1f%%")
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, T("weights"), y)
+    y = ny
+
+    local function WeightSlider(key, minValue, maxValue)
+        local frame, newY = W.CreateSlider(c, T(key), tonumber(custom[key]) or 0,
+            minValue, maxValue, 0.05, y, function(v)
+                custom[key] = v
+                Apply()
+            end, "%.2f")
+        y = newY
+        return frame
+    end
+
+    WeightSlider("primary", 0, 2.0)
+    WeightSlider("stamina", 0, 1.0)
+    WeightSlider("crit", 0, 1.5)
+    WeightSlider("haste", 0, 1.5)
+    WeightSlider("mastery", 0, 1.5)
+    WeightSlider("versatility", 0, 1.5)
+
+    local _, ny = W.CreateButton(c, T("reset"), 260, y, function()
+        GA:ResetCurrentSpecWeights()
+    end)
+    y = ny
+
+    local _, ny = W.CreateInfoText(c, T("note"), y)
+    y = ny
+
+    c:SetHeight(math.abs(y) + 40)
+    if scroll.UpdateScroll then scroll.UpdateScroll() end
+    return scroll
+end
+
+-- =====================================
 -- MAIN PANEL ENTRY POINT
 -- =====================================
 
@@ -1745,6 +1848,7 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "mythickeys",   label = L["tab_qol_mythic_keys"],  builder = function(p) return BuildMythicKeysTab(p) end },
         { key = "skyride",      label = L["tab_qol_skyride"],      builder = function(p) return BuildSkyRideTab(p) end },
         { key = "bagmicro",     label = L["tab_qol_bag_micro"],    builder = function(p) return BuildBagMicroMenuTab(p) end },
+        { key = "gearadvisor",  label = (TomoMod_GearAdvisor and TomoMod_GearAdvisor.L("tab")) or "Gear Advisor", builder = function(p) return BuildGearAdvisorTab(p) end },
         { key = "leveling",     label = L["tab_qol_leveling"],     builder = function(p) return BuildLevelingTab(p) end },
         { key = "cvaropt",      label = L["tab_qol_cvar_opt"],     builder = function(p) return BuildCVarOptimizerTab(p) end },
         { key = "worldquests",  label = L["tab_qol_world_quests"], builder = function(p) return BuildWorldQuestTab(p) end },

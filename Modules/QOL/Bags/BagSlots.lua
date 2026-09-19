@@ -232,6 +232,19 @@ function Slots:CreatePhysicalSlot(bagID, slotID)
     pin:Hide()
     wrapper.pin = pin
 
+    -- TomoGear upgrade marker. This is drawn on TomoMod's visual wrapper only;
+    -- no script is attached to Blizzard's secure item button.
+    local upgrade = button:CreateTexture(nil, "OVERLAY", nil, 4)
+    if upgrade.SetAtlas then
+        upgrade:SetAtlas("bags-greenarrow", true)
+    else
+        upgrade:SetTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
+    end
+    upgrade:SetSize(14, 14)
+    upgrade:SetPoint("BOTTOMLEFT", 1, 1)
+    upgrade:Hide()
+    wrapper.upgrade = upgrade
+
     -- Midnight 12.1: keep ContainerFrameItemButtonTemplate's input scripts
     -- pristine. C_Container.UseContainerItem is protected and Blizzard's
     -- native template can execute it securely; attaching addon HookScripts to
@@ -298,6 +311,7 @@ function Slots:Render(wrapper, item)
         wrapper.ilvl:SetText("")
         wrapper.ilvlPlate:Hide()
         wrapper.pin:Hide()
+        if wrapper.upgrade then wrapper.upgrade:Hide() end
         button:SetAlpha(1)
         button:EnableMouse(true)
         return
@@ -368,6 +382,12 @@ function Slots:Render(wrapper, item)
         wrapper.ilvlPlate:Hide()
     end
     wrapper.pin:SetShown(Bags.Modules.Data:IsPinned(item.itemID))
+
+    if wrapper.upgrade then
+        local advisor = TomoMod_GearAdvisor
+        local info = advisor and advisor.GetBagUpgradeInfo and advisor:GetBagUpgradeInfo(item)
+        wrapper.upgrade:SetShown(info and info.isUpgrade == true)
+    end
 end
 
 function Slots:LayoutDisplay(items)

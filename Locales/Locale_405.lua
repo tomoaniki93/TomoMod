@@ -11,6 +11,9 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_405_raidframe_combat_replay"] = "Fixed — Raid Frame settings requested during combat are deferred and fully replayed when combat ends. The resized anchor is also clamped to the screen so it remains reachable.",
     ["wn_405_waypoint_arrow"] = "New — The off-screen waypoint navigator now uses dedicated transparent artwork with an azure-blue centre and a clean white outline.",
     ["wn_405_waypoint_arrow_cleanup"] = "Fixed — The small white square at the centre of the waypoint arrow has been removed, and the artwork is no longer altered by the former teal tint.",
+    ["wn_405_gear_advisor"] = "New — TomoGear Advisor provides lightweight comparisons for equippable items using conservative role-based weights in Automatic mode or per-specialization weights in Custom mode.",
+    ["wn_405_gear_advisor_options"] = "New — Advice can appear in item tooltips and as a green upgrade arrow in TomoMod bags. Options control numeric scores, the minimum upgrade percentage and resetting the current specialization's custom weights.",
+    ["wn_405_gear_advisor_safety"] = "Changed — TomoGear avoids comparison, World Quest and Encounter Journal tooltips, never performs a first uncached evaluation during combat and does not attach scripts to Blizzard's secure bag buttons. Special effects, set bonuses and complex trinket procs are intentionally not simulated.",
 })
 
 TomoMod_RegisterLocale("frFR", {
@@ -22,6 +25,9 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_405_raidframe_combat_replay"] = "Correction — Les réglages des cadres de raid demandés pendant le combat sont différés puis entièrement appliqués à la fin du combat. L'ancre redimensionnée est également limitée à l'écran afin de rester accessible.",
     ["wn_405_waypoint_arrow"] = "Nouveauté — Le navigateur de point de route hors écran utilise maintenant une texture transparente dédiée, avec un centre bleu azur et un contour blanc net.",
     ["wn_405_waypoint_arrow_cleanup"] = "Correction — Le petit carré blanc au centre de la flèche du point de route a été supprimé et l'ancienne teinte teal ne modifie plus les couleurs de l'image.",
+    ["wn_405_gear_advisor"] = "Nouveauté — Le conseiller TomoGear compare les objets équipables avec des poids prudents selon le rôle en mode Automatique ou des poids propres à chaque spécialisation en mode Personnalisé.",
+    ["wn_405_gear_advisor_options"] = "Nouveauté — Les recommandations peuvent apparaître dans les infobulles d'objet et sous forme de flèche verte d'amélioration dans les sacs TomoMod. Les options règlent l'affichage des scores, le pourcentage minimal d'amélioration et la réinitialisation des poids de la spécialisation actuelle.",
+    ["wn_405_gear_advisor_safety"] = "Modification — TomoGear ignore les infobulles de comparaison, de quêtes mondiales et du guide de l'aventurier, n'effectue jamais une première évaluation non mise en cache pendant le combat et n'ajoute aucun script aux boutons de sac sécurisés de Blizzard. Les effets spéciaux, bonus d'ensemble et procs complexes de bijoux ne sont volontairement pas simulés.",
 })
 
 TomoMod_RegisterLocale("deDE", {
@@ -33,6 +39,9 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_405_raidframe_combat_replay"] = "Behoben — Im Kampf angeforderte Einstellungen der Schlachtzugsfenster werden aufgeschoben und nach Kampfende vollständig angewendet. Der skalierte Anker wird außerdem innerhalb des Bildschirms gehalten.",
     ["wn_405_waypoint_arrow"] = "Neu — Der Wegpunkt-Navigator außerhalb des Bildschirms verwendet jetzt eine eigene transparente Grafik mit azurblauer Mitte und sauberer weißer Kontur.",
     ["wn_405_waypoint_arrow_cleanup"] = "Behoben — Das kleine weiße Quadrat in der Mitte des Wegpunktpfeils wurde entfernt und die frühere türkise Einfärbung verändert die Farben der Grafik nicht mehr.",
+    ["wn_405_gear_advisor"] = "Neu — Der TomoGear-Ausrüstungsberater vergleicht ausrüstbare Gegenstände im Automatikmodus mit vorsichtigen rollenspezifischen Gewichtungen oder im benutzerdefinierten Modus mit Gewichtungen je Spezialisierung.",
+    ["wn_405_gear_advisor_options"] = "Neu — Hinweise können in Gegenstands-Tooltips und als grüner Upgrade-Pfeil in TomoMod-Taschen erscheinen. Optionen steuern numerische Werte, den minimalen Upgrade-Prozentsatz und das Zurücksetzen der Gewichtungen für die aktuelle Spezialisierung.",
+    ["wn_405_gear_advisor_safety"] = "Geändert — TomoGear verändert weder Vergleichs-, Weltquest- noch Abenteuerführer-Tooltips, führt im Kampf keine erste ungespeicherte Bewertung durch und hängt keine Skripte an Blizzards sichere Taschenbuttons. Spezialeffekte, Setboni und komplexe Schmuckstück-Procs werden bewusst nicht simuliert.",
 })
 
 TomoMod_RegisterLocale("esES", {
@@ -44,6 +53,9 @@ TomoMod_RegisterLocale("esES", {
     ["wn_405_raidframe_combat_replay"] = "Corrección — Los ajustes de los marcos de banda solicitados durante el combate se aplazan y se aplican por completo al terminar. El anclaje redimensionado también se mantiene dentro de la pantalla.",
     ["wn_405_waypoint_arrow"] = "Novedad — El navegador de punto de ruta fuera de pantalla ahora usa una imagen transparente dedicada con centro azul celeste y un contorno blanco limpio.",
     ["wn_405_waypoint_arrow_cleanup"] = "Corrección — Se ha eliminado el pequeño cuadrado blanco del centro de la flecha y el antiguo tinte turquesa ya no altera los colores de la imagen.",
+    ["wn_405_gear_advisor"] = "Novedad — El asesor TomoGear compara objetos equipables con pesos conservadores según el rol en modo Automático o con pesos por especialización en modo Personalizado.",
+    ["wn_405_gear_advisor_options"] = "Novedad — Los consejos pueden aparecer en las descripciones de objetos y como una flecha verde de mejora en las bolsas de TomoMod. Las opciones controlan las puntuaciones numéricas, el porcentaje mínimo de mejora y el restablecimiento de los pesos de la especialización actual.",
+    ["wn_405_gear_advisor_safety"] = "Cambio — TomoGear evita las descripciones comparativas, de misiones del mundo y de la Guía de aventuras, nunca realiza una primera evaluación sin caché durante el combate ni añade scripts a los botones seguros de las bolsas de Blizzard. Los efectos especiales, bonus de conjunto y procs complejos de abalorios no se simulan intencionadamente.",
 })
 
 TomoMod_RegisterLocale("itIT", {
@@ -55,6 +67,9 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_405_raidframe_combat_replay"] = "Correzione — Le impostazioni dei riquadri incursione richieste durante il combattimento vengono rinviate e applicate completamente al termine. L'ancora ridimensionata viene inoltre mantenuta all'interno dello schermo.",
     ["wn_405_waypoint_arrow"] = "Novità — Il navigatore del punto di rotta fuori schermo usa ora una grafica trasparente dedicata con centro azzurro e contorno bianco nitido.",
     ["wn_405_waypoint_arrow_cleanup"] = "Correzione — Il piccolo quadrato bianco al centro della freccia è stato rimosso e la precedente tinta verde acqua non altera più i colori della grafica.",
+    ["wn_405_gear_advisor"] = "Novità — Il consigliere TomoGear confronta gli oggetti equipaggiabili con pesi prudenti basati sul ruolo in modalità Automatica o con pesi per specializzazione in modalità Personalizzata.",
+    ["wn_405_gear_advisor_options"] = "Novità — I consigli possono apparire nei tooltip degli oggetti e come freccia verde di miglioramento nelle borse TomoMod. Le opzioni controllano i punteggi numerici, la percentuale minima di miglioramento e il ripristino dei pesi della specializzazione attuale.",
+    ["wn_405_gear_advisor_safety"] = "Modifica — TomoGear evita i tooltip di confronto, delle missioni mondiali e della Guida alle avventure, non esegue mai una prima valutazione non memorizzata durante il combattimento e non aggiunge script ai pulsanti sicuri delle borse di Blizzard. Effetti speciali, bonus set e proc complessi dei monili non vengono intenzionalmente simulati.",
 })
 
 TomoMod_RegisterLocale("ptBR", {
@@ -66,4 +81,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_405_raidframe_combat_replay"] = "Correção — As configurações dos quadros de raide solicitadas durante o combate são adiadas e aplicadas por completo ao final. A âncora redimensionada também permanece limitada à tela.",
     ["wn_405_waypoint_arrow"] = "Novidade — O navegador de ponto de rota fora da tela agora usa uma arte transparente dedicada com centro azul-celeste e contorno branco nítido.",
     ["wn_405_waypoint_arrow_cleanup"] = "Correção — O pequeno quadrado branco no centro da seta foi removido e a antiga tonalidade verde-azulada não altera mais as cores da arte.",
+    ["wn_405_gear_advisor"] = "Novidade — O Assistente TomoGear compara itens equipáveis com pesos conservadores por função no modo Automático ou com pesos por especialização no modo Personalizado.",
+    ["wn_405_gear_advisor_options"] = "Novidade — As recomendações podem aparecer nas dicas de item e como uma seta verde de melhoria nas bolsas do TomoMod. As opções controlam as pontuações numéricas, o percentual mínimo de melhoria e a redefinição dos pesos da especialização atual.",
+    ["wn_405_gear_advisor_safety"] = "Alteração — O TomoGear evita dicas de comparação, de missões mundiais e do Guia de Aventuras, nunca faz uma primeira avaliação sem cache durante o combate e não adiciona scripts aos botões seguros das bolsas da Blizzard. Efeitos especiais, bônus de conjunto e procs complexos de berloques não são simulados intencionalmente.",
 })
