@@ -300,7 +300,12 @@ check("overlay sauvegarde à la fin",
 check("hook de position suspendu pendant le drag",
       minimapSrc:find("if _tmApplyingMinimapPos or _tmDraggingMinimap then return end", 1, true) ~= nil, true)
 
-local setupEditMode = minimapSrc:match("function TomoMod_Minimap%.SetupEditMode%(%)%s*(.-)%s*end") or ""
+-- S'arrêter sur le `end` de fonction placé seul sur sa ligne. Un simple
+-- `.-end` s'arrêtait dans le mot anglais "independently" du commentaire et
+-- ne voyait donc jamais l'appel SetMovable situé juste après.
+local setupEditMode = minimapSrc:match(
+    "function TomoMod_Minimap%.SetupEditMode%(%)\n(.-)\nend"
+) or ""
 check("movable indépendant de Blizzard Edit Mode",
       setupEditMode:find("Minimap:SetMovable(true)", 1, true) ~= nil
       and setupEditMode:find("EditModeManagerFrame", 1, true) == nil, true)
