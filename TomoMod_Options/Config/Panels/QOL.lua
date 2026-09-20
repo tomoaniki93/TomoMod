@@ -1764,8 +1764,19 @@ local function BuildGearAdvisorTab(parent)
     local _, ny = W.CreateInfoText(c, T("desc"), y)
     y = ny
 
-    local _, ny = W.CreateInfoText(c, string.format(T("profile"), GA:GetCurrentProfileName()), y)
+    local profileInfo, ny = W.CreateInfoText(c, string.format(T("profile"), GA:GetCurrentProfileName()), y)
     y = ny
+
+    local function SetInfoText(frame, text)
+        if not frame or not frame.GetRegions then return end
+        local regions = { frame:GetRegions() }
+        for _, region in ipairs(regions) do
+            if region and region.GetObjectType and region:GetObjectType() == "FontString" then
+                region:SetText(text or "")
+                return
+            end
+        end
+    end
 
     local _, ny = W.CreateCheckbox(c, T("enable"), db.enabled == true, y, function(v)
         GA.SetEnabled(v)
@@ -1785,13 +1796,15 @@ local function BuildGearAdvisorTab(parent)
     end)
     y = ny
 
-    local _, ny = W.CreateSegmentedControl(c, T("mode"), {
+    local modeControl, ny = W.CreateSegmentedControl(c, T("mode"), {
         { value = "automatic", text = T("automatic") },
         { value = "custom", text = T("custom") },
+        { value = "imported", text = T("imported") },
     }, db.mode or "automatic", y, function(v)
         db.mode = v
         Apply()
-    end, 2)
+        SetInfoText(profileInfo, string.format(T("profile"), GA:GetCurrentProfileName()))
+    end, 3)
     y = ny
 
     local _, ny = W.CreateSlider(c, T("threshold"), tonumber(db.minUpgradePercent) or 1.0,
@@ -1825,6 +1838,43 @@ local function BuildGearAdvisorTab(parent)
 
     local _, ny = W.CreateButton(c, T("reset"), 260, y, function()
         GA:ResetCurrentSpecWeights()
+    end)
+    y = ny
+
+    local _, ny = W.CreateSeparator(c, y)
+    y = ny
+    local _, ny = W.CreateSubLabel(c, T("import_title"), y)
+    y = ny
+    local _, ny = W.CreateInfoText(c, T("import_desc"), y)
+    y = ny
+
+    local importProfile = GA:GetImportedProfile()
+    local importEditor, ny = W.CreateMultiLineEditBox(c, T("import_box"), 92, y, {})
+    y = ny
+    if importEditor and importEditor.editBox and importProfile and importProfile.raw then
+        importEditor.editBox:SetText(importProfile.raw)
+    end
+
+    local statusInfo, ny = W.CreateInfoText(c, GA:GetImportedSummary(), y)
+    y = ny
+
+    local _, ny = W.CreateButton(c, T("import_button"), 280, y, function()
+        local text = importEditor and importEditor.editBox and importEditor.editBox:GetText() or ""
+        local ok, message = GA:ImportWeights(text)
+        SetInfoText(statusInfo, message)
+        if ok then
+            modeControl:SetValue("imported")
+            SetInfoText(profileInfo, string.format(T("profile"), GA:GetCurrentProfileName()))
+        end
+    end)
+    y = ny
+
+    local _, ny = W.CreateButton(c, T("import_clear"), 280, y, function()
+        local message = GA:ClearImportedProfile()
+        if importEditor and importEditor.editBox then importEditor.editBox:SetText("") end
+        modeControl:SetValue(db.mode or "automatic")
+        SetInfoText(statusInfo, message)
+        SetInfoText(profileInfo, string.format(T("profile"), GA:GetCurrentProfileName()))
     end)
     y = ny
 

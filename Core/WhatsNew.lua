@@ -63,6 +63,17 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "4.0.6",
+        highlights = {
+            L["wn_406_gear_weight_import"],
+            L["wn_406_gear_import_validation"],
+            L["wn_406_gear_independent_db"],
+            L["wn_406_gear_signed_percent"],
+            L["wn_406_gear_itemref"],
+            L["wn_406_gear_tooltip_guard"],
+        },
+    },
+    {
         version = "4.0.5",
         highlights = {
             L["wn_405_bags_combat"],

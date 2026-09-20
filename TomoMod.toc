@@ -1,16 +1,16 @@
-## Interface: 120100
+## Interface: 120100, 16001
 ## 
 ## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r
 ## Notes: Complete UI Replacement for WoW.
 ## Category: |cff2e9dd8HUD|r
 ## 
-## SavedVariables: TomoModDB, CompanionStatusDB, TomoModDamageMeterDB
+## SavedVariables: TomoModDB, TomoGearDB, CompanionStatusDB, TomoModDamageMeterDB
 ## OptionalDeps: Blizzard_ActionBar, Blizzard_ActionBarController, Blizzard_DamageMeter
 ## SavedVariablesPerCharacter: TomoModCharDB
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 4.0.5
+## Version: 4.0.6
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -35,6 +35,7 @@ Locales\Locale_402.lua
 Locales\Locale_403.lua
 Locales\Locale_404.lua
 Locales\Locale_405.lua
+Locales\Locale_406.lua
 
 ## =====================
 ## Core

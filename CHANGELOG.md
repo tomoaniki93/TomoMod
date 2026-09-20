@@ -1,5 +1,25 @@
 ﻿## ####################################
 
+## CHANGELOG 4.0.6
+
+#### TomoGear Advisor V1.2 — Imported Stat Weights
+
+- **New** - TomoGear can import Pawn v1, Ask Mr. Robot and compatible `key=value` stat scales for the current specialization. Primary stat, Stamina, Critical Strike, Haste, Mastery and Versatility are supported, with an optional explicit item-level weight.
+- **New** - The Gear Advisor panel includes an Imported scoring mode, a multiline scale editor, import status and profile removal. Each specialization keeps its own imported profile and original source text for later review or replacement.
+- **Changed** - Import validation rejects scales tagged for another class, specialization or primary stat. Unsupported values are reported and ignored, input is size-limited, and item level contributes no implicit score unless the imported scale contains `ItemLevel=`.
+
+#### TomoGear Advisor V1.1 — Independent Settings And Signed Comparisons
+
+- **Changed** - TomoGear preferences, custom weights and imported profiles now live in the dedicated `TomoGearDB` SavedVariable. Existing Gear Advisor data is migrated once from `TomoModDB`, after which profile changes and TomoMod imports no longer replace TomoGear settings.
+- **Changed** - Item tooltips now show the signed comparison percentage for upgrades, downgrades and equal items, using green, red and neutral presentation respectively. The minimum-upgrade threshold now applies only to the bag upgrade arrow.
+
+#### TomoGear Advisor — Item Link Tooltip Hotfix
+
+- **Fixed** - Opening an item link from chat no longer raises an `attempt to call a nil value` error when `ItemRefTooltip` reaches the item post-processor without an addon-accessible `AddLine` method on some Midnight builds.
+- **Changed** - TomoGear checks tooltip line support and isolates every advice-line insertion. Unsupported tooltip implementations are skipped safely while the normal `GameTooltip` path remains unchanged.
+
+## ####################################
+
 ## CHANGELOG 4.0.5
 
 #### TomoGear Advisor — Lightweight Upgrade Guidance

@@ -2,7 +2,7 @@
 ## Title: Tomo API Dump
 ## Notes: Developer tool. Exports the client's own API documentation metadata (secret returns, forbidden aspects) so Tools/lint_secret_values.py can audit against it. Not shipped to players.
 ## Author: Tomo
-## Version: 4.0.5
+## Version: 4.0.6
 ## SavedVariables: TomoAPIDumpDB
 ## Category: Development Tools
 ## Category-frFR: Outils de développement

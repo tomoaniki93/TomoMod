@@ -30,6 +30,7 @@ local DEFAULTS = {
     minUpgradePercent = 1.0,
     itemLevelWeight = 8.0,
     custom = {},
+    imported = {},
 }
 
 local LOCALE = {
@@ -38,8 +39,17 @@ local LOCALE = {
         desc = "Lightweight gear comparison for quick in-game decisions. Automatic mode uses conservative role-based weights; special effects, set bonuses and complex trinket procs are not simulated.",
         enable = "Enable TomoGear Advisor", tooltip = "Show advice in item tooltips",
         bags = "Show upgrade arrow in TomoMod bags", scores = "Show numeric scores in tooltips",
-        mode = "Scoring mode", automatic = "Automatic", custom = "Custom",
-        threshold = "Minimum upgrade shown (%)", weights = "Custom weights for the current specialization",
+        mode = "Scoring mode", automatic = "Automatic", custom = "Custom", imported = "Imported",
+        import_title = "Import stat weights",
+        import_desc = "Paste a Pawn v1 / Ask Mr. Robot scale or compatible key=value text. TomoGear imports your primary stat, Stamina, Crit, Haste, Mastery and Versatility. Unsupported values are ignored. Item level has no extra weight unless ItemLevel= is present.",
+        import_box = "Pawn / AMR scale", import_button = "Import for current specialization", import_clear = "Remove imported profile",
+        import_none = "No imported profile for the current specialization.",
+        import_ok = "Imported '%s': %d supported weights%s.", import_ignored = " · %d unsupported ignored",
+        import_fail = "Import failed: no supported stat weights were found.",
+        import_wrong_class = "Import refused: this scale is for %s.", import_wrong_spec = "Import refused: this scale is for %s.",
+        import_wrong_primary = "Import refused: the primary stat does not match the current specialization.",
+        import_active = "Imported profile: %s · %s",
+        threshold = "Minimum bag upgrade arrow (%)", weights = "Custom weights for the current specialization",
         primary = "Primary stat", stamina = "Stamina", crit = "Critical Strike", haste = "Haste",
         mastery = "Mastery", versatility = "Versatility", reset = "Reset current specialization weights",
         profile = "Current profile: %s", newslot = "empty slot", upgrade = "upgrade",
@@ -50,8 +60,17 @@ local LOCALE = {
         desc = "Comparaison légère d'équipement pour décider rapidement en jeu. Le mode Automatique utilise des poids prudents selon le rôle ; les effets spéciaux, bonus d'ensemble et procs complexes de bijoux ne sont pas simulés.",
         enable = "Activer le conseiller TomoGear", tooltip = "Afficher le conseil dans les infobulles d'objet",
         bags = "Afficher une flèche d'amélioration dans les sacs TomoMod", scores = "Afficher les scores numériques dans les infobulles",
-        mode = "Mode de calcul", automatic = "Automatique", custom = "Personnalisé",
-        threshold = "Amélioration minimale affichée (%)", weights = "Poids personnalisés pour la spécialisation actuelle",
+        mode = "Mode de calcul", automatic = "Automatique", custom = "Personnalisé", imported = "Importé",
+        import_title = "Importer des Stat Weights",
+        import_desc = "Colle une chaîne Pawn v1 / Ask Mr. Robot ou un texte key=value compatible. TomoGear importe la caractéristique principale, l'Endurance, le Critique, la Hâte, la Maîtrise et la Polyvalence. Les valeurs non prises en charge sont ignorées. Le niveau d'objet n'ajoute aucun poids sauf si ItemLevel= est présent.",
+        import_box = "Échelle Pawn / AMR", import_button = "Importer pour la spécialisation actuelle", import_clear = "Supprimer le profil importé",
+        import_none = "Aucun profil importé pour la spécialisation actuelle.",
+        import_ok = "Profil '%s' importé : %d poids pris en charge%s.", import_ignored = " · %d non pris en charge ignorés",
+        import_fail = "Import impossible : aucun poids de statistique pris en charge n'a été trouvé.",
+        import_wrong_class = "Import refusé : cette échelle est prévue pour %s.", import_wrong_spec = "Import refusé : cette échelle est prévue pour %s.",
+        import_wrong_primary = "Import refusé : la caractéristique principale ne correspond pas à la spécialisation actuelle.",
+        import_active = "Profil importé : %s · %s",
+        threshold = "Seuil de la flèche d’amélioration dans les sacs (%)", weights = "Poids personnalisés pour la spécialisation actuelle",
         primary = "Caractéristique principale", stamina = "Endurance", crit = "Coup critique", haste = "Hâte",
         mastery = "Maîtrise", versatility = "Polyvalence", reset = "Réinitialiser les poids de la spécialisation",
         profile = "Profil actuel : %s", newslot = "emplacement vide", upgrade = "amélioration",
@@ -62,8 +81,17 @@ local LOCALE = {
         desc = "Leichte Ausrüstungsvergleiche für schnelle Entscheidungen. Automatik nutzt vorsichtige rollenbasierte Gewichtungen; Spezialeffekte, Setboni und komplexe Schmuck-Procs werden nicht simuliert.",
         enable = "TomoGear-Berater aktivieren", tooltip = "Hinweise in Gegenstands-Tooltips anzeigen",
         bags = "Upgrade-Pfeil in TomoMod-Taschen anzeigen", scores = "Numerische Werte in Tooltips anzeigen",
-        mode = "Wertungsmodus", automatic = "Automatisch", custom = "Benutzerdefiniert",
-        threshold = "Minimales angezeigtes Upgrade (%)", weights = "Benutzerdefinierte Gewichte der aktuellen Spezialisierung",
+        mode = "Wertungsmodus", automatic = "Automatisch", custom = "Benutzerdefiniert", imported = "Importiert",
+        import_title = "Stat-Gewichtungen importieren",
+        import_desc = "Füge eine Pawn-v1-/Ask-Mr.-Robot-Skala oder kompatiblen key=value-Text ein. TomoGear importiert Primärattribut, Ausdauer, Krit, Tempo, Meisterschaft und Vielseitigkeit. Nicht unterstützte Werte werden ignoriert. Gegenstandsstufe erhält nur Gewicht, wenn ItemLevel= vorhanden ist.",
+        import_box = "Pawn-/AMR-Skala", import_button = "Für aktuelle Spezialisierung importieren", import_clear = "Importiertes Profil entfernen",
+        import_none = "Kein importiertes Profil für die aktuelle Spezialisierung.",
+        import_ok = "'%s' importiert: %d unterstützte Gewichtungen%s.", import_ignored = " · %d nicht unterstützte ignoriert",
+        import_fail = "Import fehlgeschlagen: keine unterstützten Stat-Gewichtungen gefunden.",
+        import_wrong_class = "Import abgelehnt: diese Skala ist für %s.", import_wrong_spec = "Import abgelehnt: diese Skala ist für %s.",
+        import_wrong_primary = "Import abgelehnt: das Primärattribut passt nicht zur aktuellen Spezialisierung.",
+        import_active = "Importiertes Profil: %s · %s",
+        threshold = "Mindestwert für Taschen-Upgradepfeil (%)", weights = "Benutzerdefinierte Gewichte der aktuellen Spezialisierung",
         primary = "Primärattribut", stamina = "Ausdauer", crit = "Kritischer Treffer", haste = "Tempo",
         mastery = "Meisterschaft", versatility = "Vielseitigkeit", reset = "Gewichte der Spezialisierung zurücksetzen",
         profile = "Aktuelles Profil: %s", newslot = "leerer Platz", upgrade = "Upgrade",
@@ -74,8 +102,17 @@ local LOCALE = {
         desc = "Comparación ligera de equipo para decisiones rápidas. El modo Automático usa pesos conservadores según el rol; no simula efectos especiales, bonus de conjunto ni procs complejos de abalorios.",
         enable = "Activar el asesor TomoGear", tooltip = "Mostrar consejo en las descripciones de objetos",
         bags = "Mostrar flecha de mejora en las bolsas de TomoMod", scores = "Mostrar puntuaciones numéricas en las descripciones",
-        mode = "Modo de puntuación", automatic = "Automático", custom = "Personalizado",
-        threshold = "Mejora mínima mostrada (%)", weights = "Pesos personalizados para la especialización actual",
+        mode = "Modo de puntuación", automatic = "Automático", custom = "Personalizado", imported = "Importado",
+        import_title = "Importar pesos de estadísticas",
+        import_desc = "Pega una escala Pawn v1 / Ask Mr. Robot o texto key=value compatible. TomoGear importa estadística principal, Aguante, Crítico, Celeridad, Maestría y Versatilidad. Los valores no compatibles se ignoran. El nivel de objeto no añade peso salvo que exista ItemLevel=.",
+        import_box = "Escala Pawn / AMR", import_button = "Importar para la especialización actual", import_clear = "Eliminar perfil importado",
+        import_none = "No hay perfil importado para la especialización actual.",
+        import_ok = "'%s' importado: %d pesos compatibles%s.", import_ignored = " · %d no compatibles ignorados",
+        import_fail = "Error de importación: no se encontraron pesos de estadísticas compatibles.",
+        import_wrong_class = "Importación rechazada: esta escala es para %s.", import_wrong_spec = "Importación rechazada: esta escala es para %s.",
+        import_wrong_primary = "Importación rechazada: la estadística principal no coincide con la especialización actual.",
+        import_active = "Perfil importado: %s · %s",
+        threshold = "Mejora mínima para la flecha de bolsa (%)", weights = "Pesos personalizados para la especialización actual",
         primary = "Estadística principal", stamina = "Aguante", crit = "Golpe crítico", haste = "Celeridad",
         mastery = "Maestría", versatility = "Versatilidad", reset = "Restablecer pesos de la especialización",
         profile = "Perfil actual: %s", newslot = "hueco vacío", upgrade = "mejora",
@@ -86,8 +123,17 @@ local LOCALE = {
         desc = "Confronto leggero dell'equipaggiamento per decisioni rapide. La modalità Automatica usa pesi prudenti in base al ruolo; effetti speciali, bonus set e proc complessi dei monili non sono simulati.",
         enable = "Attiva consigliere TomoGear", tooltip = "Mostra i consigli nei tooltip degli oggetti",
         bags = "Mostra freccia miglioramento nelle borse TomoMod", scores = "Mostra punteggi numerici nei tooltip",
-        mode = "Modalità punteggio", automatic = "Automatica", custom = "Personalizzata",
-        threshold = "Miglioramento minimo mostrato (%)", weights = "Pesi personalizzati per la specializzazione attuale",
+        mode = "Modalità punteggio", automatic = "Automatica", custom = "Personalizzata", imported = "Importata",
+        import_title = "Importa pesi statistiche",
+        import_desc = "Incolla una scala Pawn v1 / Ask Mr. Robot o testo key=value compatibile. TomoGear importa statistica primaria, Tempra, Critico, Celerità, Maestria e Versatilità. I valori non supportati vengono ignorati. Il livello oggetto non aggiunge peso salvo ItemLevel=.",
+        import_box = "Scala Pawn / AMR", import_button = "Importa per la specializzazione attuale", import_clear = "Rimuovi profilo importato",
+        import_none = "Nessun profilo importato per la specializzazione attuale.",
+        import_ok = "Importato '%s': %d pesi supportati%s.", import_ignored = " · %d non supportati ignorati",
+        import_fail = "Importazione fallita: nessun peso statistica supportato trovato.",
+        import_wrong_class = "Importazione rifiutata: questa scala è per %s.", import_wrong_spec = "Importazione rifiutata: questa scala è per %s.",
+        import_wrong_primary = "Importazione rifiutata: la statistica primaria non corrisponde alla specializzazione attuale.",
+        import_active = "Profilo importato: %s · %s",
+        threshold = "Miglioramento minimo per la freccia nelle borse (%)", weights = "Pesi personalizzati per la specializzazione attuale",
         primary = "Stat primaria", stamina = "Tempra", crit = "Critico", haste = "Celerità",
         mastery = "Maestria", versatility = "Versatilità", reset = "Ripristina pesi della specializzazione",
         profile = "Profilo attuale: %s", newslot = "slot vuoto", upgrade = "miglioramento",
@@ -98,8 +144,17 @@ local LOCALE = {
         desc = "Comparação leve de equipamento para decisões rápidas. O modo Automático usa pesos conservadores por função; efeitos especiais, bônus de conjunto e procs complexos de berloques não são simulados.",
         enable = "Ativar Assistente TomoGear", tooltip = "Mostrar recomendação nas dicas de item",
         bags = "Mostrar seta de melhoria nas bolsas TomoMod", scores = "Mostrar pontuações numéricas nas dicas",
-        mode = "Modo de pontuação", automatic = "Automático", custom = "Personalizado",
-        threshold = "Melhoria mínima exibida (%)", weights = "Pesos personalizados para a especialização atual",
+        mode = "Modo de pontuação", automatic = "Automático", custom = "Personalizado", imported = "Importado",
+        import_title = "Importar pesos de atributos",
+        import_desc = "Cole uma escala Pawn v1 / Ask Mr. Robot ou texto key=value compatível. TomoGear importa atributo primário, Vigor, Crítico, Aceleração, Maestria e Versatilidade. Valores não suportados são ignorados. O nível do item não ganha peso extra salvo se ItemLevel= estiver presente.",
+        import_box = "Escala Pawn / AMR", import_button = "Importar para a especialização atual", import_clear = "Remover perfil importado",
+        import_none = "Nenhum perfil importado para a especialização atual.",
+        import_ok = "'%s' importado: %d pesos suportados%s.", import_ignored = " · %d não suportados ignorados",
+        import_fail = "Falha na importação: nenhum peso de atributo suportado foi encontrado.",
+        import_wrong_class = "Importação recusada: esta escala é para %s.", import_wrong_spec = "Importação recusada: esta escala é para %s.",
+        import_wrong_primary = "Importação recusada: o atributo primário não corresponde à especialização atual.",
+        import_active = "Perfil importado: %s · %s",
+        threshold = "Melhoria mínima para a seta nas bolsas (%)", weights = "Pesos personalizados para a especialização atual",
         primary = "Atributo primário", stamina = "Vigor", crit = "Acerto crítico", haste = "Aceleração",
         mastery = "Maestria", versatility = "Versatilidade", reset = "Redefinir pesos da especialização",
         profile = "Perfil atual: %s", newslot = "espaço vazio", upgrade = "melhoria",
@@ -124,6 +179,40 @@ local PRIMARY_FALLBACK_KEYS = {
     "ITEM_MOD_STRENGTH_SHORT", "ITEM_MOD_STRENGTH",
     "ITEM_MOD_AGILITY_SHORT", "ITEM_MOD_AGILITY",
     "ITEM_MOD_INTELLECT_SHORT", "ITEM_MOD_INTELLECT",
+}
+
+local IMPORT_ALIASES = {
+    strength = "strength", str = "strength",
+    agility = "agility", agi = "agility",
+    intellect = "intellect", int = "intellect",
+    stamina = "stamina", sta = "stamina",
+    crit = "crit", critrating = "crit", criticalstrike = "crit", criticalstrikerating = "crit",
+    haste = "haste", hasterating = "haste",
+    mastery = "mastery", masteryrating = "mastery",
+    versatility = "versatility", versatilityrating = "versatility", vers = "versatility",
+    itemlevel = "itemLevel", ilvl = "itemLevel",
+}
+
+local PRIMARY_IMPORT_KEY = { [1] = "strength", [2] = "agility", [4] = "intellect" }
+
+-- English Pawn scale tags use English spec names even on non-English clients.
+-- Resolve them inside the player's class so ambiguous names such as Frost,
+-- Holy, Protection and Restoration remain unambiguous. Unknown future specs
+-- are accepted rather than rejected.
+local SPEC_ALIAS_BY_CLASS = {
+    DEATHKNIGHT = { blood = 250, frost = 251, unholy = 252 },
+    DEMONHUNTER = { havoc = 577, vengeance = 581 },
+    DRUID = { balance = 102, feral = 103, guardian = 104, restoration = 105 },
+    EVOKER = { devastation = 1467, preservation = 1468, augmentation = 1473 },
+    HUNTER = { beastmastery = 253, marksmanship = 254, survival = 255 },
+    MAGE = { arcane = 62, fire = 63, frost = 64 },
+    MONK = { brewmaster = 268, windwalker = 269, mistweaver = 270 },
+    PALADIN = { holy = 65, protection = 66, retribution = 70 },
+    PRIEST = { discipline = 256, holy = 257, shadow = 258 },
+    ROGUE = { assassination = 259, outlaw = 260, subtlety = 261 },
+    SHAMAN = { elemental = 262, enhancement = 263, restoration = 264 },
+    WARLOCK = { affliction = 265, demonology = 266, destruction = 267 },
+    WARRIOR = { arms = 71, fury = 72, protection = 73 },
 }
 
 local SLOT_MAP = {
@@ -199,19 +288,47 @@ local function CurrentSpec()
     return tonumber(specID) or 0, name or "Specialization", role or "NONE", tonumber(primaryStat)
 end
 
-local function EnsureDB()
-    if not TomoModDB then return nil end
-    local db = TomoModDB.gearAdvisor
-    if type(db) ~= "table" then
-        db = {}
-        TomoModDB.gearAdvisor = db
+local function MergeMissing(dst, src)
+    if type(dst) ~= "table" or type(src) ~= "table" then return end
+    for key, value in pairs(src) do
+        if dst[key] == nil then
+            if type(value) == "table" then
+                local copy = {}
+                MergeMissing(copy, value)
+                dst[key] = copy
+            else
+                dst[key] = value
+            end
+        elseif type(dst[key]) == "table" and type(value) == "table" then
+            MergeMissing(dst[key], value)
+        end
     end
+end
+
+local function EnsureDB()
+    -- TomoGear owns its SavedVariables. Gear weights and advisor preferences
+    -- therefore survive TomoMod profile changes/imports and do not pollute
+    -- TomoModDB. Migrate the V1 table once for players already using it.
+    if type(TomoGearDB) ~= "table" then TomoGearDB = {} end
+    local db = TomoGearDB
+
+    if db._migratedFromTomoMod ~= true then
+        if TomoModDB and type(TomoModDB.gearAdvisor) == "table" then
+            MergeMissing(db, TomoModDB.gearAdvisor)
+        end
+        db._migratedFromTomoMod = true
+    end
+    if TomoModDB and TomoModDB.gearAdvisor ~= nil then
+        TomoModDB.gearAdvisor = nil
+    end
+
     for key, value in pairs(DEFAULTS) do
         if db[key] == nil then
             if type(value) == "table" then db[key] = {} else db[key] = value end
         end
     end
     if type(db.custom) ~= "table" then db.custom = {} end
+    if type(db.imported) ~= "table" then db.imported = {} end
     return db
 end
 
@@ -225,8 +342,81 @@ function GA:GetSettings()
     return EnsureDB()
 end
 
+local function Trim(value)
+    if type(value) ~= "string" then return "" end
+    return (value:gsub("^%s+", ""):gsub("%s+$", ""))
+end
+
+local function NormalizeToken(value)
+    value = Trim(tostring(value or "")):lower()
+    return (value:gsub("[^%w]", ""))
+end
+
+local function StripQuotes(value)
+    value = Trim(value)
+    local quoted = value:match('^"(.*)"$')
+    return quoted or value
+end
+
+local function ParseScaleAssignments(text)
+    local pawnVersion, pawnName, body = text:match('^%s*%(%s*[Pp][Aa][Ww][Nn]%s*:%s*v(%d+)%s*:%s*"([^"]+)"%s*:%s*(.-)%s*%)%s*$')
+    body = body or text
+
+    local values, meta = {}, {}
+    for part in body:gmatch("[^,]+") do
+        local key, raw = part:match("^%s*([%a_][%w_]*)%s*=%s*(.-)%s*$")
+        if key and raw and raw ~= "" then
+            local norm = NormalizeToken(key)
+            local number = tonumber(StripQuotes(raw))
+            if number then values[norm] = number else meta[norm] = StripQuotes(raw) end
+        end
+    end
+    return tonumber(pawnVersion), pawnName, values, meta
+end
+
+local function CurrentClassMatches(scaleClass)
+    if not scaleClass or scaleClass == "" then return true end
+    local localized, token
+    if UnitClass then localized, token = UnitClass("player") end
+    local wanted = NormalizeToken(scaleClass)
+    return wanted == NormalizeToken(localized) or wanted == NormalizeToken(token)
+end
+
+local function ResolveScaleSpec(scaleSpec, localizedSpecName)
+    if not scaleSpec or scaleSpec == "" then return nil end
+    local direct = tonumber(scaleSpec)
+    if direct then return direct end
+    local norm = NormalizeToken(scaleSpec)
+    if norm == NormalizeToken(localizedSpecName) then return CurrentSpec() end
+
+    local classToken
+    if UnitClass then _, classToken = UnitClass("player") end
+    local aliases = classToken and SPEC_ALIAS_BY_CLASS[classToken]
+    return aliases and aliases[norm] or nil
+end
+
+function GA:GetImportedProfile()
+    local db = EnsureDB()
+    if not db then return nil end
+    local specID = CurrentSpec()
+    local profile = db.imported[specID]
+    return type(profile) == "table" and profile or nil
+end
+
+function GA:GetImportedSummary()
+    local profile = self:GetImportedProfile()
+    if not profile then return self.L("import_none") end
+    local source = profile.source or self.L("imported")
+    return string.format(self.L("import_active"), profile.name or self.L("imported"), source)
+end
+
 function GA:GetCurrentProfileName()
     local _, name, role = CurrentSpec()
+    local db = EnsureDB()
+    if db and db.mode == "imported" then
+        local profile = self:GetImportedProfile()
+        if profile then return string.format("%s · %s", profile.name or name, self.L("imported")) end
+    end
     return string.format("%s · %s", name, role)
 end
 
@@ -250,7 +440,102 @@ end
 function GA:GetWeights()
     local db = EnsureDB()
     if db and db.mode == "custom" then return self:GetCustomWeights() end
+    if db and db.mode == "imported" then
+        local profile = self:GetImportedProfile()
+        if profile and type(profile.weights) == "table" then return CopyWeights(profile.weights) end
+    end
     return self:GetAutomaticWeights()
+end
+
+function GA:ImportWeights(text)
+    text = Trim(text)
+    if text == "" or #text > 16384 then return false, self.L("import_fail") end
+
+    local specID, specName, _, primaryStat = CurrentSpec()
+    if specID == 0 then return false, self.L("import_fail") end
+
+    local pawnVersion, pawnName, values, meta = ParseScaleAssignments(text)
+    local classTag = meta.class
+    local specTag = meta.spec or (values.spec and tostring(values.spec))
+
+    if classTag and not CurrentClassMatches(classTag) then
+        return false, string.format(self.L("import_wrong_class"), classTag)
+    end
+
+    local taggedSpec = ResolveScaleSpec(specTag, specName)
+    if taggedSpec and tonumber(taggedSpec) ~= specID then
+        return false, string.format(self.L("import_wrong_spec"), specTag)
+    end
+
+    local parsed = { primary = 0, stamina = 0, crit = 0, haste = 0, mastery = 0, versatility = 0 }
+    local provided, ignored = {}, {}
+    local primaries = {}
+    local itemLevelWeight = 0
+
+    for rawKey, value in pairs(values) do
+        if rawKey ~= "spec" then
+            local key = IMPORT_ALIASES[rawKey]
+            if key == "strength" or key == "agility" or key == "intellect" then
+                primaries[key] = value
+            elseif key == "itemLevel" then
+                itemLevelWeight = value
+                provided.itemLevel = true
+            elseif key and parsed[key] ~= nil then
+                parsed[key] = value
+                provided[key] = true
+            elseif rawKey ~= "class" then
+                ignored[#ignored + 1] = rawKey
+            end
+        end
+    end
+
+    local expectedPrimary = PRIMARY_IMPORT_KEY[primaryStat]
+    if expectedPrimary and primaries[expectedPrimary] ~= nil then
+        parsed.primary = primaries[expectedPrimary]
+        provided.primary = true
+    elseif expectedPrimary then
+        for key, value in pairs(primaries) do
+            if key ~= expectedPrimary and value ~= 0 then
+                return false, self.L("import_wrong_primary")
+            end
+        end
+    else
+        for _, value in pairs(primaries) do
+            parsed.primary = value
+            provided.primary = true
+            break
+        end
+    end
+
+    local count = 0
+    for _ in pairs(provided) do count = count + 1 end
+    if count == 0 then return false, self.L("import_fail") end
+
+    local source = pawnVersion and ("Pawn v" .. tostring(pawnVersion)) or "key=value"
+    local profileName = Trim(pawnName or "")
+    if profileName == "" then profileName = specName .. " · " .. source end
+
+    local db = EnsureDB()
+    db.imported[specID] = {
+        name = profileName, source = source, weights = parsed,
+        itemLevelWeight = tonumber(itemLevelWeight) or 0, raw = text,
+        class = classTag, spec = specTag, ignored = ignored, count = count,
+    }
+    db.mode = "imported"
+    self:ApplySettings()
+
+    local suffix = #ignored > 0 and string.format(self.L("import_ignored"), #ignored) or ""
+    return true, string.format(self.L("import_ok"), profileName, count, suffix)
+end
+
+function GA:ClearImportedProfile()
+    local db = EnsureDB()
+    if not db then return self.L("import_none") end
+    local specID = CurrentSpec()
+    db.imported[specID] = nil
+    if db.mode == "imported" then db.mode = "automatic" end
+    self:ApplySettings()
+    return self.L("import_none")
 end
 
 function GA:ResetCurrentSpecWeights()
@@ -296,7 +581,12 @@ function GA:GetItemScore(itemLink)
 
     local weights = self:GetWeights()
     local _, _, _, primaryStat = CurrentSpec()
-    local score = ilvl * (tonumber(db.itemLevelWeight) or DEFAULTS.itemLevelWeight)
+    local itemLevelWeight = tonumber(db.itemLevelWeight) or DEFAULTS.itemLevelWeight
+    if db.mode == "imported" then
+        local profile = self:GetImportedProfile()
+        if profile then itemLevelWeight = tonumber(profile.itemLevelWeight) or 0 end
+    end
+    local score = ilvl * itemLevelWeight
     score = score + PrimaryStat(stats, primaryStat) * (tonumber(weights.primary) or 0)
     score = score + FirstStat(stats, SCORE_KEYS.stamina) * (tonumber(weights.stamina) or 0)
     score = score + FirstStat(stats, SCORE_KEYS.crit) * (tonumber(weights.crit) or 0)
@@ -416,6 +706,17 @@ function GA.SetEnabled(enabled)
     GA:ApplySettings()
 end
 
+local function SafeTooltipAddLine(tooltip, text)
+    -- ItemRefTooltip can pass through the item post-processor while its runtime
+    -- methods are not available to addon code on some Midnight builds. Calling
+    -- AddLine blindly there produced "attempt to call a nil value" when a chat
+    -- item link was opened. Keep the normal GameTooltip path, but feature-test
+    -- the method and isolate the call for every tooltip implementation.
+    if not tooltip or type(tooltip.AddLine) ~= "function" then return false end
+    local ok = pcall(tooltip.AddLine, tooltip, text)
+    return ok
+end
+
 local function AddTooltipAdvice(tooltip, itemLink)
     local db = EnsureDB()
     if not db or not db.enabled or db.showTooltip == false then return end
@@ -426,18 +727,26 @@ local function AddTooltipAdvice(tooltip, itemLink)
     local info = GA:GetUpgradeInfo(itemLink)
     if not info then return end
 
-    if info.isUpgrade then
-        if info.emptySlot then
-            tooltip:AddLine("|cff2e9dd8TomoGear|r  " .. UPGRADE_MARK .. " |cff31d158" .. GA.L("newslot") .. "|r")ine("|cff2e9dd8TomoGear|r  |cff31d158▲ " .. GA.L("newslot") .. "|r")
-        elseif info.percent then
-            tooltip:AddLine(string.format("|cff2e9dd8TomoGear|r  %s |cff31d158+%.1f%% %s|r", UPGRADE_MARK, info.percent, GA.L("upgrade")))
+    local line
+    if info.emptySlot then
+        line = "|cff2e9dd8TomoGear|r  " .. UPGRADE_MARK .. " |cff31d158" .. GA.L("newslot") .. "|r"
+    elseif info.percent then
+        local percent = math.abs(info.percent) < 0.05 and 0 or info.percent
+        if percent > 0 then
+            line = string.format("|cff2e9dd8TomoGear|r  |cff31d158+%.1f%%|r", percent)
+        elseif percent < 0 then
+            line = string.format("|cff2e9dd8TomoGear|r  |cffff5a5f%.1f%%|r", percent)
+        else
+            line = "|cff2e9dd8TomoGear|r  |cff9aa4af0.0%|r"
         end
-    elseif db.showScores ~= true then
-        return
     end
+    if line and not SafeTooltipAddLine(tooltip, line) then return end
+
+    if not line and db.showScores ~= true then return end
 
     if db.showScores == true and info.equippedScore and info.equippedScore > 0 then
-        tooltip:AddLine(string.format("|cff9aa4af%s|r", string.format(GA.L("score"), info.score, info.equippedScore)))
+        local line = string.format("|cff9aa4af%s|r", string.format(GA.L("score"), info.score, info.equippedScore))
+        if not SafeTooltipAddLine(tooltip, line) then return end
     end
 
     C_Timer.After(0, function()

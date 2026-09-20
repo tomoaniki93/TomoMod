@@ -54,7 +54,7 @@ globals = {
     "SLASH_TOMOCDMPROCGLOW1", "SLASH_TOMOCDMSCAN1", "SLASH_TOMODIAG1", "SLASH_TOMODIAG2",
     "SLASH_TOMOMOD1", "SLASH_TOMOMOD2", "SLASH_TOMOMODARTRACKER1", "SLASH_TOMOMOD_KB1",
     "SLASH_TOMOMOD_RL1", "SLASH_TOMOMYTHICTRACKER1", "SLASH_TOMOPRESET1", "ScriptErrorsFrame",
-    "SlashCmdList", "StaticPopupDialogs", "TomoModConfigFrame", "TomoModDB",
+    "SlashCmdList", "StaticPopupDialogs", "TomoModConfigFrame", "TomoModDB", "TomoGearDB",
     "TomoModItemScanTipTextLeft", "TomoModNPQuestScanTipTextLeft", "TomoMod_AFKDisplay", "TomoMod_ActionBarSkin",
     "TomoMod_ActionBars", "TomoMod_AddonDetect", "TomoMod_ArenaFrames", "TomoMod_AuctionRecipeTracker",
     "TomoMod_AuraTracker", "TomoMod_AuraTrackerDB", "TomoMod_Auras_player", "TomoMod_AutoAcceptInvite",
