@@ -1262,11 +1262,12 @@ end
 
 -- Rendre compatible avec Edit Mode
 function TomoMod_Minimap.SetupEditMode()
-    if EditModeManagerFrame then
-        Minimap:SetMovable(true)
-        Minimap:SetUserPlaced(true)
-        Minimap:SetClampedToScreen(true)
-    end
+    -- Blizzard_EditMode may not be loaded yet when TomoMod initializes. The
+    -- minimap must still be movable by TomoLayout, independently of Blizzard's
+    -- own Edit Mode frame.
+    Minimap:SetMovable(true)
+    if Minimap.SetUserPlaced then Minimap:SetUserPlaced(true) end
+    Minimap:SetClampedToScreen(true)
 end
 
 -- =====================================
@@ -1275,6 +1276,7 @@ end
 
 local _tmApplyingMinimapPos = false -- guards RestorePosition's own SetPoint from re-triggering the hook below
 local _tmMinimapPosHooked    = false
+local _tmDraggingMinimap     = false
 
 local function SavePosition()
     local db = TomoModDB and TomoModDB.minimap
@@ -1358,7 +1360,7 @@ local function InstallMinimapPositionHook()
     if _tmMinimapPosHooked then return end
     _tmMinimapPosHooked = true
     hooksecurefunc(Minimap, "SetPoint", function()
-        if _tmApplyingMinimapPos then return end
+        if _tmApplyingMinimapPos or _tmDraggingMinimap then return end
         local db = TomoModDB and TomoModDB.minimap
         if not db or not db.position then return end
 
@@ -1393,6 +1395,18 @@ local function CreateMoverOverlay()
     moverOverlay = CreateFrame("Frame", nil, Minimap, "BackdropTemplate")
     moverOverlay:SetAllPoints(Minimap)
     moverOverlay:SetFrameLevel(Minimap:GetFrameLevel() + 10)
+    moverOverlay:EnableMouse(false)
+    moverOverlay:SetScript("OnMouseDown", function(_, button)
+        if button ~= "LeftButton" then return end
+        _tmDraggingMinimap = true
+        Minimap:StartMoving()
+    end)
+    moverOverlay:SetScript("OnMouseUp", function(_, button)
+        if button ~= "LeftButton" then return end
+        Minimap:StopMovingOrSizing()
+        _tmDraggingMinimap = false
+        SavePosition()
+    end)
     if TomoMod_Utils and TomoMod_Utils.StyleMoverOverlay then
         TomoMod_Utils.StyleMoverOverlay(
             moverOverlay,
@@ -1401,6 +1415,10 @@ local function CreateMoverOverlay()
                 or "Minimap"
         )
     end
+    -- TomoLayout binds selection to dragFrame when a module exposes one. The
+    -- old minimap mover only drew this overlay and left input on the native
+    -- Minimap frame, so it could neither be selected nor dragged reliably.
+    Minimap.dragFrame = moverOverlay
     moverOverlay:Hide()
 end
 
@@ -1411,19 +1429,17 @@ end
 local function SetLocked(locked)
     isLocked = locked
     if locked then
-        Minimap:SetScript("OnDragStart", nil)
-        Minimap:SetScript("OnDragStop", nil)
-        Minimap:RegisterForDrag()
-        if moverOverlay then moverOverlay:Hide() end
+        if _tmDraggingMinimap then Minimap:StopMovingOrSizing() end
+        _tmDraggingMinimap = false
+        if moverOverlay then
+            moverOverlay:EnableMouse(false)
+            moverOverlay:Hide()
+        end
         SavePosition()
     else
+        TomoMod_Minimap.SetupEditMode()
         CreateMoverOverlay()
-        Minimap:RegisterForDrag("LeftButton")
-        Minimap:SetScript("OnDragStart", function(self) self:StartMoving() end)
-        Minimap:SetScript("OnDragStop", function(self)
-            self:StopMovingOrSizing()
-            SavePosition()
-        end)
+        moverOverlay:EnableMouse(true)
         moverOverlay:Show()
     end
 end

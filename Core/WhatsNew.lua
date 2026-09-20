@@ -65,6 +65,8 @@ CHANGELOG = {
     {
         version = "4.0.6",
         highlights = {
+            L["wn_406_minimap_layout_drag"],
+            L["wn_406_minimap_drag_guard"],
             L["wn_406_gear_weight_import"],
             L["wn_406_gear_import_validation"],
             L["wn_406_gear_independent_db"],

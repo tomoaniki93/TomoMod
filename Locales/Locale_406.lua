@@ -3,6 +3,8 @@
 -- =====================================================================
 
 TomoMod_RegisterLocale("enUS", {
+    ["wn_406_minimap_layout_drag"] = "Fixed — The minimap overlay is now a real TomoLayout drag surface instead of a visual layer above the native frame. The minimap can be selected and moved reliably from Layout mode even when Blizzard Edit Mode has not loaded yet.",
+    ["wn_406_minimap_drag_guard"] = "Changed — Minimap position protection pauses while it is being dragged, saves the final location on release and then resumes guarding against later Blizzard layout overrides.",
     ["wn_406_gear_weight_import"] = "New — TomoGear V1.2 can import Pawn v1, Ask Mr. Robot and compatible key=value stat scales for the current specialization. Primary stat, Stamina, Critical Strike, Haste, Mastery and Versatility are supported.",
     ["wn_406_gear_import_validation"] = "New — Each specialization keeps its own imported profile. Class, specialization and primary-stat mismatches are rejected, unsupported values are ignored, and item level has no implicit weight unless ItemLevel= is provided.",
     ["wn_406_gear_independent_db"] = "Changed — TomoGear preferences and weights now live in the dedicated TomoGearDB SavedVariable, independently from TomoMod profiles and imports. Existing Gear Advisor settings are migrated automatically once.",
@@ -12,6 +14,8 @@ TomoMod_RegisterLocale("enUS", {
 })
 
 TomoMod_RegisterLocale("frFR", {
+    ["wn_406_minimap_layout_drag"] = "Correction — La superposition de la minimap est maintenant une véritable surface de déplacement TomoLayout plutôt qu'une simple couche visuelle au-dessus du cadre natif. La minimap peut être sélectionnée et déplacée de façon fiable depuis le mode Layout, même si le mode Édition de Blizzard n'est pas encore chargé.",
+    ["wn_406_minimap_drag_guard"] = "Modification — La protection de position de la minimap se met en pause pendant son déplacement, enregistre l'emplacement final au relâchement puis reprend sa protection contre les modifications ultérieures de Blizzard.",
     ["wn_406_gear_weight_import"] = "Nouveauté — TomoGear V1.2 peut importer des échelles Pawn v1, Ask Mr. Robot et key=value compatibles pour la spécialisation actuelle. La caractéristique principale, l'Endurance, le Critique, la Hâte, la Maîtrise et la Polyvalence sont pris en charge.",
     ["wn_406_gear_import_validation"] = "Nouveauté — Chaque spécialisation conserve son propre profil importé. Les incompatibilités de classe, de spécialisation ou de caractéristique principale sont refusées, les valeurs non prises en charge sont ignorées et le niveau d'objet ne reçoit aucun poids implicite sans ItemLevel=.",
     ["wn_406_gear_independent_db"] = "Modification — Les préférences et les poids de TomoGear résident maintenant dans la variable sauvegardée dédiée TomoGearDB, indépendamment des profils et imports TomoMod. Les anciens réglages du conseiller sont migrés automatiquement une seule fois.",
@@ -21,6 +25,8 @@ TomoMod_RegisterLocale("frFR", {
 })
 
 TomoMod_RegisterLocale("deDE", {
+    ["wn_406_minimap_layout_drag"] = "Behoben — Die Minimap-Überlagerung ist jetzt eine echte TomoLayout-Ziehfläche statt nur einer sichtbaren Ebene über dem nativen Fenster. Die Minimap lässt sich im Layoutmodus zuverlässig auswählen und verschieben, selbst wenn Blizzards Bearbeitungsmodus noch nicht geladen wurde.",
+    ["wn_406_minimap_drag_guard"] = "Geändert — Der Positionsschutz der Minimap pausiert während des Verschiebens, speichert beim Loslassen den endgültigen Ort und schützt danach wieder vor späteren Layout-Überschreibungen durch Blizzard.",
     ["wn_406_gear_weight_import"] = "Neu — TomoGear V1.2 kann Pawn-v1-, Ask-Mr.-Robot- und kompatible key=value-Attributgewichtungen für die aktuelle Spezialisierung importieren. Primärattribut, Ausdauer, Krit, Tempo, Meisterschaft und Vielseitigkeit werden unterstützt.",
     ["wn_406_gear_import_validation"] = "Neu — Jede Spezialisierung behält ihr eigenes importiertes Profil. Unpassende Klassen, Spezialisierungen oder Primärattribute werden abgelehnt, nicht unterstützte Werte ignoriert und die Gegenstandsstufe erhält ohne ItemLevel= kein stillschweigendes Gewicht.",
     ["wn_406_gear_independent_db"] = "Geändert — TomoGear-Einstellungen und -Gewichtungen liegen jetzt unabhängig von TomoMod-Profilen und -Importen in der eigenen gespeicherten Variable TomoGearDB. Vorhandene Berater-Einstellungen werden einmalig automatisch übernommen.",
@@ -30,6 +36,8 @@ TomoMod_RegisterLocale("deDE", {
 })
 
 TomoMod_RegisterLocale("esES", {
+    ["wn_406_minimap_layout_drag"] = "Corrección — La capa de la minimapa ahora es una superficie de arrastre real de TomoLayout en lugar de una simple capa visual sobre el marco nativo. La minimapa puede seleccionarse y moverse de forma fiable desde el modo Layout aunque el modo Edición de Blizzard aún no se haya cargado.",
+    ["wn_406_minimap_drag_guard"] = "Cambio — La protección de posición de la minimapa se pausa durante el arrastre, guarda la ubicación final al soltarla y después vuelve a protegerla frente a cambios posteriores del diseño de Blizzard.",
     ["wn_406_gear_weight_import"] = "Novedad — TomoGear V1.2 puede importar escalas Pawn v1, Ask Mr. Robot y key=value compatibles para la especialización actual. Se admiten la estadística principal, Aguante, Crítico, Celeridad, Maestría y Versatilidad.",
     ["wn_406_gear_import_validation"] = "Novedad — Cada especialización conserva su propio perfil importado. Se rechazan las escalas de otra clase, especialización o estadística principal, se ignoran los valores no compatibles y el nivel de objeto no recibe peso implícito sin ItemLevel=.",
     ["wn_406_gear_independent_db"] = "Cambio — Las preferencias y los pesos de TomoGear ahora residen en la variable guardada independiente TomoGearDB, al margen de los perfiles e importaciones de TomoMod. Los ajustes existentes del asesor se migran automáticamente una sola vez.",
@@ -39,6 +47,8 @@ TomoMod_RegisterLocale("esES", {
 })
 
 TomoMod_RegisterLocale("itIT", {
+    ["wn_406_minimap_layout_drag"] = "Correzione — La sovrapposizione della minimappa è ora una vera superficie di trascinamento TomoLayout invece di un semplice livello visivo sopra il riquadro nativo. La minimappa può essere selezionata e spostata in modo affidabile dalla modalità Layout anche se la modalità Modifica di Blizzard non è ancora caricata.",
+    ["wn_406_minimap_drag_guard"] = "Modifica — La protezione della posizione della minimappa viene sospesa durante il trascinamento, salva la posizione finale al rilascio e poi riprende a proteggerla dalle successive modifiche del layout di Blizzard.",
     ["wn_406_gear_weight_import"] = "Novità — TomoGear V1.2 può importare scale Pawn v1, Ask Mr. Robot e key=value compatibili per la specializzazione attuale. Sono supportati statistica primaria, Tempra, Critico, Celerità, Maestria e Versatilità.",
     ["wn_406_gear_import_validation"] = "Novità — Ogni specializzazione conserva il proprio profilo importato. Le scale con classe, specializzazione o statistica primaria errate vengono rifiutate, i valori non supportati ignorati e il livello oggetto non riceve alcun peso implicito senza ItemLevel=.",
     ["wn_406_gear_independent_db"] = "Modifica — Preferenze e pesi di TomoGear ora risiedono nella variabile salvata dedicata TomoGearDB, indipendentemente dai profili e dalle importazioni di TomoMod. Le impostazioni esistenti vengono migrate automaticamente una sola volta.",
@@ -48,6 +58,8 @@ TomoMod_RegisterLocale("itIT", {
 })
 
 TomoMod_RegisterLocale("ptBR", {
+    ["wn_406_minimap_layout_drag"] = "Correção — A sobreposição do minimapa agora é uma superfície real de arraste do TomoLayout, em vez de apenas uma camada visual sobre o quadro nativo. O minimapa pode ser selecionado e movido de forma confiável no modo Layout mesmo que o modo de Edição da Blizzard ainda não tenha sido carregado.",
+    ["wn_406_minimap_drag_guard"] = "Alteração — A proteção da posição do minimapa pausa durante o arraste, salva o local final ao soltar e depois volta a protegê-lo contra alterações posteriores do layout da Blizzard.",
     ["wn_406_gear_weight_import"] = "Novidade — O TomoGear V1.2 pode importar escalas Pawn v1, Ask Mr. Robot e key=value compatíveis para a especialização atual. Atributo primário, Vigor, Crítico, Aceleração, Maestria e Versatilidade são aceitos.",
     ["wn_406_gear_import_validation"] = "Novidade — Cada especialização mantém seu próprio perfil importado. Escalas com classe, especialização ou atributo primário incompatíveis são recusadas, valores não aceitos são ignorados e o nível do item não recebe peso implícito sem ItemLevel=.",
     ["wn_406_gear_independent_db"] = "Alteração — As preferências e os pesos do TomoGear agora ficam na variável salva dedicada TomoGearDB, independentemente dos perfis e das importações do TomoMod. As configurações existentes são migradas automaticamente uma única vez.",

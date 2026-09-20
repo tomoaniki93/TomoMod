@@ -2,6 +2,11 @@
 
 ## CHANGELOG 4.0.6
 
+#### TomoLayout — Movable Minimap
+
+- **Fixed** - The minimap overlay is now a real TomoLayout drag surface rather than a visual layer above the native frame. It can be selected and moved reliably from Layout mode, including when Blizzard Edit Mode has not been loaded yet.
+- **Changed** - TomoMod temporarily suspends its minimap position-restoration guard while the player is dragging, saves the final position on release and then resumes protection against later Blizzard layout overrides.
+
 #### TomoGear Advisor V1.2 — Imported Stat Weights
 
 - **New** - TomoGear can import Pawn v1, Ask Mr. Robot and compatible `key=value` stat scales for the current specialization. Primary stat, Stamina, Critical Strike, Haste, Mastery and Versatility are supported, with an optional explicit item-level weight.

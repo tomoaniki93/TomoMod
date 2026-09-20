@@ -277,5 +277,33 @@ for id in pairs(COVERED) do
 end
 check("aucune entrée périmée", staleMap, 0)
 
+-- ═══════════════════════════════════════════════════════════════════════
+print("── 7. Surface de déplacement de la minimap ──")
+
+-- La minimap utilisait encore l'ancien modèle : un overlay uniquement
+-- visuel et des scripts de drag posés sur la frame Blizzard en dessous.
+-- TomoLayout sélectionne les movers modernes via frame.dragFrame ; sans ce
+-- lien, l'overlay visible ne constituait pas une surface déplaçable fiable.
+local minimapSrc = read("Modules/QOL/Minimap/Minimap.lua")
+assert(minimapSrc, "Minimap.lua introuvable")
+
+check("overlay exposé comme dragFrame",
+      minimapSrc:find("Minimap.dragFrame = moverOverlay", 1, true) ~= nil, true)
+check("overlay activé pour la souris",
+      minimapSrc:find("moverOverlay:EnableMouse(true)", 1, true) ~= nil, true)
+check("overlay démarre le déplacement",
+      minimapSrc:find('moverOverlay:SetScript("OnMouseDown"', 1, true) ~= nil
+      and minimapSrc:find("Minimap:StartMoving()", 1, true) ~= nil, true)
+check("overlay sauvegarde à la fin",
+      minimapSrc:find('moverOverlay:SetScript("OnMouseUp"', 1, true) ~= nil
+      and minimapSrc:find("Minimap:StopMovingOrSizing()", 1, true) ~= nil, true)
+check("hook de position suspendu pendant le drag",
+      minimapSrc:find("if _tmApplyingMinimapPos or _tmDraggingMinimap then return end", 1, true) ~= nil, true)
+
+local setupEditMode = minimapSrc:match("function TomoMod_Minimap%.SetupEditMode%(%)%s*(.-)%s*end") or ""
+check("movable indépendant de Blizzard Edit Mode",
+      setupEditMode:find("Minimap:SetMovable(true)", 1, true) ~= nil
+      and setupEditMode:find("EditModeManagerFrame", 1, true) == nil, true)
+
 print(ok and "\nTOUT EST VERT" or "\nDES TESTS ONT ÉCHOUÉ")
 os.exit(ok and 0 or 1)
