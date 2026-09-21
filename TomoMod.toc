@@ -36,11 +36,16 @@ Locales\Locale_403.lua
 Locales\Locale_404.lua
 Locales\Locale_405.lua
 Locales\Locale_406.lua
+Locales\Locale_Compat.lua
 
 ## =====================
 ## Core
 ## =====================
 Core\Utils.lua
+## Client flavour gate. Loads before Database.lua because it patches the
+## defaults, and before every module because each blocked module file
+## opens with a guard that reads it.
+Core\Compat.lua
 Core\Forge\Forge.lua
 Core\Forge\ForgeIO.lua
 Core\Forge\ForgeText.lua

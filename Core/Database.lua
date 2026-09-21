@@ -2018,6 +2018,13 @@ TomoMod_Defaults = {
     },
 }
 
+-- Client flavour gate. Applied to the defaults rather than only to the
+-- live DB, so that a fresh install, TomoMod_ResetDatabase and
+-- TomoMod_ResetModule all inherit it without knowing this file exists.
+if TomoMod_Compat and TomoMod_Compat.ApplyDefaults then
+    TomoMod_Compat.ApplyDefaults(TomoMod_Defaults)
+end
+
 -- =====================================
 -- DB FUNCTIONS
 -- =====================================
@@ -2426,7 +2433,15 @@ end
 function TomoMod_NormalizeAllElements()
     local a = TomoMod_NormalizeUFElements()
     local b = TomoMod_NormalizeNPElements()
-    return a or b
+    -- The one funnel every route into the live DB already passes through:
+    -- login, profile load, content swap, full import, selective import.
+    -- A profile written on Midnight and carried to Forever is corrected
+    -- here rather than trusted.
+    local c = false
+    if TomoMod_Compat and TomoMod_Compat.EnforceDB then
+        c = TomoMod_Compat.EnforceDB(TomoModDB) > 0
+    end
+    return a or b or c
 end
 
 function TomoMod_InitDatabase()

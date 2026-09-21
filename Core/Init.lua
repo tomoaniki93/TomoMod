@@ -99,6 +99,12 @@ SlashCmdList["TOMOMOD"] = function(msg)
                 return
             end
             local rep = LC.Toggle(arg)
+            if rep.unavailable then
+                print("|cff2e9dd8TomoMod|r " .. arg .. " |cffffcc00"
+                    .. (L["compat_unavailable"] or "unavailable on this client") .. "|r"
+                    .. (rep.unavailableLabel and (" — " .. rep.unavailableLabel) or ""))
+                return
+            end
             local state = rep.value and "|cff00ff00ON|r" or "|cffff4040OFF|r"
             local how = rep.deferred and " (après le combat)"
                      or rep.needsReload and " (/reload requis)"
@@ -126,13 +132,25 @@ SlashCmdList["TOMOMOD"] = function(msg)
             for _, m in ipairs(g.modules) do
                 local on  = REG.IsEnabled(m.key)
                 local cap = LC.Capability(m.key)
+                local note = cap == "live" and "" or cap
+                if REG.IsAvailable and not REG.IsAvailable(m.key) then
+                    local _, label = TomoMod_Compat and TomoMod_Compat.BlockingFeature(m.key)
+                    note = "indisponible" .. (label and (" (" .. label .. ")") or "")
+                end
                 print(("  %s %-22s |cff888888%s|r"):format(
                     on and "|cff00ff00[x]|r" or "|cff555555[ ]|r",
                     m.key,
-                    cap == "live" and "" or cap))
+                    note))
             end
         end
         print("|cff888888/tm modules <clé> pour basculer|r")
+
+    elseif msg == "flavor" or msg == "client" then
+        -- The whole Forever gate hangs off one detection, so the player
+        -- has to be able to read what it decided without a debugger.
+        if TomoMod_Compat then
+            print("|cff2e9dd8TomoMod|r " .. TomoMod_Compat.Summary())
+        end
 
     elseif msg == "backup" or msg:match("^backup%s+") then
         local safety = TomoMod_ProfileSafety
@@ -597,6 +615,11 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         -- the rest of the chain — notably TomoMod_Movers, which would leave
         -- the Layout button silently unresponsive.
         local function safeInit(name, mod)
+            -- Blocked by the client. The module file already returned at
+            -- its own guard, so `mod` is normally nil here; the check is
+            -- kept because a blocked module could still exist as a stale
+            -- global left by another addon of the suite.
+            if TomoMod_Compat and TomoMod_Compat.IsInitBlocked(name) then return end
             if not mod or not mod.Initialize then return end
             -- [fix] The handler used to be `debugstack` itself. Its first
             -- argument is a numeric START INDEX, not an error message, so the
@@ -695,6 +718,12 @@ mainFrame:SetScript("OnEvent", function(self, event, arg1)
         local r, g, b = TomoMod_Utils.GetClassColor()
         print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_loaded"], TomoMod_Utils.ColorText("/tm", r, g, b)))
         print("|cff2e9dd8TomoMod|r |cffff3333" .. L["msg_report_issue"] .. "|r")
+
+        -- Said once, at login, because the alternative is a player
+        -- hunting for a Mythic+ tab that this client will never show.
+        if TomoMod_Compat and TomoMod_Compat.IsForever() then
+            print("|cff2e9dd8TomoMod|r |cffffcc00" .. L["msg_forever_notice"] .. "|r")
+        end
 
         -- One-time notice for players who had hand-added spells to the
         -- removed aura tracker. Deferred to here rather than printed from

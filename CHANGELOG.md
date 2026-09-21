@@ -2,6 +2,13 @@
 
 ## CHANGELOG 4.0.6
 
+#### WoW: Forever — Client Compatibility
+
+- **New** - TomoMod now recognizes WoW: Forever as its own client flavour by combining the modern project identifier with the 1.60 version line or the 16001 interface range. Compatible manifests advertise both Midnight and Forever interfaces without mistaking Classic Era or Mists Classic for the new client.
+- **Changed** - Systems absent from Forever are disabled centrally and defensively: Mythic+, Housing, Prey Tracker, Compass, Consumables, Skyriding and World Quests are guarded before their files initialize, forced off in defaults and live profiles, reported unavailable by the module registry and refused by live toggles.
+- **Changed** - Forever removes unavailable option pages, QOL tabs and the Mythic+ Studio entry instead of exposing controls that cannot work. A login notice explains the disabled systems, while `/tm flavor` reports the detected client, build, interface and compatibility decisions.
+- **Internal** - A dedicated 167-check compatibility bench covers client detection and near-misses, database enforcement, manifest/default bijection and source guards for every blocked module file.
+
 #### TomoLayout — Movable Minimap
 
 - **Fixed** - The minimap overlay is now a real TomoLayout drag surface rather than a visual layer above the native frame. It can be selected and moved reliably from Layout mode, including when Blizzard Edit Mode has not been loaded yet.

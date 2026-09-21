@@ -1,3 +1,9 @@
+-- [Compat] WoW: Forever has no player housing. The controller below waits on
+-- HOUSE_EDITOR_MODE_CHANGED and the Blizzard_HouseEditor addon, neither
+-- of which exists on this client.
+-- See Core/Compat.lua.
+if TomoMod_Compat and TomoMod_Compat.Blocked("housing") then return end
+
 -- =====================================
 -- Modules/Housing/HousingAPI.lua — Shared helpers
 -- Inspiré de Plumber/Modules/Housing/Housing_API.lua (réécrit pour TomoMod)

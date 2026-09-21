@@ -168,6 +168,7 @@ function LC.Capability(key)
     local m = R.Get(key)
     if not m then return "none" end
     if m.internal or m.toggleModel == "passive" then return "none" end
+    if R.IsAvailable and not R.IsAvailable(key) then return "none" end
     if m.requiresReload then return "reload" end
 
     local impl = Impl(m)
@@ -230,12 +231,26 @@ end
 function LC.SetEnabled(key, value, _seen)
     local report = { key = key, value = value and true or false,
                      ok = false, applied = false, deferred = false,
-                     needsReload = false, cascade = {}, missingDeps = {} }
+                     needsReload = false, unavailable = false,
+                     cascade = {}, missingDeps = {} }
     lastReport = report
 
     local m = R.Get(key)
     if not m then return report end
     if m.internal or m.toggleModel == "passive" then return report end
+
+    -- Blocked by the client, not by the player. Reported rather than
+    -- silently ignored: the caller is a checkbox or a slash command and
+    -- has to be able to say why nothing happened.
+    if R.IsAvailable and not R.IsAvailable(key) then
+        report.value = false
+        report.unavailable = true
+        if TomoMod_Compat and TomoMod_Compat.BlockingFeature then
+            local _, label = TomoMod_Compat.BlockingFeature(key)
+            report.unavailableLabel = label
+        end
+        return report
+    end
 
     value = value and true or false
 

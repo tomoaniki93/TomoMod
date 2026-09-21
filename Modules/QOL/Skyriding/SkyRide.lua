@@ -1,4 +1,9 @@
-﻿-- =====================================
+﻿-- [Compat] WoW: Forever has no skyriding: no vigor, no second wind, no
+-- gliding speed to read.
+-- See Core/Compat.lua.
+if TomoMod_Compat and TomoMod_Compat.Blocked("skyriding") then return end
+
+-- =====================================
 -- TomoMod_SkyRide.lua
 -- Module de barre Skyriding — v2.3.1+
 -- Deux rangées : Vigor (6 charges) + Second Souffle (3 charges)

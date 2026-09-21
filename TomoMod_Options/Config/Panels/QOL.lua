@@ -222,32 +222,34 @@ local function BuildAutomationsTab(parent)
     end)
     y = ny
 
-    -- Prey Tracker (Midnight-only)
-    local _, ny = W.CreateSeparator(c, y)
-    y = ny
-    local _, ny = W.CreateSubLabel(c, L["sublabel_prey_tracker"], y)
-    y = ny
+    -- Prey Tracker (Midnight-only: absent on WoW: Forever)
+    if not (TomoMod_Compat and TomoMod_Compat.Blocked("preytracker")) then
+        local _, ny = W.CreateSeparator(c, y)
+        y = ny
+        local _, ny = W.CreateSubLabel(c, L["sublabel_prey_tracker"], y)
+        y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_prey_tracker_enable"], TomoModDB.preyTracker.enabled, y, function(v)
-        TomoModDB.preyTracker.enabled = v
-        if TomoMod_PreyTracker then TomoMod_PreyTracker.ApplySettings() end
-    end)
-    y = ny
+        local _, ny = W.CreateCheckbox(c, L["opt_prey_tracker_enable"], TomoModDB.preyTracker.enabled, y, function(v)
+            TomoModDB.preyTracker.enabled = v
+            if TomoMod_PreyTracker then TomoMod_PreyTracker.ApplySettings() end
+        end)
+        y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_prey_tracker_width"], TomoModDB.preyTracker.width, 150, 400, 5, y, function(v)
-        TomoModDB.preyTracker.width = v
-        if TomoMod_PreyTracker then TomoMod_PreyTracker.ApplySettings() end
-    end, "%.0f")
-    y = ny
+        local _, ny = W.CreateSlider(c, L["opt_prey_tracker_width"], TomoModDB.preyTracker.width, 150, 400, 5, y, function(v)
+            TomoModDB.preyTracker.width = v
+            if TomoMod_PreyTracker then TomoMod_PreyTracker.ApplySettings() end
+        end, "%.0f")
+        y = ny
 
-    local _, ny = W.CreateSlider(c, L["opt_prey_tracker_font"], TomoModDB.preyTracker.fontSize, 8, 20, 1, y, function(v)
-        TomoModDB.preyTracker.fontSize = v
-        if TomoMod_PreyTracker then TomoMod_PreyTracker.ApplySettings() end
-    end, "%.0f")
-    y = ny
+        local _, ny = W.CreateSlider(c, L["opt_prey_tracker_font"], TomoModDB.preyTracker.fontSize, 8, 20, 1, y, function(v)
+            TomoModDB.preyTracker.fontSize = v
+            if TomoMod_PreyTracker then TomoMod_PreyTracker.ApplySettings() end
+        end, "%.0f")
+        y = ny
 
-    local _, ny = W.CreateInfoText(c, L["info_prey_tracker"], y)
-    y = ny
+        local _, ny = W.CreateInfoText(c, L["info_prey_tracker"], y)
+        y = ny
+    end
 
     c:SetHeight(math.abs(y) + 40)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
@@ -1911,6 +1913,17 @@ function TomoMod_ConfigPanel_QOL(parent)
         { key = "compass",     label = L["tab_qol_compass"], builder = function(p) return BuildCompassTab(p) end },
         { key = "companion",   label = L["tab_qol_companion"], builder = function(p) return BuildCompanionStatusTab(p) end },
     }
+
+    -- Tabs whose module cannot run on this client are dropped, not
+    -- disabled: a tab that opens onto controls for something the game
+    -- does not have reads as a bug, not as a limitation.
+    if TomoMod_Compat and TomoMod_Compat.IsTabBlocked then
+        for i = #tabs, 1, -1 do
+            if TomoMod_Compat.IsTabBlocked(tabs[i].key) then
+                table.remove(tabs, i)
+            end
+        end
+    end
 
     return W.CreateTabPanel(parent, tabs)
 end

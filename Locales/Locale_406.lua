@@ -3,6 +3,10 @@
 -- =====================================================================
 
 TomoMod_RegisterLocale("enUS", {
+    ["wn_406_forever_detection"] = "New — TomoMod now recognizes WoW: Forever as its own client flavour by combining the modern project identifier with the 1.60 version line or interface 16001, without mistaking Classic Era or Mists Classic for it.",
+    ["wn_406_forever_modules"] = "Changed — Mythic+, Housing, Prey Tracker, Compass, Consumables, Skyriding and World Quests are disabled safely on Forever before initialization and forced off in defaults, profiles, imports and live toggles.",
+    ["wn_406_forever_interface"] = "Changed — Unavailable option pages, QOL tabs and the Mythic+ Studio entry are removed on Forever. A login notice explains the limitations, and /tm flavor reports the detected client and compatibility decisions.",
+    ["wn_406_forever_validation"] = "Internal — A dedicated 167-check bench validates client detection, database enforcement, manifest/default consistency and source guards for every blocked module.",
     ["wn_406_minimap_layout_drag"] = "Fixed — The minimap overlay is now a real TomoLayout drag surface instead of a visual layer above the native frame. The minimap can be selected and moved reliably from Layout mode even when Blizzard Edit Mode has not loaded yet.",
     ["wn_406_minimap_drag_guard"] = "Changed — Minimap position protection pauses while it is being dragged, saves the final location on release and then resumes guarding against later Blizzard layout overrides.",
     ["wn_406_gear_weight_import"] = "New — TomoGear V1.2 can import Pawn v1, Ask Mr. Robot and compatible key=value stat scales for the current specialization. Primary stat, Stamina, Critical Strike, Haste, Mastery and Versatility are supported.",
@@ -14,6 +18,10 @@ TomoMod_RegisterLocale("enUS", {
 })
 
 TomoMod_RegisterLocale("frFR", {
+    ["wn_406_forever_detection"] = "Nouveauté — TomoMod reconnaît maintenant WoW : Forever comme un client distinct en combinant l'identifiant du projet moderne avec la version 1.60 ou l'interface 16001, sans le confondre avec Classic Era ou Mists Classic.",
+    ["wn_406_forever_modules"] = "Modification — Mythique+, Logement, Traqueur de proie, Boussole, Consommables, Vol dynamique et Quêtes du monde sont désactivés proprement sur Forever avant leur initialisation et forcés à l'arrêt dans les valeurs par défaut, profils, imports et bascules directes.",
+    ["wn_406_forever_interface"] = "Modification — Les pages d'options, onglets QOL et l'entrée du Studio Mythique+ indisponibles sont retirés sur Forever. Un message de connexion explique les limitations et /tm flavor indique le client détecté ainsi que les décisions de compatibilité.",
+    ["wn_406_forever_validation"] = "Interne — Un banc dédié de 167 contrôles valide la détection du client, l'application aux données, la cohérence manifeste/valeurs par défaut et les gardes de chaque module bloqué.",
     ["wn_406_minimap_layout_drag"] = "Correction — La superposition de la minimap est maintenant une véritable surface de déplacement TomoLayout plutôt qu'une simple couche visuelle au-dessus du cadre natif. La minimap peut être sélectionnée et déplacée de façon fiable depuis le mode Layout, même si le mode Édition de Blizzard n'est pas encore chargé.",
     ["wn_406_minimap_drag_guard"] = "Modification — La protection de position de la minimap se met en pause pendant son déplacement, enregistre l'emplacement final au relâchement puis reprend sa protection contre les modifications ultérieures de Blizzard.",
     ["wn_406_gear_weight_import"] = "Nouveauté — TomoGear V1.2 peut importer des échelles Pawn v1, Ask Mr. Robot et key=value compatibles pour la spécialisation actuelle. La caractéristique principale, l'Endurance, le Critique, la Hâte, la Maîtrise et la Polyvalence sont pris en charge.",
@@ -25,6 +33,10 @@ TomoMod_RegisterLocale("frFR", {
 })
 
 TomoMod_RegisterLocale("deDE", {
+    ["wn_406_forever_detection"] = "Neu — TomoMod erkennt WoW: Forever jetzt als eigenen Clienttyp, indem die moderne Projektkennung mit der Versionslinie 1.60 oder Interface 16001 kombiniert wird, ohne Classic Era oder Mists Classic damit zu verwechseln.",
+    ["wn_406_forever_modules"] = "Geändert — Mythisch+, Wohnen, Beutejäger, Kompass, Verbrauchsgüter, dynamisches Fliegen und Weltquests werden auf Forever vor der Initialisierung sicher deaktiviert und in Standardwerten, Profilen, Importen und Live-Schaltern ausgeschaltet gehalten.",
+    ["wn_406_forever_interface"] = "Geändert — Nicht verfügbare Optionsseiten, QOL-Reiter und der Eintrag für das Mythisch+-Studio werden auf Forever entfernt. Ein Hinweis beim Anmelden erklärt die Einschränkungen; /tm flavor zeigt den erkannten Client und die Kompatibilitätsentscheidungen.",
+    ["wn_406_forever_validation"] = "Intern — Ein eigener Prüfstand mit 167 Kontrollen validiert Clienterkennung, Datenbankdurchsetzung, Konsistenz von Manifest und Standardwerten sowie die Schutzabfragen aller blockierten Module.",
     ["wn_406_minimap_layout_drag"] = "Behoben — Die Minimap-Überlagerung ist jetzt eine echte TomoLayout-Ziehfläche statt nur einer sichtbaren Ebene über dem nativen Fenster. Die Minimap lässt sich im Layoutmodus zuverlässig auswählen und verschieben, selbst wenn Blizzards Bearbeitungsmodus noch nicht geladen wurde.",
     ["wn_406_minimap_drag_guard"] = "Geändert — Der Positionsschutz der Minimap pausiert während des Verschiebens, speichert beim Loslassen den endgültigen Ort und schützt danach wieder vor späteren Layout-Überschreibungen durch Blizzard.",
     ["wn_406_gear_weight_import"] = "Neu — TomoGear V1.2 kann Pawn-v1-, Ask-Mr.-Robot- und kompatible key=value-Attributgewichtungen für die aktuelle Spezialisierung importieren. Primärattribut, Ausdauer, Krit, Tempo, Meisterschaft und Vielseitigkeit werden unterstützt.",
@@ -36,6 +48,10 @@ TomoMod_RegisterLocale("deDE", {
 })
 
 TomoMod_RegisterLocale("esES", {
+    ["wn_406_forever_detection"] = "Novedad — TomoMod ahora reconoce WoW: Forever como un tipo de cliente propio al combinar el identificador del proyecto moderno con la versión 1.60 o la interfaz 16001, sin confundirlo con Classic Era ni Mists Classic.",
+    ["wn_406_forever_modules"] = "Cambio — Mítico+, Vivienda, Rastreador de presas, Brújula, Consumibles, Vuelo dinámico y Misiones del mundo se desactivan de forma segura en Forever antes de iniciarse y se mantienen apagados en valores predeterminados, perfiles, importaciones y controles directos.",
+    ["wn_406_forever_interface"] = "Cambio — Las páginas de opciones, pestañas QOL y la entrada del Estudio Mítico+ no disponibles se eliminan en Forever. Un aviso al iniciar sesión explica las limitaciones y /tm flavor muestra el cliente detectado y las decisiones de compatibilidad.",
+    ["wn_406_forever_validation"] = "Interno — Un banco específico de 167 comprobaciones valida la detección del cliente, la aplicación sobre la base de datos, la coherencia entre manifiesto y valores predeterminados y las protecciones de cada módulo bloqueado.",
     ["wn_406_minimap_layout_drag"] = "Corrección — La capa de la minimapa ahora es una superficie de arrastre real de TomoLayout en lugar de una simple capa visual sobre el marco nativo. La minimapa puede seleccionarse y moverse de forma fiable desde el modo Layout aunque el modo Edición de Blizzard aún no se haya cargado.",
     ["wn_406_minimap_drag_guard"] = "Cambio — La protección de posición de la minimapa se pausa durante el arrastre, guarda la ubicación final al soltarla y después vuelve a protegerla frente a cambios posteriores del diseño de Blizzard.",
     ["wn_406_gear_weight_import"] = "Novedad — TomoGear V1.2 puede importar escalas Pawn v1, Ask Mr. Robot y key=value compatibles para la especialización actual. Se admiten la estadística principal, Aguante, Crítico, Celeridad, Maestría y Versatilidad.",
@@ -47,6 +63,10 @@ TomoMod_RegisterLocale("esES", {
 })
 
 TomoMod_RegisterLocale("itIT", {
+    ["wn_406_forever_detection"] = "Novità — TomoMod ora riconosce WoW: Forever come tipo di client distinto combinando l'identificatore del progetto moderno con la versione 1.60 o l'interfaccia 16001, senza confonderlo con Classic Era o Mists Classic.",
+    ["wn_406_forever_modules"] = "Modifica — Mitica+, Alloggi, Tracciatore di prede, Bussola, Consumabili, Volo dinamico e Missioni mondiali vengono disattivati in sicurezza su Forever prima dell'inizializzazione e mantenuti spenti nei valori predefiniti, profili, importazioni e controlli diretti.",
+    ["wn_406_forever_interface"] = "Modifica — Le pagine delle opzioni, le schede QOL e la voce dello Studio Mitica+ non disponibili vengono rimosse su Forever. Un avviso all'accesso spiega le limitazioni e /tm flavor mostra il client rilevato e le decisioni di compatibilità.",
+    ["wn_406_forever_validation"] = "Interno — Un banco dedicato con 167 controlli verifica il rilevamento del client, l'applicazione al database, la coerenza tra manifest e valori predefiniti e le protezioni di ogni modulo bloccato.",
     ["wn_406_minimap_layout_drag"] = "Correzione — La sovrapposizione della minimappa è ora una vera superficie di trascinamento TomoLayout invece di un semplice livello visivo sopra il riquadro nativo. La minimappa può essere selezionata e spostata in modo affidabile dalla modalità Layout anche se la modalità Modifica di Blizzard non è ancora caricata.",
     ["wn_406_minimap_drag_guard"] = "Modifica — La protezione della posizione della minimappa viene sospesa durante il trascinamento, salva la posizione finale al rilascio e poi riprende a proteggerla dalle successive modifiche del layout di Blizzard.",
     ["wn_406_gear_weight_import"] = "Novità — TomoGear V1.2 può importare scale Pawn v1, Ask Mr. Robot e key=value compatibili per la specializzazione attuale. Sono supportati statistica primaria, Tempra, Critico, Celerità, Maestria e Versatilità.",
@@ -58,6 +78,10 @@ TomoMod_RegisterLocale("itIT", {
 })
 
 TomoMod_RegisterLocale("ptBR", {
+    ["wn_406_forever_detection"] = "Novidade — O TomoMod agora reconhece o WoW: Forever como um tipo de cliente próprio ao combinar o identificador do projeto moderno com a versão 1.60 ou a interface 16001, sem confundi-lo com Classic Era ou Mists Classic.",
+    ["wn_406_forever_modules"] = "Alteração — Mítico+, Moradia, Rastreador de presas, Bússola, Consumíveis, Voo dinâmico e Missões mundiais são desativados com segurança no Forever antes da inicialização e mantidos desligados nos padrões, perfis, importações e controles diretos.",
+    ["wn_406_forever_interface"] = "Alteração — Páginas de opções, abas QOL e a entrada do Estúdio Mítico+ indisponíveis são removidas no Forever. Um aviso ao entrar explica as limitações, e /tm flavor mostra o cliente detectado e as decisões de compatibilidade.",
+    ["wn_406_forever_validation"] = "Interno — Um conjunto dedicado de 167 verificações valida a detecção do cliente, a aplicação no banco de dados, a consistência entre manifesto e padrões e as proteções de cada módulo bloqueado.",
     ["wn_406_minimap_layout_drag"] = "Correção — A sobreposição do minimapa agora é uma superfície real de arraste do TomoLayout, em vez de apenas uma camada visual sobre o quadro nativo. O minimapa pode ser selecionado e movido de forma confiável no modo Layout mesmo que o modo de Edição da Blizzard ainda não tenha sido carregado.",
     ["wn_406_minimap_drag_guard"] = "Alteração — A proteção da posição do minimapa pausa durante o arraste, salva o local final ao soltar e depois volta a protegê-lo contra alterações posteriores do layout da Blizzard.",
     ["wn_406_gear_weight_import"] = "Novidade — O TomoGear V1.2 pode importar escalas Pawn v1, Ask Mr. Robot e key=value compatíveis para a especialização atual. Atributo primário, Vigor, Crítico, Aceleração, Maestria e Versatilidade são aceitos.",

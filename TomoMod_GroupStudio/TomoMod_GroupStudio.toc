@@ -1,4 +1,4 @@
-## Interface: 120100
+## Interface: 120100, 16001
 ## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r |cff2e9dd8Party & Raid|r |cffFFFFFFStudio|r
 ## Notes: Visual PartyFrame, RaidFrame and Healer configuration studio for TomoMod.
 ## Author: TomoAniki

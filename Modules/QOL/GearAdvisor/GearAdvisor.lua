@@ -500,10 +500,13 @@ function GA:ImportWeights(text)
             end
         end
     else
-        for _, value in pairs(primaries) do
-            parsed.primary = value
+        -- Unknown future primary-stat identifiers keep the former fallback,
+        -- but select it deterministically instead of entering a loop that can
+        -- only ever execute once.
+        local fallbackPrimary = primaries.strength or primaries.agility or primaries.intellect
+        if fallbackPrimary ~= nil then
+            parsed.primary = fallbackPrimary
             provided.primary = true
-            break
         end
     end
 

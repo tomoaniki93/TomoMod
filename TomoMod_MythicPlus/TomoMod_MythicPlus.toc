@@ -1,4 +1,8 @@
 ## Interface: 120100
+## Deliberately NOT 16001: WoW: Forever has no Mythic+ content, so this
+## studio is left out of date there rather than listed as loadable. Every
+## file also opens with the Core/Compat.lua guard, for the case where a
+## player force-loads it anyway.
 ## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r |cff2e9dd8Mythic+|r |cffFFFFFFStudio|r
 ## Notes: LoadOnDemand Mythic+ control centre for TomoMod.
 ## Author: TomoAniki

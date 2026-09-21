@@ -1,4 +1,9 @@
-﻿-- =====================================
+﻿-- [Compat] WoW: Forever is built on the vanilla world map, so the waypoint and
+-- bearing model this module draws from does not apply.
+-- See Core/Compat.lua.
+if TomoMod_Compat and TomoMod_Compat.Blocked("compass") then return end
+
+-- =====================================
 -- Compass.lua — Boussole de cap (« Waypoint 2.0 »)
 -- =====================================
 -- Une barre horizontale en haut de l'écran qui fait défiler les points

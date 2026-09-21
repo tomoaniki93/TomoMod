@@ -914,6 +914,16 @@ local function CreateStudiosHub(parent, y)
             "Advanced visual editors for the main TomoMod systems."), cy)
     cy = ny
 
+    -- A studio whose game system this client does not have is removed from
+    -- the hub: its tile could only ever report that it failed to load.
+    if TomoMod_Compat and TomoMod_Compat.IsAddOnBlocked then
+        for i = #STUDIO_DEFS, 1, -1 do
+            if TomoMod_Compat.IsAddOnBlocked(STUDIO_DEFS[i].addon) then
+                table.remove(STUDIO_DEFS, i)
+            end
+        end
+    end
+
     local rows = math.ceil(#STUDIO_DEFS / 2)
     local gridH = STUDIO_TILE_H * rows + STUDIO_GAP * math.max(0, rows - 1)
     local grid = CreateFrame("Frame", nil, card.inner)

@@ -806,6 +806,20 @@ local CATEGORY_TREE = {
         { key = "housing", label = L["cfg_tab_housing"],        global = "TomoMod_ConfigPanel_Housing" },
     },
 }
+-- Pages whose game system this client does not have are removed from the
+-- navigation rather than shown empty or greyed. Done on the tree itself
+-- so Config/GlobalSearch.lua, which ghost-indexes from the same data,
+-- cannot offer a deep link to a page that is no longer reachable.
+if TomoMod_Compat and TomoMod_Compat.IsPageBlocked then
+    for _, tabs in pairs(CATEGORY_TREE) do
+        for i = #tabs, 1, -1 do
+            if TomoMod_Compat.IsPageBlocked(tabs[i].key) then
+                table.remove(tabs, i)
+            end
+        end
+    end
+end
+
 C.CategoryTree = CATEGORY_TREE
 
 -- Categories that are a single page (no tab bar of their own at this

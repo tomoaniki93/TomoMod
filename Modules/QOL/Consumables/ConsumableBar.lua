@@ -1,3 +1,8 @@
+-- [Compat] WoW: Forever has none of the Midnight flasks, food or weapon oils
+-- this tracker watches for.
+-- See Core/Compat.lua.
+if TomoMod_Compat and TomoMod_Compat.Blocked("consumables") then return end
+
 -- =====================================
 -- ConsumableBar.lua — Ready / Consumable Tracker
 -- Flacon | Bien nourri | Huile d'arme

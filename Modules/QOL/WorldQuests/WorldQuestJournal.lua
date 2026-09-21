@@ -1,3 +1,8 @@
+-- [Compat] WoW: Forever has no world quests, so the journal below would attach
+-- an always-empty tab to the world map.
+-- See Core/Compat.lua.
+if TomoMod_Compat and TomoMod_Compat.Blocked("worldquests") then return end
+
 -- WorldQuestJournal.lua — TomoMod World Quests inside Blizzard's quest journal.
 TomoMod_WorldQuestTab = TomoMod_WorldQuestTab or {}
 local WQT = TomoMod_WorldQuestTab
