@@ -1,4 +1,4 @@
-![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge) ![WoW](https://img.shields.io/badge/WoW-Forever-9146ff?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120100 | 16001-orange?style=for-the-badge)
+![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge) ![WoW](https://img.shields.io/badge/WoW-Forever-9146ff?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120100|16001-orange?style=for-the-badge)
 
 # ⚡ TomoMod — Your Complete World of Warcraft Interface
 
