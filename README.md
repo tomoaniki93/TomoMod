@@ -1,253 +1,962 @@
-![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120100-orange?style=for-the-badge)
+![WoW](https://img.shields.io/badge/WoW-Midnight-blue?style=for-the-badge) ![WoW](https://img.shields.io/badge/WoW-Forever-9146ff?style=for-the-badge) ![Interface](https://img.shields.io/badge/Interface-120100 | 16001-orange?style=for-the-badge)
 
-<div><h1><span style="color:#2dc26b">TomoMod — Your Whole Interface, Reimagined</span></h1></div>
+# ⚡ TomoMod — Your Complete World of Warcraft Interface
 
-> <span style="color:#2dc26b"><strong><em>One addon instead of fifteen. A clean, dark, teal-accented UI that just works.</em></strong></span>
+### One addon. One design. One place to configure your UI.
 
-Stop bolting together a dozen addons just to get a tidy interface. **<span style="color:#2dc26b">TomoMod</span>** replaces Blizzard's default UI with one cohesive, modern look — **unit frames, party & raid frames, nameplates, castbars, action bars, bags, chat, tooltips, the objective tracker**, a full **Mythic+ toolkit**, and **40+ quality-of-life features** — all from a single settings panel.
+**TomoMod** is a complete modular interface suite for **World of Warcraft**, built to replace and enhance the parts of the Blizzard UI you interact with every day.
 
-Built specifically for **Midnight (12.x)**: lightweight, taint-free, and tuned for serious raiding and Mythic+. Nothing to script, nothing to import — install it, pick a preset, and play.
+Unit Frames, Party & Raid Frames, Nameplates, Castbars, Action Bars, Cooldowns, Chat, Bags, Damage Meter, Character UI, navigation tools and dozens of quality-of-life features all share the same modern TomoMod design.
 
-<span style="color:#fff"><strong>Author:</strong></span> **_<span style="color:#2dc26b">TomoAniki</span>_** &nbsp;•&nbsp; <span style="color:#fff"><strong>Project ID:</strong></span> <span style="color:#2dc26b"><strong>1446255</strong></span>
+**TomoMod runs on both modern branches of the game:**
 
-***
+🌑 **Midnight** — the full suite, every module
 
-<div><h2><span style="color:#2dc26b">🚀 Get Started in 60 Seconds</span></h2></div>
+♾️ **Forever** — the same interface, automatically adapted to a level-60 Azeroth
 
-1.  Install and log in — TomoMod opens a quick **presets-first setup**.
-2.  Pick the profile that matches how you play: **Recommended**, **Tank**, **Healer**, **DPS**, **Minimal**, or **Custom**.
-3.  That's it — you're playing. Everything stays adjustable later.
+No configuration strings are required. No scripting is required. No separate download is required — **one install covers both clients**.
 
-Type **`/tm`** any time to open the full settings panel, or **`/tm install`** to run the setup again. Prefer to choose every option yourself? Pick **Custom** and walk through each category.
+**Install → choose a role preset → play.**
 
-***
-
-<div><h2><span style="color:#2dc26b">🖼️ What You Get Out of the Box</span></h2></div>
-
-| Category    | What's inside                                                                                          |
-| ----------- | ----------------------------------------------------------------------------------------------------- |
-| <strong><span style="color:#2dc26b">Frames</span></strong> | Unit Frames (oUF), Party Frames, **Raid Frames**, Nameplates, Resource Bars, Aura Tracker, Cooldown Manager |
-| <strong><span style="color:#2dc26b">Castbars</span></strong> | Standalone castbars for every unit — spark animations, channel ticks, empowered casts, GCD spark      |
-| <strong><span style="color:#2dc26b">Action Bars</span></strong> | 5 skin styles, per-bar fade & opacity, display conditions, click-through, extra action button         |
-| <strong><span style="color:#2dc26b">Skins</span></strong> | Chat, Bags, Tooltips, Buffs/Debuffs, Game Menu, Character, Objective Tracker, Reputation               |
-| <strong><span style="color:#2dc26b">Mythic+</span></strong> | M+ Tracker, end-of-run Scoreboard, M+ overview panel, group keystones, dungeon teleports               |
-| <strong><span style="color:#2dc26b">Navigation</span></strong> | Waypoint system, on-screen Compass, World Quest browser, Loot browser                                  |
-| <strong><span style="color:#2dc26b">Housing</span></strong> | Decor info on hover, editor clock, one-key teleport home <em>(Midnight)</em>                            |
-| <strong><span style="color:#2dc26b">Quality of Life</span></strong> | 40+ automation & convenience features                                                                  |
-| <strong><span style="color:#2dc26b">Profiles</span></strong> | Named profiles, per-spec assignment, import/export                                                     |
-| &nbsp;      | &nbsp;                                                                                                 |
+**Author:** TomoAniki **Interface:** 120100 (Midnight) • 16001 (Forever) **CurseForge Project ID:** 1446255
 
 ***
 
-<div><h2><span style="color:#2dc26b">✨ Frames</span></h2></div>
+# ♾️ TomoMod on WoW: Forever
 
-<div><h3>🎯 Unit Frames <em>(powered by oUF)</em></h3></div>
+**World of Warcraft: Forever** is not a Classic client. It runs vanilla-era Azeroth on the _modern_ engine — the same Edit Mode, the same `C_*` API, the same Cooldown Manager that Midnight uses.
 
-A clean, minimal replacement for your player, target, focus and pet frames.
+That is exactly why TomoMod feels at home there: the interface you build on Forever is the interface you already know.
 
-*   **Player, Target, Target-of-Target, Pet, Focus, and Boss 1–5**
-*   Health bars with class/faction colors, absorb shields, and centered percentage text
-*   A slim **info bar** under each health bar — power on the left, total HP on the right
-*   Buffs & debuffs with timers, stacks, and a grow direction you choose
-*   Non-interruptible cast shading, threat glow on your target, raid & leader icons
-*   Health text your way: current, percent, current+percent, current/max, or deficit
-*   **Drag anything anywhere** in Layout Mode, then lock it back down
+### Detected automatically
 
-<div><h3>👥 Party Frames</h3></div>
+TomoMod identifies your client at login and configures itself accordingly. Nothing to tick, nothing to install differently.
 
-Group frames built for Mythic+ and Arena.
+Curious what it decided? Run:
 
-*   Health with class-color / green / gradient modes, absorbs, and heal prediction
-*   Healer-only power bars, role icons, raid markers, and ready-check icons
-*   **Dispel highlighting** — the frame border glows by debuff type (Magic, Curse, Disease, Poison)
-*   **HoT tracking** with class-colored icons for every healer
-*   **Always-visible interrupt & battle-rez cooldown trackers** per teammate — ready, or greyed out with a recharge swipe
-*   Out-of-range fading, role sorting, hover tooltips, and a movable layout
-*   **Arena enemy frames** with PvP trinket cooldowns and spec icons
+`/tm flavor`
 
-<div><h3>🛡️ Raid Frames</h3></div>
+### Honest about what Forever does not have
 
-Scales cleanly from a 5-player key to a 40-player raid.
+Forever has no Mythic+, no player housing, no skyriding and no world quests. Rather than showing you tabs and frames that could never do anything, TomoMod simply removes those modules on that client.
 
-*   **Grid or list** layout — health, absorbs, heal prediction
-*   HoT tracking, debuff icons, **dispel highlighting**, and active **defensive cooldown** icons
-*   Range fading, role icons, raid markers, ready-check
-*   **Per-size layouts (10 / 25 / 40)** — frame width and height adapt automatically as your group grows
-*   A movable **Battle Rez counter** (how many combat reses are left and when the next one is up — works on any class) and **incoming-resurrection icons** that appear while someone is being rezzed
+**Disabled on Forever:**
 
-<div><h3>🎯 Standalone Castbars</h3></div>
+*   Mythic+ Suite (Tracker, Studio, TomoScore, Keys, Dungeon Teleports)
+*   Housing Tools
+*   Skyriding information
+*   World Quest Tools
+*   Compass
+*   Consumable tracking
+*   Prey Tracker
 
-Full castbars for Player, Target, Focus, Pet and Boss 1–5.
+Your settings are never destroyed. Take the same profile back to Midnight and those modules are simply waiting to be switched on again.
 
-*   Four spark styles (Comet, Pulse, Helix, Glitch) with custom colors
-*   Channel tick marks, **empowered cast** stages for Evoker, and class-colored bars
-*   **Interrupt feedback** text when you land a kick, a latency indicator, and an optional **GCD spark**
-*   Target/Focus/Pet/Boss bars anchor under their frame; the player bar moves freely with `/tm layout`
+### Everything else is fully available
 
-<div><h3>🔵 Resource Bars</h3></div>
+Unit Frames • Party & Raid Frames • Healer Studio • Nameplates • Castbars • Class Resources • Action Bars • Cooldown Studio • Chat V4 • Bags V4 • Damage Meter • Character Interface • Minimap • EditMode • Profiles • Diagnostics • the quality-of-life modules
 
-Class resources for all 13 classes, with spec-aware logic.
-
-*   Segmented points for Combo Points, Holy Power, Chi, Arcane Charges, Soul Shards, Essence, and DK Runes
-*   Aura-tracked resources: Soul Fragments, Tip of the Spear, Maelstrom Weapon — plus **Frost Mage Icicles** (with a glow when Glacial Spike is ready) and Brewmaster Stagger
-*   **Druid form-aware** — switches between Mana, Energy, Rage, and Astral Power as you shift
-*   Visibility modes (Always / Combat / Target / Hidden) and fully editable size, font, and colors
-
-<div><h3>📋 Aura Tracker</h3></div>
-
-A tidy watch panel for the buffs you actually care about — trinket and weapon-enchant procs, personal and defensive cooldowns — with cooldown sweeps, stack counts, timers, glow on new procs, and a fully editable spell list.
-
-<div><h3>🔲 Nameplates</h3></div>
-
-*   Class colors for players, reaction & **classification colors** for NPCs (Boss, Elite, Rare, Normal, Trivial)
-*   Integrated castbars with interrupt indicators, and auras with an "only mine" filter
-*   **Tank mode** threat coloring, **friendly name-only** mode, and **role icons** above players in dungeons/delves
-*   Performance-tuned with frame pooling and optimized aura updates for big pulls
-
-<div><h3>⚡ Cooldown Manager</h3></div>
-
-Reskins Blizzard's cooldown icons with clean borders, a class-colored overlay when an ability is active, smart cooldown text, center-outward buff placement, and a 3-level combat/target/idle opacity system.
+Class-specific features follow your client: TomoMod shows the resources, cooldowns and reminders that actually exist for your class there.
 
 ***
 
-<div><h2><span style="color:#2dc26b">🎨 Action Bars & Skins</span></h2></div>
+# 🚀 Designed to Be Easy From the First Login
 
-<div><h3>🎮 Action Bars</h3></div>
+TomoMod includes its own installation assistant.
 
-*   **5 visual styles:** Classic, Flat, Outlined, Glass, and Minimal
-*   Per-bar **opacity**, **fade-on-hover**, and **display conditions** (combat only, modifier held, in group, hostile target, or your own macro)
-*   Click-through, adjustable spacing, "show empty buttons," **Shift-to-reveal** hidden bars, and out-of-range coloring
-*   The **extra action button** and zone ability button are part of the system too — reposition and scale them in Layout Mode
-*   Covers Action Bars 1–8, Pet Bar, and Stance Bar
+Choose how you play:
 
-<div><h3>💬 Chat, Bags & More</h3></div>
+### 🎯 Recommended
 
-| Skin              | Highlights                                                                                                     |
-| ----------------- | ------------------------------------------------------------------------------------------------------------- |
-| <strong><span style="color:#2dc26b">Chat</span></strong> | Sidebar + window layout, unread flash, timestamps, short channel names, class-colored names, clickable URLs, copy-per-message, history that survives reloads |
-| <strong><span style="color:#2dc26b">Bags</span></strong> | Combined / categories / separate layouts, 5 sort modes, quality borders, item-level badges, junk icons, live search, gold & tracked currencies, resizable |
-| <strong><span style="color:#2dc26b">Tooltips</span></strong> | Dark, semi-transparent, class-colored names, optional hiding of health bar / server / title                  |
-| <strong><span style="color:#2dc26b">Buffs/Debuffs</span></strong> | Rounded borders, optional glow, dark backgrounds, clean duration & stack text                                 |
-| <strong><span style="color:#2dc26b">Game Menu</span></strong> | Dark theme with teal accents — even skins buttons other addons add                                            |
-| <strong><span style="color:#2dc26b">Character</span></strong> | Dark character sheet, inspect window, item level & gems on slots                                              |
-| <strong><span style="color:#2dc26b">Objective Tracker</span></strong> | Quests color-coded by type for instant recognition — campaign, dungeon, raid, world, weekly, delves, and more |
-| &nbsp;            | &nbsp;                                                                                                         |
+The complete TomoMod experience with balanced defaults.
 
-***
+### 🛡️ Tank
 
-<div><h2><span style="color:#2dc26b">⚔️ Mythic+ Toolkit</span></h2></div>
+Threat information, enlarged nameplates and tank-oriented visibility.
 
-*   **M+ Tracker** — in-dungeon HUD with a 3-chest timer (+3/+2/+1), an enemy-forces gradient, per-boss split times, and a death breakdown on hover.
-*   **TomoScore** — an end-of-run scoreboard showing damage, healing, interrupts, rating and key level for the whole group; click a dungeon name to teleport.
-*   **MythicHub** — an overview panel on your character sheet with season ratings, best times, and a Great Vault preview.
-*   **Mythic Keys** — see everyone's keystone at a glance (reads the common key addons) plus a teleport tab for the current season's dungeons.
+### 💚 Healer
 
-***
+Larger group frames and healing information placed front and center.
 
-<div><h2><span style="color:#2dc26b">🧭 Navigation & Exploration</span></h2></div>
+### ⚔️ DPS
 
-*   **Waypoint System** — an on-screen beacon and an off-screen arrow with live distance and arrival time. `/tm way x y` to drop one, `/tm way clear` to remove it.
-*   **Compass** — a heading bar with cardinal directions and markers that point toward your tracked quest or waypoint (localized for all six languages).
-*   **World Quest Tab** — a sortable side panel on the map listing every world quest with reward, zone, faction and time left; click to navigate.
-*   **Loot Browser** — a searchable loot table for M+ dungeons and raid bosses with correct item levels per difficulty and a favorites list.
+Resources and cooldown information emphasized.
 
-***
+### ✨ Minimal
 
-<div><h2><span style="color:#2dc26b">🏠 Housing <em>(Midnight)</em></h2></div>
+Only the essentials.
 
-Quality-of-life tools for the new Housing system:
+### 🛠️ Custom
 
-*   **Decor info on hover** — in Basic Decor mode, see a decor's name, placement cost and remaining stock, with a one-key shortcut to duplicate it.
-*   **Editor clock** — an analog/digital clock that also tracks how long you've spent decorating, this session and in total.
-*   **Teleport home** — `/tm home` sends you straight to your house, or out of it if you're visiting someone else's.
+Configure every category yourself.
+
+Every preset adapts to your client — on Forever you are never offered a category the game does not have.
+
+Everything can still be changed afterward with:
+
+`/tm`
+
+And if you ever want to start again:
+
+`/tm install`
 
 ***
 
-<div><h2><span style="color:#2dc26b">🧩 Quality of Life — 40+ Features</span></h2></div>
+# 🖥️ One Unified Control Center
 
-A grab-bag of things that quietly make the game nicer. Enable only what you want.
+TomoMod 4 introduces a redesigned configuration interface that puts the whole suite in one place.
 
-| Feature              | What it does                                                                                          |
-| -------------------- | ---------------------------------------------------------------------------------------------------- |
-| <strong><span style="color:#2dc26b">Consumable Bar</span></strong> | At-a-glance flask, well-fed and weapon-oil icons with live timers — never get caught unbuffed         |
-| <strong><span style="color:#2dc26b">Rare Alert</span></strong> | A sound and a clickable banner when a rare NPC is near (open world only) — click to target, mark & ping |
-| <strong><span style="color:#2dc26b">Merchant Tools</span></strong> | Already-owned mounts/pets/toys/transmog/recipes are dimmed at vendors, plus extended merchant pages   |
-| <strong><span style="color:#2dc26b">CVar Optimizer</span></strong> | One click applies recommended performance settings — fully revertible                                 |
-| <strong><span style="color:#2dc26b">Recipe Tracker</span></strong> | Track crafting recipes and see reagent prices & total cost at the Auction House                       |
-| <strong><span style="color:#2dc26b">Combat Text</span></strong> | Lightweight scrolling damage & healing, incoming and outgoing                                         |
-| <strong><span style="color:#2dc26b">Class Reminder</span></strong> | A pulsing alert when you're missing your class buff, form, stance or aura                              |
-| <strong><span style="color:#2dc26b">CoTank Tracker</span></strong> | Keep an eye on your co-tank's health, debuffs and defensives in raids                                 |
-| <strong><span style="color:#2dc26b">LustSound</span></strong> | A custom sound when Bloodlust/Heroism goes out — plays even if the game is muted                       |
-| <strong><span style="color:#2dc26b">Profession Helper</span></strong> | Batch-disenchant your bags with quality filters                                                       |
-| <strong><span style="color:#2dc26b">Skyriding Bar</span></strong> | Vigor charges, speed %, and surge/ascent indicators while dragonriding                                 |
-| <strong><span style="color:#2dc26b">Leveling Bar</span></strong> | Session XP, XP/hour, and rested XP at a glance                                                         |
-| <strong><span style="color:#2dc26b">Minimap & Info Panel</span></strong> | Square class-colored minimap, plus durability, clock and FPS in a movable bar                          |
-| <strong><span style="color:#2dc26b">AFK Screen</span></strong> | A cinematic AFK screen with your 3D character, a timer, and whisper/guild counters                     |
-| <strong><span style="color:#2dc26b">Cursor Ring</span></strong> | An animated ring around your cursor so you never lose it                                               |
-| <strong><span style="color:#2dc26b">Diagnostics</span></strong> | Quiet background error capture with a clean export — open with <code>/tmdiag</code>                     |
-| <strong><span style="color:#2dc26b">Tooltip IDs</span></strong> | Spell, item, NPC and quest IDs in tooltips — Midnight-safe                                             |
-| &nbsp;               | &nbsp;                                                                                                |
+The Home dashboard immediately shows:
 
-<div><h3>⚙️ Automations</h3></div>
+*   Active profile
+*   TomoMod version
+*   Enabled modules
+*   Installation tools
+*   Profile management
+*   Diagnostics
+*   Quick reload
+*   Cooldown Studio access
+*   Integration with other Tomo addons
 
-Set-and-forget helpers: auto-accept invites from friends & guild, auto-accept summons, auto-fill "DELETE" prompts, auto-sell greys & repair, fast loot, hide the default castbar, hide the Talking Head, and auto-accept/turn-in quests (hold Shift to override).
+The interface is organized by purpose instead of forcing you to search through hundreds of unrelated options.
 
-<div><h3>🗺️ Layout Mode</h3></div>
+### Main categories include:
 
-One toggle (`/tm layout`) unlocks **everything movable at once** — unit, party and raid frames, castbars, the aura tracker, resource bars, the minimap, the M+ tracker and more — with an optional alignment grid and a cursor "flashlight" for pixel-perfect placement.
+**Home • Roles • Interface • Units • Combat • Convenience • Damage Meter • Profiles • Diagnostics**
+
+Major configuration panels are also **LoadOnDemand**, so editors that you are not using do not need to remain loaded during normal gameplay.
 
 ***
 
-<div><h2><span style="color:#2dc26b">🧷 Profiles</span></h2></div>
+# 🎯 Unit Frames
 
-*   **Named profiles** — create, rename, duplicate, delete
-*   **Per-spec assignment** — switch spec and your assigned profile loads automatically
-*   **Import / export** — share a compressed string, or import one as a new profile without overwriting yours
-*   Auto-saves before every switch, so you never lose your tweaks
+_Midnight and Forever_
 
-***
+TomoMod provides a complete replacement for the main Blizzard unit frames.
 
-<div><h2><span style="color:#2dc26b">📋 Handy Commands</span></h2></div>
+Supported units:
 
-| Command                       | Action                            |
-| ----------------------------- | --------------------------------- |
-| <code>/tm</code>              | Open the settings panel           |
-| <code>/tm install</code>      | Run the setup wizard again        |
-| <code>/tm layout</code>       | Toggle Layout Mode                |
-| <code>/tm home</code>         | Teleport to (or out of) your house |
-| <code>/tm way x y</code>      | Drop a waypoint                   |
-| <code>/tm key</code>          | Show group keystones              |
-| <code>/tm loot</code>         | Open the Loot Browser             |
-| <code>/tm prof</code>         | Open the Profession Helper        |
-| <code>/tmdiag</code>          | Open the Diagnostics console      |
-| <code>/tm reset</code>        | Reset everything + reload         |
-| <code>/rl</code>              | Reload the UI                     |
-| &nbsp;                        | &nbsp;                            |
+**Player • Target • Target of Target • Pet • Focus • Boss 1–5**
 
-***
+Features include:
 
-<div><h2><span style="color:#2dc26b">🌐 Languages</span></h2></div>
+*   Class and reaction colors
+*   Health and power information
+*   Absorb shields
+*   Heal prediction
+*   Buff and debuff tracking
+*   Aura timers and stacks
+*   Threat indicators
+*   Raid markers
+*   Leader indicators
+*   Multiple health text formats
+*   Movable layouts
+*   Custom scale and appearance
 
-Full support for **English, French, German, Spanish, Italian, and Portuguese (Brazil)**.
+The goal is to keep important combat information readable without covering the screen.
 
 ***
 
-<div><h2><span style="color:#2dc26b">🛡️ Built for Midnight</span></h2></div>
+# 👥 Party & Raid Frames
 
-TomoMod is written from scratch for Midnight's new rules. It handles Blizzard's protected "secret" values natively, avoids the taint pitfalls that break other UIs, and pools its frames and reuses memory so it stays smooth even in a packed 40-player raid or a high key. In short: it's designed to be **fast, stable, and Edit-Mode friendly**, so it stays out of your way when it matters most.
+_Midnight and Forever_
+
+Group frames are designed for both small-group content and raids — from a five-man dungeon to a forty-player Forever raid.
+
+## Party Frames
+
+*   Health, absorbs and heal prediction
+*   Class-color support
+*   Role icons
+*   Raid markers
+*   Ready-check information
+*   Range fading
+*   Role sorting
+*   Dispel highlighting
+*   HoT tracking
+*   Interrupt cooldown information
+*   Battle resurrection information
+*   Healer power display
+
+## Raid Frames
+
+*   Grid and list layouts
+*   Adaptive group sizes
+*   Absorb and heal prediction
+*   HoTs and debuffs
+*   Dispel indicators
+*   Defensive cooldown icons
+*   Incoming resurrection indicators
+*   Raid markers
+*   Ready checks
+*   Range fading
+*   Battle Rez counter
 
 ***
 
-<div><h2><span style="color:#2dc26b">📦 Built On</span></h2></div>
+# 💚 Healer Studio
 
-oUF · LibStub · LibDeflate · LibSerialize · LibSharedMedia-3.0 · LibOpenRaid · LibDispel
+_Midnight and Forever_
+
+Healers can go further with the dedicated **TomoMod Healer Studio**.
+
+Healer Studio is a LoadOnDemand editor designed specifically for the TomoMod Party and Raid Frames.
+
+It allows healers to control the presentation of:
+
+*   HoTs
+*   Shields
+*   Healing buffs
+*   Class-specific effects
+
+Instead of forcing every healer into the same layout, TomoMod lets you build the healing information around the way **you** play.
 
 ***
 
-<div><h2><span style="color:#2dc26b">💬 Feedback & Bug Reports</span></h2></div>
+# ⚡ Cooldown Studio
 
-Found a bug or have an idea? Drop a comment on the project page. When reporting an issue, it helps to include:
+_Midnight and Forever_
 
-*   Your class and specialization
-*   What you did right before it happened
-*   A diagnostics export (`/tmdiag export`) — it bundles your environment, loaded addons, and any captured errors
+Cooldown Studio is one of TomoMod's most advanced customization tools.
+
+It provides a dedicated full-screen editor for building and configuring your cooldown bars.
+
+## 🖱️ Visual Spell Editor
+
+Your abilities are represented directly by their icons.
+
+**Click an icon to configure it.**
+
+**Drag and drop icons to change their exact order.**
+
+Individual abilities can override settings such as:
+
+*   Specialization visibility
+*   Talent requirements
+*   Buff / proc tracking
+*   Glow behavior
+*   Glow condition
+*   Custom glow color
+*   Cooldown desaturation
+*   Insufficient-resource display
+*   Cooldown swipe
+*   Timer
+*   Stacks and charges
+*   Relative icon emphasis
+
+You can work with:
+
+**Spells • Items • Trinkets**
+
+without manually editing configuration files.
+
+***
+
+# 📚 Cooldown Library
+
+Cooldown Studio includes a visual spell library generated from your character.
+
+Browse abilities by class and specialization and add them directly to the selected bar.
+
+The Library includes:
+
+*   Ability icons
+*   Spell names
+*   Spell IDs
+*   Class groups
+*   Specialization groups
+*   Search
+*   One-click additions
+*   Complete group installation
+
+It also clearly shows which abilities are already present in the selected bar.
+
+The library is built from **your** character, so on Forever it reflects that client's reworked spellbooks and talent trees rather than a Midnight list.
+
+***
+
+# 🧠 Contextual Cooldown Presets
+
+Cooldown Studio can create context-aware presets for different types of gameplay.
+
+For example:
+
+**Solo → Minimal**
+
+**Dungeon → Group setup**
+
+**Raid → Raid setup**
+
+The correct configuration can automatically become visible when your group context changes.
+
+Manual additions and per-spell customization are preserved when generated presets are updated.
+
+A guided tutorial is included for players opening Cooldown Studio for the first time.
+
+***
+
+# 🎮 Action Bars
+
+_Midnight and Forever_
+
+TomoMod supports:
+
+**Action Bars • Pet Bar • Stance Bar • Extra Action Button • Zone Ability**
+
+Choose from multiple visual styles:
+
+**Classic • Flat • Outlined • Glass • Minimal**
+
+Each bar can be configured independently.
+
+Options include:
+
+*   Button size
+*   Spacing
+*   Opacity
+*   Fade on hover
+*   Empty buttons
+*   Out-of-range coloring
+*   Click-through
+*   Combat visibility
+*   Target visibility
+*   Group visibility
+*   Modifier visibility
+*   Custom conditions
+
+TomoMod's Action Bars are designed to remain responsive even in demanding combat situations.
+
+***
+
+# 🎬 Castbars
+
+_Midnight and Forever_
+
+Standalone Castbars are available for:
+
+**Player • Target • Focus • Pet • Bosses**
+
+Features include:
+
+*   Multiple spark styles
+*   Channel tick marks
+*   Empowered cast stages
+*   Interrupt feedback
+*   Latency indication
+*   Optional GCD visualization
+*   Custom positioning
+*   Custom scaling
+
+***
+
+# 🔵 Class Resources
+
+_Midnight and Forever_
+
+TomoMod supports resource displays across the WoW class roster.
+
+Depending on your class, specialization **and client**, this includes resources such as:
+
+*   Combo Points
+*   Chi
+*   Holy Power
+*   Arcane Charges
+*   Soul Shards
+*   Essence
+*   Death Knight Runes
+*   Soul Fragments
+*   Maelstrom Weapon
+*   Icicles
+*   Stagger
+*   Druid form-dependent resources
+*   And more
+
+Only what your character actually has is displayed — no empty bars for systems your client does not use.
+
+Visibility can adapt to combat, targets and specialization.
+
+***
+
+# 🔲 Nameplates
+
+_Midnight and Forever_
+
+TomoMod Nameplates are built for clarity during both normal gameplay and large combat pulls.
+
+Features include:
+
+*   Class colors
+*   NPC reaction colors
+*   Boss / Elite / Rare classification
+*   Integrated castbars
+*   Interrupt indicators
+*   Aura tracking
+*   Tank threat colors
+*   Friendly name-only mode
+*   Group role indicators
+*   Performance-oriented frame reuse
+
+***
+
+# 🗺️ TomoMod EditMode
+
+_Midnight and Forever_
+
+One command unlocks your interface:
+
+`/tm layout`
+
+TomoMod's EditMode displays movable anchors across the entire UI.
+
+You can visually reposition elements such as:
+
+*   Unit Frames
+*   Party Frames
+*   Raid Frames
+*   Castbars
+*   Resource Bars
+*   Action Bars
+*   Cooldown bars
+*   Class reminders
+*   Alerts
+*   Minimap elements
+*   Boss Frames
+*   Additional HUD components
+
+An optional alignment grid makes it much easier to build a clean and symmetrical layout.
+
+Only the anchors that exist on your client are shown, so the layout screen never fills with handles for absent modules.
+
+When you're finished, lock everything again and continue playing.
+
+***
+
+# 🏆 Mythic+ Suite
+
+> 🌑 **Midnight only.** Forever has no Mythic+ content, so this entire suite is disabled on that client.
+
+TomoMod contains a dedicated Mythic+ environment rather than only a basic dungeon timer.
+
+## ⏱️ Mythic+ Tracker
+
+The in-dungeon HUD can display:
+
+*   Current timer
+*   Dungeon limit
+*   +3 / +2 / +1 thresholds
+*   Enemy Forces
+*   Remaining forces
+*   Boss progression
+*   Boss split times
+*   Death count
+*   Time penalty
+*   Keystone level
+
+Multiple tracker layouts are available, including compact HUD modes.
+
+***
+
+# 🧭 Mythic+ Studio
+
+> 🌑 **Midnight only.**
+
+The dedicated Mythic+ Studio acts as the control center for TomoMod's dungeon tools.
+
+Sections include:
+
+*   Dashboard
+*   Dungeon Tracker
+*   TomoScore
+*   Keys
+*   Run History
+*   Statistics
+*   Weekly planning
+*   Score Planner
+*   Level analysis
+*   Seasonal objectives
+*   Appearance
+*   Modules
+
+Tracker appearance can be customized directly from the Studio, including:
+
+*   Scale
+*   Opacity
+*   Fonts
+*   Timer presentation
+*   Objective layout
+*   Boss information
+*   Enemy Forces display
+*   Custom colors
+*   Preview mode
+
+***
+
+# 📈 Mythic+ Score & Great Vault
+
+> 🌑 **Midnight only.**
+
+TomoMod integrates Mythic+ information directly into the character experience.
+
+Quickly view:
+
+*   Seasonal Mythic+ score
+*   Dungeon levels
+*   Individual dungeon rating
+*   Best completion times
+*   Great Vault progress
+*   Raid objectives
+*   Dungeon objectives
+*   Delve objectives
+
+This information is presented without needing to leave your normal character interface.
+
+***
+
+# 🚪 Dungeon Teleports
+
+> 🌑 **Midnight only.**
+
+Available Mythic+ teleports can be accessed directly from the TomoMod character interface.
+
+This provides quick access to your seasonal dungeon teleports without searching through the spellbook.
+
+***
+
+# 📜 Run History & Planning
+
+> 🌑 **Midnight only.**
+
+The Mythic+ module also includes tools designed for players who want to track progression over time.
+
+Depending on the available season data, the Studio can provide:
+
+*   Run History
+*   Statistics
+*   Weekly objectives
+*   Score planning
+*   Keystone analysis
+*   Seasonal progression
+
+***
+
+# 📊 Integrated Damage Meter
+
+_Midnight and Forever_
+
+TomoMod includes its own Damage Meter.
+
+It can provide dedicated windows for combat information such as:
+
+*   Damage
+*   Healing
+*   Actions
+*   Interrupts
+
+The meter follows the TomoMod visual style and integrates directly with the rest of the interface.
+
+Players who prefer the standalone **TomoDamageMeter** can install it separately; TomoMod is designed to avoid running two copies of the same meter.
+
+***
+
+# 💬 Chat V4
+
+_Midnight and Forever_
+
+Chat V4 completely refreshes the presentation of the Blizzard chat system while keeping Blizzard responsible for the secure chat functionality underneath.
+
+Features include:
+
+*   Modern dark interface
+*   Interactive tabs
+*   General Chat
+*   Combat Log integration
+*   Community tab
+*   Friends access
+*   Guild access
+*   Player status
+*   Voice controls
+*   Copy Chat
+*   Loot Browser shortcut
+*   Settings shortcut
+*   Scroll-to-bottom shortcut
+*   Timestamps
+*   Short channel names
+*   Class-colored mentions
+*   Clickable URLs
+*   Message fading
+*   Custom opacity
+*   Custom font sizing
+
+The Chat frame is also compatible with TomoMod EditMode.
+
+***
+
+# 🎒 Bags V4
+
+_Midnight and Forever_
+
+TomoMod includes its own modern inventory presentation.
+
+Features include:
+
+*   Combined bag mode
+*   Separate bag mode
+*   Live item search
+*   Visual sorting
+*   Item quality borders
+*   Item-level display
+*   Adjustable columns
+*   Adjustable slot size
+*   Adjustable spacing
+*   Custom scale and opacity
+*   Pinned items
+*   Recently acquired items
+*   Gold display
+*   Movable window
+
+Middle-click an item to pin it for quick access.
+
+TomoMod keeps Blizzard's real item buttons underneath, preserving normal item interaction.
+
+***
+
+# 👤 Character Interface
+
+_Midnight and Forever_
+
+The Character and Inspect windows can be restyled to match the rest of TomoMod.
+
+Visible information includes:
+
+*   Equipped items
+*   Item levels
+*   Gems
+*   Enchant information
+*   Character model
+*   Main statistics
+*   Secondary statistics
+
+Additional panels provide fast access to reputation, currencies and other character information.
+
+On Midnight the character panel also surfaces your Mythic+ rating.
+
+***
+
+# 🧭 Minimap & Exploration
+
+_Midnight and Forever_
+
+TomoMod provides a heavily customized Minimap environment.
+
+It can include:
+
+*   Coordinates
+*   Zone information
+*   Clock
+*   Calendar
+*   Tracking controls
+*   Mail indicator
+*   Custom Minimap appearance
+
+The tracking menu provides quick access to categories such as:
+
+*   Poison discovery
+*   Pet tracking
+*   Auctioneer
+*   Bank
+*   Barber
+*   Flight Master
+*   Food & Drink
+*   Innkeeper
+*   Gear upgrades
+*   Mailbox
+*   Profession Masters
+*   Reagents
+*   Repairs
+*   Stable Master
+*   Transmogrification
+
+Tracking categories follow what your client actually supports.
+
+***
+
+# 🧪 Preparation & Consumables
+
+> 🌑 **Midnight only.** The preparation panel is built around the Midnight flask, food and weapon-enhancement set, so it is disabled on Forever.
+
+TomoMod can remind you about missing preparation buffs.
+
+The preparation panel can monitor things such as:
+
+*   Flask
+*   Food
+*   Weapon enhancements
+
+Missing preparation is immediately highlighted so you know what needs attention before a pull.
+
+***
+
+# 🧭 Navigation
+
+## Waypoints
+
+_Midnight and Forever_
+
+Create a waypoint:
+
+`/tm way x y`
+
+Remove it:
+
+`/tm way clear`
+
+Navigation can provide:
+
+*   Direction
+*   Distance
+*   On-screen indication
+*   Off-screen indication
+
+## Compass
+
+> 🌑 **Midnight only.**
+
+A configurable heading bar displays cardinal directions and navigation information.
+
+## World Quest Tools
+
+> 🌑 **Midnight only.** Forever has no world quests.
+
+Browse World Quests from a dedicated map interface and navigate toward selected objectives.
+
+***
+
+# 🏠 Housing Tools
+
+> 🌑 **Midnight only.** Forever has no player housing, so the whole Housing module is disabled there.
+
+TomoMod includes quality-of-life functionality for WoW's Housing system.
+
+Features can include:
+
+*   Decor information
+*   Placement information
+*   Remaining stock
+*   Duplication helpers
+*   Editor clock
+*   Decorating session timer
+*   Total decorating time
+*   Quick home teleport
+
+Use:
+
+`/tm home`
+
+for quick Housing travel when available.
+
+***
+
+# 🧩 Quality of Life
+
+TomoMod contains many optional convenience modules.
+
+### Available on both clients
+
+*   Class reminders
+*   Rare alerts
+*   Merchant improvements
+*   CVar optimization
+*   Combat text
+*   Co-tank tracking
+*   Bloodlust / Heroism sound
+*   Profession helpers
+*   Leveling information
+*   Tooltip IDs
+*   Cursor Ring
+*   AFK Screen
+*   Auto repair
+*   Auto sell
+*   Fast loot
+*   Invite helpers
+*   Summon helpers
+*   Quest helpers
+
+### 🌑 Midnight only
+
+*   Consumable tracking
+*   Skyriding information
+*   Prey Tracker
+*   Compass
+*   World Quest tools
+
+You choose which modules are active — TomoMod only ever offers you the ones your client can actually run.
+
+***
+
+# 🔎 Diagnostics
+
+_Midnight and Forever_
+
+TomoMod includes a built-in diagnostics system designed to make bug reports easier for both players and developers.
+
+It can record:
+
+*   Lua errors
+*   TomoMod errors
+*   Taint information
+*   Warnings
+*   Addon environment
+*   Detected client and interface version
+*   Display information
+*   Performance information
+*   Loaded addons
+
+Reports can be copied directly or exported in a format suitable for a bug tracker.
+
+Open diagnostics with:
+
+`/tmdiag`
+
+Export with:
+
+`/tmdiag export`
+
+This makes reporting difficult or player-specific problems much easier — and tells us straight away which client you were on.
+
+***
+
+# 🎭 Profiles
+
+_Midnight and Forever_
+
+Build different layouts for different characters, roles or specializations.
+
+TomoMod supports:
+
+*   Named profiles
+*   Profile duplication
+*   Rename
+*   Delete
+*   Specialization assignments
+*   Automatic profile switching
+*   Import / Export
+*   Selective configuration import
+
+For example, your Tank interface can be completely different from your Healer or DPS setup.
+
+Profiles travel between clients. Import a Midnight profile on Forever and TomoMod keeps everything that applies, quietly standing down the modules that client does not have — your settings are preserved, not erased.
+
+***
+
+# ⚙️ Modular Architecture
+
+TomoMod contains a large feature set, but several advanced editors are loaded only when required.
+
+LoadOnDemand components include major systems such as:
+
+*   TomoMod Options
+*   Cooldown Studio
+*   Healer Studio
+*   Mythic+ Studio _(Midnight only)_
+
+You get the features of a large UI suite without keeping every configuration interface active during normal gameplay.
+
+On Forever, modules that cannot run are never loaded at all — they cost you nothing in memory or performance.
+
+***
+
+# 🌍 Languages
+
+TomoMod includes support for:
+
+🇬🇧 **English** 🇫🇷 **Français** 🇩🇪 **Deutsch** 🇪🇸 **Español** 🇮🇹 **Italiano** 🇧🇷 **Português do Brasil**
+
+***
+
+# 📋 Commands
+
+| Command        |Function                                    |
+| -------------- |------------------------------------------- |
+| <code>/tm</code> |Open TomoMod                                |
+| <code>/tm install</code> |Open the installation assistant             |
+| <code>/tm layout</code> |Toggle TomoMod EditMode                     |
+| <code>/tm flavor</code> |Show the detected client and active modules |
+| <code>/tm home</code> |Housing teleport <em>(Midnight)</em>        |
+| <code>/tm way x y</code> |Create a waypoint                           |
+| <code>/tm way clear</code> |Remove the active waypoint                  |
+| <code>/tm key</code> |Keystone tools <em>(Midnight)</em>          |
+| <code>/tm loot</code> |Loot Browser                                |
+| <code>/tm prof</code> |Profession Helper                           |
+| <code>/tmdiag</code> |Diagnostics                                 |
+| <code>/tmdiag export</code> |Export diagnostics                          |
+| <code>/tm reset</code> |Reset TomoMod                               |
+| <code>/rl</code> |Reload the UI                               |
+
+***
+
+# 🛡️ Built for Modern WoW
+
+TomoMod is developed specifically around the current WoW interface environment — the one shared by **Midnight** and **Forever**.
+
+Forever runs vanilla-era content on that same modern client: Edit Mode, the modern `C_*` API and the Cooldown Manager are all present. TomoMod targets that platform directly rather than shipping a stripped-down Classic build.
+
+The addon aims to keep Blizzard responsible for protected and secure game actions while TomoMod handles presentation, customization and additional information around them.
+
+This approach is especially important for systems such as:
+
+*   Action Bars
+*   Chat
+*   Bags
+*   Combat UI
+*   Protected frames
+
+TomoMod continues to evolve alongside World of Warcraft, on both branches.
+
+***
+
+# 🐛 Bugs & Feedback
+
+Found a problem?
+
+Please include as much information as possible:
+
+*   Which client — **Midnight** or **Forever**
+*   What happened
+*   What you were doing
+*   Your class
+*   Your specialization
+*   Whether you were in combat
+*   Whether the issue can be reproduced
+*   Your TomoMod diagnostics report
+
+Use:
+
+`/tmdiag export`
+
+to generate a report. It records your client automatically.
+
+You can report issues through **CurseForge** or the project's GitHub bug tracker.
+
+***
+
+# 💡 Feature Requests
+
+Suggestions and feedback are welcome.
+
+### CurseForge
+
+[https://www.curseforge.com/wow/addons/tomomod](https://www.curseforge.com/wow/addons/tomomod)
+
+***
+
+# ❤️ Special Thanks
+
+**Taluani • Rodelin • Krentos • Adamas • Tigredefeu**
+
+Thank you for testing, feedback and helping TomoMod improve.
+
+***
+
+# TomoMod
+
+### Your UI. Your layout. Your way to play. On both Azeroths.
