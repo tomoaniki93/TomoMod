@@ -3909,4 +3909,25 @@ TomoMod_RegisterLocale("frFR", {
     ["hs_cat_marker"]            = "Marqueur de soin",
     ["hs_cat_external"]          = "Externe",
 
+    -- Slash command output (Core/Init.lua, CooldownManager, UnitFrames)
+    ["cli_after_combat"]       = "après le combat",
+    ["cli_reload_required"]    = "/reload requis",
+    ["cli_dependents_off"]     = "dépendants coupés :",
+    ["cli_deps_off"]           = "dépendances éteintes :",
+    ["cli_pending_reload"]     = "%s en attente de /reload",
+    ["cli_mod_live"]           = "%d à chaud",
+    ["cli_mod_reload"]         = "%d au /reload",
+    ["cli_mod_none"]           = "%d sans bascule",
+    ["cli_modules_hint"]       = "/tm modules <clé> pour basculer",
+    ["cli_backup_created"]     = "sauvegarde créée.",
+    ["cli_backup_usage"]       = "/tm backup save | /tm backup restore [numéro]",
+    ["cli_layout_usage"]       = "/tm layout export|import <chaîne>",
+    ["cli_capture_failed"]     = "capture : échec",
+    ["cli_res_counts"]         = "%d polices, %d ancres",
+    ["msg_help_install"]       = "Relancer l'assistant de configuration",
+    ["msg_help_loot"]          = "Ouvrir le navigateur de loots (donjons & raids)",
+    ["msg_cdm_placement_mode"] = "Mode placement",
+    ["msg_cdm_live_preview"]   = "Aperçu live",
+    ["msg_uf_ouf_missing"]     = "Bibliothèque oUF introuvable (X-oUF: TomoMod_oUF) !",
+
 })

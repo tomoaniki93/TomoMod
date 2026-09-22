@@ -14,8 +14,55 @@ local DK = TomoMod_DataKeys
 
 local openRaidLib = TomoMod_KeySync
 
-local SOURCE_DAMAGE  = Enum.DamageMeterType and Enum.DamageMeterType.DamageDone  or 0
-local SOURCE_HEALING = Enum.DamageMeterType and Enum.DamageMeterType.HealingDone or 1
+-- Same helper shape as RunSurvival.lua: issecretvalue() before any use.
+local _issecret = issecretvalue
+local function IsSecret(v)
+    if not _issecret then return false end
+    local ok, secret = pcall(_issecret, v)
+    return ok and secret or false
+end
+
+-- Merge one meter type of the run-wide (Overall) session into the players
+-- table, the way DamageMeter/Meter/RunRecap.lua reads run totals.
+--
+-- This used to call C_DamageMeter.GetCombatSessionSourceFromType(session,
+-- type). That API returns ONE source's spell breakdown and needs a
+-- sourceGUID: the ipairs() loops over its result never saw a player, so the
+-- damage / healing / interrupt columns stayed at 0. The interrupt pass also
+-- asked for Enum.DamageMeterType.Actions, which does not exist.
+--
+-- Read from a timer rather than an event handler, the whole session can come
+-- back secret: every level is guarded and the column simply stays at 0.
+local function MergeMeterTotals(meterType, field, playersByGUID, playersByName)
+    if meterType == nil then return end
+    local sessionType = Enum.DamageMeterSessionType and Enum.DamageMeterSessionType.Overall
+    if sessionType == nil then return end
+
+    local ok, session = pcall(C_DamageMeter.GetCombatSessionFromType, sessionType, meterType)
+    if not ok or not session or IsSecret(session) then return end
+    local sources = session.combatSources
+    if type(sources) ~= "table" or IsSecret(sources) then return end
+
+    for _, src in ipairs(sources) do
+        if type(src) == "table" and not IsSecret(src) then
+            local p
+            local guid = src.sourceGUID
+            if guid ~= nil and not IsSecret(guid) then
+                p = playersByGUID[guid]
+            end
+            if not p then
+                local srcName = src.name
+                if srcName ~= nil and not IsSecret(srcName) then
+                    p = playersByName[srcName]
+                end
+            end
+            local total = src.totalAmount
+            if p and total ~= nil and not IsSecret(total) then
+                p[field] = total
+            end
+        end
+    end
+end
 
 -- ─────────────────────────────────────────────────────────────────────────────
 --  Build a snapshot of group data at the current moment
@@ -42,7 +89,7 @@ function TS:CollectRunData()
             data.duration = (info.time or 0) / 1000
 
             local mapName = C_ChallengeMode.GetMapUIInfo(info.mapChallengeModeID or 0)
-            if mapName then data.dungeonName = mapName end
+            if mapName and not IsSecret(mapName) then data.dungeonName = mapName end
         end
     else
         data.keyLevel = 0
@@ -65,6 +112,7 @@ function TS:CollectRunData()
 
     -- Build per-player info
     local playersByName = {}
+    local playersByGUID = {}
     for _, unit in ipairs(units) do
         if UnitExists(unit) and UnitIsPlayer(unit) then
             local name, realm = UnitName(unit)
@@ -99,7 +147,7 @@ function TS:CollectRunData()
                     rating = ratingSummary.currentSeasonScore or 0
                 end
 
-                playersByName[fullName] = {
+                local entry = {
                     name       = name,
                     fullName   = fullName,
                     unit       = unit,
@@ -116,6 +164,11 @@ function TS:CollectRunData()
                     healing    = 0,
                     interrupts = 0,
                 }
+                playersByName[fullName] = entry
+                local guid = UnitGUID(unit)
+                if guid ~= nil and not IsSecret(guid) then
+                    playersByGUID[guid] = entry
+                end
             end
         end
     end
@@ -140,48 +193,12 @@ function TS:CollectRunData()
         end
     end
 
-    -- Pull totals from C_DamageMeter
-    local SESSION_CURRENT = 0
-    if C_DamageMeter and C_DamageMeter.GetCombatSessionSourceFromType then
-        local damageSources = C_DamageMeter.GetCombatSessionSourceFromType(SESSION_CURRENT, SOURCE_DAMAGE)
-        if damageSources then
-            for _, src in ipairs(damageSources) do
-                local pName = src.name or src.unitName
-                if pName and playersByName[pName] then
-                    local total = src.totalAmount or 0
-                    if not issecurevariable or not issecretvalue or not issecretvalue(total) then
-                        playersByName[pName].damage = total
-                    end
-                end
-            end
-        end
-
-        local healSources = C_DamageMeter.GetCombatSessionSourceFromType(SESSION_CURRENT, SOURCE_HEALING)
-        if healSources then
-            for _, src in ipairs(healSources) do
-                local pName = src.name or src.unitName
-                if pName and playersByName[pName] then
-                    local total = src.totalAmount or 0
-                    if not issecurevariable or not issecretvalue or not issecretvalue(total) then
-                        playersByName[pName].healing = total
-                    end
-                end
-            end
-        end
-
-        local interruptType = Enum.DamageMeterType and Enum.DamageMeterType.Actions or 2
-        local ok, intSources = pcall(C_DamageMeter.GetCombatSessionSourceFromType, SESSION_CURRENT, interruptType)
-        if ok and intSources then
-            for _, src in ipairs(intSources) do
-                local pName = src.name or src.unitName
-                if pName and playersByName[pName] then
-                    local total = src.totalAmount or 0
-                    if not issecurevariable or not issecretvalue or not issecretvalue(total) then
-                        playersByName[pName].interrupts = total
-                    end
-                end
-            end
-        end
+    -- Pull totals from C_DamageMeter (see MergeMeterTotals above)
+    local mtypes = Enum.DamageMeterType
+    if C_DamageMeter and C_DamageMeter.GetCombatSessionFromType and mtypes then
+        MergeMeterTotals(mtypes.DamageDone,  "damage",     playersByGUID, playersByName)
+        MergeMeterTotals(mtypes.HealingDone, "healing",    playersByGUID, playersByName)
+        MergeMeterTotals(mtypes.Interrupts,  "interrupts", playersByGUID, playersByName)
     end
 
     -- Sort: tank → healer → dps, then by damage

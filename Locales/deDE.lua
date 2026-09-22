@@ -3893,4 +3893,25 @@ TomoMod_RegisterLocale("deDE", {
     ["hs_cat_marker"]            = "Heilungsmarker",
     ["hs_cat_external"]          = "Externer Schutz",
 
+    -- Slash command output (Core/Init.lua, CooldownManager, UnitFrames)
+    ["cli_after_combat"]       = "nach dem Kampf",
+    ["cli_reload_required"]    = "/reload erforderlich",
+    ["cli_dependents_off"]     = "abhaengige Module deaktiviert:",
+    ["cli_deps_off"]           = "deaktivierte Abhaengigkeiten:",
+    ["cli_pending_reload"]     = "%s warten auf /reload",
+    ["cli_mod_live"]           = "%d sofort",
+    ["cli_mod_reload"]         = "%d per /reload",
+    ["cli_mod_none"]           = "%d ohne Umschalter",
+    ["cli_modules_hint"]       = "/tm modules <Schluessel> zum Umschalten",
+    ["cli_backup_created"]     = "Sicherung erstellt.",
+    ["cli_backup_usage"]       = "/tm backup save | /tm backup restore [Nummer]",
+    ["cli_layout_usage"]       = "/tm layout export|import <Text>",
+    ["cli_capture_failed"]     = "Erfassung fehlgeschlagen",
+    ["cli_res_counts"]         = "%d Schriftarten, %d Anker",
+    ["msg_help_install"]       = "Einrichtungsassistenten erneut starten",
+    ["msg_help_loot"]          = "Beute-Browser oeffnen (Dungeons & Schlachtzuege)",
+    ["msg_cdm_placement_mode"] = "Platzierungsmodus",
+    ["msg_cdm_live_preview"]   = "Live-Vorschau",
+    ["msg_uf_ouf_missing"]     = "oUF-Bibliothek nicht gefunden (X-oUF: TomoMod_oUF)!",
+
 })

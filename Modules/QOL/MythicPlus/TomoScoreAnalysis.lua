@@ -68,7 +68,7 @@ local function SeedDeathUnit(unit)
     if not UnitExists(unit) or not UnitIsPlayer(unit) then return end
     local guid = UnitGUID(unit)
     local key = PlayerKey(UnitName(unit))
-    if guid then deathTrack.dead[guid] = UnitIsDeadOrGhost(unit) and true or false end
+    if guid and not IsSecret(guid) then deathTrack.dead[guid] = UnitIsDeadOrGhost(unit) and true or false end
     if key and deathTrack.counts[key] == nil then deathTrack.counts[key] = 0 end
 end
 
@@ -83,7 +83,7 @@ end
 local function TrackDeathUnit(unit)
     if not deathTrack.active or not UnitExists(unit) or not UnitIsPlayer(unit) then return end
     local guid = UnitGUID(unit)
-    if not guid then return end
+    if not guid or IsSecret(guid) then return end
     local key = PlayerKey(UnitName(unit))
     local dead = UnitIsDeadOrGhost(unit) and true or false
     local previous = deathTrack.dead[guid]

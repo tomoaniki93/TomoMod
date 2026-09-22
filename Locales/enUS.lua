@@ -3936,4 +3936,25 @@ TomoMod_RegisterLocale("enUS", {
     ["hs_cat_marker"]            = "Healing marker",
     ["hs_cat_external"]          = "External",
 
+    -- Slash command output (Core/Init.lua, CooldownManager, UnitFrames)
+    ["cli_after_combat"]       = "after combat",
+    ["cli_reload_required"]    = "/reload required",
+    ["cli_dependents_off"]     = "dependents turned off:",
+    ["cli_deps_off"]           = "dependencies turned off:",
+    ["cli_pending_reload"]     = "%s pending /reload",
+    ["cli_mod_live"]           = "%d live",
+    ["cli_mod_reload"]         = "%d on /reload",
+    ["cli_mod_none"]           = "%d without toggle",
+    ["cli_modules_hint"]       = "/tm modules <key> to toggle",
+    ["cli_backup_created"]     = "backup created.",
+    ["cli_backup_usage"]       = "/tm backup save | /tm backup restore [number]",
+    ["cli_layout_usage"]       = "/tm layout export|import <string>",
+    ["cli_capture_failed"]     = "capture: failed",
+    ["cli_res_counts"]         = "%d fonts, %d anchors",
+    ["msg_help_install"]       = "Rerun the setup assistant",
+    ["msg_help_loot"]          = "Open the loot browser (dungeons & raids)",
+    ["msg_cdm_placement_mode"] = "Placement mode",
+    ["msg_cdm_live_preview"]   = "Live preview",
+    ["msg_uf_ouf_missing"]     = "oUF library not found (X-oUF: TomoMod_oUF)!",
+
 })

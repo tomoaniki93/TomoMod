@@ -1381,7 +1381,9 @@ local function IsQuestUnit(unit)
     if UnitIsPlayer(unit) then return false end
 
     local guid = UnitGUID(unit)
-    if not guid then return false end
+    -- A secret GUID cannot index the cache (the index would throw); treat
+    -- the unit as "no quest icon" rather than scanning without caching.
+    if not guid or (issecretvalue and issecretvalue(guid)) then return false end
 
     -- Check cache
     local cached = questIconCache[guid]

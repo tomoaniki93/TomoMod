@@ -14,6 +14,18 @@ if TomoMod_Compat and TomoMod_Compat.Blocked("mythicplus") then return end
 local L = TomoMod_L
 local DK = TomoMod_DataKeys
 
+-- Same helper shape as RunSurvival.lua / MythicTracker.lua: issecretvalue()
+-- must run before any comparison, arithmetic, format() or table index on a
+-- value from an API that can return secrets (GetMapUIInfo,
+-- GetDetailedItemLevelInfo, C_DamageMeter). pcall'd so a future signature
+-- change degrades to "not secret" instead of an error.
+local _issecret = issecretvalue
+local function IsSecret(v)
+    if not _issecret then return false end
+    local ok, secret = pcall(_issecret, v)
+    return ok and secret or false
+end
+
 local ADDON_FONT      = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Medium.ttf"
 local ADDON_FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-SemiBold.ttf"
 
@@ -715,7 +727,7 @@ function HUB:Refresh()
 
         -- Dungeon icon
         local _, _, _, tex = C_ChallengeMode.GetMapUIInfo(mapID)
-        if tex and tex > 0 then
+        if tex and not IsSecret(tex) and tex > 0 then
             row._icon:SetTexture(tex)
         else
             row._icon:SetTexture("Interface\\Icons\\Achievement_ChallengeMode_Platinum")
@@ -773,7 +785,7 @@ function HUB:Refresh()
                 -- Get time limit for delta
                 local _, _, tl = C_ChallengeMode.GetMapUIInfo(mapID)
                 local delta = ""
-                if tl and tl > 0 then
+                if tl and not IsSecret(tl) and tl > 0 then
                     delta = " " .. FormatDelta(info.durationMS, tl)
                 end
                 row._timeFS:SetText(timeStr .. delta)
@@ -923,7 +935,7 @@ function HUB:ShowVaultTooltip(slot)
         local itemLink = C_WeeklyRewards.GetExampleRewardItemHyperlinks(act.id)
         if itemLink then
             local ilvl = C_Item.GetDetailedItemLevelInfo(itemLink)
-            if ilvl then
+            if ilvl and not IsSecret(ilvl) then
                 if isDungeon then
                     -- Show level info for M+
                     local level = act.level or 0
@@ -1007,6 +1019,7 @@ function HUB:AddTopRunsToTooltip(threshold)
         for i = 1, threshold do
             if runHistory[i] then
                 local name = C_ChallengeMode.GetMapUIInfo(runHistory[i].mapChallengeModeID)
+                if IsSecret(name) then name = nil end
                 GameTooltip:AddLine(
                     string.format(WEEKLY_REWARDS_MYTHIC_RUN_INFO or "+%d %s", runHistory[i].level, name or "?"),
                     0.8, 0.8, 0.8

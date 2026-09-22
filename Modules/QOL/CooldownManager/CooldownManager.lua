@@ -1326,13 +1326,13 @@ SlashCmdList["TOMOCDMDEBUG"] = function(msg)
     elseif msg == "unlock" then
         if Holders then
             Holders.ToggleLock()
-            print("|cff00ccffTomoMod CDM:|r Mode placement " .. (Holders.IsLocked() and "OFF" or "ON"))
+            print("|cff00ccffTomoMod CDM:|r " .. TomoMod_L["msg_cdm_placement_mode"] .. " " .. (Holders.IsLocked() and "OFF" or "ON"))
         end
 
     elseif msg == "preview" then
         if Holders then
             Holders.SetPreview(not Holders.IsPreviewActive())
-            print("|cff00ccffTomoMod CDM:|r Aperçu live " .. (Holders.IsPreviewActive() and "ON" or "OFF"))
+            print("|cff00ccffTomoMod CDM:|r " .. TomoMod_L["msg_cdm_live_preview"] .. " " .. (Holders.IsPreviewActive() and "ON" or "OFF"))
         end
 
     else

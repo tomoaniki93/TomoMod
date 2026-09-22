@@ -16,6 +16,18 @@ if TomoMod_Compat and TomoMod_Compat.Blocked("mythicplus") then return end
 
 TomoMod_DataKeys = TomoMod_DataKeys or {}
 
+-- Same helper shape as RunSurvival.lua / MythicTracker.lua: issecretvalue()
+-- must run before any comparison, arithmetic, format() or table index on a
+-- value from an API that can return secrets (GetMapUIInfo,
+-- GetDetailedItemLevelInfo, C_DamageMeter). pcall'd so a future signature
+-- change degrades to "not secret" instead of an error.
+local _issecret = issecretvalue
+local function IsSecret(v)
+    if not _issecret then return false end
+    local ok, secret = pcall(_issecret, v)
+    return ok and secret or false
+end
+
 -- Master table: [mapChallengeModeID] = { full, short, teleportSpellID }
 local DB = {
 
@@ -203,7 +215,7 @@ function TomoMod_DataKeys.RefreshFromAPI()
     if C_ChallengeMode.GetMapUIInfo then
         for id in pairs(idsToQuery) do
             local ok, name, _, _, tex = pcall(C_ChallengeMode.GetMapUIInfo, id)
-            if ok and name and name ~= "" then
+            if ok and name and not IsSecret(name) and name ~= "" then
                 -- Generate short name: use hardcoded if exists, else from name mapping, else abbreviate
                 local short = nil
                 local dbEntry = DB[id]
@@ -216,7 +228,9 @@ function TomoMod_DataKeys.RefreshFromAPI()
                 runtimeCache[id] = {
                     name    = name,
                     short   = short,
-                    texture = tex,
+                    -- Cached, then compared (`tex > 0`) by consumers: never
+                    -- store a secret here.
+                    texture = (tex ~= nil and not IsSecret(tex)) and tex or nil,
                 }
                 anyResolved = true
             end

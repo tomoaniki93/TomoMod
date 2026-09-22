@@ -351,6 +351,53 @@ local function ThrottledRefresh()
 end
 
 ----------------------------------------------------------------------
+-- Readability probe (/tdm diag)
+----------------------------------------------------------------------
+-- Reports whether C_DamageMeter fields come back readable or as secret values,
+-- reading the exact same session twice: once synchronously inside the event
+-- handler, once from a C_Timer.After(0) callback. That contrast is the whole
+-- reason the refresh path is structured the way it is, so it is worth being
+-- able to re-check it against any future build rather than assuming.
+--
+-- Declared ABOVE the combat handler on purpose. It used to sit below it, so
+-- the handler resolved `diagArmed` and `ProbeSession` as globals: /tdm diag
+-- armed the local, the handler read a nil global, and the probe never ran
+-- (had it run, the global ProbeSession would have been a nil call).
+
+local diagArmed = false
+
+local function ProbeSession(label)
+    local prefix = ns.L["ADDON_PREFIX"]
+    local ok, session = pcall(C_DamageMeter.GetCombatSessionFromType,
+        Enum.DamageMeterSessionType.Current, Enum.DamageMeterType.Dps)
+    if not ok or not session then
+        print(prefix .. label .. ": no session")
+        return
+    end
+    if issecretvalue(session) then
+        print(prefix .. label .. ": session = SECRET")
+        return
+    end
+    local sources = session.combatSources
+    if not sources or issecretvalue(sources) or #sources == 0 then
+        print(prefix .. label .. ": no combat sources")
+        return
+    end
+
+    local function tag(v)
+        if v == nil then return "nil" end
+        if issecretvalue(v) then return "|cffff5555SECRET|r" end
+        return "|cff55ff55readable|r"
+    end
+
+    local first = sources[1]
+    print(string.format("%s%s: name=%s total=%s rate=%s duration=%s",
+        prefix, label,
+        tag(first.name), tag(first.totalAmount),
+        tag(first.amountPerSecond), tag(session.durationSeconds)))
+end
+
+----------------------------------------------------------------------
 -- Combat Events
 ----------------------------------------------------------------------
 
@@ -413,48 +460,6 @@ dmEventFrame:SetScript("OnEvent", function(self, event)
         ThrottledRefresh()
     end
 end)
-
-----------------------------------------------------------------------
--- Readability probe (/tdm diag)
-----------------------------------------------------------------------
--- Reports whether C_DamageMeter fields come back readable or as secret values,
--- reading the exact same session twice: once synchronously inside the event
--- handler, once from a C_Timer.After(0) callback. That contrast is the whole
--- reason the refresh path is structured the way it is, so it is worth being
--- able to re-check it against any future build rather than assuming.
-
-local diagArmed = false
-
-local function ProbeSession(label)
-    local prefix = ns.L["ADDON_PREFIX"]
-    local ok, session = pcall(C_DamageMeter.GetCombatSessionFromType,
-        Enum.DamageMeterSessionType.Current, Enum.DamageMeterType.Dps)
-    if not ok or not session then
-        print(prefix .. label .. ": no session")
-        return
-    end
-    if issecretvalue(session) then
-        print(prefix .. label .. ": session = SECRET")
-        return
-    end
-    local sources = session.combatSources
-    if not sources or issecretvalue(sources) or #sources == 0 then
-        print(prefix .. label .. ": no combat sources")
-        return
-    end
-
-    local function tag(v)
-        if v == nil then return "nil" end
-        if issecretvalue(v) then return "|cffff5555SECRET|r" end
-        return "|cff55ff55readable|r"
-    end
-
-    local first = sources[1]
-    print(string.format("%s%s: name=%s total=%s rate=%s duration=%s",
-        prefix, label,
-        tag(first.name), tag(first.totalAmount),
-        tag(first.amountPerSecond), tag(session.durationSeconds)))
-end
 
 ----------------------------------------------------------------------
 -- Slash Commands

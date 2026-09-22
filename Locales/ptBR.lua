@@ -3881,4 +3881,25 @@ TomoMod_RegisterLocale("ptBR", {
     ["hs_cat_marker"]            = "Marcador de cura",
     ["hs_cat_external"]          = "Externo",
 
+    -- Slash command output (Core/Init.lua, CooldownManager, UnitFrames)
+    ["cli_after_combat"]       = "após o combate",
+    ["cli_reload_required"]    = "/reload necessário",
+    ["cli_dependents_off"]     = "dependentes desativados:",
+    ["cli_deps_off"]           = "dependências desativadas:",
+    ["cli_pending_reload"]     = "%s aguardando /reload",
+    ["cli_mod_live"]           = "%d em tempo real",
+    ["cli_mod_reload"]         = "%d com /reload",
+    ["cli_mod_none"]           = "%d sem alternância",
+    ["cli_modules_hint"]       = "/tm modules <chave> para alternar",
+    ["cli_backup_created"]     = "backup criado.",
+    ["cli_backup_usage"]       = "/tm backup save | /tm backup restore [número]",
+    ["cli_layout_usage"]       = "/tm layout export|import <texto>",
+    ["cli_capture_failed"]     = "falha na captura",
+    ["cli_res_counts"]         = "%d fontes, %d âncoras",
+    ["msg_help_install"]       = "Reabrir o assistente de configuração",
+    ["msg_help_loot"]          = "Abrir o navegador de saques (masmorras e raides)",
+    ["msg_cdm_placement_mode"] = "Modo de posicionamento",
+    ["msg_cdm_live_preview"]   = "Pré-visualização ao vivo",
+    ["msg_uf_ouf_missing"]     = "Biblioteca oUF não encontrada (X-oUF: TomoMod_oUF)!",
+
 })

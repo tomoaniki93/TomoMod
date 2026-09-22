@@ -106,17 +106,38 @@ end
 -- MAX LEVEL CHECK
 -- =====================================
 
-local function CanGainXP()
+-- WoW: Forever caps at 60 whatever expansion constants that client carries.
+-- Retail asks the client (90 on Midnight) and only then falls back.
+local FOREVER_MAX_LEVEL = 60
+
+local function MaxPlayerLevel()
+    if TomoMod_Compat and TomoMod_Compat.IsForever and TomoMod_Compat.IsForever() then
+        return FOREVER_MAX_LEVEL
+    end
+    if GetMaxLevelForPlayerExpansion then
+        local ok, lvl = pcall(GetMaxLevelForPlayerExpansion)
+        if ok and type(lvl) == "number" and lvl > 0 then return lvl end
+    end
+    return MAX_PLAYER_LEVEL or 90
+end
+
+-- `level` is optional: PLAYER_LEVEL_UP passes the new level, because
+-- UnitLevel("player") can still report the old one inside that event.
+--
+-- The previous fallback (`xp == 0 and level >= 80`) was a Dragonflight-era
+-- constant: on Midnight it hid the bar for a moment right after dinging 80,
+-- and on Forever it never fired, leaving an empty bar at 60. The call to
+-- IsLevelAtEffectiveMaxLevel() also passed no level, so it never answered.
+local function CanGainXP(level)
+    level = tonumber(level) or UnitLevel("player") or 0
+    if level >= MaxPlayerLevel() then return false end
     if IsLevelAtEffectiveMaxLevel then
-        local ok, result = pcall(IsLevelAtEffectiveMaxLevel)
+        local ok, result = pcall(IsLevelAtEffectiveMaxLevel, level)
         if ok and result then return false end
     end
     if IsXPUserDisabled and IsXPUserDisabled() then
         return false
     end
-    local xp = UnitXP("player") or 0
-    local level = UnitLevel("player") or 0
-    if xp == 0 and level >= 80 then return false end
     return true
 end
 
@@ -523,6 +544,12 @@ end
 -- HOOKS & EVENTS
 -- =====================================
 
+-- Forward declaration: the PLAYER_LEVEL_UP branch below calls it, but its
+-- body lives further down with the other Blizzard XP bar helpers. Without
+-- this the handler resolved a nil global and threw the moment a character
+-- reached max level with the bar enabled.
+local RestoreBlizzardXPBar
+
 local function SetupEvents()
     local evFrame = CreateFrame("Frame")
     evFrame:RegisterEvent("PLAYER_XP_UPDATE")
@@ -557,7 +584,7 @@ local function SetupEvents()
             lastQuestPct = 0
 
             -- Auto-hide at max level, restore Blizzard bar
-            if not CanGainXP() then
+            if not CanGainXP((...)) then
                 if barFrame then barFrame:Hide() end
                 RestoreBlizzardXPBar()
             end
@@ -637,7 +664,8 @@ local function HideBlizzardXPBar()
     end
 end
 
-local function RestoreBlizzardXPBar()
+-- Assigns the forward-declared local above (see HOOKS & EVENTS).
+function RestoreBlizzardXPBar()
     if not blizzBarHidden then return end
 
     local manager = StatusTrackingBarManager

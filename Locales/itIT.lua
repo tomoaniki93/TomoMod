@@ -3881,4 +3881,25 @@ TomoMod_RegisterLocale("itIT", {
     ["hs_cat_marker"]            = "Marcatore di cura",
     ["hs_cat_external"]          = "Esterno",
 
+    -- Slash command output (Core/Init.lua, CooldownManager, UnitFrames)
+    ["cli_after_combat"]       = "dopo il combattimento",
+    ["cli_reload_required"]    = "/reload necessario",
+    ["cli_dependents_off"]     = "dipendenti disattivati:",
+    ["cli_deps_off"]           = "dipendenze disattivate:",
+    ["cli_pending_reload"]     = "%s in attesa di /reload",
+    ["cli_mod_live"]           = "%d a caldo",
+    ["cli_mod_reload"]         = "%d con /reload",
+    ["cli_mod_none"]           = "%d senza interruttore",
+    ["cli_modules_hint"]       = "/tm modules <chiave> per attivare/disattivare",
+    ["cli_backup_created"]     = "backup creato.",
+    ["cli_backup_usage"]       = "/tm backup save | /tm backup restore [numero]",
+    ["cli_layout_usage"]       = "/tm layout export|import <stringa>",
+    ["cli_capture_failed"]     = "acquisizione non riuscita",
+    ["cli_res_counts"]         = "%d caratteri, %d ancoraggi",
+    ["msg_help_install"]       = "Riavvia l'assistente di configurazione",
+    ["msg_help_loot"]          = "Apri il browser del bottino (spedizioni e incursioni)",
+    ["msg_cdm_placement_mode"] = "Modalità posizionamento",
+    ["msg_cdm_live_preview"]   = "Anteprima dal vivo",
+    ["msg_uf_ouf_missing"]     = "Libreria oUF non trovata (X-oUF: TomoMod_oUF)!",
+
 })

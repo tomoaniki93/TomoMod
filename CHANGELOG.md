@@ -2,6 +2,35 @@
 
 ## CHANGELOG 4.0.6
 
+#### Mythic+ Summary — Accurate Run Totals
+
+- **Fixed** - TomoScore now reads damage, healing and interrupts from the run-wide Overall Damage Meter sessions with the correct `DamageDone`, `HealingDone` and `Interrupts` meter types. The previous source-breakdown call did not return a player list, which could leave every summary total at zero.
+- **Changed** - Damage Meter rows are matched to group members by readable GUID first and by name as a fallback. Session tables, source records, identifiers, names and totals are all checked before use, so protected data leaves a neutral zero instead of raising an error.
+
+#### Mythic+ And Nameplates — Protected-Value Safety
+
+- **Fixed** - Dungeon names and textures, timer limits, Great Vault item levels, weekly run names and death-tracking GUIDs are now checked before comparison, formatting or table indexing. Unreadable client data falls back to safe placeholder presentation.
+- **Fixed** - Nameplate quest-unit caching no longer attempts to use a protected unit GUID as a table key. The affected unit simply omits its quest marker until the identifier becomes readable.
+
+#### Leveling Bar — Correct Maximum-Level Handling
+
+- **Fixed** - The leveling bar now uses level 60 for WoW: Forever and asks the Retail client for its actual expansion cap, including level 90 on Midnight, instead of relying on the old level-80 fallback.
+- **Fixed** - `PLAYER_LEVEL_UP` passes the newly reported level directly into the XP eligibility check. Reaching the cap hides the custom bar immediately and restores Blizzard's XP bar without resolving an undeclared global.
+
+#### Commands And Damage Meter Diagnostics
+
+- **Changed** - Module toggles, backup and layout commands, resolution reports, help entries, Cooldown Manager debug feedback and missing-oUF errors are localized in English, French, German, Spanish, Italian and Brazilian Portuguese.
+- **Fixed** - `/tdm diag` now arms the same local readability probe used by the Damage Meter event handler. It reports protected versus readable session fields both synchronously and on the next frame, instead of silently doing nothing.
+
+#### Astral Forge And Asset Maintenance
+
+- **Fixed** - Astral Forge no longer installs a premature global `CommitFrameEdit` wrapper around a local function that has not been declared yet. Nameplate parity previews continue to refresh through the existing subject rebuild path.
+- **Changed** - The six active icon-skin textures were refreshed. Obsolete class-power artwork, the unused proc-glow mask and the retired Taluani sound were removed from the package.
+
+#### Static Analysis Cleanup
+
+- **Internal** - Luacheck now knows the current addon globals and treats the isolated TUI action-bar environment and headless test stubs as intentional per-file scopes. Eight resolved protected-value findings were removed from the release baseline.
+
 #### WoW: Forever — Client Compatibility
 
 - **New** - TomoMod now recognizes WoW: Forever as its own client flavour by combining the modern project identifier with the 1.60 version line or the 16001 interface range. Compatible manifests advertise both Midnight and Forever interfaces without mistaking Classic Era or Mists Classic for the new client.
@@ -18,6 +47,7 @@
 
 - **New** - TomoGear can import Pawn v1, Ask Mr. Robot and compatible `key=value` stat scales for the current specialization. Primary stat, Stamina, Critical Strike, Haste, Mastery and Versatility are supported, with an optional explicit item-level weight.
 - **New** - The Gear Advisor panel includes an Imported scoring mode, a multiline scale editor, import status and profile removal. Each specialization keeps its own imported profile and original source text for later review or replacement.
+- **Fixed** - The complete TomoGear import workflow is restored in the Gear Advisor QOL tab, including Imported mode, the multiline scale editor, status feedback and import/removal actions. The active profile label and import summary now refresh immediately after importing, switching modes or removing a profile.
 - **Changed** - Import validation rejects scales tagged for another class, specialization or primary stat. Unsupported values are reported and ignored, input is size-limited, and item level contributes no implicit score unless the imported scale contains `ItemLevel=`.
 
 #### TomoGear Advisor V1.1 — Independent Settings And Signed Comparisons

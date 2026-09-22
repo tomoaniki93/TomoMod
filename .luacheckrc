@@ -89,6 +89,27 @@ globals = {
     "TomoMod_UFPreview", "TomoMod_UF_target", "TomoMod_UnitFrames", "TomoMod_Utils",
     "TomoMod_Waypoint", "TomoMod_WhatsNew", "TomoMod_Widgets", "TomoMod_WorldQuestTab",
     "UF_Elements", "_",
+    -- Added in bulk once the backlog was triaged: module globals, sub-addon
+    -- SavedVariables and slash tokens introduced since this list was last
+    -- kept up to date, plus Blizzard frames TomoMod mutates (Minimap).
+    "Minimap", "SLASH_TDM1", "SLASH_TDM2", "SLASH_TOMOMODMYTHICPLUS1", "SLASH_TOMOMODMYTHICPLUS2",
+    "TomoModDamageMeterDB", "TomoModMinimapBorder", "TomoModMythicPlusDB", "TomoMod_AstralForge",
+    "TomoMod_AuraContainer", "TomoMod_AuraData", "TomoMod_BossFrameElements", "TomoMod_CBElements",
+    "TomoMod_CDMHolders", "TomoMod_CDStudio", "TomoMod_CompanionStatus", "TomoMod_Compat",
+    "TomoMod_ConfigPanel_Changelog", "TomoMod_ConfigPanel_CooldownForge",
+    "TomoMod_ConfigPanel_DamageMeter", "TomoMod_ConfigPanel_RoleDps",
+    "TomoMod_ConfigPanel_RoleHealer", "TomoMod_ConfigPanel_RoleTank", "TomoMod_Context",
+    "TomoMod_CooldownForge", "TomoMod_DefensiveTrack", "TomoMod_Forge", "TomoMod_GlobalSearch",
+    "TomoMod_GroupSummon", "TomoMod_HealerIndicators", "TomoMod_HideTalkingHead",
+    "TomoMod_ImportSelector", "TomoMod_KeySync", "TomoMod_Layout", "TomoMod_LayoutShare",
+    "TomoMod_LayoutV41", "TomoMod_Lifecycle", "TomoMod_MicroBar", "TomoMod_MythicPlus",
+    "TomoMod_MythicPlusLauncher", "TomoMod_MythicPlusText", "TomoMod_MythicTeleportMenu",
+    "TomoMod_NPElements", "TomoMod_NameplatesPreviewRefresh", "TomoMod_NormalizeAllElements",
+    "TomoMod_NormalizeNPElements", "TomoMod_NormalizeUFElements", "TomoMod_OpenCooldownStudio",
+    "TomoMod_OpenHealerStudio", "TomoMod_OpenInstaller", "TomoMod_PreyTracker", "TomoMod_Registry",
+    "TomoMod_ReloadUI", "TomoMod_ReputationBar_ApplySuppression", "TomoMod_Resolution",
+    "TomoMod_RunSurvival", "TomoMod_SelectiveImport", "TomoMod_Suite", "TomoMod_TooltipInfo",
+    "TomoMod_TooltipInspect", "TomoMod_TuiNS", "TomoMod_UFElements",
 }
 
 -- Globals TomoMod only reads, provided by Blizzard or by embedded libraries.
@@ -145,4 +166,23 @@ read_globals = {
     "C_TaskQuest", "C_Texture", "C_Timer", "C_TooltipInfo",
     "C_ToyBox", "C_TradeSkillUI", "C_Transmog", "C_TransmogCollection",
     "C_TransmogSets", "C_UnitAuras", "C_VignetteInfo", "C_WeeklyRewards",
+}
+
+-- ---------------------------------------------------------------------
+-- Per-file scopes
+-- ---------------------------------------------------------------------
+
+-- The TUI action bar port runs every chunk under its own environment
+-- (env.SetChunkEnv -> setfenv, see actionbars_env.lua). Top-level
+-- "globals" there are fields of that private env, not of _G, so 111/112/
+-- 121/122 are false positives -- about 640 of them, which used to bury
+-- every real finding in the advisory luacheck step.
+files["Modules/Interface/ActionBars/tui/"] = {
+    ignore = { "111", "112", "121", "122" },
+}
+
+-- Headless test harnesses and the API dump dev addon stub WoW globals and
+-- write their own SavedVariables on purpose.
+files["Tools/"] = {
+    ignore = { "111", "112", "121", "122" },
 }

@@ -1763,16 +1763,12 @@ do
     end
 end
 
-do
-    local _CommitFrameEdit = CommitFrameEdit
-    function CommitFrameEdit(...)
-        local result = _CommitFrameEdit(...)
-        if SubjectKind() == "nameplate" and IsElementsView() then
-            ShowNameplateElementsParity()
-        end
-        return result
-    end
-end
+-- (A CommitFrameEdit wrapper used to sit here. It ran before the local
+-- CommitFrameEdit was declared further down, so it captured a nil global
+-- and published a global `CommitFrameEdit` into _G that nothing called.
+-- It was redundant anyway: CommitFrameEdit only runs from the Cadre view,
+-- where IsElementsView() is false, and it ends in RebuildSubject(), whose
+-- wrapper above already refreshes both nameplate parity previews.)
 
 
 

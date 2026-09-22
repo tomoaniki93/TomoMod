@@ -106,27 +106,27 @@ SlashCmdList["TOMOMOD"] = function(msg)
                 return
             end
             local state = rep.value and "|cff00ff00ON|r" or "|cffff4040OFF|r"
-            local how = rep.deferred and " (après le combat)"
-                     or rep.needsReload and " (/reload requis)"
+            local how = rep.deferred and (" (" .. L["cli_after_combat"] .. ")")
+                     or rep.needsReload and (" (" .. L["cli_reload_required"] .. ")")
                      or ""
             print("|cff2e9dd8TomoMod|r " .. arg .. " -> " .. state .. how)
             if #rep.cascade > 0 then
-                print("  |cff888888dépendants coupés :|r " .. table.concat(rep.cascade, ", "))
+                print("  |cff888888" .. L["cli_dependents_off"] .. "|r " .. table.concat(rep.cascade, ", "))
             end
             if #rep.missingDeps > 0 then
-                print("  |cffffcc00dépendances éteintes :|r " .. table.concat(rep.missingDeps, ", "))
+                print("  |cffffcc00" .. L["cli_deps_off"] .. "|r " .. table.concat(rep.missingDeps, ", "))
             end
             -- La demande est déjà posée par SetEnabled ; elle sera
             -- regroupée avec les autres et présentée une seule fois.
             if rep.needsReload and TomoMod_ReloadUI then
-                print("  |cff888888" .. LC.PendingReloadCount() .. " en attente de /reload|r")
+                print(("  |cff888888" .. L["cli_pending_reload"] .. "|r"):format(tostring(LC.PendingReloadCount())))
             end
             return
         end
 
         local live, reload, none = LC.Summary()
-        print(("|cff2e9dd8TomoMod|r modules : |cff00ff00%d à chaud|r, %d au /reload, %d sans bascule")
-            :format(live, reload, none))
+        print(("|cff2e9dd8TomoMod|r modules : |cff00ff00" .. L["cli_mod_live"] .. "|r, "
+            .. L["cli_mod_reload"] .. ", " .. L["cli_mod_none"]):format(live, reload, none))
         for _, g in ipairs(REG.Tree()) do
             print("|cff2e9dd8" .. (L[g.label] or g.key) .. "|r")
             for _, m in ipairs(g.modules) do
@@ -134,8 +134,14 @@ SlashCmdList["TOMOMOD"] = function(msg)
                 local cap = LC.Capability(m.key)
                 local note = cap == "live" and "" or cap
                 if REG.IsAvailable and not REG.IsAvailable(m.key) then
-                    local _, label = TomoMod_Compat and TomoMod_Compat.BlockingFeature(m.key)
-                    note = "indisponible" .. (label and (" (" .. label .. ")") or "")
+                    -- `a and f()` keeps only f's FIRST return value, so the
+                    -- old `local _, label = TomoMod_Compat and ...` left
+                    -- label nil every time. Take the second return explicitly.
+                    local label
+                    if TomoMod_Compat then
+                        label = select(2, TomoMod_Compat.BlockingFeature(m.key))
+                    end
+                    note = L["compat_unavailable"] .. (label and (" (" .. label .. ")") or "")
                 end
                 print(("  %s %-22s |cff888888%s|r"):format(
                     on and "|cff00ff00[x]|r" or "|cff555555[ ]|r",
@@ -143,7 +149,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
                     note))
             end
         end
-        print("|cff888888/tm modules <clé> pour basculer|r")
+        print("|cff888888" .. L["cli_modules_hint"] .. "|r")
 
     elseif msg == "flavor" or msg == "client" then
         -- The whole Forever gate hangs off one detection, so the player
@@ -158,14 +164,14 @@ SlashCmdList["TOMOMOD"] = function(msg)
         local arg = msg:match("^backup%s+(.+)$")
         if arg == "save" then
             local saved, err = safety.CreateBackup("manuelle", true)
-            print("TomoMod : " .. (saved and "sauvegarde creee." or tostring(err)))
+            print("TomoMod : " .. (saved and L["cli_backup_created"] or tostring(err)))
         elseif arg == "restore" or (arg and arg:match("^restore%s+%d+$")) then
             safety.ConfirmRestore(tonumber(arg:match("^restore%s+(%d+)$")) or 1)
         else
             for _, row in ipairs(safety.ListBackups()) do
                 print(("TomoMod #%d - %s - %s (%s)"):format(row.id, row.time or "", row.reason or "", row.profile or ""))
             end
-            print("/tm backup save | /tm backup restore [numero]")
+            print(L["cli_backup_usage"])
         end
 
     elseif msg == "context" or msg:match("^context%s+") then
@@ -250,7 +256,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
             return
         end
 
-        print("|cff888888/tm layout export|import <chaine>|r")
+        print("|cff888888" .. L["cli_layout_usage"] .. "|r")
 
     elseif msg == "resolution" or msg:match("^resolution%s+") then
         -- [v4 lot 5] Presets de résolution. La commande affiche d'abord
@@ -263,16 +269,16 @@ SlashCmdList["TOMOMOD"] = function(msg)
         if arg == "capture" then
             local tier = RES.Detect()
             local okCap = RES.Capture(tier)
-            print("|cff2e9dd8TomoMod|r " .. (okCap and ("capture -> " .. tier) or "capture: échec"))
+            print("|cff2e9dd8TomoMod|r " .. (okCap and ("capture -> " .. tier) or L["cli_capture_failed"]))
             return
         end
         if arg and RES.Get(arg) then
             local rep = RES.Apply(arg)
-            print(("|cff2e9dd8TomoMod|r %s : |cffffcc00%s|r (%s, %d polices, %d ancres)"):format(
+            print(("|cff2e9dd8TomoMod|r %s : |cffffcc00%s|r (%s, %s)"):format(
                 L["res_title"] or "Resolution preset", arg,
                 rep.fromCapture and (L["res_captured"] or "capture")
                                or (L["res_computed"] or "computed"),
-                rep.fonts, rep.stamped))
+                L["cli_res_counts"]:format(rep.fonts, rep.stamped)))
             if rep.floored then print("  |cff888888" .. (L["res_floored"] or "") .. "|r") end
             return
         end
@@ -527,7 +533,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         end
     elseif msg == "help" or msg == "?" then
         print("|cff2e9dd8TomoMod|r " .. L["msg_help_title"])
-        print("  |cff2e9dd8/tm install|r — Relancer l'assistant de configuration")
+        print("  |cff2e9dd8/tm install|r — " .. L["msg_help_install"])
         print("  |cff2e9dd8/tm layout|r — " .. L["msg_help_layout"])
         print("  |cff2e9dd8/tm|r — " .. L["msg_help_open"])
         print("  |cff2e9dd8/tm reset|r — " .. L["msg_help_reset"])
@@ -541,7 +547,7 @@ SlashCmdList["TOMOMOD"] = function(msg)
         print("  |cff2e9dd8/tm cursor|r — " .. L["msg_help_cursor"])
         print("  |cff2e9dd8/tm clearcinema|r — " .. L["msg_help_clearcinema"])
         print("  |cff2e9dd8/tm sr|r — " .. L["msg_help_sr"])
-        print("  |cff2e9dd8/tm loot|r — Ouvrir le navigateur de loots (donjons & raids)")
+        print("  |cff2e9dd8/tm loot|r — " .. L["msg_help_loot"])
         print("  |cff2e9dd8/tm way|r — " .. L["msg_help_way"])
         print("  |cff2e9dd8/tm way x y [name]|r — " .. L["msg_help_way_coords"])
         print("  |cff2e9dd8/tm way clear|r — " .. L["msg_help_way_clear"])

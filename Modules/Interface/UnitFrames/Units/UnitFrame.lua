@@ -952,7 +952,7 @@ function UF.Initialize()
 
     local oUF = TomoMod_oUF
     if not oUF then
-        print("|cffff0000TomoMod UF:|r Bibliothèque oUF introuvable (X-oUF: TomoMod_oUF)!")
+        print("|cffff0000TomoMod UF:|r " .. TomoMod_L["msg_uf_ouf_missing"])
         return
     end
 
