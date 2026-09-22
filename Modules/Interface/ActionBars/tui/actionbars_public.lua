@@ -334,9 +334,18 @@ function ActionBarsOwned:Initialize()
     ownedEventFrame:RegisterEvent("ZONE_CHANGED_INDOORS")
     ownedEventFrame:RegisterEvent("PLAYER_DIFFICULTY_CHANGED")
     ownedEventFrame:RegisterEvent("UPDATE_INSTANCE_INFO")
-    ownedEventFrame:RegisterEvent("CHALLENGE_MODE_START")
-    ownedEventFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
-    ownedEventFrame:RegisterEvent("CHALLENGE_MODE_RESET")
+    -- WoW: Forever uses the modern ActionBar API surface, but it has no
+    -- Challenge Mode / Mythic+ system. RegisterEvent throws for an event the
+    -- client does not define. Because this initializer runs before BuildBar(),
+    -- an unconditional CHALLENGE_MODE_* registration can leave
+    -- ActionBarsOwned.initialized=true while no owned bars were ever built.
+    -- Keep the whole event family behind the same compatibility gate used by
+    -- the Mythic+ modules themselves.
+    if not (TomoMod_Compat and TomoMod_Compat.Blocked and TomoMod_Compat.Blocked("mythicplus")) then
+        ownedEventFrame:RegisterEvent("CHALLENGE_MODE_START")
+        ownedEventFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+        ownedEventFrame:RegisterEvent("CHALLENGE_MODE_RESET")
+    end
     ownedEventFrame:RegisterEvent("ENCOUNTER_START")
     ownedEventFrame:RegisterEvent("ENCOUNTER_END")
     ownedEventFrame:RegisterEvent("UNIT_ENTERED_VEHICLE")

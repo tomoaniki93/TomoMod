@@ -1843,6 +1843,179 @@ local function ReadNetStats()
 end
 
 -- =====================================================================
+-- ACTION BAR PROBE
+-- ---------------------------------------------------------------------
+-- The owned action bars can end up invisible with no Lua error at all:
+-- every structural decision they take is secure (a state driver hides the
+-- container) or goes through SafeCall, which silences "expected" failures.
+-- A report without this section shows nothing wrong while the player has
+-- no bars (first seen on WoW: Forever 1.60.1). So the report states, per
+-- bar, what the client actually decided -- container shown/visible/alpha,
+-- the secure visibility driver and what it evaluates to right now, the
+-- hard-hide conditions one by one, and the state of the first button --
+-- plus the counters of silenced SafeCall failures.
+--
+-- Read-only and pcall-guarded throughout: it runs from the export button,
+-- possibly in combat, on any client.
+-- =====================================================================
+
+local ABProbe = {}
+
+function ABProbe.Str(v)
+    if v == nil then return "nil" end
+    if issecretvalue and issecretvalue(v) then return "<secret>" end
+    if type(v) == "number" then
+        if v == math.floor(v) then return tostring(v) end
+        return string.format("%.2f", v)
+    end
+    return tostring(v)
+end
+
+-- Calls `obj:method(...)`, returning nil instead of raising.
+function ABProbe.M(obj, method, ...)
+    if not obj or type(obj[method]) ~= "function" then return nil end
+    local ok, a, b = pcall(obj[method], obj, ...)
+    if not ok then return nil end
+    return a, b
+end
+
+function ABProbe.Call(fn, ...)
+    if type(fn) ~= "function" then return nil end
+    local ok, a = pcall(fn, ...)
+    if not ok then return nil end
+    return a
+end
+
+function ABProbe.Cond(expr)
+    -- SecureCmdOptionParse is the same C evaluator the state drivers use.
+    local r = ABProbe.Call(SecureCmdOptionParse, expr .. " 1; 0")
+    if r == "1" then return "YES" end
+    if r == "0" then return "no" end
+    return "?"
+end
+
+function ABProbe.Frame(frame)
+    local shown = ABProbe.M(frame, "IsShown")
+    local visible = ABProbe.M(frame, "IsVisible")
+    local w, h = ABProbe.M(frame, "GetSize")
+    local strata = ABProbe.M(frame, "GetFrameStrata")
+    local level = ABProbe.M(frame, "GetFrameLevel")
+    return string.format("shown=%s visible=%s alpha=%s effAlpha=%s scale=%s size=%sx%s strata=%s/%s points=%s",
+        ABProbe.Str(shown), ABProbe.Str(visible),
+        ABProbe.Str(ABProbe.M(frame, "GetAlpha")), ABProbe.Str(ABProbe.M(frame, "GetEffectiveAlpha")),
+        ABProbe.Str(ABProbe.M(frame, "GetScale")), ABProbe.Str(w), ABProbe.Str(h),
+        ABProbe.Str(strata), ABProbe.Str(level), ABProbe.Str(ABProbe.M(frame, "GetNumPoints")))
+end
+
+function ABProbe.Button(btn, env)
+    local name = ABProbe.M(btn, "GetName") or "?"
+    local parent = ABProbe.M(btn, "GetParent")
+    local parentName = parent and ABProbe.M(parent, "GetName") or "?"
+    local slot = ABProbe.Call(rawget(env, "GetSafeActionSlot"), btn)
+    local hasAction = "?"
+    if type(slot) == "number" and not (issecretvalue and issecretvalue(slot))
+        and C_ActionBar and C_ActionBar.HasAction then
+        hasAction = ABProbe.Str(ABProbe.Call(C_ActionBar.HasAction, slot))
+    end
+    local icon = btn.icon or btn.Icon
+    return string.format("%s parent=%s %s slot=%s hasAction=%s iconShown=%s iconTex=%s",
+        name, parentName, ABProbe.Frame(btn), ABProbe.Str(slot), hasAction,
+        ABProbe.Str(icon and ABProbe.M(icon, "IsShown")),
+        ABProbe.Str(icon and ABProbe.M(icon, "GetTexture")))
+end
+
+local function DescribeActionBars(lines)
+    lines[#lines + 1] = "--- Action Bars ---"
+
+    local tuiNS = TomoMod_TuiNS
+    local ABO = tuiNS and tuiNS.ActionBarsOwned
+    local env = tuiNS and tuiNS.ActionBarsEnv
+    local abDB = TomoModDB and TomoModDB.actionBars
+    lines[#lines + 1] = string.format("Module: enabled=%s engine=%s initialized=%s editModeActive=%s",
+        ABProbe.Str(abDB and abDB.enabled), ABProbe.Str(abDB and abDB.engine),
+        ABProbe.Str(ABO and ABO.initialized), ABProbe.Str(ABO and ABO.editModeActive))
+    if not ABO or type(env) ~= "table" then
+        lines[#lines + 1] = "(action bar engine not loaded)"
+        lines[#lines + 1] = ""
+        return
+    end
+
+    local style = C_InputInterfaceStyle and ABProbe.Call(C_InputInterfaceStyle.GetCurrentStyle)
+    lines[#lines + 1] = string.format("Hard-hide conditions: overridebar=%s vehicleui=%s possessbar=%s petbattle=%s  (input style=%s)",
+        ABProbe.Cond("[overridebar]"), ABProbe.Cond("[vehicleui]"),
+        ABProbe.Cond("[possessbar]"), ABProbe.Cond("[petbattle]"), ABProbe.Str(style))
+    local AB = C_ActionBar
+    if AB then
+        lines[#lines + 1] = string.format("C_ActionBar: override=%s possess=%s vehicle=%s bonus=%s bonusOffset=%s page=%s",
+            ABProbe.Str(ABProbe.Call(AB.HasOverrideActionBar)), ABProbe.Str(ABProbe.Call(AB.IsPossessBarVisible)),
+            ABProbe.Str(ABProbe.Call(AB.HasVehicleActionBar)), ABProbe.Str(ABProbe.Call(AB.HasBonusActionBar)),
+            ABProbe.Str(ABProbe.Call(AB.GetBonusBarOffset)), ABProbe.Str(ABProbe.Call(AB.GetActionBarPage)))
+    end
+    local blizzMain = _G.MainActionBar
+    if blizzMain then
+        lines[#lines + 1] = "Blizzard MainActionBar: " .. ABProbe.Frame(blizzMain)
+    end
+
+    local keys = rawget(env, "ALL_MANAGED_BAR_KEYS")
+        or { "bar1", "bar2", "bar3", "bar4", "bar5", "bar6", "bar7", "bar8", "pet", "stance" }
+    local getState = rawget(env, "GetFrameState")
+    local buildDriver = rawget(env, "BuildBarVisibilityDriver")
+    local containers = ABO.containers or {}
+    local buttons = ABO.nativeButtons or {}
+
+    for _, barKey in ipairs(keys) do
+        local c = containers[barKey]
+        if not c then
+            lines[#lines + 1] = barKey .. ": no container"
+        else
+            lines[#lines + 1] = barKey .. ": " .. ABProbe.Frame(c)
+            local p1, rel = ABProbe.M(c, "GetPoint", 1)
+            local relName = rel and ABProbe.M(rel, "GetName") or ABProbe.Str(rel)
+            local st = getState and ABProbe.Call(getState, c)
+            local driver = (st and st.visibilityDriver) or ABProbe.Call(buildDriver, barKey)
+            local evaluates = driver and ABProbe.Call(SecureCmdOptionParse, driver)
+            lines[#lines + 1] = string.format("   anchor=%s->%s userShown=%s state-tuivis=%s driver=\"%s\" -> %s regErr=%s",
+                ABProbe.Str(p1), ABProbe.Str(relName),
+                ABProbe.Str(ABProbe.M(c, "GetAttribute", "qui-user-shown")),
+                ABProbe.Str(ABProbe.M(c, "GetAttribute", "state-tuivis")),
+                ABProbe.Str(driver), ABProbe.Str(evaluates),
+                ABProbe.Str(st and st.visibilityRegisterError))
+            local overlay = ABO.editOverlays and ABO.editOverlays[barKey]
+            if overlay then
+                lines[#lines + 1] = string.format("   mover: %s mouse=%s",
+                    ABProbe.Frame(overlay), ABProbe.Str(ABProbe.M(overlay, "IsMouseEnabled")))
+            end
+            local list = buttons[barKey]
+            if type(list) == "table" and #list > 0 then
+                local shown, visible = 0, 0
+                for _, b in ipairs(list) do
+                    if ABProbe.M(b, "IsShown") then shown = shown + 1 end
+                    if ABProbe.M(b, "IsVisible") then visible = visible + 1 end
+                end
+                lines[#lines + 1] = string.format("   buttons: %d total, %d shown, %d visible", #list, shown, visible)
+                lines[#lines + 1] = "   btn1: " .. ABProbe.Button(list[1], env)
+            elseif barKey ~= "microbar" and barKey ~= "bags" then
+                lines[#lines + 1] = "   buttons: none registered"
+            end
+        end
+    end
+
+    local stats = tuiNS.SafeCallStats and ABProbe.Call(tuiNS.SafeCallStats)
+    if type(stats) == "table" then
+        local parts = {}
+        for policy, t in pairs(stats) do
+            if type(t) == "table" and ((t.expected or 0) + (t.unexpected or 0) + (t.secretErr or 0)) > 0 then
+                parts[#parts + 1] = string.format("%s=%d/%d/%d", policy, t.expected or 0, t.unexpected or 0, t.secretErr or 0)
+            end
+        end
+        table.sort(parts)
+        lines[#lines + 1] = "SafeCall failures (expected/unexpected/secret): "
+            .. (#parts > 0 and table.concat(parts, " ") or "none")
+    end
+    lines[#lines + 1] = ""
+end
+
+-- =====================================================================
 -- REPORT BUILDERS
 -- =====================================================================
 
@@ -1895,6 +2068,17 @@ function D.BuildReadableReport()
             .. " — set by a macro or another addon"
     end
     lines[#lines + 1] = ""
+
+    -- Action bars (see ACTION BAR PROBE above). Built aside so a probe
+    -- failure still leaves a well-formed section and the rest of the report.
+    local abLines = {}
+    local okAB, abErr = pcall(DescribeActionBars, abLines)
+    if not okAB then
+        if #abLines == 0 then abLines[1] = "--- Action Bars ---" end
+        abLines[#abLines + 1] = "(probe failed: " .. SafeToString(abErr) .. ")"
+        abLines[#abLines + 1] = ""
+    end
+    for i = 1, #abLines do lines[#lines + 1] = abLines[i] end
 
     -- Performance
     lines[#lines + 1] = "--- Performance ---"

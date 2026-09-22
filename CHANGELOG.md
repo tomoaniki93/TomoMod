@@ -22,6 +22,14 @@
 - **Changed** - Module toggles, backup and layout commands, resolution reports, help entries, Cooldown Manager debug feedback and missing-oUF errors are localized in English, French, German, Spanish, Italian and Brazilian Portuguese.
 - **Fixed** - `/tdm diag` now arms the same local readability probe used by the Damage Meter event handler. It reports protected versus readable session fields both synchronously and on the next frame, instead of silently doing nothing.
 
+#### Action Bars — Forever Initialization And Visibility Diagnostics
+
+- **Fixed** - Owned Action Bars no longer register the unavailable Challenge Mode event family on WoW: Forever. An invalid `CHALLENGE_MODE_*` registration could stop initialization after the module marked itself ready but before `BuildBar` created any owned bars, leaving the complete custom action-bar interface missing.
+- **New** - Readable Diagnostics reports now include a read-only Action Bars section. For every managed bar it records the container's shown and visible state, alpha, scale, dimensions, frame layer, anchor, user visibility attributes, secure visibility driver and the driver's current result.
+- **Changed** - The report exposes each hard-hide condition, the current `C_ActionBar` state, mover visibility, button totals and the first button's action slot, action availability and icon state. It also summarizes silenced `SafeCall` failures by policy, making invisible bars diagnosable even when no Lua error is raised.
+- **Internal** - The probe is guarded throughout so it can be exported safely in combat, with unavailable APIs, throwing frame methods or protected values. A dedicated headless regression test covers hidden secure-driver states, button data, failure counters and degraded environments.
+- **Internal** - The event-hygiene bench now verifies that all three Challenge Mode subscriptions remain behind the Mythic+ compatibility gate and that the gate runs before owned bars are built.
+
 #### Astral Forge And Asset Maintenance
 
 - **Fixed** - Astral Forge no longer installs a premature global `CommitFrameEdit` wrapper around a local function that has not been declared yet. Nameplate parity previews continue to refresh through the existing subject rebuild path.

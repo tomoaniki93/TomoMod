@@ -132,7 +132,32 @@ end
 check("aucun reenregistrement en dur", hardcoded, 0)
 
 -- ═══════════════════════════════════════════════════════════════════════
-print("── 3. OnUpdate : inventaire, pas verdict ──")
+print("── 3. Forever : ActionBars ne doit pas enregistrer les evenements Mythic+ ──")
+
+-- Forever est un client moderne, mais sans Challenge Mode. RegisterEvent
+-- leve une erreur sur un evenement inconnu ; comme ActionBars construit ses
+-- boutons APRES ses abonnements, un CHALLENGE_MODE_* non garde laisse le
+-- module marque initialise avec zero barre TUI creee.
+local ab = read("Modules/Interface/ActionBars/tui/actionbars_public.lua")
+local guardedChallenge = [[
+    if not (TomoMod_Compat and TomoMod_Compat.Blocked and TomoMod_Compat.Blocked("mythicplus")) then
+        ownedEventFrame:RegisterEvent("CHALLENGE_MODE_START")
+        ownedEventFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+        ownedEventFrame:RegisterEvent("CHALLENGE_MODE_RESET")
+    end
+]]
+
+local challengePos = ab and ab:find(guardedChallenge, 1, true)
+check("les evenements Challenge Mode sont derriere Compat",
+      challengePos ~= nil, true)
+
+local buildPos = ab and ab:find(
+    "for _, barKey in ipairs(ALL_MANAGED_BAR_KEYS) do", challengePos or 1, true)
+check("le garde Challenge Mode est execute avant BuildBar",
+      challengePos ~= nil and buildPos ~= nil and challengePos < buildPos, true)
+
+-- ═══════════════════════════════════════════════════════════════════════
+print("── 4. OnUpdate : inventaire, pas verdict ──")
 
 -- Un OnUpdate sans accumulateur n'est PAS forcement fautif. L'audit en a
 -- fait la demonstration : la frame de lot des plaques de nom se masque
@@ -153,7 +178,7 @@ print(("  %d gestionnaires OnUpdate, dont %d se masquent des le premier passage"
 check("le compte reste mesurable", onUpdate > 0, true)
 
 -- ═══════════════════════════════════════════════════════════════════════
-print("── 4. Proportion filtree ──")
+print("── 5. Proportion filtree ──")
 
 local globalN, unitN = 0, 0
 for _, path in ipairs(files) do
