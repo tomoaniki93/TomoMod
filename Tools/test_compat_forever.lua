@@ -51,10 +51,13 @@ local function LoadCompat(version, build, interface, projectID)
     WOW_PROJECT_MAINLINE  = 1
     WOW_PROJECT_CLASSIC   = 2
     GetBuildInfo = function() return version, build, "", interface end
+    loadstring_untainted = nil
 
     LoadSource("Core/Compat.lua")()
     return TomoMod_Compat
 end
+
+local function RestoreRestrictedExecution() loadstring_untainted = function() end end
 
 local FOREVER  = { "1.60.1", "69913", 16001, 1 }
 local MIDNIGHT = { "12.1.5", "71204", 120105, 1 }
@@ -99,6 +102,15 @@ eq(C.Flavor(), "forever", "version line alone identifies Forever")
 C = LoadCompat("1.15.7", "60000", 11507, 1)
 eq(C.Flavor(), "mainline", "a mainline 1.15 client is still not Forever")
 
+-- The Action Bars compatibility block is a capability gate, not a permanent
+-- profile migration. A later Forever client that restores the compiler must
+-- become available without changing the saved enabled flags.
+C = LoadCompat(unpack(FOREVER))
+RestoreRestrictedExecution()
+C.Refresh()
+ok(not C.Blocked("actionbars"), "restored restricted execution releases Action Bars")
+ok(not C.IsModuleBlocked("actionBars"), "owned Action Bars become available again")
+
 -- =====================================================================
 print("2. enforcement")
 -- =====================================================================
@@ -120,6 +132,8 @@ local function MidnightProfile()
         consumableBar = { enabled = true, readyTrackerMigrated = true },
         skyRide       = { enabled = true },
         worldQuestTab = { enabled = true },
+        actionBars    = { enabled = true, engine = "owned" },
+        totemBar      = { enabled = true },
         minimap       = { enabled = true },   -- untouched control
     }
 end
@@ -132,6 +146,9 @@ for _, path in ipairs(BLOCKED_PATHS) do
 end
 eq(db.minimap.enabled, true, "a module that is not blocked is left alone")
 eq(db.consumableBar.readyTrackerMigrated, true, "sibling settings survive: only the flag moves")
+eq(db.actionBars.enabled, true, "owned Action Bars preference survives the temporary client block")
+eq(db.totemBar.enabled, true, "Totem Bar preference survives the temporary client block")
+eq(db.actionBars.engine, "owned", "action bar settings survive for a trip back to Midnight")
 eq(C.EnforceDB(db), 0, "EnforceDB is idempotent — a second pass changes nothing")
 
 -- Turning one back off is not the same as deleting it: a profile carried
@@ -185,6 +202,8 @@ eq(defaults.compass.enabled, false, "shipped default: compass off on Forever")
 eq(defaults.housing.enabled, false, "shipped default: housing off on Forever")
 eq(defaults.MythicTracker.enabled, false, "shipped default: MythicTracker off on Forever")
 eq(defaults.minimap.enabled, true, "shipped default: minimap untouched")
+eq(defaults.actionBars.enabled, true, "shipped Action Bars preference is preserved on Forever")
+eq(defaults.totemBar.enabled, false, "shipped Totem Bar preference is preserved on Forever")
 
 C = LoadCompat(unpack(FOREVER))
 
@@ -194,7 +213,7 @@ for name, feature in pairs(C.FEATURES) do
         local m = R.Get(key)
         if m then
             ok(m.enabledPath ~= nil,
-                ("'%s' has an enabledPath to force off"):format(key))
+                ("'%s' has an enabledPath"):format(key))
         end
     end
     for _, path in ipairs(feature.paths or {}) do
@@ -221,9 +240,23 @@ for _, key in ipairs({ "MythicKeys", "MythicTracker", "TomoScore", "housing",
     ok(C.IsModuleBlocked(key), ("'%s' reports as blocked"):format(key))
 end
 
+-- Action Bars/Totem Bar are runtime-blocked only. Their saved enabled flags
+-- deliberately stay out of BlockedPaths() so a client-side fix can restore
+-- the feature without silently rewriting the player's profile.
+for _, key in ipairs({ "actionBars", "totemBar" }) do
+    local m = R.Get(key)
+    local forced = false
+    for _, p in ipairs(BLOCKED_PATHS) do
+        if m and p == m.enabledPath then forced = true end
+    end
+    ok(not forced, ("'%s' enabledPath is preserved"):format(key))
+    ok(C.IsModuleBlocked(key), ("'%s' reports as runtime-blocked"):format(key))
+end
+
 -- The registry itself has to agree, not just Compat.
 ok(R.IsAvailable("minimap"), "an unblocked module stays available")
 ok(not R.IsAvailable("compass"), "registry refuses a blocked module")
+ok(not R.IsAvailable("actionBars"), "registry refuses owned Action Bars while restricted execution is missing")
 
 TomoModDB = MidnightProfile()
 C.EnforceDB(TomoModDB)
@@ -231,6 +264,9 @@ eq(R.IsEnabled("compass"), false, "a blocked module reads as off")
 local set = R.SetEnabled("compass", true)
 eq(set, false, "the registry refuses to switch a blocked module on")
 eq(TomoModDB.compass.enabled, false, "and the flag did not move")
+eq(R.IsEnabled("actionBars"), false, "runtime-blocked Action Bars read as unavailable")
+eq(TomoModDB.actionBars.enabled, true, "but the saved Action Bars preference remains true")
+eq(TomoModDB.totemBar.enabled, true, "and the saved Totem Bar preference remains true")
 
 -- =====================================================================
 print("4. source guards")
@@ -293,6 +329,32 @@ end
 ScanFolder("Modules/QOL/MythicPlus", "mythicplus")
 ScanFolder("TomoMod_MythicPlus", "mythicplus")
 ScanFolder("Modules/Housing", "housing")
+
+-- The owned Action Bars engine is gated at its initializer rather than at
+-- every ported chunk. The two standalone Totem Bar files have their own
+-- file-scope guard so a preserved `totemBar.enabled=true` cannot start them
+-- while the shared Action Bars feature is unavailable.
+do
+    local fh = io.open("Modules/Interface/ActionBars/tui/actionbars_public.lua", "rb")
+    local src = fh and fh:read("*a") or ""
+    if fh then fh:close() end
+    ok(src:find('TomoMod_Compat.Blocked("actionbars")', 1, true) ~= nil,
+        "action bar engine consults the 'actionbars' compat feature")
+    local init = src:match("function ActionBarsOwned:Initialize%(%)(.-)self%.initialized = true")
+    ok(init ~= nil and init:find("IsEngineBlocked()", 1, true) ~= nil,
+        "Initialize() returns before building when the engine is blocked")
+end
+
+for _, path in ipairs({
+    "Modules/Interface/ActionBars/tui/totems.lua",
+    "Modules/Interface/ActionBars/TotemBarMover.lua",
+}) do
+    local fh = io.open(path, "rb")
+    local src = fh and fh:read("*a") or ""
+    if fh then fh:close() end
+    ok(src:find('TomoMod_Compat.Blocked("actionbars")', 1, true) ~= nil,
+        ("%s is guarded by the Action Bars compatibility gate"):format(path))
+end
 
 -- =====================================================================
 print(("\n%d checks, %d failures"):format(checks, failures))

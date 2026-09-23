@@ -286,8 +286,30 @@ local function SyncActionButtonUseKeyDownCVar(value)
     return ok
 end
 
+-- Whether the owned engine may run at all on this client / profile.
+-- Two reasons to stay off, both leaving Blizzard's native bars untouched:
+--   * the client cannot run it (Core/Compat.lua "actionbars" feature --
+--     WoW: Forever has no restricted execution);
+--   * the player switched the module off (actionBars.enabled). The master
+--     toggle used to be ignored here: the engine built itself from any
+--     profile, so turning "Action Bars" off in /tm modules or the installer
+--     changed nothing after the reload it asked for.
+-- Every entry point (ADDON_LOADED, TomoLayout via SetEditModeEnabled, the
+-- Blizzard_ActionBar hook, layout-mode registration) goes through this.
+function ActionBarsOwned.IsEngineBlocked()
+    if TomoMod_Compat and TomoMod_Compat.Blocked and TomoMod_Compat.Blocked("actionbars") then
+        return true, "client"
+    end
+    local db = GetDB()
+    if db and db.enabled == false then
+        return true, "disabled"
+    end
+    return false
+end
+
 function ActionBarsOwned:Initialize()
     if self.initialized then return end
+    if ActionBarsOwned.IsEngineBlocked() then return end
 
     self.initialized = true
 
@@ -824,7 +846,9 @@ initFrame:SetScript("OnEvent", function(self, event, addonName)
     if addonName == ADDON_NAME and ns.TUI_ACTIONBARS_READY then
         if not GetDB() then return end
         ActionBarsOwned:Initialize()
-    elseif addonName == "Blizzard_ActionBar" then
+    elseif addonName == "Blizzard_ActionBar" and not ActionBarsOwned.IsEngineBlocked() then
+        -- With the engine off, Blizzard's bars are the player's bars: no
+        -- flyout skin, page-arrow or override-bar changes on them.
         if ActionBarsOwned.initialized then
             ApplyLateStandardBarSuppression()
             ScheduleNativeSpecialVisualSuppression()
@@ -854,6 +878,8 @@ do
     local function RegisterLayoutModeElements()
         local um = ns.TUI_LayoutMode
         if not um or type(um.RegisterElement) ~= "function" then return end
+        -- No owned bars, nothing to move: don't list empty entries.
+        if ActionBarsOwned.IsEngineBlocked() then return end
 
         local BAR_ELEMENTS = {
             { key = "bar1", label = ns.L["Action Bar 1"], order = 1 },

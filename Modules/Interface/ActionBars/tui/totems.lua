@@ -5,6 +5,10 @@
 -- stay diffable. Do not reformat.
 -- =====================================================================
 local ADDON_NAME, ns = "TomoMod", TomoMod_TuiNS -- TOMOMOD: was `...`
+
+-- Forever build 69913 cannot run the secure Action Bars stack. Keep the Totem
+-- Bar dormant with that feature without rewriting the player's saved choice.
+if TomoMod_Compat and TomoMod_Compat.Blocked("actionbars") then return end
 local TUI = TUI
 local LSM = ns.LSM
 

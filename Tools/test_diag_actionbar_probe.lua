@@ -171,6 +171,7 @@ do
     env.TomoMod_TuiNS = {
         ActionBarsOwned = {
             initialized = true, editModeActive = false,
+            IsEngineBlocked = function() return false end,
             containers = { bar1 = container }, nativeButtons = { bar1 = { btn } },
             editOverlays = { bar1 = mover },
         },
@@ -191,6 +192,7 @@ do
     if not good then print("    " .. tostring(err)) end
     expect("en-tête présent", out:find("--- Action Bars ---", 1, true) ~= nil)
     expect("module décrit", out:find("Module: enabled=true engine=owned initialized=true", 1, true) ~= nil)
+    expect("moteur non bloqué rapporté", out:find("engineBlocked=false", 1, true) ~= nil)
     expect("possessbar à YES", out:find("possessbar=YES", 1, true) ~= nil)
     expect("overridebar à no", out:find("overridebar=no", 1, true) ~= nil)
     expect("bar1 : conteneur non montré", out:find("bar1: shown=false", 1, true) ~= nil)
@@ -264,9 +266,11 @@ do
 end
 do
     local env = MakeEnv({ combat = true })
-    env.TomoMod_TuiNS = { ActionBarsOwned = { initialized = true, containers = {} },
+    env.TomoMod_TuiNS = { ActionBarsOwned = { initialized = false, containers = {},
+                                              IsEngineBlocked = function() return true, "client" end },
                           ActionBarsEnv = { ALL_MANAGED_BAR_KEYS = {} } }
     local _, _, out = Run(env)
+    expect("moteur bloqué par le client rapporté", out:find("engineBlocked=true (client)", 1, true) ~= nil)
     expect("auto-test sauté en combat", out:find("self-test: skipped (in combat)", 1, true) ~= nil)
 end
 

@@ -1969,9 +1969,15 @@ local function DescribeActionBars(lines)
     local ABO = tuiNS and tuiNS.ActionBarsOwned
     local env = tuiNS and tuiNS.ActionBarsEnv
     local abDB = TomoModDB and TomoModDB.actionBars
-    lines[#lines + 1] = string.format("Module: enabled=%s engine=%s initialized=%s editModeActive=%s",
+    local blocked, why
+    if ABO and type(ABO.IsEngineBlocked) == "function" then
+        local okB, b, r = pcall(ABO.IsEngineBlocked)
+        if okB then blocked, why = b, r end
+    end
+    lines[#lines + 1] = string.format("Module: enabled=%s engine=%s initialized=%s editModeActive=%s engineBlocked=%s%s",
         ABProbe.Str(abDB and abDB.enabled), ABProbe.Str(abDB and abDB.engine),
-        ABProbe.Str(ABO and ABO.initialized), ABProbe.Str(ABO and ABO.editModeActive))
+        ABProbe.Str(ABO and ABO.initialized), ABProbe.Str(ABO and ABO.editModeActive),
+        ABProbe.Str(blocked), why and (" (" .. ABProbe.Str(why) .. ")") or "")
     if not ABO or type(env) ~= "table" then
         lines[#lines + 1] = "(action bar engine not loaded)"
         lines[#lines + 1] = ""

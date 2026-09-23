@@ -183,6 +183,17 @@ local FEATURES = {
         init    = "WorldQuestTab",
         tabs    = { "worldquests" },
     },
+    -- The owned action bar engine requires Blizzard restricted execution for
+    -- its secure-handler snippets. The Totem Bar itself does not use those
+    -- snippets, but it shares the Action Bars feature surface and is suspended
+    -- with the owned engine so Forever never exposes a half-enabled setup.
+    -- No DB path is forced off: the player's choices are preserved for the
+    -- moment the client regains restricted execution.
+    actionbars = {
+        label   = "Action Bars",
+        modules = { "actionBars", "totemBar" },
+        page    = "actionbars",
+    },
 }
 Compat.FEATURES = FEATURES
 
@@ -197,6 +208,12 @@ local BLOCKED_BY_FLAVOR = {
         "consumables",    -- flask/food/oil set is Midnight's
         "skyriding",      -- no dragonriding: no vigor, no second wind
         "worldquests",    -- no world quests
+        -- Forever 1.60.1 (build 69913) has no restricted execution:
+        -- Execute() and secure snippets are silent no-ops while SetFrameRef
+        -- and plain SetAttribute still work. Keep the feature listed here,
+        -- then let BuildLookups skip the block automatically if a later
+        -- Forever build exposes loadstring_untainted again.
+        "actionbars",
     },
 }
 
@@ -219,7 +236,13 @@ local function BuildLookups()
 
     for _, name in ipairs(list) do
         local f = FEATURES[name]
-        if f then
+        -- Current Forever builds cannot compile restricted snippets. Do not
+        -- make that temporary client defect permanent in user profiles, and
+        -- automatically release the gate if Blizzard restores the compiler.
+        local capabilityRestored = name == "actionbars"
+            and type(loadstring_untainted) == "function"
+
+        if f and not capabilityRestored then
             blockedFeature[name] = true
             for _, key  in ipairs(f.modules or {}) do blockedModule[key] = name end
             for _, path in ipairs(f.paths   or {}) do blockedPaths[#blockedPaths + 1] = path end

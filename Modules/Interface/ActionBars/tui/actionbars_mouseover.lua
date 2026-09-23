@@ -474,6 +474,7 @@ combatFadeFrame = CreateFrame("Frame")
 combatFadeFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 
 combatFadeFrame:SetScript("OnEvent", function(self, event)
+    if not ActionBarsOwned.initialized then return end
     local fadeSettings = GetFadeSettings()
     if not fadeSettings or not fadeSettings.enabled then return end
     if not fadeSettings.alwaysShowInCombat then return end

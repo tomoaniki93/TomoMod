@@ -10,6 +10,10 @@
 -- The overlay also keeps the empty bar visible and labelled while unlocked.
 -- =====================================================================
 
+-- Keep the mover absent whenever the Totem Bar runtime is compatibility-gated.
+-- The saved totemBar settings remain untouched for a later compatible client.
+if TomoMod_Compat and TomoMod_Compat.Blocked("actionbars") then return end
+
 local overlay
 
 local function GetDB()
