@@ -1894,6 +1894,44 @@ function ABProbe.Cond(expr)
     return "?"
 end
 
+function ABProbe.Ref(holder, label)
+    if not holder then return "no-handler" end
+    local v = ABProbe.M(holder, "GetAttribute", "frameref-" .. label)
+    return v ~= nil and "set" or "MISSING"
+end
+
+-- Runs the three secure-handler primitives the bars depend on, on frames
+-- of its own: Execute(), SetFrameRef(), and a GetFrameRef() read from
+-- restricted code. Out of combat only. A primitive that fails raises
+-- through the error handler (so the report's error list shows why) and is
+-- reported FAILED here. If all pass while the bars' own refs are MISSING,
+-- the failure happened at build time (ADDON_LOADED), not in general.
+function ABProbe.SecureSelfTest()
+    if InCombatLockdown and InCombatLockdown() then return "skipped (in combat)" end
+    local h = ABProbe.testHeader
+    if not h then
+        local ok, f = pcall(CreateFrame, "Frame", nil, UIParent, "SecureHandlerBaseTemplate")
+        if not ok or not f then return "cannot create SecureHandlerBaseTemplate" end
+        local okRef, ref = pcall(CreateFrame, "Frame", nil, f, "SecureFrameTemplate")
+        f.probeRef = okRef and ref or nil
+        h = f
+        ABProbe.testHeader = h
+    end
+    ABProbe.testSerial = (ABProbe.testSerial or 0) + 1
+    local token = "t" .. ABProbe.testSerial
+    pcall(h.Execute, h, string.format([[self:SetAttribute("tomo-probe-exec", "%s")]], token))
+    local exec = (ABProbe.M(h, "GetAttribute", "tomo-probe-exec") == token) and "ok" or "FAILED"
+    local setRef, useRef = "n/a", "n/a"
+    if h.probeRef then
+        pcall(h.SetFrameRef, h, "tomo-probe", h.probeRef)
+        setRef = ABProbe.M(h, "GetAttribute", "frameref-tomo-probe") ~= nil and "ok" or "FAILED"
+        pcall(h.Execute, h, string.format(
+            [[local r = self:GetFrameRef("tomo-probe"); self:SetAttribute("tomo-probe-ref", r and "%s" or "none")]], token))
+        useRef = (ABProbe.M(h, "GetAttribute", "tomo-probe-ref") == token) and "ok" or "FAILED"
+    end
+    return string.format("Execute=%s SetFrameRef=%s GetFrameRef=%s", exec, setRef, useRef)
+end
+
 function ABProbe.Frame(frame)
     local shown = ABProbe.M(frame, "IsShown")
     local visible = ABProbe.M(frame, "IsVisible")
@@ -1951,6 +1989,8 @@ local function DescribeActionBars(lines)
             ABProbe.Str(ABProbe.Call(AB.HasVehicleActionBar)), ABProbe.Str(ABProbe.Call(AB.HasBonusActionBar)),
             ABProbe.Str(ABProbe.Call(AB.GetBonusBarOffset)), ABProbe.Str(ABProbe.Call(AB.GetActionBarPage)))
     end
+    local okTest, selfTest = pcall(ABProbe.SecureSelfTest)
+    lines[#lines + 1] = "Secure handler self-test: " .. (okTest and ABProbe.Str(selfTest) or ("error: " .. ABProbe.Str(selfTest)))
     local blizzMain = _G.MainActionBar
     if blizzMain then
         lines[#lines + 1] = "Blizzard MainActionBar: " .. ABProbe.Frame(blizzMain)
@@ -1980,6 +2020,21 @@ local function DescribeActionBars(lines)
                 ABProbe.Str(ABProbe.M(c, "GetAttribute", "state-tuivis")),
                 ABProbe.Str(driver), ABProbe.Str(evaluates),
                 ABProbe.Str(st and st.visibilityRegisterError))
+            -- Secure wiring. The layout handler positions buttons from restricted
+            -- code through frame refs set at build time; without the refs the
+            -- snippet returns silently and the bar stays a 1x1 box with
+            -- unanchored buttons. The first button's secure attributes show
+            -- whether the build-time Execute() that assigns actions ran.
+            local layoutHandler = _G.TUI_ActionBarLayoutHandler
+            local list1 = buttons[barKey]
+            local b1 = type(list1) == "table" and list1[1] or nil
+            lines[#lines + 1] = string.format("   secure: layoutRef=%s btn1Ref=%s protected=%s forbidden=%s btn1.action=%s btn1.index=%s",
+                ABProbe.Ref(layoutHandler, "bar-" .. barKey),
+                ABProbe.Ref(layoutHandler, "btn-" .. barKey .. "-1"),
+                ABProbe.Str(select(2, ABProbe.M(c, "IsProtected"))),
+                ABProbe.Str(ABProbe.M(c, "IsForbidden")),
+                ABProbe.Str(b1 and ABProbe.M(b1, "GetAttribute", "action")),
+                ABProbe.Str(b1 and ABProbe.M(b1, "GetAttribute", "index")))
             local overlay = ABO.editOverlays and ABO.editOverlays[barKey]
             if overlay then
                 lines[#lines + 1] = string.format("   mover: %s mouse=%s",
@@ -2098,9 +2153,10 @@ function D.BuildReadableReport()
     for i, entry in ipairs(errors) do
         local badge = entry.kind or "?"
         local countStr = (entry.count and entry.count > 1) and " (x" .. entry.count .. ")" or ""
-        lines[#lines + 1] = string.format("[%d] %s %s%s%s",
+        lines[#lines + 1] = string.format("[%d] %s %s%s%s%s",
             i, badge, entry.timestamp or "",
             entry.isTomoMod and " [TomoMod]" or "",
+            (entry.meta and entry.meta.phase == "load") and " [during load]" or "",
             countStr)
         lines[#lines + 1] = "  Message: " .. (entry.message or "")
         if entry.stack then
@@ -2314,6 +2370,74 @@ SlashCmdList["TOMODIAG"] = function(msg)
 end
 
 -- =====================================================================
+-- EARLY CAPTURE
+-- ---------------------------------------------------------------------
+-- The main handler goes in at PLAYER_LOGIN, but modules initialise
+-- earlier, at ADDON_LOADED: the owned action bars build every frame and
+-- run their secure snippets there. An error in that window only reached
+-- Blizzard's handler, which stays silent unless scriptErrors is on -- a
+-- WoW: Forever player had no action bars and a report saying 0 errors.
+--
+-- From the moment this file runs (every TomoMod file runs before any
+-- ADDON_LOADED handler), errors are copied into a small buffer and still
+-- forwarded to the previous handler. PLAYER_LOGIN files the relevant ones
+-- through the normal pipeline, marked meta.phase=load, and hands the
+-- handler chain back before InstallErrorHandler() takes over.
+--
+-- Errors raised inside secure-handler snippets carry Blizzard's
+-- RestrictedAddOnEnvironment on their stack; during this window they come
+-- from addon code being loaded, so they are kept even when the stack
+-- names no TomoMod file.
+-- =====================================================================
+
+local EARLY_LIMIT = 25
+local earlyErrors = {}
+local earlyPrevHandler = geterrorhandler and geterrorhandler() or nil
+local earlyInstalled = false
+
+local function EarlyErrorHandler(msg)
+    if #earlyErrors < EARLY_LIMIT then
+        local text = SafeToString(msg)
+        local stack, locals
+        if not IsStackOverflow(text) then
+            local ok1, s = pcall(debugstack, 4, 20, 0)
+            stack = ok1 and s or nil
+            local ok2, l = pcall(debuglocals, 4)
+            locals = ok2 and l or nil
+        end
+        earlyErrors[#earlyErrors + 1] = { message = text, stack = stack, locals = locals }
+    end
+    if earlyPrevHandler then
+        return earlyPrevHandler(msg)
+    end
+end
+
+if seterrorhandler and geterrorhandler then
+    earlyInstalled = pcall(seterrorhandler, EarlyErrorHandler) and true or false
+end
+
+-- Called once at PLAYER_LOGIN. `keep` files the buffer (diagnostics on);
+-- either way the previous handler is restored if nobody replaced ours.
+local function ReleaseEarlyCapture(keep)
+    if earlyInstalled and geterrorhandler() == EarlyErrorHandler then
+        seterrorhandler(earlyPrevHandler)
+    end
+    earlyInstalled = false
+    if keep then
+        for _, e in ipairs(earlyErrors) do
+            local restricted = (e.stack or ""):find("RestrictedAddOnEnvironment", 1, true) ~= nil
+            local ours = IsTomoModError(e.message, e.stack) or restricted
+            if ours or (db and db.captureAll and not IsBlizzardOnlyError(e.message, e.stack)) then
+                local kind = IsTaintMessage(e.message) and KIND_TAINT or KIND_LUA_ERROR
+                CaptureEntry(kind, e.message, e.stack, e.locals,
+                    { phase = "load", inferred = (kind == KIND_TAINT) or nil })
+            end
+        end
+    end
+    wipe(earlyErrors)
+end
+
+-- =====================================================================
 -- BOOT
 -- =====================================================================
 
@@ -2348,7 +2472,10 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
         end
 
     elseif event == "PLAYER_LOGIN" then
-        if not IsEnabled() then return end
+        if not IsEnabled() then
+            ReleaseEarlyCapture(false)
+            return
+        end
         BuildExclusionSet()
         CaptureEnvironment()
         CaptureDisplay("login")
@@ -2358,6 +2485,7 @@ eventFrame:SetScript("OnEvent", function(_, event, ...)
             MarkDisplaySettled()
         end
         StartPerfSampling()
+        ReleaseEarlyCapture(true)
         InstallErrorHandler()
         HookBugGrabber()
         if db.suppressPopups then

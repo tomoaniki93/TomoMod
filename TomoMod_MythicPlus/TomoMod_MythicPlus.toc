@@ -1,4 +1,4 @@
-## Interface: 120100
+## Interface: 120105, 120100
 ## Deliberately NOT 16001: WoW: Forever has no Mythic+ content, so this
 ## studio is left out of date there rather than listed as loadable. Every
 ## file also opens with the Core/Compat.lua guard, for the case where a

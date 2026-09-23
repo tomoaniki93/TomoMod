@@ -27,8 +27,15 @@
 - **Fixed** - Owned Action Bars no longer register the unavailable Challenge Mode event family on WoW: Forever. An invalid `CHALLENGE_MODE_*` registration could stop initialization after the module marked itself ready but before `BuildBar` created any owned bars, leaving the complete custom action-bar interface missing.
 - **New** - Readable Diagnostics reports now include a read-only Action Bars section. For every managed bar it records the container's shown and visible state, alpha, scale, dimensions, frame layer, anchor, user visibility attributes, secure visibility driver and the driver's current result.
 - **Changed** - The report exposes each hard-hide condition, the current `C_ActionBar` state, mover visibility, button totals and the first button's action slot, action availability and icon state. It also summarizes silenced `SafeCall` failures by policy, making invisible bars diagnosable even when no Lua error is raised.
+- **New** - The Action Bars probe now verifies the secure handler primitives used by the layout engine (`Execute`, `SetFrameRef` and restricted `GetFrameRef`) and reports each bar's layout and first-button frame references, protection state, action attribute and index. This distinguishes a client-wide secure-handler failure from wiring that was lost while the bars were built.
+- **Changed** - Diagnostics now captures relevant TomoMod and restricted-handler errors from initial file loading through `PLAYER_LOGIN`, forwards them to the existing error handler and labels retained entries as `[during load]`. Failures raised while Action Bars initialize at `ADDON_LOADED` can no longer leave a misleading zero-error report.
 - **Internal** - The probe is guarded throughout so it can be exported safely in combat, with unavailable APIs, throwing frame methods or protected values. A dedicated headless regression test covers hidden secure-driver states, button data, failure counters and degraded environments.
-- **Internal** - The event-hygiene bench now verifies that all three Challenge Mode subscriptions remain behind the Mythic+ compatibility gate and that the gate runs before owned bars are built.
+- **Internal** - The event-hygiene bench now verifies that all three Challenge Mode subscriptions remain behind the Mythic+ compatibility gate and that the gate runs before owned bars are built. The Action Bars bench also covers missing secure references, failed secure primitives, combat-safe self-test skipping and early error-handler chaining.
+
+#### Settings Sliders — Localized Direct Input
+
+- **Fixed** - Right-click numeric entry now accepts decimal commas used by French, German, Italian and other regional keyboards. Values such as `0,5` are normalized to `0.5` instead of snapping the slider to its minimum.
+- **Changed** - The slider hint for right-click value entry and Ctrl-click reset is now localized in English, French, German, Spanish, Italian and Brazilian Portuguese.
 
 #### Astral Forge And Asset Maintenance
 

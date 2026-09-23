@@ -185,6 +185,7 @@ if TomoMod_RegisterLocale then
         ["cfg_rolefilter_label"]   = "Role focus",
         ["cfg_rolefilter_tip"]     = "Keep only the settings that matter to a %s at full brightness. Nothing is hidden — everything else is simply dimmed.",
         ["cfg_rolefilter_tip_all"] = "Show every setting, with no role emphasis.",
+        ["cfg_slider_edit_hint"]   = "Right-click: type a value  |  Ctrl+click: reset",
     })
     TomoMod_RegisterLocale("frFR", {
         ["role_tank"]              = "Tank",
@@ -196,6 +197,7 @@ if TomoMod_RegisterLocale then
         ["cfg_rolefilter_label"]   = "Focus rôle",
         ["cfg_rolefilter_tip"]     = "Ne garder en pleine lumière que les réglages utiles à un %s. Rien n'est masqué : le reste est simplement estompé.",
         ["cfg_rolefilter_tip_all"] = "Afficher tous les réglages, sans mise en avant de rôle.",
+        ["cfg_slider_edit_hint"]   = "Clic droit : saisir une valeur  |  Ctrl+clic : réinitialiser",
     })
     TomoMod_RegisterLocale("deDE", {
         ["role_tank"]              = "Tank",
@@ -207,6 +209,7 @@ if TomoMod_RegisterLocale then
         ["cfg_rolefilter_label"]   = "Rollenfokus",
         ["cfg_rolefilter_tip"]     = "Nur die für %s relevanten Einstellungen voll sichtbar lassen. Nichts wird ausgeblendet — der Rest wird lediglich abgedunkelt.",
         ["cfg_rolefilter_tip_all"] = "Alle Einstellungen anzeigen, ohne Rollenhervorhebung.",
+        ["cfg_slider_edit_hint"]   = "Rechtsklick: Wert eingeben  |  Strg+Klick: zuruecksetzen",
     })
     TomoMod_RegisterLocale("esES", {
         ["role_tank"]              = "Tanque",
@@ -218,6 +221,7 @@ if TomoMod_RegisterLocale then
         ["cfg_rolefilter_label"]   = "Enfoque de rol",
         ["cfg_rolefilter_tip"]     = "Mantener a plena luz solo los ajustes que importan a un %s. No se oculta nada: el resto simplemente se atenúa.",
         ["cfg_rolefilter_tip_all"] = "Mostrar todos los ajustes, sin énfasis de rol.",
+        ["cfg_slider_edit_hint"]   = "Clic derecho: escribir un valor  |  Ctrl+clic: restablecer",
     })
     TomoMod_RegisterLocale("itIT", {
         ["role_tank"]              = "Difensore",
@@ -229,6 +233,7 @@ if TomoMod_RegisterLocale then
         ["cfg_rolefilter_label"]   = "Focus ruolo",
         ["cfg_rolefilter_tip"]     = "Tenere in piena luce solo le impostazioni utili a un %s. Nulla viene nascosto: il resto è semplicemente attenuato.",
         ["cfg_rolefilter_tip_all"] = "Mostrare tutte le impostazioni, senza enfasi sul ruolo.",
+        ["cfg_slider_edit_hint"]   = "Clic destro: inserisci un valore  |  Ctrl+clic: ripristina",
     })
     TomoMod_RegisterLocale("ptBR", {
         ["role_tank"]              = "Tanque",
@@ -240,6 +245,7 @@ if TomoMod_RegisterLocale then
         ["cfg_rolefilter_label"]   = "Foco de função",
         ["cfg_rolefilter_tip"]     = "Manter em destaque apenas os ajustes que importam a um %s. Nada é ocultado: o resto é apenas esmaecido.",
         ["cfg_rolefilter_tip_all"] = "Mostrar todos os ajustes, sem ênfase de função.",
+        ["cfg_slider_edit_hint"]   = "Clique direito: digitar um valor  |  Ctrl+clique: redefinir",
     })
 end
 
@@ -1210,7 +1216,12 @@ function W.CreateSlider(parent, text, value, minVal, maxVal, step, yOffset, call
 
     local function CommitEdit()
         local raw = editBox:GetText() or ""
-        local num = tonumber(raw:match("[%-%d%.]+"))   -- strip any suffix (%, px)
+        -- Accept a decimal comma: on German, French and most European
+        -- keyboards the numpad separator types ",". The old pattern stopped
+        -- at the comma, so "0,5" became 0 and the slider snapped to its
+        -- minimum. Only the first comma is a separator ("1,5" -> 1.5).
+        raw = raw:gsub("^%s+", ""):gsub(",", ".", 1)
+        local num = tonumber(raw:match("^[%-]?%d*%.?%d+") or raw:match("^[%-]?%d+"))   -- strip any suffix (%, px)
         editBox:Hide()
         editBox:ClearFocus()
         if num then
@@ -1237,7 +1248,7 @@ function W.CreateSlider(parent, text, value, minVal, maxVal, step, yOffset, call
     valBox:SetScript("OnEnter", function(self)
         if editBox:IsShown() then return end
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:AddLine("Clic droit : saisir  |  Ctrl+clic : reinitialiser", 0.8, 0.85, 0.9)
+        GameTooltip:AddLine(Loc("cfg_slider_edit_hint", "Right-click: type a value  |  Ctrl+click: reset"), 0.8, 0.85, 0.9)
         GameTooltip:Show()
     end)
     valBox:SetScript("OnLeave", function() GameTooltip:Hide() end)
