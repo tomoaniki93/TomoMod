@@ -2,6 +2,16 @@
 
 ## CHANGELOG 4.0.6
 
+#### Tooltip — Midnight Area-POI Widget Taint
+
+- **Fixed** - Tooltip styling now waits until Blizzard has finished attaching any Area-POI widget set before touching `GameTooltip`. Widget-bearing map tooltips remain entirely Blizzard-owned, preventing secret `textHeight` and layout values from reaching tainted arithmetic in `Blizzard_UIWidgetTemplateTextWithState` and `LayoutFrame`.
+- **Changed** - Repeated tooltip `Show` calls in the same frame are coalesced into one deferred styling pass. Normal tooltips retain the configured skin while comparison, map and widget tooltips are still skipped.
+
+#### Bags V4 — Secure Slot Identity
+
+- **Fixed** - Combined-bag buttons now install their bag ID through Blizzard's `ContainerFrameItemButtonMixin:SetBagID`, which stores it in the protected `bagid` attribute. Relying on the TomoMod wrapper's frame ID caused the otherwise-native click path to reach `UseContainerItem()` with addon-owned input and be rejected as `ADDON_ACTION_FORBIDDEN`.
+- **Changed** - A physical slot's bag and slot identity is assigned once when its button is created. Combat-time visual refreshes no longer rewrite either click input.
+
 #### Mythic+ Summary — Accurate Run Totals
 
 - **Fixed** - TomoScore now reads damage, healing and interrupts from the run-wide Overall Damage Meter sessions with the correct `DamageDone`, `HealingDone` and `Interrupts` meter types. The previous source-breakdown call did not return a player list, which could leave every summary total at zero.
@@ -30,8 +40,8 @@
 - **New** - The Action Bars probe now verifies the secure handler primitives used by the layout engine (`Execute`, `SetFrameRef` and restricted `GetFrameRef`) and reports each bar's layout and first-button frame references, protection state, action attribute and index. This distinguishes a client-wide secure-handler failure from wiring that was lost while the bars were built.
 - **Changed** - Diagnostics now captures relevant TomoMod and restricted-handler errors from initial file loading through `PLAYER_LOGIN`, forwards them to the existing error handler and labels retained entries as `[during load]`. Failures raised while Action Bars initialize at `ADDON_LOADED` can no longer leave a misleading zero-error report.
 - **Fixed** - WoW: Forever builds without Blizzard's restricted-code compiler now stop the owned Action Bars engine before initialization and keep the related Totem Bar dormant. Blizzard's native bars remain untouched instead of being replaced by custom bars whose secure layout snippets cannot run.
-- **Fixed** - The Action Bars master toggle is now enforced by the owned engine after a reload. Disabling the module prevents bar construction, Blizzard Action Bar modifications, empty TomoLayout registrations and post-combat fade maintenance that previously continued despite the saved setting.
-- **Changed** - The Forever compatibility gate is capability-based and does not rewrite the player's Action Bars or Totem Bar preferences. It releases automatically if restricted execution becomes available in a later build, while Diagnostics reports whether the engine is blocked by the client or by the module setting.
+- **Fixed** - Retail profiles whose saved Action Bars master toggle is disabled no longer lose every owned bar after a reload. The Forever compatibility hotfix preserves the engine's historical Retail behaviour and blocks initialization only when the client cannot run Blizzard's restricted code.
+- **Changed** - The Forever compatibility gate is capability-based and does not rewrite the player's Action Bars or Totem Bar preferences. It releases automatically if restricted execution becomes available in a later build, while Diagnostics reports the client gate separately from the saved master-toggle value.
 - **Internal** - The probe is guarded throughout so it can be exported safely in combat, with unavailable APIs, throwing frame methods or protected values. A dedicated headless regression test covers hidden secure-driver states, button data, failure counters and degraded environments.
 - **Internal** - The event-hygiene bench now verifies that all three Challenge Mode subscriptions remain behind the Mythic+ compatibility gate and that the gate runs before owned bars are built. The Action Bars bench also covers missing secure references, failed secure primitives, combat-safe self-test skipping and early error-handler chaining.
 

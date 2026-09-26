@@ -146,6 +146,12 @@ function Slots:CreatePhysicalSlot(bagID, slotID)
 
     local button = CreateFrame("ItemButton", nil, wrapper, "ContainerFrameItemButtonTemplate")
     button:SetAllPoints(wrapper)
+    -- Midnight's container mixin deliberately stores the bag through the
+    -- protected `bagid` attribute. Falling back to parent:GetID() makes the
+    -- value addon-owned; the native OnClick then reaches the protected
+    -- UseContainerItem call with a tainted bag argument and is refused even
+    -- though TomoMod never replaced the click script.
+    if button.SetBagID then button:SetBagID(bagID) end
     button:SetID(slotID)
     button:SetFrameLevel(wrapper:GetFrameLevel() + 2)
     button:EnableMouse(true)
@@ -250,8 +256,9 @@ function Slots:CreatePhysicalSlot(bagID, slotID)
     -- native template can execute it securely; attaching addon HookScripts to
     -- the same button taints that click path and can turn a normal right-click
     -- into ADDON_ACTION_FORBIDDEN. The template already owns bag tooltips,
-    -- clicks and drag handling because wrapper:GetID() is the bag ID and the
-    -- button ID is the slot ID.
+    -- clicks and drag handling. Its protected bag identity is installed above
+    -- with SetBagID; wrapper:GetID() remains only the compatibility fallback
+    -- for clients without that API.
     --
     -- Do not re-add an input script to this protected item button.
 
@@ -278,8 +285,10 @@ function Slots:Render(wrapper, item)
     local button = wrapper.button
     if not button then return end
 
-    button:SetID(wrapper.slotID)
-    wrapper:SetID(wrapper.bagID)
+    -- Bag and slot identity are immutable for every physical button and were
+    -- assigned before it entered the pool. Rewriting either value here would
+    -- unnecessarily touch the native click inputs on every refresh, including
+    -- refreshes that are intentionally allowed during combat.
     button:Show()
     button:EnableMouse(true)
 

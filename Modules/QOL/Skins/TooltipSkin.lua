@@ -20,6 +20,7 @@ local ADDON_TEXTURE   = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\tomoaniki
 local isInitialized = false
 local isHooked      = false
 local isAnchorLocked = true -- hides the draggable "custom" anchor swatch outside Layout mode
+local pendingSkins = setmetatable({}, { __mode = "k" })
 
 -- Palette
 local ACCENT     = { 0.180, 0.616, 0.847 }
@@ -328,6 +329,29 @@ local function OnTooltipShow(tooltip)
     ApplyGuildColor(tooltip)
 end
 
+-- Area-POI tooltips attach their UIWidget set *after* GameTooltip:Show()
+-- returns.  Styling synchronously from the Show hook therefore runs before
+-- TomoMod_IsCompareOrMoneyTooltip can see widgetContainer.widgetSetID, and the
+-- following Blizzard widget pass inherits tainted FontString geometry.  In
+-- 12.1 that geometry can be secret, producing errors in
+-- UIWidgetTemplateTextWithState and LayoutFrame.
+--
+-- Waiting one frame lets Blizzard finish attaching the widget set.  The guard
+-- is then evaluated against the completed tooltip and leaves widget-bearing
+-- tooltips entirely Blizzard-owned.  A weak table coalesces the several Show
+-- calls a tooltip can issue while its data processors append lines without
+-- writing scheduling state onto the Blizzard frame itself.
+local function ScheduleTooltipSkin(tooltip)
+    if not tooltip or pendingSkins[tooltip] then return end
+    pendingSkins[tooltip] = true
+    C_Timer.After(0, function()
+        pendingSkins[tooltip] = nil
+        if tooltip.IsShown and tooltip:IsShown() then
+            OnTooltipShow(tooltip)
+        end
+    end)
+end
+
 local function OnTooltipSetUnit(tooltip)
     if not IsEnabled() then return end
     if tooltip.IsForbidden and tooltip:IsForbidden() then return end
@@ -480,20 +504,20 @@ function TS.Initialize()
         end)
 
         -- Hook GameTooltip
-        hooksecurefunc(GameTooltip, "Show", function() OnTooltipShow(GameTooltip) end)
+        hooksecurefunc(GameTooltip, "Show", function() ScheduleTooltipSkin(GameTooltip) end)
         hooksecurefunc(GameTooltip, "SetUnit", function() OnTooltipSetUnit(GameTooltip) end)
 
         -- Hook Shopping tooltips (item comparison)
         if ShoppingTooltip1 then
-            hooksecurefunc(ShoppingTooltip1, "Show", function() OnTooltipShow(ShoppingTooltip1) end)
+            hooksecurefunc(ShoppingTooltip1, "Show", function() ScheduleTooltipSkin(ShoppingTooltip1) end)
         end
         if ShoppingTooltip2 then
-            hooksecurefunc(ShoppingTooltip2, "Show", function() OnTooltipShow(ShoppingTooltip2) end)
+            hooksecurefunc(ShoppingTooltip2, "Show", function() ScheduleTooltipSkin(ShoppingTooltip2) end)
         end
 
         -- Hook ItemRefTooltip (linked items in chat)
         if ItemRefTooltip then
-            hooksecurefunc(ItemRefTooltip, "Show", function() OnTooltipShow(ItemRefTooltip) end)
+            hooksecurefunc(ItemRefTooltip, "Show", function() ScheduleTooltipSkin(ItemRefTooltip) end)
         end
     end
 

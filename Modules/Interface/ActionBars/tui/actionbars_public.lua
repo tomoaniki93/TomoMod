@@ -286,23 +286,18 @@ local function SyncActionButtonUseKeyDownCVar(value)
     return ok
 end
 
--- Whether the owned engine may run at all on this client / profile.
--- Two reasons to stay off, both leaving Blizzard's native bars untouched:
---   * the client cannot run it (Core/Compat.lua "actionbars" feature --
---     WoW: Forever has no restricted execution);
---   * the player switched the module off (actionBars.enabled). The master
---     toggle used to be ignored here: the engine built itself from any
---     profile, so turning "Action Bars" off in /tm modules or the installer
---     changed nothing after the reload it asked for.
+-- Whether the owned engine may run on this client. Forever builds without
+-- restricted execution cannot run TomoMod's secure action-bar snippets.
+--
+-- Do NOT gate this on actionBars.enabled here. The owned engine historically
+-- ignored that master flag, so enforcing it in this Forever compatibility
+-- hotfix can unexpectedly remove bars from existing Retail profiles whose
+-- saved flag is false. That behaviour can be migrated separately later.
 -- Every entry point (ADDON_LOADED, TomoLayout via SetEditModeEnabled, the
 -- Blizzard_ActionBar hook, layout-mode registration) goes through this.
 function ActionBarsOwned.IsEngineBlocked()
     if TomoMod_Compat and TomoMod_Compat.Blocked and TomoMod_Compat.Blocked("actionbars") then
         return true, "client"
-    end
-    local db = GetDB()
-    if db and db.enabled == false then
-        return true, "disabled"
     end
     return false
 end

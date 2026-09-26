@@ -88,7 +88,7 @@ CHANGELOG = {
             L["wn_406_actionbar_secure_wiring"],
             L["wn_406_early_error_capture"],
             L["wn_406_actionbar_compat_gate"],
-            L["wn_406_actionbar_master_toggle"],
+            L["wn_406_actionbar_retail_profile_hotfix"],
             L["wn_406_actionbar_block_diagnostics"],
             L["wn_406_slider_decimal_input"],
             L["wn_406_astralforge_cleanup"],
