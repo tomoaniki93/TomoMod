@@ -25,6 +25,8 @@
     <Include file="Meter\TargetBreakdown.lua" />
     <Include file="Meter\DeathRecap.lua" />
     <Include file="Meter\DamageMeter.lua" />
+    <Include file="Meter\Benchmark.lua" />
+    <Include file="Meter\FightHistory.lua" />
     <Include file="Meter\RunRecap.lua" />
     <Include file="Meter\Snap.lua" />
 

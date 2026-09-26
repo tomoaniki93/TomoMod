@@ -3,6 +3,9 @@
 -- =====================================================================
 
 TomoMod_RegisterLocale("enUS", {
+    ["wn_406_damage_benchmark"] = "New — Damage Meter now includes timed 30, 60 and 120-second benchmarks with live elapsed time, total damage and average DPS, automatic training-dummy detection and a local Top 5 history.",
+    ["wn_406_fight_history"] = "New — Persistent Fight History saves up to 80 dungeon, raid and scenario fights with boss or trash filters, kill or wipe results, damage and healing rankings, interrupts and deaths.",
+    ["wn_406_damage_tools_access"] = "Changed — Native stopwatch and book buttons in the meter header, plus a new options card, open Benchmark and Fight History. Protected Damage Meter data is read only from event handlers, and only readable plain values are persisted.",
     ["wn_406_forever_detection"] = "New — TomoMod now recognizes WoW: Forever as its own client flavour by combining the modern project identifier with the 1.60 version line or interface 16001, without mistaking Classic Era or Mists Classic for it.",
     ["wn_406_forever_modules"] = "Changed — Mythic+, Housing, Prey Tracker, Compass, Consumables, Skyriding and World Quests are disabled safely on Forever before initialization and forced off in defaults, profiles, imports and live toggles.",
     ["wn_406_forever_interface"] = "Changed — Unavailable option pages, QOL tabs and the Mythic+ Studio entry are removed on Forever. A login notice explains the limitations, and /tm flavor reports the detected client and compatibility decisions.",
@@ -35,6 +38,9 @@ TomoMod_RegisterLocale("enUS", {
 })
 
 TomoMod_RegisterLocale("frFR", {
+    ["wn_406_damage_benchmark"] = "Nouveauté — Le Damage Meter propose maintenant des benchmarks chronométrés de 30, 60 ou 120 secondes avec temps écoulé, dégâts totaux et DPS moyen en direct, détection automatique des mannequins et historique local du Top 5.",
+    ["wn_406_fight_history"] = "Nouveauté — L'Historique des combats persistant conserve jusqu'à 80 combats de donjon, raid ou scénario avec filtres boss ou trash, résultat victoire ou échec, classements de dégâts et soins, interruptions et morts.",
+    ["wn_406_damage_tools_access"] = "Modification — Des boutons natifs chronomètre et livre dans l'en-tête du compteur, ainsi qu'une nouvelle carte d'options, ouvrent le Benchmark et l'Historique. Les données protégées ne sont lues que depuis les gestionnaires d'événements et seules les valeurs simples lisibles sont enregistrées.",
     ["wn_406_forever_detection"] = "Nouveauté — TomoMod reconnaît maintenant WoW : Forever comme un client distinct en combinant l'identifiant du projet moderne avec la version 1.60 ou l'interface 16001, sans le confondre avec Classic Era ou Mists Classic.",
     ["wn_406_forever_modules"] = "Modification — Mythique+, Logement, Traqueur de proie, Boussole, Consommables, Vol dynamique et Quêtes du monde sont désactivés proprement sur Forever avant leur initialisation et forcés à l'arrêt dans les valeurs par défaut, profils, imports et bascules directes.",
     ["wn_406_forever_interface"] = "Modification — Les pages d'options, onglets QOL et l'entrée du Studio Mythique+ indisponibles sont retirés sur Forever. Un message de connexion explique les limitations et /tm flavor indique le client détecté ainsi que les décisions de compatibilité.",
@@ -67,6 +73,9 @@ TomoMod_RegisterLocale("frFR", {
 })
 
 TomoMod_RegisterLocale("deDE", {
+    ["wn_406_damage_benchmark"] = "Neu — Der Damage Meter bietet jetzt zeitgesteuerte Benchmarks über 30, 60 oder 120 Sekunden mit Live-Anzeige von Zeit, Gesamtschaden und durchschnittlicher DPS, automatischer Trainingspuppen-Erkennung und lokaler Top-5-Historie.",
+    ["wn_406_fight_history"] = "Neu — Der dauerhafte Kampfverlauf speichert bis zu 80 Dungeon-, Schlachtzugs- und Szenariokämpfe mit Boss- oder Trash-Filter, Sieg oder Fehlschlag, Schadens- und Heilungsranglisten, Unterbrechungen und Todesfällen.",
+    ["wn_406_damage_tools_access"] = "Geändert — Native Stoppuhr- und Buchschaltflächen im Zählerkopf sowie eine neue Optionskarte öffnen Benchmark und Kampfverlauf. Geschützte Damage-Meter-Daten werden nur in Ereignisbehandlern gelesen; gespeichert werden ausschließlich lesbare einfache Werte.",
     ["wn_406_forever_detection"] = "Neu — TomoMod erkennt WoW: Forever jetzt als eigenen Clienttyp, indem die moderne Projektkennung mit der Versionslinie 1.60 oder Interface 16001 kombiniert wird, ohne Classic Era oder Mists Classic damit zu verwechseln.",
     ["wn_406_forever_modules"] = "Geändert — Mythisch+, Wohnen, Beutejäger, Kompass, Verbrauchsgüter, dynamisches Fliegen und Weltquests werden auf Forever vor der Initialisierung sicher deaktiviert und in Standardwerten, Profilen, Importen und Live-Schaltern ausgeschaltet gehalten.",
     ["wn_406_forever_interface"] = "Geändert — Nicht verfügbare Optionsseiten, QOL-Reiter und der Eintrag für das Mythisch+-Studio werden auf Forever entfernt. Ein Hinweis beim Anmelden erklärt die Einschränkungen; /tm flavor zeigt den erkannten Client und die Kompatibilitätsentscheidungen.",
@@ -99,6 +108,9 @@ TomoMod_RegisterLocale("deDE", {
 })
 
 TomoMod_RegisterLocale("esES", {
+    ["wn_406_damage_benchmark"] = "Novedad — El medidor de daño ahora incluye pruebas cronometradas de 30, 60 o 120 segundos con tiempo, daño total y DPS medio en directo, detección automática de muñecos de entrenamiento e historial local del Top 5.",
+    ["wn_406_fight_history"] = "Novedad — El Historial de combates persistente guarda hasta 80 combates de mazmorra, banda o escenario con filtros de jefes o enemigos, victoria o derrota, clasificaciones de daño y sanación, interrupciones y muertes.",
+    ["wn_406_damage_tools_access"] = "Cambio — Los botones nativos de cronómetro y libro de la cabecera, además de una nueva tarjeta de opciones, abren la prueba y el historial. Los datos protegidos solo se leen desde controladores de eventos y solo se guardan valores simples legibles.",
     ["wn_406_forever_detection"] = "Novedad — TomoMod ahora reconoce WoW: Forever como un tipo de cliente propio al combinar el identificador del proyecto moderno con la versión 1.60 o la interfaz 16001, sin confundirlo con Classic Era ni Mists Classic.",
     ["wn_406_forever_modules"] = "Cambio — Mítico+, Vivienda, Rastreador de presas, Brújula, Consumibles, Vuelo dinámico y Misiones del mundo se desactivan de forma segura en Forever antes de iniciarse y se mantienen apagados en valores predeterminados, perfiles, importaciones y controles directos.",
     ["wn_406_forever_interface"] = "Cambio — Las páginas de opciones, pestañas QOL y la entrada del Estudio Mítico+ no disponibles se eliminan en Forever. Un aviso al iniciar sesión explica las limitaciones y /tm flavor muestra el cliente detectado y las decisiones de compatibilidad.",
@@ -131,6 +143,9 @@ TomoMod_RegisterLocale("esES", {
 })
 
 TomoMod_RegisterLocale("itIT", {
+    ["wn_406_damage_benchmark"] = "Novità — Il Damage Meter include ora benchmark cronometrati di 30, 60 o 120 secondi con tempo, danni totali e DPS medio in diretta, rilevamento automatico dei manichini e cronologia locale della Top 5.",
+    ["wn_406_fight_history"] = "Novità — La Cronologia combattimenti persistente salva fino a 80 scontri di spedizione, incursione o scenario con filtri boss o trash, vittoria o sconfitta, classifiche di danni e cure, interruzioni e morti.",
+    ["wn_406_damage_tools_access"] = "Modifica — I pulsanti nativi cronometro e libro nell'intestazione, insieme a una nuova scheda opzioni, aprono Benchmark e Cronologia. I dati protetti vengono letti solo dai gestori eventi e vengono salvati esclusivamente valori semplici leggibili.",
     ["wn_406_forever_detection"] = "Novità — TomoMod ora riconosce WoW: Forever come tipo di client distinto combinando l'identificatore del progetto moderno con la versione 1.60 o l'interfaccia 16001, senza confonderlo con Classic Era o Mists Classic.",
     ["wn_406_forever_modules"] = "Modifica — Mitica+, Alloggi, Tracciatore di prede, Bussola, Consumabili, Volo dinamico e Missioni mondiali vengono disattivati in sicurezza su Forever prima dell'inizializzazione e mantenuti spenti nei valori predefiniti, profili, importazioni e controlli diretti.",
     ["wn_406_forever_interface"] = "Modifica — Le pagine delle opzioni, le schede QOL e la voce dello Studio Mitica+ non disponibili vengono rimosse su Forever. Un avviso all'accesso spiega le limitazioni e /tm flavor mostra il client rilevato e le decisioni di compatibilità.",
@@ -163,6 +178,9 @@ TomoMod_RegisterLocale("itIT", {
 })
 
 TomoMod_RegisterLocale("ptBR", {
+    ["wn_406_damage_benchmark"] = "Novidade — O Medidor de Dano agora inclui benchmarks cronometrados de 30, 60 ou 120 segundos com tempo, dano total e DPS médio ao vivo, detecção automática de bonecos de treino e histórico local do Top 5.",
+    ["wn_406_fight_history"] = "Novidade — O Histórico de Combates persistente salva até 80 lutas de masmorra, raide ou cenário com filtros de chefes ou trash, vitória ou derrota, rankings de dano e cura, interrupções e mortes.",
+    ["wn_406_damage_tools_access"] = "Alteração — Botões nativos de cronômetro e livro no cabeçalho, além de um novo cartão de opções, abrem o Benchmark e o Histórico. Dados protegidos são lidos apenas em manipuladores de eventos e somente valores simples legíveis são salvos.",
     ["wn_406_forever_detection"] = "Novidade — O TomoMod agora reconhece o WoW: Forever como um tipo de cliente próprio ao combinar o identificador do projeto moderno com a versão 1.60 ou a interface 16001, sem confundi-lo com Classic Era ou Mists Classic.",
     ["wn_406_forever_modules"] = "Alteração — Mítico+, Moradia, Rastreador de presas, Bússola, Consumíveis, Voo dinâmico e Missões mundiais são desativados com segurança no Forever antes da inicialização e mantidos desligados nos padrões, perfis, importações e controles diretos.",
     ["wn_406_forever_interface"] = "Alteração — Páginas de opções, abas QOL e a entrada do Estúdio Mítico+ indisponíveis são removidas no Forever. Um aviso ao entrar explica as limitações, e /tm flavor mostra o cliente detectado e as decisões de compatibilidade.",

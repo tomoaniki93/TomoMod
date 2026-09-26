@@ -849,6 +849,16 @@ _G.TomoMod_DamageMeterBridge.ToggleWindows = function()
     end
 end
 
+_G.TomoMod_DamageMeterBridge.ToggleBenchmark = function()
+    if ns.Blocked and ns.Blocked() then return end
+    if ns.ToggleBenchmark then ns.ToggleBenchmark() end
+end
+
+_G.TomoMod_DamageMeterBridge.ToggleFightHistory = function()
+    if ns.Blocked and ns.Blocked() then return end
+    if ns.ToggleFightHistory then ns.ToggleFightHistory() end
+end
+
 function ns.ToggleSettings()
     if not settingsFrame then
         settingsFrame = CreateSettingsPanel()

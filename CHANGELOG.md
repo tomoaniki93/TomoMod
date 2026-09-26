@@ -12,6 +12,19 @@
 - **Fixed** - Combined-bag buttons now install their bag ID through Blizzard's `ContainerFrameItemButtonMixin:SetBagID`, which stores it in the protected `bagid` attribute. Relying on the TomoMod wrapper's frame ID caused the otherwise-native click path to reach `UseContainerItem()` with addon-owned input and be rejected as `ADDON_ACTION_FORBIDDEN`.
 - **Changed** - A physical slot's bag and slot identity is assigned once when its button is created. Combat-time visual refreshes no longer rewrite either click input.
 
+#### Damage Meter — Timed Damage Benchmark
+
+- **New** - Damage Meter now includes a dedicated benchmark window for 30, 60 or 120-second tests. It shows elapsed time, total damage and average DPS live, supports manual start and stop, and can arm itself automatically when combat begins against a recognized training dummy.
+- **New** - Completed tests retain a local history of the latest 50 results and display a Top 5 with character, specialization, equipped item level, duration and date. Training dummies are identified by NPC ID rather than localized names, covering legacy capitals through The War Within and Midnight's Silvermoon City.
+- **Changed** - `/tdm benchmark [30|60|120]`, the native meter-header stopwatch button and the Damage Meter options page all open the same benchmark. `C_DamageMeter` is read only from combat and meter event handlers; the temporary ticker updates the clock and finalizes from the last readable plain-number sample instead of polling protected data.
+
+#### Damage Meter — Persistent Fight History
+
+- **New** - Dungeon, raid and scenario fights are now stored persistently, up to the latest 80 entries. Bosses and trash record their instance, result, date, duration and per-player damage, healing, DPS or HPS, interrupts and deaths.
+- **New** - The Fight History window can show all fights or bosses only, switch between damage and healing, page through encounters and players, and clear the saved history. It is available from a native book button in the meter header and from the Damage Meter options page.
+- **Changed** - Multi-session encounters are merged before saving, repeated session IDs are deduplicated and boss completion can replace an earlier trash snapshot of the same session. Only readable values captured from Damage Meter event contexts are persisted, with copy-only bridge APIs for future TomoSuite integrations.
+- **Changed** - Benchmark and Fight History labels, controls, tooltips, empty states and What's New notes are localized in English, French, German, Spanish, Italian and Brazilian Portuguese.
+
 #### Mythic+ Summary — Accurate Run Totals
 
 - **Fixed** - TomoScore now reads damage, healing and interrupts from the run-wide Overall Damage Meter sessions with the correct `DamageDone`, `HealingDone` and `Interrupts` meter types. The previous source-breakdown call did not return a player list, which could leave every summary total at zero.

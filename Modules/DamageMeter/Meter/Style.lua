@@ -32,6 +32,8 @@ ns.TEX_LOCK_OPEN = ADDON_TEX .. "lock-open"
 ns.TEX_CHEVRON   = ADDON_TEX .. "chevron"
 ns.TEX_DETAILS   = ADDON_TEX .. "details"
 ns.TEX_TARGET    = ADDON_TEX .. "target"
+ns.TEX_BENCHMARK = "Interface\\Icons\\INV_Misc_PocketWatch_01"
+ns.TEX_HISTORY   = "Interface\\Icons\\INV_Misc_Book_09"
 
 -- Tomo palette (dark blue, TomoMythic style)
 ns.BG              = { 0.00, 0.00, 0.00, 0.80 }

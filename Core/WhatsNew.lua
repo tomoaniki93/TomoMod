@@ -65,6 +65,9 @@ CHANGELOG = {
     {
         version = "4.0.6",
         highlights = {
+            L["wn_406_damage_benchmark"],
+            L["wn_406_fight_history"],
+            L["wn_406_damage_tools_access"],
             L["wn_406_forever_detection"],
             L["wn_406_forever_modules"],
             L["wn_406_forever_interface"],

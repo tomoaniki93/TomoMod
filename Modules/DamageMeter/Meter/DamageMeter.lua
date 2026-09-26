@@ -12,6 +12,10 @@ local ADDON_NAME, TomoMod = ...
 local ns = TomoMod.DM
 local L = ns.L
 
+-- Benchmark and Fight History use native header buttons in the embedded meter.
+-- Their standalone wrappers see this flag and do not create a second launcher row.
+ns._embeddedNativeUtilityButtons = true
+
 ----------------------------------------------------------------------
 -- Window Factory
 ----------------------------------------------------------------------
@@ -414,6 +418,26 @@ function ns.CreateMeterWindow(cfg)
     end)
     gearBtn:HookScript("OnEnter", function(self) ShowTip(self, L["TIP_SETTINGS"]) end)
     gearBtn:HookScript("OnLeave", HideTip)
+
+    -- Native TomoMod utility actions. Keeping them in the existing header grid
+    -- prevents the standalone second-row launchers from covering meter rows.
+    local benchmarkBtn = MakeHeaderBtn(gearBtn, ns.TEX_BENCHMARK)
+    benchmarkBtn:SetScript("OnClick", function()
+        if ns.ToggleBenchmark then ns.ToggleBenchmark() end
+    end)
+    benchmarkBtn:HookScript("OnEnter", function(self)
+        ShowTip(self, L["BENCHMARK_TIP"] or L["BENCHMARK_TITLE"] or "Damage Benchmark")
+    end)
+    benchmarkBtn:HookScript("OnLeave", HideTip)
+
+    local historyBtn = MakeHeaderBtn(benchmarkBtn, ns.TEX_HISTORY)
+    historyBtn:SetScript("OnClick", function()
+        if ns.ToggleFightHistory then ns.ToggleFightHistory() end
+    end)
+    historyBtn:HookScript("OnEnter", function(self)
+        ShowTip(self, L["FIGHT_HISTORY_TIP"] or L["FIGHT_HISTORY"] or "Fight History")
+    end)
+    historyBtn:HookScript("OnLeave", HideTip)
 
     ----------------------------------------------------------------------
     -- Category / Type Menus (click handlers)

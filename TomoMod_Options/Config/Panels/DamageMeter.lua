@@ -165,6 +165,27 @@ function TomoMod_ConfigPanel_DamageMeter(parent)
 
     y = W.FinalizeCard(card, cy)
 
+    -- ── Historique & benchmark ───────────────────────────────────────
+    card, cy = W.CreateCard(c, L("DM_HISTORY_BENCHMARK", "Historique & benchmark"), y)
+
+    _, cy = W.CreateInfoText(card.inner, L("DM_HISTORY_BENCHMARK_DESC",
+        "Consulter l'historique persistant des combats ou lancer un test DPS chronométré."), cy)
+
+    _, cy = W.CreateButtonRow(card.inner, {
+        { text = L("FIGHT_HISTORY", "Historique des combats"), width = 220,
+          callback = function()
+              local b = DM()
+              if b and b.ToggleFightHistory then b.ToggleFightHistory() end
+          end },
+        { text = L("BENCHMARK_TITLE", "Test de dégâts"), width = 180,
+          callback = function()
+              local b = DM()
+              if b and b.ToggleBenchmark then b.ToggleBenchmark() end
+          end },
+    }, cy)
+
+    y = W.FinalizeCard(card, cy)
+
     -- ── Fenetres ─────────────────────────────────────────────────────
     -- Columns, window creation and category filtering stay in the meter's
     -- own window: they act on a specific window rather than on a global
