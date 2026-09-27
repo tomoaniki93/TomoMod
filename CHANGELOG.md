@@ -1,5 +1,15 @@
 ﻿## ####################################
 
+## CHANGELOG 4.0.7
+
+#### Action Bars — Vehicle And Possession Transitions
+
+- **Fixed** - Vehicle, override and possess transitions now rebuild Bar 1's action-slot mapping and repaint its owned buttons through the same page-change path. Retail vehicles that emit UPDATE_VEHICLE_ACTIONBAR without UPDATE_OVERRIDE_ACTIONBAR no longer leave working keybinds attached to invisible or stale buttons.
+- **Changed** - UPDATE_POSSESS_BAR now follows the same complete Bar 1 refresh path instead of only reapplying native visual suppression after Blizzard changes the secure action page.
+- **Internal** - Local regression coverage now verifies that both vehicle and possession events remain connected to the slot-map rebuild and repaint branch.
+
+## ####################################
+
 ## CHANGELOG 4.0.6
 
 #### Tooltip — Midnight Area-POI Widget Taint

@@ -63,6 +63,12 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "4.0.7",
+        highlights = {
+            L["wn_407_vehicle_actionbar_visuals"],
+        },
+    },
+    {
         version = "4.0.6",
         highlights = {
             L["wn_406_damage_benchmark"],

@@ -100,5 +100,14 @@ local ok, result = fragment("TomoMod_Options/Config/Panels/CooldownForge.lua",
     "(local okI, res.-)\n        if okI", "okI, res",
     { state = {}, CDF = { Import = function() return true, { class = "MONK" } end } })
 check("cooldown import result preserved", ok and result.class == "MONK")
+
+local actionEvents = read("Modules/Interface/ActionBars/tui/actionbars_events.lua")
+local pageTransitions = assert(actionEvents:match(
+    'elseif event == "ACTIONBAR_PAGE_CHANGED"(.-)then\n        _lastPagingTime'),
+    "action bar page-transition branch missing")
+check("vehicle action-bar event rebuilds/repaints Bar1",
+    pageTransitions:find('event == "UPDATE_VEHICLE_ACTIONBAR"', 1, true) ~= nil)
+check("possess action-bar event rebuilds/repaints Bar1",
+    pageTransitions:find('event == "UPDATE_POSSESS_BAR"', 1, true) ~= nil)
 print = say
 print("PASS: " .. total .. " local regression assertions")

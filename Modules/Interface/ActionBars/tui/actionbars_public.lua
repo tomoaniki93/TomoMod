@@ -395,8 +395,9 @@ function ActionBarsOwned:Initialize()
     ownedEventFrame:RegisterEvent("SPELL_UPDATE_USABLE")
     ownedEventFrame:RegisterEvent("SPELL_FLYOUT_UPDATE")
     ownedEventFrame:RegisterEvent("UPDATE_VEHICLE_ACTIONBAR")
-    -- P3.5.16: possession has its own native visual update event.  Listen only
-    -- so the visual-region mask can be refreshed after Blizzard repaints it.
+    -- Possession has its own transition event. Besides re-suppressing the
+    -- native visual helpers, actionbars_events.lua uses it to rebuild Bar1's
+    -- slotMap and repaint the owned buttons after the secure page swap.
     ownedEventFrame:RegisterEvent("UPDATE_POSSESS_BAR")
     -- [PERF v4] Le handler ne fait quelque chose que pour "player" ; pose
     -- globalement, cet evenement se declenchait pour chaque changement

@@ -418,11 +418,14 @@ function OnOwnedEvent(self, event, ...)
 
     elseif event == "ACTIONBAR_PAGE_CHANGED"
         or event == "UPDATE_BONUS_ACTIONBAR"
-        -- TOMOMOD: routed here rather than to the UPDATE_VEHICLE_ACTIONBAR
-        -- branch below. That branch only schedules a visual rescan; this one
-        -- also rebuilds the slotMap and repaints, which is what an override
-        -- swap actually needs -- the buttons point at different slots.
+        -- Vehicle, override and possess transitions all change the secure
+        -- action attributes on Bar1. They must share the same slotMap rebuild
+        -- and repaint path: on some Retail vehicles UPDATE_VEHICLE_ACTIONBAR
+        -- fires without UPDATE_OVERRIDE_ACTIONBAR, leaving working keybinds
+        -- attached to invisible/stale buttons if this event is ignored here.
         or event == "UPDATE_OVERRIDE_ACTIONBAR"
+        or event == "UPDATE_VEHICLE_ACTIONBAR"
+        or event == "UPDATE_POSSESS_BAR"
         or event == "UPDATE_SHAPESHIFT_FORM"
         or event == "UPDATE_SHAPESHIFT_FORMS"
         or event == "UPDATE_STEALTH" then
