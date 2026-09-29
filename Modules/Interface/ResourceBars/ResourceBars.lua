@@ -1215,13 +1215,18 @@ local function UpdatePoints(pointFrame, resDef)
     else
         current = UnitPower("player", resDef.powerType)
         max = UnitPowerMax("player", resDef.powerType)
+        -- Segmented resources require Lua arithmetic and comparisons. Unlike
+        -- StatusBar widgets, those operations cannot consume secret numbers;
+        -- retain the last readable presentation until the values are public.
+        if issecret(current) or issecret(max) then return end
         if max == 0 then max = 1 end
         partialFrac = 0
 
         if resDef.showPartial and GetClassConfig().partialFill ~= false then
             local rawCur = UnitPower("player", resDef.powerType, true)
             local modifier = UnitPowerDisplayMod(resDef.powerType)
-            if modifier and modifier > 0 then
+            if not issecret(rawCur) and not issecret(modifier)
+                and modifier and modifier > 0 then
                 local full = math.floor(rawCur / modifier)
                 local rem = rawCur - (full * modifier)
                 current = full
@@ -1362,11 +1367,15 @@ local function UpdateCountResourceBar(bar, resDef)
     else
         current = UnitPower("player", resDef.powerType)
         maxValue = UnitPowerMax("player", resDef.powerType)
+        -- This display derives a plain fractional value in Lua, so a secret
+        -- source must leave the previous readable presentation untouched.
+        if issecret(current) or issecret(maxValue) then return end
         if maxValue == 0 then maxValue = 1 end
         if resDef.showPartial and GetClassConfig().partialFill ~= false then
             local rawCur = UnitPower("player", resDef.powerType, true)
             local modifier = UnitPowerDisplayMod(resDef.powerType)
-            if modifier and modifier > 0 then
+            if not issecret(rawCur) and not issecret(modifier)
+                and modifier and modifier > 0 then
                 local full = math.floor(rawCur / modifier)
                 local rem = rawCur - (full * modifier)
                 current = full
@@ -1424,6 +1433,9 @@ local function UpdateBandDisplay(bandFrame, resDef)
 
     local current = UnitPower("player", resDef.powerType)
     local max = UnitPowerMax("player", resDef.powerType)
+    -- Texture rows are selected through Lua ordering and arithmetic. Preserve
+    -- the last readable row when either client value is secret.
+    if issecret(current) or issecret(max) then return end
     if max == 0 then max = 1 end
 
     local ck = POWER_COLOR_KEYS[resDef.powerType] or "comboPoints"

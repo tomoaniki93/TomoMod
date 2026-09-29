@@ -445,7 +445,12 @@ function OnOwnedEvent(self, event, ...)
             if buttons then
                 for _, btn in ipairs(buttons) do
                     local action = GetSafeActionSlot(btn)
-                    if action and action > 0 then
+                    -- TOMOMOD: GetSafeActionSlot already rejects secret
+                    -- attributes, but keep the consumer boundary guarded too.
+                    -- Besides protecting future helper changes, this makes the
+                    -- invariant visible to the repository secret-value audit.
+                    local actionIsSecret = Helpers.IsSecretValue and Helpers.IsSecretValue(action)
+                    if action and not actionIsSecret and action > 0 then
                         slotMap[action] = { button = btn, barKey = "bar1" }
                         if ResetButtonChargeCapabilityCache then
                             ResetButtonChargeCapabilityCache(btn)

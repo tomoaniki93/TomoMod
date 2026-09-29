@@ -23,6 +23,7 @@ TomoMod_RegisterLocale("enUS", {
     ["wn_407_astral_aura_controls"] = "New — The Auras element in Astral Forge can display buffs, debuffs or both, with 1 to 12 icons. Target Buffs has the same 12-icon limit and is disabled automatically when Auras already shows both types.",
     ["wn_407_raid_position_restore"] = "Fixed — The Raid Frames position saved in TomoLayout is now restored when the addon initializes. Reloading the UI or logging back in no longer returns the raid layout to its default position.",
     ["wn_407_resource_text_layer"] = "Fixed — Resource values now render above bar fills, class-power segments, tick marks and borders, keeping point counts and rune cooldown numbers visible.",
+    ["wn_407_secret_value_guards"] = "Fixed — Bar 1 page remapping and segmented, partial or texture-band resources now reject secret action-slot and UnitPower values before Lua comparisons or arithmetic, preventing restricted-content errors.",
     ["wn_407_vehicle_actionbar_visuals"] = "Fixed — Vehicle, override and possess transitions now rebuild Bar 1's action-slot mapping and repaint its buttons through the same complete page-change path. Retail vehicles no longer leave working keybinds attached to invisible or stale buttons when UPDATE_VEHICLE_ACTIONBAR fires without UPDATE_OVERRIDE_ACTIONBAR.",
 })
 
@@ -47,6 +48,7 @@ TomoMod_RegisterLocale("frFR", {
     ["wn_407_astral_aura_controls"] = "Nouveauté — L'élément Auras d'Astral Forge peut afficher les buffs, les debuffs ou les deux, avec 1 à 12 icônes. Buffs de la cible dispose de la même limite et se désactive automatiquement lorsque Auras affiche déjà les deux types.",
     ["wn_407_raid_position_restore"] = "Correction — La position des cadres de raid enregistrée dans TomoLayout est désormais restaurée à l'initialisation de l'addon. Un rechargement de l'interface ou une reconnexion ne replace plus le raid à sa position par défaut.",
     ["wn_407_resource_text_layer"] = "Correction — Les valeurs des ressources s'affichent désormais au-dessus du remplissage des barres, des segments de puissance de classe, des repères et des bordures, afin que les nombres de points et les temps de recharge des runes restent visibles.",
+    ["wn_407_secret_value_guards"] = "Correction — La reconstruction des pages de la Barre 1 et les ressources segmentées, partielles ou en bande de textures rejettent désormais les emplacements d'action et valeurs UnitPower secrets avant toute comparaison ou opération Lua, évitant les erreurs en contenu restreint.",
     ["wn_407_vehicle_actionbar_visuals"] = "Correction — Les transitions de véhicule, de barre de remplacement et de possession reconstruisent désormais la correspondance des emplacements de la Barre 1 et repeignent ses boutons par le même chemin complet de changement de page. Sur Retail, les véhicules ne laissent plus de raccourcis fonctionnels associés à des boutons invisibles ou périmés lorsque UPDATE_VEHICLE_ACTIONBAR se déclenche sans UPDATE_OVERRIDE_ACTIONBAR.",
 })
 
@@ -71,6 +73,7 @@ TomoMod_RegisterLocale("deDE", {
     ["wn_407_astral_aura_controls"] = "Neu — Das Auren-Element in Astral Forge kann Buffs, Debuffs oder beides mit 1 bis 12 Symbolen anzeigen. Ziel-Stärkungszauber hat dieselbe Höchstgrenze und wird automatisch deaktiviert, wenn Auren bereits beide Typen anzeigt.",
     ["wn_407_raid_position_restore"] = "Behoben — Die in TomoLayout gespeicherte Position der Schlachtzugsfenster wird jetzt beim Initialisieren des Addons wiederhergestellt. Nach einem Neuladen der Benutzeroberfläche oder einer erneuten Anmeldung kehrt das Schlachtzugslayout nicht mehr an seine Standardposition zurück.",
     ["wn_407_resource_text_layer"] = "Behoben — Ressourcenwerte werden jetzt über Balkenfüllungen, Klassenressourcen-Segmenten, Markierungen und Rändern dargestellt, sodass Punktzahlen und Runenabklingzeiten sichtbar bleiben.",
+    ["wn_407_secret_value_guards"] = "Behoben — Die Seitenzuordnung von Leiste 1 sowie segmentierte, teilweise oder texturbandbasierte Ressourcen weisen geheime Aktionsplatz- und UnitPower-Werte jetzt vor Lua-Vergleichen oder Berechnungen zurück und verhindern so Fehler in eingeschränkten Inhalten.",
     ["wn_407_vehicle_actionbar_visuals"] = "Behoben — Bei Fahrzeug-, Überschreibungs- und Übernahmewechseln wird jetzt die Aktionsplatz-Zuordnung von Leiste 1 neu aufgebaut und ihre Schaltflächen werden über denselben vollständigen Seitenwechselpfad aktualisiert. Retail-Fahrzeuge hinterlassen keine funktionierenden Tastenkürzel mehr auf unsichtbaren oder veralteten Schaltflächen, wenn UPDATE_VEHICLE_ACTIONBAR ohne UPDATE_OVERRIDE_ACTIONBAR ausgelöst wird.",
 })
 
@@ -95,6 +98,7 @@ TomoMod_RegisterLocale("esES", {
     ["wn_407_astral_aura_controls"] = "Novedad — El elemento Auras de Astral Forge puede mostrar beneficios, perjuicios o ambos, con entre 1 y 12 iconos. Beneficios del objetivo tiene el mismo límite y se desactiva automáticamente cuando Auras ya muestra ambos tipos.",
     ["wn_407_raid_position_restore"] = "Corrección — La posición de los marcos de banda guardada en TomoLayout ahora se restaura al iniciar el addon. Recargar la interfaz o volver a iniciar sesión ya no devuelve la banda a su posición predeterminada.",
     ["wn_407_resource_text_layer"] = "Corrección — Los valores de recursos ahora se muestran por encima del relleno de las barras, los segmentos de poder de clase, las marcas y los bordes, manteniendo visibles los puntos y los tiempos de reutilización de las runas.",
+    ["wn_407_secret_value_guards"] = "Corrección — La reasignación de páginas de la Barra 1 y los recursos segmentados, parciales o en bandas de textura ahora rechazan los valores secretos de espacios de acción y UnitPower antes de comparaciones u operaciones Lua, evitando errores en contenido restringido.",
     ["wn_407_vehicle_actionbar_visuals"] = "Corrección — Las transiciones de vehículo, barra de reemplazo y posesión ahora reconstruyen la asignación de espacios de la Barra 1 y actualizan sus botones mediante la misma ruta completa de cambio de página. Los vehículos de Retail ya no dejan atajos funcionales asociados a botones invisibles o desactualizados cuando UPDATE_VEHICLE_ACTIONBAR se activa sin UPDATE_OVERRIDE_ACTIONBAR.",
 })
 
@@ -119,6 +123,7 @@ TomoMod_RegisterLocale("itIT", {
     ["wn_407_astral_aura_controls"] = "Novità — L'elemento Aure di Astral Forge può mostrare benefici, penalità o entrambi, da 1 a 12 icone. Benefici del bersaglio ha lo stesso limite e viene disattivato automaticamente quando Aure mostra già entrambi i tipi.",
     ["wn_407_raid_position_restore"] = "Correzione — La posizione dei riquadri incursione salvata in TomoLayout ora viene ripristinata all'avvio dell'addon. Ricaricare l'interfaccia o accedere di nuovo non riporta più l'incursione alla posizione predefinita.",
     ["wn_407_resource_text_layer"] = "Correzione — I valori delle risorse ora vengono mostrati sopra i riempimenti delle barre, i segmenti delle risorse di classe, gli indicatori e i bordi, mantenendo visibili i punti e i tempi di recupero delle rune.",
+    ["wn_407_secret_value_guards"] = "Correzione — La rimappatura delle pagine della Barra 1 e le risorse segmentate, parziali o a bande di texture ora rifiutano i valori segreti degli slot azione e di UnitPower prima di confronti o calcoli Lua, evitando errori nei contenuti soggetti a restrizioni.",
     ["wn_407_vehicle_actionbar_visuals"] = "Correzione — Le transizioni di veicolo, barra sostitutiva e controllo ora ricostruiscono la mappatura degli slot della Barra 1 e aggiornano i suoi pulsanti tramite lo stesso percorso completo di cambio pagina. I veicoli di Retail non lasciano più scorciatoie funzionanti associate a pulsanti invisibili o non aggiornati quando UPDATE_VEHICLE_ACTIONBAR si attiva senza UPDATE_OVERRIDE_ACTIONBAR.",
 })
 
@@ -143,5 +148,6 @@ TomoMod_RegisterLocale("ptBR", {
     ["wn_407_astral_aura_controls"] = "Novidade — O elemento Auras do Astral Forge pode mostrar benefícios, penalidades ou ambos, com 1 a 12 ícones. Bônus do alvo tem o mesmo limite e é desativado automaticamente quando Auras já mostra os dois tipos.",
     ["wn_407_raid_position_restore"] = "Correção — A posição dos quadros de raide salva no TomoLayout agora é restaurada ao iniciar o addon. Recarregar a interface ou entrar novamente não devolve mais o raide à posição padrão.",
     ["wn_407_resource_text_layer"] = "Correção — Os valores de recursos agora aparecem acima do preenchimento das barras, dos segmentos de poder de classe, das marcações e das bordas, mantendo visíveis os pontos e os tempos de recarga das runas.",
+    ["wn_407_secret_value_guards"] = "Correção — O remapeamento de páginas da Barra 1 e os recursos segmentados, parciais ou em faixas de textura agora rejeitam valores secretos de espaços de ação e UnitPower antes de comparações ou cálculos Lua, evitando erros em conteúdo restrito.",
     ["wn_407_vehicle_actionbar_visuals"] = "Correção — As transições de veículo, barra de substituição e possessão agora reconstroem o mapeamento dos espaços da Barra 1 e atualizam seus botões pelo mesmo fluxo completo de troca de página. Os veículos do Retail não deixam mais atalhos funcionais associados a botões invisíveis ou desatualizados quando UPDATE_VEHICLE_ACTIONBAR é acionado sem UPDATE_OVERRIDE_ACTIONBAR.",
 })

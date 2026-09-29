@@ -29,6 +29,10 @@
 
 - **Fixed** - Resource values now render on a dedicated frame level above bar fills, segmented class-power cells, tick marks and borders. Counts no longer appear behind the bars, including point resources and rune cooldown numbers.
 
+#### Midnight — Secret-Value Safety
+
+- **Fixed** - Bar 1 page remapping now rechecks action slots at the consumer boundary before ordering or indexing them. Segmented, partial and texture-band resources also reject secret `UnitPower` values before Lua arithmetic, preserving the last readable presentation instead of raising an error in restricted content.
+
 #### Action Bars — Vehicle And Possession Transitions
 
 - **Fixed** - Vehicle, override and possess transitions now rebuild Bar 1's action-slot mapping and repaint its owned buttons through the same page-change path. Retail vehicles that emit UPDATE_VEHICLE_ACTIONBAR without UPDATE_OVERRIDE_ACTIONBAR no longer leave working keybinds attached to invisible or stale buttons.

@@ -75,6 +75,7 @@ CHANGELOG = {
             L["wn_407_astral_aura_controls"],
             L["wn_407_raid_position_restore"],
             L["wn_407_resource_text_layer"],
+            L["wn_407_secret_value_guards"],
             L["wn_407_vehicle_actionbar_visuals"],
         },
     },
