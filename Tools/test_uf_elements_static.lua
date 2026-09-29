@@ -791,7 +791,13 @@ do
 
     -- Et la fenetre doit survivre a un apercu qui echoue.
     local studio = stripComments(read("TomoMod_AstralForge/AstralForge.lua"))
-    local open = studio:match("function S%.Open%(%)(.-)\nend") or ""
+    -- S.Open accepts the optional subject forwarded by TomoLayout. Match a
+    -- balanced argument list instead of requiring the retired zero-argument
+    -- signature, and anchor the closing `end` to S.Close so nested blocks do
+    -- not truncate the body before RebuildSidebar/RebuildInspector.
+    local open = studio:match(
+        "function S%.Open%b()(.-)\nend%s*\nfunction S%.Close"
+    ) or ""
     check("Open : corps trouve", #open > 0, true)
     check("Open protege la construction du sujet",
         open:find("pcall%(RebuildSubject%)") ~= nil, true)
