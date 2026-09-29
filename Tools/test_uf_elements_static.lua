@@ -799,5 +799,39 @@ do
         open:find("S%.RebuildSidebar") ~= nil, true)
 end
 
+-- ═══════════════════════════════════════════════════════════════════════
+print("── 23. Astral Forge : filtres et limites des auras ──")
+
+do
+    local studio = stripComments(read("TomoMod_AstralForge/AstralForge.lua"))
+    local auras = stripComments(read("Modules/Interface/UnitFrames/Elements/Auras.lua"))
+    local options = stripComments(read("TomoMod_Options/Config/Panels/UnitFrames.lua"))
+
+    check("studio : exclusivite Auras / Buffs cible",
+        studio:find("EnforceAuraElementExclusivity", 1, true) ~= nil, true)
+    check("studio : controle de type dans l'inspecteur element",
+        studio:find('desc.id == "auras"', 1, true) ~= nil, true)
+    check("studio : limite commune a 12 icones",
+        countOccurrences(studio, "1, 12, 1") >= 4, true)
+    check("runtime : plafond defensif de 12 icones",
+        auras:find("MAX_AURA_ICONS = 12", 1, true) ~= nil, true)
+    check("runtime : les 12 icones ne sont plus tronquees a 3 lignes",
+        countOccurrences(auras, "math%.ceil%(maxAuras / perRow%)") == 2
+            and not auras:find("MAX_AURA_ROWS", 1, true)
+            and not auras:find("MAX_ENEMY_BUFF_ROWS", 1, true), true)
+    check("options classiques : meme plafond de 12 icones",
+        options:find('L%["opt_auras_max"%].-1, 12, 1') ~= nil, true)
+    check("runtime : les deux types bloquent le conteneur duplique",
+        countOccurrences(auras, "UF_Elements%.AurasShowBoth%(settings%)") >= 2, true)
+    check("runtime : changement de filtre reconstruit l'enfant natif",
+        auras:find("CreateAuraEngine", 1, true) ~= nil
+            and auras:find("SetUnit(oldEngine, nil)", 1, true) ~= nil, true)
+
+    local releaseLocale = read("Locales/Locale_407.lua")
+    check("locales 4.0.7 : explication de l'exclusivite",
+        countOccurrences(releaseLocale,
+            '%["info_auras_all_disables_enemy_buffs"%]%s*=') == 6, true)
+end
+
 print(ok and "\nTOUS LES TESTS PASSENT" or "\nDES TESTS ONT ÉCHOUÉ")
 os.exit(ok and 0 or 1)

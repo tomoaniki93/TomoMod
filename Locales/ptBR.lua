@@ -154,7 +154,7 @@ TomoMod_RegisterLocale("ptBR", {
     ["opt_auras_type"]                  = "Tipo de aura",
     ["aura_harmful"]                    = "Debuffs (prejudiciais)",
     ["aura_helpful"]                    = "Buffs (benéficos)",
-    ["aura_all"]                        = "Todos",
+    ["aura_all"]                        = "Benefícios e penalidades",
     ["opt_auras_direction"]             = "Direção de crescimento",
     ["opt_auras_direction_v"]           = "Direção vertical",
     ["aura_dir_down"]                   = "Para baixo",

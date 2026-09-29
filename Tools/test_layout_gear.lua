@@ -310,5 +310,56 @@ check("movable indépendant de Blizzard Edit Mode",
       setupEditMode:find("Minimap:SetMovable(true)", 1, true) ~= nil
       and setupEditMode:find("EditModeManagerFrame", 1, true) == nil, true)
 
+-- UnitFrame configuration belongs to Astral Forge, not to the retired Options
+-- workspace. The resolved anchor must preserve the exact selected subject all
+-- the way through the load-on-demand Studio launcher.
+local layoutSrc = read("Core/LayoutV41.lua")
+assert(layoutSrc, "LayoutV41.lua introuvable")
+for anchor, subject in pairs({
+    ["unitFrames.player"]       = "player",
+    ["unitFrames.target"]       = "target",
+    ["unitFrames.targettarget"] = "targettarget",
+    ["unitFrames.focus"]        = "focus",
+    ["unitFrames.pet"]          = "pet",
+    ["unitFrames.bossFrames"]   = "bossframe",
+}) do
+    check("Astral Forge route " .. anchor,
+          layoutSrc:find('["' .. anchor .. '"] = "' .. subject .. '"', 1, true) ~= nil, true)
+end
+check("UnitFrame configuration prioritizes Astral Forge",
+      layoutSrc:find("OpenSelectionInAstralForge(selectedAnchorID)", 1, true) ~= nil, true)
+check("selected subject reaches the Studio launcher",
+      layoutSrc:find("arg    = subject", 1, true) ~= nil, true)
+check("all Astral UnitFrame movers are selectable",
+      layoutSrc:find('"unitFrames.targettarget"', 1, true) ~= nil
+      and layoutSrc:find('"unitFrames.pet"', 1, true) ~= nil
+      and layoutSrc:find('"unitFrames.bossFrames"', 1, true) ~= nil, true)
+
+check("Party/Raid mover overlays are selectable",
+      layoutSrc:find("frame.dragFrame or frame.moverOverlay", 1, true) ~= nil, true)
+for anchor, arg in pairs({
+    ["resourceBars"]   = "resources",
+    ["castbars.player"] = "cast",
+    ["partyFrames"]    = "party",
+    ["raidFrames"]     = "raid",
+}) do
+    local studioBlock = layoutSrc:match('%["' .. anchor:gsub("%.", "%%.") .. '"%]%s*=%s*%{(.-)\n%s*%},') or ""
+    check("dedicated Studio route " .. anchor,
+          studioBlock:find('arg = "' .. arg .. '"', 1, true) ~= nil, true)
+end
+check("dedicated Studios precede legacy Options",
+      layoutSrc:find("OpenSelectionInDedicatedStudio(selectedAnchorID)", 1, true) ~= nil, true)
+check("Studio routes keep the configure shortcut visible",
+      layoutSrc:find("if HasSelectionConfiguration() then nudger._config:Show()", 1, true) ~= nil, true)
+
+local astralSrc = read("TomoMod_AstralForge/AstralForge.lua")
+assert(astralSrc, "AstralForge.lua introuvable")
+check("Astral Forge accepts a launch subject",
+      astralSrc:find("function S.Open(requestedSubject)", 1, true) ~= nil, true)
+check("Astral Forge applies the requested subject",
+      astralSrc:find("ApplyRequestedSubject(requestedSubject)", 1, true) ~= nil, true)
+check("Astral Forge synchronizes its existing subject selector",
+      astralSrc:find("selectorDropdown:SetValue(value)", 1, true) ~= nil, true)
+
 print(ok and "\nTOUT EST VERT" or "\nDES TESTS ONT ÉCHOUÉ")
 os.exit(ok and 0 or 1)

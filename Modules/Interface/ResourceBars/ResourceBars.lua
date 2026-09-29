@@ -625,6 +625,26 @@ local function CreateBorder(frame, styleKey, enabledForElement)
     Edge("TOPRIGHT", "BOTTOMRIGHT", size, nil)
 end
 
+-- FontStrings attached directly to a parent frame can still render below that
+-- frame's children: frame level wins over a region's OVERLAY draw layer. Class
+-- resources use child frames for their segments, so keep every numeric label
+-- on a dedicated child frame whose level is explicitly above fills, ticks and
+-- segment borders.
+local function CreateBarText(owner)
+    local overlay = CreateFrame("Frame", nil, owner)
+    overlay:SetAllPoints(owner)
+    -- ResourceBars owns this complete hierarchy (container 0, bars 1,
+    -- segments 2), so a fixed high level is both sufficient and avoids doing
+    -- arithmetic on GetFrameLevel(), which is secret-bearing in Midnight.
+    overlay:SetFrameLevel(20)
+    overlay:EnableMouse(false)
+    owner.textOverlay = overlay
+
+    local text = overlay:CreateFontString(nil, "OVERLAY")
+    text:SetDrawLayer("OVERLAY", 7)
+    return text
+end
+
 -- =====================================
 -- CREATE: BAR DISPLAY (used for aura_bar class powers)
 -- =====================================
@@ -655,7 +675,7 @@ local function CreateBarDisplay(parent, width, height)
     bar.bg = bg
     CreateBorder(bar, "class", (GetClassConfig().borderMode or "segments") ~= "none")
 
-    local text = bar:CreateFontString(nil, "OVERLAY")
+    local text = CreateBarText(bar)
     text:SetFont(GetFont(), GetFontSize(), "OUTLINE")
     text:SetTextColor(1, 1, 1, 0.9)
     bar.text = text
@@ -766,7 +786,7 @@ local function CreatePointDisplay(parent, maxPoints, width, height, colorKey, te
         frame.points[i] = pt
     end
 
-    local text = frame:CreateFontString(nil, "OVERLAY")
+    local text = CreateBarText(frame)
     text:SetFont(GetFont(), GetFontSize(), "OUTLINE")
     text:SetPoint("CENTER")
     text:SetTextColor(1, 1, 1, 0.90)
@@ -860,7 +880,7 @@ local function CreateRuneDisplay(parent, width, height)
             fill:SetTexCoord(unpack(tc.filled))
             runeF.fill = fill
 
-            local cd = runeF:CreateFontString(nil, "OVERLAY")
+            local cd = CreateBarText(runeF)
             cd:SetFont(GetFont(), math.max(GetFontSize() - 2, 7), "OUTLINE")
             cd:SetPoint("CENTER"); cd:SetTextColor(1, 1, 1, 0.8)
             runeF.cdText = cd
@@ -891,7 +911,7 @@ local function CreateRuneDisplay(parent, width, height)
             SetEmptyPointBackground(bg)
             rune.bg = bg
 
-            local cd = rune:CreateFontString(nil, "OVERLAY")
+            local cd = CreateBarText(rune)
             cd:SetFont(GetFont(), math.max(GetFontSize() - 2, 7), "OUTLINE")
             cd:SetPoint("CENTER"); cd:SetTextColor(1, 1, 1, 0.8)
             rune.cdText = cd
@@ -938,7 +958,7 @@ local function CreateStaggerBar(parent, width, height)
     bar.bg = bg
     CreateBorder(bar, "class", (GetClassConfig().borderMode or "segments") ~= "none")
 
-    local text = bar:CreateFontString(nil, "OVERLAY")
+    local text = CreateBarText(bar)
     text:SetFont(GetFont(), GetFontSize(), "OUTLINE")
     text:SetPoint("CENTER"); text:SetTextColor(1, 1, 1, 0.9)
     bar.text = text
@@ -966,7 +986,7 @@ local function CreateDruidManaBar(parent, width, height)
     bar.bg = bg
     CreateBorder(bar, "power")
 
-    local text = bar:CreateFontString(nil, "OVERLAY")
+    local text = CreateBarText(bar)
     text:SetFont(GetFont(), math.max(GetFontSize() - 1, 7), "OUTLINE")
     text:SetPoint("CENTER"); text:SetTextColor(1, 1, 1, 0.7)
     bar.text = text
@@ -991,7 +1011,7 @@ local function CreatePrimaryPowerBar(parent, width, height)
     bar.bg = bg
     CreateBorder(bar, "power")
 
-    local text = bar:CreateFontString(nil, "OVERLAY")
+    local text = CreateBarText(bar)
     text:SetFont(GetFont(), math.max(GetFontSize() - 1, 7), "OUTLINE")
     text:SetPoint("CENTER"); text:SetTextColor(1, 1, 1, 0.85)
     bar.text = text
@@ -1072,7 +1092,7 @@ local function CreateHealthBar(parent, width, height)
     bar.bg = bg
     CreateBorder(bar, "health")
 
-    local text = bar:CreateFontString(nil, "OVERLAY")
+    local text = CreateBarText(bar)
     text:SetFont(GetFont(), math.max(GetFontSize() - 1, 7), "OUTLINE")
     text:SetPoint("CENTER"); text:SetTextColor(1, 1, 1, 0.9)
     bar.text = text

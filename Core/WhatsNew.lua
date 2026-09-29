@@ -65,6 +65,16 @@ CHANGELOG = {
     {
         version = "4.0.7",
         highlights = {
+            L["wn_407_keystone_shortcut"],
+            L["wn_407_keystone_roulette"],
+            L["wn_407_keystone_localization"],
+            L["wn_407_keystone_layout"],
+            L["wn_407_unitframe_configuration"],
+            L["wn_407_astralforge_subject"],
+            L["wn_407_layout_studio_routing"],
+            L["wn_407_astral_aura_controls"],
+            L["wn_407_raid_position_restore"],
+            L["wn_407_resource_text_layer"],
             L["wn_407_vehicle_actionbar_visuals"],
         },
     },

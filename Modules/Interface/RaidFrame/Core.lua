@@ -1445,6 +1445,10 @@ function RF.CreateAnchor()
     if not db then return end
 
     local anchor = CreateFrame("Frame", "TomoMod_RaidAnchor", UIParent)
+    -- ApplyRaidAnchorPosition() resolves the live frame through RF.anchor.
+    -- Publish the newly created anchor before restoring its saved position;
+    -- otherwise every login falls through to the default TOPLEFT placement.
+    RF.anchor = anchor
     anchor:SetSize(db.width * 5, db.height * 8)
     anchor:SetClampedToScreen(true)
 
@@ -1481,8 +1485,6 @@ function RF.CreateAnchor()
     label:SetText("Raid Frames")
     mover:Hide()
     anchor.moverOverlay = mover
-
-    RF.anchor = anchor
 end
 
 -- =====================================

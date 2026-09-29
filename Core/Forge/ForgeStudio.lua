@@ -243,12 +243,13 @@ function Forge.Studio.CreateShell(opts)
     title:SetPoint("TOPLEFT", 18, -17)
     title:SetText(opts.title or "Studio")
 
+    local selectorDropdown
     if opts.selector and W and W.CreateDropdown then
         local sel = opts.selector
         local host = CreateFrame("Frame", nil, frame)
         host:SetSize(300, 48)
         host:SetPoint("TOPLEFT", 200, -6)
-        W.CreateDropdown(host, sel.label or "", sel.options or {},
+        selectorDropdown = W.CreateDropdown(host, sel.label or "", sel.options or {},
             sel.get and sel.get() or nil, 0, function(v)
                 if sel.set then sel.set(v) end
             end)
@@ -356,5 +357,6 @@ function Forge.Studio.CreateShell(opts)
         contentHost   = contentHost,
         footerButtons = footerButtons,
         hint          = hint,
+        selector      = selectorDropdown,
     }
 end

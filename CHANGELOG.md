@@ -2,6 +2,33 @@
 
 ## CHANGELOG 4.0.7
 
+#### Mythic+ — Keystone Shortcuts And Roulette
+
+- **New** - A keystone shortcut now appears to the left of the minimap clock while in a 2-5 player group. Left-click announces the party's keystones through `/tmt key`, while right-click opens Keystone Roulette through `/tm key`.
+- **Changed** - Keystone Roulette has been redesigned with TomoMod's active brand palette, full dungeon names, class-colored owners, clearer key levels, animated row selection and a dedicated result card. The window now opens immediately with refresh feedback while KeySync collects party data.
+- **Changed** - The shortcut tooltip and every Roulette label, action and empty, ready or refreshing state are localized in English, French, German, Spanish, Italian and Brazilian Portuguese.
+- **Fixed** - When the addon-button collector is docked to the left of the minimap clock, the keystone shortcut now moves farther left and preserves a visible gap. Its position accounts for the collector's scale and the Consumable Tracker, preventing the clock buttons from overlapping. The shortcut icon is now white to match the other InfoPanel buttons.
+
+#### TomoLayout — Studio Routing And Group Selection
+
+- **Fixed** - The Layout mode's Configure Element action now opens Astral Forge for every selectable UnitFrame, including Player, Target, Focus, Pet, Target of Target and Boss Frames, instead of navigating to the retired UnitFrames options workspace.
+- **Changed** - Astral Forge accepts the selected UnitFrame as its launch subject, so the studio opens directly on the frame chosen in TomoLayout rather than reusing its previous subject.
+- **Fixed** - Configure Element now opens Resource & Cast Studio directly on Resources or Player Cast, and Party & Raid Studio directly on Party or Raid, instead of routing those elements through their retired options pages.
+- **Fixed** - Party and Raid mover overlays now select their owning frame in Layout mode. Their name, position controls and configuration shortcut consequently appear in TomoLayout when clicked.
+
+#### Astral Forge — Aura Content Controls
+
+- **New** - Selecting the Auras element now exposes its content type directly in the element inspector: buffs, debuffs or both. Auras and Target Buffs each provide an icon-count slider from 1 to 12.
+- **Changed** - Choosing both buffs and debuffs automatically disables the separate Target Buffs element to prevent duplicate helpful-aura icons. Changing the aura type rebuilds only the native aura-engine child, preserving the Forge element's position and applying the new filter immediately.
+
+#### Raid Frames — Persistent Layout Position
+
+- **Fixed** - The Raid Frames anchor is now published before its saved TomoLayout position is restored during initialization. Reloading the UI or logging back in no longer sends the raid layout back to its default position.
+
+#### Resource Bars — Numeric Text Layer
+
+- **Fixed** - Resource values now render on a dedicated frame level above bar fills, segmented class-power cells, tick marks and borders. Counts no longer appear behind the bars, including point resources and rune cooldown numbers.
+
 #### Action Bars — Vehicle And Possession Transitions
 
 - **Fixed** - Vehicle, override and possess transitions now rebuild Bar 1's action-slot mapping and repaint its owned buttons through the same page-change path. Retail vehicles that emit UPDATE_VEHICLE_ACTIONBAR without UPDATE_OVERRIDE_ACTIONBAR no longer leave working keybinds attached to invisible or stale buttons.

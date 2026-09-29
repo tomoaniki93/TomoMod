@@ -109,5 +109,16 @@ check("vehicle action-bar event rebuilds/repaints Bar1",
     pageTransitions:find('event == "UPDATE_VEHICLE_ACTIONBAR"', 1, true) ~= nil)
 check("possess action-bar event rebuilds/repaints Bar1",
     pageTransitions:find('event == "UPDATE_POSSESS_BAR"', 1, true) ~= nil)
+
+local resourceBars = read("Modules/Interface/ResourceBars/ResourceBars.lua")
+local createBarText = assert(resourceBars:match(
+    "local function CreateBarText%(owner%)(.-)\nend"),
+    "Resource Bars top text-layer helper missing")
+check("resource bar text owns a raised frame layer",
+    createBarText:find("overlay:SetFrameLevel(20)", 1, true) ~= nil)
+check("resource bar text cannot intercept mouse input",
+    createBarText:find("overlay:EnableMouse(false)", 1, true) ~= nil)
+check("resource point totals use the raised text layer",
+    resourceBars:match("local function CreatePointDisplay.-local text = CreateBarText%(frame%)") ~= nil)
 print = say
 print("PASS: " .. total .. " local regression assertions")

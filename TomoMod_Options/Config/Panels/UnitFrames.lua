@@ -243,10 +243,8 @@ local function BuildAurasTab(parent, unitKey)
 
     local y = -10
 
-    -- Certains réglages (activer/désactiver, type buff/debuff) reconstruisent
-    -- le conteneur à la création du cadre uniquement : un /reload garantit
-    -- que tout est bien pris en compte, même si la plupart des curseurs et
-    -- listes déroulantes s'appliquent déjà en direct.
+    -- Activer ou désactiver un conteneur reste structurel. Les filtres, tailles
+    -- et nombres d'icônes se mettent désormais à jour en direct.
     local _, ny = W.CreateInfoText(c, L["info_module_reload"], y)
     y = ny
 
@@ -257,10 +255,15 @@ local function BuildAurasTab(parent, unitKey)
 
         local _, ny = W.CreateCheckbox(c, L["opt_auras_enable"], db.auras.enabled, y, function(v)
             db.auras.enabled = v
+            if v and db.auras.type == "ALL" and db.enemyBuffs then
+                db.enemyBuffs.enabled = false
+            end
+            RefreshUnit(unitKey)
         end)
         y = ny
 
-        local _, ny = W.CreateSlider(c, L["opt_auras_max"], db.auras.maxAuras, 1, 16, 1, y, function(v)
+        db.auras.maxAuras = math.max(1, math.min(db.auras.maxAuras or 8, 12))
+        local _, ny = W.CreateSlider(c, L["opt_auras_max"], db.auras.maxAuras, 1, 12, 1, y, function(v)
             db.auras.maxAuras = v
             RefreshUnit(unitKey)
         end)
@@ -290,6 +293,10 @@ local function BuildAurasTab(parent, unitKey)
             { text = L["aura_all"], value = "ALL" },
         }, db.auras.type or "HARMFUL", y, function(v)
             db.auras.type = v
+            if v == "ALL" and db.auras.enabled ~= false and db.enemyBuffs then
+                db.enemyBuffs.enabled = false
+            end
+            RefreshUnit(unitKey)
         end)
         y = ny
 
@@ -313,6 +320,7 @@ local function BuildAurasTab(parent, unitKey)
 
         local _, ny = W.CreateCheckbox(c, L["opt_auras_only_mine"], db.auras.showOnlyMine, y, function(v)
             db.auras.showOnlyMine = v
+            RefreshUnit(unitKey)
         end)
         y = ny
     end
@@ -327,11 +335,18 @@ local function BuildAurasTab(parent, unitKey)
         local _, ny = W.CreateInfoText(c, L["info_enemy_buffs"], y)
         y = ny
 
-        local _, ny = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"], db.enemyBuffs.enabled, y, function(v)
-            db.enemyBuffs.enabled = v
-            RefreshUnit(unitKey)
-        end)
-        y = ny
+        if db.auras and db.auras.enabled ~= false and db.auras.type == "ALL" then
+            db.enemyBuffs.enabled = false
+            local _, ny = W.CreateInfoText(c,
+                L["info_auras_all_disables_enemy_buffs"], y)
+            y = ny
+        else
+            local _, ny = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"], db.enemyBuffs.enabled, y, function(v)
+                db.enemyBuffs.enabled = v
+                RefreshUnit(unitKey)
+            end)
+            y = ny
+        end
 
         local _, ny = W.CreateSlider(c, L["opt_enemy_buffs_max"], db.enemyBuffs.maxAuras, 1, 12, 1, y, function(v)
             db.enemyBuffs.maxAuras = v

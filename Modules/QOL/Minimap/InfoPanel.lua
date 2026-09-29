@@ -23,6 +23,7 @@ local clockBar        -- Frame below minimap (clock)
 local clockText       -- Clock time FontString
 local clockLabel      -- S/L indicator
 local durabilityText  -- Gear durability overlay bottom-left
+local keyButton       -- Group keystone shortcut, docked left of the clock
 local isInitialized = false
 
 local function DB()
@@ -145,6 +146,78 @@ local function GetZonePvPColor()
     end
 end
 
+
+-- =====================================
+-- KEYSTONE SHORTCUT
+-- =====================================
+
+local KEY_ICON = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\icon_keystone"
+local KEY_TEXT = {
+    title = L["info_key_shortcuts_title"],
+    left  = L["info_key_shortcuts_left"],
+    right = L["info_key_shortcuts_right"],
+}
+
+local function MythicPlusAvailable()
+    return not (TomoMod_Compat and TomoMod_Compat.Blocked("mythicplus"))
+end
+
+local function ShouldShowKeyButton()
+    if not MythicPlusAvailable() or not IsInGroup() then return false end
+    local members = GetNumGroupMembers() or 0
+    return members >= 2 and members <= 5
+end
+
+function IP.UpdateKeyButtonAnchor()
+    if not keyButton or not clockBar or not clockText then return end
+
+    local keyHalf = (keyButton:GetWidth() or 18) * 0.5
+    local textHalf = math.max(20, (clockText:GetStringWidth() or 40) * 0.5)
+    local x = -(textHalf + keyHalf + 7)
+
+    -- The addon-button collector can be docked immediately to the left of the
+    -- clock text. In that position it occupies the keystone button's default
+    -- slot, so move the keystone farther left and keep a visible gap.
+    local bag = _G.TomoModMinimapButtonBag
+    local bagDB = TomoModDB and TomoModDB.minimap and TomoModDB.minimap.buttonBag
+    if bag and bag:IsShown() and bagDB and bagDB.anchor == "clock-left" then
+        local bagScale = bag:GetScale() or 1
+        local bagHalf = (bag:GetWidth() or 22) * bagScale * 0.5
+        local bagGap = tonumber(bagDB.clockGap) or 2
+        local bagX = -(textHalf + bagGap + bagHalf)
+        local minGap = keyHalf + bagHalf + 4
+        if math.abs(x - bagX) < minGap then
+            x = bagX - minGap
+        end
+    end
+
+    -- Consumable Tracker can also live on the left side of the clock. Keep the
+    -- two buttons apart without making either module own the other's layout.
+    local consumable = _G.TomoMod_ConsumableTrackerButton
+    local cdb = TomoModDB and TomoModDB.consumableBar
+    if consumable and consumable:IsShown() and cdb and cdb.buttonSide ~= "right" then
+        local cHalf = (consumable:GetWidth() or 20) * 0.5
+        local cX = -(40 + cHalf)
+        local minGap = keyHalf + cHalf + 4
+        if math.abs(x - cX) < minGap then
+            x = cX - minGap
+        end
+    end
+
+    keyButton:ClearAllPoints()
+    keyButton:SetPoint("CENTER", clockBar, "CENTER", x, 0)
+end
+
+function IP.UpdateKeyButton()
+    if not keyButton then return end
+    IP.UpdateKeyButtonAnchor()
+    if clockBar and clockBar:IsShown() and ShouldShowKeyButton() then
+        keyButton:Show()
+    else
+        keyButton:Hide()
+    end
+end
+
 -- =====================================
 -- CREATE UI ELEMENTS
 -- =====================================
@@ -261,6 +334,62 @@ local function CreateUI()
     clockBar.timeLabel = clockLabel
 
     -- =========================================
+    -- KEYSTONE SHORTCUT (party only, 2-5 players)
+    -- =========================================
+    if MythicPlusAvailable() then
+        keyButton = CreateFrame("Button", "TomoMod_KeystoneInfoButton", clockBar, "BackdropTemplate")
+        keyButton:SetSize(18, 18)
+        keyButton:SetFrameLevel(clockBar:GetFrameLevel() + 20)
+        keyButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        keyButton:SetBackdrop({
+            bgFile   = "Interface\\Buttons\\WHITE8x8",
+            edgeFile = "Interface\\Buttons\\WHITE8x8",
+            edgeSize = 1,
+        })
+        keyButton:SetBackdropColor(0.035, 0.055, 0.070, 0.96)
+        keyButton:SetBackdropBorderColor(0.72, 0.74, 0.78, 0.80)
+
+        local icon = keyButton:CreateTexture(nil, "ARTWORK")
+        icon:SetPoint("TOPLEFT", 2, -2)
+        icon:SetPoint("BOTTOMRIGHT", -2, 2)
+        icon:SetTexture(KEY_ICON)
+        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        icon:SetDesaturated(true)
+        icon:SetVertexColor(0.95, 0.95, 0.97, 1)
+        keyButton.icon = icon
+
+        keyButton:SetScript("OnClick", function(_, button)
+            local keys = TomoMod_MythicKeys or TomoMod_MythicPartyKeys
+            if not keys then return end
+            if button == "RightButton" then
+                if keys.ShowKeyRoulette then keys:ShowKeyRoulette() end
+            else
+                if keys.SendKeysToChat then keys:SendKeysToChat() end
+            end
+        end)
+
+        keyButton:SetScript("OnEnter", function(self)
+            self:SetBackdropBorderColor(1, 1, 1, 1)
+            self.icon:SetVertexColor(1, 1, 1, 1)
+            GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -4)
+            GameTooltip:ClearLines()
+            GameTooltip:AddLine(KEY_TEXT.title, 1, 1, 1)
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine(KEY_TEXT.left, 0.82, 0.84, 0.88)
+            GameTooltip:AddLine(KEY_TEXT.right, 0.82, 0.84, 0.88)
+            GameTooltip:Show()
+        end)
+        keyButton:SetScript("OnLeave", function(self)
+            self:SetBackdropBorderColor(0.72, 0.74, 0.78, 0.80)
+            self.icon:SetVertexColor(0.95, 0.95, 0.97, 1)
+            GameTooltip:Hide()
+        end)
+        keyButton:Hide()
+        clockBar.keyButton = keyButton
+        IP.UpdateKeyButtonAnchor()
+    end
+
+    -- =========================================
     -- CLOCK INTERACTIONS
     -- =========================================
     clockBar:RegisterForClicks("LeftButtonUp", "RightButtonUp")
@@ -346,6 +475,7 @@ function IP.Update()
     else
         clockBar:Hide()
     end
+    IP.UpdateKeyButton()
 
     -- Durability
     if durabilityText and db.showDurability ~= false then
@@ -394,6 +524,7 @@ function IP.Hide()
     if subZoneText then subZoneText:Hide() end
     if coordsText then coordsText:Hide() end
     if durabilityText then durabilityText:Hide() end
+    if keyButton then keyButton:Hide() end
     if clockBar then clockBar:Hide() end
 end
 
@@ -403,6 +534,7 @@ function IP.Show()
     if coordsText then coordsText:Show() end
     if durabilityText then durabilityText:Show() end
     if clockBar then clockBar:Show() end
+    IP.UpdateKeyButton()
 end
 
 -- =====================================
@@ -454,6 +586,7 @@ function IP.Initialize()
         evFrame:RegisterEvent("ZONE_CHANGED_INDOORS")
         evFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
         evFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+        evFrame:RegisterEvent("GROUP_ROSTER_UPDATE")
         evFrame:RegisterEvent("UPDATE_INVENTORY_DURABILITY")
         evFrame:SetScript("OnEvent", function()
             C_Timer.After(0.1, IP.Update)

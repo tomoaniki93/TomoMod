@@ -972,7 +972,7 @@ local L = TomoMod_L
 
 local frame, sidebarList, contentHost
 local canvas, stageHost, inspectorHost, subject, plateSubjectBase
-local navigationHost, selectorHighlightHost
+local navigationHost, selectorHighlightHost, selectorDropdown
 local sidebarTitleText, footerButtonRefs, footerHintText
 local refreshPreviewButton, studioCrudHost
 local rowButtons = {}
@@ -990,6 +990,44 @@ local function Settings()
     if not sub then return nil end
     local ok, s = pcall(sub.settings)
     return ok and s or nil
+end
+
+local VALID_AURA_TYPES = { HARMFUL = true, HELPFUL = true, ALL = true }
+
+local function ClampAuraIconCount(value, fallback)
+    value = math.floor(tonumber(value) or fallback or 1)
+    return math.max(1, math.min(12, value))
+end
+
+local function AurasShowBoth(db)
+    return type(db) == "table"
+        and type(db.auras) == "table"
+        and db.auras.enabled ~= false
+        and db.auras.type == "ALL"
+end
+
+local function EnforceAuraElementExclusivity(db)
+    if not AurasShowBoth(db) or type(db.enemyBuffs) ~= "table" then return false end
+    if db.enemyBuffs.enabled == false then return false end
+    db.enemyBuffs.enabled = false
+    return true
+end
+
+local function SetAuraElementEnabled(db, enabled)
+    if type(db) ~= "table" or type(db.auras) ~= "table" then return end
+    db.auras.enabled = enabled and true or false
+    EnforceAuraElementExclusivity(db)
+end
+
+local function SetAuraElementType(db, auraType)
+    if type(db) ~= "table" or type(db.auras) ~= "table" then return end
+    db.auras.type = VALID_AURA_TYPES[auraType] and auraType or "HARMFUL"
+    EnforceAuraElementExclusivity(db)
+end
+
+local function SetEnemyBuffElementEnabled(db, enabled)
+    if type(db) ~= "table" or type(db.enemyBuffs) ~= "table" then return end
+    db.enemyBuffs.enabled = enabled and not AurasShowBoth(db) or false
 end
 
 local function Store()
@@ -2406,15 +2444,16 @@ local function BuildUnitFrameCadre(c, y, db, unitKey)
 
         local _, ny = W.CreateCheckbox(c, L["opt_auras_enable"],
             db.auras.enabled, y, function(v)
-                db.auras.enabled = v; CommitFrameEdit()
+                SetAuraElementEnabled(db, v); CommitFrameEdit()
+                S.RebuildInspector()
             end)
         y = ny
 
         local _, ny = W.CreateTwoColumnRow(c, y,
             function(col)
                 local _, n = W.CreateSlider(col, L["opt_auras_max"],
-                    db.auras.maxAuras or 6, 1, 16, 1, 0, function(v)
-                        db.auras.maxAuras = v; CommitFrameEdit()
+                    ClampAuraIconCount(db.auras.maxAuras, 6), 1, 12, 1, 0, function(v)
+                        db.auras.maxAuras = ClampAuraIconCount(v, 6); CommitFrameEdit()
                     end)
                 return n
             end,
@@ -2449,7 +2488,8 @@ local function BuildUnitFrameCadre(c, y, db, unitKey)
             { text = L["aura_helpful"], value = "HELPFUL" },
             { text = L["aura_all"],     value = "ALL" },
         }, db.auras.type or "HARMFUL", y, function(v)
-            db.auras.type = v; CommitFrameEdit()
+            SetAuraElementType(db, v); CommitFrameEdit()
+            S.RebuildInspector()
         end)
         y = ny
 
@@ -2483,11 +2523,18 @@ local function BuildUnitFrameCadre(c, y, db, unitKey)
         local _, ny = W.CreateSubLabel(c, L["af_v21_enemy_buffs"], y)
         y = ny
 
-        local _, ny = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"],
-            db.enemyBuffs.enabled, y, function(v)
-                db.enemyBuffs.enabled = v; CommitFrameEdit()
-            end)
-        y = ny
+        if AurasShowBoth(db) then
+            EnforceAuraElementExclusivity(db)
+            local _, ny = W.CreateInfoText(c,
+                L["info_auras_all_disables_enemy_buffs"], y)
+            y = ny
+        else
+            local _, ny = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"],
+                db.enemyBuffs.enabled, y, function(v)
+                    SetEnemyBuffElementEnabled(db, v); CommitFrameEdit()
+                end)
+            y = ny
+        end
 
         local _, ny = W.CreateTwoColumnRow(c, y,
             function(col)
@@ -3393,18 +3440,20 @@ end
 local function V22BuildUnitAuras(c, y, db)
     y = V22SectionHeader(c, y, L["af_v22_sec_auras"], "A")
     if type(db.auras) ~= "table" then return y end
+    db.auras.maxAuras = ClampAuraIconCount(db.auras.maxAuras, 6)
 
     local _, ny = W.CreateCheckbox(c, L["opt_auras_enable"], db.auras.enabled, y, function(v)
-        db.auras.enabled = v
+        SetAuraElementEnabled(db, v)
         V22CommitFrameEdit()
+        S.RebuildInspector()
     end)
     y = ny
 
     local _, ny = W.CreateTwoColumnRow(c, y,
         function(col)
-            local _, n = W.CreateSlider(col, L["opt_auras_max"], db.auras.maxAuras or 6,
-                1, 16, 1, 0, function(v)
-                    db.auras.maxAuras = v
+            local _, n = W.CreateSlider(col, L["opt_auras_max"], db.auras.maxAuras,
+                1, 12, 1, 0, function(v)
+                    db.auras.maxAuras = ClampAuraIconCount(v, 6)
                     V22CommitFrameEdit()
                 end)
             return n
@@ -3443,8 +3492,9 @@ local function V22BuildUnitAuras(c, y, db)
         { text = L["aura_helpful"], value = "HELPFUL" },
         { text = L["aura_all"],     value = "ALL" },
     }, db.auras.type or "HARMFUL", y, function(v)
-        db.auras.type = v
+        SetAuraElementType(db, v)
         V22CommitFrameEdit()
+        S.RebuildInspector()
     end)
     y = ny
 
@@ -3482,12 +3532,21 @@ end
 local function V22BuildUnitEnemyBuffs(c, y, db)
     if type(db.enemyBuffs) ~= "table" then return y end
     y = V22SectionHeader(c, y, L["af_v22_sec_enemy_buffs"], "E")
+    db.enemyBuffs.maxAuras = ClampAuraIconCount(db.enemyBuffs.maxAuras, 3)
 
-    local _, ny = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"], db.enemyBuffs.enabled, y, function(v)
-        db.enemyBuffs.enabled = v
-        V22CommitFrameEdit()
-    end)
-    y = ny
+    if AurasShowBoth(db) then
+        EnforceAuraElementExclusivity(db)
+        local _, ny = W.CreateInfoText(c,
+            L["info_auras_all_disables_enemy_buffs"], y)
+        y = ny
+    else
+        local _, ny = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"], db.enemyBuffs.enabled, y, function(v)
+            SetEnemyBuffElementEnabled(db, v)
+            V22CommitFrameEdit()
+            S.RebuildInspector()
+        end)
+        y = ny
+    end
 
     local _, ny = W.CreateTwoColumnRow(c, y,
         function(col)
@@ -4239,6 +4298,64 @@ function S.RebuildInspector()
     local _, ny = W.CreateSectionHeader(c,
         L[desc.labelKey] .. (index and (" " .. index) or ""), y, "A")
     y = ny
+
+    -- Aura containers are positionable Forge elements, but their content
+    -- belongs to the UnitFrame settings. Surface the content controls here as
+    -- well as in Frame > Auras so selecting the element is self-contained.
+    local frameDB = Settings()
+    if desc.id == "auras" and type(frameDB) == "table"
+        and type(frameDB.auras) == "table" then
+        local auraDB = frameDB.auras
+        auraDB.maxAuras = ClampAuraIconCount(auraDB.maxAuras, 6)
+
+        local _, nextY = W.CreateDropdown(c, L["opt_auras_type"], {
+            { text = L["aura_harmful"], value = "HARMFUL" },
+            { text = L["aura_helpful"], value = "HELPFUL" },
+            { text = L["aura_all"],     value = "ALL" },
+        }, auraDB.type or "HARMFUL", y, function(v)
+            SetAuraElementType(frameDB, v)
+            Apply(); RebuildSubject(); S.RebuildInspector()
+        end)
+        y = nextY
+
+        local _, nextY = W.CreateSlider(c, L["opt_auras_max"], auraDB.maxAuras,
+            1, 12, 1, y, function(v)
+                auraDB.maxAuras = ClampAuraIconCount(v, 6)
+                Apply(); RebuildSubject()
+            end)
+        y = nextY
+
+        if AurasShowBoth(frameDB) and type(frameDB.enemyBuffs) == "table" then
+            local _, nextY = W.CreateInfoText(c,
+                L["info_auras_all_disables_enemy_buffs"], y)
+            y = nextY
+        end
+    elseif desc.id == "enemyBuffs" and type(frameDB) == "table"
+        and type(frameDB.enemyBuffs) == "table" then
+        local enemyDB = frameDB.enemyBuffs
+        enemyDB.maxAuras = ClampAuraIconCount(enemyDB.maxAuras, 3)
+
+        if AurasShowBoth(frameDB) then
+            EnforceAuraElementExclusivity(frameDB)
+            local _, nextY = W.CreateInfoText(c,
+                L["info_auras_all_disables_enemy_buffs"], y)
+            y = nextY
+        else
+            local _, nextY = W.CreateCheckbox(c, L["opt_enemy_buffs_enable"],
+                enemyDB.enabled, y, function(v)
+                    SetEnemyBuffElementEnabled(frameDB, v)
+                    Apply(); RebuildSubject(); S.RebuildInspector()
+                end)
+            y = nextY
+        end
+
+        local _, nextY = W.CreateSlider(c, L["opt_enemy_buffs_max"], enemyDB.maxAuras,
+            1, 12, 1, y, function(v)
+                enemyDB.maxAuras = ClampAuraIconCount(v, 3)
+                Apply(); RebuildSubject()
+            end)
+        y = nextY
+    end
 
     -- Modele de texte : reserve aux elements instancies.
     if desc.instanced and desc.id == "customText" then
@@ -5155,6 +5272,7 @@ local function BuildWindow()
     footerButtonRefs  = shell.footerButtons or {}
     footerHintText    = shell.hint
     studioCrudHost    = shell.crudHost
+    selectorDropdown  = shell.selector
 
     -- Header help: stays next to Close and relaunches onboarding at will.
     local helpBtn = CreateFrame("Button", nil, frame, "BackdropTemplate")
@@ -5257,7 +5375,25 @@ local function BuildWindow()
     inspectorHost:SetPoint("BOTTOMRIGHT", contentHost, "BOTTOMRIGHT", -12, 10)
 end
 
-function S.Open()
+local function ApplyRequestedSubject(value)
+    if type(value) ~= "string" or not SUBJECT_BY_VALUE[value] then return false end
+    S.state.subject = value
+    S.state.element = nil
+    S.state.showFrameEditor = false
+    S.state.showBars = false
+    S.state.showPresets = false
+    if selectorDropdown and selectorDropdown.SetValue then
+        selectorDropdown:SetValue(value)
+    end
+    return true
+end
+
+function S.Open(requestedSubject)
+    -- Forge.Studio forwards its optional launcher argument. TomoLayout uses it
+    -- to open the editor on the UnitFrame the player actually selected instead
+    -- of falling back to the last subject (or Player on the first launch).
+    ApplyRequestedSubject(requestedSubject)
+
     if not frame then BuildWindow() end
     if not frame then return end
     frame:Show()

@@ -80,24 +80,38 @@ function UF_Elements.SaveContainerDrag(container, parent, elementID, settings)
     return true
 end
 
--- Même grille perRow/3-lignes-max que ComputeEnemyBuffLayout, pour les
+-- Même grille perRow que ComputeEnemyBuffLayout, pour les
 -- auras normales (buffs/debuffs joueur, cible, focus). Un seul calcul pour
 -- Create et Relayout : cf. le commentaire sur ComputeEnemyBuffLayout pour
 -- pourquoi ça doit rester un point unique.
-local MAX_AURA_ROWS = 3
+local MAX_AURA_ICONS = 12
+
+local function NormalizeAuraType(value)
+    if value == "HELPFUL" or value == "ALL" then return value end
+    return "HARMFUL"
+end
+
+function UF_Elements.AurasShowBoth(settings)
+    return type(settings) == "table"
+        and type(settings.auras) == "table"
+        and settings.auras.enabled ~= false
+        and NormalizeAuraType(settings.auras.type) == "ALL"
+end
 
 local function ComputeAuraLayout(auraSettings)
     local size = auraSettings.size or 24
     local spacing = auraSettings.spacing or 3
-    local maxAuras = auraSettings.maxAuras or 8
+    local maxAuras = math.max(1, math.min(MAX_AURA_ICONS,
+        math.floor(tonumber(auraSettings.maxAuras) or 8)))
     local growDirection = auraSettings.growDirection
     local growVertical = auraSettings.growVertical
-    local perRow = auraSettings.perRow or 6
+    local perRow = math.max(1, math.min(MAX_AURA_ICONS,
+        math.floor(tonumber(auraSettings.perRow) or 6)))
 
-    local numRows = math.min(MAX_AURA_ROWS, math.ceil(maxAuras / perRow))
-    maxAuras = math.min(maxAuras, numRows * perRow)
+    local numRows = math.ceil(maxAuras / perRow)
+    local numCols = math.min(perRow, maxAuras)
 
-    local containerW = perRow * size + (perRow - 1) * spacing
+    local containerW = numCols * size + (numCols - 1) * spacing
     local containerH = numRows * size + (numRows - 1) * spacing
 
     return {
@@ -105,6 +119,34 @@ local function ComputeAuraLayout(auraSettings)
         growDirection = growDirection, growVertical = growVertical,
         containerW = containerW, containerH = containerH,
     }
+end
+
+local function CreateAuraEngine(container, unit, auraSettings, layout)
+    local AC = TomoMod_AuraContainer
+    if not AC then return nil end
+
+    local auraType = NormalizeAuraType(auraSettings.type)
+    return AC.Create(container, {
+        key      = "auras",
+        unit     = unit,
+        size     = layout.size,
+        max      = layout.maxAuras,
+        font     = FONT,
+        harmful  = (auraType ~= "HELPFUL"),
+        both     = (auraType == "ALL"),
+        onlyMine = auraSettings.showOnlyMine,
+        tooltips     = true,
+        showDuration = auraSettings.showDuration ~= false,
+        durationPoint = "CENTER",
+        durationX     = 0,
+        durationY     = 0,
+        durationColor = { 1, 1, 1, 1 },
+        growDirection = layout.growDirection,
+        growVertical  = layout.growVertical,
+        rowWidth      = layout.containerW,
+        spacing       = layout.spacing,
+        anchorHost = container,
+    })
 end
 
 function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
@@ -122,52 +164,11 @@ function UF_Elements.CreateAuraContainer(parent, unit, settings, nameOverride)
     -- systematiquement apres.
     container:SetPoint("BOTTOMLEFT", parent, "TOPLEFT", 0, 6)
 
-    -- [12.1] The icons come from the client's aura engine now. The host
-    -- frame above is kept as-is -- it is what AstralForge positions, what
-    -- the drag handlers move and what UFElements resolves by name -- and the
-    -- engine container simply fills it.
-    local AC = TomoMod_AuraContainer
-    if AC then
-        container.engine = AC.Create(container, {
-            key      = "auras",
-            unit     = unit,
-            size     = layout.size,
-            max      = layout.maxAuras,
-            -- The module FONT constant, not auraSettings.font: there is no
-            -- such setting, and the initializer calls SetFont unprotected --
-            -- a nil font errors inside the engine, on every container.
-            font     = FONT,
-            -- The setting is `type`, not `auraType`. Reading the wrong name
-            -- made this nil, which is not "HELPFUL", so every container came
-            -- out harmful regardless of what the user chose.
-            harmful  = (auraSettings.type ~= "HELPFUL"),
-            -- "ALL" wants both polarities. A group carries one filter, so
-            -- the container gets a second group rather than a merged string.
-            both     = (auraSettings.type == "ALL"),
-            onlyMine = auraSettings.showOnlyMine,
-            -- Restored: the engine shows aura tooltips itself, and the
-            -- setting drives the swipe's countdown digits.
-            tooltips     = true,
-            showDuration = auraSettings.showDuration ~= false,
-            -- Where the swipe digits used to sit, so dropping them changes
-            -- nothing on screen.
-            durationPoint = "CENTER",
-            durationX     = 0,
-            durationY     = 0,
-            durationColor = { 1, 1, 1, 1 },
-            -- Dropped in the conversion, which is why the row stopped
-            -- wrapping and always grew the same way.
-            growDirection = layout.growDirection,
-            growVertical  = layout.growVertical,
-            rowWidth      = layout.containerW,
-            spacing       = layout.spacing,
-            -- Anchor corner tracks growDirection/growVertical instead of a
-            -- fixed TOPLEFT: see the comment on HORIZONTAL_ANCHOR/
-            -- VERTICAL_ANCHOR in AuraContainer.lua for why a fixed corner
-            -- left a growing gap between the bar and the icons.
-            anchorHost = container,
-        })
-    end
+    -- The Forge host remains stable while the native engine child may be
+    -- replaced when its Buff/Debuff filter changes.
+    container.engine = CreateAuraEngine(container, unit, auraSettings, layout)
+    container._tomoAuraType = NormalizeAuraType(auraSettings.type)
+    container._tomoAuraOnlyMine = auraSettings.showOnlyMine and true or false
 
     -- Draggable support (uses global lock state)
     container:SetMovable(true)
@@ -219,13 +220,38 @@ end
 -- UF_Elements.RelayoutEnemyBuffs pour le pourquoi (Relayout ignorait ces
 -- champs tant que la taille/le nombre ne changeaient pas aussi).
 function UF_Elements.RelayoutAuras(container, auraSettings)
-    if not container or not container.engine or not auraSettings then return end
+    if not container or not auraSettings then return false end
     local layout = ComputeAuraLayout(auraSettings)
+    container:SetSize(layout.containerW, layout.containerH)
+    local auraType = NormalizeAuraType(auraSettings.type)
+    local onlyMine = auraSettings.showOnlyMine and true or false
+
+    -- Native AuraGroups are add-only. Changing polarity or the PLAYER filter
+    -- therefore replaces only the engine child while preserving the Forge
+    -- host frame, its position and its mover registration.
+    if not container.engine or container._tomoAuraType ~= auraType
+        or container._tomoAuraOnlyMine ~= onlyMine then
+        local oldEngine = container.engine
+        if oldEngine then
+            if TomoMod_AuraContainer and TomoMod_AuraContainer.SetUnit then
+                TomoMod_AuraContainer.SetUnit(oldEngine, nil)
+            end
+            oldEngine:Hide()
+        end
+        container.engine = CreateAuraEngine(container, container.unit,
+            auraSettings, layout)
+        container._tomoAuraType = auraType
+        container._tomoAuraOnlyMine = onlyMine
+        return container.engine ~= nil
+    end
+
     TomoMod_AuraContainer.Relayout(container.engine, {
         size = layout.size, max = layout.maxAuras,
         growDirection = layout.growDirection, growVertical = layout.growVertical,
         rowWidth = layout.containerW,
+        showDuration = auraSettings.showDuration ~= false,
     })
+    return true
 end
 
 -- =====================================
@@ -261,26 +287,26 @@ end
 
 -- Grille : perRow icônes par ligne, remplissage droite → gauche (ou
 -- l'inverse selon growDirection), lignes vers le haut ou le bas selon
--- growVertical. Un maximum de 3 lignes est imposé : au-delà, l'excédent
--- est simplement masqué plutôt que d'agrandir le conteneur sans limite.
+-- growVertical. Le total est borné à 12 icônes, donc le nombre de lignes
+-- peut suivre fidèlement `perRow` sans croissance illimitée.
 --
 -- Point unique pour ce calcul : Create et le relayout en direct (settings
 -- modifiés sans reload) doivent produire exactement les mêmes chiffres,
 -- sinon l'un des deux dérive silencieusement de l'autre.
-local MAX_ENEMY_BUFF_ROWS = 3
-
 local function ComputeEnemyBuffLayout(buffSettings)
     local size = buffSettings.size or 24
     local spacing = buffSettings.spacing or 2
-    local maxAuras = buffSettings.maxAuras or 4
+    local maxAuras = math.max(1, math.min(MAX_AURA_ICONS,
+        math.floor(tonumber(buffSettings.maxAuras) or 4)))
     local growDirection = buffSettings.growDirection or "RIGHT"
     local growVertical = buffSettings.growVertical or "UP"
-    local perRow = buffSettings.perRow or 3
+    local perRow = math.max(1, math.min(MAX_AURA_ICONS,
+        math.floor(tonumber(buffSettings.perRow) or 3)))
 
-    local numRows = math.min(MAX_ENEMY_BUFF_ROWS, math.ceil(maxAuras / perRow))
-    maxAuras = math.min(maxAuras, numRows * perRow)
+    local numRows = math.ceil(maxAuras / perRow)
+    local numCols = math.min(perRow, maxAuras)
 
-    local containerW = perRow * size + (perRow - 1) * spacing
+    local containerW = numCols * size + (numCols - 1) * spacing
     local containerH = numRows * size + (numRows - 1) * spacing
 
     return {
@@ -292,7 +318,8 @@ end
 
 -- nameOverride : voir CreateAuraContainer.
 function UF_Elements.CreateEnemyBuffContainer(parent, unit, settings, nameOverride)
-    if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled then return nil end
+    if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled
+        or UF_Elements.AurasShowBoth(settings) then return nil end
 
     local layout = ComputeEnemyBuffLayout(settings.enemyBuffs)
 
@@ -361,6 +388,7 @@ end
 function UF_Elements.RelayoutEnemyBuffs(container, buffSettings)
     if not container or not container.engine or not buffSettings then return end
     local layout = ComputeEnemyBuffLayout(buffSettings)
+    container:SetSize(layout.containerW, layout.containerH)
     TomoMod_AuraContainer.Relayout(container.engine, {
         size = layout.size, max = layout.maxAuras,
         growDirection = layout.growDirection, growVertical = layout.growVertical,
@@ -390,6 +418,7 @@ function UF_Elements.UpdateEnemyBuffs(frame)
     local container = frame.enemyBuffContainer
 
     if not settings or not settings.enemyBuffs or not settings.enemyBuffs.enabled
+        or UF_Elements.AurasShowBoth(settings)
         or not UnitExists(unit) then
         if container then container:Hide() end
         return

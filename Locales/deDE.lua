@@ -154,7 +154,7 @@ TomoMod_RegisterLocale("deDE", {
     ["opt_auras_type"]                  = "Aurentyp",
     ["aura_harmful"]                    = "Debuffs (schädlich)",
     ["aura_helpful"]                    = "Buffs (nützlich)",
-    ["aura_all"]                        = "Alle",
+    ["aura_all"]                        = "Buffs und Debuffs",
     ["opt_auras_direction"]             = "Wachstumsrichtung",
     ["opt_auras_direction_v"]           = "Vertikale Richtung",
     ["aura_dir_down"]                   = "Nach unten",

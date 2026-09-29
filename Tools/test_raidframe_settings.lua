@@ -90,6 +90,10 @@ file:close()
 check("regen handles pending settings", source:find("if RF._pendingSettings then", 1, true) ~= nil, true)
 check("regen replays ApplySettings", source:find("            RF.ApplySettings()", 1, true) ~= nil, true)
 check("raid anchor is clamped", source:find("anchor:SetClampedToScreen(true)", 1, true) ~= nil, true)
+local publishAt = source:find("RF.anchor = anchor", 1, true)
+local restoreAt = source:find("if not ApplyRaidAnchorPosition() then", 1, true)
+check("raid anchor is published before position restore",
+    publishAt and restoreAt and publishAt < restoreAt, true)
 
 print(ok and "PASS: RaidFrame live settings" or "FAIL: RaidFrame live settings")
 os.exit(ok and 0 or 1)

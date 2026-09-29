@@ -197,7 +197,10 @@ local function FindFrame(anchorID)
 
     if anchorID == "unitFrames.player" then return _G.TomoMod_UF_player end
     if anchorID == "unitFrames.target" then return _G.TomoMod_UF_target end
+    if anchorID == "unitFrames.targettarget" then return _G.TomoMod_UF_targettarget end
     if anchorID == "unitFrames.focus" then return _G.TomoMod_UF_focus end
+    if anchorID == "unitFrames.pet" then return _G.TomoMod_UF_pet end
+    if anchorID == "unitFrames.bossFrames" then return _G.TomoMod_Boss_1 end
     if anchorID == "castbars.player" then return _G.TomoMod_Castbar_player end
     if anchorID == "resourceBars" then return _G.TomoMod_ResourceBars_Container end
     if anchorID == "partyFrames" then return _G.TomoMod_PartyAnchor end
@@ -230,9 +233,11 @@ function P.ResolveAnchorID(frame)
     if not name then return nil end
 
     local unit = name:match("^TomoMod_UF_([%a]+)$")
-    if unit == "player" or unit == "target" or unit == "focus" then
+    if unit == "player" or unit == "target" or unit == "targettarget"
+        or unit == "focus" or unit == "pet" then
         return "unitFrames." .. unit
     end
+    if name == "TomoMod_Boss_1" then return "unitFrames.bossFrames" end
 
     if name == "TomoMod_Castbar_player" then return "castbars.player" end
     if name == "TomoMod_ResourceBars_Container" then return "resourceBars" end
@@ -490,7 +495,8 @@ function P.GetSelection()
 end
 
 local SELECTION_ANCHORS = {
-    "unitFrames.player", "unitFrames.target", "unitFrames.focus",
+    "unitFrames.player", "unitFrames.target", "unitFrames.targettarget",
+    "unitFrames.focus", "unitFrames.pet", "unitFrames.bossFrames",
     "castbars.player", "resourceBars",
     "actionBars.bar1", "actionBars.bar2", "actionBars.bar3", "actionBars.bar4",
     "actionBars.bar5", "actionBars.bar6", "actionBars.bar7", "actionBars.bar8",
@@ -503,10 +509,12 @@ local function BindSelectionFrame(frame)
     if not frame then return end
 
     -- SetupDraggable owners expose a dedicated, non-secure mover overlay.
+    -- Party and Raid predate dragFrame and publish the same surface as
+    -- moverOverlay, so accept both names here.
     -- Selecting from that overlay avoids touching the underlying unit button.
     -- Store the actual hooked surface rather than a boolean: action-bar
     -- overlays can be created after TomoLayout entered edit mode.
-    local drag = frame.dragFrame
+    local drag = frame.dragFrame or frame.moverOverlay
     if drag and drag.HookScript then
         if selectionHooks[frame] == drag then return end
         drag:HookScript("OnMouseDown", function(_, button)
@@ -553,7 +561,93 @@ local function SelectionRoute()
     end
 end
 
+local ASTRAL_SUBJECT_BY_ANCHOR = {
+    ["unitFrames.player"] = "player",
+    ["unitFrames.target"] = "target",
+    ["unitFrames.targettarget"] = "targettarget",
+    ["unitFrames.focus"] = "focus",
+    ["unitFrames.pet"] = "pet",
+    ["unitFrames.bossFrames"] = "bossframe",
+}
+
+local DEDICATED_STUDIO_BY_ANCHOR = {
+    ["resourceBars"] = {
+        addon = "TomoMod_ResourceCastStudio",
+        global = "TomoMod_ResourceCastStudio",
+        label = "Resource & Cast Studio",
+        arg = "resources",
+    },
+    ["castbars.player"] = {
+        addon = "TomoMod_ResourceCastStudio",
+        global = "TomoMod_ResourceCastStudio",
+        label = "Resource & Cast Studio",
+        arg = "cast",
+    },
+    ["partyFrames"] = {
+        addon = "TomoMod_GroupStudio",
+        global = "TomoMod_GroupStudio",
+        label = "Party & Raid Studio",
+        arg = "party",
+    },
+    ["raidFrames"] = {
+        addon = "TomoMod_GroupStudio",
+        global = "TomoMod_GroupStudio",
+        label = "Party & Raid Studio",
+        arg = "raid",
+    },
+}
+
+local function OpenSelectionInAstralForge(anchorID)
+    local subject = ASTRAL_SUBJECT_BY_ANCHOR[anchorID]
+    if not subject then return nil end
+
+    local forge = TomoMod_Forge
+    if not (forge and forge.Studio and forge.Studio.Launch) then return false end
+
+    return forge.Studio.Launch({
+        addon  = "TomoMod_AstralForge",
+        global = "TomoMod_AstralForge",
+        label  = "Astral Forge Studio",
+        arg    = subject,
+    })
+end
+P.OpenSelectionInAstralForge = OpenSelectionInAstralForge
+
+local function OpenSelectionInDedicatedStudio(anchorID)
+    local studio = DEDICATED_STUDIO_BY_ANCHOR[anchorID]
+    if not studio then return nil end
+
+    local forge = TomoMod_Forge
+    if not (forge and forge.Studio and forge.Studio.Launch) then return false end
+
+    return forge.Studio.Launch({
+        addon  = studio.addon,
+        global = studio.global,
+        label  = studio.label,
+        arg    = studio.arg,
+    })
+end
+P.OpenSelectionInDedicatedStudio = OpenSelectionInDedicatedStudio
+
+local function HasSelectionConfiguration()
+    return ASTRAL_SUBJECT_BY_ANCHOR[selectedAnchorID] ~= nil
+        or DEDICATED_STUDIO_BY_ANCHOR[selectedAnchorID] ~= nil
+        or SelectionRoute() ~= nil
+end
+
 function P.ConfigureSelection()
+    -- UnitFrames are authored in Astral Forge. Route from the resolved layout
+    -- anchor instead of their frame-name category, which still points at the
+    -- hidden legacy Options workspace.
+    local astralResult = OpenSelectionInAstralForge(selectedAnchorID)
+    if astralResult ~= nil then return astralResult end
+
+    -- Resource, cast and group frames are maintained by their dedicated
+    -- studios. Keep legacy Options routing only as a fallback for elements
+    -- that have not migrated to a Studio yet.
+    local studioResult = OpenSelectionInDedicatedStudio(selectedAnchorID)
+    if studioResult ~= nil then return studioResult end
+
     local movers = TomoMod_Movers
     local route = SelectionRoute()
     if route and movers and movers.OpenConfigRoute then
@@ -756,7 +850,7 @@ function P.RefreshUI()
             nudger._coords:SetText("X -    Y -")
         end
         if nudger._config then
-            if SelectionRoute() then nudger._config:Show() else nudger._config:Hide() end
+            if HasSelectionConfiguration() then nudger._config:Show() else nudger._config:Hide() end
         end
     else
         if selectionOutline then selectionOutline:Hide() end
