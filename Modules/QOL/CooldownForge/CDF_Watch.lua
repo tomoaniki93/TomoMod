@@ -951,6 +951,15 @@ end
 -- ---------------------------------------------------------------------
 local probes = setmetatable({}, { __mode = "k" })
 
+function CDF.ReleaseAuraProbe(icon)
+    local held = probes[icon]
+    local AC = TomoMod_AuraContainer
+    if held and held.probe and AC and AC.DestroyAuraProbe then
+        AC.DestroyAuraProbe(held.probe)
+    end
+    probes[icon] = nil
+end
+
 -- Attaches a probe to an icon, or returns the one it already has.
 function CDF.EnsureAuraProbe(icon, spellID)
     if not icon or not icon.cd then return nil end

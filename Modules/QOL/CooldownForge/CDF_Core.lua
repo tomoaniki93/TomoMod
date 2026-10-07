@@ -298,6 +298,18 @@ function CDF.EntryAuraID(entry, resolved)
     return tonumber(entry.id)
 end
 
+-- Cooldown entries prefer their active effect, then resume the real recharge.
+function CDF.ActiveEffectID(entry, resolved)
+    if not entry or entry.mode == "aura" or not resolved then return nil end
+    local id = tonumber(entry.auraID)
+    if id then return id end
+    if resolved.spellID then return resolved.spellID end
+    if resolved.itemID and C_Item and C_Item.GetItemSpell then
+        local _, spellID = C_Item.GetItemSpell(resolved.itemID)
+        return spellID
+    end
+end
+
 -- [G2] Effective icon dimensions. Width and height are independent
 -- overrides on top of the historic square `iconSize`, so a bar that has
 -- never been touched keeps rendering exactly as before and no migration is

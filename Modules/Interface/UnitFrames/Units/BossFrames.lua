@@ -1,7 +1,7 @@
 ﻿-- =====================================
 -- Units/BossFrames.lua — Boss Unit Frames (boss1–boss5)
 -- All 5 frames move together via boss1 drag handle.
--- Display: Name, Raid Marker (left), Health % only.
+-- Display: Name, Raid Marker (left), Health %, primary power and its value.
 -- Bar color: Nameplate boss/miniboss classification colors.
 -- =====================================
 
@@ -14,6 +14,7 @@ local BOSS_UNITS = { "boss1", "boss2", "boss3", "boss4", "boss5", "boss6", "boss
 local E = UF_Elements
 
 local MAX_BOSSES = 5
+local POWER_HEIGHT = 14
 local bossFrames = {}
 local isLocked = true
 
@@ -104,7 +105,7 @@ local function CreateBossFrame(bossIndex)
 
     -- Main frame (SecureUnitButtonTemplate for click-targeting)
     local frame = CreateFrame("Button", "TomoMod_Boss_" .. bossIndex, UIParent, "SecureUnitButtonTemplate")
-    frame:SetSize(width, height)
+    frame:SetSize(width, height + POWER_HEIGHT)
     frame.unit = unit
     frame.bossIndex = bossIndex
     frame:SetAttribute("unit", unit)
@@ -134,6 +135,13 @@ local function CreateBossFrame(bossIndex)
     E.CreateBorder(health)
 
     frame.health = health
+
+    -- Primary resource (energy, mana, rage, etc.) below the health bar.
+    local power = E.CreatePower(frame, unit, { width = width, powerHeight = POWER_HEIGHT })
+    power:SetPoint("TOP", health, "BOTTOM", 0, 0)
+    power.text:SetFont(font, math.max(8, fontSize - 2), "OUTLINE")
+    power.text:SetTextColor(1, 1, 1, 1)
+    frame.power = power
 
     -- ===== Raid Icon (LEFT of name) =====
     local raidIcon = health:CreateTexture(nil, "OVERLAY")
@@ -206,6 +214,17 @@ local function UpdateBossFrame(frame)
 
     -- Health text (percent only)
     SetBossHealthText(frame.healthText, unit)
+
+    -- Forward restricted power values directly to C-side widgets/formatting.
+    -- Boss settings live under bossFrames, not under the boss1..boss5 tokens
+    -- used by the shared UpdatePower helper to find text preferences.
+    local powerType = UnitPowerType(unit) or 0
+    local powerCurrent = UnitPower(unit, powerType)
+    frame.power:SetMinMaxValues(0, UnitPowerMax(unit, powerType))
+    frame.power:SetValue(powerCurrent)
+    local pr, pg, pb = TomoMod_Utils.GetPowerColor(powerType)
+    frame.power:SetStatusBarColor(pr, pg, pb, 1)
+    frame.power.text:SetFormattedText("%s", AbbreviateLargeNumbers(powerCurrent))
 
     -- Raid icon
     UpdateRaidIcon(frame)
@@ -358,6 +377,7 @@ local bossEventFrames = {}
 
 local bossEvents = {
     "UNIT_HEALTH", "UNIT_MAXHEALTH",
+    "UNIT_POWER_UPDATE", "UNIT_MAXPOWER", "UNIT_DISPLAYPOWER",
 }
 
 -- Throttled update (boss health can change rapidly)
@@ -495,8 +515,10 @@ function BF.RefreshAll()
     for i = 1, MAX_BOSSES do
         local frame = bossFrames[i]
         if frame then
-            frame:SetSize(db.width, db.height)
+            frame:SetSize(db.width, db.height + POWER_HEIGHT)
             frame.health:SetSize(db.width, db.height)
+            frame.power:SetSize(db.width, POWER_HEIGHT)
+            frame.power.text:SetFont(font, math.max(8, fontSize - 2), "OUTLINE")
 
             -- Update fonts
             if frame.nameText then

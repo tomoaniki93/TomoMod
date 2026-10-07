@@ -1004,7 +1004,6 @@ local function TabSorts(parent)
         _, cy = W.CreateCheckbox(card.inner, "Suivre un buff (proc) au lieu du cooldown",
             fxE.mode == "aura", cy, function(v)
                 fxE.mode = v and "aura" or nil
-                if not v then fxE.auraID = nil end
                 Apply(); S.RebuildContent()
             end)
         if fxE.mode == "aura" then
@@ -1015,6 +1014,14 @@ local function TabSorts(parent)
                 .. "des auras. Un buff deja actif a l'entree en combat est suivi normalement ; "
                 .. "un proc applique en plein combat n'est parfois pas identifiable et son "
                 .. "icone reste masquee. Ce n'est pas un reglage a chercher.", cy)
+        else
+            _, cy = W.CreateInfoText(card.inner,
+                "Pendant l'effet actif, l'icone affiche sa duree restante, puis reprend "
+                .. "le temps de recharge restant. Le buff est detecte depuis le sort ou "
+                .. "l'effet d'utilisation du bijou. Si son ID differe, indique-le ci-dessous. "
+                .. "En combat, l'affichage depend des informations de buff accessibles au client.", cy)
+        end
+        do
             local aBox
             aBox, cy = W.CreateMultiLineEditBox(card.inner, "ID du buff (vide = ID du sort)", 24, cy, {
                 onTextChanged = function(t)

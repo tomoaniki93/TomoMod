@@ -63,6 +63,17 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "4.0.8",
+        highlights = {
+            L["wn_408_active_countdown"],
+            L["wn_408_active_detection"],
+            L["wn_408_active_visibility"],
+            L["wn_408_boss_resource"],
+            L["wn_408_boss_value"],
+            L["wn_408_boss_layout"],
+        },
+    },
+    {
         version = "4.0.7",
         highlights = {
             L["wn_407_keystone_shortcut"],

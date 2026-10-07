@@ -1,5 +1,22 @@
 ﻿## ####################################
 
+## CHANGELOG 4.0.8
+
+#### Cooldown Studio — Active Effect Countdown
+
+- **New** - Cooldown icons now prioritize the remaining duration of an active player buff (20, 19, 18...), then resume the actual remaining recharge when the effect ends.
+- **New** - Item and equipped-trinket entries resolve their on-use spell automatically. The per-entry buff spell ID field also supports cooldown entries, allowing effects with a different spell ID to be tracked.
+- **Changed** - Active effects remain visible with cooldown hiding enabled. Detection uses the existing aura sources and remains subject to the client's combat aura restrictions.
+- **Changed** - The 4.0.8 What's New notes include these additions in English, French, German, Spanish, Italian and Brazilian Portuguese.
+
+#### Boss Frames — Resource Bar And Numeric Value
+
+- **New** - Boss frames now include a primary resource bar below health, showing energy, mana, rage or the boss's other primary resource with the corresponding color.
+- **Fixed** - The current resource value is now visible on the bar and refreshes during encounters, including changes to the resource type and maximum.
+- **Changed** - Boss frame height and vertical stacking now include the resource bar, preventing overlap between adjacent bosses. The resource text also follows the configured UnitFrames font.
+
+## ####################################
+
 ## CHANGELOG 4.0.7
 
 #### Mythic+ — Keystone Shortcuts And Roulette

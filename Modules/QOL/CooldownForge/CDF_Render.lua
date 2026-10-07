@@ -503,8 +503,22 @@ local function applyEntry(icon, resolved, state, bar)
     end
 
     local auraID = CDF.EntryAuraID and CDF.EntryAuraID(resolved and resolved._entry, resolved)
+    local auraOnly = auraID ~= nil
+    local effectState
+    if not auraOnly then
+        if CDF.ReleaseAuraProbe then CDF.ReleaseAuraProbe(icon) end
+        local effectID = CDF.ActiveEffectID(resolved._entry, resolved)
+        effectState = effectID and CDF.GetAuraState(effectID)
+        if effectState and effectState.active then auraID = effectID end
+    end
+    icon._auraState = nil
+    if not auraID then
+        if icon._activeEffectOn then styleIcon(icon, bar) end
+        applyActiveVisuals(false)
+    end
+    icon._activeEffectOn = auraID ~= nil
     if auraID then
-        local a = CDF.GetAuraState and CDF.GetAuraState(auraID)
+        local a = effectState or (CDF.GetAuraState and CDF.GetAuraState(auraID))
 
         -- [12.1] The probe is attached whatever the sources above answered:
         -- it drives icon.cd directly from the engine, so the swipe keeps
@@ -514,7 +528,7 @@ local function applyEntry(icon, resolved, state, bar)
         -- sources reported nothing. They carry duration and stacks, which
         -- the probe deliberately does not, so preferring them where they
         -- answer keeps the countdown text.
-        local probed = CDF.ProbeAuraState and CDF.ProbeAuraState(icon, auraID)
+        local probed = auraOnly and CDF.ProbeAuraState and CDF.ProbeAuraState(icon, auraID)
         if probed and probed.active and not (a and a.active) then
             a = probed
         end
@@ -524,7 +538,7 @@ local function applyEntry(icon, resolved, state, bar)
         -- skipped: two owners taking turns is what makes a swipe flicker.
         -- The readable sources still drive the mirror text and the visuals,
         -- which are ours alone.
-        local probeOwnsSwipe = CDF.ProbeDrives and CDF.ProbeDrives(icon)
+        local probeOwnsSwipe = auraOnly and CDF.ProbeDrives and CDF.ProbeDrives(icon)
         -- Numbers first when they are readable. The duration object handed
         -- back by C_UnitAuras.GetAuraDuration is not the same shape as the one
         -- Cooldown:SetCooldownFromDurationObject consumes, so passing it
@@ -594,12 +608,13 @@ local function applyEntry(icon, resolved, state, bar)
         ready = true
     elseif state and state.isSpell then
         local durObj = (state.maxCharges and state.maxCharges > 1 and state.chargeDurObj) or state.durObj
-        if durObj then icon.cd:SetCooldownFromDurationObject(durObj) end
+        if durObj then icon.cd:SetCooldownFromDurationObject(durObj) else icon.cd:Clear() end
         ready = not icon.cd:IsShown()
     elseif state then
         icon.cd:SetCooldown(state.start or 0, state.duration or 0)
         ready = (not state.duration) or state.duration == 0
     else
+        icon.cd:Clear()
         ready = true
     end
 
@@ -836,6 +851,9 @@ local function entryShown(bar, r, state, entry)
         if not (a and a.active) then return false end
         return true
     end
+    local effectID = CDF.ActiveEffectID(entry, r)
+    local effect = effectID and CDF.GetAuraState(effectID)
+    if effect and effect.active then return true end
     if bar.hideOnCooldown and not CDF.IsReady(r, state) then return false end
     if bar.hideOnUnusable and CDF.GetUsable then
         local usable = CDF.GetUsable(r)
@@ -1005,7 +1023,7 @@ local function needsAuraWatch(arr)
             for _, e in ipairs(bar.entries or {}) do
                 -- [G4] a tracked-buff entry needs UNIT_AURA to appear and
                 -- disappear at all
-                if e.mode == "aura" then return true end
+                if e.enabled ~= false then return true end
                 local o = e.override
                 -- [H4] `stacks` reads the aura's application count, so it needs
                 -- UNIT_AURA just as much as the `aura` condition does.
