@@ -65,6 +65,10 @@ CHANGELOG = {
     {
         version = "4.1.0",
         highlights = {
+            L["wn_410_window_fit"],
+            L["wn_410_readability"],
+            L["wn_410_home_resets"],
+            L["wn_410_automation_movers"],
             L["wn_410_sidebar"],
             L["wn_410_studio_routing"],
             L["wn_410_nameplate_controls"],

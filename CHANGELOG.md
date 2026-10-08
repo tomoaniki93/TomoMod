@@ -2,6 +2,24 @@
 
 ## CHANGELOG 4.1.0
 
+#### Options Window — Screen Fit And Readability
+
+- **Fixed** - The options window now bounds its dimensions and resize limits to the available screen space at its own scale. The adjustment runs when opening the window, changing its scale or resetting its size, keeping the footer and resize handle accessible at common UI scales.
+- **Changed** - Duplicate page headers were removed, reclaiming 92 units of content height while the title bar retains the category title and description.
+- **Changed** - Secondary text, placeholders, footer hints and search results use stronger contrast. Information text, sublabels and several dashboard labels are larger, and role filtering dims unrelated sections less aggressively.
+
+#### Home Dashboard And Reset Confirmation
+
+- **Changed** - The Studios hub now appears immediately below the Home summary. Quick actions focus on Installer and Reload, while Profiles and Diagnostics remain accessible from the sidebar. The resolution preset stays before role configuration, and the suite card moves to the bottom.
+- **Changed** - Full reset controls were removed from Home and General and consolidated in Profiles > Resets alongside recovery backups.
+- **New** - Module reset actions now use red warning buttons and require confirmation. The localized confirmation explains how to restore the backup; the full-reset button uses the same warning style.
+
+#### Automation Labels And Layout Cleanup
+
+- **Changed** - Automatic invite acceptance, role-check confirmation, summon acceptance and DELETE entry now have explicit action labels in all six languages. The secondary Blizzard status-bar explanation appears as hover help instead of a separate paragraph.
+- **New** - Shared widgets support optional hover tooltips on both the option row and its control.
+- **Fixed** - The obsolete BagSkin anchor and legacy BagSkin and World Quest mover routes were removed. Bags V4 remains the movable bag window, avoiding a duplicate legacy bag entry.
+
 #### Sidebar Navigation And Direct Studio Access
 
 - **New** - The sidebar keeps all main categories visible and expands Interface and Comfort navigation in place. A dedicated Studios block opens Astral Forge, Party & Raid, Resource & Cast, Cooldown and Mythic+ editors directly.

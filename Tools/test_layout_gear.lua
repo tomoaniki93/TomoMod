@@ -212,7 +212,6 @@ local COVERED = {
     ["minimap"]                        = "^TomoModMinimap",
     ["objectiveTracker"]               = "^TomoModObjectiveTrackerMover",
     ["chatV4"]                         = "^TomoMod_ChatV4",
-    ["bagSkin"]                        = "^TomoMod_BagSkin_",
     ["bagsV4"]                         = "^TomoMod_BagsV4_",
     ["actionBars.extraActionButton"]   = "^TUI_ActionBar_",
     ["actionBars.zoneAbility"]         = "^TUI_ActionBar_",

@@ -895,10 +895,10 @@ local function BuildResetsTab(parent)
     }
 
     for _, mod in ipairs(modules) do
-        local _, ny = W.CreateButton(c, (L["btn_reset_prefix"]) .. mod.label, 260, y, function()
-            if TomoMod_ResetModule(mod.key) then
-                print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_reset"], mod.label))
-            end
+        -- Destructive: danger style + confirmation (the reset itself takes
+        -- a ProfileSafety backup, which the popup text points to).
+        local _, ny = W.CreateDangerButton(c, (L["btn_reset_prefix"]) .. mod.label, 260, y, function()
+            StaticPopup_Show("TOMOMOD_RESET_MODULE", mod.label, nil, { key = mod.key, label = mod.label })
         end)
         y = ny
     end
@@ -906,7 +906,7 @@ local function BuildResetsTab(parent)
     local _, ny = W.CreateSeparator(c, y); y = ny
     local _, ny = W.CreateSectionHeader(c, L["section_reset_all"], y); y = ny
     local _, ny = W.CreateInfoText(c, L["info_reset_all_warning"], y); y = ny
-    local _, ny = W.CreateButton(c, L["btn_reset_all_reload"], 280, y, function()
+    local _, ny = W.CreateDangerButton(c, L["btn_reset_all_reload"], 280, y, function()
         StaticPopup_Show("TOMOMOD_RESET_ALL")
     end)
     y = ny - 20
@@ -962,6 +962,20 @@ StaticPopupDialogs["TOMOMOD_PROFILE_RELOAD"] = {
     button1 = L["popup_confirm"],
     button2 = L["popup_cancel"],
     OnAccept = function() ReloadUI() end,
+    timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
+}
+
+StaticPopupDialogs["TOMOMOD_RESET_MODULE"] = {
+    OnShow = function(self) U.RaiseAboveTomoUI(self) end,
+    OnHide = function(self) U.RestoreTomoUILayer(self) end,
+    text = L["popup_reset_module"],
+    button1 = L["popup_confirm"],
+    button2 = L["popup_cancel"],
+    OnAccept = function(self, data)
+        if data and data.key and TomoMod_ResetModule(data.key) then
+            print("|cff2e9dd8TomoMod|r " .. string.format(L["msg_profile_reset"], data.label))
+        end
+    end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }
 

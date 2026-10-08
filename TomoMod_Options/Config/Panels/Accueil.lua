@@ -24,7 +24,6 @@ if TomoMod_RegisterLocale then
         ["dash_modules_section"]     = "Essential modules",
         ["dash_quickcfg_section"]    = "Quick configuration",
         ["dash_profile_section"]     = "Profile",
-        ["dash_maint_section"]       = "Maintenance",
         ["dash_modules_enabled"]     = "Modules active",
         ["dash_status_ready"]        = "Ready",
         ["dash_status_attention"]    = "Check",
@@ -34,14 +33,11 @@ if TomoMod_RegisterLocale then
         ["dash_status_external_tip"] = "%d issue(s) are captured, but not attributed to TomoMod.",
         ["dash_reload_hint"]         = "Module changes apply live. Protected frame changes are applied automatically when combat ends.",
         ["dash_action_forge"]        = "Installer",
-        ["dash_action_profiles"]     = "Profiles",
-        ["dash_action_diagnostics"]  = "Diagnostics",
         ["dash_action_reload"]       = "Reload",
         ["dash_apply_preset"]        = "Setup preset",
         ["dash_apply_preset_btn"]    = "Apply this preset",
         ["dash_apply_preset_info"]   = "Applying a preset changes enabled modules and then asks for a reload.",
         ["dash_active_profile"]      = "Active profile",
-        ["dash_manage_profiles"]     = "Manage profiles",
         ["dash_profile_info"]        = "Switching profile reloads the interface to apply it cleanly.",
         ["dash_mod_resources"]       = "Resources",
         ["dash_mod_cdm"]             = "Cooldown Manager",
@@ -62,7 +58,6 @@ if TomoMod_RegisterLocale then
         ["dash_modules_section"]     = "Modules essentiels",
         ["dash_quickcfg_section"]    = "Configuration rapide",
         ["dash_profile_section"]     = "Profil",
-        ["dash_maint_section"]       = "Maintenance",
         ["dash_modules_enabled"]     = "Modules actifs",
         ["dash_status_ready"]        = "Prêt",
         ["dash_status_attention"]    = "À vérifier",
@@ -72,14 +67,11 @@ if TomoMod_RegisterLocale then
         ["dash_status_external_tip"] = "%d souci(s) sont capturés, mais pas attribués à TomoMod.",
         ["dash_reload_hint"]         = "Les modules sont appliqués à chaud. Les changements protégés sont appliqués automatiquement à la fin du combat.",
         ["dash_action_forge"]        = "Installeur",
-        ["dash_action_profiles"]     = "Profils",
-        ["dash_action_diagnostics"]  = "Diagnostics",
         ["dash_action_reload"]       = "Recharger",
         ["dash_apply_preset"]        = "Preset de configuration",
         ["dash_apply_preset_btn"]    = "Appliquer ce preset",
         ["dash_apply_preset_info"]   = "Appliquer un preset change les modules activés puis propose un rechargement.",
         ["dash_active_profile"]      = "Profil actif",
-        ["dash_manage_profiles"]     = "Gérer les profils",
         ["dash_profile_info"]        = "Changer de profil recharge l'interface pour l'appliquer proprement.",
         ["dash_mod_resources"]       = "Ressources",
         ["dash_mod_cdm"]             = "Cooldown Manager",
@@ -509,7 +501,7 @@ local function CreateChip(parent, title, value, x, y, width, r, g, b)
     SetPanelBackdrop(chip, r, g, b, 0.62)
 
     local titleText = chip:CreateFontString(nil, "OVERLAY")
-    titleText:SetFont(FONT, 9, "")
+    titleText:SetFont(FONT, 10, "")
     titleText:SetPoint("TOPLEFT", 10, -7)
     titleText:SetText(title)
     titleText:SetTextColor(DM[1], DM[2], DM[3], 1)
@@ -605,6 +597,8 @@ local function CreateHero(parent, y)
 end
 
 local function CreateQuickActions(parent, y)
+    -- Profiles and Diagnostics are one click away in the sidebar: only the
+    -- two actions that have no other home stay here.
     local panel, nextY = CreatePanel(parent, Localize("dash_actions_section", "Actions rapides"), y, 90, CY[1], CY[2], CY[3])
     CreateActionButton(panel, Localize("dash_action_forge", "Installeur"), 18, -38, 160, A[1], A[2], A[3], function()
         if TomoMod_OpenInstaller then
@@ -612,17 +606,7 @@ local function CreateQuickActions(parent, y)
             if TomoMod_Config and TomoMod_Config.Hide then TomoMod_Config.Hide() end
         end
     end)
-    CreateActionButton(panel, Localize("dash_action_profiles", "Profils"), 188, -38, 150, CY[1], CY[2], CY[3], function()
-        if TomoMod_Config and TomoMod_Config.OpenCategory then
-            TomoMod_Config.OpenCategory("profiles")
-        end
-    end)
-    CreateActionButton(panel, Localize("dash_action_diagnostics", "Diagnostics"), 348, -38, 160, GD[1], GD[2], GD[3], function()
-        if TomoMod_Config and TomoMod_Config.OpenCategory then
-            TomoMod_Config.OpenCategory("diagnostics")
-        end
-    end)
-    CreateActionButton(panel, Localize("dash_action_reload", "Recharger"), 518, -38, 150, 0.38, 0.86, 0.56, function()
+    CreateActionButton(panel, Localize("dash_action_reload", "Recharger"), 188, -38, 150, 0.38, 0.86, 0.56, function()
         ReloadUI()
     end)
     return nextY
@@ -646,7 +630,7 @@ local function CreateModuleTile(parent, def, x, y)
     label:SetText(Localize(def.label, def.label))
 
     local state = tile:CreateFontString(nil, "OVERLAY")
-    state:SetFont(FONT_BOLD, 9, "")
+    state:SetFont(FONT_BOLD, 10, "")
     state:SetPoint("RIGHT", -10, 0)
 
     local function Refresh()
@@ -808,13 +792,13 @@ local function CreateStudioTile(grid, def)
 
     local statusText, sr, sg, sb = GetStudioStatus(def)
     local status = tile:CreateFontString(nil, "OVERLAY")
-    status:SetFont(FONT_BOLD, 8, "")
+    status:SetFont(FONT_BOLD, 9, "")
     status:SetPoint("TOPRIGHT", -12, -14)
     status:SetText(statusText)
     status:SetTextColor(sr, sg, sb, 1)
 
     local desc = tile:CreateFontString(nil, "OVERLAY")
-    desc:SetFont(FONT, 9, "")
+    desc:SetFont(FONT, 10, "")
     desc:SetPoint("TOPLEFT", 14, -34)
     desc:SetPoint("TOPRIGHT", -14, -34)
     desc:SetHeight(42)
@@ -1052,13 +1036,13 @@ local function CreatePresetCard(grid, def)
     name:SetTextColor(c[1], c[2], c[3], 1)
 
     local badge = card:CreateFontString(nil, "OVERLAY")
-    badge:SetFont(FONT_BOLD, 8, "")
+    badge:SetFont(FONT_BOLD, 9, "")
     badge:SetPoint("TOPRIGHT", -10, -12)
     badge:Hide()
     card._badge = badge
 
     local tag = card:CreateFontString(nil, "OVERLAY")
-    tag:SetFont(FONT, 9, "")
+    tag:SetFont(FONT, 10, "")
     tag:SetPoint("TOPLEFT", 14, -48)
     tag:SetPoint("RIGHT", card, "RIGHT", -10, 0)
     tag:SetJustifyH("LEFT")
@@ -1076,7 +1060,7 @@ local function CreatePresetCard(grid, def)
             dot:SetColorTexture(c[1], c[2], c[3], 0.85)
 
             local txt = card:CreateFontString(nil, "OVERLAY")
-            txt:SetFont(FONT, 9, "")
+            txt:SetFont(FONT, 10, "")
             txt:SetPoint("TOPLEFT", 25, hy)
             txt:SetPoint("RIGHT", card, "RIGHT", -10, 0)
             txt:SetJustifyH("LEFT")
@@ -1280,14 +1264,15 @@ function TomoMod_ConfigPanel_Accueil(parent)
     local c = scroll.child
     local y = -12
 
+    -- Studios first: they hold the most-edited settings (unit frames,
+    -- nameplates, group frames, castbars, cooldowns), so they sit right
+    -- under the summary instead of below the fold.
     y = CreateHero(c, y)
+    y = CreateStudiosHub(c, y)
     y = CreateQuickActions(c, y)
     y = CreateModules(c, y)
-    y = CreateStudiosHub(c, y)
-    -- Carte partagée (Config/Panels/_Suite.lua), en version compacte : le
-    -- tableau de bord est une vue de synthèse. Placée AVANT Maintenance, qui
-    -- contient la réinitialisation totale et doit rester la dernière chose lue.
-    y = TomoMod_Suite.CreateCard(c, y, true)
+    -- Resolution before the role picker: the preset decides the layout
+    -- the role setup is then built on (Tools/test_resolution_presets).
     y = CreateResolution(c, y)
     y = CreateQuickConfig(c, y)
 
@@ -1300,24 +1285,14 @@ function TomoMod_ConfigPanel_Accueil(parent)
         end
     end)
     py = profileY
-    local _, manageY = W.CreateButton(card3.inner, Localize("dash_manage_profiles", "Gérer les profils"), 220, py, function()
-        if TomoMod_Config and TomoMod_Config.OpenCategory then
-            TomoMod_Config.OpenCategory("profiles")
-        end
-    end)
-    py = manageY
     local _, profileInfoY = W.CreateInfoText(card3.inner, Localize("dash_profile_info", "Changer de profil recharge l'interface."), py)
     py = profileInfoY
     y = W.FinalizeCard(card3, py)
 
-    local card4, my = W.CreateCard(c, Localize("dash_maint_section", "Maintenance"), y)
-    local _, resetY = W.CreateButton(card4.inner, L["btn_reset_all"] or "Réinitialiser tout", 220, my, function()
-        StaticPopup_Show("TOMOMOD_DASH_RESET")
-    end)
-    my = resetY
-    local _, resetInfoY = W.CreateInfoText(card4.inner, L["info_reset_all"] or "Réinitialise tous les paramètres et recharge l'UI.", my)
-    my = resetInfoY
-    y = W.FinalizeCard(card4, my)
+    -- Shared suite card (Config/Panels/_Suite.lua), compact version. The
+    -- "Reset everything" Maintenance card is gone from Home: a destructive
+    -- action belongs in Profiles > Resets, next to the backups.
+    y = TomoMod_Suite.CreateCard(c, y, true)
 
     c:SetHeight(math.abs(y) + 20)
     if scroll.UpdateScroll then scroll.UpdateScroll() end
@@ -1329,13 +1304,5 @@ StaticPopupDialogs["TOMOMOD_DASH_RELOAD"] = {
     button1  = Localize("popup_confirm", "Confirmer"),
     button2  = Localize("popup_cancel", "Annuler"),
     OnAccept = function() ReloadUI() end,
-    timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
-}
-
-StaticPopupDialogs["TOMOMOD_DASH_RESET"] = {
-    text     = Localize("popup_reset_text", "Réinitialiser tous les paramètres ?"),
-    button1  = Localize("popup_confirm", "Confirmer"),
-    button2  = Localize("popup_cancel", "Annuler"),
-    OnAccept = function() if TomoMod_ResetDatabase() then ReloadUI() end end,
     timeout = 0, whileDead = true, hideOnEscape = true, preferredIndex = 3,
 }

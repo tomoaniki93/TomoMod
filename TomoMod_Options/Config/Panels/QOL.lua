@@ -97,15 +97,14 @@ local function BuildAutomationsTab(parent)
     y = ny
 
     -- Hide Blizzard Status Bar 2
-    local _, ny = W.CreateCheckbox(c, L["opt_hide_status_bar2"],
+    local sb2, ny = W.CreateCheckbox(c, L["opt_hide_status_bar2"],
         TomoModDB.hideStatusBar2.enabled, y, function(v)
             TomoModDB.hideStatusBar2.enabled = v
             if v and TomoMod_ReputationBar_ApplySuppression then
                 TomoMod_ReputationBar_ApplySuppression()
             end
         end)
-    y = ny
-    local _, ny = W.CreateInfoText(c, L["opt_hide_status_bar2_desc"], y)
+    W.SetTooltip(sb2, L["opt_hide_status_bar2_desc"])
     y = ny
 
     -- Auto Accept Invite
@@ -114,7 +113,7 @@ local function BuildAutomationsTab(parent)
     local _, ny = W.CreateSubLabel(c, L["sublabel_auto_accept_invite"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.autoAcceptInvite.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_auto_accept_invite_enable"], TomoModDB.autoAcceptInvite.enabled, y, function(v)
         TomoModDB.autoAcceptInvite.enabled = v
     end)
     y = ny
@@ -132,7 +131,7 @@ local function BuildAutomationsTab(parent)
     local _, ny = W.CreateSubLabel(c, L["sublabel_auto_skip_role"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.autoSkipRole.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_auto_skip_role_enable"], TomoModDB.autoSkipRole.enabled, y, function(v)
         TomoModDB.autoSkipRole.enabled = v
         if TomoMod_AutoSkipRole then TomoMod_AutoSkipRole.SetEnabled(v) end
     end)
@@ -144,7 +143,7 @@ local function BuildAutomationsTab(parent)
     local _, ny = W.CreateSubLabel(c, L["sublabel_auto_summon"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.autoSummon.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_auto_summon_enable"], TomoModDB.autoSummon.enabled, y, function(v)
         TomoModDB.autoSummon.enabled = v
     end)
     y = ny
@@ -170,7 +169,7 @@ local function BuildAutomationsTab(parent)
     local _, ny = W.CreateSubLabel(c, L["sublabel_auto_fill_delete"], y)
     y = ny
 
-    local _, ny = W.CreateCheckbox(c, L["opt_enable"], TomoModDB.autoFillDelete.enabled, y, function(v)
+    local _, ny = W.CreateCheckbox(c, L["opt_auto_fill_delete_enable"], TomoModDB.autoFillDelete.enabled, y, function(v)
         TomoModDB.autoFillDelete.enabled = v
     end)
     y = ny

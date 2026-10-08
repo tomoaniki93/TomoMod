@@ -227,7 +227,6 @@ local PANEL_MIN_W, PANEL_MIN_H = 1020, 720
 local PANEL_MAX_W, PANEL_MAX_H = 1680, 1080
 local TITLE_H   = 52
 local FOOTER_H  = 36
-local PAGE_HEAD_H = 92
 
 -- =====================================================================
 -- CATEGORIES
@@ -624,7 +623,7 @@ local function CreateNavButton(parent, cat, yOffset)
     lbl:SetPoint("LEFT", ico, "RIGHT", 10, 0)
     lbl:SetPoint("RIGHT", btn, "RIGHT", -8, 0)
     lbl:SetJustifyH("LEFT")
-    lbl:SetTextColor(0.48, 0.48, 0.54, 1)
+    lbl:SetTextColor(T.textDim[1], T.textDim[2], T.textDim[3], 1)
     lbl:SetText(cat.label)
     btn.lbl = lbl
 
@@ -646,7 +645,7 @@ local function CreateNavButton(parent, cat, yOffset)
             selBg:SetColorTexture(aR, aG, aB, 0)
             selBar:Hide()
             ico:SetVertexColor(0.46, 0.46, 0.52, 1)
-            lbl:SetTextColor(0.48, 0.48, 0.54, 1)
+            lbl:SetTextColor(T.textDim[1], T.textDim[2], T.textDim[3], 1)
         end
     end
     btn.SetActive = SetActive
@@ -703,7 +702,7 @@ local function CreateSubNavButton(parent, item, categoryKey, isActive, onClick)
         else
             bg:SetColorTexture(aR, aG, aB, 0)
             dot:SetColorTexture(aR, aG, aB, 0.30)
-            lbl:SetTextColor(0.52, 0.52, 0.58, 1)
+            lbl:SetTextColor(T.textDim[1], T.textDim[2], T.textDim[3], 1)
         end
     end
     btn.SetActive = SetActive
@@ -780,65 +779,21 @@ local function CreateStudioNavButton(parent, def)
     return btn
 end
 
+-- Page shell: carries the category design (accent) for the widgets inside.
+-- It used to draw a 92px header repeating the category title and
+-- description, which the title bar already shows (context title + desc);
+-- the page now starts at the top of the content area.
 local function CreatePageShell(parent, cat)
     if not cat or cat.key == "accueil" then
         return parent, nil
     end
 
-    local r, g, b = CategoryAccent(cat)
     local shell = CreateFrame("Frame", nil, parent)
     shell:SetAllPoints()
     shell._muiDesign = cat
 
-    local header = CreateFrame("Frame", nil, shell, "BackdropTemplate")
-    header:SetPoint("TOPLEFT", 8, -10)
-    header:SetPoint("TOPRIGHT", -18, -10)
-    header:SetHeight(PAGE_HEAD_H - 18)
-    header:SetBackdrop({
-        bgFile   = "Interface\\Buttons\\WHITE8x8",
-        edgeFile = "Interface\\Buttons\\WHITE8x8",
-        edgeSize = 1,
-    })
-    header:SetBackdropColor(0.040, 0.038, 0.058, 0.98)
-    header:SetBackdropBorderColor(r, g, b, 0.34)
-
-    local wash = header:CreateTexture(nil, "BACKGROUND", nil, -1)
-    wash:SetPoint("TOPLEFT", 1, -1)
-    wash:SetPoint("BOTTOMRIGHT", -1, 1)
-    if wash.SetGradientAlpha then
-        wash:SetGradientAlpha("HORIZONTAL", r, g, b, 0.16, 0, 0, 0, 0)
-    else
-        wash:SetColorTexture(r, g, b, 0.08)
-    end
-
-    local bar = header:CreateTexture(nil, "ARTWORK")
-    bar:SetWidth(4)
-    bar:SetPoint("TOPLEFT", 0, 0)
-    bar:SetPoint("BOTTOMLEFT", 0, 0)
-    bar:SetColorTexture(r, g, b, 1)
-
-    local icon = header:CreateTexture(nil, "OVERLAY")
-    icon:SetSize(34, 34)
-    icon:SetPoint("LEFT", 18, 0)
-    icon:SetTexture(cat.icon)
-    icon:SetVertexColor(r, g, b, 1)
-
-    local title = header:CreateFontString(nil, "OVERLAY")
-    title:SetFont(FONT_BOLD, 20, "")
-    title:SetPoint("TOPLEFT", icon, "TOPRIGHT", 14, -5)
-    title:SetText(cat.label or "")
-    title:SetTextColor(1, 1, 1, 1)
-
-    local desc = header:CreateFontString(nil, "OVERLAY")
-    desc:SetFont(FONT, 11, "")
-    desc:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
-    desc:SetPoint("RIGHT", -24, 0)
-    desc:SetJustifyH("LEFT")
-    desc:SetText(cat.desc or "")
-    desc:SetTextColor(0.54, 0.54, 0.62, 1)
-
     local body = CreateFrame("Frame", nil, shell)
-    body:SetPoint("TOPLEFT", 0, -PAGE_HEAD_H)
+    body:SetPoint("TOPLEFT", 0, 0)
     body:SetPoint("BOTTOMRIGHT", 0, 0)
     body._muiDesign = cat
 
@@ -1156,7 +1111,7 @@ local function BuildComfortWorkspacePanel(parent)
         lbl:SetPoint("RIGHT", -7, 0)
         lbl:SetJustifyH("CENTER")
         lbl:SetText(label or "")
-        lbl:SetTextColor(0.52, 0.52, 0.58, 1)
+        lbl:SetTextColor(T.textDim[1], T.textDim[2], T.textDim[3], 1)
         btn._label = lbl
 
         btn.SetActive = function(_, active)
@@ -1167,7 +1122,7 @@ local function BuildComfortWorkspacePanel(parent)
             else
                 bg:SetColorTexture(0, 0, 0, 0)
                 indicator:Hide()
-                lbl:SetTextColor(0.52, 0.52, 0.58, 1)
+                lbl:SetTextColor(T.textDim[1], T.textDim[2], T.textDim[3], 1)
             end
         end
         btn:SetScript("OnEnter", function(self)
@@ -1591,6 +1546,35 @@ C.HideHelp = function() CloseOptionsHelp(true) end
 -- =====================================================================
 -- CREATE MAIN FRAME
 -- =====================================================================
+-- The default 1240x820 (min 720 high) is taller than the screen at a UI
+-- scale of 1.0 (UIParent is 768 units then), and SetClampedToScreen cannot
+-- shrink a frame larger than the screen: the footer and the resize grip
+-- ended up off-screen. Bound size and resize limits to what UIParent can
+-- show at the window's own scale, like Forge.Studio.CreateShell does.
+local SCREEN_MARGIN = 24
+local function FitToScreen()
+    if not configFrame then return end
+    local scale = configFrame:GetScale() or 1
+    if scale <= 0 then scale = 1 end
+    local availW = math.floor(((UIParent:GetWidth()  or PANEL_MAX_W) - SCREEN_MARGIN) / scale)
+    local availH = math.floor(((UIParent:GetHeight() or PANEL_MAX_H) - SCREEN_MARGIN) / scale)
+    local maxW = math.max(480, math.min(PANEL_MAX_W, availW))
+    local maxH = math.max(400, math.min(PANEL_MAX_H, availH))
+    local minW = math.min(PANEL_MIN_W, maxW)
+    local minH = math.min(PANEL_MIN_H, maxH)
+    if configFrame.SetResizeBounds then
+        configFrame:SetResizeBounds(minW, minH, maxW, maxH)
+    elseif configFrame.SetMinResize then
+        configFrame:SetMinResize(minW, minH)
+        configFrame:SetMaxResize(maxW, maxH)
+    end
+    local w = configFrame:GetWidth() or PANEL_W
+    local h = configFrame:GetHeight() or PANEL_H
+    if w > maxW or h > maxH then
+        configFrame:SetSize(math.min(w, maxW), math.min(h, maxH))
+    end
+end
+
 local function CreateConfigFrame()
     if configFrame then return end
 
@@ -1628,15 +1612,11 @@ local function CreateConfigFrame()
     end
     configFrame:SetScale(gdb.scale or 1)
     configFrame:SetResizable(true)
-    if configFrame.SetResizeBounds then
-        configFrame:SetResizeBounds(PANEL_MIN_W, PANEL_MIN_H, PANEL_MAX_W, PANEL_MAX_H)
-    elseif configFrame.SetMinResize then
-        configFrame:SetMinResize(PANEL_MIN_W, PANEL_MIN_H)
-        configFrame:SetMaxResize(PANEL_MAX_W, PANEL_MAX_H)
-    end
+    FitToScreen()
 
     configFrame:SetScript("OnShow", function(self)
         C.isOpen = true
+        FitToScreen()
         self:SetFrameStrata("FULLSCREEN_DIALOG")
         self:SetFrameLevel(500)
         StartPerfTicker(self._perfLabel)
@@ -1706,7 +1686,7 @@ local function CreateConfigFrame()
     local versionText = titleBar:CreateFontString(nil, "OVERLAY")
     versionText:SetFont(FONT, 10, "")
     versionText:SetPoint("LEFT", titleText, "RIGHT", 8, -2)
-    versionText:SetTextColor(0.30, 0.30, 0.35, 1)
+    versionText:SetTextColor(T.textFaint[1], T.textFaint[2], T.textFaint[3], 1)
     versionText:SetText("v" .. (C_AddOns.GetAddOnMetadata("TomoMod", "Version") or "?"))
 
     local contextTitle = titleBar:CreateFontString(nil, "OVERLAY")
@@ -1718,11 +1698,11 @@ local function CreateConfigFrame()
     configFrame._contextTitle = contextTitle
 
     local contextDesc = titleBar:CreateFontString(nil, "OVERLAY")
-    contextDesc:SetFont(FONT, 10, "")
+    contextDesc:SetFont(FONT, 11, "")
     contextDesc:SetPoint("TOPLEFT", contextTitle, "BOTTOMLEFT", 0, -3)
     contextDesc:SetPoint("RIGHT", -282, 0)
     contextDesc:SetJustifyH("LEFT")
-    contextDesc:SetTextColor(0.46, 0.46, 0.54, 1)
+    contextDesc:SetTextColor(T.textDim[1], T.textDim[2], T.textDim[3], 1)
     configFrame._contextDesc = contextDesc
 
     -- Close button
@@ -1853,7 +1833,7 @@ local function CreateConfigFrame()
 
     local placeholder = searchBox:CreateFontString(nil, "OVERLAY")
     placeholder:SetFont(FONT, 12, ""); placeholder:SetPoint("LEFT", 1, 0)
-    placeholder:SetTextColor(0.34, 0.34, 0.40, 1)
+    placeholder:SetTextColor(T.textFaint[1], T.textFaint[2], T.textFaint[3], 1)
     placeholder:SetText(L["ui_search_placeholder"] or "Rechercher...")
 
     local clearBtn = CreateFrame("Button", nil, searchWrap)
@@ -2178,7 +2158,7 @@ local function CreateConfigFrame()
     local brandTxt = sidebar:CreateFontString(nil, "OVERLAY")
     brandTxt:SetFont(FONT, 9, "")
     brandTxt:SetPoint("BOTTOM", 0, 11)
-    brandTxt:SetTextColor(0.20, 0.20, 0.24, 1)
+    brandTxt:SetTextColor(0.36, 0.36, 0.42, 1)
     brandTxt:SetText("TomoMod · TomoAniki")
 
     -- ==============================================================
@@ -2224,15 +2204,15 @@ local function CreateConfigFrame()
     footerLine:SetColorTexture(0.14, 0.14, 0.17, 1)
 
     local hintTxt = footer:CreateFontString(nil, "OVERLAY")
-    hintTxt:SetFont(FONT, 9, "")
+    hintTxt:SetFont(FONT, 10, "")
     hintTxt:SetPoint("LEFT", NAV_W + 14, 0)
-    hintTxt:SetTextColor(0.24, 0.24, 0.28, 1)
+    hintTxt:SetTextColor(T.textFaint[1], T.textFaint[2], T.textFaint[3], 1)
     hintTxt:SetText(L["ui_footer_hint"])
 
     local perfLabel = footer:CreateFontString(nil, "OVERLAY")
-    perfLabel:SetFont(FONT, 9, "")
+    perfLabel:SetFont(FONT, 10, "")
     perfLabel:SetPoint("RIGHT", -26, 0)
-    perfLabel:SetTextColor(0.24, 0.24, 0.28, 1)
+    perfLabel:SetTextColor(T.textFaint[1], T.textFaint[2], T.textFaint[3], 1)
     configFrame._perfLabel = perfLabel
 
     -- ==============================================================
@@ -2400,6 +2380,7 @@ end
 function C.ApplyGUIScale()
     if not configFrame then return end
     configFrame:SetScale(GuiDB().scale or 1)
+    FitToScreen()
 end
 
 function C.ResetGUISize()
@@ -2408,6 +2389,7 @@ function C.ResetGUISize()
     if configFrame then
         configFrame:SetSize(PANEL_W, PANEL_H)
         configFrame:SetScale(1)
+        FitToScreen()
         configFrame:ClearAllPoints()
         configFrame:SetPoint("CENTER")
     end

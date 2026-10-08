@@ -199,7 +199,9 @@ R.Define{
 R.Define{
     key = "bagSkin", label = "mod_bagSkin", group = "skins",
     enabledPath = "bagSkin.enabled",
-    anchors = { { id = "bagSkin", path = "bagSkin.position", shape = "anchor_relTo", label = "frame_bags" } },
+    -- No anchor any more: the legacy BagSkin frame is gone, and BagCore
+    -- migrates bagSkin.position into bagsV4.position once. The Bags V4
+    -- window is the only movable bag frame (anchor "bagsV4" below).
     global = "TomoMod_BagSkin", applyMode = "setter", apply = "SetEnabled",
 }
 

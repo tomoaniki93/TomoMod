@@ -469,7 +469,7 @@ local function EnsurePopup()
     popup.empty = popup:CreateFontString(nil, "OVERLAY")
     popup.empty:SetFont(FONT, 11, "")
     popup.empty:SetPoint("CENTER")
-    popup.empty:SetTextColor(0.40, 0.40, 0.46, 1)
+    popup.empty:SetTextColor(0.56, 0.56, 0.62, 1)
     -- No `or "..."` fallback here: TomoMod_L's __index returns the key itself
     -- for an undefined key, so the right-hand side of an `or` is unreachable
     -- and the raw key would have been what showed on screen. The key is defined
@@ -498,12 +498,12 @@ local function EnsurePopup()
         row.lbl = lbl
 
         local sub = row:CreateFontString(nil, "OVERLAY")
-        sub:SetFont(FONT, 9, "")
+        sub:SetFont(FONT, 10, "")
         sub:SetPoint("BOTTOMLEFT", 8, 4)
         sub:SetPoint("RIGHT", -8, 0)
         sub:SetJustifyH("LEFT")
         sub:SetWordWrap(false)
-        sub:SetTextColor(0.42, 0.42, 0.50, 1)
+        sub:SetTextColor(0.56, 0.56, 0.62, 1)
         row.sub = sub
 
         row:SetScript("OnEnter", function(self) self.hl:SetColorTexture(1, 1, 1, 0.06) end)

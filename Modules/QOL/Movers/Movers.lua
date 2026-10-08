@@ -109,9 +109,7 @@ local LAYOUT_ROUTES = {
     { "^TomoMod_ChatV4",                 "skins" },
     { "^TomoMod_TooltipMover",           "skins" },
     { "^TomoMod_ReputationBar",          "skins" },
-    { "^TomoMod_BagSkin_",               "skins" },
     { "^TomoMod_BagsV4_",                "skins" },
-    { "^TomoMod_WorldQuestTabFrame",     "skins" },
 
     -- General
     { "^TomoModMinimap",                 "general" },

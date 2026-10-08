@@ -29,7 +29,11 @@ W.Theme = {
     border       = { 0.18,  0.18,  0.22,  1    },
     borderLight  = { 0.28,  0.28,  0.34,  1    },
     text         = { 0.88,  0.90,  0.89,  1    },
-    textDim      = { 0.48,  0.48,  0.54,  1    },
+    -- Secondary text (info lines, inactive tabs, sub-labels). 0.48 grey
+    -- read at ~4.6:1 on the card background at 10px; 0.60 gives ~6.9:1.
+    textDim      = { 0.60,  0.60,  0.66,  1    },
+    -- Tertiary text (hints, placeholders, paths): still >= 6:1.
+    textFaint    = { 0.56,  0.56,  0.62,  1    },
     textHeader   = { TomoMod_Utils.BRAND[1], TomoMod_Utils.BRAND[2], TomoMod_Utils.BRAND[3], 1    },
     red          = { 0.88,  0.22,  0.22,  1    },
     yellow       = { 0.96,  0.80,  0.10,  1    },
@@ -322,6 +326,11 @@ if TomoMod_RegisterLocale then
             ["reset_mod_cinematicSkip"] = "Cinematic Skip",
             ["reset_mod_hideCastBar"] = "Hide Blizzard castbar",
             ["reset_mod_MythicKeys"] = "Mythic Keys",
+            ["opt_auto_accept_invite_enable"] = "Accept group invites automatically",
+            ["opt_auto_skip_role_enable"] = "Skip the role check automatically",
+            ["opt_auto_summon_enable"] = "Accept summons automatically",
+            ["opt_auto_fill_delete_enable"] = "Type DELETE automatically",
+            ["popup_reset_module"] = "Reset the module \"%s\" to its defaults?\n\nA backup is taken first: Profiles > \"Restore latest backup\" undoes it.",
         },
         frFR = {
             ["comfort_grp_world"] = "Monde & déplacements",
@@ -387,6 +396,11 @@ if TomoMod_RegisterLocale then
             ["reset_mod_cinematicSkip"] = "Passer les cinématiques",
             ["reset_mod_hideCastBar"] = "Masquer la barre d'incantation Blizzard",
             ["reset_mod_MythicKeys"] = "Clés mythiques",
+            ["opt_auto_accept_invite_enable"] = "Accepter automatiquement les invitations de groupe",
+            ["opt_auto_skip_role_enable"] = "Valider automatiquement la vérification de rôle",
+            ["opt_auto_summon_enable"] = "Accepter automatiquement les invocations",
+            ["opt_auto_fill_delete_enable"] = "Saisir DELETE automatiquement",
+            ["popup_reset_module"] = "Réinitialiser le module « %s » à ses valeurs par défaut ?\n\nUne sauvegarde est faite avant : Profils > « Restaurer la dernière sauvegarde » l'annule.",
         },
         deDE = {
             ["comfort_grp_world"] = "Welt & Reisen",
@@ -452,6 +466,11 @@ if TomoMod_RegisterLocale then
             ["reset_mod_cinematicSkip"] = "Zwischensequenzen ueberspringen",
             ["reset_mod_hideCastBar"] = "Blizzard-Zauberleiste ausblenden",
             ["reset_mod_MythicKeys"] = "Mythische Schluessel",
+            ["opt_auto_accept_invite_enable"] = "Gruppeneinladungen automatisch annehmen",
+            ["opt_auto_skip_role_enable"] = "Rollenabfrage automatisch bestaetigen",
+            ["opt_auto_summon_enable"] = "Beschwoerungen automatisch annehmen",
+            ["opt_auto_fill_delete_enable"] = "DELETE automatisch eintragen",
+            ["popup_reset_module"] = "Modul \"%s\" auf die Standardwerte zuruecksetzen?\n\nVorher wird eine Sicherung erstellt: Profile > \"Letzte Sicherung wiederherstellen\" macht es rueckgaengig.",
         },
         esES = {
             ["comfort_grp_world"] = "Mundo y viajes",
@@ -517,6 +536,11 @@ if TomoMod_RegisterLocale then
             ["reset_mod_cinematicSkip"] = "Saltar cinemáticas",
             ["reset_mod_hideCastBar"] = "Ocultar barra de lanzamiento de Blizzard",
             ["reset_mod_MythicKeys"] = "Llaves míticas",
+            ["opt_auto_accept_invite_enable"] = "Aceptar invitaciones de grupo automáticamente",
+            ["opt_auto_skip_role_enable"] = "Confirmar la comprobación de rol automáticamente",
+            ["opt_auto_summon_enable"] = "Aceptar invocaciones automáticamente",
+            ["opt_auto_fill_delete_enable"] = "Escribir DELETE automáticamente",
+            ["popup_reset_module"] = "¿Restablecer el módulo «%s» a sus valores predeterminados?\n\nAntes se crea una copia de seguridad: Perfiles > «Restaurar la última copia» lo deshace.",
         },
         itIT = {
             ["comfort_grp_world"] = "Mondo e viaggi",
@@ -582,6 +606,11 @@ if TomoMod_RegisterLocale then
             ["reset_mod_cinematicSkip"] = "Salta filmati",
             ["reset_mod_hideCastBar"] = "Nascondi barra di lancio Blizzard",
             ["reset_mod_MythicKeys"] = "Chiavi mitiche",
+            ["opt_auto_accept_invite_enable"] = "Accetta automaticamente gli inviti di gruppo",
+            ["opt_auto_skip_role_enable"] = "Conferma automaticamente il controllo del ruolo",
+            ["opt_auto_summon_enable"] = "Accetta automaticamente le evocazioni",
+            ["opt_auto_fill_delete_enable"] = "Scrivi DELETE automaticamente",
+            ["popup_reset_module"] = "Ripristinare il modulo «%s» ai valori predefiniti?\n\nPrima viene creato un backup: Profili > «Ripristina l'ultimo backup» lo annulla.",
         },
         ptBR = {
             ["comfort_grp_world"] = "Mundo e viagens",
@@ -647,6 +676,11 @@ if TomoMod_RegisterLocale then
             ["reset_mod_cinematicSkip"] = "Pular cinemáticas",
             ["reset_mod_hideCastBar"] = "Ocultar barra de conjuração da Blizzard",
             ["reset_mod_MythicKeys"] = "Chaves míticas",
+            ["opt_auto_accept_invite_enable"] = "Aceitar convites de grupo automaticamente",
+            ["opt_auto_skip_role_enable"] = "Confirmar a verificação de função automaticamente",
+            ["opt_auto_summon_enable"] = "Aceitar invocações automaticamente",
+            ["opt_auto_fill_delete_enable"] = "Digitar DELETE automaticamente",
+            ["popup_reset_module"] = "Redefinir o módulo \"%s\" para os padrões?\n\nUm backup é feito antes: Perfis > \"Restaurar o backup mais recente\" desfaz isso.",
         },
     }
     for locale, strings in pairs(GUI_LOCALES) do
@@ -706,7 +740,9 @@ W.ParseRoles = ParseRoles
 W._roleSections = {}
 W._roleFilter   = nil     -- nil = no filtering
 
-local ROLE_DIM_ALPHA = 0.28
+-- 0.28 left dimmed sections at ~2.2:1, i.e. unreadable rather than
+-- de-emphasised; 0.45 keeps them clearly secondary (~3.8:1) but legible.
+local ROLE_DIM_ALPHA = 0.45
 
 local function RegisterRoleSection(roles, frame, regions)
     if not frame or frame._roleRegistered then return end
@@ -1364,11 +1400,11 @@ end
 -- =====================================================================
 function W.CreateSubLabel(parent, text, yOffset)
     local lbl = parent:CreateFontString(nil, "OVERLAY")
-    lbl:SetFont(FONT, 10, "")
+    lbl:SetFont(FONT, 11, "")
     lbl:SetPoint("TOPLEFT", 16, yOffset)
     SC(lbl, T.textDim)
     lbl:SetText(text)
-    return lbl, yOffset - 16
+    return lbl, yOffset - 18
 end
 
 -- =====================================================================
@@ -1399,19 +1435,20 @@ function W.CreateInfoText(parent, text, yOffset)
     dot:SetColorTexture(r, g, b, 0.82)
 
     local lbl = frame:CreateFontString(nil, "OVERLAY")
-    lbl:SetFont(FONT, 10, "")
+    lbl:SetFont(FONT, 11, "")
     lbl:SetPoint("TOPLEFT",  8, 0)
     lbl:SetPoint("TOPRIGHT", 0, 0)
     lbl:SetJustifyH("LEFT")
     SC(lbl, T.textDim)
     lbl:SetText(text)
 
+    -- 11px Poppins measures ~13 units per line.
     local rawH = lbl:GetStringHeight()
     local h    = rawH or 0
-    if h < 1 then h = 12 end
-    local lines = math.max(1, math.ceil(h / 12))
-    frame:SetHeight(lines * 14 + 4)
-    return frame, yOffset - (lines * 14 + 10)
+    if h < 1 then h = 13 end
+    local lines = math.max(1, math.ceil(h / 13))
+    frame:SetHeight(lines * 15 + 4)
+    return frame, yOffset - (lines * 15 + 10)
 end
 
 -- =====================================================================
@@ -1490,6 +1527,7 @@ function W.CreateCheckbox(parent, text, checked, yOffset, callback)
 
     frame.SetChecked = function(_, val) isChecked = val; UpdateVisual() end
     frame.GetChecked = function() return isChecked end
+    frame._tmLabel, frame._tmHover = text, box
 
     if W._RegisterSearchEntry then W._RegisterSearchEntry(text, frame, "option") end
 
@@ -1622,6 +1660,7 @@ function W.CreateSlider(parent, text, value, minVal, maxVal, step, yOffset, call
         end
     end
     frame._enabled = true
+    frame._tmLabel, frame._tmHover = text, slider
 
     -- Direct value entry: right-click the value badge to type an exact number.
     -- Enter (or focus loss) applies it through the slider, which clamps to
@@ -1821,6 +1860,7 @@ function W.CreateDropdown(parent, text, options, selected, yOffset, callback)
     frame.SetValue = function(_, val)
         selected = val; btnTxt:SetText(GetDisplayText(val))
     end
+    frame._tmLabel, frame._tmHover = text, btn
     frame:SetScript("OnHide", function()
         menu:Hide()
         if W._openDropdown == menu then W._openDropdown = nil end
@@ -1935,6 +1975,41 @@ function W.CreateSegmentedControl(parent, text, options, selected, yOffset, call
 end
 
 -- =====================================================================
+-- TOOLTIP  — optional hover help for any widget
+-- W.SetTooltip(widget, body [, title]) -- returns the widget.
+-- Hooks the widget frame and the control inside it (box, slider, button,
+-- swatch), so the help shows wherever the player points at the option.
+-- Short explanations belong here rather than in an InfoText paragraph
+-- that lengthens every page for players who already know the option.
+-- =====================================================================
+local function TooltipEnter(self)
+    local owner = self._tmTipOwner or self
+    if not owner._tmTip then return end
+    GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+    GameTooltip:SetText(owner._tmTipTitle or owner._tmLabel or "", 1, 1, 1, 1, true)
+    GameTooltip:AddLine(owner._tmTip, 0.78, 0.80, 0.85, true)
+    GameTooltip:Show()
+end
+local function TooltipLeave()
+    GameTooltip:Hide()
+end
+
+function W.SetTooltip(widget, body, title)
+    if not (widget and body and body ~= "") then return widget end
+    widget._tmTip, widget._tmTipTitle = body, title
+    local targets = { widget, widget._tmHover }
+    for _, f in ipairs(targets) do
+        if f and f.HookScript then
+            f._tmTipOwner = widget
+            if f.EnableMouse and f ~= widget._tmHover then f:EnableMouse(true) end
+            f:HookScript("OnEnter", TooltipEnter)
+            f:HookScript("OnLeave", TooltipLeave)
+        end
+    end
+    return widget
+end
+
+-- =====================================================================
 -- BUTTON  — accent fill, invert on hover
 -- =====================================================================
 function W.CreateButton(parent, text, width, yOffset, callback)
@@ -1955,6 +2030,7 @@ function W.CreateButton(parent, text, width, yOffset, callback)
     line:SetPoint("TOPLEFT", 1, -1)
     line:SetPoint("TOPRIGHT", -1, -1)
     line:SetColorTexture(r, g, b, 0.85)
+    btn._accentLine = line
 
     local lbl = btn:CreateFontString(nil, "OVERLAY")
     lbl:SetFont(FONT_BOLD, 11, "")
@@ -1976,10 +2052,34 @@ function W.CreateButton(parent, text, width, yOffset, callback)
 
     btn.label = lbl
     btn.SetText = function(self, t) lbl:SetText(t) end
+    btn._tmLabel = text
 
     if W._RegisterSearchEntry then W._RegisterSearchEntry(text, btn, "option") end
 
     return btn, yOffset - 36
+end
+
+-- Destructive actions (resets) must not look like every other button: same
+-- geometry, red outline and fill on hover, so a misclick target stands out.
+local DANGER = { 0.88, 0.30, 0.28 }
+function W.CreateDangerButton(parent, text, width, yOffset, callback)
+    local btn, ny = W.CreateButton(parent, text, width, yOffset, callback)
+    local r, g, b = DANGER[1], DANGER[2], DANGER[3]
+    btn:SetBackdropColor(r * 0.16, g * 0.10, b * 0.10, 0.92)
+    btn:SetBackdropBorderColor(r, g, b, 0.70)
+    btn:SetScript("OnEnter", function()
+        btn:SetBackdropColor(r, g, b, 1)
+        btn:SetBackdropBorderColor(r, g, b, 1)
+        btn.label:SetTextColor(1, 1, 1, 1)
+    end)
+    btn:SetScript("OnLeave", function()
+        btn:SetBackdropColor(r * 0.16, g * 0.10, b * 0.10, 0.92)
+        btn:SetBackdropBorderColor(r, g, b, 0.70)
+        btn.label:SetTextColor(1, 0.86, 0.84, 1)
+    end)
+    btn.label:SetTextColor(1, 0.86, 0.84, 1)
+    if btn._accentLine then btn._accentLine:SetColorTexture(r, g, b, 0.9) end
+    return btn, ny
 end
 
 -- =====================================================================
@@ -2127,6 +2227,7 @@ function W.CreateColorPicker(parent, text, color, yOffset, callback, lifecycle)
     frame.UpdateColor = function(_, r, g, b)
         color.r, color.g, color.b = r, g, b; UpdateDisplay(r, g, b)
     end
+    frame._tmLabel, frame._tmHover = text, swatch
     if W._RegisterSearchEntry then W._RegisterSearchEntry(text, frame, "option") end
 
     return frame, yOffset - 32

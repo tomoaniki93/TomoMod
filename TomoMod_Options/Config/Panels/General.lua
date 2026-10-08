@@ -650,10 +650,8 @@ function TomoMod_ConfigPanel_General(parent)
     end)
     local _, cy = W.CreateInfoText(card4.inner, L["info_relaunch_installer"], cy)
 
-    local _, cy = W.CreateButton(card4.inner, L["btn_reset_all"], 220, cy, function()
-        StaticPopup_Show("TOMOMOD_RESET_ALL")
-    end)
-    local _, cy = W.CreateInfoText(card4.inner, L["info_reset_all"], cy)
+    -- "Reset everything" lives in Profiles > Resets only, next to the
+    -- backups that undo it. TOMOMOD_RESET_ALL stays defined below for it.
 
     y = W.FinalizeCard(card4, cy)
 
