@@ -2,12 +2,24 @@
 
 ## CHANGELOG 4.1.0
 
+#### Sidebar Navigation And Direct Studio Access
+
+- **New** - The sidebar keeps all main categories visible and expands Interface and Comfort navigation in place. A dedicated Studios block opens Astral Forge, Party & Raid, Resource & Cast, Cooldown and Mythic+ editors directly.
+- **Changed** - Pages with several parts expose them as tabs above their content. Navigation keeps its scroll position when selecting an entry, while a new search starts at the top and reveals matching subpages.
+- **Changed** - Home shortcuts, role recommendations and legacy settings links now use the appropriate dedicated Studio. Unknown or removed page identifiers fall back to Home instead of displaying an empty content area.
+- **Changed** - Retired UnitFrames, Nameplates, Castbars, Party Frames, Raid Frames, Cooldown Forge and Mythic+ options panels were removed. Blizzard Cooldown Manager viewer and bar styling remains available under Interface, while resource settings belong to Resource & Cast Studio.
+
+#### Astral Forge — Migrated Nameplate Controls
+
+- **New** - The nameplate editor now exposes raid marker size with a 10–60 range and a default of 24, preserving the control previously available in the retired Nameplates panel.
+- **New** - Interruptible and uninterruptible nameplate castbar colors can now be edited directly in Astral Forge.
+
 #### Settings Search And Client-Aware Navigation
 
 - **Fixed** - Opening or building a dedicated Studio now clears the settings-search registration context. Studio controls no longer create misleading search results that send the player back to the last options category, usually Home.
 - **Changed** - The search placeholder now explicitly refers to settings in all six supported languages.
 - **Fixed** - Interface and Comfort navigation now remove pages unavailable on the current client, including blocked Action Bars on WoW: Forever. Empty groups disappear, unavailable default pages fall back to an available page, and remembered pages or deep links cannot reopen blocked content.
-- **Changed** - The help guide now reflects the current sidebar and explains how to open dedicated Studios from the Home dashboard or the EditMode gear.
+- **Changed** - The help guide now explains the expandable sidebar, page tabs and dedicated Studio access from the sidebar, Home dashboard or EditMode gear.
 
 #### Interface Localization And Clearer Controls
 

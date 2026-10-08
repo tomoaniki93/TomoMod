@@ -393,7 +393,11 @@ end
 -- ---------------------------------------------------------------------
 -- Guide data
 -- ---------------------------------------------------------------------
--- cat      : nav category the setting lives in
+-- studio   : the Studio that owns the setting (C.OpenStudio key), with an
+--            optional `arg` naming the subject or view to open on. Unit
+--            frames, nameplates, castbars, group frames, resources and
+--            cooldowns all live in Studios now.
+-- cat      : otherwise, the nav category the setting lives in
 -- path     : one tab key per nesting level, outermost first. Declared
 --            explicitly rather than looked up: only the first tab of a tab
 --            panel is built eagerly, so a section in any other sub-tab was
@@ -410,12 +414,12 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "TANK.tga",
         color  = { 0.28, 0.52, 0.92 },
         cards  = {
-            { key = "np_tankmode",  cat = "units",     path = { "nameplates", "advanced" }, section = "section_tank_mode" },
-            { key = "np_buffs",    cat = "units",     path = { "nameplates", "auras" }, section = "section_enemy_buffs" },
-            { key = "np_cast",     cat = "units",     path = { "nameplates", "general" }, section = "section_castbar" },
-            { key = "uf_threat",   cat = "units",     path = { "unitframes", "target", "display" }, section = "section_threat_text" },
-            { key = "pf_cd",       cat = "units",     path = { "partyframes", "cooldowns" }, section = "pf_section_cooldowns" },
-            { key = "rb_health",   cat = "combat",    path = { "resources", "resource" }, section = "section_rb_healthbar" },
+            { key = "np_tankmode", studio = "astral", arg = "nameplate", section = "section_tank_mode" },
+            { key = "np_buffs",    studio = "astral", arg = "nameplate", section = "section_enemy_buffs" },
+            { key = "np_cast",     studio = "astral", arg = "nameplate", section = "section_castbar" },
+            { key = "uf_threat",   studio = "astral", arg = "target", section = "section_threat_text" },
+            { key = "pf_cd",       studio = "group", arg = "party", section = "pf_section_cooldowns" },
+            { key = "rb_health",   studio = "resourcecast", arg = "resources", section = "section_rb_healthbar" },
         },
     },
     healer = {
@@ -424,12 +428,12 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "HEALER.tga",
         color  = { 0.36, 0.82, 0.42 },
         cards  = {
-            { key = "pf_hots",     cat = "units",     path = { "partyframes", "features" }, section = "pf_section_hots" },
-            { key = "pf_dispel",   cat = "units",     path = { "partyframes", "features" }, section = "pf_section_dispel" },
-            { key = "rf_extras",   cat = "units",     path = { "raidframes", "features" }, section = "rf_section_health_extras" },
-            { key = "rf_debuffs",  cat = "units",     path = { "raidframes", "features" }, section = "rf_section_debuffs" },
-            { key = "rf_range",    cat = "units",     path = { "raidframes", "features" }, section = "rf_section_range" },
-            { key = "rf_defs",     cat = "units",     path = { "raidframes", "features" }, section = "rf_section_defensives" },
+            { key = "pf_hots",     studio = "group", arg = "healer_party", section = "pf_section_hots" },
+            { key = "pf_dispel",   studio = "group", arg = "party", section = "pf_section_dispel" },
+            { key = "rf_extras",   studio = "group", arg = "raid", section = "rf_section_health_extras" },
+            { key = "rf_debuffs",  studio = "group", arg = "raid", section = "rf_section_debuffs" },
+            { key = "rf_range",    studio = "group", arg = "raid", section = "rf_section_range" },
+            { key = "rf_defs",     studio = "group", arg = "raid", section = "rf_section_defensives" },
         },
     },
     dps = {
@@ -438,12 +442,12 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "DAMAGER.tga",
         color  = { 0.85, 0.32, 0.32 },
         cards  = {
-            { key = "rb_bars",     cat = "combat",    path = { "resources", "resource" }, section = "section_dimensions" },
-            { key = "cdm",         cat = "combat",    path = { "resources", "cdm" }, section = "section_cdm_extras" },
-            { key = "np_auras",    cat = "units",     path = { "nameplates", "auras" }, section = "section_auras" },
-            { key = "np_buffs",    cat = "units",     path = { "nameplates", "auras" }, section = "section_enemy_buffs" },
-            { key = "cb_gcd",      cat = "combat",    path = { "castbars", "general" }, section = "cb_section_gcd" },
-            { key = "cb_kick",     cat = "combat",    path = { "castbars", "general" }, section = "cb_section_interrupt" },
+            { key = "rb_bars",     studio = "resourcecast", arg = "resources", section = "section_dimensions" },
+            { key = "cdm",         cat = "interface", path = { "cdm", "cdm" }, section = "section_cdm_extras" },
+            { key = "np_auras",    studio = "astral", arg = "nameplate", section = "section_auras" },
+            { key = "np_buffs",    studio = "astral", arg = "nameplate", section = "section_enemy_buffs" },
+            { key = "cb_gcd",      studio = "resourcecast", arg = "cast", section = "cb_section_gcd" },
+            { key = "cb_kick",     studio = "resourcecast", arg = "cast", section = "cb_section_interrupt" },
         },
     },
 }
@@ -453,6 +457,11 @@ local ROLE_DEFS = {
 -- ---------------------------------------------------------------------
 -- Hoisted: one closure for every link button rather than one per button.
 local function OnGotoClick(self)
+    if self._studio then
+        local C = TomoMod_Config
+        if C and C.OpenStudio then C.OpenStudio(self._studio, self._arg) end
+        return
+    end
     local GS = TomoMod_GlobalSearch
     -- The declared route wins: it names the exact tab at every level, so it
     -- lands on a page that has never been built and never depends on how far
@@ -476,8 +485,9 @@ local function OnGotoEnter(self)
     self._lbl:SetTextColor(1, 1, 1, 1)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:SetText(self._sectionText, 1, 1, 1)
-    GameTooltip:AddLine(Localize("roles_goto_tip",
-        "Ouvre le panneau qui contient ce réglage et le met en surbrillance."),
+    GameTooltip:AddLine(self._studio
+        and Localize("roles_goto_studio_tip", "Opens the Studio that holds this setting.")
+        or  Localize("roles_goto_tip", "Opens the panel that holds this setting and highlights it."),
         0.62, 0.62, 0.70, true)
     GameTooltip:Show()
 end
@@ -504,6 +514,8 @@ local function CreateGotoButton(parent, def, color, sectionText, yOffset)
 
     btn._cat         = def.cat
     btn._path        = def.path
+    btn._studio      = def.studio
+    btn._arg         = def.arg
     btn._sectionText = sectionText
     btn._color       = color
     btn._lbl         = lbl

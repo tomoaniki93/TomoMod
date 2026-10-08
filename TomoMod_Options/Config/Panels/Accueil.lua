@@ -703,46 +703,13 @@ end
 -- Centralises every dedicated LoadOnDemand editor in one dashboard card.
 -- Each studio keeps its own launcher: this hub only presents and routes.
 -- =====================================================================
-local function OpenCooldownStudio()
-    if TomoMod_OpenCooldownStudio then TomoMod_OpenCooldownStudio() end
-end
-
-local function OpenMythicPlusStudio()
-    if TomoMod_MythicPlusLauncher and TomoMod_MythicPlusLauncher.Open then
-        TomoMod_MythicPlusLauncher:Open("dashboard")
+-- Every Studio is opened through TomoMod_Config.OpenStudio, the same entry
+-- point as the sidebar, the role guides and the EditMode fallback routes.
+local function StudioOpener(key)
+    return function()
+        local C = TomoMod_Config
+        if C and C.OpenStudio then C.OpenStudio(key) end
     end
-end
-
-local function OpenGroupStudio()
-    local Forge = TomoMod_Forge
-    if not (Forge and Forge.Studio and Forge.Studio.Launch) then return end
-    Forge.Studio.Launch({
-        addon  = "TomoMod_GroupStudio",
-        global = "TomoMod_GroupStudio",
-        label  = Localize("dash_studio_group_title", "Party & Raid Studio"),
-        arg    = "party",
-    })
-end
-
-local function OpenResourceCastStudio()
-    local Forge = TomoMod_Forge
-    if not (Forge and Forge.Studio and Forge.Studio.Launch) then return end
-    Forge.Studio.Launch({
-        addon  = "TomoMod_ResourceCastStudio",
-        global = "TomoMod_ResourceCastStudio",
-        label  = Localize("dash_studio_resourcecast_title", "Resource & Cast Studio"),
-        arg    = "resources",
-    })
-end
-
-local function OpenAstralForgeStudio()
-    local Forge = TomoMod_Forge
-    if not (Forge and Forge.Studio and Forge.Studio.Launch) then return end
-    Forge.Studio.Launch({
-        addon  = "TomoMod_AstralForge",
-        global = "TomoMod_AstralForge",
-        label  = Localize("dash_studio_astral_title", "Astral Forge Studio"),
-    })
 end
 
 local STUDIO_DEFS = {
@@ -754,7 +721,7 @@ local STUDIO_DEFS = {
         descFallback = "Full-screen cooldown bar editor: layout, style, spells, visibility and presets.",
         open = "dash_studio_cooldown_open",
         openFallback = "Open Cooldown Studio",
-        callback = OpenCooldownStudio,
+        callback = StudioOpener("cooldown"),
     },
     {
         addon = "TomoMod_MythicPlus",
@@ -764,7 +731,7 @@ local STUDIO_DEFS = {
         descFallback = "Configure Mythic+ tracking, score, run history, keys, widgets and dungeon elements.",
         open = "dash_studio_mythic_open",
         openFallback = "Open Mythic+ Studio",
-        callback = OpenMythicPlusStudio,
+        callback = StudioOpener("mythic"),
     },
     {
         addon = "TomoMod_GroupStudio",
@@ -774,7 +741,7 @@ local STUDIO_DEFS = {
         descFallback = "Configure PartyFrames, RaidFrames and healer indicators with real-time visual previews.",
         open = "dash_studio_group_open",
         openFallback = "Open Party & Raid Studio",
-        callback = OpenGroupStudio,
+        callback = StudioOpener("group"),
     },
     {
         addon = "TomoMod_ResourceCastStudio",
@@ -784,7 +751,7 @@ local STUDIO_DEFS = {
         descFallback = "Rebuild ResourceBars visually and configure the Player castbar with permanent real-time previews.",
         open = "dash_studio_resourcecast_open",
         openFallback = "Open Resource & Cast Studio",
-        callback = OpenResourceCastStudio,
+        callback = StudioOpener("resourcecast"),
     },
     {
         addon = "TomoMod_AstralForge",
@@ -794,7 +761,7 @@ local STUDIO_DEFS = {
         descFallback = "Advanced creation and editing studio for UnitFrame and Nameplate elements, with layout tools and visual customisation.",
         open = "dash_studio_astral_open",
         openFallback = "Open Astral Forge Studio",
-        callback = OpenAstralForgeStudio,
+        callback = StudioOpener("astral"),
     },
 }
 

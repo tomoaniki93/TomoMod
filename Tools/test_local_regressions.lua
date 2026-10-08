@@ -96,10 +96,10 @@ local id, info = fragment("TomoMod_CDStudio/SpellEditorV2.lua",
     "(local id, info.-)\n        if not id", "id, info",
     { CDF = { CreateBarFromViewer = function() return nil, "noapi" end } })
 check("cooldown creation error preserved", id == nil and info == "noapi")
-local ok, result = fragment("TomoMod_Options/Config/Panels/CooldownForge.lua",
-    "(local okI, res.-)\n        if okI", "okI, res",
-    { state = {}, CDF = { Import = function() return true, { class = "MONK" } end } })
-check("cooldown import result preserved", ok and result.class == "MONK")
+-- The legacy /tm Cooldown Forge page is gone: import lives in Cooldown
+-- Studio only, which must keep handing the string to CDF.Import.
+check("cooldown import lives in Cooldown Studio",
+    read("TomoMod_CDStudio/CDStudio.lua"):find("CDF.Import(importText)", 1, true) ~= nil)
 
 local actionEvents = read("Modules/Interface/ActionBars/tui/actionbars_events.lua")
 local pageTransitions = assert(actionEvents:match(

@@ -62,13 +62,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Welcome to TomoMod",
             ["cfg_help_1_body"] = "This short guide presents the main navigation, search, role filters, configuration workspaces, Layout mode, profiles and diagnostics.",
             ["cfg_help_2_title"] = "Main navigation",
-            ["cfg_help_2_body"] = "Use the left sidebar to move between Home, Roles, Interface, Comfort, Damage Meter, What's New, Profiles and Diagnostics. The active section is always highlighted.",
+            ["cfg_help_2_body"] = "The left sidebar lists every section: Home, Roles, Interface, Comfort, Damage Meter, What's New, Profiles and Diagnostics. The open section unfolds its pages in place, and the Studios block opens each dedicated editor in one click.",
             ["cfg_help_3_title"] = "Search",
             ["cfg_help_3_body"] = "Type a module, feature or option here. TomoMod filters the navigation and can surface matching settings without forcing you to remember where they live.",
             ["cfg_help_4_title"] = "Role filter",
             ["cfg_help_4_body"] = "The four role buttons prioritize settings for Everyone, Tank, Healer or Damage. Other settings remain visible but are visually de-emphasized.",
             ["cfg_help_5_title"] = "Workspaces and Studios",
-            ["cfg_help_5_body"] = "Interface and Comfort open focused workspaces. Unit frames, nameplates, castbars, party and raid frames, resources, cooldowns and Mythic+ are edited in the Studios, launched from the Studios card on Home or from the EditMode gear. They edit the same TomoModDB settings as the live modules.",
+            ["cfg_help_5_body"] = "Interface and Comfort list their pages in the sidebar; a page with several parts shows them as tabs above its content. Unit frames, nameplates, castbars, party and raid frames, resources, cooldowns and Mythic+ are edited in the Studios, opened from the sidebar, the Home Studios card or the EditMode gear.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Use EditMode to unlock movable TomoMod elements. Hover a supported element to access its contextual configuration gear, move it, then lock the layout again when finished.",
             ["cfg_help_7_title"] = "Profiles",
@@ -86,13 +86,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Bienvenue dans TomoMod",
             ["cfg_help_1_body"] = "Ce petit guide présente la navigation principale, la recherche, les filtres de rôle, les espaces de configuration, le mode Layout, les profils et les diagnostics.",
             ["cfg_help_2_title"] = "Navigation principale",
-            ["cfg_help_2_body"] = "Utilise la barre latérale pour passer entre Accueil, Rôles, Interface, Confort, Damage Meter, Nouveautés, Profils et Diagnostics. La section active reste toujours mise en évidence.",
+            ["cfg_help_2_body"] = "La barre latérale liste toutes les sections : Accueil, Rôles, Interface, Confort, Damage Meter, Nouveautés, Profils et Diagnostics. La section ouverte déplie ses pages sur place, et le bloc Studios ouvre chaque éditeur dédié en un clic.",
             ["cfg_help_3_title"] = "Recherche",
             ["cfg_help_3_body"] = "Saisis ici le nom d'un module, d'une fonction ou d'un réglage. TomoMod filtre la navigation et peut retrouver les options correspondantes sans devoir mémoriser leur emplacement.",
             ["cfg_help_4_title"] = "Filtre par rôle",
             ["cfg_help_4_body"] = "Les quatre boutons mettent en avant les réglages utiles à Tous, Tank, Healer ou DPS. Les autres réglages restent visibles mais sont volontairement atténués.",
             ["cfg_help_5_title"] = "Espaces et Studios",
-            ["cfg_help_5_body"] = "Interface et Confort ouvrent des espaces dédiés. UnitFrames, Nameplates, barres d'incantation, cadres de groupe et de raid, ressources, cooldowns et Mythic+ se règlent dans les Studios, lancés depuis la carte Studios de l'Accueil ou depuis l'engrenage d'EditMode. Ils modifient la même TomoModDB que les modules en jeu.",
+            ["cfg_help_5_body"] = "Interface et Confort listent leurs pages dans la barre latérale ; une page en plusieurs parties les affiche en onglets au-dessus de son contenu. UnitFrames, Nameplates, barres d'incantation, cadres de groupe et de raid, ressources, cooldowns et Mythic+ se règlent dans les Studios, ouverts depuis la barre latérale, la carte Studios de l'Accueil ou l'engrenage d'EditMode.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Utilise EditMode pour déverrouiller les éléments TomoMod déplaçables. Survole un élément compatible pour accéder à son engrenage de configuration, déplace-le puis reverrouille le Layout.",
             ["cfg_help_7_title"] = "Profils",
@@ -110,13 +110,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Willkommen bei TomoMod",
             ["cfg_help_1_body"] = "Diese kurze Hilfe zeigt die Hauptnavigation, Suche, Rollenfilter, Konfigurationsbereiche, den Layout-Modus, Profile und Diagnose.",
             ["cfg_help_2_title"] = "Hauptnavigation",
-            ["cfg_help_2_body"] = "Ueber die linke Seitenleiste wechselst du zwischen Start, Rollen, Interface, Komfort, Damage Meter, Neuerungen, Profilen und Diagnose. Der aktive Bereich bleibt hervorgehoben.",
+            ["cfg_help_2_body"] = "Die linke Seitenleiste listet alle Bereiche: Start, Rollen, Interface, Komfort, Damage Meter, Neuerungen, Profile und Diagnose. Der geoeffnete Bereich klappt seine Seiten an Ort und Stelle auf, und der Studios-Block oeffnet jeden Editor mit einem Klick.",
             ["cfg_help_3_title"] = "Suche",
             ["cfg_help_3_body"] = "Gib hier ein Modul, eine Funktion oder eine Option ein. TomoMod filtert die Navigation und findet passende Einstellungen, ohne dass du ihren genauen Ort kennen musst.",
             ["cfg_help_4_title"] = "Rollenfilter",
             ["cfg_help_4_body"] = "Die vier Rollen-Schaltflächen heben Einstellungen für Alle, Tank, Heiler oder Schaden hervor. Andere Einstellungen bleiben sichtbar, werden aber optisch zurückgenommen.",
             ["cfg_help_5_title"] = "Bereiche und Studios",
-            ["cfg_help_5_body"] = "Interface und Komfort oeffnen fokussierte Bereiche. Einheitenrahmen, Namensplaketten, Zauberleisten, Gruppen- und Schlachtzugrahmen, Ressourcen, Abklingzeiten und Mythisch+ werden in den Studios bearbeitet, die ueber die Studios-Karte der Startseite oder ueber das EditMode-Zahnrad starten. Sie bearbeiten dieselben TomoModDB-Einstellungen wie die Live-Module.",
+            ["cfg_help_5_body"] = "Interface und Komfort listen ihre Seiten in der Seitenleiste; eine Seite mit mehreren Teilen zeigt sie als Reiter ueber dem Inhalt. Einheitenrahmen, Namensplaketten, Zauberleisten, Gruppen- und Schlachtzugrahmen, Ressourcen, Abklingzeiten und Mythisch+ werden in den Studios bearbeitet, die ueber die Seitenleiste, die Studios-Karte der Startseite oder das EditMode-Zahnrad starten.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Mit EditMode entsperrst du verschiebbare TomoMod-Elemente. Fahre über ein unterstütztes Element, um das Kontext-Zahnrad zu öffnen, verschiebe es und sperre das Layout danach wieder.",
             ["cfg_help_7_title"] = "Profile",
@@ -134,13 +134,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Bienvenido a TomoMod",
             ["cfg_help_1_body"] = "Esta guía breve presenta la navegación principal, la búsqueda, los filtros de rol, los espacios de configuración, el modo Layout, los perfiles y los diagnósticos.",
             ["cfg_help_2_title"] = "Navegación principal",
-            ["cfg_help_2_body"] = "Usa la barra lateral izquierda para cambiar entre Inicio, Roles, Interfaz, Comodidad, Damage Meter, Novedades, Perfiles y Diagnósticos. La sección activa permanece resaltada.",
+            ["cfg_help_2_body"] = "La barra lateral muestra todas las secciones: Inicio, Roles, Interfaz, Comodidad, Damage Meter, Novedades, Perfiles y Diagnósticos. La sección abierta despliega sus páginas en el sitio y el bloque Studios abre cada editor dedicado con un clic.",
             ["cfg_help_3_title"] = "Búsqueda",
             ["cfg_help_3_body"] = "Escribe aquí un módulo, función u opción. TomoMod filtra la navegación y puede encontrar los ajustes relacionados sin que tengas que recordar dónde están.",
             ["cfg_help_4_title"] = "Filtro por rol",
             ["cfg_help_4_body"] = "Los cuatro botones de rol destacan los ajustes para Todos, Tanque, Sanador o Daño. Los demás ajustes siguen visibles, pero se muestran atenuados.",
             ["cfg_help_5_title"] = "Espacios y Studios",
-            ["cfg_help_5_body"] = "Interfaz y Comodidad abren espacios dedicados. Los marcos de unidad, las placas de nombre, las barras de lanzamiento, los marcos de grupo y banda, los recursos, los tiempos de reutilización y Míticas+ se editan en los Studios, que se abren desde la tarjeta Studios de Inicio o desde el engranaje de EditMode. Editan los mismos ajustes de TomoModDB que los módulos en vivo.",
+            ["cfg_help_5_body"] = "Interfaz y Comodidad muestran sus páginas en la barra lateral; una página con varias partes las muestra como pestañas sobre su contenido. Los marcos de unidad, las placas de nombre, las barras de lanzamiento, los marcos de grupo y banda, los recursos, los tiempos de reutilización y Míticas+ se editan en los Studios, que se abren desde la barra lateral, la tarjeta Studios de Inicio o el engranaje de EditMode.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Usa EditMode para desbloquear los elementos móviles de TomoMod. Pasa el cursor sobre un elemento compatible para acceder a su engranaje contextual, muévelo y vuelve a bloquear el Layout.",
             ["cfg_help_7_title"] = "Perfiles",
@@ -158,13 +158,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Benvenuto in TomoMod",
             ["cfg_help_1_body"] = "Questa breve guida presenta la navigazione principale, la ricerca, i filtri ruolo, le aree di configurazione, la modalità Layout, i profili e la diagnostica.",
             ["cfg_help_2_title"] = "Navigazione principale",
-            ["cfg_help_2_body"] = "Usa la barra laterale sinistra per passare tra Home, Ruoli, Interfaccia, Comodità, Damage Meter, Novità, Profili e Diagnostica. La sezione attiva resta evidenziata.",
+            ["cfg_help_2_body"] = "La barra laterale elenca tutte le sezioni: Home, Ruoli, Interfaccia, Comodità, Damage Meter, Novità, Profili e Diagnostica. La sezione aperta mostra le sue pagine sul posto e il blocco Studio apre ogni editor dedicato con un clic.",
             ["cfg_help_3_title"] = "Ricerca",
             ["cfg_help_3_body"] = "Inserisci qui un modulo, una funzione o un'opzione. TomoMod filtra la navigazione e può trovare le impostazioni corrispondenti senza doverne ricordare la posizione.",
             ["cfg_help_4_title"] = "Filtro ruolo",
             ["cfg_help_4_body"] = "I quattro pulsanti ruolo evidenziano le impostazioni per Tutti, Tank, Healer o Danni. Le altre impostazioni restano visibili ma vengono attenuate.",
             ["cfg_help_5_title"] = "Aree e Studio",
-            ["cfg_help_5_body"] = "Interfaccia e Comodità aprono aree dedicate. Riquadri unità, barre del nome, barre di lancio, riquadri di gruppo e incursione, risorse, recuperi e Mitiche+ si modificano negli Studio, avviati dalla scheda Studio della Home o dall'ingranaggio di EditMode. Modificano le stesse impostazioni TomoModDB usate dai moduli attivi.",
+            ["cfg_help_5_body"] = "Interfaccia e Comodità elencano le loro pagine nella barra laterale; una pagina in più parti le mostra come schede sopra il contenuto. Riquadri unità, barre del nome, barre di lancio, riquadri di gruppo e incursione, risorse, recuperi e Mitiche+ si modificano negli Studio, aperti dalla barra laterale, dalla scheda Studio della Home o dall'ingranaggio di EditMode.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Usa EditMode per sbloccare gli elementi TomoMod spostabili. Passa su un elemento supportato per aprire l'ingranaggio contestuale, spostalo e poi blocca nuovamente il Layout.",
             ["cfg_help_7_title"] = "Profili",
@@ -182,13 +182,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Bem-vindo ao TomoMod",
             ["cfg_help_1_body"] = "Este guia rápido apresenta a navegação principal, a busca, os filtros de função, as áreas de configuração, o modo Layout, os perfis e os diagnósticos.",
             ["cfg_help_2_title"] = "Navegação principal",
-            ["cfg_help_2_body"] = "Use a barra lateral esquerda para alternar entre Início, Funções, Interface, Conforto, Damage Meter, Novidades, Perfis e Diagnósticos. A seção ativa permanece destacada.",
+            ["cfg_help_2_body"] = "A barra lateral lista todas as seções: Início, Funções, Interface, Conforto, Damage Meter, Novidades, Perfis e Diagnósticos. A seção aberta expande suas páginas no lugar, e o bloco Studios abre cada editor dedicado com um clique.",
             ["cfg_help_3_title"] = "Busca",
             ["cfg_help_3_body"] = "Digite aqui um módulo, recurso ou opção. O TomoMod filtra a navegação e pode encontrar as configurações correspondentes sem exigir que você memorize onde elas ficam.",
             ["cfg_help_4_title"] = "Filtro por função",
             ["cfg_help_4_body"] = "Os quatro botões de função destacam configurações para Todos, Tank, Healer ou Dano. As demais configurações continuam visíveis, mas ficam visualmente atenuadas.",
             ["cfg_help_5_title"] = "Áreas e Studios",
-            ["cfg_help_5_body"] = "Interface e Conforto abrem áreas focadas. Quadros de unidade, placas de nome, barras de conjuração, quadros de grupo e raide, recursos, recargas e Mítica+ são editados nos Studios, abertos pelo cartão Studios do Início ou pela engrenagem do EditMode. Eles editam as mesmas configurações TomoModDB usadas pelos módulos ativos.",
+            ["cfg_help_5_body"] = "Interface e Conforto listam suas páginas na barra lateral; uma página com várias partes as mostra como abas acima do conteúdo. Quadros de unidade, placas de nome, barras de conjuração, quadros de grupo e raide, recursos, recargas e Mítica+ são editados nos Studios, abertos pela barra lateral, pelo cartão Studios do Início ou pela engrenagem do EditMode.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Use o EditMode para desbloquear elementos móveis do TomoMod. Passe o cursor sobre um elemento compatível para acessar a engrenagem contextual, mova-o e depois bloqueie o Layout novamente.",
             ["cfg_help_7_title"] = "Perfis",
@@ -238,12 +238,6 @@ local categories = {
     { key = "accueil",   label = LT("cat_accueil", "Accueil"), icon = ICON_PATH .. "ico_gui.tga",          accent = { 0.180, 0.616, 0.847 }, desc = L["cat_accueil_desc"], kw = "accueil home dashboard tableau bord vue" },
     { key = "roles",     label = L["cat_roles"],                      icon = ICON_PATH .. "icon_partyframes.tga", accent = { 0.94, 0.74, 0.35 }, desc = L["cat_roles_desc"], kw = "role roles tank tanking heal healer soigneur dps damage degats guide" },
     { key = "interface", label = L["cat_interface"],                   icon = ICON_PATH .. "icon_general.tga",    accent = { 0.49, 0.91, 1.00 }, desc = L["cat_interface_desc"], kw = "general minimap actionbar skins son audio chat sacs tooltip" },
-    -- Legacy configuration workspaces kept in code for compatibility while
-    -- Astral Forge / Party & Raid Studio / Resource & Cast Studio own their
-    -- settings. hidden=true removes them from normal GUI navigation/search
-    -- without deleting their builders or breaking old deep-links.
-    { key = "units",     label = L["cat_units"],                      icon = ICON_PATH .. "icon_unitframes.tga", accent = { 0.46, 0.72, 1.00 }, desc = L["cat_units_desc"], kw = "unit frames nameplates party raid groupe cible plaques", hidden = true },
-    { key = "combat",    label = L["cat_combat"],                      icon = ICON_PATH .. "icon_castbars.tga",   accent = { 0.96, 0.70, 0.26 }, desc = L["cat_combat_desc"], kw = "castbar ressources cooldown mythic mplus combat", hidden = true },
     { key = "comfort",   label = L["cat_comfort"],                     icon = ICON_PATH .. "icon_qol.tga",        accent = { 0.38, 0.86, 0.56 }, desc = L["cat_comfort_desc"], kw = "qol confort quete afk housing logement automatisation" },
     { key = "damagemeter", label = LT("cat_damagemeter", "Damage Meter"),  icon = ICON_PATH .. "icon_damagemeter.tga", accent = { 0.80, 0.27, 1.00 }, desc = LT("cat_damagemeter_desc", "Compteur de degats, recap de mort et recap de donjon."), kw = "damage meter dps hps degats soins recap mort donjon compteur tdm" },
     { key = "changelog", label = LT("cat_changelog", "Nouveautes"), icon = ICON_PATH .. "icon_qol.tga", accent = { 0.36, 0.78, 0.98 }, desc = LT("cat_changelog_desc", "Toutes les notes de version, de la plus recente a la plus ancienne."), kw = "changelog nouveautes notes version patch historique whatsnew quoi de neuf" },
@@ -254,21 +248,98 @@ local categories = {
 -- Exposed for Config/GlobalSearch.lua (ghost indexing needs the labels)
 C.Categories = categories
 
+-- =====================================================================
+-- STUDIOS
+-- The dedicated LoadOnDemand editors own Unit Frames, Nameplates, castbars,
+-- group frames, resources, cooldowns and Mythic+. They are first-class
+-- entries of the sidebar; every old deep link to those settings (EditMode
+-- gear routes, /tmt, saved bookmarks) resolves to the matching Studio.
+-- =====================================================================
+local STUDIOS = {
+    { key = "astral", addon = "TomoMod_AstralForge", global = "TomoMod_AstralForge",
+      icon = ICON_PATH .. "icon_unitframes.tga", navKey = "nav_studio_astral", navFallback = "Unit frames & nameplates",
+      title = "dash_studio_astral_title", titleFallback = "Astral Forge Studio", desc = "dash_studio_astral_desc",
+      kw = "astral forge studio unit frames unitframes nameplates plaques cadres joueur cible focus familier boss castbar incantation" },
+    { key = "group", addon = "TomoMod_GroupStudio", global = "TomoMod_GroupStudio", defaultArg = "party",
+      icon = ICON_PATH .. "icon_partyframes.tga", navKey = "nav_studio_group", navFallback = "Party & raid",
+      title = "dash_studio_group_title", titleFallback = "Party & Raid Studio", desc = "dash_studio_group_desc",
+      kw = "party raid groupe frames healer soigneur hots dispel defensifs" },
+    { key = "resourcecast", addon = "TomoMod_ResourceCastStudio", global = "TomoMod_ResourceCastStudio", defaultArg = "resources",
+      icon = ICON_PATH .. "icon_resources.tga", navKey = "nav_studio_resourcecast", navFallback = "Resources & castbar",
+      title = "dash_studio_resourcecast_title", titleFallback = "Resource & Cast Studio", desc = "dash_studio_resourcecast_desc",
+      kw = "resources ressources resource bars castbar incantation gcd player joueur sante health" },
+    { key = "cooldown", addon = "TomoMod_CDStudio", global = "TomoMod_CDStudio",
+      icon = ICON_PATH .. "icon_castbars.tga", navKey = "nav_studio_cooldown", navFallback = "Cooldowns",
+      title = "dash_studio_cooldown_title", titleFallback = "Cooldown Studio", desc = "dash_studio_cooldown_desc",
+      kw = "cooldown cooldowns cd forge studio sorts spells barres bars" },
+    { key = "mythic", addon = "TomoMod_MythicPlus", launcher = "mythic",
+      icon = ICON_PATH .. "icon_mythicplus.tga", navKey = "nav_studio_mythic", navFallback = "Mythic+",
+      title = "dash_studio_mythic_title", titleFallback = "Mythic+ Studio", desc = "dash_studio_mythic_desc",
+      kw = "mythic mythique m+ mplus keystone cle score donjon tracker" },
+}
+-- A Studio whose game system this client does not have is not offered.
+if TomoMod_Compat and TomoMod_Compat.IsAddOnBlocked then
+    for i = #STUDIOS, 1, -1 do
+        if TomoMod_Compat.IsAddOnBlocked(STUDIOS[i].addon) then table.remove(STUDIOS, i) end
+    end
+end
+local STUDIO_BY_KEY = {}
+for _, def in ipairs(STUDIOS) do
+    def.label = LT(def.navKey, def.navFallback)
+    STUDIO_BY_KEY[def.key] = def
+end
+C.Studios = STUDIOS
+
+-- Old category keys whose settings now live in a Studio. Quoted keys on
+-- purpose: Tools/test_layout_gear.lua checks every EditMode route name
+-- against this file as a quoted string.
+local STUDIO_ALIASES = {
+    ["unitframes"]  = { studio = "astral" },
+    ["nameplates"]  = { studio = "astral", arg = "nameplate" },
+    ["partyframes"] = { studio = "group", arg = "party" },
+    ["raidframes"]  = { studio = "group", arg = "raid" },
+    ["castbars"]    = { studio = "resourcecast", arg = "cast" },
+    ["resources"]   = { studio = "resourcecast", arg = "resources" },
+    ["cdforge"]     = { studio = "cooldown" },
+    ["mythicplus"]  = { studio = "mythic" },
+    -- Removed legacy workspaces.
+    ["units"]       = { studio = "astral" },
+    ["combat"]      = { studio = "resourcecast" },
+}
+
+function C.OpenStudio(key, arg)
+    local def = STUDIO_BY_KEY[key]
+    if not def then return false end
+    local Forge = TomoMod_Forge
+    if def.launcher == "mythic" then
+        if Forge and Forge.Studio and Forge.Studio.ClearSearchBuildContext then
+            Forge.Studio.ClearSearchBuildContext()
+        end
+        local B = TomoMod_MythicPlusLauncher
+        if B and B.Open then
+            B:Open(arg or "dashboard")
+            return true
+        end
+        return false
+    end
+    if not (Forge and Forge.Studio and Forge.Studio.Launch) then return false end
+    return Forge.Studio.Launch({
+        addon  = def.addon,
+        global = def.global,
+        label  = LT(def.title, def.titleFallback),
+        arg    = arg or def.defaultArg,
+    })
+end
+
+-- Kept as a global: the dashboard and older bookmarks call it by name.
+function TomoMod_OpenCooldownStudio() return C.OpenStudio("cooldown") end
+
 local categoryAliases = {
     general     = { key = "interface", tab = "general" },
     actionbars  = { key = "interface", tab = "actionbars" },
     skins       = { key = "interface", tab = "skins" },
     sound       = { key = "interface", tab = "sound" },
-
-    unitframes  = { key = "units", tab = "unitframes" },
-    nameplates  = { key = "units", tab = "nameplates" },
-    partyframes = { key = "units", tab = "partyframes" },
-    raidframes  = { key = "units", tab = "raidframes" },
-
-    castbars    = { key = "combat", tab = "castbars" },
-    resources   = { key = "combat", tab = "resources" },
-    cdforge     = { key = "combat", tab = "cdforge" },
-    mythicplus  = { key = "combat", tab = "mythicplus" },
+    cdm         = { key = "interface", tab = "cdm" },
 
     qol         = { key = "comfort", tab = "qol" },
     housing     = { key = "comfort", tab = "housing" },
@@ -278,75 +349,62 @@ local categoryAliases = {
     tools       = { key = "profiles" },
 }
 
--- Interface is the first category migrated to the new sidebar workspace.
--- The panel builders stay untouched: only their outer navigation changes.
+-- Second navigation level, drawn in the sidebar under its category while
+-- that category is open. The panel builders stay untouched.
 local INTERFACE_WORKSPACE_ITEMS = {
     { key = "general",    label = L["cfg_tab_general"],    kw = "general minimap interface" },
     { key = "actionbars", label = L["cfg_tab_actionbars"], kw = "action bars barres action" },
     { key = "skins",      label = L["cfg_tab_skins"],      kw = "skins apparence chat sacs menu" },
     { key = "sound",      label = L["cfg_tab_sound"],      kw = "sound son audio" },
+    { key = "cdm",        label = LT("dash_mod_cdm", "Cooldown Manager"), kw = "cooldown manager cdm blizzard viewers essentiels utilitaires buffs" },
 }
 
-local UNITS_WORKSPACE_ITEMS = {
-    { key = "unitframes",  label = L["cfg_tab_unitframes"],  kw = "unit frames unitframes joueur cible focus boss" },
-    { key = "nameplates",  label = L["cfg_tab_nameplates"],  kw = "nameplates plaques noms" },
-    { key = "partyframes", label = L["cfg_tab_partyframes"], kw = "party frames groupe party" },
-    { key = "raidframes",  label = L["cfg_tab_raidframes"],  kw = "raid frames raid groupe" },
-}
-
-local COMBAT_WORKSPACE_ITEMS = {
-    { key = "castbars",   label = L["cfg_tab_castbars"],   kw = "castbars cast bars incantation" },
-    { key = "resources",  label = L["cfg_tab_resources"],  kw = "resources ressources cooldown resource bars" },
-    { key = "cdforge",    label = L["cfg_tab_cdforge"],    kw = "cooldown forge cd forge cooldowns" },
-    { key = "mythicplus", label = L["cfg_tab_mythicplus"], kw = "mythic plus mythic+ mplus donjon" },
-}
-
--- Confort uses one more navigation level than Interface/Unités/Combat.
--- Its group aliases therefore live in a compact secondary navigation on the
--- right, while the existing QOL builders are reused as leaves.
+-- Confort groups are its second level (sidebar); their pages are the third
+-- level (horizontal bar above the page), the same depth Interface pages
+-- reach with their own tab bars. Grouped by what the player is doing.
 local COMFORT_WORKSPACE_GROUPS = {
     {
         key = "automation", label = LT("comfort_grp_automation", "Automation"), default = "automations",
         pages = {
-            { key = "automations", label = LT("comfort_page_general", "General"), kw = "automation automatisation general invite summon delete vendor repair combat text prey" },
-            { key = "cinematic",   label = L["tab_qol_cinematic"],  kw = "cinematic cinematique skip" },
-            { key = "autoquest",   label = L["tab_qol_auto_quest"], kw = "auto quest quete" },
+            { key = "automations", label = LT("comfort_page_general", "General"), kw = "automation automatisation general invite summon delete combat text prey" },
+            { key = "cinematic",   label = L["tab_qol_cinematic"],      kw = "cinematic cinematique skip" },
+            { key = "autoquest",   label = L["tab_qol_auto_quest"],     kw = "auto quest quete" },
+            { key = "merchant",    label = L["tab_qol_merchant_tools"], kw = "merchant vendeur repair reparer vendor" },
         },
     },
     {
-        key = "players", label = LT("comfort_grp_players", "Players"), default = "mythickeys",
-        pages = {
-            { key = "mythickeys",  label = L["tab_qol_mythic_keys"],      kw = "mythic keys clefs cles" },
-            { key = "skyride",     label = L["tab_qol_skyride"],          kw = "skyride vol flying" },
-            { key = "leveling",    label = L["tab_qol_leveling"],         kw = "leveling level niveau" },
-            { key = "gearadvisor", label = (TomoMod_GearAdvisor and TomoMod_GearAdvisor.L and TomoMod_GearAdvisor.L("tab")) or LT("comfort_page_gearadvisor", "Gear Advisor"), kw = "gear advisor tomogear equipment equipement upgrade score stats" },
-            { key = "merchant",    label = L["tab_qol_merchant_tools"],   kw = "merchant vendeur repair reparer" },
-            { key = "consumables", label = LT("tab_qol_consumable_bar", LT("comfort_page_consumables", "Consumables")), kw = "consumables consommables flask food huile oil ready tracker" },
-            { key = "rarealert",   label = L["tab_qol_rare_alert"],       kw = "rare alert alerte rares" },
-            { key = "profhelper",  label = L["tab_qol_prof_helper"],      kw = "profession helper metier" },
-        },
-    },
-    {
-        key = "classes", label = LT("comfort_grp_classes", "Classes"), default = "classremind",
-        pages = {
-            { key = "classremind", label = L["tab_qol_class_reminder"], kw = "class reminder classe rappel" },
-            { key = "companion",   label = L["tab_qol_companion"],      kw = "companion compagnon" },
-        },
-    },
-    { key = "cvars", label = LT("comfort_grp_cvars", "CVars"), default = "cvaropt", direct = true, kw = "cvars optimizer optimisation" },
-    {
-        key = "worldquest", label = LT("comfort_grp_worldquest", "World Quests"), default = "worldquests",
+        key = "world", label = LT("comfort_grp_world", "World & travel"), default = "worldquests",
         pages = {
             { key = "worldquests", label = L["tab_qol_world_quests"], kw = "world quest quetes monde" },
             { key = "waypoint",    label = L["tab_qol_waypoint"],     kw = "waypoint point navigation" },
             { key = "compass",     label = L["tab_qol_compass"],      kw = "compass boussole" },
+            { key = "rarealert",   label = L["tab_qol_rare_alert"],   kw = "rare alert alerte rares" },
+            { key = "skyride",     label = L["tab_qol_skyride"],      kw = "skyride vol flying dynamique" },
         },
     },
     {
-        key = "other", label = LT("comfort_grp_other", "Other"), default = "bagmicro",
+        key = "character", label = LT("comfort_grp_character", "Character & professions"), default = "leveling",
         pages = {
-            -- Kept reachable during the navigation migration. Bag & Micro Menu
-            -- will move to Interface > Skins in the later content pass.
+            { key = "leveling",    label = L["tab_qol_leveling"],    kw = "leveling level niveau" },
+            { key = "gearadvisor", label = (TomoMod_GearAdvisor and TomoMod_GearAdvisor.L and TomoMod_GearAdvisor.L("tab")) or LT("comfort_page_gearadvisor", "Gear Advisor"), kw = "gear advisor tomogear equipment equipement upgrade score stats" },
+            { key = "profhelper",  label = L["tab_qol_prof_helper"], kw = "profession helper metier" },
+            { key = "consumables", label = LT("tab_qol_consumable_bar", LT("comfort_page_consumables", "Consumables")), kw = "consumables consommables flask food huile oil ready tracker" },
+        },
+    },
+    {
+        key = "classgroup", label = LT("comfort_grp_classgroup", "Class & group"), default = "classremind",
+        pages = {
+            { key = "classremind", label = L["tab_qol_class_reminder"], kw = "class reminder classe rappel" },
+            { key = "companion",   label = L["tab_qol_companion"],      kw = "companion compagnon" },
+            { key = "mythickeys",  label = L["tab_qol_mythic_keys"],    kw = "mythic keys clefs cles" },
+        },
+    },
+    { key = "cvars", label = LT("comfort_grp_cvars", "CVars"), default = "cvaropt", direct = true, kw = "cvars optimizer optimisation" },
+    {
+        key = "menus", label = LT("comfort_grp_menus", "Menus & housing"), default = "bagmicro",
+        pages = {
+            -- Bag & Micro Menu will move to Interface > Skins in the later
+            -- content pass.
             { key = "bagmicro", label = L["tab_qol_bag_micro"], kw = "bag micro menu sacs" },
             { key = "housing",  label = L["cfg_tab_housing"],   kw = "housing logement maison" },
         },
@@ -416,52 +474,17 @@ for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
     end
 end
 
-local INTERFACE_WORKSPACE_ALLOWED = {
-    accueil = true,
-    roles = true,
-    interface = true,
-    profiles = true,
-    diagnostics = true,
-}
-
-local UNITS_WORKSPACE_ALLOWED = {
-    accueil = true,
-    roles = true,
-    units = true,
-    profiles = true,
-    diagnostics = true,
-}
-
-local COMBAT_WORKSPACE_ALLOWED = {
-    accueil = true,
-    roles = true,
-    combat = true,
-    profiles = true,
-    diagnostics = true,
-}
-
-local COMFORT_WORKSPACE_ALLOWED = {
-    accueil = true,
-    roles = true,
-    comfort = true,
-    profiles = true,
-    diagnostics = true,
-}
-
 -- State
 local configFrame
 local currentCategory = nil
-local currentWorkspace = nil
 local currentInterfacePage = "general"
-local currentUnitsPage = "unitframes"
-local currentCombatPage = "castbars"
 local currentComfortPage = "automations"
 local comfortLastPageByGroup = {}
 local categoryPanels  = {}
 local categoryButtons = {}
 local interfaceSubButtons = {}
-local unitsSubButtons = {}
-local combatSubButtons = {}
+local comfortSubButtons = {}
+local studioButtons = {}
 local activeCategoryPanel = nil
 local hiddenPanelBin = nil
 
@@ -645,11 +668,15 @@ local function CreateNavButton(parent, cat, yOffset)
     return btn
 end
 
-local function CreateSubNavButton(parent, item, categoryKey)
+-- Sub-items of an open category. The caller says what "active" means and
+-- what a click does: Interface pages and Confort groups share the widget.
+local SUB_BTN_H = 30
+
+local function CreateSubNavButton(parent, item, categoryKey, isActive, onClick)
     local cat = GetCategory(categoryKey)
     local aR, aG, aB = CategoryAccent(cat)
     local btn = CreateFrame("Button", nil, parent)
-    btn:SetSize(NAV_W, 32)
+    btn:SetSize(NAV_W, SUB_BTN_H)
 
     local bg = btn:CreateTexture(nil, "BACKGROUND")
     bg:SetPoint("TOPLEFT", 28, 0)
@@ -683,15 +710,7 @@ local function CreateSubNavButton(parent, item, categoryKey)
     SetActive(false)
 
     local function IsActive()
-        if currentCategory ~= categoryKey then return false end
-        if categoryKey == "interface" then
-            return currentInterfacePage == item.key
-        elseif categoryKey == "units" then
-            return currentUnitsPage == item.key
-        elseif categoryKey == "combat" then
-            return currentCombatPage == item.key
-        end
-        return false
+        return currentCategory == categoryKey and isActive(item) or false
     end
 
     btn:SetScript("OnEnter", function()
@@ -704,9 +723,60 @@ local function CreateSubNavButton(parent, item, categoryKey)
         SetActive(IsActive())
     end)
     btn:SetScript("OnClick", function()
-        C.SwitchCategory(item.key)
+        onClick(item)
     end)
 
+    return btn
+end
+
+-- Studio entries: an icon and a label, like a category, but a click opens
+-- the dedicated editor instead of a page. The tooltip carries the Studio's
+-- full name and description, so the short sidebar label can stay short.
+local function CreateStudioNavButton(parent, def)
+    local aR, aG, aB = GetAccent()
+    local btn = CreateFrame("Button", nil, parent)
+    btn:SetSize(NAV_W, SUB_BTN_H + 2)
+
+    local bg = btn:CreateTexture(nil, "BACKGROUND")
+    bg:SetPoint("TOPLEFT", 8, 0)
+    bg:SetPoint("BOTTOMRIGHT", -8, 0)
+    bg:SetColorTexture(aR, aG, aB, 0)
+
+    local ico = btn:CreateTexture(nil, "OVERLAY")
+    ico:SetSize(16, 16)
+    ico:SetPoint("LEFT", 19, 0)
+    ico:SetTexture(def.icon)
+    ico:SetVertexColor(0.46, 0.46, 0.52, 1)
+
+    local lbl = btn:CreateFontString(nil, "OVERLAY")
+    lbl:SetFont(FONT, 11, "")
+    lbl:SetPoint("LEFT", ico, "RIGHT", 10, 0)
+    lbl:SetPoint("RIGHT", -10, 0)
+    lbl:SetJustifyH("LEFT")
+    lbl:SetWordWrap(false)
+    lbl:SetText(def.label)
+    lbl:SetTextColor(0.62, 0.62, 0.68, 1)
+
+    btn:SetScript("OnEnter", function(self)
+        bg:SetColorTexture(aR, aG, aB, 0.08)
+        ico:SetVertexColor(aR, aG, aB, 1)
+        lbl:SetTextColor(0.92, 0.95, 0.93, 1)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(LT(def.title, def.titleFallback), 1, 1, 1)
+        local desc = def.desc and LT(def.desc, "") or ""
+        if desc ~= "" then GameTooltip:AddLine(desc, 0.72, 0.72, 0.78, true) end
+        GameTooltip:Show()
+    end)
+    btn:SetScript("OnLeave", function()
+        bg:SetColorTexture(aR, aG, aB, 0)
+        ico:SetVertexColor(0.46, 0.46, 0.52, 1)
+        lbl:SetTextColor(0.62, 0.62, 0.68, 1)
+        GameTooltip:Hide()
+    end)
+    btn:SetScript("OnClick", function()
+        GameTooltip:Hide()
+        C.OpenStudio(def.key)
+    end)
     return btn
 end
 
@@ -821,23 +891,12 @@ local CATEGORY_TREE = {
         { key = "actionbars", label = L["cfg_tab_actionbars"],  global = "TomoMod_ConfigPanel_ActionBars" },
         { key = "skins",      label = L["cfg_tab_skins"],            global = "TomoMod_ConfigPanel_Skins" },
         { key = "sound",      label = L["cfg_tab_sound"],              global = "TomoMod_ConfigPanel_Sound" },
+        { key = "cdm",        label = LT("dash_mod_cdm", "Cooldown Manager"), global = "TomoMod_ConfigPanel_CooldownManager" },
     },
     roles = {
         { key = "tank",   label = L["cfg_tab_role_tank"],   global = "TomoMod_ConfigPanel_RoleTank" },
         { key = "healer", label = L["cfg_tab_role_healer"], global = "TomoMod_ConfigPanel_RoleHealer" },
         { key = "dps",    label = L["cfg_tab_role_dps"],    global = "TomoMod_ConfigPanel_RoleDps" },
-    },
-    units = {
-        { key = "unitframes",  label = L["cfg_tab_unitframes"], global = "TomoMod_ConfigPanel_UnitFrames" },
-        { key = "nameplates",  label = L["cfg_tab_nameplates"], global = "TomoMod_ConfigPanel_Nameplates" },
-        { key = "partyframes", label = L["cfg_tab_partyframes"],     global = "TomoMod_ConfigPanel_PartyFrames" },
-        { key = "raidframes",  label = L["cfg_tab_raidframes"],       global = "TomoMod_ConfigPanel_RaidFrames" },
-    },
-    combat = {
-        { key = "castbars",   label = L["cfg_tab_castbars"],   global = "TomoMod_ConfigPanel_Castbars" },
-        { key = "resources",  label = L["cfg_tab_resources"], global = "TomoMod_ConfigPanel_CooldownResource" },
-        { key = "cdforge",    label = L["cfg_tab_cdforge"],   global = "TomoMod_ConfigPanel_CooldownForge" },
-        { key = "mythicplus", label = L["cfg_tab_mythicplus"],        global = "TomoMod_ConfigPanel_MythicPlus" },
     },
     comfort = {
         { key = "qol",     label = L["cfg_tab_qol"], global = "TomoMod_ConfigPanel_QOL" },
@@ -975,158 +1034,6 @@ local function BuildInterfaceWorkspacePanel(parent)
     return wrapper
 end
 
--- Units workspace: Unit Frames, Nameplates, Party Frames and Raid Frames use
--- the same left-sidebar navigation as Interface. Their panel builders and all
--- nested tabs/previews remain untouched.
-local function BuildUnitsWorkspacePanel(parent)
-    local tabs = CATEGORY_TREE.units or {}
-    local wrapper = CreateFrame("Frame", nil, parent)
-    wrapper:SetAllPoints()
-    wrapper._muiDesign = GetCategory("units")
-
-    local content = CreateFrame("Frame", nil, wrapper)
-    content:SetAllPoints()
-    content._muiDesign = wrapper._muiDesign
-
-    local tabPanels = {}
-    local currentTab = nil
-
-    local function FindTab(key)
-        for _, tab in ipairs(tabs) do
-            if tab.key == key then return tab end
-        end
-        return nil
-    end
-
-    local function SwitchTab(key)
-        local tab = FindTab(key)
-        if not tab then return end
-
-        if currentTab and tabPanels[currentTab] and tabPanels[currentTab].Hide then
-            tabPanels[currentTab]:Hide()
-        end
-
-        if not tabPanels[key] then
-            if W._RestoreTabPath then W._RestoreTabPath({}) end
-            if W._SetBuildTabAt then
-                W._SetBuildTabAt(1, tab.key, tab.label)
-            elseif W._SetBuildTab then
-                W._SetBuildTab(tab.key, tab.label)
-            end
-
-            local panel = BuildPanelByName(content, tab.global)
-            if panel then
-                if panel:GetParent() ~= content then panel:SetParent(content) end
-                panel:SetAllPoints(content)
-                tabPanels[key] = panel
-            end
-        end
-
-        if tabPanels[key] then tabPanels[key]:Show() end
-        currentTab = key
-        currentUnitsPage = key
-
-        if configFrame and configFrame._contextTitle then
-            local cat = GetCategory("units")
-            configFrame._contextTitle:SetText(
-                string.format("%s  /  %s", cat and cat.label or "Unités", tab.label or key))
-        end
-        if C.RefreshWorkspaceNav then C.RefreshWorkspaceNav() end
-        if W.ApplyRoleFilter then W.ApplyRoleFilter() end
-    end
-
-    local pendingPath = C._pendingTabPath
-    local startKey = (pendingPath and pendingPath[1]) or C._pendingGroupTab or currentUnitsPage
-    if not FindTab(startKey) then startKey = tabs[1] and tabs[1].key end
-
-    wrapper.SwitchTab = SwitchTab
-    wrapper.HasTab = function(key) return FindTab(key) ~= nil end
-    wrapper.content = content
-    wrapper:SetScript("OnShow", function()
-        if currentTab then SwitchTab(currentTab) end
-    end)
-
-    if startKey then SwitchTab(startKey) end
-    return wrapper
-end
-
--- Combat workspace: Castbars, Resources, Cooldown Forge and Mythic+ use the
--- left sidebar as their first navigation level. The panels themselves keep
--- every nested tab, preview and live setting exactly as before.
-local function BuildCombatWorkspacePanel(parent)
-    local tabs = CATEGORY_TREE.combat or {}
-    local wrapper = CreateFrame("Frame", nil, parent)
-    wrapper:SetAllPoints()
-    wrapper._muiDesign = GetCategory("combat")
-
-    local content = CreateFrame("Frame", nil, wrapper)
-    content:SetAllPoints()
-    content._muiDesign = wrapper._muiDesign
-
-    local tabPanels = {}
-    local currentTab = nil
-
-    local function FindTab(key)
-        for _, tab in ipairs(tabs) do
-            if tab.key == key then return tab end
-        end
-        return nil
-    end
-
-    local function SwitchTab(key)
-        local tab = FindTab(key)
-        if not tab then return end
-
-        if currentTab and tabPanels[currentTab] and tabPanels[currentTab].Hide then
-            tabPanels[currentTab]:Hide()
-        end
-
-        if not tabPanels[key] then
-            -- Preserve the old category > tab build path for Global Search
-            -- and for any nested deep-links owned by the combat panels.
-            if W._RestoreTabPath then W._RestoreTabPath({}) end
-            if W._SetBuildTabAt then
-                W._SetBuildTabAt(1, tab.key, tab.label)
-            elseif W._SetBuildTab then
-                W._SetBuildTab(tab.key, tab.label)
-            end
-
-            local panel = BuildPanelByName(content, tab.global)
-            if panel then
-                if panel:GetParent() ~= content then panel:SetParent(content) end
-                panel:SetAllPoints(content)
-                tabPanels[key] = panel
-            end
-        end
-
-        if tabPanels[key] then tabPanels[key]:Show() end
-        currentTab = key
-        currentCombatPage = key
-
-        if configFrame and configFrame._contextTitle then
-            local cat = GetCategory("combat")
-            configFrame._contextTitle:SetText(
-                string.format("%s  /  %s", cat and cat.label or "Combat", tab.label or key))
-        end
-        if C.RefreshWorkspaceNav then C.RefreshWorkspaceNav() end
-        if W.ApplyRoleFilter then W.ApplyRoleFilter() end
-    end
-
-    local pendingPath = C._pendingTabPath
-    local startKey = (pendingPath and pendingPath[1]) or C._pendingGroupTab or currentCombatPage
-    if not FindTab(startKey) then startKey = tabs[1] and tabs[1].key end
-
-    wrapper.SwitchTab = SwitchTab
-    wrapper.HasTab = function(key) return FindTab(key) ~= nil end
-    wrapper.content = content
-    wrapper:SetScript("OnShow", function()
-        if currentTab then SwitchTab(currentTab) end
-    end)
-
-    if startKey then SwitchTab(startKey) end
-    return wrapper
-end
-
 local function BuildReadyTrackerComfortPanel(parent)
     local scroll = W.CreateScrollPanel(parent)
     local c = scroll.child
@@ -1182,10 +1089,11 @@ local function BuildReadyTrackerComfortPanel(parent)
     return scroll
 end
 
--- Confort workspace: QOL remains the rendering engine, but its extra
--- hierarchy is rendered on the RIGHT. The main sidebar therefore stays as
--- compact as Interface/Unités/Combat and never grows just because Confort
--- contains more pages.
+-- Confort workspace: QOL remains the rendering engine. Its groups are the
+-- second level and live in the sidebar, like the Interface pages; the
+-- pages of the open group are the third level, one tab bar above the
+-- content -- the same place and size as the tab bars inside Interface
+-- pages, so every category reads the same way.
 local function BuildComfortWorkspacePanel(parent)
     local wrapper = CreateFrame("Frame", nil, parent)
     wrapper:SetAllPoints()
@@ -1193,26 +1101,12 @@ local function BuildComfortWorkspacePanel(parent)
 
     local cat = GetCategory("comfort")
     local aR, aG, aB = CategoryAccent(cat)
-    local GROUP_H, PAGE_H = 34, 30
+    local PAGE_H = 32   -- W.CreateTabPanel's TAB_H
 
-    -- First row: aliases (Automatisation / Joueurs / Classes / CVars / ...).
-    local groupBar = CreateFrame("Frame", nil, wrapper)
-    groupBar:SetPoint("TOPLEFT")
-    groupBar:SetPoint("TOPRIGHT")
-    groupBar:SetHeight(GROUP_H)
-    local groupBg = groupBar:CreateTexture(nil, "BACKGROUND")
-    groupBg:SetAllPoints()
-    groupBg:SetColorTexture(0.052, 0.052, 0.066, 1)
-    local groupLine = groupBar:CreateTexture(nil, "ARTWORK")
-    groupLine:SetHeight(1)
-    groupLine:SetPoint("BOTTOMLEFT")
-    groupLine:SetPoint("BOTTOMRIGHT")
-    groupLine:SetColorTexture(aR, aG, aB, 0.22)
-
-    -- Second row: only the pages belonging to the selected alias.
+    -- Pages of the selected group (hidden for single-page groups).
     local pageBar = CreateFrame("Frame", nil, wrapper)
-    pageBar:SetPoint("TOPLEFT", groupBar, "BOTTOMLEFT", 0, -1)
-    pageBar:SetPoint("TOPRIGHT", groupBar, "BOTTOMRIGHT", 0, -1)
+    pageBar:SetPoint("TOPLEFT")
+    pageBar:SetPoint("TOPRIGHT")
     pageBar:SetHeight(PAGE_H)
     local pageBg = pageBar:CreateTexture(nil, "BACKGROUND")
     pageBg:SetAllPoints()
@@ -1230,7 +1124,7 @@ local function BuildComfortWorkspacePanel(parent)
 
     local qolPanel, housingPanel, readyPanel
     local currentSurface
-    local groupButtons, pageButtons = {}, {}
+    local pageButtons = {}
 
     local function FindGroup(groupKey)
         for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
@@ -1239,7 +1133,7 @@ local function BuildComfortWorkspacePanel(parent)
         return nil
     end
 
-    local function CreateRightTabButton(parentFrame, label, height, bold)
+    local function CreateRightTabButton(parentFrame, label, height)
         local btn = CreateFrame("Button", nil, parentFrame)
         btn:SetHeight(height)
 
@@ -1257,7 +1151,7 @@ local function BuildComfortWorkspacePanel(parent)
         btn._indicator = indicator
 
         local lbl = btn:CreateFontString(nil, "OVERLAY")
-        lbl:SetFont(bold and FONT_BOLD or FONT, bold and 11 or 10, "")
+        lbl:SetFont(FONT, 11, "")
         lbl:SetPoint("LEFT", 7, 0)
         lbl:SetPoint("RIGHT", -7, 0)
         lbl:SetJustifyH("CENTER")
@@ -1305,20 +1199,10 @@ local function BuildComfortWorkspacePanel(parent)
         end
     end
 
-    local groupOrder = {}
     for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
-        local groupDef = group
-        groupOrder[#groupOrder + 1] = groupDef.key
-        local btn = CreateRightTabButton(groupBar, groupDef.label, GROUP_H, true)
-        btn:SetScript("OnClick", function()
-            local target = comfortLastPageByGroup[groupDef.key] or groupDef.default
-            if wrapper.SwitchTab then wrapper.SwitchTab(target) end
-        end)
-        groupButtons[groupDef.key] = btn
-
-        for _, page in ipairs(groupDef.pages or {}) do
+        for _, page in ipairs(group.pages or {}) do
             local pageDef = page
-            local pageBtn = CreateRightTabButton(pageBar, pageDef.label, PAGE_H, false)
+            local pageBtn = CreateRightTabButton(pageBar, pageDef.label, PAGE_H)
             pageBtn:SetScript("OnClick", function()
                 if wrapper.SwitchTab then wrapper.SwitchTab(pageDef.key) end
             end)
@@ -1327,23 +1211,13 @@ local function BuildComfortWorkspacePanel(parent)
         end
     end
 
-    local function LayoutGroupBar()
-        LayoutButtons(groupBar, groupButtons, groupOrder, GROUP_H)
-    end
-    groupBar:SetScript("OnSizeChanged", LayoutGroupBar)
-    C_Timer.After(0, LayoutGroupBar)
-
     local function RefreshRightNav(key)
         local groupKey = COMFORT_PAGE_TO_GROUP[key]
         local group = FindGroup(groupKey)
-        for gKey, btn in pairs(groupButtons) do
-            btn._active = (gKey == groupKey)
-            btn:SetActive(btn._active)
-        end
         for _, btn in pairs(pageButtons) do btn:Hide() end
 
         local orderedPages = {}
-        if group and not group.direct then
+        if group and not group.direct and #(group.pages or {}) > 1 then
             for _, page in ipairs(group.pages or {}) do
                 orderedPages[#orderedPages + 1] = page.key
                 local btn = pageButtons[page.key]
@@ -1361,7 +1235,7 @@ local function BuildComfortWorkspacePanel(parent)
         else
             pageBar:Hide()
             content:ClearAllPoints()
-            content:SetPoint("TOPLEFT", groupBar, "BOTTOMLEFT", 0, -1)
+            content:SetPoint("TOPLEFT", 0, 0)
             content:SetPoint("BOTTOMRIGHT", 0, 0)
         end
     end
@@ -1766,9 +1640,6 @@ local function CreateConfigFrame()
         self:SetFrameStrata("FULLSCREEN_DIALOG")
         self:SetFrameLevel(500)
         StartPerfTicker(self._perfLabel)
-        if currentCategory == "units" and TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
-            TomoMod_UnitFrames.RefreshThreatPreview(true)
-        end
     end)
     configFrame:SetScript("OnHide", function(self)
         C.isOpen = false
@@ -2133,33 +2004,73 @@ local function CreateConfigFrame()
     end)
     navScroll:SetScript("OnShow", function() C_Timer.After(0, UpdateNavThumb) end)
 
-    -- Boutons de nav (dans le child défilant). Legacy-hidden categories
-    -- remain addressable by old deep-links but are not wired into the GUI.
+    -- Boutons de nav (dans le child défilant).
     for _, cat in ipairs(categories) do
-        if not cat.hidden then
-            local btn = CreateNavButton(navChild, cat, 0)
-            categoryButtons[cat.key] = btn
-            btn._cat = cat
-        end
+        local btn = CreateNavButton(navChild, cat, 0)
+        categoryButtons[cat.key] = btn
+        btn._cat = cat
     end
+
+    local function InterfaceSubActive(item) return currentInterfacePage == item.key end
+    local function InterfaceSubClick(item) C.SwitchCategory(item.key) end
     for _, item in ipairs(INTERFACE_WORKSPACE_ITEMS) do
-        interfaceSubButtons[item.key] = CreateSubNavButton(navChild, item, "interface")
+        interfaceSubButtons[item.key] = CreateSubNavButton(navChild, item, "interface",
+            InterfaceSubActive, InterfaceSubClick)
         interfaceSubButtons[item.key]:Hide()
     end
-    -- Units / Combat sub-navigation is intentionally not created anymore.
-    -- Their panel builders stay in CATEGORY_TREE for compatibility only.
 
-    -- Relayout + filtre de recherche. In Interface workspace, Accueil is the
-    -- explicit exit: Roles/Profiles/Diagnostics remain reachable without
-    -- collapsing the workspace, exactly like the requested left menu.
+    local function ComfortGroupActive(group)
+        return COMFORT_PAGE_TO_GROUP[currentComfortPage] == group.key
+    end
+    local function ComfortGroupClick(group)
+        C.OpenComfortPage(comfortLastPageByGroup[group.key] or group.default)
+    end
+    for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
+        comfortSubButtons[group.key] = CreateSubNavButton(navChild, group, "comfort",
+            ComfortGroupActive, ComfortGroupClick)
+        comfortSubButtons[group.key]:Hide()
+    end
+
+    -- Studios block: section label, one entry per Studio, then a hairline
+    -- before the utility categories (What's New, Profiles, Diagnostics).
+    local STUDIO_HEAD_H, STUDIO_SEP_H = 26, 9
+    local studioHead = navChild:CreateFontString(nil, "OVERLAY")
+    studioHead:SetFont(FONT_BOLD, 9, "")
+    studioHead:SetTextColor(0.56, 0.58, 0.64, 1)
+    studioHead:SetText(LT("nav_studios_header", "STUDIOS"))
+    studioHead:Hide()
+    local studioSep = navChild:CreateTexture(nil, "ARTWORK")
+    studioSep:SetHeight(1)
+    studioSep:SetColorTexture(1, 1, 1, 0.06)
+    studioSep:Hide()
+    for _, def in ipairs(STUDIOS) do
+        local btn = CreateStudioNavButton(navChild, def)
+        btn._def = def
+        btn:Hide()
+        studioButtons[#studioButtons + 1] = btn
+    end
+
+    -- Sub-items drawn under each category while it is open.
+    local SUB_ITEMS = {
+        interface = { list = INTERFACE_WORKSPACE_ITEMS, buttons = interfaceSubButtons },
+        comfort   = { list = COMFORT_WORKSPACE_GROUPS,  buttons = comfortSubButtons },
+    }
+
+    -- Every category stays visible at all times: the open one unfolds its
+    -- sub-items in place, so nothing disappears from the menu and the
+    -- player never has to go back through Home to reach a sibling. While a
+    -- search is typed, matching sub-items show under their category even
+    -- when it is closed.
+    local lastFilter
     local function RelayoutNav(filter)
         filter = (filter or ""):lower():gsub("^%s+", ""):gsub("%s+$", "")
         local yy = -4
 
         for _, btn in pairs(categoryButtons) do btn:Hide() end
         for _, btn in pairs(interfaceSubButtons) do btn:Hide() end
-        for _, btn in pairs(unitsSubButtons) do btn:Hide() end
-        for _, btn in pairs(combatSubButtons) do btn:Hide() end
+        for _, btn in pairs(comfortSubButtons) do btn:Hide() end
+        for _, btn in ipairs(studioButtons) do btn:Hide() end
+        studioHead:Hide(); studioSep:Hide()
 
         local function Match(label, key, kw)
             if filter == "" then return true end
@@ -2167,98 +2078,71 @@ local function CreateConfigFrame()
             return hay:find(filter, 1, true) ~= nil
         end
 
-        local function Place(btn, height)
-            btn:ClearAllPoints()
-            btn:SetPoint("TOPLEFT", navChild, "TOPLEFT", 0, yy)
-            btn:Show()
+        local function Place(region, height, x)
+            region:ClearAllPoints()
+            region:SetPoint("TOPLEFT", navChild, "TOPLEFT", x or 0, yy)
+            region:Show()
             yy = yy - height
         end
 
-        if currentWorkspace == "interface" then
-            local order = { "accueil", "roles", "interface", "profiles", "diagnostics" }
-            for _, key in ipairs(order) do
-                local btn = categoryButtons[key]
-                local cat = btn and btn._cat
-                if btn and cat and Match(cat.label, cat.key, cat.kw) then
-                    Place(btn, NAV_BTN_H)
+        local function SubMatches(item)
+            if Match(item.label, item.key, item.kw) then return true end
+            for _, page in ipairs(item.pages or {}) do
+                if Match(page.label, page.key, page.kw) then return true end
+            end
+            return item.direct and Match(item.label, item.default, item.kw) or false
+        end
+
+        local function PlaceStudios()
+            local visible = {}
+            for _, btn in ipairs(studioButtons) do
+                local def = btn._def
+                if Match(def.label, def.key, def.kw .. " " .. LT(def.title, def.titleFallback)) then
+                    visible[#visible + 1] = btn
                 end
-                if key == "interface" then
-                    for _, item in ipairs(INTERFACE_WORKSPACE_ITEMS) do
-                        local sub = interfaceSubButtons[item.key]
-                        if sub and Match(item.label, item.key, item.kw) then
-                            Place(sub, 32)
-                        end
+            end
+            if #visible == 0 then return end
+            yy = yy - 4
+            Place(studioHead, STUDIO_HEAD_H - 4, 18)
+            for _, btn in ipairs(visible) do Place(btn, SUB_BTN_H + 2) end
+            yy = yy - 4
+            studioSep:ClearAllPoints()
+            studioSep:SetPoint("TOPLEFT", navChild, "TOPLEFT", 12, yy)
+            studioSep:SetPoint("TOPRIGHT", navChild, "TOPRIGHT", -12, yy)
+            studioSep:Show()
+            yy = yy - (STUDIO_SEP_H - 4)
+        end
+
+        for _, cat in ipairs(categories) do
+            local btn = categoryButtons[cat.key]
+            local sub = SUB_ITEMS[cat.key]
+            local subsToShow = {}
+            if sub then
+                local open = (currentCategory == cat.key)
+                for _, item in ipairs(sub.list) do
+                    local b = sub.buttons[item.key]
+                    if b and ((filter == "" and open) or (filter ~= "" and SubMatches(item))) then
+                        subsToShow[#subsToShow + 1] = b
                     end
                 end
             end
-        elseif currentWorkspace == "units" then
-            local order = { "accueil", "roles", "units", "profiles", "diagnostics" }
-            for _, key in ipairs(order) do
-                local btn = categoryButtons[key]
-                local cat = btn and btn._cat
-                if btn and cat and Match(cat.label, cat.key, cat.kw) then
-                    Place(btn, NAV_BTN_H)
-                end
-                if key == "units" then
-                    for _, item in ipairs(UNITS_WORKSPACE_ITEMS) do
-                        local sub = unitsSubButtons[item.key]
-                        if sub and Match(item.label, item.key, item.kw) then
-                            Place(sub, 32)
-                        end
-                    end
-                end
+            if btn and (Match(cat.label, cat.key, cat.kw) or #subsToShow > 0) then
+                Place(btn, NAV_BTN_H)
+                for _, b in ipairs(subsToShow) do Place(b, SUB_BTN_H) end
             end
-        elseif currentWorkspace == "combat" then
-            local order = { "accueil", "roles", "combat", "profiles", "diagnostics" }
-            for _, key in ipairs(order) do
-                local btn = categoryButtons[key]
-                local cat = btn and btn._cat
-                if btn and cat and Match(cat.label, cat.key, cat.kw) then
-                    Place(btn, NAV_BTN_H)
-                end
-                if key == "combat" then
-                    for _, item in ipairs(COMBAT_WORKSPACE_ITEMS) do
-                        local sub = combatSubButtons[item.key]
-                        if sub and Match(item.label, item.key, item.kw) then
-                            Place(sub, 32)
-                        end
-                    end
-                end
-            end
-        elseif currentWorkspace == "comfort" then
-            -- Confort's extra hierarchy is on the right. Keep the main sidebar
-            -- deliberately short so it behaves like the other workspaces.
-            local order = { "accueil", "roles", "comfort", "profiles", "diagnostics" }
-            local comfortChildMatch = false
-            if filter ~= "" then
-                for _, group in ipairs(COMFORT_WORKSPACE_GROUPS) do
-                    if Match(group.label, group.key, group.kw) or Match(group.label, group.default, group.kw) then
-                        comfortChildMatch = true; break
-                    end
-                    for _, page in ipairs(group.pages or {}) do
-                        if Match(page.label, page.key, page.kw) then comfortChildMatch = true; break end
-                    end
-                    if comfortChildMatch then break end
-                end
-            end
-            for _, key in ipairs(order) do
-                local btn = categoryButtons[key]
-                local catMeta = btn and btn._cat
-                local match = btn and catMeta and Match(catMeta.label, catMeta.key, catMeta.kw)
-                if key == "comfort" and comfortChildMatch then match = true end
-                if match then Place(btn, NAV_BTN_H) end
-            end
-        else
-            for _, cat in ipairs(categories) do
-                local btn = categoryButtons[cat.key]
-                if btn and not cat.hidden and Match(cat.label, cat.key, cat.kw) then
-                    Place(btn, NAV_BTN_H)
-                end
-            end
+            if cat.key == "damagemeter" then PlaceStudios() end
         end
 
         navChild:SetHeight(math.max(math.abs(yy) + 8, 1))
-        navScroll:SetVerticalScroll(0)
+        -- Only a new search starts again from the top; a click on an item
+        -- low in the list must not throw the menu back up.
+        if filter ~= lastFilter then
+            navScroll:SetVerticalScroll(0)
+        else
+            local maxS = math.max(0, (navChild:GetHeight() or 0) - (navScroll:GetHeight() or 0))
+            if navScroll:GetVerticalScroll() > maxS then navScroll:SetVerticalScroll(maxS) end
+        end
+        lastFilter = filter
         UpdateNavThumb()
     end
     C.RelayoutNav = RelayoutNav
@@ -2266,11 +2150,8 @@ local function CreateConfigFrame()
         for key, btn in pairs(interfaceSubButtons) do
             btn.SetActive(currentCategory == "interface" and currentInterfacePage == key)
         end
-        for key, btn in pairs(unitsSubButtons) do
-            btn.SetActive(currentCategory == "units" and currentUnitsPage == key)
-        end
-        for key, btn in pairs(combatSubButtons) do
-            btn.SetActive(currentCategory == "combat" and currentCombatPage == key)
+        for key, btn in pairs(comfortSubButtons) do
+            btn.SetActive(currentCategory == "comfort" and COMFORT_PAGE_TO_GROUP[currentComfortPage] == key)
         end
         RelayoutNav(searchBox:GetText() or "")
     end
@@ -2383,44 +2264,30 @@ end
 function C.SwitchCategory(key)
     if W and W.CloseDropdowns then W.CloseDropdowns() end
 
+    -- Settings that moved into a Studio: open it instead of a page.
+    local studio = STUDIO_ALIASES[key]
+    if studio then
+        C.OpenStudio(studio.studio, studio.arg)
+        return
+    end
+
     local alias = categoryAliases[key]
     if alias then
         C._pendingGroupTab = alias.tab
         key = alias.key
     end
 
-    -- Interface opens its dedicated workspace. Accueil is the explicit way
-    -- back to the normal TomoMod menu. The three utility destinations shown
-    -- in that workspace do not close it; unrelated deep-links do.
-    if key == "interface" then
-        currentWorkspace = "interface"
-    elseif key == "units" then
-        currentWorkspace = "units"
-    elseif key == "combat" then
-        currentWorkspace = "combat"
-    elseif key == "comfort" then
-        currentWorkspace = "comfort"
-    elseif key == "accueil" then
-        currentWorkspace = nil
-    elseif currentWorkspace == "interface" and not INTERFACE_WORKSPACE_ALLOWED[key] then
-        currentWorkspace = nil
-    elseif currentWorkspace == "units" and not UNITS_WORKSPACE_ALLOWED[key] then
-        currentWorkspace = nil
-    elseif currentWorkspace == "combat" and not COMBAT_WORKSPACE_ALLOWED[key] then
-        currentWorkspace = nil
-    elseif currentWorkspace == "comfort" and not COMFORT_WORKSPACE_ALLOWED[key] then
-        currentWorkspace = nil
+    -- An unknown key (stale bookmark, removed page) lands on Home rather
+    -- than on an empty content area.
+    if not GetCategory(key) then
+        C._pendingGroupTab = nil
+        key = "accueil"
     end
 
     local catMeta = GetCategory(key)
     if W and W.SetPanelContext then W.SetPanelContext(catMeta) end
     if W and W.SetBuildContext then W.SetBuildContext(key, catMeta and catMeta.label or key) end
     local cr, cg, cb = CategoryAccent(catMeta)
-
-    if currentCategory == "units" and key ~= "units"
-        and TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
-        TomoMod_UnitFrames.RefreshThreatPreview(false)
-    end
 
     if configFrame then
         if configFrame._contextTitle then
@@ -2466,8 +2333,6 @@ function C.SwitchCategory(key)
         local builderMap = {
             interface = function(p) return BuildInterfaceWorkspacePanel(p) end,
             roles     = function(p) return BuildGroupedFromTree(p, "roles") end,
-            units     = function(p) return BuildUnitsWorkspacePanel(p) end,
-            combat    = function(p) return BuildCombatWorkspacePanel(p) end,
             comfort   = function(p) return BuildComfortWorkspacePanel(p) end,
         }
         local builder = builderMap[key] or SINGLE_PAGES[key]
@@ -2489,9 +2354,6 @@ function C.SwitchCategory(key)
     end
 
     if activeCategoryPanel then activeCategoryPanel:Show() end
-    if key == "units" and TomoMod_UnitFrames and TomoMod_UnitFrames.RefreshThreatPreview then
-        TomoMod_UnitFrames.RefreshThreatPreview(true)
-    end
 
     -- [Lot A] Pages are built lazily and cached: a freshly built page has
     -- just registered its tagged sections, so the filter is re-applied here.

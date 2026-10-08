@@ -3770,6 +3770,16 @@ local function V22BuildNameplateDisplay(c, y, db)
         V22CommitFrameEdit()
     end)
     y = ny
+
+    -- Raid marker size: the element's position is a Forge element, its
+    -- size stays a nameplate setting (ForgeRegistry leaves size to the
+    -- module). Moved here when the legacy /tm Nameplates page was retired.
+    local _, ny = W.CreateSlider(c, L["opt_np_raid_icon_size"], db.raidIconSize or 24,
+        10, 60, 1, y, function(v)
+            db.raidIconSize = v
+            V22CommitFrameEdit()
+        end, nil, 24)
+    y = ny
     return y
 end
 
@@ -3842,6 +3852,14 @@ local function V22BuildNameplateCastbar(c, y, db)
             end)
         y = ny
     end
+    -- Interruptible / uninterruptible colours, moved here with the legacy
+    -- /tm Nameplates page. The picker mutates the stored table in place.
+    y = V21Color(c, L["color_castbar"], db.castbarColor, y, function()
+        V22CommitFrameEdit()
+    end)
+    y = V21Color(c, L["color_castbar_uninterruptible"], db.castbarUninterruptible, y, function()
+        V22CommitFrameEdit()
+    end)
     local _, ny = W.CreateInfoText(c, L["af_v21_bar_note"], y)
     y = ny
     return y

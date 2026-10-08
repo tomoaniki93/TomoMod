@@ -62,7 +62,6 @@ local CONSUMERS = {
     "Modules/Interface/UnitFrames/Elements/Health.lua",
     "Modules/Interface/UnitFrames/Elements/Power.lua",
     "Modules/Interface/UnitFrames/Elements/Auras.lua",
-    "TomoMod_Options/Config/Panels/UnitFrames.lua",
     "TomoMod_Options/Config/Panels/UFPreview.lua",
     "TomoMod_Options/Config/Presets.lua",
 }
@@ -322,9 +321,11 @@ do
     for _, key in ipairs({ "raidIconAnchor", "raidIconX", "raidIconY" }) do
         check(("Nameplates.lua : %s"):format(key), countOccurrences(src, key), 0)
     end
-    local panel = stripComments(read("TomoMod_Options/Config/Panels/Nameplates.lua"))
+    -- The legacy /tm Nameplates page is gone: the raid marker size is now
+    -- edited in Astral Forge, which must not read the old offset keys either.
+    local panel = stripComments(read("TomoMod_AstralForge/AstralForge.lua"))
     for _, key in ipairs({ "raidIconAnchor", "raidIconX", "raidIconY" }) do
-        check(("panneau NP : %s"):format(key), countOccurrences(panel, key), 0)
+        check(("studio NP : %s"):format(key), countOccurrences(panel, key), 0)
     end
     check("raidIconSize conserve (taille)", countOccurrences(panel, "raidIconSize") >= 1, true)
 
@@ -517,7 +518,6 @@ do
     for _, path in ipairs({
         "Modules/Interface/UnitFrames/Units/UnitFrame.lua",
         "Modules/Interface/UnitFrames/Elements/Auras.lua",
-        "TomoMod_Options/Config/Panels/UnitFrames.lua",
     }) do
         local src = stripComments(read(path))
         check(("%s : plus de auraSettings.position"):format(path:match("[^/]+$")),
@@ -811,7 +811,6 @@ print("── 23. Astral Forge : filtres et limites des auras ──")
 do
     local studio = stripComments(read("TomoMod_AstralForge/AstralForge.lua"))
     local auras = stripComments(read("Modules/Interface/UnitFrames/Elements/Auras.lua"))
-    local options = stripComments(read("TomoMod_Options/Config/Panels/UnitFrames.lua"))
 
     check("studio : exclusivite Auras / Buffs cible",
         studio:find("EnforceAuraElementExclusivity", 1, true) ~= nil, true)
@@ -825,8 +824,6 @@ do
         countOccurrences(auras, "math%.ceil%(maxAuras / perRow%)") == 2
             and not auras:find("MAX_AURA_ROWS", 1, true)
             and not auras:find("MAX_ENEMY_BUFF_ROWS", 1, true), true)
-    check("options classiques : meme plafond de 12 icones",
-        options:find('L%["opt_auras_max"%].-1, 12, 1') ~= nil, true)
     check("runtime : les deux types bloquent le conteneur duplique",
         countOccurrences(auras, "UF_Elements%.AurasShowBoth%(settings%)") >= 2, true)
     check("runtime : changement de filtre reconstruit l'enfant natif",
