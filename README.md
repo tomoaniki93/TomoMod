@@ -122,7 +122,9 @@ The interface is organized by purpose instead of forcing you to search through h
 
 ### Main categories include:
 
-**Home • Roles • Interface • Units • Combat • Convenience • Damage Meter • Profiles • Diagnostics**
+**Home • Roles • Interface • Comfort • Damage Meter • What's New • Profiles • Diagnostics**
+
+Unit Frames, Nameplates, Castbars, Party & Raid Frames, Resources, Cooldowns and Mythic+ are edited in the dedicated **Studios**, opened from the Studios card on the Home dashboard or from the EditMode gear.
 
 Major configuration panels are also **LoadOnDemand**, so editors that you are not using do not need to remain loaded during normal gameplay.
 
