@@ -2643,7 +2643,7 @@ TomoMod_RegisterLocale("deDE", {
     ["ins_recap_custom"]         = "Deine benutzerdefinierte Konfiguration ist bereit",
     ["ins_recap_desc"]           = "Lade deine Oberfläche neu, um alles anzuwenden. Du kannst diesen Assistenten jederzeit mit |cff2e9dd8/tm install|r erneut öffnen und das vollständige Konfigurationsfenster mit |cff2e9dd8/tm|r.",
     ["cat_accueil"]              = "Start",
-    ["ui_search_placeholder"]    = "Modul suchen...",
+    ["ui_search_placeholder"]    = "Einstellung suchen...",
     ["dash_welcome"]             = "Schnellübersicht von TomoMod. Module umschalten, eine Konfiguration anwenden, Profil wechseln oder den Assistenten neu starten.",
     ["dash_modules_section"]     = "Module",
     ["dash_quickcfg_section"]    = "Schnellkonfiguration",

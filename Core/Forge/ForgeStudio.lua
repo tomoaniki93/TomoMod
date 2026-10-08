@@ -24,8 +24,20 @@ local WHITE8 = "Interface\\Buttons\\WHITE8x8"
 -- another entry point. Most shells restore the GUI when they close; Cooldown
 -- Studio opts out because its established close flow owns the reload prompt.
 -- ---------------------------------------------------------------------
+-- Studio widgets come from the Options widget kit, whose builders
+-- self-register into the /tm global search under the current build
+-- context. That context still names the last /tm category (usually Home),
+-- so a studio built under it filled the index with entries that sent the
+-- player back to that page. Neutralise it whenever a studio builds or shows.
+local function ClearSearchBuildContext()
+    local W = TomoMod_Widgets
+    if W and W.SetBuildContext then W.SetBuildContext(nil, nil) end
+end
+Forge.Studio.ClearSearchBuildContext = ClearSearchBuildContext
+
 function Forge.Studio.CaptureConfigReturn(frame, returnToConfig)
     if not frame then return false end
+    ClearSearchBuildContext()
     frame._tomoStudioReturnToConfig = returnToConfig ~= false and true or nil
     if TomoMod_Config and TomoMod_Config.Hide then
         TomoMod_Config.Hide()
@@ -64,24 +76,146 @@ end
 -- _G["ADDON_"..token]; what it never says is what to DO about it.
 -- ---------------------------------------------------------------------
 
-local HINT = {
-    MISSING               = "le dossier %s est absent de Interface/AddOns. Il s'installe a cote de TomoMod, jamais dedans.",
-    DISABLED              = "le sous-addon est decoche dans la liste des addons. Coche-le, puis recharge l'interface.",
-    DEP_DISABLED          = "une dependance du studio est decochee dans la liste des addons.",
-    DEP_MISSING           = "une dependance du studio est absente.",
-    INTERFACE_VERSION     = "le studio est marque obsolete pour cette version du jeu. Coche \"Charger les AddOns obsoletes\" a l'ecran de selection de personnage.",
-    DEP_INTERFACE_VERSION = "une dependance du studio est marquee obsolete pour cette version du jeu.",
-    CORRUPT               = "les fichiers du studio sont endommages. Reinstalle TomoMod.",
-    DEP_CORRUPT           = "une dependance du studio est endommagee.",
-    BANNED                = "le studio est bloque par le client.",
-    NOT_DEMAND_LOADED     = "le studio n'est pas marque LoadOnDemand.",
-    DEMAND_LOADED         = "le studio n'est pas marque LoadOnDemand.",
-    INSECURE              = "le studio a ete refuse par le client.",
+-- Hints and launcher messages, in all six languages. They live in the base
+-- addon because a studio can be launched (EditMode gear, healer frames)
+-- before the Options addon is loaded.
+local REASON_KEY = {
+    MISSING               = "studio_reason_missing",
+    DISABLED              = "studio_reason_disabled",
+    DEP_DISABLED          = "studio_reason_dep_disabled",
+    DEP_MISSING           = "studio_reason_dep_missing",
+    INTERFACE_VERSION     = "studio_reason_outdated",
+    DEP_INTERFACE_VERSION = "studio_reason_dep_outdated",
+    CORRUPT               = "studio_reason_corrupt",
+    DEP_CORRUPT           = "studio_reason_dep_corrupt",
+    BANNED                = "studio_reason_banned",
+    NOT_DEMAND_LOADED     = "studio_reason_not_lod",
+    DEMAND_LOADED         = "studio_reason_not_lod",
+    INSECURE              = "studio_reason_insecure",
 }
+
+if TomoMod_RegisterLocale then
+    local STUDIO_LOCALES = {
+        enUS = {
+            ["studio_reason_missing"]      = "the %s folder is missing from Interface/AddOns. It installs next to TomoMod, never inside it.",
+            ["studio_reason_disabled"]     = "the sub-addon is unticked in the addon list. Tick it, then reload the interface.",
+            ["studio_reason_dep_disabled"] = "a dependency of the studio is unticked in the addon list.",
+            ["studio_reason_dep_missing"]  = "a dependency of the studio is missing.",
+            ["studio_reason_outdated"]     = "the studio is flagged out of date for this game version. Tick \"Load out of date AddOns\" on the character selection screen.",
+            ["studio_reason_dep_outdated"] = "a dependency of the studio is flagged out of date for this game version.",
+            ["studio_reason_corrupt"]      = "the studio files are damaged. Reinstall TomoMod.",
+            ["studio_reason_dep_corrupt"]  = "a dependency of the studio is damaged.",
+            ["studio_reason_banned"]       = "the studio is blocked by the client.",
+            ["studio_reason_not_lod"]      = "the studio is not flagged LoadOnDemand.",
+            ["studio_reason_insecure"]     = "the studio was refused by the client.",
+            ["studio_msg_enabled_reload"]  = "%s enabled. Reload the interface (/reload) to open it.",
+            ["studio_msg_unavailable"]     = "%s unavailable: %s.",
+            ["studio_msg_reason_unknown"]  = "unknown reason",
+            ["studio_msg_not_initialized"] = "%s loaded but not initialised%s. Reload the interface (/reload).",
+        },
+        frFR = {
+            ["studio_reason_missing"]      = "le dossier %s est absent de Interface/AddOns. Il s'installe à côté de TomoMod, jamais dedans.",
+            ["studio_reason_disabled"]     = "le sous-addon est décoché dans la liste des addons. Coche-le, puis recharge l'interface.",
+            ["studio_reason_dep_disabled"] = "une dépendance du studio est décochée dans la liste des addons.",
+            ["studio_reason_dep_missing"]  = "une dépendance du studio est absente.",
+            ["studio_reason_outdated"]     = "le studio est marqué obsolète pour cette version du jeu. Coche « Charger les AddOns obsolètes » à l'écran de sélection de personnage.",
+            ["studio_reason_dep_outdated"] = "une dépendance du studio est marquée obsolète pour cette version du jeu.",
+            ["studio_reason_corrupt"]      = "les fichiers du studio sont endommagés. Réinstalle TomoMod.",
+            ["studio_reason_dep_corrupt"]  = "une dépendance du studio est endommagée.",
+            ["studio_reason_banned"]       = "le studio est bloqué par le client.",
+            ["studio_reason_not_lod"]      = "le studio n'est pas marqué LoadOnDemand.",
+            ["studio_reason_insecure"]     = "le studio a été refusé par le client.",
+            ["studio_msg_enabled_reload"]  = "%s activé. Recharge l'interface (/reload) pour l'ouvrir.",
+            ["studio_msg_unavailable"]     = "%s indisponible : %s.",
+            ["studio_msg_reason_unknown"]  = "raison inconnue",
+            ["studio_msg_not_initialized"] = "%s chargé mais non initialisé%s. Recharge l'interface (/reload).",
+        },
+        deDE = {
+            ["studio_reason_missing"]      = "der Ordner %s fehlt in Interface/AddOns. Er wird neben TomoMod installiert, nie darin.",
+            ["studio_reason_disabled"]     = "das Unter-Addon ist in der Addon-Liste deaktiviert. Aktiviere es und lade die Oberflaeche neu.",
+            ["studio_reason_dep_disabled"] = "eine Abhaengigkeit des Studios ist in der Addon-Liste deaktiviert.",
+            ["studio_reason_dep_missing"]  = "eine Abhaengigkeit des Studios fehlt.",
+            ["studio_reason_outdated"]     = "das Studio ist fuer diese Spielversion als veraltet markiert. Aktiviere \"Veraltete AddOns laden\" in der Charakterauswahl.",
+            ["studio_reason_dep_outdated"] = "eine Abhaengigkeit des Studios ist fuer diese Spielversion als veraltet markiert.",
+            ["studio_reason_corrupt"]      = "die Studio-Dateien sind beschaedigt. Installiere TomoMod neu.",
+            ["studio_reason_dep_corrupt"]  = "eine Abhaengigkeit des Studios ist beschaedigt.",
+            ["studio_reason_banned"]       = "das Studio wird vom Client blockiert.",
+            ["studio_reason_not_lod"]      = "das Studio ist nicht als LoadOnDemand markiert.",
+            ["studio_reason_insecure"]     = "das Studio wurde vom Client abgelehnt.",
+            ["studio_msg_enabled_reload"]  = "%s aktiviert. Lade die Oberflaeche neu (/reload), um es zu oeffnen.",
+            ["studio_msg_unavailable"]     = "%s nicht verfuegbar: %s.",
+            ["studio_msg_reason_unknown"]  = "unbekannter Grund",
+            ["studio_msg_not_initialized"] = "%s geladen, aber nicht initialisiert%s. Lade die Oberflaeche neu (/reload).",
+        },
+        esES = {
+            ["studio_reason_missing"]      = "falta la carpeta %s en Interface/AddOns. Se instala junto a TomoMod, nunca dentro.",
+            ["studio_reason_disabled"]     = "el subaddon está desmarcado en la lista de addons. Márcalo y recarga la interfaz.",
+            ["studio_reason_dep_disabled"] = "una dependencia del estudio está desmarcada en la lista de addons.",
+            ["studio_reason_dep_missing"]  = "falta una dependencia del estudio.",
+            ["studio_reason_outdated"]     = "el estudio está marcado como obsoleto para esta versión del juego. Marca «Cargar addons obsoletos» en la pantalla de selección de personaje.",
+            ["studio_reason_dep_outdated"] = "una dependencia del estudio está marcada como obsoleta para esta versión del juego.",
+            ["studio_reason_corrupt"]      = "los archivos del estudio están dañados. Reinstala TomoMod.",
+            ["studio_reason_dep_corrupt"]  = "una dependencia del estudio está dañada.",
+            ["studio_reason_banned"]       = "el cliente bloquea el estudio.",
+            ["studio_reason_not_lod"]      = "el estudio no está marcado como LoadOnDemand.",
+            ["studio_reason_insecure"]     = "el cliente rechazó el estudio.",
+            ["studio_msg_enabled_reload"]  = "%s activado. Recarga la interfaz (/reload) para abrirlo.",
+            ["studio_msg_unavailable"]     = "%s no disponible: %s.",
+            ["studio_msg_reason_unknown"]  = "motivo desconocido",
+            ["studio_msg_not_initialized"] = "%s cargado pero no inicializado%s. Recarga la interfaz (/reload).",
+        },
+        itIT = {
+            ["studio_reason_missing"]      = "la cartella %s manca in Interface/AddOns. Va installata accanto a TomoMod, mai al suo interno.",
+            ["studio_reason_disabled"]     = "il sotto-addon è disattivato nell'elenco degli addon. Attivalo, poi ricarica l'interfaccia.",
+            ["studio_reason_dep_disabled"] = "una dipendenza dello studio è disattivata nell'elenco degli addon.",
+            ["studio_reason_dep_missing"]  = "manca una dipendenza dello studio.",
+            ["studio_reason_outdated"]     = "lo studio è segnato come obsoleto per questa versione del gioco. Attiva \"Carica AddOn obsoleti\" nella schermata di selezione del personaggio.",
+            ["studio_reason_dep_outdated"] = "una dipendenza dello studio è segnata come obsoleta per questa versione del gioco.",
+            ["studio_reason_corrupt"]      = "i file dello studio sono danneggiati. Reinstalla TomoMod.",
+            ["studio_reason_dep_corrupt"]  = "una dipendenza dello studio è danneggiata.",
+            ["studio_reason_banned"]       = "lo studio è bloccato dal client.",
+            ["studio_reason_not_lod"]      = "lo studio non è contrassegnato come LoadOnDemand.",
+            ["studio_reason_insecure"]     = "lo studio è stato rifiutato dal client.",
+            ["studio_msg_enabled_reload"]  = "%s attivato. Ricarica l'interfaccia (/reload) per aprirlo.",
+            ["studio_msg_unavailable"]     = "%s non disponibile: %s.",
+            ["studio_msg_reason_unknown"]  = "motivo sconosciuto",
+            ["studio_msg_not_initialized"] = "%s caricato ma non inizializzato%s. Ricarica l'interfaccia (/reload).",
+        },
+        ptBR = {
+            ["studio_reason_missing"]      = "a pasta %s não está em Interface/AddOns. Ela é instalada ao lado do TomoMod, nunca dentro dele.",
+            ["studio_reason_disabled"]     = "o subaddon está desmarcado na lista de addons. Marque-o e recarregue a interface.",
+            ["studio_reason_dep_disabled"] = "uma dependência do estúdio está desmarcada na lista de addons.",
+            ["studio_reason_dep_missing"]  = "uma dependência do estúdio está ausente.",
+            ["studio_reason_outdated"]     = "o estúdio está marcado como desatualizado para esta versão do jogo. Marque \"Carregar AddOns desatualizados\" na tela de seleção de personagem.",
+            ["studio_reason_dep_outdated"] = "uma dependência do estúdio está marcada como desatualizada para esta versão do jogo.",
+            ["studio_reason_corrupt"]      = "os arquivos do estúdio estão danificados. Reinstale o TomoMod.",
+            ["studio_reason_dep_corrupt"]  = "uma dependência do estúdio está danificada.",
+            ["studio_reason_banned"]       = "o estúdio está bloqueado pelo cliente.",
+            ["studio_reason_not_lod"]      = "o estúdio não está marcado como LoadOnDemand.",
+            ["studio_reason_insecure"]     = "o estúdio foi recusado pelo cliente.",
+            ["studio_msg_enabled_reload"]  = "%s ativado. Recarregue a interface (/reload) para abri-lo.",
+            ["studio_msg_unavailable"]     = "%s indisponível: %s.",
+            ["studio_msg_reason_unknown"]  = "motivo desconhecido",
+            ["studio_msg_not_initialized"] = "%s carregado, mas não inicializado%s. Recarregue a interface (/reload).",
+        },
+    }
+    for locale, strings in pairs(STUDIO_LOCALES) do
+        TomoMod_RegisterLocale(locale, strings)
+    end
+end
+
+-- TomoMod_L returns the key itself for a missing entry: never show that.
+local function T(key, fallback)
+    local L = TomoMod_L
+    local v = L and L[key]
+    if v and v ~= key then return v end
+    return fallback
+end
 
 function Forge.Studio.ReasonText(addon, reason)
     if not reason then return nil end
-    local hint  = HINT[reason]
+    local key   = REASON_KEY[reason]
+    local hint  = key and T(key)
     local label = _G["ADDON_" .. reason]
     if hint then
         return (label and (label .. " - ") or "") .. hint:format(addon or "")
@@ -121,14 +255,15 @@ function Forge.Studio.Launch(opts)
             pcall(C_AddOns.EnableAddOn, addon)
             ok, reason = C_AddOns.LoadAddOn(addon)
             if not ok then
-                print(PREFIX .. label .. " active. Recharge l'interface (/reload) pour l'ouvrir.")
+                print(PREFIX .. string.format(T("studio_msg_enabled_reload",
+                    "%s enabled. Reload the interface (/reload) to open it."), label))
                 return false
             end
         end
 
         if not ok then
-            print(PREFIX .. label .. " indisponible : "
-                .. (Forge.Studio.ReasonText(addon, reason) or "raison inconnue") .. ".")
+            print(PREFIX .. string.format(T("studio_msg_unavailable", "%s unavailable: %s."), label,
+                Forge.Studio.ReasonText(addon, reason) or T("studio_msg_reason_unknown", "unknown reason")))
             return false
         end
     end
@@ -140,12 +275,14 @@ function Forge.Studio.Launch(opts)
     local S = _G[global]
     if not (S and S.Open) then
         local why = type(S) == "table" and S.loadError or nil
-        print(PREFIX .. label .. " charge mais non initialise"
-            .. (why and (" (" .. why .. ")") or "") .. ". Recharge l'interface (/reload).")
+        print(PREFIX .. string.format(T("studio_msg_not_initialized",
+            "%s loaded but not initialised%s. Reload the interface (/reload)."),
+            label, why and (" (" .. tostring(why) .. ")") or ""))
         return false
     end
 
     if TomoMod_Config and TomoMod_Config.Hide then TomoMod_Config.Hide() end
+    ClearSearchBuildContext()
     S.Open(opts.arg)
     return true
 end

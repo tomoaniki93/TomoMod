@@ -1,5 +1,32 @@
 ﻿## ####################################
 
+## CHANGELOG 4.1.0
+
+#### Settings Search And Client-Aware Navigation
+
+- **Fixed** - Opening or building a dedicated Studio now clears the settings-search registration context. Studio controls no longer create misleading search results that send the player back to the last options category, usually Home.
+- **Changed** - The search placeholder now explicitly refers to settings in all six supported languages.
+- **Fixed** - Interface and Comfort navigation now remove pages unavailable on the current client, including blocked Action Bars on WoW: Forever. Empty groups disappear, unavailable default pages fall back to an available page, and remembered pages or deep links cannot reopen blocked content.
+- **Changed** - The help guide now reflects the current sidebar and explains how to open dedicated Studios from the Home dashboard or the EditMode gear.
+
+#### Interface Localization And Clearer Controls
+
+- **New** - Shared anchor-point labels provide consistent translations for Action Bars and Chat controls. Additional labels are localized in English, French, German, Spanish, Italian and Brazilian Portuguese: bar names and orientation, fade targets, audio channels, recovery backups, module resets, Comfort groups, dashboard status and CVar tooltips.
+- **Fixed** - English Bloodlust sound settings no longer contain French labels. Dashboard wording now refers to the Installer, and unavailable Chat and Bags messages use localized text.
+- **Changed** - Slider tooltips now distinguish Ctrl-click resetting to an explicit default from restoring the value used when the page opened. Right-click numeric entry remains available.
+
+#### Studio Feedback And Section Headers
+
+- **Changed** - Studio launch failures and recovery instructions are localized in all six languages, including missing or disabled addons, dependency problems, outdated versions and reload instructions. These messages are available before the Options addon loads.
+- **Fixed** - Astral Forge, Party & Raid Studio and Resource & Cast Studio no longer pass decorative section identifiers as role filters, eliminating incorrect role badges on section headers.
+
+#### Release Notes And Version Metadata
+
+- **Changed** - The What's New popup and its configuration page now include the 4.1.0 highlights in all six supported languages.
+- **Changed** - All bundled .toc manifests now declare version 4.1.0.
+
+## ####################################
+
 ## CHANGELOG 4.0.8
 
 #### Cooldown Studio — Active Effect Countdown

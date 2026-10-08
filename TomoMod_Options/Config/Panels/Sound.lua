@@ -13,11 +13,11 @@ local function GetSoundOptions()
 end
 
 local CHANNEL_OPTIONS = {
-    { text = "Master",   value = "Master"   },
-    { text = "SFX",      value = "SFX"      },
-    { text = "Music",    value = "Music"     },
-    { text = "Ambience", value = "Ambience"  },
-    { text = "Dialog",   value = "Dialog"    },
+    { text = W.Loc("sound_ch_master", "Master"),     value = "Master"   },
+    { text = W.Loc("sound_ch_sfx", "Effects"),       value = "SFX"      },
+    { text = W.Loc("sound_ch_music", "Music"),       value = "Music"    },
+    { text = W.Loc("sound_ch_ambience", "Ambience"), value = "Ambience" },
+    { text = W.Loc("sound_ch_dialog", "Dialog"),     value = "Dialog"   },
 }
 
 local CHANNEL_VOLUME_CVARS = {

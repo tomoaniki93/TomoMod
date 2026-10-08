@@ -57,7 +57,7 @@ if TomoMod_RegisterLocale then
     TomoMod_RegisterLocale("frFR", {
         ["dash_welcome"]             = "Centre de pilotage TomoMod.",
         ["dash_hero_title"]          = "Accueil TomoMod",
-        ["dash_hero_subtitle"]       = "Profils, modules, presets et Forge astrale au même endroit.",
+        ["dash_hero_subtitle"]       = "Profils, modules, presets et Installeur au même endroit.",
         ["dash_actions_section"]     = "Actions rapides",
         ["dash_modules_section"]     = "Modules essentiels",
         ["dash_quickcfg_section"]    = "Configuration rapide",
@@ -89,7 +89,7 @@ if TomoMod_RegisterLocale then
         ["dash_mod_mtracker"]        = "Suivi Mythic+",
         ["dash_mod_score"]           = "Score Mythic+",
         ["dash_toggle_on"]           = "Actif",
-        ["dash_toggle_off"]          = "Off",
+        ["dash_toggle_off"]          = "Inactif",
         ["dash_reload_popup"]        = "Recharger l'interface maintenant pour appliquer tes changements ?",
     })
 end
@@ -583,19 +583,19 @@ local function CreateHero(parent, y)
     subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)
     subtitle:SetPoint("RIGHT", -24, 0)
     subtitle:SetJustifyH("LEFT")
-    subtitle:SetText(Localize("dash_hero_subtitle", "Profils, modules, presets et Forge astrale au même endroit."))
+    subtitle:SetText(Localize("dash_hero_subtitle", "Profiles, modules, presets and Installer in one place."))
     subtitle:SetTextColor(DM[1], DM[2], DM[3], 1)
 
     local version = "v" .. (C_AddOns.GetAddOnMetadata("TomoMod", "Version") or "?")
     local status, statusTip, sr, sg, sb = GetDashboardStatus()
     CreateChip(hero, Localize("dash_modules_enabled", "Modules actifs"), CountEnabledModules() .. " / " .. #MODULES, 114, -78, 150, A[1], A[2], A[3])
     CreateChip(hero, Localize("dash_active_profile", "Profil actif"), GetActiveProfile(), 274, -78, 170, CY[1], CY[2], CY[3])
-    CreateChip(hero, "Version", version, 454, -78, 110, GD[1], GD[2], GD[3])
-    local statusChip = CreateChip(hero, "État", status, 574, -78, 110, sr, sg, sb)
+    CreateChip(hero, Localize("dash_chip_version", "Version"), version, 454, -78, 110, GD[1], GD[2], GD[3])
+    local statusChip = CreateChip(hero, Localize("dash_chip_status", "Status"), status, 574, -78, 110, sr, sg, sb)
     statusChip:EnableMouse(true)
     statusChip:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("État TomoMod", 1, 1, 1)
+        GameTooltip:SetText(Localize("dash_status_title", "TomoMod status"), 1, 1, 1)
         GameTooltip:AddLine(statusTip, DM[1], DM[2], DM[3], true)
         GameTooltip:Show()
     end)

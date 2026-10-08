@@ -1180,20 +1180,20 @@ TomoMod_RegisterLocale("enUS", {
     -- =====================
     -- SOUND / LUST DETECTION
     -- =====================
-    ["cat_sound"]                       = "Son",
-    ["section_sound_general"]           = "Son de Bloodlust",
-    ["info_sound_desc"]                 = "Joue un son personnalisé quand un effet de type Bloodlust est détecté sur votre personnage. La détection vérifie directement les buffs de Lust et les debuffs Sated/Exhaustion.",
-    ["opt_sound_enable"]                = "Activer la détection de Bloodlust",
-    ["sublabel_sound_choice"]           = "Son & Canal",
-    ["opt_sound_file"]                  = "Son à jouer",
-    ["opt_sound_channel"]               = "Canal audio",
+    ["cat_sound"]                       = "Sound",
+    ["section_sound_general"]           = "Bloodlust sound",
+    ["info_sound_desc"]                 = "Plays a custom sound when a Bloodlust-type effect is detected on your character. Detection checks the Lust buffs and the Sated/Exhaustion debuffs directly.",
+    ["opt_sound_enable"]                = "Enable Bloodlust detection",
+    ["sublabel_sound_choice"]           = "Sound & channel",
+    ["opt_sound_file"]                  = "Sound to play",
+    ["opt_sound_channel"]               = "Audio channel",
     ["opt_sound_volume"]                = "Audio channel volume",
     ["info_sound_volume"]               = "Changes the selected channel's global volume in WoW's audio settings.",
-    ["btn_sound_preview"]               = ">> Ecouter le son",
-    ["btn_sound_stop"]                  = "■  Arrêter",
-    ["opt_sound_force"]                 = "Forcer le son même si le jeu est muet",
-    ["opt_sound_chat"]                  = "Afficher les messages en chat",
-    ["opt_sound_debug"]                 = "Mode debug",
+    ["btn_sound_preview"]               = ">> Play sound",
+    ["btn_sound_stop"]                  = "■  Stop",
+    ["opt_sound_force"]                 = "Play even when the game is muted",
+    ["opt_sound_chat"]                  = "Show messages in chat",
+    ["opt_sound_debug"]                 = "Debug mode",
 
     -- =====================
     -- BAG & MICRO MENU
@@ -2821,7 +2821,7 @@ TomoMod_RegisterLocale("enUS", {
     ["ins_recap_desc"]           = "Reload your interface to apply everything. You can reopen this assistant anytime with |cff2e9dd8/tm install|r, and open the full configuration panel with |cff2e9dd8/tm|r.",
     -- Accueil / recherche
     ["cat_accueil"]              = "Home",
-    ["ui_search_placeholder"]    = "Search modules...",
+    ["ui_search_placeholder"]    = "Search settings...",
     ["dash_welcome"]             = "Quick overview of TomoMod. Toggle modules, apply a setup, switch profile, or relaunch the setup assistant.",
     ["dash_modules_section"]     = "Modules",
     ["dash_quickcfg_section"]    = "Quick configuration",

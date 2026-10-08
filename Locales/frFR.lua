@@ -683,7 +683,7 @@ TomoMod_RegisterLocale("frFR", {
     ["hotkey_combat_blocked"]               = "Le mode assignation est indisponible en combat.",
 
     -- ActionBars: glow layer (procs, rotation hint)
-    ["section_ab_glow"]                     = "Glow (procs & rotation)",
+    ["section_ab_glow"]                     = "Surbrillance (procs & rotation)",
     ["opt_ab_glow_proc"]                    = "Glow sur proc",
     ["opt_ab_glow_proc_type"]               = "Style du glow de proc",
     ["opt_ab_glow_proc_color"]              = "Couleur du glow de proc",
@@ -719,13 +719,13 @@ TomoMod_RegisterLocale("frFR", {
     ["sublabel_bar_combat"]             = "— Visibilité en combat —",
     ["opt_abs_combat_show"]             = "Afficher uniquement en combat",
 
-    ["section_cinematic"]               = "Cinematic Skip",
+    ["section_cinematic"]               = "Passer les cinématiques",
     ["opt_cinematic_auto_skip"]         = "Skip automatique après 1ère vue",
     ["info_cinematic_viewed"]           = "Cinématiques déjà vues: %s\nL'historique est partagé entre personnages.",
     ["btn_clear_history"]               = "Effacer l'historique",
 
     -- Auto Quest
-    ["section_auto_quest"]              = "Auto Quest",
+    ["section_auto_quest"]              = "Quêtes automatiques",
     ["opt_quest_auto_accept"]           = "Auto-accepter les quêtes",
     ["opt_quest_auto_turnin"]           = "Auto-compléter les quêtes",
     ["opt_quest_auto_gossip"]           = "Auto-sélectionner les dialogues",
@@ -770,8 +770,8 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_hide_status_bar2_desc"]       = "Rend invisible et non cliquable la seconde barre d'état du mode édition. Elle reste celle de Blizzard, donc toujours présente dans son mode édition.",
 
     -- Auto Accept Invite
-    ["sublabel_auto_accept_invite"]     = "— Auto Accept Invite —",
-    ["sublabel_auto_skip_role"]         = "— Auto Skip Role Check —",
+    ["sublabel_auto_accept_invite"]     = "— Acceptation auto. des invitations —",
+    ["sublabel_auto_skip_role"]         = "— Validation auto. de l'appel de rôle —",
     ["sublabel_tooltip_ids"]            = "— Tooltip IDs —",
     ["sublabel_combat_res_tracker"]     = "— Combat Res Tracker —",
     ["opt_cr_show_rating"]              = "Afficher le score M+",
@@ -787,7 +787,7 @@ TomoMod_RegisterLocale("frFR", {
     ["opt_accept_guild"]                = "Accepter de la guilde",
 
     -- Auto Summon
-    ["sublabel_auto_summon"]            = "— Auto Summon —",
+    ["sublabel_auto_summon"]            = "— Acceptation auto. des invocations —",
     ["opt_summon_delay"]                = "Délai (secondes)",
 
     -- Auto Fill Delete
@@ -870,7 +870,7 @@ TomoMod_RegisterLocale("frFR", {
     ["msg_cvar_applied"]                = "CVars appliqués",
     ["msg_cvar_reverted"]               = "CVars restaurés",
     ["msg_cvar_no_backup"]              = "Aucune sauvegarde trouvée — appliquez d'abord.",
-    ["tab_qol_leveling"]                = "Leveling",
+    ["tab_qol_leveling"]                = "Montée de niveau",
     ["section_leveling_bar"]            = "Barre de Leveling",
     ["opt_leveling_enable"]             = "Activer la barre de leveling",
     ["opt_leveling_width"]              = "Largeur de la barre",
@@ -2740,7 +2740,7 @@ TomoMod_RegisterLocale("frFR", {
     ["ins_recap_custom"]         = "Ta configuration personnalisée est prête",
     ["ins_recap_desc"]           = "Recharge ton interface pour tout appliquer. Tu peux rouvrir cet assistant à tout moment avec |cff2e9dd8/tm install|r, et ouvrir le panneau de configuration complet avec |cff2e9dd8/tm|r.",
     ["cat_accueil"]              = "Accueil",
-    ["ui_search_placeholder"]    = "Rechercher un module...",
+    ["ui_search_placeholder"]    = "Rechercher un réglage...",
     ["dash_welcome"]             = "Vue d'ensemble de TomoMod. Active des modules, applique une configuration, change de profil ou relance l'assistant.",
     ["dash_modules_section"]     = "Modules",
     ["dash_quickcfg_section"]    = "Configuration rapide",

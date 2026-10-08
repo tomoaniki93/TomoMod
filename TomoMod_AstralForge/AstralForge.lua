@@ -1940,7 +1940,7 @@ function S.BuildFrameEditor(c)
     local db = Settings()
     local y = -8
 
-    local _, ny = W.CreateSectionHeader(c, L["af_frame_title"], y, "F")
+    local _, ny = W.CreateSectionHeader(c, L["af_frame_title"], y)
     y = ny
     local _, ny = W.CreateInfoText(c, L["af_frame_info"], y)
     y = ny
@@ -2222,7 +2222,7 @@ local function BuildGlobalUnitFrameSettings(c, y)
     local g = TomoModDB and TomoModDB.unitFrames
     if not g then return y end
 
-    local _, ny = W.CreateSectionHeader(c, L["af_v21_global_uf"], y, "G")
+    local _, ny = W.CreateSectionHeader(c, L["af_v21_global_uf"], y)
     y = ny
     local _, ny = W.CreateInfoText(c, L["af_v21_global_uf_info"], y)
     y = ny
@@ -2269,7 +2269,7 @@ end
 local function BuildUnitFrameCadre(c, y, db, unitKey)
     if not db then return y end
 
-    local _, ny = W.CreateSectionHeader(c, L["af_frame_dimensions"], y, "D")
+    local _, ny = W.CreateSectionHeader(c, L["af_frame_dimensions"], y)
     y = ny
 
     if db.enabled ~= nil then
@@ -2582,7 +2582,7 @@ local function BuildUnitFrameCadre(c, y, db, unitKey)
 end
 
 local function BuildBossCadre(c, y, db)
-    local _, ny = W.CreateSectionHeader(c, L["section_boss_frames"], y, "B")
+    local _, ny = W.CreateSectionHeader(c, L["section_boss_frames"], y)
     y = ny
     local _, ny = W.CreateInfoText(c, L["af_v21_boss_info"], y)
     y = ny
@@ -2626,7 +2626,7 @@ local function BuildBossCadre(c, y, db)
 end
 
 local function BuildNameplateCadre(c, y, db)
-    local _, ny = W.CreateSectionHeader(c, L["section_np_general"], y, "N")
+    local _, ny = W.CreateSectionHeader(c, L["section_np_general"], y)
     y = ny
 
     if db.enabled ~= nil then
@@ -2989,7 +2989,7 @@ function S.BuildFrameEditorV21(c)
     local db = Settings()
     local y = -8
 
-    local _, ny = W.CreateSectionHeader(c, L["af_frame_title"], y, "F")
+    local _, ny = W.CreateSectionHeader(c, L["af_frame_title"], y)
     y = ny
     local _, ny = W.CreateInfoText(c, L["af_frame_info"], y)
     y = ny
@@ -3223,8 +3223,10 @@ local function V22HideFrameSidebarButtons()
     end
 end
 
-local function V22SectionHeader(c, y, text, icon)
-    local _, ny = W.CreateSectionHeader(c, text, y, icon or "S")
+local function V22SectionHeader(c, y, text)
+    -- The 4th argument of CreateSectionHeader is a role spec (T/H/D), not
+    -- an icon: passing one tagged sections with the wrong role badges.
+    local _, ny = W.CreateSectionHeader(c, text, y)
     return ny
 end
 
@@ -4073,7 +4075,7 @@ function S.BuildFrameEditorV22(c)
 
     local _, current = V22EnsureFrameSection()
 
-    local _, ny = W.CreateSectionHeader(c, L["af_v22_editor_title"], y, "F")
+    local _, ny = W.CreateSectionHeader(c, L["af_v22_editor_title"], y)
     y = ny
     local _, ny = W.CreateInfoText(c, L["af_v22_editor_info"], y)
     y = ny
@@ -4160,7 +4162,7 @@ local AF_BAR_TEXTURES = {
 
 function S.BuildBarsPanel(c)
     local y = -8
-    local _, ny = W.CreateSectionHeader(c, L["af_bars_title"], y, "B")
+    local _, ny = W.CreateSectionHeader(c, L["af_bars_title"], y)
     y = ny
     local _, ny = W.CreateInfoText(c, L["af_bars_shared_info"], y)
     y = ny
@@ -4296,7 +4298,7 @@ function S.RebuildInspector()
 
     local _, index = R.SplitKey(id)
     local _, ny = W.CreateSectionHeader(c,
-        L[desc.labelKey] .. (index and (" " .. index) or ""), y, "A")
+        L[desc.labelKey] .. (index and (" " .. index) or ""), y)
     y = ny
 
     -- Aura containers are positionable Forge elements, but their content
@@ -4586,7 +4588,7 @@ function S.BuildPresetPanel(c, store)
         return
     end
 
-    local _, ny = W.CreateSectionHeader(c, L["section_forge_presets"], y, "P")
+    local _, ny = W.CreateSectionHeader(c, L["section_forge_presets"], y)
     y = ny
 
     local _, ny = W.CreateInfoText(c, L["info_forge_presets"], y)
@@ -4781,7 +4783,7 @@ end
 
 function S.BuildResetPanel(c)
     local y = -8
-    local _, ny = W.CreateSectionHeader(c, L["af_resets_title"], y, "R"); y = ny
+    local _, ny = W.CreateSectionHeader(c, L["af_resets_title"], y); y = ny
     local _, ny = W.CreateInfoText(c, L["af_resets_info"], y); y = ny
 
     local _, ny = W.CreateSubLabel(c, L["af_reset_position"], y); y = ny

@@ -2647,7 +2647,7 @@ TomoMod_RegisterLocale("esES", {
     ["ins_recap_custom"]         = "Tu configuración personalizada está lista",
     ["ins_recap_desc"]           = "Recarga tu interfaz para aplicarlo todo. Puedes reabrir este asistente cuando quieras con |cff2e9dd8/tm install|r, y abrir el panel de configuración completo con |cff2e9dd8/tm|r.",
     ["cat_accueil"]              = "Inicio",
-    ["ui_search_placeholder"]    = "Buscar módulo...",
+    ["ui_search_placeholder"]    = "Buscar ajuste...",
     ["dash_welcome"]             = "Vista rápida de TomoMod. Activa módulos, aplica una configuración, cambia de perfil o relanza el asistente.",
     ["dash_modules_section"]     = "Módulos",
     ["dash_quickcfg_section"]    = "Configuración rápida",

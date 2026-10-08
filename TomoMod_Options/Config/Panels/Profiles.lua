@@ -858,19 +858,16 @@ local function BuildResetsTab(parent)
     local c = scroll.child
     local y = -10
 
-    local fr = GetLocale() == "frFR"
-    local _, backupY = W.CreateSectionHeader(c, fr and "Sauvegardes de sécurité" or "Recovery backups", y)
+    local _, backupY = W.CreateSectionHeader(c, W.Loc("prof_backup_section", "Recovery backups"), y)
     y = backupY
-    local _, infoY = W.CreateInfoText(c, fr
-        and "Les cinq dernières sauvegardes sont conservées. /tm backup affiche la liste."
-        or "The five latest backups are kept. /tm backup lists them.", y)
+    local _, infoY = W.CreateInfoText(c, W.Loc("prof_backup_info", "The five latest backups are kept. /tm backup lists them."), y)
     y = infoY
-    local _, saveY = W.CreateButton(c, fr and "Sauvegarder maintenant" or "Back up now", 260, y, function()
+    local _, saveY = W.CreateButton(c, W.Loc("prof_backup_now", "Back up now"), 260, y, function()
         local entry, err = TomoMod_ProfileSafety.CreateBackup("manuelle", true)
-        print("TomoMod : " .. (entry and (fr and "sauvegarde créée." or "backup created.") or tostring(err)))
+        print("TomoMod : " .. (entry and W.Loc("prof_backup_created", "backup created.") or tostring(err)))
     end)
     y = saveY
-    local _, restoreY = W.CreateButton(c, fr and "Restaurer la dernière sauvegarde" or "Restore latest backup", 300, y, function()
+    local _, restoreY = W.CreateButton(c, W.Loc("prof_backup_restore", "Restore latest backup"), 300, y, function()
         TomoMod_ProfileSafety.ConfirmRestore(1)
     end)
     y = restoreY - 12
@@ -879,22 +876,22 @@ local function BuildResetsTab(parent)
     local _, ny = W.CreateInfoText(c, L["info_resets"], y); y = ny
 
     local modules = {
-        { key = "unitFrames",       label = "UnitFrames" },
-        { key = "nameplates",       label = "Nameplates" },
-        { key = "resourceBars",     label = "Resource Bars" },
-        { key = "cooldownManager",  label = "Cooldown Manager" },
-        { key = "minimap",          label = "Minimap" },
-        { key = "infoPanel",        label = "Info Panel" },
-        { key = "cursorRing",       label = "Cursor Ring" },
-        { key = "skyRide",          label = "SkyRide" },
-        { key = "autoQuest",        label = "Auto Quest" },
-        { key = "autoAcceptInvite", label = "Auto Accept Invite" },
-        { key = "autoSummon",       label = "Auto Summon" },
-        { key = "autoFillDelete",   label = "Auto Fill Delete" },
-        { key = "frameAnchors",     label = "Frame Anchors" },
-        { key = "cinematicSkip",    label = "Cinematic Skip" },
-        { key = "hideCastBar",      label = "Hide CastBar" },
-        { key = "MythicKeys",       label = "Mythic Keys" },
+        { key = "unitFrames",       label = W.Loc("reset_mod_unitFrames", "UnitFrames") },
+        { key = "nameplates",       label = W.Loc("reset_mod_nameplates", "Nameplates") },
+        { key = "resourceBars",     label = W.Loc("reset_mod_resourceBars", "Resource Bars") },
+        { key = "cooldownManager",  label = W.Loc("reset_mod_cooldownManager", "Cooldown Manager") },
+        { key = "minimap",          label = W.Loc("reset_mod_minimap", "Minimap") },
+        { key = "infoPanel",        label = W.Loc("reset_mod_infoPanel", "Info Panel") },
+        { key = "cursorRing",       label = W.Loc("reset_mod_cursorRing", "Cursor Ring") },
+        { key = "skyRide",          label = W.Loc("reset_mod_skyRide", "SkyRide") },
+        { key = "autoQuest",        label = W.Loc("reset_mod_autoQuest", "Auto Quest") },
+        { key = "autoAcceptInvite", label = W.Loc("reset_mod_autoAcceptInvite", "Auto Accept Invite") },
+        { key = "autoSummon",       label = W.Loc("reset_mod_autoSummon", "Auto Summon") },
+        { key = "autoFillDelete",   label = W.Loc("reset_mod_autoFillDelete", "Auto Fill Delete") },
+        { key = "frameAnchors",     label = W.Loc("reset_mod_frameAnchors", "Frame Anchors") },
+        { key = "cinematicSkip",    label = W.Loc("reset_mod_cinematicSkip", "Cinematic Skip") },
+        { key = "hideCastBar",      label = W.Loc("reset_mod_hideCastBar", "Hide CastBar") },
+        { key = "MythicKeys",       label = W.Loc("reset_mod_MythicKeys", "Mythic Keys") },
     }
 
     for _, mod in ipairs(modules) do

@@ -2634,7 +2634,7 @@ TomoMod_RegisterLocale("itIT", {
     ["ins_recap_custom"]         = "La tua configurazione personalizzata è pronta",
     ["ins_recap_desc"]           = "Ricarica l'interfaccia per applicare tutto. Puoi riaprire questo assistente in qualsiasi momento con |cff2e9dd8/tm install|r e aprire il pannello di configurazione completo con |cff2e9dd8/tm|r.",
     ["cat_accueil"]              = "Home",
-    ["ui_search_placeholder"]    = "Cerca modulo...",
+    ["ui_search_placeholder"]    = "Cerca impostazione...",
     ["dash_welcome"]             = "Panoramica rapida di TomoMod. Attiva moduli, applica una configurazione, cambia profilo o rilancia l'assistente.",
     ["dash_modules_section"]     = "Moduli",
     ["dash_quickcfg_section"]    = "Configurazione rapida",

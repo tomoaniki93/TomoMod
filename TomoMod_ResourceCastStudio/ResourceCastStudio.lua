@@ -94,8 +94,10 @@ local function DeepCopy(v)
     return out
 end
 
-local function Header(c,y,text,icon)
-    local _,ny=W.CreateSectionHeader(c,text,y,icon or "R")
+local function Header(c,y,text)
+    -- The 4th argument of CreateSectionHeader is a role spec (T/H/D), not
+    -- an icon: passing one tagged sections with the wrong role badges.
+    local _,ny=W.CreateSectionHeader(c,text,y)
     return ny
 end
 local function Info(c,text,y)

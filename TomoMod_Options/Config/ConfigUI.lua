@@ -31,7 +31,7 @@ StaticPopupDialogs["TOMOMOD_MODULE_RELOAD"] = StaticPopupDialogs["TOMOMOD_MODULE
 if TomoMod_RegisterLocale then
     TomoMod_RegisterLocale("enUS", {
         ["cat_accueil"]           = "Home",
-        ["ui_search_placeholder"] = "Search modules...",
+        ["ui_search_placeholder"] = "Search settings...",
         ["opt_gui_scale"]         = "Config window scale",
         ["info_gui_scale"]        = "Scale of the /tm window — you can also resize it by dragging its bottom-right corner.",
         ["btn_gui_reset_size"]    = "Reset window size & scale",
@@ -39,7 +39,7 @@ if TomoMod_RegisterLocale then
     })
     TomoMod_RegisterLocale("frFR", {
         ["cat_accueil"]           = "Accueil",
-        ["ui_search_placeholder"] = "Rechercher un module...",
+        ["ui_search_placeholder"] = "Rechercher un réglage...",
         ["opt_gui_scale"]         = "Échelle de la fenêtre de configuration",
         ["info_gui_scale"]        = "Échelle de la fenêtre /tm — elle est aussi redimensionnable en tirant son coin inférieur droit.",
         ["btn_gui_reset_size"]    = "Réinitialiser taille et échelle",
@@ -62,13 +62,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Welcome to TomoMod",
             ["cfg_help_1_body"] = "This short guide presents the main navigation, search, role filters, configuration workspaces, Layout mode, profiles and diagnostics.",
             ["cfg_help_2_title"] = "Main navigation",
-            ["cfg_help_2_body"] = "Use the left sidebar to move between Home, Roles, Interface, Units, Combat, Comfort, Damage Meter, Profiles and Diagnostics. The active section is always highlighted.",
+            ["cfg_help_2_body"] = "Use the left sidebar to move between Home, Roles, Interface, Comfort, Damage Meter, What's New, Profiles and Diagnostics. The active section is always highlighted.",
             ["cfg_help_3_title"] = "Search",
             ["cfg_help_3_body"] = "Type a module, feature or option here. TomoMod filters the navigation and can surface matching settings without forcing you to remember where they live.",
             ["cfg_help_4_title"] = "Role filter",
             ["cfg_help_4_body"] = "The four role buttons prioritize settings for Everyone, Tank, Healer or Damage. Other settings remain visible but are visually de-emphasized.",
             ["cfg_help_5_title"] = "Workspaces and Studios",
-            ["cfg_help_5_body"] = "Interface, Units, Combat and Comfort open focused workspaces. Specialized Studios are launched from the relevant pages and edit the same TomoModDB settings used by the live modules.",
+            ["cfg_help_5_body"] = "Interface and Comfort open focused workspaces. Unit frames, nameplates, castbars, party and raid frames, resources, cooldowns and Mythic+ are edited in the Studios, launched from the Studios card on Home or from the EditMode gear. They edit the same TomoModDB settings as the live modules.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Use EditMode to unlock movable TomoMod elements. Hover a supported element to access its contextual configuration gear, move it, then lock the layout again when finished.",
             ["cfg_help_7_title"] = "Profiles",
@@ -86,13 +86,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Bienvenue dans TomoMod",
             ["cfg_help_1_body"] = "Ce petit guide présente la navigation principale, la recherche, les filtres de rôle, les espaces de configuration, le mode Layout, les profils et les diagnostics.",
             ["cfg_help_2_title"] = "Navigation principale",
-            ["cfg_help_2_body"] = "Utilise la barre latérale pour passer entre Accueil, Rôles, Interface, Unités, Combat, Confort, Damage Meter, Profils et Diagnostics. La section active reste toujours mise en évidence.",
+            ["cfg_help_2_body"] = "Utilise la barre latérale pour passer entre Accueil, Rôles, Interface, Confort, Damage Meter, Nouveautés, Profils et Diagnostics. La section active reste toujours mise en évidence.",
             ["cfg_help_3_title"] = "Recherche",
             ["cfg_help_3_body"] = "Saisis ici le nom d'un module, d'une fonction ou d'un réglage. TomoMod filtre la navigation et peut retrouver les options correspondantes sans devoir mémoriser leur emplacement.",
             ["cfg_help_4_title"] = "Filtre par rôle",
             ["cfg_help_4_body"] = "Les quatre boutons mettent en avant les réglages utiles à Tous, Tank, Healer ou DPS. Les autres réglages restent visibles mais sont volontairement atténués.",
             ["cfg_help_5_title"] = "Espaces et Studios",
-            ["cfg_help_5_body"] = "Interface, Unités, Combat et Confort ouvrent des espaces dédiés. Les Studios spécialisés se lancent depuis les pages correspondantes et modifient la même TomoModDB que les modules en jeu.",
+            ["cfg_help_5_body"] = "Interface et Confort ouvrent des espaces dédiés. UnitFrames, Nameplates, barres d'incantation, cadres de groupe et de raid, ressources, cooldowns et Mythic+ se règlent dans les Studios, lancés depuis la carte Studios de l'Accueil ou depuis l'engrenage d'EditMode. Ils modifient la même TomoModDB que les modules en jeu.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Utilise EditMode pour déverrouiller les éléments TomoMod déplaçables. Survole un élément compatible pour accéder à son engrenage de configuration, déplace-le puis reverrouille le Layout.",
             ["cfg_help_7_title"] = "Profils",
@@ -110,13 +110,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Willkommen bei TomoMod",
             ["cfg_help_1_body"] = "Diese kurze Hilfe zeigt die Hauptnavigation, Suche, Rollenfilter, Konfigurationsbereiche, den Layout-Modus, Profile und Diagnose.",
             ["cfg_help_2_title"] = "Hauptnavigation",
-            ["cfg_help_2_body"] = "Über die linke Seitenleiste wechselst du zwischen Start, Rollen, Interface, Einheiten, Kampf, Komfort, Damage Meter, Profilen und Diagnose. Der aktive Bereich bleibt hervorgehoben.",
+            ["cfg_help_2_body"] = "Ueber die linke Seitenleiste wechselst du zwischen Start, Rollen, Interface, Komfort, Damage Meter, Neuerungen, Profilen und Diagnose. Der aktive Bereich bleibt hervorgehoben.",
             ["cfg_help_3_title"] = "Suche",
             ["cfg_help_3_body"] = "Gib hier ein Modul, eine Funktion oder eine Option ein. TomoMod filtert die Navigation und findet passende Einstellungen, ohne dass du ihren genauen Ort kennen musst.",
             ["cfg_help_4_title"] = "Rollenfilter",
             ["cfg_help_4_body"] = "Die vier Rollen-Schaltflächen heben Einstellungen für Alle, Tank, Heiler oder Schaden hervor. Andere Einstellungen bleiben sichtbar, werden aber optisch zurückgenommen.",
             ["cfg_help_5_title"] = "Bereiche und Studios",
-            ["cfg_help_5_body"] = "Interface, Einheiten, Kampf und Komfort öffnen fokussierte Bereiche. Spezialisierte Studios werden von den passenden Seiten gestartet und bearbeiten dieselben TomoModDB-Einstellungen wie die Live-Module.",
+            ["cfg_help_5_body"] = "Interface und Komfort oeffnen fokussierte Bereiche. Einheitenrahmen, Namensplaketten, Zauberleisten, Gruppen- und Schlachtzugrahmen, Ressourcen, Abklingzeiten und Mythisch+ werden in den Studios bearbeitet, die ueber die Studios-Karte der Startseite oder ueber das EditMode-Zahnrad starten. Sie bearbeiten dieselben TomoModDB-Einstellungen wie die Live-Module.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Mit EditMode entsperrst du verschiebbare TomoMod-Elemente. Fahre über ein unterstütztes Element, um das Kontext-Zahnrad zu öffnen, verschiebe es und sperre das Layout danach wieder.",
             ["cfg_help_7_title"] = "Profile",
@@ -134,13 +134,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Bienvenido a TomoMod",
             ["cfg_help_1_body"] = "Esta guía breve presenta la navegación principal, la búsqueda, los filtros de rol, los espacios de configuración, el modo Layout, los perfiles y los diagnósticos.",
             ["cfg_help_2_title"] = "Navegación principal",
-            ["cfg_help_2_body"] = "Usa la barra lateral izquierda para cambiar entre Inicio, Roles, Interfaz, Unidades, Combate, Comodidad, Damage Meter, Perfiles y Diagnósticos. La sección activa permanece resaltada.",
+            ["cfg_help_2_body"] = "Usa la barra lateral izquierda para cambiar entre Inicio, Roles, Interfaz, Comodidad, Damage Meter, Novedades, Perfiles y Diagnósticos. La sección activa permanece resaltada.",
             ["cfg_help_3_title"] = "Búsqueda",
             ["cfg_help_3_body"] = "Escribe aquí un módulo, función u opción. TomoMod filtra la navegación y puede encontrar los ajustes relacionados sin que tengas que recordar dónde están.",
             ["cfg_help_4_title"] = "Filtro por rol",
             ["cfg_help_4_body"] = "Los cuatro botones de rol destacan los ajustes para Todos, Tanque, Sanador o Daño. Los demás ajustes siguen visibles, pero se muestran atenuados.",
             ["cfg_help_5_title"] = "Espacios y Studios",
-            ["cfg_help_5_body"] = "Interfaz, Unidades, Combate y Comodidad abren espacios dedicados. Los Studios especializados se inician desde las páginas correspondientes y editan los mismos ajustes de TomoModDB que los módulos en vivo.",
+            ["cfg_help_5_body"] = "Interfaz y Comodidad abren espacios dedicados. Los marcos de unidad, las placas de nombre, las barras de lanzamiento, los marcos de grupo y banda, los recursos, los tiempos de reutilización y Míticas+ se editan en los Studios, que se abren desde la tarjeta Studios de Inicio o desde el engranaje de EditMode. Editan los mismos ajustes de TomoModDB que los módulos en vivo.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Usa EditMode para desbloquear los elementos móviles de TomoMod. Pasa el cursor sobre un elemento compatible para acceder a su engranaje contextual, muévelo y vuelve a bloquear el Layout.",
             ["cfg_help_7_title"] = "Perfiles",
@@ -158,13 +158,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Benvenuto in TomoMod",
             ["cfg_help_1_body"] = "Questa breve guida presenta la navigazione principale, la ricerca, i filtri ruolo, le aree di configurazione, la modalità Layout, i profili e la diagnostica.",
             ["cfg_help_2_title"] = "Navigazione principale",
-            ["cfg_help_2_body"] = "Usa la barra laterale sinistra per passare tra Home, Ruoli, Interfaccia, Unità, Combattimento, Comfort, Damage Meter, Profili e Diagnostica. La sezione attiva resta evidenziata.",
+            ["cfg_help_2_body"] = "Usa la barra laterale sinistra per passare tra Home, Ruoli, Interfaccia, Comodità, Damage Meter, Novità, Profili e Diagnostica. La sezione attiva resta evidenziata.",
             ["cfg_help_3_title"] = "Ricerca",
             ["cfg_help_3_body"] = "Inserisci qui un modulo, una funzione o un'opzione. TomoMod filtra la navigazione e può trovare le impostazioni corrispondenti senza doverne ricordare la posizione.",
             ["cfg_help_4_title"] = "Filtro ruolo",
             ["cfg_help_4_body"] = "I quattro pulsanti ruolo evidenziano le impostazioni per Tutti, Tank, Healer o Danni. Le altre impostazioni restano visibili ma vengono attenuate.",
             ["cfg_help_5_title"] = "Aree e Studio",
-            ["cfg_help_5_body"] = "Interfaccia, Unità, Combattimento e Comfort aprono aree dedicate. Gli Studio specializzati si avviano dalle pagine relative e modificano le stesse impostazioni TomoModDB usate dai moduli attivi.",
+            ["cfg_help_5_body"] = "Interfaccia e Comodità aprono aree dedicate. Riquadri unità, barre del nome, barre di lancio, riquadri di gruppo e incursione, risorse, recuperi e Mitiche+ si modificano negli Studio, avviati dalla scheda Studio della Home o dall'ingranaggio di EditMode. Modificano le stesse impostazioni TomoModDB usate dai moduli attivi.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Usa EditMode per sbloccare gli elementi TomoMod spostabili. Passa su un elemento supportato per aprire l'ingranaggio contestuale, spostalo e poi blocca nuovamente il Layout.",
             ["cfg_help_7_title"] = "Profili",
@@ -182,13 +182,13 @@ if TomoMod_RegisterLocale then
             ["cfg_help_1_title"] = "Bem-vindo ao TomoMod",
             ["cfg_help_1_body"] = "Este guia rápido apresenta a navegação principal, a busca, os filtros de função, as áreas de configuração, o modo Layout, os perfis e os diagnósticos.",
             ["cfg_help_2_title"] = "Navegação principal",
-            ["cfg_help_2_body"] = "Use a barra lateral esquerda para alternar entre Início, Funções, Interface, Unidades, Combate, Conforto, Damage Meter, Perfis e Diagnósticos. A seção ativa permanece destacada.",
+            ["cfg_help_2_body"] = "Use a barra lateral esquerda para alternar entre Início, Funções, Interface, Conforto, Damage Meter, Novidades, Perfis e Diagnósticos. A seção ativa permanece destacada.",
             ["cfg_help_3_title"] = "Busca",
             ["cfg_help_3_body"] = "Digite aqui um módulo, recurso ou opção. O TomoMod filtra a navegação e pode encontrar as configurações correspondentes sem exigir que você memorize onde elas ficam.",
             ["cfg_help_4_title"] = "Filtro por função",
             ["cfg_help_4_body"] = "Os quatro botões de função destacam configurações para Todos, Tank, Healer ou Dano. As demais configurações continuam visíveis, mas ficam visualmente atenuadas.",
             ["cfg_help_5_title"] = "Áreas e Studios",
-            ["cfg_help_5_body"] = "Interface, Unidades, Combate e Conforto abrem áreas focadas. Os Studios especializados são iniciados nas páginas correspondentes e editam as mesmas configurações TomoModDB usadas pelos módulos ativos.",
+            ["cfg_help_5_body"] = "Interface e Conforto abrem áreas focadas. Quadros de unidade, placas de nome, barras de conjuração, quadros de grupo e raide, recursos, recargas e Mítica+ são editados nos Studios, abertos pelo cartão Studios do Início ou pela engrenagem do EditMode. Eles editam as mesmas configurações TomoModDB usadas pelos módulos ativos.",
             ["cfg_help_6_title"] = "Layout / EditMode",
             ["cfg_help_6_body"] = "Use o EditMode para desbloquear elementos móveis do TomoMod. Passe o cursor sobre um elemento compatível para acessar a engrenagem contextual, mova-o e depois bloqueie o Layout novamente.",
             ["cfg_help_7_title"] = "Perfis",
@@ -301,45 +301,41 @@ local COMBAT_WORKSPACE_ITEMS = {
     { key = "mythicplus", label = L["cfg_tab_mythicplus"], kw = "mythic plus mythic+ mplus donjon" },
 }
 
-local function ComfortText(fr, en)
-    return (GetLocale and GetLocale() == "frFR") and fr or en
-end
-
 -- Confort uses one more navigation level than Interface/Unités/Combat.
 -- Its group aliases therefore live in a compact secondary navigation on the
 -- right, while the existing QOL builders are reused as leaves.
 local COMFORT_WORKSPACE_GROUPS = {
     {
-        key = "automation", label = ComfortText("Automatisation", "Automation"), default = "automations",
+        key = "automation", label = LT("comfort_grp_automation", "Automation"), default = "automations",
         pages = {
-            { key = "automations", label = ComfortText("Général", "General"), kw = "automation automatisation general invite summon delete vendor repair combat text prey" },
+            { key = "automations", label = LT("comfort_page_general", "General"), kw = "automation automatisation general invite summon delete vendor repair combat text prey" },
             { key = "cinematic",   label = L["tab_qol_cinematic"],  kw = "cinematic cinematique skip" },
             { key = "autoquest",   label = L["tab_qol_auto_quest"], kw = "auto quest quete" },
         },
     },
     {
-        key = "players", label = ComfortText("Joueurs", "Players"), default = "mythickeys",
+        key = "players", label = LT("comfort_grp_players", "Players"), default = "mythickeys",
         pages = {
             { key = "mythickeys",  label = L["tab_qol_mythic_keys"],      kw = "mythic keys clefs cles" },
             { key = "skyride",     label = L["tab_qol_skyride"],          kw = "skyride vol flying" },
             { key = "leveling",    label = L["tab_qol_leveling"],         kw = "leveling level niveau" },
-            { key = "gearadvisor", label = (TomoMod_GearAdvisor and TomoMod_GearAdvisor.L and TomoMod_GearAdvisor.L("tab")) or ComfortText("Conseiller équipement", "Gear Advisor"), kw = "gear advisor tomogear equipment equipement upgrade score stats" },
+            { key = "gearadvisor", label = (TomoMod_GearAdvisor and TomoMod_GearAdvisor.L and TomoMod_GearAdvisor.L("tab")) or LT("comfort_page_gearadvisor", "Gear Advisor"), kw = "gear advisor tomogear equipment equipement upgrade score stats" },
             { key = "merchant",    label = L["tab_qol_merchant_tools"],   kw = "merchant vendeur repair reparer" },
-            { key = "consumables", label = LT("tab_qol_consumable_bar", ComfortText("Consommables", "Consumables")), kw = "consumables consommables flask food huile oil ready tracker" },
+            { key = "consumables", label = LT("tab_qol_consumable_bar", LT("comfort_page_consumables", "Consumables")), kw = "consumables consommables flask food huile oil ready tracker" },
             { key = "rarealert",   label = L["tab_qol_rare_alert"],       kw = "rare alert alerte rares" },
             { key = "profhelper",  label = L["tab_qol_prof_helper"],      kw = "profession helper metier" },
         },
     },
     {
-        key = "classes", label = "Classes", default = "classremind",
+        key = "classes", label = LT("comfort_grp_classes", "Classes"), default = "classremind",
         pages = {
             { key = "classremind", label = L["tab_qol_class_reminder"], kw = "class reminder classe rappel" },
             { key = "companion",   label = L["tab_qol_companion"],      kw = "companion compagnon" },
         },
     },
-    { key = "cvars", label = "CVars", default = "cvaropt", direct = true, kw = "cvars optimizer optimisation" },
+    { key = "cvars", label = LT("comfort_grp_cvars", "CVars"), default = "cvaropt", direct = true, kw = "cvars optimizer optimisation" },
     {
-        key = "worldquest", label = ComfortText("World Quest", "World Quest"), default = "worldquests",
+        key = "worldquest", label = LT("comfort_grp_worldquest", "World Quests"), default = "worldquests",
         pages = {
             { key = "worldquests", label = L["tab_qol_world_quests"], kw = "world quest quetes monde" },
             { key = "waypoint",    label = L["tab_qol_waypoint"],     kw = "waypoint point navigation" },
@@ -347,7 +343,7 @@ local COMFORT_WORKSPACE_GROUPS = {
         },
     },
     {
-        key = "other", label = ComfortText("Autres", "Other"), default = "bagmicro",
+        key = "other", label = LT("comfort_grp_other", "Other"), default = "bagmicro",
         pages = {
             -- Kept reachable during the navigation migration. Bag & Micro Menu
             -- will move to Interface > Skins in the later content pass.
@@ -363,6 +359,48 @@ local COMFORT_QOL_PAGES = {
     profhelper = true, classremind = true, companion = true, cvaropt = true,
     worldquests = true, waypoint = true, compass = true, bagmicro = true,
 }
+
+-- Pages whose game system this client does not have are dropped from the
+-- Confort navigation, exactly like CATEGORY_TREE below. QOL leaves follow
+-- the QOL tab bar (Compat.IsTabBlocked); the two pages Confort builds
+-- itself are checked against their own feature. A group left without any
+-- page disappears; a group whose default page is gone opens its first one.
+local function ComfortPageBlocked(key)
+    local Compat = TomoMod_Compat
+    if not Compat then return false end
+    if key == "consumables" then
+        return Compat.Blocked and Compat.Blocked("consumables") or false
+    elseif key == "housing" then
+        return Compat.IsPageBlocked and Compat.IsPageBlocked("housing") or false
+    end
+    return Compat.IsTabBlocked and Compat.IsTabBlocked(key) or false
+end
+
+for gi = #COMFORT_WORKSPACE_GROUPS, 1, -1 do
+    local group = COMFORT_WORKSPACE_GROUPS[gi]
+    if group.direct then
+        if ComfortPageBlocked(group.default) then
+            table.remove(COMFORT_WORKSPACE_GROUPS, gi)
+        end
+    else
+        local pages = group.pages or {}
+        for pi = #pages, 1, -1 do
+            if ComfortPageBlocked(pages[pi].key) then table.remove(pages, pi) end
+        end
+        if #pages == 0 then
+            table.remove(COMFORT_WORKSPACE_GROUPS, gi)
+        else
+            local keep = false
+            for _, page in ipairs(pages) do
+                if page.key == group.default then keep = true; break end
+            end
+            if not keep then group.default = pages[1].key end
+        end
+    end
+end
+for key in pairs(COMFORT_QOL_PAGES) do
+    if ComfortPageBlocked(key) then COMFORT_QOL_PAGES[key] = nil end
+end
 
 local COMFORT_PAGE_TO_GROUP = {}
 local COMFORT_PAGE_LABEL = {}
@@ -816,6 +854,19 @@ if TomoMod_Compat and TomoMod_Compat.IsPageBlocked then
             if TomoMod_Compat.IsPageBlocked(tabs[i].key) then
                 table.remove(tabs, i)
             end
+        end
+    end
+end
+
+-- The Interface sub-navigation is drawn from its own list: keep only the
+-- pages the filtered tree still holds, or a blocked page (Action Bars on
+-- WoW: Forever) stays in the sidebar as a button that does nothing.
+do
+    local present = {}
+    for _, t in ipairs(CATEGORY_TREE.interface or {}) do present[t.key] = true end
+    for i = #INTERFACE_WORKSPACE_ITEMS, 1, -1 do
+        if not present[INTERFACE_WORKSPACE_ITEMS[i].key] then
+            table.remove(INTERFACE_WORKSPACE_ITEMS, i)
         end
     end
 end
@@ -1374,8 +1425,10 @@ local function BuildComfortWorkspacePanel(parent)
         return readyPanel
     end
 
+    -- Only pages that survived the client filter are known, so a stale
+    -- deep link or a remembered page can never open a blocked one.
     local function IsKnownPage(key)
-        return COMFORT_QOL_PAGES[key] or key == "consumables" or key == "housing"
+        return key ~= nil and COMFORT_PAGE_TO_GROUP[key] ~= nil
     end
 
     local function SwitchTab(key)
@@ -1386,6 +1439,11 @@ local function BuildComfortWorkspacePanel(parent)
         if COMFORT_QOL_PAGES[key] then
             local panel = EnsureQOLPanel()
             if panel then
+                -- CreateTabPanel.SwitchTab has no guard of its own: an
+                -- unknown key would leave the page blank.
+                if panel.HasTab and not panel.HasTab(key) then
+                    key = "automations"
+                end
                 panel:Show()
                 if panel.SwitchTab then panel.SwitchTab(key) end
                 currentSurface = panel

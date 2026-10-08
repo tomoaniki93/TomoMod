@@ -106,27 +106,17 @@ local function SetGlowColor(r, g, b)
     RefreshGlowAppearance()
 end
 
-local ANCHORS = {
-    { value = "TOPLEFT",     text = "Haut gauche" },
-    { value = "TOP",         text = "Haut" },
-    { value = "TOPRIGHT",    text = "Haut droite" },
-    { value = "LEFT",        text = "Gauche" },
-    { value = "CENTER",      text = "Centre" },
-    { value = "RIGHT",       text = "Droite" },
-    { value = "BOTTOMLEFT",  text = "Bas gauche" },
-    { value = "BOTTOM",      text = "Bas" },
-    { value = "BOTTOMRIGHT", text = "Bas droite" },
-}
+local ANCHORS = W.AnchorOptions()
 
 local FLASH_MODES = {
     { value = "blizzard", text = "Blizzard" },
     { value = "qui",      text = "TomoMod" },
-    { value = false,      text = "Aucune" },
+    { value = false,      text = W.Loc("ab_flash_none", "None") },
 }
 
 local ORIENTATIONS = {
-    { value = "horizontal", text = "Horizontale" },
-    { value = "vertical",   text = "Verticale" },
+    { value = "horizontal", text = W.Loc("ab_orient_horizontal", "Horizontal") },
+    { value = "vertical",   text = W.Loc("ab_orient_vertical", "Vertical") },
 }
 
 local PAGING_PAGES = {
@@ -203,7 +193,7 @@ local function IconSkinList()
             out[#out + 1] = { value = n, text = n }
         end
     end
-    if #out == 0 then out[1] = { value = "Default", text = "Default" } end
+    if #out == 0 then out[1] = { value = "Default", text = W.Loc("ab_skin_default", "Default") } end
     return out
 end
 
@@ -215,7 +205,7 @@ local function GlowSourceList()
             out[#out + 1] = { value = n, text = n }
         end
     end
-    if #out == 0 then out[1] = { value = "Off", text = "Off" } end
+    if #out == 0 then out[1] = { value = "Off", text = W.Loc("ab_glow_off", "Off") } end
     return out
 end
 
@@ -441,21 +431,21 @@ local function BuildFadeTab(parent)
         function(v) SetF("linkBars1to8", v) end) y = ny
 
     local fadeBarKeys = {
-        { key = "bar1", label = "Barre 1" },
-        { key = "bar2", label = "Barre 2" },
-        { key = "bar3", label = "Barre 3" },
-        { key = "bar4", label = "Barre 4" },
-        { key = "bar5", label = "Barre 5" },
-        { key = "bar6", label = "Barre 6" },
-        { key = "bar7", label = "Barre 7" },
-        { key = "bar8", label = "Barre 8" },
-        { key = "pet", label = "Familier" },
-        { key = "stance", label = "Postures" },
-        { key = "bags", label = "Barre de sac" },
+        { key = "bar1", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 1) },
+        { key = "bar2", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 2) },
+        { key = "bar3", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 3) },
+        { key = "bar4", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 4) },
+        { key = "bar5", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 5) },
+        { key = "bar6", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 6) },
+        { key = "bar7", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 7) },
+        { key = "bar8", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 8) },
+        { key = "pet", label = W.Loc("ab_bar_pet", "Pet") },
+        { key = "stance", label = W.Loc("ab_bar_stance", "Stances") },
+        { key = "bags", label = W.Loc("ab_bar_bags", "Bag bar") },
     }
-    local _, ny = W.CreateSectionHeader(c, "Barres ciblées", y) y = ny
+    local _, ny = W.CreateSectionHeader(c, W.Loc("section_ab_fade_targets", "Targeted bars"), y) y = ny
     local _, ny = W.CreateInfoText(c,
-        "Le Micro menu reste entièrement géré par Blizzard. TomoMod ne modifie que son alpha pour l'afficher au survol : aucun déplacement, redimensionnement, skin ou reparentage.", y) y = ny
+        W.Loc("info_ab_fade_micromenu", "The micro menu stays fully managed by Blizzard."), y) y = ny
     for _, def in ipairs(fadeBarKeys) do
         local bar = db.bars[def.key]
         if type(bar) ~= "table" then bar = {}; db.bars[def.key] = bar end
@@ -477,16 +467,16 @@ end
 -- TAB 5 -- PER BAR
 -- =====================================================================
 local BAR_KEYS = {
-    { key = "bar1", label = "Barre 1" },
-    { key = "bar2", label = "Barre 2" },
-    { key = "bar3", label = "Barre 3" },
-    { key = "bar4", label = "Barre 4" },
-    { key = "bar5", label = "Barre 5" },
-    { key = "bar6", label = "Barre 6" },
-    { key = "bar7", label = "Barre 7" },
-    { key = "bar8", label = "Barre 8" },
-    { key = "pet", label = "Familier" },
-    { key = "stance", label = "Postures" },
+    { key = "bar1", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 1) },
+    { key = "bar2", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 2) },
+    { key = "bar3", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 3) },
+    { key = "bar4", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 4) },
+    { key = "bar5", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 5) },
+    { key = "bar6", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 6) },
+    { key = "bar7", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 7) },
+    { key = "bar8", label = string.format(W.Loc("ab_bar_fmt", "Bar %d"), 8) },
+    { key = "pet", label = W.Loc("ab_bar_pet", "Pet") },
+    { key = "stance", label = W.Loc("ab_bar_stance", "Stances") },
 }
 
 local function BuildBarsTab(parent)

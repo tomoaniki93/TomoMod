@@ -20,7 +20,7 @@ local function BuildChatFrameTab(parent)
 
     local Chat = TomoMod_ChatFrameSkin
     if not Chat or not Chat.GetDB then
-        local _, ny = W.CreateInfoText(c, "Chat V4 unavailable.", y)
+        local _, ny = W.CreateInfoText(c, W.Loc("skins_chat_unavailable", "Chat V4 is unavailable."), y)
         y = ny
         c:SetHeight(math.abs(y) + 40)
         if scroll.UpdateScroll then scroll.UpdateScroll() end
@@ -201,21 +201,17 @@ end
     local _, ny = W.CreateSeparator(c, y); y = ny
 
     -- Icons anchor
-    local _, ny = W.CreateDropdown(c, L["opt_cfui_icons_anchor"], {
-        { text = "Top-Left",     value = "TOPLEFT" },
-        { text = "Top-Right",    value = "TOPRIGHT" },
-        { text = "Bottom-Left",  value = "BOTTOMLEFT" },
-        { text = "Bottom-Right", value = "BOTTOMRIGHT" },
-    }, cfuiDB.iconsAnchor or "TOPLEFT", y, function(v)
+    local _, ny = W.CreateDropdown(c, L["opt_cfui_icons_anchor"],
+        W.AnchorOptions({ "TOPLEFT", "TOPRIGHT", "BOTTOMLEFT", "BOTTOMRIGHT" }),
+        cfuiDB.iconsAnchor or "TOPLEFT", y, function(v)
         cfuiDB.iconsAnchor = v
         if TomoMod_ChatFrameUI then TomoMod_ChatFrameUI.RefreshSideBarIcons() end
     end); y = ny
 
     -- Edit box position
-    local _, ny = W.CreateDropdown(c, L["opt_cfui_editbox_position"], {
-        { text = "Top",    value = "TOP" },
-        { text = "Bottom", value = "BOTTOM" },
-    }, (cfuiDB.editBox and cfuiDB.editBox.position) or "BOTTOM", y, function(v)
+    local _, ny = W.CreateDropdown(c, L["opt_cfui_editbox_position"],
+        W.AnchorOptions({ "TOP", "BOTTOM" }),
+        (cfuiDB.editBox and cfuiDB.editBox.position) or "BOTTOM", y, function(v)
         cfuiDB.editBox = cfuiDB.editBox or {}
         cfuiDB.editBox.position = v
         if TomoMod_ChatFrameUI then TomoMod_ChatFrameUI.ApplySettings() end
@@ -254,7 +250,7 @@ local function BuildBagsTab(parent)
 
     local Bags = TomoMod_BagSkin
     if not Bags or not Bags.GetDB then
-        local _, ny = W.CreateInfoText(c, "Bags V4 unavailable.", y)
+        local _, ny = W.CreateInfoText(c, W.Loc("skins_bags_unavailable", "Bags V4 is unavailable."), y)
         y = ny
         c:SetHeight(math.abs(y) + 40)
         if scroll.UpdateScroll then scroll.UpdateScroll() end

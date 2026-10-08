@@ -63,6 +63,17 @@ local PANEL_H = 480
 local CHANGELOG
 CHANGELOG = {
     {
+        version = "4.1.0",
+        highlights = {
+            L["wn_410_search"],
+            L["wn_410_navigation"],
+            L["wn_410_help"],
+            L["wn_410_localization"],
+            L["wn_410_studios"],
+            L["wn_410_sliders"],
+        },
+    },
+    {
         version = "4.0.8",
         highlights = {
             L["wn_408_active_countdown"],
