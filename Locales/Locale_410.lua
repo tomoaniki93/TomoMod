@@ -3,6 +3,9 @@
 -- =====================================================================
 
 TomoMod_RegisterLocale("enUS", {
+    ["wn_410_benchmark_native_dps"] = "Changed — Benchmark tests now capture the current combat session’s native average DPS at 30/60/120 seconds, using the latest sample if no fresh update arrives after a short wait. Total damage is no longer displayed.",
+    ["wn_410_benchmark_protected_history"] = "New — Protected DPS stays visible until reload. Attempt details are saved without the protected number; recent protected attempts appear above ranked results with an asterisk and show Protected after reload.",
+    ["wn_410_benchmark_cancellation"] = "Fixed — Tests are cancelled if combat ends early or the meter is reset. Missing native DPS is reported instead of showing a false zero.",
     ["wn_410_window_fit"] = "Fixed — The options window adapts its size and resize limits to the screen and interface scale, keeping the footer and resize handle accessible. Duplicate page headers were removed to free up space.",
     ["wn_410_readability"] = "Changed — Secondary text, hints and search results have stronger contrast, with larger text in several controls and dashboard cards.",
     ["wn_410_home_resets"] = "Changed — Home puts Studios directly below the summary and keeps Installer and Reload as quick actions. Full reset is now available only in Profiles > Resets; module resets use red buttons and ask for confirmation with backup recovery instructions.",
@@ -21,6 +24,9 @@ TomoMod_RegisterLocale("enUS", {
 })
 
 TomoMod_RegisterLocale("frFR", {
+    ["wn_410_benchmark_native_dps"] = "Modification — Le benchmark capture le DPS moyen natif du combat en cours à 30/60/120 secondes, avec la dernière valeur reçue si aucune mise à jour n’arrive après une courte attente. Le total des dégâts n’est plus affiché.",
+    ["wn_410_benchmark_protected_history"] = "Nouveauté — Le DPS protégé reste visible jusqu’au rechargement. Les détails du test sont sauvegardés sans la valeur protégée ; les essais protégés récents apparaissent au-dessus du classement avec un astérisque et indiquent Protégé après rechargement.",
+    ["wn_410_benchmark_cancellation"] = "Correction — Le test est annulé si le combat se termine trop tôt ou si le compteur est réinitialisé. L’absence de DPS natif est signalée au lieu d’afficher un faux zéro.",
     ["wn_410_window_fit"] = "Correction — La fenêtre d’options adapte sa taille et ses limites de redimensionnement à l’écran et à l’échelle de l’interface pour garder le pied de page et la poignée accessibles. Les en-têtes répétés ont été retirés pour libérer de l’espace.",
     ["wn_410_readability"] = "Modification — Les textes secondaires, aides et résultats de recherche sont plus contrastés, avec des caractères agrandis dans plusieurs contrôles et cartes.",
     ["wn_410_home_resets"] = "Modification — L’Accueil place les Studios juste sous le résumé et conserve Installeur et Recharger en actions rapides. La réinitialisation complète se trouve uniquement dans Profils > Réinitialisations ; les réinitialisations de modules utilisent des boutons rouges et demandent confirmation avec des indications de restauration.",
@@ -39,6 +45,9 @@ TomoMod_RegisterLocale("frFR", {
 })
 
 TomoMod_RegisterLocale("deDE", {
+    ["wn_410_benchmark_native_dps"] = "Geändert — Der Benchmark erfasst die nativen durchschnittlichen DPS des aktuellen Kampfes nach 30/60/120 Sekunden. Fehlt nach kurzer Wartezeit eine neue Aktualisierung, wird der letzte Wert verwendet. Der Gesamtschaden wird nicht mehr angezeigt.",
+    ["wn_410_benchmark_protected_history"] = "Neu — Geschützte DPS bleiben bis zum Neuladen sichtbar. Versuchsdaten werden ohne den geschützten Zahlenwert gespeichert; neueste geschützte Versuche stehen mit einem Sternchen über gewerteten Ergebnissen und zeigen nach dem Neuladen Geschützt.",
+    ["wn_410_benchmark_cancellation"] = "Behoben — Tests werden bei vorzeitigem Kampfende oder Zurücksetzen des Schadensmessers abgebrochen. Fehlende native DPS werden gemeldet, statt eine falsche Null anzuzeigen.",
     ["wn_410_window_fit"] = "Behoben — Das Optionsfenster passt Größe und Größenlimits an Bildschirm und Oberflächenskalierung an, damit Fußzeile und Größenregler erreichbar bleiben. Doppelte Seitenüberschriften wurden entfernt, um Platz zu schaffen.",
     ["wn_410_readability"] = "Geändert — Sekundärtexte, Hinweise und Suchergebnisse haben mehr Kontrast; mehrere Bedienelemente und Dashboard-Karten verwenden größere Schrift.",
     ["wn_410_home_resets"] = "Geändert — Die Startseite zeigt Studios direkt unter der Übersicht und behält Installer und Neuladen als Schnellaktionen. Vollständiges Zurücksetzen ist nur unter Profile > Zurücksetzen verfügbar; Modulzurücksetzungen haben rote Schaltflächen und verlangen eine Bestätigung mit Hinweisen zur Wiederherstellung.",
@@ -57,6 +66,9 @@ TomoMod_RegisterLocale("deDE", {
 })
 
 TomoMod_RegisterLocale("esES", {
+    ["wn_410_benchmark_native_dps"] = "Cambio — El benchmark captura el DPS medio nativo del combate actual a los 30/60/120 segundos. Si no llega una nueva actualización tras una breve espera, usa el último valor. Ya no se muestra el daño total.",
+    ["wn_410_benchmark_protected_history"] = "Novedad — El DPS protegido permanece visible hasta recargar. Se guardan los detalles del intento sin el número protegido; los intentos protegidos recientes aparecen encima de los resultados clasificados con un asterisco y muestran Protegido tras recargar.",
+    ["wn_410_benchmark_cancellation"] = "Corrección — Las pruebas se cancelan si el combate termina antes de tiempo o se reinicia el medidor. La ausencia de DPS nativo se indica en lugar de mostrar un cero falso.",
     ["wn_410_window_fit"] = "Corrección — La ventana de opciones adapta su tamaño y sus límites a la pantalla y a la escala de la interfaz, manteniendo accesibles el pie y el control de tamaño. Se eliminaron los encabezados repetidos para ganar espacio.",
     ["wn_410_readability"] = "Cambio — Los textos secundarios, las ayudas y los resultados de búsqueda tienen más contraste, con letras más grandes en varios controles y tarjetas.",
     ["wn_410_home_resets"] = "Cambio — Inicio coloca los Studios justo debajo del resumen y conserva Instalador y Recargar como acciones rápidas. El reinicio completo solo está en Perfiles > Restablecer; los reinicios de módulos usan botones rojos y piden confirmación con instrucciones de recuperación.",
@@ -75,6 +87,9 @@ TomoMod_RegisterLocale("esES", {
 })
 
 TomoMod_RegisterLocale("itIT", {
+    ["wn_410_benchmark_native_dps"] = "Modifica — Il benchmark acquisisce il DPS medio nativo del combattimento attuale a 30/60/120 secondi. Se dopo una breve attesa non arriva un aggiornamento, usa l’ultimo valore. Il danno totale non viene più mostrato.",
+    ["wn_410_benchmark_protected_history"] = "Novità — Il DPS protetto resta visibile fino al ricaricamento. I dettagli del tentativo vengono salvati senza il numero protetto; i tentativi protetti recenti compaiono sopra i risultati classificati con un asterisco e mostrano Protetto dopo il ricaricamento.",
+    ["wn_410_benchmark_cancellation"] = "Correzione — I test vengono annullati se il combattimento termina in anticipo o il misuratore viene azzerato. L’assenza di DPS nativo viene segnalata invece di mostrare un falso zero.",
     ["wn_410_window_fit"] = "Correzione — La finestra delle opzioni adatta dimensioni e limiti allo schermo e alla scala dell’interfaccia, mantenendo accessibili il piè di pagina e il controllo di ridimensionamento. Rimossi i titoli ripetuti per liberare spazio.",
     ["wn_410_readability"] = "Modifica — Testi secondari, suggerimenti e risultati di ricerca hanno più contrasto, con caratteri più grandi in vari controlli e schede.",
     ["wn_410_home_resets"] = "Modifica — La Home mostra gli Studio subito sotto il riepilogo e mantiene Installer e Ricarica come azioni rapide. Il ripristino completo è disponibile solo in Profili > Ripristini; i ripristini dei moduli usano pulsanti rossi e chiedono conferma con istruzioni per recuperare il backup.",
@@ -93,6 +108,9 @@ TomoMod_RegisterLocale("itIT", {
 })
 
 TomoMod_RegisterLocale("ptBR", {
+    ["wn_410_benchmark_native_dps"] = "Alteração — O benchmark captura o DPS médio nativo do combate atual aos 30/60/120 segundos. Se nenhuma atualização chegar após uma breve espera, usa o último valor. O dano total não é mais exibido.",
+    ["wn_410_benchmark_protected_history"] = "Novidade — O DPS protegido fica visível até recarregar. Os detalhes da tentativa são salvos sem o número protegido; tentativas protegidas recentes aparecem acima dos resultados classificados com um asterisco e mostram Protegido após recarregar.",
+    ["wn_410_benchmark_cancellation"] = "Correção — Os testes são cancelados se o combate terminar antes da hora ou o medidor for reiniciado. A ausência de DPS nativo é indicada em vez de exibir um zero falso.",
     ["wn_410_window_fit"] = "Correção — A janela de opções ajusta o tamanho e os limites à tela e à escala da interface, mantendo o rodapé e o controle de redimensionamento acessíveis. Cabeçalhos repetidos foram removidos para liberar espaço.",
     ["wn_410_readability"] = "Alteração — Textos secundários, dicas e resultados de busca têm mais contraste, com letras maiores em vários controles e cartões.",
     ["wn_410_home_resets"] = "Alteração — O Início coloca os Studios logo abaixo do resumo e mantém Instalador e Recarregar como ações rápidas. A redefinição completa fica apenas em Perfis > Redefinições; redefinições de módulos usam botões vermelhos e pedem confirmação com instruções de recuperação.",

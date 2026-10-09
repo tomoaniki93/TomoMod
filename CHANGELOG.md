@@ -2,6 +2,16 @@
 
 ## CHANGELOG 4.1.0
 
+#### Damage Benchmark — Native DPS Capture And Protected History
+
+- **Changed** - The 30/60/120-second benchmark now captures the current combat session's native average DPS from `C_DamageMeter` instead of calculating DPS from accumulated damage. Starting during combat uses that session's average, not a separate average for the timed interval.
+- **Changed** - At the selected duration, the benchmark freezes the first native meter update at or after the threshold. If no fresh event arrives within a short 0.6-second capture window, it uses the latest sample. Missing samples show an explicit unavailable state instead of a false zero.
+- **New** - Protected DPS snapshots remain visible for the current UI session. History saves the character, specialization, item level, duration and date without the protected DPS number. After reloading, these entries display a localized Protected label.
+- **Changed** - Up to five recent protected attempts appear above ranked numeric results, marked with an asterisk. Readable positive DPS results remain saved and ranked; the history display is limited to five entries overall.
+- **Changed** - The benchmark display and history columns now focus on DPS, duration and character details; total damage is no longer shown.
+- **Fixed** - Resetting the damage meter cancels an active test. Leaving combat before the chosen duration also cancels the test instead of recording an incomplete run.
+- **Changed** - Benchmark messages, protected-value labels and the 4.1.0 What's New highlights are updated in English, French, German, Spanish, Italian and Brazilian Portuguese.
+
 #### Options Window — Screen Fit And Readability
 
 - **Fixed** - The options window now bounds its dimensions and resize limits to the available screen space at its own scale. The adjustment runs when opening the window, changing its scale or resetting its size, keeping the footer and resize handle accessible at common UI scales.

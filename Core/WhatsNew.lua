@@ -65,6 +65,9 @@ CHANGELOG = {
     {
         version = "4.1.0",
         highlights = {
+            L["wn_410_benchmark_native_dps"],
+            L["wn_410_benchmark_protected_history"],
+            L["wn_410_benchmark_cancellation"],
             L["wn_410_window_fit"],
             L["wn_410_readability"],
             L["wn_410_home_resets"],

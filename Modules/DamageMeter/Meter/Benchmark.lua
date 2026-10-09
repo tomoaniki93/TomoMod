@@ -16,9 +16,11 @@ local BENCHMARK_LOCAL = {
     enUS = {
         BENCHMARK_TITLE="Damage Benchmark", BENCHMARK_TIP="Open Damage Benchmark",
         BENCHMARK_READY="Ready for a new test.", BENCHMARK_ARMED="Waiting for combat...",
-        BENCHMARK_WAIT_DATA="Waiting for readable damage data...", BENCHMARK_RUNNING="Test in progress...",
-        BENCHMARK_COMPLETE="Test complete.", BENCHMARK_CANCELLED="Test cancelled.",
-        BENCHMARK_NO_DAMAGE="No damage was recorded.", BENCHMARK_DURATION="Duration",
+        BENCHMARK_WAIT_DATA="Waiting for native DPS data...", BENCHMARK_RUNNING="Test in progress...",
+        BENCHMARK_COMPLETE="DPS captured.", BENCHMARK_CANCELLED="Test cancelled.",
+        BENCHMARK_SECRET_SNAPSHOT="Test recorded. DPS visible until reload, but protected by WoW.",
+        BENCHMARK_PROTECTED_SHORT="Protected",
+        BENCHMARK_NO_DAMAGE="No native DPS sample available.", BENCHMARK_DURATION="Duration",
         BENCHMARK_AUTO_DUMMY_ON="Auto dummy: On", BENCHMARK_AUTO_DUMMY_OFF="Auto dummy: Off",
         BENCHMARK_START="Start", BENCHMARK_STOP="Stop", BENCHMARK_DPS="Average DPS",
         BENCHMARK_DAMAGE="Damage", BENCHMARK_TOP5="Local Top 5", BENCHMARK_CLEAR="Clear history",
@@ -28,9 +30,11 @@ local BENCHMARK_LOCAL = {
     frFR = {
         BENCHMARK_TITLE="Test de dégâts", BENCHMARK_TIP="Ouvrir le test de dégâts",
         BENCHMARK_READY="Prêt pour un nouveau test.", BENCHMARK_ARMED="En attente du combat...",
-        BENCHMARK_WAIT_DATA="En attente de données de dégâts lisibles...", BENCHMARK_RUNNING="Test en cours...",
-        BENCHMARK_COMPLETE="Test terminé.", BENCHMARK_CANCELLED="Test annulé.",
-        BENCHMARK_NO_DAMAGE="Aucun dégât enregistré.", BENCHMARK_DURATION="Durée",
+        BENCHMARK_WAIT_DATA="En attente du DPS natif...", BENCHMARK_RUNNING="Test en cours...",
+        BENCHMARK_COMPLETE="DPS capturé.", BENCHMARK_CANCELLED="Test annulé.",
+        BENCHMARK_SECRET_SNAPSHOT="Test conservé. DPS visible jusqu'au reload, mais protégé par WoW.",
+        BENCHMARK_PROTECTED_SHORT="Protégé",
+        BENCHMARK_NO_DAMAGE="Aucune valeur DPS disponible.", BENCHMARK_DURATION="Durée",
         BENCHMARK_AUTO_DUMMY_ON="Mannequin auto : Oui", BENCHMARK_AUTO_DUMMY_OFF="Mannequin auto : Non",
         BENCHMARK_START="Démarrer", BENCHMARK_STOP="Arrêter", BENCHMARK_DPS="DPS moyen",
         BENCHMARK_DAMAGE="Dégâts", BENCHMARK_TOP5="Top 5 local", BENCHMARK_CLEAR="Effacer l'historique",
@@ -85,9 +89,15 @@ local benchmark = {
     duration = 60,
     startedAt = nil,
     accumulated = 0,
-    lastTotal = nil,
-    lastObservedTotal = nil,
-    lastObservedAt = nil,
+    -- Native DPS is sampled from C_DamageMeter; it can be secret in combat.
+    -- A secret is only passed to a permitted FontString C setter, never
+    -- converted, compared, rounded, or written to SavedVariables.
+    latestDps = nil,
+    frozenDps = nil,
+    captureUntil = nil,
+    -- Keeps protected snapshots for visual display in this UI session only.
+    -- Never place these values into SavedVariables (TomoModDamageMeterDB).
+    visualHistory = setmetatable({}, { __mode = "k" }),
     ticker = nil,
     result = nil,
     profile = nil,
@@ -196,36 +206,42 @@ local function PlayerProfile()
     }
 end
 
-local function ReadPlayerDamageTotal()
-    if not C_DamageMeter or not C_DamageMeter.GetCombatSessionFromType then return nil end
-    if not Enum or not Enum.DamageMeterSessionType or not Enum.DamageMeterType then return nil end
+-- Same source and field used by the live DPS meter, not DamageDone totals.
+-- Secret DPS values may be DISPLAYED by FontString:SetFormattedText but cannot
+-- be inspected in Lua or turned into persistent numbers.
+local function HasNativeDps(value)
+    if issecretvalue and issecretvalue(value) then return true end
+    return type(value) == "number" and value >= 0
+end
 
+local function ReadPlayerDps()
+    if not (C_DamageMeter and C_DamageMeter.GetCombatSessionFromType) then return nil end
+    if not (Enum and Enum.DamageMeterSessionType and Enum.DamageMeterType) then return nil end
     local sessionType = Enum.DamageMeterSessionType.Current
-    local meterType = Enum.DamageMeterType.DamageDone or Enum.DamageMeterType.Dps
+    local meterType = Enum.DamageMeterType.Dps
     if sessionType == nil or meterType == nil then return nil end
 
     local ok, session = pcall(C_DamageMeter.GetCombatSessionFromType, sessionType, meterType)
     if not ok or not session or issecretvalue(session) then return nil end
-
     local sources = session.combatSources
     if not sources or issecretvalue(sources) then return nil end
-    if #sources == 0 then return 0 end
 
     local playerGUID = UnitGUID("player")
+    if playerGUID ~= nil and issecretvalue(playerGUID) then playerGUID = nil end
     for _, source in ipairs(sources) do
         local isSelf = source.isLocalPlayer
-        local sourceGUID = source.sourceGUID
         local matches = Safe(isSelf) and isSelf
-        if not matches and Safe(sourceGUID) and playerGUID then
-            matches = sourceGUID == playerGUID
+        if not matches and playerGUID then
+            local sourceGUID = source.sourceGUID
+            if Safe(sourceGUID) then matches = sourceGUID == playerGUID end
         end
         if matches then
-            local total = source.totalAmount
-            if Safe(total) then return total end
+            local value = source.amountPerSecond
+            if HasNativeDps(value) then return value end
             return nil
         end
     end
-    return 0
+    return nil
 end
 
 local function UnitNPCID(unit)
@@ -249,7 +265,8 @@ local function CancelTicker()
 end
 
 local function IsActive()
-    return benchmark.mode == "armed" or benchmark.mode == "waitingData" or benchmark.mode == "running"
+    return benchmark.mode == "armed" or benchmark.mode == "waitingData"
+        or benchmark.mode == "running" or benchmark.mode == "capturing"
 end
 
 local function UpdateLauncherButtons()
@@ -275,15 +292,25 @@ local function TopHistory()
     local db = EnsureDB()
     local copy = {}
     if not db then return copy end
+    local recentProtected = {}
     for _, entry in ipairs(db.benchmarkHistory) do
-        if type(entry) == "table" and type(entry.dps) == "number" then
-            copy[#copy + 1] = entry
+        if type(entry) == "table" then
+            if type(entry.dps) == "number" then
+                copy[#copy + 1] = entry
+            elseif entry.protectedSnapshot and #recentProtected < 5 then
+                -- Keep the newest protected attempts visible above ranked runs.
+                -- Saved metadata contains no protected numeric DPS.
+                recentProtected[#recentProtected + 1] = entry
+            end
         end
     end
     table.sort(copy, function(a, b)
         if a.dps == b.dps then return (a.damage or 0) > (b.damage or 0) end
         return a.dps > b.dps
     end)
+    for i = #recentProtected, 1, -1 do
+        table.insert(copy, 1, recentProtected[i])
+    end
     while #copy > 5 do table.remove(copy) end
     return copy
 end
@@ -300,7 +327,10 @@ end
 local function StatusText()
     if benchmark.mode == "armed" then return L["BENCHMARK_ARMED"] end
     if benchmark.mode == "waitingData" then return L["BENCHMARK_WAIT_DATA"] end
-    if benchmark.mode == "running" then return L["BENCHMARK_RUNNING"] end
+    if benchmark.mode == "running" or benchmark.mode == "capturing" then
+        return L["BENCHMARK_RUNNING"]
+    end
+    if benchmark.mode == "secretSnapshot" then return L["BENCHMARK_SECRET_SNAPSHOT"] end
     if benchmark.mode == "complete" then return L["BENCHMARK_COMPLETE"] end
     if benchmark.mode == "cancelled" then return L["BENCHMARK_CANCELLED"] end
     if benchmark.mode == "noDamage" then return L["BENCHMARK_NO_DAMAGE"] end
@@ -313,8 +343,10 @@ local function SetDuration(seconds)
     local db = EnsureDB()
     benchmark.duration = seconds
     benchmark.result = nil
-    if benchmark.mode == "complete" or benchmark.mode == "cancelled" or benchmark.mode == "noDamage" then
+    if benchmark.mode == "complete" or benchmark.mode == "secretSnapshot"
+        or benchmark.mode == "cancelled" or benchmark.mode == "noDamage" then
         benchmark.mode = "idle"
+        benchmark.frozenDps = nil
     end
     if db then db.benchmarkDuration = seconds end
 end
@@ -357,23 +389,24 @@ local function UpdateUI()
     end
 
     local elapsed = 0
-    local damage = 0
-    local dps = 0
-    local displayDuration = benchmark.duration
-    if benchmark.mode == "running" and benchmark.startedAt then
+    local shownDps
+    if (benchmark.mode == "running" or benchmark.mode == "capturing") and benchmark.startedAt then
         elapsed = math.min(benchmark.duration, math.max(0, GetTime() - benchmark.startedAt))
-        damage = benchmark.accumulated or 0
-        if elapsed > 0 then dps = damage / elapsed end
+        shownDps = benchmark.latestDps
     elseif benchmark.result then
         elapsed = benchmark.result.duration or benchmark.duration
-        displayDuration = benchmark.result.duration or benchmark.duration
-        damage = benchmark.result.damage or 0
-        dps = benchmark.result.dps or 0
+        shownDps = benchmark.frozenDps
     end
 
-    frame._timer:SetText(FormatClock(elapsed) .. " / " .. FormatClock(displayDuration))
-    frame._dps:SetText(FormatNumber(dps))
-    frame._damage:SetText((L["BENCHMARK_DAMAGE"] or "Damage") .. ": " .. FormatNumber(damage))
+    frame._timer:SetText(FormatClock(elapsed) .. " / " .. FormatClock(benchmark.duration))
+    -- A direct C-side widget setter is compatible with a secret amountPerSecond.
+    -- Do not call FormatNumber, tostring, string.format or do Lua math on it.
+    if HasNativeDps(shownDps) then
+        frame._dps:SetFormattedText("%.0f", shownDps)
+    else
+        frame._dps:SetText("-")
+    end
+    frame._damage:Hide()
 
     local top = TopHistory()
     frame._empty:SetShown(#top == 0)
@@ -381,9 +414,21 @@ local function UpdateUI()
         local entry = top[i]
         row:SetShown(entry ~= nil)
         if entry then
-            row.rank:SetText(i)
-            row.dps:SetText(FormatNumber(entry.dps or 0))
-            row.damage:SetText(FormatNumber(entry.damage or 0))
+            row.rank:SetText(entry.protectedSnapshot and "*" or i)
+            if type(entry.dps) == "number" then
+                row.dps:SetText(FormatNumber(entry.dps))
+            elseif entry.protectedSnapshot then
+                local liveValue = benchmark.visualHistory[entry]
+                if HasNativeDps(liveValue) then
+                    -- Display-only: C-side setter accepts WoW protected values.
+                    row.dps:SetFormattedText("%.0f", liveValue)
+                else
+                    -- After /reload the value cannot legally be reconstructed.
+                    row.dps:SetText(L["BENCHMARK_PROTECTED_SHORT"] or "Protected")
+                end
+            else
+                row.dps:SetText("-")
+            end
             row.time:SetText((entry.duration or 0) .. "s")
             row.player:SetText(entry.player or "-")
             row.spec:SetText(entry.specName or "-")
@@ -398,19 +443,21 @@ local function UpdateUI()
     UpdateLauncherButtons()
 end
 
-local function FinishBenchmark()
-    if benchmark.mode ~= "running" then return end
+local function FinishBenchmark(nativeDps)
+    if benchmark.mode ~= "running" and benchmark.mode ~= "capturing" then return end
     CancelTicker()
 
-    local damage = math.max(0, benchmark.accumulated or 0)
-    local duration = benchmark.duration
-    local dps = duration > 0 and damage / duration or 0
+    local valid = HasNativeDps(nativeDps)
+    local plainDps
+    if valid and not issecretvalue(nativeDps) then
+        plainDps = nativeDps -- ordinary Lua number; can be saved to history
+    end
     local profile = benchmark.profile or PlayerProfile()
 
+    if valid then benchmark.frozenDps = nativeDps else benchmark.frozenDps = nil end
     benchmark.result = {
-        dps = dps,
-        damage = damage,
-        duration = duration,
+        dps = plainDps,
+        duration = benchmark.duration,
         player = profile.player,
         classFile = profile.classFile,
         specID = profile.specID,
@@ -420,33 +467,49 @@ local function FinishBenchmark()
         date = date("%Y-%m-%d %H:%M"),
     }
 
-    if damage > 0 then
-        SaveResult(benchmark.result)
-        benchmark.mode = "complete"
-    else
+    if not valid then
         benchmark.mode = "noDamage"
+    elseif plainDps == nil then
+        -- Persist the benchmark ATTEMPT, not the protected number itself.
+        -- The exact frozen DPS remains visible in-session via visualHistory.
+        benchmark.result.protectedSnapshot = true
+        benchmark.visualHistory[benchmark.result] = nativeDps
+        SaveResult(benchmark.result)
+        benchmark.mode = "secretSnapshot"
+    else
+        if plainDps > 0 then SaveResult(benchmark.result) end
+        benchmark.mode = "complete"
     end
-
     benchmark.startedAt = nil
-    benchmark.lastTotal = nil
+    benchmark.latestDps = nil
+    benchmark.captureUntil = nil
     UpdateUI()
 end
 
 local function TickBenchmark()
-    if benchmark.mode ~= "running" or not benchmark.startedAt then return end
-    if GetTime() - benchmark.startedAt >= benchmark.duration then
-        FinishBenchmark()
+    if (benchmark.mode ~= "running" and benchmark.mode ~= "capturing")
+        or not benchmark.startedAt then return end
+    local now = GetTime()
+    if benchmark.mode == "running" and now - benchmark.startedAt >= benchmark.duration then
+        -- The next native DamageMeter update at/after the threshold is best.
+        benchmark.mode = "capturing"
+        benchmark.captureUntil = now + 0.6
+    end
+    if benchmark.mode == "capturing" and now >= benchmark.captureUntil then
+        -- No fresh event: freeze the latest sample instead of showing fake 0.
+        FinishBenchmark(benchmark.latestDps)
         return
     end
     UpdateUI()
 end
 
-local function BeginBenchmarkClock(baseline)
+local function BeginBenchmarkClock()
     CancelTicker()
     benchmark.mode = "running"
     benchmark.startedAt = GetTime()
-    benchmark.accumulated = 0
-    benchmark.lastTotal = baseline or 0
+    benchmark.latestDps = nil
+    benchmark.frozenDps = nil
+    benchmark.captureUntil = nil
     benchmark.profile = PlayerProfile()
     benchmark.result = nil
     benchmark.ticker = C_Timer.NewTicker(TICK_INTERVAL, TickBenchmark)
@@ -457,8 +520,9 @@ local function CancelBenchmark()
     CancelTicker()
     benchmark.mode = "cancelled"
     benchmark.startedAt = nil
-    benchmark.accumulated = 0
-    benchmark.lastTotal = nil
+    benchmark.latestDps = nil
+    benchmark.frozenDps = nil
+    benchmark.captureUntil = nil
     UpdateUI()
 end
 
@@ -469,60 +533,42 @@ local function StartBenchmark()
     end
 
     EnsureDB()
-    benchmark.accumulated = 0
-    benchmark.lastTotal = nil
+    benchmark.latestDps = nil
+    benchmark.frozenDps = nil
     benchmark.result = nil
     benchmark.profile = nil
+    benchmark.captureUntil = nil
 
-    local inCombat = UnitAffectingCombat and UnitAffectingCombat("player")
-    if inCombat then
-        if benchmark.lastObservedTotal ~= nil then
-            BeginBenchmarkClock(benchmark.lastObservedTotal)
-        else
-            benchmark.mode = "waitingData"
-            UpdateUI()
-        end
+    if UnitAffectingCombat and UnitAffectingCombat("player") then
+        BeginBenchmarkClock()
     else
         benchmark.mode = "armed"
         UpdateUI()
     end
 end
 
-local function ObserveDamage()
-    local total = ReadPlayerDamageTotal()
-    if total == nil then return end
+local function ObserveDps()
+    -- Called synchronously from native meter events, never by the ticker.
+    local nativeDps = ReadPlayerDps()
+    if not HasNativeDps(nativeDps) then return end
+    local now = GetTime()
 
-    benchmark.lastObservedTotal = total
-    benchmark.lastObservedAt = GetTime()
-
-    if benchmark.mode == "waitingData" then
-        BeginBenchmarkClock(total)
-        return
-    end
-
-    if benchmark.mode == "armed" then
-        local inCombat = UnitAffectingCombat and UnitAffectingCombat("player")
-        if inCombat then BeginBenchmarkClock(total) end
-        return
-    end
-
-    if benchmark.mode ~= "running" then return end
-
-    local last = benchmark.lastTotal
-    if last ~= nil then
-        local delta
-        if total >= last then
-            delta = total - last
+    if benchmark.mode == "armed" or benchmark.mode == "waitingData" then
+        if UnitAffectingCombat and UnitAffectingCombat("player") then
+            BeginBenchmarkClock()
         else
-            -- Current session rolled over/reset during the test. The damage
-            -- accumulated before the reset is already stored, so the new total
-            -- is the complete delta for the fresh session.
-            delta = total
+            return
         end
-        if delta > 0 then benchmark.accumulated = benchmark.accumulated + delta end
     end
-    benchmark.lastTotal = total
-    UpdateUI()
+    if benchmark.mode ~= "running" and benchmark.mode ~= "capturing" then return end
+
+    benchmark.latestDps = nativeDps
+    if now - benchmark.startedAt >= benchmark.duration then
+        -- Prefer the FIRST C_DamageMeter DPS event at/after the chosen time.
+        FinishBenchmark(nativeDps)
+    else
+        UpdateUI()
+    end
 end
 
 local function TryAutoStartOnDummy()
@@ -532,18 +578,9 @@ local function TryAutoStartOnDummy()
 
     dummyAutoStartedThisCombat = true
     if ns.OpenBenchmark then ns.OpenBenchmark() end
-    benchmark.accumulated = 0
-    benchmark.lastTotal = nil
     benchmark.result = nil
     benchmark.profile = nil
-
-    local baseline = ReadPlayerDamageTotal()
-    if baseline ~= nil then
-        BeginBenchmarkClock(baseline)
-    else
-        benchmark.mode = "waitingData"
-        UpdateUI()
-    end
+    BeginBenchmarkClock()
     return true
 end
 
@@ -720,13 +757,12 @@ local function EnsureFrame()
 
     local columns = {
         { key = "rank",   text = "#",                                  x = 24,  w = 22,  align = "CENTER" },
-        { key = "dps",    text = "DPS",                                x = 50,  w = 68,  align = "RIGHT" },
-        { key = "damage", text = L["BENCHMARK_DAMAGE"] or "Damage",    x = 126, w = 78,  align = "RIGHT" },
-        { key = "time",   text = L["BENCHMARK_COL_TIME"] or "Time",   x = 214, w = 42,  align = "CENTER" },
-        { key = "player", text = L["BENCHMARK_COL_PLAYER"] or "Player",x = 266, w = 112, align = "LEFT" },
-        { key = "spec",   text = L["BENCHMARK_COL_SPEC"] or "Spec",   x = 384, w = 72,  align = "LEFT" },
-        { key = "ilvl",   text = L["BENCHMARK_COL_ILVL"] or "iLvl",   x = 462, w = 50,  align = "RIGHT" },
-        { key = "date",   text = L["BENCHMARK_COL_DATE"] or "Date",   x = 522, w = 76,  align = "RIGHT" },
+        { key = "dps",    text = "DPS",                                x = 50,  w = 110, align = "RIGHT" },
+        { key = "time",   text = L["BENCHMARK_COL_TIME"] or "Time",   x = 174, w = 50,  align = "CENTER" },
+        { key = "player", text = L["BENCHMARK_COL_PLAYER"] or "Player",x = 231, w = 129, align = "LEFT" },
+        { key = "spec",   text = L["BENCHMARK_COL_SPEC"] or "Spec",   x = 367, w = 76,  align = "LEFT" },
+        { key = "ilvl",   text = L["BENCHMARK_COL_ILVL"] or "iLvl",   x = 452, w = 50,  align = "RIGHT" },
+        { key = "date",   text = L["BENCHMARK_COL_DATE"] or "Date",   x = 515, w = 83,  align = "RIGHT" },
     }
 
     for _, col in ipairs(columns) do
@@ -884,31 +920,33 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1)
     end
 
     if event == "DAMAGE_METER_RESET" then
-        benchmark.lastObservedTotal = 0
-        benchmark.lastObservedAt = GetTime()
-        if benchmark.mode == "running" then benchmark.lastTotal = 0 end
+        -- A reset changes the denominator of native average DPS; do not
+        -- silently mix two sessions inside a single timed benchmark.
+        if IsActive() then CancelBenchmark() end
         return
     end
 
     if event == "PLAYER_REGEN_DISABLED" then
         if TryAutoStartOnDummy() then return end
-        if benchmark.mode == "armed" then
-            local baseline = ReadPlayerDamageTotal()
-            if baseline == nil then baseline = benchmark.lastObservedTotal or 0 end
-            BeginBenchmarkClock(baseline)
-        end
+        if benchmark.mode == "armed" then BeginBenchmarkClock() end
         return
     end
 
     if event == "PLAYER_REGEN_ENABLED" then
-        ObserveDamage()
+        -- A shorter combat is not a 30/60/120-second result.
+        if benchmark.startedAt and IsActive()
+            and GetTime() - benchmark.startedAt < benchmark.duration then
+            CancelBenchmark()
+        else
+            ObserveDps()
+        end
         dummyAutoStartedThisCombat = false
         return
     end
 
-    -- DAMAGE_METER_* events: this is the readable C_DamageMeter context.
+    -- DAMAGE_METER_*: capture C_DamageMeter's native average DPS in-handler.
     if UnitAffectingCombat and UnitAffectingCombat("player") then TryAutoStartOnDummy() end
-    ObserveDamage()
+    ObserveDps()
 end)
 
 ----------------------------------------------------------------------
