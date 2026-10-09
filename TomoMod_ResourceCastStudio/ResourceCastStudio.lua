@@ -972,18 +972,89 @@ local function NewScroll()
     return scroll,scroll.child
 end
 
+-- =====================================================================
+-- /tm search (TomoMod_Options GlobalSearch, "Studio search contract")
+-- =====================================================================
+-- Inspector pages build inside GS.StudioBuild with the page S.SearchPages
+-- publishes for them, so ghost and live registrations share their keys.
+
+local VIEW_LABELS={
+    resources={"rcs_tab_resources","Resources"},
+    cast={"rcs_tab_cast","Player Cast"},
+    reset={"rcs_tab_reset","Reset"},
+}
+-- English terms indexed on every client.
+local VIEW_KW={
+    resources="resource bars health power class combo points runes",
+    cast="player castbar cast bar",
+    reset="reset",
+}
+local VIEW_SECTIONS={
+    resources={list=RESOURCE_SECTIONS,builders=RESOURCE_BUILDERS,db=function() return RBDB() end},
+    cast={list=CAST_SECTIONS,builders=CAST_BUILDERS,db=function() return CastDB() end},
+}
+
+local function SearchPage(view,sectionID)
+    local d=VIEW_LABELS[view]
+    local page={
+        path={view},
+        trail={d and T(d[1],d[2]) or view},
+        route={view=view},
+        kw=VIEW_KW[view],
+    }
+    local spec=VIEW_SECTIONS[view]
+    if spec and sectionID then
+        for _,sec in ipairs(spec.list) do
+            if sec.id==sectionID then
+                page.path[2]=sectionID
+                page.trail[2]=T(sec.key,sec.id)
+                page.route.section=sectionID
+                -- Section ids are English words ("gcd", "interrupt").
+                page.kw=page.kw.." "..sectionID
+                break
+            end
+        end
+    end
+    return page
+end
+
+local function InSearchContext(page,fn)
+    local GS=TomoMod_GlobalSearch
+    if GS and GS.StudioBuild then GS.StudioBuild("resourcecast",page,fn) else fn() end
+end
+
+function S.SearchPages()
+    local pages={}
+    for _,view in ipairs({"resources","cast"}) do
+        local spec=VIEW_SECTIONS[view]
+        for _,sec in ipairs(spec.list) do
+            local page=SearchPage(view,sec.id)
+            local build=spec.builders[sec.id]
+            page.build=function(host)
+                local db=spec.db()
+                if db and build then build(host,-10,db) end
+            end
+            pages[#pages+1]=page
+        end
+    end
+    return pages
+end
+
 function S.RebuildInspector()
     local _,c=NewScroll()
     local y=-10
-    if S.view=="resources" then
-        local b=RESOURCE_BUILDERS[S.resourceSection]
-        if b then y=b(c,y,RBDB()) end
-    elseif S.view=="cast" then
-        local b=CAST_BUILDERS[S.castSection]
-        if b then y=b(c,y,CastDB()) end
-    else
-        y=BuildReset(c,y)
-    end
+    local section=(S.view=="resources" and S.resourceSection) or (S.view=="cast" and S.castSection) or nil
+    InSearchContext(SearchPage(S.view,section),function()
+        if S.view=="resources" then
+            local b=RESOURCE_BUILDERS[S.resourceSection]
+            if b then y=b(c,y,RBDB()) end
+        elseif S.view=="cast" then
+            local b=CAST_BUILDERS[S.castSection]
+            if b then y=b(c,y,CastDB()) end
+        else
+            y=BuildReset(c,y)
+        end
+    end)
     c:SetHeight(math.abs(y)+48)
 end
 
@@ -1163,7 +1234,11 @@ local function BuildWindow()
     end)
 end
 
+-- view: "resources" | "cast" | "reset", or a search route
+-- { view = ..., section = ... }.
 function S.Open(view)
+    local route=type(view)=="table" and view or nil
+    if route then view=route.view end
     if InCombatLockdown() then
         print("|cff2e9dd8TomoMod|r : "..T("rcs_combat","Studio unavailable in combat."))
         return
@@ -1171,6 +1246,10 @@ function S.Open(view)
     TomoModDB.resourceCastStudio=TomoModDB.resourceCastStudio or {}
     S.previewKind=TomoModDB.resourceCastStudio.previewKind or S.previewKind or "auto"
     if view=="cast" or view=="reset" then S.view=view else S.view="resources" end
+    local spec=route and route.section and VIEW_SECTIONS[S.view]
+    if spec and spec.builders[route.section] then
+        if S.view=="cast" then S.castSection=route.section else S.resourceSection=route.section end
+    end
     if not frame then BuildWindow() end
     UpdateNav(); S.RebuildSidebar(); S.RebuildInspector()
     frame:Show(); frame:Raise()

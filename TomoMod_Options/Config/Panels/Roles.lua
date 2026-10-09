@@ -49,7 +49,6 @@ if TomoMod_RegisterLocale then
         ["roles_goto"]                        = "Go to the setting",
         ["roles_goto_tip"]                    = "Opens the panel that holds this setting and highlights it.",
         ["roles_apply_preset"]                = "Apply this preset",
-        ["roles_focus_filter"]                = "Focus the interface on this role",
 
         -- tank
         ["roles_tank_np_tankmode_title"]       = "Tank mode on nameplates",
@@ -107,7 +106,6 @@ if TomoMod_RegisterLocale then
         ["roles_goto"]                        = "Aller au réglage",
         ["roles_goto_tip"]                    = "Ouvre le panneau qui contient ce réglage et le met en surbrillance.",
         ["roles_apply_preset"]                = "Appliquer ce preset",
-        ["roles_focus_filter"]                = "Filtrer l'interface sur ce rôle",
 
         -- tank
         ["roles_tank_np_tankmode_title"]       = "Mode Tank sur les nameplates",
@@ -165,7 +163,6 @@ if TomoMod_RegisterLocale then
         ["roles_goto"]                        = "Zur Einstellung",
         ["roles_goto_tip"]                    = "Öffnet das Panel mit dieser Einstellung und hebt sie hervor.",
         ["roles_apply_preset"]                = "Dieses Preset anwenden",
-        ["roles_focus_filter"]                = "Oberfläche auf diese Rolle fokussieren",
 
         -- tank
         ["roles_tank_np_tankmode_title"]       = "Tank-Modus für Namensplaketten",
@@ -223,7 +220,6 @@ if TomoMod_RegisterLocale then
         ["roles_goto"]                        = "Ir al ajuste",
         ["roles_goto_tip"]                    = "Abre el panel que contiene este ajuste y lo resalta.",
         ["roles_apply_preset"]                = "Aplicar este preset",
-        ["roles_focus_filter"]                = "Centrar la interfaz en este rol",
 
         -- tank
         ["roles_tank_np_tankmode_title"]       = "Modo tanque en las placas",
@@ -281,7 +277,6 @@ if TomoMod_RegisterLocale then
         ["roles_goto"]                        = "Vai all'impostazione",
         ["roles_goto_tip"]                    = "Apre il pannello che contiene questa impostazione e la evidenzia.",
         ["roles_apply_preset"]                = "Applicare questo preset",
-        ["roles_focus_filter"]                = "Focalizzare l'interfaccia su questo ruolo",
 
         -- tank
         ["roles_tank_np_tankmode_title"]       = "Modalità difensore sulle targhette",
@@ -339,7 +334,6 @@ if TomoMod_RegisterLocale then
         ["roles_goto"]                        = "Ir ao ajuste",
         ["roles_goto_tip"]                    = "Abre o painel que contém este ajuste e o destaca.",
         ["roles_apply_preset"]                = "Aplicar este preset",
-        ["roles_focus_filter"]                = "Focar a interface nesta função",
 
         -- tank
         ["roles_tank_np_tankmode_title"]       = "Modo tanque nas placas",
@@ -393,10 +387,12 @@ end
 -- ---------------------------------------------------------------------
 -- Guide data
 -- ---------------------------------------------------------------------
--- studio   : the Studio that owns the setting (C.OpenStudio key), with an
---            optional `arg` naming the subject or view to open on. Unit
---            frames, nameplates, castbars, group frames, resources and
---            cooldowns all live in Studios now.
+-- studio   : the Studio that owns the setting (C.OpenStudio key). `route`
+--            is the page to open on, in the form the Studio's S.Open takes
+--            (subject/view/section), and `target` the LOCALE KEY of the
+--            option or section header to flash there. The target key may
+--            live in the Studio's own locale file: it is resolved only once
+--            the Studio has loaded and built the page.
 -- cat      : otherwise, the nav category the setting lives in
 -- path     : one tab key per nesting level, outermost first. Declared
 --            explicitly rather than looked up: only the first tab of a tab
@@ -414,12 +410,12 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "TANK.tga",
         color  = { 0.28, 0.52, 0.92 },
         cards  = {
-            { key = "np_tankmode", studio = "astral", arg = "nameplate", section = "section_tank_mode" },
-            { key = "np_buffs",    studio = "astral", arg = "nameplate", section = "section_enemy_buffs" },
-            { key = "np_cast",     studio = "astral", arg = "nameplate", section = "section_castbar" },
-            { key = "uf_threat",   studio = "astral", arg = "target", section = "section_threat_text" },
-            { key = "pf_cd",       studio = "group", arg = "party", section = "pf_section_cooldowns" },
-            { key = "rb_health",   studio = "resourcecast", arg = "resources", section = "section_rb_healthbar" },
+            { key = "np_tankmode", studio = "astral", route = { subject = "nameplate", view = "frame", section = "tank" }, target = "af_v22_sec_tank", section = "section_tank_mode" },
+            { key = "np_buffs",    studio = "astral", route = { subject = "nameplate", view = "frame", section = "enemyBuffs" }, target = "af_v22_sec_enemy_buffs", section = "section_enemy_buffs" },
+            { key = "np_cast",     studio = "astral", route = { subject = "nameplate", view = "frame", section = "castbar" }, target = "af_v22_sec_castbar", section = "section_castbar" },
+            { key = "uf_threat",   studio = "astral", route = { subject = "target", view = "frame", section = "colors" }, target = "opt_threat_text_enable", section = "section_threat_text" },
+            { key = "pf_cd",       studio = "group", route = { view = "party", section = "cooldowns" }, target = "pf_section_cooldowns", section = "pf_section_cooldowns" },
+            { key = "rb_health",   studio = "resourcecast", route = { view = "resources", section = "health" }, target = "rcs_sec_health", section = "section_rb_healthbar" },
         },
     },
     healer = {
@@ -428,12 +424,12 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "HEALER.tga",
         color  = { 0.36, 0.82, 0.42 },
         cards  = {
-            { key = "pf_hots",     studio = "group", arg = "healer_party", section = "pf_section_hots" },
-            { key = "pf_dispel",   studio = "group", arg = "party", section = "pf_section_dispel" },
-            { key = "rf_extras",   studio = "group", arg = "raid", section = "rf_section_health_extras" },
-            { key = "rf_debuffs",  studio = "group", arg = "raid", section = "rf_section_debuffs" },
-            { key = "rf_range",    studio = "group", arg = "raid", section = "rf_section_range" },
-            { key = "rf_defs",     studio = "group", arg = "raid", section = "rf_section_defensives" },
+            { key = "pf_hots",     studio = "group", route = { view = "party", section = "hots" }, target = "pf_section_hots", section = "pf_section_hots" },
+            { key = "pf_dispel",   studio = "group", route = { view = "party", section = "dispel" }, target = "pf_section_dispel", section = "pf_section_dispel" },
+            { key = "rf_extras",   studio = "group", route = { view = "raid", section = "health" }, target = "rf_section_health_extras", section = "rf_section_health_extras" },
+            { key = "rf_debuffs",  studio = "group", route = { view = "raid", section = "hots" }, target = "rf_section_debuffs", section = "rf_section_debuffs" },
+            { key = "rf_range",    studio = "group", route = { view = "raid", section = "range" }, target = "rf_section_range", section = "rf_section_range" },
+            { key = "rf_defs",     studio = "group", route = { view = "raid", section = "defensives" }, target = "rf_section_defensives", section = "rf_section_defensives" },
         },
     },
     dps = {
@@ -442,12 +438,12 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "DAMAGER.tga",
         color  = { 0.85, 0.32, 0.32 },
         cards  = {
-            { key = "rb_bars",     studio = "resourcecast", arg = "resources", section = "section_dimensions" },
+            { key = "rb_bars",     studio = "resourcecast", route = { view = "resources", section = "layout" }, target = "rcs_sec_layout", section = "section_dimensions" },
             { key = "cdm",         cat = "interface", path = { "cdm", "cdm" }, section = "section_cdm_extras" },
-            { key = "np_auras",    studio = "astral", arg = "nameplate", section = "section_auras" },
-            { key = "np_buffs",    studio = "astral", arg = "nameplate", section = "section_enemy_buffs" },
-            { key = "cb_gcd",      studio = "resourcecast", arg = "cast", section = "cb_section_gcd" },
-            { key = "cb_kick",     studio = "resourcecast", arg = "cast", section = "cb_section_interrupt" },
+            { key = "np_auras",    studio = "astral", route = { subject = "nameplate", view = "frame", section = "auras" }, target = "af_v22_sec_auras", section = "section_auras" },
+            { key = "np_buffs",    studio = "astral", route = { subject = "nameplate", view = "frame", section = "enemyBuffs" }, target = "af_v22_sec_enemy_buffs", section = "section_enemy_buffs" },
+            { key = "cb_gcd",      studio = "resourcecast", route = { view = "cast", section = "gcd" }, target = "rcs_sec_cast_gcd", section = "cb_section_gcd" },
+            { key = "cb_kick",     studio = "resourcecast", route = { view = "cast", section = "interrupt" }, target = "rcs_sec_cast_interrupt", section = "cb_section_interrupt" },
         },
     },
 }
@@ -458,8 +454,13 @@ local ROLE_DEFS = {
 -- Hoisted: one closure for every link button rather than one per button.
 local function OnGotoClick(self)
     if self._studio then
+        local GS = TomoMod_GlobalSearch
+        if GS and GS.OpenStudioAt then
+            GS.OpenStudioAt(self._studio, self._route, self._target)
+            return
+        end
         local C = TomoMod_Config
-        if C and C.OpenStudio then C.OpenStudio(self._studio, self._arg) end
+        if C and C.OpenStudio then C.OpenStudio(self._studio, self._route) end
         return
     end
     local GS = TomoMod_GlobalSearch
@@ -515,7 +516,8 @@ local function CreateGotoButton(parent, def, color, sectionText, yOffset)
     btn._cat         = def.cat
     btn._path        = def.path
     btn._studio      = def.studio
-    btn._arg         = def.arg
+    btn._route       = def.route
+    btn._target      = def.target
     btn._sectionText = sectionText
     btn._color       = color
     btn._lbl         = lbl
@@ -536,21 +538,6 @@ local function OnPresetClick(self)
     if P.Apply(self._presetKey) then
         StaticPopup_Show("TOMOMOD_ROLE_PRESET_RELOAD")
     end
-end
-
-local function OnFocusClick(self)
-    if W and W.SetRoleFilter then W.SetRoleFilter(self._roleKey) end
-
-    -- Persisted exactly like the sidebar's own role buttons write it, so a
-    -- focus set from a guide page survives closing the window. ConfigUI's
-    -- GuiDB() is a local there; the table it hands back is this one.
-    if TomoModDB then
-        TomoModDB.configGUI = TomoModDB.configGUI or {}
-        TomoModDB.configGUI.roleFilter = (self._roleKey ~= "ALL") and self._roleKey or nil
-    end
-
-    local C = TomoMod_Config
-    if C and C.RefreshRoleButtons then C.RefreshRoleButtons() end
 end
 
 local function CreateRoleHeader(parent, roleKey, def, y)
@@ -635,11 +622,6 @@ local function CreateRoleHeader(parent, roleKey, def, y)
         and TomoMod_Presets.IsApplicable(def.preset) then
         ActionButton(Localize("roles_apply_preset", "Appliquer ce preset"), 190,
             OnPresetClick, "_presetKey", def.preset)
-    end
-
-    if W and W.SetRoleFilter then
-        ActionButton(Localize("roles_focus_filter", "Filtrer l'interface sur ce rôle"), 220,
-            OnFocusClick, "_roleKey", def.role)
     end
 
     return y - 104 - 10

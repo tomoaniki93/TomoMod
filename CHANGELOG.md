@@ -6,7 +6,7 @@
 
 - **Fixed** - The options window now bounds its dimensions and resize limits to the available screen space at its own scale. The adjustment runs when opening the window, changing its scale or resetting its size, keeping the footer and resize handle accessible at common UI scales.
 - **Changed** - Duplicate page headers were removed, reclaiming 92 units of content height while the title bar retains the category title and description.
-- **Changed** - Secondary text, placeholders, footer hints and search results use stronger contrast. Information text, sublabels and several dashboard labels are larger, and role filtering dims unrelated sections less aggressively.
+- **Changed** - Secondary text, placeholders, footer hints and search results use stronger contrast. Information text, sublabels and several dashboard labels are larger.
 
 #### Home Dashboard And Reset Confirmation
 
@@ -34,10 +34,17 @@
 
 #### Settings Search And Client-Aware Navigation
 
-- **Fixed** - Opening or building a dedicated Studio now clears the settings-search registration context. Studio controls no longer create misleading search results that send the player back to the last options category, usually Home.
+- **New** - Settings search now indexes pages and controls in Astral Forge, Party & Raid Studio and Resource & Cast Studio. Results open the matching subject, view and section, scroll to the requested setting and highlight it.
+- **New** - Option-group labels are searchable, including groups such as Auto Summon. Studio results include their page path, support English search terms on localized clients and avoid duplicate entries.
+- **Fixed** - Studio search registrations now retain their own navigation context. Results no longer point to the last options category, and highlights resolve the current control after an inspector rebuild.
 - **Changed** - The search placeholder now explicitly refers to settings in all six supported languages.
 - **Fixed** - Interface and Comfort navigation now remove pages unavailable on the current client, including blocked Action Bars on WoW: Forever. Empty groups disappear, unavailable default pages fall back to an available page, and remembered pages or deep links cannot reopen blocked content.
-- **Changed** - The help guide now explains the expandable sidebar, page tabs and dedicated Studio access from the sidebar, Home dashboard or EditMode gear.
+- **Changed** - The help guide now explains the expandable sidebar, page tabs, search across options and Studios, and direct Studio access. The obsolete role-filter step has been removed.
+
+#### Roles — Direct Settings Links
+
+- **Changed** - Role recommendations now open the relevant subject and section in Astral Forge, Party & Raid Studio or Resource & Cast Studio, then highlight the target setting.
+- **Changed** - Sidebar role-filter buttons and the role-focus action have been removed. The Roles guides and their configuration recommendations remain available.
 
 #### Interface Localization And Clearer Controls
 

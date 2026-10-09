@@ -4078,35 +4078,10 @@ local function V22BuildNameplateTank(c, y, db)
     return y
 end
 
-function S.BuildFrameEditorV22(c)
-    local db = Settings()
-    local y = -8
-
-    HideNameplateElementsParity()
-    V22EnsureFramePreview()
-    if SubjectKind() == "nameplate" then
-        ShowNameplateCadreParity()
-    else
-        HideNameplateCadreParity(false)
-    end
-    V22HideFramePreviewNoise()
-
-    local _, current = V22EnsureFrameSection()
-
-    local _, ny = W.CreateSectionHeader(c, L["af_v22_editor_title"], y)
-    y = ny
-    local _, ny = W.CreateInfoText(c, L["af_v22_editor_info"], y)
-    y = ny
-
-    if not db then
-        local _, ny = W.CreateInfoText(c, L["af_frame_unavailable"], y)
-        y = ny
-        c:SetHeight(math.abs(y) + 40)
-        return
-    end
-
-    local kind = SubjectKind()
-
+-- One frame-editor section of the CURRENT subject (S.state.subject).
+-- Shared by the editor and by S.SearchPages, which builds every section
+-- offscreen for the /tm search index.
+local function BuildFrameSection(c, y, kind, current, db)
     if kind == "unitframe" then
         if current == "global" then
             y = BuildGlobalUnitFrameSettings(c, y)
@@ -4153,6 +4128,37 @@ function S.BuildFrameEditorV22(c)
         local _, ny = W.CreateInfoText(c, L["af_frame_unavailable"], y)
         y = ny
     end
+    return y
+end
+
+function S.BuildFrameEditorV22(c)
+    local db = Settings()
+    local y = -8
+
+    HideNameplateElementsParity()
+    V22EnsureFramePreview()
+    if SubjectKind() == "nameplate" then
+        ShowNameplateCadreParity()
+    else
+        HideNameplateCadreParity(false)
+    end
+    V22HideFramePreviewNoise()
+
+    local _, current = V22EnsureFrameSection()
+
+    local _, ny = W.CreateSectionHeader(c, L["af_v22_editor_title"], y)
+    y = ny
+    local _, ny = W.CreateInfoText(c, L["af_v22_editor_info"], y)
+    y = ny
+
+    if not db then
+        local _, ny = W.CreateInfoText(c, L["af_frame_unavailable"], y)
+        y = ny
+        c:SetHeight(math.abs(y) + 40)
+        return
+    end
+
+    y = BuildFrameSection(c, y, SubjectKind(), current, db)
 
     c:SetHeight(math.abs(y) + 56)
 end
@@ -4263,7 +4269,7 @@ end
 -- ---------------------------------------------------------------------
 -- Inspector: the selected element's anchor record
 -- ---------------------------------------------------------------------
-function S.RebuildInspector()
+local function RebuildInspectorBody()
     if not inspectorHost then return end
 
     -- Les frames WoW ne se detruisent pas : le panneau precedent part dans
@@ -4592,6 +4598,132 @@ function S.RebuildInspector()
             S.RebuildSidebar(); S.RebuildInspector()
         end)
     end
+end
+
+-- ---------------------------------------------------------------------
+-- /tm search (TomoMod_Options GlobalSearch, "Studio search contract")
+-- ---------------------------------------------------------------------
+-- A page is subject > view > section or element. The inspector builds
+-- inside GS.StudioBuild with the page S.SearchPages publishes for it, so the
+-- ghost index and the open Studio register the same keys: a result reopens
+-- the right subject and page and flashes the option.
+
+local VIEW_NAV_KEY = {
+    frame = "af_nav_frame", elements = "af_nav_elements",
+    bars = "af_nav_bars", presets = "af_nav_presets",
+}
+
+-- English terms indexed on every client.
+local SUBJECT_KW = {
+    player         = "player unit frame unitframe",
+    target         = "target unit frame unitframe",
+    focus          = "focus unit frame unitframe",
+    pet            = "pet unit frame unitframe",
+    targettarget   = "target of target tot unit frame",
+    bossframe      = "boss frames unit frame",
+    nameplate      = "nameplate nameplates plates np",
+    castbar_target = "castbar cast bar target",
+    castbar_focus  = "castbar cast bar focus",
+    castbar_pet    = "castbar cast bar pet",
+    castbar_boss   = "castbar cast bar boss",
+}
+
+local function SearchPage(subjectValue, view, id, idLabel)
+    local sub = SUBJECT_BY_VALUE[subjectValue]
+    local page = {
+        path  = { subjectValue },
+        trail = { sub and L[sub.labelKey] or subjectValue },
+        route = { subject = subjectValue },
+        kw    = SUBJECT_KW[subjectValue],
+    }
+    if view then
+        page.path[2], page.route.view = view, view
+        -- "Frame" adds nothing to a section name: kept out of the displayed
+        -- path. "Elements" stays, it tells an element apart from the frame
+        -- section of the same name (castbar, auras).
+        page.trail[2] = (view ~= "frame") and L[VIEW_NAV_KEY[view]] or ""
+        if id then
+            page.path[3], page.trail[3] = id, idLabel or id
+            if view == "frame" then page.route.section = id else page.route.element = id end
+            -- Section and element ids are English words ("castbar", "tank").
+            page.kw = (page.kw or "") .. " " .. id
+        end
+    end
+    return page
+end
+
+local function CurrentSearchPage()
+    local sub = Subject()
+    local value = sub and sub.value or S.state.subject
+    if S.state.showFrameEditor then
+        local sections, current = V22EnsureFrameSection()
+        local label
+        for _, sec in ipairs(sections) do
+            if sec.id == current then label = sec.label end
+        end
+        return SearchPage(value, "frame", current, label)
+    elseif S.state.showBars then
+        return SearchPage(value, "bars")
+    elseif S.state.showPresets then
+        return SearchPage(value, "presets")
+    end
+    local id = S.state.element
+    local reg = id and Registry()
+    local desc = reg and R.Describe(reg.DOMAIN, id)
+    if desc then
+        local _, index = R.SplitKey(id)
+        return SearchPage(value, "elements", id, L[desc.labelKey] .. (index and (" " .. index) or ""))
+    end
+    return SearchPage(value)
+end
+
+function S.RebuildInspector()
+    local GS = TomoMod_GlobalSearch
+    if not (GS and GS.StudioBuild) then return RebuildInspectorBody() end
+    local ok, page = pcall(CurrentSearchPage)
+    if not ok then return RebuildInspectorBody() end
+    GS.StudioBuild("astral", page, RebuildInspectorBody)
+end
+
+-- Every subject, its frame sections (built offscreen) and its elements
+-- (indexed by name). Sections are built with the subject temporarily
+-- selected, so nothing runs while the Studio is open on another one.
+function S.SearchPages()
+    if frame and frame:IsShown() then return {} end
+    local pages = {}
+    local saved = S.state.subject
+    for _, sub in ipairs(SUBJECTS) do
+        S.state.subject = sub.value
+        pages[#pages + 1] = SearchPage(sub.value)
+        -- Castbar subjects have no frame editor (it reports unavailable).
+        if sub.kind ~= "castbar" then
+            local ok, sections = pcall(V22GetFrameSections)
+            for _, sec in ipairs(ok and sections or {}) do
+                local page = SearchPage(sub.value, "frame", sec.id, sec.label)
+                local value, secID = sub.value, sec.id
+                page.build = function(host)
+                    if frame and frame:IsShown() then return end
+                    local prev = S.state.subject
+                    S.state.subject = value
+                    local okBuild, err = pcall(function()
+                        local db = Settings()
+                        if db then BuildFrameSection(host, -8, SubjectKind(), secID, db) end
+                    end)
+                    S.state.subject = prev
+                    if not okBuild then error(err, 0) end
+                end
+                pages[#pages + 1] = page
+            end
+        end
+        local okReg, reg = pcall(sub.registry)
+        if okReg and reg and reg.List then
+            for _, desc in ipairs(reg.List()) do
+                pages[#pages + 1] = SearchPage(sub.value, "elements", desc.id, L[desc.labelKey])
+            end
+        end
+    end
+    S.state.subject = saved
+    return pages
 end
 
 -- ---------------------------------------------------------------------
@@ -5395,7 +5527,23 @@ local function BuildWindow()
     inspectorHost:SetPoint("BOTTOMRIGHT", contentHost, "BOTTOMRIGHT", -12, 10)
 end
 
+local function ApplyRequestedRoute(route)
+    if type(route) ~= "table" then return end
+    local view = route.view
+    if view == "frame" then
+        if route.section then S.state.frameSection = route.section end
+        SetStudioView("frame")
+    elseif view == "elements" then
+        if route.element then S.state.element = route.element end
+        SetStudioView("elements")
+    elseif view == "presets" or (view == "bars" and BarsSupported()) then
+        SetStudioView(view)
+    end
+end
+
 local function ApplyRequestedSubject(value)
+    -- A /tm search route carries the subject plus the page to open on.
+    if type(value) == "table" then value = value.subject end
     if type(value) ~= "string" or not SUBJECT_BY_VALUE[value] then return false end
     S.state.subject = value
     S.state.element = nil
@@ -5431,6 +5579,9 @@ function S.Open(requestedSubject)
     S.RebuildSidebar()
     S.RebuildInspector()
     UpdateNavigation()
+
+    -- /tm search and Roles guide links open on one page of the subject.
+    ApplyRequestedRoute(requestedSubject)
 
     -- Versioned first-run guide. A later redesign can bump the version and
     -- show only the new onboarding without resetting any Forge layout.

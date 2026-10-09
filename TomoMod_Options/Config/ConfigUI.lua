@@ -60,13 +60,11 @@ if TomoMod_RegisterLocale then
             ["cfg_help_next"] = "Next",
             ["cfg_help_finish"] = "Finish",
             ["cfg_help_1_title"] = "Welcome to TomoMod",
-            ["cfg_help_1_body"] = "This short guide presents the main navigation, search, role filters, configuration workspaces, Layout mode, profiles and diagnostics.",
+            ["cfg_help_1_body"] = "This short guide presents the main navigation, search, configuration workspaces and Studios, Layout mode, profiles and diagnostics.",
             ["cfg_help_2_title"] = "Main navigation",
             ["cfg_help_2_body"] = "The left sidebar lists every section: Home, Roles, Interface, Comfort, Damage Meter, What's New, Profiles and Diagnostics. The open section unfolds its pages in place, and the Studios block opens each dedicated editor in one click.",
             ["cfg_help_3_title"] = "Search",
-            ["cfg_help_3_body"] = "Type a module, feature or option here. TomoMod filters the navigation and can surface matching settings without forcing you to remember where they live.",
-            ["cfg_help_4_title"] = "Role filter",
-            ["cfg_help_4_body"] = "The four role buttons prioritize settings for Everyone, Tank, Healer or Damage. Other settings remain visible but are visually de-emphasized.",
+            ["cfg_help_3_body"] = "Type a module, feature or option here. Results cover the /tm pages and the Studios: a click opens the right screen and highlights the setting.",
             ["cfg_help_5_title"] = "Workspaces and Studios",
             ["cfg_help_5_body"] = "Interface and Comfort list their pages in the sidebar; a page with several parts shows them as tabs above its content. Unit frames, nameplates, castbars, party and raid frames, resources, cooldowns and Mythic+ are edited in the Studios, opened from the sidebar, the Home Studios card or the EditMode gear.",
             ["cfg_help_6_title"] = "Layout / EditMode",
@@ -84,13 +82,11 @@ if TomoMod_RegisterLocale then
             ["cfg_help_next"] = "Suivant",
             ["cfg_help_finish"] = "Terminer",
             ["cfg_help_1_title"] = "Bienvenue dans TomoMod",
-            ["cfg_help_1_body"] = "Ce petit guide présente la navigation principale, la recherche, les filtres de rôle, les espaces de configuration, le mode Layout, les profils et les diagnostics.",
+            ["cfg_help_1_body"] = "Ce petit guide présente la navigation principale, la recherche, les espaces de configuration et les Studios, le mode Layout, les profils et les diagnostics.",
             ["cfg_help_2_title"] = "Navigation principale",
             ["cfg_help_2_body"] = "La barre latérale liste toutes les sections : Accueil, Rôles, Interface, Confort, Damage Meter, Nouveautés, Profils et Diagnostics. La section ouverte déplie ses pages sur place, et le bloc Studios ouvre chaque éditeur dédié en un clic.",
             ["cfg_help_3_title"] = "Recherche",
-            ["cfg_help_3_body"] = "Saisis ici le nom d'un module, d'une fonction ou d'un réglage. TomoMod filtre la navigation et peut retrouver les options correspondantes sans devoir mémoriser leur emplacement.",
-            ["cfg_help_4_title"] = "Filtre par rôle",
-            ["cfg_help_4_body"] = "Les quatre boutons mettent en avant les réglages utiles à Tous, Tank, Healer ou DPS. Les autres réglages restent visibles mais sont volontairement atténués.",
+            ["cfg_help_3_body"] = "Saisis ici le nom d'un module, d'une fonction ou d'un réglage. Les résultats couvrent les pages /tm et les Studios : un clic ouvre le bon écran et met le réglage en évidence.",
             ["cfg_help_5_title"] = "Espaces et Studios",
             ["cfg_help_5_body"] = "Interface et Confort listent leurs pages dans la barre latérale ; une page en plusieurs parties les affiche en onglets au-dessus de son contenu. UnitFrames, Nameplates, barres d'incantation, cadres de groupe et de raid, ressources, cooldowns et Mythic+ se règlent dans les Studios, ouverts depuis la barre latérale, la carte Studios de l'Accueil ou l'engrenage d'EditMode.",
             ["cfg_help_6_title"] = "Layout / EditMode",
@@ -108,13 +104,11 @@ if TomoMod_RegisterLocale then
             ["cfg_help_next"] = "Weiter",
             ["cfg_help_finish"] = "Fertig",
             ["cfg_help_1_title"] = "Willkommen bei TomoMod",
-            ["cfg_help_1_body"] = "Diese kurze Hilfe zeigt die Hauptnavigation, Suche, Rollenfilter, Konfigurationsbereiche, den Layout-Modus, Profile und Diagnose.",
+            ["cfg_help_1_body"] = "Diese kurze Hilfe zeigt die Hauptnavigation, Suche, Konfigurationsbereiche und Studios, den Layout-Modus, Profile und Diagnose.",
             ["cfg_help_2_title"] = "Hauptnavigation",
             ["cfg_help_2_body"] = "Die linke Seitenleiste listet alle Bereiche: Start, Rollen, Interface, Komfort, Damage Meter, Neuerungen, Profile und Diagnose. Der geoeffnete Bereich klappt seine Seiten an Ort und Stelle auf, und der Studios-Block oeffnet jeden Editor mit einem Klick.",
             ["cfg_help_3_title"] = "Suche",
-            ["cfg_help_3_body"] = "Gib hier ein Modul, eine Funktion oder eine Option ein. TomoMod filtert die Navigation und findet passende Einstellungen, ohne dass du ihren genauen Ort kennen musst.",
-            ["cfg_help_4_title"] = "Rollenfilter",
-            ["cfg_help_4_body"] = "Die vier Rollen-Schaltflächen heben Einstellungen für Alle, Tank, Heiler oder Schaden hervor. Andere Einstellungen bleiben sichtbar, werden aber optisch zurückgenommen.",
+            ["cfg_help_3_body"] = "Gib hier ein Modul, eine Funktion oder eine Option ein. Die Ergebnisse umfassen die /tm-Seiten und die Studios: Ein Klick oeffnet die richtige Ansicht und hebt die Einstellung hervor.",
             ["cfg_help_5_title"] = "Bereiche und Studios",
             ["cfg_help_5_body"] = "Interface und Komfort listen ihre Seiten in der Seitenleiste; eine Seite mit mehreren Teilen zeigt sie als Reiter ueber dem Inhalt. Einheitenrahmen, Namensplaketten, Zauberleisten, Gruppen- und Schlachtzugrahmen, Ressourcen, Abklingzeiten und Mythisch+ werden in den Studios bearbeitet, die ueber die Seitenleiste, die Studios-Karte der Startseite oder das EditMode-Zahnrad starten.",
             ["cfg_help_6_title"] = "Layout / EditMode",
@@ -132,13 +126,11 @@ if TomoMod_RegisterLocale then
             ["cfg_help_next"] = "Siguiente",
             ["cfg_help_finish"] = "Finalizar",
             ["cfg_help_1_title"] = "Bienvenido a TomoMod",
-            ["cfg_help_1_body"] = "Esta guía breve presenta la navegación principal, la búsqueda, los filtros de rol, los espacios de configuración, el modo Layout, los perfiles y los diagnósticos.",
+            ["cfg_help_1_body"] = "Esta guía breve presenta la navegación principal, la búsqueda, los espacios de configuración y los Studios, el modo Layout, los perfiles y los diagnósticos.",
             ["cfg_help_2_title"] = "Navegación principal",
             ["cfg_help_2_body"] = "La barra lateral muestra todas las secciones: Inicio, Roles, Interfaz, Comodidad, Damage Meter, Novedades, Perfiles y Diagnósticos. La sección abierta despliega sus páginas en el sitio y el bloque Studios abre cada editor dedicado con un clic.",
             ["cfg_help_3_title"] = "Búsqueda",
-            ["cfg_help_3_body"] = "Escribe aquí un módulo, función u opción. TomoMod filtra la navegación y puede encontrar los ajustes relacionados sin que tengas que recordar dónde están.",
-            ["cfg_help_4_title"] = "Filtro por rol",
-            ["cfg_help_4_body"] = "Los cuatro botones de rol destacan los ajustes para Todos, Tanque, Sanador o Daño. Los demás ajustes siguen visibles, pero se muestran atenuados.",
+            ["cfg_help_3_body"] = "Escribe aquí un módulo, función u opción. Los resultados abarcan las páginas de /tm y los Studios: un clic abre la pantalla adecuada y resalta el ajuste.",
             ["cfg_help_5_title"] = "Espacios y Studios",
             ["cfg_help_5_body"] = "Interfaz y Comodidad muestran sus páginas en la barra lateral; una página con varias partes las muestra como pestañas sobre su contenido. Los marcos de unidad, las placas de nombre, las barras de lanzamiento, los marcos de grupo y banda, los recursos, los tiempos de reutilización y Míticas+ se editan en los Studios, que se abren desde la barra lateral, la tarjeta Studios de Inicio o el engranaje de EditMode.",
             ["cfg_help_6_title"] = "Layout / EditMode",
@@ -156,13 +148,11 @@ if TomoMod_RegisterLocale then
             ["cfg_help_next"] = "Avanti",
             ["cfg_help_finish"] = "Fine",
             ["cfg_help_1_title"] = "Benvenuto in TomoMod",
-            ["cfg_help_1_body"] = "Questa breve guida presenta la navigazione principale, la ricerca, i filtri ruolo, le aree di configurazione, la modalità Layout, i profili e la diagnostica.",
+            ["cfg_help_1_body"] = "Questa breve guida presenta la navigazione principale, la ricerca, le aree di configurazione e gli Studio, la modalità Layout, i profili e la diagnostica.",
             ["cfg_help_2_title"] = "Navigazione principale",
             ["cfg_help_2_body"] = "La barra laterale elenca tutte le sezioni: Home, Ruoli, Interfaccia, Comodità, Damage Meter, Novità, Profili e Diagnostica. La sezione aperta mostra le sue pagine sul posto e il blocco Studio apre ogni editor dedicato con un clic.",
             ["cfg_help_3_title"] = "Ricerca",
-            ["cfg_help_3_body"] = "Inserisci qui un modulo, una funzione o un'opzione. TomoMod filtra la navigazione e può trovare le impostazioni corrispondenti senza doverne ricordare la posizione.",
-            ["cfg_help_4_title"] = "Filtro ruolo",
-            ["cfg_help_4_body"] = "I quattro pulsanti ruolo evidenziano le impostazioni per Tutti, Tank, Healer o Danni. Le altre impostazioni restano visibili ma vengono attenuate.",
+            ["cfg_help_3_body"] = "Inserisci qui un modulo, una funzione o un'opzione. I risultati coprono le pagine di /tm e gli Studio: un clic apre la schermata giusta ed evidenzia l'impostazione.",
             ["cfg_help_5_title"] = "Aree e Studio",
             ["cfg_help_5_body"] = "Interfaccia e Comodità elencano le loro pagine nella barra laterale; una pagina in più parti le mostra come schede sopra il contenuto. Riquadri unità, barre del nome, barre di lancio, riquadri di gruppo e incursione, risorse, recuperi e Mitiche+ si modificano negli Studio, aperti dalla barra laterale, dalla scheda Studio della Home o dall'ingranaggio di EditMode.",
             ["cfg_help_6_title"] = "Layout / EditMode",
@@ -180,13 +170,11 @@ if TomoMod_RegisterLocale then
             ["cfg_help_next"] = "Próximo",
             ["cfg_help_finish"] = "Concluir",
             ["cfg_help_1_title"] = "Bem-vindo ao TomoMod",
-            ["cfg_help_1_body"] = "Este guia rápido apresenta a navegação principal, a busca, os filtros de função, as áreas de configuração, o modo Layout, os perfis e os diagnósticos.",
+            ["cfg_help_1_body"] = "Este guia rápido apresenta a navegação principal, a busca, as áreas de configuração e os Studios, o modo Layout, os perfis e os diagnósticos.",
             ["cfg_help_2_title"] = "Navegação principal",
             ["cfg_help_2_body"] = "A barra lateral lista todas as seções: Início, Funções, Interface, Conforto, Damage Meter, Novidades, Perfis e Diagnósticos. A seção aberta expande suas páginas no lugar, e o bloco Studios abre cada editor dedicado com um clique.",
             ["cfg_help_3_title"] = "Busca",
-            ["cfg_help_3_body"] = "Digite aqui um módulo, recurso ou opção. O TomoMod filtra a navegação e pode encontrar as configurações correspondentes sem exigir que você memorize onde elas ficam.",
-            ["cfg_help_4_title"] = "Filtro por função",
-            ["cfg_help_4_body"] = "Os quatro botões de função destacam configurações para Todos, Tank, Healer ou Dano. As demais configurações continuam visíveis, mas ficam visualmente atenuadas.",
+            ["cfg_help_3_body"] = "Digite aqui um módulo, recurso ou opção. Os resultados abrangem as páginas do /tm e os Studios: um clique abre a tela certa e destaca a configuração.",
             ["cfg_help_5_title"] = "Áreas e Studios",
             ["cfg_help_5_body"] = "Interface e Conforto listam suas páginas na barra lateral; uma página com várias partes as mostra como abas acima do conteúdo. Quadros de unidade, placas de nome, barras de conjuração, quadros de grupo e raide, recursos, recargas e Mítica+ são editados nos Studios, abertos pela barra lateral, pelo cartão Studios do Início ou pela engrenagem do EditMode.",
             ["cfg_help_6_title"] = "Layout / EditMode",
@@ -258,14 +246,17 @@ local STUDIOS = {
     { key = "astral", addon = "TomoMod_AstralForge", global = "TomoMod_AstralForge",
       icon = ICON_PATH .. "icon_unitframes.tga", navKey = "nav_studio_astral", navFallback = "Unit frames & nameplates",
       title = "dash_studio_astral_title", titleFallback = "Astral Forge Studio", desc = "dash_studio_astral_desc",
+      searchable = true,
       kw = "astral forge studio unit frames unitframes nameplates plaques cadres joueur cible focus familier boss castbar incantation" },
     { key = "group", addon = "TomoMod_GroupStudio", global = "TomoMod_GroupStudio", defaultArg = "party",
       icon = ICON_PATH .. "icon_partyframes.tga", navKey = "nav_studio_group", navFallback = "Party & raid",
       title = "dash_studio_group_title", titleFallback = "Party & Raid Studio", desc = "dash_studio_group_desc",
+      searchable = true,
       kw = "party raid groupe frames healer soigneur hots dispel defensifs" },
     { key = "resourcecast", addon = "TomoMod_ResourceCastStudio", global = "TomoMod_ResourceCastStudio", defaultArg = "resources",
       icon = ICON_PATH .. "icon_resources.tga", navKey = "nav_studio_resourcecast", navFallback = "Resources & castbar",
       title = "dash_studio_resourcecast_title", titleFallback = "Resource & Cast Studio", desc = "dash_studio_resourcecast_desc",
+      searchable = true,
       kw = "resources ressources resource bars castbar incantation gcd player joueur sante health" },
     { key = "cooldown", addon = "TomoMod_CDStudio", global = "TomoMod_CDStudio",
       icon = ICON_PATH .. "icon_castbars.tga", navKey = "nav_studio_cooldown", navFallback = "Cooldowns",
@@ -288,6 +279,7 @@ for _, def in ipairs(STUDIOS) do
     STUDIO_BY_KEY[def.key] = def
 end
 C.Studios = STUDIOS
+C.StudioByKey = STUDIO_BY_KEY
 
 -- Old category keys whose settings now live in a Studio. Quoted keys on
 -- purpose: Tools/test_layout_gear.lua checks every EditMode route name
@@ -1343,7 +1335,6 @@ local OPTIONS_HELP_STEPS = {
     { title = "cfg_help_1_title", body = "cfg_help_1_body", target = "title",   category = "accueil" },
     { title = "cfg_help_2_title", body = "cfg_help_2_body", target = "sidebar" },
     { title = "cfg_help_3_title", body = "cfg_help_3_body", target = "search" },
-    { title = "cfg_help_4_title", body = "cfg_help_4_body", target = "role" },
     { title = "cfg_help_5_title", body = "cfg_help_5_body", target = "content", category = "interface" },
     { title = "cfg_help_6_title", body = "cfg_help_6_body", target = "layout" },
     { title = "cfg_help_7_title", body = "cfg_help_7_body", target = "content", category = "profiles" },
@@ -1848,106 +1839,16 @@ local function CreateConfigFrame()
     configFrame._searchWrap = searchWrap
     configFrame._searchBox  = searchBox
 
-    -- ── Filtre par rôle ────────────────────────────────────────
-    -- Dims settings that belong to other roles instead of hiding them,
-    -- so a player never loses track of an option they already know.
-    local ROLEBAR_H  = 24
-    local ROLEBAR_Y  = 8 + SEARCH_H + 6
-
-    local roleBar = CreateFrame("Frame", nil, sidebar)
-    roleBar:SetPoint("TOPLEFT",  8, -ROLEBAR_Y)
-    roleBar:SetPoint("TOPRIGHT", -8, -ROLEBAR_Y)
-    roleBar:SetHeight(ROLEBAR_H)
-
-    local ROLE_SLOTS = {
-        { key = "ALL" },
-        { key = "TANK" },
-        { key = "HEALER" },
-        { key = "DAMAGER" },
-    }
-    local RB_GAP = 2
-    local RB_W   = math.floor((NAV_W - 16 - RB_GAP * (#ROLE_SLOTS - 1)) / #ROLE_SLOTS)
-
-    local roleButtons = {}
-
-    local function SetRoleButtonVisual(btn, active)
-        local c = btn._roleColor
-        if active then
-            btn:SetBackdropColor(c[1] * 0.30, c[2] * 0.30, c[3] * 0.30, 0.95)
-            btn:SetBackdropBorderColor(c[1], c[2], c[3], 0.95)
-            if btn._icon then btn._icon:SetVertexColor(c[1], c[2], c[3], 1) end
-            if btn._lbl  then btn._lbl:SetTextColor(c[1], c[2], c[3], 1) end
-        else
-            btn:SetBackdropColor(0.075, 0.075, 0.095, 1)
-            btn:SetBackdropBorderColor(0.18, 0.18, 0.22, 1)
-            if btn._icon then btn._icon:SetVertexColor(0.42, 0.42, 0.48, 1) end
-            if btn._lbl  then btn._lbl:SetTextColor(0.46, 0.46, 0.52, 1) end
-        end
-    end
-
-    local function RefreshRoleButtons()
-        local active = (W and W.GetRoleFilter and W.GetRoleFilter()) or "ALL"
-        for _, btn in ipairs(roleButtons) do
-            SetRoleButtonVisual(btn, btn._roleKey == active)
-        end
-    end
-    C.RefreshRoleButtons = RefreshRoleButtons
-
-    for i, slot in ipairs(ROLE_SLOTS) do
-        local info = (slot.key ~= "ALL") and W.ROLE_INFO and W.ROLE_INFO[slot.key] or nil
-
-        local btn = CreateFrame("Button", nil, roleBar, "BackdropTemplate")
-        btn:SetSize(RB_W, ROLEBAR_H)
-        btn:SetPoint("TOPLEFT", (i - 1) * (RB_W + RB_GAP), 0)
-        btn:SetBackdrop({ bgFile = WHITE8, edgeFile = WHITE8, edgeSize = 1 })
-        btn._roleKey   = slot.key
-        btn._roleColor = info and info.color or { aR, aG, aB }
-
-        if info then
-            local ico = btn:CreateTexture(nil, "OVERLAY")
-            ico:SetSize(14, 14)
-            ico:SetPoint("CENTER")
-            ico:SetTexture(info.icon)
-            btn._icon = ico
-            btn._roleName = (W.Loc and W.Loc(info.lk, slot.key)) or slot.key
-        else
-            local lbl = btn:CreateFontString(nil, "OVERLAY")
-            lbl:SetFont(FONT, 10, "")
-            lbl:SetPoint("CENTER")
-            lbl:SetText((W.Loc and W.Loc("cfg_rolefilter_all", "Tous")) or "Tous")
-            btn._lbl = lbl
-        end
-
-        btn:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText((W.Loc and W.Loc("cfg_rolefilter_label", "Focus rôle")) or "Focus rôle", 1, 1, 1)
-            if self._roleName then
-                GameTooltip:AddLine(
-                    string.format((W.Loc and W.Loc("cfg_rolefilter_tip", "%s")) or "%s", self._roleName),
-                    0.72, 0.72, 0.78, true)
-            else
-                GameTooltip:AddLine(
-                    (W.Loc and W.Loc("cfg_rolefilter_tip_all", "")) or "", 0.72, 0.72, 0.78, true)
-            end
-            GameTooltip:Show()
-        end)
-        btn:SetScript("OnLeave", function() GameTooltip:Hide() end)
-        btn:SetScript("OnClick", function(self)
-            if W and W.SetRoleFilter then W.SetRoleFilter(self._roleKey) end
-            local gdb = GuiDB()
-            gdb.roleFilter = (self._roleKey ~= "ALL") and self._roleKey or nil
-            RefreshRoleButtons()
-        end)
-
-        roleButtons[#roleButtons + 1] = btn
-    end
-
-    -- Restore the saved focus before any page is built.
-    if W and W.SetRoleFilter then W.SetRoleFilter(GuiDB().roleFilter or "ALL") end
-    RefreshRoleButtons()
+    -- The role focus bar is gone: no visible page carries role tags any
+    -- more (role-specific settings live in the Studios, another window), so
+    -- it dimmed nothing. The Roles page is the per-role entry point. Clear a
+    -- focus saved by an older version so no hidden dimming survives.
+    GuiDB().roleFilter = nil
+    if W and W.SetRoleFilter then W.SetRoleFilter("ALL") end
+    local SEARCH_BOTTOM = 8 + SEARCH_H + 6
 
     -- ── Zone de navigation défilante ───────────────────────────
-    local NAV_TOP    = ROLEBAR_Y + ROLEBAR_H + 8
+    local NAV_TOP    = SEARCH_BOTTOM + 2
     local NAV_BOTTOM = 26
     local navScroll = CreateFrame("ScrollFrame", nil, sidebar)
     navScroll:SetPoint("TOPLEFT", 0, -NAV_TOP)
@@ -2176,7 +2077,6 @@ local function CreateConfigFrame()
         title   = titleBar,
         sidebar = sidebar,
         search  = searchWrap,
-        role    = roleBar,
         content = content,
         layout  = layoutBtn,
     }

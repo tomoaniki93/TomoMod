@@ -82,7 +82,9 @@ end
 -- CooldownResource, ...) mean a widget's "tab" is a path, not one key:
 -- ctx.tab alone only ever holds the INNERMOST one, which is not enough to
 -- navigate back to it.
-W._buildCtx = { cat = nil, catLabel = nil, tab = nil, tabLabel = nil, section = nil, tabPath = {} }
+-- `studio` is set only while a Studio builds a page (GlobalSearch's
+-- GS.StudioBuild): { key, route, trail, kw } describes how to reopen it.
+W._buildCtx = { cat = nil, catLabel = nil, tab = nil, tabLabel = nil, section = nil, tabPath = {}, studio = nil }
 
 local function ClearFrom(list, from)
     for i = #list, from, -1 do list[i] = nil end
@@ -92,6 +94,7 @@ function W.SetBuildContext(catKey, catLabel)
     local ctx = W._buildCtx
     ctx.cat, ctx.catLabel = catKey, catLabel
     ctx.tab, ctx.tabLabel, ctx.section = nil, nil, nil
+    ctx.studio = nil
     ctx.tabPath = ctx.tabPath or {}
     ClearFrom(ctx.tabPath, 1)
 end
@@ -184,11 +187,6 @@ if TomoMod_RegisterLocale then
         ["role_healer"]            = "Healer",
         ["role_dps"]               = "DPS",
         ["role_badge_title"]       = "Useful for",
-        ["role_badge_hint"]        = "Use the role filter in the sidebar to bring these settings forward.",
-        ["cfg_rolefilter_all"]     = "All",
-        ["cfg_rolefilter_label"]   = "Role focus",
-        ["cfg_rolefilter_tip"]     = "Keep only the settings that matter to a %s at full brightness. Nothing is hidden — everything else is simply dimmed.",
-        ["cfg_rolefilter_tip_all"] = "Show every setting, with no role emphasis.",
         ["cfg_slider_edit_hint"]   = "Right-click: type a value  |  Ctrl+click: reset",
     })
     TomoMod_RegisterLocale("frFR", {
@@ -196,11 +194,6 @@ if TomoMod_RegisterLocale then
         ["role_healer"]            = "Soigneur",
         ["role_dps"]               = "DPS",
         ["role_badge_title"]       = "Utile pour",
-        ["role_badge_hint"]        = "Utilise le filtre de rôle dans la barre latérale pour mettre ces réglages en avant.",
-        ["cfg_rolefilter_all"]     = "Tous",
-        ["cfg_rolefilter_label"]   = "Focus rôle",
-        ["cfg_rolefilter_tip"]     = "Ne garder en pleine lumière que les réglages utiles à un %s. Rien n'est masqué : le reste est simplement estompé.",
-        ["cfg_rolefilter_tip_all"] = "Afficher tous les réglages, sans mise en avant de rôle.",
         ["cfg_slider_edit_hint"]   = "Clic droit : saisir une valeur  |  Ctrl+clic : réinitialiser",
     })
     TomoMod_RegisterLocale("deDE", {
@@ -208,11 +201,6 @@ if TomoMod_RegisterLocale then
         ["role_healer"]            = "Heiler",
         ["role_dps"]               = "DPS",
         ["role_badge_title"]       = "Nützlich für",
-        ["role_badge_hint"]        = "Nutze den Rollenfilter in der Seitenleiste, um diese Einstellungen hervorzuheben.",
-        ["cfg_rolefilter_all"]     = "Alle",
-        ["cfg_rolefilter_label"]   = "Rollenfokus",
-        ["cfg_rolefilter_tip"]     = "Nur die für %s relevanten Einstellungen voll sichtbar lassen. Nichts wird ausgeblendet — der Rest wird lediglich abgedunkelt.",
-        ["cfg_rolefilter_tip_all"] = "Alle Einstellungen anzeigen, ohne Rollenhervorhebung.",
         ["cfg_slider_edit_hint"]   = "Rechtsklick: Wert eingeben  |  Strg+Klick: zuruecksetzen",
     })
     TomoMod_RegisterLocale("esES", {
@@ -220,11 +208,6 @@ if TomoMod_RegisterLocale then
         ["role_healer"]            = "Sanador",
         ["role_dps"]               = "DPS",
         ["role_badge_title"]       = "Útil para",
-        ["role_badge_hint"]        = "Usa el filtro de rol en la barra lateral para destacar estos ajustes.",
-        ["cfg_rolefilter_all"]     = "Todos",
-        ["cfg_rolefilter_label"]   = "Enfoque de rol",
-        ["cfg_rolefilter_tip"]     = "Mantener a plena luz solo los ajustes que importan a un %s. No se oculta nada: el resto simplemente se atenúa.",
-        ["cfg_rolefilter_tip_all"] = "Mostrar todos los ajustes, sin énfasis de rol.",
         ["cfg_slider_edit_hint"]   = "Clic derecho: escribir un valor  |  Ctrl+clic: restablecer",
     })
     TomoMod_RegisterLocale("itIT", {
@@ -232,11 +215,6 @@ if TomoMod_RegisterLocale then
         ["role_healer"]            = "Guaritore",
         ["role_dps"]               = "DPS",
         ["role_badge_title"]       = "Utile per",
-        ["role_badge_hint"]        = "Usa il filtro dei ruoli nella barra laterale per mettere in evidenza queste impostazioni.",
-        ["cfg_rolefilter_all"]     = "Tutti",
-        ["cfg_rolefilter_label"]   = "Focus ruolo",
-        ["cfg_rolefilter_tip"]     = "Tenere in piena luce solo le impostazioni utili a un %s. Nulla viene nascosto: il resto è semplicemente attenuato.",
-        ["cfg_rolefilter_tip_all"] = "Mostrare tutte le impostazioni, senza enfasi sul ruolo.",
         ["cfg_slider_edit_hint"]   = "Clic destro: inserisci un valore  |  Ctrl+clic: ripristina",
     })
     TomoMod_RegisterLocale("ptBR", {
@@ -244,11 +222,6 @@ if TomoMod_RegisterLocale then
         ["role_healer"]            = "Curandeiro",
         ["role_dps"]               = "DPS",
         ["role_badge_title"]       = "Útil para",
-        ["role_badge_hint"]        = "Use o filtro de função na barra lateral para destacar estes ajustes.",
-        ["cfg_rolefilter_all"]     = "Todos",
-        ["cfg_rolefilter_label"]   = "Foco de função",
-        ["cfg_rolefilter_tip"]     = "Manter em destaque apenas os ajustes que importam a um %s. Nada é ocultado: o resto é apenas esmaecido.",
-        ["cfg_rolefilter_tip_all"] = "Mostrar todos os ajustes, sem ênfase de função.",
         ["cfg_slider_edit_hint"]   = "Clique direito: digitar um valor  |  Ctrl+clique: redefinir",
     })
 end
@@ -801,8 +774,6 @@ local function OnRoleBadgeEnter(self)
             GameTooltip:AddLine(Loc(info.lk, roles[i]), info.color[1], info.color[2], info.color[3])
         end
     end
-    GameTooltip:AddLine(" ")
-    GameTooltip:AddLine(Loc("role_badge_hint", ""), 0.55, 0.55, 0.62, true)
     GameTooltip:Show()
 end
 
@@ -1404,6 +1375,9 @@ function W.CreateSubLabel(parent, text, yOffset)
     lbl:SetPoint("TOPLEFT", 16, yOffset)
     SC(lbl, T.textDim)
     lbl:SetText(text)
+    -- Sub-labels title a group of options ("— Auto Summon —"): indexing
+    -- them lets a search for the group name land on its options.
+    if W._RegisterSearchEntry then W._RegisterSearchEntry(text, lbl, "group") end
     return lbl, yOffset - 18
 end
 

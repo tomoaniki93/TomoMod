@@ -1468,23 +1468,101 @@ local function BuildResetInspector(c,y)
     return ny
 end
 
+-- =====================================================================
+-- /tm search (TomoMod_Options GlobalSearch, "Studio search contract")
+-- =====================================================================
+-- Every inspector page is built inside GS.StudioBuild with the page that
+-- S.SearchPages publishes for it, so the options it registers carry the
+-- same key in the ghost index and in the open Studio: a search result
+-- reopens the right view and section and flashes the option.
+
+local VIEW_LABELS = {
+    party  = { "gs_tab_party",  "Party" },
+    raid   = { "gs_tab_raid",   "Raid" },
+    healer = { "gs_tab_healer", "Healer" },
+    reset  = { "gs_tab_reset",  "Reset" },
+}
+-- English terms indexed on every client (players often search in English).
+local VIEW_KW = {
+    party  = "party frames group",
+    raid   = "raid frames",
+    healer = "healer indicators hots shields",
+    reset  = "reset",
+}
+local VIEW_SECTIONS = {
+    party = { list = PARTY_SECTIONS, builders = PARTY_BUILDERS, db = "partyFrames" },
+    raid  = { list = RAID_SECTIONS,  builders = RAID_BUILDERS,  db = "raidFrames" },
+}
+
+local function SearchPage(view, sectionID)
+    local d = VIEW_LABELS[view]
+    local page = {
+        path  = { view },
+        trail = { d and T(d[1], d[2]) or view },
+        route = { view = view },
+        kw    = VIEW_KW[view],
+    }
+    local spec = VIEW_SECTIONS[view]
+    if spec and sectionID then
+        for _, sec in ipairs(spec.list) do
+            if sec.id == sectionID then
+                page.path[2]       = sectionID
+                page.trail[2]      = T(sec.key, sec.fallback)
+                page.route.section = sectionID
+                -- The English fallback doubles as a search word ("dispel").
+                page.kw = page.kw .. " " .. sec.fallback
+                break
+            end
+        end
+    end
+    return page
+end
+
+local function InSearchContext(page, fn)
+    local GS = TomoMod_GlobalSearch
+    if GS and GS.StudioBuild then GS.StudioBuild("group", page, fn) else fn() end
+end
+
+function S.SearchPages()
+    local pages = {}
+    for _, view in ipairs({ "party", "raid" }) do
+        local spec = VIEW_SECTIONS[view]
+        for _, sec in ipairs(spec.list) do
+            local page = SearchPage(view, sec.id)
+            local build = spec.builders[sec.id]
+            page.build = function(host)
+                local db = TomoModDB and TomoModDB[spec.db]
+                if db and build then build(host, -10, db) end
+            end
+            pages[#pages + 1] = page
+        end
+    end
+    -- The healer editor depends on the selected class and spell: indexed as
+    -- one page, its options join the index once the player opens it.
+    pages[#pages + 1] = SearchPage("healer")
+    return pages
+end
+
 function S.RebuildInspector()
     if not inspectorHost then return end
     local _,c=NewInspectorScroll()
     local y=-10
-    if S.view=="party" then
-        local db=TomoModDB and TomoModDB.partyFrames
-        local b=PARTY_BUILDERS[S.partySection]
-        if db and b then y=b(c,y,db) else y=Info(c,T("gs_party_unavailable","PartyFrames settings are unavailable."),y) end
-    elseif S.view=="raid" then
-        local db=TomoModDB and TomoModDB.raidFrames
-        local b=RAID_BUILDERS[S.raidSection]
-        if db and b then y=b(c,y,db) else y=Info(c,T("gs_raid_unavailable","RaidFrames settings are unavailable."),y) end
-    elseif S.view=="healer" then
-        y=BuildHealerInspector(c,y)
-    else
-        y=BuildResetInspector(c,y)
-    end
+    local section=(S.view=="party" and S.partySection) or (S.view=="raid" and S.raidSection) or nil
+    InSearchContext(SearchPage(S.view, section), function()
+        if S.view=="party" then
+            local db=TomoModDB and TomoModDB.partyFrames
+            local b=PARTY_BUILDERS[S.partySection]
+            if db and b then y=b(c,y,db) else y=Info(c,T("gs_party_unavailable","PartyFrames settings are unavailable."),y) end
+        elseif S.view=="raid" then
+            local db=TomoModDB and TomoModDB.raidFrames
+            local b=RAID_BUILDERS[S.raidSection]
+            if db and b then y=b(c,y,db) else y=Info(c,T("gs_raid_unavailable","RaidFrames settings are unavailable."),y) end
+        elseif S.view=="healer" then
+            y=BuildHealerInspector(c,y)
+        else
+            y=BuildResetInspector(c,y)
+        end
+    end)
     c:SetHeight(math.abs(y)+48)
 end
 
@@ -1756,7 +1834,11 @@ local function BuildWindow()
     end)
 end
 
+-- view: "party" | "raid" | "healer" | "reset" | "healer_party" |
+-- "healer_raid", or a search route { view = ..., section = ... }.
 function S.Open(view)
+    local route = type(view) == "table" and view or nil
+    if route then view = route.view end
     if InCombatLockdown() then
         print("|cff2e9dd8TomoMod|r : " .. T("hs_combat","Configuration unavailable in combat."))
         return
@@ -1778,6 +1860,10 @@ function S.Open(view)
         S.healerClass=HI.IsHealerClass(pc) and pc or HI.CLASS_ORDER[1]
     end
     if view=="raid" or view=="healer" or view=="reset" then S.view=view else S.view="party" end
+    local spec = route and route.section and VIEW_SECTIONS[S.view]
+    if spec and spec.builders[route.section] then
+        if S.view=="raid" then S.raidSection=route.section else S.partySection=route.section end
+    end
     if not frame then BuildWindow() end
     UpdateNavigation()
     if S.view=="healer" then S.RefreshHealer()
