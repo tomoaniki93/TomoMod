@@ -9,6 +9,45 @@ local ADDON_FONT_BOLD = "Interface\\AddOns\\TomoMod\\Assets\\Fonts\\Poppins-Semi
 
 TomoMod_Loots = TomoMod_Loots or {}
 local LOOTS = TomoMod_Loots
+local GetItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+local GetItemInfoInstant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+local function Text(key, fallback)
+    return (TomoMod_L and TomoMod_L[key]) or fallback
+end
+local function SlotLabel(slot)
+    if slot == "INVTYPE_WEAPON" then return WEAPON or _G[slot] end
+    return _G[slot]
+end
+
+-- Use equipment-location tokens so the filter is independent of client language.
+local SLOT_FILTERS = {
+    "INVTYPE_HEAD", "INVTYPE_NECK", "INVTYPE_SHOULDER", "INVTYPE_CLOAK",
+    "INVTYPE_CHEST", "INVTYPE_WRIST", "INVTYPE_HAND", "INVTYPE_WAIST",
+    "INVTYPE_LEGS", "INVTYPE_FEET", "INVTYPE_FINGER", "INVTYPE_TRINKET",
+    "INVTYPE_WEAPON", "INVTYPE_WEAPONOFFHAND",
+}
+local function ItemMatchesSlot(itemID, slot)
+    if not slot then return true end
+    local _, _, _, location = GetItemInfoInstant(itemID)
+    if slot == "INVTYPE_CHEST" then
+        return location == slot or location == "INVTYPE_ROBE"
+    elseif slot == "INVTYPE_WEAPON" then
+        return location == slot or location == "INVTYPE_WEAPONMAINHAND"
+            or location == "INVTYPE_2HWEAPON" or location == "INVTYPE_RANGED"
+            or location == "INVTYPE_RANGEDRIGHT" or location == "INVTYPE_THROWN"
+    elseif slot == "INVTYPE_WEAPONOFFHAND" then
+        return location == slot or location == "INVTYPE_SHIELD" or location == "INVTYPE_HOLDABLE"
+            or location == "INVTYPE_WEAPON"
+    end
+    return location == slot
+end
+
+local function IsEquipped(itemID)
+    for slot = 1, 19 do
+        if GetInventoryItemID("player", slot) == itemID then return true end
+    end
+    return false
+end
 
 -- ══ Theme (TomoMod dark palette + teal accent) ════════════════════════
 local C = {
@@ -72,25 +111,54 @@ local DIFF_LIST = {
 }
 
 -- BonusId de base (rank 1 = drop direct boss/fin de clé) par difficulté
--- Source: KeystoneLoot upgrade_tracks.lua (Season 16)
+-- Season 17 base ranks; individual bosses may override the selected rank.
 local DIFF_BONUS_ID = {
-    [17] = 12777,  -- LFR      ilvl 233
-    [14] = 12785,  -- Normal   ilvl 246
-    [15] = 12793,  -- Héroïque ilvl 259
-    [16] = 12801,  -- Mythique ilvl 272
+    [17] = 12825,  -- Veteran 1: 279
+    [14] = 12833,  -- Champion 1: 292
+    [15] = 12841,  -- Hero 1: 305
+    [16] = 12849,  -- Myth 1: 318
 }
-local DUNGEON_BONUS_ID = 12785  -- Champion track rank 1 (ilvl 246)
+local DUNGEON_BONUS_IDS = {
+    [0]=12833, [2]=12834, [3]=12834, [4]=12835, [5]=12836,
+    [6]=12841, [7]=12841, [8]=12842, [9]=12842, [10]=12843,
+}
+local BONUS_LEVELS = {
+    [12825]=279, [12826]=282, [12827]=285, [12828]=289, [12829]=292, [12830]=295,
+    [12833]=292, [12834]=295, [12835]=298, [12836]=302, [12837]=305, [12838]=308,
+    [12841]=305, [12842]=308, [12843]=311, [12844]=315, [12845]=318, [12846]=321,
+    [12849]=318, [12850]=321, [12851]=324, [12852]=328, [12853]=331, [12854]=334,
+}
 
 -- Construit le lien hyperlink item avec le bon bonusId pour le tooltip ilvl
 local function ItemLink(itemID, bonusId)
-    if bonusId then
+    local target = BONUS_LEVELS[bonusId]
+    if target and C_Item and C_Item.GetDetailedItemLevelInfo then
+        local _, _, _, _, _, classID = GetItemInfoInstant(itemID)
+        -- Toys, mounts and decorations must retain their original link.
+        if classID ~= 2 and classID ~= 4 then return "item:" .. itemID end
+        local _, _, base = C_Item.GetDetailedItemLevelInfo(itemID)
+        if not base then
+            if C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(itemID) end
+            return "item:" .. itemID
+        end
+        local delta = target - base
+        local levelBonus
+        if delta ~= 0 and delta >= -100 and delta <= 200 then
+            levelBonus = 1472 + delta
+        elseif delta >= 201 and delta <= 400 then
+            levelBonus = 2929 + delta
+        end
+        local bonuses = { bonusId }
+        if levelBonus then table.insert(bonuses, levelBonus) end
+        return string.format("item:%d:0:0:0:0:0:0:0:0:0:0:0:%d:%s", itemID, #bonuses, table.concat(bonuses, ":"))
+    elseif bonusId then
         return string.format("item:%d:0:0:0:0:0:0:0:0:0:0:0:1:%d", itemID, bonusId)
     end
     return "item:" .. itemID
 end
 
 -- Filter bar height (row1 + gap + row2 + padding)
-local FILTER_BAR_H = 64  -- 7 + 22 + 6 + 22 + 7
+local FILTER_BAR_H = 92  -- three rows of filters and interaction hints
 
 -- Spec IDs per class (classID → { specID, ... })
 local CLASS_SPECS = {
@@ -105,7 +173,7 @@ local CLASS_SPECS = {
     [9]  = { 265,  266,  267  },       -- Warlock : Affliction, Demonology, Destruction
     [10] = { 268,  269,  270  },       -- Monk    : Brewmaster, Windwalker, Mistweaver
     [11] = { 102,  103,  104,  105 },  -- Druid   : Balance, Feral, Guardian, Restoration
-    [12] = { 577,  581        },       -- DH      : Havoc, Vengeance
+    [12] = { 577,  581,  1480 },       -- DH      : Havoc, Vengeance, Devourer
     [13] = { 1467, 1468, 1473 },       -- Evoker  : Devastation, Preservation, Augmentation
 }
 
@@ -239,9 +307,9 @@ local function ItemsFromIDs(idList, bonusId)
     return list
 end
 
-local function GetDungeonItems(mapChallengeID)
+local function GetDungeonItems(mapChallengeID, keyLevel)
     local data = TomoMod_LootsData and TomoMod_LootsData.dungeons
-    return ItemsFromIDs(data and data[mapChallengeID], DUNGEON_BONUS_ID)
+    return ItemsFromIDs(data and data[mapChallengeID], DUNGEON_BONUS_IDS[keyLevel or 0] or DUNGEON_BONUS_IDS[0])
 end
 
 -- diff: 14=Normal 15=Heroic 16=Mythic 17=LFR  (nil = default to 15)
@@ -253,7 +321,10 @@ local function GetBossItems(ejEncounterID, diff)
     local diffID = diff or 15
     -- fall back: 15 → 14 → first available
     local ids = bossData[diffID] or bossData[14] or bossData[15] or {}
-    return ItemsFromIDs(ids, DIFF_BONUS_ID[diffID] or DIFF_BONUS_ID[15])
+    local overrides = TomoMod_LootsData.raidBonusIDs
+    local bossBonus = overrides and overrides[ejEncounterID]
+    local bonusID = bossBonus and bossBonus[diffID]
+    return ItemsFromIDs(ids, bonusID or DIFF_BONUS_ID[diffID] or DIFF_BONUS_ID[15])
 end
 
 -- Heuristique de repli (item absent de TomoMod_ItemClasses) : déduit
@@ -340,6 +411,7 @@ end
 local function MakeItemBtn(parent, itemID, icon, quality, bonusId)
     local btn = CreateFrame("Button", nil, parent)
     btn:SetSize(ITEM_SIZE, ITEM_SIZE)
+    btn:RegisterForClicks("LeftButtonUp", "RightButtonUp")
 
     Bg(btn, 0.06, 0.06, 0.08, 1)
 
@@ -371,14 +443,28 @@ local function MakeItemBtn(parent, itemID, icon, quality, bonusId)
         pinTex:SetAlpha(IsFavorite(itemID) and 1 or 0)
     end
 
+    local equipped = btn:CreateTexture(nil, "OVERLAY")
+    equipped:SetSize(14, 14)
+    equipped:SetPoint("BOTTOMLEFT", 0, 0)
+    equipped:SetTexture("Interface\\RaidFrame\\ReadyCheck-Ready")
+    btn.RefreshEquipped = function()
+        equipped:SetShown(IsEquipped(itemID))
+    end
+    btn.RefreshEquipped()
+
     -- ── Interactions ─────────────────────────────────────────────────
     local link = ItemLink(itemID, bonusId)
 
     btn:SetScript("OnEnter", function(self)
+        link = ItemLink(itemID, bonusId) -- item data may have loaded since creation
         -- Aperçu du pin si pas encore épinglé
         if not IsFavorite(itemID) then pinTex:SetAlpha(0.35) end
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetHyperlink(link)
+        if IsEquipped(itemID) then
+            GameTooltip:AddLine(Text("loots_equipped", "Already equipped; upgrade level may differ"), 0.2, 1, 0.3, true)
+        end
+        GameTooltip:AddLine(Text("loots_click_help", "Click: favorite · Shift-click: chat · Ctrl-click: try on"), 0.7, 0.7, 0.7, true)
         GameTooltip:Show()
     end)
     btn:SetScript("OnLeave", function()
@@ -386,11 +472,15 @@ local function MakeItemBtn(parent, itemID, icon, quality, bonusId)
         GameTooltip:Hide()
     end)
     btn:SetScript("OnClick", function(_, button)
-        if IsShiftKeyDown() then
+        link = ItemLink(itemID, bonusId)
+        if IsControlKeyDown() then
+            if DressUpItemLink then DressUpItemLink(link) end
+        elseif IsShiftKeyDown() then
             -- Shift+clic : insérer le lien dans le chat
             local eb = (ChatEdit_GetActiveWindow and ChatEdit_GetActiveWindow())
                     or (ChatFrame1EditBox and ChatFrame1EditBox:IsShown() and ChatFrame1EditBox)
-            if eb then eb:Insert(link) end
+            local _, chatLink = GetItemInfo(link)
+            if eb and chatLink then eb:Insert(chatLink) end
         else
             -- Clic gauche/droit : épingler / désépingler
             ToggleFavorite(itemID, bonusId)
@@ -659,6 +749,25 @@ function LOOTS:Build()
         tinsert(self.DiffBtns, db)
     end
 
+    self.DungeonDifficulty = MakeFilterBtn(filterBar, "", 292, 22)
+    self.DungeonDifficulty:SetPoint("TOPRIGHT", filterBar, "TOPRIGHT", -8, -7)
+    self.DungeonDifficulty:SetScript("OnClick", function(button)
+        MenuUtil.CreateContextMenu(button, function(_, root)
+            for _, key in ipairs({0, 2, 3, 4, 5, 6, 7, 8, 9, 10}) do
+                local level = key
+                local label = (level == 0 and "M0" or "M+" .. level)
+                    .. " — " .. BONUS_LEVELS[DUNGEON_BONUS_IDS[level]]
+                root:CreateRadio(label, function() return self.currentDungeonKey == level end, function()
+                    self.currentDungeonKey = level
+                    TomoModDB.loots = TomoModDB.loots or {}
+                    TomoModDB.loots.filterDungeonKey = level
+                    self:_SyncDiffButtons()
+                    self:_RefreshView()
+                end)
+            end
+        end)
+    end)
+
     -- ── Row 2 (y=-35, h=22): Spec buttons (rebuilt when class changes) ─
     local specRow = CreateFrame("Frame", nil, filterBar)
     specRow:SetPoint("TOPLEFT",  filterBar, "TOPLEFT",  8, -(7 + 22 + 6))
@@ -666,6 +775,38 @@ function LOOTS:Build()
     specRow:SetHeight(22)
     self.SpecRow  = specRow
     self.SpecBtns = {}
+
+    local slotButton = MakeFilterBtn(filterBar, "", 200, 22)
+    slotButton:SetPoint("TOPLEFT", filterBar, "TOPLEFT", 8, -63)
+    self.SlotButton = slotButton
+    local function UpdateSlotLabel()
+        slotButton._fs:SetText(self.currentSlot and SlotLabel(self.currentSlot)
+            or Text("loots_all_slots", "All equipment slots"))
+    end
+    slotButton:SetScript("OnClick", function(button)
+        if not (MenuUtil and MenuUtil.CreateContextMenu) then return end
+        MenuUtil.CreateContextMenu(button, function(_, root)
+            local function AddChoice(slot, label)
+                root:CreateRadio(label, function() return self.currentSlot == slot end, function()
+                    self.currentSlot = slot
+                    if TomoModDB then
+                        TomoModDB.loots = TomoModDB.loots or {}
+                        TomoModDB.loots.filterSlot = slot
+                    end
+                    UpdateSlotLabel()
+                    self:_RefreshView()
+                end)
+            end
+            AddChoice(nil, Text("loots_all_slots", "All equipment slots"))
+            for _, slot in ipairs(SLOT_FILTERS) do AddChoice(slot, SlotLabel(slot) or slot) end
+        end)
+    end)
+    local interactionHint = FS(filterBar, ADDON_FONT, 10, "")
+    interactionHint:SetPoint("LEFT", slotButton, "RIGHT", 12, 0)
+    interactionHint:SetPoint("RIGHT", filterBar, "RIGHT", -8, 0)
+    interactionHint:SetJustifyH("LEFT")
+    interactionHint:SetTextColor(0.7, 0.72, 0.74, 1)
+    interactionHint:SetText(Text("loots_click_help", "Click: favorite · Shift-click: chat · Ctrl-click: try on"))
 
     -- ── Left panel (instance list) ────────────────────────────────────
     local lf = CreateFrame("Frame", nil, F)
@@ -753,6 +894,13 @@ function LOOTS:Build()
     -- filterClass: 0 = "Tous", classID = specific class, nil = use default
     -- filterDiff : diffID, nil = use default
     local dbLoots = TomoModDB and TomoModDB.loots
+    local savedKey = dbLoots and dbLoots.filterDungeonKey
+    self.currentDungeonKey = DUNGEON_BONUS_IDS[savedKey] and savedKey or 0
+    self.currentSlot = nil
+    for _, slot in ipairs(SLOT_FILTERS) do
+        if dbLoots and dbLoots.filterSlot == slot then self.currentSlot = slot end
+    end
+    UpdateSlotLabel()
     if dbLoots then
         if dbLoots.filterDiff and dbLoots.filterDiff ~= 0 then
             self.currentDiff = dbLoots.filterDiff
@@ -773,6 +921,22 @@ function LOOTS:Build()
     self:_RestorePosition()
     self:_UpdateFavsTabLabel()
     self:SetTab("dungeon")
+    F:RegisterEvent("PLAYER_EQUIPMENT_CHANGED")
+    F:SetScript("OnEvent", function()
+        if not F:IsShown() then return end
+        for _, item in ipairs(self._activeItems) do
+            if item.RefreshEquipped then item.RefreshEquipped() end
+        end
+    end)
+    F:SetScript("OnShow", function() self:_RefreshView() end)
+end
+
+function LOOTS:_RefreshView()
+    if self.currentTab == "favs" then
+        self:_ShowFavs()
+    elseif self.currentInst then
+        self:SelectInstance(self.currentInst, self.currentInstName)
+    end
 end
 
 -- ══ Position persistence ══════════════════════════════════════════════
@@ -805,7 +969,15 @@ end
 -- ══ Filter sync helpers ═══════════════════════════════════════════════
 
 function LOOTS:_SyncDiffButtons()
+    local isDungeon = self.currentTab == "dungeon"
+    if self.DungeonDifficulty then
+        self.DungeonDifficulty:SetShown(isDungeon)
+        local key = self.currentDungeonKey or 0
+        self.DungeonDifficulty._fs:SetText((key == 0 and "M0" or "M+" .. key)
+            .. " — " .. BONUS_LEVELS[DUNGEON_BONUS_IDS[key]])
+    end
     for _, db in ipairs(self.DiffBtns or {}) do
+        db:SetShown(self.currentTab == "raid")
         local active = (db._diff == self.currentDiff)
         db._active = active
         if active then
@@ -1067,10 +1239,11 @@ end
 -- specFilter (optional): further restrict by specID.
 local function RenderItemGrid(child, active, items, y, classFilter, specFilter)
     -- Apply class + spec filter
-    if classFilter then
+    if classFilter or LOOTS.currentSlot then
         local filtered = {}
         for _, item in ipairs(items) do
-            if ItemMatchesClass(item.itemID, classFilter, specFilter) then
+            if ItemMatchesClass(item.itemID, classFilter, specFilter)
+                and ItemMatchesSlot(item.itemID, LOOTS.currentSlot) then
                 tinsert(filtered, item)
             end
         end
@@ -1124,7 +1297,7 @@ function LOOTS:SelectInstance(id, name)
 
     if self.currentTab == "dungeon" then
         -- ── Dungeon: flat item grid from static data ──────────────────
-        local items = GetDungeonItems(id)
+        local items = GetDungeonItems(id, self.currentDungeonKey)
         if #items == 0 then
             self.HintFS:SetText("Aucun item disponible pour ce donjon.")
             self.HintFS:Show()
@@ -1331,7 +1504,8 @@ function LOOTS:_ShowFavs()
         -- Filtre classe/spec
         local items = {}
         for _, item in ipairs(grp.items) do
-            if ItemMatchesClass(item.itemID, cls, spec) then
+            if ItemMatchesClass(item.itemID, cls, spec)
+                and ItemMatchesSlot(item.itemID, self.currentSlot) then
                 tinsert(items, item)
             end
         end

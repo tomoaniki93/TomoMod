@@ -65,6 +65,14 @@ CHANGELOG = {
     {
         version = "4.1.0",
         highlights = {
+            L["wn_410_bags_money"],
+            L["wn_410_loots_devourer"],
+            L["wn_410_loots_filters"],
+            L["wn_410_loots_kithix"],
+            L["wn_410_loots_levels"],
+            L["wn_410_character_gems"],
+            L["wn_410_minimap_tracking"],
+            L["wn_410_minimap_coords"],
             L["wn_410_benchmark_native_dps"],
             L["wn_410_benchmark_protected_history"],
             L["wn_410_benchmark_cancellation"],

@@ -309,7 +309,11 @@ function Layout:RefreshHeader()
     end
     if self.gold then
         local money = GetMoney and GetMoney() or 0
-        self.gold:SetText(GetCoinTextureString and GetCoinTextureString(money) or tostring(money))
+        local formatMoney = (C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString)
+            or GetCoinTextureString
+            or (C_CurrencyInfo and C_CurrencyInfo.GetCoinText)
+        -- GetMoney returns copper; never display that raw total as gold.
+        self.gold:SetText(formatMoney and formatMoney(money) or "—")
     end
     self:RefreshSortLabel()
 end

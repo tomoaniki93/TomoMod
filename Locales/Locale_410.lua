@@ -3,6 +3,17 @@
 -- =====================================================================
 
 TomoMod_RegisterLocale("enUS", {
+    ["wn_410_bags_money"] = "Fixed — Bags now display gold, silver and copper with coin icons using the current currency API, instead of showing the raw copper total when the legacy formatter is unavailable.",
+    ["wn_410_loots_devourer"] = "Fixed — Devourer is now available alongside Havoc and Vengeance in the Loots Demon Hunter specialization selector, using the existing specialization loot filters.",
+    ["wn_410_loots_filters"] = "New — Loots remembers an equipment-slot filter across dungeons, raids and favorites. Equipped items show a green check mark; Ctrl-click tries an item on, Shift-click inserts its link into active chat, and left- or right-click toggles a favorite.",
+    ["wn_410_loots_kithix"] = "New — Kith'ix's loot table includes 12 items in Raid Finder, Normal and Heroic, plus one extra Mythic collectible, with class/spec filters and the boss's rank-3 upgrade bonuses.",
+    ["wn_410_loots_levels"] = "Fixed — Raid item links now use Season 17 bonuses and item-level adjustments. Dungeons have a saved M0 / M+2–M+10 selector for end-of-dungeon rewards, with immediate refresh. Favorites keep their saved upgrade bonus.",
+    ["loots_all_slots"] = "All equipment slots",
+    ["loots_equipped"] = "Already equipped; upgrade level may differ",
+    ["loots_click_help"] = "Click: favorite · Shift-click: chat · Ctrl-click: try on",
+    ["wn_410_character_gems"] = "Fixed — CharacterSkin now reads gems through the modern item APIs, preventing an initialization error when GetItemGem is unavailable. Character and inspect frames retain legacy compatibility and handle missing gem details or optional APIs safely.",
+    ["wn_410_minimap_tracking"] = "Changed — The custom tracking menu now uses two columns, bordered rows, a darker background, larger icons and cyan indicators for active filters. Available filters and merged duplicate entries are preserved; long lists remain scrollable.",
+    ["wn_410_minimap_coords"] = "Fixed — Blizzard's native minimap coordinates are hidden while the TomoMod InfoPanel is enabled, preventing duplicate coordinates from overlapping the clock, even when Blizzard tries to show them again.",
     ["wn_410_benchmark_native_dps"] = "Changed — Benchmark tests now capture the current combat session’s native average DPS at 30/60/120 seconds, using the latest sample if no fresh update arrives after a short wait. Total damage is no longer displayed.",
     ["wn_410_benchmark_protected_history"] = "New — Protected DPS stays visible until reload. Attempt details are saved without the protected number; recent protected attempts appear above ranked results with an asterisk and show Protected after reload.",
     ["wn_410_benchmark_cancellation"] = "Fixed — Tests are cancelled if combat ends early or the meter is reset. Missing native DPS is reported instead of showing a false zero.",
@@ -24,6 +35,17 @@ TomoMod_RegisterLocale("enUS", {
 })
 
 TomoMod_RegisterLocale("frFR", {
+    ["wn_410_bags_money"] = "Correction — Les sacs affichent désormais les pièces d’or, d’argent et de cuivre avec leurs icônes via l’API actuelle, au lieu du total brut en cuivre lorsque l’ancienne fonction de formatage est indisponible.",
+    ["wn_410_loots_devourer"] = "Correction — Dévoration est désormais disponible avec Dévastation et Vengeance dans le sélecteur de spécialisations du chasseur de démons de Loots, avec les filtres de butin par spécialisation existants.",
+    ["wn_410_loots_filters"] = "Nouveauté — Loots mémorise un filtre par emplacement pour les donjons, raids et favoris. Une coche verte signale les objets équipés ; Ctrl-clic permet l’essayage, Maj-clic insère le lien dans la discussion active et un clic gauche ou droit bascule le favori.",
+    ["wn_410_loots_kithix"] = "Nouveauté — La table de Kith’ix comprend 12 objets en outil Raids, Normal et Héroïque, plus un objet de collection supplémentaire en Mythique, avec les filtres classe/spécialisation et les bonus d’amélioration de rang 3 du boss.",
+    ["wn_410_loots_levels"] = "Correction — Les liens de butin de raid utilisent les bonus de la saison actuelle et l’ajustement de niveau d’objet. Les donjons disposent d’un sélecteur M0 / M+2–M+10 mémorisé pour le butin de fin de donjon, avec actualisation immédiate. Les favoris conservent leur bonus enregistré.",
+    ["loots_all_slots"] = "Tous les emplacements",
+    ["loots_equipped"] = "Déjà équipé ; le niveau d’amélioration peut différer",
+    ["loots_click_help"] = "Clic : favori · Maj-clic : discussion · Ctrl-clic : essayer",
+    ["wn_410_character_gems"] = "Correction — CharacterSkin utilise désormais les API modernes pour lire les gemmes, évitant une erreur d’initialisation lorsque GetItemGem est indisponible. Les fiches de personnage et d’inspection restent compatibles avec les anciens clients et gèrent l’absence de détails sur les gemmes ou d’API facultatives.",
+    ["wn_410_minimap_tracking"] = "Modification — Le menu de pistage personnalisé passe à deux colonnes, avec des lignes encadrées, un fond plus sombre, des icônes agrandies et des indicateurs cyan pour les filtres actifs. Les filtres disponibles et la fusion des doublons sont conservés ; les longues listes restent défilables.",
+    ["wn_410_minimap_coords"] = "Correction — Les coordonnées natives de Blizzard sont masquées lorsque le panneau d’informations TomoMod est activé, évitant un doublon sur l’horloge, même lorsque Blizzard tente de les réafficher.",
     ["wn_410_benchmark_native_dps"] = "Modification — Le benchmark capture le DPS moyen natif du combat en cours à 30/60/120 secondes, avec la dernière valeur reçue si aucune mise à jour n’arrive après une courte attente. Le total des dégâts n’est plus affiché.",
     ["wn_410_benchmark_protected_history"] = "Nouveauté — Le DPS protégé reste visible jusqu’au rechargement. Les détails du test sont sauvegardés sans la valeur protégée ; les essais protégés récents apparaissent au-dessus du classement avec un astérisque et indiquent Protégé après rechargement.",
     ["wn_410_benchmark_cancellation"] = "Correction — Le test est annulé si le combat se termine trop tôt ou si le compteur est réinitialisé. L’absence de DPS natif est signalée au lieu d’afficher un faux zéro.",
@@ -45,6 +67,17 @@ TomoMod_RegisterLocale("frFR", {
 })
 
 TomoMod_RegisterLocale("deDE", {
+    ["wn_410_bags_money"] = "Behoben — Taschen zeigen Gold, Silber und Kupfer jetzt mit Münzsymbolen über die aktuelle Währungs-API an, statt bei fehlender alter Formatierungsfunktion den unformatierten Kupfergesamtbetrag auszugeben.",
+    ["wn_410_loots_devourer"] = "Behoben — Die dritte Dämonenjäger-Spezialisierung ist jetzt zusätzlich zu Verwüstung und Rachsucht in Loots auswählbar und verwendet die vorhandenen Beutefilter für Spezialisierungen.",
+    ["wn_410_loots_filters"] = "Neu — Loots speichert einen Ausrüstungsplatzfilter für Dungeons, Schlachtzüge und Favoriten. Angelegte Gegenstände erhalten ein grünes Häkchen; Strg-Klick öffnet die Anprobe, Umschalt-Klick fügt den Link in den aktiven Chat ein und Links- oder Rechtsklick schaltet den Favoriten um.",
+    ["wn_410_loots_kithix"] = "Neu — Kith'ix bietet 12 Gegenstände im Schlachtzugsbrowser sowie auf Normal und Heroisch, dazu ein weiteres Sammelobjekt auf Mythisch. Klassen- und Spezialisierungsfilter sowie die Aufwertungsboni auf Rang 3 sind enthalten.",
+    ["wn_410_loots_levels"] = "Behoben — Schlachtzugsbeutelinks verwenden jetzt Saison-17-Boni und Gegenstandsstufenanpassungen. Dungeons bieten eine gespeicherte Auswahl von M0 und M+2–M+10 für Abschlussbeute mit sofortiger Aktualisierung. Favoriten behalten ihren gespeicherten Aufwertungsbonus.",
+    ["loots_all_slots"] = "Alle Ausrüstungsplätze",
+    ["loots_equipped"] = "Bereits angelegt; die Aufwertungsstufe kann abweichen",
+    ["loots_click_help"] = "Klick: Favorit · Umschalt-Klick: Chat · Strg-Klick: Anprobe",
+    ["wn_410_character_gems"] = "Behoben — CharacterSkin liest Edelsteine jetzt über die modernen Gegenstands-APIs aus. Dadurch wird ein Initialisierungsfehler bei fehlendem GetItemGem verhindert. Charakter- und Betrachtenfenster bleiben mit älteren Clients kompatibel und verarbeiten fehlende Edelsteindaten oder optionale APIs sicher.",
+    ["wn_410_minimap_tracking"] = "Änderung — Das eigene Aufspürmenü verwendet jetzt zwei Spalten, umrandete Zeilen, einen dunkleren Hintergrund, größere Symbole und türkise Anzeigen für aktive Filter. Verfügbare Filter und zusammengefasste doppelte Einträge bleiben erhalten; lange Listen lassen sich weiterhin scrollen.",
+    ["wn_410_minimap_coords"] = "Behoben — Blizzards Minikartenkoordinaten werden ausgeblendet, solange das TomoMod-Infopanel aktiviert ist. Dadurch überlagern doppelte Koordinaten nicht mehr die Uhr, auch wenn Blizzard sie erneut einblendet.",
     ["wn_410_benchmark_native_dps"] = "Geändert — Der Benchmark erfasst die nativen durchschnittlichen DPS des aktuellen Kampfes nach 30/60/120 Sekunden. Fehlt nach kurzer Wartezeit eine neue Aktualisierung, wird der letzte Wert verwendet. Der Gesamtschaden wird nicht mehr angezeigt.",
     ["wn_410_benchmark_protected_history"] = "Neu — Geschützte DPS bleiben bis zum Neuladen sichtbar. Versuchsdaten werden ohne den geschützten Zahlenwert gespeichert; neueste geschützte Versuche stehen mit einem Sternchen über gewerteten Ergebnissen und zeigen nach dem Neuladen Geschützt.",
     ["wn_410_benchmark_cancellation"] = "Behoben — Tests werden bei vorzeitigem Kampfende oder Zurücksetzen des Schadensmessers abgebrochen. Fehlende native DPS werden gemeldet, statt eine falsche Null anzuzeigen.",
@@ -66,6 +99,17 @@ TomoMod_RegisterLocale("deDE", {
 })
 
 TomoMod_RegisterLocale("esES", {
+    ["wn_410_bags_money"] = "Corrección — Las bolsas muestran oro, plata y cobre con sus iconos mediante la API actual de monedas, en lugar del total sin formato en cobre cuando la antigua función no está disponible.",
+    ["wn_410_loots_devourer"] = "Corrección — La tercera especialización del cazador de demonios ya se puede seleccionar junto a Devastación y Venganza en Loots, utilizando los filtros de botín por especialización existentes.",
+    ["wn_410_loots_filters"] = "Novedad — Loots recuerda un filtro por ranura para mazmorras, bandas y favoritos. Una marca verde indica los objetos equipados; Ctrl-clic permite probarlos, Mayús-clic inserta el enlace en el chat activo y el clic izquierdo o derecho cambia su estado de favorito.",
+    ["wn_410_loots_kithix"] = "Novedad — La tabla de Kith'ix incluye 12 objetos en buscador de bandas, Normal y Heroico, más un coleccionable adicional en Mítico, con filtros de clase y especialización y los bonificadores de mejora de rango 3 del jefe.",
+    ["wn_410_loots_levels"] = "Corrección — Los enlaces de botín de banda usan los bonificadores de la temporada 17 y ajustes de nivel de objeto. Las mazmorras tienen un selector guardado M0 / M+2–M+10 para el botín final, con actualización inmediata. Los favoritos conservan su bonificador guardado.",
+    ["loots_all_slots"] = "Todas las ranuras",
+    ["loots_equipped"] = "Ya equipado; el nivel de mejora puede variar",
+    ["loots_click_help"] = "Clic: favorito · Mayús-clic: chat · Ctrl-clic: probar",
+    ["wn_410_character_gems"] = "Corrección — CharacterSkin ahora lee las gemas mediante las API modernas de objetos, evitando un error de inicialización cuando GetItemGem no está disponible. Las ventanas de personaje e inspección mantienen la compatibilidad con clientes antiguos y gestionan la ausencia de datos de gemas o de API opcionales.",
+    ["wn_410_minimap_tracking"] = "Cambio — El menú de rastreo personalizado ahora usa dos columnas, filas con borde, un fondo más oscuro, iconos más grandes e indicadores cian para los filtros activos. Se conservan los filtros disponibles y la agrupación de duplicados; las listas largas siguen permitiendo desplazarse.",
+    ["wn_410_minimap_coords"] = "Corrección — Las coordenadas nativas de Blizzard se ocultan mientras el panel de información de TomoMod está activado, evitando que las coordenadas duplicadas se superpongan al reloj, incluso si Blizzard intenta mostrarlas de nuevo.",
     ["wn_410_benchmark_native_dps"] = "Cambio — El benchmark captura el DPS medio nativo del combate actual a los 30/60/120 segundos. Si no llega una nueva actualización tras una breve espera, usa el último valor. Ya no se muestra el daño total.",
     ["wn_410_benchmark_protected_history"] = "Novedad — El DPS protegido permanece visible hasta recargar. Se guardan los detalles del intento sin el número protegido; los intentos protegidos recientes aparecen encima de los resultados clasificados con un asterisco y muestran Protegido tras recargar.",
     ["wn_410_benchmark_cancellation"] = "Corrección — Las pruebas se cancelan si el combate termina antes de tiempo o se reinicia el medidor. La ausencia de DPS nativo se indica en lugar de mostrar un cero falso.",
@@ -87,6 +131,17 @@ TomoMod_RegisterLocale("esES", {
 })
 
 TomoMod_RegisterLocale("itIT", {
+    ["wn_410_bags_money"] = "Correzione — Le borse mostrano oro, argento e rame con le relative icone tramite l’API attuale delle valute, invece del totale grezzo in rame quando la vecchia funzione di formattazione non è disponibile.",
+    ["wn_410_loots_devourer"] = "Correzione — La terza specializzazione del Cacciatore di Demoni è ora selezionabile insieme a Rovina e Vendetta in Loots e utilizza i filtri del bottino per specializzazione già presenti.",
+    ["wn_410_loots_filters"] = "Novità — Loots memorizza un filtro per scomparto per spedizioni, incursioni e preferiti. Un segno di spunta verde indica gli oggetti equipaggiati; Ctrl-clic apre la prova, Maiusc-clic inserisce il collegamento nella chat attiva e il clic sinistro o destro attiva o disattiva il preferito.",
+    ["wn_410_loots_kithix"] = "Novità — La tabella di Kith'ix include 12 oggetti in Ricerca delle incursioni, Normale ed Eroica, più un oggetto collezionabile aggiuntivo in Mitica, con filtri di classe e specializzazione e bonus di potenziamento di grado 3 del boss.",
+    ["wn_410_loots_levels"] = "Correzione — I collegamenti al bottino delle incursioni usano i bonus della stagione 17 e gli adeguamenti del livello oggetto. Le spedizioni hanno un selettore memorizzato M0 / M+2–M+10 per il bottino finale, con aggiornamento immediato. I preferiti mantengono il bonus salvato.",
+    ["loots_all_slots"] = "Tutti gli scomparti",
+    ["loots_equipped"] = "Già equipaggiato; il livello di potenziamento può variare",
+    ["loots_click_help"] = "Clic: preferito · Maiusc-clic: chat · Ctrl-clic: prova",
+    ["wn_410_character_gems"] = "Correzione — CharacterSkin ora legge le gemme tramite le API moderne degli oggetti, evitando un errore di inizializzazione quando GetItemGem non è disponibile. Le finestre del personaggio e di ispezione restano compatibili con i client precedenti e gestiscono l’assenza di dati sulle gemme o di API facoltative.",
+    ["wn_410_minimap_tracking"] = "Modifica — Il menu di tracciamento personalizzato ora usa due colonne, righe con bordo, uno sfondo più scuro, icone più grandi e indicatori ciano per i filtri attivi. I filtri disponibili e il raggruppamento dei duplicati vengono mantenuti; gli elenchi lunghi restano scorrevoli.",
+    ["wn_410_minimap_coords"] = "Correzione — Le coordinate native di Blizzard vengono nascoste quando il pannello informazioni di TomoMod è attivo, evitando che le coordinate duplicate si sovrappongano all’orologio, anche quando Blizzard tenta di mostrarle di nuovo.",
     ["wn_410_benchmark_native_dps"] = "Modifica — Il benchmark acquisisce il DPS medio nativo del combattimento attuale a 30/60/120 secondi. Se dopo una breve attesa non arriva un aggiornamento, usa l’ultimo valore. Il danno totale non viene più mostrato.",
     ["wn_410_benchmark_protected_history"] = "Novità — Il DPS protetto resta visibile fino al ricaricamento. I dettagli del tentativo vengono salvati senza il numero protetto; i tentativi protetti recenti compaiono sopra i risultati classificati con un asterisco e mostrano Protetto dopo il ricaricamento.",
     ["wn_410_benchmark_cancellation"] = "Correzione — I test vengono annullati se il combattimento termina in anticipo o il misuratore viene azzerato. L’assenza di DPS nativo viene segnalata invece di mostrare un falso zero.",
@@ -108,6 +163,17 @@ TomoMod_RegisterLocale("itIT", {
 })
 
 TomoMod_RegisterLocale("ptBR", {
+    ["wn_410_bags_money"] = "Correção — As bolsas agora exibem ouro, prata e cobre com os ícones das moedas pela API atual, em vez do total bruto em cobre quando a função antiga de formatação não está disponível.",
+    ["wn_410_loots_devourer"] = "Correção — A terceira especialização do Caçador de Demônios agora pode ser selecionada junto de Devastação e Vingança no Loots, usando os filtros de saque por especialização existentes.",
+    ["wn_410_loots_filters"] = "Novidade — O Loots memoriza um filtro por espaço de equipamento para masmorras, raides e favoritos. Uma marca verde indica itens equipados; Ctrl-clique abre o provador, Shift-clique insere o link no bate-papo ativo e o clique esquerdo ou direito alterna o favorito.",
+    ["wn_410_loots_kithix"] = "Novidade — A tabela de Kith'ix inclui 12 itens no Localizador de Raides, Normal e Heroico, além de um colecionável extra no Mítico, com filtros de classe e especialização e os bônus de aprimoramento de grau 3 do chefe.",
+    ["wn_410_loots_levels"] = "Correção — Os links de saque de raide usam os bônus da temporada 17 e ajustes de nível de item. As masmorras têm um seletor salvo M0 / M+2–M+10 para o saque final, com atualização imediata. Os favoritos mantêm o bônus salvo.",
+    ["loots_all_slots"] = "Todos os espaços",
+    ["loots_equipped"] = "Já equipado; o nível de aprimoramento pode ser diferente",
+    ["loots_click_help"] = "Clique: favorito · Shift-clique: chat · Ctrl-clique: provar",
+    ["wn_410_character_gems"] = "Correção — O CharacterSkin agora lê as gemas pelas APIs modernas de itens, evitando um erro de inicialização quando GetItemGem não está disponível. As janelas de personagem e inspeção mantêm a compatibilidade com clientes antigos e lidam com a ausência de dados de gemas ou de APIs opcionais.",
+    ["wn_410_minimap_tracking"] = "Alteração — O menu de rastreamento personalizado agora usa duas colunas, linhas com bordas, fundo mais escuro, ícones maiores e indicadores ciano para os filtros ativos. Os filtros disponíveis e o agrupamento de duplicatas são preservados; listas longas continuam permitindo rolagem.",
+    ["wn_410_minimap_coords"] = "Correção — As coordenadas nativas da Blizzard ficam ocultas enquanto o painel de informações do TomoMod está ativado, evitando coordenadas duplicadas sobre o relógio, mesmo quando a Blizzard tenta exibi-las novamente.",
     ["wn_410_benchmark_native_dps"] = "Alteração — O benchmark captura o DPS médio nativo do combate atual aos 30/60/120 segundos. Se nenhuma atualização chegar após uma breve espera, usa o último valor. O dano total não é mais exibido.",
     ["wn_410_benchmark_protected_history"] = "Novidade — O DPS protegido fica visível até recarregar. Os detalhes da tentativa são salvos sem o número protegido; tentativas protegidas recentes aparecem acima dos resultados classificados com um asterisco e mostram Protegido após recarregar.",
     ["wn_410_benchmark_cancellation"] = "Correção — Os testes são cancelados se o combate terminar antes da hora ou o medidor for reiniciado. A ausência de DPS nativo é indicada em vez de exibir um zero falso.",

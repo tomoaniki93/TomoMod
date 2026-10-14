@@ -2,6 +2,40 @@
 
 ## CHANGELOG 4.1.0
 
+#### Bags — Gold, Silver And Copper Display
+
+- **Fixed** - The bag footer now uses `C_CurrencyInfo.GetCoinTextureString` to display gold, silver and copper with coin icons. Clients without the legacy global no longer show the raw copper total as an unformatted number.
+- **Changed** - Legacy coin formatting and the modern text formatter remain available as fallbacks. If no formatter is available, the footer shows a placeholder instead of a misleading raw amount.
+
+#### Loot Browser — Equipment Filters And Item Actions
+
+- **Fixed** - Devourer (specialization 1480) now appears alongside Havoc and Vengeance in the Demon Hunter selector. Its localized name and icon come from the client, and the existing class/spec loot eligibility data is used for filtering.
+- **New** - A persistent equipment-slot filter applies to dungeons, raids and favorites, including robes, two-handed and ranged weapons, shields and off-hand items.
+- **New** - Equipped items show a green check mark. The tooltip clarifies that the equipped copy may have a different upgrade level; indicators refresh when equipment changes.
+- **New** - Ctrl-click opens the dressing room. Shift-click inserts a complete item hyperlink into an active chat edit box, and left- or right-click toggles a favorite.
+- **Changed** - Item information uses the modern `C_Item` APIs with legacy fallbacks. New filter labels, equipped-item hints and interaction instructions are translated into all six supported languages.
+
+#### Loot Browser — Kith'ix And Difficulty Scaling
+
+- **New** - Kith'ix's loot table is available with 12 items in Raid Finder, Normal and Heroic, plus an additional Mythic-only collectible. Class and specialization eligibility is included, together with the boss's Season 17 rank-3 upgrade bonuses.
+- **Fixed** - Default raid upgrade bonuses now use Season 17 values instead of Season 16. Equipment hyperlinks include the item-level adjustment as well as the upgrade-track bonus, allowing tooltips to reflect the selected difficulty.
+- **New** - The dungeon tab replaces raid difficulty buttons with a persistent M0 / M+2 through M+10 selector showing end-of-dungeon reward levels. Selecting a level immediately refreshes the displayed loot.
+- **Changed** - Collectibles retain their original links. Equipment links are rebuilt on hover and click so newly loaded item data can supply the level adjustment. Favorites retain their saved upgrade bonus.
+- **Internal** - Lua 5.1 checks cover equipment-slot matching, difficulty bonuses, hyperlink level adjustments, missing item data, Kith'ix overrides and existing boss fallbacks.
+
+#### Character And Inspect Frames — Gem API Compatibility
+
+- **Fixed** - CharacterSkin no longer fails to initialize when the legacy `GetItemGem` global is unavailable. Gem and item information now use the modern `C_Item` APIs, with legacy fallbacks for older clients.
+- **Fixed** - The shared character and inspect gem reader handles missing optional item APIs and uncached gem details without calling unavailable functions. When possible, uncached gem icons are resolved through the instant item lookup.
+- **Internal** - Lua 5.1 regression checks cover modern and legacy APIs, uncached gem icons, missing APIs and empty equipment slots.
+
+#### Minimap — Tracking Menu And Coordinate Display
+
+- **Changed** - The custom tracking menu now uses two columns with individually bordered rows, a darker background, larger icons and cyan indicators for active filters. Long labels can wrap, and longer lists remain scrollable.
+- **Changed** - The new layout preserves the client's available tracking filters and their order. Duplicate labels remain merged into one row, with clicks toggling all associated filters together.
+- **Fixed** - Blizzard's native minimap coordinates are now hidden while the TomoMod InfoPanel is enabled, preventing a second coordinate display from overlapping the clock. The suppression also handles late frame creation and attempts to show the native coordinates again.
+- **Changed** - These minimap updates are included in What's New in English, French, German, Spanish, Italian and Brazilian Portuguese.
+
 #### Damage Benchmark — Native DPS Capture And Protected History
 
 - **Changed** - The 30/60/120-second benchmark now captures the current combat session's native average DPS from `C_DamageMeter` instead of calculating DPS from accumulated damage. Starting during combat uses that session's average, not a separate average for the timed interval.

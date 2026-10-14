@@ -873,6 +873,13 @@ local GEM_COLORS = {
 }
 
 local function GetGemInfo(unit, slotId)
+    -- Retail exposes item APIs through C_Item; older clients may still
+    -- provide the globals. Keep these aliases local to the gem reader.
+    local getItemGem = (C_Item and C_Item.GetItemGem) or GetItemGem
+    local getItemInfo = (C_Item and C_Item.GetItemInfo) or GetItemInfo
+    local getItemInfoInstant = (C_Item and C_Item.GetItemInfoInstant) or GetItemInfoInstant
+    if not getItemGem then return {}, 0 end
+
     local itemLink = GetInventoryItemLink(unit, slotId)
     if not itemLink then return {}, 0 end
 
@@ -894,12 +901,16 @@ local function GetGemInfo(unit, slotId)
     -- Get filled gems (up to 4 slots)
     local filledCount = 0
     for i = 1, 4 do
-        local gemName, gemLink = GetItemGem(itemLink, i)
+        local _, gemLink = getItemGem(itemLink, i)
         if gemLink then
             filledCount = filledCount + 1
-            local _, _, _, _, _, _, gemSubType, _, _, gemIcon = GetItemInfo(gemLink)
-            if not gemIcon and C_Item and C_Item.GetItemIconByID then
-                local itemID = GetItemInfoInstant(gemLink)
+            local gemSubType, gemIcon
+            if getItemInfo then
+                local _, _, _, _, _, _, subType, _, _, icon = getItemInfo(gemLink)
+                gemSubType, gemIcon = subType, icon
+            end
+            if not gemIcon and getItemInfoInstant and C_Item and C_Item.GetItemIconByID then
+                local itemID = getItemInfoInstant(gemLink)
                 if itemID then
                     gemIcon = C_Item.GetItemIconByID(itemID)
                 end

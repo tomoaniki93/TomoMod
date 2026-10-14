@@ -215,12 +215,18 @@ local function OpenTrackingPanel()
         end
     end
 
-    local PAD     = 8
-    local ROW_H   = 24
-    local PW      = 244
+    local PAD     = 12
+    local ROW_H   = 30
+    local ROW_GAP = 4
+    local COL_GAP = 12
+    local PW      = 464
     local TITLE_H = 28
-    local MAX_H   = 380
-    local contH   = math.max(#entries * ROW_H, 1)
+    local MAX_H   = 416
+    local colW    = (PW - PAD * 2 - COL_GAP) / 2
+    -- Read down the left column, then down the right, preserving API order.
+    local rowsPerCol = math.max(1, math.ceil(#entries / 2))
+    local rowStep = ROW_H + ROW_GAP
+    local contH   = rowsPerCol * rowStep - ROW_GAP
     local scrollH = math.min(contH, MAX_H)
     local panelH  = TITLE_H + 1 + PAD + scrollH + PAD
 
@@ -237,14 +243,7 @@ local function OpenTrackingPanel()
         t:SetFont(TM_PANEL_FONT_BOLD, 11, "")
         t:SetPoint("TOPLEFT", PAD, -PAD)
         t:SetText(MINIMAP_TRACKING_TITLE or TRACKING or "Pistage")
-        t:SetTextColor(0.18, 0.62, 0.85, 1)
-
-        -- Séparateur horizontal
-        local sep = trackingPanel:CreateTexture(nil, "ARTWORK")
-        sep:SetHeight(1)
-        sep:SetPoint("TOPLEFT",  PAD,  -TITLE_H)
-        sep:SetPoint("TOPRIGHT", -PAD, -TITLE_H)
-        sep:SetColorTexture(0.2, 0.2, 0.25, 0.8)
+        t:SetTextColor(0.4, 0.9, 1, 1)
 
         -- ScrollFrame (défilement à la molette si liste longue)
         local sf = CreateFrame("ScrollFrame", nil, trackingPanel)
@@ -253,7 +252,7 @@ local function OpenTrackingPanel()
         sf:EnableMouseWheel(true)
         sf:SetScript("OnMouseWheel", function(self, d)
             local cur = self:GetVerticalScroll()
-            self:SetVerticalScroll(math.max(0, math.min(self:GetVerticalScrollRange(), cur - d * ROW_H)))
+            self:SetVerticalScroll(math.max(0, math.min(self:GetVerticalScrollRange(), cur - d * rowStep)))
         end)
         trackingPanel._sf = sf
 
@@ -271,10 +270,11 @@ local function OpenTrackingPanel()
         edgeFile = "Interface\\Buttons\\WHITE8x8",
         edgeSize = 1,
     })
-    trackingPanel:SetBackdropColor(0.06, 0.06, 0.08, 0.95)
+    trackingPanel:SetBackdropColor(0.025, 0.025, 0.035, 0.98)
     trackingPanel:SetBackdropBorderColor(r, g, b, 1)
     trackingPanel:SetSize(PW, panelH)
     trackingPanel._sc:SetSize(PW - PAD * 2, contH)
+    trackingPanel._sf:SetVerticalScroll(0)
 
     -- Masquer les lignes excédentaires du pool
     for n = #entries + 1, #trackingRowPool do
@@ -284,30 +284,38 @@ local function OpenTrackingPanel()
     -- Créer / mettre à jour les lignes
     for i, entry in ipairs(entries) do
         if not trackingRowPool[i] then
-            local row = CreateFrame("Button", nil, trackingPanel._sc)
+            local row = CreateFrame("Button", nil, trackingPanel._sc, "BackdropTemplate")
             row:SetHeight(ROW_H)
+            row:SetBackdrop({
+                bgFile = "Interface\\Buttons\\WHITE8x8",
+                edgeFile = "Interface\\Buttons\\WHITE8x8",
+                edgeSize = 1,
+            })
+            row:SetBackdropColor(0.04, 0.045, 0.06, 1)
+            row:SetBackdropBorderColor(0.12, 0.13, 0.17, 1)
 
-            local hl = row:CreateTexture(nil, "BACKGROUND")
+            local hl = row:CreateTexture(nil, "ARTWORK")
             hl:SetAllPoints(); hl:SetColorTexture(0, 0, 0, 0)
             row.hl = hl
 
             local ico = row:CreateTexture(nil, "ARTWORK")
-            ico:SetSize(16, 16); ico:SetPoint("LEFT", 0, 0)
+            ico:SetSize(22, 22); ico:SetPoint("LEFT", 6, 0)
             ico:SetTexCoord(0.07, 0.93, 0.07, 0.93)
             row.ico = ico
 
             local chk = row:CreateTexture(nil, "OVERLAY")
-            chk:SetSize(10, 10); chk:SetPoint("RIGHT", 0, 0)
+            chk:SetSize(10, 10); chk:SetPoint("RIGHT", -8, 0)
             row.chk = chk
 
             local lbl = row:CreateFontString(nil, "OVERLAY")
             lbl:SetFont(TM_PANEL_FONT, 10, "")
-            lbl:SetPoint("LEFT", 22, 0); lbl:SetPoint("RIGHT", -18, 0)
+            lbl:SetPoint("LEFT", 36, 0); lbl:SetPoint("RIGHT", -26, 0)
+            lbl:SetWordWrap(true)
             lbl:SetJustifyH("LEFT"); lbl:SetTextColor(0.9, 0.9, 0.9, 1)
             row.lbl = lbl
 
             row:SetScript("OnEnter", function(self)
-                self.hl:SetColorTexture(0.18, 0.62, 0.85, 0.12)
+                self.hl:SetColorTexture(0.4, 0.9, 1, 0.12)
                 self.lbl:SetTextColor(1, 1, 1, 1)
             end)
             row:SetScript("OnLeave", function(self)
@@ -320,8 +328,10 @@ local function OpenTrackingPanel()
         local row = trackingRowPool[i]
         row:SetParent(trackingPanel._sc)
         row:ClearAllPoints()
-        row:SetPoint("TOPLEFT", 0, -(i - 1) * ROW_H)
-        row:SetWidth(PW - PAD * 2)
+        local column = math.floor((i - 1) / rowsPerCol)
+        local rowIndex = (i - 1) % rowsPerCol
+        row:SetPoint("TOPLEFT", column * (colW + COL_GAP), -rowIndex * rowStep)
+        row:SetWidth(colW)
         row.lbl:SetText(entry.name)
         if entry.tex then row.ico:SetTexture(entry.tex); row.ico:Show() else row.ico:Hide() end
 
@@ -338,7 +348,7 @@ local function OpenTrackingPanel()
         end
         local function Refresh()
             if IsActive() then
-                row.chk:SetColorTexture(0.18, 0.62, 0.85, 1)
+                row.chk:SetColorTexture(0.4, 0.9, 1, 1)
             else
                 row.chk:SetColorTexture(0.3, 0.3, 0.35, 0.8)
             end

@@ -18,7 +18,7 @@ local L = TomoMod_L
 local zoneBar         -- Frame above minimap (zone name)
 local zoneText        -- Zone name FontString
 local subZoneText     -- Subzone overlay top-left
-local coordsText      -- Coords overlay top-right
+local coordsText      -- Coords overlay bottom-center
 local clockBar        -- Frame below minimap (clock)
 local clockText       -- Clock time FontString
 local clockLabel      -- S/L indicator
@@ -49,7 +49,28 @@ end
 -- HIDE BLIZZARD ELEMENTS
 -- =====================================
 
+local hookedPlayerCoords
+local function HideBlizzardPlayerCoords()
+    local db = DB()
+    if not db or not db.enabled then return end
+    local container = MinimapCluster and MinimapCluster.MinimapContainer
+    local playerCoords = container and container.PlayerCoords
+    if not playerCoords then return end
+
+    -- The native coordinates sit below the minimap, on top of our clock.
+    -- Blizzard can show them again after a setting or zone change.
+    if hookedPlayerCoords ~= playerCoords then
+        playerCoords:HookScript("OnShow", function(self)
+            local settings = DB()
+            if settings and settings.enabled then self:Hide() end
+        end)
+        hookedPlayerCoords = playerCoords
+    end
+    playerCoords:Hide()
+end
+
 local function HideBlizzardElements()
+    HideBlizzardPlayerCoords()
     -- Hide Blizzard clock
     if TimeManagerClockButton then
         TimeManagerClockButton:Hide()
@@ -445,6 +466,9 @@ function IP.Update()
     if not zoneBar or not clockBar then return end
     local db = DB()
     if not db or not db.enabled then return end
+
+    -- Also discover the native frame if it was created after initialization.
+    HideBlizzardPlayerCoords()
 
     -- Zone name
     zoneText:SetText(GetZoneName())
