@@ -40,6 +40,14 @@ base = 311
 assert(tonumber(fields(link(123, dungeons[10]))[14]) == 1)
 base = nil
 assert(link(123, dungeons[10]) == "item:123" and requested == 123)
+-- A protected value must return before any arithmetic or cache request.
+local secret = setmetatable({}, {
+    __sub = function() error("arithmetic on a secret item level") end,
+})
+env.issecretvalue = function(value) return rawequal(value, secret) end
+base, requested = secret, nil
+assert(link(123, dungeons[10]) == "item:123" and requested == nil)
+env.issecretvalue = nil
 base, itemClass = 250, 15
 assert(link(123, raids[16]) == "item:123", "collectible unchanged")
 

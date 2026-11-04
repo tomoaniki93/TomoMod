@@ -375,6 +375,7 @@ function PT.Initialize()
     if TomoMod_Movers and TomoMod_Movers.RegisterEntry then
         TomoMod_Movers.RegisterEntry({
             label    = (TomoMod_L and TomoMod_L["mover_preytracker"]) or "Prey Tracker",
+            feature  = "preytracker",
             unlock   = function()
                 if PT.IsLocked() then PT.SetLocked(false) end
             end,

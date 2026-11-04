@@ -75,6 +75,8 @@ end
 --------------------------------------------------
 local function PlayerUsesCompanion()
     local _, class = UnitClass("player")
+    -- Forever may omit the retail specialization API entirely.
+    if not GetSpecialization or not GetSpecializationInfo then return false end
     local spec = GetSpecialization()
     if not spec then return false end
     local specID = GetSpecializationInfo(spec)

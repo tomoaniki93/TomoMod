@@ -137,6 +137,8 @@ local function ItemLink(itemID, bonusId)
         -- Toys, mounts and decorations must retain their original link.
         if classID ~= 2 and classID ~= 4 then return "item:" .. itemID end
         local _, _, base = C_Item.GetDetailedItemLevelInfo(itemID)
+        -- Restricted item data must not enter comparisons or level arithmetic.
+        if issecretvalue and issecretvalue(base) then return "item:" .. itemID end
         if not base then
             if C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(itemID) end
             return "item:" .. itemID

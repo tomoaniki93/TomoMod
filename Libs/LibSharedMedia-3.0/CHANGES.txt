@@ -1,0 +1,9 @@
+------------------------------------------------------------------------
+r181 | funkehdude | 2026-10-10 15:15:08 +0000 (Sat, 10 Oct 2026) | 1 line
+Changed paths:
+   M /trunk/.luacheckrc
+   M /trunk/LibSharedMedia-3.0/LibSharedMedia-3.0.lua
+
+Convert to a soft error for now
+------------------------------------------------------------------------
+

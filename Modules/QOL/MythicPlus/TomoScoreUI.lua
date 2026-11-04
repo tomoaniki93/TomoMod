@@ -116,7 +116,7 @@ function TS:BuildScoreboard()
     local closeBtn = CreateFrame("Button", nil, F, "UIPanelCloseButtonNoScripts")
     closeBtn:SetPoint("TOPRIGHT", F, "TOPRIGHT", -2, -2)
     closeBtn:SetSize(20, 20)
-    closeBtn:SetScript("OnClick", function() F:Hide() end)
+    closeBtn:SetScript("OnClick", function() TS:HideScoreboard() end)
 
     -- HEADER
     local HDR = CreateFrame("Frame", nil, F)
@@ -565,7 +565,19 @@ function TS:ShowGroup()
 end
 
 function TS:HideScoreboard()
-    if self.SB then self.SB:Hide() end
+    if not self.SB then return end
+
+    -- The scoreboard contains SecureActionButtons for dungeon teleports, so
+    -- WoW protects its parent frame too. A normal Hide() from the close button
+    -- is blocked during combat; defer it until PLAYER_REGEN_ENABLED instead.
+    if InCombatLockdown() then
+        self._pendingScoreboardData = nil
+        self._pendingScoreboardHide = true
+        return
+    end
+
+    self._pendingScoreboardHide = nil
+    self.SB:Hide()
 end
 
 function TS:ResetPosition()
@@ -624,6 +636,9 @@ function TS.SetEnabled(value)
         TS._pendingScoreboardData = nil
         TS:HideScoreboard()
         SetScoreEventsEnabled(false)
+        if TS._pendingScoreboardHide then
+            EF:RegisterEvent("PLAYER_REGEN_ENABLED")
+        end
         return true
     end
 
@@ -665,7 +680,14 @@ function TS:OnScoreEvent(event, ...)
         end)
 
     elseif event == "PLAYER_REGEN_ENABLED" then
-        if self._pendingScoreboardData then
+        if self._pendingScoreboardHide then
+            self._pendingScoreboardHide = nil
+            if self.SB then self.SB:Hide() end
+            local db = self:GetDB()
+            if not db or not db.enabled then
+                EF:UnregisterEvent("PLAYER_REGEN_ENABLED")
+            end
+        elseif self._pendingScoreboardData then
             local data = self._pendingScoreboardData
             self._pendingScoreboardData = nil
             self:ShowScoreboard(data)
@@ -680,6 +702,7 @@ end
 -- combat lockdown, causing ADDON_ACTION_BLOCKED. Defer until combat ends instead.
 function TS:SafeShowScoreboard(data)
     if InCombatLockdown() then
+        self._pendingScoreboardHide = nil
         self._pendingScoreboardData = data
         return
     end

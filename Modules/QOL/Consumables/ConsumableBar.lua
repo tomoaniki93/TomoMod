@@ -52,9 +52,8 @@ local FOOD_DUR_MAX = 3720
 
 local ICON_FOOD_DEFAULT = "Interface\\Icons\\inv_misc_food_15"
 
--- Glyphe maison, blanc et plat : c'est lui qui porte la couleur d'état,
--- via SetVertexColor. Une icône de sort ne pourrait pas être teintée.
-local ICON_TRACKER = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\icon_consumables.tga"
+-- Full-color flask; readiness is shown separately to preserve its artwork.
+local ICON_TRACKER = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\infopanel_consumables.tga"
 
 -- Durées de prévisualisation (mode placement).
 local PREVIEW_TIMES = {
@@ -390,15 +389,15 @@ end
 local function UpdateStatusButton()
     if not statusButton then return end
 
-    -- Hors contenu de groupe le glyphe reste blanc : le bouton est là, cliquable,
-    -- consultable, mais il ne réclame rien. La couleur ne s'allume qu'en donjon,
-    -- raid, scénario et gouffre, là où un consommable oublié se paie — et c'est
-    -- ce passage du blanc au vert ou au rouge qui accroche l'œil.
+    -- Show readiness in group content without tinting the full-color flask.
+    local eligible = IsEligibleContent()
     local c = WHITE
-    if IsEligibleContent() then
+    if eligible then
         c = IsAllReady() and TEAL or RED
     end
-    statusButton.icon:SetVertexColor(c.r, c.g, c.b, 1)
+    statusButton.icon:SetVertexColor(1, 1, 1, 1)
+    statusButton.statusDot:SetColorTexture(c.r, c.g, c.b, 1)
+    statusButton.statusDot:SetShown(eligible)
 end
 
 local function AddTooltipStatus(label, ready, suffix)
@@ -426,16 +425,21 @@ local function CreateStatusButton()
         edgeFile = "Interface\\Buttons\\WHITE8x8",
         edgeSize = 1,
     })
-    statusButton:SetBackdropColor(0.04, 0.04, 0.06, 0.95)
-    statusButton:SetBackdropBorderColor(0.15, 0.15, 0.17, 1)
+    statusButton:SetBackdropColor(0, 0, 0, 0)
+    statusButton:SetBackdropBorderColor(0, 0, 0, 0)
 
-    -- Le glyphe est déjà détouré : pas de SetTexCoord, sinon on rogne les dents
-    -- de l'engrenage. Sa couleur est posée par UpdateStatusButton().
+    -- Trim transparent padding with a square UV window; keep the flask intact.
     local icon = statusButton:CreateTexture(nil, "ARTWORK")
-    icon:SetPoint("TOPLEFT", 2, -2)
-    icon:SetPoint("BOTTOMRIGHT", -2, 2)
+    icon:SetPoint("TOPLEFT", -2, 2)
+    icon:SetPoint("BOTTOMRIGHT", 2, -2)
     icon:SetTexture(ICON_TRACKER)
+    icon:SetTexCoord(0.1669921875, 0.83203125, 0.17578125, 0.8408203125)
     statusButton.icon = icon
+    local statusDot = statusButton:CreateTexture(nil, "OVERLAY")
+    statusDot:SetSize(4, 4)
+    statusDot:SetPoint("BOTTOMRIGHT", 0, 0)
+    statusDot:Hide()
+    statusButton.statusDot = statusDot
 
     statusButton:SetScript("OnClick", function(_, button)
         local db = DB()

@@ -172,7 +172,7 @@ end
 -- KEYSTONE SHORTCUT
 -- =====================================
 
-local KEY_ICON = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\icon_keystone"
+local KEY_ICON = "Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\infopanel_key.tga"
 local KEY_TEXT = {
     title = L["info_key_shortcuts_title"],
     left  = L["info_key_shortcuts_left"],
@@ -359,7 +359,7 @@ local function CreateUI()
     -- =========================================
     if MythicPlusAvailable() then
         keyButton = CreateFrame("Button", "TomoMod_KeystoneInfoButton", clockBar, "BackdropTemplate")
-        keyButton:SetSize(18, 18)
+        keyButton:SetSize(24, 24)
         keyButton:SetFrameLevel(clockBar:GetFrameLevel() + 20)
         keyButton:RegisterForClicks("LeftButtonUp", "RightButtonUp")
         keyButton:SetBackdrop({
@@ -367,16 +367,14 @@ local function CreateUI()
             edgeFile = "Interface\\Buttons\\WHITE8x8",
             edgeSize = 1,
         })
-        keyButton:SetBackdropColor(0.035, 0.055, 0.070, 0.96)
-        keyButton:SetBackdropBorderColor(0.72, 0.74, 0.78, 0.80)
+        keyButton:SetBackdropColor(0, 0, 0, 0)
+        keyButton:SetBackdropBorderColor(0, 0, 0, 0)
 
         local icon = keyButton:CreateTexture(nil, "ARTWORK")
-        icon:SetPoint("TOPLEFT", 2, -2)
-        icon:SetPoint("BOTTOMRIGHT", -2, 2)
+        icon:SetAllPoints()
         icon:SetTexture(KEY_ICON)
-        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        icon:SetDesaturated(true)
-        icon:SetVertexColor(0.95, 0.95, 0.97, 1)
+        icon:SetTexCoord(0, 1, 0, 1)
+        icon:SetVertexColor(1, 1, 1, 1)
         keyButton.icon = icon
 
         keyButton:SetScript("OnClick", function(_, button)
@@ -390,7 +388,6 @@ local function CreateUI()
         end)
 
         keyButton:SetScript("OnEnter", function(self)
-            self:SetBackdropBorderColor(1, 1, 1, 1)
             self.icon:SetVertexColor(1, 1, 1, 1)
             GameTooltip:SetOwner(self, "ANCHOR_BOTTOM", 0, -4)
             GameTooltip:ClearLines()
@@ -401,8 +398,7 @@ local function CreateUI()
             GameTooltip:Show()
         end)
         keyButton:SetScript("OnLeave", function(self)
-            self:SetBackdropBorderColor(0.72, 0.74, 0.78, 0.80)
-            self.icon:SetVertexColor(0.95, 0.95, 0.97, 1)
+            self.icon:SetVertexColor(1, 1, 1, 1)
             GameTooltip:Hide()
         end)
         keyButton:Hide()

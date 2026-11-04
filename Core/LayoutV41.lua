@@ -189,6 +189,14 @@ function P.PixelCoordinates(frame)
 end
 
 local function FindFrame(anchorID)
+    local blockedFeature = (anchorID == "mythicTracker" and "mythicplus")
+        or (anchorID == "skyRide" and "skyriding")
+        or (anchorID and anchorID:match("^actionBars%.") and "actionbars")
+    if blockedFeature and TomoMod_Compat and TomoMod_Compat.Blocked
+        and TomoMod_Compat.Blocked(blockedFeature) then
+        return nil
+    end
+
     local barKey = ActionBarKey(anchorID)
     if barKey then
         local owned = ActionBarsOwned()
@@ -480,6 +488,13 @@ end
 function P.SelectFrame(frame)
     if not editModeActive then return false end
     local anchorID = P.ResolveAnchorID(frame)
+    local blockedFeature = anchorID == "mythicTracker" and "mythicplus"
+        or anchorID == "skyRide" and "skyriding"
+        or anchorID and anchorID:match("^actionBars%.") and "actionbars"
+    if blockedFeature and TomoMod_Compat and TomoMod_Compat.Blocked
+        and TomoMod_Compat.Blocked(blockedFeature) then
+        return false
+    end
     if not anchorID or not Store(anchorID) then return false end
     selectedFrame = frame
     selectedAnchorID = anchorID

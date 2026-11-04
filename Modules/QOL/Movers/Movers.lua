@@ -93,10 +93,10 @@ local LAYOUT_ROUTES = {
     { "^TomoModCDM_",                    "resources" },
 
     -- Mythique+
-    { "^TomoMod_MythicTrackerFrame",     "mythicplus" },
-    { "^TomoMod_MythicScoreWidget",      "mythicplus" },
-    { "^TomoMod_MythicTeleportMenuFrame", "mythicplus" },
-    { "^TomoMod_KeyRoulette",            "mythicplus" },
+    { "^TomoMod_MythicTrackerFrame",     "mythicplus", "mythicplus" },
+    { "^TomoMod_MythicScoreWidget",      "mythicplus", "mythicplus" },
+    { "^TomoMod_MythicTeleportMenuFrame", "mythicplus", "mythicplus" },
+    { "^TomoMod_KeyRoulette",            "mythicplus", "mythicplus" },
 
     -- Habillages
     { "^TomoModObjectiveTrackerMover",   "skins" },
@@ -119,12 +119,14 @@ local LAYOUT_ROUTES = {
     { "^TomoMod_ZoneBar",                "general" },
 
     -- Confort : pages dediees
-    { "^TomoModSkyRideFrame",            { category = "comfort", page = "skyride" } },
+    { "^TomoModSkyRideFrame",            { category = "comfort", page = "skyride" }, "skyriding" },
     { "^TomoMod_LevelingBar",            { category = "comfort", page = "leveling" } },
     { "^TomoMod_ConsumableBar",          { category = "comfort", page = "consumables" } },
     { "^TomoMod_ConsumableTrackerButton", { category = "comfort", page = "consumables" } },
-    { "^TomoMod_Compass",                { category = "comfort", page = "compass" } },
-    { "^TomoMod_PreyTracker",            { category = "comfort", page = "automations" } },
+    { "^TomoMod_Compass",                { category = "comfort", page = "compass" }, "compass" },
+    { "^TomoMod_ConsumableBar",          { category = "comfort", page = "consumables" }, "consumables" },
+    { "^TomoMod_ConsumableTrackerButton", { category = "comfort", page = "consumables" }, "consumables" },
+    { "^TomoMod_PreyTracker",            { category = "comfort", page = "automations" }, "preytracker" },
     { "^TomoMod_ClassReminder",          { category = "comfort", page = "classremind" } },
     { "^TomoMod_AFKDisplayFrame",        { category = "comfort", page = "automations" } },
     { "^TomoMod_LootsFrame",             { category = "comfort", page = "automations" } },
@@ -147,7 +149,13 @@ local function RouteForName(name)
     if type(name) ~= "string" or name == "" then return nil end
     if GEAR_SELF[name] then return nil end
     for i = 1, #LAYOUT_ROUTES do
-        if name:find(LAYOUT_ROUTES[i][1]) then return LAYOUT_ROUTES[i][2] end
+        local route = LAYOUT_ROUTES[i]
+        if name:find(route[1]) then
+            if route[3] and TomoMod_Compat and TomoMod_Compat.Blocked(route[3]) then
+                return nil
+            end
+            return route[2]
+        end
     end
     return nil
 end
@@ -155,6 +163,17 @@ M.RouteForName = RouteForName
 
 local function OpenConfigRoute(route)
     if not route then return end
+    local compat = TomoMod_Compat
+    if compat and compat.Blocked then
+        local page = type(route) == "table" and route.page or route
+        local feature = ({
+            mythicplus = "mythicplus",
+            skyride = "skyriding",
+            compass = "compass",
+            consumables = "consumables",
+        })[page]
+        if feature and compat.Blocked(feature) then return end
+    end
     local cfg = TomoMod_Config
     if not cfg then return end
 
@@ -340,6 +359,7 @@ local function BuildEntries()
     })
     table.insert(moduleEntries, {
         label    = L["mover_actionbars"] or "Action Bars",
+        feature  = "actionbars",
         unlock   = function()
             -- ActionBarsOwned lives in the sandboxed Tui env, not _G — reach it via TomoMod_TuiNS
             local ABO = TomoMod_TuiNS and TomoMod_TuiNS.ActionBarsOwned
@@ -371,6 +391,7 @@ local function BuildEntries()
     })
     table.insert(moduleEntries, {
         label    = L["mover_skyriding"],
+        feature  = "skyriding",
         unlock   = function()
             if TomoMod_SkyRide and TomoMod_SkyRide.IsLocked and TomoMod_SkyRide.IsLocked() then TomoMod_SkyRide.ToggleLock() end
         end,
@@ -486,6 +507,7 @@ local function BuildEntries()
     })
     table.insert(moduleEntries, {
         label    = L["mover_mythictracker"],
+        feature  = "mythicplus",
         unlock   = function()
             if TomoMod_MythicTracker then
                 TomoMod_MythicTracker:SetMovable(true)
@@ -534,6 +556,7 @@ local function BuildEntries()
     })
     table.insert(moduleEntries, {
         label    = L["mover_consumable_bar"] or "Consommables",
+        feature  = "consumables",
         unlock   = function()
             if TomoMod_ConsumableBar and TomoMod_ConsumableBar.IsLocked and TomoMod_ConsumableBar.IsLocked() then
                 TomoMod_ConsumableBar.SetLocked(false)
@@ -550,6 +573,7 @@ local function BuildEntries()
     })
     table.insert(moduleEntries, {
         label    = L["mover_compass"] or "Compass",
+        feature  = "compass",
         unlock   = function()
             if TomoMod_Compass and TomoMod_Compass.IsLocked and TomoMod_Compass.IsLocked() then
                 TomoMod_Compass.SetLocked(false)
@@ -1068,7 +1092,9 @@ function M.SetUnlocked(unlock)
 
     for _, entry in ipairs(moduleEntries) do
         local active = not entry.isActive or entry.isActive()
-        if active then
+        local blocked = entry.feature and TomoMod_Compat
+            and TomoMod_Compat.Blocked and TomoMod_Compat.Blocked(entry.feature)
+        if active and not blocked then
             if unlock then entry.unlock() else entry.lock() end
         end
     end

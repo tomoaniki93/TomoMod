@@ -1,4 +1,4 @@
-﻿-- =====================================================================
+-- =====================================================================
 -- Ported from Tui: TUI_ActionBars/actionbars/actionbars_cooldowns.lua
 --
 -- Every edit made to this file is marked with "TOMOMOD:" so upstream changes
@@ -59,8 +59,9 @@ else
 end
 
 do
-    local USE_DURATION_OBJECTS = IS_MIDNIGHT
-        and C_ActionBar ~= nil
+    -- TOMOMOD: Forever uses modern cooldown APIs with a 16001 interface.
+    -- Select this path by capability rather than the retail interface number.
+    local USE_DURATION_OBJECTS = C_ActionBar ~= nil
         and C_ActionBar.GetActionCooldownDuration ~= nil
         and (tonumber((select(2, GetBuildInfo()))) or 0) >= 66562
 

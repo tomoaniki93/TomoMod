@@ -1,7 +1,7 @@
 ## Interface: 40300
 ## X-Compatible-With: 40300
 ## Title: Lib: Serialize
-## Version: 4.1.0
+## Version: 4.1.2
 ## Notes: Serialized
 ## Author: Dieen@twobears.cz
 ## SavedVariables: 

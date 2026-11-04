@@ -1158,19 +1158,21 @@ function TomoMod_Minimap.CreateButtonBag()
     -- Bouton déclencheur
     if not bagToggle then
         bagToggle = CreateFrame("Button", "TomoModMinimapButtonBag", Minimap)
-        bagToggle:SetSize(22, 22)
+        bagToggle:SetSize(24, 24)
         bagToggle:SetFrameLevel(Minimap:GetFrameLevel() + 5)
 
         local bg = bagToggle:CreateTexture(nil, "BACKGROUND")
         bg:SetAllPoints()
-        bg:SetColorTexture(0, 0, 0, 0.45)
+        bg:SetColorTexture(0, 0, 0, 0)
         bagToggle.bg = bg
 
         local ico = bagToggle:CreateTexture(nil, "ARTWORK")
         ico:SetPoint("CENTER")
-        ico:SetSize(14, 14)
+        ico:SetSize(24, 24)
         -- icône collecteur TomoMod
-        ico:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\ico_minimap_collector.tga")
+        ico:SetTexture("Interface\\AddOns\\TomoMod\\Assets\\Textures\\icons\\infopanel_addons.tga")
+        -- Square UV window removes only transparent padding, preserving aspect ratio.
+        ico:SetTexCoord(0.2109375, 0.80078125, 0.21484375, 0.8046875)
         bagToggle.ico = ico
 
         local border = CreateFrame("Frame", nil, bagToggle, "BackdropTemplate")
@@ -1180,14 +1182,14 @@ function TomoMod_Minimap.CreateButtonBag()
         bagToggle.border = border
 
         bagToggle:SetScript("OnEnter", function(self)
-            self.bg:SetColorTexture(0, 0, 0, 0.7)
+            self.bg:SetColorTexture(0, 0, 0, 0)
             GameTooltip:SetOwner(self, "ANCHOR_LEFT")
             GameTooltip:SetText(TomoMod_L["minimap_buttonbag"] or "Boutons d'addon", 1, 1, 1)
             GameTooltip:AddLine(TomoMod_L["minimap_buttonbag_hint"] or "Clic : afficher/masquer", 0.8, 0.8, 0.8)
             GameTooltip:Show()
         end)
         bagToggle:SetScript("OnLeave", function(self)
-            self.bg:SetColorTexture(0, 0, 0, 0.45)
+            self.bg:SetColorTexture(0, 0, 0, 0)
             GameTooltip:Hide()
         end)
         bagToggle:SetScript("OnMouseDown", function()
@@ -1264,7 +1266,7 @@ function TomoMod_Minimap.CreateButtonBag()
     local r, g, b = 0.9, 0.9, 0.9
     if TomoModDB.minimap.borderColor == "class" then r, g, b = TomoMod_Utils.GetClassColor() end
     bagToggle.border:SetBackdropBorderColor(0, 0, 0, 0)
-    bagToggle.ico:SetVertexColor(r, g, b, 1)
+    bagToggle.ico:SetVertexColor(1, 1, 1, 1)
 
     bagToggle:Show()
     if TomoMod_Minimap.HideNativeClutter then TomoMod_Minimap.HideNativeClutter() end

@@ -1,4 +1,4 @@
-﻿-- ============================================================
+-- ============================================================
 -- WhatsNew.lua — "What's New" popup after addon updates
 -- Compares TomoModDB.lastSeenVersion with current version.
 -- Shown once per version on PLAYER_LOGIN via C_Timer.After.
@@ -62,6 +62,28 @@ local PANEL_H = 480
 -- was added to only one of them.
 local CHANGELOG
 CHANGELOG = {
+    {
+        version = "4.1.2",
+        highlights = {
+            L["wn_412_tomoscore_combat_close"],
+            L["wn_412_forever_layout"],
+        },
+    },
+    {
+        version = "4.1.1",
+        highlights = {
+            L["wn_411_infopanel_icons"],
+            L["wn_411_consumable_status"],
+            L["wn_411_loots_secret_level"],
+            L["wn_411_forever_specializations"],
+            L["wn_411_forever_cooldowns"],
+            L["wn_411_forever_reputation"],
+            L["wn_411_forever_game_menu"],
+            L["wn_411_forever_character_score"],
+            L["wn_411_forever_chat_reload"],
+            L["wn_411_diagnostics_exclusions"],
+        },
+    },
     {
         version = "4.1.0",
         highlights = {

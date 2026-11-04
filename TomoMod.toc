@@ -10,7 +10,7 @@
 ## X-Curse-Project-ID: 1446255
 ## X-oUF: TomoMod_oUF
 ## Author: TomoAniki
-## Version: 4.1.0
+## Version: 4.1.2
 ## IconTexture: Interface\AddOns\TomoMod\Assets\Textures\Logo.tga
 
 ## =====================
@@ -39,6 +39,8 @@ Locales\Locale_406.lua
 Locales\Locale_407.lua
 Locales\Locale_408.lua
 Locales\Locale_410.lua
+Locales\Locale_411.lua
+Locales\Locale_412.lua
 Locales\Locale_Compat.lua
 
 ## =====================

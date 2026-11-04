@@ -1619,7 +1619,7 @@ local function BuildResourceDisplay()
     local s = GetSettings()
     if not s or not s.enabled then return end
 
-    local specIndex = GetSpecialization()
+    local specIndex = GetSpecialization and GetSpecialization()
     if not specIndex or specIndex == 0 then return end
 
     local classData = CLASS_RESOURCES[playerClass]
@@ -1900,7 +1900,7 @@ local function OnEvent(self, event, arg1)
         C_Timer.After(1, function() BuildResourceDisplay(); UpdateAlpha(); if RB._refreshOnUpdate then RB._refreshOnUpdate() end end)
     elseif event == "ACTIVE_TALENT_GROUP_CHANGED" or event == "PLAYER_SPECIALIZATION_CHANGED" then
         C_Timer.After(0.5, function()
-            local newSpec = GetSpecialization()
+            local newSpec = GetSpecialization and GetSpecialization()
             if newSpec ~= currentSpec then
                 currentSpec = newSpec
                 BuildResourceDisplay()

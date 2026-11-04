@@ -347,7 +347,15 @@ local function BuildSettingsMenu()
         },
         {
             Localize("chat_v4_settings_reload", "Reload interface"),
-            function() ReloadUI() end,
+            function()
+                -- Forever protects Reload() from addon Lua. Let the player
+                -- submit the native slash command from the chat edit box.
+                if TomoMod_Compat and TomoMod_Compat.IsForever() then
+                    ChatFrame_OpenChat("/reload")
+                else
+                    ReloadUI()
+                end
+            end,
             YELLOW_R, YELLOW_G, YELLOW_B,
         },
     }

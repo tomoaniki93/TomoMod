@@ -1,4 +1,4 @@
-﻿-- =====================================
+-- =====================================
 -- GameMenuSkin.lua
 -- Skins the Blizzard Escape / Game Menu
 -- Dark/teal themed UI consistent with TomoMod aesthetic
@@ -567,7 +567,7 @@ local function PositionTomoModButton()
         if GAMEMENU_EXTERNALEVENT then group1[GAMEMENU_EXTERNALEVENT] = true end
 
         local h, offset = btn:GetHeight(), btn:GetHeight() + 8
-        local storeBtn, sizeSet = nil, false
+        local storeBtn, optionsBtn, sizeSet = nil, nil, false
 
         for poolBtn in GameMenuFrame.buttonPool:EnumerateActive() do
             local text = poolBtn:GetText() or ""
@@ -582,6 +582,10 @@ local function PositionTomoModButton()
                 end
             end
 
+            if GAMEMENU_OPTIONS and text == GAMEMENU_OPTIONS then
+                optionsBtn = poolBtn
+            end
+
             if BLIZZARD_STORE and text == BLIZZARD_STORE then
                 storeBtn = poolBtn                          -- dernier bouton du groupe 1
             elseif not group1[text] then
@@ -592,10 +596,15 @@ local function PositionTomoModButton()
         btn:ClearAllPoints()
         btn:Show()
 
-        if storeBtn then
-            -- Positionné juste sous "Boutique", avant "Add-ons"
-            btn:SetPoint("TOPLEFT",  storeBtn, "BOTTOMLEFT",  0, -8)
-            btn:SetPoint("TOPRIGHT", storeBtn, "BOTTOMRIGHT", 0, -8)
+        -- Forever has no Store button. Use Options instead of falling back
+        -- to the bottom of the menu. Keep retail's Store placement.
+        local anchor = storeBtn or optionsBtn
+        if TomoMod_Compat and TomoMod_Compat.IsForever() then
+            anchor = optionsBtn or storeBtn
+        end
+        if anchor then
+            btn:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -8)
+            btn:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -8)
         else
             btn:SetPoint("BOTTOMLEFT",  GameMenuFrame, "BOTTOMLEFT",  8, 8)
             btn:SetPoint("BOTTOMRIGHT", GameMenuFrame, "BOTTOMRIGHT", -8, 8)
@@ -624,6 +633,22 @@ local function PositionTomoModButton()
     btn:SetSize(w, h)
     btn:ClearAllPoints()
     btn:Show()
+
+    local optionsBtn
+    for _, entry in ipairs(buttons) do
+        local frame = entry.frame
+        if frame == _G.GameMenuButtonOptions or frame == _G.GameMenuButtonSettings
+            or (GAMEMENU_OPTIONS and frame.GetText and frame:GetText() == GAMEMENU_OPTIONS) then
+            optionsBtn = frame
+            break
+        end
+    end
+    if optionsBtn and TomoMod_Compat and TomoMod_Compat.IsForever() then
+        btn:SetPoint("TOPLEFT", optionsBtn, "BOTTOMLEFT", 0, -8)
+        btn:SetPoint("TOPRIGHT", optionsBtn, "BOTTOMRIGHT", 0, -8)
+        GameMenuFrame:SetHeight(GameMenuFrame:GetHeight() + h + 8)
+        return
+    end
 
     local refBtn = nil
     for i = 1, #buttons - 1 do

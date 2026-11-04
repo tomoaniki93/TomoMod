@@ -1,4 +1,60 @@
-﻿## ####################################
+## ####################################
+
+## CHANGELOG 4.1.2
+
+#### Mythic+ TomoScore — Combat-Safe Closing
+
+- **Fixed** - Closing the TomoScore scoreboard during combat no longer calls the protected `TomoScoreFrame:Hide()` function. The scoreboard contains secure teleport buttons, which also protect their parent frame; closing is now deferred until combat ends.
+
+#### WoW: Forever — Layout Compatibility
+
+- **Fixed** - Layout mode no longer selects or opens settings for Mythic+, Prey, Skyriding, action bars, Compass or Consumables on WoW: Forever. The character-sheet M+ Score widget is also hidden when Mythic+ is unavailable.
+
+#### Release Notes And Version Metadata
+
+- **Changed** - All 13 TomoMod `.toc` manifests now declare version 4.1.2.
+- **Changed** - The What's New popup and changelog page include the 4.1.2 fix in English, French, German, Spanish, Italian and Brazilian Portuguese. Previous release notes remain available.
+
+## ####################################
+
+## CHANGELOG 4.1.1
+
+#### InfoPanel — Custom Color Icons
+
+- **Changed** - The keystone shortcut, addon-button collector and consumable tracker now use the supplied golden key, parchment scroll and potion artwork. Transparent textures replace the previous monochrome icons and square button backgrounds.
+- **Changed** - Key and collector buttons are now 24 pixels wide. Texture framing removes transparent padding while preserving the artwork's proportions and visible edges. Existing click actions, tooltips and configurable anchors remain available.
+- **Changed** - The consumable flask retains its original colors. A small green or red indicator displays readiness in group content instead of tinting the entire icon; the indicator is hidden outside eligible content.
+
+#### Loot Browser — Protected Item-Level Safety
+
+- **Fixed** - Item-level previews now check whether the base level returned by `C_Item.GetDetailedItemLevelInfo` is secret before testing or subtracting it. Protected values use the plain item link without an item-level calculation or cache request.
+- **Internal** - Added a regression case for protected item levels. The secret-value lint passes with no new findings and no baseline changes.
+
+#### WoW: Forever — Specialization And Action-Bar Compatibility
+
+- **Fixed** - CompanionStatus no longer calls missing specialization APIs on WoW: Forever. The reminder stays inactive when specialization information is unavailable.
+- **Fixed** - ResourceBars now checks that the specialization API exists before building or refreshing the class resource display, preventing errors on clients without retail specializations.
+- **Fixed** - Action-bar cooldowns now select the modern duration-object path by API availability and the supported build rather than the retail interface number. Forever interface 16001 no longer falls back to the incompatible Blizzard cooldown updater when the modern API is available.
+
+#### WoW: Forever — Reputation Skin And Game Menu
+
+- **Fixed** - The chat sidebar Reload interface shortcut no longer calls the protected `ReloadUI()` function directly on WoW: Forever. It now opens chat with `/reload` ready to submit with Enter. Retail retains the direct reload action.
+- **Changed** - The character-sheet M+ Score widget is now disabled on WoW: Forever through the shared Mythic+ compatibility guard. Its frame, update hooks and challenge-mode event listeners are not created on this client. Retail keeps the widget.
+- **Fixed** - Opening the Reputation tab no longer calls `SetStatusBarTexture` on Forever's `ColoredProgressBar` frames. The character skin now styles their `Fill` texture while retaining native `StatusBar` support on Retail.
+- **Fixed** - The TomoMod game-menu button now anchors below Options on WoW: Forever instead of falling back to the bottom of the menu when the Store button is absent. Retail keeps its existing placement below Store; older Forever menu layouts also use Options as the anchor.
+
+#### Diagnostics — Gameplay Message Exclusions
+
+- **Changed** - Normal loot-access and busy-object feedback is now excluded from diagnostic capture, using client GlobalStrings with French fallbacks for the reported messages.
+- **Changed** - Kindo’jan labyrinth progression messages for Nalorakk, Halazzi, Akil’zon and Jan’alai are now filtered by their shared French progression instruction, avoiding repeated gameplay notices in error reports.
+- **Internal** - Verified that all 15 UI-error entries in the supplied report match the exclusions while an unrelated error message remains eligible for capture.
+
+#### Release Notes And Version Metadata
+
+- **Changed** - All 13 `.toc` manifests now declare version 4.1.1.
+- **Changed** - The What's New popup and changelog page include the 4.1.1 highlights in English, French, German, Spanish, Italian and Brazilian Portuguese. Previous release notes remain available.
+
+## ####################################
 
 ## CHANGELOG 4.1.0
 

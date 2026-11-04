@@ -1,5 +1,5 @@
-﻿-- =====================================================================
--- Diagnostics.lua v1.0.0 — Error Capture & Report System
+-- =====================================================================
+-- Diagnostics.lua v1.0.0 â€” Error Capture & Report System
 -- Background Lua error capture with zero combat popups.
 -- Export clean reports for tracker-tomomod.onkoz.fr
 -- Inspired by MidnightUI Diagnostics Console.
@@ -75,6 +75,8 @@ local EXCLUDED_GLOBAL_KEYS = {
     -- Inventory
     "ERR_ITEM_COOLDOWN", "ERR_BAG_FULL", "ERR_INV_FULL",
     "ERR_LOOT_GONE", "ERR_LOOT_NOTHING",
+    "ERR_LOOT_DIDNT_KILL", "ERR_LOOT_LOCKED",
+    "ERR_OBJECT_IS_BUSY", "SPELL_FAILED_CHEST_IN_USE",
     "ERR_MUST_EQUIP_ITEM", "SPELL_FAILED_EQUIPPED_ITEM",
     "SPELL_FAILED_EQUIPPED_ITEM_CLASS", "ERR_GENERIC_EQUIPPED_ITEM_CLASS",
     -- Misc common combat messages
@@ -132,7 +134,7 @@ local function BuildExclusionSet()
         local val = _G[key]
         if val and type(val) == "string" then
             if val:find("%%") then
-                -- Contains format specifiers → store as lowercase pattern
+                -- Contains format specifiers â†’ store as lowercase pattern
                 local ok, pat = pcall(FormatToPattern, val:lower())
                 if ok and pat then
                     EXCLUDED_UI_PATTERNS[#EXCLUDED_UI_PATTERNS + 1] = pat
@@ -143,14 +145,21 @@ local function BuildExclusionSet()
         end
     end
 
+    -- Report #1912: normal loot / interaction feedback (French fallbacks).
+    EXCLUDED_UI_ERRORS["Vous ne pouvez pas prendre ce butin."] = true
+    EXCLUDED_UI_ERRORS["Cet objet est d\195\169j\195\160 en cours d'utilisation."] = true
+
     -- Fallback: substring keywords that identify gameplay feedback regardless of locale
     -- gender inflections (e.g. French "(e)"), or missing GlobalString keys.
     -- Each entry is a lowercase substring checked via string.find.
     local keywords = {
+        -- Kindo'jan labyrinth progression gate (report #1912).
+        ("refuse de vous laisser passer%. Progressez dans le p\195\169riple du labyrinthe de Kindo\226\128\153jan pour gagner ses faveurs%."):lower(),
+
         -- Stunned / incapacitated / disoriented (all locales)
-        "stunned", "stun", "\195\169tourdi",         -- EN / FR étourdi
-        "disoriented", "d\195\169sorient\195\169",   -- EN / FR désorienté
-        "bet\195\164ubt",                             -- DE betäubt
+        "stunned", "stun", "\195\169tourdi",         -- EN / FR Ã©tourdi
+        "disoriented", "d\195\169sorient\195\169",   -- EN / FR dÃ©sorientÃ©
+        "bet\195\164ubt",                             -- DE betÃ¤ubt
         "desorientiert",                              -- DE
         "aturdid", "desorientad",                     -- ES aturdido/a, desorientado/a
         "stordito", "disorientat",                    -- IT
@@ -161,8 +170,8 @@ local function BuildExclusionSet()
         "can't do that yet", "pas encore faire cela", "noch nicht tun",
         "no puedes hacer eso", "non puoi farlo", "fazer isso ainda",
         -- Dice / loot roll pending
-        "loot roll", "rolled yet", "d\195\169s ne sont",  -- FR "dés ne sont"
-        "not yet rolled", "w\195\188rfel",             -- DE Würfel
+        "loot roll", "rolled yet", "d\195\169s ne sont",  -- FR "dÃ©s ne sont"
+        "not yet rolled", "w\195\188rfel",             -- DE WÃ¼rfel
         -- Not on ground
         "not on the ground", "sur le sol",
         -- Too far away / out of range
@@ -173,7 +182,7 @@ local function BuildExclusionSet()
         "kein weg", "no hay camino", "sin camino",
         "nessun percorso", "nenhum caminho",
         -- Mount restrictions (ground mounts not allowed, flying not allowed, etc.)
-        "montures terrestres",                -- FR: "Les montures terrestres ne sont pas autorisées ici"
+        "montures terrestres",                -- FR: "Les montures terrestres ne sont pas autorisÃ©es ici"
         "ground mounts are not allowed",      -- EN equivalent
         "flying mounts are not allowed",
         "montures volantes",
@@ -190,27 +199,27 @@ local function BuildExclusionSet()
         "objetivo es amistoso", "bersaglio \195\168 amichevole", "alvo \195\169 amig",
         -- Generic impossible / cannot
         "impossible tant que", "impossible lorsque", "impossible d'attaquer",
-        -- Horrified (FR horrifié(e))
+        -- Horrified (FR horrifiÃ©(e))
         "horrifi",
         -- Item not found / missing component (FR)
         "objet introuvable", "composant manquant",
-        -- Outdoor only (FR extérieur)
+        -- Outdoor only (FR extÃ©rieur)
         "en ext\195\169rieur",
         -- Too far to interact (FR rapprocher)
         "rapprocher",
         -- Death messages (all locales)
-        "you have died", "vous avez succ",  -- FR "succombé"
+        "you have died", "vous avez succ",  -- FR "succombÃ©"
         "you are dead", "vous \195\170tes mort",
         "bist gestorben", "has muerto", "sei morto", "voc\195\170 morreu",
         -- Equipment set missing pieces (all locales)
-        "pi\195\168ces de l'ensemble",       -- FR "pièces de l'ensemble"
+        "pi\195\168ces de l'ensemble",       -- FR "piÃ¨ces de l'ensemble"
         "equipment set", "set d'\195\169quipement",
-        "ausr\195\188stungsset",             -- DE Ausrüstungsset
+        "ausr\195\188stungsset",             -- DE AusrÃ¼stungsset
         "equipo de equipamiento",            -- ES
         "set di equipaggiamento",            -- IT
         "conjunto de equipamento",           -- PT
         -- HP / power already full (all locales)
-        "d\195\169j\195\160 au maximum",     -- FR "déjà au maximum"
+        "d\195\169j\195\160 au maximum",     -- FR "dÃ©jÃ  au maximum"
         "already at full",                   -- EN "already at full health/power"
         "bereits voll", "bereits auf dem",   -- DE
         "ya est\195\161 lleno",              -- ES
@@ -225,7 +234,7 @@ local function BuildExclusionSet()
         "inst\195\162ncia de raide",         -- PT
         "not possible.*instance", "impossible.*instance",
         -- Wrong zone / region for ability (all locales)
-        "bonne r\195\169gion",               -- FR "Vous n'êtes pas dans la bonne région."
+        "bonne r\195\169gion",               -- FR "Vous n'Ãªtes pas dans la bonne rÃ©gion."
         "right region", "right area",        -- EN equivalents
         "richtigen bereich",                 -- DE
         "zona correcta", "regi\195\179n correcta",  -- ES
@@ -238,7 +247,7 @@ local function BuildExclusionSet()
         "esp\195\173ritu activo",            -- ES
         "spirito attivo",                    -- IT
         "esp\195\173rito ativo",             -- PT
-        -- Generic "cannot act right now" — cutscene, vehicle cast, loading, etc. (all locales)
+        -- Generic "cannot act right now" â€” cutscene, vehicle cast, loading, etc. (all locales)
         "ne pouvez effectuer aucune action", -- FR "Vous ne pouvez effectuer aucune action pour l'instant."
         "cannot perform any action",         -- EN equivalent
         "can't perform any action",          -- EN contraction variant
@@ -255,12 +264,12 @@ local function BuildExclusionSet()
         "richiede ",                         -- IT
         "requer ",                           -- PT
         -- Merchant not interested (report #605: sessions 2026-06-22, 2026-06-27)
-        "marchand n'est pas int",            -- FR "Le marchand n'est pas intéressé par cet objet."
+        "marchand n'est pas int",            -- FR "Le marchand n'est pas intÃ©ressÃ© par cet objet."
         "merchant is not interested",        -- EN equivalent
         "h\195\164ndler ist nicht interessiert", -- DE
         "comerciante no est\195\161 interesado", -- ES
         -- On a mount (report #605: session 2026-06-24)
-        "sur une monture",                   -- FR "Vous êtes sur une monture."
+        "sur une monture",                   -- FR "Vous Ãªtes sur une monture."
         "you are mounted", "while mounted",  -- EN equivalents
         "auf einem reittier",                -- DE
         "montado",                           -- ES/PT
@@ -271,27 +280,27 @@ local function BuildExclusionSet()
         "kannst nicht mehr davon tragen",    -- DE
         "no puedes llevar m\195\161s de esos", -- ES
         -- Can't be deleted (report #605: session 2026-06-24)
-        "impossible de supprimer",           -- FR "Impossible de supprimer ça."
+        "impossible de supprimer",           -- FR "Impossible de supprimer Ã§a."
         "can't be destroyed", "cannot be destroyed", -- EN equivalents
         "kann nicht zerst\195\182rt werden", -- DE
         "no se puede destruir",              -- ES
         -- Item can't be upgraded (report #605: session 2026-06-27)
-        "mis \195\160 niveau",               -- FR "Cet objet ne peut pas être mis à niveau."
+        "mis \195\160 niveau",               -- FR "Cet objet ne peut pas Ãªtre mis Ã  niveau."
         "cannot be upgraded", "can't be upgraded", -- EN equivalents
         "kann nicht aufgewertet werden",     -- DE
         "no se puede mejorar",               -- ES
         -- Already have that appearance (report #605: session 2026-06-27)
-        "d\195\169j\195\160 cette apparence", -- FR "Vous avez déjà cette apparence"
+        "d\195\169j\195\160 cette apparence", -- FR "Vous avez dÃ©jÃ  cette apparence"
         "already have that appearance", "already know that appearance", -- EN equivalents
         "aussehen bereits", "dieses aussehen bereits", -- DE
         "ya tienes esa apariencia",          -- ES
         -- Target engaged in a duel (report #605: session 2026-06-27)
-        "engag\195\169e dans un duel",       -- FR "La cible est engagée dans un duel"
+        "engag\195\169e dans un duel",       -- FR "La cible est engagÃ©e dans un duel"
         "target is engaged in a duel",       -- EN equivalent
         "target ist in einem duell",         -- DE
         "objetivo est\195\161 en un duelo",  -- ES
         -- Merchant doesn't buy items (report #676: session 2026-07-07)
-        "vendre d'objets \195\160 ce marchand", -- FR "Vous ne pouvez pas vendre d'objets à ce marchand"
+        "vendre d'objets \195\160 ce marchand", -- FR "Vous ne pouvez pas vendre d'objets Ã  ce marchand"
         "cannot sell items to this merchant", "can't sell items to this merchant", -- EN equivalents
         "keine gegenst\195\164nde an diesen h\195\164ndler verkaufen", -- DE
         "no puedes vender objetos a este comerciante",                -- ES
@@ -305,14 +314,14 @@ local function BuildExclusionSet()
         "non puoi raccogliere bottino mentre la modalit\195\160 sfida \195\168 attiva",       -- IT
         "n\195\163o pode saquear enquanto o modo desafio estiver ativo",                       -- PT
         -- Object cannot be modified (report #716: session 2026-07-16)
-        "peut pas \195\170tre modifi",       -- FR "Cet objet ne peut pas être modifié."
+        "peut pas \195\170tre modifi",       -- FR "Cet objet ne peut pas Ãªtre modifiÃ©."
         "cannot be modified", "can't be modified", -- EN equivalents
         "kann nicht ver\195\164ndert werden",  -- DE
         "no se puede modificar",              -- ES
         "non pu\195\178 essere modificat",     -- IT
         "n\195\163o pode ser modificad",       -- PT
         -- Vantacite / manacite conduit requirement (report #716: session 2026-07-17)
-        "vantacite",                          -- FR "Utilisez des conduits à vantacite et à manacite pour débloquer ceci." (proper nouns, locale-stable)
+        "vantacite",                          -- FR "Utilisez des conduits Ã  vantacite et Ã  manacite pour dÃ©bloquer ceci." (proper nouns, locale-stable)
         "manacite",
         -- Spell not learned (report #716: session 2026-07-17)
         "sort non appris", "non appris",      -- FR "Sort non appris"
@@ -322,28 +331,28 @@ local function BuildExclusionSet()
         "non hai imparato", "non \195\168 stato appreso", -- IT
         "n\195\163o aprendeu", "n\195\163o aprendid",     -- PT
         -- Can't be used on the ground (report #766: session 2026-07-20)
-        "utiliser au sol",                    -- FR "Impossible à utiliser au sol"
+        "utiliser au sol",                    -- FR "Impossible Ã  utiliser au sol"
         "used on the ground", "while on the ground", -- EN equivalents
         "am boden",                           -- DE
         "en el suelo",                        -- ES
         "usato a terra",                      -- IT
         "no ch\195\163o",                     -- PT
         -- Must be standing (report #766: session 2026-07-21)
-        "debout pour",                        -- FR "Vous devez être debout pour faire ça"
+        "debout pour",                        -- FR "Vous devez Ãªtre debout pour faire Ã§a"
         "must be standing", "be standing to", -- EN equivalents
         "m\195\188sst ihr stehen", "stehen, um",  -- DE
         "estar de pie",                       -- ES
         "essere in piedi",                    -- IT
         "estar de p\195\169",                 -- PT
         -- Nothing to loot (report #768: session 2026-07-22)
-        "rien \195\160 ramasser",             -- FR "Il n'y a rien à ramasser."
+        "rien \195\160 ramasser",             -- FR "Il n'y a rien Ã  ramasser."
         "nothing to loot",                    -- EN equivalent
         "nichts zu pl\195\188ndern",          -- DE
         "nada que recoger", "nada que saquear", -- ES
         "niente da saccheggiare",             -- IT
         "nada para saquear",                  -- PT
         -- Must have a specific weapon/item equipped (report #768: session 2026-07-22)
-        "doit avoir \195\169quip",            -- FR "Doit avoir équipé : Hache"
+        "doit avoir \195\169quip",            -- FR "Doit avoir Ã©quipÃ© : Hache"
         "must have equipped", "must be equipped", -- EN equivalents
         "muss ausger\195\188stet",            -- DE
         "debe tener equipado",                -- ES
@@ -364,13 +373,13 @@ local function BuildExclusionSet()
         "bersaglio i giocatori", "mirare i giocatori", -- IT
         "mirar em jogadores", "selecionar jogadores", -- PT
         -- Rooted in place (report #838: session 2026-07-31)
-        "clou\195\169",                       -- FR "Vous êtes cloué(e) sur place" (covers the (e) inflection)
+        "clou\195\169",                       -- FR "Vous Ãªtes clouÃ©(e) sur place" (covers the (e) inflection)
         "rooted in place", "are rooted",      -- EN equivalents
         "festgesetzt", "festgewurzelt",       -- DE
         "enraizad", "inmovilizad",            -- ES (also covers PT enraizado)
         "radicat", "immobilizzat",            -- IT
         -- Can't mail soulbound items (report #838: session 2026-07-31)
-        "objets li\195\169s",                 -- FR "Vous ne pouvez pas envoyer des objets liés."
+        "objets li\195\169s",                 -- FR "Vous ne pouvez pas envoyer des objets liÃ©s."
         "send bound items", "bound items",    -- EN equivalents
         "gebundene gegenst\195\164nde",       -- DE
         "objetos vinculados",                 -- ES
@@ -386,7 +395,7 @@ local function BuildExclusionSet()
         -- against the message AFTER string.lower(), which only maps ASCII, so
         -- an accented letter reaches the match in whatever form the client
         -- sent it. Spelling the accent out only matches when those bytes line
-        -- up exactly; "gen.-gend" matches genuegend and genügend alike, and
+        -- up exactly; "gen.-gend" matches genuegend and genÃ¼gend alike, and
         -- costs nothing when they do.
         "pas assez",                          -- FR "Pas assez de Pression vapeur"
         "not enough",                         -- EN equivalent
@@ -421,7 +430,7 @@ end
 
 local db              = nil       -- reference to TomoModDB.diagnostics
 local errors          = {}        -- array of error entries
-local dedupMap        = {}        -- "kind::normalized" → entry index
+local dedupMap        = {}        -- "kind::normalized" â†’ entry index
 local captureCount    = 0         -- captures this second
 local captureResetAt  = 0         -- GetTime() of last counter reset
 local droppedCount    = 0         -- flood-dropped this second
@@ -597,7 +606,7 @@ local function CaptureEntry(kind, message, stack, locals, meta)
         if droppedCount > 0 then
             -- Inject a warning about dropped errors
             local dropMsg = string.format("[Diagnostics] %d errors dropped (flood limit %d/s)", droppedCount, FLOOD_LIMIT)
-            -- Don't recurse — direct insert
+            -- Don't recurse â€” direct insert
             local entry = {
                 kind = KIND_WARNING,
                 message = dropMsg,
@@ -688,7 +697,7 @@ local function CaptureEntry(kind, message, stack, locals, meta)
         end)
     end
 
-    -- Auto-open (non-combat only) — for Lua errors AND taint from TomoMod
+    -- Auto-open (non-combat only) â€” for Lua errors AND taint from TomoMod
     if db and db.autoOpenOnError and not InCombatLockdown()
        and (kind == KIND_LUA_ERROR or kind == KIND_TAINT) and entry.isTomoMod then
         D.ShowConsole()
@@ -766,7 +775,7 @@ local function OnLuaWarning(_, warnType, msg)
     if not IsEnabled() then return end
     local warnStr = SafeToString(warnType)
     -- Skip WoW's "execution limit exceeded" notification for this module.
-    -- Capturing it would call CaptureEntry → deferred RefreshConsole, but the
+    -- Capturing it would call CaptureEntry â†’ deferred RefreshConsole, but the
     -- warning itself fires because of previous expensive RefreshConsole work;
     -- recording it creates a self-referential flood that hits the flood limiter.
     if warnStr:find("insecure scripts exceeded execution limit", 1, true) then
@@ -891,7 +900,7 @@ local function HookBugGrabber()
         end
     end
 
-    -- Stay subscribed for anything it catches from here on — a second,
+    -- Stay subscribed for anything it catches from here on â€” a second,
     -- independent observation path that survives another addon stomping on
     -- our own seterrorhandler link.
     if EventRegistry and EventRegistry.RegisterCallback then
@@ -1025,7 +1034,7 @@ local function CreateConsole()
         fx = fx + 74
     end
 
-    -- Scroll area (custom slim scroll — no Blizzard template)
+    -- Scroll area (custom slim scroll â€” no Blizzard template)
     local scrollFrame = CreateFrame("ScrollFrame", "TomoMod_DiagScroll", f)
     scrollFrame:SetPoint("TOPLEFT", filterBar, "BOTTOMLEFT", 4, -4)
     scrollFrame:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -12, 44)
@@ -1396,7 +1405,7 @@ function D.SetExportView(view)
     if view == "link" then
         ef._title:SetText("Tracker address")
         text = TRACKER_URL
-        ef._hint:SetText("Ctrl+C to copy the link — this replaces the report in your clipboard")
+        ef._hint:SetText("Ctrl+C to copy the link â€” this replaces the report in your clipboard")
     elseif ef._mode == "tracker" then
         ef._title:SetText("Report for " .. TRACKER_HOST)
         text = D.BuildTrackerReport()
@@ -1428,7 +1437,7 @@ function D.ShowExportFrame(mode)
         ef:SetSize(600, 486)
         ef:SetPoint("CENTER")
         -- [FIX] The console frame uses FrameLevel 600 + SetToplevel(true) in the
-        -- same FULLSCREEN_DIALOG strata (so it stays above the config menu) —
+        -- same FULLSCREEN_DIALOG strata (so it stays above the config menu) â€”
         -- without a higher level here, this export popup opened invisibly behind
         -- the still-open console, making "Copy Report" appear to do nothing.
         -- Level is computed relative to the console (below) instead of hardcoded,
@@ -1487,7 +1496,7 @@ function D.ShowExportFrame(mode)
         persist:SetFont(FONT_MEDIUM, 9, "")
         persist:SetPoint("TOP", 0, -64)
         persist:SetTextColor(0.5, 0.5, 0.55, 1)
-        persist:SetText("Your report is saved — reopen it any time with /tmdiag tracker")
+        persist:SetText("Your report is saved â€” reopen it any time with /tmdiag tracker")
 
         -- View switch
         local function MakeViewButton(label, view, anchorX)
@@ -1607,7 +1616,7 @@ function D.ShowExportFrame(mode)
             if trackerReminderShown then return end
             trackerReminderShown = true
             print(ADDON_PREFIX .. " |cffaaaaaaPaste your report at|r |cff2e9dd8"
-                .. TRACKER_URL .. "|r |cffaaaaaa— reopen it with|r |cffffffff/tmdiag tracker|r")
+                .. TRACKER_URL .. "|r |cffaaaaaaâ€” reopen it with|r |cffffffff/tmdiag tracker|r")
         end)
 
         exportFrame = ef
@@ -1626,7 +1635,7 @@ end
 --
 -- Above 1200 vertical pixels the uiScale CVar is ignored by the client
 -- (it will not go below 0.64), so high-resolution players have to rescale
--- UIParent themselves or through a third-party addon — and that rescale is
+-- UIParent themselves or through a third-party addon â€” and that rescale is
 -- reapplied after every loading screen. Anything positioned before it lands
 -- keeps coordinates computed under the previous scale.
 --
@@ -1766,11 +1775,11 @@ local function CaptureDisplay(reason)
 
     local parts = { "[Display] ", reason or "?" }
     if scaleMoved then
-        parts[#parts + 1] = string.format(" — UIParent scale %s -> %s",
+        parts[#parts + 1] = string.format(" â€” UIParent scale %s -> %s",
             FormatScale(previous.parentScale), FormatScale(current.parentScale))
     end
     if resMoved then
-        parts[#parts + 1] = string.format(" — resolution %sx%s -> %sx%s",
+        parts[#parts + 1] = string.format(" â€” resolution %sx%s -> %sx%s",
             SafeToString(previous.physicalWidth), SafeToString(previous.physicalHeight),
             SafeToString(current.physicalWidth), SafeToString(current.physicalHeight))
     end
@@ -1794,7 +1803,7 @@ local function MarkDisplaySettled()
 
     CaptureEntry(KIND_DEBUG, string.format(
         "[Display] UIParent scale settled at %s, expected %s for this configuration "
-        .. "(uiScale=%s useUiScale=%s) — set by a macro or another addon",
+        .. "(uiScale=%s useUiScale=%s) â€” set by a macro or another addon",
         FormatScale(d.parentScale), FormatScale(d.expectedScale),
         FormatScale(d.cvarUiScale), SafeToString(d.cvarUseUiScale)))
 end
@@ -2126,7 +2135,7 @@ function D.BuildReadableReport()
     lines[#lines + 1] = "Expected scale: " .. FormatScale(d.expectedScale)
     if d.scaleOverridden then
         lines[#lines + 1] = "!! UIParent scale differs from the expected " .. FormatScale(d.expectedScale)
-            .. " — set by a macro or another addon"
+            .. " â€” set by a macro or another addon"
     end
     lines[#lines + 1] = ""
 
