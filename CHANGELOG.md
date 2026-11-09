@@ -2,9 +2,10 @@
 
 ## CHANGELOG 4.1.2
 
-#### Mythic+ TomoScore — Combat-Safe Closing
+#### Mythic+ — Combat-Safe TomoScore And Teleport Menu
 
 - **Fixed** - Closing the TomoScore scoreboard during combat no longer calls the protected `TomoScoreFrame:Hide()` function. The scoreboard contains secure teleport buttons, which also protect their parent frame; closing is now deferred until combat ends.
+- **Fixed** - Opening the Character Sheet during combat no longer raises `ADDON_ACTION_BLOCKED` from the Mythic+ teleport menu. Its secure teleport buttons make the menu protected, so its scale and position cannot be changed in combat. The menu keeps following the sheet through the anchor set before combat, and the pending resize and repositioning are applied once combat ends.
 
 #### WoW: Forever — Support Removed
 
@@ -44,9 +45,10 @@
 - **Changed** - Only the Cooldown Studio and the Mythic+ Studio keep their own full-screen editors, launched from the Studios section of the sidebar and the home page.
 - **Changed** - The Layout mode gear now opens the matching `/tm` page for unit frames, auras, boss frames, castbars, resources and party/raid frames. Role guide links open the `/tm` page holding the setting and highlight the relevant card.
 - **Changed** - Long option labels now wrap onto a second line in narrow windows instead of overflowing into the next column.
+- **Fixed** - Scrolling the options window no longer raises "attempt to compare a secret number value" when a page shows live data. A scroll area whose content displays a secret value receives its scroll range, and sometimes its offset, as a secret number from the client. Scrollbars, mouse-wheel scrolling, track paging, thumb dragging, animated scrolling, page rebuilds, the Profiles import box and the installer now read these values through secret-safe helpers. These helpers fall back to the last readable range, then to the content height, and hide the scrollbar if neither is available.
 - **Removed** - The standalone global-search module (`Config/GlobalSearch.lua`) has been replaced by the search built into the new window. Studios that queried it continue to work without it.
 - **Note** - Labels on the new pages are currently available in French and English only; the other languages display English.
-- **Internal** - Added the shared page toolkit (`Config/Kit.lua`) and two regression tests: one checks that every page key used in the repository resolves to a registered page, and one builds every page headlessly. The Layout gear and local-regression tests were adapted to the new window.
+- **Internal** - Added the shared page toolkit (`Config/Kit.lua`) and two regression tests: one checks that every page key used in the repository resolves to a registered page, and one builds every page headlessly. The Layout gear and local-regression tests were adapted to the new window. A third test (`test_scroll_secret_safe.lua`) checks that the scroll helpers never return a secret value and that no direct scroll-range read remains in the options addon.
 
 #### Release Notes And Version Metadata
 

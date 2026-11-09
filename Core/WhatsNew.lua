@@ -66,12 +66,14 @@ CHANGELOG = {
         version = "4.1.2",
         highlights = {
             L["wn_412_tomoscore_combat_close"],
+            L["wn_412_teleport_combat"],
             L["wn_412_forever_removed"],
             L["wn_412_tooltip_anchor"],
             L["wn_412_fade_checkboxes"],
             L["wn_412_diag_paging_fade"],
             L["wn_412_gui_v2"],
             L["wn_412_gui_pages"],
+            L["wn_412_scroll_secret"],
         },
     },
     {

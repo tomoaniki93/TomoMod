@@ -499,7 +499,7 @@ function C.RebuildCurrentPage()
     -- the page glide, so the player does not lose their place.
     local offset
     if entry and entry.panel and entry.panel.scroll and entry.panel.scroll.GetVerticalScroll then
-        offset = entry.panel.scroll:GetVerticalScroll()
+        offset = W.ScrollPos(entry.panel.scroll)
     end
     if entry then
         if def and def.onHide then pcall(def.onHide) end
@@ -515,7 +515,7 @@ function C.RebuildCurrentPage()
     local sc = offset and offset > 0 and ne and ne.panel and ne.panel.scroll
     if sc then
         C_Timer.After(0, function()
-            local range = sc:GetVerticalScrollRange() or 0
+            local range = W.ScrollRange(sc)
             sc:SetVerticalScroll(math.min(offset, range))
             if ne.panel.UpdateScroll then ne.panel.UpdateScroll() end
         end)

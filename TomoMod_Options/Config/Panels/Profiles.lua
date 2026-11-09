@@ -172,8 +172,8 @@ local function ShowExportPopup(exportStr)
     scroll:SetScrollChild(eb)
 
     scroll:SetScript("OnMouseWheel", function(self, delta)
-        local range = self:GetVerticalScrollRange() or 0
-        local pos   = (self:GetVerticalScroll() or 0) - delta * 36
+        local range = W.ScrollRange(self)
+        local pos   = W.ScrollPos(self) - delta * 36
         if pos < 0 then pos = 0 elseif pos > range then pos = range end
         self:SetVerticalScroll(pos)
     end)

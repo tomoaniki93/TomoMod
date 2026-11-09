@@ -206,8 +206,17 @@ function TM:BuildMenu()
     -- covering the paper-doll/stat area.  It is parented to UIParent so the
     -- CharacterFrame cannot affect its strata, but it follows the Character
     -- Sheet scale and position.
+    -- The frame holds secure teleport buttons, which makes it protected:
+    -- SetScale / ClearAllPoints / SetPoint are refused in combat (opening
+    -- the Character Sheet mid-fight raised ADDON_ACTION_BLOCKED). The anchor
+    -- set out of combat still follows the sheet; the refresh waits.
     local function PositionMenu()
         if not CharacterFrame then return end
+        if InCombatLockdown() then
+            TM._positionPending = true
+            return
+        end
+        TM._positionPending = nil
         local uiScale = UIParent:GetEffectiveScale() or 1
         local charScale = CharacterFrame:GetEffectiveScale() or uiScale
         frame:SetScale(charScale / uiScale)
@@ -505,6 +514,9 @@ function TM:Initialize()
         if event == "PLAYER_REGEN_ENABLED" then
             if TM._refreshPending or (TM.Frame and TM.Frame:IsShown()) then
                 TM:Refresh()
+            end
+            if TM._positionPending and TM.Frame and TM.Frame.PositionMenu then
+                TM.Frame.PositionMenu()
             end
             if TM._hideMenuPending then
                 TM._hideMenuPending = nil

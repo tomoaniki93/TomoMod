@@ -729,7 +729,7 @@ local function GetOrBuildPage(key)
         local ratio = sfH / cH
         local thH   = math.max(20, math.floor(trkH * ratio))
         thumbF:SetHeight(thH)
-        local cur = sf:GetVerticalScroll()
+        local cur = TomoMod_Widgets.ScrollPos(sf)
         local thY = (maxS > 0) and (cur / maxS) * (trkH - thH) or 0
         thumbF:ClearAllPoints()
         thumbF:SetPoint("TOPRIGHT", p, "TOPRIGHT", -SCROLL_PAD, -(SCROLL_PAD + thY))
@@ -738,8 +738,8 @@ local function GetOrBuildPage(key)
 
     sf:EnableMouseWheel(true)
     sf:SetScript("OnMouseWheel", function(self, delta)
-        local cur = self:GetVerticalScroll()
-        self:SetVerticalScroll(math.max(0, math.min(cur - delta * 36, self:GetVerticalScrollRange())))
+        local W = TomoMod_Widgets
+        self:SetVerticalScroll(math.max(0, math.min(W.ScrollPos(self) - delta * 36, W.ScrollRange(self))))
         Upd()
     end)
     sf:SetScript("OnShow",        function(self) C_Timer.After(0, Upd) end)

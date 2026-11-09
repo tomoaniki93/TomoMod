@@ -15,6 +15,44 @@ TomoMod_Widgets = {}
 local W = TomoMod_Widgets
 
 -- =====================================================================
+-- SECRET-SAFE SCROLL METRICS
+-- A ScrollFrame whose content holds a secret value (a live preview showing
+-- real health, a unit name...) reports its scroll range, and sometimes its
+-- offset, as a secret number. Comparing one from addon code raises
+-- "attempt to compare ... a secret number value". Every scroll computation
+-- in TomoMod_Options reads these two metrics through the helpers below.
+-- =====================================================================
+local function PlainNumber(v)
+    if type(v) ~= "number" then return nil end
+    if issecretvalue and issecretvalue(v) then return nil end
+    return v
+end
+
+--- Vertical scroll range, never secret. A secret answer falls back to the
+--- last range read in clear for this frame, then to the scroll child's
+--- height minus the viewport, then to 0 (scrollbar hidden).
+function W.ScrollRange(sf)
+    if not (sf and sf.GetVerticalScrollRange) then return 0 end
+    local r = PlainNumber(sf:GetVerticalScrollRange())
+    if r then
+        sf._tmLastRange = r
+        return r
+    end
+    if sf._tmLastRange then return sf._tmLastRange end
+    local child = sf.GetScrollChild and sf:GetScrollChild()
+    local ch = child and PlainNumber(child:GetHeight())
+    local h  = PlainNumber(sf:GetHeight()) or 0
+    if ch then return math.max(ch - h, 0) end
+    return 0
+end
+
+--- Current vertical offset, never secret (0 when the client hides it).
+function W.ScrollPos(sf)
+    if not (sf and sf.GetVerticalScroll) then return 0 end
+    return PlainNumber(sf:GetVerticalScroll()) or 0
+end
+
+-- =====================================================================
 -- THEME
 -- =====================================================================
 W.Theme = {
@@ -875,7 +913,7 @@ function W.CreateScrollPanel(parent)
         -- anchored children while the ScrollChild itself keeps its bootstrap
         -- height of 1px. ScrollFrame already knows the real range, so use it
         -- as the single source of truth.
-        local maxS = scroll:GetVerticalScrollRange() or 0
+        local maxS = W.ScrollRange(scroll)
         if maxS <= 0 or scrollH <= 0 then
             thumbFrame:Hide(); track:Hide(); trackEdge:Hide(); trackHit:Hide(); return
         end
@@ -887,7 +925,7 @@ function W.CreateScrollPanel(parent)
         local thumbH   = math.min(trackH, math.max(math.floor(trackH * ratio), THUMB_MIN_H))
         thumbFrame:SetHeight(thumbH)
 
-        local cur    = math.max(0, math.min(scroll:GetVerticalScroll() or 0, maxS))
+        local cur    = math.max(0, math.min(W.ScrollPos(scroll), maxS))
         local travel = math.max(trackH - thumbH, 0)
         local thumbY = (maxS > 0) and ((cur / maxS) * travel) or 0
         thumbFrame:ClearAllPoints()
@@ -896,8 +934,8 @@ function W.CreateScrollPanel(parent)
 
     scroll:EnableMouseWheel(true)
     scroll:SetScript("OnMouseWheel", function(self, delta)
-        local cur = self:GetVerticalScroll()
-        local max = self:GetVerticalScrollRange()
+        local cur = W.ScrollPos(self)
+        local max = W.ScrollRange(self)
         self:SetVerticalScroll(math.max(0, math.min(cur - delta * 36, max)))
         UpdateThumb()
     end)
@@ -909,13 +947,13 @@ function W.CreateScrollPanel(parent)
     -- behaves: with a failing wheel this is the fastest way down a long tab.
     trackHit:SetScript("OnMouseDown", function(self)
         local scrollH = scroll:GetHeight() or 0
-        local maxS    = scroll:GetVerticalScrollRange() or 0
+        local maxS    = W.ScrollRange(scroll)
         if maxS <= 0 then return end
         local _, cursorY = GetCursorPosition()
         cursorY = cursorY / UIParent:GetEffectiveScale()
         local thumbTop    = thumbFrame:GetTop()    or 0
         local thumbBottom = thumbFrame:GetBottom() or 0
-        local cur  = scroll:GetVerticalScroll()
+        local cur  = W.ScrollPos(scroll)
         local step = scrollH * 0.9
         local dest = cur
         if cursorY > thumbTop then
@@ -932,13 +970,13 @@ function W.CreateScrollPanel(parent)
     local dragStartY, dragStartScroll
     thumbFrame:SetScript("OnDragStart", function(self)
         dragStartY      = select(2, GetCursorPosition()) / UIParent:GetEffectiveScale()
-        dragStartScroll = scroll:GetVerticalScroll()
+        dragStartScroll = W.ScrollPos(scroll)
         self:SetScript("OnUpdate", function()
             local curY      = select(2, GetCursorPosition()) / UIParent:GetEffectiveScale()
             local delta     = dragStartY - curY
             local scrollH   = scroll:GetHeight() or 0
             local trackH    = math.max(scrollH - 2 * TRACK_PAD_V, 1)
-            local maxScroll = scroll:GetVerticalScrollRange() or 0
+            local maxScroll = W.ScrollRange(scroll)
             if maxScroll <= 0 then return end
 
             local contentH = scrollH + maxScroll
@@ -989,7 +1027,7 @@ function W.SmoothScrollTo(panel, target, onArrive)
     local scroll = panel and (panel.scroll or panel)
     if not (scroll and scroll.SetVerticalScroll) then return end
 
-    local maxScroll = scroll:GetVerticalScrollRange() or 0
+    local maxScroll = W.ScrollRange(scroll)
     target = math.max(0, math.min(target or 0, maxScroll))
 
     local driver = panel._tmScrollDriver
@@ -998,7 +1036,7 @@ function W.SmoothScrollTo(panel, target, onArrive)
         panel._tmScrollDriver = driver
     end
 
-    local from    = scroll:GetVerticalScroll() or 0
+    local from    = W.ScrollPos(scroll)
     local elapsed = 0
     driver:SetScript("OnUpdate", function(self, dt)
         elapsed = elapsed + dt
@@ -2955,7 +2993,7 @@ function W.CreateMultiLineEditBox(parent, labelText, height, yOffset, opts)
     SC(thumb, T.accent)
 
     local function UpdateSB()
-        local range = scrollFrame:GetVerticalScrollRange() or 0
+        local range = W.ScrollRange(scrollFrame)
         local viewH = scrollFrame:GetHeight() or 1
         if range <= 0 then thumbFrame:Hide(); track:Hide(); return end
         track:Show(); thumbFrame:Show()
@@ -2963,14 +3001,14 @@ function W.CreateMultiLineEditBox(parent, labelText, height, yOffset, opts)
         local ratio  = viewH / (viewH + range)
         local thumbH = math.max(math.floor(trackH * ratio), 20)
         thumbFrame:SetHeight(thumbH)
-        local cur = scrollFrame:GetVerticalScroll() or 0
+        local cur = W.ScrollPos(scrollFrame)
         local y   = (cur / range) * (trackH - thumbH)
         thumbFrame:SetPoint("TOPRIGHT", -2, -(24 + y))
     end
     scrollFrame:EnableMouseWheel(true)
     scrollFrame:SetScript("OnMouseWheel", function(self, delta)
-        local range = self:GetVerticalScrollRange() or 0
-        local cur   = self:GetVerticalScroll() or 0
+        local range = W.ScrollRange(self)
+        local cur   = W.ScrollPos(self)
         local step  = 20
         local newv  = cur - delta * step
         if newv < 0 then newv = 0 elseif newv > range then newv = range end
