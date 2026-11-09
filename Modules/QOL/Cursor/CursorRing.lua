@@ -106,8 +106,17 @@ function TomoMod_CursorRing.SetupTooltipAnchor()
             local py = math.floor((y / scale) + 0.5) + 15
             if px == ttLastPX and py == ttLastPY then return end
             ttLastPX, ttLastPY = px, py
-            -- [PERF] SetPoint(1) replaces anchor #1 in-place (avoids ClearAllPoints layout invalidation)
+            -- Replace every anchor: SetPoint alone keeps the owner's other
+            -- points, and when one of them chains back to the tooltip (map
+            -- pins, HandyNotes) the client raises "anchor family connection".
+            -- Same position = early return above, so this stays cheap.
+            self:ClearAllPoints()
             self:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", px, py)
+        end)
+        -- A new owner re-anchors the tooltip on show: forget the last
+        -- position so the first update re-applies the cursor anchor.
+        GameTooltip:HookScript("OnHide", function()
+            ttLastPX, ttLastPY = 0, 0
         end)
         tooltipHooked = true
     end

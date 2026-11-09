@@ -449,7 +449,15 @@ local function BuildFadeTab(parent)
     for _, def in ipairs(fadeBarKeys) do
         local bar = db.bars[def.key]
         if type(bar) ~= "table" then bar = {}; db.bars[def.key] = bar end
-        local checked = bar.fadeEnabled ~= false
+        -- nil means "follow the global switch" (the engine resolves it the
+        -- same way). Showing nil as checked while the switch is off made a
+        -- simple uncheck/recheck store true and fade the bar for good.
+        local checked
+        if bar.fadeEnabled == nil then
+            checked = f.enabled == true
+        else
+            checked = bar.fadeEnabled == true
+        end
         local _, ny2 = W.CreateCheckbox(c, def.label, checked, y,
             function(v)
                 bar.fadeEnabled = v

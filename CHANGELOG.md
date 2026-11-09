@@ -10,10 +10,25 @@
 
 - **Fixed** - Layout mode no longer selects or opens settings for Mythic+, Prey, Skyriding, action bars, Compass or Consumables on WoW: Forever. The character-sheet M+ Score widget is also hidden when Mythic+ is unavailable.
 
+#### Cursor Tooltip — Anchor Conflicts
+
+- **Fixed** - The cursor-anchored tooltip now clears every anchor point before following the cursor. Previously only the first anchor was replaced; when an owner's remaining anchor chained back to the tooltip (map pins, HandyNotes), the client raised an "anchor family connection" error.
+- **Fixed** - The last cursor position is reset when the tooltip hides, so a tooltip shown by a new owner is always re-anchored to the cursor on its first update.
+
+#### Action Bars — Per-Bar Fade Checkboxes
+
+- **Fixed** - In the Fade tab, a bar without its own fade setting now shows the state of the global "Fade the bars out" switch, matching how the fade engine resolves it. Previously such a bar appeared checked while the global switch was off, and unchecking then rechecking it stored an explicit value that kept the bar faded permanently.
+
+#### Diagnostics — Bar 1 Paging And Mouseover Fade
+
+- **New** - The action-bar section of the diagnostic report now describes Bar 1 paging: whether the page driver is installed, the page last applied, the driver condition and what it resolves to now, every paging condition currently true (stealth, shapeshift, bonus bars, skyriding, modifiers…), the form and skyriding paging options and the availability of the action-bar functions used by the paging snippet.
+- **New** - The report also describes mouseover fade: the global fade settings and, for each bar, its stored value, the effective decision (faded or shown, including "always show") and the alpha last applied by the fade engine. A wrong page or an invisible bar produces no error, so these lines show which setting is responsible.
+- **Internal** - Each new probe runs in its own protected call and reports its own error without interrupting the rest of the report. Added regression cases for a stealthed Rogue report and for a bar whose page driver was never registered.
+
 #### Release Notes And Version Metadata
 
 - **Changed** - All 13 TomoMod `.toc` manifests now declare version 4.1.2.
-- **Changed** - The What's New popup and changelog page include the 4.1.2 fix in English, French, German, Spanish, Italian and Brazilian Portuguese. Previous release notes remain available.
+- **Changed** - The What's New popup and changelog page include the 4.1.2 fixes and additions in English, French, German, Spanish, Italian and Brazilian Portuguese. Previous release notes remain available.
 
 ## ####################################
 

@@ -67,6 +67,9 @@ CHANGELOG = {
         highlights = {
             L["wn_412_tomoscore_combat_close"],
             L["wn_412_forever_layout"],
+            L["wn_412_tooltip_anchor"],
+            L["wn_412_fade_checkboxes"],
+            L["wn_412_diag_paging_fade"],
         },
     },
     {

@@ -341,5 +341,85 @@ do
     expect("gestionnaire remplacé par un tiers laissé en place", handler == replaced)
 end
 
+-- ---------------------------------------------------------------------
+-- 7. Paging Barre 1 et fondu (rapport voleur 4.1.1, 2026-11-08)
+--
+-- Rapport : en furtivité (bonusOffset=1), btn1.action=1 au lieu de 73, et
+-- conteneur bar1/stance à alpha 0 sans aucune erreur. Le rapport doit
+-- désormais dire quelle clause du driver de page a gagné, quelles
+-- fonctions du snippet existent, et quelles barres le fondu cible.
+-- ---------------------------------------------------------------------
+print("Paging Barre 1 et fondu (voleur en furtivité)")
+do
+    local env = MakeEnv({ conds = { ["[shapeshift]"] = true, ["[stealth]"] = true, ["[bonusbar:1]"] = true } })
+    env.HasBonusActionBar = function() return true end
+    env.GetBonusBarOffset = function() return 1 end
+    local driver = "[overridebar] override; [vehicleui][possessbar][shapeshift] possess; "
+        .. "[bonusbar:5] 11; [bonusbar:4] 10; [bonusbar:3] 9; [bonusbar:2] 8; [bonusbar:1] 7; 1"
+    local container = Frame({ name = "TUI_ActionBar_bar1", attrs = { ["state-page"] = "possess" } })
+    container._tomomodPagingSnippetInstalled = true
+    local states = {}
+    env.TomoModDB = { actionBars = {
+        enabled = true, engine = "owned",
+        fade = { enabled = false, fadeOutAlpha = 0, fadeOutDelay = 0.5, linkBars1to8 = true },
+        bars = {
+            bar1 = { fadeEnabled = true, disableFormPaging = false },
+            bar2 = { fadeEnabled = nil },
+            bar3 = { fadeEnabled = true, alwaysShow = true },
+            stance = { fadeEnabled = true },
+        },
+    } }
+    env.TomoMod_TuiNS = {
+        ActionBarsOwned = {
+            initialized = true, containers = { bar1 = container }, nativeButtons = {},
+            fadeState = { bar1 = { currentAlpha = 0 }, stance = { currentAlpha = 0 } },
+            BuildPagingCondition = function() return "REBUILT" end,
+        },
+        ActionBarsEnv = {
+            ALL_MANAGED_BAR_KEYS = { "bar1" },
+            GetFrameState = function(f)
+                states[f] = states[f] or { pagingDriver = driver, pagingInstalled = true }
+                return states[f]
+            end,
+        },
+    }
+    local good, err, out = Run(env)
+    expect("pas d'erreur", good)
+    if not good then print("    " .. tostring(err)) end
+    expect("aucune erreur de sonde", out:find("probe error", 1, true) == nil)
+    expect("paging installé, state-page lu",
+        out:find("Bar1 paging: installed=true snippet=true state-page=possess regErr=nil disableFormPaging=false", 1, true) ~= nil)
+    expect("driver enregistré, évalué à possess",
+        out:find('driver(registered)="' .. driver .. '" -> possess', 1, true) ~= nil)
+    expect("conditions vraies listées",
+        out:find("conditions true: [shapeshift]=YES [stealth]=YES [bonusbar:1]=YES", 1, true) ~= nil)
+    expect("fonction du snippet absente signalée", out:find("HasVehicleActionBar=absent", 1, true) ~= nil)
+    expect("fonction présente évaluée", out:find("HasBonusActionBar=true", 1, true) ~= nil
+        and out:find("GetBonusBarOffset=1", 1, true) ~= nil)
+    expect("réglages globaux du fondu", out:find("Fade: enabled=false outAlpha=0 delay=0.50", 1, true) ~= nil)
+    expect("bar1 : true explicite = FADE malgré le global off", out:find("bar1=FADE(true a=0)", 1, true) ~= nil)
+    expect("bar2 : nil suit le global", out:find("bar2=shown(nil a=nil)", 1, true) ~= nil)
+    expect("bar3 : alwaysShow gagne", out:find("bar3=shown(true,alwaysShow a=nil)", 1, true) ~= nil)
+    expect("stance : FADE", out:find("stance=FADE(true a=0)", 1, true) ~= nil)
+    if os.getenv("PROBE_PRINT") then print(out) end
+end
+do
+    -- Driver jamais enregistré : la sonde reconstruit et le dit.
+    local env = MakeEnv({})
+    local container = Frame({ name = "TUI_ActionBar_bar1" })
+    env.TomoModDB = { actionBars = { enabled = true } }
+    env.TomoMod_TuiNS = {
+        ActionBarsOwned = { initialized = true, containers = { bar1 = container }, nativeButtons = {},
+            BuildPagingCondition = function() return "1" end },
+        ActionBarsEnv = { ALL_MANAGED_BAR_KEYS = { "bar1" }, GetFrameState = function() return {} end },
+    }
+    local good, err, out = Run(env)
+    expect("driver absent : pas d'erreur", good)
+    if not good then print("    " .. tostring(err)) end
+    expect("driver absent : installed=nil", out:find("Bar1 paging: installed=nil", 1, true) ~= nil)
+    expect("driver absent : reconstruit", out:find('driver(rebuilt)="1" -> 1', 1, true) ~= nil)
+    expect("fondu sans DB : pas d'erreur de sonde", out:find("probe error", 1, true) == nil)
+end
+
 print(ok and "\nTOUT EST VERT" or "\nDES TESTS ONT ÉCHOUÉ")
 os.exit(ok and 0 or 1)

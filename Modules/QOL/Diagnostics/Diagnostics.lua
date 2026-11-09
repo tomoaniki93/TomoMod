@@ -1954,6 +1954,101 @@ function ABProbe.Frame(frame)
         ABProbe.Str(strata), ABProbe.Str(level), ABProbe.Str(ABProbe.M(frame, "GetNumPoints")))
 end
 
+-- Bar 1 paging. The page is chosen by a secure state driver on the bar1
+-- container; a wrong page leaves no error behind. Report the registered
+-- driver, the state the driver last pushed, what the driver resolves to
+-- right now, and every condition it can stop on, so a report taken in a
+-- form (stealth, cat, bear, skyriding) shows which clause won.
+ABProbe.PAGING_CONDS = {
+    "[overridebar]", "[vehicleui]", "[possessbar]", "[shapeshift]", "[stealth]",
+    "[bonusbar:1]", "[bonusbar:2]", "[bonusbar:3]", "[bonusbar:4]", "[bonusbar:5]",
+    "[bar:2]", "[bar:3]", "[bar:4]", "[bar:5]", "[bar:6]",
+    "[mod:alt]", "[mod:shift]", "[mod:ctrl]", "[help]", "[harm]",
+}
+
+function ABProbe.Paging(lines, ABO, env, abDB)
+    local c = ABO.containers and ABO.containers.bar1
+    if not c then
+        lines[#lines + 1] = "Bar1 paging: no bar1 container"
+        return
+    end
+    local getState = rawget(env, "GetFrameState")
+    local st = getState and ABProbe.Call(getState, c)
+    local driver = st and st.pagingDriver
+    local source = "registered"
+    if not driver then
+        driver = ABProbe.Call(ABO.BuildPagingCondition)
+        source = "rebuilt"
+    end
+    local bar1DB = abDB and type(abDB.bars) == "table" and abDB.bars.bar1
+    if type(bar1DB) ~= "table" then bar1DB = nil end
+    lines[#lines + 1] = string.format(
+        "Bar1 paging: installed=%s snippet=%s state-page=%s regErr=%s disableFormPaging=%s disableSkyridingPaging=%s",
+        ABProbe.Str(st and st.pagingInstalled),
+        ABProbe.Str(rawget(c, "_tomomodPagingSnippetInstalled")),
+        ABProbe.Str(ABProbe.M(c, "GetAttribute", "state-page")),
+        ABProbe.Str(st and st.pagingRegisterError),
+        ABProbe.Str(bar1DB and bar1DB.disableFormPaging),
+        ABProbe.Str(bar1DB and bar1DB.disableSkyridingPaging))
+    lines[#lines + 1] = string.format("   driver(%s)=\"%s\" -> %s",
+        source, ABProbe.Str(driver),
+        ABProbe.Str(driver and ABProbe.Call(SecureCmdOptionParse, driver)))
+    local yes = {}
+    for _, cond in ipairs(ABProbe.PAGING_CONDS) do
+        local r = ABProbe.Cond(cond)
+        if r ~= "no" then yes[#yes + 1] = cond .. "=" .. r end
+    end
+    lines[#lines + 1] = "   conditions true: " .. (#yes > 0 and table.concat(yes, " ") or "none")
+    local snippetFns = {
+        "HasVehicleActionBar", "HasOverrideActionBar", "HasTempShapeshiftActionBar",
+        "HasBonusActionBar", "GetBonusBarIndex", "GetBonusBarOffset",
+    }
+    -- Lua-side globals only: the restricted environment has its own table,
+    -- so "absent" here is a strong hint, not proof, for the secure snippet.
+    local G = type(_G) == "table" and _G or {}
+    local fns = {}
+    for _, name in ipairs(snippetFns) do
+        local fn = rawget(G, name)
+        local v = type(fn) == "function" and ABProbe.Call(fn) or nil
+        fns[#fns + 1] = name .. "=" .. (type(fn) == "function" and ABProbe.Str(v) or "absent")
+    end
+    lines[#lines + 1] = "   lua globals: " .. table.concat(fns, " ")
+end
+
+-- Mouseover fade. A faded bar is only an alpha on its container: the
+-- visibility driver still says "show" and nothing errors. Report the global
+-- switch and, per bar, the stored value, the effective decision and the
+-- alpha the fade engine last applied.
+ABProbe.FADE_KEYS = { "bar1", "bar2", "bar3", "bar4", "bar5", "bar6", "bar7", "bar8", "pet", "stance" }
+
+function ABProbe.Fade(lines, ABO, abDB)
+    local fade = abDB and type(abDB.fade) == "table" and abDB.fade or nil
+    lines[#lines + 1] = string.format(
+        "Fade: enabled=%s outAlpha=%s delay=%s combatShow=%s link1to8=%s belowMaxLevel=%s spellbook=%s",
+        ABProbe.Str(fade and fade.enabled), ABProbe.Str(fade and fade.fadeOutAlpha),
+        ABProbe.Str(fade and fade.fadeOutDelay), ABProbe.Str(fade and fade.alwaysShowInCombat),
+        ABProbe.Str(fade and fade.linkBars1to8), ABProbe.Str(fade and fade.disableBelowMaxLevel),
+        ABProbe.Str(fade and fade.showWhenSpellBookOpen))
+    local bars = abDB and type(abDB.bars) == "table" and abDB.bars or {}
+    local states = type(ABO.fadeState) == "table" and ABO.fadeState or {}
+    local parts = {}
+    for _, key in ipairs(ABProbe.FADE_KEYS) do
+        local b = type(bars[key]) == "table" and bars[key] or nil
+        local stored = b and b.fadeEnabled
+        local effective = stored
+        if effective == nil then effective = fade and fade.enabled or false end
+        if b and b.alwaysShow then effective = false end
+        local fs = type(states[key]) == "table" and states[key] or nil
+        parts[#parts + 1] = string.format("%s=%s(%s%s a=%s)", key,
+            effective and "FADE" or "shown", ABProbe.Str(stored),
+            (b and b.alwaysShow) and ",alwaysShow" or "",
+            ABProbe.Str(fs and fs.currentAlpha))
+    end
+    for i = 1, #parts, 5 do
+        lines[#lines + 1] = "   " .. table.concat(parts, " ", i, math.min(i + 4, #parts))
+    end
+end
+
 function ABProbe.Button(btn, env)
     local name = ABProbe.M(btn, "GetName") or "?"
     local parent = ABProbe.M(btn, "GetParent")
@@ -2069,6 +2164,11 @@ local function DescribeActionBars(lines)
             end
         end
     end
+
+    local okPaging, pagingErr = pcall(ABProbe.Paging, lines, ABO, env, abDB)
+    if not okPaging then lines[#lines + 1] = "Bar1 paging: probe error " .. ABProbe.Str(pagingErr) end
+    local okFade, fadeErr = pcall(ABProbe.Fade, lines, ABO, abDB)
+    if not okFade then lines[#lines + 1] = "Fade: probe error " .. ABProbe.Str(fadeErr) end
 
     local stats = tuiNS.SafeCallStats and ABProbe.Call(tuiNS.SafeCallStats)
     if type(stats) == "table" then
