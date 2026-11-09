@@ -1,10 +1,4 @@
-﻿-- [Compat] WoW: Forever has no Mythic+ content. The frames below register
--- CHALLENGE_MODE_* events this client does not define, which throws on
--- the first RegisterEvent and again on every retry.
--- See Core/Compat.lua.
-if TomoMod_Compat and TomoMod_Compat.Blocked("mythicplus") then return end
-
--- =====================================================================
+﻿-- =====================================================================
 -- MythicKeys.lua  Party Key Viewer + Roulette
 -- Keystone data comes from KeySync.lua, TomoMod's own sharing module.
 -- /tmt key -> list party keystones in group chat

@@ -286,19 +286,15 @@ local function SyncActionButtonUseKeyDownCVar(value)
     return ok
 end
 
--- Whether the owned engine may run on this client. Forever builds without
--- restricted execution cannot run TomoMod's secure action-bar snippets.
+-- Whether the owned engine may run. Every entry point (ADDON_LOADED,
+-- TomoLayout via SetEditModeEnabled, the Blizzard_ActionBar hook,
+-- layout-mode registration) goes through this, so it stays as the single
+-- switch even though nothing blocks the engine on Retail today.
 --
 -- Do NOT gate this on actionBars.enabled here. The owned engine historically
--- ignored that master flag, so enforcing it in this Forever compatibility
--- hotfix can unexpectedly remove bars from existing Retail profiles whose
--- saved flag is false. That behaviour can be migrated separately later.
--- Every entry point (ADDON_LOADED, TomoLayout via SetEditModeEnabled, the
--- Blizzard_ActionBar hook, layout-mode registration) goes through this.
+-- ignored that master flag; enforcing it would remove bars from existing
+-- profiles whose saved flag is false.
 function ActionBarsOwned.IsEngineBlocked()
-    if TomoMod_Compat and TomoMod_Compat.Blocked and TomoMod_Compat.Blocked("actionbars") then
-        return true, "client"
-    end
     return false
 end
 
@@ -351,18 +347,9 @@ function ActionBarsOwned:Initialize()
     ownedEventFrame:RegisterEvent("ZONE_CHANGED_INDOORS")
     ownedEventFrame:RegisterEvent("PLAYER_DIFFICULTY_CHANGED")
     ownedEventFrame:RegisterEvent("UPDATE_INSTANCE_INFO")
-    -- WoW: Forever uses the modern ActionBar API surface, but it has no
-    -- Challenge Mode / Mythic+ system. RegisterEvent throws for an event the
-    -- client does not define. Because this initializer runs before BuildBar(),
-    -- an unconditional CHALLENGE_MODE_* registration can leave
-    -- ActionBarsOwned.initialized=true while no owned bars were ever built.
-    -- Keep the whole event family behind the same compatibility gate used by
-    -- the Mythic+ modules themselves.
-    if not (TomoMod_Compat and TomoMod_Compat.Blocked and TomoMod_Compat.Blocked("mythicplus")) then
-        ownedEventFrame:RegisterEvent("CHALLENGE_MODE_START")
-        ownedEventFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
-        ownedEventFrame:RegisterEvent("CHALLENGE_MODE_RESET")
-    end
+    ownedEventFrame:RegisterEvent("CHALLENGE_MODE_START")
+    ownedEventFrame:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+    ownedEventFrame:RegisterEvent("CHALLENGE_MODE_RESET")
     ownedEventFrame:RegisterEvent("ENCOUNTER_START")
     ownedEventFrame:RegisterEvent("ENCOUNTER_END")
     ownedEventFrame:RegisterEvent("UNIT_ENTERED_VEHICLE")

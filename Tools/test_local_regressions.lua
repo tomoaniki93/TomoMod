@@ -63,12 +63,14 @@ check("first explicit show loads and forwards", TomoMod_Config.Show("profiles") 
 TomoMod_Config.Show(); TomoMod_Config.Hide(); TomoMod_Config.InvalidatePanels()
 check("loaded options keep their real methods", loads == 1 and shows == 2 and hides == 1 and invalidations == 1)
 local saves = 0
-local body = assert(read("TomoMod_Options/Config/ConfigUI.lua"):match('configFrame:SetScript%("OnHide", (function%(self%).-\n    end)%)'))
+local body = assert(read("TomoMod_Options/Config/ConfigUI.lua"):match('frame:SetScript%("OnHide", (function%(self%).-\n    end)%)'))
 local make = assert(loadstring("return " .. body))
-local env = { C = { isOpen = true }, StopPerfTicker = function() end, CloseOptionsHelp = function() end,
+local noop = function() end
+local env = { C = { isOpen = true }, W = {}, PAGE_BY_KEY = {},
+    K = { PartyPreview = noop, RaidPreview = noop, CastPreview = noop },
     TomoMod_Profiles = { AutoSaveActiveProfile = function() saves = saves + 1 end } }
 setfenv(make, setmetatable(env, { __index = _G }))
-make()({})
+make()({ SetScript = function() end })
 check("closing loaded window saves current profile", saves == 1 and env.C.isOpen == false)
 
 UF_Elements = {}

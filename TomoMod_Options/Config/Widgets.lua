@@ -1421,6 +1421,15 @@ function W.CreateInfoText(parent, text, yOffset)
     local h    = rawH or 0
     if h < 1 then h = 13 end
     local lines = math.max(1, math.ceil(h / 13))
+    -- The wrap width is not always resolved yet when a page is built (the
+    -- label then reports a single line). Estimate from the text's full width
+    -- against the width the row will get, and keep the larger answer.
+    local w = lbl:GetWidth() or 0
+    if w < 40 then w = ((parent.GetWidth and parent:GetWidth()) or 0) - 40 end
+    local full = lbl.GetUnboundedStringWidth and lbl:GetUnboundedStringWidth()
+    if w >= 40 and type(full) == "number" and full > 0 then
+        lines = math.max(lines, math.ceil(full * 1.08 / w))
+    end
     frame:SetHeight(lines * 15 + 4)
     return frame, yOffset - (lines * 15 + 10)
 end
@@ -1458,6 +1467,12 @@ function W.CreateCheckbox(parent, text, checked, yOffset, callback)
     local lbl = frame:CreateFontString(nil, "OVERLAY")
     lbl:SetFont(FONT, 11, "")
     lbl:SetPoint("LEFT", box, "RIGHT", 8, 0)
+    -- Bounded on the right: in a narrow window a long label wraps onto a
+    -- second line instead of running into the next column or off the card.
+    lbl:SetPoint("RIGHT", frame, "RIGHT", -2, 0)
+    lbl:SetJustifyH("LEFT")
+    lbl:SetWordWrap(true)
+    if lbl.SetMaxLines then lbl:SetMaxLines(2) end
     SC(lbl, T.text)
     lbl:SetText(text)
 
@@ -1534,6 +1549,10 @@ function W.CreateSlider(parent, text, value, minVal, maxVal, step, yOffset, call
     local valBox = CreateFrame("Frame", nil, frame, "BackdropTemplate")
     valBox:SetSize(54, 18)
     valBox:SetPoint("TOPRIGHT", 0, 0)
+    -- The label stops before the badge (one line, cut with "...").
+    lbl:SetPoint("TOPRIGHT", valBox, "TOPLEFT", -6, 0)
+    lbl:SetJustifyH("LEFT")
+    lbl:SetWordWrap(false)
     valBox:SetBackdrop({
         bgFile   = "Interface\\Buttons\\WHITE8x8",
         edgeFile = "Interface\\Buttons\\WHITE8x8",

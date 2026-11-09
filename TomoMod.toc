@@ -1,4 +1,4 @@
-## Interface: 120105, 16001
+## Interface: 120105
 ## 
 ## Title: |cff2e9dd8Tomo|r|cffFFFFFFMod|r
 ## Notes: Complete UI Replacement for WoW.
@@ -41,7 +41,6 @@ Locales\Locale_408.lua
 Locales\Locale_410.lua
 Locales\Locale_411.lua
 Locales\Locale_412.lua
-Locales\Locale_Compat.lua
 
 ## =====================
 ## Core
@@ -50,7 +49,6 @@ Core\Utils.lua
 ## Client flavour gate. Loads before Database.lua because it patches the
 ## defaults, and before every module because each blocked module file
 ## opens with a guard that reads it.
-Core\Compat.lua
 Core\Forge\Forge.lua
 Core\Forge\ForgeIO.lua
 Core\Forge\ForgeText.lua

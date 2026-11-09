@@ -55,11 +55,13 @@ print("── 2. Extraction de la table ──")
 local block = moversSrc:match("local LAYOUT_ROUTES = %{(.-)\n%}")
 assert(block, "LAYOUT_ROUTES introuvable")
 
+-- La destination se termine par "}" ou par "," : une route peut porter des
+-- champs supplémentaires après elle sans disparaître de l'extraction.
 local routes = {}
-for pattern, dest in block:gmatch('%{%s*"([^"]+)",%s*"([%w_]+)"%s*%}') do
+for pattern, dest in block:gmatch('%{%s*"([^"]+)",%s*"([%w_]+)"%s*[,}]') do
     routes[#routes + 1] = { pattern = pattern, category = dest }
 end
-for pattern, cat, page in block:gmatch('%{%s*"([^"]+)",%s*%{%s*category%s*=%s*"([%w_]+)",%s*page%s*=%s*"([%w_]+)"%s*%}%s*%}') do
+for pattern, cat, page in block:gmatch('%{%s*"([^"]+)",%s*%{%s*category%s*=%s*"([%w_]+)",%s*page%s*=%s*"([%w_]+)"%s*%}%s*[,}]') do
     routes[#routes + 1] = { pattern = pattern, category = cat, page = page }
 end
 
@@ -309,45 +311,43 @@ check("movable indépendant de Blizzard Edit Mode",
       setupEditMode:find("Minimap:SetMovable(true)", 1, true) ~= nil
       and setupEditMode:find("EditModeManagerFrame", 1, true) == nil, true)
 
--- UnitFrame configuration belongs to Astral Forge, not to the retired Options
--- workspace. The resolved anchor must preserve the exact selected subject all
--- the way through the load-on-demand Studio launcher.
+-- Unit, cast, resource and group frames are configured in the /tm pages
+-- (Config/Panels/Frames.lua, Groups.lua). Every selectable anchor must
+-- lead to a page that the shell really registers.
 local layoutSrc = read("Core/LayoutV41.lua")
 assert(layoutSrc, "LayoutV41.lua introuvable")
-for anchor, subject in pairs({
-    ["unitFrames.player"]       = "player",
-    ["unitFrames.target"]       = "target",
-    ["unitFrames.targettarget"] = "targettarget",
-    ["unitFrames.focus"]        = "focus",
-    ["unitFrames.pet"]          = "pet",
-    ["unitFrames.bossFrames"]   = "bossframe",
+local pagesSrc = (read("TomoMod_Options/Config/Panels/Frames.lua") or "")
+    .. (read("TomoMod_Options/Config/Panels/Groups.lua") or "")
+for anchor, page in pairs({
+    ["unitFrames.player"]       = "uf_player",
+    ["unitFrames.target"]       = "uf_target",
+    ["unitFrames.targettarget"] = "uf_targettarget",
+    ["unitFrames.focus"]        = "uf_focus",
+    ["unitFrames.pet"]          = "uf_pet",
+    ["unitFrames.bossFrames"]   = "uf_boss",
+    ["resourceBars"]            = "resources",
+    ["castbars.player"]         = "castbar",
+    ["partyFrames"]             = "party",
+    ["raidFrames"]              = "raid",
 }) do
-    check("Astral Forge route " .. anchor,
-          layoutSrc:find('["' .. anchor .. '"] = "' .. subject .. '"', 1, true) ~= nil, true)
+    check("route de page " .. anchor,
+          layoutSrc:find('["' .. anchor .. '"]', 1, true) ~= nil
+          and layoutSrc:find('= "' .. page .. '"', 1, true) ~= nil, true)
+    local registered = pagesSrc:find('key = "' .. page .. '"', 1, true) ~= nil
+        or (page:match("^uf_") and pagesSrc:find('key = "uf_" .. u.key', 1, true) ~= nil
+            and pagesSrc:find('{ key = "' .. page:gsub("^uf_", "") .. '"', 1, true) ~= nil)
+    check("page enregistrée " .. page, registered, true)
 end
-check("UnitFrame configuration prioritizes Astral Forge",
-      layoutSrc:find("OpenSelectionInAstralForge(selectedAnchorID)", 1, true) ~= nil, true)
-check("selected subject reaches the Studio launcher",
-      layoutSrc:find("arg    = subject", 1, true) ~= nil, true)
-check("all Astral UnitFrame movers are selectable",
+check("le réglage ouvre la page", layoutSrc:find("if page then return OpenPage(page) end", 1, true) ~= nil, true)
+check("OpenCategory est relayé par le chargeur",
+      (read("Core/OptionsLoader.lua") or ""):find('"OpenCategory"', 1, true) ~= nil, true)
+check("all UnitFrame movers are selectable",
       layoutSrc:find('"unitFrames.targettarget"', 1, true) ~= nil
       and layoutSrc:find('"unitFrames.pet"', 1, true) ~= nil
       and layoutSrc:find('"unitFrames.bossFrames"', 1, true) ~= nil, true)
 
 check("Party/Raid mover overlays are selectable",
       layoutSrc:find("frame.dragFrame or frame.moverOverlay", 1, true) ~= nil, true)
-for anchor, arg in pairs({
-    ["resourceBars"]   = "resources",
-    ["castbars.player"] = "cast",
-    ["partyFrames"]    = "party",
-    ["raidFrames"]     = "raid",
-}) do
-    local studioBlock = layoutSrc:match('%["' .. anchor:gsub("%.", "%%.") .. '"%]%s*=%s*%{(.-)\n%s*%},') or ""
-    check("dedicated Studio route " .. anchor,
-          studioBlock:find('arg = "' .. arg .. '"', 1, true) ~= nil, true)
-end
-check("dedicated Studios precede legacy Options",
-      layoutSrc:find("OpenSelectionInDedicatedStudio(selectedAnchorID)", 1, true) ~= nil, true)
 check("Studio routes keep the configure shortcut visible",
       layoutSrc:find("if HasSelectionConfiguration() then nudger._config:Show()", 1, true) ~= nil, true)
 

@@ -20,7 +20,8 @@ TomoMod_Config = TomoMod_Config or {}
 local C = TomoMod_Config
 
 local ADDON = "TomoMod_Options"
-local FORWARDED = { "Toggle", "Show", "Hide", "SwitchCategory", "InvalidatePanels" }
+local FORWARDED = { "Toggle", "Show", "Hide", "SwitchCategory", "InvalidatePanels",
+    "OpenCategory", "OpenComfortPage", "OpenStudio", "LaunchStudio", "OpenPageAt" }
 
 local stubs = {}          -- [name] = the stub function we installed
 local loadAttempted = false

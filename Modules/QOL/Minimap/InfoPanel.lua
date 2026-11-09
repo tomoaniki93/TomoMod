@@ -180,7 +180,7 @@ local KEY_TEXT = {
 }
 
 local function MythicPlusAvailable()
-    return not (TomoMod_Compat and TomoMod_Compat.Blocked("mythicplus"))
+    return true
 end
 
 local function ShouldShowKeyButton()

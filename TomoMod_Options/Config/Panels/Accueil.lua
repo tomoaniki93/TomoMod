@@ -688,7 +688,8 @@ end
 -- Each studio keeps its own launcher: this hub only presents and routes.
 -- =====================================================================
 -- Every Studio is opened through TomoMod_Config.OpenStudio, the same entry
--- point as the sidebar, the role guides and the EditMode fallback routes.
+-- point as the sidebar. Only Cooldown and Mythic+ keep a Studio; unit,
+-- group and resource settings live in the /tm pages.
 local function StudioOpener(key)
     return function()
         local C = TomoMod_Config
@@ -716,36 +717,6 @@ local STUDIO_DEFS = {
         open = "dash_studio_mythic_open",
         openFallback = "Open Mythic+ Studio",
         callback = StudioOpener("mythic"),
-    },
-    {
-        addon = "TomoMod_GroupStudio",
-        title = "dash_studio_group_title",
-        titleFallback = "Party & Raid Studio",
-        desc = "dash_studio_group_desc",
-        descFallback = "Configure PartyFrames, RaidFrames and healer indicators with real-time visual previews.",
-        open = "dash_studio_group_open",
-        openFallback = "Open Party & Raid Studio",
-        callback = StudioOpener("group"),
-    },
-    {
-        addon = "TomoMod_ResourceCastStudio",
-        title = "dash_studio_resourcecast_title",
-        titleFallback = "Resource & Cast Studio",
-        desc = "dash_studio_resourcecast_desc",
-        descFallback = "Rebuild ResourceBars visually and configure the Player castbar with permanent real-time previews.",
-        open = "dash_studio_resourcecast_open",
-        openFallback = "Open Resource & Cast Studio",
-        callback = StudioOpener("resourcecast"),
-    },
-    {
-        addon = "TomoMod_AstralForge",
-        title = "dash_studio_astral_title",
-        titleFallback = "Astral Forge Studio",
-        desc = "dash_studio_astral_desc",
-        descFallback = "Advanced creation and editing studio for UnitFrame and Nameplate elements, with layout tools and visual customisation.",
-        open = "dash_studio_astral_open",
-        openFallback = "Open Astral Forge Studio",
-        callback = StudioOpener("astral"),
     },
 }
 
@@ -864,16 +835,6 @@ local function CreateStudiosHub(parent, y)
         Localize("dash_studios_info",
             "Advanced visual editors for the main TomoMod systems."), cy)
     cy = ny
-
-    -- A studio whose game system this client does not have is removed from
-    -- the hub: its tile could only ever report that it failed to load.
-    if TomoMod_Compat and TomoMod_Compat.IsAddOnBlocked then
-        for i = #STUDIO_DEFS, 1, -1 do
-            if TomoMod_Compat.IsAddOnBlocked(STUDIO_DEFS[i].addon) then
-                table.remove(STUDIO_DEFS, i)
-            end
-        end
-    end
 
     local rows = math.ceil(#STUDIO_DEFS / 2)
     local gridH = STUDIO_TILE_H * rows + STUDIO_GAP * math.max(0, rows - 1)

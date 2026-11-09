@@ -398,16 +398,10 @@ end
 --- inspected before it is applied -- to know whether the swap changes
 --- which modules are on, and therefore whether a reload is unavoidable --
 --- and at that point the snapshot is not the live DB yet.
---- Whether this client can run the module at all. A module whose game
---- system does not exist here is not a setting the player can have an
---- opinion about: it reads as off and refuses to be switched on, which
---- is a different thing from being off by choice.
+--- Whether the module exists in this build. Unknown keys read as off and
+--- refuse to be switched on.
 function R.IsAvailable(key)
-    if not manifests[key] then return false end
-    if TomoMod_Compat and TomoMod_Compat.IsModuleBlocked then
-        return not TomoMod_Compat.IsModuleBlocked(key)
-    end
-    return true
+    return manifests[key] ~= nil
 end
 
 function R.IsEnabledIn(source, key)
@@ -437,9 +431,9 @@ end
 function R.SetEnabled(key, value)
     local m = manifests[key]
     if not m or not TomoModDB then return false, false end
-    -- Turning one back on is refused outright; turning it off is allowed
-    -- through, because that is how Compat.EnforceDB and a profile import
-    -- put a stale flag back where it belongs.
+    -- Turning an unknown module on is refused; turning it off is allowed
+    -- through, so a profile import can put a stale flag back where it
+    -- belongs.
     if value and not R.IsAvailable(key) then return false, false end
     value = value and true or false
 

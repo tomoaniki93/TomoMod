@@ -239,16 +239,10 @@ function LC.SetEnabled(key, value, _seen)
     if not m then return report end
     if m.internal or m.toggleModel == "passive" then return report end
 
-    -- Blocked by the client, not by the player. Reported rather than
-    -- silently ignored: the caller is a checkbox or a slash command and
-    -- has to be able to say why nothing happened.
+    -- Unknown module: reported rather than silently ignored.
     if R.IsAvailable and not R.IsAvailable(key) then
         report.value = false
         report.unavailable = true
-        if TomoMod_Compat and TomoMod_Compat.BlockingFeature then
-            local _, label = TomoMod_Compat.BlockingFeature(key)
-            report.unavailableLabel = label
-        end
         return report
     end
 

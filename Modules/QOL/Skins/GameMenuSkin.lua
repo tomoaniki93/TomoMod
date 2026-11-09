@@ -596,12 +596,7 @@ local function PositionTomoModButton()
         btn:ClearAllPoints()
         btn:Show()
 
-        -- Forever has no Store button. Use Options instead of falling back
-        -- to the bottom of the menu. Keep retail's Store placement.
         local anchor = storeBtn or optionsBtn
-        if TomoMod_Compat and TomoMod_Compat.IsForever() then
-            anchor = optionsBtn or storeBtn
-        end
         if anchor then
             btn:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", 0, -8)
             btn:SetPoint("TOPRIGHT", anchor, "BOTTOMRIGHT", 0, -8)
@@ -633,22 +628,6 @@ local function PositionTomoModButton()
     btn:SetSize(w, h)
     btn:ClearAllPoints()
     btn:Show()
-
-    local optionsBtn
-    for _, entry in ipairs(buttons) do
-        local frame = entry.frame
-        if frame == _G.GameMenuButtonOptions or frame == _G.GameMenuButtonSettings
-            or (GAMEMENU_OPTIONS and frame.GetText and frame:GetText() == GAMEMENU_OPTIONS) then
-            optionsBtn = frame
-            break
-        end
-    end
-    if optionsBtn and TomoMod_Compat and TomoMod_Compat.IsForever() then
-        btn:SetPoint("TOPLEFT", optionsBtn, "BOTTOMLEFT", 0, -8)
-        btn:SetPoint("TOPRIGHT", optionsBtn, "BOTTOMRIGHT", 0, -8)
-        GameMenuFrame:SetHeight(GameMenuFrame:GetHeight() + h + 8)
-        return
-    end
 
     local refBtn = nil
     for i = 1, #buttons - 1 do

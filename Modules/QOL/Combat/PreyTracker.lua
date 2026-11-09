@@ -1,8 +1,3 @@
--- [Compat] WoW: Forever has no Midnight prey hunts, so the widget this module
--- reads is never populated.
--- See Core/Compat.lua.
-if TomoMod_Compat and TomoMod_Compat.Blocked("preytracker") then return end
-
 -- =====================================
 -- QOL/Combat/PreyTracker.lua
 --   Displays Prey hunt progress (Midnight expansion)

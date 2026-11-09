@@ -106,14 +106,8 @@ end
 -- MAX LEVEL CHECK
 -- =====================================
 
--- WoW: Forever caps at 60 whatever expansion constants that client carries.
--- Retail asks the client (90 on Midnight) and only then falls back.
-local FOREVER_MAX_LEVEL = 60
-
+-- Ask the client (90 on Midnight) and only then fall back.
 local function MaxPlayerLevel()
-    if TomoMod_Compat and TomoMod_Compat.IsForever and TomoMod_Compat.IsForever() then
-        return FOREVER_MAX_LEVEL
-    end
     if GetMaxLevelForPlayerExpansion then
         local ok, lvl = pcall(GetMaxLevelForPlayerExpansion)
         if ok and type(lvl) == "number" and lvl > 0 then return lvl end
@@ -125,8 +119,8 @@ end
 -- UnitLevel("player") can still report the old one inside that event.
 --
 -- The previous fallback (`xp == 0 and level >= 80`) was a Dragonflight-era
--- constant: on Midnight it hid the bar for a moment right after dinging 80,
--- and on Forever it never fired, leaving an empty bar at 60. The call to
+-- constant: on Midnight it hid the bar for a moment right after dinging 80.
+-- The call to
 -- IsLevelAtEffectiveMaxLevel() also passed no level, so it never answered.
 local function CanGainXP(level)
     level = tonumber(level) or UnitLevel("player") or 0

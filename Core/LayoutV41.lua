@@ -189,14 +189,6 @@ function P.PixelCoordinates(frame)
 end
 
 local function FindFrame(anchorID)
-    local blockedFeature = (anchorID == "mythicTracker" and "mythicplus")
-        or (anchorID == "skyRide" and "skyriding")
-        or (anchorID and anchorID:match("^actionBars%.") and "actionbars")
-    if blockedFeature and TomoMod_Compat and TomoMod_Compat.Blocked
-        and TomoMod_Compat.Blocked(blockedFeature) then
-        return nil
-    end
-
     local barKey = ActionBarKey(anchorID)
     if barKey then
         local owned = ActionBarsOwned()
@@ -488,13 +480,6 @@ end
 function P.SelectFrame(frame)
     if not editModeActive then return false end
     local anchorID = P.ResolveAnchorID(frame)
-    local blockedFeature = anchorID == "mythicTracker" and "mythicplus"
-        or anchorID == "skyRide" and "skyriding"
-        or anchorID and anchorID:match("^actionBars%.") and "actionbars"
-    if blockedFeature and TomoMod_Compat and TomoMod_Compat.Blocked
-        and TomoMod_Compat.Blocked(blockedFeature) then
-        return false
-    end
     if not anchorID or not Store(anchorID) then return false end
     selectedFrame = frame
     selectedAnchorID = anchorID
@@ -576,92 +561,46 @@ local function SelectionRoute()
     end
 end
 
-local ASTRAL_SUBJECT_BY_ANCHOR = {
-    ["unitFrames.player"] = "player",
-    ["unitFrames.target"] = "target",
-    ["unitFrames.targettarget"] = "targettarget",
-    ["unitFrames.focus"] = "focus",
-    ["unitFrames.pet"] = "pet",
-    ["unitFrames.bossFrames"] = "bossframe",
+-- Unit, cast, resource and group frames are edited in the /tm pages, which
+-- stay open beside the frames. The Studios they replaced remain installed
+-- but are no longer where the gear leads.
+local PAGE_BY_ANCHOR = {
+    ["unitFrames.player"]       = "uf_player",
+    ["unitFrames.target"]       = "uf_target",
+    ["unitFrames.targettarget"] = "uf_targettarget",
+    ["unitFrames.focus"]        = "uf_focus",
+    ["unitFrames.pet"]          = "uf_pet",
+    ["unitFrames.bossFrames"]   = "uf_boss",
+    ["unitFrames.target.auras"] = "uf_target",
+    ["unitFrames.focus.auras"]  = "uf_focus",
+    ["resourceBars"]            = "resources",
+    ["castbars.player"]         = "castbar",
+    ["castbars.target"]         = "castbar",
+    ["castbars.focus"]          = "castbar",
+    ["castbars.pet"]            = "castbar",
+    ["castbars.boss"]           = "castbar",
+    ["partyFrames"]             = "party",
+    ["raidFrames"]              = "raid",
+    ["battleRez"]               = "raid",
 }
 
-local DEDICATED_STUDIO_BY_ANCHOR = {
-    ["resourceBars"] = {
-        addon = "TomoMod_ResourceCastStudio",
-        global = "TomoMod_ResourceCastStudio",
-        label = "Resource & Cast Studio",
-        arg = "resources",
-    },
-    ["castbars.player"] = {
-        addon = "TomoMod_ResourceCastStudio",
-        global = "TomoMod_ResourceCastStudio",
-        label = "Resource & Cast Studio",
-        arg = "cast",
-    },
-    ["partyFrames"] = {
-        addon = "TomoMod_GroupStudio",
-        global = "TomoMod_GroupStudio",
-        label = "Party & Raid Studio",
-        arg = "party",
-    },
-    ["raidFrames"] = {
-        addon = "TomoMod_GroupStudio",
-        global = "TomoMod_GroupStudio",
-        label = "Party & Raid Studio",
-        arg = "raid",
-    },
-}
-
-local function OpenSelectionInAstralForge(anchorID)
-    local subject = ASTRAL_SUBJECT_BY_ANCHOR[anchorID]
-    if not subject then return nil end
-
-    local forge = TomoMod_Forge
-    if not (forge and forge.Studio and forge.Studio.Launch) then return false end
-
-    return forge.Studio.Launch({
-        addon  = "TomoMod_AstralForge",
-        global = "TomoMod_AstralForge",
-        label  = "Astral Forge Studio",
-        arg    = subject,
-    })
+local function OpenPage(page)
+    -- Core/OptionsLoader.lua forwards OpenCategory and loads the options
+    -- addon on first use.
+    local cfg = TomoMod_Config
+    if not (cfg and cfg.OpenCategory) then return false end
+    cfg.OpenCategory(page)
+    return true
 end
-P.OpenSelectionInAstralForge = OpenSelectionInAstralForge
-
-local function OpenSelectionInDedicatedStudio(anchorID)
-    local studio = DEDICATED_STUDIO_BY_ANCHOR[anchorID]
-    if not studio then return nil end
-
-    local forge = TomoMod_Forge
-    if not (forge and forge.Studio and forge.Studio.Launch) then return false end
-
-    return forge.Studio.Launch({
-        addon  = studio.addon,
-        global = studio.global,
-        label  = studio.label,
-        arg    = studio.arg,
-    })
-end
-P.OpenSelectionInDedicatedStudio = OpenSelectionInDedicatedStudio
+P.OpenPage = OpenPage
 
 local function HasSelectionConfiguration()
-    return ASTRAL_SUBJECT_BY_ANCHOR[selectedAnchorID] ~= nil
-        or DEDICATED_STUDIO_BY_ANCHOR[selectedAnchorID] ~= nil
-        or SelectionRoute() ~= nil
+    return PAGE_BY_ANCHOR[selectedAnchorID] ~= nil or SelectionRoute() ~= nil
 end
 
 function P.ConfigureSelection()
-    -- UnitFrames are authored in Astral Forge. Route from the resolved layout
-    -- anchor instead of their frame-name category, which still points at the
-    -- hidden legacy Options workspace.
-    local astralResult = OpenSelectionInAstralForge(selectedAnchorID)
-    if astralResult ~= nil then return astralResult end
-
-    -- Resource, cast and group frames are maintained by their dedicated
-    -- studios. Keep legacy Options routing only as a fallback for elements
-    -- that have not migrated to a Studio yet.
-    local studioResult = OpenSelectionInDedicatedStudio(selectedAnchorID)
-    if studioResult ~= nil then return studioResult end
+    local page = PAGE_BY_ANCHOR[selectedAnchorID]
+    if page then return OpenPage(page) end
 
     local movers = TomoMod_Movers
     local route = SelectionRoute()

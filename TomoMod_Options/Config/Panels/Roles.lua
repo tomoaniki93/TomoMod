@@ -387,7 +387,9 @@ end
 -- ---------------------------------------------------------------------
 -- Guide data
 -- ---------------------------------------------------------------------
--- studio   : the Studio that owns the setting (C.OpenStudio key). `route`
+-- page     : the /tm page that holds the setting; `find` = { fr, en } is the
+--            card title to land on and flash there. Wins over `studio`.
+-- studio   : otherwise, the Studio that owns the setting (C.LaunchStudio key). `route`
 --            is the page to open on, in the form the Studio's S.Open takes
 --            (subject/view/section), and `target` the LOCALE KEY of the
 --            option or section header to flash there. The target key may
@@ -410,10 +412,10 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "TANK.tga",
         color  = { 0.28, 0.52, 0.92 },
         cards  = {
-            { key = "np_tankmode", studio = "astral", route = { subject = "nameplate", view = "frame", section = "tank" }, target = "af_v22_sec_tank", section = "section_tank_mode" },
-            { key = "np_buffs",    studio = "astral", route = { subject = "nameplate", view = "frame", section = "enemyBuffs" }, target = "af_v22_sec_enemy_buffs", section = "section_enemy_buffs" },
-            { key = "np_cast",     studio = "astral", route = { subject = "nameplate", view = "frame", section = "castbar" }, target = "af_v22_sec_castbar", section = "section_castbar" },
-            { key = "uf_threat",   studio = "astral", route = { subject = "target", view = "frame", section = "colors" }, target = "opt_threat_text_enable", section = "section_threat_text" },
+            { key = "np_tankmode", page = "nameplates", find = { "Menace", "Threat" }, studio = "astral", route = { subject = "nameplate", view = "frame", section = "tank" }, target = "af_v22_sec_tank", section = "section_tank_mode" },
+            { key = "np_buffs", page = "nameplates", find = { "Auras", "Auras" }, studio = "astral", route = { subject = "nameplate", view = "frame", section = "enemyBuffs" }, target = "af_v22_sec_enemy_buffs", section = "section_enemy_buffs" },
+            { key = "np_cast", page = "nameplates", find = { "Incantations", "Casts" }, studio = "astral", route = { subject = "nameplate", view = "frame", section = "castbar" }, target = "af_v22_sec_castbar", section = "section_castbar" },
+            { key = "uf_threat", page = "uf_target", find = { "Indicateurs", "Indicators" }, studio = "astral", route = { subject = "target", view = "frame", section = "colors" }, target = "opt_threat_text_enable", section = "section_threat_text" },
             { key = "pf_cd",       studio = "group", route = { view = "party", section = "cooldowns" }, target = "pf_section_cooldowns", section = "pf_section_cooldowns" },
             { key = "rb_health",   studio = "resourcecast", route = { view = "resources", section = "health" }, target = "rcs_sec_health", section = "section_rb_healthbar" },
         },
@@ -425,10 +427,10 @@ local ROLE_DEFS = {
         color  = { 0.36, 0.82, 0.42 },
         cards  = {
             { key = "pf_hots",     studio = "group", route = { view = "party", section = "hots" }, target = "pf_section_hots", section = "pf_section_hots" },
-            { key = "pf_dispel",   studio = "group", route = { view = "party", section = "dispel" }, target = "pf_section_dispel", section = "pf_section_dispel" },
+            { key = "pf_dispel", page = "party", find = { "Soins et dissipation", "Healing and dispels" }, studio = "group", route = { view = "party", section = "dispel" }, target = "pf_section_dispel", section = "pf_section_dispel" },
             { key = "rf_extras",   studio = "group", route = { view = "raid", section = "health" }, target = "rf_section_health_extras", section = "rf_section_health_extras" },
-            { key = "rf_debuffs",  studio = "group", route = { view = "raid", section = "hots" }, target = "rf_section_debuffs", section = "rf_section_debuffs" },
-            { key = "rf_range",    studio = "group", route = { view = "raid", section = "range" }, target = "rf_section_range", section = "rf_section_range" },
+            { key = "rf_debuffs", page = "raid", find = { "Débuffs", "Debuffs" }, studio = "group", route = { view = "raid", section = "hots" }, target = "rf_section_debuffs", section = "rf_section_debuffs" },
+            { key = "rf_range", page = "raid", find = { "Portée", "Range" }, studio = "group", route = { view = "raid", section = "range" }, target = "rf_section_range", section = "rf_section_range" },
             { key = "rf_defs",     studio = "group", route = { view = "raid", section = "defensives" }, target = "rf_section_defensives", section = "rf_section_defensives" },
         },
     },
@@ -438,10 +440,10 @@ local ROLE_DEFS = {
         icon   = ROLE_TEX .. "DAMAGER.tga",
         color  = { 0.85, 0.32, 0.32 },
         cards  = {
-            { key = "rb_bars",     studio = "resourcecast", route = { view = "resources", section = "layout" }, target = "rcs_sec_layout", section = "section_dimensions" },
-            { key = "cdm",         cat = "interface", path = { "cdm", "cdm" }, section = "section_cdm_extras" },
-            { key = "np_auras",    studio = "astral", route = { subject = "nameplate", view = "frame", section = "auras" }, target = "af_v22_sec_auras", section = "section_auras" },
-            { key = "np_buffs",    studio = "astral", route = { subject = "nameplate", view = "frame", section = "enemyBuffs" }, target = "af_v22_sec_enemy_buffs", section = "section_enemy_buffs" },
+            { key = "rb_bars", page = "resources", find = { "Taille", "Size" }, studio = "resourcecast", route = { view = "resources", section = "layout" }, target = "rcs_sec_layout", section = "section_dimensions" },
+            { key = "cdm",         page = "cdm", section = "section_cdm_extras" },
+            { key = "np_auras", page = "nameplates", find = { "Auras", "Auras" }, studio = "astral", route = { subject = "nameplate", view = "frame", section = "auras" }, target = "af_v22_sec_auras", section = "section_auras" },
+            { key = "np_buffs", page = "nameplates", find = { "Auras", "Auras" }, studio = "astral", route = { subject = "nameplate", view = "frame", section = "enemyBuffs" }, target = "af_v22_sec_enemy_buffs", section = "section_enemy_buffs" },
             { key = "cb_gcd",      studio = "resourcecast", route = { view = "cast", section = "gcd" }, target = "rcs_sec_cast_gcd", section = "cb_section_gcd" },
             { key = "cb_kick",     studio = "resourcecast", route = { view = "cast", section = "interrupt" }, target = "rcs_sec_cast_interrupt", section = "cb_section_interrupt" },
         },
@@ -453,32 +455,19 @@ local ROLE_DEFS = {
 -- ---------------------------------------------------------------------
 -- Hoisted: one closure for every link button rather than one per button.
 local function OnGotoClick(self)
-    if self._studio then
-        local GS = TomoMod_GlobalSearch
-        if GS and GS.OpenStudioAt then
-            GS.OpenStudioAt(self._studio, self._route, self._target)
-            return
-        end
-        local C = TomoMod_Config
-        if C and C.OpenStudio then C.OpenStudio(self._studio, self._route) end
-        return
-    end
-    local GS = TomoMod_GlobalSearch
-    -- The declared route wins: it names the exact tab at every level, so it
-    -- lands on a page that has never been built and never depends on how far
-    -- ghost indexing has got. JumpToSection stays as the fallback for a card
-    -- with no path, and for a section the route no longer resolves to.
-    if GS and GS.JumpToPath and self._path
-       and GS.JumpToPath(self._cat, self._path, self._sectionText) then
-        return
-    end
-    if GS and GS.JumpToSection then
-        GS.JumpToSection(self._cat, self._sectionText)
-        return
-    end
-    -- GlobalSearch.lua absent: land on the category, no section highlight.
     local C = TomoMod_Config
-    if C and C.SwitchCategory then C.SwitchCategory(self._cat) end
+    if not C then return end
+    if self._page then
+        if C.OpenPageAt then
+            C.OpenPageAt(self._page, self._find)
+        elseif C.OpenCategory then
+            C.OpenCategory(self._page)
+        end
+        return
+    end
+    if self._studio and C.LaunchStudio then
+        C.LaunchStudio(self._studio, self._route)
+    end
 end
 
 local function OnGotoEnter(self)
@@ -486,7 +475,7 @@ local function OnGotoEnter(self)
     self._lbl:SetTextColor(1, 1, 1, 1)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
     GameTooltip:SetText(self._sectionText, 1, 1, 1)
-    GameTooltip:AddLine(self._studio
+    GameTooltip:AddLine((self._studio and not self._page)
         and Localize("roles_goto_studio_tip", "Opens the Studio that holds this setting.")
         or  Localize("roles_goto_tip", "Opens the panel that holds this setting and highlights it."),
         0.62, 0.62, 0.70, true)
@@ -513,8 +502,8 @@ local function CreateGotoButton(parent, def, color, sectionText, yOffset)
     lbl:SetText(Localize("roles_goto", "Aller au réglage →"))
     lbl:SetTextColor(color[1], color[2], color[3], 1)
 
-    btn._cat         = def.cat
-    btn._path        = def.path
+    btn._page        = def.page
+    btn._find        = def.find and ((GetLocale and GetLocale() == "frFR") and def.find[1] or def.find[2])
     btn._studio      = def.studio
     btn._route       = def.route
     btn._target      = def.target

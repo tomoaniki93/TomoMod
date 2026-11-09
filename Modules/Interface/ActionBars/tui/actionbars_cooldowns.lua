@@ -59,8 +59,7 @@ else
 end
 
 do
-    -- TOMOMOD: Forever uses modern cooldown APIs with a 16001 interface.
-    -- Select this path by capability rather than the retail interface number.
+    -- TOMOMOD: select this path by capability rather than the interface number.
     local USE_DURATION_OBJECTS = C_ActionBar ~= nil
         and C_ActionBar.GetActionCooldownDuration ~= nil
         and (tonumber((select(2, GetBuildInfo()))) or 0) >= 66562

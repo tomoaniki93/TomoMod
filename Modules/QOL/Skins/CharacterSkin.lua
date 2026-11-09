@@ -463,8 +463,8 @@ local function SkinReputationChild(child)
             end
         end
 
-        -- Forever uses a ColoredProgressBar Frame with a Fill texture;
-        -- retail reputation rows may still expose a native StatusBar.
+        -- Reputation rows are either a native StatusBar or a
+        -- ColoredProgressBar Frame with a Fill texture.
         if repBar.SetStatusBarTexture then
             repBar:SetStatusBarTexture(ADDON_TEXTURE)
         elseif repBar.Fill and repBar.Fill.SetTexture then
@@ -1599,10 +1599,7 @@ local function SkinCharacterFrame()
     end
 
     -- ===== Mythic+ Score Widget (top-left corner) =====
-    -- Forever has no Mythic+: skip the widget, hooks and challenge events.
-    local mythicPlusBlocked = TomoMod_Compat and TomoMod_Compat.Blocked
-        and TomoMod_Compat.Blocked("mythicplus")
-    if not mythicPlusBlocked then
+    do
         local mplusFrame = CreateFrame("Button", "TomoMod_MythicScoreWidget", CharacterFrame)
         mplusFrame:SetSize(110, 40)
         mplusFrame:SetPoint("TOPLEFT", CharacterFrame, "TOPLEFT", 12, -28)
@@ -1719,11 +1716,6 @@ local function SkinCharacterFrame()
                 C_Timer.After(0.3, UpdateMythicScore)
             end
         end)
-    else
-        -- Also clear a previously-created widget if the client compatibility
-        -- state changed during this session or another skin pass made it first.
-        local oldWidget = _G.TomoMod_MythicScoreWidget
-        if oldWidget then oldWidget:Hide() end
     end
 end
 

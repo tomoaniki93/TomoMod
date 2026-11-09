@@ -6,9 +6,15 @@
 
 - **Fixed** - Closing the TomoScore scoreboard during combat no longer calls the protected `TomoScoreFrame:Hide()` function. The scoreboard contains secure teleport buttons, which also protect their parent frame; closing is now deferred until combat ends.
 
-#### WoW: Forever — Layout Compatibility
+#### WoW: Forever — Support Removed
 
-- **Fixed** - Layout mode no longer selects or opens settings for Mythic+, Prey, Skyriding, action bars, Compass or Consumables on WoW: Forever. The character-sheet M+ Score widget is also hidden when Mythic+ is unavailable.
+- **Note** - WoW: Forever now has its own dedicated addon, **TomoMod Forever**, available on CurseForge: https://www.curseforge.com/wow/addons/tomomod-forever. Forever players should install it instead of TomoMod.
+- **Removed** - TomoMod no longer supports WoW: Forever, since the dedicated TomoMod Forever addon now covers that client, and targets Retail (Midnight) only. The client detection module (`Core/Compat.lua`), the per-feature blocking it drove and the Forever login notice have been removed, and the main `.toc` no longer declares interface 16001. The sub-addon manifests now list only interfaces 120105 and 120100.
+- **Changed** - Mythic+, Housing, Skyriding, World Quests, Compass, Consumables, Prey Tracker and the owned action-bar engine no longer go through a client compatibility gate. Their Options tabs, Comfort pages and Studio tiles are always listed, and their Layout mode anchors, configuration shortcuts and mover entries are always available.
+- **Changed** - The chat sidebar Reload interface shortcut reloads the interface directly again instead of opening chat with `/reload`. The TomoMod game-menu button keeps its placement below Store, and the character-sheet M+ Score widget is always created.
+- **Changed** - Saved profiles are no longer rewritten at login, profile load or import to switch off Forever-blocked modules. The module registry still treats a module unknown to the current build as off and refuses to enable it; switching it off remains allowed so an import can clear a stale flag.
+- **Fixed** - The Layout gear no longer lists the Consumables bar and tracker routes twice. Only one route per frame remains, so the first match is always the intended one.
+- **Internal** - Removed the Forever compatibility suite (`test_compat_forever.lua`) and the Forever cases of the event-hygiene test. The Layout gear test now reads routes that carry extra fields after their destination. All 36 Lua test files, the 81 Python tests and the secret-value lint pass.
 
 #### Cursor Tooltip — Anchor Conflicts
 
@@ -24,6 +30,23 @@
 - **New** - The action-bar section of the diagnostic report now describes Bar 1 paging: whether the page driver is installed, the page last applied, the driver condition and what it resolves to now, every paging condition currently true (stealth, shapeshift, bonus bars, skyriding, modifiers…), the form and skyriding paging options and the availability of the action-bar functions used by the paging snippet.
 - **New** - The report also describes mouseover fade: the global fade settings and, for each bar, its stored value, the effective decision (faded or shown, including "always show") and the alpha last applied by the fade engine. A wrong page or an invisible bar produces no error, so these lines show which setting is responsible.
 - **Internal** - Each new probe runs in its own protected call and reports its own error without interrupting the rest of the report. Added regression cases for a stealthed Rogue report and for a bar whose page driver was never registered.
+
+#### Options — GUI v2
+
+- **New** - The `/tm` options window has been rebuilt as one compact window docked to the right side of the screen, so the frames being edited stay visible. It can be switched to the left edge or moved freely, and resized between 620×440 and 1500×1100.
+- **New** - Ghost mode: the window fades while a slider is dragged or while Alt is held, and can optionally fade while the mouse is away from it.
+- **New** - Every setting on the new pages is applied to the live interface as it changes. Changes that touch protected frames are deferred until combat ends. Ctrl+click on a slider resets it to its default value.
+- **New** - Show me: opening a frame page makes the real frame pulse on screen. While a party, raid or castbar page is open, stand-in previews follow every slider, even when you are not grouped or casting.
+- **New** - Simple and expert modes: simple mode shows the essential cards of each page, and expert mode reveals the advanced settings. Sidebar sections can be collapsed.
+- **New** - The integrated search finds any option, opens its page, scrolls to it and highlights it.
+- **Changed** - The sidebar is organized into Roles, My frames, Party & raid, Combat, Studios, Interface, Comfort and Tools.
+- **Changed** - The new **My frames** pages (each unit frame, boss frames, shared style, castbars, resources) replace the Astral Forge unit-frame editor and the Resource & Cast Studio. The **Party & raid** pages (party, raid, healer indicators) replace the Party & Raid Studio, and the **Nameplates** page under Combat replaces the nameplate half of Astral Forge. Those Studios remain installed but are no longer opened from the options window, the home page or the Layout gear.
+- **Changed** - Only the Cooldown Studio and the Mythic+ Studio keep their own full-screen editors, launched from the Studios section of the sidebar and the home page.
+- **Changed** - The Layout mode gear now opens the matching `/tm` page for unit frames, auras, boss frames, castbars, resources and party/raid frames. Role guide links open the `/tm` page holding the setting and highlight the relevant card.
+- **Changed** - Long option labels now wrap onto a second line in narrow windows instead of overflowing into the next column.
+- **Removed** - The standalone global-search module (`Config/GlobalSearch.lua`) has been replaced by the search built into the new window. Studios that queried it continue to work without it.
+- **Note** - Labels on the new pages are currently available in French and English only; the other languages display English.
+- **Internal** - Added the shared page toolkit (`Config/Kit.lua`) and two regression tests: one checks that every page key used in the repository resolves to a registered page, and one builds every page headlessly. The Layout gear and local-regression tests were adapted to the new window.
 
 #### Release Notes And Version Metadata
 
